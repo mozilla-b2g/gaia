@@ -279,7 +279,10 @@ contacts.app = (function() {
 
     myContact['givenName'] = [givenName.value] || [''];
     myContact['familyName'] = [familyName.value] || [''];
+    // To support middle Names
+    myContact['additionalName'] = [''];
     myContact.name = myContact['givenName'][0];
+    // TODO: Add here the middle name
     myContact.name += ' ' + myContact['familyName'][0];
 
     getPhones(myContact);

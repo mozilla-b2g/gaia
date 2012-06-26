@@ -50,18 +50,6 @@ contacts.List = (function() {
     }
   };
 
-  function normalizeName(contact) {
-    var gname = contact.givenName ? contact.givenName[0] : '';
-    var addName = contact.additionalName ? contact.additionalName[0] : '';
-
-    if(gname.length > 0) {
-      if(addName.length > 0) {
-        gname += ' ' + addName;
-      }
-    }
-    contact.givenName[0] = gname;
-  }
-
   var buildContacts = function buildContacts(contacts, successCb) {
     var group = null;
 
@@ -186,7 +174,6 @@ contacts.List = (function() {
     var ret = [];
 
     ret.push(contact.familyName ? contact.familyName[0] : '');
-    normalizeName(contact);
     ret.push(contact.givenName ? contact.givenName[0] : '');
 
     return ret.join('');
