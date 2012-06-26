@@ -59,6 +59,7 @@ var Recents = {
       var txn = database.transaction(this.STORENAME, 'readwrite');
       var store = txn.objectStore(this.STORENAME);
       var setreq = store.put(recentCall);
+      console.log(JSON.stringify(recentCall));
       setreq.onsuccess = function() {
         //TODO Update commslog when call received/made
 
@@ -81,8 +82,8 @@ var Recents = {
     html_structure += "<div class='grid-cell grid-v-align'><div class='icon ";
 
     // Depending on call type we add icon
-
-    if (recent.type.indexOf('outgoing') != -1) {
+    
+    if (recent.type.indexOf('dialing') != -1) {
       html_structure += 'icon-outgoing';
     } else {
       if (recent.type != 'incoming') {
