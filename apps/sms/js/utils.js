@@ -47,7 +47,7 @@ function giveHourMinute(time) {
       time = time.getTime();
       break;
   }
-  
+
   return (new Date(time)).toLocaleFormat('%R %p');
 }
 

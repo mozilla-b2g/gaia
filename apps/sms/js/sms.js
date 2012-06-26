@@ -372,7 +372,9 @@ var ConversationListView = {
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
            (!conversation.timestamp ? '' :
-           '  <div class="time ' + (conversation.unreadCount > 0 ? 'unread' : '') + '" data-time="' + conversation.timestamp + '">' +
+           '  <div class="time ' +
+           (conversation.unreadCount > 0 ? 'unread' : '') +
+           '  " data-time="' + conversation.timestamp + '">' +
              giveHourMinute(conversation.timestamp) + '</div>') +
            '  <div class="msg">"' + bodyHTML + '"</div>' +
            '<div class="unread-tag"></div>' +
@@ -799,7 +801,7 @@ var ConversationView = {
         var dataId = msg.id; // uuid
 
         var outgoing = (msg.delivery == 'sent' || msg.delivery == 'sending');
-        var num = outgoing ? msg.sender : msg.receiver ;
+        var num = outgoing ? msg.sender : msg.receiver;
         var dataNum = num;
 
         var className = (outgoing ? 'sender' : 'receiver') + '"';
@@ -826,7 +828,7 @@ var ConversationView = {
                     '    <div class="message-bubble"></div>' +
                     '    <div class="time" data-time="' + timestamp + '">' +
                     // '    <div class="time">' +
-                         giveHourMinute(msg.timestamp) + 
+                         giveHourMinute(msg.timestamp) +
                     '    </div>' +
                     '    <div class="text">' + body + '</div>' +
                     '  </div>' +
