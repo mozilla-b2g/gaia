@@ -2,14 +2,14 @@
 <html manifest="manifest.appcache">
   <head>
     <meta charset="utf-8"/>
-    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="pragma" content="no-cache"/>
     <title>Settings</title>
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <link rel="resource" type="application/l10n" href="locale/settings.properties"/>
     <!-- Compatibility -->
-    <script>
+    <script type="text/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -168,6 +168,17 @@
       <ul id="wifi-networks">
         <!-- filled by wifi.js -->
       </ul>
+
+      <h2 hidden data-l10n-id="wifiAdvanced"> Advanced Settings </h2>
+      <ul hidden id="wifi-advanced">
+        <li>
+          <small id="macAddress-desc"></small>
+          <a data-l10n-id="macAddress">MAC Address</a>
+        </li>
+        <li>
+          <button data-l10n-id="manageNetworks">Manage Networks</button>
+        </li>
+      </ul>
     </section>
 
     <!-- Connectivity :: 3G/data -->
@@ -256,7 +267,7 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" name="phone.vibration.incoming"/>
+            <input type="checkbox" name="phone.vibration.incoming" checked="true"/>
             <span></span>
           </label>
           <a data-l10n-id="vibrate">Vibrate</a>
@@ -281,7 +292,7 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" name="sms.vibration.received"/>
+            <input type="checkbox" name="sms.vibration.received" checked="true"/>
             <span></span>
           </label>
           <a data-l10n-id="vibrate">Vibrate</a>
@@ -306,8 +317,10 @@
 
       <ul>
         <li>
+          <label>
+            <progress data-name="screen.brightness" value="5" max="10"></progress>
+          </label>
           <a data-l10n-id="brightness">Brightness level</a>
-          <progress data-name="screen.brightness" value="5" max="10"></progress>
         </li>
         <li>
           <label>
@@ -701,6 +714,8 @@
             <dd data-security>WPA-PSK</dd>
             <dt data-l10n-id="signalStrength">signal strength:</dt>
             <dd data-signal>good</dd>
+            <dt hidden data-l10n-id="linkSpeed">link speed:</dt>
+            <dd hidden data-speed></dd>
           </dl>
           <footer>
             <button data-l10n-id="forget">Forget</button>
