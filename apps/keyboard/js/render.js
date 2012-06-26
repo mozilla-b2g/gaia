@@ -313,14 +313,13 @@ const IMERender = (function() {
 
   // Recalculate dimensions for the current render
   var resizeUI = function(layout) {
-    var changeScale, scale, kbr;
+    var changeScale, scale;
 
     // Font size recalc
-    if (window.innerWidth > 0 && window.innerWidth < window.innerHeight) {
+    if (window.innerWidth <= window.innerHeight) {
       changeScale = window.innerWidth / 32;
       document.documentElement.style.fontSize = changeScale + 'px';
-    }
-    if (window.innerWidth > window.innerHeight) {
+    } else {
       changeScale = window.innerWidth / 64;
       document.documentElement.style.fontSize = changeScale + 'px';
     }
@@ -329,7 +328,6 @@ const IMERender = (function() {
     var layoutWidth = layout.width || 10;
     var totalWidth = document.getElementById('keyboard').clientWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
-    kbr = document.getElementById('keyboard');
 
     var ratio, keys, rows = document.querySelectorAll('.keyboard-row');
     for (var r = 0, row; row = rows[r]; r += 1) {
