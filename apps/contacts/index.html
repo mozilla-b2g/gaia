@@ -217,14 +217,11 @@
                 </p>
               </fieldset>
 
-              <fieldset>
+              <fieldset class="fillflow-row">
                 <legend>Phone numbers</legend>
                   <div id='contacts-form-phones'>
                     <!-- Iterating over phone template here -->
                   </div>
-                <button onclick='return false;' class="fillflow-row-action">
-                  <span role="button" class="icon-delete">Delete this field</span>
-                </button>
               </fieldset>
 
               <button onclick='Contacts.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
@@ -237,9 +234,6 @@
                   <div id='contacts-form-phones'>
                     <!-- Iterating over email template here -->
                   </div>
-                <button onclick='return false;' class="fillflow-row-action">
-                  <span role="button" class="icon-delete">Delete this field</span>
-                </button>
               </fieldset>
 
               <button onclick='Contacts.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
@@ -258,9 +252,6 @@
                     </p>
                   </dd>
                 </dl>
-                <button class="fillflow-row-action">
-                  <span role="button" class="icon-delete">Delete this field</span>
-                </button>
               </fieldset>
             </form>
           </div>
