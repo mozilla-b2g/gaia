@@ -562,15 +562,11 @@ var WindowManager = (function() {
         var name = app.manifest.name;
         //Check if it's a virtual app from a entry point
         if(app.manifest.entry_points) {
-          console.log('FJJ::: App with entry points');
           for(var ep in app.manifest.entry_points) {
-            console.log('FJJ::: Entry point ' + ep);
             var path = e.detail.url.substr(e.detail.origin.length + 1); //Remove the origin and /
-            console.log('FJJ::: Path ' + path);
             if(path.indexOf(ep) == 0 && (ep + app.manifest.entry_points[ep].path) == path) {
               origin = origin + '/' + ep;
               name = app.manifest.entry_points[ep].name;
-              console.log('------------------------> Changed origin and name');
             }
           }
         }
