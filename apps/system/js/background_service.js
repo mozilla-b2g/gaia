@@ -77,11 +77,12 @@ var BackgroundServiceManager = (function bsm() {
     if (!app || !app.manifest.permissions)
       return false;
 
-    var permissions = Object.keys(app.manifest.permissions).map(function map_perm(key) {
+    var keys = Object.keys(app.manifest.permissions);
+    var permissions = keys.map(function map_perm(key) {
       return app.manifest.permissions[key];
     });
 
-    return (permissions.indexOf('background') != -1)
+    return (permissions.indexOf('background') != -1);
   };
 
   /* The open function is responsible of containing the iframe */

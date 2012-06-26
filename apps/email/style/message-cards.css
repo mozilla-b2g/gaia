@@ -1,6 +1,6 @@
 .card-message-list {
 }
-.msg-list-header {
+.msg-list-header, .msg-listedit-header {
   position: absolute;
   top: 0;
   left: 0;
@@ -43,6 +43,9 @@
   overflow: hidden;
   border-bottom: 1px solid gray;
   vertical-align: 0%;
+}
+.msg-header-item-selected {
+  background-color: #ffc48c;
 }
 .msg-header-unread-section {
   position: absolute;

@@ -86,3 +86,10 @@ window.addEventListener('localized', function onlocalized() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
+// Define the default background to use for all homescreens
+SettingsListener.observe(
+  'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
+  var url = 'url(resources/images/backgrounds/' + value + ')';
+  document.body.style.backgroundImage = url;
+});
+

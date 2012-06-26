@@ -1,7 +1,7 @@
 
 /* Hidden elements */
 .hide, [data-template] {
-  display: none;
+  display: none !important;
 }
 
 

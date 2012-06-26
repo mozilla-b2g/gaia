@@ -74,28 +74,14 @@ html * {
   table-layout:fixed;
 }
 
-.layout-row {
-  display:table-row;
-}
-
-.layout-cell {
-  display:table-cell;
-}
-
-.layout-centered {
-  vertical-align:middle;
-}
-
 .center {
   text-align:center;
 }
 
 #views {
-  position: absolute;
   top: 0;
-  height: 100%;
+  height: -moz-calc(100% - 4rem);
   width: 100%;
-  border-radius: 10px;
 }
 
 #views > .view {
@@ -106,3 +92,57 @@ html * {
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
+
+*[role=tablist] *[role=tabpanel] {
+	display:none;
+}
+
+*[role=tablist] *:target {
+	display: block;
+}
+
+/* Structure for toolbar */
+.toolbar {
+  height:4rem;
+  width:100%;
+}
+
+  .toolbar-option{
+    opacity:0.3;
+  }
+
+  .toolbar-option-selected{
+    opacity:1;
+  }
+
+  .toolbar-option:active{
+    opacity:1;
+    border:0;
+    border-style: none;
+  }
+
+/* Toolbar icons */
+.icon {
+  pointer-events:none;
+  margin:0 auto;
+}
+
+.icon-recents {
+  width: 2.5rem;
+  height: 2.4rem;
+  background-image:url("images/dialer_icon_clock.png");
+}
+
+.icon-contacts {
+  width: 2.2rem;
+  height: 2.4rem;
+  background-image: url("images/dialer_icon_contact.png");
+}
+
+.icon-keypad {
+  width: 2.4rem;
+  height: 2.4rem;
+  background-image: url("images/dialer_icon_keypad.png");
+}
+
+
