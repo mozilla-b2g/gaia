@@ -1,5 +1,11 @@
-/* FONYS */
+/* MEDIA DEFINITIOS */
+@media screen and (max--moz-device-pixel-ratio: 1.5) {
+  html {
+    font-size: 15px;
+  }
+}
 
+/* FONT DEFINITIONS */
 @font-face {
   font-family: 'Open Sans';
   src: url('fonts/Open-Sans.woff');
@@ -24,11 +30,9 @@
 }
 
 /* RESET */
-
 * { margin:0; padding:none; }
 
 /* KEYBOARD */
-
 #keyboard {
   position:absolute;
   bottom:0;
@@ -36,14 +40,12 @@
 }
 
 /* ROW */
-
 .keyboard-row {
   width:100%;
   white-space: nowrap;
 }
 
 /* BUTTONS: LOGIC KEYS */
-
 .keyboard-key {
   -moz-box-sizing: border-box;
   box-sizing: boder-box;
@@ -51,23 +53,26 @@
 /*  border:1px solid red;*/
   border:none;
   background:none;
+  min-width: 2.6rem;
+  display: inline-block;
 }
-
-/* VISUAL KEYS */
 
 .keyboard-row:first-child .keyboard-key {
   padding-top:0.5rem;
 }
 
-.keyboard-key .keyboard-key-bound {
+/* VISUAL KEYS */
+.keyboard-key > .visual-wrapper {
   display:inline-block;
   height:4rem;
   width:100%;
-  background:none;
+  border: none;
+  background:transparent;
   position:relative;
+  text-align: center;
 }
 
-.keyboard-key .keyboard-key-bound span {
+.keyboard-key > .visual-wrapper > span {
   position: absolute;
   top: 0;
   left: 0;
@@ -84,8 +89,7 @@
 }
 
 /* HIGHLIGHTS */
-
-.keyboard-key.highlighted > .keyboard-key-bound {
+.keyboard-key.highlighted > .visual-wrapper {
   background: #ebebeb;
   box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
   border-radius: 0.3rem;
@@ -94,7 +98,7 @@
   margin-top: -0.5rem;
 }
 
-.keyboard-key.highlighted > .keyboard-key-bound > span {
+.keyboard-key.highlighted > .visual-wrapper > span {
   font: 2.8rem/4rem Open Sans Semibold, Sans-serif;
   background-clip: padding-box;
   background: -moz-linear-gradient(#fff, #ebebeb);
@@ -108,7 +112,7 @@
   z-index: 100;
 }
 
-.keyboard-key.highlighted > .keyboard-key-bound > span:after {
+.keyboard-key.highlighted > .visual-wrapper > span:after {
   content: "";
   position: absolute;
   margin: 0 0.5rem;
@@ -124,8 +128,8 @@
 }
 
 /*  SPECIAL KEYS */
-.keyboard-key.special-key .keyboard-key-bound span,
-.keyboard-key.special-key.highlighted .keyboard-key-bound span { 
+.keyboard-key.special-key > .visual-wrapper > span,
+.keyboard-key.special-key.highlighted > .visual-wrapper > span { 
   font-size: 1.5rem;
   line-height: 4rem;
   font-family: 'Keyboard Symbols', sans-serif;
@@ -141,24 +145,25 @@
   height: 100%
 }
 
-.keyboard-key.special-key.highlighted .keyboard-key-bound {
+/* Highlight for SPECIAL KEYS */
+.keyboard-key.special-key.highlighted > .visual-wrapper {
   box-shadow: 0 0 0 2px #4495A8;
   border: none;
 }
 
-.keyboard-key.special-key.highlighted .keyboard-key-bound span:after  {
+.keyboard-key.special-key.highlighted > .visual-wrapper > span:after  {
   display: none;
 }
 
-/* SPACEBAR without highlight */
-.keyboard-key.highlighted[data-keycode="32"] .keyboard-key-bound {
+/* Highlight for SPACEBAR */
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper {
   margin-top: 0;
   border: none;
   opacity: 0.7;
   box-shadow: none;
 }
 
-.keyboard-key.highlighted[data-keycode="32"] .keyboard-key-bound > span  {
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span  {
   position: absolute;
   top: 0;
   left: 0;
@@ -192,32 +197,96 @@
 }
 
 /* ALTERNATIVES */
+#keyboard-accent-char-menu {
+  position: absolute;
+  bottom: 0;
+  left: -1px;
+  margin-bottom: -1px;
+  height: 6rem;
+  border-radius: 0.3rem;
+  background: -moz-linear-gradient(#fff, #ebebeb);
+  border: 1px solid #61646A;
+  white-space: nowrap;
+  overflow: visible;
+  padding: 0 0.5rem;
+  display: none;
+}
+
+#keyboard-accent-char-menu.show { display: block; }
+
+/* menu from right */
+#keyboard-accent-char-menu.kbr-menu-right { left: auto; right: -1px; }
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
+  box-shadow: 0 0 0 2px #53B6CC;
+  background: -moz-linear-gradient(#fff, #ebebeb);
+}
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
+  top: 0;
+  left: 0;
+  right: 0;
+  background: none;
+  border-radius: 0;
+  border: 0;
+  font-weight: 600;
+}
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
+  display: none;
+}
+
+/* LANGUAGE ALTERNATIVES */
+#keyboard-accent-char-menu.kbr-menu-lang {
+  position: absolute;
+  bottom: 100%;
+  left: -0.8rem;
+  right: auto;
+  top: auto;
+  padding: 0;
+  height: auto;
+  max-height: 30rem;
+  overflow: auto;
+  white-space: normal;
+  padding: 0 0.5rem 0.5rem;
+  background: #fff;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper {
+  -moz-box-sizing: border-box;
+  width: 10rem;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
+  background: -moz-linear-gradient(#fff, #ebebeb);
+  box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);
+  font-family: 'Open Sans Semibold';  
+  font-size: 1.8rem;
+  line-height: 3.8rem;
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  border-radius: 0.3rem;
+}
 
 /* KEYS STATES */
 
 /* Press */
-.keyboard-key.kbr-key-press .keyboard-key-bound span {
+.keyboard-key.kbr-key-press > .visual-wrapper > span {
   box-shadow: 0 0 0 2px #4495A8;
 }
 
 /* Active */
-.keyboard-key.kbr-key-active .keyboard-key-bound span {
+.keyboard-key.kbr-key-active > .visual-wrapper > span {
   color: #4495A8;
   text-shadow: none;
 }
 
 /* Hold */
-.keyboard-key.kbr-key-hold .keyboard-key-bound span {
+.keyboard-key.kbr-key-hold > .visual-wrapper > span {
   background: #5cc9e1; 
   color: #295B65;
   box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6);
   text-shadow: none;
-}
-
-@media screen and (max--moz-device-pixel-ratio: 1.5) {
-  html {
-    font-size: 15px;
-  }
 }
 
 /* IMES */
