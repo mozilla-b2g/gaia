@@ -113,6 +113,10 @@ ul li {
   height: 64px;
 }
 
+ul li.active {
+  background-color: #fee;
+}
+
 ul li:active {
   background-color: rgba(0, 0, 0, .07);
   text-shadow: #999 0 -1px 0;
@@ -135,7 +139,7 @@ ul li > label + *, ul li > label + * + * { /* text ellipsis */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: -moz-calc(100% - 96px);
+  max-width: -moz-calc(100% - 66px);
 }
 
 ul li > small {
@@ -149,6 +153,11 @@ ul li > small {
 
 ul li > small + a {
   line-height: 58px;
+}
+
+ul li button {
+  width: 100%;
+  height: 100%;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -167,7 +176,7 @@ ul li > small + a {
 .view label > span {
   position: absolute;
   top: -moz-calc(50% - 22px);
-  right: 20px;
+  right: 12px;
   -moz-box-sizing: border-box;
   display: block;
   width: 42px;
