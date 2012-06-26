@@ -243,7 +243,9 @@ const IMERender = (function() {
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
-    _altContainer.querySelectorAll('.visual-wrapper > span')[0].appendChild(menu);
+    _altContainer
+      .querySelectorAll('.visual-wrapper > span')[0]
+      .appendChild(menu);
     menu.style.display = 'block';
   };
 
@@ -378,8 +380,9 @@ const IMERender = (function() {
     dataset.forEach(function(data) {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
-    content +=  ' style="width:' + width + 'px"';
-    content += '><span class="visual-wrapper"><span>' + label + '</span></span></button>';
+    content += ' style="width:' + width + 'px"';
+    content += '><span class="visual-wrapper"><span>' +
+               label + '</span></span></button>';
     return content;
   };
 
