@@ -58,7 +58,7 @@ function prettyDate(time) {
 
 /* ***********************************************************
 
-  Code below are for desktop testing!
+  Code below is for desktop testing!
 
 *********************************************************** */
 
@@ -193,7 +193,6 @@ function escapeHTML(str, escapeQuotes) {
 
 if (!navigator.mozSettings) {
   window.addEventListener('load', function loadWithoutSettings() {
-    selectedLocale = 'en-US';
     ConversationView.init();
     ConversationListView.init();
   });
