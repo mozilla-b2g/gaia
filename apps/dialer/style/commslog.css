@@ -12,20 +12,125 @@
 
 /* Reset of H1 style. Will be in Gecko */
 
-  h1 {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
-  vertical-align: baseline;
-}
-  .view-header h1{
-    
+  h1, h2, li, ol, ul {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+  }
+  ol, ul {
+    list-style: none;
   }
 
-.view-body{
-  background:red;
+
+  .view-header h1 {
+    font-family:FontLight;
+    padding-left:3rem;
+    box-sizing:border-box;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    color:#ffffff;
+    font-size: -webkit-calc(10 * 0.226rem);
+    font-size: -moz-calc(10 * 0.226rem);
+  }
+
+  .view-header .view-header-options {
+    width:4rem;
+    padding-right:2rem;
+  }
+
+    .icon-edit {
+      background-image: url('images/edit.png');
+      height:2rem;
+      width:1.9rem;
+      opacity: 0.5;
+      -moz-opacity: 0.5;
+      
+    }
+
+.view-body {
+  background : white;
+  color:black;
+  height: -moz-calc(100% - 5rem);
+  overflow: auto;
 }
 
+  .view-body h2{
+    border-bottom: solid 1px #ff4e00;
+    padding-left: 3rem;
+    padding-top:1rem;
+    font-size:-moz-calc(6*0.226rem);
+    color:#ff4e00;
+    text-transform: uppercase;
+  }
+
+  .log-group{
+
+  }
+
+    .log-group li{
+      height:5rem;
+      border-bottom:.1rem solid  #dbdbdb;
+      color:black;
+    }
+
+    .log-group li:last-child{
+      border-bottom:0;
+    }
+
+      .icon-container {
+        float:left;
+        height:100%;
+        width:5rem;
+        
+      }
+
+        .icon-incoming{
+          width:1rem;
+          height:1rem;
+          background:red;
+        }
+
+        .icon-outgoing{
+          width:1rem;
+          height:1rem;
+          background:blue;
+        }
+
+        .icon-missed{
+          width:1rem;
+          height:1rem;
+          background:yellow;
+        }
+
+      .log-item-info {
+        float:left;
+        height:100%;
+        width:-moz-calc(100% - 5rem);
+        
+      }
+
+        .ellipsis{
+          overflow: hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+
+        .primary-info{
+          font-size:-moz-calc(8*0.226rem);
+          font-size:-webkit-calc(8*0.226rem);
+          color:#000000;
+          
+
+        }
+          
+        .secondary-info{
+          font-size:-moz-calc(6*0.226rem);
+          font-size:-webkit-calc(6*0.226rem);
+          color:#b5b5b5;
+          
+        }
 

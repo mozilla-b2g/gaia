@@ -97,6 +97,8 @@ var NavbarManager = {
       
       switch (destination) {
         case '#recents-view':
+          Recents.render();
+          // Recents.checkHeaders();
           option_recent.classList.add('toolbar-option-selected');
           break;
         case '#contacts-view':
