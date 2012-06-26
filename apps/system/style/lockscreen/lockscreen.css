@@ -65,15 +65,7 @@
   height: 40px;
   margin-top: 8px;
 
-  text-align: center;
-  font-size: 12px;
-  border: 1px solid #fff;
-  border-radius: 10px;
-}
-
-/* XXX: need icon */
-#lockscreen-mute::before {
-  content: 'Mute Icon';
+  background: transparent url('./images/mute.png') center center no-repeat;
 }
 
 #lockscreen-clock {
