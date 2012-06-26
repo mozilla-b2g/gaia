@@ -621,12 +621,12 @@ var Cards = {
 
     var targetLeft;
     if (cardInst)
-      targetLeft = (-cardInst.left) + 'px';
+      targetLeft = 'translateX(' + (-cardInst.left) + 'px)';
     else
-      targetLeft = '0px';
+      targetLeft = 'translateX(0px)';
 
     var cardsNode = this._cardsNode;
-    if (cardsNode.style.left !== targetLeft) {
+    if (cardsNode.style.MozTransform !== targetLeft) {
       if (showMethod === 'immediate') {
         // XXX cross-platform support.
         cardsNode.style.MozTransitionProperty = 'none';
@@ -638,14 +638,15 @@ var Cards = {
       else {
         this._eatingEventsUntilNextCard = true;
       }
-
-      cardsNode.style.left = targetLeft;
+console.log('setting transform', targetLeft);
+      cardsNode.style.MozTransform = targetLeft;
 
       if (showMethod === 'immediate') {
         // make sure the instantaneous transition is seen before we turn
         // transitions back on.
         cardsNode.clientWidth;
-        cardsNode.style.MozTransitionProperty = 'left';
+        // CROSS-BROWSER-TODO
+        cardsNode.style.MozTransitionProperty = '-moz-transform';
       }
     }
     else {
