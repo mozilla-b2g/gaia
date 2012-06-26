@@ -61,7 +61,6 @@ var CostControl = {
     saveCost(cost);
     this.removeListener();
   },
-
   updatedBalance: function(message) {
     console.log("-- SMS -- Evt: " + message);
     console.log("-- SMS -- Evt.type: " + message.type);
