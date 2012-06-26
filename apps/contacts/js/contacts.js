@@ -263,14 +263,14 @@ var Contacts = (function() {
   };
 
   var saveContact = function saveContact() {
-    var givenName = [givenName.value] || [''];
-    var familyName = [familyName.value] || [''];
+    var name = [givenName.value] || [''];
+    var lastName = [familyName.value] || [''];
 
     var myContact = {
       id: document.getElementById('contact-form-id').value,
-      givenName: givenName,
-      familyName: familyName,
-      name: givenName[0] + ' ' + familyName[0]
+      givenName: name,
+      familyName: lastName,
+      name: name[0] + ' ' + lastName[0]
     }
 
     getPhones(myContact);
@@ -288,7 +288,7 @@ var Contacts = (function() {
     }
 
     var request = navigator.mozContacts.save(contact);
-    request.onsuccess = function onsuccess(contact) {
+    request.onsuccess = function onsuccess() {
       contactsList.refresh(contact);
       reloadContactDetails(contact);
       navigation.back();
