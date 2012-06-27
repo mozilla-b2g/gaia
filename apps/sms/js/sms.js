@@ -349,8 +349,9 @@ var ConversationListView = {
     var patterns = text.match(searchRegExp);
     var str = '';
     for (var i = 0; i < patterns.length; i++) {
-      str = str + escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
-                  escapeHTML(patterns[i]) + '</span>';
+      str = str +
+          escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
+          escapeHTML(patterns[i]) + '</span>';
     }
     str += escapeHTML(sliceStrs.pop());
     return str;
@@ -374,7 +375,7 @@ var ConversationListView = {
            '  <div class="msg">' + bodyHTML + '</div>' +
            (!conversation.timestamp ? '' :
            '  <div class="time" data-time="' + conversation.timestamp + '">' +
-             prettyDate(conversation.timestamp) + '</div>') +
+           prettyDate(conversation.timestamp) + '</div>') +
            '<div class="unread-tag">' + conversation.unreadCount + '</div></a>';
   },
 
@@ -401,21 +402,19 @@ var ConversationListView = {
     var diff = today.getTime() - conversation.timestamp;
     var day = 1000 * 60 * 60 * 24; //Miliseconds for a day
 
-    //TODO: Localize
     var content;
+    var _ = navigator.mozL10n.get;
     if (diff <= 0) {
-      content = 'TODAY';
+      content = _('today');
     } else if (diff > 0 && diff < day * 2) {
-      content = 'YESTERDAY';
+      content = _('yesterday');
     } else if (diff < 4 * day) {
-      var dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                       'Thursday', 'Friday', 'Saturday'];
-      content = dayOfWeek[new Date(conversation.timestamp).getDay()];
+      var dayOfWeek = new Date(conversation.timestamp).getDay();
+      content = _('dayOfWeek-' + dayOfWeek);
     } else {
       var date = new Date(conversation.timestamp);
-      content = date.getFullYear() + '-' +
-             (date.getMonth() + 1) + '-' +
-             date.getDate();
+      content = date.getFullYear() +
+          '-' + (date.getMonth() + 1) + '-' + date.getDate();
     }
 
     return '<div class="groupHeader">' + content + '</div>';
@@ -718,7 +717,7 @@ var ConversationView = {
     var newHeight = input.getBoundingClientRect().height;
     var bottomToolbarHeight = (newHeight + 32) + 'px';
     var bottomToolbar =
-      document.getElementById('view-bottom-toolbar');
+        document.getElementById('view-bottom-toolbar');
 
     bottomToolbar.style.height = bottomToolbarHeight;
 
@@ -846,12 +845,12 @@ var ConversationView = {
       return;
 
     MessageManager.deleteMessage(messageId, function(result) {
-        if (result) {
-          console.log('Message id: ' + messageId + ' deleted');
-        } else {
-          console.log('Impossible to delete message ID=' + messageId);
-        }
-      });
+      if (result) {
+        console.log('Message id: ' + messageId + ' deleted');
+      } else {
+        console.log('Impossible to delete message ID=' + messageId);
+      }
+    });
   },
 
   deleteMessages: function cv_deleteMessages() {
@@ -916,6 +915,7 @@ var ConversationView = {
 
         this.showConversation(num);
         break;
+
       case 'resize':
         if (!document.body.classList.contains('conversation'))
           return;
@@ -933,7 +933,7 @@ var ConversationView = {
         if (num) {
           this.showConversation(num);
         }
-      break;
+        break;
 
       case 'click':
         var targetIsMessage = ~evt.target.className.indexOf('message');
