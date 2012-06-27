@@ -3,10 +3,10 @@
 .block-list {
   padding-left: 1rem;
 }
-
 .block-item {
   border-bottom: solid 1px #dbdbdb;
   min-height: 6rem;
+  position: relative;
 }
 
 .block-item:last-child {
@@ -37,6 +37,54 @@
   margin-bottom: 0.7rem;
 }
 
+.block-list .checkbox {
+  display: none;
+  pointer-events: all;
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  margin: -1.1rem 1.5rem 0 0;
+  width: 2.2rem;
+  height: 2.2rem;
+}
+.block-list .checkbox * {
+  pointer-events: all;
+}
+
+.block-list [type="checkbox"] {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 5;
+}
+
+.block-list .checkbox i {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  background: url("../../gphx/bitmap/default/forms/check-default.png") no-repeat center top;
+  background-size: 100% auto;
+}
+
+.block-list [type="checkbox"]:checked + span[role="button"] {
+  background-position: center bottom;
+}
+
+
+/* Selection state */
+[data-state="selection"] .block-list {
+  padding-left: 1.9rem;
+}
+
+[data-state="selection"] .block-list .checkbox {
+  display: block;
+}
+
 /* Media crop */
 .block-media {
   width: 6rem;
@@ -49,6 +97,43 @@
   width: 100%;
   height: 100%;
   background: transparent no-repeat center center;
-  background-size: 100% auto; 
+  background-size: 100% auto;
+}
+
+/* SELECTION-LIST:  Items to be selected and used in another view */
+.selection-list {
+  border-radius: 0.3rem;
+  border: solid 1px #c8c8c8;
+  overflow: hidden;
+}
+
+.selection-list, .selection-list + .textfield {
+  margin-bottom: 1rem;
+}
+
+.selection-list > li {
+  background: #fff;
+  border-bottom: solid 1px #c8c8c8;
+  font: 1.4rem/2.6em System Sans Semibold, Sans-serif;
+}
+
+.selection-list > li:last-child {
+  border-bottom: none;
+}
+
+.selection-list > li > a {
+  display: block;
+  color: #333;
+  position: relative;
+  padding:  0 0 0 1.8rem;
+  }
+
+/* This elements defines if the item is selected or not */
+.selection-list .slcl-state[role=button] {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  margin-top: -1.3rem;
+  background: transparent url(/style/gphx/bitmap/default/lists/tick.png) no-repeat center center;
 }
 

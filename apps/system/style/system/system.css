@@ -19,7 +19,10 @@ body {
   height: 100%;
   margin: 0px;
   padding: 0px;
-  background: black;
+  background-color: #000;
+  background-size: cover;
+  background-repeat: no-repeat;
+
   overflow: hidden;
 
   font-family: 'Open Sans', sans-serif;
@@ -133,20 +136,33 @@ iframe.backgroundWindow {
   visibility: hidden;
 }
 
-#keyboardFrame {
+#keyboard-frame {
   position: absolute;
   bottom: 0;
   width: 100%;
-	height: 100%;
-	border: 0;
-	z-index: 10002;
+  height: 100%;
+  z-index: 9000;
+  border: 0;
 }
 
-#keyboardFrame.hide {
+#keyboard-frame.hide {
+  visibility: hidden;
   bottom: 100%;
 }
 
-#screen.fullscreen #keyboardFrame {
+#keyboard-overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  z-index: 10002;
+  background: -moz-element(#keyboard-frame);
+  background-position:bottom center;
+  pointer-events: none;
+}
+
+#screen.fullscreen #keyboard-overlay {
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
   z-index: 2147483647;
 }

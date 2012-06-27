@@ -17,6 +17,7 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
   })();
 
   if (!document.mozHidden) {
+    Recents.render();
     Recents.startUpdatingDates();
 
     var choice = params['choice'];
@@ -62,10 +63,6 @@ var CallHandler = {
 
   // callbacks
   call: function ch_call(number) {
-    var host = document.location.host;
-    window.open('http://' + host + '/oncall.html#outgoing',
-                'dialer_calling', 'attention');
-
     var sanitizedNumber = number.replace(/-/g, '');
 
     var telephony = window.navigator.mozTelephony;
@@ -81,11 +78,47 @@ var CallHandler = {
   }
 };
 
+var NavbarManager = {
+  init: function nm_init() {
+    document.getElementById('option-recents').addEventListener('click',
+      function() {
+       Recents.render();
+    });
+
+    window.addEventListener('hashchange' , function(event) {
+      // TODO Implement it with building blocks:
+      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
+      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
+
+      var option_recent = document.getElementById('option-recents');
+      var option_contacts = document.getElementById('option-contacts');
+      var option_keypad = document.getElementById('option-keypad');
+
+      option_recent.classList.remove('toolbar-option-selected');
+      option_contacts.classList.remove('toolbar-option-selected');
+      option_keypad.classList.remove('toolbar-option-selected');
+
+      var destination = window.location.hash;
+      switch (destination) {
+        case '#recents-view':
+          option_recent.classList.add('toolbar-option-selected');
+          break;
+        case '#contacts-view':
+          option_contacts.classList.add('toolbar-option-selected');
+          break;
+        case '#keyboard-view':
+          option_keypad.classList.add('toolbar-option-selected');
+          break;
+      }
+    });
+  }
+};
+
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
 
+  NavbarManager.init();
   KeypadManager.init();
-
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;

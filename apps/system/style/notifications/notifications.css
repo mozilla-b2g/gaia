@@ -49,4 +49,5 @@
   width: 64px;
   height: 64px;
   margin: 8px;
+  pointer-events: none;
 }

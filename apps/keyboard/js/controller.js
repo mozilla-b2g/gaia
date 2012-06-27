@@ -123,8 +123,11 @@ const IMEController = (function() {
         row.splice(where, 1, // delete space
           { value: '.', ratio: 1, keyCode: 46 },
           { value: '/', ratio: 2, keyCode: 47 },
-          { value: '.com', ratio: 2, compositeKey: '.com' }
+          // As we are removing the space we need to assign
+          // the extra space (i.e to .com)
+          { value: '.com', ratio: 2 + space.ratio, compositeKey: '.com' }
         );
+
       break;
 
       // adds @ and .
@@ -902,7 +905,7 @@ const IMEController = (function() {
 
     // Support function for render
     function isSpecialKeyObj(key) {
-      var hasSpecialCode = !KeyEvent.DOM_VK_SPACE &&
+      var hasSpecialCode = key.keyCode !== KeyEvent.DOM_VK_SPACE &&
                            key.keyCode &&
                            specialCodes.indexOf(key.keyCode) !== -1;
       return hasSpecialCode || key.keyCode <= 0;
@@ -980,7 +983,7 @@ const IMEController = (function() {
       if (IMERender.ime.dataset.hidden)
         return;
 
-      IMERender.resizeUI();
+      IMERender.resizeUI(_currentLayout);
       _updateTargetWindowHeight(); // this case is not captured by the mutation
                                    // observer so we handle it apart
     },

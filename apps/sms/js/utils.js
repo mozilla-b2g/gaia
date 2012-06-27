@@ -27,39 +27,78 @@ function prettyDate(time) {
     return (new Date(time)).toLocaleFormat('%x %R');
   }
 
-  return day_diff == 0 && (
-    diff < 60 && _('justNow') ||
-    diff < 120 && _('aMinuteAgo') ||
-    diff < 3600 && _('minutesAgo', {minutes: Math.floor(diff / 60)}) ||
-    diff < 7200 && _('anHourAgo') ||
-    diff < 86400 && _('hoursAgo', {hours: Math.floor(diff / 3600)}) ||
+  return day_diff == 0 && ( // today?
+      diff < 60 && _('justNow') ||
+      diff < 3600 && _('minutesAgo', { minutes: Math.floor(diff / 60) }) ||
+      diff < 86400 && _('hoursAgo', { hours: Math.floor(diff / 3600) })
+  ) ||
+      day_diff == 1 && _('yesterday') || // yesterday?
+      day_diff < 7 && (new Date(time)).toLocaleFormat('%A') || // <1 week ago?
+      (new Date(time)).toLocaleFormat('%x'); // default: standard date format
+}
+
+function giveHourMinute(time) {
+  switch (time.constructor) {
+    case String:
+      time = parseInt(time);
+      break;
+    case Date:
+      time = time.getTime();
+      break;
+  }
+
+  return (new Date(time)).toLocaleFormat('%R %p');
+}
+
+function giveHeaderDate(time) {
+  switch (time.constructor) {
+    case String:
+      time = parseInt(time);
+      break;
+    case Date:
+      time = time.getTime();
+      break;
+  }
+
+  var diff = (Date.now() - time) / 1000;
+  var day_diff = Math.floor(diff / 86400);
+
+  if (isNaN(day_diff))
+    return '(incorrect date)';
+
+  if (day_diff < 0 || diff < 0) {
+    // future time
+    return (new Date(time)).toLocaleFormat('%x %R');
+  }
+
+  return day_diff == 0 && _('today') ||
     day_diff == 1 && _('yesterday') ||
-    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
+    day_diff < 4 && (new Date(time)).toLocaleFormat('%A') ||
     (new Date(time)).toLocaleFormat('%x');
 }
 
 (function() {
-  var updatePrettyDate = function updatePrettyDate() {
-    var labels = document.querySelectorAll('[data-time]');
+  var updateHeadersDate = function updateHeadersDate() {
+    var labels = document.querySelectorAll('div.groupHeader');
     var i = labels.length;
     while (i--) {
-      labels[i].textContent = prettyDate(labels[i].dataset.time);
+      labels[i].textContent = giveHeaderDate(labels[i].dataset.time);
     }
   };
-  var timer = setInterval(updatePrettyDate, 60 * 1000);
+  var timer = setInterval(updateHeadersDate, 60 * 1000);
 
   document.addEventListener('mozvisibilitychange', function visibility(e) {
     clearTimeout(timer);
     if (!document.mozHidden) {
-      updatePrettyDate();
-      timer = setInterval(updatePrettyDate, 60 * 1000);
+      updateHeadersDate();
+      timer = setInterval(updateHeadersDate, 60 * 1000);
     }
   });
 })();
 
 /* ***********************************************************
 
-  Code below are for desktop testing!
+  Code below is for desktop testing!
 
 *********************************************************** */
 
@@ -187,6 +226,9 @@ function escapeHTML(str, escapeQuotes) {
   var span = document.createElement('span');
   span.textContent = str;
 
+  // Escape space for displaying multiple space in message.
+  span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
+
   if (escapeQuotes)
     return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
   return span.innerHTML;
@@ -194,7 +236,6 @@ function escapeHTML(str, escapeQuotes) {
 
 if (!navigator.mozSettings) {
   window.addEventListener('load', function loadWithoutSettings() {
-    selectedLocale = 'en-US';
     ConversationView.init();
     ConversationListView.init();
   });

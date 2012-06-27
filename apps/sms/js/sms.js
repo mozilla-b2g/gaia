@@ -349,8 +349,9 @@ var ConversationListView = {
     var patterns = text.match(searchRegExp);
     var str = '';
     for (var i = 0; i < patterns.length; i++) {
-      str = str + escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
-                  escapeHTML(patterns[i]) + '</span>';
+      str = str +
+          escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
+          escapeHTML(patterns[i]) + '</span>';
     }
     str += escapeHTML(sliceStrs.pop());
     return str;
@@ -371,11 +372,14 @@ var ConversationListView = {
            '<span class="unread-mark"><i class="i-unread-mark"></i></span>' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
-           '  <div class="msg">' + bodyHTML + '</div>' +
            (!conversation.timestamp ? '' :
-           '  <div class="time" data-time="' + conversation.timestamp + '">' +
-             prettyDate(conversation.timestamp) + '</div>') +
-           '<div class="unread-tag">' + conversation.unreadCount + '</div></a>';
+           '  <div class="time ' +
+           (conversation.unreadCount > 0 ? 'unread' : '') +
+           '  " data-time="' + conversation.timestamp + '">' +
+             giveHourMinute(conversation.timestamp) + '</div>') +
+           '  <div class="msg">"' + bodyHTML + '"</div>' +
+           '<div class="unread-tag"></div>' +
+           '<div class="photo"></div></a>';
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
@@ -395,31 +399,8 @@ var ConversationListView = {
 
     this._lastHeader = conversation.timestamp;
 
-    var now = new Date();
-    // Build the today date starting a 00:00:00
-    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var diff = today.getTime() - conversation.timestamp;
-    var day = 1000 * 60 * 60 * 24; //Miliseconds for a day
-
-    //TODO: Localize
-    var content;
-    if (diff <= 0) {
-      content = 'TODAY';
-    } else if (diff > 0 && diff < day * 2) {
-      content = 'YESTERDAY';
-    } else if (diff < 4 * day) {
-      var dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                       'Thursday', 'Friday', 'Saturday'];
-      content = dayOfWeek[new Date(conversation.timestamp).getDay()];
-    } else {
-      var date = new Date(conversation.timestamp);
-      content = date.getFullYear() + '-' +
-             (date.getMonth() + 1) + '-' +
-             date.getDate();
-    }
-
-    return '<div class="groupHeader">' + content + '</div>';
-
+    return '<div class="groupHeader">' +
+      giveHeaderDate(conversation.timestamp) + '</div>';
   },
 
   searchConversations: function cl_searchConversations() {
@@ -718,7 +699,7 @@ var ConversationView = {
     var newHeight = input.getBoundingClientRect().height;
     var bottomToolbarHeight = (newHeight + 32) + 'px';
     var bottomToolbar =
-      document.getElementById('view-bottom-toolbar');
+        document.getElementById('view-bottom-toolbar');
 
     bottomToolbar.style.height = bottomToolbarHeight;
 
@@ -798,10 +779,10 @@ var ConversationView = {
         var dataId = msg.id; // uuid
 
         var outgoing = (msg.delivery == 'sent' || msg.delivery == 'sending');
-        var num = outgoing ? msg.receiver : msg.sender;
+        var num = outgoing ? msg.sender : msg.receiver;
         var dataNum = num;
 
-        var className = (outgoing ? 'receiver' : 'sender') + '"';
+        var className = (outgoing ? 'sender' : 'receiver') + '"';
         if (msg.delivery == 'sending')
           className = 'receiver pending"';
 
@@ -822,9 +803,12 @@ var ConversationView = {
                     '  <input type="checkbox" class="fake-checkbox"/>' +
                     '  <span></span>' +
                     '  <div class="message-container ' + className + '>' +
-                    '    <div class="text">' + body + '</div>' +
+                    '    <div class="message-bubble"></div>' +
                     '    <div class="time" data-time="' + timestamp + '">' +
-                    prettyDate(msg.timestamp) + '</div>' +
+                    // '    <div class="time">' +
+                         giveHourMinute(msg.timestamp) +
+                    '    </div>' +
+                    '    <div class="text">' + body + '</div>' +
                     '  </div>' +
                     '</div>';
       }
@@ -846,12 +830,12 @@ var ConversationView = {
       return;
 
     MessageManager.deleteMessage(messageId, function(result) {
-        if (result) {
-          console.log('Message id: ' + messageId + ' deleted');
-        } else {
-          console.log('Impossible to delete message ID=' + messageId);
-        }
-      });
+      if (result) {
+        console.log('Message id: ' + messageId + ' deleted');
+      } else {
+        console.log('Impossible to delete message ID=' + messageId);
+      }
+    });
   },
 
   deleteMessages: function cv_deleteMessages() {
@@ -916,6 +900,7 @@ var ConversationView = {
 
         this.showConversation(num);
         break;
+
       case 'resize':
         if (!document.body.classList.contains('conversation'))
           return;
@@ -933,7 +918,7 @@ var ConversationView = {
         if (num) {
           this.showConversation(num);
         }
-      break;
+        break;
 
       case 'click':
         var targetIsMessage = ~evt.target.className.indexOf('message');

@@ -366,7 +366,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email,music/js/ext'
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email,music/js/ext,calendar/js/ext'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -382,7 +382,11 @@ stamp-commit-hash:
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
+	@echo 'Stoping b2g'
+	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /data/local/indexedDB/*
+	@echo 'Starting b2g'
+	$(ADB) shell start b2g
 
 # Take a screenshot of the device and put it in screenshot.png
 screenshot:
@@ -429,24 +433,25 @@ update-offline-manifests:
 PROFILE_PATH = /data/local/
 install-gaia: profile
 	$(ADB) start-server
+	@echo 'Stoping b2g'
+	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /cache/*
 	python build/install-gaia.py "$(ADB)"
 
 	$(ADB) push profile/user.js ${PROFILE_PATH}/user.js
 
 	@echo "Installed gaia into profile/."
-	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
-	@echo 'Rebooting b2g now'
+	@echo 'Starting b2g'
+	$(ADB) shell start b2g
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
-# Note that we'll soon have to rename Pictures back to DCIM.
 install-media-samples:
-	$(ADB) shell 'if test -d /sdcard/DCIM; then mv /sdcard/DCIM /sdcard/Pictures; fi'
+	$(ADB) shell 'if test -d /sdcard/Pictures; then mv /sdcard/Pictures /sdcard/DCIM; fi'
 	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
 	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
-	$(ADB) push media-samples/Pictures /sdcard/Pictures
+	$(ADB) push media-samples/DCIM /sdcard/DCIM
 	$(ADB) push media-samples/Movies /sdcard/Movies
 	$(ADB) push media-samples/Music /sdcard/Music
 

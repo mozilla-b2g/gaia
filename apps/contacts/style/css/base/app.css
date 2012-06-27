@@ -1,16 +1,28 @@
 
 /* view */
-.view {
+.view, .cache, .views {
   position: fixed;
   left: 0;
   top: 0;
-  right: 0;
-  bottom: 0;
-  -moz-transition: all 0.4s ease;
-  -moz-transform-style: preserve-3d;
-  -moz-backface-visibility: hidden;
+  width: 100%;
+  height: 100%;
 }
 
+.view[data-state="active"], .cache[data-state="active"], .views[data-state="active"] {
+  z-index: 100; 
+}
+
+.cache { 
+  pointer-events: none;
+}
+
+.cache .view {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  -moz-transition: all 0.5s ease;
+  position: fixed;
+}
+  
 .view-right {
   -moz-transform: translateX(100%);
 }
@@ -43,7 +55,7 @@
   position: relative;
   color: #fff;
   background-image: -moz-linear-gradient(top, #cc6523, #bb492d);
-  background-color: #ff6400;
+  background-color: #cc6523;
   box-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.25), 0 2px 4px -4px rgba(0, 0, 0, 0.99);
   z-index: 10;
 }
@@ -68,6 +80,16 @@
   background: rgba(0, 0, 0, 0.1);
   border-right: solid 1px rgba(0, 0, 0, 0.2);
   box-shadow: 0 1px 0 1px rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+.view-back a:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -5rem;
+  left: 0;
+  bottom: 0;
 }
 
 /* Generic actions in header */
@@ -95,7 +117,22 @@
 }
 
 .view-actions a {
-  margin-top: -25%;
+  margin-top: -1rem;
+  color: #fff;
+  font-size: 1.4rem;
+  line-height: 3.3rem;
+  padding: 0 1rem;
+  height: 4.6rem;
+  -moz-box-sizing: border-box;
+}
+
+.view-actions a:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 1px;
+  height: 100%;
+  margin-left: -1px;
 }
 
 .view-actions:before {
@@ -107,8 +144,7 @@
   margin-left: -1px;
 }
 
-
-/* BODY */
+/* Body */
 .view-body {
   position: relative;
   -moz-box-flex: 1;
@@ -116,7 +152,8 @@
 }
 
 .view-body-inner {
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: absolute;
   left: 0;
   top: 0;
@@ -153,17 +190,24 @@
   right: 4rem;
   top: 30%;
   width: 10.5rem;
+  height: 10.5rem;
+  background: -moz-element(#current-jumper);
+  pointer-events: none;
+  -moz-transition: opacity;
+  opacity: 0;
+}
+
+#current-jumper {
+  width: 10.5rem;
   background: rgba(0, 0, 0, 0.7);
   font: 6rem/10.5rem System Sans Light, Sans-serif;
   color: #fff;
   text-align: center;
-  pointer-events: none;
 }
 
 .view-jumper-inner {
   display: -moz-box;
   -moz-box-orient: vertical;
-  height: 100%;
   padding: 0.3rem 0;
   border-radius: 4rem;
   opacity: 0.6;
@@ -171,11 +215,11 @@
 
 .view-jumper li {
   font-size: 1.1rem;
-  line-height: 1em;
+  line-height: 1.3em;
   text-align: center;
   text-transform: uppercase;
   -moz-box-flex: 1;
-  width: 2.5rem;
+  width: 4.5rem;
 }
 
 .view-jumper-inner a, .view-jumper-inner abbr {
@@ -183,4 +227,3 @@
   color: #333;
   width: 100%;
 }
-

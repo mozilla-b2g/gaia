@@ -44,7 +44,7 @@
     <!-- Accessibility -->
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
     <script defer src="js/accessibility.js"></script>
-    
+
     <!-- List Menu -->
     <link rel="stylesheet" type="text/css" href="style/list_menu/list_menu.css">
     <script defer src="js/list_menu.js"></script>
@@ -102,8 +102,14 @@
   <body onload="startup()">
     <div id="screen" class="screenoff locked">
 
+      <div id="keyboard-overlay"></div>
+
+      <div id="windows">
+        <!-- application windows are added here -->
+      </div>
+
       <!-- keyboard -->
-      <iframe id="keyboardFrame" class="hide"></iframe>
+      <iframe id="keyboard-frame" class="hide"></iframe>
 
       <!-- homescreen -->
       <iframe id="homescreen" mozbrowser mozapp></iframe>
@@ -111,10 +117,6 @@
       Crashing on load
         https://bugzilla.mozilla.org/show_bug.cgi?id=761933
       -->
-
-      <div id="windows">
-        <!-- application windows are added here -->
-      </div>
 
       <div id="modal-dialog">
         <div id="modal-dialog-table">
@@ -148,16 +150,18 @@
 
       <!-- utility tray -->
       <div id="utility-tray">
-        <!-- quick settings -->
-        <div id="quick-settings">
-          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
-          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
-          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
-          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
-        </div>
+        <div id="utility-tray-first-shown">
+          <!-- quick settings -->
+          <div id="quick-settings">
+            <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
+            <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
+            <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
+            <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
+            <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
+          </div>
 
-        <!-- TBD: credit module -->
+          <!-- TBD: credit module -->
+        </div>
 
         <!-- notifications -->
         <div id="notifications-container">

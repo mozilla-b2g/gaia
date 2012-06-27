@@ -45,8 +45,6 @@ section,footer,nav,a,img {
   position: fixed;
   top: 0;
   left: 0;
-  background-image: url('../resources/images/background.jpg');
-  background-size: cover;
   z-index: 2;
 }
 
@@ -81,12 +79,13 @@ section,footer,nav,a,img {
 
 #footer .dock > li {
   height: 100%;
-  width: 25%;
+  width: -moz-calc(32rem / 3);
   float: left;
   background-repeat: no-repeat;
   background-position: center;
   background-size: auto;
   font: 0/0 a;
+  opacity: 0.6;
 }
 
 #footer .dock > .logs {
@@ -95,10 +94,6 @@ section,footer,nav,a,img {
 
 #footer .dock > .contacts {
   background-image: url('../resources/images/footer/2.png');
-}
-
-#footer .dock > .messages {
-  background-image: url('../resources/images/footer/3.png');
 }
 
 #footer .dock > .phone {
@@ -129,4 +124,3 @@ button {
 html[dir=rtl] .apps ol > li {
   float: right;
 }
-

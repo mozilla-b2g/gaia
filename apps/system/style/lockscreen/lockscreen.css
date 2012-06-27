@@ -7,8 +7,10 @@
   height: -moz-calc(100% - 20px);
   overflow: hidden;
 
-  background: #000 url('./images/DSC_4861.jpg') 50% 50% no-repeat;
+  background-color: #000;
   background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
 
   -moz-user-select: none;
 
