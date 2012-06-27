@@ -286,7 +286,7 @@ var WindowManager = (function() {
   }
 
   // Switch to a different app
-  function setDisplayedApp(origin, callback) {
+  function setDisplayedApp(origin, callback, url) {
     var currentApp = displayedApp, newApp = origin;
 
     // There are four cases that we handle in different ways:
@@ -314,6 +314,12 @@ var WindowManager = (function() {
     }
     // Case 4: app-to-app transition
     else {
+      // XXX Note: Hack for demo when current app want to set specific hash
+      //           url in newApp(e.g. contact trigger SMS message list page).
+      var frame= runningApps[newApp].frame;
+      if (url && frame.src != url) {
+        frame.src = url;
+      }      
       setAppSize(newApp);
       updateLaunchTime(newApp);
       openWindow(newApp, function() {
@@ -542,7 +548,7 @@ var WindowManager = (function() {
       // We will launch it in foreground
       case 'webapps-launch':
         if (isRunning(origin)) {
-          setDisplayedApp(origin);
+          setDisplayedApp(origin, null, e.detail.url);
           return;
         }
 
