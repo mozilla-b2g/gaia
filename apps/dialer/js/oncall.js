@@ -15,12 +15,14 @@ var CallScreen = {
 
   get answerButton() {
     delete this.answerButton;
-    return this.answerButton = document.getElementById('callbar-answer');
+    return this.answerButton = document
+      .getElementById('callbar-answer');
   },
 
   get rejectButton() {
     delete this.rejectButton;
-    return this.rejectButton = document.getElementById('callbar-hang-up');
+    return this.rejectButton = document
+      .getElementById('callbar-hang-up');
   },
 
   get keypadButton() {
@@ -30,7 +32,8 @@ var CallScreen = {
 
   get callContainer() {
     delete this.contactContainer;
-    return this.contactContainer = document.getElementById('call-container');
+    return this.contactContainer =
+      document.getElementById('call-container');
   },
 
   get contactPrimaryInfo() {
@@ -129,14 +132,18 @@ var CallScreen = {
   render: function cm_render(layout_type) {
     switch (layout_type) {
       case 'dialing':
-        this.callDuration.innerHTML = 'Connecting';
-        this.callDuration.classList.add('connecting');
+        this.callDuration.innerHTML = 'Calling';
+        this.callDuration.classList.remove('ongoing');
+        this.callDirection.classList.add('outgoing');
         this.answerButton.classList.add('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
         break;
       case 'incoming':
+        this.callDuration.innerHTML = 'Calling';
+        this.callDuration.classList.remove('ongoing');
+        this.callDirection.classList.add('incoming');
         this.answerButton.classList.remove('hide');
         this.rejectButton.classList.remove('full-space');
         this.callToolbar.classList.add('transparent');
@@ -153,7 +160,14 @@ var CallScreen = {
 
         this.keypadButton.removeAttribute('disabled');
         this.callDuration.innerHTML = '00:00';
-        this.callDuration.classList.remove('connecting');
+        this.callDuration.classList.add('ongoing');
+        if (this.callDirection.classList.contains('outgoing')) {
+          this.callDirection.classList.remove('outgoing');
+          this.callDirection.classList.add('ongoing-out');
+        } else if (this.callDirection.classList.contains('incoming')) {
+          this.callDirection.classList.remove('incoming');
+          this.callDirection.classList.add('ongoing-in');
+        }
         this.callDirection.classList.add('show');
 
         break;
@@ -204,6 +218,7 @@ var OnCallHandler = {
     this.currentCall = call;
 
     CallScreen.update(call.number);
+
     CallScreen.render(typeOfCall);
 
     this.lookupContact(call.number);

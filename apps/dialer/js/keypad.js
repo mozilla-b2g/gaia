@@ -218,7 +218,7 @@ var KeypadManager = {
 
       // If there are no digits in the phone number, hide the delete
       // button.
-      if (this._phoneNumber.length == 0) {
+      if ((this._phoneNumber.length == 0) && (typeof CallScreen == 'undefined')) {
         this.deleteButton.classList.remove('show');
       }
       this.phoneNumberView.value = this._phoneNumber;
@@ -260,7 +260,7 @@ var KeypadManager = {
             maxNumberOfDigits = view.value.length;
           }
           if (phoneNumber.length >= maxNumberOfDigits) {
-            phoneNumber = '...' + phoneNumber.substr(-(maxNumberOfDigits - 3));
+            phoneNumber = '...' + phoneNumber.substr(-(maxNumberOfDigits - 2));
           }
         break;
         case 'on-call':
@@ -269,7 +269,7 @@ var KeypadManager = {
           }
           if (phoneNumber.length >= ocMaxNumberOfDigits) {
             phoneNumber = '...' + phoneNumber
-              .substr(-(ocMaxNumberOfDigits - 3));
+              .substr(-(ocMaxNumberOfDigits - 2));
           }
         break;
       }
@@ -290,7 +290,6 @@ var KeypadManager = {
         view = CallScreen.contactPrimaryInfo;
       break;
     }
-
     var computedStyle = window.getComputedStyle(view, null);
     var fontSize = computedStyle.getPropertyValue('font-size');
     if (!this._initialFontSize) {
@@ -365,22 +364,22 @@ var KeypadManager = {
         }
 
         // If there are digits in the phone number, show the delete button.
-        if (this._phoneNumber.length > 0) {
+        if ((this._phoneNumber.length > 0) && (typeof CallScreen == 'undefined')) {
           this.deleteButton.classList.add('show');
         }
 
-        this.phoneNumberView.value = this._phoneNumber;
-        this.moveCaretToEnd(this.phoneNumberView);
         if (this.contactPrimaryInfo) {
           this.contactPrimaryInfo.value = this._phoneNumber;
           this.moveCaretToEnd(this.contactPrimaryInfo);
           this.updateFontSize('on-call');
+        } else {
+          this.phoneNumberView.value = this._phoneNumber;
+          this.moveCaretToEnd(this.phoneNumberView);
+          this.updateFontSize('dialpad');
         }
 
         clearTimeout(this._hold_timer);
         this._hold_active = false;
-
-        this.updateFontSize('dialpad');
       }
     }
   }
