@@ -382,9 +382,11 @@ stamp-commit-hash:
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
+	@echo 'Stoping b2g'
+	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /data/local/indexedDB/*
-	$(ADB) reboot
-	@echo 'Rebooting b2g now'
+	@echo 'Starting b2g'
+	$(ADB) shell start b2g
 
 # Take a screenshot of the device and put it in screenshot.png
 screenshot:
@@ -431,14 +433,16 @@ update-offline-manifests:
 PROFILE_PATH = /data/local/
 install-gaia: profile
 	$(ADB) start-server
+	@echo 'Stoping b2g'
+	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /cache/*
 	python build/install-gaia.py "$(ADB)"
 
 	$(ADB) push profile/user.js ${PROFILE_PATH}/user.js
 
 	@echo "Installed gaia into profile/."
-	$(ADB) reboot
-	@echo 'Rebooting b2g now'
+	@echo 'Starting b2g'
+	$(ADB) shell start b2g
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
