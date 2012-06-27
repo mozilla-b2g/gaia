@@ -90,23 +90,24 @@ var NavbarManager = {
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
 
-      var option_recent = document.getElementById('option-recents');
-      var option_contacts = document.getElementById('option-contacts');
-      var option_keypad = document.getElementById('option-keypad');
+      var recent = document.getElementById('option-recents');
+      var contacts = document.getElementById('option-contacts');
+      var keypad = document.getElementById('option-keypad');
 
-      option_recent.classList.remove('toolbar-option-selected');
-      option_contacts.classList.remove('toolbar-option-selected');
-      option_keypad.classList.remove('toolbar-option-selected');
+      recent.classList.remove('toolbar-option-selected');
+      contacts.classList.remove('toolbar-option-selected');
+      keypad.classList.remove('toolbar-option-selected');
+
       var destination = window.location.hash;
       switch (destination) {
         case '#recents-view':
-          option_recent.classList.add('toolbar-option-selected');
+          recent.classList.add('toolbar-option-selected');
           break;
         case '#contacts-view':
-          option_contacts.classList.add('toolbar-option-selected');
+          contacts.classList.add('toolbar-option-selected');
           break;
         case '#keyboard-view':
-          option_keypad.classList.add('toolbar-option-selected');
+          keypad.classList.add('toolbar-option-selected');
           break;
       }
     });
@@ -115,9 +116,9 @@ var NavbarManager = {
 
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
-
   KeypadManager.init();
   NavbarManager.init();
+
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
@@ -125,3 +126,4 @@ window.addEventListener('localized', function startup(evt) {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
+
