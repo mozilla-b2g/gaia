@@ -15,13 +15,18 @@
   src: url('fonts/Open-Sans-Bold.woff');
 }
 
+@font-face {
+  font-family: 'FontLight';
+  src: url('fonts/Open-Sans-Light.woff');
+}
+
 html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
   margin: 0;
   color: white;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'FontLight', sans-serif;
   font-size: 10px;
   background: black;
 }
@@ -30,52 +35,52 @@ html * {
   overflow: hidden;
 }
 
-.font-regular{
+.font-regular {
   font-family:'FontRegular';
 }
 
-.font-semibold{
+.font-semibold {
   font-family:'FontSemibold';
 }
 
-.font-bold{
+.font-bold {
   font-family:'FontBold';
 }
 
-.contact-primary-info{
-  font-size:-moz-calc(15*0.226rem);
-  color:black;
+.contact-primary-info {
+  font-size: -moz-calc(15*0.226rem);
+  color: black;
 }
 
-.contact-secondary-info{
+.contact-secondary-info {
   font-size:-moz-calc(6*0.226rem);
-  color:white;
+  color: white;
 }
 
 .grid-wrapper {
-  width:100%;
-  height:100%;
+  width: 100%;
+  height: 100%;
 }
 
 .grid-v-align {
-  vertical-align:middle;
+  vertical-align: middle;
 }
 
 .grid-row {
-  display:table-row;
+  display: table-row;
 }
 
 .grid-cell {
-  display:table-cell;
+  display: table-cell;
 }
 
 .grid {
-  display:table;
-  table-layout:fixed;
+  display: table;
+  table-layout: fixed;
 }
 
 .center {
-  text-align:center;
+  text-align: center;
 }
 
 #views {
@@ -94,7 +99,7 @@ body.hidden *[data-l10n-id] {
 }
 
 *[role=tablist] *[role=tabpanel] {
-	display:none;
+	display: none;
 }
 
 *[role=tablist] *:target {
@@ -103,34 +108,34 @@ body.hidden *[data-l10n-id] {
 
 /* Structure for toolbar */
 .toolbar {
-  height:4rem;
-  width:100%;
+  height: 4rem;
+  width: 100%;
 }
 
-  .toolbar-option{
-    opacity:0.3;
-  }
+.toolbar-option {
+  opacity: 0.3;
+}
 
-  .toolbar-option-selected{
-    opacity:1;
-  }
+.toolbar-option-selected {
+  opacity: 1;
+}
 
-  .toolbar-option:active{
-    opacity:1;
-    border:0;
-    border-style: none;
-  }
+.toolbar-option:active {
+  opacity: 1;
+  border: 0;
+  border-style: none;
+}
 
 /* Toolbar icons */
 .icon {
-  pointer-events:none;
-  margin:0 auto;
+  pointer-events: none;
+  margin: 0 auto;
 }
 
 .icon-recents {
   width: 2.5rem;
   height: 2.4rem;
-  background-image:url("images/dialer_icon_clock.png");
+  background-image: url("images/dialer_icon_clock.png");
 }
 
 .icon-contacts {
