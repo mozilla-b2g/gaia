@@ -391,8 +391,10 @@ endif
 .PHONY: test-agent-test
 test-agent-test:
 ifneq ($(strip $(APP)),)
+	@echo 'Running tests for $(APP)';
 	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER) $(APP_TEST_LIST)
 else
+	@echo 'Running all tests';
 	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER)
 endif
 
