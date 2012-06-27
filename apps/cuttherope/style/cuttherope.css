@@ -10,7 +10,17 @@ html, body {
   margin: 0px;
   padding: 0px;
   border-width: 0px;
-  width: 800px;
-  height: 640px;
+  width:100%;
+  height:100%;
 }
 
+@media (orientation: landscape) and (width: 480px),
+       (orientation: portrait) and (width: 320px) {
+  #gameframe {
+    /* try to make the game fit a small screen */
+    width: 960px;
+    height: 600px;
+    -moz-transform-origin: 0px 0px;
+    -moz-transform: scale(.5);
+  }
+}
