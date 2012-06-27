@@ -220,7 +220,7 @@
 }
 
 #keypad-hidebar-hang-up-action > div {
-  margin: -moz-calc((4rem - 4rem)/2) auto;
+  margin: 0 auto;
   background-image: url('images/ActionIcon_40x40_hangup.png');
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
