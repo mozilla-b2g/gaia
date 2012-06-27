@@ -805,7 +805,6 @@ var ConversationView = {
                     '  <div class="message-container ' + className + '>' +
                     '    <div class="message-bubble"></div>' +
                     '    <div class="time" data-time="' + timestamp + '">' +
-                    // '    <div class="time">' +
                          giveHourMinute(msg.timestamp) +
                     '    </div>' +
                     '    <div class="text">' + body + '</div>' +
