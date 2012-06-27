@@ -390,7 +390,110 @@
 }
 
 @media screen and (height: 800px) {
-  /* XXX: SGS2 layout */
+  #lockscreen-area-handle {
+    width: 75px;
+    height: 75px;
+    bottom: 75px;
+    margin-bottom: -37.5px;
+    margin-left: -37.5px;
+  }
+
+  @-moz-keyframes lockscreen-handleshake-right {
+    0%, 60% {
+      -moz-transform: translateX(0);
+    }
+    20%, 40% {
+      -moz-transform: translateX(22.5px);
+    }
+  }
+
+  @-moz-keyframes lockscreen-handleshake-left {
+    0%, 60% {
+      -moz-transform: translateX(0);
+    }
+    20%, 40% {
+      -moz-transform: translateX(-22.5px);
+    }
+  }
+
+  #lockscreen-area-handle::before {
+    width: 102px;
+    height: 102px;
+    top: -13.5px;
+    left: -13.5px;
+  }
+
+  .lockscreen-icon {
+    border-radius: 40.5px;
+    width: 63px;
+    height: 63px;
+    bottom: 75px;
+    margin-bottom: -31.5px;
+  }
+
+  .lockscreen-rail {
+    bottom: 75px;
+    width: -moz-calc(50% - 50px - 33px);
+  }
+
+  #lockscreen-rail-left {
+    left: 109.5px;
+  }
+
+  #lockscreen-rail-right {
+    right: 109.5px;
+  }
+
+  .lockscreen-icon::after {
+    top: 28.5px;
+
+    width: 18px;
+    height: 33px;
+    margin: -16.5px;
+    background-size: cover;
+  }
+
+  #lockscreen-area-unlock {
+    right: 45px;
+  }
+
+  @-moz-keyframes lockscreen-arrow-left {
+    from {
+      -moz-transform: none;
+      opacity: 1;
+    }
+
+    to {
+      -moz-transform: translateX(-82.5px);
+      opacity: 0;
+    }
+  }
+
+  @-moz-keyframes lockscreen-arrow-right {
+    from {
+      -moz-transform: none;
+      opacity: 1;
+    }
+
+    to {
+      -moz-transform: translateX(82.5px);
+      opacity: 0;
+    }
+  }
+
+  #lockscreen-area-unlock::after {
+    left: -90px;
+
+    -moz-animation: lockscreen-arrow-right 2s infinite;
+  }
+
+  #lockscreen-area-camera {
+    left: 45px;
+  }
+
+  #lockscreen-area-camera::after {
+    right: -90px;
+  }
 }
 
 #lockscreen-panel-passcode {
@@ -451,7 +554,17 @@
 }
 
 @media screen and (height: 800px) {
-  /* XXX: SGS2 layout */
+  #lockscreen-passcode-status {
+    height: 150px;
+    padding: 30px 42px;
+    font-size: 48px;
+    line-height: 48px;
+  }
+  #lockscreen-panel-passcode::after {
+    top: 45px;
+    right: 30px;
+    font-size: 60px;
+  }
 }
 
 #lockscreen-passcode-code {
