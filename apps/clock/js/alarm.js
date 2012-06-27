@@ -33,7 +33,8 @@ var ClockView = {
       hour = 12;
     this.time.textContent = hour + d.toLocaleFormat(':%M');
     this.hourState.textContent = d.toLocaleFormat('%p');
-    this.daydate.textContent = d.toLocaleFormat(navigator.mozL10n.get('daydateFormat'));
+    var format = navigator.mozL10n.get('daydateFormat');
+    this.daydate.textContent = d.toLocaleFormat(format);
 
     var self = this;
     this._timeout = window.setTimeout(function cv_clockTimeout() {

@@ -122,7 +122,7 @@ var Recents = {
         var day = self.getDayDate(recents[i].date);
         if (day != currentDay) {
           if (currentDay != '') {
-            content +='</ol></section>';
+            content += '</ol></section>';
           }
           currentDay = day;
 
@@ -139,7 +139,8 @@ var Recents = {
 
   getDayDate: function re_getDayDate(timestamp) {
     var date = new Date(timestamp);
-    var startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    var startDate = new Date(date.getFullYear(),
+                             date.getMonth(), date.getDate());
     return startDate.getTime();
   },
 
