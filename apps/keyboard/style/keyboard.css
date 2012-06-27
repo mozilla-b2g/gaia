@@ -49,7 +49,8 @@ button::-moz-focus-inner {
   position: absolute;
   bottom: 0;
   width: 100%;
-  background: black;
+  background: #3b424e url(images/bgbase.jpg) no-repeat center center;
+  background-size: 100% auto;
 }
 
 /* Rows */
@@ -62,7 +63,7 @@ button::-moz-focus-inner {
 .keyboard-key {
   -moz-box-sizing: border-box;
   box-sizing: boder-box;
-  padding: 0.25rem 0.2rem;
+  padding: 0.25rem 0.2rem 0.15rem;
   border: none;
   background: none;
   min-width: 2.6rem;
@@ -76,10 +77,10 @@ button::-moz-focus-inner {
 /* Visible keys */
 .keyboard-key > .visual-wrapper {
   display: inline-block;
-  height: 4rem;
+  height: 4.2rem;
   width: 100%;
   border: none;
-  background: transparent;
+  background: url(images/key-begin.png) no-repeat left top, url(images/key-end.png) no-repeat right top;
   position: relative;
   text-align: center;
 }
@@ -87,21 +88,22 @@ button::-moz-focus-inner {
 .keyboard-key > .visual-wrapper > span {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  left: 0.2rem;
+  right: 0.2rem;
   height: 100%;
-  background: -moz-linear-gradient(#fff, #ebebeb);
-  box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);
+  /*background: -moz-linear-gradient(#fff, #ebebeb);*/
+  /*box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);*/
+  background: url(images/key-middle.png) repeat-x center top;
   font-family: 'Open Sans Semibold';  
-  font-size: 1.8rem;
+  font-size: 2.4rem;
   line-height: 3.8rem;
   color: #333;
-  border: 1px solid rgba(0, 0, 0, 0.6);
-  border-radius: 0.3rem;
+  /*border: 1px solid rgba(0, 0, 0, 0.6);*/
+  /*border-radius: 0.3rem;*/
 }
 
 /* Highlights */
-.keyboard-key.highlighted > .visual-wrapper {
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper {
   background: #ebebeb;
   box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
   border-radius: 0.3rem;
@@ -110,7 +112,7 @@ button::-moz-focus-inner {
   margin-top: -0.5rem;
 }
 
-.keyboard-key.highlighted > .visual-wrapper > span {
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper > span {
   font: 2.8rem/4rem Open Sans Semibold, Sans-serif;
   background-clip: padding-box;
   background: -moz-linear-gradient(#fff, #ebebeb);
@@ -124,7 +126,7 @@ button::-moz-focus-inner {
   z-index: 100;
 }
 
-.keyboard-key.highlighted > .visual-wrapper > span:after {
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper > span:after {
   content: "";
   position: absolute;
   margin: 0 0.5rem;
@@ -139,40 +141,43 @@ button::-moz-focus-inner {
   border-bottom: none;
 }
 
-.keyboard-key.highlighted:last-child  > .visual-wrapper > span {
+.keyboard-key:not(.special-key).highlighted:last-child  > .visual-wrapper > span {
   right: -1px;
   border-bottom-right-radius: 0;
   border-bottom: none;
 }
 
-.keyboard-key.highlighted:last-child  > .visual-wrapper > span:after {
+.keyboard-key:not(.special-key).highlighted:last-child  > .visual-wrapper > span:after {
   border: none;
 }
 
-.keyboard-key.highlighted:first-child  > .visual-wrapper > span {
+.keyboard-key:not(.special-key).highlighted:first-child  > .visual-wrapper > span {
   left: -1px;
   border-bottom-left-radius: 0;
   border-bottom: none;
 }
 
-.keyboard-key.highlighted:first-child  > .visual-wrapper > span:after {
+.keyboard-key:not(.special-key).highlighted:first-child  > .visual-wrapper > span:after {
   border: none;
 }
 
 /*  Special keys */
-.keyboard-key.special-key > .visual-wrapper > span,
-.keyboard-key.special-key.highlighted > .visual-wrapper > span { 
+.keyboard-key.special-key > .visual-wrapper {
+  background: url(images/key-special-begin.png) no-repeat left top, url(images/key-special-end.png) no-repeat right top;
+}
+.keyboard-key.special-key > .visual-wrapper > span { 
   font-size: 1.5rem;
   line-height: 4rem;
   font-family: 'Keyboard Symbols', sans-serif;
   color: #5B6574;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
-  background: -moz-linear-gradient(bottom, #B3B3B3, #EDEDED);
-  box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.5);
+  /*background: -moz-linear-gradient(bottom, #B3B3B3, #EDEDED);*/
+  /*box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.5);*/
+  background: url(images/key-special-middle.png) repeat-x center top;
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  left: 0.2rem;
+  right: 0.2rem;
   bottom: 0;
   height: 100%
 }
@@ -180,6 +185,7 @@ button::-moz-focus-inner {
 /* Highlight for special keys */
 .keyboard-key.special-key.highlighted > .visual-wrapper {
   box-shadow: 0 0 0 2px #4495A8;
+  border-radius: 0.3rem;
   border: none;
 }
 
@@ -189,19 +195,25 @@ button::-moz-focus-inner {
 
 /* Highlight for spacebar */
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper {
-  margin-top: 0;
+  margin: 0;
   border: none;
-  opacity: 0.7;
+  opacity: 0.5;
   box-shadow: none;
+  background: url(images/key-begin.png) no-repeat left top, url(images/key-end.png) no-repeat right top;
 }
 
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span  {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  left: 0.2rem;
+  right: 0.2rem;
   bottom: 0;
   height: 100%;
+  border: none;
+  background: url(images/key-middle.png) repeat-x center top;
+}
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after {
+  display: none;
 }
 /* Menu for special keys */
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper{
@@ -319,11 +331,17 @@ button::-moz-focus-inner {
 }
 
 /* Hold */
+.keyboard-key.kbr-key-hold > .visual-wrapper {
+  background: url(images/key-hold-begin.png) no-repeat left bottom, url(images/key-hold-end.png) no-repeat right bottom;
+}
 .keyboard-key.kbr-key-hold > .visual-wrapper > span {
-  background: #5cc9e1; 
+  /*background: #5cc9e1; */
   color: #295B65;
-  box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6);
+  /*box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6);*/
+  background: url(images/key-hold-middle.png) repeat-x center bottom;
   text-shadow: none;
+  left: 0.3rem;
+  right: 0.3rem;
 }
 
 /* IMEs */
