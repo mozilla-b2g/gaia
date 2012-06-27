@@ -312,11 +312,10 @@ body.msg-search-mode #msg-conversations-list {
    *padding need to 11.2rem + img width when social network integration is ready*/
   padding: 1rem 1.6rem 1rem 3rem;
   border-top: 0.1rem solid hsla(207,22%,92%,1);
-/*  border-bottom: 0.1rem solid hsla(223,7%,81%,1);*/
   width: 100%;
   -moz-transition: padding 0.3s ease-out;
   overflow: hidden;
-  text-overflow: "ellipsis";
+  text-overflow: ellipsis;
 }
 
 body.edit-mode #msg-conversations-list > a {
@@ -412,7 +411,7 @@ body.edit-mode #msg-conversations-list > a > span {
 
 #msg-conversations-list .photo {
   position: absolute;
-  top: 0rem;
+  top: 0;
   right: 0;
   width: 5.9rem;
   height: 5.9rem;
@@ -428,8 +427,6 @@ body.edit-mode #msg-conversations-list > a > span {
   font-family: 'FontRegular';
   font-size: -moz-calc(8 * 0.226rem);
   color: #000000;
-/*  line-height: 3.2rem;
-  font-weight: 600;*/
   overflow: hidden;
   text-overflow: ellipsis;
   width: -moz-calc(100% - 7rem);
@@ -488,11 +485,6 @@ body.edit-mode #msg-conversations-list .name {
 body.edit-mode #msg-conversations-list .msg {
   width: -moz-calc(100% - 9rem);
 }
-
-/*body.edit-mode #msg-conversations-list .time {
-  right: 1.6rem;
-}*/
-
 
 #msg-new-message-container {
   padding: 0;
@@ -827,7 +819,7 @@ body.edit-mode #view-list .time {
 #view-list > div .message-container::before {
   content: '';
   display: block;
-  width: 1rem; /* 0.8rem * sqrt(2) */
+  width: 1rem;
   height: 0.9rem;
   position: absolute;
 }
