@@ -187,7 +187,7 @@ function escapeHTML(str, escapeQuotes) {
   span.textContent = str;
 
   // Escape space for displaying multiple space in message.
-  span.innerHTML = span.innerHTML.replace(/\s/g, "&nbsp");
+  span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
 
   if (escapeQuotes)
     return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
