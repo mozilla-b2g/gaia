@@ -124,7 +124,7 @@ body.hidden *[data-l10n-id] {
 }
 
 .toolbar-option{
-  opacity: 0.3;
+  opacity: 0.6;
 }
 
 .toolbar-option-selected{
