@@ -49,10 +49,6 @@
   opacity: 0.7;
 }
 
-#keypad-delete.show {
-  visibility: visible;
-}
-
 #keypad-delete > div {
   width: 3.8rem;
   height: 2.8rem;
