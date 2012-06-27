@@ -9,9 +9,7 @@ installButton.onclick = function installButton_install(evt) {
 
   var request = window.navigator.mozApps.install(manifestUrl);
   request.onsuccess = function() {
-    // Save the App object that is returned
-    var appRecord = this.result;
-    alert('Installation successful!')
+    // do something after install successfully
   };
   request.onerror = function() {
     // Display the error information from the DOMError object
