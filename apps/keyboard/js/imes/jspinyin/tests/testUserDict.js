@@ -9,7 +9,7 @@ load('../jspinyin.js');
 
 var FileSystemService = Test.FileSystemService;
 var UserDict = Test.UserDict;
-var USER_DICT_FILE_NAME = 'user_dict_test_file';
+var USER_DICT_FILE_NAME = 'sm://tests/user_dict_test_file';
 
 function testUserDict() {
   print('------ Test UserDict --------');
@@ -18,7 +18,8 @@ function testUserDict() {
     dict.load_dict(USER_DICT_FILE_NAME, 100, 200, function(success) {
       assertEq(success, true, 'Failed to load the dict.')
     });
-    dict.state_ = UserDict.UserDictState.USER_DICT_DEFRAGMENTED;
+    print(JSON.stringify(dict.dict_info_));
+    var lemma1 = dict.put_lemma('你好', [0, 1], 1);
     dict.close_dict(function(success) {
       assertEq(success, true, 'Failed to close the dict.')
     });
