@@ -86,6 +86,7 @@ var NavbarManager = {
     });
 
     window.addEventListener('hashchange' , function(event) {
+      console.log("Hash change "+window.location.hash);
       // TODO Implement it with building blocks:
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
@@ -97,6 +98,7 @@ var NavbarManager = {
       option_recent.classList.remove('toolbar-option-selected');
       option_contacts.classList.remove('toolbar-option-selected');
       option_keypad.classList.remove('toolbar-option-selected');
+
       var destination = window.location.hash;
       switch (destination) {
         case '#recents-view':
@@ -116,8 +118,8 @@ var NavbarManager = {
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
 
-  KeypadManager.init();
   NavbarManager.init();
+  KeypadManager.init();
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;

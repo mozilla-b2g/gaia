@@ -123,13 +123,20 @@ var Recents = {
       // Clean DOM
       self.view.innerHTML = '';
       if (recents.length > 0) {
+
+        //Sort by date
+        recents.sort(function(a,b) {
+          return b.date - a.date;
+        });
+        console.log("Sort ended");
         // Update token
-        self.currentToken = 0;
+        self.currentToken = recents[0].date;
         for (var i = 0; i < recents.length; i++) {
+
           // We retrieve temp token
           var token_tmp = self.getDayDate(recents[i].date);
           // Compare tokens
-          if (token_tmp > self.currentToken) {
+          if (token_tmp < self.currentToken) {
             // Update token
             self.currentToken = token_tmp;
             // Create structure
