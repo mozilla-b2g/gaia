@@ -5,13 +5,49 @@ function navigationStack(currentView) {
     'left-right': { from: 'view-left', to: 'view-right'},
     'top-bottom': { from: 'view-bottom', to: 'view-top'},
     'right-left': { from: 'view-right', to: 'view-left'},
-    'bottom-top': { from: 'view-top', to: 'view-bottom'}
+    'bottom-top': { from: 'view-top', to: 'view-bottom'},
+    'none': { from: 'none', to: 'none'}
   };
 
   var _currentView = currentView;
+  var app = document.getElementById('app');
+  var cache = document.getElementById('cache');
+  var transitionTimeout = 0;
 
   var stack = [];
   stack.push({ view: currentView, transition: ''});
+
+  var revertTransition = function(transition) {
+    return {
+      from: transitions[transition].to,
+      to: transitions[transition].from
+    };
+  };
+
+  var setAppView = function(current, next) {
+    current.dataset.state = 'inactive';
+    next.dataset.state = 'active';
+  };
+
+  var setCacheView = function(current, next, transition) {
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    var nextMirror = document.getElementById(next.dataset.mirror);
+    var move = transitions[transition] || transition;
+
+    cache.dataset.state = 'active';
+    clearTimeout(transitionTimeout);
+    transitionTimeout = setTimeout(function animate() {
+      currentMirror.classList.add(move.to);
+      nextMirror.classList.remove(move.from);
+    }, 1);
+
+    nextMirror.addEventListener('transitionend', function nocache() {
+      setAppView(current, next);
+      app.dataset.state = 'active';
+      cache.dataset.state = 'inactive';
+      nextMirror.removeEventListener('transitionend', nocache);
+    });
+  };
 
   this.go = function go(nextView, transition) {
     if (_currentView === nextView)
@@ -19,8 +55,12 @@ function navigationStack(currentView) {
 
     var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
-    current.classList.add(transitions[transition].to);
-    next.classList.remove(transitions[transition].from);
+
+  if (transition == 'none') {
+    setAppView(current, next);
+  } else {
+    setCacheView(current, next, transition);
+  }
 
     stack.push({ view: _currentView, transition: transition});
     _currentView = nextView;
@@ -33,9 +73,15 @@ function navigationStack(currentView) {
     var current = document.getElementById(_currentView);
     var nextView = stack.pop();
     var next = document.getElementById(nextView.view);
-    current.classList.add(transitions[nextView.transition].from);
-    next.classList.remove(transitions[nextView.transition].to);
 
+    var from = transitions[nextView.transition].from;
+    var to = transitions[nextView.transition].to;
+    if (from == 'none' || to == 'none') {
+      setAppView(current, next);
+    } else {
+      var reverted = revertTransition(nextView.transition);
+      setCacheView(current, next, reverted);
+    }
     _currentView = nextView.view;
   };
 }
@@ -70,6 +116,7 @@ var Contacts = (function() {
   var currentContactId,
       detailsName,
       givenName,
+      company,
       familyName,
       formTitle,
       formActions,
@@ -86,6 +133,7 @@ var Contacts = (function() {
   window.addEventListener('load', function initContacts(evt) {
     currentContactId = document.getElementById('contact-form-id');
     givenName = document.getElementById('givenName');
+    company = document.getElementById('org');
     familyName = document.getElementById('familyName');
     detailsName = document.getElementById('contact-name-title');
     formTitle = document.getElementById('contact-form-title');
@@ -120,6 +168,14 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
+    var orgTitle = document.getElementById('org-title');
+    if (contact.org && contact.org[0] != '') {
+      orgTitle.textContent = contact.org[0];
+      orgTitle.className = '';
+    } else {
+      orgTitle.className = 'hide';
+      orgTitle.textContent = '';
+    }
     var listContainer = document.getElementById('details-list');
     listContainer.innerHTML = '';
 
@@ -152,18 +208,15 @@ var Contacts = (function() {
     resetForm();
     formTitle.innerHTML = 'Edit contact';
     var editActions = [
-      {
-        label: 'Finish',
-        icon: 'icon-finish',
-        callback: saveContact
-      }
+      { label: '' },
+      { label: 'Done', callback: saveContact }
     ];
 
     buildActions(editActions);
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
-
+    company.value = currentContact.org;
     for (var tel in currentContact.tel) {
       var telField = {
         number: currentContact.tel[tel].number,
@@ -259,8 +312,8 @@ var Contacts = (function() {
     insertEmptyPhone(0);
     insertEmptyEmail(0);
     buildActions([
-      { label: 'Cancel', icon: 'icon-cancel', callback: navigation.back },
-      { label: 'Finish', icon: 'icon-finish', callback: saveContact}
+      { label: '' },
+      { label: 'Done', callback: saveContact}
     ]);
 
     edit();
@@ -269,12 +322,13 @@ var Contacts = (function() {
   var saveContact = function saveContact() {
     var name = [givenName.value] || [''];
     var lastName = [familyName.value] || [''];
-
+    var org = [company.value] || [''];
     var myContact = {
       id: document.getElementById('contact-form-id').value,
       givenName: name,
       familyName: lastName,
       additionalName: '',
+      org: org,
       name: name[0] + ' ' + lastName[0]
     };
 
@@ -369,13 +423,16 @@ var Contacts = (function() {
 
       var link = document.createElement('a');
       link.title = actions[i].label;
-
-      var icon = document.createElement('span');
-      icon.setAttribute('role', 'button');
-      icon.className = actions[i].icon;
-      icon.innerHTML = actions[i].label;
-
-      link.appendChild(icon);
+      link.href = '#';
+      if (actions[i].icon) {
+        var icon = document.createElement('span');
+        icon.setAttribute('role', 'button');
+        icon.className = actions[i].icon;
+        icon.innerHTML = actions[i].label;
+        link.appendChild(icon);
+      } else {
+        link.textContent = actions[i].label;
+      }
       action.appendChild(link);
       formActions.appendChild(action);
     }
@@ -386,6 +443,7 @@ var Contacts = (function() {
     currentContactId.value = '';
     givenName.value = '';
     familyName.value = '';
+    company.value = '';
     var phones = document.getElementById('contacts-form-phones');
     var emails = document.getElementById('contacts-form-email');
     phones.innerHTML = '';
