@@ -32,19 +32,24 @@
 /* Reset */
 * {
   margin: 0;
-  padding: none;
+  padding: 0;
+}
+
+button::-moz-focus-inner {
+  padding: 0;
+  border: 0
 }
 
 /* Keyboard */
 #keyboard {
-  position:absolute;
-  bottom:0;
-  width:100%;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
 }
 
 /* Rows */
 .keyboard-row {
-  width:100%;
+  width: 100%;
   white-space: nowrap;
 }
 
@@ -52,25 +57,25 @@
 .keyboard-key {
   -moz-box-sizing: border-box;
   box-sizing: boder-box;
-  padding:0.25rem 0.1rem;
-  border:none;
-  background:none;
+  padding: 0.25rem 0.2rem;
+  border: none;
+  background: none;
   min-width: 2.6rem;
   display: inline-block;
 }
 
 .keyboard-row:first-child .keyboard-key {
-  padding-top:0.5rem;
+  padding-top: 0.5rem;
 }
 
 /* Visible keys */
 .keyboard-key > .visual-wrapper {
-  display:inline-block;
-  height:4rem;
-  width:100%;
+  display: inline-block;
+  height: 4rem;
+  width: 100%;
   border: none;
-  background:transparent;
-  position:relative;
+  background: transparent;
+  position: relative;
   text-align: center;
 }
 
@@ -132,21 +137,21 @@
 .keyboard-key.highlighted:last-child  > .visual-wrapper > span {
   right: -1px;
   border-bottom-right-radius: 0;
-  border-bottom:none;
+  border-bottom: none;
 }
 
 .keyboard-key.highlighted:last-child  > .visual-wrapper > span:after {
-  border:none;
+  border: none;
 }
 
 .keyboard-key.highlighted:first-child  > .visual-wrapper > span {
   left: -1px;
   border-bottom-left-radius: 0;
-  border-bottom:none;
+  border-bottom: none;
 }
 
 .keyboard-key.highlighted:first-child  > .visual-wrapper > span:after {
-  border:none;
+  border: none;
 }
 
 /*  Special keys */
@@ -295,7 +300,7 @@
   border-radius: 0.3rem;
 }
 
-/* KEYS STATES */
+/* Key states */
 
 /* Press */
 .keyboard-key.kbr-key-press > .visual-wrapper > span {
@@ -316,7 +321,7 @@
   text-shadow: none;
 }
 
-/* IMES */
+/* IMEs */
 #keyboard-pending-symbol-panel {
   position: absolute;
   top: -35px;
@@ -364,7 +369,7 @@
   position: absolute;
   white-space: normal;
   top: 0;
-  height: 99%;
+  height: 100%;
   width: 100%;
   border: none;
   border-top: 2px solid #a3a3a3;
@@ -436,13 +441,13 @@
 
 /* Pending panel highlight */
 .keyboard-pending-symbols-highlight-green {
-	background:#33aa33;
+	background: #33aa33;
 }
 
 .keyboard-pending-symbols-highlight-red {
-	background:#aa3333;
+	background: #aa3333;
 }
 
 .keyboard-pending-symbols-highlight-blue {
-	background:#3333aa;
+	background: #3333aa;
 }
