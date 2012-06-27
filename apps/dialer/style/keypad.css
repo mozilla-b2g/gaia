@@ -5,7 +5,7 @@
 
 #keyboard-view {
   width: 100%;
-  height:100%;
+  height: 100%;
 }
 
 #fake-phone-number-view {
@@ -15,10 +15,10 @@
 }
 
 #phone-number-view-container {
-  width:100%;
-  height:-moz-calc(100% - 34.5rem);
+  width: 100%;
+  height: -moz-calc(100% - 34.5rem);
   background: #242B36;
-  text-align:center;
+  text-align: center;
   display: table;
   table-layout: fixed;
   border-spacing: 1.5rem 0rem;
@@ -26,16 +26,16 @@
 }
 
 #phone-number-view-container.keypad-visible {
-  height:-moz-calc(100% - 35rem + 1px);
+  height: -moz-calc(100% - 35rem);
   visibility: hidden;
 }
 
 #phone-number-view {
-  width:100%;
-  border:0;
-  background:transparent;
+  width: 100%;
+  border: 0;
+  background: transparent;
   text-align: right;
-  cursor:none;
+  cursor: none;
   -moz-user-select: none;
 }
 
@@ -46,7 +46,7 @@
 }
 
 #keypad-delete:active {
-  opacity:0.7;
+  opacity: 0.7;
 }
 
 #keypad-delete.show {
@@ -62,7 +62,7 @@
 }
 
 #keyboard-container {
-  width:100%;
+  width: 100%;
   height: 34.5rem;
 }
 
@@ -98,20 +98,20 @@
 }
 
 .keypad-key-label-container {
-  width:100%;
-  height:100%;
-  display:table;
+  width: 100%;
+  height: 100%;
+  display: table;
 }
 
 .keypad-key-label {
-  display:table-cell;
-  padding-left:1.5rem;
-  vertical-align:middle;
+  display: table-cell;
+  padding-left: 1.5rem;
+  vertical-align: middle;
 }
 
 .keypad-key-label-centered {
-  padding-left:0;
-  text-align:center;
+  padding-left: 0;
+  text-align: center;
 }
 
 .font-size-plus {
@@ -191,7 +191,7 @@
 }
 
 #keypad-hidebar {
-  background:rgba(0,0,0,.8);
+  background: rgba(0,0,0,.8);
   opacity: 1.0;
 }
 
@@ -208,7 +208,7 @@
 
 .keypad-hidebar-button {
   height: 4rem;
-  border:0;
+  border: 0;
   border-radius:.3rem;
   display: block;
 }
@@ -225,8 +225,8 @@
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
-  width:4rem;
-  height:4rem;
+  width: 4rem;
+  height: 4rem;
 }
 
 #keypad-hidebar-hide-keypad-action {
@@ -241,13 +241,13 @@
   background-repeat: no-repeat;
   background-size: 3rem 3rem;
   background-position: center;
-  width:3rem;
-  height:3rem;
+  width: 3rem;
+  height: 3rem;
 }
  
 .phone-number-font {
   font-size:-moz-calc(18*0.226rem);
-  color:white;
+  color: white;
   font-family:'FontRegular';
 }
 
