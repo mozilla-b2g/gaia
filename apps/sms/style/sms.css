@@ -853,7 +853,7 @@ body.edit-mode #view-list > div.message-block {
   text-decoration: none;
   outline: none;
   position: relative;
-  padding: 0.5rem 0 0.5rem 9rem;*/
+  padding: 0.5rem 0 0.5rem 9rem;
   width: -moz-calc(100% + 9rem);
   right: 9rem;
   -moz-transition: -moz-transform 0.3s ease;

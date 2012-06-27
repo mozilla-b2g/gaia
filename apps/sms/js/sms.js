@@ -398,30 +398,7 @@ var ConversationListView = {
 
     this._lastHeader = conversation.timestamp;
 
-    var now = new Date();
-    // Build the today date starting a 00:00:00
-    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var diff = today.getTime() - conversation.timestamp;
-    var day = 1000 * 60 * 60 * 24; //Miliseconds for a day
-
-    //TODO: Localize
-    var content;
-    if (diff <= 0) {
-      content = 'TODAY';
-    } else if (diff > 0 && diff < day * 2) {
-      content = 'YESTERDAY';
-    } else if (diff < 4 * day) {
-      var dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                       'Thursday', 'Friday', 'Saturday'];
-      content = dayOfWeek[new Date(conversation.timestamp).getDay()];
-    } else {
-      var date = new Date(conversation.timestamp);
-      content = date.getFullYear() + '-' +
-             (date.getMonth() + 1) + '-' +
-             date.getDate();
-    }
-
-    return '<div class="groupHeader">' + content + '</div>';
+    return '<div class="groupHeader">' + giveHeaderDate(conversation.timestamp) + '</div>';
 
   },
 
