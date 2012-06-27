@@ -340,7 +340,7 @@ var Contacts = (function() {
       for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
-      contact = currentContact;
+      myContact = contact = currentContact;
     } else {
       contact = new mozContact();
       contact.init(myContact);
@@ -348,8 +348,8 @@ var Contacts = (function() {
 
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
-      contactsList.refresh(contact);
-      reloadContactDetails(contact);
+      contactsList.refresh(myContact);
+      reloadContactDetails(myContact);
       navigation.back();
     };
 
