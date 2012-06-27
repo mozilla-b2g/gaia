@@ -261,6 +261,7 @@ var LockScreen = {
     var dx = screenX - touch.initX;
 
     var handleMax = touch.maxHandleOffset;
+    this.areaHandle.style.MozTransition = 'none';
     this.areaHandle.style.MozTransform =
       'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)';
 
@@ -307,6 +308,8 @@ var LockScreen = {
   handleGesture: function ls_handleGesture() {
     var touch = this._touch;
     var target = touch.target;
+    this.areaHandle.style.MozTransition = null;
+
     if (!target) {
       this.unloadPanel();
       return;
@@ -315,8 +318,8 @@ var LockScreen = {
     var distance = target.offsetLeft - this.areaHandle.offsetLeft -
       (this.areaHandle.offsetWidth - target.offsetWidth) / 2;
     this.areaHandle.classList.add('triggered');
-    this.areaHandle.style.MozTransform =
-      'translateX(' + distance + 'px)';
+
+    var transition = 'translateX(' + distance + 'px)';
     var railLength = touch.rightTarget.offsetLeft -
       touch.leftTarget.offsetLeft -
       (this.areaHandle.offsetWidth + target.offsetWidth) / 2;
@@ -326,6 +329,11 @@ var LockScreen = {
       case this.areaCamera:
         this.railRight.style.width = railLength + 'px';
         this.railLeft.style.width = '0';
+        if (this.areaHandle.style.MozTransform == transition) {
+          self.switchPanel('camera');
+          break;
+        }
+        this.areaHandle.style.MozTransform = transition;
         this.areaHandle.addEventListener('transitionend',
           function ls_goCamera() {
             self.areaHandle.removeEventListener('transitionend', ls_goCamera);
@@ -337,14 +345,22 @@ var LockScreen = {
       case this.areaUnlock:
         this.railLeft.style.width = railLength + 'px';
         this.railRight.style.width = '0';
+        var passcodeOrUnlock = function lc_passcodeOrUnlock() {
+          if (!self.passCodeEnabled) {
+            self.unlock();
+          } else {
+            self.switchPanel('passcode');
+          }
+        };
+        if (this.areaHandle.style.MozTransform == transition) {
+          passcodeOrUnlock();
+          break;
+        }
+        this.areaHandle.style.MozTransform = transition;
         this.areaHandle.addEventListener('transitionend',
           function ls_goUnlock() {
             self.areaHandle.removeEventListener('transitionend', ls_goUnlock);
-            if (!self.passCodeEnabled) {
-              self.unlock();
-            } else {
-              self.switchPanel('passcode');
-            }
+            passcodeOrUnlock();
           });
 
         break;
