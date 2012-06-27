@@ -186,7 +186,7 @@ contacts.List = (function() {
   }
 
   var refresh = function reload(id) {
-    if (typeof(id) == 'string') { 
+    if (typeof(id) == 'string') {
       remove(id);
       getContactById(contact, addToList);
     } else {
