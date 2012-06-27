@@ -64,28 +64,20 @@ const IMERender = (function() {
       content += '<div class="keyboard-row">';
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
-        // Get key value
-        var debug;
-        var keyChar = debug = key.value;
+        var keyChar = key.value;
+        var overrides = layout[flags.inputType+'Overrides'];
 
-        // Depending on input type, consider alternatives for that key
-        var overrides = layout[inputType + 'Overrides'];
-        if (overrides && overrides[keyChar]) {
-          keyChar = overrides[keyChar];
-          var virtualKey = {};
-          for (var property in key) {
-            virtualKey[property] = key[property];
-          }
-          virtualKey.value = keyChar;
-          virtualKey.keyCode = keyChar.charCodeAt(0);
-          key = virtualKey;
-        }
-
-        // Take in count uppercase
-        var code;
+        // Handle uppercase
         if (flags.uppercase) {
           keyChar = getUpperCaseValue(key);
+        }
+
+        // Handle override
+        var code;
+        if (overrides && overrides[keyChar]) {
+          keyChar = overrides[keyChar];
           code = keyChar.charCodeAt(0);
+
         } else {
           code = key.keyCode || keyChar.charCodeAt(0);
         }
