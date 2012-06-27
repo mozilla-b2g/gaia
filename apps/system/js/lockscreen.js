@@ -82,6 +82,8 @@ var LockScreen = {
 
     /* Gesture */
     this.areaHandle.addEventListener('mousedown', this);
+    this.areaCamera.addEventListener('mousedown', this);
+    this.areaUnlock.addEventListener('mousedown', this);
 
     /* Unlock clean up */
     this.overlay.addEventListener('transitionend', this);
@@ -186,21 +188,37 @@ var LockScreen = {
       case 'mousedown':
         var leftTarget = this.areaCamera;
         var rightTarget = this.areaUnlock;
+        var handle = this.areaHandle;
+        var overlay = this.overlay;
 
-        this._touch = {
-          initX: evt.screenX,
-          initY: evt.screenY,
-          target: null,
-          leftTarget: leftTarget,
-          rightTarget: rightTarget,
-          initRailLength: this.railLeft.offsetWidth,
-          maxHandleOffset: rightTarget.offsetLeft -
-            this.areaHandle.offsetLeft -
-            (this.areaHandle.offsetWidth - rightTarget.offsetWidth) / 2
-        };
-        this.overlay.classList.add('touched');
-        window.addEventListener('mouseup', this);
-        window.addEventListener('mousemove', this);
+        switch (evt.target) {
+          case leftTarget:
+            overlay.classList.add('touched-left');
+            window.addEventListener('mouseup', this);
+            break;
+
+          case rightTarget:
+            overlay.classList.add('touched-right');
+            window.addEventListener('mouseup', this);
+            break;
+
+          case this.areaHandle:
+
+            this._touch = {
+              initX: evt.screenX,
+              initY: evt.screenY,
+              target: null,
+              leftTarget: leftTarget,
+              rightTarget: rightTarget,
+              initRailLength: this.railLeft.offsetWidth,
+              maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
+                (handle.offsetWidth - rightTarget.offsetWidth) / 2
+            };
+            overlay.classList.add('touched');
+            window.addEventListener('mouseup', this);
+            window.addEventListener('mousemove', this);
+            break;
+        }
         break;
 
       case 'mousemove':
@@ -208,14 +226,20 @@ var LockScreen = {
         break;
 
       case 'mouseup':
+        window.removeEventListener('mousemove', this);
+        window.removeEventListener('mouseup', this);
+
+        if (evt.target !== this.areaHandle) {
+          this.overlay.classList.remove('touched-left');
+          this.overlay.classList.remove('touched-right');
+          break;
+        }
 
         this.handleMove(evt.screenX, evt.screenY);
         this.handleGesture();
         delete this._touch;
         this.overlay.classList.remove('touched');
 
-        window.removeEventListener('mousemove', this);
-        window.removeEventListener('mouseup', this);
         break;
 
       case 'transitionend':
