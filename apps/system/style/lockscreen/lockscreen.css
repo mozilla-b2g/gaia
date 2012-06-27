@@ -356,7 +356,7 @@
 
 @-moz-keyframes lockscreen-arrow-left {
   from {
-    -moz-transofrm: none;
+    -moz-transform: none;
     opacity: 1;
   }
 
@@ -368,7 +368,7 @@
 
 @-moz-keyframes lockscreen-arrow-right {
   from {
-    -moz-transofrm: none;
+    -moz-transform: none;
     opacity: 1;
   }
 
