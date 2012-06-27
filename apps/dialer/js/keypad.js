@@ -120,7 +120,6 @@ var KeypadManager = {
   },
 
   init: function kh_init() {
-
     // Update the minimum phone number phone size.
     // The UX team states that the minimum font size should be
     // 10pt. First off, we convert it to px multiplying it 0.226 times,
@@ -156,8 +155,7 @@ var KeypadManager = {
 
     TonePlayer.init();
 
-    this.render('default');
-
+    this.render();
   },
 
   moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
@@ -181,12 +179,14 @@ var KeypadManager = {
         this.deleteButton.classList.add('hide');
         this.hideBar.classList.remove('hide');
         break;
-      case 'default':
+      default:
         this.phoneNumberViewContainer.classList.remove('keypad-visible');
-        this.hideBar.classList.add('hide');
-        if (this.callBar) {
+        if (this.hideBar)
+          this.hideBar.classList.add('hide');
+
+        if (this.callBar)
           this.callBar.classList.remove('hide');
-        }
+
         this.deleteButton.classList.remove('hide');
         break;
     }
