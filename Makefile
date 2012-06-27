@@ -435,7 +435,7 @@ install-gaia: profile
 	$(ADB) push profile/user.js ${PROFILE_PATH}/user.js
 
 	@echo "Installed gaia into profile/."
-	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+	$(ADB) reboot
 	@echo 'Rebooting b2g now'
 
 # Copy demo media to the sdcard.
