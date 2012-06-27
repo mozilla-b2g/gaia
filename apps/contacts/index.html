@@ -127,7 +127,8 @@
                 </li>
                 <!-- Email Template -->
                 <li id='email-details-template' data-template>
-                  <h2>#type#</h2>
+                  <!-- Hardcoded while we don't have a place to store email's type -->
+                  <h2>MAIL</h2>
                   <div class="item">
                     <div class="item-body-exp">
                       <button class="action">
@@ -181,7 +182,7 @@
           </dl>
 
           <!-- EMAIL TEMPLATE -->
-          <dl id='add-email' data-template class="setbox">
+          <dl id='add-email' data-template class="setbox fillflow-row">
             <!-- Commented while we don't have an email type field in contacts -->
             <!-- <dt class="setbox-title">
                 <input type="text" data-taglist='email-type' onclick="Contacts.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">
@@ -200,7 +201,7 @@
             <div class="view-body-inner">
               <form action="#" class="fill-flow">
                 <input name="id" id="contact-form-id" type="hidden" value=""\>
-                <fieldset class="item">
+                <fieldset class="item first">
                   <legend class="hide">Main information</legend>
                   <a href="#" class="item-media fillflow-media">
                     <img alt="" style="background-image: url(#photo#);">
@@ -232,7 +233,7 @@
                   <b>Add phone number</b>
                 </button>
 
-                <fieldset id='contacts-form-email'  class="fillflow-row">
+                <fieldset id='contacts-form-email'>
                   <legend>E-mail address</legend>
                     <div id='contacts-form-phones'>
                       <!-- Iterating over email template here -->
