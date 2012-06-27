@@ -1,7 +1,15 @@
 'use strict';
 
 var Camera = {
-  _camera: 0,
+
+  CAMERA: 'camera',
+  VIDEO: 'video',
+
+  _camera: null,
+  _videoCapturing: false,
+
+  _videoTimer: null,
+  _videoStart: null,
 
   get viewfinder() {
     return document.getElementById('viewfinder');
@@ -19,16 +27,57 @@ var Camera = {
     return document.getElementById('gallery-button');
   },
 
+  get videoTimer() {
+    return document.getElementById('video-timer');
+  },
+
   init: function cameraInit() {
+
     this.switchButton.addEventListener('click', this.toggleCamera.bind(this));
+    this.captureButton.addEventListener('click', this.doCapture.bind(this));
+
     this.galleryButton.addEventListener('click', function() {
-      // This is bad. It should eventually become a Web Intent.
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      window.parent.WindowManager.launch('http://gallery.' + domain);
+      // TODO: implement once we have webActivities
     });
 
+    this._camera = this.CAMERA;
     this.setSource(this._camera);
+  },
+
+  doCapture: function camera_doCapture() {
+    if (this._camera === this.VIDEO) {
+      if (!this._videoCapturing) {
+        this._videoCapturing = true;
+        document.body.classList.add('capturing');
+        this.switchButton.setAttribute('disabled', 'disabled');
+        this.galleryButton.setAttribute('disabled', 'disabled');
+        this.videoTimer.innerHTML = '00:00';
+        this._videoStart = new Date();
+        this._videoTimer = setInterval(this.updateVideoTimer.bind(this), 900);
+      } else {
+        this._videoCapturing = false;
+        document.body.classList.remove('capturing');
+        this.switchButton.removeAttribute('disabled');
+        this.galleryButton.removeAttribute('disabled');
+        this._videoTimer = clearInterval(this._videoTimer);
+      }
+      return;
+    }
+  },
+
+  padZero: function camera_padZero(number, length) {
+    var str = '' + number;
+    while (str.length < length) {
+      str = '0' + str;
+    }
+    return str;
+  },
+
+  updateVideoTimer: function camera_updateVideoTimer() {
+    var diffSec = (new Date() - this._videoStart) / 1000;
+    var min = Math.floor(diffSec / 60);
+    var sec = Math.round((diffSec - (min * 60)));
+    this.videoTimer.innerHTML = this.padZero(min, 2) + ':' + this.padZero(sec, 2);
   },
 
   setSource: function camera_setSource(camera) {
@@ -71,9 +120,14 @@ var Camera = {
     this.viewfinder.play();
   },
 
-  toggleCamera: function toggleCamera() {
-    this._camera = 1 - this._camera;
-    this.setSource(this._camera);
+  toggleCamera: function toggleCamera(e) {
+    if (e.target.getAttribute('disabled')) {
+      return;
+    }
+    document.body.classList.remove(this._camera);
+    this._camera = (this._camera === this.CAMERA) ? this.VIDEO : this.CAMERA;
+    this.setSource(this._camera === this.CAMERA ? 0 : 1);
+    document.body.classList.add(this._camera);
   }
 
 };
