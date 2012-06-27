@@ -348,8 +348,9 @@ var Contacts = (function() {
 
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
-      contactsList.refresh(contact);
-      reloadContactDetails(contact);
+      myContact.id = contact.id;
+      contactsList.refresh(myContact);
+      reloadContactDetails(myContact);
       navigation.back();
     };
 

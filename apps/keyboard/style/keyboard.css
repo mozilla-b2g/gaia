@@ -50,6 +50,12 @@ button::-moz-focus-inner {
   bottom: 0;
   width: 100%;
   background: black;
+  -moz-transition: -moz-transform 0.3s ease;
+  -moz-transform: translateY(0);
+}
+
+#keyboard.hide{
+  -moz-transform: translateY(100%);
 }
 
 /* Rows */
