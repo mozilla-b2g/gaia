@@ -81,7 +81,7 @@
 
           var notiClick = function() {
             // Asking to launch itself
-            app.launch();
+            app.launch('#recents-view');
           };
 
           var title = 'Missed call';

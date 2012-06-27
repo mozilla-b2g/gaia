@@ -88,7 +88,8 @@ var CallScreen = {
   },
 
   update: function cm_update(phone_number) {
-    this.contactPrimaryInfo.value = phone_number;
+    this.contactPrimaryInfo.value = KeypadManager.formatPhoneNumber(
+      'on-call', this.contactPrimaryInfo, phone_number);
     KeypadManager._phoneNumber = phone_number;
     KeypadManager.phoneNumberView.value =
       KeypadManager._phoneNumber;

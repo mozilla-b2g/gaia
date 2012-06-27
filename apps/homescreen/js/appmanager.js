@@ -41,7 +41,9 @@ var Applications = (function() {
       var icon = getIcon(app.origin);
       // No need to put data: URIs in the cache
       if (icon && icon.indexOf('data:') == -1) {
-        window.applicationCache.mozAdd(icon);
+        try {
+          window.applicationCache.mozAdd(icon);
+        } catch (e) {}
       }
 
       callbacks.forEach(function(callback) {
