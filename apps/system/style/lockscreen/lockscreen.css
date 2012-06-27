@@ -10,7 +10,7 @@
 
   -moz-user-select: none;
 
-  -moz-transition: -moz-transform 0.5s ease;
+  -moz-transition: -moz-transform 0.5s ease 0.2s;
 }
 
 #screen:not(.locked) > #lockscreen {
