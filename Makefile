@@ -383,6 +383,8 @@ stamp-commit-hash:
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
 	$(ADB) shell rm -r /data/local/indexedDB/*
+	$(ADB) reboot
+	@echo 'Rebooting b2g now'
 
 # Take a screenshot of the device and put it in screenshot.png
 screenshot:
