@@ -123,8 +123,10 @@ const IMEController = (function() {
         row.splice(where, 1, // delete space
           { value: '.', ratio: 1, keyCode: 46 },
           { value: '/', ratio: 2, keyCode: 47 },
-          { value: '.com', ratio: 2, compositeKey: '.com' }
+          // As we are removing the space we need to assign the extra space (i.e to .com)
+          { value: '.com', ratio: 2 + space.ratio, compositeKey: '.com' }
         );
+
       break;
 
       // adds @ and .
