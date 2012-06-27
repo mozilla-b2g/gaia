@@ -198,35 +198,41 @@ body.hidden *[data-l10n-id] {
 
 #call-duration {
   color:white;
-  font-size: -moz-calc(25*0.226rem);
+  font-size: -moz-calc(25*0.226rem / 2);
   padding: 2rem 1rem 2rem 2rem;
   float: left;
 }
 
-#call-duration.connecting {
-  font-size: -moz-calc(25*0.226rem / 2);
-}
-
-#call-direction {
-  visibility: hidden;
-}
-
-#call-direction.show {
-  visibility: visible;
+#call-duration.ongoing {
+  font-size: -moz-calc(25*0.226rem);
 }
 
 #icon-call-direction {
-  background-image: url('images/incoming_icon.png');
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 3rem 2.1rem;
-  width: 3rem;
-  height: 2.1rem;
-  padding: -moz-calc(5rem + 25*0.226rem) 0rem 0rem 0rem;
+  background-size: 3.5rem 3.5rem;
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
-#call-direction.show {
-  visibility: visible;
+#call-direction.incoming > #icon-call-direction {
+  background-image: url('images/DialerIcon_35x35_calling.png');
+  padding: -moz-calc(2rem + 25*0.226rem / 2) 0rem 0rem 0rem;
+}
+
+#call-direction.outgoing > #icon-call-direction {
+  background-image: url('images/DialerIcon_35x35_calling_out.png');
+  padding: -moz-calc(2rem + 25*0.226rem / 2) 0rem 0rem 0rem;
+}
+
+#call-direction.ongoing-in > #icon-call-direction {
+  background-image: url('images/DialerIcon_35x35_incoming.png');
+  padding: -moz-calc(2rem + 25*0.226rem) 0rem 0rem 0rem;
+}
+
+#call-direction.ongoing-out > #icon-call-direction {
+  background-image: url('images/DialerIcon_35x35_outgoing.png');
+  padding: -moz-calc(2rem + 25*0.226rem) 0rem 0rem 0rem;
 }
 
 #call-container {
@@ -262,17 +268,15 @@ body.hidden *[data-l10n-id] {
 #mute > span {
   display:inline-block;
   background-color: #DDD;
-  background:url('images/ActionIcon_40x40_mute.png') ;
+  background:url('images/ActionIcon_40x40_mute.png');
   background-size: 4rem 4rem;
   width:4rem;
   height:4rem;
   opacity: 1.0;
 }
 
-#mute.mute {
-  background-color: #52B6CC;
-  opacity: 0.8;
-  border: 0;
+#mute.mute > span {
+  background:url('images/ActionIcon_40x40_mute_active.png');
 }
 
 button[disabled] .icon-keypad-visibility {
@@ -299,10 +303,8 @@ button[disabled] .icon-keypad-visibility {
   opacity: 1.0;
 }
 
-#speaker.speak {
-  background-color: #52B6CC;
-  opacity: 0.8;
-  border: 0;
+#speaker.speak  > span {
+  background:url('images/ActionIcon_40x40_bluetooth_active.png');
 }
 
 #callbar {

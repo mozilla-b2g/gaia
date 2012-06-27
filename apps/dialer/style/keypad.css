@@ -26,7 +26,7 @@
 }
 
 #phone-number-view-container.keypad-visible {
-  height:-moz-calc(100% - 35rem + 1px);
+  height:-moz-calc(100% - 35rem);
   visibility: hidden;
 }
 
