@@ -32,7 +32,12 @@
 /* Reset */
 * {
   margin: 0;
-  padding: none;
+  padding: 0;
+}
+
+button::-moz-focus-inner {
+  padding: 0;
+  border: 0
 }
 
 /* Keyboard */
@@ -52,7 +57,7 @@
 .keyboard-key {
   -moz-box-sizing: border-box;
   box-sizing: boder-box;
-  padding: 0.25rem 0.1rem;
+  padding: 0.25rem 0.2rem;
   border: none;
   background: none;
   min-width: 2.6rem;
@@ -364,7 +369,7 @@
   position: absolute;
   white-space: normal;
   top: 0;
-  height: 99%;
+  height: 100%;
   width: 100%;
   border: none;
   border-top: 2px solid #a3a3a3;
