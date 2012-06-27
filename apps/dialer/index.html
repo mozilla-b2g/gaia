@@ -38,6 +38,7 @@
           <div class="grid-cell grid-v-align">
             <div class="grid-wrapper">
               <input id="phone-number-view" type="text" class="phone-number-font" readonly="readonly">
+              <div id="fake-phone-number-view"></div>
             </div>
           </div>
           <div id="keypad-delete" class="grid-cell grid-v-align">
@@ -58,8 +59,8 @@
               </div>
               <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label"  data-value="4">
-                    <span class="keypad-number  font-light">4</span>
+                  <div class="keypad-key-label" data-value="4">
+                    <span class="keypad-number font-light">4</span>
                     <span  class="keypad-text font-semibold">GHI</span>
                   </div>
                 </div>
@@ -67,7 +68,7 @@
               <div class="keypad-key">
                 <div class="keypad-key-label-container">
                   <div class="keypad-key-label" data-value="7">
-                    <span class="keypad-number  font-light">7</span>
+                    <span class="keypad-number font-light">7</span>
                     <span class="keypad-text font-semibold">PQRS</span>
                   </div>
                 </div>
@@ -75,8 +76,9 @@
               <div class="keypad-key">
                 <div class="keypad-key-label-container">
                   <div class="keypad-key-label keypad-key-label-centered" data-value="*">
-                    <span class="keypad-number font-light">*</span>
-                    <span class="keypad-text font-semibold"></span>
+                    <span>
+                      <div class="is-asterisk"></div>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -110,7 +112,7 @@
                 <div class="keypad-key-label-container">
                   <div class="keypad-key-label" data-value="0">
                     <span class="keypad-number font-light">0</span>
-                    <span class="keypad-text font-semibold">+</span>
+                    <span class="keypad-text font-semibold font-size-plus">+</span>
                   </div>
                 </div>
               </div>
@@ -142,23 +144,20 @@
               </div>
               <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label  keypad-key-label-centered" data-type="dial" data-value="#">
-                    <span class="keypad-number font-light">#</span>
-                    <span  class="keypad-text font-semibold"></span>
+                  <div class="keypad-key-label keypad-key-label-centered" data-type="dial" data-value="#">
+                    <span>
+                      <div class="is-sharp"></div>
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           </section>
           <section id="keypad-callbar">
-            <span role="button" id="keypad-callbar-add-contact"  data-type="action" data-value="add-contact" >
+            <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" >
               <div class="icon-add-contact"></div>
             </span>
-            <span role="button" id="keypad-callbar-call-action"  data-type="action" data-value="make-call">
-              <div>
-              </div>
-            </span>
-            <span role="button" id="keypad-callbar-back-action"  data-type="action" data-value="back"  class="hide">
+            <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
               <div>
               </div>
             </span>

@@ -15,12 +15,12 @@ var CallScreen = {
 
   get answerButton() {
     delete this.answerButton;
-    return this.answerButton = document.getElementById('co-basic-answer');
+    return this.answerButton = document.getElementById('callbar-answer');
   },
 
   get rejectButton() {
     delete this.rejectButton;
-    return this.rejectButton = document.getElementById('co-basic-reject');
+    return this.rejectButton = document.getElementById('callbar-hang-up');
   },
 
   get keypadButton() {
@@ -30,19 +30,30 @@ var CallScreen = {
 
   get callContainer() {
     delete this.contactContainer;
-    return this.contactContainer =
-      document.getElementById('call-container');
+    return this.contactContainer = document.getElementById('call-container');
   },
 
   get contactPrimaryInfo() {
     delete this.contactPrimaryInfo;
     return this.contactPrimaryInfo =
-      document.getElementById('cs-h-info-primary');
+      document.getElementById('contact-primary-info');
+  },
+
+  get fakeContactPrimaryInfo() {
+    delete this.fakeContactPrimaryInfo;
+    return this.fakeContactPrimaryInfo =
+      document.getElementById('fake-contact-primary-info');
   },
 
   get callDuration() {
     delete this.callDuration;
     return this.callDuration = document.getElementById('call-duration');
+
+  },
+
+  get callDirection() {
+    delete this.callDirection;
+    return this.callDirection = document.getElementById('call-direction');
 
   },
 
@@ -74,7 +85,7 @@ var CallScreen = {
   },
 
   update: function cm_update(phone_number) {
-    this.contactPrimaryInfo.innerHTML = phone_number;
+    this.contactPrimaryInfo.value = phone_number;
     KeypadManager._phoneNumber = phone_number;
     KeypadManager.phoneNumberView.value =
       KeypadManager._phoneNumber;
@@ -118,13 +129,16 @@ var CallScreen = {
   render: function cm_render(layout_type) {
     switch (layout_type) {
       case 'dialing':
-        this.callDuration.innerHTML = '...';
+        this.callDuration.innerHTML = 'Connecting';
+        this.callDuration.classList.add('connecting');
         this.answerButton.classList.add('hide');
+        this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
         break;
       case 'incoming':
         this.answerButton.classList.remove('hide');
+        this.rejectButton.classList.remove('full-space');
         this.callToolbar.classList.add('transparent');
         this.callDuration.innerHTML = '';
         break;
@@ -134,10 +148,13 @@ var CallScreen = {
         this._syncSpeakerEnabled();
 
         this.answerButton.classList.add('hide');
+        this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
 
         this.keypadButton.removeAttribute('disabled');
         this.callDuration.innerHTML = '00:00';
+        this.callDuration.classList.remove('connecting');
+        this.callDirection.classList.add('show');
 
         break;
     }
