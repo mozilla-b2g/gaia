@@ -156,7 +156,7 @@
           </section>
           <section id="keypad-callbar">
             <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" >
-              <div class="icon-add-contact"></div>
+              <div class="icon-add-contact disabled-icon"></div>
             </span>
             <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
               <div>
@@ -168,7 +168,6 @@
       <section class="view" role="tabpanel" id="contacts-view">
         Contacts view
       </section>
-
       <section class="view" role="tabpanel" id="recents-view">
         <div class="grid-wrapper">
           <header class="view-header">
@@ -205,7 +204,6 @@
       // If no entry point, redirect to the keyboard-view
       if(document.location.href.indexOf("#") == -1) {
         document.location.href = "#keyboard-view";
-        
       }
     </script>
 </html>
