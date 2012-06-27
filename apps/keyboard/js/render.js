@@ -65,7 +65,7 @@ const IMERender = (function() {
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
         var keyChar = key.value;
-        var overrides = layout[flags.inputType+'Overrides'];
+        var overrides = layout[flags.inputType + 'Overrides'];
 
         // Handle uppercase
         if (flags.uppercase) {
