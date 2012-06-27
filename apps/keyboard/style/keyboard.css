@@ -49,6 +49,7 @@ button::-moz-focus-inner {
   position: absolute;
   bottom: 0;
   width: 100%;
+  background: black;
 }
 
 /* Rows */
