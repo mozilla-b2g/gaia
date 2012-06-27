@@ -248,7 +248,7 @@ Page.prototype = {
     this.setTranstionDuration(style, 0);
   },
 
-  applyInstallingEffect: function (origin) {
+  applyInstallingEffect: function(origin) {
     this.icons[origin].show();
   },
 

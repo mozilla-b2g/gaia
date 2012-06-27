@@ -1,12 +1,7 @@
 
-
 .view-header {
   height: 5rem;
-  background: -webkit-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
-  background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
-  background: linear-gradient(top, #cd6723 0%,#bb482d 100%);
-  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -33,7 +28,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     color: #ffffff;
-    font-size: -webkit-calc(10 * 0.226rem);
     font-size: -moz-calc(10 * 0.226rem);
   }
 
@@ -51,6 +45,7 @@
       
     }
 
+
 .view-body {
   background : white;
   color: black;
@@ -58,93 +53,91 @@
   overflow: auto;
 }
 
-  .view-body h2 {
-    font-family: FontRegular;
-    border-bottom: solid 1px #ff4e00;
-    padding-left: 3rem;
-    padding-top:1rem;
-    font-size: -moz-calc(6*0.226rem);
-    color: #ff4e00;
-    text-transform: uppercase;
-  }
+.view-body h2 {
+  font-family: FontRegular;
+  border-bottom: solid 1px #ff4e00;
+  padding-left: 3rem;
+  padding-top:1rem;
+  font-size: -moz-calc(6*0.226rem);
+  color: #ff4e00;
+  text-transform: uppercase;
+}
 
-  .header-noresult {
-    padding-bottom: 4rem;
-  }
-  
-  .header-text-noresult {
-    font-family: FontSemibold;
-    font-size: -moz-calc(7 * 0.226rem);
-    color: #373E45;
-  }
+.header-noresult {
+  padding-bottom: 4rem;
+}
 
-  .icon-noresult {
-    width: 20rem;
-    height: 20rem;
-    margin: 0 auto;
-    background-image: url('images/ComLog_200x200_clock.png');
-  }
+.header-text-noresult {
+  font-family: FontSemibold;
+  font-size: -moz-calc(7 * 0.226rem);
+  color: #373E45;
+}
 
-    .log-group li {
-      height: 5rem;
-      border-bottom: .1rem solid  #dbdbdb;
-      color:black;
-    }
+.icon-noresult {
+  width: 20rem;
+  height: 20rem;
+  margin: 0 auto;
+  background-image: url('images/ComLog_200x200_clock.png');
+}
 
-    .log-group li:last-child{
-      border-bottom: 0;
-    }
+.log-group li {
+  height: 5rem;
+  border-bottom: .1rem solid  #dbdbdb;
+  color:black;
+}
 
-      .icon-container {
-        float: left;
-        height: 100%;
-        width: 5rem;
-        
-      }
+.log-group li:last-child{
+  border-bottom: 0;
+}
 
-        .icon-incoming {
-          width: 3rem;
-          height: 3rem;
-          background-image: url('images/CallLog_30x30_incoming.png');
-        }
+.icon-container {
+  float: left;
+  height: 100%;
+  width: 5rem;
 
-        .icon-outgoing {
-          width: 3rem;
-          height: 3rem;
-          background-image: url('images/CallLog_30x30_outgoing.png');
-        }
+}
 
-        .icon-missed {
-          width: 3rem;
-          height: 3rem;
-          background-image: url('images/CallLog_30x30_missed.png');
-        }
+.icon-incoming {
+  width: 3rem;
+  height: 3rem;
+  background-image: url('images/CallLog_30x30_incoming.png');
+}
 
-      .log-item-info {
-        float:left;
-        height:100%;
-        width:-moz-calc(100% - 5rem);
-        
-      }
+.icon-outgoing {
+  width: 3rem;
+  height: 3rem;
+  background-image: url('images/CallLog_30x30_outgoing.png');
+}
 
-        .ellipsis {
-          overflow: hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-        }
+.icon-missed {
+  width: 3rem;
+  height: 3rem;
+  background-image: url('images/CallLog_30x30_missed.png');
+}
 
-        .primary-info {
-          font-family: FontRegular;
-          font-size: -moz-calc(8*0.226rem);
-          font-size: -webkit-calc(8*0.226rem);
-          color: #000000;
-        }
-          
-        .secondary-info {
-          font-family: FontRegular;
-          font-size: -moz-calc(6*0.226rem);
-          font-size: -webkit-calc(6*0.226rem);
-          color: #5b5b5b;
-        }
+.log-item-info {
+  float:left;
+  height:100%;
+  width:-moz-calc(100% - 5rem);
+
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.primary-info {
+  font-family: FontRegular;
+  font-size: -moz-calc(8*0.226rem);
+  color: #000000;
+}
+
+.secondary-info {
+  font-family: FontRegular;
+  font-size: -moz-calc(6*0.226rem);
+  color: #5b5b5b;
+}
 
 

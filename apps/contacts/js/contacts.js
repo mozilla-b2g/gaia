@@ -246,6 +246,10 @@ var Contacts = (function() {
     link.appendChild(icon);
     selectedTag = link;
   };
+  
+  var sendSms = function sendSms() {
+    SmsIntegration.sendSms(currentContact.tel[0].number)
+  }
 
 
   var showAdd = function showAdd() {
@@ -406,6 +410,7 @@ var Contacts = (function() {
     'addNewPhone' : insertEmptyPhone,
     'addNewEmail' : insertEmptyEmail,
     'goBack' : navigation.back,
-    'goToSelectTag': goToSelectTag
+    'goToSelectTag': goToSelectTag,
+    'sendSms': sendSms
   };
 })();
