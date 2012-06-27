@@ -81,6 +81,15 @@ var AttentionScreen = {
         evt.target.dataset.frameType !== 'attention')
       return;
 
+    // Ensuring the proper mozvisibility changed on the displayed app
+    var displayedOrigin = WindowManager.getDisplayedApp();
+    if (displayedOrigin) {
+      var frame = WindowManager.getAppFrame(displayedOrigin);
+      if ('setVisible' in frame) {
+        frame.setVisible(true);
+      }
+    }
+
     this.screen.classList.remove('displayed');
     this.screen.classList.remove('status');
     this.screen.removeChild(evt.target);
@@ -91,15 +100,6 @@ var AttentionScreen = {
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.
     window.focus();
-
-    // Ensuring the proper mozvisibility changed on the displayed app
-    var displayedOrigin = WindowManager.getDisplayedApp();
-    if (displayedOrigin) {
-      var frame = WindowManager.getAppFrame(displayedOrigin);
-      if ('setVisible' in frame) {
-        frame.setVisible(true);
-      }
-    }
   },
 
   show: function as_show() {
