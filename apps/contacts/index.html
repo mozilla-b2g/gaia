@@ -31,16 +31,15 @@
         <!-- Contacts List Section -->
       <section id='view-contacts-list' data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
         <div class="view-inner">
-          <header class="view-header">
-            <ul class="pull-right stack view-actions">
-              <li id='add-contact-button' onclick="Contacts.showAdd();">
-                <a href="#" title="Add contact">
-                  <span role="button" class="icon-add" data-l10n-id="add">Add</span>
-                </a>
-              </li>
-            </ul>
-            <h1 data-l10n-id="contacts">Contacts</h1>
+
+          <header role="toolbar" class="view-header">
+            <menu role="menu">
+              <button role="menuitem"  id='add-contact-button' onclick="Contacts.showAdd();"><span data-icon="add" data-l10n-id="add">add</span></button>
+            </menu>
+           <h1 data-l10n-id="contacts">Contacts</h1>
           </header>
+
+
           <article class="view-body">
             <div class="view-jumper">
               <abbr class="view-jumper-current" title="Contacts by "></abbr>
@@ -87,21 +86,15 @@
       <!-- Contact Details Section -->
       <section id='view-contact-details' data-mirror="mirror-contact-details" class="view view-contact-profile">
         <div class="view-inner">
-          <header id='details-view-header' class="view-header">
-            <ul class="pull-right stack view-actions">
-              <li id='edit-contact-button' onclick="Contacts.showEdit();">
-                <a href="#" title="Edit contact">
-                  <span role="button" class="icon-edit" data-l10n-id="edit">Edit</span>
-                </a>
-              </li>
-            </ul>
-            <p class="view-back pull-left">
-              <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
-                <span role="button" class="icon-back">Back</span>
-              </a>
-            </p>
+
+          <header role="toolbar" id='details-view-header' class="view-header">
+            <button class="negative" onclick="Contacts.goBack();"><span data-icon="back">back</span></button>
+            <menu role="menu">
+              <button role="menuitem"  id='edit-contact-button' onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit">edit</span></button>
+            </menu>
             <h1 id='contact-name-title'></h1>
           </header>
+
           <article class="view-body">
             <div class="view-body-inner">
               <div class="contact-header">
@@ -152,14 +145,11 @@
       <!-- Edit Section -->
       <section id='view-contact-form' data-mirror="mirror-contact-form" class="view view-edit-contact">
         <div class="view-inner">
-          <header class="view-header">
-            <ul id='contact-form-actions' class="pull-right stack view-actions">
-            </ul>
-            <p class="view-back pull-left">
-              <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
-                <span role="button" class="icon-back">Back</span>
-              </a>
-            </p>
+
+          <header role="toolbar" class="view-header">
+            <button class="negative" onclick="Contacts.goBack();"><span data-icon="back">back</span></button>
+            <menu role="menu" id='contact-form-actions'>
+            </menu>
             <h1 id='contact-form-title'></h1>
           </header>
 
@@ -254,20 +244,12 @@
       <!-- Tag selection -->
       <section id="view-select-tag" data-mirror="mirror-contact-tags" class="view view-select-tag">
         <div class="view-inner">
-          <header class="view-header">
-            <p class="view-back pull-left">
-              <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
-                <span role="button" class="icon-back">Back</span>
-              </a>
-            </p>
-            <ul class="pull-right stack view-actions">
-              <li>
-              </li>
-              <li onclick="Contacts.goBack();">
-                <a href="#" title="Done">Done
-                </a>
-              </li>
-            </ul>
+          
+           <header role="toolbar" class="view-header">
+            <button class="negative" onclick="Contacts.goBack();"><span data-icon="back">back</span></button>
+            <menu role="menu" id='contact-form-actions' >
+                <button role="menuitem" onclick="Contacts.goBack();">Done</button>
+            </menu>
             <h1>Label</h1>
           </header>
 
