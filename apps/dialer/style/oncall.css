@@ -49,25 +49,25 @@ html * {
 }
 
 #phone-number-view {
-  width:100%;
-  border:0;
-  background:transparent;
+  width: 100%;
+  border: 0;
+  background: transparent;
   text-align: right;
-  cursor:none;
+  cursor: none;
   -moz-user-select: none;
 }
 
 .contact-primary-info {
-  font-size:-moz-calc(15*0.226rem);
-  color:black;
+  font-size: -moz-calc(15*0.226rem);
+  color: black;
 }
 
 #contact-primary-info {
-  width:100%;
-  border:0;
-  background:transparent;
+  width: 100%;
+  border: 0;
+  background: transparent;
   text-align: left;
-  cursor:none;
+  cursor: none;
   -moz-user-select: none;
 }
 
@@ -79,29 +79,29 @@ html * {
 
 .contact-secondary-info {
   font-size:-moz-calc(6*0.226rem);
-  color:white;
+  color: white;
 }
 
 .grid-wrapper {
-  width:100%;
-  height:100%;
+  width: 100%;
+  height: 100%;
 }
 
 .grid-v-align {
-  vertical-align:middle;
+  vertical-align: middle;
 }
 
 .grid-row {
-  display:table-row;
+  display: table-row;
 }
 
 .grid-cell {
-  display:table-cell;
+  display: table-cell;
 }
 
 .grid {
-  display:table;
-  table-layout:fixed;
+  display: table;
+  table-layout: fixed;
 }
 
 #keypad-callbar.hide,
@@ -115,19 +115,19 @@ html * {
 }
 
 .layout-row {
-  display:table-row;
+  display: table-row;
 }
 
 .layout-cell {
-  display:table-cell;
+  display: table-cell;
 }
 
 .layout-centered {
-  vertical-align:middle;
+  vertical-align: middle;
 }
 
 .center {
-  text-align:center;
+  text-align: center;
 }
 
 #views {
@@ -185,19 +185,19 @@ body.hidden *[data-l10n-id] {
 }
 
 #cs-header {
-  height:10rem;
-  background:#52B6CC;
+  height: 10rem;
+  background: #52B6CC;
 }
 
 .contact-info {
   overflow: hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 0 0 0 2rem;
 }
 
 #call-duration {
-  color:white;
+  color: white;
   font-size: -moz-calc(25*0.226rem);
   padding: 2rem 1rem 2rem 2rem;
   float: left;
@@ -237,7 +237,7 @@ body.hidden *[data-l10n-id] {
 }
 
 #call-options {
-  height:9.5rem;
+  height: 9.5rem;
 }
 
 #co-advanced {
@@ -260,12 +260,12 @@ body.hidden *[data-l10n-id] {
 }
 
 #mute > span {
-  display:inline-block;
+  display: inline-block;
   background-color: #DDD;
-  background:url('images/ActionIcon_40x40_mute.png') ;
+  background: url('images/ActionIcon_40x40_mute.png') ;
   background-size: 4rem 4rem;
-  width:4rem;
-  height:4rem;
+  width: 4rem;
+  height: 4rem;
   opacity: 1.0;
 }
 
@@ -280,22 +280,22 @@ button[disabled] .icon-keypad-visibility {
 }
 
 .icon-keypad-visibility {
-  display:inline-block;
+  display: inline-block;
   background-color: #DDD;
-  background:url('images/ActionIcon_40x40_dialpad.png') ;
+  background: url('images/ActionIcon_40x40_dialpad.png') ;
   background-size: 4rem 4rem;
-  width:4rem;
-  height:4rem;
+  width: 4rem;
+  height: 4rem;
   opacity: 1.0;
 }
 
 #speaker span {
-  display:inline-block;
+  display: inline-block;
   background-color: #DDD;
-  background:url('images/ActionIcon_40x40_bluetooth.png') ;
+  background: url('images/ActionIcon_40x40_bluetooth.png') ;
   background-size: 4rem 4rem;
-  width:4rem;
-  height:4rem;
+  width: 4rem;
+  height: 4rem;
   opacity: 1.0;
 }
 
@@ -306,7 +306,7 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #callbar {
-  background:rgba(0,0,0,.8);
+  background: rgba(0,0,0,.8);
   opacity: 1.0;
 }
 
@@ -327,7 +327,7 @@ button[disabled] .icon-keypad-visibility {
 
 .callbar-button {
   height: 4rem;
-  border:0;
+  border: 0;
   border-radius:.3rem;
   display: block;
 }
@@ -348,8 +348,8 @@ button[disabled] .icon-keypad-visibility {
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
-  width:4rem;
-  height:4rem;
+  width: 4rem;
+  height: 4rem;
 }
 
 #callbar-start-call-action {
@@ -364,8 +364,8 @@ button[disabled] .icon-keypad-visibility {
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
-  width:4rem;
-  height:4rem;
+  width: 4rem;
+  height: 4rem;
 }
 
 /* == Screen turn off hack == */

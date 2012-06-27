@@ -15,14 +15,12 @@ var CallScreen = {
 
   get answerButton() {
     delete this.answerButton;
-    return this.answerButton = document
-      .getElementById('callbar-answer');
+    return this.answerButton = document.getElementById('callbar-answer');
   },
 
   get rejectButton() {
     delete this.rejectButton;
-    return this.rejectButton = document
-      .getElementById('callbar-hang-up');
+    return this.rejectButton = document.getElementById('callbar-hang-up');
   },
 
   get keypadButton() {
@@ -32,8 +30,7 @@ var CallScreen = {
 
   get callContainer() {
     delete this.contactContainer;
-    return this.contactContainer =
-      document.getElementById('call-container');
+    return this.contactContainer = document.getElementById('call-container');
   },
 
   get contactPrimaryInfo() {
