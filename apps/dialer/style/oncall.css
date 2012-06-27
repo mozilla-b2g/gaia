@@ -328,8 +328,8 @@ button[disabled] .icon-keypad-visibility {
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
-  width:4rem;
-  height:4rem;
+  width: 4rem;
+  height: 4rem;
 }
 
 #callbar-start-call-action {

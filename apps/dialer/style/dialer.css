@@ -26,6 +26,11 @@
   src: url('fonts/Open-Sans-Light.woff');
 }
 
+@font-face {
+  font-family: 'FontLight';
+  src: url('fonts/Open-Sans-Light.woff');
+}
+
 html, body {
   width: 100%;
   height: 100%;
