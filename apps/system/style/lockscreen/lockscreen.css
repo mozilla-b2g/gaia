@@ -56,12 +56,6 @@
   background-position: 50% 50%;
 }
 
-.lockscreen-panel.tbd {
-  color: #919191;
-  text-align: center;
-  margin-top: 50px;
-}
-
 #lockscreen-header {
   position: absolute;
   top: 0;
