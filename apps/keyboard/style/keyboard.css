@@ -149,6 +149,7 @@ button::-moz-focus-inner {
 
 .keyboard-key:not(.special-key).highlighted:last-child  > .visual-wrapper > span:after {
   border: none;
+  margin: 0 0 0 0.6rem;
 }
 
 .keyboard-key:not(.special-key).highlighted:first-child  > .visual-wrapper > span {
@@ -159,6 +160,7 @@ button::-moz-focus-inner {
 
 .keyboard-key:not(.special-key).highlighted:first-child  > .visual-wrapper > span:after {
   border: none;
+  margin: 0 0.6rem 0 0;
 }
 
 /*  Special keys */
@@ -246,7 +248,7 @@ button::-moz-focus-inner {
   bottom: 0;
   left: -1px;
   margin-bottom: -1px;
-  height: 6rem;
+  height: 5rem;
   border-radius: 0.3rem;
   background: -moz-linear-gradient(#fff, #ebebeb);
   border: 1px solid #61646A;
@@ -255,6 +257,8 @@ button::-moz-focus-inner {
   padding: 0 0.5rem;
   display: none;
 }
+.keyboard-key:first-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0.3rem 0; }
+.keyboard-key:last-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0 0.3rem; }
 
 #keyboard-accent-char-menu.show {
   display: block;
@@ -266,6 +270,9 @@ button::-moz-focus-inner {
   right: -1px;
 }
 
+#keyboard-accent-char-menu .keyboard-key {
+margin-top: 0.2rem;
+}
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
   box-shadow: 0 0 0 2px #53B6CC;
   background: -moz-linear-gradient(#fff, #ebebeb);
@@ -464,13 +471,13 @@ button::-moz-focus-inner {
 
 /* Pending panel highlight */
 .keyboard-pending-symbols-highlight-green {
-	background: #33aa33;
+  background: #33aa33;
 }
 
 .keyboard-pending-symbols-highlight-red {
-	background: #aa3333;
+  background: #aa3333;
 }
 
 .keyboard-pending-symbols-highlight-blue {
-	background: #3333aa;
+  background: #3333aa;
 }
