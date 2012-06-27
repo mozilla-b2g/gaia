@@ -35,6 +35,10 @@
   padding: 0;
 }
 
+body {
+  overflow: hidden;
+}
+
 button::-moz-focus-inner {
   padding: 0;
   border: 0
