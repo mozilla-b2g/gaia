@@ -161,4 +161,6 @@ body.hidden *[data-l10n-id] {
   background-image: url("images/ActionIcon_40x40_dialpad.png");
 }
 
-
+.disabled-icon {
+  opacity: 0.6;
+}

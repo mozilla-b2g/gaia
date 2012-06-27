@@ -6,19 +6,19 @@
   width: -moz-calc(100%);
   height: -moz-calc(100% - 20px);
   overflow: hidden;
-
   background-color: #000;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
 
   -moz-user-select: none;
 
-  -moz-transition: -moz-transform 0.3s ease;
+  -moz-transition: -moz-transform 0.5s ease 0.2s;
 }
 
 #screen:not(.locked) > #lockscreen {
   -moz-transform: translateY(-moz-calc(-100% - 20px));
+}
+
+#lockscreen.uninit > * {
+  display: none;
 }
 
 #lockscreen.no-transition {
@@ -34,12 +34,26 @@
   width: 100%;
   height: 100%;
   position: absolute;
+
+  background-color: #000;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
 }
 
-.lockscreen-panel.tbd {
-  color: #919191;
-  text-align: center;
-  margin-top: 50px;
+.lockscreen-panel::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Replace this with radical gradient */
+  background-image: url('./images/mask.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
 }
 
 #lockscreen-header {
@@ -54,25 +68,13 @@
   text-shadow: 0 0 3px #333;
 }
 
-.uninit #lockscreen-header {
-  display: none;
-}
-
 #lockscreen-mute {
   float: right;
   width: 40px;
   height: 40px;
   margin-top: 8px;
 
-  text-align: center;
-  font-size: 12px;
-  border: 1px solid #fff;
-  border-radius: 10px;
-}
-
-/* XXX: need icon */
-#lockscreen-mute::before {
-  content: 'Mute Icon';
+  background: transparent url('./images/mute.png') center center no-repeat;
 }
 
 #lockscreen-clock {
@@ -182,131 +184,316 @@
   }
 }
 
-.lockscreen-handle {
+#lockscreen-area-handle {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  left: 50%;
+  bottom: 50px;
+  margin-bottom: -25px;
+  margin-left: -25px;
+
+  -moz-transition: -moz-transform 0.1s linear;
+}
+
+@-moz-keyframes lockscreen-handleshake-right {
+	0%, 60% {
+	  -moz-transform: translateX(0);
+	}
+	20%, 40% {
+	  -moz-transform: translateX(15px);
+	}
+}
+
+.touched-right #lockscreen-area-handle {
+  -moz-animation: lockscreen-handleshake-right 1s 2;
+}
+
+@-moz-keyframes lockscreen-handleshake-left {
+	0%, 60% {
+	  -moz-transform: translateX(0);
+	}
+	20%, 40% {
+	  -moz-transform: translateX(-15px);
+	}
+}
+
+.touched-left #lockscreen-area-handle {
+  -moz-animation: lockscreen-handleshake-left 1s 2;
+}
+
+#lockscreen-area-handle::after {
+  position: absolute;
+  content: '';
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+
+  background-image: url('./images/handle.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+
+  -moz-transition: opacity 0.1s linear;
+}
+
+.touched-left #lockscreen-area-handle::after {
+  background-image: url('./images/handle-arrow-left.png');
+}
+
+.touched-right #lockscreen-area-handle::after {
+  background-image: url('./images/handle-arrow-right.png');
+}
+
+#lockscreen-area-handle.triggered::after {
+  opacity: 0;
+}
+
+#lockscreen-area-handle::before {
+  position: absolute;
+  content: '';
+  width: 68px;
+  height: 68px;
+  top: -9px;
+  left: -9px;
+
+  background-image: url('./images/handle-grow.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+
+  opacity: 0;
+}
+
+@-moz-keyframes lockscreen-handlegrow {
+  from, to {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.touched #lockscreen-area-handle::before,
+#lockscreen-area-handle.triggered::before {
+  -moz-animation: lockscreen-handlegrow 1s 1;
+  opacity: 1;
+}
+
+.lockscreen-icon {
   position: absolute;
   border-radius: 27px;
-  width: 54px;
-  height: 54px;
+  width: 42px;
+  height: 42px;
+  bottom: 50px;
+  margin-bottom: -21px;
+
   -moz-box-sizing: border-box;
-  border: 2px solid #52b6cc;
-  background-color: rgba(0, 0, 0, 0.3);
-  bottom: 22px;
-  -moz-transition: -moz-transform 0.3s ease 0.5s;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  -moz-transition: opacity 0.1s linear;
+}
+
+.lockscreen-icon.triggered {
+  background-color: #52b6cc !important;
+  border-color: #52b6cc;
+}
+
+.lockscreen-rail {
+  position: absolute;
+  bottom: 50px;
+  margin: -1px;
+  width: -moz-calc(50% - 50px - 22px);
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  -moz-transition: opacity 0.1s linear;
+}
+
+.touched .lockscreen-rail {
+  opacity: 1;
+}
+
+#lockscreen-rail-left {
+  left: 73px;
+}
+
+#lockscreen-rail-right {
+  right: 73px;
+}
+
+/* the arrow animation for idle */
+.lockscreen-icon::after {
+  position: absolute;
+  display: block;
+  content: '';
+  top: 19px;
+
+  width: 12px;
+  height: 22px;
+  margin: -11px;
+}
+
+.touched .lockscreen-icon::after,
+.touched-left .lockscreen-icon::after,
+.touched-right .lockscreen-icon::after,
+#screen:not(.locked) .lockscreen-icon::after {
+  display: none;
+  -moz-animation: none;
 }
 
 #lockscreen-area-unlock {
-  left: 30px;
+  right: 30px;
+  background: rgba(0, 0, 0, 0.3) url('./images/icon-unlock.png') center center no-repeat;
+}
+
+@-moz-keyframes lockscreen-arrow-left {
+  from {
+    -moz-transform: none;
+    opacity: 1;
+  }
+
+  to {
+    -moz-transform: translateX(-55px);
+    opacity: 0;
+  }
+}
+
+@-moz-keyframes lockscreen-arrow-right {
+  from {
+    -moz-transform: none;
+    opacity: 1;
+  }
+
+  to {
+    -moz-transform: translateX(55px);
+    opacity: 0;
+  }
+}
+
+#lockscreen-area-unlock::after {
+  left: -60px;
+  background: transparent url('./images/arrow-right.png') center center no-repeat;
+  -moz-animation: lockscreen-arrow-right 2s infinite;
 }
 
 #lockscreen-area-camera {
-  right: 30px;
+  left: 30px;
+  background: rgba(0, 0, 0, 0.3) url('./images/icon-camera.png') center center no-repeat;
+}
+
+#lockscreen-area-camera::after {
+  right: -60px;
+  background: transparent url('./images/arrow-left.png') center center no-repeat;
+  -moz-animation: lockscreen-arrow-left 2s infinite;
 }
 
 @media screen and (height: 800px) {
-  .lockscreen-handle {
-    width: 100px;
-    height: 100px;
-    border-radius: 50px;
-    bottom: 50px;
+  #lockscreen-area-handle {
+    width: 75px;
+    height: 75px;
+    bottom: 75px;
+    margin-bottom: -37.5px;
+    margin-left: -37.5px;
   }
+
+  @-moz-keyframes lockscreen-handleshake-right {
+    0%, 60% {
+      -moz-transform: translateX(0);
+    }
+    20%, 40% {
+      -moz-transform: translateX(22.5px);
+    }
+  }
+
+  @-moz-keyframes lockscreen-handleshake-left {
+    0%, 60% {
+      -moz-transform: translateX(0);
+    }
+    20%, 40% {
+      -moz-transform: translateX(-22.5px);
+    }
+  }
+
+  #lockscreen-area-handle::before {
+    width: 102px;
+    height: 102px;
+    top: -13.5px;
+    left: -13.5px;
+  }
+
+  .lockscreen-icon {
+    border-radius: 40.5px;
+    width: 63px;
+    height: 63px;
+    bottom: 75px;
+    margin-bottom: -31.5px;
+  }
+
+  .lockscreen-rail {
+    bottom: 75px;
+    width: -moz-calc(50% - 50px - 33px);
+  }
+
+  #lockscreen-rail-left {
+    left: 109.5px;
+  }
+
+  #lockscreen-rail-right {
+    right: 109.5px;
+  }
+
+  .lockscreen-icon::after {
+    top: 28.5px;
+
+    width: 18px;
+    height: 33px;
+    margin: -16.5px;
+    background-size: cover;
+  }
+
   #lockscreen-area-unlock {
-    left: 50px;
+    right: 45px;
+  }
+
+  @-moz-keyframes lockscreen-arrow-left {
+    from {
+      -moz-transform: none;
+      opacity: 1;
+    }
+
+    to {
+      -moz-transform: translateX(-82.5px);
+      opacity: 0;
+    }
+  }
+
+  @-moz-keyframes lockscreen-arrow-right {
+    from {
+      -moz-transform: none;
+      opacity: 1;
+    }
+
+    to {
+      -moz-transform: translateX(82.5px);
+      opacity: 0;
+    }
+  }
+
+  #lockscreen-area-unlock::after {
+    left: -90px;
+
+    -moz-animation: lockscreen-arrow-right 2s infinite;
   }
 
   #lockscreen-area-camera {
-    right: 50px;
+    left: 45px;
   }
-}
 
-.touch .lockscreen-handle {
-  -moz-transform: translateY(-24px);
-}
-
-/* XXX: copy from alt design visual
-*       need better indication for swiping action instead a label
-*/
-.lockscreen-panel:not([id])::after {
-  content: 'Swipe up to unlock';
-  position: absolute;
-  bottom: -24px;
-  width: 100%;
-  height: 24px;
-  font-size: 16px;
-  line-height: 24px;
-  text-align: center;
-  color: #1b3f46;
-  background-color: #52b6cc;
-  -moz-transition: -moz-transform 0.3s ease 0.5s;
-}
-
-.touch .lockscreen-panel:not([id])::after {
-  -moz-transform: translateY(-24px);
-}
-
-@media screen and (height: 800px) {
-  .lockscreen-panel:not([id])::after {
-    bottom: -36px;
-    height: 36px;
-    font-size: 24px;
-    line-height: 36px;
+  #lockscreen-area-camera::after {
+    right: -90px;
   }
-  .touch .lockscreen-panel:not([id])::after {
-    -moz-transform: translateY(-36px);
-  }
-}
-
-/* CSS icon of a lock */
-#lockscreen-area-unlock::before,
-#lockscreen-area-unlock::after {
-  content: '';
-  display: block;
-  position: absolute;
-}
-
-#lockscreen-area-unlock::before {
-  top: 10%;
-  left: 25%;
-  width: 50%;
-  height: 50%;
-  border: 3px solid #fff;
-  -moz-box-sizing: border-box;
-  border-top-left-radius: 50%;
-  border-top-right-radius: 50%;
-}
-
-#lockscreen-area-unlock::after {
-  top: 40%;
-  left: 20%;
-  width: 60%;
-  height: 40%;
-  background-color: #fff;
-}
-
-/* CSS icon of a camera */
-#lockscreen-area-camera::before,
-#lockscreen-area-camera::after {
-  content: '';
-  display: block;
-  position: absolute;
-}
-
-#lockscreen-area-camera::before {
-  top: 30%;
-  left: 20%;
-  width: 60%;
-  height: 40%;
-  background-color: #fff;
-}
-
-#lockscreen-area-camera::after {
-  top: 40%;
-  left: 38%;
-  width: 24%;
-  height: 24%;
-  border-radius: 50%;
-  background-color: #333;
-
-  box-shadow: 0 0 0 1px #fff, 0 0 0 3px #333;
 }
 
 #lockscreen-panel-passcode {
@@ -339,7 +526,7 @@
 }
 
 /* Smiley */
-#lockscreen-panel-passcode::before {
+#lockscreen-panel-passcode::after {
   content: ': )';
   position: absolute;
   display: block;
@@ -358,11 +545,11 @@
   text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
 }
 
-[data-passcode-status="error"] #lockscreen-panel-passcode::before {
+[data-passcode-status="error"] #lockscreen-panel-passcode::after {
   content: ":'(";
 }
 
-[data-passcode-status="success"] #lockscreen-panel-passcode::before {
+[data-passcode-status="success"] #lockscreen-panel-passcode::after {
   content: "\\o/";
 }
 
@@ -373,7 +560,7 @@
     font-size: 48px;
     line-height: 48px;
   }
-  #lockscreen-panel-passcode::before {
+  #lockscreen-panel-passcode::after {
     top: 45px;
     right: 30px;
     font-size: 60px;
@@ -569,6 +756,10 @@
   left: 0;
   display: none;
   background-color: #fff;
+}
+
+#lockscreen-panel-camera::before {
+  display: none;
 }
 
 #lockscreen-camera {
