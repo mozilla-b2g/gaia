@@ -264,7 +264,7 @@
 
   -moz-box-sizing: border-box;
   border: 2px solid rgba(255, 255, 255, 0.8);
-  -moz-transition: opacity 0.2s linear;
+  -moz-transition: opacity 0.1s linear;
 }
 
 .lockscreen-icon.triggered {
@@ -280,7 +280,7 @@
   height: 2px;
   background-color: rgba(255, 255, 255, 0.8);
   opacity: 0;
-  -moz-transition: opacity 0.2s linear;
+  -moz-transition: opacity 0.1s linear;
 }
 
 .touched .lockscreen-rail {

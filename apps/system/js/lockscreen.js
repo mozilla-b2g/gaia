@@ -275,7 +275,7 @@ var LockScreen = {
       Math.max(0, Math.min(railMax * 2, railRight)) + 'px';
 
     var base = this.overlay.offsetWidth / 4;
-    var opacity = Math.max(0.2, (base - Math.abs(dx)) / base);
+    var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
     if (dx > 0) {
       touch.rightTarget.style.opacity =
         this.railRight.style.opacity = '';
