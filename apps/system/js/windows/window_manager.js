@@ -316,10 +316,10 @@ var WindowManager = (function() {
     else {
       // XXX Note: Hack for demo when current app want to set specific hash
       //           url in newApp(e.g. contact trigger SMS message list page).
-      var frame= runningApps[newApp].frame;
+      var frame = runningApps[newApp].frame;
       if (url && frame.src != url) {
         frame.src = url;
-      }      
+      }
       setAppSize(newApp);
       updateLaunchTime(newApp);
       openWindow(newApp, function() {
