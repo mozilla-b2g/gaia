@@ -40,7 +40,7 @@ def adb_push(local, remote):
     global adb_cmd
     subprocess.check_call([adb_cmd, 'push', local, remote])
 
-def adb_shell(cmd):
+def adb_shell(cmd, ignore_error=False):
     global adb_cmd
 
     # Output the return code so we can check whether the command executed
@@ -60,7 +60,7 @@ def adb_shell(cmd):
         raise Exception('adb shell "%s" exited with error %d' % (cmd, proc.returncode))
 
     split = [line for line in stdout.split('\n') if line.strip()]
-    if not split[-1].startswith('RETURN CODE: 0'):
+    if not ignore_error and not split[-1].startswith('RETURN CODE: 0'):
         raise Exception('adb shell "%s" did not complete successfully. Output:\n%s' % (cmd, stdout))
 
     # Don't return the "RETURN CODE: 0" line!
@@ -128,9 +128,9 @@ def install_gaia_fast():
 
 def install_gaia_slow():
     global adb_cmd
-    adb_shell("rm -r /data/local/OfflineCache")
-    adb_shell("rm -r /data/local/webapps")
-    adb_shell("rm /data/local/user.js")
+    adb_shell("rm -r /data/local/OfflineCache", ignore_error=True)
+    adb_shell("rm -r /data/local/webapps", ignore_error=True)
+    adb_shell("rm /data/local/user.js", ignore_error=True)
     adb_push('profile/OfflineCache', '/data/local/OfflineCache')
     adb_push('profile/webapps', '/data/local/webapps')
     adb_push('profile/user.js', '/data/local')
