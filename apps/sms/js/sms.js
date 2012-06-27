@@ -806,7 +806,7 @@ var ConversationView = {
 
     var className = (outgoing ? 'sender' : 'receiver') + '"';
     if (message.delivery == 'sending')
-      className = 'receiver pending"';
+      className = 'sender pending"';
 
     var pic = 'style/images/contact-placeholder.png';
 
