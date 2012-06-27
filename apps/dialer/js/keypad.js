@@ -219,7 +219,7 @@ var KeypadManager = {
       // If there are no digits in the phone number, hide the delete
       // button.
       if ((this._phoneNumber.length == 0) &&
-          (typeof CallScreen == 'undefined')) {
+        (typeof CallScreen == 'undefined')) {
         this.deleteButton.classList.remove('show');
       }
       this.phoneNumberView.value = this._phoneNumber;
@@ -366,7 +366,7 @@ var KeypadManager = {
 
         // If there are digits in the phone number, show the delete button.
         if ((this._phoneNumber.length > 0) &&
-            (typeof CallScreen == 'undefined')) {
+          (typeof CallScreen == 'undefined')) {
           this.deleteButton.classList.add('show');
         }
 
