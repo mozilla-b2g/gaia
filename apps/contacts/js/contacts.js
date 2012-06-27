@@ -426,7 +426,7 @@ var Contacts = (function() {
 
       if (actions[i].icon) {
         var icon = document.createElement('span');
-        icon.dataset.icon = actions[i].icon
+        icon.dataset.icon = actions[i].icon;
         icon.innerHTML = actions[i].label;
         action.appendChild(icon);
       } else {
