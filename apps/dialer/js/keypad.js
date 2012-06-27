@@ -268,9 +268,9 @@ var KeypadManager = {
           if (!ocMaxNumberOfDigits) {
             ocMaxNumberOfDigits = view.value.length;
           }
-          if (phoneNumber.length >= ocMaxNumberOfDigits) {
+          if (phoneNumber.length >= (ocMaxNumberOfDigits + 3)) {
             phoneNumber = '...' + phoneNumber
-              .substr(-(ocMaxNumberOfDigits - 2));
+              .substr(-(ocMaxNumberOfDigits + 3 - 2));
           }
         break;
       }
