@@ -26,8 +26,8 @@ var CostControl = {
     this.feedback = new Array(document.getElementById('cost-control-date'),
                              document.getElementById('cost-control-container'));
     this.getInitialBalance();
-    this.checkNowButton = document.getElementById('cost-control-check-now');
-    this.checkNowButton.addEventListener('click', (function() {
+    this.checkNowBalance = document.getElementById('cost-control-check-balance');
+    this.checkNowBalance.addEventListener('click', (function() {
       this.updateBalance();
     }).bind(this));
   },
@@ -63,7 +63,8 @@ var CostControl = {
   updateBalance: function() {
     console.log('Sending SMS to get balance');
     this.updateUI(true);
-    //Fake TODO
+    //Fake TODO. Change to real SMS number
+    //Send SMS to "8000" without body
     this.sms.send('669961186', 'Tu saldo es de 27.34€. Vivo');
     //We listen for the SMS a prudential time, then, we just skip any sms
     this.timeout = window.setTimeout((function() {
