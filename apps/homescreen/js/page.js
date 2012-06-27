@@ -41,7 +41,7 @@ Icon.prototype = {
     var container = this.container = document.createElement('li');
     container.className = 'icon';
     if (this.descriptor.isHidden) {
-      container.className += ' hidden';
+      container.dataset.hidden = true;
     }
 
     container.dataset.origin = this.descriptor.origin;
@@ -85,9 +85,9 @@ Icon.prototype = {
   },
 
   show: function icon_show() {
-    var classList = this.container.classList;
-    classList.remove('hidden');
-    classList.add('visible');
+    var container = this.container;
+    delete container.dataset.hidden;
+    container.dataset.visible = true;
   },
 
   /*
