@@ -35,6 +35,10 @@ html * {
   -moz-user-select: none;
 }
 
+.contact-info-wrapper {
+  padding: 0rem 2rem 0rem 2rem;
+}
+
 .contact-primary-info {
   font-size:-moz-calc(15*0.226rem);
   color:black;
@@ -171,7 +175,7 @@ body.hidden *[data-l10n-id] {
   overflow: hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-  padding: 0 0 0 2rem;
+  padding: 0 2rem 0 2rem;
 }
 
 #call-duration {
