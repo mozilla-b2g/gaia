@@ -7,43 +7,43 @@
 
 /* Reset of H1 style. Will be in Gecko */
 
-  h1, h2, li, ol, ul {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
-  }
-  ol, ul {
-    list-style: none;
-  }
+h1, h2, li, ol, ul {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+ol, ul {
+  list-style: none;
+}
 
 
-  .view-header h1 {
-    font-family: FontRegular;
-    padding-left: 3rem;
-    box-sizing: border-box;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: #ffffff;
-    font-size: -moz-calc(10 * 0.226rem);
-  }
+.view-header h1 {
+  font-family: FontRegular;
+  padding-left: 3rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+  font-size: -moz-calc(10 * 0.226rem);
+}
 
-  .view-header .view-header-options {
-    width: 4rem;
-    padding-right: 2rem;
-  }
+.view-header .view-header-options {
+  width: 4rem;
+  padding-right: 2rem;
+}
 
-    .icon-edit {
-      background-image: url('images/edit.png');
-      height: 2rem;
-      width: 1.9rem;
-      opacity: 0.5;
-      -moz-opacity: 0.5;
-      
-    }
+.icon-edit {
+  background-image: url('images/edit.png');
+  height: 2rem;
+  width: 1.9rem;
+  opacity: 0.5;
+  -moz-opacity: 0.5;
+  
+}
 
 
 .view-body {
@@ -116,27 +116,27 @@
 }
 
 .log-item-info {
-  float:left;
-  height:100%;
-  width:-moz-calc(100% - 5rem);
+  float: left;
+  height: 100%;
+  width: -moz-calc(100% - 5rem);
 
 }
 
 .ellipsis {
   overflow: hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .primary-info {
   font-family: FontRegular;
-  font-size: -moz-calc(8*0.226rem);
+  font-size: -moz-calc(8 * 0.226rem);
   color: #000000;
 }
 
 .secondary-info {
   font-family: FontRegular;
-  font-size: -moz-calc(6*0.226rem);
+  font-size: -moz-calc(6 * 0.226rem);
   color: #5b5b5b;
 }
 

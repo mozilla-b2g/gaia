@@ -53,7 +53,6 @@ var Recents = {
 
     callback(this._recentsDB);
   },
-
   add: function re_add(recentCall) {
 
     var self = this;
@@ -62,7 +61,7 @@ var Recents = {
       var txn = database.transaction(self.STORENAME, 'readwrite');
       var store = txn.objectStore(self.STORENAME);
       var setreq = store.put(recentCall);
-      setreq.onsuccess = function() {
+      setreq.onsuccess = function sr_onsuccess() {
         // TODO At some point with we will be able to get the app window
         // to update the view. Relying on vivibility changes until then.
         // (and doing a full re-render)
@@ -74,45 +73,44 @@ var Recents = {
     });
   },
   createEntry: function re_createEntry(recent) {
-    // Create element
     var entry = document.createElement('li');
 
     // Add class
     entry.classList.add('log-item');
     // Create HTML structure
-    var html_structure = "<section class='icon-container grid center'>";
-    html_structure += "<div class='grid-cell grid-v-align'><div class='icon ";
+    var htmlStructure = "<section class='icon-container grid center'>";
+    htmlStructure += "<div class='grid-cell grid-v-align'><div class='icon ";
 
     // Depending on call type we add icon
     if (recent.type.indexOf('dialing') != -1) {
-      html_structure += 'icon-outgoing';
+      htmlStructure += 'icon-outgoing';
     } else {
       if (recent.type != 'incoming') {
-        html_structure += 'icon-incoming';
+        htmlStructure += 'icon-incoming';
       } else {
-        html_structure += 'icon-missed';
+        htmlStructure += 'icon-missed';
       }
     }
 
-    html_structure += "'></div></div>";
-    html_structure += '</section>';
-    html_structure += "<section class='log-item-info grid'>";
-    html_structure += "<div class='grid-cell grid-v-align'>";
+    htmlStructure += "'></div></div>";
+    htmlStructure += '</section>';
+    htmlStructure += "<section class='log-item-info grid'>";
+    htmlStructure += "<div class='grid-cell grid-v-align'>";
     //Check if contact is in Agenda
     Contacts.findByNumber(recent.number, function findContact(contact) {
       if (contact) {
-        html_structure += "<section class='primary-info ellipsis'>";
-        html_structure += (contact.name || recent.number) + '</section>';
+        htmlStructure += "<section class='primary-info ellipsis'>";
+        htmlStructure += (contact.name || recent.number) + '</section>';
       }
     });
-    html_structure += "<section class='primary-info ellipsis'>";
-    html_structure += recent.number + '</section>';
-    html_structure += "<section class='secondary-info ellipsis'>";
-    html_structure += prettyDate(recent.date) + '</section>';
-    html_structure += '</div>';
-    html_structure += '</section>';
+    htmlStructure += "<section class='primary-info ellipsis'>";
+    htmlStructure += recent.number + '</section>';
+    htmlStructure += "<section class='secondary-info ellipsis'>";
+    htmlStructure += prettyDate(recent.date) + '</section>';
+    htmlStructure += '</div>';
+    htmlStructure += '</section>';
 
-    entry.innerHTML = html_structure;
+    entry.innerHTML = htmlStructure;
     return entry;
   },
   render: function re_render() {
@@ -126,30 +124,30 @@ var Recents = {
       self.view.innerHTML = '';
       if (recents.length > 0) {
         // Update token
-        self.current_token = 0;
+        self.currentToken = 0;
         for (var i = 0; i < recents.length; i++) {
           // We retrieve temp token
           var token_tmp = self.getDayDate(recents[i].date);
           // Compare tokens
-          if (token_tmp > self.current_token) {
+          if (token_tmp > self.currentToken) {
             // Update token
-            self.current_token = token_tmp;
+            self.currentToken = token_tmp;
             // Create structure
-            var html_structure = '<section data-timestamp=' +
-            self.current_token + '>';
-            html_structure += '<h2>';
-            html_structure += headerDate(self.current_token);
-            html_structure += '</h2>';
-            html_structure += "<ol id='" + self.current_token +
+            var htmlStructure = '<section data-timestamp=' +
+            self.currentToken + '>';
+            htmlStructure += '<h2>';
+            htmlStructure += headerDate(self.currentToken);
+            htmlStructure += '</h2>';
+            htmlStructure += "<ol id='" + self.currentToken +
             "' class='log-group'>";
-            html_structure += '</ol>';
-            html_structure += '</section>';
+            htmlStructure += '</ol>';
+            htmlStructure += '</section>';
 
-            self.view.innerHTML += html_structure;
-            document.getElementById(self.current_token).
+            self.view.innerHTML += htmlStructure;
+            document.getElementById(self.currentToken).
             appendChild(self.createEntry(recents[i]));
           } else {
-            document.getElementById(self.current_token).
+            document.getElementById(self.currentToken).
             appendChild(self.createEntry(recents[i]));
           }
         }
@@ -174,9 +172,9 @@ var Recents = {
 
   getDayDate: function re_getDayDate(timestamp) {
     var date = new Date(timestamp);
-    var start_date = new Date(date.getFullYear(),
+    var startDate = new Date(date.getFullYear(),
     date.getMonth(), date.getDate());
-    return start_date.getTime();
+    return startDate.getTime();
   },
   history: function re_history(callback) {
     this.getDatabase((function(database) {
