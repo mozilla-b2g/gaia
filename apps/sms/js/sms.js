@@ -398,7 +398,8 @@ var ConversationListView = {
 
     this._lastHeader = conversation.timestamp;
 
-    return '<div class="groupHeader">' + giveHeaderDate(conversation.timestamp) + '</div>';
+    return '<div class="groupHeader">' +
+      giveHeaderDate(conversation.timestamp) + '</div>';
 
   },
 
