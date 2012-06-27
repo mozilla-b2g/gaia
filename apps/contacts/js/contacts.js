@@ -246,9 +246,9 @@ var Contacts = (function() {
     link.appendChild(icon);
     selectedTag = link;
   };
-  
+
   var sendSms = function sendSms() {
-    SmsIntegration.sendSms(currentContact.tel[0].number)
+    SmsIntegration.sendSms(currentContact.tel[0].number);
   }
 
 
