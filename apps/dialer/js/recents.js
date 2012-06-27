@@ -125,10 +125,9 @@ var Recents = {
       if (recents.length > 0) {
 
         //Sort by date
-        recents.sort(function(a,b) {
+        recents.sort(function(a, b) {
           return b.date - a.date;
         });
-        console.log("Sort ended");
         // Update token
         self.currentToken = recents[0].date;
         for (var i = 0; i < recents.length; i++) {

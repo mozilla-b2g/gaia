@@ -86,7 +86,6 @@ var NavbarManager = {
     });
 
     window.addEventListener('hashchange' , function(event) {
-      console.log("Hash change "+window.location.hash);
       // TODO Implement it with building blocks:
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
