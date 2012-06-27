@@ -325,16 +325,18 @@ const IMERender = (function() {
     }
 
     // Width calc
-    var layoutWidth = layout.width || 10;
-    var totalWidth = document.getElementById('keyboard').clientWidth;
-    var placeHolderWidth = totalWidth / layoutWidth;
+    if (layout) {
+      var layoutWidth = layout.width || 10;
+      var totalWidth = document.getElementById('keyboard').clientWidth;
+      var placeHolderWidth = totalWidth / layoutWidth;
 
-    var ratio, keys, rows = document.querySelectorAll('.keyboard-row');
-    for (var r = 0, row; row = rows[r]; r += 1) {
-      keys = row.childNodes;
-      for (var k = 0, key; key = keys[k]; k += 1) {
-        ratio = layout.keys[r][k].ratio || 1;
-        key.style.width = (placeHolderWidth * ratio) + 'px';
+      var ratio, keys, rows = document.querySelectorAll('.keyboard-row');
+      for (var r = 0, row; row = rows[r]; r += 1) {
+        keys = row.childNodes;
+        for (var k = 0, key; key = keys[k]; k += 1) {
+          ratio = layout.keys[r][k].ratio || 1;
+          key.style.width = (placeHolderWidth * ratio) + 'px';
+        }
       }
     }
   };
