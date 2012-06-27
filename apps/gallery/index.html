@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html manifest="manifest.appcache">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
-    <link rel="resource" type="application/l10n" href="locale/gallery.properties" />
+    <link rel="resource" type="application/l10n" href="l10n.ini" />
     <!-- Compatibility -->
-    <script>
+    <script type="text/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -21,10 +21,10 @@
       }
       document.write('<script src="' + src + '"><\/script>');
     </script>
-    <script defer src="js/MediaDB.js"></script>
-    <script defer src="js/MetadataParser.js"></script>
-    <script defer src="js/GestureDetector.js"></script>
-    <script defer src="js/gallery.js"></script>
+    <script type="text/javascript" defer src="js/MediaDB.js"></script>
+    <script type="text/javascript" defer src="js/MetadataParser.js"></script>
+    <script type="text/javascript" defer src="js/GestureDetector.js"></script>
+    <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
   <body class="hidden">
