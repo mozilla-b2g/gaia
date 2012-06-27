@@ -93,7 +93,9 @@
 }
 
 .view-header form {
-  display: block; overflow: hidden; padding: 1.1rem 1.5rem;
+  display: block;
+  overflow: hidden;
+  padding: 1.1rem 1.5rem;
 }
 
 .view-header label {
@@ -135,7 +137,8 @@
   overflow: visible;
 }
 .view-header .negative [data-icon] {
-  overflow: visible; text-indent: -9999px;
+  overflow: visible;
+  text-indent: -9999px;
 }
 
 .view-header .negative [data-icon]:after {
