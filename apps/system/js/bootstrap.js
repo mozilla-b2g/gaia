@@ -90,7 +90,7 @@ window.addEventListener('localized', function onlocalized() {
 SettingsListener.observe(
   'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
   var url = 'url(resources/images/backgrounds/' + value + ')';
-  document.body.style.backgroundImage = url;
+  document.getElementById('screen').style.backgroundImage = url;
 });
 
 window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
