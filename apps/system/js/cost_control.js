@@ -22,6 +22,8 @@ var CostControl = {
       this.telephony.addEventListener('callschanged', this);
     }
     //Show a fake (saved) balance to the user and update it
+    this.feedback = new Array(document.getElementById("cost-control-date"),
+                           document.getElementById("cost-control-container"));
     this.getInitialBalance();
     this.checkNowButton = document.getElementById("cost-control-check-now");
     this.checkNowButton.addEventListener('click', (function() {
@@ -45,7 +47,7 @@ var CostControl = {
           if (call.state === "disconnected") {
             this.updateBalance();
           }
-          console.log(call.state);
+          console.log("Estado de la llamada: " + call.state);
         }).bind(this));
         break;
     }
@@ -68,8 +70,6 @@ var CostControl = {
       console.log("Removing listener for incoming balance check SMS");
       this.sms.removeEventListener('received', this);
       this.updateUI(false, 0);
-      //FIXME delete! HACK! It's here to fake cost!
-      this.updatedBalance();
     }).bind(this), 1000*60*5); //5 minutes of wait for a message
     this.sms.addEventListener('received', this);
   },
@@ -98,7 +98,6 @@ var CostControl = {
   updateUI: function(waiting, balance) {
     if (waiting) {
       console.log("Updating UI, we are waiting for cost control SMS");
-      this.waitingBalance = true;
       this.dateText.innerHTML = this.getSavedDate();
       this.balanceText.innerHTML = parseFloat(this.getSavedBalance()).toFixed(2);
     } else {
@@ -106,8 +105,18 @@ var CostControl = {
       var date = new Date();
       var d = date.getDate() + "/" + (date.getMonth()+1) + " " + this._pad(date.getHours()) + ":" + this._pad(date.getMinutes());
       this.dateText.innerHTML = d;
-      this.balanceText.innerHTML = parseFloat(balance).toFixed(2) || parseFloat(this.getSavedBalance()).toFixed(2);
-      this.waitingBalance = false;
+      var bal = parseFloat(balance) || this.getSavedBalance();
+      this.balanceText.innerHTML = parseFloat(bal).toFixed(2);
+      this.feedback.forEach(function(el) {
+        console.log("Mostrando feedback con color rosita");
+        el.setAttribute("class", 'updated');
+      });
+      window.setTimeout((function() {
+        console.log("Eliminando feedback rosita");
+        this.feedback.forEach(function(el) {
+          el.setAttribute("class", 'not-updated');
+        });
+      }).bind(this), 10000);
     }
   },
 
