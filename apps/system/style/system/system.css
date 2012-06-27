@@ -40,7 +40,7 @@ body {
 }
 
 #screen.screenoff {
-  background: #000;
+  background: #000 !important;
 }
 
 #screen.screenoff > * {
