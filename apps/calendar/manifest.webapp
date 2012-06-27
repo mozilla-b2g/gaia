@@ -4,9 +4,9 @@
   "description": "Gaia Calendar",
   "launch_path": "/",
   "locales": {
-    "en-US": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
+    "de": {
+      "name": "Kalender",
+      "description": "Gaia Kalender"
     }
   },
   "developer": {

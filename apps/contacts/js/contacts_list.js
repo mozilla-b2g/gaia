@@ -50,16 +50,6 @@ contacts.List = (function() {
     }
   };
 
-  function normalizeName(contact) {
-    var name = contact.givenName ? contact.givenName[0] : '';
-    var additionalName =
-      contact.additionalName ? contact.additionalName[0] : '';
-
-    if (name.length > 0 && additionalName.length > 0) {
-      name += ' ' + additionalName;
-    }
-    contact.givenName[0] = name;
-  }
 
   var buildContacts = function buildContacts(contacts, successCb) {
     var group = null;
@@ -185,7 +175,6 @@ contacts.List = (function() {
     var ret = [];
 
     ret.push(contact.familyName ? contact.familyName[0] : '');
-    normalizeName(contact);
     ret.push(contact.givenName ? contact.givenName[0] : '');
 
     return ret.join('');
@@ -241,4 +230,3 @@ contacts.List = (function() {
     'handleClick': handleClick
   };
 })();
-

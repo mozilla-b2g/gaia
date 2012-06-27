@@ -246,6 +246,10 @@ var Contacts = (function() {
     link.appendChild(icon);
     selectedTag = link;
   };
+  
+  var sendSms = function sendSms() {
+    SmsIntegration.sendSms(currentContact.tel[0].number)
+  }
 
 
   var showAdd = function showAdd() {
@@ -263,14 +267,15 @@ var Contacts = (function() {
   };
 
   var saveContact = function saveContact() {
-    var givenName = [givenName.value] || [''];
-    var familyName = [familyName.value] || [''];
+    var name = [givenName.value] || [''];
+    var lastName = [familyName.value] || [''];
 
     var myContact = {
       id: document.getElementById('contact-form-id').value,
-      givenName: givenName,
-      familyName: familyName,
-      name: givenName[0] + ' ' + familyName[0]
+      givenName: name,
+      familyName: lastName,
+      additionalName: '',
+      name: name[0] + ' ' + lastName[0]
     };
 
     getPhones(myContact);
@@ -288,7 +293,7 @@ var Contacts = (function() {
     }
 
     var request = navigator.mozContacts.save(contact);
-    request.onsuccess = function onsuccess(contact) {
+    request.onsuccess = function onsuccess() {
       contactsList.refresh(contact);
       reloadContactDetails(contact);
       navigation.back();
@@ -333,23 +338,23 @@ var Contacts = (function() {
     }
   };
 
-  var insertEmptyPhone = function insertEmptyPhone(index) {
+  var insertEmptyPhone = function insertEmptyPhone() {
     var telField = {
       number: '',
       type: TAG_OPTIONS['phone-type'][0].value,
       notes: '',
-      i: index || 0
+      i: numberPhones || 0
     };
     var template = utils.templates.render(phoneTemplate, telField);
     phonesContainer.appendChild(template);
     numberPhones++;
   };
 
-  var insertEmptyEmail = function insertEmptyEmail(index) {
+  var insertEmptyEmail = function insertEmptyEmail() {
     var emailField = {
       email: '',
       type: '',
-      i: index || 0
+      i: numberEmails || 0
     };
 
     var template = utils.templates.render(emailTemplate, emailField);
@@ -405,7 +410,7 @@ var Contacts = (function() {
     'addNewPhone' : insertEmptyPhone,
     'addNewEmail' : insertEmptyEmail,
     'goBack' : navigation.back,
-    'goToSelectTag': goToSelectTag
+    'goToSelectTag': goToSelectTag,
+    'sendSms': sendSms
   };
 })();
-

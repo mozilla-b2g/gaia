@@ -4,7 +4,7 @@
 'use strict';
 
 // Based on Resig's pretty date
-var localeStr = navigator.mozL10n.get;
+var _ = navigator.mozL10n.get;
 function prettyDate(time) {
 
   switch (time.constructor) {
@@ -27,15 +27,14 @@ function prettyDate(time) {
     return (new Date(time)).toLocaleFormat('%x %R');
   }
 
-  return day_diff == 0 && (
-    diff < 60 && localeStr('justNow') ||
-    diff < 120 && localeStr('aMinuteAgo') ||
-    diff < 3600 && Math.floor(diff / 60) + ' ' + localeStr('minutesAgo') ||
-    diff < 7200 && localeStr('anHourAgo') ||
-    diff < 86400 && Math.floor(diff / 3600) + ' ' + localeStr('hoursAgo')) ||
-    day_diff == 1 && localeStr('yesterday') ||
-    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
-    (new Date(time)).toLocaleFormat('%x');
+  return day_diff == 0 && ( // today?
+      diff < 60 && _('justNow') ||
+      diff < 3600 && _('minutesAgo', { minutes: Math.floor(diff / 60) }) ||
+      diff < 86400 && _('hoursAgo', { hours: Math.floor(diff / 3600) })
+  ) ||
+      day_diff == 1 && _('yesterday') || // yesterday?
+      day_diff < 7 && (new Date(time)).toLocaleFormat('%A') || // <1 week ago?
+      (new Date(time)).toLocaleFormat('%x'); // default: standard date format
 }
 
 (function() {
@@ -59,7 +58,7 @@ function prettyDate(time) {
 
 /* ***********************************************************
 
-  Code below are for desktop testing!
+  Code below is for desktop testing!
 
 *********************************************************** */
 
@@ -194,7 +193,6 @@ function escapeHTML(str, escapeQuotes) {
 
 if (!navigator.mozSettings) {
   window.addEventListener('load', function loadWithoutSettings() {
-    selectedLocale = 'en-US';
     ConversationView.init();
     ConversationListView.init();
   });

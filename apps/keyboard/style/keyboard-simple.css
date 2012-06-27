@@ -3,15 +3,16 @@
   background: #454D58;
 }
 
-.keyboard-key > span {
+.keyboard-key > .visual-wrapper > span {
   background: #ebebeb;
   box-shadow: none;
 }
 
-.keyboard-key.highlighted {
+.keyboard-key.highlighted > .visual-wrapper {
   box-shadow: none;
 }
-.keyboard-key.highlighted > span {
+
+.keyboard-key.highlighted > .visual-wrapper > span {
   background: #ebebeb;
 }
 
@@ -19,7 +20,7 @@
   background: #ebebeb;
 }
 
-#keyboard-accent-char-menu .keyboard-key.highlighted {
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
   box-shadow: none;
   background: #ebebeb;
 }

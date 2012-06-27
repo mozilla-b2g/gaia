@@ -1,88 +1,84 @@
+/* MEDIA DEFINITIONS */
+@media screen and (max--moz-device-pixel-ratio: 1.5) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* FONT DEFINITIONS */
 @font-face {
   font-family: 'Open Sans';
   src: url('fonts/Open-Sans.woff');
 }
+
 @font-face {
   font-family: 'Open Sans Bold';
   font-weight: bold;
   src: url('fonts/Open-Sans-Bold.woff');
 }
+
 @font-face {
   font-family: 'Open Sans Semibold';
   font-weight: 600;
   src: url('fonts/Open-Sans-Semibold.woff');
 }
 
-* {
-  -moz-box-sizing: border-box;
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
 }
 
-html, body {
+/* RESET */
+* {
   margin: 0;
   padding: 0;
-  font-size: 10px;
-  width: 100%;
-  height: 100%;
 }
 
-
+/* KEYBOARD */
 #keyboard {
   position: absolute;
-  z-index: 9996;
   bottom: 0;
   width: 100%;
-  overflow: visible;
-  padding: 1rem;
-  background: -moz-radial-gradient(#9BACC4, #454D58);
-  -moz-transition: -moz-transform 0.3s ease;
-  -moz-transform: translateY(0);
 }
 
-#keyboard.hide {
-  -moz-transform: translateY(100%);
-}
-
+/* ROW */
 .keyboard-row {
-  margin: 1rem 0 0;
-  white-space: nowrap;
-  text-align: center;
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  -moz-box-pack: center;
   width: 100%;
+  white-space: nowrap;
 }
 
-.keyboard-row:first-child {
-  margin-top: 0;
-}
-
-button::-moz-focus-inner { 
-  padding: 0;
-  border: none 
-}
-
-.keyboard-key, span.keybaord-key-hold {
-  display: inline-block;
-  overflow: hidden;
-  text-align: center;
-  margin: 0 0.2rem;
-  min-width: 2.5rem; /* Must be 2.6 from design guidelines but in chineese keyboard we have one more key per row */
-  padding: 0;
-  position: relative;
-  overflow: visible;
-  height: 4rem;
+/* BUTTONS: LOGIC KEYS */
+.keyboard-key {
+  -moz-box-sizing: border-box;
+  padding: 0.25rem 0.1rem;
   border: none;
   background: none;
+  min-width: 2.6rem;
+  display: inline-block;
 }
 
-.keyboard-key > span {
-  height: 100%;
+.keyboard-row:first-child .keyboard-key {
+  padding-top: 0.5rem;
+}
+
+/* VISUAL KEYS */
+.keyboard-key > .visual-wrapper {
+  display: inline-block;
+  height: 4rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  position: relative;
+  text-align: center;
+}
+
+.keyboard-key > .visual-wrapper > span {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 100%;
-  background-clip: padding-box;
   background: -moz-linear-gradient(#fff, #ebebeb);
   box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);
   font-family: 'Open Sans Semibold';  
@@ -93,7 +89,8 @@ button::-moz-focus-inner {
   border-radius: 0.3rem;
 }
 
-.keyboard-key.highlighted {
+/* HIGHLIGHTS */
+.keyboard-key.highlighted > .visual-wrapper {
   background: #ebebeb;
   box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
   border-radius: 0.3rem;
@@ -101,7 +98,8 @@ button::-moz-focus-inner {
   border-top: none;
   margin-top: -0.5rem;
 }
-.keyboard-key.highlighted > span {
+
+.keyboard-key.highlighted > .visual-wrapper > span {
   font: 2.8rem/4rem Open Sans Semibold, Sans-serif;
   background-clip: padding-box;
   background: -moz-linear-gradient(#fff, #ebebeb);
@@ -114,127 +112,45 @@ button::-moz-focus-inner {
   right: -0.8rem;
   z-index: 100;
 }
-  .keyboard-key.highlighted > span:after {
-    content: "";
-    position: absolute;
-    margin: 0 0.5rem;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 200;
-    height: 1px;
-    background: #ebebeb;
-    border: solid 1px #61646A;
-    border-top: none;
-    border-bottom: none;
-  }
 
-#keyboard-accent-char-menu {
+.keyboard-key.highlighted > .visual-wrapper > span:after {
+  content: "";
   position: absolute;
-  bottom: 0;
-  left: -1px;
-  z-index: 150;
-  margin-bottom: -1px;
-  height: 6rem;
-  display: none;
-  border-radius: 0.3rem;
-  background-clip: padding-box;
-  background: -moz-linear-gradient(#fff, #ebebeb);
-  border: 1px solid #61646A;
-  /*box-shadow: 0 0 2px rgba(0,0,0,0.5);*/
-  white-space: nowrap;
-  overflow: visible;
-  /*pointer-events: all;*/
-  white-space: nowrap;
-  padding: 0 0.5rem;
-}
-
-/* Lang menu */
-#keyboard-accent-char-menu.kbr-menu-lang {
-  position: absolute;
-  bottom: 100%;
-  left: -0.8rem;
-  right: auto;
-  top: auto;
-  padding: 0;
-  height: auto;
-  max-height: 30rem;
-  overflow: auto;
-  white-space: normal;
-  padding: 0 0.5rem 0.5rem;
-  background: #fff;
-}
-  #keyboard-accent-char-menu.kbr-menu-lang .keyboard-key {
-    width: 10rem;
-    -moz-box-sizing: border-box;
-  }
-
-    #keyboard-accent-char-menu.kbr-menu-lang .keyboard-key > span { 
-        background: -moz-linear-gradient(#fff, #ebebeb);
-        box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);
-        font-family: 'Open Sans Semibold';  
-        font-size: 1.8rem;
-        line-height: 3.8rem;
-        color: #333;
-        border: 1px solid rgba(0, 0, 0, 0.6);
-        border-radius: 0.3rem;
-      }
-
-
-/* menu from right */
-#keyboard-accent-char-menu.kbr-menu-right { left: auto; right: -1px; }
-#keyboard-accent-char-menu .keyboard-key { margin: 0 0.2em; }
-#keyboard-accent-char-menu .keyboard-key.highlighted {
-  box-shadow: 0 0 0 2px #53B6CC;
-  background: -moz-linear-gradient(#fff, #ebebeb);
-}
-#keyboard-accent-char-menu .keyboard-key.highlighted > span {
-  top: 0;
+  margin: 0 0.5rem;
+  top: 100%;
   left: 0;
   right: 0;
-  background: none;
-  border-radius: 0;
-  border: 0;
-  font-weight: 600;
-}
-#keyboard-accent-char-menu .keyboard-key.highlighted > span:after {
-  display: none;
-}
-#keyboard-accent-char-menu.show {
-  display: block;
+  z-index: 200;
+  height: 1px;
+  background: #ebebeb;
+  border: solid 1px #61646A;
+  border-top: none;
+  border-bottom: none;
 }
 
-
-@font-face {
-  font-family: 'Keyboard Symbols';
-  font-weight: 600;
-  src: url('fonts/Keyboard-Symbols.woff');
+.keyboard-key.highlighted:last-child  > .visual-wrapper > span {
+  right: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom: none;
 }
 
-/* This must be controlled in the keyboard trying to not add highlighted classnames to this keys
-    As we can not do this right now, we redefine the states by this selectors:
- */
-.keyboard-key.highlighted[data-keycode="-3"],
-.keyboard-key.highlighted[data-keycode="8"],
-.keyboard-key.highlighted[data-keycode="20"],
-.keyboard-key.highlighted[data-keycode="13"],
-.keyboard-key.highlighted[data-keycode="18"],
-.keyboard-key.highlighted[data-keycode="-1"],
-.keyboard-key.highlighted[data-keycode="-2"],
-.keyboard-key.special-key.highlighted {
-  box-shadow: 0 0 0 2px #4495A8;
-  margin-top: 0;
+.keyboard-key.highlighted:last-child  > .visual-wrapper > span:after {
   border: none;
 }
 
-.keyboard-key[data-keycode="-3"] > span , .keyboard-key.highlighted[data-keycode="-3"] > span, /* IMEManager.SWITCH_KEYBOARD */
-.keyboard-key[data-keycode="8"] > span , .keyboard-key.highlighted[data-keycode="8"] > span, /* KeyEvent.DOM_VK_BACK_SPACE */
-.keyboard-key[data-keycode="20"] > span , .keyboard-key.highlighted[data-keycode="20"] > span, /* KeyEvent.DOM_VK_CAPS_LOCK */
-.keyboard-key[data-keycode="13"] > span , .keyboard-key.highlighted[data-keycode="13"] > span,
-.keyboard-key[data-keycode="18"] > span , .keyboard-key.highlighted[data-keycode="18"] > span,
-.keyboard-key[data-keycode="-1"] > span , .keyboard-key.highlighted[data-keycode="-1"] > span,
-.keyboard-key[data-keycode="-2"] > span , .keyboard-key.highlighted[data-keycode="-2"] > span,
-.keyboard-key.special-key span, .keyboard-key.special-key.highlighted span { 
+.keyboard-key.highlighted:first-child  > .visual-wrapper > span {
+  left: -1px;
+  border-bottom-left-radius: 0;
+  border-bottom: none;
+}
+
+.keyboard-key.highlighted:first-child  > .visual-wrapper > span:after {
+  border: none;
+}
+
+/*  SPECIAL KEYS */
+.keyboard-key.special-key > .visual-wrapper > span,
+.keyboard-key.special-key.highlighted > .visual-wrapper > span { 
   font-size: 1.5rem;
   line-height: 4rem;
   font-family: 'Keyboard Symbols', sans-serif;
@@ -250,27 +166,25 @@ button::-moz-focus-inner {
   height: 100%
 }
 
-.keyboard-key.highlighted[data-keycode="-3"] > span:after,
-.keyboard-key.highlighted[data-keycode="8"] > span:after,
-.keyboard-key.highlighted[data-keycode="20"] > span:after,
-.keyboard-key.highlighted[data-keycode="13"] > span:after,
-.keyboard-key.highlighted[data-keycode="18"] > span:after,
-.keyboard-key.highlighted[data-keycode="-1"] > span:after,
-.keyboard-key.highlighted[data-keycode="32"] > span:after,
-.keyboard-key.highlighted[data-keycode="-2"] > span:after,
-.keyboard-key.special-key.highlighted span:after  {
+/* Highlight for SPECIAL KEYS */
+.keyboard-key.special-key.highlighted > .visual-wrapper {
+  box-shadow: 0 0 0 2px #4495A8;
+  border: none;
+}
+
+.keyboard-key.special-key.highlighted > .visual-wrapper > span:after  {
   display: none;
 }
 
-/* SPACEBAR without highlight */
-.keyboard-key.highlighted[data-keycode="32"] {
+/* Highlight for SPACEBAR */
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper {
   margin-top: 0;
   border: none;
   opacity: 0.7;
   box-shadow: none;
-}     
+}
 
-.keyboard-key.highlighted[data-keycode="32"] > span  {
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span  {
   position: absolute;
   top: 0;
   left: 0;
@@ -278,15 +192,14 @@ button::-moz-focus-inner {
   bottom: 0;
   height: 100%;
 }
-
-/* Special key with menu */
-.keyboard-key.special-key.highlighted.kbr-menu-on {
+/* MENU FOR SPECIAL KEY */
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper{
   background: #ebebeb;
   box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
   border-radius: 0.3rem;
 }
 
-.keyboard-key.special-key.highlighted.kbr-menu-on > span {
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
   background: -moz-linear-gradient(#fff, #ebebeb);
   border-radius: 0.3rem;
   border: 1px solid rgba(0, 0, 0, 0.6);
@@ -295,7 +208,7 @@ button::-moz-focus-inner {
   color: #333;
 }
 
-.keyboard-key.special-key.highlighted.kbr-menu-on > span:after {
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
   content: "";
   background: #fff;
   display: block;
@@ -304,32 +217,97 @@ button::-moz-focus-inner {
   margin: 0 -2px -1px;
 }
 
+/* ALTERNATIVES */
+#keyboard-accent-char-menu {
+  position: absolute;
+  bottom: 0;
+  left: -1px;
+  margin-bottom: -1px;
+  height: 6rem;
+  border-radius: 0.3rem;
+  background: -moz-linear-gradient(#fff, #ebebeb);
+  border: 1px solid #61646A;
+  white-space: nowrap;
+  overflow: visible;
+  padding: 0 0.5rem;
+  display: none;
+}
+
+#keyboard-accent-char-menu.show { display: block; }
+
+/* menu from right */
+#keyboard-accent-char-menu.kbr-menu-right { left: auto; right: -1px; }
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
+  box-shadow: 0 0 0 2px #53B6CC;
+  background: -moz-linear-gradient(#fff, #ebebeb);
+}
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
+  top: 0;
+  left: 0;
+  right: 0;
+  background: none;
+  border-radius: 0;
+  border: 0;
+  font-weight: 600;
+}
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
+  display: none;
+}
+
+/* LANGUAGE ALTERNATIVES */
+#keyboard-accent-char-menu.kbr-menu-lang {
+  position: absolute;
+  bottom: 100%;
+  left: -0.8rem;
+  right: auto;
+  top: auto;
+  padding: 0;
+  height: auto;
+  max-height: 30rem;
+  overflow: auto;
+  white-space: normal;
+  padding: 0 0.5rem 0.5rem;
+  background: #fff;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper {
+  -moz-box-sizing: border-box;
+  width: 10rem;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
+  background: -moz-linear-gradient(#fff, #ebebeb);
+  box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);
+  font-family: 'Open Sans Semibold';  
+  font-size: 1.8rem;
+  line-height: 3.8rem;
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  border-radius: 0.3rem;
+}
 
 /* KEYS STATES */
+
 /* Press */
-.keyboard-key.kbr-key-press span {
+.keyboard-key.kbr-key-press > .visual-wrapper > span {
   box-shadow: 0 0 0 2px #4495A8;
 }
 
 /* Active */
-.keyboard-key.kbr-key-active span {
+.keyboard-key.kbr-key-active > .visual-wrapper > span {
   color: #4495A8;
   text-shadow: none;
 }
 
 /* Hold */
-.keyboard-key.kbr-key-hold span {
+.keyboard-key.kbr-key-hold > .visual-wrapper > span {
   background: #5cc9e1; 
   color: #295B65;
   box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6);
   text-shadow: none;
-}
-
-
-@media screen and (max--moz-device-pixel-ratio: 1.5) {
-  html {
-    font-size: 15px;
-  }
 }
 
 /* IMES */
@@ -363,11 +341,11 @@ button::-moz-focus-inner {
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
   display: none;
-  margin: -1rem;
+  margin: 0 -1rem 0 -1rem;
 }
 #keyboard.candidate-panel #keyboard-candidate-panel {
   display: block;
-  width: -moz-calc(100% - 62px + 2rem);
+  width: -moz-calc(100% - 62px + 1rem);
   overflow-y: hidden;
 }
 
@@ -379,13 +357,14 @@ button::-moz-focus-inner {
   display: block;
   position: absolute;
   white-space: normal;
-  top: -moz-calc(-2px + 1rem);
-  bottom: -1rem;
-  height: 100%;
+  top: 0;
+  height: 99%;
   width: 100%;
   border: none;
   border-top: 2px solid #a3a3a3;
   z-index: 1;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -461,4 +440,3 @@ button::-moz-focus-inner {
 .keyboard-pending-symbols-highlight-blue {
 	background:#3333aa;
 }
-

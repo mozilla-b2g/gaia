@@ -34,7 +34,7 @@ var settings = [
  new Setting("lockscreen.passcode-lock.enabled", false),
  new Setting("lockscreen.enabled", false),
  new Setting("phone.ring.incoming", true),
- new Setting("phone.vibration.incoming", false),
+ new Setting("phone.vibration.incoming", true),
  new Setting("ril.data.enabled", true),
  new Setting("ril.radio.disabled", false),
  new Setting("screen.automatic-brightness", true),

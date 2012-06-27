@@ -198,7 +198,7 @@ var OnCallHandler = {
     };
 
     // Some race condition can cause the call to be already
-    // connected or disconnected when we get here.
+    // connected when we get here.
     if (call.state == 'connected')
       this.connected();
 

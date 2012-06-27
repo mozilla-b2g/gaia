@@ -25,7 +25,7 @@ var SettingsListener = {
     var req = settings.getLock().get(name);
     req.addEventListener('success', (function onsuccess() {
       callback(typeof(req.result[name]) != 'undefined' ?
-        req.result[name] : defaultValue);
+          req.result[name] : defaultValue);
     }));
 
     this._callbacks[name] = callback;
