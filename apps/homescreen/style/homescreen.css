@@ -85,6 +85,7 @@ section,footer,nav,a,img {
   background-position: center;
   background-size: auto;
   font: 0/0 a;
+  opacity: 0.6;
 }
 
 #footer .dock > .logs {

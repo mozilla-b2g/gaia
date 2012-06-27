@@ -21,13 +21,18 @@
   src: url('fonts/opensans-bold-webfont.woff');
 }
 
+@font-face {
+  font-family: 'FontLight';
+  src: url('fonts/Open-Sans-Light.woff');
+}
+
 html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
   margin: 0;
   color: white;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'FontLight', sans-serif;
   font-size: 10px;
   background: black;
 }
@@ -113,26 +118,24 @@ body.hidden *[data-l10n-id] {
   width: 100%;
 }
 
-  .toolbar-option{
-    opacity: 0.6;
-  }
+.toolbar-option{
+  opacity: 0.3;
+}
 
-  .toolbar-option-selected{
-    opacity: 1;
-  }
+.toolbar-option-selected{
+  opacity: 1;
+}
 
-  .toolbar-option:active{
-    opacity: 1;
-    border: 0;
-    border-style: none;
-  }
-
+.toolbar-option:active{
+  opacity: 1;
+  border: 0;
+  border-style: none;
+}
 
 /* Toolbar Icon */
-
 .icon {
   pointer-events:none;
-  margin:0 auto;
+  margin: 0 auto;
 }
 
 .icon-recents {

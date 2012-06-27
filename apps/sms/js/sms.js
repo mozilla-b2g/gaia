@@ -372,11 +372,14 @@ var ConversationListView = {
            '<span class="unread-mark"><i class="i-unread-mark"></i></span>' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
-           '  <div class="msg">' + bodyHTML + '</div>' +
            (!conversation.timestamp ? '' :
-           '  <div class="time" data-time="' + conversation.timestamp + '">' +
-           prettyDate(conversation.timestamp) + '</div>') +
-           '<div class="unread-tag">' + conversation.unreadCount + '</div></a>';
+           '  <div class="time ' +
+           (conversation.unreadCount > 0 ? 'unread' : '') +
+           '  " data-time="' + conversation.timestamp + '">' +
+             giveHourMinute(conversation.timestamp) + '</div>') +
+           '  <div class="msg">"' + bodyHTML + '"</div>' +
+           '<div class="unread-tag"></div>' +
+           '<div class="photo"></div></a>';
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
@@ -396,29 +399,8 @@ var ConversationListView = {
 
     this._lastHeader = conversation.timestamp;
 
-    var now = new Date();
-    // Build the today date starting a 00:00:00
-    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var diff = today.getTime() - conversation.timestamp;
-    var day = 1000 * 60 * 60 * 24; //Miliseconds for a day
-
-    var content;
-    var _ = navigator.mozL10n.get;
-    if (diff <= 0) {
-      content = _('today');
-    } else if (diff > 0 && diff < day * 2) {
-      content = _('yesterday');
-    } else if (diff < 4 * day) {
-      var dayOfWeek = new Date(conversation.timestamp).getDay();
-      content = _('dayOfWeek-' + dayOfWeek);
-    } else {
-      var date = new Date(conversation.timestamp);
-      content = date.getFullYear() +
-          '-' + (date.getMonth() + 1) + '-' + date.getDate();
-    }
-
-    return '<div class="groupHeader">' + content + '</div>';
-
+    return '<div class="groupHeader">' +
+      giveHeaderDate(conversation.timestamp) + '</div>';
   },
 
   searchConversations: function cl_searchConversations() {
@@ -797,10 +779,10 @@ var ConversationView = {
         var dataId = msg.id; // uuid
 
         var outgoing = (msg.delivery == 'sent' || msg.delivery == 'sending');
-        var num = outgoing ? msg.receiver : msg.sender;
+        var num = outgoing ? msg.sender : msg.receiver;
         var dataNum = num;
 
-        var className = (outgoing ? 'receiver' : 'sender') + '"';
+        var className = (outgoing ? 'sender' : 'receiver') + '"';
         if (msg.delivery == 'sending')
           className = 'receiver pending"';
 
@@ -821,9 +803,12 @@ var ConversationView = {
                     '  <input type="checkbox" class="fake-checkbox"/>' +
                     '  <span></span>' +
                     '  <div class="message-container ' + className + '>' +
-                    '    <div class="text">' + body + '</div>' +
+                    '    <div class="message-bubble"></div>' +
                     '    <div class="time" data-time="' + timestamp + '">' +
-                    prettyDate(msg.timestamp) + '</div>' +
+                    // '    <div class="time">' +
+                         giveHourMinute(msg.timestamp) +
+                    '    </div>' +
+                    '    <div class="text">' + body + '</div>' +
                     '  </div>' +
                     '</div>';
       }
