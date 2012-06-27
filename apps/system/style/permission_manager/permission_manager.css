@@ -19,24 +19,40 @@
 
 #permission-dialog {
   position: absolute;
-  top: 20%;
-  left: 50%;
-  width: 320px;
-  height: 300px;
-  margin: 0 0 0 -160px;
-  color: #778;
-  background: -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
-  border-radius: 8px;
-  border: 1px solid hsla(0,0%,0%,0);
-  font-size: 20px;
+  top: 35%; /* 10% is the dock */
+  width: 100%;
+  background-color: rgba(0,0,0,0.9);
+  border-top: 1px solid rgba(256,256,256,0.9);
+  -moz-box-sizing: border-box;
+  padding: 6px 9px;
+  box-shadow:0 6px 12px #000;
 }
 
 #permission-message {
-  margin: 20px;
+  font-size: 20px;
+  color: #fff;
+  margin: 0 0 9px 0;
+  padding: 0;
 }
 
 #permission-dialog button {
-  margin: 30px;
-  padding: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  width: -moz-calc(50% - 4px);
+  height: 40px;
+  border-radius: 4px;
+  color: #000;
+  border: 0;
+  text-align: left;
+  margin: 0;
+  padding: 0 0 0 8px;
 }
 
+#permission-yes {
+  background-color: #51b2c7;
+  float: right;
+}
+
+#permission-no {
+  background-color: #fff;
+}
