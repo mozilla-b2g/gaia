@@ -11,7 +11,7 @@ var ApplicationMock = function(app, launchPath, alternativeOrigin) {
   for (var field in app.manifest) {
     this.manifest[field] = app.manifest[field];
   }
-  
+
   var entryPoint = app.manifest.entry_points[launchPath];
   this.manifest.name = entryPoint.name;
   this.manifest.launch_path = entryPoint.path;
@@ -56,7 +56,7 @@ var Applications = (function() {
             if (!entryPoints[launchPath].hasOwnProperty('icons')) {
               continue;
             }
-            
+
             var alternativeOrigin = app.origin + '/' + launchPath;
 
             var newApp = new ApplicationMock(app,

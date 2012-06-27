@@ -549,6 +549,26 @@ var WindowManager = (function() {
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
     var origin = e.detail.origin;
+    var app = Applications.getByOrigin(origin);
+    var name = app.manifest.name;
+
+    /*
+    * Check if it's a virtual app from a entry point.
+    * If so, change the app name and origin to the
+    * entry point.
+    */
+    var entryPoints = app.manifest.entry_points;
+    if (entryPoints) {
+      for (var ep in entryPoints) {
+        //Remove the origin and / to find if if the url is the entry point
+        var path = e.detail.url.substr(e.detail.origin.length + 1);
+        if (path.indexOf(ep) == 0 && (ep + entryPoints[ep].path) == path) {
+          origin = origin + '/' + ep;
+          name = entryPoints[ep].name;
+        }
+      }
+    }
+
     switch (e.detail.type) {
       // mozApps API is asking us to launch the app
       // We will launch it in foreground
@@ -556,20 +576,6 @@ var WindowManager = (function() {
         if (isRunning(origin)) {
           setDisplayedApp(origin, null, e.detail.url);
           return;
-        }
-
-        var app = Applications.getByOrigin(origin);
-        var name = app.manifest.name;
-        //Check if it's a virtual app from a entry point
-        var entryPoints = app.manifest.entry_points;
-        if (entryPoints) {
-          for (var ep in entryPoints) {
-            var path = e.detail.url.substr(e.detail.origin.length + 1); //Remove the origin and /
-            if (path.indexOf(ep) == 0 && (ep + entryPoints[ep].path) == path) {
-              origin = origin + '/' + ep;
-              name = entryPoints[ep].name;
-            }
-          }
         }
 
         appendFrame(origin, e.detail.url,
@@ -599,7 +605,6 @@ var WindowManager = (function() {
           return;
         }
 
-        var app = Applications.getByOrigin(origin);
         if (!app)
           return;
 
