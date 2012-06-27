@@ -45,23 +45,23 @@ var Camera = {
   },
 
   doCapture: function camera_doCapture() {
-    if (this._camera === this.VIDEO) {
-      if (!this._videoCapturing) {
-        this._videoCapturing = true;
-        document.body.classList.add('capturing');
-        this.switchButton.setAttribute('disabled', 'disabled');
-        this.galleryButton.setAttribute('disabled', 'disabled');
-        this.videoTimer.innerHTML = '00:00';
-        this._videoStart = new Date();
-        this._videoTimer = setInterval(this.updateVideoTimer.bind(this), 900);
-      } else {
-        this._videoCapturing = false;
-        document.body.classList.remove('capturing');
-        this.switchButton.removeAttribute('disabled');
-        this.galleryButton.removeAttribute('disabled');
-        this._videoTimer = clearInterval(this._videoTimer);
-      }
+    if (this._camera !== this.VIDEO)
       return;
+
+    if (!this._videoCapturing) {
+      this._videoCapturing = true;
+      document.body.classList.add('capturing');
+      this.switchButton.setAttribute('disabled', 'disabled');
+      this.galleryButton.setAttribute('disabled', 'disabled');
+      this.videoTimer.innerHTML = '00:00';
+      this._videoStart = new Date();
+      this._videoTimer = setInterval(this.updateVideoTimer.bind(this), 900);
+    } else {
+      this._videoCapturing = false;
+      document.body.classList.remove('capturing');
+      this.switchButton.removeAttribute('disabled');
+      this.galleryButton.removeAttribute('disabled');
+      this._videoTimer = clearInterval(this._videoTimer);
     }
   },
 
