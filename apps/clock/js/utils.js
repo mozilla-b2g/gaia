@@ -15,7 +15,6 @@ function summarizeDaysOfWeek(bitStr) {
 
   var _ = navigator.mozL10n.get;
 
-  var dayNames = [_('mon'), _('tue'), _('wed'), _('thu'), _('fri'), _('sat'), _('sun')];
   // Formate bits: 0123456(0000000)
   // Case: Everyday:  1111111
   // Case: Weekdays:  1111100
@@ -39,10 +38,13 @@ function summarizeDaysOfWeek(bitStr) {
     summary = _('never');
     break;
   default:
+    var weekdays = [];
     for (var i = 0; i < bitStr.length; i++) {
-      summary += (bitStr.substr(i, 1) == '1') ? dayNames[i] + ', ' : '';
+      if (bitStr.substr(i, 1) == '1') {
+        weekdays.push(_('dayofweek-' + i + '-abbr'));
+      }
     }
-    summary = summary.slice(0, summary.lastIndexOf(','));
+    summary = weekdays.join(', ');
   }
   return summary;
 }
