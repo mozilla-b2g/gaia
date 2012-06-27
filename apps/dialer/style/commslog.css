@@ -21,7 +21,6 @@ ol, ul {
 .view-header h1 {
   font-family: FontRegular;
   padding-left: 3rem;
-  box-sizing: border-box;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -39,8 +38,6 @@ ol, ul {
   height: 2rem;
   width: 1.9rem;
   opacity: 0.5;
-  -moz-opacity: 0.5;
-  
 }
 
 
