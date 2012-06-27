@@ -755,7 +755,7 @@ const Keyboards = {
       y: '¥',
       r: 'R$ ',
       '.': ',¿?¡!;:',
-      ':)': ':) :D :( ;D :* :/',
+      ':)': ':) :D :( ;D :* :/'
 //      '.com': '.es .org .eu' XXX: commented to avoid overflows for the demo
     },
     keys: [
