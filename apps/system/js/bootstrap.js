@@ -93,3 +93,7 @@ SettingsListener.observe(
   document.body.style.backgroundImage = url;
 });
 
+window.addEventListener('applicationready', function hideForegroundApp(evt) {
+  WindowManager.setDisplayedApp(null);
+});
+

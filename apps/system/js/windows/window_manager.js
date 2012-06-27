@@ -784,7 +784,8 @@ var WindowManager = (function() {
     },
     getRunningApps: function() {
        return runningApps;
-     }
+    },
+    setDisplayedApp: setDisplayedApp
   };
 }());
 
