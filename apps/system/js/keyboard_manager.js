@@ -1,3 +1,5 @@
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
 var KeyboardManager = (function() {
@@ -25,26 +27,40 @@ var KeyboardManager = (function() {
     window.addEventListener('message', function receiver(evt) {
       var message = JSON.parse(evt.data);
 
-      if (message.action !== 'updateHeight')
+      if (!message.action) {
+        console.log('Cannot get message.action');
         return;
+      }
 
-      var app = WindowManager.getDisplayedApp();
+      switch (message.action) {
 
-      if (!app)
-        return;
+        case 'updateHeight':
+          var app = WindowManager.getDisplayedApp();
 
-      // Reset the height of the app
-      WindowManager.setAppSize(app);
-      var currentApp = WindowManager.getAppFrame(app);
+          if (!app)
+            return;
 
-      if (!message.hidden) {
-        currentApp.style.height =
-          (parseInt(currentApp.style.height) - message.keyboardHeight) + 'px';
-        currentApp.classList.add('keyboardOn');
-        keyboardFrame.classList.remove('hide');
-      } else {
-        currentApp.classList.remove('keyboardOn');
-        keyboardFrame.classList.add('hide');
+          // Reset the height of the app
+          WindowManager.setAppSize(app);
+          var currentApp = WindowManager.getAppFrame(app);
+
+          if (!message.hidden) {
+            currentApp.style.height =
+            (parseInt(currentApp.style.height) - message.keyboardHeight) + 'px';
+            currentApp.classList.add('keyboardOn');
+          } else {
+            currentApp.classList.remove('keyboardOn');
+          }
+          break;
+
+        case 'showKeyboard':
+          keyboardFrame.classList.remove('hide');
+          break;
+
+        case 'hideKeyboard':
+          keyboardFrame.classList.add('hide');
+          break;
+
       }
     });
   };
