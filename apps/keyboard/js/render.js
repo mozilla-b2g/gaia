@@ -57,17 +57,39 @@ const IMERender = (function() {
     var layoutWidth = layout.width || 10;
     var totalWidth = document.getElementById('keyboard').clientWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
+    var inputType = flags.inputType || 'text';
 
     layout.upperCase = layout.upperCase || {};
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
       content += '<div class="keyboard-row">';
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
-        var keyChar = key.value;
-        if (flags.uppercase)
-          keyChar = getUpperCaseValue(key);
+        // Get key value
+        var debug;
+        var keyChar = debug = key.value;
 
-        var code = key.keyCode || keyChar.charCodeAt(0);
+        // Depending on input type, consider alternatives for that key
+        var overrides = layout[inputType + 'Overrides'];
+        if (overrides && overrides[keyChar]) {
+          keyChar = overrides[keyChar];
+          var virtualKey = {};
+          for (var property in key) {
+            virtualKey[property] = key[property];
+          }
+          virtualKey.value = keyChar;
+          virtualKey.keyCode = keyChar.charCodeAt(0);
+          key = virtualKey;
+        }
+
+        // Take in count uppercase
+        var code;
+        if (flags.uppercase) {
+          keyChar = getUpperCaseValue(key);
+          code = keyChar.charCodeAt(0);
+        } else {
+          code = key.keyCode || keyChar.charCodeAt(0);
+        }
+
         var className = isSpecialKey(key) ? 'special-key' : '';
         var ratio = key.ratio || 1;
 
