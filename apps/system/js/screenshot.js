@@ -89,7 +89,7 @@
         }
 
         var filename = 'screenshots/' +
-          new Date().toISOString().slice(0,-5).replace(/[:T]/g, '-') +
+          new Date().toISOString().slice(0, -5).replace(/[:T]/g, '-') +
           '.png';
 
         var saveRequest = storage.addNamed(e.detail.file, filename);
@@ -114,8 +114,8 @@
           .show();
       }
     }
-    catch(e) {
-      console.log("exception in screenshot handler", e);
+    catch (e) {
+      console.log('exception in screenshot handler', e);
     }
   });
 }());

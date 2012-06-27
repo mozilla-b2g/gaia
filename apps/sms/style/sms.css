@@ -1,19 +1,24 @@
 
 @font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
+  font-family: 'FontLight';
+  src: url('fonts/opensans-light-webfont.woff');
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
+  font-family: 'FontRegular';
+  src: url('fonts/opensans-regular-webfont.woff');
 }
 
 @font-face {
-  font-family: 'Open Sans';
+  font-family: 'FontSemibold';
   font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
+  src: url('fonts/opensans-semibold-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontBold';
+  font-weight: bold;
+  src: url('fonts/opensans-bold-webfont.woff');
 }
 
 @media screen and (min-resolution: 200dpi) {
@@ -54,7 +59,8 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'FontRegular', sans-serif;
+  font-size: -moz-calc(6 * 0.226rem);
 }
 
 .panel {
@@ -300,13 +306,12 @@ body.msg-search-mode #msg-conversations-list {
   display: block;
   text-decoration: none;
   outline: none;
-  height: 9.6rem;
+  height: 6rem;
   position: relative;
   /* Remove the thumbnail for current stage.
    *padding need to 11.2rem + img width when social network integration is ready*/
-  padding: 1.3rem 1.6rem 0 5rem;
+  padding: 1rem 1.6rem 1rem 3rem;
   border-top: 0.1rem solid hsla(207,22%,92%,1);
-  border-bottom: 0.1rem solid hsla(223,7%,81%,1);
   width: 100%;
   -moz-transition: padding 0.3s ease-out;
   overflow: hidden;
@@ -406,13 +411,12 @@ body.edit-mode #msg-conversations-list > a > span {
 
 #msg-conversations-list .photo {
   position: absolute;
-  top: -0.1rem;
-  left: 0;
-  width: 9.5rem;
-  height: 9.5rem;
+  top: 0;
+  right: 0;
+  width: 5.9rem;
+  height: 5.9rem;
   overflow: hidden;
-  background-color: #ccc;
-  box-shadow: inset 0 0.1rem 0 #ddd;
+  background-color: #FFFFFF;
 }
 
 #msg-conversations-list .photo img {
@@ -420,24 +424,26 @@ body.edit-mode #msg-conversations-list > a > span {
 }
 
 #msg-conversations-list .name {
-  font-size: 2.6rem;
-  color: rgb(18, 47, 64);
-  line-height: 3.2rem;
-  font-weight: 600;
+  font-family: 'FontRegular';
+  font-size: -moz-calc(8 * 0.226rem);
+  color: #000000;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 11rem);
+  width: -moz-calc(100% - 7rem);
 }
 
 #msg-conversations-list .msg {
-  color: #666;
+  font-family: 'FontRegular';
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #5B5B5B;
   text-shadow: 0 0.1rem 0 #ddd;
-  font-size: 2.2rem;
-  height: 3.2rem;
-  width: -moz-calc(100% - 7rem);
+  width: -moz-calc(100% - 20rem);
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  text-overflow: '..."';
+  position: absolute;
+  top: 3rem;
+  left: 10rem;
 }
 
 #msg-conversations-list .msg .highlight {
@@ -445,25 +451,27 @@ body.edit-mode #msg-conversations-list > a > span {
 }
 
 #msg-conversations-list .time {
+  font-family: 'FontSemibold';
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #5B5B5B;
   position: absolute;
-  top: 0.9rem;
-  right: 1.6rem;
-  text-align: right;
+  top: 3rem;
   color: hsla(0,0%,0%,.5);
-  font-size: 1.8rem;
+}
+
+#msg-conversations-list .unread {
+  color: #1D8399;  
 }
 
 #msg-conversations-list .unread-tag {
   position: absolute;
   visibility : hidden;
-  top: 4.5rem;
-  right: 2.6rem;
-  padding: 0 1.6rem;
-  text-align: center;
-  color: rgb(255, 255, 255);
-  font-size: 1.8rem;
-  background: -moz-linear-gradient(top, #00ADEE, #0078A5);
-  border-radius: 0.9rem;
+  height: 1rem;
+  width: 1rem;
+  top: 2rem;
+  left: 1rem;
+
+  background: url(../style/images/unread.png);
 }
 
 #msg-conversations-list > a.unread .unread-tag {
@@ -477,11 +485,6 @@ body.edit-mode #msg-conversations-list .name {
 body.edit-mode #msg-conversations-list .msg {
   width: -moz-calc(100% - 9rem);
 }
-
-/*body.edit-mode #msg-conversations-list .time {
-  right: 1.6rem;
-}*/
-
 
 #msg-new-message-container {
   padding: 0;
@@ -713,26 +716,43 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list > div .message-container {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-  margin: 0.8rem;
-  min-height: 6.4rem;
-  border-radius: 0.8rem;
   position: relative;
-  padding: 1.6rem;
+  padding: 1rem 1.5rem;
+  width: 26.5rem;
   -moz-box-sizing: border-box;
+  display: block;
 }
 
-#view-list > div.sender {
-  /* Remove the thumbnail for current stage.
-   *padding need shit back to 9.6rem when social network integration is ready*/  
-  padding-left: 1.6rem;
+#view-list > div .message-bubble {
+  position: absolute;
+  top: -0.1rem;
+  width: 1rem;
+  height: 0.9rem;
 }
 
-#view-list > div.receiver {
-  /* Remove the thumbnail for current stage.
-   *padding need shit back to 9.6rem when social network integration is ready*/  
-  padding-right: 1.6rem;
-  text-align: right;
+#view-list > div .sender > .message-bubble {
+  right: -0.9rem;
+  background: url(images/bubble_gray_corner.png);
+}
+#view-list > div .receiver > .message-bubble {  
+  left: -0.9rem;
+  background: url(images/bubble_orange_corner.png);
+}
+
+#view-list > div .sender {
+  border-radius: 0.5rem 0 0.5rem 0.5rem;
+  background: #FFFFFF;
+  border: 0.1rem solid #878787;
+  margin-left: 4rem;
+  margin-right: 1.5rem;
+}
+
+#view-list > div .receiver {
+  border-radius: 0 0.5rem 0.5rem 0.5rem;
+  background: #F9F8EE;
+  border: 0.1rem solid #F08A48;
+  margin-left: 1.5rem;
+  margin-right: 4rem;
 }
 
 #view-list > div .pending {
@@ -775,20 +795,16 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list > div .text {
-  font-size: -moz-calc(6*0.226rem);
-  
-  color: rgb(18, 47, 64);
-  text-shadow: 0 0.1rem 0 #ddd;
-  line-height: 3.2rem;
+  color: #000000;
   text-overflow: ellipsis;
   overflow: hidden;
+  word-wrap: break-word;
 }
 
 #view-list > div .time {
-  font-size: 1.8rem;
-  line-height: 2.3rem;
-  color: rgb(62, 86, 106);
-  text-shadow: 0 0.1rem 0 #ddd;
+  font-family: 'FontSemibold';
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #5B5B5B;
 }
 
 
@@ -803,29 +819,19 @@ body.edit-mode #view-list .time {
 #view-list > div .message-container::before {
   content: '';
   display: block;
-  width: 1.12rem; /* 0.8rem * sqrt(2) */
-  height: 1.12rem;
+  width: 1rem;
+  height: 0.9rem;
   position: absolute;
-  top: 2rem;
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-  -moz-transform: rotate(45deg);
 }
 
-
-#view-list > div .sender {
-  margin-right: 4rem;
-  margin-left: 1.5rem;
-}
 #view-list > div .sender::before {
-  left: -0.56rem;
+  background: url(images/bubble_gray_corner-png);
+  right: 0.1rem;
 }
 
-#view-list > div .receiver {
-  margin-left: 4rem;
-  margin-right: 1.5rem;
-}
 #view-list > div .receiver::before {
-  right: -0.56rem;
+  background: url(images/bubble_orange_corner-png);
+  left: -0.1rem;
 }
 
 body.edit-mode #view-list > div.message-block {
@@ -839,15 +845,10 @@ body.edit-mode #view-list > div.message-block {
   text-decoration: none;
   outline: none;
   position: relative;
-  padding: 1.3rem 1.6rem 0 11.2rem;
+  padding: 0.5rem 0 0.5rem 9rem;
   width: -moz-calc(100% + 9rem);
   right: 9rem;
   -moz-transition: -moz-transform 0.3s ease;
-}
-
-
-#view-list > div.message-block:active > div.message-container {
-  background: rgba(183,214,54,.6);
 }
 
 #view-list > div.message-block > * {
@@ -1030,7 +1031,7 @@ body.hidden *[data-l10n-id] {
   font-size: -moz-calc(6 * 0.226rem);
   color: #ff4e00;
   text-transform: uppercase;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'FontRegular';
  
 }
 

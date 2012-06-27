@@ -11,53 +11,128 @@ html, body {
   position: absolute;
 }
 
+@media (orientation: portrait) {
+  #controls {
+    left: 0;
+    height: 45px;
+  }
+  #misc-button, #switch-button {
+    height: 45px;
+    width: 33%;
+  }
+  #misc-button {
+    left: 0;
+  }
+  #capture-button {
+    left: 33%;
+    height: 100px;
+    width: 33%;
+    top: -28px;
+  }
+  #switch-button {
+    left: 66%;
+  }
+}
+
+@media (orientation: landscape) {
+  #controls {
+    top: 0;
+    width: 45px;
+  }
+  #misc-button, #switch-button {
+    height: 33%;
+    width: 45px;
+  }
+  #misc-button {
+    top:0;
+  }
+  #capture-button {
+    top: 33%;
+    height: 33%;
+    width: 100px;
+    left: -28px;
+  }
+  #switch-button {
+    top: 66%;
+  }
+}
+
 #controls {
   position: absolute;
   bottom: 0;
-  height: 128px;
-  background-color: #555e64;
-  width: 100%;
-  text-align: center;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  overflow: hidden;
 }
 
-#switch-button {
-  display: block;
+#controls > * {
   position: absolute;
-  left: 8px;
-  bottom: 8px;
-  width: 113px;
-  height: 112px;
-  background-image: url('images/switch.png');
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
-#switch-button:active {
-  background-image: url('images/switch-pressed.png');
+#misc-button {
+  text-align: center;
 }
 
-#capture-button {
-  display: block;
-  margin: 8px auto;
-  width: 192px;
-  height: 112px;
-  background-image: url('images/capture.png');
-}
-
-#capture-button:active {
-  background-image: url('images/capture-pressed.png');
+#video-timer {
+  position:relative;
+  top:50%;
+  margin-top:-0.5em;
 }
 
 #gallery-button {
   display: block;
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  width: 113px;
-  height: 112px;
-  background-image: url('images/gallery.png');
+  width: 100%;
+  height: 100%;
+  background: url(images/video.png) no-repeat center center;
 }
 
-#gallery-button:active {
-  background-image: url('images/gallery-pressed.png');
+#capture-button {
+  background-color: #03a2b4;
+  border-radius: 100px;
+}
+
+#video-timer {
+  display: none;
+  color: white;
+  font-family: sans-serif;
+}
+
+/* Specific to when we are capturing video */
+.capturing #video-timer {
+  display: block;
+}
+
+.capturing #gallery-button {
+  display: none;
+}
+
+.capturing #capture-button {
+  background-color: #d3361c;
+}
+
+.video.capturing #capture-button {
+  background-image: url(images/stop.png);
+}
+
+#switch-button[disabled=disabled] {
+  opacity: 0.5;
+}
+
+/* Swap the camera and video icons depending on mode */
+.video #switch-button {
+  background-image: url(images/camera.png);
+}
+
+.camera #switch-button {
+  background-image: url(images/video.png);
+}
+
+.camera #capture-button {
+  background-image: url(images/camera.png);
+}
+
+.video #capture-button {
+  background-image: url(images/video.png);
 }

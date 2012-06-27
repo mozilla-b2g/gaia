@@ -1,20 +1,23 @@
-<!DOCTYPE html> 
-<html manifest="manifest.appcache"> 
-  <head> 
-    <meta charset="utf-8"> 
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Camera</title>
     <link type="text/css" rel="stylesheet" href="style/camera.css"/>
     <script type="text/javascript" src="js/camera.js"></script>
   </head>
-  <body>
+  <body class="camera">
 
-    <video id="viewfinder" autoplay> </video>
+    <video id="viewfinder" autoplay> test </video>
 
     <div id="controls">
       <a id="switch-button" name="Switch source"></a>
       <a id="capture-button" name="Capture"></a>
-      <a id="gallery-button" name="Go to gallery"></a>
+      <div id="misc-button">
+        <a id="gallery-button" name="View Gallery"></a>
+        <span id="video-timer">00:00</span>
+      </div>
     </div>
 
   </body>

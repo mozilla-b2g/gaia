@@ -65,12 +65,30 @@ var AttentionScreen = {
     this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
     if (this._screenInitiallyDisabled)
       ScreenManager.turnScreenOn();
+
+    // Ensuring the proper mozvisibility changed on the displayed app
+    var displayedOrigin = WindowManager.getDisplayedApp();
+    if (displayedOrigin) {
+      var frame = WindowManager.getAppFrame(displayedOrigin);
+      if ('setVisible' in frame) {
+        frame.setVisible(false);
+      }
+    }
   },
 
   close: function as_close(evt) {
     if (!'frameType' in evt.target.dataset ||
         evt.target.dataset.frameType !== 'attention')
       return;
+
+    // Ensuring the proper mozvisibility changed on the displayed app
+    var displayedOrigin = WindowManager.getDisplayedApp();
+    if (displayedOrigin) {
+      var frame = WindowManager.getAppFrame(displayedOrigin);
+      if ('setVisible' in frame) {
+        frame.setVisible(true);
+      }
+    }
 
     this.screen.classList.remove('displayed');
     this.screen.classList.remove('status');

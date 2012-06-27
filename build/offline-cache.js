@@ -262,7 +262,7 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
       let documentSpec = domain;
       for (let i = 0; i < paths.length; i++) {
         documentSpec += "/";
-        if (paths[i] != "index.html" || documentSpec != (domain + '/'))
+        if (paths[i] != "index.html")
            documentSpec += paths[i];
       }
   

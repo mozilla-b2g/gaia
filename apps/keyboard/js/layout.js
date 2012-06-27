@@ -743,11 +743,11 @@ const Keyboards = {
     label: 'Spanish',
     menuLabel: 'Español',
     alt: {
-      a: 'áªàâäåãāæ',
+      a: 'áªàâä',//åãāæ', XXX: commented to avoid overflows for the demo
       c: 'ç',
-      e: 'é€èêëēȩɛ',
+      e: 'é€èêë',//ēȩɛ', XXX: commented to avoid overflows for the demo
       i: 'íïìîīį',
-      o: 'óºöòôōœøɵ',
+      o: 'óºöòô',//ōœøɵ', XXX: commented to avoid overflows for the demo
       u: 'üúùûū',
       s: '$ßš',
       l: '£',
@@ -755,8 +755,8 @@ const Keyboards = {
       y: '¥',
       r: 'R$ ',
       '.': ',¿?¡!;:',
-      ':)': ':) :D :( ;D :* :/',
-      '.com': '.es .org .eu'
+      ':)': ':) :D :( ;D :* :/'
+//      '.com': '.es .org .eu' XXX: commented to avoid overflows for the demo
     },
     keys: [
       [
@@ -839,10 +839,10 @@ const Keyboards = {
     label: 'Portuguese',
     menuLabel: 'Português',
     alt: {
-      a: 'áãàâäåæª',
-      e: 'éêèȩėēëɛ',
+      a: 'áãàâä',//åæª', XXX: commented to avoid overflows for the demo
+      e: 'éêèȩė',//ēëɛ', XXX: commented to avoid overflows for the demo
       i: 'íîìïįī',
-      o: 'óõôòöœøōɵ',
+      o: 'óõôòö',//œøōɵ', XXX: commented to avoid overflows for the demo
       u: 'úüùûū',
       s: '$ßš',
       l: '£',

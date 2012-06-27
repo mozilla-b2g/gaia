@@ -123,8 +123,11 @@ const IMEController = (function() {
         row.splice(where, 1, // delete space
           { value: '.', ratio: 1, keyCode: 46 },
           { value: '/', ratio: 2, keyCode: 47 },
-          { value: '.com', ratio: 2, compositeKey: '.com' }
+          // As we are removing the space we need to assign
+          // the extra space (i.e to .com)
+          { value: '.com', ratio: 2 + space.ratio, compositeKey: '.com' }
         );
+
       break;
 
       // adds @ and .
@@ -369,7 +372,21 @@ const IMEController = (function() {
     parent.postMessage(JSON.stringify(message), '*');
   }
 
-  var _dimensionsObserver = new MutationObserver(_updateTargetWindowHeight);
+  function _notifyShowKeyboard(show) {
+
+    var message = {
+      action: (show == true) ? 'showKeyboard' : 'hideKeyboard'
+    };
+
+    parent.postMessage(JSON.stringify(message), '*');
+  }
+
+  var _dimensionsObserver = new MutationObserver(function() {
+      // Not to update the app window height until the transition is complete
+      if (IMERender.ime.dataset.transitioncomplete)
+        _updateTargetWindowHeight();
+  });
+
   var _dimensionsObserverConfig = {
     childList: true, // to detect changes in IMEngine
     attributes: true, attributeFilter: ['class', 'style', 'data-hidden']
@@ -650,6 +667,19 @@ const IMEController = (function() {
     _currentKey = null;
   }
 
+  // event handler for transition end
+  function _onTransitionEnd(evt) {
+
+    _updateTargetWindowHeight();
+
+    if (IMERender.ime.dataset.hidden) {
+      delete IMERender.ime.dataset.transitioncomplete;
+      _notifyShowKeyboard(false);
+    } else {
+      IMERender.ime.dataset.transitioncomplete = true;
+    }
+  }
+
   // Handle the default behavior for a pressed key
   function _sendNormalKey(keyCode) {
 
@@ -894,7 +924,8 @@ const IMEController = (function() {
     'mouseover': _onMouseOver,
     'mouseleave': _onMouseLeave,
     'mouseup': _onMouseUp,
-    'mousemove': _onMouseMove
+    'mousemove': _onMouseMove,
+    'transitionend': _onTransitionEnd
   };
 
   // Initialize the keyboard (exposed, controlled by IMEManager)
@@ -967,6 +998,8 @@ const IMEController = (function() {
           _getCurrentEngine().show(type);
         }
       }
+
+      _notifyShowKeyboard(true);
     },
 
     // Hide IME
