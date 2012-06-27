@@ -345,7 +345,7 @@
 #lockscreen-area-unlock::after {
   left: -60px;
   background: transparent url('./images/arrow-right.png') center center no-repeat;
-  -moz-animation: lockscreen-arrow-right 3s infinite;
+  -moz-animation: lockscreen-arrow-right 2s infinite;
 }
 
 #lockscreen-area-camera {
@@ -356,7 +356,7 @@
 #lockscreen-area-camera::after {
   right: -60px;
   background: transparent url('./images/arrow-left.png') center center no-repeat;
-  -moz-animation: lockscreen-arrow-left 3s infinite;
+  -moz-animation: lockscreen-arrow-left 2s infinite;
 }
 
 @media screen and (height: 800px) {
