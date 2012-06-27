@@ -219,7 +219,7 @@ var KeypadManager = {
       // If there are no digits in the phone number, hide the delete
       // button.
       if ((this._phoneNumber.length == 0) &&
-          (typeof CallScreen == 'undefined')) {
+        (typeof CallScreen == 'undefined')) {
         this.deleteButton.classList.remove('show');
       }
       this.phoneNumberView.value = this._phoneNumber;
@@ -268,9 +268,9 @@ var KeypadManager = {
           if (!ocMaxNumberOfDigits) {
             ocMaxNumberOfDigits = view.value.length;
           }
-          if (phoneNumber.length >= ocMaxNumberOfDigits) {
+          if (phoneNumber.length >= (ocMaxNumberOfDigits + 3)) {
             phoneNumber = '...' + phoneNumber
-              .substr(-(ocMaxNumberOfDigits - 2));
+              .substr(-(ocMaxNumberOfDigits + 3 - 2));
           }
         break;
       }
@@ -366,7 +366,7 @@ var KeypadManager = {
 
         // If there are digits in the phone number, show the delete button.
         if ((this._phoneNumber.length > 0) &&
-            (typeof CallScreen == 'undefined')) {
+          (typeof CallScreen == 'undefined')) {
           this.deleteButton.classList.add('show');
         }
 
