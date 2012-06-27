@@ -6,9 +6,9 @@
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
-    <link rel="resource" type="application/l10n" href="locale/clock.properties">
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
     <!-- Compatibility -->
-    <script>
+    <script type="application/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -40,10 +40,10 @@
             <span id="clock-time"></span>
             <span id="clock-hour24-state"></span>
           </div>
-          <ul id="alarms" class="tableView"></ul>    
+          <ul id="alarms" class="tableView"></ul>
         </div>
       </div>
-      
+
       <div id="stopwatch-view" class="active view" hidden="true">
         <div class="chrono-view-container">
           <div>
@@ -142,7 +142,7 @@
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="hour">Hour</span>
           <input type="number" class="right" name="alarm.hour" maxlength="2" placeholder="08" required pattern="[0-2][0-9]"/>
-          
+
           <p></p>
         </li>
         <li class="singleline">
@@ -155,7 +155,7 @@
         </li>
       </ul>
     </div>
-    
+
     <!-- Repeat -->
     <div id="repeat" class="view" data-title="Repeat">
       <header>
@@ -214,7 +214,7 @@
         </li>
       </ul>
     </div>
-    
+
     <!-- Sound -->
     <div id="sound" class="view" data-title="Sound">
       <header>
@@ -245,7 +245,7 @@
         </li>
       </ul>
     </div>
-    
+
     <!-- Snooze -->
     <div id="snooze" class="view" data-title="Snooze">
       <header>
@@ -283,7 +283,7 @@
         </li>
       </ul>
     </div>
-    
+
     <!-- Color -->
     <div id="color" class="view" data-title="Color">
       <header>
@@ -328,6 +328,6 @@
         </li>
       </ul>
     </div>
-    
+
   </body>
 </html>
