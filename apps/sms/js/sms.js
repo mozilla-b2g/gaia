@@ -349,8 +349,9 @@ var ConversationListView = {
     var patterns = text.match(searchRegExp);
     var str = '';
     for (var i = 0; i < patterns.length; i++) {
-      str = str + escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
-                  escapeHTML(patterns[i]) + '</span>';
+      str = str +
+          escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
+          escapeHTML(patterns[i]) + '</span>';
     }
     str += escapeHTML(sliceStrs.pop());
     return str;
@@ -400,7 +401,6 @@ var ConversationListView = {
 
     return '<div class="groupHeader">' +
       giveHeaderDate(conversation.timestamp) + '</div>';
-
   },
 
   searchConversations: function cl_searchConversations() {
@@ -699,7 +699,7 @@ var ConversationView = {
     var newHeight = input.getBoundingClientRect().height;
     var bottomToolbarHeight = (newHeight + 32) + 'px';
     var bottomToolbar =
-      document.getElementById('view-bottom-toolbar');
+        document.getElementById('view-bottom-toolbar');
 
     bottomToolbar.style.height = bottomToolbarHeight;
 
@@ -830,12 +830,12 @@ var ConversationView = {
       return;
 
     MessageManager.deleteMessage(messageId, function(result) {
-        if (result) {
-          console.log('Message id: ' + messageId + ' deleted');
-        } else {
-          console.log('Impossible to delete message ID=' + messageId);
-        }
-      });
+      if (result) {
+        console.log('Message id: ' + messageId + ' deleted');
+      } else {
+        console.log('Impossible to delete message ID=' + messageId);
+      }
+    });
   },
 
   deleteMessages: function cv_deleteMessages() {
@@ -900,6 +900,7 @@ var ConversationView = {
 
         this.showConversation(num);
         break;
+
       case 'resize':
         if (!document.body.classList.contains('conversation'))
           return;
@@ -917,7 +918,7 @@ var ConversationView = {
         if (num) {
           this.showConversation(num);
         }
-      break;
+        break;
 
       case 'click':
         var targetIsMessage = ~evt.target.className.indexOf('message');

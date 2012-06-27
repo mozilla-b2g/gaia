@@ -27,15 +27,14 @@ function prettyDate(time) {
     return (new Date(time)).toLocaleFormat('%x %R');
   }
 
-  return day_diff == 0 && (
-    diff < 60 && _('justNow') ||
-    diff < 120 && _('aMinuteAgo') ||
-    diff < 3600 && _('minutesAgo', {minutes: Math.floor(diff / 60)}) ||
-    diff < 7200 && _('anHourAgo') ||
-    diff < 86400 && _('hoursAgo', {hours: Math.floor(diff / 3600)})) ||
-    day_diff == 1 && _('yesterday') ||
-    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
-    (new Date(time)).toLocaleFormat('%x');
+  return day_diff == 0 && ( // today?
+      diff < 60 && _('justNow') ||
+      diff < 3600 && _('minutesAgo', { minutes: Math.floor(diff / 60) }) ||
+      diff < 86400 && _('hoursAgo', { hours: Math.floor(diff / 3600) })
+  ) ||
+      day_diff == 1 && _('yesterday') || // yesterday?
+      day_diff < 7 && (new Date(time)).toLocaleFormat('%A') || // <1 week ago?
+      (new Date(time)).toLocaleFormat('%x'); // default: standard date format
 }
 
 function giveHourMinute(time) {
@@ -99,7 +98,7 @@ function giveHeaderDate(time) {
 
 /* ***********************************************************
 
-  Code below are for desktop testing!
+  Code below is for desktop testing!
 
 *********************************************************** */
 
@@ -234,7 +233,6 @@ function escapeHTML(str, escapeQuotes) {
 
 if (!navigator.mozSettings) {
   window.addEventListener('load', function loadWithoutSettings() {
-    selectedLocale = 'en-US';
     ConversationView.init();
     ConversationListView.init();
   });
