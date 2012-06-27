@@ -104,8 +104,8 @@
 }
 
 .apps .draggable > img {
-  margin-bottom: .5rem;
-  -moz-transform: scale(1.1);
+  margin-bottom: .6rem;
+  -moz-transform: scale(1.25);
   width: 6rem;
   height: 6rem;
 }
@@ -125,43 +125,34 @@
 }
 
 @-moz-keyframes shake {
-  0% { -moz-transform: translate(3px, 2px) rotate(0deg); }
-  10% { -moz-transform: translate(-2px, -3px) rotate(-2deg); }
-  20% { -moz-transform: translate(-5px, 0px) rotate(2deg); }
-  30% { -moz-transform: translate(0px, 3px) rotate(0deg); }
-  40% { -moz-transform: translate(2px, -2px) rotate(2deg); }
-  50% { -moz-transform: translate(-2px, 3px) rotate(-2deg); }
-  60% { -moz-transform: translate(-5px, 2px) rotate(0deg); }
-  70% { -moz-transform: translate(3px, 2px) rotate(-2deg); }
-  80% { -moz-transform: translate(-2px, -2px) rotate(2deg); }
-  90% { -moz-transform: translate(3px, 3px) rotate(0deg); }
-  100% { -moz-transform: translate(2px, -3px) rotate(-2deg); }
-}
-
-@-moz-keyframes rotation {
-  0% { -moz-transform: rotate(0deg); }
-  100% { -moz-transform: rotate(360deg); }
+  0% { -moz-transform: scale(1); }
+	25% { -moz-transform: scale(1.05); }
+  50% { -moz-transform: scale(1); }
+  75% { -moz-transform: scale(0.95); }
+	100% { -moz-transform: scale(1); }
 }
 
 @-moz-keyframes none {}
 
 /* Image and label have shaking effect */
-.apps[data-mode = 'edit'] ol > li > div {
+.apps[data-mode = 'edit'] ol > li > div > img {
   -moz-animation-name: shake;
-  -moz-animation-duration: 2s;
-  -moz-transform-origin:50% 50%;
+  -moz-animation-duration: .8s;
+  -moz-transform-origin: 50% 50%;
   -moz-animation-iteration-count: infinite;
-  -moz-animation-timing-function: linear;
-  opacity: .8;
+  -moz-animation-timing-function: ease-out;
 }
 
-.apps[data-transitioning] ol > li > div > img,
-.apps[data-transitioning] ol > li > div {
+.apps[data-transitioning] ol > li > div > img {
   -moz-animation-name: none;
 }
 
 .apps[data-mode = 'normal'] ol > li span.options {
   display: none;
+}
+
+.apps[data-dragging] ol > li {
+  opacity: 0.6;
 }
 
 .apps ol > li[data-dragging] {

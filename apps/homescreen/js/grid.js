@@ -649,6 +649,7 @@ const GridManager = (function() {
      */
     start: function(elem) {
       this.dragging = true;
+      container.dataset.dragging = true;
       draggableIconOrigin = elem.dataset.origin;
       draggableIcon = pageHelper.getCurrent().getIcon(draggableIconOrigin);
       draggableIcon.onDragStart(status.iCoords.x, status.iCoords.y);
@@ -663,6 +664,7 @@ const GridManager = (function() {
       clearTimeout(this.translatingTimeout);
       this.isTranslatingPages = false;
       this.dragging = false;
+      delete container.dataset.dragging;
       draggableIcon.onDragStop();
       // When the drag&drop is finished we need to check empty pages
       // and overflows
