@@ -77,7 +77,8 @@ var Camera = {
     var diffSec = (new Date() - this._videoStart) / 1000;
     var min = Math.floor(diffSec / 60);
     var sec = Math.round((diffSec - (min * 60)));
-    this.videoTimer.innerHTML = this.padZero(min, 2) + ':' + this.padZero(sec, 2);
+    this.videoTimer.innerHTML =
+      this.padZero(min, 2) + ':' + this.padZero(sec, 2);
   },
 
   setSource: function camera_setSource(camera) {
