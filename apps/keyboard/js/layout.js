@@ -84,11 +84,11 @@ const Keyboards = {
     label: 'English',
     menuLabel: 'English',
     alt: {
-      a: 'áàâäåãāæ',
+      a: 'áàâäå'//ãāæ', XXX: commented to avoid overflows for the demo
       c: 'çćč',
-      e: 'éèêëēȩ€ɛ',
-      i: 'ïíìîīį',
-      o: 'öóòôōœøɵ',
+      e: 'éèêëē'//ȩ€ɛ', XXX: commented to avoid overflows for the demo
+      i: 'ïíìîī'//į', XXX: commented to avoid overflows for the demo
+      o: 'öóòôō'//œøɵ', XXX: commented to avoid overflows for the demo
       u: 'üúùûū',
       s: 'ßśš$',
       S: 'ŚŠŞ',
@@ -746,7 +746,7 @@ const Keyboards = {
       a: 'áªàâä',//åãāæ', XXX: commented to avoid overflows for the demo
       c: 'ç',
       e: 'é€èêë',//ēȩɛ', XXX: commented to avoid overflows for the demo
-      i: 'íïìîīį',
+      i: 'íïìîī',//į', XXX: commented to avoid overflows for the demo
       o: 'óºöòô',//ōœøɵ', XXX: commented to avoid overflows for the demo
       u: 'üúùûū',
       s: '$ßš',
@@ -841,7 +841,7 @@ const Keyboards = {
     alt: {
       a: 'áãàâä',//åæª', XXX: commented to avoid overflows for the demo
       e: 'éêèȩė',//ēëɛ', XXX: commented to avoid overflows for the demo
-      i: 'íîìïįī',
+      i: 'íîìïį',//ī', XXX: commented to avoid overflows for the demo
       o: 'óõôòö',//œøōɵ', XXX: commented to avoid overflows for the demo
       u: 'úüùûū',
       s: '$ßš',
