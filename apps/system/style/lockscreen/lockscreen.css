@@ -10,7 +10,7 @@
 
   -moz-user-select: none;
 
-  -moz-transition: -moz-transform 0.5s ease;
+  -moz-transition: -moz-transform 0.5s ease 0.2s;
 }
 
 #screen:not(.locked) > #lockscreen {
@@ -54,12 +54,6 @@
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 50% 50%;
-}
-
-.lockscreen-panel.tbd {
-  color: #919191;
-  text-align: center;
-  margin-top: 50px;
 }
 
 #lockscreen-header {
