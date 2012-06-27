@@ -51,6 +51,12 @@ button::-moz-focus-inner {
   width: 100%;
   background: #3b424e url(images/bgbase.jpg) no-repeat center center;
   background-size: 100% auto;
+  -moz-transition: -moz-transform 0.3s ease;
+  -moz-transform: translateY(0);
+}
+
+#keyboard.hide{
+  -moz-transform: translateY(100%);
 }
 
 /* Rows */

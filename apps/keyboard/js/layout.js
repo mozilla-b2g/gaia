@@ -116,7 +116,13 @@ const Keyboards = {
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
-    ]
+    ],
+    urlOverrides: {
+      "'": ':'
+    },
+    emailOverrides: {
+      "'": '_'
+    }
   },
   fr: {
     type: 'keyboard',
@@ -778,6 +784,12 @@ const Keyboards = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ],
+    urlOverrides: {
+      'ñ': ':'
+    },
+    emailOverrides: {
+      'ñ': '_'
+    },
     alternateLayout: {
       alt: {
         '€': '$ £ ¥ R$',
@@ -869,6 +881,12 @@ const Keyboards = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ],
+    urlOverrides: {
+      'ç': ':'
+    },
+    emailOverrides: {
+      'ç': '_'
+    },
     alternateLayout: {
       alt: {
         'R$': '€$£¥',

@@ -348,8 +348,9 @@ var Contacts = (function() {
 
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
-      contactsList.refresh(contact);
-      reloadContactDetails(contact);
+      myContact.id = contact.id;
+      contactsList.refresh(myContact);
+      reloadContactDetails(myContact);
       navigation.back();
     };
 
@@ -418,22 +419,18 @@ var Contacts = (function() {
 
   var buildActions = function(actions) {
     for (var i in actions) {
-      var action = document.createElement('li');
+      var action = document.createElement('button');
       action.onclick = actions[i].callback;
+      action.setAttribute('role', 'menuitem');
 
-      var link = document.createElement('a');
-      link.title = actions[i].label;
-      link.href = '#';
       if (actions[i].icon) {
         var icon = document.createElement('span');
-        icon.setAttribute('role', 'button');
-        icon.className = actions[i].icon;
+        icon.dataset.icon = actions[i].icon
         icon.innerHTML = actions[i].label;
-        link.appendChild(icon);
+        action.appendChild(icon);
       } else {
-        link.textContent = actions[i].label;
+        action.textContent = actions[i].label;
       }
-      action.appendChild(link);
       formActions.appendChild(action);
     }
   };

@@ -32,11 +32,11 @@
   font-family:'Open Sans';
 }
 
-.apps ol > li.hidden {
+.apps ol > li[data-hidden] {
   -moz-transform: scale(0);
 }
 
-.apps ol > li.visible {
+.apps ol > li[data-visible] {
   -moz-transform: scale(1);
   -moz-transition: -moz-transform 1.2s ease;
 }
