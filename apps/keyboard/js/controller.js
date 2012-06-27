@@ -926,6 +926,7 @@ const IMEController = (function() {
 
     // Detach event listeners
     _dimensionsObserver.disconnect();
+    var event;
     for (event in _imeEvents) {
       var callback = _imeEvents[event] || null;
       if (callback)

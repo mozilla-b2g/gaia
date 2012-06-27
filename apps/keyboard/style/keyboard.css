@@ -184,9 +184,10 @@ button::-moz-focus-inner {
 
 /* Highlight for special keys */
 .keyboard-key.special-key.highlighted > .visual-wrapper {
-  box-shadow: 0 0 0 2px #4495A8;
+/*  box-shadow: 0 0 0 2px #4495A8;*/
+  border: #4495A8 2px solid;
   border-radius: 0.3rem;
-  border: none;
+  margin:-2px
 }
 
 .keyboard-key.special-key.highlighted > .visual-wrapper > span:after  {
@@ -267,7 +268,10 @@ button::-moz-focus-inner {
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
-  box-shadow: 0 0 0 2px #53B6CC;
+/*  box-shadow: 0 0 0 2px #53B6CC;*/
+  border: #53B6CC 2px solid;
+  border-radius: 0.3rem;
+  margin:-2px
   background: -moz-linear-gradient(#fff, #ebebeb);
 }
 
