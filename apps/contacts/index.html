@@ -25,291 +25,268 @@
   </head>
 
   <body class="app-contacts">
-    <!-- Contacts List Section -->
-    <section id='view-contacts-list' class="view view-noscroll view-contacts-list">
-      <div class="view-inner">
-        <header class="view-header">
-          <ul class="pull-right stack view-actions">
-            <li id='add-contact-button' onclick="Contacts.showAdd();">
-              <a href="#" title="Add contact">
-                <span role="button" class="icon-add" data-l10n-id="add">Add</span>
-              </a>
-            </li>
-          </ul>
-          <h1 data-l10n-id="contacts">Contacts</h1>
-        </header>
-        <article class="view-body">
-          <div class="view-jumper">
-            <abbr class="view-jumper-current hide" title="Contacts by "></abbr>
-
-            <ol class="view-jumper-inner">
-              <li><a href="#"><span role="button" class="icon-search"></span></a></li>
-              <li><a href="#"><span role="button" class="icon-fav-dark"></span></a></li>
-              <li data-template>
-                <a href="#">
-                  <abbr class="letter" title="Jump to #letter#">#letter#</abbr>
+    
+    <div id="app" class="views" data-state="active">
+        <!-- Contacts List Section -->
+      <section id='view-contacts-list' data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
+        <div class="view-inner">
+          <header class="view-header">
+            <ul class="pull-right stack view-actions">
+              <li id='add-contact-button' onclick="Contacts.showAdd();">
+                <a href="#" title="Add contact">
+                  <span role="button" class="icon-add" data-l10n-id="add">Add</span>
                 </a>
               </li>
-            </ol>
-          </div>
-
-          <div id="groups-container" class="view-body-inner">
-            <ol class="block-list" id="groups-list">
-              <li data-template>
-                <h2 id="group-#group#" class="block-title hide">
-                  <abbr title="Contacts listed #group#">#letter#</abbr>
-                </h2>
-                <ol id="contacts-list-#group#" data-group="#group#">
-                  <li data-template class="block-item" data-uuid="#id#">
-                    <span class="checkbox">
-                      <input type="checkbox" name="#uid#"><i></i>
-                    </span>
-                    <a href="#" class="item">
-                      <figure class="item-media pull-right block-media">
-                         <img alt="" style="background-image: url(#photo#);">
-                      </figure>
-                      <p class="item-body">
-                        <strong class="block-name">#givenName# <b>#familyName#</b></strong>
-                      </p>
-                    </a>
-                  </li>
-                </ol>
-              </li>
-            </ol>
-          </div>
-        </article>
-      </div> <!-- view-inner -->
-    </section>
-
-    <!-- Contact Details Section -->
-    <section id='view-contact-details' class="view view-contact-profile view-right">
-      <div class="view-inner">
-        <header id='details-view-header' class="view-header">
-          <ul class="pull-right stack view-actions">
-            <li id='edit-contact-button' onclick="Contacts.showEdit();">
-              <a href="#" title="Edit contact">
-                <span role="button" class="icon-edit" data-l10n-id="edit">Edit</span>
-              </a>
-            </li>
-          </ul>
-          <p class="view-back pull-left">
-            <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
-              <span role="button" class="icon-back">Back</span>
-            </a>
-          </p>
-          <h1 id='contact-name-title'></h1>
-        </header>
-        <article class="view-body">
-          <div class="view-body-inner">
-            <div class="contact-header">
-              <figure><img id='cover-img' alt="" style=""></figure>
-            </div>
-            <section id="contact-detail">
-              <!--
-              We need some UX clarifications before using this field
-              <h1 id='tag_field' data-template>#tag_field#</h1>
-              -->
-
-              <!-- Phone Template -->
-              <li id='phone-details-template' data-template>
-                <h2>#type#</h2>
-                <div class="item">
-                  <div class="item-media pull-right">
-                    <button class="action"><span role="button" class="icon-message">Message</span></button>
-                  </div>
-                  <div class="item-body-exp">
-                    <button class="action">
-                      <span role="button" class="icon-call">Call</span>
-                      <b>#number#</b>
-                      <em>#notes#</em>
-                    </button>
-                  </div>
-                </div>
-              </li>
-              <!-- Email Template -->
-              <li id='email-details-template' data-template>
-                <h2>#email_tag#</h2>
-                <div class="item">
-                  <div class="item-body-exp">
-                    <button class="action">
-                      <span role="button" class="icon-email">E-mail</span>
-                      <b>#email#</b>
-                    </button>
-                  </div>
-                </div>
-              </li>
-
-              <ul id='details-list'>
-                <!-- Iterating mails and phones here -->
-              </ul>
-            </section>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- Edit Section -->
-    <section id='view-contact-form' class="view view-edit-contact view-right">
-      <div class="view-inner">
-        <header class="view-header">
-          <ul id='contact-form-actions' class="pull-right stack view-actions">
-          </ul>
-          <p class="view-back pull-left">
-            <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
-              <span role="button" class="icon-back">Back</span>
-            </a>
-          </p>
-          <h1 id='contact-form-title'></h1>
-        </header>
-
-        <!-- PHONE TEMPLATE -->
-        <dl id='add-phone' data-template class="setbox fillflow-row">
-          <dt class="setbox-title">
-              <a data-taglist='phone-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">#type#</a>
-              <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-          </dt>
-          <dd class="setbox-body">
-            <p class="setbox-item">
-              <label class="hide" for="tel_#i#">Phone number:</label>
-              <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="tel" value="#number#" id="number_#i#">
-            </p>
-            <p class="setbox-item">
-              <label class="hide" for="notes_#i#">Name:</label>
-              <input placeholder="Notes" data-field="notes" data-arrayindex="#i#" name="tel" class="textfield" type="text" value="#notes#" id="notes_#i#">
-            </p>
-          </dd>
-        </dl>
-
-        <!-- EMAIL TEMPLATE -->
-        <dl id='add-email' data-template class="setbox">
-          <!-- Commented while we don't have an email type field in contacts -->
-          <!-- <dt class="setbox-title">
-              <input type="text" data-taglist='email-type' onclick="Contacts.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">
-                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-              </input>
-            </dt> -->
-          <dd class="setbox-body">
-            <p class="setbox-item">
-              <label class="hide" for="email_#i#">e-mail:</label>
-              <input placeholder="Email" data-arrayindex="#i#" name="email" class="textfield" type="email" value="#email#" id="email_#i#">
-            </p>
-          </dd>
-        </dl>
-
-        <article class="view-body">
-          <div class="view-body-inner">
-            <form action="#" class="fill-flow">
-              <input name="id" id="contact-form-id" type="hidden" value=""\>
-              <fieldset class="item">
-                <legend class="hide">Main information</legend>
-                <a href="#" class="item-media fillflow-media">
-                  <img alt="" style="background-image: url(#photo#);">
-                </a>
-                <div class="item-body-exp">
-                  <p class="fillflow-row">
-                    <label class="hide" for="givenName">Name:</label>
-                    <input placeholder="Name" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
-                  </p>
-                  <p class="fillflow-row">
-                    <label class="hide" for="user_lastname">Last name:</label>
-                    <input placeholder="Last name" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
-                  </p>
-                </div>
-              </fieldset>
-
-              <!-- <fieldset data-template class="fillflow-row">
-                <legend>Work information</legend>
-                <dl class="setbox">
-                  <dt class="setbox-title"><a href="#">Company <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span></a></dt>
-                  <dd class="setbox-body">
-                    <p class="setbox-item">
-                      <label class="hide" for="user_company">Company name:</label>
-                      <input class="textfield" type="text" value="#org#" id="org">
-                    </p>
-                  </dd>
-                </dl>
-                The perfect approach to this component is to use the fieldset as setbox container
-                and the setbox-title using a legend, but this bug prevent us to use in that way
-                https://bugzilla.mozilla.org/show_bug.cgi?id=261037
-              </fieldset> -->
-
-              <fieldset>
-                <legend>Phone numbers</legend>
-                  <div id='contacts-form-phones'>
-                    <!-- Iterating over phone template here -->
-                  </div>
-                <button onclick='return false;' class="fillflow-row-action">
-                  <span role="button" class="icon-delete">Delete this field</span>
-                </button>
-              </fieldset>
-
-              <button onclick='Contacts.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
-                <span role="button" class="icon-add"></span>
-                <b>Add phone number</b>
-              </button>
-
-              <fieldset id='contacts-form-email'  class="fillflow-row">
-                <legend>E-mail address</legend>
-                  <div id='contacts-form-phones'>
-                    <!-- Iterating over email template here -->
-                  </div>
-                <button onclick='return false;' class="fillflow-row-action">
-                  <span role="button" class="icon-delete">Delete this field</span>
-                </button>
-              </fieldset>
-
-              <button onclick='Contacts.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
-                <span role="button" class="icon-add"></span>
-                <b>Add email address</b>
-              </button>
-
-              <fieldset class="fillflow-row">
-                <legend>Address</legend>
-                <dl class="setbox">
-                  <dt class="setbox-title"><a href="#">Work <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span></a></dt>
-                  <dd class="setbox-body">
-                    <p class="setbox-item">
-                      <label class="hide" for="user_email">Street:</label>
-                      <input name="address" class="textfield" type="text" value="" id="user_email">
-                    </p>
-                  </dd>
-                </dl>
-                <button class="fillflow-row-action">
-                  <span role="button" class="icon-delete">Delete this field</span>
-                </button>
-              </fieldset>
-            </form>
-          </div>
-        </article>
-      </div>
-    </section>
-    <section id="view-select-tag" class="view view-select-tag view-right">
-      <div class="view-inner">
-        <header class="view-header">
-          <p class="view-back pull-left">
-            <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
-              <span role="button" class="icon-back">Back</span>
-            </a>
-          </p>
-          <ul class="pull-right stack view-actions">
-            <li>
-            </li>
-            <li onclick="Contacts.goBack();">
-              <a href="#" title="Done">Done
-              </a>
-            </li>
-          </ul>
-          <h1>Label</h1>
-        </header>
-
-        <article class="view-body">
-          <div class="view-body-inner">
-            <ul id="tags-list" class="selection-list">
             </ul>
-            <input class="textfield" type="text" placeholder="Custom Tag" value="">
-          </div>
-        </article>
-      </div>
-    </section>
+            <h1 data-l10n-id="contacts">Contacts</h1>
+          </header>
+          <article class="view-body">
+            <div class="view-jumper">
+              <abbr class="view-jumper-current" title="Contacts by "></abbr>
+
+              <ol class="view-jumper-inner">
+                <li><a href="#"><span role="button" class="icon-search"></span></a></li>
+                <li><a href="#"><span role="button" class="icon-fav-dark"></span></a></li>
+                <li data-template data-letter="#letter#">
+                  <a href="#">
+                    <abbr class="letter" title="Jump to #letter#">#letter#</abbr>
+                  </a>
+                </li>
+              </ol>
+            </div>
+
+            <div id="groups-container" class="view-body-inner">
+              <ol class="block-list" id="groups-list">
+                <li data-template>
+                  <h2 id="group-#group#" class="block-title hide">
+                    <abbr title="Contacts listed #group#">#letter#</abbr>
+                  </h2>
+                  <ol id="contacts-list-#group#" data-group="#group#">
+                    <li data-template class="block-item" data-uuid="#id#">
+                      <span class="checkbox">
+                        <input type="checkbox" name="#uid#"><i></i>
+                      </span>
+                      <a href="#" class="item">
+                        <figure class="item-media pull-right block-media">
+                           <img alt="" style="background-image: url(#photo#);">
+                        </figure>
+                        <p class="item-body">
+                          <strong class="block-name">#givenName# <b>#familyName#</b></strong>
+                        </p>
+                      </a>
+                    </li>
+                  </ol>
+                </li>
+              </ol>
+            </div>
+          </article>
+        </div> <!-- view-inner -->
+      </section>
+
+      <!-- Contact Details Section -->
+      <section id='view-contact-details' data-mirror="mirror-contact-details" class="view view-contact-profile">
+        <div class="view-inner">
+          <header id='details-view-header' class="view-header">
+            <ul class="pull-right stack view-actions">
+              <li id='edit-contact-button' onclick="Contacts.showEdit();">
+                <a href="#" title="Edit contact">
+                  <span role="button" class="icon-edit" data-l10n-id="edit">Edit</span>
+                </a>
+              </li>
+            </ul>
+            <p class="view-back pull-left">
+              <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
+                <span role="button" class="icon-back">Back</span>
+              </a>
+            </p>
+            <h1 id='contact-name-title'></h1>
+          </header>
+          <article class="view-body">
+            <div class="view-body-inner">
+              <div class="contact-header">
+                <figure><img id='cover-img' alt="" style=""></figure>
+              </div>
+              <section id="contact-detail">
+                <h1 id='org-title'></h1>
+                <!-- Phone Template -->
+                <li id='phone-details-template' data-template>
+                  <h2>#type#</h2>
+                  <div class="item">
+                    <div class="item-media pull-right">
+                      <button class="action"><span role="button" class="icon-message">Message</span></button>
+                    </div>
+                    <div class="item-body-exp">
+                      <button class="action">
+                        <span role="button" class="icon-call">Call</span>
+                        <b>#number#</b>
+                        <em>#notes#</em>
+                      </button>
+                    </div>
+                  </div>
+                </li>
+                <!-- Email Template -->
+                <li id='email-details-template' data-template>
+                  <h2>#type#</h2>
+                  <div class="item">
+                    <div class="item-body-exp">
+                      <button class="action">
+                        <span role="button" class="icon-email">E-mail</span>
+                        <b>#email#</b>
+                      </button>
+                    </div>
+                  </div>
+                </li>
+
+                <ul id='details-list'>
+                  <!-- Iterating mails and phones here -->
+                </ul>
+              </section>
+            </div>
+          </article>
+        </div>
+      </section>
+
+
+      <!-- Edit Section -->
+      <section id='view-contact-form' data-mirror="mirror-contact-form" class="view view-edit-contact">
+        <div class="view-inner">
+          <header class="view-header">
+            <ul id='contact-form-actions' class="pull-right stack view-actions">
+            </ul>
+            <p class="view-back pull-left">
+              <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
+                <span role="button" class="icon-back">Back</span>
+              </a>
+            </p>
+            <h1 id='contact-form-title'></h1>
+          </header>
+
+          <!-- PHONE TEMPLATE -->
+          <dl id='add-phone' data-template class="setbox fillflow-row">
+            <dt class="setbox-title">
+                <a data-taglist='phone-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">#type#</a>
+                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+            </dt>
+            <dd class="setbox-body">
+              <p class="setbox-item">
+                <label class="hide" for="tel_#i#">Phone number:</label>
+                <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="tel" value="#number#" id="number_#i#">
+              </p>
+              <p class="setbox-item">
+                <label class="hide" for="notes_#i#">Name:</label>
+                <input placeholder="Notes" data-field="notes" data-arrayindex="#i#" name="tel" class="textfield" type="text" value="#notes#" id="notes_#i#">
+              </p>
+            </dd>
+          </dl>
+
+          <!-- EMAIL TEMPLATE -->
+          <dl id='add-email' data-template class="setbox">
+            <!-- Commented while we don't have an email type field in contacts -->
+            <!-- <dt class="setbox-title">
+                <input type="text" data-taglist='email-type' onclick="Contacts.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">
+                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+                </input>
+              </dt> -->
+            <dd class="setbox-body">
+              <p class="setbox-item">
+                <label class="hide" for="email_#i#">e-mail:</label>
+                <input placeholder="Email" data-arrayindex="#i#" name="email" class="textfield" type="email" value="#email#" id="email_#i#">
+              </p>
+            </dd>
+          </dl>
+
+          <article class="view-body">
+            <div class="view-body-inner">
+              <form action="#" class="fill-flow">
+                <input name="id" id="contact-form-id" type="hidden" value=""\>
+                <fieldset class="item">
+                  <legend class="hide">Main information</legend>
+                  <a href="#" class="item-media fillflow-media">
+                    <img alt="" style="background-image: url(#photo#);">
+                  </a>
+                  <div class="item-body-exp">
+                    <p class="fillflow-row">
+                      <label class="hide" for="givenName">Name:</label>
+                      <input placeholder="Name" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
+                    </p>
+                    <p class="fillflow-row">
+                      <label class="hide" for="user_lastname">Last name:</label>
+                      <input placeholder="Last name" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
+                    </p>
+                  </div>
+                  <p class="fillflow-row">
+                    <input placeholder="Company Name" name="org" class="textfield" type="text" value="" id="org">
+                  </p>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Phone numbers</legend>
+                    <div id='contacts-form-phones'>
+                      <!-- Iterating over phone template here -->
+                    </div>
+                </fieldset>
+
+                <button onclick='Contacts.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
+                  <span role="button" class="icon-add"></span>
+                  <b>Add phone number</b>
+                </button>
+
+                <fieldset id='contacts-form-email'  class="fillflow-row">
+                  <legend>E-mail address</legend>
+                    <div id='contacts-form-phones'>
+                      <!-- Iterating over email template here -->
+                    </div>
+                </fieldset>
+
+                <button onclick='Contacts.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
+                  <span role="button" class="icon-add"></span>
+                  <b>Add email address</b>
+                </button>
+                </fieldset>
+              </form>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Tag selection -->
+      <section id="view-select-tag" data-mirror="mirror-contact-tags" class="view view-select-tag">
+        <div class="view-inner">
+          <header class="view-header">
+            <p class="view-back pull-left">
+              <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
+                <span role="button" class="icon-back">Back</span>
+              </a>
+            </p>
+            <ul class="pull-right stack view-actions">
+              <li>
+              </li>
+              <li onclick="Contacts.goBack();">
+                <a href="#" title="Done">Done
+                </a>
+              </li>
+            </ul>
+            <h1>Label</h1>
+          </header>
+
+          <article class="view-body">
+            <div class="view-body-inner">
+              <ul id="tags-list" class="selection-list">
+              </ul>
+              <input class="textfield" type="text" placeholder="Custom Tag" value="">
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <div class="cache" id="cache">
+        <div id="mirror-contacts-list" class="view" style="background-image: -moz-element(#view-contacts-list);"></div>
+        <div id="mirror-contact-form" class="view view-right" style="background-image: -moz-element(#view-contact-form);"></div>
+        <div id="mirror-contact-tags" class="view view-right" style="background-image: -moz-element(#view-select-tag);"></div>
+        <div id="mirror-contact-details" class="view view-right" style="background-image: -moz-element(#view-contact-details);"></div>
+        <div id="current-jumper"></div>
+    </div>
+    
   </body>
 </html>
