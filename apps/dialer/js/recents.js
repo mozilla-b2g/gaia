@@ -30,6 +30,7 @@ var Recents = {
       db.createObjectStore(self.STORENAME, { keyPath: 'date' });
     };
 
+    this.render();
     this.startUpdatingDates();
   },
 
@@ -53,23 +54,24 @@ var Recents = {
     callback(this._recentsDB);
   },
 
-
   add: function re_add(recentCall) {
-    this.getDatabase((function(database) {
-      var txn = database.transaction(this.STORENAME, 'readwrite');
-      var store = txn.objectStore(this.STORENAME);
+    var self = this;
+
+    this.getDatabase(function(database) {
+      var txn = database.transaction(self.STORENAME, 'readwrite');
+      var store = txn.objectStore(self.STORENAME);
       var setreq = store.put(recentCall);
       setreq.onsuccess = function() {
-        //TODO Update commslog when call received/made
-
+        // TODO At some point with we will be able to get the app window
+        // to update the view. Relying on vivibility changes until then.
+        // (and doing a full re-render)
       };
       setreq.onerror = function(e) {
         console.log('dialerRecents add failure: ', e.message, setreq.errorCode);
       };
-    }).bind(this));
-
-
+    });
   },
+
   createEntry: function re_createEntry(recent) {
     // Create element
     var entry = document.createElement('li');
@@ -113,43 +115,46 @@ var Recents = {
     entry.innerHTML = html_structure;
     return entry;
   },
+
   render: function re_render() {
-    Recents.history(function(recents) {
-      //Clean DOM
-      var dom_container = document.getElementById('contacts-container');
-      dom_container.innerHTML = '';
+    if (!this.view)
+      return;
+
+    var self = this;
+    this.history(function(recents) {
+      // Clean DOM
+      self.view.innerHTML = '';
       if (recents.length > 0) {
-        //Update token
-        Recents.current_token = 0;
+        // Update token
+        self.current_token = 0;
         for (var i = 0; i < recents.length; i++) {
           // We retrieve temp token
-          var token_tmp = Recents.getDayDate(recents[i].date);
+          var token_tmp = self.getDayDate(recents[i].date);
           // Compare tokens
-          if (token_tmp > Recents.current_token) {
+          if (token_tmp > self.current_token) {
             // Update token
-            Recents.current_token = token_tmp;
+            self.current_token = token_tmp;
             // Create structure
             var html_structure = '<section data-timestamp=' +
-            Recents.current_token + '>';
+            self.current_token + '>';
             html_structure += '<h2>';
-            html_structure += headerDate(Recents.current_token);
+            html_structure += headerDate(self.current_token);
             html_structure += '</h2>';
-            html_structure += "<ol id='" + Recents.current_token +
+            html_structure += "<ol id='" + self.current_token +
             "' class='log-group'>";
             html_structure += '</ol>';
             html_structure += '</section>';
 
 
-            dom_container.innerHTML += html_structure;
-            document.getElementById(Recents.current_token).
-            appendChild(Recents.createEntry(recents[i]));
-          }else {
-            document.getElementById(Recents.current_token).
-            appendChild(Recents.createEntry(recents[i]));
+            self.view.innerHTML += html_structure;
+            document.getElementById(self.current_token).
+            appendChild(self.createEntry(recents[i]));
+          } else {
+            document.getElementById(self.current_token).
+            appendChild(self.createEntry(recents[i]));
           }
-
-        }// FOR END
-      }else {
+        }
+      } else {
         var no_result = document.createElement('section');
         no_result.classList.add('grid');
         no_result.classList.add('grid-wrapper');
@@ -163,19 +168,18 @@ var Recents = {
         '</header>' +
         '<section><div class="icon-noresult"></div></section>' +
         '</div>';
-        // document.getElementById('contacts-container').innerHTML='<section></section>';
         document.getElementById('contacts-container').appendChild(no_result);
-
-      }// IF ELSE END
+      }
     });
   },
-  getDayDate: function re_getDayDate(timestamp) {
 
+  getDayDate: function re_getDayDate(timestamp) {
     var date = new Date(timestamp);
     var start_date = new Date(date.getFullYear(),
     date.getMonth(), date.getDate());
     return start_date.getTime();
   },
+
   history: function re_history(callback) {
     this.getDatabase((function(database) {
       var recents = [];
@@ -235,7 +239,6 @@ var Recents = {
 window.addEventListener('load', function recentsSetup(evt) {
   window.removeEventListener('load', recentsSetup);
   Recents.init();
-  Recents.render();
 });
 
 window.addEventListener('unload', function recentsCleanup(evt) {

@@ -17,6 +17,7 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
   })();
 
   if (!document.mozHidden) {
+    Recents.render();
     Recents.startUpdatingDates();
 
     var choice = params['choice'];
@@ -79,13 +80,7 @@ var CallHandler = {
 
 var NavbarManager = {
   init: function nm_init() {
-
-    document.getElementById('option-recents').addEventListener('click',
-      function() {
-       Recents.render();
-    });
     window.addEventListener('hashchange' , function(event) {
-
       // TODO Implement it with building blocks:
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
