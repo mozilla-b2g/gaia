@@ -1,7 +1,9 @@
 'use strict';
 
 var kFontStep = 4;
-var kMinFontSize = 12;
+var minFontSize = 12;
+var maxNumberOfDigits;
+var ocMaxNumberOfDigits;
 
 // Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
@@ -54,57 +56,108 @@ var KeypadManager = {
     return this.phoneNumberView = document.getElementById('phone-number-view');
   },
 
+  get fakePhoneNumberView() {
+    delete this.fakePhoneNumberView;
+    return this.fakePhoneNumberView =
+      document.getElementById('fake-phone-number-view');
+  },
+
   get phoneNumberViewContainer() {
     delete this.phoneNumberViewContainer;
     return this.phoneNumberViewContainer =
       document.getElementById('phone-number-view-container');
   },
 
-  get kbKeypad() {
-    delete this.kbKeypad;
-    return this.kbKeypad = document.getElementById('keypad');
+  get keypad() {
+    delete this.keypad;
+    return this.keypad = document.getElementById('keypad');
   },
 
-  get kbCallBarAddContact() {
-    delete this.kbCallBarAddContact;
-    return this.kbCallBarAddContact =
+  get callBar() {
+    delete this.callBar;
+    return this.callBar =
+      document.getElementById('keypad-callbar');
+  },
+
+  get hideBar() {
+    delete this.hideBar;
+    return this.hideBar = document.getElementById('keypad-hidebar');
+  },
+
+  get callBarAddContact() {
+    delete this.callBarAddContact;
+    return this.callBarAddContact =
       document.getElementById('keypad-callbar-add-contact');
   },
 
-  get kbCallBarCallAction() {
-    delete this.kbCallBarCallAction;
-    return this.kbCallBarCallAction =
+  get callBarCallAction() {
+    delete this.callBarCallAction;
+    return this.callBarCallAction =
       document.getElementById('keypad-callbar-call-action');
   },
 
-  get kbDelete() {
-    delete this.kbDelete;
-    return this.kbDelete = document.getElementById('keypad-delete');
+  get deleteButton() {
+    delete this.deleteButton;
+    return this.deleteButton = document.getElementById('keypad-delete');
   },
 
-  get kbCallBarBackAction() {
-    delete this.kbCallBarBackAction;
-    return this.kbCallBarBackAction =
-      document.getElementById('keypad-callbar-back-action');
+  get hideBarHangUpAction() {
+    delete this.hideBarHangUpAction;
+    return this.hideBarHangUpAction =
+      document.getElementById('keypad-hidebar-hang-up-action-wrapper');
+  },
+
+  get hideBarHideAction() {
+    delete this.hideBarHideAction;
+    return this.hideBarHideAction =
+      document.getElementById('keypad-hidebar-hide-keypad-action');
+  },
+
+  get contactPrimaryInfo() {
+    delete this.contactPrimaryInfo;
+    return this.contactPrimaryInfo =
+      document.getElementById('contact-primary-info');
   },
 
   init: function kh_init() {
+
+    // Update the minimum phone number phone size.
+    // The UX team states that the minimum font size should be
+    // 10pt. First off, we convert it to px multiplying it 0.226 times,
+    // then we convert it to rem multiplying it a number of times equal
+    // to the font-size property of the body element.
+    minFontSize = parseInt(parseInt(window
+      .getComputedStyle(document.body, null)
+      .getPropertyValue('font-size')) * 10 * 0.226);
+
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
 
-    this.kbKeypad.addEventListener('mousedown',
+    this.keypad.addEventListener('mousedown',
                                    this.keyHandler.bind(this), true);
-    this.kbKeypad.addEventListener('mouseup', this.keyHandler.bind(this), true);
-    this.kbCallBarAddContact.addEventListener('mouseup', this.addContact);
-    this.kbCallBarCallAction.addEventListener('mouseup', this.makeCall);
-    this.kbDelete.addEventListener('mousedown', this.deleteDigit.bind(this));
-    this.kbDelete.addEventListener('mouseup', this.deleteDigit.bind(this));
-    this.kbCallBarBackAction.addEventListener('mouseup',
+    this.keypad.addEventListener('mouseup', this.keyHandler.bind(this), true);
+    if (this.callBarAddContact) {
+      this.callBarAddContact.addEventListener('mouseup', this.addContact);
+      this.callBarCallAction.addEventListener('mouseup', this.makeCall);
+    }
+    this.deleteButton.addEventListener('mousedown',
+      this.deleteDigit.bind(this));
+    this.deleteButton.addEventListener('mouseup', this.deleteDigit.bind(this));
+    // The keypad hide bar is only included in the on call version of the
+    // keypad.
+    if (this.hideBarHideAction) {
+      this.hideBarHideAction.addEventListener('mouseup',
                                                this.callbarBackAction);
+    }
+    if (this.hideBarHangUpAction) {
+      this.hideBarHangUpAction.addEventListener(
+        'mouseup', this.hangUpCallFromKeypad);
+    }
 
     TonePlayer.init();
 
     this.render('default');
+
   },
 
   moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
@@ -121,18 +174,20 @@ var KeypadManager = {
   render: function hk_render(layout_type) {
     switch (layout_type) {
       case 'oncall':
-        this.phoneNumberViewContainer.classList.add('no-toolbar');
-        this.kbCallBarCallAction.classList.add('hide');
-        this.kbCallBarAddContact.classList.add('hide');
-        this.kbDelete.classList.add('hide');
-        this.kbCallBarBackAction.classList.remove('hide');
+        this.phoneNumberViewContainer.classList.add('keypad-visible');
+        if (this.callBar) {
+          this.callBar.classList.add('hide');
+        }
+        this.deleteButton.classList.add('hide');
+        this.hideBar.classList.remove('hide');
         break;
       case 'default':
-        this.phoneNumberViewContainer.classList.remove('no-toolbar');
-        this.kbCallBarCallAction.classList.remove('hide');
-        this.kbCallBarAddContact.classList.remove('hide');
-        this.kbDelete.classList.remove('hide');
-        this.kbCallBarBackAction.classList.add('hide');
+        this.phoneNumberViewContainer.classList.remove('keypad-visible');
+        this.hideBar.classList.add('hide');
+        if (this.callBar) {
+          this.callBar.classList.remove('hide');
+        }
+        this.deleteButton.classList.remove('hide');
         break;
     }
   },
@@ -161,11 +216,18 @@ var KeypadManager = {
         this._phoneNumber = this._phoneNumber.slice(0, -1);
       }
 
+      // If there are no digits in the phone number, hide the delete
+      // button.
+      if ((this._phoneNumber.length == 0) && (typeof CallScreen == 'undefined')) {
+        this.deleteButton.classList.remove('show');
+      }
       this.phoneNumberView.value = this._phoneNumber;
       this.moveCaretToEnd(this.phoneNumberView);
 
       clearTimeout(this._hold_timer);
       this._hold_active = false;
+
+      this.updateFontSize('dialpad');
     }
   },
 
@@ -183,6 +245,81 @@ var KeypadManager = {
 
   callbarBackAction: function hk_callbarBackAction(event) {
     CallScreen.toggleKeypad();
+  },
+
+  hangUpCallFromKeypad: function hk_hangUpCallFromKeypad(event) {
+    CallScreen.views.classList.remove('show');
+    OnCallHandler.end();
+  },
+
+  formatPhoneNumber: function kh_formatPhoneNumber(mode, view, phoneNumber) {
+    if (view.style.fontSize == (minFontSize + 'px')) {
+      switch (mode) {
+        case 'dialpad':
+          if (!maxNumberOfDigits) {
+            maxNumberOfDigits = view.value.length;
+          }
+          if (phoneNumber.length >= maxNumberOfDigits) {
+            phoneNumber = '...' + phoneNumber.substr(-(maxNumberOfDigits - 2));
+          }
+        break;
+        case 'on-call':
+          if (!ocMaxNumberOfDigits) {
+            ocMaxNumberOfDigits = view.value.length;
+          }
+          if (phoneNumber.length >= ocMaxNumberOfDigits) {
+            phoneNumber = '...' + phoneNumber
+              .substr(-(ocMaxNumberOfDigits - 2));
+          }
+        break;
+      }
+    }
+    return phoneNumber;
+  },
+
+  updateFontSize: function kh_updateFontSize(mode) {
+    var div;
+    var view;
+    switch (mode) {
+      case 'dialpad':
+        div = this.fakePhoneNumberView;
+        view = this.phoneNumberView;
+      break;
+      case 'on-call':
+        div = CallScreen.fakeContactPrimaryInfo;
+        view = CallScreen.contactPrimaryInfo;
+      break;
+    }
+    var computedStyle = window.getComputedStyle(view, null);
+    var fontSize = computedStyle.getPropertyValue('font-size');
+    if (!this._initialFontSize) {
+      this._initialFontSize = parseInt(fontSize);
+    }
+
+    var text = this.formatPhoneNumber(mode, view, view.value);
+    view.value = text;
+
+    var newFontSize =
+      text ? this.getNextFontSize(view, div,
+       parseInt(fontSize), text) : this._initialFontSize;
+    if (newFontSize != fontSize)
+      view.style.fontSize = newFontSize + 'px';
+  },
+
+  getNextFontSize: function kh_getNextFontSize(view, fakeView, fontSize, text) {
+    var viewWidth = view.getBoundingClientRect().width;
+    fakeView.style.fontSize = fontSize + 'px';
+    fakeView.innerHTML = text;
+    var rect = fakeView.getBoundingClientRect();
+    if (rect.width > viewWidth) {
+      fontSize = Math.max(fontSize - kFontStep, minFontSize);
+    } else if (fontSize < this._initialFontSize) {
+      fakeView.style.fontSize = (fontSize + kFontStep) + 'px';
+      rect = fakeView.getBoundingClientRect();
+      if (rect.width <= viewWidth)
+        fontSize += kFontStep;
+    }
+    return fontSize;
   },
 
   keyHandler: function hk_keyHandler(event) {
@@ -226,8 +363,20 @@ var KeypadManager = {
           this._phoneNumber += key;
         }
 
-        this.phoneNumberView.value = this._phoneNumber;
-        this.moveCaretToEnd(this.phoneNumberView);
+        // If there are digits in the phone number, show the delete button.
+        if ((this._phoneNumber.length > 0) && (typeof CallScreen == 'undefined')) {
+          this.deleteButton.classList.add('show');
+        }
+
+        if (this.contactPrimaryInfo) {
+          this.contactPrimaryInfo.value = this._phoneNumber;
+          this.moveCaretToEnd(this.contactPrimaryInfo);
+          this.updateFontSize('on-call');
+        } else {
+          this.phoneNumberView.value = this._phoneNumber;
+          this.moveCaretToEnd(this.phoneNumberView);
+          this.updateFontSize('dialpad');
+        }
 
         clearTimeout(this._hold_timer);
         this._hold_active = false;

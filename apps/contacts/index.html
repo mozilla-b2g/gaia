@@ -22,6 +22,7 @@
     <script defer type="text/javascript" src="js/contacts_list.js"></script>
     <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
     <script defer type="text/javascript" src="js/contacts.js"></script>
+    <script defer type="text/javascript" src="js/sms_integration.js"></script>
   </head>
 
   <body class="app-contacts">
@@ -113,7 +114,7 @@
                   <h2>#type#</h2>
                   <div class="item">
                     <div class="item-media pull-right">
-                      <button class="action"><span role="button" class="icon-message">Message</span></button>
+                      <button class="action" onclick="Contacts.sendSms()"><span role="button" class="icon-message">Message</span></button>
                     </div>
                     <div class="item-body-exp">
                       <button class="action">

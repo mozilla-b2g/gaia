@@ -7,6 +7,7 @@
   width: 100%;
   height: 100%;
 }
+
 .view[data-state="active"], .cache[data-state="active"], .views[data-state="active"] {
   z-index: 100; 
 }
@@ -19,8 +20,6 @@
   background-color: transparent;
   background-repeat: no-repeat;
   -moz-transition: all 0.5s ease;
-  /*-moz-transform-style: preserve-3d;*/
-  /*-moz-backface-visibility: hidden;*/
   position: fixed;
 }
   
@@ -34,7 +33,6 @@
 
 .view-top {
   -moz-transform: translateY(-100%);
-
 }
 
 .view-bottom {
@@ -84,14 +82,15 @@
   box-shadow: 0 1px 0 1px rgba(255, 255, 255, 0.3);
   position: relative;
 }
-  .view-back a:before {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: -5rem;
-    left: 0;
-    bottom: 0;
-  }
+
+.view-back a:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -5rem;
+  left: 0;
+  bottom: 0;
+}
 
 /* Generic actions in header */
 .view-actions {
@@ -126,14 +125,15 @@
   height: 4.6rem;
   -moz-box-sizing: border-box;
 }
-  .view-actions a:before {
-    content: "";
-    display: inline-block;
-    vertical-align: middle;
-    width: 1px;
-    height: 100%;
-    margin-left: -1px;
-  }
+
+.view-actions a:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 1px;
+  height: 100%;
+  margin-left: -1px;
+}
 
 .view-actions:before {
   content: "";
@@ -144,8 +144,7 @@
   margin-left: -1px;
 }
 
-
-/* BODY */
+/* Body */
 .view-body {
   position: relative;
   -moz-box-flex: 1;

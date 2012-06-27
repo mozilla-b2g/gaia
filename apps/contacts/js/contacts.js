@@ -17,16 +17,16 @@ function navigationStack(currentView) {
   var stack = [];
   stack.push({ view: currentView, transition: ''});
 
-var revertTransition = function(transition) {
-  return {
-    from: transitions[transition].to,
-    to: transitions[transition].from
+  var revertTransition = function(transition) {
+    return {
+      from: transitions[transition].to,
+      to: transitions[transition].from
+    };
   };
-};
 
   var setAppView = function(current, next) {
-      current.dataset.state = 'inactive';
-      next.dataset.state = 'active';
+    current.dataset.state = 'inactive';
+    next.dataset.state = 'active';
   };
 
   var setCacheView = function(current, next, transition) {
@@ -42,10 +42,10 @@ var revertTransition = function(transition) {
     }, 1);
 
     nextMirror.addEventListener('transitionend', function nocache() {
-        setAppView(current, next);
-        app.dataset.state = 'active';
-        cache.dataset.state = 'inactive';
-        nextMirror.removeEventListener('transitionend', nocache);
+      setAppView(current, next);
+      app.dataset.state = 'active';
+      cache.dataset.state = 'inactive';
+      nextMirror.removeEventListener('transitionend', nocache);
     });
   };
 
@@ -299,6 +299,10 @@ var Contacts = (function() {
     link.appendChild(icon);
     selectedTag = link;
   };
+  
+  var sendSms = function sendSms() {
+    SmsIntegration.sendSms(currentContact.tel[0].number)
+  }
 
 
   var showAdd = function showAdd() {
@@ -464,6 +468,7 @@ var Contacts = (function() {
     'addNewPhone' : insertEmptyPhone,
     'addNewEmail' : insertEmptyEmail,
     'goBack' : navigation.back,
-    'goToSelectTag': goToSelectTag
+    'goToSelectTag': goToSelectTag,
+    'sendSms': sendSms
   };
 })();
