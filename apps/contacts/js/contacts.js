@@ -124,7 +124,8 @@ var Contacts = (function() {
       emailTemplate,
       phonesContainer,
       emailContainer,
-      selectedTag;
+      selectedTag,
+      contactDetails;
 
   var currentContact = {};
 
@@ -142,6 +143,7 @@ var Contacts = (function() {
     emailTemplate = document.getElementById('add-email');
     phonesContainer = document.getElementById('contacts-form-phones');
     emailContainer = document.getElementById('contacts-form-email');
+    contactDetails = document.getElementById('contact-detail');
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -162,14 +164,16 @@ var Contacts = (function() {
       };
     });
 
-    var contactDetails = document.getElementById('contact-detail');
     var position = 0;
-
     contactDetails.addEventListener('mouseup', function(event) {
+      if (contactDetails.classList.contains('no-photo'))
+        return;
       contactDetails.classList.remove('down');
     });
 
     contactDetails.addEventListener('mousemove', function(event) {
+      if (contactDetails.classList.contains('no-photo'))
+        return;
       if (position === 0)
         position = event.clientY;
 
@@ -185,6 +189,8 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
+    contactDetails.classList.remove('no-photo');
+
     var orgTitle = document.getElementById('org-title');
     if (contact.org && contact.org[0] != '') {
       orgTitle.textContent = contact.org[0];
@@ -218,7 +224,11 @@ var Contacts = (function() {
     }
 
     var cover = document.getElementById('cover-img');
-    cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
+    if (contact.photo && contact.photo != '') {
+      cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
+    } else {
+      contactDetails.classList.add('no-photo');
+    }
   };
 
   var showEdit = function showEdit() {
