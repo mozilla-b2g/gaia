@@ -29,7 +29,6 @@
   float: left;
   text-align: center;
   padding-bottom: 2.2rem;
-  font-family:'FontSemibold';
 }
 
 .apps ol > li[data-hidden] {
@@ -84,7 +83,6 @@
 
 .labelWrapper {
   text-transform: capitalize; /* First letter always capitalized */
-  font-weight: bold; /* App label font weight */
   color: #fff; /* App label color */
   white-space: nowrap; /* NO new lines */
   display: block;
@@ -92,6 +90,7 @@
   position: relative;
   height: 1.6rem; /* 15px in otoro */
   margin: 0 auto;
+  font-weight: 600;
 }
 
 .apps .draggable {
