@@ -115,6 +115,7 @@ input[type="image"] {
   font-family: 'Open Sans', sans-serif;
   overflow: hidden;
   position: relative;
+  padding-left: 5px;
 }
 
 #tabs-list li a.active {
