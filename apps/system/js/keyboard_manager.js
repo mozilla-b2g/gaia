@@ -1,20 +1,16 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
 var KeyboardManager = (function() {
-
-  var KEYBOARD_ID = 'keyboard-frame';
-
   // XXX TODO: Retrieve it from Settings, allowing 3rd party keyboards
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
   var KEYBOARD_URL = 'http://keyboard.' + domain;
 
-  var keyboardFrame;
+  var keyboardFrame, keyboardOverlay;
 
   var init = function kbManager_init() {
-    keyboardFrame = document.getElementById(KEYBOARD_ID);
+    keyboardFrame = document.getElementById('keyboard-frame');
+    keyboardOverlay = document.getElementById('keyboard-overlay');
     keyboardFrame.src = KEYBOARD_URL;
 
     listenUpdateHeight();
@@ -26,41 +22,29 @@ var KeyboardManager = (function() {
     // without postMessages between Keyboard and System
     window.addEventListener('message', function receiver(evt) {
       var message = JSON.parse(evt.data);
-
-      if (!message.action) {
-        console.log('Cannot get message.action');
+      if (message.action !== 'updateHeight')
         return;
-      }
 
-      switch (message.action) {
+      var app = WindowManager.getDisplayedApp();
+      if (!app)
+        return;
 
-        case 'updateHeight':
-          var app = WindowManager.getDisplayedApp();
+      // Reset the height of the app
+      WindowManager.setAppSize(app);
+      var currentApp = WindowManager.getAppFrame(app);
 
-          if (!app)
-            return;
+      if (!message.hidden) {
+        var height = (parseInt(currentApp.style.height) -
+                      message.keyboardHeight);
 
-          // Reset the height of the app
-          WindowManager.setAppSize(app);
-          var currentApp = WindowManager.getAppFrame(app);
+        keyboardOverlay.style.height = (height + 20) + 'px';
 
-          if (!message.hidden) {
-            currentApp.style.height =
-            (parseInt(currentApp.style.height) - message.keyboardHeight) + 'px';
-            currentApp.classList.add('keyboardOn');
-          } else {
-            currentApp.classList.remove('keyboardOn');
-          }
-          break;
-
-        case 'showKeyboard':
-          keyboardFrame.classList.remove('hide');
-          break;
-
-        case 'hideKeyboard':
-          keyboardFrame.classList.add('hide');
-          break;
-
+        currentApp.style.height = height + 'px';
+        currentApp.classList.add('keyboardOn');
+        keyboardFrame.classList.remove('hide');
+      } else {
+        currentApp.classList.remove('keyboardOn');
+        keyboardFrame.classList.add('hide');
       }
     });
   };
@@ -78,7 +62,6 @@ var KeyboardManager = (function() {
       // finished.
       //
       switch (evt.type) {
-
         case 'appwillclose':
           // Hide the keyboardFrame!
           var app = WindowManager.getDisplayedApp();
@@ -110,3 +93,4 @@ window.addEventListener('load', function initKeyboardManager(evt) {
   window.removeEventListener('load', initKeyboardManager);
   KeyboardManager.init();
 });
+

@@ -1,3 +1,16 @@
+// TODO:
+// - Get orientation working when leaving fullscreen
+// - Don't say "no photos" on startup... say "scanning" and localize it.
+// - Don't show wrong photo when panning at edges
+// - retain scroll position in thumbnail view
+// - put most recent photos (or screenshots) first
+// - in landscape mode, the 'no photos' message is too low
+// - get Back button (and slideshow) showing again?
+// - match visual design and wireframes better
+// - add delete capability
+// - add filter effects
+
+
 'use strict';
 
 /*
@@ -113,6 +126,7 @@ var photos = document.getElementById('photos');
 var playerControls = document.getElementById('player-controls');
 var backButton = document.getElementById('back-button');
 var slideshowButton = document.getElementById('play-button');
+var footerMenu = document.getElementById('footer-menu');
 
 // These three divs hold the previous, current and next photos
 // The divs get swapped around and reused when we pan to the
@@ -144,7 +158,7 @@ var photodb = new MediaDB('pictures', metadataParser, {
   mimeTypes: ['image/jpeg', 'image/png']
 });
 photodb.onready = function() {
-  buildUI(photodb);  // List files we already know about
+  buildUI();  // List files we already know about
   photodb.scan();    // Go look for more.
 
   // Since DeviceStorage doesn't send notifications yet, we're going
@@ -160,35 +174,68 @@ photodb.onready = function() {
   });
 };
 photodb.onchange = function(type, files) {
-  destroyUI();
-  buildUI(this);  // Would be more efficient to just change them.
+  rebuildUI();
 };
 
 var images = [];
 
 function destroyUI() {
   images = [];
+  try {
+    var items = thumbnails.querySelectorAll('li');
+    for (var i = 0; i < items.length; i++) {
+      var thumbnail = items[i];
+      var backgroundImage = thumbnail.style.backgroundImage;
+      if (backgroundImage)
+        URL.revokeObjectURL(backgroundImage.slice(5, -2));
+      thumbnails.removeChild(thumbnail);
+    }
 
-  var items = thumbnails.querySelectorAll('li');
-  for (var i = 0; i < items.length; i++) {
-    var thumbnail = items[i];
-    var url = thumbnail.style.backgroundImage.splice(5, -2);
-    URL.revokeObjectURL(url);
-    thumbnails.removeChild(thumbnail);
+    document.getElementById('nophotos').classList.remove('hidden');
   }
-
-  document.getElementById('nophotos').classList.remove('hidden');
+  catch (e) {
+    console.error('destroyUI', e);
+  }
 }
 
-function buildUI(dsdb) {
+function buildUI() {
   // Enumerate existing image entries in the database and add thumbnails
   // List the all, and sort them in descending order by date.
-  dsdb.enumerate('metadata.date', null, 'prev', addImage);
+  photodb.enumerate('metadata.date', null, 'prev', addImage);
+}
+
+//
+// XXX
+// This is kind of a hack. Our onchange handler is dumb and just
+// tears down and rebuilds the UI on every change. But rebuilding
+// does an async enumerate, and sometimes we get two changes in
+// a row, so these flags prevent two enumerations from happening in parallel.
+// Ideally, we'd just handle the changes individually.
+//
+var buildingUI = false;
+var needsRebuild = false;
+function rebuildUI() {
+  if (buildingUI) {
+    needsRebuild = true;
+    return;
+  }
+
+  buildingUI = true;
+  destroyUI();
+  // This is asynchronous, but will set buildingUI to false when done
+  buildUI();
+
 }
 
 function addImage(imagedata) {
-  if (imagedata === null)  // No more images
+  if (imagedata === null) { // No more images
+    buildingUI = false;
+    if (needsRebuild) {
+      needsRebuild = false;
+      rebuildUI();
+    }
     return;
+  }
 
   // If this is the first image we've found,
   // remove the "no images" message
@@ -427,11 +474,10 @@ photos.addEventListener('transform', function(e) {
 function showThumbnails() {
   stopSlideshow();
   thumbnails.classList.remove('hidden');
+  footerMenu.classList.remove('hidden');
   photos.classList.add('hidden');
   playerControls.classList.add('hidden');
   thumbnailsDisplayed = true;
-  if (document.mozFullScreenElement)
-    document.mozCancelFullScreen();
 }
 
 // A utility function to insert an <img src="url"> tag into an element
@@ -496,12 +542,10 @@ function fitImageToScreen(photoWidth, photoHeight) {
 function showPhoto(n) {
   if (thumbnailsDisplayed) {
     thumbnails.classList.add('hidden');
+    footerMenu.classList.add('hidden');
     photos.classList.remove('hidden');
     playerControls.classList.remove('hidden');
     thumbnailsDisplayed = false;
-    // If we're not already in fullscreen mode, go into it
-    if (document.mozFullScreenElement !== photos)
-      photos.mozRequestFullScreen();
   }
 
   displayImageInFrame(n - 1, previousPhotoFrame);

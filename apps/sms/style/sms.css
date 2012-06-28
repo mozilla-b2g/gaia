@@ -149,8 +149,8 @@ body.conversation #msg-conversations {
 }
 
 .toolbar-top {
+  height: 5rem;
   top: 0;
-  height: 6.4rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   z-index: 5;
 }
@@ -178,16 +178,13 @@ body.conversation #msg-conversations {
 
 .list {
   position: absolute;
-  top: 6.4rem;
-  bottom: 0rem;
+  top: 5rem;
+  bottom: 0;
   left: 0;
   right: 0;
   overflow-x: hidden;
   overflow-y: auto;
   -moz-user-select: none;
-}
-
-input, textarea {
 }
 
 .button {
@@ -214,6 +211,14 @@ input, textarea {
   display: table-cell;
 }
 
+.back-wrapper {
+  height: inherit;
+  text-align: center;
+  border-right: solid .1rem rgba(0, 0, 0, 0.2);
+  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
+  width: 2rem;
+  position: absolute;
+}
 .back-button {
   position: absolute;
   margin: 0.6rem 0 0 2.4rem;
@@ -221,8 +226,8 @@ input, textarea {
 
 .back-button-img {
   background: url("./images/top-navibar-left-arrow.png") no-repeat scroll 3rem 50% transparent;
-  left: 0rem;
-  top: 0rem;
+  left: 0;
+  top: 0;
   width: 8rem;
   height: 4.8rem;
   position: absolute;
@@ -253,9 +258,10 @@ input, textarea {
 }
 
 #msg-search-container {
+  display: none;
   padding-right: 1.6rem;
   margin: 0;
-  top: 0px;
+  top: 0;
   width: 100%;
   height: 6.4rem;
   border-bottom: solid 0.3rem #9b9b9b;
@@ -272,6 +278,10 @@ body.msg-search-mode #msg-search-container {
 body.msg-search-result-mode #msg-search-container {
   -moz-transform: translateY(0px);
   z-index: 6;
+}
+
+#view-msg-text-container {
+  padding-left: 1.5rem;
 }
 
 #msg-search {
@@ -292,7 +302,7 @@ body.msg-search-mode #msg-conversations-list {
   padding: 0;
   margin: 0;
   margin-left: 3rem;
-  line-height: 6rem;
+  line-height: 5rem;
   color: #ffffff;
   font-size: -moz-calc(10 * 0.226rem);
 }
@@ -324,7 +334,15 @@ body.edit-mode #msg-conversations-list > a {
 }
 
 #msg-conversations-list > a:active {
-  background: hsla(35,100%,50%,.2);
+  background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
+}
+
+#msg-conversations-list > a:active > .name {
+  color: white;
+}
+
+#msg-conversations-list > a:active > .msg {
+  color: #ffbc8c;
 }
 
 #msg-conversations-list > a.hide {
@@ -346,7 +364,7 @@ body.edit-mode #msg-conversations-list > a {
 a.unread .unread-mark {
   display: block !important;
   width: 3rem !important;
-  left: 0rem !important;
+  left: 0 !important;
   height: 100% !important;
   top: 0 !important;
   background: transparent !important;
@@ -416,7 +434,6 @@ body.edit-mode #msg-conversations-list > a > span {
   width: 5.9rem;
   height: 5.9rem;
   overflow: hidden;
-  background-color: #FFFFFF;
 }
 
 #msg-conversations-list .photo img {
@@ -502,9 +519,9 @@ body.edit-mode #msg-conversations-list .msg {
 }
 
 #msg-new-message {
-  right: 0rem;
-  width: 4rem;
-  margin-right: 6rem; 
+  right: 0;
+  width: 5rem;
+  margin-right: 2rem; 
   position: absolute;
   height: 100%;
 }
@@ -514,12 +531,13 @@ body.edit-mode #msg-conversations-list .msg {
   background-image: url('images/add.png');
   height: 1.6rem;
   width: 1.5rem;
-  margin: 2.2rem auto;
+  margin: 1.7rem auto;
 }
 
 #msg-edit-button, #msg-search-edit-button {
-  right: 0rem;
-  width: 4rem;
+  display: none;
+  right: 0;
+  width: 5rem;
   margin-right: 2rem; 
   position: absolute;
  
@@ -527,21 +545,20 @@ body.edit-mode #msg-conversations-list .msg {
 }
 
 .icon-edit {
+  opacity: .5;
   display: block;
   background-image: url('images/edit.png');
   height: 2rem;
   width: 1.9rem;
-  margin: 2rem auto;
+  margin: 1.5rem auto;
 }
 
 #msg-conversations-back {
   position: absolute;
   
   height: 100%;
-  width: 2rem;
-  text-align: center;
-  border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3)
+  width: 5rem;
+  
 }
 
 .icon-back {
@@ -550,7 +567,7 @@ body.edit-mode #msg-conversations-list .msg {
   height: 2.7rem;
   width: 1.1rem;
 
-  margin: 1.65rem auto;
+  margin: 1.15rem auto;
 }    
 
 .edit-hide, .search-hide { 
@@ -584,10 +601,7 @@ body.edit-mode .edit-hide-element {
 #view-back {
   position: absolute;
   height: 100%;
-  width: 2rem;
-  text-align: center;
-  border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
+  width: 5rem;
 }
 
 #view-done-button {
@@ -602,11 +616,10 @@ body.edit-mode .edit-hide-element {
 }
 
 #view-edit-button { 
-  right: 0rem;
+  right: 0;
   width: 4rem;
   margin-right: 2rem; 
   position: absolute;
- 
   height: 100%;
 }
   
@@ -620,7 +633,7 @@ body.edit-mode #view-edit-button {
 }
 
 #view-add-button {
-  right: 0rem;
+  right: 0;
   width: 4rem;
   margin-right: 1rem; 
   position: absolute;
@@ -630,12 +643,13 @@ body.edit-mode #view-edit-button {
 }
 
 .icon-contact {
+  opacity: .5;
   display: block;
   background-image: url('images/contacts_icon.png');
     
   height: 2.4rem;
   width: 2.2rem;
-  margin: 1.8rem auto;
+  margin: 1.3rem auto;
 }
 
 body.edit-mode #view-add-button {
@@ -647,7 +661,7 @@ body.edit-mode #view-add-button {
   margin: 0;
   margin-left: 3rem;
   font-weight: normal;
-  line-height: 6rem;
+  line-height: 5rem;
   color: #ffffff;
   font-size: -moz-calc(10 * 0.226rem);
   text-overflow: ellipsis;
@@ -668,17 +682,22 @@ body.conversation-new-msg #view-edit-button {
 }
 
 #view-num {
-  height: 4rem;
+  height: 3rem;
   display: none;
-  margin: 1rem 5rem 1rem 3rem;
+  margin: 1rem 5rem 1rem 4rem;
   padding: 0 2rem;
   -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 9rem);
-  font-size: -moz-calc(6 * 0.226rem);
+  width: -moz-calc(100% - 10rem);
+  font-size: -moz-calc(7 * 0.226rem);
+  border-radius: .3rem;
+  border: 1px solid #A83F22;
+  box-shadow: inset 0 .2rem .1rem rgba(0,0,0,.2);
 }
 
 body.conversation-new-msg #view-num {
   display: block;
+  position: absolute;
+  z-index: 100;
 }
 
 #view-edit-container {
@@ -713,6 +732,7 @@ body.conversation-new-msg #view-num {
 
 #view-list {
   bottom: 5.5rem;
+  background: #F4F4F4;
 }
 
 #view-list > div .message-container {
@@ -743,16 +763,16 @@ body.conversation-new-msg #view-num {
   border-radius: 0.5rem 0 0.5rem 0.5rem;
   background: #FFFFFF;
   border: 0.1rem solid #878787;
-  margin-left: 4rem;
-  margin-right: 1.5rem;
+  margin-left: 3.5rem;
+  margin-right: 2rem;
 }
 
 #view-list > div .receiver {
   border-radius: 0 0.5rem 0.5rem 0.5rem;
   background: #F9F8EE;
   border: 0.1rem solid #F08A48;
-  margin-left: 1.5rem;
-  margin-right: 4rem;
+  margin-left: 2rem;
+  margin-right: 3.5rem;
 }
 
 #view-list > div .pending {
@@ -945,7 +965,7 @@ body.edit-mode #view-list > div.message-block {
 }
 
 #view-msg-send {
-  width: 6.5rem;
+  width: 7rem;
   text-align: center;
   vertical-align: middle;
   font-size: -moz-calc(7 * 0.226rem);
@@ -960,11 +980,14 @@ body.edit-mode #view-list > div.message-block {
   -moz-box-sizing: border-box;
   resize: none;
   font-size: -moz-calc(7 * 0.226rem);
+  border-radius: 0.3rem;
+  border: 1px solid rgba(0,0,0,.3);
+  box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
 }
 
 #view-msg-send {
   margin: 1.4rem 0 0 1.6rem;
-  min-width: 9.6rem;
+  min-width: 7rem;
 }
 
 
@@ -981,7 +1004,7 @@ body.hidden *[data-l10n-id] {
 
   text-align: center;
   background: rgba(0,0,0,0.4);
-  width: 0rem;
+  width: 0;
   z-index: 1;   
 }
 
@@ -1010,7 +1033,7 @@ body.hidden *[data-l10n-id] {
   table-layout: fixed;
   width: 100%;
   height: 4rem;
-  border-spacing: .5rem 0rem;
+  border-spacing: .5rem 0;
 }
 
 .view-confirm-option {
@@ -1032,6 +1055,14 @@ body.hidden *[data-l10n-id] {
   color: #ff4e00;
   text-transform: uppercase;
   font-family: 'FontRegular';
- 
+}
+
+#view-list .groupHeader {
+  margin-bottom: 0.5rem;
+}
+
+/** This is a temporary code for demo **/
+#view-delete-button #view-delete-all-button #msg-delete-all-button #msg-delete-button {
+  display: none;
 }
 
