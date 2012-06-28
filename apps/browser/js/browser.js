@@ -624,7 +624,7 @@ var Browser = {
     GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
     this.urlInput.focus();
     this.setUrlButtonMode(this.GO);
-    this.tabsBadge.innerHTML = '×';
+    this.tabsBadge.innerHTML = '';
     this.switchScreen(this.AWESOME_SCREEN);
     this.tabCover.style.display = 'none';
   },
@@ -649,13 +649,13 @@ var Browser = {
     }
     this.switchScreen(this.PAGE_SCREEN);
     this.urlInput.value = this.currentTab.title || this.currentTab.url;
-    this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
+    this.tabsBadge.innerHTML = Object.keys(this.tabs).length + '&#x203A;';
   },
 
   showTabScreen: function browser_showTabScreen() {
 
     this.hideCurrentTab();
-    this.tabsBadge.innerHTML = '+';
+    this.tabsBadge.innerHTML = '';
 
     this.tabCover.setAttribute('src', this.currentTab.screenshot);
     this.tabCover.style.display = 'block';
@@ -682,6 +682,9 @@ var Browser = {
       if (this.tabs[tab].screenshot) {
         img.setAttribute('src', this.tabs[tab].screenshot);
       }
+
+      if (this.tabs[tab] == this.currentTab)
+        li.classList.add('current');
     }
     this.tabsList.innerHTML = '';
     this.tabsList.appendChild(ul);
