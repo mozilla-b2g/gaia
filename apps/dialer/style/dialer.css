@@ -41,28 +41,28 @@ html * {
   overflow: hidden;
 }
 
-.font-regular{
+.font-regular {
   font-family: 'FontRegular';
 }
 
-.font-semibold{
+.font-semibold {
   font-family: 'FontSemibold';
 }
 
-.font-bold{
+.font-bold {
   font-family: 'FontBold';
 }
 
-.font-light{
+.font-light {
   font-family: 'FontLight';
 }
 
-.contact-primary-info{
+.contact-primary-info {
   font-size: -moz-calc(15*0.226rem);
   color: black;
 }
 
-.contact-secondary-info{
+.contact-secondary-info {
   font-size: -moz-calc(6*0.226rem);
   color: white;
 }
