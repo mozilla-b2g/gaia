@@ -133,15 +133,15 @@ var KeypadManager = {
     this._phoneNumber = '';
 
     this.keypad.addEventListener('mousedown',
-                                   this.keyHandler.bind(this), true);
+                                  this.keyHandler.bind(this), true);
     this.keypad.addEventListener('mouseup', this.keyHandler.bind(this), true);
     if (this.callBarAddContact) {
       this.callBarAddContact.addEventListener('mouseup', this.addContact);
       this.callBarCallAction.addEventListener('mouseup', this.makeCall);
     }
     this.deleteButton.addEventListener('mousedown',
-      this.deleteDigit.bind(this));
-    this.deleteButton.addEventListener('mouseup', this.deleteDigit.bind(this));
+                                        this.keyHandler.bind(this));
+    this.deleteButton.addEventListener('mouseup', this.keyHandler.bind(this));
     // The keypad hide bar is only included in the on call version of the
     // keypad.
     if (this.hideBarHideAction) {
@@ -189,46 +189,6 @@ var KeypadManager = {
 
         this.deleteButton.classList.remove('hide');
         break;
-    }
-  },
-
-  /*
-   * Method which delete a digit/all digits from screen.
-   *   It depends on "Hold action".
-   * Hold functionality is based on two var: hold_timer,hold_active.
-   */
-  deleteDigit: function hk_deleteDigit(event) {
-    // We stop bubbling propagation
-    event.stopPropagation();
-
-    // Depending of the event type
-    if (event.type == 'mousedown') {
-      // Start holding event management
-      this._hold_timer = setTimeout(function(self) {
-        // After .400s we consider that is a "Hold action"
-        self._hold_active = true;
-      }, 400, this);
-    } else if (event.type == 'mouseup') {
-      // In is a "Hold action" end
-      if (this._hold_active) {
-        this._phoneNumber = '';
-      } else {
-        this._phoneNumber = this._phoneNumber.slice(0, -1);
-      }
-
-      // If there are no digits in the phone number, hide the delete
-      // button.
-      if ((this._phoneNumber.length == 0) &&
-        (typeof CallScreen == 'undefined')) {
-        this.deleteButton.classList.remove('show');
-      }
-      this.phoneNumberView.value = this._phoneNumber;
-      this.moveCaretToEnd(this.phoneNumberView);
-
-      clearTimeout(this._hold_timer);
-      this._hold_active = false;
-
-      this.updateFontSize('dialpad');
     }
   },
 
@@ -323,7 +283,7 @@ var KeypadManager = {
     return fontSize;
   },
 
-  keyHandler: function hk_keyHandler(event) {
+  keyHandler: function kh_keyHandler(event) {
     if (event.target.dataset.value != null) {
       var key = event.target.dataset.value;
     } else if (event.target.parentNode.dataset.value != null) {
@@ -334,55 +294,74 @@ var KeypadManager = {
       event.stopPropagation();
 
       if (event.type == 'mousedown') {
-        if (keypadSoundIsEnabled) {
-          TonePlayer.play(gTonesFrequencies[key]);
+        if (key != 'delete') {
+          if (keypadSoundIsEnabled) {
+            TonePlayer.play(gTonesFrequencies[key]);
+          }
+
+          // Sending the DTMF tone
+          var telephony = navigator.mozTelephony;
+          if (telephony) {
+            telephony.startTone(key);
+            window.setTimeout(function ch_stopTone() {
+              telephony.stopTone();
+            }, 100);
+          }
         }
 
-        // Sending the DTMF tone
-        var telephony = navigator.mozTelephony;
-        if (telephony) {
-          telephony.startTone(key);
-          window.setTimeout(function ch_stopTone() {
-            telephony.stopTone();
-          }, 100);
-        }
+        // Manage long press
+        if (key == '0' || key == 'delete') {
+          this._holdTimer = setTimeout(function(self) {
+            if (key == 'delete') {
+              self._phoneNumber = '';
+            } else {
+              self._phoneNumber += '+';
+            }
 
-        // Manage "Hold action" in "0" key
-        if (key == '0') {
-          this._hold_timer = setTimeout(function(self) {
-            self._hold_active = true;
+            self._longPress = true;
+            self._updatePhoneNumberView();
           }, 400, this);
         }
       } else if (event.type == 'mouseup') {
-        if (key == '0') {
-          if (this._hold_active) {
-            this._phoneNumber += '+';
-          } else {
-            this._phoneNumber += key;
-          }
+        // If it was a long press our work is already done
+        if (this._longPress) {
+          this._longPress = false;
+          this._holdTimer = null;
+          return;
+        }
+
+        if (key == 'delete') {
+          this._phoneNumber = this._phoneNumber.slice(0, -1);
         } else {
           this._phoneNumber += key;
         }
 
-        // If there are digits in the phone number, show the delete button.
-        if ((this._phoneNumber.length > 0) &&
-          (typeof CallScreen == 'undefined')) {
-          this.deleteButton.classList.add('show');
-        }
+        if (this._holdTimer)
+          clearTimeout(this._holdTimer);
 
-        if (this.contactPrimaryInfo) {
-          this.contactPrimaryInfo.value = this._phoneNumber;
-          this.moveCaretToEnd(this.contactPrimaryInfo);
-          this.updateFontSize('on-call');
-        } else {
-          this.phoneNumberView.value = this._phoneNumber;
-          this.moveCaretToEnd(this.phoneNumberView);
-          this.updateFontSize('dialpad');
-        }
-
-        clearTimeout(this._hold_timer);
-        this._hold_active = false;
+        this._updatePhoneNumberView();
       }
     }
+  },
+
+  _updatePhoneNumberView: function kh_updatePhoneNumberview() {
+    // If there are digits in the phone number, show the delete button.
+    if (typeof CallScreen == 'undefined') {
+      var visibility = (this._phoneNumber.length > 0) ?
+        'visible' : 'hidden';
+      this.deleteButton.style.visibility = visibility;
+    }
+
+    if (this.contactPrimaryInfo) {
+      this.contactPrimaryInfo.value = this._phoneNumber;
+      this.moveCaretToEnd(this.contactPrimaryInfo);
+      this.updateFontSize('on-call');
+    } else {
+      this.phoneNumberView.value = this._phoneNumber;
+      this.moveCaretToEnd(this.phoneNumberView);
+      this.updateFontSize('dialpad');
+    }
+
+    this._holdTimer = null;
   }
 };
