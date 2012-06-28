@@ -195,7 +195,8 @@ button::-moz-focus-inner {
 /*  box-shadow: 0 0 0 2px #4495A8;*/
   border: #4495A8 2px solid;
   border-radius: 0.3rem;
-  margin:-2px
+  margin: -0.2rem -0.2rem 0;
+  height: 4rem;
 }
 
 .keyboard-key.special-key.highlighted > .visual-wrapper > span:after  {
