@@ -13,28 +13,11 @@ var AttentionScreen = {
   },
 
   init: function as_init() {
-    window.addEventListener('mozbrowseropenwindow', this, true);
-    window.addEventListener('mozbrowserclose', this, true);
+    window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
+    window.addEventListener('mozbrowserclose', this.close.bind(this), true);
 
-    this.bar.addEventListener('click', this);
-    window.addEventListener('keyup', this, true);
-  },
-
-  handleEvent: function as_handleEvent(evt) {
-    switch (evt.type) {
-      case 'mozbrowseropenwindow':
-        this.open(evt);
-        break;
-      case 'mozbrowserclose':
-        this.close(evt);
-        break;
-      case 'keyup':
-        this.hide(evt);
-        break;
-      case 'click':
-        this.show();
-        break;
-    }
+    this.bar.addEventListener('click', this.show.bind(this));
+    window.addEventListener('keyup', this.hide.bind(this), true);
   },
 
   open: function as_open(evt) {
@@ -46,11 +29,13 @@ var AttentionScreen = {
     evt.stopPropagation();
 
     var attentionFrame = evt.detail.frameElement;
-    attentionFrame.setAttribute('mozbrowser', 'true');
     attentionFrame.setAttribute('mozapp', evt.target.getAttribute('mozapp'));
     attentionFrame.dataset.frameType = 'attention';
     attentionFrame.dataset.frameName = evt.detail.name;
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
+
+    // FIXME: won't be needed once
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
     attentionFrame.src = evt.detail.url;
 
     this.screen.appendChild(attentionFrame);
