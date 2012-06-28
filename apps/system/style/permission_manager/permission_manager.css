@@ -24,28 +24,28 @@
   background-color: rgba(0,0,0,0.9);
   border-top: 1px solid rgba(256,256,256,0.9);
   -moz-box-sizing: border-box;
-  padding: 6px 9px;
-  box-shadow:0 6px 12px #000;
+  padding: 1rem 1.5rem;
+  box-shadow:0 1rem 2rem #000;
 }
 
 #permission-message {
-  font-size: 20px;
+  font-size: 1.8rem;
   color: #fff;
-  margin: 0 0 9px 0;
+  margin: 0 0 1.5rem 0;
   padding: 0;
 }
 
 #permission-dialog button {
-  font-size: 20px;
+  font-size: 1.8rem;
   font-weight: bold;
-  width: -moz-calc(50% - 4px);
-  height: 40px;
-  border-radius: 4px;
+  width: -moz-calc(50% - 0.75rem);
+  height: 4rem;
+  border-radius: 0.2rem;
   color: #000;
   border: 0;
   text-align: left;
   margin: 0;
-  padding: 0 0 0 8px;
+  padding: 0 0 0 1.25rem;
 }
 
 #permission-yes {
