@@ -2,6 +2,8 @@
   "name": "Camera",
   "description": "Gaia Camera",
   "launch_path": "/",
+  "orientation": "portrait-primary",
+  "fullscreen": true,
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
