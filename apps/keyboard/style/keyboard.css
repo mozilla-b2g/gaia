@@ -235,6 +235,7 @@ button::-moz-focus-inner {
 }
 
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
+/* We need to keep this CSS3 properties for using it in the future when the gradients bugs would get resolved */
 /*  background: -moz-linear-gradient(#fff, #ebebeb);
   border-radius: 0.3rem;
   border: 1px solid rgba(0, 0, 0, 0.6);*/
@@ -331,6 +332,7 @@ margin-top: 0.3rem;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
+  /* We need to keep this CSS3 properties for using it in the future when the gradients bugs would get resolved */
 /*  background: -moz-linear-gradient(#fff, #ebebeb);
   box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);*/
   font-family: 'Open Sans Semibold';  
