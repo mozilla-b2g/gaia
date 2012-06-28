@@ -283,6 +283,10 @@ var LockScreen = {
 
   handleMove: function ls_handleMove(screenX, screenY) {
     var touch = this._touch;
+    if (!touch) {
+      return;
+    }
+
     var dx = screenX - touch.initX;
 
     var handleMax = touch.maxHandleOffset;
