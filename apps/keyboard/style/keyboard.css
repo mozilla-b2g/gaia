@@ -44,10 +44,12 @@ button::-moz-focus-inner {
   border: 0
 }
 
+.cache { position: absolute; left: 0; bottom: 0; z-index: 5; }
 /* Keyboard */
 #keyboard {
   position: absolute;
   bottom: 0;
+  z-index: 15;
   width: 100%;
   background: #3b424e url(images/bgbase.jpg) no-repeat center center;
   background-size: 100% auto;
@@ -98,16 +100,12 @@ button::-moz-focus-inner {
   left: 2px;
   right: 2px;
   height: 100%;
-  /*background: -moz-linear-gradient(#fff, #ebebeb);*/
-  /*box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);*/
   background: url(images/key-middle.png) repeat-x center top;
   background-size: auto 100%;
   font-family: 'Open Sans Semibold';  
   font-size: 2.4rem;
   line-height: 3.8rem;
   color: #333;
-  /*border: 1px solid rgba(0, 0, 0, 0.6);*/
-  /*border-radius: 0.3rem;*/
 }
 
 /* Highlights */
@@ -182,8 +180,6 @@ button::-moz-focus-inner {
   font-family: 'Keyboard Symbols', sans-serif;
   color: #5B6574;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
-  /*background: -moz-linear-gradient(bottom, #B3B3B3, #EDEDED);*/
-  /*box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.5);*/
   background: url(images/key-special-middle.png) repeat-x center top;
   background-size: auto 100%;
   position: absolute;
@@ -195,9 +191,6 @@ button::-moz-focus-inner {
 }
 
 /* Highlight for special keys */
-.keyboard-key.special-key.highlighted > .visual-wrapper {
-/*  box-shadow: 0 0 0 2px #4495A8;*/
-}
 .keyboard-key.special-key.highlighted > .visual-wrapper:before {
   content: "";
   position: absolute;
@@ -291,7 +284,6 @@ button::-moz-focus-inner {
 margin-top: 0.3rem;
 }
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
-/*  box-shadow: 0 0 0 2px #53B6CC;*/
   border: #53B6CC 2px solid;
   border-radius: 0.3rem;
   margin:-2px
@@ -362,9 +354,7 @@ margin-top: 0.3rem;
   background: url(images/key-hold-begin.png) no-repeat left bottom, url(images/key-hold-end.png) no-repeat right bottom;
 }
 .keyboard-key.kbr-key-hold > .visual-wrapper > span {
-  /*background: #5cc9e1; */
   color: #295B65;
-  /*box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6);*/
   background: url(images/key-hold-middle.png) repeat-x center bottom;
   text-shadow: none;
   left: 0.3rem;
