@@ -358,15 +358,15 @@ var KeypadManager = {
           this._phoneNumber = this._phoneNumber.slice(0, -1);
         } else {
           this._phoneNumber += key;
-          if (this.contactPrimaryInfo) {
-            this.contactPrimaryInfo.value = this._phoneNumber;
-            this.moveCaretToEnd(this.contactPrimaryInfo);
-            this.formatPhoneNumber('on-call');
-          } else {
-            this.phoneNumberView.value = this._phoneNumber;
-            this.moveCaretToEnd(this.phoneNumberView);
-            this.formatPhoneNumber('dialpad');
-          }
+        }
+        if (this.contactPrimaryInfo) {
+          this.contactPrimaryInfo.value = this._phoneNumber;
+          this.moveCaretToEnd(this.contactPrimaryInfo);
+          this.formatPhoneNumber('on-call');
+        } else {
+          this.phoneNumberView.value = this._phoneNumber;
+          this.moveCaretToEnd(this.phoneNumberView);
+          this.formatPhoneNumber('dialpad');
         }
 
         if (this._holdTimer)
