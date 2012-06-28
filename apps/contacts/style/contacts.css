@@ -28,7 +28,7 @@
   background: #f5f5f5;
   margin-top: 8rem;
   min-height: 100%;
-  -moz-transition: all 0.4s ease-out;
+  -moz-transition: margin-top 0.4s ease-out;
 }
 
 .view-contact-profile .view-body-inner > section.no-photo {

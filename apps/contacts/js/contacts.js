@@ -165,22 +165,29 @@ var Contacts = (function() {
     });
 
     var position = 0;
-    contactDetails.addEventListener('mouseup', function(event) {
+    contactDetails.addEventListener('mousedown', function(event) {
+      var startPosition = event.clientY;
+      var currentPosition;
+
       if (contactDetails.classList.contains('no-photo'))
         return;
-      contactDetails.classList.remove('down');
-    });
-
-    contactDetails.addEventListener('mousemove', function(event) {
-      if (contactDetails.classList.contains('no-photo'))
-        return;
-      if (position === 0)
-        position = event.clientY;
-
-      if (position < event.clientY) {
-        contactDetails.classList.add('down');
-      }
-      position = event.clientY;
+        
+      var onMouseMove = function onMouseMove(event) {
+        currentPosition = event.clientY;
+        console.log('start '+ startPosition+ ' current '+ currentPosition );
+        if (startPosition < currentPosition) {
+          contactDetails.classList.add('down');
+        }
+      };
+      
+      var onMouseUp = function onMouseUp(event) {
+        contactDetails.classList.remove('down');
+        contactDetails.removeEventListener('mousemove', onMouseMove);
+        contactDetails.removeEventListener('mouseup', onMouseUp);
+      };
+      
+      contactDetails.addEventListener('mousemove', onMouseMove);
+      contactDetails.addEventListener('mouseup', onMouseUp);
     });
   });
 
@@ -224,7 +231,7 @@ var Contacts = (function() {
     }
 
     var cover = document.getElementById('cover-img');
-    if ('photo' in contact and contact.photo != '') {
+    if ('photo' in contact && contact.photo != '') {
       cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
     } else {
       contactDetails.classList.add('no-photo');
