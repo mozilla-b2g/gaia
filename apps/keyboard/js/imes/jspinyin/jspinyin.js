@@ -6706,23 +6706,10 @@ UserDict.UserDictInfo.prototype = {
   limit_lemma_count: 0,
 
   /**
-   * Maximum lemma size, it's different from
-   * whole disk file size or in-mem dict size
-   * 0 means no limitation
-   */
-  limit_lemma_size: 0,
-
-  /**
    * Total lemma count including deleted and inuse
    * Also indicate offsets_ size
    */
   lemma_count: 0,
-
-  /**
-   * TODO remove this member variable and use lemma_count only.
-   * Total size of lemmas including used and freed.
-   */
-  lemma_size: 0,
 
   /**
    * Freed lemma count
@@ -6730,10 +6717,9 @@ UserDict.UserDictInfo.prototype = {
   free_count: 0,
 
   /**
-   * Freed lemma size in byte
+   * Total lemma count.
+   * @type {number}
    */
-  free_size: 0,
-
   total_nfreq: 0
 };
 
@@ -6989,7 +6975,6 @@ UserDict.prototype = {
       this.dict_file_ = '';
       this.dict_info_ = new UserDict.UserDictInfo();
       this.lemma_count_left_ = 0;
-      this.lemma_size_left_ = 0;
       this.state_ = UserDict.UserDictState.USER_DICT_NONE;
 
       doCallback();
@@ -7302,14 +7287,11 @@ UserDict.prototype = {
 
   /**
    * @param {number} max_lemma_count Maximum lemma count, 0 means no limitation.
-   * @param {number} max_lemma_size Maximum lemma size.
    * @param {number} reclaim_ratio When limitation reached, how much percentage
    *    will be reclaimed (1 ~ 100).
    */
-  set_limit: function userDict_set_limit(max_lemma_count, max_lemma_size,
-                                         reclaim_ratio) {
+  set_limit: function userDict_set_limit(max_lemma_count, reclaim_ratio) {
     this.dict_info_.limit_lemma_count = max_lemma_count;
-    this.dict_info_.limit_lemma_size = max_lemma_size;
     if (reclaim_ratio > 100) {
       reclaim_ratio = 100;
     }
@@ -7370,35 +7352,35 @@ UserDict.prototype = {
     }
   },
 
+  /**
+   * Defragment the user dictionary.
+   * Remove inuse lemmas and free file space.
+   * @private
+   * @return {void} No return value.
+   */
   defragment: function userDict_defragment() {
     if (this.is_valid_state() == false) {
       return;
     }
-    // Fixup offsets_, set REMOVE flag to lemma's flag if needed
+    var lemma_count = this.dict_info_.lemma_count;
+    // Fixup scores_, ids_
     var first_freed = 0;
     var first_inuse = 0;
-    while (first_freed < this.dict_info_.lemma_count) {
+    while (first_freed < lemma_count) {
       // Find first freed offset
       while ((this.lemmas_[first_freed].flag &
               UserDict.kUserDictLemmaFlagRemove) == 0 &&
-             first_freed < this.dict_info_.lemma_count) {
+             first_freed < lemma_count) {
         first_freed++;
       }
-      if (first_freed < dict_info_.lemma_count) {
-        // Save REMOVE flag to lemma flag
-        var off = first_freed;
-        this.set_lemma_flag(off, UserDict.kUserDictLemmaFlagRemove);
-      } else {
+      if (first_freed >= dict_info_.lemma_count) {
         break;
       }
-      // Find first inuse offse after first_freed
+      // Find first used offset after first_freed
       first_inuse = first_freed + 1;
       while ((this.lemmas_[first_inuse].flag &
-              UserDict.kUserDictLemmaFlagRemove) == 0 &&
-             (first_inuse < this.dict_info_.lemma_count)) {
-        // Save REMOVE flag to lemma flag
-        var off = first_inuse;
-        this.set_lemma_flag(off, kUserDictLemmaFlagRemove);
+              UserDict.kUserDictLemmaFlagRemove) &&
+             (first_inuse < lemma_count)) {
         first_inuse++;
       }
       if (first_inuse >= dict_info_.lemma_count) {
@@ -7418,24 +7400,24 @@ UserDict.prototype = {
     // Fixup predicts_
     first_freed = 0;
     first_inuse = 0;
-    while (first_freed < this.dict_info_.lemma_count) {
+    while (first_freed < lemma_count) {
       // Find first freed offset
       while ((this.predicts_[first_freed] &
               UserDict.kUserDictOffsetFlagRemove) == 0 &&
               first_freed < dict_info_.lemma_count) {
         first_freed++;
       }
-      if (first_freed >= this.dict_info_.lemma_count) {
+      if (first_freed >= lemma_count) {
         break;
       }
       // Find first inuse offse after first_freed
       first_inuse = first_freed + 1;
       while ((this.predicts_[first_inuse] &
               UserDict.kUserDictOffsetFlagRemove) &&
-             (first_inuse < this.dict_info_.lemma_count)) {
+             (first_inuse < lemma_count)) {
         first_inuse++;
       }
-      if (first_inuse >= this.dict_info_.lemma_count) {
+      if (first_inuse >= lemma_count) {
         break;
       }
       // Swap offsets_
@@ -7446,14 +7428,14 @@ UserDict.prototype = {
       first_freed++;
     }
     this.dict_info_.lemma_count = first_freed;
+    lemma_count = first_freed;
     // Fixup lemmas_
     var begin = 0;
     var end = 0;
     var dst = 0;
-    var total_size = this.dict_info_.lemma_size + this.lemma_size_left_;
     var total_count = this.dict_info_.lemma_count + this.lemma_count_left_;
-    var real_size = total_size - this.lemma_size_left_;
-    while (dst < real_size) {
+    // Find first freed offset
+    while (dst < lemma_count) {
       var flag = this.get_lemma_flag(dst);
       var nchr = this.get_lemma_nchar(dst);
       if ((flag & UserDict.kUserDictLemmaFlagRemove) == 0) {
@@ -7462,31 +7444,33 @@ UserDict.prototype = {
       }
       break;
     }
-    if (dst >= real_size) {
+    if (dst >= lemma_count) {
       return;
     }
 
+    // Find the serial used offsets after the first freed offset.
     end = dst;
-    while (end < real_size) {
-      begin = end + get_lemma_nchar(end) * 4 + 2;
+    while (end < lemma_count) {
+      begin = end;
       while (true) {
         // not used any more
-        if (begin >= real_size)
+        if (begin >= lemma_count) {
           break;
+        }
         var flag = this.get_lemma_flag(begin);
         var nchr = this.get_lemma_nchar(begin);
         if (flag & UserDict.kUserDictLemmaFlagRemove) {
-          begin += nchr * 4 + 2;
+          begin++;
           continue;
         }
         break;
       }
-      end = begin + nchr * 4 + 2;
-      while (end < real_size) {
+      end = begin++;
+      while (end < lemma_count) {
         var eflag = get_lemma_flag(end);
         var enchr = get_lemma_nchar(end);
         if ((eflag & UserDict.kUserDictLemmaFlagRemove) == 0) {
-          end += enchr * 4 + 2;
+          end++;
           continue;
         }
         break;
@@ -7504,25 +7488,20 @@ UserDict.prototype = {
     }
 
     this.dict_info_.free_count = 0;
-    this.dict_info_.free_size = 0;
-    this.dict_info_.lemma_size = dst;
-    lemma_size_left_ = total_size - this.dict_info_.lemma_size;
-    lemma_count_left_ = total_count - this.dict_info_.lemma_count;
+    this.lemma_count_left_ = total_count - lemma_count;
 
-    // XXX Without following code,
-    // offsets_by_id_ is not reordered.
-    // That's to say, all removed lemmas' ids are not collected back.
-    // There may not be room for addition of new lemmas due to
-    // offsests_by_id_ reason, although lemma_size_left_ is fixed.
-    // By default, we do want defrag as fast as possible, because
-    // during defrag procedure, other peers can not write new lemmas
-    // to user dictionary file.
-    // XXX If write-back is invoked immediately after
+    // If write-back is invoked immediately after
     // this defragment, no need to fix up following in-mem data.
-    for (var i = 0; i < this.dict_info_.lemma_count; i++) {
+    for (var i = 0; i < lemma_count; i++) {
       this.ids_[i] = this.start_id_ + i;
       this.offsets_by_id_[i] = i;
     }
+
+    // Free unused spaces.
+    this.ids_.length = lemma_count;
+    this.offsets_by_id_.length = lemma_count;
+    this.scores_.length = lemma_count;
+    this.predicts_.length = lemma_count;
 
     this.state_ = UserDict.UserDictState.USER_DICT_DEFRAGMENTED;
 
@@ -7582,9 +7561,6 @@ UserDict.prototype = {
   offsets_by_id_: null,
 
   lemma_count_left_: 0,
-
-  // TODO remove this member variable and use lemma_count_left_ only.
-  lemma_size_left_: 0,
 
   dict_file_: '',
 
@@ -7845,7 +7821,7 @@ UserDict.prototype = {
       delta = 4;
     var factor = 80 - (delta << 4);
 
-    var tf = (double)(this.dict_info_.total_nfreq + total_other_nfreq_);
+    var tf = (double)(this.dict_info_.total_nfreq + this.total_other_nfreq_);
     return Math.log(factor * ori_freq / tf) * NGram.kLogValueAmplifier;
   },
 
@@ -7876,7 +7852,7 @@ UserDict.prototype = {
 
   /**
    * Add a lemma to the dictionary.
-   *
+   * @private
    * @param {string} lemma_str The Chinese string of the lemma.
    * @param {Array.<number>} splids The spelling ids of the lemma.
    * @param {number} count The frequency count for this lemma.
@@ -7890,6 +7866,7 @@ UserDict.prototype = {
     }
     var off = this.locate_in_offsets(lemma_str, splids);
     if (off != -1) {
+      // If the lemma exists, update its frequency count.
       var delta_score = count - this.scores_[off];
       this.dict_info_.total_nfreq += delta_score;
       this.scores_[off] = this.build_score(lmt, count);
@@ -7900,22 +7877,17 @@ UserDict.prototype = {
       return this.ids_[off];
     } else {
       if ((this.dict_info_.limit_lemma_count > 0 &&
-          this.dict_info_.lemma_count >= this.dict_info_.limit_lemma_count) ||
-          (this.dict_info_.limit_lemma_size > 0 &&
-           this.dict_info_.lemma_size + (2 + (lemma_len << 2)) >
-           this.dict_info_.limit_lemma_size)) {
-        // XXX Don't defragment here, it's too time-consuming.
+          this.dict_info_.lemma_count >= this.dict_info_.limit_lemma_count)) {
+        // Don't defragment here, it's too time-consuming.
         return 0;
       }
-      var flushed = 0;
-      if (this.lemma_count_left_ == 0 ||
-          this.lemma_size_left_ < (2 + (lemma_len << 2))) {
-
+      var flushed = false;
+      if (this.lemma_count_left_ == 0) {
         // XXX When there is no space for new lemma, we flush to disk
         // flush_cache() may be called by upper user
         // and better place shoule be found instead of here
         this.flush_cache();
-        flushed = 1;
+        flushed = true;
         // Or simply return and do nothing
         // return 0;
       }
@@ -8126,17 +8098,6 @@ UserDict.prototype = {
   },
 
   /**
-   * Get the dict size by UserDict.UserDictInfo.
-   * @param {UserDict.UserDictInfo} info The dict info.
-   * @return {number} The file size.
-   */
-  get_dict_file_size: function userDict_get_dict_file_size(info) {
-    return 4 + info.lemma_size + (info.lemma_count << 3) +
-            (info.lemma_count << 2) +
-            sizeof(info);
-  },
-
-  /**
    * Reset the dict.
    * @param {string} file_name The dict file name.
    * @param {function(object): void} callback The callback function, which will
@@ -8225,8 +8186,6 @@ UserDict.prototype = {
       this.predicts_ = dictJson.predicts;
     }
     this.lemma_count_left_ = UserDict.kUserDictPreAlloc;
-    this.lemma_size_left_ = UserDict.kUserDictPreAlloc *
-      (2 + (UserDict.kUserDictAverageNchar << 2));
     this.state_ = UserDict.UserDictState.USER_DICT_SYNC;
 
     return true;
@@ -8411,7 +8370,7 @@ UserDict.prototype = {
 
   /**
    * Add a lemma to the dictionary.
-   *
+   * @private
    * @param {string} lemma_str The Chinese string of the lemma.
    * @param {Array.<number>} splids The spelling ids of the lemma.
    * @param {number} count The frequency count for this lemma.
@@ -8421,11 +8380,15 @@ UserDict.prototype = {
   append_a_lemma:
       function userDict_append_a_lemma(lemma_str, splids, count, lmt) {
     var lemma_len = lemma_str.length;
+
+    // Generate a new lemma ID.
     var id = this.get_max_lemma_id() + 1;
     var offset = this.dict_info_.lemma_count;
     if (offset > UserDict.kUserDictOffsetMask) {
       return 0;
     }
+
+    // Append the lemma
 
     var lemma = new UserDict.Lemma();
     lemma.flag = 0;
@@ -8438,13 +8401,10 @@ UserDict.prototype = {
     this.scores_[off] = this.build_score(lmt, count);
     this.ids_[off] = id;
     this.predicts_[off] = offset;
-
     this.offsets_by_id_[id - this.start_id_] = offset;
 
     this.dict_info_.lemma_count++;
-    this.dict_info_.lemma_size += (2 + (lemma_len << 2));
     this.lemma_count_left_--;
-    this.lemma_size_left_ -= (2 + (lemma_len << 2));
 
     // Sort
 
@@ -8463,11 +8423,11 @@ UserDict.prototype = {
 
     if (i != off) {
       temp = this.scores_[off];
-      this.memmove(this.scores_, i + 1, i, (off - i) << 2);
+      this.memmove(this.scores_, i + 1, i, off - i);
       this.scores_[i] = temp;
 
       temp = this.ids_[off];
-      this.memmove(this.ids_, i + 1, i, (off - i) << 2);
+      this.memmove(this.ids_, i + 1, i, off - i);
       this.ids_[i] = temp;
     }
 
@@ -8476,7 +8436,7 @@ UserDict.prototype = {
     j = this.locate_where_to_insert_in_predicts(words_new);
     if (j != off) {
       var temp = this.predicts_[off];
-      this.memmove(this.predicts_, j + 1, j, (off - j) << 2);
+      this.memmove(this.predicts_, j + 1, j, off - j);
       this.predicts_[j] = temp;
     }
 
