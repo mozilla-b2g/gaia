@@ -16,7 +16,7 @@ var Activities = {
     if (detail.type !== 'activity-choice')
       return;
 
-    ListMenu.request(this._listItems(detail.choices), this.choose.bind(this));
+    ListMenu.request(this._listItems(detail.list.choices), this.choose.bind(this));
     this._id = detail.id;
   },
 
