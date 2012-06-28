@@ -280,7 +280,7 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
 
-document.addEventListener(visibilityChange, function() {
+document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
     Camera.pause();
   } else {
