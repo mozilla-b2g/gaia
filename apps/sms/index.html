@@ -30,7 +30,11 @@
     <div id="view" class="panel">
       <div id="view-toolbar" class="toolbar toolbar-top">
         <a href="#" id="view-back" class="edit-hide">
-          <div class="icon-back"></div>
+          <!-- <div class="icon-back"></div> -->
+          <div class="back-wrapper">
+            <div class="icon-back"></div>
+          </div>
+          
         </a>
         <div role="button" id="view-done-button" onclick="ConversationView.exitEditMode()" class="edit-show" data-l10n-id="done">
           Done
@@ -70,7 +74,9 @@
     <div id="msg-conversations" class="panel">
       <div id="msg-toolbar" class="toolbar toolbar-top">
         <a href="#" id="msg-conversations-back" class="edit-show">
-          <div class="icon-back"></div>
+          <div class="back-wrapper">
+            <div class="icon-back"></div>
+          </div>
         </a>
         <a href="#num=*" id="msg-new-message" class="edit-hide">
           <div class="icon-add"></div>
