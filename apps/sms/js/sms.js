@@ -782,3 +782,15 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
+
+window.navigator.mozSetMessageHandler('activity', function activityHandler(activity) {
+  console.log("Activity: " + activity);
+  console.log(JSON.stringify(activity.source.data));
+
+  ConversationView.toggleEditMode(false);
+  var number = activity.source.data.number;
+  if (number)
+    ConversationView.showConversation(number);
+
+  activity.postResult({ status: 'accepted' });
+});

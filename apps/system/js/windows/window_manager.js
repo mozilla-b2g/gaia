@@ -550,7 +550,7 @@ var WindowManager = (function() {
         // XXX: We could ended opening URls not for the app frame
         // in the app frame. But we don't care.
         appendFrame(origin, e.detail.url,
-                    app.manifest.name, app.manifest, app.manifestURL, true);
+                    app.manifest.name, app.manifest, app.manifestURL, false);
 
         break;
     }

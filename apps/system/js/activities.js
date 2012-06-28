@@ -16,8 +16,11 @@ var Activities = {
     if (detail.type !== 'activity-choice')
       return;
 
-    ListMenu.request(this._listItems(detail.list.choices), this.choose.bind(this));
     this._id = detail.id;
+
+    var choices = detail.list.choices;
+    // TODO: automatic selection of the only choice to be debated
+    ListMenu.request(this._listItems(choices), this.choose.bind(this));
   },
 
   choose: function act_choose(choice) {
@@ -27,7 +30,7 @@ var Activities = {
       type: 'activity-choice'
     };
 
-    if (choice)
+    if (choice !== null)
       returnedChoice.value = choice;
 
     event.initCustomEvent('mozContentEvent', true, true, returnedChoice);

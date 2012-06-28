@@ -1,30 +1,21 @@
 'use strict';
 
-var SmsIntegration = (function() {
-
-  var smsApp;
-
-  //Walk the apps and look for the sms one
-  navigator.mozApps.mgmt.getAll().onsuccess = function onSuccess(e) {
-    var apps = e.target.result;
-    apps.forEach(function parseApp(app) {
-      if (app.manifest.permissions) {
-        var keys = Object.keys(app.manifest.permissions);
-        var permissions = keys.map(function map_perm(key) {
-          return app.manifest.permissions[key];
-        });
-
-        if (permissions.indexOf('sms') != -1) {
-          smsApp = app;
-          return;
+var SmsIntegration = {
+  sendSms: function si_sendSms(number) {
+    try {
+      var activity  = new MozActivity({
+        name: "new",
+        data: {
+          type: "websms/sms",
+          number: number
         }
+      });
+      console.log("activity=" + activity);
+      activity.onsuccess = function() {
+        console.log("onsuccess: " + JSON.stringify(this.result));
       }
-    });
-  };
-
-  return {
-    sendSms: function(phoneNumber) {
-      smsApp.launch('#num=' + phoneNumber);
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
     }
-  };
-})();
+  }
+};
