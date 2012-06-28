@@ -214,6 +214,15 @@ input, textarea {
   display: table-cell;
 }
 
+.back-wrapper{
+  
+  height: inherit;
+  text-align: center;
+  border-right: solid .1rem rgba(0, 0, 0, 0.2);
+  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
+  width: 2rem;
+  position: absolute;
+}
 .back-button {
   position: absolute;
   margin: 0.6rem 0 0 2.4rem;
@@ -523,6 +532,7 @@ body.edit-mode #msg-conversations-list .msg {
 }
 
 .icon-edit {
+  opacity: .5;
   display: block;
   background-image: url('images/edit.png');
   height: 2rem;
@@ -534,10 +544,8 @@ body.edit-mode #msg-conversations-list .msg {
   position: absolute;
   
   height: 100%;
-  width: 2rem;
-  text-align: center;
-  border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3)
+  width: 5rem;
+  
 }
 
 .icon-back {
@@ -580,10 +588,11 @@ body.edit-mode .edit-hide-element {
 #view-back {
   position: absolute;
   height: 100%;
-  width: 2rem;
-  text-align: center;
+  width: 5rem;
+  /*background: red;*/
+  /*text-align: center;
   border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
+  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);*/
 }
 
 #view-done-button {
@@ -602,7 +611,6 @@ body.edit-mode .edit-hide-element {
   width: 4rem;
   margin-right: 2rem; 
   position: absolute;
- 
   height: 100%;
 }
   
@@ -626,6 +634,7 @@ body.edit-mode #view-edit-button {
 }
 
 .icon-contact {
+  opacity: .5;
   display: block;
   background-image: url('images/contacts_icon.png');
     
@@ -666,15 +675,17 @@ body.conversation-new-msg #view-edit-button {
 #view-num {
   height: 4rem;
   display: none;
-  margin: 1rem 5rem 1rem 3rem;
+  margin: 1rem 5rem 1rem 4rem;
   padding: 0 2rem;
   -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 9rem);
+  width: -moz-calc(100% - 10rem);
   font-size: -moz-calc(6 * 0.226rem);
 }
 
 body.conversation-new-msg #view-num {
   display: block;
+  position: absolute;
+  z-index: 100;
 }
 
 #view-edit-container {
