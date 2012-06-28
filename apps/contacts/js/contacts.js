@@ -841,6 +841,10 @@ var ActivityHandler = {
 window.navigator.mozSetMessageHandler('activity',
                                        function activityHandler(activity) {
   ActivityHandler.currentActivity = activity;
+  navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+    var app = evt.target.result;
+    app.launch();
+  }
 });
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {

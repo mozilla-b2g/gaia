@@ -815,5 +815,10 @@ window.navigator.mozSetMessageHandler('activity', function activityHandler(activ
   if (number)
     ConversationView.showConversation(number);
 
+  navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+    var app = evt.target.result;
+    app.launch();
+  }
+
   activity.postResult({ status: 'accepted' });
 });
