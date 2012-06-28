@@ -44,15 +44,16 @@ button::-moz-focus-inner {
   border: 0
 }
 
+.cache { position: absolute; left: 0; bottom: 0; z-index: 5; }
 /* Keyboard */
 #keyboard {
   position: absolute;
   bottom: 0;
+  z-index: 15;
   width: 100%;
   background: #3b424e url(images/bgbase.jpg) no-repeat center center;
   background-size: 100% auto;
   -moz-transition: -moz-transform 0.3s ease;
-  -moz-transform: translateY(0);
 }
 
 #keyboard.hide{
@@ -87,6 +88,7 @@ button::-moz-focus-inner {
   width: 100%;
   border: none;
   background: url(images/key-begin.png) no-repeat left top, url(images/key-end.png) no-repeat right top;
+  background-size: auto 100%;
   position: relative;
   text-align: center;
 }
@@ -94,18 +96,15 @@ button::-moz-focus-inner {
 .keyboard-key > .visual-wrapper > span {
   position: absolute;
   top: 0;
-  left: 0.2rem;
-  right: 0.2rem;
+  left: 2px;
+  right: 2px;
   height: 100%;
-  /*background: -moz-linear-gradient(#fff, #ebebeb);*/
-  /*box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);*/
   background: url(images/key-middle.png) repeat-x center top;
+  background-size: auto 100%;
   font-family: 'Open Sans Semibold';  
   font-size: 2.4rem;
   line-height: 3.8rem;
   color: #333;
-  /*border: 1px solid rgba(0, 0, 0, 0.6);*/
-  /*border-radius: 0.3rem;*/
 }
 
 /* Highlights */
@@ -172,6 +171,7 @@ button::-moz-focus-inner {
 /*  Special keys */
 .keyboard-key.special-key > .visual-wrapper {
   background: url(images/key-special-begin.png) no-repeat left top, url(images/key-special-end.png) no-repeat right top;
+  background-size: auto 100%;
 }
 .keyboard-key.special-key > .visual-wrapper > span { 
   font-size: 1.5rem;
@@ -179,25 +179,27 @@ button::-moz-focus-inner {
   font-family: 'Keyboard Symbols', sans-serif;
   color: #5B6574;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
-  /*background: -moz-linear-gradient(bottom, #B3B3B3, #EDEDED);*/
-  /*box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.5);*/
   background: url(images/key-special-middle.png) repeat-x center top;
+  background-size: auto 100%;
   position: absolute;
   top: 0;
-  left: 0.2rem;
-  right: 0.2rem;
+  left: 2px;
+  right: 2px;
   bottom: 0;
   height: 100%
 }
 
 /* Highlight for special keys */
-.keyboard-key.special-key.highlighted > .visual-wrapper {
-/*  box-shadow: 0 0 0 2px #4495A8;*/
+.keyboard-key.special-key.highlighted > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: -2px;
+  bottom: 0;
   border: #4495A8 2px solid;
   border-radius: 0.3rem;
-  margin:-2px
 }
-
 .keyboard-key.special-key.highlighted > .visual-wrapper > span:after  {
   display: none;
 }
@@ -214,8 +216,8 @@ button::-moz-focus-inner {
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span  {
   position: absolute;
   top: 0;
-  left: 0.2rem;
-  right: 0.2rem;
+  left: 2px;
+  right: 2px;
   bottom: 0;
   height: 100%;
   border: none;
@@ -255,7 +257,7 @@ button::-moz-focus-inner {
   bottom: 0;
   left: -1px;
   margin-bottom: -1px;
-  height: 5rem;
+  height: 5.2rem;
   border-radius: 0.3rem;
   background: -moz-linear-gradient(#fff, #ebebeb);
   border: 1px solid #61646A;
@@ -278,10 +280,9 @@ button::-moz-focus-inner {
 }
 
 #keyboard-accent-char-menu .keyboard-key {
-margin-top: 0.2rem;
+margin-top: 0.3rem;
 }
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
-/*  box-shadow: 0 0 0 2px #53B6CC;*/
   border: #53B6CC 2px solid;
   border-radius: 0.3rem;
   margin:-2px
@@ -352,9 +353,7 @@ margin-top: 0.2rem;
   background: url(images/key-hold-begin.png) no-repeat left bottom, url(images/key-hold-end.png) no-repeat right bottom;
 }
 .keyboard-key.kbr-key-hold > .visual-wrapper > span {
-  /*background: #5cc9e1; */
   color: #295B65;
-  /*box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6);*/
   background: url(images/key-hold-middle.png) repeat-x center bottom;
   text-shadow: none;
   left: 0.3rem;

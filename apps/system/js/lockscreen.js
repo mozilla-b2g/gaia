@@ -35,6 +35,11 @@ var LockScreen = {
   passCode: '0000',
 
   /*
+  * passcode to enable the smiley face easter egg.
+  */
+  smileyCode: '1337',
+
+  /*
   * Current passcode entered by the user
   */
   passCodeEntered: '',
@@ -283,6 +288,10 @@ var LockScreen = {
 
   handleMove: function ls_handleMove(screenX, screenY) {
     var touch = this._touch;
+    if (!touch) {
+      return;
+    }
+
     var dx = screenX - touch.initX;
 
     var handleMax = touch.maxHandleOffset;
@@ -602,6 +611,9 @@ var LockScreen = {
   },
 
   checkPassCode: function lockscreen_checkPassCode() {
+    if (this.passCodeEntered === this.smileyCode)
+      this.overlay.classList.add('smiley');
+
     if (this.passCodeEntered === this.passCode) {
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
