@@ -399,7 +399,7 @@ MediaDB.prototype = {
         else {// When no more files
           if (newfiles.length > 0) {
             // report new files we found, then do a full scan
-            saveAndReportQuickScanResults(fullScan); 
+            saveAndReportQuickScanResults(fullScan);
           }
           else {
             // If we didn't find any new files, go direct to the full scan
@@ -470,7 +470,7 @@ MediaDB.prototype = {
             errors.push(i);
 
             // don't let it bubble up to the DB error handler
-            e.stopPropagation(); 
+            e.stopPropagation();
 
             if (++numSaved === newfiles.length)
               report();
