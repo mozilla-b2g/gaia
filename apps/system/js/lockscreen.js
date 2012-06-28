@@ -50,11 +50,6 @@ var LockScreen = {
   passCodeError: 0,
 
   /*
-  * Time to wait before slide up after successful Passcode input
-  */
-  kPassCodeSuccessTimeout: 300,
-
-  /*
   * Timeout after incorrect attempt
   */
   kPassCodeErrorTimeout: 500,
@@ -612,8 +607,6 @@ var LockScreen = {
   },
 
   checkPassCode: function lockscreen_checkPassCode() {
-    var self = this;
-
     if (this.passCodeEntered === this.smileyCode)
       this.overlay.classList.add('smiley');
 
@@ -621,9 +614,7 @@ var LockScreen = {
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
 
-      setTimeout(function success() {
-        self.unlock();
-      }, this.kPassCodeSuccessTimeout);
+      this.unlock();
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
       if (navigator.mozVibrate)
@@ -634,6 +625,7 @@ var LockScreen = {
       if (this.passCodeError >= 3)
         timeout = this.kPassCodeTriesTimeout;
 
+      var self = this;
       setTimeout(function error() {
         delete self.overlay.dataset.passcodeStatus;
         self.passCodeEntered = '';
