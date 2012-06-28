@@ -11,24 +11,10 @@ var PopupManager = {
   },
 
   init: function pm_init() {
-    window.addEventListener('mozbrowseropenwindow', this);
-    window.addEventListener('mozbrowserclose', this);
+    window.addEventListener('mozbrowseropenwindow', this.open.bind(this));
+    window.addEventListener('mozbrowserclose', this.close.bind(this));
 
-    window.addEventListener('keyup', this, true);
-  },
-
-  handleEvent: function pm_handleEvent(evt) {
-    switch (evt.type) {
-      case 'mozbrowseropenwindow':
-        this.open(evt);
-        break;
-      case 'mozbrowserclose':
-        this.close(evt);
-        break;
-      case 'keyup':
-        this.backHandling(evt);
-        break;
-    }
+    window.addEventListener('keyup', this.backHandling.bind(this), true);
   },
 
   open: function pm_open(evt) {
@@ -38,8 +24,10 @@ var PopupManager = {
 
     this._currentPopup = evt.detail.frameElement;
     var popup = this._currentPopup;
-    popup.setAttribute('mozbrowser', 'true');
     popup.dataset.frameType = 'popup';
+
+    // FIXME: won't be needed once
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
     popup.src = evt.detail.url;
 
     this.container.appendChild(popup);
