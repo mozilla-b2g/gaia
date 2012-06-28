@@ -5,7 +5,6 @@
 
 window.addEventListener('localized', function scanWifiNetworks(evt) {
   var wifiManager = navigator.mozWifiManager;
-  var bug766497 = 'onenabled' in wifiManager && 'ondisabled' in wifiManager;
   var _ = navigator.mozL10n.get;
 
   // main wifi button
@@ -39,18 +38,15 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         gNetworkList.clear();
         infoBlock.textContent = '';
         req = wifiManager.setEnabled(false);
-        if (!bug766497)
-          req.onsuccess = onWifiDisabled;
+        req.onsuccess = updateState;
       } else {
         // start wifi
         req = wifiManager.setEnabled(true);
         gNetworkList.clear(true);
-        if (!bug766497)
-          req.onsuccess = onWifiEnabled;
-        req.onerror = function() {
-          alert('boo');
-          gNetworkList.autoscan = false;
-        };
+        req.onsuccess = function() {
+          updateState();
+          gNetworkList.scan();
+        }
       }
     };
 
@@ -238,7 +234,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     }
   });
 
-  /** mozWifiManager status
+  /** mozWifiManager events / callbacks
     * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
     *  - connecting:
     *        fires when we start the process of connecting to a network.
@@ -265,21 +261,6 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     gStatus.textContent = _('fullStatus-' + status, event.network);
     gNetworkList.display(ssid, _('shortStatus-' + status));
   };
-
-  /** mozWifiManager events / callbacks
-    * requires bug 766497
-    */
-  function onWifiEnabled() {
-    gStatus.update();
-    gNetworkList.scan();
-  }
-  function onWifiDisabled() {
-    gStatus.update();
-  }
-  if (bug766497) {
-    wifiManager.onenabled = onWifiEnabled;
-    wifiManager.ondisabled = onWifiDisabled;
-  }
 
   function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
