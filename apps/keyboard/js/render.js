@@ -118,7 +118,7 @@ const IMERender = (function() {
       showCandidates([], true);
     }
 
-    resizeUI();
+    resizeUI(layout);
   };
 
   // Effecto for hide IME
@@ -330,12 +330,17 @@ const IMERender = (function() {
     var changeScale, scale;
 
     // Font size recalc
+    var ime = document.getElementById('keyboard');
     if (window.innerWidth <= window.innerHeight) {
       changeScale = window.innerWidth / 32;
       document.documentElement.style.fontSize = changeScale + 'px';
+      ime.classList.remove('landscape');
+      ime.classList.add('portrait');
     } else {
       changeScale = window.innerWidth / 64;
       document.documentElement.style.fontSize = changeScale + 'px';
+      ime.classList.remove('portrait');
+      ime.classList.add('landscape');
     }
 
     // Width calc
