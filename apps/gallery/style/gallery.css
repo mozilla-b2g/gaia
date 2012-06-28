@@ -57,8 +57,8 @@ body {
 
 .thumbnail {
   /* sizes overridden in media queries below */
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   margin: 0;
   padding: 0;
   /* borders only on right and bottom */
@@ -66,7 +66,7 @@ body {
   border-bottom: solid black 1px;
   overflow: hidden;
   /* default to left-to-right, but overridden for rtl languages below */
-  float: left;  
+  float: left;
   /* no list item bullets */
   list-style-type: none;
   /* don't let the user select the items */
@@ -78,24 +78,25 @@ body {
   background-repeat: no-repeat;
 }
 
+/* TODO: This is to be reverted, just changed for demo purposes */
 /* 320x480 phones */
-@media (orientation: portrait) and (width: 320px),
-       (orientation: landscape) and (width: 480px) {
+/* @media (orientation: portrait) and (width: 320px), */
+/*        (orientation: landscape) and (width: 480px) { */
 
-    .thumbnail {    
-        width: 107px;
-        height: 107px;
-    }    
-}
+/*     .thumbnail { */
+/*         width: 107px; */
+/*         height: 107px; */
+/*     } */
+/* } */
 
-/* 480x800 phones portrait */
-@media (orientation: portrait) and (width: 480px), 
-       (orientation: landscape) and (width: 800px) {
-    .thumbnail {       
-        width: 160px;
-        height: 160px;
-    }    
-}
+/* /\* 480x800 phones portrait *\/ */
+/* @media (orientation: portrait) and (width: 480px), */
+/*        (orientation: landscape) and (width: 800px) { */
+/*     .thumbnail { */
+/*         width: 160px; */
+/*         height: 160px; */
+/*     } */
+/* } */
 
 #photos {
   position: absolute;
