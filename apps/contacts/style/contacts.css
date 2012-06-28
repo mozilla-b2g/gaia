@@ -16,15 +16,21 @@
 
 /* Contact detail main section */
 .view-contact-profile .view-body-inner {
-  background: transparent no-repeat center top;
+  background: transparent no-repeat center -50%;
   background-size: 100% auto;
   padding: 0;
+  width: -moz-calc(100% + 1rem);
 }
 .view-contact-profile .view-body-inner > section {
-  padding: 0 2rem 1.4rem;
+  padding: 1.4rem 2rem;
   background: #f5f5f5;
   margin-top: 8rem;
   min-height: 100%;
+  -moz-transition: all 0.4s ease-out;
+}
+
+.view-contact-profile .view-body-inner > section.down {
+  margin-top: 20rem;
 }
 
 #contact-detail h1 {

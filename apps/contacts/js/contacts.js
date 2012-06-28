@@ -161,6 +161,23 @@ var Contacts = (function() {
         navigation.go('view-contact-details', 'right-left');
       };
     });
+
+    var contactDetails = document.getElementById('contact-detail');
+    var position = 0;
+
+    contactDetails.addEventListener('mouseup', function(event) {
+      contactDetails.classList.remove('down');
+    });
+
+    contactDetails.addEventListener('mousemove', function(event) {
+      if (position === 0)
+        position = event.clientY;
+
+      if (position < event.clientY) {
+        contactDetails.classList.add('down');
+      }
+      position = event.clientY;
+    });
   });
 
   //
