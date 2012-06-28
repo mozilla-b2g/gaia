@@ -224,7 +224,7 @@ var Contacts = (function() {
     }
 
     var cover = document.getElementById('cover-img');
-    if (contact.photo && contact.photo != '') {
+    if ('photo' in contact and contact.photo != '') {
       cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
     } else {
       contactDetails.classList.add('no-photo');
