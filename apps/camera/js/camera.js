@@ -26,7 +26,7 @@ var Camera = {
   _filmStripTimer: null,
 
   _config: {
-    fileFormat: "jpeg",
+    fileFormat: 'jpeg',
     rotation: 90,
     position: {
       latitude: 43.468005,
@@ -66,10 +66,13 @@ var Camera = {
 
     this.setCaptureMode(this.CAMERA);
 
-    this.switchButton.addEventListener('click', this.toggleModePressed.bind(this));
-    this.captureButton.addEventListener('click', this.capturePressed.bind(this));
-    this.galleryButton.addEventListener('click', this.galleryBtnPressed.bind(this));
-    this.viewfinder.addEventListener('click',this.autoFocus.bind(this));
+    this.viewfinder.addEventListener('click', this.autoFocus.bind(this));
+    this.switchButton
+      .addEventListener('click', this.toggleModePressed.bind(this));
+    this.captureButton
+      .addEventListener('click', this.capturePressed.bind(this));
+    this.galleryButton
+      .addEventListener('click', this.galleryBtnPressed.bind(this));
 
     // TODO: Remove once support is available
     this.switchButton.setAttribute('disabled', 'disabled');
@@ -139,8 +142,8 @@ var Camera = {
     var width = document.body.clientHeight;
     var height = document.body.clientWidth;
 
-    viewfinder.style.top = ((width/2) - ((height)/2)) + 'px';
-    viewfinder.style.left = -((width/2) - (height/2)) + 'px';
+    viewfinder.style.top = ((width / 2) - (height / 2)) + 'px';
+    viewfinder.style.left = -((width / 2) - (height / 2)) + 'px';
 
     var transform = 'rotate(90deg)';
     var rotation;
@@ -167,13 +170,14 @@ var Camera = {
 
     function gotCamera(camera) {
       this._cameraObj = camera;
-      this._autoFocusSupported = camera.capabilities.focusModes.indexOf("auto") !=- -1;
       this._config._rotation = rotation;
+      this._autoFocusSupported =
+        camera.capabilities.focusModes.indexOf('auto') !== -1;
       camera.effect = camera.capabilities.effects[this._effect];
       var config = {
         height: height,
         width: width
-      }
+      };
       camera.getPreviewStream(config, gotPreviewScreen.bind(this));
     }
     navigator.mozCameras.getCamera(options, gotCamera.bind(this));
@@ -234,10 +238,10 @@ var Camera = {
     this.hideFocusRing();
     this.restartPreview();
 
-    var storageAreas = navigator.getDeviceStorage("pictures");
+    var storageAreas = navigator.getDeviceStorage('pictures');
     var storage = storageAreas[0];
     var rightnow = new Date();
-    var filename = "img_" + rightnow.toLocaleFormat("%Y%m%d-%H%M%S") + ".jpg";
+    var filename = 'img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
     var addreq = storage.addNamed(blob, filename);
 
     addreq.onsuccess = function() {
@@ -262,7 +266,8 @@ var Camera = {
       return;
     }
     this.focusRing.setAttribute('data-state', 'focused');
-    this._cameraObj.takePicture(this._config, this.takePictureSuccess.bind(this));
+    this._cameraObj
+      .takePicture(this._config, this.takePictureSuccess.bind(this));
   },
 
   takePicture: function camera_takePicture() {
@@ -271,7 +276,8 @@ var Camera = {
     if (this._autoFocusSupported && !this._manuallyFocused) {
       this._cameraObj.autoFocus(this.takePictureAutoFocusDone.bind(this));
     } else {
-      this._cameraObj.takePicture(this._config, this.takePictureSuccess.bind(this));
+      this._cameraObj
+        .takePicture(this._config, this.takePictureSuccess.bind(this));
     }
   }
 };
