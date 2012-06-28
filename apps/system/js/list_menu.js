@@ -18,14 +18,11 @@ var ListMenu = {
     return this.element.classList.contains('visible');
   },
 
-  currentLevel: 0,
-
   // Listen to click event only
   init: function lm_init() {
     window.addEventListener('click', this, true);
     window.addEventListener('screenchange', this, true);
     window.addEventListener('keyup', this, true);
-    this.element.addEventListener('transitionend', this, true);
   },
 
   // Pass an array of list items and handler for clicking on the items
@@ -50,16 +47,16 @@ var ListMenu = {
 
   buildMenu: function lm_buildMenu(items) {
     var container_div = document.createElement('div');
-    
+
     container_div.classList.add('list-menu-container');
     if (this.currentLevel === 0) {
       container_div.classList.add('list-menu-root');
       container_div.id = 'list-menu-root';
     } else {
-      container_div.id = 'list-menu-'+this.internalList.length;
+      container_div.id = 'list-menu-' + this.internalList.length;
     }
     this.internalList.push(container_div);
-    
+
     if (this.currentLevel > 0) {
       var back_div = document.createElement('div');
       var link = document.createElement('a');
@@ -78,7 +75,7 @@ var ListMenu = {
         this.buildMenu(item.items);
         this.currentLevel -= 1;
         item_div.classList.add('submenu');
-        
+
         var link = document.createElement('a');
         link.href = '#' + this.currentChild;
         link.textContent = item.label;
@@ -90,7 +87,7 @@ var ListMenu = {
         item_div.dataset.value = item.value;
         item_div.textContent = item.label;
       }
-      
+
       if (item.icon) {
         item_div.style.backgroundImage = 'url(' + item.icon + ')';
       }
