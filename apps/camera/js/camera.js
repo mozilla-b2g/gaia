@@ -76,7 +76,7 @@ var Camera = {
       '#gallery-button span { -moz-transform: rotate(0deg); }';
     var insertId = this._styleSheet.cssRules.length - 1;
     this._orientationRule = this._styleSheet.insertRule(css, insertId);
-    window.addEventListener("deviceorientation", this.orientChange.bind(this));
+    window.addEventListener('deviceorientation', this.orientChange.bind(this));
 
     this.viewfinder.addEventListener('click', this.autoFocus.bind(this));
     this.switchButton
