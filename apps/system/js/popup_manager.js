@@ -5,10 +5,9 @@
 var PopupManager = {
   _currentPopup: null,
 
-  get container() {
-    delete this.container;
-    return this.container = document.getElementById('popup-container');
-  },
+  container: document.getElementById('popup-container'),
+
+  screen: document.getElementById('screen'),
 
   init: function pm_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this));
@@ -31,13 +30,13 @@ var PopupManager = {
     popup.src = evt.detail.url;
 
     this.container.appendChild(popup);
-    this.container.classList.add('displayed');
+    this.screen.classList.add('popup');
   },
 
   close: function pm_close(evt) {
     var target = evt ? evt.target : this._currentPopup;
 
-    this.container.classList.remove('displayed');
+    this.screen.classList.remove('popup');
 
     var self = this;
     this.container.addEventListener('transitionend', function trWait() {
