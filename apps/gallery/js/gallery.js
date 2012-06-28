@@ -126,6 +126,7 @@ var photos = document.getElementById('photos');
 var playerControls = document.getElementById('player-controls');
 var backButton = document.getElementById('back-button');
 var slideshowButton = document.getElementById('play-button');
+var footerMenu = document.getElementById('footer-menu');
 
 // These three divs hold the previous, current and next photos
 // The divs get swapped around and reused when we pan to the
@@ -473,11 +474,10 @@ photos.addEventListener('transform', function(e) {
 function showThumbnails() {
   stopSlideshow();
   thumbnails.classList.remove('hidden');
+  footerMenu.classList.remove('hidden');
   photos.classList.add('hidden');
   playerControls.classList.add('hidden');
   thumbnailsDisplayed = true;
-  if (document.mozFullScreenElement)
-    document.mozCancelFullScreen();
 }
 
 // A utility function to insert an <img src="url"> tag into an element
@@ -542,12 +542,10 @@ function fitImageToScreen(photoWidth, photoHeight) {
 function showPhoto(n) {
   if (thumbnailsDisplayed) {
     thumbnails.classList.add('hidden');
+    footerMenu.classList.add('hidden');
     photos.classList.remove('hidden');
     playerControls.classList.remove('hidden');
     thumbnailsDisplayed = false;
-    // If we're not already in fullscreen mode, go into it
-    if (document.mozFullScreenElement !== photos)
-      photos.mozRequestFullScreen();
   }
 
   displayImageInFrame(n - 1, previousPhotoFrame);
