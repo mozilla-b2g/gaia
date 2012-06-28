@@ -89,6 +89,7 @@ var Camera = {
     if (e.target.getAttribute('disabled')) {
       return;
     }
+
     var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
     this.setCaptureMode(newMode);
   },
@@ -97,9 +98,9 @@ var Camera = {
     if (e.target.getAttribute('disabled')) {
       return;
     }
+
     if (this.captureMode === this.CAMERA) {
       this.takePicture();
-      return;
     }
   },
 
@@ -107,11 +108,8 @@ var Camera = {
     if (this._filmStripTimer) {
       window.clearTimeout(this._filmStripTimer);
     }
-    if (!this._filmStripShown) {
-      this.showFilmStrip();
-    } else {
-      this.hideFilmStrip();
-    }
+
+    !this._filmStripShown ? this.showFilmStrip() : this.hideFilmStrip();
   },
 
   setCaptureMode: function camera_setCaptureMode(mode) {
@@ -126,8 +124,9 @@ var Camera = {
     if (!this._autoFocusSupported) {
       return;
     }
+
     this.focusRing.setAttribute('data-state', 'focusing');
-    this._cameraObj.autoFocus(function(success) {
+    this._cameraObj.autoFocus(function onAutofocus(success) {
       this._manuallyFocused = success;
       this.focusRing.setAttribute('data-state', success ? 'focused' : 'fail');
       window.setTimeout(this.hideFocusRing.bind(this), 1000);
@@ -139,11 +138,12 @@ var Camera = {
     this._timeoutId = 0;
 
     var viewfinder = this.viewfinder;
+    var style = viewfinder.style;
     var width = document.body.clientHeight;
     var height = document.body.clientWidth;
 
-    viewfinder.style.top = ((width / 2) - (height / 2)) + 'px';
-    viewfinder.style.left = -((width / 2) - (height / 2)) + 'px';
+    style.top = ((width / 2) - (height / 2)) + 'px';
+    style.left = -((width / 2) - (height / 2)) + 'px';
 
     var transform = 'rotate(90deg)';
     var rotation;
@@ -156,16 +156,16 @@ var Camera = {
       rotation = 90;
     }
 
-    viewfinder.style.MozTransform = transform;
-    viewfinder.style.width = width + 'px';
-    viewfinder.style.height = height + 'px';
+    style.MozTransform = transform;
+    style.width = width + 'px';
+    style.height = height + 'px';
 
     var cameras = navigator.mozCameras.getListOfCameras();
     var options = {camera: cameras[this._camera]};
 
     function gotPreviewScreen(stream) {
-      this.viewfinder.src = stream;
-      this.viewfinder.play();
+      viewfinder.src = stream;
+      viewfinder.play();
     }
 
     function gotCamera(camera) {
@@ -203,13 +203,16 @@ var Camera = {
   },
 
   showFilmStrip: function camera_showFilmStrip() {
-    this.filmStrip.innerHTML = '';
+    var strip = this.filmStrip;
+    strip.innerHTML = '';
+
     this._photosTaken.forEach(function(imageBlob) {
       var preview = document.createElement('img');
       preview.src = window.URL.createObjectURL(imageBlob);
-      this.filmStrip.appendChild(preview);
-    }, this);
-    this.filmStrip.style.top = '0px';
+      strip.appendChild(preview);
+    });
+
+    strip.style.top = '0px';
     this._filmStripShown = true;
   },
 
@@ -242,8 +245,8 @@ var Camera = {
     var storage = storageAreas[0];
     var rightnow = new Date();
     var filename = 'img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
-    var addreq = storage.addNamed(blob, filename);
 
+    var addreq = storage.addNamed(blob, filename);
     addreq.onsuccess = function() {
       console.log("image saved as '" + filename + "'");
     };
@@ -265,6 +268,7 @@ var Camera = {
       window.setTimeout(this.hideFocusRing.bind(this), 1000);
       return;
     }
+
     this.focusRing.setAttribute('data-state', 'focused');
     this._cameraObj
       .takePicture(this._config, this.takePictureSuccess.bind(this));
@@ -299,3 +303,4 @@ window.addEventListener('beforeunload', function() {
   delete Camera._timeoutId;
   Camera.viewfinder.src = null;
 });
+
