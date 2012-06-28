@@ -40,15 +40,9 @@ input[type="image"] {
 
 .tabs-screen #tabs-badge {
   background-image: url('../style/images/add.png');
-  background-position: center;
   background-repeat: no-repeat;
+  background-position: center;
   background-color: none;
-}
-
-.tabs-screen #main-screen {
-  background-image: url('../style/images/drawer-collapse.png'), url('../style/images/drawer-header-background.png');
-  background-repeat: no-repeat, repeat-x;
-  background-position: top right, top right;
 }
 
 .awesome-screen #awesomescreen {
@@ -196,10 +190,8 @@ input[type="image"] {
 #toolbar-start {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  margin-right: 74px;
   height: 50px;
   background-color: #f9f9fb;
-  background-image: none;
 }
 
 #throbber {
@@ -220,14 +212,22 @@ input[type="image"] {
   display: none;
 }
 
-.page-screen #toolbar-end {
-  display: block;
+.page-screen #toolbar-start {
+  background-image: url('../style/images/tabs-badge-background.png');
+  background-repeat: no-repeat;
+  background-position: right;
+  padding-right: 74px;
 }
 
-.page-screen #tabs-badge {
-  background-image: url('../style/images/tabs-badge-background.png');
-  background-color: #f9f9fb;
-  padding-left: 30px;
+.tabs-screen #toolbar-start {
+  background-image: url('../style/images/drawer-collapse.png'), url('../style/images/tabs-badge-background.png');
+  background-repeat: no-repeat, no-repeat;
+  background-position: top right, right;
+  padding-right: 74px;
+}
+
+.page-screen #toolbar-end {
+  display: block;
 }
 
 #url-bar {
@@ -427,6 +427,7 @@ input::-moz-focus-inner {
 .awesome-screen #toolbar-start {
   background-color: #ccd6df;
   margin-right: 50px;
+  background-image: none;
 }
 
 .awesome-screen #tabs-badge {
