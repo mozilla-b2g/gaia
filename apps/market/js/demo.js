@@ -18,3 +18,12 @@ installButton.onclick = function installButton_install(evt) {
   };
 
 };
+
+var GAIA_DOMAIN = 'gaiamobile.org';
+var appName = 'market';
+
+var homeButton = document.getElementById('home-button');
+var appsButton = document.getElementById('apps-button');
+
+homeButton.href = 'http://' + appName + '.' + GAIA_DOMAIN;
+appsButton.href = 'http://' + appName + '.' + GAIA_DOMAIN;
