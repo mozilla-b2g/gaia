@@ -2,14 +2,37 @@
 
 var Camera = {
 
+  _camera: 0,
+  _captureMode: null,
+
   CAMERA: 'camera',
   VIDEO: 'video',
 
-  _camera: null,
   _videoCapturing: false,
-
   _videoTimer: null,
   _videoStart: null,
+
+  _autoFocusSupported: 0,
+  _manuallyFocused: false,
+
+  _timeoutId: 0,
+  _cameraObj: null,
+
+  _photosTaken: [],
+  _effect: 0,
+  _cameraProfile: null,
+
+  _filmStripShown: false,
+  _filmStripTimer: null,
+
+  _config: {
+    fileFormat: "jpeg",
+    rotation: 90,
+    position: {
+      latitude: 43.468005,
+      longitude: -80.523399
+    }
+  },
 
   get viewfinder() {
     return document.getElementById('viewfinder');
@@ -31,121 +54,242 @@ var Camera = {
     return document.getElementById('video-timer');
   },
 
-  init: function cameraInit() {
+  get focusRing() {
+    return document.getElementById('focus-ring');
+  },
 
-    this.switchButton.addEventListener('click', this.toggleCamera.bind(this));
-    this.captureButton.addEventListener('click', this.doCapture.bind(this));
+  get filmStrip() {
+    return document.getElementById('film-strip');
+  },
 
-    this.galleryButton.addEventListener('click', function() {
-      // TODO: implement once we have webActivities
-    });
+  init: function camera_init() {
 
-    this._camera = this.CAMERA;
+    this.setCaptureMode(this.CAMERA);
+
+    this.switchButton.addEventListener('click', this.toggleModePressed.bind(this));
+    this.captureButton.addEventListener('click', this.capturePressed.bind(this));
+    this.galleryButton.addEventListener('click', this.galleryBtnPressed.bind(this));
+    this.viewfinder.addEventListener('click',this.autoFocus.bind(this));
+
+    // TODO: Remove once support is available
+    this.switchButton.setAttribute('disabled', 'disabled');
+
+    if (!navigator.mozCameras) {
+      this.captureButton.setAttribute('disabled', 'disabled');
+      return;
+    }
+
     this.setSource(this._camera);
   },
 
-  doCapture: function camera_doCapture() {
-    if (this._camera !== this.VIDEO)
+  toggleModePressed: function camera_toggleCaptureMode(e) {
+    if (e.target.getAttribute('disabled')) {
       return;
+    }
+    var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
+    this.setCaptureMode(newMode);
+  },
 
-    if (!this._videoCapturing) {
-      this._videoCapturing = true;
-      document.body.classList.add('capturing');
-      this.switchButton.setAttribute('disabled', 'disabled');
-      this.galleryButton.setAttribute('disabled', 'disabled');
-      this.videoTimer.innerHTML = '00:00';
-      this._videoStart = new Date();
-      this._videoTimer = setInterval(this.updateVideoTimer.bind(this), 900);
+  capturePressed: function camera_doCapture(e) {
+    if (e.target.getAttribute('disabled')) {
+      return;
+    }
+    if (this.captureMode === this.CAMERA) {
+      this.takePicture();
+      return;
+    }
+  },
+
+  galleryBtnPressed: function camera_galleryBtnPressed() {
+    if (this._filmStripTimer) {
+      window.clearTimeout(this._filmStripTimer);
+    }
+    if (!this._filmStripShown) {
+      this.showFilmStrip();
     } else {
-      this._videoCapturing = false;
-      document.body.classList.remove('capturing');
-      this.switchButton.removeAttribute('disabled');
-      this.galleryButton.removeAttribute('disabled');
-      this._videoTimer = clearInterval(this._videoTimer);
+      this.hideFilmStrip();
     }
   },
 
-  padZero: function camera_padZero(number, length) {
-    var str = '' + number;
-    while (str.length < length) {
-      str = '0' + str;
+  setCaptureMode: function camera_setCaptureMode(mode) {
+    if (this.captureMode) {
+      document.body.classList.remove(this.captureMode);
     }
-    return str;
+    this.captureMode = mode;
+    document.body.classList.add(mode);
   },
 
-  updateVideoTimer: function camera_updateVideoTimer() {
-    var diffSec = (new Date() - this._videoStart) / 1000;
-    var min = Math.floor(diffSec / 60);
-    var sec = Math.round((diffSec - (min * 60)));
-    this.videoTimer.innerHTML =
-      this.padZero(min, 2) + ':' + this.padZero(sec, 2);
+  autoFocus: function camera_autoFocus(ev) {
+    if (!this._autoFocusSupported) {
+      return;
+    }
+    this.focusRing.setAttribute('data-state', 'focusing');
+    this._cameraObj.autoFocus(function(success) {
+      this._manuallyFocused = success;
+      this.focusRing.setAttribute('data-state', success ? 'focused' : 'fail');
+      window.setTimeout(this.hideFocusRing.bind(this), 1000);
+    }.bind(this));
   },
 
   setSource: function camera_setSource(camera) {
-    this.viewfinder.src = '';
+    this.viewfinder.src = null;
+    this._timeoutId = 0;
 
-    var width, height;
     var viewfinder = this.viewfinder;
+    var width = document.body.clientHeight;
+    var height = document.body.clientWidth;
 
-    width = document.body.clientHeight;
-    height = document.body.clientWidth;
-
-    var top = ((width / 2) - ((height) / 2));
-    var left = -((width / 2) - (height / 2));
-    viewfinder.style.top = top + 'px';
-    viewfinder.style.left = left + 'px';
+    viewfinder.style.top = ((width/2) - ((height)/2)) + 'px';
+    viewfinder.style.left = -((width/2) - (height/2)) + 'px';
 
     var transform = 'rotate(90deg)';
-    if (this._camera == 1)
+    var rotation;
+    if (camera == 1) {
+      /* backwards-facing camera */
       transform += ' scale(-1, 1)';
+      rotation = 270;
+    } else {
+      /* forwards-facing camera */
+      rotation = 90;
+    }
 
     viewfinder.style.MozTransform = transform;
-
-    var config = {
-      height: height,
-      width: width,
-      camera: camera
-    };
-
     viewfinder.style.width = width + 'px';
     viewfinder.style.height = height + 'px';
-    if (navigator.mozCamera)
-      viewfinder.src = navigator.mozCamera.getCameraURI(config);
+
+    var cameras = navigator.mozCameras.getListOfCameras();
+    var options = {camera: cameras[this._camera]};
+
+    function gotPreviewScreen(stream) {
+      this.viewfinder.src = stream;
+      this.viewfinder.play();
+    }
+
+    function gotCamera(camera) {
+      this._cameraObj = camera;
+      this._autoFocusSupported = camera.capabilities.focusModes.indexOf("auto") !=- -1;
+      this._config._rotation = rotation;
+      camera.effect = camera.capabilities.effects[this._effect];
+      var config = {
+        height: height,
+        width: width
+      }
+      camera.getPreviewStream(config, gotPreviewScreen.bind(this));
+    }
+    navigator.mozCameras.getCamera(options, gotCamera.bind(this));
   },
 
   pause: function pause() {
     this.viewfinder.pause();
+    this.viewfinder.src = null;
   },
 
-  resume: function resume() {
+  resume: function camera_resume() {
     this.viewfinder.play();
+    /*
+      Stream lifetime management doesn't seem to be
+      working propertly, so just stomp on everything
+      and start completely fresh.
+
+    this._cameraObj.getPreviewStream(null, function(stream) {
+      this.viewfinder.src = stream;
+    }.bind(this));
+    */
+    this.setSource(this._camera); /* STOMP */
   },
 
-  toggleCamera: function toggleCamera(e) {
-    if (e.target.getAttribute('disabled')) {
+  showFilmStrip: function camera_showFilmStrip() {
+    this.filmStrip.innerHTML = '';
+    this._photosTaken.forEach(function(imageBlob) {
+      var preview = document.createElement('img');
+      preview.src = window.URL.createObjectURL(imageBlob);
+      this.filmStrip.appendChild(preview);
+    }, this);
+    this.filmStrip.style.top = '0px';
+    this._filmStripShown = true;
+  },
+
+  hideFilmStrip: function camera_hideFilmStrip() {
+    this.filmStrip.style.top = '-50px';
+    this._filmStripShown = false;
+  },
+
+  restartPreview: function camera_restartPreview() {
+    this.resume();
+    this.captureButton.removeAttribute('disabled');
+    this._filmStripTimer =
+      window.setTimeout(this.hideFilmStrip.bind(this), 5000);
+  },
+
+  takePictureSuccess: function camera_takePictureSuccess(blob) {
+    this._manuallyFocused = false;
+
+    if (!navigator.getDeviceStorage) {
+      console.log('Device storage unavailable');
       return;
     }
-    document.body.classList.remove(this._camera);
-    this._camera = (this._camera === this.CAMERA) ? this.VIDEO : this.CAMERA;
-    this.setSource(this._camera === this.CAMERA ? 0 : 1);
-    document.body.classList.add(this._camera);
-  }
 
+    this._photosTaken.unshift(blob);
+    this.showFilmStrip();
+    this.hideFocusRing();
+    this.restartPreview();
+
+    var storageAreas = navigator.getDeviceStorage("pictures");
+    var storage = storageAreas[0];
+    var rightnow = new Date();
+    var filename = "img_" + rightnow.toLocaleFormat("%Y%m%d-%H%M%S") + ".jpg";
+    var addreq = storage.addNamed(blob, filename);
+
+    addreq.onsuccess = function() {
+      console.log("image saved as '" + filename + "'");
+    };
+
+    addreq.onerror = function() {
+      console.log("failed to save image as '" + filename + "':" +
+                  JSON.stringify(addreq.error));
+    };
+  },
+
+  hideFocusRing: function camera_hideFocusRing() {
+    this.focusRing.removeAttribute('data-state');
+  },
+
+  takePictureAutoFocusDone: function camera_takePictureAutoFocusDone(success) {
+    if (!success) {
+      this.focusRing.setAttribute('data-state', 'fail');
+      this.captureButton.removeAttribute('disabled');
+      window.setTimeout(this.hideFocusRing.bind(this), 1000);
+      return;
+    }
+    this.focusRing.setAttribute('data-state', 'focused');
+    this._cameraObj.takePicture(this._config, this.takePictureSuccess.bind(this));
+  },
+
+  takePicture: function camera_takePicture() {
+    this.captureButton.setAttribute('disabled', 'disabled');
+    this.focusRing.setAttribute('data-state', 'focusing');
+    if (this._autoFocusSupported && !this._manuallyFocused) {
+      this._cameraObj.autoFocus(this.takePictureAutoFocusDone.bind(this));
+    } else {
+      this._cameraObj.takePicture(this._config, this.takePictureSuccess.bind(this));
+    }
+  }
 };
 
 window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
 
-document.addEventListener('mozvisibilitychange', function visibility(e) {
+document.addEventListener(visibilityChange, function() {
   if (document.mozHidden) {
-    // If we're hidden, stop the video
     Camera.pause();
   } else {
-    // If we become visible again, first reconfigure the camera
-    // in case the screen has rotated or something, and then
-    // resume the video.
-    Camera.setSource(Camera._camera);
     Camera.resume();
   }
+});
+
+window.addEventListener('beforeunload', function() {
+  window.clearTimeout(Camera._timeoutId);
+  delete Camera._timeoutId;
+  Camera.viewfinder.src = null;
 });
