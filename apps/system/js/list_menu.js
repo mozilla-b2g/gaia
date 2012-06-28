@@ -46,16 +46,16 @@ var ListMenu = {
   },
 
   buildMenu: function lm_buildMenu(items) {
-    var container_div = document.createElement('div');
+    var containerDiv = document.createElement('div');
 
-    container_div.classList.add('list-menu-container');
+    containerDiv.classList.add('list-menu-container');
     if (this.currentLevel === 0) {
-      container_div.classList.add('list-menu-root');
-      container_div.id = 'list-menu-root';
+      containerDiv.classList.add('list-menu-root');
+      containerDiv.id = 'list-menu-root';
     } else {
-      container_div.id = 'list-menu-' + this.internalList.length;
+      containerDiv.id = 'list-menu-' + this.internalList.length;
     }
-    this.internalList.push(container_div);
+    this.internalList.push(containerDiv);
 
     if (this.currentLevel > 0) {
       var back_div = document.createElement('div');
@@ -64,13 +64,13 @@ var ListMenu = {
       link.href = '#' + this.currentParent;
       back_div.classList.add('back');
       back_div.appendChild(link);
-      container_div.appendChild(back_div);
+      containerDiv.appendChild(back_div);
     }
     items.forEach(function traveseItems(item) {
       var item_div = document.createElement('div');
       if (item.type && item.type == 'menu') {
         this.currentLevel += 1;
-        this.currentParent = container_div.id;
+        this.currentParent = containerDiv.id;
         this.buildMenu(item.items);
         this.currentLevel -= 1;
         item_div.classList.add('submenu');
@@ -90,11 +90,11 @@ var ListMenu = {
       if (item.icon) {
         item_div.style.backgroundImage = 'url(' + item.icon + ')';
       }
-      container_div.appendChild(item_div);
+      containerDiv.appendChild(item_div);
     }, this);
 
-    container_div.dataset.level = this.currentLevel;
-    this.currentChild = container_div.id;
+    containerDiv.dataset.level = this.currentLevel;
+    this.currentChild = containerDiv.id;
   },
 
   show: function lm_show() {
