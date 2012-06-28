@@ -125,14 +125,15 @@ var Camera = {
   },
 
   orientChange: function camera_orientChange(e) {
-    var rule = this._styleSheet.cssRules[this._orientationRule];
     // PLEASE DO SOMETHING KITTENS ARE DYING
     // Setting MozRotate to 90 or 270 causes element to disappear
-    var orientation =
-      (e.alpha > 315 || e.alpha < 45) ? 91 :
-      (e.alpha < 135) ? 0 :
-      (e.alpha < 225) ? 271 : 180;
+    var orientation = (e.beta > 45) ? 180 :
+      (e.beta < -45) ? 0 :
+      (e.gamma < -45) ? 271 :
+      (e.gamma > 45) ? 91 : 0;
+
     if (orientation !== this._iconOrientation) {
+      var rule = this._styleSheet.cssRules[this._orientationRule];
       rule.style.MozTransform = 'rotate(' + orientation + 'deg)';
       this._iconOrientation = orientation;
     }
