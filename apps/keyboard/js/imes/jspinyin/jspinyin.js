@@ -3614,62 +3614,133 @@ var MyStdlib = {
   }
 };
 
-// System words' total frequency. It is not the real total frequency, instead,
-// It is only used to adjust system lemmas' scores when the user dictionary's
-// total frequency changes.
-// In this version, frequencies of system lemmas are fixed. We are considering
-// to make them changable in next version.
-var SYS_DICT_TOTAL_FREQ = 100000000;
+var MatrixSearch = function matrixSearch_constructor() {
+  var i = 0;
 
-var MAX_SEARCH_STEPS = 40;
+  this.spl_start_ = new Array(MatrixSearch.kMaxRowNum);
+  this.spl_start_ = new Array(MatrixSearch.kMaxRowNum);
 
-var DictMatchInfo = function dmi_constructor() {
+  this.lma_start_ = new Array(MatrixSearch.kMaxRowNum);
+  this.lma_id_ = new Array(MatrixSearch.kMaxRowNum);
+};
+
+MatrixSearch.kMaxRowNum = DictDef.kMaxSearchSteps;
+/**
+ * If it is true, prediction list by string whose length is greater than 1
+ * will be limited to a reasonable number.
+ */
+MatrixSearch.kPredictLimitGt1 = false;
+
+/**
+ * If it is true, the engine will prefer long history based prediction,
+ * for example, when user inputs "BeiJing", we prefer "DaXue", etc., which are
+ * based on the two-character history.
+ */
+MatrixSearch.kPreferLongHistoryPredict = true;
+
+/**
+ * If it is true, prediction will only be based on user dictionary. this flag
+ * is for debug purpose.
+ */
+MatrixSearch.kOnlyUserDictPredict = false;
+
+// The maximum buffer to store LmaPsbItems.
+MatrixSearch.kMaxLmaPsbItems = 1450;
+
+// How many rows for each step.
+MatrixSearch.kMaxNodeARow = 5;
+
+// The maximum length of the sentence candidates counted in chinese
+// characters
+MatrixSearch.kMaxSentenceLength = 16;
+
+// The size of the matrix node pool.
+MatrixSearch.kMtrxNdPoolSize = 200;
+
+// The size of the DMI node pool.
+MatrixSearch.kDmiPoolSize = 800;
+
+// The maximum buffer to store the prediction items
+MatrixSearch.MAX_PRE_ITEMS = 800;
+
+MatrixSearch.DictMatchInfo = function dmi_constructor() {
   this.dict_handles = [0, 0];
 };
 
-DictMatchInfo.prototype = {
-  // MileStoneHandle objects for the system and user dictionaries.
+MatrixSearch.DictMatchInfo.prototype = {
+  /**
+   * MileStoneHandle objects for the system and user dictionaries.
+   * @type {Array.<number>}
+   */
   dict_handles: null,
-  // From which DMI node. -1 means it's from root.
+
+  /**
+   * From which DMI node. -1 means it's from root.
+   * @type {number}
+   */
   dmi_fr: -1,
-  // The spelling id for the Pinyin string from the previous DMI to this node.
-  // If it is a half id like Shengmu, the node pointed by dict_node is the first
-  // node with this Shengmu,
+
+  /**
+   * The spelling id for the Pinyin string from the previous DMI to this node.
+   * If it is a half id like Shengmu, the node pointed by dict_node is the first
+   * node with this Shengmu,
+   * @type {number}
+   */
   spl_id: 0,
-  // What's the level of the dict node. Level of root is 0, but root is never
-  // recorded by dict_node.
+
+  /**
+   * What's the level of the dict node. Level of root is 0, but root is never
+   * recorded by dict_node.
+   */
   dict_level: 0,
-  // If this node is for composing phrase, its value is true.
+
+  /**
+   * If this node is for composing phrase, its value is true.
+   * @type {boolean}
+   */
   c_phrase: false,
-  // Whether the spl_id is parsed with a split character at the end.
+
+  /**
+   * Whether the spl_id is parsed with a split character at the end.
+   */
   splid_end_split: false,
-  // What's the length of the spelling string for this match, for the whole
-  // word.
+
+  /** What's the length of the spelling string for this match, for the whole
+   * word.
+   */
   splstr_len: 0,
-  // Used to indicate whether all spelling ids from the root are full spelling
-  // ids. This information is useful for keymapping mode(not finished). Because
-  // in this mode, there is no clear boundaries, we prefer those results which
-  // have full spelling ids.
+
+  /**
+   * Used to indicate whether all spelling ids from the root are full spelling
+   * ids. This information is useful for keymapping mode(not finished). Because
+   * in this mode, there is no clear boundaries, we prefer those results which
+   * have full spelling ids.
+   */
   all_full_id: false
 };
 
-var MatrixNode = function matrixNode_constructor() {
+MatrixSearch.MatrixNode = function matrixNode_constructor() {
 };
 
-MatrixNode.prototype = {
+MatrixSearch.MatrixNode.prototype = {
   id: 0,
   score: 0.0,
+  /**
+   * @type {MatrixSearch.MatrixNode}
+   */
   from: null,
-  // From which DMI node. Used to trace the spelling segmentation.
-  dmi_fr: null,
+
+  /**
+   * From which DMI node. Used to trace the spelling segmentation.
+   */
+  dmi_fr: 0,
   step: 0
 };
 
-var MatrixRow = function matrixRow_constructor() {
+MatrixSearch.MatrixRow = function matrixRow_constructor() {
 };
 
-
-MatrixRow.prototype = {
+MatrixSearch.MatrixRow.prototype = {
   // The MatrixNode position in the matrix pool
   mtrx_nd_pos: 0,
   // The DictMatchInfo position in the DictMatchInfo pool.
@@ -3702,13 +3773,18 @@ MatrixRow.prototype = {
   // also be tried. This behaviour can be set via the function
   // set_xi_an_switch().
   dmi_has_full_id: false,
-  // Points to a MatrixNode of the current step to indicate which choice the
-  // user selects.
+
+  /**
+   * Points to a MatrixNode of the current step to indicate which choice the
+   * user selects.
+   * @type {MatrixSearch.MatrixNode}
+   */
+  //
   mtrx_nd_fixed: null
 };
 
 // When user inputs and selects candidates, the fixed lemma ids are stored in
-// _lmaId of class MatrixSearch, and _fixedLmas is used to indicate how many
+// lma_id_ of class MatrixSearch, and fixed_lmas_ is used to indicate how many
 // lemmas from the beginning are fixed. If user deletes Pinyin characters one
 // by one from the end, these fixed lemmas can be unlocked one by one when
 // necessary. Whenever user deletes a Chinese character and its spelling string
@@ -3719,51 +3795,54 @@ MatrixRow.prototype = {
 // sub lemmas (sublma), and each of them are represented individually, so that
 // when user deletes Pinyin characters from the end, these sub lemmas can also
 // be unlocked one by one.
-var ComposingPhrase = function composingPhrase_constructor() {
-  this.spl_ids = new Array(MatrixSearch.MAX_ROW_NUM);
-  this.spl_start = new Array(MatrixSearch.MAX_ROW_NUM);
-  this.chn_str = new Array(MatrixSearch.MAX_ROW_NUM);
-  this.sublma_start = new Array(MatrixSearch.MAX_ROW_NUM);
+MatrixSearch.ComposingPhrase = function composingPhrase_constructor() {
+  this.spl_ids = [];
+  this.spl_start = [];
+  this.chn_str = [];
+  this.sublma_start = [];
+  for (var pos = 0; pos < MatrixSearch.kMaxRowNum; pos++) {
+    this.spl_ids[pos] = 0;
+    this.spl_start[pos] = 0;
+    this.chn_str[pos] = 0;
+    this.sublma_start[pos] = 0;
+  }
 };
-ComposingPhrase.prototype = {
+
+MatrixSearch.ComposingPhrase.prototype = {
+  /**
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {Array.<number>}
+   */
   spl_ids: null,
+
+  /**
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {Array.<number>}
+   */
   spl_start: null,
-  chn_str: null,      // Chinese string array.
-  sublma_start: null, // Counted in Chinese characters.
+
+  /**
+   * Chinese string array.
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {Array.<number>}
+   */
+  chn_str: null,
+
+  /**
+   * Counted in Chinese characters.
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {Array.<number>}
+   */
+  sublma_start: null,
+
   sublma_num: 0,
-  length: 0          // Counted in Chinese characters.
+
+  /**
+   * Counted in Chinese characters
+   * @type {number}
+   */
+  length: 0
 };
-
-var MatrixSearch = function matrixSearch_constructor() {
-  var i = 0;
-
-  this._spl_start = new Array(MatrixSearch.MAX_ROW_NUM);
-  this._spl_start = new Array(MatrixSearch.MAX_ROW_NUM);
-
-  this._lmaStart = new Array(MatrixSearch.MAX_ROW_NUM);
-  this._lmaId = new Array(MatrixSearch.MAX_ROW_NUM);
-};
-
-MatrixSearch.MAX_ROW_NUM = MAX_SEARCH_STEPS;
-
-// The maximum buffer to store LmaPsbItems.
-MatrixSearch.MAX_LMA_PSB_ITEMS = 1450;
-
-// How many rows for each step.
-MatrixSearch.MAX_NODE_A_ROW = 5;
-
-// The maximum length of the sentence candidates counted in chinese
-// characters
-MatrixSearch.MAX_SENTENCE_LENGTH = 16;
-
-// The size of the matrix node pool.
-MatrixSearch.MTRX_ND_POOL_SIZE = 200;
-
-// The size of the DMI node pool.
-MatrixSearch.DMI_POOL_SIZE = 800;
-
-// The maximum buffer to store the prediction items
-MatrixSearch.MAX_PRE_ITEMS = 800;
 
 MatrixSearch.prototype = {
   /* ==== Public methods ==== */
@@ -3771,25 +3850,25 @@ MatrixSearch.prototype = {
   init: function matrixSearch_init(sysDict, userDict) {
     this._allocResource();
 
-    if (!this._dictTrie.load(sysDict, 1, DictDef.kTopScoreLemmaNum)) {
+    if (!this.spl_trie_.load(sysDict, 1, DictDef.kTopScoreLemmaNum)) {
       return false;
     }
 
-    if (!this._userDict.load(userDict, DictDef.kUserDictIdStart,
+    if (!this.user_dict_.load(userDict, DictDef.kUserDictIdStart,
                              DictDef.kUserDictIdEnd)) {
       return false;
     }
 
-    this._userDict.set_total_lemma_count_of_others(SYS_DICT_TOTAL_FREQ);
+    this.user_dict_.set_total_lemma_count_of_others(NGram.kSysDictTotalFreq);
 
-    this._initilized = true;
+    this.inited_ = true;
     return true;
   },
 
   uninit: function matrixSearch_uinit() {
     this.flush_cache();
     this._freeResource();
-    this._initilized = false;
+    this.inited_ = false;
   },
 
   /**
@@ -3797,8 +3876,8 @@ MatrixSearch.prototype = {
    * achieve best performance, some data is only store in memory.
    */
   flush_cache: function matrixSearch_flush_cache() {
-    if (this._userDict) {
-      this._userDict.flush_cache();
+    if (this.user_dict_) {
+      this.user_dict_.flush_cache();
     }
   },
 
@@ -3809,36 +3888,36 @@ MatrixSearch.prototype = {
    * @return {Integer} The position successfully parsed.
    */
   search: function matrixSearch_search(py) {
-    if (!this._initilized || py == '') {
+    if (!this.inited_ || py == '') {
       return 0;
     }
 
     var pyLen = py.length;
 
     // If the search Pinyin string is too long, it will be truncated.
-    if (pyLen > MatrixSearch.MAX_ROW_NUM - 1) {
-      py = py.substring(0, MatrixSearch.MAX_ROW_NUM - 1);
-      pyLen = MatrixSearch.MAX_ROW_NUM - 1;
+    if (pyLen > MatrixSearch.kMaxRowNum - 1) {
+      py = py.substring(0, MatrixSearch.kMaxRowNum - 1);
+      pyLen = MatrixSearch.kMaxRowNum - 1;
     }
 
     // Compare the new string with the previous one. Find their prefix to
     // increase search efficiency.
     var chPos = 0;
-    var len = Math.min(this._pysDecodedLen, pyLen);
+    var len = Math.min(this.pys_decoded_len_, pyLen);
     for (chPos = 0; chPos < len; chPos++) {
-      if (py.charAt(chPos) != this._pys.charAt(chPos))
+      if (py.charAt(chPos) != this.pys_.charAt(chPos))
         break;
     }
 
-    var clearFix = chPos != this._pysDecodedLen;
+    var clearFix = chPos != this.pys_decoded_len_;
 
     this._resetSearch(chPos, clearFix, false, false);
 
-    this._pys = py;
+    this.pys_ = py;
 
     while (chPos < pyLen) {
       if (!this._addChar(py.charAt(chPos))) {
-        this._pysDecodedLen = chPos;
+        this.pys_decoded_len_ = chPos;
         break;
       }
       chPos++;
@@ -3849,10 +3928,10 @@ MatrixSearch.prototype = {
 
     // If there are too many spellings, remove the last letter until the
     // spelling number is acceptable.
-    while (this._spl_idNum > 9) {
+    while (this.spl_id_num_ > 9) {
       pyLen--;
       this._resetSearch(pyLen, false, false, false);
-      this._pys = this._pys.substring(0, pyLen);
+      this.pys_ = this.pys_.substring(0, pyLen);
       this._getSplStartId();
     }
 
@@ -3887,7 +3966,7 @@ MatrixSearch.prototype = {
    * Reset the search space.
    */
   resetSearch: function matrixSearch_resetSearch() {
-    if (!this._initilized) {
+    if (!this.inited_) {
       return false;
     }
 
@@ -3958,94 +4037,179 @@ MatrixSearch.prototype = {
   /* ==== Private ==== */
 
   // Used to indicate whether this object has been initialized.
-  _initilized: false,
+  inited_: false,
 
-  // System dictionary
-  _dictTrie: null,
+  /**
+   * System dictionary
+   * @type SpellingTrie
+   */
+  spl_trie_: null,
 
-  // User dictionary
-  _userDict: null,
+  /**
+   * System dictionary.
+   * @type DictTrie
+   */
+  dict_trie_: null,
 
-  // Spelling parser.
-  _splParser: null,
+  /**
+   * User dictionary.
+   * @type AtomDictBase
+   */
+  user_dict_: null,
 
-  // Pinyin string
-  _pys: '',
+  /**
+   * Spelling parser.
+   * @type SpellingParser
+   */
+ spl_parser_: null,
+
+  /**
+   * Pinyin string.
+   * Max length: MatrixSearch.kMaxRowNum - 1
+   */
+  pys_: '',
 
   // The length of the string that has been decoded successfully.
-  _pysDecodedLen: 0,
+  pys_decoded_len_: 0,
 
-  _mtrxNdPool: null,
-  _mtrxNdPoolUsed: 0,  // How many nodes used in the pool
-  _dmiPool: null,
-  _dmiPoolUsed: 0,     // How many items used in the pool
+  /**
+   * @type Array.<MatrixSearch.MatrixNode>
+   */
+  mtrx_nd_pool_: null,
+
+  /**
+   * How many nodes used in the pool
+   */
+  mtrx_nd_pool_used_: 0,
+
+  /**
+   * @type MatrixSearch.DictMatchInfo
+   */
+  dmi_pool_: null,
+
+  /**
+   * How many items used in the pool
+   */
+  dmi_pool_used_: 0,
 
   /**
    * The first row is for starting
-   * @type MatrixRow[]
+   * @type Array.<MatrixSearch.MatrixRow>
    */
-  _matrix: null,
+  matrix_: null,
 
-  _dep: null,          // Parameter used to extend DMI nodes.
+  /**
+   * Parameter used to extend DMI nodes.
+   * @type Array.<SearchUtility.DictExtPara>
+   */
+  dep_: null,
 
-  _npreItems: null,     // Used to do prediction
-  _npreItemsLen: 0,
+  /**
+   * Used to do prediction.
+   * @type Array.<SearchUtility.NPredictItem>
+   */
+  npre_items_: null,
+
+  npre_items_len_: 0,
 
   // The starting positions and lemma ids for the full sentence candidate.
-  _lmaIdNum: 0,
-  _lmaStart: null,     // Counted in spelling ids.
-  _lmaId: null,
-  _fixedLmas: 0,
+  lma_id_num_: 0,
 
-  // If this._fixedLmas is bigger than i,  Element i is used to indicate whether
-  // the i'th lemma id in this._lmaId is the first candidate for that step.
-  // If all candidates are the first one for that step, the whole string can be
-  // decoded by the engine automatically, so no need to add it to user
-  // dictionary. (We are considering to add it to user dictionary in the
-  // future).
-  _fixedLmasNo1: null,
+  /**
+   * Counted in spelling ids.
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {Array.<number>}
+   */
+  lma_start_: null,
 
-  // Composing phrase
-  _c_phrase: null,
+  /**
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {Array.<number>}
+   */
+  lma_id_: null,
 
-  // If _dmiCPhrase is true, the decoder will try to match the
-  // composing phrase (And definitely it will match successfully). If it
-  // is false, the decoder will try to match lemmas items in dictionaries.
-  _dmiCPhrase: true,
+  fixed_lmas_: 0,
+
+  /**
+   * If this.fixed_lmas_ is bigger than i,  Element i is used to indicate
+   * whether the i'th lemma id in this.lma_id_ is the first candidate for that
+   * step. If all candidates are the first one for that step, the whole string
+   * can be decoded by the engine automatically, so no need to add it to user
+   * dictionary. (We are considering to add it to user dictionary in the
+   * future).
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {Array.<number>}
+   */
+  fixed_lmas_no1_: null,
+
+  /**
+   * Composing phrase.
+   * @type {MatrixSearch.ComposingPhrase}
+   */
+  c_phrase_: null,
+
+  /**
+   * If dmi_c_phrase_ is true, the decoder will try to match the
+   * composing phrase (And definitely it will match successfully). If it
+   * is false, the decoder will try to match lemmas items in dictionaries.
+   */
+  dmi_c_phrase_: true,
+
 
   // The starting positions and spelling ids for the first full sentence
   // candidate.
-  _spl_idNum: 0,       // Number of spelling ids
-  _spl_start: null,     // Starting positions
-  _spl_id: null,        // Spelling ids
-  // Used to remember the last fixed position, counted in Hanzi.
-  _fixedHzs: 0,
 
-  // Lemma Items with possibility score, two purposes:
-  // 1. In Viterbi decoding, this buffer is used to get all possible candidates
-  // for current step;
-  // 2. When the search is done, this buffer is used to get candiates from the
-  // first un-fixed step and show them to the user.
-  /** @type LmaPsbItem */
-  _lpiItems: null,
-  _lpiTotal: 0,
+  /**
+   * Number of spelling ids
+   */
+  spl_id_num_: 0,
+
+  /**
+   * Starting positions.
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {Array.<number>}
+   */
+  spl_start_: null,
+
+  /**
+   * Spelling ids.
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {Array.<number>}
+   */
+  spl_id_: null,
+
+  // Used to remember the last fixed position, counted in Hanzi.
+  fixed_hzs_: 0,
+
+  /**
+   * Lemma Items with possibility score, two purposes:
+   * 1. In Viterbi decoding, this buffer is used to get all possible candidates
+   * for current step;
+   * 2. When the search is done, this buffer is used to get candiates from the
+   * first un-fixed step and show them to the user.
+   * The length of the array is MatrixSearch.kMaxLmaPsbItems.
+   * @type Array.<SearchUtility.LmaPsbItem>
+   */
+  lpi_items_: null,
+
+  lpi_total_: 0,
 
   _allocResource: function matrixSearch_allocResource() {
-    this._dictTrie = new DictTrie();
-    this._userDict = new UserDict();
+    this.spl_trie_ = new DictTrie();
+    this.user_dict_ = new UserDict();
 
     // The buffers for search
-    this._mtrxNdPool = new Array(MatrixSearch.MTRX_ND_POOL_SIZE);
-    this._dmiPool = new Array(MatrixSearch.DMI_POOL_SIZE);
-    this._matrix = [];
-    for (i = 0; i < MatrixSearch.MAX_ROW_NUM; i++) {
-      this._matrix[i] = new MatrixRow();
+    this.mtrx_nd_pool_ = new Array(MatrixSearch.kMtrxNdPoolSize);
+    this.dmi_pool_ = new Array(MatrixSearch.kDmiPoolSize);
+    this.matrix_ = [];
+    for (i = 0; i < MatrixSearch.kMaxRowNum; i++) {
+      this.matrix_[i] = new MatrixRow();
     }
-    this._dep = new SearchUtility.DictExtPara();
+    this.dep_ = new SearchUtility.DictExtPara();
 
     // The prediction buffer
-    this._npreItems = new Array(MatrixSearch.MAX_PRE_ITEMS);
-    this._npreItemsLen = MatrixSearch.MAX_PRE_ITEMS;
+    this.npre_items_ = new Array(MatrixSearch.MAX_PRE_ITEMS);
+    this.npre_items_len_ = MatrixSearch.MAX_PRE_ITEMS;
   },
 
   _freeResource: function matrixSearch_freeResource() {
@@ -4060,7 +4224,7 @@ MatrixSearch.prototype = {
   // If clearMtrx is true, clear the mtrx nodes of this step.
   // The DMI nodes will be kept.
   //
-  // Note: this function should not destroy content of _pys.
+  // Note: this function should not destroy content of pys_.
   _resetSearch: function matrixSearch_resetSearch(chPos, clearFixed,
                                                   clearDmi, clearMtrx) {
   },
@@ -4070,29 +4234,29 @@ MatrixSearch.prototype = {
   },
 
   // Get spelling start positions and ids. The result will be stored in
-  // _spl_idNum, _spl_start[], _spl_id[].
-  // _fixedHzs will be also assigned.
+  // spl_id_num_, spl_start_[], spl_id_[].
+  // fixed_hzs_ will be also assigned.
   _getSplStartId: function matrixSearch_getSplStartId() {
-    this._lmaIdNum = 0;
-    this._lmaStart[0] = 0;
+    this.lma_id_num_ = 0;
+    this.lma_start_[0] = 0;
 
-    this._spl_idNum = 0;
-    this._spl_start[0] = 0;
-    if (!this._initilized || 0 == this._pysDecodedLen ||
-        0 == this._matrix[this._pysDecodedLen].mtrx_nd_num) {
+    this.spl_id_num_ = 0;
+    this.spl_start_[0] = 0;
+    if (!this.inited_ || 0 == this.pys_decoded_len_ ||
+        0 == this.matrix_[this.pys_decoded_len_].mtrx_nd_num) {
       return;
     }
 
     // Calculate number of lemmas and spellings
     // Only scan the part which is not fixed.
-    this._lmaIdNum = this._fixedLmas;
-    this._spl_idNum = this._fixedHzs;
+    this.lma_id_num_ = this.fixed_lmas_;
+    this.spl_id_num_ = this.fixed_hzs_;
 
-    var ndPos = this._matrix[this._pysDecodedLen].mtrx_nd_pos;
+    var ndPos = this.matrix_[this.pys_decoded_len_].mtrx_nd_pos;
     while (ndPos != 0) {
-      var mtrxNd = this._mtrxNdPool[ndPos];
-      if (this._fixedHzs > 0) {
-        if (mtrxNd.step <= this._spl_start[this._fixedHzs])
+      var mtrxNd = this.mtrx_nd_pool_[ndPos];
+      if (this.fixed_hzs_ > 0) {
+        if (mtrxNd.step <= this.spl_start_[this.fixed_hzs_])
           break;
       }
 
@@ -4100,21 +4264,21 @@ MatrixSearch.prototype = {
       var wordSplsStrLen = 0;
       var dmi_fr = mtrxNd.dmi_fr;
       if (-1 != dmi_fr) {
-        wordSplsStrLen = this._dmiPool[dmi_fr].splstr_len;
+        wordSplsStrLen = this.dmi_pool_[dmi_fr].splstr_len;
       }
 
       while (-1 != dmi_fr) {
-        this._spl_start[this._spl_idNum + 1] = mtrxNd.step -
-            (wordSplsStrLen - this._dmiPool[dmi_fr].splstr_len);
-        this._spl_id[this._spl_idNum_] = this._dmiPool[dmi_fr].spl_id;
-        this._spl_idNum++;
-        dmi_fr = this._dmiPool[dmi_fr].dmi_fr;
+        this.spl_start_[this.spl_id_num_ + 1] = mtrxNd.step -
+            (wordSplsStrLen - this.dmi_pool_[dmi_fr].splstr_len);
+        this.spl_id_[this.spl_id_num__] = this.dmi_pool_[dmi_fr].spl_id;
+        this.spl_id_num_++;
+        dmi_fr = this.dmi_pool_[dmi_fr].dmi_fr;
       }
 
       // Update the lemma segmentation information
-      this._lmaStart[this._lmaIdNum + 1] = this._spl_idNum;
-      this._lmaId[this._lmaIdNum] = mtrxNd.id;
-      this._lmaIdNum++;
+      this.lma_start_[this.lma_id_num_ + 1] = this.spl_id_num_;
+      this.lma_id_[this.lma_id_num_] = mtrxNd.id;
+      this.lma_id_num_++;
 
       ndPos = mtrxNd.from;
     }
@@ -4126,58 +4290,58 @@ MatrixSearch.prototype = {
     var tmp;
 
     // Reverse the result of spelling info
-    endPos = this._fixedHzs + (this._spl_idNum - this._fixedHzs + 1) / 2;
-    for (pos = this._fixedHzs; pos < endPos; pos++) {
-      if (this._spl_idNum_ + this._fixedHzs - pos != pos + 1) {
+    endPos = this.fixed_hzs_ + (this.spl_id_num_ - this.fixed_hzs_ + 1) / 2;
+    for (pos = this.fixed_hzs_; pos < endPos; pos++) {
+      if (this.spl_id_num__ + this.fixed_hzs_ - pos != pos + 1) {
         pos1 = pos + 1;
-        pos2 = this._spl_idNum - pos + this._fixedHzs;
-        tmp = this._spl_start[pos1];
-        this._spl_start[pos1] = this._spl_start[pos2];
-        this._spl_start[pos2] = tmp;
+        pos2 = this.spl_id_num_ - pos + this.fixed_hzs_;
+        tmp = this.spl_start_[pos1];
+        this.spl_start_[pos1] = this.spl_start_[pos2];
+        this.spl_start_[pos2] = tmp;
 
         pos1 = pos;
-        pos2 = this._spl_idNum + this._fixedHzs - pos - 1;
-        tmp = this._spl_id[pos1];
-        this._spl_id[pos1] = this._spl_id[pos2];
-        this._spl_id[pos2] = tmp;
+        pos2 = this.spl_id_num_ + this.fixed_hzs_ - pos - 1;
+        tmp = this.spl_id_[pos1];
+        this.spl_id_[pos1] = this.spl_id_[pos2];
+        this.spl_id_[pos2] = tmp;
       }
     }
 
     // Reverse the result of lemma info
-    endPos = this._fixedLmas + (this._lmaIdNum - this._fixedLmas + 1) / 2;
-    for (pos = this._fixedLmas; pos < endPos; pos++) {
+    endPos = this.fixed_lmas_ + (this.lma_id_num_ - this.fixed_lmas_ + 1) / 2;
+    for (pos = this.fixed_lmas_; pos < endPos; pos++) {
       pos1 = pos + 1;
-      pos2 = this._lmaIdNum + this._fixedLmas - pos;
+      pos2 = this.lma_id_num_ + this.fixed_lmas_ - pos;
       var tmp = 0;
       if (pos2 > pos1) {
-        tmp = this._lmaStart[pos1];
-        this._lmaStart[pos1] = this._lmaStart[pos2];
-        this._lmaStart[pos2] = tmp;
+        tmp = this.lma_start_[pos1];
+        this.lma_start_[pos1] = this.lma_start_[pos2];
+        this.lma_start_[pos2] = tmp;
 
         pos1 = pos;
-        pos2 = this._lmaIdNum - 1 - pos + this._fixedLmas;
-        tmp = this._lmaId[pos1];
-        this._lmaId[pos1] = this._lmaId[pos2];
-        this._lmaId[pos2] = tmp;
+        pos2 = this.lma_id_num_ - 1 - pos + this.fixed_lmas_;
+        tmp = this.lma_id_[pos1];
+        this.lma_id_[pos1] = this.lma_id_[pos2];
+        this.lma_id_[pos2] = tmp;
       }
     }
 
-    for (pos = this._fixedLmas + 1; pos <= this._lmaIdNum; pos++) {
-      if (pos < this._lmaIdNum) {
-        this._lmaStart[pos] = this._lmaStart[pos - 1] +
-            (this._lmaStart[pos] - this._lmaStart[pos + 1]);
+    for (pos = this.fixed_lmas_ + 1; pos <= this.lma_id_num_; pos++) {
+      if (pos < this.lma_id_num_) {
+        this.lma_start_[pos] = this.lma_start_[pos - 1] +
+            (this.lma_start_[pos] - this.lma_start_[pos + 1]);
       }
       else {
-        this._lmaStart[pos] = this._lmaStart[pos - 1] + this._lmaStart[pos] -
-            this._lmaStart[this._fixedLmas];
+        this.lma_start_[pos] = this.lma_start_[pos - 1] + this.lma_start_[pos] -
+            this.lma_start_[this.fixed_lmas_];
       }
     }
 
     // Find the last fixed position
-    this._fixedHzs = 0;
-    for (pos = this._spl_idNum; pos > 0; pos--) {
-      if (null != this._matrix[this._spl_start[pos]].mtrx_nd_fixed) {
-        this._fixedHzs = pos;
+    this.fixed_hzs_ = 0;
+    for (pos = this.spl_id_num_; pos > 0; pos--) {
+      if (null != this.matrix_[this.spl_start_[pos]].mtrx_nd_fixed) {
+        this.fixed_hzs_ = pos;
         break;
       }
     }
@@ -4191,22 +4355,22 @@ MatrixSearch.prototype = {
   },
 
   _prepareAddChar: function matrixSearch_prepareAddChar(ch) {
-    if (this._pysDecodedLen >= MatrixSearch.MAX_ROW_NUM - 1 ||
+    if (this.pys_decoded_len_ >= MatrixSearch.kMaxRowNum - 1 ||
         (!this._splParser.is_valid_to_parse(ch) && ch != '\'')) {
       return false;
     }
 
-    if (this._dmiPoolUsed >= MatrixSearch.DMI_POOL_SIZE) {
+    if (this.dmi_pool_used_ >= MatrixSearch.kDmiPoolSize) {
       return false;
     }
 
-    this._pys += ch;
-    this._pysDecodedLen++;
+    this.pys_ += ch;
+    this.pys_decoded_len_++;
 
-    var mtrxRow = this._matrix[this._pysDecodedLen];
-    mtrxRow.mtrx_nd_pos = this._mtrxNdPoolUsed;
+    var mtrxRow = this.matrix_[this.pys_decoded_len_];
+    mtrxRow.mtrx_nd_pos = this.mtrx_nd_pool_used_;
     mtrxRow.mtrx_nd_num = 0;
-    mtrxRow.dmi_pos = this._dmiPoolUsed;
+    mtrxRow.dmi_pos = this.dmi_pool_used_;
     mtrxRow.dmi_num = 0;
     mtrxRow.dmi_has_full_id = false;
 
@@ -4221,7 +4385,7 @@ MatrixSearch.prototype = {
   // Is the character in step pos a splitter character?
   // The caller guarantees that the position is valid.
   _isSplitAt: function matrixSearch_isSplitAt(pos) {
-    return !this._splParser.is_valid_to_parse(this._pys[pos - 1]);
+    return !this._splParser.is_valid_to_parse(this.pys_[pos - 1]);
   }
 };
 
@@ -6686,6 +6850,12 @@ UserDict.kUserDictLMTSince = new Date(2012, 1, 1, 0, 0, 0).getTime();
 
 // Be sure size is 4xN
 UserDict.UserDictInfo = function userDictInfo_constructor() {
+  this.version = UserDict.kUserDictVersion;
+  this.reclaim_ratio = 0;
+  this.limit_lemma_count = 0;
+  this.lemma_count = 0;
+  this.free_count = 0;
+  this.total_nfreq = 0;
 };
 
 UserDict.UserDictInfo.prototype = {
@@ -6773,8 +6943,9 @@ UserDict.UserDictSearchable.prototype = {
   /**
    * Compact inital letters for both FuzzyCompareSpellId and cache system
    * The length is DictDef.kMaxLemmaSize / 4.
-   * Each element of the signature is a 32-bit number, while the spelling ID is
-   * 8-bit number. So 4 spelling IDs can be compacted into one signature number.
+   * Each element of the signature is a 32-bit number, while the spelling char
+   * code is 8-bit number. So 4 spelling IDs can be compacted into one
+   * signature number.
    * @type Array.<number>
    */
   signature: null
@@ -7076,9 +7247,8 @@ UserDict.prototype = {
       return 0;
     }
     var offset = this.offsets_by_id_[id_lemma - this.start_id_];
-    var nchar = this.get_lemma_nchar(offset);
     var ids = this.get_lemma_spell_ids(offset);
-    var n = Math.min(nchar, splids_max);
+    var n = Math.min(ids.length, splids_max);
     for (var i = 0; i < n; i++) {
       splids[start + i] = ids[i];
     }
@@ -7105,9 +7275,9 @@ UserDict.prototype = {
         j++;
         continue;
       }
-      var nchar = this.get_lemma_nchar(offset);
       var words = this.get_lemma_word(offset);
       var splids = this.get_lemma_spell_ids(offset);
+      var nchar = splids.length;
 
       if (nchar <= hzs_len) {
         j++;
@@ -7153,7 +7323,6 @@ UserDict.prototype = {
       return 0;
     }
     var offset = this.offsets_by_id_[lemma_id - this.start_id_];
-    var lemma_len = this.get_lemma_nchar(offset);
     var lemma_str = this.get_lemma_word(offset);
     var splids = this.get_lemma_spell_ids(offset);
 
@@ -7197,12 +7366,13 @@ UserDict.prototype = {
   /**
    * @override
    */
-  get_lemma_score_by_id:
-      function userDict_get_lemma_score_by_id(lemma_id) {
-    if (this.is_valid_state() == false)
+  get_lemma_score_by_id: function userDict_get_lemma_score_by_id(lemma_id) {
+    if (this.is_valid_state() == false) {
       return 0;
-    if (this.is_valid_lemma_id(lemma_id) == false)
+    }
+    if (this.is_valid_lemma_id(lemma_id) == false) {
       return 0;
+    }
 
     return this.translate_score(this._get_lemma_score_by_id(lemma_id));
   },
@@ -7210,8 +7380,8 @@ UserDict.prototype = {
   /**
    * @override
    */
-  get_lemma_score_by_content:
-      function userDict_get_lemma_score_by_content(lemma_str, splids) {
+  get_lemma_score_by_content: function userDict_get_lemma_score_by_content(
+      lemma_str, splids) {
     if (this.is_valid_state() == false)
       return 0;
     return this.translate_score(this._get_lemma_score_by_content(lemma_str,
@@ -7230,7 +7400,6 @@ UserDict.prototype = {
     }
     var offset = this.offsets_by_id_[lemma_id - this.start_id_];
 
-    var nchar = this.get_lemma_nchar(offset);
     var spl = this.get_lemma_spell_ids(offset);
     var wrd = this.get_lemma_word(offset);
 
@@ -7249,8 +7418,8 @@ UserDict.prototype = {
   /**
    * @override
    */
-  set_total_lemma_count_of_others:
-      function userDict_set_total_lemma_count_of_others(count) {
+  set_total_lemma_count_of_others: function
+      userDict_set_total_lemma_count_of_others(count) {
     this.total_other_nfreq_ = count;
   },
 
@@ -7258,6 +7427,7 @@ UserDict.prototype = {
    * @override
    */
   flush_cache: function userDict_flush_cache(callback) {
+    debug('Flushing cache...');
     var self = this;
     var doCallback = function fush_cache_doCallback() {
       if (callback) {
@@ -7439,7 +7609,6 @@ UserDict.prototype = {
     // Find first freed offset
     while (dst < lemma_count) {
       var flag = this.get_lemma_flag(dst);
-      var nchr = this.get_lemma_nchar(dst);
       if ((flag & UserDict.kUserDictLemmaFlagRemove) == 0) {
         dst++;
         continue;
@@ -7460,7 +7629,6 @@ UserDict.prototype = {
           break;
         }
         var flag = this.get_lemma_flag(begin);
-        var nchr = this.get_lemma_nchar(begin);
         if (flag & UserDict.kUserDictLemmaFlagRemove) {
           begin++;
           continue;
@@ -7470,7 +7638,6 @@ UserDict.prototype = {
       end = begin++;
       while (end < lemma_count) {
         var eflag = get_lemma_flag(end);
-        var enchr = get_lemma_nchar(end);
         if ((eflag & UserDict.kUserDictLemmaFlagRemove) == 0) {
           end++;
           continue;
@@ -7981,8 +8148,8 @@ UserDict.prototype = {
         middle++;
         continue;
       }
-      var nchar = this.get_lemma_nchar(offset);
       var splids = this.get_lemma_spell_ids(offset);
+      var nchar = splids.length;
       if (UserDict.CACHE_ENABLED) {
         if (!cached && 0 != this.fuzzy_compare_spell_id(splids, searchable)) {
           fuzzy_break = true;
@@ -8024,14 +8191,16 @@ UserDict.prototype = {
 
   /**
    * Get the score of a lemma.
+   * @private
    * @param {string} lemma_str The lemma string.
    * @param {Array.<number>} splid_str The spelling ids of the lemma.
    * @return {number} The lemma score.
    */
-  _get_lemma_score_by_content:
-      function userDict_get_lemma_score_by_str(lemma_str, splids) {
-    if (this.is_valid_state() == false)
+  _get_lemma_score_by_content: function userDict_get_lemma_score_by_str(
+      lemma_str, splids) {
+    if (this.is_valid_state() == false) {
       return 0;
+    }
 
     var off = this.locate_in_offsets(lemma_str, splids);
     if (off == -1) {
@@ -8041,15 +8210,22 @@ UserDict.prototype = {
     return this.scores_[off];
   },
 
+  /**
+   * Get the score by lemma id.
+   * @private
+   * @param {number} lemma_id Lemma id.
+   * @return {number} The score if the lemma exists. Otherwise 0.
+   */
   _get_lemma_score_by_id: function userDict_get_lemma_score_by_id(lemma_id) {
-    if (this.is_valid_state() == false)
+    if (this.is_valid_state() == false) {
       return 0;
-    if (this.is_valid_lemma_id(lemma_id) == false)
+    }
+    if (this.is_valid_lemma_id(lemma_id) == false) {
       return 0;
+    }
 
     var offset = this.offsets_by_id_[lemma_id - this.start_id_];
 
-    var nchar = this.get_lemma_nchar(offset);
     var spl = this.get_lemma_spell_ids(offset);
     var wrd = this.get_lemma_word(offset);
 
@@ -8066,8 +8242,8 @@ UserDict.prototype = {
    * @param {UserDict.UserDictSearchable} searchable The searchable object.
    * @return {boolean} true if id1 is a fuzzy prefix of searchable.
    */
-  is_fuzzy_prefix_spell_id:
-      function userDict_is_fuzzy_prefix_spell_id(id1, searchable) {
+  is_fuzzy_prefix_spell_id: function userDict_is_fuzzy_prefix_spell_id(id1,
+      searchable) {
     var len1 = id1.length;
     if (len1 < searchable.splids_len) {
       return 0;
@@ -8091,8 +8267,8 @@ UserDict.prototype = {
    * @param {UserDict.UserDictSearchable} searchable The searchable object.
    * @return {boolean} true if fullids is prefix of searchable.
    */
-  is_prefix_spell_id:
-      function userDict_is_prefix_spell_id(fullids, searchable) {
+  is_prefix_spell_id: function userDict_is_prefix_spell_id(fullids,
+      searchable) {
     var fulllen = fullids.length;
     if (fulllen < searchable.splids_len) {
       return false;
@@ -8253,6 +8429,7 @@ UserDict.prototype = {
 
   /**
    * Get character number of the lemma
+   * @private
    */
   get_lemma_nchar: function userDict_get_lemma_nchar(offset) {
     return this.lemmas_[offset].hanzi_str.length;
@@ -8260,13 +8437,20 @@ UserDict.prototype = {
 
   /**
    * Get the spelling id array of a lemma.
+   * @private
    * @param {number} offset The offset of the lemma.
    * @return {Array.<number>} The spelling id array.
    */
   get_lemma_spell_ids: function userDict_get_lemma_spell_ids(offset) {
-    return this.lemmas_[offset].slice();
+    return this.lemmas_[offset].splid_arr.slice();
   },
 
+  /**
+   * Get the lemma hanzi string by its offset.
+   * @private
+   * @param {number} offset The offset of the lemma.
+   * @return {string}  The hanzi string.
+   */
   get_lemma_word: function userDict_get_lemma_word(offset) {
     return this.lemmas_[offset].hanzi_str;
   },
@@ -8368,8 +8552,8 @@ UserDict.prototype = {
    * Find first item by initial letters.
    * @param {UserDict.UserDictSearchable} searchable The searchable object.
    */
-  locate_first_in_offsets:
-      function userDict_locate_first_in_offsets(searchable) {
+  locate_first_in_offsets: function userDict_locate_first_in_offsets(searchable)
+  {
     var begin = 0;
     var end = this.dict_info_.lemma_count - 1;
     var middle = -1;
@@ -8410,8 +8594,8 @@ UserDict.prototype = {
    * @param {number} lmt The last modified time stamp.
    * @return {number} The lemma id if succeed, 0 if fail.
    */
-  append_a_lemma:
-      function userDict_append_a_lemma(lemma_str, splids, count, lmt) {
+  append_a_lemma: function userDict_append_a_lemma(lemma_str, splids, count,
+                                                   lmt) {
     var lemma_len = lemma_str.length;
 
     // Generate a new lemma ID.
@@ -8717,8 +8901,12 @@ UserDict.prototype = {
   },
 
   /**
+   * Swap two items of an array.
+   * @private
    * @param {Array.<UserDict.UserDictScoreOffsetPair>} sop The sore offset parir
    *    array.
+   * @param {number} i The index of the array item to be swapped.
+   * @param {number} j The index of the array item to be swapped.
    */
   swap: function userDict_swap(sop, i, j) {
     var tmp = sop[i];
