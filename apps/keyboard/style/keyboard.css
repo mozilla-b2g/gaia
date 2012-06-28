@@ -265,7 +265,7 @@ button::-moz-focus-inner {
   bottom: 0;
   left: -1px;
   margin-bottom: -1px;
-  height: 5rem;
+  height: 5.2rem;
   border-radius: 0.3rem;
   background: -moz-linear-gradient(#fff, #ebebeb);
   border: 1px solid #61646A;
@@ -288,7 +288,7 @@ button::-moz-focus-inner {
 }
 
 #keyboard-accent-char-menu .keyboard-key {
-margin-top: 0.2rem;
+margin-top: 0.3rem;
 }
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
 /*  box-shadow: 0 0 0 2px #53B6CC;*/
