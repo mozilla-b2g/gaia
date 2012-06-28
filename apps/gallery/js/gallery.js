@@ -189,11 +189,11 @@ function destroyUI() {
         URL.revokeObjectURL(backgroundImage.slice(5, -2));
       thumbnails.removeChild(thumbnail);
     }
-    
+
     document.getElementById('nophotos').classList.remove('hidden');
   }
-  catch(e) {
-    console.error("destroyUI", e);
+  catch (e) {
+    console.error('destroyUI', e);
   }
 }
 
@@ -207,10 +207,10 @@ function buildUI() {
 // XXX
 // This is kind of a hack. Our onchange handler is dumb and just
 // tears down and rebuilds the UI on every change. But rebuilding
-// does an async enumerate, and sometimes we get two changes in 
+// does an async enumerate, and sometimes we get two changes in
 // a row, so these flags prevent two enumerations from happening in parallel.
 // Ideally, we'd just handle the changes individually.
-// 
+//
 var buildingUI = false;
 var needsRebuild = false;
 function rebuildUI() {
@@ -218,12 +218,12 @@ function rebuildUI() {
     needsRebuild = true;
     return;
   }
-  
+
   buildingUI = true;
   destroyUI();
   // This is asynchronous, but will set buildingUI to false when done
   buildUI();
-    
+
 }
 
 function addImage(imagedata) {
