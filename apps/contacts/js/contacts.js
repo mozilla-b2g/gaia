@@ -349,6 +349,7 @@ var Contacts = (function() {
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
       myContact.id = contact.id;
+      myContact.photo = contact.photo;
       contactsList.refresh(myContact);
       reloadContactDetails(myContact);
       navigation.back();
@@ -425,7 +426,7 @@ var Contacts = (function() {
 
       if (actions[i].icon) {
         var icon = document.createElement('span');
-        icon.dataset.icon = actions[i].icon
+        icon.dataset.icon = actions[i].icon;
         icon.innerHTML = actions[i].label;
         action.appendChild(icon);
       } else {
