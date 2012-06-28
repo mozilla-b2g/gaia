@@ -204,7 +204,7 @@ input[type="image"] {
 
 #throbber {
   position: absolute;
-  top: 47px;
+  top: 50px;
   width: 100%;
   height: 3px;
   z-index: 200;
