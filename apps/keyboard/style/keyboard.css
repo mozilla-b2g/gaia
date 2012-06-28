@@ -87,6 +87,7 @@ button::-moz-focus-inner {
   width: 100%;
   border: none;
   background: url(images/key-begin.png) no-repeat left top, url(images/key-end.png) no-repeat right top;
+  background-size: auto 100%;
   position: relative;
   text-align: center;
 }
@@ -94,12 +95,13 @@ button::-moz-focus-inner {
 .keyboard-key > .visual-wrapper > span {
   position: absolute;
   top: 0;
-  left: 0.2rem;
-  right: 0.2rem;
+  left: 2px;
+  right: 2px;
   height: 100%;
   /*background: -moz-linear-gradient(#fff, #ebebeb);*/
   /*box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);*/
   background: url(images/key-middle.png) repeat-x center top;
+  background-size: auto 100%;
   font-family: 'Open Sans Semibold';  
   font-size: 2.4rem;
   line-height: 3.8rem;
@@ -172,6 +174,7 @@ button::-moz-focus-inner {
 /*  Special keys */
 .keyboard-key.special-key > .visual-wrapper {
   background: url(images/key-special-begin.png) no-repeat left top, url(images/key-special-end.png) no-repeat right top;
+  background-size: auto 100%;
 }
 .keyboard-key.special-key > .visual-wrapper > span { 
   font-size: 1.5rem;
@@ -182,10 +185,11 @@ button::-moz-focus-inner {
   /*background: -moz-linear-gradient(bottom, #B3B3B3, #EDEDED);*/
   /*box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.5);*/
   background: url(images/key-special-middle.png) repeat-x center top;
+  background-size: auto 100%;
   position: absolute;
   top: 0;
-  left: 0.2rem;
-  right: 0.2rem;
+  left: 2px;
+  right: 2px;
   bottom: 0;
   height: 100%
 }
@@ -193,12 +197,17 @@ button::-moz-focus-inner {
 /* Highlight for special keys */
 .keyboard-key.special-key.highlighted > .visual-wrapper {
 /*  box-shadow: 0 0 0 2px #4495A8;*/
+}
+.keyboard-key.special-key.highlighted > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: -2px;
+  bottom: 0;
   border: #4495A8 2px solid;
   border-radius: 0.3rem;
-  margin: -0.2rem -0.2rem 0;
-  height: 4rem;
 }
-
 .keyboard-key.special-key.highlighted > .visual-wrapper > span:after  {
   display: none;
 }
@@ -215,8 +224,8 @@ button::-moz-focus-inner {
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span  {
   position: absolute;
   top: 0;
-  left: 0.2rem;
-  right: 0.2rem;
+  left: 2px;
+  right: 2px;
   bottom: 0;
   height: 100%;
   border: none;
