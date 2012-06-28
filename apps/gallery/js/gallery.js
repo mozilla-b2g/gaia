@@ -1,3 +1,16 @@
+// TODO:
+// - Get orientation working when leaving fullscreen
+// - Don't say "no photos" on startup... say "scanning" and localize it.
+// - Don't show wrong photo when panning at edges
+// - retain scroll position in thumbnail view
+// - put most recent photos (or screenshots) first
+// - in landscape mode, the 'no photos' message is too low
+// - get Back button (and slideshow) showing again?
+// - match visual design and wireframes better
+// - add delete capability
+// - add filter effects
+
+
 'use strict';
 
 /*
@@ -144,7 +157,7 @@ var photodb = new MediaDB('pictures', metadataParser, {
   mimeTypes: ['image/jpeg', 'image/png']
 });
 photodb.onready = function() {
-  buildUI(photodb);  // List files we already know about
+  buildUI();  // List files we already know about
   photodb.scan();    // Go look for more.
 
   // Since DeviceStorage doesn't send notifications yet, we're going
@@ -160,35 +173,68 @@ photodb.onready = function() {
   });
 };
 photodb.onchange = function(type, files) {
-  destroyUI();
-  buildUI(this);  // Would be more efficient to just change them.
+  rebuildUI();
 };
 
 var images = [];
 
 function destroyUI() {
   images = [];
-
-  var items = thumbnails.querySelectorAll('li');
-  for (var i = 0; i < items.length; i++) {
-    var thumbnail = items[i];
-    var url = thumbnail.style.backgroundImage.splice(5, -2);
-    URL.revokeObjectURL(url);
-    thumbnails.removeChild(thumbnail);
+  try {
+    var items = thumbnails.querySelectorAll('li');
+    for (var i = 0; i < items.length; i++) {
+      var thumbnail = items[i];
+      var backgroundImage = thumbnail.style.backgroundImage;
+      if (backgroundImage)
+        URL.revokeObjectURL(backgroundImage.slice(5, -2));
+      thumbnails.removeChild(thumbnail);
+    }
+    
+    document.getElementById('nophotos').classList.remove('hidden');
   }
-
-  document.getElementById('nophotos').classList.remove('hidden');
+  catch(e) {
+    console.error("destroyUI", e);
+  }
 }
 
-function buildUI(dsdb) {
+function buildUI() {
   // Enumerate existing image entries in the database and add thumbnails
   // List the all, and sort them in descending order by date.
-  dsdb.enumerate('metadata.date', null, 'prev', addImage);
+  photodb.enumerate('metadata.date', null, 'prev', addImage);
+}
+
+//
+// XXX
+// This is kind of a hack. Our onchange handler is dumb and just
+// tears down and rebuilds the UI on every change. But rebuilding
+// does an async enumerate, and sometimes we get two changes in 
+// a row, so these flags prevent two enumerations from happening in parallel.
+// Ideally, we'd just handle the changes individually.
+// 
+var buildingUI = false;
+var needsRebuild = false;
+function rebuildUI() {
+  if (buildingUI) {
+    needsRebuild = true;
+    return;
+  }
+  
+  buildingUI = true;
+  destroyUI();
+  // This is asynchronous, but will set buildingUI to false when done
+  buildUI();
+    
 }
 
 function addImage(imagedata) {
-  if (imagedata === null)  // No more images
+  if (imagedata === null) { // No more images
+    buildingUI = false;
+    if (needsRebuild) {
+      needsRebuild = false;
+      rebuildUI();
+    }
     return;
+  }
 
   // If this is the first image we've found,
   // remove the "no images" message

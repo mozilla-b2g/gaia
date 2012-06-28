@@ -7,14 +7,58 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
+    "ar": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "ca": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
     "de": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "el": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "en-US": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "es": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "fr": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "it": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "pt-BR": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "ru": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "tr": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    },
+    "zh-TW": {
       "name": "E-Mail",
       "description": "Gaia E-Mail"
     }
   },
   "default_locale": "en-US",
   "icons": {
-    "79": "/style/icons/Email.png",
-    "60": "/style/icons/60/Email.png"
+    "60": "/style/icons/60/Email.png",
+    "79": "/style/icons/Email.png"
   }
 }

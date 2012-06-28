@@ -315,7 +315,11 @@ const IMEController = (function() {
     IMERender.draw(
       _currentLayout,
       _onScroll,
-      {uppercase: uppercase} // 3- Setup rendering flags
+      // 3- Setup rendering flags
+      {
+        uppercase: uppercase,
+        inputType: _currentInputType
+      }
     );
 
     // 5- If needed, empty the candidate panel
@@ -954,6 +958,7 @@ const IMEController = (function() {
 
     // Detach event listeners
     _dimensionsObserver.disconnect();
+    var event;
     for (event in _imeEvents) {
       var callback = _imeEvents[event] || null;
       if (callback)

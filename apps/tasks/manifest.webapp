@@ -11,6 +11,10 @@
       "name": "Tasks",
       "description": "Gaia Tasks"
     },
+    "ca": {
+      "name": "Tasques",
+      "description": "Tasques del Gaia"
+    },
     "de": {
       "name": "Aufgaben",
       "description": "Gaia Aufgaben"
