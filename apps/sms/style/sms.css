@@ -187,9 +187,6 @@ body.conversation #msg-conversations {
   -moz-user-select: none;
 }
 
-input, textarea {
-}
-
 .button {
   -moz-box-sizing: border-box;
   text-align: center;
@@ -214,6 +211,14 @@ input, textarea {
   display: table-cell;
 }
 
+.back-wrapper {
+  height: inherit;
+  text-align: center;
+  border-right: solid .1rem rgba(0, 0, 0, 0.2);
+  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
+  width: 2rem;
+  position: absolute;
+}
 .back-button {
   position: absolute;
   margin: 0.6rem 0 0 2.4rem;
@@ -221,8 +226,8 @@ input, textarea {
 
 .back-button-img {
   background: url("./images/top-navibar-left-arrow.png") no-repeat scroll 3rem 50% transparent;
-  left: 0rem;
-  top: 0rem;
+  left: 0;
+  top: 0;
   width: 8rem;
   height: 4.8rem;
   position: absolute;
@@ -255,7 +260,7 @@ input, textarea {
 #msg-search-container {
   padding-right: 1.6rem;
   margin: 0;
-  top: 0px;
+  top: 0;
   width: 100%;
   height: 6.4rem;
   border-bottom: solid 0.3rem #9b9b9b;
@@ -523,6 +528,7 @@ body.edit-mode #msg-conversations-list .msg {
 }
 
 .icon-edit {
+  opacity: .5;
   display: block;
   background-image: url('images/edit.png');
   height: 2rem;
@@ -534,10 +540,8 @@ body.edit-mode #msg-conversations-list .msg {
   position: absolute;
   
   height: 100%;
-  width: 2rem;
-  text-align: center;
-  border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3)
+  width: 5rem;
+  
 }
 
 .icon-back {
@@ -580,10 +584,7 @@ body.edit-mode .edit-hide-element {
 #view-back {
   position: absolute;
   height: 100%;
-  width: 2rem;
-  text-align: center;
-  border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
+  width: 5rem;
 }
 
 #view-done-button {
@@ -602,7 +603,6 @@ body.edit-mode .edit-hide-element {
   width: 4rem;
   margin-right: 2rem; 
   position: absolute;
- 
   height: 100%;
 }
   
@@ -626,6 +626,7 @@ body.edit-mode #view-edit-button {
 }
 
 .icon-contact {
+  opacity: .5;
   display: block;
   background-image: url('images/contacts_icon.png');
     
@@ -666,15 +667,17 @@ body.conversation-new-msg #view-edit-button {
 #view-num {
   height: 4rem;
   display: none;
-  margin: 1rem 5rem 1rem 3rem;
+  margin: 1rem 5rem 1rem 4rem;
   padding: 0 2rem;
   -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 9rem);
+  width: -moz-calc(100% - 10rem);
   font-size: -moz-calc(6 * 0.226rem);
 }
 
 body.conversation-new-msg #view-num {
   display: block;
+  position: absolute;
+  z-index: 100;
 }
 
 #view-edit-container {
@@ -1035,7 +1038,7 @@ body.hidden *[data-l10n-id] {
   margin-bottom: 0.5rem;
 }
 
-/** DEMo STUFF **/
+/** This is a temporary code for demo **/
 #view-delete-button #view-delete-all-button #msg-delete-all-button #msg-delete-button {
   display: none;
 }
