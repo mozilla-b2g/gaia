@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'FontRegular';
+  src: url('fonts/opensans-regular-webfont.woff');
+}
+
 #permission-screen {
   position: absolute;
   top: 0;
@@ -7,6 +12,7 @@
   z-index: 20001; /* just below the sleep menu */
   pointer-events: none;
   display: none;
+  font-family:'FontSemibold';
 }
 
 #permission-screen.visible {
@@ -34,14 +40,15 @@
 }
 
 #permission-message {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   color: #fff;
   margin: 0 0 1.5rem 0;
   padding: 0;
+  font-family:'FontRegular';
 }
 
 #permission-dialog button {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: bold;
   width: -moz-calc(50% - 0.75rem);
   height: 4rem;

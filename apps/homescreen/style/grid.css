@@ -29,7 +29,7 @@
   float: left;
   text-align: center;
   padding-bottom: 2.2rem;
-  font-family:'Open Sans';
+  font-family:'FontSemibold';
 }
 
 .apps ol > li[data-hidden] {
@@ -73,12 +73,12 @@
 /* label wrapper */
 .apps ol > li > div > span {
   overflow: hidden; /* We cut the text to avoid messing up the grid */
-  text-overflow: ellipsis; /* Ellipsis to represent clipped text */
+  word-wrap: break-word;
 }
 
 /* text label */
 .apps ol > li > div > span > span {
-  font-size: -moz-calc(6 * 0.226rem); /* 6pt */
+  font-size: -moz-calc(5.5 * 0.226rem); /* 5.5pt */
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
 }
 
