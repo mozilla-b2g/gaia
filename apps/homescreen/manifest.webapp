@@ -15,6 +15,10 @@
       "name": "\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629",
       "description": "Gaia \u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 "
     },
+    "ca": {
+      "name": "Pantalla d\u2019inici",
+      "description": "Pantalla d\u2019inici del Gaia"
+    },
     "de": {
       "name": "Startbildschirm",
       "description": "Gaia Startbildschirm"

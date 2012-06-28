@@ -364,8 +364,7 @@
    */
 
   function parseResource(href, lang, successCallback, failureCallback) {
-    var baseURL = (href.substr(0, 4) === 'http') ?
-        href.replace(/\/[^\/]*$/, '/') : '';
+    var baseURL = href.replace(/\/[^\/]*$/, '/');
 
     // handle escaped characters (backslashes) in a string
     function evalString(text) {
