@@ -44,7 +44,6 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       } else {
         // start wifi
         req = wifiManager.setEnabled(true);
-        gNetworkList.clear(true);
         if (!bug766497)
           req.onsuccess = onWifiEnabled;
         req.onerror = function() {
@@ -270,6 +269,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     */
   function onWifiEnabled() {
     gStatus.update();
+    gNetworkList.clear(true);
     gNetworkList.scan();
   }
   function onWifiDisabled() {
@@ -399,6 +399,14 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       // hide dialog box
       function close() {
+        // reset identity/password fields
+        if (identity)
+          identity.value = '';
+        if (password)
+          password.value = '';
+        if (showPassword)
+          showPassword.checked = false;
+        // 'close' (hide) the dialog
         document.body.classList.remove('dialog');
         dialog.classList.remove('active');
       }
