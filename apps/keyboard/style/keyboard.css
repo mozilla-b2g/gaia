@@ -44,10 +44,12 @@ button::-moz-focus-inner {
   border: 0
 }
 
+.cache { position: absolute; left: 0; bottom: 0; z-index: 5; }
 /* Keyboard */
 #keyboard {
   position: absolute;
   bottom: 0;
+  z-index: 15;
   width: 100%;
   background: #3b424e url(images/bgbase.jpg) no-repeat center center;
   background-size: 100% auto;
