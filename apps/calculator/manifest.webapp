@@ -11,6 +11,10 @@
       "name": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629",
       "description": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629"
     },
+    "ca": {
+      "name": "Calculadora",
+      "description": "Calculadora"
+    },
     "de": {
       "name": "Taschenrechner",
       "description": "Taschenrechner"
