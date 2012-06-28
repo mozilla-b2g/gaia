@@ -72,6 +72,13 @@ var AttentionScreen = {
       var frame = WindowManager.getAppFrame(displayedOrigin);
       if ('setVisible' in frame) {
         frame.setVisible(true);
+
+        // FIXME: Forcing a repaint
+        // Tracked here https://bugzilla.mozilla.org/show_bug.cgi?id=769172
+        frame.style.MozTransform = 'translateY(1px)';
+        setTimeout(function hackRepaint() {
+          frame.style.MozTransform = '';
+        });
       }
     }
 
