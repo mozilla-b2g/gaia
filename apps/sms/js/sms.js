@@ -708,6 +708,7 @@ var ConversationView = {
   },
 
   showConversation: function cv_showConversation(num, pendingMsg) {
+    delete ConversationListView._lastHeader;
     var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
@@ -762,6 +763,14 @@ var ConversationView = {
     });
 
     MessageManager.getMessages(function mm_getMessages(messages) {
+      /** QUICK and dirty fix for the timestamp issues,
+       * it seems that API call does not give the messages ordered
+       * so we need to sort the array
+       */
+      messages.sort(function(a, b) {
+        return a.timestamp - b.timestamp;
+      });
+
       var lastMessage = messages[messages.length - 1];
       if (pendingMsg &&
           (!lastMessage || lastMessage.id !== pendingMsg.id))
@@ -772,45 +781,14 @@ var ConversationView = {
 
       for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
-
         if (!msg.read)
           unreadList.push(msg.id);
 
-        var dataId = msg.id; // uuid
+        // Add a grouping header if necessary
+        var header = ConversationListView.createNewHeader(msg) || '';
+        fragment += header;
 
-        var outgoing = (msg.delivery == 'sent' || msg.delivery == 'sending');
-        var num = outgoing ? msg.sender : msg.receiver;
-        var dataNum = num;
-
-        var className = (outgoing ? 'sender' : 'receiver') + '"';
-        if (msg.delivery == 'sending')
-          className = 'receiver pending"';
-
-        var pic = 'style/images/contact-placeholder.png';
-
-        //Split body in different lines if the sms contains \n
-        var msgLines = msg.body.split('\n');
-        //Apply the escapeHTML body to each line
-        msgLines.forEach(function(line, index) {
-          msgLines[index] = escapeHTML(line);
-        });
-        //Join them back with <br />
-        var body = msgLines.join('<br />');
-        var timestamp = msg.timestamp.getTime();
-
-        fragment += '<div class="message-block" ' + 'data-num="' + dataNum +
-                    '" data-id="' + dataId + '">' +
-                    '  <input type="checkbox" class="fake-checkbox"/>' +
-                    '  <span></span>' +
-                    '  <div class="message-container ' + className + '>' +
-                    '    <div class="message-bubble"></div>' +
-                    '    <div class="time" data-time="' + timestamp + '">' +
-                    // '    <div class="time">' +
-                         giveHourMinute(msg.timestamp) +
-                    '    </div>' +
-                    '    <div class="text">' + body + '</div>' +
-                    '  </div>' +
-                    '</div>';
+        fragment += self.createMessageThread(msg);
       }
 
       view.innerHTML = fragment;
@@ -823,6 +801,43 @@ var ConversationView = {
         //        error, we do nothing currently.
       });
     }, filter, true);
+  },
+
+  createMessageThread: function cv_createMessageThread(message) {
+    var dataId = message.id; // uuid
+    var outgoing = (message.delivery == 'sent' ||
+      message.delivery == 'sending');
+    var num = outgoing ? message.sender : message.receiver;
+    var dataNum = num;
+
+    var className = (outgoing ? 'sender' : 'receiver') + '"';
+    if (message.delivery == 'sending')
+      className = 'sender pending"';
+
+    var pic = 'style/images/contact-placeholder.png';
+
+    //Split body in different lines if the sms contains \n
+    var msgLines = message.body.split('\n');
+    //Apply the escapeHTML body to each line
+    msgLines.forEach(function(line, index) {
+      msgLines[index] = escapeHTML(line);
+    });
+    //Join them back with <br />
+    var body = msgLines.join('<br />');
+    var timestamp = message.timestamp.getTime();
+
+    return '<div class="message-block" ' + 'data-num="' + dataNum +
+           '" data-id="' + dataId + '">' +
+           '  <input type="checkbox" class="fake-checkbox"/>' +
+           '  <span></span>' +
+           '  <div class="message-container ' + className + '>' +
+           '    <div class="message-bubble"></div>' +
+           '    <div class="time" data-time="' + timestamp + '">' +
+                giveHourMinute(message.timestamp) +
+           '    </div>' +
+           '    <div class="text">' + body + '</div>' +
+           '  </div>' +
+           '</div>';
   },
 
   deleteMessage: function cv_deleteMessage(messageId) {
