@@ -507,6 +507,20 @@ var Contacts = (function() {
     SmsIntegration.sendSms(currentContact.tel[0].number);
   }
 
+  var callOrPick = function callOrPick() {
+    // FIXME: only handling 1 number
+    var number = currentContact.tel[0].number;
+    if (ActivityHandler.currentActivity) {
+      ActivityHandler.pick(number);
+    } else {
+      var sanitizedNumber = number.replace(/-/g, '');
+
+      var telephony = window.navigator.mozTelephony;
+      if (telephony) {
+        telephony.dial(sanitizedNumber);
+      }
+    }
+  }
 
   var showAdd = function showAdd() {
     resetForm();
@@ -807,5 +821,31 @@ var Contacts = (function() {
     'sendSms': sendSms,
     'saveContact': saveContact,
     'toggleFavorite': toggleFavorite
+    'callOrPick': callOrPick
   };
 })();
+
+var ActivityHandler = {
+  currentActivity: null,
+
+  pick: function ah_pick(number) {
+    this.currentActivity.postResult({ number: number });
+    this.currentActivity = null;
+  },
+  cancel: function ah_cancel() {
+    this.currentActivity.postError('canceled');
+    this.currentActivity = null;
+  }
+};
+
+window.navigator.mozSetMessageHandler('activity',
+                                       function activityHandler(activity) {
+  ActivityHandler.currentActivity = activity;
+});
+
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  if (document.mozHidden) {
+    if (ActivityHandler.currentActivity)
+      ActivityHandler.cancel();
+  }
+});
