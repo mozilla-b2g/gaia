@@ -6773,6 +6773,8 @@ UserDict.UserDictSearchable.prototype = {
   /**
    * Compact inital letters for both FuzzyCompareSpellId and cache system
    * The length is DictDef.kMaxLemmaSize / 4.
+   * Each element of the signature is a 32-bit number, while the spelling ID is
+   * 8-bit number. So 4 spelling IDs can be compacted into one signature number.
    * @type Array.<number>
    */
   signature: null
@@ -6856,7 +6858,7 @@ UserDict.UserDictScoreOffsetPair =
 
 UserDict.UserDictScoreOffsetPair.prototype = {
   score: 0,
-  uoffset_index: 0
+  offset_index: 0
 };
 
 UserDict.Lemma = function lemma_constructor() {
@@ -7022,8 +7024,7 @@ UserDict.prototype = {
   /**
    * @override
    */
-  reset_milestones:
-      function userDict_reset_milestones(from_step, from_handle) {
+  reset_milestones: function userDict_reset_milestones(from_step, from_handle) {
     return;
   },
 
@@ -7046,8 +7047,7 @@ UserDict.prototype = {
   /**
    * @override
    */
-  get_lpis:
-      function userDict_get_lpis(splid_str, lpi_items, start, lpi_max) {
+  get_lpis: function userDict_get_lpis(splid_str, lpi_items, start, lpi_max) {
     return this._get_lpis(splid_str, lpi_items, start, lpi_max);
   },
 
@@ -7059,8 +7059,9 @@ UserDict.prototype = {
     if (this.is_valid_state() == false) {
       return str;
     }
-    if (this.is_valid_lemma_id(id_lemma) == false)
+    if (this.is_valid_lemma_id(id_lemma) == false) {
       return str;
+    }
     var offset = this.offsets_by_id_[id_lemma - this.start_id_];
     str = this.get_lemma_word(offset);
     return str;
@@ -7093,8 +7094,9 @@ UserDict.prototype = {
     var new_added = 0;
     var end = this.dict_info_.lemma_count - 1;
     var j = this.locate_first_in_predicts(last_hzs);
-    if (j == -1)
+    if (j == -1) {
       return 0;
+    }
 
     while (j <= end) {
       var offset = this.predicts_[j];
@@ -7142,8 +7144,8 @@ UserDict.prototype = {
   /**
    * @override
    */
-  update_lemma:
-      function userDict_update_lemma(lemma_id, delta_count, selected) {
+  update_lemma: function userDict_update_lemma(lemma_id, delta_count,
+                                               selected) {
     if (this.is_valid_state() == false) {
       return 0;
     }
@@ -7794,56 +7796,68 @@ UserDict.prototype = {
     }
   },
 
+  /**
+   * Extract the lower n bits for a number.
+   * @private
+   * @param {number} number The number to be extracted.
+   * @param {number} n How many bits to be extracted.
+   * @return {number} The number of extracted n bits.
+     */
   extract_lower_n_bits: function userDict_extract_lower_n_bits(number, n) {
     var move = 32 - n;
     return number << move >> move;
   },
 
+  /**
+   * @private
+   */
   translate_score: function userDict_translate_score(raw_score) {
     // 1) ori_freq: original user frequency
     var ori_freq = this.extract_score_freq(raw_score);
     // 2) lmt_off: lmt index (week offset for example)
-    var lmt_off = ((raw_score & 0xffff0000) >> 16);
-    if (UserDict.kUserDictLMTBitWidth < 16) {
-      var mask = ~(1 << kUserDictLMTBitWidth);
-      lmt_off &= mask;
-    }
+    var lmt_off = (raw_score >> 16);
+    lmt_off = this.extract_lower_n_bits(lmt_off, UserDict.kUserDictLMTBitWidth);
     // 3) now_off: current time index (current week offset for example)
     // assuming load_time_ is around current time
     var now_off = this.load_time_;
     now_off = (now_off - UserDict.kUserDictLMTSince) /
       UserDict.kUserDictLMTGranularity;
-    now_off = (now_off << (64 - UserDict.kUserDictLMTBitWidth));
-    now_off = (now_off >> (64 - UserDict.kUserDictLMTBitWidth));
+    now_off = this.extract_lower_n_bits(now_off, UserDict.kUserDictLMTBitWidth);
     // 4) factor: decide expand-factor
     var delta = now_off - lmt_off;
-    if (delta > 4)
+    if (delta > 4) {
       delta = 4;
+    }
     var factor = 80 - (delta << 4);
 
-    var tf = (double)(this.dict_info_.total_nfreq + this.total_other_nfreq_);
+    var tf = this.dict_info_.total_nfreq + this.total_other_nfreq_;
     return Math.log(factor * ori_freq / tf) * NGram.kLogValueAmplifier;
   },
 
+  /**
+   * @private
+   */
   extract_score_freq: function userDict_extract_score_freq(raw_score) {
     var freq = (raw_score & 0x0000ffff);
     return freq;
   },
 
+  /**
+   * @private
+   */
   extract_score_lmt: function userDict_extract_score_lmt(raw_score) {
-    var lmt = ((raw_score & 0xffff0000) >> 16);
-    if (UserDict.kUserDictLMTBitWidth < 16) {
-      var mask = ~(1 << UserDict.kUserDictLMTBitWidth);
-      lmt &= mask;
-    }
+    var lmt = raw_score >> 16;
+    lmt = this.extract_lower_n_bits(lmt, UserDict.kUserDictLMTBitWidth);
     lmt = lmt * UserDict.kUserDictLMTGranularity + UserDict.kUserDictLMTSince;
     return lmt;
   },
 
+  /**
+   * @private
+   */
   build_score: function userDict_extract_score_lmt(lmt, freq) {
     lmt = (lmt - UserDict.kUserDictLMTSince) / UserDict.kUserDictLMTGranularity;
-    lmt = (lmt << (32 - UserDict.kUserDictLMTBitWidth));
-    lmt = (lmt >> (32 - UserDict.kUserDictLMTBitWidth));
+    lmt = this.extract_lower_n_bits(lmt, UserDict.kUserDictLMTBitWidth);
     var s = freq;
     s &= 0x0000ffff;
     s = (lmt << 16) | s;
@@ -8099,6 +8113,7 @@ UserDict.prototype = {
 
   /**
    * Reset the dict.
+   * @private
    * @param {string} file_name The dict file name.
    * @param {function(object): void} callback The callback function, which will
    *    be called when the operation is done. The object parameter is the
@@ -8136,6 +8151,7 @@ UserDict.prototype = {
 
   /**
    * Validate the dict file.
+   * @private
    * @param {object} dictJson The json object of the dict file.
    * @return {boolean} true if the file is valid.
    */
@@ -8164,6 +8180,7 @@ UserDict.prototype = {
 
   /**
    * Load dict file.
+   * @private
    * @param {object} dictJson The JSON object of the dict file.
    * @param {number} start_id The start id of the user lemmas.
    * @return {boolean} true if success.
@@ -8191,6 +8208,9 @@ UserDict.prototype = {
     return true;
   },
 
+  /**
+   * @private
+   */
   is_valid_state: function userDict_is_valid_state() {
     if (this.state_ == UserDict.UserDictState.USER_DICT_NONE) {
       return false;
@@ -8198,6 +8218,9 @@ UserDict.prototype = {
     return true;
   },
 
+  /**
+   * @private
+   */
   is_valid_lemma_id: function userDict_is_valid_lemma_id(id) {
     if (id >= this.start_id_ && id <= this.get_max_lemma_id()) {
       return true;
@@ -8205,16 +8228,25 @@ UserDict.prototype = {
     return false;
   },
 
+  /**
+   * @private
+   */
   get_max_lemma_id: function userDict_get_max_lemma_id() {
     // When a lemma is deleted, we don't not claim its id back for
     // simplicity and performance
     return this.start_id_ + this.dict_info_.lemma_count - 1;
   },
 
+  /**
+   * @private
+   */
   set_lemma_flag: function userDict_set_lemma_flag(offset, flag) {
     this.lemmas_[offset].flag |= flag;
   },
 
+  /**
+   * @private
+   */
   get_lemma_flag: function userDict_get_lemma_flag(offset) {
     return this.lemmas_[offset].flag;
   },
@@ -8293,6 +8325,7 @@ UserDict.prototype = {
     for (i = 0; i < len1; i++) {
       var py1 = spl_trie.get_spelling_str(id1[i]).charCodeAt(0);
       var off = 8 * (i % 4);
+      // extract the spelling ID from the signature.
       var py2 = ((searchable.signature[i / 4] & (0xff << off)) >> off);
       if (py1 == py2) {
         continue;
