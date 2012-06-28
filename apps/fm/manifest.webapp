@@ -10,13 +10,53 @@
     "mozFM"
   ],
   "locales": {
-    "de": {
-      "name": "FM-Radio",
-      "description": "Gaia FM-Radio"
+    "ar": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
     },
-    "zh-CN": {
-      "name": "收音机",
-      "description": "收音机"
+    "ca": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "de": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "el": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "en-US": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "es": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "fr": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "it": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "pt-BR": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "ru": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "tr": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "zh-TW": {
+      "name": "\u6536\u97f3\u673a",
+      "description": "\u6536\u97f3\u673a"
     }
   },
   "default_locale": "en-US",
