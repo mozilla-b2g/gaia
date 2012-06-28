@@ -65,8 +65,8 @@ header h1 a:active {
   line-height: 40px;
   font-size: 0.85em;
   color: #333;
-  border-bottom: 1px solid #fbb;
-  background: url(images/diagonal-pattern.png) repeat scroll 0 0 #fcc;
+  border-bottom: 1px solid #bbf;
+  background: url(images/diagonal-pattern.png) repeat scroll 0 0 #ccf;
 }
 
 /* View - Slide Horizontal Transition */
