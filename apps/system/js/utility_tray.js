@@ -97,7 +97,7 @@ var UtilityTray = {
     this.startX = touch.pageX;
     this.startY = touch.pageY;
     this.screen.classList.add('utility-tray');
-    this.onTouchMove({ pageY: touch.pageY });
+    this.onTouchMove({ pageY: touch.pageY + this.statusbar.offsetHeight });
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
