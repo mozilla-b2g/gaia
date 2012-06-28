@@ -68,7 +68,6 @@ var ListMenu = {
     }
     items.forEach(function traveseItems(item) {
       var item_div = document.createElement('div');
-      console.dir(item);
       if (item.type && item.type == 'menu') {
         this.currentLevel += 1;
         this.currentParent = container_div.id;
