@@ -36,7 +36,10 @@ var Activities = {
     var items = [];
 
     choices.forEach(function(choice, index) {
-      items.push({label: choice, value: index});
+      items.push({label: choice.title,
+                  icon: choice.icon,
+                  value: index
+      });
     });
 
     return items;
