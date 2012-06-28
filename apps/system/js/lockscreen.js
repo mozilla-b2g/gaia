@@ -448,7 +448,7 @@ var LockScreen = {
     this.mainScreen.focus();
     if (instant) {
       this.overlay.classList.add('no-transition');
-      this.unloadPanel();
+      this.switchPanel();
     } else {
       this.overlay.classList.remove('no-transition');
     }
@@ -509,7 +509,11 @@ var LockScreen = {
   unloadPanel: function ls_loadPanel(panel) {
     switch (panel) {
       case 'passcode':
-        // Reset passcode panel
+        // Reset passcode panel only if the status is not error
+        if (this.overlay.dataset.passcodeStatus == 'error')
+          break;
+
+        delete this.overlay.dataset.passcodeStatus;
         this.passCodeEntered = '';
         this.updatePassCodeUI();
         break;
@@ -539,9 +543,6 @@ var LockScreen = {
 
   switchPanel: function ls_switchPanel(panel) {
     var overlay = this.overlay;
-    if (('panel' in overlay.dataset) && panel == overlay.dataset.panel)
-      return;
-
     this.unloadPanel(overlay.dataset.panel);
 
     if (panel) {
@@ -611,6 +612,8 @@ var LockScreen = {
   },
 
   checkPassCode: function lockscreen_checkPassCode() {
+    var self = this;
+
     if (this.passCodeEntered === this.smileyCode)
       this.overlay.classList.add('smiley');
 
@@ -618,11 +621,9 @@ var LockScreen = {
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
 
-      setTimeout((function success() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.unlock();
-        this.passCodeEntered = '';
-      }).bind(this), this.kPassCodeSuccessTimeout);
+      setTimeout(function success() {
+        self.unlock();
+      }, this.kPassCodeSuccessTimeout);
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
       if (navigator.mozVibrate)
@@ -633,11 +634,11 @@ var LockScreen = {
       if (this.passCodeError >= 3)
         timeout = this.kPassCodeTriesTimeout;
 
-      setTimeout((function error() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.passCodeEntered = '';
-        this.updatePassCodeUI();
-      }).bind(this), timeout);
+      setTimeout(function error() {
+        delete self.overlay.dataset.passcodeStatus;
+        self.passCodeEntered = '';
+        self.updatePassCodeUI();
+      }, timeout);
     }
   },
 
