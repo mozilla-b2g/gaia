@@ -110,11 +110,11 @@ body.hidden *[data-l10n-id] {
 }
 
 *[role=tablist] *[role=tabpanel] {
-	display:none;
+  transform: translateY(-10000px);
 }
 
 *[role=tablist] *:target {
-	display: block;
+  transform: translateY(0px);
 }
 
 /* Structure for toolbar */
