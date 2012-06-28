@@ -24,6 +24,8 @@ var PopupManager = {
     this._currentPopup = evt.detail.frameElement;
     var popup = this._currentPopup;
     popup.dataset.frameType = 'popup';
+    popup.dataset.frameName = evt.detail.name;
+    popup.dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
     // FIXME: won't be needed once
     // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
@@ -34,15 +36,16 @@ var PopupManager = {
   },
 
   close: function pm_close(evt) {
-    var target = evt ? evt.target : this._currentPopup;
+    if (evt && (!'frameType' in evt.target.dataset ||
+        evt.target.dataset.frameType !== 'popup'))
+      return;
 
     this.screen.classList.remove('popup');
 
     var self = this;
     this.container.addEventListener('transitionend', function trWait() {
       self.container.removeEventListener('transitionend', trWait);
-      self.container.removeChild(target);
-
+      self.container.removeChild(self._currentPopup);
       self._currentPopup = null;
     });
 

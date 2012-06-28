@@ -10,7 +10,7 @@
 
   -moz-user-select: none;
 
-  -moz-transition: -moz-transform 0.5s ease 0.2s;
+  -moz-transition: -moz-transform 0.5s ease 0.3s;
 }
 
 #screen:not(.locked) > #lockscreen {
@@ -433,7 +433,7 @@
 
   .lockscreen-rail {
     bottom: 75px;
-    width: -moz-calc(50% - 50px - 33px);
+    width: -moz-calc(50% - 75px - 33px);
   }
 
   #lockscreen-rail-left {

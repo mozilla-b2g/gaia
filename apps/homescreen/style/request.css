@@ -34,14 +34,14 @@
 }
 
 #permission-message {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   color: #fff;
   margin: 0 0 1.5rem 0;
   padding: 0;
 }
 
 #permission-dialog button {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: bold;
   width: -moz-calc(50% - 0.75rem);
   height: 4rem;
