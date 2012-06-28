@@ -42,7 +42,7 @@ input[type="image"] {
   background-image: url('./images/add.png');
   background-repeat: no-repeat;
   background-position: center;
-  background-color: none;
+  background-color: transparent;
 }
 
 .awesome-screen #awesomescreen {
@@ -53,7 +53,7 @@ input[type="image"] {
   background-image: url('./images/close.png');
   background-position: center;
   background-repeat: no-repeat;
-  background-color: none;
+  background-color: transparent;
 }
 
 .current {
