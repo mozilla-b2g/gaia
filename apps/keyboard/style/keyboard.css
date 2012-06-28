@@ -69,7 +69,8 @@ button::-moz-focus-inner {
 /* Buttons: logic keys */
 .keyboard-key {
   -moz-box-sizing: border-box;
-  padding: 0.25rem 0.2rem 0.15rem;
+  box-sizing: boder-box;
+  padding: 0.2rem 0.2rem;
   border: none;
   background: none;
   min-width: 2.6rem;
@@ -172,6 +173,7 @@ button::-moz-focus-inner {
   background: url(images/key-special-begin.png) no-repeat left top, url(images/key-special-end.png) no-repeat right top;
   background-size: auto 100%;
 }
+
 .keyboard-key.special-key > .visual-wrapper > span { 
   font-size: 1.5rem;
   line-height: 4rem;
@@ -199,6 +201,7 @@ button::-moz-focus-inner {
   border: #4495A8 2px solid;
   border-radius: 0.3rem;
 }
+
 .keyboard-key.special-key.highlighted > .visual-wrapper > span:after  {
   display: none;
 }
@@ -225,6 +228,7 @@ button::-moz-focus-inner {
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after {
   display: none;
 }
+
 /* Menu for special keys */
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper{
   background: #ebebeb;
@@ -235,10 +239,6 @@ button::-moz-focus-inner {
 }
 
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
-/* We need to keep this CSS3 properties for using it in the future when the gradients bugs would get resolved */
-/*  background: -moz-linear-gradient(#fff, #ebebeb);
-  border-radius: 0.3rem;
-  border: 1px solid rgba(0, 0, 0, 0.6);*/
   box-shadow: none;
   z-index: 100;
   color: #333;
@@ -270,8 +270,14 @@ button::-moz-focus-inner {
   padding: 0 0.5rem;
   display: none;
 }
-.keyboard-key:first-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0.3rem 0; }
-.keyboard-key:last-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0 0.3rem; }
+
+.keyboard-key:first-child #keyboard-accent-char-menu {
+  border-radius: 0.3rem 0.3rem 0.3rem 0;
+}
+
+.keyboard-key:last-child #keyboard-accent-char-menu {
+  border-radius: 0.3rem 0.3rem 0 0.3rem;
+}
 
 #keyboard-accent-char-menu.show {
   display: block;
@@ -286,6 +292,7 @@ button::-moz-focus-inner {
 #keyboard-accent-char-menu .keyboard-key {
 margin-top: 0.3rem;
 }
+
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
   border: #53B6CC 2px solid;
   border-radius: 0.3rem;
@@ -332,16 +339,11 @@ margin-top: 0.3rem;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
-  /* We need to keep this CSS3 properties for using it in the future when the gradients bugs would get resolved */
-/*  background: -moz-linear-gradient(#fff, #ebebeb);
-  box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);*/
   font-family: 'Open Sans Semibold';  
   font-size: 1.8rem;
   line-height: 3.8rem;
   color: #333;
   border: none;
-  /*border: 1px solid rgba(0, 0, 0, 0.6);*/
-  /*border-radius: 0.3rem;*/
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted {
@@ -365,6 +367,7 @@ margin-top: 0.3rem;
 .keyboard-key.kbr-key-hold > .visual-wrapper {
   background: url(images/key-hold-begin.png) no-repeat left bottom, url(images/key-hold-end.png) no-repeat right bottom;
 }
+
 .keyboard-key.kbr-key-hold > .visual-wrapper > span {
   color: #295B65;
   background: url(images/key-hold-middle.png) repeat-x center bottom;
@@ -406,6 +409,7 @@ margin-top: 0.3rem;
   display: none;
   margin: 0 -1rem 0 -1rem;
 }
+
 #keyboard.candidate-panel #keyboard-candidate-panel {
   display: block;
   width: -moz-calc(100% - 62px + 1rem);
@@ -426,7 +430,8 @@ margin-top: 0.3rem;
   border: none;
   border-top: 2px solid #a3a3a3;
   z-index: 1;
-  margin:0; padding:0;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -503,3 +508,4 @@ margin-top: 0.3rem;
 .keyboard-pending-symbols-highlight-blue {
   background: #3333aa;
 }
+

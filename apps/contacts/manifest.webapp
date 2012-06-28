@@ -10,9 +10,21 @@
     "mozApps"
   ],
   "locales": {
+    "ar": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "ca": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
     "de": {
       "name": "Kontakte",
       "description": "Gaia Kontakte"
+    },
+    "el": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
     },
     "en-US": {
       "name": "Contacts",
@@ -25,6 +37,26 @@
     "fr": {
       "name": "Contacts",
       "description": "Contacts Gaia"
+    },
+    "it": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "pt-BR": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "ru": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "tr": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "zh-TW": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
     }
   },
   "default_locale": "en-US",

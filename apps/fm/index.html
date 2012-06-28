@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html manifest="manifest.appcache">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
     <title>FM Radio</title>
     <link rel="stylesheet" href="style/fm.css" type="text/css" />
-    <link rel="resource" type="application/l10n" href="locale/fm.properties"/>
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini" />
     <!-- Compatibility -->
-    <script>
+    <script type="text/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -22,7 +22,7 @@
       document.write('<script src="' + src + '"><\/script>');
     </script>
 
-    <script src="js/fm.js"></script>
+    <script type="text/javascript" src="js/fm.js"></script>
   </head>
 
   <body class="hidden">
@@ -75,7 +75,7 @@
       </div>
     </div>
     <div id="antenna-warning" hidden="hidden">
-      <div><div data-l10n-id="noantenna">Please plugin your headset to use the FM Radio</div></div>
+      <div><div data-l10n-id="noAntenna">Please plugin your headset to use the FM Radio</div></div>
     </div>
     <div id="popup-delete-box" hidden="hidden">
       <a id="popup-delete-button" href="#popup-delete" class="delete" data-l10n-id="delete">Delete</a>

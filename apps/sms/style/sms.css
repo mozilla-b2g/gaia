@@ -323,10 +323,6 @@ body.edit-mode #msg-conversations-list > a {
   -moz-transition: padding 0.3s ease-out;
 }
 
-#msg-conversations-list > a:active {
-  background: hsla(35,100%,50%,.2);
-}
-
 #msg-conversations-list > a.hide {
   display: none;
 }
@@ -713,6 +709,7 @@ body.conversation-new-msg #view-num {
 
 #view-list {
   bottom: 5.5rem;
+  background: #F4F4F4;
 }
 
 #view-list > div .message-container {
@@ -743,16 +740,16 @@ body.conversation-new-msg #view-num {
   border-radius: 0.5rem 0 0.5rem 0.5rem;
   background: #FFFFFF;
   border: 0.1rem solid #878787;
-  margin-left: 4rem;
-  margin-right: 1.5rem;
+  margin-left: 3.5rem;
+  margin-right: 2rem;
 }
 
 #view-list > div .receiver {
   border-radius: 0 0.5rem 0.5rem 0.5rem;
   background: #F9F8EE;
   border: 0.1rem solid #F08A48;
-  margin-left: 1.5rem;
-  margin-right: 4rem;
+  margin-left: 2rem;
+  margin-right: 3.5rem;
 }
 
 #view-list > div .pending {
@@ -1032,6 +1029,14 @@ body.hidden *[data-l10n-id] {
   color: #ff4e00;
   text-transform: uppercase;
   font-family: 'FontRegular';
- 
+}
+
+#view-list .groupHeader {
+  margin-bottom: 0.5rem;
+}
+
+/** DEMo STUFF **/
+#view-delete-button #view-delete-all-button #msg-delete-all-button #msg-delete-button {
+  display: none;
 }
 

@@ -12,7 +12,7 @@
   -moz-transition: -moz-transform 0.3s ease;
 }
 
-#popup-container.displayed {
+.popup #popup-container {
   -moz-transform: translateY(0);
 }
 
@@ -24,4 +24,5 @@
   height: 80%;
 
   border-radius: 8px;
+  background-color: #fff;
 }
