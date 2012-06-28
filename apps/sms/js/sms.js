@@ -708,7 +708,7 @@ var ConversationView = {
   },
 
   showConversation: function cv_showConversation(num, pendingMsg) {
-    ConversationListView._lastHeader = undefined;
+    delete ConversationListView._lastHeader;
     var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
@@ -763,14 +763,14 @@ var ConversationView = {
     });
 
     MessageManager.getMessages(function mm_getMessages(messages) {
-      /** QUICK and dirty fix for the timestamp issues, 
-       * it seems that API call does not give the messages ordered 
+      /** QUICK and dirty fix for the timestamp issues,
+       * it seems that API call does not give the messages ordered
        * so we need to sort the array
        */
-      messages.sort(function(a,b){
+      messages.sort(function(a, b) {
         return a.timestamp - b.timestamp;
       });
-      
+
       var lastMessage = messages[messages.length - 1];
       if (pendingMsg &&
           (!lastMessage || lastMessage.id !== pendingMsg.id))
@@ -784,11 +784,10 @@ var ConversationView = {
         if (!msg.read)
           unreadList.push(msg.id);
 
-    // Add a grouping header if necessary
-        var header = ConversationListView.createNewHeader(msg);
-        if (header != null) {
-          fragment += header;
-        }
+        // Add a grouping header if necessary
+        var header = ConversationListView.createNewHeader(msg) || '';
+        fragment += header;
+
         fragment += self.createMessageThread(msg);
       }
 
