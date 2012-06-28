@@ -153,8 +153,17 @@ iframe.backgroundWindow {
   bottom: 0;
   width: 100%;
   height: 100%;
-  z-index: 10001;
+  z-index: 9000;
   border: 0;
+}
+
+/* XXX: better fix would be resize the
+ * #popup-container and #modal-dialog
+ * when keyboard is shown.
+ */
+#screen.popup #keyboard-frame,
+#screen.modal-dialog #keyboard-frame {
+  z-index: 10001;
 }
 
 #keyboard-frame.hide {
@@ -171,6 +180,14 @@ iframe.backgroundWindow {
   background: -moz-element(#keyboard-frame);
   background-position: top center;
   pointer-events: none;
+}
+
+/*
+ * Keyboard is on top of these overlays, hiding the overlay
+ */
+#screen.popup #keyboard-overlay,
+#screen.modal-dialog #keyboard-overlay {
+  display: none;
 }
 
 #screen.fullscreen #keyboard-overlay {

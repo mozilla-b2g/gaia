@@ -36,7 +36,7 @@ var ModalDialog = {
         document.getElementById(this.prefix + name);
     }, this);
 
-    this.overlay = document.getElementById('modal-dialog');
+    this.screen = document.getElementById('screen');
   },
 
   // Save the event returned by mozbrowsershowmodalprompt for later use.
@@ -90,7 +90,7 @@ var ModalDialog = {
   show: function md_show() {
       var message = this.evt.detail.message;
       var elements = this.elements;
-      this.overlay.classList.add('visible');
+      this.screen.classList.add('modal-dialog');
 
       switch (this.evt.detail.promptType) {
         case 'alert':
@@ -113,7 +113,7 @@ var ModalDialog = {
 
   // When user clicks OK button on alert/confirm/prompt
   confirmHandler: function md_confirmHandler() {
-    this.overlay.classList.remove('visible');
+    this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
     switch (this.evt.detail.promptType) {
@@ -146,7 +146,7 @@ var ModalDialog = {
   // When user clicks cancel button on confirm/prompt or
   // when the user try to escape the dialog with the escape key
   cancelHandler: function md_cancelHandler() {
-    this.overlay.classList.remove('visible');
+    this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
     switch (this.evt.detail.promptType) {
