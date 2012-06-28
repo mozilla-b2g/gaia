@@ -146,7 +146,6 @@ body.conversation #msg-conversations {
   background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
   margin: 0;
   padding: 0;
- 
 }
 
 .toolbar-top {
@@ -180,7 +179,7 @@ body.conversation #msg-conversations {
 .list {
   position: absolute;
   top: 5rem;
-  bottom: 0rem;
+  bottom: 0;
   left: 0;
   right: 0;
   overflow-x: hidden;
@@ -338,11 +337,11 @@ body.edit-mode #msg-conversations-list > a {
   background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
 }
 
-#msg-conversations-list > a:active > .name{
+#msg-conversations-list > a:active > .name {
   color: white;
 }
 
-#msg-conversations-list > a:active > .msg{
+#msg-conversations-list > a:active > .msg {
   color: #ffbc8c;
 }
 
@@ -365,7 +364,7 @@ body.edit-mode #msg-conversations-list > a {
 a.unread .unread-mark {
   display: block !important;
   width: 3rem !important;
-  left: 0rem !important;
+  left: 0 !important;
   height: 100% !important;
   top: 0 !important;
   background: transparent !important;
@@ -520,7 +519,7 @@ body.edit-mode #msg-conversations-list .msg {
 }
 
 #msg-new-message {
-  right: 0rem;
+  right: 0;
   width: 5rem;
   margin-right: 2rem; 
   position: absolute;
@@ -537,7 +536,7 @@ body.edit-mode #msg-conversations-list .msg {
 
 #msg-edit-button, #msg-search-edit-button {
   display: none;
-  right: 0rem;
+  right: 0;
   width: 5rem;
   margin-right: 2rem; 
   position: absolute;
@@ -617,7 +616,7 @@ body.edit-mode .edit-hide-element {
 }
 
 #view-edit-button { 
-  right: 0rem;
+  right: 0;
   width: 4rem;
   margin-right: 2rem; 
   position: absolute;
@@ -634,7 +633,7 @@ body.edit-mode #view-edit-button {
 }
 
 #view-add-button {
-  right: 0rem;
+  right: 0;
   width: 4rem;
   margin-right: 1rem; 
   position: absolute;
@@ -983,7 +982,7 @@ body.edit-mode #view-list > div.message-block {
   font-size: -moz-calc(7 * 0.226rem);
   border-radius: 0.3rem;
   border: 1px solid rgba(0,0,0,.3);
-  box-shadow: 0px 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
+  box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
 }
 
 #view-msg-send {
@@ -1005,7 +1004,7 @@ body.hidden *[data-l10n-id] {
 
   text-align: center;
   background: rgba(0,0,0,0.4);
-  width: 0rem;
+  width: 0;
   z-index: 1;   
 }
 
@@ -1034,7 +1033,7 @@ body.hidden *[data-l10n-id] {
   table-layout: fixed;
   width: 100%;
   height: 4rem;
-  border-spacing: .5rem 0rem;
+  border-spacing: .5rem 0;
 }
 
 .view-confirm-option {
