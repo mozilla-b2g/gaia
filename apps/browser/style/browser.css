@@ -46,8 +46,9 @@ input[type="image"] {
 }
 
 .tabs-screen #main-screen {
-  background-image: url('../style/images/drawer-header-background.png');
-  background-repeat: repeat-x;
+  background-image: url('../style/images/drawer-collapse.png'), url('../style/images/drawer-header-background.png');
+  background-repeat: no-repeat, repeat-x;
+  background-position: top right, top right;
 }
 
 .awesome-screen #awesomescreen {
