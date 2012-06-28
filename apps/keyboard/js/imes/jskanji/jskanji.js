@@ -4,6 +4,12 @@
 
   var MAX_FREQUENCY = 10000;
 
+  var IMELayouts = {
+    'EN': 'jp-kanji-en',
+    'JP': 'jp-kanji',
+    'NUM': 'jp-kanji-number'
+  };
+
   // IME special key code map
   // see `layout.js`
   var IMESpecialKey = {
@@ -86,7 +92,7 @@
   ];
 
   // Hiragana (平假名) case convert table
-  var HiraganaCaseTable = {
+  var IMEHiraganaCaseTable = {
     'あ': 'ぁ', 'い': 'ぃ', 'う': 'ぅ', 'え': 'ぇ', 'お': 'ぉ', 'ぁ': 'あ', 'ぃ': 'い',
     'ぅ': 'ヴ', 'ぇ': 'え', 'ぉ': 'お', 'か': 'が', 'き': 'ぎ',
     'く': 'ぐ', 'け': 'げ', 'こ': 'ご', 'が': 'か', 'ぎ': 'き', 'ぐ': 'く', 'げ': 'け',
@@ -217,7 +223,7 @@
     var _previousKeycode = 0;
 
     // Current keyboard
-    var _currLayout = 'jp-kanji';
+    var _currLayout = IMELayouts.JP;
 
     var KeyMode = {
       'NORMAL': 0,
@@ -292,7 +298,7 @@
 
     this.show = function ime_show(inputType) {
       debug('Show. Input type: ' + inputType);
-      var layout = 'jp-kanji';
+      var layout = IMELayouts.JP;
       if (inputType === '' || inputType === 'text' ||
           inputType === 'textarea') {
         layout = _currLayout;
@@ -498,8 +504,10 @@
         // 大 <-> 小
         // TODO num and alpha exception
         case IMESpecialKey.CASE_CHANGE:
+          debug('case change');
           var last = _inputBuf[_inputBuf.length - 1];
-          var res = HiraganaCaseTable[last];
+          debug(last);
+          var res = IMEHiraganaCaseTable[last];
           if (!res) {
             res = IMEFullKatakanaCaseTable[last];
           }
@@ -516,17 +524,17 @@
 
         // Switch to basic layout
         case IMESpecialKey.BASIC_LAYOUT:
-          alterKeyboard('jp-kanji');
+          alterKeyboard(IMELayouts.JP);
           break;
 
         // Switch to english layout
         case IMESpecialKey.EN_LAYOUT:
-          alterKeyboard('jp-kanji-en');
+          alterKeyboard(IMELayouts.EN);
           break;
 
         // Switch to number layout
         case IMESpecialKey.NUM_LAYOUT:
-          alterKeyboard('jp-kanji-number');
+          alterKeyboard(IMELayouts.NUM);
           break;
 
         // Default key event
@@ -608,13 +616,12 @@
         return;
       };
 
-      // TODO
       // update _firstKana and _firstKanji
       _dict.getTerms(kanaArr, __getTermsCallback1);
 
       debug('firstTerm  ' + _firstKanji + ' ' + _firstKana);
 
-      // Send pending symbols to highlight `_firstKanji`
+      // Send pending symbols to highlight `_firstKana`
       sendPendingSymbols();
 
       // get candidates by _firstKana
@@ -630,7 +637,7 @@
           return;
         }
 
-        debug('handle return in transform mode');
+        debug('handle return in transform mode or select mode');
         // select first term
         _glue.sendString(_firstKanji);
         _inputBuf.splice(0, _firstKana.length);
@@ -658,6 +665,22 @@
         _keyMode = KeyMode.NORMAL;
         sendPendingSymbols();
         updateCandidateList(qNext.bind(self));
+
+      } else if (_keyMode === KeyMode.SELECT) {
+        if (_firstKana === 0) {
+          return;
+        }
+
+        debug('handle return in transform mode or select mode');
+        // select first term
+        _glue.sendString(_firstKanji);
+        _inputBuf.splice(0, _firstKana.length);
+
+        // query to generate first term
+        queryDict();
+
+        handlePorN(_inputBuf.slice(0, _firstKana.length));
+        return;
 
       } else {
         if (_firstKana.length > 0) {
@@ -826,28 +849,31 @@
 
           debug('getSentenceCallback:' + JSON.stringify(sentence));
 
-          _firstKanji = sentence[0].kanji;
-          _firstKana = sentence[0].kana;
+          if (sentence.length !== 0 ) {
 
-          var sentenceKana = '';
-          var sentenceKanji = '';
+            _firstKanji = sentence[0].kanji;
+            _firstKana = sentence[0].kana;
 
-          var i;
+            var sentenceKana = '';
+            var sentenceKanji = '';
 
-          for (i = 0; i < sentence.length; i++) {
-            sentenceKanji += sentence[i].kanji;
-            sentenceKana += sentence[i].kana;
-          }
+            var i;
 
-          var kanaStr = SyllableUtils.arrayToString(_inputBuf);
+            for (i = 0; i < sentence.length; i++) {
+              sentenceKanji += sentence[i].kanji;
+              sentenceKana += sentence[i].kana;
+            }
 
-          // look for candidate that is already in the list
-          var exists = candidates.some(function sentenceExists(candidate) {
-            return (candidate[0] === sentenceKanji);
-          });
+            var kanaStr = SyllableUtils.arrayToString(_inputBuf);
 
-          if (!exists) {
-            candidates.push([sentenceKanji, sentenceKana]);
+            // look for candidate that is already in the list
+            var exists = candidates.some(function sentenceExists(candidate) {
+              return (candidate[0] === sentenceKanji);
+            });
+
+            if (!exists) {
+              candidates.push([sentenceKanji, sentenceKana]);
+            }
           }
 
           // The remaining candidates doesn't match the entire buffer
@@ -941,6 +967,11 @@
 
       debug('sending pending symbols: ' + bufStr);
 
+      if (_inputBuf.length === 0) {
+        _glue.sendPendingSymbols('');
+        return;
+      }
+
       if (_keyMode === KeyMode.NORMAL) {
         _glue.sendPendingSymbols(bufStr);
         return;
@@ -951,7 +982,7 @@
           _keyMode = KeyMode.NORMAL;
 
         } else {
-          _glue.sendPendingSymbols(bufStr, 0, _firstKanji.length, 'blue');
+          _glue.sendPendingSymbols(bufStr, 0, _firstKana.length, 'blue');
         }
 
         return;
@@ -961,7 +992,7 @@
           _keyMode = KeyMode.NORMAL;
 
         } else {
-          _glue.sendPendingSymbols(bufStr, 0, _firstKanji.length, 'green');
+          _glue.sendPendingSymbols(bufStr, 0, _firstKana.length, 'green');
         }
 
         return;
@@ -1024,7 +1055,7 @@
   }
 
   /* copy from jszhuyin */
-  var debugging = false;
+  var debugging = true;
   var debug = function(str) {
     if (!debugging) {
       return;
