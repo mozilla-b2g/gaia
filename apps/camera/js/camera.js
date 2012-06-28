@@ -25,6 +25,10 @@ var Camera = {
   _filmStripShown: false,
   _filmStripTimer: null,
 
+  _styleSheet: document.styleSheets[0],
+  _orientationRule: null,
+  _iconOrientation: 0,
+
   _config: {
     fileFormat: 'jpeg',
     rotation: 90,
@@ -65,6 +69,14 @@ var Camera = {
   init: function camera_init() {
 
     this.setCaptureMode(this.CAMERA);
+
+    // We lock the screen orientation and deal with rotating
+    // the icons manually
+    var css = '#switch-button span, #capture-button span, ' +
+      '#gallery-button span { -moz-transform: rotate(0deg); }';
+    var insertId = this._styleSheet.cssRules.length - 1;
+    this._orientationRule = this._styleSheet.insertRule(css, insertId);
+    window.addEventListener("deviceorientation", this.orientChange.bind(this));
 
     this.viewfinder.addEventListener('click', this.autoFocus.bind(this));
     this.switchButton
@@ -110,6 +122,20 @@ var Camera = {
     }
 
     !this._filmStripShown ? this.showFilmStrip() : this.hideFilmStrip();
+  },
+
+  orientChange: function camera_orientChange(e) {
+    var rule = this._styleSheet.cssRules[this._orientationRule];
+    // PLEASE DO SOMETHING KITTENS ARE DYING
+    // Setting MozRotate to 90 or 270 causes element to disappear
+    var orientation =
+      (e.alpha > 315 || e.alpha < 45) ? 91 :
+      (e.alpha < 135) ? 0 :
+      (e.alpha < 225) ? 271 : 180;
+    if (orientation !== this._iconOrientation) {
+      rule.style.MozTransform = 'rotate(' + orientation + 'deg)';
+      this._iconOrientation = orientation;
+    }
   },
 
   setCaptureMode: function camera_setCaptureMode(mode) {
@@ -303,4 +329,3 @@ window.addEventListener('beforeunload', function() {
   delete Camera._timeoutId;
   Camera.viewfinder.src = null;
 });
-
