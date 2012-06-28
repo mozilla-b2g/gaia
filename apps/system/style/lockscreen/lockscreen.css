@@ -433,7 +433,7 @@
 
   .lockscreen-rail {
     bottom: 75px;
-    width: -moz-calc(50% - 50px - 33px);
+    width: -moz-calc(50% - 75px - 33px);
   }
 
   #lockscreen-rail-left {
