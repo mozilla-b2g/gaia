@@ -22,8 +22,8 @@
   vertical-align: middle;
 }
 
-#modal-dialog-alert, 
-#modal-dialog-confirm, 
+#modal-dialog-alert,
+#modal-dialog-confirm,
 #modal-dialog-prompt {
   width: 100%;
   background: black;
@@ -83,7 +83,7 @@
 }
 
 
-#modal-dialog.visible,
+#screen.modal-dialog #modal-dialog,
 #modal-dialog-alert.visible,
 #modal-dialog-confirm.visible,
 #modal-dialog-prompt.visible {
