@@ -187,9 +187,6 @@ body.conversation #msg-conversations {
   -moz-user-select: none;
 }
 
-input, textarea {
-}
-
 .button {
   -moz-box-sizing: border-box;
   text-align: center;
@@ -214,8 +211,7 @@ input, textarea {
   display: table-cell;
 }
 
-.back-wrapper{
-  
+.back-wrapper {
   height: inherit;
   text-align: center;
   border-right: solid .1rem rgba(0, 0, 0, 0.2);
@@ -230,8 +226,8 @@ input, textarea {
 
 .back-button-img {
   background: url("./images/top-navibar-left-arrow.png") no-repeat scroll 3rem 50% transparent;
-  left: 0rem;
-  top: 0rem;
+  left: 0;
+  top: 0;
   width: 8rem;
   height: 4.8rem;
   position: absolute;
@@ -264,7 +260,7 @@ input, textarea {
 #msg-search-container {
   padding-right: 1.6rem;
   margin: 0;
-  top: 0px;
+  top: 0;
   width: 100%;
   height: 6.4rem;
   border-bottom: solid 0.3rem #9b9b9b;
@@ -589,10 +585,6 @@ body.edit-mode .edit-hide-element {
   position: absolute;
   height: 100%;
   width: 5rem;
-  /*background: red;*/
-  /*text-align: center;
-  border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);*/
 }
 
 #view-done-button {
@@ -1046,7 +1038,7 @@ body.hidden *[data-l10n-id] {
   margin-bottom: 0.5rem;
 }
 
-/** DEMo STUFF **/
+/** This is a temporary code for demo **/
 #view-delete-button #view-delete-all-button #msg-delete-all-button #msg-delete-button {
   display: none;
 }
