@@ -97,6 +97,7 @@ var Settings = {
         var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
 
         var value = position / input.max;
+        value = Math.max(0, Math.min(1, value));
         input.value = position;
 
         var cset = { }; cset[key] = value;

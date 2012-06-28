@@ -57,6 +57,7 @@ const IMERender = (function() {
     var layoutWidth = layout.width || 10;
     var totalWidth = document.getElementById('keyboard').clientWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
+    var inputType = flags.inputType || 'text';
 
     layout.upperCase = layout.upperCase || {};
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
@@ -64,10 +65,23 @@ const IMERender = (function() {
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
         var keyChar = key.value;
-        if (flags.uppercase)
-          keyChar = getUpperCaseValue(key);
+        var overrides = layout[flags.inputType + 'Overrides'];
 
-        var code = key.keyCode || keyChar.charCodeAt(0);
+        // Handle uppercase
+        if (flags.uppercase) {
+          keyChar = getUpperCaseValue(key);
+        }
+
+        // Handle override
+        var code;
+        if (overrides && overrides[keyChar]) {
+          keyChar = overrides[keyChar];
+          code = keyChar.charCodeAt(0);
+
+        } else {
+          code = key.keyCode || keyChar.charCodeAt(0);
+        }
+
         var className = isSpecialKey(key) ? 'special-key' : '';
         var ratio = key.ratio || 1;
 

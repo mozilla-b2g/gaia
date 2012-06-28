@@ -526,7 +526,7 @@
 }
 
 /* Smiley */
-#lockscreen-panel-passcode::after {
+.smiley #lockscreen-panel-passcode::after {
   content: ': )';
   position: absolute;
   display: block;
@@ -545,11 +545,11 @@
   text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
 }
 
-[data-passcode-status="error"] #lockscreen-panel-passcode::after {
+.smiley[data-passcode-status="error"] #lockscreen-panel-passcode::after {
   content: ":'(";
 }
 
-[data-passcode-status="success"] #lockscreen-panel-passcode::after {
+.smiley[data-passcode-status="success"] #lockscreen-panel-passcode::after {
   content: "\\o/";
 }
 
@@ -560,7 +560,7 @@
     font-size: 48px;
     line-height: 48px;
   }
-  #lockscreen-panel-passcode::after {
+  .smiley #lockscreen-panel-passcode::after {
     top: 45px;
     right: 30px;
     font-size: 60px;

@@ -15,6 +15,6 @@ installButton.onclick = function installButton_install(evt) {
   request.onerror = function() {
     // Display the error information from the DOMError object
     alert('Install failed, error: ' + this.error.name);
-  }; 
+  };
 
 };

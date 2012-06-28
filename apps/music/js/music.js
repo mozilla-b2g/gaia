@@ -336,9 +336,12 @@ var PlayerView = {
       var targetIndex = parseInt(target.dataset.index);
       var songData = songs[targetIndex];
 
-      TitleBar.changeTitleText((songData.title) ? songData.title : navigator.mozL10n.get('unknownTitle'));
-      this.artist.textContent = (songData.artist) ? songData.artist : navigator.mozL10n.get('unknownArtist');
-      this.album.textContent = (songData.album) ? songData.album : navigator.mozL10n.get('unknownAlbum');
+      TitleBar.changeTitleText((songData.title) ?
+        songData.title : navigator.mozL10n.get('unknownTitle'));
+      this.artist.textContent = (songData.artist) ?
+        songData.artist : navigator.mozL10n.get('unknownArtist');
+      this.album.textContent = (songData.album) ?
+        songData.album : navigator.mozL10n.get('unknownAlbum');
       this.currentIndex = targetIndex;
 
       // An object URL must be released by calling window.URL.revokeObjectURL()
