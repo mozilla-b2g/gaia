@@ -22,11 +22,15 @@ var Activities = {
 
   choose: function act_choose(choice) {
     var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
+    var returnedChoice = {
       id: this._id,
-      type: 'activity-choice',
-      value: choice
-    });
+      type: 'activity-choice'
+    };
+
+    if (choice)
+      returnedChoice.value = choice;
+
+    event.initCustomEvent('mozContentEvent', true, true, returnedChoice);
     window.dispatchEvent(event);
 
     delete this._id;
