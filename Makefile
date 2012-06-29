@@ -180,7 +180,14 @@ endif
 XULRUNNER_BASE_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner
 ifeq ($(SYS),Darwin)
 # We're on a mac
-XULRUNNER_DOWNLOAD=$(XULRUNNER_BASE_URL)/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-x86_64.sdk.tar.bz2
+XULRUNNER_MAC_BASE_URL=$(XULRUNNER_BASE_URL)/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-
+ifeq ($(ARCH),i386)
+# 32-bit
+XULRUNNER_DOWNLOAD=$(XULRUNNER_MAC_BASE_URL)i386.sdk.tar.bz2
+else
+# 64-bit
+XULRUNNER_DOWNLOAD=$(XULRUNNER_MAC_BASE_URL)x86_64.sdk.tar.bz2
+endif
 XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELL=./xulrunner-sdk/bin/xpcshell
 
@@ -455,5 +462,11 @@ install-media-samples:
 	$(ADB) push media-samples/Movies /sdcard/Movies
 	$(ADB) push media-samples/Music /sdcard/Music
 
+dialer-demo:
+	@cp -R apps/contacts apps/dialer
+	@rm apps/dialer/contacts/manifest*
+	@mv apps/dialer/contacts/index.html apps/dialer/contacts/contacts.html
+	@sed -i.bak 's/manifest.appcache/..\/manifest.appcache/g' apps/dialer/contacts/contacts.html
+	@find apps/dialer/ -name '*.bak' -exec rm {} \;
 
 demo: install-media-samples install-gaia

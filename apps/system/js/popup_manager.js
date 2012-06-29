@@ -5,10 +5,9 @@
 var PopupManager = {
   _currentPopup: null,
 
-  get container() {
-    delete this.container;
-    return this.container = document.getElementById('popup-container');
-  },
+  container: document.getElementById('popup-container'),
+
+  screen: document.getElementById('screen'),
 
   init: function pm_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this));
@@ -25,25 +24,28 @@ var PopupManager = {
     this._currentPopup = evt.detail.frameElement;
     var popup = this._currentPopup;
     popup.dataset.frameType = 'popup';
+    popup.dataset.frameName = evt.detail.name;
+    popup.dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
     // FIXME: won't be needed once
     // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
     popup.src = evt.detail.url;
 
     this.container.appendChild(popup);
-    this.container.classList.add('displayed');
+    this.screen.classList.add('popup');
   },
 
   close: function pm_close(evt) {
-    var target = evt ? evt.target : this._currentPopup;
+    if (evt && (!'frameType' in evt.target.dataset ||
+        evt.target.dataset.frameType !== 'popup'))
+      return;
 
-    this.container.classList.remove('displayed');
+    this.screen.classList.remove('popup');
 
     var self = this;
     this.container.addEventListener('transitionend', function trWait() {
       self.container.removeEventListener('transitionend', trWait);
-      self.container.removeChild(target);
-
+      self.container.removeChild(self._currentPopup);
       self._currentPopup = null;
     });
 

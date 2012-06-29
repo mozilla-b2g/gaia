@@ -88,8 +88,8 @@ var CallScreen = {
   },
 
   update: function cm_update(phone_number) {
-    this.contactPrimaryInfo.value = KeypadManager.formatPhoneNumber(
-      'on-call', this.contactPrimaryInfo, phone_number);
+    this.contactPrimaryInfo.value = phone_number;
+    KeypadManager.formatPhoneNumber('on-call');
     KeypadManager._phoneNumber = phone_number;
     KeypadManager.phoneNumberView.value =
       KeypadManager._phoneNumber;
@@ -148,7 +148,7 @@ var CallScreen = {
         this.answerButton.classList.remove('hide');
         this.rejectButton.classList.remove('full-space');
         this.callToolbar.classList.add('transparent');
-        this.callDuration.innerHTML = '';
+        this.keypadButton.setAttribute('disabled', 'disabled');
         break;
       case 'connected':
         // When the call is connected the speaker state is reset
@@ -218,11 +218,11 @@ var OnCallHandler = {
   setupForCall: function och_setupForCall(call, typeOfCall) {
     this.currentCall = call;
 
+    this.lookupContact(call.number);
+
     CallScreen.update(call.number);
 
     CallScreen.render(typeOfCall);
-
-    this.lookupContact(call.number);
 
     this.recentsEntry = {
       date: Date.now(),
@@ -363,7 +363,12 @@ var OnCallHandler = {
 
   lookupContact: function och_lookupContact(number) {
     Contacts.findByNumber(number, function lookupContact(contact) {
-      CallScreen.update(contact.name);
+      if (contact.name){
+        CallScreen.update(contact.name);
+      }
+      if (contact.photo) {
+        CallScreen.setCallerContactImage(contact.photo);
+      }
     });
   }
 };

@@ -7,9 +7,9 @@
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="stylesheet" type="text/css" href="style/keypad.css">
     <link rel="stylesheet" type="text/css" href="style/commslog.css">
-    <link rel="resource" type="application/l10n" href="locale/dialer.properties">
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
     <!-- Compatibility -->
-    <script>
+    <script type="application/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -166,7 +166,7 @@
         </article>
       </section>
       <section class="view" role="tabpanel" id="contacts-view">
-        Contacts view
+        <iframe src="contacts/contacts.html" frameBorder="no" class="grid-wrapper"></iframe>
       </section>
       <section class="view" role="tabpanel" id="recents-view">
         <div class="grid-wrapper">

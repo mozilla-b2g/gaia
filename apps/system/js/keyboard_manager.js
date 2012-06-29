@@ -36,7 +36,7 @@ var KeyboardManager = (function() {
       if (!message.hidden) {
         var height = (parseInt(currentApp.style.height) -
                       message.keyboardHeight);
-      
+
         keyboardOverlay.style.height = (height + 20) + 'px';
 
         currentApp.style.height = height + 'px';
