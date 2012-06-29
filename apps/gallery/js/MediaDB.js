@@ -664,15 +664,22 @@ MediaDB.prototype = {
         function getMetadataForFile(n, callback) {
           var fileinfo = createdFiles[n];
           var fileRequest = media.storage.get(fileinfo.name);
+          var isComplete = function() {
+            if (n === createdFiles.length) { // if we're done
+              callback();
+            } else { // Otherwise get the next one
+              getMetadataForFile(n, callback);
+            }
+          }
           fileRequest.onsuccess = function() {
             var file = fileRequest.result;
-            media.metadataParser(file, function(metadata) {
+            media.metadataParser(file, function parser_success(metadata) {
               fileinfo.metadata = metadata;
               n++;
-              if (n === createdFiles.length) // if we're done
-                callback();
-              else  // Otherwise get the next one
-                getMetadataForFile(n, callback);
+              isComplete();
+            }, function parser_error() {
+              n++;
+              isComplete();
             });
           }
         }
