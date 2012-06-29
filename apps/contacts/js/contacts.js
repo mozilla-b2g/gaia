@@ -124,7 +124,8 @@ var Contacts = (function() {
       emailTemplate,
       phonesContainer,
       emailContainer,
-      selectedTag;
+      selectedTag,
+      contactDetails;
 
   var currentContact = {};
 
@@ -142,6 +143,7 @@ var Contacts = (function() {
     emailTemplate = document.getElementById('add-email');
     phonesContainer = document.getElementById('contacts-form-phones');
     emailContainer = document.getElementById('contacts-form-email');
+    contactDetails = document.getElementById('contact-detail');
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -161,6 +163,31 @@ var Contacts = (function() {
         navigation.go('view-contact-details', 'right-left');
       };
     });
+
+    var position = 0;
+    contactDetails.addEventListener('mousedown', function(event) {
+      var startPosition = event.clientY;
+      var currentPosition;
+
+      if (contactDetails.classList.contains('no-photo'))
+        return;
+        
+      var onMouseMove = function onMouseMove(event) {
+        currentPosition = event.clientY;
+        if (startPosition < currentPosition) {
+          contactDetails.classList.add('down');
+        }
+      };
+      
+      var onMouseUp = function onMouseUp(event) {
+        contactDetails.classList.remove('down');
+        contactDetails.removeEventListener('mousemove', onMouseMove);
+        contactDetails.removeEventListener('mouseup', onMouseUp);
+      };
+      
+      contactDetails.addEventListener('mousemove', onMouseMove);
+      contactDetails.addEventListener('mouseup', onMouseUp);
+    });
   });
 
   //
@@ -168,6 +195,8 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
+    contactDetails.classList.remove('no-photo');
+
     var orgTitle = document.getElementById('org-title');
     if (contact.org && contact.org[0] != '') {
       orgTitle.textContent = contact.org[0];
@@ -201,7 +230,11 @@ var Contacts = (function() {
     }
 
     var cover = document.getElementById('cover-img');
-    cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
+    if ('photo' in contact && contact.photo != '') {
+      cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
+    } else {
+      contactDetails.classList.add('no-photo');
+    }
   };
 
   var showEdit = function showEdit() {
