@@ -80,7 +80,11 @@ var CallHandler = {
 var NavbarManager = {
   init: function nm_init() {
     this.update();
-
+    var contacts = document.getElementById('option-contacts');
+    
+    contacts.addEventListener('click' , function nm_hashChange(event) {
+      document.getElementById('iframe-contacts').src="contacts/contacts.html";
+    });
     var self = this;
     window.addEventListener('hashchange' , function nm_hashChange(event) {
       // TODO Implement it with building blocks:
@@ -105,7 +109,7 @@ var NavbarManager = {
         recent.classList.add('toolbar-option-selected');
         break;
       case '#contacts-view':
-        contacts.classList.add('toolbar-option-selected');
+        // contacts.classList.add('toolbar-option-selected');
         break;
       case '#keyboard-view':
         keypad.classList.add('toolbar-option-selected');
