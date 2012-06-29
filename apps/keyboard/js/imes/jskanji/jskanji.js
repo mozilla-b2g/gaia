@@ -574,7 +574,6 @@
           debug('case change');
           var last = _inputBuf[_inputBuf.length - 1];
           var res = IMEHiraganaCaseTable[last];
-          debug('awww' + res);
           if (!res) {
             res = IMEFullKatakanaCaseTable[last];
           }
@@ -585,7 +584,6 @@
           if (!res) {
             break;
           }
-          debug(res);
           _inputBuf[_inputBuf.length - 1] = res;
           handleInputBuf();
           break;
