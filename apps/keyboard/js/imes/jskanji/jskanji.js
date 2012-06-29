@@ -568,13 +568,10 @@
           break;
 
         // 大 <-> 小
-        // TODO num and alpha exception
         case IMESpecialKey.CASE_CHANGE:
           debug('case change');
           var last = _inputBuf[_inputBuf.length - 1];
-          debug(last);
           var res = IMEHiraganaCaseTable[last];
-          debug('awww' + res);
           if (!res) {
             res = IMEFullKatakanaCaseTable[last];
           }
@@ -585,7 +582,6 @@
           if (!res) {
             break;
           }
-          debug(res);
           _inputBuf[_inputBuf.length - 1] = res;
           handleInputBuf();
           break;
@@ -1140,7 +1136,7 @@
   }
 
   /* copy from jszhuyin */
-  var debugging = true;
+  var debugging = false;
   var debug = function(str) {
     if (!debugging) {
       return;
