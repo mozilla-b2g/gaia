@@ -462,5 +462,11 @@ install-media-samples:
 	$(ADB) push media-samples/Movies /sdcard/Movies
 	$(ADB) push media-samples/Music /sdcard/Music
 
+dialer-demo:
+	@cp -R apps/contacts apps/dialer
+	@rm apps/dialer/contacts/manifest*
+	@mv apps/dialer/contacts/index.html apps/dialer/contacts/contacts.html
+	@sed -i.bak 's/manifest.appcache/..\/manifest.appcache/g' apps/dialer/contacts/contacts.html
+	@find apps/dialer/ -name '*.bak' -exec rm {} \;
 
 demo: install-media-samples install-gaia
