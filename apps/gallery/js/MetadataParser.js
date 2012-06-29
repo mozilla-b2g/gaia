@@ -19,25 +19,23 @@ var metadataParser = (function() {
   function metadataParser(file, callback, errback) {
     if (file.type === 'image/jpeg') {
       // For jpeg images, we can read metadata right out of the file
-      parseJPEGMetadata(file,
-                        function(data) {
-                          // If we got dimensions and thumbnail, we're done
-                          // Otherwise, keep going to get more metadata
-                          if (data.width && data.height && data.thumbnail)
-                            callback(data);
-                          else
-                            parseImageMetadata(file, data, callback);
-                        },
-                        function(errmsg) {
-                          // If something went wrong, fallback on the
-                          // basic image parser
-                          console.error(errmsg);
-                          parseImageMetadata(file, {}, callback);
-                        });
+      parseJPEGMetadata(file, function(data) {
+        // If we got dimensions and thumbnail, we're done
+        // Otherwise, keep going to get more metadata
+        if (data.width && data.height && data.thumbnail)
+          callback(data);
+        else
+          parseImageMetadata(file, data, callback, errback);
+      }, function(errmsg) {
+        // If something went wrong, fallback on the
+        // basic image parser
+        console.error(errmsg);
+        parseImageMetadata(file, {}, callback, errback);
+      });
     }
     else {
       // For all other image types, we get dimensions and thumbnails this way
-      parseImageMetadata(file, {}, callback);
+      parseImageMetadata(file, {}, callback, errback);
     }
   }
 
@@ -45,13 +43,24 @@ var metadataParser = (function() {
   // to get its dimensions and create a thumbnail.  Store these values in
   // the metadata object if they are not already there, and then pass
   // the complete metadata object to the callback function
-  function parseImageMetadata(file, metadata, callback) {
+  function parseImageMetadata(file, metadata, callback, errback) {
+    if (!errback) {
+      errback = function(e) {
+        console.error('ImageMetadata ', String(e));
+      };
+    }
+
     if (!metadata.date)
       metadata.date = file.lastModifiedDate;
 
     var img = document.createElement('img');
     var url = URL.createObjectURL(file);
     img.src = url;
+
+    img.onerror = function() {
+      errback('Image failed to load');
+    };
+
     img.onload = function() {
       URL.revokeObjectURL(url);
       if (!metadata.width)
@@ -156,7 +165,8 @@ var metadataParser = (function() {
     function parseMetadata(data) {
       var metadata = {};
       if (data.getUint8(0) !== 0xFF || data.getUint8(1) !== 0xD8) {
-        throw Error('Not a JPEG file');
+        errback('Not a JPEG file');
+        return;
       }
 
       var offset = 2;
@@ -164,7 +174,8 @@ var metadataParser = (function() {
       // Loop through the segments of the JPEG file
       while (offset < data.byteLength) {
         if (data.getUint8(offset++) !== 0xFF) {
-          throw Error('malformed JPEG file: missing 0xFF delimiter');
+          errback('malformed JPEG file: missing 0xFF delimiter');
+          return;
         }
 
         var segtype = data.getUint8(offset++);
@@ -224,11 +235,13 @@ var metadataParser = (function() {
       } else if (byteorder === 0x49) {  // little endian
         byteorder = true;
       } else {
-        throw Error('invalid byteorder in EXIF segment');
+        errback('invalid byteorder in EXIF segment');
+        return;
       }
 
       if (data.getUint16(2, byteorder) !== 42) { // magic number
-        throw Error('bad magic number in EXIF segment');
+        errback('bad magic number in EXIF segment');
+        return;
       }
 
       var offset = data.getUint32(4, byteorder);
