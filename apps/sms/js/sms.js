@@ -775,8 +775,6 @@ var ThreadUI = {
   },
 
   pickContact: function cv_pickContact() {
-    // going back to the list first
-    ThreadUI.close();
     try {
       var activity  = new MozActivity({
         name: "pick",

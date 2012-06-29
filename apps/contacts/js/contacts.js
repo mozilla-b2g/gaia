@@ -820,7 +820,7 @@ var Contacts = (function() {
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
     'saveContact': saveContact,
-    'toggleFavorite': toggleFavorite
+    'toggleFavorite': toggleFavorite,
     'callOrPick': callOrPick
   };
 })();
