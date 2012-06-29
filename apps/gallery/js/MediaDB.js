@@ -665,10 +665,11 @@ MediaDB.prototype = {
           var fileinfo = createdFiles[n];
           var fileRequest = media.storage.get(fileinfo.name);
           var isComplete = function() {
-            if (n === createdFiles.length) // if we're done
+            if (n === createdFiles.length) { // if we're done
               callback();
-            else  // Otherwise get the next one
+            } else { // Otherwise get the next one
               getMetadataForFile(n, callback);
+            }
           }
           fileRequest.onsuccess = function() {
             var file = fileRequest.result;
