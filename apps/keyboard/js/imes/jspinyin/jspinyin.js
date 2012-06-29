@@ -3234,7 +3234,6 @@ DictDef.LemmaEntry.prototype = {
    * @type Array.<string>
    */
   pinyin_str: null,
-  hz_str_len: 0, // TODO remove this field and use hanzi_str.length instead
   freq: 0.0
 };
 
@@ -3859,8 +3858,9 @@ MatrixSearch.prototype = {
     var taskQueue = new TaskQueue(
         function taskQueueOnCompleteCallback(queueData) {
       if (isOk) {
-        this.user_dict_.set_total_lemma_count_of_others(NGram.kSysDictTotalFreq);
-        this.inited_ = true;
+        self.user_dict_.set_total_lemma_count_of_others(NGram.
+          kSysDictTotalFreq);
+        self.inited_ = true;
       }
       doCallback();
     });
@@ -3876,7 +3876,7 @@ MatrixSearch.prototype = {
     };
 
     taskQueue.push(function loadSysDict(taskQueue, taskData) {
-      this.dict_trie_.load_dict(sysDict, 1, DictDef.kTopScoreLemmaNum,
+      self.dict_trie_.load_dict(sysDict, 1, DictDef.kTopScoreLemmaNum,
           function loadSysDictCallback(success) {
         if (success) {
           processNextWithDelay();
@@ -3887,7 +3887,7 @@ MatrixSearch.prototype = {
     });
 
     taskQueue.push(function loadUserDict(taskQueue, taskData) {
-      this.user_trie_.load_dict(userDict, DictDef.kUserDictIdStart,
+      self.user_trie_.load_dict(userDict, DictDef.kUserDictIdStart,
           DictDef.kUserDictIdEnd, function loadSysDictCallback(success) {
         if (success) {
           isOk = true;
@@ -4732,6 +4732,8 @@ var IAtomDictBase = {
 };
 
 var DictTrie = function dictTrie_constructor() {
+  this.spl_trie_ = SpellingTrie.get_instance();
+  this.reset_milestones(0, DictTrie.kFirstValidMileStoneHandle);
 };
 
 DictTrie.kMaxMileStone = 100;
@@ -4801,15 +4803,52 @@ DictTrie.prototype = {
    */
   build_dict: function dictTrie_build_dict(fn_raw, fn_validhzs, callback) {
     var dict_builder = new DictBuilder();
+    this.reset_milestones(0, DictTrie.kFirstValidMileStoneHandle);
     dict_builder.build_dict(fn_raw, fn_validhzs, this, callback);
   },
 
   /**
    * Save the binary dictionary
    * Actually, the SpellingTrie/DictList instance will be also saved.
+   * @private
+   * @param {string} filename File name.
+   * @param {function (boolean): void} callback Callback function, called
+   *    when the opertion is finished. The boolean parameter indicates
+   *    whether the operation is successful.
    */
-  save_dict: function dictTrie_save_dict(filename) {
-    return false;
+  save_dict: function dictTrie_save_dict(filename, callback) {
+    var isOk = false;
+    var doCallback = function save_callbakc() {
+      if (callback) {
+        callback(isOk);
+      }
+    };
+
+    if (!filename || this.root_ == null || this.dict_list_ == null) {
+      doCallback();
+      return;
+    }
+
+    var spl_trie = SpellingTrie.get_instance();
+    var ngram = NGram.get_instance();
+
+    var spl_trie_str = spl_trie.save_spl_trie();
+    var dict_list_str = this.dict_list_.save_list();
+    var dict_trie_str = this.save_dict_as_string();
+    var ngram_str = ngram.save_ngram();
+
+    var jsonData = {
+      spl_trie: spl_trie_str,
+      dict_list: dict_list_str,
+      dict_trie: dict_trie_str,
+      ngram: ngram_str
+    };
+
+    FileSystemService.write(filename, JSON.stringify(jsonData), function
+        writeFileCallback(success) {
+      bOk = success;
+      doCallback();
+    });
   },
 
   /**
@@ -4824,7 +4863,6 @@ DictTrie.prototype = {
    * @override
    */
   close_dict: function dictTrie_close_dict(callback) {
-    return true;
   },
 
   /**
@@ -4837,8 +4875,7 @@ DictTrie.prototype = {
   /**
    * @override
    */
-  reset_milestones:
-      function dictTrie_reset_milestones(from_step, from_handle) {
+  reset_milestones: function dictTrie_reset_milestones(from_step, from_handle) {
     if (0 == from_step) {
       this.parsing_marks_pos_ = 0;
       this.mile_stones_pos_ = DictTrie.kFirstValidMileStoneHandle;
@@ -5288,9 +5325,9 @@ DictTrie.prototype = {
   /**
    * The first part is for homophnies, and the last top_lma_num_ items are
    * lemmas with highest scores.
-   * @type Array
+   * @type string
    */
-  lma_idx_buf_: null,
+  lma_idx_buf_: '',
   // The total size of lma_idx_buf_ in byte.
   lma_idx_buf_len_: 0,
   // Total number of lemmas in this dictionary.
@@ -5347,13 +5384,9 @@ DictTrie.prototype = {
     var id = 0;
     for (var pos = DictDef.kLemmaIdSize - 1; pos >= 0; pos--) {
       id = (id << 8) +
-        this.lma_idx_buf_[id_offset * DictDef.kLemmaIdSize + pos];
+        this.lma_idx_buf_.charCodeAt(id_offset * DictDef.kLemmaIdSize + pos);
     }
     return id;
-  },
-
-  load_dict_by_fp: function dictTrie_load_dict_by_fp(fp) {
-    return false;
   },
 
   /**
@@ -5753,8 +5786,92 @@ DictTrie.prototype = {
     return false;
   },
 
-  save_dict_by_fp: function dictTrie_save_dict_by_fp(fp) {
-    return false;
+  /**
+   * Save as JSON string.
+   * @private
+   * @return {string} Serialized dict data as JSON string.
+   */
+  save_dict_as_string: function dictTrie_save_dict_as_string() {
+    var self = this;
+    var jsonData = {
+      lma_node_num_le0_: self.lma_node_num_le0_,
+      lma_node_num_ge1_: self.lma_node_num_ge1_,
+      lma_idx_buf_len_: self.lma_idx_buf_len_,
+      top_lmas_num_: self.top_lmas_num_,
+      root_: self.root_,
+      nodes_ge1_: self.nodes_ge1_,
+      lma_idx_buf_: self.lma_idx_buf_
+    };
+    return JSON.stringify(jsonData);
+  },
+
+  /**
+   * Load from JSON string.
+   * TODO not implemented.
+   * @private
+   * @param {string} json_str JSON string.
+   * @return {boolean} true if successs.
+   */
+  load_dict_from_string: function dictTrie_load_dict_from_string(json_str) {
+    if (!json_str) {
+      return false;
+    }
+
+    var i = 0;
+
+    try {
+      var jsonData = JSON.parse(json_str);
+      this.lma_node_num_le0_ = jsonData.lma_node_num_le0_;
+      this.lma_node_num_ge1_ = jsonData.lma_node_num_ge1_;
+      this.lma_idx_buf_len_ = jsonData.lma_idx_buf_len_;
+      this.top_lmas_num_ = jsonData.top_lmas_num_;
+      if (this.top_lmas_num_ >= this.lma_idx_buf_len_) {
+        return false;
+      }
+      this.total_lma_num_ = this.lma_idx_buf_len_ / DictDef.kLemmaIdSize;
+      this.root_ = jsonData.root_;
+      this.nodes_ge1_ = jsonData.nodes_ge1_;
+      this.lma_idx_buf_ = jsonData.lma_idx_buf_;
+
+      // Init the space for parsing.
+      this.parsing_marks_ = [];
+      for (i = 0; i < DictTrie.kMaxParsingMark; i++) {
+        this.parsing_marks_[i] = new DictTrie.ParsingMark(0, 0);
+      }
+      this.mile_stones_ = [];
+      for (i = 0; i < DictTrie.kMaxMileStone; i++) {
+        this.mile_stones_[i] = new DictTrie.MileStone(0, 0);
+      }
+      this.reset_milestones(0, DictTrie.kFirstValidMileStoneHandle);
+      // The quick index for the first level sons
+      this.splid_le0_index_ = [];
+      var last_splid = SpellingTrie.kFullSplIdStart;
+      var last_pos = 0;
+      for (var i = 1; i < this.lma_node_num_le0_; i++) {
+        for (var splid = last_splid; splid < this.root_[i].spl_idx; splid++) {
+          this.splid_le0_index_[splid - SpellingTrie.kFullSplIdStart] =
+            last_pos;
+        }
+
+        this.splid_le0_index_[this.root_[i].spl_idx -
+          SpellingTrie.kFullSplIdStart] = i;
+        last_splid = this.root_[i].spl_idx;
+        last_pos = i;
+      }
+      var buf_size = SpellingTrie.get_instance().get_spelling_num() + 1;
+      for (var splid = last_splid + 1; splid < buf_size +
+           SpellingTrie.kFullSplIdStart; splid++) {
+        assert(splid - SpellingTrie.kFullSplIdStart < buf_size,
+          'load_dict_from_string assertion error.');
+        this.splid_le0_index_[splid - SpellingTrie.kFullSplIdStart] = last_pos +
+          1;
+      }
+    } catch (ex) {
+      debug('load_dict_from_string: ' + ex);
+      return false;
+    }
+
+    return true;
   }
 };
 
@@ -9073,12 +9190,53 @@ var DictList = function dictList_constructor() {
 
 DictList.prototype = {
   /* ==== Public ==== */
-  save_list: function dictList_save(fp) {
-    return false;
+
+  /**
+   * Save as JSON string.
+   * @private
+   * @return {string} JSON string.
+   */
+  save_list: function dictList_save() {
+    var self = this;
+    var jsonData = {
+      scis_num_: self.scis_num_,
+      start_pos_: self.start_pos_,
+      start_id_: self.start_id_,
+      scis_hz_: self.scis_hz_,
+      scis_splid_: self.scis_splid_,
+      buf_: self.buf_
+    };
+    return JSON.stringify(jsonData);
   },
 
-  load_list: function dictList_load(fp) {
-    return false;
+  /**
+   * Load from JSON string.
+   * @private
+   * @param {string} json_str JSON string.
+   * @return {boolean} true if successs.
+   */
+  load_list: function dictList_load(json_str) {
+    if (!json_str) {
+      return false;
+    }
+
+    this.initialized_ = false;
+
+    try {
+      var jsonData = JSON.parse(json_str);
+      this.scis_num_ = jsonData.scis_num_;
+      this.start_pos_ = jsonData.start_pos_;
+      this.start_id_ = jsonData.start_id_;
+      this.scis_hz_ = jsonData.scis_hz_;
+      this.scis_splid_ = jsonData.scis_splid_;
+      this.buf_ = jsonData.buf_;
+    } catch (ex) {
+      debug('load_list: ' + ex);
+      return false;
+    }
+
+    this.initialized_ = true;
+    return true;
   },
 
   /**
@@ -9257,6 +9415,10 @@ DictList.prototype = {
 
   /* ==== Private ==== */
   initialized_: false,
+
+  /**
+   * @type SpellingTrie
+   */
   spl_trie_: null,
 
   // Number of SingCharItem. The first is blank, because id 0 is invalid.
@@ -9264,22 +9426,31 @@ DictList.prototype = {
 
   scis_hz_: '',
 
+  /**
+   * @type Array.<DictDef.SpellingId>
+   */
   scis_splid_: null,
 
   // The large memory block to store the word list.
   buf_: '',
 
   /**
-   * Starting position of those words whose lengths are i+1, counted in char16.
+   * Starting position of those words whose lengths are i+1.
+   * So the array length is DictDef.kMaxLemmaSize.
    * @type Array.<number>
    */
   start_pos_: null,
 
   /**
+   * The array length is DictDef.kMaxLemmaSize.
    * @type Array.<number>
    */
   start_id_: null,
 
+  /**
+   * An array of comparison function, whose length is DictDef.kMaxLemmaSize.
+   * @type Array.<function(string, string): number>
+   */
   cmp_func_: null,
 
   /**
@@ -9294,7 +9465,7 @@ DictList.prototype = {
 
     for (var i = 0; i < lemma_num; i++) {
       if (0 == i) {
-        last_hz_len = lemma_arr[i].hz_str_len;
+        last_hz_len = lemma_arr[i].hanzi_str.length;
 
         id_num++;
         this.start_pos_[0] = 0;
@@ -9303,7 +9474,7 @@ DictList.prototype = {
         last_hz_len = 1;
         list_size += last_hz_len;
       } else {
-        var current_hz_len = lemma_arr[i].hz_str_len;
+        var current_hz_len = lemma_arr[i].hanzi_str.length;
 
         if (current_hz_len == last_hz_len) {
             list_size += current_hz_len;
@@ -9382,7 +9553,8 @@ DictList.prototype = {
   }
 };
 
-/***
+/**
+ * Call NGram.get_instance to retrieve the singleton instance.
  * @private
  */
 var NGram = function ngram_constructor() {
@@ -9392,6 +9564,7 @@ var NGram = function ngram_constructor() {
 };
 
 /**
+ * Return the singleton instance of NGram.
  * @return {NGram} The NGram instance.
  */
 NGram.get_instance = function ngram_get_instance() {
@@ -9401,6 +9574,11 @@ NGram.get_instance = function ngram_get_instance() {
   return NGram.instance_;
 };
 
+/**
+ * NGram singleton instance.
+ * @private
+ * @type NGram
+ */
 NGram.instance_ = null;
 
 /**
@@ -9440,12 +9618,49 @@ NGram.kSysDictTotalFreq = 100000000;
 
 NGram.prototype = {
   /* ==== Public ==== */
-  save_ngram: function ngram_save_ngram(fp) {
-    return false;
+
+  /**
+   * Save as JSON string.
+   * @private
+   * @return {string} JSON string.
+   */
+  save_ngram: function ngram_save_ngram() {
+    var self = this;
+    var jsonData = {
+      idx_num_: self.idx_num_,
+      freq_codes_: self.freq_codes_,
+      lma_freq_idx_: self.lma_freq_idx_
+    };
+    return JSON.stringify(jsonData);
   },
 
-  load_ngram: function ngram_load_ngram(fp) {
-    return false;
+  /**
+   * Load from JSON string.
+   * @private
+   * @param {string} json_str JSON string.
+   * @return {boolean} true if successs.
+   */
+  load_ngram: function ngram_load_ngram(json_str) {
+    if (!json_str) {
+      return false;
+    }
+
+    this.initialized_ = false;
+
+    try {
+      var jsonData = JSON.parse(json_str);
+      this.idx_num_ = jsonData.idx_num_;
+      this.freq_codes_ = jsonData.freq_codes_;
+      this.lma_freq_idx_ = jsonData.lma_freq_idx_;
+    } catch (ex) {
+      debug('load_ngram: ' + ex);
+      return false;
+    }
+
+    this.initialized_ = true;
+
+    this.total_freq_none_sys_ = 0;
+    return true;
   },
 
   // Set the total frequency of all none system dictionaries.
@@ -9876,7 +10091,10 @@ SpellingParser.prototype = {
   }
 };
 
-// Node used for the trie of spellings
+/**
+ * TODO This class should be the inner class of SpellingTrie.
+ * Node used for the trie of spellings
+ */
 var SpellingNode = function spellingNode_constructor() {
   this.sons = [];
 };
@@ -10208,14 +10426,45 @@ SpellingTrie.prototype = {
     return false;
   },
 
-  // Save to the file stream
-  save_spl_trie: function spellingTrie_save_spl_trie(fp) {
-
+  /**
+   * Save as JSON string.
+   * @private
+   * @return {string} JSON string.
+   */
+  save_spl_trie: function spellingTrie_save_spl_trie() {
+    var self = this;
+    var jsonData = {
+      spelling_num_: self.spelling_num_,
+      score_amplifier_: self.score_amplifier_,
+      average_score_: self.average_score_,
+      spelling_buf_: self.spelling_buf_
+    };
+    return JSON.stringify(jsonData);
   },
 
-  // Load from the file stream
-  load_spl_trie: function spellingTrie_load_spl_trie(fp) {
+  /**
+   * Load from JSON string.
+   * @private
+   * @param {string} JSON string.
+   * @return {boolean} true if successs.
+   */
+  load_spl_trie: function spellingTrie_load_spl_trie(json_str) {
+    if (!json_str) {
+      return false;
+    }
+    try {
+      var jsonData = JSON.parse(json_str);
+      this.spelling_num_ = jsonData.spelling_num_;
+      this.score_amplifier_ = jsonData.score_amplifier_;
+      this.average_score_ = jsonData.average_score_;
+      this.spelling_buf_ = jsonData.spelling_buf;
+    } catch (ex) {
+      debug('load_spl_trie: ' + ex);
+      return false;
+    }
 
+    return this.construct(this.spelling_buf_, this.spelling_num_,
+      this.score_amplifier_, this.average_score_);
   },
 
   // Get the number of spellings
@@ -10226,12 +10475,12 @@ SpellingTrie.prototype = {
   // Return the Yunmu id for the given Yunmu string.
   // If the string is not valid, return 0;
   get_ym_id: function spellingTrie_get_ym_id(ym_str) {
-    if ('' == ym_str || '' == this.ym_buf_) {
+    if ('' == ym_str || null == this.ym_buf_) {
       return 0;
     }
 
     for (var pos = 0; pos < this.ym_num_; pos++) {
-      if (this.ym_buf_[pos] == ym_str) {
+      if (this.ym_buf_[pos].str == ym_str) {
         return pos + 1;
       }
     }
@@ -10281,15 +10530,20 @@ SpellingTrie.prototype = {
   score_amplifier_: 0.0,
   average_score_: 0,
 
-  // The Yunmu id list for the spelling ids (for half ids of Shengmu,
-  // the Yunmu id is 0).
-  // The length of the list is spelling_num_ + kFullSplIdStart,
-  // so that spl_ym_ids_[spl_id] is the Yunmu id of the spl_id.
-  // @type Integer[]
+  /**
+   * The Yunmu id list for the spelling ids (for half ids of Shengmu,
+   * the Yunmu id is 0).
+   * The length of the list is spelling_num_ + kFullSplIdStart,
+   * so that spl_ym_ids_[spl_id] is the Yunmu id of the spl_id.
+   * @type Array.<number>
+   */
   spl_ym_ids_: null,
 
-  // The Yunmu table.
-  // Each Yunmu will be assigned with Yunmu id from 1.
+  /**
+   * The Yunmu table.
+   * Each Yunmu will be assigned with Yunmu id from 1.
+   * @type Array.<RawSpelling>
+   */
   ym_buf_: null,
   ym_num_: 0,
 
@@ -10300,17 +10554,32 @@ SpellingTrie.prototype = {
   // @type SpellingNode
   root_: null,
 
-  // Used to get the first level sons.
-  // @type SpellingNode[SpellingTrie.kValidSplCharNum]
+  /**
+   * Used to get the first level sons.
+   * The array length is SpellingTrie.kValidSplCharNum.
+   * @type Array.<SpellingNode>
+   */
   level1_sons_: null,
 
-  // The full spl_id range for specific half id.
-  // h2f means half to full.
-  // A half id can be a ShouZiMu id (id to represent the first char of a full
-  // spelling, including Shengmu and Yunmu), or id of zh/ch/sh.
-  // [1..SpellingTrie.kFullSplIdStart-1] is the range of half id.
-  h2f_start_: null,          // @type Integer[SpellingTrie.kFullSplIdStart]
-  h2f_num_: null,            // @type Integer[SpellingTrie.kFullSplIdStart]
+  /**
+   * The full spl_id range for specific half id.
+   * h2f means half to full.
+   * A half id can be a ShouZiMu id (id to represent the first char of a full
+   * spelling, including Shengmu and Yunmu), or id of zh/ch/sh.
+   * [1..SpellingTrie.kFullSplIdStart-1] is the range of half id.
+   */
+
+  /**
+   * The array length is SpellingTrie.kFullSplIdStart
+   * @type Array.<number>
+   */
+  h2f_start_: null,
+
+  /**
+   * The array length is SpellingTrie.kFullSplIdStart
+   * @type Array.<number>
+   */
+  h2f_num_: null,
 
   /** Map from full id to half id.
    * @type Integer[]
@@ -10636,9 +10905,11 @@ SpellingTrie.prototype = {
   }
 };
 
+// TODO Make this class be the inner class of SpellingTable.
 var RawSpelling = function rawSpelling_constructor(str, freq) {
   this.str = str;
   this.freq = freq;
+  this.score = 0;
 };
 
 RawSpelling.prototype = {
@@ -10710,7 +10981,7 @@ SpellingTable.prototype = {
 
   /**
    * Sort the spelling strings in an array.
-   * @return {RawSpelling[]} Return the sorted RawSpelling array.
+   * @return {Array<RawSpelling>} Return the sorted RawSpelling array.
    * An item with a lower score has a higher probability.
    * Do not call put_spelling() and contains() after arrange().
    */
@@ -10777,6 +11048,7 @@ SpellingTable.prototype = {
 
   /**
    * The map containing all the RawSpelling whose key is the spelling string.
+   * @type Object<string, RawSpelling>
    */
   raw_spellings_: null,
 
