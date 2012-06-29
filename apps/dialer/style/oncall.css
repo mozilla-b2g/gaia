@@ -1,3 +1,30 @@
+@font-face {
+  font-family: 'FontLight';
+  src: url('fonts/opensans-light-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontRegular';
+  src: url('fonts/opensans-regular-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontSemibold';
+  font-weight: 600;
+  src: url('fonts/opensans-semibold-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontBold';
+  font-weight: bold;
+  src: url('fonts/opensans-bold-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontLight';
+  src: url('fonts/Open-Sans-Light.woff');
+}
+
 html, body {
   position: relative;
   width: 100%;
@@ -15,28 +42,28 @@ html * {
 }
 
 .font-regular {
-  font-family:'FontRegular';
+  font-family: 'FontRegular';
 }
 
 .font-semibold {
-  font-family:'FontSemibold';
+  font-family: 'FontSemibold';
 }
 
 .font-bold {
-  font-family:'FontBold';
+  font-family: 'FontBold';
+}
+
+.font-light {
+  font-family: 'FontLight';
 }
 
 #phone-number-view {
   width:100%;
   border:0;
   background:transparent;
-  text-align: right;
+  text-align: left;
   cursor:none;
   -moz-user-select: none;
-}
-
-.contact-info-wrapper {
-  padding: 0rem 2rem 0rem 2rem;
 }
 
 .contact-primary-info {
@@ -220,8 +247,8 @@ body.hidden *[data-l10n-id] {
 #call-container {
   background-image: url("images/Generic_image.png");
   background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
+  background-size: cover;
+  background-position: center top;
 }
 
 #call-options {

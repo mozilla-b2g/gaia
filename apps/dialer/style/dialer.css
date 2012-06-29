@@ -26,11 +26,6 @@
   src: url('fonts/Open-Sans-Light.woff');
 }
 
-@font-face {
-  font-family: 'FontLight';
-  src: url('fonts/Open-Sans-Light.woff');
-}
-
 html, body {
   width: 100%;
   height: 100%;
@@ -46,24 +41,28 @@ html * {
   overflow: hidden;
 }
 
-.font-regular{
+.font-regular {
   font-family: 'FontRegular';
 }
 
-.font-semibold{
+.font-semibold {
   font-family: 'FontSemibold';
 }
 
-.font-bold{
+.font-bold {
   font-family: 'FontBold';
 }
 
-.contact-primary-info{
+.font-light {
+  font-family: 'FontLight';
+}
+
+.contact-primary-info {
   font-size: -moz-calc(15*0.226rem);
   color: black;
 }
 
-.contact-secondary-info{
+.contact-secondary-info {
   font-size: -moz-calc(6*0.226rem);
   color: white;
 }
@@ -110,28 +109,29 @@ body.hidden *[data-l10n-id] {
 }
 
 *[role=tablist] *[role=tabpanel] {
-  transform: translateY(-10000px);
+  -moz-transform: translateY(-10000px);
 }
 
 *[role=tablist] *:target {
-  transform: translateY(0px);
+  -moz-transform: translateY(0px);
 }
 
 /* Structure for toolbar */
 .toolbar {
   height: 4rem;
   width: 100%;
+  background: rgba(0,0,0,.3);
 }
 
-.toolbar-option{
+.toolbar-option {
   opacity: 0.6;
 }
 
-.toolbar-option-selected{
+.toolbar-option-selected {
   opacity: 1;
 }
 
-.toolbar-option:active{
+.toolbar-option:active {
   opacity: 1;
   border: 0;
   border-style: none;
@@ -139,7 +139,7 @@ body.hidden *[data-l10n-id] {
 
 /* Toolbar Icon */
 .icon {
-  pointer-events:none;
+  pointer-events: none;
   margin: 0 auto;
 }
 
