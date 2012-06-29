@@ -267,7 +267,7 @@ input[type="image"] {
 }
 
 #ssl-indicator[value=broken] {
-  background-image: url(images/site_security_verified.png);
+  background-image: url(images/site_security_broken.png);
 }
 
 #ssl-indicator[value=insecure], #ssl-indicator[value=''] {
