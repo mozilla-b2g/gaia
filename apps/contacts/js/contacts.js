@@ -174,7 +174,6 @@ var Contacts = (function() {
         
       var onMouseMove = function onMouseMove(event) {
         currentPosition = event.clientY;
-        console.log('start '+ startPosition+ ' current '+ currentPosition );
         if (startPosition < currentPosition) {
           contactDetails.classList.add('down');
         }
