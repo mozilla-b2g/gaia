@@ -2,11 +2,6 @@
   display: none;
 }
 
-#screen:not(.utility-tray) > #utility-tray {
-  opacity: 0;
-  top: -moz-calc(-100% + 60px);
-}
-
 #utility-tray {
   position: absolute;
   z-index: 9996;
