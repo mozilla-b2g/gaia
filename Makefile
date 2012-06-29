@@ -180,7 +180,14 @@ endif
 XULRUNNER_BASE_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner
 ifeq ($(SYS),Darwin)
 # We're on a mac
-XULRUNNER_DOWNLOAD=$(XULRUNNER_BASE_URL)/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-x86_64.sdk.tar.bz2
+XULRUNNER_MAC_BASE_URL=$(XULRUNNER_BASE_URL)/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-
+ifeq ($(ARCH),i386)
+# 32-bit
+XULRUNNER_DOWNLOAD=$(XULRUNNER_MAC_BASE_URL)i386.sdk.tar.bz2
+else
+# 64-bit
+XULRUNNER_DOWNLOAD=$(XULRUNNER_MAC_BASE_URL)x86_64.sdk.tar.bz2
+endif
 XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELL=./xulrunner-sdk/bin/xpcshell
 
