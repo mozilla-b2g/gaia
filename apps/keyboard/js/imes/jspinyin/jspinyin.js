@@ -3615,13 +3615,13 @@ var MyStdlib = {
 };
 
 var MatrixSearch = function matrixSearch_constructor() {
-  var i = 0;
+  this.inited_ = false;
+  this.spl_trie_ = SpellingTrie.get_instance();
 
-  this.spl_start_ = new Array(MatrixSearch.kMaxRowNum);
-  this.spl_start_ = new Array(MatrixSearch.kMaxRowNum);
+  this.dmi_c_phrase_ = false;
 
-  this.lma_start_ = new Array(MatrixSearch.kMaxRowNum);
-  this.lma_id_ = new Array(MatrixSearch.kMaxRowNum);
+  this.max_sps_len_ = DictDef.kMaxSearchSteps - 1;
+  this.max_hzs_len_ = DictDef.kMaxSearchSteps;
 };
 
 MatrixSearch.kMaxRowNum = DictDef.kMaxSearchSteps;
@@ -3796,16 +3796,6 @@ MatrixSearch.MatrixRow.prototype = {
 // when user deletes Pinyin characters from the end, these sub lemmas can also
 // be unlocked one by one.
 MatrixSearch.ComposingPhrase = function composingPhrase_constructor() {
-  this.spl_ids = [];
-  this.spl_start = [];
-  this.chn_str = [];
-  this.sublma_start = [];
-  for (var pos = 0; pos < MatrixSearch.kMaxRowNum; pos++) {
-    this.spl_ids[pos] = 0;
-    this.spl_start[pos] = 0;
-    this.chn_str[pos] = 0;
-    this.sublma_start[pos] = 0;
-  }
 };
 
 MatrixSearch.ComposingPhrase.prototype = {
@@ -3847,27 +3837,73 @@ MatrixSearch.ComposingPhrase.prototype = {
 MatrixSearch.prototype = {
   /* ==== Public methods ==== */
 
-  init: function matrixSearch_init(sysDict, userDict) {
-    this._allocResource();
+  /**
+   * Initialization.
+   * @param {string} sysDict The filename of the system dictionary.
+   * @param {string} userDict The filename of the user dictionary.
+   * @param {function (boolean)} callback Callback function called when the
+   *     operation is finished. The boolean parameter indicates whether the
+   *     operation is successful.
+   * @return {void}  No return value.
+   */
+  init: function matrixSearch_init(sysDict, userDict, callback) {
+    var self = this;
+    var isOk = false;
+    var doCallback = function init_callback() {
+      if (callback) {
+        callback(isOk);
+      }
+    };
+    this.alloc_resource();
 
-    if (!this.spl_trie_.load(sysDict, 1, DictDef.kTopScoreLemmaNum)) {
-      return false;
-    }
+    var taskQueue = new TaskQueue(
+        function taskQueueOnCompleteCallback(queueData) {
+      if (isOk) {
+        this.user_dict_.set_total_lemma_count_of_others(NGram.kSysDictTotalFreq);
+        this.inited_ = true;
+      }
+      doCallback();
+    });
 
-    if (!this.user_dict_.load(userDict, DictDef.kUserDictIdStart,
-                             DictDef.kUserDictIdEnd)) {
-      return false;
-    }
+    var processNextWithDelay = function init_processNextWithDelay() {
+      if (typeof setTimeout != 'undefined') {
+        setTimeout(function nextTask() {
+          taskQueue.processNext();
+        }, 0);
+      } else {
+        taskQueue.processNext();
+      }
+    };
 
-    this.user_dict_.set_total_lemma_count_of_others(NGram.kSysDictTotalFreq);
+    taskQueue.push(function loadSysDict(taskQueue, taskData) {
+      this.dict_trie_.load_dict(sysDict, 1, DictDef.kTopScoreLemmaNum,
+          function loadSysDictCallback(success) {
+        if (success) {
+          processNextWithDelay();
+        } else {
+          doCallback();
+        }
+      });
+    });
 
-    this.inited_ = true;
-    return true;
+    taskQueue.push(function loadUserDict(taskQueue, taskData) {
+      this.user_trie_.load_dict(userDict, DictDef.kUserDictIdStart,
+          DictDef.kUserDictIdEnd, function loadSysDictCallback(success) {
+        if (success) {
+          isOk = true;
+          processNextWithDelay();
+        } else {
+          doCallback();
+        }
+      });
+    });
+
+    taskQueue.processNext();
   },
 
   uninit: function matrixSearch_uinit() {
     this.flush_cache();
-    this._freeResource();
+    this.free_resource();
     this.inited_ = false;
   },
 
@@ -4061,7 +4097,13 @@ MatrixSearch.prototype = {
    * Spelling parser.
    * @type SpellingParser
    */
- spl_parser_: null,
+  spl_parser_: null,
+
+  // The maximum allowed length of spelling string (such as a Pinyin string).
+  max_sps_len_: 0,
+
+  // The maximum allowed length of a result Chinese string.
+  max_hzs_len_: 0,
 
   /**
    * Pinyin string.
@@ -4073,6 +4115,7 @@ MatrixSearch.prototype = {
   pys_decoded_len_: 0,
 
   /**
+   * The length of the buffer array is MatrixSearch.kMtrxNdPoolSize.
    * @type Array.<MatrixSearch.MatrixNode>
    */
   mtrx_nd_pool_: null,
@@ -4083,6 +4126,7 @@ MatrixSearch.prototype = {
   mtrx_nd_pool_used_: 0,
 
   /**
+   * The length of the buffer array is MatrixSearch.kDmiPoolSize.
    * @type MatrixSearch.DictMatchInfo
    */
   dmi_pool_: null,
@@ -4093,7 +4137,8 @@ MatrixSearch.prototype = {
   dmi_pool_used_: 0,
 
   /**
-   * The first row is for starting
+   * The first row is for starting.
+   *  The length of the buffer array is MatrixSearch.kMaxRowNum.
    * @type Array.<MatrixSearch.MatrixRow>
    */
   matrix_: null,
@@ -4106,6 +4151,7 @@ MatrixSearch.prototype = {
 
   /**
    * Used to do prediction.
+   * The buffer length is MatrixSearch.MAX_PRE_ITEMS.
    * @type Array.<SearchUtility.NPredictItem>
    */
   npre_items_: null,
@@ -4155,7 +4201,6 @@ MatrixSearch.prototype = {
    */
   dmi_c_phrase_: true,
 
-
   // The starting positions and spelling ids for the first full sentence
   // candidate.
 
@@ -4194,13 +4239,38 @@ MatrixSearch.prototype = {
 
   lpi_total_: 0,
 
-  _allocResource: function matrixSearch_allocResource() {
+  /**
+   * Alloc memory resource.
+   * @private
+   * @return {void}  No return value.
+   */
+  alloc_resource: function matrixSearch_alloc_resource() {
     this.spl_trie_ = new DictTrie();
     this.user_dict_ = new UserDict();
+    this.spl_parser_ = new SpellingParser();
+
+    var pos = 0;
+
+    this.spl_ids = [];
+    this.spl_start = [];
+    this.chn_str = [];
+    this.sublma_start = [];
+    for (pos = 0; pos < MatrixSearch.kMaxRowNum; pos++) {
+      this.spl_ids[pos] = 0;
+      this.spl_start[pos] = 0;
+      this.chn_str[pos] = 0;
+      this.sublma_start[pos] = 0;
+    }
 
     // The buffers for search
-    this.mtrx_nd_pool_ = new Array(MatrixSearch.kMtrxNdPoolSize);
-    this.dmi_pool_ = new Array(MatrixSearch.kDmiPoolSize);
+    this.mtrx_nd_pool_ = [];
+    for (var pos = 0; pos < MatrixSearch.kMtrxNdPoolSize; pos++) {
+      this.mtrx_nd_pool_[pos] = new MatrixSearch.MatrixNode();
+    }
+    this.dmi_pool_ = [];
+    for (var pso = 0; pos < MatrixSearch.kDmiPoolSize; pos++) {
+      this.dmi_pool_[pos] = new MatrixSearch.DictMatchInfo();
+    }
     this.matrix_ = [];
     for (i = 0; i < MatrixSearch.kMaxRowNum; i++) {
       this.matrix_[i] = new MatrixRow();
@@ -4208,12 +4278,34 @@ MatrixSearch.prototype = {
     this.dep_ = new SearchUtility.DictExtPara();
 
     // The prediction buffer
-    this.npre_items_ = new Array(MatrixSearch.MAX_PRE_ITEMS);
+    this.npre_items_ = [];
+    for (pos = 0; pos < MatrixSearch.MAX_PRE_ITEMS; pos++) {
+      this.npre_items_[pos] = new SearchUtility.NPredictItem();
+    }
     this.npre_items_len_ = MatrixSearch.MAX_PRE_ITEMS;
   },
 
-  _freeResource: function matrixSearch_freeResource() {
+  /**
+   * Free memory.
+   * @private
+   * @return {void}  No return value.
+   */
+  free_resource: function matrixSearch_free_resource() {
+    this.dict_trie_ = null;
+    this.user_dict_ = null;
+    this.spl_parser_ = null;
 
+    this.lma_start_ = null;
+    this.lma_id = null;
+    this.fixed_lmas_no1_ = null;
+    this.spl_start_ = null;
+    this.spl_id_ = null;
+
+    this.mtrx_nd_pool_ = null;
+    this.dmi_pool_ = null;
+    this.matrix_ = null;
+    this.dep_ = null;
+    this.npre_items_ = null;
   },
 
   // Reset the search space from ch_pos step. For example, if the original
@@ -5805,8 +5897,7 @@ DictBuilder.prototype = {
       doCallback();
     });
 
-    var processNextWithDelay =
-        function dictBuilder_rocessNextWithDelay() {
+    var processNextWithDelay = function dictBuilder_processNextWithDelay() {
       if (typeof setTimeout != 'undefined') {
         setTimeout(function nextTask() {
           taskQueue.processNext();
@@ -9582,7 +9673,6 @@ var SpellingParser = function spellingParser_constructor() {
   this.spl_trie_ = SpellingTrie.get_instance();
 };
 
-
 SpellingParser.prototype = {
   /* ==== Private ==== */
 
@@ -9817,14 +9907,27 @@ SpellingNode.prototype = {
   score: 0
 };
 
+/**
+ * Call SpellingTrie.get_instance method instead of direct calling this
+ * constructor.
+ * @private
+ */
 var SpellingTrie = function spellingTrie_constructor() {
   this.h2f_start_ = [];
   this.szm_enable_shm(true);
   this.szm_enable_ym(true);
 };
 
+/**
+ * The singleton instance of SpellingTrie.
+ * @private
+ */
 SpellingTrie.instance_ = null;
 
+/**
+ * Get the singleton instance of SpellingTrie.
+ * @return {SpellingTrie} The singleton instance.
+ */
 SpellingTrie.get_instance = function get_instance() {
   if (SpellingTrie.instance_ == null) {
     SpellingTrie.instance_ = new SpellingTrie();
