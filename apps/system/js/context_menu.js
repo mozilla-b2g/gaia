@@ -9,6 +9,9 @@ var ContextMenu = {
   },
 
   handleEvent: function cm_handleEvent(evt) {
+    if (evt.detail.contextmenu.items.length == 0)
+      return;
+
     ListMenu.request(evt.detail.contextmenu.items,
       function sm_clickHandler(action) {
         evt.detail.contextMenuItemSelected(action);
