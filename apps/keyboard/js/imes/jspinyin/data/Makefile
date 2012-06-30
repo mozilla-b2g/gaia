@@ -1,7 +1,10 @@
-.PHONY: deploydata clean
+.PHONY: deploydata dictbuilder clean
 
 deploydata: data.txt data-tr.txt
 	./cook.sh
+
+dictbuilder: data.txt valid.txt pinyinime_dictbuilder.js
+	js -U pinyinime_dictbuilder.js > ../dict_pinyin.json
 	
 rawdict.txt: rawdict_utf16_65105_freq.txt
 	iconv -f UTF-16 -t UTF-8 rawdict_utf16_65105_freq.txt -o $@

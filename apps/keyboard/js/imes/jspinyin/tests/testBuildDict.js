@@ -11,6 +11,7 @@ var FileSystemService = Test.FileSystemService;
 var DictBuilder = Test.DictBuilder;
 var MyStdlib = Test.MyStdlib;
 var SearchUtility = Test.SearchUtility;
+var DictTrie = Test.DictTrie;
 
 function testRawDictFiles() {
   print('------ Test FileSystemService --------');
@@ -30,11 +31,11 @@ function testRawDictFiles() {
 
 function testDictBuilder() {
   print('------ Test DictBuilder --------');
-
+  var dict_trie = new DictTrie();
   var builder = new DictBuilder();
-  builder.build_dict('sm://data/rawdict.txt', 'sm://data/valid.txt',
+  builder.build_dict('sm://data/rawdict.txt', 'sm://data/valid.txt', dict_trie,
       function(isOk) {
-    assertEq(isOK, true);
+    assertEq(isOk, true);
   });
 }
 

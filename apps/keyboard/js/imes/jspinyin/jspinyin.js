@@ -3097,6 +3097,7 @@ SpiderMonkeyFileSystemStorage.prototype = {
 
   write: function spiderMonkeyFileSystemStorage_write(name, str, callback) {
     debug(StringUtils.format('Write file {0} of the content: {1}', name, str));
+    print(str);
     if (callback) {
       callback(true);
     }
@@ -4844,9 +4845,18 @@ DictTrie.prototype = {
       ngram: ngram_str
     };
 
-    FileSystemService.write(filename, JSON.stringify(jsonData), function
+    var str = JSON.stringify(jsonData);
+
+    // Break the dict string into multi-lines.
+    var lines = '';
+    var num = Math.ceil(str.length / 80);
+    for (var i = 0; i < num; i++) {
+      lines += str.substring(i * 80, i * 80 + 80) + '\n';
+    }
+
+    FileSystemService.write(filename, lines, function
         writeFileCallback(success) {
-      bOk = success;
+      isOk = success;
       doCallback();
     });
   },
@@ -6374,14 +6384,14 @@ DictBuilder.prototype = {
     debug('homo_idx_num_gt1_: ' + this.homo_idx_num_gt1_);
     debug('top_lmas_num_: ' + this.top_lmas_num_);
 
-    debug('Building dict succeds');
+    debug('Building dict succeeds.');
     return dt_success;
   },
 
   /**
    * Convert id to char array.
    */
-  id_to_charbuf: function dictBuilder_id_to_charbuf(buf, start, id) {
+  id_to_charbuf: function dictBuilder_id_to_charbuf(id) {
     var str = '';
     for (var pos = 0; pos < DictDef.kLemmaIdSize; pos++) {
       str += String.fromCharCode((id >> (pos * 8)) & 0xff);
@@ -11081,10 +11091,16 @@ if (typeof Test !== 'undefined') {
   Test.SpellingTable = SpellingTable;
   Test.SpellingTrie = SpellingTrie;
   Test.FileSystemService = FileSystemService;
+  Test.DictTrie = DictTrie;
   Test.DictBuilder = DictBuilder;
   Test.MyStdlib = MyStdlib;
   Test.SearchUtility = SearchUtility;
   Test.UserDict = UserDict;
+}
+
+if (typeof Build !== 'undefined') {
+  Build.FileSystemService = FileSystemService;
+  Build.DictTrie = DictTrie;
 }
 
 })();
