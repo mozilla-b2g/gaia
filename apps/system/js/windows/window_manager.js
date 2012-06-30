@@ -339,7 +339,7 @@ var WindowManager = (function() {
     displayedApp = origin;
 
     // Update the loading icon since the displayedApp is changed
-    updateLoadingIcon(origin);
+    updateLoadingIcon();
   }
 
   function setOrientationForApp(origin) {
@@ -627,17 +627,14 @@ var WindowManager = (function() {
   }
 
   // Update the loading icon on the status bar
-  function updateLoadingIcon(origin) {
+  function updateLoadingIcon() {
+    var origin = displayedApp;
     // If there aren't any origin, that means we are moving to
     // the homescreen. Let's hide the icon.
     if (!origin) {
       loadingIcon.hidden = true;
       return;
     }
-
-    // The loading icon is only for the displayed app
-    if (getDisplayedApp() !== origin)
-      return;
 
     // Actually update the icon.
     // Hide it if the loading property is not true.
@@ -655,8 +652,10 @@ var WindowManager = (function() {
 
     e.target.dataset.loading = true;
 
-    // Update the loading icon
-    updateLoadingIcon(e.target.dataset.frameOrigin);
+    // Update the loading icon only if this is the displayed app
+    if (displayedApp == e.target.dataset.frameOrigin) {
+      updateLoadingIcon();
+    }
   });
 
   // Listen for mozbrowserloadend to update the loading status
@@ -669,8 +668,10 @@ var WindowManager = (function() {
 
     delete e.target.dataset.loading;
 
-    // Update the loading icon
-    updateLoadingIcon(e.target.dataset.frameOrigin);
+    // Update the loading icon only if this is the displayed app
+    if (displayedApp == e.target.dataset.frameOrigin) {
+      updateLoadingIcon();
+    }
   });
 
   // When a resize event occurs, resize the running app, if there is one
