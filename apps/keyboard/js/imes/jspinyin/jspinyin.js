@@ -3096,7 +3096,7 @@ SpiderMonkeyFileSystemStorage.prototype = {
   },
 
   write: function spiderMonkeyFileSystemStorage_write(name, str, callback) {
-    debug(StringUtils.format('Write file {0} of the content: {1}', name, str));
+    debug(StringUtils.format('Write file "{0}"', name));
     print(str);
     if (callback) {
       callback(true);
@@ -3883,18 +3883,20 @@ MatrixSearch.prototype = {
           processNextWithDelay();
         } else {
           doCallback();
+          debug('MatrixSearch#init failed to load system dict.');
         }
       });
     });
 
     taskQueue.push(function loadUserDict(taskQueue, taskData) {
-      self.user_trie_.load_dict(userDict, DictDef.kUserDictIdStart,
+      self.user_dict_.load_dict(userDict, DictDef.kUserDictIdStart,
           DictDef.kUserDictIdEnd, function loadSysDictCallback(success) {
         if (success) {
           isOk = true;
           processNextWithDelay();
         } else {
           doCallback();
+          debug('MatrixSearch#init failed to load user dict.');
         }
       });
     });
@@ -4246,7 +4248,7 @@ MatrixSearch.prototype = {
    * @return {void}  No return value.
    */
   alloc_resource: function matrixSearch_alloc_resource() {
-    this.spl_trie_ = new DictTrie();
+    this.dict_trie_ = new DictTrie();
     this.user_dict_ = new UserDict();
     this.spl_parser_ = new SpellingParser();
 
@@ -4273,8 +4275,8 @@ MatrixSearch.prototype = {
       this.dmi_pool_[pos] = new MatrixSearch.DictMatchInfo();
     }
     this.matrix_ = [];
-    for (i = 0; i < MatrixSearch.kMaxRowNum; i++) {
-      this.matrix_[i] = new MatrixRow();
+    for (pos = 0; pos < MatrixSearch.kMaxRowNum; pos++) {
+      this.matrix_[pos] = new MatrixSearch.MatrixRow();
     }
     this.dep_ = new SearchUtility.DictExtPara();
 
@@ -4867,6 +4869,104 @@ DictTrie.prototype = {
    * @override
    */
   load_dict: function dictTrie_load(file_name, start_id, end_id, callback) {
+    debug('DictTrie#load_dict: ' + file_name);
+    var self = this;
+    var isOk = false;
+    var doCallback = function load_doCallback() {
+      if (callback) {
+        callback(isOk);
+      }
+    }
+    if (!file_name || end_id <= start_id) {
+      doCallback();
+      return;
+    }
+
+    this.dict_list_ = new DictList();
+    var spl_trie = SpellingTrie.get_instance();
+    var ngram = NGram.get_instance();
+
+    var dictJson = null;
+
+    var taskQueue = new TaskQueue(
+        function load_taskQueueOnCompleteCallback(queueData) {
+      if (self.top_lmas_num_ > end_id - start_id + 1) {
+        debug('DictTrie failed to load from file.');
+      } else {
+        isOk = true;
+      }
+      doCallback();
+    });
+
+    var processNextWithDelay =
+        function load_rocessNextWithDelay() {
+      if (typeof setTimeout != 'undefined') {
+        setTimeout(function nextTask() {
+          taskQueue.processNext();
+        }, 0);
+      } else {
+        taskQueue.processNext();
+      }
+    };
+
+    // Open the dictionary file.
+    taskQueue.push(function openSysDictFile(taskQueue, taskData) {
+      // Open the raw dict files
+      FileSystemService.read(file_name,
+          function readSysDictFileCallback(str) {
+        try {
+          str = str.replace(/\n/g, '');
+          dictJson = JSON.parse(str);
+        } catch (e) {
+          debug('Failed to open the system dictionary file.');
+          doCallback();
+          return;
+        }
+        processNextWithDelay();
+      });
+    });
+
+    // Load SpellingTrie.
+    taskQueue.push(function loadSpellingTrie(taskQueue, taskData) {
+      if (!spl_trie.load_spl_trie(dictJson.spl_trie)) {
+        debug('Failed to load SpellingTrie.');
+        doCallback();
+        return;
+      }
+      processNextWithDelay();
+    });
+
+    // Load DictList.
+    taskQueue.push(function loadDictList(taskQueue, taskData) {
+      if (!self.dict_list_.load_list(dictJson.dict_list)) {
+        debug('Failed to load DictList.');
+        doCallback();
+        return;
+      }
+      processNextWithDelay();
+    });
+
+    // Load DictTrie.
+    taskQueue.push(function loadDictTrie(taskQueue, taskData) {
+      if (!self.load_dict_from_string(dictJson.dict_trie)) {
+        debug('Failed to load DictTrie.');
+        doCallback();
+        return;
+      }
+      processNextWithDelay();
+    });
+
+    // Load NGram.
+    taskQueue.push(function loadNGram(taskQueue, taskData) {
+      if (!ngram.load_ngram(dictJson.ngram)) {
+        debug('Failed to load NGram.');
+        doCallback();
+        return;
+      }
+      processNextWithDelay();
+    });
+
+    taskQueue.processNext();
   },
 
   /**
@@ -7315,7 +7415,7 @@ UserDict.prototype = {
       }
     };
 
-    taskQueue.push(function userDict_openUserDictFile(taskQueue, taskData) {
+    taskQueue.push(function openUserDictFile(taskQueue, taskData) {
       // Open the raw dict files
       FileSystemService.read(file_name,
           function readUserDictFileCallback(str) {
@@ -10238,19 +10338,21 @@ SpellingTrie.prototype = {
 
     this.level1_sons_ = [];
 
-    this.root_.sons =
-      this.construct_spellings_subset(0, this.spelling_num_, 0, this.root_);
+    this.root_.sons = this.construct_spellings_subset(0, this.spelling_num_, 0,
+        this.root_);
 
     // Root's score should be cleared.
     this.root_.score = 0;
 
-    if (this.root_.sons.length == 0)
+    if (this.root_.sons.length == 0) {
       return false;
+    }
 
     this.h2f_start_[0] = this.h2f_num_[0] = 0;
 
-    if (!this.build_f2h())
+    if (!this.build_f2h()) {
       return false;
+    }
 
     return this.build_ym_info();
   },
@@ -10467,7 +10569,7 @@ SpellingTrie.prototype = {
       this.spelling_num_ = jsonData.spelling_num_;
       this.score_amplifier_ = jsonData.score_amplifier_;
       this.average_score_ = jsonData.average_score_;
-      this.spelling_buf_ = jsonData.spelling_buf;
+      this.spelling_buf_ = jsonData.spelling_buf_;
     } catch (ex) {
       debug('load_spl_trie: ' + ex);
       return false;
@@ -11096,6 +11198,7 @@ if (typeof Test !== 'undefined') {
   Test.MyStdlib = MyStdlib;
   Test.SearchUtility = SearchUtility;
   Test.UserDict = UserDict;
+  Test.MatrixSearch = MatrixSearch;
 }
 
 if (typeof Build !== 'undefined') {

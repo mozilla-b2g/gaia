@@ -16,7 +16,7 @@ function testUserDict() {
   FileSystemService.init(function() {
     var dict = new UserDict();
     dict.load_dict(USER_DICT_FILE_NAME, 100, 200, function(success) {
-      assertEq(success, true, 'Failed to load the dict.')
+      assertEq(success, true, 'Failed to load the dict.');
     });
     print('dict info: ' + JSON.stringify(dict.dict_info_));
     var lemma1 = dict.put_lemma('你好', [0, 1], 1);
@@ -29,7 +29,7 @@ function testUserDict() {
     print('lemmas: ' + JSON.stringify(dict.lemmas_));
     print('scores: ' + JSON.stringify(dict.scores_));
     dict.close_dict(function(success) {
-      assertEq(success, true, 'Failed to close the dict.')
+      assertEq(success, true, 'Failed to close the dict.');
     });
   });
 

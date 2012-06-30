@@ -15,13 +15,13 @@ var DictTrie = Test.DictTrie;
 
 function testRawDictFiles() {
   print('------ Test FileSystemService --------');
-  FileSystemService.init(function() {
+  FileSystemService.init(function fileSystemServiceInitCallback() {
     assertEq(FileSystemService.isFileSystemReady(
       FileSystemService.Type.IndexedDB), false);
     assertEq(FileSystemService.isFileSystemReady(
       FileSystemService.Type.SpiderMonkey), true);
 
-    FileSystemService.read('sm://data/rawdict.txt', function(str) {
+    FileSystemService.read('sm://data/rawdict.txt', function readCallback(str) {
       assertEq(str.length > 0, true);
     });
   });

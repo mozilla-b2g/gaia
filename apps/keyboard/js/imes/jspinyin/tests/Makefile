@@ -1,4 +1,4 @@
-.PHONY: test-all clean build-dict-test spelling-parser-test user-dict-test
+.PHONY: test-all clean build-dict-test spelling-parser-test user-dict-test matrix-search-test
 
 test-all: 
 	./test.sh 
@@ -13,5 +13,7 @@ spelling-parser-test:
 user-dict-test:
 	js -U testUserDict.js
 
+matrix-search-test:
+	js -U matrix_search_test.js
 clean:
 	rm -f temp
