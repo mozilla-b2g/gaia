@@ -48,14 +48,14 @@ function testSpellingParser() {
   assertEq(ret.spl_idx.length, 1);
   assertEq(ret.last_is_pre, false);
   assertEq(ret.start_pos[1], 2);
-  assertEq(dictBuilder.spl_parser_.get_spl_id_by_str('BA').spl_id,
+  assertEq(dictBuilder.spl_parser_.get_splid_by_str('BA').spl_id,
            ret.spl_idx[0]);
   ret = dictBuilder.spl_parser_.splstr_to_idxs('BEN');
   print('BEN:' + JSON.stringify(ret));
   assertEq(ret.spl_idx.length, 1);
   assertEq(ret.last_is_pre, true);
   assertEq(ret.start_pos[1], 3);
-  assertEq(dictBuilder.spl_parser_.get_spl_id_by_str('BEN').spl_id,
+  assertEq(dictBuilder.spl_parser_.get_splid_by_str('BEN').spl_id,
            ret.spl_idx[0]);
   ret = dictBuilder.spl_parser_.splstr_to_idxs('BE');
   print('BE:' + JSON.stringify(ret));
@@ -63,7 +63,7 @@ function testSpellingParser() {
   assertEq(ret.last_is_pre, true);
   assertEq(ret.start_pos[0], 0);
   ret = dictBuilder.spl_parser_.splstr_to_idxs('BANENG');
-  assertEq(dictBuilder.spl_parser_.get_spl_id_by_str('NENG').spl_id,
+  assertEq(dictBuilder.spl_parser_.get_splid_by_str('NENG').spl_id,
            ret.spl_idx[1]);
   print('BANENG:' + JSON.stringify(ret));
   assertEq(ret.spl_idx.length, 2);

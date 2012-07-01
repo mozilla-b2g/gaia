@@ -2381,6 +2381,9 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
 };
 
 var PinyinDecoderService = {
+  // The maximum number of the prediction items.
+  kMaxPredictNum: 500,
+
   // Private instance of the MatrixSearch
   _matrixSearch: null,
 
@@ -2410,9 +2413,9 @@ var PinyinDecoderService = {
    * Flush cached data to persistent memory. Because at runtime, in order to
    * achieve best performance, some data is only store in memory.
    */
-  flush_cache: function decoderService_flush_cache() {
+  flush_cache: function decoderService_flush_cache(callback) {
     if (this._matrixSearch != null) {
-      this._matrixSearch.flush_cache();
+      this._matrixSearch.flush_cache(callback);
     }
   },
 
@@ -2432,37 +2435,38 @@ var PinyinDecoderService = {
       return 0;
     }
     this._matrixSearch.search(spsStr);
-    return this._matrixSearch.getCandidateNum();
+    return this._matrixSearch.get_candidate_num();
   },
 
   /**
    * Make a delete operation in the current search result, and make research if
    * necessary.
    *
-   * @param {Integer} pos The posistion of char in spelling string to delete,
+   * @param {number} pos The posistion of char in spelling string to delete,
    * or the position of spelling id in result string to delete.
-   * @param {Boolean} isPosInspl_id Indicate whether the pos parameter is the
+   * @param {boolean} isPosInspl_id Indicate whether the pos parameter is the
    * position in the spelling string, or the position in the result spelling id
    * string.
-   * @param {Boolean} clearFixed If true, the fixed spellings will be cleared.
-   * @return {Integer} The number of candidates.
+   * @param {boolean} clear_fixed If true, the fixed spellings will be cleared.
+   * @return {number} The number of candidates.
    */
-  delSearch: function decoderService_delSearch(pos, isPosInspl_id, clearFixed) {
+  delsearch: function decoderService_delsearch(pos, isPosInspl_id, clear_fixed)
+  {
     if (this._matrixSearch == null) {
       return 0;
     }
-    this._matrixSearch.delSearch(pos, isPosInspl_id, clearFixed);
-    return this._matrixSearch.getCandidateNum();
+    this._matrixSearch.delsearch(pos, isPosInspl_id, clear_fixed);
+    return this._matrixSearch.get_candidate_num();
   },
 
   /**
    * Reset the previous search result.
    */
-  resetSearch: function decoderService_resetSearch() {
+  reset_search: function decoderService_reset_search() {
     if (this._matrixSearch == null) {
       return;
     }
-    this._matrixSearch.resetSearch();
+    this._matrixSearch.reset_search();
   },
 
   /**
@@ -2470,11 +2474,11 @@ var PinyinDecoderService = {
    *
    * @return {String} The spelling string kept by the decoder.
    */
-  getSpsStr: function decoderService_getSpsStr() {
+  get_pystr: function decoderService_get_pystr() {
     if (this._matrixSearch == null) {
       return '';
     }
-    return this._matrixSearch.getSpsStr();
+    return this._matrixSearch.get_pystr();
   },
 
   /**
@@ -2484,11 +2488,11 @@ var PinyinDecoderService = {
    * Usually, id 0 is a sentence-level candidate.
    * @return {String } The candidate string if succeeds, otherwise null.
    */
-  getCandidate: function decoderService_getCandidate(candId) {
+  get_candidate: function decoderService_get_candidate(candId) {
     if (this._matrixSearch == null) {
       return '';
     }
-    return this._matrixSearch.getCandidate(candId);
+    return this._matrixSearch.get_candidate(candId);
   },
 
   /**
@@ -2498,11 +2502,11 @@ var PinyinDecoderService = {
    * @return {Array} An array contains the starting position of all the
    * spellings.
    */
-  getSplStartPos: function decoderService_getSplStartPos() {
+  get_spl_start: function decoderService_get_spl_start() {
     if (this._matrixSearch == null) {
       return 0;
     }
-    return this._matrixSearch.getSplStartPos();
+    return this._matrixSearch.get_spl_start();
   },
 
   /**
@@ -2528,11 +2532,11 @@ var PinyinDecoderService = {
    *
    * @return {Integer} The number of fixed spelling ids, of Chinese characters.
    */
-  getFixedLen: function decoderService_getFixedLen() {
+  get_fixedlen: function decoderService_get_fixedlen() {
     if (this._matrixSearch == null) {
       return 0;
     }
-    return this._matrixSearch.getFixedLen();
+    return this._matrixSearch.get_fixedlen();
   },
 
   /**
@@ -2542,11 +2546,11 @@ var PinyinDecoderService = {
    * @param {String} history The history string to do the prediction.
    * @return {String[]} The prediction result list of an string array.
    */
-  getPredicts: function decoderService_getPredicts(history) {
+  get_predicts: function decoderService_get_predicts(history) {
     if (this._matrixSearch == null) {
       return [];
     }
-    return this._matrixSearch.getPredicts(history);
+    return this._matrixSearch.get_predicts(history);
   }
 };
 
@@ -3338,21 +3342,21 @@ var SearchUtility = {
     return SearchUtility.compare(p1.psb, p2.psb);
   },
 
-  cmp_npre_by_hislen_score:
-      function searchUtility_cmp_npre_by_hislen_score(p1, p2) {
+  cmp_npre_by_hislen_score: function searchUtility_cmp_npre_by_hislen_score(p1,
+      p2) {
     return SearchUtility.compare(p1.his_len, p2.his_len) ||
       SearchUtility.compare(p1.psb, p2.psb);
   },
 
-  cmp_npre_by_hanzi_score:
-      function searchUtility_cmp_npre_by_hanzi_score(p1, p2) {
+  cmp_npre_by_hanzi_score: function searchUtility_cmp_npre_by_hanzi_score(p1,
+      p2) {
     return SearchUtility.compare(p1.pre_hzs, p2.pre_hzs) ||
       SearchUtility.compare(p1.psb, p2.psb);
   },
 
 
-  remove_duplicate_npre:
-      function searchUtility_remove_duplicate_npre(npre_items) {
+  remove_duplicate_npre: function searchUtility_remove_duplicate_npre(
+      npre_items) {
     if (!npre_items) {
       return 0;
     }
@@ -3494,6 +3498,7 @@ SearchUtility.DictExtPara.prototype = {
   id_num: 0
 };
 
+// TODO combine mybsearchStr and mybsearchArray
 var MyStdlib = {
 
   /**
@@ -3615,6 +3620,8 @@ var MyStdlib = {
 };
 
 var MatrixSearch = function matrixSearch_constructor() {
+  this.c_phrase_ = new MatrixSearch.ComposingPhrase();
+
   this.inited_ = false;
   this.spl_trie_ = SpellingTrie.get_instance();
 
@@ -3623,6 +3630,11 @@ var MatrixSearch = function matrixSearch_constructor() {
   this.max_sps_len_ = DictDef.kMaxSearchSteps - 1;
   this.max_hzs_len_ = DictDef.kMaxSearchSteps;
 };
+
+/**
+ * @private
+ */
+MatrixSearch.PRUMING_SCORE = 8000.0;
 
 MatrixSearch.kMaxRowNum = DictDef.kMaxSearchSteps;
 /**
@@ -3796,6 +3808,14 @@ MatrixSearch.MatrixRow.prototype = {
 // when user deletes Pinyin characters from the end, these sub lemmas can also
 // be unlocked one by one.
 MatrixSearch.ComposingPhrase = function composingPhrase_constructor() {
+  this.spl_ids = [];
+  this.spl_start = [];
+  this.sublma_start = [];
+  for (var pos = 0; pos < MatrixSearch.kMaxRowNum; pos++) {
+    this.spl_ids[pos] = 0;
+    this.spl_start[pos] = 0;
+    this.sublma_start[pos] = 0;
+  }
 };
 
 MatrixSearch.ComposingPhrase.prototype = {
@@ -3814,9 +3834,9 @@ MatrixSearch.ComposingPhrase.prototype = {
   /**
    * Chinese string array.
    * The length of the array is MatrixSearch.kMaxRowNum.
-   * @type {Array.<number>}
+   * @type {string}
    */
-  chn_str: null,
+  chn_str: '',
 
   /**
    * Counted in Chinese characters.
@@ -3904,135 +3924,372 @@ MatrixSearch.prototype = {
     taskQueue.processNext();
   },
 
-  uninit: function matrixSearch_uinit() {
-    this.flush_cache();
-    this.free_resource();
-    this.inited_ = false;
+  uninit: function matrixSearch_uinit(callback) {
+    var self = this;
+    var doCallback = function uninit_doCallback() {
+      if (callback) {
+        callback();
+      }
+    };
+    this.flush_cache(function flushCallback() {
+      self.free_resource();
+      self.inited_ = false;
+      doCallback();
+    });
   },
 
   /**
    * Flush cached data to persistent memory. Because at runtime, in order to
    * achieve best performance, some data is only store in memory.
    */
-  flush_cache: function matrixSearch_flush_cache() {
+  flush_cache: function matrixSearch_flush_cache(callback) {
     if (this.user_dict_) {
-      this.user_dict_.flush_cache();
+      this.user_dict_.flush_cache(callback);
     }
   },
 
   /**
    * Search a Pinyin string.
    *
-   * @param {String} py The Pinyin string.
-   * @return {Integer} The position successfully parsed.
+   * @param {string} py The Pinyin string.
+   * @return {number} The position successfully parsed.
    */
   search: function matrixSearch_search(py) {
-    if (!this.inited_ || py == '') {
+    if (!this.inited_ || !py) {
       return 0;
     }
 
-    var pyLen = py.length;
+    var py_len = py.length;
 
     // If the search Pinyin string is too long, it will be truncated.
-    if (pyLen > MatrixSearch.kMaxRowNum - 1) {
+    if (py_len > MatrixSearch.kMaxRowNum - 1) {
       py = py.substring(0, MatrixSearch.kMaxRowNum - 1);
-      pyLen = MatrixSearch.kMaxRowNum - 1;
+      py_len = MatrixSearch.kMaxRowNum - 1;
     }
 
     // Compare the new string with the previous one. Find their prefix to
     // increase search efficiency.
-    var chPos = 0;
-    var len = Math.min(this.pys_decoded_len_, pyLen);
-    for (chPos = 0; chPos < len; chPos++) {
-      if (py.charAt(chPos) != this.pys_.charAt(chPos))
+    var ch_pos = 0;
+    var len = Math.min(this.pys_decoded_len_, py_len);
+    for (ch_pos = 0; ch_pos < len; ch_pos++) {
+      if (py.charAt(ch_pos) != this.pys_.charAt(ch_pos)) {
         break;
+      }
     }
 
-    var clearFix = chPos != this.pys_decoded_len_;
+    var clear_fix = ch_pos != this.pys_decoded_len_;
 
-    this._resetSearch(chPos, clearFix, false, false);
+    this.reset_searchn(ch_pos, clear_fix, false, false);
 
     this.pys_ = py;
 
-    while (chPos < pyLen) {
-      if (!this._addChar(py.charAt(chPos))) {
-        this.pys_decoded_len_ = chPos;
+    while (ch_pos < py_len) {
+      if (!this.add_char(py.charAt(ch_pos))) {
+        this.pys_decoded_len_ = ch_pos;
         break;
       }
-      chPos++;
+      ch_pos++;
     }
 
     // Get spelling ids and starting positions.
-    this._getSplStartId();
+    this.get_spl_start_id();
 
     // If there are too many spellings, remove the last letter until the
     // spelling number is acceptable.
     while (this.spl_id_num_ > 9) {
-      pyLen--;
-      this._resetSearch(pyLen, false, false, false);
-      this.pys_ = this.pys_.substring(0, pyLen);
-      this._getSplStartId();
+      py_len--;
+      this.reset_searchn(py_len, false, false, false);
+      this.pys_ = this.pys_.substring(0, py_len);
+      this.get_spl_start_id();
     }
 
-    this._prepareCandidates();
+    this.prepare_candidates();
 
-    return chPos;
+    return ch_pos;
   },
 
   /**
    * Used to delete something in the Pinyin string kept by the engine, and do
    * a re-search.
    *
-   * @param {Integer} pos The posistion of char in spelling string to delete,
+   * @param {number} pos The posistion of char in spelling string to delete,
    * or the position of spelling id in result string to delete.
-   * @param {Boolean} isPosInspl_id If isPosInspl_id is false, pos is used to
-   * indicate that pos-th Pinyin character needs to be deleted. And if the
+   * @param {boolean} is_pos_in_splid If is_pos_in_splid is false, pos is used
+   * to indicate that pos-th Pinyin character needs to be deleted. And if the
    * pos-th character is in the range for the fixed lemmas or composing string,
    * this function will do nothing and just return the result of the previous
    * search. If isPosInspl_id is true, all Pinyin characters for pos-th spelling
    * id needs to be deleted.
-   * @param {Boolean} clearFixed If the deleted character(s) is just after a
-   * fixed lemma or sub lemma in composing phrase, clearFixed indicates
+   * @param {boolean} clear_fixed If the deleted character(s) is just after a
+   * fixed lemma or sub lemma in composing phrase, clear_fixed indicates
    * whether we needs to unlock the last fixed lemma or sub lemma.
-   * @return {Integer} The new length of Pinyin string kept by the engine which
+   * @return {number} The new length of Pinyin string kept by the engine which
    * is parsed successfully.
    */
-  delSearch: function matrixSearch_delSearch(pos, isPosInspl_id, clearFixed) {
+  delsearch: function matrixSearch_delsearch(pos, is_pos_in_splid, clear_fixed)
+  {
+    if (!this.inited_) {
+      return 0;
+    }
 
+    var reset_pos = pos;
+
+    // Out of range for both Pinyin mode and Spelling id mode.
+    if (this.pys_decoded_len_ <= pos) {
+      this.del_in_pys(pos, 1);
+
+      reset_pos = this.pys_decoded_len_;
+      // Decode the string after the un-decoded position
+      while (!this.pys_.charAt(reset_pos)) {
+        if (!this.add_char(this.pys_.charAt(reset_pos))) {
+          this.pys_decoded_len_ = reset_pos;
+          break;
+        }
+        reset_pos++;
+      }
+      this.get_spl_start_id();
+      this.prepare_candidates();
+      return this.pys_decoded_len_;
+    }
+
+    // Spelling id mode, but out of range.
+    if (is_pos_in_splid && this.spl_id_num_ <= pos) {
+      return this.pys_decoded_len_;
+    }
+
+    // Begin to handle two modes respectively.
+    // Pinyin mode by default
+    var c_py_len = 0;  // The length of composing phrase's Pinyin
+    var del_py_len = 1;
+    if (!is_pos_in_splid) {
+      // Pinyin mode is only allowed to delete beyond the fixed lemmas.
+      if (this.fixed_lmas_ > 0 && pos <
+          this.spl_start_[this.lma_start_[this.fixed_lmas_]]) {
+        return this.pys_decoded_len_;
+      }
+
+      this.del_in_pys(pos, 1);
+
+      // If the deleted character is just the one after the last fixed lemma
+      if (pos == this.spl_start_[this.lma_start_[this.fixed_lmas_]]) {
+        // If all fixed lemmas have been merged, and the caller of the function
+        // request to unlock the last fixed lemma.
+        if (DictDef.kLemmaIdComposing == this.lma_id_[0] &&
+            clear_fixed_this_step) {
+          // Unlock the last sub lemma in the composing phrase. Because it
+          // is not easy to unlock it directly. Instead, we re-decode the
+          // modified composing phrase.
+          this.c_phrase_.sublma_num--;
+          this.c_phrase_.length = this.c_phrase_.sublma_start[this.c_phrase_.
+              sublma_num];
+          reset_pos = this.spl_start_[this.c_phrase_.length];
+          c_py_len = reset_pos;
+        }
+      }
+    } else {
+      del_py_len = this.spl_start_[pos + 1] - this.spl_start_[pos];
+
+      this.del_in_pys(this.spl_start_[pos], del_py_len);
+
+      if (pos >= this.lma_start_[this.fixed_lmas_]) {
+        c_py_len = 0;
+        reset_pos = this.spl_start_[pos + 1] - del_py_len;
+      } else {
+        c_py_len = this.spl_start_[this.lma_start_[this.fixed_lmas_]] -
+            del_py_len;
+        reset_pos = c_py_len;
+        if (c_py_len > 0) {
+          this.merge_fixed_lmas(pos);
+        }
+      }
+    }
+
+    if (c_py_len > 0) {
+      assert(this.c_phrase_.length > 0 && c_py_len ==
+          this.c_phrase_.spl_start[this.c_phrase_.sublma_start[
+          this.c_phrase_.sublma_num]]);
+      // The composing phrase is valid, reset all search space,
+      // and begin a new search which will only extend the composing
+      // phrase.
+      this.reset_search0();
+
+      this.dmi_c_phrase_ = true;
+      // Extend the composing phrase.
+      var c_py_pos = 0;
+      while (c_py_pos < c_py_len) {
+        var b_ac_tmp = this.add_char(this.pys_.charAt(c_py_pos));
+        assert(b_ac_tmp);
+        c_py_pos++;
+      }
+      this.dmi_c_phrase_ = false;
+
+      // Fixd the composing phrase as the first choice.
+      this.lma_id_num_ = 1;
+      this.fixed_lmas_ = 1;
+      this.fixed_lmas_no1_[0] = 0;  // A composing string is always modified.
+      this.fixed_hzs_ = this.c_phrase_.length;
+      this.lma_start_[1] = this.fixed_hzs_;
+      this.lma_id_[0] = DictDef.kLemmaIdComposing;
+      this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_fixed =
+          this.mtrx_nd_pool_ +
+          this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos;
+    } else {
+      // Reseting search only clear pys_decoded_len_, but the string is kept.
+      this.reset_search(reset_pos, clear_fixed_this_step, false, false);
+    }
+
+    // Decode the string after the delete position.
+    while (!this.pys_.charAt(reset_pos)) {
+      if (!this.add_char(this.pys_.charAt(reset_pos))) {
+        this.pys_decoded_len_ = reset_pos;
+        break;
+      }
+      reset_pos++;
+    }
+
+    this.get_spl_start_id();
+    this.prepare_candidates();
+    return this.pys_decoded_len_;
   },
 
   /**
    * Reset the search space.
+   * Equivalent to reset_search0.
    */
-  resetSearch: function matrixSearch_resetSearch() {
+  reset_search: function matrixSearch_reset_search() {
     if (!this.inited_) {
       return false;
     }
 
-    return true;
-  },
-
-  // Get the number of candiates, called after search().
-  getCandidateNum: function matrixSearch_getCandidateNum() {
+    return this.reset_search0();
   },
 
   /**
    * Get the Pinyin string stored by the engine.
+   * @return {{str: string, decoded_len: number}} str is the Pinyin string.
+   *    decoded_len The length of the successfully decoded string.
    */
-  getSpsStr: function matrixSearch_getSpsStr() {
+  get_pystr: function matrixSearch_get_pystr() {
+    var ret = {str: '', decoded_len: 0};
+    if (!this.inited_) {
+      return ret;
+    }
 
+    ret.decoded_len = this.pys_decoded_len_;
+    ret.str = this.pys_;
+    return ret;
+  },
+
+  // Get the number of candiates, called after search().
+  get_candidate_num: function matrixSearch_get_candidate_num() {
+    if (!this.inited_ || 0 == this.pys_decoded_len_ ||
+        0 == this.matrix_[this.pys_decoded_len_].mtrx_nd_num) {
+      return 0;
+    }
+
+    return 1 + this.lpi_total_;
   },
 
   /**
    * Get a candidate(or choice) string. If full sentence candidate is
    * available, it will be the first one.
    *
-   * @param {Integer} candId The id to get a candidate. Started from 0.
-   * Usually, id 0 is a sentence-level candidate.
-   * @return {String } The candidate string if succeeds, otherwise null.
+   * @param {number} cand_id The candidate id. Started from 0.
+   *    Usually, id 0 is a sentence-level candidate.
+   * @return {string} The candidate string if succeeds, otherwise ''.
    */
-  getCandidate: function matrixSearch_getCandidate(candId) {
+  get_candidate: function matrixSearch_get_candidate(cand_id) {
+    var cand_str = '';
+    if (!this.inited_ || 0 == this.pys_decoded_len_) {
+      return '';
+    }
 
+    if (0 == cand_id) {
+      return this.get_candidate0(false);
+    } else {
+      cand_id--;
+    }
+
+    // For this case: the current sentence is a word only, and the user
+    // fixed it, so the result will be fixed to the sentence space, and
+    // lpi_total_ will be set to 0.
+    if (0 == this.lpi_total_) {
+      return this.get_candidate0(false);
+    }
+
+    var id = this.lpi_items_[cand_id].id;
+    var len = this.lpi_items_[cand_id].lma_len;
+    if (len > 1) {
+      cand_str = this.get_lemma_str(id);
+    } else {
+      // For a single character, Hanzi is ready.
+      cand_str = this.lpi_items_[cand_id].hanzi;
+    }
+
+    return cand_str;
+  },
+
+  /**
+   * Get the first candidate, which is a "full sentence".
+   * retstr_len is not NULL, it will be used to return the string length.
+   * @param {boolean} only_unfixed If only_unfixed is true, only unfixed part
+   *    will be fetched.
+   * @return {string} The candidate string.
+   */
+  get_candidate0: function matrixSearch_get_candidate0(only_unfixed) {
+    var cand_str = '';
+
+    if (this.pys_decoded_len_ == 0 ||
+        this.matrix_[this.pys_decoded_len_].mtrx_nd_num == 0) {
+      return '';
+    }
+
+    var idxs = [];
+    for (var pos = 0; pos < MatrixSearch.kMaxRowNum; pos++) {
+      idxs[pos] = 0;
+    }
+    var id_num = 0;
+
+    var mtrx_nd = this.mtrx_nd_pool_[this.matrix_[this.pys_decoded_len_].
+        mtrx_nd_pos];
+
+    debug('--- sentence score: ' + mtrx_nd.score);
+
+    debug('==============Sentence DMI (reverse order) begin===========>>');
+
+    while (mtrx_nd != null) {
+      idxs[id_num] = mtrx_nd.id;
+      id_num++;
+
+      debug(StringUtils.format(
+          '---MatrixNode [step: {0}, lma_idx: {1}, total score: {2}]',
+          mtrx_nd.step, mtrx_nd.id, mtrx_nd.score));
+      this.debug_print_dmi(mtrx_nd.dmi_fr, 1);
+
+      mtrx_nd = mtrx_nd.from;
+    }
+
+    debug('<<==============Sentence DMI (reverse order) end=============');
+
+    do {
+      id_num--;
+      if (0 == idxs[id_num]) {
+        continue;
+      }
+
+      var str = this.get_lemma_str(idxs[id_num]);
+      var str_len = str.length;
+      if (str_len > 0) {
+        cand_str += str;
+      } else {
+        return '';
+      }
+    } while (id_num != 0);
+
+    if (only_unfixed) {
+      cand_str = cand_str.substring(this.fixed_hzs_);
+    }
+    return cand_str;
   },
 
   /**
@@ -4041,36 +4298,185 @@ MatrixSearch.prototype = {
    * last one is used to indicate the beginning of the next un-input spelling.
    * For a Pinyin "women", the returned array is [0, 2, 5].
    *
-   * @return {Array} An array contains the starting position of all the
-   * spellings.
+   * @return {Array.<number>} An array contains the starting position of
+   *    all the spellings.
    */
-  getSplStartPos: function matrixSearch_getSplStartPos() {
-
+  get_spl_start: function matrixSearch_get_spl_start() {
+    this.get_spl_start_id();
+    var spl_start = this.spl_start_.slice(0, this.spl_id_num_);
+    return spl_start;
   },
 
   /**
    * Choose a candidate. The decoder will do a search after the fixed position.
+   * @return {number} The candidates number of next step.
+   * Choose a candidate, and give new candidates for next step.
+   * If user finishes selection, we will try to communicate with user
+   * dictionary to add new items or update score of some existing items.
+   *
+   * Basic rule:
+   * 1. If user selects the first choice:
+   *    1.1. If the first choice is not a sentence, instead, it is a lemma:
+   *         1.1.1. If the first choice is a user lemma, notify the user
+   *                dictionary that a user lemma is hit, and add occuring
+   *                count by 1.
+   *         1.1.2. If the first choice is a system lemma, do nothing.
+   *    1.2. If the first choice is a sentence containing more than one lemma:
+   *         1.2.1. The whole sentence will be added as a user lemma. If the
+   *                sentence contains user lemmas, -> hit, and increase
+   *                occuring count by 1.
    */
-  choose: function matrixSearch_choose(candId) {
+  choose: function matrixSearch_choose(cand_id) {
+    if (!this.inited_ || 0 == this.pys_decoded_len_) {
+      return 0;
+    }
 
+    var pos = 0;
+
+    if (0 == cand_id) {
+      this.fixed_hzs_ = this.spl_id_num_;
+      this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_fixed =
+          this.mtrx_nd_pool_ +
+          this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos;
+      for (pos = this.fixed_lmas_; pos < this.lma_id_num_; pos++) {
+        this.fixed_lmas_no1_[pos] = 1;
+      }
+      this.fixed_lmas_ = this.lma_id_num_;
+      this.lpi_total_ = 0;  // Clean all other candidates.
+
+      // 1. It is the first choice
+      if (1 == this.lma_id_num_) {
+        // 1.1. The first choice is not a sentence but a lemma
+        if (SearchUtility.is_user_lemma(this.lma_id_[0])) {
+          // 1.1.1. The first choice is a user lemma, notify the user dictionary
+          // that it is hit.
+          if (null != this.user_dict_) {
+            this.user_dict_.update_lemma(this.lma_id_[0], 1, true);
+          }
+        } else {
+          // 1.1.2. do thing for a system lemma.
+        }
+      } else {
+        // 1.2. The first choice is a sentence.
+        // 1.2.1 Try to add the whole sentence to user dictionary, the whole
+        // sentence may be splitted into many items.
+        if (null != this.user_dict_) {
+          this.try_add_cand0_to_userdict();
+        }
+      }
+      this.update_dict_freq();
+      return 1;
+    } else {
+      cand_id--;
+    }
+
+    // 2. It is not the full sentence candidate.
+    // Find the length of the candidate.
+    var id_chosen = this.lpi_items_[cand_id].id;
+    var score_chosen = this.lpi_items_[cand_id].psb;
+    var cand_len = this.lpi_items_[cand_id].lma_len;
+
+    assert(cand_len > 0);
+
+    // Notify the atom dictionary that this item is hit.
+    if (SearchUtility.is_user_lemma(id_chosen)) {
+      if (null != user_dict_) {
+        this.user_dict_.update_lemma(id_chosen, 1, true);
+      }
+      this.update_dict_freq();
+    }
+
+    // 3. Fixed the chosen item.
+    // 3.1 Get the steps number.
+    var step_fr = this.spl_start_[this.fixed_hzs_];
+    var step_to = this.spl_start_[this.fixed_hzs_ + cand_len];
+
+    // 3.2 Save the length of the original string.
+    var pys_decoded_len = this.pys_decoded_len_;
+
+    // 3.2 Reset the space of the fixed part.
+    this.reset_search(step_to, false, false, true);
+
+    // 3.3 For the last character of the fixed part, the previous DMI
+    // information will be kept, while the MTRX information will be re-extended,
+    // and only one node will be extended.
+    this.matrix_[step_to].mtrx_nd_num = 0;
+
+    var lpi_item = new SearchUtility.LmaPsbItem();
+    lpi_item.psb = score_chosen;
+    lpi_item.id = id_chosen;
+
+    var step_to_dmi_fr = this.match_dmi(step_to, this.spl_id_,
+        this.fixed_hzs_, cand_len);
+    assert(step_to_dmi_fr != -1);
+
+    this.extend_mtrx_nd(this.matrix_[step_fr].mtrx_nd_fixed, [lpi_item], 0, 1,
+                   step_to_dmi_fr, step_to);
+
+    this.matrix_[step_to].mtrx_nd_fixed = this.mtrx_nd_pool_ +
+        this.matrix_[step_to].mtrx_nd_pos;
+    this.mtrx_nd_pool_used_ = this.matrix_[step_to].mtrx_nd_pos +
+        this.matrix_[step_to].mtrx_nd_num;
+
+    if (id_chosen == this.lma_id_[this.fixed_lmas_]) {
+      this.fixed_lmas_no1_[this.fixed_lmas_] = 1;
+    } else {
+      this.fixed_lmas_no1_[this.fixed_lmas_] = 0;
+    }
+    this.lma_id_[fixed_lmas_] = id_chosen;
+    this. lma_start_[this.fixed_lmas_ + 1] = this.lma_start_[this.fixed_lmas_] +
+        cand_len;
+    this.fixed_lmas_++;
+    this.fixed_hzs_ = this.fixed_hzs_ + cand_len;
+
+    while (step_to != pys_decoded_len) {
+      var b = this.add_char(this.pys_.charAt(step_to));
+      assert(b);
+      step_to++;
+    }
+
+    if (this.fixed_hzs_ < this.spl_id_num_) {
+      this.prepare_candidates();
+    } else {
+      this.lpi_total_ = 0;
+      if (null != this.user_dict_) {
+        this.try_add_cand0_to_userdict();
+      }
+    }
+
+    return this.get_candidate_num();
   },
 
   /**
    * Get the length of fixed Chinese characters.
    */
-  getFixedLen: function matrixSearch_getFixedLen() {
-
+  get_fixedlen: function matrixSearch_get_fixedlen() {
+    if (!this.inited_ || 0 == this.pys_decoded_len_) {
+      return 0;
+    }
+    return this.fixed_hzs_;
   },
 
   /**
    * Get prediction candiates based on the given fixed Chinese string as the
    * history.
    *
-   * @param {String} fixed The fixed string to do the prediction.
-   * @return {Array} The prediction result list of an string array.
+   * @param {string} fixed The fixed string to do the prediction.
+   * @return {Array.<string>} The prediction result list.
    */
-  getPredicts: function matrixSearch_getPredicts(fixed) {
-
+  get_predicts: function matrixSearch_get_predicts(fixed) {
+    var fixed_len = fixed.length;
+    if (0 == fixed_len || fixed_len > DictDef.kMaxPredictSize) {
+      return 0;
+    }
+    var predict_buf = [];
+    var buf_len = PinyinDecoderService.kMaxPredictNum;
+    for (var pos = 0; pos < buf_len; pos++) {
+      predict_buf[pos] = '';
+    }
+    var num = this.inner_predict(fixed, predict_buf, buf_len);
+    predict_buf.length = num;
+    return predict_buf;
   },
 
   /* ==== Private ==== */
@@ -4252,16 +4658,15 @@ MatrixSearch.prototype = {
     this.user_dict_ = new UserDict();
     this.spl_parser_ = new SpellingParser();
 
-    var pos = 0;
+    this.chn_str = '';
 
+    var pos = 0;
     this.spl_ids = [];
     this.spl_start = [];
-    this.chn_str = [];
     this.sublma_start = [];
     for (pos = 0; pos < MatrixSearch.kMaxRowNum; pos++) {
       this.spl_ids[pos] = 0;
       this.spl_start[pos] = 0;
-      this.chn_str[pos] = 0;
       this.sublma_start[pos] = 0;
     }
 
@@ -4311,27 +4716,383 @@ MatrixSearch.prototype = {
     this.npre_items_ = null;
   },
 
-  // Reset the search space from ch_pos step. For example, if the original
-  // input Pinyin is "an", _resetSearch(1) will reset the search space to the
-  // result of "a". If the given position is out of range, return false.
-  // if clearFixed is true, and the chPos step is a fixed step,
-  // clear its fixed status. if clearDmi is true, clear the DMI nodes.
-  // If clearMtrx is true, clear the mtrx nodes of this step.
-  // The DMI nodes will be kept.
-  //
-  // Note: this function should not destroy content of pys_.
-  _resetSearch: function matrixSearch_resetSearch(chPos, clearFixed,
-                                                  clearDmi, clearMtrx) {
+  /**
+   * Reset the search space totally.
+   * @private
+   */
+  reset_search0: function matrixSearch_reset_search0() {
+    if (!this.inited_) {
+      return false;
+    }
+    this.pys_decoded_len_ = 0;
+    this.mtrx_nd_pool_used_ = 0;
+    this.dmi_pool_used_ = 0;
+
+    // Get a MatrixNode from the pool
+    this.matrix_[0].mtrx_nd_pos = this.mtrx_nd_pool_used_;
+    this.matrix_[0].mtrx_nd_num = 1;
+    this.mtrx_nd_pool_used_ += 1;
+
+    // Update the node, and make it to be a starting node
+    var node = this.mtrx_nd_pool_[matrix_[0].mtrx_nd_pos];
+    node.id = 0;
+    node.score = 0;
+    node.from = null;
+    node.step = 0;
+    node.dmi_fr = -1;
+
+    this.matrix_[0].dmi_pos = 0;
+    this.matrix_[0].dmi_num = 0;
+    this.matrix_[0].dmi_has_full_id = 1;
+    this.matrix_[0].mtrx_nd_fixed = node;
+
+    this.lma_start_[0] = 0;
+    this.fixed_lmas_ = 0;
+    this.spl_start_[0] = 0;
+    this.fixed_hzs_ = 0;
+
+    this.dict_trie_.reset_milestones(0, 0);
+    if (null != this.user_dict_) {
+      this.user_dict_.reset_milestones(0, 0);
+    }
+
+    return true;
   },
 
-  // Prepare candidates from the last fixed hanzi position.
-  _prepareCandidates: function matrixSearch_prepareCandidates() {
+  /**
+   * Reset the search space from ch_pos step. For example, if the original
+   * input Pinyin is "an", reset_searchn(1) will reset the search
+   * space to the result of "a". If the given position is out of range,
+   * return false.  if clear_fixed is true, and the ch_pos step is a fixed
+   * step, clear its fixed status. if clearDmi is true, clear the DMI nodes.
+   * If clearMtrx is true, clear the mtrx nodes of this step.
+   *  The DMI nodes will be kept.
+   *
+   * Note: this function should not destroy content of pys_.
+   * @private
+   */
+  reset_searchn: function matrixSearch_reset_searchn(ch_pos,
+      clear_fixed_this_step, clear_dmi_this_step, clear_mtrx_this_step) {
+    if (!this.inited_ || ch_pos > this.pys_decoded_len_ ||
+        ch_pos >= MatrixSearch.kMaxRowNum) {
+      return false;
+    }
+
+    if (0 == ch_pos) {
+      this.reset_search0();
+    } else {
+      // Prepare mile stones of this step to clear.
+      var dict_handles_to_clear = null;
+      if (clear_dmi_this_step && this.matrix_[ch_pos].dmi_num > 0) {
+        dict_handles_to_clear = this.dmi_pool_[this.matrix_[ch_pos].dmi_pos].
+            dict_handles;
+      }
+
+      // If there are more steps, and this step is not allowed to clear, find
+      // milestones of next step.
+      if (this.pys_decoded_len_ > ch_pos && !clear_dmi_this_step) {
+        dict_handles_to_clear = null;
+        if (this.matrix_[ch_pos + 1].dmi_num > 0) {
+          dict_handles_to_clear =
+              this.dmi_pool_[this.matrix_[ch_pos + 1].dmi_pos].dict_handles;
+        }
+      }
+
+      if (null != dict_handles_to_clear) {
+        this.dict_trie_.reset_milestones(ch_pos, dict_handles_to_clear[0]);
+        if (null != user_dict_) {
+          this.user_dict_.reset_milestones(ch_pos, dict_handles_to_clear[1]);
+        }
+      }
+
+      this.pys_decoded_len_ = ch_pos;
+
+      if (clear_dmi_this_step) {
+        this.dmi_pool_used_ = this.matrix_[ch_pos - 1].dmi_pos +
+            this.matrix_[ch_pos - 1].dmi_num;
+        this.matrix_[ch_pos].dmi_num = 0;
+      } else {
+        this.dmi_pool_used_ = this.matrix_[ch_pos].dmi_pos +
+            this.matrix_[ch_pos].dmi_num;
+      }
+
+      if (clear_mtrx_this_step) {
+        this.mtrx_nd_pool_used_ = this.matrix_[ch_pos - 1].mtrx_nd_pos +
+            this.matrix_[ch_pos - 1].mtrx_nd_num;
+        this.matrix_[ch_pos].mtrx_nd_num = 0;
+      } else {
+        this.mtrx_nd_pool_used_ = this.matrix_[ch_pos].mtrx_nd_pos +
+            this.matrix_[ch_pos].mtrx_nd_num;
+      }
+
+      // Modify fixed_hzs_
+      if (this.fixed_hzs_ > 0 &&
+          ((DictDef.kLemmaIdComposing != this.lma_id_[0]) ||
+           (DictDef.kLemmaIdComposing == this.lma_id_[0] &&
+            this.spl_start_[this.c_phrase_.length] <= ch_pos))) {
+        var fixed_ch_pos = ch_pos;
+        if (clear_fixed_this_step) {
+          fixed_ch_pos = fixed_ch_pos > 0 ? fixed_ch_pos - 1 : 0;
+        }
+        while (null == this.matrix_[fixed_ch_pos].mtrx_nd_fixed &&
+            fixed_ch_pos > 0) {
+          fixed_ch_pos--;
+        }
+
+        this.fixed_lmas_ = 0;
+        this.fixed_hzs_ = 0;
+        if (fixed_ch_pos > 0) {
+          while (this.spl_start_[this.fixed_hzs_] < fixed_ch_pos) {
+            this.fixed_hzs_++;
+          }
+          assert(this.spl_start_[this.fixed_hzs_] == fixed_ch_pos);
+
+          while (this.lma_start_[this.fixed_lmas_] < this.fixed_hzs_) {
+            this.fixed_lmas_++;
+          }
+          assert(this.lma_start_[this.fixed_lmas_] == this.fixed_hzs_);
+        }
+
+        // Re-search the Pinyin string for the unlocked lemma
+        // which was previously fixed.
+        //
+        // Prepare mile stones of this step to clear.
+        var dict_handles_to_clear = null;
+        if (clear_dmi_this_step && ch_pos == fixed_ch_pos &&
+            this.matrix_[fixed_ch_pos].dmi_num > 0) {
+          dict_handles_to_clear = this.dmi_pool_[this.matrix_[fixed_ch_pos].
+              dmi_pos].dict_handles;
+        }
+
+        // If there are more steps, and this step is not allowed to clear, find
+        // milestones of next step.
+        if (this.pys_decoded_len_ > fixed_ch_pos && !clear_dmi_this_step) {
+          dict_handles_to_clear = null;
+          if (this.matrix_[fixed_ch_pos + 1].dmi_num > 0) {
+            dict_handles_to_clear =
+                this.dmi_pool_[this.matrix_[fixed_ch_pos + 1].dmi_pos].
+                dict_handles;
+          }
+        }
+
+        if (null != dict_handles_to_clear) {
+          this.dict_trie_.reset_milestones(fixed_ch_pos,
+              dict_handles_to_clear[0]);
+          if (null != this.user_dict_) {
+            this.user_dict_.reset_milestones(fixed_ch_pos,
+                dict_handles_to_clear[1]);
+          }
+        }
+
+        this.pys_decoded_len_ = fixed_ch_pos;
+
+        if (clear_dmi_this_step && ch_pos == fixed_ch_pos) {
+          this.dmi_pool_used_ = this.matrix_[fixed_ch_pos - 1].dmi_pos +
+              this.matrix_[fixed_ch_pos - 1].dmi_num;
+          this.matrix_[fixed_ch_pos].dmi_num = 0;
+        } else {
+          this.dmi_pool_used_ = this.matrix_[fixed_ch_pos].dmi_pos +
+              this.matrix_[fixed_ch_pos].dmi_num;
+        }
+
+        if (clear_mtrx_this_step && ch_pos == fixed_ch_pos) {
+          this.mtrx_nd_pool_used_ = this.matrix_[fixed_ch_pos - 1].
+              mtrx_nd_pos + this.matrix_[fixed_ch_pos - 1].mtrx_nd_num;
+          this.matrix_[fixed_ch_pos].mtrx_nd_num = 0;
+        } else {
+          this.mtrx_nd_pool_used_ = this.matrix_[fixed_ch_pos].mtrx_nd_pos +
+              this.matrix_[fixed_ch_pos].mtrx_nd_num;
+        }
+
+        for (var re_pos = fixed_ch_pos; re_pos < ch_pos; re_pos++) {
+          this.add_char(this.pys_[re_pos]);
+        }
+      } else if (this.fixed_hzs_ > 0 &&
+          DictDef.kLemmaIdComposing == this.lma_id_[0]) {
+        for (var subpos = 0; subpos < this.c_phrase_.sublma_num; subpos++) {
+          var splpos_begin = this.c_phrase_.sublma_start[subpos];
+          var splpos_end = this.c_phrase_.sublma_start[subpos + 1];
+          for (var splpos = splpos_begin; splpos < splpos_end; splpos++) {
+            // If ch_pos is in this spelling
+            var spl_start = this.c_phrase_.spl_start[splpos];
+            var spl_end = this.c_phrase_.spl_start[splpos + 1];
+            if (ch_pos >= spl_start && ch_pos < spl_end) {
+              // Clear everything after this position
+              this.c_phrase_.chn_str = this.c_phrase_.chn_str.substring(0,
+                  splpos);
+              this.c_phrase_.sublma_start[subpos + 1] = splpos;
+              this.c_phrase_.sublma_num = subpos + 1;
+              this.c_phrase_.length = splpos;
+
+              if (splpos == splpos_begin) {
+                this.c_phrase_.sublma_num = subpos;
+              }
+            }
+          }
+        }
+
+        // Extend the composing phrase.
+        this.reset_search0();
+        this.dmi_c_phrase_ = true;
+        var c_py_pos = 0;
+        while (c_py_pos < this.spl_start_[this.c_phrase_.length]) {
+          var b_ac_tmp = this.add_char(this.pys_[c_py_pos]);
+          assert(b_ac_tmp);
+          c_py_pos++;
+        }
+        this.dmi_c_phrase_ = false;
+
+        this.lma_id_num_ = 1;
+        this.fixed_lmas_ = 1;
+        this.fixed_lmas_no1_[0] = 0;  // A composing string is always modified.
+        this.fixed_hzs_ = this.c_phrase_.length;
+        this.lma_start_[1] = this.fixed_hzs_;
+        this.lma_id_[0] = DictDef.kLemmaIdComposing;
+        this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_fixed =
+            this.mtrx_nd_pool_ +
+            this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos;
+      }
+    }
+
+    return true;
   },
 
-  // Get spelling start positions and ids. The result will be stored in
-  // spl_id_num_, spl_start_[], spl_id_[].
-  // fixed_hzs_ will be also assigned.
-  _getSplStartId: function matrixSearch_getSplStartId() {
+  /**
+   * Delete a part of the content in pys_.
+   * @private
+   */
+  del_in_pys: function matrixSearch_del_in_pys(start, len) {
+    this.pys_ = this.pys_.substring(0, start) +
+        this.pys_.substring(start + len);
+  },
+
+  /**
+   * Delete a spelling id and its corresponding Chinese character, and merge
+   * the fixed lemmas into the composing phrase.
+   * This function will update the lemma and spelling segmentation information.
+   * The caller guarantees that fixed_lmas_ > 0 and del_spl_pos is within
+   * the fixed lemmas.
+   * @private
+   * @param {number} del_spl_pos It indicates which spelling id needs to
+   *    be delete.
+   * @return {void} No return value.
+   */
+  merge_fixed_lmas: function matrixSearch_merge_fixed_lmas(del_spl_pos) {
+    if (this.fixed_lmas_ == 0) {
+      return;
+    }
+
+    var pos = 0;
+
+    // Update spelling segmentation information first.
+    this.spl_id_num_ -= 1;
+    var del_py_len = this.spl_start_[del_spl_pos + 1] -
+        this.spl_start_[del_spl_pos];
+    for (pos = del_spl_pos; pos <= this.spl_id_num_; pos++) {
+      this.spl_start_[pos] = this.spl_start_[pos + 1] - del_py_len;
+      if (pos == this.spl_id_num_) {
+        break;
+      }
+      this.spl_id_[pos] = this.spl_id_[pos + 1];
+    }
+
+    // Begin to merge.
+    var phrase_len = 0;
+
+    // Update the spelling ids to the composing phrase.
+    // We need to convert these ids into full id in the future.
+    this.c_phrase_.spl_ids = [];
+    for (pos = 0; pos < this.spl_id_num_; pos++) {
+      this.c_phrase_.spl_ids[pos] = this.spl_id_[pos];
+    }
+    this.c_phrase_.spl_star = [];
+    for (pos = 0; pos < this.spl_id_num_ + 1; pos++) {
+      this.c_phrase_.spl_start[pos] = this.spl_start_[pos];
+    }
+
+    // If composing phrase has not been created, first merge all fixed
+    //  lemmas into a composing phrase without deletion.
+    if (this.fixed_lmas_ > 1 || DictDef.kLemmaIdComposing != this.lma_id_[0]) {
+      var bp = 1;  // Begin position of real fixed lemmas.
+      // There is no existing composing phrase.
+      if (DictDef.kLemmaIdComposing != this.lma_id_[0]) {
+        this.c_phrase_.sublma_num = 0;
+        bp = 0;
+      }
+
+      var sub_num = this.c_phrase_.sublma_num;
+      for (var pos = bp; pos <= this.fixed_lmas_; pos++) {
+        this.c_phrase_.sublma_start[sub_num + pos - bp] = this.lma_start_[pos];
+        if (this.lma_start_[pos] > del_spl_pos) {
+          this.c_phrase_.sublma_start[sub_num + pos - bp] -= 1;
+        }
+
+        if (pos == this.fixed_lmas_) {
+          break;
+        }
+
+        var lma_len;
+        var prefix = this.c_phrase_.chn_str.substring(this.c_phrase_.
+            sublma_start[sub_num] + phrase_len);
+
+        var lma_str = this.get_lemma_str(this.lma_id_[pos]);
+        var lema_len = lma_str.length;
+        assert(lma_len == this.lma_start_[pos + 1] - this.lma_start_[pos]);
+        this.c_phrase_.chn_str = prefix + lma_str;
+        phrase_len += lma_len;
+      }
+      assert(phrase_len == this.lma_start_[this.fixed_lmas_]);
+      this.c_phrase_.length = phrase_len;  // will be deleted by 1
+      this.c_phrase_.sublma_num += this.fixed_lmas_ - bp;
+    } else {
+      for (var pos = 0; pos <= this.c_phrase_.sublma_num; pos++) {
+        if (this.c_phrase_.sublma_start[pos] > del_spl_pos) {
+          this.c_phrase_.sublma_start[pos] -= 1;
+        }
+      }
+      phrase_len = this.c_phrase_.length;
+    }
+
+    assert(phrase_len > 0);
+    if (1 == phrase_len) {
+      // After the only one is deleted, nothing will be left.
+      this.fixed_lmas_ = 0;
+      return;
+    }
+
+    // Delete the Chinese character in the merged phrase.
+    // The corresponding elements in spl_ids and spl_start of the
+    // phrase have been deleted.
+    this.c_phrase_.chn_str = this.c_phrase_.chn_str.substring(0, del_spl_pos) +
+        this.c_phrase_.chn_str.substring(del_spl_pos + 1);
+    this.c_phrase_.length -= 1;
+
+    // If the deleted spelling id is in a sub lemma which contains more than
+    // one id, del_a_sub will be false; but if the deleted id is in a sub lemma
+    // which only contains 1 id, the whole sub lemma needs to be deleted, so
+    // del_a_sub will be true.
+    var del_a_sub = false;
+    for (pos = 1; pos <= this.c_phrase_.sublma_num; pos++) {
+      if (this.c_phrase_.sublma_start[pos - 1] ==
+          this.c_phrase_.sublma_start[pos]) {
+        del_a_sub = true;
+      }
+      if (del_a_sub) {
+        this.c_phrase_.sublma_start[pos - 1] =
+            this.c_phrase_.sublma_start[pos];
+      }
+    }
+    if (del_a_sub) {
+      this.c_phrase_.sublma_num -= 1;
+    }
+  },
+
+  /**
+   * Get spelling start positions and ids. The result will be stored in
+   * spl_id_num_, spl_start_[], spl_id_[].
+   * fixed_hzs_ will be also assigned.
+   */
+  get_spl_start_id: function matrixSearch_get_spl_start_id() {
     this.lma_id_num_ = 0;
     this.lma_start_[0] = 0;
 
@@ -4442,16 +5203,523 @@ MatrixSearch.prototype = {
     }
   },
 
-  _addChar: function matrixSearch_addChar(ch) {
-    if (!this._prepareAddChar(ch)) {
-      return false;
+
+  /**
+   * Get all lemma ids with match the given spelling id stream(shorter than the
+   * maximum length of a word).
+   * @private
+   * @param {Array.<number>} splid_str The buffer of given spelling ids.
+   * @param {number} splid_str_start The start position of the buffer.
+   * @param {number} splid_str_len The length of the buffer.
+   * @param {Array.<SearchUtility.LmaPsbItem>} lma_buf The lemma ids buffer.
+   * @param {number} lma_buf_start The start position of lma_buf.
+   * @param {number} max_lma_buf The length of lma_buf.
+   * @param {string} pfullsent If pfullsent is not null, means the full
+   *    sentence candidate may be the same with the coming lemma string,
+   *    if so, remove that lemma.
+   * @param {boolean} sort_by_psb If it is true, the result is sorted
+   *    in descendant order by the frequency score.
+   * @return {number} The number of lemma ids.
+   */
+  get_lpis: function matrixSearch_get_lpis(splid_str, splid_str_start,
+      splid_str_len, lma_buf, lma_buf_start, max_lma_buf, pfullsent,
+      sort_by_psb) {
+    if (splid_str_len > DictDef.kMaxLemmaSize) {
+      return 0;
     }
-    return this._addCharQwerty(ch);
+
+    var pos = 0;
+
+    var splids = splid_st.slice(splid_str_start,
+        splid_str_start + splid_str_len);
+    var num1 = this.dict_trie_.get_lpis(splids, lma_buf, lma_buf_start,
+        max_lma_buf);
+    var num2 = 0;
+    if (null != this.user_dict_) {
+      num2 = this.user_dict_.get_lpis(splids, lma_buf, lma_buf_start + num1,
+        max_lma_buf - num1);
+    }
+
+    var num = num1 + num2;
+
+    if (0 == num) {
+      return 0;
+    }
+
+    var remain_num = 0;
+
+    // Remove repeated items.
+    if (splid_str_len > 1) {
+      // @Type
+      var lpsis = [];//reinterpret_cast<LmaPsbStrItem*>(lma_buf + num);
+      for (pos = 0; pos < num; pos++) {
+        lpsis[pos] = new SearchUtility.LmaPsbStrItem();
+        var lma = lma_buf[lma_buf_start + pos];
+        lpsis[pos].lpi = lma;
+        lpsis[pos].str = this.get_lemma_str(lma.id);
+      }
+
+      lpsis.sort(SearchUtility.cmp_lpsi_with_str);
+
+      remain_num = 0;
+      for (pos = 0; pos < num; pos++) {
+        if (pos > 0 && lpsis[pos].str == lpsis[pos - 1].str) {
+          if (lpsis[pos].lpi.psb < lpsis[pos - 1].lpi.psb) {
+            assert(remain_num > 0);
+            lma_buf[lma_buf_start + remain_num - 1] = lpsis[pos].lpi;
+          }
+          continue;
+        }
+        if (!pfullsent && lpsis[pos].str == pfullsent) {
+          continue;
+        }
+
+        lma_buf[lma_buf_start + remain_num] = lpsis[pos].lpi;
+        remain_num++;
+      }
+
+      // Update the result number
+      num = remain_num;
+    } else {
+      // For single character, some characters have more than one spelling, for
+      // example, "de" and "di" are all valid for a Chinese character, so when
+      // the user input  "d", repeated items are generated.
+      // For single character lemmas, Hanzis will be gotten
+      for (pos = 0; pos < num; pos++) {
+        var hanzis = this.get_lemma_str(lma_buf[pos].id);
+        lma_buf[lma_buf_start + pos].hanzi = hanzis.charAt(0);
+      }
+
+      var begin = lma_buf_start;
+      var end = lma_buf_start + num;
+      var lma_buf_sorted = lma_buf.slice(begin, end);
+      lma_buf_sorted.sort(SearchUtility.cmp_lpi_with_hanzi);
+      for (pos = begin; pos < end; pos++) {
+        lma_buf[pos] = lma_buf_sorted[pos - begin];
+      }
+
+      for (pos = 0; pos < num; pos++) {
+        if (pos > 0 && lma_buf[lma_buf_start + pos].hanzi ==
+            lma_buf[lma_buf_start + pos - 1].hanzi) {
+          if (!pfullsent && lma_buf[pos].hanzi == pfullsent) {
+            continue;
+          }
+
+          if (lma_buf[lma_buf_start + pos].psb <
+              lma_buf[lma_buf_start + pos - 1].psb) {
+            assert(remain_num > 0);
+            assert(lma_buf[lma_buf_start + remain_num - 1].hanzi ==
+                   lma_buf[lma_buf_start + pos].hanzi);
+            lma_buf[lma_buf_start + remain_num - 1] = lma_buf[lma_buf_start +
+                pos];
+          }
+          continue;
+        }
+        if (!pfullsent && lma_buf[pos].hanzi == pfullsent) {
+            continue;
+        }
+
+        lma_buf[lma_buf_start + remain_num] = lma_buf[lma_buf_start + pos];
+        remain_num++;
+      }
+
+      num = remain_num;
+    }
+
+    if (sort_by_psb) {
+      var begin = lma_buf_start;
+      var end = lma_buf_start + num;
+      var lma_buf_sorted = lma_buf.slice(begin, end);
+      lma_buf_sorted.sort(SearchUtility.cmp_lpi_with_psb);
+      for (pos = begin; pos < end; pos++) {
+        lma_buf[pos] = lma_buf_sorted[pos - begin];
+      }
+    }
+    return num;
   },
 
-  _prepareAddChar: function matrixSearch_prepareAddChar(ch) {
+  /**
+   * Get lemma string by ID.
+   * @private
+   * @param {number} id_lemma Lemma ID.
+   * @return {string} The lemma string.
+   */
+  get_lemma_str: function matrixSearch_get_lemma_str(id_lemma) {
+    var str_len = 0;
+    var str = '';
+
+    if (SearchUtility.is_system_lemma(id_lemma)) {
+      str = this.dict_trie_.get_lemma_str(id_lemma);
+    } else if (SearchUtility.is_user_lemma(id_lemma)) {
+      if (null != this.user_dict_) {
+        str = this.user_dict_.get_lemma_str(id_lemma);
+      }
+    } else if (SearchUtility.is_composing_lemma(id_lemma)) {
+      str_len = this.c_phrase_.sublma_start[this.c_phrase_.sublma_num];
+      str = this.c_phrase_.chn_str.substring(0, str_len);
+    }
+
+    return str;
+  },
+
+  /**
+   * Get lemma spelling ID array.
+   * @private
+   * @param {number} id_lemma Lemma ID.
+   * @param {Array.<number>} splids Buffer to save the result.
+   * @param {number} start The start position of the buffer.
+   * @param {number} splids_max The length of the buffer.
+   * @return {number} The length of the spelling ID array.
+   */
+  get_lemma_splids: function matrixSearch_get_lemma_splids(splids, start,
+     splids_max) {
+    var splid_num = 0;
+
+    for (splid_num = 0; splid_num < splids_max; splid_num++) {
+      if (this.spl_trie_.is_half_id(splids[splid_num])) {
+        break;
+      }
+    }
+    if (splid_num == splids_max) {
+      return splid_num;
+    }
+
+    if (SearchUtility.is_system_lemma(id_lemma)) {
+      splid_num = this.dict_trie_.get_lemma_splids(id_lemma, splids, start,
+          splids_max);
+    } else if (SearchUtility.is_user_lemma(id_lemma)) {
+      if (null != this.user_dict_) {
+        splid_num = this.user_dict_.get_lemma_splids(id_lemma, splids, start,
+            splids_max);
+      } else {
+        splid_num = 0;
+      }
+    } else if (SearchUtility.is_composing_lemma(id_lemma)) {
+      if (this.c_phrase_.length > splids_max) {
+        return 0;
+      }
+      for (var pos = 0; pos < this.c_phrase_.length; pos++) {
+        splids[start + pos] = this.c_phrase_.spl_ids[pos];
+        if (this.spl_trie_.is_half_id(splids[start + pos])) {
+          return 0;
+        }
+      }
+    }
+    return splid_num;
+  },
+
+  /**
+   * Extend a DMI node with a spelling id. ext_len is the length of the rows
+   * to extend, actually, it is the size of the spelling string of splid.
+   * return value can be 1 or 0.
+   * 1 means a new DMI is filled in (dmi_pool_used_ is the next blank DMI in
+   * the pool).
+   * 0 means either the dmi node can not be extended with splid, or the splid
+   * is a Shengmu id, which is only used to get lpi_items, or the result node
+   * in DictTrie has no son, it is not nccessary to keep the new DMI.
+   *
+   * This function modifies the content of lpi_items_ and lpi_total_.
+   * lpi_items_ is used to get the LmaPsbItem list, lpi_total_ returns the size.
+   * The function's returned value has no relation with the value of lpi_num.
+   *
+   * If dmi_s_pos == -1, this function will extend the root node of DictTrie
+   *
+   * This function will not change dmi_nd_pool_used_. Please change it after
+   * calling this function if necessary.
+   *
+   * The caller should guarantees that null != dep.
+   * @private
+   * @param {SearchUtility.DictExtPara} dep Paramaters used to extend the
+   *    dictionary. It should not be null.
+   * @param {number} dmi_s_pos The location of the DMI node.
+   * @return {number} Number of new extended items.
+   */
+  extend_dmi: function matrixSearch_extend_dmi(dep, dmi_s_pos) {
+    var dmi_s = (dmi_s_pos == -1) ? null : this.dmi_pool_[dmi_s_pos];
+    if (this.dmi_pool_used_ >= MatrixSearch.kDmiPoolSize) {
+      return 0;
+    }
+
+    var r = null;
+
+    if (this.dmi_c_phrase_) {
+      return this.extend_dmi_c(dep, dmi_s_pos);
+    }
+
+    var lpi_cache = LpiCache.get_instance();
+    var splid = dep.splids[dep.splids_extended];
+
+    var cached = false;
+    if (0 == dep.splids_extended) {
+      cached = lpi_cache.is_cached(splid);
+    }
+
+    // 1. If this is a half Id, get its corresponding full starting Id and
+    // number of full Id.
+    var ret_val = 0;
+    var mtrx_dmi_fr = 1;  // From which dmi node
+
+    this.lpi_total_ = 0;
+
+    var from_h = [0, 0, 0];
+
+    if (0 != dep.splids_extended) {
+      from_h[0] = dmi_s.dict_handles[0];
+      from_h[1] = dmi_s.dict_handles[1];
+    }
+
+    // 2. Begin exgtending in the system dictionary
+    var lpi_num = 0;
+    var handles = [0, 0];
+    if (from_h[0] > 0 || null == dmi_s) {
+      r = this.dict_trie_.extend_dict(from_h[0], dep, this.lpi_items_,
+          0, MatrixSearch.kMaxLmaPsbItems);
+      handles[0] = r.handle;
+      lpi_num = r.lpi_num;
+    }
+    if (handles[0] > 0) {
+      this.lpi_total_ = lpi_num;
+    }
+
+    if (null == dmi_s) {  // from root
+      assert(0 != handles[0]);
+      mtrx_dmi_fr = this.dmi_pool_used_;
+    }
+
+    // 3. Begin extending in the user dictionary
+    if (null != this.user_dict_ && (from_h[1] > 0 || null == dmi_s)) {
+      r = this.user_dict_.extend_dict(from_h[1], dep,
+         this.lpi_items_, this.lpi_total_, MatrixSearch.kMaxLmaPsbItems -
+         this.lpi_total_);
+      handles[1] = r.handle;
+      lpi_num = r.lpi_num;
+      if (handles[1] > 0) {
+        for (var t = 0; t < lpi_num; t++) {
+          debug(StringUtils.format('--Extend in user dict: uid:{0} uscore:{1}'),
+              this.lpi_items_[this.lpi_total_ + t].id,
+              this.lpi_items_[this.lpi_total_ + t].psb);
+        }
+        this.lpi_total_ += lpi_num;
+      }
+    }
+
+    if (0 != handles[0] || 0 != handles[1]) {
+      if (this.dmi_pool_used_ >= MatrixSearch.kDmiPoolSize) {
+        return 0;
+      }
+
+      var dmi_add = this.dmi_pool_[this.dmi_pool_used_];
+      if (null == dmi_s) {
+        this.fill_dmi(dmi_add, handles,
+                 -1, splid,
+                 1, 1, dep.splid_end_split, dep.ext_len,
+                 this.spl_trie_.is_half_id(splid) ? 0 : 1);
+      } else {
+        this.fill_dmi(dmi_add, handles,
+                 dmi_s_pos, splid, 1,
+                 dmi_s.dict_level + 1, dep.splid_end_split,
+                 dmi_s.splstr_len + dep.ext_len,
+                 this.spl_trie_.is_half_id(splid) ? 0 : dmi_s.all_full_id);
+      }
+
+      ret_val = 1;
+    }
+
+    if (!cached) {
+      if (0 == this.lpi_total_) {
+        return ret_val;
+      }
+
+      debug('--- lpi_total_ = ' + this.lpi_total_);
+
+      this.lpi_items_.length = this.lpi_total_;
+      this.lpi_items_.sort(SearchUtility.cmp_lpi_with_psb);
+      if (null == dmi_s && this.spl_trie_.is_half_id(splid)) {
+        this.lpi_total_ = lpi_cache.put_cache(splid, this.lpi_items_,
+            this.lpi_total_);
+      }
+    } else {
+      assert(this.spl_trie_.is_half_id(splid));
+      this.lpi_total_ = lpi_cache.get_cache(splid, this.lpi_items_,
+                                       MatrixSearch.kMaxLmaPsbItems);
+    }
+
+    return ret_val;
+  },
+
+  /**
+   * Extend dmi for the composing phrase.
+   * @private
+   * @param {SearchUtility.DictExtPara} dep Paramaters used to extend the
+   *    dictionary. It should not be null.
+   * @param {number} dmi_s_pos The location of the DMI node.
+   * @return {number} Number of new extended items.
+   */
+  extend_dmi_c: function matrixSearch_extend_dmi_c(dep, dmi_s_pos) {
+    var dmi_s = (dmi_s_pos == -1) ? null : this.dmi_pool_[dmi_s_pos];
+    this.lpi_total_ = 0;
+
+    var pos = dep.splids_extended;
+    assert(this.dmi_c_phrase_);
+    if (pos >= this.c_phrase_.length) {
+      return 0;
+    }
+
+    var splid = dep.splids[pos];
+    if (splid == this.c_phrase_.spl_ids[pos]) {
+      var dmi_add = this.dmi_pool_[this.dmi_pool_used_];
+      var handles = [0, 0]; // Actually never used.
+      if (null == dmi_s) {
+        this.fill_dmi(dmi_add, handles,
+                 -1, splid,
+                 1, 1, dep.splid_end_split, dep.ext_len,
+                 this.spl_trie_.is_half_id(splid) ? 0 : 1);
+      } else {
+        this.fill_dmi(dmi_add, handles,
+                 dmi_s_pos, splid, 1,
+                 dmi_s.dict_level + 1, dep.splid_end_split,
+                 dmi_s.splstr_len + dep.ext_len,
+                 this.spl_trie_.is_half_id(splid) ? 0 : dmi_s.all_full_id);
+      }
+
+      if (pos == this.c_phrase_.length - 1) {
+        this.lpi_items_[0].id = DictDef.kLemmaIdComposing;
+        this.lpi_items_[0].psb = 0;  // 0 is bigger than normal lemma score.
+        this.lpi_total_ = 1;
+      }
+      return 1;
+    }
+    return 0;
+  },
+
+  /**
+   * Extend a MatrixNode with the given LmaPsbItem list.
+   * This function does not change mtrx_nd_pool_used_. Please change it after
+   * calling this function if necessary.
+   * @private
+   * @param {MatrixSearch.MatrixNode} mtrx_nd Node to be extended.
+   * @param {Array.<SearchUtility.LmaPsbItem>} lpi_items LmaPsbItem list.
+   * @param {number} start The start position of the list.
+   * @param {number} lpi_num The length of the list.
+   * @param {number} dmi_fr The position to extend from.
+   * @param {number} res_row The destination row number.
+   * @return {nubmer} Returns 0 always.
+   */
+  extend_mtrx_nd: function matrixSearch_extend_mtrx_nd(mtrx_nd, lpi_items,
+      start, lpi_num, dmi_fr, res_row) {
+    assert(null != mtrx_nd,
+           'extend_mtrx_nd assertion error. Invalid parameter.');
+    this.matrix_[res_row].mtrx_nd_fixed = null;
+
+    if (this.mtrx_nd_pool_used_ >= MatrixSearch.kMtrxNdPoolSize -
+        MatrixSearch.kMaxNodeARow) {
+      return 0;
+    }
+
+    if (0 == mtrx_nd.step) {
+      // Because the list is sorted, if the source step is 0, it is only
+      // necessary to pick up the first kMaxNodeARow items.
+      if (lpi_num > MatrixSearch.kMaxNodeARow) {
+        lpi_num = MatrixSearch.kMaxNodeARow;
+      }
+    }
+
+    var mtrx_nd_res_min_pos = this.matrix_[res_row].mtrx_nd_pos;
+    var mtrx_nd_res_min = this.mtrx_nd_pool_[mtrx_nd_res_min_pos];
+    for (var pos = 0; pos < lpi_num; pos++) {
+      var score = mtrx_nd.score + lpi_items[start + pos].psb;
+      if (pos > 0 && score - MatrixSearch.PRUMING_SCORE >
+          mtrx_nd_res_min.score) {
+        break;
+      }
+
+      // Try to add a new node
+      var mtrx_nd_num = this.matrix_[res_row].mtrx_nd_num;
+      var mtrx_nd_res_pos = mtrx_nd_res_min_pos + mtrx_nd_num;
+      var replace = false;
+      // Find its position
+      while (mtrx_nd_res_pos > mtrx_nd_res_min_pos &&
+             score < this.matrix_[mtrx_nd_res_pos - 1].score) {
+        if (mtrx_nd_res_pos - mtrx_nd_res_min_pos < MatrixSearch.kMaxNodeARow) {
+          this.matrix_[mtrx_nd_res_pos] = this.matrix_[mtrx_nd_res_pos - 1];
+        }
+        mtrx_nd_res_pos--;
+        replace = true;
+      }
+      var mtrx_nd_res = this.mtrx_nd_pool_[mtrx_nd_res_pos];
+      if (replace || (mtrx_nd_num < MatrixSearch.kMaxNodeARow &&
+          this.matrix_[res_row].mtrx_nd_pos +
+          mtrx_nd_num < MatrixSearch.kMtrxNdPoolSize)) {
+        mtrx_nd_res.id = lpi_items[start + pos].id;
+        mtrx_nd_res.score = score;
+        mtrx_nd_res.from = mtrx_nd;
+        mtrx_nd_res.dmi_fr = dmi_fr;
+        mtrx_nd_res.step = res_row;
+        if (this.matrix_[res_row].mtrx_nd_num < MatrixSearch.kMaxNodeARow) {
+          this.matrix_[res_row].mtrx_nd_num++;
+        }
+      }
+    }
+    return this.matrix_[res_row].mtrx_nd_num;
+  },
+
+  /**
+   * Try to find a dmi node at step_to position, and the found dmi node should
+   * match the given spelling id strings.
+   * @private
+   * @param {number} step_to The step.
+   * @param {Array.<number>} spl_ids Buffer of spelling id array.
+   * @param {number} start The start position of the spelling id buffer.
+   * @param {number} spl_id_num The lengthh of the spelling id buffer.
+   * @return {number} The location of the dmi node if succeed. Otherwise -1.
+   */
+  match_dmi: function matrixSearch_match_dmi(step_to, spl_ids, start,
+      spl_id_num) {
+    if (this.pys_decoded_len_ < step_to ||
+        0 == this.matrix_[step_to].dmi_num) {
+      return -1;
+    }
+
+    for (var dmi_pos = 0; dmi_pos < this.matrix_[step_to].dmi_num; dmi_pos++) {
+      var dmi = this.dmi_pool_[this.matrix_[step_to].dmi_pos + dmi_pos];
+
+      if (dmi.dict_level != spl_id_num) {
+        continue;
+      }
+
+      var matched = true;
+      for (var spl_pos = 0; spl_pos < spl_id_num; spl_pos++) {
+        if (spl_ids[start + spl_id_num - spl_pos - 1] != dmi.spl_id) {
+          matched = false;
+          break;
+        }
+
+        dmi = this.dmi_pool_[dmi.dmi_fr];
+      }
+      if (matched) {
+        return this.matrix_[step_to].dmi_pos + dmi_pos;
+      }
+    }
+
+    return -1;
+  },
+
+  /**
+   * @private
+   */
+  add_char: function matrixSearch_add_char(ch) {
+    if (!this.prepare_add_char(ch)) {
+      return false;
+    }
+    return this.add_char_qwerty(ch);
+  },
+
+  /**
+   * @private
+   */
+  prepare_add_char: function matrixSearch_prepare_add_char(ch) {
     if (this.pys_decoded_len_ >= MatrixSearch.kMaxRowNum - 1 ||
-        (!this._splParser.is_valid_to_parse(ch) && ch != '\'')) {
+        (!this.spl_parser_.is_valid_to_parse(ch) && ch != '\'')) {
       return false;
     }
 
@@ -4462,25 +5730,544 @@ MatrixSearch.prototype = {
     this.pys_ += ch;
     this.pys_decoded_len_++;
 
-    var mtrxRow = this.matrix_[this.pys_decoded_len_];
-    mtrxRow.mtrx_nd_pos = this.mtrx_nd_pool_used_;
-    mtrxRow.mtrx_nd_num = 0;
-    mtrxRow.dmi_pos = this.dmi_pool_used_;
-    mtrxRow.dmi_num = 0;
-    mtrxRow.dmi_has_full_id = false;
+    var mtrx_this_row = this.matrix_[this.pys_decoded_len_];
+    mtrx_this_row.mtrx_nd_pos = this.mtrx_nd_pool_used_;
+    mtrx_this_row.mtrx_nd_num = 0;
+    mtrx_this_row.dmi_pos = this.dmi_pool_used_;
+    mtrx_this_row.dmi_num = 0;
+    mtrx_this_row.dmi_has_full_id = false;
 
     return true;
   },
 
-  // Called after _prepareAddChar, so the input char has been saved.
-  _addCharQwerty: function matrixSearch_addCharQwerty(ch) {
+  /**
+   * Called after prepare_add_char, so the input char has been saved.
+   * @private
+   */
+  add_char_qwerty: function matrixSearch_add_char_qwerty(ch) {
+    this.matrix_[this.pys_decoded_len_].mtrx_nd_num = 0;
 
+    var spl_matched = false;
+    var longest_ext = 0;
+    // Extend the search matrix, from the oldest unfixed row. ext_len means
+    // extending length.
+    for (var ext_len = DictDef.kMaxPinyinSize + 1; ext_len > 0; ext_len--) {
+      if (ext_len > this.pys_decoded_len_ - this.spl_start_[this.fixed_hzs_]) {
+        continue;
+      }
+
+      // Refer to the declsaration of the variable dmi_has_full_id for the
+      // explanation of this piece of code. In one word, it is used to prevent
+      // from the unwise extending of "shoud ou" but allow the reasonable
+      // extending of "heng ao", "lang a", etc.
+      if (ext_len > 1 && 0 != longest_ext &&
+          0 == this.matrix_[this.pys_decoded_len_ - ext_len].dmi_has_full_id) {
+          continue;
+      }
+
+      var oldrow = pys_decoded_len_ - ext_len;
+
+      // 0. If that row is before the last fixed step, ignore.
+      if (this.spl_start_[fixed_hzs_] > oldrow) {
+        continue;
+      }
+
+      // 1. Check if that old row has valid MatrixNode. If no, means that row is
+      // not a boundary, either a word boundary or a spelling boundary.
+      // If it is for extending composing phrase, it's OK to ignore the 0.
+      if (0 == this.matrix_[oldrow].mtrx_nd_num && !this.dmi_c_phrase_) {
+        continue;
+      }
+
+      // 2. Get spelling id(s) for the last ext_len chars.
+      var get_splid_by_str_ret = this.spl_parser_.get_splid_by_str(pys_ +
+          oldrow, ext_len, is_pre);
+      var spl_idx = get_splid_by_str_ret.spl_id;
+      var is_pre = get_splid_by_str_ret.is_pre;
+      if (is_pre) {
+        spl_matched = true;
+      }
+
+      if (0 == spl_idx) {
+        continue;
+      }
+
+      var splid_end_split = this.is_split_at(oldrow + ext_len);
+
+      // 3. Extend the DMI nodes of that old row
+      // + 1 is to extend an extra node from the root
+      var stop_pos = this.matrix_[oldrow].dmi_pos +
+          this.matrix_[oldrow].dmi_num + 1;
+      for (var dmi_pos = this.matrix_[oldrow].dmi_pos; dmi_pos < stop_pos;
+           dmi_pos++) {
+        var dmi = this.dmi_pool_[dmi_pos];
+        if (dmi_pos == this.matrix_[oldrow].dmi_pos +
+            this.matrix_[oldrow].dmi_num) {
+          dmi = null;  // The last one, null means extending from the root.
+        } else {
+          // If the dmi is covered by the fixed arrange, ignore it.
+          if (this.fixed_hzs_ > 0 &&
+              this.pys_decoded_len_ - ext_len - dmi.splstr_len <
+              this.spl_start_[this.fixed_hzs_]) {
+            continue;
+          }
+          // If it is not in mode for composing phrase, and the source DMI node
+          // is marked for composing phrase, ignore this node.
+          if (dmi.c_phrase != 0 && !this.dmi_c_phrase_) {
+            continue;
+          }
+        }
+
+        // For example, if "gao" is extended, "g ao" is not allowed.
+        // or "zh" has been passed, "z h" is not allowed.
+        // Both word and word-connection will be prevented.
+        if (longest_ext > ext_len) {
+          if (null == dmi && 0 == this.matrix_[oldrow].dmi_has_full_id) {
+            continue;
+          }
+
+          // "z h" is not allowed.
+          if (null != dmi && this.spl_trie_.is_half_id(dmi.spl_id)) {
+            continue;
+          }
+        }
+
+        this.dep_.splids_extended = 0;
+        if (null != dmi) {
+          var prev_ids_num = dmi.dict_level;
+          if ((!this.dmi_c_phrase_ && prev_ids_num >= DictDef.kMaxLemmaSize) ||
+              (this.dmi_c_phrase_ && prev_ids_num >= MatrixSearch.kMaxRowNum)) {
+            continue;
+          }
+
+          var d = dmi;
+          while (d) {
+            this.dep_.splids[--prev_ids_num] = d.spl_id;
+            if (-1 == d.dmi_fr) {
+              break;
+            }
+            d = this.dmi_pool_ + d.dmi_fr;
+          }
+          assert(0 == prev_ids_num);
+          this.dep_.splids_extended = dmi.dict_level;
+        }
+        this.dep_.splids[this.dep_.splids_extended] = spl_idx;
+        this.dep_.ext_len = ext_len;
+        this.dep_.splid_end_split = splid_end_split;
+
+        this.dep_.id_num = 1;
+        this.dep_.id_start = spl_idx;
+        if (this.spl_trie_.is_half_id(spl_idx)) {
+          // Get the full id list
+          var h2f_ret = this.spl_trie_.half_to_full(spl_idx);
+          this.dep_.id_num = h2f_ret.num;
+          this.dep_.id_start = h2f_ret.spl_id_start;
+          assert(this.dep_.id_num > 0);
+        }
+
+        var new_dmi_num;
+
+        new_dmi_num = this.extend_dmi(this.dep_, dmi);
+
+        if (new_dmi_num > 0) {
+          if (this.dmi_c_phrase_) {
+            this.dmi_pool_[this.dmi_pool_used_].c_phrase = 1;
+          }
+          this.matrix_[this.pys_decoded_len_].dmi_num += new_dmi_num;
+          this.dmi_pool_used_ += new_dmi_num;
+
+          if (!this.spl_trie_.is_half_id(spl_idx)) {
+            this.matrix_[this.pys_decoded_len_].dmi_has_full_id = 1;
+          }
+        }
+
+        // If get candiate lemmas, try to extend the path
+        if (this.lpi_total_ > 0) {
+          var fr_row;
+          if (null == dmi) {
+            fr_row = oldrow;
+          } else {
+            assert(oldrow >= dmi.splstr_len);
+            fr_row = oldrow - dmi.splstr_len;
+          }
+          end_pos = this.matrix_[fr_row].mtrx_nd_pos +
+               this.matrix_[fr_row].mtrx_nd_num;
+          for (var mtrx_nd_pos = this.matrix_[fr_row].mtrx_nd_pos;
+               mtrx_nd_pos < end_pos;
+               mtrx_nd_pos++) {
+            var mtrx_nd = this.mtrx_nd_pool_[mtrx_nd_pos];
+            this.extend_mtrx_nd(mtrx_nd, this.lpi_items_, this.lpi_total_,
+                this.dmi_pool_used_ - new_dmi_num, this.pys_decoded_len_);
+            if (longest_ext == 0) {
+              longest_ext = ext_len;
+            }
+          }
+        }
+      }  // for dmi_pos */
+    }  // for ext_len
+    this.mtrx_nd_pool_used_ += this.matrix_[this.pys_decoded_len_].mtrx_nd_num;
+
+    if (this.dmi_c_phrase_) {
+      return true;
+    }
+
+    return (this.matrix_[this.pys_decoded_len_].mtrx_nd_num != 0 ||
+        spl_matched);
   },
 
-  // Is the character in step pos a splitter character?
-  // The caller guarantees that the position is valid.
-  _isSplitAt: function matrixSearch_isSplitAt(pos) {
-    return !this._splParser.is_valid_to_parse(this.pys_[pos - 1]);
+  /**
+   * Prepare candidates from the last fixed hanzi position.
+   * @private
+   */
+  prepare_candidates: function matrixSearch_prepare_candidates() {
+    // Get candiates from the first un-fixed step.
+    var lma_size_max = DictDef.kMaxLemmaSize;
+    if (lma_size_max > this.spl_id_num_ - this.fixed_hzs_) {
+      lma_size_max = this.spl_id_num_ - this.fixed_hzs_;
+    }
+
+    var lma_size = lma_size_max;
+
+    // If the full sentense candidate's unfixed part may be the same with a
+    // normal lemma. Remove the lemma candidate in this case.
+    var pfullsent = this.get_candidate0(true);
+    var setn_len = pfullsent.length;
+
+    // If the unfixed part contains more than one ids, it is not necessary to
+    // check whether a lemma's string is the same to the unfixed part of the
+    // full sentence candidate, so, set it to emplty string;
+    if (sent_len > DictDef.kMaxLemmaSize) {
+      pfullsent = '';
+    }
+
+    this.lpi_total_ = 0;
+    var lpi_num_full_match = 0;  // Number of items which are fully-matched.
+    while (lma_size > 0) {
+      var lma_num;
+      lma_num = this.get_lpis(this.spl_id_, this.fixed_hzs_, lma_size,
+                         this.lpi_items_, this.lpi_total_,
+                         MatrixSearch.kMaxLmaPsbItems - this.lpi_total_,
+                         pfullsent, lma_size == lma_size_max);
+
+      if (lma_num > 0) {
+        this.lpi_total_ += lma_num;
+        // For next lemma candidates which are not the longest, it is not
+        // necessary to compare with the full sentence candiate.
+        pfullsent = '';
+      }
+      if (lma_size == lma_size_max) {
+        lpi_num_full_match = this.lpi_total_;
+      }
+      lma_size--;
+    }
+
+    // Sort those partially-matched items by their unified scores.
+    var begin = lpi_num_full_match;
+    var end = this.lpi_total_;
+    var lpi_items_sorted = this.lpi_items_.slice(begin, end);
+    lpi_items_sorted.sort(SearchUtility.cmp_lpi_with_unified_psb);
+    for (var pos = begin; pos < end; pos++) {
+      this.lpi_items_[pos] = lpi_items_sorted[pos - begin];
+    }
+
+    debug('-----Prepare candidates, score:');
+    var line = '';
+    for (var a = 0; a < this.lpi_total_; a++) {
+      line += StringUtils.format('[{0}]{1}    ', a, this.lpi_items_[a].psb);
+      if ((a + 1) % 6 == 0) {
+        debug(line);
+        line = '';
+      }
+    }
+    debug('--- lpi_total_ = ' + this.lpi_total_);
+  },
+
+  /**
+   * Is the character in step pos a splitter character?
+   * The caller guarantees that the position is valid.
+   * @private
+   */
+  is_split_at: function matrixSearch_is_split_at(pos) {
+    return !this.spl_parser_.is_valid_to_parse(this.pys_[pos - 1]);
+  },
+
+  /**
+   * Fill a dmi object.
+   * @private
+   * @param {MatrixSearch.DictMatchInfo} dmi The dmi object.
+   * @return {void} No return value.
+   */
+  fill_dmi: function matrixSearch_fill_dmi(dmi, handles, dmi_fr, spl_id,
+      node_num, dict_level, splid_end_split, splstr_len, all_full_id) {
+    dmi.dict_handles[0] = handles[0];
+    dmi.dict_handles[1] = handles[1];
+    dmi.dmi_fr = dmi_fr;
+    dmi.spl_id = spl_id;
+    dmi.dict_level = dict_level;
+    dmi.splid_end_split = splid_end_split ? 1 : 0;
+    dmi.splstr_len = splstr_len;
+    dmi.all_full_id = all_full_id;
+    dmi.c_phrase = 0;
+  },
+
+  /**
+   * @private
+   * @param {string} fixed_buf Words used to make prediction.
+   * @param {Array.<string>} predict_buf Buffer saving the result.
+   * @param {number} start The start position of the buffer.
+   * @param {number} buf_len The length of the buffer.
+   * @return {number} Number of new added prediction items.
+   */
+  inner_predict: function matrixSearch_inner_predict(fixed_buf,
+      predict_buf, buf_len) {
+    var i = 0;
+    var fixed_len = fixed_buf.length;
+    var res_total = 0;
+    var npre_items_ = [];
+    //memset(npre_items_, 0, sizeof(NPredictItem) * npre_items_len_);
+    // In order to shorten the comments, j-character candidates predicted by
+    // i-character prefix are called P(i,j). All candiates predicted by
+    // i-character prefix are called P(i,*)
+    // Step 1. Get P(kMaxPredictSize, *) and sort them, here
+    // P(kMaxPredictSize, *) == P(kMaxPredictSize, 1)
+    for (var len = fixed_len; len > 0; len--) {
+      // How many blank items are available
+      var this_max = this.npre_items_len_ - this.res_total;
+      var res_this;
+      // If the history is longer than 1, and we can not get prediction from
+      // lemmas longer than 2, in this case, we will add lemmas with
+      // highest scores as the prediction result.
+      if (fixed_len > 1 && 1 == len && 0 == res_total) {
+        // Try to find if recent n (n>1) characters can be a valid lemma in
+        // system dictionary.
+        var nearest_n_word = false;
+        for (var nlen = 2; nlen <= fixed_len; nlen++) {
+          if (this.dict_trie_.get_lemma_id(fixed_buf.substring(
+              fixed_len - nlen)) > 0) {
+            nearest_n_word = true;
+            break;
+          }
+        }
+        res_this = this.dict_trie_.predict_top_lmas(nearest_n_word ? len : 0,
+                                                this.npre_items_, res_total,
+                                                this_max, res_total);
+        res_total += res_this;
+      }
+
+      // How many blank items are available
+      this_max = this.npre_items_len_ - res_total;
+      res_this = 0;
+      if (!MatrixSearch.kOnlyUserDictPredict) {
+        res_this =
+            this.dict_trie_.predict(fixed_buf.substring(fixed_len - len),
+                                this.npre_items_, res_total, this_max,
+                                res_total);
+      }
+
+      if (null != this.user_dict_) {
+        res_this = res_this +
+            this.user_dict_.predict(fixed_buf.substring(fixed_len - len),
+            this.npre_items_, res_total + res_this,
+            this_max - res_this, res_total + res_this);
+      }
+
+      if (MatrixSearch.kPredictLimitGt1) {
+        var begin = res_total;
+        var end = res_total + rest_this;
+        var npre_items_sorted = this.npre_items_.slice(begin, end);
+        npre_items_sorted.sort(SearchUtility.cmp_npre_by_score);
+        for (i = begin; i < end; i++) {
+          this.npre_items_[i] = npre_items_sorted[i - begin];
+        }
+
+        if (len > 3) {
+          if (res_this > MatrixSearch.kMaxPredictNumByGt3) {
+            res_this = MatrixSearch.kMaxPredictNumByGt3;
+          }
+        } else if (3 == len) {
+          if (res_this > MatrixSearch.kMaxPredictNumBy3) {
+            res_this = MatrixSearch.kMaxPredictNumBy3;
+          }
+        } else if (2 == len) {
+          if (res_this > MatrixSearch.kMaxPredictNumBy2) {
+            res_this = MatrixSearch.kMaxPredictNumBy2;
+          }
+        }
+      }
+
+      res_total += res_this;
+    }
+
+    this.npre_items_.length = res_total;
+    res_total = SearchUtility.remove_duplicate_npre(this.npre_items_);
+    this.npre_items_.length = res_total;
+
+    if (MatrixSearch.kPreferLongHistoryPredict) {
+      this.npre_items_.sort(SearchUtility.cmp_npre_by_hislen_score);
+    } else {
+      this.npre_items_.sort(SearchUtility.cmp_npre_by_score);
+    }
+
+    if (buf_len < res_total) {
+      res_total = buf_len;
+    }
+
+    debug('/////////////////Predicted Items Begin////////////////////>>');
+    for (i = 0; i < res_total; i++) {
+      debug(this.npre_items_[i].pre_hzs);
+    }
+    debug('<<///////////////Predicted Items End////////////////////////');
+
+    for (i = 0; i < res_total; i++) {
+      predict_buf[i] = this.npre_items_[i].pre_hzs;
+    }
+
+    return res_total;
+  },
+
+  /**
+   * Add the first candidate to the user dictionary.
+   * @private
+   * @return {boolean} true if succeed.
+   */
+  try_add_cand0_to_userdict: function matrixSearch_try_add_cand0_to_userdict() {
+    var new_cand_num = this.get_candidate_num();
+    if (this.fixed_hzs_ > 0 && 1 == new_cand_num) {
+      var score_from = 0;
+      var lma_id_from = 0;
+      var pos = 0;
+      var modified = false;
+      while (pos < this.fixed_lmas_) {
+        if (this.lma_start_[pos + 1] - this.lma_start_[lma_id_from] >
+            DictDef.kMaxLemmaSize) {
+          var score_to_add =
+              this.mtrx_nd_pool_[this.matrix_[this.spl_start_[
+              this.lma_start_[pos]]].mtrx_nd_pos].score - score_from;
+          if (modified) {
+            score_to_add += 1.0;
+            if (score_to_add > NGram.kMaxScore) {
+              score_to_add = NGram.kMaxScore;
+            }
+            this.add_lma_to_userdict(lma_id_from, pos, score_to_add);
+          }
+          lma_id_from = pos;
+          score_from += score_to_add;
+
+          // Clear the flag for next user lemma.
+          modified = false;
+        }
+
+        if (0 == this.fixed_lmas_no1_[pos]) {
+          modified = true;
+        }
+        pos++;
+      }
+
+      // Single-char word is not allowed to add to userdict.
+      if (this.lma_start_[pos] - this.lma_start_[lma_id_from] > 1) {
+        var score_to_add = this.mtrx_nd_pool_[this.matrix_[this.spl_start_[
+            this.lma_start_[pos]]] .mtrx_nd_pos].score - score_from;
+        if (modified) {
+          score_to_add += 1.0;
+          if (score_to_add > NGram.kMaxScore) {
+            score_to_add = NGram.kMaxScore;
+          }
+          this.add_lma_to_userdict(lma_id_from, pos, score_to_add);
+        }
+      }
+    }
+    return true;
+  },
+
+  /**
+   * Add a user lemma to the user dictionary. This lemma is a subset of
+   * candidate 0. lma_from is from which lemma in lma_ids_, lma_num is the
+   * number of lemmas to be combined together as a new lemma. The caller
+   * gurantees that the combined new lemma's length is less or equal to
+   * DictDef.kMaxLemmaSize.
+   * @private
+   * @return {boolean} true if succeed.
+   */
+  add_lma_to_userdict: function matrixSearch_add_lma_to_userdict(lma_from,
+      lma_num, score) {
+    if (lma_to - lma_fr <= 1 || null == this.user_dict_) {
+      return false;
+    }
+
+    var word_str = '';
+    var spl_ids = []; //[kMaxLemmaSize];
+
+    var spl_id_fr = 0;
+
+    for (var pos = lma_fr; pos < lma_to; pos++) {
+      var lma_id = this.lma_id_[pos];
+      if (SearchUtility.is_user_lemma(lma_id)) {
+        this.user_dict_.update_lemma(lma_id, 1, true);
+      }
+      var lma_len = this.lma_start_[pos + 1] - this.lma_start_[pos];
+      for (var i = 0; i < lma_len; i++) {
+        spl_ids[spl_id_fr + i] = this.spl_id_[lma_start_[pos] + i];
+      }
+
+      var str = this.get_lemma_str(lma_id);
+      word_str += str;
+      assert(str.length == lma_len);
+
+      var tmp = this.get_lemma_splids(lma_id, spl_ids, spl_id_fr, lma_len);
+      if (tmp != lma_len) {
+        return false;
+      }
+
+      spl_id_fr += lma_len;
+    }
+
+    assert(spl_id_fr <= DictDef.kMaxLemmaSize);
+
+    return this.user_dict_.put_lemma(word_str, spl_ids, spl_id_fr, 1);
+  },
+
+  /**
+   * Update dictionary frequencies.
+   * @private
+   * @return {void} No return value.
+   */
+  update_dict_freq: function matrixSearch_update_dict_freq() {
+    if (null != this.user_dict_) {
+      // Update the total frequency of all lemmas, including system lemmas and
+      // user dictionary lemmas.
+      var total_freq = this.user_dict_.get_total_lemma_count();
+      this.dict_trie_.set_total_lemma_count_of_others(total_freq);
+    }
+  },
+
+  /**
+   * @private
+   * @return {void} No return value.
+   */
+  debug_print_dmi: function matrixSearch_debug_print_dmi(dmi_pos, nest_level) {
+    if (dmi_pos >= this.dmi_pool_used_) {
+      return;
+    }
+
+    var dmi = this.dmi_pool_[dmi_pos];
+
+    if (1 == nest_level) {
+      debug(StringUtils.format(
+          '-----------------{0}\'th DMI node begin----------->', dmi_pos));
+    }
+    if (dmi.dict_level > 1) {
+      this.debug_print_dmi(dmi.dmi_fr, nest_level + 1);
+    }
+    debug('---' + dmi.dict_level);
+    debug(StringUtils.format(' MileStone: {0}, {1}',
+        dmi.dict_handles[0].toString(16), dmi.dict_handles[1].toString(16)));
+    debug(StringUtils.format(' Spelling : {0}, {1}',
+        SpellingTrie.get_instance().get_spelling_str(dmi.spl_id), dmi.spl_id));
+    debug(' Total Pinyin Len: ' + dmi.splstr_len);
+    if (1 == nest_level) {
+      debug(StringUtils.format(
+          '<----------------{0}\'th DMI node end--------------\n', dmi_pos));
+    }
   }
 };
 
@@ -4610,8 +6397,8 @@ var IAtomDictBase = {
    * @return {number} The number of matched items which have been filled in to
    *    lpi_items.
    */
-  get_lpis:
-      function atomDictBase_get_lpis(splid_str, lpi_items, start, lpi_max) {},
+  get_lpis: function atomDictBase_get_lpis(splid_str, lpi_items, start,
+      lpi_max) {},
 
   /**
    * Get a lemma string (The Chinese string) by the given lemma id.
@@ -5341,7 +7128,11 @@ DictTrie.prototype = {
   /**
    * @override
    */
-  flush_cache: function dictTrie_flush_cache(callback) {},
+  flush_cache: function dictTrie_flush_cache(callback) {
+    if (callback) {
+      callback();
+    }
+  },
 
   get_lemma_id_by_str: function dictTrie_get_lemma_id_by_str(lemma_str) {
     if (!lemma_str)
@@ -5917,7 +7708,6 @@ DictTrie.prototype = {
 
   /**
    * Load from JSON string.
-   * TODO not implemented.
    * @private
    * @param {string} json_str JSON string.
    * @return {boolean} true if successs.
@@ -7758,13 +9548,13 @@ UserDict.prototype = {
       doCallback();
       return;
     }
-    this.close_dict(function flash_cache_close_dict_callback(success) {
+    this.close_dict(function flush_cache_close_dict_callback(success) {
       if (success) {
         self.load_dict(file, start_id, DictDef.kUserDictIdEnd,
             function load_dict_callback(success) {
           if (success) {
             if (UserDict.CACHE_ENABLED) {
-              this.cache_init();
+              self.cache_init();
             }
           }
           doCallback();
@@ -7804,7 +9594,7 @@ UserDict.prototype = {
         break;
     }
 
-    // XXX Reclaim is only based on count, not size
+    // Reclaim is only based on count
     var count = this.dict_info_.lemma_count;
     var rc = count * this.dict_info_.reclaim_ratio / 100;
 
@@ -10170,15 +11960,15 @@ SpellingParser.prototype = {
 
   /**
    * Get the spelling id of given string.
-   * @param {String} splstr The spelling string.
-   * @return {spl_id: Integer, is_pre: Boolean}
+   * @param {string} splstr The spelling string.
+   * @return {spl_id: number, is_pre: boolean}
    * If the given string is a spelling, return the id, others, return 0.
    * If the give string is a single char Yunmus like "A", and the char is
    * enabled in ShouZiMu mode, the returned spelling id will be a half id.
    * When the returned spelling id is a half id, is_pre returns whether it
    * is a prefix of a full spelling string.
    */
-  get_spl_id_by_str: function spellingParser_get_spl_id_by_str(splstr) {
+  get_splid_by_str: function spellingParser_get_splid_by_str(splstr) {
     var spl_idx = [];
     var start_pos = [];
 
