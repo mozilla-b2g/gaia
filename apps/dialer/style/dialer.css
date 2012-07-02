@@ -1,4 +1,3 @@
-
 @font-face {
   font-family: 'FontLight';
   src: url('fonts/opensans-light-webfont.woff');
@@ -19,11 +18,6 @@
   font-family: 'FontBold';
   font-weight: bold;
   src: url('fonts/opensans-bold-webfont.woff');
-}
-
-@font-face {
-  font-family: 'FontLight';
-  src: url('fonts/Open-Sans-Light.woff');
 }
 
 html, body {
