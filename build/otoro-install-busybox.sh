@@ -9,7 +9,7 @@ adb push busybox-armv6l /sbin/busybox
 adb shell "chmod 555 /sbin/busybox"
 
 # Perform the symbolic links
-adb shell "for x in \`busybox --list\`; do ln -s /sbin/busybox /sbin/$x; done"
+adb shell "for x in \`busybox --list\`; do ln -s /sbin/busybox sbin/\$x; done"
 
 # Remount file system with read-only permissions
 adb shell "mount -o ro,remount -t rootfs /"
