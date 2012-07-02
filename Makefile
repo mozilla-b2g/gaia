@@ -32,10 +32,12 @@ DEBUG?=0
 
 REPORTER=Spec
 
-GAIA_APP_SRCDIRS?=apps test_apps
+GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
+GAIA_APP_SRCDIRS=apps showcase_apps
+else ifeq ($(MAKECMDGOALS), production)
 GAIA_APP_SRCDIRS=apps
 endif
 
@@ -470,3 +472,5 @@ dialer-demo:
 	@find apps/dialer/ -name '*.bak' -exec rm {} \;
 
 demo: install-media-samples install-gaia
+
+production: install-gaia
