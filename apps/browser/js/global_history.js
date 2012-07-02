@@ -1,7 +1,7 @@
 'use strict';
 
 var indexedDB = window.indexedDB || window.webkitIndexedDB ||
-  window.mozIndexedDB || window.msIndexedDB;
+  window.msIndexedDB;
 
 var GlobalHistory = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
