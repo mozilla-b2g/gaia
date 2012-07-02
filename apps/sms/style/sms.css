@@ -143,6 +143,7 @@ body.conversation #msg-conversations {
   display: block;
   left: 0;
   right: 0;
+  z-index: 50;
   background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
   margin: 0;
   padding: 0;
@@ -536,14 +537,6 @@ body.edit-mode #msg-conversations-list .item > a > span {
   visibility : visible;
 }
 
-body.edit-mode #msg-conversations-list .name {
-  width: -moz-calc(100% - 19rem);
-}
-
-body.edit-mode #msg-conversations-list .msg {
-  width: -moz-calc(100% - 9rem);
-}
-
 #msg-new-message-container {
   padding: 0;
   margin: 0;
@@ -577,7 +570,6 @@ body.edit-mode #msg-conversations-list .msg {
 }
 
 .icon-edit {
-  opacity: .5;
   display: block;
   background-image: url('images/edit.png');
   height: 2rem;
@@ -638,18 +630,17 @@ body.edit-mode .edit-hide-element {
 #view-done-button {
   position: absolute;
   cursor: pointer;
-  padding: 1.4rem 0;
+  padding: 0;
   width: 7rem;
-  right: 2rem;
+  right: 0;
   text-align: center;
-  font-size: -moz-calc(10 * 0.226rem);
+  font-size: 1.6rem;
+  line-height: 4.9rem;
   color: #ffffff;
 }
 
 #view-edit-button { 
   right: 0;
-  width: 4rem;
-  margin-right: 2rem; 
   position: absolute;
   height: 100%;
 }
