@@ -27,4 +27,5 @@ var Contacts = {
       callback(null);
     }
   }
-}
+};
+
