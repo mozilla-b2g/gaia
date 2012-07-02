@@ -391,7 +391,7 @@ var LockScreen = {
         this.areaHandle.style.MozTransform = transition;
 
         this.areaHandle.addEventListener('transitionend', function goUnlock() {
-          self.areaHandle.removeEventListener('transitionend', ls_goUnlock);
+          self.areaHandle.removeEventListener('transitionend', goUnlock);
           passcodeOrUnlock();
         });
         break;
