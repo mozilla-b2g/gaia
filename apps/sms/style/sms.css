@@ -62,7 +62,10 @@ body {
   font-family: 'FontRegular', sans-serif;
   font-size: -moz-calc(6 * 0.226rem);
 }
-
+a:active, a:focus, button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
 .panel {
   position: absolute;
   width: 100%;
@@ -394,6 +397,7 @@ body.msg-search-mode #msg-conversations-list {
 
 #msg-conversations-list .item > a:active > .msg {
   color: #ffbc8c;
+  text-shadow: none;
 }
 
 #msg-conversations-list .item > a.hide {
