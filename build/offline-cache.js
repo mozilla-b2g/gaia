@@ -61,11 +61,12 @@ function storeCache(id, url, content, count) {
                               .createInstance(Ci.nsIBufferedOutputStream);
   bufferedOutputStream.init(outputStream, count);
   bufferedOutputStream.writeFrom(content, count);
-
+try {
   bufferedOutputStream.close();
   outputStream.close();
   cacheEntry.markValid();
   cacheEntry.close();
+} catch(e) { dump(e + " " + url + "\n"); }
 }
 
 function getSubDirectories(directory) {

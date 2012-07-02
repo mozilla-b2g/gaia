@@ -1,5 +1,0 @@
-suite('db', function() {
-
-
-
-});
