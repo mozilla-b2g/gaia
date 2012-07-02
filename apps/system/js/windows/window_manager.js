@@ -54,6 +54,7 @@ var WindowManager = (function() {
 
   // Some document elements we use
   var statusbar = document.getElementById('statusbar');
+  var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
 
   //
@@ -336,6 +337,9 @@ var WindowManager = (function() {
     }
 
     displayedApp = origin;
+
+    // Update the loading icon since the displayedApp is changed
+    updateLoadingIcon();
   }
 
   function setOrientationForApp(origin) {
@@ -621,6 +625,54 @@ var WindowManager = (function() {
     numRunningApps--;
 
   }
+
+  // Update the loading icon on the status bar
+  function updateLoadingIcon() {
+    var origin = displayedApp;
+    // If there aren't any origin, that means we are moving to
+    // the homescreen. Let's hide the icon.
+    if (!origin) {
+      loadingIcon.hidden = true;
+      return;
+    }
+
+    // Actually update the icon.
+    // Hide it if the loading property is not true.
+    var app = runningApps[origin];
+    loadingIcon.hidden = !app.frame.dataset.loading;
+  };
+
+  // Listen for mozbrowserloadstart to update the loading status
+  // of the frames
+  window.addEventListener('mozbrowserloadstart', function(e) {
+    var dataset = e.target.dataset;
+    // Only update frames open by ourselves
+    if (!'frameType' in dataset || dataset.frameType !== 'window')
+      return;
+
+    dataset.loading = true;
+
+    // Update the loading icon only if this is the displayed app
+    if (displayedApp == dataset.frameOrigin) {
+      updateLoadingIcon();
+    }
+  });
+
+  // Listen for mozbrowserloadend to update the loading status
+  // of the frames
+  window.addEventListener('mozbrowserloadend', function(e) {
+    var dataset = e.target.dataset;
+    // Only update frames open by ourselves
+    if (!'frameType' in dataset || dataset.frameType !== 'window')
+      return;
+
+    delete dataset.loading;
+
+    // Update the loading icon only if this is the displayed app
+    if (displayedApp == dataset.frameOrigin) {
+      updateLoadingIcon();
+    }
+  });
 
   // When a resize event occurs, resize the running app, if there is one
   window.addEventListener('resize', function() {
