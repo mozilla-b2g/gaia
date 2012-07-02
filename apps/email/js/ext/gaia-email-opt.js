@@ -12249,8 +12249,8 @@ var IndexedDB;
 if (("IndexedDB" in window) && window.indexedDB) {
   IndexedDB = window.indexedDB;
 }
-else if (("indexedDB" in window) && window.indexedDB) {
-  IndexedDB = window.indexedDB;
+else if (("mozIndexedDB" in window) && window.mozIndexedDB) {
+  IndexedDB = window.mozIndexedDB;
 }
 else if (("webkitIndexedDB" in window) && window.webkitIndexedDB) {
   IndexedDB = window.webkitIndexedDB;
