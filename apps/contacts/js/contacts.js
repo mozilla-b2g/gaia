@@ -171,20 +171,20 @@ var Contacts = (function() {
 
       if (contactDetails.classList.contains('no-photo'))
         return;
-        
+
       var onMouseMove = function onMouseMove(event) {
         currentPosition = event.clientY;
         if (startPosition < currentPosition) {
           contactDetails.classList.add('down');
         }
       };
-      
+
       var onMouseUp = function onMouseUp(event) {
         contactDetails.classList.remove('down');
         contactDetails.removeEventListener('mousemove', onMouseMove);
         contactDetails.removeEventListener('mouseup', onMouseUp);
       };
-      
+
       contactDetails.addEventListener('mousemove', onMouseMove);
       contactDetails.addEventListener('mouseup', onMouseUp);
     });
