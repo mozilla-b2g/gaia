@@ -1,18 +1,23 @@
 @font-face {
+  font-family: 'FontLight';
+  src: url('fonts/opensans-light-webfont.woff');
+}
+
+@font-face {
   font-family: 'FontRegular';
-  src: url('fonts/Open-Sans.woff');
+  src: url('fonts/opensans-regular-webfont.woff');
 }
 
 @font-face {
   font-family: 'FontSemibold';
   font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
+  src: url('fonts/opensans-semibold-webfont.woff');
 }
 
 @font-face {
   font-family: 'FontBold';
   font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
+  src: url('fonts/opensans-bold-webfont.woff');
 }
 
 html, body {
@@ -21,7 +26,7 @@ html, body {
   overflow: hidden;
   margin: 0;
   color: white;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'FontLight', sans-serif;
   font-size: 10px;
   background: black;
 }
@@ -30,75 +35,65 @@ html * {
   overflow: hidden;
 }
 
-.font-regular{
-  font-family:'FontRegular';
+.font-regular {
+  font-family: 'FontRegular';
 }
 
-.font-semibold{
-  font-family:'FontSemibold';
+.font-semibold {
+  font-family: 'FontSemibold';
 }
 
-.font-bold{
-  font-family:'FontBold';
+.font-bold {
+  font-family: 'FontBold';
 }
 
-.contact-primary-info{
-  font-size:-moz-calc(15*0.226rem);
-  color:black;
+.font-light {
+  font-family: 'FontLight';
 }
 
-.contact-secondary-info{
-  font-size:-moz-calc(6*0.226rem);
-  color:white;
+.contact-primary-info {
+  font-size: -moz-calc(15*0.226rem);
+  color: black;
+}
+
+.contact-secondary-info {
+  font-size: -moz-calc(6*0.226rem);
+  color: white;
 }
 
 .grid-wrapper {
-  width:100%;
-  height:100%;
+  width: 100%;
+  height: 100%;
 }
 
 .grid-v-align {
-  vertical-align:middle;
+  vertical-align: middle;
 }
 
 .grid-row {
-  display:table-row;
+  display: table-row;
 }
 
 .grid-cell {
-  display:table-cell;
+  display: table-cell;
 }
 
 .grid {
-  display:table;
-  table-layout:fixed;
-}
-
-.layout-row {
-  display:table-row;
-}
-
-.layout-cell {
-  display:table-cell;
-}
-
-.layout-centered {
-  vertical-align:middle;
+  display: table;
+  table-layout: fixed;
 }
 
 .center {
-  text-align:center;
+  text-align: center;
 }
 
 #views {
-  position: absolute;
   top: 0;
-  height: 100%;
+  height: -moz-calc(100% - 4rem);
   width: 100%;
-  border-radius: 10px;
 }
 
-#views > .view {
+#views > *[role=tabpanel] {
   height: 100%;
   width: 100%;
 }
@@ -107,15 +102,63 @@ body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 
-#toolbar {
-	position: absolute;
-	bottom: 0;
-}
-
 *[role=tablist] *[role=tabpanel] {
-	display:none;
+  -moz-transform: translateY(-10000px);
 }
 
 *[role=tablist] *:target {
-	display: block;
+  -moz-transform: translateY(0px);
+}
+
+/* Structure for toolbar */
+.toolbar {
+  height: 4rem;
+  width: 100%;
+  background: rgba(0,0,0,.3);
+}
+
+.toolbar-option {
+  opacity: 0.6;
+}
+
+.toolbar-option-selected {
+  opacity: 1;
+}
+
+#option-contacts {
+  pointer-events: none;
+}
+
+.toolbar-option:active {
+  opacity: 1;
+  border: 0;
+  border-style: none;
+}
+
+/* Toolbar Icon */
+.icon {
+  pointer-events: none;
+  margin: 0 auto;
+}
+
+.icon-recents {
+  width: 4rem;
+  height: 4rem;
+  background-image: url("images/ActionIcon_40x40_recents.png");
+}
+
+.icon-contacts {
+  width: 4rem;
+  height: 4rem;
+  background-image: url("images/ActionIcon_40x40_contacts.png");
+}
+
+.icon-keypad {
+  width: 4rem;
+  height: 4rem;
+  background-image: url("images/ActionIcon_40x40_dialpad.png");
+}
+
+.disabled-icon {
+  opacity: 0.6;
 }

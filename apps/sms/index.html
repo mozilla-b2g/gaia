@@ -5,9 +5,9 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Messages</title>
     <link rel="stylesheet" type="text/css" href="style/sms.css">
-    <link rel="resource" type="application/l10n" href="locale/sms.properties">
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
     <!-- Compatibility -->
-    <script>
+    <script type="text/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -30,12 +30,14 @@
     <div id="view" class="panel">
       <div id="view-toolbar" class="toolbar toolbar-top">
         <a href="#" id="view-back" class="edit-hide">
-          <div class="icon-back"></div>
+          <div class="back-wrapper">
+            <div class="icon-back"></div>
+          </div>
         </a>
         <div role="button" id="view-done-button" onclick="ConversationView.exitEditMode()" class="edit-show" data-l10n-id="done">
           Done
         </div>
-        <a href="#edit" id="view-edit-button" class="edit-hide">
+        <a href="#demo-#edit" id="view-edit-button" class="edit-hide">
           <div class="icon-edit"></div>
         </a>
         <a id="view-add-button" class="contact-show">
@@ -70,12 +72,14 @@
     <div id="msg-conversations" class="panel">
       <div id="msg-toolbar" class="toolbar toolbar-top">
         <a href="#" id="msg-conversations-back" class="edit-show">
-          <div class="icon-back"></div>
+          <div class="back-wrapper">
+            <div class="icon-back"></div>
+          </div>
         </a>
         <a href="#num=*" id="msg-new-message" class="edit-hide">
           <div class="icon-add"></div>
         </a>
-        <a href="#edit" id="msg-edit-button" class="edit-hide">
+        <a href="#demo-#edit" id="msg-edit-button" class="edit-hide">
           <div class="icon-edit"></div>
         </a>
         <div id="msg-title-container" data-l10n-id="messages">Messages</div>

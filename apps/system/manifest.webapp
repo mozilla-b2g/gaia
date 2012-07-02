@@ -17,6 +17,10 @@
       "name": "System",
       "description": "Main System"
     },
+    "ca": {
+      "name": "Sistema",
+      "description": "Sistema principal"
+    },
     "de": {
       "name": "System",
       "description": "Allgemeines System"

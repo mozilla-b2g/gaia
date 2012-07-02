@@ -7,6 +7,19 @@ var MailAPI = null;
 
 var App = {
   /**
+   * Bind any global notifications.
+   */
+  _init: function() {
+    // If our password is bad, we need to pop up a card to ask for the updated
+    // password.
+    MailAPI.onbadlogin = function(account) {
+      Cards.pushCard('setup-fix-password', 'default', 'animate',
+                     { account: account, restoreCard: Cards.activeCardIndex },
+                     'right');
+    };
+  },
+
+  /**
    * Show the best inbox we have (unified if >1 account, just the inbox if 1) or
    * start the setup process if we have no accounts.
    */
@@ -26,6 +39,7 @@ var App = {
             dieOnFatalError('We have an account without an inbox!', foldersSlice.items);
 
           Cards.assertNoCards();
+
           // Push the navigation cards
           Cards.pushCard(
             'account-picker', 'default', 'none',
@@ -66,6 +80,7 @@ function hookStartup() {
     try {
       populateTemplateNodes();
       Cards._init();
+      App._init();
       App.showMessageViewOrSetup();
     }
     catch (ex) {

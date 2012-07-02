@@ -18,14 +18,14 @@
     <div id="main-screen">
 
       <menu type="toolbar" id="toolbar-start">
-        <form id="url-bar">
+        <form id="url-bar" novalidate>
+          <input type="image" id="ssl-indicator" value="" />
           <input type="url" id="url-input" placeholder="Enter Address" />
           <input type="image" id="url-button" value="" />
         </form>
       </menu>
 
       <div id="frames">
-        <div id="throbber"></div>
         <img id="tab-cover" />
         <div id="awesomescreen">
           <section id="history">
@@ -45,7 +45,7 @@
     <div id="tray">
       <div id="tabs-list"></div>
     </div>
-
+    <div id="throbber"></div>
     <div id="tabs-badge"></div>
 
   </body>

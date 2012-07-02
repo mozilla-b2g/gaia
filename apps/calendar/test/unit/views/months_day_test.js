@@ -1,8 +1,8 @@
-requireApp('calendar/js/gesture_detector.js');
+requireApp('calendar/js/ext/gesture_detector.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
 
-  requireApp('calendar/js/gesture_detector.js');
+  requireApp('calendar/js/ext/gesture_detector.js');
   requireCalendarController();
   requireApp('calendar/js/templates/day.js');
   requireApp('calendar/js/views/months_day.js');
@@ -23,8 +23,8 @@ suite('views/months_day', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div class="dayHeader"></div>',
-      '<div class="eventList"></div>'
+      '<div id="months-day-view"> <div class="dayHeader"></div>',
+      '<div class="eventList"></div></div>'
     ].join(' ');
 
     document.body.appendChild(div);
@@ -43,6 +43,8 @@ suite('views/months_day', function() {
   test('initialization', function() {
     assert.equal(subject.headerSelector, '#test .dayHeader');
     assert.equal(subject.controller, controller);
+    assert.instanceOf(subject, Calendar.View);
+    assert.equal(subject.element, document.querySelector('#months-day-view'));
   });
 
   test('#_renderDay', function() {
@@ -135,6 +137,10 @@ suite('views/months_day', function() {
     assert.include(el.innerHTML, date);
     assert.include(el.innerHTML, day);
     assert.include(el.innerHTML, month);
+  });
+
+  test('#onfirstseen', function() {
+    assert.equal(subject.onfirstseen, subject.render);
   });
 
 });

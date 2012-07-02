@@ -178,11 +178,11 @@
 
   /** fake network list, where each network object looks like:
     * {
-    *   ssid         : SSID string (human-readable name)
-    *   bssid        : network identifier string
-    *   capabilities : array of strings (supported authentication methods)
-    *   signal       : 0-100 signal level (integer)
-    *   connected    : boolean state
+    *   ssid              : SSID string (human-readable name)
+    *   bssid             : network identifier string
+    *   capabilities      : array of strings (supported authentication methods)
+    *   relSignalStrength : 0-100 signal level (integer)
+    *   connected         : boolean state
     * }
     */
   var fakeNetworks = {
@@ -190,28 +190,28 @@
       ssid: 'Mozilla-G',
       bssid: 'xx:xx:xx:xx:xx:xx',
       capabilities: ['WPA-EAP'],
-      signal: 67,
+      relSignalStrength: 67,
       connected: false
     },
     'Livebox 6752': {
       ssid: 'Livebox 6752',
       bssid: 'xx:xx:xx:xx:xx:xx',
       capabilities: ['WEP'],
-      signal: 32,
+      relSignalStrength: 32,
       connected: false
     },
     'Mozilla Guest': {
       ssid: 'Mozilla Guest',
       bssid: 'xx:xx:xx:xx:xx:xx',
       capabilities: [],
-      signal: 98,
+      relSignalStrength: 98,
       connected: false
     },
     'Freebox 8953': {
       ssid: 'Freebox 8953',
       bssid: 'xx:xx:xx:xx:xx:xx',
       capabilities: ['WPA2-PSK'],
-      signal: 89,
+      relSignalStrength: 89,
       connected: false
     }
   };
@@ -364,8 +364,7 @@
    */
 
   function parseResource(href, lang, successCallback, failureCallback) {
-    var baseURL = (href.substr(0, 4) === 'http') ?
-        href.replace(/\/[^\/]*$/, '/') : '';
+    var baseURL = href.replace(/\/[^\/]*$/, '/');
 
     // handle escaped characters (backslashes) in a string
     function evalString(text) {

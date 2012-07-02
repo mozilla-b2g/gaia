@@ -268,6 +268,7 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
   
       let [content, length] = getFileContent(file);
       storeCache(applicationCache.clientID, documentSpec, content, length);
+      content.close();
 
       // Set the item type
       let itemType = Ci.nsIApplicationCache.ITEM_EXPLICIT;
@@ -308,6 +309,7 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
     if (file.exists()) {
       let [content, length] = getFileContent(file);
       storeCache(applicationCache.clientID, documentSpec, content, length);
+      content.close();
       itemType = Ci.nsIApplicationCache.ITEM_MANIFEST;
       applicationCache.markEntry(documentSpec, itemType);
 
@@ -331,6 +333,7 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
 
       let [content, length] = getFileContent(file);
       storeCache(applicationCache.clientID, documentSpec, content, length);
+      content.close()
       applicationCache.markEntry(documentSpec, Ci.nsIApplicationCache.ITEM_FOREIGN);
     }
   });
@@ -359,6 +362,7 @@ appsNeedingIcons.forEach(function appIterator(appName) {
 
     let [content, length] = getFileContent(file);
     storeCache(applicationCache.clientID, documentSpec, content, length);
+    content.close();
     applicationCache.markEntry(documentSpec, Ci.nsIApplicationCache.ITEM_FOREIGN);
   });
 });

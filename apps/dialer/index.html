@@ -6,9 +6,10 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="stylesheet" type="text/css" href="style/keypad.css">
-    <link rel="resource" type="application/l10n" href="locale/dialer.properties">
+    <link rel="stylesheet" type="text/css" href="style/commslog.css">
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
     <!-- Compatibility -->
-    <script>
+    <script type="application/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -22,25 +23,26 @@
       }
       document.write('<script src="' + src + '"><\/script>');
     </script>
-    <script type="application/javascript" src="js/helper.js"></script>
-    <script type="application/javascript" src="js/contacts.js"></script>
-    <script type="application/javascript" src="js/settings_listener.js"></script>
-    <script type="application/javascript" src="js/notification_helper.js"></script>
-    <script type="application/javascript" src="js/keypad.js"></script>
-    <script type="application/javascript" src="js/dialer.js"></script>
-    <script type="application/javascript" src="js/recents.js"></script>
-    <script type="application/javascript" src="js/proximity.js"></script>
+    <script defer="defer" type="application/javascript" src="js/helper.js"></script>
+    <script defer="defer" type="application/javascript" src="js/contacts.js"></script>
+    <script defer="defer" type="application/javascript" src="js/settings_listener.js"></script>
+    <script defer="defer" type="application/javascript" src="js/notification_helper.js"></script>
+    <script defer="defer" type="application/javascript" src="js/keypad.js"></script>
+    <script defer="defer" type="application/javascript" src="js/dialer.js"></script>
+    <script defer="defer" type="application/javascript" src="js/recents.js"></script>
+    <script defer="defer" type="application/javascript" src="js/proximity.js"></script>
   </head>
   <body class="hidden">
     <article id="views" role="tablist">
-      <article id="keyboard-view" class="view" role="tabpanel">
+      <section id="keyboard-view" role="tabpanel">
         <div id="phone-number-view-container">
           <div class="grid-cell grid-v-align">
             <div class="grid-wrapper">
               <input id="phone-number-view" type="text" class="phone-number-font" readonly="readonly">
+              <div id="fake-phone-number-view"></div>
             </div>
           </div>
-          <div id="keypad-delete" class="grid-cell grid-v-align">
+          <div id="keypad-delete" class="grid-cell grid-v-align" data-value="delete">
             <div>
             </div>
           </div>
@@ -58,8 +60,8 @@
               </div>
               <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label"  data-value="4">
-                    <span class="keypad-number  font-light">4</span>
+                  <div class="keypad-key-label" data-value="4">
+                    <span class="keypad-number font-light">4</span>
                     <span  class="keypad-text font-semibold">GHI</span>
                   </div>
                 </div>
@@ -67,7 +69,7 @@
               <div class="keypad-key">
                 <div class="keypad-key-label-container">
                   <div class="keypad-key-label" data-value="7">
-                    <span class="keypad-number  font-light">7</span>
+                    <span class="keypad-number font-light">7</span>
                     <span class="keypad-text font-semibold">PQRS</span>
                   </div>
                 </div>
@@ -75,8 +77,9 @@
               <div class="keypad-key">
                 <div class="keypad-key-label-container">
                   <div class="keypad-key-label keypad-key-label-centered" data-value="*">
-                    <span class="keypad-number font-light">*</span>
-                    <span class="keypad-text font-semibold"></span>
+                    <span>
+                      <div class="asterisk"></div>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -110,7 +113,7 @@
                 <div class="keypad-key-label-container">
                   <div class="keypad-key-label" data-value="0">
                     <span class="keypad-number font-light">0</span>
-                    <span class="keypad-text font-semibold">+</span>
+                    <span class="keypad-text font-semibold font-size-plus">+</span>
                   </div>
                 </div>
               </div>
@@ -142,59 +145,63 @@
               </div>
               <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label  keypad-key-label-centered" data-type="dial" data-value="#">
-                    <span class="keypad-number font-light">#</span>
-                    <span  class="keypad-text font-semibold"></span>
+                  <div class="keypad-key-label keypad-key-label-centered" data-type="dial" data-value="#">
+                    <span>
+                      <div class="sharp"></div>
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           </section>
           <section id="keypad-callbar">
-            <span role="button" id="keypad-callbar-add-contact"  data-type="action" data-value="add-contact" >
-              <div class="icon-add-contact"></div>
+            <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" >
+              <div class="icon-add-contact disabled-icon"></div>
             </span>
-            <span role="button" id="keypad-callbar-call-action"  data-type="action" data-value="make-call">
-              <div>
-              </div>
-            </span>
-            <span role="button" id="keypad-callbar-back-action"  data-type="action" data-value="back"  class="hide">
+            <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
               <div>
               </div>
             </span>
           </section>
         </article>
-      </article>
-        <article role="tabpanel" id="contacts-view">
-        </article>
-        <article role="tabpanel" id="recents-view">				
-        </article>
+      </section>
+      <section class="view" role="tabpanel" id="contacts-view">
+        <!-- <iframe id="iframe-contacts" src="" frameBorder="no" class="grid-wrapper"></iframe> -->
+      </section>
+      <section class="view" role="tabpanel" id="recents-view">
+        <div class="grid-wrapper">
+          <header class="view-header">
+            <div class="grid-wrapper grid">
+              <h1 class="grid-cell grid-v-align">Call log</h1>
+              <section class="grid-cell grid-v-align view-header-options">
+                <div class="grid-wrapper grid">
+                  <span class="grid-cell grid-v-align">
+                    <div class="icon icon-edit">
+                    </div>
+                  </span>
+                </div>
+              </section>
+            </div>
+          </header>
+          <article id="contacts-container" class="view-body">
+          </article>
+        </div>
+      </section>
     </article>
-    <article id="toolbar">
-      <nav id="keypad-toolbar">
-        <span role="button" id="keypad-toolbar-call-log" data-type="action" data-value="call-log">
-          <a href="#recents-view">
-            <div>
-            </div>
-          </a>
-        </span>
-        <span role="button" id="keypad-toolbar-contact-list" data-type="action" data-value="contact-list">
-          <a href="#contacts-view">	
-            <div>
-            </div>
-          </a>
-        </span>
-        <span role="button" id="keypad-toolbar-keypad" data-type="action" data-value"keypad" class="selected">
-          <a href="#keyboard-view">
-            <div class="icon-keypad">
-            </div>
-          </a>
-        </span>
-      </nav>
-    </article>
+    <nav id="main-toolbar" class="toolbar grid center">
+      <a id="option-recents" href="#recents-view" class="grid-cell grid-v-align toolbar-option ">
+        <div class="icon icon-recents"></div>
+      </a>
+      <a id="option-contacts" href="#contacts-view" class="grid-cell grid-v-align toolbar-option ">
+        <div class="icon icon-contacts disabled-icon"></div>
+      </a>
+      <a id="option-keypad" href="#keyboard-view" class="grid-cell grid-v-align toolbar-option toolbar-option-selected">
+        <div class="icon icon-keypad"></div>
+      </a>
+    </nav>
   </body>
     <script>
-      //If no entry point, redirect to the keyboard-view
+      // If no entry point, redirect to the keyboard-view
       if(document.location.href.indexOf("#") == -1) {
         document.location.href = "#keyboard-view";
       }

@@ -11,7 +11,8 @@ var Icon = function Icon(app) {
   this.descriptor = {
     origin: origin,
     name: Applications.getName(origin),
-    icon: Applications.getIcon(origin)
+    icon: Applications.getIcon(origin),
+    isHidden: Applications.getManifest(origin).hidden
   };
 
   this.type = 'ApplicationIcon';
@@ -39,6 +40,10 @@ Icon.prototype = {
 
     var container = this.container = document.createElement('li');
     container.className = 'icon';
+    if (this.descriptor.isHidden) {
+      container.dataset.hidden = true;
+    }
+
     container.dataset.origin = this.descriptor.origin;
 
     // Icon container
@@ -77,6 +82,12 @@ Icon.prototype = {
     }
 
     target.appendChild(container);
+  },
+
+  show: function icon_show() {
+    var container = this.container;
+    delete container.dataset.hidden;
+    container.dataset.visible = true;
   },
 
   /*
@@ -235,6 +246,10 @@ Page.prototype = {
     var style = this.container.style;
     style.MozTransform = 'translateX(-moz-calc(' + translate + '))';
     this.setTranstionDuration(style, 0);
+  },
+
+  applyInstallingEffect: function(origin) {
+    this.icons[origin].show();
   },
 
   /*

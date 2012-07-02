@@ -5,167 +5,255 @@ function navigationStack(currentView) {
     'left-right': { from: 'view-left', to: 'view-right'},
     'top-bottom': { from: 'view-bottom', to: 'view-top'},
     'right-left': { from: 'view-right', to: 'view-left'},
-    'bottom-top': { from: 'view-top', to: 'view-bottom'}
+    'bottom-top': { from: 'view-top', to: 'view-bottom'},
+    'none': { from: 'none', to: 'none'}
   };
 
   var _currentView = currentView;
+  var app = document.getElementById('app');
+  var cache = document.getElementById('cache');
+  var transitionTimeout = 0;
 
   var stack = [];
   stack.push({ view: currentView, transition: ''});
 
-  this.go = function(nextView, transition) {
+  var revertTransition = function(transition) {
+    return {
+      from: transitions[transition].to,
+      to: transitions[transition].from
+    };
+  };
+
+  var setAppView = function(current, next) {
+    current.dataset.state = 'inactive';
+    next.dataset.state = 'active';
+  };
+
+  var setCacheView = function(current, next, transition) {
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    var nextMirror = document.getElementById(next.dataset.mirror);
+    var move = transitions[transition] || transition;
+
+    cache.dataset.state = 'active';
+    clearTimeout(transitionTimeout);
+    transitionTimeout = setTimeout(function animate() {
+      currentMirror.classList.add(move.to);
+      nextMirror.classList.remove(move.from);
+    }, 1);
+
+    nextMirror.addEventListener('transitionend', function nocache() {
+      setAppView(current, next);
+      app.dataset.state = 'active';
+      cache.dataset.state = 'inactive';
+      nextMirror.removeEventListener('transitionend', nocache);
+    });
+  };
+
+  this.go = function go(nextView, transition) {
     if (_currentView === nextView)
       return;
 
     var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
-    current.classList.add(transitions[transition].to);
-    next.classList.remove(transitions[transition].from);
+
+  if (transition == 'none') {
+    setAppView(current, next);
+  } else {
+    setCacheView(current, next, transition);
+  }
 
     stack.push({ view: _currentView, transition: transition});
     _currentView = nextView;
   };
 
-  this.back = function() {
+  this.back = function back() {
     if (stack.length < 2)
       return;
 
     var current = document.getElementById(_currentView);
     var nextView = stack.pop();
     var next = document.getElementById(nextView.view);
-    current.classList.add(transitions[nextView.transition].from);
-    next.classList.remove(transitions[nextView.transition].to);
 
+    var from = transitions[nextView.transition].from;
+    var to = transitions[nextView.transition].to;
+    if (from == 'none' || to == 'none') {
+      setAppView(current, next);
+    } else {
+      var reverted = revertTransition(nextView.transition);
+      setCacheView(current, next, reverted);
+    }
     _currentView = nextView.view;
   };
 }
 
-var contacts = window.contacts || {};
-contacts.app = (function() {
-  // Pointers to Views ids
-  var editView = 'view-contact-form';
-  var contactDetailsView = 'view-contact-details';
-
-  //Navigation stack
+var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
-  //Initializations
+  function edit() {
+    navigation.go('view-contact-form', 'right-left');
+  }
+
+  var TAG_OPTIONS = {
+    'phone-type' : [
+      {value: 'Mobile'},
+      {value: 'Home'},
+      {value: 'Work'},
+      {value: 'Personal'},
+      {value: 'Fax Home'},
+      {value: 'Fax Office'},
+      {value: 'Other Fax'},
+      {value: 'Another'}
+    ],
+    'email-type' : [
+      {value: 'Personal'},
+      {value: 'Home'},
+      {value: 'Work'}
+    ]
+  };
+
   var numberEmails = 0;
   var numberPhones = 0;
-  var detailsHeader,
-      currentContactId,
-      phoneDetailsTemplate,
-      emailDetailsTemplate,
+  var currentContactId,
       detailsName,
       givenName,
+      company,
       familyName,
-      coverImg,
       formTitle,
       formActions,
       phoneTemplate,
       emailTemplate,
       phonesContainer,
-      emailContainer;
+      emailContainer,
+      selectedTag,
+      contactDetails;
 
   var currentContact = {};
 
   var contactsList = contacts.List;
 
-  // Init selectors
-  var init = function contactsInit() {
-    detailsHeader = document.getElementById('details-view-header');
+  window.addEventListener('load', function initContacts(evt) {
     currentContactId = document.getElementById('contact-form-id');
     givenName = document.getElementById('givenName');
+    company = document.getElementById('org');
     familyName = document.getElementById('familyName');
     detailsName = document.getElementById('contact-name-title');
-    coverImg = document.getElementById('cover-img');
     formTitle = document.getElementById('contact-form-title');
     formActions = document.getElementById('contact-form-actions');
     phoneTemplate = document.getElementById('add-phone');
     emailTemplate = document.getElementById('add-email');
-    phoneDetailsTemplate = document.getElementById('phone-details-template');
-    emailDetailsTemplate = document.getElementById('email-details-template');
     phonesContainer = document.getElementById('contacts-form-phones');
     emailContainer = document.getElementById('contacts-form-email');
+    contactDetails = document.getElementById('contact-detail');
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
     contactsList.load();
 
-    contactsList.handleClick(function onclick(contact) {
-      currentContact = contact;
-      doShowContactDetails(contact);
+    contactsList.handleClick(function handleClick(id) {
+      var options = {
+        filterBy: ['id'],
+        filterOp: 'equals',
+        filterValue: id
+      };
+
+      var request = navigator.mozContacts.find(options);
+      request.onsuccess = function findCallback() {
+        currentContact = request.result[0];
+        reloadContactDetails(currentContact);
+        navigation.go('view-contact-details', 'right-left');
+      };
     });
-  };
 
-  var addNewPhone = function addNewPhone() {
-    insertEmptyPhone(numberPhones);
-    numberPhones++;
-    return false;
-  };
+    var position = 0;
+    contactDetails.addEventListener('mousedown', function(event) {
+      var startPosition = event.clientY;
+      var currentPosition;
 
-  var addNewEmail = function addNewEmail() {
-    insertEmptyEmail(numberEmails);
-    numberEmails++;
-    return false;
-  };
+      if (contactDetails.classList.contains('no-photo'))
+        return;
+
+      var onMouseMove = function onMouseMove(event) {
+        currentPosition = event.clientY;
+        if (startPosition < currentPosition) {
+          contactDetails.classList.add('down');
+        }
+      };
+
+      var onMouseUp = function onMouseUp(event) {
+        contactDetails.classList.remove('down');
+        contactDetails.removeEventListener('mousemove', onMouseMove);
+        contactDetails.removeEventListener('mouseup', onMouseUp);
+      };
+
+      contactDetails.addEventListener('mousemove', onMouseMove);
+      contactDetails.addEventListener('mouseup', onMouseUp);
+    });
+  });
 
   //
   // Method that generates HTML markup for the contact
   //
-  var doShowContactDetails = function doShowContactDetails(contact) {
-    reloadContactDetails(contact);
-    navigation.go(contactDetailsView, 'right-left');
-  };
-
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
+    contactDetails.classList.remove('no-photo');
+
+    var orgTitle = document.getElementById('org-title');
+    if (contact.org && contact.org[0] != '') {
+      orgTitle.textContent = contact.org[0];
+      orgTitle.className = '';
+    } else {
+      orgTitle.className = 'hide';
+      orgTitle.textContent = '';
+    }
     var listContainer = document.getElementById('details-list');
     listContainer.innerHTML = '';
+
+    var phonesTemplate = document.getElementById('phone-details-template');
     for (var tel in contact.tel) {
       var telField = {
-        number: contact.tel[tel].number,
-        tel_type: '',
-        notes: '',
-        type: 'tel'
+        number: contact.tel[tel].number || '',
+        type: contact.tel[tel].type || TAG_OPTIONS['phone-type'][0].value,
+        notes: ''
       };
-
-      var template = utils.templates.render(phoneDetailsTemplate, telField);
+      var template = utils.templates.render(phonesTemplate, telField);
       listContainer.appendChild(template);
     }
 
+    var emailsTemplate = document.getElementById('email-details-template');
     for (var email in contact.email) {
       var emailField = {
         email: contact.email[email],
-        email_tag: '', type: 'email'
+        type: ''
       };
-      var template = utils.templates.render(emailDetailsTemplate, emailField);
+      var template = utils.templates.render(emailsTemplate, emailField);
       listContainer.appendChild(template);
     }
 
-    var photo = contact.photo || '';
-    coverImg.style.backgroundImage = 'url(' + photo + ')';
+    var cover = document.getElementById('cover-img');
+    if ('photo' in contact && contact.photo != '') {
+      cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
+    } else {
+      contactDetails.classList.add('no-photo');
+    }
   };
 
   var showEdit = function showEdit() {
     resetForm();
     formTitle.innerHTML = 'Edit contact';
     var editActions = [
-      {
-        label: 'Finish',
-        icon: 'icon-finish',
-        callback: saveContact
-      }
+      { label: '' },
+      { label: 'Done', callback: saveContact }
     ];
+
     buildActions(editActions);
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
-
+    company.value = currentContact.org;
     for (var tel in currentContact.tel) {
       var telField = {
         number: currentContact.tel[tel].number,
-        type: '',
+        type: currentContact.tel[tel].type,
         notes: '',
         i: tel
       };
@@ -186,73 +274,103 @@ contacts.app = (function() {
       emailContainer.appendChild(template);
       numberEmails++;
     }
-    navigation.go(editView, 'right-left');
+
+    edit();
   };
+
+  var goToSelectTag = function goToSelectTag(event) {
+    var tagList = event.target.dataset.taglist;
+    var options = TAG_OPTIONS[tagList];
+    fillTagOptions(options, tagList, event.target);
+    navigation.go('view-select-tag', 'right-left');
+  };
+
+  var fillTagOptions = function fillTagOptions(options, tagList, update) {
+    var container = document.getElementById('tags-list');
+    container.innerHTML = '';
+
+    var selectedLink;
+    for (var option in options) {
+      var link = document.createElement('a');
+      link.href = '#';
+      link.dataset.index = option;
+      link.textContent = options[option].value;
+
+      link.onclick = function(event) {
+        var index = event.target.dataset.index;
+        selectTag(event.target, tagList, update);
+      };
+
+      selectedLink = selectedLink || link;
+      if (update.textContent == TAG_OPTIONS[tagList][option].value) {
+        selectedLink = link;
+      }
+
+      var list = document.createElement('li');
+      list.appendChild(link);
+      container.appendChild(list);
+    }
+    selectTag(selectedLink);
+  };
+
+  var selectTag = function selectTag(link, tagList, update) {
+    var index = link.dataset.index;
+    if (update) {
+      update.textContent = TAG_OPTIONS[tagList][index].value;
+    }
+
+    if (selectedTag) {
+      // TODO: Regex
+      var tagContent = selectedTag.innerHTML;
+      var findIcon = tagContent.indexOf('<');
+      selectedTag.innerHTML = tagContent.substr(0, findIcon);
+    }
+
+    var icon = document.createElement('span');
+    icon.className = 'slcl-state icon-selected';
+    icon.setAttribute('role', 'button');
+    link.appendChild(icon);
+    selectedTag = link;
+  };
+
+  var sendSms = function sendSms() {
+    SmsIntegration.sendSms(currentContact.tel[0].number);
+  }
+
 
   var showAdd = function showAdd() {
     resetForm();
     formTitle.innerHTML = 'Add Contact';
+
     insertEmptyPhone(0);
     insertEmptyEmail(0);
     buildActions([
-      { label: 'Cancel', icon: 'icon-cancel', callback: navigation.back },
-      { label: 'Finish', icon: 'icon-finish', callback: saveContact}
+      { label: '' },
+      { label: 'Done', callback: saveContact}
     ]);
 
-    navigation.go(editView, 'right-left');
+    edit();
   };
 
-  var saveContact = function saveContact(successCb, errorCb) {
-    var form = document.querySelector('#view-contact-form form');
-    var fields = document.querySelectorAll('#view-contact-form form input');
-    var myContact = {};
-    for (var i = 0; i < fields.length; i++) {
-      var value = fields[i].value;
-      if (value === '')
-        continue;
-
-      var name = fields[i].name;
-      if (name === 'id') {
-        myContact['id'] = value;
-        continue;
-      }
-
-      myContact[name] = myContact[name] || [];
-      var index = 0;
-      if (fields[i].dataset.arrayindex) {
-        // Array element
-        var index = fields[i].dataset.arrayindex;
-      }
-
-      if (fields[i].dataset.field) {
-        var field = fields[i].dataset.field;
-        // Hash inside
-        myContact[name][index] = myContact[name][index] || {};
-        myContact[name][index][field] = value;
-      } else {
-        // No hash
-        myContact[name][index] = myContact[name][index] || [];
-        myContact[name][index] = value;
-      }
-    }
-
-    var givenNameField = '' || myContact.givenName[0];
-    var familyNameField = '' || myContact.familyName[0];
-    myContact.name = givenNameField + ' ' + familyNameField;
-    successCb = function(contact) {
-      contactsList.refresh(contact);
-      reloadContactDetails(contact);
-      navigation.back();
+  var saveContact = function saveContact() {
+    var name = [givenName.value] || [''];
+    var lastName = [familyName.value] || [''];
+    var org = [company.value] || [''];
+    var myContact = {
+      id: document.getElementById('contact-form-id').value,
+      givenName: name,
+      familyName: lastName,
+      additionalName: '',
+      org: org,
+      name: name[0] + ' ' + lastName[0]
     };
 
-    errorCb = function() {
-      console.error('Error saving contact');
-    }
+    getPhones(myContact);
+    getEmails(myContact);
 
     var contact;
-    if (myContact.id) {
-      //Editing a contact
-      for (field in myContact) {
+    if (myContact.id) { //Editing a contact
+      for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
       contact = currentContact;
@@ -261,71 +379,92 @@ contacts.app = (function() {
       contact.init(myContact);
     }
 
-    doSaveContact(contact, successCb, errorCb);
-  };
-
-  var doSaveContact = function doSaveContact(contact, successCb, errorCb) {
-    // TODO: VALIDATE FORM FIRST
     var request = navigator.mozContacts.save(contact);
-    request.onsuccess = successCb(contact);
-    request.onerror = errorCb;
-  }
-
-  var getContactById = function(contactID, successCb, errorCb) {
-    var options = {
-      filterBy: ['id'],
-      filterOp: 'equals',
-      filterValue: contactID
+    request.onsuccess = function onsuccess() {
+      myContact.id = contact.id;
+      myContact.photo = contact.photo;
+      contactsList.refresh(myContact);
+      reloadContactDetails(myContact);
+      navigation.back();
     };
 
-    var request = navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      if (request.result.length === 0)
-        errorCb();
+    request.onerror = function onerror() {
+      console.error('Error saving contact');
+    }
+  };
 
-      successCb(request.result[0]);
-     };
+  var getPhones = function getPhones(contact) {
+    var selector = '#view-contact-form form input[data-field="number"]';
+    var phones = document.querySelectorAll(selector);
+    for (var phone in phones) {
+      var numberField = phones[phone].value;
+      if (!numberField)
+        continue;
 
-     request.onerror = errorCb;
-  }
+      var selector = 'tel_type_' + phone;
+      var typeField = document.getElementById(selector).textContent || '';
+      var notes = document.getElementById('notes_' + phone).value || '';
+      contact['tel'] = contact['tel'] || [];
+      // TODO: Save notes
+      contact['tel'][phone] = {
+        number: numberField,
+        type: typeField
+      };
+    }
+  };
 
-  var insertEmptyPhone = function insertEmptyPhone(index) {
+  var getEmails = function getEmails(contact) {
+    var selector = '#view-contact-form form input[name="email"]';
+    var emails = document.querySelectorAll(selector);
+    for (var email in emails) {
+      var emailField = emails[email].value;
+      if (!emailField)
+        continue;
+
+      // TODO: Save type
+      contact['email'] = contact['email'] || [];
+      contact['email'][email] = emailField;
+    }
+  };
+
+  var insertEmptyPhone = function insertEmptyPhone() {
     var telField = {
       number: '',
-      type: '',
+      type: TAG_OPTIONS['phone-type'][0].value,
       notes: '',
-      i: index
+      i: numberPhones || 0
     };
     var template = utils.templates.render(phoneTemplate, telField);
     phonesContainer.appendChild(template);
+    numberPhones++;
   };
 
-  var insertEmptyEmail = function insertEmptyEmail(index) {
+  var insertEmptyEmail = function insertEmptyEmail() {
     var emailField = {
       email: '',
       type: '',
-      i: index
+      i: numberEmails || 0
     };
 
     var template = utils.templates.render(emailTemplate, emailField);
     emailContainer.appendChild(template);
+    numberEmails++;
   };
 
   var buildActions = function(actions) {
     for (var i in actions) {
-      var action = document.createElement('li');
+      var action = document.createElement('button');
       action.onclick = actions[i].callback;
+      action.setAttribute('role', 'menuitem');
 
-      var link = document.createElement('a');
-      link.title = actions[i].label;
-
-      var icon = document.createElement('span');
-      icon.setAttribute('role', 'button');
-      icon.className = actions[i].icon;
-      icon.innerHTML = actions[i].label;
-
-      link.appendChild(icon);
-      action.appendChild(link);
+      if (actions[i].icon) {
+        var icon = document.createElement('span');
+        icon.dataset.icon = actions[i].icon;
+        icon.innerHTML = actions[i].label;
+        action.appendChild(icon);
+      } else {
+        action.textContent = actions[i].label;
+      }
       formActions.appendChild(action);
     }
   };
@@ -335,6 +474,7 @@ contacts.app = (function() {
     currentContactId.value = '';
     givenName.value = '';
     familyName.value = '';
+    company.value = '';
     var phones = document.getElementById('contacts-form-phones');
     var emails = document.getElementById('contacts-form-email');
     phones.innerHTML = '';
@@ -354,19 +494,12 @@ contacts.app = (function() {
   };
 
   return {
-    'init': init,
-    'ui' : {
-      'showEdit' : showEdit,
-      'showAdd': showAdd,
-      'addNewPhone' : addNewPhone,
-      'addNewEmail' : addNewEmail,
-      'goBack' : navigation.back
-    }
+    'showEdit' : showEdit,
+    'showAdd': showAdd,
+    'addNewPhone' : insertEmptyPhone,
+    'addNewEmail' : insertEmptyEmail,
+    'goBack' : navigation.back,
+    'goToSelectTag': goToSelectTag,
+    'sendSms': sendSms
   };
 })();
-
-window.addEventListener('load', function initContacts(evt) {
-  window.removeEventListener('load', initContacts);
-  contacts.app.init();
-});
-

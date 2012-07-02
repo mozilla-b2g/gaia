@@ -7,11 +7,10 @@ var Recents = {
 
   get view() {
     delete this.view;
-    return this.view = document.getElementById('recents-view');
+    return this.view = document.getElementById('contacts-container');
   },
 
   init: function re_init() {
-
     this._openreq = mozIndexedDB.open(this.DBNAME);
 
     var self = this;
@@ -31,6 +30,7 @@ var Recents = {
       db.createObjectStore(self.STORENAME, { keyPath: 'date' });
     };
 
+    this.render();
     this.startUpdatingDates();
   },
 
@@ -54,54 +54,54 @@ var Recents = {
     callback(this._recentsDB);
   },
 
-
   add: function re_add(recentCall) {
-    this.getDatabase((function(database) {
-      var txn = database.transaction(this.STORENAME, 'readwrite');
-      var store = txn.objectStore(this.STORENAME);
+    var self = this;
+
+    this.getDatabase(function(database) {
+      var txn = database.transaction(self.STORENAME, 'readwrite');
+      var store = txn.objectStore(self.STORENAME);
 
       var setreq = store.put(recentCall);
-
-      setreq.onsuccess = (function() {
-        if (this.view) {
-          var entry = this.createEntry(recentCall);
-          var firstEntry = this.view.firstChild;
-          this.view.insertBefore(entry, firstEntry);
-        }
-      }).bind(this);
+      setreq.onsuccess = function sr_onsuccess() {
+        // TODO At some point with we will be able to get the app window
+        // to update the view. Relying on vivibility changes until then.
+        // (and doing a full re-render)
+      };
 
       setreq.onerror = function(e) {
         console.log('dialerRecents add failure: ', e.message, setreq.errorCode);
       };
-    }).bind(this));
+    });
   },
 
-  createEntry: function re_createEntry(recent) {
-    var innerFragment = '<img src="style/images/contact-placeholder.png"' +
-                        '  alt="profile" />' +
-                        '<div class="name">' +
-                        '  ' + (recent.number || 'Anonymous') +
-                        '</div>' +
-                        '<div class="number"></div>' +
-                        '<div class="timestamp" data-time="' +
-                        '  ' + recent.date + '">' +
-                        '  ' + prettyDate(recent.date) +
-                        '</div>' +
-                        '<div class="type"></div>';
-
-    var entry = document.createElement('div');
-    entry.classList.add('recent');
-    entry.classList.add(recent.type);
-    entry.dataset.number = recent.number;
-    entry.innerHTML = innerFragment;
-
-    if (recent.number) {
-      Contacts.findByNumber(recent.number, (function(contact) {
-        this.querySelector('.name').textContent = contact.name;
-        this.querySelector('.number').textContent = contact.tel[0].number;
-      }).bind(entry));
+  createRecentEntry: function re_createRecentEntry(recent) {
+    var classes = 'icon ';
+    if (recent.type.indexOf('dialing') != -1) {
+      classes += 'icon-outgoing';
+    } else if (recent.type.indexOf('incoming') != -1) {
+      classes += 'icon-incoming';
+    } else {
+      classes += 'icon-missed';
     }
 
+    var entry =
+      '<li class="log-item">' +
+      '  <section class="icon-container grid center">' +
+      '    <div class="grid-cell grid-v-align">' +
+      '      <div class="icon ' + classes + '"></div>' +
+      '    </div>' +
+      '  </section>' +
+      '  <section class="log-item-info grid">' +
+      '    <div class="grid-cell grid-v-align">' +
+      '      <section class="primary-info ellipsis">' +
+      recent.number +
+      '      </section>' +
+      '      <section class="secondary-info ellipsis">' +
+      prettyDate(recent.date) +
+      '      </section>' +
+      '    </div>' +
+      '  </section>' +
+      '</li>';
     return entry;
   },
 
@@ -109,14 +109,39 @@ var Recents = {
     if (!this.view)
       return;
 
-    this.view.innerHTML = '';
-
-    this.history((function(history) {
-      for (var i = 0; i < history.length; i++) {
-        var entry = this.createEntry(history[i]);
-        this.view.appendChild(entry);
+    var self = this;
+    this.history(function showRecents(recents) {
+      if (recents.length == 0) {
+        self.view.innerHTML = '';
+        return;
       }
-    }).bind(this));
+
+      var content = '';
+      var currentDay = '';
+      for (var i = 0; i < recents.length; i++) {
+        var day = self.getDayDate(recents[i].date);
+        if (day != currentDay) {
+          if (currentDay != '') {
+            content += '</ol></section>';
+          }
+          currentDay = day;
+
+          content +=
+            '<section data-timestamp="' + day + '">' +
+            '  <h2>' + headerDate(day) + '</h2>' +
+            '  <ol id="' + day + '" class="log-group">';
+        }
+        content += self.createRecentEntry(recents[i]);
+      }
+      self.view.innerHTML = content;
+    });
+  },
+
+  getDayDate: function re_getDayDate(timestamp) {
+    var date = new Date(timestamp);
+    var startDate = new Date(date.getFullYear(),
+                             date.getMonth(), date.getDate());
+    return startDate.getTime();
   },
 
   history: function re_history(callback) {
@@ -178,7 +203,6 @@ var Recents = {
 window.addEventListener('load', function recentsSetup(evt) {
   window.removeEventListener('load', recentsSetup);
   Recents.init();
-  Recents.render();
 });
 
 window.addEventListener('unload', function recentsCleanup(evt) {

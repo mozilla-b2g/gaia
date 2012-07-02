@@ -34,6 +34,7 @@ var Browser = {
     this.history = document.getElementById('history');
     this.backButton = document.getElementById('back-button');
     this.forwardButton = document.getElementById('forward-button');
+    this.sslIndicator = document.getElementById('ssl-indicator');
 
     this.tabsBadge = document.getElementById('tabs-badge');
     this.throbber = document.getElementById('throbber');
@@ -211,6 +212,13 @@ var Browser = {
       case 'mozbrowsercontextmenu':
         this.showContextMenu(evt);
         break;
+
+      case 'mozbrowsersecuritychange':
+        tab.security = evt.detail;
+        if (isCurrentTab) {
+          this.updateSecurityIcon();
+        }
+        break;
       }
     }).bind(this);
   },
@@ -231,6 +239,14 @@ var Browser = {
         evt.preventDefault();
         break;
     }
+  },
+
+  updateSecurityIcon: function browser_updateSecurityIcon() {
+    if (!this.currentTab.security) {
+      this.sslIndicator.value = '';
+      return;
+    }
+    this.sslIndicator.value = this.currentTab.security.state;
   },
 
   navigate: function browser_navigate(url) {
@@ -528,7 +544,8 @@ var Browser = {
   createTab: function browser_createTab(url) {
     var iframe = document.createElement('iframe');
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
-                         'titlechange', 'iconchange', 'contextmenu'];
+                         'titlechange', 'iconchange', 'contextmenu',
+                         'securitychange'];
     iframe.mozbrowser = true;
     // FIXME: content shouldn't control this directly
     iframe.setAttribute('remote', 'true');
@@ -544,7 +561,8 @@ var Browser = {
       title: null,
       loading: false,
       session: new SessionHistory(),
-      screenshot: null
+      screenshot: null,
+      security: null
     };
 
     browserEvents.forEach(function attachBrowserEvent(type) {
@@ -588,6 +606,7 @@ var Browser = {
     if (this.currentTab.loading) {
       this.throbber.classList.add('loading');
     }
+    this.updateSecurityIcon();
     this.refreshButtons();
   },
 
@@ -605,7 +624,7 @@ var Browser = {
     GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
     this.urlInput.focus();
     this.setUrlButtonMode(this.GO);
-    this.tabsBadge.innerHTML = '×';
+    this.tabsBadge.innerHTML = '';
     this.switchScreen(this.AWESOME_SCREEN);
     this.tabCover.style.display = 'none';
   },
@@ -630,13 +649,13 @@ var Browser = {
     }
     this.switchScreen(this.PAGE_SCREEN);
     this.urlInput.value = this.currentTab.title || this.currentTab.url;
-    this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
+    this.tabsBadge.innerHTML = Object.keys(this.tabs).length + '&#x203A;';
   },
 
   showTabScreen: function browser_showTabScreen() {
 
     this.hideCurrentTab();
-    this.tabsBadge.innerHTML = '+';
+    this.tabsBadge.innerHTML = '';
 
     this.tabCover.setAttribute('src', this.currentTab.screenshot);
     this.tabCover.style.display = 'block';
@@ -663,6 +682,9 @@ var Browser = {
       if (this.tabs[tab].screenshot) {
         img.setAttribute('src', this.tabs[tab].screenshot);
       }
+
+      if (this.tabs[tab] == this.currentTab)
+        li.classList.add('current');
     }
     this.tabsList.innerHTML = '';
     this.tabsList.appendChild(ul);

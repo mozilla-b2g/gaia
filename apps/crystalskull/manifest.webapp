@@ -11,6 +11,10 @@
       "name": "CrystalSkull",
       "description": " WebGL \u0639\u0631\u0636"
     },
+    "ca": {
+      "name": "CrystalSkull",
+      "description": "Demo de WebGL"
+    },
     "de": {
       "name": "CrystalSkull",
       "description": "WebGL Demo"

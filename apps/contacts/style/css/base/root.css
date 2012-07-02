@@ -1,7 +1,7 @@
 
 /* Hidden elements */
 .hide, [data-template] {
-  display: none;
+  display: none !important;
 }
 
 
@@ -75,7 +75,7 @@ strong {
 }
 
 b {
-  font-family: System Sans Semi Bold, Sans-serif;
+  font-family: System Sans Semibold, Sans-serif;
   font-weight: normal
 }
 
@@ -140,9 +140,12 @@ form {
 }
 
 fieldset {
-  margin: 0;
+  margin: 2rem 0 0 0;
   padding: 0;
   border: none;
+}
+fieldset.first {
+  margin: 0;
 }
 
 legend {

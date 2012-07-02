@@ -21,9 +21,9 @@ var Applications = {
 
     apps.mgmt.onuninstall = function a_uninstall(evt) {
       var deletedapp = evt.application;
-      delete installedApps[deletedapp.origin];
+      delete self.installedApps[deletedapp.origin];
 
-      self.fireApplicationUninstallEvent(newapp);
+      self.fireApplicationUninstallEvent(deletedapp);
     }
 
     apps.mgmt.getAll().onsuccess = function(evt) {

@@ -35,6 +35,11 @@ var LockScreen = {
   passCode: '0000',
 
   /*
+  * passcode to enable the smiley face easter egg.
+  */
+  smileyCode: '1337',
+
+  /*
   * Current passcode entered by the user
   */
   passCodeEntered: '',
@@ -43,11 +48,6 @@ var LockScreen = {
   * Number of passcode tries
   */
   passCodeError: 0,
-
-  /*
-  * Time to wait before slide up after successful Passcode input
-  */
-  kPassCodeSuccessTimeout: 300,
 
   /*
   * Timeout after incorrect attempt
@@ -64,19 +64,12 @@ var LockScreen = {
   */
   kPassCodeTriesTimeout: 10000,
 
-  isUninit: true,
-
   /* init */
   init: function ls_init() {
-    if (!this.isUninit)
-      return;
-    this.isUninit = false;
-
     this.getAllElements();
     this.updateMuteState();
 
     this.lockIfEnabled(true);
-    this.overlay.classList.remove('uninit');
 
     /* Status changes */
     window.addEventListener('volumechange', this);
@@ -88,8 +81,12 @@ var LockScreen = {
     window.addEventListener('mozChromeEvent', this);
 
     /* Gesture */
+    this.areaHandle.addEventListener('mousedown', this);
     this.areaCamera.addEventListener('mousedown', this);
     this.areaUnlock.addEventListener('mousedown', this);
+
+    /* Unlock clean up */
+    this.overlay.addEventListener('transitionend', this);
 
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
@@ -109,6 +106,13 @@ var LockScreen = {
 
       self.setEnabled(value);
     });
+
+    SettingsListener.observe(
+      'lockscreen.wallpaper', 'balloon.png', function(value) {
+      self.updateBackground(value);
+      self.overlay.classList.remove('uninit');
+    });
+
 
     SettingsListener.observe(
         'lockscreen.passcode-lock.enabled', true, function(value) {
@@ -131,7 +135,7 @@ var LockScreen = {
       this.enabled = val;
     }
 
-    if (!this.enabled && this.locked && !this.isUninit) {
+    if (!this.enabled && this.locked) {
       this.unlock();
     }
   },
@@ -182,25 +186,69 @@ var LockScreen = {
         break;
 
       case 'mousedown':
-        this._touch = {
-          x: evt.screenX,
-          y: evt.screenY,
-          target: evt.target
-        };
-        this.overlay.classList.add('touch');
-        window.addEventListener('mouseup', this);
+        var leftTarget = this.areaCamera;
+        var rightTarget = this.areaUnlock;
+        var handle = this.areaHandle;
+        var overlay = this.overlay;
+        var target = evt.target;
+        target.setCapture(true);
+        target.addEventListener('mouseup', this);
+
+        switch (evt.target) {
+          case leftTarget:
+            overlay.classList.add('touched-left');
+            break;
+
+          case rightTarget:
+            overlay.classList.add('touched-right');
+            break;
+
+          case this.areaHandle:
+
+            this._touch = {
+              initX: evt.screenX,
+              initY: evt.screenY,
+              target: null,
+              leftTarget: leftTarget,
+              rightTarget: rightTarget,
+              initRailLength: this.railLeft.offsetWidth,
+              maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
+                (handle.offsetWidth - rightTarget.offsetWidth) / 2
+            };
+            overlay.classList.add('touched');
+            target.addEventListener('mousemove', this);
+            break;
+        }
+        break;
+
+      case 'mousemove':
+        this.handleMove(evt.screenX, evt.screenY);
         break;
 
       case 'mouseup':
-        var dx = evt.screenX - this._touch.x;
-        var dy = evt.screenY - this._touch.y;
-        var target = this._touch.target;
-        delete this._touch;
-
-        this.handleGesture(dx, dy, target);
-        this.overlay.classList.remove('touch');
+        window.removeEventListener('mousemove', this);
         window.removeEventListener('mouseup', this);
+        document.releaseCapture();
+
+        if (evt.target !== this.areaHandle) {
+          this.overlay.classList.remove('touched-left');
+          this.overlay.classList.remove('touched-right');
+          break;
+        }
+
+        this.handleMove(evt.screenX, evt.screenY);
+        this.handleGesture();
+        delete this._touch;
+        this.overlay.classList.remove('touched');
+
         break;
+
+      case 'transitionend':
+        if (evt.currentTarget !== evt.target)
+          return;
+
+        if (!this.locked)
+          this.switchPanel();
 
       case 'keyup':
         if (!this.locked)
@@ -233,32 +281,117 @@ var LockScreen = {
     }
   },
 
-  handleGesture: function ls_handleGesture(dx, dy, target) {
-    var dim = {
-      x: this.overlay.offsetWidth,
-      y: this.overlay.offsetHeight
-    };
-
-    var ratioX = dx / this.overlay.offsetWidth;
-    var ratioY = dy / this.overlay.offsetHeight;
-
-    // Do nothing if not moving upward
-    if (ratioY > -0.1)
+  handleMove: function ls_handleMove(screenX, screenY) {
+    var touch = this._touch;
+    if (!touch) {
       return;
+    }
+
+    var dx = screenX - touch.initX;
+
+    var handleMax = touch.maxHandleOffset;
+    this.areaHandle.style.MozTransition = 'none';
+    this.areaHandle.style.MozTransform =
+      'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)';
+
+    var railMax = touch.initRailLength;
+    var railLeft = railMax + dx;
+    var railRight = railMax - dx;
+
+    this.railLeft.style.width =
+      Math.max(0, Math.min(railMax * 2, railLeft)) + 'px';
+    this.railRight.style.width =
+      Math.max(0, Math.min(railMax * 2, railRight)) + 'px';
+
+    var base = this.overlay.offsetWidth / 4;
+    var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
+    if (dx > 0) {
+      touch.rightTarget.style.opacity =
+        this.railRight.style.opacity = '';
+      touch.leftTarget.style.opacity =
+        this.railLeft.style.opacity = opacity;
+    } else {
+      touch.rightTarget.style.opacity =
+        this.railRight.style.opacity = opacity;
+      touch.leftTarget.style.opacity =
+        this.railLeft.style.opacity = '';
+    }
+
+    var handleWidth = this.areaHandle.offsetWidth;
+
+    if (railLeft < handleWidth / 2) {
+      touch.leftTarget.classList.add('triggered');
+      touch.rightTarget.classList.remove('triggered');
+      touch.target = touch.leftTarget;
+    } else if (railRight < handleWidth / 2) {
+      touch.leftTarget.classList.remove('triggered');
+      touch.rightTarget.classList.add('triggered');
+      touch.target = touch.rightTarget;
+    } else {
+      touch.leftTarget.classList.remove('triggered');
+      touch.rightTarget.classList.remove('triggered');
+      touch.target = null;
+    }
+  },
+
+  handleGesture: function ls_handleGesture() {
+    var touch = this._touch;
+    var target = touch.target;
+    this.areaHandle.style.MozTransition = null;
+
+    if (!target) {
+      this.unloadPanel();
+      return;
+    }
+
+    var distance = target.offsetLeft - this.areaHandle.offsetLeft -
+      (this.areaHandle.offsetWidth - target.offsetWidth) / 2;
+    this.areaHandle.classList.add('triggered');
+
+    var transition = 'translateX(' + distance + 'px)';
+    var railLength = touch.rightTarget.offsetLeft -
+      touch.leftTarget.offsetLeft -
+      (this.areaHandle.offsetWidth + target.offsetWidth) / 2;
+    var self = this;
 
     switch (target) {
       case this.areaCamera:
-        // Moving up from the camera icon
-        this.switchPanel('camera');
+        this.railRight.style.width = railLength + 'px';
+        this.railLeft.style.width = '0';
+        if (this.areaHandle.style.MozTransform == transition) {
+          self.switchPanel('camera');
+          break;
+        }
+        this.areaHandle.style.MozTransform = transition;
+        this.areaHandle.addEventListener('transitionend',
+          function ls_goCamera() {
+            self.areaHandle.removeEventListener('transitionend', ls_goCamera);
+            self.switchPanel('camera');
+          });
+
         break;
 
       case this.areaUnlock:
-        // Moving up from the unlock icon
-        if (!this.passCodeEnabled) {
-          this.unlock();
-        } else {
-          this.switchPanel('passcode');
+        this.railLeft.style.width = railLength + 'px';
+        this.railRight.style.width = '0';
+        var passcodeOrUnlock = function lc_passcodeOrUnlock() {
+          if (!self.passCodeEnabled) {
+            self.unlock();
+          } else {
+            self.switchPanel('passcode');
+          }
+        };
+        if (this.areaHandle.style.MozTransform == transition) {
+          passcodeOrUnlock();
+          break;
         }
+        this.areaHandle.style.MozTransform = transition;
+        this.areaHandle.addEventListener('transitionend',
+          function ls_goUnlock() {
+            self.areaHandle.removeEventListener('transitionend', ls_goUnlock);
+            passcodeOrUnlock();
+          });
+
         break;
     }
   },
@@ -308,10 +441,12 @@ var LockScreen = {
     this.locked = false;
 
     this.mainScreen.focus();
-    if (instant)
+    if (instant) {
       this.overlay.classList.add('no-transition');
-    else
+      this.switchPanel();
+    } else {
       this.overlay.classList.remove('no-transition');
+    }
 
     this.mainScreen.classList.remove('locked');
 
@@ -369,7 +504,11 @@ var LockScreen = {
   unloadPanel: function ls_loadPanel(panel) {
     switch (panel) {
       case 'passcode':
-        // Reset passcode panel
+        // Reset passcode panel only if the status is not error
+        if (this.overlay.dataset.passcodeStatus == 'error')
+          break;
+
+        delete this.overlay.dataset.passcodeStatus;
         this.passCodeEntered = '';
         this.updatePassCodeUI();
         break;
@@ -381,17 +520,25 @@ var LockScreen = {
 
       case 'emergency':
         break;
+
+      default:
+        this.areaHandle.style.MozTransform =
+          this.areaUnlock.style.opacity =
+          this.railRight.style.opacity =
+          this.areaCamera.style.opacity =
+          this.railLeft.style.opacity =
+          this.railRight.style.width =
+          this.railLeft.style.width = '';
+        this.areaHandle.classList.remove('triggered');
+        this.areaCamera.classList.remove('triggered');
+        this.areaUnlock.classList.remove('triggered');
+        break;
     }
   },
 
   switchPanel: function ls_switchPanel(panel) {
     var overlay = this.overlay;
-    if (('panel' in overlay.dataset) && panel == overlay.dataset.panel)
-      return;
-
-    if ('panel' in overlay.dataset) {
-      this.unloadPanel(overlay.dataset.panel);
-    }
+    this.unloadPanel(overlay.dataset.panel);
 
     if (panel) {
       overlay.dataset.panel = panel;
@@ -460,15 +607,14 @@ var LockScreen = {
   },
 
   checkPassCode: function lockscreen_checkPassCode() {
+    if (this.passCodeEntered === this.smileyCode)
+      this.overlay.classList.add('smiley');
+
     if (this.passCodeEntered === this.passCode) {
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
 
-      setTimeout((function success() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.unlock();
-        this.passCodeEntered = '';
-      }).bind(this), this.kPassCodeSuccessTimeout);
+      this.unlock();
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
       if (navigator.mozVibrate)
@@ -479,11 +625,21 @@ var LockScreen = {
       if (this.passCodeError >= 3)
         timeout = this.kPassCodeTriesTimeout;
 
-      setTimeout((function error() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.passCodeEntered = '';
-        this.updatePassCodeUI();
-      }).bind(this), timeout);
+      var self = this;
+      setTimeout(function error() {
+        delete self.overlay.dataset.passcodeStatus;
+        self.passCodeEntered = '';
+        self.updatePassCodeUI();
+      }, timeout);
+    }
+  },
+
+  updateBackground: function ls_updateBackground(value) {
+    var panels = document.querySelectorAll('.lockscreen-panel');
+    var url = 'url(resources/images/backgrounds/' + value + ')';
+
+    for (var i = 0; i < panels.length; i++) {
+      panels[i].style.backgroundImage = url;
     }
   },
 
@@ -492,7 +648,8 @@ var LockScreen = {
     var elements = ['mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
-        'area-unlock', 'area-camera',
+        'area-unlock', 'area-camera', 'area-handle',
+        'rail-left', 'rail-right',
         'passcode-code', 'passcode-pad',
         'camera'];
 

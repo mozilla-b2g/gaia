@@ -26,25 +26,75 @@ var ListMenu = {
   },
 
   // Pass an array of list items and handler for clicking on the items
+  // Modified to fit contextmenu use case, loop into the menu items
   request: function lm_request(list_items, handler) {
     this.container.innerHTML = '';
-    list_items.forEach(function render_item(item) {
+    this.currentLevel = 0;
+    this.internalList = [];
+    this.buildMenu(list_items);
+    this.internalList.forEach(function render_item(item) {
+      this.container.appendChild(item);
+    }, this);
+
+    if (handler) {
+      this.onreturn = handler;
+    } else {
+      this.onreturn = null;
+    }
+
+    this.show();
+  },
+
+  buildMenu: function lm_buildMenu(items) {
+    var containerDiv = document.createElement('div');
+
+    containerDiv.classList.add('list-menu-container');
+    if (this.currentLevel === 0) {
+      containerDiv.classList.add('list-menu-root');
+      containerDiv.id = 'list-menu-root';
+    } else {
+      containerDiv.id = 'list-menu-' + this.internalList.length;
+    }
+    this.internalList.push(containerDiv);
+
+    if (this.currentLevel > 0) {
+      var back_div = document.createElement('div');
+      var link = document.createElement('a');
+      link.textContent = 'back';
+      link.href = '#' + this.currentParent;
+      back_div.classList.add('back');
+      back_div.appendChild(link);
+      containerDiv.appendChild(back_div);
+    }
+    items.forEach(function traveseItems(item) {
       var item_div = document.createElement('div');
-      item_div.dataset.value = item.value;
-      item_div.textContent = item.label;
+      if (item.type && item.type == 'menu') {
+        this.currentLevel += 1;
+        this.currentParent = containerDiv.id;
+        this.buildMenu(item.items);
+        this.currentLevel -= 1;
+        item_div.classList.add('submenu');
+
+        var link = document.createElement('a');
+        link.href = '#' + this.currentChild;
+        link.textContent = item.label;
+        item_div.appendChild(link);
+      } else if (item.type == 'menuitem') {
+        item_div.dataset.value = item.id;
+        item_div.textContent = item.label;
+      } else {
+        item_div.dataset.value = item.value;
+        item_div.textContent = item.label;
+      }
+
       if (item.icon) {
         item_div.style.backgroundImage = 'url(' + item.icon + ')';
       }
-      this.container.appendChild(item_div);
-
-      if (handler) {
-        this.onreturn = handler;
-      } else {
-        this.onreturn = null;
-      }
+      containerDiv.appendChild(item_div);
     }, this);
 
-    this.show();
+    containerDiv.dataset.level = this.currentLevel;
+    this.currentChild = containerDiv.id;
   },
 
   show: function lm_show() {
