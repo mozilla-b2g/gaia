@@ -647,7 +647,7 @@ var WindowManager = (function() {
   window.addEventListener('mozbrowserloadstart', function(e) {
     var dataset = e.target.dataset;
     // Only update frames open by ourselves
-    if (!'frameType' in dataset || dataset.frameType !== 'window')
+    if (!('frameType' in dataset) || dataset.frameType !== 'window')
       return;
 
     dataset.loading = true;
@@ -663,7 +663,7 @@ var WindowManager = (function() {
   window.addEventListener('mozbrowserloadend', function(e) {
     var dataset = e.target.dataset;
     // Only update frames open by ourselves
-    if (!'frameType' in dataset || dataset.frameType !== 'window')
+    if (!('frameType' in dataset) || dataset.frameType !== 'window')
       return;
 
     delete dataset.loading;
