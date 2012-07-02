@@ -9,7 +9,28 @@
     <link rel="stylesheet" type="text/css" href="style/commslog.css">
     <link rel="resource" type="application/l10n" href="locale/l10n.ini">
     <!-- Compatibility -->
-    
+    <script type="application/javascript">
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
+    <script defer="defer" type="application/javascript" src="js/helper.js"></script>
+    <script defer="defer" type="application/javascript" src="js/contacts.js"></script>
+    <script defer="defer" type="application/javascript" src="js/settings_listener.js"></script>
+    <script defer="defer" type="application/javascript" src="js/notification_helper.js"></script>
+    <script defer="defer" type="application/javascript" src="js/keypad.js"></script>
+    <script defer="defer" type="application/javascript" src="js/dialer.js"></script>
+    <script defer="defer" type="application/javascript" src="js/recents.js"></script>
+    <script defer="defer" type="application/javascript" src="js/proximity.js"></script>
   </head>
   <body class="hidden">
     <article id="views" role="tablist">
@@ -171,7 +192,7 @@
       <a id="option-recents" href="#recents-view" class="grid-cell grid-v-align toolbar-option ">
         <div class="icon icon-recents"></div>
       </a>
-      <a id="option-contacts" class="grid-cell grid-v-align toolbar-option ">
+      <a id="option-contacts" href="#contacts-view" class="grid-cell grid-v-align toolbar-option ">
         <div class="icon icon-contacts disabled-icon"></div>
       </a>
       <a id="option-keypad" href="#keyboard-view" class="grid-cell grid-v-align toolbar-option toolbar-option-selected">
@@ -179,28 +200,6 @@
       </a>
     </nav>
   </body>
-    <script type="application/javascript">
-      if (document.location.protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    </script>
-    <script type="application/javascript" src="js/helper.js"></script>
-    <script type="application/javascript" src="js/contacts.js"></script>
-    <script type="application/javascript" src="js/settings_listener.js"></script>
-    <script type="application/javascript" src="js/notification_helper.js"></script>
-    <script type="application/javascript" src="js/keypad.js"></script>
-    <script type="application/javascript" src="js/dialer.js"></script>
-    <script type="application/javascript" src="js/recents.js"></script>
-    <script type="application/javascript" src="js/proximity.js"></script>
     <script>
       // If no entry point, redirect to the keyboard-view
       if(document.location.href.indexOf("#") == -1) {
