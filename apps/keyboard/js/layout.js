@@ -1042,6 +1042,7 @@ const Keyboards = {
 
   'jp-kanji-number': {
     type: 'keyboard',
+    needsCandidatePanel: true,
     disableAlternateLayout: true,
     hidesSwitchKey: true,
     typeInsensitive: true,

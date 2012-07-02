@@ -623,6 +623,7 @@
 
         // 
         case IMESpecialKey.MARK:
+          debug(_inputBuf.length);
           if (_inputBuf.length !== 0) {
             _glue.sendString(SyllableUtils.arrayToString(_inputBuf));
             _inputBuf = [];
