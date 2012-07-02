@@ -6,6 +6,7 @@
 
   var IMELayouts = {
     'EN': 'jp-kanji-en',
+    'EN-CAPS': 'jp-kanji-en-caps',
     'JP': 'jp-kanji',
     'NUM': 'jp-kanji-number'
   };
@@ -21,6 +22,7 @@
     CASE_CHANGE: -16,
     FULL: -17,
     H2K: -18,
+    CAPSLOCK: -19,
     EN_LAYOUT: -20,
     NUM_LAYOUT: -21,
     BASIC_LAYOUT: -22
@@ -584,6 +586,14 @@
           }
           _inputBuf[_inputBuf.length - 1] = res;
           handleInputBuf();
+          break;
+
+        case IMESpecialKey.CAPSLOCK:
+          if (_currLayout === IMELayouts.EN) {
+            alterKeyboard(IMELayouts['EN-CAPS']);
+          } else {
+            alterKeyboard(IMELayouts.EN);
+          }
           break;
 
         // Switch to basic layout

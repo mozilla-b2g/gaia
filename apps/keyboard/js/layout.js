@@ -985,6 +985,8 @@ const Keyboards = {
   },
   'jp-kanji-en': {
     type: 'keyboard',
+    label: 'English',
+    menuLabel: 'English',
     disableAlternateLayout: true,
     hidesSwitchKey: true,
     keys: [
@@ -995,9 +997,9 @@ const Keyboards = {
       ], [
         { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
         { value: 'g' }, { value: 'h' }, { value: 'j' }, { value: 'k' },
-        { value: 'l' }, { value: "'" }
+        { value: 'l' }, { value: "'", keyCode: 39 }
       ], [
-        { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
+        { value: '⇪', ratio: 1.5, keyCode: -19 },
         { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
         { value: 'b' }, { value: 'n' }, { value: 'm' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
@@ -1007,7 +1009,37 @@ const Keyboards = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
+
   },
+  'jp-kanji-en-caps': {
+    type: 'keyboard',
+    label: 'English-CapsLock',
+    menuLabel: 'English-CapsLock',
+    disableAlternateLayout: true,
+    hidesSwitchKey: true,
+    keys: [
+      [
+        { value: 'Q' }, { value: 'W' }, { value: 'E' } , { value: 'R' },
+        { value: 'T' } , { value: 'Y' }, { value: 'U' } , { value: 'I' },
+        { value: 'O' }, { value: 'P' }
+      ], [
+        { value: 'A' }, { value: 'S' }, { value: 'D' }, { value: 'F' },
+        { value: 'G' }, { value: 'H' }, { value: 'J' }, { value: 'K' },
+        { value: 'L' }, { value: "'", keyCode: 39 }
+      ], [
+        { value: '⇪', ratio: 1.5, keyCode: -19 },
+        { value: 'Z' }, { value: 'X' }, { value: 'C' }, { value: 'V' },
+        { value: 'B' }, { value: 'N' }, { value: 'M' },
+        { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+      ], [
+        { value: '&#x1f310;', keyCode: -3}, { value: 'A', keyCode: -21 },
+        { value: '&nbsp', keyCode: KeyEvent.DOM_VK_SPACE, ratio: 5},
+        { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
+      ]
+    ]
+
+  },
+
   'jp-kanji-number': {
     type: 'keyboard',
     disableAlternateLayout: true,
