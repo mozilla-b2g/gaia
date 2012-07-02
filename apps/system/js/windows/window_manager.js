@@ -645,15 +645,15 @@ var WindowManager = (function() {
   // Listen for mozbrowserloadstart to update the loading status
   // of the frames
   window.addEventListener('mozbrowserloadstart', function(e) {
+    var dataset = e.target.dataset;
     // Only update frames open by ourselves
-    if (!'frameType' in e.target.dataset ||
-        e.target.dataset.frameType !== 'window')
+    if (!'frameType' in dataset || dataset.frameType !== 'window')
       return;
 
-    e.target.dataset.loading = true;
+    dataset.loading = true;
 
     // Update the loading icon only if this is the displayed app
-    if (displayedApp == e.target.dataset.frameOrigin) {
+    if (displayedApp == dataset.frameOrigin) {
       updateLoadingIcon();
     }
   });
@@ -661,15 +661,15 @@ var WindowManager = (function() {
   // Listen for mozbrowserloadend to update the loading status
   // of the frames
   window.addEventListener('mozbrowserloadend', function(e) {
+    var dataset = e.target.dataset;
     // Only update frames open by ourselves
-    if (!'frameType' in e.target.dataset ||
-        e.target.dataset.frameType !== 'window')
+    if (!'frameType' in dataset || dataset.frameType !== 'window')
       return;
 
-    delete e.target.dataset.loading;
+    delete dataset.loading;
 
     // Update the loading icon only if this is the displayed app
-    if (displayedApp == e.target.dataset.frameOrigin) {
+    if (displayedApp == dataset.frameOrigin) {
       updateLoadingIcon();
     }
   });
