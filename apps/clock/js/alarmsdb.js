@@ -24,7 +24,7 @@ var AlarmsDB = {
 
   query: function ad_query(dbName, storeName, func, callback, data) {
 
-    var request = mozIndexedDB.open(dbName, 5);
+    var request = indexedDB.open(dbName, 5);
 
     request.onsuccess = function(event) {
       func(request.result, storeName, callback, data);
