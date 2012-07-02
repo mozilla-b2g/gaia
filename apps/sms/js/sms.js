@@ -370,7 +370,9 @@ var ConversationListView = {
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
            '<span class="unread-mark"><i class="i-unread-mark"></i></span>' +
-           '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
+           '<label class="fake-checkbox">' +
+           '<input type="checkbox"/>' + '<span></span>' +
+           '</label>' +
            '  <div class="name">' + name + '</div>' +
            (!conversation.timestamp ? '' :
            '  <div class="time ' +
@@ -828,8 +830,9 @@ var ConversationView = {
 
     return '<div class="message-block" ' + 'data-num="' + dataNum +
            '" data-id="' + dataId + '">' +
-           '  <input type="checkbox" class="fake-checkbox"/>' +
-           '  <span></span>' +
+           '<label class="fake-checkbox">' +
+           '<input type="checkbox"/>' + '<span></span>' +
+           '</label>' +
            '  <div class="message-container ' + className + '>' +
            '    <div class="message-bubble"></div>' +
            '    <div class="time" data-time="' + timestamp + '">' +

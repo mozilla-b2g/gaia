@@ -158,7 +158,7 @@ body.conversation #msg-conversations {
 .toolbar-bottom {
   bottom: 0;
   height: 6rem;
-  background: rgba(0,0,0,.3);
+  background: rgba(0,0,0, 0.75);
   
 }
 
@@ -378,11 +378,6 @@ body.msg-search-mode #msg-conversations-list {
   text-overflow: ellipsis;
 }
 
-body.edit-mode #msg-conversations-list > a {
-  padding: 1.3rem 1.6rem 0 13.2rem;
-  -moz-transition: padding 0.3s ease-out;
-}
-
 #msg-conversations-list > a:active {
   background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
 }
@@ -431,17 +426,7 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 /* fake input boxes for checkboxes*/
-#msg-conversations-list label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
 
-#msg-conversations-list > a > input.fake-checkbox {
-  display: none;
-}
 
 #msg-conversations-list > a > span {
   position: absolute;
@@ -460,6 +445,8 @@ a.unread .unread-mark .icon-unread-mark {
   height: 6rem;
   border-radius: 0.5rem;
 }
+
+body.edit-mode #msg-conversations-list > a { pointer-events: none; padding-right: 4rem; }
 
 body.edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + span {
   background: url("./images/checked.png") no-repeat scroll center center,
@@ -777,9 +764,9 @@ body.conversation-new-msg #view-num {
 #view-list > div .message-container {
   position: relative;
   padding: 1rem 1.5rem;
-  width: 26.5rem;
   -moz-box-sizing: border-box;
   display: block;
+  -moz-transition: -moz-transform 0.3s ease;
 }
 
 #view-list > div .message-bubble {
@@ -893,8 +880,15 @@ body.edit-mode #view-list .time {
   left: -0.1rem;
 }
 
-body.edit-mode #view-list > div.message-block {
-  -moz-transform: translateX(9rem);
+
+body.edit-mode #view-list > div.message-block .receiver {
+  -moz-transform: translateX(-0.5rem);
+}
+body.edit-mode #view-list > div.message-block .sender {
+  -moz-transform: translateX(-2rem);
+}
+body.edit-mode .fake-checkbox {
+-moz-transform: translateX(0);
 }
 
 
@@ -907,7 +901,6 @@ body.edit-mode #view-list > div.message-block {
   padding: 0.5rem 0 0.5rem 9rem;
   width: -moz-calc(100% + 9rem);
   right: 9rem;
-  -moz-transition: -moz-transform 0.3s ease;
 }
 
 #view-list > div.message-block > * {
@@ -919,16 +912,42 @@ body.edit-mode #view-list > div.message-block {
 }
 
 /* fake input boxes for checkboxes*/
-#view-list label {
+.fake-checkbox {
+  display: block;
+  -moz-transform: translateX(4rem);
+  -moz-transition: -moz-transform 0.3s ease;
+  width: 4rem;
+  height: 4rem;
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  left: auto;
+  right: 0;
+  top: 50%;
+  z-index: 5;
+  margin-top: -2rem;
+  pointer-events: all!important;
 }
 
-#view-list div.message-block > input.fake-checkbox {
-  display: none;
+.fake-checkbox input {
+  width: 100%;
+  height: 100%;
+  display: block;
+  margin: 0;
+  border: none;
+  opacity: 0;
+}
+.fake-checkbox span {
+  background: url(images/check-delete.png) no-repeat center top;
+  background-size: 100% auto;
+  width: 2.2rem;
+  height: 2.2rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -1.1rem 0 0 -1.1rem;
+  pointer-events: none;
+}
+.fake-checkbox input:checked + span {
+  background-position: center bottom;
 }
 
 #view-list div.message-block > span {
@@ -941,10 +960,6 @@ body.edit-mode #view-list > div.message-block {
   border: none;
 }
 
-
-#view-list div.message-block > input.fake-checkbox {
-  display: none;
-}
 
 #view-list div.message-block > span {
   position: absolute;
