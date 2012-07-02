@@ -118,7 +118,6 @@ form[role=dialog] header h2 {
 
 form[role=dialog] header button {
   float: left;
-  /*line-height: 3rem;*/
   font-size: 1em;
 }
 
@@ -126,10 +125,9 @@ form[role=dialog] header button + button {
   float: right;
 }
 
-form[role=dialog] label p {
-  padding-left: 10px;
-  margin-bottom: 0;
-  /*font-size: 1em;*/
+form[role=dialog] label span {
+  display: block;
+  margin-left: 10px;
 }
 
 form[role=dialog] label input {
