@@ -99,7 +99,6 @@ var LockScreen = {
     window.addEventListener('keyup', this, true);
 
     var self = this;
-
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       if (typeof value === 'string')
         value = (value == 'true');
@@ -247,8 +246,10 @@ var LockScreen = {
         if (evt.currentTarget !== evt.target)
           return;
 
-        if (!this.locked)
+        if (!this.locked) {
           this.switchPanel();
+        }
+        break;
 
       case 'keyup':
         if (!this.locked)
@@ -352,46 +353,47 @@ var LockScreen = {
     var railLength = touch.rightTarget.offsetLeft -
       touch.leftTarget.offsetLeft -
       (this.areaHandle.offsetWidth + target.offsetWidth) / 2;
-    var self = this;
 
+    var self = this;
     switch (target) {
       case this.areaCamera:
         this.railRight.style.width = railLength + 'px';
         this.railLeft.style.width = '0';
+
         if (this.areaHandle.style.MozTransform == transition) {
           self.switchPanel('camera');
           break;
         }
         this.areaHandle.style.MozTransform = transition;
-        this.areaHandle.addEventListener('transitionend',
-          function ls_goCamera() {
-            self.areaHandle.removeEventListener('transitionend', ls_goCamera);
-            self.switchPanel('camera');
-          });
 
+        this.areaHandle.addEventListener('transitionend', function goCamera() {
+          self.areaHandle.removeEventListener('transitionend', goCamera);
+          self.switchPanel('camera');
+        });
         break;
 
       case this.areaUnlock:
         this.railLeft.style.width = railLength + 'px';
         this.railRight.style.width = '0';
-        var passcodeOrUnlock = function lc_passcodeOrUnlock() {
+
+        var passcodeOrUnlock = function passcodeOrUnlock() {
           if (!self.passCodeEnabled) {
             self.unlock();
           } else {
             self.switchPanel('passcode');
           }
         };
+
         if (this.areaHandle.style.MozTransform == transition) {
           passcodeOrUnlock();
           break;
         }
         this.areaHandle.style.MozTransform = transition;
-        this.areaHandle.addEventListener('transitionend',
-          function ls_goUnlock() {
-            self.areaHandle.removeEventListener('transitionend', ls_goUnlock);
-            passcodeOrUnlock();
-          });
 
+        this.areaHandle.addEventListener('transitionend', function goUnlock() {
+          self.areaHandle.removeEventListener('transitionend', goUnlock);
+          passcodeOrUnlock();
+        });
         break;
     }
   },
@@ -544,7 +546,7 @@ var LockScreen = {
       overlay.dataset.panel = panel;
       this.loadPanel(panel);
     } else {
-      delete overlay.dataset.panel;
+      overlay.dataset.panel = '';
     }
   },
 

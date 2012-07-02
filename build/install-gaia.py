@@ -80,14 +80,25 @@ def compute_remote_hashes():
         hashes[filename] = hash
     return hashes
 
+INDEXED_DB_FOLDER = 'indexedDB/'
+
 def remove_from_remote(local_hashes, remote_hashes):
     """Remove any files from the remote device which don't appear in
     local_hashes.
 
     """
-    to_remove = list(set(remote_hashes.keys()) - set(local_hashes.keys()))
+
+    # Keep indexedDB content
+    to_keep = set()
+    for path in remote_hashes:
+        if path[:len(INDEXED_DB_FOLDER)] == INDEXED_DB_FOLDER:
+            to_keep.add(path)
+
+    to_remove = list(set(remote_hashes.keys()) - set(local_hashes.keys()) - to_keep)
+
     if not to_remove:
         return
+
     print 'Removing from device:\n%s\n' % '\n'.join(to_remove)
     # Chunk to_remove into 25 files at a time so we don't send too much over
     # adb_shell at once.
@@ -139,7 +150,7 @@ def install_gaia():
     try:
         install_gaia_fast()
     except:
-        # If anything goes wrong, fall back to the slow method.
+#       If anything goes wrong, fall back to the slow method.
         install_gaia_slow()
 
 if __name__ == '__main__':

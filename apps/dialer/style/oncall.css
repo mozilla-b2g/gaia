@@ -20,11 +20,6 @@
   src: url('fonts/opensans-bold-webfont.woff');
 }
 
-@font-face {
-  font-family: 'FontLight';
-  src: url('fonts/Open-Sans-Light.woff');
-}
-
 html, body {
   position: relative;
   width: 100%;

@@ -103,6 +103,7 @@
 
 #statusbar-wifi {
   width: 20px;
+  margin: 2px;
   background: url("images/wifi/wifi-0.png") 50% 2px no-repeat;
 }
 
@@ -144,6 +145,14 @@
 
 #statusbar-data:empty {
   display: none;
+}
+
+#statusbar-loading {
+  width: 20px;
+  height: 20px;
+  margin: 2px;
+  background: transparent url("images/loading.gif") center center no-repeat;
+  background-size: 14px;
 }
 
 #statusbar-battery {
