@@ -11,7 +11,7 @@ const HomeState = (function() {
   function openDB(success, error) {
     try {
       var indexedDB = window.indexedDB || window.webkitIndexedDB ||
-                      window.mozIndexedDB || window.msIndexedDB;
+                      window.msIndexedDB;
     } catch (e) {
       error(e);
       return;
