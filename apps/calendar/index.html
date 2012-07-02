@@ -1,0 +1,136 @@
+<!DOCTYPE HTML>
+<html class="ltr" manifest="manifest.appcache">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="./style/calendar.css">
+  <link rel="stylesheet" type="text/css" href="./style/ui.css">
+  <link rel="stylesheet" type="text/css" href="./style/events.css">
+
+  <!--- vendor -->
+  <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
+
+  <!--- utils -->
+  <script defer src="/js/calc.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/format.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/batch.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/set.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/template.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/responder.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/view.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/router.js" type="text/javascript" charset="utf-8"></script>
+
+  <!--- templates -->
+  <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/day.js" type="text/javascript" charset="utf-8"></script>
+
+  <!--- models -->
+  <script defer src="/js/models/busytime.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/models/events.js" type="text/javascript" charset="utf-8"></script>
+
+  <!--- views -->
+  <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
+
+  <!-- workers / main / controller -->
+  <script defer src="/js/controller.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/calendar.js" type="text/javascript" charset="utf-8"></script>
+
+  <title>Gaia Calendar</title>
+</head>
+<body onload="Calendar.init();">
+
+<section id="top-toolbar">
+  <header class="toolbar">
+    <a data-l10n-id="buttons.accounts" role="button" class="accounts" href="#accounts">
+      Accounts
+    </a>
+
+    <h3 id="current-month-year">
+    </h3>
+
+    <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="/add">
+      New Event
+    </a>
+  </header>
+</section>
+
+<section id="views">
+
+  <section id="month-view">
+    <!--- title row all the days this will be static -->
+    <header id="month-days" role="row">
+      <ol role="row">
+        <li data-l10n-id="day.sun" role="column">sun</li>
+        <li data-l10n-id="day.mon" role="column">mon</li>
+        <li data-l10n-id="day.tue" role="column">tue</li>
+        <li data-l10n-id="day.wed" role="column">wed</li>
+        <li data-l10n-id="day.thu" role="column">thu</li>
+        <li data-l10n-id="day.fri" role="column">fri</li>
+        <li data-l10n-id="day.sat" role="column">sat</li>
+      </ol>
+    </header>
+    <!---
+      month grid there may be multiple of these
+      in the DOM at any one time for caching.
+      only one will ever be displayed.
+      -->
+
+    <section id="month-displays">
+
+    </section>
+
+  </section>
+
+  <!---
+  When a day is selected you have
+  access to the details here
+  -->
+  <section id="months-day-view">
+    <header class="toolbar">
+      <h3 id="selected-day-title"></h3>
+    </header>
+     <section id="event-list" class="day-events">
+    </section>
+  </section>
+
+  <section id="day-view">
+    [Day] Coming soon....
+  </section>
+
+  <section id="week-view">
+    [Week] Coming soon...
+  </section>
+
+  <section id="add-event-view">
+    [Add] Coming soon...
+  </section>
+</section>
+
+
+<section id="bottom-toolbar">
+  <menu id="view-selector">
+    <li class="today">
+      <a href="#today">Today</a>
+    </li>
+    <li class="time-selection">
+      <menu>
+        <li class="month">
+          <a href="/month">MONTH</a>
+        </li>
+        <li class="week">
+          <a href="/week">WEEK</a>
+        </li>
+        <li class="day">
+          <a href="/day">DAY</a>
+        </li>
+      </menu>
+    </li>
+  </menu>
+</section>
+
+
+</body>
+</html>
+
