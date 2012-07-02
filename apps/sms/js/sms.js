@@ -892,9 +892,9 @@ var ConversationView = {
 
       case 'received':
         var msg = evt.message;
-
-        if (this.filter)
+        if (this.filter && this.filter == msg.sender) {
           this.showConversation(ConversationView.filter, msg);
+        }
         break;
 
       case 'transitionend':
