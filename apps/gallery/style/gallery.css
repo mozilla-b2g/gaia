@@ -79,25 +79,29 @@ body {
   background-repeat: no-repeat;
 }
 
-/* TODO: This is to be reverted, just changed for demo purposes */
 /* 320x480 phones */
-/* @media (orientation: portrait) and (width: 320px), */
-/*        (orientation: landscape) and (width: 480px) { */
+@media (orientation: portrait) and (width: 320px) {
+  .thumbnail {
+    width: 107px;
+    height: 107px;
+  }
+}
 
-/*     .thumbnail { */
-/*         width: 107px; */
-/*         height: 107px; */
-/*     } */
-/* } */
+@media (orientation: landscape) and (width: 480px) {
+  .thumbnail {
+    width: 120px;
+    height: 120px;
+  }
+}
 
-/* /\* 480x800 phones portrait *\/ */
-/* @media (orientation: portrait) and (width: 480px), */
-/*        (orientation: landscape) and (width: 800px) { */
-/*     .thumbnail { */
-/*         width: 160px; */
-/*         height: 160px; */
-/*     } */
-/* } */
+/* 480x800 phones portrait */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+    .thumbnail {
+        width: 160px;
+        height: 160px;
+    }
+}
 
 #photos {
   position: absolute;

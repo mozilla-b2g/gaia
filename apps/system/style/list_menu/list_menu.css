@@ -30,7 +30,7 @@
        (orientation: landscape) and (width: 480px) {
   .list-menu {
     width: 280px;
-    height: 300px;
+    height: 204px;
     overflow-y: hidden;
     margin-left: -140px;
   }

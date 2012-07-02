@@ -34,6 +34,7 @@ html, body {
 
 #switch-button span, #capture-button span, #gallery-button span {
   -moz-transition: 0.2s ease-in-out;
+  pointer-events: none;
   background-position: center center;
   background-repeat: no-repeat;
   display: block;
