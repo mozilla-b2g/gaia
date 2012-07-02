@@ -17,7 +17,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       switching = false;
       var currentNetwork = wifiManager.connection.network;
       if (currentNetwork) {
-        infoBlock.textContent = _('connected', { ssid: currentNetwork.ssid });
+        infoBlock.textContent = _('fullStatus-connected', currentNetwork);
         checkbox.checked = true;
       } else if (wifiManager.enabled) {
         infoBlock.textContent = _('fullStatus-disconnected');
