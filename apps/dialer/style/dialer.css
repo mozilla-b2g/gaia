@@ -131,7 +131,7 @@ body.hidden *[data-l10n-id] {
   opacity: 1;
 }
 
-#option-contacts{
+#option-contacts {
   pointer-events: none;
 }
 

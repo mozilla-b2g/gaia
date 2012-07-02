@@ -80,7 +80,6 @@ var CallHandler = {
 var NavbarManager = {
   init: function nm_init() {
     this.update();
-    
     var self = this;
     window.addEventListener('hashchange' , function nm_hashChange(event) {
       // TODO Implement it with building blocks:
