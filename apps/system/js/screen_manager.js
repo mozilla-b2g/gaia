@@ -186,7 +186,7 @@ var ScreenManager = {
         navigator.mozPower.screenEnabled = false;
       }, 20);
 
-      this.fireScreenChangeEvent();
+      self.fireScreenChangeEvent();
     };
 
     if (instant) {
