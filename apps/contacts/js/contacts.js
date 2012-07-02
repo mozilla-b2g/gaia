@@ -177,7 +177,7 @@ var Contacts = (function() {
 
       var onMouseMove = function onMouseMove(event) {
         currentPosition = event.clientY;
-        var newMargin = currentPosition - ¯startPosition;
+        var newMargin = currentPosition - startPosition;
         if (newMargin > 0 && newMargin < 200) {
           contactDetails.classList.remove('up');
           var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
