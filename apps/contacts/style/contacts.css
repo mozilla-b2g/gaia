@@ -28,15 +28,14 @@
   background: #f5f5f5;
   margin-top: 8rem;
   min-height: 100%;
-  -moz-transition: margin-top 0.4s ease-out;
 }
 
 .view-contact-profile .view-body-inner > section.no-photo {
   margin-top: 0;
 }
 
-.view-contact-profile .view-body-inner > section.down {
-  margin-top: 20rem;
+.view-contact-profile .view-body-inner > section.up {
+  -moz-transition: margin-top 0.5s ease-out;
 }
 
 #contact-detail h1 {
