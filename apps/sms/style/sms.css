@@ -175,6 +175,55 @@ body.conversation #msg-conversations {
 .toolbar-panel-fixed-item {
   -moz-box-flex: 0;
 }
+ 
+/*Generic set of actions in toolbar */
+.toolbar-top [role="menu"] {
+  height: 5rem; float: right;
+}
+
+.toolbar-top [role="menuitem"] {
+  height: 5rem; float: left;
+}
+
+.toolbar-top [role="menuitem"]:first-child {
+  background: none; padding: 0 1.5rem;
+}
+
+.toolbar-top [role="menuitem"], .toolbar-top [role="menuitem"]:last-child {
+  background: url(./images/separator.png) no-repeat left center;
+  padding: 0 1.5rem;
+}
+
+.toolbar-top menu {
+  padding: 0;
+  margin: 0;
+}
+  
+.toolbar-top a {
+  border: none;
+  background: none;
+  padding: 0;
+  overflow: hidden;
+  font: 1.4rem/1.1em System Sans Semibold, Sans-serif;  
+  color: #fff;
+}
+
+.toolbar-top a:first-letter {
+  text-transform: uppercase;
+}
+
+/* Icon definitions */
+.view-header [data-icon] {
+  display: inline-block;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 -1rem;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+  text-indent: 100%;
+  overflow: hidden;
+  position: relative;
+}
 
 .list {
   position: absolute;
@@ -217,6 +266,7 @@ body.conversation #msg-conversations {
   border-right: solid .1rem rgba(0, 0, 0, 0.2);
   box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
   width: 2rem;
+  left: 0;
   position: absolute;
 }
 .back-button {
@@ -487,7 +537,6 @@ body.edit-mode #msg-conversations-list > a > span {
   width: 1rem;
   top: 2rem;
   left: 1rem;
-
   background: url(../style/images/unread.png);
 }
 
@@ -518,14 +567,6 @@ body.edit-mode #msg-conversations-list .msg {
   table-layout: fixed;
 }
 
-#msg-new-message {
-  right: 0;
-  width: 5rem;
-  margin-right: 2rem; 
-  position: absolute;
-  height: 100%;
-}
-
 .icon-add {
   display: block;
   background-image: url('images/add.png');
@@ -534,8 +575,7 @@ body.edit-mode #msg-conversations-list .msg {
   margin: 1.7rem auto;
 }
 
-#msg-edit-button, #msg-search-edit-button {
-  display: none;
+#msg-search-edit-button {
   right: 0;
   width: 5rem;
   margin-right: 2rem; 
@@ -555,10 +595,9 @@ body.edit-mode #msg-conversations-list .msg {
 
 #msg-conversations-back {
   position: absolute;
-  
+  left: 0;
   height: 100%;
   width: 5rem;
-  
 }
 
 .icon-back {

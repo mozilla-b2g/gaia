@@ -37,7 +37,7 @@
         <div role="button" id="view-done-button" onclick="ConversationView.exitEditMode()" class="edit-show" data-l10n-id="done">
           Done
         </div>
-        <a href="#demo-#edit" id="view-edit-button" class="edit-hide">
+        <a href="#edit" id="view-edit-button" class="edit-hide">
           <div class="icon-edit"></div>
         </a>
         <a id="view-add-button" class="contact-show">
@@ -70,20 +70,22 @@
     
     <!-- Conversations List view -->
     <div id="msg-conversations" class="panel">
-      <div id="msg-toolbar" class="toolbar toolbar-top">
-        <a href="#" id="msg-conversations-back" class="edit-show">
-          <div class="back-wrapper">
-            <div class="icon-back"></div>
-          </div>
-        </a>
-        <a href="#num=*" id="msg-new-message" class="edit-hide">
-          <div class="icon-add"></div>
-        </a>
-        <a href="#demo-#edit" id="msg-edit-button" class="edit-hide">
-          <div class="icon-edit"></div>
-        </a>
+      <header id="msg-toolbar" class="toolbar toolbar-top">
+        <menu role="menu">
+          <a role="menuitem" href="#" id="msg-conversations-back" class="edit-show">
+            <div class="back-wrapper">
+              <div class="icon-back"></div>
+            </div>
+          </a>
+          <a role="menuitem" href="#num=*" id="msg-new-message" class="edit-hide">
+            <span data-icon="add" class="icon-add"></span>
+          </a>
+          <a role="menuitem" href="#edit" id="msg-edit-button" class="edit-hide">
+            <span data-icon="edit" class="icon-edit"></span>
+          </a>
+        </menu>
         <div id="msg-title-container" data-l10n-id="messages">Messages</div>
-      </div>
+      </header>
       
       <div id="msg-search-container" class="toolbar">
         <div id="msg-search-toolbar-panel" class="toolbar-panel">
