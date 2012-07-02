@@ -55,6 +55,10 @@ html, body {
   font-family: 'Open Sans', sans-serif;
 }
 
+a {
+  outline: none;
+}
+
 body {
   margin: 0;
   width: 100%;
