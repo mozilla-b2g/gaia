@@ -23,6 +23,8 @@ var ScreenManager = {
 
   _brightness: 0.5,
 
+  isIdleObserverInitialized: false,
+
   init: function scm_init() {
     /* Allow others to cancel the keyup event but not the keydown event */
     window.addEventListener('keydown', this, true);
@@ -177,7 +179,6 @@ var ScreenManager = {
     };
 
     var finish = function scm_finish() {
-
       self.screenEnabled = false;
       self._inTransition = false;
       self.screen.classList.add('screenoff');
@@ -203,8 +204,9 @@ var ScreenManager = {
       // The user had cancel the turnScreenOff action.
       this._inTransition = false;
       navigator.mozPower.screenBrightness = this._brightness;
-      return;
+      return false;
     }
+
     if (this.screenEnabled)
       return false;
 
@@ -242,11 +244,14 @@ var ScreenManager = {
   },
 
   setIdleTimeout: function scm_setIdleTimeout(time) {
-    if (!navigator.addIdleObserver)
+    if (!('addIdleObserver' in navigator))
       return;
 
-    // Remove the original observer.
-    navigator.removeIdleObserver(this.idleObserver);
+    // Remove the original observer iif there is a previous observer
+    // otherwise Gecko hit an assertion in debug mode.
+    if (this.isIdleObserverInitialized) {
+      navigator.removeIdleObserver(this.idleObserver);
+    }
 
     // If time = 0, then there is no idle timeout to set.
     if (!time)
@@ -254,6 +259,7 @@ var ScreenManager = {
 
     this.idleObserver.time = time;
     navigator.addIdleObserver(this.idleObserver);
+    this.isIdleObserverInitialized = true;
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
