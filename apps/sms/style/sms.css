@@ -363,6 +363,7 @@ body.msg-search-mode #msg-conversations-list {
 
 #msg-conversations-list .item {
   position: relative;
+  overflow: hidden;
 }
 
 #msg-conversations-list .item > a {
@@ -902,6 +903,7 @@ body.edit-mode .fake-checkbox {
   text-decoration: none;
   outline: none;
   position: relative;
+  overflow: hidden;
   padding: 0.5rem 0 0.5rem 9rem;
   width: -moz-calc(100% + 9rem);
   right: 9rem;
