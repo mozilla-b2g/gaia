@@ -125,6 +125,10 @@ body.hidden *[data-l10n-id] {
   opacity: 1;
 }
 
+#option-contacts{
+  pointer-events: none;
+}
+
 .toolbar-option:active {
   opacity: 1;
   border: 0;
