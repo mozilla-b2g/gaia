@@ -84,3 +84,35 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
   };
 });
 
+function validateDataSettings() {
+  var cset = {};
+  var inputs = document.querySelectorAll('#data-advanced input');
+  for (var i = 0; i < inputs.length; i++) {
+    var input = inputs[i];
+    cset[input.name] = input.value;
+  }
+  window.navigator.mozSettings.getLock().set(cset);
+}
+
+function openDialog(dialogID, callback) {
+  var root = document.getElementById(dialogID);
+  root.style.display = 'block';
+
+  // hide dialog box
+  function close() {
+    root.style.display = 'none';
+  }
+
+  // OK|Cancel buttons
+  var okButton = root.querySelector('*[type=submit]');
+  okButton.onclick = function() {
+    close();
+    return callback ? callback() : false;
+  };
+  var cancelButton = root.querySelector('*[type=reset]');
+  cancelButton.onclick = function() {
+    close();
+    return;
+  };
+}
+

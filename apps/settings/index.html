@@ -211,25 +211,53 @@
           <small data-l10n-id="dataRoaming-expl"></small>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
         </li>
+        <li>
+          <button onclick="openDialog('data-advanced', validateDataSettings);"
+            data-l10n-id="dataAdvanced">Advanced Settings</button>
+        </li>
       </ul>
+    </section>
 
-      <h2> Advanced Settings </h2>
-      <form action="#">
+    <!-- Connectivity :: 3G/data :: Advanced Settings Dialog -->
+    <form role="dialog" id="data-advanced" onsubmit="return false;" action="#data">
+      <header>
+        <button type="reset">Back</button>
+        <button type="submit">OK</button>
+        <h2 data-l10n-id="dataAdvanced"> Advanced Settings </h2>
+      </header>
+
+      <!-- APN settings -->
+      <label>
         <p data-l10n-id="apn">APN</p>
         <input type="text" name="ril.data.apn" />
+      </label>
+      <label>
         <p data-l10n-id="identity">identity</p>
         <input type="text" name="ril.data.user" />
+      </label>
+      <label>
         <p data-l10n-id="password">password</p>
         <input type="text" name="ril.data.passwd" />
+      </label>
+
+      <!-- MMS settings -->
+      <label>
         <p data-l10n-id="mmsproxy">MMS Proxy</p>
         <input type="text" name="ril.data.mmsproxy" />
+      </label>
+      <label>
         <p data-l10n-id="mmsport">MMS Port</p>
         <input type="text" name="ril.data.mmsport" />
+      </label>
+      <label>
         <p data-l10n-id="mmsc">MMSC</p>
         <input type="text" name="ril.data.mmsc" />
-      </form>
-      <ul><li><button id="autoAPN">Auto-Configure</button></li></ul>
-    </section>
+      </label>
+
+      <p>
+        <button id="autoAPN">Auto-Configure</button>
+      </p>
+    </form>
 
     <!-- [TODO] Connectivity :: Bluetooth -->
 

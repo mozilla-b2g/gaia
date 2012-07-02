@@ -84,3 +84,57 @@ div.dialog footer button:active {
 div.dialog footer button::-moz-focus-inner {
   border: none;
 }
+
+/* dialog boxes, second try */
+form[role=dialog] {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  background-color: #eee;
+  z-index: 10;
+  margin: 0;
+  padding: 0;
+}
+
+form[role=dialog]:target {
+  display: block;
+}
+
+form[role=dialog] header {
+  height: 2rem;
+}
+
+form[role=dialog] header h2 {
+  margin: 0;
+  height: 2rem;
+  font-size: 0.85em;
+  line-height: 2rem;
+  background-color: #ccf;
+}
+
+form[role=dialog] header button {
+  float: left;
+  /*line-height: 3rem;*/
+  font-size: 1em;
+}
+
+form[role=dialog] header button + button {
+  float: right;
+}
+
+form[role=dialog] label p {
+  padding-left: 10px;
+  margin-bottom: 0;
+  /*font-size: 1em;*/
+}
+
+form[role=dialog] label input {
+  -moz-box-sizing: border-box;
+  width: 100%;
+  font-size: 1em;
+}
+
