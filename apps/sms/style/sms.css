@@ -361,7 +361,11 @@ body.msg-search-mode #msg-conversations-list {
  -moz-transition: top 0.3s ease;
 }
 
-#msg-conversations-list > a {
+#msg-conversations-list .item {
+  position: relative;
+}
+
+#msg-conversations-list .item > a {
   -moz-box-sizing: border-box;
   display: block;
   text-decoration: none;
@@ -378,31 +382,31 @@ body.msg-search-mode #msg-conversations-list {
   text-overflow: ellipsis;
 }
 
-#msg-conversations-list > a:active {
+#msg-conversations-list .item > a:active {
   background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
 }
 
-#msg-conversations-list > a:active > .name {
+#msg-conversations-list .item > a:active > .name {
   color: white;
 }
 
-#msg-conversations-list > a:active > .msg {
+#msg-conversations-list .item > a:active > .msg {
   color: #ffbc8c;
 }
 
-#msg-conversations-list > a.hide {
+#msg-conversations-list .item > a.hide {
   display: none;
 }
 
-#msg-conversations-list > a > * {
+#msg-conversations-list .item > a > * {
   pointer-events: none;
 }
 
-#msg-conversations-list > a:first-child {
+#msg-conversations-list .item > a:first-child {
   border-top-color: transparent;
 }
 
-#msg-conversations-list > a .unread-mark {
+#msg-conversations-list .item > a .unread-mark {
   display: none;
 }
 
@@ -428,7 +432,7 @@ a.unread .unread-mark .icon-unread-mark {
 /* fake input boxes for checkboxes*/
 
 
-#msg-conversations-list > a > span {
+#msg-conversations-list .item > a > span {
   position: absolute;
   top: -moz-calc(50% - 3.4rem);
   left: 4rem;
@@ -439,21 +443,21 @@ a.unread .unread-mark .icon-unread-mark {
   -moz-transition: opacity 0.3s ease-in;
 }
 
-#msg-conversations-list > a > input[type=checkbox] + span {
+#msg-conversations-list .item > a > input[type=checkbox] + span {
   opacity: 0.0;
   visibility: hidden;
   height: 6rem;
   border-radius: 0.5rem;
 }
 
-body.edit-mode #msg-conversations-list > a { pointer-events: none; padding-right: 4rem; }
+body.edit-mode #msg-conversations-list .item > a { pointer-events: none; padding-right: 4rem; }
 
-body.edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + span {
+body.edit-mode #msg-conversations-list .item > a > input[type=checkbox]:checked + span {
   background: url("./images/checked.png") no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
-body.edit-mode #msg-conversations-list > a > span {
+body.edit-mode #msg-conversations-list .item > a > span {
   opacity: 1.0;
   visibility: visible;
   border: 0.4rem solid;
@@ -527,7 +531,7 @@ body.edit-mode #msg-conversations-list > a > span {
   background: url(../style/images/unread.png);
 }
 
-#msg-conversations-list > a.unread .unread-tag {
+#msg-conversations-list .item > a.unread .unread-tag {
   visibility : visible;
 }
 

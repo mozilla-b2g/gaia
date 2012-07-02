@@ -364,15 +364,16 @@ var ConversationListView = {
     var bodyHTML = reg ? this.createHighlightHTML(bodyText, reg) :
                            escapeHTML(bodyText);
 
-    return '<a href="#num=' + conversation.num + '"' +
+    return '<div class="item">' + 
+           '<label class="fake-checkbox">' +
+           '<input type="checkbox"/>' + '<span></span>' +
+           '</label>' +
+            '<a href="#num=' + conversation.num + '"' +
            ' data-num="' + conversation.num + '"' +
            ' data-name="' + dataName + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
            '<span class="unread-mark"><i class="i-unread-mark"></i></span>' +
-           '<label class="fake-checkbox">' +
-           '<input type="checkbox"/>' + '<span></span>' +
-           '</label>' +
            '  <div class="name">' + name + '</div>' +
            (!conversation.timestamp ? '' :
            '  <div class="time ' +
@@ -381,7 +382,8 @@ var ConversationListView = {
              giveHourMinute(conversation.timestamp) + '</div>') +
            '  <div class="msg">"' + bodyHTML + '"</div>' +
            '<div class="unread-tag"></div>' +
-           '<div class="photo"></div></a>';
+           '<div class="photo"></div></a>' +
+           '</div>';
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
