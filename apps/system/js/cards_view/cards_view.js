@@ -26,7 +26,11 @@ var CardsView = (function() {
   var cardsList = cardsView.getElementsByTagName('ul')[0];
   var displayedApp;
   var runningApps;
+  var draggedElement = null;
   var currentDisplayed = 0;
+  var scrollWhileSortingTimer;
+  var dragMargin = 0;
+  var allowScrollingWhileSorting = false;
   var HVGA = document.documentElement.clientWidth < 480;
 
   /*
@@ -132,8 +136,8 @@ var CardsView = (function() {
   }
 
   function runApp() {
-      hideCardSwitcher();
-      WindowManager.launch(this.dataset['origin']);
+    hideCardSwitcher();
+    WindowManager.launch(this.dataset['origin']);
   }
 
   function hideCardSwitcher() {
@@ -156,12 +160,12 @@ var CardsView = (function() {
   }
 
   //scrolling cards
-  var initialCardViewPosition,
-      initialTouchPosition = {};
-  var threshold = window.innerWidth / 4,
-      // Distance after which dragged card starts moving
-      moveCardThreshold = window.innerHeight / 6,
-      removeCardThreshold = window.innerHeight / 4;
+  var initialCardViewPosition;
+  var initialTouchPosition = {};
+  var threshold = window.innerWidth / 4;
+  // Distance after which dragged card starts moving
+  var moveCardThreshold = window.innerHeight / 6;
+  var removeCardThreshold = window.innerHeight / 4;
 
   function alignCard(number) {
     cardsView.scrollLeft = cardsList.children[number].offsetLeft;
@@ -171,7 +175,6 @@ var CardsView = (function() {
     evt.stopPropagation();
     cardsView.addEventListener('mousemove', CardsView);
     cardsView.addEventListener('mouseup', CardsView);
-
 
     initialCardViewPosition = cardsView.scrollLeft;
     initialTouchPosition = {
@@ -187,7 +190,7 @@ var CardsView = (function() {
         y: evt.touches ? evt.touches[0].pageY : evt.pageY
     };
 
-    if (evt.target.nodeName === 'LI' && MANUAL_CLOSING) {
+    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
       if (differenceY > moveCardThreshold) {
         evt.target.style.MozTransform = 'scale(0.6) translate(0, -' +
@@ -195,10 +198,47 @@ var CardsView = (function() {
       }
     }
 
-    if (SNAPPING_SCROLLING) {
+    if (SNAPPING_SCROLLING && draggedElement === null) {
       var differenceX = initialTouchPosition.x - touchPosition.x;
       cardsView.scrollLeft = initialCardViewPosition + differenceX;
     }
+    
+    if (USER_DEFINED_ORDERING && draggedElement !== null) {
+      var differenceX = touchPosition.x - initialTouchPosition.x;
+      var moveOffset = touchPosition.x + (cardsList.children[currentDisplayed].offsetLeft/0.6);
+      
+      draggedElement.style.MozTransform = 'scale(0.6) translate('+ moveOffset +'px, 0)';
+      if (Math.abs(differenceX) > threshold) {
+        if (allowScrollingWhileSorting) {
+          allowScrollingWhileSorting = false;
+          scrollWhileSortingTimer = setTimeout(function(){ allowScrollingWhileSorting = true; }, 500);
+          if (
+            differenceX > 0 &&
+            currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
+          ) {
+            currentDisplayed++;
+            /*if (currentDisplayed < WindowManager.getNumberOfRunningApps() - 1) {
+              cardsList.insertBefore(draggedElement, cardsList.children[currentDisplayed+1]);
+            } else {
+              cardsList.appendChild(draggedElement);
+            }
+            draggedElement.style.MozTransform = 'scale(0.6)';
+            */
+            alignCard(currentDisplayed);
+          } else if (differenceX < 0 && currentDisplayed > 0) {
+            currentDisplayed--;
+            //cardsList.insertBefore(draggedElement, cardsList.children[currentDisplayed]);
+            //draggedElement.style.MozTransform = 'scale(0.6)';
+            alignCard(currentDisplayed);
+          }
+        } 
+      } else {
+        // rotation here
+        //draggedElement.style.MozTransform = 'scale(0.6)';
+        alignCard(currentDisplayed);
+      }
+    }
+    
   }
 
   function onEndEvent(evt) {
@@ -213,7 +253,7 @@ var CardsView = (function() {
     };
 
     // if the element we start dragging on is a card
-    if (evt.target.nodeName === 'LI' && MANUAL_CLOSING) {
+    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
       if (differenceY > removeCardThreshold) {
         // Without removing the listener before closing card
@@ -258,17 +298,25 @@ var CardsView = (function() {
         alignCard(currentDisplayed);
       }
     }
+    
+    if (USER_DEFINED_ORDERING && draggedElement !== null) {
+      draggedElement.style.MozTransform = 'scale(0.6)';
+      draggedElement.dataset['edit'] = 'false';
+      draggedElement = null;
+      alignCard(currentDisplayed);
+    }
   }
 
   function manualOrderStart(evt) {
     evt.preventDefault();
-    var element = evt.target;
-    if (element.classList.contains('card')) {
+    draggedElement = evt.target;
+    allowScrollingWhileSorting = true;
+    if (draggedElement.classList.contains('card')) {
       // I don't want to rebuild all the CSS for the CardsView
       // so appending the element as the last child solves margin
       // problem with the first card
-      element.parentNode.appendChild(element);
-      element.dataset['edit'] = true;
+      //element.parentNode.appendChild(element);
+      draggedElement.dataset['edit'] = true;
     }
   }
 
