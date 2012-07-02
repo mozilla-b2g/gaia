@@ -1031,6 +1031,7 @@ body.edit-mode .fake-checkbox {
 #view-msg-text {
   height: 3rem;
   width: 100%;
+  padding: 0.4rem 0.8rem;
   margin: 0 !important;
   -moz-box-sizing: border-box;
   resize: none;
