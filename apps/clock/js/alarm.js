@@ -228,10 +228,10 @@ var FakeAlarmManager = {
           var preferredBrightness = 0.8;
           power.screenBrightness = preferredBrightness;
         }
-        if ('mozVibrate' in navigator) {
+        if ('vibrate' in navigator) {
           var vibrateInterval = 0;
           vibrateInterval = window.setInterval(function vibrate() {
-            navigator.mozVibrate([200]);
+            navigator.vibrate([200]);
           }, 600);
           window.setTimeout(function clearVibration() {
             window.clearInterval(vibrateInterval);

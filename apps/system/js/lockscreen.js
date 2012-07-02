@@ -617,8 +617,8 @@ var LockScreen = {
       this.unlock();
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
-      if (navigator.mozVibrate)
-        navigator.mozVibrate([50, 50, 50]);
+      if ('vibrate' in navigator)
+        navigator.vibrate([50, 50, 50]);
 
       var timeout = this.kPassCodeErrorTimeout;
       this.passCodeError++;
