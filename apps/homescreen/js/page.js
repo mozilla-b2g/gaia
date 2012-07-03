@@ -264,10 +264,8 @@ Page.prototype = {
       this.style.MozAnimationName = '';
       this.removeEventListener('animationend', ft);
       if (this === tnode) {
-        setTimeout(function() {
-          that.olist.insertBefore(onode, (upward) ? tnode : tnode.nextSibling);
-          that.freeze = false;
-        }, 0);
+        that.olist.insertBefore(onode, (upward) ? tnode : tnode.nextSibling);
+        that.freeze = false;
       }
     });
   },
@@ -281,8 +279,7 @@ Page.prototype = {
    */
   drop: function(origin, target) {
     if (!this.freeze && origin !== target) {
-      var that = this;
-      setTimeout(function() { that.freeze = true }, 0);
+      this.freeze = true;
 
       var icons = this.icons;
       var onode = icons[origin].container;

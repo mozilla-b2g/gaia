@@ -13,9 +13,7 @@ const GridManager = (function() {
     target: undefined, // target element
     iCoords: {},       // inital position
     pCoords: {},       // previous position
-    cCoords: {},       // current position
-    pDir: undefined,   // last direction
-    dropped: undefined // last dropped element
+    cCoords: {}       // current position
   };
 
   var pages = {
@@ -421,28 +419,6 @@ const GridManager = (function() {
         break;
       }
       index++;
-    }
-  }
-
-  /*
-   * Returns negative values for backwards and positivo for upwards
-   */
-  function getDirection() {
-    var x = status.cCoords.x - status.pCoords.x;
-    var y = status.cCoords.y - status.pCoords.y;
-
-    if (Math.abs(x) > Math.abs(y)) {
-      if (x > 0) {
-        return 1; // right
-      } else {
-        return -1; // left
-      }
-    } else {
-      if (y > 0) {
-        return 2; // down
-      } else {
-        return -2; // top
-      }
     }
   }
 
