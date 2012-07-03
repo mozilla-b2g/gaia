@@ -611,6 +611,7 @@ var WindowManager = (function() {
   });
 
   // Deal with application uninstall event
+  // if the application is being uninstalled, we ensure it stop running here.
   window.addEventListener('applicationuninstall', function(e) {
     kill(e.detail.application.origin);
   });
