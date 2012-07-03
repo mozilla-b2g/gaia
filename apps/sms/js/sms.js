@@ -887,6 +887,9 @@ var ConversationView = {
     }
 
     this.hideConfirmationDialog();
+    this.showConversation(this.title.num);
+    ConversationListView.updateConversationList();
+    this.exitEditMode();
   },
 
   handleEvent: function cv_handleEvent(evt) {
