@@ -187,6 +187,6 @@
 }
 
 .apps[data-mode = 'edit'] ol > li {
-  -moz-animation-duration: .2s;
+  -moz-animation-duration: .25s;
   -moz-animation-timing-function: ease-out;
 }
