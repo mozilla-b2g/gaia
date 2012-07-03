@@ -247,6 +247,13 @@ var Contacts = (function() {
       contactDetails.style.marginTop = null;
       contactDetails.classList.add('no-photo');
     }
+
+    //Removes unnecesary scroll
+    if ( contactDetails.offsetHeight == cover.clientHeight ) {
+      cover.style.overflow = "hidden";
+    } else {
+      cover.style.overflow = null;
+    }
   };
 
   var showEdit = function showEdit() {
