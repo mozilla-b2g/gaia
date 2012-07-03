@@ -239,6 +239,8 @@ var Contacts = (function() {
     var cover = document.getElementById('cover-img');
     var existsPhoto = 'photo' in contact && contact.photo != null;
     if (existsPhoto && contact.photo != '') {
+    var existsPhoto = 'photo' in contact && contact.photo;
+    if (existsPhoto) {
       contactDetails.classList.add('up');
       cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
     } else {
