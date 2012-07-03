@@ -1424,12 +1424,7 @@ RequestReader.prototype =
             var oldPath = request._path;
 
             var applicationName = host.split(".")[0];
-            var testsApps = ["template", "test-agent", "uitest"];
-            if (testsApps.indexOf(applicationName) != -1) {
-              request._path = "/test_apps/" + applicationName + oldPath;
-            } else {
-              request._path = "/apps/" + applicationName + oldPath;
-            }
+            request._path = this._findRealPath(applicationName);
             dumpn(request._path + '\n');
           }
         } catch (e) {
@@ -1445,6 +1440,24 @@ RequestReader.prototype =
       this._handleError(e);
       return false;
     }
+  },
+
+  /**
+   * Try to find out real path of apps,
+   * according to GAIA_APP_RELATIVEPATH provided by Makefile. 
+   */ 
+  _findRealPath: function(appName) {
+    if (this._realPath) {
+      return this._realPath[appName];
+    }
+
+    this._realPath = {};
+
+    var appPathList = "@GAIA_APP_RELATIVEPATH@".split(" ");
+    for (var i; i < appPathList.length; i++) {
+      this._realPath[appPathList[i].split("/")[1]] = appPathList[i];
+    }
+    return this._realPath[appName];
   },
 
   /**
