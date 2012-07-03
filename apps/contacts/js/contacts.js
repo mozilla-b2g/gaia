@@ -392,7 +392,8 @@ var Contacts = (function() {
     request.onsuccess = function onsuccess() {
       // Reloading contact, as it only allows to be
       // updated once
-      contacts.List.getContactById(contact.id, function onSuccess(savedContact) {
+      var cList = contacts.List;
+      cList.getContactById(contact.id, function onSuccess(savedContact) {
         currentContact = savedContact;
         myContact.id = savedContact.id;
         myContact.photo = savedContact.photo;
