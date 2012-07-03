@@ -116,16 +116,12 @@ var AttentionScreen = {
 
   showForOrigin: function as_showForOrigin(origin) {
     var iframes = this.screen.querySelectorAll('iframe');
-    var shouldShow = false;
     for (var i = 0; i < iframes.length; i++) {
       if (iframes[i].dataset.frameOrigin == origin) {
-        shouldShow = true;
+        this.show();
         break;
       }
     }
-
-    if (shouldShow)
-      this.show();
   }
 };
 
