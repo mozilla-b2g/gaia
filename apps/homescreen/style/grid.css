@@ -171,19 +171,19 @@
 @-moz-keyframes jumpNextRow {
   0% { -moz-transform: translate(0,0) }
   48% { -moz-transform: translateX(100%) }
-  49% { -moz-transform: opacity: 0 }
-  50% { -moz-transform: translate(-400%, 100%); opacity: 0}
-  51% { -moz-transform: opacity: 0.6 }
+  49% { opacity: 0 }
+  50% { -moz-transform: translate(-400%, 100%); opacity: 0 }
+  51% { opacity: 0.6 }
 	100% { -moz-transform: translate(-300%, 100%) }
 }
 
 @-moz-keyframes jumpPrevRow {
-  0% { -moz-transform: translate(0,0); }
+  0% { -moz-transform: translate(0,0) }
   48% { -moz-transform: translateX(-100%) }
-  49% { -moz-transform: opacity: 0 }
+  49% { opacity: 0 }
   50% { -moz-transform: translate(400%, -100%); opacity: 0}
-  51% { -moz-transform: opacity: 0.6 }
-	100% { -moz-transform: translate(300%, -100%); }
+  51% { opacity: 0.6 }
+	100% { -moz-transform: translate(300%, -100%) }
 }
 
 .apps[data-mode = 'edit'] ol > li {
