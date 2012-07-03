@@ -398,10 +398,12 @@ var Contacts = (function() {
         currentContact = c;
         myContact.id = contact.id;
         myContact.photo = contact.photo;
+      contacts.List.getContactById(contact.id, function onSuccess(savedContact) {
         contactsList.refresh(myContact);
         reloadContactDetails(myContact);
         navigation.back();
       }, function() {
+      }, function onError() {
         saveButton.removeAttribute('disabled');
         console.error('Error reloading contact');
       });
