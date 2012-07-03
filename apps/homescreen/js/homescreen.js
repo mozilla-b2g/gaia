@@ -44,7 +44,12 @@ const Homescreen = (function() {
     if (mode === 'normal') {
       var dataset = event.target.dataset;
       if (dataset && typeof dataset.origin !== 'undefined') {
-        Applications.getByOrigin(dataset.origin).launch();
+        var app = Applications.getByOrigin(dataset.origin);
+        if (dataset.entrypoint) {
+          app.launch('#' + dataset.entrypoint);
+        } else {
+          app.launch();
+        }
       }
     }
   });
@@ -66,4 +71,3 @@ const Homescreen = (function() {
     }
   };
 })();
-
