@@ -237,8 +237,6 @@ var Contacts = (function() {
     }
 
     var cover = document.getElementById('cover-img');
-    var existsPhoto = 'photo' in contact && contact.photo != null;
-    if (existsPhoto && contact.photo != '') {
     var existsPhoto = 'photo' in contact && contact.photo;
     if (existsPhoto) {
       contactDetails.classList.add('up');
@@ -394,10 +392,6 @@ var Contacts = (function() {
     request.onsuccess = function onsuccess() {
       // Reloading contact, as it only allows to be
       // updated once
-      contacts.List.getContactById(contact.id, function(c) {
-        currentContact = c;
-        myContact.id = contact.id;
-        myContact.photo = contact.photo;
       contacts.List.getContactById(contact.id, function onSuccess(savedContact) {
         currentContact = savedContact;
         myContact.id = savedContact.id;
@@ -405,7 +399,6 @@ var Contacts = (function() {
         contactsList.refresh(myContact);
         reloadContactDetails(myContact);
         navigation.back();
-      }, function() {
       }, function onError() {
         saveButton.removeAttribute('disabled');
         console.error('Error reloading contact');
