@@ -512,20 +512,21 @@ const IMEController = (function() {
     if (!_isShowingAlternativesMenu)
       return;
 
-    function _actualHideAlternatives() {
+    function actualHideAlternatives() {
       IMERender.hideAlternativesCharMenu();
       _isShowingAlternativesMenu = false;
     }
 
-    if (addDelay) {
-      clearTimeout(_hideMenuTimeout);
-      _hideMenuTimeout = window.setTimeout(
-        _actualHideAlternatives,
-        _kHideAlternativesCharMenuTimeout
-      );
-    } else {
-      _actualHideAlternatives();
+    if (!addDelay) {
+      actualHideAlternatives();
+      return;
     }
+
+    clearTimeout(_hideMenuTimeout);
+    _hideMenuTimeout = window.setTimeout(
+      actualHideAlternatives,
+      _kHideAlternativesCharMenuTimeout
+    );
   }
 
   // Test if an HTML node is a normal key

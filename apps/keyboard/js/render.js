@@ -113,8 +113,7 @@ const IMERender = (function() {
     if (layout.needsCandidatePanel) {
       this.ime.insertBefore(
         candidatePanelToggleButtonCode(), this.ime.firstChild);
-      this.ime.insertBefore(
-        candidatePanelCode(), this.ime.firstChild);
+      this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
       this.ime.insertBefore(pendingSymbolPanelCode(), this.ime.firstChild);
       showPendingSymbols('');
       showCandidates([], true);
@@ -231,15 +230,14 @@ const IMERender = (function() {
   // Show keyboard alternatives
   var showKeyboardAlternatives = function(key, keyboards, current, switchCode) {
     var dataset, className, content = '';
-    var alreadyAdded = {};
     var menu = this.menu;
 
     var cssWidth = key.style.width;
     menu.classList.add('kbr-menu-lang');
     key.classList.add('kbr-menu-on');
 
+    var alreadyAdded = {};
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
-      // Ignore if already added
       if (alreadyAdded[kbr])
         continue;
 
