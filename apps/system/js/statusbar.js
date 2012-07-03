@@ -161,7 +161,7 @@ var StatusBar = {
 
     if (this.radioDisabled) {
       this.conn.textContent = _('airplane');
-      this.comm.dataset.l10nId = 'airplane';
+      this.conn.dataset.l10nId = 'airplane';
       this.signal.hidden = true;
       this.data.textContent = '';
       return;
