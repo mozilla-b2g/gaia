@@ -109,8 +109,10 @@ Icon.prototype = {
     this.initX = x;
     this.initY = y;
 
-    var draggableElem = this.draggableElem = this.icon.cloneNode();
+    var draggableElem = this.draggableElem = document.createElement('div');
     draggableElem.className = 'draggable';
+
+    draggableElem.appendChild(this.icon.cloneNode());
 
     var container = this.container;
     container.dataset.dragging = 'true';
@@ -134,7 +136,7 @@ Icon.prototype = {
    */
   onDragMove: function icon_onDragMove(x, y) {
     this.draggableElem.style.MozTransform =
-        'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px) scale(1.25)';
+        'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
   },
 
   /*
@@ -145,7 +147,8 @@ Icon.prototype = {
     draggableElem.style.MozTransition = '-moz-transform .4s';
     draggableElem.style.MozTransform =
         'translate(' + (this.targetXCenter - this.initXCenter) + 'px,' +
-        (this.targetYCenter - this.initYCenter) + 'px) scale(1)';
+        (this.targetYCenter - this.initYCenter) + 'px)';
+    draggableElem.querySelector('div').style.MozTransform = 'scale(1)';
 
     var that = this;
     draggableElem.addEventListener('transitionend', function ft(e) {

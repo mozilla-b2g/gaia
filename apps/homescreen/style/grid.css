@@ -99,23 +99,27 @@
   position: absolute;
   text-align: center;
   width: 8rem;
-  -moz-transform: scale(1.25);
-  -moz-transform-origin: 50% 6.25%;
 }
 
-.apps .draggable > img {
+.apps .draggable > div {
+  width: 100%;
+  -moz-transform: scale(1.25);
+  -moz-transition: -moz-transform .4s;
+}
+
+.apps .draggable > div > img {
   width: 6rem;
   height: 6rem;
 }
 
 /* label wrapper */
-.apps .draggable > span {
+.apps .draggable > div > span {
   /* shift left edge of text to center */
   left: 50%;
 }
 
 /* text label */
-.apps .draggable > span > span {
+.apps .draggable > div > span > span {
   font-size: -moz-calc(5.5 * 0.226rem); /* 5.5pt */
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
   /* shift left edge of text half distance to left */
