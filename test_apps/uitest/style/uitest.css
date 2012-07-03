@@ -164,6 +164,15 @@ body.test #tests {
 #test-iframe {
   border: none;
   width: 100%;
-  height: 100%;
+  height: -moz-calc(100% - 64px);
+  top: 64px;
   background-color: #fff;
+  position: absolute;
+}
+
+#test-panel-back {
+  position: absolute;
+  font-size: 24px;
+  padding: 5px;
+  margin: 8px;
 }

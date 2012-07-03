@@ -150,7 +150,7 @@ def install_gaia():
     try:
         install_gaia_fast()
     except:
-#       If anything goes wrong, fall back to the slow method.
+        # If anything goes wrong, fall back to the slow method.
         install_gaia_slow()
 
 if __name__ == '__main__':
