@@ -21,3 +21,4 @@ and talk to us on IRC:
   #B2G on irc.mozilla.org
 
 See INSTALL file in B2G repository for instructions on building and running B2G.
+
