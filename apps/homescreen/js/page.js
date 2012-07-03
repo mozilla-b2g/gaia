@@ -141,6 +141,14 @@ Icon.prototype = {
   onDragStop: function icon_onDragStop() {
     delete this.container.dataset.dragging;
     this.dragabbleSection.removeChild(this.draggableElem);
+  },
+
+  getTop: function icon_getTop() {
+    return this.container.getBoundingClientRect().top;
+  },
+
+  getOrigin: function icon_getOrigin() {
+    return this.descriptor.origin;
   }
 };
 

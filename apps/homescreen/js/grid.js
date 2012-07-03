@@ -664,9 +664,9 @@ const GridManager = (function() {
         } else if (overlapElem.className === 'page') {
             var currentPage = pageHelper.getCurrent();
             var lastIcon = currentPage.getLastIcon();
-            if (status.cCoords.y > lastIcon.container.offsetTop
+            if (status.cCoords.y > lastIcon.getTop()
                 && overlapElem !== lastIcon) {
-              currentPage.drop(draggableIconOrigin, lastIcon.descriptor.origin);
+              currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
             }
         }
       }
