@@ -44,16 +44,6 @@ var UITest = {
   },
   handleEvent: function ut_handleEvent(ev) {
     switch (ev.type) {
-      case 'keyup':
-        if (ev.keyCode != ev.DOM_VK_ESCAPE)
-          return;
-        if (window.location.hash) {
-          window.location.hash = '';
-          ev.preventDefault();
-        }
-        break;
-      // Replace the HW back key with back button on the panel.
-      // Please ref: https://bugzilla.mozilla.org/show_bug.cgi?id=769584
       case 'click':
         if (ev.target != this.backBtn) { 
           return;
