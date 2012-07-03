@@ -12,16 +12,17 @@
 const IMERender = (function() {
 
   var ime, menu, pendingSymbolPanel, candidatePanel, candidatePanelToggleButton;
-  var getUpperCaseValue, isSpecialKey;
+  var getUpperCaseValue, isSpecialKey, onScroll;
 
   var _menuKey, _altContainer;
 
   // Initiaze the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
-  var init = function kr_init(uppercaseFunction, keyTest) {
+  var init = function kr_init(uppercaseFunction, keyTest, scrollHandler) {
     getUpperCaseValue = uppercaseFunction;
     isSpecialKey = keyTest;
+    onScroll = scrollHandler;
     this.ime = document.getElementById('keyboard');
   }
 
@@ -45,7 +46,7 @@ const IMERender = (function() {
   }
 
   // Draw the keyboard and its components. Meat is here.
-  var draw = function kr_draw(layout, scrollHandler, flags) {
+  var draw = function kr_draw(layout, flags) {
     flags = flags || {};
 
     // change scale (Our target screen width is 320px)
@@ -106,13 +107,13 @@ const IMERender = (function() {
 
     this.ime.innerHTML = content;
     this.menu = document.getElementById('keyboard-accent-char-menu');
+    this.menu.addEventListener('scroll', onScroll);
 
     // Builds candidate panel
     if (layout.needsCandidatePanel) {
       this.ime.insertBefore(
         candidatePanelToggleButtonCode(), this.ime.firstChild);
-      this.ime.insertBefore(
-        candidatePanelCode(scrollHandler), this.ime.firstChild);
+      this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
       this.ime.insertBefore(pendingSymbolPanelCode(), this.ime.firstChild);
       showPendingSymbols('');
       showCandidates([], true);
@@ -235,8 +236,14 @@ const IMERender = (function() {
     menu.classList.add('kbr-menu-lang');
     key.classList.add('kbr-menu-on');
 
+    var alreadyAdded = {};
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
+      if (alreadyAdded[kbr])
+        continue;
+
       className = 'keyboard-key';
+      if (kbr === current)
+        className += ' kbr-key-hold';
 
       dataset = [
         {key: 'keyboard', value: kbr},
@@ -247,11 +254,15 @@ const IMERender = (function() {
         className, cssWidth,
         dataset
       );
+
+      alreadyAdded[kbr] = true;
     }
     menu.innerHTML = content;
 
     // Replace with the container
     _altContainer = document.createElement('div');
+    _altContainer.style.display = 'inline-block';
+    _altContainer.style.width = key.style.width;
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
     _menuKey = key;
@@ -379,10 +390,10 @@ const IMERender = (function() {
     return pendingSymbolPanel;
   };
 
-  var candidatePanelCode = function(scrollHandler) {
+  var candidatePanelCode = function() {
     var candidatePanel = document.createElement('div');
     candidatePanel.id = 'keyboard-candidate-panel';
-    candidatePanel.addEventListener('scroll', scrollHandler);
+    candidatePanel.addEventListener('scroll', onScroll);
     return candidatePanel;
   };
 

@@ -109,10 +109,17 @@ var AttentionScreen = {
           // The user is hiding the attention screen to use the phone we better
           // not turn the sreen off when the attention screen is closed.
           this._screenInitiallyDisabled = false;
-
-          evt.preventDefault();
-          evt.stopPropagation();
         }
+      }
+    }
+  },
+
+  showForOrigin: function as_showForOrigin(origin) {
+    var iframes = this.screen.querySelectorAll('iframe');
+    for (var i = 0; i < iframes.length; i++) {
+      if (iframes[i].dataset.frameOrigin == origin) {
+        this.show();
+        break;
       }
     }
   }

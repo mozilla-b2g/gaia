@@ -331,8 +331,7 @@ var WindowManager = (function() {
     // Lock orientation as needed
     if (newApp == null) {  // going to the homescreen, so force portrait
       screen.mozLockOrientation('portrait-primary');
-    }
-    else {
+    } else {
       setOrientationForApp(newApp);
     }
 
@@ -340,6 +339,9 @@ var WindowManager = (function() {
 
     // Update the loading icon since the displayedApp is changed
     updateLoadingIcon();
+
+    // If the app has a attention screen open, displaying it
+    AttentionScreen.showForOrigin(origin);
   }
 
   function setOrientationForApp(origin) {
