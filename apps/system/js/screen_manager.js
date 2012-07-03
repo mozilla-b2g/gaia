@@ -23,6 +23,8 @@ var ScreenManager = {
 
   _brightness: 0.5,
 
+  _dimStep: 0.005,
+
   isIdleObserverInitialized: false,
 
   init: function scm_init() {
@@ -167,7 +169,7 @@ var ScreenManager = {
       if (!self._inTransition)
         return;
 
-      screenBrightness -= 0.02;
+      screenBrightness -= self._dimStep;
 
       if (screenBrightness <= 0) {
         finish();
