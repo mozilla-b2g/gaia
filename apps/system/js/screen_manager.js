@@ -77,7 +77,7 @@ var ScreenManager = {
       self.turnScreenOn();
     };
 
-    SettingsListener.observe('screen.timeout', 5,
+    SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       self.setIdleTimeout(value);
     });
