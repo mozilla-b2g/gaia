@@ -803,7 +803,7 @@ var ConversationView = {
 
         fragment += self.createMessageThread(msg);
       }
-      
+
       view.innerHTML = fragment;
       self.scrollViewToBottom(currentScrollTop);
 
