@@ -286,10 +286,6 @@ var ConversationListView = {
       It should be timestamp in normal view, and order by name while searching
     */
     MessageManager.getMessages(function getMessagesCallback(messages) {
-      // if (pendingMsg &&
-      //     (!messages[0] || messages[0].id !== pendingMsg.id))
-      //   messages.unshift(pendingMsg);
-
       /** QUICK and dirty fix for the timestamp issues,
        * it seems that API call does not give the messages ordered
        * so we need to sort the array
