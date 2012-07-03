@@ -548,13 +548,14 @@ var ConversationListView = {
 
   executeMessageDelete: function cl_executeMessageDelete() {
     var delList = this.view.querySelectorAll('input[type=checkbox][data-num]');
-    var delNumList = [];
+    var delNum = [];
     for (var elem in delList) {
       if (delList[elem].checked) {
-        delNumList.push(delList[elem].dataset.num);
+        delNum.push(delList[elem].dataset.num);
       }
     }
-    this.deleteMessages(delNumList);
+    this.deleteMessages(delNum);
+    this.delNumList = [];
   },
 
   executeAllMessagesDelete: function cl_executeAllMessagesDelete() {
