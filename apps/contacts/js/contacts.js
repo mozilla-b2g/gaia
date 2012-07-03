@@ -113,7 +113,6 @@ var Contacts = (function() {
 
   var numberEmails = 0;
   var numberPhones = 0;
-  var saving = false;
   var currentContactId,
       detailsName,
       givenName,
@@ -372,7 +371,6 @@ var Contacts = (function() {
   };
 
   var saveContact = function saveContact() {
-    saving = true;
     var name = [givenName.value] || [''];
     var lastName = [familyName.value] || [''];
     var org = [company.value] || [''];
@@ -406,11 +404,9 @@ var Contacts = (function() {
       contactsList.refresh(myContact);
       reloadContactDetails(myContact);
       navigation.back();
-      saving = false;
     };
 
     request.onerror = function onerror() {
-      saving = false;
       console.error('Error saving contact');
     }
   };
