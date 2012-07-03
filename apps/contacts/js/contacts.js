@@ -119,13 +119,13 @@ var Contacts = (function() {
       company,
       familyName,
       formTitle,
-      formActions,
       phoneTemplate,
       emailTemplate,
       phonesContainer,
       emailContainer,
       selectedTag,
-      contactDetails;
+      contactDetails,
+      saveButton;
 
   var currentContact = {};
 
@@ -138,12 +138,12 @@ var Contacts = (function() {
     familyName = document.getElementById('familyName');
     detailsName = document.getElementById('contact-name-title');
     formTitle = document.getElementById('contact-form-title');
-    formActions = document.getElementById('contact-form-actions');
     phoneTemplate = document.getElementById('add-phone');
     emailTemplate = document.getElementById('add-email');
     phonesContainer = document.getElementById('contacts-form-phones');
     emailContainer = document.getElementById('contacts-form-email');
     contactDetails = document.getElementById('contact-detail');
+    saveButton = document.getElementById('save-button');
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -166,21 +166,27 @@ var Contacts = (function() {
 
     var position = 0;
     contactDetails.addEventListener('mousedown', function(event) {
-      var startPosition = event.clientY;
-      var currentPosition;
-
       if (contactDetails.classList.contains('no-photo'))
         return;
 
+      var startPosition = event.clientY;
+      var currentPosition;
+      var initMargin = '8rem';
+      contactDetails.classList.add('up');
+
       var onMouseMove = function onMouseMove(event) {
         currentPosition = event.clientY;
-        if (startPosition < currentPosition) {
-          contactDetails.classList.add('down');
+        var newMargin = currentPosition - startPosition;
+        if (newMargin > 0 && newMargin < 200) {
+          contactDetails.classList.remove('up');
+          var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
+          contactDetails.style.marginTop = calc;
         }
       };
 
       var onMouseUp = function onMouseUp(event) {
-        contactDetails.classList.remove('down');
+        contactDetails.classList.add('up');
+        contactDetails.style.marginTop = initMargin;
         contactDetails.removeEventListener('mousemove', onMouseMove);
         contactDetails.removeEventListener('mouseup', onMouseUp);
       };
@@ -196,6 +202,7 @@ var Contacts = (function() {
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
     contactDetails.classList.remove('no-photo');
+    contactDetails.classList.remove('up');
 
     var orgTitle = document.getElementById('org-title');
     if (contact.org && contact.org[0] != '') {
@@ -230,22 +237,27 @@ var Contacts = (function() {
     }
 
     var cover = document.getElementById('cover-img');
-    if ('photo' in contact && contact.photo != '') {
+    var existsPhoto = 'photo' in contact && contact.photo;
+    if (existsPhoto) {
+      contactDetails.classList.add('up');
       cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
     } else {
+      cover.style.backgroundImage = null;
+      contactDetails.style.marginTop = null;
       contactDetails.classList.add('no-photo');
+    }
+
+    //Removes unnecesary scroll
+    if (contactDetails.offsetHeight == cover.clientHeight) {
+      cover.style.overflow = 'hidden';
+    } else {
+      cover.style.overflow = null;
     }
   };
 
   var showEdit = function showEdit() {
     resetForm();
     formTitle.innerHTML = 'Edit contact';
-    var editActions = [
-      { label: '' },
-      { label: 'Done', callback: saveContact }
-    ];
-
-    buildActions(editActions);
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
@@ -344,15 +356,12 @@ var Contacts = (function() {
 
     insertEmptyPhone(0);
     insertEmptyEmail(0);
-    buildActions([
-      { label: '' },
-      { label: 'Done', callback: saveContact}
-    ]);
 
     edit();
   };
 
   var saveContact = function saveContact() {
+    saveButton.setAttribute('disabled', 'disabled');
     var name = [givenName.value] || [''];
     var lastName = [familyName.value] || [''];
     var org = [company.value] || [''];
@@ -381,11 +390,20 @@ var Contacts = (function() {
 
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
-      myContact.id = contact.id;
-      myContact.photo = contact.photo;
-      contactsList.refresh(myContact);
-      reloadContactDetails(myContact);
-      navigation.back();
+      // Reloading contact, as it only allows to be
+      // updated once
+      var cList = contacts.List;
+      cList.getContactById(contact.id, function onSuccess(savedContact) {
+        currentContact = savedContact;
+        myContact.id = savedContact.id;
+        myContact.photo = savedContact.photo;
+        contactsList.refresh(myContact);
+        reloadContactDetails(myContact);
+        navigation.back();
+      }, function onError() {
+        saveButton.removeAttribute('disabled');
+        console.error('Error reloading contact');
+      });
     };
 
     request.onerror = function onerror() {
@@ -451,26 +469,8 @@ var Contacts = (function() {
     numberEmails++;
   };
 
-  var buildActions = function(actions) {
-    for (var i in actions) {
-      var action = document.createElement('button');
-      action.onclick = actions[i].callback;
-      action.setAttribute('role', 'menuitem');
-
-      if (actions[i].icon) {
-        var icon = document.createElement('span');
-        icon.dataset.icon = actions[i].icon;
-        icon.innerHTML = actions[i].label;
-        action.appendChild(icon);
-      } else {
-        action.textContent = actions[i].label;
-      }
-      formActions.appendChild(action);
-    }
-  };
-
   var resetForm = function() {
-    formActions.innerHTML = '';
+    saveButton.removeAttribute('disabled');
     currentContactId.value = '';
     givenName.value = '';
     familyName.value = '';
@@ -500,6 +500,7 @@ var Contacts = (function() {
     'addNewEmail' : insertEmptyEmail,
     'goBack' : navigation.back,
     'goToSelectTag': goToSelectTag,
-    'sendSms': sendSms
+    'sendSms': sendSms,
+    'saveContact': saveContact
   };
 })();
