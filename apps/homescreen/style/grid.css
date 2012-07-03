@@ -99,12 +99,11 @@
   position: absolute;
   text-align: center;
   width: 8rem;
+  -moz-transform: scale(1.25);
+  -moz-transform-origin: 50% 6.25%;
 }
 
 .apps .draggable > img {
-  margin-bottom: .6rem;
-  -moz-transition: -moz-transform .4s;
-  -moz-transform: scale(1.25);
   width: 6rem;
   height: 6rem;
 }
@@ -117,10 +116,10 @@
 
 /* text label */
 .apps .draggable > span > span {
-  font-size: 2rem;
-  text-shadow: 0 0 5px #666;
+  font-size: -moz-calc(5.5 * 0.226rem); /* 5.5pt */
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
   /* shift left edge of text half distance to left */
-  margin-left: -100%;
+  margin-left: -106%;
 }
 
 @-moz-keyframes shake {
