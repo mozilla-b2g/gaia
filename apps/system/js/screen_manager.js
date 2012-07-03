@@ -6,7 +6,7 @@
 var ScreenManager = {
   /*
   * return the current screen status
-  * Must not multate directly - use toggleScreen/turnScreenOff/turnScreenOn.
+  * Must not mutate directly - use toggleScreen/turnScreenOff/turnScreenOn.
   * Listen to 'screenchange' event to properly handle status changes
   * This value can be "out of sync" with real mozPower value,
   * we do this to give screen some time to flash before actual turn off.
@@ -74,7 +74,6 @@ var ScreenManager = {
 
     this.idleObserver.onactive = function scm_onactive() {
       self._idled = false;
-      self.turnScreenOn();
     };
 
     SettingsListener.observe('screen.timeout', 60,
@@ -130,11 +129,15 @@ var ScreenManager = {
       // The screenshot module also listens for the SLEEP key and
       // may call preventDefault() on the keyup and keydown events.
       case 'keydown':
-        if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
+        if (evt.keyCode !== evt.DOM_VK_SLEEP &&
+            evt.keyCode !== evt.DOM_VK_HOME  || this._screenWakeLocked) {
           return;
+        }
 
-        if (!evt.defaultPrevented)
+        if (!evt.defaultPrevented) {
           this._turnOffScreenOnKeyup = true;
+        }
+
         if (!this.screenEnabled || this._inTransition) {
           this.turnScreenOn();
           this._turnOffScreenOnKeyup = false;
