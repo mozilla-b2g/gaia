@@ -399,11 +399,18 @@ var Contacts = (function() {
 
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
-      myContact.id = contact.id;
-      myContact.photo = contact.photo;
-      contactsList.refresh(myContact);
-      reloadContactDetails(myContact);
-      navigation.back();
+      // Reloading contact, as it only allows to be
+      // updated once
+      contacts.List.getContactById(contact.id, function(c) {
+        currentContact = c;
+        myContact.id = contact.id;
+        myContact.photo = contact.photo;
+        contactsList.refresh(myContact);
+        reloadContactDetails(myContact);
+        navigation.back();
+      }, function() {
+        console.error("Error reloading contact");
+      });
     };
 
     request.onerror = function onerror() {
