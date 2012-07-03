@@ -45,29 +45,31 @@ var Applications = (function() {
   installer.getAll().onsuccess = function onSuccess(e) {
     var apps = e.target.result;
     apps.forEach(function parseApp(app) {
-      if (app.manifest.icons) {
-        /*
-        * If the manifest contains entry points, iterate over them
-        * and add a fake app object for each one.
-        */
-        var entryPoints = app.manifest.entry_points;
-        if (entryPoints) {
-          for (var launchPath in entryPoints) {
-            if (!entryPoints[launchPath].hasOwnProperty('icons')) {
-              continue;
-            }
-
-            var alternativeOrigin = app.origin + '/' + launchPath;
-
-            var newApp = new ApplicationMock(app,
-                                  launchPath,
-                                  alternativeOrigin);
-
-            installedApps[alternativeOrigin] = newApp;
+      if (!app.manifest && !app.manifest.icons) {
+        continue;
+      }
+      /*
+      * If the manifest contains entry points, iterate over them
+      * and add a fake app object for each one.
+      */
+      var entryPoints = app.manifest.entry_points;
+      if (entryPoints) {
+        for (var launchPath in entryPoints) {
+          if (!entryPoints[launchPath].hasOwnProperty('icons')) {
+            continue;
           }
-        } else {
-          installedApps[app.origin] = app;
+
+          var alternativeOrigin = app.origin + '/' + launchPath;
+
+          var newApp = new ApplicationMock(app,
+                                launchPath,
+                                alternativeOrigin);
+
+          installedApps[alternativeOrigin] = newApp;
         }
+      } else {
+        //Normal app, no entry points
+        installedApps[app.origin] = app;
       }
     });
 
