@@ -23,18 +23,16 @@ var ScreenManager = {
 
   _brightness: 0.5,
 
-  isIdleObserverInitialized: false,
+  _dimStep: 0.005,
 
   init: function scm_init() {
     /* Allow others to cancel the keyup event but not the keydown event */
     window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this);
 
-    /* Respect the information from DeviceLight sensor */
     window.addEventListener('devicelight', this);
-
-    /* fullscreenchange event */
     window.addEventListener('mozfullscreenchange', this);
+    window.addEventListener('mozvisibilitychange', this, true);
 
     this.screen = document.getElementById('screen');
     this.screen.classList.remove('screenoff');
@@ -50,11 +48,10 @@ var ScreenManager = {
           if (self._screenWakeLocked) {
             // Turn screen on if wake lock is acquire
             self.turnScreenOn();
-          } else {
+          } else if (self._idled) {
             // Turn screen off if we are already idled
             // and wake lock is released
-            if (self._idled)
-              self.turnScreenOff(false);
+            self.turnScreenOff(false);
           }
           break;
 
@@ -124,6 +121,12 @@ var ScreenManager = {
         }
         break;
 
+      case 'mozvisibilitychange':
+        if (document.mozHidden && this.screenEnabled) {
+          this.turnScreenOff(true);
+        }
+        break;
+
       // The screenshot module also listens for the SLEEP key and
       // may call preventDefault() on the keyup and keydown events.
       case 'keydown':
@@ -136,13 +139,12 @@ var ScreenManager = {
           this.turnScreenOn();
           this._turnOffScreenOnKeyup = false;
         }
-
         break;
+
       case 'keyup':
         if (this.screenEnabled && this._turnOffScreenOnKeyup &&
             evt.keyCode == evt.DOM_VK_SLEEP && !evt.defaultPrevented)
           this.turnScreenOff(true);
-
         break;
     }
   },
@@ -167,7 +169,7 @@ var ScreenManager = {
       if (!self._inTransition)
         return;
 
-      screenBrightness -= 0.02;
+      screenBrightness -= self._dimStep;
 
       if (screenBrightness <= 0) {
         finish();
@@ -246,16 +248,11 @@ var ScreenManager = {
   setIdleTimeout: function scm_setIdleTimeout(time) {
     if (!('addIdleObserver' in navigator))
       return;
+    navigator.removeIdleObserver(this.idleObserver);
 
-    // Remove the original observer iif there is a previous observer
-    // otherwise Gecko hit an assertion in debug mode.
-    if (this.isIdleObserverInitialized) {
-      navigator.removeIdleObserver(this.idleObserver);
-    }
-
-    // If time = 0, then there is no idle timeout to set.
-    if (!time)
+    if (time === 0) {
       return;
+    }
 
     this.idleObserver.time = time;
     navigator.addIdleObserver(this.idleObserver);
@@ -272,3 +269,4 @@ var ScreenManager = {
 };
 
 ScreenManager.init();
+

@@ -610,6 +610,12 @@ var WindowManager = (function() {
     kill(e.target.dataset.frameOrigin);
   });
 
+  // Deal with application uninstall event
+  // if the application is being uninstalled, we ensure it stop running here.
+  window.addEventListener('applicationuninstall', function(e) {
+    kill(e.detail.application.origin);
+  });
+
   // Stop running the app with the specified origin
   function kill(origin) {
     if (!isRunning(origin))
