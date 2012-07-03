@@ -1,6 +1,6 @@
 'use strict';
 
-var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+var idb = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
 var GlobalHistory = {
@@ -118,7 +118,7 @@ GlobalHistory.db = {
   open: function db_open(callback) {
     const DB_VERSION = 2;
     const DB_NAME = 'browser';
-    var request = indexedDB.open(DB_NAME, DB_VERSION);
+    var request = idb.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (function onUpgradeNeeded(e) {
       console.log('Browser database upgrade needed, upgrading.');
