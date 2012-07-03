@@ -119,7 +119,6 @@ var Contacts = (function() {
       company,
       familyName,
       formTitle,
-      formActions,
       phoneTemplate,
       emailTemplate,
       phonesContainer,
@@ -138,7 +137,6 @@ var Contacts = (function() {
     familyName = document.getElementById('familyName');
     detailsName = document.getElementById('contact-name-title');
     formTitle = document.getElementById('contact-form-title');
-    formActions = document.getElementById('contact-form-actions');
     phoneTemplate = document.getElementById('add-phone');
     emailTemplate = document.getElementById('add-email');
     phonesContainer = document.getElementById('contacts-form-phones');
@@ -258,12 +256,6 @@ var Contacts = (function() {
   var showEdit = function showEdit() {
     resetForm();
     formTitle.innerHTML = 'Edit contact';
-    var editActions = [
-      { label: '' },
-      { label: 'Done', callback: saveContact }
-    ];
-
-    buildActions(editActions);
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
@@ -362,10 +354,6 @@ var Contacts = (function() {
 
     insertEmptyPhone(0);
     insertEmptyEmail(0);
-    buildActions([
-      { label: '' },
-      { label: 'Done', callback: saveContact}
-    ]);
 
     edit();
   };
@@ -476,26 +464,7 @@ var Contacts = (function() {
     numberEmails++;
   };
 
-  var buildActions = function(actions) {
-    for (var i in actions) {
-      var action = document.createElement('button');
-      action.onclick = actions[i].callback;
-      action.setAttribute('role', 'menuitem');
-
-      if (actions[i].icon) {
-        var icon = document.createElement('span');
-        icon.dataset.icon = actions[i].icon;
-        icon.innerHTML = actions[i].label;
-        action.appendChild(icon);
-      } else {
-        action.textContent = actions[i].label;
-      }
-      formActions.appendChild(action);
-    }
-  };
-
   var resetForm = function() {
-    formActions.innerHTML = '';
     currentContactId.value = '';
     givenName.value = '';
     familyName.value = '';
@@ -525,6 +494,7 @@ var Contacts = (function() {
     'addNewEmail' : insertEmptyEmail,
     'goBack' : navigation.back,
     'goToSelectTag': goToSelectTag,
-    'sendSms': sendSms
+    'sendSms': sendSms,
+    'saveContact': saveContact
   };
 })();
