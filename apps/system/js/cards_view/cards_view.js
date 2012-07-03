@@ -205,7 +205,7 @@ var CardsView = (function() {
     
     if (USER_DEFINED_ORDERING && draggedElement !== null) {
       var differenceX = touchPosition.x - initialTouchPosition.x;
-      var moveOffset = touchPosition.x + (cardsList.children[currentDisplayed].offsetLeft/0.6);
+      var moveOffset = (cardsList.children[currentDisplayed].offsetLeft/0.6) + differenceX - (dragMargin/0.6);
       
       draggedElement.style.MozTransform = 'scale(0.6) translate('+ moveOffset +'px, 0)';
       if (Math.abs(differenceX) > threshold) {
@@ -312,10 +312,7 @@ var CardsView = (function() {
     draggedElement = evt.target;
     allowScrollingWhileSorting = true;
     if (draggedElement.classList.contains('card')) {
-      // I don't want to rebuild all the CSS for the CardsView
-      // so appending the element as the last child solves margin
-      // problem with the first card
-      //element.parentNode.appendChild(element);
+      dragMargin = draggedElement.offsetLeft;
       draggedElement.dataset['edit'] = true;
     }
   }
