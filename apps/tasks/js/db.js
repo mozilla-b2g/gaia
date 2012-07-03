@@ -4,7 +4,10 @@ var SimpleDB = {
 
   query: function(dbName, storeName, func, callback, data) {
 
-    var request = mozIndexedDB.open(dbName, 5);
+    var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+        window.mozIndexedDB || window.msIndexedDB;
+
+    var request = indexedDB.open(dbName, 5);
 
     request.onsuccess = function(event) {
       func(request.result, storeName, callback, data);

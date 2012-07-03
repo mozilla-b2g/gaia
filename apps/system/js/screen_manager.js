@@ -13,9 +13,19 @@ var ScreenManager = {
   */
   screenEnabled: true,
 
+  _inTransition: false,
+
+  _idled: false,
+
+  _screenWakeLocked: false,
+
   _deviceLightEnabled: true,
 
   _brightness: 0.5,
+
+  _dimStep: 0.005,
+
+  isIdleObserverInitialized: false,
 
   init: function scm_init() {
     /* Allow others to cancel the keyup event but not the keydown event */
@@ -32,6 +42,50 @@ var ScreenManager = {
     this.screen.classList.remove('screenoff');
 
     var self = this;
+    var power = navigator.mozPower;
+
+    power.addWakeLockListener(function scm_handleWakeLock(topic, state) {
+      switch (topic) {
+        case 'screen':
+          self._screenWakeLocked = (state == 'locked-foreground');
+
+          if (self._screenWakeLocked) {
+            // Turn screen on if wake lock is acquire
+            self.turnScreenOn();
+          } else {
+            // Turn screen off if we are already idled
+            // and wake lock is released
+            if (self._idled)
+              self.turnScreenOff(false);
+          }
+          break;
+
+        case 'cpu':
+          power.cpuSleepAllowed = (state != 'locked-foreground' &&
+                                   state != 'locked-background');
+          break;
+
+        case 'wifi':
+          // Do we need to do anything in Gaia?
+          break;
+      }
+    });
+
+    this.idleObserver.onidle = function scm_onidle() {
+      self._idled = true;
+      if (!self._screenWakeLocked)
+        self.turnScreenOff(false);
+    };
+
+    this.idleObserver.onactive = function scm_onactive() {
+      self._idled = false;
+      self.turnScreenOn();
+    };
+
+    SettingsListener.observe('screen.timeout', 60,
+    function screenTimeoutChanged(value) {
+      self.setIdleTimeout(value);
+    });
 
     SettingsListener.observe('screen.automatic-brightness', true,
     function deviceLightSettingChanged(value) {
@@ -51,10 +105,10 @@ var ScreenManager = {
   },
 
   handleEvent: function scm_handleEvent(evt) {
-    this._syncScreenEnabledValue();
     switch (evt.type) {
       case 'devicelight':
-        if (!this._deviceLightEnabled || !this.screenEnabled)
+        if (!this._deviceLightEnabled || !this.screenEnabled ||
+            this._inTransition)
           return;
 
         // This is a rather naive but pretty effective heuristic
@@ -80,7 +134,7 @@ var ScreenManager = {
 
         if (!evt.defaultPrevented)
           this._turnOffScreenOnKeyup = true;
-        if (!this.screenEnabled) {
+        if (!this.screenEnabled || this._inTransition) {
           this.turnScreenOn();
           this._turnOffScreenOnKeyup = false;
         }
@@ -89,7 +143,7 @@ var ScreenManager = {
       case 'keyup':
         if (this.screenEnabled && this._turnOffScreenOnKeyup &&
             evt.keyCode == evt.DOM_VK_SLEEP && !evt.defaultPrevented)
-          this.turnScreenOff();
+          this.turnScreenOff(true);
 
         break;
     }
@@ -104,25 +158,57 @@ var ScreenManager = {
     }
   },
 
-  turnScreenOff: function scm_turnScreenOff() {
-    this._syncScreenEnabledValue();
-    if (!this.screenEnabled)
+  turnScreenOff: function scm_turnScreenOff(instant) {
+    if (!this.screenEnabled || this._inTransition)
       return false;
 
-    navigator.mozPower.screenBrightness = 0.0;
+    var self = this;
+    var screenBrightness = navigator.mozPower.screenBrightness;
 
-    this.screenEnabled = false;
-    this.screen.classList.add('screenoff');
-    setTimeout(function realScreenOff() {
-      navigator.mozPower.screenEnabled = false;
-    }, 20);
+    var dim = function scm_dim() {
+      if (!self._inTransition)
+        return;
 
-    this.fireScreenChangeEvent();
+      screenBrightness -= self._dimStep;
+
+      if (screenBrightness <= 0) {
+        finish();
+        return;
+      }
+
+      navigator.mozPower.screenBrightness = screenBrightness;
+      setTimeout(dim, 10);
+    };
+
+    var finish = function scm_finish() {
+      self.screenEnabled = false;
+      self._inTransition = false;
+      self.screen.classList.add('screenoff');
+      setTimeout(function realScreenOff() {
+        navigator.mozPower.screenEnabled = false;
+      }, 20);
+
+      self.fireScreenChangeEvent();
+    };
+
+    if (instant) {
+      finish();
+    } else {
+      this._inTransition = true;
+      dim();
+    }
+
     return true;
   },
 
   turnScreenOn: function scm_turnScreenOn() {
-    this._syncScreenEnabledValue();
+    if (this._inTransition) {
+      // The user had cancel the turnScreenOff action.
+      this._inTransition = false;
+      navigator.mozPower.screenBrightness = this._brightness;
+      return false;
+    }
+
     if (this.screenEnabled)
       return false;
 
@@ -152,10 +238,30 @@ var ScreenManager = {
     this._deviceLightEnabled = enabled;
   },
 
-  // XXX: this function is needed here because mozPower.screenEnabled
-  // can be changed by shell.js instead of us.
-  _syncScreenEnabledValue: function scm_syncScreenEnabledValue() {
-    this.screenEnabled = navigator.mozPower.screenEnabled;
+  // The idleObserver that we will pass to IdleAPI
+  idleObserver: {
+    time: 60,
+    onidle: null,
+    onactive: null
+  },
+
+  setIdleTimeout: function scm_setIdleTimeout(time) {
+    if (!('addIdleObserver' in navigator))
+      return;
+
+    // Remove the original observer iif there is a previous observer
+    // otherwise Gecko hit an assertion in debug mode.
+    if (this.isIdleObserverInitialized) {
+      navigator.removeIdleObserver(this.idleObserver);
+    }
+
+    // If time = 0, then there is no idle timeout to set.
+    if (!time)
+      return;
+
+    this.idleObserver.time = time;
+    navigator.addIdleObserver(this.idleObserver);
+    this.isIdleObserverInitialized = true;
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {

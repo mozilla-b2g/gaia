@@ -134,7 +134,7 @@ domains.push(GAIA_DOMAIN);
     if (perms) {
       for each(let name in perms) {
         if (!permissions[name])
-          return;
+          continue;
 
         permissions[name].urls.push(rootURL);
 
