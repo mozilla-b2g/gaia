@@ -23,6 +23,10 @@ var ScreenManager = {
 
   _brightness: 0.5,
 
+  _dimStep: 0.005,
+
+  isIdleObserverInitialized: false,
+
   init: function scm_init() {
     /* Allow others to cancel the keyup event but not the keydown event */
     window.addEventListener('keydown', this, true);
@@ -165,7 +169,7 @@ var ScreenManager = {
       if (!self._inTransition)
         return;
 
-      screenBrightness -= 0.02;
+      screenBrightness -= self._dimStep;
 
       if (screenBrightness <= 0) {
         finish();
@@ -177,7 +181,6 @@ var ScreenManager = {
     };
 
     var finish = function scm_finish() {
-
       self.screenEnabled = false;
       self._inTransition = false;
       self.screen.classList.add('screenoff');
@@ -185,7 +188,7 @@ var ScreenManager = {
         navigator.mozPower.screenEnabled = false;
       }, 20);
 
-      this.fireScreenChangeEvent();
+      self.fireScreenChangeEvent();
     };
 
     if (instant) {
@@ -203,8 +206,9 @@ var ScreenManager = {
       // The user had cancel the turnScreenOff action.
       this._inTransition = false;
       navigator.mozPower.screenBrightness = this._brightness;
-      return;
+      return false;
     }
+
     if (this.screenEnabled)
       return false;
 
@@ -242,11 +246,14 @@ var ScreenManager = {
   },
 
   setIdleTimeout: function scm_setIdleTimeout(time) {
-    if (!navigator.addIdleObserver)
+    if (!('addIdleObserver' in navigator))
       return;
 
-    // Remove the original observer.
-    navigator.removeIdleObserver(this.idleObserver);
+    // Remove the original observer iif there is a previous observer
+    // otherwise Gecko hit an assertion in debug mode.
+    if (this.isIdleObserverInitialized) {
+      navigator.removeIdleObserver(this.idleObserver);
+    }
 
     // If time = 0, then there is no idle timeout to set.
     if (!time)
@@ -254,6 +261,7 @@ var ScreenManager = {
 
     this.idleObserver.time = time;
     navigator.addIdleObserver(this.idleObserver);
+    this.isIdleObserverInitialized = true;
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {

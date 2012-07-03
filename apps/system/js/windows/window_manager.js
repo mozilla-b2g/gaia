@@ -610,6 +610,12 @@ var WindowManager = (function() {
     kill(e.target.dataset.frameOrigin);
   });
 
+  // Deal with application uninstall event
+  // if the application is being uninstalled, we ensure it stop running here.
+  window.addEventListener('applicationuninstall', function(e) {
+    kill(e.detail.application.origin);
+  });
+
   // Stop running the app with the specified origin
   function kill(origin) {
     if (!isRunning(origin))
@@ -647,7 +653,7 @@ var WindowManager = (function() {
   window.addEventListener('mozbrowserloadstart', function(e) {
     var dataset = e.target.dataset;
     // Only update frames open by ourselves
-    if (!'frameType' in dataset || dataset.frameType !== 'window')
+    if (!('frameType' in dataset) || dataset.frameType !== 'window')
       return;
 
     dataset.loading = true;
@@ -663,7 +669,7 @@ var WindowManager = (function() {
   window.addEventListener('mozbrowserloadend', function(e) {
     var dataset = e.target.dataset;
     // Only update frames open by ourselves
-    if (!'frameType' in dataset || dataset.frameType !== 'window')
+    if (!('frameType' in dataset) || dataset.frameType !== 'window')
       return;
 
     delete dataset.loading;

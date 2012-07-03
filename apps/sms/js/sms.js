@@ -286,9 +286,11 @@ var ConversationListView = {
       It should be timestamp in normal view, and order by name while searching
     */
     MessageManager.getMessages(function getMessagesCallback(messages) {
-      if (pendingMsg &&
-          (!messages[0] || messages[0].id !== pendingMsg.id))
-        messages.unshift(pendingMsg);
+      /** Once https://bugzilla.mozilla.org/show_bug.cgi?id=769347
+      lands, this fix should be removed.*/
+      messages.sort(function(a, b) {
+        return b.timestamp - a.timestamp;
+      });
 
       var conversations = {};
       for (var i = 0; i < messages.length; i++) {
@@ -790,7 +792,7 @@ var ConversationView = {
 
         fragment += self.createMessageThread(msg);
       }
-
+      
       view.innerHTML = fragment;
       self.scrollViewToBottom(currentScrollTop);
 
@@ -892,9 +894,9 @@ var ConversationView = {
 
       case 'received':
         var msg = evt.message;
-
-        if (this.filter)
-          this.showConversation(ConversationView.filter, msg);
+        if (this.filter && this.filter == msg.sender) {
+          this.showConversation(ConversationView.filter);
+        }
         break;
 
       case 'transitionend':
