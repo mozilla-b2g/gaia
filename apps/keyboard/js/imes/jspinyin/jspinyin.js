@@ -3181,12 +3181,17 @@ DictDef.SpellingId.prototype = {
  * A node occupies 16 bytes. so, totallly less than 16 * 500 = 8K
  */
 DictDef.LmaNodeLE0 = function lmaNodeLE0_constructor() {
+  this.son_1st_off = 0;
+  this.homo_idx_buf_off = 0;
+  this.spl_idx = 0;
+  this.num_of_son = 0;
+  this.num_of_homo = 0;
 };
 
 DictDef.LmaNodeLE0.prototype = {
   son_1st_off: 0,
   homo_idx_buf_off: 0,
-  pl_idx: 0,
+  spl_idx: 0,
   num_of_son: 0,
   num_of_homo: 0
 };
@@ -3224,6 +3229,12 @@ DictDef.LemmaEntry = function lemmaEntry_constructor() {
   this.hanzi_scis_ids = [];
   this.spl_idx_arr = [];
   this.pinyin_str = [];
+  for (var pos = 0; pos < DictDef.kMaxLemmaSize; pos++) {
+    this.hanzi_scis_ids[pos] = 0;
+    this.spl_idx_arr[pos] = 0;
+    this.pinyin_str[pos] = '';
+  }
+  this.spl_idx_arr[DictDef.kMaxLemmaSize] = 0;
 };
 
 DictDef.LemmaEntry.prototype = {
@@ -3231,15 +3242,33 @@ DictDef.LemmaEntry.prototype = {
   idx_by_hz: 0,
   hanzi_str: '',
 
-  // The SingleCharItem id for each Hanzi.
+  /**
+   * The SingleCharItem id for each Hanzi.
+   * The length is DictDef.kMaxLemmaSize.
+   * @type Array.<number>
+   */
   hanzi_scis_ids: null,
 
-  spl_idx_arr: null,
   /**
+   * The array length is DictDef.kMaxLemmaSize + 1.
+   * @type {Array.<number>}
+   */
+  spl_idx_arr: null,
+
+  /**
+   * The array length is DictDef.kMaxLemmaSize.
    * @type Array.<string>
    */
   pinyin_str: null,
+
   freq: 0.0
+};
+
+var ArrayUtils = {
+  isArray: function arrayUtils_isArray(value) {
+    return value && typeof value === 'object' &&
+      value.constructor === Array;
+  }
 };
 
 var SearchUtility = {
@@ -3250,6 +3279,19 @@ var SearchUtility = {
    * @return {number} -1: a < b; 0: a = b; 1: a > b.
    */
   compare: function searchUtility_compare(a, b) {
+    if (ArrayUtils.isArray(a) && ArrayUtils.isArray(b)) {
+      var n = Math.min(a.length, b.length);
+      var i = 0;
+      for (i = 0; i < n; i++) {
+        if (a[i] != b[i]) {
+          break;
+        }
+      }
+      if (i == n) {
+        return SearchUtility.compare(b.length, a.length);
+      }
+      return SearchUtility.compare(a[i], b[i]);
+    }
     if (a > b) {
       return 1;
     }
@@ -8223,7 +8265,7 @@ DictBuilder.prototype = {
     // sort the lemma items according to the spelling idx string
     this.lemma_arr_.sort(function compare_py(p1, p2) {
       return SearchUtility.compare(p1.spl_idx_arr, p2.spl_idx_arr) ||
-        SearchUtility.compare(p1.freq, p2.freq);
+        SearchUtility.compare(p2.freq, p1.freq);
     });
 
     this.get_top_lemmas();
@@ -8475,8 +8517,8 @@ DictBuilder.prototype = {
     // 1. Scan for how many sons
     var parent_son_num = 0;
 
-    var lma_last_start = item_start;
-    var spl_idx_node = lemma_arr[lma_last_start].spl_idx_arr[level];
+    var lma_last_start = lemma_arr[item_start];
+    var spl_idx_node = lma_last_start.spl_idx_arr[level];
 
     // Scan for how many sons to be allocaed
     for (var i = item_start + 1; i < item_end; i++) {
@@ -8543,11 +8585,11 @@ DictBuilder.prototype = {
     // 3. Now begin to construct the son one by one
     var son_pos = 0;
 
-    lma_last_start = item_start;
-    spl_idx_node = lemma_arr[lma_last_start].spl_idx_arr[level];
+    lma_last_start = lemma_arr[item_start];
+    spl_idx_node = lma_last_start.spl_idx_arr[level];
 
     var homo_num = 0;
-    if (lemma_arr[lma_last_start].spl_idx_arr.length <= level + 1) {
+    if (lma_last_start.spl_idx_arr[level + 1] == 0) {
       homo_num = 1;
     }
 
@@ -8558,7 +8600,7 @@ DictBuilder.prototype = {
       var spl_idx_current = lma_current.spl_idx_arr[level];
 
       if (spl_idx_current == spl_idx_node) {
-        if (lma_current.spl_idx_arr.length <= level + 1) {
+        if (lma_current.spl_idx_arr[level + 1] == 0) {
           homo_num++;
         }
       } else {
@@ -8594,7 +8636,7 @@ DictBuilder.prototype = {
           }
 
           for (var homo_pos = 0; homo_pos < homo_num; homo_pos++) {
-            this.homo_idx_buf_[homo_pos + idx_offset] =
+            this.homo_idx_buf_[idx_offset + homo_pos] =
               lemma_arr[item_start_next + homo_pos].idx_by_hz;
           }
 
@@ -8617,15 +8659,14 @@ DictBuilder.prototype = {
 
           this.total_node_hasson_[level] += 1;
           allson_noson = false;
-
         }
 
         // for the next son
-        lma_last_start = i;
+        lma_last_start = lma_current;
         spl_idx_node = spl_idx_current;
         item_start_next = i;
         homo_num = 0;
-        if (lma_current.spl_idx_arr.length <= level + 1) {
+        if (lma_current.spl_idx_arr[level + 1] == 0) {
           homo_num = 1;
         }
 
@@ -11665,12 +11706,17 @@ NGram.prototype = {
     }
 
     this.iterate_codes(freqs, this.freq_codes_df_,
-                       this.lma_freq_idx_);
+        this.lma_freq_idx_);
 
+    debug('------Language Model Unigram Codebook------');
+    
     for (var code_pos = 0; code_pos < NGram.kCodeBookSize; code_pos++) {
       var log_score = Math.log(this.freq_codes_df_[code_pos]);
       var final_score =
         NGram.convert_psb_to_score(this.freq_codes_df_[code_pos]);
+      debug(StringUtils.format(
+          'code:{0}, probability:{1}, log score:{2}, final score:{3}',
+          code_pos, this.freq_codes_df_[code_pos], log_score, final_score));
       this.freq_codes_[code_pos] = final_score;
     }
 
