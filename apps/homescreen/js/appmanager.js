@@ -19,7 +19,7 @@ var ApplicationMock = function(app, launchPath, alternativeOrigin) {
   this.manifest.origin = alternativeOrigin;
 
   this.manifestURL = app.manifestURL;
-  this.receips = app.receips;
+  this.receipts = app.receipts;
   this.installOrigin = app.installOrigin;
   this.installTime = app.installTime;
 
