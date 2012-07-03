@@ -1424,8 +1424,7 @@ RequestReader.prototype =
             var oldPath = request._path;
 
             var applicationName = host.split(".")[0];
-            request._path = this._findRealPath(applicationName);
-            dumpn(request._path + '\n');
+            request._path = this._findRealPath(applicationName) + oldPath;
           }
         } catch (e) {
           dump(e);
@@ -1453,11 +1452,17 @@ RequestReader.prototype =
 
     this._realPath = {};
 
-    var appPathList = "@GAIA_APP_RELATIVEPATH@".split(" ");
-    for (var i; i < appPathList.length; i++) {
-      this._realPath[appPathList[i].split("/")[1]] = appPathList[i];
+    var appPathList = "@GAIA_APP_RELATIVEPATH@".trim().split(" ");
+    for (var i = 0; i < appPathList.length; i++) {
+      var currentAppName = appPathList[i].split('/')[1];
+
+      if (!currentAppName) {
+        continue;
+      }
+
+      this._realPath[currentAppName] = appPathList[i];
     }
-    return this._realPath[appName];
+    return '/' + this._realPath[appName];
   },
 
   /**
