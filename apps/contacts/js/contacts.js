@@ -399,6 +399,9 @@ var Contacts = (function() {
         myContact.id = contact.id;
         myContact.photo = contact.photo;
       contacts.List.getContactById(contact.id, function onSuccess(savedContact) {
+        currentContact = savedContact;
+        myContact.id = savedContact.id;
+        myContact.photo = savedContact.photo;
         contactsList.refresh(myContact);
         reloadContactDetails(myContact);
         navigation.back();
