@@ -44,7 +44,13 @@ button::-moz-focus-inner {
   border: 0
 }
 
-.cache { position: absolute; left: 0; bottom: 0; z-index: 5; }
+.cache {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: -1000;
+}
+
 /* Keyboard */
 #keyboard {
   position: absolute;
@@ -323,9 +329,12 @@ margin-top: 0.3rem;
   top: auto;
   margin-bottom: -2px;
   height: auto;
-  overflow: hidden;
+  max-height: 35rem;
+  overflow-x: hidden;
+  overflow-y: auto;
   white-space: normal;
   padding: 0 0.5rem;
+  padding-right: 1rem;
   background: #fff;
 }
 
@@ -335,7 +344,7 @@ margin-top: 0.3rem;
 }
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper {
   -moz-box-sizing: border-box;
-  width: 10rem;
+  width: 15rem;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 

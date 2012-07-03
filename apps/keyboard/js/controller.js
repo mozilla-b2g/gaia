@@ -58,7 +58,7 @@ const IMEController = (function() {
   // If user leave the original key and did not move to
   // a key within the accent character menu,
   // after khideAlternativesCharMenuTimeout the menu will be removed.
-  var _kHideAlternativesCharMenuTimeout = 500;
+  var _kHideAlternativesCharMenuTimeout = 700;
 
   // timeout and interval for delete, they could be cancelled on mouse over
   var _deleteTimeout = 0;
@@ -294,15 +294,6 @@ const IMEController = (function() {
   //  5- If needed, empty the candidate panel
   function _draw(layoutName, inputType, layoutMode, uppercase) {
 
-    // When user scrolls over candidate panels on IME
-    function _onScroll(evt) {
-      if (!_isPressing || !_currentKey)
-        return;
-
-      _onMouseLeave(evt);
-      _isPressing = false; // cancel the following mouseover event
-    }
-
     layoutName = layoutName || _baseLayoutName;
     inputType = inputType || _currentInputType;
     layoutMode = layoutMode || _currentLayout;
@@ -314,7 +305,6 @@ const IMEController = (function() {
     // 4- Draw the keyboard via IMERender
     IMERender.draw(
       _currentLayout,
-      _onScroll,
       // 3- Setup rendering flags
       {
         uppercase: uppercase,
@@ -429,7 +419,7 @@ const IMEController = (function() {
     // Get the key object from layout
     var alternatives, altMap, value, keyObj, uppercaseValue;
     var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
-    if (r < 0 || c < 0)
+    if (r < 0 || c < 0 || r === undefined || c === undefined)
       return;
     keyObj = _currentLayout.keys[r][c];
 
@@ -441,6 +431,7 @@ const IMEController = (function() {
         _baseLayoutName,
         SWITCH_KEYBOARD
       );
+      _isShowingAlternativesMenu = true;
       return;
     }
 
@@ -517,12 +508,24 @@ const IMEController = (function() {
   }
 
   // Hide alternatives.
-  function _hideAlternatives() {
+  function _hideAlternatives(addDelay) {
     if (!_isShowingAlternativesMenu)
       return;
 
-    IMERender.hideAlternativesCharMenu();
-    _isShowingAlternativesMenu = false;
+    function _actualHideAlternatives() {
+      IMERender.hideAlternativesCharMenu();
+      _isShowingAlternativesMenu = false;
+    }
+
+    if (addDelay) {
+      clearTimeout(_hideMenuTimeout);
+      _hideMenuTimeout = window.setTimeout(
+        _actualHideAlternatives,
+        _kHideAlternativesCharMenuTimeout
+      );
+    } else {
+      _actualHideAlternatives();
+    }
   }
 
   // Test if an HTML node is a normal key
@@ -532,8 +535,20 @@ const IMEController = (function() {
   }
 
   //
-  // EVENTS HANDLERS
+  // Event Handlers
   //
+
+  // When user scrolls over IME's candidate or alternatives panels
+  function _onScroll(evt) {
+    if (!_isPressing || !_currentKey)
+      return;
+
+    if (evt.target === IMERender.menu)
+      clearTimeout(_hideMenuTimeout);
+
+    _onMouseLeave(evt);
+    _isPressing = false; // cancel the following mouseover event
+  }
 
   // When user touches the keyboard
   function _onMouseDown(evt) {
@@ -640,13 +655,7 @@ const IMEController = (function() {
     if (target.parentNode === IMERender.menu) {
       clearTimeout(_hideMenuTimeout);
     } else {
-      clearTimeout(_hideMenuTimeout);
-      _hideMenuTimeout = window.setTimeout(
-        function hideMenuTimeout() {
-          _hideAlternatives();
-        },
-        _kHideAlternativesCharMenuTimeout
-      );
+      _hideAlternatives(true);
     }
 
     // Control showing alternatives menu
@@ -663,13 +672,15 @@ const IMEController = (function() {
 
     IMERender.unHighlightKey(_currentKey);
 
+
     // Program alternatives to hide
-    _hideMenuTimeout = window.setTimeout(function hideMenuTimeout() {
-        _hideAlternatives();
-    }, _kHideAlternativesCharMenuTimeout);
+    if (evt.target !== IMERender.menu &&
+        evt.target.parentNode !== IMERender.menu)
+      _hideAlternatives(true);
 
     _currentKey = null;
   }
+
 
   // event handler for transition end
   function _onTransitionEnd(evt) {
@@ -721,7 +732,7 @@ const IMEController = (function() {
     clearInterval(_deleteInterval);
     clearTimeout(_menuTimeout);
 
-    _hideAlternatives();
+    _hideAlternatives(true);
 
     var target = _currentKey;
     var keyCode = parseInt(target.dataset.keycode);
@@ -779,6 +790,11 @@ const IMEController = (function() {
         // switch to that keyboard.
         if (target.dataset.keyboard) {
           _baseLayoutName = target.dataset.keyboard;
+
+        // If the user is releasing the switch keyboard key while
+        // showing the alternatives, do nothing.
+        } else if (_isShowingAlternativesMenu) {
+          break;
 
         // Cycle between languages (keyboard)
         } else {
@@ -942,7 +958,7 @@ const IMEController = (function() {
                            specialCodes.indexOf(key.keyCode) !== -1;
       return hasSpecialCode || key.keyCode <= 0;
     }
-    IMERender.init(_getUpperCaseValue, isSpecialKeyObj);
+    IMERender.init(_getUpperCaseValue, isSpecialKeyObj, _onScroll);
 
     // Attach event listeners
     for (var event in _imeEvents) {
