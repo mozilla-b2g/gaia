@@ -19,10 +19,26 @@ function testMatrixSearch() {
     ms.init(SYS_DICT_FILE_NAME, USER_DICT_FILE_NAME,
         function msInitCallback(isOk) {
       assertEq(isOk, true, 'Failed to initialize MatrixSearch.');
+      var py = 'fangan';
+      var ret = search(ms, py);
+      print('py:' + py + ' ' + ret.hanzi);
+      print(ret.num + ' candidate(s):' + ret.cands);
     });
   });
-
   FileSystemService.uninit();
 }
 
+function search(ms, py) {
+  ms.reset_search();
+  ms.search(py);
+  var cands = '';
+  var num = ms.get_candidate_num();
+  for (var i=0; i<num; i++) {
+    if (i % 10 == 0) {
+      cands += '\n';
+    }
+    cands += ms.get_candidate(i) + ' ';
+  }
+  return {num: num, cands: cands, hanzi: ms.get_candidate0()};
+}
 testMatrixSearch();

@@ -28,7 +28,8 @@ var assert = function jspinyin_assert(condition, msg) {
   if (!debugging)
     return;
   if (!condition) {
-    throw msg;
+    var str = typeof msg === 'undefined' ? assert.caller.toString() : msg;
+    throw str;
   }
 };
 
@@ -1356,8 +1357,8 @@ DatabaseStorageBase.prototype = {
    * function callback(homonymsArray). The homonymsArray parameter is an array
    * of Homonyms objects.
    */
-  getTermsByIncompleteSyllables: function
-    storagebase_getTermsByIncompleteSyllables(incomplete, callback) {
+  getTermsByIncompleteSyllables:
+     function storagebase_getTermsByIncompleteSyllables(incomplete, callback) {
   },
 
   /**
@@ -3268,6 +3269,27 @@ var ArrayUtils = {
   isArray: function arrayUtils_isArray(value) {
     return value && typeof value === 'object' &&
       value.constructor === Array;
+  },
+
+  /**
+   * Sort part of an array.
+   * @param {Array} array The array to be sort.
+   * @param {number} start The start position to be sort.
+   * @param {number} length The length from start position.
+   * @param {function (*, *): number} cmp The comparasion function.
+   * @return {void}  No return value.
+   */
+  sort: function arrayUtils_sort(array, start, length, cmp) {
+    var len = array.length;
+    if (start < 0 || start >= len || length <= 0 || start + length > len) {
+      return;
+    }
+    var cmpFunc = (typeof cmp === 'function') ? cmp : SearchUtility.compare;
+    var arraySorted = array.slice(start, start + length);
+    arraySorted.sort(cmpFunc);
+    for (var pos = 0; pos < length; pos++) {
+      array[start + pos] = arraySorted[pos];
+    }
   }
 };
 
@@ -3318,8 +3340,8 @@ var SearchUtility = {
     return SearchUtility.compare(p1.psb, p2.psb);
   },
 
-  cmp_lpi_with_unified_psb:
-      function searchUtility_cmp_lpi_with_unified_psb(p1, p2) {
+  cmp_lpi_with_unified_psb: function
+      searchUtility_cmp_lpi_with_unified_psb(p1, p2) {
     // The real unified psb is psb1 / lma_len1 and psb2 * lma_len2
     // But we use psb1 * lma_len2 and psb2 * lma_len1 to get better
     // precision.
@@ -4030,6 +4052,8 @@ MatrixSearch.prototype = {
         this.pys_decoded_len_ = ch_pos;
         break;
       }
+      debug('4055 ' + py.charAt(ch_pos));
+      this.debug_print_mtrx_nd_pool();
       ch_pos++;
     }
 
@@ -4046,7 +4070,6 @@ MatrixSearch.prototype = {
     }
 
     this.prepare_candidates();
-
     return ch_pos;
   },
 
@@ -4177,7 +4200,7 @@ MatrixSearch.prototype = {
           this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos;
     } else {
       // Reseting search only clear pys_decoded_len_, but the string is kept.
-      this.reset_search(reset_pos, clear_fixed_this_step, false, false);
+      this.reset_searchn(reset_pos, clear_fixed_this_step, false, false);
     }
 
     // Decode the string after the delete position.
@@ -4273,7 +4296,6 @@ MatrixSearch.prototype = {
 
   /**
    * Get the first candidate, which is a "full sentence".
-   * retstr_len is not NULL, it will be used to return the string length.
    * @param {boolean} only_unfixed If only_unfixed is true, only unfixed part
    *    will be fetched.
    * @return {string} The candidate string.
@@ -4437,7 +4459,7 @@ MatrixSearch.prototype = {
     var pys_decoded_len = this.pys_decoded_len_;
 
     // 3.2 Reset the space of the fixed part.
-    this.reset_search(step_to, false, false, true);
+    this.reset_searchn(step_to, false, false, true);
 
     // 3.3 For the last character of the fixed part, the previous DMI
     // information will be kept, while the MTRX information will be re-extended,
@@ -4540,7 +4562,7 @@ MatrixSearch.prototype = {
 
   /**
    * User dictionary.
-   * @type AtomDictBase
+   * @type UserDict
    */
   user_dict_: null,
 
@@ -4700,25 +4722,36 @@ MatrixSearch.prototype = {
     this.user_dict_ = new UserDict();
     this.spl_parser_ = new SpellingParser();
 
-    this.chn_str = '';
-
     var pos = 0;
-    this.spl_ids = [];
-    this.spl_start = [];
-    this.sublma_start = [];
+
+    this.lma_start_ = [];
+    this.lma_id_ = [];
+    this.fixed_lmas_no1_ = [];
+    this.spl_id_ = [];
+    this.spl_start_ = [];
+    this.sublma_start_ = [];
     for (pos = 0; pos < MatrixSearch.kMaxRowNum; pos++) {
-      this.spl_ids[pos] = 0;
-      this.spl_start[pos] = 0;
-      this.sublma_start[pos] = 0;
+      this.lma_start_[pos] = 0;
+      this.lma_id_[pos] = 0;
+      this.fixed_lmas_no1_[pos] = 0;
+      this.spl_id_[pos] = 0;
+      this.spl_start_[pos] = 0;
+      this.sublma_start_[pos] = 0;
+    }
+
+    // lpi buffer
+    this.lpi_items_ = [];
+    for (pos = 0; pos < MatrixSearch.kMaxLmaPsbItems; pos++) {
+      this.lpi_items_[pos] = new SearchUtility.LmaPsbItem();
     }
 
     // The buffers for search
     this.mtrx_nd_pool_ = [];
-    for (var pos = 0; pos < MatrixSearch.kMtrxNdPoolSize; pos++) {
+    for (pos = 0; pos < MatrixSearch.kMtrxNdPoolSize; pos++) {
       this.mtrx_nd_pool_[pos] = new MatrixSearch.MatrixNode();
     }
     this.dmi_pool_ = [];
-    for (var pso = 0; pos < MatrixSearch.kDmiPoolSize; pos++) {
+    for (pos = 0; pos < MatrixSearch.kDmiPoolSize; pos++) {
       this.dmi_pool_[pos] = new MatrixSearch.DictMatchInfo();
     }
     this.matrix_ = [];
@@ -4746,7 +4779,7 @@ MatrixSearch.prototype = {
     this.spl_parser_ = null;
 
     this.lma_start_ = null;
-    this.lma_id = null;
+    this.lma_id_ = null;
     this.fixed_lmas_no1_ = null;
     this.spl_start_ = null;
     this.spl_id_ = null;
@@ -4776,7 +4809,7 @@ MatrixSearch.prototype = {
     this.mtrx_nd_pool_used_ += 1;
 
     // Update the node, and make it to be a starting node
-    var node = this.mtrx_nd_pool_[matrix_[0].mtrx_nd_pos];
+    var node = this.mtrx_nd_pool_[this.matrix_[0].mtrx_nd_pos];
     node.id = 0;
     node.score = 0;
     node.from = null;
@@ -4805,13 +4838,15 @@ MatrixSearch.prototype = {
    * Reset the search space from ch_pos step. For example, if the original
    * input Pinyin is "an", reset_searchn(1) will reset the search
    * space to the result of "a". If the given position is out of range,
-   * return false.  if clear_fixed is true, and the ch_pos step is a fixed
-   * step, clear its fixed status. if clearDmi is true, clear the DMI nodes.
-   * If clearMtrx is true, clear the mtrx nodes of this step.
-   *  The DMI nodes will be kept.
+   * return false.
+   * @private
+   * @param {boolean} clear_fixed If true, and the ch_pos step is a fixed
+   * step, clear its fixed status.
+   * @param {boolean} clear_dmi_this_step If true, clear the DMI nodes.
+   * @param {boolean} clear_mtrx_this_step If true, clear the mtrx nodes
+   *    of this step. Otherwise the DMI nodes will be kept.
    *
    * Note: this function should not destroy content of pys_.
-   * @private
    */
   reset_searchn: function matrixSearch_reset_searchn(ch_pos,
       clear_fixed_this_step, clear_dmi_this_step, clear_mtrx_this_step) {
@@ -5133,6 +5168,7 @@ MatrixSearch.prototype = {
    * Get spelling start positions and ids. The result will be stored in
    * spl_id_num_, spl_start_[], spl_id_[].
    * fixed_hzs_ will be also assigned.
+   * @private
    */
   get_spl_start_id: function matrixSearch_get_spl_start_id() {
     this.lma_id_num_ = 0;
@@ -5150,47 +5186,48 @@ MatrixSearch.prototype = {
     this.lma_id_num_ = this.fixed_lmas_;
     this.spl_id_num_ = this.fixed_hzs_;
 
-    var ndPos = this.matrix_[this.pys_decoded_len_].mtrx_nd_pos;
-    while (ndPos != 0) {
-      var mtrxNd = this.mtrx_nd_pool_[ndPos];
+    var mtrx_nd = this.mtrx_nd_pool_[this.matrix_[this.pys_decoded_len_].
+        mtrx_nd_pos];
+    while (mtrx_nd != this.mtrx_nd_pool_[0]) {
       if (this.fixed_hzs_ > 0) {
-        if (mtrxNd.step <= this.spl_start_[this.fixed_hzs_])
+        if (mtrx_nd.step <= this.spl_start_[this.fixed_hzs_])
           break;
       }
 
       // Update the spelling segamentation information
-      var wordSplsStrLen = 0;
-      var dmi_fr = mtrxNd.dmi_fr;
+      var word_splstr_len = 0;
+      var dmi_fr = mtrx_nd.dmi_fr;
       if (-1 != dmi_fr) {
-        wordSplsStrLen = this.dmi_pool_[dmi_fr].splstr_len;
+        word_splstr_len = this.dmi_pool_[dmi_fr].splstr_len;
       }
 
       while (-1 != dmi_fr) {
-        this.spl_start_[this.spl_id_num_ + 1] = mtrxNd.step -
-            (wordSplsStrLen - this.dmi_pool_[dmi_fr].splstr_len);
-        this.spl_id_[this.spl_id_num__] = this.dmi_pool_[dmi_fr].spl_id;
+        this.spl_start_[this.spl_id_num_ + 1] = mtrx_nd.step -
+            (word_splstr_len - this.dmi_pool_[dmi_fr].splstr_len);
+        this.spl_id_[this.spl_id_num_] = this.dmi_pool_[dmi_fr].spl_id;
         this.spl_id_num_++;
         dmi_fr = this.dmi_pool_[dmi_fr].dmi_fr;
       }
 
       // Update the lemma segmentation information
       this.lma_start_[this.lma_id_num_ + 1] = this.spl_id_num_;
-      this.lma_id_[this.lma_id_num_] = mtrxNd.id;
+      this.lma_id_[this.lma_id_num_] = mtrx_nd.id;
       this.lma_id_num_++;
 
-      ndPos = mtrxNd.from;
+      mtrx_nd = mtrx_nd.from;
     }
 
     var pos;
-    var endPos;
+    var end_pos;
     var pos1;
     var pos2;
     var tmp;
 
     // Reverse the result of spelling info
-    endPos = this.fixed_hzs_ + (this.spl_id_num_ - this.fixed_hzs_ + 1) / 2;
-    for (pos = this.fixed_hzs_; pos < endPos; pos++) {
-      if (this.spl_id_num__ + this.fixed_hzs_ - pos != pos + 1) {
+    end_pos = Math.floor(this.fixed_hzs_ + (this.spl_id_num_ - this.fixed_hzs_
+        + 1) / 2);
+    for (pos = this.fixed_hzs_; pos < end_pos; pos++) {
+      if (this.spl_id_num_ + this.fixed_hzs_ - pos != pos + 1) {
         pos1 = pos + 1;
         pos2 = this.spl_id_num_ - pos + this.fixed_hzs_;
         tmp = this.spl_start_[pos1];
@@ -5206,8 +5243,9 @@ MatrixSearch.prototype = {
     }
 
     // Reverse the result of lemma info
-    endPos = this.fixed_lmas_ + (this.lma_id_num_ - this.fixed_lmas_ + 1) / 2;
-    for (pos = this.fixed_lmas_; pos < endPos; pos++) {
+    end_pos = Math.floor(this.fixed_lmas_ + (this.lma_id_num_ -
+        this.fixed_lmas_ + 1) / 2);
+    for (pos = this.fixed_lmas_; pos < end_pos; pos++) {
       pos1 = pos + 1;
       pos2 = this.lma_id_num_ + this.fixed_lmas_ - pos;
       var tmp = 0;
@@ -5230,8 +5268,8 @@ MatrixSearch.prototype = {
             (this.lma_start_[pos] - this.lma_start_[pos + 1]);
       }
       else {
-        this.lma_start_[pos] = this.lma_start_[pos - 1] + this.lma_start_[pos] -
-            this.lma_start_[this.fixed_lmas_];
+        this.lma_start_[pos] = this.lma_start_[pos - 1] +
+            this.lma_start_[pos] - this.lma_start_[this.fixed_lmas_];
       }
     }
 
@@ -5272,7 +5310,7 @@ MatrixSearch.prototype = {
 
     var pos = 0;
 
-    var splids = splid_st.slice(splid_str_start,
+    var splids = splid_str.slice(splid_str_start,
         splid_str_start + splid_str_len);
     var num1 = this.dict_trie_.get_lpis(splids, lma_buf, lma_buf_start,
         max_lma_buf);
@@ -5292,7 +5330,6 @@ MatrixSearch.prototype = {
 
     // Remove repeated items.
     if (splid_str_len > 1) {
-      // @Type
       var lpsis = [];//reinterpret_cast<LmaPsbStrItem*>(lma_buf + num);
       for (pos = 0; pos < num; pos++) {
         lpsis[pos] = new SearchUtility.LmaPsbStrItem();
@@ -5312,7 +5349,7 @@ MatrixSearch.prototype = {
           }
           continue;
         }
-        if (!pfullsent && lpsis[pos].str == pfullsent) {
+        if (pfullsent && lpsis[pos].str == pfullsent) {
           continue;
         }
 
@@ -5328,22 +5365,17 @@ MatrixSearch.prototype = {
       // the user input  "d", repeated items are generated.
       // For single character lemmas, Hanzis will be gotten
       for (pos = 0; pos < num; pos++) {
-        var hanzis = this.get_lemma_str(lma_buf[pos].id);
+        var hanzis = this.get_lemma_str(lma_buf[lma_buf_start + pos].id);
         lma_buf[lma_buf_start + pos].hanzi = hanzis.charAt(0);
       }
 
-      var begin = lma_buf_start;
-      var end = lma_buf_start + num;
-      var lma_buf_sorted = lma_buf.slice(begin, end);
-      lma_buf_sorted.sort(SearchUtility.cmp_lpi_with_hanzi);
-      for (pos = begin; pos < end; pos++) {
-        lma_buf[pos] = lma_buf_sorted[pos - begin];
-      }
+      ArrayUtils.sort(lma_buf, lma_buf_start, num,
+          SearchUtility.cmp_lpi_with_hanzi);
 
       for (pos = 0; pos < num; pos++) {
         if (pos > 0 && lma_buf[lma_buf_start + pos].hanzi ==
             lma_buf[lma_buf_start + pos - 1].hanzi) {
-          if (!pfullsent && lma_buf[pos].hanzi == pfullsent) {
+          if (pfullsent && lma_buf[lma_buf_start + pos].hanzi == pfullsent) {
             continue;
           }
 
@@ -5357,25 +5389,19 @@ MatrixSearch.prototype = {
           }
           continue;
         }
-        if (!pfullsent && lma_buf[pos].hanzi == pfullsent) {
+        if (pfullsent && lma_buf[lma_buf_start + pos].hanzi == pfullsent) {
             continue;
         }
 
         lma_buf[lma_buf_start + remain_num] = lma_buf[lma_buf_start + pos];
         remain_num++;
       }
-
       num = remain_num;
     }
 
     if (sort_by_psb) {
-      var begin = lma_buf_start;
-      var end = lma_buf_start + num;
-      var lma_buf_sorted = lma_buf.slice(begin, end);
-      lma_buf_sorted.sort(SearchUtility.cmp_lpi_with_psb);
-      for (pos = begin; pos < end; pos++) {
-        lma_buf[pos] = lma_buf_sorted[pos - begin];
-      }
+      ArrayUtils.sort(lma_buf, lma_buf_start, num,
+          SearchUtility.cmp_lpi_with_psb);
     }
     return num;
   },
@@ -5473,11 +5499,12 @@ MatrixSearch.prototype = {
    * @private
    * @param {SearchUtility.DictExtPara} dep Paramaters used to extend the
    *    dictionary. It should not be null.
+   * @param {MatrixSearch.DictMatchInfo} dmi_s The DMI node.
    * @param {number} dmi_s_pos The location of the DMI node.
    * @return {number} Number of new extended items.
    */
-  extend_dmi: function matrixSearch_extend_dmi(dep, dmi_s_pos) {
-    var dmi_s = (dmi_s_pos == -1) ? null : this.dmi_pool_[dmi_s_pos];
+  extend_dmi: function matrixSearch_extend_dmi(dep, dmi_s, dmi_s_pos) {
+    debug('5508 ' + StringUtils.format('extend_dmi {0}', dmi_s));
     if (this.dmi_pool_used_ >= MatrixSearch.kDmiPoolSize) {
       return 0;
     }
@@ -5485,7 +5512,7 @@ MatrixSearch.prototype = {
     var r = null;
 
     if (this.dmi_c_phrase_) {
-      return this.extend_dmi_c(dep, dmi_s_pos);
+      return this.extend_dmi_c(dep, dmi_s, dmi_s_pos);
     }
 
     var lpi_cache = LpiCache.get_instance();
@@ -5510,7 +5537,7 @@ MatrixSearch.prototype = {
       from_h[1] = dmi_s.dict_handles[1];
     }
 
-    // 2. Begin exgtending in the system dictionary
+    // 2. Begin extending in the system dictionary
     var lpi_num = 0;
     var handles = [0, 0];
     if (from_h[0] > 0 || null == dmi_s) {
@@ -5524,7 +5551,7 @@ MatrixSearch.prototype = {
     }
 
     if (null == dmi_s) {  // from root
-      assert(0 != handles[0]);
+      assert(0 != handles[0], 'extend_dmi: 0 != handles[0] failed.');
       mtrx_dmi_fr = this.dmi_pool_used_;
     }
 
@@ -5574,8 +5601,8 @@ MatrixSearch.prototype = {
 
       debug('--- lpi_total_ = ' + this.lpi_total_);
 
-      this.lpi_items_.length = this.lpi_total_;
-      this.lpi_items_.sort(SearchUtility.cmp_lpi_with_psb);
+      ArrayUtils.sort(this.lpi_items_, 0, this.lpi_total_,
+          SearchUtility.cmp_lpi_with_psb);
       if (null == dmi_s && this.spl_trie_.is_half_id(splid)) {
         this.lpi_total_ = lpi_cache.put_cache(splid, this.lpi_items_,
             this.lpi_total_);
@@ -5594,11 +5621,11 @@ MatrixSearch.prototype = {
    * @private
    * @param {SearchUtility.DictExtPara} dep Paramaters used to extend the
    *    dictionary. It should not be null.
+   * @param {MatrixSearch.DictMatchInfo} dmi_s The DMI node.
    * @param {number} dmi_s_pos The location of the DMI node.
    * @return {number} Number of new extended items.
    */
-  extend_dmi_c: function matrixSearch_extend_dmi_c(dep, dmi_s_pos) {
-    var dmi_s = (dmi_s_pos == -1) ? null : this.dmi_pool_[dmi_s_pos];
+  extend_dmi_c: function matrixSearch_extend_dmi_c(dep, dmi_s, dmi_s_pos) {
     this.lpi_total_ = 0;
 
     var pos = dep.splids_extended;
@@ -5681,7 +5708,7 @@ MatrixSearch.prototype = {
       var replace = false;
       // Find its position
       while (mtrx_nd_res_pos > mtrx_nd_res_min_pos &&
-             score < this.matrix_[mtrx_nd_res_pos - 1].score) {
+             score < this.mtrx_nd_pool_[mtrx_nd_res_pos - 1].score) {
         if (mtrx_nd_res_pos - mtrx_nd_res_min_pos < MatrixSearch.kMaxNodeARow) {
           this.matrix_[mtrx_nd_res_pos] = this.matrix_[mtrx_nd_res_pos - 1];
         }
@@ -5750,6 +5777,7 @@ MatrixSearch.prototype = {
    * @private
    */
   add_char: function matrixSearch_add_char(ch) {
+    debug('add_char:' + ch);
     if (!this.prepare_add_char(ch)) {
       return false;
     }
@@ -5769,7 +5797,8 @@ MatrixSearch.prototype = {
       return false;
     }
 
-    this.pys_ += ch;
+    this.pys_ = this.pys_.substring(0, this.pys_decoded_len_) + ch +
+        this.pys_.substring(this.pys_decoded_len_ + 1);
     this.pys_decoded_len_++;
 
     var mtrx_this_row = this.matrix_[this.pys_decoded_len_];
@@ -5793,11 +5822,9 @@ MatrixSearch.prototype = {
     var longest_ext = 0;
     // Extend the search matrix, from the oldest unfixed row. ext_len means
     // extending length.
-    for (var ext_len = DictDef.kMaxPinyinSize + 1; ext_len > 0; ext_len--) {
-      if (ext_len > this.pys_decoded_len_ - this.spl_start_[this.fixed_hzs_]) {
-        continue;
-      }
-
+    var ext_len = this.pys_decoded_len_ - this.spl_start_[this.fixed_hzs_];
+    ext_len = Math.min(ext_len, DictDef.kMaxPinyinSize + 1);
+    for (; ext_len > 0; ext_len--) {
       // Refer to the declsaration of the variable dmi_has_full_id for the
       // explanation of this piece of code. In one word, it is used to prevent
       // from the unwise extending of "shoud ou" but allow the reasonable
@@ -5807,29 +5834,28 @@ MatrixSearch.prototype = {
           continue;
       }
 
-      var oldrow = pys_decoded_len_ - ext_len;
+      var oldrow = this.pys_decoded_len_ - ext_len;
 
       // 0. If that row is before the last fixed step, ignore.
-      if (this.spl_start_[fixed_hzs_] > oldrow) {
+      if (this.spl_start_[this.fixed_hzs_] > oldrow) {
         continue;
       }
 
-      // 1. Check if that old row has valid MatrixNode. If no, means that row is
-      // not a boundary, either a word boundary or a spelling boundary.
+      // 1. Check if that old row has valid MatrixNode. If no, means that row
+      // is not a boundary, either a word boundary or a spelling boundary.
       // If it is for extending composing phrase, it's OK to ignore the 0.
       if (0 == this.matrix_[oldrow].mtrx_nd_num && !this.dmi_c_phrase_) {
         continue;
       }
 
       // 2. Get spelling id(s) for the last ext_len chars.
-      var get_splid_by_str_ret = this.spl_parser_.get_splid_by_str(pys_ +
-          oldrow, ext_len, is_pre);
+      var get_splid_by_str_ret = this.spl_parser_.get_splid_by_str(
+          this.pys_.substring(oldrow, oldrow + ext_len));
       var spl_idx = get_splid_by_str_ret.spl_id;
       var is_pre = get_splid_by_str_ret.is_pre;
       if (is_pre) {
         spl_matched = true;
       }
-
       if (0 == spl_idx) {
         continue;
       }
@@ -5839,12 +5865,11 @@ MatrixSearch.prototype = {
       // 3. Extend the DMI nodes of that old row
       // + 1 is to extend an extra node from the root
       var stop_pos = this.matrix_[oldrow].dmi_pos +
-          this.matrix_[oldrow].dmi_num + 1;
-      for (var dmi_pos = this.matrix_[oldrow].dmi_pos; dmi_pos < stop_pos;
+          this.matrix_[oldrow].dmi_num;
+      for (var dmi_pos = this.matrix_[oldrow].dmi_pos; dmi_pos <= stop_pos;
            dmi_pos++) {
         var dmi = this.dmi_pool_[dmi_pos];
-        if (dmi_pos == this.matrix_[oldrow].dmi_pos +
-            this.matrix_[oldrow].dmi_num) {
+        if (dmi_pos == stop_pos) {
           dmi = null;  // The last one, null means extending from the root.
         } else {
           // If the dmi is covered by the fixed arrange, ignore it.
@@ -5883,14 +5908,14 @@ MatrixSearch.prototype = {
           }
 
           var d = dmi;
-          while (d) {
+          while (d != null) {
             this.dep_.splids[--prev_ids_num] = d.spl_id;
             if (-1 == d.dmi_fr) {
               break;
             }
-            d = this.dmi_pool_ + d.dmi_fr;
+            d = this.dmi_pool_[d.dmi_fr];
           }
-          assert(0 == prev_ids_num);
+          assert(0 == prev_ids_num, '0 != prev_ids_num');
           this.dep_.splids_extended = dmi.dict_level;
         }
         this.dep_.splids[this.dep_.splids_extended] = spl_idx;
@@ -5904,12 +5929,12 @@ MatrixSearch.prototype = {
           var h2f_ret = this.spl_trie_.half_to_full(spl_idx);
           this.dep_.id_num = h2f_ret.num;
           this.dep_.id_start = h2f_ret.spl_id_start;
-          assert(this.dep_.id_num > 0);
+          assert(this.dep_.id_num > 0, 'this.dep_.id_num <= 0');
         }
 
         var new_dmi_num;
 
-        new_dmi_num = this.extend_dmi(this.dep_, dmi);
+        new_dmi_num = this.extend_dmi(this.dep_, dmi, dmi_pos);
 
         if (new_dmi_num > 0) {
           if (this.dmi_c_phrase_) {
@@ -5929,16 +5954,17 @@ MatrixSearch.prototype = {
           if (null == dmi) {
             fr_row = oldrow;
           } else {
-            assert(oldrow >= dmi.splstr_len);
+            assert(oldrow >= dmi.splstr_len, StringUtils.format(
+                'oldrow({0}) < dmi.splstr_len({1})', oldrow, dmi.splstr_len));
             fr_row = oldrow - dmi.splstr_len;
           }
-          end_pos = this.matrix_[fr_row].mtrx_nd_pos +
+          var end_pos = this.matrix_[fr_row].mtrx_nd_pos +
                this.matrix_[fr_row].mtrx_nd_num;
           for (var mtrx_nd_pos = this.matrix_[fr_row].mtrx_nd_pos;
                mtrx_nd_pos < end_pos;
                mtrx_nd_pos++) {
             var mtrx_nd = this.mtrx_nd_pool_[mtrx_nd_pos];
-            this.extend_mtrx_nd(mtrx_nd, this.lpi_items_, this.lpi_total_,
+            this.extend_mtrx_nd(mtrx_nd, this.lpi_items_, 0, this.lpi_total_,
                 this.dmi_pool_used_ - new_dmi_num, this.pys_decoded_len_);
             if (longest_ext == 0) {
               longest_ext = ext_len;
@@ -5973,7 +5999,7 @@ MatrixSearch.prototype = {
     // If the full sentense candidate's unfixed part may be the same with a
     // normal lemma. Remove the lemma candidate in this case.
     var pfullsent = this.get_candidate0(true);
-    var setn_len = pfullsent.length;
+    var sent_len = pfullsent.length;
 
     // If the unfixed part contains more than one ids, it is not necessary to
     // check whether a lemma's string is the same to the unfixed part of the
@@ -6004,18 +6030,13 @@ MatrixSearch.prototype = {
     }
 
     // Sort those partially-matched items by their unified scores.
-    var begin = lpi_num_full_match;
-    var end = this.lpi_total_;
-    var lpi_items_sorted = this.lpi_items_.slice(begin, end);
-    lpi_items_sorted.sort(SearchUtility.cmp_lpi_with_unified_psb);
-    for (var pos = begin; pos < end; pos++) {
-      this.lpi_items_[pos] = lpi_items_sorted[pos - begin];
-    }
-
+    ArrayUtils.sort(this.lpi_items_, lpi_num_full_match, this.lpi_total_ -
+        lpi_num_full_match, SearchUtility.cmp_lpi_with_unified_psb);
     debug('-----Prepare candidates, score:');
     var line = '';
     for (var a = 0; a < this.lpi_total_; a++) {
-      line += StringUtils.format('[{0}]{1}    ', a, this.lpi_items_[a].psb);
+      line += StringUtils.format('[{0}]{1}{2}    ', a,
+          this.get_lemma_str(this.lpi_items_[a].id), this.lpi_items_[a].psb);
       if ((a + 1) % 6 == 0) {
         debug(line);
         line = '';
@@ -6034,6 +6055,7 @@ MatrixSearch.prototype = {
   },
 
   /**
+   * TODO This method should belong to DictMatchInfo itself
    * Fill a dmi object.
    * @private
    * @param {MatrixSearch.DictMatchInfo} dmi The dmi object.
@@ -6114,13 +6136,8 @@ MatrixSearch.prototype = {
       }
 
       if (MatrixSearch.kPredictLimitGt1) {
-        var begin = res_total;
-        var end = res_total + rest_this;
-        var npre_items_sorted = this.npre_items_.slice(begin, end);
-        npre_items_sorted.sort(SearchUtility.cmp_npre_by_score);
-        for (i = begin; i < end; i++) {
-          this.npre_items_[i] = npre_items_sorted[i - begin];
-        }
+        ArrayUtils.sort(this.npre_items_, res_total, res_this,
+            SearchUtility.cmp_npre_by_score);
 
         if (len > 3) {
           if (res_this > MatrixSearch.kMaxPredictNumByGt3) {
@@ -6287,7 +6304,7 @@ MatrixSearch.prototype = {
    * @return {void} No return value.
    */
   debug_print_dmi: function matrixSearch_debug_print_dmi(dmi_pos, nest_level) {
-    if (dmi_pos >= this.dmi_pool_used_) {
+    if (dmi_pos == -1 || dmi_pos >= this.dmi_pool_used_) {
       return;
     }
 
@@ -6309,6 +6326,15 @@ MatrixSearch.prototype = {
     if (1 == nest_level) {
       debug(StringUtils.format(
           '<----------------{0}\'th DMI node end--------------\n', dmi_pos));
+    }
+  },
+
+  debug_print_mtrx_nd_pool: function matrixSearch_debug_print_mtrx_nd_pool() {
+    for (var i = 0; i < this.mtrx_nd_pool_used_; i++)
+    {
+      var mtrx_nd = this.mtrx_nd_pool_[i];
+      debug(StringUtils.format('{id:{0},score:{1},step:{2},dmi_fr:{3}}',
+          mtrx_nd.id, mtrx_nd.score, mtrx_nd.step, mtrx_nd.dmi_fr));
     }
   }
 };
@@ -6833,6 +6859,7 @@ DictTrie.prototype = {
    */
   extend_dict: function dictTrie_extend_dict(from_handle, dep, lpi_items, start,
                                              lpi_max) {
+    debug('DictTrie#extend_dict');
     var defaultValue = {handle: 0, lpi_num: 0};
     if (null === dep) {
       return defaultValue;
@@ -6840,17 +6867,17 @@ DictTrie.prototype = {
 
     // from DictDef.LmaNodeLE0 (root) to DictDef.LmaNodeLE0
     if (0 == from_handle) {
-      asert(0 == dep.splids_extended, 'extend_dict assertion error.');
-      return extend_dict0(from_handle, dep, lpi_items, start, lpi_max);
+      assert(0 == dep.splids_extended, 'extend_dict assertion error.');
+      return this.extend_dict0(from_handle, dep, lpi_items, start, lpi_max);
     }
 
     // from DictDef.LmaNodeLE0 to DictDef.LmaNodeGE1
     if (1 == dep.splids_extended) {
-      return extend_dict1(from_handle, dep, lpi_items, start, lpi_max);
+      return this.extend_dict1(from_handle, dep, lpi_items, start, lpi_max);
     }
 
     // From DictDef.LmaNodeGE1 to DictDef.LmaNodeGE1
-    return extend_dict2(from_handle, dep, lpi_items, start, lpi_max);
+    return this.extend_dict2(from_handle, dep, lpi_items, start, lpi_max);
   },
 
   /**
@@ -6892,7 +6919,7 @@ DictTrie.prototype = {
       if (0 == spl_pos) {  // From LmaNodeLE0 (root) to LmaNodeLE0 nodes
         for (var node_fr_pos = 0; node_fr_pos < node_fr_num; node_fr_pos++) {
           var node = node_fr_le0[node_fr_pos];
-          assert(node == root_[0] && 1 == node_fr_num);
+          assert(node == this.root_[0] && 1 == node_fr_num);
           var son_start =
             this.splid_le0_index_[id_start - SpellingTrie.kFullSplIdStart];
           var son_end = this.splid_le0_index_[id_start + id_num -
@@ -6949,8 +6976,8 @@ DictTrie.prototype = {
           break;
         // Prepare the nodes for next extending
         // next time, from LmaNodeGE1 to LmaNodeGE1
-        node_fr_ge1 = node_to_ge1[0];
-        node_to_ge1 = node_fr_le0[0];
+        node_fr_ge1 = node_to_ge1;
+        node_to_ge1 = node_fr_le0;
         node_fr_le0 = null;
         node_to_le0 = null;
       } else {  // From LmaNodeGE1 to LmaNodeGE1 nodes
@@ -7024,7 +7051,7 @@ DictTrie.prototype = {
           var ch_pos = lma_num + homo_pos;
           var node_homo_off = this.get_homo_idx_buf_offset(node_ge1);
           lma_buf[start + ch_pos].id =
-            get_lemma_id_by_offset(node_homo_off + homo_pos);
+            this.get_lemma_id_by_offset(node_homo_off + homo_pos);
           lma_buf[start + ch_pos].lma_len = splid_str_len;
           lma_buf[start + ch_pos].psb =
             ngram.get_uni_psb(lma_buf[start + ch_pos].id);
@@ -7337,12 +7364,12 @@ DictTrie.prototype = {
    * them into the lpi_items buffer.
    * @param {Array.<LmaPsbItem>} lpi_items The buffer to be filled.
    * @param {number} start The position to start filling.
-   * @param {number} max_size The maximum number of items which can be filled.
+   * @param {number} lpi_max The maximum number of items which can be filled.
    * @param {LmaNodeLE0} node The given LmaNodeLE0 node.
    * @return {number} The number of lemmas.
    */
   fill_lpi_buffer_le0:
-      function dictTrie_fill_lpi_buffer_le0(lpi_items, start, max_size, node) {
+      function dictTrie_fill_lpi_buffer_le0(lpi_items, start, lpi_max, node) {
     var lpi_num = 0;
     var ngram = NGram.get_instance();
     for (var homo = 0; homo < node.num_of_homo; homo++) {
@@ -7365,13 +7392,12 @@ DictTrie.prototype = {
    * and extend_dict2().
    * @param {Array.<LmaPsbItem>} lpi_items The lemmas buffer.
    * @param {number} start The position to start filling.
-   * @param {number} max_size The maximum number of items which can be filled.
+   * @param {number} lpi_max The maximum number of items which can be filled.
    * @param {LmaNodeGE1} node The given LmaNodeGE1 node.
    * @return {number} The number of lemmas.
    */
-  fill_lpi_buffer_ge1:
-    function dictTrie_fill_lpi_buffer_ge1(lpi_items, start, max_size,
-                                          homo_buf_off, node, lma_len) {
+  fill_lpi_buffer_ge1: function dictTrie_fill_lpi_buffer_ge1(lpi_items, start,
+      lpi_max, homo_buf_off, node, lma_len) {
     var lpi_num = 0;
     var ngram = NGram.get_instance();
     for (var homo = 0; homo < node.num_of_homo; homo++) {
@@ -7427,7 +7453,6 @@ DictTrie.prototype = {
       var son = this.root_[son_pos];
       assert(son.spl_idx >= id_start && son.spl_idx < id_start + id_num,
              'extend_dict0 assertion error. Invalid spl_idx: ' + son.spl_idx);
-
       if (!cached && lpi_num < lpi_max) {
         var need_lpi = true;
         if (this.spl_trie_.is_half_id_yunmu(splid) && son_pos != son_start) {
@@ -7435,7 +7460,7 @@ DictTrie.prototype = {
         }
 
         if (need_lpi) {
-          lpi_num += this.fill_lpi_buffer_le0(lpi_items, lpi_num,
+          lpi_num += this.fill_lpi_buffer_le0(lpi_items, start + lpi_num,
                                               lpi_max - lpi_num,
                                               son);
         }
@@ -7444,11 +7469,11 @@ DictTrie.prototype = {
       // If necessary, fill in a new mile stone.
       if (son.spl_idx == id_start) {
         if (this.mile_stones_pos_ < DictTrie.kMaxMileStone &&
-            this.parsing_marks_pos_ < DictTrie.kMaxParsingMark) {
+              this.parsing_marks_pos_ < DictTrie.kMaxParsingMark) {
           this.parsing_marks_[this.parsing_marks_pos_].node_offset = son_pos;
           this.parsing_marks_[this.parsing_marks_pos_].node_num = id_num;
           this.mile_stones_[this.mile_stones_pos_].mark_start =
-            parsing_marks_pos_;
+              this.parsing_marks_pos_;
           this.mile_stones_[this.mile_stones_pos_].mark_num = 1;
           ret_handle = this.mile_stones_pos_;
           this.parsing_marks_pos_++;
@@ -7511,7 +7536,7 @@ DictTrie.prototype = {
               son.spl_idx < id_start + id_num) {
             if (lpi_num < lpi_max) {
               var homo_buf_off = this.get_homo_idx_buf_offset(son);
-              lpi_num += this.fill_lpi_buffer_ge1(lpi_items, lpi_num,
+              lpi_num += this.fill_lpi_buffer_ge1(lpi_items, start + lpi_num,
                                           lpi_max - lpi_num, homo_buf_off, son,
                                           2);
             }
@@ -7538,7 +7563,7 @@ DictTrie.prototype = {
                 this.parsing_marks_pos_++;
               }
 
-              this.ret_val++;
+              ret_val++;
             }
             break;
           }  // for son_pos
@@ -7548,7 +7573,7 @@ DictTrie.prototype = {
 
     if (ret_val > 0) {
       this.mile_stones_[this.mile_stones_pos_].mark_num = ret_val;
-      ret_handle = mile_stones_pos_;
+      ret_handle = this.mile_stones_pos_;
       this.mile_stones_pos_++;
       ret_val = 1;
     }
@@ -7605,12 +7630,12 @@ DictTrie.prototype = {
               son.spl_idx < id_start + id_num) {
             if (lpi_num < lpi_max) {
               var homo_buf_off = this.get_homo_idx_buf_offset(son);
-              lpi_num += this.fill_lpi_buffer_ge1(lpi_items, lpi_num,
+              lpi_num += this.fill_lpi_buffer_ge1(lpi_items, start + lpi_num,
                                           lpi_max - lpi_num, homo_buf_off, son,
                                           dep.splids_extended + 1);
             }
 
-            // If necessary, fill in the new DTMI
+            // If necessary, fill in the new DMI
             if (0 == found_num) {
               found_start = son_pos;
             }
@@ -7623,7 +7648,7 @@ DictTrie.prototype = {
                   this.parsing_marks_pos_ < DictTrie.kMaxParsingMark) {
                 this.parsing_marks_[this.parsing_marks_pos_].node_offset =
                   this.get_son_offset(node) + found_start;
-                this.parsing_marks_[this.parsihng_marks_pos_].node_num =
+                this.parsing_marks_[this.parsing_marks_pos_].node_num =
                   found_num;
                 if (0 == ret_val) {
                   this.mile_stones_[this.mile_stones_pos_].mark_start =
@@ -7812,7 +7837,6 @@ DictTrie.prototype = {
       debug('load_dict_from_string: ' + ex);
       return false;
     }
-
     return true;
   }
 };
@@ -8123,7 +8147,7 @@ DictBuilder.prototype = {
 
   stat_print: function dictBuilder_stat_print() {
     var line = '';
-    debug('\n------------STAT INFO-------------');
+    debug('------------STAT INFO-------------');
     debug('[root is layer -1]');
     debug('.. max_sonbuf_len per layer(from layer 0):');
     line = '';
@@ -8132,49 +8156,49 @@ DictBuilder.prototype = {
     }
     debug(line + '-,');
 
-    debug('.. max_homobuf_len per layer:\n   -, ');
+    debug('.. max_homobuf_len per layer:   -, ');
     line = '';
     for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
       line += this.max_homobuf_len_[i] + ', ';
     }
     debug(line);
 
-    debug('.. total_son_num per layer:\n   ');
+    debug('.. total_son_num per layer:  ');
     line = '';
     for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
       line += this.total_son_num_[i] + ', ';
     }
     debug(line + '-,');
 
-    debug('.. total_node_hasson per layer:\n   1, ');
+    debug('.. total_node_hasson per layer:   1, ');
     line = '';
     for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
       line += this.total_node_hasson_[i] + ', ';
     }
     debug(line);
 
-    debug('.. total_sonbuf_num per layer:\n   ');
+    debug('.. total_sonbuf_num per layer:   ');
     line = '';
     for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
       line += this.total_sonbuf_num_[i] + ', ';
     }
     debug(line + '-,');
 
-    debug('.. total_sonbuf_allnoson per layer:\n   ');
+    debug('.. total_sonbuf_allnoson per layer:   ');
     line = '';
     for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
       line += this.total_sonbuf_allnoson_[i] + ', ';
     }
     debug(line + '-,');
 
-    debug('.. total_node_in_sonbuf_allnoson per layer:\n   ');
+    debug('.. total_node_in_sonbuf_allnoson per layer:   ');
     line = '';
     for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
       line += this.total_node_in_sonbuf_allnoson_[i] + ', ';
     }
     debug(line + '-,');
 
-    debug('.. total_homo_num per layer:\n   0, ');
+    debug('.. total_homo_num per layer:   0, ');
     line = '';
     for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
       line += this.total_homo_num_[i] + ', ';
@@ -11709,7 +11733,7 @@ NGram.prototype = {
         this.lma_freq_idx_);
 
     debug('------Language Model Unigram Codebook------');
-    
+
     for (var code_pos = 0; code_pos < NGram.kCodeBookSize; code_pos++) {
       var log_score = Math.log(this.freq_codes_df_[code_pos]);
       var final_score =
