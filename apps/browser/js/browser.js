@@ -530,7 +530,9 @@ var Browser = {
 
   followLink: function browser_followLink(e) {
     e.preventDefault();
-    this.navigate(e.target.getAttribute('href'));
+    if (e.target.nodeName === 'A') {
+      this.navigate(e.target.getAttribute('href'));
+    }
   },
 
   setTabVisibility: function(tab, visible) {
