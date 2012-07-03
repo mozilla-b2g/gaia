@@ -671,6 +671,10 @@
       window.webkitIDBIndex ||
       window.msIDBIndex;
 
+    if (IDBObjectStore && IDBObjectStore.prototype.mozGetAll) {
+      IDBObjectStore.prototype.getAll = IDBObjectStore.prototype.mozGetAll;
+    }
+
     /* ==== init functions ==== */
 
     var getTermsInDB = function imedb_getTermsInDB(callback) {

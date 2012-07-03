@@ -11,7 +11,10 @@ var Recents = {
   },
 
   init: function re_init() {
-    this._openreq = mozIndexedDB.open(this.DBNAME);
+    var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+        window.mozIndexedDB || window.msIndexedDB;
+
+    this._openreq = indexedDB.open(this.DBNAME);
 
     var self = this;
     this._openreq.onsuccess = function re_dbOnSuccess() {
