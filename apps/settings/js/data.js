@@ -81,38 +81,35 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
       getField('user').value = res.username || '';
       getField('passwd').value = res.password || '';
     }
+
+    // don't close the dialog box
+    return false;
   };
 });
 
-function validateDataSettings() {
-  var cset = {};
-  var inputs = document.querySelectorAll('#data-advanced input');
-  for (var i = 0; i < inputs.length; i++) {
-    var input = inputs[i];
-    cset[input.name] = input.value;
-  }
-  window.navigator.mozSettings.getLock().set(cset);
-}
-
-function openDialog(dialogID, callback) {
-  var root = document.getElementById(dialogID);
-  root.style.display = 'block';
+function openSettingDialog(dialogID) {
+  var dialog = document.getElementById(dialogID);
+  var fields = dialog.querySelectorAll('input');
 
   // hide dialog box
   function close() {
-    root.style.display = 'none';
+    dialog.style.display = 'none';
+    return false;
   }
 
-  // OK|Cancel buttons
-  var okButton = root.querySelector('*[type=submit]');
-  okButton.onclick = function() {
-    close();
-    return callback ? callback() : false;
-  };
-  var cancelButton = root.querySelector('*[type=reset]');
-  cancelButton.onclick = function() {
-    close();
-    return;
-  };
+  // validate all settings in the dialog box
+  function submit() {
+    var cset = {};
+    for (var i = 0; i < fields.length; i++) {
+      var input = fields[i];
+      cset[input.name] = input.value;
+    }
+    window.navigator.mozSettings.getLock().set(cset);
+    return close();
+  }
+
+  dialog.onsubmit = submit;
+  dialog.onreset = close;
+  dialog.style.display = 'block';
 }
 

@@ -211,19 +211,27 @@
           <small data-l10n-id="dataRoaming-expl"></small>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
         </li>
+      </ul>
+
+      <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      <ul>
         <li>
-          <button onclick="openDialog('data-advanced', validateDataSettings);"
-            data-l10n-id="dataAdvanced">Advanced Settings</button>
+          <button onclick="openSettingDialog('apnSettings');"
+            data-l10n-id="apnSettings">APN Settings</button>
+        </li>
+        <li>
+          <button onclick="openSettingDialog('mmsSettings');"
+            data-l10n-id="mmsSettings">MMS Settings</button>
         </li>
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: Advanced Settings Dialog -->
-    <form role="dialog" id="data-advanced" onsubmit="return false;" action="#data">
+    <!-- Connectivity :: 3G/data :: APN Settings Dialog -->
+    <form role="dialog" id="apnSettings" action="#data">
       <header>
         <button type="reset">Back</button>
         <button type="submit">OK</button>
-        <h2 data-l10n-id="dataAdvanced"> Advanced Settings </h2>
+        <h2 data-l10n-id="apnSettings"> APN Settings </h2>
       </header>
 
       <!-- APN settings -->
@@ -240,6 +248,20 @@
         <input type="text" name="ril.data.passwd" />
       </label>
 
+      <!-- APN database lookup -->
+      <p>
+        <button id="autoAPN">Auto-Configure</button>
+      </p>
+    </form>
+
+    <!-- Connectivity :: 3G/data :: MMS Settings Dialog -->
+    <form role="dialog" id="mmsSettings" action="#data">
+      <header>
+        <button type="reset">Back</button>
+        <button type="submit">OK</button>
+        <h2 data-l10n-id="mmsSettings"> MMS Settings </h2>
+      </header>
+
       <!-- MMS settings -->
       <label>
         <span data-l10n-id="mmsproxy">MMS Proxy</span>
@@ -253,10 +275,6 @@
         <span data-l10n-id="mmsc">MMSC</span>
         <input type="text" name="ril.data.mmsc" />
       </label>
-
-      <p>
-        <button id="autoAPN">Auto-Configure</button>
-      </p>
     </form>
 
     <!-- [TODO] Connectivity :: Bluetooth -->
