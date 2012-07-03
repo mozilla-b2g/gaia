@@ -462,6 +462,11 @@ install-media-samples:
 	$(ADB) push media-samples/Movies /sdcard/Movies
 	$(ADB) push media-samples/Music /sdcard/Music
 
+install-test-media:
+	$(ADB) push test_media/DCIM /sdcard/DCIM
+	$(ADB) push test_media/Movies /sdcard/Movies
+	$(ADB) push test_media/Music /sdcard/Music
+
 dialer-demo:
 	@cp -R apps/contacts apps/dialer
 	@rm apps/dialer/contacts/manifest*
