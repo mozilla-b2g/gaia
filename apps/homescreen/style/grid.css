@@ -99,11 +99,11 @@
   position: absolute;
   text-align: center;
   width: 8rem;
-  -moz-transform: translate(0,0);
 }
 
 .apps .draggable > img {
   margin-bottom: .6rem;
+  -moz-transition: -moz-transform .4s;
   -moz-transform: scale(1.25);
   width: 6rem;
   height: 6rem;

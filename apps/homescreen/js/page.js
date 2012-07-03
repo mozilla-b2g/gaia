@@ -119,6 +119,8 @@ Icon.prototype = {
     var style = draggableElem.style;
     style.left = rectangle.left + 'px';
     style.top = rectangle.top + 'px';
+    this.initXCenter = this.targetXCenter = (rectangle.left + rectangle.right) / 2;
+    this.initYCenter = this.targetYCenter = (rectangle.top + rectangle.bottom) / 2;
 
     this.dragabbleSection.appendChild(draggableElem);
   },
@@ -138,9 +140,27 @@ Icon.prototype = {
   /*
    * This method is invoked when the drag gesture finishes
    */
-  onDragStop: function icon_onDragStop() {
-    delete this.container.dataset.dragging;
-    this.dragabbleSection.removeChild(this.draggableElem);
+  onDragStop: function icon_onDragStop(callback) {
+    var draggableElem = this.draggableElem;
+    draggableElem.style.MozTransition = '-moz-transform .4s';
+    draggableElem.style.MozTransform =
+        'translate(' + (this.targetXCenter - this.initXCenter) + 'px,' +
+        (this.targetYCenter - this.initYCenter) + 'px)';
+    draggableElem.querySelector('img').style.MozTransform = 'scale(1)';
+
+    var that = this;
+    draggableElem.addEventListener('transitionend', function ft(e) {
+      this.removeEventListener('transitionend', ft);
+      delete that.container.dataset.dragging;
+      that.dragabbleSection.removeChild(this);
+      callback();
+    });
+  },
+
+  setTargetNode: function icon_setTargetNode(tnode) {
+    var targetRect = tnode.getBoundingClientRect();
+    this.targetXCenter = (targetRect.left + targetRect.right) / 2;
+    this.targetYCenter = (targetRect.top + targetRect.bottom) / 2;
   },
 
   getTop: function icon_getTop() {
@@ -290,8 +310,10 @@ Page.prototype = {
       this.freeze = true;
 
       var icons = this.icons;
-      var onode = icons[origin].container;
+      var oIcon = icons[origin];
+      var onode = oIcon.container;
       var tnode = icons[target].container;
+      oIcon.setTargetNode(tnode);
 
       var childNodes = this.olist.childNodes;
       var indexOf = Array.prototype.indexOf;

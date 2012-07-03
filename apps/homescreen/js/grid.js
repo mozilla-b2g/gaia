@@ -218,8 +218,9 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', GridManager);
 
     if (dragger.dragging) {
-      dragger.stop();
-      delete container.dataset.transitioning;
+      dragger.stop(function() {
+        delete container.dataset.transitioning;
+      });
       return;
     }
 
@@ -636,16 +637,18 @@ const GridManager = (function() {
      * there is overflow or not in a page and removes the last page when
      * is empty
      */
-    stop: function() {
+    stop: function(callback) {
       clearTimeout(this.translatingTimeout);
       this.isTranslatingPages = false;
       this.dragging = false;
-      delete container.dataset.dragging;
-      draggableIcon.onDragStop();
-      // When the drag&drop is finished we need to check empty pages
-      // and overflows
-      checkOverflowPages();
-      checkEmptyPages();
+      draggableIcon.onDragStop(function() {
+        delete container.dataset.dragging;
+        // When the drag&drop is finished we need to check empty pages
+        // and overflows
+        checkOverflowPages();
+        checkEmptyPages();
+        callback();
+      });
     },
 
     /*
@@ -662,12 +665,12 @@ const GridManager = (function() {
           var overlapElemOrigin = overlapElem.dataset.origin;
           pageHelper.getCurrent().drop(draggableIconOrigin, overlapElemOrigin);
         } else if (overlapElem.className === 'page') {
-            var currentPage = pageHelper.getCurrent();
-            var lastIcon = currentPage.getLastIcon();
-            if (status.cCoords.y > lastIcon.getTop()
-                && overlapElem !== lastIcon) {
-              currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
-            }
+          var currentPage = pageHelper.getCurrent();
+          var lastIcon = currentPage.getLastIcon();
+          if (status.cCoords.y > lastIcon.getTop()
+              && overlapElem !== lastIcon) {
+            currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
+          }
         }
       }
     }
