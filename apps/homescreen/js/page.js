@@ -152,12 +152,6 @@ var Page = function() {
 };
 
 Page.prototype = {
-  vars: {
-    transitionend: 'transitionend',
-    right: 'right',
-    left: 'left',
-    center: 'center'
-  },
 
   /*
    * Renders a page for a list of apps
@@ -261,25 +255,72 @@ Page.prototype = {
     return this.icons[origin];
   },
 
+  isBefore: function(onode, tnode) {
+    return onode.offsetTop < tnode.offsetTop ||
+            (onode.offsetTop === tnode.offsetTop &&
+             onode.offsetLeft < tnode.offsetLeft);
+  },
+
+  freeze: false,
+
   /*
    * Changes position between two icons
    *
    * @param{String} origin icon
    *
    * @param{String} target icon
-   *
-   * @param{int} negative values indicate going upwards and positive
-   *             values indicate going backwards
    */
-  drop: function(origin, target, dir) {
-    var icons = this.icons;
-    var onode = icons[origin].container;
-    var tnode = icons[target].container;
-    if (dir > 0) {
-      // upwards
-      tnode = tnode.nextSibling;
+  drop: function(origin, target) {
+    if (!this.freeze && origin !== target) {
+      var that = this;
+
+      setTimeout(function() { that.freeze = true }, 0);
+      var icons = this.icons;
+      var onode = icons[origin].container;
+      var tnode = icons[target].container;
+
+      var list = this.olist;
+      var childNodes = list.childNodes;
+      var indexOf = Array.prototype.indexOf;
+      var oIndex = indexOf.call(childNodes, onode);
+      var tIndex = indexOf.call(childNodes, tnode);
+
+      if (oIndex < tIndex) {
+        for(var i = oIndex + 1; i <= tIndex; i++) {
+          var node = childNodes[i];
+          var animation = 'goPrevCell';
+          if (i % 4 === 0) {
+            animation = 'goPrevRow';
+          }
+          node.style.MozAnimationName = animation;
+          node.addEventListener('animationend', function ft(e) {
+            this.style.MozAnimationName = '';
+            this.removeEventListener('animationend', ft);
+            if (this === tnode) {
+              list.insertBefore(onode, tnode.nextSibling);
+              setTimeout(function() { that.freeze = false }, 0);
+            }
+          });
+        }
+      } else {
+        for(var i = tIndex; i < oIndex; i++) {
+          var node = childNodes[i];
+          var animation = 'goNextCell';
+          if (i % 4 === 3) {
+            animation = 'goNextRow';
+          }
+          node.style.MozAnimationName = animation;
+          node.addEventListener('animationend', function ft(e) {
+            this.style.MozAnimationName = '';
+            this.removeEventListener('animationend', ft);
+            if (this === tnode) {
+              list.insertBefore(onode, tnode);
+              setTimeout(function() { that.freeze = false }, 0);
+            }
+          });
+        }
+      }
     }
-    this.olist.insertBefore(onode, tnode);
   },
 
   /*
