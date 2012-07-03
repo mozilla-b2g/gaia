@@ -124,7 +124,8 @@ var Contacts = (function() {
       phonesContainer,
       emailContainer,
       selectedTag,
-      contactDetails;
+      contactDetails,
+      saveButton;
 
   var currentContact = {};
 
@@ -142,6 +143,7 @@ var Contacts = (function() {
     phonesContainer = document.getElementById('contacts-form-phones');
     emailContainer = document.getElementById('contacts-form-email');
     contactDetails = document.getElementById('contact-detail');
+    saveButton = document.getElementById('save-button');
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -246,8 +248,8 @@ var Contacts = (function() {
     }
 
     //Removes unnecesary scroll
-    if ( contactDetails.offsetHeight == cover.clientHeight ) {
-      cover.style.overflow = "hidden";
+    if (contactDetails.offsetHeight == cover.clientHeight) {
+      cover.style.overflow = 'hidden';
     } else {
       cover.style.overflow = null;
     }
@@ -359,6 +361,7 @@ var Contacts = (function() {
   };
 
   var saveContact = function saveContact() {
+    saveButton.setAttribute('disabled', 'disabled');
     var name = [givenName.value] || [''];
     var lastName = [familyName.value] || [''];
     var org = [company.value] || [''];
@@ -397,7 +400,8 @@ var Contacts = (function() {
         reloadContactDetails(myContact);
         navigation.back();
       }, function() {
-        console.error("Error reloading contact");
+        saveButton.removeAttribute('disabled');
+        console.error('Error reloading contact');
       });
     };
 
@@ -465,6 +469,7 @@ var Contacts = (function() {
   };
 
   var resetForm = function() {
+    saveButton.removeAttribute('disabled');
     currentContactId.value = '';
     givenName.value = '';
     familyName.value = '';
