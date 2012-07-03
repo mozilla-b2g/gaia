@@ -255,13 +255,22 @@ Page.prototype = {
     return this.icons[origin];
   },
 
-  isBefore: function(onode, tnode) {
-    return onode.offsetTop < tnode.offsetTop ||
-            (onode.offsetTop === tnode.offsetTop &&
-             onode.offsetLeft < tnode.offsetLeft);
-  },
-
   freeze: false,
+
+  jumpNode: function(node, animation, onode, tnode, upward) {
+    var that = this;
+    node.style.MozAnimationName = animation;
+    node.addEventListener('animationend', function ft(e) {
+      this.style.MozAnimationName = '';
+      this.removeEventListener('animationend', ft);
+      if (this === tnode) {
+        setTimeout(function() {
+          that.olist.insertBefore(onode, (upward) ? tnode : tnode.nextSibling);
+          that.freeze = false;
+        }, 0);
+      }
+    });
+  },
 
   /*
    * Changes position between two icons
@@ -273,51 +282,32 @@ Page.prototype = {
   drop: function(origin, target) {
     if (!this.freeze && origin !== target) {
       var that = this;
-
       setTimeout(function() { that.freeze = true }, 0);
+
       var icons = this.icons;
       var onode = icons[origin].container;
       var tnode = icons[target].container;
 
-      var list = this.olist;
-      var childNodes = list.childNodes;
+      var childNodes = this.olist.childNodes;
       var indexOf = Array.prototype.indexOf;
       var oIndex = indexOf.call(childNodes, onode);
       var tIndex = indexOf.call(childNodes, tnode);
 
       if (oIndex < tIndex) {
-        for(var i = oIndex + 1; i <= tIndex; i++) {
-          var node = childNodes[i];
-          var animation = 'goPrevCell';
+        for (var i = oIndex + 1; i <= tIndex; i++) {
+          var animation = 'jumpPrevCell';
           if (i % 4 === 0) {
-            animation = 'goPrevRow';
+            animation = 'jumpPrevRow';
           }
-          node.style.MozAnimationName = animation;
-          node.addEventListener('animationend', function ft(e) {
-            this.style.MozAnimationName = '';
-            this.removeEventListener('animationend', ft);
-            if (this === tnode) {
-              list.insertBefore(onode, tnode.nextSibling);
-              setTimeout(function() { that.freeze = false }, 0);
-            }
-          });
+          this.jumpNode(childNodes[i], animation, onode, tnode, false);
         }
       } else {
-        for(var i = tIndex; i < oIndex; i++) {
-          var node = childNodes[i];
-          var animation = 'goNextCell';
+        for (var i = oIndex - 1; i >= tIndex; i--) {
+          var animation = 'jumpNextCell';
           if (i % 4 === 3) {
-            animation = 'goNextRow';
+            animation = 'jumpNextRow';
           }
-          node.style.MozAnimationName = animation;
-          node.addEventListener('animationend', function ft(e) {
-            this.style.MozAnimationName = '';
-            this.removeEventListener('animationend', ft);
-            if (this === tnode) {
-              list.insertBefore(onode, tnode);
-              setTimeout(function() { that.freeze = false }, 0);
-            }
-          });
+          this.jumpNode(childNodes[i], animation, onode, tnode, true);
         }
       }
     }
