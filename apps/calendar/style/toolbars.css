@@ -1,23 +1,46 @@
+#top-toolbar {
+  position: relative;
+}
+
+header[role="toolbar"] {
+  border-bottom: 0.1rem solid #992f21;
+  background-image: -moz-linear-gradient(#E2520F, #CE361C);
+  box-shadow: -1px -2px 4px 1px black;
+}
+
 header[role="toolbar"] {
   width: 100%;
-  overflow: hidden;
   padding: 0.9rem 0.6rem;
-  border-bottom: 2px solid black;
-  height: 2.95rem;
+  font-size: 1.8rem;
+  height: 4.46rem;
+  line-height: 3.0rem;
+  color: white;
 }
 
-header[role="toolbar"] h3,
-header[role="toolbar"] a {
-  display: block;
-  float: left;
-  width: 33%;
-}
-
-.rtl header[role="toolbar"] h3,
+.rtl header[role="toolbar"] h1,
 .rtl header[role="toolbar"] a {
   float: right;
 }
 
-header[role="toolbar"] h3 {
-  text-align: center;
+header[role="toolbar"] a {
+  display: inline-block;
+  float: left;
+  text-indent: -9999em;
 }
+
+header[role="toolbar"] a:last-child {
+  width: 2rem;;
+}
+
+header[role="toolbar"] a:first-child {
+  width: 2rem;
+}
+
+header[role="toolbar"] h1 {
+  width: 60%;
+  float: left;
+  font-family: 'Open Sans Light';
+  text-align: left;
+  font-weight: normal;
+}
+

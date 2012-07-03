@@ -17,28 +17,17 @@ MONTHS DAY EVENT: #CACACA
 EVENT TIME COLOR: #333
 */
 
-html, body {
-  margin: 0;
-  padding: 0;
-  font-size: 13.5px;
-  height: 100%;
-  background: white;
-  line-height: 100%;
-}
-
 
 /* Device Layouts */
 
 @media screen and (max-width: 480px) {
-  html, body {
-    font-size: 11px;
-  }
+
 }
 
 /* view management */
 
 #views {
-  height: -moz-calc(100% - 6.65rem);
+  height: -moz-calc(100% - 8rem);
 }
 
 #views > section {
@@ -52,12 +41,13 @@ html, body {
 /* view heights */
 
 #month-view {
-  height: 55%;
+  height: 65%;
 }
 
 #month-days-view {
-  height: 45%;
+  height: 35%;
 }
+
 
 /* temp views */
 
@@ -92,29 +82,24 @@ html, body {
 
 /* common top toolbars */
 
-.rtl header[role="toolbar"] a.new-event,
-.ltr header[role="toolbar"] a.accounts {
-  text-align: left;
-}
-
-.rtl header[role="toolbar"] a.accounts,
-.ltr header[role="toolbar"] a.new-event {
-  text-align: right;
-}
 
 /* month view */
 /* sub common: day headers, day boxes */
 
+
+#month-view {
+  box-shadow: 1px 1px 5px 2px #888;
+  margin-bottom: 0.8rem;
+}
+
 #month-days {
   overflow: hidden;
-  /*height: 3.6mozmm;*/
 }
 
 #month-view .month li,
 #month-days li {
   width: 14.28%;
   line-height: 120%;
-  font-weight: bold;
 }
 
 .rtl #month-days li,
@@ -130,26 +115,33 @@ html, body {
 /* sub: day header row */
 
 #month-days {
-  height: 1.48rem;
+  height: 1.45rem;
   clear: both;
 }
 
 #month-days li {
   color: white;
   text-align: center;
-  background-color: #AAA;
+  background-color: #1F2630;
   text-transform: uppercase;
   font-size: 90%;
   padding: 0.185rem 0;
+  border-right: 1px solid #131314;
+  border-left: 1px solid #515051;
+}
+
+#month-days li:last-child {
+  border-right: none;
 }
 
 #month-displays {
-  height: -moz-calc(100% - 1.48rem);
+  height: -moz-calc(100% - 1.45rem);
 }
 
 section.month {
   height: 100%;
   clear: both;
+  color: #484848;
 }
 
 /* sub: day rows */
@@ -162,6 +154,11 @@ section.month {
   overflow: hidden;
   border-left: 1px solid #AAA;
   border-right: 1px solid #AAA;
+}
+
+section.month li > .day {
+  font-size: 1.2rem;
+  line-height: 110%;
 }
 
 .rtl section.month li {
@@ -184,31 +181,50 @@ section.month ol {
   height: 20%;
 }
 
+
+section.month li:first-child {
+  border-left: none;
+}
+
+section.month li:last-child {
+  border-right: none;
+}
+
 section.month li {
   padding-top: 0.3%;
-  border-bottom: 1px solid #AAA;
-  border-left: 1px solid #AAA;
+  
+  border-left: 1px solid #A4A4A4;
+  border-right: 1px solid #FDFDFD;
+  
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid #9D9D9D;
+  
+  
   height: 100%;
   position: relative;
-  background-color: white;
+  background-color: white; 
 }
 
 section.month ol:last-child li {
   border-bottom: none;
 }
 
-section.month li.present {
-  border: 3px solid #444;
-}
-
-section.month li.selected {
-  background-color: #444 !important;
-  color: white;
-}
-
 section.month li.past {
   background-color: #E7E7E7;
   color: #9A9A9A;
+}
+
+section.month li.present {
+  background-color: #525963;
+  box-shadow: inset 1px 1px 4px #333;
+  color: white;
+/*  border-left: 1px solid transparent;*/
+}
+
+section.month li.selected {
+  color: white;
+  background-color: #1BA8C6 !important;
+  border-top: 1px solid white;
 }
 
 section.month li.other-month {
@@ -219,7 +235,7 @@ section.month li.other-month {
 
 section.month li .busy-indicator,
 section.month li .busy-indicator > span{
-  height: 0.444mozmm;
+  height: 0.8rem;
   padding-top: 0.37rem;
 }
 
@@ -239,7 +255,7 @@ section.month li .busy-indicator:before {
 section.month li .busy-indicator > span {
   top: 0px;
   width: 8.33%;
-  background-color: #CCC;
+  background-color: #FCA900;
   position: absolute;
   text-indent: -1000em;
 }
@@ -279,40 +295,58 @@ Indicators are in units of 12
 /* sub: months day view */
 
 #months-day-view {
-  border-top: 2px solid #B0B0B0;
   background-color: white;
   height: -moz-calc(50% - 1.295rem);
 }
 
 #months-day-view .day-events {
-  height: -moz-calc(100% - 1.591rem);
+  height: -moz-calc(100% - 6.5rem);
   overflow-y: auto;
 }
 
 #months-day-view  header {
-  background-color: #E2E2E2;
-  border-bottom: 1px solid #CCC;
-  text-align: center;
-  padding: 1mozmm;
+  letter-spacing: 0.05rem;
+  font-size: 1.1rem;
+  padding: 0.2rem 1.2rem 0.7rem;
+  text-transform: uppercase;
+  font-family: 'Open Sans Light';
+  color: #F93700;
+  border-bottom: 1px solid #F93700;
 }
 
 /** sub: view selector **/
 
 #bottom-toolbar {
   height: 3.33rem;
-  background: #EFEFEF;
+  background: #BFBBBB;
+}
+
+#view-selector li,
+#view-selector,
+#view-selector menu {
+  height: 3.33rem;
 }
 
 #view-selector {
-  margin-top: 0.37rem;
-  border-top: 1px solid black;
-  padding: 0.55rem 0.55rem;
+  line-height: 2.1rem;
   overflow: hidden;
+  height: 3.33rem;
+  margin-top: 2px;
+  box-shadow: 0 0 3px 0px #888;
 }
 
 #view-selector a {
   text-decoration: none;
   color: black;
+}
+
+#view-selector menu > li {
+  border-right: 1px solid #979696;
+  border-left: 1px solid #D1D0D0;
+}
+
+#view-selector menu > li:last-child {
+  border-right: none;
 }
 
 .rtl #view-selector li {
@@ -325,12 +359,8 @@ Indicators are in units of 12
 
 #view-selector > li.today {
   width: -moz-calc(30% - 2mozmm);
-  margin-right: 0.74rem;
-}
-
-#view-selector menu li.week {
-  border-right: 1px solid #9B9B9B;
-  border-left: 1px solid #9B9B9B;
+  height: 3.33rem;
+  background-image: -moz-linear-gradient(#E2520F, #CE361C);
 }
 
 #view-selector > li.time-selection {
@@ -341,7 +371,7 @@ Indicators are in units of 12
 body[data-path="/day"] .time-selection .day,
 body[data-path="/week"] .time-selection .week,
 body[data-path="/month"] .time-selection .month {
-  text-decoration: underline;
+  background-color: white;
 }
 
 #view-selector > li a {
@@ -355,13 +385,31 @@ body[data-path="/month"] .time-selection .month {
   font-weight: bold;
   color: black;
   display: block;
-  border-radius: 5px;
-  border: 1px solid #656565;
-  background-color: #DDD;
   width: 100%;
+  font-size: 1.2rem;
 }
-
 
 #view-selector menu li {
   width: 33%;
+}
+
+@media screen and (min-width: 481px) {
+  html, body {
+    font-size: 12px;
+  }
+  
+  #month-view {
+    height: 55%;
+  }
+
+  #month-days-view {
+    height: 45%;
+  }
+  
+}
+
+@media screen and (max-width: 480px) {
+  html, body {
+    font-size: 10px;  
+  }
 }
