@@ -1640,7 +1640,7 @@
   // **Interfaces of indexedDB**
   var IndexedDB = {
     indexedDB: window.indexedDB || window.webkitIndexedDB ||
-      window.msIndexedDB,
+      window.mozIndexedDB || window.msIndexedDB,
 
     IDBDatabase: window.IDBDatabase || window.webkitIDBDatabase ||
       window.msIDBDatabase,

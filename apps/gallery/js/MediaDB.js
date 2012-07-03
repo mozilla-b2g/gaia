@@ -206,7 +206,7 @@ function MediaDB(mediaType, metadataParser, options) {
   //
 
   // Set up IndexedDB
-  var indexedDB = window.indexedDB;
+  var indexedDB = window.indexedDB || window.mozIndexedDB;
   this.dbname = 'MediaDB/' + mediaType + '/' + this.directory;
   var openRequest = indexedDB.open(this.dbname, this.version);
 
@@ -519,7 +519,7 @@ MediaDB.prototype = {
       localStorage[media.dbname + '.lastScanTime'] = media.lastScanTime;
 
       var store = media.db.transaction('files').objectStore('files');
-      var getAllRequest = store.mozGetAll();
+      var getAllRequest = store.getAll();
 
       getAllRequest.onsuccess = function() {
         var dbfiles = getAllRequest.result;  // Should already be sorted

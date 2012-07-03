@@ -656,6 +656,7 @@
 
     var indexedDB = window.indexedDB ||
       window.webkitIndexedDB ||
+      window.mozIndexedDB ||
       window.msIndexedDB;
 
     var IDBDatabase = window.IDBDatabase ||
@@ -902,9 +903,9 @@
 
       var store = iDB.transaction('terms', 'readonly')
         .objectStore('terms');
-      if (IDBIndex.prototype.mozGetAll) {
+      if (IDBIndex.prototype.getAll) {
         // Mozilla IndexedDB extension
-        var req = store.index('constantSyllables').mozGetAll(
+        var req = store.index('constantSyllables').getAll(
           IDBKeyRange.only(constants));
       } else {
         var req = store.index('constantSyllables').openCursor(
@@ -1086,9 +1087,9 @@
 
         var store = iDB.transaction('terms', 'readonly')
           .objectStore('terms');
-        if (IDBIndex.prototype.mozGetAll) {
+        if (IDBIndex.prototype.getAll) {
           // Mozilla IndexedDB extension
-          var req = store.mozGetAll(
+          var req = store.getAll(
             IDBKeyRange.bound(syllablesStr, upperBound, true, true));
         } else {
           var req = store.openCursor(
