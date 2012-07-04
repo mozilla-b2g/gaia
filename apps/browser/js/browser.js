@@ -232,6 +232,7 @@ var Browser = {
 
       case 'keyup':
         if (evt.keyCode === evt.DOM_VK_ESCAPE) {
+          evt.preventDefault();
           this.showPageScreen();
           this.urlInput.blur();
         }
