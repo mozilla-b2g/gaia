@@ -73,9 +73,9 @@ var Browser = {
 
     this.handleWindowResize();
 
-    // Load homepage once GlobalHistory is initialised
+    // Load homepage once Places is initialised
     // (currently homepage is blank)
-    GlobalHistory.init((function() {
+    Places.init((function() {
       this.selectTab(this.createTab());
       this.showPageScreen();
     }).bind(this));
@@ -174,7 +174,7 @@ var Browser = {
           var a = document.createElement('a');
           a.href = tab.url;
           var iconUrl = a.protocol + '//' + a.hostname + '/' + 'favicon.ico';
-          GlobalHistory.setAndLoadIconForPage(tab.url, iconUrl);
+          Places.setAndLoadIconForPage(tab.url, iconUrl);
         }
 
         break;
@@ -193,7 +193,7 @@ var Browser = {
       case 'mozbrowsertitlechange':
         if (evt.detail) {
           tab.title = evt.detail;
-          GlobalHistory.setPageTitle(tab.url, tab.title);
+          Places.setPageTitle(tab.url, tab.title);
           if (isCurrentTab && !tab.loading) {
             this.urlInput.value = tab.title;
           }
@@ -208,7 +208,7 @@ var Browser = {
       case 'mozbrowsericonchange':
         if (evt.detail && evt.detail != tab.iconUrl) {
           tab.iconUrl = evt.detail;
-          GlobalHistory.setAndLoadIconForPage(tab.url, tab.iconUrl);
+          Places.setAndLoadIconForPage(tab.url, tab.iconUrl);
         }
         break;
 
@@ -309,7 +309,7 @@ var Browser = {
   },
 
   updateHistory: function browser_updateHistory(url) {
-    GlobalHistory.addVisit(url);
+    Places.addVisit(url);
     this.refreshButtons();
   },
 
@@ -404,7 +404,7 @@ var Browser = {
       return;
     }
 
-    GlobalHistory.db.getIcon(visit.iconUri, (function(icon) {
+    Places.db.getIcon(visit.iconUri, (function(icon) {
       if (icon && icon.failed != true && icon.data) {
         var imgUrl = window.URL.createObjectURL(icon.data);
         link.style.backgroundImage = 'url(' + imgUrl + ')';
@@ -632,7 +632,7 @@ var Browser = {
   },
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
-    GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
+    Places.getHistory(this.showGlobalHistory.bind(this));
     this.urlInput.focus();
     this.setUrlButtonMode(this.GO);
     this.tabsBadge.innerHTML = '';

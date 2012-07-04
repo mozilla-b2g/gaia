@@ -3,7 +3,7 @@
 var idb = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
-var GlobalHistory = {
+var Places = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
 
   init: function gh_init(callback) {
@@ -112,7 +112,7 @@ var GlobalHistory = {
 
 };
 
-GlobalHistory.db = {
+Places.db = {
   _db: null,
 
   open: function db_open(callback) {
@@ -267,7 +267,7 @@ GlobalHistory.db = {
   },
 
   clearPlaces: function db_clearPlaces(callback) {
-    var db = GlobalHistory.db._db;
+    var db = Places.db._db;
     var transaction = db.transaction('places',
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -284,7 +284,7 @@ GlobalHistory.db = {
   },
 
   clearVisits: function db_clearVisits(callback) {
-    var db = GlobalHistory.db._db;
+    var db = Places.db._db;
     var transaction = db.transaction('visits',
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -301,7 +301,7 @@ GlobalHistory.db = {
   },
 
   clearIcons: function db_clearIcons(callback) {
-    var db = GlobalHistory.db._db;
+    var db = Places.db._db;
     var transaction = db.transaction('icons',
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
