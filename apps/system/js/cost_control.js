@@ -14,6 +14,11 @@ var CostControl = {
   TOP_UP_FOLL_TEXT: '',
 
   init: function cc_init() {
+    //If we don't have the sender in the variant, just hide the module
+    if (!this.CHECK_BALANCE_SEND_NUMBER) {
+      document.getElementById("cost-control").style.display = 'none';
+      return;
+    }
     console.log('---- Cost control init -----');
     //For USSD (TopUp)
     if (window.navigator.mozMobileConnection) {
@@ -76,7 +81,7 @@ var CostControl = {
     this.balanceText = document.getElementById('cost-control-spent');
     this.dateText = document.getElementById('cost-control-date');
     if (!this.conn.voice.connected) {
-      console.log("No conectado, ponemos listener");
+      console.log("No conectado, ponemos listener para esperar red");
       this.conn.removeEventListener('voicechange', this.getInitialBalance);
       this.conn.addEventListener('voicechange', this.getInitialBalance);
       this.updateUI(false, 0);
