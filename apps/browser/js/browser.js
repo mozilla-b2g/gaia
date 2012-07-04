@@ -34,6 +34,7 @@ var Browser = {
     this.history = document.getElementById('history');
     this.backButton = document.getElementById('back-button');
     this.forwardButton = document.getElementById('forward-button');
+    this.bookmarkButton = document.getElementById('bookmark-button');
     this.sslIndicator = document.getElementById('ssl-indicator');
 
     this.tabsBadge = document.getElementById('tabs-badge');
@@ -51,6 +52,7 @@ var Browser = {
     this.backButton.addEventListener('click', this.goBack.bind(this));
     this.urlButton.addEventListener('click', this.go.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
+    this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
     this.tabsBadge.addEventListener('click',
@@ -291,12 +293,40 @@ var Browser = {
 
   goBack: function browser_goBack() {
     this.currentTab.dom.goBack();
-    this.refreshButtons();
   },
 
   goForward: function browser_goForward() {
     this.currentTab.dom.goForward();
-    this.refreshButtons();
+  },
+
+  bookmark: function browser_bookmark() {
+    // If no URL, can't create a bookmark
+    if (!this.currentTab.url)
+      return;
+    // If bookmarked, unbookmark
+    if (this.bookmarkButton.classList.contains('bookmarked')) {
+      Places.removeBookmark(this.currentTab.url, (function() {
+        this.refreshBookmarkButton();
+      }).bind(this));
+    // If not bookmarked, bookmark
+    } else {
+      Places.addBookmark(this.currentTab.url, this.currentTab.title,
+        (function() {
+        this.refreshBookmarkButton();
+      }).bind(this));
+    }
+  },
+
+  refreshBookmarkButton: function browser_refreshBookmarkButton() {
+    if (!this.currentTab.url)
+      return;
+    Places.getBookmark(this.currentTab.url, (function(bookmark) {
+      if (bookmark) {
+        this.bookmarkButton.classList.add('bookmarked');
+      } else {
+        this.bookmarkButton.classList.remove('bookmarked');
+      }
+    }).bind(this));
   },
 
   refreshButtons: function browser_refreshButtons() {
@@ -306,6 +336,7 @@ var Browser = {
     this.currentTab.dom.getCanGoForward().onsuccess = (function(e) {
       this.forwardButton.disabled = !e.target.result;
     }).bind(this);
+    this.refreshBookmarkButton();
   },
 
   updateHistory: function browser_updateHistory(url) {

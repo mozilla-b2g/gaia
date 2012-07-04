@@ -12,7 +12,9 @@ suite('Global History', function() {
         Places.db.clearPlaces(function() {
           Places.db.clearVisits(function() {
             Places.db.clearIcons(function() {
-              done();
+              Places.db.clearBookmarks(function() {
+                done();
+              });
             });
           });
         });
@@ -48,6 +50,56 @@ suite('Global History', function() {
         function(place) {
         done(function() {
           assert.equal(place, undefined);
+        });
+      });
+    });
+
+    test('saveBookmark', function(done) {
+      var bookmark = {
+        uri: 'http://mozilla.org/test1',
+        title: 'Mozilla',
+        timestamp: new Date().valueOf()
+      };
+      Places.db.saveBookmark(bookmark, function() {
+        done();
+      });
+    });
+
+    test('getBookmark', function(done) {
+      var bookmark = {
+        uri: 'http://mozilla.org/test2',
+        title: 'Mozilla'
+      };
+      Places.db.saveBookmark(bookmark, function() {
+        Places.db.getBookmark('http://mozilla.org/test2', function(bookmark) {
+          done(function() {
+            assert.equal(bookmark.title, 'Mozilla');
+          });
+        });
+      });
+    });
+
+    test('getBookmark - not found', function(done) {
+      Places.db.getBookmark('http://mozilla.org/doesnotexist',
+        function(bookmark) {
+        done(function() {
+          assert.equal(bookmark, undefined);
+        });
+      });
+    });
+
+    test('deleteBookmark', function(done) {
+      var bookmark = {
+        uri: 'http://mozilla.org/test3',
+        title: 'Mozilla'
+      };
+      Places.db.saveBookmark(bookmark, function() {
+        Places.db.deleteBookmark('http://mozilla.org/test3', function() {
+          Places.db.getBookmark('http://mozilla.org/test3', function(bookmark) {
+            done(function(bookmark) {
+              assert.equal(bookmark, undefined);
+            });
+          });
         });
       });
     });
@@ -106,7 +158,9 @@ suite('Global History', function() {
         Places.db.clearPlaces(function() {
           Places.db.clearVisits(function() {
             Places.db.clearIcons(function() {
-              done();
+              Places.db.clearBookmarks(function() {
+                done();
+              });
             });
           });
         });
@@ -143,6 +197,33 @@ suite('Global History', function() {
             assert.equal(true, iconEntry.expiration < twoDaysAway);
             assert.equal(2550, iconEntry.data.size);
             assert.equal('image/x-icon', iconEntry.data.type);
+          });
+        });
+      });
+    });
+
+    test('addVisit', function(done) {
+      Places.addVisit('http://mozilla.org/test8', function() {
+        done();
+      });
+    });
+
+    test('addVisit - existing place', function(done) {
+      Places.addPlace('http://mozilla.org/test9', function() {
+        Places.addVisit('http://mozilla.org/test9', function() {
+          done();
+        });
+      });
+    });
+
+    test('addBookmark', function(done) {
+      Places.addBookmark('http://mozilla.org/test7', 'Test 7', function() {
+        Places.getBookmark('http://mozilla.org/test7', function(bookmark) {
+          done(function() {
+            assert.equal(bookmark.title, 'Test 7');
+            assert.equal(true, bookmark.timestamp > 0);
+            var now = new Date().valueOf();
+            assert.equal(true, bookmark.timestamp <= now);
           });
         });
       });
