@@ -649,7 +649,6 @@ const GridManager = (function() {
      */
     start: function(elem) {
       this.dragging = true;
-      container.dataset.dragging = true;
       draggableIconOrigin = elem.dataset.origin;
       draggableIcon = pageHelper.getCurrent().getIcon(draggableIconOrigin);
       draggableIcon.onDragStart(status.iCoords.x, status.iCoords.y);
@@ -664,7 +663,6 @@ const GridManager = (function() {
       clearTimeout(this.translatingTimeout);
       this.isTranslatingPages = false;
       this.dragging = false;
-      delete container.dataset.dragging;
       draggableIcon.onDragStop();
       // When the drag&drop is finished we need to check empty pages
       // and overflows
@@ -831,6 +829,14 @@ const GridManager = (function() {
         this.onEditModeChange(mode);
 
       container.dataset.mode = currentMode = mode;
+
+      if (this.isEditMode()) {
+        // Randomize the moment of each icon
+        var divs = document.querySelectorAll('.apps[data-mode = "edit"] ol > li > div');
+        for (var i = 0; i < divs.length; i++) {
+          divs[i].style.MozAnimationDelay = (- Math.random()) + 's';
+        }
+      }
     },
 
     /*
