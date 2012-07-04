@@ -336,6 +336,7 @@ var ConversationListView = {
       }
 
       self.view.innerHTML = fragment;
+      delete self._lastHeader;
       var conversationList = self.view.children;
 
       // update the conversation sender/receiver name with contact data.
@@ -368,14 +369,17 @@ var ConversationListView = {
 
     return '<div class="item">' +
            '  <label class="fake-checkbox">' +
-           '    <input data-num="' + conversation.num + '"' + 'type="checkbox"/>' +
+           '    <input data-num="' +
+                conversation.num + '"' + 'type="checkbox"/>' +
            '    <span></span>' +
            '  </label>' +
            '  <a href="#num=' + conversation.num + '"' +
            '     data-num="' + conversation.num + '"' +
            '     data-name="' + dataName + '"' +
-           '     data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
-           '     class="' + (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
+           '     data-notempty="' +
+                 (conversation.timestamp ? 'true' : '') + '"' +
+           '     class="' +
+                 (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
            '    <span class="unread-mark">' +
            '      <i class="i-unread-mark"></i>' +
            '    </span>' +
@@ -384,7 +388,7 @@ var ConversationListView = {
            '    <div class="time ' +
                   (conversation.unreadCount > 0 ? 'unread' : '') +
            '      " data-time="' + conversation.timestamp + '">' +
-                  giveHourMinute(conversation.timestamp) + 
+                  giveHourMinute(conversation.timestamp) +
            '    </div>') +
            '    <div class="msg">"' + bodyHTML + '"</div>' +
            '    <div class="unread-tag"></div>' +
