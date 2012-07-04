@@ -218,7 +218,7 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', GridManager);
 
     if (dragger.dragging) {
-      dragger.stop(function() {
+      dragger.stop(function dg_stop() {
         delete container.dataset.transitioning;
       });
       return;
@@ -543,6 +543,24 @@ const GridManager = (function() {
   };
 
   /*
+   * After re-arranged the overlap element could be different so we
+   * create a mousemove event with the same coordinates than the last
+   * mousedown event
+   */
+  function dispatchMouseMoveEvent() {
+    var currentPage = pageHelper.getCurrent();
+    delete currentPage.onReArranged;
+    var win = document.defaultView;
+    var mousemove = document.createEvent('MouseEvent');
+    mousemove.initMouseEvent(
+      'mousemove', true, true, win, 0,
+      status.cCoords.x + win.mozInnerScreenX, status.cCoords.y +
+      win.mozInnerScreenY, status.cCoords.x,
+      status.cCoords.y, false, false, false, false, 0, null);
+    win.dispatchEvent(mousemove);
+  }
+
+  /*
    * This module leads to dragging feature
    */
   var dragger = {
@@ -571,20 +589,22 @@ const GridManager = (function() {
      *
      * @param {Boolean} the value
      */
-    setDisabledCheckingLimits: function(value) {
+    setDisabledCheckingLimits: function dg_setDisabledCheckingLimits(value) {
       this.isDisabledCheckingLimits = value;
       if (value) {
-        var that = this;
-        that.disabledCheckingLimitsTimeout = setTimeout(function() {
-          that.isDisabledCheckingLimits = false;
-          that.checkLimits();
-        }, 1000);
+        var self = this;
+        this.disabledCheckingLimitsTimeout = setTimeout(
+          function dg_disabledCheckingLimitsTimeout() {
+            self.isDisabledCheckingLimits = false;
+            self.checkLimits();
+          }
+        , 1000);
       }
     },
 
     transitioning: false,
 
-    onNavigationEnd: function() {
+    onNavigationEnd: function dg_onNavigationEnd() {
       dragger.transitioning = false;
     },
 
@@ -595,7 +615,7 @@ const GridManager = (function() {
      * Furthermore, this method is in charge of creating a new page when
      * it's needed
      */
-    checkLimits: function() {
+    checkLimits: function dg_checkLimits() {
       var x = status.cCoords.x;
       if (dirCtrl.limitNext(x)) {
         this.isDisabledDrop = true;
@@ -637,7 +657,7 @@ const GridManager = (function() {
      *
      * {Object} This is the DOMElement which was tapped and hold
      */
-    start: function(elem) {
+    start: function dg_start(elem) {
       this.dragging = true;
       container.dataset.dragging = true;
       draggableIconOrigin = elem.dataset.origin;
@@ -650,17 +670,15 @@ const GridManager = (function() {
      * there is overflow or not in a page and removes the last page when
      * is empty
      */
-    stop: function(callback) {
+    stop: function dg_stop(callback) {
       clearTimeout(this.disabledCheckingLimitsTimeout);
       this.isDisabledCheckingLimits = false;
       this.isDisabledDrop = false;
       this.transitioning = false;
       this.dragging = false;
 
-      var finishDrag = function() {
+      var finishDrag = function dg_finishDrag() {
         delete container.dataset.dragging;
-        // When the drag&drop is finished we need to check empty pages
-        // and overflows
         checkOverflowPages();
         checkEmptyPages();
         callback();
@@ -684,39 +702,27 @@ const GridManager = (function() {
      *
      * @param {Object} DOMElement behind draggable icon
      */
-    move: function(overlapElem) {
+    move: function dg_move(overlapElem) {
       draggableIcon.onDragMove(status.cCoords.x, status.cCoords.y);
       var currentPage = pageHelper.getCurrent();
       if (currentPage.ready) {
         this.checkLimits();
-        if (!this.isDisabledDrop) {
-          var className = overlapElem.className;
-          if (className === 'icon' || className === 'options') {
-            var overlapElemOrigin = overlapElem.dataset.origin;
-            currentPage.drop(draggableIconOrigin, overlapElemOrigin);
-          } else if (overlapElem.className === 'page') {
-            var lastIcon = currentPage.getLastIcon();
-            if (lastIcon && status.cCoords.y > lastIcon.getTop()
-                && overlapElem !== lastIcon) {
-              currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
-            }
+        if (this.isDisabledDrop) {
+          return;
+        }
+        var classList = overlapElem.classList;
+        if (classList.contains('icon') || classList.contains('options')) {
+          var overlapElemOrigin = overlapElem.dataset.origin;
+          currentPage.drop(draggableIconOrigin, overlapElemOrigin);
+        } else if (classList.contains('page')) {
+          var lastIcon = currentPage.getLastIcon();
+          if (lastIcon && status.cCoords.y > lastIcon.getTop()
+              && overlapElem !== lastIcon) {
+            currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
           }
         }
       } else {
-        currentPage.onReArranged = function() {
-          // After re-arranged the overlap element could be different so we
-          // create a mousemove event with the same coordinates than the last
-          // mousedown event
-          delete currentPage.onReArranged;
-          var win = document.defaultView;
-          var mousemove = document.createEvent('MouseEvent');
-          mousemove.initMouseEvent(
-            'mousemove', true, true, win, 0,
-            status.cCoords.x + win.mozInnerScreenX, status.cCoords.y +
-            win.mozInnerScreenY, status.cCoords.x,
-            status.cCoords.y, false, false, false, false, 0, null);
-          win.dispatchEvent(mousemove);
-        }
+        currentPage.onReArranged = dispatchMouseMoveEvent;
       }
     }
   };
