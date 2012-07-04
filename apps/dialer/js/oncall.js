@@ -289,7 +289,11 @@ var OnCallHandler = {
   },
 
   answer: function ch_answer() {
-    this.currentCall.answer();
+    if (this.currentCall) {
+      this.currentCall.answer();
+    } else {
+      this.disconnected();
+    }
   },
 
   end: function ch_end() {
