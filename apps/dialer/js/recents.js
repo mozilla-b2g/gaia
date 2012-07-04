@@ -121,15 +121,6 @@ var Recents = {
 
     var self = this;
     this.history(function showRecents(recents) {
-recents = [
-  { date: Date.now(), number: '+33686834379', type: 'missed' },
-  { date: Date.now(), number: '+33686834379', type: 'missed' },
-  { date: Date.now(), number: '+33686834379', type: 'missed' },
-  { date: Date.now(), number: '+33686834379', type: 'missed' },
-  { date: Date.now(), number: '+33686834379', type: 'missed' },
-  { date: Date.now(), number: '+33686834379', type: 'missed' },
-  { date: Date.now(), number: '+33686834379', type: 'missed' },
-];
       if (recents.length == 0) {
         self.view.innerHTML = '';
         return;
