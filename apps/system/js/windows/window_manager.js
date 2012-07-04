@@ -74,6 +74,10 @@ var WindowManager = (function() {
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
 
+  // Keeping track of the current state of the close animation for
+  // hardening purprose.
+  var currentlyClosing = false;
+
   // The localization of the "Loading..." message that appears while
   // an app is loading
   var localizedLoading = 'Loading...';
@@ -175,8 +179,12 @@ var WindowManager = (function() {
       if (!sprite.classList.contains('faded')) {
         // The first transition has just completed.
         // Make the app window visible and then fade the sprite away
-        frame.classList.add('active');
-        windows.classList.add('active');
+        // while hardening agains super fast app launch/close
+        if (!currentlyClosing) {
+          frame.classList.add('active');
+          windows.classList.add('active');
+        }
+
         sprite.classList.add('faded');
 
         if ('setVisible' in frame) {
@@ -232,6 +240,8 @@ var WindowManager = (function() {
       frame.setVisible(false);
     }
 
+    currentlyClosing = true;
+
     // If we're not doing an animation, then just switch directly
     // to the closed state.
     if (instant) {
@@ -270,6 +280,9 @@ var WindowManager = (function() {
     sprite.addEventListener('transitionend', function transitionListener() {
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
+
+      currentlyClosing = false;
+
       if (callback)
         callback();
     });
