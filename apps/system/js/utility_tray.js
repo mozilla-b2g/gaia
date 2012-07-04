@@ -88,7 +88,23 @@ var UtilityTray = {
 
       case 'transitionend':
         if (!this.shown)
+        {
           this.screen.classList.remove('utility-tray');
+          this.firstShown.style.MozTransition = '';
+          if (this.phase2hide) {
+            this.firstShown.style.MozTransition = '-moz-transform 0.2s linear';
+            this.firstShown.style.MozTransform =
+              'translateY(' + this.firstShownPosition + 'px)';
+            this.overlay.style.MozTransition = '-moz-transform 0.2s linear';
+            this.overlay.style.MozTransform = 'translateY(0)';
+            if (evt.target == this.firstShown)
+              this.phase2hide = false;
+          } else {
+            // Reset position of this.firstShown
+            this.firstShown.style.MozTransition = '';
+            this.firstShown.style.MozTransform = 'translateY(0)';
+          }
+        }
         break;
     }
   },
@@ -111,9 +127,13 @@ var UtilityTray = {
 
     if (dy > gripBarHeight) {
       var firstShownHeight = this.firstShown.getBoundingClientRect().height;
+      if (!this.targetOf2PhaseHide) {
+        this.targetOf2PhaseHide = gripBarHeight + firstShownHeight;
+      }
 
       if (dy < firstShownHeight + gripBarHeight) {
         newHeight = screenHeight - firstShownHeight - gripBarHeight;
+        this.firstShownPosition = newHeight;
       } else {
         newHeight = screenHeight - dy;
       }
@@ -145,16 +165,24 @@ var UtilityTray = {
   hide: function ut_hide(instant) {
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
-    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(0)';
+    var firstShownStyle = this.firstShown.style;
+    style.MozTransition = instant ? '' : '-moz-transform 0.4s linear';
     this.shown = false;
     if (instant)
       this.screen.classList.remove('utility-tray');
+
+    firstShownStyle.MozTransition = '-moz-transform 0.4s linear';
+    firstShownStyle.MozTransform =
+      'translateY(' + this.firstShownPosition + 'px)';
 
     if (!alreadyHidden) {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('utilitytrayhide', true, true, null);
       window.dispatchEvent(evt);
+      style.MozTransform = 'translateY(' + this.targetOf2PhaseHide + 'px)';
+      this.phase2hide = true;
+    } else {
+      style.MozTransform = 'translateY(0px)';
     }
   },
 
