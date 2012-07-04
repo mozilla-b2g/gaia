@@ -113,6 +113,8 @@ window.addEventListener('DOMContentLoaded', function() {
             console.error('Failed to create a poster image:', e);
           }
 
+          testplayer.src = '';
+          testplayer = null;
           addVideo(videodata);
         }
 
@@ -137,11 +139,13 @@ window.addEventListener('DOMContentLoaded', function() {
     var index = videos.length;
     videos.push(videodata);
 
-    var poster = document.createElement('img');
-    poster.src = URL.createObjectURL(videodata.poster);
-    poster.onload = function() {
-      URL.revokeObjectURL(poster.src);
-    };
+    if (videodata.poster) {
+      var poster = document.createElement('img');
+      poster.src = URL.createObjectURL(videodata.poster);
+      poster.onload = function() {
+        URL.revokeObjectURL(poster.src);
+      };
+    }
 
     var title = document.createElement('p');
     title.className = 'name';
@@ -158,7 +162,9 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     var thumbnail = document.createElement('li');
-    thumbnail.appendChild(poster);
+    if (poster) {
+      thumbnail.appendChild(poster);
+    }
     thumbnail.appendChild(title);
     thumbnail.appendChild(duration);
     thumbnail.addEventListener('click', function(e) {
