@@ -22,49 +22,49 @@ body.dialog #dialogs > div {
   vertical-align: middle;
 }
 
-div.dialog {
+div[role=dialog] {
   display: none;
   width: 100%;
   margin: auto;
   background-color: #eaeae4;
 }
 
-div.dialog.active {
+div[role=dialog].active {
   display: block;
 }
 
-div.dialog > * {
+div[role=dialog] > * {
   padding: 0 20px;
 }
 
-div.dialog dl > * {
+div[role=dialog] dl > * {
   line-height: 2.0em;
 }
 
-div.dialog dt {
+div[role=dialog] dt {
   float: left;
   margin-right: 0.5em;
 }
 
-div.dialog dd {
+div[role=dialog] dd {
   font-weight: bold;
 }
 
-div.dialog input[type=text],
-div.dialog input[type=password] {
+div[role=dialog] input[type=text],
+div[role=dialog] input[type=password] {
   width: 100%;
   margin-bottom: 1em;
   font-size: 1em;
 }
 
-div.dialog footer {
+div[role=dialog] footer {
   text-align: center;
   line-height: 80px;
   height: 80px;
   margin-top: 20px;
 }
 
-div.dialog footer button {
+div[role=dialog] footer button {
   width: 180px;
   height: 60px;
   border: 4px solid;
@@ -77,11 +77,11 @@ div.dialog footer button {
   font-size: 1em;
 }
 
-div.dialog footer button:active {
+div[role=dialog] footer button:active {
   background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-div.dialog footer button::-moz-focus-inner {
+div[role=dialog] footer button::-moz-focus-inner {
   border: none;
 }
 
@@ -100,38 +100,54 @@ form[role=dialog] {
   padding: 0;
 }
 
+form[role=dialog].active,
 form[role=dialog]:target {
   display: block;
 }
 
+form[role=dialog] button,
+form[role=dialog] input[type=button] {
+  height: 40px;
+  margin: 10px;
+  border: 4px solid;
+  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
 form[role=dialog] header {
-  height: 2rem;
+  height: 60px;
+  border-bottom: 2px solid #c3c9cb;
+  margin-bottom: 10px;
 }
 
 form[role=dialog] header h2 {
   margin: 0;
-  height: 2rem;
+  height: 60px;
   font-size: 0.85em;
-  line-height: 2rem;
+  line-height: 60px;
   background-color: #ccf;
 }
 
 form[role=dialog] header button {
   float: left;
-  font-size: 1em;
 }
 
 form[role=dialog] header button + button {
   float: right;
 }
 
-form[role=dialog] label span {
+form[role=dialog] label {
+  -moz-box-sizing: border-box;
   display: block;
-  margin-left: 10px;
+  width: 100%;
+  padding: 10px 20px;
 }
 
 form[role=dialog] label input {
-  -moz-box-sizing: border-box;
   width: 100%;
   font-size: 1em;
 }

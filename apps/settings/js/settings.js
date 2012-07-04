@@ -8,6 +8,9 @@ var Settings = {
     this.loadGaiaCommit();
 
     var settings = window.navigator.mozSettings;
+    if (!settings) // e.g. when debugging on a browser...
+      return;
+
     var transaction = settings.getLock();
 
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');

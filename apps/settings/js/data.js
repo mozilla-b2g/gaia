@@ -4,6 +4,7 @@
 'use strict';
 
 window.addEventListener('localized', function getCarrierSettings(evt) {
+  var APN_FILE = 'serviceproviders.xml';
   var DEBUG = false;
 
   // display data carrier name
@@ -23,7 +24,8 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
     var res = result.iterateNext();
     while (res) { // turn each resulting XML element into a JS object
       var apn = {
-        name: res.getAttribute('value'),
+        id: res.getAttribute('value'),
+        name: '',
         plan: '',
         usage: '',
         username: '',
@@ -63,31 +65,31 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
     }
 
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'serviceproviders.xml', false);
+    xhr.open('GET', APN_FILE, false);
     xhr.send();
 
     function getField(name) {
-      return document.querySelector('input[name="ril.data.' + name + '"]');
+      var selector = 'input[data-name="ril.data.' + name + '"]';
+      return document.querySelector(selector);
     }
+
     function setFieldValue(name, value) {
-      var input = document.querySelector('input[name="ril.data.' + name + '"]');
-      input.value = value || '';
+      var selector = 'input[data-name="ril.data.' + name + '"]';
+      document.querySelector(selector).value = value || '';
     }
 
     var results = queryAPN(xhr.responseXML, mcc, mnc);
     if (results && results.length) {
       var res = results[0];
-      getField('apn').value = res.name || '';
+      getField('apn').value = res.id || '';
       getField('user').value = res.username || '';
       getField('passwd').value = res.password || '';
     }
-
-    // don't close the dialog box
-    return false;
   };
 });
 
 function openSettingDialog(dialogID) {
+  var settings = window.navigator.mozSettings;
   var dialog = document.getElementById(dialogID);
   var fields = dialog.querySelectorAll('input');
 
@@ -97,19 +99,39 @@ function openSettingDialog(dialogID) {
     return false;
   }
 
+  // initialize all setting fields in the dialog box
+  function init() {
+    if (settings) {
+      var transaction = settings.getLock();
+      for (var i = 0; i < fields.length; i++) {
+        var input = fields[i];
+        var key = input.dataset.name;
+        var request = transaction.get(key);
+        request.onsuccess = function() {
+          if (request.result[key] != undefined) {
+            input.value = request.result[key];
+          }
+        };
+      }
+    }
+    dialog.style.display = 'block';
+  }
+
   // validate all settings in the dialog box
   function submit() {
-    var cset = {};
-    for (var i = 0; i < fields.length; i++) {
-      var input = fields[i];
-      cset[input.name] = input.value;
+    if (settings) {
+      var cset = {};
+      for (var i = 0; i < fields.length; i++) {
+        var input = fields[i];
+        cset[input.dataset.name] = input.value;
+      }
+      settings.getLock().set(cset);
     }
-    window.navigator.mozSettings.getLock().set(cset);
     return close();
   }
 
   dialog.onsubmit = submit;
   dialog.onreset = close;
-  dialog.style.display = 'block';
+  init();
 }
 

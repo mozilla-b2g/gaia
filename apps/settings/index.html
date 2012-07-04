@@ -30,7 +30,7 @@
   <body class="hidden">
 
     <!-- Main List -->
-    <section class="view" id="root">
+    <section role="region" id="root">
       <header>
         <h1 data-l10n-id="settings">Settings</h1>
       </header>
@@ -140,7 +140,7 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
-    <section class="view" id="wifi">
+    <section role="region" id="wifi">
       <header>
         <h1>
           <a href="#root" data-l10n-id="wifi">Wi-Fi</a>
@@ -183,7 +183,7 @@
     </section>
 
     <!-- Connectivity :: 3G/data -->
-    <section class="view" id="data">
+    <section role="region" id="data">
       <header>
         <h1>
           <a href="#root" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
@@ -229,36 +229,37 @@
     <!-- Connectivity :: 3G/data :: APN Settings Dialog -->
     <form role="dialog" id="apnSettings" action="#data">
       <header>
-        <button type="reset">Back</button>
-        <button type="submit">OK</button>
+        <button data-l10n-id="back" type="reset">Back</button>
+        <button data-l10n-id="ok" type="submit">OK</button>
         <h2 data-l10n-id="apnSettings"> APN Settings </h2>
       </header>
 
       <!-- APN settings -->
       <label>
         <span data-l10n-id="apn">APN</span>
-        <input type="text" name="ril.data.apn" />
+        <input type="text" data-name="ril.data.apn" />
       </label>
       <label>
         <span data-l10n-id="identity">identity</span>
-        <input type="text" name="ril.data.user" />
+        <input type="text" data-name="ril.data.user" />
       </label>
       <label>
         <span data-l10n-id="password">password</span>
-        <input type="text" name="ril.data.passwd" />
+        <input type="text" data-name="ril.data.passwd" />
       </label>
 
       <!-- APN database lookup -->
       <p>
-        <button id="autoAPN">Auto-Configure</button>
+        <input type="button" id="autoAPN"
+          data-l10n-id="autoConfigure" value="Auto-Configure" />
       </p>
     </form>
 
     <!-- Connectivity :: 3G/data :: MMS Settings Dialog -->
     <form role="dialog" id="mmsSettings" action="#data">
       <header>
-        <button type="reset">Back</button>
-        <button type="submit">OK</button>
+        <button data-l10n-id="back" type="reset">Back</button>
+        <button data-l10n-id="ok" type="submit">OK</button>
         <h2 data-l10n-id="mmsSettings"> MMS Settings </h2>
       </header>
 
@@ -280,7 +281,7 @@
     <!-- [TODO] Connectivity :: Bluetooth -->
 
     <!-- Personalization :: Sound -->
-    <section class="view" id="sounds">
+    <section role="region" id="sounds">
       <header>
         <h1>
           <a href="#root" data-l10n-id="sound">Sound</a>
@@ -356,7 +357,7 @@
     </section>
 
     <!-- Personalization :: Brightness -->
-    <section class="view" id="brightness">
+    <section role="region" id="brightness">
       <header>
         <h1>
           <a href="#root" data-l10n-id="brightness">Brightness</a>
@@ -381,7 +382,7 @@
     </section>
 
     <!-- Personalization :: Wallpaper -->
-    <section class="view" id="wallpaper">
+    <section role="region" id="wallpaper">
       <header>
         <h1>
           <a href="#root" data-l10n-id="wallpaper">Wallpaper</a>
@@ -456,7 +457,7 @@
     <!-- [TODO] Personalization :: Time & Date -->
 
     <!-- Personalization :: Language & Region -->
-    <section class="view" id="languages">
+    <section role="region" id="languages">
       <header>
         <h1>
           <a href="#root" data-l10n-id="languageAndRegion">Language &amp; Region</a>
@@ -545,7 +546,7 @@
     </section>
 
     <!-- Personalization :: Keyboard -->
-    <section class="view" id="keyboard">
+    <section role="region" id="keyboard">
       <header>
         <h1>
           <a href="#root" data-l10n-id="keyboard">Keyboard</a>
@@ -667,7 +668,7 @@
     <!-- [TODO] Accounts :: Mail -->
 
     <!-- Security :: Phone Lock -->
-    <section class="view" id="phoneLock">
+    <section role="region" id="phoneLock">
       <header>
         <h1>
           <a href="#root" data-l10n-id="phoneLock">Phone Lock</a>
@@ -699,7 +700,7 @@
     <!-- [TODO] Security :: Do Not Track -->
 
     <!-- Device :: About -->
-    <section class="view" id="about">
+    <section role="region" id="about">
       <header>
         <h1>
           <a href="#root" data-l10n-id="aboutPhone">About Phone</a>
@@ -741,7 +742,7 @@
     </section>
 
     <!-- Device :: Storage -->
-    <section class="view" id="storage">
+    <section role="region" id="storage">
       <header>
         <h1>
           <a href="#root" data-l10n-id="storage">Storage</a>
@@ -760,7 +761,7 @@
     </section>
 
     <!-- Device :: Accessibility -->
-    <section class="view" id="accessibility">
+    <section role="region" id="accessibility">
       <header>
         <h1>
           <a href="#root" data-l10n-id="accessibility">Accessibility</a>
@@ -783,7 +784,7 @@
       <div>
 
         <!-- network status -->
-        <div id="wifi-status" class="dialog">
+        <div role="dialog" id="wifi-status">
           <header data-ssid>Network</header>
           <dl>
             <dt data-l10n-id="security">security:</dt>
@@ -800,7 +801,7 @@
         </div>
 
         <!-- WEP authentication -->
-        <div id="wifi-wep" class="dialog">
+        <div role="dialog" id="wifi-wep">
           <header data-ssid>Authentication</header>
           <dl>
             <dt data-l10n-id="security">security:</dt>
@@ -825,7 +826,7 @@
         </div>
 
         <!-- PSK authentication -->
-        <div id="wifi-psk" class="dialog">
+        <div role="dialog" id="wifi-psk">
           <header data-ssid>Authentication</header>
           <dl>
             <dt data-l10n-id="security">security:</dt>
@@ -850,7 +851,7 @@
         </div>
 
         <!-- EAP authentication -->
-        <div id="wifi-eap" class="dialog">
+        <div role="dialog" id="wifi-eap">
           <header data-ssid>Authentication</header>
           <dl>
             <dt data-l10n-id="security">security:</dt>

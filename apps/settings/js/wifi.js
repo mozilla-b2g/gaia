@@ -5,7 +5,6 @@
 
 window.addEventListener('localized', function scanWifiNetworks(evt) {
   var wifiManager = navigator.mozWifiManager;
-  var bug766497 = 'onenabled' in wifiManager && 'ondisabled' in wifiManager;
   var _ = navigator.mozL10n.get;
 
   // main wifi button
@@ -39,13 +38,9 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         gNetworkList.clear();
         infoBlock.textContent = '';
         req = wifiManager.setEnabled(false);
-        if (!bug766497)
-          req.onsuccess = onWifiDisabled;
       } else {
         // start wifi
         req = wifiManager.setEnabled(true);
-        if (!bug766497)
-          req.onsuccess = onWifiEnabled;
         req.onerror = function() {
           gNetworkList.autoscan = false;
         };
@@ -267,17 +262,13 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   /** mozWifiManager events / callbacks
     * requires bug 766497
     */
-  function onWifiEnabled() {
+  wifiManager.onenabled = function onWifiEnabled() {
     gStatus.update();
     gNetworkList.clear(true);
     gNetworkList.scan();
   }
-  function onWifiDisabled() {
+  wifiManager.ondisabled = function onWifiDisabled() {
     gStatus.update();
-  }
-  if (bug766497) {
-    wifiManager.onenabled = onWifiEnabled;
-    wifiManager.ondisabled = onWifiDisabled;
   }
 
   function isConnected(network) {
