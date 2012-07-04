@@ -152,25 +152,27 @@
           </header>
 
           <!-- PHONE TEMPLATE -->
-          <dl id='add-phone' data-template class="setbox fillflow-row">
-            <dt class="setbox-title">
-                <a data-taglist='phone-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">#type#</a>
-                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-            </dt>
-            <dd class="setbox-body">
-              <p class="setbox-item">
-                <label class="hide" for="tel_#i#">Phone number:</label>
-                <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="tel" value="#number#" id="number_#i#">
-              </p>
-              <p class="setbox-item">
-                <label class="hide" for="notes_#i#">Name:</label>
-                <input placeholder="Notes" data-field="notes" data-arrayindex="#i#" name="tel" class="textfield" type="text" value="#notes#" id="notes_#i#">
-              </p>
-            </dd>
-          </dl>
+          <div id='add-phone-#i#' data-template>
+            <dl class="setbox fillflow-row">
+              <dt class="setbox-title">
+                  <a data-taglist='phone-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">#type#</a>
+                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+              </dt>
+              <dd class="setbox-body">
+                <p class="setbox-item">
+                  <label class="hide" for="tel_#i#">Phone number:</label>
+                  <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="tel" value="#number#" id="number_#i#">
+                </p>
+                <p class="setbox-item">
+                  <label class="hide" for="notes_#i#">Name:</label>
+                  <input placeholder="Notes" data-field="notes" data-arrayindex="#i#" name="tel" class="textfield" type="text" value="#notes#" id="notes_#i#">
+                </p>
+              </dd>
+            </dl>
+          </div>
 
           <!-- EMAIL TEMPLATE -->
-          <dl id='add-email' data-template class="setbox fillflow-row">
+          <dl id='add-email-#i#' data-template class="setbox fillflow-row">
             <!-- Commented while we don't have an email type field in contacts -->
             <!-- <dt class="setbox-title">
                 <input type="text" data-taglist='email-type' onclick="Contacts.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">

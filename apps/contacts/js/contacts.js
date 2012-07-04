@@ -138,8 +138,8 @@ var Contacts = (function() {
     familyName = document.getElementById('familyName');
     detailsName = document.getElementById('contact-name-title');
     formTitle = document.getElementById('contact-form-title');
-    phoneTemplate = document.getElementById('add-phone');
-    emailTemplate = document.getElementById('add-email');
+    phoneTemplate = document.getElementById('add-phone-#i#');
+    emailTemplate = document.getElementById('add-email-#i#');
     phonesContainer = document.getElementById('contacts-form-phones');
     emailContainer = document.getElementById('contacts-form-email');
     contactDetails = document.getElementById('contact-detail');
@@ -271,6 +271,7 @@ var Contacts = (function() {
       };
 
       var template = utils.templates.render(phoneTemplate, telField);
+      template.appendChild(removeFieldIcon('add-phone-' + tel));
       phonesContainer.appendChild(template);
       numberPhones++;
     }
@@ -283,6 +284,7 @@ var Contacts = (function() {
       };
 
       var template = utils.templates.render(emailTemplate, emailField);
+      template.appendChild(removeFieldIcon('add-email-' + email));
       emailContainer.appendChild(template);
       numberEmails++;
     }
@@ -469,7 +471,7 @@ var Contacts = (function() {
     numberEmails++;
   };
 
-  var resetForm = function() {
+  var resetForm = function resetForm() {
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
     givenName.value = '';
@@ -483,13 +485,20 @@ var Contacts = (function() {
     numberPhones = 0;
   };
 
-  var removeFieldIcon = function() {
+  var removeFieldIcon = function removeFieldIcon(selector) {
     var delButton = document.createElement('button');
     delButton.className = 'fillflow-row-action';
     var delIcon = document.createElement('span');
     delIcon.setAttribute('role', 'button');
     delIcon.className = 'icon-delete';
     delButton.appendChild(delIcon);
+    delButton.onclick = function removeElement(selector) {
+      console.log('click ' + selector);
+      var elem = document.getElementById(selector);
+      console.log(elem);
+      document.removeChild(elem);
+      return false;
+    };
     return delButton;
   };
 
