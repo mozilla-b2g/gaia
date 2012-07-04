@@ -6,7 +6,8 @@
 var CostControl = {
 
   //Constants. Should we get it from variant? Issue 4
-  CHECK_BALANCE_NUMBER: '8000',
+  CHECK_BALANCE_SEND_NUMBER: '8000',
+  CHECK_BALANCE_RECEIVE_NUMBER: '8000',
   CHECK_BALANCE_TEXT: '',
   TOP_UP_NUMBER: '8000',
   TOP_UP_PREV_TEXT: '',
@@ -15,18 +16,18 @@ var CostControl = {
   init: function cc_init() {
     console.log('---- Cost control init -----');
     //For USSD (TopUp)
-    if (navigator.mozMobileConnection) {
-      this.conn = navigator.mozMobileConnection;
+    if (window.navigator.mozMobileConnection) {
+      this.conn = window.navigator.mozMobileConnection;
       this.conn.addEventListener('ussdreceived', this);
     }
     //For SMS (Cost)
-    if (navigator.mozSms) {
-      this.sms = navigator.mozSms;
+    if (window.navigator.mozSms) {
+      this.sms = window.navigator.mozSms;
       this.sms.addEventListener('sent', this);
     }
     //For calls
-    if (navigator.mozTelephony) {
-      this.telephony = navigator.mozTelephony;
+    if (window.navigator.mozTelephony) {
+      this.telephony = window.navigator.mozTelephony;
       this.telephony.addEventListener('callschanged', this);
     }
 
@@ -35,11 +36,11 @@ var CostControl = {
                              document.getElementById('cost-control-container'));
     this.getInitialBalance();
 
-    //Listener for check now button
+    /*//Listener for check now button
     this.checkNowBalanceButton = document.getElementById('cost-control-check-balance');
     this.checkNowBalanceButton.addEventListener('click', (function() {
       this.updateBalance();
-    }).bind(this));
+    }).bind(this));*/
 
     //Listener for Top up button
     this.topUpButton = document.getElementById('cost-control-topup');
@@ -60,6 +61,7 @@ var CostControl = {
         break;
       case 'callschanged':
         //Test this. Issue 2
+        console.log("Calls array " + this.telephony.calls.length);
         this.telephony.calls.forEach((function(call) {
           if (call.state === 'disconnected') {
             this.updateBalance();
@@ -73,16 +75,15 @@ var CostControl = {
   getInitialBalance: function cc_getInitialBalance() {
     this.balanceText = document.getElementById('cost-control-spent');
     this.dateText = document.getElementById('cost-control-date');
-    var conn = window.navigator.mozMobileConnection;
-    if (!conn.voice.connected) {
+    if (!this.conn.voice.connected) {
       console.log("No conectado, ponemos listener");
-      conn.removeEventListener('voicechange', this.getInitialBalance());
-      conn.addEventListener('voicechange', this.getInitialBalance());
-      this.updateUI(true);
+      this.conn.removeEventListener('voicechange', this.getInitialBalance);
+      this.conn.addEventListener('voicechange', this.getInitialBalance);
+      this.updateUI(false, 0);
       return;
     }
-    console.log('Conectado, quitamos listener');
-    conn.removeEventListener('voicechange', this.getInitialBalance());
+    console.log('Conectado, quitamos listener de espera de red');
+    this.conn.removeEventListener('voicechange', this.getInitialBalance);
     console.log('Getting initial balance');
     this.updateBalance();
   },
@@ -90,7 +91,7 @@ var CostControl = {
   updateBalance: function cc_updateBalance() {
     console.log('Sending SMS to get balance');
     this.updateUI(true);
-    this.sms.send(this.CHECK_BALANCE_NUMBER, this.CHECK_BALANCE_TEXT);
+    this.sms.send(this.CHECK_BALANCE_SEND_NUMBER, this.CHECK_BALANCE_TEXT);
     //We listen for the SMS a prudential time, then, we just skip any SMS
     this.timeout = window.setTimeout((function() {
       console.log('Removing listener for incoming balance check SMS');
@@ -111,8 +112,9 @@ var CostControl = {
   },
 
   _parseSMS: function(message) {
-    //TODO, check for the correct sender. Issue 3
-    //if(evt.message.sender !== this.CHECK_BALANCE_NUMBER) return null;
+    //Checking sender. Not cheking type (number vs string)
+    if(evt.message.sender != this.CHECK_BALANCE_RECEIVE_NUMBER) return null;
+    //Regexp, should be on the variant? Issue 6
     var regex = new RegExp('[0-9]+.[0-9]+');
     var m = regex.exec(message.body);
     if (m !== null) {
