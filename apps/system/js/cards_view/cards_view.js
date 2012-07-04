@@ -44,11 +44,11 @@ var CardsView = (function() {
     sizes.sort(function(x, y) { return y - x; });
 
     var index = sizes[(HVGA) ? sizes.length - 1 : 0];
-    
+
     if (icons[index].indexOf('data:') !== 0) {
       icons[index] = origin + icons[index];
     }
-    
+
     return icons[index];
   }
 
