@@ -75,7 +75,7 @@ var WindowManager = (function() {
   var displayedApp = null;
 
   // Keeping track of the current state of the close animation for
-  // hardening purprose.
+  // hardening purpose.
   var currentlyClosing = false;
 
   // The localization of the "Loading..." message that appears while
