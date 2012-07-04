@@ -75,7 +75,6 @@ button::-moz-focus-inner {
 /* Buttons: logic keys */
 .keyboard-key {
   -moz-box-sizing: border-box;
-  box-sizing: boder-box;
   padding: 0.2rem 0.2rem;
   border: none;
   background: none;
@@ -302,7 +301,7 @@ margin-top: 0.3rem;
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
   border: #53B6CC 2px solid;
   border-radius: 0.3rem;
-  margin:-2px
+  margin:-2px;
   background: -moz-linear-gradient(#fff, #ebebeb);
 }
 
