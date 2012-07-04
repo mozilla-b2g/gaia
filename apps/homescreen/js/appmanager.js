@@ -2,7 +2,6 @@
 'use strict';
 
 var ApplicationMock = function(app, launchPath, alternativeOrigin) {
-
   this.app = app;
   this.entry_point = launchPath;
   this.origin = alternativeOrigin;
@@ -45,31 +44,27 @@ var Applications = (function() {
   installer.getAll().onsuccess = function onSuccess(e) {
     var apps = e.target.result;
     apps.forEach(function parseApp(app) {
-      if (!app.manifest && !app.manifest.icons) {
-        continue;
+      var manifest = app.manifest;
+      if (!manifest || !manifest.icons) {
+        return;
       }
-      /*
-      * If the manifest contains entry points, iterate over them
-      * and add a fake app object for each one.
-      */
-      var entryPoints = app.manifest.entry_points;
-      if (entryPoints) {
-        for (var launchPath in entryPoints) {
-          if (!entryPoints[launchPath].hasOwnProperty('icons')) {
-            continue;
-          }
 
-          var alternativeOrigin = app.origin + '/' + launchPath;
 
-          var newApp = new ApplicationMock(app,
-                                launchPath,
-                                alternativeOrigin);
-
-          installedApps[alternativeOrigin] = newApp;
-        }
-      } else {
-        //Normal app, no entry points
+      // If the manifest contains entry points, iterate over them
+      // and add a fake app object for each one.
+      var entryPoints = manifest.entry_points;
+      if (!entryPoints) {
         installedApps[app.origin] = app;
+        return;
+      }
+
+      for (var launchPath in entryPoints) {
+        if (!entryPoints[launchPath].hasOwnProperty('icons'))
+          continue;
+
+        var alternativeOrigin = app.origin + '/' + launchPath;
+        var newApp = new ApplicationMock(app, launchPath, alternativeOrigin);
+        installedApps[alternativeOrigin] = newApp;
       }
     });
 
