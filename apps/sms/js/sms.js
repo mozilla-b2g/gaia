@@ -286,12 +286,6 @@ var ConversationListView = {
       It should be timestamp in normal view, and order by name while searching
     */
     MessageManager.getMessages(function getMessagesCallback(messages) {
-      /** Once https://bugzilla.mozilla.org/show_bug.cgi?id=769347
-      lands, this fix should be removed.*/
-      messages.sort(function(a, b) {
-        return b.timestamp - a.timestamp;
-      });
-
       var conversations = {};
       for (var i = 0; i < messages.length; i++) {
         var message = messages[i];
