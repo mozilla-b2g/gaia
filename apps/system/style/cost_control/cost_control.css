@@ -1,70 +1,70 @@
 #cost-control-left {
-	float: left;
-	width: 65%;
-    margin-top: -10px;
+  float: left;
+  width: 65%;
+  margin-top: -10px;
 }
 
 #cost-control-right {
-	float: right;
-	width: 35%;
-    padding-top: 15px;
+  float: right;
+  width: 35%;
+  padding-top: 15px;
 }
 
 #cost-control-right > a {
-    display: table-cell;
-    width: 20%;
-    outline: medium none;
-    height: 100%;
-    color: rgb(255, 255, 255);
-    text-align: center;
-    text-decoration: none;
-    vertical-align: middle;
-    font-size: 14px;
-    line-height: 18px;
-    padding: 0 5px;
+  display: table-cell;
+  width: 20%;
+  outline: medium none;
+  height: 100%;
+  color: rgb(255, 255, 255);
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  font-size: 14px;
+  line-height: 18px;
+  padding: 0 5px;
 }
 
 .not-updated {
-    color: green;
+  color: green;
 }
 
 .updated {
-    color: pink;
+  color: pink;
 }
 
 #cost-control-remaining-credit-text {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 #cost-control-spent, #cost-control-currency {
-	font-size: 32px;
+  font-size: 32px;
 }
 
 #cost-control-container {
-    margin-bottom: 0;
-    margin-top: 0;
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 #cost-control-date {}
 
 #cost-control-topup, #cost-control-check-balance {
-    -moz-box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
-    box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
-    color:#333;
-    background-color:#FA2;
-    -moz-border-radius:5px;
-    border-radius:5px;
-    border:none;
-    font-size:16px;
-    font-weight:700;
-    height: 32px;
-    padding: 4px 16px;
-    text-shadow:#FE6 0 1px 0
+  -moz-box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;
+  box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;
+  color: #333;
+  background-color: #FA2;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  height: 32px;
+  padding: 4px 16px;
+  text-shadow: #FE6 0 1px 0
 }
 
 #cost-control {
-	height: 60px;
-	width: 100%;
-	background-color: rgb(0, 0, 0);
-	display: table;
+  height: 60px;
+  width: 100%;
+  background-color: rgb(0, 0, 0);
+  display: table;
 }
