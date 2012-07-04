@@ -166,10 +166,13 @@ var WindowManager = (function() {
     // And start the animation
     sprite.classList.add('open');
     sprite.classList.remove('closed');
+    sprite.classList.remove('faded');
 
     // This event handler is triggered when the transition ends.
     // We're going to do two transitions, so it gets called twice.
     sprite.addEventListener('transitionend', function transitionListener(e) {
+      var sprite = e.target;
+
       // Only listen for opacity transition
       // Otherwise we may get called multiple times for each transition
       if (e.propertyName !== 'opacity')
@@ -191,6 +194,7 @@ var WindowManager = (function() {
           frame.setVisible(true);
         }
       } else {
+        sprite.removeEventListener('transitionend', transitionListener);
         // The second transition has just completed
         // give the app focus and discard the sprite.
         frame.focus();
@@ -277,7 +281,9 @@ var WindowManager = (function() {
     sprite.classList.add('closed');
 
     // When the transition ends, discard the sprite.
-    sprite.addEventListener('transitionend', function transitionListener() {
+    sprite.addEventListener('transitionend', function transitionListener(e) {
+      var sprite = e.target;
+
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
 
