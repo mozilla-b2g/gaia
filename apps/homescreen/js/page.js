@@ -121,8 +121,8 @@ Icon.prototype = {
     var style = draggableElem.style;
     style.left = rectangle.left + 'px';
     style.top = rectangle.top + 'px';
-    this.initXCenter = this.targetXCenter = (rectangle.left + rectangle.right) / 2;
-    this.initYCenter = this.targetYCenter = (rectangle.top + rectangle.bottom) / 2;
+    this.initXCenter = (rectangle.left + rectangle.right) / 2;
+    this.initYCenter = (rectangle.top + rectangle.bottom) / 2;
 
     this.dragabbleSection.appendChild(draggableElem);
   },
@@ -144,10 +144,14 @@ Icon.prototype = {
    */
   onDragStop: function icon_onDragStop(callback) {
     var draggableElem = this.draggableElem;
+    var targetRect = this.container.getBoundingClientRect();
+    var x = (Math.abs(targetRect.left + targetRect.right) / 2)
+            % window.innerWidth;
+    var y = (targetRect.top + targetRect.bottom) / 2;
     draggableElem.style.MozTransition = '-moz-transform .4s';
     draggableElem.style.MozTransform =
-        'translate(' + (this.targetXCenter - this.initXCenter) + 'px,' +
-        (this.targetYCenter - this.initYCenter) + 'px)';
+        'translate(' + (x - this.initXCenter) + 'px,' +
+        (y - this.initYCenter) + 'px)';
     draggableElem.querySelector('div').style.MozTransform = 'scale(1)';
 
     var that = this;
@@ -157,12 +161,6 @@ Icon.prototype = {
       that.dragabbleSection.removeChild(this);
       callback();
     });
-  },
-
-  setTargetNode: function icon_setTargetNode(tnode) {
-    var targetRect = tnode.getBoundingClientRect();
-    this.targetXCenter = (targetRect.left + targetRect.right) / 2;
-    this.targetYCenter = (targetRect.top + targetRect.bottom) / 2;
   },
 
   getTop: function icon_getTop() {
@@ -285,7 +283,7 @@ Page.prototype = {
     return this.icons[origin];
   },
 
-  freeze: false,
+  ready: true,
 
   jumpNode: function(node, animation, onode, tnode, upward) {
     var that = this;
@@ -295,7 +293,10 @@ Page.prototype = {
       this.removeEventListener('animationend', ft);
       if (this === tnode) {
         that.olist.insertBefore(onode, (upward) ? tnode : tnode.nextSibling);
-        that.freeze = false;
+        that.ready = true;
+        if (that.onReady) {
+          that.onReady();
+        }
       }
     });
   },
@@ -308,14 +309,12 @@ Page.prototype = {
    * @param{String} target icon
    */
   drop: function(origin, target) {
-    if (!this.freeze && origin !== target) {
-      this.freeze = true;
+    if (origin !== target) {
+      this.ready = false;
 
       var icons = this.icons;
-      var oIcon = icons[origin];
-      var onode = oIcon.container;
+      var onode = icons[origin].container;
       var tnode = icons[target].container;
-      oIcon.setTargetNode(tnode);
 
       var childNodes = this.olist.childNodes;
       var indexOf = Array.prototype.indexOf;
@@ -365,23 +364,11 @@ Page.prototype = {
   prependIcon: function(icon) {
     var olist = this.olist;
     if (olist.childNodes.length > 0) {
-      olist.insertBefore(icon.container, this.olist.firstChild);
+      olist.insertBefore(icon.container, olist.firstChild);
     } else {
       olist.appendChild(icon.container);
     }
     this.icons[icon.descriptor.origin] = icon;
-  },
-
-  /*
-   * Moves an icon to the first position
-   *
-   * @param{Object} icon object
-   */
-  moveIconToFirstChild: function(icon) {
-    var olist = this.olist;
-    if (olist.childNodes.length > 0) {
-      olist.insertBefore(icon.container, olist.firstChild);
-    }
   },
 
   /*
@@ -397,7 +384,13 @@ Page.prototype = {
    * Returns the last icon of the page
    */
   getLastIcon: function() {
-    return this.icons[this.olist.lastChild.dataset.origin];
+    var ret = this.olist.lastChild;
+
+    if (ret) {
+      ret = this.icons[ret.dataset.origin];
+    }
+
+    return ret;
   },
 
   /*

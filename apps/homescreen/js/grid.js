@@ -552,34 +552,40 @@ const GridManager = (function() {
     dragging: false,
 
     /*
-     * Returns true when the drop feature is disabled
+     * Drop feature is disabled (in the borders of the icongrid)
      */
     isDropDisabled: false,
 
     /*
-     * Returns true when the current page is changing
+     * Checking limits is disabled
      */
-    isTranslatingPages: false,
+    isDisabledCheckingLimits: false,
 
     /*
-     * Translating timeout listener
+     * Timeout of the checking limits function
      */
-    translatingTimeout: null,
+    disabledCheckingLimitsTimeout: null,
 
     /*
      * Sets the isTranslatingPages variable
      *
      * @param {Boolean} the value
      */
-    setTranslatingPages: function(value) {
-      this.isTranslatingPages = value;
+    setDisabledCheckingLimits: function(value) {
+      this.isDisabledCheckingLimits = value;
       if (value) {
         var that = this;
-        that.translatingTimeout = setTimeout(function() {
-          that.isTranslatingPages = false;
+        that.disabledCheckingLimitsTimeout = setTimeout(function() {
+          that.isDisabledCheckingLimits = false;
           that.checkLimits();
         }, 1000);
       }
+    },
+
+    transitioning: false,
+
+    onNavigationEnd: function() {
+      dragger.transitioning = false;
     },
 
     /*
@@ -591,31 +597,38 @@ const GridManager = (function() {
      */
     checkLimits: function() {
       var x = status.cCoords.x;
-      this.isDropDisabled = false;
-
       if (dirCtrl.limitNext(x)) {
         this.isDropDisabled = true;
-        var curPageObj = pageHelper.getCurrent();
-        if (pages.current < pages.total - 1 && !this.isTranslatingPages) {
-          curPageObj.remove(draggableIcon);
-          pageHelper.getNext().prependIcon(draggableIcon);
-          goNext();
-          this.setTranslatingPages(true);
-        } else if (curPageObj.getNumApps() > 1 && !this.isTranslatingPages) {
-          // New page if there are two or more icons
-          curPageObj.remove(draggableIcon);
-          pageHelper.push([draggableIcon]);
-          goNext();
-          this.setTranslatingPages(true);
+        if (!this.isDisabledCheckingLimits) {
+          var curPageObj = pageHelper.getCurrent();
+          if (pages.current < pages.total - 1) {
+            curPageObj.remove(draggableIcon);
+            pageHelper.getNext().prependIcon(draggableIcon);
+            this.setDisabledCheckingLimits(true);
+            this.transitioning = true;
+            goNext(this.onNavigationEnd);
+          } else if (curPageObj.getNumApps() > 1) {
+            // New page if there are two or more icons
+            curPageObj.remove(draggableIcon);
+            pageHelper.push([draggableIcon]);
+            this.setDisabledCheckingLimits(true);
+            this.transitioning = true;
+            goNext(this.onNavigationEnd);
+          }
         }
       } else if (dirCtrl.limitPrev(x)) {
         this.isDropDisabled = true;
-        if (pages.current > 0 && !this.isTranslatingPages) {
+        if (pages.current > 0 && !this.isDisabledCheckingLimits) {
           pageHelper.getCurrent().remove(draggableIcon);
           pageHelper.getPrevious().append(draggableIcon);
-          goPrev();
-          this.setTranslatingPages(true);
+          this.setDisabledCheckingLimits(true);
+          this.transitioning = true;
+          goPrev(this.onNavigationEnd);
         }
+      } else if (this.transitioning) {
+        this.isDropDisabled = true;
+      } else {
+        this.isDropDisabled = false;
       }
     },
 
@@ -638,17 +651,32 @@ const GridManager = (function() {
      * is empty
      */
     stop: function(callback) {
-      clearTimeout(this.translatingTimeout);
-      this.isTranslatingPages = false;
+      clearTimeout(this.disabledCheckingLimitsTimeout);
+      this.isDisabledCheckingLimits = false;
+      this.isDropDisabled = false;
+      this.transitioning = false;
       this.dragging = false;
-      draggableIcon.onDragStop(function() {
+
+      var doFinishDrag = function() {
         delete container.dataset.dragging;
         // When the drag&drop is finished we need to check empty pages
         // and overflows
         checkOverflowPages();
         checkEmptyPages();
         callback();
-      });
+      }
+
+      var currentPage = pageHelper.getCurrent();
+      if (currentPage.ready) {
+        draggableIcon.onDragStop(doFinishDrag);
+      } else {
+        // Probably users release the draggable icon before re-arranged
+        currentPage.onReady = function fn_ready () {
+          delete currentPage.onReady;
+          draggableIcon.onDragStop(doFinishDrag);
+        }
+      }
+
     },
 
     /*
@@ -658,19 +686,36 @@ const GridManager = (function() {
      */
     move: function(overlapElem) {
       draggableIcon.onDragMove(status.cCoords.x, status.cCoords.y);
-      this.checkLimits();
-      if (!this.isDropDisabled) {
-        var className = overlapElem.className;
-        if (className === 'icon' || className === 'options') {
-          var overlapElemOrigin = overlapElem.dataset.origin;
-          pageHelper.getCurrent().drop(draggableIconOrigin, overlapElemOrigin);
-        } else if (overlapElem.className === 'page') {
-          var currentPage = pageHelper.getCurrent();
-          var lastIcon = currentPage.getLastIcon();
-          if (status.cCoords.y > lastIcon.getTop()
-              && overlapElem !== lastIcon) {
-            currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
+      var currentPage = pageHelper.getCurrent();
+      if (currentPage.ready) {
+        this.checkLimits();
+        if (!this.isDropDisabled) {
+          var className = overlapElem.className;
+          if (className === 'icon' || className === 'options') {
+            var overlapElemOrigin = overlapElem.dataset.origin;
+            currentPage.drop(draggableIconOrigin, overlapElemOrigin);
+          } else if (overlapElem.className === 'page') {
+            var lastIcon = currentPage.getLastIcon();
+            if (lastIcon && status.cCoords.y > lastIcon.getTop()
+                && overlapElem !== lastIcon) {
+              currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
+            }
           }
+        }
+      } else {
+        currentPage.onReady = function () {
+          // After re-arranged the overlap element could be different so we
+          // create a mousemove event with the same coordinates than the last
+          // mousedown event
+          delete currentPage.onReady;
+          var win = document.defaultView;
+          var mousemove = document.createEvent('MouseEvent');
+          mousemove.initMouseEvent(
+            'mousemove', true, true, win, 0,
+            status.cCoords.x + win.mozInnerScreenX, status.cCoords.y +
+            win.mozInnerScreenY, status.cCoords.x,
+            status.cCoords.y, false, false, false, false, 0, null);
+          win.dispatchEvent(mousemove);
         }
       }
     }
