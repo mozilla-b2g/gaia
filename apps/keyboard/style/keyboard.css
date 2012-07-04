@@ -217,11 +217,6 @@ button::-moz-focus-inner {
 }
 /* Menu for special keys */
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper{
-  background: #ebebeb;
-  box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
-  border-radius: 0.3rem;
-  background: url(images/key-begin.png) no-repeat left top, url(images/key-end.png) no-repeat right top;
-  background-size: auto 100%;
 }
 
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
@@ -232,17 +227,22 @@ button::-moz-focus-inner {
   box-shadow: none;
   z-index: 100;
   color: #333;
-  background: url(images/key-middle.png) repeat-x center top;
+  background: url(images/key.png) repeat-x center top;
   background-size: auto 100%;
 }
-
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before {
+  display: none;
+}
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
   content: "";
-  background: #fff;
+  background: #fefefe;
   display: block;
   bottom: 100%;
-  top: auto;
-  margin: 0 -2px -1px;
+  left: 0;
+  right: 0;
+  position: absolute;
+  height: 1px;
+  margin: 0 -1px -2px 0;
 }
 
 /* Alternatives */
@@ -276,21 +276,33 @@ button::-moz-focus-inner {
 #keyboard-accent-char-menu .keyboard-key {
 margin-top: 0.3rem;
 }
+
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
-  border: #53B6CC 2px solid;
-  border-radius: 0.3rem;
-  margin:-2px
-  background: -moz-linear-gradient(#fff, #ebebeb);
+  box-shadow: none;
+  border: none;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
   top: 0;
   left: 0;
   right: 0;
-  background: none;
-  border-radius: 0;
-  border: 0;
+  height: 100%;
+  border: solid 1px #61646A;
+  border-radius: 0.3rem;
+  background: url(images/key.png) repeat-x center bottom;
+  background-size: auto 100%;
   font-weight: 600;
+  line-height: 3.4rem;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: -2px;
+  bottom: -4px;
+  border: #4495A8 2px solid;
+  border-radius: 0.4rem;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
@@ -301,14 +313,14 @@ margin-top: 0.3rem;
 #keyboard-accent-char-menu.kbr-menu-lang {
   position: absolute;
   bottom: 100%;
-  left: -0.8rem;
+  left: -1px;
   right: auto;
   top: auto;
   margin-bottom: -2px;
   height: auto;
   overflow: hidden;
   white-space: normal;
-  padding: 0 0.5rem;
+  padding: 0.3rem 0.6rem 0.5rem 0.5rem;
   background: #fff;
 }
 
@@ -329,7 +341,6 @@ margin-top: 0.3rem;
   font-size: 1.8rem;
   line-height: 3.8rem;
   color: #333;
-  border: none;
   /*border: 1px solid rgba(0, 0, 0, 0.6);*/
   /*border-radius: 0.3rem;*/
 }
