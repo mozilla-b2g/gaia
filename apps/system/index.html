@@ -83,6 +83,10 @@
     <link rel="stylesheet" type="text/css" href="style/quick_settings/quick_settings.css">
     <script defer src="js/quick_settings.js"></script>
 
+    <!-- Cost Control -->
+    <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
+    <script defer src="js/cost_control.js"></script>
+
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
     <script defer src="js/notifications.js"></script>
@@ -169,7 +173,17 @@
             <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
           </div>
 
-          <!-- TBD: credit module -->
+          <!-- cost control -->
+          <div id="cost-control">
+            <div id="cost-control-left">
+              <p id="cost-control-remaining-credit-text" data-l10n-id="cost-control-remaining-credit-text">Remaining credit as of <span id="cost-control-date" class="not-updated">XX/XX/XXXX</span></p>
+              <p id="cost-control-container" class="not-updated"><span id="cost-control-spent" data-l10n-id="cost-control-spent-refreshing">Refreshing…</span><span id="cost-control-currency">€</span></p>
+            </div>
+            <div id="cost-control-right">
+              <button id="cost-control-check-balance" data-l10n-id="cost-control-check">Check now!</button>
+              <!--<button id="cost-control-topup" data-l10n-id="cost-control-topup">Top up!</button>-->
+            </div>
+          </div>
         </div>
 
         <!-- notifications -->
