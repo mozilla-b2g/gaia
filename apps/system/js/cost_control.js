@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -70,14 +70,24 @@ var CostControl = {
     }
   },
 
-  getInitialBalance: function() {
-    console.log('Getting initial balance');
+  getInitialBalance: function cc_getInitialBalance() {
     this.balanceText = document.getElementById('cost-control-spent');
     this.dateText = document.getElementById('cost-control-date');
+    var conn = window.navigator.mozMobileConnection;
+    if (!conn.voice.connected) {
+      console.log("No conectado, ponemos listener");
+      conn.removeEventListener('voicechange', this.getInitialBalance());
+      conn.addEventListener('voicechange', this.getInitialBalance());
+      this.updateUI(true);
+      return;
+    }
+    console.log('Conectado, quitamos listener');
+    conn.removeEventListener('voicechange', this.getInitialBalance());
+    console.log('Getting initial balance');
     this.updateBalance();
   },
 
-  updateBalance: function() {
+  updateBalance: function cc_updateBalance() {
     console.log('Sending SMS to get balance');
     this.updateUI(true);
     this.sms.send(this.CHECK_BALANCE_NUMBER, this.CHECK_BALANCE_TEXT);
@@ -90,7 +100,7 @@ var CostControl = {
     this.sms.addEventListener('received', this);
   },
 
-  updatedBalance: function(evt) {
+  updatedBalance: function cc_updatedBalance(evt) {
     var receivedBalance = this._parseSMS(evt.message);
     if (receivedBalance !== null) {
       this.saveBalance(receivedBalance);
@@ -111,7 +121,7 @@ var CostControl = {
     return null;
   },
 
-  updateUI: function(waiting, balance) {
+  updateUI: function cc_updateUI(waiting, balance) {
     if (waiting) {
       console.log('Updating UI, we are waiting for cost control SMS');
       this.dateText.innerHTML = this.getSavedDate();
@@ -135,7 +145,7 @@ var CostControl = {
     }
   },
 
-  getSavedBalance: function() {
+  getSavedBalance: function cc_getSavedBalance() {
     var balance = parseFloat(window.localStorage.getItem('balance'));
     if (isNaN(balance) || balance === null) {
       return 0;
@@ -143,7 +153,7 @@ var CostControl = {
     return balance.toFixed(2);
   },
 
-  getSavedDate: function() {
+  getSavedDate: function cc_getSavedDate() {
     var date = window.localStorage.getItem('date');
     if (isNaN(date) || date === null) {
        var date2 = new Date();
@@ -157,19 +167,19 @@ var CostControl = {
     return date.toLocaleFormat('%x') + " " + date.toLocaleFormat('%X');
   },
 
-  saveBalance: function(balance) {
+  saveBalance: function cc_saveBalance(balance) {
     console.log('Saving date and balance to the localStorage for later use');
     var date = new Date();
     window.localStorage.setItem('balance', parseFloat(balance).toFixed(2));
     window.localStorage.setItem('date', date.getTime());
   },
 
-  topUp: function() {
+  topUp: function cc_topUp() {
     //TODO
     alert('TopUp!!');
   },
 
-  toppedUp: function() {
+  toppedUp: function cc_toppedUP() {
     //TODO
   },
 
