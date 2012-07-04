@@ -285,6 +285,13 @@ Page.prototype = {
 
   ready: true,
 
+  setReady: function(value) {
+    this.ready = value;
+    if (value && this.onReArranged) {
+      this.onReArranged();
+    }
+  },
+
   jumpNode: function(node, animation, onode, tnode, upward) {
     var that = this;
     node.style.MozAnimationName = animation;
@@ -293,10 +300,7 @@ Page.prototype = {
       this.removeEventListener('animationend', ft);
       if (this === tnode) {
         that.olist.insertBefore(onode, (upward) ? tnode : tnode.nextSibling);
-        that.ready = true;
-        if (that.onReady) {
-          that.onReady();
-        }
+        that.setReady(true);
       }
     });
   },
@@ -310,7 +314,7 @@ Page.prototype = {
    */
   drop: function(origin, target) {
     if (origin !== target) {
-      this.ready = false;
+      this.setReady(false);
 
       var icons = this.icons;
       var onode = icons[origin].container;
@@ -362,12 +366,14 @@ Page.prototype = {
    * @param{Object} icon object
    */
   prependIcon: function(icon) {
+    this.setReady(false);
     var olist = this.olist;
     if (olist.childNodes.length > 0) {
       olist.insertBefore(icon.container, olist.firstChild);
     } else {
       olist.appendChild(icon.container);
     }
+    this.setReady(true);
     this.icons[icon.descriptor.origin] = icon;
   },
 
@@ -400,8 +406,10 @@ Page.prototype = {
    */
   append: function(app) {
     if (app.type && app.type === 'ApplicationIcon') {
+      this.setReady(false);
       this.olist.appendChild(app.container);
       this.icons[app.descriptor.origin] = app;
+      this.setReady(true);
     } else {
       // This is a moz app
       var icon = new Icon(app);
