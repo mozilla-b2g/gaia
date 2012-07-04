@@ -117,6 +117,9 @@ var Browser = {
       this.showPageScreen();
       return;
     }
+    if (this.currentScreen === this.AWESOME_SCREEN) {
+      this.deleteTab(this.currentTab.id);
+    }
     this.showTabScreen();
   },
 
