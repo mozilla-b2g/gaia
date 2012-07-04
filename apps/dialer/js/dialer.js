@@ -16,11 +16,6 @@ var CallHandler = {
     if (telephony) {
       telephony.dial(sanitizedNumber);
     }
-  },
-
-  get numberView() {
-    delete this.numberView;
-    return this.numberView = document.getElementById('call-number-view');
   }
 };
 

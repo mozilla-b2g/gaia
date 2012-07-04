@@ -169,8 +169,8 @@ var KeypadManager = {
     }
   },
 
-  render: function hk_render(layout_type) {
-    switch (layout_type) {
+  render: function hk_render(layoutType) {
+    switch (layoutType) {
       case 'oncall':
         this.phoneNumberViewContainer.classList.add('keypad-visible');
         if (this.callBar) {
@@ -179,6 +179,7 @@ var KeypadManager = {
         this.deleteButton.classList.add('hide');
         this.hideBar.classList.remove('hide');
         break;
+
       default:
         this.phoneNumberViewContainer.classList.remove('keypad-visible');
         if (this.hideBar)

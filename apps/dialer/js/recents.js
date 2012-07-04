@@ -7,7 +7,7 @@ var Recents = {
 
   get view() {
     delete this.view;
-    return this.view = document.getElementById('contacts-container');
+    return this.view = document.getElementById('recents-container');
   },
 
   init: function re_init() {
@@ -26,7 +26,7 @@ var Recents = {
     };
 
     // DB init
-    this._openreq.onupgradeneeded = function() {
+    this._openreq.onupgradeneeded = function re_onUpgradeNeeded() {
       var db = self._openreq.result;
       if (db.objectStoreNames.contains(self.STORENAME))
         db.deleteObjectStore(self.STORENAME);
@@ -67,7 +67,7 @@ var Recents = {
       var setreq = store.put(recentCall);
       setreq.onsuccess = function sr_onsuccess() {
         // TODO At some point with we will be able to get the app window
-        // to update the view. Relying on vivibility changes until then.
+        // to update the view. Relying on visibility changes until then.
         // (and doing a full re-render)
       };
 
@@ -75,6 +75,13 @@ var Recents = {
         console.log('dialerRecents add failure: ', e.message, setreq.errorCode);
       };
     });
+  },
+
+  click: function re_click(target) {
+    var number = target.dataset.num;
+    if (number) {
+      CallHandler.call(number);
+    }
   },
 
   createRecentEntry: function re_createRecentEntry(recent) {
@@ -88,7 +95,7 @@ var Recents = {
     }
 
     var entry =
-      '<li class="log-item">' +
+      '<li class="log-item" data-num="' + recent.number + '">' +
       '  <section class="icon-container grid center">' +
       '    <div class="grid-cell grid-v-align">' +
       '      <div class="icon ' + classes + '"></div>' +
@@ -114,6 +121,15 @@ var Recents = {
 
     var self = this;
     this.history(function showRecents(recents) {
+recents = [
+  { date: Date.now(), number: '+33686834379', type: 'missed' },
+  { date: Date.now(), number: '+33686834379', type: 'missed' },
+  { date: Date.now(), number: '+33686834379', type: 'missed' },
+  { date: Date.now(), number: '+33686834379', type: 'missed' },
+  { date: Date.now(), number: '+33686834379', type: 'missed' },
+  { date: Date.now(), number: '+33686834379', type: 'missed' },
+  { date: Date.now(), number: '+33686834379', type: 'missed' },
+];
       if (recents.length == 0) {
         self.view.innerHTML = '';
         return;
