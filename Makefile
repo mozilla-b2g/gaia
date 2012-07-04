@@ -178,7 +178,10 @@ endif
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
 XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.
+XULRUNNER_TEST=xulrunner
 ifeq ($(SYS),Darwin)
+# For mac we have the xulrunner-sdk so check for this directory
+XULRUNNER_TEST=xulrunner-sdk
 # We're on a mac
 XULRUNNER_MAC_SDK_URL=$(XULRUNNER_SDK_URL)mac-
 ifeq ($(ARCH),i386)
@@ -214,7 +217,7 @@ XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
 install-xulrunner:
-	test -d xulrunner || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2) 
+	test -d $(XULRUNNER_TEST) || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2) 
 
 install-xulrunner-sdk:
 	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
