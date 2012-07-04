@@ -147,8 +147,8 @@
 /* Image and label have shaking effect */
 .apps[data-mode = 'edit'] ol > li > div {
   -moz-animation-name: shake;
-  -moz-animation-duration: 2s;
-  -moz-transform-origin:50% 50%;
+  -moz-animation-duration: 1s;
+  -moz-animation-direction: alternate-reverse;
   -moz-animation-iteration-count: infinite;
   -moz-animation-timing-function: linear;
   opacity: .8;

@@ -829,6 +829,14 @@ const GridManager = (function() {
         this.onEditModeChange(mode);
 
       container.dataset.mode = currentMode = mode;
+
+      if (this.isEditMode()) {
+        // Randomize the moment of each icon
+        var divs = document.querySelectorAll('.apps[data-mode = "edit"] ol > li > div');
+        for (var i = 0; i < divs.length; i++) {
+          divs[i].style.MozAnimationDelay = (- Math.random()) + 's';
+        }
+      }
     },
 
     /*
