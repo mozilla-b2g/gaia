@@ -1,4 +1,3 @@
-
 #permission-screen {
   position: absolute;
   top: 0;
@@ -6,8 +5,6 @@
   width: 100%;
   height: 100%;
   z-index: 20001; /* just below the sleep menu */
-  background-color: rgba(0,0,0,0.4);
-  -moz-transition: opacity 0.5s ease;
   pointer-events: none;
   display: none;
 }
@@ -19,40 +16,48 @@
 
 #permission-dialog {
   position: absolute;
-  top: 30%;
-  left: 12%;
-  width: 76%;
-  height: 30%;
-  color: black;
-  background: white;
-/*
-  background: -moz-linear-gradient(center top, rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
-*/
-  border-radius: 8px;
-/*  border: 1px solid hsla(0,0%,0%,0); */
-  font-size: 20px;
+  top: 45%; /* 10% is the dock */
+  width: 100%;
+  background-color: rgba(0,0,0,0.9);
+  border-top: 0.1rem solid rgba(256,256,256,0.9);
+  -moz-box-sizing: border-box;
+  padding: 1rem 1.5rem;
+  box-shadow:0 1rem 2rem #000;
+}
+
+#permission-title {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #51b2c7;
+  margin: 0 0 0.5rem 0;
+  padding: 0;
 }
 
 #permission-message {
-  margin: 40px;
+  font-size: 1.6rem;
+  color: #fff;
+  margin: 0 0 1.5rem 0;
+  padding: 0;
 }
 
 #permission-dialog button {
-  font-size: 20px;
+  font-size: 1.6rem;
+  font-weight: bold;
+  width: -moz-calc(50% - 0.75rem);
+  height: 4rem;
+  border-radius: 0.2rem;
+  color: #000;
+  border: 0;
+  text-align: left;
+  margin: 0;
+  padding: 0 0 0 1.25rem;
 }
 
 #permission-yes {
-    position: absolute;
-    bottom: 15%;
-    height: 20%;
-    left: 15%;
-    width: 30%;
+  background-color: #51b2c7;
+  float: right;
 }
 
 #permission-no {
-    position: absolute;
-    bottom: 15%;
-    height: 20%;
-    right: 15%;
-    width: 30%;
+  background-color: #fff;
 }

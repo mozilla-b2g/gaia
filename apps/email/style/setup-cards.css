@@ -1,0 +1,48 @@
+
+.sup-form {
+  text-align: center;
+}
+
+.sup-form-label {
+  text-align: center;
+  margin: 20px;
+}
+.sup-form-text {
+  display: block;
+  margin: 10px 30px;
+  width: 260px;
+}
+.sup-form-btn {
+  margin: 10px 60px;
+  width: 200px;
+}
+
+.sup-services-container {
+  text-align: center;
+}
+.sup-service-choice {
+  margin: 10px 60px;
+  width: 200px;
+}
+
+.tng-header-item {
+  font-weight: bold;
+  background-color: #eee;
+}
+.tng-header-item, .tng-item {
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid gray;
+  padding: 6px;
+  margin: 0;
+}
+.tng-inert-item {
+  color: gray;
+}
+
+.tng-account-item-label {
+  margin: 0;
+}
+.tng-account-add {
+  font-style: italic;
+}

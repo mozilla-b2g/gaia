@@ -19,13 +19,10 @@ header {
   line-height: 62px;
   text-align: center;
   background-color: #fff;
-  background-image: -moz-linear-gradient(#fff, #eaeae4);
-  border-bottom: solid 2px #a3a3a3;
-  border-radius: 8px 8px 0 0;
-}
-
-body > header {
-  display: none;
+  background: -moz-linear-gradient(#fff, #eaeae4);
+  border-bottom:1px solid #ccc;
+  border-radius: 6px 6px 0 0;
+  color:#555;
 }
 
 header h1 {
@@ -36,6 +33,18 @@ header h1 {
   font-family: "Open Sans", sans-serif;
   font-weight: bold;
   font-size: 1em;
+}
+
+header h1 a {
+  display: block;
+  text-decoration: none;
+  background: url(images/header-left-arrow.png) no-repeat 20px 50%;
+  color: #555 !important;
+}
+
+header h1 a:active {
+  background: url(images/header-left-arrow.png) no-repeat 20px 50%,
+    -moz-linear-gradient(#eaeae4, #fff);
 }
 
 /* View */
@@ -56,8 +65,8 @@ header h1 {
   line-height: 40px;
   font-size: 0.85em;
   color: #333;
-  border-bottom: 2px solid #c3c9cb;
-  background: url("images/diagonal-pattern.png") repeat scroll 0 0 #F1F1ED;
+  border-bottom: 1px solid #bbf;
+  background: url(images/diagonal-pattern.png) repeat scroll 0 0 #ccf;
 }
 
 /* View - Slide Horizontal Transition */
@@ -87,7 +96,7 @@ body.hidden #root {
   -moz-transition: none;
 }
 
-/* Table View */
+/* Table View: line height = 64px, border included */
 ul {
   margin: 0;
   padding: 0;
@@ -95,12 +104,17 @@ ul {
   list-style: none;
 }
 
-ul li { /* 96px, including a 2px border */
+ul li {
   position: relative;
-  height: 94px;
+  border-bottom: 1px solid #c3c9cb;
   background-color: #f5f5f5;
-  border-bottom: 2px solid #c3c9cb;
   color: #555;
+  -moz-box-sizing: border-box;
+  height: 64px;
+}
+
+ul li.active {
+  background-color: #fee;
 }
 
 ul li:active {
@@ -111,35 +125,39 @@ ul li:active {
 
 ul li > a {
   display: block;
-  padding: 20px;
-  /* XXX height/line-height must be adjusted it the container height changes */
-  height:      54px; /* -moz-calc(100% - 40px); */
-  line-height: 54px; /* -moz-calc(100% - 40px); */
   text-decoration: none;
   outline: 0;
   color: #555;
+  -moz-box-sizing: border-box;
+  height: 64px;
+  line-height: 64px;
+  padding: 0 20px;
 }
 
-ul li > a, ul li > span, ul li > small { /* text ellipsis */
+ul li > label + *, ul li > label + * + * { /* text ellipsis */
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: -moz-calc(100% - 120px);
-}
-
-ul li > span {
-  position: absolute;
-  left: 20px;
-  bottom: 50%;
+  max-width: -moz-calc(100% - 66px);
 }
 
 ul li > small {
   position: absolute;
   left: 20px;
   top: 50%;
+  padding-top: 8px;
   font-size: 0.65em;
   color: #888;
+}
+
+ul li > small + a {
+  line-height: 58px;
+}
+
+ul li button {
+  width: 100%;
+  height: 100%;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -157,11 +175,12 @@ ul li > small {
 
 .view label > span {
   position: absolute;
-  top: -moz-calc(50% - 34px);
-  right: 20px;
+  top: -moz-calc(50% - 22px);
+  right: 12px;
+  -moz-box-sizing: border-box;
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 42px;
+  height: 42px;
   border: none;
 }
 
@@ -174,9 +193,7 @@ ul li > small {
 }
 
 .view label > input[type=checkbox] + span {
-  width: 60px;
-  height: 60px;
-  border: 4px solid;
+  border: 2px solid;
   border-radius: 5px;
   -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
@@ -190,18 +207,24 @@ ul li > small {
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
+.view label > progress {
+  float: right;
+  width: 150px;
+  margin: 22px 20px 0 0;
+}
+
 /* brightness level */
-li#brightness:active {
+#brightness-level:active {
   background-color: #f5f5f5;
   text-shadow: none;
   color: #555;
 }
 
-li#brightness a {
+#brightness-level a {
   max-width: -moz-calc(60% - 50px);
 }
 
-li#brightness progress {
+#brightness-level progress {
   width: 40%;
   height: 40%;
   position: absolute;

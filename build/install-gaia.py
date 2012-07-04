@@ -40,7 +40,7 @@ def adb_push(local, remote):
     global adb_cmd
     subprocess.check_call([adb_cmd, 'push', local, remote])
 
-def adb_shell(cmd):
+def adb_shell(cmd, ignore_error=False):
     global adb_cmd
 
     # Output the return code so we can check whether the command executed
@@ -60,7 +60,7 @@ def adb_shell(cmd):
         raise Exception('adb shell "%s" exited with error %d' % (cmd, proc.returncode))
 
     split = [line for line in stdout.split('\n') if line.strip()]
-    if not split[-1].startswith('RETURN CODE: 0'):
+    if not ignore_error and not split[-1].startswith('RETURN CODE: 0'):
         raise Exception('adb shell "%s" did not complete successfully. Output:\n%s' % (cmd, stdout))
 
     # Don't return the "RETURN CODE: 0" line!
@@ -80,14 +80,25 @@ def compute_remote_hashes():
         hashes[filename] = hash
     return hashes
 
+INDEXED_DB_FOLDER = 'indexedDB/'
+
 def remove_from_remote(local_hashes, remote_hashes):
     """Remove any files from the remote device which don't appear in
     local_hashes.
 
     """
-    to_remove = list(set(remote_hashes.keys()) - set(local_hashes.keys()))
+
+    # Keep indexedDB content
+    to_keep = set()
+    for path in remote_hashes:
+        if path[:len(INDEXED_DB_FOLDER)] == INDEXED_DB_FOLDER:
+            to_keep.add(path)
+
+    to_remove = list(set(remote_hashes.keys()) - set(local_hashes.keys()) - to_keep)
+
     if not to_remove:
         return
+
     print 'Removing from device:\n%s\n' % '\n'.join(to_remove)
     # Chunk to_remove into 25 files at a time so we don't send too much over
     # adb_shell at once.
@@ -128,7 +139,9 @@ def install_gaia_fast():
 
 def install_gaia_slow():
     global adb_cmd
-    adb_shell("rm -r /data/local/*")
+    adb_shell("rm -r /data/local/OfflineCache", ignore_error=True)
+    adb_shell("rm -r /data/local/webapps", ignore_error=True)
+    adb_shell("rm /data/local/user.js", ignore_error=True)
     adb_push('profile/OfflineCache', '/data/local/OfflineCache')
     adb_push('profile/webapps', '/data/local/webapps')
     adb_push('profile/user.js', '/data/local')

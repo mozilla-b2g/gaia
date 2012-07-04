@@ -1,0 +1,67 @@
+{
+  "name": "FM Radio",
+  "description": "Gaia FM Radio",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+    "mozFM"
+  ],
+  "locales": {
+    "ar": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "ca": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "de": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "el": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "en-US": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "es": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "fr": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "it": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "pt-BR": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "ru": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "tr": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "zh-TW": {
+      "name": "\u6536\u97f3\u673a",
+      "description": "\u6536\u97f3\u673a"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Fm.png",
+    "60": "/style/icons/60/Fm.png"
+  }
+}

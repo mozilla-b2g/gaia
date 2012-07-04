@@ -1,18 +1,22 @@
-var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+'use strict';
+
+var idb = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
 var GlobalHistory = {
+  DEFAULT_ICON_EXPIRATION: 86400000, // One day
+
   init: function gh_init(callback) {
     this.db.open(callback);
   },
 
-  addPlace: function gh_addPlace(uri) {
+  addPlace: function gh_addPlace(uri, callback) {
     var place = {
       uri: uri,
       // Set the title to the URI for now, until a real title is received.
       title: uri
     };
-    this.db.savePlace(place);
+    this.db.savePlace(place, callback);
   },
 
   addVisit: function gh_addVisit(uri) {
@@ -24,12 +28,81 @@ var GlobalHistory = {
     this.db.saveVisit(visit);
   },
 
-  setPageTitle: function gh_setPageTitle(uri, title) {
-    var place = {
-      uri: uri,
-      title: title
+  setPageTitle: function gh_setPageTitle(uri, title, callback) {
+    this.db.getPlace(uri, (function(place) {
+      // If place already exists, just set title
+      if (place) {
+        place.title = title;
+      // otherwise create new place
+      } else {
+        place = {
+          uri: uri,
+          title: title
+        };
+      }
+      this.db.updatePlace(place, callback);
+    }).bind(this));
+
+  },
+
+  setPageIconUri: function gh_setPageIconUri(uri, iconUri, callback) {
+    // Set icon URI for corresponding place URI
+    this.db.getPlace(uri, (function(place) {
+      // if place already exists, just set icon
+      if (place) {
+        place.iconUri = iconUri;
+      // otherwise create a new place
+      } else {
+        place = {
+          uri: uri,
+          title: uri,
+          iconUri: iconUri
+        };
+      }
+      if (callback) {
+        this.db.updatePlace(place, callback);
+      } else {
+        this.db.updatePlace(place);
+      }
+    }).bind(this));
+  },
+
+  setIconData: function gh_setIconData(iconUri, data, callback, failed) {
+    var now = new Date().valueOf();
+    var iconEntry = {
+      uri: iconUri,
+      data: data,
+      expiration: now + this.DEFAULT_ICON_EXPIRATION,
+      failed: failed
     };
-    this.db.updatePlace(place);
+    this.db.saveIcon(iconEntry, callback);
+  },
+
+  setAndLoadIconForPage: function gh_setAndLoadIconForPage(uri,
+    iconUri, callback) {
+    this.setPageIconUri(uri, iconUri);
+    // If icon is not already cached or has expired, load it
+    var now = new Date().valueOf();
+    this.db.getIcon(iconUri, (function(icon) {
+      if (icon && icon.expiration > now)
+        return;
+      var xhr = new XMLHttpRequest({mozSystem: true});
+      xhr.open('GET', iconUri, true);
+      xhr.responseType = 'blob';
+      xhr.addEventListener('load', (function() {
+        // 0 is due to https://bugzilla.mozilla.org/show_bug.cgi?id=716491
+        if (xhr.status === 200 || xhr.status === 0) {
+          this.setIconData(iconUri, xhr.response, callback);
+        } else {
+          this.setIconData(iconUri, null, callback, true);
+          console.log('error fetching icon: ' + xhr.status);
+        }
+      }).bind(this), false);
+      xhr.onerror = function getIconError() {
+        console.log('Error fetching icon');
+      };
+      xhr.send();
+    }).bind(this));
   },
 
   getHistory: function gh_getHistory(callback) {
@@ -43,9 +116,9 @@ GlobalHistory.db = {
   _db: null,
 
   open: function db_open(callback) {
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     const DB_NAME = 'browser';
-    var request = indexedDB.open(DB_NAME, DB_VERSION);
+    var request = idb.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (function onUpgradeNeeded(e) {
       console.log('Browser database upgrade needed, upgrading.');
@@ -55,7 +128,6 @@ GlobalHistory.db = {
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
-      console.log('Successfully opened browser database');
       callback();
     }).bind(this);
 
@@ -80,10 +152,13 @@ GlobalHistory.db = {
     // Index visits by timestamp
     visitStore.createIndex('timestamp', 'timestamp', { unique: false });
 
-    console.log("Initialised browser's global history database");
+    // Create or overwrite icon cache
+    if (db.objectStoreNames.contains('icons'))
+      db.deleteObjectStore('icons');
+    var iconStore = db.createObjectStore('icons', { keyPath: 'uri' });
   },
 
-  savePlace: function db_savePlace(place) {
+  savePlace: function db_savePlace(place, callback) {
     var transaction = this._db.transaction(['places'],
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -92,20 +167,41 @@ GlobalHistory.db = {
     };
 
     var objectStore = transaction.objectStore('places');
+
     var request = objectStore.add(place);
 
     request.onsuccess = function onsuccess(e) {
-      console.log('Successfully wrote place to global history store: ' +
-        place.uri);
+      if (callback)
+        callback();
     };
 
     request.onerror = function onerror(e) {
-      console.log('Error while adding place to global history store: ' +
-        place.uri);
+      if (e.target.error.name == 'ConstraintError') {
+        e.preventDefault();
+      } else {
+        console.log(e.target.error.name +
+          ' error while adding place to global history store with URL ' +
+          place.uri);
+      }
     };
   },
 
-  updatePlace: function db_updatePlace(place) {
+  getPlace: function db_getPlace(uri, callback) {
+    var db = this._db;
+    var request = db.transaction('places').objectStore('places').get(uri);
+
+    request.onsuccess = function(event) {
+      callback(event.target.result);
+    };
+
+    request.onerror = function(event) {
+      if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
+        callback();
+    };
+
+  },
+
+  updatePlace: function db_updatePlace(place, callback) {
     var transaction = this._db.transaction(['places'],
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -117,8 +213,8 @@ GlobalHistory.db = {
     var request = objectStore.put(place);
 
     request.onsuccess = function onsuccess(e) {
-      console.log('Successfully updated place in global history store: ' +
-        place.uri);
+      if (callback)
+        callback();
     };
 
     request.onerror = function onerror(e) {
@@ -137,10 +233,6 @@ GlobalHistory.db = {
      var objectStore = transaction.objectStore('visits');
      var request = objectStore.add(visit);
 
-     request.onsuccess = function onsuccess(e) {
-       console.log('Successfully wrote visit to global history store');
-     };
-
      request.onerror = function onerror(e) {
        console.log('Error while adding visit to global history store');
      };
@@ -154,6 +246,7 @@ GlobalHistory.db = {
       return function(e) {
           var place = e.target.result;
           visit.title = place.title;
+          visit.iconUri = place.iconUri;
           history.push(visit);
         };
     }
@@ -171,6 +264,92 @@ GlobalHistory.db = {
         callback(history);
       }
     };
+  },
+
+  clearPlaces: function db_clearPlaces(callback) {
+    var db = GlobalHistory.db._db;
+    var transaction = db.transaction('places',
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear places');
+    };
+    var objectStore = transaction.objectStore('places');
+    var request = objectStore.clear();
+    request.onsuccess = function() {
+      callback();
+    };
+    request.onerror = function(e) {
+      console.log('Error clearing places object store');
+    };
+  },
+
+  clearVisits: function db_clearVisits(callback) {
+    var db = GlobalHistory.db._db;
+    var transaction = db.transaction('visits',
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear visits');
+    };
+    var objectStore = transaction.objectStore('visits');
+    var request = objectStore.clear();
+    request.onsuccess = function() {
+      callback();
+    };
+    request.onerror = function(e) {
+      console.log('Error clearing visits object store');
+    };
+  },
+
+  clearIcons: function db_clearIcons(callback) {
+    var db = GlobalHistory.db._db;
+    var transaction = db.transaction('icons',
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear icons');
+    };
+    var objectStore = transaction.objectStore('icons');
+    var request = objectStore.clear();
+    request.onsuccess = function() {
+      callback();
+    };
+    request.onerror = function(e) {
+      console.log('Error clearing icons object store');
+    };
+  },
+
+  saveIcon: function db_saveIcon(iconEntry, callback) {
+    var transaction = this._db.transaction(['icons'],
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to save icon');
+    };
+
+    var objectStore = transaction.objectStore('icons');
+    var request = objectStore.put(iconEntry);
+
+    request.onsuccess = function onsuccess(e) {
+      if (callback)
+        callback();
+    };
+
+    request.onerror = function onerror(e) {
+      console.log('Error while saving icon');
+    };
+  },
+
+  getIcon: function db_getIcon(iconUri, callback) {
+    var request = this._db.transaction('icons').objectStore('icons').
+      get(iconUri);
+
+    request.onsuccess = function(event) {
+      callback(event.target.result);
+    };
+
+    request.onerror = function(event) {
+      if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
+        callback();
+    };
+
   }
 
 };

@@ -4,16 +4,21 @@
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
     "sms",
-    "contacts"
+    "contacts",
+    "background"
   ],
   "locales": {
     "ar": {
       "name": "\u0631\u0633\u0627\u0626\u0644",
       "description": "Gaia \u0631\u0633\u0627\u0626\u0644"
+    },
+    "ca": {
+      "name": "Missatges",
+      "description": "Missatges del Gaia"
     },
     "de": {
       "name": "Nachrichten",
@@ -59,7 +64,8 @@
   "default_locale": "en-US",
   "background_page": "/background.html#0",
   "icons": {
-    "120": "/style/icons/Messages.png"
+    "120": "/style/icons/Sms.png",
+    "60": "/style/icons/60/Sms.png"
   },
   "orientation": "portrait-primary"
 }

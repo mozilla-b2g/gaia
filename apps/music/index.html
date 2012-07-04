@@ -1,59 +1,98 @@
-<!DOCTYPE html> 
-<html manifest="manifest.appcache"> 
-  <head> 
-    <meta charset="utf-8"> 
-    <meta http-equiv="pragma" content="no-cache">
-    <title>Music</title> 
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Music</title>
     <link rel="stylesheet" href="style/music.css" type="text/css" />
-    <script type="text/javascript" src="js/music.js"></script>
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini" />
+    <!-- Compatibility -->
+    <script type="text/javascript">
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
+    <!-- Use external libraries of mp3 and ogg -->
+    <script type="text/javascript" src="js/ext/id3-minimized.js"></script>
+    <script type="text/javascript" src="js/ext/ogg.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/music.js"></script>
   </head>
 
   <body>
-  	<div id="title">
-  	  <div id="title-text">Music</div>
-  	  <button id="title-back" class="title-back-button" disabled=true>
-  	    <span id="title-back-text">&#8249;</span>
-  	  </button>
-  	</div>
-  	<div id="search"></div>
-  	<div id="views">
-  	  <div id="views-tiles" class="view"></div>
-  	  <div id="views-list" class="view"></div>
-  	  <div id="views-player" class="view">
-  	    <div id="player-cover">
-  	      <div id="player-cover-image">&#9834;</div>
-  	      <div id="player-cover-title">Song Title</div>
-  	      <div id="player-cover-artist">Song Artist</div>
-  	      <div id="player-cover-buttons">
-  	        <button id="player-album-shuffle" class="player-cover-button" disabled=true>S</button>
-  	        <div id="player-album-rating">&#9733;&nbsp;&nbsp;&#9733;&nbsp;&nbsp;&#9733;&nbsp;&nbsp;&#9733;</div>
-  	        <button id="player-album-repeat" class="player-cover-button" disabled=true>R</button>
-  	      </div>
-  	    </div>
-  	    <div id="player-seek">
-  	      <span class="player-seek-elapsed">00:00</span>
-  	      <div id="player-seek-bar">
-  	        <progress id="player-seek-bar-progress" value="50" max="100"></progress>
-  	        <div id="player-seek-bar-indicator"></div>
-  	      </div>
-  	      <span class="player-seek-remaining">99:99</span>
-  	    </div>
-  	    <div id="player-controls">
-  	      <button id="player-controls-previous" class="player-controls-button" disabled=true>Previous</button>
-  	      <button id="player-controls-play" class="player-controls-button" disabled=true>Play</button>
-  	      <button id="player-controls-next" class="player-controls-button" disabled=true>Next</button>
-  	    </div>
-  	    <audio id="player-audio" class="hidden" controls autoplay></audio>
-  	  </div>
-  	</div>
-  	<div id="tabs">
-      <button id="tabs-top" class="tabs-button" disabled=true>Top</button>
-      <button id="tabs-playlists" class="tabs-button" disabled=true>Playlists</button>
-      <button id="tabs-artist" class="tabs-button" disabled=true>Artist</button>
-      <button id="tabs-albums" class="tabs-button" disabled=true>Albums</button>
-      <button id="tabs-more" class="tabs-button" disabled=true>More</button>
-  	</div>
+    <div id="title">
+      <button id="title-back" class="title-back-button">
+        <span id="title-back-text">&#8249;</span>
+      </button>
+      <div id="title-text" data-l10n-id="music">Music</div>
+    </div>
+    <div id="search"></div>
+    <div id="views">
+      <div id="views-tiles" class="view">
+        <div id="tiles-recently" class="main-tile">
+          <div class="main-tile-text" data-l10n-id="clickToStart">
+            Click <br> to <br> Start!
+          </div>
+        </div>
+        <div class="sub-tile"><br></div>
+        <div class="sub-tile"><br></div>
+        <div class="sub-tile"><br></div>
+        <div class="sub-tile"><br></div>
+        <div class="sub-tile"><br></div>
+        <div class="sub-tile"><br></div>
+        <div id="tiles-recently" class="main-tile"></div>
+        <div class="sub-tile"><br></div>
+        <div class="sub-tile"><br></div>
+      </div>
+      <div id="views-list" class="view"></div>
+      <div id="views-player" class="view">
+        <div id="player-cover">
+          <div id="player-cover-image">&#9834;</div>
+          <div id="player-cover-caption">
+            <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
+            <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
+          </div>
+          <div id="player-cover-buttons">
+            <button id="player-album-shuffle" class="player-cover-button" disabled>S</button>
+            <div id="player-album-rating">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <button id="player-album-repeat" class="player-cover-button" disabled>R</button>
+          </div>
+        </div>
+        <div id="player-seek">
+          <span id="player-seek-elapsed">00:00</span>
+          <div id="player-seek-bar">
+            <progress id="player-seek-bar-progress" value="0"></progress>
+            <div id="player-seek-bar-indicator"></div>
+          </div>
+          <span id="player-seek-remaining">00:00</span>
+        </div>
+        <div id="player-controls">
+          <button id="player-controls-play" class="player-controls-button">&#9654;</button>
+          <button id="player-controls-previous" class="player-controls-button">&#9621;&#9664;&#9664;</button>
+          <button id="player-controls-next" class="player-controls-button">&#9654;&#9654;&#9615;</button>
+        </div>
+        <audio id="player-audio" class="hidden" controls autoplay></audio>
+      </div>
+    </div>
+    <div id="tabs">
+      <button class="tabs-button" disabled id="tabs-mix" data-l10n-id="mix">Mix</button>
+      <button class="tabs-button" disabled id="tabs-playlists" data-l10n-id="playlists">Playlists</button>
+      <button class="tabs-button" disabled id="tabs-artists" data-l10n-id="artists">Artists</button>
+      <button class="tabs-button" disabled id="tabs-albums" data-l10n-id="albums">Albums</button>
+      <button class="tabs-button" disabled id="tabs-more" data-l10n-id="more">More</button>
+    </div>
+    <div id="nosongs">
+      <div id="nosongs-text" data-l10n-id="noSongs">No Songs</div>
+    </div>
   </body>
 </html>
 

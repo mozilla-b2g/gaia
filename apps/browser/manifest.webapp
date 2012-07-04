@@ -4,15 +4,20 @@
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "mozbrowser"
+    "mozbrowser",
+    "systemXHR"
   ],
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u0645\u062a\u0635\u0641\u062d",
       "description": "Gaia \u0645\u062a\u0635\u0641\u062d \u0627\u0644\u0648\u064a\u0628"
+    },
+    "ca": {
+      "name": "Navegador",
+      "description": "Navegador del Gaia"
     },
     "de": {
       "name": "Browser",
@@ -57,6 +62,7 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Browser.png"
+    "120": "/style/icons/Browser.png",
+    "60": "/style/icons/60/Browser.png"
   }
 }

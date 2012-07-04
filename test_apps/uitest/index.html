@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>UI tests</title>
+  <!-- We don't need localization in this app -->
+  <link rel="stylesheet" type="text/css" href="style/uitest.css">
+  <script type="text/javascript" src="js/uitest.js"></script>
+</head>
+<body>
+  <div id="tests" class="panel">
+    <div class="toolbar toolbar-top">
+      <p class="toolbar-title">UI Tests</p>
+    </div>
+    <ul class="list" id="test-list">
+      <li><a href="#test=empty">Empty test</a></li>
+      <li><a href="#test=keyboard">Keyboard test</a></li>
+      <li><a href="#test=contacts">Contacts tests</a></li>
+      <li><a href="#test=alert">Alert/Prompt tests</a></li>
+      <li><a href="#test=open">window.open tests</a></li>
+      <li><a href="#test=notification">mozNotification tests</a></li>
+      <li><a href="#test=scrollbar">Scroll bar tests</a></li>
+    </ul>
+  </div>
+  <div id="test-panel" class="panel">
+    <div class="toolbar toolbar-top">
+      <button id="test-panel-back">back</button>
+      <p id="test-panel-title" class="toolbar-title"></p>
+    </div>
+    <iframe id="test-iframe"></iframe>
+  </div>
+</body>
+</html>

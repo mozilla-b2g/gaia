@@ -1,0 +1,159 @@
+.apps {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* pages */
+.apps > div {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.apps ol {
+  width: -moz-calc(4 * 8rem);
+  padding: 0;
+  list-style-type: none;
+  display: block;
+  margin: 0 auto;
+  margin-top: 2rem;
+}
+
+.apps ol > li {
+  position: relative;
+  width: 8rem;
+  display: inline-block;
+  float: left;
+  text-align: center;
+  padding-bottom: 2.2rem;
+}
+
+.apps ol > li[data-hidden] {
+  -moz-transform: scale(0);
+}
+
+.apps ol > li[data-visible] {
+  -moz-transform: scale(1);
+  -moz-transition: -moz-transform 1.2s ease;
+}
+
+/* Maximum 16 icons for page */
+.apps ol > li:nth-child(17) {
+  display: none;
+}
+
+/* Option to delete apps */
+.apps ol > li span.options {
+  position: absolute;
+  top: -10%;
+  left: 0;
+  width: 100%;
+  height: 33%;
+  z-index: 2;
+  background: url(../resources/images/menu.png) no-repeat center top;
+}
+
+/* Container -> icon + label */
+.apps ol > li > div {
+  height: 100%;
+  width: 100%;
+  pointer-events: none; /* NO touchable area */
+}
+
+/* icon */
+.apps ol > li > div > img {
+  width: 6rem;
+  height: 6rem;
+}
+
+/* label wrapper */
+.apps ol > li > div > span {
+  overflow: hidden; /* We cut the text to avoid messing up the grid */
+  word-wrap: break-word;
+}
+
+/* text label */
+.apps ol > li > div > span > span {
+  font-size: -moz-calc(5.5 * 0.226rem); /* 5.5pt */
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+}
+
+.labelWrapper {
+  text-transform: capitalize; /* First letter always capitalized */
+  color: #fff; /* App label color */
+  white-space: nowrap; /* NO new lines */
+  display: block;
+  width: 94%; /* At least 6% of margin between labels of different apps */
+  position: relative;
+  height: 1.6rem; /* 15px in otoro */
+  margin: 0 auto;
+  font-weight: 600;
+}
+
+.apps .draggable {
+  z-index: 10000;
+  pointer-events: none;
+  position: absolute;
+  text-align: center;
+  width: 8rem;
+  -moz-transform: translate(0,0);
+}
+
+.apps .draggable > img {
+  margin-bottom: .6rem;
+  -moz-transform: scale(1.25);
+  width: 6rem;
+  height: 6rem;
+}
+
+/* label wrapper */
+.apps .draggable > span {
+  /* shift left edge of text to center */
+  left: 50%;
+}
+
+/* text label */
+.apps .draggable > span > span {
+  font-size: 2rem;
+  text-shadow: 0 0 5px #666;
+  /* shift left edge of text half distance to left */
+  margin-left: -100%;
+}
+
+@-moz-keyframes shake {
+  0% { -moz-transform: scale(1); }
+	25% { -moz-transform: scale(1.05); }
+  50% { -moz-transform: scale(1); }
+  75% { -moz-transform: scale(0.95); }
+	100% { -moz-transform: scale(1); }
+}
+
+@-moz-keyframes none {}
+
+/* Image and label have shaking effect */
+.apps[data-mode = 'edit'] ol > li > div > img {
+  -moz-animation-name: shake;
+  -moz-animation-duration: .8s;
+  -moz-transform-origin: 50% 50%;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: ease-out;
+}
+
+.apps[data-transitioning] ol > li > div > img {
+  -moz-animation-name: none;
+}
+
+.apps[data-mode = 'normal'] ol > li span.options {
+  display: none;
+}
+
+.apps[data-dragging] ol > li {
+  opacity: 0.6;
+}
+
+.apps ol > li[data-dragging] {
+  opacity: 0;
+}

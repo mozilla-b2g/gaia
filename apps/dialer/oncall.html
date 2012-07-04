@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Dialer</title>
+    <link rel="stylesheet" type="text/css" href="style/oncall.css">
+    <link rel="stylesheet" type="text/css" href="style/keypad.css">
+    <script type="application/javascript" src="js/contacts.js"></script>
+    <script type="application/javascript" src="js/settings_listener.js"></script>
+    <script type="application/javascript" src="js/notification_helper.js"></script>
+    <script type="application/javascript" src="js/keypad.js"></script>
+    <script type="application/javascript" src="js/oncall.js"></script>
+    <script type="application/javascript" src="js/recents.js"></script>
+    <script type="application/javascript" src="js/proximity.js"></script>
+    <link rel="resource" type="application/l10n" href="locale/dialer.properties">
+    <script>
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapi.js';
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
+  </head>
+  <body class="hidden">
+    <article id="call-screen" class="grid">
+      <header id="cs-header" class="grid-row">
+        <div class="grid-wrapper grid">
+          <article id="contact-info" class="grid-cell grid-v-align">
+            <section class="contact-info">
+              <input id="contact-primary-info" type="text" readonly="readonly" class="contact-primary-info font-regular">
+              <div id="fake-contact-primary-info" class="font-regular"></div>
+            </section>
+            <section id="contact-secondary-info" class="contact-secondary-info font-light contact-info">
+              Unknown carrier
+            </section>
+          </article>
+        </div>
+      </header>
+      <article id="call-container" class="grid-row">
+        <div class="grid-wrapper grid">
+          <section id="call-info" class="grid-row">
+             <div class="grid-wrapper ">
+                <div id="call-duration" class="call-duration-style font-light">
+                </div>
+                <span id="call-direction">
+                  <div id="icon-call-direction"></div>
+                </span>
+             </div>
+          </section>
+          <footer id="call-options" class="grid-row">
+            <div class="grid-wrapper grid">
+              <section id="co-advanced" class="grid-row">
+                <div class="grid-wrapper grid">
+                  <span class="grid-cell options-column">
+                    <button id="mute" class="co-advanced-option grid-wraper grid center">
+                      <span class="icon-mute">
+                      </span>
+                    </button>
+                  </span>
+                  <span class="grid-cell options-column">
+                    <button id="keypad-visibility" class="co-advanced-option grid-wraper grid center">
+                      <span class="icon-keypad-visibility">
+                      </span>
+                    </button>
+                  </span>
+                  <span class="grid-cell options-column">
+                    <button id="speaker" class="co-advanced-option grid-wraper grid">
+                      <span>
+                      </span>
+                    </button>
+                  </span>
+              </section>
+              <footer id="callbar">
+                <div id="callbar-hang-up">
+                  <span role="button" id="callbar-hang-up-action" class="callbar-button">
+                    <div>
+                    </div>
+                  </span>
+                </div>
+                <div id="callbar-answer">
+                  <span role="button" id="callbar-start-call-action" class="callbar-button">
+                    <div>
+                    </div>
+                  </span>
+                </div>
+              </footer>
+            </div>
+          </footer>
+        </div>
+      </article>
+    </article>
+    <div id="screen-off"></div>
+    <article id="views">
+      <article id="keyboard-view" class="view">
+        <div id="phone-number-view-container">
+          <div class="grid-cell grid-v-align">
+            <div class="grid-wrapper">
+              <input id="phone-number-view" type="text" class="phone-number-font" readonly="readonly">
+            </div>
+          </div>
+          <div id="keypad-delete" class="grid-cell grid-v-align">
+            <div>
+            </div>
+          </div>
+        </div>
+        <article id="keyboard-container">
+          <section id="keypad">
+            <div class="keypad-cell">
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label" data-value="1">
+                    <span class="keypad-number font-light">1</span>
+                    <span  class="keypad-text font-semibold"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label"  data-value="4">
+                    <span class="keypad-number  font-light">4</span>
+                    <span  class="keypad-text font-semibold">GHI</span>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label" data-value="7">
+                    <span class="keypad-number  font-light">7</span>
+                    <span class="keypad-text font-semibold">PQRS</span>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label keypad-key-label-centered" data-value="*">
+                    <span>
+                      <div class="asterisk"></div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="keypad-cell">
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label" data-value="2">
+                    <span class="keypad-number font-light">2</span>
+                    <span class="keypad-text font-semibold font-semibold">ABC</span>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label" data-value="5">
+                    <span class="keypad-number font-light">5</span>
+                    <span class="keypad-text font-semibold">JKL</span>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label" data-value="8">
+                    <span class="keypad-number font-light">8</span>
+                    <span  class="keypad-text font-semibold">TUV</span>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label" data-value="0">
+                    <span class="keypad-number font-light">0</span>
+                    <span class="keypad-text font-semibold font-size-plus">+</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="keypad-cell">
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label" data-value="3">
+                    <span class="keypad-number font-light">3</span>
+                    <span  class="keypad-text font-semibold">DEF</span>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label" data-value="6">
+                    <span class="keypad-number font-light">6</span>
+                    <span  class="keypad-text font-semibold">MNO</span>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label" data-value="9">
+                    <span class="keypad-number font-light">9</span>
+                    <span  class="keypad-text font-semibold">WXYZ</span>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-key">
+                <div class="keypad-key-label-container">
+                  <div class="keypad-key-label  keypad-key-label-centered" data-type="dial" data-value="#">
+                    <span>
+                      <div class="sharp"></div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="keypad-callbar">
+            <div>
+              <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" >
+                <div class="icon-add-contact"></div>
+              </span>
+            </div>
+            <div>
+              <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
+                <div>
+                </div>
+              </span>
+            </div>
+          </section>
+          <section id="keypad-hidebar">
+            <div id="keypad-hidebar-hang-up-action-wrapper">
+              <span role="button" id="keypad-hidebar-hang-up-action" class="keypad-hidebar-button">
+                <div>
+                </div>
+              </span>
+            </div>
+            <div id="keypad-hidebar-hide-keypad-action-wrapper">
+              <span role="button" id="keypad-hidebar-hide-keypad-action" class="keypad-hidebar-button">
+                <div>
+                </div>
+              </span>
+            </div>
+          </section>
+        </article>
+      </article>
+    </article>
+  </body>
+</html>

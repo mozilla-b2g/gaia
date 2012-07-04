@@ -97,7 +97,7 @@ var Settings = {
         var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
 
         var value = position / input.max;
-        navigator.mozPower.screenBrightness = value;
+        value = Math.max(0, Math.min(1, value));
         input.value = position;
 
         var cset = { }; cset[key] = value;
@@ -167,8 +167,8 @@ window.addEventListener('keyup', function goBack(event) {
 
 // set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showPanel() {
-  document.documentElement.lang = document.mozL10n.language.code;
-  document.documentElement.dir = document.mozL10n.language.direction;
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
   if (document.body.classList.contains('hidden')) {
@@ -183,12 +183,4 @@ window.addEventListener('localized', function showPanel() {
     });
   }
 });
-
-// translate Settings UI if a new locale is selected
-if ('mozSettings' in navigator && navigator.mozSettings) {
-  navigator.mozSettings.onsettingchange = function(event) {
-    if (event.settingName == 'language.current')
-      document.mozL10n.language.code = event.settingValue;
-  };
-}
 

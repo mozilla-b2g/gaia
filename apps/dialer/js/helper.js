@@ -24,24 +24,17 @@ function prettyDate(time) {
     (new Date(time)).toLocaleFormat('%x');
 }
 
-(function() {
-  var updatePrettyDate = function updatePrettyDate() {
-    var labels = document.querySelectorAll('[data-time]');
-    var i = labels.length;
-    while (i--) {
-      labels[i].textContent = prettyDate(labels[i].dataset.time);
-    }
-  };
-  var timer = setInterval(updatePrettyDate, 60 * 1000);
+function headerDate(time) {
+  var diff = (Date.now() - time) / 1000;
+  var day_diff = Math.floor(diff / 86400);
+  if (isNaN(day_diff))
+    return '(incorrect date)';
 
-  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
-    var data = evt.data;
-    if (data.message !== 'visibilitychange')
-      return;
-    clearTimeout(timer);
-    if (!data.hidden) {
-      updatePrettyDate();
-      timer = setInterval(updatePrettyDate, 60 * 1000);
-    }
-  });
-})();
+  if (day_diff < 0 || diff < 0) {
+    return (new Date(time)).toLocaleFormat('%x %R');
+  }
+  return day_diff == 0 && 'Today' ||
+    day_diff == 1 && 'Yesterday' ||
+    day_diff < 4 && (new Date(time)).toLocaleFormat('%A') ||
+    (new Date(time)).toLocaleFormat('%x');
+}

@@ -5,7 +5,7 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title>Videos</title>
     <!-- Compatibility -->
-    <script>
+    <script type="text/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -20,7 +20,7 @@
       document.write('<script src="' + src + '"><\/script>');
     </script>
     <script type="text/javascript" src="js/video.js"></script>
-    <link rel="resource" type="application/l10n" href="locale/video.properties" />
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini" />
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/controls.css" />
     <link rel="stylesheet" type="text/css" href="style/controls-800px.css"
@@ -32,11 +32,8 @@
   <body class="hidden">
 
     <!-- title bar + thumbnail list -->
-    <header>
-      <button id="menu"></button>
-      <h1 data-l10n-id="videos">Videos</h1>
-    </header>
     <ul id="thumbnails">
+      <h1 id="novideos" data-l10n-id="novideos">No Videos</h1>
       <!-- Thumbnails inserted here -->
     </ul>
 
@@ -44,7 +41,6 @@
     <div id="videoFrame" class="hidden">
       <video src="about:blank" id="player"></video>
       <!-- video controls -->
-      <div id="videoSubtitles"></div>
       <div id="videoControls" class="hidden">
         <button id="close"></button>
         <div id="videoBar">

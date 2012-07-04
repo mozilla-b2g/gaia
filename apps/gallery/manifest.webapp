@@ -4,12 +4,16 @@
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
     "ar": {
       "name": "\u0625\u0633\u062a\u062f\u064a\u0648",
       "description": "Gaia \u0625\u0633\u062a\u062f\u064a\u0648"
+    },
+    "ca": {
+      "name": "Galeria",
+      "description": "Galeria del Gaia"
     },
     "de": {
       "name": "Galerie",
@@ -54,6 +58,7 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Gallery.png"
+    "120": "/style/icons/Gallery.png",
+    "60": "/style/icons/60/Gallery.png"
   }
 }

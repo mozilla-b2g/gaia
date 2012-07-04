@@ -1,12 +1,25 @@
 html {
   height: 100%;
   width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("fonts/Open-Sans.woff");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-weight: bold;
+  src: url("fonts/Open-Sans-Bold.woff");
 }
 
 body {
   background-color: #000;
   color: #fff;
-  font-family: Arial, Helvetica, Sans-serif;
+  font-family: "Open Sans", sans-serif;
   margin: 0;
   padding: 0;
   height: 100%;
@@ -14,72 +27,202 @@ body {
   overflow: hidden;
 }
 
-body.tiles-mode #views-list,
-body.tiles-mode #views-player,
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px),
+       (orientation: landscape) and (width: 480px) {
+
+  body {
+    font-size: 0.6em;
+  }
+}
+
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+
+  body {
+    font-size: 1em;
+  }
+}
+
 body.tiles-mode #title-back {
   display: none;
 }
 
-body.list-mode #views-tiles,
-body.list-mode #views-player,
 body.list-mode #title-back {
   display: none;
 }
 
-body.player-mode #views-tiles,
-body.player-mode #views-list,
+body.tiles-mode #tabs {
+  -moz-transition: opacity 800ms ease;
+  opacity: 1;
+  z-index: 20;
+}
+body.list-mode #tabs {
+  -moz-transition: opacity 800ms ease;
+  opacity: 1;
+  z-index: 20;
+}
 body.player-mode #tabs {
-  display: none;
+  -moz-transition: opacity 400ms ease;
+  opacity: 0;
+  z-index: 1;
+}
+
+/* View - Slide Horizontal Transition */
+/* XXX hack: the width is adjusted (0-100%) with a delayed transition in order
+ *           to hide the horizontal scrollbar on the device (at least, when the
+ *           transition is over).
+ * This is just a workaround: the platform bug should be fixed later.  */
+
+body.tiles-mode #views-tiles {
+  -moz-transform: translateX(0%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
+  width: 100%;
+  z-index: 10;
+}
+body.tiles-mode #views-list {
+  -moz-transform: translateX(100%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
+  width: 0%;
+  overflow: hidden;
+  z-index: 1;
+}
+body.tiles-mode #views-player {
+  -moz-transform: translateX(200%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
+  width: 0%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+body.list-mode #views-tiles {
+  -moz-transform: translateX(-100%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
+  width: 0%;
+  overflow: hidden;
+  z-index: 1;
+}
+body.list-mode #views-list {
+  -moz-transform: translateX(0%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
+  width: 100%;
+  z-index: 10;
+}
+body.list-mode #views-player {
+  -moz-transform: translateX(100%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
+  width: 0%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+body.player-mode #views-tiles {
+  -moz-transform: translateX(-200%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
+  width: 0%;
+  overflow: hidden;
+  z-index: 1;
+}
+body.player-mode #views-list {
+  -moz-transform: translateX(-100%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
+  width: 0%;
+  overflow: hidden;
+  z-index: 1;
+}
+body.player-mode #views-player {
+  -moz-transform: translateX(0%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
+  width: 100%;
+  z-index: 10;
 }
 
 #title {  
   position: absolute;
-  top: 0px;
-  left: 0px;
   width: 100%;
-  height: 9%;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-  background: -moz-linear-gradient(center top , #FAA51A, #F47A20) repeat scroll 0 0 transparent;
+  height: 10%;
+  overflow: hidden;
+  background: -moz-linear-gradient(center top, #5D5D5D 0%, #404040 3%, #232323 97%, #151515 100%) repeat scroll 0 0 transparent;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
 }
 
 #title-back {  
   position: absolute;
-  top: 15%;
-  left: 10px;
-  width: 18%;
-  height: 70%;
-  border-radius: 20px;
+  z-index: 10;
+  width: 8%;
+  height: 100%;
 }
 
 #title-back-text {
-  font-size: 6em;
+  font-size: 3em;
   font-weight: bold;
   text-align: center;
   line-height: 0.4em;
 }
 
-#title-text {  
+.title-back-button {
+  border-width: 0px;
+  border-right: 1px solid gray;
+  background: -moz-linear-gradient(center top, #5D5D5D 0%, #4F4F4F 3%, #101010 97%, #151515 100%) repeat scroll 0 0 transparent;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+  color: #FFFFFF;
+  text-shadow: black 1px 1px;
+}
+.title-back-button:hover {
+  color: #000000;
+  background: #F88E11;
+}
+.title-back-button:active {
+  color: #000000;
+  background: #F88E11;
+}
+.title-back-button:disabled {
+  
+}
+
+#title-text {
   position: absolute;
-  top: 0px;
-  left: 0px;
   width: 100%;
   height: 100%;
-  color: #000;
-  font-size: 2em;
-  font-weight: bolder;
-  text-align: center;
-  line-height: 2.3em;
+  color: #FFFFFF;
+  font-size: 2.5em;
+  line-height: 1.9em;
+  text-align: left;
+  text-indent: 10%;
+  opacity: 0.75;
+  text-shadow: black 1px 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #search {
   width: 100%;
-  height: 9%;
+  height: 10%;
 }
 
 #views {
   width: 100%;
-  height: 91%;
+  height: 90%;
   background-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -88,68 +231,166 @@ body.player-mode #tabs {
   height: auto;
 }
 
+#views-tiles, 
+#views-list, 
+#views-player {
+  position: absolute;
+  display: block;
+}
+
 #views-tiles {
-  height: 100%;
+  width: 100%;
+  height: 90%;
+  overflow: hidden;
 }
 
 #views-list {
+  width: 100%;
+  height: 90%;
+  overflow-y: auto;
+  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
 }
 
 #views-player {
-  height: 100%;
+  width: 100%;
+  height: 90%;
+}
+
+#tiles-recently {
+  text-align: center;
+  font-size: 4em;
+  font-weight: bold;
+  opacity: 0.4;
+}
+
+.main-tile {
+  position: relative;
+  display: table;
+  float: left;
+  width: 318px;
+  height: 318px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  background-color: black;
+}
+
+.main-tile-text {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.sub-tile {
+  position: relative;
+  float: left;
+  width: 158px;
+  height: 158px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px),
+       (orientation: landscape) and (width: 480px) {
+
+  .main-tile {
+    width: 210px;
+    height: 210px;
+  }
+
+  .sub-tile {
+    width: 104px;
+    height: 104px;
+  }
+}
+
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+
+  .main-tile {
+    width: 318px;
+    height: 318px;
+  }
+
+  .sub-tile {
+    width: 158px;
+    height: 158px;
+  }
 }
 
 #player-cover {
   position: relative;
   width: 100%;
-  height: 68%;
+  height: 74%;
   overflow: hidden;
-  background-image: -moz-radial-gradient(45px 45px, ellipse farthest-corner, rgba(255, 255, 255, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+  background-image: -moz-radial-gradient(50% 50%, ellipse farthest-corner, rgba(255, 255, 255, 1) 0%, rgba(0, 0, 0, 0.4) 100%);
 }
 
 #player-cover-image {
   position: absolute;
   width: 100%;
   text-align: center;
-  font-size: 450px;
-  line-height: 420px;
-  color: black;
+  font-size: 28em;
+  line-height: 100%;
+  opacity: 0.4;
+  color: orange;
+  text-shadow: 0.2em 0.5em 0.1em #660000, -0.3em 0.1em 0.1em #006600, 0.4em -0.3em 0.1em #000066;
 }
 
-#player-cover-title,
-#player-cover-artist {
+.slideDown {
+  -moz-transform: translateY(100%);
+  -moz-transition: -moz-transform 700ms ease-in-out;
+}
+
+.slideUp {
+  -moz-transform: translateY(-100%);
+  -moz-transition: -moz-transform 700ms ease-in-out;
+}
+
+.resetSilde {
+  -moz-transform: translateY(0%);
+  -moz-transition: -moz-transform 700ms ease-in-out;
+}
+
+#player-cover-caption,
+#player-cover-buttons {
+  position: absolute;
+  width: 100%;
+  height: 16%;
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+#player-cover-caption {
+  top: -16%;
+}
+
+#player-cover-artist,
+#player-cover-album {
+  position: relative;
+  z-index: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-#player-cover-title {
-  position: absolute;
-  top: 0%;
-  width: 100%;
-  height: 13%;
-  text-align: center;
-  font-size: 2.5em;
-  font-weight: bolder;
-  line-height: 2em;
+  opacity: 0.75;
+  text-shadow: black 1px 1px;
 }
 
 #player-cover-artist {
-  position: absolute;
-  top: 13%;
   width: 100%;
-  height: 10%;
-  text-align: center;
+  height: auto;
+  text-align: left;
+  font-size: 1.8em;
+  text-indent: 10%;
+}
+
+#player-cover-album {
+  width: 100%;
+  height: auto;
+  text-align: left;
   font-size: 1.5em;
-  font-weight: bolder;
-  line-height: 1.5em;
+  text-indent: 10%;
 }
 
 #player-cover-buttons {
-  position: absolute;
-  bottom: 0px;
-  width: 100%;
-  height: 15%;
+  bottom: -16%;
 }
 
 #player-album-shuffle, 
@@ -157,11 +398,11 @@ body.player-mode #tabs {
 #player-album-repeat {
   position: relative;
   float: left;
-  height: 12%;
 }
 
 #player-album-shuffle, 
 #player-album-repeat {
+  top: 15%;
   width: -moz-calc(25% - 40px);
   height: 70%;
   padding: 0px;
@@ -175,31 +416,35 @@ body.player-mode #tabs {
 #player-album-rating {
   opacity: 0.3;
   width: 50%;
+  height: 100%;
   text-align: center;
-  font-size: 2em;
+  font-size: 2.8em;
   font-weight: bolder;
+  letter-spacing: 0.1em;
+  color: #FF7722;
 }
 
 #player-seek {
-  opacity: 0.3;
   width: 100%;
-  height: 12%;
-  background: -moz-linear-gradient(center top , #00ADEE, #0078A5) repeat scroll 0 0 transparent;
+  height: 13%;
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
-.player-seek-elapsed, 
+#player-seek-elapsed, 
 #player-seek-bar, 
-.player-seek-remaining {
+#player-seek-remaining {
   position: relative;
   float: left;
 }
 
-.player-seek-elapsed, 
-.player-seek-remaining {  
+#player-seek-elapsed, 
+#player-seek-remaining {  
   top: 36%;
   width: 20%;
   font-size: 1.5em;
   text-align: center;
+  opacity: 0.75;
+  text-shadow: black 1px 1px;
 }
 
 #player-seek-bar {
@@ -212,18 +457,21 @@ body.player-mode #tabs {
   -moz-appearance: none;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
-  background-color: rgb(235, 229, 222);
+  border-radius: 2px;
+  border-width: 0px;
+  box-shadow: 1px 1px rgba(255, 255, 255, 0.2);
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 #player-seek-bar-progress::-moz-progress-bar {
-  border-radius: 10px;
-  background-color: #FF7722;
+  border-radius: 2px;
+  background-color: #0095CC;
 }
 
 #player-controls {
   width: 100%;
-  height: 20%;
+  height: 13%;
+  overflow: hidden;
 }
 
 #player-controls-previous, 
@@ -233,8 +481,10 @@ body.player-mode #tabs {
   float: left;
   height: 100%;
   padding: 0px;
+  border-width: 0px;
   font-size: 2em;
   font-weight: bold;
+  overflow: hidden;
 }
 
 #player-controls-previous, 
@@ -242,19 +492,22 @@ body.player-mode #tabs {
   width: 30%;
 }
 
-#player-controls-previous {
-  border-bottom-left-radius: 15px;
-}
-
 #player-controls-play {
   width: 40%;
-  font-size: 4em;
-  border-left: #F88E11 solid 3px;
-  border-right: #F88E11 solid 3px;
+  font-size: 3em;
 }
 
-#player-controls-next {
-  border-bottom-right-radius: 15px;
+.player-controls-button {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.player-controls-button:hover {
+  color: #000000;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.player-controls-button:active {
+  color: #000000;
+  background-color: #F88E11;
 }
 
 #tabs {
@@ -265,9 +518,9 @@ body.player-mode #tabs {
   height: 9%;
 }
 
-#tabs-top,
+#tabs-mix,
 #tabs-playlists,
-#tabs-artist,
+#tabs-artists,
 #tabs-albums,
 #tabs-more {
   position: relative;
@@ -276,73 +529,61 @@ body.player-mode #tabs {
   height: 100%;
   padding: 0px;
   font-size: 1.5em;
-  font-weight: bolder;
 }
 
-#tabs-top {
-  border-bottom-left-radius: 15px;
-  border-right: #F88E11 solid 1px;
+.tabs-button {
+  color: #FFFFFF;
+  border-width: 0px;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.tabs-button:hover {
+  color: #000000;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+.tabs-button:active {
+  color: #000000;
+  background-color: #F88E11;
+}
+.tabs-button:disabled {
+  
 }
 
-#tabs-playlists,
-#tabs-artist,
-#tabs-albums {
-  border-left: #F88E11 solid 1px;
-  border-right: #F88E11 solid 1px;
-}
-
-#tabs-more {
-  border-bottom-right-radius: 15px;
-  border-left: #F88E11 solid 1px;
-}
-
-.title-back-button,
 .player-cover-button {
   background: -moz-linear-gradient(center top , #00ADEE, #0078A5) repeat scroll 0 0 transparent;
   border: 1px solid #0076A3;
   color: #D9EEF7;
 }
-.title-back-button:hover,
 .player-cover-button:hover {
   background: -moz-linear-gradient(center top , #0095CC, #00678E) repeat scroll 0 0 transparent;
 }
-.title-back-button:active,
 .player-cover-button:active {
   background: -moz-linear-gradient(center top , #0078A5, #00ADEE) repeat scroll 0 0 transparent;
   color: #80BED6;
 }
-.title-back-button:disabled,
 .player-cover-button:disabled {
   opacity: 0.3;
 }
 
-.tabs-button,
-.player-controls-button {
-  background: -moz-linear-gradient(center top , #FAA51A, #F47A20) repeat scroll 0 0 transparent;
-  border: 0px solid #DA7C0C;
-  color: #FEF4E9;
+#nosongs {
+  position: absolute;
+  top: 0px;
+  display: table;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 100;
 }
-.tabs-button:hover,
-.player-controls-button:hover {
-  background: -moz-linear-gradient(center top , #F88E11, #F06015) repeat scroll 0 0 transparent;
-}
-.tabs-button:active,
-.player-controls-button:active {
-  background: -moz-linear-gradient(center top , #F47A20, #FAA51A) repeat scroll 0 0 transparent;
-  color: #FCD3A5;
-}
-.tabs-button:disabled,
-.player-controls-button:disabled {
-  opacity: 0.3;
+
+#nosongs-text {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 3em;
+  font-weight: bold;
 }
 
 .hidden {
   display: none;
-}
-
-ul#songs {
-  padding: 0;
-  margin: 0;
 }
 
 li.song {
@@ -350,16 +591,15 @@ li.song {
 }
 
 li.song a {
-  font-size: 1.2em;
+  font-size: 1.8em;
   display: block;
   color: #fff;
   text-decoration: none;
   border-bottom: solid 1px #666;
   margin: 0;
-  padding: 1.5em;
-}
-
-div#player {
-  padding: 300px 0;
-  text-align: center;
+  padding: 1em;
+  text-shadow: black 1px 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

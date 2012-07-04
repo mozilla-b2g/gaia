@@ -4,7 +4,7 @@
 'use strict';
 
 // Based on Resig's pretty date
-var localeStr = document.mozL10n.get;
+var _ = navigator.mozL10n.get;
 function prettyDate(time) {
 
   switch (time.constructor) {
@@ -17,52 +17,89 @@ function prettyDate(time) {
   }
 
   var diff = (Date.now() - time) / 1000;
-  var day_diff = Math.floor(diff / 86400);
+  var dayDiff = Math.floor(diff / 86400);
 
-  if (isNaN(day_diff))
+  if (isNaN(dayDiff))
     return '(incorrect date)';
 
-  if (day_diff < 0 || diff < 0) {
+  if (dayDiff < 0 || diff < 0) {
     // future time
     return (new Date(time)).toLocaleFormat('%x %R');
   }
 
-  return day_diff == 0 && (
-    diff < 60 && localeStr('justNow') ||
-    diff < 120 && localeStr('aMinuteAgo') ||
-    diff < 3600 && Math.floor(diff / 60) + ' ' + localeStr('minutesAgo') ||
-    diff < 7200 && localeStr('anHourAgo') ||
-    diff < 86400 && Math.floor(diff / 3600) + ' ' + localeStr('hoursAgo')) ||
-    day_diff == 1 && localeStr('yesterday') ||
-    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
+  return dayDiff == 0 && ( // today?
+      diff < 60 && _('justNow') ||
+      diff < 3600 && _('minutesAgo', { minutes: Math.floor(diff / 60) }) ||
+      diff < 86400 && _('hoursAgo', { hours: Math.floor(diff / 3600) })
+  ) ||
+      dayDiff == 1 && _('yesterday') || // yesterday?
+      dayDiff < 7 && (new Date(time)).toLocaleFormat('%A') || // <1 week ago?
+      (new Date(time)).toLocaleFormat('%x'); // default: standard date format
+}
+
+function giveHourMinute(time) {
+  switch (time.constructor) {
+    case String:
+      time = parseInt(time);
+      break;
+    case Date:
+      time = time.getTime();
+      break;
+  }
+
+  return (new Date(time)).toLocaleFormat('%R %p');
+}
+
+function giveHeaderDate(time) {
+  switch (time.constructor) {
+    case String:
+      time = new Number(time);
+      break;
+    case Date:
+      time = time.getTime();
+      break;
+  }
+
+  var today = Math.floor((new Date()).getTime() / 86400000);
+  var otherDay = Math.floor(time / 86400000);
+  var dayDiff = today - otherDay;
+
+  if (isNaN(dayDiff))
+    return '(incorrect date)';
+
+  if (dayDiff < 0) {
+    // future time
+    return (new Date(time)).toLocaleFormat('%x %R');
+  }
+
+  return dayDiff == 0 && _('today') ||
+    dayDiff == 1 && _('yesterday') ||
+    dayDiff < 4 && (new Date(time)).toLocaleFormat('%A') ||
     (new Date(time)).toLocaleFormat('%x');
 }
 
 (function() {
-  var updatePrettyDate = function updatePrettyDate() {
-    var labels = document.querySelectorAll('[data-time]');
+  var updateHeadersDate = function updateHeadersDate() {
+    var labels = document.querySelectorAll('div.groupHeader');
     var i = labels.length;
     while (i--) {
-      labels[i].textContent = prettyDate(labels[i].dataset.time);
+      labels[i].textContent = giveHeaderDate(labels[i].dataset.time);
     }
   };
-  var timer = setInterval(updatePrettyDate, 60 * 1000);
+  var timer = setInterval(updateHeadersDate, 60 * 1000);
 
-  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
-    var data = evt.data;
-    if (data.message !== 'visibilitychange')
-      return;
+  document.addEventListener('mozvisibilitychange', function visibility(e) {
     clearTimeout(timer);
-    if (!data.hidden) {
-      updatePrettyDate();
-      timer = setInterval(updatePrettyDate, 60 * 1000);
+    if (!document.mozHidden) {
+      updateHeadersDate();
+      timer = setInterval(updateHeadersDate, 60 * 1000);
     }
   });
 })();
 
 /* ***********************************************************
 
-  Code below are for desktop testing!
+  Code below is for desktop testing!
 
 *********************************************************** */
 
@@ -190,6 +227,9 @@ function escapeHTML(str, escapeQuotes) {
   var span = document.createElement('span');
   span.textContent = str;
 
+  // Escape space for displaying multiple space in message.
+  span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
+
   if (escapeQuotes)
     return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
   return span.innerHTML;
@@ -197,7 +237,6 @@ function escapeHTML(str, escapeQuotes) {
 
 if (!navigator.mozSettings) {
   window.addEventListener('load', function loadWithoutSettings() {
-    selectedLocale = 'en-US';
     ConversationView.init();
     ConversationListView.init();
   });

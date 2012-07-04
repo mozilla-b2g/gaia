@@ -1,0 +1,68 @@
+{
+  "name": "Contacts",
+  "description": "Default Contacts application",
+  "developer": {
+    "name": "Telefonica PDI - OWD Team",
+    "url": "http://openwebdevice.com"
+  },
+  "permissions": [
+    "contacts",
+    "mozApps"
+  ],
+  "locales": {
+    "ar": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "ca": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "de": {
+      "name": "Kontakte",
+      "description": "Gaia Kontakte"
+    },
+    "el": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "en-US": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "es": {
+      "name": "Contactos",
+      "description": "Contactos de Gaia"
+    },
+    "fr": {
+      "name": "Contacts",
+      "description": "Contacts Gaia"
+    },
+    "it": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "pt-BR": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "ru": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "tr": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "zh-TW": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Contacts.png",
+    "60": "/style/icons/60/Contacts.png"
+  },
+  "orientation": "portrait-primary"
+}

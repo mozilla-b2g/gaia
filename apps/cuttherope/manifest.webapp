@@ -4,14 +4,14 @@
   "launch_path": "/",
   "orientation": "landscape-primary",
   "fullscreen": true,
-  "hackKillMe": true,
   "hackNetworkBound": "true",
   "developer": {
     "name": "CutTheRope",
     "url": "http://cuttherope.ie"
   },
   "icons": {
-    "120": "/style/icons/Cuttherope.png"
+    "120": "/style/icons/Cuttherope.png",
+    "60": "/style/icons/60/Cuttherope.png"
   },
   "orientation": "landscape"
 }

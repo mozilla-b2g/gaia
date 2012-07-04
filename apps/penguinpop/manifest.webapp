@@ -5,11 +5,11 @@
   "hackNetworkBound": "true",
   "developer": {
     "name": "The Original Author",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "icons": {
-    "120": "/style/icons/Penguinpop.png"
+    "120": "/style/icons/Penguinpop.png",
+    "60": "/style/icons/60/Penguinpop.png"
   },
   "orientation": "portrait-primary"
 }
-

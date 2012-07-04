@@ -1,0 +1,15 @@
+{
+  "name": "UI tests",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "fullscreen": true,
+  "icons": {
+    "120": "/style/icons/Uitest.png"
+  },
+  "permissions": [
+    "background"
+  ]
+}

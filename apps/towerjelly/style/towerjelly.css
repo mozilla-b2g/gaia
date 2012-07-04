@@ -4,8 +4,8 @@ body {
 
 #splash {
     position: fixed;
-    top: 275px;
-    left: 115px;
+    top: -moz-calc((100% - 250px)/2);
+    left: -moz-calc((100% - 250px)/2);
     -moz-transition: opacity .5s;
 }
 
@@ -20,19 +20,11 @@ body {
     -moz-transition: opacity .5s;
 }
 
-@media (min-width: 480px) and (min-height:720px) {
+@media (min-width: 480px) and (min-height: 720px) {
     #gameframe {
         /* The game was written at 320x480 */
         /* But we want to display it at 480x720 */
         -moz-transform-origin: 0px 0px;
         -moz-transform: scale(1.5);
-    }
-}
-
-@media (width 320px) and (height 480px) {
-    /* For a small screen, we want to position the splash icon differently */
-    #splash {
-        top: 115px;
-        left: 35px;
     }
 }

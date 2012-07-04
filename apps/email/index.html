@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+  <title>Email</title>
+  <link rel="stylesheet" type="text/css" href="style/mail.css">
+  <link rel="stylesheet" type="text/css" href="style/message-cards.css">
+  <link rel="stylesheet" type="text/css" href="style/folder-cards.css">
+  <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
+  <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
+  <link rel="resource" type="application/l10n" href="locale/l10n.ini">
+  <script type="text/javascript">
+    var host = document.location.host;
+    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+    var src = 'http://' + domain + '/webapi.js';
+    document.write('<script src="' + src + '"><\/script>');
+
+    // when running in B2G, send output to the console, ANSI-style
+    if ('MozTCPSocket' in window) {
+      function consoleHelper() {
+        var msg = arguments[0] + ":";
+        for (var i = 1; i < arguments.length; i++) {
+          msg += " " + arguments[i];
+        }
+        msg += "\x1b[0m\n";
+        dump(msg);
+      }
+      window.console = {
+        log:   consoleHelper.bind(null, '\x1b[32mLOG'),
+        error: consoleHelper.bind(null, '\x1b[31mERR'),
+        info:  consoleHelper.bind(null, '\x1b[36mINF'),
+        warn:  consoleHelper.bind(null, '\x1b[33mWAR'),
+      };
+    }
+    window.onerror = function errHandler(msg, url, line) {
+      console.error("onerror reporting:", msg, "@", url, ":", line);
+      return false;
+    };
+  </script>
+  <script type="text/javascript" src="js/mail-common.js"></script>
+  <script type="text/javascript" src="js/message-cards.js"></script>
+  <script type="text/javascript" src="js/folder-cards.js"></script>
+  <script type="text/javascript" src="js/compose-cards.js"></script>
+  <script type="text/javascript" src="js/setup-cards.js"></script>
+  <!-- This one is an optimized vendor library containing our mail backend. -->
+  <script type="text/javascript" src="js/ext/gaia-email-opt.js"></script>
+  <script type="text/javascript" src="js/mail-app.js"></script>
+</head>
+
+<body role="application">
+  <!-- All the active cards live (horizontally) in this container.  We leave
+       it up to the layout engine to be smart about not painting cards that are
+       not visible, but we will revisit that after profiling.  (display: hidden
+       should be fairly safe, for example.) -->
+  <div id="cardContainer">
+    <div id="cards" style="left: 0px;"></div>
+  </div>
+
+  <!-- We have a "card" centric implementation that clones the cards from below.
+       Widgets/repeated items are defined in the other template hierarchies for
+       the cards to use as appropriate.
+
+       Currently, the usually-present header strip must be defined on each card;
+       cards do not magically get wrapped in nodes or have any nodes injected
+       into them. -->
+  <div id="templates" class="collapsed">
+    <div id="templ-card">
+      <div class="card-account-picker card">
+        <div class="fld-accounts-header top-header">
+          <h2 class="fld-accounts-header-label header-label"
+              data-l10n-id="accounts-header">AccountS</h2>
+        </div>
+        <div class="scrollregion-below-header">
+          <div class="fld-accounts-container">
+          </div>
+        </div>
+      </div>
+
+      <!-- Shows folders for navigation or move targeting.
+           The navigation mode is less than full-width so we can see the
+           messages display to its right.  -->
+      <div class="card-folder-picker card">
+        <div class="fld-folders-header top-header">
+          <button class="fld-accounts-btn header-left-btn"
+                  data-l10n-id="accounts-button">AccountS</button>
+          <h2 class="fld-folders-header-account-label header-label"></h2>
+        </div>
+        <div class="scrollregion-below-header">
+          <div class="fld-folders-container">
+          </div>
+          <div class="bottom-toolbar-spacer"></div>
+        </div>
+        <div class="fld-nav-toolbar bottom-toolbar">
+          <button class="fld-nav-settings-btn bottom-btn">GEAR</button>
+        </div>
+      </div>
+      <!-- Lists the messages in a folder -->
+      <div class="card-message-list card">
+        <div class="msg-list-header top-header">
+          <button class="msg-folder-list-btn header-left-btn">|||</button>
+          <h2 class="msg-list-header-folder-label header-label"></h2>
+          <button class="msg-compose-btn header-right-btn">+</button>
+        </div>
+        <div class="msg-listedit-header top-edit-header top-header collapsed">
+          <button class="msg-listedit-cancel-btn header-left-btn"
+                  data-l10n-id="message-multiedit-cancel">CanceL</button>
+          <h3 class="msg-listedit-header-label header-label"></h3>
+        </div>
+        <div class="msg-list-scrollouter">
+          <!-- exists so we can force a minimum height -->
+          <div class="msg-list-scrollinner">
+            <div class="msg-list-scroll-padding-top"></div>
+            <!-- The search textbox hides under the lip of the messages. 
+                 As soon as any typing happens in it, we push the search
+                 controls card. -->
+            <!-- deferred for now
+            <div class="msg-search-tease-bar">
+              <input class="msg-search-text-tease" type="text"
+                     placeholder="SearcH MaiL"/>
+            </div>
+            -->
+            <div class="msg-messages-container">
+            </div>
+            <div class="bottom-toolbar-spacer"></div>
+          </div>
+        </div>
+        <!-- Conveys background send, plus undo-able recent actions -->
+        <div class="msg-activity-infobar hidden">
+        </div>
+        <div class="msg-list-action-toolbar bottom-toolbar">
+          <button class="msg-search-btn bottom-btn">SearcH</button>
+          <button class="msg-edit-btn bottom-btn">EdiT</button>
+          <button class="msg-refresh-btn bottom-btn">RefresH</button>
+        </div>
+        <div class="msg-listedit-action-toolbar bottom-edit-toolbar bottom-toolbar collapsed">
+          <button class="msg-star-btn bottom-btn">StaR</button>
+          <button class="msg-unstar-btn bottom-btn">UnStaR</button>
+          <button class="msg-mark-read-btn bottom-btn">MarK</button>
+          <button class="msg-mark-unread-btn bottom-btn">UnMarK</button>
+        </div>
+      </div>
+
+      <!-- Message search UI; variant on the message list -->
+      <div class="card-message-search card">
+        <div class="msg-search-text-bar">
+          <input class="msg-search-text" type="text"
+                 placeholder="SearcH MaiL" />
+          <button class="msg-search-cancel-btn">CanceL</button>
+        </div>
+        <div class="msg-search-controls-bar">
+          <input class="msg-search-from-radio"
+                 type="radio" value="FroM" />
+          <input class="msg-search-to-radio"
+                 type="radio" value="tO" />
+          <input class="msg-search-subject-radio"
+                 type="radio" value="SubjecT" />
+          <input class="msg-search-all-radio"
+                 type="radio" value="AlL" />
+        </div>
+        <div class="scrollregion">
+          <div class="msg-messages-container">
+          </div>
+          <div class="msg-server-upsell-bar">
+            <span>SearcH oN ServeR</span>
+          </div>
+          <div class="bottom-toolbar-spacer"></div>
+        </div>
+        <div class="msg-list-action-toolbar bottom-toolbar">
+          <button class="msg-edit-btn">EdiT</button>
+        </div>
+      </div>
+
+      <!-- Message Reader -->
+      <div class="card-message-reader card">
+        <div class="msg-reader-header top-header">
+          <button class="msg-back-btn back-btn header-left-btn">&lt;</button>
+          <h2 class="msg-reader-header-label header-label"
+              data-l10n-id="reader-header">ReaD</h2>
+          <button class="msg-reply-btn header-right-btn">ReplY</button>
+        </div>
+        <div class="scrollregion-below-header">
+          <div class="msg-envelope-bar">
+            <div class="msg-envelope-date"></div>
+            <div class="msg-envelope-from-line msg-envelope-line">
+              <label class="msg-envelope-key"
+                     data-l10n-id="envelope-from">FroM</label>
+            </div>
+            <!-- the details starts out collapsed, but can be toggled -->
+            <div class="msg-envelope-details collapsed">
+              <div class="msg-envelope-to-line msg-envelope-line">
+                <label class="msg-envelope-key"
+                       data-l10n-id="envelope-to">tO</label>
+              </div>
+              <div class="msg-envelope-cc-line msg-envelope-line">
+                <label class="msg-envelope-key"
+                       data-l10n-id="envelope-cc">cC</label>
+              </div>
+              <div class="msg-envelope-bcc-line msg-envelope-line">
+                <label class="msg-envelope-key"
+                       data-l10n-id="envelope-bcc">BcC</label>
+              </div>
+            </div>
+            <h3 class="msg-envelope-subject"></h3>
+          </div>
+          <div class="msg-body-container">
+          </div>
+          <ul class="msg-attachments-container">
+          </ul>
+          <div class="bottom-toolbar-spacer"></div>
+        </div>
+        <!-- Tells us about remote/not downloaded images, asks to show -->
+        <div class="msg-reader-load-infobar">
+        </div>
+        <div class="msg-reader-action-toolbar bottom-toolbar">
+          <button class="msg-delete-btn bottom-btn">DeletE</button>
+          <button class="msg-star-btn bottom-btn">StaR</button>
+          <button class="msg-unread-btn bottom-btn">MarK UnreaD</button>
+          <button class="msg-move-btn bottom-btn">MovE</button>
+          <button class="msg-forward-btn bottom-btn">ForwarD</button>
+        </div>
+      </div>
+
+      <div class="card-compose card">
+        <div class="cmp-compose-header top-header">
+          <button class="cmp-back-btn back-btn header-left-btn">&lt;</button>
+          <h2 class="cmp-compose-header-label header-label"
+              data-l10n-id="compose-header">ComposE MessagE</h2>
+          <button class="cmp-send-btn header-right-btn"
+                  data-l10n-id="compose-send">SenD</button>
+        </div>
+        <div class="scrollregion-below-header">
+          <div class="cmp-envelope-bar">
+            <div class="cmp-envelope-line">
+              <label class="cmp-to-label cmp-addr-label"
+                     data-l10n-id="compose-to">tO:</label>
+              <input class="cmp-to-text cmp-addr-text" type="text" />
+            </div>
+            <!-- XXX: spec calls for showing cc/bcc merged until selected,
+                 but there is also the case where replying itself might need
+                 to expand, so we are deferring that feature -->
+            <div class="cmp-envelope-line">
+              <label class="cmp-cc-label cmp-addr-label"
+                     data-l10n-id="compose-cc">cC:</label>
+              <input class="cmp-cc-text cmp-addr-text" type="text" />
+            </div>
+            <div class="cmp-envelope-line">
+              <label class="cmp-bcc-label cmp-addr-label"
+                     data-l10n-id="compose-bcc">BcC:</label>
+              <input class="cmp-bcc-text cmp-addr-text" type="text" />
+            </div>
+            <div class="cmp-envelope-line">
+              <label class="cmp-subject-label"
+                     data-l10n-id="compose-subject">SubjecT:</label>
+              <input class="cmp-subject-text" type="text" />
+            </div>
+          </div>
+          <textarea class="cmp-body-text"></textarea>
+        </div>
+      </div>
+
+      <!-- === Setup === -->
+      <!-- From hyperlink, ask the user if they want to setup now or bail. -->
+      <div class="card-setup-needed card">
+      </div>
+      <!-- Pick your service provider from popular options to save yourself
+           some typing during account setup.  This may also result in
+           advice on required additional steps (gmail). -->
+      <div class="card-setup-pick-service card">
+        <div class="sup-account-header top-header">
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-app-name-header">MaiL</h2>
+        </div>
+        <h2 class="sup-pick-service-label sup-form-label"
+            data-l10n-id="setup-pick-service">
+          To SenD and ReceivE email, you will need to setup an account.
+        </h2>
+        <div class="sup-services-container">
+        </div>
+      </div>
+      <!-- Enter your e-mail address, password, name -->
+      <div class="card-setup-account-info form-card card">
+        <div class="sup-account-header top-header">
+          <button class="sup-back-btn header-left-btn back-btn">&lt;</button>
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-account-header">NeW MaiL AccounT SetuP</h2>
+        </div>
+        <h2 class="sup-info-label sup-form-label"
+            data-l10n-id="setup-info-header">
+          YouR LogiN InformatioN
+        </h2>
+        <div class="sup-form">
+          <input class="sup-info-name sup-form-text" type="text"
+                 inputmode="titlecase" placeholder="NamE" />
+          <input class="sup-info-email sup-form-text" type="email"
+                 placeholder="EmaiL AddresS" />
+          <input class="sup-info-password sup-form-text" type="password"
+                 placeholder="PassworD" />
+          <button class="sup-info-next-btn sup-form-btn"
+                  data-l10n-id="setup-info-next">NexT</button>
+        </div>
+      </div>
+      <!-- I am setting up your account, please wait or read errors! -->
+      <div class="card-setup-progress card">
+        <div class="sup-account-header top-header">
+          <button class="sup-back-btn header-left-btn back-btn">&lt;</button>
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-account-header">NeW MaiL AccounT SetuP</h2>
+        </div>
+        <div class="sup-progress-region">
+          <h2 class="sup-progress-label sup-form-label"
+              data-l10n-id="setup-progress-wait">
+            PleasE WaiT WhilE I SetuP YouR AccounT
+          </h2>
+          <span class="sup-progress-spinner">(spinner)</span>
+        </div>
+        <div class="sup-error-region collapsed">
+          <span class="sup-error-message"></span>
+        </div>
+      </div>
+      <!-- Account all setup, add another or read your mail? -->
+      <div class="card-setup-done card">
+        <div class="sup-account-header top-header">
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-completed-header">MaiL AccounT SetuP</h2>
+        </div>
+        <h2 class="sup-account-done-label sup-form-label"
+            data-l10n-id="setup-completed-label">AlL DonE!</h2>
+        <button class="sup-add-another-account-btn sup-form-btn"
+                data-l10n-id="setup-add-another-account">
+          AdD AnotheR AccounT
+        </button>
+        <button class="sup-show-mail-btn sup-form-btn"
+                data-l10n-id="setup-show-mail">
+          ContinuE tO MaiL
+        </button>
+      </div>
+
+      <div class="card-setup-fix-password card">
+        <div class="sup-account-header top-header">
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-bad-password-header">BaD PassworD</h2>
+        </div>
+        <div class="scrollregion-below-header">
+          <h2 class="sup-bad-password-label sup-form-label"
+              data-l10n-id="setup-bad-password">BaD PassworD FoR</h2>
+          <span class="sup-bad-password-account"></span>
+
+          <input class="sup-info-password sup-form-text" type="password"
+                 placeholder="PassworD" />
+          <button class="sup-use-password-btn sup-form-btn"
+                  data-l10n-id="setup-fix-password">UsE PassworD</button>
+        </div>
+      </div>
+
+      <!-- Main settings menu, root of all (mail) settings -->
+      <div class="card-settings-main card">
+        <div class="tng-main-header top-header">
+          <button class="tng-close-btn header-left-btn"
+                  data-l10n-id="settings-close">ClosE</button>
+          <h2 class="tng-main-header-label header-label"
+              data-l10n-id="settings-main-header">MaiL SettingS</h2>
+        </div>
+        <div class="scrollregion-below-header">
+          <h3 class="tng-main-accounts-label tng-header-item"
+              data-l10n-id="settings-account-section">AccountS</h3>
+          <div class="tng-accounts-container"></div>
+          <a class="tng-account-add tng-item"
+             data-l10n-id="settings-account-add">AdD AccounT</a>
+          <h3 class="tng-main-about-label tng-header-item"
+              data-l10n-id="settings-about-section">AbouT</h3>
+          <a class="tng-email-lib-version tng-inert-item tng-item">v1</a>
+        </div>
+      </div>
+
+      <!-- Per-account settings menu; largely read-only for now -->
+      <div class="card-settings-account card">
+        <div class="tng-account-header top-header">
+          <button class="tng-back-btn back-btn header-left-btn">&lt;</button>
+          <h2 class="tng-account-header-label header-label"></h2>
+        </div>
+      </div>
+
+      <!-- Developer debug page; for those in the know -->
+      <div class="card-settings-debug card">
+        <div class="tng-debug-header top-header">
+          <button class="tng-close-btn header-left-btn"
+                  data-l10n-id="settings-close">ClosE</button>
+          <h2 class="tng-main-header-label header-label"
+              data-l10n-id="settings-main-header">MaiL SettingS</h2>
+        </div>
+      </div>
+    </div>
+    <!-- Widget nodes for folder cards; styles use the fld prefix -->
+    <div id="templ-fld">
+      <a class="fld-account-item">
+        <span class="fld-account-name"></span>
+        <span class="fld-account-unread"></span>
+      </a>
+      <a class="fld-folder-item">
+        <span class="fld-folder-name"></span>
+        <span class="fld-folder-unread"></span>
+      </a>
+    </div>
+    <!-- Widget nodes for the message cards; styles use the msg prefix -->
+    <div id="templ-msg">
+      <a class="msg-header-item"><div class="msg-header-unread-section">
+        </div><div class="msg-header-details-section">
+          <span class="msg-header-author"></span>
+          <span class="msg-header-date"></span>
+          <span class="msg-header-subject"></span>
+          <span class="msg-header-snippet"></span>
+        </div><div class="msg-header-icons-section">
+          <span class="msg-header-star"></span>
+          <span class="msg-header-attachments"></span>
+        </div><div class="msg-header-avatar-section">
+        </div></a>
+
+      <div class="msg-peep-bubble">
+        <span class="msg-peep-name"></span>
+        (<span class="msg-peep-address"></span>)
+      </div>
+
+      <li class="msg-attachment-item">
+        <span class="msg-attachment-icon">&amp;</span>
+        <span class="msg-attachment-filename"></span>
+        <span class="msg-attachment-filetype"></span>
+      </li>
+
+      <ul class="msg-edit-menu menu">
+        <li class="msg-edit-menu-star menu-item"
+            data-l10n-id="message-edit-menu-star">StaR</li>
+        <li class="msg-edit-menu-unstar menu-item"
+            data-l10n-id="message-edit-menu-unstar">UnstaR</li>
+        <li class="msg-edit-menu-mark-read menu-item"
+            data-l10n-id="message-edit-menu-mark-read">MarK ReaD</li>
+        <li class="msg-edit-menu-mark-unread menu-item"
+            data-l10n-id="message-edit-menu-mark-unread">MarK UnreaD</li>
+      </ul>
+    </div>
+    <!-- Widget nodes for the compose cards; styles use the cmp prefix -->
+    <div id="templ-cmp">
+      <div class="cmp-peep-bubble">
+        <span class="cmp-peep-name"></span>
+        (<span class="cmp-peep-address"></span>)
+      </div>
+    </div>
+    <!-- Widget nodes for the setup cards; styles use the sup prefix -->
+    <div id="templ-sup">
+      <button class="sup-service-choice"></button>
+    </div>
+    <!-- Widget nodes for the settings cards; styles use the tng prefix -->
+    <div id="templ-tng">
+      <a class="tng-account-item tng-item">
+        <h4 class="tng-account-item-label"></h4>
+        <!-- we may want to expose some other info in this row -->
+      </a>
+
+      <ul class="tng-account-menu menu">
+        <li class="tng-account-menu-delete menu-item"
+            data-l10n-id="settings-account-delete">DeletE AccounT</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

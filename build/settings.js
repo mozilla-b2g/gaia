@@ -14,9 +14,11 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 
 // Todo: Get a list of settings
 var settings = [
- new Setting("ril.radio.disabled", false),
+ new Setting("accessibility.invert", false),
  new Setting("debug.grid.enabled", false),
- new Setting("lockscreen.passcode-lock.enabled", false),
+ new Setting("debug.fps.enabled", false),
+ new Setting("debug.paint-flashing.enabled", false),
+ new Setting("homescreen.ring", 'classic.wav'),
  new Setting("keyboard.layouts.english", true),
  new Setting("keyboard.layouts.dvorak", false),
  new Setting("keyboard.layouts.otherlatins", false),
@@ -25,7 +27,21 @@ var settings = [
  new Setting("keyboard.layouts.hebrew", false),
  new Setting("keyboard.layouts.zhuyin", false),
  new Setting("keyboard.layouts.pinyin", false),
- new Setting("keyboard.layouts.greek", false)
+ new Setting("keyboard.layouts.greek", false),
+ new Setting("keyboard.vibration", false),
+ new Setting("keyboard.clicksound", false),
+ new Setting("language.current", "en-US"),
+ new Setting("lockscreen.passcode-lock.enabled", false),
+ new Setting("lockscreen.enabled", false),
+ new Setting("phone.ring.incoming", true),
+ new Setting("phone.vibration.incoming", true),
+ new Setting("ril.data.enabled", true),
+ new Setting("ril.radio.disabled", false),
+ new Setting("screen.automatic-brightness", true),
+ new Setting("screen.brightness", 0.5),
+ new Setting("sms.ring.received", true),
+ new Setting("sms.vibration.received", true),
+ new Setting("ums.enabled", false),
 ];
 
 function Setting(aName, aValue) {

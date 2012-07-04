@@ -4,12 +4,16 @@
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
     "ar": {
       "name": "\u0641\u064a\u062f\u064a\u0648",
       "description": "Gaia \u0641\u064a\u062f\u064a\u0648"
+    },
+    "ca": {
+      "name": "V\u00eddeo",
+      "description": "V\u00eddeo del Gaia"
     },
     "de": {
       "name": "Video",
@@ -53,8 +57,8 @@
     }
   },
   "default_locale": "en-US",
-  "hackKillMe": true,
   "icons": {
-    "120": "/style/icons/Video.png"
+    "120": "/style/icons/Video.png",
+    "60": "/style/icons/60/Video.png"
   }
 }

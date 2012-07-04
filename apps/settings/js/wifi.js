@@ -5,12 +5,10 @@
 
 window.addEventListener('localized', function scanWifiNetworks(evt) {
   var wifiManager = navigator.mozWifiManager;
-  var _ = document.mozL10n.get;
+  var _ = navigator.mozL10n.get;
 
   // main wifi button
-  var gStatus = (function wifiStatus(element) {
-    var checkbox = element.querySelector('input[type=checkbox]');
-    var infoBlock = element.querySelector('small');
+  var gStatus = (function wifiStatus(checkbox, infoBlock) {
     var switching = false;
 
     // current state
@@ -21,7 +19,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         infoBlock.textContent = _('connected', { ssid: currentNetwork.ssid });
         checkbox.checked = true;
       } else if (wifiManager.enabled) {
-        infoBlock.textContent = _('disconnected');
+        infoBlock.textContent = _('fullStatus-disconnected');
         checkbox.checked = true;
       } else {
         infoBlock.textContent = _('disabled');
@@ -59,13 +57,15 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       get switching() { return switching; },
       update: updateState
     };
-  }) (document.getElementById('status'));
+  }) (document.querySelector('#wifi-enabled input[type=checkbox]'),
+      document.querySelector('#wifi-desc'));
 
   // network list
   var gNetworkList = (function networkList(list) {
     var scanning = false;
     var autoscan = false;
     var scanRate = 5000; // 5s after last scan results
+    var index = [];      // index of all scanned networks
 
     // private DOM helper: create a "Scanning..." list item
     function newScanItem() {
@@ -88,12 +88,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     // private DOM helper: create a network list item
     function newListItem(network) {
       // ssid
-      var span = document.createElement('span');
-      span.textContent = network.ssid;
+      var ssid = document.createElement('a');
+      ssid.textContent = network.ssid;
 
       // signal is between 0 and 100, level should be between 0 and 4
       var signal = document.createElement('span');
-      var level = Math.min(Math.floor(network.signal / 20), 4);
+      var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
       signal.className = 'wifi-signal' + level;
       var label = document.createElement('label');
       label.className = 'wifi';
@@ -113,9 +113,9 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       // create list item
       var li = document.createElement('li');
-      li.appendChild(span);
-      li.appendChild(small);
       li.appendChild(label);
+      li.appendChild(small);
+      li.appendChild(ssid);
 
       // bind connection callback
       li.onclick = function() {
@@ -130,6 +130,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         list.removeChild(list.lastChild);
       if (addScanningItem)
         list.appendChild(newScanItem());
+      index = [];
     };
 
     // scan wifi networks and display them in the list
@@ -137,8 +138,8 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       if (scanning)
         return;
 
-      // stop auto-scanning if wifi disabled or power saving mode
-      if (!wifiManager.enabled || !navigator.mozPower.screenEnabled) {
+      // stop auto-scanning if wifi disabled or the app is hidden
+      if (!wifiManager.enabled || document.mozHidden) {
         scanning = false;
         return;
       }
@@ -154,13 +155,31 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         var ssids = Object.getOwnPropertyNames(networks);
         ssids.sort(function(a, b) {
           return isConnected(networks[b]) ? 100 :
-            networks[b].signal - networks[a].signal;
+              networks[b].relSignalStrength - networks[a].relSignalStrength;
         });
 
         // create list
         clear();
-        for (var i = 0; i < ssids.length; i++)
-          list.appendChild(newListItem(networks[ssids[i]]));
+        for (var i = 0; i < ssids.length; i++) {
+          var network = networks[ssids[i]];
+          var listItem = newListItem(network);
+          if (network.connected)
+            listItem.querySelector('small').textContent =
+                _('shortStatus-connected');
+          list.appendChild(listItem);
+          index[network.ssid] = listItem; // add to index
+        }
+
+        // append 'scan again' button
+        var button = document.createElement('button');
+        button.textContent = _('scanNetworks');
+        button.onclick = function() {
+          clear(true);
+          scan();
+        };
+        var li = document.createElement('li');
+        li.appendChild(button);
+        list.appendChild(li);
 
         // auto-rescan if requested
         if (autoscan)
@@ -180,10 +199,25 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       gStatus.update();
     };
 
+    function display(ssid, message) {
+      var listItem = index[ssid];
+      var active = list.querySelector('.active');
+      if (active && active != listItem) {
+        active.className = '';
+        active.querySelector('small').textContent =
+            _('shortStatus-disconnected');
+      }
+      if (listItem) {
+        listItem.className = 'active';
+        listItem.querySelector('small').textContent = message;
+      }
+    }
+
     // API
     return {
       get autoscan() { return autoscan; },
       set autoscan(value) { autoscan = value; },
+      display: display,
       clear: clear,
       scan: scan,
       get scanning() { return scanning; }
@@ -193,7 +227,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   // auto-scan networks if the wifi panel is active
   window.addEventListener('hashchange', function autoscan() {
     if (document.location.hash == '#wifi') {
-      gNetworkList.autoscan = true;
+      gNetworkList.autoscan = false; // disabled, as requested by UX
       gNetworkList.scan();
     } else {
       gNetworkList.autoscan = false;
@@ -217,10 +251,15 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     *          (transition: connected -> disconnected).
     */
   wifiManager.onstatuschange = function(event) {
+    if (!wifiManager.connection || !wifiManager.connection.network)
+      return;
+    var ssid = wifiManager.connection.network.ssid;
     var status = wifiManager.connection.status;
     if (status == 'connected')
       gNetworkList.scan(); // refresh the network list
-    gStatus.textContent = _(status, event.network); // only for ssid
+    // 'fullStatus' can use 'ssid' as an argument, 'shortStatus' cannot
+    gStatus.textContent = _('fullStatus-' + status, event.network);
+    gNetworkList.display(ssid, _('shortStatus-' + status));
   };
 
   function isConnected(network) {
@@ -259,10 +298,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     function wifiConnect() {
       wifiManager.associate(network);
       gStatus.textContent = '';
+      gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
     }
 
     function wifiDisconnect() {
       wifiManager.forget(network);
+      gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
       gStatus.textContent = '';
     }
 
@@ -306,12 +347,17 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       var security = dialog.querySelector('*[data-security]');
       if (security)
         security.textContent = (keys && keys.length) ?
-          keys.join(', ') : _('securityNone');
+            keys.join(', ') : _('securityNone');
 
       var signal = dialog.querySelector('*[data-signal]');
       if (signal) {
-        var lvl = Math.min(Math.floor(network.signal / 20), 4);
+        var lvl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
         signal.textContent = _('signalLevel' + lvl);
+      }
+
+      var speed = dialog.querySelector('*[data-speed]');
+      if (speed) {
+        speed.textContent = network.linkSpeed;
       }
 
       // identity/password
