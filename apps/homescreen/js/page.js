@@ -390,6 +390,16 @@ Page.prototype = {
     return icon;
   },
 
+  insertBeforeLastIcon: function pg_insertBeforeLastIcon(icon) {
+    this.setReady(false);
+    var olist = this.olist;
+    if (olist.children.length > 0) {
+      olist.insertBefore(icon.container, olist.lastChild);
+      this.icons[icon.getOrigin()] = icon;
+    }
+    this.setReady(true);
+  },
+
   /*
    * Returns the last icon of the page
    */
