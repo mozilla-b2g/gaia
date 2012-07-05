@@ -138,8 +138,8 @@ var Contacts = (function() {
     familyName = document.getElementById('familyName');
     detailsName = document.getElementById('contact-name-title');
     formTitle = document.getElementById('contact-form-title');
-    phoneTemplate = document.getElementById('add-phone');
-    emailTemplate = document.getElementById('add-email');
+    phoneTemplate = document.getElementById('add-phone-#i#');
+    emailTemplate = document.getElementById('add-email-#i#');
     phonesContainer = document.getElementById('contacts-form-phones');
     emailContainer = document.getElementById('contacts-form-email');
     contactDetails = document.getElementById('contact-detail');
@@ -271,6 +271,7 @@ var Contacts = (function() {
       };
 
       var template = utils.templates.render(phoneTemplate, telField);
+      template.appendChild(removeFieldIcon('add-phone-' + tel));
       phonesContainer.appendChild(template);
       numberPhones++;
     }
@@ -283,6 +284,7 @@ var Contacts = (function() {
       };
 
       var template = utils.templates.render(emailTemplate, emailField);
+      template.appendChild(removeFieldIcon('add-email-' + email));
       emailContainer.appendChild(template);
       numberEmails++;
     }
@@ -379,6 +381,8 @@ var Contacts = (function() {
 
     var contact;
     if (myContact.id) { //Editing a contact
+      currentContact.tel = [];
+      currentContact.email = [];
       for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
@@ -412,36 +416,42 @@ var Contacts = (function() {
   };
 
   var getPhones = function getPhones(contact) {
-    var selector = '#view-contact-form form input[data-field="number"]';
+    var selector = '#view-contact-form form div.phone-template';
     var phones = document.querySelectorAll(selector);
-    for (var phone in phones) {
-      var numberField = phones[phone].value;
-      if (!numberField)
+    for (var i = 0; i < phones.length; i++) {
+      var currentPhone = phones[i];
+      var arrayIndex = currentPhone.dataset.index;
+      var numberField = document.getElementById('number_' + arrayIndex);
+      var numberValue = numberField.value;
+      if (!numberValue)
         continue;
 
-      var selector = 'tel_type_' + phone;
+      var selector = 'tel_type_' + arrayIndex;
       var typeField = document.getElementById(selector).textContent || '';
-      var notes = document.getElementById('notes_' + phone).value || '';
+      var notes = document.getElementById('notes_' + arrayIndex).value || '';
       contact['tel'] = contact['tel'] || [];
       // TODO: Save notes
-      contact['tel'][phone] = {
-        number: numberField,
+      contact['tel'][i] = {
+        number: numberValue,
         type: typeField
       };
     }
   };
 
   var getEmails = function getEmails(contact) {
-    var selector = '#view-contact-form form input[name="email"]';
+    var selector = '#view-contact-form form div.email-template';
     var emails = document.querySelectorAll(selector);
-    for (var email in emails) {
-      var emailField = emails[email].value;
-      if (!emailField)
+    for (var i = 0; i < emails.length; i++) {
+      var currentEmail = emails[i];
+      var arrayIndex = currentEmail.dataset.index;
+      var emailField = document.getElementById('email_' + arrayIndex);
+      var emailValue = emailField.value;
+      if (!emailValue)
         continue;
 
       // TODO: Save type
       contact['email'] = contact['email'] || [];
-      contact['email'][email] = emailField;
+      contact['email'][i] = emailValue;
     }
   };
 
@@ -453,6 +463,7 @@ var Contacts = (function() {
       i: numberPhones || 0
     };
     var template = utils.templates.render(phoneTemplate, telField);
+    template.appendChild(removeFieldIcon(template.id));
     phonesContainer.appendChild(template);
     numberPhones++;
   };
@@ -465,11 +476,12 @@ var Contacts = (function() {
     };
 
     var template = utils.templates.render(emailTemplate, emailField);
+    template.appendChild(removeFieldIcon(template.id));
     emailContainer.appendChild(template);
     numberEmails++;
   };
 
-  var resetForm = function() {
+  var resetForm = function resetForm() {
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
     givenName.value = '';
@@ -483,13 +495,19 @@ var Contacts = (function() {
     numberPhones = 0;
   };
 
-  var removeFieldIcon = function() {
+  var removeFieldIcon = function removeFieldIcon(selector) {
     var delButton = document.createElement('button');
     delButton.className = 'fillflow-row-action';
     var delIcon = document.createElement('span');
     delIcon.setAttribute('role', 'button');
     delIcon.className = 'icon-delete';
     delButton.appendChild(delIcon);
+    delButton.onclick = function removeElement(event) {
+      event.preventDefault();
+      var elem = document.getElementById(selector);
+      elem.parentNode.removeChild(elem);
+      return false;
+    };
     return delButton;
   };
 
