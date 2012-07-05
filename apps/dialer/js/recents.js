@@ -148,10 +148,13 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
-    var commLogItemPhoneNumbers = document.querySelectorAll(".log-item .primary-info");
-    for (var i = 0; i < commLogItemPhoneNumbers.length; i++) {
-      Contacts.findByNumber(commLogItemPhoneNumbers[i].textContent.trim(), this.onContactHandler.bind(this, commLogItemPhoneNumbers[i]));
-    };
+    var commLogItemPhoneNumbers = document.querySelectorAll(
+      '.log-item .primary-info');
+    var length = commLogItemPhoneNumbers.length;
+    for (var i = 0; i < length; i++) {
+      Contacts.findByNumber(commLogItemPhoneNumbers[i].textContent.trim(),
+        this.onContactHandler.bind(this, commLogItemPhoneNumbers[i]));
+    }
   },
 
   onContactHandler: function re_onContactHandler() {
