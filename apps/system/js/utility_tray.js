@@ -87,8 +87,31 @@ var UtilityTray = {
         break;
 
       case 'transitionend':
-        if (!this.shown)
+        if (!this.shown) {
           this.screen.classList.remove('utility-tray');
+
+          var overlayStyle = this.overlay;
+          var firstShownStyle = this.firstShowStyle;
+          firstShownStyle.MozTransition = '';
+
+          if (this.phase2hide) {
+            firstShownStyle.MozTransition = '-moz-transform 0.2s linear';
+            firstShownStyle.MozTransform =
+              'translateY(' + this.firstShownPosition + 'px)';
+            overlayStyle.MozTransition = '-moz-transform 0.2s linear';
+            overlayStyle.MozTransform = 'translateY(0)';
+
+            // Check the transition event is triggered at firstShown.
+            // If so, turn off the flag which represent for
+            // 'The overlay has already reached the bottom of quick-setting'
+            if (evt.target == this.firstShown)
+              this.phase2hide = false;
+          } else {
+            // Reset position of this.firstShown
+            this.firstShown.style.MozTransition = '';
+            this.firstShown.style.MozTransform = 'translateY(0)';
+          }
+        }
         break;
     }
   },
@@ -111,9 +134,13 @@ var UtilityTray = {
 
     if (dy > gripBarHeight) {
       var firstShownHeight = this.firstShown.getBoundingClientRect().height;
+      if (!this.targetOf2PhaseHide) {
+        this.totalShownHeight = gripBarHeight + firstShownHeight;
+      }
 
       if (dy < firstShownHeight + gripBarHeight) {
         newHeight = screenHeight - firstShownHeight - gripBarHeight;
+        this.firstShownPosition = newHeight;
       } else {
         newHeight = screenHeight - dy;
       }
@@ -145,16 +172,24 @@ var UtilityTray = {
   hide: function ut_hide(instant) {
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
-    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(0)';
+    var firstShownStyle = this.firstShown.style;
+    style.MozTransition = instant ? '' : '-moz-transform 0.4s linear';
     this.shown = false;
     if (instant)
       this.screen.classList.remove('utility-tray');
+
+    firstShownStyle.MozTransition = '-moz-transform 0.4s linear';
+    firstShownStyle.MozTransform =
+      'translateY(' + this.firstShownPosition + 'px)';
 
     if (!alreadyHidden) {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('utilitytrayhide', true, true, null);
       window.dispatchEvent(evt);
+      style.MozTransform = 'translateY(' + this.targetOf2PhaseHide + 'px)';
+      this.phase2hide = true;
+    } else {
+      style.MozTransform = 'translateY(0px)';
     }
   },
 
