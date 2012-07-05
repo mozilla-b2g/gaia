@@ -4,20 +4,26 @@
 'use strict';
 
 (function() {
-var debugging = true;
+var debugging = false;
 var debug = function jspinyin_debug(str) {
   if (!debugging) {
     return;
   }
 
+  var done = false;
   if (typeof window != 'undefined' && window.dump) {
     window.dump('jspinyin: ' + str + '\n');
+    done = true;
   }
   if (typeof console != 'undefined' && console.log) {
     console.log('jspinyin: ' + str);
     if (arguments.length > 1) {
       console.log.apply(this, arguments);
     }
+    done = true;
+  }
+  if (done) {
+    return;
   }
   if (typeof Test != 'undefined') {
     print('jspinyin: ' + str + '\n');
@@ -2558,7 +2564,8 @@ var PinyinDecoderService = {
 var FileSystemService = {
   Type: {
     IndexedDB: 0,
-    SpiderMonkey: 1
+    XHR: 1,
+    SpiderMonkey: 2
   },
 
   /**
@@ -2599,9 +2606,17 @@ var FileSystemService = {
       });
     });
 
+    taskQueue.push(function initXhr(taskQueue, taskData) {
+      var store = new XhrFileSystemStorage();
+      FileSystemService._storages[1] = store;
+      store.init(function xhrCallback(statusCode) {
+        processNextWithDelay();
+      });
+    });
+
     taskQueue.push(function initSm(taskQueue, taskData) {
       var store = new SpiderMonkeyFileSystemStorage();
-      FileSystemService._storages[1] = store;
+      FileSystemService._storages[2] = store;
       store.init(function idbCallback(statusCode) {
         processNextWithDelay();
       });
@@ -2614,13 +2629,12 @@ var FileSystemService = {
    * Destruction.
    */
   uninit: function fileSystemService_uninit() {
-    if (FileSystemService._idb) {
-      FileSystemService._idb.uninit();
-      FileSystemService._idb = null;
-    }
-    if (FileSystemService._sm) {
-      FileSystemService._sm.uninit();
-      FileSystemService._sm = null;
+    var n = FileSystemService._storages.length;
+    for (var i = 0; i < n; i++) {
+      var store = FileSystemService._storages[i];
+      if (store) {
+        store.uninit();
+      }
     }
   },
   /**
@@ -2675,9 +2689,9 @@ var FileSystemService = {
     FileSystemService._storages[ret.type].del(ret.path, callback);
   },
 
-  _storages: [null, null],
+  _storages: [null, null, null],
 
-  PROTOCOLS: ['idb', 'sm'],
+  PROTOCOLS: ['idb', 'xhr', 'sm'],
 
   /**
    * Parse the file uri to get the file system type code and file path.
@@ -2828,11 +2842,11 @@ IndexedDBFileSystemStorage.prototype = {
    */
   init: function idbFileSystemStorage_init(callback) {
     var self = this;
-    function doCallback() {
+    var doCallback = function init_doCallback() {
       if (callback) {
         callback(self._status);
       }
-    }
+    };
 
     // Check if we could initilize.
     if (!IndexedDB.isReady() ||
@@ -2899,11 +2913,11 @@ IndexedDBFileSystemStorage.prototype = {
    */
   read: function idbFileSystemStorage_read(name, callback) {
     var content = '';
-    function doCallback() {
+    var doCallback = function read_doCallback() {
       if (callback) {
         callback(content);
       }
-    }
+    };
 
     // Check if the storage is ready.
     if (!this.isReady()) {
@@ -2935,12 +2949,12 @@ IndexedDBFileSystemStorage.prototype = {
   write: function idbFileSystemStorage_write(name, str, callback) {
     var self = this;
     var isOk = false;
-    function doCallback() {
+    var doCallback = function write_doCallback() {
       self._status = FileSystemStorage.StatusCode.READY;
       if (callback) {
         callback(isOk);
       }
-    }
+    };
 
     // Check if the storage is ready.
     if (!this.isReady()) {
@@ -2973,12 +2987,12 @@ IndexedDBFileSystemStorage.prototype = {
   del: function idbFileSystemStorage_del(name, callback) {
     var self = this;
     var isOk = false;
-    function doCallback() {
+    var doCallback = function del_doCallback() {
       self._status = FileSystemStorage.StatusCode.READY;
       if (callback) {
         callback(isOk);
       }
-    }
+    };
 
     // Check if the storage is ready.
     if (!this.isReady()) {
@@ -3101,10 +3115,211 @@ SpiderMonkeyFileSystemStorage.prototype = {
   },
 
   write: function spiderMonkeyFileSystemStorage_write(name, str, callback) {
-    debug(StringUtils.format('Write file "{0}"', name));
+    debug(StringUtils.format('SpiderMonkeyFileSystemStorage writes file "{0}"',
+        name));
     print(str);
     if (callback) {
       callback(true);
+    }
+  }
+};
+
+/**
+ * Implement file system storage with the XMLHttpRequest.
+ * @param {string} dir The base directory of the file system.
+ */
+var XhrFileSystemStorage =
+    function xhrFileSystemStorage_constructor(dir) {
+  this._baseDir = dir;
+};
+
+XhrFileSystemStorage.prototype = {
+  // Inherits FileSystemStorage
+  __proto__: new FileSystemStorage(),
+
+  _baseDir: '',
+
+  /**
+   * @override
+   */
+  init: function xhrFileSystemStorage_init(callback) {
+    debug('XhrFileSystemStorage init');
+    var self = this;
+    function doCallback() {
+      if (callback) {
+        callback(self._status);
+      }
+    }
+
+    // Check if we could initilize.
+    if (this._status != FileSystemStorage.StatusCode.UNINITIALIZED) {
+      doCallback();
+      return;
+    }
+
+    // Set the status to busy.
+    this._status = FileSystemStorage.StatusCode.BUSY;
+
+    // Perform initialization operation
+    self._status = FileSystemStorage.StatusCode.READY;
+
+    doCallback();
+  },
+
+  /**
+   * @override
+   */
+  uninit: function xhrFileSystemStorage_uninit(callback) {
+    function doCallback() {
+      if (callback) {
+        callback();
+      }
+    }
+
+    // Check if we could uninitilize the storage
+    if (this._status == FileSystemStorage.StatusCode.UNINITIALIZED) {
+      doCallback();
+      return;
+    }
+
+    // Perform destruction operation
+    this._status = FileSystemStorage.StatusCode.UNINITIALIZED;
+    doCallback();
+  },
+
+  /**
+   * @override
+   */
+  read: function xhrFileSystemStorage_read(name, callback) {
+    debug('XhrFileSystemStorage read file: ' + name);
+    var self = this;
+    var content = '';
+    function doCallback() {
+      if (callback) {
+        callback(content);
+      }
+    }
+
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', name, true);
+      xhr.responseType = 'text';
+      xhr.overrideMimeType('text/plain; charset=UTF-8');
+      xhr.onreadystatechange = function xhrReadystatechange(ev) {
+        if (xhr.readyState !== XMLHttpRequest.DONE) {
+          return;
+        }
+        if (xhr.status == 200 || xhr.status == 304) {
+          content = xhr.responseText;
+        } else {
+          // error occurred.
+          debug('XhrFileSystemStorage failed to load file. Error Code:' +
+              xhr.status);
+        }
+        doCallback();
+      };
+      xhr.send(null);
+    } catch (ex) {
+      debug(ex);
+      doCallback();
+    }
+  },
+
+  /**
+   * @override
+   */
+  write: function xhrFileSystemStorage_write(name, str, callback) {
+    debug(StringUtils.format('XhrFileSystemStorage writes file: "{0}"', name));
+    var self = this;
+    var isOk = false;
+    var doCallback = function write_doCallback() {
+      if (callback) {
+        callback(isOk);
+      }
+    };
+
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('PUT', name, true);
+      xhr.setRequestHeader('Content-Type', 'text/plain;charset=UTF-8');
+
+      xhr.onreadystatechange = function xhrReadystatechange(ev) {
+        if (xhr.readyState !== XMLHttpRequest.DONE) {
+          return;
+        }
+        if (xhr.status === 200 || xhr.status === 204) {
+          isOk = true;
+        } else {
+          // error occurred.
+          isOk = false;
+          debug('XhrFileSystemStorage failed to write file. Error coce:' +
+              xhr.status);
+        }
+        doCallback();
+      };
+      xhr.send(str);
+    } catch (ex) {
+      debug(ex);
+      isOk = false;
+      doCallback();
+    }
+  },
+
+  /**
+   * @override
+   */
+  del: function xhrFileSystemStorage_del(name, callback) {
+    debug(StringUtils.format('XhrFileSystemStorage deletes file: "{0}"', name));
+    var self = this;
+    var isOk = false;
+    var doCallback = function del_doCallback() {
+      if (callback) {
+        callback(isOk);
+      }
+    };
+
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('DELETE', name, true);
+      xhr.setRequestHeader('Content-Type', 'text/plain;charset=UTF-8');
+
+      xhr.onreadystatechange = function xhrReadystatechange(ev) {
+        if (xhr.readyState !== XMLHttpRequest.DONE) {
+          return;
+        }
+        if (xhr.status === 200 || xhr.status === 202 || xhr.status === 204) {
+          isOk = true;
+        } else {
+          // error occurred.
+          isOk = false;
+          debug('XhrFileSystemStorage failed to delete file. Error coce:' +
+              xhr.status);
+        }
+        doCallback();
+      };
+      xhr.send(str);
+    } catch (ex) {
+      debug(ex);
+      isOk = false;
+      doCallback();
     }
   }
 };
@@ -5224,8 +5439,8 @@ MatrixSearch.prototype = {
     var tmp;
 
     // Reverse the result of spelling info
-    end_pos = Math.floor(this.fixed_hzs_ + (this.spl_id_num_ - this.fixed_hzs_
-        + 1) / 2);
+    end_pos = Math.floor(this.fixed_hzs_ + (this.spl_id_num_ - this.fixed_hzs_ +
+        1) / 2);
     for (pos = this.fixed_hzs_; pos < end_pos; pos++) {
       if (this.spl_id_num_ + this.fixed_hzs_ - pos != pos + 1) {
         pos1 = pos + 1;

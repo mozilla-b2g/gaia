@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MatrixSearch Tests</title>
+    <script type="text/javascript">
+        var Test = {};
+    </script>
+    <script type="text/javascript" src="../jspinyin.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        var FileSystemService = Test.FileSystemService;
+        var MatrixSearch = Test.MatrixSearch;
+        var USER_DICT_FILE_NAME = 'xhr://user_dict_test_file';
+        var SYS_DICT_FILE_NAME = 'xhr://../dict_pinyin.json';
+
+        var MatrixSearchTest = {
+          _ms: null,
+          
+          init: function test_init() {
+            var self = MatrixSearchTest;
+            FileSystemService.init(function fileSystemServiceInitCallback() {
+                self._ms = new MatrixSearch();
+                self._ms.init(SYS_DICT_FILE_NAME, USER_DICT_FILE_NAME,
+                        function msInitCallback(status) {
+                });
+            });
+            var btn = document.getElementById('convert-button');
+            btn.addEventListener('click', self.convert, false);
+          },
+            
+          unint: function test_uninit() {
+            var self = MatrixSearchTest;
+            FileSystemService.uninit();
+            self._ms.uninit();
+          },
+          
+          convert: function test_convert() {
+            var self = MatrixSearchTest;
+            var py = document.getElementById('py-text').value;
+            self._ms.reset_search();
+            self._ms.search(py);
+            var cands = '';
+            var num = self._ms.get_candidate_num();
+            for (var i=0; i<num; i++) {
+              if (i % 10 == 0) {
+                cands += '\n';
+              }
+              cands += self._ms.get_candidate(i) + ' ';
+            }
+            var display = document.getElementById('display');
+            display.textContent = cands;
+            return cands;
+          }  
+        };
+        window.addEventListener('load', MatrixSearchTest.init, false);
+        window.addEventListener('unload', MatrixSearchTest.unint, false);
+    </script>
+    <script type="text/javascript" src="../jspinyin.js"></script>
+</head>
+
+<body>
+    <div id="main">
+        <input type="text" id="py-text" placeholder="Enter Pinyin" value="fangan" />
+        <input type="button" id="convert-button" value="Convert" />
+        <span id="display" />
+    </div>
+</body>
+</html>
