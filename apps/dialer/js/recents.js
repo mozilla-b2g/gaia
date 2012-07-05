@@ -146,9 +146,8 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
-    var commLogItemPhoneNumbersSelector = '.log-item .primary-info';
-    var commLogItemPhoneNumbers = document.querySelectorAll(
-      commLogItemPhoneNumbersSelector);
+    var itemSelector = '.log-item .primary-info';
+    var commLogItemPhoneNumbers = document.querySelectorAll(itemSelector);
     var length = commLogItemPhoneNumbers.length;
     for (var i = 0; i < length; i++) {
       Contacts.findByNumber(commLogItemPhoneNumbers[i].textContent.trim(),
