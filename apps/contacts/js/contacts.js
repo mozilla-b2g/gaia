@@ -381,6 +381,8 @@ var Contacts = (function() {
 
     var contact;
     if (myContact.id) { //Editing a contact
+      currentContact.tel = [];
+      currentContact.email = [];
       for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
@@ -492,11 +494,10 @@ var Contacts = (function() {
     delIcon.setAttribute('role', 'button');
     delIcon.className = 'icon-delete';
     delButton.appendChild(delIcon);
-    delButton.onclick = function removeElement(selector) {
-      console.log('click ' + selector);
+    delButton.onclick = function removeElement(event) {
+      event.preventDefault();
       var elem = document.getElementById(selector);
-      console.log(elem);
-      document.removeChild(elem);
+      elem.parentNode.removeChild(elem);
       return false;
     };
     return delButton;
