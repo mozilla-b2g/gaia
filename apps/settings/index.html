@@ -25,6 +25,7 @@
     </script>
     <script type="text/javascript" src="js/settings.js"></script>
     <script type="text/javascript" src="js/wifi.js"></script>
+    <script type="text/javascript" src="js/bluetooth.js"></script>
   </head>
   <body class="hidden">
 
@@ -47,12 +48,12 @@
         <li>
           <small id="wifi-desc" data-l10n-id="disconnected">offline</small>
           <a href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
-        </li>
+        </li>        
         <li>
           <small id="data-desc"></small>
           <a href="#data" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
         </li>
-        <li hidden>
+        <li>
           <small id="bluetooth-desc"></small>
           <a href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
         </li>
@@ -230,6 +231,24 @@
     </section>
 
     <!-- [TODO] Connectivity :: Bluetooth -->
+		<!-- Bluetooth -->
+    <section class="view" id="bluetooth">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="bluetooth">Bluetooth</a>
+        </h1>
+      </header>
+      <ul>
+        <li id="bluetooth-status">
+          <label>
+            <input type="checkbox"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="enabled">disabled</small>
+          <a data-l10n-id="bluetooth-power">Bluetooth Power</a>
+        </li>
+			</ul>
+		</section>
 
     <!-- Personalization :: Sound -->
     <section class="view" id="sounds">
@@ -239,6 +258,8 @@
         </h1>
       </header>
 
+    <!-- Phone -->
+    <div id="phone" class="view" data-title="Phone">
       <ul>
         <li>
           <label>
