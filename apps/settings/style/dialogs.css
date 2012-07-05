@@ -67,7 +67,6 @@ div[role=dialog] footer {
   margin-top: 20px;
 }
 
-<<<<<<< HEAD
 div[role=dialog] footer button {
   width: 120px;
   height: 40px;
@@ -81,20 +80,16 @@ div[role=dialog] footer button {
   font-size: 1em;
 }
 
-<<<<<<< HEAD
-div[role=dialog] footer button:active {
-=======
 /* 480x800 phones */
 @media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
-  div.dialog footer button {
+  div[role=dialog] footer button {
     width: 180px;
     height: 60px;
   }
 }
 
 div.dialog footer button:active {
->>>>>>> upstream/master
   background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
