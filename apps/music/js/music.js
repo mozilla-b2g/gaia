@@ -418,9 +418,12 @@ var PlayerView = {
     // A related Bug 740124 in Bugzilla
     var startTime = this.audio.startTime;
 
-    var originalEndTime = (this.audio.duration && this.audio.duration != 'Infinity') ?
+    var originalEndTime =
+      (this.audio.duration && this.audio.duration != 'Infinity') ?
       this.audio.duration :
       this.audio.buffered.end(this.audio.buffered.length - 1);
+
+    // now mp3 returns in seconds, but keep this checking to prevent bugs
     var endTime = (originalEndTime > 1000000) ?
       Math.floor(originalEndTime / 1000000) :
       Math.floor(originalEndTime);
@@ -527,7 +530,7 @@ window.addEventListener('localized', function showBody() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
-  
+
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
