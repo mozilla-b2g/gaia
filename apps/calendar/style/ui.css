@@ -206,7 +206,7 @@ section.month li {
   
   height: 100%;
   position: relative;
-  background-color: white; 
+  background-color: white;
 }
 
 section.month ol:last-child li {
