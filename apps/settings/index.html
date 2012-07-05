@@ -216,11 +216,11 @@
       <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       <ul>
         <li>
-          <button onclick="openSettingDialog('apnSettings');"
+          <button onclick="Settings.openDialog('apnSettings');"
             data-l10n-id="apnSettings">APN Settings</button>
         </li>
         <li>
-          <button onclick="openSettingDialog('mmsSettings');"
+          <button onclick="Settings.openDialog('mmsSettings');"
             data-l10n-id="mmsSettings">MMS Settings</button>
         </li>
       </ul>
@@ -237,15 +237,15 @@
       <!-- APN settings -->
       <label>
         <span data-l10n-id="apn">APN</span>
-        <input type="text" data-name="ril.data.apn" />
+        <input type="text" data-setting="ril.data.apn" />
       </label>
       <label>
         <span data-l10n-id="identity">identity</span>
-        <input type="text" data-name="ril.data.user" />
+        <input type="text" data-setting="ril.data.user" />
       </label>
       <label>
         <span data-l10n-id="password">password</span>
-        <input type="text" data-name="ril.data.passwd" />
+        <input type="text" data-setting="ril.data.passwd" />
       </label>
 
       <!-- APN database lookup -->
@@ -266,15 +266,15 @@
       <!-- MMS settings -->
       <label>
         <span data-l10n-id="mmsproxy">MMS Proxy</span>
-        <input type="text" name="ril.data.mmsproxy" />
+        <input type="text" data-setting="ril.data.mmsproxy" />
       </label>
       <label>
         <span data-l10n-id="mmsport">MMS Port</span>
-        <input type="text" name="ril.data.mmsport" />
+        <input type="text" data-setting="ril.data.mmsport" />
       </label>
       <label>
         <span data-l10n-id="mmsc">MMSC</span>
-        <input type="text" name="ril.data.mmsc" />
+        <input type="text" data-setting="ril.data.mmsc" />
       </label>
     </form>
 

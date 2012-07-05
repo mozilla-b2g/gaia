@@ -4,7 +4,6 @@
 'use strict';
 
 window.addEventListener('localized', function getCarrierSettings(evt) {
-  var APN_FILE = 'serviceproviders.xml';
   var DEBUG = false;
 
   // display data carrier name
@@ -50,11 +49,15 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
 
   // update APN fields
   document.getElementById('autoAPN').onclick = function autoAPN() {
-    try { // get MCC/MNC values
+    var APN_FILE = 'serviceproviders.xml';
+
+    if (navigator.mozMobileConnection &&
+        navigator.mozMobileConnection.data &&
+        navigator.mozMobileConnection.data.network) { // get MCC/MNC values
       var dataNetwork = navigator.mozMobileConnection.data.network;
       var mcc = dataNetwork.mcc;
       var mnc = dataNetwork.mnc;
-    } catch (e) {
+    } else {
       return;
     }
 
@@ -65,13 +68,8 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
     }
 
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', APN_FILE, false);
+    xhr.open('GET', APN_FILE, false); // synchronous (boo!)
     xhr.send();
-
-    function getField(name) {
-      var selector = 'input[data-name="ril.data.' + name + '"]';
-      return document.querySelector(selector);
-    }
 
     function setFieldValue(name, value) {
       var selector = 'input[data-name="ril.data.' + name + '"]';
@@ -80,58 +78,13 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
 
     var results = queryAPN(xhr.responseXML, mcc, mnc);
     if (results && results.length) {
+      // TODO: propose a drop-down list or an similar UI
+      // when several <apn> nodes match the MCC/MNS selector
       var res = results[0];
-      getField('apn').value = res.id || '';
-      getField('user').value = res.username || '';
-      getField('passwd').value = res.password || '';
+      setFieldValue('apn', res.id);
+      setFieldValue('user', res.username);
+      setFieldValue('passwd', res.password);
     }
   };
 });
-
-function openSettingDialog(dialogID) {
-  var settings = window.navigator.mozSettings;
-  var dialog = document.getElementById(dialogID);
-  var fields = dialog.querySelectorAll('input');
-
-  // hide dialog box
-  function close() {
-    dialog.style.display = 'none';
-    return false;
-  }
-
-  // initialize all setting fields in the dialog box
-  function init() {
-    if (settings) {
-      var transaction = settings.getLock();
-      for (var i = 0; i < fields.length; i++) {
-        var input = fields[i];
-        var key = input.dataset.name;
-        var request = transaction.get(key);
-        request.onsuccess = function() {
-          if (request.result[key] != undefined) {
-            input.value = request.result[key];
-          }
-        };
-      }
-    }
-    dialog.style.display = 'block';
-  }
-
-  // validate all settings in the dialog box
-  function submit() {
-    if (settings) {
-      var cset = {};
-      for (var i = 0; i < fields.length; i++) {
-        var input = fields[i];
-        cset[input.dataset.name] = input.value;
-      }
-      settings.getLock().set(cset);
-    }
-    return close();
-  }
-
-  dialog.onsubmit = submit;
-  dialog.onreset = close;
-  init();
-}
 

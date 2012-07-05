@@ -1,4 +1,5 @@
-/* dialog boxes */
+/* dialog box container */
+
 #dialogs {
   position: absolute;
   top: 0;
@@ -21,6 +22,8 @@ body.dialog #dialogs > div {
   display: table-cell;
   vertical-align: middle;
 }
+
+/* wi-fi dialog boxes (in the dialog container) */
 
 div[role=dialog] {
   display: none;
@@ -85,7 +88,8 @@ div[role=dialog] footer button::-moz-focus-inner {
   border: none;
 }
 
-/* dialog boxes, second try */
+/* setting dialog boxes (fullscreen) */
+
 form[role=dialog] {
   display: none;
   position: absolute;
@@ -150,5 +154,12 @@ form[role=dialog] label {
 form[role=dialog] label input {
   width: 100%;
   font-size: 1em;
+}
+
+/* TODO: merge the two types of dialog boxes (UX) */
+
+*[role=dialog] button::-moz-focus-inner,
+*[role=dialog] input[type=button]::-moz-focus-inner {
+  border: none;
 }
 
