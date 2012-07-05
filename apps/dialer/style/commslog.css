@@ -110,11 +110,14 @@ ol, ul {
   background-image: url('images/CallLog_30x30_missed.png');
 }
 
+.log-item * {
+  pointer-events: none;
+}
+
 .log-item-info {
   float: left;
   height: 100%;
   width: -moz-calc(100% - 5rem);
-
 }
 
 .ellipsis {

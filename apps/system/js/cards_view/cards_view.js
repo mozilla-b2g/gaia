@@ -44,7 +44,12 @@ var CardsView = (function() {
     sizes.sort(function(x, y) { return y - x; });
 
     var index = sizes[(HVGA) ? sizes.length - 1 : 0];
-    return origin + icons[index];
+
+    if (icons[index].indexOf('data:') !== 0) {
+      icons[index] = origin + icons[index];
+    }
+
+    return icons[index];
   }
 
   // Build and display the card switcher overlay
@@ -169,6 +174,7 @@ var CardsView = (function() {
 
   function onStartEvent(evt) {
     evt.stopPropagation();
+    evt.target.setCapture(true);
     cardsView.addEventListener('mousemove', CardsView);
     cardsView.addEventListener('mouseup', CardsView);
 
@@ -203,6 +209,7 @@ var CardsView = (function() {
   function onEndEvent(evt) {
     evt.stopPropagation();
     var element = evt.target;
+    document.releaseCapture();
     cardsView.removeEventListener('mousemove', CardsView);
     cardsView.removeEventListener('mouseup', CardsView);
 

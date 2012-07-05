@@ -117,6 +117,9 @@ var Browser = {
       this.showPageScreen();
       return;
     }
+    if (this.currentScreen === this.AWESOME_SCREEN) {
+      this.deleteTab(this.currentTab.id);
+    }
     this.showTabScreen();
   },
 
@@ -227,17 +230,15 @@ var Browser = {
     var urlInput = this.urlInput;
     switch (evt.type) {
       case 'submit':
-          this.go(evt);
+        this.go(evt);
         break;
 
       case 'keyup':
-        if (!this.currentTab || !this.currentTab.session.backLength() ||
-          evt.keyCode != evt.DOM_VK_ESCAPE)
-          break;
-
-        this.goBack();
-        evt.preventDefault();
-        break;
+        if (evt.keyCode === evt.DOM_VK_ESCAPE) {
+          evt.preventDefault();
+          this.showPageScreen();
+          this.urlInput.blur();
+        }
     }
   },
 
@@ -289,22 +290,25 @@ var Browser = {
   },
 
   goBack: function browser_goBack() {
-    this.currentTab.session.back();
+    this.currentTab.dom.goBack();
     this.refreshButtons();
   },
 
   goForward: function browser_goForward() {
-    this.currentTab.session.forward();
+    this.currentTab.dom.goForward();
     this.refreshButtons();
   },
 
   refreshButtons: function browser_refreshButtons() {
-    this.backButton.disabled = !this.currentTab.session.backLength();
-    this.forwardButton.disabled = !this.currentTab.session.forwardLength();
+    this.currentTab.dom.getCanGoBack().onsuccess = (function(e) {
+      this.backButton.disabled = !e.target.result;
+    }).bind(this);
+    this.currentTab.dom.getCanGoForward().onsuccess = (function(e) {
+      this.forwardButton.disabled = !e.target.result;
+    }).bind(this);
   },
 
   updateHistory: function browser_updateHistory(url) {
-    this.currentTab.session.pushState(null, '', url);
     GlobalHistory.addVisit(url);
     this.refreshButtons();
   },
@@ -530,7 +534,9 @@ var Browser = {
 
   followLink: function browser_followLink(e) {
     e.preventDefault();
-    this.navigate(e.target.getAttribute('href'));
+    if (e.target.nodeName === 'A') {
+      this.navigate(e.target.getAttribute('href'));
+    }
   },
 
   setTabVisibility: function(tab, visible) {
@@ -566,7 +572,6 @@ var Browser = {
       url: url || null,
       title: null,
       loading: false,
-      session: new SessionHistory(),
       screenshot: null,
       security: null
     };

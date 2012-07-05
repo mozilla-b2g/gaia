@@ -336,6 +336,7 @@ var ConversationListView = {
       }
 
       self.view.innerHTML = fragment;
+      delete self._lastHeader;
       var conversationList = self.view.children;
 
       // update the conversation sender/receiver name with contact data.
@@ -368,14 +369,17 @@ var ConversationListView = {
 
     return '<div class="item">' +
            '  <label class="fake-checkbox">' +
-           '    <input data-num="' + conversation.num + '"' + 'type="checkbox"/>' +
+           '    <input data-num="' +
+                conversation.num + '"' + 'type="checkbox"/>' +
            '    <span></span>' +
            '  </label>' +
            '  <a href="#num=' + conversation.num + '"' +
            '     data-num="' + conversation.num + '"' +
            '     data-name="' + dataName + '"' +
-           '     data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
-           '     class="' + (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
+           '     data-notempty="' +
+                 (conversation.timestamp ? 'true' : '') + '"' +
+           '     class="' +
+                 (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
            '    <span class="unread-mark">' +
            '      <i class="i-unread-mark"></i>' +
            '    </span>' +
@@ -384,7 +388,7 @@ var ConversationListView = {
            '    <div class="time ' +
                   (conversation.unreadCount > 0 ? 'unread' : '') +
            '      " data-time="' + conversation.timestamp + '">' +
-                  giveHourMinute(conversation.timestamp) + 
+                  giveHourMinute(conversation.timestamp) +
            '    </div>') +
            '    <div class="msg">"' + bodyHTML + '"</div>' +
            '    <div class="unread-tag"></div>' +
@@ -548,13 +552,14 @@ var ConversationListView = {
 
   executeMessageDelete: function cl_executeMessageDelete() {
     var delList = this.view.querySelectorAll('input[type=checkbox][data-num]');
-    var delNumList = [];
+    var delNum = [];
     for (var elem in delList) {
       if (delList[elem].checked) {
-        delNumList.push(delList[elem].dataset.num);
+        delNum.push(delList[elem].dataset.num);
       }
     }
-    this.deleteMessages(delNumList);
+    this.deleteMessages(delNum);
+    this.delNumList = [];
   },
 
   executeAllMessagesDelete: function cl_executeAllMessagesDelete() {
@@ -1018,6 +1023,7 @@ var ConversationView = {
 
   sendMessage: function cv_sendMessage() {
     var num = this.num.value;
+    var self = this;
     var text = document.getElementById('view-msg-text').value;
 
     if (num === '' || text === '')
@@ -1035,6 +1041,12 @@ var ConversationView = {
             ConversationView.showConversation(ConversationView.filter);
         }
         ConversationListView.updateConversationList();
+
+        var resendConfirmStr = _('resendConfirmDialogMsg');
+        var result = confirm(resendConfirmStr);
+        if (result) {
+          window.setTimeout(self.sendMessage.bind(self), 500);
+        }
         return;
       }
 

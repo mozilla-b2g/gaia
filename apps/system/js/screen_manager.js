@@ -130,7 +130,7 @@ var ScreenManager = {
       // may call preventDefault() on the keyup and keydown events.
       case 'keydown':
         if (evt.keyCode !== evt.DOM_VK_SLEEP &&
-            evt.keyCode !== evt.DOM_VK_HOME  || this._screenWakeLocked) {
+            evt.keyCode !== evt.DOM_VK_HOME || this._screenWakeLocked) {
           return;
         }
 
@@ -153,7 +153,6 @@ var ScreenManager = {
   },
 
   toggleScreen: function scm_toggleScreen() {
-    this._syncScreenEnabledValue();
     if (this.screenEnabled) {
       this.turnScreenOff();
     } else {
