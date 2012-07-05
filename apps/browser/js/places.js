@@ -1,9 +1,13 @@
 'use strict';
 
-var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+// Support different versions of IndexedDB
+var idb = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
+IDBTransaction = IDBTransaction || {};
+IDBTransaction.READ_WRITE = IDBTransaction.READ_WRITE || 'readwrite';
+IDBTransaction.READ = IDBTransaction.READ || 'readonly';
 
-var GlobalHistory = {
+var Places = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
 
   init: function gh_init(callback) {
@@ -16,16 +20,38 @@ var GlobalHistory = {
       // Set the title to the URI for now, until a real title is received.
       title: uri
     };
-    this.db.savePlace(place, callback);
+    this.db.getPlace(place.uri, (function(existingPlace) {
+      if (!existingPlace)
+        this.db.savePlace(place, callback);
+    }).bind(this));
   },
 
-  addVisit: function gh_addVisit(uri) {
+  addVisit: function gh_addVisit(uri, callback) {
     this.addPlace(uri);
     var visit = {
       uri: uri,
       timestamp: new Date().getTime()
     };
-    this.db.saveVisit(visit);
+    this.db.saveVisit(visit, callback);
+  },
+
+  addBookmark: function gh_addBookmark(uri, title, callback) {
+    if (!title)
+      title = uri;
+    var bookmark = {
+      uri: uri,
+      title: title,
+      timestamp: new Date().getTime()
+    };
+    this.db.saveBookmark(bookmark, callback);
+  },
+
+  getBookmark: function gh_getBookmark(uri, callback) {
+    this.db.getBookmark(uri, callback);
+  },
+
+  removeBookmark: function gh_removeBookmark(uri, callback) {
+    this.db.deleteBookmark(uri, callback);
   },
 
   setPageTitle: function gh_setPageTitle(uri, title, callback) {
@@ -112,13 +138,13 @@ var GlobalHistory = {
 
 };
 
-GlobalHistory.db = {
+Places.db = {
   _db: null,
 
   open: function db_open(callback) {
-    const DB_VERSION = 2;
+    const DB_VERSION = 3;
     const DB_NAME = 'browser';
-    var request = indexedDB.open(DB_NAME, DB_VERSION);
+    var request = idb.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (function onUpgradeNeeded(e) {
       console.log('Browser database upgrade needed, upgrading.');
@@ -142,7 +168,7 @@ GlobalHistory.db = {
     // Create or overwrite places object store
     if (db.objectStoreNames.contains('places'))
       db.deleteObjectStore('places');
-    var placeStore = db.createObjectStore('places', { keyPath: 'uri' });
+    db.createObjectStore('places', { keyPath: 'uri' });
 
     // Create or overwrite visits object store
     if (db.objectStoreNames.contains('visits'))
@@ -155,7 +181,15 @@ GlobalHistory.db = {
     // Create or overwrite icon cache
     if (db.objectStoreNames.contains('icons'))
       db.deleteObjectStore('icons');
-    var iconStore = db.createObjectStore('icons', { keyPath: 'uri' });
+    db.createObjectStore('icons', { keyPath: 'uri' });
+
+    // Create or overwrite bookmarks object store
+    if (db.objectStoreNames.contains('bookmarks'))
+      db.deleteObjectStore('bookmarks');
+    var bookmarkStore = db.createObjectStore('bookmarks', { keyPath: 'uri' });
+
+    // Index bookmarks by timestamp
+    bookmarkStore.createIndex('timestamp', 'timestamp', { unique: false });
   },
 
   savePlace: function db_savePlace(place, callback) {
@@ -223,7 +257,7 @@ GlobalHistory.db = {
     };
   },
 
-  saveVisit: function db_saveVisit(visit) {
+  saveVisit: function db_saveVisit(visit, callback) {
     var transaction = this._db.transaction(['visits'],
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -235,6 +269,11 @@ GlobalHistory.db = {
 
      request.onerror = function onerror(e) {
        console.log('Error while adding visit to global history store');
+     };
+
+     request.onsuccess = function onsuccess(e) {
+       if (callback)
+         callback();
      };
   },
 
@@ -267,7 +306,7 @@ GlobalHistory.db = {
   },
 
   clearPlaces: function db_clearPlaces(callback) {
-    var db = GlobalHistory.db._db;
+    var db = Places.db._db;
     var transaction = db.transaction('places',
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -284,7 +323,7 @@ GlobalHistory.db = {
   },
 
   clearVisits: function db_clearVisits(callback) {
-    var db = GlobalHistory.db._db;
+    var db = Places.db._db;
     var transaction = db.transaction('visits',
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -301,7 +340,7 @@ GlobalHistory.db = {
   },
 
   clearIcons: function db_clearIcons(callback) {
-    var db = GlobalHistory.db._db;
+    var db = Places.db._db;
     var transaction = db.transaction('icons',
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -314,6 +353,23 @@ GlobalHistory.db = {
     };
     request.onerror = function(e) {
       console.log('Error clearing icons object store');
+    };
+  },
+
+  clearBookmarks: function db_clearBookmarks(callback) {
+    var db = Places.db._db;
+    var transaction = db.transaction('bookmarks',
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear bookmarks');
+    };
+    var objectStore = transaction.objectStore('bookmarks');
+    var request = objectStore.clear();
+    request.onsuccess = function() {
+      callback();
+    };
+    request.onerror = function(e) {
+      console.log('Error clearing bookmarks object store');
     };
   },
 
@@ -349,7 +405,60 @@ GlobalHistory.db = {
       if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
         callback();
     };
+  },
 
+  saveBookmark: function db_saveBookmark(bookmark, callback) {
+    var transaction = this._db.transaction(['bookmarks'],
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to save bookmark');
+    };
+
+    var objectStore = transaction.objectStore('bookmarks');
+
+    var request = objectStore.put(bookmark);
+
+    request.onsuccess = function onsuccess(e) {
+      if (callback)
+        callback();
+    };
+
+    request.onerror = function onerror(e) {
+      console.log('Error while saving bookmark');
+    };
+  },
+
+  getBookmark: function db_getBookmark(uri, callback) {
+    var request = this._db.transaction('bookmarks').objectStore('bookmarks').
+      get(uri);
+
+    request.onsuccess = function(event) {
+      callback(event.target.result);
+    };
+
+    request.onerror = function(event) {
+      if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
+        callback();
+    };
+  },
+
+  deleteBookmark: function db_deleteBookmark(uri, callback) {
+    var transaction = this._db.transaction(['bookmarks'],
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to delete bookmark');
+    };
+
+    var objectStore = transaction.objectStore('bookmarks');
+    var request = objectStore.delete(uri);
+
+    request.onsuccess = function(event) {
+      callback();
+    };
+
+    request.onerror = function onerror(e) {
+      console.log('Error while deleting bookmark');
+    };
   }
 
 };

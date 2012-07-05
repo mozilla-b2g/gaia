@@ -9,6 +9,7 @@ function startup() {
   SleepMenu.init();
   SourceView.init();
   Shortcuts.init();
+  Bluetooth.init();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
