@@ -130,6 +130,10 @@ EVENT TIME COLOR: #333
   border-left: 1px solid #515051;
 }
 
+#month-days li:first-child {
+  border-left: none;
+}
+
 #month-days li:last-child {
   border-right: none;
 }
@@ -157,8 +161,8 @@ section.month {
 }
 
 section.month li > .day {
-  font-size: 1.2rem;
-  line-height: 110%;
+  font-size: 1.30rem;
+  line-height: 140%;
 }
 
 .rtl section.month li {
@@ -174,7 +178,7 @@ section.month li > .day {
 }
 
 .ltr section.month li > .day {
-  padding-right: 0.296rem;
+  padding-right: 0.35rem;
 }
 
 section.month ol {
@@ -193,10 +197,10 @@ section.month li:last-child {
 section.month li {
   padding-top: 0.3%;
   
-  border-left: 1px solid #A4A4A4;
-  border-right: 1px solid #FDFDFD;
+  border-right: 1px solid #A4A4A4;
+  border-left: 1px solid #FDFDFD;
   
-  border-top: 1px solid transparent;
+  border-top: 1px solid white;
   border-bottom: 1px solid #9D9D9D;
   
   
@@ -216,15 +220,15 @@ section.month li.past {
 
 section.month li.present {
   background-color: #525963;
-  box-shadow: inset 1px 1px 4px #333;
+  box-shadow: inset 1px 2px 3px 0px #333;
   color: white;
-/*  border-left: 1px solid transparent;*/
+  border-left: none;
+  border-top: none;
 }
 
 section.month li.selected {
-  color: white;
+  color: white !important;
   background-color: #1BA8C6 !important;
-  border-top: 1px solid white;
 }
 
 section.month li.other-month {
@@ -307,7 +311,7 @@ Indicators are in units of 12
 #months-day-view  header {
   letter-spacing: 0.05rem;
   font-size: 1.1rem;
-  padding: 0.2rem 1.2rem 0.7rem;
+  padding: 0.4rem 1.2rem 0.7rem;
   text-transform: uppercase;
   font-family: 'Open Sans Light';
   color: #F93700;
@@ -318,7 +322,7 @@ Indicators are in units of 12
 
 #bottom-toolbar {
   height: 3.33rem;
-  background: #BFBBBB;
+  background: #949494;
 }
 
 #view-selector li,
@@ -332,21 +336,12 @@ Indicators are in units of 12
   overflow: hidden;
   height: 3.33rem;
   margin-top: 2px;
-  box-shadow: 0 0 3px 0px #888;
+  box-shadow: 0px 0 0.5px 0.5px #6F7070;
 }
 
 #view-selector a {
   text-decoration: none;
-  color: black;
-}
-
-#view-selector menu > li {
-  border-right: 1px solid #979696;
-  border-left: 1px solid #D1D0D0;
-}
-
-#view-selector menu > li:last-child {
-  border-right: none;
+  color: #444;
 }
 
 .rtl #view-selector li {
@@ -358,21 +353,38 @@ Indicators are in units of 12
 }
 
 #view-selector > li.today {
-  width: -moz-calc(30% - 2mozmm);
+  width: 25%;
   height: 3.33rem;
-  background-image: -moz-linear-gradient(#E2520F, #CE361C);
+  background-image: -moz-linear-gradient(#D9D9D9, #969696);
+  border-right: 1px solid black;
+}
+
+.rtl #view-selector > li.today {
+  border-left: 1px solid #666;
+}
+
+.ltr #view-selector > li.today {
+  border-right: 1px solid #666;
 }
 
 #view-selector > li.time-selection {
-  width: 70%;
+  width: 75%;
 }
 
 /**  Selected items */
-body[data-path="/day"] .time-selection .day,
+body[data-path="/day"] #view-selector .day,
 body[data-path="/week"] .time-selection .week,
 body[data-path="/month"] .time-selection .month {
   background-color: white;
+  color: black;
 }
+
+body[data-path="/day"] #view-selector .day a,
+body[data-path="/week"] #view-selector .week a,
+body[data-path="/month"] #view-selector .month a {
+  color: black;
+}
+
 
 #view-selector > li a {
   padding: 0.55rem 0.74rem;
@@ -391,6 +403,10 @@ body[data-path="/month"] .time-selection .month {
 
 #view-selector menu li {
   width: 33%;
+}
+
+#view-selector menu li:last-child {
+  width: 34%;
 }
 
 @media screen and (min-width: 481px) {
