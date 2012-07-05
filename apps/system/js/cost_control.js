@@ -6,27 +6,33 @@
 var CostControl = {
 
   //Constants. Should we get it from variant? Issue 4
-  CHECK_BALANCE_NUMBER: '8000',
+  CHECK_BALANCE_SEND_NUMBER: '8000',
+  CHECK_BALANCE_RECEIVE_NUMBER: '8000',
   CHECK_BALANCE_TEXT: '',
   TOP_UP_NUMBER: '8000',
   TOP_UP_PREV_TEXT: '',
   TOP_UP_FOLL_TEXT: '',
 
   init: function cc_init() {
+    //If we don't have the sender in the variant, just hide the module
+    if (!this.CHECK_BALANCE_SEND_NUMBER) {
+      document.getElementById("cost-control").style.display = 'none';
+      return;
+    }
     console.log('---- Cost control init -----');
     //For USSD (TopUp)
-    if (navigator.mozMobileConnection) {
-      this.conn = navigator.mozMobileConnection;
+    if (window.navigator.mozMobileConnection) {
+      this.conn = window.navigator.mozMobileConnection;
       this.conn.addEventListener('ussdreceived', this);
     }
     //For SMS (Cost)
-    if (navigator.mozSms) {
-      this.sms = navigator.mozSms;
+    if (window.navigator.mozSms) {
+      this.sms = window.navigator.mozSms;
       this.sms.addEventListener('sent', this);
     }
     //For calls
-    if (navigator.mozTelephony) {
-      this.telephony = navigator.mozTelephony;
+    if (window.navigator.mozTelephony) {
+      this.telephony = window.navigator.mozTelephony;
       this.telephony.addEventListener('callschanged', this);
     }
 
@@ -35,11 +41,11 @@ var CostControl = {
                              document.getElementById('cost-control-container'));
     this.getInitialBalance();
 
-    //Listener for check now button
+    /*//Listener for check now button
     this.checkNowBalanceButton = document.getElementById('cost-control-check-balance');
     this.checkNowBalanceButton.addEventListener('click', (function() {
       this.updateBalance();
-    }).bind(this));
+    }).bind(this));*/
 
     //Listener for Top up button
     this.topUpButton = document.getElementById('cost-control-topup');
@@ -60,6 +66,7 @@ var CostControl = {
         break;
       case 'callschanged':
         //Test this. Issue 2
+        console.log("Calls array " + this.telephony.calls.length);
         this.telephony.calls.forEach((function(call) {
           if (call.state === 'disconnected') {
             this.updateBalance();
@@ -70,17 +77,26 @@ var CostControl = {
     }
   },
 
-  getInitialBalance: function() {
-    console.log('Getting initial balance');
+  getInitialBalance: function cc_getInitialBalance() {
     this.balanceText = document.getElementById('cost-control-spent');
     this.dateText = document.getElementById('cost-control-date');
+    if (!this.conn.voice.connected) {
+      console.log("No conectado, ponemos listener para esperar red");
+      this.conn.removeEventListener('voicechange', this.getInitialBalance);
+      this.conn.addEventListener('voicechange', this.getInitialBalance);
+      this.updateUI(false, 0);
+      return;
+    }
+    console.log('Conectado, quitamos listener de espera de red');
+    this.conn.removeEventListener('voicechange', this.getInitialBalance);
+    console.log('Getting initial balance');
     this.updateBalance();
   },
 
-  updateBalance: function() {
+  updateBalance: function cc_updateBalance() {
     console.log('Sending SMS to get balance');
     this.updateUI(true);
-    this.sms.send(this.CHECK_BALANCE_NUMBER, this.CHECK_BALANCE_TEXT);
+    this.sms.send(this.CHECK_BALANCE_SEND_NUMBER, this.CHECK_BALANCE_TEXT);
     //We listen for the SMS a prudential time, then, we just skip any SMS
     this.timeout = window.setTimeout((function() {
       console.log('Removing listener for incoming balance check SMS');
@@ -90,7 +106,7 @@ var CostControl = {
     this.sms.addEventListener('received', this);
   },
 
-  updatedBalance: function(evt) {
+  updatedBalance: function cc_updatedBalance(evt) {
     var receivedBalance = this._parseSMS(evt.message);
     if (receivedBalance !== null) {
       this.saveBalance(receivedBalance);
@@ -101,8 +117,9 @@ var CostControl = {
   },
 
   _parseSMS: function(message) {
-    //TODO, check for the correct sender. Issue 3
-    //if(evt.message.sender !== this.CHECK_BALANCE_NUMBER) return null;
+    //Checking sender. Not cheking type (number vs string)
+    if(evt.message.sender != this.CHECK_BALANCE_RECEIVE_NUMBER) return null;
+    //Regexp, should be on the variant? Issue 6
     var regex = new RegExp('[0-9]+.[0-9]+');
     var m = regex.exec(message.body);
     if (m !== null) {
@@ -111,7 +128,7 @@ var CostControl = {
     return null;
   },
 
-  updateUI: function(waiting, balance) {
+  updateUI: function cc_updateUI(waiting, balance) {
     if (waiting) {
       console.log('Updating UI, we are waiting for cost control SMS');
       this.dateText.innerHTML = this.getSavedDate();
@@ -135,7 +152,7 @@ var CostControl = {
     }
   },
 
-  getSavedBalance: function() {
+  getSavedBalance: function cc_getSavedBalance() {
     var balance = parseFloat(window.localStorage.getItem('balance'));
     if (isNaN(balance) || balance === null) {
       return 0;
@@ -143,7 +160,7 @@ var CostControl = {
     return balance.toFixed(2);
   },
 
-  getSavedDate: function() {
+  getSavedDate: function cc_getSavedDate() {
     var date = window.localStorage.getItem('date');
     if (isNaN(date) || date === null) {
        var date2 = new Date();
@@ -157,19 +174,19 @@ var CostControl = {
     return date.toLocaleFormat('%b %d %H:%M');
   },
 
-  saveBalance: function(balance) {
+  saveBalance: function cc_saveBalance(balance) {
     console.log('Saving date and balance to the localStorage for later use');
     var date = new Date();
     window.localStorage.setItem('balance', parseFloat(balance).toFixed(2));
     window.localStorage.setItem('date', date.getTime());
   },
 
-  topUp: function() {
+  topUp: function cc_topUp() {
     //TODO
     alert('TopUp!!');
   },
 
-  toppedUp: function() {
+  toppedUp: function cc_toppedUP() {
     //TODO
   },
 
