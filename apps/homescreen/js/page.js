@@ -143,20 +143,22 @@ Icon.prototype = {
    * This method is invoked when the drag gesture finishes
    */
   onDragStop: function icon_onDragStop(callback) {
+    var rect = this.container.getBoundingClientRect();
+    var x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
+    x -= this.initXCenter;
+
+    var y = (rect.top + rect.bottom) / 2;
+    y -= this.initYCenter;
+
     var draggableElem = this.draggableElem;
-    var targetRect = this.container.getBoundingClientRect();
-    var x = (Math.abs(targetRect.left + targetRect.right) / 2)
-            % window.innerWidth;
-    var y = (targetRect.top + targetRect.bottom) / 2;
-    draggableElem.style.MozTransition = '-moz-transform .4s';
-    draggableElem.style.MozTransform =
-        'translate(' + (x - this.initXCenter) + 'px,' +
-        (y - this.initYCenter) + 'px)';
+    var style = draggableElem.style;
+    style.MozTransition = '-moz-transform .4s';
+    style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
     draggableElem.querySelector('div').style.MozTransform = 'scale(1)';
 
     var self = this;
-    draggableElem.addEventListener('transitionend', function ft(e) {
-      draggableElem.removeEventListener('transitionend', ft);
+    draggableElem.addEventListener('transitionend', function draggableEnd(e) {
+      draggableElem.removeEventListener('transitionend', draggableEnd);
       delete self.container.dataset.dragging;
       self.dragabbleSection.removeChild(this);
       callback();
@@ -296,12 +298,13 @@ Page.prototype = {
                                  targetNode, upward) {
     var self = this;
     node.style.MozAnimationName = animation;
-    node.addEventListener('animationend', function ft(e) {
+    node.addEventListener('animationend', function animationEnd(e) {
+      node.removeEventListener('animationend', animationEnd);
       node.style.MozAnimationName = '';
-      node.removeEventListener('animationend', ft);
+
       if (node === targetNode) {
-        self.olist.insertBefore(originNode, upward
-                                ? targetNode : targetNode.nextSibling);
+        self.olist.insertBefore(originNode, upward ? targetNode :
+                                                     targetNode.nextSibling);
         self.setReady(true);
       }
     });
