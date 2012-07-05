@@ -132,7 +132,8 @@ var Contacts = (function() {
       addressContainer,
       selectedTag,
       contactDetails,
-      saveButton;
+      saveButton,
+      deleteContactButton;
 
   var currentContact = {};
 
@@ -153,6 +154,7 @@ var Contacts = (function() {
     addressContainer = document.getElementById('contacts-form-address');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
+    deleteContactButton = document.getElementById('delete-contact');
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -279,6 +281,7 @@ var Contacts = (function() {
 
   var showEdit = function showEdit() {
     resetForm();
+    deleteContactButton.classList.remove('hide');
     formTitle.innerHTML = 'Edit contact';
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
@@ -391,6 +394,7 @@ var Contacts = (function() {
 
   var showAdd = function showAdd() {
     resetForm();
+    deleteContactButton.classList.add('hide');
     formTitle.innerHTML = 'Add Contact';
 
     insertEmptyPhone(0);
