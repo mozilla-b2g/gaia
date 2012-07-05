@@ -115,6 +115,7 @@
                     </div>
                   </div>
                 </li>
+
                 <!-- Email Template -->
                 <li id='email-details-template' data-template>
                   <!-- Hardcoded while we don't have a place to store email's type -->
@@ -124,6 +125,25 @@
                       <button class="action">
                         <span role="button" class="icon-email">E-mail</span>
                         <b>#email#</b>
+                      </button>
+                    </div>
+                  </div>
+                </li>
+
+                <!-- Address Template -->
+                <li id='address-details-template' data-template>
+                  <!-- Hardcoded while we don't have a place to store address's type -->
+                  <h2>#type#</h2>
+                  <div class="item">
+                    <div class="item-body-exp">
+                      <button class="action">
+                        <span role="button" class="icon-address">Address</span>
+                        <b>
+                          #streetAddress#
+                          #postalCode#
+                          #locality#
+                          #countryName#
+                        </b>
                       </button>
                     </div>
                   </div>
@@ -189,6 +209,34 @@
             </dl>
           </div>
 
+          <!-- ADDRESS TEMPLATE -->
+          <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
+            <dl class="setbox fillflow-row">
+              <dt class="setbox-title">
+                  <a data-taglist='address-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>
+                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+              </dt>
+              <dd class="setbox-body">
+                <p class="setbox-item">
+                  <label class="hide" for="streetAddress_#i#">Street:</label>
+                  <input placeholder="Street" data-field="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
+                </p>
+                <p class="setbox-item">
+                  <label class="hide" for="postalCode_#i#">Zip Code:</label>
+                  <input placeholder="Zip Code" data-field="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+                </p>
+                <p class="setbox-item">
+                  <label class="hide" for="locality_#i#">City:</label>
+                  <input placeholder="City" data-field="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
+                </p>
+                <p class="setbox-item">
+                  <label class="hide" for="countryName_#i#">Country:</label>
+                  <input placeholder="Country" data-field="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
+                </p>
+              </dd>
+            </dl>
+          </div>
+
           <article class="view-body">
             <div class="view-body-inner">
               <form action="#" class="fill-flow">
@@ -235,6 +283,18 @@
                 <button onclick='Contacts.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
                   <span role="button" class="icon-add"></span>
                   <b>Add email address</b>
+                </button>
+
+                <fieldset id='contacts-form-address'>
+                  <legend>Address</legend>
+                    <div id='contacts-form-addresses'>
+                      <!-- Iterating over address template here -->
+                    </div>
+                </fieldset>
+
+                <button onclick='Contacts.addNewAddress(); return false;' id='add-new-address' class="fillflow-row action action-add">
+                  <span role="button" class="icon-add"></span>
+                  <b>Add new address</b>
                 </button>
                 </fieldset>
               </form>

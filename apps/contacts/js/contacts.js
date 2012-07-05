@@ -108,11 +108,16 @@ var Contacts = (function() {
       {value: 'Personal'},
       {value: 'Home'},
       {value: 'Work'}
+    ],
+    'address-type' : [
+      {value: 'Home'},
+      {value: 'Work'}
     ]
   };
 
   var numberEmails = 0;
   var numberPhones = 0;
+  var numberAddresses = 0;
   var currentContactId,
       detailsName,
       givenName,
@@ -121,8 +126,10 @@ var Contacts = (function() {
       formTitle,
       phoneTemplate,
       emailTemplate,
+      addressTemplate,
       phonesContainer,
       emailContainer,
+      addressContainer,
       selectedTag,
       contactDetails,
       saveButton;
@@ -140,8 +147,10 @@ var Contacts = (function() {
     formTitle = document.getElementById('contact-form-title');
     phoneTemplate = document.getElementById('add-phone-#i#');
     emailTemplate = document.getElementById('add-email-#i#');
+    addressTemplate = document.getElementById('add-address-#i#');
     phonesContainer = document.getElementById('contacts-form-phones');
     emailContainer = document.getElementById('contacts-form-email');
+    addressContainer = document.getElementById('contacts-form-address');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
 
@@ -236,6 +245,19 @@ var Contacts = (function() {
       listContainer.appendChild(template);
     }
 
+    var addressesTemplate = document.getElementById('address-details-template');
+    for (var i in contact.adr) {
+      var addressField = {
+        streetAddress: contact.adr[i]['streetAddress'],
+        postalCode: contact.adr[i]['postalCode'] || '',
+        locality: contact.adr[i]['locality'] || '',
+        countryName: contact.adr[i]['countryName'] || '',
+        type: contact.adr[i]['type'] || TAG_OPTIONS['address-type'][0]
+      };
+      var template = utils.templates.render(addressesTemplate, addressField);
+      listContainer.appendChild(template);
+    }
+
     var cover = document.getElementById('cover-img');
     var existsPhoto = 'photo' in contact && contact.photo;
     if (existsPhoto) {
@@ -271,7 +293,7 @@ var Contacts = (function() {
       };
 
       var template = utils.templates.render(phoneTemplate, telField);
-      template.appendChild(removeFieldIcon('add-phone-' + tel));
+      template.appendChild(removeFieldIcon(template.id));
       phonesContainer.appendChild(template);
       numberPhones++;
     }
@@ -284,11 +306,26 @@ var Contacts = (function() {
       };
 
       var template = utils.templates.render(emailTemplate, emailField);
-      template.appendChild(removeFieldIcon('add-email-' + email));
+      template.appendChild(removeFieldIcon(template.id));
       emailContainer.appendChild(template);
       numberEmails++;
     }
 
+    for (var adr in currentContact.adr) {
+      var adrField = {
+        streetAddress: currentContact.adr[adr]['streetAddress'],
+        postalCode: currentContact.adr[adr]['postalCode'] || '',
+        locality: currentContact.adr[adr]['locality'] || '',
+        countryName: currentContact.adr[adr]['countryName'] || '',
+        type: currentContact.adr[adr]['type'] || TAG_OPTIONS['address-type'][0],
+        i: adr
+      };
+
+      var template = utils.templates.render(addressTemplate, adrField);
+      template.appendChild(removeFieldIcon(template.id));
+      addressContainer.appendChild(template);
+      numberAddresses++;
+    }
     edit();
   };
 
@@ -358,6 +395,7 @@ var Contacts = (function() {
 
     insertEmptyPhone(0);
     insertEmptyEmail(0);
+    insertEmptyAddress(0);
 
     edit();
   };
@@ -378,11 +416,13 @@ var Contacts = (function() {
 
     getPhones(myContact);
     getEmails(myContact);
+    getAddresses(myContact);
 
     var contact;
     if (myContact.id) { //Editing a contact
       currentContact.tel = [];
       currentContact.email = [];
+      currentContact.adr = [];
       for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
@@ -455,6 +495,34 @@ var Contacts = (function() {
     }
   };
 
+  var getAddresses = function getAddresses(contact) {
+    var selector = '#view-contact-form form div.address-template';
+    var addresses = document.querySelectorAll(selector);
+    for (var i = 0; i < addresses.length; i++) {
+      var currentAddress = addresses[i];
+      var arrayIndex = currentAddress.dataset.index;
+      var addressField = document.getElementById('streetAddress_' + arrayIndex);
+      var addressValue = addressField.value || '';
+
+      var selector = 'address_type_' + arrayIndex;
+      var typeField = document.getElementById(selector).textContent || '';
+      selector = 'locality_' + arrayIndex;
+      var locality = document.getElementById(selector).value || '';
+      selector = 'postalCode_' + arrayIndex;
+      var postalCode = document.getElementById(selector).value || '';
+      selector = 'countryName_' + arrayIndex;
+      var countryName = document.getElementById(selector).value || '';
+      contact['adr'] = contact['adr'] || [];
+      contact['adr'][i] = {
+        streetAddress: addressValue,
+        postalCode: postalCode,
+        locality: locality,
+        countryName: countryName,
+        type: typeField
+      };
+    }
+  };
+
   var insertEmptyPhone = function insertEmptyPhone() {
     var telField = {
       number: '',
@@ -481,6 +549,22 @@ var Contacts = (function() {
     numberEmails++;
   };
 
+  var insertEmptyAddress = function insertEmptyAddress() {
+    var addressField = {
+      type: TAG_OPTIONS['address-type'][0].value,
+      streetAddress: '',
+      postalCode: '',
+      locality: '',
+      countryName: '',
+      i: numberAddresses || 0
+    };
+
+    var template = utils.templates.render(addressTemplate, addressField);
+    template.appendChild(removeFieldIcon(template.id));
+    addressContainer.appendChild(template);
+    numberAddresses++;
+  };
+
   var resetForm = function resetForm() {
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
@@ -489,10 +573,13 @@ var Contacts = (function() {
     company.value = '';
     var phones = document.getElementById('contacts-form-phones');
     var emails = document.getElementById('contacts-form-email');
+    var addresses = document.getElementById('contacts-form-address');
     phones.innerHTML = '';
     emails.innerHTML = '';
+    addresses.innerHTML = '';
     numberEmails = 0;
     numberPhones = 0;
+    numberAddresses = 0;
   };
 
   var removeFieldIcon = function removeFieldIcon(selector) {
@@ -516,6 +603,7 @@ var Contacts = (function() {
     'showAdd': showAdd,
     'addNewPhone' : insertEmptyPhone,
     'addNewEmail' : insertEmptyEmail,
+    'addNewAddress' : insertEmptyAddress,
     'goBack' : navigation.back,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
