@@ -32,7 +32,7 @@ DEBUG?=0
 
 REPORTER=Spec
 
-GAIA_APP_SRCDIRS=apps test_apps showcase_apps
+GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
