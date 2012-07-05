@@ -169,8 +169,8 @@ var KeypadManager = {
     }
   },
 
-  render: function hk_render(layout_type) {
-    switch (layout_type) {
+  render: function hk_render(layoutType) {
+    switch (layoutType) {
       case 'oncall':
         this.phoneNumberViewContainer.classList.add('keypad-visible');
         if (this.callBar) {
@@ -179,6 +179,7 @@ var KeypadManager = {
         this.deleteButton.classList.add('hide');
         this.hideBar.classList.remove('hide');
         break;
+
       default:
         this.phoneNumberViewContainer.classList.remove('keypad-visible');
         if (this.hideBar)
@@ -213,68 +214,70 @@ var KeypadManager = {
     OnCallHandler.end();
   },
 
-  formatPhoneNumber: function kh_formatPhoneNumber(mode, view, phoneNumber) {
-    if (view.style.fontSize == (minFontSize + 'px')) {
-      switch (mode) {
-        case 'dialpad':
-          if (!maxNumberOfDigits) {
-            maxNumberOfDigits = view.value.length;
-          }
-          if (phoneNumber.length >= maxNumberOfDigits) {
-            phoneNumber = '...' + phoneNumber.substr(-(maxNumberOfDigits - 2));
-          }
-        break;
-        case 'on-call':
-          if (!ocMaxNumberOfDigits) {
-            ocMaxNumberOfDigits = view.value.length;
-          }
-          if (phoneNumber.length >= (ocMaxNumberOfDigits + 3)) {
-            phoneNumber = '...' + phoneNumber
-              .substr(-(ocMaxNumberOfDigits + 3 - 2));
-          }
-        break;
-      }
-    }
-    return phoneNumber;
-  },
-
-  updateFontSize: function kh_updateFontSize(mode) {
-    var div;
-    var view;
+  formatPhoneNumber: function kh_formatPhoneNumber(mode) {
     switch (mode) {
       case 'dialpad':
-        div = this.fakePhoneNumberView;
-        view = this.phoneNumberView;
+        var fakeView = this.fakePhoneNumberView;
+        var view = this.phoneNumberView;
+
+        // We consider the case where the delete button may have
+        // been used to delete the whole phone number.
+        if (view.value == '') {
+          view.style.fontSize = view.dataset.size;
+          return;
+        }
       break;
+
       case 'on-call':
-        div = CallScreen.fakeContactPrimaryInfo;
-        view = CallScreen.contactPrimaryInfo;
+        var fakeView = CallScreen.fakeContactPrimaryInfo;
+        var view = CallScreen.contactPrimaryInfo;
       break;
     }
+
     var computedStyle = window.getComputedStyle(view, null);
-    var fontSize = computedStyle.getPropertyValue('font-size');
-    if (!this._initialFontSize) {
-      this._initialFontSize = parseInt(fontSize);
+    var currentFontSize = computedStyle.getPropertyValue('font-size');
+    if (!('size' in view.dataset)) {
+      view.dataset.size = currentFontSize;
     }
 
-    var text = this.formatPhoneNumber(mode, view, view.value);
-    view.value = text;
-
-    var newFontSize =
-      text ? this.getNextFontSize(view, div,
-       parseInt(fontSize), text) : this._initialFontSize;
-    if (newFontSize != fontSize)
-      view.style.fontSize = newFontSize + 'px';
+    var newFontSize = this.getNextFontSize(view, fakeView,
+                                           parseInt(view.dataset.size),
+                                           parseInt(currentFontSize));
+    view.style.fontSize = newFontSize + 'px';
+    this.addEllipsis(view, fakeView, newFontSize);
   },
 
-  getNextFontSize: function kh_getNextFontSize(view, fakeView, fontSize, text) {
+  addEllipsis: function kh_addEllipsis(view, fakeView, currentFontSize) {
+    var viewWidth = view.getBoundingClientRect().width;
+    fakeView.style.fontSize = currentFontSize + 'px';
+    fakeView.innerHTML = view.value;
+    var newPhoneNumber;
+    var counter = 1;
+    while (fakeView.getBoundingClientRect().width > viewWidth) {
+      newPhoneNumber = '...' + view.value.substr(-view.value.length + counter);
+      fakeView.innerHTML = newPhoneNumber;
+      counter++;
+    }
+
+    if (newPhoneNumber) {
+      view.value = newPhoneNumber;
+    }
+  },
+
+  getNextFontSize: function kh_getNextFontSize(view, fakeView,
+                                               fontSize, initialFontSize) {
     var viewWidth = view.getBoundingClientRect().width;
     fakeView.style.fontSize = fontSize + 'px';
-    fakeView.innerHTML = text;
+    fakeView.innerHTML = view.value;
+
     var rect = fakeView.getBoundingClientRect();
-    if (rect.width > viewWidth) {
+    while ((rect.width > viewWidth) && (fontSize > minFontSize)) {
       fontSize = Math.max(fontSize - kFontStep, minFontSize);
-    } else if (fontSize < this._initialFontSize) {
+      fakeView.style.fontSize = fontSize + 'px';
+      rect = fakeView.getBoundingClientRect();
+    }
+
+    if ((rect.width < viewWidth) && (fontSize < initialFontSize)) {
       fakeView.style.fontSize = (fontSize + kFontStep) + 'px';
       rect = fakeView.getBoundingClientRect();
       if (rect.width <= viewWidth)
@@ -329,7 +332,6 @@ var KeypadManager = {
           this._holdTimer = null;
           return;
         }
-
         if (key == 'delete') {
           this._phoneNumber = this._phoneNumber.slice(0, -1);
         } else {
@@ -351,17 +353,15 @@ var KeypadManager = {
         'visible' : 'hidden';
       this.deleteButton.style.visibility = visibility;
     }
-
     if (this.contactPrimaryInfo) {
       this.contactPrimaryInfo.value = this._phoneNumber;
       this.moveCaretToEnd(this.contactPrimaryInfo);
-      this.updateFontSize('on-call');
+      this.formatPhoneNumber('on-call');
     } else {
       this.phoneNumberView.value = this._phoneNumber;
       this.moveCaretToEnd(this.phoneNumberView);
-      this.updateFontSize('dialpad');
+      this.formatPhoneNumber('dialpad');
     }
-
     this._holdTimer = null;
   }
 };

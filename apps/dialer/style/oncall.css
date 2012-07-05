@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'FontLight';
+  src: url('fonts/opensans-light-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontRegular';
+  src: url('fonts/opensans-regular-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontSemibold';
+  font-weight: 600;
+  src: url('fonts/opensans-semibold-webfont.woff');
+}
+
 html, body {
   position: relative;
   width: 100%;
@@ -15,32 +31,28 @@ html * {
 }
 
 .font-regular {
-  font-family:'FontRegular';
+  font-family: 'FontRegular';
 }
 
 .font-semibold {
-  font-family:'FontSemibold';
+  font-family: 'FontSemibold';
 }
 
-.font-bold {
-  font-family:'FontBold';
+.font-light {
+  font-family: 'FontLight';
 }
 
 #phone-number-view {
   width:100%;
   border:0;
   background:transparent;
-  text-align: right;
+  text-align: left;
   cursor:none;
   -moz-user-select: none;
 }
 
-.contact-info-wrapper {
-  padding: 0rem 2rem 0rem 2rem;
-}
-
 .contact-primary-info {
-  font-size:-moz-calc(15*0.226rem);
+  font-size: 3.39rem;
   color:black;
 }
 
@@ -60,7 +72,7 @@ html * {
 }
 
 .contact-secondary-info {
-  font-size:-moz-calc(6*0.226rem);
+  font-size: 1.356rem;
   color:white;
 }
 
@@ -172,21 +184,19 @@ body.hidden *[data-l10n-id] {
 }
 
 .contact-info {
-  overflow: hidden;
-  text-overflow:ellipsis;
   white-space:nowrap;
   padding: 0 2rem 0 2rem;
 }
 
 #call-duration {
   color:white;
-  font-size: -moz-calc(25*0.226rem / 2);
+  font-size: 2.825rem;
   padding: 2rem 1rem 2rem 2rem;
   float: left;
 }
 
 #call-duration.ongoing {
-  font-size: -moz-calc(25*0.226rem);
+  font-size: 5.65rem;
 }
 
 #icon-call-direction {
@@ -199,29 +209,29 @@ body.hidden *[data-l10n-id] {
 
 #call-direction.incoming > #icon-call-direction {
   background-image: url('images/DialerIcon_35x35_calling.png');
-  padding: -moz-calc(2rem + 25*0.226rem / 2) 0rem 0rem 0rem;
+  padding: 4.825rem 0rem 0rem 0rem;
 }
 
 #call-direction.outgoing > #icon-call-direction {
   background-image: url('images/DialerIcon_35x35_calling_out.png');
-  padding: -moz-calc(2rem + 25*0.226rem / 2) 0rem 0rem 0rem;
+  padding: 4.825rem 0rem 0rem 0rem;
 }
 
 #call-direction.ongoing-in > #icon-call-direction {
   background-image: url('images/DialerIcon_35x35_incoming.png');
-  padding: -moz-calc(2rem + 25*0.226rem) 0rem 0rem 0rem;
+  padding: 7.65rem 0rem 0rem 0rem;
 }
 
 #call-direction.ongoing-out > #icon-call-direction {
   background-image: url('images/DialerIcon_35x35_outgoing.png');
-  padding: -moz-calc(2rem + 25*0.226rem) 0rem 0rem 0rem;
+  padding: 7.65rem 0rem 0rem 0rem;
 }
 
 #call-container {
   background-image: url("images/Generic_image.png");
   background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
+  background-size: cover;
+  background-position: center top;
 }
 
 #call-options {
@@ -343,13 +353,13 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #callbar-start-call-action > div {
-  margin: -moz-calc((4rem - 4rem)/2) auto;
+  margin: 0 auto;
   background-image: url('images/ActionIcon_40x40_pickup.png');
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
-  width:4rem;
-  height:4rem;
+  width: 4rem;
+  height: 4rem;
 }
 
 /* == Screen turn off hack == */

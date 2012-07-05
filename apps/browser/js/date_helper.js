@@ -1,4 +1,4 @@
-DateHelper = {
+var DateHelper = {
   //TODO: localise
   MONTHS: [
     'January',

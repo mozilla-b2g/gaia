@@ -54,6 +54,7 @@ var WindowManager = (function() {
 
   // Some document elements we use
   var statusbar = document.getElementById('statusbar');
+  var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
 
   //
@@ -72,6 +73,10 @@ var WindowManager = (function() {
 
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
+
+  // Keeping track of the current state of the close animation for
+  // hardening purpose.
+  var currentlyClosing = false;
 
   // The localization of the "Loading..." message that appears while
   // an app is loading
@@ -161,10 +166,13 @@ var WindowManager = (function() {
     // And start the animation
     sprite.classList.add('open');
     sprite.classList.remove('closed');
+    sprite.classList.remove('faded');
 
     // This event handler is triggered when the transition ends.
     // We're going to do two transitions, so it gets called twice.
     sprite.addEventListener('transitionend', function transitionListener(e) {
+      var sprite = e.target;
+
       // Only listen for opacity transition
       // Otherwise we may get called multiple times for each transition
       if (e.propertyName !== 'opacity')
@@ -174,14 +182,19 @@ var WindowManager = (function() {
       if (!sprite.classList.contains('faded')) {
         // The first transition has just completed.
         // Make the app window visible and then fade the sprite away
-        frame.classList.add('active');
-        windows.classList.add('active');
+        // while hardening agains super fast app launch/close
+        if (!currentlyClosing) {
+          frame.classList.add('active');
+          windows.classList.add('active');
+        }
+
         sprite.classList.add('faded');
 
         if ('setVisible' in frame) {
           frame.setVisible(true);
         }
       } else {
+        sprite.removeEventListener('transitionend', transitionListener);
         // The second transition has just completed
         // give the app focus and discard the sprite.
         frame.focus();
@@ -231,6 +244,8 @@ var WindowManager = (function() {
       frame.setVisible(false);
     }
 
+    currentlyClosing = true;
+
     // If we're not doing an animation, then just switch directly
     // to the closed state.
     if (instant) {
@@ -266,9 +281,14 @@ var WindowManager = (function() {
     sprite.classList.add('closed');
 
     // When the transition ends, discard the sprite.
-    sprite.addEventListener('transitionend', function transitionListener() {
+    sprite.addEventListener('transitionend', function transitionListener(e) {
+      var sprite = e.target;
+
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
+
+      currentlyClosing = false;
+
       if (callback)
         callback();
     });
@@ -330,12 +350,17 @@ var WindowManager = (function() {
     // Lock orientation as needed
     if (newApp == null) {  // going to the homescreen, so force portrait
       screen.mozLockOrientation('portrait-primary');
-    }
-    else {
+    } else {
       setOrientationForApp(newApp);
     }
 
     displayedApp = origin;
+
+    // Update the loading icon since the displayedApp is changed
+    updateLoadingIcon();
+
+    // If the app has a attention screen open, displaying it
+    AttentionScreen.showForOrigin(origin);
   }
 
   function setOrientationForApp(origin) {
@@ -543,6 +568,26 @@ var WindowManager = (function() {
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
     var origin = e.detail.origin;
+    var app = Applications.getByOrigin(origin);
+    var name = app.manifest.name;
+
+    /*
+    * Check if it's a virtual app from a entry point.
+    * If so, change the app name and origin to the
+    * entry point.
+    */
+    var entryPoints = app.manifest.entry_points;
+    if (entryPoints) {
+      for (var ep in entryPoints) {
+        //Remove the origin and / to find if if the url is the entry point
+        var path = e.detail.url.substr(e.detail.origin.length + 1);
+        if (path.indexOf(ep) == 0 && (ep + entryPoints[ep].path) == path) {
+          origin = origin + '/' + ep;
+          name = entryPoints[ep].name;
+        }
+      }
+    }
+
     switch (e.detail.type) {
       // mozApps API is asking us to launch the app
       // We will launch it in foreground
@@ -552,12 +597,8 @@ var WindowManager = (function() {
           return;
         }
 
-        var app = Applications.getByOrigin(origin);
-        if (!app)
-          return;
-
         appendFrame(origin, e.detail.url,
-                    app.manifest.name, app.manifest, app.manifestURL, false);
+                    name, app.manifest, app.manifestURL);
         break;
 
       // System Message Handler API is asking us to open the specific URL
@@ -583,7 +624,6 @@ var WindowManager = (function() {
           return;
         }
 
-        var app = Applications.getByOrigin(origin);
         if (!app)
           return;
 
@@ -606,6 +646,12 @@ var WindowManager = (function() {
     kill(e.target.dataset.frameOrigin);
   });
 
+  // Deal with application uninstall event
+  // if the application is being uninstalled, we ensure it stop running here.
+  window.addEventListener('applicationuninstall', function(e) {
+    kill(e.detail.application.origin);
+  });
+
   // Stop running the app with the specified origin
   function kill(origin) {
     if (!isRunning(origin))
@@ -621,6 +667,54 @@ var WindowManager = (function() {
     numRunningApps--;
 
   }
+
+  // Update the loading icon on the status bar
+  function updateLoadingIcon() {
+    var origin = displayedApp;
+    // If there aren't any origin, that means we are moving to
+    // the homescreen. Let's hide the icon.
+    if (!origin) {
+      loadingIcon.hidden = true;
+      return;
+    }
+
+    // Actually update the icon.
+    // Hide it if the loading property is not true.
+    var app = runningApps[origin];
+    loadingIcon.hidden = !app.frame.dataset.loading;
+  };
+
+  // Listen for mozbrowserloadstart to update the loading status
+  // of the frames
+  window.addEventListener('mozbrowserloadstart', function(e) {
+    var dataset = e.target.dataset;
+    // Only update frames open by ourselves
+    if (!('frameType' in dataset) || dataset.frameType !== 'window')
+      return;
+
+    dataset.loading = true;
+
+    // Update the loading icon only if this is the displayed app
+    if (displayedApp == dataset.frameOrigin) {
+      updateLoadingIcon();
+    }
+  });
+
+  // Listen for mozbrowserloadend to update the loading status
+  // of the frames
+  window.addEventListener('mozbrowserloadend', function(e) {
+    var dataset = e.target.dataset;
+    // Only update frames open by ourselves
+    if (!('frameType' in dataset) || dataset.frameType !== 'window')
+      return;
+
+    delete dataset.loading;
+
+    // Update the loading icon only if this is the displayed app
+    if (displayedApp == dataset.frameOrigin) {
+      updateLoadingIcon();
+    }
+  });
 
   // When a resize event occurs, resize the running app, if there is one
   window.addEventListener('resize', function() {

@@ -67,9 +67,10 @@ div[role=dialog] footer {
   margin-top: 20px;
 }
 
+<<<<<<< HEAD
 div[role=dialog] footer button {
-  width: 180px;
-  height: 60px;
+  width: 120px;
+  height: 40px;
   border: 4px solid;
   border-radius: 5px;
   -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
@@ -80,7 +81,20 @@ div[role=dialog] footer button {
   font-size: 1em;
 }
 
+<<<<<<< HEAD
 div[role=dialog] footer button:active {
+=======
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+  div.dialog footer button {
+    width: 180px;
+    height: 60px;
+  }
+}
+
+div.dialog footer button:active {
+>>>>>>> upstream/master
   background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 

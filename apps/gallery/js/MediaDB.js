@@ -207,6 +207,10 @@ function MediaDB(mediaType, metadataParser, options) {
 
   // Set up IndexedDB
   var indexedDB = window.indexedDB || window.mozIndexedDB;
+  if (IDBObjectStore && IDBObjectStore.prototype.mozGetAll) {
+    IDBObjectStore.prototype.getAll = IDBObjectStore.prototype.mozGetAll;
+  }
+
   this.dbname = 'MediaDB/' + mediaType + '/' + this.directory;
   var openRequest = indexedDB.open(this.dbname, this.version);
 
@@ -399,7 +403,7 @@ MediaDB.prototype = {
         else {// When no more files
           if (newfiles.length > 0) {
             // report new files we found, then do a full scan
-            saveAndReportQuickScanResults(fullScan); 
+            saveAndReportQuickScanResults(fullScan);
           }
           else {
             // If we didn't find any new files, go direct to the full scan
@@ -470,7 +474,7 @@ MediaDB.prototype = {
             errors.push(i);
 
             // don't let it bubble up to the DB error handler
-            e.stopPropagation(); 
+            e.stopPropagation();
 
             if (++numSaved === newfiles.length)
               report();
@@ -664,15 +668,22 @@ MediaDB.prototype = {
         function getMetadataForFile(n, callback) {
           var fileinfo = createdFiles[n];
           var fileRequest = media.storage.get(fileinfo.name);
+          var isComplete = function() {
+            if (n === createdFiles.length) { // if we're done
+              callback();
+            } else { // Otherwise get the next one
+              getMetadataForFile(n, callback);
+            }
+          }
           fileRequest.onsuccess = function() {
             var file = fileRequest.result;
-            media.metadataParser(file, function(metadata) {
+            media.metadataParser(file, function parser_success(metadata) {
               fileinfo.metadata = metadata;
               n++;
-              if (n === createdFiles.length) // if we're done
-                callback();
-              else  // Otherwise get the next one
-                getMetadataForFile(n, callback);
+              isComplete();
+            }, function parser_error() {
+              n++;
+              isComplete();
             });
           }
         }

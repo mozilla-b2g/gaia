@@ -1,3 +1,21 @@
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/opensans-regular-webfont.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/opensans-semibold-webfont.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/opensans-bold-webfont.woff');
+}
+
+
 html, body {
   width: 100%;
   height: 100%;
@@ -6,6 +24,7 @@ html, body {
   border: none;
   overflow: hidden;
   font-size: 10px;
+  font-family:'Open Sans';
 }
 
 html {
@@ -56,7 +75,7 @@ section,footer,nav,a,img {
   position: fixed;
   bottom: 0;
   z-index: 10000;
-  background: #8e959c url('./images/tabbar.png') top left;
+  background-color: rgba(0,0,0, .3);
   box-shadow: inset 0 3px 3px -3px #333;
 }
 

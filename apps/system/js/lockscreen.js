@@ -50,11 +50,6 @@ var LockScreen = {
   passCodeError: 0,
 
   /*
-  * Time to wait before slide up after successful Passcode input
-  */
-  kPassCodeSuccessTimeout: 300,
-
-  /*
   * Timeout after incorrect attempt
   */
   kPassCodeErrorTimeout: 500,
@@ -104,7 +99,6 @@ var LockScreen = {
     window.addEventListener('keyup', this, true);
 
     var self = this;
-
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       if (typeof value === 'string')
         value = (value == 'true');
@@ -252,8 +246,10 @@ var LockScreen = {
         if (evt.currentTarget !== evt.target)
           return;
 
-        if (!this.locked)
+        if (!this.locked) {
           this.switchPanel();
+        }
+        break;
 
       case 'keyup':
         if (!this.locked)
@@ -357,46 +353,47 @@ var LockScreen = {
     var railLength = touch.rightTarget.offsetLeft -
       touch.leftTarget.offsetLeft -
       (this.areaHandle.offsetWidth + target.offsetWidth) / 2;
-    var self = this;
 
+    var self = this;
     switch (target) {
       case this.areaCamera:
         this.railRight.style.width = railLength + 'px';
         this.railLeft.style.width = '0';
+
         if (this.areaHandle.style.MozTransform == transition) {
           self.switchPanel('camera');
           break;
         }
         this.areaHandle.style.MozTransform = transition;
-        this.areaHandle.addEventListener('transitionend',
-          function ls_goCamera() {
-            self.areaHandle.removeEventListener('transitionend', ls_goCamera);
-            self.switchPanel('camera');
-          });
 
+        this.areaHandle.addEventListener('transitionend', function goCamera() {
+          self.areaHandle.removeEventListener('transitionend', goCamera);
+          self.switchPanel('camera');
+        });
         break;
 
       case this.areaUnlock:
         this.railLeft.style.width = railLength + 'px';
         this.railRight.style.width = '0';
-        var passcodeOrUnlock = function lc_passcodeOrUnlock() {
+
+        var passcodeOrUnlock = function passcodeOrUnlock() {
           if (!self.passCodeEnabled) {
             self.unlock();
           } else {
             self.switchPanel('passcode');
           }
         };
+
         if (this.areaHandle.style.MozTransform == transition) {
           passcodeOrUnlock();
           break;
         }
         this.areaHandle.style.MozTransform = transition;
-        this.areaHandle.addEventListener('transitionend',
-          function ls_goUnlock() {
-            self.areaHandle.removeEventListener('transitionend', ls_goUnlock);
-            passcodeOrUnlock();
-          });
 
+        this.areaHandle.addEventListener('transitionend', function goUnlock() {
+          self.areaHandle.removeEventListener('transitionend', goUnlock);
+          passcodeOrUnlock();
+        });
         break;
     }
   },
@@ -448,7 +445,7 @@ var LockScreen = {
     this.mainScreen.focus();
     if (instant) {
       this.overlay.classList.add('no-transition');
-      this.unloadPanel();
+      this.switchPanel();
     } else {
       this.overlay.classList.remove('no-transition');
     }
@@ -509,7 +506,11 @@ var LockScreen = {
   unloadPanel: function ls_loadPanel(panel) {
     switch (panel) {
       case 'passcode':
-        // Reset passcode panel
+        // Reset passcode panel only if the status is not error
+        if (this.overlay.dataset.passcodeStatus == 'error')
+          break;
+
+        delete this.overlay.dataset.passcodeStatus;
         this.passCodeEntered = '';
         this.updatePassCodeUI();
         break;
@@ -539,16 +540,13 @@ var LockScreen = {
 
   switchPanel: function ls_switchPanel(panel) {
     var overlay = this.overlay;
-    if (('panel' in overlay.dataset) && panel == overlay.dataset.panel)
-      return;
-
     this.unloadPanel(overlay.dataset.panel);
 
     if (panel) {
       overlay.dataset.panel = panel;
       this.loadPanel(panel);
     } else {
-      delete overlay.dataset.panel;
+      overlay.dataset.panel = '';
     }
   },
 
@@ -618,11 +616,7 @@ var LockScreen = {
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
 
-      setTimeout((function success() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.unlock();
-        this.passCodeEntered = '';
-      }).bind(this), this.kPassCodeSuccessTimeout);
+      this.unlock();
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
       if (navigator.mozVibrate)
@@ -633,11 +627,12 @@ var LockScreen = {
       if (this.passCodeError >= 3)
         timeout = this.kPassCodeTriesTimeout;
 
-      setTimeout((function error() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.passCodeEntered = '';
-        this.updatePassCodeUI();
-      }).bind(this), timeout);
+      var self = this;
+      setTimeout(function error() {
+        delete self.overlay.dataset.passcodeStatus;
+        self.passCodeEntered = '';
+        self.updatePassCodeUI();
+      }, timeout);
     }
   },
 

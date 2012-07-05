@@ -118,7 +118,9 @@ let privileges = [];
 let domains = [];
 domains.push(GAIA_DOMAIN);
 
-['apps', 'test_apps'].forEach(function parseDirectory(directoryName) {
+let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
+
+appSrcDirs.forEach(function parseDirectory(directoryName) {
   let directories = getSubDirectories(directoryName);
   directories.forEach(function readManifests(dir) {
     let manifest = getJSON(directoryName, dir, "manifest.webapp");
@@ -134,7 +136,7 @@ domains.push(GAIA_DOMAIN);
     if (perms) {
       for each(let name in perms) {
         if (!permissions[name])
-          return;
+          continue;
 
         permissions[name].urls.push(rootURL);
 

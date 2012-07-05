@@ -39,15 +39,10 @@ input[type="image"] {
 }
 
 .tabs-screen #tabs-badge {
-  background-image: url('../style/images/add.png');
-  background-position: center;
+  background-image: url('./images/add.png');
   background-repeat: no-repeat;
-  background-color: none;
-}
-
-.tabs-screen #main-screen {
-  background-image: url('../style/images/drawer-header-background.png');
-  background-repeat: repeat-x;
+  background-position: center;
+  background-color: transparent;
 }
 
 .awesome-screen #awesomescreen {
@@ -55,10 +50,10 @@ input[type="image"] {
 }
 
 .awesome-screen #tabs-badge {
-  background-image: url('../style/images/close.png');
+  background-image: url('./images/close.png');
   background-position: center;
   background-repeat: no-repeat;
-  background-color: none;
+  background-color: transparent;
 }
 
 .current {
@@ -74,7 +69,7 @@ input[type="image"] {
   bottom: 0;
   color: white;
   z-index: 40;
-  background-image: url('../style/images/drawer-header-background.png');
+  background-image: url('./images/drawer-header-background.png');
   background-repeat: repeat-x;
   background-position: top;
 }
@@ -98,7 +93,7 @@ input[type="image"] {
   bottom: 0px;
   left: 0;
   right: 0;
-  background-image: url('../style/images/tabs-list-background.png');
+  background-image: url('./images/tabs-list-background.png');
 }
 
 #tabs-list ul {
@@ -120,6 +115,7 @@ input[type="image"] {
   font-family: 'Open Sans', sans-serif;
   overflow: hidden;
   position: relative;
+  padding-left: 5px;
 }
 
 #tabs-list li a.active {
@@ -195,18 +191,16 @@ input[type="image"] {
 #toolbar-start {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  margin-right: 74px;
   height: 50px;
   background-color: #f9f9fb;
-  background-image: none;
 }
 
 #throbber {
   position: absolute;
-  top: -3px;
+  top: 50px;
   width: 100%;
   height: 3px;
-  z-index: 100;
+  z-index: 200;
 }
 
 #throbber.loading {
@@ -219,14 +213,22 @@ input[type="image"] {
   display: none;
 }
 
-.page-screen #toolbar-end {
-  display: block;
+.page-screen #toolbar-start {
+  background-image: url('./images/tabs-badge-background.png');
+  background-repeat: no-repeat;
+  background-position: right;
+  padding-right: 74px;
 }
 
-.page-screen #tabs-badge {
-  background-image: url('../style/images/tabs-badge-background.png');
-  background-color: #f9f9fb;
-  padding-left: 30px;
+.tabs-screen #toolbar-start {
+  background-image: url('./images/drawer-collapse.png'), url('./images/tabs-badge-background.png');
+  background-repeat: no-repeat, no-repeat;
+  background-position: top right, right;
+  padding-right: 74px;
+}
+
+.page-screen #toolbar-end {
+  display: block;
 }
 
 #url-bar {
@@ -254,7 +256,7 @@ input[type="image"] {
   display: block;
   width: 24px;
   height: 24px;
-  margin-right: 10px;
+  margin-right: 5px;
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
@@ -265,7 +267,7 @@ input[type="image"] {
 }
 
 #ssl-indicator[value=broken] {
-  background-image: url(images/site_security_verified.png);
+  background-image: url(images/site_security_broken.png);
 }
 
 #ssl-indicator[value=insecure], #ssl-indicator[value=''] {
@@ -426,6 +428,7 @@ input::-moz-focus-inner {
 .awesome-screen #toolbar-start {
   background-color: #ccd6df;
   margin-right: 50px;
+  background-image: none;
 }
 
 .awesome-screen #tabs-badge {

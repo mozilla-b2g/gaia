@@ -12,10 +12,6 @@ var UtilityTray = {
 
   statusbar: document.getElementById('statusbar'),
 
-  firstShown: document.getElementById('utility-tray-first-shown'),
-
-  gripBar: document.getElementById('utility-tray-grippy'),
-
   screen: document.getElementById('screen'),
 
   init: function ut_init() {
@@ -97,29 +93,15 @@ var UtilityTray = {
     this.startX = touch.pageX;
     this.startY = touch.pageY;
     this.screen.classList.add('utility-tray');
-    this.onTouchMove({ pageY: touch.pageY });
+    this.onTouchMove({ pageY: touch.pageY + this.statusbar.offsetHeight });
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
-    var screenHeight = this.overlay.getBoundingClientRect().height,
-        gripBarHeight = this.gripBar.getBoundingClientRect().height,
-        dy = -(this.startY - touch.pageY),
-        newHeight;
+    var screenHeight = this.overlay.getBoundingClientRect().height;
+    var dy = -(this.startY - touch.pageY);
     if (this.shown)
       dy += screenHeight;
     dy = Math.min(screenHeight, dy);
-
-    if (dy > gripBarHeight) {
-      var firstShownHeight = this.firstShown.getBoundingClientRect().height;
-
-      if (dy < firstShownHeight + gripBarHeight) {
-        newHeight = screenHeight - firstShownHeight - gripBarHeight;
-      } else {
-        newHeight = screenHeight - dy;
-      }
-      this.firstShown.style.MozTransition = '';
-      this.firstShown.style.MozTransform = 'translateY(' + newHeight + 'px)';
-    }
 
     var style = this.overlay.style;
     style.MozTransition = '';
@@ -160,15 +142,9 @@ var UtilityTray = {
 
   show: function ut_show(dy) {
     var alreadyShown = this.shown;
-    var trayStyle = this.overlay.style;
-    var firstShownStyle = this.firstShown.style;
-
-    trayStyle.MozTransition = '-moz-transform 0.2s linear';
-    trayStyle.MozTransform = 'translateY(100%)';
-
-    firstShownStyle.MozTransition = '-moz-transform 0.2s linear';
-    firstShownStyle.MozTransform = 'translateY(0px)';
-
+    var style = this.overlay.style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(100%)';
     this.shown = true;
     this.screen.classList.add('utility-tray');
 
