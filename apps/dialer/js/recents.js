@@ -9,12 +9,6 @@ var Recents = {
     return this.view = document.getElementById('recents-container');
   },
 
-  get commLogItemPhoneNumbers() {
-    delete this.commLogItemPhoneNumbers;
-    return this.commLogItemPhoneNumbers =
-      document.querySelectorAll(".log-item .primary-info");
-  },
-
   init: function re_init() {
     var indexedDB = window.indexedDB || window.webkitIndexedDB ||
         window.mozIndexedDB || window.msIndexedDB;
@@ -154,19 +148,15 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
-    console.log("In updateContactDetails...");
-    var commLogItemPhoneNumbers = this.commLogItemPhoneNumbers;
-    console.log("commLogItemPhoneNumbers.length: " + commLogItemPhoneNumbers.length);
+    var commLogItemPhoneNumbers = document.querySelectorAll(".log-item .primary-info");
     for (var i = 0; i < commLogItemPhoneNumbers.length; i++) {
-      Contacts.findByNumber(commLogItemPhoneNumbers[i].textContent, this.onContactHandler.bind(this, commLogItemPhoneNumbers[i]));
+      Contacts.findByNumber(commLogItemPhoneNumbers[i].textContent.trim(), this.onContactHandler.bind(this, commLogItemPhoneNumbers[i]));
     };
   },
 
   onContactHandler: function re_onContactHandler() {
-    console.log("In updateContactDetails...");
     var contact = arguments[1];
     if (contact && contact.name) {
-      console.log("contact.name: " + contact.name);
       arguments[0].textContent = contact.name;
     }
   },
