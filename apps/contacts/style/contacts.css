@@ -64,3 +64,17 @@
 .view-jumper-inner > li > * {
   pointer-events: none;
 }
+
+/* Edit contact section */
+.view-edit-contact fieldset:not(.first) {
+  position: relative;
+  margin-right: 3rem;
+}
+.view-edit-contact fieldset div {
+  position: relative;
+}
+.view-edit-contact .fillflow-row-action {
+  width: 5rem;
+  height: 5rem;
+  margin: -2.5rem 0 0 0;
+}

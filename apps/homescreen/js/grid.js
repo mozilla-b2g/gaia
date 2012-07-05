@@ -648,10 +648,10 @@ const GridManager = (function() {
         curPageObj.remove(draggableIcon);
         var prevPageObj = pageHelper.getPrevious();
         if (prevPageObj.getNumApps() === pageHelper.getMaxPerPage()) {
-          var propagateIco = prevPageObj.popIcon();
-          curPageObj.prependIcon(propagateIco);
+          prevPageObj.insertBeforeLastIcon(draggableIcon);
+        } else {
+          prevPageObj.append(draggableIcon);
         }
-        prevPageObj.append(draggableIcon);
         this.setDisabledCheckingLimits(true);
         this.transitioning = true;
         goPrev(this.onNavigationEnd);
