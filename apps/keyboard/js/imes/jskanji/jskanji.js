@@ -441,7 +441,8 @@
         _glue.sendString(kana);
         return 1;
       }
-      if (!(String.fromCharCode(_previousKeycode) in IMEKeyMap)) {
+      if (_previousKeycode !== IMESpecialKey.BACK && 
+          !(String.fromCharCode(_previousKeycode) in IMEKeyMap)) {
         _inputBuf.push(kana);
 
       } else {
