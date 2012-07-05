@@ -60,3 +60,9 @@
   background: -moz-linear-gradient(bottom, #fafafa, #ccc);
 }
 
+/* Remove/delete style */
+.action-delete {
+  color: #fff;
+  background: -moz-linear-gradient(bottom, #900010, #c90010);
+  border: none;
+}
