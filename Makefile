@@ -32,10 +32,16 @@ DEBUG?=0
 
 REPORTER=Spec
 
-GAIA_APP_SRCDIRS?=apps test_apps
+GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
+
+GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
+
+GAIA_APP_RELATIVEPATH=$(foreach dir, $(GAIA_APP_SRCDIRS), $(wildcard $(dir)/*))
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
+GAIA_APP_SRCDIRS=apps showcase_apps
+else ifeq ($(MAKECMDGOALS), production)
 GAIA_APP_SRCDIRS=apps
 endif
 
@@ -178,7 +184,10 @@ endif
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
 XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.
+XULRUNNER_TEST=xulrunner
 ifeq ($(SYS),Darwin)
+# For mac we have the xulrunner-sdk so check for this directory
+XULRUNNER_TEST=xulrunner-sdk
 # We're on a mac
 XULRUNNER_MAC_SDK_URL=$(XULRUNNER_SDK_URL)mac-
 ifeq ($(ARCH),i386)
@@ -214,7 +223,7 @@ XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
 install-xulrunner:
-	test -d xulrunner || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2) 
+	test -d $(XULRUNNER_TEST) || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2) 
 
 install-xulrunner-sdk:
 	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
@@ -241,7 +250,7 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
 	if [ -f custom-prefs.js ]; \
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
@@ -263,6 +272,8 @@ ifeq ($(DEBUG),1)
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd/content/loader.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/loader.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_PORT@|$(subst :,,$(GAIA_PORT))|g' $(EXT_DIR)/httpd/content/loader.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_SRCDIRS@|$(GAIA_APP_SRCDIRS)|g' $(EXT_DIR)/httpd/content/loader.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_RELATIVEPATH@|$(GAIA_APP_RELATIVEPATH)|g' $(EXT_DIR)/httpd/content/httpd.js
 endif
 	@echo "Done"
 
@@ -474,3 +485,5 @@ dialer-demo:
 	@find apps/dialer/ -name '*.bak' -exec rm {} \;
 
 demo: install-media-samples install-gaia
+
+production: install-gaia

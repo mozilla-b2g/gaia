@@ -48,8 +48,9 @@ function startupHttpd(baseDir, port) {
 
 function getDirectories(dir) {
   let dirs = [];
+  let appSrcDirs = '@GAIA_APP_SRCDIRS@'.split(' ');
 
-  ['apps', 'test_apps'].forEach(function addDirectory(name) {
+  appSrcDirs.forEach(function addDirectory(name) {
     let appsDir = Cc['@mozilla.org/file/local;1']
                  .createInstance(Ci.nsILocalFile);
     appsDir.initWithPath(dir);
