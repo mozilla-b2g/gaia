@@ -109,6 +109,11 @@ span[role="button"].icon-email {
   background-image: url(../../gphx/bitmap/default/buttons/mail.png);
 }
 
+span[role="button"].icon-address {
+  background-image: url(../../gphx/bitmap/default/buttons/location.png);
+}
+
+
 /* arrows */
 span[role="button"].icon-arrow {
 	border: solid 0.4rem transparent;
