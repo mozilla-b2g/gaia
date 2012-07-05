@@ -174,6 +174,7 @@ var CardsView = (function() {
 
   function onStartEvent(evt) {
     evt.stopPropagation();
+    evt.target.setCapture(true);
     cardsView.addEventListener('mousemove', CardsView);
     cardsView.addEventListener('mouseup', CardsView);
 
@@ -208,6 +209,7 @@ var CardsView = (function() {
   function onEndEvent(evt) {
     evt.stopPropagation();
     var element = evt.target;
+    document.releaseCapture();
     cardsView.removeEventListener('mousemove', CardsView);
     cardsView.removeEventListener('mouseup', CardsView);
 
