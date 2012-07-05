@@ -152,14 +152,12 @@ var Recents = {
     var length = commLogItemPhoneNumbers.length;
     for (var i = 0; i < length; i++) {
       Contacts.findByNumber(commLogItemPhoneNumbers[i].textContent.trim(),
-        this.onContactHandler.bind(this, commLogItemPhoneNumbers[i]));
-    }
-  },
-
-  onContactHandler: function re_onContactHandler() {
-    var contact = arguments[1];
-    if (contact && contact.name) {
-      arguments[0].textContent = contact.name;
+        function re_contactCallBack() {
+          var contact = arguments[1];
+          if (contact && contact.name) {
+            arguments[0].textContent = contact.name;
+          }
+        }.bind(this, commLogItemPhoneNumbers[i]));
     }
   },
 
