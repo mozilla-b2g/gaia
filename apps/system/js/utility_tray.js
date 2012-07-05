@@ -87,16 +87,23 @@ var UtilityTray = {
         break;
 
       case 'transitionend':
-        if (!this.shown)
-        {
+        if (!this.shown) {
           this.screen.classList.remove('utility-tray');
-          this.firstShown.style.MozTransition = '';
+
+          var overlayStyle = this.overlay;
+          var firstShownStyle = this.firstShowStyle;
+          firstShownStyle.MozTransition = '';
+
           if (this.phase2hide) {
-            this.firstShown.style.MozTransition = '-moz-transform 0.2s linear';
-            this.firstShown.style.MozTransform =
+            firstShownStyle.MozTransition = '-moz-transform 0.2s linear';
+            firstShownStyle.MozTransform =
               'translateY(' + this.firstShownPosition + 'px)';
-            this.overlay.style.MozTransition = '-moz-transform 0.2s linear';
-            this.overlay.style.MozTransform = 'translateY(0)';
+            overlayStyle.MozTransition = '-moz-transform 0.2s linear';
+            overlayStyle.MozTransform = 'translateY(0)';
+
+            // Check the transition event is triggered at firstShown.
+            // If so, turn off the flag which represent for
+            // 'The overlay has already reached the bottom of quick-setting'
             if (evt.target == this.firstShown)
               this.phase2hide = false;
           } else {
@@ -128,7 +135,7 @@ var UtilityTray = {
     if (dy > gripBarHeight) {
       var firstShownHeight = this.firstShown.getBoundingClientRect().height;
       if (!this.targetOf2PhaseHide) {
-        this.targetOf2PhaseHide = gripBarHeight + firstShownHeight;
+        this.totalShownHeight = gripBarHeight + firstShownHeight;
       }
 
       if (dy < firstShownHeight + gripBarHeight) {
