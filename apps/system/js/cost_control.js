@@ -154,7 +154,7 @@ var CostControl = {
 
   _getFormatedDate: function(date) {
     //XXX: Bug in Gecko. Check with Kaze. Issue 5
-    return date.toLocaleFormat('%x') + " " + date.toLocaleFormat('%X');
+    return date.toLocaleFormat('%b %d %H:%M');
   },
 
   saveBalance: function(balance) {
