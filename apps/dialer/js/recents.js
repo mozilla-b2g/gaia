@@ -38,8 +38,6 @@ var Recents = {
   cleanup: function re_cleanup() {
     if (this._recentsDB)
       this._recentsDB.close();
-
-    /* this.stopUpdatingDates(); */
   },
 
   getDatabase: function re_getDatabase(callback) {
@@ -148,8 +146,9 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
+    var commLogItemPhoneNumbersSelector = '.log-item .primary-info';
     var commLogItemPhoneNumbers = document.querySelectorAll(
-      '.log-item .primary-info');
+      commLogItemPhoneNumbersSelector);
     var length = commLogItemPhoneNumbers.length;
     for (var i = 0; i < length; i++) {
       Contacts.findByNumber(commLogItemPhoneNumbers[i].textContent.trim(),
