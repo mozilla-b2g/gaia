@@ -77,6 +77,15 @@ div.dialog footer button {
   font-size: 1em;
 }
 
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+  div.dialog footer button {
+    width: 180px;
+    height: 60px;
+  }
+}
+
 div.dialog footer button:active {
   background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
