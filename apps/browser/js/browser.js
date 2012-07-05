@@ -305,15 +305,12 @@ var Browser = {
       return;
     // If bookmarked, unbookmark
     if (this.bookmarkButton.classList.contains('bookmarked')) {
-      Places.removeBookmark(this.currentTab.url, (function() {
-        this.refreshBookmarkButton();
-      }).bind(this));
+      Places.removeBookmark(this.currentTab.url,
+        this.refreshBookmarkButton.bind(this));
     // If not bookmarked, bookmark
     } else {
       Places.addBookmark(this.currentTab.url, this.currentTab.title,
-        (function() {
-        this.refreshBookmarkButton();
-      }).bind(this));
+        this.refreshBookmarkButton.bind(this));
     }
   },
 

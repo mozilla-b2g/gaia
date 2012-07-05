@@ -1,7 +1,11 @@
 'use strict';
 
+// Support different versions of IndexedDB
 var idb = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
+IDBTransaction = IDBTransaction || {};
+IDBTransaction.READ_WRITE = IDBTransaction.READ_WRITE || 'readwrite';
+IDBTransaction.READ = IDBTransaction.READ || 'readonly';
 
 var Places = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
@@ -411,6 +415,7 @@ Places.db = {
     };
 
     var objectStore = transaction.objectStore('bookmarks');
+
     var request = objectStore.put(bookmark);
 
     request.onsuccess = function onsuccess(e) {
