@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Clock</title>
+    <link rel="stylesheet" type="text/css" href="style/clock.css">
+    <link rel="stylesheet" type="text/css" href="style/alarm.css">
+    <link rel="stylesheet" type="text/css" href="style/onring.css">
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
+    <script>
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapi.js';
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
+    <script type="application/javascript" src="js/onring.js"></script>
+    <script type="application/javascript" src="js/alarm.js"></script>
+  </head>
+  <body>
+    <div class="ring-display">
+      <div id="ring-icon"></div>
+      <div id="ring-clock">
+        <div id="ring-clock-display">
+          <span id="ring-clock-time"></span>
+          <span id="ring-clock-hour24-state"></span>
+        </div>
+        <div id="ring-lunch-time">Lunch time</div>
+      </div>
+      <p id="ring-btn-snooze" class="button">Snooze</p>
+      <p id="ring-btn-close" class="button">Close</p>
+    </div>
+  </body>
+</html>
