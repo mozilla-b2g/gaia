@@ -3,11 +3,16 @@
 var Recents = {
   DBNAME: 'dialerRecents',
   STORENAME: 'dialerRecents',
-  _prettyDatesInterval: null,
 
   get view() {
     delete this.view;
     return this.view = document.getElementById('recents-container');
+  },
+
+  get commLogItemPhoneNumbers() {
+    delete this.commLogItemPhoneNumbers;
+    return this.commLogItemPhoneNumbers =
+      document.querySelectorAll(".log-item .primary-info");
   },
 
   init: function re_init() {
@@ -34,14 +39,13 @@ var Recents = {
     };
 
     this.render();
-    this.startUpdatingDates();
   },
 
   cleanup: function re_cleanup() {
     if (this._recentsDB)
       this._recentsDB.close();
 
-    this.stopUpdatingDates();
+    /* this.stopUpdatingDates(); */
   },
 
   getDatabase: function re_getDatabase(callback) {
@@ -144,7 +148,27 @@ var Recents = {
         content += self.createRecentEntry(recents[i]);
       }
       self.view.innerHTML = content;
+
+      self.updateContactDetails();
     });
+  },
+
+  updateContactDetails: function re_updateContactDetails() {
+    console.log("In updateContactDetails...");
+    var commLogItemPhoneNumbers = this.commLogItemPhoneNumbers;
+    console.log("commLogItemPhoneNumbers.length: " + commLogItemPhoneNumbers.length);
+    for (var i = 0; i < commLogItemPhoneNumbers.length; i++) {
+      Contacts.findByNumber(commLogItemPhoneNumbers[i].textContent, this.onContactHandler.bind(this, commLogItemPhoneNumbers[i]));
+    };
+  },
+
+  onContactHandler: function re_onContactHandler() {
+    console.log("In updateContactDetails...");
+    var contact = arguments[1];
+    if (contact && contact.name) {
+      console.log("contact.name: " + contact.name);
+      arguments[0].textContent = contact.name;
+    }
   },
 
   getDayDate: function re_getDayDate(timestamp) {
@@ -176,38 +200,8 @@ var Recents = {
         callback([]);
       };
     }).bind(this));
-  },
-
-  showLast: function re_showLast() {
-    this.view.scrollTop = 0;
-  },
-
-  startUpdatingDates: function re_startUpdatingDates() {
-    if (this._prettyDatesInterval || !this.view)
-      return;
-
-    var self = this;
-    var updatePrettyDates = function re_updateDates() {
-      var datesSelector = '.timestamp[data-time]';
-      var datesElements = self.view.querySelectorAll(datesSelector);
-
-      for (var i = 0; i < datesElements.length; i++) {
-        var element = datesElements[i];
-        var time = parseInt(element.dataset.time);
-        element.textContent = prettyDate(time);
-      }
-    };
-
-    this._prettyDatesInterval = setInterval(updatePrettyDates, 1000 * 60 * 5);
-    updatePrettyDates();
-  },
-
-  stopUpdatingDates: function re_stopUpdatingDates() {
-    if (this._prettyDatesInterval) {
-      clearInterval(this._prettyDatesInterval);
-      this._prettyDatesInterval = null;
-    }
   }
+
 };
 
 window.addEventListener('load', function recentsSetup(evt) {
