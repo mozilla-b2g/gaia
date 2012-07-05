@@ -65,8 +65,8 @@ div.dialog footer {
 }
 
 div.dialog footer button {
-  width: 180px;
-  height: 60px;
+  width: 120px;
+  height: 40px;
   border: 4px solid;
   border-radius: 5px;
   -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
