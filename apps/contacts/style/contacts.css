@@ -70,6 +70,9 @@
   position: relative;
   margin-right: 3rem;
 }
+.view-edit-contact fieldset div {
+  position: relative;
+}
 .view-edit-contact .fillflow-row-action {
   width: 5rem;
   height: 5rem;
