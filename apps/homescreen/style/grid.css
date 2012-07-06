@@ -19,6 +19,7 @@
   list-style-type: none;
   display: block;
   margin: 0 auto;
+	margin-top: 1rem;
 }
 
 .apps ol > li {
@@ -27,12 +28,6 @@
   display: inline-block;
   float: left;
   text-align: center;
-  padding-bottom: 2.2rem;
-}
-
-.apps ol > li:nth-child(1), .apps ol > li:nth-child(2),
-.apps ol > li:nth-child(3), .apps ol > li:nth-child(4) {
-	padding-top: 2rem;
 }
 
 .apps ol > li[data-hidden] {
@@ -52,8 +47,8 @@
 /* Option to delete apps */
 .apps ol > li span.options {
   position: absolute;
-  top: -10%;
-  left: 0;
+  top: .2rem;
+	left: 0;
   width: 100%;
   height: 33%;
   z-index: 2;
@@ -64,6 +59,8 @@
 .apps ol > li > div {
   height: 100%;
   width: 100%;
+	margin-top: 1rem;
+	margin-bottom: 1.2rem;
   pointer-events: none; /* NO touchable area */
 }
 
@@ -107,6 +104,8 @@
 
 .apps .draggable > div {
   width: 100%;
+	margin-top: 1rem;
+	margin-bottom: 1.2rem;
   -moz-transform: scale(1.25);
   -moz-transition: -moz-transform .4s;
 }
