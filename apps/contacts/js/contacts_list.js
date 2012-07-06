@@ -215,6 +215,7 @@ contacts.List = (function() {
     'load': load,
     'refresh': refresh,
     'getContactById': getContactById,
-    'handleClick': handleClick
+    'handleClick': handleClick,
+    'remove': remove
   };
 })();

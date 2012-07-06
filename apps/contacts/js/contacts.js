@@ -15,7 +15,6 @@ function navigationStack(currentView) {
   var transitionTimeout = 0;
 
   var stack = [];
-  stack.push({ view: currentView, transition: ''});
 
   var revertTransition = function(transition) {
     return {
@@ -49,31 +48,33 @@ function navigationStack(currentView) {
     });
   };
 
+  var resetMirror = function resetMirror(view, transition) {
+    var mirror = document.getElementById(view.dataset.mirror);
+    mirror.classList.remove(transition.to);
+    mirror.classList.add(transition.from);
+  };
+
   this.go = function go(nextView, transition) {
     if (_currentView === nextView)
       return;
-
     var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
-
-  if (transition == 'none') {
-    setAppView(current, next);
-  } else {
-    setCacheView(current, next, transition);
-  }
+    if (transition == 'none') {
+      setAppView(current, next);
+    } else {
+      setCacheView(current, next, transition);
+    }
 
     stack.push({ view: _currentView, transition: transition});
     _currentView = nextView;
   };
 
   this.back = function back() {
-    if (stack.length < 2)
+    if (stack.length < 1)
       return;
-
     var current = document.getElementById(_currentView);
     var nextView = stack.pop();
     var next = document.getElementById(nextView.view);
-
     var from = transitions[nextView.transition].from;
     var to = transitions[nextView.transition].to;
     if (from == 'none' || to == 'none') {
@@ -84,6 +85,20 @@ function navigationStack(currentView) {
     }
     _currentView = nextView.view;
   };
+
+  this.home = function home() {
+    if (stack.length < 1)
+      return;
+
+    while (stack.length > 1) {
+      var currentObject = stack.pop();
+      var currentView = document.getElementById(currentObject.view);
+      resetMirror(currentView, transitions[currentObject.transition]);
+    }
+    // As stack.length == 1 next view is going to be
+    // the home, so we can use back method
+    this.back();
+  }
 }
 
 var Contacts = (function() {
@@ -155,6 +170,14 @@ var Contacts = (function() {
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
     deleteContactButton = document.getElementById('delete-contact');
+
+    deleteContactButton.onclick = function deleteClicked(event) {
+      // TODO: Apply missing UX styles and localize
+      var confirmed = confirm('Are you sure?');
+      if (!confirmed)
+        return;
+      deleteContact(currentContact);
+    };
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -402,6 +425,18 @@ var Contacts = (function() {
     insertEmptyAddress(0);
 
     edit();
+  };
+
+  var deleteContact = function deleteContact(contact) {
+    var request = navigator.mozContacts.remove(currentContact);
+    request.onsuccess = function successDelete() {
+      contactsList.remove(currentContact.id);
+      currentContact = null;
+      navigation.home();
+    };
+    request.onerror = function errorDelete() {
+      console.error("Error removing the contact");
+    };
   };
 
   var saveContact = function saveContact() {
