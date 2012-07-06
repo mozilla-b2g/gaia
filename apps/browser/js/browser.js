@@ -5,6 +5,7 @@ var Browser = {
   currentTab: null,
   tabCounter: 0,
   tabs: {},
+  openedWindows: {},
 
   styleSheet: document.styleSheets[0],
   cssTranslateId: null,
@@ -224,6 +225,16 @@ var Browser = {
           this.updateSecurityIcon();
         }
         break;
+
+      case 'mozbrowseropenwindow':
+        this.handleWindowOpen(evt);
+        break;
+
+      case 'mozbrowserclose':
+        this.handleWindowClose(evt);
+        this.setTabVisibility(this.currentTab, true);
+        this.updateTabsCount();
+        break;
       }
     }).bind(this);
   },
@@ -242,6 +253,66 @@ var Browser = {
           this.urlInput.blur();
         }
     }
+  },
+
+  handleWindowOpen: function browser_handleWindowOpen(evt) {
+    var origin = evt.target.dataset.frameOrigin;
+    var name = evt.detail.name;
+    var url = evt.detail.url;
+    var frame = evt.detail.frameElement;
+    var tab;
+
+    if (this.openedWindows[origin] && this.openedWindows[origin][name]) {
+      tab = this.openedWindows[origin][name];
+    } else {
+      tab = this.createTab(url, frame);
+    }
+
+    this.hideCurrentTab();
+    this.selectTab(tab);
+    // The frame will already be loading once we recieve it, which
+    // means we need to assume it is loading
+    this.currentTab.loading = true;
+    this.setTabVisibility(this.currentTab, true);
+    this.updateTabsCount();
+
+    if (!this.openedWindows[origin])
+      this.openedWindows[origin] = {};
+    this.openedWindows[origin][name] = tab;
+  },
+
+  handleWindowClose: function browser_handleWindowClose(evt) {
+    var origin = evt.target.dataset.frameOrigin;
+    var name = evt.target.dataset.frameName;
+
+    if (!this.openedWindows[origin])
+      return false;
+
+    if (typeof name == 'undefined') {
+      // Close all windows
+      Object.keys(this.openedWindows[origin]).forEach(function closeEach(name) {
+        this.deleteTab(this.openedWindows[origin][name]);
+        this.openedWindows[origin][name] = null;
+      }, this);
+      delete this.openedWindows[origin];
+      return true;
+    }
+
+    var tabId = this.openedWindows[origin][name];
+    if (!tabId)
+      return false;
+
+    this.deleteTab(tabId);
+    delete this.openedWindows[origin][name];
+
+    if (!Object.keys(this.openedWindows[origin]).length)
+      delete this.openedWindows[origin];
+
+    return true;
+  },
+
+  updateTabsCount: function browser_updateTabsCount() {
+    this.tabsBadge.innerHTML = Object.keys(this.tabs).length + '&#x203A;';
   },
 
   updateSecurityIcon: function browser_updateSecurityIcon() {
@@ -327,6 +398,11 @@ var Browser = {
   },
 
   refreshButtons: function browser_refreshButtons() {
+    // When handling window.open we may hit this code
+    // before canGoBack etc has been applied to the frame
+    if (!this.currentTab.dom.getCanGoBack)
+      return;
+
     this.currentTab.dom.getCanGoBack().onsuccess = (function(e) {
       this.backButton.disabled = !e.target.result;
     }).bind(this);
@@ -478,7 +554,7 @@ var Browser = {
 
   openInNewTab: function browser_openInNewTab(url) {
     this.createTab(url);
-    this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
+    this.updateTabsCount();
   },
 
   showContextMenu: function browser_showContextMenu(evt) {
@@ -581,11 +657,13 @@ var Browser = {
     tab.dom.style.top = '0px';
   },
 
-  createTab: function browser_createTab(url) {
-    var iframe = document.createElement('iframe');
+  createTab: function browser_createTab(url, iframe) {
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+    }
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
-                         'securitychange'];
+                         'securitychange', 'openwindow', 'close'];
     iframe.mozbrowser = true;
     // FIXME: content shouldn't control this directly
     iframe.setAttribute('remote', 'true');
@@ -644,6 +722,8 @@ var Browser = {
 
     if (this.currentTab.loading) {
       this.throbber.classList.add('loading');
+    } else {
+      this.throbber.classList.remove('loading');
     }
     this.updateSecurityIcon();
     this.refreshButtons();
@@ -688,7 +768,7 @@ var Browser = {
     }
     this.switchScreen(this.PAGE_SCREEN);
     this.urlInput.value = this.currentTab.title || this.currentTab.url;
-    this.tabsBadge.innerHTML = Object.keys(this.tabs).length + '&#x203A;';
+    this.updateTabsCount();
   },
 
   showTabScreen: function browser_showTabScreen() {
