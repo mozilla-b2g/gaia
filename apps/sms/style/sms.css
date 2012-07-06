@@ -1,19 +1,24 @@
 
 @font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
+  font-family: 'FontLight';
+  src: url('fonts/opensans-light-webfont.woff');
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
+  font-family: 'FontRegular';
+  src: url('fonts/opensans-regular-webfont.woff');
 }
 
 @font-face {
-  font-family: 'Open Sans';
+  font-family: 'FontSemibold';
   font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
+  src: url('fonts/opensans-semibold-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontBold';
+  font-weight: bold;
+  src: url('fonts/opensans-bold-webfont.woff');
 }
 
 @media screen and (min-resolution: 200dpi) {
@@ -50,13 +55,21 @@ html, body {
   font-family: 'Open Sans', sans-serif;
 }
 
+a {
+  outline: none;
+}
+
 body {
   margin: 0;
   width: 100%;
   height: 100%;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'FontRegular', sans-serif;
+  font-size: -moz-calc(6 * 0.226rem);
 }
-
+a:active, a:focus, button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
 .panel {
   position: absolute;
   width: 100%;
@@ -137,14 +150,15 @@ body.conversation #msg-conversations {
   display: block;
   left: 0;
   right: 0;
+  z-index: 50;
   background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
   margin: 0;
   padding: 0;
 }
 
 .toolbar-top {
+  height: 5rem;
   top: 0;
-  height: 6.4rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   z-index: 5;
 }
@@ -152,7 +166,7 @@ body.conversation #msg-conversations {
 .toolbar-bottom {
   bottom: 0;
   height: 6rem;
-  background: rgba(0,0,0,.3);
+  background: rgba(0,0,0, 0.75);
   
 }
 
@@ -169,19 +183,65 @@ body.conversation #msg-conversations {
 .toolbar-panel-fixed-item {
   -moz-box-flex: 0;
 }
+ 
+/*Generic set of actions in toolbar */
+.toolbar-top [role="menu"] {
+  height: 5rem; float: right;
+}
+
+.toolbar-top [role="menuitem"] {
+  height: 5rem; float: left;
+}
+
+.toolbar-top [role="menuitem"]:first-child {
+  background: none; padding: 0 1.5rem;
+}
+
+.toolbar-top [role="menuitem"], .toolbar-top [role="menuitem"]:last-child {
+  background: url(./images/separator.png) no-repeat left center;
+  padding: 0 1.5rem;
+}
+
+.toolbar-top menu {
+  padding: 0;
+  margin: 0;
+}
+  
+.toolbar-top a {
+  border: none;
+  background: none;
+  padding: 0;
+  overflow: hidden;
+  font: 1.4rem/1.1em System Sans Semibold, Sans-serif;  
+  color: #fff;
+}
+
+.toolbar-top a:first-letter {
+  text-transform: uppercase;
+}
+
+/* Icon definitions */
+.view-header [data-icon] {
+  display: inline-block;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 -1rem;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+  text-indent: 100%;
+  overflow: hidden;
+  position: relative;
+}
 
 .list {
   position: absolute;
-  top: 6.4rem;
-  bottom: 0rem;
+  top: 5rem;
+  bottom: 0;
   left: 0;
   right: 0;
   overflow-x: hidden;
   overflow-y: auto;
   -moz-user-select: none;
-}
-
-input, textarea {
 }
 
 .button {
@@ -208,6 +268,15 @@ input, textarea {
   display: table-cell;
 }
 
+.back-wrapper {
+  height: inherit;
+  text-align: center;
+  border-right: solid .1rem rgba(0, 0, 0, 0.2);
+  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
+  width: 2rem;
+  left: 0;
+  position: absolute;
+}
 .back-button {
   position: absolute;
   margin: 0.6rem 0 0 2.4rem;
@@ -215,8 +284,8 @@ input, textarea {
 
 .back-button-img {
   background: url("./images/top-navibar-left-arrow.png") no-repeat scroll 3rem 50% transparent;
-  left: 0rem;
-  top: 0rem;
+  left: 0;
+  top: 0;
   width: 8rem;
   height: 4.8rem;
   position: absolute;
@@ -247,9 +316,10 @@ input, textarea {
 }
 
 #msg-search-container {
+  display: none;
   padding-right: 1.6rem;
   margin: 0;
-  top: 0px;
+  top: 0;
   width: 100%;
   height: 6.4rem;
   border-bottom: solid 0.3rem #9b9b9b;
@@ -266,6 +336,10 @@ body.msg-search-mode #msg-search-container {
 body.msg-search-result-mode #msg-search-container {
   -moz-transform: translateY(0px);
   z-index: 6;
+}
+
+#view-msg-text-container {
+  padding-left: 1.5rem;
 }
 
 #msg-search {
@@ -286,7 +360,7 @@ body.msg-search-mode #msg-conversations-list {
   padding: 0;
   margin: 0;
   margin-left: 3rem;
-  line-height: 6rem;
+  line-height: 5rem;
   color: #ffffff;
   font-size: -moz-calc(10 * 0.226rem);
 }
@@ -295,53 +369,61 @@ body.msg-search-mode #msg-conversations-list {
  -moz-transition: top 0.3s ease;
 }
 
-#msg-conversations-list > a {
+#msg-conversations-list .item {
+  position: relative;
+  overflow: hidden;
+}
+
+#msg-conversations-list .item > a {
   -moz-box-sizing: border-box;
   display: block;
   text-decoration: none;
   outline: none;
-  height: 9.6rem;
+  height: 6rem;
   position: relative;
   /* Remove the thumbnail for current stage.
    *padding need to 11.2rem + img width when social network integration is ready*/
-  padding: 1.3rem 1.6rem 0 5rem;
+  padding: 1rem 1.6rem 1rem 3rem;
   border-top: 0.1rem solid hsla(207,22%,92%,1);
-  border-bottom: 0.1rem solid hsla(223,7%,81%,1);
   width: 100%;
   -moz-transition: padding 0.3s ease-out;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-body.edit-mode #msg-conversations-list > a {
-  padding: 1.3rem 1.6rem 0 13.2rem;
-  -moz-transition: padding 0.3s ease-out;
+#msg-conversations-list .item > a:active {
+  background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
 }
 
-#msg-conversations-list > a:active {
-  background: hsla(35,100%,50%,.2);
+#msg-conversations-list .item > a:active > .name {
+  color: white;
 }
 
-#msg-conversations-list > a.hide {
+#msg-conversations-list .item > a:active > .msg {
+  color: #ffbc8c;
+  text-shadow: none;
+}
+
+#msg-conversations-list .item > a.hide {
   display: none;
 }
 
-#msg-conversations-list > a > * {
+#msg-conversations-list .item > a > * {
   pointer-events: none;
 }
 
-#msg-conversations-list > a:first-child {
+#msg-conversations-list .item > a:first-child {
   border-top-color: transparent;
 }
 
-#msg-conversations-list > a .unread-mark {
+#msg-conversations-list .item > a .unread-mark {
   display: none;
 }
 
 a.unread .unread-mark {
   display: block !important;
   width: 3rem !important;
-  left: 0rem !important;
+  left: 0 !important;
   height: 100% !important;
   top: 0 !important;
   background: transparent !important;
@@ -358,19 +440,9 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 /* fake input boxes for checkboxes*/
-#msg-conversations-list label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
 
-#msg-conversations-list > a > input.fake-checkbox {
-  display: none;
-}
 
-#msg-conversations-list > a > span {
+#msg-conversations-list .item > a > span {
   position: absolute;
   top: -moz-calc(50% - 3.4rem);
   left: 4rem;
@@ -381,19 +453,21 @@ a.unread .unread-mark .icon-unread-mark {
   -moz-transition: opacity 0.3s ease-in;
 }
 
-#msg-conversations-list > a > input[type=checkbox] + span {
+#msg-conversations-list .item > a > input[type=checkbox] + span {
   opacity: 0.0;
   visibility: hidden;
   height: 6rem;
   border-radius: 0.5rem;
 }
 
-body.edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + span {
+body.edit-mode #msg-conversations-list .item > a { pointer-events: none; padding-right: 4rem; }
+
+body.edit-mode #msg-conversations-list .item > a > input[type=checkbox]:checked + span {
   background: url("./images/checked.png") no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
-body.edit-mode #msg-conversations-list > a > span {
+body.edit-mode #msg-conversations-list .item > a > span {
   opacity: 1.0;
   visibility: visible;
   border: 0.4rem solid;
@@ -406,13 +480,11 @@ body.edit-mode #msg-conversations-list > a > span {
 
 #msg-conversations-list .photo {
   position: absolute;
-  top: -0.1rem;
-  left: 0;
-  width: 9.5rem;
-  height: 9.5rem;
+  top: 0;
+  right: 0;
+  width: 5.9rem;
+  height: 5.9rem;
   overflow: hidden;
-  background-color: #ccc;
-  box-shadow: inset 0 0.1rem 0 #ddd;
 }
 
 #msg-conversations-list .photo img {
@@ -420,24 +492,26 @@ body.edit-mode #msg-conversations-list > a > span {
 }
 
 #msg-conversations-list .name {
-  font-size: 2.6rem;
-  color: rgb(18, 47, 64);
-  line-height: 3.2rem;
-  font-weight: 600;
+  font-family: 'FontRegular';
+  font-size: -moz-calc(8 * 0.226rem);
+  color: #000000;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 11rem);
+  width: -moz-calc(100% - 7rem);
 }
 
 #msg-conversations-list .msg {
-  color: #666;
+  font-family: 'FontRegular';
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #5B5B5B;
   text-shadow: 0 0.1rem 0 #ddd;
-  font-size: 2.2rem;
-  height: 3.2rem;
-  width: -moz-calc(100% - 7rem);
+  width: -moz-calc(100% - 20rem);
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  text-overflow: '..."';
+  position: absolute;
+  top: 3rem;
+  left: 10rem;
 }
 
 #msg-conversations-list .msg .highlight {
@@ -445,43 +519,31 @@ body.edit-mode #msg-conversations-list > a > span {
 }
 
 #msg-conversations-list .time {
+  font-family: 'FontSemibold';
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #5B5B5B;
   position: absolute;
-  top: 0.9rem;
-  right: 1.6rem;
-  text-align: right;
+  top: 3rem;
   color: hsla(0,0%,0%,.5);
-  font-size: 1.8rem;
+}
+
+#msg-conversations-list .unread {
+  color: #1D8399;  
 }
 
 #msg-conversations-list .unread-tag {
   position: absolute;
   visibility : hidden;
-  top: 4.5rem;
-  right: 2.6rem;
-  padding: 0 1.6rem;
-  text-align: center;
-  color: rgb(255, 255, 255);
-  font-size: 1.8rem;
-  background: -moz-linear-gradient(top, #00ADEE, #0078A5);
-  border-radius: 0.9rem;
+  height: 1rem;
+  width: 1rem;
+  top: 2rem;
+  left: 1rem;
+  background: url(../style/images/unread.png);
 }
 
-#msg-conversations-list > a.unread .unread-tag {
+#msg-conversations-list .item > a.unread .unread-tag {
   visibility : visible;
 }
-
-body.edit-mode #msg-conversations-list .name {
-  width: -moz-calc(100% - 19rem);
-}
-
-body.edit-mode #msg-conversations-list .msg {
-  width: -moz-calc(100% - 9rem);
-}
-
-/*body.edit-mode #msg-conversations-list .time {
-  right: 1.6rem;
-}*/
-
 
 #msg-new-message-container {
   padding: 0;
@@ -498,25 +560,17 @@ body.edit-mode #msg-conversations-list .msg {
   table-layout: fixed;
 }
 
-#msg-new-message {
-  right: 0rem;
-  width: 4rem;
-  margin-right: 6rem; 
-  position: absolute;
-  height: 100%;
-}
-
 .icon-add {
   display: block;
   background-image: url('images/add.png');
   height: 1.6rem;
   width: 1.5rem;
-  margin: 2.2rem auto;
+  margin: 1.7rem auto;
 }
 
-#msg-edit-button, #msg-search-edit-button {
-  right: 0rem;
-  width: 4rem;
+#msg-search-edit-button {
+  right: 0;
+  width: 5rem;
   margin-right: 2rem; 
   position: absolute;
  
@@ -528,17 +582,14 @@ body.edit-mode #msg-conversations-list .msg {
   background-image: url('images/edit.png');
   height: 2rem;
   width: 1.9rem;
-  margin: 2rem auto;
+  margin: 1.5rem auto;
 }
 
 #msg-conversations-back {
   position: absolute;
-  
+  left: 0;
   height: 100%;
-  width: 2rem;
-  text-align: center;
-  border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3)
+  width: 5rem;
 }
 
 .icon-back {
@@ -547,7 +598,7 @@ body.edit-mode #msg-conversations-list .msg {
   height: 2.7rem;
   width: 1.1rem;
 
-  margin: 1.65rem auto;
+  margin: 1.15rem auto;
 }    
 
 .edit-hide, .search-hide { 
@@ -581,29 +632,24 @@ body.edit-mode .edit-hide-element {
 #view-back {
   position: absolute;
   height: 100%;
-  width: 2rem;
-  text-align: center;
-  border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
+  width: 5rem;
 }
 
 #view-done-button {
   position: absolute;
   cursor: pointer;
-  padding: 1.4rem 0;
+  padding: 0;
   width: 7rem;
-  right: 2rem;
+  right: 0;
   text-align: center;
-  font-size: -moz-calc(10 * 0.226rem);
+  font-size: 1.6rem;
+  line-height: 4.9rem;
   color: #ffffff;
 }
 
 #view-edit-button { 
-  right: 0rem;
-  width: 4rem;
-  margin-right: 2rem; 
+  right: 0;
   position: absolute;
- 
   height: 100%;
 }
   
@@ -617,7 +663,7 @@ body.edit-mode #view-edit-button {
 }
 
 #view-add-button {
-  right: 0rem;
+  right: 0;
   width: 4rem;
   margin-right: 1rem; 
   position: absolute;
@@ -627,12 +673,13 @@ body.edit-mode #view-edit-button {
 }
 
 .icon-contact {
+  opacity: .5;
   display: block;
   background-image: url('images/contacts_icon.png');
     
   height: 2.4rem;
   width: 2.2rem;
-  margin: 1.8rem auto;
+  margin: 1.3rem auto;
 }
 
 body.edit-mode #view-add-button {
@@ -644,7 +691,7 @@ body.edit-mode #view-add-button {
   margin: 0;
   margin-left: 3rem;
   font-weight: normal;
-  line-height: 6rem;
+  line-height: 5rem;
   color: #ffffff;
   font-size: -moz-calc(10 * 0.226rem);
   text-overflow: ellipsis;
@@ -665,17 +712,22 @@ body.conversation-new-msg #view-edit-button {
 }
 
 #view-num {
-  height: 4rem;
+  height: 3rem;
   display: none;
-  margin: 1rem 5rem 1rem 3rem;
+  margin: 1rem 5rem 1rem 4rem;
   padding: 0 2rem;
   -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 9rem);
-  font-size: -moz-calc(6 * 0.226rem);
+  width: -moz-calc(100% - 10rem);
+  font-size: -moz-calc(7 * 0.226rem);
+  border-radius: .3rem;
+  border: 1px solid #A83F22;
+  box-shadow: inset 0 .2rem .1rem rgba(0,0,0,.2);
 }
 
 body.conversation-new-msg #view-num {
   display: block;
+  position: absolute;
+  z-index: 100;
 }
 
 #view-edit-container {
@@ -710,29 +762,47 @@ body.conversation-new-msg #view-num {
 
 #view-list {
   bottom: 5.5rem;
+  background: #F4F4F4;
 }
 
 #view-list > div .message-container {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-  margin: 0.8rem;
-  min-height: 6.4rem;
-  border-radius: 0.8rem;
   position: relative;
-  padding: 1.6rem;
+  padding: 1rem 1.5rem;
   -moz-box-sizing: border-box;
+  display: block;
+  -moz-transition: -moz-transform 0.3s ease;
 }
 
-#view-list > div.sender {
-  /* Remove the thumbnail for current stage.
-   *padding need shit back to 9.6rem when social network integration is ready*/  
-  padding-left: 1.6rem;
+#view-list > div .message-bubble {
+  position: absolute;
+  top: -0.1rem;
+  width: 1rem;
+  height: 0.9rem;
 }
 
-#view-list > div.receiver {
-  /* Remove the thumbnail for current stage.
-   *padding need shit back to 9.6rem when social network integration is ready*/  
-  padding-right: 1.6rem;
-  text-align: right;
+#view-list > div .sender > .message-bubble {
+  right: -0.9rem;
+  background: url(images/bubble_gray_corner.png);
+}
+#view-list > div .receiver > .message-bubble {  
+  left: -0.9rem;
+  background: url(images/bubble_orange_corner.png);
+}
+
+#view-list > div .sender {
+  border-radius: 0.5rem 0 0.5rem 0.5rem;
+  background: #FFFFFF;
+  border: 0.1rem solid #878787;
+  margin-left: 3.5rem;
+  margin-right: 2rem;
+}
+
+#view-list > div .receiver {
+  border-radius: 0 0.5rem 0.5rem 0.5rem;
+  background: #F9F8EE;
+  border: 0.1rem solid #F08A48;
+  margin-left: 2rem;
+  margin-right: 3.5rem;
 }
 
 #view-list > div .pending {
@@ -775,20 +845,16 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list > div .text {
-  font-size: -moz-calc(6*0.226rem);
-  
-  color: rgb(18, 47, 64);
-  text-shadow: 0 0.1rem 0 #ddd;
-  line-height: 3.2rem;
+  color: #000000;
   text-overflow: ellipsis;
   overflow: hidden;
+  word-wrap: break-word;
 }
 
 #view-list > div .time {
-  font-size: 1.8rem;
-  line-height: 2.3rem;
-  color: rgb(62, 86, 106);
-  text-shadow: 0 0.1rem 0 #ddd;
+  font-family: 'FontSemibold';
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #5B5B5B;
 }
 
 
@@ -803,33 +869,30 @@ body.edit-mode #view-list .time {
 #view-list > div .message-container::before {
   content: '';
   display: block;
-  width: 1.12rem; /* 0.8rem * sqrt(2) */
-  height: 1.12rem;
+  width: 1rem;
+  height: 0.9rem;
   position: absolute;
-  top: 2rem;
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-  -moz-transform: rotate(45deg);
 }
 
-
-#view-list > div .sender {
-  margin-right: 4rem;
-  margin-left: 1.5rem;
-}
 #view-list > div .sender::before {
-  left: -0.56rem;
+  background: url(images/bubble_gray_corner-png);
+  right: 0.1rem;
 }
 
-#view-list > div .receiver {
-  margin-left: 4rem;
-  margin-right: 1.5rem;
-}
 #view-list > div .receiver::before {
-  right: -0.56rem;
+  background: url(images/bubble_orange_corner-png);
+  left: -0.1rem;
 }
 
-body.edit-mode #view-list > div.message-block {
-  -moz-transform: translateX(9rem);
+
+body.edit-mode #view-list > div.message-block .receiver {
+  -moz-transform: translateX(-0.5rem);
+}
+body.edit-mode #view-list > div.message-block .sender {
+  -moz-transform: translateX(-2rem);
+}
+body.edit-mode .fake-checkbox {
+-moz-transform: translateX(0);
 }
 
 
@@ -839,15 +902,10 @@ body.edit-mode #view-list > div.message-block {
   text-decoration: none;
   outline: none;
   position: relative;
-  padding: 1.3rem 1.6rem 0 11.2rem;
+  overflow: hidden;
+  padding: 0.5rem 0 0.5rem 9rem;
   width: -moz-calc(100% + 9rem);
   right: 9rem;
-  -moz-transition: -moz-transform 0.3s ease;
-}
-
-
-#view-list > div.message-block:active > div.message-container {
-  background: rgba(183,214,54,.6);
 }
 
 #view-list > div.message-block > * {
@@ -859,16 +917,42 @@ body.edit-mode #view-list > div.message-block {
 }
 
 /* fake input boxes for checkboxes*/
-#view-list label {
+.fake-checkbox {
+  display: block;
+  -moz-transform: translateX(4rem);
+  -moz-transition: -moz-transform 0.3s ease;
+  width: 4rem;
+  height: 4rem;
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  left: auto;
+  right: 0;
+  top: 50%;
+  z-index: 5;
+  margin-top: -2rem;
+  pointer-events: all!important;
 }
 
-#view-list div.message-block > input.fake-checkbox {
-  display: none;
+.fake-checkbox input {
+  width: 100%;
+  height: 100%;
+  display: block;
+  margin: 0;
+  border: none;
+  opacity: 0;
+}
+.fake-checkbox span {
+  background: url(images/check-delete.png) no-repeat center top;
+  background-size: 100% auto;
+  width: 2.2rem;
+  height: 2.2rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -1.1rem 0 0 -1.1rem;
+  pointer-events: none;
+}
+.fake-checkbox input:checked + span {
+  background-position: center bottom;
 }
 
 #view-list div.message-block > span {
@@ -881,10 +965,6 @@ body.edit-mode #view-list > div.message-block {
   border: none;
 }
 
-
-#view-list div.message-block > input.fake-checkbox {
-  display: none;
-}
 
 #view-list div.message-block > span {
   position: absolute;
@@ -944,7 +1024,7 @@ body.edit-mode #view-list > div.message-block {
 }
 
 #view-msg-send {
-  width: 6.5rem;
+  width: 7rem;
   text-align: center;
   vertical-align: middle;
   font-size: -moz-calc(7 * 0.226rem);
@@ -955,15 +1035,20 @@ body.edit-mode #view-list > div.message-block {
 #view-msg-text {
   height: 3rem;
   width: 100%;
+  padding: 0.4rem 0.8rem;
   margin: 0 !important;
   -moz-box-sizing: border-box;
   resize: none;
+  overflow: hidden;
   font-size: -moz-calc(7 * 0.226rem);
+  border-radius: 0.3rem;
+  border: 1px solid rgba(0,0,0,.3);
+  box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
 }
 
 #view-msg-send {
   margin: 1.4rem 0 0 1.6rem;
-  min-width: 9.6rem;
+  min-width: 7rem;
 }
 
 
@@ -980,7 +1065,7 @@ body.hidden *[data-l10n-id] {
 
   text-align: center;
   background: rgba(0,0,0,0.4);
-  width: 0rem;
+  width: 0;
   z-index: 1;   
 }
 
@@ -1009,7 +1094,7 @@ body.hidden *[data-l10n-id] {
   table-layout: fixed;
   width: 100%;
   height: 4rem;
-  border-spacing: .5rem 0rem;
+  border-spacing: .5rem 0;
 }
 
 .view-confirm-option {
@@ -1030,7 +1115,15 @@ body.hidden *[data-l10n-id] {
   font-size: -moz-calc(6 * 0.226rem);
   color: #ff4e00;
   text-transform: uppercase;
-  font-family: 'Open Sans', sans-serif;
- 
+  font-family: 'FontRegular';
+}
+
+#view-list .groupHeader {
+  margin-bottom: 0.5rem;
+}
+
+/** This is a temporary code for demo **/
+#view-delete-button #view-delete-all-button #msg-delete-all-button #msg-delete-button {
+  display: none;
 }
 

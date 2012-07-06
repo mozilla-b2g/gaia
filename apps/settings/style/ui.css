@@ -48,7 +48,7 @@ header h1 a:active {
 }
 
 /* View */
-.view {
+*[role=region] {
   position: absolute;
   top: 0;
   left: 0;
@@ -58,15 +58,15 @@ header h1 a:active {
   overflow-y: scroll;
 }
 
-.view > h2 { /* list separators */
+*[role=region] > h2 { /* list separators */
   margin: 0;
   padding: 0 0 0 10px;
   height: 40px;
   line-height: 40px;
   font-size: 0.85em;
   color: #333;
-  border-bottom: 1px solid #fbb;
-  background: url(images/diagonal-pattern.png) repeat scroll 0 0 #fcc;
+  border-bottom: 1px solid #bbf;
+  background: url(images/diagonal-pattern.png) repeat scroll 0 0 #ccf;
 }
 
 /* View - Slide Horizontal Transition */
@@ -74,7 +74,7 @@ header h1 a:active {
  *           to hide the horizontal scrollbar on the device (at least, when the
  *           transition is over).
  * This is just a workaround: the platform bug should be fixed later.  */
-.view {
+*[role=region] {
   -moz-transition: -moz-transform 0.5s ease, width 0s linear 0.5s;
   -moz-transform: translateX(100%);
   width: 0;
@@ -84,8 +84,7 @@ header h1 a:active {
   -moz-transform: translateX(-100%);
 }
 
-#root:target,
-.view:target {
+#root:target, *[role=region]:target {
   -moz-transition: -moz-transform 0.5s ease, width 0s linear 0s;
   -moz-transform: none;
   width: 100%;
@@ -113,6 +112,10 @@ ul li {
   height: 64px;
 }
 
+ul li.active {
+  background-color: #fee;
+}
+
 ul li:active {
   background-color: rgba(0, 0, 0, .07);
   text-shadow: #999 0 -1px 0;
@@ -135,7 +138,7 @@ ul li > label + *, ul li > label + * + * { /* text ellipsis */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: -moz-calc(100% - 96px);
+  max-width: -moz-calc(100% - 66px);
 }
 
 ul li > small {
@@ -151,8 +154,15 @@ ul li > small + a {
   line-height: 58px;
 }
 
+ul li button {
+  width: 50%;
+  height: 52px;
+  margin: 6px 20px;
+  font-size: 1em;
+}
+
 /* fake input boxes for checkboxes & radio buttons */
-.view label {
+*[role=region] label {
   position: absolute;
   top: 0;
   left: 0;
@@ -160,14 +170,14 @@ ul li > small + a {
   height: 100%;
 }
 
-.view label > input {
+*[role=region] label > input {
   display: none;
 }
 
-.view label > span {
+*[role=region] label > span {
   position: absolute;
   top: -moz-calc(50% - 22px);
-  right: 20px;
+  right: 12px;
   -moz-box-sizing: border-box;
   display: block;
   width: 42px;
@@ -175,15 +185,15 @@ ul li > small + a {
   border: none;
 }
 
-.view label > input[type=radio] + span {
+*[role=region] label > input[type=radio] + span {
   background: url(images/radio-off.png) no-repeat scroll center center;
 }
 
-.view label > input[type=radio]:checked + span {
+*[role=region] label > input[type=radio]:checked + span {
   background: url(images/radio-on.png) no-repeat scroll center center;
 }
 
-.view label > input[type=checkbox] + span {
+*[role=region] label > input[type=checkbox] + span {
   border: 2px solid;
   border-radius: 5px;
   -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
@@ -193,12 +203,12 @@ ul li > small + a {
   background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-.view label > input[type=checkbox]:checked + span {
+*[role=region] label > input[type=checkbox]:checked + span {
   background: url(images/checked.png) no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
-.view label > progress {
+*[role=region] label > progress {
   float: right;
   width: 150px;
   margin: 22px 20px 0 0;

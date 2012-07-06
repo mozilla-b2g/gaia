@@ -14,14 +14,21 @@
   src: url('./fonts/Open-Sans-Semibold.woff');
 }
 
+html {
+  font-size: 10px;
+}
+
+@media screen and (min-width: 480px) {
+  html {
+    font-size: 13.3px;
+  }
+}
+
 body {
   width: 100%;
   height: 100%;
   margin: 0px;
   padding: 0px;
-  background-color: #000;
-  background-size: cover;
-  background-repeat: no-repeat;
 
   overflow: hidden;
 
@@ -35,10 +42,15 @@ body {
   overflow: hidden;
   width: 100%;
   height: 100%;
+
+  background-color: #000;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
 }
 
 #screen.screenoff {
-  background: #000;
+  background: #000 !important;
 }
 
 #screen.screenoff > * {
@@ -74,8 +86,6 @@ body {
 
 #windows > iframe.appWindow {
   position: absolute;
-  background-color: #373a3d;
-  -moz-transition: background-color 1s ease;
   border: 0;
   margin: 0;
   padding: 0;
@@ -104,23 +114,42 @@ body {
   background-color: #fff;
 }
 
-div.windowSprite {
+#windows > iframe.appWindow:not(.active) {
+  visibility: hidden;
+}
+
+#windowSprite {
   position: absolute;
   top: 20px;
   left: 0;
   width: 100%;
   height: -moz-calc(100% - 20px);
   z-index: 9999;
-  -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
-}
-
-div.windowSprite.closed {
+  opacity: 0;
+  background-color: #373a3d;
+  pointer-events: none;
   -moz-transform: scale(0.5);
+  -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
+}
+
+#windowSprite.open {
+  -moz-transform: scale(1);
+  opacity: 1;
+}
+
+#windowSprite.faded {
   opacity: 0;
 }
 
-div.windowSprite.faded {
-  opacity: 0;
+#windowSprite.close {
+  /* The transition on color is not really useful but it is used to fire
+     a transitionend event on the sprite after a certain amount of time.
+     This amount of time is when the 'transform' animation should start.
+  */
+  -moz-transition: color 0.1s ease, opacity 0.3s ease, -moz-transform 0.3s 0.1s ease;
+  -moz-transform: scale(0.5);
+  opacity: 0.3;
+  color: black;
 }
 
 .accessibility-invert {
@@ -136,31 +165,49 @@ iframe.backgroundWindow {
   visibility: hidden;
 }
 
-#keyboard {
+#keyboard-frame {
   position: absolute;
   bottom: 0;
   width: 100%;
-	height: 100%;
-	z-index: 9000;
+  height: 100%;
+  z-index: 9000;
+  border: 0;
 }
 
-#keyboard.hide {
+/* XXX: better fix would be resize the
+ * #popup-container and #modal-dialog
+ * when keyboard is shown.
+ */
+#screen.popup #keyboard-frame,
+#screen.modal-dialog #keyboard-frame {
+  z-index: 10001;
+}
+
+#keyboard-frame.hide {
   visibility: hidden;
   bottom: 100%;
 }
 
-#keyboardFrame {
+#keyboard-overlay {
   position: absolute;
-  bottom: 0;
+  top: 0px;
   width: 100%;
-	height: 100%;
-	border: 0;
-	z-index: 10002;
-  background: -moz-element(#keyboard);
+  border: 0;
+  z-index: 10002;
+  background: -moz-element(#keyboard-frame);
+  background-position: top center;
   pointer-events: none;
 }
 
-#screen.fullscreen #keyboardFrame {
+/*
+ * Keyboard is on top of these overlays, hiding the overlay
+ */
+#screen.popup #keyboard-overlay,
+#screen.modal-dialog #keyboard-overlay {
+  display: none;
+}
+
+#screen.fullscreen #keyboard-overlay {
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
   z-index: 2147483647;
 }

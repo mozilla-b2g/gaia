@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = navigator.mozL10n.get;
+
 var ClockView = {
 
   get time() {
@@ -31,7 +33,8 @@ var ClockView = {
       hour = 12;
     this.time.textContent = hour + d.toLocaleFormat(':%M');
     this.hourState.textContent = d.toLocaleFormat('%p');
-    this.daydate.textContent = d.toLocaleFormat('%A, %B %e');
+    var format = navigator.mozL10n.get('daydateFormat');
+    this.daydate.textContent = d.toLocaleFormat(format);
 
     var self = this;
     this._timeout = window.setTimeout(function cv_clockTimeout() {
@@ -216,30 +219,29 @@ var FakeAlarmManager = {
       var selectedAlarmSound = 'style/ringtones/classic.wav';
       ringtonePlayer.src = selectedAlarmSound;
 
-      var power = navigator.mozPower;
-      navigator.mozApps.getSelf().onsuccess = function(e) {
-        var app = e.target.result;
-        app.launch();
-        if (power) {
-          power.screenEnabled = true;
-          var preferredBrightness = 0.8;
-          power.screenBrightness = preferredBrightness;
-        }
-        if ('mozVibrate' in navigator) {
-          var vibrateInterval = 0;
-          vibrateInterval = window.setInterval(function vibrate() {
-            navigator.mozVibrate([200]);
-          }, 600);
-          window.setTimeout(function clearVibration() {
-            window.clearInterval(vibrateInterval);
-          }, 3000);
-        }
-        ringtonePlayer.play();
-        window.setTimeout(function pauseRingtone() {
-          ringtonePlayer.pause();
-        }, 2000);
-      };
+      var protocol = window.location.protocol;
+      var host = window.location.host;
+      window.open(protocol + '//' + host + '/onring.html',
+                  'ring_screen', 'attention');
+
+      if ('mozVibrate' in navigator) {
+        var vibrateInterval = 0;
+        vibrateInterval = window.setInterval(function vibrate() {
+          navigator.mozVibrate([200]);
+        }, 600);
+        window.setTimeout(function clearVibration() {
+          window.clearInterval(vibrateInterval);
+        }, 3000);
+      }
+      ringtonePlayer.play();
+      window.setTimeout(function pauseRingtone() {
+        ringtonePlayer.pause();
+      }, 2000);
     }, remaining);
+  },
+
+  snoozeHandler: function am_snoozeHandler() {
+    // Need to implement snooze
   },
 
   cancel: function am_cancel(alarm) {
@@ -379,10 +381,10 @@ var AlarmEditView = {
     this.enableInput.checked = alarm.enabled;
 
     if (alarm.id) {
-      this.alarmTitle.innerHTML = 'Edit Alarm';
+      this.alarmTitle.innerHTML = _('editAlarm');
       this.deleteElement.hidden = false;
     } else {
-      this.alarmTitle.innerHTML = 'New Alarm';
+      this.alarmTitle.innerHTML = _('newAlarm');
       this.deleteElement.hidden = true;
     }
     this.refreshRepeatMenu();
@@ -402,7 +404,7 @@ var AlarmEditView = {
   },
 
   refreshSnoozeMenu: function aev_refreshSnoozeMenu() {
-    this.snoozeMenu.innerHTML = this.alarm.snooze + ' ' + 'minutes';
+    this.snoozeMenu.innerHTML = _('nMinutes', {n: this.alarm.snooze});
   },
 
   refreshColorMenu: function aev_refreshColorMenu() {
@@ -424,13 +426,13 @@ var AlarmEditView = {
     this.alarm.enabled = this.enableInput.checked;
 
     if (!this.alarm.label) {
-      this.labelInput.nextElementSibling.textContent = 'Required';
+      this.labelInput.nextElementSibling.textContent = _('required');
       error = true;
     }
 
     if (this.alarm.hour > 24 ||
       (this.alarm.hour == 24 && this.alarm.minute != 0)) {
-      this.hourInput.nextElementSibling.textContent = 'Invalid';
+      this.hourInput.nextElementSibling.textContent = _('invalid');
       error = true;
     }
 

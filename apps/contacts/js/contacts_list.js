@@ -21,22 +21,12 @@ contacts.List = (function() {
   }
 
   var load = function load(contacts) {
-    var onSuccess = function() {
-      var figures = document.querySelectorAll('#groups-container img');
-      for (var i = 0; i < figures.length; i++) {
-        var figure = figures[i];
-        var src = figure.dataset.src;
-        if (src && src !== 'null') {
-          figure.src = src;
-        }
-      }
-    }
 
     var onError = function() {
       console.log('ERROR Retrieving contacts');
     }
 
-    getContactsByGroup(onSuccess, onError, contacts);
+    getContactsByGroup(onError, contacts);
   };
 
   var iterateOverGroup = function iterateOverGroup(group, contacts) {
@@ -50,18 +40,8 @@ contacts.List = (function() {
     }
   };
 
-  function normalizeName(contact) {
-    var name = contact.givenName ? contact.givenName[0] : '';
-    var additionalName =
-      contact.additionalName ? contact.additionalName[0] : '';
 
-    if (name.length > 0 && additionalName.length > 0) {
-      name += ' ' + additionalName;
-    }
-    contact.givenName[0] = name;
-  }
-
-  var buildContacts = function buildContacts(contacts, successCb) {
+  var buildContacts = function buildContacts(contacts) {
     var group = null;
 
     var count = contacts.length;
@@ -86,11 +66,9 @@ contacts.List = (function() {
     if (ret.length > 0) {
       iterateOverGroup(group, ret);
     }
-
-    successCb();
   }
 
-  var getContactsByGroup = function gCtByGroup(successCb, errorCb, contacts) {
+  var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     if (typeof contacts !== 'undefined') {
       buildContacts(contacts, successCb);
       return;
@@ -103,7 +81,7 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      buildContacts(request.result, successCb);
+      buildContacts(request.result);
     };
 
     request.onerror = errorCb;
@@ -185,7 +163,6 @@ contacts.List = (function() {
     var ret = [];
 
     ret.push(contact.familyName ? contact.familyName[0] : '');
-    normalizeName(contact);
     ret.push(contact.givenName ? contact.givenName[0] : '');
 
     return ret.join('');
@@ -241,4 +218,3 @@ contacts.List = (function() {
     'handleClick': handleClick
   };
 })();
-

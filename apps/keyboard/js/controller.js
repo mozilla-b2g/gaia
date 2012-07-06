@@ -58,7 +58,7 @@ const IMEController = (function() {
   // If user leave the original key and did not move to
   // a key within the accent character menu,
   // after khideAlternativesCharMenuTimeout the menu will be removed.
-  var _kHideAlternativesCharMenuTimeout = 500;
+  var _kHideAlternativesCharMenuTimeout = 700;
 
   // timeout and interval for delete, they could be cancelled on mouse over
   var _deleteTimeout = 0;
@@ -123,8 +123,11 @@ const IMEController = (function() {
         row.splice(where, 1, // delete space
           { value: '.', ratio: 1, keyCode: 46 },
           { value: '/', ratio: 2, keyCode: 47 },
-          { value: '.com', ratio: 2, compositeKey: '.com' }
+          // As we are removing the space we need to assign
+          // the extra space (i.e to .com)
+          { value: '.com', ratio: 2 + space.ratio, compositeKey: '.com' }
         );
+
       break;
 
       // adds @ and .
@@ -291,15 +294,6 @@ const IMEController = (function() {
   //  5- If needed, empty the candidate panel
   function _draw(layoutName, inputType, layoutMode, uppercase) {
 
-    // When user scrolls over candidate panels on IME
-    function _onScroll(evt) {
-      if (!_isPressing || !_currentKey)
-        return;
-
-      _onMouseLeave(evt);
-      _isPressing = false; // cancel the following mouseover event
-    }
-
     layoutName = layoutName || _baseLayoutName;
     inputType = inputType || _currentInputType;
     layoutMode = layoutMode || _currentLayout;
@@ -311,8 +305,11 @@ const IMEController = (function() {
     // 4- Draw the keyboard via IMERender
     IMERender.draw(
       _currentLayout,
-      _onScroll,
-      {uppercase: uppercase} // 3- Setup rendering flags
+      // 3- Setup rendering flags
+      {
+        uppercase: uppercase,
+        inputType: _currentInputType
+      }
     );
 
     // 5- If needed, empty the candidate panel
@@ -369,7 +366,21 @@ const IMEController = (function() {
     parent.postMessage(JSON.stringify(message), '*');
   }
 
-  var _dimensionsObserver = new MutationObserver(_updateTargetWindowHeight);
+  function _notifyShowKeyboard(show) {
+
+    var message = {
+      action: (show == true) ? 'showKeyboard' : 'hideKeyboard'
+    };
+
+    parent.postMessage(JSON.stringify(message), '*');
+  }
+
+  var _dimensionsObserver = new MutationObserver(function() {
+      // Not to update the app window height until the transition is complete
+      if (IMERender.ime.dataset.transitioncomplete)
+        _updateTargetWindowHeight();
+  });
+
   var _dimensionsObserverConfig = {
     childList: true, // to detect changes in IMEngine
     attributes: true, attributeFilter: ['class', 'style', 'data-hidden']
@@ -408,7 +419,7 @@ const IMEController = (function() {
     // Get the key object from layout
     var alternatives, altMap, value, keyObj, uppercaseValue;
     var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
-    if (r < 0 || c < 0)
+    if (r < 0 || c < 0 || r === undefined || c === undefined)
       return;
     keyObj = _currentLayout.keys[r][c];
 
@@ -420,6 +431,7 @@ const IMEController = (function() {
         _baseLayoutName,
         SWITCH_KEYBOARD
       );
+      _isShowingAlternativesMenu = true;
       return;
     }
 
@@ -496,12 +508,25 @@ const IMEController = (function() {
   }
 
   // Hide alternatives.
-  function _hideAlternatives() {
+  function _hideAlternatives(addDelay) {
     if (!_isShowingAlternativesMenu)
       return;
 
-    IMERender.hideAlternativesCharMenu();
-    _isShowingAlternativesMenu = false;
+    function actualHideAlternatives() {
+      IMERender.hideAlternativesCharMenu();
+      _isShowingAlternativesMenu = false;
+    }
+
+    if (!addDelay) {
+      actualHideAlternatives();
+      return;
+    }
+
+    clearTimeout(_hideMenuTimeout);
+    _hideMenuTimeout = window.setTimeout(
+      actualHideAlternatives,
+      _kHideAlternativesCharMenuTimeout
+    );
   }
 
   // Test if an HTML node is a normal key
@@ -511,8 +536,20 @@ const IMEController = (function() {
   }
 
   //
-  // EVENTS HANDLERS
+  // Event Handlers
   //
+
+  // When user scrolls over IME's candidate or alternatives panels
+  function _onScroll(evt) {
+    if (!_isPressing || !_currentKey)
+      return;
+
+    if (evt.target === IMERender.menu)
+      clearTimeout(_hideMenuTimeout);
+
+    _onMouseLeave(evt);
+    _isPressing = false; // cancel the following mouseover event
+  }
 
   // When user touches the keyboard
   function _onMouseDown(evt) {
@@ -619,13 +656,7 @@ const IMEController = (function() {
     if (target.parentNode === IMERender.menu) {
       clearTimeout(_hideMenuTimeout);
     } else {
-      clearTimeout(_hideMenuTimeout);
-      _hideMenuTimeout = window.setTimeout(
-        function hideMenuTimeout() {
-          _hideAlternatives();
-        },
-        _kHideAlternativesCharMenuTimeout
-      );
+      _hideAlternatives(true);
     }
 
     // Control showing alternatives menu
@@ -642,12 +673,27 @@ const IMEController = (function() {
 
     IMERender.unHighlightKey(_currentKey);
 
+
     // Program alternatives to hide
-    _hideMenuTimeout = window.setTimeout(function hideMenuTimeout() {
-        _hideAlternatives();
-    }, _kHideAlternativesCharMenuTimeout);
+    if (evt.target !== IMERender.menu &&
+        evt.target.parentNode !== IMERender.menu)
+      _hideAlternatives(true);
 
     _currentKey = null;
+  }
+
+
+  // event handler for transition end
+  function _onTransitionEnd(evt) {
+
+    _updateTargetWindowHeight();
+
+    if (IMERender.ime.dataset.hidden) {
+      delete IMERender.ime.dataset.transitioncomplete;
+      _notifyShowKeyboard(false);
+    } else {
+      IMERender.ime.dataset.transitioncomplete = true;
+    }
   }
 
   // Handle the default behavior for a pressed key
@@ -687,7 +733,7 @@ const IMEController = (function() {
     clearInterval(_deleteInterval);
     clearTimeout(_menuTimeout);
 
-    _hideAlternatives();
+    _hideAlternatives(true);
 
     var target = _currentKey;
     var keyCode = parseInt(target.dataset.keycode);
@@ -745,6 +791,11 @@ const IMEController = (function() {
         // switch to that keyboard.
         if (target.dataset.keyboard) {
           _baseLayoutName = target.dataset.keyboard;
+
+        // If the user is releasing the switch keyboard key while
+        // showing the alternatives, do nothing.
+        } else if (_isShowingAlternativesMenu) {
+          break;
 
         // Cycle between languages (keyboard)
         } else {
@@ -894,7 +945,8 @@ const IMEController = (function() {
     'mouseover': _onMouseOver,
     'mouseleave': _onMouseLeave,
     'mouseup': _onMouseUp,
-    'mousemove': _onMouseMove
+    'mousemove': _onMouseMove,
+    'transitionend': _onTransitionEnd
   };
 
   // Initialize the keyboard (exposed, controlled by IMEManager)
@@ -902,12 +954,12 @@ const IMEController = (function() {
 
     // Support function for render
     function isSpecialKeyObj(key) {
-      var hasSpecialCode = !KeyEvent.DOM_VK_SPACE &&
+      var hasSpecialCode = key.keyCode !== KeyEvent.DOM_VK_SPACE &&
                            key.keyCode &&
                            specialCodes.indexOf(key.keyCode) !== -1;
       return hasSpecialCode || key.keyCode <= 0;
     }
-    IMERender.init(_getUpperCaseValue, isSpecialKeyObj);
+    IMERender.init(_getUpperCaseValue, isSpecialKeyObj, _onScroll);
 
     // Attach event listeners
     for (var event in _imeEvents) {
@@ -923,6 +975,7 @@ const IMEController = (function() {
 
     // Detach event listeners
     _dimensionsObserver.disconnect();
+    var event;
     for (event in _imeEvents) {
       var callback = _imeEvents[event] || null;
       if (callback)
@@ -967,6 +1020,8 @@ const IMEController = (function() {
           _getCurrentEngine().show(type);
         }
       }
+
+      _notifyShowKeyboard(true);
     },
 
     // Hide IME
@@ -980,7 +1035,7 @@ const IMEController = (function() {
       if (IMERender.ime.dataset.hidden)
         return;
 
-      IMERender.resizeUI();
+      IMERender.resizeUI(_currentLayout);
       _updateTargetWindowHeight(); // this case is not captured by the mutation
                                    // observer so we handle it apart
     },

@@ -7,11 +7,16 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
+    "mobileconnection"
   ],
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u0636\u0628\u0637",
       "description": "Gaia \u0627\u0644\u0636\u0628\u0637"
+    },
+    "ca": {
+      "name": "Configuraci\u00f3",
+      "description": "Configuraci\u00f3 del Gaia"
     },
     "de": {
       "name": "Einstellungen",

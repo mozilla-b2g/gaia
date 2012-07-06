@@ -205,7 +205,8 @@ var ListView = {
   },
 
   updateList: function lv_updateList(songData) {
-    var songTitle = (songData.title) ? songData.title : 'Unknown';
+    var songTitle = (songData.title) ? songData.title :
+        navigator.mozL10n.get('unknownTitle');
 
     var li = document.createElement('li');
     li.className = 'song';
@@ -335,9 +336,12 @@ var PlayerView = {
       var targetIndex = parseInt(target.dataset.index);
       var songData = songs[targetIndex];
 
-      TitleBar.changeTitleText((songData.title) ? songData.title : 'Unknown');
-      this.artist.textContent = (songData.artist) ? songData.artist : 'Unknown';
-      this.album.textContent = (songData.album) ? songData.album : 'Unknown';
+      TitleBar.changeTitleText((songData.title) ?
+        songData.title : navigator.mozL10n.get('unknownTitle'));
+      this.artist.textContent = (songData.artist) ?
+        songData.artist : navigator.mozL10n.get('unknownArtist');
+      this.album.textContent = (songData.album) ?
+        songData.album : navigator.mozL10n.get('unknownAlbum');
       this.currentIndex = targetIndex;
 
       // An object URL must be released by calling window.URL.revokeObjectURL()
@@ -415,10 +419,14 @@ var PlayerView = {
     var startTime = this.audio.startTime;
 
     var originalEndTime =
+      (this.audio.duration && this.audio.duration != 'Infinity') ?
+      this.audio.duration :
       this.audio.buffered.end(this.audio.buffered.length - 1);
+
+    // now mp3 returns in seconds, but keep this checking to prevent bugs
     var endTime = (originalEndTime > 1000000) ?
       Math.floor(originalEndTime / 1000000) :
-      originalEndTime;
+      Math.floor(originalEndTime);
 
     var currentTime = this.audio.currentTime;
 
@@ -516,4 +524,13 @@ window.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+});
+
+window.addEventListener('localized', function showBody() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
 });

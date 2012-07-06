@@ -7,13 +7,16 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "power",
     "mozApps"
   ],
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u0633\u0627\u0639\u0629",
       "description": "Gaia \u0627\u0644\u0633\u0627\u0639\u0629"
+    },
+    "ca": {
+      "name": "Rellotge",
+      "description": "Rellotge del Gaia"
     },
     "de": {
       "name": "Uhr",

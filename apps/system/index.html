@@ -52,6 +52,9 @@
     <!-- Sleep Menu -->
     <script defer src="js/sleep_menu.js"></script>
 
+    <!-- Context Menu -->
+    <script defer src="js/context_menu.js"></script>
+
     <!-- PIN Unlocking -->
     <link rel="stylesheet" type="text/css" href="style/pinlock/pinlock.css">
     <script defer src="js/pinlock/pinlock.js"></script>
@@ -63,6 +66,10 @@
     <!-- Attention Screen -->
     <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
     <script defer src="js/attention_screen.js"></script>
+
+    <!-- Popup Manager -->
+    <link rel="stylesheet" type="text/css" href="style/popup_manager/popup_manager.css">
+    <script defer src="js/popup_manager.js"></script>
 
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
@@ -94,22 +101,27 @@
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
 
+    <!-- Bluetooth -->
+    <script defer src="js/bluetooth.js"></script>
+
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
-    <link rel="resource" type="application/l10n" href="locale/system.properties">
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
   </head>
 
   <body onload="startup()">
     <div id="screen" class="screenoff locked">
 
-      <div id="keyboardFrame"></div>
+      <div id="keyboard-overlay"></div>
 
       <div id="windows">
         <!-- application windows are added here -->
+        <div id="popup-container">
+        </div>
       </div>
 
       <!-- keyboard -->
-      <iframe id="keyboard" class="hide"></iframe>
+      <iframe id="keyboard-frame" class="hide"></iframe>
 
       <!-- homescreen -->
       <iframe id="homescreen" mozbrowser mozapp></iframe>
@@ -150,18 +162,16 @@
 
       <!-- utility tray -->
       <div id="utility-tray">
-        <div id="utility-tray-first-shown">
-          <!-- quick settings -->
-          <div id="quick-settings">
-            <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
-            <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-            <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
-            <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
-            <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
-          </div>
-
-          <!-- TBD: credit module -->
+        <!-- quick settings -->
+        <div id="quick-settings">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
+          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
+          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
+          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
         </div>
+
+        <!-- TBD: credit module -->
 
         <!-- notifications -->
         <div id="notifications-container">
@@ -171,9 +181,9 @@
         </div>
       </div>
 
-      <div id="lockscreen" class="uninit screenoff">
+      <div id="lockscreen" class="uninit" data-panel="">
         <div id="lockscreen-container">
-          <div class="lockscreen-panel">
+          <div id="lockscreen-main-panel" class="lockscreen-panel">
             <div id="lockscreen-header">
               <div id="lockscreen-mute" hidden></div>
               <div id="lockscreen-clock"></div>
@@ -185,8 +195,12 @@
               <div id="lockscreen-notification-title"></div>
               <div id="lockscreen-notification-detail"></div>
             </div>
-            <div id="lockscreen-area-unlock" class="lockscreen-handle"></div>
-            <div id="lockscreen-area-camera" class="lockscreen-handle"></div>
+            <div id="lockscreen-area"></div>
+            <div id="lockscreen-area-unlock" class="lockscreen-icon"></div>
+            <div id="lockscreen-area-camera" class="lockscreen-icon"></div>
+            <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
+            <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
+            <div id="lockscreen-area-handle"></div>
           </div>
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
             <p id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</p>
@@ -251,6 +265,7 @@
         <div id="statusbar-conn"></div>
         <div id="statusbar-data"></div>
         <div id="statusbar-wifi" hidden></div>
+        <div id="statusbar-loading" hidden></div>
         <div id="statusbar-padding"></div>
         <div id="statusbar-notification" hidden></div>
         <div id="statusbar-mute" hidden></div>
@@ -275,11 +290,7 @@
     </div>
 
     <div id="listmenu">
-      <div id="listmenu-table">
-        <div id="listmenu-tablecell">
-          <div class="list-menu" id="listmenu-container">
-          </div>
-        </div>
+      <div class="list-menu" id="listmenu-container">
       </div>
     </div>
 

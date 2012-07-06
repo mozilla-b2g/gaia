@@ -21,11 +21,11 @@
 }
 
 .block-name {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-family: System Sans, Sans-serif;
   color: #333;
   display: block;
-  margin: 0.7rem 0;
+  margin: 1.5rem 0;
 }
 
 .block-category {
@@ -129,10 +129,11 @@
   }
 
 /* This elements defines if the item is selected or not */
-.slcl-state {
+.selection-list .slcl-state[role=button] {
   position: absolute;
   right: 0.5rem;
   top: 50%;
-  margin-top: -1.5rem;
+  margin-top: -1.3rem;
+  background: transparent url(/style/gphx/bitmap/default/lists/tick.png) no-repeat center center;
 }
 

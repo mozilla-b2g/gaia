@@ -9,6 +9,7 @@ function startup() {
   SleepMenu.init();
   SourceView.init();
   Shortcuts.init();
+  Bluetooth.init();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
@@ -90,6 +91,10 @@ window.addEventListener('localized', function onlocalized() {
 SettingsListener.observe(
   'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
   var url = 'url(resources/images/backgrounds/' + value + ')';
-  document.body.style.backgroundImage = url;
+  document.getElementById('screen').style.backgroundImage = url;
+});
+
+window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
+  WindowManager.setDisplayedApp(null);
 });
 

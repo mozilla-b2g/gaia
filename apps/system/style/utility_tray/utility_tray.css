@@ -2,11 +2,6 @@
   display: none;
 }
 
-#screen:not(.utility-tray) > #utility-tray {
-  opacity: 0;
-  top: -moz-calc(-100% + 60px);
-}
-
 #utility-tray {
   position: absolute;
   z-index: 9996;
@@ -27,8 +22,4 @@
   border-top: 1px solid #111;
 
   background: #111 url('images/grippy.png') no-repeat 50% 50%;
-}
-
-#utility-tray-first-shown {
-    z-index: 9997;
 }

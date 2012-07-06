@@ -19,7 +19,7 @@
   list-style-type: none;
   display: block;
   margin: 0 auto;
-  margin-top: 2rem;
+	margin-top: 1rem;
 }
 
 .apps ol > li {
@@ -28,8 +28,15 @@
   display: inline-block;
   float: left;
   text-align: center;
-  padding-bottom: 2.2rem;
-  font-family:'Open Sans';
+}
+
+.apps ol > li[data-hidden] {
+  -moz-transform: scale(0);
+}
+
+.apps ol > li[data-visible] {
+  -moz-transform: scale(1);
+  -moz-transition: -moz-transform 1.2s ease;
 }
 
 /* Maximum 16 icons for page */
@@ -40,8 +47,8 @@
 /* Option to delete apps */
 .apps ol > li span.options {
   position: absolute;
-  top: -10%;
-  left: 0;
+  top: .2rem;
+	left: 0;
   width: 100%;
   height: 33%;
   z-index: 2;
@@ -52,6 +59,8 @@
 .apps ol > li > div {
   height: 100%;
   width: 100%;
+	margin-top: 1rem;
+	margin-bottom: 1.2rem;
   pointer-events: none; /* NO touchable area */
 }
 
@@ -64,18 +73,17 @@
 /* label wrapper */
 .apps ol > li > div > span {
   overflow: hidden; /* We cut the text to avoid messing up the grid */
-  text-overflow: ellipsis; /* Ellipsis to represent clipped text */
+  word-wrap: break-word;
 }
 
 /* text label */
 .apps ol > li > div > span > span {
-  font-size: -moz-calc(6 * 0.226rem); /* 6pt */
+  font-size: -moz-calc(5.5 * 0.226rem); /* 5.5pt */
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
 }
 
 .labelWrapper {
   text-transform: capitalize; /* First letter always capitalized */
-  font-weight: bold; /* App label font weight */
   color: #fff; /* App label color */
   white-space: nowrap; /* NO new lines */
   display: block;
@@ -83,6 +91,7 @@
   position: relative;
   height: 1.6rem; /* 15px in otoro */
   margin: 0 auto;
+  font-weight: 600;
 }
 
 .apps .draggable {
@@ -91,63 +100,55 @@
   position: absolute;
   text-align: center;
   width: 8rem;
-  -moz-transform: translate(0,0);
 }
 
-.apps .draggable > img {
-  margin-bottom: .5rem;
-  -moz-transform: scale(1.1);
+.apps .draggable > div {
+  width: 100%;
+	margin-top: 1rem;
+	margin-bottom: 1.2rem;
+  -moz-transform: scale(1.25);
+  -moz-transition: -moz-transform .4s;
+}
+
+.apps .draggable > div > img {
   width: 6rem;
   height: 6rem;
 }
 
 /* label wrapper */
-.apps .draggable > span {
+.apps .draggable > div > span {
   /* shift left edge of text to center */
   left: 50%;
 }
 
 /* text label */
-.apps .draggable > span > span {
-  font-size: 2rem;
-  text-shadow: 0 0 5px #666;
+.apps .draggable > div > span > span {
+  font-size: -moz-calc(5.5 * 0.226rem); /* 5.5pt */
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
   /* shift left edge of text half distance to left */
-  margin-left: -100%;
+  margin-left: -106%;
 }
 
 @-moz-keyframes shake {
-  0% { -moz-transform: translate(3px, 2px) rotate(0deg); }
-  10% { -moz-transform: translate(-2px, -3px) rotate(-2deg); }
-  20% { -moz-transform: translate(-5px, 0px) rotate(2deg); }
-  30% { -moz-transform: translate(0px, 3px) rotate(0deg); }
-  40% { -moz-transform: translate(2px, -2px) rotate(2deg); }
-  50% { -moz-transform: translate(-2px, 3px) rotate(-2deg); }
-  60% { -moz-transform: translate(-5px, 2px) rotate(0deg); }
-  70% { -moz-transform: translate(3px, 2px) rotate(-2deg); }
-  80% { -moz-transform: translate(-2px, -2px) rotate(2deg); }
-  90% { -moz-transform: translate(3px, 3px) rotate(0deg); }
-  100% { -moz-transform: translate(2px, -3px) rotate(-2deg); }
-}
-
-@-moz-keyframes rotation {
-  0% { -moz-transform: rotate(0deg); }
-  100% { -moz-transform: rotate(360deg); }
+  0% { -moz-transform: scale(1); }
+	25% { -moz-transform: scale(1.05); }
+  50% { -moz-transform: scale(1); }
+  75% { -moz-transform: scale(0.95); }
+	100% { -moz-transform: scale(1); }
 }
 
 @-moz-keyframes none {}
 
 /* Image and label have shaking effect */
-.apps[data-mode = 'edit'] ol > li > div {
+.apps[data-mode = 'edit'] ol > li > div > img {
   -moz-animation-name: shake;
-  -moz-animation-duration: 2s;
-  -moz-transform-origin:50% 50%;
+  -moz-animation-duration: .8s;
+  -moz-transform-origin: 50% 50%;
   -moz-animation-iteration-count: infinite;
-  -moz-animation-timing-function: linear;
-  opacity: .8;
+  -moz-animation-timing-function: ease-out;
 }
 
-.apps[data-transitioning] ol > li > div > img,
-.apps[data-transitioning] ol > li > div {
+.apps[data-transitioning] ol > li > div > img {
   -moz-animation-name: none;
 }
 
@@ -155,6 +156,43 @@
   display: none;
 }
 
+.apps[data-dragging] ol > li {
+  opacity: 0.6;
+}
+
 .apps ol > li[data-dragging] {
   opacity: 0;
+}
+
+@-moz-keyframes jumpNextCell {
+  0% { -moz-transform: translateX(0); }
+	100% { -moz-transform: translateX(100%); }
+}
+
+@-moz-keyframes jumpPrevCell {
+  0% { -moz-transform: translateX(0); }
+	100% { -moz-transform: translateX(-100%); }
+}
+
+@-moz-keyframes jumpNextRow {
+  0% { -moz-transform: translate(0,0) }
+  48% { -moz-transform: translateX(100%) }
+  49% { opacity: 0 }
+  50% { -moz-transform: translate(-400%, 100%); opacity: 0 }
+  51% { opacity: 0.6 }
+	100% { -moz-transform: translate(-300%, 100%) }
+}
+
+@-moz-keyframes jumpPrevRow {
+  0% { -moz-transform: translate(0,0) }
+  48% { -moz-transform: translateX(-100%) }
+  49% { opacity: 0 }
+  50% { -moz-transform: translate(400%, -100%); opacity: 0}
+  51% { opacity: 0.6 }
+	100% { -moz-transform: translate(300%, -100%) }
+}
+
+.apps[data-mode = 'edit'] ol > li {
+  -moz-animation-duration: .25s;
+  -moz-animation-timing-function: ease-out;
 }

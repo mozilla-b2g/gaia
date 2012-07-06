@@ -9,13 +9,14 @@
   <script type="text/javascript" src="js/controller.js"></script>
   <script type="text/javascript" src="js/keyboard.js"></script>
   <link rel="stylesheet" type="text/css" href="style/keyboard.css">
-  <!-- 
-    keyboard-simple.css is a temporary fix until mozilla get any conlusion or final fix about redering CSS3 gradients, box-shadows, etc... 
-    This fix improves a lot the performance
-  -->
-  <link rel="stylesheet" type="text/css" href="style/keyboard-simple.css">
 </head>
 <body>
-  <div id="keyboard" data-hidden="true" onmousedown="return false;"></div>
+  <div id="keyboard" class="hide" data-hidden="true" onmousedown="return false;"></div>
+  <!-- This is to pre-load styles for keys avoiding flickering -->
+  <div class="cache">
+      <button class="keyboard-key"><span class="visual-wrapper"><span>C</span></span></button>
+      <button class="keyboard-key special-key"><span class="visual-wrapper"><span>C</span></span></button>
+      <button class="keyboard-key special-key kbr-key-hold"><span class="visual-wrapper"><span>C</span></span></button>
+  </div>
 </body>
 </html>

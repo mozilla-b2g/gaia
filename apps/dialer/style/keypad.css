@@ -5,7 +5,7 @@
 
 #keyboard-view {
   width: 100%;
-  height:100%;
+  height: 100%;
 }
 
 #fake-phone-number-view {
@@ -15,36 +15,38 @@
 }
 
 #phone-number-view-container {
-  width:100%;
-  height:-moz-calc(100% - 34rem);
-  background: #1e2328;
-  width:100%;
-  text-align:center;
+  width: 100%;
+  height: -moz-calc(100% - 34.5rem);
+  background: #242B36;
+  text-align: center;
   display: table;
   table-layout: fixed;
   border-spacing: 1.5rem 0rem;
+  font-family: 'FontLight';
 }
 
-#phone-number-view-container.no-toolbar {
-  height:-moz-calc(100% - 34rem);
+#phone-number-view-container.keypad-visible {
+  height: -moz-calc(100% - 35rem);
+  visibility: hidden;
 }
 
-#phone-number-view{
-  width:100%;
-  border:0;
-  background:transparent;
-  text-align: right;
-  cursor:none;
+#phone-number-view {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: none;
   -moz-user-select: none;
 }
 
 #keypad-delete {
   text-align: center;
   width: 4rem;
+  visibility: hidden;
 }
 
 #keypad-delete:active {
-  opacity:0.7;
+  opacity: 0.7;
 }
 
 #keypad-delete > div {
@@ -56,12 +58,12 @@
 }
 
 #keyboard-container {
-  width:100%;
-  height: 38rem;
+  width: 100%;
+  height: 34.5rem;
 }
 
 #keypad {
-  background: -moz-linear-gradient(top, #2d3642 0%, #0f1214 100%);
+  background: -moz-linear-gradient(top, #191E25 0%, #080B0D 100%);
   height: -moz-calc(100% - 10rem);
   width: 100%;
   display: table;
@@ -70,16 +72,17 @@
 
 .keypad-cell {
   display: table-cell;
-  border-right: 1px solid #313A47;
+  border-right: 1px solid #6F6F6F;
+  border-top: 1px solid #6F6F6F;;
 }
 
 .keypad-cell:last-child {
-  border: 0;
+  border-right: 0;
 }
 
 .keypad-key {
   border: 0;
-  border-bottom: 1px solid #313A47;
+  border-bottom: 1px solid #6F6F6F;
   height: 7rem;
   vertical-align: middle;
   position: relative;
@@ -90,26 +93,52 @@
   opacity: 0.7;
 }
 
-.keypad-key-label-container{
-  width:100%;
-  height:100%;
-  display:table;
+.keypad-key-label-container {
+  width: 100%;
+  height: 100%;
+  display: table;
 }
 
 .keypad-key-label {
-  display:table-cell;
-  padding-left:1.5rem;
-  vertical-align:middle;
+  display: table-cell;
+  padding-left: 1.5rem;
+  vertical-align: middle;
 }
 
 .keypad-key-label-centered {
-  padding-left:0;
-  text-align:center;
+  padding-left: 0;
+  text-align: center;
+}
+
+.font-size-plus {
+  font-size: 2rem;
+}
+
+.asterisk {
+  background-image: url('images/asterisk.png');
+  background-repeat: no-repeat;
+  height: 3rem;
+  width: 3rem;
+  background-size: 3rem 3rem;
+  background-position: center;
+  margin: auto;
+  pointer-events: none;
+}
+
+.sharp {
+  background-image: url('images/sharp.png');
+  background-repeat: no-repeat;
+  height: 3rem;
+  width: 3rem;
+  background-size: 3rem 3rem;
+  background-position: center;
+  margin: auto;
+  pointer-events: none;
 }
 
 #keypad-callbar {
   background: black;
-  height: 6rem;
+  height: 6.5rem;
   width: 100%;
   display: table;
   table-layout: fixed;
@@ -122,7 +151,6 @@
   background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
   border: .1rem solid #242B36;
   border-radius: .2rem;
-  opacity: 0.5;
   vertical-align: middle;
 }
 
@@ -140,51 +168,84 @@
   opacity: 0.7;
 }
 
-#keypad-callbar-back-action {
-  display: table-cell;
-  background: #84c82c;
-  border: 0;
-  border-radius: .2rem;
-  background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%);
-  vertical-align: middle;
-}
-
-#keypad-callbar-back-action:active {
-  opacity: 0.7;
-}
-
 .icon-add-contact {
   margin: auto;
-  width: 2.6rem;
-  height: 2.5rem;
-  background-image: url("images/dialer_icon_addcontact.png");
+  width: 4rem;
+  height: 4rem;
+  background-image: url("images/ActionIcon_40x40_addcontact.png");
   background-repeat: no-repeat;
-  background-size: 2.6rem 2.5rem;
+  background-size: 4rem 4rem;
   background-position: center;
 }
 
 #keypad-callbar-call-action > div {
   margin: auto;
-  width: 2.6rem;
-  height: 2.5rem;
-  background-image: url("images/dialer_icon_call.png");
+  width: 4rem;
+  height: 4rem;
+  background-image: url("images/ActionIcon_40x40_pickup.png");
   background-repeat: no-repeat;
-  background-size: 2.6rem 2.5rem;
+  background-size: 4rem 4rem;
   background-position: center;
 }
 
-#keypad-callbar-back-action > div {
-  margin: auto;
-  width: 2.6rem;
-  height: 2.5rem;
-  background: red;
-  background-repeat: no-repeat;
-  background-position: center;
+#keypad-hidebar {
+  background: rgba(0,0,0,.8);
+  opacity: 1.0;
 }
 
+#keypad-hidebar-hang-up-action-wrapper {
+  float: left;
+  height: 6.5rem;
+  width: 50%;
+}
+
+#keypad-hidebar-hide-keypad-action-wrapper {
+  height: 6.5rem;
+  width: 50%;
+}
+
+.keypad-hidebar-button {
+  height: 4rem;
+  border: 0;
+  border-radius:.3rem;
+  display: block;
+}
+
+#keypad-hidebar-hang-up-action {
+  background: -moz-linear-gradient(top, #ff0000 0%, #ce0000 100%); 
+  opacity: 1.0;
+  margin: 1rem .5rem 1.5rem 1.5rem;
+}
+
+#keypad-hidebar-hang-up-action > div {
+  margin: 0 auto;
+  background-image: url('images/ActionIcon_40x40_hangup.png');
+  background-repeat: no-repeat;
+  background-size: 4rem 4rem;
+  background-position: center;
+  width: 4rem;
+  height: 4rem;
+}
+
+#keypad-hidebar-hide-keypad-action {
+  background: -moz-linear-gradient(top, #6A6A6A 0%, #3E3E3E 100%);
+  opacity: 1.0;
+  margin: 1rem 1.5rem 1.5rem .5rem;
+}
+
+#keypad-hidebar-hide-keypad-action > div {
+  margin: -moz-calc((4rem - 3rem)/2) auto;
+  background-image: url('images/ActionIcons_30x30_dismiss_keyboard.png');
+  background-repeat: no-repeat;
+  background-size: 3rem 3rem;
+  background-position: center;
+  width: 3rem;
+  height: 3rem;
+}
+ 
 .phone-number-font {
   font-size:-moz-calc(18*0.226rem);
-  color:white;
+  color: white;
   font-family:'FontRegular';
 }
 

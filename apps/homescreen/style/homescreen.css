@@ -1,3 +1,21 @@
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/opensans-regular-webfont.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/opensans-semibold-webfont.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/opensans-bold-webfont.woff');
+}
+
+
 html, body {
   width: 100%;
   height: 100%;
@@ -6,6 +24,7 @@ html, body {
   border: none;
   overflow: hidden;
   font-size: 10px;
+  font-family:'Open Sans';
 }
 
 html {
@@ -56,7 +75,8 @@ section,footer,nav,a,img {
   position: fixed;
   bottom: 0;
   z-index: 10000;
-  background-color: black;
+  background-color: rgba(0,0,0, .3);
+  box-shadow: inset 0 3px 3px -3px #333;
 }
 
 #footer[data-mode = 'edit'] .dock > li {
@@ -79,12 +99,13 @@ section,footer,nav,a,img {
 
 #footer .dock > li {
   height: 100%;
-  width: 25%;
+  width: -moz-calc(32rem / 3);
   float: left;
   background-repeat: no-repeat;
   background-position: center;
   background-size: auto;
   font: 0/0 a;
+  opacity: 0.6;
 }
 
 #footer .dock > .logs {
@@ -93,10 +114,6 @@ section,footer,nav,a,img {
 
 #footer .dock > .contacts {
   background-image: url('../resources/images/footer/2.png');
-}
-
-#footer .dock > .messages {
-  background-image: url('../resources/images/footer/3.png');
 }
 
 #footer .dock > .phone {
@@ -127,4 +144,3 @@ button {
 html[dir=rtl] .apps ol > li {
   float: right;
 }
-

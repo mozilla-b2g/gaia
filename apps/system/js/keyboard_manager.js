@@ -1,18 +1,16 @@
 'use strict';
 
 var KeyboardManager = (function() {
-
-  var KEYBOARD_ID = 'keyboard';
-
   // XXX TODO: Retrieve it from Settings, allowing 3rd party keyboards
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
   var KEYBOARD_URL = 'http://keyboard.' + domain;
 
-  var keyboardFrame;
+  var keyboardFrame, keyboardOverlay;
 
   var init = function kbManager_init() {
-    keyboardFrame = document.getElementById(KEYBOARD_ID);
+    keyboardFrame = document.getElementById('keyboard-frame');
+    keyboardOverlay = document.getElementById('keyboard-overlay');
     keyboardFrame.src = KEYBOARD_URL;
 
     listenUpdateHeight();
@@ -24,12 +22,10 @@ var KeyboardManager = (function() {
     // without postMessages between Keyboard and System
     window.addEventListener('message', function receiver(evt) {
       var message = JSON.parse(evt.data);
-
       if (message.action !== 'updateHeight')
         return;
 
       var app = WindowManager.getDisplayedApp();
-
       if (!app)
         return;
 
@@ -38,8 +34,12 @@ var KeyboardManager = (function() {
       var currentApp = WindowManager.getAppFrame(app);
 
       if (!message.hidden) {
-        currentApp.style.height =
-          (parseInt(currentApp.style.height) - message.keyboardHeight) + 'px';
+        var height = (parseInt(currentApp.style.height) -
+                      message.keyboardHeight);
+
+        keyboardOverlay.style.height = (height + 20) + 'px';
+
+        currentApp.style.height = height + 'px';
         currentApp.classList.add('keyboardOn');
         keyboardFrame.classList.remove('hide');
       } else {
@@ -62,7 +62,6 @@ var KeyboardManager = (function() {
       // finished.
       //
       switch (evt.type) {
-
         case 'appwillclose':
           // Hide the keyboardFrame!
           var app = WindowManager.getDisplayedApp();
@@ -94,3 +93,4 @@ window.addEventListener('load', function initKeyboardManager(evt) {
   window.removeEventListener('load', initKeyboardManager);
   KeyboardManager.init();
 });
+

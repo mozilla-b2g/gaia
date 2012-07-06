@@ -28,6 +28,7 @@ body {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  padding-bottom: 50px;
 }
 
 #nophotos {
@@ -57,8 +58,8 @@ body {
 
 .thumbnail {
   /* sizes overridden in media queries below */
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   margin: 0;
   padding: 0;
   /* borders only on right and bottom */
@@ -66,7 +67,7 @@ body {
   border-bottom: solid black 1px;
   overflow: hidden;
   /* default to left-to-right, but overridden for rtl languages below */
-  float: left;  
+  float: left;
   /* no list item bullets */
   list-style-type: none;
   /* don't let the user select the items */
@@ -79,22 +80,27 @@ body {
 }
 
 /* 320x480 phones */
-@media (orientation: portrait) and (width: 320px),
-       (orientation: landscape) and (width: 480px) {
+@media (orientation: portrait) and (width: 320px) {
+  .thumbnail {
+    width: 107px;
+    height: 107px;
+  }
+}
 
-    .thumbnail {    
-        width: 107px;
-        height: 107px;
-    }    
+@media (orientation: landscape) and (width: 480px) {
+  .thumbnail {
+    width: 120px;
+    height: 120px;
+  }
 }
 
 /* 480x800 phones portrait */
-@media (orientation: portrait) and (width: 480px), 
+@media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
-    .thumbnail {       
+    .thumbnail {
         width: 160px;
         height: 160px;
-    }    
+    }
 }
 
 #photos {
@@ -202,4 +208,48 @@ body.hidden *[data-l10n-id] {
 
 *[dir=rtl] .thumbnail {
   float: right;
+}
+
+#footer-menu {
+  background: rgba(0, 0, 0, 0.8);
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#footer-menu.hidden {
+  display: none;
+}
+
+#footer-menu a {
+  position: absolute;
+  display: block;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+#camera-button, #select-button {
+  width: 25%;
+  height: 100%;
+}
+
+#slideshow-button {
+  background-image: url('images/play.png');
+  left: 25%;
+  width: 50%;
+  height: 100%;
+  border-right: 1px solid #000;
+}
+
+#camera-button {
+  background-image: url('images/camera.png');
+  left: 0;
+  border-right: 1px solid #000;
+}
+
+#select-button {
+  background-image: url('images/select.png');
+  left: 75%;
 }

@@ -1,0 +1,268 @@
+html, body {
+  padding: 0;
+  border: 0;
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: url("images/app-texture.png") repeat scroll 0 0 #F4F4F4;
+}
+
+div {
+  position: relative;
+}
+
+a {
+  outline: 0 none;
+  text-decoration: none;
+  color: #555;
+}
+
+a:active {
+  color: #000;
+}
+
+div#containter {
+  height: 100%;
+  width: 100%;
+}
+
+div#title-bar {
+  height: 20px;
+}
+
+/****** styles for frequency view *******/
+div#freq-view {
+  height: 100px;
+  width: 100%;
+}
+
+div#freq-view a {
+  outline: 0 none;
+  text-decoration: none;
+  color: #555;
+}
+
+a#bookmark-button {
+  position: relative;
+  top: -24px;
+  font-size: 50px;
+  cursor: pointer;
+}
+
+a#bookmark-button:after {
+  content: "♡";
+}
+
+div#freq-view a.in-fav-list:after {
+  content: "♥" !important;
+}
+
+label#frequency {
+  font-size: 80px;
+}
+
+label#frequency:after {
+  content: "MHz";
+  font-size: 40px;
+  padding-left: 10px;
+}
+/*****  end  *****/
+
+/*** styles for the operations of frequency ***/
+div#freq-ops {
+  height: 80px;
+  text-align: center;
+}
+
+div#freq-ops > a {
+  font-size: 80px;
+  padding-right: 30px;
+  position: relative;
+  top: -25px;
+}
+
+div#freq-ops > a:last-child {
+  padding-right: 0;
+}
+
+a#freq-op-seekdown:after {
+  content: "«";
+}
+
+a#freq-op-100khz-down:after {
+  content: "<";
+}
+
+a#freq-op-seekup:after {
+  content: "»";
+}
+
+a#freq-op-100khz-up:after {
+  content: ">";
+}
+/**** end *******/
+
+/***** styles for favorites list ******/
+div.auto {
+  height: -moz-calc(100% - 200px);
+  overflow: hidden;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+  margin: 0 0 -60px 0;
+  padding: 0 0 60px 0;
+  clear: both;
+}
+
+div#fav-list {
+  float: left;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+}
+
+div#fav-list-container {
+  max-height: 100%;
+  position: absolute;
+  bottom: 2px;
+  width: 100%;
+}
+
+div#fav-list-container > div {
+  font-size: 45px;
+  height: 65px;
+  text-align: right;
+  width: 100%;
+  clear: both;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+  padding-right: -moz-calc(50% - 110px);
+}
+
+div#fav-list-container > div.selected,
+div#fav-list-container > div:active {
+  background-color: lightGray;
+}
+
+div#fav-list-container > div:after {
+  content: "MHz";
+  font-size: 28px;
+  padding-left: 10px;
+}
+
+div#fav-list-container > div:before {
+  content: "♥";
+  font-size: 30px;
+  left: 0;
+  position: absolute;
+  padding: 10px 0 0 40px;
+}
+/***** end *****/
+
+/***** styles for status bar *****/
+div#status-bar {
+  height: 60px;
+}
+
+div#status-bar > div {
+  height: 100%;
+  overflow: hidden;
+}
+
+div#status-bar > div > div {
+  float: left;
+  height: 100%;
+  width: 33%;
+  font-size: 32px;
+  text-align: center;
+}
+
+div#switch-bar a.poweron label.poweron {
+  display: block;
+}
+
+div#switch-bar a.poweron label.poweroff {
+  display: none;
+}
+
+div#switch-bar a.poweroff label.poweron {
+  display: none;
+}
+
+div#switch-bar a.poweroff label.poweroff {
+  display: block;
+}
+
+div#switch-bar a.speaker label.speaker {
+  display: block;
+}
+
+div#switch-bar a.speaker label.headset {
+  display: none;
+}
+
+div#switch-bar a.headset label.speaker {
+  display: none;
+}
+
+div#switch-bar a.headset label.headset {
+  display: block;
+}
+/**** end ****/
+
+/***  styles for antenna warning box ****/
+div#antenna-warning {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  font-size: 50px;
+  color: #FFF;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+div#antenna-warning > div {
+  display: table;
+  height: 100%;
+  width: 100%;
+}
+
+div#antenna-warning > div > div {
+  text-align: center;
+  vertical-align: middle;
+  display: table-cell;
+  height: 100%;
+  width: 100%;
+}
+/******* end *******/
+
+/***** styles for popup delete box ****/
+div#popup-delete-box {
+  position: absolute;
+  height: 40px;
+  width: 150px;
+  top: 0;
+  left: 0;
+  border: 1px solid #555;
+  border-radius: 10px;
+  text-align: center;
+  background-color: #F4F4F4;
+  z-index: 1000;
+  font-size: 30px;
+}
+/******* end *******/
+
+/* localization */
+body.hidden *[data-l10n-id] {
+  visibility: hidden;
+}
+/******* end *******/
+
