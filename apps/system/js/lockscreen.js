@@ -216,6 +216,9 @@ var LockScreen = {
 
           case this.areaHandle:
             this._touch.touched = true;
+            this._touch.initX = evt.pageX;
+            this._touch.initY = evt.pageY;
+
             overlay.classList.add('touched');
             break;
         }
