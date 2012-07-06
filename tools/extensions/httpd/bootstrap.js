@@ -53,13 +53,14 @@ function startup(data, reason) {
   
   function getDirectories(dir) {
     let dirs = [];
-  
-    ['apps', 'test_apps'].forEach(function addDirectory(name) {
+    let appSrcDirs = '@GAIA_APP_SRCDIRS@'.split(' ');
+
+    appSrcDirs.forEach(function addDirectory(name) {
       let appsDir = Cc['@mozilla.org/file/local;1']
-                   .createInstance(Ci.nsILocalFile);
+                      .createInstance(Ci.nsILocalFile);
       appsDir.initWithPath(dir);
       appsDir.append(name);
-  
+
       let files = appsDir.directoryEntries;
       while (files.hasMoreElements()) {
         let file = files.getNext().QueryInterface(Ci.nsILocalFile);
@@ -70,7 +71,6 @@ function startup(data, reason) {
     });
     return dirs;
   }
-  
   
   function LongPoll(connid, transport) {
     this.transport = transport;
@@ -334,8 +334,7 @@ function startup(data, reason) {
   };
   
   startupHttpd('@GAIA_DIR@', @GAIA_PORT@);
-  
-  }
+}
   
 function shutdown(data, reason) {
 }

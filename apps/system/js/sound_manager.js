@@ -59,7 +59,7 @@ var SoundManager = {
         break;
 
       case 'keyup':
-        if (evt.keyCode !== evt.DOM_VK_PAGE_UP ||
+        if (evt.keyCode !== evt.DOM_VK_PAGE_UP &&
             evt.keyCode !== evt.DOM_VK_PAGE_DOWN)
           return;
 
@@ -72,15 +72,15 @@ var SoundManager = {
     callback();
     clearTimeout(this._timer);
 
-    if (!this.kRepeatTimeout)
+    if (!this.kKeyRepeatTimeout)
       return;
 
     this._timer = window.setTimeout((function volumeTimeout() {
-      actionCallback();
+      callback();
       this._timer = setInterval(function volumeInterval() {
         callback();
-      }, this.kRepeatRate);
-    }).bind(this), this.kRepeatTimeout);
+      }, this.kKeyRepeatRate);
+    }).bind(this), this.kKeyRepeatTimeout);
   },
 
   changeVolume: function soundManager_changeVolume(delta) {

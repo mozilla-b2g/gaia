@@ -251,7 +251,7 @@ var StatusBar = {
     this.wifi.hidden = !network;
     this.data.hidden = !!network;
 
-    if (network && evt.relSignalStrength) {
+    if (network && evt && evt.relSignalStrength) {
       // relSignalStrength should be between 0 and 100
       var relSignalStrength = evt.relSignalStrength || 0;
       if (wifiManager.connectionInformation) {

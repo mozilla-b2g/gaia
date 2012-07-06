@@ -109,8 +109,10 @@ Icon.prototype = {
     this.initX = x;
     this.initY = y;
 
-    var draggableElem = this.draggableElem = this.icon.cloneNode();
+    var draggableElem = this.draggableElem = document.createElement('div');
     draggableElem.className = 'draggable';
+
+    draggableElem.appendChild(this.icon.cloneNode());
 
     var container = this.container;
     container.dataset.dragging = 'true';
@@ -119,6 +121,8 @@ Icon.prototype = {
     var style = draggableElem.style;
     style.left = rectangle.left + 'px';
     style.top = rectangle.top + 'px';
+    this.initXCenter = (rectangle.left + rectangle.right) / 2;
+    this.initYCenter = (rectangle.top + rectangle.bottom) / 2;
 
     this.dragabbleSection.appendChild(draggableElem);
   },
@@ -138,9 +142,35 @@ Icon.prototype = {
   /*
    * This method is invoked when the drag gesture finishes
    */
-  onDragStop: function icon_onDragStop() {
-    delete this.container.dataset.dragging;
-    this.dragabbleSection.removeChild(this.draggableElem);
+  onDragStop: function icon_onDragStop(callback) {
+    var rect = this.container.getBoundingClientRect();
+    var x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
+    x -= this.initXCenter;
+
+    var y = (rect.top + rect.bottom) / 2;
+    y -= this.initYCenter;
+
+    var draggableElem = this.draggableElem;
+    var style = draggableElem.style;
+    style.MozTransition = '-moz-transform .4s';
+    style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
+    draggableElem.querySelector('div').style.MozTransform = 'scale(1)';
+
+    var self = this;
+    draggableElem.addEventListener('transitionend', function draggableEnd(e) {
+      draggableElem.removeEventListener('transitionend', draggableEnd);
+      delete self.container.dataset.dragging;
+      self.dragabbleSection.removeChild(this);
+      callback();
+    });
+  },
+
+  getTop: function icon_getTop() {
+    return this.container.getBoundingClientRect().top;
+  },
+
+  getOrigin: function icon_getOrigin() {
+    return this.descriptor.origin;
   }
 };
 
@@ -152,12 +182,6 @@ var Page = function() {
 };
 
 Page.prototype = {
-  vars: {
-    transitionend: 'transitionend',
-    right: 'right',
-    left: 'left',
-    center: 'center'
-  },
 
   /*
    * Renders a page for a list of apps
@@ -166,7 +190,7 @@ Page.prototype = {
    *
    * @param{Object} target DOM element container
    */
-  render: function(apps, target) {
+  render: function pg_render(apps, target) {
     this.container = target;
     var len = apps.length;
 
@@ -194,7 +218,7 @@ Page.prototype = {
    *
    * @param{int} the duration in milliseconds
    */
-  setTranstionDuration: function(style, duration) {
+  setTranstionDuration: function pg_setTranstionDuration(style, duration) {
     style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
   },
 
@@ -206,7 +230,7 @@ Page.prototype = {
   /*
    * Moves the page to the end of the screen
    */
-  moveToEnd: function() {
+  moveToEnd: function pg_moveToEnd() {
     var style = this.container.style;
     style.MozTransform = GridManager.dirCtrl.translateNext;
     this.setTranstionDuration(style, this.transitionDuration);
@@ -215,7 +239,7 @@ Page.prototype = {
   /*
    * Moves the page to the beginning of the screen
    */
-  moveToBegin: function() {
+  moveToBegin: function pg_moveToBegin() {
     var style = this.container.style;
     style.MozTransform = GridManager.dirCtrl.translatePrev;
     this.setTranstionDuration(style, this.transitionDuration);
@@ -224,7 +248,7 @@ Page.prototype = {
   /*
    * Moves the page to the center of the screen
    */
-  moveToCenter: function(onTransitionEnd) {
+  moveToCenter: function pg_moveToCenter(onTransitionEnd) {
     var cont = this.container;
     var style = cont.style;
     style.MozTransform = 'translateX(0)';
@@ -242,13 +266,13 @@ Page.prototype = {
    *
    * @param{String} the app origin
    */
-  moveTo: function(translate) {
+  moveTo: function pg_moveTo(translate) {
     var style = this.container.style;
     style.MozTransform = 'translateX(-moz-calc(' + translate + '))';
     this.setTranstionDuration(style, 0);
   },
 
-  applyInstallingEffect: function(origin) {
+  applyInstallingEffect: function pg_applyInstallingEffect(origin) {
     this.icons[origin].show();
   },
 
@@ -257,8 +281,33 @@ Page.prototype = {
    *
    * @param{String} the app origin
    */
-  getIcon: function(origin) {
+  getIcon: function pg_getIcon(origin) {
     return this.icons[origin];
+  },
+
+  ready: true,
+
+  setReady: function pg_setReady(value) {
+    this.ready = value;
+    if (value && this.onReArranged) {
+      this.onReArranged();
+    }
+  },
+
+  jumpNode: function pg_jumpNode(node, animation, originNode,
+                                 targetNode, upward) {
+    var self = this;
+    node.style.MozAnimationName = animation;
+    node.addEventListener('animationend', function animationEnd(e) {
+      node.removeEventListener('animationend', animationEnd);
+      node.style.MozAnimationName = '';
+
+      if (node === targetNode) {
+        self.olist.insertBefore(originNode, upward ? targetNode :
+                                                     targetNode.nextSibling);
+        self.setReady(true);
+      }
+    });
   },
 
   /*
@@ -267,19 +316,40 @@ Page.prototype = {
    * @param{String} origin icon
    *
    * @param{String} target icon
-   *
-   * @param{int} negative values indicate going upwards and positive
-   *             values indicate going backwards
    */
-  drop: function(origin, target, dir) {
-    var icons = this.icons;
-    var onode = icons[origin].container;
-    var tnode = icons[target].container;
-    if (dir > 0) {
-      // upwards
-      tnode = tnode.nextSibling;
+  drop: function pg_drop(origin, target) {
+    if (origin === target) {
+      return;
     }
-    this.olist.insertBefore(onode, tnode);
+
+    this.setReady(false);
+
+    var icons = this.icons;
+    var originNode = icons[origin].container;
+    var targetNode = icons[target].container;
+
+    var children = this.olist.children;
+    var indexOf = Array.prototype.indexOf;
+    var oIndex = indexOf.call(children, originNode);
+    var tIndex = indexOf.call(children, targetNode);
+
+    if (oIndex < tIndex) {
+      for (var i = oIndex + 1; i <= tIndex; i++) {
+        var animation = 'jumpPrevCell';
+        if (i % 4 === 0) {
+          animation = 'jumpPrevRow';
+        }
+        this.jumpNode(children[i], animation, originNode, targetNode, false);
+      }
+    } else {
+      for (var i = oIndex - 1; i >= tIndex; i--) {
+        var animation = 'jumpNextCell';
+        if (i % 4 === 3) {
+          animation = 'jumpNextRow';
+        }
+        this.jumpNode(children[i], animation, originNode, targetNode, true);
+      }
+    }
   },
 
   /*
@@ -287,7 +357,7 @@ Page.prototype = {
    *
    * @param{Object} DOM element
    */
-  tap: function(elem) {
+  tap: function pg_tap(elem) {
     if (GridManager.isEditMode()) {
       if (elem.className === 'options') {
         Homescreen.showAppDialog(elem.dataset.origin);
@@ -302,42 +372,46 @@ Page.prototype = {
    *
    * @param{Object} icon object
    */
-  prependIcon: function(icon) {
+  prependIcon: function pg_prependIcon(icon) {
+    this.setReady(false);
     var olist = this.olist;
-    if (olist.childNodes.length > 0) {
-      olist.insertBefore(icon.container, this.olist.firstChild);
+    if (olist.children.length > 0) {
+      olist.insertBefore(icon.container, olist.firstChild);
     } else {
       olist.appendChild(icon.container);
     }
+    this.setReady(true);
     this.icons[icon.descriptor.origin] = icon;
-  },
-
-  /*
-   * Moves an icon to the first position
-   *
-   * @param{Object} icon object
-   */
-  moveIconToFirstChild: function(icon) {
-    var olist = this.olist;
-    if (olist.childNodes.length > 0) {
-      olist.insertBefore(icon.container, olist.firstChild);
-    }
   },
 
   /*
    * Removes the last icon of the page and returns it
    */
-  popIcon: function() {
+  popIcon: function pg_popIcon() {
     var icon = this.getLastIcon();
     this.remove(icon);
     return icon;
   },
 
+  insertBeforeLastIcon: function pg_insertBeforeLastIcon(icon) {
+    this.setReady(false);
+    var olist = this.olist;
+    if (olist.children.length > 0) {
+      olist.insertBefore(icon.container, olist.lastChild);
+      this.icons[icon.getOrigin()] = icon;
+    }
+    this.setReady(true);
+  },
+
   /*
    * Returns the last icon of the page
    */
-  getLastIcon: function() {
-    return this.icons[this.olist.lastChild.dataset.origin];
+  getLastIcon: function pg_getLastIcon() {
+    var lastIcon = this.olist.lastChild;
+    if (lastIcon) {
+      lastIcon = this.icons[lastIcon.dataset.origin];
+    }
+    return lastIcon;
   },
 
   /*
@@ -345,10 +419,12 @@ Page.prototype = {
    *
    * @param{Object} moz app or icon object
    */
-  append: function(app) {
+  append: function pg_append(app) {
     if (app.type && app.type === 'ApplicationIcon') {
+      this.setReady(false);
       this.olist.appendChild(app.container);
       this.icons[app.descriptor.origin] = app;
+      this.setReady(true);
     } else {
       // This is a moz app
       var icon = new Icon(app);
@@ -362,7 +438,7 @@ Page.prototype = {
    *
    * @param{Object} moz app or icon object
    */
-  remove: function(app) {
+  remove: function pg_remove(app) {
     var icon = app;
     if ('ApplicationIcon' !== app.type) {
       // This is a moz app
@@ -375,7 +451,7 @@ Page.prototype = {
   /*
    * Destroys the component page
    */
-  destroy: function() {
+  destroy: function pg_destroy() {
     delete this.icons;
     this.container.parentNode.removeChild(this.container);
   },
@@ -383,14 +459,14 @@ Page.prototype = {
   /*
    * Returns the number of apps
    */
-  getNumApps: function() {
-    return this.olist.childNodes.length;
+  getNumApps: function pg_getNumApps() {
+    return this.olist.children.length;
   },
 
   /*
    * Translates the label of the icons
    */
-  translate: function(lang) {
+  translate: function pg_translate(lang) {
     var icons = this.icons;
     for (var origin in icons) {
       icons[origin].translate(lang);
@@ -400,8 +476,8 @@ Page.prototype = {
   /*
    * Returns the list of apps
    */
-  getAppsList: function() {
-    var nodes = this.olist.childNodes;
+  getAppsList: function pg_getAppsList() {
+    var nodes = this.olist.children;
     return Array.prototype.map.call(nodes, function extractOrigin(node) {
       return node.dataset.origin;
     });
