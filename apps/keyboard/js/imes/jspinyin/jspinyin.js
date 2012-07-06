@@ -4,7 +4,7 @@
 'use strict';
 
 (function() {
-var debugging = false;
+var debugging = true;
 var debug = function jspinyin_debug(str) {
   if (!debugging) {
     return;
@@ -3661,6 +3661,10 @@ var SearchUtility = {
 
 // Type used to express a lemma and its probability score.
 SearchUtility.LmaPsbItem = function lmaPsbItem_constructor() {
+  this.id = 0;
+  this.lma_len = 0;
+  this.psb = 0;
+  this.hanzi = '';
 };
 
 SearchUtility.LmaPsbItem.prototype = {
@@ -3670,7 +3674,18 @@ SearchUtility.LmaPsbItem.prototype = {
   psb: 0,
   // For single character items, we may also need Hanzi.
   // For multiple characer items, ignore it.
-  hanzi: ''
+  hanzi: '',
+
+  /**
+   * Copy the content.
+   * @param {SearchUtility.LmaPsbItem} src The source to be copied.
+   */
+  copy: function lmaPsbItem_copy(src) {
+    this.id = src.id;
+    this.lma_len = src.lma_len;
+    this.psb = src.psb;
+    this.hanzi = src.hanzi;
+  }
 };
 
 // LmaPsbItem extended with string.
@@ -4268,8 +4283,6 @@ MatrixSearch.prototype = {
         this.pys_decoded_len_ = ch_pos;
         break;
       }
-      debug('4055 ' + py.charAt(ch_pos));
-      this.debug_print_mtrx_nd_pool();
       ch_pos++;
     }
 
@@ -5720,7 +5733,6 @@ MatrixSearch.prototype = {
    * @return {number} Number of new extended items.
    */
   extend_dmi: function matrixSearch_extend_dmi(dep, dmi_s, dmi_s_pos) {
-    debug('5508 ' + StringUtils.format('extend_dmi {0}', dmi_s));
     if (this.dmi_pool_used_ >= MatrixSearch.kDmiPoolSize) {
       return 0;
     }
@@ -5988,7 +6000,6 @@ MatrixSearch.prototype = {
    * @private
    */
   add_char: function matrixSearch_add_char(ch) {
-    debug('add_char:' + ch);
     if (!this.prepare_add_char(ch)) {
       return false;
     }
@@ -6100,7 +6111,7 @@ MatrixSearch.prototype = {
         // or "zh" has been passed, "z h" is not allowed.
         // Both word and word-connection will be prevented.
         if (longest_ext > ext_len) {
-          if (null == dmi && 0 == this.matrix_[oldrow].dmi_has_full_id) {
+          if (null == dmi && false == this.matrix_[oldrow].dmi_has_full_id) {
             continue;
           }
 
@@ -6220,6 +6231,10 @@ MatrixSearch.prototype = {
     }
 
     this.lpi_total_ = 0;
+    this.lpi_items_ = [];
+    for (var pos = 0; pos < MatrixSearch.kMaxLmaPsbItems; pos++) {
+      this.lpi_items_[pos] = new SearchUtility.LmaPsbItem();
+    }
     var lpi_num_full_match = 0;  // Number of items which are fully-matched.
     while (lma_size > 0) {
       var lma_num;
@@ -8062,11 +8077,18 @@ var LpiCache = function lpiCache_constructor() {
   this.lpi_cache_ = [];
   this.lpi_cache_len_ = [];
   for (var id = 0; id < SpellingTrie.kFullSplIdStart; id++) {
-    this.lpi_cache_[id] = new SearchUtility.LmaPsbItem();
     this.lpi_cache_len_[id] = 0;
+  }
+  var n = SpellingTrie.kFullSplIdStart * LpiCache.kMaxLpiCachePerId;
+  for (var pos = 0; pos < n; pos++) {
+    this.lpi_cache_[pos] = new SearchUtility.LmaPsbItem();
   }
 };
 
+/**
+ * Get the singleon instance of LpiCache.
+ * @return {LpiCache} The singleton instance.
+ */
 LpiCache.get_instance = function lpiCache_get_instance() {
   if (LpiCache.instance_ == null) {
     LpiCache.instance_ = new LpiCache();
@@ -8074,6 +8096,11 @@ LpiCache.get_instance = function lpiCache_get_instance() {
   return LpiCache.instance_;
 };
 
+/**
+ * The singleton instance.
+ * @private
+ * @type LpiCache
+ */
 LpiCache.instance_ = null;
 
 LpiCache.kMaxLpiCachePerId = 15;
@@ -8109,7 +8136,7 @@ LpiCache.prototype = {
 
     var lpi_cache_this = splid * LpiCache.kMaxLpiCachePerId;
     for (var pos = 0; pos < num; pos++) {
-      this.lpi_cache_[lpi_cache_this + pos] = lpi_items[pos];
+      this.lpi_cache_[lpi_cache_this + pos].copy(lpi_items[pos]);
     }
 
     this.lpi_cache_len_[splid] = num;
@@ -8130,7 +8157,7 @@ LpiCache.prototype = {
 
     var lpi_cache_this = splid * LpiCache.kMaxLpiCachePerId;
     for (var pos = 0; pos < num; pos++) {
-      lpi_items[pos] = this.lpi_cache_[lpi_cache_this + pos];
+      lpi_items[pos].copy(this.lpi_cache_[lpi_cache_this + pos]);
     }
     return num;
   },
