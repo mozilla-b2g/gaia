@@ -34,6 +34,7 @@ var Browser = {
     this.history = document.getElementById('history');
     this.backButton = document.getElementById('back-button');
     this.forwardButton = document.getElementById('forward-button');
+    this.bookmarkButton = document.getElementById('bookmark-button');
     this.sslIndicator = document.getElementById('ssl-indicator');
 
     this.tabsBadge = document.getElementById('tabs-badge');
@@ -51,6 +52,7 @@ var Browser = {
     this.backButton.addEventListener('click', this.goBack.bind(this));
     this.urlButton.addEventListener('click', this.go.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
+    this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
     this.tabsBadge.addEventListener('click',
@@ -73,9 +75,9 @@ var Browser = {
 
     this.handleWindowResize();
 
-    // Load homepage once GlobalHistory is initialised
+    // Load homepage once Places is initialised
     // (currently homepage is blank)
-    GlobalHistory.init((function() {
+    Places.init((function() {
       this.selectTab(this.createTab());
       this.showPageScreen();
     }).bind(this));
@@ -174,7 +176,7 @@ var Browser = {
           var a = document.createElement('a');
           a.href = tab.url;
           var iconUrl = a.protocol + '//' + a.hostname + '/' + 'favicon.ico';
-          GlobalHistory.setAndLoadIconForPage(tab.url, iconUrl);
+          Places.setAndLoadIconForPage(tab.url, iconUrl);
         }
 
         break;
@@ -193,7 +195,7 @@ var Browser = {
       case 'mozbrowsertitlechange':
         if (evt.detail) {
           tab.title = evt.detail;
-          GlobalHistory.setPageTitle(tab.url, tab.title);
+          Places.setPageTitle(tab.url, tab.title);
           if (isCurrentTab && !tab.loading) {
             this.urlInput.value = tab.title;
           }
@@ -208,7 +210,7 @@ var Browser = {
       case 'mozbrowsericonchange':
         if (evt.detail && evt.detail != tab.iconUrl) {
           tab.iconUrl = evt.detail;
-          GlobalHistory.setAndLoadIconForPage(tab.url, tab.iconUrl);
+          Places.setAndLoadIconForPage(tab.url, tab.iconUrl);
         }
         break;
 
@@ -291,12 +293,37 @@ var Browser = {
 
   goBack: function browser_goBack() {
     this.currentTab.dom.goBack();
-    this.refreshButtons();
   },
 
   goForward: function browser_goForward() {
     this.currentTab.dom.goForward();
-    this.refreshButtons();
+  },
+
+  bookmark: function browser_bookmark() {
+    // If no URL, can't create a bookmark
+    if (!this.currentTab.url)
+      return;
+    // If bookmarked, unbookmark
+    if (this.bookmarkButton.classList.contains('bookmarked')) {
+      Places.removeBookmark(this.currentTab.url,
+        this.refreshBookmarkButton.bind(this));
+    // If not bookmarked, bookmark
+    } else {
+      Places.addBookmark(this.currentTab.url, this.currentTab.title,
+        this.refreshBookmarkButton.bind(this));
+    }
+  },
+
+  refreshBookmarkButton: function browser_refreshBookmarkButton() {
+    if (!this.currentTab.url)
+      return;
+    Places.getBookmark(this.currentTab.url, (function(bookmark) {
+      if (bookmark) {
+        this.bookmarkButton.classList.add('bookmarked');
+      } else {
+        this.bookmarkButton.classList.remove('bookmarked');
+      }
+    }).bind(this));
   },
 
   refreshButtons: function browser_refreshButtons() {
@@ -306,10 +333,11 @@ var Browser = {
     this.currentTab.dom.getCanGoForward().onsuccess = (function(e) {
       this.forwardButton.disabled = !e.target.result;
     }).bind(this);
+    this.refreshBookmarkButton();
   },
 
   updateHistory: function browser_updateHistory(url) {
-    GlobalHistory.addVisit(url);
+    Places.addVisit(url);
     this.refreshButtons();
   },
 
@@ -404,7 +432,7 @@ var Browser = {
       return;
     }
 
-    GlobalHistory.db.getIcon(visit.iconUri, (function(icon) {
+    Places.db.getIcon(visit.iconUri, (function(icon) {
       if (icon && icon.failed != true && icon.data) {
         var imgUrl = window.URL.createObjectURL(icon.data);
         link.style.backgroundImage = 'url(' + imgUrl + ')';
@@ -632,7 +660,7 @@ var Browser = {
   },
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
-    GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
+    Places.getHistory(this.showGlobalHistory.bind(this));
     this.urlInput.focus();
     this.setUrlButtonMode(this.GO);
     this.tabsBadge.innerHTML = '';
