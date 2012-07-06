@@ -124,42 +124,6 @@ var MessageManager = {
   }
 };
 
-/* DelayDeleteManager and execute the delete task when:
- * 1. A period of time without undo action.
- * 2. View status change.
- * 3. Other scenario...
- * Regist when delete action pending and unregist when delete execute or undo.
-*/
-var DelayDeleteManager = {
-  registDelayDelete: function dm_registDelayDelete(executeDelete) {
-    this.executeDelete = executeDelete;
-    //TODO: We may have timer to hide the undo toolbar automatically.
-    //window.setTimeout(executeMessageDelete, timer);
-    document.body.addEventListener('DOMAttrModified', this);
-  },
-  unregistDelayDelete: function dm_unregistDelayDelete() {
-    this.executeDelete = null;
-    //window.clearTimeout(executeMessageDelete, timer);
-    document.body.removeEventListener('DOMAttrModified', this);
-  },
-  onViewStatusChanged: function dm_onViewStatusChanged(evt) {
-    if (evt.attrName != 'class')
-      return;
-
-    // If previous status is not edit mode and class changed, execute delete.
-    if (evt.prevValue.indexOf('edit') === -1) {
-      this.executeDelete();
-    }
-  },
-  handleEvent: function dm_handleEvent(evt) {
-    switch (evt.type) {
-      case 'DOMAttrModified':
-        this.onViewStatusChanged(evt);
-        break;
-    }
-  }
-};
-
 /* Contact Manager for maintaining contact cache and access contact DB:
  * 1. Maintain used contacts in contactData object literal.
  * 2. getContactData: Callback with contact data from 1)cache 2)indexedDB.
