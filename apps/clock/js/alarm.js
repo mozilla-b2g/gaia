@@ -219,37 +219,29 @@ var FakeAlarmManager = {
       var selectedAlarmSound = 'style/ringtones/classic.wav';
       ringtonePlayer.src = selectedAlarmSound;
 
-      navigator.mozApps.getSelf().onsuccess = function(e) {
-        var app = e.target.result;
-        app.launch();
-        var host = document.location.host;
-        window.open('http://' + host + '/onring.html',
-                    'ring_screen', 'attention');
+      var protocol = window.location.protocol;
+      var host = window.location.host;
+      window.open(protocol + '//' + host + '/onring.html',
+                  'ring_screen', 'attention');
 
-        if ('mozVibrate' in navigator) {
-          var vibrateInterval = 0;
-          vibrateInterval = window.setInterval(function vibrate() {
-            navigator.mozVibrate([200]);
-          }, 600);
-          window.setTimeout(function clearVibration() {
-            window.clearInterval(vibrateInterval);
-          }, 3000);
-        }
-        ringtonePlayer.play();
-        window.setTimeout(function pauseRingtone() {
-          ringtonePlayer.pause();
-        }, 2000);
-      };
+      if ('mozVibrate' in navigator) {
+        var vibrateInterval = 0;
+        vibrateInterval = window.setInterval(function vibrate() {
+          navigator.mozVibrate([200]);
+        }, 600);
+        window.setTimeout(function clearVibration() {
+          window.clearInterval(vibrateInterval);
+        }, 3000);
+      }
+      ringtonePlayer.play();
+      window.setTimeout(function pauseRingtone() {
+        ringtonePlayer.pause();
+      }, 2000);
     }, remaining);
   },
 
   snoozeHandler: function am_snoozeHandler() {
     // Need to implement snooze
-    window.close();
-  },
-
-  closeHandler: function am_closeHandler() {
-    window.close();
   },
 
   cancel: function am_cancel(alarm) {
