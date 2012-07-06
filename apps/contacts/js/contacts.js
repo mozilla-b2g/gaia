@@ -278,7 +278,7 @@ var Contacts = (function() {
         postalCode: contact.adr[i]['postalCode'] || '',
         locality: contact.adr[i]['locality'] || '',
         countryName: contact.adr[i]['countryName'] || '',
-        type: contact.adr[i]['type'] || TAG_OPTIONS['address-type'][0]
+        type: contact.adr[i]['type'] || TAG_OPTIONS['address-type'][0].value
       };
       var template = utils.templates.render(addressesTemplate, addressField);
       listContainer.appendChild(template);
