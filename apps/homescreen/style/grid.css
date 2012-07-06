@@ -19,7 +19,6 @@
   list-style-type: none;
   display: block;
   margin: 0 auto;
-  margin-top: 2rem;
 }
 
 .apps ol > li {
@@ -29,6 +28,11 @@
   float: left;
   text-align: center;
   padding-bottom: 2.2rem;
+}
+
+.apps ol > li:nth-child(1), .apps ol > li:nth-child(2),
+.apps ol > li:nth-child(3), .apps ol > li:nth-child(4) {
+	padding-top: 2rem;
 }
 
 .apps ol > li[data-hidden] {
