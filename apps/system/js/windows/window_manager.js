@@ -153,7 +153,6 @@ var WindowManager = (function() {
     var prop = e.propertyName;
     var classes = sprite.classList;
 
-    dump(prop + ':' + sprite.className + '\n');
     if (sprite.className === 'open' && prop.indexOf('transform') != -1) {
       openFrame.classList.add('active');
       windows.classList.add('active');
