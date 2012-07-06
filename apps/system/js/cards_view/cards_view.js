@@ -30,6 +30,7 @@ var CardsView = (function() {
   var currentDisplayed = 0;
   var scrollWhileSortingTimer;
   var dragMargin = 0;
+  var sortingDirection;
   var allowScrollingWhileSorting = false;
   var HVGA = document.documentElement.clientWidth < 480;
 
@@ -48,12 +49,13 @@ var CardsView = (function() {
     sizes.sort(function(x, y) { return y - x; });
 
     var index = sizes[(HVGA) ? sizes.length - 1 : 0];
+    var iconPath = icons[index];
 
-    if (icons[index].indexOf('data:') !== 0) {
-      icons[index] = origin + icons[index];
+    if (iconPath.indexOf('data:') !== 0) {
+      iconPath = origin + iconPath;
     }
 
-    return icons[index];
+    return iconPath;
   }
 
   // Build and display the card switcher overlay
@@ -208,43 +210,37 @@ var CardsView = (function() {
       var differenceX = initialTouchPosition.x - touchPosition.x;
       cardsView.scrollLeft = initialCardViewPosition + differenceX;
     }
-    
+
     if (USER_DEFINED_ORDERING && draggedElement !== null) {
       var differenceX = touchPosition.x - initialTouchPosition.x;
-      var moveOffset = (cardsList.children[currentDisplayed].offsetLeft/0.6) + differenceX - (dragMargin/0.6);
-      
-      draggedElement.style.MozTransform = 'scale(0.6) translate('+ moveOffset +'px, 0)';
+      var moveOffset = (cardsList.children[currentDisplayed].offsetLeft / 0.6) + differenceX - (dragMargin / 0.6);
+
+      draggedElement.style.MozTransform = 'scale(0.6) translate(' + moveOffset + 'px, 0)';
+
       if (Math.abs(differenceX) > threshold) {
         if (allowScrollingWhileSorting) {
           allowScrollingWhileSorting = false;
-          scrollWhileSortingTimer = setTimeout(function(){ allowScrollingWhileSorting = true; }, 500);
+          scrollWhileSortingTimer = setTimeout(function() { allowScrollingWhileSorting = true; }, 500);
           if (
             differenceX > 0 &&
             currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
           ) {
             currentDisplayed++;
-            /*if (currentDisplayed < WindowManager.getNumberOfRunningApps() - 1) {
-              cardsList.insertBefore(draggedElement, cardsList.children[currentDisplayed+1]);
-            } else {
-              cardsList.appendChild(draggedElement);
-            }
-            draggedElement.style.MozTransform = 'scale(0.6)';
-            */
+            sortingDirection = 'right';
             alignCard(currentDisplayed);
           } else if (differenceX < 0 && currentDisplayed > 0) {
             currentDisplayed--;
-            //cardsList.insertBefore(draggedElement, cardsList.children[currentDisplayed]);
-            //draggedElement.style.MozTransform = 'scale(0.6)';
+            sortingDirection = 'left';
             alignCard(currentDisplayed);
           }
-        } 
+        }
       } else {
         // rotation here
         //draggedElement.style.MozTransform = 'scale(0.6)';
-        alignCard(currentDisplayed);
+        //alignCard(currentDisplayed);
       }
     }
-    
+
   }
 
   function onEndEvent(evt) {
@@ -305,11 +301,22 @@ var CardsView = (function() {
         alignCard(currentDisplayed);
       }
     }
-    
+
     if (USER_DEFINED_ORDERING && draggedElement !== null) {
+      if (sortingDirection === 'right') {
+
+        if (currentDisplayed < WindowManager.getNumberOfRunningApps() - 1) {
+          cardsList.insertBefore(draggedElement, cardsList.children[currentDisplayed + 1]);
+        } else {
+          cardsList.appendChild(draggedElement);
+        }
+      } else if (sortingDirection === 'left') {
+        cardsList.insertBefore(draggedElement, cardsList.children[currentDisplayed]);
+      }
       draggedElement.style.MozTransform = 'scale(0.6)';
       draggedElement.dataset['edit'] = 'false';
       draggedElement = null;
+
       alignCard(currentDisplayed);
     }
   }
@@ -321,6 +328,7 @@ var CardsView = (function() {
     if (draggedElement.classList.contains('card')) {
       dragMargin = draggedElement.offsetLeft;
       draggedElement.dataset['edit'] = true;
+      sortingDirection = '';
     }
   }
 
