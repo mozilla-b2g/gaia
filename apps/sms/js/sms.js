@@ -124,7 +124,7 @@ var MessageManager = {
   }
 };
 
-var ConversationListView = {
+var ThreadListUI = {
   get view() {
     delete this.view;
     return this.view = document.getElementById('msg-conversations-list');
@@ -151,7 +151,7 @@ var ConversationListView = {
     this.view.addEventListener('click', this);
     window.addEventListener('hashchange', this);
 
-    this.updateConversationList();
+    this.renderThreads();
     document.addEventListener('mozvisibilitychange', this);
   },
 
@@ -186,7 +186,7 @@ var ConversationListView = {
     });
   },
 
-  updateConversationList: function cl_updateCL(pendingMsg) {
+  renderThreads: function cl_updateCL(pendingMsg) {
     var self = this;
     this._lastHeader = undefined;
     /*
@@ -325,7 +325,7 @@ var ConversationListView = {
           return;
 
         this.searchInput.value = '';
-        this.updateConversationList();
+        this.renderThreads();
         bodyclassList.remove('conversation');
         bodyclassList.remove('conversation-new-msg');
         break;
@@ -354,7 +354,7 @@ var ConversationListView = {
   handleEvent: function cl_handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        ConversationListView.updateConversationList(evt.message);
+        ThreadListUI.renderThreads(evt.message);
         break;
 
       case 'focus':
@@ -377,7 +377,7 @@ var ConversationListView = {
           return;
 
         // Refresh the view when app return to foreground.
-        this.updateConversationList();
+        this.renderThreads();
         break;
     }
   },
@@ -431,7 +431,7 @@ var ConversationListView = {
         msgs.push(messages[i].id);
       }
       MessageManager.deleteMessages(msgs,
-                                    this.updateConversationList.bind(this));
+                                    this.renderThreads.bind(this));
     }.bind(this), filter);
 
     window.location.hash = '#';
@@ -471,7 +471,7 @@ var ConversationListView = {
   }
 };
 
-var ConversationView = {
+var ThreadUI = {
   get view() {
     delete this.view;
     return this.view = document.getElementById('view-list');
@@ -515,7 +515,7 @@ var ConversationView = {
 
     var num = this.getNumFromHash();
     if (num)
-      this.showConversation(num);
+      this.renderMessages(num);
 
     document.addEventListener('mozvisibilitychange', this);
   },
@@ -561,8 +561,8 @@ var ConversationView = {
     this.scrollViewToBottom();
   },
 
-  showConversation: function cv_showConversation(num, pendingMsg) {
-    delete ConversationListView._lastHeader;
+  renderMessages: function cv_renderMessages(num, pendingMsg) {
+    delete ThreadListUI._lastHeader;
     var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
@@ -639,10 +639,10 @@ var ConversationView = {
           unreadList.push(msg.id);
 
         // Add a grouping header if necessary
-        var header = ConversationListView.createNewHeader(msg) || '';
+        var header = ThreadListUI.createNewHeader(msg) || '';
         fragment += header;
 
-        fragment += self.createMessageThread(msg);
+        fragment += self.createMessage(msg);
       }
 
       view.innerHTML = fragment;
@@ -657,7 +657,7 @@ var ConversationView = {
     }, filter, true);
   },
 
-  createMessageThread: function cv_createMessageThread(message) {
+  createMessage: function cv_createMessage(message) {
     var dataId = message.id; // uuid
     var outgoing = (message.delivery == 'sent' ||
       message.delivery == 'sending');
@@ -716,8 +716,8 @@ var ConversationView = {
         this.deleteMessage(parseFloat(delList[elem].dataset.id));
       }
     }
-    this.showConversation(this.title.num);
-    ConversationListView.updateConversationList();
+    this.renderMessages(this.title.num);
+    ThreadListUI.renderThreads();
     this.exitEditMode();
   },
 
@@ -728,8 +728,8 @@ var ConversationView = {
     }
 
     this.hideConfirmationDialog();
-    this.showConversation(this.title.num);
-    ConversationListView.updateConversationList();
+    this.renderMessages(this.title.num);
+    ThreadListUI.renderThreads();
     this.exitEditMode();
   },
 
@@ -746,7 +746,7 @@ var ConversationView = {
       case 'received':
         var msg = evt.message;
         if (this.filter && this.filter == msg.sender) {
-          this.showConversation(ConversationView.filter);
+          this.renderMessages(ThreadUI.filter);
         }
         break;
 
@@ -766,7 +766,7 @@ var ConversationView = {
           return;
         }
 
-        this.showConversation(num);
+        this.renderMessages(num);
         break;
 
       case 'resize':
@@ -784,7 +784,7 @@ var ConversationView = {
         // Refresh the view when app return to foreground.
         var num = this.getNumFromHash();
         if (num) {
-          this.showConversation(num);
+          this.renderMessages(num);
         }
         break;
 
@@ -863,16 +863,16 @@ var ConversationView = {
 
     MessageManager.send(num, text, function onsent(msg) {
       if (!msg) {
-        ConversationView.input.value = text;
-        ConversationView.updateInputHeight();
+        ThreadUI.input.value = text;
+        ThreadUI.updateInputHeight();
 
-        if (ConversationView.filter) {
-          if (window.location.hash !== '#num=' + ConversationView.filter)
-            window.location.hash = '#num=' + ConversationView.filter;
+        if (ThreadUI.filter) {
+          if (window.location.hash !== '#num=' + ThreadUI.filter)
+            window.location.hash = '#num=' + ThreadUI.filter;
           else
-            ConversationView.showConversation(ConversationView.filter);
+            ThreadUI.renderMessages(ThreadUI.filter);
         }
-        ConversationListView.updateConversationList();
+        ThreadListUI.renderThreads();
 
         var resendConfirmStr = _('resendConfirmDialogMsg');
         var result = confirm(resendConfirmStr);
@@ -886,13 +886,13 @@ var ConversationView = {
       // message in the background. Ideally we'd just be updating the UI
       // from "sending..." to "sent" at this point...
       window.setTimeout(function() {
-        if (ConversationView.filter) {
-          if (window.location.hash !== '#num=' + ConversationView.filter)
-            window.location.hash = '#num=' + ConversationView.filter;
+        if (ThreadUI.filter) {
+          if (window.location.hash !== '#num=' + ThreadUI.filter)
+            window.location.hash = '#num=' + ThreadUI.filter;
           else
-            ConversationView.showConversation(ConversationView.filter);
+            ThreadUI.renderMessages(ThreadUI.filter);
         }
-        ConversationListView.updateConversationList();
+        ThreadListUI.renderThreads();
       }, 100);
     });
 
@@ -911,19 +911,19 @@ var ConversationView = {
       this.input.focus();
 
       if (this.filter) {
-        this.showConversation(this.filter, message);
+        this.renderMessages(this.filter, message);
         return;
       }
-      this.showConversation(num, message);
+      this.renderMessages(num, message);
     }).bind(this), 0);
 
-    ConversationListView.updateConversationList(message);
+    ThreadListUI.renderThreads(message);
   }
 };
 
 window.addEventListener('localized', function showBody() {
-  ConversationView.init();
-  ConversationListView.init();
+  ThreadUI.init();
+  ThreadListUI.init();
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
