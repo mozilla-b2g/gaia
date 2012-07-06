@@ -16,7 +16,7 @@ header {
 }
 
 /* ------------- Button ------------- */
-a.button, span.button {
+a.button, span.button, p.button {
   margin: 0.4rem;
   padding: 1.2rem 1.2rem 1rem 1.2rem;
   border: 0.4rem solid;
@@ -337,7 +337,7 @@ input ~ *:empty {
 }
 
 .tableView {
-  height: -moz-calc(100% -6.2rem);
+  height: -moz-calc(100% - 6.2rem);
   
 }
 #alarms.tableView {
