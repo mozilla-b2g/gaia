@@ -172,11 +172,12 @@ var Contacts = (function() {
     deleteContactButton = document.getElementById('delete-contact');
 
     deleteContactButton.onclick = function deleteClicked(event) {
-      // TODO: Apply missing UX styles and localize
-      var confirmed = confirm('Are you sure?');
-      if (!confirmed)
-        return;
-      deleteContact(currentContact);
+      var msg = 'Are you sure you want to remove this contact?';
+      Permissions.show('', msg, function onAccept() {
+        deleteContact(currentContact);
+      },function onCancel() {
+        Permissions.hide();
+      });
     };
 
     var list = document.getElementById('groups-list');
@@ -435,7 +436,7 @@ var Contacts = (function() {
       navigation.home();
     };
     request.onerror = function errorDelete() {
-      console.error("Error removing the contact");
+      console.error('Error removing the contact');
     };
   };
 
