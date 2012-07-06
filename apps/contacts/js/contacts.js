@@ -124,6 +124,8 @@ var Contacts = (function() {
       phonesContainer,
       emailContainer,
       selectedTag,
+      customTag,
+      contactTag,
       contactDetails,
       saveButton;
 
@@ -144,6 +146,7 @@ var Contacts = (function() {
     emailContainer = document.getElementById('contacts-form-email');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
+    customTag = document.getElementById('custom-tag');
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -302,6 +305,7 @@ var Contacts = (function() {
   var fillTagOptions = function fillTagOptions(options, tagList, update) {
     var container = document.getElementById('tags-list');
     container.innerHTML = '';
+    contactTag = update;
 
     var selectedLink;
     for (var option in options) {
@@ -312,10 +316,9 @@ var Contacts = (function() {
 
       link.onclick = function(event) {
         var index = event.target.dataset.index;
-        selectTag(event.target, tagList, update);
+        selectTag(event.target, tagList);
       };
 
-      selectedLink = selectedLink || link;
       if (update.textContent == TAG_OPTIONS[tagList][option].value) {
         selectedLink = link;
       }
@@ -324,20 +327,38 @@ var Contacts = (function() {
       list.appendChild(link);
       container.appendChild(list);
     }
+
+    // Deal with the custom tag, clean or fill
+    customTag.value = '';
+    if (!selectedLink && update.textContent) {
+      customTag.value = update.textContent;
+    }
+    customTag.onclick = function(event) {
+      if (selectedTag) {
+        // Remove any mark if we had selected other option
+        selectedTag.removeChild(selectedTag.firstChild.nextSibling);
+      }
+      selectedTag = null;
+    }
+
     selectTag(selectedLink);
   };
 
-  var selectTag = function selectTag(link, tagList, update) {
+  var selectTag = function selectTag(link, tagList) {
+    if (link == null) {
+      return;
+    }
+
+    //Clean any trace of the custom tag
+    customTag.value = '';
+
     var index = link.dataset.index;
-    if (update) {
-      update.textContent = TAG_OPTIONS[tagList][index].value;
+    if (tagList && contactTag) {
+      contactTag.textContent = TAG_OPTIONS[tagList][index].value;
     }
 
     if (selectedTag) {
-      // TODO: Regex
-      var tagContent = selectedTag.innerHTML;
-      var findIcon = tagContent.indexOf('<');
-      selectedTag.innerHTML = tagContent.substr(0, findIcon);
+      selectedTag.removeChild(selectedTag.firstChild.nextSibling);
     }
 
     var icon = document.createElement('span');
@@ -345,6 +366,18 @@ var Contacts = (function() {
     icon.setAttribute('role', 'button');
     link.appendChild(icon);
     selectedTag = link;
+  };
+
+  /*
+  * Finish the tag edition, check if we have a custom
+  * tag selected or use the predefined ones
+  */
+  var doneTag = function doneTag() {
+    if (!selectedTag && customTag.value.length > 0 && contactTag) {
+      contactTag.textContent = customTag.value;
+    }
+    contactTag = null;
+    this.goBack();
   };
 
   var sendSms = function sendSms() {
@@ -513,6 +546,7 @@ var Contacts = (function() {
 
   return {
     'showEdit' : showEdit,
+    'doneTag': doneTag,
     'showAdd': showAdd,
     'addNewPhone' : insertEmptyPhone,
     'addNewEmail' : insertEmptyEmail,
