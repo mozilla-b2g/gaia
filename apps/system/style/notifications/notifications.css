@@ -1,3 +1,9 @@
+#notifications-container {
+  /* minus quick settings and grippy */
+  height: -moz-calc(100% - 60px - 20px);
+  overflow: scroll;
+}
+
 #notifications-container .notification {
   position: relative;
   background-image: url("images/notifications.png");
