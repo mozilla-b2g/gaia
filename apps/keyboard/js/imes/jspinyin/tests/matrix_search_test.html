@@ -44,12 +44,13 @@
             var num = self._ms.get_candidate_num();
             for (var i=0; i<num; i++) {
               if (i % 10 == 0) {
-                cands += '\n';
+                cands += '<br />';
               }
               cands += self._ms.get_candidate(i) + ' ';
             }
             var display = document.getElementById('display');
-            display.textContent = cands;
+            display.innerHTML = cands + '<br />' + num + ' candidate(s) for ' +
+                py;
             return cands;
           }  
         };

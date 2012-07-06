@@ -3761,7 +3761,7 @@ SearchUtility.DictExtPara.prototype = {
    * Indicate whether the newly added spelling ends with a splitting character
    * @type boolean
    */
-  splid_end_split: 0,
+  splid_end_split: false,
 
   /**
    * If the newly added id is a half id, id_start is the first id of the
@@ -3993,6 +3993,7 @@ MatrixSearch.DictMatchInfo.prototype = {
 
   /**
    * Whether the spl_id is parsed with a split character at the end.
+   * @type boolean
    */
   splid_end_split: false,
 
@@ -5033,7 +5034,7 @@ MatrixSearch.prototype = {
 
     this.matrix_[0].dmi_pos = 0;
     this.matrix_[0].dmi_num = 0;
-    this.matrix_[0].dmi_has_full_id = 1;
+    this.matrix_[0].dmi_has_full_id = true;
     this.matrix_[0].mtrx_nd_fixed = node;
 
     this.lma_start_[0] = 0;
@@ -5741,7 +5742,6 @@ MatrixSearch.prototype = {
     // 1. If this is a half Id, get its corresponding full starting Id and
     // number of full Id.
     var ret_val = 0;
-    var mtrx_dmi_fr = 1;  // From which dmi node
 
     this.lpi_total_ = 0;
 
@@ -5763,11 +5763,6 @@ MatrixSearch.prototype = {
     }
     if (handles[0] > 0) {
       this.lpi_total_ = lpi_num;
-    }
-
-    if (null == dmi_s) {  // from root
-      assert(0 != handles[0], 'extend_dmi: 0 != handles[0] failed.');
-      mtrx_dmi_fr = this.dmi_pool_used_;
     }
 
     // 3. Begin extending in the user dictionary
@@ -5925,7 +5920,8 @@ MatrixSearch.prototype = {
       while (mtrx_nd_res_pos > mtrx_nd_res_min_pos &&
              score < this.mtrx_nd_pool_[mtrx_nd_res_pos - 1].score) {
         if (mtrx_nd_res_pos - mtrx_nd_res_min_pos < MatrixSearch.kMaxNodeARow) {
-          this.matrix_[mtrx_nd_res_pos] = this.matrix_[mtrx_nd_res_pos - 1];
+          this.mtrx_nd_pool_[mtrx_nd_res_pos] =
+              this.mtrx_nd_pool_[mtrx_nd_res_pos - 1];
         }
         mtrx_nd_res_pos--;
         replace = true;
@@ -6153,13 +6149,13 @@ MatrixSearch.prototype = {
 
         if (new_dmi_num > 0) {
           if (this.dmi_c_phrase_) {
-            this.dmi_pool_[this.dmi_pool_used_].c_phrase = 1;
+            this.dmi_pool_[this.dmi_pool_used_].c_phrase = true;
           }
           this.matrix_[this.pys_decoded_len_].dmi_num += new_dmi_num;
           this.dmi_pool_used_ += new_dmi_num;
 
           if (!this.spl_trie_.is_half_id(spl_idx)) {
-            this.matrix_[this.pys_decoded_len_].dmi_has_full_id = 1;
+            this.matrix_[this.pys_decoded_len_].dmi_has_full_id = true;
           }
         }
 
@@ -6283,10 +6279,10 @@ MatrixSearch.prototype = {
     dmi.dmi_fr = dmi_fr;
     dmi.spl_id = spl_id;
     dmi.dict_level = dict_level;
-    dmi.splid_end_split = splid_end_split ? 1 : 0;
+    dmi.splid_end_split = splid_end_split;
     dmi.splstr_len = splstr_len;
     dmi.all_full_id = all_full_id;
-    dmi.c_phrase = 0;
+    dmi.c_phrase = false;
   },
 
   /**
@@ -10947,7 +10943,6 @@ UserDict.prototype = {
     var middle = -1;
 
     var first_prefix = middle;
-    var last_matched = middle;
 
     while (begin <= end) {
       middle = (begin + end) >> 1;
@@ -10966,7 +10961,6 @@ UserDict.prototype = {
         end = middle - 1;
       } else {
         end = middle - 1;
-        last_matched = middle;
       }
     }
 
@@ -12259,11 +12253,11 @@ SpellingParser.prototype = {
 
     var ret = this.splstr_to_idxs(splstr);
     if (ret.spl_idx.length != 1) {
-      return {spl_id: 0, is_pre: false};
+      return {spl_id: 0, is_pre: ret.last_is_pre};
     }
 
     if (ret.start_pos[1] != splstr.length) {
-      return {spl_id: 0, is_pre: false};
+      return {spl_id: 0, is_pre: ret.last_is_pre};
     }
     return {spl_id: ret.spl_idx[0], is_pre: ret.last_is_pre};
   },
