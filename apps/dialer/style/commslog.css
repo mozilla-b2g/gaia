@@ -117,7 +117,7 @@ ol, ul {
 .log-item-info {
   float: left;
   height: 100%;
-  width: -moz-calc(100% - 5rem);
+  width: -moz-calc(100% - 10rem);
 }
 
 .ellipsis {
@@ -138,4 +138,11 @@ ol, ul {
   color: #5b5b5b;
 }
 
-
+.call-log-contact-photo {
+  float: left;
+  height: 100%;
+  width: 5rem;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
