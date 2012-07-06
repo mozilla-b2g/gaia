@@ -3,15 +3,17 @@
 var Recents = {
   DBNAME: 'dialerRecents',
   STORENAME: 'dialerRecents',
-  _prettyDatesInterval: null,
 
   get view() {
     delete this.view;
-    return this.view = document.getElementById('contacts-container');
+    return this.view = document.getElementById('recents-container');
   },
 
   init: function re_init() {
-    this._openreq = mozIndexedDB.open(this.DBNAME);
+    var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+        window.mozIndexedDB || window.msIndexedDB;
+
+    this._openreq = indexedDB.open(this.DBNAME);
 
     var self = this;
     this._openreq.onsuccess = function re_dbOnSuccess() {
@@ -23,7 +25,7 @@ var Recents = {
     };
 
     // DB init
-    this._openreq.onupgradeneeded = function() {
+    this._openreq.onupgradeneeded = function re_onUpgradeNeeded() {
       var db = self._openreq.result;
       if (db.objectStoreNames.contains(self.STORENAME))
         db.deleteObjectStore(self.STORENAME);
@@ -31,14 +33,11 @@ var Recents = {
     };
 
     this.render();
-    this.startUpdatingDates();
   },
 
   cleanup: function re_cleanup() {
     if (this._recentsDB)
       this._recentsDB.close();
-
-    this.stopUpdatingDates();
   },
 
   getDatabase: function re_getDatabase(callback) {
@@ -64,7 +63,7 @@ var Recents = {
       var setreq = store.put(recentCall);
       setreq.onsuccess = function sr_onsuccess() {
         // TODO At some point with we will be able to get the app window
-        // to update the view. Relying on vivibility changes until then.
+        // to update the view. Relying on visibility changes until then.
         // (and doing a full re-render)
       };
 
@@ -72,6 +71,13 @@ var Recents = {
         console.log('dialerRecents add failure: ', e.message, setreq.errorCode);
       };
     });
+  },
+
+  click: function re_click(target) {
+    var number = target.dataset.num;
+    if (number) {
+      CallHandler.call(number);
+    }
   },
 
   createRecentEntry: function re_createRecentEntry(recent) {
@@ -85,7 +91,7 @@ var Recents = {
     }
 
     var entry =
-      '<li class="log-item">' +
+      '<li class="log-item" data-num="' + recent.number + '">' +
       '  <section class="icon-container grid center">' +
       '    <div class="grid-cell grid-v-align">' +
       '      <div class="icon ' + classes + '"></div>' +
@@ -100,6 +106,8 @@ var Recents = {
       prettyDate(recent.date) +
       '      </section>' +
       '    </div>' +
+      '  </section>' +
+      '  <section class="call-log-contact-photo">' +
       '  </section>' +
       '</li>';
     return entry;
@@ -134,7 +142,31 @@ var Recents = {
         content += self.createRecentEntry(recents[i]);
       }
       self.view.innerHTML = content;
+
+      self.updateContactDetails();
     });
+  },
+
+  updateContactDetails: function re_updateContactDetails() {
+    var itemSelector = '.log-item';
+    var callLogItems = document.querySelectorAll(itemSelector);
+    var length = callLogItems.length;
+    for (var i = 0; i < length; i++) {
+      Contacts.findByNumber(
+        callLogItems[i].querySelector('.primary-info').textContent.trim(),
+        function re_contactCallBack(itemLogEl, contact) {
+          if (contact) {
+            if (contact.name) {
+              itemLogEl.querySelector('.primary-info').textContent =
+                contact.name;
+            }
+            if (contact.photo) {
+              itemLogEl.querySelector('.call-log-contact-photo').
+                style.backgroundImage = 'url(' + contact.photo + ')';
+            }
+          }
+        }.bind(this, callLogItems[i]));
+    }
   },
 
   getDayDate: function re_getDayDate(timestamp) {
@@ -166,38 +198,8 @@ var Recents = {
         callback([]);
       };
     }).bind(this));
-  },
-
-  showLast: function re_showLast() {
-    this.view.scrollTop = 0;
-  },
-
-  startUpdatingDates: function re_startUpdatingDates() {
-    if (this._prettyDatesInterval || !this.view)
-      return;
-
-    var self = this;
-    var updatePrettyDates = function re_updateDates() {
-      var datesSelector = '.timestamp[data-time]';
-      var datesElements = self.view.querySelectorAll(datesSelector);
-
-      for (var i = 0; i < datesElements.length; i++) {
-        var element = datesElements[i];
-        var time = parseInt(element.dataset.time);
-        element.textContent = prettyDate(time);
-      }
-    };
-
-    this._prettyDatesInterval = setInterval(updatePrettyDates, 1000 * 60 * 5);
-    updatePrettyDates();
-  },
-
-  stopUpdatingDates: function re_stopUpdatingDates() {
-    if (this._prettyDatesInterval) {
-      clearInterval(this._prettyDatesInterval);
-      this._prettyDatesInterval = null;
-    }
   }
+
 };
 
 window.addEventListener('load', function recentsSetup(evt) {

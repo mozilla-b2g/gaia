@@ -65,6 +65,10 @@
   border-bottom: 1px solid hsla(0, 0%, 0%,0.4);
 }
 
+.list-menu div.list-menu-container div:active {
+  background-color: #ddd;
+}
+
 div.list-menu-container div a:active {
   outline: none;
 }

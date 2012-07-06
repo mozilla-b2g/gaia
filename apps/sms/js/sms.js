@@ -286,9 +286,11 @@ var ConversationListView = {
       It should be timestamp in normal view, and order by name while searching
     */
     MessageManager.getMessages(function getMessagesCallback(messages) {
-      if (pendingMsg &&
-          (!messages[0] || messages[0].id !== pendingMsg.id))
-        messages.unshift(pendingMsg);
+      /** Once https://bugzilla.mozilla.org/show_bug.cgi?id=769347
+      lands, this fix should be removed.*/
+      messages.sort(function(a, b) {
+        return b.timestamp - a.timestamp;
+      });
 
       var conversations = {};
       for (var i = 0; i < messages.length; i++) {
@@ -334,6 +336,7 @@ var ConversationListView = {
       }
 
       self.view.innerHTML = fragment;
+      delete self._lastHeader;
       var conversationList = self.view.children;
 
       // update the conversation sender/receiver name with contact data.
@@ -364,22 +367,34 @@ var ConversationListView = {
     var bodyHTML = reg ? this.createHighlightHTML(bodyText, reg) :
                            escapeHTML(bodyText);
 
-    return '<a href="#num=' + conversation.num + '"' +
-           ' data-num="' + conversation.num + '"' +
-           ' data-name="' + dataName + '"' +
-           ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
-           ' class="' + (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
-           '<span class="unread-mark"><i class="i-unread-mark"></i></span>' +
-           '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
-           '  <div class="name">' + name + '</div>' +
-           (!conversation.timestamp ? '' :
-           '  <div class="time ' +
-           (conversation.unreadCount > 0 ? 'unread' : '') +
-           '  " data-time="' + conversation.timestamp + '">' +
-             giveHourMinute(conversation.timestamp) + '</div>') +
-           '  <div class="msg">"' + bodyHTML + '"</div>' +
-           '<div class="unread-tag"></div>' +
-           '<div class="photo"></div></a>';
+    return '<div class="item">' +
+           '  <label class="fake-checkbox">' +
+           '    <input data-num="' +
+                conversation.num + '"' + 'type="checkbox"/>' +
+           '    <span></span>' +
+           '  </label>' +
+           '  <a href="#num=' + conversation.num + '"' +
+           '     data-num="' + conversation.num + '"' +
+           '     data-name="' + dataName + '"' +
+           '     data-notempty="' +
+                 (conversation.timestamp ? 'true' : '') + '"' +
+           '     class="' +
+                 (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
+           '    <span class="unread-mark">' +
+           '      <i class="i-unread-mark"></i>' +
+           '    </span>' +
+           '    <div class="name">' + name + '</div>' +
+                (!conversation.timestamp ? '' :
+           '    <div class="time ' +
+                  (conversation.unreadCount > 0 ? 'unread' : '') +
+           '      " data-time="' + conversation.timestamp + '">' +
+                  giveHourMinute(conversation.timestamp) +
+           '    </div>') +
+           '    <div class="msg">"' + bodyHTML + '"</div>' +
+           '    <div class="unread-tag"></div>' +
+           '    <div class="photo"></div>' +
+           '  </a>' +
+           '</div>';
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
@@ -536,7 +551,14 @@ var ConversationListView = {
   },
 
   executeMessageDelete: function cl_executeMessageDelete() {
-    this.deleteMessages(this.delNumList);
+    var delList = this.view.querySelectorAll('input[type=checkbox][data-num]');
+    var delNum = [];
+    for (var elem in delList) {
+      if (delList[elem].checked) {
+        delNum.push(delList[elem].dataset.num);
+      }
+    }
+    this.deleteMessages(delNum);
     this.delNumList = [];
   },
 
@@ -828,12 +850,14 @@ var ConversationView = {
 
     return '<div class="message-block" ' + 'data-num="' + dataNum +
            '" data-id="' + dataId + '">' +
-           '  <input type="checkbox" class="fake-checkbox"/>' +
-           '  <span></span>' +
+           '  <label class="fake-checkbox">' +
+           '    <input data-id="' + dataId + '" type="checkbox"/>' +
+           '    <span></span>' +
+           '  </label>' +
            '  <div class="message-container ' + className + '>' +
            '    <div class="message-bubble"></div>' +
            '    <div class="time" data-time="' + timestamp + '">' +
-                giveHourMinute(message.timestamp) +
+                  giveHourMinute(message.timestamp) +
            '    </div>' +
            '    <div class="text">' + body + '</div>' +
            '  </div>' +
@@ -854,30 +878,27 @@ var ConversationView = {
   },
 
   deleteMessages: function cv_deleteMessages() {
-    if (!this.delNumList || this.delNumList.length == 0)
-      return;
-
-    for (var i = 0; i < this.delNumList.length; i++) {
-      this.deleteMessage(this.delNumList[i]); //TODO shift[i]);
+    var delList = this.view.querySelectorAll('input[type=checkbox]');
+    for (var elem in delList) {
+      if (delList[elem].checked) {
+        this.deleteMessage(parseFloat(delList[elem].dataset.id));
+      }
     }
-    this.delNumList = [];
-
     this.showConversation(this.title.num);
     ConversationListView.updateConversationList();
     this.exitEditMode();
   },
 
-  deleteAllMessages: function cv_deleteMessages() {
-    // Clean current list in case messages checked
-    this.delNumList = [];
-
-    var inputs = this.view.getElementsByClassName('message-block');
+  deleteAllMessages: function cv_deleteAllMessages() {
+    var inputs = this.view.querySelectorAll('input[type=checkbox]');
     for (var i = 0; i < inputs.length; i++) {
-      this.delNumList.push(parseFloat(inputs[i].dataset.id));
+      this.deleteMessage(parseFloat(inputs[i].dataset.id));
     }
 
-    this.deleteMessages();
     this.hideConfirmationDialog();
+    this.showConversation(this.title.num);
+    ConversationListView.updateConversationList();
+    this.exitEditMode();
   },
 
   handleEvent: function cv_handleEvent(evt) {
@@ -893,7 +914,7 @@ var ConversationView = {
       case 'received':
         var msg = evt.message;
         if (this.filter && this.filter == msg.sender) {
-          this.showConversation(ConversationView.filter, msg);
+          this.showConversation(ConversationView.filter);
         }
         break;
 
@@ -1002,6 +1023,7 @@ var ConversationView = {
 
   sendMessage: function cv_sendMessage() {
     var num = this.num.value;
+    var self = this;
     var text = document.getElementById('view-msg-text').value;
 
     if (num === '' || text === '')
@@ -1019,6 +1041,12 @@ var ConversationView = {
             ConversationView.showConversation(ConversationView.filter);
         }
         ConversationListView.updateConversationList();
+
+        var resendConfirmStr = _('resendConfirmDialogMsg');
+        var result = confirm(resendConfirmStr);
+        if (result) {
+          window.setTimeout(self.sendMessage.bind(self), 500);
+        }
         return;
       }
 
@@ -1069,4 +1097,3 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
-

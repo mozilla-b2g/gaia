@@ -3,29 +3,16 @@
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (!document.mozHidden) {
     Recents.render();
-    Recents.startUpdatingDates();
-  } else {     
-    Recents.stopUpdatingDates();
   }
 });
 
 var CallHandler = {
-  _onCall: false,
-  _screenLock: null,
-
-  // callbacks
   call: function ch_call(number) {
     var sanitizedNumber = number.replace(/-/g, '');
     var telephony = window.navigator.mozTelephony;
     if (telephony) {
       telephony.dial(sanitizedNumber);
     }
-  },
-
-  // properties / methods
-  get numberView() {
-    delete this.numberView;
-    return this.numberView = document.getElementById('call-number-view');
   }
 };
 

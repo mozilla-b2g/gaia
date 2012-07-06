@@ -8,8 +8,13 @@ var Settings = {
     this.loadGaiaCommit();
 
     var settings = window.navigator.mozSettings;
+    if (!settings) // e.g. when debugging on a browser...
+      return;
+
+    // preset all inputs that have a `name' attribute
     var transaction = settings.getLock();
 
+    // preset all checkboxes
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < checkboxes.length; i++) {
       (function(checkbox) {
@@ -25,6 +30,7 @@ var Settings = {
       })(checkboxes[i]);
     }
 
+    // preset all radio buttons
     var radios = document.querySelectorAll('input[type="radio"]');
     for (var i = 0; i < radios.length; i++) {
       (function(radio) {
@@ -40,6 +46,7 @@ var Settings = {
       })(radios[i]);
     }
 
+    // preset all text inputs
     var texts = document.querySelectorAll('input[type="text"]');
     for (var i = 0; i < texts.length; i++) {
       (function(text) {
@@ -55,6 +62,7 @@ var Settings = {
       })(texts[i]);
     }
 
+    // preset all progress indicators
     var progresses = document.querySelectorAll('progress');
     for (var i = 0; i < progresses.length; i++) {
       (function(progress) {
@@ -70,7 +78,8 @@ var Settings = {
       })(progresses[i]);
     }
   },
-  handleEvent: function(evt) {
+
+  handleEvent: function settings_handleEvent(evt) {
     var input = evt.target;
     var key = input.name || input.dataset.name;
     if (!key)
@@ -105,7 +114,10 @@ var Settings = {
         break;
     }
   },
-  loadGaiaCommit: function() {
+
+  loadGaiaCommit: function settings_loadGaiaCommit() {
+    var GAIA_COMMIT = 'gaia-commit.txt';
+
     function dateToUTC(d) {
       var arr = [];
       [
@@ -116,6 +128,7 @@ var Settings = {
       });
       return arr.splice(0, 3).join('-') + ' ' + arr.join(':');
     }
+
     var req = new XMLHttpRequest();
     req.onreadystatechange = (function(e) {
       if (req.readyState === 4) {
@@ -134,9 +147,70 @@ var Settings = {
         }
       }
     }).bind(this);
-    req.open('GET', 'gaia-commit.txt', true/*async*/);
+
+    req.open('GET', GAIA_COMMIT, true); // async
     req.responseType = 'text';
     req.send();
+  },
+
+  openDialog: function settings_openDialog(dialogID) {
+    var settings = window.navigator.mozSettings;
+    var dialog = document.getElementById(dialogID);
+    var fields = dialog.querySelectorAll('input[data-setting]');
+
+    /**
+      * In Settings dialog boxes, we don't want the input fields to be preset
+      * by Settings.init() and we don't want them to set the related settings
+      * without any user validation.
+      *
+      * So instead of assigning a `name' attribute to these inputs, a
+      * `data-setting' attribute is used and the input values are set
+      * explicitely when the dialog is shown.  If the dialog is validated
+      * (submit), their values are stored into B2G settings.
+      */
+
+    // show dialog box
+    function open() {
+      reset(); // preset all fields
+      dialog.style.display = 'block';
+    }
+
+    // hide dialog box
+    function close() {
+      dialog.style.display = 'none';
+      return false;
+    }
+
+    // initialize all setting fields in the dialog box
+    function reset() {
+      if (settings) {
+        for (var i = 0; i < fields.length; i++) {
+          var input = fields[i];
+          var key = input.dataset.setting;
+          var request = settings.getLock().get(key);
+          request.onsuccess = function() {
+            input.value = request.result[key] || '';
+          };
+        }
+      }
+    }
+
+    // validate all settings in the dialog box
+    function submit() {
+      if (settings) {
+        var cset = {};
+        for (var i = 0; i < fields.length; i++) {
+          var input = fields[i];
+          cset[input.dataset.setting] = input.value;
+        }
+        settings.getLock().set(cset);
+      }
+      return close();
+    }
+
+    dialog.onsubmit = submit;
+    dialog.onreset = close;
+    open();
   }
 };
 
