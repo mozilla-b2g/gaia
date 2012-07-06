@@ -44,13 +44,7 @@ button::-moz-focus-inner {
   border: 0
 }
 
-.cache {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  z-index: -1000;
-}
-
+.cache { position: absolute; left: 0; bottom: 0; z-index: 5; }
 /* Keyboard */
 #keyboard {
   position: absolute;
@@ -89,11 +83,8 @@ button::-moz-focus-inner {
 /* Visible keys */
 .keyboard-key > .visual-wrapper {
   display: inline-block;
-  height: 4.2rem;
+  height: 3.8rem;
   width: 100%;
-  border: none;
-  background: url(images/key-begin.png) no-repeat left top, url(images/key-end.png) no-repeat right top;
-  background-size: auto 100%;
   position: relative;
   text-align: center;
 }
@@ -101,14 +92,16 @@ button::-moz-focus-inner {
 .keyboard-key > .visual-wrapper > span {
   position: absolute;
   top: 0;
-  left: 2px;
-  right: 2px;
+  left: 0;
+  right: 0;
   height: 100%;
-  background: url(images/key-middle.png) repeat-x center top;
+  border: solid 1px #61646A;
+  border-radius: 0.3rem;
+  background: url(images/key.png) repeat-x center bottom;
   background-size: auto 100%;
   font-family: 'Open Sans Semibold';  
   font-size: 2.4rem;
-  line-height: 3.8rem;
+  line-height: 3.6rem;
   color: #333;
 }
 
@@ -175,24 +168,17 @@ button::-moz-focus-inner {
 
 /*  Special keys */
 .keyboard-key.special-key > .visual-wrapper {
-  background: url(images/key-special-begin.png) no-repeat left top, url(images/key-special-end.png) no-repeat right top;
-  background-size: auto 100%;
-}
 
+}
 .keyboard-key.special-key > .visual-wrapper > span { 
   font-size: 1.5rem;
   line-height: 4rem;
   font-family: 'Keyboard Symbols', sans-serif;
   color: #5B6574;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
-  background: url(images/key-special-middle.png) repeat-x center top;
+  border-color: #61646A;
+  background: url(images/key-special.png) repeat-x center top;
   background-size: auto 100%;
-  position: absolute;
-  top: 0;
-  left: 2px;
-  right: 2px;
-  bottom: 0;
-  height: 100%
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* Highlight for special keys */
@@ -202,11 +188,10 @@ button::-moz-focus-inner {
   left: -2px;
   right: -2px;
   top: -2px;
-  bottom: 0;
+  bottom: -4px;
   border: #4495A8 2px solid;
   border-radius: 0.3rem;
 }
-
 .keyboard-key.special-key.highlighted > .visual-wrapper > span:after  {
   display: none;
 }
@@ -217,47 +202,47 @@ button::-moz-focus-inner {
   border: none;
   opacity: 0.5;
   box-shadow: none;
-  background: url(images/key-begin.png) no-repeat left top, url(images/key-end.png) no-repeat right top;
 }
 
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span  {
   position: absolute;
   top: 0;
-  left: 2px;
-  right: 2px;
+  left: 0;
+  right: 0;
   bottom: 0;
   height: 100%;
-  border: none;
-  background: url(images/key-middle.png) repeat-x center top;
 }
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after {
   display: none;
 }
-
 /* Menu for special keys */
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper{
-  background: #ebebeb;
-  box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
-  border-radius: 0.3rem;
-  background: url(images/key-begin.png) no-repeat left top, url(images/key-end.png) no-repeat right top;
-  background-size: auto 100%;
 }
 
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
+/* We need to keep this CSS3 properties for using it in the future when the gradients bugs would get resolved */
+/*  background: -moz-linear-gradient(#fff, #ebebeb);
+  border-radius: 0.3rem;
+  border: 1px solid rgba(0, 0, 0, 0.6);*/
   box-shadow: none;
   z-index: 100;
   color: #333;
-  background: url(images/key-middle.png) repeat-x center top;
+  background: url(images/key.png) repeat-x center top;
   background-size: auto 100%;
 }
-
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before {
+  display: none;
+}
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
   content: "";
-  background: #fff;
+  background: #fefefe;
   display: block;
   bottom: 100%;
-  top: auto;
-  margin: 0 -2px -1px;
+  left: 0;
+  right: 0;
+  position: absolute;
+  height: 1px;
+  margin: 0 -1px -2px 0;
 }
 
 /* Alternatives */
@@ -275,14 +260,8 @@ button::-moz-focus-inner {
   padding: 0 0.5rem;
   display: none;
 }
-
-.keyboard-key:first-child #keyboard-accent-char-menu {
-  border-radius: 0.3rem 0.3rem 0.3rem 0;
-}
-
-.keyboard-key:last-child #keyboard-accent-char-menu {
-  border-radius: 0.3rem 0.3rem 0 0.3rem;
-}
+.keyboard-key:first-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0.3rem 0; }
+.keyboard-key:last-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0 0.3rem; }
 
 #keyboard-accent-char-menu.show {
   display: block;
@@ -309,10 +288,23 @@ margin-top: 0.3rem;
   top: 0;
   left: 0;
   right: 0;
-  background: none;
-  border-radius: 0;
-  border: 0;
+  height: 100%;
+  border: solid 1px #61646A;
+  border-radius: 0.3rem;
+  background: url(images/key.png) repeat-x center bottom;
+  background-size: auto 100%;
   font-weight: 600;
+  line-height: 3.4rem;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: -2px;
+  bottom: -4px;
+  border: #4495A8 2px solid;
+  border-radius: 0.4rem;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
@@ -323,17 +315,16 @@ margin-top: 0.3rem;
 #keyboard-accent-char-menu.kbr-menu-lang {
   position: absolute;
   bottom: 100%;
-  left: -0.8rem;
+  left: -1px;
   right: auto;
   top: auto;
   margin-bottom: -2px;
   height: auto;
-  max-height: 35rem;
+  max-height: 34rem;
   overflow-x: hidden;
   overflow-y: auto;
   white-space: normal;
-  padding: 0 0.5rem;
-  padding-right: 1rem;
+  padding: 0.3rem 0.6rem 0.5rem 0.5rem;
   background: #fff;
 }
 
@@ -343,19 +334,26 @@ margin-top: 0.3rem;
 }
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper {
   -moz-box-sizing: border-box;
-  width: 15rem;
+  width: 10rem;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
+  /* We need to keep this CSS3 properties for using it in the future when the gradients bugs would get resolved */
+/*  background: -moz-linear-gradient(#fff, #ebebeb);
+  box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);*/
   font-family: 'Open Sans Semibold';  
   font-size: 1.8rem;
-  line-height: 3.8rem;
   color: #333;
-  border: none;
+  /*border: 1px solid rgba(0, 0, 0, 0.6);*/
+  /*border-radius: 0.3rem;*/
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted {
-  margin: 0.7rem 0 2px;
+  /*margin: 0.7rem 0 2px;*/
+}
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > span {
+  box-shadow: none;
+  margin: 0;
 }
 
 /* Key states */
@@ -373,15 +371,12 @@ margin-top: 0.3rem;
 
 /* Hold */
 .keyboard-key.kbr-key-hold > .visual-wrapper {
-  background: url(images/key-hold-begin.png) no-repeat left bottom, url(images/key-hold-end.png) no-repeat right bottom;
 }
-
 .keyboard-key.kbr-key-hold > .visual-wrapper > span {
   color: #295B65;
-  background: url(images/key-hold-middle.png) repeat-x center bottom;
+  background: url(images/key-hold.png) repeat-x center bottom;
+  background-size: auto 100%;
   text-shadow: none;
-  left: 0.3rem;
-  right: 0.3rem;
 }
 
 /* IMEs */
@@ -417,7 +412,6 @@ margin-top: 0.3rem;
   display: none;
   margin: 0 -1rem 0 -1rem;
 }
-
 #keyboard.candidate-panel #keyboard-candidate-panel {
   display: block;
   width: -moz-calc(100% - 62px + 1rem);
@@ -438,8 +432,7 @@ margin-top: 0.3rem;
   border: none;
   border-top: 2px solid #a3a3a3;
   z-index: 1;
-  margin: 0;
-  padding: 0;
+  margin:0; padding:0;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -516,4 +509,3 @@ margin-top: 0.3rem;
 .keyboard-pending-symbols-highlight-blue {
   background: #3333aa;
 }
-

@@ -3,7 +3,6 @@
 var Recents = {
   DBNAME: 'dialerRecents',
   STORENAME: 'dialerRecents',
-  _prettyDatesInterval: null,
 
   get view() {
     delete this.view;
@@ -34,14 +33,11 @@ var Recents = {
     };
 
     this.render();
-    this.startUpdatingDates();
   },
 
   cleanup: function re_cleanup() {
     if (this._recentsDB)
       this._recentsDB.close();
-
-    this.stopUpdatingDates();
   },
 
   getDatabase: function re_getDatabase(callback) {
@@ -111,6 +107,8 @@ var Recents = {
       '      </section>' +
       '    </div>' +
       '  </section>' +
+      '  <section class="call-log-contact-photo">' +
+      '  </section>' +
       '</li>';
     return entry;
   },
@@ -144,7 +142,31 @@ var Recents = {
         content += self.createRecentEntry(recents[i]);
       }
       self.view.innerHTML = content;
+
+      self.updateContactDetails();
     });
+  },
+
+  updateContactDetails: function re_updateContactDetails() {
+    var itemSelector = '.log-item';
+    var callLogItems = document.querySelectorAll(itemSelector);
+    var length = callLogItems.length;
+    for (var i = 0; i < length; i++) {
+      Contacts.findByNumber(
+        callLogItems[i].querySelector('.primary-info').textContent.trim(),
+        function re_contactCallBack(itemLogEl, contact) {
+          if (contact) {
+            if (contact.name) {
+              itemLogEl.querySelector('.primary-info').textContent =
+                contact.name;
+            }
+            if (contact.photo) {
+              itemLogEl.querySelector('.call-log-contact-photo').
+                style.backgroundImage = 'url(' + contact.photo + ')';
+            }
+          }
+        }.bind(this, callLogItems[i]));
+    }
   },
 
   getDayDate: function re_getDayDate(timestamp) {
@@ -176,38 +198,8 @@ var Recents = {
         callback([]);
       };
     }).bind(this));
-  },
-
-  showLast: function re_showLast() {
-    this.view.scrollTop = 0;
-  },
-
-  startUpdatingDates: function re_startUpdatingDates() {
-    if (this._prettyDatesInterval || !this.view)
-      return;
-
-    var self = this;
-    var updatePrettyDates = function re_updateDates() {
-      var datesSelector = '.timestamp[data-time]';
-      var datesElements = self.view.querySelectorAll(datesSelector);
-
-      for (var i = 0; i < datesElements.length; i++) {
-        var element = datesElements[i];
-        var time = parseInt(element.dataset.time);
-        element.textContent = prettyDate(time);
-      }
-    };
-
-    this._prettyDatesInterval = setInterval(updatePrettyDates, 1000 * 60 * 5);
-    updatePrettyDates();
-  },
-
-  stopUpdatingDates: function re_stopUpdatingDates() {
-    if (this._prettyDatesInterval) {
-      clearInterval(this._prettyDatesInterval);
-      this._prettyDatesInterval = null;
-    }
   }
+
 };
 
 window.addEventListener('load', function recentsSetup(evt) {
