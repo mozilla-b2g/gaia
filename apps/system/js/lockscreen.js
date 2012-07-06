@@ -81,6 +81,7 @@ var LockScreen = {
     window.addEventListener('mozChromeEvent', this);
 
     /* Gesture */
+    this.area.addEventListener('mousedown', this);
     this.areaHandle.addEventListener('mousedown', this);
     this.areaCamera.addEventListener('mousedown', this);
     this.areaUnlock.addEventListener('mousedown', this);
@@ -190,10 +191,21 @@ var LockScreen = {
         var handle = this.areaHandle;
         var overlay = this.overlay;
         var target = evt.target;
-        target.setCapture(true);
-        target.addEventListener('mouseup', this);
 
-        switch (evt.target) {
+        this._touch = {
+          target: null,
+          touched: false,
+          leftTarget: leftTarget,
+          rightTarget: rightTarget,
+          initRailLength: this.railLeft.offsetWidth,
+          maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
+            (handle.offsetWidth - rightTarget.offsetWidth) / 2
+        };
+        handle.setCapture(true);
+        handle.addEventListener('mouseup', this);
+        handle.addEventListener('mousemove', this);
+
+        switch (target) {
           case leftTarget:
             overlay.classList.add('touched-left');
             break;
@@ -203,39 +215,26 @@ var LockScreen = {
             break;
 
           case this.areaHandle:
-
-            this._touch = {
-              initX: evt.screenX,
-              initY: evt.screenY,
-              target: null,
-              leftTarget: leftTarget,
-              rightTarget: rightTarget,
-              initRailLength: this.railLeft.offsetWidth,
-              maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
-                (handle.offsetWidth - rightTarget.offsetWidth) / 2
-            };
+            this._touch.touched = true;
             overlay.classList.add('touched');
-            target.addEventListener('mousemove', this);
             break;
         }
         break;
 
       case 'mousemove':
-        this.handleMove(evt.screenX, evt.screenY);
+        this.handleMove(evt.pageX, evt.pageY);
         break;
 
       case 'mouseup':
-        window.removeEventListener('mousemove', this);
-        window.removeEventListener('mouseup', this);
+        var handle = this.areaHandle;
+        handle.removeEventListener('mousemove', this);
+        handle.removeEventListener('mouseup', this);
         document.releaseCapture();
 
-        if (evt.target !== this.areaHandle) {
-          this.overlay.classList.remove('touched-left');
-          this.overlay.classList.remove('touched-right');
-          break;
-        }
+        this.overlay.classList.remove('touched-left');
+        this.overlay.classList.remove('touched-right');
 
-        this.handleMove(evt.screenX, evt.screenY);
+        this.handleMove(evt.pageX, evt.pageY);
         this.handleGesture();
         delete this._touch;
         this.overlay.classList.remove('touched');
@@ -282,13 +281,25 @@ var LockScreen = {
     }
   },
 
-  handleMove: function ls_handleMove(screenX, screenY) {
+  handleMove: function ls_handleMove(pageX, pageY) {
     var touch = this._touch;
-    if (!touch) {
-      return;
+
+    if (!touch.touched) {
+      // Do nothing if the user have not move the finger to the handle yet
+      if (document.elementFromPoint(pageX, pageY) !== this.areaHandle)
+        return;
+
+      touch.touched = true;
+      touch.initX = pageX;
+      touch.initY = pageY;
+
+      var overlay = this.overlay;
+      overlay.classList.remove('touched-left');
+      overlay.classList.remove('touched-right');
+      overlay.classList.add('touched');
     }
 
-    var dx = screenX - touch.initX;
+    var dx = pageX - touch.initX;
 
     var handleMax = touch.maxHandleOffset;
     this.areaHandle.style.MozTransition = 'none';
@@ -650,7 +661,7 @@ var LockScreen = {
     var elements = ['mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
-        'area-unlock', 'area-camera', 'area-handle',
+        'area', 'area-unlock', 'area-camera', 'area-handle',
         'rail-left', 'rail-right',
         'passcode-code', 'passcode-pad',
         'camera'];
