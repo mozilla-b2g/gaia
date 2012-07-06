@@ -107,6 +107,8 @@ var Recents = {
       '      </section>' +
       '    </div>' +
       '  </section>' +
+      '  <section class="call-log-contact-photo">' +
+      '  </section>'
       '</li>';
     return entry;
   },
@@ -146,16 +148,21 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
-    var itemSelector = '.log-item .primary-info';
-    var commLogItemPhoneNumbers = document.querySelectorAll(itemSelector);
-    var length = commLogItemPhoneNumbers.length;
+    var itemSelector = '.log-item';
+    var callLogItems = document.querySelectorAll(itemSelector);
+    var length = callLogItems.length;
     for (var i = 0; i < length; i++) {
-      Contacts.findByNumber(commLogItemPhoneNumbers[i].textContent.trim(),
-        function re_contactCallBack(phoneNumberEl, contact) {
-          if (contact && contact.name) {
-            phoneNumberEl.textContent = contact.name;
+      Contacts.findByNumber(callLogItems[i].querySelector('.primary-info').textContent.trim(),
+        function re_contactCallBack(itemLogEl, contact) {
+          if (contact) {
+            if (contact.name) {
+              itemLogEl.querySelector('.primary-info').textContent = contact.name;
+            }
+            if (contact.photo) {
+              itemLogEl.querySelector('.call-log-contact-photo').style.backgroundImage = 'url(' + contact.photo + ')';
+            }
           }
-        }.bind(this, commLogItemPhoneNumbers[i]));
+        }.bind(this, callLogItems[i]));
     }
   },
 
