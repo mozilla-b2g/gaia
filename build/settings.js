@@ -45,6 +45,7 @@ var settings = [
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
  new Setting("ums.enabled", false),
+ new Setting("ums.mode", ""),
  new Setting("ril.data.roaming.enabled", false),
  new Setting("ril.data.apn", ""),
  new Setting("ril.data.user", ""),
@@ -54,26 +55,13 @@ var settings = [
  new Setting("ril.data.mmsport", 0),
  new Setting("devtools.debugger.remote-enabled", false),
  new Setting("devtools.debugger.log", false),
- new Setting("devtools.remote.port", 6000),
- new Setting("devtools.remote.force-local", true),
- new Setting("debug.fps.enabled", false),
+ new Setting("devtools.debugger.remote-port", 6000),
+ new Setting("devtools.debugger.force-local", true),
  new Setting("debug.debug.paint-flashing.enabled", false),
  new Setting("homescreen.wallpaper", "default.png"),
- new Setting("ums.enabled", false),
- new Setting("debug.grid.enabled", false),
- new Setting("accessibility.invert", false),
- new Setting("lockscreen.enabled", true),
  new Setting("lockscreen.wallpaper", "default.png"),
- new Setting("lockscreen.passcode-lock.enabled", true),
- new Setting("ril.radio.disabled", false),
- new Setting("ril.data.enabled", false),
- new Setting("ums.mode", ""),
- new Setting("keyboard.vibration", false),
- new Setting("keyboard.clicksound", ""),
  new Setting("keyboard.layout.english", true),
  new Setting("keyboard.layout.dvorak", false),
- new Setting("keyboard.layout.spanish", false),
- new Setting("keyboard.layout.portuguese", false),
  new Setting("keyboard.layout.otherlatins", false),
  new Setting("keyboard.layout.cyrillic", false),
  new Setting("keyboard.layout.hebrew", false),
@@ -81,8 +69,24 @@ var settings = [
  new Setting("keyboard.layout.pinyin", false),
  new Setting("keyboard.layout.arabic", false),
  new Setting("keyboard.layout.greek", false),
- new Setting("keyboard.layout.japanese", false)
+ new Setting("keyboard.layouts.japanese", false),
+ new Setting("keyboard.layouts.portuguese", false),
+ new Setting("keyboard.layouts.spanish", false),
+ new Setting("screen.timeout", 60)
 ];
+
+// Ensure there is no duplicate
+for (let i in settings) {
+  var settingName = settings[i].name;
+  for (let j in settings) {
+    if (i === j)
+      continue;
+
+    if (settingName === settings[j].name) {
+      throw new Error('There is a at least 2 settings called: ' + settingName);
+    }
+  }
+}
 
 function Setting(aName, aValue) {
   this.name = aName;
