@@ -22,7 +22,7 @@
 
 GAIA_DOMAIN?=gaiamobile.org
 
-HOMESCREEN?=http://system.$(GAIA_DOMAIN)
+HOMESCREEN?=app://system
 
 LOCAL_DOMAINS?=1
 
@@ -118,8 +118,8 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
-	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
+profile: stamp-commit-hash preferences webapp-manifests webapp-zip test-agent-config extensions
+	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -141,11 +141,11 @@ webapp-manifests:
 			cp $$d/manifest.webapp profile/webapps/$$n/manifest.json  ;\
 			(\
 			echo \"$$n\": { ;\
-			echo \"origin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"installOrigin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"origin\": \"app://$$n\", ;\
+			echo \"installOrigin\": \"app://$$n\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
+			echo \"manifestURL\": \"app://$$n/manifest.webapp\", ;\
 			echo \"localId\": $$id ;\
 			echo },) >> profile/webapps/webapps.json;\
 			: $$((id++)); \
@@ -175,6 +175,24 @@ webapp-manifests:
 	@cat profile/webapps/webapps.json
 	@echo "Done"
 
+# Generate profile/webapps/APP/application.zip
+webapp-zip:
+	@echo "Packaged webapps"
+	@mkdir -p profile/webapps
+	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	do \
+	  if [ -f $$d/manifest.webapp ]; \
+		then \
+			n=$$(basename $$d); \
+			mkdir -p profile/webapps/$$n; \
+			cdir=`pwd`; \
+			cd $$d; \
+			zip -r application.zip *; \
+			cd $$cdir; \
+			mv $$d/application.zip profile/webapps/$$n/application.zip; \
+		fi \
+	done;
+	@echo "Done"
 
 # Generate profile/OfflineCache/
 offline: install-xulrunner
