@@ -307,28 +307,21 @@ menu button {
   width: 80px;
   height: 45px;
   float: left;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 #back-button {
   background-image: url("images/back.png");
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 #forward-button {
   background-image: url("images/forward.png");
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 
 #back-button:active {
   background-image: url("images/back-pressed.png");
-}
-
-#menu-button {
-  background-image: url("images/menu.png");
-  float: right;
 }
 
 input::-moz-focus-inner {
@@ -341,6 +334,15 @@ input::-moz-focus-inner {
 
 #forward-button[disabled] {
   display: none;
+}
+
+#bookmark-button {
+  float: right;
+  background-image: url("images/bookmark.png");
+}
+
+#bookmark-button.bookmarked {
+ background-image: url("images/bookmarked.png");
 }
 
 #frames {

@@ -7,7 +7,6 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "power",
     "mozApps"
   ],
   "locales": {

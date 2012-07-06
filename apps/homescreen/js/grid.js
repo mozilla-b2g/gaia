@@ -648,10 +648,10 @@ const GridManager = (function() {
         curPageObj.remove(draggableIcon);
         var prevPageObj = pageHelper.getPrevious();
         if (prevPageObj.getNumApps() === pageHelper.getMaxPerPage()) {
-          var propagateIco = prevPageObj.popIcon();
-          curPageObj.prependIcon(propagateIco);
+          prevPageObj.insertBeforeLastIcon(draggableIcon);
+        } else {
+          prevPageObj.append(draggableIcon);
         }
-        prevPageObj.append(draggableIcon);
         this.setDisabledCheckingLimits(true);
         this.transitioning = true;
         goPrev(this.onNavigationEnd);
@@ -714,25 +714,28 @@ const GridManager = (function() {
      */
     move: function dg_move(overlapElem) {
       draggableIcon.onDragMove(status.cCoords.x, status.cCoords.y);
+
       var currentPage = pageHelper.getCurrent();
-      if (currentPage.ready) {
-        this.checkLimits();
-        if (this.isDisabledDrop) {
-          return;
-        }
-        var classList = overlapElem.classList;
-        if (classList.contains('icon') || classList.contains('options')) {
-          var overlapElemOrigin = overlapElem.dataset.origin;
-          currentPage.drop(draggableIconOrigin, overlapElemOrigin);
-        } else if (classList.contains('page')) {
-          var lastIcon = currentPage.getLastIcon();
-          if (lastIcon && status.cCoords.y > lastIcon.getTop()
-              && overlapElem !== lastIcon) {
-            currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
-          }
-        }
-      } else {
+      if (!currentPage.ready) {
         currentPage.onReArranged = dispatchMouseMoveEvent;
+        return;
+      }
+
+      this.checkLimits();
+      if (this.isDisabledDrop) {
+        return;
+      }
+
+      var classList = overlapElem.classList;
+      if (classList.contains('icon') || classList.contains('options')) {
+        var overlapElemOrigin = overlapElem.dataset.origin;
+        currentPage.drop(draggableIconOrigin, overlapElemOrigin);
+      } else if (classList.contains('page')) {
+        var lastIcon = currentPage.getLastIcon();
+        if (lastIcon && status.cCoords.y > lastIcon.getTop() &&
+            overlapElem !== lastIcon) {
+          currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
+        }
       }
     }
   };

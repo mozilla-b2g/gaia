@@ -184,6 +184,14 @@
   }
 }
 
+#lockscreen-area {
+  position: absolute;
+  height: 100px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
 #lockscreen-area-handle {
   position: absolute;
   width: 50px;
@@ -390,6 +398,10 @@
 }
 
 @media screen and (height: 800px) {
+  #lockscreen-area {
+    height: 150px;
+  }
+
   #lockscreen-area-handle {
     width: 75px;
     height: 75px;

@@ -6,7 +6,9 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [],
+  "permissions": [
+    "mobileconnection"
+  ],
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u0636\u0628\u0637",

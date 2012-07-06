@@ -122,6 +122,7 @@
   background-size: 3rem 3rem;
   background-position: center;
   margin: auto;
+  pointer-events: none;
 }
 
 .sharp {
@@ -132,6 +133,7 @@
   background-size: 3rem 3rem;
   background-position: center;
   margin: auto;
+  pointer-events: none;
 }
 
 #keypad-callbar {
