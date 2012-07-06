@@ -183,7 +183,7 @@ var WindowManager = (function() {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('appopen', true, false, { url: origin });
       frame.dispatchEvent(evt);
-      
+
       // If the sprite is not yet faded
       if (!sprite.classList.contains('faded')) {
         // The first transition has just completed.
@@ -359,7 +359,6 @@ var WindowManager = (function() {
 
     // If the app has a attention screen open, displaying it
     AttentionScreen.showForOrigin(origin);
-    
   }
 
   function setOrientationForApp(origin) {
@@ -767,7 +766,7 @@ var WindowManager = (function() {
       setDisplayedApp(null); // back to the homescreen
     }
 
-    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.blocked) {
+    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.currentOrigin) {
       ModalDialog.cancelHandler();
     }
   });
