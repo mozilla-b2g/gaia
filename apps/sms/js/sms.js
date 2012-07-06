@@ -347,25 +347,11 @@ var ConversationListView = {
     }, null);
   },
 
-  createHighlightHTML: function cl_createHighlightHTML(text, searchRegExp) {
-    var sliceStrs = text.split(searchRegExp);
-    var patterns = text.match(searchRegExp);
-    var str = '';
-    for (var i = 0; i < patterns.length; i++) {
-      str = str +
-          escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
-          escapeHTML(patterns[i]) + '</span>';
-    }
-    str += escapeHTML(sliceStrs.pop());
-    return str;
-  },
-
-  createNewConversation: function cl_createNewConversation(conversation, reg) {
+  createNewConversation: function cl_createNewConversation(conversation) {
     var dataName = escapeHTML(conversation.name || conversation.num, true);
     var name = escapeHTML(conversation.name);
     var bodyText = conversation.body.split('\n')[0];
-    var bodyHTML = reg ? this.createHighlightHTML(bodyText, reg) :
-                           escapeHTML(bodyText);
+    var bodyHTML = escapeHTML(bodyText);
 
     return '<div class="item">' +
            '  <label class="fake-checkbox">' +
@@ -418,65 +404,6 @@ var ConversationListView = {
       giveHeaderDate(conversation.timestamp) + '</div>';
   },
 
-  searchConversations: function cl_searchConversations() {
-    var str = this.searchInput.value;
-    if (!str) {
-      // Leave the empty view when no text in the input.
-      this.view.innerHTML = '';
-      return;
-    }
-
-    var self = this;
-    MessageManager.getMessages(function getMessagesCallback(messages) {
-      str = str.replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&');
-      var fragment = '';
-      var searchedNum = {};
-      for (var i = 0; i < messages.length; i++) {
-        var reg = new RegExp(str, 'ig');
-        var message = messages[i];
-        var htmlContent = message.body.split('\n')[0];
-        var num = message.delivery == 'received' ?
-                  message.sender : message.receiver;
-        var read = message.read;
-
-        if (searchedNum[num])
-          searchedNum[num].unreadCount += !message.read ? 1 : 0;
-
-        if (!reg.test(htmlContent) || searchedNum[num] ||
-            self.delNumList.indexOf(num) !== -1)
-          continue;
-
-        var msgProperties = {
-          'hidden': false,
-          'body': message.body,
-          'name': num,
-          'num': num,
-          'timestamp': message.timestamp.getTime(),
-          'unreadCount': !read ? 1 : 0,
-          'id': i
-        };
-        searchedNum[num] = msgProperties;
-        var msg = self.createNewConversation(msgProperties, reg);
-        fragment += msg;
-
-      }
-      self.view.innerHTML = fragment;
-
-      // update the conversation sender/receiver name with contact data.
-      var conversationList = self.view.children;
-      for (var i = 0; i < conversationList.length; i++) {
-        self.updateMsgWithContact(conversationList[i]);
-      }
-    }, null);
-  },
-
-  openConversationView: function cl_openConversationView(num) {
-    if (!num)
-      return;
-
-    window.location.hash = '#num=' + num;
-  },
-
   // Update the body class depends on the current hash and original class list.
   pageStatusController: function cl_pageStatusController() {
     var bodyclassList = document.body.classList;
@@ -519,10 +446,6 @@ var ConversationListView = {
     switch (evt.type) {
       case 'received':
         ConversationListView.updateConversationList(evt.message);
-        break;
-
-      case 'keyup':
-        this.searchConversations();
         break;
 
       case 'focus':
