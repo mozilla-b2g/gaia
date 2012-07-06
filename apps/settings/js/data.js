@@ -47,8 +47,27 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
     return found;
   }
 
+  // create a button to apply <apn> data to the current fields
+  function createAPNButton(item) {
+    function setFieldValue(name, value) {
+      var selector = 'input[data-setting="ril.data.' + name + '"]';
+      document.querySelector(selector).value = value || '';
+    }
+
+    var button = document.createElement('input');
+    button.type = 'button';
+    button.value = item.name;
+    button.onclick = function fillAPNData() {
+      setFieldValue('apn', item.id);
+      setFieldValue('user', item.username);
+      setFieldValue('passwd', item.password);
+    };
+
+    return button;
+  }
+
   // update APN fields
-  document.getElementById('autoAPN').onclick = function autoAPN() {
+  function autoAPN() {
     var APN_FILE = 'serviceproviders.xml';
 
     if (navigator.mozMobileConnection &&
@@ -61,30 +80,25 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
       return;
     }
 
+    var apnList = document.getElementById('autoAPN-list');
+    apnList.innerHTML = '';
     if (DEBUG) { // display MCC/MNC in the UI
-      var li = document.createElement('li');
-      li.textContent = 'mcc: ' + mcc + ' / mnc: ' + mnc;
-      this.parentNode.parentNode.appendChild(li);
+      apnList.innerHTML += 'mcc: ' + mcc + ' / mnc: ' + mnc + '<br />';
     }
 
     var xhr = new XMLHttpRequest();
     xhr.open('GET', APN_FILE, false); // synchronous (boo!)
     xhr.send();
 
-    function setFieldValue(name, value) {
-      var selector = 'input[data-name="ril.data.' + name + '"]';
-      document.querySelector(selector).value = value || '';
-    }
-
     var results = queryAPN(xhr.responseXML, mcc, mnc);
-    if (results && results.length) {
-      // TODO: propose a drop-down list or an similar UI
-      // when several <apn> nodes match the MCC/MNS selector
-      var res = results[0];
-      setFieldValue('apn', res.id);
-      setFieldValue('user', res.username);
-      setFieldValue('passwd', res.password);
+    for (var i = 0; i < results.length; i++) {
+      var button = createAPNButton(results[i]);
+      apnList.appendChild(button);
+      if (i == 0) // always apply the data in the first <apn> element
+        button.click();
     }
   };
+
+  document.getElementById('autoAPN').onclick = autoAPN;
 });
 

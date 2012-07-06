@@ -172,3 +172,18 @@ form[role=dialog] label input {
   border: none;
 }
 
+#autoAPN-list input[type=button] {
+  display: block;
+  height: 1.4em;
+  margin: 5px;
+  border: none;
+  font-size: 1em;
+  text-decoration: underline;
+  color: navy;
+  background-color: transparent;
+}
+
+#autoAPN-list input[type=button]:active {
+  color: brown;
+}
+
