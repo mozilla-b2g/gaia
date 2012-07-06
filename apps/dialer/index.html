@@ -23,14 +23,14 @@
       }
       document.write('<script src="' + src + '"><\/script>');
     </script>
-    <script type="application/javascript" src="js/helper.js"></script>
-    <script type="application/javascript" src="js/contacts.js"></script>
-    <script type="application/javascript" src="js/settings_listener.js"></script>
-    <script type="application/javascript" src="js/notification_helper.js"></script>
-    <script type="application/javascript" src="js/keypad.js"></script>
-    <script type="application/javascript" src="js/dialer.js"></script>
-    <script type="application/javascript" src="js/recents.js"></script>
-    <script type="application/javascript" src="js/proximity.js"></script>
+    <script defer="defer" type="application/javascript" src="js/helper.js"></script>
+    <script defer="defer" type="application/javascript" src="js/contacts.js"></script>
+    <script defer="defer" type="application/javascript" src="js/settings_listener.js"></script>
+    <script defer="defer" type="application/javascript" src="js/notification_helper.js"></script>
+    <script defer="defer" type="application/javascript" src="js/keypad.js"></script>
+    <script defer="defer" type="application/javascript" src="js/dialer.js"></script>
+    <script defer="defer" type="application/javascript" src="js/recents.js"></script>
+    <script defer="defer" type="application/javascript" src="js/proximity.js"></script>
   </head>
   <body class="hidden">
     <article id="views" role="tablist">
@@ -166,7 +166,7 @@
         </article>
       </section>
       <section class="view" role="tabpanel" id="contacts-view">
-        <iframe src="contacts/contacts.html" frameBorder="no" class="grid-wrapper"></iframe>
+        <!-- <iframe id="iframe-contacts" src="" frameBorder="no" class="grid-wrapper"></iframe> -->
       </section>
       <section class="view" role="tabpanel" id="recents-view">
         <div class="grid-wrapper">
@@ -183,7 +183,7 @@
               </section>
             </div>
           </header>
-          <article id="contacts-container" class="view-body">
+          <article id="recents-container" onclick="Recents.click(event.target)" class="view-body">
           </article>
         </div>
       </section>
@@ -193,7 +193,7 @@
         <div class="icon icon-recents"></div>
       </a>
       <a id="option-contacts" href="#contacts-view" class="grid-cell grid-v-align toolbar-option ">
-        <div class="icon icon-contacts"></div>
+        <div class="icon icon-contacts disabled-icon"></div>
       </a>
       <a id="option-keypad" href="#keyboard-view" class="grid-cell grid-v-align toolbar-option toolbar-option-selected">
         <div class="icon icon-keypad"></div>

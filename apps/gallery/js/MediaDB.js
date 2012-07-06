@@ -207,6 +207,10 @@ function MediaDB(mediaType, metadataParser, options) {
 
   // Set up IndexedDB
   var indexedDB = window.indexedDB || window.mozIndexedDB;
+  if (IDBObjectStore && IDBObjectStore.prototype.mozGetAll) {
+    IDBObjectStore.prototype.getAll = IDBObjectStore.prototype.mozGetAll;
+  }
+
   this.dbname = 'MediaDB/' + mediaType + '/' + this.directory;
   var openRequest = indexedDB.open(this.dbname, this.version);
 

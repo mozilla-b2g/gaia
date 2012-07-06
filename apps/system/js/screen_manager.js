@@ -6,7 +6,7 @@
 var ScreenManager = {
   /*
   * return the current screen status
-  * Must not multate directly - use toggleScreen/turnScreenOff/turnScreenOn.
+  * Must not mutate directly - use toggleScreen/turnScreenOff/turnScreenOn.
   * Listen to 'screenchange' event to properly handle status changes
   * This value can be "out of sync" with real mozPower value,
   * we do this to give screen some time to flash before actual turn off.
@@ -23,16 +23,16 @@ var ScreenManager = {
 
   _brightness: 0.5,
 
+  _dimStep: 0.005,
+
   init: function scm_init() {
     /* Allow others to cancel the keyup event but not the keydown event */
     window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this);
 
-    /* Respect the information from DeviceLight sensor */
     window.addEventListener('devicelight', this);
-
-    /* fullscreenchange event */
     window.addEventListener('mozfullscreenchange', this);
+    window.addEventListener('mozvisibilitychange', this, true);
 
     this.screen = document.getElementById('screen');
     this.screen.classList.remove('screenoff');
@@ -48,11 +48,10 @@ var ScreenManager = {
           if (self._screenWakeLocked) {
             // Turn screen on if wake lock is acquire
             self.turnScreenOn();
-          } else {
+          } else if (self._idled) {
             // Turn screen off if we are already idled
             // and wake lock is released
-            if (self._idled)
-              self.turnScreenOff(false);
+            self.turnScreenOff(false);
           }
           break;
 
@@ -75,7 +74,6 @@ var ScreenManager = {
 
     this.idleObserver.onactive = function scm_onactive() {
       self._idled = false;
-      self.turnScreenOn();
     };
 
     SettingsListener.observe('screen.timeout', 60,
@@ -122,31 +120,39 @@ var ScreenManager = {
         }
         break;
 
+      case 'mozvisibilitychange':
+        if (document.mozHidden && this.screenEnabled) {
+          this.turnScreenOff(true);
+        }
+        break;
+
       // The screenshot module also listens for the SLEEP key and
       // may call preventDefault() on the keyup and keydown events.
       case 'keydown':
-        if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
+        if (evt.keyCode !== evt.DOM_VK_SLEEP &&
+            evt.keyCode !== evt.DOM_VK_HOME || this._screenWakeLocked) {
           return;
+        }
 
-        if (!evt.defaultPrevented)
+        if (!evt.defaultPrevented) {
           this._turnOffScreenOnKeyup = true;
+        }
+
         if (!this.screenEnabled || this._inTransition) {
           this.turnScreenOn();
           this._turnOffScreenOnKeyup = false;
         }
-
         break;
+
       case 'keyup':
         if (this.screenEnabled && this._turnOffScreenOnKeyup &&
             evt.keyCode == evt.DOM_VK_SLEEP && !evt.defaultPrevented)
           this.turnScreenOff(true);
-
         break;
     }
   },
 
   toggleScreen: function scm_toggleScreen() {
-    this._syncScreenEnabledValue();
     if (this.screenEnabled) {
       this.turnScreenOff();
     } else {
@@ -165,7 +171,7 @@ var ScreenManager = {
       if (!self._inTransition)
         return;
 
-      screenBrightness -= 0.02;
+      screenBrightness -= self._dimStep;
 
       if (screenBrightness <= 0) {
         finish();
@@ -177,7 +183,6 @@ var ScreenManager = {
     };
 
     var finish = function scm_finish() {
-
       self.screenEnabled = false;
       self._inTransition = false;
       self.screen.classList.add('screenoff');
@@ -185,7 +190,7 @@ var ScreenManager = {
         navigator.mozPower.screenEnabled = false;
       }, 20);
 
-      this.fireScreenChangeEvent();
+      self.fireScreenChangeEvent();
     };
 
     if (instant) {
@@ -203,8 +208,9 @@ var ScreenManager = {
       // The user had cancel the turnScreenOff action.
       this._inTransition = false;
       navigator.mozPower.screenBrightness = this._brightness;
-      return;
+      return false;
     }
+
     if (this.screenEnabled)
       return false;
 
@@ -242,18 +248,17 @@ var ScreenManager = {
   },
 
   setIdleTimeout: function scm_setIdleTimeout(time) {
-    if (!navigator.addIdleObserver)
+    if (!('addIdleObserver' in navigator))
       return;
-
-    // Remove the original observer.
     navigator.removeIdleObserver(this.idleObserver);
 
-    // If time = 0, then there is no idle timeout to set.
-    if (!time)
+    if (time === 0) {
       return;
+    }
 
     this.idleObserver.time = time;
     navigator.addIdleObserver(this.idleObserver);
+    this.isIdleObserverInitialized = true;
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
@@ -266,3 +271,4 @@ var ScreenManager = {
 };
 
 ScreenManager.init();
+

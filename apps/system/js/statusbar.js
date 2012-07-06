@@ -161,7 +161,7 @@ var StatusBar = {
 
     if (this.radioDisabled) {
       this.conn.textContent = _('airplane');
-      this.comm.dataset.l10nId = 'airplane';
+      this.conn.dataset.l10nId = 'airplane';
       this.signal.hidden = true;
       this.data.textContent = '';
       return;
@@ -251,7 +251,7 @@ var StatusBar = {
     this.wifi.hidden = !network;
     this.data.hidden = !!network;
 
-    if (network && evt.relSignalStrength) {
+    if (network && evt && evt.relSignalStrength) {
       // relSignalStrength should be between 0 and 100
       var relSignalStrength = evt.relSignalStrength || 0;
       if (wifiManager.connectionInformation) {

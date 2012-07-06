@@ -166,7 +166,8 @@ body.player-mode #views-player {
 }
 
 #title-back {  
-  position: absolute;
+  position: relative;
+  float: left;
   z-index: 10;
   width: 8%;
   height: 100%;
@@ -200,14 +201,15 @@ body.player-mode #views-player {
 }
 
 #title-text {
-  position: absolute;
-  width: 100%;
+  position: relative;
+  float: right;
+  width: 92%;
   height: 100%;
   color: #FFFFFF;
   font-size: 2.5em;
   line-height: 1.9em;
   text-align: left;
-  text-indent: 10%;
+  text-indent: 5%;
   opacity: 0.75;
   text-shadow: black 1px 1px;
   white-space: nowrap;
@@ -596,10 +598,18 @@ li.song a {
   color: #fff;
   text-decoration: none;
   border-bottom: solid 1px #666;
+  outline: none;
   margin: 0;
   padding: 1em;
   text-shadow: black 1px 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+li.song a:active {
+  color: black;
+  font-weight: bold;
+  text-shadow: rgba(255, 255, 255, 0.5) 1px 1px;
+  background-color: orange;
 }

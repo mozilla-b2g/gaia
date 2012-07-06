@@ -101,6 +101,9 @@
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
 
+    <!-- Bluetooth -->
+    <script defer src="js/bluetooth.js"></script>
+
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
     <link rel="resource" type="application/l10n" href="locale/l10n.ini">
@@ -159,18 +162,16 @@
 
       <!-- utility tray -->
       <div id="utility-tray">
-        <div id="utility-tray-first-shown">
-          <!-- quick settings -->
-          <div id="quick-settings">
-            <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
-            <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-            <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
-            <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
-            <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
-          </div>
-
-          <!-- TBD: credit module -->
+        <!-- quick settings -->
+        <div id="quick-settings">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
+          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
+          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
+          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
         </div>
+
+        <!-- TBD: credit module -->
 
         <!-- notifications -->
         <div id="notifications-container">
@@ -180,7 +181,7 @@
         </div>
       </div>
 
-      <div id="lockscreen" class="uninit">
+      <div id="lockscreen" class="uninit" data-panel="">
         <div id="lockscreen-container">
           <div id="lockscreen-main-panel" class="lockscreen-panel">
             <div id="lockscreen-header">
@@ -194,6 +195,7 @@
               <div id="lockscreen-notification-title"></div>
               <div id="lockscreen-notification-detail"></div>
             </div>
+            <div id="lockscreen-area"></div>
             <div id="lockscreen-area-unlock" class="lockscreen-icon"></div>
             <div id="lockscreen-area-camera" class="lockscreen-icon"></div>
             <div id="lockscreen-rail-left" class="lockscreen-rail"></div>

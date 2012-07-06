@@ -55,6 +55,10 @@ html, body {
   font-family: 'Open Sans', sans-serif;
 }
 
+a {
+  outline: none;
+}
+
 body {
   margin: 0;
   width: 100%;
@@ -62,7 +66,10 @@ body {
   font-family: 'FontRegular', sans-serif;
   font-size: -moz-calc(6 * 0.226rem);
 }
-
+a:active, a:focus, button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
 .panel {
   position: absolute;
   width: 100%;
@@ -143,6 +150,7 @@ body.conversation #msg-conversations {
   display: block;
   left: 0;
   right: 0;
+  z-index: 50;
   background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
   margin: 0;
   padding: 0;
@@ -158,7 +166,7 @@ body.conversation #msg-conversations {
 .toolbar-bottom {
   bottom: 0;
   height: 6rem;
-  background: rgba(0,0,0,.3);
+  background: rgba(0,0,0, 0.75);
   
 }
 
@@ -174,6 +182,55 @@ body.conversation #msg-conversations {
 
 .toolbar-panel-fixed-item {
   -moz-box-flex: 0;
+}
+ 
+/*Generic set of actions in toolbar */
+.toolbar-top [role="menu"] {
+  height: 5rem; float: right;
+}
+
+.toolbar-top [role="menuitem"] {
+  height: 5rem; float: left;
+}
+
+.toolbar-top [role="menuitem"]:first-child {
+  background: none; padding: 0 1.5rem;
+}
+
+.toolbar-top [role="menuitem"], .toolbar-top [role="menuitem"]:last-child {
+  background: url(./images/separator.png) no-repeat left center;
+  padding: 0 1.5rem;
+}
+
+.toolbar-top menu {
+  padding: 0;
+  margin: 0;
+}
+  
+.toolbar-top a {
+  border: none;
+  background: none;
+  padding: 0;
+  overflow: hidden;
+  font: 1.4rem/1.1em System Sans Semibold, Sans-serif;  
+  color: #fff;
+}
+
+.toolbar-top a:first-letter {
+  text-transform: uppercase;
+}
+
+/* Icon definitions */
+.view-header [data-icon] {
+  display: inline-block;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 -1rem;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+  text-indent: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 .list {
@@ -217,6 +274,7 @@ body.conversation #msg-conversations {
   border-right: solid .1rem rgba(0, 0, 0, 0.2);
   box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
   width: 2rem;
+  left: 0;
   position: absolute;
 }
 .back-button {
@@ -311,7 +369,12 @@ body.msg-search-mode #msg-conversations-list {
  -moz-transition: top 0.3s ease;
 }
 
-#msg-conversations-list > a {
+#msg-conversations-list .item {
+  position: relative;
+  overflow: hidden;
+}
+
+#msg-conversations-list .item > a {
   -moz-box-sizing: border-box;
   display: block;
   text-decoration: none;
@@ -328,36 +391,32 @@ body.msg-search-mode #msg-conversations-list {
   text-overflow: ellipsis;
 }
 
-body.edit-mode #msg-conversations-list > a {
-  padding: 1.3rem 1.6rem 0 13.2rem;
-  -moz-transition: padding 0.3s ease-out;
-}
-
-#msg-conversations-list > a:active {
+#msg-conversations-list .item > a:active {
   background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
 }
 
-#msg-conversations-list > a:active > .name {
+#msg-conversations-list .item > a:active > .name {
   color: white;
 }
 
-#msg-conversations-list > a:active > .msg {
+#msg-conversations-list .item > a:active > .msg {
   color: #ffbc8c;
+  text-shadow: none;
 }
 
-#msg-conversations-list > a.hide {
+#msg-conversations-list .item > a.hide {
   display: none;
 }
 
-#msg-conversations-list > a > * {
+#msg-conversations-list .item > a > * {
   pointer-events: none;
 }
 
-#msg-conversations-list > a:first-child {
+#msg-conversations-list .item > a:first-child {
   border-top-color: transparent;
 }
 
-#msg-conversations-list > a .unread-mark {
+#msg-conversations-list .item > a .unread-mark {
   display: none;
 }
 
@@ -381,19 +440,9 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 /* fake input boxes for checkboxes*/
-#msg-conversations-list label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
 
-#msg-conversations-list > a > input.fake-checkbox {
-  display: none;
-}
 
-#msg-conversations-list > a > span {
+#msg-conversations-list .item > a > span {
   position: absolute;
   top: -moz-calc(50% - 3.4rem);
   left: 4rem;
@@ -404,19 +453,21 @@ a.unread .unread-mark .icon-unread-mark {
   -moz-transition: opacity 0.3s ease-in;
 }
 
-#msg-conversations-list > a > input[type=checkbox] + span {
+#msg-conversations-list .item > a > input[type=checkbox] + span {
   opacity: 0.0;
   visibility: hidden;
   height: 6rem;
   border-radius: 0.5rem;
 }
 
-body.edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + span {
+body.edit-mode #msg-conversations-list .item > a { pointer-events: none; padding-right: 4rem; }
+
+body.edit-mode #msg-conversations-list .item > a > input[type=checkbox]:checked + span {
   background: url("./images/checked.png") no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
-body.edit-mode #msg-conversations-list > a > span {
+body.edit-mode #msg-conversations-list .item > a > span {
   opacity: 1.0;
   visibility: visible;
   border: 0.4rem solid;
@@ -487,20 +538,11 @@ body.edit-mode #msg-conversations-list > a > span {
   width: 1rem;
   top: 2rem;
   left: 1rem;
-
   background: url(../style/images/unread.png);
 }
 
-#msg-conversations-list > a.unread .unread-tag {
+#msg-conversations-list .item > a.unread .unread-tag {
   visibility : visible;
-}
-
-body.edit-mode #msg-conversations-list .name {
-  width: -moz-calc(100% - 19rem);
-}
-
-body.edit-mode #msg-conversations-list .msg {
-  width: -moz-calc(100% - 9rem);
 }
 
 #msg-new-message-container {
@@ -518,14 +560,6 @@ body.edit-mode #msg-conversations-list .msg {
   table-layout: fixed;
 }
 
-#msg-new-message {
-  right: 0;
-  width: 5rem;
-  margin-right: 2rem; 
-  position: absolute;
-  height: 100%;
-}
-
 .icon-add {
   display: block;
   background-image: url('images/add.png');
@@ -534,8 +568,7 @@ body.edit-mode #msg-conversations-list .msg {
   margin: 1.7rem auto;
 }
 
-#msg-edit-button, #msg-search-edit-button {
-  display: none;
+#msg-search-edit-button {
   right: 0;
   width: 5rem;
   margin-right: 2rem; 
@@ -545,7 +578,6 @@ body.edit-mode #msg-conversations-list .msg {
 }
 
 .icon-edit {
-  opacity: .5;
   display: block;
   background-image: url('images/edit.png');
   height: 2rem;
@@ -555,10 +587,9 @@ body.edit-mode #msg-conversations-list .msg {
 
 #msg-conversations-back {
   position: absolute;
-  
+  left: 0;
   height: 100%;
   width: 5rem;
-  
 }
 
 .icon-back {
@@ -607,18 +638,17 @@ body.edit-mode .edit-hide-element {
 #view-done-button {
   position: absolute;
   cursor: pointer;
-  padding: 1.4rem 0;
+  padding: 0;
   width: 7rem;
-  right: 2rem;
+  right: 0;
   text-align: center;
-  font-size: -moz-calc(10 * 0.226rem);
+  font-size: 1.6rem;
+  line-height: 4.9rem;
   color: #ffffff;
 }
 
 #view-edit-button { 
   right: 0;
-  width: 4rem;
-  margin-right: 2rem; 
   position: absolute;
   height: 100%;
 }
@@ -738,9 +768,9 @@ body.conversation-new-msg #view-num {
 #view-list > div .message-container {
   position: relative;
   padding: 1rem 1.5rem;
-  width: 26.5rem;
   -moz-box-sizing: border-box;
   display: block;
+  -moz-transition: -moz-transform 0.3s ease;
 }
 
 #view-list > div .message-bubble {
@@ -854,8 +884,15 @@ body.edit-mode #view-list .time {
   left: -0.1rem;
 }
 
-body.edit-mode #view-list > div.message-block {
-  -moz-transform: translateX(9rem);
+
+body.edit-mode #view-list > div.message-block .receiver {
+  -moz-transform: translateX(-0.5rem);
+}
+body.edit-mode #view-list > div.message-block .sender {
+  -moz-transform: translateX(-2rem);
+}
+body.edit-mode .fake-checkbox {
+-moz-transform: translateX(0);
 }
 
 
@@ -865,10 +902,10 @@ body.edit-mode #view-list > div.message-block {
   text-decoration: none;
   outline: none;
   position: relative;
+  overflow: hidden;
   padding: 0.5rem 0 0.5rem 9rem;
   width: -moz-calc(100% + 9rem);
   right: 9rem;
-  -moz-transition: -moz-transform 0.3s ease;
 }
 
 #view-list > div.message-block > * {
@@ -880,16 +917,42 @@ body.edit-mode #view-list > div.message-block {
 }
 
 /* fake input boxes for checkboxes*/
-#view-list label {
+.fake-checkbox {
+  display: block;
+  -moz-transform: translateX(4rem);
+  -moz-transition: -moz-transform 0.3s ease;
+  width: 4rem;
+  height: 4rem;
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  left: auto;
+  right: 0;
+  top: 50%;
+  z-index: 5;
+  margin-top: -2rem;
+  pointer-events: all!important;
 }
 
-#view-list div.message-block > input.fake-checkbox {
-  display: none;
+.fake-checkbox input {
+  width: 100%;
+  height: 100%;
+  display: block;
+  margin: 0;
+  border: none;
+  opacity: 0;
+}
+.fake-checkbox span {
+  background: url(images/check-delete.png) no-repeat center top;
+  background-size: 100% auto;
+  width: 2.2rem;
+  height: 2.2rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -1.1rem 0 0 -1.1rem;
+  pointer-events: none;
+}
+.fake-checkbox input:checked + span {
+  background-position: center bottom;
 }
 
 #view-list div.message-block > span {
@@ -902,10 +965,6 @@ body.edit-mode #view-list > div.message-block {
   border: none;
 }
 
-
-#view-list div.message-block > input.fake-checkbox {
-  display: none;
-}
 
 #view-list div.message-block > span {
   position: absolute;
@@ -976,9 +1035,11 @@ body.edit-mode #view-list > div.message-block {
 #view-msg-text {
   height: 3rem;
   width: 100%;
+  padding: 0.4rem 0.8rem;
   margin: 0 !important;
   -moz-box-sizing: border-box;
   resize: none;
+  overflow: hidden;
   font-size: -moz-calc(7 * 0.226rem);
   border-radius: 0.3rem;
   border: 1px solid rgba(0,0,0,.3);
