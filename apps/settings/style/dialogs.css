@@ -65,8 +65,8 @@ div.dialog footer {
 }
 
 div.dialog footer button {
-  width: 180px;
-  height: 60px;
+  width: 120px;
+  height: 40px;
   border: 4px solid;
   border-radius: 5px;
   -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
@@ -75,6 +75,15 @@ div.dialog footer button {
   -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
   background: -moz-linear-gradient(#ffffff, #eaeae4);
   font-size: 1em;
+}
+
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+  div.dialog footer button {
+    width: 180px;
+    height: 60px;
+  }
 }
 
 div.dialog footer button:active {

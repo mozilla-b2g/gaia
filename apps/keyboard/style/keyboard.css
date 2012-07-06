@@ -69,7 +69,7 @@ button::-moz-focus-inner {
 /* Buttons: logic keys */
 .keyboard-key {
   -moz-box-sizing: border-box;
-  padding: 0.25rem 0.2rem 0.15rem;
+  padding: 0.2rem 0.2rem;
   border: none;
   background: none;
   min-width: 2.6rem;
@@ -278,8 +278,10 @@ margin-top: 0.3rem;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
-  box-shadow: none;
-  border: none;
+  border: #53B6CC 2px solid;
+  border-radius: 0.3rem;
+  margin:-2px;
+  background: -moz-linear-gradient(#fff, #ebebeb);
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
@@ -318,7 +320,9 @@ margin-top: 0.3rem;
   top: auto;
   margin-bottom: -2px;
   height: auto;
-  overflow: hidden;
+  max-height: 34rem;
+  overflow-x: hidden;
+  overflow-y: auto;
   white-space: normal;
   padding: 0.3rem 0.6rem 0.5rem 0.5rem;
   background: #fff;
@@ -339,14 +343,17 @@ margin-top: 0.3rem;
   box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);*/
   font-family: 'Open Sans Semibold';  
   font-size: 1.8rem;
-  line-height: 3.8rem;
   color: #333;
   /*border: 1px solid rgba(0, 0, 0, 0.6);*/
   /*border-radius: 0.3rem;*/
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted {
-  margin: 0.7rem 0 2px;
+  /*margin: 0.7rem 0 2px;*/
+}
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > span {
+  box-shadow: none;
+  margin: 0;
 }
 
 /* Key states */

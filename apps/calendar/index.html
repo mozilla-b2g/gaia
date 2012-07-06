@@ -5,6 +5,8 @@
   <link rel="stylesheet" type="text/css" href="./style/calendar.css">
   <link rel="stylesheet" type="text/css" href="./style/ui.css">
   <link rel="stylesheet" type="text/css" href="./style/events.css">
+  <link rel="stylesheet" type="text/css" href="./style/forms.css">
+  <link rel="stylesheet" type="text/css" href="./style/toolbars.css">
 
   <!--- vendor -->
   <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
@@ -42,13 +44,13 @@
 <body onload="Calendar.init();">
 
 <section id="top-toolbar">
-  <header class="toolbar">
+  <header role="toolbar">
     <a data-l10n-id="buttons.accounts" role="button" class="accounts" href="#accounts">
       Accounts
     </a>
 
-    <h3 id="current-month-year">
-    </h3>
+    <h1 id="current-month-year">
+    </h1>
 
     <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="/add">
       New Event
@@ -88,8 +90,8 @@
   access to the details here
   -->
   <section id="months-day-view">
-    <header class="toolbar">
-      <h3 id="selected-day-title"></h3>
+    <header>
+      <h1 id="selected-day-title"></h1>
     </header>
      <section id="event-list" class="day-events">
     </section>
@@ -104,7 +106,81 @@
   </section>
 
   <section id="add-event-view">
-    [Add] Coming soon...
+    <header role="toolbar">
+      <a data-l10n-id="buttons.cancel"
+         role="button"
+         class="cancel"
+         href="javascript: window.history.back();">
+
+        Cancel
+      </a>
+
+      <h1>
+        EVENT
+      </h1>
+
+      <a data-l10n-id="buttons.save" role="button" class="save" href="#">
+        Save
+      </a>
+    </header>
+    <fieldset>
+      <ol>
+        <li class="title">
+          <input name="title" placeholder="Title" />
+        </li>
+
+        <li class="location">
+          <input name="location" placeholder="Location" />
+        </li>
+
+        <li class="all-day">
+          <label role="checkbox">
+            <span>All Day?</span>
+            <input type="checkbox" name="allDay" />
+          </label>
+        </li>
+
+        <li class="start-time">
+          <input type="time" placeholder="12:00" name="startTime" />
+        </li>
+
+        <li class="end-time">
+          <input type="time" placeholder="12:00" name="endTime" />
+        </li>
+
+        <li class="repeat">
+          <label role="listbox">
+            <select name="repeat">
+              <option class="default" value="" selected>
+                Repeat
+              </option>
+              <option>None</option>
+              <option>Every Day</option>
+              <option>Every Week</option>
+              <option>Every Month</option>
+              <option>Every Year</option>
+            </select>
+          </label>
+        </li>
+
+        <li class="alert">
+          <label role="listbox">
+            <select value="" name="alert">
+              <option class="default" selected>
+                Alert
+              </option>
+              <option>Event Time</option>
+              <option>5 min before</option>
+            </select>
+          </label>
+        </li>
+
+        <li class="notes">
+          <textarea name="notes" placeholder="Notes"></textarea>
+        </li>
+
+      </ol>
+    </fieldset>
   </section>
 </section>
 
@@ -117,13 +193,13 @@
     <li class="time-selection">
       <menu>
         <li class="month">
-          <a href="/month">MONTH</a>
+          <a href="/month">Month</a>
         </li>
         <li class="week">
-          <a href="/week">WEEK</a>
+          <a href="/week">Week</a>
         </li>
         <li class="day">
-          <a href="/day">DAY</a>
+          <a href="/day">Day</a>
         </li>
       </menu>
     </li>

@@ -1023,6 +1023,7 @@ var ConversationView = {
 
   sendMessage: function cv_sendMessage() {
     var num = this.num.value;
+    var self = this;
     var text = document.getElementById('view-msg-text').value;
 
     if (num === '' || text === '')
@@ -1040,6 +1041,12 @@ var ConversationView = {
             ConversationView.showConversation(ConversationView.filter);
         }
         ConversationListView.updateConversationList();
+
+        var resendConfirmStr = _('resendConfirmDialogMsg');
+        var result = confirm(resendConfirmStr);
+        if (result) {
+          window.setTimeout(self.sendMessage.bind(self), 500);
+        }
         return;
       }
 
