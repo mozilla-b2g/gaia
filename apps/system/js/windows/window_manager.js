@@ -178,6 +178,12 @@ var WindowManager = (function() {
       if (e.propertyName !== 'opacity')
         return;
 
+      // Dispatch a 'appopen' event,
+      // Modal dialog would use this.
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appopen', true, false, { url: origin });
+      frame.dispatchEvent(evt);
+      
       // If the sprite is not yet faded
       if (!sprite.classList.contains('faded')) {
         // The first transition has just completed.
@@ -205,14 +211,6 @@ var WindowManager = (function() {
       }
     });
 
-    // FIXME
-    // We broadcast an 'appopen' event here.
-    // Currently notification screen code in homescreen.js listens for
-    // this event and uses it to clear notifications when the dialer
-    // or sms apps are opened up. We probably need a better way to do this.
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, { url: origin });
-    frame.dispatchEvent(evt);
   }
 
   function closeWindow(origin, instant, callback) {
@@ -361,6 +359,7 @@ var WindowManager = (function() {
 
     // If the app has a attention screen open, displaying it
     AttentionScreen.showForOrigin(origin);
+    
   }
 
   function setOrientationForApp(origin) {
@@ -762,7 +761,6 @@ var WindowManager = (function() {
     // homescreen. Unlike the Home key, apps can intercept this event
     // and use it for their own purposes.
     if (e.keyCode === e.DOM_VK_ESCAPE &&
-        !ModalDialog.blocked &&
         !e.defaultPrevented &&
         displayedApp !== null) {
 
@@ -838,7 +836,7 @@ var WindowManager = (function() {
         // the we also itnore it
         // Otherwise, make the homescreen visible.
         // Also, if the card switcher is visible, then hide it.
-        if (!ModalDialog.blocked && !LockScreen.locked && !e.defaultPrevented) {
+        if (!LockScreen.locked && !e.defaultPrevented) {
           // The attention screen can 'eat' this event
           if (!e.defaultPrevented)
             setDisplayedApp(null);
@@ -857,8 +855,7 @@ var WindowManager = (function() {
       // and if the card switcher is not already shown
       timer = null;
 
-      if (!ModalDialog.blocked &&
-          !LockScreen.locked &&
+      if (!LockScreen.locked &&
           !CardsView.cardSwitcherIsShown()) {
         CardsView.showCardSwitcher();
       }

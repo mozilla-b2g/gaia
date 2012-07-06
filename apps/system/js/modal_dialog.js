@@ -8,9 +8,6 @@
 // (alert/confirm/prompt)
 
 var ModalDialog = {
-  // this attribute indicates if modal dialog is shown now.
-  blocked: false,
-
   // Used for element id access.
   // e.g., 'modal-dialog-alert-ok'
   prefix: 'modal-dialog-',
@@ -40,7 +37,7 @@ var ModalDialog = {
   },
 
   // Save the event returned by mozbrowsershowmodalprompt for later use.
-  evt: null,
+  evt: {},
 
   init: function md_init() {
     // Get all elements initially.
@@ -49,6 +46,8 @@ var ModalDialog = {
 
     // Bind events
     window.addEventListener('mozbrowsershowmodalprompt', this);
+    window.addEventListener('appopen', this);
+    window.addEventListener('appclose', this);
 
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
@@ -63,16 +62,18 @@ var ModalDialog = {
     switch (evt.type) {
       case 'mozbrowsershowmodalprompt':
         evt.preventDefault();
-        this.blocked = true;
+        this.evt[evt.target.dataset.frameOrigin] = evt;
 
-        // check if there is another modal dialog now.
-        // unblock the previous mozbrowsershowmodalprompt event
-        if (this.evt && this.evt.detail.unblock) {
-          this.evt.detail.unblock();
+        var displayedOrigin = WindowManager.getDisplayedApp();
+        if (displayedOrigin) {
+          var frame = WindowManager.getAppFrame(displayedOrigin);
+
+          // Show modal dialog only if
+          // the frame is currently displayed.
+          if (frame == evt.target) {
+            this.show(evt.target.dataset.frameOrigin);
+          }
         }
-
-        this.evt = evt;
-        this.show();
         break;
 
       case 'click':
@@ -83,16 +84,34 @@ var ModalDialog = {
           this.confirmHandler();
         }
         break;
+
+      case 'appopen':
+        this.currentOrigin = evt.detail.url;
+        this.show(this.currentOrigin);
+        break;
+
+      case 'appclose':
+        if (evt.target.dataset.frameOrigin == this.currentOrigin) {
+          this.currentOrigin = null;
+          this.show(this.currentOrigin);
+        }
+        break;
     }
   },
 
   // Show relative dialog and set message/input value well
-  show: function md_show() {
-      var message = this.evt.detail.message;
+  show: function md_show(origin) {
+      var evt = this.evt[origin];
+      if (!evt) {
+        this.hide();
+        return;
+      }
+
+      var message = evt.detail.message;
       var elements = this.elements;
       this.screen.classList.add('modal-dialog');
 
-      switch (this.evt.detail.promptType) {
+      switch (evt.detail.promptType) {
         case 'alert':
           elements.alertMessage.textContent = message;
           elements.alert.classList.add('visible');
@@ -100,7 +119,7 @@ var ModalDialog = {
 
         case 'prompt':
           elements.prompt.classList.add('visible');
-          elements.promptInput.value = this.evt.detail.initialValue;
+          elements.promptInput.value = evt.detail.initialValue;
           elements.promptMessage.textContent = message;
           break;
 
@@ -111,71 +130,74 @@ var ModalDialog = {
       }
   },
 
+  hide: function md_hide() {
+    this.screen.classList.remove('modal-dialog');
+  },
+
   // When user clicks OK button on alert/confirm/prompt
   confirmHandler: function md_confirmHandler() {
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
-    switch (this.evt.detail.promptType) {
+    var evt = this.evt[this.currentOrigin];
+
+    switch (evt.detail.promptType) {
       case 'alert':
         elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
-        this.evt.detail.returnValue = elements.promptInput.value;
+        evt.detail.returnValue = elements.promptInput.value;
         elements.prompt.classList.remove('visible');
         break;
 
       case 'confirm':
-        this.evt.detail.returnValue = true;
+        evt.detail.returnValue = true;
         elements.confirm.classList.remove('visible');
         break;
     }
 
-    if (this.evt.isPseudo && this.evt.callback) {
-      this.evt.callback(this.evt.detail.returnValue);
+    if (evt.isPseudo && evt.callback) {
+      evt.callback(evt.detail.returnValue);
     }
 
-    this.evt.detail.unblock();
+    evt.detail.unblock();
 
-    // Let WindowManager know it can return to home now.
-    this.blocked = false;
-    this.evt = null;
+    delete this.evt[this.currentOrigin];
   },
 
   // When user clicks cancel button on confirm/prompt or
   // when the user try to escape the dialog with the escape key
   cancelHandler: function md_cancelHandler() {
+    var evt = this.evt[this.currentOrigin];
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
-    switch (this.evt.detail.promptType) {
+    switch (evt.detail.promptType) {
       case 'alert':
         elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
         /* return null when click cancel */
-        this.evt.detail.returnValue = null;
+        evt.detail.returnValue = null;
         elements.prompt.classList.remove('visible');
         break;
 
       case 'confirm':
         /* return false when click cancel */
-        this.evt.detail.returnValue = false;
+        evt.detail.returnValue = false;
         elements.confirm.classList.remove('visible');
         break;
     }
 
-    if (this.evt.isPseudo && this.evt.callback) {
-      this.evt.callback(this.evt.detail.returnValue);
+    if (evt.isPseudo && evt.callback) {
+      evt.callback(evt.detail.returnValue);
     }
 
-    this.evt.detail.unblock();
+    evt.detail.unblock();
 
-    // Let WindowManager know it can return to home now.
-    this.blocked = false;
-    this.evt = null;
+    delete this.evt[this.currentOrigin];
   },
 
   // The below is for system apps to use.
@@ -206,10 +228,6 @@ var ModalDialog = {
   },
 
   showWithPseudoEvent: function md_showWithPseudoEvent(config) {
-    if (this.evt && this.evt.detail.unblock) {
-      this.evt.detail.unblock();
-    }
-
     var pseudoEvt = {
       isPseudo: true,
       detail: {
@@ -223,8 +241,9 @@ var ModalDialog = {
     if (config.type == 'prompt') {
         pseudoEvt.detail.initialValue = config.initialValue;
     }
-    this.evt = pseudoEvt;
-    this.show();
+
+    this.evt['system'] = pseudoEvt;
+    this.show('system');
   }
 };
 
