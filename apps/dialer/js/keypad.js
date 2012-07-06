@@ -253,7 +253,7 @@ var KeypadManager = {
     var newPhoneNumber;
     var counter = 1;
     while (fakeView.getBoundingClientRect().width > viewWidth) {
-      newPhoneNumber = "..." + view.value.substr(-view.value.length + counter);
+      newPhoneNumber = '...' + view.value.substr(-view.value.length + counter);
       fakeView.innerHTML = newPhoneNumber;
       counter++;
     }
@@ -263,7 +263,8 @@ var KeypadManager = {
     }
   },
 
-  getNextFontSize: function kh_getNextFontSize(view, fakeView, fontSize, initialFontSize) {
+  getNextFontSize: function kh_getNextFontSize(view, fakeView,
+                                               fontSize, initialFontSize) {
     var viewWidth = view.getBoundingClientRect().width;
     fakeView.style.fontSize = fontSize + 'px';
     fakeView.innerHTML = view.value;
