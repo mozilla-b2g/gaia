@@ -328,17 +328,15 @@ var Contacts = (function() {
       container.appendChild(list);
     }
 
-    //Deal with the custom tag, clean or fill
+    // Deal with the custom tag, clean or fill
     customTag.value = '';
     if (!selectedLink && update.textContent) {
       customTag.value = update.textContent;
     }
     customTag.onclick = function(event) {
       if (selectedTag) {
-        //Remov any mark if we had selected other option
-        var tagContent = selectedTag.innerHTML;
-        var findIcon = tagContent.indexOf('<');
-        selectedTag.innerHTML = tagContent.substr(0, findIcon);
+        // Remove any mark if we had selected other option
+        selectedTag.removeChild(selectedTag.firstChild.nextSibling);
       }
       selectedTag = null;
     }
@@ -360,10 +358,7 @@ var Contacts = (function() {
     }
 
     if (selectedTag) {
-      // TODO: Regex
-      var tagContent = selectedTag.innerHTML;
-      var findIcon = tagContent.indexOf('<');
-      selectedTag.innerHTML = tagContent.substr(0, findIcon);
+      selectedTag.removeChild(selectedTag.firstChild.nextSibling);
     }
 
     var icon = document.createElement('span');
@@ -378,7 +373,6 @@ var Contacts = (function() {
   * tag selected or use the predefined ones
   */
   var doneTag = function doneTag() {
-    var customTag = document.getElementById('custom-tag');
     if (!selectedTag && customTag.value.length > 0 && contactTag) {
       contactTag.textContent = customTag.value;
     }
