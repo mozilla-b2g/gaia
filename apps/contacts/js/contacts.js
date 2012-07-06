@@ -350,6 +350,9 @@ var Contacts = (function() {
       return;
     }
 
+    //Clean any trace of the custom tag
+    document.getElementById('custom-tag').value = '';
+
     var index = link.dataset.index;
     if (tagList && contactTag) {
       contactTag.textContent = TAG_OPTIONS[tagList][index].value;
@@ -378,9 +381,7 @@ var Contacts = (function() {
     if (!selectedTag && customTag.value.length > 0 && contactTag) {
       contactTag.textContent = customTag.value;
     }
-
     contactTag = null;
-
     this.goBack();
   };
 
