@@ -74,10 +74,6 @@ var WindowManager = (function() {
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
 
-  // Keeping track of the current state of the close animation for
-  // hardening purpose.
-  var currentlyClosing = false;
-
   // The localization of the "Loading..." message that appears while
   // an app is loading
   var localizedLoading = 'Loading...';
@@ -140,169 +136,82 @@ var WindowManager = (function() {
     frame.style.height = window.innerHeight - statusbar.offsetHeight + 'px';
   }
 
+  var openFrame = null;
+  var closeFrame = null;
+  var openCallback = null;
+  var closeCallback = null;
+
+  // Create a window sprite element to perform windows open/close
+  // animations.
+  var sprite = document.createElement('div');
+  sprite.id = 'windowSprite';
+  document.body.appendChild(sprite);
+
+  // This event handler is triggered when the transition ends.
+  // We're going to do two transitions, so it gets called twice.
+  sprite.addEventListener('transitionend', function spriteTransition(e) {
+    var prop = e.propertyName;
+    var classes = sprite.classList;
+
+    if (sprite.className === 'open' && prop.indexOf('transform') != -1) {
+      openFrame.classList.add('active');
+      windows.classList.add('active');
+
+      classes.add('faded');
+    } else if (classes.contains('faded') && prop === 'opacity') {
+      openFrame.setVisible(true);
+      openFrame.focus();
+
+      setTimeout(openCallback);
+    } else if (classes.contains('close') && prop === 'color') {
+      closeFrame.classList.remove('active');
+      windows.classList.remove('active');
+    } else if (classes.contains('close') && prop.indexOf('transform') != -1) {
+      classes.remove('open');
+      classes.remove('close');
+
+      setTimeout(closeCallback);
+    }
+  });
+
   // Perform an "open" animation for the app's iframe
   function openWindow(origin, callback) {
     var app = runningApps[origin];
-    var frame = app.frame;
-    var manifest = app.manifest;
+    openFrame = app.frame;
+    openCallback = callback || function() {};
 
-    // Create a window sprite element to perform an window open animation.
-    // Start it off in its 'closed' state.
-    var sprite = document.createElement('div');
-    sprite.className = 'closed windowSprite';
-
-    // Make the sprite look like the app that it is animating for.
-    // Animating an image resize is quicker than animating and resizing
-    // the live app in its iframe.  But if even this background image
-    // animation is too slow, then just comment this line out.
-    //sprite.style.background = '-moz-element(#' + frame.id + ') no-repeat';
-
-    // Add the sprite to the document
-    document.body.appendChild(sprite);
-
-    // Query css to flush this change
-    var width = document.documentElement.clientWidth;
-
-    // And start the animation
-    sprite.classList.add('open');
-    sprite.classList.remove('closed');
-    sprite.classList.remove('faded');
-
-    // This event handler is triggered when the transition ends.
-    // We're going to do two transitions, so it gets called twice.
-    sprite.addEventListener('transitionend', function transitionListener(e) {
-      var sprite = e.target;
-
-      // Only listen for opacity transition
-      // Otherwise we may get called multiple times for each transition
-      if (e.propertyName !== 'opacity')
-        return;
-
-      // If the sprite is not yet faded
-      if (!sprite.classList.contains('faded')) {
-        // The first transition has just completed.
-        // Make the app window visible and then fade the sprite away
-        // while hardening agains super fast app launch/close
-        if (!currentlyClosing) {
-          frame.classList.add('active');
-          windows.classList.add('active');
-        }
-
-        sprite.classList.add('faded');
-
-        if ('setVisible' in frame) {
-          frame.setVisible(true);
-        }
-      } else {
-        sprite.removeEventListener('transitionend', transitionListener);
-        // The second transition has just completed
-        // give the app focus and discard the sprite.
-        frame.focus();
-        document.body.removeChild(sprite);
-        // Finally, call the callback if there is one.
-        if (callback)
-          callback();
-      }
-    });
-
-    // FIXME
-    // We broadcast an 'appopen' event here.
-    // Currently notification screen code in homescreen.js listens for
-    // this event and uses it to clear notifications when the dialer
-    // or sms apps are opened up. We probably need a better way to do this.
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, { url: origin });
-    frame.dispatchEvent(evt);
+    sprite.className = 'open';
   }
 
-  function closeWindow(origin, instant, callback) {
+  function closeWindow(origin, callback) {
     var app = runningApps[origin];
-    var frame = app.frame;
-    var manifest = app.manifest;
+    closeFrame = app.frame;
+    closeCallback = callback || function() {};
 
     // Send a synthentic 'appwillclose' event.
     // The keyboard uses this and the appclose event to know when to close
     // See https://github.com/andreasgal/gaia/issues/832
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillclose', true, false, {});
-    frame.dispatchEvent(evt);
-
-    // Send a synthentic 'appclose' event.
-    // The keyboard uses this event to know when to close
-    // FIXME: this second event should probably happen
-    // below, after the animation. But the event isn't being
-    // delivered correctly if I do that.
-    // See https://github.com/andreasgal/gaia/issues/832
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appclose', true, false, {});
-    frame.dispatchEvent(evt);
+    closeFrame.dispatchEvent(evt);
 
     // Take keyboard focus away from the closing window
-    frame.blur();
-
-    if ('setVisible' in frame) {
-      frame.setVisible(false);
-    }
-
-    currentlyClosing = true;
-
-    // If we're not doing an animation, then just switch directly
-    // to the closed state.
-    if (instant) {
-      frame.classList.remove('active');
-      if (callback)
-        callback();
-      return;
-    }
-
-    // Create a window sprite object in the open state, then hide
-    // the app window and transition the sprite down to the closed state.
-    var sprite = document.createElement('div');
-    sprite.className = 'open windowSprite';
-
-    // Make the sprite look like the app that it is animating for.
-    // Animating an image resize is quicker than animating and resizing
-    // the live app in its iframe.  But if even this background image
-    // animation is too slow, then just comment this line out.
-    //sprite.style.background = '-moz-element(#' + frame.id + ') no-repeat';
-
-    // Add the sprite to the document
-    document.body.appendChild(sprite);
-
-    // And close the real app window
-    frame.classList.remove('active');
-    windows.classList.remove('active');
-
-    // Query css to flush this change
-    var width = document.documentElement.clientWidth;
+    closeFrame.blur();
+    closeFrame.setVisible(false);
 
     // And begin the transition
-    sprite.classList.remove('open');
-    sprite.classList.add('closed');
-
-    // When the transition ends, discard the sprite.
-    sprite.addEventListener('transitionend', function transitionListener(e) {
-      var sprite = e.target;
-
-      sprite.removeEventListener('transitionend', transitionListener);
-      document.body.removeChild(sprite);
-
-      currentlyClosing = false;
-
-      if (callback)
-        callback();
-    });
+    sprite.classList.remove('faded');
+    sprite.classList.add('close');
   }
 
   //last time app was launched,
   //needed to display them in proper
   //order on CardsView
   function updateLaunchTime(origin) {
-    if (!runningApps[origin]) {
+    if (!runningApps[origin])
       return;
-    } else {
-      runningApps[origin].launchTime = Date.now();
-    }
+
+    runningApps[origin].launchTime = Date.now();
   }
 
   // Switch to a different app
@@ -330,7 +239,7 @@ var WindowManager = (function() {
     // Case 3: app->homescreen
     else if (newApp == null) {
       // Animate the window close
-      closeWindow(currentApp, false, callback);
+      closeWindow(currentApp, callback);
     }
     // Case 4: app-to-app transition
     else {
@@ -342,8 +251,8 @@ var WindowManager = (function() {
       }
       setAppSize(newApp);
       updateLaunchTime(newApp);
-      openWindow(newApp, function() {
-        closeWindow(currentApp, true, callback);
+      closeWindow(currentApp, function closeWindow() {
+        openWindow(newApp, callback);
       });
     }
 
