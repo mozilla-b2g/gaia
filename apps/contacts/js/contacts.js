@@ -124,6 +124,7 @@ var Contacts = (function() {
       phonesContainer,
       emailContainer,
       selectedTag,
+      customTag,
       contactTag,
       contactDetails,
       saveButton;
@@ -145,6 +146,7 @@ var Contacts = (function() {
     emailContainer = document.getElementById('contacts-form-email');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
+    customTag = document.getElementById('custom-tag');
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -327,7 +329,6 @@ var Contacts = (function() {
     }
 
     //Deal with the custom tag, clean or fill
-    var customTag = document.getElementById('custom-tag');
     customTag.value = '';
     if (!selectedLink && update.textContent) {
       customTag.value = update.textContent;
@@ -351,7 +352,7 @@ var Contacts = (function() {
     }
 
     //Clean any trace of the custom tag
-    document.getElementById('custom-tag').value = '';
+    customTag.value = '';
 
     var index = link.dataset.index;
     if (tagList && contactTag) {
