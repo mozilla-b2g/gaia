@@ -86,8 +86,6 @@ body {
 
 #windows > iframe.appWindow {
   position: absolute;
-  background-color: #373a3d;
-  -moz-transition: background-color 1s ease;
   border: 0;
   margin: 0;
   padding: 0;
@@ -116,6 +114,10 @@ body {
   background-color: #fff;
 }
 
+#windows > iframe.appWindow:not(.active) {
+  visibility: hidden;
+}
+
 #windowSprite {
   position: absolute;
   top: 20px;
@@ -126,8 +128,8 @@ body {
   opacity: 0;
   background-color: #373a3d;
   pointer-events: none;
-  -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
   -moz-transform: scale(0.5);
+  -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
 }
 
 #windowSprite.open {
@@ -140,9 +142,14 @@ body {
 }
 
 #windowSprite.close {
+  /* The transition on color is not really useful but it is used to fire
+     a transitionend event on the sprite after a certain amount of time.
+     This amount of time is when the 'transform' animation should start.
+  */
+  -moz-transition: color 0.1s ease, opacity 0.3s ease, -moz-transform 0.3s 0.1s ease;
   -moz-transform: scale(0.5);
   opacity: 0.3;
-  -moz-transition: -moz-transform 0.3s ease, opacity 0.3s ease;
+  color: black;
 }
 
 .accessibility-invert {

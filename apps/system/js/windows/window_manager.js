@@ -149,28 +149,29 @@ var WindowManager = (function() {
 
   // This event handler is triggered when the transition ends.
   // We're going to do two transitions, so it gets called twice.
-  sprite.addEventListener('transitionend', function transitionListener(e) {
-    // Only listen for opacity transition
-    // Otherwise we may get called multiple times for each transition
-    if (e.propertyName !== 'opacity')
-      return;
-
+  sprite.addEventListener('transitionend', function spriteTransition(e) {
+    var prop = e.propertyName;
     var classes = sprite.classList;
-    if (sprite.className === 'open') {
+
+    dump(prop + ':' + sprite.className + '\n');
+    if (sprite.className === 'open' && prop.indexOf('transform') != -1) {
       openFrame.classList.add('active');
       windows.classList.add('active');
 
       classes.add('faded');
-    } else if (classes.contains('faded')) {
+    } else if (classes.contains('faded') && prop === 'opacity') {
       openFrame.setVisible(true);
       openFrame.focus();
 
-      openCallback();
-    } else if (classes.contains('close')) {
+      setTimeout(openCallback);
+    } else if (classes.contains('close') && prop === 'color') {
+      closeFrame.classList.remove('active');
+      windows.classList.remove('active');
+    } else if (classes.contains('close') && prop.indexOf('transform') != -1) {
       classes.remove('open');
       classes.remove('close');
 
-      closeCallback();
+      setTimeout(closeCallback);
     }
   });
 
@@ -183,7 +184,7 @@ var WindowManager = (function() {
     sprite.className = 'open';
   }
 
-  function closeWindow(origin, callback, instant) {
+  function closeWindow(origin, callback) {
     var app = runningApps[origin];
     closeFrame = app.frame;
     closeCallback = callback || function() {};
@@ -198,17 +199,6 @@ var WindowManager = (function() {
     // Take keyboard focus away from the closing window
     closeFrame.blur();
     closeFrame.setVisible(false);
-    closeFrame.classList.remove('active');
-
-    // If we're not doing an animation, then just switch directly
-    // to the closed state.
-    if (instant) {
-      closeCallback();
-      return;
-    }
-
-    // Close windows list
-    windows.classList.remove('active');
 
     // And begin the transition
     sprite.classList.remove('faded');
@@ -262,8 +252,8 @@ var WindowManager = (function() {
       }
       setAppSize(newApp);
       updateLaunchTime(newApp);
-      openWindow(newApp, function() {
-        closeWindow(currentApp, callback, true);
+      closeWindow(currentApp, function closeWindow() {
+        openWindow(newApp, callback);
       });
     }
 
