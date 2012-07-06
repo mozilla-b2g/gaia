@@ -996,9 +996,9 @@ const Keyboards = {
         { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' },
         { value: 'o' }, { value: 'p' }
       ], [
-        { value: '⇪', keyCode: -19 }, { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
-        { value: 'g' }, { value: 'h' }, { value: 'j' }, { value: 'k' },
-        { value: 'l' }
+        { value: '⇪', keyCode: -19 }, { value: 'a' }, { value: 's' },
+        { value: 'd' }, { value: 'f' }, { value: 'g' }, { value: 'h' },
+        { value: 'j' }, { value: 'k' }, { value: 'l' }
       ], [
         { value: '記号', keyCode: -13, ratio: 1.5 },
         { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
@@ -1025,9 +1025,9 @@ const Keyboards = {
         { value: 'T' } , { value: 'Y' }, { value: 'U' } , { value: 'I' },
         { value: 'O' }, { value: 'P' }
       ], [
-        { value: '⇪', keyCode: -19 }, { value: 'A' }, { value: 'S' }, { value: 'D' }, { value: 'F' },
-        { value: 'G' }, { value: 'H' }, { value: 'J' }, { value: 'K' },
-        { value: 'L' }
+        { value: '⇪', keyCode: -19 }, { value: 'A' }, { value: 'S' },
+        { value: 'D' }, { value: 'F' }, { value: 'G' }, { value: 'H' },
+        { value: 'J' }, { value: 'K' }, { value: 'L' }
       ], [
         { value: '記号', keyCode: -13, ratio: 1.5 },
         { value: 'Z' }, { value: 'X' }, { value: 'C' }, { value: 'V' },
@@ -1039,7 +1039,6 @@ const Keyboards = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-
   },
 
   'jp-kanji-number': {
