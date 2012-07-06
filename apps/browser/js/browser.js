@@ -5,7 +5,6 @@ var Browser = {
   currentTab: null,
   tabCounter: 0,
   tabs: {},
-  openedWindows: {},
 
   styleSheet: document.styleSheets[0],
   cssTranslateId: null,
@@ -231,7 +230,7 @@ var Browser = {
         break;
 
       case 'mozbrowserclose':
-        this.handleWindowClose(evt);
+        this.handleWindowClose(tab.id);
         this.setTabVisibility(this.currentTab, true);
         this.updateTabsCount();
         break;
@@ -256,17 +255,9 @@ var Browser = {
   },
 
   handleWindowOpen: function browser_handleWindowOpen(evt) {
-    var origin = evt.target.dataset.frameOrigin;
-    var name = evt.detail.name;
     var url = evt.detail.url;
     var frame = evt.detail.frameElement;
-    var tab;
-
-    if (this.openedWindows[origin] && this.openedWindows[origin][name]) {
-      tab = this.openedWindows[origin][name];
-    } else {
-      tab = this.createTab(url, frame);
-    }
+    var tab = this.createTab(url, frame);
 
     this.hideCurrentTab();
     this.selectTab(tab);
@@ -275,39 +266,13 @@ var Browser = {
     this.currentTab.loading = true;
     this.setTabVisibility(this.currentTab, true);
     this.updateTabsCount();
-
-    if (!this.openedWindows[origin])
-      this.openedWindows[origin] = {};
-    this.openedWindows[origin][name] = tab;
   },
 
-  handleWindowClose: function browser_handleWindowClose(evt) {
-    var origin = evt.target.dataset.frameOrigin;
-    var name = evt.target.dataset.frameName;
-
-    if (!this.openedWindows[origin])
-      return false;
-
-    if (typeof name == 'undefined') {
-      // Close all windows
-      Object.keys(this.openedWindows[origin]).forEach(function closeEach(name) {
-        this.deleteTab(this.openedWindows[origin][name]);
-        this.openedWindows[origin][name] = null;
-      }, this);
-      delete this.openedWindows[origin];
-      return true;
-    }
-
-    var tabId = this.openedWindows[origin][name];
+  handleWindowClose: function browser_handleWindowClose(tabId) {
     if (!tabId)
       return false;
 
     this.deleteTab(tabId);
-    delete this.openedWindows[origin][name];
-
-    if (!Object.keys(this.openedWindows[origin]).length)
-      delete this.openedWindows[origin];
-
     return true;
   },
 
@@ -660,17 +625,25 @@ var Browser = {
   createTab: function browser_createTab(url, iframe) {
     if (!iframe) {
       iframe = document.createElement('iframe');
+      iframe.mozbrowser = true;
+
+      if (url) {
+        iframe.setAttribute('src', url);
+      }
+    } else {
+      // FIXME: Remove this once
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=769182
+      // has landed
+      iframe.setAttribute('src', url);
     }
+
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close'];
-    iframe.mozbrowser = true;
+    iframe.style.top = '-999px';
+
     // FIXME: content shouldn't control this directly
     iframe.setAttribute('remote', 'true');
-    iframe.style.top = '-999px';
-    if (url) {
-      iframe.setAttribute('src', url);
-    }
 
     var tab = {
       id: 'tab_' + this.tabCounter++,
