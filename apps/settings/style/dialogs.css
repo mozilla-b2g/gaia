@@ -1,4 +1,5 @@
-/* dialog boxes */
+/* dialog box container */
+
 #dialogs {
   position: absolute;
   top: 0;
@@ -22,49 +23,51 @@ body.dialog #dialogs > div {
   vertical-align: middle;
 }
 
-div.dialog {
+/* wi-fi dialog boxes (in the dialog container) */
+
+div[role=dialog] {
   display: none;
   width: 100%;
   margin: auto;
   background-color: #eaeae4;
 }
 
-div.dialog.active {
+div[role=dialog].active {
   display: block;
 }
 
-div.dialog > * {
+div[role=dialog] > * {
   padding: 0 20px;
 }
 
-div.dialog dl > * {
+div[role=dialog] dl > * {
   line-height: 2.0em;
 }
 
-div.dialog dt {
+div[role=dialog] dt {
   float: left;
   margin-right: 0.5em;
 }
 
-div.dialog dd {
+div[role=dialog] dd {
   font-weight: bold;
 }
 
-div.dialog input[type=text],
-div.dialog input[type=password] {
+div[role=dialog] input[type=text],
+div[role=dialog] input[type=password] {
   width: 100%;
   margin-bottom: 1em;
   font-size: 1em;
 }
 
-div.dialog footer {
+div[role=dialog] footer {
   text-align: center;
   line-height: 80px;
   height: 80px;
   margin-top: 20px;
 }
 
-div.dialog footer button {
+div[role=dialog] footer button {
   width: 120px;
   height: 40px;
   border: 4px solid;
@@ -80,7 +83,7 @@ div.dialog footer button {
 /* 480x800 phones */
 @media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
-  div.dialog footer button {
+  div[role=dialog] footer button {
     width: 180px;
     height: 60px;
   }
@@ -90,6 +93,82 @@ div.dialog footer button:active {
   background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-div.dialog footer button::-moz-focus-inner {
+div[role=dialog] footer button::-moz-focus-inner {
   border: none;
 }
+
+/* setting dialog boxes (fullscreen) */
+
+form[role=dialog] {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  background-color: #eee;
+  z-index: 10;
+  margin: 0;
+  padding: 0;
+}
+
+form[role=dialog].active,
+form[role=dialog]:target {
+  display: block;
+}
+
+form[role=dialog] button,
+form[role=dialog] input[type=button] {
+  height: 40px;
+  margin: 10px;
+  border: 4px solid;
+  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+form[role=dialog] header {
+  height: 60px;
+  border-bottom: 2px solid #c3c9cb;
+  margin-bottom: 10px;
+}
+
+form[role=dialog] header h2 {
+  margin: 0;
+  height: 60px;
+  font-size: 0.85em;
+  line-height: 60px;
+  background-color: #ccf;
+}
+
+form[role=dialog] header button {
+  float: left;
+}
+
+form[role=dialog] header button + button {
+  float: right;
+}
+
+form[role=dialog] label {
+  -moz-box-sizing: border-box;
+  display: block;
+  width: 100%;
+  padding: 10px 20px;
+}
+
+form[role=dialog] label input {
+  width: 100%;
+  font-size: 1em;
+}
+
+/* TODO: merge the two types of dialog boxes (UX) */
+
+*[role=dialog] button::-moz-focus-inner,
+*[role=dialog] input[type=button]::-moz-focus-inner {
+  border: none;
+}
+
