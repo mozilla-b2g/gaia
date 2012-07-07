@@ -15,7 +15,8 @@ var Settings = {
     var transaction = settings.getLock();
 
     // preset all checkboxes
-    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    var rule = 'input[type="checkbox"]:not([data-ignore])';
+    var checkboxes = document.querySelectorAll(rule);
     for (var i = 0; i < checkboxes.length; i++) {
       (function(checkbox) {
         var key = checkbox.name;
@@ -47,7 +48,8 @@ var Settings = {
     }
 
     // preset all text inputs
-    var texts = document.querySelectorAll('input[type="text"]');
+    var rule = 'input[type="text"]:not([data-ignore])';
+    var texts = document.querySelectorAll(rule);
     for (var i = 0; i < texts.length; i++) {
       (function(text) {
         var key = text.name;
