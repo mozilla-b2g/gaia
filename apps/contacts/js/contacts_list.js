@@ -27,7 +27,7 @@ contacts.List = (function() {
     }
 
     getContactsByGroup(onError, contacts);
-    getFavorites(contacts);
+    getFavorites();
   };
 
   var iterateOverGroup = function iterateOverGroup(group, contacts) {
@@ -73,7 +73,7 @@ contacts.List = (function() {
     
   }
   
-  var getFavorites = function getFavorites(contacts) {    
+  var getFavorites = function getFavorites() {    
     var options = {
       filterBy: ['category'],
       filterOp: 'contains',
