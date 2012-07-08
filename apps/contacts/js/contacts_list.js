@@ -10,7 +10,7 @@ contacts.List = (function() {
     groupsList.addEventListener('click', onClickHandler);
 
     // Populating contacts by groups
-    var alphabet = [];
+    var alphabet = [{group: 'favorites', letter: '*'}];
     for (var i = 65; i <= 90; i++) {
       var letter = String.fromCharCode(i);
       alphabet.push({group: letter, letter: letter});
@@ -70,19 +70,26 @@ contacts.List = (function() {
   };
   
   var buildFavorites = function buildFavorites(favorites) {
-    
+    iterateOverGroup('favorites', favorites);
   }
   
   var getFavorites = function getFavorites() {    
     var options = {
       filterBy: ['category'],
       filterOp: 'contains',
-      filterValue: ['favorite']
+      filterValue: ['favorite'],
+      sortBy: 'familyName',
+      sortOrder: 'ascending'
     };
     
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function favoritesCallback() {
-      buildFavorites(request.result);
+      //request.result is an object, transform to an array
+      var result = []
+      for(var i in request.result) {
+        result.push(request.result[i])
+      }
+      buildFavorites(result);
     }
   };
 
