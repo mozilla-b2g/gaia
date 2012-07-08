@@ -27,6 +27,7 @@ contacts.List = (function() {
     }
 
     getContactsByGroup(onError, contacts);
+    getFavorites(contacts);
   };
 
   var iterateOverGroup = function iterateOverGroup(group, contacts) {
@@ -66,7 +67,24 @@ contacts.List = (function() {
     if (ret.length > 0) {
       iterateOverGroup(group, ret);
     }
+  };
+  
+  var buildFavorites = function buildFavorites(favorites) {
+    
   }
+  
+  var getFavorites = function getFavorites(contacts) {    
+    var options = {
+      filterBy: ['category'],
+      filterOp: 'contains',
+      filterValue: ['favorite']
+    };
+    
+    var request = navigator.mozContacts.find(options);
+    request.onsuccess = function favoritesCallback() {
+      buildFavorites(request.result);
+    }
+  };
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     if (typeof contacts !== 'undefined') {
