@@ -76,6 +76,8 @@ else
 GAIA_PORT?=
 endif
 
+# Force bash for all shell commands since we depend on bash-specific syntax
+SHELL := /bin/bash
 
 # what OS are we on?
 SYS=$(shell uname -s)
@@ -128,6 +130,7 @@ webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	@echo { > profile/webapps/webapps.json
+	id=1; \
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
@@ -142,11 +145,13 @@ webapp-manifests:
 			echo \"installOrigin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
+			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
+			echo \"localId\": $$id ;\
 			echo },) >> profile/webapps/webapps.json;\
+			: $$((id++)); \
 		fi \
-	done
-	@cd external-apps; \
+	done; \
+	cd external-apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
@@ -159,8 +164,10 @@ webapp-manifests:
 			echo \"installOrigin\": \"`cat $$d/origin`\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\" ;\
+			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\", ;\
+			echo \"localId\": $$id ;\
 			echo },) >> ../profile/webapps/webapps.json;\
+			: $$((id++)); \
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
