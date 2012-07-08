@@ -15,7 +15,7 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
-# GAIA_APP_SRCDIRS : list of directories to search for web apps               #
+# GAIA_APP_SRCDIRS : list of directories (abs path) to search for web apps    #
 #                                                                             #
 ###############################################################################
 -include local.mk
@@ -32,7 +32,7 @@ DEBUG?=0
 
 REPORTER=Spec
 
-GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
+GAIA_APP_SRCDIRS?=$(CURDIR)/apps $(CURDIR)/test_apps $(CURDIR)/showcase_apps
 
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
@@ -40,9 +40,9 @@ GAIA_APP_RELATIVEPATH=$(foreach dir, $(GAIA_APP_SRCDIRS), $(wildcard $(dir)/*))
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
-GAIA_APP_SRCDIRS=apps showcase_apps
+GAIA_APP_SRCDIRS=$(CURDIR)/apps $(CURDIR)/showcase_apps
 else ifeq ($(MAKECMDGOALS), production)
-GAIA_APP_SRCDIRS=apps
+GAIA_APP_SRCDIRS=$(CURDIR)/apps
 endif
 
 

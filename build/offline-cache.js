@@ -71,8 +71,7 @@ function storeCache(id, url, content, count) {
 function getSubDirectories(directory) {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
-  appsDir.initWithPath(GAIA_DIR);  
-  appsDir.append(directory);
+  appsDir.initWithPath(directory);
 
   let dirs = [];  
   let files = appsDir.directoryEntries;  
@@ -158,8 +157,7 @@ function getFileContent(file) {
 function getJSON(root, dir, name) {
   let file = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
-  file.initWithPath(GAIA_DIR);
-  file.append(root);
+  file.initWithPath(root);
   file.append(dir);
   file.append(name);
 
@@ -201,8 +199,7 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
     let domain = "http://" + dir + "." + GAIA_DOMAIN;
     let manifest = Cc["@mozilla.org/file/local;1"]
                    .createInstance(Ci.nsILocalFile);
-    manifest.initWithPath(GAIA_DIR);
-    manifest.append(directoryName);
+    manifest.initWithPath(directoryName);
 
     const base = manifest.path;
     manifest.append(dir);
