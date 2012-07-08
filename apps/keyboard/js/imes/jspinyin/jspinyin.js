@@ -2479,7 +2479,7 @@ var PinyinDecoderService = {
   /**
    * Get the spelling string kept by the decoder.
    *
-   * @return {String} The spelling string kept by the decoder.
+   * @return {string} The spelling string kept by the decoder.
    */
   get_pystr: function decoderService_get_pystr() {
     if (this._matrixSearch == null) {
@@ -4312,8 +4312,8 @@ MatrixSearch.prototype = {
    * to indicate that pos-th Pinyin character needs to be deleted. And if the
    * pos-th character is in the range for the fixed lemmas or composing string,
    * this function will do nothing and just return the result of the previous
-   * search. If isPosInspl_id is true, all Pinyin characters for pos-th spelling
-   * id needs to be deleted.
+   * search. If is_pos_in_splid is true, all Pinyin characters for pos-th
+   * spelling id needs to be deleted.
    * @param {boolean} clear_fixed If the deleted character(s) is just after a
    * fixed lemma or sub lemma in composing phrase, clear_fixed indicates
    * whether we needs to unlock the last fixed lemma or sub lemma.
@@ -4369,7 +4369,7 @@ MatrixSearch.prototype = {
         // If all fixed lemmas have been merged, and the caller of the function
         // request to unlock the last fixed lemma.
         if (DictDef.kLemmaIdComposing == this.lma_id_[0] &&
-            clear_fixed_this_step) {
+            clear_fixed) {
           // Unlock the last sub lemma in the composing phrase. Because it
           // is not easy to unlock it directly. Instead, we re-decode the
           // modified composing phrase.
@@ -4429,7 +4429,7 @@ MatrixSearch.prototype = {
           this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos;
     } else {
       // Reseting search only clear pys_decoded_len_, but the string is kept.
-      this.reset_searchn(reset_pos, clear_fixed_this_step, false, false);
+      this.reset_searchn(reset_pos, clear_fixed, false, false);
     }
 
     // Decode the string after the delete position.
@@ -4673,7 +4673,7 @@ MatrixSearch.prototype = {
 
     // Notify the atom dictionary that this item is hit.
     if (SearchUtility.is_user_lemma(id_chosen)) {
-      if (null != user_dict_) {
+      if (null != this.user_dict_) {
         this.user_dict_.update_lemma(id_chosen, 1, true);
       }
       this.update_dict_freq();
@@ -5106,7 +5106,7 @@ MatrixSearch.prototype = {
 
       if (null != dict_handles_to_clear) {
         this.dict_trie_.reset_milestones(ch_pos, dict_handles_to_clear[0]);
-        if (null != user_dict_) {
+        if (null != this.user_dict_) {
           this.user_dict_.reset_milestones(ch_pos, dict_handles_to_clear[1]);
         }
       }

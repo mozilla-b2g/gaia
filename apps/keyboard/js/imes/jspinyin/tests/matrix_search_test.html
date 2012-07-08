@@ -27,6 +27,12 @@
             });
             var btn = document.getElementById('convert-button');
             btn.addEventListener('click', self.convert, false);
+            btn = document.getElementById('reset');
+            btn.addEventListener('click', self.reset, false);
+            btn = document.getElementById('search');
+            btn.addEventListener('click', self.search, false);
+            btn = document.getElementById('delsearch');
+            btn.addEventListener('click', self.delsearch, false);
           },
             
           unint: function test_uninit() {
@@ -35,11 +41,27 @@
             self._ms.uninit();
           },
           
-          convert: function test_convert() {
+          search: function test_search() {
             var self = MatrixSearchTest;
             var py = document.getElementById('py-text').value;
-            self._ms.reset_search();
             self._ms.search(py);
+          },
+          
+          reset: function test_reset() {
+            var self = MatrixSearchTest;
+            self._ms.reset_search();
+          },
+          
+          delsearch: function test_delsearch() {
+            var self = MatrixSearchTest;
+            var py = self._ms.get_pystr().str;
+            var pos = py.length - 1;
+            self._ms.delsearch(pos, false, true);
+          },
+          
+          convert: function test_convert() {
+            var self = MatrixSearchTest;
+            var py = self._ms.get_pystr().str;
             var cands = '';
             var num = self._ms.get_candidate_num();
             for (var i=0; i<num; i++) {
@@ -51,6 +73,7 @@
             var display = document.getElementById('display');
             display.innerHTML = cands + '<br />' + num + ' candidate(s) for ' +
                 py;
+            document.getElementById('py-text').value = py;
             return cands;
           }  
         };
@@ -63,6 +86,9 @@
 <body>
     <div id="main">
         <input type="text" id="py-text" placeholder="Enter Pinyin" value="fangan" />
+        <input type="button" id="reset" value="reset" />
+        <input type="button" id="search" value="search" />
+        <input type="button" id="delsearch" value="delsearch" />
         <input type="button" id="convert-button" value="Convert" />
         <span id="display" />
     </div>
