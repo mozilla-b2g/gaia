@@ -105,25 +105,36 @@ var ModalDialog = {
     this.currentOrigin = origin;
     var evt = this.currentEvents[origin];
 
-    var message = evt.detail.message;
+    var messages = evt.detail.message.split('\n');
     var elements = this.elements;
     this.screen.classList.add('modal-dialog');
 
+    var message = '';
+
+    for (var i in messages) {
+      var text = document.createTextNode(messages[i]); 
+      var div = document.createElement('div');
+      div.appendChild(text);
+      message = message + div.innerHTML;
+      if (i < messages.length - 1)
+        message = message + '<br/>';
+    }
+
     switch (evt.detail.promptType) {
       case 'alert':
-        elements.alertMessage.textContent = message;
+        elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
         break;
 
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
-        elements.promptMessage.textContent = message;
+        elements.promptMessage.innerHTML = message;
         break;
 
       case 'confirm':
         elements.confirm.classList.add('visible');
-        elements.confirmMessage.textContent = message;
+        elements.confirmMessage.innerHTML = message;
         break;
     }
   },
