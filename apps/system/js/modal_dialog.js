@@ -95,7 +95,7 @@ var ModalDialog = {
           return;
 
         // Reset currentOrigin
-        this.hide(this.currentOrigin);
+        this.hide();
         break;
     }
   },
