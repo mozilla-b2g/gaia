@@ -5685,8 +5685,8 @@ MatrixSearch.prototype = {
    * @param {number} splids_max The length of the buffer.
    * @return {number} The length of the spelling ID array.
    */
-  get_lemma_splids: function matrixSearch_get_lemma_splids(splids, start,
-     splids_max) {
+  get_lemma_splids: function matrixSearch_get_lemma_splids(id_lemma, splids,
+      start, splids_max) {
     var splid_num = 0;
 
     for (splid_num = 0; splid_num < splids_max; splid_num++) {
@@ -6489,14 +6489,14 @@ MatrixSearch.prototype = {
    * @private
    * @return {boolean} true if succeed.
    */
-  add_lma_to_userdict: function matrixSearch_add_lma_to_userdict(lma_from,
-      lma_num, score) {
+  add_lma_to_userdict: function matrixSearch_add_lma_to_userdict(lma_fr,
+      lma_to, score) {
     if (lma_to - lma_fr <= 1 || null == this.user_dict_) {
       return false;
     }
 
     var word_str = '';
-    var spl_ids = []; //[kMaxLemmaSize];
+    var spl_ids = [];
 
     var spl_id_fr = 0;
 
@@ -6507,7 +6507,7 @@ MatrixSearch.prototype = {
       }
       var lma_len = this.lma_start_[pos + 1] - this.lma_start_[pos];
       for (var i = 0; i < lma_len; i++) {
-        spl_ids[spl_id_fr + i] = this.spl_id_[lma_start_[pos] + i];
+        spl_ids[spl_id_fr + i] = this.spl_id_[this.lma_start_[pos] + i];
       }
 
       var str = this.get_lemma_str(lma_id);
@@ -9635,9 +9635,12 @@ UserDict.prototype = {
     if (this.is_valid_state() == false) {
       return ret;
     }
-
-    var lpi_num = this._get_lpis(dep.splids, lpi_items, start, lpi_max);
-    ret.handle = (lpi_num > 0) ? 1 : 0;
+    
+    var r = this._get_lpis(dep.splids.slice(0, dep.splids_extended + 1),
+                                 lpi_items, start, lpi_max);
+    var lpi_num = r.num;
+    var need_extend = r.need_extend;
+    ret.handle = (lpi_num > 0 || need_extend) ? 1 : 0;
     ret.lpi_num = lpi_num;
     return ret;
   },
@@ -9646,7 +9649,7 @@ UserDict.prototype = {
    * @override
    */
   get_lpis: function userDict_get_lpis(splid_str, lpi_items, start, lpi_max) {
-    return this._get_lpis(splid_str, lpi_items, start, lpi_max);
+    return this._get_lpis(splid_str, lpi_items, start, lpi_max).num;
   },
 
   /**
@@ -10514,15 +10517,17 @@ UserDict.prototype = {
    *    the lemmas matched.
    * @param {number} start The start position of the buffer.
    * @param {number} lpi_max The length of the buffer that could be used.
-   * @return {number} The number of matched items which have been filled into.
+   * @return {{num: number, need_extend: boolean}} num is the number of
+   *    matched items which have been filled into.
    */
   _get_lpis: function userDict_get_lpis(splid_str, lpi_items, lpi_items_start,
                                         lpi_max) {
+    var ret = {num: 0, need_extend: false};
     if (this.is_valid_state() == false) {
-      return 0;
+      return ret;
     }
     if (lpi_max <= 0) {
-      return 0;
+      return ret;
     }
 
     if (this.load_time_ < this.g_last_update_) {
@@ -10558,7 +10563,7 @@ UserDict.prototype = {
                           searchable, 0, 0);
         }
       }
-      return 0;
+      return ret;
     }
 
     var lpi_current = 0;
@@ -10589,7 +10594,10 @@ UserDict.prototype = {
 
       if (prefix_break == false) {
         if (this.is_fuzzy_prefix_spell_id(splids, searchable)) {
-          // do nothing
+          if (ret.need_extend == false &&
+              this.is_prefix_spell_id(splids, searchable)) {
+            ret.need_extend = true;
+          }
         } else {
           prefix_break = true;
         }
@@ -10613,7 +10621,8 @@ UserDict.prototype = {
                         start, count);
       }
     }
-    return lpi_current;
+    ret.num = lpi_current;
+    return ret;
   },
 
   /**
@@ -10673,20 +10682,21 @@ UserDict.prototype = {
       searchable) {
     var len1 = id1.length;
     if (len1 < searchable.splids_len) {
-      return 0;
+      return false;
     }
 
     var spl_trie = SpellingTrie.get_instance();
     var i = 0;
     for (i = 0; i < searchable.splids_len; i++) {
-      var py1 = spl_trie.get_spelling_str(id1[i]);
+      var py1 = spl_trie.get_spelling_str(id1[i]).charCodeAt(0);
       var off = 8 * (i % 4);
-      var py2 = ((searchable.signature[i / 4] & (0xff << off)) >> off);
+      var py2 = ((searchable.signature[Math.floor(i / 4)] & (0xff << off)) >>
+                 off);
       if (py1 == py2)
         continue;
-      return 0;
+      return false;
     }
-    return 1;
+    return true;
   },
 
   /**
@@ -10937,7 +10947,8 @@ UserDict.prototype = {
       var py1 = spl_trie.get_spelling_str(id1[i]).charCodeAt(0);
       var off = 8 * (i % 4);
       // extract the spelling ID from the signature.
-      var py2 = ((searchable.signature[i / 4] & (0xff << off)) >> off);
+      var py2 = ((searchable.signature[Math.floor(i / 4)] & (0xff << off)) >>
+                 off);
       if (py1 == py2) {
         continue;
       }
@@ -10960,17 +10971,18 @@ UserDict.prototype = {
    */
   equal_spell_id: function userDict_equal_spell_id(fullids, searchable) {
     var fulllen = fullids.length;
-    if (fulllen != searchable.plids_len)
+    if (fulllen != searchable.splids_len)
       return false;
 
     var i = 0;
     for (; i < fulllen; i++) {
       var start_id = searchable.splid_start[i];
       var count = searchable.splid_count[i];
-      if (fullids[i] >= start_id && fullids[i] < start_id + count)
+      if (fullids[i] >= start_id && fullids[i] < start_id + count) {
         continue;
-      else
+      } else {
         return false;
+      }
     }
     return true;
   },
