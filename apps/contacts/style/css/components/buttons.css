@@ -43,6 +43,27 @@
   margin-left: 0;
 }
 
+
+/* Block type (long text) */
+.action-block {
+  height: auto;
+  min-height: 4rem;
+  word-wrap: normal;
+}
+.action-block span[role="button"] {
+  float: left;
+  display: inline;
+}
+.action-block b {
+  display: block;
+  overflow: hidden;
+  line-height: 1.4em;
+}
+.action-block span {
+  display: block;
+}
+
+
 /* Add style */
 .action-add {
   background: -moz-linear-gradient(bottom, #ccc, #fafafa);
@@ -60,3 +81,10 @@
   background: -moz-linear-gradient(bottom, #fafafa, #ccc);
 }
 
+/* Remove/delete style */
+.action-delete {
+  color: #fff;
+  background: -moz-linear-gradient(bottom, #900010, #c90010);
+  border: none;
+  padding-left: 0.8rem;
+}
