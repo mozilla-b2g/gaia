@@ -161,6 +161,12 @@ var WindowManager = (function() {
     } else if (classes.contains('faded') && prop === 'opacity') {
       openFrame.setVisible(true);
       openFrame.focus();
+    
+      // Dispatch a 'appopen' event,
+      // Modal dialog would use this.
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+      openFrame.dispatchEvent(evt);
 
       setTimeout(openCallback);
     } else if (classes.contains('close') && prop === 'color') {
@@ -192,7 +198,7 @@ var WindowManager = (function() {
     // The keyboard uses this and the appclose event to know when to close
     // See https://github.com/andreasgal/gaia/issues/832
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillclose', true, false, {});
+    evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
     // Take keyboard focus away from the closing window
@@ -671,15 +677,10 @@ var WindowManager = (function() {
     // homescreen. Unlike the Home key, apps can intercept this event
     // and use it for their own purposes.
     if (e.keyCode === e.DOM_VK_ESCAPE &&
-        !ModalDialog.blocked &&
         !e.defaultPrevented &&
         displayedApp !== null) {
 
       setDisplayedApp(null); // back to the homescreen
-    }
-
-    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.blocked) {
-      ModalDialog.cancelHandler();
     }
   });
 
@@ -747,7 +748,7 @@ var WindowManager = (function() {
         // the we also itnore it
         // Otherwise, make the homescreen visible.
         // Also, if the card switcher is visible, then hide it.
-        if (!ModalDialog.blocked && !LockScreen.locked && !e.defaultPrevented) {
+        if (!LockScreen.locked && !e.defaultPrevented) {
           // The attention screen can 'eat' this event
           if (!e.defaultPrevented)
             setDisplayedApp(null);
@@ -766,8 +767,7 @@ var WindowManager = (function() {
       // and if the card switcher is not already shown
       timer = null;
 
-      if (!ModalDialog.blocked &&
-          !LockScreen.locked &&
+      if (!LockScreen.locked &&
           !CardsView.cardSwitcherIsShown()) {
         CardsView.showCardSwitcher();
       }
