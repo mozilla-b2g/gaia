@@ -76,6 +76,8 @@ else
 GAIA_PORT?=
 endif
 
+# Force bash for all shell commands since we depend on bash-specific syntax
+SHELL := /bin/bash
 
 # what OS are we on?
 SYS=$(shell uname -s)
@@ -128,6 +130,7 @@ webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	@echo { > profile/webapps/webapps.json
+	id=1; \
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
@@ -142,11 +145,13 @@ webapp-manifests:
 			echo \"installOrigin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
+			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
+			echo \"localId\": $$id ;\
 			echo },) >> profile/webapps/webapps.json;\
+			: $$((id++)); \
 		fi \
-	done
-	@cd external-apps; \
+	done; \
+	cd external-apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
@@ -159,8 +164,10 @@ webapp-manifests:
 			echo \"installOrigin\": \"`cat $$d/origin`\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\" ;\
+			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\", ;\
+			echo \"localId\": $$id ;\
 			echo },) >> ../profile/webapps/webapps.json;\
+			: $$((id++)); \
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
@@ -269,11 +276,11 @@ ifeq ($(DEBUG),1)
 	# httpd
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd@gaiamobile.org
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/httpd.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd/content/loader.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/loader.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_PORT@|$(subst :,,$(GAIA_PORT))|g' $(EXT_DIR)/httpd/content/loader.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_SRCDIRS@|$(GAIA_APP_SRCDIRS)|g' $(EXT_DIR)/httpd/content/loader.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_RELATIVEPATH@|$(GAIA_APP_RELATIVEPATH)|g' $(EXT_DIR)/httpd/content/httpd.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd/bootstrap.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/bootstrap.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_PORT@|$(subst :,,$(GAIA_PORT))|g' $(EXT_DIR)/httpd/bootstrap.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_SRCDIRS@|$(GAIA_APP_SRCDIRS)|g' $(EXT_DIR)/httpd/bootstrap.js
 endif
 	@echo "Done"
 
@@ -476,6 +483,11 @@ install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
 	$(ADB) push media-samples/Movies /sdcard/Movies
 	$(ADB) push media-samples/Music /sdcard/Music
+
+install-test-media:
+	$(ADB) push test_media/DCIM /sdcard/DCIM
+	$(ADB) push test_media/Movies /sdcard/Movies
+	$(ADB) push test_media/Music /sdcard/Music
 
 dialer-demo:
 	@cp -R apps/contacts apps/dialer

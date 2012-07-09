@@ -250,7 +250,7 @@
            <header role="toolbar" class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back">back</span></button>
             <menu role="menu" id='contact-form-actions' >
-                <button role="menuitem" onclick="Contacts.goBack();">Done</button>
+                <button role="menuitem" onclick="Contacts.doneTag();">Done</button>
             </menu>
             <h1>Label</h1>
           </header>
@@ -259,7 +259,7 @@
             <div class="view-body-inner">
               <ul id="tags-list" class="selection-list">
               </ul>
-              <input class="textfield" type="text" placeholder="Custom Tag" value="">
+              <input class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag'>
             </div>
           </article>
         </div>

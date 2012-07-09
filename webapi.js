@@ -226,8 +226,14 @@
       var request = { result: bool };
 
       setTimeout(function() {
-        if (request.onsuccess)
+        if (request.onsuccess) {
           request.onsuccess();
+        }
+        if (bool) {
+          self.onenabled();
+        } else {
+          self.ondisabled();
+        }
       }, 0);
 
       self.enabled = bool;
@@ -253,26 +259,30 @@
       var networkEvent = { network: network };
 
       setTimeout(function() {
-        if (connection.onsuccess)
-          connection.onsuccess();
+        self.connection.status = 'connecting';
+        self.onstatuschange(networkEvent);
       }, 0);
 
       setTimeout(function() {
-        if (self.onassociate)
-          self.onassociate(networkEvent);
+        self.connection.status = 'associated';
+        self.onstatuschange(networkEvent);
       }, 1000);
 
       setTimeout(function() {
-        self.connected = network;
         network.connected = true;
-        self.connection.status = 'connected';
+        self.connected = network;
         self.connection.network = network;
-        if (self.onconnect)
-          self.onconnect(networkEvent);
+        self.connection.status = 'connected';
+        self.onstatuschange(networkEvent);
       }, 2000);
 
       return connection;
     },
+
+    // event listeners
+    onenabled: function(event) {},
+    ondisabled: function(event) {},
+    onstatuschange: function(event) {},
 
     // returns a network object for the currently connected network (if any)
     connected: null,
