@@ -161,6 +161,12 @@ var WindowManager = (function() {
     } else if (classes.contains('faded') && prop === 'opacity') {
       openFrame.setVisible(true);
       openFrame.focus();
+    
+      // Dispatch a 'appopen' event,
+      // Modal dialog would use this.
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+      openFrame.dispatchEvent(evt);
 
       setTimeout(openCallback);
     } else if (classes.contains('close') && prop === 'color') {
@@ -181,12 +187,6 @@ var WindowManager = (function() {
     openCallback = callback || function() {};
 
     sprite.className = 'open';
-    
-    // Dispatch a 'appopen' event,
-    // Modal dialog would use this.
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, { origin: origin });
-    frame.dispatchEvent(evt);
   }
 
   function closeWindow(origin, callback) {
@@ -198,7 +198,7 @@ var WindowManager = (function() {
     // The keyboard uses this and the appclose event to know when to close
     // See https://github.com/andreasgal/gaia/issues/832
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillclose', true, false, {});
+    evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
     // Take keyboard focus away from the closing window

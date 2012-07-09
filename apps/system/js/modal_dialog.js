@@ -49,7 +49,7 @@ var ModalDialog = {
     // Bind events
     window.addEventListener('mozbrowsershowmodalprompt', this);
     window.addEventListener('appopen', this);
-    window.addEventListener('appclose', this);
+    window.addEventListener('appwillclose', this);
 
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
@@ -86,54 +86,50 @@ var ModalDialog = {
         break;
 
       case 'appopen':
-        this.currentOrigin = evt.detail.url;
-        this.show(this.currentOrigin);
+        this.show(evt.detail.origin);
         break;
 
-      case 'appclose':
+      case 'appwillclose':
         // Do nothing if the app is closed at background.
-        if (evt.target.dataset.frameOrigin !== this.currentOrigin)
+        if (evt.detail.origin !== this.currentOrigin)
           return;
 
         // Reset currentOrigin
-        this.currentOrigin = null;
-        this.show(this.currentOrigin);
+        this.hide(this.currentOrigin);
         break;
     }
   },
 
   // Show relative dialog and set message/input value well
   show: function md_show(origin) {
-      var evt = this.currentEvents[origin];
-      if (!evt) {
-        this.hide();
-        return;
-      }
+    this.currentOrigin = origin;
+    var evt = this.currentEvents[origin];
 
-      var message = evt.detail.message;
-      var elements = this.elements;
-      this.screen.classList.add('modal-dialog');
+    var message = evt.detail.message;
+    var elements = this.elements;
+    this.screen.classList.add('modal-dialog');
 
-      switch (evt.detail.promptType) {
-        case 'alert':
-          elements.alertMessage.textContent = message;
-          elements.alert.classList.add('visible');
-          break;
+    switch (evt.detail.promptType) {
+      case 'alert':
+        elements.alertMessage.textContent = message;
+        elements.alert.classList.add('visible');
+        break;
 
-        case 'prompt':
-          elements.prompt.classList.add('visible');
-          elements.promptInput.value = evt.detail.initialValue;
-          elements.promptMessage.textContent = message;
-          break;
+      case 'prompt':
+        elements.prompt.classList.add('visible');
+        elements.promptInput.value = evt.detail.initialValue;
+        elements.promptMessage.textContent = message;
+        break;
 
-        case 'confirm':
-          elements.confirm.classList.add('visible');
-          elements.confirmMessage.textContent = message;
-          break;
-      }
+      case 'confirm':
+        elements.confirm.classList.add('visible');
+        elements.confirmMessage.textContent = message;
+        break;
+    }
   },
 
   hide: function md_hide() {
+    this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
   },
 
