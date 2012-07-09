@@ -161,7 +161,7 @@ var WindowManager = (function() {
     } else if (classes.contains('faded') && prop === 'opacity') {
       openFrame.setVisible(true);
       openFrame.focus();
-    
+
       // Dispatch a 'appopen' event,
       // Modal dialog would use this.
       var evt = document.createEvent('CustomEvent');
