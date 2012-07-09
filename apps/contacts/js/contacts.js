@@ -267,8 +267,8 @@ var Contacts = (function() {
     var emailsTemplate = document.getElementById('email-details-template');
     for (var email in contact.email) {
       var emailField = {
-        email: contact.email[email],
-        type: ''
+        address: contact.email[email]['address'] || '',
+        type: contact.email[email]['type'] || ''
       };
       var template = utils.templates.render(emailsTemplate, emailField);
       listContainer.appendChild(template);
@@ -329,9 +329,10 @@ var Contacts = (function() {
     }
 
     for (var email in currentContact.email) {
+      var default_type = TAG_OPTIONS['email-type'][0].value;
       var emailField = {
-        email: currentContact.email[email],
-        type: '',
+        address: currentContact.email[email]['address'] || '',
+        type: currentContact.email[email]['type'] || default_type,
         i: email
       };
 
@@ -342,12 +343,13 @@ var Contacts = (function() {
     }
 
     for (var adr in currentContact.adr) {
+      var default_type = TAG_OPTIONS['address-type'][0].value;
       var adrField = {
         streetAddress: currentContact.adr[adr]['streetAddress'],
         postalCode: currentContact.adr[adr]['postalCode'] || '',
         locality: currentContact.adr[adr]['locality'] || '',
         countryName: currentContact.adr[adr]['countryName'] || '',
-        type: currentContact.adr[adr]['type'] || TAG_OPTIONS['address-type'][0],
+        type: currentContact.adr[adr]['type'] || default_type,
         i: adr
       };
 
@@ -559,12 +561,16 @@ var Contacts = (function() {
       var arrayIndex = currentEmail.dataset.index;
       var emailField = document.getElementById('email_' + arrayIndex);
       var emailValue = emailField.value;
+      var selector = 'email_type_' + arrayIndex;
+      var typeField = document.getElementById(selector).textContent || '';
       if (!emailValue)
         continue;
 
-      // TODO: Save type
       contact['email'] = contact['email'] || [];
-      contact['email'][i] = emailValue;
+      contact['email'][i] = {
+        address: emailValue,
+        type: typeField
+      };
     }
   };
 
@@ -611,8 +617,8 @@ var Contacts = (function() {
 
   var insertEmptyEmail = function insertEmptyEmail() {
     var emailField = {
-      email: '',
-      type: '',
+      address: '',
+      type: TAG_OPTIONS['email-type'][0].value,
       i: numberEmails || 0
     };
 
