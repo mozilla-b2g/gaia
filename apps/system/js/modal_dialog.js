@@ -109,21 +109,31 @@ var ModalDialog = {
     var elements = this.elements;
     this.screen.classList.add('modal-dialog');
 
+    function escapeHTML(str) {
+      var span = document.createElement('span');
+      span.textContent = str;
+      // Escape space for displaying multiple space in message.
+      span.innerHTML = span.innerHTML.replace(/\n/g, '<br/>');
+      return span.innerHTML;
+    }
+
+    message = escapeHTML(message);
+
     switch (evt.detail.promptType) {
       case 'alert':
-        elements.alertMessage.textContent = message;
+        elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
         break;
 
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
-        elements.promptMessage.textContent = message;
+        elements.promptMessage.innerHTML = message;
         break;
 
       case 'confirm':
         elements.confirm.classList.add('visible');
-        elements.confirmMessage.textContent = message;
+        elements.confirmMessage.innerHTML = message;
         break;
     }
   },
