@@ -3623,7 +3623,7 @@ var SearchUtility = {
 
   cmp_npre_by_hislen_score: function searchUtility_cmp_npre_by_hislen_score(p1,
       p2) {
-    return SearchUtility.compare(p1.his_len, p2.his_len) ||
+    return SearchUtility.compare(p2.his_len, p1.his_len) ||
       SearchUtility.compare(p1.psb, p2.psb);
   },
 
@@ -6313,8 +6313,7 @@ MatrixSearch.prototype = {
     var i = 0;
     var fixed_len = fixed_buf.length;
     var res_total = 0;
-    var npre_items_ = [];
-    //memset(npre_items_, 0, sizeof(NPredictItem) * npre_items_len_);
+    this.npre_items_ = [];
     // In order to shorten the comments, j-character candidates predicted by
     // i-character prefix are called P(i,j). All candiates predicted by
     // i-character prefix are called P(i,*)
@@ -11387,6 +11386,17 @@ var DictList = function dictList_constructor() {
   this.start_pos_ = [];
   this.start_id_ = [];
   this.scis_splid_ = [];
+  
+  this.spl_trie_ = SpellingTrie.get_instance();
+  
+  this.cmp_func_ = [];
+  this.cmp_func_[0] = SearchUtility.cmp_hanzis_1;
+  this.cmp_func_[1] = SearchUtility.cmp_hanzis_2;
+  this.cmp_func_[2] = SearchUtility.cmp_hanzis_3;
+  this.cmp_func_[3] = SearchUtility.cmp_hanzis_4;
+  this.cmp_func_[4] = SearchUtility.cmp_hanzis_5;
+  this.cmp_func_[5] = SearchUtility.cmp_hanzis_6;  
+  this.cmp_func_[6] = SearchUtility.cmp_hanzis_7;  
 };
 
 DictList.prototype = {
@@ -11514,12 +11524,12 @@ DictList.prototype = {
     for (var pre_len = 1; pre_len <= DictDef.kMaxPredictSize + 1 - hzs_len;
          pre_len++) {
       var word_len = hzs_len + pre_len;
-      var w_buf = this.find_pos_startedbyhzs(last_hzs, cmp_func);
+      var w_buf = this.find_pos_startedbyhzs(last_hzs, word_len, cmp_func);
       if (-1 == w_buf)
         continue;
       while (w_buf < this.start_pos_[word_len] &&
-             cmp_func(this.buf_[w_buf], last_hzs) == 0 &&
-             start + item_num < npre_max) {
+          cmp_func(this.buf_.substring(w_buf, w_buf + hzs_len), last_hzs) ==
+          0 && start + item_num < npre_max) {
         npre_items[start + item_num] = new SearchUtility.NPredictItem();
         npre_items[start + item_num].pre_hzs =
           this.buf_.substring(w_buf + hzs_len, w_buf + hzs_len + pre_len);
@@ -11542,7 +11552,7 @@ DictList.prototype = {
           break;
         }
       }
-      if (e_pos < b4_used)
+      if (e_pos <= b4_used)
         continue;
 
       // If not found, append it to the buffer
@@ -11606,7 +11616,8 @@ DictList.prototype = {
       return 0;
     }
 
-    var found = this.find_pos_startedbyhzs(str, this.cmp_func_[str_len - 1]);
+    var found = this.find_pos_startedbyhzs(str, str_len,
+        this.cmp_func_[str_len - 1]);
     if (-1 == found)
       return 0;
 
@@ -11734,9 +11745,8 @@ DictList.prototype = {
    * cmp_func decides how many characters from beginning will be used to
    * compare.
    */
-  find_pos_startedbyhzs:
-      function dictList_find_pos_startedbyhzs(last_hzs, cmp_func) {
-    var word_len = last_hzs.length;
+  find_pos_startedbyhzs: function dictList_find_pos_startedbyhzs(last_hzs,
+      word_len, cmp_func) {
     var found_w = MyStdlib.mybsearchStr(last_hzs, this.buf_,
       this.start_pos_[word_len - 1],
       (this.start_pos_[word_len] - this.start_pos_[word_len - 1]) / word_len,
@@ -11746,7 +11756,8 @@ DictList.prototype = {
       return -1;
 
     while (found_w > this.start_pos_[word_len - 1] &&
-           cmp_func(this.buf_[found_w], this.buf_[found_w - word_len]) == 0) {
+           cmp_func(this.buf_.substring(found_w, found_w + word_len),
+                    this.buf_.substring(found_w - word_len, found_w)) == 0) {
       found_w -= word_len;
     }
 
