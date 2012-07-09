@@ -73,7 +73,7 @@ var ModalDialog = {
         // Show modal dialog only if
         // the frame is currently displayed.
         if (origin == WindowManager.getDisplayedApp())
-          this.show(evt.target.dataset.frameOrigin);
+          this.show(origin);
         break;
 
       case 'click':
