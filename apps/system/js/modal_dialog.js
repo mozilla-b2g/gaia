@@ -105,20 +105,19 @@ var ModalDialog = {
     this.currentOrigin = origin;
     var evt = this.currentEvents[origin];
 
-    var messages = evt.detail.message.split('\n');
+    var message = evt.detail.message;
     var elements = this.elements;
     this.screen.classList.add('modal-dialog');
 
-    var message = '';
-
-    for (var i in messages) {
-      var text = document.createTextNode(messages[i]); 
-      var div = document.createElement('div');
-      div.appendChild(text);
-      message = message + div.innerHTML;
-      if (i < messages.length - 1)
-        message = message + '<br/>';
+    function escapeHTML(str) {
+      var span = document.createElement('span');
+      span.textContent = str;
+      // Escape space for displaying multiple space in message.
+      span.innerHTML = span.innerHTML.replace(/\n/g, '<br/>');
+      return span.innerHTML;
     }
+
+    message = escapeHTML(message);
 
     switch (evt.detail.promptType) {
       case 'alert':
