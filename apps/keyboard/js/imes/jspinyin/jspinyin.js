@@ -2391,15 +2391,18 @@ var PinyinDecoderService = {
   // The maximum number of the prediction items.
   kMaxPredictNum: 500,
 
-  // Private instance of the MatrixSearch
+  /**
+   * Private instance of the MatrixSearch.
+   * @type MatrixSearch
+   */
   _matrixSearch: null,
 
   /**
    * Open the decoder engine via the system and user dictionary file names.
    *
-   * @param {String} sysDict The file name of the system dictionary.
-   * @param {String} usrDict The file name of the user dictionary.
-   * @return {Boolean} true if open the decode engine sucessfully.
+   * @param {string} sysDict The file name of the system dictionary.
+   * @param {string} usrDict The file name of the user dictionary.
+   * @return {boolean} true if open the decode engine sucessfully.
    */
   open: function decoderService_open(sysDict, usrDict) {
     this._matrixSearch = new MatrixSearch();
@@ -2420,7 +2423,7 @@ var PinyinDecoderService = {
    * Flush cached data to persistent memory. Because at runtime, in order to
    * achieve best performance, some data is only store in memory.
    */
-  flush_cache: function decoderService_flush_cache(callback) {
+  flushCache: function decoderService_flushCache(callback) {
     if (this._matrixSearch != null) {
       this._matrixSearch.flush_cache(callback);
     }
@@ -2434,8 +2437,8 @@ var PinyinDecoderService = {
    * If the caller needs to do a brand new search, please call
    * im_reset_search() first.
    *
-   * @param {String} spsStr The spelling string buffer to decode.
-   * @return {Integer} The number of candidates.
+   * @param {string} spsStr The spelling string buffer to decode.
+   * @return {number} The number of candidates.
    */
   search: function decoderService_search(spsStr) {
     if (this._matrixSearch == null) {
@@ -2451,25 +2454,25 @@ var PinyinDecoderService = {
    *
    * @param {number} pos The posistion of char in spelling string to delete,
    * or the position of spelling id in result string to delete.
-   * @param {boolean} isPosInspl_id Indicate whether the pos parameter is the
+   * @param {boolean} isPosInsplId Indicate whether the pos parameter is the
    * position in the spelling string, or the position in the result spelling id
    * string.
-   * @param {boolean} clear_fixed If true, the fixed spellings will be cleared.
+   * @param {boolean} clearFixed If true, the fixed spellings will be cleared.
    * @return {number} The number of candidates.
    */
-  delsearch: function decoderService_delsearch(pos, isPosInspl_id, clear_fixed)
+  delSearch: function decoderService_delSearch(pos, isPosInsplId, clearFixed)
   {
     if (this._matrixSearch == null) {
       return 0;
     }
-    this._matrixSearch.delsearch(pos, isPosInspl_id, clear_fixed);
+    this._matrixSearch.delsearch(pos, isPosInsplId, clearFixed);
     return this._matrixSearch.get_candidate_num();
   },
 
   /**
    * Reset the previous search result.
    */
-  reset_search: function decoderService_reset_search() {
+  resetSearch: function decoderService_resetSearch() {
     if (this._matrixSearch == null) {
       return;
     }
@@ -2481,7 +2484,7 @@ var PinyinDecoderService = {
    *
    * @return {string} The spelling string kept by the decoder.
    */
-  get_pystr: function decoderService_get_pystr() {
+  getPystr: function decoderServiceGetPystr() {
     if (this._matrixSearch == null) {
       return '';
     }
@@ -2491,9 +2494,9 @@ var PinyinDecoderService = {
   /**
    * Get a candidate(or choice) string.
    *
-   * @param {Integer} candId The id to get a candidate. Started from 0.
+   * @param {number} candId The id to get a candidate. Started from 0.
    * Usually, id 0 is a sentence-level candidate.
-   * @return {String } The candidate string if succeeds, otherwise null.
+   * @return {string} The candidate string if succeeds, otherwise ''.
    */
   get_candidate: function decoderService_get_candidate(candId) {
     if (this._matrixSearch == null) {
@@ -2506,10 +2509,10 @@ var PinyinDecoderService = {
    * Get the segmentation information(the starting positions) of the spelling
    * string.
    *
-   * @return {Array} An array contains the starting position of all the
-   * spellings.
+   * @return {Array.<number>} An array contains the starting position of all
+   *    the spellings.
    */
-  get_spl_start: function decoderService_get_spl_start() {
+  getSplStart: function decoderService_getSplStart() {
     if (this._matrixSearch == null) {
       return 0;
     }
@@ -2523,23 +2526,24 @@ var PinyinDecoderService = {
    * spelling ids, there will be only one new candidates, or the whole fixed
    * sentence.
    *
-   * @param {Integer} candId The id of candidate to select and make it fixed.
-   * @return {Integer} The number of candidates. If after the selection, the
-   * whole result string has been fixed, there will be only one candidate.
+   * @param {number} candId The id of candidate to select and make it fixed.
+   * @return {number} The candidates number of next step. If after the
+   * selection, the whole result string has been fixed, there will be only
+   * one candidate.
    */
   choose: function decoderService_choose(candId) {
     if (this._matrixSearch == null) {
-      return;
+      return 0;
     }
-    this._matrixSearch.choose(candId);
+    return this._matrixSearch.choose(candId);
   },
 
   /**
    * Get the number of fixed spelling ids, or Chinese characters.
    *
-   * @return {Integer} The number of fixed spelling ids, of Chinese characters.
+   * @return {number} The number of fixed spelling ids, of Chinese characters.
    */
-  get_fixedlen: function decoderService_get_fixedlen() {
+  getFixedlen: function decoderService_getFixedlen() {
     if (this._matrixSearch == null) {
       return 0;
     }
@@ -2550,10 +2554,10 @@ var PinyinDecoderService = {
    * Get prediction candiates based on the given fixed Chinese string as the
    * history.
    *
-   * @param {String} history The history string to do the prediction.
-   * @return {String[]} The prediction result list of an string array.
+   * @param {string} history The history string to do the prediction.
+   * @return {Array.<string>} The prediction result list of an string array.
    */
-  get_predicts: function decoderService_get_predicts(history) {
+  getPredicts: function decoderService_get_predicts(history) {
     if (this._matrixSearch == null) {
       return [];
     }
@@ -4041,7 +4045,20 @@ MatrixSearch.MatrixNode.prototype = {
    * From which DMI node. Used to trace the spelling segmentation.
    */
   dmi_fr: 0,
-  step: 0
+  step: 0,
+  
+  /**
+   * Copy content.
+   * @param {MatrixSearch.MatrixNode} src The source object to be copied from.
+   * @return {void}  No return value.
+   */
+  copy: function matrixNode_copy(src) {
+    this.dmi_fr = src.dmi_fr;
+    this.from = src.from;
+    this.id = src.id;
+    this.score = src.score;
+    this.step = src.step;
+  }
 };
 
 MatrixSearch.MatrixRow = function matrixRow_constructor() {
@@ -4088,7 +4105,7 @@ MatrixSearch.MatrixRow.prototype = {
    */
   //
   mtrx_nd_fixed: null
-};
+}; 
 
 // When user inputs and selects candidates, the fixed lemma ids are stored in
 // lma_id_ of class MatrixSearch, and fixed_lmas_ is used to indicate how many
@@ -4425,8 +4442,8 @@ MatrixSearch.prototype = {
       this.lma_start_[1] = this.fixed_hzs_;
       this.lma_id_[0] = DictDef.kLemmaIdComposing;
       this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_fixed =
-          this.mtrx_nd_pool_ +
-          this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos;
+          this.mtrx_nd_pool_[
+          this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos];
     } else {
       // Reseting search only clear pys_decoded_len_, but the string is kept.
       this.reset_searchn(reset_pos, clear_fixed, false, false);
@@ -4629,8 +4646,8 @@ MatrixSearch.prototype = {
     if (0 == cand_id) {
       this.fixed_hzs_ = this.spl_id_num_;
       this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_fixed =
-          this.mtrx_nd_pool_ +
-          this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos;
+          this.mtrx_nd_pool_[
+          this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos];
       for (pos = this.fixed_lmas_; pos < this.lma_id_num_; pos++) {
         this.fixed_lmas_no1_[pos] = 1;
       }
@@ -4706,8 +4723,8 @@ MatrixSearch.prototype = {
     this.extend_mtrx_nd(this.matrix_[step_fr].mtrx_nd_fixed, [lpi_item], 0, 1,
                    step_to_dmi_fr, step_to);
 
-    this.matrix_[step_to].mtrx_nd_fixed = this.mtrx_nd_pool_ +
-        this.matrix_[step_to].mtrx_nd_pos;
+    this.matrix_[step_to].mtrx_nd_fixed = this.mtrx_nd_pool_[
+        this.matrix_[step_to].mtrx_nd_pos];
     this.mtrx_nd_pool_used_ = this.matrix_[step_to].mtrx_nd_pos +
         this.matrix_[step_to].mtrx_nd_num;
 
@@ -4716,8 +4733,8 @@ MatrixSearch.prototype = {
     } else {
       this.fixed_lmas_no1_[this.fixed_lmas_] = 0;
     }
-    this.lma_id_[fixed_lmas_] = id_chosen;
-    this. lma_start_[this.fixed_lmas_ + 1] = this.lma_start_[this.fixed_lmas_] +
+    this.lma_id_[this.fixed_lmas_] = id_chosen;
+    this.lma_start_[this.fixed_lmas_ + 1] = this.lma_start_[this.fixed_lmas_] +
         cand_len;
     this.fixed_lmas_++;
     this.fixed_hzs_ = this.fixed_hzs_ + cand_len;
@@ -5211,7 +5228,7 @@ MatrixSearch.prototype = {
         }
 
         for (var re_pos = fixed_ch_pos; re_pos < ch_pos; re_pos++) {
-          this.add_char(this.pys_[re_pos]);
+          this.add_char(this.pys_.charAt(re_pos));
         }
       } else if (this.fixed_hzs_ > 0 &&
           DictDef.kLemmaIdComposing == this.lma_id_[0]) {
@@ -5242,7 +5259,7 @@ MatrixSearch.prototype = {
         this.dmi_c_phrase_ = true;
         var c_py_pos = 0;
         while (c_py_pos < this.spl_start_[this.c_phrase_.length]) {
-          var b_ac_tmp = this.add_char(this.pys_[c_py_pos]);
+          var b_ac_tmp = this.add_char(this.pys_.charAt(py_pos));
           assert(b_ac_tmp);
           c_py_pos++;
         }
@@ -5255,8 +5272,8 @@ MatrixSearch.prototype = {
         this.lma_start_[1] = this.fixed_hzs_;
         this.lma_id_[0] = DictDef.kLemmaIdComposing;
         this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_fixed =
-            this.mtrx_nd_pool_ +
-            this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos;
+            this.mtrx_nd_pool_[
+            this.matrix_[this.spl_start_[this.fixed_hzs_]].mtrx_nd_pos];
       }
     }
 
@@ -5563,7 +5580,7 @@ MatrixSearch.prototype = {
       for (pos = 0; pos < num; pos++) {
         lpsis[pos] = new SearchUtility.LmaPsbStrItem();
         var lma = lma_buf[lma_buf_start + pos];
-        lpsis[pos].lpi = lma;
+        lpsis[pos].lpi.copy(lma);
         lpsis[pos].str = this.get_lemma_str(lma.id);
       }
 
@@ -5574,7 +5591,7 @@ MatrixSearch.prototype = {
         if (pos > 0 && lpsis[pos].str == lpsis[pos - 1].str) {
           if (lpsis[pos].lpi.psb < lpsis[pos - 1].lpi.psb) {
             assert(remain_num > 0);
-            lma_buf[lma_buf_start + remain_num - 1] = lpsis[pos].lpi;
+            lma_buf[lma_buf_start + remain_num - 1].copy(lpsis[pos].lpi);
           }
           continue;
         }
@@ -5582,7 +5599,7 @@ MatrixSearch.prototype = {
           continue;
         }
 
-        lma_buf[lma_buf_start + remain_num] = lpsis[pos].lpi;
+        lma_buf[lma_buf_start + remain_num].copy(lpsis[pos].lpi);
         remain_num++;
       }
 
@@ -5622,7 +5639,7 @@ MatrixSearch.prototype = {
             continue;
         }
 
-        lma_buf[lma_buf_start + remain_num] = lma_buf[lma_buf_start + pos];
+        lma_buf[lma_buf_start + remain_num].copy(lma_buf[lma_buf_start + pos]);
         remain_num++;
       }
       num = remain_num;
@@ -5932,8 +5949,8 @@ MatrixSearch.prototype = {
       while (mtrx_nd_res_pos > mtrx_nd_res_min_pos &&
              score < this.mtrx_nd_pool_[mtrx_nd_res_pos - 1].score) {
         if (mtrx_nd_res_pos - mtrx_nd_res_min_pos < MatrixSearch.kMaxNodeARow) {
-          this.mtrx_nd_pool_[mtrx_nd_res_pos] =
-              this.mtrx_nd_pool_[mtrx_nd_res_pos - 1];
+          this.mtrx_nd_pool_[mtrx_nd_res_pos].copy(
+              this.mtrx_nd_pool_[mtrx_nd_res_pos - 1]);
         }
         mtrx_nd_res_pos--;
         replace = true;
@@ -7552,7 +7569,7 @@ DictTrie.prototype = {
    * as handles.
    * @type number
    */
-  mile_stones_pos_: null,
+  mile_stones_pos_: 0,
 
   /**
    * Get the offset of sons for a node.
@@ -7702,7 +7719,7 @@ DictTrie.prototype = {
           this.mile_stones_[this.mile_stones_pos_].mark_num = 1;
           ret_handle = this.mile_stones_pos_;
           this.parsing_marks_pos_++;
-          this. mile_stones_pos_++;
+          this.mile_stones_pos_++;
         }
       }
 
