@@ -255,9 +255,10 @@ var Contacts = (function() {
 
     var phonesTemplate = document.getElementById('phone-details-template');
     for (var tel in contact.tel) {
+      var currentTel = contact.tel[tel];
       var telField = {
-        number: contact.tel[tel].number || '',
-        type: contact.tel[tel].type || TAG_OPTIONS['phone-type'][0].value,
+        number: currentTel.number || '',
+        type: currentTel.type || TAG_OPTIONS['phone-type'][0].value,
         notes: ''
       };
       var template = utils.templates.render(phonesTemplate, telField);
@@ -276,12 +277,13 @@ var Contacts = (function() {
 
     var addressesTemplate = document.getElementById('address-details-template');
     for (var i in contact.adr) {
+      var currentAddress = contact.adr[i];
       var addressField = {
-        streetAddress: contact.adr[i]['streetAddress'],
-        postalCode: contact.adr[i]['postalCode'] || '',
-        locality: contact.adr[i]['locality'] || '',
-        countryName: contact.adr[i]['countryName'] || '',
-        type: contact.adr[i]['type'] || TAG_OPTIONS['address-type'][0].value
+        streetAddress: currentAddress['streetAddress'],
+        postalCode: currentAddress['postalCode'] || '',
+        locality: currentAddress['locality'] || '',
+        countryName: currentAddress['countryName'] || '',
+        type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value
       };
       var template = utils.templates.render(addressesTemplate, addressField);
       listContainer.appendChild(template);
@@ -315,9 +317,10 @@ var Contacts = (function() {
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
     for (var tel in currentContact.tel) {
+      var currentTel = currentContact.tel[tel];
       var telField = {
-        number: currentContact.tel[tel].number,
-        type: currentContact.tel[tel].type,
+        number: currentTel.number,
+        type: currentTel.type,
         notes: '',
         i: tel
       };
@@ -342,12 +345,13 @@ var Contacts = (function() {
     }
 
     for (var adr in currentContact.adr) {
+      var currentAddress = currentContact.adr[adr];
       var adrField = {
-        streetAddress: currentContact.adr[adr]['streetAddress'],
-        postalCode: currentContact.adr[adr]['postalCode'] || '',
-        locality: currentContact.adr[adr]['locality'] || '',
-        countryName: currentContact.adr[adr]['countryName'] || '',
-        type: currentContact.adr[adr]['type'] || TAG_OPTIONS['address-type'][0],
+        streetAddress: currentAddress['streetAddress'],
+        postalCode: currentAddress['postalCode'] || '',
+        locality: currentAddress['locality'] || '',
+        countryName: currentAddress['countryName'] || '',
+        type: currentAddress['type'] || TAG_OPTIONS['address-type'][0],
         i: adr
       };
 
