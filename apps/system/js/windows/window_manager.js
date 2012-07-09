@@ -224,30 +224,32 @@ var WindowManager = (function() {
   function setDisplayedApp(origin, callback, url) {
     var currentApp = displayedApp, newApp = origin;
 
-    // There are four cases that we handle in different ways:
-    // 1) The new app is already displayed: do nothing
-    // 2) We're going from the homescreen to an app
-    // 3) We're going from an app to the homescreen
-    // 4) We're going from one app to another (via card switcher)
-
-    // Case 1
-    if (currentApp == newApp) {
+    // Case 1: the app is already displayed
+    if (currentApp && currentApp == newApp) {
       // Just run the callback right away
       if (callback)
         callback();
     }
     // Case 2: homescreen->app
-    else if (currentApp == null) {
+    else if (currentApp == null && newApp) {
       setAppSize(newApp);
       updateLaunchTime(newApp);
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
-    else if (newApp == null) {
+    else if (currentApp && newApp == null) {
       // Animate the window close
       closeWindow(currentApp, callback);
     }
-    // Case 4: app-to-app transition
+    // Case 4: homescreen-to-homescreen transition
+    else if (currentApp == null && newApp == null) {
+      // XXX Until the HOME button works as an activity, just
+      // send a message to the homescreen so he nows about the
+      // home key.
+      var home = document.getElementById('homescreen');
+      home.contentWindow.postMessage('home', home.src);
+    }
+    // Case 5: app-to-app transition
     else {
       // XXX Note: Hack for demo when current app want to set specific hash
       //           url in newApp(e.g. contact trigger SMS message list page).
@@ -701,9 +703,7 @@ var WindowManager = (function() {
     // a handled keyup, we've got to clear the timer.
 
     function keydownHandler(e) {
-      if (e.keyCode !== e.DOM_VK_HOME) return;
-
-      if (e.defaultPrevented)
+      if (e.keyCode !== e.DOM_VK_HOME || e.defaultPrevented)
         return;
 
       // We don't do anything else until the Home key is released...
