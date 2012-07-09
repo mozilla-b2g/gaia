@@ -343,10 +343,10 @@ var Contacts = (function() {
       emailContainer.appendChild(template);
       numberEmails++;
     }
-    
-    var isFavorite = currentContact.category != null && 
+
+    var isFavorite = currentContact.category != null &&
                       currentContact.category.indexOf('favorite') != -1;
-    document.getElementById('toggle-favorite').children[1].innerHTML = 
+    document.getElementById('toggle-favorite').children[1].innerHTML =
                                 isFavorite ? 'Unfavorite' : 'Add as favorite';
 
     for (var adr in currentContact.adr) {
@@ -469,24 +469,24 @@ var Contacts = (function() {
 
     edit();
   };
-  
+
   var toggleFavorite = function toggleFavorite() {
-    var isFavorite = currentContact.category != null && 
+    var isFavorite = currentContact.category != null &&
                       currentContact.category.indexOf('favorite') != -1;
     isFavorite = !isFavorite;
-    document.getElementById('toggle-favorite').children[1].innerHTML = 
+    document.getElementById('toggle-favorite').children[1].innerHTML =
                                 isFavorite ? 'Unfavorite' : 'Add as favorite';
-    if(isFavorite) {
-      if(!currentContact.category) {
+    if (isFavorite) {
+      if (!currentContact.category) {
         currentContact.category = [];
       }
       currentContact.category.push('favorite');
-    } else{
-      if(!currentContact.category) {
+    } else {
+      if (!currentContact.category) {
         return;
       }
       var pos = currentContact.category.indexOf('favorite');
-      if(pos > -1) {
+      if (pos > -1) {
         delete currentContact.category[pos];
       }
     }
@@ -545,6 +545,7 @@ var Contacts = (function() {
         currentContact = savedContact;
         myContact.id = savedContact.id;
         myContact.photo = savedContact.photo;
+        myContact.category = savedContact.category;
         contactsList.refresh(myContact);
         reloadContactDetails(myContact);
         navigation.back();
