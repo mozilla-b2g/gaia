@@ -36,8 +36,10 @@ var ModalDialog = {
     this.screen = document.getElementById('screen');
   },
 
-  // Save the event returned by mozbrowsershowmodalprompt for later use.
-  evt: {},
+  // Save the events returned by mozbrowsershowmodalprompt for later use.
+  // The events are stored according to webapp origin
+  // e.g., 'http://uitest.gaiamobile.org': evt
+  currentEvents: {},
 
   init: function md_init() {
     // Get all elements initially.
@@ -61,19 +63,17 @@ var ModalDialog = {
     var elements = this.elements;
     switch (evt.type) {
       case 'mozbrowsershowmodalprompt':
+        if (evt.target.dataset.frameType != 'window')
+          return;
+
         evt.preventDefault();
-        this.evt[evt.target.dataset.frameOrigin] = evt;
+        var origin = evt.target.dataset.frameOrigin;
+        this.currentEvents[origin] = evt;
 
-        var displayedOrigin = WindowManager.getDisplayedApp();
-        if (displayedOrigin) {
-          var frame = WindowManager.getAppFrame(displayedOrigin);
-
-          // Show modal dialog only if
-          // the frame is currently displayed.
-          if (frame == evt.target) {
-            this.show(evt.target.dataset.frameOrigin);
-          }
-        }
+        // Show modal dialog only if
+        // the frame is currently displayed.
+        if (origin == WindowManager.getDisplayedApp())
+          this.show(evt.target.dataset.frameOrigin);
         break;
 
       case 'click':
@@ -91,17 +91,20 @@ var ModalDialog = {
         break;
 
       case 'appclose':
-        if (evt.target.dataset.frameOrigin == this.currentOrigin) {
-          this.currentOrigin = null;
-          this.show(this.currentOrigin);
-        }
+        // Do nothing if the app is closed at background.
+        if (evt.target.dataset.frameOrigin !== this.currentOrigin)
+          return;
+
+        // Reset currentOrigin
+        this.currentOrigin = null;
+        this.show(this.currentOrigin);
         break;
     }
   },
 
   // Show relative dialog and set message/input value well
   show: function md_show(origin) {
-      var evt = this.evt[origin];
+      var evt = this.currentEvents[origin];
       if (!evt) {
         this.hide();
         return;
@@ -139,7 +142,7 @@ var ModalDialog = {
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
-    var evt = this.evt[this.currentOrigin];
+    var evt = this.currentEvents[this.currentOrigin];
 
     switch (evt.detail.promptType) {
       case 'alert':
@@ -163,13 +166,13 @@ var ModalDialog = {
 
     evt.detail.unblock();
 
-    delete this.evt[this.currentOrigin];
+    delete this.currentEvents[this.currentOrigin];
   },
 
   // When user clicks cancel button on confirm/prompt or
   // when the user try to escape the dialog with the escape key
   cancelHandler: function md_cancelHandler() {
-    var evt = this.evt[this.currentOrigin];
+    var evt = this.currentEvents[this.currentOrigin];
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
@@ -197,7 +200,7 @@ var ModalDialog = {
 
     evt.detail.unblock();
 
-    delete this.evt[this.currentOrigin];
+    delete this.currentEvents[this.currentOrigin];
   },
 
   // The below is for system apps to use.
@@ -242,7 +245,9 @@ var ModalDialog = {
         pseudoEvt.detail.initialValue = config.initialValue;
     }
 
-    this.evt['system'] = pseudoEvt;
+    // Create a virtual mapping in this.currentEvents,
+    // since system-app uses the different way to call ModalDialog.
+    this.currentEvents['system'] = pseudoEvt;
     this.show('system');
   }
 };

@@ -178,12 +178,6 @@ var WindowManager = (function() {
       if (e.propertyName !== 'opacity')
         return;
 
-      // Dispatch a 'appopen' event,
-      // Modal dialog would use this.
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appopen', true, false, { url: origin });
-      frame.dispatchEvent(evt);
-
       // If the sprite is not yet faded
       if (!sprite.classList.contains('faded')) {
         // The first transition has just completed.
@@ -205,6 +199,13 @@ var WindowManager = (function() {
         // give the app focus and discard the sprite.
         frame.focus();
         document.body.removeChild(sprite);
+
+        // Dispatch a 'appopen' event,
+        // Modal dialog would use this.
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('appopen', true, false, { origin: origin });
+        frame.dispatchEvent(evt);
+
         // Finally, call the callback if there is one.
         if (callback)
           callback();
@@ -232,7 +233,7 @@ var WindowManager = (function() {
     // delivered correctly if I do that.
     // See https://github.com/andreasgal/gaia/issues/832
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appclose', true, false, {});
+    evt.initCustomEvent('appclose', true, false, { origin: origin });
     frame.dispatchEvent(evt);
 
     // Take keyboard focus away from the closing window
@@ -764,10 +765,6 @@ var WindowManager = (function() {
         displayedApp !== null) {
 
       setDisplayedApp(null); // back to the homescreen
-    }
-
-    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.currentOrigin) {
-      ModalDialog.cancelHandler();
     }
   });
 
