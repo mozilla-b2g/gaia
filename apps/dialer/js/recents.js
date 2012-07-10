@@ -9,7 +9,16 @@ var Recents = {
     return this.view = document.getElementById('recents-container');
   },
 
+  get recentsFilterContainer() {
+    delete this.recentsFilterContainer;
+    return this.recentsFilterContainer = document.getElementById('recents-filter-container');
+  },
+
   init: function re_init() {
+    if(this.recentsFilterContainer) {
+      this.recentsFilterContainer.addEventListener('click', this.filter.bind(this));
+    }
+
     var indexedDB = window.indexedDB || window.webkitIndexedDB ||
         window.mozIndexedDB || window.msIndexedDB;
 
@@ -33,6 +42,45 @@ var Recents = {
     };
 
     this.render();
+  },
+
+  filter: function re_filter(event) {
+    var itemSelector;
+    var callLogItems;
+    var length;
+    var filterTabs = document.querySelectorAll('.recents-filter-entry > button');
+    switch(event.target.dataset.action) {
+      case 'all':
+        if(event.target.classList.contains('selected')) {
+          return;
+        }
+        itemSelector = '.log-item:not(.incoming-refused)';
+        callLogItems = document.querySelectorAll(itemSelector);
+        length = callLogItems.length;
+        for (var i = 0; i < length; i++) {
+          callLogItems[i].classList.remove('hide');
+        }
+        length = filterTabs.length;
+        for(i = 0; i < length; i++) {
+          filterTabs[i].classList.toggle('selected');
+        }
+        break;
+      case 'missed':
+        if(event.target.classList.contains('selected')) {
+          return;
+        }
+        itemSelector = '.log-item:not(.incoming-refused)';
+        callLogItems = document.querySelectorAll(itemSelector);
+        length = callLogItems.length;
+        for (var i = 0; i < length; i++) {
+          callLogItems[i].classList.add('hide');
+        }
+        length = filterTabs.length;
+        for(i = 0; i < length; i++) {
+          filterTabs[i].classList.toggle('selected');
+        }
+        break;
+    }
   },
 
   cleanup: function re_cleanup() {
@@ -91,10 +139,10 @@ var Recents = {
     }
 
     var entry =
-      '<li class="log-item" data-num="' + recent.number + '">' +
+      '<li class="log-item ' + recent.type + '" data-num="' + recent.number + '">' +
       '  <section class="icon-container grid center">' +
       '    <div class="grid-cell grid-v-align">' +
-      '      <div class="icon ' + classes + '"></div>' +
+      '      <div class="' + classes + '"></div>' +
       '    </div>' +
       '  </section>' +
       '  <section class="log-item-info grid">' +
