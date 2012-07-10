@@ -11,12 +11,14 @@ var Recents = {
 
   get recentsFilterContainer() {
     delete this.recentsFilterContainer;
-    return this.recentsFilterContainer = document.getElementById('recents-filter-container');
+    return this.recentsFilterContainer = document.getElementById(
+      'recents-filter-container');
   },
 
   init: function re_init() {
-    if(this.recentsFilterContainer) {
-      this.recentsFilterContainer.addEventListener('click', this.filter.bind(this));
+    if (this.recentsFilterContainer) {
+      this.recentsFilterContainer.addEventListener('click',
+        this.filter.bind(this));
     }
 
     var indexedDB = window.indexedDB || window.webkitIndexedDB ||
@@ -48,10 +50,11 @@ var Recents = {
     var itemSelector;
     var callLogItems;
     var length;
-    var filterTabs = document.querySelectorAll('.recents-filter-entry > button');
-    switch(event.target.dataset.action) {
+    var filterTabs = document.querySelectorAll(
+      '.recents-filter-entry > button');
+    switch (event.target.dataset.action) {
       case 'all':
-        if(event.target.classList.contains('selected')) {
+        if (event.target.classList.contains('selected')) {
           return;
         }
         itemSelector = '.log-item:not(.incoming-refused)';
@@ -61,12 +64,12 @@ var Recents = {
           callLogItems[i].classList.remove('hide');
         }
         length = filterTabs.length;
-        for(i = 0; i < length; i++) {
+        for (i = 0; i < length; i++) {
           filterTabs[i].classList.toggle('selected');
         }
         break;
       case 'missed':
-        if(event.target.classList.contains('selected')) {
+        if (event.target.classList.contains('selected')) {
           return;
         }
         itemSelector = '.log-item:not(.incoming-refused)';
@@ -76,7 +79,7 @@ var Recents = {
           callLogItems[i].classList.add('hide');
         }
         length = filterTabs.length;
-        for(i = 0; i < length; i++) {
+        for (i = 0; i < length; i++) {
           filterTabs[i].classList.toggle('selected');
         }
         break;
@@ -139,7 +142,8 @@ var Recents = {
     }
 
     var entry =
-      '<li class="log-item ' + recent.type + '" data-num="' + recent.number + '">' +
+      '<li class="log-item ' + recent.type +
+      '  " data-num="' + recent.number + '">' +
       '  <section class="icon-container grid center">' +
       '    <div class="grid-cell grid-v-align">' +
       '      <div class="' + classes + '"></div>' +
