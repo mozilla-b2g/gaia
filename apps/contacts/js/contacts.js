@@ -295,7 +295,7 @@ var Contacts = (function() {
       listContainer.appendChild(template);
     }
 
-    if ('note' in contact && contact.note.length > 0) {
+    if (contact.note && contact.note.length > 0) {
       var title = document.createElement('h2');
       title.textContent = 'Comments';
       listContainer.appendChild(title);
