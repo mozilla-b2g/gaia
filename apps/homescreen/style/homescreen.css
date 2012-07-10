@@ -56,9 +56,9 @@ section,footer,nav,a,img {
 
 #content {
   width: 100%;
-  height: -moz-calc(100% - 4.3rem);
+  height: 100%;
   position: fixed;
-  top: .3rem;
+  top: 0;
   left: 0;
 }
 

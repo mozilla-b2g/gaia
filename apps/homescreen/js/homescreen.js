@@ -85,6 +85,7 @@ const Homescreen = (function() {
      * @param {Object} the event
      */
     onStart: function(evt) {
+      evt.preventDefault();
       this.startX = evt.pageX;
       window.addEventListener('mousemove', this);
       window.addEventListener('mouseup', this);
@@ -128,6 +129,8 @@ const Homescreen = (function() {
 
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+
+  Search.init(domain);
 
   var shortcuts = document.querySelectorAll('#footer li');
   for (var i = 0; i < shortcuts.length; i++) {

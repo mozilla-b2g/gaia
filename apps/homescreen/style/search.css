@@ -1,0 +1,13 @@
+#search {
+  background-image: url('../resources/images/search/bg.png');
+  background-size: cover;
+}
+
+#search div {
+  margin: 0 auto;
+  width: 32rem;
+}
+
+#search #searchAction {
+  margin: 4.5rem 0 0 2.5rem;
+}
