@@ -480,21 +480,21 @@ function showThumbnails() {
   thumbnailsDisplayed = true;
 }
 
-// A utility function to insert an <img src="url"> tag into an element
-// URL should be the image to display. Frame should be previousPhotoFrame,
-// currentPhotoFrame or nextPhotoFrame.  Used in showPhoto(), nextPhoto()
-// and previousPhoto()
+// A utility function to set the src attribute of the <img> element inside
+// the specified frame, which must be previousPhotoFrame, currentPhotoFrame
+// or nextPhotoFrame.  Used in showPhoto(), nextPhoto() and previousPhoto().
+//
+// This function used to create a new <img> element each time and replace
+// the existing <img> in the frame. But that exposed a Gecko bug and memory
+// leak and repeated browsing through large images crashed the phone. So
+// now we use the same three <img> elements and just change their src
+// attributes.
 function displayImageInFrame(n, frame) {
   // Make sure n is in range
   if (n < 0 || n >= images.length)
     return;
 
-  // Remove anything in the frame
-  while (frame.firstChild)
-    frame.removeChild(frame.firstChild);
-
-  // Create the img element
-  var img = document.createElement('img');
+  var img = frame.firstChild;
 
   // Asynchronously set the image url
   var imagedata = images[n];
@@ -512,8 +512,6 @@ function displayImageInFrame(n, frame) {
   style.height = fit.height + 'px';
   style.left = fit.left + 'px';
   style.top = fit.top + 'px';
-
-  frame.appendChild(img);
 }
 
 // figure out the size and position of an image based on its size
@@ -624,7 +622,7 @@ function nextPhoto(time) {
     previousPhotoState.reset();
 
     // FIXME: I want a jquery-style once() utility for auto removal
-    previousPhotoFrame.removeEventListener('transitionend', done);
+    this.removeEventListener('transitionend', done);
   });
 }
 
@@ -686,7 +684,7 @@ function previousPhoto(time) {
     nextPhotoState.reset();
 
     // FIXME: I want a jquery-style once() utility for auto removal
-    nextPhotoFrame.removeEventListener('transitionend', done);
+    this.removeEventListener('transitionend', done);
   });
 }
 
@@ -741,7 +739,7 @@ function continueSlideshow() {
   }
 }
 
-/**
+/*
  * This class encapsulates the zooming and panning functionality for
  * the gallery app and maintains the current size and position of the
  * currently displayed photo as well as the transition state (if any)
@@ -760,7 +758,7 @@ function PhotoState(img, width, height) {
 }
 
 // An internal method called by reset(), zoom() and pan() to
-// set the sie and position of the image element.
+// set the size and position of the image element.
 PhotoState.prototype._reposition = function() {
   this.img.style.width = this.width + 'px';
   this.img.style.height = this.height + 'px';
