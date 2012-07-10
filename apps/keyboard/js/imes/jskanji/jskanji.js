@@ -916,14 +916,15 @@
         if (terms.length !== 0) {
           _firstKanji = terms[0].kanji;
           _firstKana = terms[0].kana;
-        } else {
-          _firstKanji = kanaStr;
-          _firstKana = kanaStr;
-        }
 
-        terms.forEach(function readTerm(term) {
-          candidates.push([term.kanji, term.kana]);
-        });
+          terms.forEach(function readTerm(term) {
+            candidates.push([term.kanji, term.kana]);
+          });
+        } 
+        //else {
+          //_firstKanji = kanaStr;
+          //_firstKana = kanaStr;
+        //}
 
         // only one kana in buf
         if (_inputBuf.length === 1) {
@@ -965,11 +966,10 @@
 
             if (!exists) {
               candidates.push([sentenceKanji, sentenceKana]);
-              _firstKanji = sentenceKanji;
-              _firstKana = sentenceKana;
+              //_firstKanji = sentenceKanji;
+              //_firstKana = sentenceKana;
             }
           }
-
 
           // The remaining candidates doesn't match the entire buffer
           // these candidates helps user find the exact character/term
@@ -985,6 +985,10 @@
 
             _dict.getTerms(subBuf, function lookupCallback(terms) {
               terms.forEach(function readTerm(term) {
+                if (_firstKana.length === 0) {
+                  _firstKana = term.kana;
+                  _firstKanji = term.kanji;
+                }
                 candidates.push([term.kanji, term.kana]);
               });
 
