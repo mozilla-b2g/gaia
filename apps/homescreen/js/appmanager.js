@@ -13,7 +13,7 @@ var ApplicationMock = function(app, launchPath, alternativeOrigin) {
 
   var entryPoint = app.manifest.entry_points[launchPath];
   this.manifest.name = entryPoint.name;
-  this.manifest.launch_path = entryPoint.path;
+  this.manifest.launch_path = entryPoint.launch_path;
   this.manifest.icons = entryPoint.icons;
   this.manifest.origin = alternativeOrigin;
 
