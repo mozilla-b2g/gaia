@@ -30,7 +30,9 @@ var CardsView = (function() {
   var currentDisplayed = 0;
   var scrollWhileSortingTimer;
   var dragMargin = 0;
+  var draggingCardUp = false;
   var sortingDirection;
+  var userSortedApps = [];
   var allowScrollingWhileSorting = false;
   var HVGA = document.documentElement.clientWidth < 480;
 
@@ -66,12 +68,12 @@ var CardsView = (function() {
   function showCardSwitcher() {
     // Apps info from WindowManager
     displayedApp = WindowManager.getDisplayedApp();
-    runningApps = WindowManager.getRunningApps();
     currentDisplayed = 0;
 
     // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
     if (!USER_DEFINED_ORDERING) {
+      runningApps = WindowManager.getRunningApps();
       var sortable = [];
       for (var origin in runningApps)
         sortable.push({origin: origin, app: runningApps[origin]});
@@ -89,7 +91,11 @@ var CardsView = (function() {
         runningApps[element.origin] = element.app;
       });
     } else {
+      //if (runningApps.length === 0) {
+        runningApps = WindowManager.getRunningApps();
+      //}
       cardsView.addEventListener('contextmenu', this);
+      
     }
 
     if (SNAPPING_SCROLLING) {
@@ -119,7 +125,18 @@ var CardsView = (function() {
       // And add it to the card switcher
       var card = document.createElement('li');
       card.classList.add('card');
-      card.style.background = '-moz-element(#' + app.frame.id + ') no-repeat';
+      
+      // First we create white background 
+      card.style.backgroundColor = '#FFF';
+      
+      // And then switch it with screenshots when one will be ready
+      // (instead of -moz-element backgrounds)
+      app.frame.getScreenshot().onsuccess = function(screenshot) {
+        if (screenshot.target.result) {
+          this.style.backgroundImage = 'url(' + screenshot.target.result +')';
+        }
+      }.bind(card);
+      
       card.dataset['origin'] = origin;
 
       //display app icon on the tab
@@ -201,12 +218,15 @@ var CardsView = (function() {
     if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
       if (differenceY > moveCardThreshold) {
+        // We don't want user to scroll the Cardsview when one of the card is 
+        // already dragger upwards
+        draggingCardUp = true;
         evt.target.style.MozTransform = 'scale(0.6) translate(0, -' +
                                         differenceY + 'px)';
       }
-    }
-
-    if (SNAPPING_SCROLLING && draggedElement === null) {
+    } 
+    
+    if (SNAPPING_SCROLLING && draggedElement === null && !draggingCardUp) {
       var differenceX = initialTouchPosition.x - touchPosition.x;
       cardsView.scrollLeft = initialCardViewPosition + differenceX;
     }
@@ -249,7 +269,7 @@ var CardsView = (function() {
     document.releaseCapture();
     cardsView.removeEventListener('mousemove', CardsView);
     cardsView.removeEventListener('mouseup', CardsView);
-
+    
     var touchPosition = {
         x: evt.touches ? evt.touches[0].pageX : evt.pageX,
         y: evt.touches ? evt.touches[0].pageY : evt.pageY
@@ -258,6 +278,7 @@ var CardsView = (function() {
     // if the element we start dragging on is a card
     if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
+      draggingCardUp = false;
       if (differenceY > removeCardThreshold) {
         // Without removing the listener before closing card
         // sometimes the 'click' event fires, even if 'mouseup'
@@ -280,7 +301,7 @@ var CardsView = (function() {
 
         return;
       } else {
-        evt.target.style.MozTransform = 'scale(0.6)';
+        evt.target.style.MozTransform = '';
       }
     }
 
@@ -304,7 +325,6 @@ var CardsView = (function() {
 
     if (USER_DEFINED_ORDERING && draggedElement !== null) {
       if (sortingDirection === 'right') {
-
         if (currentDisplayed < WindowManager.getNumberOfRunningApps() - 1) {
           cardsList.insertBefore(draggedElement, cardsList.children[currentDisplayed + 1]);
         } else {
@@ -313,10 +333,10 @@ var CardsView = (function() {
       } else if (sortingDirection === 'left') {
         cardsList.insertBefore(draggedElement, cardsList.children[currentDisplayed]);
       }
-      draggedElement.style.MozTransform = 'scale(0.6)';
+      draggedElement.style.MozTransform = '';
       draggedElement.dataset['edit'] = 'false';
       draggedElement = null;
-
+      
       alignCard(currentDisplayed);
     }
   }
@@ -328,7 +348,7 @@ var CardsView = (function() {
     if (draggedElement.classList.contains('card')) {
       dragMargin = draggedElement.offsetLeft;
       draggedElement.dataset['edit'] = true;
-      sortingDirection = '';
+      sortingDirection = 'left';
     }
   }
 
@@ -348,6 +368,7 @@ var CardsView = (function() {
         break;
     }
   }
+  
   // Public API of CardsView
   return {
     showCardSwitcher: showCardSwitcher,
