@@ -9,8 +9,11 @@
 
   var store = {
     events: 'events',
-    accounts: 'accounts'
+    accounts: 'accounts',
+    calendars: 'calendars'
   };
+
+  Object.freeze(store);
 
   function Db(name) {
     this.name = name;
@@ -20,8 +23,8 @@
 
   Db.prototype = {
 
-    // Someone may hate me for this
-    // but its nice =/
+    // Some may hate me for this
+    // but the syntax is nice
     __proto__: Object.create(Calendar.Responder.prototype),
 
     /**
@@ -65,11 +68,14 @@
         db.deleteObjectStore(existingNames[i]);
       }
 
-      // events
+      // events -> belongs to calendar
       db.createObjectStore(store.events);
 
-      // accounts
+      // accounts -> has many calendars
       db.createObjectStore(store.accounts);
+
+      // calendars -> has many events
+      db.createObjectStore(store.calendars);
     },
 
     get version() {

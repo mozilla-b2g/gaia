@@ -1,12 +1,14 @@
+requireApp('calendar/test/unit/helper.js');
 requireApp('calendar/js/responder.js');
 requireApp('calendar/js/db.js');
 
 suite('db', function() {
   var subject;
-  var name = 'b2g-test-calendar';
+  var name;
 
   setup(function(done) {
-    subject = new Calendar.Db(name);
+    subject = testSupport.calendar.db();
+    name = subject.name;
     subject.deleteDatabase(function(err, success) {
       assert.ok(!err);
       assert.ok(success);
@@ -21,6 +23,7 @@ suite('db', function() {
     assert.ok(subject.stores);
 
     assert.instanceOf(subject, Calendar.Responder);
+    assert.isTrue(Object.isFrozen(subject.stores));
   });
 
   teardown(function() {
@@ -47,7 +50,7 @@ suite('db', function() {
               // check that each store now exists
               var stores = subject.connection.objectStoreNames;
               var actualStore;
-              for(actualStore in subject.stores) {
+              for (actualStore in subject.stores) {
                 assert.ok(
                   (stores.contains(actualStore)),
                   actualStore + ' was not created'
