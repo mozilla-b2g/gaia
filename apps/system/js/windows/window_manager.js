@@ -162,6 +162,12 @@ var WindowManager = (function() {
       openFrame.setVisible(true);
       openFrame.focus();
 
+      // Dispatch a 'appopen' event,
+      // Modal dialog would use this.
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+      openFrame.dispatchEvent(evt);
+
       setTimeout(openCallback);
     } else if (classes.contains('close') && prop === 'color') {
       closeFrame.classList.remove('active');
@@ -192,7 +198,7 @@ var WindowManager = (function() {
     // The keyboard uses this and the appclose event to know when to close
     // See https://github.com/andreasgal/gaia/issues/832
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillclose', true, false, {});
+    evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
     // Take keyboard focus away from the closing window
@@ -218,30 +224,32 @@ var WindowManager = (function() {
   function setDisplayedApp(origin, callback, url) {
     var currentApp = displayedApp, newApp = origin;
 
-    // There are four cases that we handle in different ways:
-    // 1) The new app is already displayed: do nothing
-    // 2) We're going from the homescreen to an app
-    // 3) We're going from an app to the homescreen
-    // 4) We're going from one app to another (via card switcher)
-
-    // Case 1
-    if (currentApp == newApp) {
+    // Case 1: the app is already displayed
+    if (currentApp && currentApp == newApp) {
       // Just run the callback right away
       if (callback)
         callback();
     }
     // Case 2: homescreen->app
-    else if (currentApp == null) {
+    else if (currentApp == null && newApp) {
       setAppSize(newApp);
       updateLaunchTime(newApp);
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
-    else if (newApp == null) {
+    else if (currentApp && newApp == null) {
       // Animate the window close
       closeWindow(currentApp, callback);
     }
-    // Case 4: app-to-app transition
+    // Case 4: homescreen-to-homescreen transition
+    else if (currentApp == null && newApp == null) {
+      // XXX Until the HOME button works as an activity, just
+      // send a message to the homescreen so he nows about the
+      // home key.
+      var home = document.getElementById('homescreen');
+      home.contentWindow.postMessage('home', home.src);
+    }
+    // Case 5: app-to-app transition
     else {
       // XXX Note: Hack for demo when current app want to set specific hash
       //           url in newApp(e.g. contact trigger SMS message list page).
@@ -490,7 +498,8 @@ var WindowManager = (function() {
       for (var ep in entryPoints) {
         //Remove the origin and / to find if if the url is the entry point
         var path = e.detail.url.substr(e.detail.origin.length + 1);
-        if (path.indexOf(ep) == 0 && (ep + entryPoints[ep].path) == path) {
+        if (path.indexOf(ep) == 0 &&
+            (ep + entryPoints[ep].launch_path) == path) {
           origin = origin + '/' + ep;
           name = entryPoints[ep].name;
         }
@@ -671,15 +680,10 @@ var WindowManager = (function() {
     // homescreen. Unlike the Home key, apps can intercept this event
     // and use it for their own purposes.
     if (e.keyCode === e.DOM_VK_ESCAPE &&
-        !ModalDialog.blocked &&
         !e.defaultPrevented &&
         displayedApp !== null) {
 
       setDisplayedApp(null); // back to the homescreen
-    }
-
-    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.blocked) {
-      ModalDialog.cancelHandler();
     }
   });
 
@@ -700,9 +704,7 @@ var WindowManager = (function() {
     // a handled keyup, we've got to clear the timer.
 
     function keydownHandler(e) {
-      if (e.keyCode !== e.DOM_VK_HOME) return;
-
-      if (e.defaultPrevented)
+      if (e.keyCode !== e.DOM_VK_HOME || e.defaultPrevented)
         return;
 
       // We don't do anything else until the Home key is released...
@@ -747,7 +749,7 @@ var WindowManager = (function() {
         // the we also itnore it
         // Otherwise, make the homescreen visible.
         // Also, if the card switcher is visible, then hide it.
-        if (!ModalDialog.blocked && !LockScreen.locked && !e.defaultPrevented) {
+        if (!LockScreen.locked && !e.defaultPrevented) {
           // The attention screen can 'eat' this event
           if (!e.defaultPrevented)
             setDisplayedApp(null);
@@ -766,8 +768,7 @@ var WindowManager = (function() {
       // and if the card switcher is not already shown
       timer = null;
 
-      if (!ModalDialog.blocked &&
-          !LockScreen.locked &&
+      if (!LockScreen.locked &&
           !CardsView.cardSwitcherIsShown()) {
         CardsView.showCardSwitcher();
       }

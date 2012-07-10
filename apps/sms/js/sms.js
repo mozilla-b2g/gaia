@@ -124,98 +124,7 @@ var MessageManager = {
   }
 };
 
-/* DelayDeleteManager and execute the delete task when:
- * 1. A period of time without undo action.
- * 2. View status change.
- * 3. Other scenario...
- * Regist when delete action pending and unregist when delete execute or undo.
-*/
-var DelayDeleteManager = {
-  registDelayDelete: function dm_registDelayDelete(executeDelete) {
-    this.executeDelete = executeDelete;
-    //TODO: We may have timer to hide the undo toolbar automatically.
-    //window.setTimeout(executeMessageDelete, timer);
-    document.body.addEventListener('DOMAttrModified', this);
-  },
-  unregistDelayDelete: function dm_unregistDelayDelete() {
-    this.executeDelete = null;
-    //window.clearTimeout(executeMessageDelete, timer);
-    document.body.removeEventListener('DOMAttrModified', this);
-  },
-  onViewStatusChanged: function dm_onViewStatusChanged(evt) {
-    if (evt.attrName != 'class')
-      return;
-
-    // If previous status is not edit mode and class changed, execute delete.
-    if (evt.prevValue.indexOf('edit') === -1) {
-      this.executeDelete();
-    }
-  },
-  handleEvent: function dm_handleEvent(evt) {
-    switch (evt.type) {
-      case 'DOMAttrModified':
-        this.onViewStatusChanged(evt);
-        break;
-    }
-  }
-};
-
-/* Contact Manager for maintaining contact cache and access contact DB:
- * 1. Maintain used contacts in contactData object literal.
- * 2. getContactData: Callback with contact data from 1)cache 2)indexedDB.
- * If cache return "undefined". There will be no callback from cache.
- * Callback will be called twice if cached data turned out to be different than
- * the data from db.
- * Contact return data type:
- *   a) null : Request indexedDB error.
- *   b) Empty array : Request success with no matched result.
- *   c) Array with objects : Request success with matched contacts.
- *
- * XXX Note: We presume that contact.name has only one entry.
-*/
-var ContactDataManager = {
-  contactData: {},
-  getContactData: function cm_getContactData(options, callback) {
-    var isCacheable = options.filterBy.indexOf('tel') !== -1 &&
-                      options.filterOp == 'contains';
-    var cacheResult = this.contactData[options.filterValue];
-    if (isCacheable && typeof cacheResult !== 'undefined') {
-      var cacheArray = cacheResult ? [cacheResult] : [];
-      callback(cacheArray);
-    }
-
-    var self = this;
-    var req = window.navigator.mozContacts.find(options);
-    req.onsuccess = function onsuccess() {
-      // Update the cache before callback.
-      if (isCacheable) {
-        var cacheData = self.contactData[options.filterValue];
-        var result = req.result;
-        if (result.length > 0) {
-          if (cacheData && (cacheData.name[0] == dbData.name[0]))
-            return;
-
-          self.contactData[options.filterValue] = result[0];
-        } else {
-          if (cacheData === null)
-            return;
-
-          self.contactData[options.filterValue] = null;
-        }
-      }
-      callback(result);
-    };
-
-    req.onerror = function onerror() {
-      var msg = 'Contact finding error. Error: ' + req.errorCode;
-      console.log(msg);
-      callback(null);
-    };
-  }
-};
-
-
-var ConversationListView = {
+var ThreadListUI = {
   get view() {
     delete this.view;
     return this.view = document.getElementById('msg-conversations-list');
@@ -231,7 +140,7 @@ var ConversationListView = {
     return this.searchInput = document.getElementById('msg-search');
   },
 
-  init: function cl_init() {
+  init: function thlui_init() {
     this.delNumList = [];
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
@@ -242,11 +151,11 @@ var ConversationListView = {
     this.view.addEventListener('click', this);
     window.addEventListener('hashchange', this);
 
-    this.updateConversationList();
+    this.renderThreads();
     document.addEventListener('mozvisibilitychange', this);
   },
 
-  updateMsgWithContact: function cl_updateMsgWithContact(msg) {
+  updateMsgWithContact: function thlui_updateMsgWithContact(msg) {
     var nameElement = msg.getElementsByClassName('name')[0];
     var options = {
       filterBy: ['tel'],
@@ -277,7 +186,7 @@ var ConversationListView = {
     });
   },
 
-  updateConversationList: function cl_updateCL(pendingMsg) {
+  renderThreads: function thlui_renderThreads(pendingMsg) {
     var self = this;
     this._lastHeader = undefined;
     /*
@@ -286,12 +195,6 @@ var ConversationListView = {
       It should be timestamp in normal view, and order by name while searching
     */
     MessageManager.getMessages(function getMessagesCallback(messages) {
-      /** Once https://bugzilla.mozilla.org/show_bug.cgi?id=769347
-      lands, this fix should be removed.*/
-      messages.sort(function(a, b) {
-        return b.timestamp - a.timestamp;
-      });
-
       var conversations = {};
       for (var i = 0; i < messages.length; i++) {
         var message = messages[i];
@@ -347,25 +250,11 @@ var ConversationListView = {
     }, null);
   },
 
-  createHighlightHTML: function cl_createHighlightHTML(text, searchRegExp) {
-    var sliceStrs = text.split(searchRegExp);
-    var patterns = text.match(searchRegExp);
-    var str = '';
-    for (var i = 0; i < patterns.length; i++) {
-      str = str +
-          escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
-          escapeHTML(patterns[i]) + '</span>';
-    }
-    str += escapeHTML(sliceStrs.pop());
-    return str;
-  },
-
-  createNewConversation: function cl_createNewConversation(conversation, reg) {
+  createNewConversation: function thlui_createNewConversation(conversation) {
     var dataName = escapeHTML(conversation.name || conversation.num, true);
     var name = escapeHTML(conversation.name);
     var bodyText = conversation.body.split('\n')[0];
-    var bodyHTML = reg ? this.createHighlightHTML(bodyText, reg) :
-                           escapeHTML(bodyText);
+    var bodyHTML = escapeHTML(bodyText);
 
     return '<div class="item">' +
            '  <label class="fake-checkbox">' +
@@ -398,7 +287,7 @@ var ConversationListView = {
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createNewHeader: function cl_createNewHeader(conversation) {
+  createNewHeader: function thlui_createNewHeader(conversation) {
     function sameDay(timestamp1, timestamp2) {
       var day1 = new Date(timestamp1);
       var day2 = new Date(timestamp2);
@@ -418,67 +307,8 @@ var ConversationListView = {
       giveHeaderDate(conversation.timestamp) + '</div>';
   },
 
-  searchConversations: function cl_searchConversations() {
-    var str = this.searchInput.value;
-    if (!str) {
-      // Leave the empty view when no text in the input.
-      this.view.innerHTML = '';
-      return;
-    }
-
-    var self = this;
-    MessageManager.getMessages(function getMessagesCallback(messages) {
-      str = str.replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&');
-      var fragment = '';
-      var searchedNum = {};
-      for (var i = 0; i < messages.length; i++) {
-        var reg = new RegExp(str, 'ig');
-        var message = messages[i];
-        var htmlContent = message.body.split('\n')[0];
-        var num = message.delivery == 'received' ?
-                  message.sender : message.receiver;
-        var read = message.read;
-
-        if (searchedNum[num])
-          searchedNum[num].unreadCount += !message.read ? 1 : 0;
-
-        if (!reg.test(htmlContent) || searchedNum[num] ||
-            self.delNumList.indexOf(num) !== -1)
-          continue;
-
-        var msgProperties = {
-          'hidden': false,
-          'body': message.body,
-          'name': num,
-          'num': num,
-          'timestamp': message.timestamp.getTime(),
-          'unreadCount': !read ? 1 : 0,
-          'id': i
-        };
-        searchedNum[num] = msgProperties;
-        var msg = self.createNewConversation(msgProperties, reg);
-        fragment += msg;
-
-      }
-      self.view.innerHTML = fragment;
-
-      // update the conversation sender/receiver name with contact data.
-      var conversationList = self.view.children;
-      for (var i = 0; i < conversationList.length; i++) {
-        self.updateMsgWithContact(conversationList[i]);
-      }
-    }, null);
-  },
-
-  openConversationView: function cl_openConversationView(num) {
-    if (!num)
-      return;
-
-    window.location.hash = '#num=' + num;
-  },
-
   // Update the body class depends on the current hash and original class list.
-  pageStatusController: function cl_pageStatusController() {
+  pageStatusController: function thlui_pageStatusController() {
     var bodyclassList = document.body.classList;
     switch (window.location.hash) {
       case '':
@@ -489,7 +319,7 @@ var ConversationListView = {
           return;
 
         this.searchInput.value = '';
-        this.updateConversationList();
+        this.renderThreads();
         bodyclassList.remove('conversation');
         bodyclassList.remove('conversation-new-msg');
         break;
@@ -515,14 +345,10 @@ var ConversationListView = {
     }
   },
 
-  handleEvent: function cl_handleEvent(evt) {
+  handleEvent: function thlui_handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        ConversationListView.updateConversationList(evt.message);
-        break;
-
-      case 'keyup':
-        this.searchConversations();
+        ThreadListUI.renderThreads(evt.message);
         break;
 
       case 'focus':
@@ -545,12 +371,12 @@ var ConversationListView = {
           return;
 
         // Refresh the view when app return to foreground.
-        this.updateConversationList();
+        this.renderThreads();
         break;
     }
   },
 
-  executeMessageDelete: function cl_executeMessageDelete() {
+  executeMessageDelete: function thlui_executeMessageDelete() {
     var delList = this.view.querySelectorAll('input[type=checkbox][data-num]');
     var delNum = [];
     for (var elem in delList) {
@@ -562,7 +388,7 @@ var ConversationListView = {
     this.delNumList = [];
   },
 
-  executeAllMessagesDelete: function cl_executeAllMessagesDelete() {
+  executeAllMessagesDelete: function thlui_executeAllMessagesDelete() {
     // Clean current list in case messages checked
     this.delNumList = [];
 
@@ -575,17 +401,17 @@ var ConversationListView = {
     this.hideConfirmationDialog();
   },
 
-  showConfirmationDialog: function cl_showConfirmationDialog() {
+  showConfirmationDialog: function thlui_showConfirmationDialog() {
     var dialog = document.getElementById('msg-confirmation-panel');
     dialog.removeAttribute('hidden');
   },
 
-  hideConfirmationDialog: function cl_hideConfirmationDialog() {
+  hideConfirmationDialog: function thlui_hideConfirmationDialog() {
     var dialog = document.getElementById('msg-confirmation-panel');
     dialog.setAttribute('hidden', 'true');
   },
 
-  deleteMessages: function cl_deleteMessages(numberList) {
+  deleteMessages: function thlui_deleteMessages(numberList) {
     if (numberList == [])
       return;
 
@@ -599,14 +425,14 @@ var ConversationListView = {
         msgs.push(messages[i].id);
       }
       MessageManager.deleteMessages(msgs,
-                                    this.updateConversationList.bind(this));
+                                    this.renderThreads.bind(this));
     }.bind(this), filter);
 
     window.location.hash = '#';
   },
 
   /** No search function on new UX **/
-  toggleSearchMode: function cl_toggleSearchMode(show) {
+  toggleSearchMode: function thlui_toggleSearchMode(show) {
     if (show) {
       document.body.classList.add('msg-search-mode');
     } else {
@@ -614,7 +440,7 @@ var ConversationListView = {
     }
   },
 
-  toggleEditMode: function cl_toggleEditMode(show) {
+  toggleEditMode: function thlui_toggleEditMode(show) {
     if (show) {
       document.body.classList.add('edit-mode');
     } else {
@@ -622,7 +448,7 @@ var ConversationListView = {
     }
   },
 
-  onListItemClicked: function cl_onListItemClicked(evt) {
+  onListItemClicked: function thlui_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb || !document.body.classList.contains('edit-mode')) {
       return;
@@ -639,7 +465,7 @@ var ConversationListView = {
   }
 };
 
-var ConversationView = {
+var ThreadUI = {
   get view() {
     delete this.view;
     return this.view = document.getElementById('view-list');
@@ -665,7 +491,7 @@ var ConversationView = {
     return this.sendButton = document.getElementById('view-msg-send');
   },
 
-  init: function cv_init() {
+  init: function thui_init() {
     this.delNumList = [];
 
     if (navigator.mozSms)
@@ -683,17 +509,17 @@ var ConversationView = {
 
     var num = this.getNumFromHash();
     if (num)
-      this.showConversation(num);
+      this.renderMessages(num);
 
     document.addEventListener('mozvisibilitychange', this);
   },
 
-  getNumFromHash: function cv_getNumFromHash() {
+  getNumFromHash: function thui_getNumFromHash() {
     var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
     return num ? num[1] : null;
   },
 
-  scrollViewToBottom: function cv_scrollViewToBottom(animateFromPos) {
+  scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
     if (!animateFromPos) {
       this.view.scrollTop = this.view.scrollHeight;
       return;
@@ -713,7 +539,7 @@ var ConversationView = {
 
   },
 
-  updateInputHeight: function cv_updateInputHeight() {
+  updateInputHeight: function thui_updateInputHeight() {
     var input = this.input;
     input.style.height = null;
     input.style.height = input.scrollHeight + 8 + 'px';
@@ -729,8 +555,8 @@ var ConversationView = {
     this.scrollViewToBottom();
   },
 
-  showConversation: function cv_showConversation(num, pendingMsg) {
-    delete ConversationListView._lastHeader;
+  renderMessages: function thui_renderMessages(num, pendingMsg) {
+    delete ThreadListUI._lastHeader;
     var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
@@ -807,10 +633,10 @@ var ConversationView = {
           unreadList.push(msg.id);
 
         // Add a grouping header if necessary
-        var header = ConversationListView.createNewHeader(msg) || '';
+        var header = ThreadListUI.createNewHeader(msg) || '';
         fragment += header;
 
-        fragment += self.createMessageThread(msg);
+        fragment += self.createMessage(msg);
       }
 
       view.innerHTML = fragment;
@@ -825,7 +651,7 @@ var ConversationView = {
     }, filter, true);
   },
 
-  createMessageThread: function cv_createMessageThread(message) {
+  createMessage: function thui_createMessage(message) {
     var dataId = message.id; // uuid
     var outgoing = (message.delivery == 'sent' ||
       message.delivery == 'sending');
@@ -864,7 +690,7 @@ var ConversationView = {
            '</div>';
   },
 
-  deleteMessage: function cv_deleteMessage(messageId) {
+  deleteMessage: function thui_deleteMessage(messageId) {
     if (!messageId)
       return;
 
@@ -877,31 +703,31 @@ var ConversationView = {
     });
   },
 
-  deleteMessages: function cv_deleteMessages() {
+  deleteMessages: function thui_deleteMessages() {
     var delList = this.view.querySelectorAll('input[type=checkbox]');
     for (var elem in delList) {
       if (delList[elem].checked) {
         this.deleteMessage(parseFloat(delList[elem].dataset.id));
       }
     }
-    this.showConversation(this.title.num);
-    ConversationListView.updateConversationList();
+    this.renderMessages(this.title.num);
+    ThreadListUI.renderThreads();
     this.exitEditMode();
   },
 
-  deleteAllMessages: function cv_deleteAllMessages() {
+  deleteAllMessages: function thui_deleteAllMessages() {
     var inputs = this.view.querySelectorAll('input[type=checkbox]');
     for (var i = 0; i < inputs.length; i++) {
       this.deleteMessage(parseFloat(inputs[i].dataset.id));
     }
 
     this.hideConfirmationDialog();
-    this.showConversation(this.title.num);
-    ConversationListView.updateConversationList();
+    this.renderMessages(this.title.num);
+    ThreadListUI.renderThreads();
     this.exitEditMode();
   },
 
-  handleEvent: function cv_handleEvent(evt) {
+  handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'keyup':
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
@@ -914,7 +740,7 @@ var ConversationView = {
       case 'received':
         var msg = evt.message;
         if (this.filter && this.filter == msg.sender) {
-          this.showConversation(ConversationView.filter);
+          this.renderMessages(ThreadUI.filter);
         }
         break;
 
@@ -934,7 +760,7 @@ var ConversationView = {
           return;
         }
 
-        this.showConversation(num);
+        this.renderMessages(num);
         break;
 
       case 'resize':
@@ -952,7 +778,7 @@ var ConversationView = {
         // Refresh the view when app return to foreground.
         var num = this.getNumFromHash();
         if (num) {
-          this.showConversation(num);
+          this.renderMessages(num);
         }
         break;
 
@@ -965,17 +791,17 @@ var ConversationView = {
     }
   },
 
-  showConfirmationDialog: function cv_showConfirmationDialog() {
+  showConfirmationDialog: function thui_showConfirmationDialog() {
     var dialog = document.getElementById('view-confirmation-panel');
     dialog.removeAttribute('hidden');
   },
 
-  hideConfirmationDialog: function cv_hideConfirmationDialog() {
+  hideConfirmationDialog: function thui_hideConfirmationDialog() {
     var dialog = document.getElementById('view-confirmation-panel');
     dialog.setAttribute('hidden', 'true');
   },
 
-  exitEditMode: function cv_exitEditMode() {
+  exitEditMode: function thui_exitEditMode() {
     // in case user ticks a message and then Done, we need to empty
     // the deletion list
     this.delNumList = [];
@@ -984,7 +810,7 @@ var ConversationView = {
     window.location.hash = '#num=' + this.title.num;
   },
 
-  toggleEditMode: function cv_toggleEditMode(show) {
+  toggleEditMode: function thui_toggleEditMode(show) {
     if (show) {
       document.body.classList.add('edit-mode');
     } else {
@@ -992,7 +818,7 @@ var ConversationView = {
     }
   },
 
-  onListItemClicked: function cv_onListItemClicked(evt) {
+  onListItemClicked: function thui_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb || !document.body.classList.contains('edit-mode')) {
       return;
@@ -1012,7 +838,7 @@ var ConversationView = {
     }
   },
 
-  close: function cv_close() {
+  close: function thui_close() {
     if (!document.body.classList.contains('conversation') &&
         !window.location.hash)
       return false;
@@ -1021,7 +847,7 @@ var ConversationView = {
     return true;
   },
 
-  sendMessage: function cv_sendMessage() {
+  sendMessage: function thui_sendMessage() {
     var num = this.num.value;
     var self = this;
     var text = document.getElementById('view-msg-text').value;
@@ -1031,16 +857,16 @@ var ConversationView = {
 
     MessageManager.send(num, text, function onsent(msg) {
       if (!msg) {
-        ConversationView.input.value = text;
-        ConversationView.updateInputHeight();
+        ThreadUI.input.value = text;
+        ThreadUI.updateInputHeight();
 
-        if (ConversationView.filter) {
-          if (window.location.hash !== '#num=' + ConversationView.filter)
-            window.location.hash = '#num=' + ConversationView.filter;
+        if (ThreadUI.filter) {
+          if (window.location.hash !== '#num=' + ThreadUI.filter)
+            window.location.hash = '#num=' + ThreadUI.filter;
           else
-            ConversationView.showConversation(ConversationView.filter);
+            ThreadUI.renderMessages(ThreadUI.filter);
         }
-        ConversationListView.updateConversationList();
+        ThreadListUI.renderThreads();
 
         var resendConfirmStr = _('resendConfirmDialogMsg');
         var result = confirm(resendConfirmStr);
@@ -1054,13 +880,13 @@ var ConversationView = {
       // message in the background. Ideally we'd just be updating the UI
       // from "sending..." to "sent" at this point...
       window.setTimeout(function() {
-        if (ConversationView.filter) {
-          if (window.location.hash !== '#num=' + ConversationView.filter)
-            window.location.hash = '#num=' + ConversationView.filter;
+        if (ThreadUI.filter) {
+          if (window.location.hash !== '#num=' + ThreadUI.filter)
+            window.location.hash = '#num=' + ThreadUI.filter;
           else
-            ConversationView.showConversation(ConversationView.filter);
+            ThreadUI.renderMessages(ThreadUI.filter);
         }
-        ConversationListView.updateConversationList();
+        ThreadListUI.renderThreads();
       }, 100);
     });
 
@@ -1079,19 +905,19 @@ var ConversationView = {
       this.input.focus();
 
       if (this.filter) {
-        this.showConversation(this.filter, message);
+        this.renderMessages(this.filter, message);
         return;
       }
-      this.showConversation(num, message);
+      this.renderMessages(num, message);
     }).bind(this), 0);
 
-    ConversationListView.updateConversationList(message);
+    ThreadListUI.renderThreads(message);
   }
 };
 
 window.addEventListener('localized', function showBody() {
-  ConversationView.init();
-  ConversationListView.init();
+  ThreadUI.init();
+  ThreadListUI.init();
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
