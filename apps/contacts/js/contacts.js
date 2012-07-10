@@ -150,7 +150,8 @@ var Contacts = (function() {
       contactTag,
       contactDetails,
       saveButton,
-      deleteContactButton;
+      deleteContactButton,
+      favoriteMessage;
 
   var currentContact = {};
 
@@ -173,6 +174,7 @@ var Contacts = (function() {
     saveButton = document.getElementById('save-button');
     deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
+    favoriteMessage = document.getElementById('toggle-favorite').children[0];
 
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = 'Are you sure you want to remove this contact?';
@@ -350,11 +352,7 @@ var Contacts = (function() {
       numberEmails++;
     }
 
-    var isFavorite = currentContact != null && currentContact.category != null &&
-                      currentContact.category.indexOf('favorite') != -1;
-    document.getElementById('toggle-favorite').children[1].innerHTML =
-                                isFavorite ? 'Remove from favorites' : 'Add to favorites';
-
+    toggleFavoriteMessage(isFavorite(currentContact));
     for (var adr in currentContact.adr) {
       var currentAddress = currentContact.adr[adr];
       var default_type = TAG_OPTIONS['address-type'][0].value;
@@ -374,6 +372,11 @@ var Contacts = (function() {
     }
     edit();
   };
+
+  var isFavorite = function isFavorite(contact) {
+    return contact != null & contact.category != null &&
+              contact.category.indexOf('favorite') != -1;
+  }
 
   var goToSelectTag = function goToSelectTag(event) {
     var tagList = event.target.dataset.taglist;
@@ -478,12 +481,9 @@ var Contacts = (function() {
   };
 
   var toggleFavorite = function toggleFavorite() {
-    var isFavorite = currentContact.category != null &&
-                      currentContact.category.indexOf('favorite') != -1;
-    isFavorite = !isFavorite;
-    document.getElementById('toggle-favorite').children[1].innerHTML =
-                                isFavorite ? 'Unfavorite' : 'Add as favorite';
-    if (isFavorite) {
+    var favorite = !isFavorite(currentContact);
+    toggleFavoriteMessage(favorite);
+    if (favorite) {
       if (!currentContact.category) {
         currentContact.category = [];
       }
@@ -498,6 +498,12 @@ var Contacts = (function() {
       }
     }
   };
+
+  var toggleFavoriteMessage = function toggleFavMessage(isFav) {
+    favoriteMessage.textContent = !isFav ?
+                    'Add as favorite' :
+                    'Remove as favorite';
+  }
 
   var deleteContact = function deleteContact(contact) {
     var request = navigator.mozContacts.remove(currentContact);
