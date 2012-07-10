@@ -21,6 +21,7 @@
       }
       document.write('<script src="' + src + '"><\/script>');
     </script>
+    <script type="text/javascript" src="js/contacts.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
   </head>
@@ -34,7 +35,7 @@
             <div class="icon-back"></div>
           </div>
         </a>
-        <div role="menuitem" id="view-done-button" onclick="ConversationView.exitEditMode()" class="edit-show" data-l10n-id="done">
+        <div role="menuitem" id="view-done-button" onclick="ThreadUI.exitEditMode()" class="edit-show" data-l10n-id="done">
           Done
         </div>
         <a href="#edit" id="view-edit-button" role="menuitem" class="edit-hide">
@@ -56,10 +57,10 @@
           <div role="button" id="view-msg-send" class="edit-hide view-bottom-toolbar-element" data-l10n-id="send">
               Send
           </div>
-          <div id="view-delete-all-button" onclick="ConversationView.showConfirmationDialog();" class="view-bottom-toolbar-element view-bottom-toolbar-button conversation-hide" data-l10n-id="delete-all">
+          <div id="view-delete-all-button" onclick="ThreadUI.showConfirmationDialog();" class="view-bottom-toolbar-element view-bottom-toolbar-button conversation-hide" data-l10n-id="delete-all">
             Delete all
           </div>
-          <div id="view-delete-button" onclick="ConversationView.deleteMessages();" class="view-bottom-toolbar-element view-bottom-toolbar-button conversation-hide" data-l10n-id="delete">
+          <div id="view-delete-button" onclick="ThreadUI.deleteMessages();" class="view-bottom-toolbar-element view-bottom-toolbar-button conversation-hide" data-l10n-id="delete">
             Delete
           </div>
 
@@ -103,8 +104,8 @@
 
       <div id="msg-bottom-toolbar" class="toolbar toolbar-bottom edit-show">
         <div id="msg-edit-options-bar">
-          <div id="msg-delete-all-button" onclick="ConversationListView.showConfirmationDialog();" class="button-bottom-bar" data-l10n-id="delete-all">Delete all</div>
-          <div id="msg-delete-button" onclick="ConversationListView.executeMessageDelete();" class="button-bottom-bar " data-l10n-id="delete">Delete</div>
+          <div id="msg-delete-all-button" onclick="ThreadListUI.showConfirmationDialog();" class="button-bottom-bar" data-l10n-id="delete-all">Delete all</div>
+          <div id="msg-delete-button" onclick="ThreadListUI.executeMessageDelete();" class="button-bottom-bar " data-l10n-id="delete">Delete</div>
          
         </div>
       </div>
@@ -116,8 +117,8 @@
             <p>Are you sure you want to clear all conversations</p>
             <h2>This cannot be undone</h2>
             <section class="view-confirm-options">
-              <div id="view-cancel-button" onclick="ConversationListView.hideConfirmationDialog();" class="view-confirm-option">Cancel</div>
-              <div id="view-accept-button" onclick="ConversationListView.executeAllMessagesDelete();" class="view-confirm-option">Yes</div>
+              <div id="view-cancel-button" onclick="ThreadListUI.hideConfirmationDialog();" class="view-confirm-option">Cancel</div>
+              <div id="view-accept-button" onclick="ThreadListUI.executeAllMessagesDelete();" class="view-confirm-option">Yes</div>
             </section> 
             
         </div>
@@ -130,8 +131,8 @@
             <p>Are you sure you want to clear all messages from this conversation</p>
             <h2>This cannot be undone</h2>
             <section class="view-confirm-options">
-              <div id="view-cancel-button" onclick="ConversationView.hideConfirmationDialog();" class="view-confirm-option">Cancel</div>
-              <div id="view-accept-button" onclick="ConversationView.deleteAllMessages();" class="view-confirm-option">Yes</div>
+              <div id="view-cancel-button" onclick="ThreadUI.hideConfirmationDialog();" class="view-confirm-option">Cancel</div>
+              <div id="view-accept-button" onclick="ThreadUI.deleteAllMessages();" class="view-confirm-option">Yes</div>
             </section>
             
         </div>
