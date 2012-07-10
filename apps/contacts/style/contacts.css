@@ -84,3 +84,12 @@ hr {
   border: 0;
   height: 1px;
 }
+
+/* Favorites handling */
+#group-favorites abbr {
+  background: url(gphx/bitmap/default/lists/favorites.png);
+  display: block;
+  background-size: 100% auto;
+  width: 2rem;
+  height: 2rem;
+}
