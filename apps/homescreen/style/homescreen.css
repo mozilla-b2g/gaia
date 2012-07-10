@@ -27,10 +27,6 @@ html, body {
   font-family:'Open Sans';
 }
 
-html {
-  font-size: 10px;
-}
-
 * {
   -moz-user-select:none;
 }
@@ -47,7 +43,7 @@ section,footer,nav,a,img {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 3;
+  z-index: 1;
 }
 
 #paginationBar > .paginationScroller {
@@ -58,13 +54,24 @@ section,footer,nav,a,img {
   visibility: hidden;
 }
 
-#icongrid {
+#content {
   width: 100%;
-  height: -moz-calc(100% - 4rem);
+  height: -moz-calc(100% - 4.3rem);
   position: fixed;
+  top: .3rem;
+  left: 0;
+}
+
+#content > section {
+  width: 100%;
+  height: 100%;
+  position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
+}
+
+#content > #icongrid {
+  -moz-transform: translateX(100%);
 }
 
 /* START footer */
