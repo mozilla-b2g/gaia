@@ -92,10 +92,6 @@ var LockScreen = {
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
 
-    /* Camera app frame load/unload */
-    this.camera.addEventListener('load', this);
-    this.camera.addEventListener('unload', this);
-
     /* switching panels */
     window.addEventListener('keyup', this, true);
 
@@ -265,20 +261,12 @@ var LockScreen = {
         break;
 
       case 'load':
-        this.camera.contentWindow.addEventListener(
+        var win = this.camera.firstElementChild.contentWindow;
+        win.addEventListener(
           'keydown', (this.redirectKeyEventFromFrame).bind(this));
-        this.camera.contentWindow.addEventListener(
+        win.addEventListener(
           'keypress', (this.redirectKeyEventFromFrame).bind(this));
-        this.camera.contentWindow.addEventListener(
-          'keyup', (this.redirectKeyEventFromFrame).bind(this));
-        break;
-
-      case 'unload':
-        this.camera.contentWindow.removeEventListener(
-          'keydown', (this.redirectKeyEventFromFrame).bind(this));
-        this.camera.contentWindow.removeEventListener(
-          'keypress', (this.redirectKeyEventFromFrame).bind(this));
-        this.camera.contentWindow.removeEventListener(
+        win.addEventListener(
           'keyup', (this.redirectKeyEventFromFrame).bind(this));
         break;
     }
@@ -508,8 +496,11 @@ var LockScreen = {
         break;
 
       case 'camera':
-        // load the camera iframe
-        this.camera.src = './camera/';
+        // create the iframe and load the camera
+        var frame = document.createElement('iframe');
+        frame.src = './camera/';
+        frame.addEventListener('load', this);
+        this.camera.appendChild(frame);
         break;
 
       case 'emergency':
@@ -530,8 +521,8 @@ var LockScreen = {
         break;
 
       case 'camera':
-        // unload the camera iframe
-        this.camera.src = './blank.html';
+        // Remove the iframe element
+        this.camera.removeChild(this.camera.firstElementChild);
         break;
 
       case 'emergency':

@@ -777,6 +777,11 @@
 #lockscreen-camera {
   width: 100%;
   height: 100%;
+}
+
+#lockscreen-camera > iframe {
+  width: 100%;
+  height: 100%;
   border: none;
 }
 
