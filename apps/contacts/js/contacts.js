@@ -239,6 +239,9 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
+    if (contact.category && contact.category.indexOf('favorite') != -1) {
+      detailsName.innerHTML += '<sup></sup>';
+    }
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
 
