@@ -39,20 +39,40 @@
 }());
 
 var NotificationScreen = {
+  TOASTER_TIMEOUT: 900,
   TRANSITION_SPEED: 1.8,
-  TRANSITION_FRACTION: 0.50,
+  TRANSITION_FRACTION: 0.30,
 
   _notification: null,
   _containerWidth: null,
+  _toasterTimeout: null,
 
   get container() {
     delete this.container;
     return this.container = document.getElementById('notifications-container');
   },
 
+  get toaster() {
+    delete this.toaster;
+    return this.toaster = document.getElementById('notification-toaster');
+  },
+
+  get toasterIcon() {
+    delete this.toasterIcon;
+    return this.toasterIcon = document.getElementById('toaster-icon');
+  },
+  get toasterTitle() {
+    delete this.toasterTitle;
+    return this.toasterTitle = document.getElementById('toaster-title');
+  },
+  get toasterDetail() {
+    delete this.toasterDetail;
+    return this.toasterDetail = document.getElementById('toaster-detail');
+  },
+
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
-    ['tap', 'mousedown', 'pan', 'swipe'].forEach(function(evt) {
+    ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
       this.container.addEventListener(evt, this);
     }, this);
   },
@@ -87,9 +107,6 @@ var NotificationScreen = {
       case 'mousedown':
         this.mousedown(evt);
         break;
-      case 'pan':
-        this.pan(evt);
-        break;
       case 'swipe':
         this.swipe(evt);
         break;
@@ -107,15 +124,6 @@ var NotificationScreen = {
 
     this._notification.style.MozTransition = '';
     this._notification.style.width = evt.target.parentNode.clientWidth + 'px';
-  },
-
-  pan: function ns_pan(evt) {
-    var movement = Math.min(this._containerWidth,
-                            Math.abs(evt.detail.absolute.dx));
-    if (movement > 0) {
-      this._notification.style.opacity = 1 - (movement / this._containerWidth);
-    }
-    this._notification.style.MozTransform = 'translateX(' + evt.detail.absolute.dx + 'px)';
   },
 
   swipe: function ns_swipe(evt) {
@@ -140,7 +148,8 @@ var NotificationScreen = {
     var offset = evt.detail.direction === 'right' ?
       this._containerWidth : -this._containerWidth;
 
-    this._notification.style.MozTransition = '-moz-transform ' + time + 'ms linear';
+    this._notification.style.MozTransition = '-moz-transform ' +
+      time + 'ms linear';
     this._notification.style.MozTransform = 'translateX(' + offset + 'px)';
     var self = this;
     this._notification.addEventListener('transitionend', function trListener() {
@@ -176,19 +185,36 @@ var NotificationScreen = {
       var icon = document.createElement('img');
       icon.src = detail.icon;
       notificationNode.appendChild(icon);
+
+      this.toasterIcon.src = detail.icon;
     }
 
     var title = document.createElement('div');
     title.textContent = detail.title;
     notificationNode.appendChild(title);
 
+    this.toasterTitle.textContent = detail.title;
+
     var message = document.createElement('div');
     message.classList.add('detail');
     message.textContent = detail.text;
     notificationNode.appendChild(message);
 
+    this.toasterDetail.textContent = detail.text;
+
     this.container.appendChild(notificationNode);
     new GestureDetector(notificationNode).startDetecting();
+
+    // Notification toast
+    this.toaster.classList.add('displayed');
+
+    if (this._toasterTimeout)
+      clearTimeout(this._toasterTimeout);
+
+    this._toasterTimeout = setTimeout((function() {
+      this.toaster.classList.remove('displayed');
+      this._toasterTimeout = null;
+    }).bind(this), this.TOASTER_TIMEOUT);
   },
 
   removeNotification: function ns_removeNotification(notificationNode) {
@@ -220,4 +246,3 @@ var NotificationScreen = {
 };
 
 NotificationScreen.init();
-
