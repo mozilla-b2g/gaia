@@ -140,7 +140,7 @@ var ThreadListUI = {
     return this.searchInput = document.getElementById('msg-search');
   },
 
-  init: function cl_init() {
+  init: function thlui_init() {
     this.delNumList = [];
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
@@ -155,7 +155,7 @@ var ThreadListUI = {
     document.addEventListener('mozvisibilitychange', this);
   },
 
-  updateMsgWithContact: function cl_updateMsgWithContact(msg) {
+  updateMsgWithContact: function thlui_updateMsgWithContact(msg) {
     var nameElement = msg.getElementsByClassName('name')[0];
     var options = {
       filterBy: ['tel'],
@@ -186,7 +186,7 @@ var ThreadListUI = {
     });
   },
 
-  renderThreads: function cl_updateCL(pendingMsg) {
+  renderThreads: function thlui_renderThreads(pendingMsg) {
     var self = this;
     this._lastHeader = undefined;
     /*
@@ -256,7 +256,7 @@ var ThreadListUI = {
     }, null);
   },
 
-  createNewConversation: function cl_createNewConversation(conversation) {
+  createNewConversation: function thlui_createNewConversation(conversation) {
     var dataName = escapeHTML(conversation.name || conversation.num, true);
     var name = escapeHTML(conversation.name);
     var bodyText = conversation.body.split('\n')[0];
@@ -293,7 +293,7 @@ var ThreadListUI = {
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createNewHeader: function cl_createNewHeader(conversation) {
+  createNewHeader: function thlui_createNewHeader(conversation) {
     function sameDay(timestamp1, timestamp2) {
       var day1 = new Date(timestamp1);
       var day2 = new Date(timestamp2);
@@ -314,7 +314,7 @@ var ThreadListUI = {
   },
 
   // Update the body class depends on the current hash and original class list.
-  pageStatusController: function cl_pageStatusController() {
+  pageStatusController: function thlui_pageStatusController() {
     var bodyclassList = document.body.classList;
     switch (window.location.hash) {
       case '':
@@ -351,7 +351,7 @@ var ThreadListUI = {
     }
   },
 
-  handleEvent: function cl_handleEvent(evt) {
+  handleEvent: function thlui_handleEvent(evt) {
     switch (evt.type) {
       case 'received':
         ThreadListUI.renderThreads(evt.message);
@@ -382,7 +382,7 @@ var ThreadListUI = {
     }
   },
 
-  executeMessageDelete: function cl_executeMessageDelete() {
+  executeMessageDelete: function thlui_executeMessageDelete() {
     var delList = this.view.querySelectorAll('input[type=checkbox][data-num]');
     var delNum = [];
     for (var elem in delList) {
@@ -394,7 +394,7 @@ var ThreadListUI = {
     this.delNumList = [];
   },
 
-  executeAllMessagesDelete: function cl_executeAllMessagesDelete() {
+  executeAllMessagesDelete: function thlui_executeAllMessagesDelete() {
     // Clean current list in case messages checked
     this.delNumList = [];
 
@@ -407,17 +407,17 @@ var ThreadListUI = {
     this.hideConfirmationDialog();
   },
 
-  showConfirmationDialog: function cl_showConfirmationDialog() {
+  showConfirmationDialog: function thlui_showConfirmationDialog() {
     var dialog = document.getElementById('msg-confirmation-panel');
     dialog.removeAttribute('hidden');
   },
 
-  hideConfirmationDialog: function cl_hideConfirmationDialog() {
+  hideConfirmationDialog: function thlui_hideConfirmationDialog() {
     var dialog = document.getElementById('msg-confirmation-panel');
     dialog.setAttribute('hidden', 'true');
   },
 
-  deleteMessages: function cl_deleteMessages(numberList) {
+  deleteMessages: function thlui_deleteMessages(numberList) {
     if (numberList == [])
       return;
 
@@ -438,7 +438,7 @@ var ThreadListUI = {
   },
 
   /** No search function on new UX **/
-  toggleSearchMode: function cl_toggleSearchMode(show) {
+  toggleSearchMode: function thlui_toggleSearchMode(show) {
     if (show) {
       document.body.classList.add('msg-search-mode');
     } else {
@@ -446,7 +446,7 @@ var ThreadListUI = {
     }
   },
 
-  toggleEditMode: function cl_toggleEditMode(show) {
+  toggleEditMode: function thlui_toggleEditMode(show) {
     if (show) {
       document.body.classList.add('edit-mode');
     } else {
@@ -454,7 +454,7 @@ var ThreadListUI = {
     }
   },
 
-  onListItemClicked: function cl_onListItemClicked(evt) {
+  onListItemClicked: function thlui_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb || !document.body.classList.contains('edit-mode')) {
       return;
@@ -497,7 +497,7 @@ var ThreadUI = {
     return this.sendButton = document.getElementById('view-msg-send');
   },
 
-  init: function cv_init() {
+  init: function thui_init() {
     this.delNumList = [];
 
     if (navigator.mozSms)
@@ -520,12 +520,12 @@ var ThreadUI = {
     document.addEventListener('mozvisibilitychange', this);
   },
 
-  getNumFromHash: function cv_getNumFromHash() {
+  getNumFromHash: function thui_getNumFromHash() {
     var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
     return num ? num[1] : null;
   },
 
-  scrollViewToBottom: function cv_scrollViewToBottom(animateFromPos) {
+  scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
     if (!animateFromPos) {
       this.view.scrollTop = this.view.scrollHeight;
       return;
@@ -545,7 +545,7 @@ var ThreadUI = {
 
   },
 
-  updateInputHeight: function cv_updateInputHeight() {
+  updateInputHeight: function thui_updateInputHeight() {
     var input = this.input;
     input.style.height = null;
     input.style.height = input.scrollHeight + 8 + 'px';
@@ -561,7 +561,7 @@ var ThreadUI = {
     this.scrollViewToBottom();
   },
 
-  renderMessages: function cv_renderMessages(num, pendingMsg) {
+  renderMessages: function thui_renderMessages(num, pendingMsg) {
     delete ThreadListUI._lastHeader;
     var self = this;
     var view = this.view;
@@ -657,7 +657,7 @@ var ThreadUI = {
     }, filter, true);
   },
 
-  createMessage: function cv_createMessage(message) {
+  createMessage: function thui_createMessage(message) {
     var dataId = message.id; // uuid
     var outgoing = (message.delivery == 'sent' ||
       message.delivery == 'sending');
@@ -696,7 +696,7 @@ var ThreadUI = {
            '</div>';
   },
 
-  deleteMessage: function cv_deleteMessage(messageId) {
+  deleteMessage: function thui_deleteMessage(messageId) {
     if (!messageId)
       return;
 
@@ -709,7 +709,7 @@ var ThreadUI = {
     });
   },
 
-  deleteMessages: function cv_deleteMessages() {
+  deleteMessages: function thui_deleteMessages() {
     var delList = this.view.querySelectorAll('input[type=checkbox]');
     for (var elem in delList) {
       if (delList[elem].checked) {
@@ -721,7 +721,7 @@ var ThreadUI = {
     this.exitEditMode();
   },
 
-  deleteAllMessages: function cv_deleteAllMessages() {
+  deleteAllMessages: function thui_deleteAllMessages() {
     var inputs = this.view.querySelectorAll('input[type=checkbox]');
     for (var i = 0; i < inputs.length; i++) {
       this.deleteMessage(parseFloat(inputs[i].dataset.id));
@@ -733,7 +733,7 @@ var ThreadUI = {
     this.exitEditMode();
   },
 
-  handleEvent: function cv_handleEvent(evt) {
+  handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'keyup':
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
@@ -797,17 +797,17 @@ var ThreadUI = {
     }
   },
 
-  showConfirmationDialog: function cv_showConfirmationDialog() {
+  showConfirmationDialog: function thui_showConfirmationDialog() {
     var dialog = document.getElementById('view-confirmation-panel');
     dialog.removeAttribute('hidden');
   },
 
-  hideConfirmationDialog: function cv_hideConfirmationDialog() {
+  hideConfirmationDialog: function thui_hideConfirmationDialog() {
     var dialog = document.getElementById('view-confirmation-panel');
     dialog.setAttribute('hidden', 'true');
   },
 
-  exitEditMode: function cv_exitEditMode() {
+  exitEditMode: function thui_exitEditMode() {
     // in case user ticks a message and then Done, we need to empty
     // the deletion list
     this.delNumList = [];
@@ -816,7 +816,7 @@ var ThreadUI = {
     window.location.hash = '#num=' + this.title.num;
   },
 
-  toggleEditMode: function cv_toggleEditMode(show) {
+  toggleEditMode: function thui_toggleEditMode(show) {
     if (show) {
       document.body.classList.add('edit-mode');
     } else {
@@ -824,7 +824,7 @@ var ThreadUI = {
     }
   },
 
-  onListItemClicked: function cv_onListItemClicked(evt) {
+  onListItemClicked: function thui_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb || !document.body.classList.contains('edit-mode')) {
       return;
@@ -844,7 +844,7 @@ var ThreadUI = {
     }
   },
 
-  close: function cv_close() {
+  close: function thui_close() {
     if (!document.body.classList.contains('conversation') &&
         !window.location.hash)
       return false;
@@ -853,7 +853,7 @@ var ThreadUI = {
     return true;
   },
 
-  sendMessage: function cv_sendMessage() {
+  sendMessage: function thui_sendMessage() {
     var num = this.num.value;
     var self = this;
     var text = document.getElementById('view-msg-text').value;
