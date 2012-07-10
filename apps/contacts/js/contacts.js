@@ -15,7 +15,6 @@ function navigationStack(currentView) {
   var transitionTimeout = 0;
 
   var stack = [];
-  stack.push({ view: currentView, transition: ''});
 
   var revertTransition = function(transition) {
     return {
@@ -49,31 +48,33 @@ function navigationStack(currentView) {
     });
   };
 
+  var resetMirror = function resetMirror(view, transition) {
+    var mirror = document.getElementById(view.dataset.mirror);
+    mirror.classList.remove(transition.to);
+    mirror.classList.add(transition.from);
+  };
+
   this.go = function go(nextView, transition) {
     if (_currentView === nextView)
       return;
-
     var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
-
-  if (transition == 'none') {
-    setAppView(current, next);
-  } else {
-    setCacheView(current, next, transition);
-  }
+    if (transition == 'none') {
+      setAppView(current, next);
+    } else {
+      setCacheView(current, next, transition);
+    }
 
     stack.push({ view: _currentView, transition: transition});
     _currentView = nextView;
   };
 
   this.back = function back() {
-    if (stack.length < 2)
+    if (stack.length < 1)
       return;
-
     var current = document.getElementById(_currentView);
     var nextView = stack.pop();
     var next = document.getElementById(nextView.view);
-
     var from = transitions[nextView.transition].from;
     var to = transitions[nextView.transition].to;
     if (from == 'none' || to == 'none') {
@@ -84,6 +85,20 @@ function navigationStack(currentView) {
     }
     _currentView = nextView.view;
   };
+
+  this.home = function home() {
+    if (stack.length < 1)
+      return;
+
+    while (stack.length > 1) {
+      var currentObject = stack.pop();
+      var currentView = document.getElementById(currentObject.view);
+      resetMirror(currentView, transitions[currentObject.transition]);
+    }
+    // As stack.length == 1 next view is going to be
+    // the home, so we can use back method
+    this.back();
+  }
 }
 
 var Contacts = (function() {
@@ -108,11 +123,16 @@ var Contacts = (function() {
       {value: 'Personal'},
       {value: 'Home'},
       {value: 'Work'}
+    ],
+    'address-type' : [
+      {value: 'Home'},
+      {value: 'Work'}
     ]
   };
 
   var numberEmails = 0;
   var numberPhones = 0;
+  var numberAddresses = 0;
   var currentContactId,
       detailsName,
       givenName,
@@ -121,13 +141,16 @@ var Contacts = (function() {
       formTitle,
       phoneTemplate,
       emailTemplate,
+      addressTemplate,
       phonesContainer,
       emailContainer,
+      addressContainer,
       selectedTag,
       customTag,
       contactTag,
       contactDetails,
-      saveButton;
+      saveButton,
+      deleteContactButton;
 
   var currentContact = {};
 
@@ -142,11 +165,23 @@ var Contacts = (function() {
     formTitle = document.getElementById('contact-form-title');
     phoneTemplate = document.getElementById('add-phone-#i#');
     emailTemplate = document.getElementById('add-email-#i#');
+    addressTemplate = document.getElementById('add-address-#i#');
     phonesContainer = document.getElementById('contacts-form-phones');
     emailContainer = document.getElementById('contacts-form-email');
+    addressContainer = document.getElementById('contacts-form-address');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
+    deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
+
+    deleteContactButton.onclick = function deleteClicked(event) {
+      var msg = 'Are you sure you want to remove this contact?';
+      Permissions.show('', msg, function onAccept() {
+        deleteContact(currentContact);
+      },function onCancel() {
+        Permissions.hide();
+      });
+    };
 
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -220,9 +255,10 @@ var Contacts = (function() {
 
     var phonesTemplate = document.getElementById('phone-details-template');
     for (var tel in contact.tel) {
+      var currentTel = contact.tel[tel];
       var telField = {
-        number: contact.tel[tel].number || '',
-        type: contact.tel[tel].type || TAG_OPTIONS['phone-type'][0].value,
+        number: currentTel.number || '',
+        type: currentTel.type || TAG_OPTIONS['phone-type'][0].value,
         notes: ''
       };
       var template = utils.templates.render(phonesTemplate, telField);
@@ -236,6 +272,20 @@ var Contacts = (function() {
         type: ''
       };
       var template = utils.templates.render(emailsTemplate, emailField);
+      listContainer.appendChild(template);
+    }
+
+    var addressesTemplate = document.getElementById('address-details-template');
+    for (var i in contact.adr) {
+      var currentAddress = contact.adr[i];
+      var addressField = {
+        streetAddress: currentAddress['streetAddress'],
+        postalCode: currentAddress['postalCode'] || '',
+        locality: currentAddress['locality'] || '',
+        countryName: currentAddress['countryName'] || '',
+        type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value
+      };
+      var template = utils.templates.render(addressesTemplate, addressField);
       listContainer.appendChild(template);
     }
 
@@ -260,21 +310,23 @@ var Contacts = (function() {
 
   var showEdit = function showEdit() {
     resetForm();
+    deleteContactButton.classList.remove('hide');
     formTitle.innerHTML = 'Edit contact';
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
     for (var tel in currentContact.tel) {
+      var currentTel = currentContact.tel[tel];
       var telField = {
-        number: currentContact.tel[tel].number,
-        type: currentContact.tel[tel].type,
+        number: currentTel.number,
+        type: currentTel.type,
         notes: '',
         i: tel
       };
 
       var template = utils.templates.render(phoneTemplate, telField);
-      template.appendChild(removeFieldIcon('add-phone-' + tel));
+      template.appendChild(removeFieldIcon(template.id));
       phonesContainer.appendChild(template);
       numberPhones++;
     }
@@ -287,11 +339,27 @@ var Contacts = (function() {
       };
 
       var template = utils.templates.render(emailTemplate, emailField);
-      template.appendChild(removeFieldIcon('add-email-' + email));
+      template.appendChild(removeFieldIcon(template.id));
       emailContainer.appendChild(template);
       numberEmails++;
     }
 
+    for (var adr in currentContact.adr) {
+      var currentAddress = currentContact.adr[adr];
+      var adrField = {
+        streetAddress: currentAddress['streetAddress'],
+        postalCode: currentAddress['postalCode'] || '',
+        locality: currentAddress['locality'] || '',
+        countryName: currentAddress['countryName'] || '',
+        type: currentAddress['type'] || TAG_OPTIONS['address-type'][0],
+        i: adr
+      };
+
+      var template = utils.templates.render(addressTemplate, adrField);
+      template.appendChild(removeFieldIcon(template.id));
+      addressContainer.appendChild(template);
+      numberAddresses++;
+    }
     edit();
   };
 
@@ -387,12 +455,26 @@ var Contacts = (function() {
 
   var showAdd = function showAdd() {
     resetForm();
+    deleteContactButton.classList.add('hide');
     formTitle.innerHTML = 'Add Contact';
 
     insertEmptyPhone(0);
     insertEmptyEmail(0);
+    insertEmptyAddress(0);
 
     edit();
+  };
+
+  var deleteContact = function deleteContact(contact) {
+    var request = navigator.mozContacts.remove(currentContact);
+    request.onsuccess = function successDelete() {
+      contactsList.remove(currentContact.id);
+      currentContact = null;
+      navigation.home();
+    };
+    request.onerror = function errorDelete() {
+      console.error('Error removing the contact');
+    };
   };
 
   var saveContact = function saveContact() {
@@ -411,11 +493,13 @@ var Contacts = (function() {
 
     getPhones(myContact);
     getEmails(myContact);
+    getAddresses(myContact);
 
     var contact;
     if (myContact.id) { //Editing a contact
       currentContact.tel = [];
       currentContact.email = [];
+      currentContact.adr = [];
       for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
@@ -488,6 +572,34 @@ var Contacts = (function() {
     }
   };
 
+  var getAddresses = function getAddresses(contact) {
+    var selector = '#view-contact-form form div.address-template';
+    var addresses = document.querySelectorAll(selector);
+    for (var i = 0; i < addresses.length; i++) {
+      var currentAddress = addresses[i];
+      var arrayIndex = currentAddress.dataset.index;
+      var addressField = document.getElementById('streetAddress_' + arrayIndex);
+      var addressValue = addressField.value || '';
+
+      var selector = 'address_type_' + arrayIndex;
+      var typeField = document.getElementById(selector).textContent || '';
+      selector = 'locality_' + arrayIndex;
+      var locality = document.getElementById(selector).value || '';
+      selector = 'postalCode_' + arrayIndex;
+      var postalCode = document.getElementById(selector).value || '';
+      selector = 'countryName_' + arrayIndex;
+      var countryName = document.getElementById(selector).value || '';
+      contact['adr'] = contact['adr'] || [];
+      contact['adr'][i] = {
+        streetAddress: addressValue,
+        postalCode: postalCode,
+        locality: locality,
+        countryName: countryName,
+        type: typeField
+      };
+    }
+  };
+
   var insertEmptyPhone = function insertEmptyPhone() {
     var telField = {
       number: '',
@@ -514,6 +626,22 @@ var Contacts = (function() {
     numberEmails++;
   };
 
+  var insertEmptyAddress = function insertEmptyAddress() {
+    var addressField = {
+      type: TAG_OPTIONS['address-type'][0].value,
+      streetAddress: '',
+      postalCode: '',
+      locality: '',
+      countryName: '',
+      i: numberAddresses || 0
+    };
+
+    var template = utils.templates.render(addressTemplate, addressField);
+    template.appendChild(removeFieldIcon(template.id));
+    addressContainer.appendChild(template);
+    numberAddresses++;
+  };
+
   var resetForm = function resetForm() {
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
@@ -522,10 +650,13 @@ var Contacts = (function() {
     company.value = '';
     var phones = document.getElementById('contacts-form-phones');
     var emails = document.getElementById('contacts-form-email');
+    var addresses = document.getElementById('contacts-form-address');
     phones.innerHTML = '';
     emails.innerHTML = '';
+    addresses.innerHTML = '';
     numberEmails = 0;
     numberPhones = 0;
+    numberAddresses = 0;
   };
 
   var removeFieldIcon = function removeFieldIcon(selector) {
@@ -550,6 +681,7 @@ var Contacts = (function() {
     'showAdd': showAdd,
     'addNewPhone' : insertEmptyPhone,
     'addNewEmail' : insertEmptyEmail,
+    'addNewAddress' : insertEmptyAddress,
     'goBack' : navigation.back,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,

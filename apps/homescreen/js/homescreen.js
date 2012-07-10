@@ -20,14 +20,21 @@ const Homescreen = (function() {
     footer.dataset.mode = mode = value;
   }
 
-  // Click on the Home/ESC button to reset the mode of the grid
-  window.addEventListener('keydown', function onkeydown(event) {
-    if (event.keyCode === event.DOM_VK_HOME ||
-        event.keyCode === event.DOM_VK_ESCAPE) {
-      GridManager.setMode('normal');
-      Permissions.hide();
+  // XXX Currently the home button communicate only with the
+  // system application. It should be an activity that will
+  // use the system message API.
+  window.addEventListener('message', function onMessage(e) {
+    switch (e.data) {
+      case 'home':
+        if (GridManager.isEditMode()) {
+          GridManager.setMode('normal');
+          Permissions.hide();
+        } else {
+          GridManager.goTo(0);
+        }
+        break;
     }
-  }, true);
+  });
 
   // Listening for installed apps
   Applications.addEventListener('install', function oninstall(app) {
@@ -71,3 +78,4 @@ const Homescreen = (function() {
     }
   };
 })();
+

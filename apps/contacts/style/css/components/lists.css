@@ -25,7 +25,13 @@
   font-family: System Sans, Sans-serif;
   color: #333;
   display: block;
-  margin: 1.5rem 0;
+  margin: 1.5rem 0 0;
+}
+
+.block-company {
+  margin: 0px 0px 1.5rem;
+  font-size: 1.1/1.1rem;
+  color: #666;
 }
 
 .block-category {
