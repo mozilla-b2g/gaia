@@ -32,6 +32,15 @@
   }
 
   /**
+   * Enter/exit settings mode.
+   *
+   * @param {Boolean} value settings mode.
+   */
+  proto.settingsMode = function(bool) {
+    setter.call(this, 'settingsMode', !!bool);
+  };
+
+  /**
    * Sets current month and emits currentMonthChange event.
    *
    * @param {Date} month month.
