@@ -316,3 +316,11 @@ overflow: visible;
   width: 100%;
   text-indent: 1.5rem;
 }
+
+/* Favorites handling */
+#group-favorites abbr {
+  background: url(../../gphx/bitmap/default/lists/favorites.png);
+  display: block;
+  width: 20px;
+  height: 20px;
+}

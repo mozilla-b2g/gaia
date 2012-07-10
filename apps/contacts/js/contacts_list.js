@@ -10,7 +10,7 @@ contacts.List = (function() {
     groupsList.addEventListener('click', onClickHandler);
 
     // Populating contacts by groups
-    var alphabet = [{group: 'favorites', letter: '*'}];
+    var alphabet = [{group: 'favorites', letter: ''}];
     for (var i = 65; i <= 90; i++) {
       var letter = String.fromCharCode(i);
       alphabet.push({group: letter, letter: letter});
