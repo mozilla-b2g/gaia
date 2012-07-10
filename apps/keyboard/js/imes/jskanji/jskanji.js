@@ -920,7 +920,7 @@
           terms.forEach(function readTerm(term) {
             candidates.push([term.kanji, term.kana]);
           });
-        } 
+        }
         //else {
           //_firstKanji = kanaStr;
           //_firstKana = kanaStr;
