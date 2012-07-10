@@ -484,9 +484,7 @@ var Contacts = (function() {
     var favorite = !isFavorite(currentContact);
     toggleFavoriteMessage(favorite);
     if (favorite) {
-      if (!currentContact.category) {
-        currentContact.category = [];
-      }
+      currentContact.category = currentContact.category || [];
       currentContact.category.push('favorite');
     } else {
       if (!currentContact.category) {
