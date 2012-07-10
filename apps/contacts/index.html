@@ -121,7 +121,6 @@
 
                 <!-- Email Template -->
                 <li id='email-details-template' data-template>
-                  <!-- Hardcoded while we don't have a place to store email's type -->
                   <h2>#type#</h2>
                   <div class="item">
                     <div class="item-body-exp">
@@ -151,8 +150,17 @@
                   </div>
                 </li>
 
+                <!-- Comment Template -->
+                <li id='comment-details-template' data-template>
+                  <div class="item">
+                    <div class="item-body-exp">
+                        <b>#note#</b>
+                    </div>
+                  </div>
+                </li>
+
                 <ul id='details-list'>
-                  <!-- Iterating mails and phones here -->
+                  <!-- Iterating mails, phones, addresses adn comments here -->
                 </ul>
               </section>
             </div>
@@ -237,6 +245,18 @@
             </dl>
           </div>
 
+          <!-- COMMENTS TEMPLATE -->
+          <div id='add-note-#i#' data-template class='note-template' data-index="#i#">
+            <dl class="setbox fillflow-row">
+              <dd class="setbox-body">
+                <p class="setbox-item">
+                  <label class="hide" for="note_#i#">comment:</label>
+                  <input placeholder="Comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
+                </p>
+              </dd>
+            </dl>
+          </div>
+
           <article class="view-body">
             <div class="view-body-inner">
               <form action="#" class="fill-flow">
@@ -273,9 +293,9 @@
                   <b>Add phone number</b>
                 </button>
 
-                <fieldset id='contacts-form-email'>
+                <fieldset>
                   <legend>E-mail address</legend>
-                    <div id='contacts-form-phones'>
+                    <div id='contacts-form-emails'>
                       <!-- Iterating over email template here -->
                     </div>
                 </fieldset>
@@ -285,7 +305,7 @@
                   <b>Add email address</b>
                 </button>
 
-                <fieldset id='contacts-form-address'>
+                <fieldset>
                   <legend>Address</legend>
                     <div id='contacts-form-addresses'>
                       <!-- Iterating over address template here -->
@@ -296,7 +316,19 @@
                   <span role="button" class="icon-add"></span>
                   <b>Add new address</b>
                 </button>
+
+                <fieldset>
+                  <legend>Comments</legend>
+                    <div id='contacts-form-notes'>
+                      <!-- Iterating over comment template here -->
+                    </div>
                 </fieldset>
+
+                <button onclick='Contacts.addNewNote(); return false;' id='add-new-note' class="fillflow-row action action-add">
+                  <span role="button" class="icon-add"></span>
+                  <b>Add comment</b>
+                </button>
+
               </form>
               <button id='delete-contact' class="hide fillflow-row action action-delete">
                 <b>Delete contact</b>

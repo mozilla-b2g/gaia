@@ -133,6 +133,7 @@ var Contacts = (function() {
   var numberEmails = 0;
   var numberPhones = 0;
   var numberAddresses = 0;
+  var numberNotes = 0;
   var currentContactId,
       detailsName,
       givenName,
@@ -142,9 +143,11 @@ var Contacts = (function() {
       phoneTemplate,
       emailTemplate,
       addressTemplate,
+      noteTemplate,
       phonesContainer,
       emailContainer,
       addressContainer,
+      noteContainer,
       selectedTag,
       customTag,
       contactTag,
@@ -166,9 +169,11 @@ var Contacts = (function() {
     phoneTemplate = document.getElementById('add-phone-#i#');
     emailTemplate = document.getElementById('add-email-#i#');
     addressTemplate = document.getElementById('add-address-#i#');
+    noteTemplate = document.getElementById('add-note-#i#');
     phonesContainer = document.getElementById('contacts-form-phones');
-    emailContainer = document.getElementById('contacts-form-email');
-    addressContainer = document.getElementById('contacts-form-address');
+    emailContainer = document.getElementById('contacts-form-emails');
+    addressContainer = document.getElementById('contacts-form-addresses');
+    noteContainer = document.getElementById('contacts-form-notes');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
     deleteContactButton = document.getElementById('delete-contact');
@@ -290,6 +295,19 @@ var Contacts = (function() {
       listContainer.appendChild(template);
     }
 
+    var title = document.createElement('h2');
+    title.textContent = 'Comments';
+    listContainer.appendChild(title);
+    var notesTemplate = document.getElementById('note-details-template');
+    for (var i in contact.note) {
+      var currentNote = contact.note[i];
+      var noteField = {
+        note: currentNote || ''
+      };
+      var template = utils.templates.render(noteTemplate, noteField);
+      listContainer.appendChild(template);
+    }
+
     var cover = document.getElementById('cover-img');
     var existsPhoto = 'photo' in contact && contact.photo;
     if (existsPhoto) {
@@ -364,6 +382,19 @@ var Contacts = (function() {
       addressContainer.appendChild(template);
       numberAddresses++;
     }
+
+    for (var index in currentContact.note) {
+      var currentNote = currentContact.note[index];
+      var noteField = {
+        note: currentNote || '',
+        i: index
+      };
+      var template = utils.templates.render(noteTemplate, noteField);
+      template.appendChild(removeFieldIcon(template.id));
+      noteContainer.appendChild(template);
+      numberNotes++;
+    }
+
     edit();
   };
 
@@ -465,6 +496,7 @@ var Contacts = (function() {
     insertEmptyPhone(0);
     insertEmptyEmail(0);
     insertEmptyAddress(0);
+    insertEmptyNote(0);
 
     edit();
   };
@@ -498,6 +530,7 @@ var Contacts = (function() {
     getPhones(myContact);
     getEmails(myContact);
     getAddresses(myContact);
+    getNotes(myContact);
 
     var contact;
     if (myContact.id) { //Editing a contact
@@ -608,6 +641,22 @@ var Contacts = (function() {
     }
   };
 
+  var getNotes = function getNotes(contact) {
+    var selector = '#view-contact-form form div.note-template';
+    var notes = document.querySelectorAll(selector);
+    for (var i = 0; i < notes.length; i++) {
+      var currentNote = notes[i];
+      var arrayIndex = currentNote.dataset.index;
+      var noteField = document.getElementById('note_' + arrayIndex);
+      var noteValue = noteField.value;
+      if (!noteValue)
+        continue;
+
+      contact['note'] = contact['note'] || [];
+      contact['note'].push(noteValue);
+    }
+  };
+
   var insertEmptyPhone = function insertEmptyPhone() {
     var telField = {
       number: '',
@@ -650,6 +699,18 @@ var Contacts = (function() {
     numberAddresses++;
   };
 
+  var insertEmptyNote = function insertEmptyNote() {
+    var noteField = {
+      note: '',
+      i: numberNotes || 0
+    };
+
+    var template = utils.templates.render(noteTemplate, noteField);
+    template.appendChild(removeFieldIcon(template.id));
+    noteContainer.appendChild(template);
+    numberNotes++;
+  };
+
   var resetForm = function resetForm() {
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
@@ -657,14 +718,17 @@ var Contacts = (function() {
     familyName.value = '';
     company.value = '';
     var phones = document.getElementById('contacts-form-phones');
-    var emails = document.getElementById('contacts-form-email');
-    var addresses = document.getElementById('contacts-form-address');
+    var emails = document.getElementById('contacts-form-emails');
+    var addresses = document.getElementById('contacts-form-addresses');
+    var notes = document.getElementById('contacts-form-notes');
     phones.innerHTML = '';
     emails.innerHTML = '';
     addresses.innerHTML = '';
+    notes.innerHTML = '';
     numberEmails = 0;
     numberPhones = 0;
     numberAddresses = 0;
+    numberNotes = 0;
   };
 
   var removeFieldIcon = function removeFieldIcon(selector) {
@@ -690,6 +754,7 @@ var Contacts = (function() {
     'addNewPhone' : insertEmptyPhone,
     'addNewEmail' : insertEmptyEmail,
     'addNewAddress' : insertEmptyAddress,
+    'addNewNote' : insertEmptyNote,
     'goBack' : navigation.back,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
