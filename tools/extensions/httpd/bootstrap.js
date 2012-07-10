@@ -43,7 +43,7 @@ function startup(data, reason) {
     let host = '@GAIA_DOMAIN@';
     identity.add(scheme, host, port);
   
-    let directories = getDirectories(baseDir);
+    let directories = getDirectories();
     directories.forEach(function appendDir(name) {
       identity.add(scheme, name + '.' + host, port);
     });
@@ -51,15 +51,14 @@ function startup(data, reason) {
     server.registerPathHandler('/marionette', MarionetteHandler);
   }
   
-  function getDirectories(dir) {
+  function getDirectories() {
     let dirs = [];
     let appSrcDirs = '@GAIA_APP_SRCDIRS@'.split(' ');
 
     appSrcDirs.forEach(function addDirectory(name) {
       let appsDir = Cc['@mozilla.org/file/local;1']
                       .createInstance(Ci.nsILocalFile);
-      appsDir.initWithPath(dir);
-      appsDir.append(name);
+      appsDir.initWithPath(name);
 
       let files = appsDir.directoryEntries;
       while (files.hasMoreElements()) {

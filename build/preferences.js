@@ -4,8 +4,7 @@ const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
 function getSubDirectories(directory) {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
-  appsDir.initWithPath(GAIA_DIR);
-  appsDir.append(directory);
+  appsDir.initWithPath(directory);
 
   let dirs = [];
   let files = appsDir.directoryEntries;
@@ -42,8 +41,7 @@ function getFileContent(file) {
 function getJSON(root, dir, name) {
   let file = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
-  file.initWithPath(GAIA_DIR);
-  file.append(root);
+  file.initWithPath(root);
   file.append(dir);
   file.append(name);
 
