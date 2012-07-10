@@ -15,7 +15,7 @@ const Homescreen = (function() {
      *
      * @param {Object} The homescreen container
      */
-    init: function(container) {
+    init: function vw_init(container) {
       this.currentPage = 0;
       this.pages = container.children;
       this.total = this.pages.length;
@@ -29,7 +29,7 @@ const Homescreen = (function() {
      *
      * @param {int} duration of the transition
      */
-    navigate: function(number, duration) {
+    navigate: function vw_navigate(number, duration) {
       var total = this.total;
       for (var n = 0; n < total; n++) {
         var page = this.pages[n];
@@ -48,7 +48,7 @@ const Homescreen = (function() {
      *
      * @param {int} duration of the transition
      */
-    pan: function(x, duration) {
+    pan: function vw_pan(x, duration) {
       var currentPage = this.currentPage;
       var total = this.total;
       for (var n = 0; n < total; n++) {
@@ -65,7 +65,7 @@ const Homescreen = (function() {
      *
      * @param {Object} The event object from browser
      */
-    handleEvent: function(evt) {
+    handleEvent: function vw_handleEvent(evt) {
       switch (evt.type) {
         case 'mousedown':
           this.onStart(evt);
@@ -84,7 +84,7 @@ const Homescreen = (function() {
      *
      * @param {Object} the event
      */
-    onStart: function(evt) {
+    onStart: function vw_onStart(evt) {
       evt.preventDefault();
       this.startX = evt.pageX;
       window.addEventListener('mousemove', this);
@@ -96,7 +96,7 @@ const Homescreen = (function() {
      *
      * @param {Object} the event
      */
-    onMove: function(evt) {
+    onMove: function vw_onMove(evt) {
       this.pan(-(this.startX - evt.pageX), 0);
     },
 
@@ -105,7 +105,7 @@ const Homescreen = (function() {
      *
      * @param {Object} the event
      */
-    onEnd: function(evt) {
+    onEnd: function vw_onEnd(evt) {
       window.removeEventListener('mousemove', this);
       window.removeEventListener('mouseup', this);
       var diffX = evt.pageX - this.startX;
