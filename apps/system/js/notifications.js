@@ -127,25 +127,28 @@ var NotificationScreen = {
   },
 
   swipe: function ns_swipe(evt) {
-    var distance = evt.detail.start.screenX - evt.detail.end.screenX;
-    var fastenough = Math.abs(evt.detail.vx) > this.TRANSITION_SPEED;
-    var farenough = Math.abs(distance) >
+    var detail = evt.detail;
+    var distance = detail.start.screenX - detail.end.screenX;
+    var fastEnough = Math.abs(detail.vx) > this.TRANSITION_SPEED;
+    var farEnough = Math.abs(distance) >
       this._containerWidth * this.TRANSITION_FRACTION;
 
-    if (!(farenough || fastenough)) {
+    if (!(farEnough || fastEnough)) {
       // Werent far or fast enough to delete, restore
       var time = Math.abs(distance) / this.TRANSITION_SPEED;
       var transition = '-moz-transform ' + time + 'ms linear';
-      this._notification.style.MozTransition = transition;
-      this._notification.style.MozTransform = 'translateX(0px)';
-      this._notification.style.opacity = 1;
-      this._notification = null;
+
+      var notificationNode = this._notification;
+      notificationNode.style.MozTransition = transition;
+      notificationNode.style.MozTransform = 'translateX(0px)';
+      notificationNode.style.opacity = 1;
+      delete this._notification;
       return;
     }
 
-    var speed = Math.max(Math.abs(evt.detail.vx), 1.8);
+    var speed = Math.max(Math.abs(detail.vx), 1.8);
     var time = (this._containerWidth - Math.abs(distance)) / speed;
-    var offset = evt.detail.direction === 'right' ?
+    var offset = detail.direction === 'right' ?
       this._containerWidth : -this._containerWidth;
 
     this._notification.style.MozTransition = '-moz-transform ' +
