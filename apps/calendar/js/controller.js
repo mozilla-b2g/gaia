@@ -36,8 +36,8 @@
    *
    * @param {Boolean} value settings mode.
    */
-  proto.settingsMode = function(bool) {
-    setter.call(this, 'settingsMode', !!bool);
+  proto.setInSettings = function(bool) {
+    setter.call(this, 'inSettings', !!bool);
   };
 
   /**

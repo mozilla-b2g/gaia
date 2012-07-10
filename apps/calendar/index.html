@@ -6,6 +6,7 @@
   <link rel="stylesheet" type="text/css" href="./style/ui.css">
   <link rel="stylesheet" type="text/css" href="./style/events.css">
   <link rel="stylesheet" type="text/css" href="./style/forms.css">
+  <link rel="stylesheet" type="text/css" href="./style/settings.css">
   <link rel="stylesheet" type="text/css" href="./style/toolbars.css">
 
   <!--- vendor -->
@@ -34,6 +35,7 @@
   <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/settings.js" type="text/javascript" charset="utf-8"></script>
 
   <!-- workers / main / controller -->
   <script defer src="/js/controller.js" type="text/javascript" charset="utf-8"></script>
@@ -41,12 +43,31 @@
 
   <title>Gaia Calendar</title>
 </head>
-<body onload="Calendar.init();">
+<body role="app" onload="Calendar.init();">
+
+<section id="settings">
+  <header role="toolbar">
+    <h1>Calendars</h1>
+  </header>
+  <ol>
+    <li class="calendar-1">Work (1)</li>
+    <li class="calendar-2">Friends</li>
+  </ol>
+
+  <button id="more-settings">
+    More Settings
+  </button>
+</section>
+
+
+<div id="wrapper">
 
 <section id="top-toolbar">
   <header role="toolbar">
-    <a data-l10n-id="buttons.accounts" role="button" class="accounts" href="#accounts">
-      Accounts
+    <a data-l10n-id="buttons.settings"
+       id="show-settings"
+       role="button" class="toggle-settings" href="#">
+      Settings
     </a>
 
     <h1 id="current-month-year">
@@ -78,7 +99,6 @@
       in the DOM at any one time for caching.
       only one will ever be displayed.
       -->
-
     <section id="month-displays">
 
     </section>
@@ -187,6 +207,9 @@
 
 <section id="bottom-toolbar">
   <menu id="view-selector">
+    <li class="toggle-settings">
+      <a href="#">Hide</a>
+    </li>
     <li class="today">
       <a href="#today">Today</a>
     </li>
@@ -206,7 +229,7 @@
   </menu>
 </section>
 
-
+</div>
 </body>
 </html>
 

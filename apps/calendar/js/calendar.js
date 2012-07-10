@@ -11,6 +11,7 @@ Calendar.init = function calendar_init() {
 
   var monthView = new Views.Month({ controller: controller });
   var monthDayView = new Views.MonthsDay({ controller: controller });
+  var settings = new Views.Settings({ controller: controller });
 
   function setPath(path) {
     return function(ctx, next) {
