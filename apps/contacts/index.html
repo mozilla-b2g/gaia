@@ -122,12 +122,12 @@
                 <!-- Email Template -->
                 <li id='email-details-template' data-template>
                   <!-- Hardcoded while we don't have a place to store email's type -->
-                  <h2>MAIL</h2>
+                  <h2>#type#</h2>
                   <div class="item">
                     <div class="item-body-exp">
                       <button class="action">
                         <span role="button" class="icon-email">E-mail</span>
-                        <b>#email#</b>
+                        <b>#address#</b>
                       </button>
                     </div>
                   </div>
@@ -196,16 +196,14 @@
           <!-- EMAIL TEMPLATE -->
           <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
             <dl class="setbox fillflow-row">
-              <!-- Commented while we don't have an email type field in contacts -->
-              <!-- <dt class="setbox-title">
-                  <input type="text" data-taglist='email-type' onclick="Contacts.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">
-                    <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-                  </input>
-                </dt> -->
+              <dt class="setbox-title">
+                <a data-taglist='email-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>
+                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+                </dt>
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="email_#i#">e-mail:</label>
-                  <input placeholder="Email" name="email" class="textfield" type="email" value="#email#" id="email_#i#">
+                  <input placeholder="Email" name="email" class="textfield" type="email" value="#address#" id="email_#i#">
                 </p>
               </dd>
             </dl>
