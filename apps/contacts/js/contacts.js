@@ -350,10 +350,10 @@ var Contacts = (function() {
       numberEmails++;
     }
 
-    var isFavorite = currentContact.category != null &&
+    var isFavorite = currentContact != null && currentContact.category != null &&
                       currentContact.category.indexOf('favorite') != -1;
     document.getElementById('toggle-favorite').children[1].innerHTML =
-                                isFavorite ? 'Unfavorite' : 'Add as favorite';
+                                isFavorite ? 'Remove from favorites' : 'Add to favorites';
 
     for (var adr in currentContact.adr) {
       var currentAddress = currentContact.adr[adr];

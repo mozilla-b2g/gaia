@@ -78,3 +78,9 @@
   height: 5rem;
   margin: -2.5rem 0 0 0;
 }
+
+hr {
+  background-color: #BCBCBC;
+  border: 0;
+  height: 1px;
+}
