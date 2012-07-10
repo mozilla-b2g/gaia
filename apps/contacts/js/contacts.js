@@ -305,7 +305,7 @@ var Contacts = (function() {
         var noteField = {
           note: currentNote || ''
         };
-        var template = utils.templates.render(noteTemplate, noteField);
+        var template = utils.templates.render(notesTemplate, noteField);
         listContainer.appendChild(template);
       }
     }
