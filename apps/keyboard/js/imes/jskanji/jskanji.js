@@ -817,7 +817,7 @@
         return;
       }
 
-      // Send pending symbols to highlight `_firstKanji`
+      // Send pending symbols to highlight `_firstKana`
       sendPendingSymbols();
 
       debug('firstTerm  ' + _firstKanji + ' ' + _firstKana);
@@ -835,8 +835,8 @@
         if (!candidates.length) {
           candidates.push([_firstKanji, _firstKana]);
         } else {
-          _firstKanji = terms[0].kanji;
-          _firstKana = terms[0].kana;
+          //_firstKanji = terms[0].kanji;
+          //_firstKana = terms[0].kana;
         }
 
         _candidateList = candidates.slice();
@@ -946,9 +946,6 @@
 
           if (sentence.length !== 0) {
 
-            _firstKanji = sentence[0].kanji;
-            _firstKana = sentence[0].kana;
-
             var sentenceKana = '';
             var sentenceKanji = '';
 
@@ -968,8 +965,11 @@
 
             if (!exists) {
               candidates.push([sentenceKanji, sentenceKana]);
+              _firstKanji = sentenceKanji;
+              _firstKana = sentenceKana;
             }
           }
+
 
           // The remaining candidates doesn't match the entire buffer
           // these candidates helps user find the exact character/term
