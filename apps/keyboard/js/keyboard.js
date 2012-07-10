@@ -79,27 +79,25 @@ const IMEManager = {
       return;
     }
 
-    this.settingGroups = [].concat(
-      this.settingGroups.slice(0, i),
-      this.settingGroups.slice(i + 1, this.settingGroups.length));
-
+    this.settingGroups.splice(i, 1);
     this.updateSettings();
   },
 
   updateSettings: function km_updateSettings() {
     this.keyboards = [];
+
+    // Default to english
+    if (!this.settingGroups.length)
+      this.settingGroups.push('english');
+
     for (var key in this.keyboardSettingGroups) {
       if (this.settingGroups.indexOf(key) === -1)
         continue;
       this.keyboards = this.keyboards.concat(this.keyboardSettingGroups[key]);
     }
 
-    if (!this.keyboards.length) {
-      this.keyboards = [].concat(this.keyboardSettingGroups['english']);
-    }
-
     if (this.keyboards.indexOf(IMEController.currentKeyboard) === -1)
-        IMEController.currentKeyboard = this.keyboards[0];
+      IMEController.currentKeyboard = this.keyboards[0];
 
     this.keyboards.forEach((function loadIMEngines(name) {
       IMEController.loadKeyboard(name);
