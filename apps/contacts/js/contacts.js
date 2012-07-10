@@ -295,17 +295,19 @@ var Contacts = (function() {
       listContainer.appendChild(template);
     }
 
-    var title = document.createElement('h2');
-    title.textContent = 'Comments';
-    listContainer.appendChild(title);
-    var notesTemplate = document.getElementById('note-details-template');
-    for (var i in contact.note) {
-      var currentNote = contact.note[i];
-      var noteField = {
-        note: currentNote || ''
-      };
-      var template = utils.templates.render(noteTemplate, noteField);
-      listContainer.appendChild(template);
+    if ('note' in contact && contact.note.length > 0) {
+      var title = document.createElement('h2');
+      title.textContent = 'Comments';
+      listContainer.appendChild(title);
+      var notesTemplate = document.getElementById('note-details-template');
+      for (var i in contact.note) {
+        var currentNote = contact.note[i];
+        var noteField = {
+          note: currentNote || ''
+        };
+        var template = utils.templates.render(noteTemplate, noteField);
+        listContainer.appendChild(template);
+      }
     }
 
     var cover = document.getElementById('cover-img');
@@ -537,6 +539,7 @@ var Contacts = (function() {
       currentContact.tel = [];
       currentContact.email = [];
       currentContact.adr = [];
+      currentContact.note = [];
       for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
