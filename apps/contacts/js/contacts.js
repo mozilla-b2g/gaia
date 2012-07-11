@@ -210,7 +210,9 @@ var Contacts = (function() {
     });
 
     var position = 0;
-    contactDetails.addEventListener('mousedown', function(event) {
+    var cover = document.getElementById('cover-img');
+
+    cover.addEventListener('mousedown', function(event) {
       if (contactDetails.classList.contains('no-photo'))
         return;
 
@@ -232,12 +234,12 @@ var Contacts = (function() {
       var onMouseUp = function onMouseUp(event) {
         contactDetails.classList.add('up');
         contactDetails.style.marginTop = initMargin;
-        contactDetails.removeEventListener('mousemove', onMouseMove);
-        contactDetails.removeEventListener('mouseup', onMouseUp);
+        cover.removeEventListener('mousemove', onMouseMove);
+        cover.removeEventListener('mouseup', onMouseUp);
       };
 
-      contactDetails.addEventListener('mousemove', onMouseMove);
-      contactDetails.addEventListener('mouseup', onMouseUp);
+      cover.addEventListener('mousemove', onMouseMove);
+      cover.addEventListener('mouseup', onMouseUp);
     });
   });
 
