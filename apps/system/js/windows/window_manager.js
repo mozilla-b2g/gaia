@@ -498,7 +498,8 @@ var WindowManager = (function() {
       for (var ep in entryPoints) {
         //Remove the origin and / to find if if the url is the entry point
         var path = e.detail.url.substr(e.detail.origin.length + 1);
-        if (path.indexOf(ep) == 0 && (ep + entryPoints[ep].path) == path) {
+        if (path.indexOf(ep) == 0 &&
+            (ep + entryPoints[ep].launch_path) == path) {
           origin = origin + '/' + ep;
           name = entryPoints[ep].name;
         }

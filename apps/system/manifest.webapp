@@ -10,7 +10,8 @@
     "mozbrowser",
     "power",
     "mozApps",
-    "mobileconnection"
+    "mobileconnection",
+    "mozBluetooth"
   ],
   "locales": {
     "ar": {
