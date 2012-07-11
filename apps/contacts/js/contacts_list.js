@@ -283,7 +283,7 @@ contacts.List = (function() {
       var aux = utils.templates.render(template, contact);
       list.appendChild(aux);
     });
-    
+
     document.querySelector('.block-list').appendChild(list);
   }
 
