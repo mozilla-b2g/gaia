@@ -17,7 +17,7 @@
 /* Contact detail main section */
 
 .view-contact-profile .view-body-inner {
-  background: transparent no-repeat center -80%;
+  background: transparent no-repeat center -8rem;
   background-size: 100% auto;
   padding: 0;
   background-color: #f5f5f5;
@@ -25,7 +25,7 @@
 }
 
 .view-contact-profile .view-body-inner.up {
-  background-position: center -80%;
+  background-position: center -8rem;
   -moz-transition: background-position 0.25s ease-out;
 }
 
