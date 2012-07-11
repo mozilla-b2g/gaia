@@ -3,13 +3,19 @@
 var contacts = window.contacts || {};
 
 contacts.List = (function() {
-  var groupsList;
-  var searchBox = document.getElementById('search-contact');
-  var fastScroll = document.querySelector('.view-jumper');
+  var groupsList,
+      searchBox,
+      searchArea,
+      fastScroll;
+
+  searchBox = document.getElementById('search-contact');
+  fastScroll = document.querySelector('.view-jumper');
+  searchArea = document.getElementById('search-list');
 
   var init = function load(element) {
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
+    searchArea.addEventListener('click', onClickHandler);
 
     // Populating contacts by groups
     var alphabet = [{group: 'favorites', letter: ''}];
@@ -262,6 +268,10 @@ contacts.List = (function() {
   var searchTimeout;
   var search = function search() {
     clearTimeout(searchTimeout);
+    if (searchBox.value && searchBox.value.length == 0) {
+      performSearch();
+      return;
+    }
     searchTimeout = setTimeout(performSearch, 1000);
   };
 
@@ -289,14 +299,13 @@ contacts.List = (function() {
 
   var exitSearch = function exitSearch() {
     fastScroll.classList.remove('hide');
-    init(document.getElementById('groups-list'));
-    load();
+    searchArea.classList.add('hide');
+    groupsList.classList.remove('hide');
   }
 
   // Performs the real search
   var performSearch = function performSearch() {
     cleanContactsList();
-    fastScroll.classList.add('hide');
 
     if (!searchBox.value || searchBox.value.length == 0) {
       exitSearch();
@@ -321,11 +330,10 @@ contacts.List = (function() {
   }
 
   var cleanContactsList = function cleanContactsList() {
-    var list = document.getElementById('groups-list');
-    var template = list.children[0];
-
-    list.innerHTML = '';
-    list.appendChild(template);
+    searchArea.innerHTML = '';
+    fastScroll.classList.add('hide');
+    searchArea.classList.remove('hide');
+    groupsList.classList.add('hide');
   }
 
   return {
