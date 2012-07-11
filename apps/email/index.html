@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1">
@@ -13,7 +13,7 @@
   <script type="text/javascript">
     var host = document.location.host;
     var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var src = 'http://' + domain + '/webapi.js';
+    var src = 'app://system.' + domain + '/js/webapi.js';
     document.write('<script src="' + src + '"><\/script>');
 
     // when running in B2G, send output to the console, ANSI-style

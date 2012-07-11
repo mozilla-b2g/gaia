@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
@@ -19,7 +19,7 @@
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
+        var src = 'app://system.' + domain + '/js/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
     </script>
