@@ -487,25 +487,25 @@ var WindowManager = (function() {
     console.log("mozChromeEvent received: " + e.detail.type);
 
     var origin = e.detail.origin;
-    if (origin) {
-      var app = Applications.getByOrigin(origin);
-      var name = app.manifest.name;
+    if (!origin)
+      return;
 
-      /*
-      * Check if it's a virtual app from a entry point.
-      * If so, change the app name and origin to the
-      * entry point.
-      */
-      var entryPoints = app.manifest.entry_points;
-      if (entryPoints) {
-        for (var ep in entryPoints) {
-          //Remove the origin and / to find if if the url is the entry point
-          var path = e.detail.url.substr(e.detail.origin.length + 1);
-          if (path.indexOf(ep) == 0 &&
-              (ep + entryPoints[ep].launch_path) == path) {
-            origin = origin + '/' + ep;
-            name = entryPoints[ep].name;
-          }
+    var app = Applications.getByOrigin(origin);
+    var name = app.manifest.name;
+
+
+    // Check if it's a virtual app from a entry point.
+    // If so, change the app name and origin to the
+    // entry point.
+    var entryPoints = app.manifest.entry_points;
+    if (entryPoints) {
+      for (var ep in entryPoints) {
+        //Remove the origin and / to find if if the url is the entry point
+        var path = e.detail.url.substr(e.detail.origin.length + 1);
+        if (path.indexOf(ep) == 0 &&
+            (ep + entryPoints[ep].launch_path) == path) {
+          origin = origin + '/' + ep;
+          name = entryPoints[ep].name;
         }
       }
     }
@@ -554,30 +554,6 @@ var WindowManager = (function() {
         appendFrame(origin, e.detail.url,
                     app.manifest.name, app.manifest, app.manifestURL, true);
 
-        break;
-
-      // Chrome asks Gaia to create a system iframe. Once it is created,
-      // Gaia sends the iframe back to chrome so frame scripts can be loaded
-      // as part of the iframe content.
-      case 'open-system-dialog':
-        if (!e.detail.systemFrame)
-          return;
-        var frame = SystemDialog.open(e.detail.systemFrame);
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('mozContentEvent', true, true,
-                              {id: e.detail.id, frame: frame});
-        window.dispatchEvent(event);
-        break;
-
-      // Chrome is asking Gaia to close the current system dialog. Once it is
-      // closed, Gaia notifies back to the chrome.
-      case 'close-system-dialog':
-        SystemDialog.close(function closeSystemDialog() {
-          var event = document.createEvent('CustomEvent');
-          event.initCustomEvent('mozContentEvent', true, true,
-                                {id: e.detail.id});
-          window.dispatchEvent(event);
-        });
         break;
     }
   });
