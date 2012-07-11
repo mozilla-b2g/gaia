@@ -257,7 +257,8 @@ var ThreadListUI = {
   },
 
   createNewConversation: function thlui_createNewConversation(conversation) {
-    var dataName = Utils.escapeHTML(conversation.name || conversation.num, true);
+    var dataName = Utils.escapeHTML(conversation.name ||
+                                    conversation.num, true);
     var name = Utils.escapeHTML(conversation.name);
     var bodyText = conversation.body.split('\n')[0];
     var bodyHTML = Utils.escapeHTML(bodyText);
