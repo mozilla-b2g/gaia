@@ -23,11 +23,11 @@
 .view-contact-profile .view-body-inner {
   background: transparent no-repeat center -8rem;
   background-size: 100% auto;
+  padding: 0;
   background-color: #f5f5f5;
   overflow: hidden;
-  padding: 9rem 0 0;
-  min-height: 100%;
-  -moz-box-sizing: border-box;
+  position: relative;
+  padding-bottom: 9rem;
 }
 
 .view-contact-profile .view-body-inner.up {
