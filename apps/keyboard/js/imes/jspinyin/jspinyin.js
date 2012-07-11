@@ -10288,10 +10288,18 @@ NGram.prototype = {
    */
   save_ngram: function ngram_save_ngram() {
     var self = this;
+
+    // serialize lma_freq_idx_
+    var lma_freq_idx_str = '';
+    var lma_freq_idx_num = this.lma_freq_idx_.length;
+    for (var i = 0; i < lma_freq_idx_num; i++) {
+      lma_freq_idx_str += StringUtils.int8ToChar(this.lma_freq_idx_[i]);
+    }
+
     var jsonData = {
       idx_num_: self.idx_num_,
       freq_codes_: self.freq_codes_,
-      lma_freq_idx_: self.lma_freq_idx_
+      lma_freq_idx_: lma_freq_idx_str
     };
     return JSON.stringify(jsonData);
   },
@@ -10313,7 +10321,14 @@ NGram.prototype = {
       var jsonData = JSON.parse(json_str);
       this.idx_num_ = jsonData.idx_num_;
       this.freq_codes_ = jsonData.freq_codes_;
-      this.lma_freq_idx_ = jsonData.lma_freq_idx_;
+
+      // Deserialize lma_freq_idx_
+      this.lma_freq_idx_ = [];
+      var lma_freq_idx_str = jsonData.lma_freq_idx_;
+      for (var i = 0; i < lma_freq_idx_str.length; i++) {
+        var idx = StringUtils.charToInt8(lma_freq_idx_str.charAt(i));
+        this.lma_freq_idx_.push(idx);
+      }
     } catch (ex) {
       debug('load_ngram: ' + ex);
       return false;
