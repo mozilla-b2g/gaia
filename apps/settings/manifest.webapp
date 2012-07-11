@@ -7,7 +7,8 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "mobileconnection"
+    "mobileconnection",
+    "mozBluetooth"
   ],
   "locales": {
     "ar": {
