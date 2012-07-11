@@ -37,6 +37,7 @@ suite('controller', function() {
 
     isSetter('setCurrentMonth', 'currentMonth', new Date());
     isSetter('setSelectedDay', 'selectedDay');
+    isSetter('setInSettings', 'inSettings', true);
   });
 
 });
