@@ -219,21 +219,27 @@ var Contacts = (function() {
       var startPosition = event.clientY;
       var currentPosition;
       var initMargin = '8rem';
+      var initMarginCover = -80;
       contactDetails.classList.add('up');
+      cover.classList.add('up');
 
       var onMouseMove = function onMouseMove(event) {
         currentPosition = event.clientY;
         var newMargin = currentPosition - startPosition;
         if (newMargin > 0 && newMargin < 200) {
           contactDetails.classList.remove('up');
+          cover.classList.remove('up');
           var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
           contactDetails.style.transform = 'translateY(' + calc + ')';
+          cover.style.backgroundPosition = 'center ' + (initMarginCover + (newMargin / 4)) + '%';
         }
       };
 
       var onMouseUp = function onMouseUp(event) {
         contactDetails.classList.add('up');
+        cover.classList.add('up');
         contactDetails.style.transform = 'translateY(' + initMargin + ')';
+        cover.style.backgroundPosition = 'center ' + initMarginCover + '%';
         cover.removeEventListener('mousemove', onMouseMove);
         cover.removeEventListener('mouseup', onMouseUp);
       };

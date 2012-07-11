@@ -23,6 +23,12 @@
   background-color: #f5f5f5;
   width: -moz-calc(100% + 1rem);
 }
+
+.view-contact-profile .view-body-inner.up {
+  background-position: center -80%;
+  -moz-transition: background-position 0.25s ease-out;
+}
+
 .view-contact-profile .view-body-inner > section {
   padding: 0 2rem;
   background: #f5f5f5;
