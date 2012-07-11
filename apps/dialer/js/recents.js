@@ -67,53 +67,14 @@ var Recents = {
     if (action == 'all') {
       for (var i = 0; i < length; i++) {
           callLogItems[i].classList.remove('hide');
-        }
-      } else {
-        for (var i = 0; i < length; i++) {
-          callLogItems[i].classList.add('hide');
-        }
       }
+    } else {
+      for (var i = 0; i < length; i++) {
+          callLogItems[i].classList.add('hide');
+      }
+    }
     this.allFilter.classList.toggle('selected');
     this.missedFilter.classList.toggle('selected');
-    
-    /*
-    var filterTabs = document.querySelectorAll(
-      '.recents-filter-entry > button');
-    
-    switch (event.target.dataset.action) {
-      case 'all':
-        if (event.target.classList.contains('selected')) {
-          return;
-        }
-        itemSelector = '.log-item:not(.incoming-refused)';
-        callLogItems = document.querySelectorAll(itemSelector);
-        length = callLogItems.length;
-        for (var i = 0; i < length; i++) {
-          callLogItems[i].classList.remove('hide');
-        }
-        length = filterTabs.length;
-        for (i = 0; i < length; i++) {
-          filterTabs[i].classList.toggle('selected');
-        }
-        break;
-      case 'missed':
-        if (event.target.classList.contains('selected')) {
-          return;
-        }
-        itemSelector = '.log-item:not(.incoming-refused)';
-        callLogItems = document.querySelectorAll(itemSelector);
-        length = callLogItems.length;
-        for (var i = 0; i < length; i++) {
-          callLogItems[i].classList.add('hide');
-        }
-        length = filterTabs.length;
-        for (i = 0; i < length; i++) {
-          filterTabs[i].classList.toggle('selected');
-        }
-        break;
-         
-    }
-     */
   },
 
   cleanup: function re_cleanup() {
