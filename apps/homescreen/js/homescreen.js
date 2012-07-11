@@ -51,15 +51,15 @@ const Homescreen = (function() {
     pan: function vw_pan(x, duration) {
       var currentPage = this.currentPage;
         if (currentPage > 0) {
-        var total = this.total;
-        for (var n = 0; n < total; n++) {
-          var page = this.pages[n];
-          var calc = (n - currentPage) * 100 + '% + ' + x + 'px';
-          var style = page.style;
-          style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
-          style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
+          var total = this.total;
+          for (var n = 0; n < total; n++) {
+            var page = this.pages[n];
+            var calc = (n - currentPage) * 100 + '% + ' + x + 'px';
+            var style = page.style;
+            style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
+            style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
+          }
         }
-      }
     },
 
     /*
