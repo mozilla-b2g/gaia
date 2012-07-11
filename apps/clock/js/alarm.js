@@ -4,6 +4,23 @@ var _ = navigator.mozL10n.get;
 
 var ClockView = {
 
+  _clockMode: '', /* digital or analog */
+
+  get clockView() {
+    delete this.clockView;
+    return this.clockView = document.getElementById('clock-view');
+  },
+
+  get digitalClock() {
+    delete this.digitalClock;
+    return this.digitalClock = document.getElementById('digital-clock');
+  },
+
+  get analogClock() {
+    delete this.analogClock;
+    return this.analogClock = document.getElementById('analog-clock');
+  },
+
   get time() {
     delete this.time;
     return this.time = document.getElementById('clock-time');
@@ -20,11 +37,29 @@ var ClockView = {
   },
 
   init: function cv_init() {
-    this.updateTime();
+    this.updateDaydate();
+    this.updateDigitalClock();
+    this._clockMode = 'digital';
     document.addEventListener('mozvisibilitychange', this);
+    this.digitalClock.addEventListener('click', this);
   },
 
-  updateTime: function cv_updateTime() {
+  updateDaydate: function cv_updateDaydate() {
+    var d = new Date();
+    var format = navigator.mozL10n.get('daydateFormat');
+    this.daydate.textContent = d.toLocaleFormat(format);
+
+    var self = this;
+    var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
+                            d.getMinutes() * 60 * 1000 -
+                            d.getMilliseconds();
+    this._updateDaydateTimeout =
+    window.setTimeout(function cv_updateDaydateTimeout() {
+      self.updateDaydate();
+    }, remainMillisecond);
+  },
+
+  updateDigitalClock: function cv_updateDigitalClock() {
     var d = new Date();
 
     // XXX: respect clock format in Settings
@@ -33,26 +68,97 @@ var ClockView = {
       hour = 12;
     this.time.textContent = hour + d.toLocaleFormat(':%M');
     this.hourState.textContent = d.toLocaleFormat('%p');
-    var format = navigator.mozL10n.get('daydateFormat');
-    this.daydate.textContent = d.toLocaleFormat(format);
 
     var self = this;
-    this._timeout = window.setTimeout(function cv_clockTimeout() {
-      self.updateTime();
+    this._updateDigitalClockTimeout =
+    window.setTimeout(function cv_updateDigitalClockTimeout() {
+      self.updateDigitalClock();
     }, (59 - d.getSeconds()) * 1000);
+  },
+
+  updateAnalogClock: function cv_updateAnalogClock() {
+    // Update the SVG clock graphic to show current time
+    var now = new Date(); // Current time
+    var sec = now.getSeconds(); // Seconds
+    var min = now.getMinutes(); // Minutes
+    var hour = (now.getHours() % 12) + min / 60; // Fractional hours
+    var secangle = sec * 6; // 6 degrees per second
+    var minangle = min * 6; // 6 degrees per minute
+    var hourangle = hour * 30; // 30 degrees per hour
+
+    // Get SVG elements for the hands of the clock
+    var sechand = document.getElementById('secondhand');
+    var minhand = document.getElementById('minutehand');
+    var hourhand = document.getElementById('hourhand');
+
+    // Set an SVG attribute on them to move them around the clock face
+    sechand.setAttribute('transform', 'rotate(' + secangle + ',50,50)');
+    minhand.setAttribute('transform', 'rotate(' + minangle + ',50,50)');
+    hourhand.setAttribute('transform', 'rotate(' + hourangle + ',50,50)');
+
+    // Update the clock again in 1 minute
+    var self = this;
+    this._updateAnalogClockTimeout =
+    window.setTimeout(function cv_updateAnalogClockTimeout() {
+      self.updateAnalogClock();
+    }, (1000 - now.getMilliseconds()));
   },
 
   handleEvent: function cv_handleEvent(evt) {
     switch (evt.type) {
       case 'mozvisibilitychange':
         if (document.mozHidden) {
-          window.clearTimeout(this._timeout);
+          window.clearTimeout(this._updateDaydateTimeout);
+          window.clearTimeout(this._updateDigitalClockTimeout);
+          window.clearTimeout(this._updateAnalogClockTimeout);
           return;
+        } else if (!document.mozHidden) {
+          // Refresh the view when app return to foreground.
+          this.updateDaydate();
+          if (this._clockMode == 'digital') {
+            this.updateDigitalClock();
+          } else if (this._clockMode == 'analog') {
+            this.updateAnalogClock();
+          }
         }
-        // Refresh the view when app return to foreground.
-        this.updateTime();
+        break;
+
+      case 'click':
+        var input = evt.target;
+          if (!input)
+            return;
+
+        switch (input.id) {
+          case 'digital-clock':
+            window.clearTimeout(this._updateDigitalClockTimeout);
+            this.digitalClock.removeEventListener('click', this);
+            this.digitalClock.style.display = 'none';
+            this.updateAnalogClock();
+            this._clockMode = 'analog';
+            this.analogClock.style.display = 'inherit';
+            this.analogClock.addEventListener('click', this);
+            break;
+
+          case 'analog-clock':
+            window.clearTimeout(this._updateAnalogClockTimeout);
+            this.analogClock.removeEventListener('click', this);
+            this.analogClock.style.display = 'none';
+            this.updateDigitalClock();
+            this._clockMode = 'digital';
+            this.digitalClock.style.display = 'inherit';
+            this.digitalClock.addEventListener('click', this);
+            break;
+        }
         break;
     }
+  },
+
+  resizeAnalogClock: function cv_resizeAnalogClock() {
+    var height = this.clockView.offsetHeight -
+                 this.daydate.offsetHeight -
+                 AlarmList.alarms.offsetHeight;
+    // 10 px to avoid the second hand overlay the alarm list
+    this.analogClock.style.height = height - 10 + 'px';
   }
 
 };
@@ -167,6 +273,7 @@ var AlarmList = {
     });
 
     this.alarms.innerHTML = content;
+    ClockView.resizeAnalogClock();
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
@@ -643,16 +750,6 @@ var ColorPickerView = {
 
 };
 
-window.addEventListener('DOMContentLoaded', function() {
-  ClockView.init();
-  AlarmList.init();
-  AlarmEditView.init();
-  RepeatPickerView.init();
-  SoundPickerView.init();
-  SnoozePickerView.init();
-  ColorPickerView.init();
-});
-
 window.addEventListener('keyup', function goBack(evt) {
   if (document.location.hash != '#root' &&
       evt.keyCode === evt.DOM_VK_ESCAPE) {
@@ -662,4 +759,18 @@ window.addEventListener('keyup', function goBack(evt) {
 
     document.location.hash = 'root';
   }
+});
+
+window.addEventListener('localized', function showBody() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+  ClockView.init();
+  AlarmList.init();
+  AlarmEditView.init();
+  RepeatPickerView.init();
+  SoundPickerView.init();
+  SnoozePickerView.init();
+  ColorPickerView.init();
 });
