@@ -100,6 +100,10 @@ hr {
   height: 2rem;
 }
 
+#search-container {
+  width: 95%;
+}
+
 #search-contact {
   height: 3rem;
   margin-top: -1rem;
