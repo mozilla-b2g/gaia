@@ -76,8 +76,8 @@ var StringUtils = {
   },
 
   int16ToChars: function stringUtils_int16ToChars(number) {
-    var low = StringUtils.int8ToChar(number && 0xff);
-    var high = StringUtils.int8ToChar((number >> 8) && 0xff);
+    var low = StringUtils.int8ToChar(number & 0xff);
+    var high = StringUtils.int8ToChar((number >> 8) & 0xff);
     return low + high;
   },
 
@@ -98,7 +98,7 @@ var StringUtils = {
     if (ret >= 256) {
       ret -= 256;
     }
-    return ret && 0xff;
+    return ret & 0xff;
   }
 };
 
@@ -688,7 +688,7 @@ var PinyinDecoderService = {
     var self = this;
     var doCallback = function open_doCallback() {
       if (callback) {
-        callbakc();
+        callback();
       }
     };
     if (this._matrixSearch == null) {
