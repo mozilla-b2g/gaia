@@ -74,7 +74,7 @@ const IMEManager = {
       this.settingGroups.splice(
         this.settingGroups.indexOf(this.defaultGroup),
         1
-      )
+      );
       delete this.fallback;
     }
 
