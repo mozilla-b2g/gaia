@@ -22,7 +22,7 @@
     }
 
     // set this.element
-    Calendar.View.call(this, this.selectors.settings);
+    Calendar.View.call(this, this.selectors.element);
 
     this._initEvents();
   }
@@ -32,15 +32,17 @@
 
     bodyClass: 'configure',
 
+    activeState: '#settings',
+
     selectors: {
-      settings: '#settings',
-      settingsButtons: '.toggle-settings'
+      element: '#settings',
+      toggle: '.toggle-settings'
     },
 
     get settingsElements() {
       if (!this._settingsElements) {
         this._settingsElements = document.querySelectorAll(
-          this.selectors.settingsButtons
+          this.selectors.toggle
         );
       }
 
@@ -52,9 +54,11 @@
       this.controller.on('inSettingsChange', function() {
         var enabled = self.controller.inSettings;
         if (enabled) {
+          document.body.classList.add(self.bodyClass);
           self.onactive();
         } else {
           self.oninactive();
+          document.body.classList.remove(self.bodyClass);
         }
       });
 
@@ -63,18 +67,10 @@
       function toggleSettings(e) {
         var value = !self.controller.inSettings;
         self.controller.setInSettings(value);
-
-        if (value) {
-          document.body.classList.add(self.bodyClass);
-        } else {
-          document.body.classList.remove(self.bodyClass);
-        }
-
-        e.preventDefault();
       }
 
       Array.prototype.forEach.call(elements, function(el) {
-        el.addEventListener('click', toggleSettings, false);
+        el.addEventListener('click', toggleSettings);
       });
     }
   };

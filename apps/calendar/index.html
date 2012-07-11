@@ -49,14 +49,21 @@
   <header role="toolbar">
     <h1>Calendars</h1>
   </header>
-  <ol>
+
+  <ol class="calendars">
     <li class="calendar-1">Work (1)</li>
     <li class="calendar-2">Friends</li>
   </ol>
 
-  <button id="more-settings">
+  <section id="advanced-setting-selection">
+    <ol>
+      <li><a href="#">Add Account</a></li>
+    </ol>
+  </section>
+
+  <a class="toggle" href="#advanced-setting-selection" id="more-settings">
     More Settings
-  </button>
+  </a>
 </section>
 
 
@@ -66,7 +73,7 @@
   <header role="toolbar">
     <a data-l10n-id="buttons.settings"
        id="show-settings"
-       role="button" class="toggle-settings" href="#">
+       role="button" class="toggle-settings" href="#clear">
       Settings
     </a>
 
@@ -208,7 +215,7 @@
 <section id="bottom-toolbar">
   <menu id="view-selector">
     <li class="toggle-settings">
-      <a href="#">Hide</a>
+      <a href="#clear">Hide</a>
     </li>
     <li class="today">
       <a href="#today">Today</a>

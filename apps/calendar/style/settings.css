@@ -18,7 +18,7 @@ body[role="app"] #wrapper {
 
 #settings {
   height: 100%;
-  width: 100%;
+  width: 75%;
   position: absolute;
   background-color: #303540;
   color: white;
@@ -35,7 +35,7 @@ body[role="app"] #wrapper {
   border-bottom: 1px solid #454B53;
 }
 
-#settings li {
+#settings .calendars > li {
   padding: 1.6rem;
   border-bottom: 1px solid #454B53;
 }
@@ -48,4 +48,28 @@ body[role="app"] #wrapper {
   background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat;
   width: 30px;
   height: 30px;
+}
+
+:target#advanced-setting-selection {
+  position: absolute;
+  bottom: 5.5rem;
+  left: 1.5rem;
+  display: block;
+  width: 20rem;
+  background: white;
+  border: 1px solid black;
+}
+
+#advanced-setting-selection {
+  display: none
+}
+
+#advanced-setting-selection li {
+  border-bottom: 1px solid #CCC;
+}
+
+#advanced-setting-selection a {
+  color: black;
+  display: block;
+  padding: 1rem;
 }

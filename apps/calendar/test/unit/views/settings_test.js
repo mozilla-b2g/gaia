@@ -32,7 +32,7 @@ suite('views/settings', function() {
         '<button class="toggle-settings"></button>',
         '<button id="toggle-settings"></button>',
         '<ul id="calendar-list"></ul>',
-        '<button id="more-settings"></button>',
+        '<a id="more-settings" href="#foo"></a>',
       '</div>'
     ].join('');
 
@@ -95,7 +95,6 @@ suite('views/settings', function() {
       assert.isFalse(document.body.classList.contains(
         subject.bodyClass
       ));
-
     });
 
   });
