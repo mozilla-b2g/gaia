@@ -63,15 +63,17 @@ button::-moz-focus-inner {
 /* Rows */
 .keyboard-row {
   width: 100%;
+  margin-bottom: 0.5rem;
   white-space: nowrap;
 }
 
 /* Buttons: logic keys */
 .keyboard-key {
   -moz-box-sizing: border-box;
-  padding: 0.2rem 0.2rem;
+  padding: 0 0.1rem 0.2rem;
   border: none;
-  background: none;
+  background: url(images/key-shadow.png) no-repeat center -1px;
+  background-size: 100% 100%;
   min-width: 2.6rem;
   display: inline-block;
 }
@@ -95,14 +97,14 @@ button::-moz-focus-inner {
   left: 0;
   right: 0;
   height: 100%;
-  border: solid 1px #61646A;
+  border: solid 1px #000;
   border-radius: 0.3rem;
-  background: url(images/key.png) repeat-x center bottom;
-  background-size: auto 100%;
+  background: #252220 url(images/key-bg.png) no-repeat center bottom;
+  background-size: 100% 100%;
   font-family: 'Open Sans Semibold';  
   font-size: 2.4rem;
   line-height: 3.6rem;
-  color: #333;
+  color: #fff;
 }
 
 /* Highlights */
