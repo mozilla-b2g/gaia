@@ -369,7 +369,7 @@ const IMEController = (function() {
   function _notifyShowKeyboard(show) {
 
     var message = {
-      action: (show == true) ? 'showKeyboard' : 'hideKeyboard'
+      action: show ? 'showKeyboard' : 'hideKeyboard'
     };
 
     parent.postMessage(JSON.stringify(message), '*');
