@@ -121,7 +121,7 @@ button::-moz-focus-inner {
 }
 
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper > span {
-  font: 2.8rem/4rem Open Sans Semibold, Sans-serif;
+  font: 3.8rem/4.5rem Open Sans Bold, Sans-serif;
   background: #6ec5d5;
   color: #1a3f46;
   border: solid 1px #343638;
@@ -151,9 +151,9 @@ button::-moz-focus-inner {
   font-size: 1.5rem;
   line-height: 4rem;
   font-family: 'Keyboard Symbols', sans-serif;
-  color: #5B6574;
-  border-color: #61646A;
-  background: url(images/key-special.png) repeat-x center top;
+  color: #ccc;
+  border-color: #2a2c2e;
+  background: #43474a;
   background-size: auto 100%;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
