@@ -16,12 +16,18 @@
 
 /* Contact detail main section */
 
+.view-contact-profile .view-body {
+  overflow: scroll;
+}
+
 .view-contact-profile .view-body-inner {
   background: transparent no-repeat center -8rem;
   background-size: 100% auto;
   padding: 0;
   background-color: #f5f5f5;
-  width: -moz-calc(100% + 1rem);
+  overflow: hidden;
+  position: relative;
+  padding-bottom: 9rem;
 }
 
 .view-contact-profile .view-body-inner.up {
@@ -33,6 +39,7 @@
   padding: 0 2rem;
   background: #f5f5f5;
   min-height: 100%;
+  overflow: hidden;
 }
 
 .view-contact-profile .view-body-inner > section h1{
