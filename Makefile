@@ -119,7 +119,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 profile: preferences test-agent-config offline extensions
-	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
+	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -194,16 +194,8 @@ webapp-zip:
 	done;
 	@echo "Done"
 
-# Generate profile/OfflineCache/
-offline: install-xulrunner update-offline-manifests webapp-manifests webapp-zip
-ifneq ($(DEBUG),1)
-	@echo "Building offline cache"
-	@rm -rf profile/OfflineCache
-	@mkdir -p profile/OfflineCache
-	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/offline-cache.js
-	@echo "Done"
-endif
+# Create webapps
+offline: webapp-manifests webapp-zip
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
