@@ -9,7 +9,28 @@ var Recents = {
     return this.view = document.getElementById('recents-container');
   },
 
+  get recentsFilterContainer() {
+    delete this.recentsFilterContainer;
+    return this.recentsFilterContainer = document.getElementById(
+      'recents-filter-container');
+  },
+
+  get allFilter() {
+    delete this.allFilter;
+    return this.allFilter = document.getElementById('allFilter');
+  },
+
+  get missedFilter() {
+    delete this.missedFilter;
+    return this.missedFilter = document.getElementById('missedFilter');
+  },
+
   init: function re_init() {
+    if (this.recentsFilterContainer) {
+      this.recentsFilterContainer.addEventListener('click',
+        this.filter.bind(this));
+    }
+
     var indexedDB = window.indexedDB || window.webkitIndexedDB ||
         window.mozIndexedDB || window.msIndexedDB;
 
@@ -33,6 +54,27 @@ var Recents = {
     };
 
     this.render();
+  },
+
+  filter: function re_filter(event) {
+    if (event.target.classList.contains('selected')) {
+      return;
+    }
+    var action = event.target.dataset.action;
+    var itemSelector = '.log-item:not(.incoming-refused)';
+    var callLogItems = document.querySelectorAll(itemSelector);
+    var length = callLogItems.length;
+    if (action == 'all') {
+      for (var i = 0; i < length; i++) {
+          callLogItems[i].classList.remove('hide');
+      }
+    } else {
+      for (var i = 0; i < length; i++) {
+          callLogItems[i].classList.add('hide');
+      }
+    }
+    this.allFilter.classList.toggle('selected');
+    this.missedFilter.classList.toggle('selected');
   },
 
   cleanup: function re_cleanup() {
@@ -82,19 +124,20 @@ var Recents = {
 
   createRecentEntry: function re_createRecentEntry(recent) {
     var classes = 'icon ';
-    if (recent.type.indexOf('dialing') != -1) {
+    if (recent.type == 'incoming-refused') {
+      classes += 'icon-missed';
+    } else if (recent.type.indexOf('dialing') != -1) {
       classes += 'icon-outgoing';
     } else if (recent.type.indexOf('incoming') != -1) {
       classes += 'icon-incoming';
-    } else {
-      classes += 'icon-missed';
     }
 
     var entry =
-      '<li class="log-item" data-num="' + recent.number + '">' +
+      '<li class="log-item ' + recent.type +
+      '  " data-num="' + recent.number + '">' +
       '  <section class="icon-container grid center">' +
       '    <div class="grid-cell grid-v-align">' +
-      '      <div class="icon ' + classes + '"></div>' +
+      '      <div class="' + classes + '"></div>' +
       '    </div>' +
       '  </section>' +
       '  <section class="log-item-info grid">' +

@@ -10,7 +10,7 @@ contacts.List = (function() {
     groupsList.addEventListener('click', onClickHandler);
 
     // Populating contacts by groups
-    var alphabet = [];
+    var alphabet = [{group: 'favorites', letter: ''}];
     for (var i = 65; i <= 90; i++) {
       var letter = String.fromCharCode(i);
       alphabet.push({group: letter, letter: letter});
@@ -27,6 +27,7 @@ contacts.List = (function() {
     }
 
     getContactsByGroup(onError, contacts);
+    getFavorites();
   };
 
   var iterateOverGroup = function iterateOverGroup(group, contacts) {
@@ -66,7 +67,31 @@ contacts.List = (function() {
     if (ret.length > 0) {
       iterateOverGroup(group, ret);
     }
+  };
+
+  var buildFavorites = function buildFavorites(favorites) {
+    iterateOverGroup('favorites', favorites);
   }
+
+  var getFavorites = function getFavorites() {
+    var options = {
+      filterBy: ['category'],
+      filterOp: 'contains',
+      filterValue: ['favorite'],
+      sortBy: 'familyName',
+      sortOrder: 'ascending'
+    };
+
+    var request = navigator.mozContacts.find(options);
+    request.onsuccess = function favoritesCallback() {
+      //request.result is an object, transform to an array
+      var result = [];
+      for (var i in request.result) {
+        result.push(request.result[i]);
+      }
+      buildFavorites(result);
+    }
+  };
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     if (typeof contacts !== 'undefined') {
@@ -108,9 +133,31 @@ contacts.List = (function() {
   var addToList = function addToList(contact) {
     var newLi;
     var group = getGroupName(contact);
-    var cName = getStringToBeOrdered(contact);
 
     var list = groupsList.querySelector('#contacts-list-' + group);
+
+    addToGroup(contact, list);
+
+    if (list.children.length === 2) {
+      // template + new record
+      showGroup(group);
+    }
+
+    // If is favorite add as well to the favorite group
+    if (contact.category && contact.category.indexOf('favorite') != -1) {
+      list = document.getElementById('contacts-list-favorites');
+      addToGroup(contact, list);
+
+      if (list.children.length === 2) {
+        showGroup('favorites');
+      }
+    }
+  }
+
+  var addToGroup = function addToGroup(contact, list) {
+    var newLi;
+    var cName = getStringToBeOrdered(contact);
+
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;
     for (var i = 1; i < len; i++) {
@@ -133,10 +180,7 @@ contacts.List = (function() {
       utils.templates.append(list, contact);
     }
 
-    if (list.children.length === 2) {
-      // template + new record
-      showGroup(group);
-    }
+    return list.children.length;
   }
 
   var hideGroup = function hideGroup(group) {
@@ -148,15 +192,17 @@ contacts.List = (function() {
   }
 
   var remove = function remove(id) {
-    var item = groupsList.querySelector('li[data-uuid=\"' + id + '\"]');
-    if (item) {
+    // Could be more than one item if it's in favorites
+    var items = groupsList.querySelectorAll('li[data-uuid=\"' + id + '\"]');
+    // We have a node list, not an array, and we want to walk it
+    Array.prototype.forEach.call(items, function removeItem(item) {
       var ol = item.parentNode;
       ol.removeChild(item);
       if (ol.children.length === 1) {
         // Only template
         hideGroup(ol.dataset.group);
       }
-    }
+    });
   }
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {
