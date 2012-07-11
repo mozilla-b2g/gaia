@@ -74,25 +74,25 @@ var StringUtils = {
       return arg;
     });
   },
-  
+
   int16ToChars: function stringUtils_int16ToChars(number) {
     var low = StringUtils.int8ToChar(number && 0xff);
     var high = StringUtils.int8ToChar((number >> 8) && 0xff);
     return low + high;
   },
-  
+
   charsToInt16: function stringUtils_charsToInt16(chars) {
     return StringUtils.charToInt8(chars.charAt(0)) +
         (StringUtils.charToInt8(chars.charAt(1)) << 8);
   },
-  
+
   int8ToChar: function stringUtils_int8ToChar(number) {
     if (number < 32) {
       number += 256;
     }
     return String.fromCharCode(number);
   },
-  
+
   charToInt8: function stringUtils_charToInt8(c) {
     var ret = c.charCodeAt(0);
     if (ret >= 256) {
@@ -1728,7 +1728,7 @@ DictDef.LmaNodeGE1.prototype = {
   num_of_homo: 0,           // number of homo words
   son_1st_off_h: 0,         // high bits of the son_1st_off
   homo_idx_buf_off_h: 0,    // high bits of the homo_idx_buf_off
-  
+
   /**
    * Serialize to string.
    * @return {string} The serializing result string.
@@ -1744,7 +1744,7 @@ DictDef.LmaNodeGE1.prototype = {
     str += StringUtils.int8ToChar(this.homo_idx_buf_off_h);
     return str;
   },
-  
+
   /**
    * Deserialize from string.
    * @param {string} str String buffer to deserialize from.
@@ -6377,14 +6377,27 @@ DictTrie.prototype = {
    */
   save_dict_as_string: function dictTrie_save_dict_as_string() {
     var self = this;
-    
+
+    var i = 0;
+
     // serialize nodes_ge1_
     var nodes_ge1_str = '';
     var nodes_ge1_num = this.nodes_ge1_.length;
-    for (var i = 0; i < nodes_ge1_num; i++) {
+    for (i = 0; i < nodes_ge1_num; i++) {
       nodes_ge1_str += this.nodes_ge1_[i].serialize();
     }
-    
+
+    // encode lma_idx_buf
+    var lma_idx_buf_len = this.lma_idx_buf_.length;
+    var lma_idx_buf_str = '';
+    for (i = 0; i < lma_idx_buf_len; i++) {
+      var code = this.lma_idx_buf_.charCodeAt(i);
+      if (code < 32) {
+        code += 256;
+      }
+      lma_idx_buf_str += String.fromCharCode(code);
+    }
+
     var jsonData = {
       lma_node_num_le0_: self.lma_node_num_le0_,
       lma_node_num_ge1_: self.lma_node_num_ge1_,
@@ -6392,7 +6405,7 @@ DictTrie.prototype = {
       top_lmas_num_: self.top_lmas_num_,
       root_: self.root_,
       nodes_ge1_: nodes_ge1_str,
-      lma_idx_buf_: self.lma_idx_buf_
+      lma_idx_buf_: lma_idx_buf_str
     };
     return JSON.stringify(jsonData);
   },
@@ -6421,7 +6434,7 @@ DictTrie.prototype = {
       }
       this.total_lma_num_ = this.lma_idx_buf_len_ / DictDef.kLemmaIdSize;
       this.root_ = jsonData.root_;
-      
+
       // Deserialize nodes_ge1_
       this.nodes_ge1_ = [];
       var nodes_ge1_str = jsonData.nodes_ge1_;
@@ -6431,8 +6444,17 @@ DictTrie.prototype = {
         pos = node.deserialize(nodes_ge1_str, pos);
         this.nodes_ge1_.push(node);
       }
-      
-      this.lma_idx_buf_ = jsonData.lma_idx_buf_;
+
+      // Decode lma_idx_buf_
+      this.lma_idx_buf_ = '';
+      var lma_idx_buf_len = jsonData.lma_idx_buf_.length;
+      for (i = 0; i < lma_idx_buf_len; i++) {
+        var code = jsonData.lma_idx_buf_.charCodeAt(i);
+        if (code >= 256) {
+          code -= 256;
+        }
+        this.lma_idx_buf_ += String.fromCharCode(code);
+      }
 
       // Init the space for parsing.
       this.parsing_marks_ = [];
