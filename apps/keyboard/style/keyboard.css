@@ -51,7 +51,7 @@ button::-moz-focus-inner {
   bottom: 0;
   z-index: 15;
   width: 100%;
-  background: #6a6f73 url(images/bgbase.png) repeat-x center bottom;
+  background: #6a6f73 url(images/base-bg.png) repeat-x center bottom;
   -moz-transition: -moz-transform 0.3s ease;
 }
 
