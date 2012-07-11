@@ -51,8 +51,7 @@ button::-moz-focus-inner {
   bottom: 0;
   z-index: 15;
   width: 100%;
-  background: #3b424e url(images/bgbase.jpg) no-repeat center center;
-  background-size: 100% auto;
+  background: #6a6f73 url(images/bgbase.png) repeat-x center bottom;
   -moz-transition: -moz-transform 0.3s ease;
 }
 
