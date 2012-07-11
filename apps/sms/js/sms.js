@@ -542,7 +542,7 @@ var ThreadUI = {
   updateInputHeight: function thui_updateInputHeight() {
     var input = this.input;
     input.style.height = null;
-    input.style.height = input.scrollHeight + 8 + 'px';
+    input.style.height = input.scrollHeight + 12 + 'px';
 
     var newHeight = input.getBoundingClientRect().height;
     var bottomToolbarHeight = (newHeight + 32) + 'px';
