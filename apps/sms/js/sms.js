@@ -45,12 +45,10 @@ var MessageManager = {
             var num = this.getNumFromHash();
             if (num) {
               ThreadUI.renderMessages(num);
-            
             }
           break;
-        }  
+        }
         break;
-
       case 'mozvisibilitychange':
         if (!document.mozHidden) {
           ThreadListUI.renderThreads();
