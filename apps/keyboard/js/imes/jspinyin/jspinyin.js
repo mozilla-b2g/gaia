@@ -4,7 +4,7 @@
 'use strict';
 
 (function() {
-var debugging = true;
+var debugging = false;
 var debug = function jspinyin_debug(str) {
   if (!debugging) {
     return;
@@ -423,7 +423,11 @@ IMEngine.prototype = {
       if (this._selectedText) {
         debug('Buffer is empty; ' +
           'make suggestions based on select term.');
-        candidates = PinyinDecoderService.getPredicts(this._selectedText);
+        var predicts = PinyinDecoderService.getPredicts(this._selectedText);
+        var num = predicts.length;
+        for (var id = 0; id < num; id++) {
+          candidates.push([predicts[id], id]);
+        }
       }
       self._sendCandidates(candidates);
       callback();
@@ -575,6 +579,7 @@ IMEngine.prototype = {
   show: function engine_show(inputType) {
     IMEngineBase.prototype.show.call(this, inputType);
     debug('Show. Input type: ' + inputType);
+    PinyinDecoderService.flushCache(null);
     var keyboard = this._inputTraditionalChinese ?
       'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
     if (inputType == '' || inputType == 'text' || inputType == 'textarea') {
@@ -654,6 +659,7 @@ var PinyinDecoderService = {
    * @return {void} No return value.
    */
   close: function decoderService_close(callback) {
+    var self = this;
     var doCallback = function open_doCallback() {
       if (callback) {
         callbakc();
@@ -663,8 +669,10 @@ var PinyinDecoderService = {
       doCallback();
       return;
     }
-    this._matrixSearch.uninit(callback);
-    this._matrixSearch = null;
+    this._matrixSearch.uninit(function uninitCallback() {
+      self._matrixSearch = null;
+      doCallback();
+    });
   },
 
   /**
@@ -814,7 +822,7 @@ var PinyinDecoderService = {
    * @param {string} history The history string to do the prediction.
    * @return {Array.<string>} The prediction result list of an string array.
    */
-  getPredicts: function decoderService_get_predicts(history) {
+  getPredicts: function decoderService_getPredicts(history) {
     if (this._matrixSearch == null) {
       return [];
     }
@@ -1901,24 +1909,23 @@ var SearchUtility = {
       SearchUtility.compare(p1.psb, p2.psb);
   },
 
-
   remove_duplicate_npre: function searchUtility_remove_duplicate_npre(
-      npre_items) {
+      npre_items, npre_num) {
     if (!npre_items) {
       return 0;
     }
-    var npre_num = npre_items.length;
     if (!npre_num) {
       return 0;
     }
 
-    npre_items.sort(SearchUtility.cmp_npre_by_hanzi_score);
+    ArrayUtils.sort(npre_items, 0, npre_num,
+      SearchUtility.cmp_npre_by_hanzi_score);
 
     var remain_num = 1;  // The first one is reserved.
     for (var pos = 1; pos < npre_num; pos++) {
       if (npre_items[pos].pre_hzs != npre_items[remain_num - 1].pre_hzs) {
         if (remain_num != pos) {
-          npre_items[remain_num] = npre_items[pos];
+          npre_items[remain_num].copy(npre_items[pos]);
         }
         remain_num++;
       }
@@ -1970,13 +1977,27 @@ SearchUtility.LmaPsbStrItem.prototype = {
 };
 
 SearchUtility.NPredictItem = function nPredictItem_constructor() {
+  this.psb = 0.0;
+  this.pre_hzs = '';
+  this.his_len = 0;
 };
 
 SearchUtility.NPredictItem.prototype = {
   psb: 0.0,
   pre_hzs: '',
   // The length of the history used to do the prediction.
-  his_len: 0
+  his_len: 0,
+
+  /**
+   * Copy the content.
+   * @param {SearchUtility.NPredictItem} src The source to be copied from.
+   * @return {void}  No return value.
+   */
+  copy: function nPredictItem_copy(src) {
+    this.psb = src.psb;
+    this.pre_hzs = src.pre_hzs;
+    this.his_len = src.his_len;
+  }
 };
 
  /**
@@ -2519,9 +2540,16 @@ MatrixSearch.prototype = {
    * achieve best performance, some data is only store in memory.
    */
   flush_cache: function matrixSearch_flush_cache(callback) {
-    if (this.user_dict_) {
-      this.user_dict_.flush_cache(callback);
+    var doCallback = function flush_cash_doCallback() {
+      if (callback) {
+        callback();
+      }
+    };
+    if (this.user_dict_ == null) {
+      doCallback();
+      return;
     }
+    this.user_dict_.flush_cache(callback);
   },
 
   /**
@@ -4594,7 +4622,9 @@ MatrixSearch.prototype = {
     var i = 0;
     var fixed_len = fixed_buf.length;
     var res_total = 0;
-    this.npre_items_ = [];
+    for (i = 0; i < this.npre_items_len_; i++) {
+      this.npre_items_[i] = new SearchUtility.NPredictItem();
+    }
     // In order to shorten the comments, j-character candidates predicted by
     // i-character prefix are called P(i,j). All candiates predicted by
     // i-character prefix are called P(i,*)
@@ -4663,15 +4693,16 @@ MatrixSearch.prototype = {
       res_total += res_this;
     }
 
-    this.npre_items_.length = res_total;
-    res_total = SearchUtility.remove_duplicate_npre(this.npre_items_);
-    this.npre_items_.length = res_total;
+    res_total = SearchUtility.remove_duplicate_npre(this.npre_items_,
+        res_total);
 
+    var cmp = null;
     if (MatrixSearch.kPreferLongHistoryPredict) {
-      this.npre_items_.sort(SearchUtility.cmp_npre_by_hislen_score);
+      cmp = SearchUtility.cmp_npre_by_hislen_score;
     } else {
-      this.npre_items_.sort(SearchUtility.cmp_npre_by_score);
+      cmp = SearchUtility.cmp_npre_by_score;
     }
+    ArrayUtils.sort(this.npre_items_, 0, res_total, cmp);
 
     if (buf_len < res_total) {
       res_total = buf_len;
@@ -7866,7 +7897,7 @@ UserDict.prototype = {
     // lemmas and try to reload dict file.
     if (this.state_ != UserDict.UserDictState.USER_DICT_SYNC &&
         this.load_time_ > this.g_last_update_) {
-      taskQueue.push(function prepaireUserDictFile(taskQueue, taskData) {
+      taskQueue.push(function prepareUserDictFile(taskQueue, taskData) {
         dictStr = JSON.stringify(self.write_back());
         processNextWithDelay();
       });
@@ -7878,7 +7909,11 @@ UserDict.prototype = {
           processNextWithDelay();
         });
       });
+    } else {
+      isOk = true;
     }
+
+    taskQueue.processNext();
   },
 
   /**
@@ -7989,7 +8024,7 @@ UserDict.prototype = {
         }
         var len = Math.min(DictDef.kMaxPredictSize, nchar);
         npre_items[new_added] = new SearchUtility.NPredictItem();
-        npre_items[new_added].pre_hzs = words.substring(0, len);
+        npre_items[new_added].pre_hzs = words.substring(hzs_len, len);
         npre_items[new_added].psb =
           this.get_lemma_score_by_content(words, splids);
         npre_items[new_added].his_len = hzs_len;
@@ -8139,8 +8174,9 @@ UserDict.prototype = {
       doCallback();
       return;
     }
-    this.close_dict(function flush_cache_close_dict_callback(success) {
-      if (success) {
+    this.close_dict(function flush_cache_close_dict_callback(isOk) {
+      if (isOk) {
+        debug('Succeeded in closing user dict.');
         self.load_dict(file, start_id, DictDef.kUserDictIdEnd,
             function load_dict_callback(success) {
           if (success) {
@@ -8151,6 +8187,7 @@ UserDict.prototype = {
           doCallback();
         });
       } else {
+        debug('Failed to close user dict.');
         doCallback();
       }
     });
@@ -9086,6 +9123,7 @@ UserDict.prototype = {
     }
     this.lemma_count_left_ = UserDict.kUserDictPreAlloc;
     this.state_ = UserDict.UserDictState.USER_DICT_SYNC;
+    this.load_time_ = new Date().getTime();
 
     return true;
   },
@@ -10607,16 +10645,26 @@ SpellingParser.prototype = {
 };
 
 /**
- * TODO This class should be the inner class of SpellingTrie.
+ * Call SpellingTrie.get_instance method instead of direct calling this
+ * constructor.
+ * @private
+ */
+var SpellingTrie = function spellingTrie_constructor() {
+  this.h2f_start_ = [];
+  this.szm_enable_shm(true);
+  this.szm_enable_ym(true);
+};
+
+/**
  * Node used for the trie of spellings
  */
-var SpellingNode = function spellingNode_constructor() {
+SpellingTrie.SpellingNode = function spellingNode_constructor() {
   this.sons = [];
 };
 
-SpellingNode.prototype = {
+SpellingTrie.SpellingNode.prototype = {
   /**
-   * @type Array.<SpellingNode>
+   * @type Array.<SpellingTrie.SpellingNode>
    */
   sons: null,
   /**
@@ -10638,17 +10686,6 @@ SpellingNode.prototype = {
    * @type number
    */
   score: 0
-};
-
-/**
- * Call SpellingTrie.get_instance method instead of direct calling this
- * constructor.
- * @private
- */
-var SpellingTrie = function spellingTrie_constructor() {
-  this.h2f_start_ = [];
-  this.szm_enable_shm(true);
-  this.szm_enable_ym(true);
 };
 
 /**
@@ -10739,7 +10776,7 @@ SpellingTrie.prototype = {
 
     this.node_num_ = 1;
 
-    this.root_ = new SpellingNode();
+    this.root_ = new SpellingTrie.SpellingNode();
 
     this.level1_sons_ = [];
 
@@ -11037,7 +11074,7 @@ SpellingTrie.prototype = {
 
   /**
    * The spelling table
-   * @type Array.<RawSpelling>
+   * @type Array.<SpellingTable.RawSpelling>
    */
   spelling_buf_: null,
 
@@ -11059,7 +11096,7 @@ SpellingTrie.prototype = {
   /**
    * The Yunmu table.
    * Each Yunmu will be assigned with Yunmu id from 1.
-   * @type Array.<RawSpelling>
+   * @type Array.<SpellingTable.RawSpelling>
    */
   ym_buf_: null,
   ym_num_: 0,
@@ -11068,13 +11105,13 @@ SpellingTrie.prototype = {
   splstr_queried_: '',
 
   // The root node of the spelling tree
-  // @type SpellingNode
+  // @type SpellingTrie.SpellingNode
   root_: null,
 
   /**
    * Used to get the first level sons.
    * The array length is SpellingTrie.kValidSplCharNum.
-   * @type Array.<SpellingNode>
+   * @type Array.<SpellingTrie.SpellingNode>
    */
   level1_sons_: null,
 
@@ -11138,7 +11175,7 @@ SpellingTrie.prototype = {
 
     this.node_num_ += num_of_son;
     for (var i = 0; i < num_of_son; i++) {
-      sons[i] = new SpellingNode();
+      sons[i] = new SpellingTrie.SpellingNode();
     }
 
     // Now begin construct tree
@@ -11422,19 +11459,6 @@ SpellingTrie.prototype = {
   }
 };
 
-// TODO Make this class be the inner class of SpellingTable.
-var RawSpelling = function rawSpelling_constructor(str, freq) {
-  this.str = str;
-  this.freq = freq;
-  this.score = 0;
-};
-
-RawSpelling.prototype = {
-  str: '',
-  freq: 0,
-  score: 0
-};
-
 /**
  * This class is used to store the spelling strings
  */
@@ -11442,6 +11466,18 @@ var SpellingTable = function spellingTable_constructor() {
 };
 
 SpellingTable.kNotSupportList = ['HM', 'HNG', 'NG'];
+
+SpellingTable.RawSpelling = function rawSpelling_constructor(str, freq) {
+  this.str = str;
+  this.freq = freq;
+  this.score = 0;
+};
+
+SpellingTable.RawSpelling.prototype = {
+  str: '',
+  freq: 0,
+  score: 0
+};
 
 SpellingTable.prototype = {
   /* ==== Public ==== */
@@ -11475,7 +11511,8 @@ SpellingTable.prototype = {
     this.total_freq_ += freq;
 
     if (!(spelling_str in this.raw_spellings_)) {
-      this.raw_spellings_[spelling_str] = new RawSpelling(spelling_str, 0);
+      this.raw_spellings_[spelling_str] = new SpellingTable.RawSpelling(
+          spelling_str, 0);
       this.spelling_num_++;
     }
 
@@ -11498,9 +11535,9 @@ SpellingTable.prototype = {
 
   /**
    * Sort the spelling strings in an array.
-   * @return {Array<RawSpelling>} Return the sorted RawSpelling array.
-   * An item with a lower score has a higher probability.
-   * Do not call put_spelling() and contains() after arrange().
+   * @return {Array<SpellingTable.RawSpelling>} Return the sorted RawSpelling
+   *    array. An item with a lower score has a higher probability. Do not
+   *    call put_spelling() and contains() after arrange().
    */
   arrange: function spellingTable_arrange() {
     var result = [];
@@ -11565,7 +11602,7 @@ SpellingTable.prototype = {
 
   /**
    * The map containing all the RawSpelling whose key is the spelling string.
-   * @type Object<string, RawSpelling>
+   * @type Object<string, SpellingTable.RawSpelling>
    */
   raw_spellings_: null,
 
