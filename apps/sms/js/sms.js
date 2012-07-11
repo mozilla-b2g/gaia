@@ -4,7 +4,7 @@
 'use strict';
 
 var MessageManager = {
-  init : function mm_init() {
+  init: function mm_init() {
     ThreadUI.init();
     ThreadListUI.init();
   },
