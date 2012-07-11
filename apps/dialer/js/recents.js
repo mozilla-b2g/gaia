@@ -124,12 +124,12 @@ var Recents = {
 
   createRecentEntry: function re_createRecentEntry(recent) {
     var classes = 'icon ';
-    if (recent.type.indexOf('dialing') != -1) {
+    if (recent.type == 'incoming-refused') {
+      classes += 'icon-missed';
+    } else if (recent.type.indexOf('dialing') != -1) {
       classes += 'icon-outgoing';
     } else if (recent.type.indexOf('incoming') != -1) {
       classes += 'icon-incoming';
-    } else {
-      classes += 'icon-missed';
     }
 
     var entry =
