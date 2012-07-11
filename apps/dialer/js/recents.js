@@ -15,6 +15,16 @@ var Recents = {
       'recents-filter-container');
   },
 
+  get allFilter() {
+    delete this.allFilter;
+    return this.allFilter = document.getElementById('allFilter');
+  },
+
+  get missedFilter() {
+    delete this.missedFilter;
+    return this.missedFilter = document.getElementById('missedFilter');
+  },
+
   init: function re_init() {
     if (this.recentsFilterContainer) {
       this.recentsFilterContainer.addEventListener('click',
@@ -47,11 +57,29 @@ var Recents = {
   },
 
   filter: function re_filter(event) {
-    var itemSelector;
-    var callLogItems;
-    var length;
+    if (event.target.classList.contains('selected')) {
+      return;
+    }
+    var action = event.target.dataset.action;
+    var itemSelector = '.log-item:not(.incoming-refused)';
+    var callLogItems = document.querySelectorAll(itemSelector);
+    var length = callLogItems.length;
+    if (action == 'all') {
+      for (var i = 0; i < length; i++) {
+          callLogItems[i].classList.remove('hide');
+        }
+      } else {
+        for (var i = 0; i < length; i++) {
+          callLogItems[i].classList.add('hide');
+        }
+      }
+    this.allFilter.classList.toggle('selected');
+    this.missedFilter.classList.toggle('selected');
+    
+    /*
     var filterTabs = document.querySelectorAll(
       '.recents-filter-entry > button');
+    
     switch (event.target.dataset.action) {
       case 'all':
         if (event.target.classList.contains('selected')) {
@@ -83,7 +111,9 @@ var Recents = {
           filterTabs[i].classList.toggle('selected');
         }
         break;
+         
     }
+     */
   },
 
   cleanup: function re_cleanup() {
