@@ -153,7 +153,7 @@ var Browser = {
         tab.loading = false;
         if (isCurrentTab) {
           this.throbber.classList.remove('loading');
-          this.urlInput.value = this.currentTab.title || this.currentTab.url;
+          this.urlInput.value = tab.title || tab.url;
           this.setUrlButtonMode(this.REFRESH);
         }
 
