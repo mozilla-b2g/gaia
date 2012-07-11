@@ -48,6 +48,9 @@ const IMEManager = {
   // keyboard setting groups selected by the user from settings
   settingGroups: [],
 
+  // Default layout group
+  defaultGroup: 'english',
+
   // layouts to turn on correspond to keyboard.layouts.* setting
   // TODO: gaia issue 347, better setting UI and setting data store
   keyboardSettingGroups: {
@@ -66,6 +69,15 @@ const IMEManager = {
   },
 
   enableSetting: function km_enableSetting(theKey) {
+    // Remove the fallback
+    if (this.fallback) {
+      this.settingGroups.splice(
+        this.settingGroups.indexOf(this.defaultGroup),
+        1
+      )
+      delete this.fallback;
+    }
+
     if (this.settingGroups.indexOf(theKey) === -1)
       this.settingGroups.push(theKey);
 
@@ -86,9 +98,11 @@ const IMEManager = {
   updateSettings: function km_updateSettings() {
     this.keyboards = [];
 
-    // Default to english
-    if (!this.settingGroups.length)
-      this.settingGroups.push('english');
+    // Default
+    if (!this.settingGroups.length) {
+      this.settingGroups.push(this.defaultGroup);
+      this.fallback = true;
+    }
 
     for (var key in this.keyboardSettingGroups) {
       if (this.settingGroups.indexOf(key) === -1)
