@@ -145,7 +145,7 @@ contacts.List = (function() {
 
     // If is favorite add as well to the favorite group
     if (contact.category && contact.category.indexOf('favorite') != -1) {
-      list = groupsList.getDocumentById('contacts-list-favorites');
+      list = document.getElementById('contacts-list-favorites');
       addToGroup(contact, list);
 
       if (list.children.length === 2) {

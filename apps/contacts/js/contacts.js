@@ -526,7 +526,8 @@ var Contacts = (function() {
       familyName: lastName,
       additionalName: '',
       org: org,
-      name: name[0] + ' ' + lastName[0]
+      name: name[0] + ' ' + lastName[0],
+      category: currentContact.category || []
     };
 
     getPhones(myContact);
