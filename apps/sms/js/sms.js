@@ -4,55 +4,24 @@
 'use strict';
 
 var MessageManager = {
-  allMessagesCache: [],
-
-  // Compare the cache and data return from indexedDB to determine
-  // whether we need to update the cache and callback with latest messages.
-  needUpdateCache: function mm_needUpdateCache(dbData) {
-    var cacheData = this.allMessagesCache;
-    if (cacheData.length !== dbData.length)
-      return true;
-
-    for (var i = 0; i < dbData.length; i++) {
-      if (cacheData[i].id !== dbData[i].id)
-        return true;
-
-      // Since we could only change read property in message,
-      // Add read property checking for cache.
-      if (cacheData[i].read !== dbData[i].read)
-        return true;
-
-    }
-    return false;
+  init: function mm_init() {
+    ThreadUI.init();
+    ThreadListUI.init();
   },
-
-  // Cache all messages for improving the conversation lists update.
-  // getMessages will return cache data syncronusly and query indexedDB
-  // asyncronusly. If message data changed, getMessages will callback again
-  // with latest messages.
+  // Retrieve messages from DB and execute callback
   getMessages: function mm_getMessages(callback, filter, invert) {
-    if (!filter)
-      callback(this.allMessagesCache);
-
     var request = navigator.mozSms.getMessages(filter, !invert);
     var self = this;
     var messages = [];
     request.onsuccess = function onsuccess() {
       var cursor = request.result;
-      if (!cursor.message) {
-        if (!filter) {
-          if (!self.needUpdateCache(messages))
-            return;
-
-          self.allMessagesCache = messages;
-        }
-
+      if (cursor.message) {
+        messages.push(cursor.message);
+        cursor.continue();
+      } else {
+        // TODO Add call to Steve JS for adding 'Pending Messages'
         callback(messages);
-        return;
       }
-
-      messages.push(cursor.message);
-      cursor.continue();
     };
 
     request.onerror = function onerror() {
@@ -916,8 +885,7 @@ var ThreadUI = {
 };
 
 window.addEventListener('localized', function showBody() {
-  ThreadUI.init();
-  ThreadListUI.init();
+  MessageManager.init();
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
