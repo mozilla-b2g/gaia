@@ -16,7 +16,7 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
     updateConnection();
   } else if (DEBUG) { // = DEBUG mode in a desktop browser
     setTimeout(function fakeConnection() {
-      updateConnection({ shortName: 'Fake Orange', mcc: 208, mnc: 0 });
+      updateConnection({ shortName: 'Fake Orange', mcc: 208, mnc: 1 });
     }, 5000);
   }
 
@@ -64,7 +64,7 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
 
     var button = document.createElement('input');
     button.type = 'button';
-    button.value = item.name;
+    button.value = item.name || item.id;
     button.onclick = function fillAPNData() {
       setFieldValue('apn', item.id);
       setFieldValue('user', item.username);
