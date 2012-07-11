@@ -494,9 +494,10 @@ Places.db = {
         placesStore.get(bookmark.uri).onsuccess =
           makeBookmarkProcessor(bookmark);
         cursor.continue();
-      } else {
-        callback(bookmarks);
       }
+    };
+    transaction.oncomplete = function db_bookmarkTransactionComplete() {
+      callback(bookmarks);
     };
   }
 

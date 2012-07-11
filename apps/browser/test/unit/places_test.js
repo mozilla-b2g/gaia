@@ -130,7 +130,7 @@ suite('Global History', function() {
     });
 
     test('saveIcon', function(done) {
-      // Let's just use text, a blob is a blob.
+      // Let's just use content-type text, a blob is a blob.
       var blob = new Blob(['hello', ' world'], {type: 'text/plain'});
       var iconEntry = {
         uri: 'http://mozilla.org/favicon.ico',
@@ -143,7 +143,7 @@ suite('Global History', function() {
     });
 
     test('getIcon', function(done) {
-      // Let's just use text, a blob is a blob.
+      // Let's just use content-type text, a blob is a blob.
       var blob = new Blob(['hello', ' world'], {type: 'text/plain'});
       var iconEntry = {
         uri: 'http://mozilla.org/favicon.ico',
