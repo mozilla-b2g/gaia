@@ -262,7 +262,10 @@ var ThreadListUI = {
     return '<div class="groupHeader">' +
       giveHeaderDate(conversation.timestamp) + '</div>';
   },
-
+ getNumFromHash: function thui_getNumFromHash() {
+    var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
+    return num ? num[1] : null;
+  },
   // Update the body class depends on the current hash and original class list.
   pageStatusController: function thlui_pageStatusController() {
     var bodyclassList = document.body.classList;
@@ -290,13 +293,19 @@ var ThreadListUI = {
         bodyclassList.remove('msg-search-mode');
         bodyclassList.remove('msg-edit-mode');
         bodyclassList.add('msg-search-result-mode');
-        // if (!this.searchInput.value)
-        //   this.view.innerHTML = '';
-        // break;
       case '#searchresult_edit':  // Edit mode with the searched conversations.
         bodyclassList.add('msg-edit-mode');
         bodyclassList.add('msg-search-result-mode');
         break;
+      default:
+        // alert("VOy a ver una hebra");
+        var num = this.getNumFromHash();
+        if (num) {
+          ThreadUI.renderMessages(num);
+        
+        }
+        break;
+        
     }
   },
 
@@ -442,9 +451,9 @@ var ThreadUI = {
     }, this);
 
 
-    var num = this.getNumFromHash();
-    if (num)
-      this.renderMessages(num);
+    // var num = this.getNumFromHash();
+    // if (num)
+    //   this.renderMessages(num);
 
     document.addEventListener('mozvisibilitychange', this);
   },
@@ -686,17 +695,17 @@ var ThreadUI = {
         this.view.innerHTML = '';
         break;
 
-      case 'hashchange':
-        this.toggleEditMode(window.location.hash == '#edit');
+      // case 'hashchange':
+      //   // this.toggleEditMode(window.location.hash == '#edit');
 
-        var num = this.getNumFromHash();
-        if (!num) {
-          this.filter = null;
-          return;
-        }
+      //   var num = this.getNumFromHash();
+      //   if (!num) {
+      //     this.filter = null;
+      //     return;
+      //   }
 
-        this.renderMessages(num);
-        break;
+      //   this.renderMessages(num);
+      //   break;
 
       case 'resize':
         if (!document.body.classList.contains('conversation'))
@@ -706,16 +715,16 @@ var ThreadUI = {
         this.scrollViewToBottom();
         break;
 
-      case 'mozvisibilitychange':
-        if (document.mozHidden)
-          return;
+      // case 'mozvisibilitychange':
+      //   if (document.mozHidden)
+      //     return;
 
-        // Refresh the view when app return to foreground.
-        var num = this.getNumFromHash();
-        if (num) {
-          this.renderMessages(num);
-        }
-        break;
+      //   // Refresh the view when app return to foreground.
+      //   var num = this.getNumFromHash();
+      //   if (num) {
+      //     this.renderMessages(num);
+      //   }
+      //   break;
     }
   },
 
@@ -738,13 +747,13 @@ var ThreadUI = {
     window.location.hash = '#num=' + this.title.num;
   },
 
-  toggleEditMode: function thui_toggleEditMode(show) {
-    if (show) {
-      document.body.classList.add('edit-mode');
-    } else {
-      document.body.classList.remove('edit-mode');
-    }
-  },
+  // toggleEditMode: function thui_toggleEditMode(show) {
+  //   if (show) {
+  //     document.body.classList.add('edit-mode');
+  //   } else {
+  //     document.body.classList.remove('edit-mode');
+  //   }
+  // },
 
   onListItemClicked: function thui_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
