@@ -695,8 +695,9 @@ var Contacts = (function() {
       var arrayIndex = currentNote.dataset.index;
       var noteField = document.getElementById('note_' + arrayIndex);
       var noteValue = noteField.value;
-      if (!noteValue)
+      if (!noteValue) {
         continue;
+      }
 
       contact['note'] = contact['note'] || [];
       contact['note'].push(noteValue);
