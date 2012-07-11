@@ -48,11 +48,14 @@ const IMEManager = {
   // keyboard setting groups selected by the user from settings
   settingGroups: [],
 
-  // Default layout group
+  // Default layout group.
+  // XXX: This should be in settings, see:
+  // https://github.com/mozilla-b2g/gaia/issues/2346
   defaultGroup: 'english',
 
   // layouts to turn on correspond to keyboard.layouts.* setting
   // TODO: gaia issue 347, better setting UI and setting data store
+  // XXX: See https://github.com/mozilla-b2g/gaia/issues/2346 for more info
   keyboardSettingGroups: {
     'english': ['en'],
     'dvorak': ['en-Dvorak'],
@@ -70,6 +73,9 @@ const IMEManager = {
 
   enableSetting: function km_enableSetting(theKey) {
     // Remove the fallback
+    // XXX: This is here to workaround the lack of defined behaviour related
+    // with fallback options for the keyboard layout.
+    // https://github.com/mozilla-b2g/gaia/issues/2346
     if (this.fallback) {
       this.settingGroups.splice(
         this.settingGroups.indexOf(this.defaultGroup),
