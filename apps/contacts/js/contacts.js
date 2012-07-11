@@ -227,13 +227,13 @@ var Contacts = (function() {
         if (newMargin > 0 && newMargin < 200) {
           contactDetails.classList.remove('up');
           var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
-          contactDetails.style.marginTop = calc;
+          contactDetails.style.transform = 'translateY(' + calc + ')';
         }
       };
 
       var onMouseUp = function onMouseUp(event) {
         contactDetails.classList.add('up');
-        contactDetails.style.marginTop = initMargin;
+        contactDetails.style.transform = 'translateY(' + initMargin + ')';
         cover.removeEventListener('mousemove', onMouseMove);
         cover.removeEventListener('mouseup', onMouseUp);
       };

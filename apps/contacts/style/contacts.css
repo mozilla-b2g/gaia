@@ -34,12 +34,12 @@
 }
 
 .view-contact-profile .view-body-inner > section.no-photo {
-  margin-top: 0;
+  transform: translateY(0);
 }
 
 .view-contact-profile .view-body-inner > section.up {
-  margin-top: 8rem;
-  -moz-transition: margin-top 0.5s ease-out;
+  transform: translateY(8rem);
+  -moz-transition: transform 0.5s ease-out;
 }
 
 .view-contact-profile .view-body-inner .comment-notes {
