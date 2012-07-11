@@ -137,6 +137,10 @@ button::-moz-focus-inner {
   background-image: url('images/CallLog_30x30_missed.png');
 }
 
+.missed-call-font {
+  color: red !important;
+}
+
 .log-item * {
   pointer-events: none;
 }
