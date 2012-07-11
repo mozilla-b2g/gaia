@@ -155,6 +155,23 @@ input[type="image"] {
   padding-bottom: 7px;
 }
 
+#browser-settings-icon {
+  background: url("images/settings-white.png");
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  right: 30px;
+  top: 24px;
+  z-index: 100;
+  display: block;
+  cursor: pointer;
+  border: 0px;
+}
+
+#browser-settings-icon:active, #browser-settings-icon:hover {
+  background: url("images/settings.png");
+}
+
 #main-screen {
   -moz-transition: 0.2s ease-in-out;
   margin: 0;
