@@ -150,7 +150,8 @@ var Contacts = (function() {
       contactTag,
       contactDetails,
       saveButton,
-      deleteContactButton;
+      deleteContactButton,
+      favoriteMessage;
 
   var currentContact = {};
 
@@ -173,6 +174,7 @@ var Contacts = (function() {
     saveButton = document.getElementById('save-button');
     deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
+    favoriteMessage = document.getElementById('toggle-favorite').children[0];
 
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = 'Are you sure you want to remove this contact?';
@@ -239,6 +241,9 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
+    if (contact.category && contact.category.indexOf('favorite') != -1) {
+      detailsName.innerHTML += '<sup></sup>';
+    }
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
 
@@ -347,6 +352,7 @@ var Contacts = (function() {
       numberEmails++;
     }
 
+    toggleFavoriteMessage(isFavorite(currentContact));
     for (var adr in currentContact.adr) {
       var currentAddress = currentContact.adr[adr];
       var default_type = TAG_OPTIONS['address-type'][0].value;
@@ -366,6 +372,11 @@ var Contacts = (function() {
     }
     edit();
   };
+
+  var isFavorite = function isFavorite(contact) {
+    return contact != null & contact.category != null &&
+              contact.category.indexOf('favorite') != -1;
+  }
 
   var goToSelectTag = function goToSelectTag(event) {
     var tagList = event.target.dataset.taglist;
@@ -469,6 +480,29 @@ var Contacts = (function() {
     edit();
   };
 
+  var toggleFavorite = function toggleFavorite() {
+    var favorite = !isFavorite(currentContact);
+    toggleFavoriteMessage(favorite);
+    if (favorite) {
+      currentContact.category = currentContact.category || [];
+      currentContact.category.push('favorite');
+    } else {
+      if (!currentContact.category) {
+        return;
+      }
+      var pos = currentContact.category.indexOf('favorite');
+      if (pos > -1) {
+        delete currentContact.category[pos];
+      }
+    }
+  };
+
+  var toggleFavoriteMessage = function toggleFavMessage(isFav) {
+    favoriteMessage.textContent = !isFav ?
+                    'Add as favorite' :
+                    'Remove as favorite';
+  }
+
   var deleteContact = function deleteContact(contact) {
     var request = navigator.mozContacts.remove(currentContact);
     request.onsuccess = function successDelete() {
@@ -492,7 +526,8 @@ var Contacts = (function() {
       familyName: lastName,
       additionalName: '',
       org: org,
-      name: name[0] + ' ' + lastName[0]
+      name: name[0] + ' ' + lastName[0],
+      category: currentContact.category || []
     };
 
     getPhones(myContact);
@@ -522,6 +557,7 @@ var Contacts = (function() {
         currentContact = savedContact;
         myContact.id = savedContact.id;
         myContact.photo = savedContact.photo;
+        myContact.category = savedContact.category;
         contactsList.refresh(myContact);
         reloadContactDetails(myContact);
         navigation.back();
@@ -693,6 +729,7 @@ var Contacts = (function() {
     'goBack' : navigation.back,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
-    'saveContact': saveContact
+    'saveContact': saveContact,
+    'toggleFavorite': toggleFavorite
   };
 })();
