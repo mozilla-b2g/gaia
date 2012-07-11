@@ -4,6 +4,10 @@
 'use strict';
 
 var MessageManager = {
+  init : function mm_init() {
+    ThreadUI.init();
+    ThreadListUI.init();
+  },
   // Retrieve messages from DB and execute callback
   getMessages: function mm_getMessages(callback, filter, invert) {
     var request = navigator.mozSms.getMessages(filter, !invert);
@@ -881,8 +885,7 @@ var ThreadUI = {
 };
 
 window.addEventListener('localized', function showBody() {
-  ThreadUI.init();
-  ThreadListUI.init();
+  MessageManager.init();
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
