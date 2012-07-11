@@ -219,7 +219,7 @@ var Contacts = (function() {
       var startPosition = event.clientY;
       var currentPosition;
       var initMargin = '8rem';
-      var initMarginCover = -80;
+      var initMarginCover = -8;
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
@@ -231,7 +231,7 @@ var Contacts = (function() {
           cover.classList.remove('up');
           var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
           contactDetails.style.transform = 'translateY(' + calc + ')';
-          cover.style.backgroundPosition = 'center ' + (initMarginCover + (newMargin / 4)) + '%';
+          cover.style.backgroundPosition = 'center ' + (initMarginCover + (newMargin / 40)) + 'rem';
         }
       };
 
@@ -239,7 +239,7 @@ var Contacts = (function() {
         contactDetails.classList.add('up');
         cover.classList.add('up');
         contactDetails.style.transform = 'translateY(' + initMargin + ')';
-        cover.style.backgroundPosition = 'center ' + initMarginCover + '%';
+        cover.style.backgroundPosition = 'center ' + initMarginCover + 'rem';
         cover.removeEventListener('mousemove', onMouseMove);
         cover.removeEventListener('mouseup', onMouseUp);
       };
@@ -337,15 +337,8 @@ var Contacts = (function() {
       cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
     } else {
       cover.style.backgroundImage = null;
-      contactDetails.style.marginTop = null;
+      contactDetails.style.transform = null;
       contactDetails.classList.add('no-photo');
-    }
-
-    //Removes unnecesary scroll
-    if (contactDetails.offsetHeight == cover.clientHeight) {
-      cover.style.overflow = 'hidden';
-    } else {
-      cover.style.overflow = null;
     }
   };
 
