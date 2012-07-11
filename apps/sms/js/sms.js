@@ -99,23 +99,10 @@ var ThreadListUI = {
     return this.view = document.getElementById('msg-conversations-list');
   },
 
-  get searchToolbar() {
-    delete this.searchToolbar;
-    return this.searchToolbar = document.getElementById('msg-search-container');
-  },
-
-  get searchInput() {
-    delete this.searchInput;
-    return this.searchInput = document.getElementById('msg-search');
-  },
-
   init: function thlui_init() {
     this.delNumList = [];
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
-
-    this.searchInput.addEventListener('keyup', this);
-    this.searchInput.addEventListener('focus', this);
 
     this.view.addEventListener('click', this);
     window.addEventListener('hashchange', this);
@@ -287,7 +274,6 @@ var ThreadListUI = {
             !bodyclassList.contains('conversation'))
           return;
 
-        this.searchInput.value = '';
         this.renderThreads();
         bodyclassList.remove('conversation');
         bodyclassList.remove('conversation-new-msg');
@@ -304,9 +290,9 @@ var ThreadListUI = {
         bodyclassList.remove('msg-search-mode');
         bodyclassList.remove('msg-edit-mode');
         bodyclassList.add('msg-search-result-mode');
-        if (!this.searchInput.value)
-          this.view.innerHTML = '';
-        break;
+        // if (!this.searchInput.value)
+        //   this.view.innerHTML = '';
+        // break;
       case '#searchresult_edit':  // Edit mode with the searched conversations.
         bodyclassList.add('msg-edit-mode');
         bodyclassList.add('msg-search-result-mode');
@@ -320,19 +306,8 @@ var ThreadListUI = {
         ThreadListUI.renderThreads(evt.message);
         break;
 
-      case 'focus':
-        window.location.hash = '#searchresult';
-        break;
-
       case 'hashchange':
         this.pageStatusController();
-        break;
-
-      case 'click':
-        var hasHrefEntry = 'href' in evt.target;
-        if (evt.currentTarget == this.view && hasHrefEntry) {
-          this.onListItemClicked(evt);
-        }
         break;
 
       case 'mozvisibilitychange':
@@ -398,15 +373,6 @@ var ThreadListUI = {
     }.bind(this), filter);
 
     window.location.hash = '#';
-  },
-
-  /** No search function on new UX **/
-  toggleSearchMode: function thlui_toggleSearchMode(show) {
-    if (show) {
-      document.body.classList.add('msg-search-mode');
-    } else {
-      document.body.classList.remove('msg-search-mode');
-    }
   },
 
   toggleEditMode: function thlui_toggleEditMode(show) {
@@ -748,13 +714,6 @@ var ThreadUI = {
         var num = this.getNumFromHash();
         if (num) {
           this.renderMessages(num);
-        }
-        break;
-
-      case 'click':
-        var targetIsMessage = ~evt.target.className.indexOf('message');
-        if (evt.currentTarget == this.view && targetIsMessage) {
-          this.onListItemClicked(evt);
         }
         break;
     }
