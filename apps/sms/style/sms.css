@@ -1042,6 +1042,7 @@ body.edit-mode .fake-checkbox {
   resize: none;
   overflow: hidden;
   font-size: -moz-calc(7 * 0.226rem);
+  font-family: 'FontRegular';
   border-radius: 0.3rem;
   border: 1px solid rgba(0,0,0,.3);
   box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
