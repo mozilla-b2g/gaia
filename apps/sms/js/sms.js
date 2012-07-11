@@ -283,7 +283,7 @@ var ThreadListUI = {
            '    <div class="time ' +
                   (conversation.unreadCount > 0 ? 'unread' : '') +
            '      " data-time="' + conversation.timestamp + '">' +
-                  giveHourMinute(conversation.timestamp) +
+                  Utils.getHourMinute(conversation.timestamp) +
            '    </div>') +
            '    <div class="msg">"' + bodyHTML + '"</div>' +
            '    <div class="unread-tag"></div>' +
@@ -310,7 +310,7 @@ var ThreadListUI = {
     this._lastHeader = conversation.timestamp;
 
     return '<div class="groupHeader">' +
-      giveHeaderDate(conversation.timestamp) + '</div>';
+      Utils.getHeaderDate(conversation.timestamp) + '</div>';
   },
   executeMessageDelete: function thlui_executeMessageDelete() {
     var delList = this.view.querySelectorAll('input[type=checkbox][data-num]');
@@ -587,7 +587,7 @@ var ThreadUI = {
            '  <div class="message-container ' + className + '>' +
            '    <div class="message-bubble"></div>' +
            '    <div class="time" data-time="' + timestamp + '">' +
-                  giveHourMinute(message.timestamp) +
+                  Utils.getHourMinute(message.timestamp) +
            '    </div>' +
            '    <div class="text">' + body + '</div>' +
            '  </div>' +
