@@ -485,9 +485,6 @@ IMEngine.prototype = {
     IMEngineBase.prototype.init.call(this, glue);
     debug('init.');
     var self = this;
-    var keyboard = this._inputTraditionalChinese ?
-      'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
-    this._alterKeyboard(keyboard);
     // Initialize file system and PinyinDecoderService.
     FileSystemService.init(function fsInitCallback() {
       PinyinDecoderService.open(IMEngine.SYS_DICT_FILE_NAME.replace('{PATH}',
