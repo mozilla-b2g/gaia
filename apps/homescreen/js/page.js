@@ -483,3 +483,17 @@ Page.prototype = {
     });
   }
 };
+
+function extend(subClass, superClass) {
+  var F = function() {};
+  F.prototype = superClass.prototype;
+  subClass.prototype = new F();
+  subClass.prototype.constructor = subClass;
+  subClass.uber = superClass.prototype;
+}
+
+var Dock = function createDock() {
+  Page.call(this);
+};
+
+extend(Dock, Page);

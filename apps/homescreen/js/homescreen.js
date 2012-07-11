@@ -119,30 +119,41 @@ const Homescreen = (function() {
     }
   };
 
-  PaginationBar.init('.paginationScroller');
-
-  GridManager.init('.apps', function gm_init() {
-    PaginationBar.update(0);
-    PaginationBar.show();
-    ViewController.init(document.querySelector('#content'));
-  });
-
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
 
+  PaginationBar.init('.paginationScroller');
   Search.init(domain);
 
-  var shortcuts = document.querySelectorAll('#footer li');
-  for (var i = 0; i < shortcuts.length; i++) {
-    var dataset = shortcuts[i].dataset;
-    dataset.origin = dataset.origin.replace('$DOMAIN$', domain);
+  function initUI() {
+    DockManager.init(document.querySelector('#footer'));
+    GridManager.init('.apps', function gm_init() {
+      PaginationBar.update(0);
+      PaginationBar.show();
+      ViewController.init(document.querySelector('#content'));
+    });
   }
 
-  var mode = 'normal';
-  var footer = document.querySelector('#footer');
-  GridManager.onEditModeChange = function onEditModeChange(value) {
-    footer.dataset.mode = mode = value;
+  function start() {
+    if (Applications.isReady()) {
+      initUI();
+    } else {
+      Applications.addEventListener('ready', initUI);
+    }
   }
+
+  HomeState.init(function success(onUpgradeNeeded) {
+    if (onUpgradeNeeded) {
+      // First time the database is empty -> Dock by default
+      var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
+      appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
+        return 'http://' + name + '.' + domain;
+      });
+      HomeState.saveShortcuts(appsInDockByDef, start, start);
+    } else {
+      start();
+    }
+  }, start);
 
   // XXX Currently the home button communicate only with the
   // system application. It should be an activity that will
@@ -153,7 +164,7 @@ const Homescreen = (function() {
         if (GridManager.isEditMode()) {
           GridManager.setMode('normal');
           Permissions.hide();
-        } else if (ViewController.currentPage > 0){
+        } else if (ViewController.currentPage > 0) {
           GridManager.goTo(0, function finish() {
             ViewController.navigate(0, 0.2);
           });
@@ -164,27 +175,12 @@ const Homescreen = (function() {
 
   // Listening for installed apps
   Applications.addEventListener('install', function oninstall(app) {
-    GridManager.install(app);
+    GridManager.install(app, true);
   });
 
   // Listening for uninstalled apps
   Applications.addEventListener('uninstall', function onuninstall(app) {
     GridManager.uninstall(app);
-  });
-
-  // Listening for clicks on the footer
-  footer.addEventListener('click', function footer_onclick(event) {
-    if (mode === 'normal') {
-      var dataset = event.target.dataset;
-      if (dataset && typeof dataset.origin !== 'undefined') {
-        var app = Applications.getByOrigin(dataset.origin);
-        if (dataset.entrypoint) {
-          app.launch('#' + dataset.entrypoint);
-        } else {
-          app.launch();
-        }
-      }
-    }
   });
 
   return {
