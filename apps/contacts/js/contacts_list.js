@@ -4,7 +4,8 @@ var contacts = window.contacts || {};
 
 contacts.List = (function() {
   var groupsList;
-  var searchBox  = document.getElementById('search-contact');
+  var searchBox = document.getElementById('search-contact');
+  var fastScroll = document.querySelector('.view-jumper');
 
   var init = function load(element) {
     groupsList = element;
@@ -257,22 +258,50 @@ contacts.List = (function() {
     }
   }
 
+  // Deleay the real search for a second, waiting for more chars
   var searchTimeout;
   var search = function search() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(performSearch, 1000);
   };
 
-  var performSearch = function performSearch() {
-    cleanContactsList();
+  var searchNoResults = function searchNoResults() {
+    // Show the no results window
+    console.log('No search results');
+  }
 
-    if (!searchBox.value || searchBox.value.length == 0) {
-      init(document.getElementById('groups-list'));
-      load();
+  var buildSearchContacts = function buildSearch(contacts) {
+    if (!contacts || contacts.length == 0) {
+      searchNoResults();
       return;
     }
 
-    console.log('Searching for ' + searchBox.value);
+    // Create a virtual template from the original, without header
+    var list = document.createElement('ol');
+    var template = document.querySelector('[data-uuid]');
+    contacts.forEach(function walkContacts(contact) {
+      var aux = utils.templates.render(template, contact);
+      list.appendChild(aux);
+    });
+    
+    document.querySelector('.block-list').appendChild(list);
+  }
+
+  var exitSearch = function exitSearch() {
+    fastScroll.classList.remove('hide');
+    init(document.getElementById('groups-list'));
+    load();
+  }
+
+  // Performs the real search
+  var performSearch = function performSearch() {
+    cleanContactsList();
+    fastScroll.classList.add('hide');
+
+    if (!searchBox.value || searchBox.value.length == 0) {
+      exitSearch();
+      return;
+    }
 
     var options = {
       filterBy: ['familyName', 'giveName', 'name'],
@@ -285,8 +314,10 @@ contacts.List = (function() {
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
       init(document.getElementById('groups-list'));
-      buildContacts(request.result);
+      buildSearchContacts(request.result);
     };
+
+    request.onerror = searchNoResults;
   }
 
   var cleanContactsList = function cleanContactsList() {
