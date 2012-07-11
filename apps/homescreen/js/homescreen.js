@@ -16,7 +16,7 @@ const Homescreen = (function() {
      * @param {Object} The homescreen container
      */
     init: function vw_init(container) {
-      this.currentPage = 0;
+      this.currentPage = 1;
       this.pages = container.children;
       this.total = this.pages.length;
       container.addEventListener('mousedown', this);
@@ -128,7 +128,7 @@ const Homescreen = (function() {
   function initUI() {
     DockManager.init(document.querySelector('#footer'));
     GridManager.init('.apps', function gm_init() {
-      PaginationBar.update(0);
+      PaginationBar.update(1);
       PaginationBar.show();
       ViewController.init(document.querySelector('#content'));
     });
