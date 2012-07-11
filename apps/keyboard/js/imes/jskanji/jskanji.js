@@ -83,7 +83,9 @@
   ];
 
   // not used by now
-  var IMEAlphabetTable = {
+  // Uncomment this if half-width and full-width alphabet transformation
+  // is needed
+  /*var IMEAlphabetTable = {
     'A': 'Ａ', 'B': 'Ｂ', 'C': 'Ｃ', 'D': 'Ｄ', 'E': 'Ｅ', 'F': 'Ｆ',
     'G': 'Ｇ', 'H': 'Ｈ', 'I': 'Ｉ', 'J': 'Ｊ', 'K': 'Ｋ', 'L': 'Ｌ',
     'M': 'Ｍ', 'N': 'Ｎ', 'O': 'Ｏ', 'P': 'Ｐ', 'Q': 'Ｑ', 'R': 'Ｒ',
@@ -102,7 +104,7 @@
     'ｋ': 'k', 'ｌ': 'l', 'ｍ': 'm', 'ｎ': 'n', 'ｏ': 'o', 'ｐ': 'p',
     'ｑ': 'q', 'ｒ': 'r', 'ｓ': 's', 'ｔ': 't', 'ｕ': 'u', 'ｖ': 'v',
     'ｗ': 'w', 'ｘ': 'x', 'ｙ': 'y', 'ｚ': 'z'
-  };
+  };*/
 
   var IMENumberTable = {
     '1': '１', '2': '２', '3': '３', '4': '４', '5': '５', '6': '６', '7': '７',
@@ -834,9 +836,6 @@
 
         if (!candidates.length) {
           candidates.push([_firstKanji, _firstKana]);
-        } else {
-          //_firstKanji = terms[0].kanji;
-          //_firstKana = terms[0].kana;
         }
 
         _candidateList = candidates.slice();
@@ -921,10 +920,6 @@
             candidates.push([term.kanji, term.kana]);
           });
         }
-        //else {
-          //_firstKanji = kanaStr;
-          //_firstKana = kanaStr;
-        //}
 
         // only one kana in buf
         if (_inputBuf.length === 1) {
@@ -966,8 +961,6 @@
 
             if (!exists) {
               candidates.push([sentenceKanji, sentenceKana]);
-              //_firstKanji = sentenceKanji;
-              //_firstKana = sentenceKana;
             }
           }
 

@@ -985,8 +985,6 @@ const Keyboards = {
   },
   'jp-kanji-en': {
     type: 'keyboard',
-    label: 'English',
-    menuLabel: 'English',
     needsCandidatePanel: true,
     disableAlternateLayout: true,
     hidesSwitchKey: true,
@@ -1014,8 +1012,6 @@ const Keyboards = {
   },
   'jp-kanji-en-caps': {
     type: 'keyboard',
-    label: 'English-CapsLock',
-    menuLabel: 'English-CapsLock',
     needsCandidatePanel: true,
     disableAlternateLayout: true,
     hidesSwitchKey: true,
