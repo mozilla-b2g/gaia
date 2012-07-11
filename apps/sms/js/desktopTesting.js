@@ -3,6 +3,12 @@
   Code below is for desktop testing!
 
 *********************************************************** */
+if (!navigator.mozSettings) {
+  window.addEventListener('load', function loadWithoutSettings() {
+    ThreadUI.init();
+    ThreadListUI.init();
+  });
+}
 
 if (!navigator.mozSms) {
   // We made up a fake database on
@@ -122,23 +128,4 @@ if (!navigator.mozSms) {
 
     }, 5000 + 3000 * Math.random());
   };
-}
-
-function escapeHTML(str, escapeQuotes) {
-  var span = document.createElement('span');
-  span.textContent = str;
-
-  // Escape space for displaying multiple space in message.
-  span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
-
-  if (escapeQuotes)
-    return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-  return span.innerHTML;
-}
-
-if (!navigator.mozSettings) {
-  window.addEventListener('load', function loadWithoutSettings() {
-    ThreadUI.init();
-    ThreadListUI.init();
-  });
 }

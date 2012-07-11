@@ -24,7 +24,9 @@
     <script type="text/javascript" src="js/contacts.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
-    <script type="text/javascript" src="js/desktopTesting.js"></script>
+    <script type="text/javascript">
+      if (!navigator.mozSms) { document.write('<script type="text/javascript" src="js/desktopTesting.js"><\/script>'); }
+    </script>
   </head>
 
   <body>

@@ -257,10 +257,10 @@ var ThreadListUI = {
   },
 
   createNewConversation: function thlui_createNewConversation(conversation) {
-    var dataName = escapeHTML(conversation.name || conversation.num, true);
-    var name = escapeHTML(conversation.name);
+    var dataName = Utils.escapeHTML(conversation.name || conversation.num, true);
+    var name = Utils.escapeHTML(conversation.name);
     var bodyText = conversation.body.split('\n')[0];
-    var bodyHTML = escapeHTML(bodyText);
+    var bodyHTML = Utils.escapeHTML(bodyText);
 
     return '<div class="item">' +
            '  <label class="fake-checkbox">' +
@@ -572,7 +572,7 @@ var ThreadUI = {
     var msgLines = message.body.split('\n');
     //Apply the escapeHTML body to each line
     msgLines.forEach(function(line, index) {
-      msgLines[index] = escapeHTML(line);
+      msgLines[index] = Utils.escapeHTML(line);
     });
     //Join them back with <br />
     var body = msgLines.join('<br />');
