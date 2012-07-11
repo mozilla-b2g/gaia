@@ -4,6 +4,7 @@ var contacts = window.contacts || {};
 
 contacts.List = (function() {
   var groupsList;
+  var searchBox  = document.getElementById('search-contact');
 
   var init = function load(element) {
     groupsList = element;
@@ -256,12 +257,53 @@ contacts.List = (function() {
     }
   }
 
+  var searchTimeout;
+  var search = function search() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(performSearch, 1000);
+  };
+
+  var performSearch = function performSearch() {
+    cleanContactsList();
+
+    if (!searchBox.value || searchBox.value.length == 0) {
+      init(document.getElementById('groups-list'));
+      load();
+      return;
+    }
+
+    console.log('Searching for ' + searchBox.value);
+
+    var options = {
+      filterBy: ['familyName', 'giveName', 'name'],
+      filterOp: 'contains',
+      filterValue: searchBox.value,
+      sortBy: 'familyName',
+      sortOrder: 'ascending'
+    };
+
+    var request = navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      init(document.getElementById('groups-list'));
+      buildContacts(request.result);
+    };
+  }
+
+  var cleanContactsList = function cleanContactsList() {
+    var list = document.getElementById('groups-list');
+    var template = list.children[0];
+
+    list.innerHTML = '';
+    list.appendChild(template);
+  }
+
   return {
     'init': init,
     'load': load,
     'refresh': refresh,
     'getContactById': getContactById,
     'handleClick': handleClick,
-    'remove': remove
+    'remove': remove,
+    'search': search
   };
 })();
