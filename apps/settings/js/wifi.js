@@ -407,11 +407,11 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       var okButton = buttons[0];
       okButton.onclick = function() {
-        close();
         if (identity)
           network.identity = identity.value;
         if (password)
           setPassword(password.value);
+        close();
         return callback ? callback() : false;
       };
 
