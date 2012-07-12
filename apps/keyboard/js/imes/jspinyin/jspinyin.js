@@ -75,24 +75,53 @@ var StringUtils = {
     });
   },
 
+  /**
+   * Convert a 16-bit integer number to 2 characters. The low 8-bit and high
+   * 8-bit are converted to 1st and 2nd characters respectively.
+   * @param {number} number The number to be converted. The bits higher than
+   *    16 will be truncated.
+   * @return {string}  A two character string representing the given number.      
+   */
   int16ToChars: function stringUtils_int16ToChars(number) {
     var low = StringUtils.int8ToChar(number & 0xff);
     var high = StringUtils.int8ToChar((number >> 8) & 0xff);
     return low + high;
   },
 
+  /**
+   * Convert a 2 characters string into integer number. The 1st and 2nd
+   * characters represent the low 8-bit and high 8-bit of the integer number
+   * respectively.
+   * @param {string} chars The strings to be converted. Only the first two
+   *    characters will be used.
+   * @return {number}  The converted number.
+   */
   charsToInt16: function stringUtils_charsToInt16(chars) {
     return StringUtils.charToInt8(chars.charAt(0)) +
         (StringUtils.charToInt8(chars.charAt(1)) << 8);
   },
 
+  /**
+   * Convert a 8-bit integer number to a single character.
+   * @param {number} number The number to be converted. The bits higher than
+   *    8 will be truncated.
+   * @return {string}  A character string representing the given number.      
+   */
   int8ToChar: function stringUtils_int8ToChar(number) {
+    // The character, whose code is less than 32, isn't printable. So
+    // adds 256 to make it printable.
     if (number < 32) {
       number += 256;
     }
     return String.fromCharCode(number);
   },
 
+  /**
+   * Convert a single character string into integer number.
+   * @param {string} c The character string to be converted. Only the first
+   *    character will be used.
+   * @return {number}  The converted number.
+   */
   charToInt8: function stringUtils_charToInt8(c) {
     var ret = c.charCodeAt(0);
     if (ret >= 256) {
