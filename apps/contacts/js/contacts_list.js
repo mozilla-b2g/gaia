@@ -5,17 +5,14 @@ var contacts = window.contacts || {};
 contacts.List = (function() {
   var groupsList,
       searchBox,
-      searchArea,
       fastScroll;
 
   searchBox = document.getElementById('search-contact');
   fastScroll = document.querySelector('.view-jumper');
-  searchArea = document.getElementById('search-list');
 
   var init = function load(element) {
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
-    searchArea.addEventListener('click', onClickHandler);
 
     // Populating contacts by groups
     var alphabet = [{group: 'favorites', letter: ''}];
@@ -272,7 +269,7 @@ contacts.List = (function() {
       performSearch();
       return;
     }
-    searchTimeout = setTimeout(performSearch, 1000);
+    searchTimeout = setTimeout(performSearch, 1);
   };
 
   var searchNoResults = function searchNoResults() {
@@ -299,8 +296,26 @@ contacts.List = (function() {
 
   var exitSearch = function exitSearch() {
     fastScroll.classList.remove('hide');
-    searchArea.classList.add('hide');
     groupsList.classList.remove('hide');
+
+    document.getElementById('group-favorites').parentNode.classList.remove('hide');
+
+    var allContacts = document.querySelectorAll(".block-item:not([data-uuid='#id#']");
+    for(var i=0; i<allContacts.length; i++) {
+      var contact = allContacts[i];
+      contact.classList.remove('search');
+      contact.classList.remove('hide');
+    }
+
+    var headers = document.querySelectorAll('[data-search]');
+    if(headers) {
+      for(var i in headers) {
+        if(headers[i].classList) {
+          headers[i].classList.remove('hide');
+          delete(headers[i].dataset['search']);
+        }
+      }
+    }
   }
 
   // Performs the real search
@@ -312,28 +327,35 @@ contacts.List = (function() {
       return;
     }
 
-    var options = {
-      filterBy: ['familyName', 'giveName', 'name'],
-      filterOp: 'contains',
-      filterValue: searchBox.value,
-      sortBy: 'familyName',
-      sortOrder: 'ascending'
-    };
+    var pattern = new RegExp(searchBox.value, 'i');
 
-    var request = navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      init(document.getElementById('groups-list'));
-      buildSearchContacts(request.result);
-    };
 
-    request.onerror = searchNoResults;
+    var headers = document.querySelectorAll('.block-title:not(.hide)');
+    if(headers) {
+      for(var i=0; i<headers.length; i++) {
+        if(headers[i].classList) {
+          headers[i].classList.add('hide');
+          headers[i].dataset['search'] = 1;
+        }
+      }
+    }
+
+    var allContacts = document.querySelectorAll(".block-item:not([data-uuid='#id#']");
+    for(var i=0; i<allContacts.length; i++) {
+      var contact = allContacts[i];
+      contact.classList.add('search');
+      var text = contact.children[1].children[1].textContent;
+      if(!pattern.test(text)) {
+        contact.classList.add('hide');
+      } else {
+        contact.classList.remove('hide');
+      }
+    }
   }
 
   var cleanContactsList = function cleanContactsList() {
-    searchArea.innerHTML = '';
     fastScroll.classList.add('hide');
-    searchArea.classList.remove('hide');
-    groupsList.classList.add('hide');
+    document.getElementById('group-favorites').parentNode.classList.add('hide');
   }
 
   return {

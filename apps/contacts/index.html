@@ -59,10 +59,11 @@
 
             <div id="groups-container" class="view-body-inner">
               <div id="search-container">
-                <input type="text" name="search" class="textfield" placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
+                <div id="search-input">
+                  <input type="text" name="search" class="textfield" placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
+                </div>
+                <ol class="block-list hidden" id="search-list"></ol>
               </div>
-              <ol class="block-list hidden" id="search-list"></ol>
-
               <ol class="block-list" id="groups-list">
                 <li data-template>
                   <h2 id="group-#group#" class="block-title hide">
