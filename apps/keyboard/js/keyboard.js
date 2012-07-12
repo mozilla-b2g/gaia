@@ -78,9 +78,7 @@ const IMEManager = {
     // https://github.com/mozilla-b2g/gaia/issues/2346
     if (this.fallback) {
       this.settingGroups.splice(
-        this.settingGroups.indexOf(this.defaultGroup),
-        1
-      );
+        this.settingGroups.indexOf(this.defaultGroup), 1);
       delete this.fallback;
     }
 
