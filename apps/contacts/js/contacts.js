@@ -155,6 +155,7 @@ var Contacts = (function() {
       saveButton,
       deleteContactButton,
       favoriteMessage;
+      cover;
 
   var currentContact = {};
 
@@ -180,6 +181,7 @@ var Contacts = (function() {
     deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
+    cover = document.getElementById('cover-img');
 
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = 'Are you sure you want to remove this contact?';
@@ -210,7 +212,6 @@ var Contacts = (function() {
     });
 
     var position = 0;
-    var cover = document.getElementById('cover-img');
 
     cover.addEventListener('mousedown', function(event) {
       if (contactDetails.classList.contains('no-photo'))
@@ -330,7 +331,6 @@ var Contacts = (function() {
       }
     }
 
-    var cover = document.getElementById('cover-img');
     var existsPhoto = 'photo' in contact && contact.photo;
     if (existsPhoto) {
       contactDetails.classList.add('up');
