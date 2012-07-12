@@ -11,7 +11,7 @@
   var scrollable = doc.querySelector('#groups-container');
   var overlay = doc.querySelector('.view-jumper-current');
   var overlayContent = doc.querySelector('#current-jumper');
-  overlayContent.textContent = '&nbsp;';
+  overlayContent.textContent = '';
   var overlayStyle = overlay.style;
 
   var alphabet = [];

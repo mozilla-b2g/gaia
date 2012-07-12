@@ -47,6 +47,13 @@ section {
   width: 100%;
 }
 
+button {
+  border: none;
+  background: transparent;
+  padding: 0px;
+  margin: 0px;
+}
+
 ol,
 menu li,
 ol li {

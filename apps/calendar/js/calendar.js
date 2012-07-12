@@ -11,6 +11,7 @@ Calendar.init = function calendar_init() {
 
   var monthView = new Views.Month({ controller: controller });
   var monthDayView = new Views.MonthsDay({ controller: controller });
+  var settings = new Views.Settings({ controller: controller });
 
   function setPath(path) {
     return function(ctx, next) {
@@ -29,12 +30,30 @@ Calendar.init = function calendar_init() {
 
   route.start();
 
-  //quick hack for today button
+  // quick hack for today button
   var today = document.querySelector('#view-selector .today');
 
   today.addEventListener('click', function() {
     monthView.render();
     controller.setSelectedDay(new Date());
+  });
+
+  // Another hack for toggling
+  document.body.addEventListener('click', function(event) {
+    var target = event.target;
+
+    if (target.tagName.toLowerCase() === 'a' &&
+        target.classList.contains('toggle')) {
+
+      var location = window.location.hash;
+      var href = target.getAttribute('href');
+
+      if (location === href) {
+        // clear target
+        event.preventDefault();
+        window.location.hash = '#clear';
+      }
+    }
   });
 
 };
