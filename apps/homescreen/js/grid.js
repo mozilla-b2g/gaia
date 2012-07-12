@@ -2,7 +2,7 @@
 'use strict';
 
 const GridManager = (function() {
-  var container, draggableIcon, draggableIconOrigin;
+  var container, homeContainer, draggableIcon, draggableIconOrigin;
 
   // Mode can be:
   //   - normal: the mode used to navigate and launch applications
@@ -166,10 +166,8 @@ const GridManager = (function() {
   function onStartEvent(evt) {
     container.dataset.transitioning = true;
     evt.stopPropagation();
-
     status.pCoords = status.cCoords = status.iCoords = getCoordinates(evt);
-    window.addEventListener('mousemove', GridManager);
-    window.addEventListener('mouseup', GridManager);
+    attachEvents();
   }
 
   /*
@@ -185,8 +183,35 @@ const GridManager = (function() {
       dragger.move(evt.target);
     } else {
       var difX = -(status.iCoords.x - status.cCoords.x);
-      pan(difX);
+      if (isRequestToLandingPage(difX)) {
+        releaseEvents();
+        dispatchGestureByHome();
+      } else {
+        pan(difX);
+      }
     }
+  }
+
+  /*
+   * Homescreen will dispatch the gesture
+   *
+   */
+  function dispatchGestureByHome() {
+    var ev = document.createEvent('Event');
+    ev.initEvent('mousedown', true, true);
+    ev.pageX = status.cCoords.x;
+    homeContainer.dispatchEvent(ev);
+  }
+
+  /*
+   * Returns true when we are in the first page swiping from left to
+   * right and not edit mode
+   *
+   * @param{int} horizontal movement from start and current position
+   */
+  function isRequestToLandingPage(difX) {
+    return pages.current === 0 && difX >= thresholdForTapping &&
+           !GridManager.isEditMode();
   }
 
   /*
@@ -194,17 +219,20 @@ const GridManager = (function() {
    */
   var thresholdForTapping = 10;
 
-  /*
-   * Returns true if it's a tap event
-   *
-   * @param{int} horizontal movement from start and current position
-   */
-  function isTapEvent(difX) {
-    return Math.abs(difX) < thresholdForTapping;
-  }
-
   function onTransitionEnd() {
     delete container.dataset.transitioning;
+  }
+
+  function releaseEvents() {
+    container.removeEventListener('contextmenu', GridManager);
+    window.removeEventListener('mousemove', GridManager);
+    window.removeEventListener('mouseup', GridManager);
+  }
+
+  function attachEvents() {
+    container.addEventListener('contextmenu', GridManager);
+    window.addEventListener('mousemove', GridManager);
+    window.addEventListener('mouseup', GridManager);
   }
 
   /*
@@ -214,8 +242,7 @@ const GridManager = (function() {
    */
   function onEndEvent(evt) {
     evt.stopPropagation();
-    window.removeEventListener('mousemove', GridManager);
-    window.removeEventListener('mouseup', GridManager);
+    releaseEvents();
 
     if (dragger.dragging) {
       dragger.stop(function dg_stop() {
@@ -254,7 +281,7 @@ const GridManager = (function() {
   /*
    * Renders the homescreen from moz applications
    */
-  function renderFromMozApps() {
+  function renderFromMozApps(finish) {
     var max = pageHelper.getMaxPerPage();
     var list = [];
 
@@ -272,7 +299,8 @@ const GridManager = (function() {
     }
 
     // Renders pagination bar
-    updatePaginationBar(true);
+    updatePaginationBar();
+    finish();
     addLanguageListener();
 
     // Saving initial state
@@ -282,7 +310,7 @@ const GridManager = (function() {
   /*
    * Renders the homescreen from the database
    */
-  function renderFromDB() {
+  function renderFromDB(finish) {
     var appsInDB = [];
     HomeState.getAppsByPage(
         function iterate(apps) {
@@ -291,7 +319,7 @@ const GridManager = (function() {
         },
         function onsuccess(results) {
           if (results === 0) {
-            renderFromMozApps();
+            renderFromMozApps(finish);
             return;
           }
 
@@ -309,12 +337,13 @@ const GridManager = (function() {
           }
 
           // Grid was loaded from DB
-          updatePaginationBar(true);
+          updatePaginationBar();
+          finish();
           addLanguageListener();
         },
         function onerror() {
           // Error recovering info about apps
-          renderFromMozApps();
+          renderFromMozApps(finish);
         }
     );
   }
@@ -322,10 +351,14 @@ const GridManager = (function() {
   /*
    * Renders the homescreen
    */
-  function render() {
+  function render(finish) {
     Applications.addEventListener('ready', function onAppsReady() {
       dirCtrl = getDirCtrl();
-      HomeState.init(renderFromDB, renderFromMozApps);
+      HomeState.init(function success() {
+        renderFromDB(finish);
+      }, function error() {
+        renderFromMozApps(finish);
+      });
       localize();
     });
   }
@@ -390,11 +423,11 @@ const GridManager = (function() {
     }
   }
 
-  function updatePaginationBar(show) {
-    PaginationBar.update(pages.current, pageHelper.total());
-    if (show) {
-      PaginationBar.show();
-    }
+  var gridPageNumber = 1;
+
+  function updatePaginationBar() {
+    PaginationBar.update(pages.current + gridPageNumber,
+                         pageHelper.total() + gridPageNumber);
   }
 
   /*
@@ -747,18 +780,19 @@ const GridManager = (function() {
      * @param {String} selector of the container for applications
      *
      */
-    init: function gm_init(selector) {
+    init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
       container.innerHTML = '';
+
+      homeContainer = container.parentNode.parentNode;
 
       limits.left = container.offsetWidth * 0.08;
       limits.right = container.offsetWidth * 0.92;
 
       container.addEventListener('mousedown', this, true);
       container.addEventListener('resize', this, true);
-      container.addEventListener('contextmenu', this);
 
-      render();
+      render(finish);
     },
 
     /*
@@ -873,6 +907,11 @@ const GridManager = (function() {
     /*
      * Exports the dirCtrl utils
      */
-    get dirCtrl() { return dirCtrl; }
+    get dirCtrl() {
+      return dirCtrl;
+    },
+
+    // Go directly to one page
+    goTo: goTo
   };
 })();

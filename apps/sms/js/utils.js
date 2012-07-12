@@ -211,8 +211,8 @@ if (!navigator.mozSms) {
         message: message
       };
 
-      ConversationView.handleEvent.call(ConversationView, evt);
-      ConversationListView.handleEvent.call(ConversationView, evt);
+      ThreadUI.handleEvent.call(ThreadUI, evt);
+      ThreadListUI.handleEvent.call(ThreadListUI, evt);
 
       // the SMS DB is written after the callback
       window.setTimeout(function writeDB() {
@@ -237,7 +237,7 @@ function escapeHTML(str, escapeQuotes) {
 
 if (!navigator.mozSettings) {
   window.addEventListener('load', function loadWithoutSettings() {
-    ConversationView.init();
-    ConversationListView.init();
+    ThreadUI.init();
+    ThreadListUI.init();
   });
 }

@@ -14,6 +14,7 @@
     <link href="style/css/components/lists.css" rel="stylesheet">
 
     <link href="style/contacts.css" rel="stylesheet">
+    <link href="style/request.css" rel="stylesheet">
     <link rel="resource" type="application/l10n" href="locale/contacts.properties"/>
 
     <script defer type="text/javascript" src="js/utilities/responsive.js"></script>
@@ -22,6 +23,7 @@
     <script defer type="text/javascript" src="js/contacts_list.js"></script>
     <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
     <script defer type="text/javascript" src="js/contacts.js"></script>
+    <script defer type="text/javascript" src="js/request.js"></script>
     <script defer type="text/javascript" src="js/sms_integration.js"></script>
   </head>
 
@@ -72,6 +74,7 @@
                         </figure>
                         <p class="item-body">
                           <strong class="block-name">#givenName# <b>#familyName#</b></strong>
+													<small class="block-company">#org#</small>
                         </p>
                       </a>
                     </li>
@@ -100,7 +103,7 @@
               <section id="contact-detail">
                 <h1 id='org-title'></h1>
                 <!-- Phone Template -->
-                <li id='phone-details-template' data-template>
+                <li id='phone-details-template-#i#' data-template>
                   <h2>#type#</h2>
                   <div class="item">
                     <div class="item-media pull-right">
@@ -115,22 +118,43 @@
                     </div>
                   </div>
                 </li>
+
                 <!-- Email Template -->
-                <li id='email-details-template' data-template>
-                  <!-- Hardcoded while we don't have a place to store email's type -->
-                  <h2>MAIL</h2>
+                <li id='email-details-template-#i#' data-template>
+                  <h2>#type#</h2>
                   <div class="item">
                     <div class="item-body-exp">
                       <button class="action">
                         <span role="button" class="icon-email">E-mail</span>
-                        <b>#email#</b>
+                        <b>#address#</b>
                       </button>
                     </div>
                   </div>
                 </li>
 
+                <!-- Address Template -->
+                <li id='address-details-template-#i#' data-template>
+                  <h2>#type#</h2>
+                  <div class="item">
+                    <div class="item-body-exp">
+                      <a href="javascript: void(0);" class="action action-block">
+                        <span role="button" class="icon-address">Address</span>
+                        <b>
+                        <span>#streetAddress#</span>
+                          #postalCode#
+                          #locality#
+                          #countryName#
+                        </b>
+                      </a>
+                    </div>
+                  </div>
+                </li>
+
+                <!-- Comment Template -->
+                <p id='note-details-template-#i#' data-template class="comment-notes">#note#</p>
+
                 <ul id='details-list'>
-                  <!-- Iterating mails and phones here -->
+                  <!-- Iterating mails, phones, addresses adn comments here -->
                 </ul>
               </section>
             </div>
@@ -144,7 +168,7 @@
         <div class="view-inner">
 
           <header role="toolbar" class="view-header">
-            <button class="negative" onclick="Contacts.goBack();"><span data-icon="back">back</span></button>
+            <button class="negative" onclick="Contacts.goBack();"><span data-icon="close">Exit</span></button>
             <menu role="menu" id='contact-form-actions'>
               <button id="save-button" onclick="Contacts.saveContact();" role="menuitem">Done</button>
             </menu>
@@ -174,16 +198,54 @@
           <!-- EMAIL TEMPLATE -->
           <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
             <dl class="setbox fillflow-row">
-              <!-- Commented while we don't have an email type field in contacts -->
-              <!-- <dt class="setbox-title">
-                  <input type="text" data-taglist='email-type' onclick="Contacts.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">
-                    <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-                  </input>
-                </dt> -->
+              <dt class="setbox-title">
+                <a data-taglist='email-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>
+                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+                </dt>
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="email_#i#">e-mail:</label>
-                  <input placeholder="Email" name="email" class="textfield" type="email" value="#email#" id="email_#i#">
+                  <input placeholder="Email" name="email" class="textfield" type="email" value="#address#" id="email_#i#">
+                </p>
+              </dd>
+            </dl>
+          </div>
+
+          <!-- ADDRESS TEMPLATE -->
+          <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
+            <dl class="setbox fillflow-row">
+              <dt class="setbox-title">
+                  <a data-taglist='address-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>
+                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+              </dt>
+              <dd class="setbox-body">
+                <p class="setbox-item">
+                  <label class="hide" for="streetAddress_#i#">Street:</label>
+                  <input placeholder="Street" data-field="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
+                </p>
+                <p class="setbox-item">
+                  <label class="hide" for="postalCode_#i#">Zip Code:</label>
+                  <input placeholder="Zip Code" data-field="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+                </p>
+                <p class="setbox-item">
+                  <label class="hide" for="locality_#i#">City:</label>
+                  <input placeholder="City" data-field="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
+                </p>
+                <p class="setbox-item">
+                  <label class="hide" for="countryName_#i#">Country:</label>
+                  <input placeholder="Country" data-field="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
+                </p>
+              </dd>
+            </dl>
+          </div>
+
+          <!-- COMMENTS TEMPLATE -->
+          <div id='add-note-#i#' data-template class='note-template' data-index="#i#">
+            <dl class="setbox fillflow-row">
+              <dd class="setbox-body">
+                <p class="setbox-item">
+                  <label class="hide" for="note_#i#">comment:</label>
+                  <input placeholder="Comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
                 </p>
               </dd>
             </dl>
@@ -225,9 +287,9 @@
                   <b>Add phone number</b>
                 </button>
 
-                <fieldset id='contacts-form-email'>
+                <fieldset>
                   <legend>E-mail address</legend>
-                    <div id='contacts-form-phones'>
+                    <div id='contacts-form-emails'>
                       <!-- Iterating over email template here -->
                     </div>
                 </fieldset>
@@ -236,8 +298,40 @@
                   <span role="button" class="icon-add"></span>
                   <b>Add email address</b>
                 </button>
+
+                <fieldset>
+                  <legend>Address</legend>
+                    <div id='contacts-form-addresses'>
+                      <!-- Iterating over address template here -->
+                    </div>
                 </fieldset>
+
+                <button onclick='Contacts.addNewAddress(); return false;' id='add-new-address' class="fillflow-row action action-add">
+                  <span role="button" class="icon-add"></span>
+                  <b>Add new address</b>
+                </button>
+                
+                <fieldset>
+                  <legend>Comments</legend>
+                    <div id='contacts-form-notes'>
+                      <!-- Iterating over comment template here -->
+                    </div>
+                </fieldset>
+
+                <button onclick='Contacts.addNewNote(); return false;' id='add-new-note' class="fillflow-row action action-add">
+                  <span role="button" class="icon-add"></span>
+                  <b>Add comment</b>
+                </button>
+
+                <hr/>
+                <button onclick='Contacts.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
+                  <b>Add as favorite</b>
+                </button>
               </form>
+
+              <button id='delete-contact' class="hide fillflow-row action action-delete">
+                <b>Delete contact</b>
+              </button>
             </div>
           </article>
         </div>

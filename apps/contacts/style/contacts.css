@@ -42,6 +42,12 @@
   -moz-transition: margin-top 0.5s ease-out;
 }
 
+.view-contact-profile .view-body-inner .comment-notes {
+  font-family: System Sans Semibold;
+  font-size: 1.3rem;
+  line-height: 1.3em;
+}
+
 #contact-detail h1 {
   font: 1.4rem/1.5em System Sans Semibold, Sans-serif;
   border-bottom: solid 1px #dbd9d9;
@@ -77,4 +83,19 @@
   width: 5rem;
   height: 5rem;
   margin: -2.5rem 0 0 0;
+}
+
+hr {
+  background-color: #BCBCBC;
+  border: 0;
+  height: 1px;
+}
+
+/* Favorites handling */
+#group-favorites abbr {
+  background: url(gphx/bitmap/default/lists/favorites.png);
+  display: block;
+  background-size: 100% auto;
+  width: 2rem;
+  height: 2rem;
 }

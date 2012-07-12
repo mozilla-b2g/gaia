@@ -76,6 +76,8 @@ else
 GAIA_PORT?=
 endif
 
+# Force bash for all shell commands since we depend on bash-specific syntax
+SHELL := /bin/bash
 
 # what OS are we on?
 SYS=$(shell uname -s)
@@ -116,7 +118,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
+profile: preferences test-agent-config offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -128,6 +130,7 @@ webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	@echo { > profile/webapps/webapps.json
+	id=1; \
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
@@ -142,11 +145,13 @@ webapp-manifests:
 			echo \"installOrigin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
+			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
+			echo \"localId\": $$id ;\
 			echo },) >> profile/webapps/webapps.json;\
+			: $$((id++)); \
 		fi \
-	done
-	@cd external-apps; \
+	done; \
+	cd external-apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
@@ -159,8 +164,10 @@ webapp-manifests:
 			echo \"installOrigin\": \"`cat $$d/origin`\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\" ;\
+			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\", ;\
+			echo \"localId\": $$id ;\
 			echo },) >> ../profile/webapps/webapps.json;\
+			: $$((id++)); \
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
@@ -170,7 +177,7 @@ webapp-manifests:
 
 
 # Generate profile/OfflineCache/
-offline: install-xulrunner
+offline: install-xulrunner update-offline-manifests webapp-manifests
 ifneq ($(DEBUG),1)
 	@echo "Building offline cache"
 	@rm -rf profile/OfflineCache
@@ -427,7 +434,7 @@ forward:
 
 
 # update the manifest.appcache files to match what's actually there
-update-offline-manifests:
+update-offline-manifests: stamp-commit-hash
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		rm -rf $$d/manifest.appcache ;\
