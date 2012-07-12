@@ -117,7 +117,7 @@ button::-moz-focus-inner {
   border-radius: 0 0  0.3rem 0.3rem;
   border: solid 1px #343638;
   border-top: none;
-  margin: -0.5rem -2px -2px;
+  margin: -0.5rem 0 0;
   height: 4.3rem;
 }
 
@@ -126,6 +126,7 @@ button::-moz-focus-inner {
   background: #6ec5d5;
   color: #1a3f46;
   border: solid 1px #343638;
+  border-radius: 0.3rem;
   height: 5.2rem;
   top: -5.3rem;
   left: -0.8rem;
