@@ -5,12 +5,12 @@
 header[role="toolbar"] {
   border-bottom: 0.1rem solid #992f21;
   background-image: -moz-linear-gradient(#B84F00, #AB3319);
-  box-shadow: -1px -2px 4px 1px black;
+  box-shadow: 0px -1px 4px 1px black;
 }
 
 header[role="toolbar"] {
   width: 100%;
-  padding: 0.9rem 0.6rem;
+  padding: 0.9rem 0;
   font-size: 1.8rem;
   height: 4.46rem;
   line-height: 3.0rem;
@@ -22,6 +22,13 @@ header[role="toolbar"] {
   float: right;
 }
 
+header[role="toolbar"] a.toggle-settings {
+  background: transparent url('/style/icons/HeaderIcon_30x30_menu.png') no-repeat;
+  width: 30px;
+  height: 30px;
+}
+
+
 header[role="toolbar"] a {
   display: inline-block;
   float: left;
@@ -29,18 +36,19 @@ header[role="toolbar"] a {
 }
 
 header[role="toolbar"] a:last-child {
-  width: 2rem;;
+  width: 30px;
 }
 
 header[role="toolbar"] a:first-child {
-  width: 2rem;
+  width: 30px;
 }
 
 header[role="toolbar"] h1 {
-  width: 60%;
+  width: -moz-calc(100% - 60px);
   float: left;
   font-family: 'Open Sans Light';
   text-align: left;
   font-weight: normal;
+  padding: 0 0.6rem;
 }
 
