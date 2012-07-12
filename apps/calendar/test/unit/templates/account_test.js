@@ -12,13 +12,6 @@ suite('templates/day', function() {
     return subject[type].render(options);
   }
 
-  test('#account', function() {
-    var output = renderHTML('account', '</br>');
-
-    assert.ok(output);
-    assert.include(output, '</br>');
-  });
-
   test('#accountItem', function() {
     var output = renderHTML('accountItem', {
       name: 'yahoo'

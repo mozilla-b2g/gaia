@@ -4,7 +4,6 @@
   }
 
   var Account = Calendar.Template.create({
-    account: '<ol class="accounts">{value|s}</ol>',
     accountItem: [
       '<li class="{name}">',
         '<a data-provider="{name}" href="create-account/{name}">{name}</a>',
