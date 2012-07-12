@@ -33,7 +33,7 @@ function search(ms, py) {
   ms.search(py);
   var cands = '';
   var num = ms.get_candidate_num();
-  for (var i=0; i<num; i++) {
+  for (var i = 0; i < num; i++) {
     if (i % 10 == 0) {
       cands += '\n';
     }

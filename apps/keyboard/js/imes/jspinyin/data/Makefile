@@ -1,24 +1,18 @@
-.PHONY: deploydata dictbuilder clean
+.PHONY: dictbuilder clean
 
-deploydata: data.txt data-tr.txt
-	./cook.sh
+dictbuilder: rawdict.txt rawdict_tr.txt valid.txt pinyinime_dictbuilder.js
+	js -U pinyinime_dictbuilder.js > ../db.json
 
-dictbuilder: data.txt valid.txt pinyinime_dictbuilder.js
-	js -U pinyinime_dictbuilder.js > ../dict_pinyin.json
-	
 rawdict.txt: rawdict_utf16_65105_freq.txt
 	iconv -f UTF-16 -t UTF-8 rawdict_utf16_65105_freq.txt -o $@
+
+rawdict_tr.txt: rawdict.txt
+	cconv -f UTF8-CN -t UTF8-HK rawdict.txt -o $@
 
 valid.txt: valid_utf16.txt
 	iconv -f UTF-16 -t UTF-8 valid_utf16.txt -o $@
 
-data.txt: rawdict.txt 
-	awk '$$3="0"{print $$0}' rawdict.txt > $@
-
-data-tr.txt: data.txt
-	cconv -f UTF8-CN -t UTF8-HK data.txt -o $@
-
 clean:
-	rm -f data.txt
-	rm -f data-tr.txt
 	rm -f rawdict.txt
+	rm -f rawdict_tr.txt
+	rm -f valid.txt

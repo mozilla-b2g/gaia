@@ -13,8 +13,8 @@ var DictTrie = Build.DictTrie;
 //  Build binary dictionary model
 function main() {
   var dict_trie = new DictTrie();
-  dict_trie.build_dict("sm://data/rawdict.txt", "sm://data/valid.txt",
-      function buildCallback(isOk) {
+  dict_trie.build_dict('sm://data/rawdict.txt', 'sm://data/valid.txt',
+      'sm://data/rawdict_tr.txt', function buildCallback(isOk) {
     if (!isOk) {
       throw 'Build dictionary unsuccessfully.';
       quit();

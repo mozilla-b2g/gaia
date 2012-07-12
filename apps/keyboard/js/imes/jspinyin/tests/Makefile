@@ -5,7 +5,7 @@ test-all:
 
 
 build-dict-test:
-	js -U testBuildDict.js
+	js -U build_dict_test.js
 
 spelling-parser-test:
 	js -U testSpellingParser.js

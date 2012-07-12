@@ -80,7 +80,7 @@ var StringUtils = {
    * 8-bit are converted to 1st and 2nd characters respectively.
    * @param {number} number The number to be converted. The bits higher than
    *    16 will be truncated.
-   * @return {string}  A two character string representing the given number.      
+   * @return {string}  A 2-character string representing the given number.
    */
   int16ToChars: function stringUtils_int16ToChars(number) {
     var low = StringUtils.int8ToChar(number & 0xff);
@@ -105,7 +105,7 @@ var StringUtils = {
    * Convert a 8-bit integer number to a single character.
    * @param {number} number The number to be converted. The bits higher than
    *    8 will be truncated.
-   * @return {string}  A character string representing the given number.      
+   * @return {string}  A character string representing the given number.
    */
   int8ToChar: function stringUtils_int8ToChar(number) {
     // The character, whose code is less than 32, isn't printable. So
@@ -301,7 +301,7 @@ var IMEngine = function engine_constructor() {
   this._keypressQueue = [];
 };
 
-IMEngine.SYS_DICT_FILE_NAME = 'xhr://{PATH}/dict_pinyin.json';
+IMEngine.SYS_DICT_FILE_NAME = 'xhr://{PATH}/db.json';
 IMEngine.USER_DICT_FILE_NAME = 'idb://user_dict';
 
 IMEngine.prototype = {
@@ -1414,11 +1414,11 @@ SpiderMonkeyFileSystemStorage.prototype = {
   read: function spiderMonkeyFileSystemStorage_read(name, callback) {
     debug('SpiderMonkeyFileSystemStorage read file: ' + name);
     var content = '';
-    function doCallback() {
+    var doCallback = function read_doCallback() {
       if (callback) {
         callback(content);
       }
-    }
+    };
 
     // Check if the storage is ready.
     if (!this.isReady()) {
@@ -1805,16 +1805,44 @@ DictDef.LmaNodeGE1.prototype = {
 };
 
 DictDef.SingleCharItem = function singleCharItem_constructor() {
-  this.splid = new DictDef.SpellingId();
+  this.splid = new DictDef.SpellingId(0, 0);
+  this.freq = 0;
+  this.hz = '';
+  this.hz_tr = '';
 };
 
 DictDef.SingleCharItem.prototype = {
   freq: 0.0,
+
+  /**
+   * Simplified hanzi char.
+   * @type string
+   */
   hz: '',
+
+  /**
+   * TODO
+   * Traditional hanzi char.
+   * @type string
+   */
+  hz_tr: '',
+
   /**
    * @type DictDef.SpellingId
    */
-  splid: null
+  splid: null,
+
+  /**
+   * Copy the content.
+   * @param {DictDef.SingleCharItem} src The source to be copied from.
+   * @return {void}  No return value.
+   */
+  copy: function singleCharItem_copy(src) {
+    this.freq = src.freq;
+    this.hz = src.hz;
+    this.hz_tr = src.hz_tr;
+    this.splid = src.splid;
+  }
 };
 
 DictDef.LemmaEntry = function lemmaEntry_constructor() {
@@ -1832,7 +1860,19 @@ DictDef.LemmaEntry = function lemmaEntry_constructor() {
 DictDef.LemmaEntry.prototype = {
   idx_by_py: 0,
   idx_by_hz: 0,
+
+  /**
+   * Simplified hanzi string.
+   * @type string
+   */
   hanzi_str: '',
+
+  /**
+   * TODO
+   * Traditional hanzi string.
+   * @type string
+   */
+  hanzi_str_tr: '',
 
   /**
    * The SingleCharItem id for each Hanzi.
@@ -5285,21 +5325,22 @@ DictTrie.prototype = {
   /* ==== Public ==== */
 
   /**
-   * Build dictionary trie from the file fn_raw. File fn_validhzs provides
-   * valid chars. If fn_validhzs is NULL, only chars in GB2312 will be
-   * included.
-   * @param {string} fn_raw The raw data file name.
+   * Build dictionary trie from the file fn_raw, fn_raw_tr. File fn_validhzs
+   * provides valid chars. If fn_validhzs is null, only chars in GB2312 will
+   * be included.
+   * @param {string} fn_raw The raw data file name for simplified Chinese.
    * @param {string} fn_validhzs The valid hanzi file name.
-   * @param {DictTrie} dict_trie The DictTrie to be built.
+   * @param {string} fn_raw_tr The raw data file name for traditional Chinese.
    * @param {function(boolean)} callback The function object that is
    *    called when the operation is finished. The boolean parameter indicates
    *    whether the dict is built successfully.
    * @return {void} No return value.
    */
-  build_dict: function dictTrie_build_dict(fn_raw, fn_validhzs, callback) {
+  build_dict: function dictTrie_build_dict(fn_raw, fn_validhzs, fn_raw_tr,
+      callback) {
     var dict_builder = new DictBuilder();
     this.reset_milestones(0, DictTrie.kFirstValidMileStoneHandle);
-    dict_builder.build_dict(fn_raw, fn_validhzs, this, callback);
+    dict_builder.build_dict(fn_raw, fn_validhzs, fn_raw_tr, this, callback);
   },
 
   /**
@@ -6642,15 +6683,16 @@ DictBuilder.prototype = {
    * Build dictionary trie from the file fn_raw. File fn_validhzs provides
    * valid chars. If fn_validhzs is NULL, only chars in GB2312 will be
    * included.
-   * @param {string} fn_raw The raw data file name.
+   * @param {string} fn_raw The raw data file name for simplified Chinese.
    * @param {string} fn_validhzs The valid hanzi file name.
+   * @param {string} fn_raw_tr The raw data file name for traditional Chinese.
    * @param {DictTrie} dict_trie The DictTrie to be built.
    * @param {function(boolean)} callback The function object that is
    *    called when the operation is finished. The boolean parameter indicates
    *    whether the dict is built successfully.
    */
-  build_dict: function dictBuilder_build_dict(fn_raw, fn_validhzs, dict_trie,
-                                              callback) {
+  build_dict: function dictBuilder_build_dict(fn_raw, fn_validhzs, fn_raw_tr,
+      dict_trie, callback) {
     var self = this;
     var isOk = false;
     function doCallback() {
@@ -6658,7 +6700,7 @@ DictBuilder.prototype = {
         callback(isOk);
       }
     }
-    if (!fn_raw) {
+    if (!fn_raw || !fn_raw_tr) {
       doCallback();
       return;
     }
@@ -6666,11 +6708,12 @@ DictBuilder.prototype = {
     // Open the raw dict files
 
     var rawStr = '';
+    var rawStrTr = '';
     var validhzsStr = '';
 
     var taskQueue = new TaskQueue(
         function taskQueueOnCompleteCallback(queueData) {
-      isOk = self.build_dict_internal(rawStr, validhzsStr, dict_trie);
+      isOk = self.build_dict_internal(rawStr, validhzsStr, rawStrTr, dict_trie);
       doCallback();
     });
 
@@ -6684,16 +6727,23 @@ DictBuilder.prototype = {
       }
     };
 
-    taskQueue.push(function initIdb(taskQueue, taskData) {
+    taskQueue.push(function readRawTask(taskQueue, taskData) {
       FileSystemService.read(fn_raw, function rawReadCallback(str) {
         rawStr = str;
         processNextWithDelay();
       });
     });
 
+    taskQueue.push(function readRawTrTask(taskQueue, taskData) {
+      FileSystemService.read(fn_raw_tr, function rawReadCallback(str) {
+        rawStrTr = str;
+        processNextWithDelay();
+      });
+    });
+
     if (fn_validhzs) {
-      taskQueue.push(function initIdb(taskQueue, taskData) {
-        FileSystemService.read(fn_validhzs, function validhzsReadCallback(str) {
+      taskQueue.push(function readValidTask(taskQueue, taskData) {
+        FileSystemService.read(fn_validhzs, function validReadCallback(str) {
           validhzsStr = str;
           processNextWithDelay();
         });
@@ -6910,20 +6960,23 @@ DictBuilder.prototype = {
    * Build dictionary trie from raw dict string. String validhzs provides
    * valid chars. If validhzs is empty, only chars in GB2312 will be
    * included.
-   * @param {string} raw The raw dict data string.
+   * @param {string} raw The raw dict data string for simplified Chinese.
    * @param {string} validhzs The valid hanzi string.
+   * @param {string} raw_tr The raw dict data string for traditional Chinese.
    * @param {DictTrie} dict_trie The DictTrie to be built.
    * @return {boolean} true if succeed.
    */
-  build_dict_internal:
-      function dictBuilder_build_dict(raw, validhzs, dict_trie) {
-    if (!raw) {
+  build_dict_internal: function dictBuilder_build_dict(raw, validhzs, raw_tr,
+      dict_trie) {
+    if (!raw || !raw_tr) {
+      debug('build_dict_internal failed. The raw dict file is empty.');
       return false;
     }
 
-    var lemma_num = this.read_raw_dict(raw, validhzs, 240000);
-    if (0 == lemma_num)
+    var lemma_num = this.read_raw_dict(raw, validhzs, raw_tr, 240000);
+    if (0 == lemma_num) {
       return false;
+    }
 
     // Arrange the spelling table, and build a spelling tree
     var spl_buf = this.spl_table_.arrange();
@@ -7137,10 +7190,6 @@ DictBuilder.prototype = {
 
     // This first one is blank, because id 0 is invalid.
     sci = new DictDef.SingleCharItem();
-    sci.freq = 0;
-    sci.hz = 0;
-    sci.splid.full_splid = 0;
-    sci.splid.half_splid = 0;
     this.scis_[0] = sci;
     scis_num = 1;
 
@@ -7150,7 +7199,8 @@ DictBuilder.prototype = {
       var hz_num = lemma.hanzi_str.length;
       for (var hzpos = 0; hzpos < hz_num; hzpos++) {
         sci = new DictDef.SingleCharItem();
-        sci.hz = lemma.hanzi_str[hzpos];
+        sci.hz = lemma.hanzi_str.charAt(hzpos);
+        sci.hz_tr = lemma.hanzi_str_tr.charAt(hzpos);
         sci.splid.full_splid = lemma.spl_idx_arr[hzpos];
         sci.splid.half_splid =
             spl_trie.full_to_half(lemma.spl_idx_arr[hzpos]);
@@ -7182,7 +7232,7 @@ DictBuilder.prototype = {
           this.scis_[pos - 1].splid.full_splid) {
         continue;
       }
-      this.scis_[unique_scis_num] = this.scis_[pos];
+      this.scis_[unique_scis_num].copy(this.scis_[pos]);
       unique_scis_num++;
     }
     this.scis_.length = unique_scis_num;
@@ -7476,8 +7526,8 @@ DictBuilder.prototype = {
    * are more items in the ditionary, only the first max_item will be read.
    * @return {number} The number of items successfully read from the file.
    */
-  read_raw_dict: function dictBuilder_read_raw_dict(raw, validhzs,
-                                                           max_item) {
+  read_raw_dict: function dictBuilder_read_raw_dict(raw, validhzs, raw_tr,
+      max_item) {
     if (!raw) return 0;
 
     // Read the number of lemmas in the file
@@ -7491,7 +7541,9 @@ DictBuilder.prototype = {
 
     // Split raw into lines
     var lines = raw.match(/^.*([\r\n]+|$)/gm);
+    var lines_tr = raw_tr.match(/^.*([\r\n]+|$)/gm);
     var line_num = lines.length;
+    assert(line_num == lines_tr.length, 'read_raw_dict assertion error.');
 
     lemma_num = 0;
 
@@ -7500,10 +7552,12 @@ DictBuilder.prototype = {
 
       // The tokens of each line are seperated by white spaces.
       var tokens = lines[i].split(/\s+/g);
+      var tokens_tr = lines_tr[i].split(/\s+/g);
       var lemma = new DictDef.LemmaEntry();
 
       // Get the Hanzi string
       var hanzi = tokens[0].trim();
+      var hanzi_tr = tokens_tr[0].trim();
       var lemma_size = hanzi.length;
       if (lemma_size > DictDef.kMaxLemmaSize) {
         debug('Drop the lemma whose size exceeds the limit: ' + hanzi);
@@ -7511,6 +7565,7 @@ DictBuilder.prototype = {
       }
 
       lemma.hanzi_str = hanzi;
+      lemma.hanzi_str_tr = hanzi_tr;
 
       // Get the freq
       var freq = parseFloat(tokens[1]);
@@ -9858,6 +9913,10 @@ UserDict.prototype = {
   // +----------------+
 };
 
+/**
+ * Save the hanzi strings and make predictions with specified hanzi prefix.
+ * @constructor
+ */
 var DictList = function dictList_constructor() {
   this.start_pos_ = [];
   this.start_id_ = [];
@@ -9890,8 +9949,10 @@ DictList.prototype = {
       start_pos_: self.start_pos_,
       start_id_: self.start_id_,
       scis_hz_: self.scis_hz_,
+      scis_hz_tr_: self.scis_hz_tr_,
       scis_splid_: self.scis_splid_,
-      buf_: self.buf_
+      buf_: self.buf_,
+      buf_tr_: self.buf_tr_
     };
     return JSON.stringify(jsonData);
   },
@@ -9915,8 +9976,10 @@ DictList.prototype = {
       this.start_pos_ = jsonData.start_pos_;
       this.start_id_ = jsonData.start_id_;
       this.scis_hz_ = jsonData.scis_hz_;
+      this.scis_hz_tr_ = jsonData.scis_hz_tr_;
       this.scis_splid_ = jsonData.scis_splid_;
       this.buf_ = jsonData.buf_;
+      this.buf_tr_ = jsonData.buf_tr_;
     } catch (ex) {
       debug('load_list: ' + ex);
       return false;
@@ -10109,18 +10172,39 @@ DictList.prototype = {
    */
   spl_trie_: null,
 
-  // Number of SingCharItem. The first is blank, because id 0 is invalid.
+  // Number of SingleCharItem. The first is blank, because id 0 is invalid.
   scis_num_: 0,
 
+  /**
+   * Simplified SingleCharItem buffer.
+   * @type string.
+   */
   scis_hz_: '',
+
+  /**
+   * TODO
+   * Traditional SingleCharItem buffer.
+   * @type string
+   */
+  scis_hz_tr_: '',
 
   /**
    * @type Array.<DictDef.SpellingId>
    */
   scis_splid_: null,
 
-  // The large memory block to store the word list.
+  /**
+   * The large memory block to store the word list of simplified Chinese.
+   * @type string
+   */
   buf_: '',
+
+  /**
+   * TODO
+   * The large memory block to store the word list of traditional Chinese.
+   * @type string
+   */
+  buf_tr_: '',
 
   /**
    * Starting position of those words whose lengths are i+1.
@@ -10199,8 +10283,10 @@ DictList.prototype = {
 
   fill_scis: function dictList_fill_scis(scis) {
     this.scis_hz_ = '';
+    this.scis_hz_tr_ = '';
     for (var pos = 0; pos < this.scis_num_; pos++) {
       this.scis_hz_ += scis[pos].hz;
+      this.scis_hz_tr_ += scis[pos].hz_tr;
       this.scis_splid_[pos] = scis[pos].splid;
     }
   },
@@ -10210,8 +10296,10 @@ DictList.prototype = {
   fill_list: function dictList_fill_list(lemma_arr) {
     var lemma_num = lemma_arr.length;
     this.buf_ = '';
+    this.buf_tr_ = '';
     for (var i = 0; i < lemma_num; i++) {
       this.buf_ += lemma_arr[i].hanzi_str;
+      this.buf_tr_ += lemma_arr[i].hanzi_str_tr;
     }
   },
 

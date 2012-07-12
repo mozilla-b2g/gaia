@@ -14,7 +14,7 @@ Database JSON files:
    $ cd data
    $ make
 
-./db.json and ./db-tr.json will be updated.
+./db.json will be updated.
 
 
 Running tests:
