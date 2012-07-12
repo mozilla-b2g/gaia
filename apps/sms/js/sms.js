@@ -32,7 +32,7 @@ var MessageManager = {
             bodyclassList.remove('conversation');
             bodyclassList.remove('conversation-new-msg');
             break;
-          case '#edit':  
+          case '#edit':
             //TODO Add new style management
             break;
           default:
@@ -272,7 +272,7 @@ var ThreadListUI = {
 
     this._lastHeader = conversation.timestamp;
 
-    return '<div class="groupHeader">' + 
+    return '<div class="groupHeader">' +
     Utils.getHeaderDate(conversation.timestamp) + '</div>';
 
   }
@@ -487,8 +487,6 @@ var ThreadUI = {
            '  </div>' +
            '</div>';
   },
-
-  
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'keyup':
@@ -544,8 +542,6 @@ var ThreadUI = {
             ThreadUI.renderMessages(ThreadUI.filter);
         }
         ThreadListUI.renderThreads();
-
-        
         return;
       }
 
