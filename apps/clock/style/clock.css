@@ -306,7 +306,7 @@ html * {
   color: red;
 }
 
-#clock {
+#clock-view {
   width: 100%;
   height: 100%;
   color: black;
@@ -315,20 +315,27 @@ html * {
   text-align: center;
 }
 
-#clock-display {
+#digital-clock {
   width: 90%;
   margin-top: 14%;
   margin-left: 5%;
+  display: none;
+}
+
+#digital-clock.visible {
+  display: block;
 }
 
 #clock-time {
   font: 13.5rem 'Open Sans', sans-serif;
   line-height: 13.5rem;
+  pointer-events: none;
 }
 
 #clock-hour24-state {
   font: 5rem 'Open Sans', sans-serif;
   line-height: 5rem;
+  pointer-events: none;
 }
 
 #clock-day-date {
@@ -338,22 +345,52 @@ html * {
   line-height: 7.8rem;
 }
 
+#analog-clock {
+  height: auto;
+  max-height: 47rem;
+  margin: auto;
+  display: none;
+}
+
+#analog-clock.visible {
+  display: block;
+}
+/* These CSS styles all apply to the SVG clock elements */
+#analog-clock-svg { /* styles for everything in the clock */
+  stroke: black; /* black lines */
+  stroke-linecap: round; /* with rounded ends */
+  fill: white; /* on a white background */
+  height: -moz-calc(100% - 1rem); /* 1 rem to avoid the second hand overlay the alarm list */
+  pointer-events: none;
+}
+#face {  /* clock face outline */ 
+  stroke-width: 0.1rem;
+  stroke: #4D4D4D;
+  pointer-events: none;
+}
+#hands {
+  pointer-events: none;
+}
+#hourhand {stroke-width: 0.15rem;} /* wide hour hand */
+#minutehand {stroke-width: 0.15rem; stroke-linecap: butt} /* wide no-round minute hand */
+#secondhand {stroke-width: 0.05rem; stroke: #838383;} /* narrow gray minute hand */
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 
 /* 320x480 phones */
-@media (orientation: portrait) and (width: 320px),
-       (orientation: landscape) and (width: 480px) {
+@media screen and (width: 320px) {
   html {
     font-size: 6px;
+  }
+  #face {
+    stroke-width: 0.13rem; /* increase stroke-width on low-resolution platform */
   }
 }
 
 /* 480x800 phones */
-@media (orientation: portrait) and (width: 480px),
-       (orientation: landscape) and (width: 800px) {
+@media screen and (width: 480px) {
   html {
     font-size: 10px;
   }
