@@ -69,53 +69,86 @@ suite('router', function() {
       ]);
 
       assert.isTrue(view.active);
-    });
-
-    suite('#add', function() {
-      function uniq() {};
-
-      function hasClear() {
-        assert.equal(page.routes[0].length, 4);
-        assert.equal(page.routes[0][1], subject._clearObjects);
-        assert.equal(page.routes[0][3], subject._noop);
-      }
-
-      test('with objects', function() {
-        var calledWith;
-
-        subject._wrapObject = function() {
-          calledWith = arguments;
-          return uniq;
-        }
-
-        var view = new View();
-
-        subject.add('/foo', view);
-        hasClear();
-
-        assert.equal(page.routes[0][0], '/foo');
-        assert.equal(page.routes[0][2], uniq);
-
-        assert.deepEqual(calledWith, [view]);
-      });
-
-      test('without objects', function() {
-        subject.add('/foo', uniq);
-
-        hasClear();
-        assert.equal(page.routes[0][0], '/foo');
-        assert.equal(page.routes[0][2], uniq);
-      });
+      assert.isTrue(view.__routerActive);
     });
 
   });
+
+  suite('#modifer', function() {
+    function uniq() {};
+
+    test('with objects', function() {
+      var calledWith;
+
+      subject._wrapObject = function() {
+        calledWith = arguments;
+        return uniq;
+      }
+
+      var view = new View();
+
+      subject.modifier('/foo', view);
+      assert.deepEqual(calledWith, [view]);
+
+      assert.equal(page.routes[0][0], '/foo');
+      assert.equal(page.routes[0][1], uniq);
+    });
+
+    test('without objects', function() {
+      subject.modifier('/foo', uniq);
+
+      assert.equal(page.routes[0][0], '/foo');
+      assert.equal(page.routes[0][1], uniq);
+    });
+  });
+
+
+  suite('#state', function() {
+    function uniq() {};
+
+    function hasClear() {
+      assert.equal(page.routes[0].length, 4);
+      assert.equal(page.routes[0][1], subject._clearObjects);
+      assert.equal(page.routes[0][3], subject._noop);
+    }
+
+    test('with objects', function() {
+      var calledWith;
+
+      subject._wrapObject = function() {
+        calledWith = arguments;
+        return uniq;
+      }
+
+      var view = new View();
+
+      subject.state('/foo', view);
+      hasClear();
+
+      assert.equal(page.routes[0][0], '/foo');
+      assert.equal(page.routes[0][2], uniq);
+
+      assert.deepEqual(calledWith, [view]);
+    });
+
+    test('without objects', function() {
+      subject.state('/foo', uniq);
+
+      hasClear();
+      assert.equal(page.routes[0][0], '/foo');
+      assert.equal(page.routes[0][2], uniq);
+    });
+  });
+
 
   test('#_clearObjects', function() {
     var calledNext = false;
 
     var one = new View();
     var two = new View();
+
     two.active = one.active = true;
+    one.__routerActive = two.__routerActive = true;
 
     subject._activeObjects.push(one);
     subject._activeObjects.push(two);
@@ -127,6 +160,9 @@ suite('router', function() {
     assert.isTrue(calledNext);
     assert.isFalse(one.active);
     assert.isFalse(two.active);
+
+    assert.isFalse(one.__routerActive);
+    assert.isFalse(two.__routerActive);
   });
 
   var wrappedMethods = ['start', 'stop', 'show'];
