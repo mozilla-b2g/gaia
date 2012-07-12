@@ -295,7 +295,7 @@ contacts.List = (function() {
     favoriteGroup.classList.remove('hide');
     showGroupHeaders(true);
 
-    // Bring back to visibilitiy the contcts
+    // Bring back to visibilitiy the contacts
     var allContacts = getContactsDom();
     for (var i = 0; i < allContacts.length; i++) {
       var contact = allContacts[i];
