@@ -44,7 +44,17 @@ button::-moz-focus-inner {
   border: 0
 }
 
-.cache { position: absolute; left: 0; bottom: 0; z-index: -1; }
+.cache {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: -1;
+  opacity: 0;
+  overflow: hidden;
+  width: 0;
+  height: 0;
+}
+
 /* Keyboard */
 #keyboard {
   position: absolute;
