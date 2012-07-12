@@ -772,6 +772,29 @@ var ThreadUI = {
     }).bind(this), 0);
 
     ThreadListUI.renderThreads(message);
+  },
+
+  pickContact: function thui_pickContact() {
+    try {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/contact'
+        }
+      });
+      activity.onsuccess = function() {
+        var number = this.result.number;
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          if (number) {
+            var app = evt.target.result;
+            app.launch();
+            window.location.hash = '#num=' + number;
+          }
+        };
+      }
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   }
 };
 
@@ -781,4 +804,23 @@ window.addEventListener('localized', function showBody() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
+});
+
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  var number = activity.source.data.number;
+  var displayThread = function actHandleDisplay() {
+    if (number)
+      window.location.hash = '#num=' + number;
+  }
+
+  if (document.readyState == 'complete') {
+    displayThread();
+  } else {
+    window.addEventListener('localized', function loadWait() {
+      window.removeEventListener('localized', loadWait);
+      displayThread();
+    });
+  }
+
+  activity.postResult({ status: 'accepted' });
 });
