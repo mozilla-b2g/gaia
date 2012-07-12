@@ -257,10 +257,11 @@ var ThreadListUI = {
   },
 
   createNewConversation: function thlui_createNewConversation(conversation) {
-    var dataName = escapeHTML(conversation.name || conversation.num, true);
-    var name = escapeHTML(conversation.name);
+    var dataName = Utils.escapeHTML(conversation.name ||
+                                    conversation.num, true);
+    var name = Utils.escapeHTML(conversation.name);
     var bodyText = conversation.body.split('\n')[0];
-    var bodyHTML = escapeHTML(bodyText);
+    var bodyHTML = Utils.escapeHTML(bodyText);
 
     return '<div class="item">' +
            '  <label class="fake-checkbox">' +
@@ -283,7 +284,7 @@ var ThreadListUI = {
            '    <div class="time ' +
                   (conversation.unreadCount > 0 ? 'unread' : '') +
            '      " data-time="' + conversation.timestamp + '">' +
-                  giveHourMinute(conversation.timestamp) +
+                  Utils.getHourMinute(conversation.timestamp) +
            '    </div>') +
            '    <div class="msg">"' + bodyHTML + '"</div>' +
            '    <div class="unread-tag"></div>' +
@@ -310,7 +311,7 @@ var ThreadListUI = {
     this._lastHeader = conversation.timestamp;
 
     return '<div class="groupHeader">' +
-      giveHeaderDate(conversation.timestamp) + '</div>';
+      Utils.getHeaderDate(conversation.timestamp) + '</div>';
   },
   executeMessageDelete: function thlui_executeMessageDelete() {
     var delList = this.view.querySelectorAll('input[type=checkbox][data-num]');
@@ -572,7 +573,7 @@ var ThreadUI = {
     var msgLines = message.body.split('\n');
     //Apply the escapeHTML body to each line
     msgLines.forEach(function(line, index) {
-      msgLines[index] = escapeHTML(line);
+      msgLines[index] = Utils.escapeHTML(line);
     });
     //Join them back with <br />
     var body = msgLines.join('<br />');
@@ -587,7 +588,7 @@ var ThreadUI = {
            '  <div class="message-container ' + className + '>' +
            '    <div class="message-bubble"></div>' +
            '    <div class="time" data-time="' + timestamp + '">' +
-                  giveHourMinute(message.timestamp) +
+                  Utils.getHourMinute(message.timestamp) +
            '    </div>' +
            '    <div class="text">' + body + '</div>' +
            '  </div>' +

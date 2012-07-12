@@ -32,6 +32,9 @@ var Browser = {
     this.content = document.getElementById('browser-content');
     this.awesomescreen = document.getElementById('awesomescreen');
     this.history = document.getElementById('history');
+    this.bookmarks = document.getElementById('bookmarks');
+    this.bookmarksTab = document.getElementById('bookmarks-tab');
+    this.historyTab = document.getElementById('history-tab');
     this.backButton = document.getElementById('back-button');
     this.forwardButton = document.getElementById('forward-button');
     this.bookmarkButton = document.getElementById('bookmark-button');
@@ -55,8 +58,12 @@ var Browser = {
     this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
+    this.bookmarks.addEventListener('click', this.followLink.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
+    this.bookmarksTab.addEventListener('click',
+      this.showBookmarksTab.bind(this));
+    this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -408,6 +415,14 @@ var Browser = {
     }
   },
 
+  showHistoryTab: function browser_showHistoryTab() {
+    this.bookmarksTab.classList.remove('selected');
+    this.bookmarks.classList.remove('selected');
+    this.historyTab.classList.add('selected');
+    this.history.classList.add('selected');
+    Places.getHistory(this.showGlobalHistory.bind(this));
+  },
+
   showGlobalHistory: function browser_showGlobalHistory(visits) {
     this.history.innerHTML = '';
     var thresholds = [
@@ -442,7 +457,7 @@ var Browser = {
            this.drawHistoryHeading(threshold, timestamp);
          }
       }
-      this.drawHistoryEntry(visit);
+      this.drawAwesomescreenListItem(this.history.lastChild, visit);
     }, this);
   },
 
@@ -455,25 +470,27 @@ var Browser = {
     return newThreshold;
   },
 
-  drawHistoryEntry: function browser_drawHistoryEntry(visit) {
+  drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(list,
+    data) {
     var entry = document.createElement('li');
     var link = document.createElement('a');
     var title = document.createElement('span');
     var url = document.createElement('small');
-    link.href = visit.uri;
-    title.textContent = visit.title ? visit.title : visit.uri;
-    url.textContent = visit.uri;
+    entry.setAttribute('role', 'listitem');
+    link.href = data.uri;
+    title.textContent = data.title ? data.title : data.uri;
+    url.textContent = data.uri;
     link.appendChild(title);
     link.appendChild(url);
     entry.appendChild(link);
-    this.history.lastChild.appendChild(entry);
+    list.appendChild(entry);
 
-    if (!visit.iconUri) {
+    if (!data.iconUri) {
       link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
       return;
     }
 
-    Places.db.getIcon(visit.iconUri, (function(icon) {
+    Places.db.getIcon(data.iconUri, (function(icon) {
       if (icon && icon.failed != true && icon.data) {
         var imgUrl = window.URL.createObjectURL(icon.data);
         link.style.backgroundImage = 'url(' + imgUrl + ')';
@@ -511,10 +528,29 @@ var Browser = {
     }
 
     var textNode = document.createTextNode(text);
-    h3.appendChild(textNode);
     var ul = document.createElement('ul');
+    ul.setAttribute('role', 'listbox');
+    h3.appendChild(textNode);
     this.history.appendChild(h3);
     this.history.appendChild(ul);
+  },
+
+  showBookmarksTab: function browser_showHistoryTab() {
+    this.historyTab.classList.remove('selected');
+    this.history.classList.remove('selected');
+    this.bookmarksTab.classList.add('selected');
+    this.bookmarks.classList.add('selected');
+    Places.getBookmarks(this.showBookmarks.bind(this));
+  },
+
+  showBookmarks: function browser_showBookmarks(bookmarks) {
+    this.bookmarks.innerHTML = '';
+    var list = document.createElement('ul');
+    list.setAttribute('role', 'listbox');
+    this.bookmarks.appendChild(list);
+    bookmarks.forEach(function browser_processBookmark(data) {
+      this.drawAwesomescreenListItem(list, data);
+    }, this);
   },
 
   openInNewTab: function browser_openInNewTab(url) {
@@ -713,12 +749,12 @@ var Browser = {
   },
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
-    Places.getHistory(this.showGlobalHistory.bind(this));
     this.urlInput.focus();
     this.setUrlButtonMode(this.GO);
     this.tabsBadge.innerHTML = '';
     this.switchScreen(this.AWESOME_SCREEN);
     this.tabCover.style.display = 'none';
+    this.showHistoryTab();
   },
 
   showPageScreen: function browser_showPageScreen() {
