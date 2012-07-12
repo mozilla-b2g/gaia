@@ -16,8 +16,11 @@
 
 /* Contact detail main section */
 
-.view-contact-profile .view-body {
+.view-contact-profile article.view-body {
   overflow: scroll;
+  position: absolute;
+  min-height: 100%;
+  width: -moz-calc(100% + 1rem);
 }
 
 .view-contact-profile .view-body-inner {
@@ -25,10 +28,9 @@
   background-size: 100% auto;
   padding: 0;
   background-color: #f5f5f5;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   min-height: 100%;
-  padding-bottom: 9rem;
 }
 
 .view-contact-profile .view-body-inner.up {
@@ -42,9 +44,13 @@
   min-height: 100%;
   overflow: hidden;
   width: 100%;
+  position: absolute;
   -moz-box-sizing: border-box;
 }
 
+.view-contact-profile .view-body-inner > section #contact-detail-inner{
+  padding-bottom: 1rem;
+}
 .view-contact-profile .view-body-inner > section h1{
   padding-top: 1.4rem;
 }

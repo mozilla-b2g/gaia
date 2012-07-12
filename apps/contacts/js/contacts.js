@@ -134,6 +134,7 @@ var Contacts = (function() {
   var numberPhones = 0;
   var numberAddresses = 0;
   var numberNotes = 0;
+  var photoPos = 8;
   var currentContactId,
       detailsName,
       givenName,
@@ -154,7 +155,7 @@ var Contacts = (function() {
       contactDetails,
       saveButton,
       deleteContactButton,
-      favoriteMessage;
+      favoriteMessage,
       cover;
 
   var currentContact = {};
@@ -220,7 +221,6 @@ var Contacts = (function() {
       var startPosition = event.clientY;
       var currentPosition;
       var initMargin = '8rem';
-      var initMarginCover = -8;
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
@@ -231,8 +231,10 @@ var Contacts = (function() {
           contactDetails.classList.remove('up');
           cover.classList.remove('up');
           var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
+          // Divide by 40 (4 times slower and in rems)
           contactDetails.style.transform = 'translateY(' + calc + ')';
-          cover.style.backgroundPosition = 'center ' + (initMarginCover + (newMargin / 40)) + 'rem';
+          var newPos = 'center ' + (-photoPos + (newMargin / 40)) + 'rem';
+          cover.style.backgroundPosition = newPos;
         }
       };
 
@@ -240,7 +242,7 @@ var Contacts = (function() {
         contactDetails.classList.add('up');
         cover.classList.add('up');
         contactDetails.style.transform = 'translateY(' + initMargin + ')';
-        cover.style.backgroundPosition = 'center ' + initMarginCover + 'rem';
+        cover.style.backgroundPosition = 'center -' + photoPos + 'rem';
         cover.removeEventListener('mousemove', onMouseMove);
         cover.removeEventListener('mouseup', onMouseUp);
       };
@@ -331,11 +333,20 @@ var Contacts = (function() {
       }
     }
 
+
     var existsPhoto = 'photo' in contact && contact.photo;
     if (existsPhoto) {
+      var detailsInner = document.getElementById('contact-detail-inner');
       contactDetails.classList.add('up');
+      var photoOffset = (photoPos + 1) * 10;
+      if ((detailsInner.offsetHeight + photoOffset) < cover.clientHeight) {
+        cover.style.overflow = 'hidden';
+      } else {
+        cover.style.overflow = null;
+      }
       cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
     } else {
+      cover.style.overflow = null;
       cover.style.backgroundImage = null;
       contactDetails.style.transform = null;
       contactDetails.classList.add('no-photo');
