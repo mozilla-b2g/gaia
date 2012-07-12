@@ -5,10 +5,12 @@ var contacts = window.contacts || {};
 contacts.List = (function() {
   var groupsList,
       searchBox,
-      fastScroll;
+      fastScroll,
+      favoriteGroup;
 
   searchBox = document.getElementById('search-contact');
   fastScroll = document.querySelector('.view-jumper');
+  favoriteGroup = document.getElementById('group-favorites').parentNode;
 
   var init = function load(element) {
     groupsList = element;
@@ -309,19 +311,19 @@ contacts.List = (function() {
   }
 
   var exitSearch = function exitSearch() {
+    // Show elements that were hidden for the search
     fastScroll.classList.remove('hide');
     groupsList.classList.remove('hide');
+    favoriteGroup.classList.remove('hide');
+    showGroupHeaders(true);
 
-    document.getElementById('group-favorites').parentNode.classList.remove('hide');
-
+    // Bring back to visibilitiy the contcts
     var allContacts = document.querySelectorAll(".block-item:not([data-uuid='#id#']");
     for(var i=0; i<allContacts.length; i++) {
       var contact = allContacts[i];
       contact.classList.remove('search');
       contact.classList.remove('hide');
     }
-
-    showGroupHeaders(true);
   }
 
   var search = function performSearch() {
