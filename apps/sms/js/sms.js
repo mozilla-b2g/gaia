@@ -7,7 +7,7 @@ var MessageManager = {
   init: function mm_init() {
     ThreadUI.init();
     ThreadListUI.init();
-    this.getMessages(ThreadListUI.renderThreads)
+    this.getMessages(ThreadListUI.renderThreads);
 
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
@@ -18,8 +18,7 @@ var MessageManager = {
   handleEvent: function mm_handleEvent(event) {
     switch (event.type) {
       case 'received':
-        this.getMessages(ThreadListUI.renderThreads)
-        // ThreadListUI.renderThreads(event.message);
+        this.getMessages(ThreadListUI.renderThreads);
         var msg = event.message;
         if (ThreadUI.filter && ThreadUI.filter == msg.sender) {
           ThreadUI.renderMessages(ThreadUI.filter);
@@ -30,7 +29,7 @@ var MessageManager = {
         var bodyclassList = document.body.classList;
         switch (window.location.hash) {
           case '':
-            this.getMessages(ThreadListUI.renderThreads)
+            this.getMessages(ThreadListUI.renderThreads);
             bodyclassList.remove('conversation');
             bodyclassList.remove('conversation-new-msg');
             break;
@@ -47,7 +46,7 @@ var MessageManager = {
         break;
       case 'mozvisibilitychange':
         if (!document.mozHidden) {
-          this.getMessages(ThreadListUI.renderThreads)
+          this.getMessages(ThreadListUI.renderThreads);
           var num = this.getNumFromHash();
           if (num) {
             ThreadUI.renderMessages(num);
@@ -153,7 +152,6 @@ var ThreadListUI = {
 
   init: function thlui_init() {
     this.delNumList = [];
-    
   },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(contact) {
@@ -162,15 +160,12 @@ var ThreadListUI = {
   },
 
   renderThreads: function thlui_renderThreads(messages) {
-    alert("Voy a renderizar "+messages.length);
     ThreadListUI.view.innerHTML = '';
-    var threadIds = [],headerIndex;
-   
+    var threadIds = [], headerIndex;
     for (var i = 0; i < messages.length; i++) {
-      var num = messages[i].delivery == 'received' ? messages[i].sender : messages[i].receiver;
-    
-      if(threadIds.indexOf(num) == -1) {
-        
+      var num = messages[i].delivery == 'received' ?
+      messages[i].sender : messages[i].receiver;
+      if (threadIds.indexOf(num) == -1) {
         var thread = {
           'body': messages[i].body,
           'name': num,
@@ -179,153 +174,69 @@ var ThreadListUI = {
           'unreadCount': !messages[i].read ? 1 : 0,
           'id': num
         };
-        if(threadIds.length == 0) {
+        if (threadIds.length == 0) {
           var currentTS = (new Date()).getTime();
           headerIndex = Utils.getDayDate(currentTS);
           ThreadListUI.createNewHeader(currentTS);
         }else {
-          var tmpIndex = Utils.getDayDate(messages[i].timestamp.getTime())
-          if(tmpIndex < headerIndex){
+          var tmpIndex = Utils.getDayDate(messages[i].timestamp.getTime());
+          if (tmpIndex < headerIndex) {
             ThreadListUI.createNewHeader(messages[i].timestamp.getTime());
             headerIndex = tmpIndex;
           }
         }
-        
         threadIds.push(num);
         ThreadListUI.appendThread(thread);
-        
       }
     }
-    
-    // var self = this;
-    // this._lastHeader = undefined;
-    
-    // MessageManager.getMessages(function getMessagesCallback(messages) {
-    //   var conversations = {};
-      // for (var i = 0; i < messages.length; i++) {
-    //     var message = messages[i];
-
-    //     // XXX why does this happen?
-    //     if (!message.delivery)
-    //       continue;
-
-        // var num = messages[i].delivery == 'received' ?
-        //           messages[i].sender : messages[i].receiver;
-
-    //     var read = message.read;
-    //     var conversation = conversations[num];
-    //     if (conversation) {
-    //       conversation.unreadCount += !read ? 1 : 0;
-    //       continue;
-    //     }
-
-    //     conversations[num] = {
-    //       'body': message.body,
-    //       'name': num,
-    //       'num': num,
-    //       'timestamp': message.timestamp.getTime(),
-    //       'unreadCount': !read ? 1 : 0,
-    //       'id': i
-    //     };
-      // }
-
-    //   var fragment = '';
-    //   for (var num in conversations) {
-    //     conversation = conversations[num];
-    //     if (self.delNumList.indexOf(conversation.num) > -1) {
-    //       continue;
-    //     }
-
-    //     // Add a grouping header if necessary
-    //     var header = self.createNewHeader(conversation);
-    //     if (header != null) {
-    //       fragment += header;
-    //     }
-    //     fragment += self.createNewConversation(conversation);
-    //   }
-
-    //   self.view.innerHTML = fragment;
-    //   delete self._lastHeader;
-    //   var conversationList = self.view.children;
-
-    // }, null);
   },
   appendThread: function thlui_appendThread(thread) {
+    // Create DOM element
     var threadHTML = document.createElement('div');
     threadHTML.classList.add('item');
-    var structureHTML = '  <a href="#num=' + thread.num + '">' +
-                       
-                        '    <div class="name">' + thread.num + '</div>' +
-                        
-                        '    <div class="msg">"' + thread.body + '"</div>' +
-                       
-                        '  </a>' ;
+
+    // Retrieve info from thread
+    var dataName = Utils.escapeHTML(thread.name ||
+                                    thread.num, true);
+    var name = Utils.escapeHTML(thread.name);
+    var bodyText = thread.body.split('\n')[0];
+    var bodyHTML = Utils.escapeHTML(bodyText);
+    // Create HTML structure
+    var structureHTML = '  <a href="#num=' + thread.num + '"' +
+            '     data-num="' + thread.num + '"' +
+            '     data-name="' + dataName + '"' +
+            '     data-notempty="' +
+                  (thread.timestamp ? 'true' : '') + '"' +
+            '     class="' +
+                 (thread.unreadCount > 0 ? 'unread' : '') + '">' +
+            '    <span class="unread-mark">' +
+            '      <i class="i-unread-mark"></i>' +
+            '    </span>' +
+            '    <div class="name">' + name + '</div>' +
+                (!thread.timestamp ? '' :
+            '    <div class="time ' +
+                  (thread.unreadCount > 0 ? 'unread' : '') +
+            '      " data-time="' + thread.timestamp + '">' +
+                  Utils.getHourMinute(thread.timestamp) +
+            '    </div>') +
+            '    <div class="msg">"' + bodyHTML + '"</div>' +
+            '    <div class="unread-tag"></div>' +
+            '    <div class="photo"></div>' +
+            '  </a>';
+    // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
   },
-  // createNewConversation: function thlui_createNewConversation(conversation) {
-  //   var dataName = Utils.escapeHTML(conversation.name ||
-  //                                   conversation.num, true);
-  //   var name = Utils.escapeHTML(conversation.name);
-  //   var bodyText = conversation.body.split('\n')[0];
-  //   var bodyHTML = Utils.escapeHTML(bodyText);
-
-  //   return '<div class="item">' +
-  //          '  <label class="fake-checkbox">' +
-  //          '    <input data-num="' +
-  //               conversation.num + '"' + 'type="checkbox"/>' +
-  //          '    <span></span>' +
-  //          '  </label>' +
-  //          '  <a href="#num=' + conversation.num + '"' +
-  //          '     data-num="' + conversation.num + '"' +
-  //          '     data-name="' + dataName + '"' +
-  //          '     data-notempty="' +
-  //                (conversation.timestamp ? 'true' : '') + '"' +
-  //          '     class="' +
-  //                (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
-  //          '    <span class="unread-mark">' +
-  //          '      <i class="i-unread-mark"></i>' +
-  //          '    </span>' +
-  //          '    <div class="name">' + name + '</div>' +
-  //               (!conversation.timestamp ? '' :
-  //          '    <div class="time ' +
-  //                 (conversation.unreadCount > 0 ? 'unread' : '') +
-  //          '      " data-time="' + conversation.timestamp + '">' +
-  //                 Utils.getHourMinute(conversation.timestamp) +
-  //          '    </div>') +
-  //          '    <div class="msg">"' + bodyHTML + '"</div>' +
-  //          '    <div class="unread-tag"></div>' +
-  //          '    <div class="photo"></div>' +
-  //          '  </a>' +
-  //          '</div>';
-  // },
-
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createNewHeader: function thlui_createNewHeader(timestamp) {
-    // function sameDay(timestamp1, timestamp2) {
-    //   var day1 = new Date(timestamp1);
-    //   var day2 = new Date(timestamp2);
-
-    //   return day1.getFullYear() == day2.getFullYear() &&
-    //          day1.getMonth() == day2.getMonth() &&
-    //          day1.getDate() == day2.getDate();
-    // };
-
-    // if (this._lastHeader && sameDay(this._lastHeader, conversation.timestamp)) {
-    //   return null;
-    // }
-
-    // this._lastHeader = conversation.timestamp;
-
-    // return '<div class="groupHeader">' +
-    // Utils.getHeaderDate(conversation.timestamp) + '</div>';
-    // alert("Header");
+    // Create DOM Element
     var headerHTML = document.createElement('div');
     headerHTML.classList.add('groupHeader');
+
+    // Create HTML and append
     var structureHTML = Utils.getHeaderDate(timestamp);
     headerHTML.innerHTML = structureHTML;
     ThreadListUI.view.appendChild(headerHTML);
-    // alert("FinHeader");
   }
 };
 
@@ -572,67 +483,65 @@ var ThreadUI = {
     window.location.hash = '';
     return true;
   },
-
   sendMessage: function thui_sendMessage() {
+    var num = this.num.value;
+    var self = this;
+    var text = document.getElementById('view-msg-text').value;
 
-    // var num = this.num.value;
-    // var self = this;
-    // var text = document.getElementById('view-msg-text').value;
+    if (num === '' || text === '')
+      return;
 
-    // if (num === '' || text === '')
-    //   return;
+    MessageManager.send(num, text, function onsent(msg) {
+      if (!msg) {
+        ThreadUI.input.value = text;
+        ThreadUI.updateInputHeight();
 
-    // MessageManager.send(num, text, function onsent(msg) {
-    //   if (!msg) {
-    //     ThreadUI.input.value = text;
-    //     ThreadUI.updateInputHeight();
+        if (ThreadUI.filter) {
+          if (window.location.hash !== '#num=' + ThreadUI.filter)
+            window.location.hash = '#num=' + ThreadUI.filter;
+          else
+            ThreadUI.renderMessages(ThreadUI.filter);
+        }
+        ThreadListUI.renderThreads();
+        return;
+      }
 
-    //     if (ThreadUI.filter) {
-    //       if (window.location.hash !== '#num=' + ThreadUI.filter)
-    //         window.location.hash = '#num=' + ThreadUI.filter;
-    //       else
-    //         ThreadUI.renderMessages(ThreadUI.filter);
-    //     }
-    //     ThreadListUI.renderThreads();
-    //     return;
-    //   }
+      // Add a slight delay so that the database has time to write the
+      // message in the background. Ideally we'd just be updating the UI
+      // from "sending..." to "sent" at this point...
+      window.setTimeout(function() {
+        if (ThreadUI.filter) {
+          if (window.location.hash !== '#num=' + ThreadUI.filter)
+            window.location.hash = '#num=' + ThreadUI.filter;
+          else
+            ThreadUI.renderMessages(ThreadUI.filter);
+        }
+        ThreadListUI.renderThreads();
+      }, 100);
+    });
 
-    //   // Add a slight delay so that the database has time to write the
-    //   // message in the background. Ideally we'd just be updating the UI
-    //   // from "sending..." to "sent" at this point...
-    //   window.setTimeout(function() {
-    //     if (ThreadUI.filter) {
-    //       if (window.location.hash !== '#num=' + ThreadUI.filter)
-    //         window.location.hash = '#num=' + ThreadUI.filter;
-    //       else
-    //         ThreadUI.renderMessages(ThreadUI.filter);
-    //     }
-    //     ThreadListUI.renderThreads();
-    //   }, 100);
-    // });
+    // Create a preliminary message object and update the view right away.
+    var message = {
+      sender: null,
+      receiver: num,
+      delivery: 'sending',
+      body: text,
+      timestamp: new Date()
+    };
 
-    // // Create a preliminary message object and update the view right away.
-    // var message = {
-    //   sender: null,
-    //   receiver: num,
-    //   delivery: 'sending',
-    //   body: text,
-    //   timestamp: new Date()
-    // };
+    window.setTimeout((function updateMessageField() {
+      this.input.value = '';
+      this.updateInputHeight();
+      this.input.focus();
 
-    // window.setTimeout((function updateMessageField() {
-    //   this.input.value = '';
-    //   this.updateInputHeight();
-    //   this.input.focus();
+      if (this.filter) {
+        this.renderMessages(this.filter, message);
+        return;
+      }
+      this.renderMessages(num, message);
+    }).bind(this), 0);
 
-    //   if (this.filter) {
-    //     this.renderMessages(this.filter, message);
-    //     return;
-    //   }
-    //   this.renderMessages(num, message);
-    // }).bind(this), 0);
-
-    // ThreadListUI.renderThreads(message);
+    ThreadListUI.renderThreads(message);
 
   }
 };
