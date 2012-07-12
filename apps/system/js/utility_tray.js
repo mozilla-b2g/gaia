@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -117,8 +117,8 @@ var UtilityTray = {
       } else {
         newHeight = screenHeight - dy;
       }
-      this.firstShown.style.MozTransition = '';
-      this.firstShown.style.MozTransform = 'translateY(' + newHeight + 'px)';
+//      this.firstShown.style.MozTransition = '';
+//      this.firstShown.style.MozTransform = 'translateY(' + newHeight + 'px)';
     }
 
     var style = this.overlay.style;
@@ -166,8 +166,8 @@ var UtilityTray = {
     trayStyle.MozTransition = '-moz-transform 0.2s linear';
     trayStyle.MozTransform = 'translateY(100%)';
 
-    firstShownStyle.MozTransition = '-moz-transform 0.2s linear';
-    firstShownStyle.MozTransform = 'translateY(0px)';
+//    firstShownStyle.MozTransition = '-moz-transform 0.2s linear';
+//    firstShownStyle.MozTransform = 'translateY(0px)';
 
     this.shown = true;
     this.screen.classList.add('utility-tray');

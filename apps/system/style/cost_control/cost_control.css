@@ -1,27 +1,82 @@
-#cost-control-left {
-  float: left;
-  width: 65%;
-  margin-top: -10px;
+#cost-control * {
+  margin:0;
+  padding:0;
 }
 
-#cost-control-right {
+#cost-control {
+  height: 4.5rem;
+  width: 50%;
+  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0)),
+                url('./images/gray-noise.png');
+  background-repeat: no-repeat, repeat;
+}
+
+#cost-control.alert {
+  background: url('./images/BG-cost-red-tile.png');
+  background-repeat: repeat-x;
+}
+
+#cost-control-credit-area {
+  width: 100%;
+  border: none;
+  padding: 0;
+  margin: 0;
+  margin-right: 3.5rem;
+}
+
+#cost-control-credit-area div {
+  display:inline-block;
+}
+
+#cost-control-credit-area div p {
+  margin:none;
+  padding:0;
+}
+
+#cost-control-credit {
+  font-size:18px;
+  font-weight:bold;
+}
+
+#cost-control-time {
+  color: #888;
+  font-size: 11px;
+}
+
+#cost-control-update-icon {
+  display: inline-block;
+  height: 4.5rem;
+  width: 1rem;
+  background: url('./images/ico-reload.png') center no-repeat;
+  margin-left: 0.5rem;
+  opacity: 0.2;
+}
+
+#cost-control-credit-area.updating #cost-control-update-icon {
+  opacity:1.0;
+  -moz-animation: cost-control-spin 1.75s infinite linear;
+}
+
+@-moz-keyframes cost-control-spin {
+  0% { -moz-transform:rotate(0deg); }
+  100% { -moz-transform:rotate(360deg); }
+}
+
+#cost-control-topup::-moz-focus-inner {
+  border:0;
+}
+
+#cost-control-topup {
   float: right;
-  width: 35%;
-  padding-top: 15px;
-}
-
-#cost-control-right > a {
-  display: table-cell;
-  width: 20%;
-  outline: medium none;
-  height: 100%;
-  color: rgb(255, 255, 255);
-  text-align: center;
-  text-decoration: none;
-  vertical-align: middle;
-  font-size: 14px;
-  line-height: 18px;
-  padding: 0 5px;
+  width: 4.5rem;
+  height:100%;
+  margin:0;
+  padding:0;
+  border:none;
+  background-color: transparent;
+  background-image: url('./images/ico-plus.png');
+  background-position: center;
+  background-repeat:no-repeat;
 }
 
 .not-updated {
@@ -37,34 +92,5 @@
 }
 
 #cost-control-spent, #cost-control-currency {
-  font-size: 32px;
-}
-
-#cost-control-container {
-  margin-bottom: 0;
-  margin-top: 0;
-}
-
-#cost-control-date {}
-
-#cost-control-topup, #cost-control-check-balance {
-  -moz-box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;
-  box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;
-  color: #333;
-  background-color: #FA2;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-  border: none;
-  font-size: 16px;
-  font-weight: 700;
-  height: 32px;
-  padding: 4px 16px;
-  text-shadow: #FE6 0 1px 0
-}
-
-#cost-control {
-  height: 60px;
-  width: 100%;
-  background-color: rgb(0, 0, 0);
-  display: table;
+/*  font-size: 32px;*/
 }

@@ -25,5 +25,8 @@
 }
 
 #utility-tray-first-shown {
-    z-index: 9997;
+  width:100%;
+  position: absolute;
+  bottom: 20px;
+  z-index: 9997;
 }

@@ -163,7 +163,23 @@
 
       <!-- utility tray -->
       <div id="utility-tray">
+        <!-- notifications -->
+        <div id="notifications-container">
+        </div>
+
         <div id="utility-tray-first-shown">
+          <!-- cost control -->
+          <div id="cost-control">
+            <button id="cost-control-topup"></button>
+            <div id="cost-control-credit-area">
+              <div>
+                <p id="cost-control-credit">23,45R$</p>
+                <p><time id="cost-control-time" data-l10n-id="cost-control-time">Today, 12:34</time></p>
+              </div>
+              <div id="cost-control-update-icon"></div>
+            </div>
+          </div>
+
           <!-- quick settings -->
           <div id="quick-settings">
             <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
@@ -172,22 +188,6 @@
             <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
             <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
           </div>
-
-          <!-- cost control -->
-          <div id="cost-control">
-            <div id="cost-control-left">
-              <p id="cost-control-remaining-credit-text" ><span id="cost-control-date" class="not-updated">XX/XX/XXXX</span></p>
-              <p id="cost-control-container" class="not-updated"><span id="cost-control-spent" data-l10n-id="cost-control-spent-refreshing">Refreshing…</span><span id="cost-control-currency">€</span></p>
-            </div>
-            <div id="cost-control-right">
-              <!--<button id="cost-control-check-balance" data-l10n-id="cost-control-check">Check now!</button>-->
-              <button id="cost-control-topup" data-l10n-id="cost-control-topup">Top up!</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- notifications -->
-        <div id="notifications-container">
         </div>
 
         <div id="utility-tray-grippy">
