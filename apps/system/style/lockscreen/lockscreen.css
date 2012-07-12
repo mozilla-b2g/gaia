@@ -590,6 +590,12 @@
   -moz-box-sizing: border-box;
   border-top: #434953;
   border-bottom: #000;
+  -moz-transform: translateY(-moz-calc(214px + 72px));
+  -moz-transition: -moz-transform 0.2s ease;
+}
+
+[data-panel="passcode"] #lockscreen-passcode-code {
+  -moz-transform: translateY(0);
 }
 
 #lockscreen-passcode-code > span {
@@ -643,6 +649,8 @@
     bottom: 320px;
     height: 108px;
     padding: 0 12px;
+
+    -moz-transform: translateY(-moz-calc(320px + 108px));
   }
   #lockscreen-passcode-code > span {
     width: -moz-calc(25% - 12px);
@@ -666,6 +674,13 @@
   height: 214px;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
+
+  -moz-transform: translateY(214px);
+  -moz-transition: -moz-transform 0.2s ease;
+}
+
+[data-panel="passcode"] #lockscreen-passcode-pad {
+  -moz-transform: translateY(0);
 }
 
 #lockscreen-passcode-pad > a {
@@ -729,6 +744,8 @@
 @media screen and (height: 800px) {
   #lockscreen-passcode-pad {
     height: 320px;
+
+    -moz-transform: translateY(320px);
   }
   #lockscreen-passcode-pad > a {
     padding: 0 30px;
