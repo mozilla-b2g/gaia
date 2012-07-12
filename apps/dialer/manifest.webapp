@@ -71,13 +71,5 @@
     "120": "/style/icons/Dialer.png",
     "60": "/style/icons/60/Dialer.png"
   },
-  "orientation": "portrait-primary",
-  "activities": {
-    "new": {
-      "filters": {
-        "type": "telephony/call"
-       },
-      "disposition": "window"
-    }
-  }
+  "orientation": "portrait-primary"
 }
