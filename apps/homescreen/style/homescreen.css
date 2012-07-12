@@ -15,7 +15,6 @@
   src: url('fonts/opensans-bold-webfont.woff');
 }
 
-
 html, body {
   width: 100%;
   height: 100%;
@@ -44,6 +43,7 @@ section,footer,nav,a,img {
   top: 0;
   left: 0;
   z-index: 1;
+  pointer-events: none;
 }
 
 #paginationBar > .paginationScroller {
@@ -70,65 +70,14 @@ section,footer,nav,a,img {
   left: 0;
 }
 
-#content > #icongrid {
-  -moz-transform: translateX(100%);
+#search {
+  -moz-transform: translateX(-100%);
+}
+
+#icongrid {
+  -moz-transform: translateX(0);
   background-color: rgba(0,0,0, .1);
 }
-
-/* START footer */
-
-#footer {
-  height: 4rem;
-  width: 100%;
-  position: fixed;
-  bottom: 0;
-  z-index: 10000;
-  background-color: rgba(0,0,0, .3);
-  box-shadow: inset 0 3px 3px -3px #333;
-}
-
-#footer[data-mode = 'edit'] .dock > li {
-  opacity: 0.2;
-}
-
-#footer nav {
-  height: 100%;
-  width: 100%;
-}
-
-#footer .dock {
-  height: 100%;
-  width: 100%;
-  max-width: 32rem;
-  padding: 0;
-  margin: 0 auto;
-  list-style: none;
-}
-
-#footer .dock > li {
-  height: 100%;
-  width: -moz-calc(32rem / 3);
-  float: left;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
-  font: 0/0 a;
-  opacity: 0.6;
-}
-
-#footer .dock > .logs {
-  background-image: url('../resources/images/footer/1.png');
-}
-
-#footer .dock > .contacts {
-  background-image: url('../resources/images/footer/2.png');
-}
-
-#footer .dock > .phone {
-  background-image: url('../resources/images/footer/4.png');
-}
-
-/* END footer */
 
 button:focus::-moz-focus-inner {
   border-color: transparent !important;
