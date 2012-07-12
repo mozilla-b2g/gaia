@@ -504,9 +504,24 @@ var Contacts = (function() {
   };
 
   var sendSms = function sendSms() {
-    SmsIntegration.sendSms(currentContact.tel[0].number);
+    if (!ActivityHandler.currentlyHandling)
+      SmsIntegration.sendSms(currentContact.tel[0].number);
   }
 
+  var callOrPick = function callOrPick() {
+    // FIXME: only handling 1 number
+    var number = currentContact.tel[0].number;
+    if (ActivityHandler.currentlyHandling) {
+      ActivityHandler.pick(number);
+    } else {
+      var sanitizedNumber = number.replace(/-/g, '');
+
+      var telephony = window.navigator.mozTelephony;
+      if (telephony) {
+        telephony.dial(sanitizedNumber);
+      }
+    }
+  }
 
   var showAdd = function showAdd() {
     resetForm();
@@ -806,6 +821,38 @@ var Contacts = (function() {
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
     'saveContact': saveContact,
-    'toggleFavorite': toggleFavorite
+    'toggleFavorite': toggleFavorite,
+    'callOrPick': callOrPick
   };
 })();
+
+var ActivityHandler = {
+  _currentActivity: null,
+
+  get currentlyHandling() {
+    return !!this._currentActivity;
+  },
+
+  handle: function ah_handle(activity) {
+    this._currentActivity = activity;
+  },
+
+  pick: function ah_pick(number) {
+    this._currentActivity.postResult({ number: number });
+    this._currentActivity = null;
+  },
+  cancel: function ah_cancel() {
+    this._currentActivity.postError('canceled');
+    this._currentActivity = null;
+  }
+};
+
+var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+window.navigator.mozSetMessageHandler('activity', actHandler);
+
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  if (document.mozHidden) {
+    if (ActivityHandler.currentlyHandling)
+      ActivityHandler.cancel();
+  }
+});
