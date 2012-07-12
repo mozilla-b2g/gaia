@@ -366,14 +366,6 @@ var ThreadListUI = {
     window.location.hash = '#';
   },
 
-  toggleEditMode: function thlui_toggleEditMode(show) {
-    if (show) {
-      document.body.classList.add('edit-mode');
-    } else {
-      document.body.classList.remove('edit-mode');
-    }
-  },
-
   onListItemClicked: function thlui_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb || !document.body.classList.contains('edit-mode')) {
