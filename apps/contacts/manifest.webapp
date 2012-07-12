@@ -6,8 +6,8 @@
     "url": "http://openwebdevice.com"
   },
   "permissions": [
-    "contacts",
-    "mozApps"
+    "telephony",
+    "contacts"
   ],
   "locales": {
     "ar": {
@@ -64,5 +64,13 @@
     "120": "/style/icons/Contacts.png",
     "60": "/style/icons/60/Contacts.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "activities": {
+    "pick": {
+      "filters": {
+        "type": "webcontacts/contact"
+       },
+      "disposition": "window"
+    }
+  }
 }
