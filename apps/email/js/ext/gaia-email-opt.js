@@ -6696,13 +6696,13 @@ function MailFolder(api, wireRep) {
    */
   this.name = wireRep.name;
   /**
-   * @listof[String]{
-   *   The hierarchical path of the folder, with each path component as a
-   *   separate string.  All path values are human-readable (as opposed to
-   *   modified modified utf-7 encoded folder names.)
-   * }
+   * The full string of the path.
    */
   this.path = wireRep.path;
+  /**
+   * The hierarchical depth of this folder.
+   */
+  this.depth = wireRep.depth;
   /**
    * @oneof[
    *   @case['account']{
@@ -13254,7 +13254,7 @@ else {
   throw new Error("I need IndexedDB; load me in a content page universe!");
 }
 
-const CUR_VERSION = 2;
+const CUR_VERSION = 5;
 
 /**
  * The configuration table contains configuration data that should persist
@@ -19690,27 +19690,46 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
     name: 'Inbox',
     path: 'Inbox',
     type: 'inbox',
+    delim: '/',
+    depth: 0,
+  };
+  var todoFolder = {
+    id: this.id + '/1',
+    name: 'ToDo',
+    path: 'Inbox/ToDo',
+    type: 'normal',
+    delim: '/',
+    depth: 1,
   };
   var draftsFolder = {
-    id: this.id + '/1',
+    id: this.id + '/2',
     name: 'Drafts',
     path: 'Drafts',
     type: 'drafts',
+    delim: '/',
+    depth: 0,
   };
   var sentFolder = {
-    id: this.id + '/2',
+    id: this.id + '/3',
     name: 'Sent',
     path: 'Sent',
     type: 'sent',
+    delim: '/',
+    depth: 0,
   };
 
-  this.folders = [inboxFolder, draftsFolder, sentFolder];
+  this.folders = [inboxFolder, todoFolder, draftsFolder, sentFolder];
   this._folderStorages = {};
   this._folderStorages[inboxFolder.id] =
     new FakeFolderStorage(
       inboxFolder,
       generator.makeMessages(
         { folderId: inboxFolder.id, count: 16, to: [ourNameAndAddress] }));
+  this._folderStorages[todoFolder.id] =
+    new FakeFolderStorage(
+      todoFolder,
+      generator.makeMessages(
+        { folderId: todoFolder.id, count: 2, to: [ourNameAndAddress] }));
   this._folderStorages[draftsFolder.id] =
     new FakeFolderStorage(draftsFolder, []);
   this._folderStorages[sentFolder.id] =
@@ -22924,7 +22943,7 @@ ImapAccount.prototype = {
   /**
    * Make a given folder known to us, creating state tracking instances, etc.
    */
-  _learnAboutFolder: function(name, path, type, delim) {
+  _learnAboutFolder: function(name, path, type, delim, depth) {
     var folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
     var folderInfo = this._folderInfos[folderId] = {
       $meta: {
@@ -22933,6 +22952,7 @@ ImapAccount.prototype = {
         path: path,
         type: type,
         delim: delim,
+        depth: depth
       },
       $impl: {
         nextHeaderBlock: 0,
@@ -23095,18 +23115,25 @@ ImapAccount.prototype = {
         done('unknown');
         return;
       }
-      // We need to re-derive the path
+      // We need to re-derive the path.  The hierarchy will only be that
+      // required for our new folder, so we traverse all children and create
+      // the leaf-node when we see it.
       var folderMeta = null;
-      function walkBoxes(boxLevel, pathSoFar) {
+      function walkBoxes(boxLevel, pathSoFar, pathDepth) {
         for (var boxName in boxLevel) {
           var box = boxLevel[boxName],
-              boxPath = pathSoFar ? (pathSoFar + boxName) : boxName,
-              type = self._determineFolderType(box, boxPath);
-          folderMeta = self._learnAboutFolder(boxName, boxPath, type,
-                                              box.delim);
+              boxPath = pathSoFar ? (pathSoFar + boxName) : boxName;
+          if (box.children) {
+            walkBoxes(box.children, boxPath + box.delim, pathDepth + 1);
+          }
+          else {
+            var type = self._determineFolderType(box, boxPath);
+            folderMeta = self._learnAboutFolder(boxName, boxPath, type,
+                                                box.delim, pathDepth);
+          }
         }
       }
-      walkBoxes(boxesRoot, '');
+      walkBoxes(boxesRoot, '', 0);
       if (folderMeta)
         done(null, folderMeta);
       else
@@ -23484,7 +23511,7 @@ ImapAccount.prototype = {
     }
 
     // - walk the boxes
-    function walkBoxes(boxLevel, pathSoFar) {
+    function walkBoxes(boxLevel, pathSoFar, pathDepth) {
       for (var boxName in boxLevel) {
         var box = boxLevel[boxName],
             path = pathSoFar ? (pathSoFar + boxName) : boxName;
@@ -23497,14 +23524,16 @@ ImapAccount.prototype = {
         // - new to us!
         else {
           var type = self._determineFolderType(box, path);
-          self._learnAboutFolder(boxName, path, type, box.delim);
+console.log("learning about", path, "depth", pathDepth);
+          self._learnAboutFolder(boxName, path, type, box.delim, pathDepth);
         }
 
         if (box.children)
-          walkBoxes(box.children, pathSoFar + boxName + box.delim);
+          walkBoxes(box.children, pathSoFar + boxName + box.delim,
+                    pathDepth + 1);
       }
     }
-    walkBoxes(boxesRoot, '');
+    walkBoxes(boxesRoot, '', 0);
 
     // - detect deleted folders
     // track dead folder id's so we can issue a
