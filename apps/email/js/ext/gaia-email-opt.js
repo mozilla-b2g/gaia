@@ -19426,7 +19426,8 @@ MessageGenerator.prototype = {
       bcc: null,
       replyTo: null,
       attachments: null,
-      bodyText: null,
+      references: null,
+      bodyRep: null,
     };
 
     if (aArgs.inReplyTo) {
@@ -19471,7 +19472,7 @@ MessageGenerator.prototype = {
     // use two subjects for the snippet to get it good and long.
     headerInfo.snippet = this.makeSubject() + ' ' + this.makeSubject();
 
-    var rawBody = aArgs.rawBody || null,
+    var rawBody = aArgs.rawBody || null, bodyText,
         replaceHeaders = aArgs.replaceHeaders || null;
 
     // If a raw body was provided, try and take mailcomposer's logic out of
@@ -19480,10 +19481,10 @@ MessageGenerator.prototype = {
     // Thunderbird's synthetic mime header stuff, but that is much more
     // limited...)
     if (rawBody) {
-      bodyInfo.bodyText = '::BODYTEXT::';
+      bodyText = '::BODYTEXT::';
     }
     else {
-      bodyInfo.bodyText = headerInfo.snippet + '\n' +
+      bodyText = headerInfo.snippet + '\n' +
         'This message is automatically created for you by robots.\n' +
         '\nThe robots may or may not be friendly.\n' +
         'They definitely do not know latin, which is why no lorax gypsum.\n' +
@@ -19500,6 +19501,7 @@ MessageGenerator.prototype = {
         '3: ...\n' +
         '\nIt is a tiny screen we target, thank goodness!';
     }
+    bodyInfo.bodyRep = [0x1, bodyText];
 
     if (this._mode === 'info') {
       return {
@@ -19512,7 +19514,7 @@ MessageGenerator.prototype = {
       var messageOpts = {
         from: this._formatAddresses([headerInfo.author]),
         subject: headerInfo.subject,
-        body: bodyInfo.bodyText,
+        body: bodyText,
         to: this._formatAddresses(bodyInfo.to),
       };
       if (bodyInfo.cc)
