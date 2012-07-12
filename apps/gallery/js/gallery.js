@@ -5,7 +5,6 @@
 // - retain scroll position in thumbnail view
 // - put most recent photos (or screenshots) first
 // - in landscape mode, the 'no photos' message is too low
-// - get Back button (and slideshow) showing again?
 // - match visual design and wireframes better
 // - add delete capability
 // - add filter effects
@@ -86,18 +85,21 @@
  * touch-sensitive devices and can't be tested on the desktop.  They're
  * implemented on top of basic touch events in the separate file gestures.js.
  *
+ * This app has varous display states it can be in:
+ *
+ *   - Thumbnail browsing mode
+ *   - Thumbnail selection mode (enables delete and share for multiple photos)
+ *   - Photo viewing mode with controls hidden
+ *   - Photo viewing mode with controls shown
+ *   - Edit mode and its sub modes
+ *   - Pick a photo mode (when invoked via web activities?)
  *
  * TODO:
  *   we need a way to get photos from the camera and to store them on the device
  *   the ability to download photos from the web might be nice, too.
- *   we need to be able to determine the size of a photo, I think.
- *   do we need to read metadata?
  *   we should probably have a way to organize photos into albums
- *   How do we localize the slideshow Play button for RTL languages?
  *   Do we want users to be able to rotate photos to tell the
  *     gallery app how to display them?
- *   Do we want borders around the photos?
- *   Do we want to be able to send photos by email and sms?
  */
 
 //
@@ -112,29 +114,38 @@ const TRANSITION_FRACTION = 0.25;
 // never go slower (except slide show transitions).
 const TRANSITION_SPEED = 1.8;
 
-// Slide show constants
-const SLIDE_INTERVAL = 3000;      // 3 seconds on each slides
-const SLIDE_TRANSITION = 500;     // 1/2 second transition between slides
-
 var currentPhotoIndex = 0;       // What photo is currently displayed
-var thumbnailsDisplayed = true;  // Or is the thumbnail view showing
-var slideshowTimer = null;       // Non-null if we're doing a slide show
 
 // UI elements
 var thumbnails = document.getElementById('thumbnails');
-var photos = document.getElementById('photos');
-var playerControls = document.getElementById('player-controls');
-var backButton = document.getElementById('back-button');
-var slideshowButton = document.getElementById('play-button');
-var footerMenu = document.getElementById('footer-menu');
+var photoFrames = document.getElementById('photo-frames');
+
+// this button goes from photo mode back to thumbnail list mode
+var backButton = document.getElementById('photos-back-button');
+
+// this button goes from thumbnail list mode to thumbnail select mode
+var selectButton = document.getElementById('thumbnails-select-button');
+
+// this button goes from thumbnail select mode to thumbnail list mode
+var cancelButton = document.getElementById('thumbnails-cancel-button');
+
+// Only one of these three elements will be visible at a time
+var thumbnailListView = document.getElementById('thumbnail-list-view');
+var thumbnailSelectView = document.getElementById('thumbnail-select-view');
+var photoView = document.getElementById('photo-view');
+
+// These are the top-level view objects.
+// This array is used by setView()
+var views = [thumbnailListView, thumbnailSelectView, photoView];
+var currentView;
 
 // These three divs hold the previous, current and next photos
 // The divs get swapped around and reused when we pan to the
 // next or previous photo: next becomes current, current becomes previous
 // etc.  See nextPhoto() and previousPhoto().
-var previousPhotoFrame = photos.querySelector('div.previousPhoto');
-var currentPhotoFrame = photos.querySelector('div.currentPhoto');
-var nextPhotoFrame = photos.querySelector('div.nextPhoto');
+var previousPhotoFrame = photoFrames.querySelector('div.previousPhoto');
+var currentPhotoFrame = photoFrames.querySelector('div.currentPhoto');
+var nextPhotoFrame = photoFrames.querySelector('div.nextPhoto');
 
 // The currently displayed <img> element.
 // This changes as photos are panned, but showPhoto(), nextPhoto() and
@@ -153,10 +164,15 @@ var transitioning = false;
 // This will be set to "ltr" or "rtl" when we get our localized event
 var languageDirection;
 
+// Where we store the images that photodb finds for us.
+// Each array element is an object that includes a filename and metadata
+var images = [];
+
 var photodb = new MediaDB('pictures', metadataParser, {
   indexes: ['metadata.date'],
   mimeTypes: ['image/jpeg', 'image/png']
 });
+
 photodb.onready = function() {
   buildUI();  // List files we already know about
   photodb.scan();    // Go look for more.
@@ -173,11 +189,41 @@ photodb.onready = function() {
     }
   });
 };
+
 photodb.onchange = function(type, files) {
   rebuildUI();
 };
 
-var images = [];
+function setView(view) {
+  if (currentView === view)
+    return;
+
+  // Show the specified view, and hide the others
+  for (var i = 0; i < views.length; i++) {
+    if (views[i] === view)
+      views[i].classList.remove('hidden');
+    else
+      views[i].classList.add('hidden');
+  }
+
+  // Move the thumbnails into the new current view.
+  // Note that photosView is a special case because we need to insert
+  // the thumbnails into the filmstrip container and set its width
+  if (view === photoView) {
+    document.getElementById('photos-filmstrip').appendChild(thumbnails);
+    // In order to get a working scrollbar, we apparently have to specify
+    // an explict width for list of thumbnails.
+    // XXX: we need to update this when images are added or deleted.
+    // XXX: avoid using hardcoded 50px per image?
+    thumbnails.style.width = (images.length * 50) + 'px';
+  }
+  else {
+    view.appendChild(thumbnails);
+    thumbnails.style.width = '';
+  }
+  // Remember the current view
+  currentView = view;
+}
 
 function destroyUI() {
   images = [];
@@ -238,7 +284,7 @@ function addImage(imagedata) {
   }
 
   // If this is the first image we've found,
-  // remove the "no images" message
+  // remove the 'no images' message
   if (images.length === 0)
     document.getElementById('nophotos')
     .classList.add('hidden');
@@ -276,6 +322,11 @@ window.addEventListener('localized', function showBody() {
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
+
+  // Start off in thumbnail list view.
+  // XXX: if we're invoked by a web activity, we may want to
+  // start in some different mode
+  setView(thumbnailListView);
 });
 
 // Each of the photoFrame <div> elements may be subject to animated
@@ -291,7 +342,7 @@ nextPhotoFrame.addEventListener('transitionend', removeTransition);
 
 // Use the GestureDetector.js library to handle gestures.
 // This will generate tap, pan, swipe and transform events
-new GestureDetector(photos).startDetecting();
+new GestureDetector(photoFrames).startDetecting();
 
 // Clicking on a thumbnail displays the photo
 // FIXME: add a transition here
@@ -303,37 +354,19 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
 });
 
 // Clicking on the back button goes back to the thumbnail view
-backButton.addEventListener('click', function backButtonClick(evt) {
-  showThumbnails();
+backButton.addEventListener('click', function() {
+  setView(thumbnailListView);
 });
 
-// Clicking on the "play/pause" button starts or stops the slideshow
-slideshowButton.addEventListener('click', function slideshowClick() {
-  if (slideshowTimer)
-    stopSlideshow();
-  else
-    startSlideshow();
+// Clicking on the select button goes to thumbnail select mode
+selectButton.addEventListener('click', function() {
+  setView(thumbnailSelectView);
 });
 
-// If a photo is displayed, then the back button goes back to
-// the thumbnail view.
-window.addEventListener('keyup', function keyPressHandler(evt) {
-  if (!thumbnailsDisplayed && evt.keyCode == evt.DOM_VK_ESCAPE) {
-    showThumbnails();
-    evt.preventDefault();
-  }
+// Clicking on the cancel button goes to thumbnail list mode
+cancelButton.addEventListener('click', function() {
+  setView(thumbnailListView);
 });
-
-// The handler above is unlikely to actually be called.  Instead,
-// the Back button (bound to escape) is caught by gecko and takes
-// us out of fullscreen mode. So we listen for full-screen changes
-// and when we leave fullscreen mode, we show the thumbnails as above
-document.addEventListener('mozfullscreenchange', function leaveFullScreen() {
-  if (!document.mozFullScreenElement) {
-    showThumbnails();
-  }
-});
-
 
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
@@ -359,13 +392,13 @@ window.addEventListener('resize', function resizeHandler(evt) {
   }
 });
 
-// On a tap just show or hide the back and play buttons.
-photos.addEventListener('tap', function(event) {
-  playerControls.classList.toggle('hidden');
+// On a tap just show or hide the photo overlay
+photoFrames.addEventListener('tap', function(event) {
+  document.getElementById('photos-overlay').classList.toggle('hidden');
 });
 
 // Pan the photos sideways when the user moves their finger across the screen
-photos.addEventListener('pan', function(event) {
+photoFrames.addEventListener('pan', function(event) {
   if (transitioning)
     return;
 
@@ -377,7 +410,7 @@ photos.addEventListener('pan', function(event) {
 });
 
 // When the user lifts their finger after panning we get this event
-photos.addEventListener('swipe', function(event) {
+photoFrames.addEventListener('swipe', function(event) {
   // How far past the edge of the photo have we panned?
   var pastEdge = photoState.swipe;
   var direction;
@@ -420,9 +453,12 @@ photos.addEventListener('swipe', function(event) {
     else
       previousPhoto(time);
 
+    /*
+     * slideshows are deferred until v2
     // If a slideshow is in progress then restart the slide timer.
     if (slideshowTimer)
       continueSlideshow();
+    */
   }
   else if (pastEdge !== 0) {
     // Otherwise, just restore the current photo by undoing
@@ -445,7 +481,7 @@ photos.addEventListener('swipe', function(event) {
 });
 
 // Quick zoom in and out with dbltap events
-photos.addEventListener('dbltap', function(e) {
+photoFrames.addEventListener('dbltap', function(e) {
   var scale;
   if (photoState.scale > 1)      // If already zoomed in,
     scale = 1 / photoState.scale;  // zoom out to starting scale
@@ -461,7 +497,7 @@ photos.addEventListener('dbltap', function(e) {
 });
 
 // We also support pinch-to-zoom
-photos.addEventListener('transform', function(e) {
+photoFrames.addEventListener('transform', function(e) {
   if (transitioning)
     return;
 
@@ -469,16 +505,6 @@ photos.addEventListener('transform', function(e) {
                   e.detail.midpoint.clientX,
                   e.detail.midpoint.clientY);
 });
-
-// Switch from single-picture view to thumbnail view
-function showThumbnails() {
-  stopSlideshow();
-  thumbnails.classList.remove('hidden');
-  footerMenu.classList.remove('hidden');
-  photos.classList.add('hidden');
-  playerControls.classList.add('hidden');
-  thumbnailsDisplayed = true;
-}
 
 // A utility function to set the src attribute of the <img> element inside
 // the specified frame, which must be previousPhotoFrame, currentPhotoFrame
@@ -517,7 +543,8 @@ function displayImageInFrame(n, frame) {
 // figure out the size and position of an image based on its size
 // and the screen size.
 function fitImageToScreen(photoWidth, photoHeight) {
-  var viewportWidth = photos.offsetWidth, viewportHeight = photos.offsetHeight;
+  var viewportWidth = photoView.offsetWidth;
+  var viewportHeight = photoView.offsetHeight;
   var scalex = viewportWidth / photoWidth;
   var scaley = viewportHeight / photoHeight;
   var scale = Math.min(Math.min(scalex, scaley), 1);
@@ -538,13 +565,7 @@ function fitImageToScreen(photoWidth, photoHeight) {
 // Switch from thumbnail list view to single-picture view
 // and display the specified photo.
 function showPhoto(n) {
-  if (thumbnailsDisplayed) {
-    thumbnails.classList.add('hidden');
-    footerMenu.classList.add('hidden');
-    photos.classList.remove('hidden');
-    playerControls.classList.remove('hidden');
-    thumbnailsDisplayed = false;
-  }
+  setView(photoView); // Switch to photo view mode if not already there
 
   displayImageInFrame(n - 1, previousPhotoFrame);
   displayImageInFrame(n, currentPhotoFrame);
@@ -688,6 +709,14 @@ function previousPhoto(time) {
   });
 }
 
+/*
+ * Slideshows are a v2 feature
+ *
+// Slide show constants
+const SLIDE_INTERVAL = 3000;      // 3 seconds on each slides
+const SLIDE_TRANSITION = 500;     // 1/2 second transition between slides
+var slideshowTimer = null;       // Non-null if we're doing a slide show
+
 function startSlideshow() {
   // If we're already displaying the last slide, then move to the first
   if (currentPhotoIndex === images.length - 1)
@@ -738,6 +767,7 @@ function continueSlideshow() {
     stopSlideshow();
   }
 }
+*/
 
 /*
  * This class encapsulates the zooming and panning functionality for
@@ -770,8 +800,8 @@ PhotoState.prototype._reposition = function() {
 PhotoState.prototype.reset = function() {
   // Store the display space we have for photos
   // call reset() when we get a resize or orientationchange event
-  this.viewportWidth = photos.offsetWidth;
-  this.viewportHeight = photos.offsetHeight;
+  this.viewportWidth = photoFrames.offsetWidth;
+  this.viewportHeight = photoFrames.offsetHeight;
 
   // Compute the default size and position of the image
   var fit = fitImageToScreen(this.photoWidth, this.photoHeight);
