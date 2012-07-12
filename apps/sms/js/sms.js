@@ -774,7 +774,7 @@ var ThreadUI = {
     ThreadListUI.renderThreads(message);
   },
 
-  pickContact: function cv_pickContact() {
+  pickContact: function thui_pickContact() {
     try {
       var activity = new MozActivity({
         name: 'pick',

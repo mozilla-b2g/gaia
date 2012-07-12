@@ -40,10 +40,7 @@ var UITest = {
     this.backBtn.removeEventListener('click', this);
   },
   getNameFromHash: function ut_getNameFromHash() {
-    var result = null;
-    if (window.location.hash)
-      result = (/\btest=(.+)(&|$)/.exec(window.location.hash) || [])[1];
-    return result;
+    return (/\btest=(.+)(&|$)/.exec(window.location.hash) || [])[1];
   },
   handleEvent: function ut_handleEvent(ev) {
     switch (ev.type) {

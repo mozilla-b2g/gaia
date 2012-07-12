@@ -847,8 +847,8 @@ var ActivityHandler = {
   }
 };
 
-var actHandle = ActivityHandler.handle.bind(ActivityHandler);
-window.navigator.mozSetMessageHandler('activity', actHandle);
+var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+window.navigator.mozSetMessageHandler('activity', actHandler);
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (document.mozHidden) {
