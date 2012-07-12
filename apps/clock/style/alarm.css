@@ -409,16 +409,14 @@ li img {
 }
 
 /* 320x480 phones */
-@media (orientation: portrait) and (width: 320px),
-       (orientation: landscape) and (width: 480px) {
+@media screen and (width: 320px) {
   html {
     font-size: 6px;
   }
 }
 
 /* 480x800 phones */
-@media (orientation: portrait) and (width: 480px),
-       (orientation: landscape) and (width: 800px) {
+@media screen and (width: 480px) {
   html {
     font-size: 10px;
   }
