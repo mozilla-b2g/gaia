@@ -490,9 +490,13 @@ var LockScreen = {
     }
   },
 
-  loadPanel: function ls_loadPanel(panel) {
+  loadPanel: function ls_loadPanel(panel, callback) {
     switch (panel) {
       case 'passcode':
+      case 'emergency':
+      default:
+        if (callback)
+          callback();
         break;
 
       case 'camera':
@@ -500,15 +504,17 @@ var LockScreen = {
         var frame = document.createElement('iframe');
         frame.src = './camera/';
         frame.addEventListener('load', this);
+        if (callback) {
+          frame.onload = function () {
+            callback();
+          };
+        }
         this.camera.appendChild(frame);
-        break;
-
-      case 'emergency':
         break;
     }
   },
 
-  unloadPanel: function ls_loadPanel(panel) {
+  unloadPanel: function ls_loadPanel(panel, callback) {
     switch (panel) {
       case 'passcode':
         // Reset passcode panel only if the status is not error
@@ -541,18 +547,19 @@ var LockScreen = {
         this.areaUnlock.classList.remove('triggered');
         break;
     }
+
+    if (callback)
+      callback();
   },
 
   switchPanel: function ls_switchPanel(panel) {
     var overlay = this.overlay;
-    this.unloadPanel(overlay.dataset.panel);
-
-    if (panel) {
-      overlay.dataset.panel = panel;
-      this.loadPanel(panel);
-    } else {
-      overlay.dataset.panel = '';
-    }
+    var self = this;
+    this.loadPanel(panel, function panelLoaded() {
+      self.unloadPanel(overlay.dataset.panel, function panelUnloaded() {
+        overlay.dataset.panel = panel || '';
+      });
+    });
   },
 
   updateTime: function ls_updateTime() {
