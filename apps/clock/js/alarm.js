@@ -40,6 +40,8 @@ var ClockView = {
     this.updateDaydate();
     this.updateDigitalClock();
     this._clockMode = 'digital';
+    this.digitalClock.classList.add('visible'); /* digital clock is default */
+    this.analogClock.classList.remove('visible');
     document.addEventListener('mozvisibilitychange', this);
     this.digitalClock.addEventListener('click', this);
   },
@@ -132,20 +134,20 @@ var ClockView = {
           case 'digital-clock':
             window.clearTimeout(this._updateDigitalClockTimeout);
             this.digitalClock.removeEventListener('click', this);
-            this.digitalClock.style.display = 'none';
+            this.digitalClock.classList.remove('visible');
             this.updateAnalogClock();
             this._clockMode = 'analog';
-            this.analogClock.style.display = 'inherit';
+            this.analogClock.classList.add('visible');
             this.analogClock.addEventListener('click', this);
             break;
 
           case 'analog-clock':
             window.clearTimeout(this._updateAnalogClockTimeout);
             this.analogClock.removeEventListener('click', this);
-            this.analogClock.style.display = 'none';
+            this.analogClock.classList.remove('visible');
             this.updateDigitalClock();
             this._clockMode = 'digital';
-            this.digitalClock.style.display = 'inherit';
+            this.digitalClock.classList.add('visible');
             this.digitalClock.addEventListener('click', this);
             break;
         }
@@ -157,8 +159,7 @@ var ClockView = {
     var height = this.clockView.offsetHeight -
                  this.daydate.offsetHeight -
                  AlarmList.alarms.offsetHeight;
-    // 10 px to avoid the second hand overlay the alarm list
-    this.analogClock.style.height = height - 10 + 'px';
+    this.analogClock.style.height = height + 'px';
   }
 
 };

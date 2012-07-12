@@ -319,6 +319,11 @@ html * {
   width: 90%;
   margin-top: 14%;
   margin-left: 5%;
+  display: none;
+}
+
+#digital-clock.visible {
+  display: block;
 }
 
 #clock-time {
@@ -340,15 +345,23 @@ html * {
   line-height: 7.8rem;
 }
 
-/* These CSS styles all apply to the SVG clock elements */
-#analog-clock { /* styles for everything in the clock */
-  stroke: black; /* black lines */
-  stroke-linecap: round; /* with rounded ends */
-  fill: white; /* on a white background */
+#analog-clock {
   height: auto;
   max-height: 47rem;
   margin: auto;
-  display: none; /*  digital clock is default */
+  display: none;
+}
+
+#analog-clock.visible {
+  display: block;
+}
+/* These CSS styles all apply to the SVG clock elements */
+#analog-clock-svg { /* styles for everything in the clock */
+  stroke: black; /* black lines */
+  stroke-linecap: round; /* with rounded ends */
+  fill: white; /* on a white background */
+  height: -moz-calc(100% - 1rem); /* 1 rem to avoid the second hand overlay the alarm list */
+  pointer-events: none;
 }
 #face {  /* clock face outline */ 
   stroke-width: 0.1rem;
