@@ -56,8 +56,8 @@
     var vibrateInterval = 0;
     if (activateVibration) {
       vibrateInterval = window.setInterval(function vibrate() {
-        if ('mozVibrate' in navigator) {
-          navigator.mozVibrate([200]);
+        if ('vibrate' in navigator) {
+          navigator.vibrate([200]);
         }
       }, 600);
     }

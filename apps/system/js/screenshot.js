@@ -61,7 +61,7 @@
 
   function takeScreenshot() {
     // Give feedback that the screenshot request was received
-    navigator.mozVibrate(100);
+    navigator.vibrate(100);
 
     // Let chrome know we'd like a screenshot.
     // This is a completely non-standard undocumented API
@@ -95,7 +95,7 @@
         var saveRequest = storage.addNamed(e.detail.file, filename);
         saveRequest.onsuccess = function ss_onsuccess() {
           // Vibrate again when the screenshot is saved
-          navigator.mozVibrate(100);
+          navigator.vibrate(100);
 
           // Display filename in a notification
           navigator.mozNotification
