@@ -1,8 +1,8 @@
 .apps {
   width: 100%;
-	margin-top: .3rem;
-  height: -moz-calc(100% - .3rem);
+  height: -moz-calc(100% - 7.5rem);
   overflow: hidden;
+	background-color: rgba(0,0,0, .7);
 }
 
 /* pages */
@@ -20,6 +20,7 @@
   list-style-type: none;
   display: block;
   margin: 0 auto;
+	margin-top: .3rem;
 }
 
 .apps ol > li {
@@ -91,7 +92,7 @@
   position: relative;
   height: 1.6rem; /* 15px in otoro */
   margin: 0 auto;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .apps .draggable {

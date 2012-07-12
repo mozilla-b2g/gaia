@@ -49,7 +49,7 @@ section,footer,nav,a,img {
 #paginationBar > .paginationScroller {
   width: 100%;
   height: 100%;
-  background-color: #ff4e00;
+  background-color: #ff7f02;
   -moz-transition: -moz-transform .2s ease;
   visibility: hidden;
 }
@@ -76,7 +76,6 @@ section,footer,nav,a,img {
 
 #icongrid {
   -moz-transform: translateX(0);
-  background-color: rgba(0,0,0, .1);
 }
 
 button:focus::-moz-focus-inner {
