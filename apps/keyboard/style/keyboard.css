@@ -132,23 +132,55 @@ button::-moz-focus-inner {
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper {
   background: #6ec5d5;
   border-radius: 0 0  0.3rem 0.3rem;
-  border: solid 1px #343638;
+  border: solid 1px #8BD1DD;
   border-top: none;
   margin: -0.5rem 0 0;
   height: 4.3rem;
 }
 
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem;
+}
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.5rem;
+  background: #6ec5d5;
+  z-index: 1;
+} 
+
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper > span {
   font: 3.8rem/4.5rem Open Sans Bold, Sans-serif;
   background: #6ec5d5;
   color: #1a3f46;
-  border: solid 1px #343638;
+  border: solid 1px #8BD1DD;
   border-radius: 0.3rem;
   height: 5.2rem;
   top: -5.3rem;
   left: -0.8rem;
   right: -0.8rem;
+}
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper > span:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
   z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem;
 }
 
 .keyboard-key:not(.special-key).highlighted:last-child  > .visual-wrapper > span {
@@ -223,6 +255,9 @@ background-position: center 2.2rem;
   z-index: 1;
   height: 100%;
 }
+
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper:after,
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper:before,
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after {
   display: none;
 }
@@ -254,16 +289,9 @@ background-position: center 2.2rem;
     border-top: none;
     height: 4.5rem;
 }
-.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper:after {
-  content: "";
-  position: absolute;
-  left: -0.5rem;
-  top: 0.5rem;
-  bottom: -0.5rem;
-  right: -0.5rem;
-  z-index: -1;
-  background: rgba(0, 0, 0, 0.55);
-  border-radius: 0.6rem;
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after { display: none; }
+.keyboard-key.highlighted.kbr-menu-on  > .visual-wrapper:before {
+  background: #6a6f73;
 }
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span {
   background: transparent;
@@ -292,7 +320,7 @@ background-position: center 2.2rem;
   bottom: -0.5rem;
   right: -0.5rem;
   z-index: -1;
-  background: rgba(0, 0, 0, 0.55);
+  background: url(images/dark-alpha.png) repeat left top;
   border-radius: 0.6rem;
 }
 .keyboard-key:first-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0.3rem 0; }
@@ -333,6 +361,12 @@ background-position: center 2.2rem;
   margin: 0;
   height: 5rem;
 }
+
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after, 
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:before,
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after 
+ { display: none; }
 
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
   border: none;
