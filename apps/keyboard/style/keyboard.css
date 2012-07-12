@@ -159,18 +159,24 @@ button::-moz-focus-inner {
 }
 
 /* Highlight for special keys */
+.keyboard-key.special-key.highlighted > .visual-wrapper {
+  background: #4AB6CB;
+  border-color: #3f5459;
+}
+.keyboard-key.special-key.highlighted > .visual-wrapper > span {
+  border-top-color: #6ec5d5;
+  color: #1e4a52;
+ }
 .keyboard-key.special-key.highlighted > .visual-wrapper:before {
   content: "";
   position: absolute;
-  left: -2px;
-  right: -2px;
-  top: -2px;
-  bottom: -4px;
-  border: #4495A8 2px solid;
+  left: -0.2rem;
+  right: -0.2rem;
+  top: -0.2rem;
+  bottom: -0.25rem;
+  z-index: -1;
+  background: #4495A8;
   border-radius: 0.3rem;
-}
-.keyboard-key.special-key.highlighted > .visual-wrapper > span:after  {
-  display: none;
 }
 
 /* Highlight for spacebar */
@@ -192,10 +198,8 @@ button::-moz-focus-inner {
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after {
   display: none;
 }
-/* Menu for special keys */
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper{
-}
 
+/* Menu for special keys */
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
 /* We need to keep this CSS3 properties for using it in the future when the gradients bugs would get resolved */
 /*  background: -moz-linear-gradient(#fff, #ebebeb);
