@@ -116,12 +116,12 @@ Icon.prototype = {
     container.dataset.dragging = 'true';
 
     var rectangle = container.getBoundingClientRect();
-    var style= draggableElem.style;
+    var style = draggableElem.style;
     style.left = rectangle.left + 'px';
     style.top = rectangle.top + 'px';
     this.initXCenter = (rectangle.left + rectangle.right) / 2;
     this.initYCenter = (rectangle.top + rectangle.bottom) / 2;
-    this.initHeight =  rectangle.bottom - rectangle.top;
+    this.initHeight = rectangle.bottom - rectangle.top;
 
     document.body.appendChild(draggableElem);
   },

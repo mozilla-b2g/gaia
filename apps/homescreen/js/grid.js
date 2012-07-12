@@ -572,7 +572,7 @@ const GridManager = (function() {
 
     getTotalPagesNumber: function() {
       return pages.total;
-    },
+    }
   };
 
   return {
