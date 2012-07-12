@@ -44,7 +44,7 @@ button::-moz-focus-inner {
   border: 0
 }
 
-.cache { position: absolute; left: 0; bottom: 0; z-index: 5; }
+.cache { position: absolute; left: 0; bottom: 0; z-index: -1; }
 /* Keyboard */
 #keyboard {
   position: absolute;
@@ -420,7 +420,19 @@ background-position: center 2.2rem;
   line-height: 5.2rem;
   border: none;
 }
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
+
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before {
   content: "";
   position: absolute;
   top: 0;
@@ -428,10 +440,10 @@ background-position: center 2.2rem;
   right: 0;
   height: 0.5rem;
   background: #6A6F73;
+  z-index: 1;
 } 
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before {
-  display: none;
-}
+
+
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key {
   padding: 0;
