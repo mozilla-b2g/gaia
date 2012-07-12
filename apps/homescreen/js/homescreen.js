@@ -131,6 +131,7 @@ const Homescreen = (function() {
       PaginationBar.update(1);
       PaginationBar.show();
       ViewController.init(document.querySelector('#content'));
+      DragDropManager.init();
     });
   }
 

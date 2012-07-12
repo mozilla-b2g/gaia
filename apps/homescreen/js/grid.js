@@ -2,7 +2,7 @@
 'use strict';
 
 const GridManager = (function() {
-  var container, homeContainer, draggableIcon, draggableIconOrigin;
+  var container, homeContainer;
 
   // Mode can be:
   //   - normal: the mode used to navigate and launch applications
@@ -159,7 +159,7 @@ const GridManager = (function() {
   }
 
   /*
-   * It handles touchstart events, dragging and swiping
+   * It handles touchstart events and swiping
    *
    * @param{Object} Event object
    */
@@ -171,7 +171,7 @@ const GridManager = (function() {
   }
 
   /*
-   * Handles touchmove events, dragging and swiping
+   * Handles touchmove events and swiping
    *
    * @param{Object} Event object
    */
@@ -179,17 +179,13 @@ const GridManager = (function() {
     evt.stopPropagation();
     status.pCoords = status.cCoords; // save previous coords
     status.cCoords = getCoordinates(evt); // update coords
-    if (dragger.dragging) {
-      dragger.move(evt.target);
+    var difX = -(status.iCoords.x - status.cCoords.x);
+    if (isRequestToLandingPage(difX)) {
+      releaseEvents();
+      dispatchGestureByHome();
+      keepPosition();
     } else {
-      var difX = -(status.iCoords.x - status.cCoords.x);
-      if (isRequestToLandingPage(difX)) {
-        releaseEvents();
-        dispatchGestureByHome();
-        keepPosition();
-      } else {
-        pan(difX);
-      }
+      pan(difX);
     }
   }
 
@@ -237,21 +233,13 @@ const GridManager = (function() {
   }
 
   /*
-   * It handles touchend events, dragging and swiping
+   * It handles touchend events and swiping
    *
    * @param{Object} Event object
    */
   function onEndEvent(evt) {
     evt.stopPropagation();
     releaseEvents();
-
-    if (dragger.dragging) {
-      dragger.stop(function dg_stop() {
-        delete container.dataset.transitioning;
-      });
-      return;
-    }
-
     var difX = status.cCoords.x - status.iCoords.x;
     var absDifX = Math.abs(difX);
     var threshold = window.innerWidth / 4;
@@ -580,209 +568,15 @@ const GridManager = (function() {
      */
     getLast: function() {
       return pages.list[this.total() - 1];
-    }
-  };
-
-  /*
-   * After re-arranged the overlap element could be different so we
-   * create a mousemove event with the same coordinates than the last
-   * mousedown event
-   */
-  function dispatchMouseMoveEvent() {
-    var currentPage = pageHelper.getCurrent();
-    delete currentPage.onReArranged;
-    var win = document.defaultView;
-    var mousemove = document.createEvent('MouseEvent');
-    mousemove.initMouseEvent(
-      'mousemove', true, true, win, 0,
-      status.cCoords.x + win.mozInnerScreenX, status.cCoords.y +
-      win.mozInnerScreenY, status.cCoords.x,
-      status.cCoords.y, false, false, false, false, 0, null);
-    win.dispatchEvent(mousemove);
-  }
-
-  /*
-   * This module leads to dragging feature
-   */
-  var dragger = {
-    /*
-     * It's true when an user is dragging
-     */
-    dragging: false,
-
-    /*
-     * Drop feature is disabled (in the borders of the icongrid)
-     */
-    isDisabledDrop: false,
-
-    /*
-     * Checking limits is disabled
-     */
-    isDisabledCheckingLimits: false,
-
-    /*
-     * Timeout of the checking limits function
-     */
-    disabledCheckingLimitsTimeout: null,
-
-    /*
-     * Sets the isTranslatingPages variable
-     *
-     * @param {Boolean} the value
-     */
-    setDisabledCheckingLimits: function dg_setDisabledCheckingLimits(value) {
-      this.isDisabledCheckingLimits = value;
-      if (value) {
-        var self = this;
-        this.disabledCheckingLimitsTimeout = setTimeout(
-          function dg_disabledCheckingLimitsTimeout() {
-            self.isDisabledCheckingLimits = false;
-            self.checkLimits();
-          }
-        , 1000);
-      }
     },
 
-    transitioning: false,
-
-    onNavigationEnd: function dg_onNavigationEnd() {
-      dragger.transitioning = false;
+    getCurrentPageNumber: function() {
+      return pages.current;
     },
 
-    /*
-     * Detects when users are touching on the limits of a page during
-     * the dragging. So we can change the current page and navigate
-     * to prev/next page depending on the position.
-     * Furthermore, this method is in charge of creating a new page when
-     * it's needed
-     */
-    checkLimits: function dg_checkLimits() {
-      var x = status.cCoords.x;
-      if (dirCtrl.limitNext(x)) {
-        this.isDisabledDrop = true;
-        if (this.isDisabledCheckingLimits) {
-          return;
-        }
-
-        var curPageObj = pageHelper.getCurrent();
-        if (pages.current < pages.total - 1) {
-          curPageObj.remove(draggableIcon);
-          pageHelper.getNext().prependIcon(draggableIcon);
-          this.setDisabledCheckingLimits(true);
-          this.transitioning = true;
-          goNext(this.onNavigationEnd);
-        } else if (curPageObj.getNumApps() > 1) {
-          // New page if there are two or more icons
-          curPageObj.remove(draggableIcon);
-          pageHelper.push([draggableIcon]);
-          this.setDisabledCheckingLimits(true);
-          this.transitioning = true;
-          goNext(this.onNavigationEnd);
-        }
-      } else if (dirCtrl.limitPrev(x)) {
-        this.isDisabledDrop = true;
-        if (pages.current === 0 || this.isDisabledCheckingLimits) {
-          return;
-        }
-
-        var curPageObj = pageHelper.getCurrent();
-        curPageObj.remove(draggableIcon);
-        var prevPageObj = pageHelper.getPrevious();
-        if (prevPageObj.getNumApps() === pageHelper.getMaxPerPage()) {
-          prevPageObj.insertBeforeLastIcon(draggableIcon);
-        } else {
-          prevPageObj.append(draggableIcon);
-        }
-        this.setDisabledCheckingLimits(true);
-        this.transitioning = true;
-        goPrev(this.onNavigationEnd);
-      } else if (this.transitioning) {
-        this.isDisabledDrop = true;
-      } else {
-        this.isDisabledDrop = false;
-      }
+    getTotalPagesNumber: function() {
+      return pages.total;
     },
-
-    /*
-     * This method is executed when dragging starts
-     *
-     * {Object} This is the DOMElement which was tapped and hold
-     */
-    start: function dg_start(elem) {
-      this.dragging = true;
-      container.dataset.dragging = true;
-      draggableIconOrigin = elem.dataset.origin;
-      draggableIcon = pageHelper.getCurrent().getIcon(draggableIconOrigin);
-      draggableIcon.onDragStart(status.iCoords.x, status.iCoords.y);
-    },
-
-    /*
-     * This method is invoked when dragging is finished. It checks if
-     * there is overflow or not in a page and removes the last page when
-     * is empty
-     */
-    stop: function dg_stop(callback) {
-      clearTimeout(this.disabledCheckingLimitsTimeout);
-      this.isDisabledCheckingLimits = false;
-      this.isDisabledDrop = false;
-      this.transitioning = false;
-      this.dragging = false;
-
-      var finishDrag = function dg_finishDrag() {
-        delete container.dataset.dragging;
-        checkOverflowPages();
-        checkEmptyPages();
-        callback();
-      }
-
-      var currentPage = pageHelper.getCurrent();
-      if (currentPage.ready) {
-        draggableIcon.onDragStop(finishDrag);
-      } else {
-        // Probably users release the draggable icon before re-arranged
-        currentPage.onReArranged = function fn_ready() {
-          delete currentPage.onReArranged;
-          draggableIcon.onDragStop(finishDrag);
-        }
-      }
-
-    },
-
-    /*
-     * It's performed when the draggable element is moving
-     *
-     * @param {Object} DOMElement behind draggable icon
-     */
-    move: function dg_move(overlapElem) {
-      draggableIcon.onDragMove(status.cCoords.x, status.cCoords.y);
-
-      var currentPage = pageHelper.getCurrent();
-      if (!currentPage.ready) {
-        currentPage.onReArranged = dispatchMouseMoveEvent;
-        return;
-      }
-
-      this.checkLimits();
-      if (this.isDisabledDrop) {
-        return;
-      }
-
-      var classList = overlapElem.classList;
-      if (!classList) {
-        return;
-      }
-
-      if (classList.contains('icon') || classList.contains('options')) {
-        var overlapElemOrigin = overlapElem.dataset.origin;
-        currentPage.drop(draggableIconOrigin, overlapElemOrigin);
-      } else if (classList.contains('page')) {
-        var lastIcon = currentPage.getLastIcon();
-        if (lastIcon && status.cCoords.y > lastIcon.getTop() &&
-            overlapElem !== lastIcon) {
-          currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
-        }
-      }
-    }
   };
 
   return {
@@ -832,13 +626,22 @@ const GridManager = (function() {
           keepPosition(); // Sadly clicking on icons could fire touchmove events
           GridManager.setMode('edit');
           if ('origin' in evt.target.dataset) {
-            dragger.start(evt.target);
+            releaseEvents();
+            container.dataset.dragging = true;
+            DragDropManager.start(evt, status.iCoords);
           }
 
           evt.preventDefault();
           evt.stopPropagation();
           break;
       }
+    },
+
+    onDragStop: function() {
+      delete container.dataset.dragging;
+      checkOverflowPages();
+      checkEmptyPages();
+      delete container.dataset.transitioning;
     },
 
     /*
@@ -928,6 +731,19 @@ const GridManager = (function() {
     },
 
     // Go directly to one page
-    goTo: goTo
+    goTo: goTo,
+
+    // Go to previous page
+    goPrev: goPrev,
+
+    // Go to next page
+    goNext: goNext,
+
+    /*
+     * Exports the pageHelper utils
+     */
+    get pageHelper() {
+      return pageHelper;
+    }
   };
 })();
