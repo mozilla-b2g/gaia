@@ -59,7 +59,7 @@ var StatusBar = {
   },
 
   addListeners: function sb_addListeners() {
-    var battery = window.navigator.battery;
+    var battery = window.navigator.mozBattery;
     if (battery) {
       battery.addEventListener('chargingchange', this);
       battery.addEventListener('levelchange', this);
@@ -83,7 +83,7 @@ var StatusBar = {
   },
 
   removeListeners: function sb_removeListeners(evt) {
-    var battery = window.navigator.battery;
+    var battery = window.navigator.mozBattery;
     if (battery) {
       battery.removeEventListener('chargingchange', this);
       battery.removeEventListener('levelchange', this);
@@ -121,7 +121,7 @@ var StatusBar = {
   },
 
   updateBattery: function sb_updateBattery() {
-    var mozBattery = window.navigator.battery;
+    var mozBattery = window.navigator.mozBattery;
     if (!mozBattery)
       return;
 
