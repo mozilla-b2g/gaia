@@ -10,7 +10,6 @@ contacts.List = (function() {
 
   searchBox = document.getElementById('search-contact');
   fastScroll = document.querySelector('.view-jumper');
-  favoriteGroup = document.getElementById('group-favorites').parentNode;
 
   var init = function load(element) {
     groupsList = element;
@@ -25,6 +24,7 @@ contacts.List = (function() {
     alphabet.push({group: 'und', letter: '#'});
 
     utils.templates.append(groupsList, alphabet);
+    favoriteGroup = document.getElementById('group-favorites').parentNode;
   }
 
   var load = function load(contacts) {
@@ -263,49 +263,27 @@ contacts.List = (function() {
     }
   }
 
-  var searchNoResults = function searchNoResults() {
-    // Show the no results window
-    console.log('No search results');
-  }
-
-  var buildSearchContacts = function buildSearch(contacts) {
-    if (!contacts || contacts.length == 0) {
-      searchNoResults();
+  // Toggle function to show/hide the letters header
+  var showGroupHeaders = function showHeaders(show) {
+    // Search for the ones with data-search mark
+    // Hide the headers, those one NOT with class hide
+    var selector = show ? '[data-search]' : '.block-title:not(.hide)';
+    var headers = document.querySelectorAll(selector);
+    if (!headers) {
       return;
     }
 
-    // Create a virtual template from the original, without header
-    var list = document.createElement('ol');
-    var template = document.querySelector('[data-uuid]');
-    contacts.forEach(function walkContacts(contact) {
-      var aux = utils.templates.render(template, contact);
-      list.appendChild(aux);
-    });
-
-    document.querySelector('.block-list').appendChild(list);
-  };
-
-  // Toggle function to show/hide the letters header
-  var showGroupHeaders = function showHeaders(show) {
-    if (show) {
-      var headers = document.querySelectorAll('[data-search]');
-      if(headers) {
-        for(var i=0; i<headers.length; i++) {
-          headers[i].classList.remove('hide');
-          // Remove the search mark
-          delete(headers[i].dataset['search']);
-        }
-      }
-    } else {
-      // Hide the headers, those one NOT with class hide
-      var headers = document.querySelectorAll('.block-title:not(.hide)');
-      if(headers) {
-        for(var i=0; i<headers.length; i++) {
-          headers[i].classList.add('hide');
-          // Mark this headers with a special element in data set
-          // to know that they were visible while not searching
-          headers[i].dataset['search'] = 1;
-        }
+    for (var i = 0; i < headers.length; i++) {
+      var header = headers[i];
+      if (show) {
+        header.classList.remove('hide');
+        // Remove the search mark
+        delete(header.dataset['search']);
+      } else {
+        header.classList.add('hide');
+        // Mark this headers with a special element in data set
+        // to know that they were visible while not searching
+        header.dataset['search'] = 1;
       }
     }
   }
@@ -318,13 +296,13 @@ contacts.List = (function() {
     showGroupHeaders(true);
 
     // Bring back to visibilitiy the contcts
-    var allContacts = document.querySelectorAll(".block-item:not([data-uuid='#id#']");
-    for(var i=0; i<allContacts.length; i++) {
+    var allContacts = getContactsDom();
+    for (var i = 0; i < allContacts.length; i++) {
       var contact = allContacts[i];
       contact.classList.remove('search');
       contact.classList.remove('hide');
     }
-  }
+  };
 
   var search = function performSearch() {
     cleanContactsList();
@@ -337,22 +315,27 @@ contacts.List = (function() {
     var pattern = new RegExp(searchBox.value, 'i');
     showGroupHeaders(false);
 
-    var allContacts = document.querySelectorAll(".block-item:not([data-uuid='#id#']");
-    for(var i=0; i<allContacts.length; i++) {
+    var allContacts = getContactsDom();
+    for (var i = 0; i < allContacts.length; i++) {
       var contact = allContacts[i];
       contact.classList.add('search');
       var text = contact.children[1].children[1].textContent;
-      if(!pattern.test(text)) {
+      if (!pattern.test(text)) {
         contact.classList.add('hide');
       } else {
         contact.classList.remove('hide');
       }
     }
-  }
+  };
 
   var cleanContactsList = function cleanContactsList() {
     fastScroll.classList.add('hide');
-    document.getElementById('group-favorites').parentNode.classList.add('hide');
+    favoriteGroup.classList.add('hide');
+  };
+
+  var getContactsDom = function contactsDom() {
+    var selector = ".block-item:not([data-uuid='#id#']";
+    return document.querySelectorAll(selector);
   }
 
   return {
