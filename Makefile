@@ -136,11 +136,10 @@ webapp-manifests:
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 			n=$$(basename $$d); \
-			mkdir -p profile/webapps/$$n; \
-			cp $$d/manifest.webapp profile/webapps/$$n/manifest.webapp  ;\
-			cp $$d/manifest.webapp profile/webapps/$$n/manifest.json  ;\
+			mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
+			cp $$d/manifest.webapp profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp  ;\
 			(\
-			echo \"$$n\": { ;\
+			echo \"$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\": { ;\
 			echo \"origin\": \"app://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"installOrigin\": \"app://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
