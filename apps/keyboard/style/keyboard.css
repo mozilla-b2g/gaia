@@ -129,7 +129,7 @@ button::-moz-focus-inner {
   left: 0;
   right: 0;
   height: 100%;
-  font: 2.4rem/3.2rem Open Sans Semibold;
+  font: 2.4rem/3.2rem Open Sans Bold;
   text-align: center;
   color: #fff;
 }
@@ -197,10 +197,17 @@ button::-moz-focus-inner {
   right: -1px;
   border-bottom-right-radius: 0;
 }
+.keyboard-key:not(.special-key).highlighted:last-child  #keyboard-accent-char-menu {
+  right: -1px;
+}
+
 
 .keyboard-key:not(.special-key).highlighted:first-child  > .visual-wrapper > span {
   left: -1px;
   border-bottom-left-radius: 0;
+}
+.keyboard-key:not(.special-key).highlighted:first-child  #keyboard-accent-char-menu {
+  left: -1px;
 }
 
 
@@ -294,14 +301,16 @@ background-position: center 2.2rem;
 
  /* Alt menu enabled */
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper {
-    background: #6a6f73;
+    /*background: #6a6f73;*/
+    background: #6EC5D5;
     border: 1px solid #acaeb1;
     border-top: none;
     height: 4.5rem;
 }
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after { display: none; }
 .keyboard-key.highlighted.kbr-menu-on  > .visual-wrapper:before {
-  background: #6a6f73;
+  /*background: #6a6f73;*/
+  background: #6EC5D5;
 }
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span {
   background: transparent;
@@ -312,12 +321,13 @@ background-position: center 2.2rem;
 #keyboard-accent-char-menu {
   position: absolute;
   bottom: 0;
-  left: -1px;
+  left: 0.6rem;
   margin-bottom: -1px;
-  height: 5rem;
-  border-radius: 0.3rem;
-  background: #6a6f73;
-  border: 1px solid #acaeb1;
+  height: 5.8rem;
+  border-radius: 0.3rem 0.3rem 0.3rem 0;
+  /*background: #6a6f73;*/
+  background: #6EC5D5;
+  border: 1px solid #92d3e0;
   white-space: nowrap;
   overflow: visible;
   display: none;
@@ -327,11 +337,11 @@ background-position: center 2.2rem;
   position: absolute;
   left: -0.5rem;
   top: -0.5rem;
-  bottom: -0.5rem;
+  bottom: -0.6rem;
   right: -0.5rem;
   z-index: -1;
   background: url(images/dark-alpha.png) repeat left top;
-  border-radius: 0.6rem;
+  border-radius: 0.6rem 0.6rem 0.6rem 0;
 }
 .keyboard-key:first-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0.3rem 0; }
 .keyboard-key:last-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0 0.3rem; }
@@ -369,7 +379,8 @@ background-position: center 2.2rem;
   border: none;
   border-radius: none;
   margin: 0;
-  height: 5rem;
+  height: 5.8rem;
+  top: -1px;
 }
 
 
@@ -381,16 +392,22 @@ background-position: center 2.2rem;
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
   border: none;
   border-radius: 0;
+  font-size: 3rem;
   line-height: 4rem;
+  font-family: Open Sans Bold;
+  color: #333;
 }
 
 /* Highlighted non keboard key style */
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
-  background: #4ab6cb;
-  color: #1a3f46;
-  border: solid 1px #515356;
-  border-top: none;
+  /*background: #4ab6cb;*/
+  background: #333;
+  /*color: #1a3f46;*/
+  border: solid 0.2rem #333;
+  -moz-box-sizing: content-box;
+  border-top: solid 1px #999;
   border-bottom: none;
+  border-radius: 0;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
@@ -400,7 +417,8 @@ background-position: center 2.2rem;
   z-index: 1;
   height: 100%;
   font-weight: normal;
-  font-size: 2.4rem;
+  color: #fff;
+  background: none;
 }
 
 /* Language alternatives */
@@ -449,7 +467,8 @@ background-position: center 2.2rem;
   left: 0;
   right: 0;
   height: 0.5rem;
-  background: #6A6F73;
+  /*background: #6A6F73;*/
+  background: #4AB6CB;
   z-index: 1;
 } 
 
