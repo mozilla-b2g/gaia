@@ -54,7 +54,7 @@ var MessageManager = {
           ThreadListUI.renderThreads();
           var num = this.getNumFromHash();
           if (num) {
-            this.renderMessages(num);
+            ThreadUI.renderMessages(num);
           }
         }
         break;
