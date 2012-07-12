@@ -134,6 +134,7 @@ var Contacts = (function() {
   var numberPhones = 0;
   var numberAddresses = 0;
   var numberNotes = 0;
+  var photoPos = 8;
   var currentContactId,
       detailsName,
       givenName,
@@ -154,7 +155,8 @@ var Contacts = (function() {
       contactDetails,
       saveButton,
       deleteContactButton,
-      favoriteMessage;
+      favoriteMessage,
+      cover;
 
   var currentContact = {};
 
@@ -180,6 +182,7 @@ var Contacts = (function() {
     deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
+    cover = document.getElementById('cover-img');
 
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = 'Are you sure you want to remove this contact?';
@@ -210,7 +213,8 @@ var Contacts = (function() {
     });
 
     var position = 0;
-    contactDetails.addEventListener('mousedown', function(event) {
+
+    cover.addEventListener('mousedown', function(event) {
       if (contactDetails.classList.contains('no-photo'))
         return;
 
@@ -218,26 +222,33 @@ var Contacts = (function() {
       var currentPosition;
       var initMargin = '8rem';
       contactDetails.classList.add('up');
+      cover.classList.add('up');
 
       var onMouseMove = function onMouseMove(event) {
         currentPosition = event.clientY;
         var newMargin = currentPosition - startPosition;
         if (newMargin > 0 && newMargin < 200) {
           contactDetails.classList.remove('up');
+          cover.classList.remove('up');
           var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
-          contactDetails.style.marginTop = calc;
+          // Divide by 40 (4 times slower and in rems)
+          contactDetails.style.transform = 'translateY(' + calc + ')';
+          var newPos = 'center ' + (-photoPos + (newMargin / 40)) + 'rem';
+          cover.style.backgroundPosition = newPos;
         }
       };
 
       var onMouseUp = function onMouseUp(event) {
         contactDetails.classList.add('up');
-        contactDetails.style.marginTop = initMargin;
-        contactDetails.removeEventListener('mousemove', onMouseMove);
-        contactDetails.removeEventListener('mouseup', onMouseUp);
+        cover.classList.add('up');
+        contactDetails.style.transform = 'translateY(' + initMargin + ')';
+        cover.style.backgroundPosition = 'center -' + photoPos + 'rem';
+        cover.removeEventListener('mousemove', onMouseMove);
+        cover.removeEventListener('mouseup', onMouseUp);
       };
 
-      contactDetails.addEventListener('mousemove', onMouseMove);
-      contactDetails.addEventListener('mouseup', onMouseUp);
+      cover.addEventListener('mousemove', onMouseMove);
+      cover.addEventListener('mouseup', onMouseUp);
     });
   });
 
@@ -322,22 +333,23 @@ var Contacts = (function() {
       }
     }
 
-    var cover = document.getElementById('cover-img');
+
     var existsPhoto = 'photo' in contact && contact.photo;
     if (existsPhoto) {
+      var detailsInner = document.getElementById('contact-detail-inner');
       contactDetails.classList.add('up');
+      var photoOffset = (photoPos + 1) * 10;
+      if ((detailsInner.offsetHeight + photoOffset) < cover.clientHeight) {
+        cover.style.overflow = 'hidden';
+      } else {
+        cover.style.overflow = null;
+      }
       cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
     } else {
-      cover.style.backgroundImage = null;
-      contactDetails.style.marginTop = null;
-      contactDetails.classList.add('no-photo');
-    }
-
-    //Removes unnecesary scroll
-    if (contactDetails.offsetHeight == cover.clientHeight) {
-      cover.style.overflow = 'hidden';
-    } else {
       cover.style.overflow = null;
+      cover.style.backgroundImage = null;
+      contactDetails.style.transform = null;
+      contactDetails.classList.add('no-photo');
     }
   };
 
