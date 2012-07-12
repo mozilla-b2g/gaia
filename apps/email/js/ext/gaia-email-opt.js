@@ -6783,6 +6783,7 @@ function serializeMessageName(x) {
 function MailHeader(slice, wireRep) {
   this._slice = slice;
   this.id = wireRep.suid;
+  this.guid = wireRep.guid;
 
   this.author = wireRep.author;
 
@@ -6889,7 +6890,10 @@ MailHeader.prototype = {
    * @args[
    *   @param[replyMode @oneof[
    *     @default[null]{
-   *       Just reply to the sender.
+   *       To be specified...
+   *     }
+   *     @case['sender']{
+   *       Reply to the author of the message.
    *     }
    *     @case['list']{
    *       Reply to the mailing list the message was received from.  If there
@@ -6953,7 +6957,7 @@ function MailBody(api, suid, wireRep) {
   }
   // for the time being, we only provide text/plain contents, and we provide
   // those flattened.
-  this.bodyText = wireRep.bodyText;
+  this.bodyRep = wireRep.bodyRep;
 }
 MailBody.prototype = {
   toString: function() {
@@ -7191,6 +7195,7 @@ function MessageComposition(api, handle) {
 
   this.body = null;
 
+  this._references = null;
   this._customHeaders = null;
   // XXX attachments aren't implemented yet, of course.  They will be added
   // via helper method.
@@ -7228,6 +7233,7 @@ MessageComposition.prototype = {
       bcc: this.bcc,
       subject: this.subject,
       body: this.body,
+      referencesStr: this._references,
       customHeaders: this._customHeaders,
       attachments: this._attachments,
     };
@@ -7466,14 +7472,16 @@ MailAPI.prototype = {
 
     // - generate 'oncomplete' notification
     if (slice.oncomplete && msg.requested && !msg.moreExpected) {
+      var completeFunc = slice.oncomplete;
+      // reset before calling in case it wants to chain.
+      slice.oncomplete = null;
       try {
-        slice.oncomplete();
+        completeFunc();
       }
       catch (ex) {
         reportClientCodeError('oncomplete notification error', ex,
                               '\n', ex.stack);
       }
-      slice.oncomplete = null;
     }
   },
 
@@ -7895,29 +7903,37 @@ MailAPI.prototype = {
       handle: handle,
       mode: null,
       submode: null,
-      reference: null,
+      refSuid: null,
+      refDate: null,
+      refGuid: null,
+      refAuthor: null,
+      refSubject: null,
     };
     if (options.hasOwnProperty('replyTo') && options.replyTo) {
       msg.mode = 'reply';
       msg.submode = options.replyMode;
-      msg.reference = options.replyTo.id;
-      throw new Error('XXX replying not implemented');
+      msg.refSuid = options.replyTo.id;
+      msg.refDate = options.replyTo.date.valueOf();
+      msg.refGuid = options.replyTo.guid;
+      msg.refAuthor = options.replyTo.author;
+      msg.refSubject = options.replyTo.subject;
     }
     else if (options.hasOwnProperty('forwardOf') && options.forwardOf) {
       msg.mode = 'forward';
       msg.submode = options.forwardMode;
-      msg.reference = options.forwardOf.id;
-      throw new Error('XXX forwarding not implemented');
+      msg.refSuid = options.forwardOf.id;
+      msg.refDate = options.forwardOf.date.valueOf();
+      msg.refSubject = options.forwardOf.subject;
     }
     else {
       msg.mode = 'new';
       if (message) {
         msg.submode = 'message';
-        msg.reference = message.id;
+        msg.refSuid = message.id;
       }
       else if (folder) {
         msg.submode = 'folder';
-        msg.reference = folder.id;
+        msg.refSuid = folder.id;
       }
     }
     this.__bridgeSend(msg);
@@ -7951,6 +7967,7 @@ MailAPI.prototype = {
     req.composer.to = msg.to;
     req.composer.cc = msg.cc;
     req.composer.bcc = msg.bcc;
+    req.composer._references = msg.referencesStr;
     // XXX attachments
 
     if (req.callback) {
@@ -7997,6 +8014,22 @@ MailAPI.prototype = {
       req.callback.call(null, msg.err, msg.badAddresses);
       req.callback = null;
     }
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Localization
+
+  /**
+   * Provide a list of localized strings for use in message composition.  This
+   * should be a dictionary with the following values, with their expected
+   * default values for English provided.  Try to avoid being clever and instead
+   * just pick the same strings Thunderbird uses for these for the given locale.
+   *
+   * - wrote: "{{name}} wrote".  Used for the lead-in to the quoted message.
+   * - originalMessage: "Original Message".  Gets put between a bunch of dashes
+   *    when forwarding a message inline.
+   */
+  useLocalizedStrings: function(strings) {
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -11289,6 +11322,863 @@ define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
 /**
+ * Process message bodies for quoting / signatures.
+ *
+ * We have two main goals in our processing:
+ *
+ * 1) Improve display by being able to automatically collapse excessively quoted
+ * blocks and large/redundant signature blocks and hide them entirely from snippet
+ * generation.
+ *
+ * 2) Allow us to reply to messages and provide automatically limited quoting.
+ * Specifically, we want to provide one message's worth of context when replying
+ * to a message.  We also want to avoid messages in a thread indefinitely
+ * growing in size because all users keep replying and leaving default quoting
+ * intact.
+ *
+ *
+ **/
+
+define('rdimap/imapclient/quotechew',[
+    'exports'
+  ],
+  function(
+    exports
+  ) {
+
+////////////////////////////////////////////////////////////////////////////////
+// Content Type Encoding
+//
+// We encode content type values as integers in an attempt to have the serialized
+// form not be super huge and be pretty quick to check without generating garbage
+// objects.
+//
+// The low-order nibble encodes the type for styling purposes; everything above
+// that nibble is per-type and may encode integer values or use hot bits to
+// indicate type.
+
+/**
+ * Actual content of the message written by the user.
+ */
+const CT_AUTHORED_CONTENT = 0x1;
+/**
+ * Niceties like greetings/thanking someone/etc.  These are things that we want to
+ * show when displaying the message, but that arguably are of lower importance and
+ * might want to be elided for snippet purposes, etc.
+ */
+const CT_AUTHORED_NICETIES = 0x11;
+/**
+ * The signature of the message author; might contain useful information in it.
+ */
+const CT_SIGNATURE = 0x2;
+
+/**
+ * The line that says "Blah wrote:" that precedes a quote.  It's not part of the
+ * user content, but it's also not part of the quote.
+ */
+const CT_LEADIN_TO_QUOTE = 0x3;
+
+const CT_QUOTED_TYPE = 0x4;
+
+/**
+ * A quoted reply; eligible for collapsing.  Depth of quoting will also be
+ * encoded in the actual integer value.
+ */
+const CT_QUOTED_REPLY = 0x14;
+/**
+ * A quoted forwarded message; we would guess that the user has not previously seen
+ * the message and the quote wants to be displayed.
+ */
+const CT_QUOTED_FORWARD = 0x24;
+/**
+ * Quoted content that has not been pruned.  Aspirational!
+ */
+const CT_QUOTED_IN_ENTIRETY = 0x40;
+/**
+ * The quote has been subjected to some level of manual intervention. Aspirational!
+ */
+const CT_QUOTED_GARDENED = 0x80;
+
+const CT_QUOTE_DEPTH_MASK = 0xff00;
+
+/**
+ * Legal-ish boilerplate about how it's only for the recipient, etc. etc.
+ * Generally going to be long and boring.
+ */
+const CT_BOILERPLATE_DISCLAIMER = 0x5;
+/**
+ * Boilerplate about the message coming from a mailing list, info about the
+ * mailing list.
+ */
+const CT_BOILERPLATE_LIST_INFO = 0x6;
+/**
+ * Product branding boilerplate that may or may not indicate that the composing
+ * device was a mobile device (which is useful).
+ */
+const CT_BOILERPLATE_PRODUCT = 0x7;
+/**
+ * Advertising automatically inserted by the mailing list or free e-mailing service,
+ * etc.  This is assumed to be boring.
+ */
+const CT_BOILERPLATE_ADS = 0x8;
+
+const CHARCODE_GT = ('>').charCodeAt(0),
+      CHARCODE_SPACE = (' ').charCodeAt(0),
+      CHARCODE_NBSP = ('\xa0').charCodeAt(0),
+      CHARCODE_NEWLINE = ('\n').charCodeAt(0);
+
+const RE_ORIG_MESAGE_DELIM = /^-{5} Original Message -{5}$/;
+
+const RE_ALL_WS = /^\s+$/;
+
+const RE_SECTION_DELIM = /^[_-]{6,}$/;
+
+const RE_LIST_BOILER = /mailing list$/;
+
+const RE_WROTE_LINE = /wrote/;
+
+const RE_SIGNATURE_LINE = /^-- $/;
+
+/**
+ * The maximum number of lines that can be in a boilerplate chunk.  We expect
+ * disclaimer boilerplate to be what drives this.
+ */
+const MAX_BOILERPLATE_LINES = 20;
+
+/**
+ * Catch various common well-known product branding lines:
+ * - "Sent from my iPhone/iPad/mobile device".  Apple, others.
+ * - "Sent from my Android ...".  Common prefix for wildly varying Android
+ *     strings.
+ * - "Sent from my ...".  And there are others that don't match the above but
+ *     that match the prefix.
+ * - "Sent from Mobile"
+ */
+const RE_PRODUCT_BOILER = /^(?:Sent from (?:Mobile|my .+))$/;
+
+const RE_LEGAL_BOILER_START = /^(?:This message|Este mensaje)/;
+
+function indexOfDefault(string, search, startIndex, defVal) {
+  var idx = string.indexOf(search, startIndex);
+  if (idx === -1)
+    return defVal;
+  return idx;
+}
+
+const NEWLINE = '\n', RE_NEWLINE = /\n/g;
+
+function countNewlinesInRegion(string, startIndex, endIndex) {
+  var idx = startIndex - 1, count = 0;
+  for (;;) {
+    idx = string.indexOf(NEWLINE, idx + 1);
+    if (idx === -1 || idx >= endIndex)
+      return count;
+    count++;
+  }
+  return null;
+}
+
+/**
+ * Process the contents of a text body for quoting purposes.
+ *
+ * Key behaviors:
+ *
+ * - Whitespace is trimmed at the boundaries of regions.  Our CSS styling will
+ *   take care of making sure there is appropriate whitespace.  This is an
+ *   intentional normalization that should cover both people who fail to put
+ *   whitespace in their messages (jerks) and people who put whitespace in.
+ *
+ * - Newlines are maintained inside of blocks.
+ *
+ * - We look backwards for boilerplate blocks once we encounter the first quote
+ *   block or the end of the message.  We keep incrementally looking backwards
+ *   until we reach something that we don't think is boilerplate.
+ */
+exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
+  var contentRep = [];
+  var line;
+  /**
+   * Count the number of '>' quoting characters in the line, mutating `line` to
+   * not include the quoting characters.  Some clients will place a single space
+   * between each '>' at higher depths, and we support that.  But any more spaces
+   * than that and we decide we've reached the end of the quote marker.
+   */
+  function countQuoteDepthAndNormalize() {
+    // We know that the first character is a '>' already.
+    var count = 1;
+    var lastStartOffset = 1, spaceOk = true;
+
+    for (var i = 1; i < line.length; i++) {
+      var c = line.charCodeAt(i);
+      if (c === CHARCODE_GT) {
+        lastStartOffset = ++count;
+        spaceOk = true;
+      }
+      else if (c === CHARCODE_SPACE) {
+        if (!spaceOk)
+          break;
+        lastStartOffset++;
+        spaceOk = false;
+      }
+      else {
+        break;
+      }
+    }
+    if (lastStartOffset)
+      line = line.substring(lastStartOffset);
+    return count;
+  }
+
+  /**
+   * Scan backwards line-by-line through a chunk of text looking for boilerplate
+   * chunks.  We can stop once we determine we're not in boilerplate.
+   *
+   * - Product blurbs must be the first non-whitespace line seen to be detected;
+   *   they do not have to be delimited by an ASCII line.
+   *
+   * - Legal boilerplate must be delimited by an ASCII line.
+   */
+  function lookBackwardsForBoilerplate(chunk) {
+    var idxLineStart, idxLineEnd, line,
+        idxRegionEnd = chunk.length,
+        scanLinesLeft = MAX_BOILERPLATE_LINES,
+        sawNonWhitespaceLine = false,
+        lastContentLine = null,
+        lastBoilerplateStart = null,
+        sawProduct = false,
+        insertAt = contentRep.length;
+
+    function pushBoilerplate(contentType, merge) {
+      var boilerChunk = chunk.substring(idxLineStart, idxRegionEnd);
+      var idxChunkEnd = idxLineStart - 1;
+      // We used to do a trimRight here, but that would eat spaces in addition
+      // to newlines.  This was undesirable for both roundtripping purposes and
+      // mainly because the "-- " signature marker has a significant space
+      // character on the end there.
+      while (chunk.charCodeAt(idxChunkEnd - 1) === CHARCODE_NEWLINE) {
+        idxChunkEnd--;
+      }
+      var newChunk = chunk.substring(0, idxChunkEnd);
+      var ate = countNewlinesInRegion(chunk, newChunk.length, idxLineStart - 1);
+      chunk = newChunk;
+      idxRegionEnd = chunk.length;
+
+      if (!merge) {
+        contentRep.splice(insertAt, 0,
+                          ((ate&0xff) << 8) | contentType,
+                          boilerChunk);
+      }
+      else {
+        // nb: this merge does not properly reuse the previous existing 'ate'
+        // value; if we start doing more complex merges, the hardcoded '\n'
+        // below will need to be computed.
+        contentRep[insertAt] = ((ate&0xff) << 8) | (contentRep[insertAt]&0xff);
+        contentRep[insertAt + 1] = boilerChunk + '\n' +
+                                     contentRep[insertAt + 1];
+      }
+
+      sawNonWhitespaceLine = false;
+      scanLinesLeft = MAX_BOILERPLATE_LINES;
+      lastContentLine = null;
+      lastBoilerplateStart = idxLineStart;
+    }
+
+    for (idxLineStart = chunk.lastIndexOf('\n') + 1,
+           idxLineEnd = chunk.length;
+         idxLineEnd > 0 && scanLinesLeft;
+         idxLineEnd = idxLineStart - 1,
+           idxLineStart = chunk.lastIndexOf('\n', idxLineEnd - 1) + 1,
+           scanLinesLeft--) {
+
+      // (do not include the newline character)
+      line = chunk.substring(idxLineStart, idxLineEnd);
+
+      // - Skip whitespace lines.
+      if (!line.length ||
+          (line.length === 1 && line.charCodeAt(0) === CHARCODE_NBSP))
+        continue;
+
+      // - Explicit signature demarcation
+      if (RE_SIGNATURE_LINE.test(line)) {
+        // Check if this is just tagging something we decided was boilerplate in
+        // a proper signature wrapper.  If so, then execute a boilerplate merge.
+        if (idxLineEnd + 1 === lastBoilerplateStart) {
+          pushBoilerplate(null, true);
+        }
+        else {
+          pushBoilerplate(CT_SIGNATURE);
+        }
+        continue;
+      }
+
+      // - Section delimiter; try and classify what lives in this section
+      if (RE_SECTION_DELIM.test(line)) {
+        if (lastContentLine) {
+          // - Look for a legal disclaimer sequentially following the line.
+          if (RE_LEGAL_BOILER_START.test(lastContentLine)) {
+            pushBoilerplate(CT_BOILERPLATE_DISCLAIMER);
+            continue;
+          }
+          // - Look for mailing list
+          if (RE_LIST_BOILER.test(lastContentLine)) {
+            pushBoilerplate(CT_BOILERPLATE_LIST_INFO);
+            continue;
+          }
+        }
+        // The section was not boilerplate, so thus ends the reign of
+        // boilerplate.  Bail.
+        return chunk;
+      }
+      // - A line with content!
+      if (!sawNonWhitespaceLine) {
+        // - Product boilerplate (must be first/only non-whitespace line)
+        if (!sawProduct && RE_PRODUCT_BOILER.test(line)) {
+          pushBoilerplate(CT_BOILERPLATE_PRODUCT);
+          sawProduct = true;
+          continue;
+        }
+        sawNonWhitespaceLine = true;
+      }
+      lastContentLine = line;
+    }
+
+    return chunk;
+  }
+
+  /**
+   * Assume that we are in a content region and that all variables are proper.
+   */
+  function pushContent(considerForBoilerplate, upToPoint, forcePostLine) {
+    if (idxRegionStart === null) {
+      if (atePreLines) {
+        // decrement atePreLines if we are not the first chunk because then we get
+        // an implicit/free newline.
+        if (contentRep.length)
+          atePreLines--;
+        contentRep.push((atePreLines&0xff) << 8 | CT_AUTHORED_CONTENT);
+        contentRep.push('');
+      }
+    }
+    else {
+      if (upToPoint === undefined)
+        upToPoint = idxLineStart;
+
+      var chunk = fullBodyText.substring(idxRegionStart,
+                                         idxLastNonWhitespaceLineEnd);
+      var atePostLines = forcePostLine ? 1 : 0;
+      if (idxLastNonWhitespaceLineEnd + 1 !== upToPoint) {
+        // We want to count the number of newlines after the newline that
+        // belongs to the last non-meaningful-whitespace line up to the
+        // effective point.  If we saw a lead-in, the effective point is
+        // preceding the lead-in line's newline.  Otherwise it is the start point
+        // of the current line.
+        atePostLines += countNewlinesInRegion(fullBodyText,
+                                              idxLastNonWhitespaceLineEnd + 1,
+                                              upToPoint);
+      }
+      contentRep.push(((atePreLines&0xff) << 8) | ((atePostLines&0xff) << 16) |
+                      CT_AUTHORED_CONTENT);
+      var iChunk = contentRep.push(chunk) - 1;
+
+      if (considerForBoilerplate) {
+        var newChunk = lookBackwardsForBoilerplate(chunk);
+        if (chunk.length !== newChunk.length) {
+          // Propagate any atePost lines.
+          if (atePostLines) {
+            var iLastMeta = contentRep.length - 2;
+            // We can blindly write post-lines since boilerplate currently
+            // doesn't infer any post-newlines on its own.
+            contentRep[iLastMeta] = ((atePostLines&0xff) << 16) |
+                                    contentRep[iLastMeta];
+            contentRep[iChunk - 1] = ((atePreLines&0xff) << 8) |
+                                     CT_AUTHORED_CONTENT;
+          }
+
+          // If we completely processed the chunk into boilerplate, then we can
+          // remove it after propagating any pre-eat amount.
+          if (!newChunk.length) {
+            if (atePreLines) {
+              var bpAte = (contentRep[iChunk + 1] >> 8)&0xff;
+              bpAte += atePreLines;
+              contentRep[iChunk + 1] = ((bpAte&0xff) << 8) |
+                                       (contentRep[iChunk + 1]&0xffff00ff);
+            }
+            contentRep.splice(iChunk - 1, 2);
+          }
+          else {
+            contentRep[iChunk] = newChunk;
+          }
+        }
+      }
+    }
+
+    atePreLines = 0;
+    idxRegionStart = null;
+    lastNonWhitespaceLine = null;
+    idxLastNonWhitespaceLineEnd = null;
+    idxPrevLastNonWhitespaceLineEnd = null;
+  }
+
+  function pushQuote(newQuoteDepth) {
+    var atePostLines = 0;
+    // Discard empty lines at the end.  We already skipped adding blank lines, so
+    // no need to do the front side.
+    while (quoteRunLines.length &&
+           !quoteRunLines[quoteRunLines.length - 1]) {
+      quoteRunLines.pop();
+      atePostLines++;
+    }
+    contentRep.push(((atePostLines&0xff) << 24) |
+                    ((ateQuoteLines&0xff) << 16) |
+                    ((inQuoteDepth - 1) << 8) |
+                    CT_QUOTED_REPLY);
+    contentRep.push(quoteRunLines.join('\n'));
+    inQuoteDepth = newQuoteDepth;
+    if (inQuoteDepth)
+      quoteRunLines = [];
+    else
+      quoteRunLines = null;
+
+    ateQuoteLines = 0;
+    generatedQuoteBlock = true;
+  }
+
+  // == On indices and newlines
+  // Our line ends always point at the newline for the line; for the last line
+  // in the body, there may be no newline, but that doesn't matter since substring
+  // is fine with us asking for more than it has.
+
+
+  var idxLineStart, idxLineEnd, bodyLength = fullBodyText.length,
+      // null means we are looking for a non-whitespace line.
+      idxRegionStart = null,
+      curRegionType = null,
+      lastNonWhitespaceLine = null,
+      // The index of the last non-purely whitespace line.
+      idxLastNonWhitespaceLineEnd = null,
+      // value of idxLastNonWhitespaceLineEnd prior to its current value
+      idxPrevLastNonWhitespaceLineEnd = null,
+      //
+      inQuoteDepth = 0,
+      quoteRunLines = null,
+      contentType = null,
+      generatedQuoteBlock = false,
+      atePreLines = 0, ateQuoteLines = 0;
+  for (idxLineStart = 0,
+         idxLineEnd = fullBodyText.indexOf('\n', idxLineStart);
+       idxLineStart < bodyLength;
+       idxLineStart = idxLineEnd + 1,
+         idxLineEnd = indexOfDefault(fullBodyText, '\n', idxLineStart,
+                                     fullBodyText.length)) {
+
+    line = fullBodyText.substring(idxLineStart, idxLineEnd);
+
+    // - Do not process purely whitespace lines.
+    // Because our content runs are treated as regions, ignoring whitespace
+    // lines simply means that we don't start or end content blocks on blank
+    // lines.  Blank lines in the middle of a content block are maintained
+    // because our slice will include them.
+    if (!line.length ||
+        (line.length === 1
+         && line.charCodeAt(0) === CHARCODE_NBSP)) {
+      if (inQuoteDepth)
+        pushQuote(0);
+      if (idxRegionStart === null)
+        atePreLines++;
+      continue;
+    }
+
+    if (line.charCodeAt(0) === CHARCODE_GT) {
+      var lineDepth = countQuoteDepthAndNormalize();
+      // We are transitioning into a quote state...
+      if (!inQuoteDepth) {
+        // - Check for a "Blah wrote:" content line
+        if (lastNonWhitespaceLine &&
+            RE_WROTE_LINE.test(lastNonWhitespaceLine)) {
+
+          // count the newlines up to the lead-in's newline
+          var upToPoint = idxLastNonWhitespaceLineEnd;
+          idxLastNonWhitespaceLineEnd = idxPrevLastNonWhitespaceLineEnd;
+          // Nuke the content region if the lead-in was the start of the region;
+          // this can be inferred by there being no prior content line.
+          if (idxLastNonWhitespaceLineEnd === null)
+            idxRegionStart = null;
+
+          var leadin = lastNonWhitespaceLine;
+          pushContent(!generatedQuoteBlock, upToPoint);
+          var leadinNewlines = 0;
+          if (upToPoint + 1 !== idxLineStart)
+            leadinNewlines = countNewlinesInRegion(fullBodyText,
+                                                   upToPoint + 1, idxLineStart);
+          contentRep.push((leadinNewlines << 8) | CT_LEADIN_TO_QUOTE);
+          contentRep.push(leadin);
+        }
+        else {
+          pushContent(!generatedQuoteBlock);
+        }
+        quoteRunLines = [];
+        inQuoteDepth = lineDepth;
+      }
+      // There is a change in quote depth
+      else if (lineDepth !== inQuoteDepth) {
+        pushQuote(lineDepth);
+      }
+
+      // Eat whitespace lines until we get a non-whitespace (quoted) line.
+      if (quoteRunLines.length || line.length)
+        quoteRunLines.push(line);
+      else
+        ateQuoteLines++;
+    }
+    else {
+      if (inQuoteDepth) {
+        pushQuote(0);
+        idxLastNonWhitespaceLineEnd = null;
+      }
+      if (idxRegionStart === null)
+        idxRegionStart = idxLineStart;
+
+      lastNonWhitespaceLine = line;
+      idxPrevLastNonWhitespaceLineEnd = idxLastNonWhitespaceLineEnd;
+      idxLastNonWhitespaceLineEnd = idxLineEnd;
+    }
+  }
+  if (inQuoteDepth) {
+    pushQuote(0);
+  }
+  else {
+    // There is no implicit newline for the final block, so force it if we had
+    // a newline.
+    pushContent(true, fullBodyText.length,
+                (fullBodyText.charCodeAt(fullBodyText.length - 1) ===
+                  CHARCODE_NEWLINE));
+  }
+
+  return contentRep;
+};
+
+/**
+ * The maximum number of characters to shrink the snippet to try and find a
+ * whitespace boundary.  If it would take more characters than this, we just
+ * do a hard truncation and hope things work out visually.
+ */
+const MAX_WORD_SHRINK = 8;
+
+const RE_NORMALIZE_WHITESPACE = /\s+/g;
+
+/**
+ * Derive the snippet for a message from its processed body representation.  We
+ * take the snippet from the first non-empty content block, normalizing
+ * all whitespace to a single space character for each instance, then truncate
+ * with a minor attempt to align on word boundaries.
+ */
+exports.generateSnippet = function generateSnippet(rep, desiredLength) {
+  for (var i = 0; i < rep.length; i += 2) {
+    var etype = rep[i]&0xf, block = rep[i + 1];
+    switch (etype) {
+      case CT_AUTHORED_CONTENT:
+        if (!block.length)
+          break;
+        // - truncate
+        // (no need to truncate if short)
+        if (block.length < desiredLength)
+          return block.trim().replace(RE_NORMALIZE_WHITESPACE, ' ');
+        // try and truncate on a whitespace boundary
+        var idxPrevSpace = block.lastIndexOf(' ', desiredLength);
+        if (desiredLength - idxPrevSpace < MAX_WORD_SHRINK)
+          return block.substring(0, idxPrevSpace).trim()
+                      .replace(RE_NORMALIZE_WHITESPACE, ' ');
+        return block.substring(0, desiredLength).trim()
+                    .replace(RE_NORMALIZE_WHITESPACE, ' ');
+    }
+  }
+
+  return '';
+};
+
+/**
+ * What is the deepest quoting level that we should repeat?  Our goal is not to be
+ * the arbiter of style, but to provide a way to bound message growth in the face
+ * of reply styles where humans do not manually edit quotes.
+ *
+ * We accept depth levels up to 5 mainly because a quick perusal of mozilla lists
+ * shows cases where 5 levels of nesting were used to provide useful context.
+ */
+const MAX_QUOTE_REPEAT_DEPTH = 5;
+// we include a few more than we need for forwarded text regeneration
+const replyQuotePrefixStrings = [
+  '> ', '>> ', '>>> ', '>>>> ', '>>>>> ', '>>>>>> ', '>>>>>>> ', '>>>>>>>> ',
+  '>>>>>>>>> ',
+];
+const replyQuotePrefixStringsNoSpace = [
+  '>', '>>', '>>>', '>>>>', '>>>>>', '>>>>>>', '>>>>>>>', '>>>>>>>>',
+  '>>>>>>>>>',
+];
+const replyQuoteNewlineReplaceStrings = [
+  '\n> ', '\n>> ', '\n>>> ', '\n>>>> ', '\n>>>>> ', '\n>>>>>> ', '\n>>>>>>> ',
+  '\n>>>>>>>> ',
+];
+const replyQuoteNewlineReplaceStringsNoSpace = [
+  '\n>', '\n>>', '\n>>>', '\n>>>>', '\n>>>>>', '\n>>>>>>', '\n>>>>>>>',
+  '\n>>>>>>>>',
+];
+const replyPrefix = '> ', replyNewlineReplace = '\n> ';
+
+function expandQuotedPrefix(s, depth) {
+  if (s.charCodeAt(0) === CHARCODE_NEWLINE)
+    return replyQuotePrefixStringsNoSpace[depth];
+  return replyQuotePrefixStrings[depth];
+}
+
+/**
+ * Expand a quoted block so that it has the right number of greater than signs
+ * and inserted whitespace where appropriate.  (Blank lines don't want whitespace
+ * injected.)
+ */
+function expandQuoted(s, depth) {
+  var ws = replyQuoteNewlineReplaceStrings[depth],
+      nows = replyQuoteNewlineReplaceStringsNoSpace[depth];
+  return s.replace(RE_NEWLINE, function(m, idx) {
+    if (s.charCodeAt(idx+1) === CHARCODE_NEWLINE)
+      return nows;
+    else
+      return ws;
+  });
+}
+
+var l10n_wroteString = '{{name}} wrote',
+    l10n_originalMessageString = 'Original Message';
+
+/*
+ * L10n strings for forward headers.  In Thunderbird, these come from
+ * mime.properties:
+ * http://mxr.mozilla.org/comm-central/source/mail/locales/en-US/chrome/messenger/mime.properties
+ *
+ * The libmime logic that injects them is mime_insert_normal_headers:
+ * http://mxr.mozilla.org/comm-central/source/mailnews/mime/src/mimedrft.cpp#791
+ *
+ * Our dictionary maps from the lowercased header name to the human-readable
+ * string.
+ *
+ * XXX actually do the l10n hookup for this
+ */
+var l10n_forward_header_labels = {
+  subject: 'Subject',
+  date: 'Date',
+  from: 'From',
+  replyTo: 'Reply-To',
+  to: 'To',
+  cc: 'CC',
+};
+
+exports.setLocalizedStrings = function(strings) {
+  l10n_wroteString = strings.wrote;
+  l10n_originalMessageString = strings.originalMessage;
+};
+
+const RE_RE = /^[Rr][Ee]: /;
+
+/**
+ * Generate the reply subject for a message given the prior subject.  This is
+ * simply prepending "Re: " to the message if it does not already have an
+ * "Re:" equivalent.
+ *
+ * Note, some clients/gateways (ex: I think the google groups web client? at
+ * least whatever has a user-agent of G2/1.0) will structure mailing list
+ * replies so they look like "[list] Re: blah" rather than the "Re: [list] blah"
+ * that Thunderbird would produce.  Thunderbird (and other clients) pretend like
+ * that inner "Re:" does not exist, and so do we.
+ *
+ * We _always_ use the exact string "Re: " when prepending and do not localize.
+ * This is done primarily for consistency with Thunderbird, but it also is
+ * friendly to other e-mail applications out there.
+ *
+ * Thunderbird does support recognizing a
+ * mail/chrome/messenger-region/region.properties property,
+ * "mailnews.localizedRe" for letting locales specify other strings used by
+ * clients that do attempt to localize "Re:".  Thunderbird also supports a
+ * weird "Re(###):" or "Re[###]:" idiom; see
+ * http://mxr.mozilla.org/comm-central/ident?i=NS_MsgStripRE for more details.
+ */
+exports.generateReplySubject = function generateReplySubject(origSubject) {
+  if (RE_RE.test(origSubject))
+      return origSubject;
+  return 'Re: ' + origSubject;
+};
+
+/**
+ * Generate a text message reply given an already quote-processed body.  We do not
+ * simply '>'-prefix everything because 1) we don't store the raw message text
+ * because it's faster for us to not quote-process everything every time we display
+ * a message, 2) we want to strip some stuff out, 3) we don't care about providing
+ * a verbatim quote.
+ */
+exports.generateReplyText = function generateReplyText(rep) {
+  var strBits = [];
+  for (var i = 0; i < rep.length; i += 2) {
+    var etype = rep[i]&0xf, block = rep[i + 1];
+    switch (etype) {
+      case CT_AUTHORED_CONTENT:
+      case CT_SIGNATURE:
+      case CT_LEADIN_TO_QUOTE:
+        strBits.push(expandQuotedPrefix(block, 0));
+        strBits.push(expandQuoted(block, 0));
+        break;
+      case CT_QUOTED_TYPE:
+        var depth = ((rep[i] >> 8)&0xff) + 1;
+        if (depth < MAX_QUOTE_REPEAT_DEPTH) {
+          strBits.push(expandQuotedPrefix(block, depth));
+          strBits.push(expandQuoted(block, depth));
+        }
+        break;
+      // -- eat boilerplate!
+      // No one needs to read boilerplate in a reply; the point is to
+      // provide context, not the whole message.  (Forward the message if
+      // you want the whole thing!)
+      case CT_BOILERPLATE_DISCLAIMER:
+      case CT_BOILERPLATE_LIST_INFO:
+      case CT_BOILERPLATE_PRODUCT:
+      case CT_BOILERPLATE_ADS:
+        break;
+    }
+  }
+
+  return strBits.join('');
+};
+
+/**
+ *
+ */
+exports.generateReplyMessage = function generateReplyMessage(rep, authorPair,
+                                                             msgDate,
+                                                             identity) {
+  var useName = authorPair.name || authorPair.address;
+
+  var msg = '\n\n';
+
+  msg += l10n_wroteString.replace('{{name}}', useName) + ':\n' +
+    exports.generateReplyText(rep);
+
+  // Thunderbird's default is to put the signature after the quote, so us too.
+  // (It also has complete control over all of this, but not us too.)
+  if (identity.signature)
+    msg += '\n\n-- \n' + identity.signature + '\n';
+
+  return msg;
+};
+
+/**
+ * Regenerate the text of a message for forwarding.  'Original Message' is not
+ * prepended and information about the message's header is not prepended.  That
+ * is done in `generateForwardMessage`.
+ *
+ * We attempt to generate a message as close to the original message as
+ * possible, but it doesn't have to be 100%.
+ */
+exports.generateForwardBodyText = function generateForwardBodyText(rep) {
+  var strBits = [], nl;
+
+  for (var i = 0; i < rep.length; i += 2) {
+    if (i)
+      strBits.push(NEWLINE);
+
+    var etype = rep[i]&0xf, block = rep[i + 1];
+    switch (etype) {
+      // - injected with restored whitespace
+      case CT_AUTHORED_CONTENT:
+        // pre-newlines
+        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        strBits.push(block);
+        // post new-lines
+        for (nl = (rep[i] >> 16)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        break;
+      case CT_LEADIN_TO_QUOTE:
+        strBits.push(block);
+        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        break;
+      // - injected verbatim,
+      case CT_SIGNATURE:
+      case CT_BOILERPLATE_DISCLAIMER:
+      case CT_BOILERPLATE_LIST_INFO:
+      case CT_BOILERPLATE_PRODUCT:
+      case CT_BOILERPLATE_ADS:
+        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        strBits.push(block);
+        for (nl = (rep[i] >> 16)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        break;
+      // - quote character reconstruction
+      // this is not guaranteed to round-trip since we assume the non-whitespace
+      // variant...
+      case CT_QUOTED_TYPE:
+        var depth = Math.min((rep[i] >> 8)&0xff, 8);
+        for (nl = (rep[i] >> 16)&0xff; nl; nl--) {
+          strBits.push(replyQuotePrefixStringsNoSpace[depth]);
+          strBits.push(NEWLINE);
+        }
+        strBits.push(expandQuotedPrefix(block, depth));
+        strBits.push(expandQuoted(block, depth));
+        for (nl = (rep[i] >> 24)&0xff; nl; nl--) {
+          strBits.push(NEWLINE);
+          strBits.push(replyQuotePrefixStringsNoSpace[depth]);
+        }
+        break;
+    }
+  }
+
+  return strBits.join('');
+};
+
+/**
+ * Generate the body of an inline forward message.  XXX we need to generate
+ * the header summary which needs some localized strings.
+ */
+exports.generateForwardMessage = function generateForwardMessage(
+                                   author, date, subject, bodyInfo, identity) {
+  var text = '\n\n';
+
+  if (identity.signature)
+    text += '-- \n' + identity.signature + '\n\n';
+
+  text += '-------- ' + l10n_originalMessageString + ' --------\n';
+  // XXX l10n! l10n! l10n!
+
+  // Add the headers in the same order libmime adds them in
+  // mime_insert_normal_headers so that any automated attempt to re-derive
+  // the headers has a little bit of a chance (since the strings are
+  // localized.)
+
+  // : subject
+
+  // We do not track or remotely care about the 'resent' headers
+  // : resent-comments
+  // : resent-date
+  // : resent-from
+  // : resent-to
+  // : resent-cc
+  // : date
+  // : from
+  // : reply-to
+  // : organization
+  // : to
+  // : cc
+  // (bcc should never be forwarded)
+  // : newsgroups
+  // : followup-to
+  // : references (only for newsgroups)
+
+  text += exports.generateForwardBodyText(bodyInfo.bodyRep);
+
+  return text;
+};
+
+}); // end define
+;
+/**
  *
  **/
 
@@ -11386,6 +12276,7 @@ exports.partitionMessagesByFolderId =
 define('rdimap/imapclient/mailbridge',[
     'rdcommon/log',
     'mailcomposer',
+    './quotechew',
     './util',
     'module',
     'exports'
@@ -11393,6 +12284,7 @@ define('rdimap/imapclient/mailbridge',[
   function(
     $log,
     $mailcomposer,
+    $quotechew,
     $imaputil,
     $module,
     exports
@@ -11441,6 +12333,15 @@ function strcmp(a, b) {
     return 1;
   return 0;
 }
+
+function checkIfAddressListContainsAddress(list, addrPair) {
+  var checkAddress = addrPair.address;
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].address === checkAddress)
+      return true;
+  }
+  return false;
+};
 
 /**
  * There is exactly one `MailBridge` instance for each `MailAPI` instance.
@@ -11559,7 +12460,6 @@ MailBridge.prototype = {
   },
 
   notifyBadLogin: function mb_notifyBadLogin(account) {
-console.log('sending bad login');
     this.__sendMessage({
       type: 'badLogin',
       account: account.toBridgeWire(),
@@ -11809,13 +12709,109 @@ console.log('sending bad login');
     };
 
     // - figure out the identity to use
-    var account, identity;
+    var account, identity, folderId;
     if (msg.mode === 'new' && msg.submode === 'folder')
-      account = this.universe.getAccountForFolderId(msg.reference);
+      account = this.universe.getAccountForFolderId(msg.refSuid);
     else
-      account = this.universe.getAccountForMessageSuid(msg.reference);
+      account = this.universe.getAccountForMessageSuid(msg.refSuid);
 
     identity = account.identities[0];
+
+    if (msg.mode === 'reply' ||
+        msg.mode === 'forward') {
+      var folderStorage = this.universe.getFolderStorageForMessageSuid(
+                            msg.refSuid);
+      var self = this;
+      folderStorage.getMessageBody(
+        msg.refSuid, msg.refDate,
+        function(bodyInfo) {
+          if (msg.mode === 'reply') {
+            var rTo, rCc, rBcc;
+            // clobber the sender's e-mail with the reply-to
+            var effectiveAuthor = {
+              name: msg.refAuthor.name,
+              address: bodyInfo.replyTo || msg.refAuthor.address,
+            };
+            switch (msg.submode) {
+              case 'list':
+                // XXX we can't do this without headers we're not retrieving,
+                // fall through for now.
+              case null:
+              case 'sender':
+                rTo = [effectiveAuthor];
+                rCc = rBcc = [];
+                break;
+              case 'all':
+                // No need to change the lists if the author is already on the
+                // reply lists.
+                //
+                // nb: Our logic here is fairly simple; Thunderbird's
+                // nsMsgCompose.cpp does a lot of checking that we should audit,
+                // although much of it could just be related to its much more
+                // extensive identity support.
+                if (checkIfAddressListContainsAddress(bodyInfo.to,
+                                                      effectiveAuthor) ||
+                    checkIfAddressListContainsAddress(bodyInfo.cc,
+                                                      effectiveAuthor)) {
+                  rTo = bodyInfo.to;
+                }
+                // add the author as the first 'to' person
+                else {
+                  rTo = [effectiveAuthor].concat(bodyInfo.to);
+                }
+                rCc = bodyInfo.cc;
+                rBcc = bodyInfo.bcc;
+                break;
+            }
+
+            var referencesStr;
+            if (bodyInfo.references) {
+              referencesStr = bodyInfo.references.concat([msg.refGuid])
+                                .map(function(x) { return '<' + x + '>'; })
+                                .join(' ');
+            }
+            else {
+              referencesStr = '<' + msg.refGuid + '>';
+            }
+            self.__sendMessage({
+              type: 'composeBegun',
+              handle: msg.handle,
+              identity: identity,
+              subject: $quotechew.generateReplySubject(msg.refSubject),
+              // blank lines at the top are baked in
+              body: $quotechew.generateReplyMessage(
+                      bodyInfo.bodyRep, effectiveAuthor, msg.refDate,
+                      identity),
+              to: rTo,
+              cc: rCc,
+              bcc: rBcc,
+              referencesStr: referencesStr,
+            });
+          }
+          else {
+            self.__sendMessage({
+              type: 'composeBegun',
+              handle: msg.handle,
+              identity: identity,
+              subject: 'Fwd: ' + msg.refSubject,
+              // blank lines at the top are baked in by the func
+              body: $quotechew.generateForwardMessage(
+                      msg.refAuthor, msg.refDate, msg.refSubject,
+                      bodyInfo, identity),
+              // forwards have no assumed envelope information
+              to: [],
+              cc: [],
+              bcc: [],
+              // XXX imitate Thunderbird current or previous behaviour; I
+              // think we ended up linking forwards into the conversation
+              // they came from, but with an extra header so that it was
+              // possible to detect it was a forward.
+              references: null,
+            });
+          }
+        });
+      return;
+    }
 
     this.__sendMessage({
       type: 'composeBegun',
@@ -11826,6 +12822,7 @@ console.log('sending bad login');
       to: [],
       cc: [],
       bcc: [],
+      references: null,
     });
   },
 
@@ -11870,16 +12867,11 @@ console.log('sending bad login');
                     wireRep.senderId);
 
     var body = wireRep.body;
-    if (identity.signature) {
-      if (body[body.length - 1] !== '\n')
-        body += '\n';
-      body += '-- \n' + identity.signature;
-    }
 
     var messageOpts = {
       from: this._formatAddresses([identity]),
       subject: wireRep.subject,
-      body: body
+      body: body,
     };
     if (identity.replyTo)
       messageOpts.replyTo = identity.replyTo;
@@ -11904,6 +12896,8 @@ console.log('sending bad login');
       '<' + Date.now() + Math.random().toString(16).substr(1) + '@mozgaia>';
 
     composer.addHeader('Message-Id', messageId);
+    if (wireRep.references)
+      composer.addHeader('References', wireRep.references);
 
     if (msg.command === 'send') {
       var self = this;
@@ -12246,7 +13240,7 @@ define('rdimap/imapclient/imapdb',[
 
 
 var IndexedDB;
-if (("IndexedDB" in window) && window.indexedDB) {
+if (("indexedDB" in window) && window.indexedDB) {
   IndexedDB = window.indexedDB;
 }
 else if (("mozIndexedDB" in window) && window.mozIndexedDB) {
@@ -12324,7 +13318,7 @@ const TBL_BODY_BLOCKS = 'bodyBlocks';
 
 /**
  * DB helper methods for Gecko's IndexedDB implementation.  We are assuming
- * the presence of the Mozilla-specific getAll helper right now.  Since our
+ * the presence of the Mozilla-specific mozGetAll helper right now.  Since our
  * app is also dependent on the existence of the TCP API that no one else
  * supports right now and we are assuming a SQLite-based IndexedDB
  * implementation, this does not seem too crazy.
@@ -12430,8 +13424,8 @@ ImapDB.prototype = {
         folderInfoStore = transaction.objectStore(TBL_FOLDER_INFO);
 
     // these will fire sequentially
-    var configReq = configStore.getAll(),
-        folderInfoReq = folderInfoStore.getAll();
+    var configReq = configStore.mozGetAll(),
+        folderInfoReq = folderInfoStore.mozGetAll();
 
     configReq.onerror = this._fatalError;
     // no need to track success, we can read it off folderInfoReq
@@ -18417,8 +19411,8 @@ MessageGenerator.prototype = {
     var headerInfo = {
       id: null,
       suid: null,
-      guid: '<' + Date.now() + Math.random().toString(16).substr(1) +
-              '@mozgaia>',
+      guid: Date.now() + Math.random().toString(16).substr(1) +
+              '@mozgaia',
       author: null,
       date: null,
       flags: [],
@@ -18526,7 +19520,7 @@ MessageGenerator.prototype = {
 
       composer.setMessageOption(messageOpts);
       composer.addHeader('Date', new Date(headerInfo.date));
-      composer.addHeader('Message-Id', headerInfo.guid);
+      composer.addHeader('Message-Id', '<' + headerInfo.guid + '>');
 
       // have it internally accumulate the data rather than using the stream
       // mechanism.
@@ -18833,9 +19827,11 @@ FakeFolderStorage.prototype = {
  **/
 
 define('rdimap/imapclient/imapchew',[
+    './quotechew',
     'exports'
   ],
   function(
+    $quotechew,
     exports
   ) {
 
@@ -19042,7 +20038,8 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
 // especially numbers which may or may not be zig-zag encoded/etc.
 const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
       NUM_ATTR_OVERHEAD_EST = 10, LIST_ATTR_OVERHEAD_EST = 4,
-      NULL_ATTR_OVERHEAD_EST = 2;
+      NULL_ATTR_OVERHEAD_EST = 2, LIST_OVERHEAD_EST = 4,
+      NUM_OVERHEAD_EST = 8, STR_OVERHEAD_EST = 4;
 
 /**
  * Call once the body parts requested by `chewHeaderAndBodyStructure` have been
@@ -19063,10 +20060,9 @@ const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
  */
 exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
                                                folderId) {
-  // XXX we really want to perform quoting analysis, yadda yadda.
-  var fullBody = bodyPartContents.join('\n'),
-      // Up to 80 characters of snippet, normalizing whitespace.
-      snippet = fullBody.substring(0, 80).replace(/[\r\n\t ]+/g, ' ');
+
+  var bodyRep = $quotechew.quoteProcessTextBody(bodyPartContents.join('\n')),
+      snippet = $quotechew.generateSnippet(bodyRep);
 
   rep.header = {
     // the UID (as an integer)
@@ -19076,7 +20072,7 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     suid: folderId + '/' + rep.msg.id,
     // The message-id header value; as GUID as get for now; on gmail we can
     // use their unique value, or if we could convince dovecot to tell us, etc.
-    guid: rep.msg.msg.parsedHeaders['message-id'],
+    guid: rep.msg.msg.meta.messageId,
     // mailparser models from as an array; we do not.
     author: rep.msg.msg.from[0] || null,
     date: rep.msg.date,
@@ -19085,6 +20081,7 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     subject: rep.msg.msg.subject,
     snippet: snippet,
   };
+
 
   // crappy size estimates where we assume the world is ASCII and so a UTF-8
   // encoding will take exactly 1 byte per character.
@@ -19113,6 +20110,17 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     sizeEst += STR_ATTR_OVERHEAD_EST + str.length;
     return str;
   }
+  function sizifyBodyRep(rep) {
+    sizeEst += LIST_OVERHEAD_EST +
+                 NUM_OVERHEAD_EST * (rep.length / 2) +
+                 STR_OVERHEAD_EST * (rep.length / 2);
+    for (var i = 1; i < rep.length; i += 2) {
+      if (rep[i])
+        sizeEst += rep[i].length;
+    }
+    return rep;
+  };
+
   rep.bodyInfo = {
     date: rep.msg.date,
     size: sizeEst,
@@ -19122,7 +20130,8 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     replyTo: ('reply-to' in rep.msg.msg.parsedHeaders) ?
                sizifyStr(rep.msg.msg.parsedHeaders['reply-to']) : null,
     attachments: sizifyAttachments(rep.attachments),
-    bodyText: sizifyStr(fullBody),
+    references: rep.msg.msg.meta.references,
+    bodyRep: sizifyBodyRep(bodyRep),
   };
 
   return true;
@@ -19675,7 +20684,8 @@ const TOO_MANY_MESSAGES = 2000;
  */
 const INITIAL_FETCH_PARAMS = {
   request: {
-    headers: ['FROM', 'TO', 'CC', 'BCC', 'SUBJECT', 'REPLY-TO', 'MESSAGE-ID'],
+    headers: ['FROM', 'TO', 'CC', 'BCC', 'SUBJECT', 'REPLY-TO', 'MESSAGE-ID',
+              'REFERENCES'],
     struct: true
   },
 };
@@ -20242,8 +21252,12 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
  *   @key[bcc @listof[NameAddressPair]]
  *   @key[replyTo EmailAddress]
  *   @key[attachments @listof[AttachmentInfo]]
- *   @key[bodyText String]{
- *     The text of the message body.
+ *   @key[references @oneof[null @listof[String]]]{
+ *     The contents of the references header as a list of de-quoted ('<' and
+ *     '>' removed) message-id's.  If there was no header, this is null.
+ *   }
+ *   @key[bodyRep Array]{
+ *     The `quotechew.js` processed body representation.
  *   }
  * ]]{
  *   Information on the message body that is only for full message display.
@@ -21481,15 +22495,42 @@ ImapFolderStorage.prototype = {
    * Add a new message to the database, generating slice notifications.
    */
   addMessageHeader: function ifs_addMessageHeader(header) {
-    var self = this;
-
     if (this._pendingLoads.length) {
       this._deferredCalls.push(this.addMessageHeader.bind(this, header));
       return;
     }
 
-    if (self._curSyncSlice)
-      self._curSyncSlice.onHeaderAdded(header);
+    if (this._curSyncSlice)
+      this._curSyncSlice.onHeaderAdded(header);
+    // - Generate notifications for (other) interested slices
+    if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
+      var date = header.date, uid = header.id;
+      for (var iSlice = 0; iSlice < this._slices.length; iSlice++) {
+        var slice = this._slices[iSlice];
+
+        if (slice === this._curSyncSlice)
+          continue;
+        // We never automatically grow a slice into the past, so bail on that.
+        if (BEFORE(date, slice.startTS))
+          continue;
+        // We do grow a slice into the present if it's already up-to-date...
+        if (SINCE(date, slice.endTS)) {
+          // !(covers most recently known message)
+          if(!(this._headerBlockInfos.length &&
+               slice.endTS === this._headerBlockInfos[0].endTS &&
+               slice.endUID === this._headerBlockInfos[0].endUID))
+            continue;
+        }
+        else if ((date === slice.startTS &&
+                  uid < slice.startUID) ||
+                 (date === slice.endTS &&
+                  uid > slice.endUID)) {
+          continue;
+        }
+        slice.onHeaderAdded(header);
+      }
+    }
+
 
     this._insertIntoBlockUsingDateAndUID(
       'header', header.date, header.id, HEADER_EST_SIZE_IN_BYTES,
@@ -22638,12 +23679,10 @@ const PIECE_ACCOUNT_TYPE_TO_CLASS = {
   //'gmail-imap': GmailAccount,
 };
 
-// So, I want to poke fun at the iPhone signature, although we know there is
-// also the flip side of explaining brevity, rampant typos, limited attention
-// due to driving/flying a plane/other-dangerous-thing while using it.
-const DEFAULT_SIGNATURE = [
-  "Sent from my B2G phone.  That's right.  I've got one.",
-].join("\n");
+// A boring signature that conveys the person was probably typing on a touch
+// screen, helping to explain typos and short replies.
+const DEFAULT_SIGNATURE = exports.DEFAULT_SIGNATURE =
+  'Sent from my Firefox OS device.';
 
 /**
  * Composite account type to expose account piece types with individual
@@ -23464,6 +24503,13 @@ MailUniverse.prototype = {
   getFolderStorageForFolderId: function mu_getFolderStorageForFolderId(
                                  folderId) {
     var account = this.getAccountForFolderId(folderId);
+    return account.getFolderStorageForFolderId(folderId);
+  },
+
+  getFolderStorageForMessageSuid: function mu_getFolderStorageForFolderId(
+                                    messageSuid) {
+    var folderId = messageSuid.substring(0, messageSuid.lastIndexOf('/')),
+        account = this.getAccountForFolderId(folderId);
     return account.getFolderStorageForFolderId(folderId);
   },
 
