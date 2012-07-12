@@ -39,7 +39,6 @@
 #footer ol > li > div > img {
   width: 6rem;
   height: 6rem;
-  vertical-align: middle;
 }
 
 #footer ol > li > div *:not(img),
