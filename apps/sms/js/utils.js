@@ -32,7 +32,12 @@ var Utils = {
 
     return (new Date(time)).toLocaleFormat('%R %p');
   },
-
+  getDayDate: function re_getDayDate(timestamp) {
+    var date = new Date(timestamp);
+    var startDate = new Date(date.getFullYear(),
+                             date.getMonth(), date.getDate());
+    return startDate.getTime();
+  },
   getHeaderDate: function ut_giveHeaderDate(time) {
     switch (time.constructor) {
       case String:
