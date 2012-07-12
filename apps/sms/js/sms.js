@@ -163,14 +163,14 @@ var ThreadListUI = {
 
   renderThreads: function thlui_renderThreads(messages) {
     alert("Voy a renderizar "+messages.length);
-
-    var threadIds = [];
-    var fragment = '';
+    ThreadListUI.view.innerHTML = '';
+    var threadIds = [],headerIndex;
+   
     for (var i = 0; i < messages.length; i++) {
       var num = messages[i].delivery == 'received' ? messages[i].sender : messages[i].receiver;
     
       if(threadIds.indexOf(num) == -1) {
-        threadIds.push(num);
+        
         var thread = {
           'body': messages[i].body,
           'name': num,
@@ -179,6 +179,19 @@ var ThreadListUI = {
           'unreadCount': !messages[i].read ? 1 : 0,
           'id': num
         };
+        if(threadIds.length == 0) {
+          var currentTS = (new Date()).getTime();
+          headerIndex = Utils.getDayDate(currentTS);
+          ThreadListUI.createNewHeader(currentTS);
+        }else {
+          var tmpIndex = Utils.getDayDate(messages[i].timestamp.getTime())
+          if(tmpIndex < headerIndex){
+            ThreadListUI.createNewHeader(messages[i].timestamp.getTime());
+            headerIndex = tmpIndex;
+          }
+        }
+        
+        threadIds.push(num);
         ThreadListUI.appendThread(thread);
         
       }
@@ -240,74 +253,79 @@ var ThreadListUI = {
   appendThread: function thlui_appendThread(thread) {
     var threadHTML = document.createElement('div');
     threadHTML.classList.add('item');
-    var structureHTML =
-                       '  <a href="#num=' + thread.num + '">' +
+    var structureHTML = '  <a href="#num=' + thread.num + '">' +
                        
-                       '    <div class="name">' + thread.num + '</div>' +
-                      
-                       '    <div class="msg">"' + thread.body + '"</div>' +
+                        '    <div class="name">' + thread.num + '</div>' +
+                        
+                        '    <div class="msg">"' + thread.body + '"</div>' +
                        
-                       '  </a>' ;
+                        '  </a>' ;
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
   },
-  createNewConversation: function thlui_createNewConversation(conversation) {
-    var dataName = Utils.escapeHTML(conversation.name ||
-                                    conversation.num, true);
-    var name = Utils.escapeHTML(conversation.name);
-    var bodyText = conversation.body.split('\n')[0];
-    var bodyHTML = Utils.escapeHTML(bodyText);
+  // createNewConversation: function thlui_createNewConversation(conversation) {
+  //   var dataName = Utils.escapeHTML(conversation.name ||
+  //                                   conversation.num, true);
+  //   var name = Utils.escapeHTML(conversation.name);
+  //   var bodyText = conversation.body.split('\n')[0];
+  //   var bodyHTML = Utils.escapeHTML(bodyText);
 
-    return '<div class="item">' +
-           '  <label class="fake-checkbox">' +
-           '    <input data-num="' +
-                conversation.num + '"' + 'type="checkbox"/>' +
-           '    <span></span>' +
-           '  </label>' +
-           '  <a href="#num=' + conversation.num + '"' +
-           '     data-num="' + conversation.num + '"' +
-           '     data-name="' + dataName + '"' +
-           '     data-notempty="' +
-                 (conversation.timestamp ? 'true' : '') + '"' +
-           '     class="' +
-                 (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
-           '    <span class="unread-mark">' +
-           '      <i class="i-unread-mark"></i>' +
-           '    </span>' +
-           '    <div class="name">' + name + '</div>' +
-                (!conversation.timestamp ? '' :
-           '    <div class="time ' +
-                  (conversation.unreadCount > 0 ? 'unread' : '') +
-           '      " data-time="' + conversation.timestamp + '">' +
-                  Utils.getHourMinute(conversation.timestamp) +
-           '    </div>') +
-           '    <div class="msg">"' + bodyHTML + '"</div>' +
-           '    <div class="unread-tag"></div>' +
-           '    <div class="photo"></div>' +
-           '  </a>' +
-           '</div>';
-  },
+  //   return '<div class="item">' +
+  //          '  <label class="fake-checkbox">' +
+  //          '    <input data-num="' +
+  //               conversation.num + '"' + 'type="checkbox"/>' +
+  //          '    <span></span>' +
+  //          '  </label>' +
+  //          '  <a href="#num=' + conversation.num + '"' +
+  //          '     data-num="' + conversation.num + '"' +
+  //          '     data-name="' + dataName + '"' +
+  //          '     data-notempty="' +
+  //                (conversation.timestamp ? 'true' : '') + '"' +
+  //          '     class="' +
+  //                (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
+  //          '    <span class="unread-mark">' +
+  //          '      <i class="i-unread-mark"></i>' +
+  //          '    </span>' +
+  //          '    <div class="name">' + name + '</div>' +
+  //               (!conversation.timestamp ? '' :
+  //          '    <div class="time ' +
+  //                 (conversation.unreadCount > 0 ? 'unread' : '') +
+  //          '      " data-time="' + conversation.timestamp + '">' +
+  //                 Utils.getHourMinute(conversation.timestamp) +
+  //          '    </div>') +
+  //          '    <div class="msg">"' + bodyHTML + '"</div>' +
+  //          '    <div class="unread-tag"></div>' +
+  //          '    <div class="photo"></div>' +
+  //          '  </a>' +
+  //          '</div>';
+  // },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createNewHeader: function thlui_createNewHeader(conversation) {
-    function sameDay(timestamp1, timestamp2) {
-      var day1 = new Date(timestamp1);
-      var day2 = new Date(timestamp2);
+  createNewHeader: function thlui_createNewHeader(timestamp) {
+    // function sameDay(timestamp1, timestamp2) {
+    //   var day1 = new Date(timestamp1);
+    //   var day2 = new Date(timestamp2);
 
-      return day1.getFullYear() == day2.getFullYear() &&
-             day1.getMonth() == day2.getMonth() &&
-             day1.getDate() == day2.getDate();
-    };
+    //   return day1.getFullYear() == day2.getFullYear() &&
+    //          day1.getMonth() == day2.getMonth() &&
+    //          day1.getDate() == day2.getDate();
+    // };
 
-    if (this._lastHeader && sameDay(this._lastHeader, conversation.timestamp)) {
-      return null;
-    }
+    // if (this._lastHeader && sameDay(this._lastHeader, conversation.timestamp)) {
+    //   return null;
+    // }
 
-    this._lastHeader = conversation.timestamp;
+    // this._lastHeader = conversation.timestamp;
 
-    return '<div class="groupHeader">' +
-    Utils.getHeaderDate(conversation.timestamp) + '</div>';
-
+    // return '<div class="groupHeader">' +
+    // Utils.getHeaderDate(conversation.timestamp) + '</div>';
+    // alert("Header");
+    var headerHTML = document.createElement('div');
+    headerHTML.classList.add('groupHeader');
+    var structureHTML = Utils.getHeaderDate(timestamp);
+    headerHTML.innerHTML = structureHTML;
+    ThreadListUI.view.appendChild(headerHTML);
+    // alert("FinHeader");
   }
 };
 
@@ -464,8 +482,8 @@ var ThreadUI = {
           unreadList.push(msg.id);
 
         // Add a grouping header if necessary
-        var header = ThreadListUI.createNewHeader(msg) || '';
-        fragment += header;
+        // var header = ThreadListUI.createNewHeader(msg) || '';
+        // fragment += header;
 
         fragment += self.createMessage(msg);
       }
