@@ -113,6 +113,9 @@ var ListMenu = {
         break;
 
       case 'click':
+        if (!this.visible)
+          return;
+
         var action = evt.target.dataset.value;
         if (!action) {
           return;
