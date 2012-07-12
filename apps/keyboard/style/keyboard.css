@@ -179,25 +179,76 @@ button::-moz-focus-inner {
   border-radius: 0.3rem;
 }
 
-/* Highlight for spacebar */
+/* Spacebar exceptions */
+.keyboard-key[data-keycode="32"] > .visual-wrapper {
+background-position: center 2.2rem; 
+}
+
+/*.keyboard-key > .visual-wrapper {
+  display: inline-block;
+  height: 4rem;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  position: relative;
+}*/
+
+/*.keyboard-key > .visual-wrapper > span {
+  border-radius: 0.2rem 0.2rem 0 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  font: 2.4rem/3.2rem Open Sans Semibold;
+  text-align: center;
+  color: #fff;
+}*/
+
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper {
-  margin: 0;
-  border: none;
+  border: solid 1px #000;
+  border-radius: 0.3rem;
+  background: #252220 url(images/key-bg.png) no-repeat center 2.2rem;
+  background-size: 100% 100%;
   opacity: 0.5;
-  box-shadow: none;
+  margin: 0;
+  height: 4rem;
 }
 
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span  {
+  border: none;
+  border-top: solid 1px #514e4d;
+  background: none;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 1;
   height: 100%;
 }
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after {
   display: none;
 }
+
+/* Key states */
+/* Press */
+.keyboard-key.kbr-key-press > .visual-wrapper > span {
+  box-shadow: 0 0 0 2px #4495A8;
+}
+
+/* Active */
+.keyboard-key.kbr-key-active > .visual-wrapper > span {
+  color: #4495A8;
+}
+/* Hold */
+.keyboard-key.kbr-key-hold> .visual-wrapper {
+  background: #4AB6CB;
+  border-color: #3f5459;
+}
+.keyboard-key.kbr-key-hold> .visual-wrapper > span {
+  border-top-color: #6ec5d5;
+  color: #1e4a52;
+ }
 
 /* Menu for special keys */
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
@@ -335,29 +386,6 @@ margin-top: 0.3rem;
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > span {
   box-shadow: none;
   margin: 0;
-}
-
-/* Key states */
-
-/* Press */
-.keyboard-key.kbr-key-press > .visual-wrapper > span {
-  box-shadow: 0 0 0 2px #4495A8;
-}
-
-/* Active */
-.keyboard-key.kbr-key-active > .visual-wrapper > span {
-  color: #4495A8;
-  text-shadow: none;
-}
-
-/* Hold */
-.keyboard-key.kbr-key-hold > .visual-wrapper {
-}
-.keyboard-key.kbr-key-hold > .visual-wrapper > span {
-  color: #295B65;
-  background: url(images/key-hold.png) repeat-x center bottom;
-  background-size: auto 100%;
-  text-shadow: none;
 }
 
 /* IMEs */
