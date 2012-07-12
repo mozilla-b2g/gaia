@@ -161,35 +161,9 @@ var ThreadListUI = {
     this.renderThreads();
   },
 
-  updateMsgWithContact: function thlui_updateMsgWithContact(msg) {
-    var nameElement = msg.getElementsByClassName('name')[0];
-    var options = {
-      filterBy: ['tel'],
-      filterOp: 'contains',
-      filterValue: msg.dataset.num
-    };
-    ContactDataManager.getContactData(options, function get(result) {
-      // If indexedDB query failed, just leave the previous result.
-      if (!result)
-        return;
-
-      if (result.length === 0) {
-        // Update message while the contact does not exist in DB.
-        if (msg.dataset.name == msg.dataset.num)
-          return;
-
-        msg.dataset.name = msg.dataset.num;
-        nameElement.textContent = msg.dataset.num;
-      } else {
-        // Update message while the contact exist but name does not match.
-        var name = result[0].name[0];
-        if (msg.dataset.name == name)
-          return;
-
-        msg.dataset.name = name;
-        nameElement.textContent = name;
-      }
-    });
+  updateMsgWithContact: function thlui_updateMsgWithContact(contact) {
+    // TODO Update DOM with data retrieved from Contact DB
+    // This will be a callback from ContactManager
   },
 
   renderThreads: function thlui_renderThreads(pendingMsg) {
@@ -247,11 +221,6 @@ var ThreadListUI = {
       self.view.innerHTML = fragment;
       delete self._lastHeader;
       var conversationList = self.view.children;
-
-      // update the conversation sender/receiver name with contact data.
-      for (var i = 0; i < conversationList.length; i++) {
-        self.updateMsgWithContact(conversationList[i]);
-      }
 
     }, null);
   },
