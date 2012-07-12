@@ -403,11 +403,11 @@ Indicators are in units of 12
 
 
 #view-selector > li.toggle-settings,
-body.configure #view-selector .today {
+body[data-path="/settings/"] #view-selector .today {
   display: none;
 }
 
-body.configure #view-selector .toggle-settings {
+body[data-path^="/settings/"] #view-selector .toggle-settings {
   display: block !important;
 }
 
@@ -421,16 +421,16 @@ body.configure #view-selector .toggle-settings {
 }
 
 /**  Selected items */
-body[data-path="/day"] #view-selector .day,
-body[data-path="/week"] .time-selection .week,
-body[data-path="/month"] .time-selection .month {
+body[data-path="/day/"] #view-selector .day,
+body[data-path="/week/"] .time-selection .week,
+body[data-path="/month/"] .time-selection .month {
   background-color: white;
   color: black;
 }
 
-body[data-path="/day"] #view-selector .day a,
-body[data-path="/week"] #view-selector .week a,
-body[data-path="/month"] #view-selector .month a {
+body[data-path="/day/"] #view-selector .day a,
+body[data-path="/week/"] #view-selector .week a,
+body[data-path="/month/"] #view-selector .month a {
   color: black;
 }
 

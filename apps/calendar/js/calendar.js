@@ -12,30 +12,30 @@ Calendar.init = function calendar_init() {
   var monthView = new Views.Month({ controller: controller });
   var monthDayView = new Views.MonthsDay({ controller: controller });
   var settings = new Views.Settings({ controller: controller });
+  var createAccount = new Views.CreateAccount({ controller: controller });
 
-  function setPath(path) {
-    return function(ctx, next) {
-      controller.setInSettings(false);
-      document.body.setAttribute('data-path', path);
-      next();
-    }
+  function setPath(data, next) {
+    document.body.setAttribute('data-path', data.canonicalPath);
+    next();
   }
 
-  route.add('/', setPath('/month'), monthView, monthDayView);
-  route.add('/month', setPath('/month'), monthView, monthDayView);
+  route.state('/month/', setPath, monthView, monthDayView);
+  route.state('/create-account/', setPath, createAccount);
+
+  route.modifier('/settings/', setPath, settings,
+                 settings.showCalendars.bind(settings));
+
+  route.modifier('/settings/accounts/', setPath, settings,
+                 settings.showAccounts.bind(settings));
 
   //temp routes
-  route.add('/day', setPath('/day'), new Calendar.View('#day-view'));
-  route.add('/week', setPath('/week'), new Calendar.View('#week-view'));
-  route.add('/add', setPath('/add'), new Calendar.View('#add-event-view'));
+  route.state('/day/', setPath, new Calendar.View('#day-view'));
+  route.state('/week/', setPath, new Calendar.View('#week-view'));
+  route.state('/add/', setPath, new Calendar.View('#add-event-view'));
 
-  route.add(
-    '/create-account',
-    setPath('/create-account'),
-    new Calendar.Views.CreateAccount()
-  );
-
-  route.start();
+  if (window.location.pathname === '/') {
+    page.replace('/month/');
+  }
 
   // quick hack for today button
   var today = document.querySelector('#view-selector .today');
@@ -45,22 +45,5 @@ Calendar.init = function calendar_init() {
     controller.setSelectedDay(new Date());
   });
 
-  // Another hack for toggling
-  document.body.addEventListener('click', function(event) {
-    var target = event.target;
-
-    if (target.tagName.toLowerCase() === 'a' &&
-        target.classList.contains('toggle')) {
-
-      var location = window.location.hash;
-      var href = target.getAttribute('href');
-
-      if (location === href) {
-        // clear target
-        event.preventDefault();
-        window.location.hash = '#clear';
-      }
-    }
-  });
-
+  route.start();
 };

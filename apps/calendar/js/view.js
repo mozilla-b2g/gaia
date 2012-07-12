@@ -53,6 +53,8 @@
 
         return this[cacheName];
       }
+
+      return null;
     },
 
     onactive: function() {

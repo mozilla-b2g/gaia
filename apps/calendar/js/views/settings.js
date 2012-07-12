@@ -24,49 +24,76 @@
     // set this.element
     Calendar.View.call(this, this.selectors.element);
 
-    this._initEvents();
+    this._handleOutsideClick = this._handleOutsideClick.bind(this);
   }
 
   Settings.prototype = {
     __proto__: Object.create(Calendar.View.prototype),
 
-    bodyClass: 'configure',
-
-    activeState: '#settings',
-
     selectors: {
       element: '#settings',
-      toggle: '.toggle-settings'
+      calendars: '#settings-calendars',
+      accounts: '#settings-accounts',
+      outside: '#wrapper'
     },
 
-    get settingsElements() {
-      return this._findElement('toggle', true);
+    get calendars() {
+      return this._findElement('calendars');
     },
 
-    _initEvents: function() {
-      var self = this;
-      this.controller.on('inSettingsChange', function() {
-        var enabled = self.controller.inSettings;
-        if (enabled) {
-          document.body.classList.add(self.bodyClass);
-          self.onactive();
-        } else {
-          self.oninactive();
-          document.body.classList.remove(self.bodyClass);
-        }
-      });
+    get accounts() {
+      return this._findElement('accounts');
+    },
 
-      var elements = this.settingsElements;
+    get outside() {
+      return this._findElement('outside');
+    },
 
-      function toggleSettings(e) {
-        var value = !self.controller.inSettings;
-        self.controller.setInSettings(value);
+    _removeClickHandler: function() {
+      this.outside.removeEventListener('click', this._handleOutsideClick);
+    },
+
+    _handleOutsideClick: function(e) {
+      if (this._savedPath) {
+        page(this._savedPath);
+        this._savedPath = null;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        // in theory this should happen during oninactive
+        // when we switch out of the view this is a failsafe
+        this._removeClickHandler();
+      }
+    },
+
+    showCalendars: function() {
+      this.calendars.classList.add(this.activeClass);
+      this.accounts.classList.remove(this.activeClass);
+    },
+
+    showAccounts: function() {
+      this.calendars.classList.remove(this.activeClass);
+      this.accounts.classList.add(this.activeClass);
+    },
+
+    onactive: function() {
+      var path;
+      Calendar.View.prototype.onactive.apply(this, arguments);
+      this._savedPath = window.location.pathname;
+
+      if (this._savedPath.indexOf('/settings') === 0) {
+        this._savedPath = '/';
       }
 
-      Array.prototype.forEach.call(elements, function(el) {
-        el.addEventListener('click', toggleSettings);
-      });
+      this.outside.addEventListener('click', this._handleOutsideClick);
+    },
+
+    oninactive: function() {
+      this._removeClickHandler();
+      Calendar.View.prototype.onactive.apply(this, arguments);
     }
+
   };
 
   Calendar.Views.Settings = Settings;

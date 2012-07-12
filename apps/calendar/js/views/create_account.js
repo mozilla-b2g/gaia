@@ -8,7 +8,7 @@
     Calendar.Views = {};
   }
 
-  template = Calendar.Templates.Account;
+  var template = Calendar.Templates.Account;
 
   function CreateAccount(options) {
     var key;
@@ -26,7 +26,7 @@
     // set this.element
     Calendar.View.call(this, this.selectors.element);
 
-    //this._initEvents();
+    this._initEvents();
   }
 
   CreateAccount.prototype = {
@@ -39,6 +39,9 @@
 
     get accounts() {
       return this._findElement('accounts');
+    },
+
+    _initEvents: function() {
     },
 
     _updateAccountPresets: function() {

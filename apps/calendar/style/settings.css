@@ -1,4 +1,4 @@
-body.configure[role="app"] #wrapper {
+body[data-path^="/settings/"][role="app"] #wrapper {
   position: relative;
   -moz-transform: translateX(75%);
   box-shadow: 1px 1px 5px 5px #222;
@@ -25,6 +25,14 @@ body[role="app"] #wrapper {
   font-size: 1.35rem;
 }
 
+#settings > section {
+  display: none;
+}
+
+#settings > section.active {
+  display: block;
+}
+
 #settings header {
   background: #242931;
   padding: 2.1rem 0 2.6rem 2.1rem;
@@ -40,7 +48,7 @@ body[role="app"] #wrapper {
   border-bottom: 1px solid #454B53;
 }
 
-#more-settings {
+#settings a.settings {
   position: absolute;
   bottom: 1rem;
   left: 1rem;

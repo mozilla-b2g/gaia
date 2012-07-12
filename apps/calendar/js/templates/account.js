@@ -7,7 +7,7 @@
     account: '<ol class="accounts">{value|s}</ol>',
     accountItem: [
       '<li class="{name}">',
-        '<a href="#{name}">{name}</a>',
+        '<a data-provider="{name}" href="create-account/{name}">{name}</a>',
       '</li>'
     ].join('')
   });
