@@ -10,7 +10,7 @@ load('../jspinyin.js');
 var FileSystemService = Test.FileSystemService;
 var MatrixSearch = Test.MatrixSearch;
 var USER_DICT_FILE_NAME = 'sm://tests/user_dict_test_file';
-var SYS_DICT_FILE_NAME = 'sm://dict_pinyin.json';
+var SYS_DICT_FILE_NAME = 'sm://db.json';
 
 function testMatrixSearch() {
   print('------ Test MatrixSearch --------');
@@ -25,7 +25,6 @@ function testMatrixSearch() {
       print(ret.num + ' candidate(s):' + ret.cands);
     });
   });
-  FileSystemService.uninit();
 }
 
 function search(ms, py) {
@@ -37,7 +36,8 @@ function search(ms, py) {
     if (i % 10 == 0) {
       cands += '\n';
     }
-    cands += ms.get_candidate(i) + ' ';
+    var strs = ms.get_candidate(i);
+    cands += strs[0] + '(' + strs[1] + ')' + ' ';
   }
   return {num: num, cands: cands, hanzi: ms.get_candidate0()};
 }

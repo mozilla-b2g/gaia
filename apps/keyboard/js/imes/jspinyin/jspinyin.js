@@ -304,6 +304,49 @@ var IMEngine = function engine_constructor() {
 IMEngine.SYS_DICT_FILE_NAME = 'xhr://{PATH}/db.json';
 IMEngine.USER_DICT_FILE_NAME = 'idb://user_dict';
 
+/**
+ * Candidate data
+ * @constructor
+ * @param {number} id Candidate id.
+ * @param {[string, string]} strs The simplified and traditional strings.
+ */
+IMEngine.CandidateData = function candidateData_constructor(id, strs) {
+  this.id = id;
+  this.str = strs[0];
+  this.str_tr = strs[1];
+};
+
+IMEngine.CandidateData.prototype = {
+  /**
+   * id
+   * @type number
+   */
+  id: 0,
+
+  /**
+   * Simplified Chinese string.
+   * @type string
+   */
+  str: '',
+
+  /**
+   * Traditional Chinese string.
+   * @type string
+   */
+  str_tr: '',
+
+  serialize: function candidateData_serialize() {
+    return JSON.stringify(this);
+  },
+
+  deserialize: function candidateData_deserialize(str) {
+    var o = JSON.parse(str);
+    for (var i in o) {
+      this[i] = o[i];
+    }
+  }
+};
+
 IMEngine.prototype = {
   // Implements IMEngineBase
   __proto__: new IMEngineBase(),
@@ -315,8 +358,13 @@ IMEngine.prototype = {
   // Whether to input traditional Chinese
   _inputTraditionalChinese: false,
 
-  // The last selected text used to generate prediction.
-  _selectedText: '',
+  /**
+   * The last selected text used to generate prediction.
+   * Note: we always use simplified Chinese string to make prediction even if
+   *    we are inputing traditional Chinese.
+   * @type string.
+   */
+  _historyText: '',
 
   _pendingSymbols: '',
   _firstCandidate: '',
@@ -347,9 +395,22 @@ IMEngine.prototype = {
     this._glue.sendPendingSymbols(display);
   },
 
+  /**
+   * Send candidates list.
+   * @param {Array.<[string, string]>} candidates The candidates to be sent.
+   * @return {void}  No return value.
+   */
   _sendCandidates: function engine_sendCandidates(candidates) {
-    this._firstCandidate = (candidates[0]) ? candidates[0][0] : '';
-    this._glue.sendCandidates(candidates);
+    this._firstCandidate = (candidates.length > 0) ? candidates[0][0] : '';
+    var list = [];
+    var len = candidates.length;
+    for (var id = 0; id < len; id++) {
+      var strs = candidates[id];
+      var cand = this._inputTraditionalChinese ? strs[1] : strs[0];
+      var data = new IMEngine.CandidateData(id, strs);
+      list.push([cand, data.serialize()]);
+    }
+    this._glue.sendCandidates(list);
   },
 
   _start: function engine_start() {
@@ -388,7 +449,7 @@ IMEngine.prototype = {
           debug('Remove candidates.');
 
           // prevent updateCandidateList from making the same suggestions
-          this._selectedText = '';
+          this._historyText = '';
 
           this._updateCandidateList(this._next.bind(this));
           return;
@@ -470,31 +531,26 @@ IMEngine.prototype = {
 
   _updateCandidateList: function engine_updateCandidateList(callback) {
     debug('Update Candidate List.');
-    var self = this;
     if (!this._pendingSymbols) {
       // If there is no pending symbols, make prediction with the previous
       // select words.
       var candidates = [];
-      if (this._selectedText) {
+      if (this._historyText) {
         debug('Buffer is empty; ' +
           'make suggestions based on select term.');
-        var predicts = PinyinDecoderService.getPredicts(this._selectedText);
-        var num = predicts.length;
-        for (var id = 0; id < num; id++) {
-          candidates.push([predicts[id], id]);
-        }
+        candidates = PinyinDecoderService.getPredicts(this._historyText);
       }
-      self._sendCandidates(candidates);
+      this._sendCandidates(candidates);
       callback();
       return;
     } else {
       // Update the candidates list by the pending pinyin string.
-      this._selectedText = '';
+      this._historyText = '';
       var num = PinyinDecoderService.search(this._pendingSymbols);
       var candidates = [];
       for (var id = 0; id < num; id++) {
-        var cand = PinyinDecoderService.getCandidate(id);
-        candidates.push([cand, id]);
+        var strs = PinyinDecoderService.getCandidate(id);
+        candidates.push(strs);
       }
       this._sendCandidates(candidates);
       callback();
@@ -593,21 +649,25 @@ IMEngine.prototype = {
    */
   select: function engine_select(text, data) {
     IMEngineBase.prototype.select.call(this, text, data);
+    var candDataObject = new IMEngine.CandidateData(0, ['', '']);
+    candDataObject.deserialize(data);
     if (this._pendingSymbols) {
-      var candId = data;
+      var candId = candDataObject.id;
       var candsNum = PinyinDecoderService.choose(candId);
       var splStart = PinyinDecoderService.getSplStart();
       var fixed = PinyinDecoderService.getFixedlen();
       // Output the result if all valid pinyin string has been converted.
       if (candsNum == 1 && fixed == splStart.length) {
-        this._selectedText = PinyinDecoderService.getCandidate(0);
-        this._glue.sendString(this._selectedText);
+        var strs = PinyinDecoderService.getCandidate(0);
+        var convertedText = this._inputTraditionalChinese ? strs[1] : strs[0];
+        this._glue.sendString(convertedText);
         this._pendingSymbols = '';
+        this._historyText = strs[0];
       }
     } else {
       // A predication candidate is selected.
-      this._selectedText = text;
-      this._glue.sendString(this._selectedText);
+      this._historyText = candDataObject.str;
+      this._glue.sendString(text);
     }
     this._keypressQueue.push(0);
     this._start();
@@ -620,7 +680,7 @@ IMEngine.prototype = {
     IMEngineBase.prototype.empty.call(this);
     debug('empty.');
     this._pendingSymbols = '';
-    this._selectedText = '';
+    this._historyText = '';
     this._sendPendingSymbols();
     this._isWorking = false;
   },
@@ -813,11 +873,12 @@ var PinyinDecoderService = {
    *
    * @param {number} candId The id to get a candidate. Started from 0.
    * Usually, id 0 is a sentence-level candidate.
-   * @return {string} The candidate string if succeeds, otherwise ''.
+   * @return {[string, string]} The simplified and traditional Chinese
+   *    candidate strings if succeed. Otherwise empty strings.
    */
   getCandidate: function decoderService_getCandidate(candId) {
     if (this._matrixSearch == null) {
-      return '';
+      return ['', ''];
     }
     return this._matrixSearch.get_candidate(candId);
   },
@@ -872,7 +933,8 @@ var PinyinDecoderService = {
    * history.
    *
    * @param {string} history The history string to do the prediction.
-   * @return {Array.<string>} The prediction result list of an string array.
+   * @return {Array.<[string, string]>} The prediction result list of a
+   *    string array.
    */
   getPredicts: function decoderService_getPredicts(history) {
     if (this._matrixSearch == null) {
@@ -1821,7 +1883,6 @@ DictDef.SingleCharItem.prototype = {
   hz: '',
 
   /**
-   * TODO
    * Traditional hanzi char.
    * @type string
    */
@@ -1868,7 +1929,6 @@ DictDef.LemmaEntry.prototype = {
   hanzi_str: '',
 
   /**
-   * TODO
    * Traditional hanzi string.
    * @type string
    */
@@ -2080,6 +2140,7 @@ SearchUtility.LmaPsbItem = function lmaPsbItem_constructor() {
   this.lma_len = 0;
   this.psb = 0;
   this.hanzi = '';
+  this.hanzi_tr = '';
 };
 
 SearchUtility.LmaPsbItem.prototype = {
@@ -2090,6 +2151,7 @@ SearchUtility.LmaPsbItem.prototype = {
   // For single character items, we may also need Hanzi.
   // For multiple characer items, ignore it.
   hanzi: '',
+  hanzi_tr: '',
 
   /**
    * Copy the content.
@@ -2100,6 +2162,7 @@ SearchUtility.LmaPsbItem.prototype = {
     this.lma_len = src.lma_len;
     this.psb = src.psb;
     this.hanzi = src.hanzi;
+    this.hanzi_tr = src.hanzi_tr;
   }
 };
 
@@ -2119,12 +2182,25 @@ SearchUtility.LmaPsbStrItem.prototype = {
 SearchUtility.NPredictItem = function nPredictItem_constructor() {
   this.psb = 0.0;
   this.pre_hzs = '';
+  this.pre_hzs_tr = '';
   this.his_len = 0;
 };
 
 SearchUtility.NPredictItem.prototype = {
   psb: 0.0,
+
+  /**
+   * Simplified prediction hanzi.
+   * @type string.
+   */
   pre_hzs: '',
+
+  /**
+   * Traditional prediction hanzi.
+   * @type string.
+   */
+  pre_hzs_tr: '',
+
   // The length of the history used to do the prediction.
   his_len: 0,
 
@@ -2136,6 +2212,7 @@ SearchUtility.NPredictItem.prototype = {
   copy: function nPredictItem_copy(src) {
     this.psb = src.psb;
     this.pre_hzs = src.pre_hzs;
+    this.pre_hzs_tr = src.pre_hzs_tr;
     this.his_len = src.his_len;
   }
 };
@@ -2569,11 +2646,18 @@ MatrixSearch.ComposingPhrase.prototype = {
   spl_start: null,
 
   /**
-   * Chinese string array.
+   * Simplified Chinese string array.
    * The length of the array is MatrixSearch.kMaxRowNum.
    * @type {string}
    */
   chn_str: '',
+
+  /**
+   * Traditional Chinese string array.
+   * The length of the array is MatrixSearch.kMaxRowNum.
+   * @type {string}
+   */
+  chn_str_tr: '',
 
   /**
    * Counted in Chinese characters.
@@ -2939,12 +3023,13 @@ MatrixSearch.prototype = {
    *
    * @param {number} cand_id The candidate id. Started from 0.
    *    Usually, id 0 is a sentence-level candidate.
-   * @return {string} The candidate string if succeeds, otherwise ''.
+   * @return {[string, string]} The simplified and traditional Chinese
+   *    candidates string if succeeds, otherwise empty strings.
    */
   get_candidate: function matrixSearch_get_candidate(cand_id) {
-    var cand_str = '';
+    var cand_strs = [];
     if (!this.inited_ || 0 == this.pys_decoded_len_) {
-      return '';
+      return cand_strs;
     }
 
     if (0 == cand_id) {
@@ -2963,27 +3048,29 @@ MatrixSearch.prototype = {
     var id = this.lpi_items_[cand_id].id;
     var len = this.lpi_items_[cand_id].lma_len;
     if (len > 1) {
-      cand_str = this.get_lemma_str(id);
+      cand_strs = this.get_lemma_str(id);
     } else {
       // For a single character, Hanzi is ready.
-      cand_str = this.lpi_items_[cand_id].hanzi;
+      cand_strs[0] = this.lpi_items_[cand_id].hanzi;
+      cand_strs[1] = this.lpi_items_[cand_id].hanzi_tr;
     }
 
-    return cand_str;
+    return cand_strs;
   },
 
   /**
    * Get the first candidate, which is a "full sentence".
    * @param {boolean} only_unfixed If only_unfixed is true, only unfixed part
    *    will be fetched.
-   * @return {string} The candidate string.
+   * @return {[string, string]} The simplified and traditional Chinese
+   *    candidate strings.
    */
   get_candidate0: function matrixSearch_get_candidate0(only_unfixed) {
-    var cand_str = '';
+    var cand_strs = ['', ''];
 
     if (this.pys_decoded_len_ == 0 ||
         this.matrix_[this.pys_decoded_len_].mtrx_nd_num == 0) {
-      return '';
+      return cand_strs;
     }
 
     var idxs = [];
@@ -3019,19 +3106,16 @@ MatrixSearch.prototype = {
         continue;
       }
 
-      var str = this.get_lemma_str(idxs[id_num]);
-      var str_len = str.length;
-      if (str_len > 0) {
-        cand_str += str;
-      } else {
-        return '';
-      }
+      var strs = this.get_lemma_str(idxs[id_num]);
+      cand_strs[0] += strs[0];
+      cand_strs[1] += strs[1];
     } while (id_num != 0);
 
     if (only_unfixed) {
-      cand_str = cand_str.substring(this.fixed_hzs_);
+      cand_strs[0] = cand_strs[0].substring(this.fixed_hzs_);
+      cand_strs[1] = cand_strs[1].substring(this.fixed_hzs_);
     }
-    return cand_str;
+    return cand_strs;
   },
 
   /**
@@ -3204,7 +3288,7 @@ MatrixSearch.prototype = {
    * history.
    *
    * @param {string} fixed The fixed string to do the prediction.
-   * @return {Array.<string>} The prediction result list.
+   * @return {Array.<[string, string]>} The prediction result list.
    */
   get_predicts: function matrixSearch_get_predicts(fixed) {
     var fixed_len = fixed.length;
@@ -3214,7 +3298,7 @@ MatrixSearch.prototype = {
     var predict_buf = [];
     var buf_len = PinyinDecoderService.kMaxPredictNum;
     for (var pos = 0; pos < buf_len; pos++) {
-      predict_buf[pos] = '';
+      predict_buf[pos] = ['', ''];
     }
     var num = this.inner_predict(fixed, predict_buf, buf_len);
     predict_buf.length = num;
@@ -3675,6 +3759,8 @@ MatrixSearch.prototype = {
               // Clear everything after this position
               this.c_phrase_.chn_str = this.c_phrase_.chn_str.substring(0,
                   splpos);
+              this.c_phrase_.chn_str_tr = this.c_phrase_.chn_str_tr.substring(0,
+                  splpos);
               this.c_phrase_.sublma_start[subpos + 1] = splpos;
               this.c_phrase_.sublma_num = subpos + 1;
               this.c_phrase_.length = splpos;
@@ -3789,11 +3875,14 @@ MatrixSearch.prototype = {
         var lma_len;
         var prefix = this.c_phrase_.chn_str.substring(this.c_phrase_.
             sublma_start[sub_num] + phrase_len);
+        var prefix_tr = this.c_phrase_.chn_str_tr.substring(this.c_phrase_.
+            sublma_start[sub_num] + phrase_len);
 
-        var lma_str = this.get_lemma_str(this.lma_id_[pos]);
-        var lema_len = lma_str.length;
+        var lma_strs = this.get_lemma_str(this.lma_id_[pos]);
+        var lema_len = lma_strs[0].length;
         assert(lma_len == this.lma_start_[pos + 1] - this.lma_start_[pos]);
-        this.c_phrase_.chn_str = prefix + lma_str;
+        this.c_phrase_.chn_str = prefix + lma_strs[0];
+        this.c_phrase_.chn_str_tr = prefix_tr + lma_strs[1];
         phrase_len += lma_len;
       }
       assert(phrase_len == this.lma_start_[this.fixed_lmas_]);
@@ -3820,6 +3909,9 @@ MatrixSearch.prototype = {
     // phrase have been deleted.
     this.c_phrase_.chn_str = this.c_phrase_.chn_str.substring(0, del_spl_pos) +
         this.c_phrase_.chn_str.substring(del_spl_pos + 1);
+    this.c_phrase_.chn_str_tr = this.c_phrase_.chn_str_tr.
+        substring(0, del_spl_pos) + this.c_phrase_.chn_str_tr.substring(
+        del_spl_pos + 1);
     this.c_phrase_.length -= 1;
 
     // If the deleted spelling id is in a sub lemma which contains more than
@@ -4008,12 +4100,12 @@ MatrixSearch.prototype = {
 
     // Remove repeated items.
     if (splid_str_len > 1) {
-      var lpsis = [];//reinterpret_cast<LmaPsbStrItem*>(lma_buf + num);
+      var lpsis = [];
       for (pos = 0; pos < num; pos++) {
         lpsis[pos] = new SearchUtility.LmaPsbStrItem();
         var lma = lma_buf[lma_buf_start + pos];
         lpsis[pos].lpi.copy(lma);
-        lpsis[pos].str = this.get_lemma_str(lma.id);
+        lpsis[pos].str = this.get_lemma_str(lma.id)[0];
       }
 
       lpsis.sort(SearchUtility.cmp_lpsi_with_str);
@@ -4043,8 +4135,9 @@ MatrixSearch.prototype = {
       // the user input  "d", repeated items are generated.
       // For single character lemmas, Hanzis will be gotten
       for (pos = 0; pos < num; pos++) {
-        var hanzis = this.get_lemma_str(lma_buf[lma_buf_start + pos].id);
-        lma_buf[lma_buf_start + pos].hanzi = hanzis.charAt(0);
+        var strs = this.get_lemma_str(lma_buf[lma_buf_start + pos].id);
+        lma_buf[lma_buf_start + pos].hanzi = strs[0].charAt(0);
+        lma_buf[lma_buf_start + pos].hanzi_tr = strs[1].charAt(0);
       }
 
       ArrayUtils.sort(lma_buf, lma_buf_start, num,
@@ -4062,8 +4155,8 @@ MatrixSearch.prototype = {
             assert(remain_num > 0);
             assert(lma_buf[lma_buf_start + remain_num - 1].hanzi ==
                    lma_buf[lma_buf_start + pos].hanzi);
-            lma_buf[lma_buf_start + remain_num - 1] = lma_buf[lma_buf_start +
-                pos];
+            lma_buf[lma_buf_start + remain_num - 1].copy(lma_buf[lma_buf_start +
+                pos]);
           }
           continue;
         }
@@ -4088,24 +4181,25 @@ MatrixSearch.prototype = {
    * Get lemma string by ID.
    * @private
    * @param {number} id_lemma Lemma ID.
-   * @return {string} The lemma string.
+   * @return {[string, string]} The simplified and traditional lemma string.
    */
   get_lemma_str: function matrixSearch_get_lemma_str(id_lemma) {
     var str_len = 0;
-    var str = '';
+    var strs = ['', ''];
 
     if (SearchUtility.is_system_lemma(id_lemma)) {
-      str = this.dict_trie_.get_lemma_str(id_lemma);
+      strs = this.dict_trie_.get_lemma_str(id_lemma);
     } else if (SearchUtility.is_user_lemma(id_lemma)) {
       if (null != this.user_dict_) {
-        str = this.user_dict_.get_lemma_str(id_lemma);
+        strs = this.user_dict_.get_lemma_str(id_lemma);
       }
     } else if (SearchUtility.is_composing_lemma(id_lemma)) {
       str_len = this.c_phrase_.sublma_start[this.c_phrase_.sublma_num];
-      str = this.c_phrase_.chn_str.substring(0, str_len);
+      strs[0] = this.c_phrase_.chn_str.substring(0, str_len);
+      strs[1] = this.c_phrase_.chn_str_tr.substring(0, str_len);
     }
 
-    return str;
+    return strs;
   },
 
   /**
@@ -4669,7 +4763,7 @@ MatrixSearch.prototype = {
 
     // If the full sentense candidate's unfixed part may be the same with a
     // normal lemma. Remove the lemma candidate in this case.
-    var pfullsent = this.get_candidate0(true);
+    var pfullsent = this.get_candidate0(true)[0];
     var sent_len = pfullsent.length;
 
     // If the unfixed part contains more than one ids, it is not necessary to
@@ -4752,7 +4846,7 @@ MatrixSearch.prototype = {
   /**
    * @private
    * @param {string} fixed_buf Words used to make prediction.
-   * @param {Array.<string>} predict_buf Buffer saving the result.
+   * @param {Array.<[string, string]>} predict_buf Buffer saving the result.
    * @param {number} start The start position of the buffer.
    * @param {number} buf_len The length of the buffer.
    * @return {number} Number of new added prediction items.
@@ -4850,12 +4944,14 @@ MatrixSearch.prototype = {
 
     debug('/////////////////Predicted Items Begin////////////////////>>');
     for (i = 0; i < res_total; i++) {
-      debug(this.npre_items_[i].pre_hzs);
+      debug(this.npre_items_[i].pre_hzs + '(' +
+          this.npre_items_[i].pre_hzs_tr + ')');
     }
     debug('<<///////////////Predicted Items End////////////////////////');
 
     for (i = 0; i < res_total; i++) {
-      predict_buf[i] = this.npre_items_[i].pre_hzs;
+      predict_buf[i] = [this.npre_items_[i].pre_hzs,
+                        this.npre_items_[i].pre_hzs_tr];
     }
 
     return res_total;
@@ -4931,6 +5027,7 @@ MatrixSearch.prototype = {
     }
 
     var word_str = '';
+    var word_str_tr = '';
     var spl_ids = [];
 
     var spl_id_fr = 0;
@@ -4945,9 +5042,10 @@ MatrixSearch.prototype = {
         spl_ids[spl_id_fr + i] = this.spl_id_[this.lma_start_[pos] + i];
       }
 
-      var str = this.get_lemma_str(lma_id);
-      word_str += str;
-      assert(str.length == lma_len);
+      var strs = this.get_lemma_str(lma_id);
+      word_str += strs[0];
+      word_str_tr += strs[1];
+      assert(strs[0].length == lma_len);
 
       var tmp = this.get_lemma_splids(lma_id, spl_ids, spl_id_fr, lma_len);
       if (tmp != lma_len) {
@@ -4959,7 +5057,8 @@ MatrixSearch.prototype = {
 
     assert(spl_id_fr <= DictDef.kMaxLemmaSize);
 
-    return this.user_dict_.put_lemma(word_str, spl_ids, spl_id_fr, 1);
+    return this.user_dict_.put_lemma(word_str, word_str_tr, spl_ids,
+        spl_id_fr, 1);
   },
 
   /**
@@ -5149,6 +5248,7 @@ var IAtomDictBase = {
    * Get a lemma string (The Chinese string) by the given lemma id.
    *
    * @param {number} lemmaId The lemma id to get the string.
+   * @return {[string, string]} The simplified and traditional lemma string.
    */
   get_lemma_str: function atomDictBase_get_lemma_str(id_lemma) {},
 
@@ -5169,9 +5269,10 @@ var IAtomDictBase = {
   /**
    * Function used for prediction.
    * No need to sort the newly added items.
-   *
-   * @param {string} last_hzs The last n Chinese characters(called Hanzi), its
-   *    length should be less than or equal to kMaxPredictSize.
+   * Note: we always use simplified Chinese to make prediction even when
+   * inputing traditional Chinese.
+   * @param {string} last_hzs The last n simplified Chinese characters(called
+   *    Hanzi), its length should be less than or equal to kMaxPredictSize.
    * @param {number} used The number of items have been used from the
    *    beiginning of buffer. An atom dictionary can just ignore it.
    * @param {number} start The start position of the buffer.
@@ -5187,12 +5288,14 @@ var IAtomDictBase = {
    * Add a lemma to the dictionary. If the dictionary allows to add new
    * items and this item does not exist, add it.
    *
-   * @param {string} lemma_str The Chinese string of the lemma.
+   * @param {string} lemma_str The simplified Chinese string of the lemma.
+   * @param {string} lemma_str_tr The traditional Chinese string of the lemma.
    * @param {Array.<number>} splids The spelling ids of the lemma.
    * @param {number} count The frequency count for this lemma.
    * @return {number} The lemma id if succeed, 0 if fail.
    */
-  put_lemma: function atomDictBase_put_lemma(lemma_str, splids, count) {},
+  put_lemma: function atomDictBase_put_lemma(lemma_str, lemma_str_tr, splids,
+      count) {},
 
   /**
    * Update a lemma's occuring count.
@@ -5763,7 +5866,7 @@ DictTrie.prototype = {
    */
   get_lemma_splids: function dictTrie_get_lemma_splids(id_lemma, splids, start,
                                                        splids_max) {
-    var lma_str = this.get_lemma_str(id_lemma);
+    var lma_str = this.get_lemma_str(id_lemma)[0];
     var lma_len = lma_str.length;
     assert(lma_len == splids_max, 'get_lemma_splids assertion error.' +
       StringUtils.format('lma_len({0}) != splids_max{1}', lma_len, splids_max));
@@ -5819,7 +5922,8 @@ DictTrie.prototype = {
   /**
    * @override
    */
-  put_lemma: function dictTrie_put_lemma(lemma_str, splids, count) {
+  put_lemma: function dictTrie_put_lemma(lemma_str, lemma_str_tr, splids,
+      count) {
     return 0;
   },
 
@@ -5921,12 +6025,13 @@ DictTrie.prototype = {
       var top_lma_id =
         this.get_lemma_id_by_offset(top_lmas_id_offset + top_lmas_pos);
       top_lmas_pos += 1;
-      var str = this.dict_list_.get_lemma_str(top_lma_id);
-      if (!str) {
+      var strs = this.dict_list_.get_lemma_str(top_lma_id);
+      if (!strs[0]) {
         continue;
       }
       npre_items[start + item_num] = new SearchUtility.NPredictItem();
-      npre_items[start + item_num].pre_hzs = str;
+      npre_items[start + item_num].pre_hzs = strs[0];
+      npre_items[start + item_num].pre_hzs_tr = strs[1];
       npre_items[start + item_num].psb = ngram.get_uni_psb(top_lma_id);
       npre_items[start + item_num].his_len = his_len;
       item_num++;
@@ -7558,6 +7663,11 @@ DictBuilder.prototype = {
       // Get the Hanzi string
       var hanzi = tokens[0].trim();
       var hanzi_tr = tokens_tr[0].trim();
+      if (hanzi_tr.length != hanzi.length) {
+        debug(StringUtils.format('Cannot convert simplified Chinese {0} to ' +
+            'traditional Chinese {1}', hanzi, hanzi_tr));
+        hanzi_tr = hanzi;
+      }
       var lemma_size = hanzi.length;
       if (lemma_size > DictDef.kMaxLemmaSize) {
         debug('Drop the lemma whose size exceeds the limit: ' + hanzi);
@@ -7961,7 +8071,17 @@ UserDict.Lemma = function lemma_constructor() {
 UserDict.Lemma.prototype = {
   flag: 0,
 
+  /**
+   * Simplified hanzi string.
+   * @type string.
+   */
   hanzi_str: '',
+
+  /**
+   * Traditional hanzi string.
+   * @type string.
+   */
+  hanzi_str_tr: '',
 
   /**
    * The spelling IDs of the lemma.
@@ -8155,16 +8275,16 @@ UserDict.prototype = {
    * @override
    */
   get_lemma_str: function userDict_get_lemma_str(id_lemma) {
-    var str = '';
+    var strs = ['', ''];
     if (this.is_valid_state() == false) {
-      return str;
+      return strs;
     }
     if (this.is_valid_lemma_id(id_lemma) == false) {
-      return str;
+      return strs;
     }
     var offset = this.offsets_by_id_[id_lemma - this.start_id_];
-    str = this.get_lemma_word(offset);
-    return str;
+    strs = this.get_lemma_word(offset);
+    return strs;
   },
 
   /**
@@ -8213,13 +8333,14 @@ UserDict.prototype = {
         continue;
       }
 
-      if (words.indexOf(last_hzs) == 0) {
+      if (words[0].indexOf(last_hzs) == 0) {
         if (new_added >= npre_max) {
           return new_added;
         }
         var len = Math.min(DictDef.kMaxPredictSize, nchar);
         npre_items[new_added] = new SearchUtility.NPredictItem();
-        npre_items[new_added].pre_hzs = words.substring(hzs_len, len);
+        npre_items[new_added].pre_hzs = words[0].substring(hzs_len, len);
+        npre_items[new_added].pre_hzs_tr = words[1].substring(hzs_len, len);
         npre_items[new_added].psb =
           this.get_lemma_score_by_content(words, splids);
         npre_items[new_added].his_len = hzs_len;
@@ -8236,8 +8357,10 @@ UserDict.prototype = {
   /**
    * @override
    */
-  put_lemma: function userDict_put_lemma(lemma_str, splids, count) {
-    return this._put_lemma(lemma_str, splids, count, new Date().getTime());
+  put_lemma: function userDict_put_lemma(lemma_str, lemma_str_tr, splids,
+      count) {
+    return this._put_lemma(lemma_str, lemma_str_tr, splids, count,
+        new Date().getTime());
   },
 
   /**
@@ -8252,7 +8375,7 @@ UserDict.prototype = {
       return 0;
     }
     var offset = this.offsets_by_id_[lemma_id - this.start_id_];
-    var lemma_str = this.get_lemma_word(offset);
+    var lemma_str = this.get_lemma_word(offset)[0];
     var splids = this.get_lemma_spell_ids(offset);
 
     var off = this.locate_in_offsets(lemma_str, splids);
@@ -8330,7 +8453,7 @@ UserDict.prototype = {
     var offset = this.offsets_by_id_[lemma_id - this.start_id_];
 
     var spl = this.get_lemma_spell_ids(offset);
-    var wrd = this.get_lemma_word(offset);
+    var wrd = this.get_lemma_word(offset)[0];
 
     var off = this.locate_in_offsets(wrd, spl);
 
@@ -8965,14 +9088,15 @@ UserDict.prototype = {
   /**
    * Add a lemma to the dictionary.
    * @private
-   * @param {string} lemma_str The Chinese string of the lemma.
+   * @param {string} lemma_str The simplified Chinese string of the lemma.
+   * @param {string} lemma_str_tr The traditional Chinese string of the lemma.
    * @param {Array.<number>} splids The spelling ids of the lemma.
    * @param {number} count The frequency count for this lemma.
    * @param {number} lmt The last modified time stamp.
    * @return {number} The id if succeed, 0 if fail.
    */
-  _put_lemma: function userDict_put_lemma(lemma_str, splids, count, lmt) {
-    var lemma_len = lemma_str;
+  _put_lemma: function userDict_put_lemma(lemma_str, lemma_str_tr, splids,
+      count, lmt) {
     if (this.is_valid_state() == false) {
       return 0;
     }
@@ -9004,7 +9128,7 @@ UserDict.prototype = {
         // return 0;
       }
       debug(flushed ? '_put_lemma(flush+add)' : '_put_lemma(add)');
-      var id = this.append_a_lemma(lemma_str, splids, count, lmt);
+      var id = this.append_a_lemma(lemma_str, lemma_str_tr, splids, count, lmt);
       return id;
     }
     return 0;
@@ -9164,7 +9288,7 @@ UserDict.prototype = {
     var offset = this.offsets_by_id_[lemma_id - this.start_id_];
 
     var spl = this.get_lemma_spell_ids(offset);
-    var wrd = this.get_lemma_word(offset);
+    var wrd = this.get_lemma_word(offset)[0];
 
     var off = this.locate_in_offsets(wrd, spl);
     if (off == -1) {
@@ -9388,10 +9512,10 @@ UserDict.prototype = {
    * Get the lemma hanzi string by its offset.
    * @private
    * @param {number} offset The offset of the lemma.
-   * @return {string}  The hanzi string.
+   * @return {[string, string]}  The simplified and traditional hanzi strings.
    */
   get_lemma_word: function userDict_get_lemma_word(offset) {
-    return this.lemmas_[offset].hanzi_str;
+    return [this.lemmas_[offset].hanzi_str, this.lemmas_[offset].hanzi_str_tr];
   },
 
   /**
@@ -9527,14 +9651,15 @@ UserDict.prototype = {
   /**
    * Add a lemma to the dictionary.
    * @private
-   * @param {string} lemma_str The Chinese string of the lemma.
+   * @param {string} lemma_str The simplified Chinese string of the lemma.
+   * @param {string} lemma_str_tr The traditional Chinese string of the lemma.
    * @param {Array.<number>} splids The spelling ids of the lemma.
    * @param {number} count The frequency count for this lemma.
    * @param {number} lmt The last modified time stamp.
    * @return {number} The lemma id if succeed, 0 if fail.
    */
-  append_a_lemma: function userDict_append_a_lemma(lemma_str, splids, count,
-                                                   lmt) {
+  append_a_lemma: function userDict_append_a_lemma(lemma_str, lemma_str_tr,
+      splids, count, lmt) {
     var lemma_len = lemma_str.length;
 
     // Generate a new lemma ID.
@@ -9549,6 +9674,7 @@ UserDict.prototype = {
     var lemma = new UserDict.Lemma();
     lemma.flag = 0;
     lemma.hanzi_str = lemma_str;
+    lemma.hanzi_str_tr = lemma_str_tr;
     for (var i = 0; i < lemma_len; i++) {
       lemma.splid_arr[i] = splids[i];
     }
@@ -9588,7 +9714,7 @@ UserDict.prototype = {
     }
 
     var j = 0;
-    var words_new = this.get_lemma_word(this.predicts_[off]);
+    var words_new = this.get_lemma_word(this.predicts_[off])[0];
     j = this.locate_where_to_insert_in_predicts(words_new);
     if (j != off) {
       var temp = this.predicts_[off];
@@ -9659,10 +9785,10 @@ UserDict.prototype = {
       }
 
       if (this.equal_spell_id(splids, searchable) == true) {
-        var str = this.get_lemma_word(offset);
+        var str = this.get_lemma_word(offset)[0];
         var i = 0;
         for (i = 0; i < lemma_len; i++) {
-          if (str[i] == lemma_str[i])
+          if (str.charAt(i) == lemma_str.charAt(i))
             continue;
           break;
         }
@@ -9684,8 +9810,8 @@ UserDict.prototype = {
     return -1;
   },
 
-  remove_lemma_by_offset_index:
-      function userDict_remove_lemma_by_offset_index(offset_index) {
+  remove_lemma_by_offset_index: function userDict_remove_lemma_by_offset_index(
+      offset_index) {
     if (this.is_valid_state() == false) {
       return 0;
     }
@@ -9727,7 +9853,7 @@ UserDict.prototype = {
       middle = Math.floor((begin + end) / 2);
       var offset = middle;
       var nchar = this.get_lemma_nchar(offset);
-      var ws = this.get_lemma_word(offset);
+      var ws = this.get_lemma_word(offset)[0];
 
       var minl = nchar < lemma_len ? nchar : lemma_len;
       var k = 0;
@@ -9778,7 +9904,7 @@ UserDict.prototype = {
       middle = (begin + end) >> 1;
       var offset = middle;
       var nchar = this.get_lemma_nchar(offset);
-      var ws = this.get_lemma_word(offset);
+      var ws = this.get_lemma_word(offset)[0];
 
       var minl = nchar < lemma_len ? nchar : lemma_len;
       var k = 0;
@@ -10001,7 +10127,8 @@ DictList.prototype = {
 
     this.initialized_ = false;
 
-    this.buf_ = [];
+    this.buf_ = '';
+    this.buf_tr_ = '';
 
     // calculate the size
     var buf_size = this.calculate_size(lemma_arr);
@@ -10018,13 +10145,15 @@ DictList.prototype = {
   },
 
   /**
-   * Get the hanzi string for the given id
-   * @return {string} The hanzi string if successes. Otherwize empty string.
+   * Get the hanzi string for the given id.
+   * @return {[string, string]} The simplified and traditional hanzi strings
+   *    if successes. Otherwize empty strings.
    */
   get_lemma_str: function dictList_get_lemma_str(id_lemma) {
+    var ret = ['', ''];
     if (!this.initialized_ ||
         id_lemma >= this.start_id_[DictDef.kMaxLemmaSize]) {
-      return '';
+      return ret;
     }
 
     // Find the range
@@ -10032,10 +10161,12 @@ DictList.prototype = {
       if (this.start_id_[i] <= id_lemma && this.start_id_[i + 1] > id_lemma) {
         var id_span = id_lemma - this.start_id_[i];
         var pos = this.start_pos_[i] + id_span * (i + 1);
-        return this.buf_.substring(pos, pos + i + 1);
+        ret[0] = this.buf_.substring(pos, pos + i + 1);
+        ret[1] = this.buf_tr_.substring(pos, pos + i + 1);
+        return ret;
       }
     }
-    return '';
+    return ret;
   },
 
   /**
@@ -10072,6 +10203,8 @@ DictList.prototype = {
         npre_items[start + item_num] = new SearchUtility.NPredictItem();
         npre_items[start + item_num].pre_hzs =
           this.buf_.substring(w_buf + hzs_len, w_buf + hzs_len + pre_len);
+        npre_items[start + item_num].pre_hzs_tr =
+          this.buf_tr_.substring(w_buf + hzs_len, w_buf + hzs_len + pre_len);
         npre_items[start + item_num].psb =
           ngram.get_uni_psb((w_buf - this.start_pos_[word_len - 1]) /
           word_len + this.start_id_[word_len - 1]);
@@ -10095,7 +10228,7 @@ DictList.prototype = {
         continue;
 
       // If not found, append it to the buffer
-      npre_items[start + new_num] = npre_items[start + i];
+      npre_items[start + new_num].copy(npre_items[start + i]);
       new_num++;
     }
     return new_num;
@@ -10106,8 +10239,8 @@ DictList.prototype = {
    * ids which share this half id.
    * @return {Array.<number>} The full spelling ids array.
    */
-  get_splids_for_hanzi:
-      function dictList_get_splids_for_hanzi(hanzi, half_splid) {
+  get_splids_for_hanzi: function dictList_get_splids_for_hanzi(hanzi,
+      half_splid) {
     var hz_found = MyStdlib.mybsearchStr(hanzi, this.scis_hz_, 0,
         this.scis_num_, 1, SearchUtility.cmp_hanzis_1);
     var splids = [];
@@ -10182,7 +10315,6 @@ DictList.prototype = {
   scis_hz_: '',
 
   /**
-   * TODO
    * Traditional SingleCharItem buffer.
    * @type string
    */
@@ -10200,7 +10332,6 @@ DictList.prototype = {
   buf_: '',
 
   /**
-   * TODO
    * The large memory block to store the word list of traditional Chinese.
    * @type string
    */
@@ -10300,6 +10431,8 @@ DictList.prototype = {
     for (var i = 0; i < lemma_num; i++) {
       this.buf_ += lemma_arr[i].hanzi_str;
       this.buf_tr_ += lemma_arr[i].hanzi_str_tr;
+      assert(this.buf_.length == this.buf_tr_.length,
+             'fill_list assertion error');
     }
   },
 

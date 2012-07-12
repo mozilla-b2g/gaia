@@ -71,7 +71,8 @@
               if (i % 10 == 0) {
                 cands += '<br />';
               }
-              cands += self._ms.get_candidate(i) + ' ';
+              var strs = self._ms.get_candidate(i);
+              cands += strs[0] + '(' + strs[1] + ') ';
             }
             var display = document.getElementById('display');
             display.innerHTML = cands + '<br />' + num + ' candidate(s) for ' +
@@ -91,7 +92,8 @@
               if (i % 10 == 0) {
                 predicts += '<br />';
               }
-              predicts += result[i] + ' ';
+              var strs = result[i]
+              predicts += strs[0] + '(' + strs[1] + ') ';
             }
             var display = document.getElementById('predict-display');
             display.innerHTML = predicts + '<br />' + num +
