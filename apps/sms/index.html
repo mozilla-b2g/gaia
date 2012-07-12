@@ -24,6 +24,10 @@
     <script type="text/javascript" src="js/contacts.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript">
+      if (!navigator.mozSms) {
+        document.write('<script type="text/javascript" src="js/desktopTesting.js"><\/script>'); }
+    </script>
   </head>
 
   <body>
@@ -40,7 +44,10 @@
           class="edit-show" data-l10n-id="done">
           Done
         </div>
-        <a role="menuitem" id="view-add-button" class="contact-show">
+        <a role="menuitem" href="#edit" id="view-edit-button" role="menuitem" class="edit-hide">
+          <div class="icon-edit"></div>
+        </a>
+        <a role="button" id="view-add-button" class="contact-show">
           <div class="icon-contact"></div>
         </a>
         <h1 id="view-name"></h1>
