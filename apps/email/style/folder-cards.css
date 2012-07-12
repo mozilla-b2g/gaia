@@ -38,12 +38,10 @@
 .fld-folder-item {
   display: block;
   line-height: 20px;
-  border: 2px solid transparent;
   padding: 6px;
 }
 .fld-folder-item.fld-folder-selected {
   background-color: rgba(200, 200, 255, 0.6);
-  border: 2px solid #224;
 }
 .fld-folder-unselectable {
   color: #444;
@@ -55,4 +53,37 @@
 }
 .fld-folder-unread {
   display: none;
+}
+
+.fld-folder-depth0 {
+}
+.fld-folder-depth1 {
+  margin-left: 12px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depth2 {
+  margin-left: 24px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depth3 {
+  margin-left: 36px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depth4 {
+  margin-left: 48px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depth5 {
+  margin-left: 60px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depthmax {
+  margin-left: 72px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
 }
