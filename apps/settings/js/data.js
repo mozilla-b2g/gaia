@@ -113,7 +113,7 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
     }
 
     // display data carrier name
-    var shortName = gNetwork ?  gNetwork.shortName : '';
+    var shortName = gNetwork ? gNetwork.shortName : '';
     document.getElementById('data-desc').textContent = shortName;
     document.getElementById('dataNetwork-desc').textContent = shortName;
 
