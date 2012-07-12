@@ -7,6 +7,7 @@ var MessageManager = {
   init: function mm_init() {
     ThreadUI.init();
     ThreadListUI.init();
+    this.getMessages(ThreadListUI.renderThreads)
 
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
@@ -17,7 +18,8 @@ var MessageManager = {
   handleEvent: function mm_handleEvent(event) {
     switch (event.type) {
       case 'received':
-        ThreadListUI.renderThreads(event.message);
+        this.getMessages(ThreadListUI.renderThreads)
+        // ThreadListUI.renderThreads(event.message);
         var msg = event.message;
         if (ThreadUI.filter && ThreadUI.filter == msg.sender) {
           ThreadUI.renderMessages(ThreadUI.filter);
@@ -28,7 +30,7 @@ var MessageManager = {
         var bodyclassList = document.body.classList;
         switch (window.location.hash) {
           case '':
-            ThreadListUI.renderThreads();
+            this.getMessages(ThreadListUI.renderThreads)
             bodyclassList.remove('conversation');
             bodyclassList.remove('conversation-new-msg');
             break;
@@ -45,7 +47,7 @@ var MessageManager = {
         break;
       case 'mozvisibilitychange':
         if (!document.mozHidden) {
-          ThreadListUI.renderThreads();
+          this.getMessages(ThreadListUI.renderThreads)
           var num = this.getNumFromHash();
           if (num) {
             ThreadUI.renderMessages(num);
@@ -151,7 +153,7 @@ var ThreadListUI = {
 
   init: function thlui_init() {
     this.delNumList = [];
-    this.renderThreads();
+    
   },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(contact) {
@@ -159,63 +161,81 @@ var ThreadListUI = {
     // This will be a callback from ContactManager
   },
 
-  renderThreads: function thlui_renderThreads(pendingMsg) {
-    var self = this;
-    this._lastHeader = undefined;
-    /*
-      TODO: Conversation list is always order by contact family names
-      not the timestamp.
-      It should be timestamp in normal view, and order by name while searching
-    */
-    MessageManager.getMessages(function getMessagesCallback(messages) {
-      var conversations = {};
-      for (var i = 0; i < messages.length; i++) {
-        var message = messages[i];
+  renderThreads: function thlui_renderThreads(messages) {
+    alert("Voy a renderizar "+messages.length);
 
-        // XXX why does this happen?
-        if (!message.delivery)
-          continue;
-
-        var num = message.delivery == 'received' ?
-                  message.sender : message.receiver;
-
-        var read = message.read;
-        var conversation = conversations[num];
-        if (conversation) {
-          conversation.unreadCount += !read ? 1 : 0;
-          continue;
-        }
-
-        conversations[num] = {
-          'body': message.body,
+    var threadIds = [];
+    var fragment = '';
+    for (var i = 0; i < messages.length; i++) {
+      var num = messages[i].delivery == 'received' ? messages[i].sender : messages[i].receiver;
+    
+      if(threadIds.indexOf(num) == -1) {
+        threadIds.push(num);
+        var thread = {
+          'body': messages[i].body,
           'name': num,
           'num': num,
-          'timestamp': message.timestamp.getTime(),
-          'unreadCount': !read ? 1 : 0,
-          'id': i
+          'timestamp': messages[i].timestamp.getTime(),
+          'unreadCount': !messages[i].read ? 1 : 0,
+          'id': num
         };
+        fragment += this.createNewConversation(thread);
+        
       }
+    }
+    this.view.innerHTML = fragment;
+    // var self = this;
+    // this._lastHeader = undefined;
+    
+    // MessageManager.getMessages(function getMessagesCallback(messages) {
+    //   var conversations = {};
+      // for (var i = 0; i < messages.length; i++) {
+    //     var message = messages[i];
 
-      var fragment = '';
-      for (var num in conversations) {
-        conversation = conversations[num];
-        if (self.delNumList.indexOf(conversation.num) > -1) {
-          continue;
-        }
+    //     // XXX why does this happen?
+    //     if (!message.delivery)
+    //       continue;
 
-        // Add a grouping header if necessary
-        var header = self.createNewHeader(conversation);
-        if (header != null) {
-          fragment += header;
-        }
-        fragment += self.createNewConversation(conversation);
-      }
+        // var num = messages[i].delivery == 'received' ?
+        //           messages[i].sender : messages[i].receiver;
 
-      self.view.innerHTML = fragment;
-      delete self._lastHeader;
-      var conversationList = self.view.children;
+    //     var read = message.read;
+    //     var conversation = conversations[num];
+    //     if (conversation) {
+    //       conversation.unreadCount += !read ? 1 : 0;
+    //       continue;
+    //     }
 
-    }, null);
+    //     conversations[num] = {
+    //       'body': message.body,
+    //       'name': num,
+    //       'num': num,
+    //       'timestamp': message.timestamp.getTime(),
+    //       'unreadCount': !read ? 1 : 0,
+    //       'id': i
+    //     };
+      // }
+
+    //   var fragment = '';
+    //   for (var num in conversations) {
+    //     conversation = conversations[num];
+    //     if (self.delNumList.indexOf(conversation.num) > -1) {
+    //       continue;
+    //     }
+
+    //     // Add a grouping header if necessary
+    //     var header = self.createNewHeader(conversation);
+    //     if (header != null) {
+    //       fragment += header;
+    //     }
+    //     fragment += self.createNewConversation(conversation);
+    //   }
+
+    //   self.view.innerHTML = fragment;
+    //   delete self._lastHeader;
+    //   var conversationList = self.view.children;
+
+    // }, null);
   },
 
   createNewConversation: function thlui_createNewConversation(conversation) {
@@ -523,87 +543,66 @@ var ThreadUI = {
   },
 
   sendMessage: function thui_sendMessage() {
-    var num = this.num.value;
-    var self = this;
-    var text = document.getElementById('view-msg-text').value;
 
-    if (num === '' || text === '')
-      return;
+    // var num = this.num.value;
+    // var self = this;
+    // var text = document.getElementById('view-msg-text').value;
 
-    MessageManager.send(num, text, function onsent(msg) {
-      if (!msg) {
-        ThreadUI.input.value = text;
-        ThreadUI.updateInputHeight();
+    // if (num === '' || text === '')
+    //   return;
 
-        if (ThreadUI.filter) {
-          if (window.location.hash !== '#num=' + ThreadUI.filter)
-            window.location.hash = '#num=' + ThreadUI.filter;
-          else
-            ThreadUI.renderMessages(ThreadUI.filter);
-        }
-        ThreadListUI.renderThreads();
-        return;
-      }
+    // MessageManager.send(num, text, function onsent(msg) {
+    //   if (!msg) {
+    //     ThreadUI.input.value = text;
+    //     ThreadUI.updateInputHeight();
 
-      // Add a slight delay so that the database has time to write the
-      // message in the background. Ideally we'd just be updating the UI
-      // from "sending..." to "sent" at this point...
-      window.setTimeout(function() {
-        if (ThreadUI.filter) {
-          if (window.location.hash !== '#num=' + ThreadUI.filter)
-            window.location.hash = '#num=' + ThreadUI.filter;
-          else
-            ThreadUI.renderMessages(ThreadUI.filter);
-        }
-        ThreadListUI.renderThreads();
-      }, 100);
-    });
+    //     if (ThreadUI.filter) {
+    //       if (window.location.hash !== '#num=' + ThreadUI.filter)
+    //         window.location.hash = '#num=' + ThreadUI.filter;
+    //       else
+    //         ThreadUI.renderMessages(ThreadUI.filter);
+    //     }
+    //     ThreadListUI.renderThreads();
+    //     return;
+    //   }
 
-    // Create a preliminary message object and update the view right away.
-    var message = {
-      sender: null,
-      receiver: num,
-      delivery: 'sending',
-      body: text,
-      timestamp: new Date()
-    };
+    //   // Add a slight delay so that the database has time to write the
+    //   // message in the background. Ideally we'd just be updating the UI
+    //   // from "sending..." to "sent" at this point...
+    //   window.setTimeout(function() {
+    //     if (ThreadUI.filter) {
+    //       if (window.location.hash !== '#num=' + ThreadUI.filter)
+    //         window.location.hash = '#num=' + ThreadUI.filter;
+    //       else
+    //         ThreadUI.renderMessages(ThreadUI.filter);
+    //     }
+    //     ThreadListUI.renderThreads();
+    //   }, 100);
+    // });
 
-    window.setTimeout((function updateMessageField() {
-      this.input.value = '';
-      this.updateInputHeight();
-      this.input.focus();
+    // // Create a preliminary message object and update the view right away.
+    // var message = {
+    //   sender: null,
+    //   receiver: num,
+    //   delivery: 'sending',
+    //   body: text,
+    //   timestamp: new Date()
+    // };
 
-      if (this.filter) {
-        this.renderMessages(this.filter, message);
-        return;
-      }
-      this.renderMessages(num, message);
-    }).bind(this), 0);
+    // window.setTimeout((function updateMessageField() {
+    //   this.input.value = '';
+    //   this.updateInputHeight();
+    //   this.input.focus();
 
-    ThreadListUI.renderThreads(message);
-  },
+    //   if (this.filter) {
+    //     this.renderMessages(this.filter, message);
+    //     return;
+    //   }
+    //   this.renderMessages(num, message);
+    // }).bind(this), 0);
 
-  pickContact: function thui_pickContact() {
-    try {
-      var activity = new MozActivity({
-        name: 'pick',
-        data: {
-          type: 'webcontacts/contact'
-        }
-      });
-      activity.onsuccess = function() {
-        var number = this.result.number;
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          if (number) {
-            var app = evt.target.result;
-            app.launch();
-            window.location.hash = '#num=' + number;
-          }
-        };
-      }
-    } catch (e) {
-      console.log('WebActivities unavailable? : ' + e);
-    }
+    // ThreadListUI.renderThreads(message);
+
   }
 };
 
