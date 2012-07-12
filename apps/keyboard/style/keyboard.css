@@ -247,12 +247,32 @@ background-position: center 2.2rem;
   color: #1e4a52;
  }
 
+ /* Alt menu enabled */
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper {
+    background: #6a6f73;
+    border: 1px solid #acaeb1;
+    border-top: none;
+    height: 4.5rem;
+}
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 0.6rem;
+}
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span {
+  background: transparent;
+  border-color: transparent;
+}
+
+
 /* Menu for special keys */
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
-/* We need to keep this CSS3 properties for using it in the future when the gradients bugs would get resolved */
-/*  background: -moz-linear-gradient(#fff, #ebebeb);
-  border-radius: 0.3rem;
-  border: 1px solid rgba(0, 0, 0, 0.6);*/
   box-shadow: none;
   z-index: 100;
   color: #333;
@@ -274,21 +294,32 @@ background-position: center 2.2rem;
   margin: 0 -1px -2px 0;
 }
 
-/* Alternatives */
+/* Alternatives menu */
 #keyboard-accent-char-menu {
   position: absolute;
   bottom: 0;
   left: -1px;
   margin-bottom: -1px;
-  height: 5.2rem;
+  height: 5rem;
   border-radius: 0.3rem;
-  background: -moz-linear-gradient(#fff, #ebebeb);
-  border: 1px solid #61646A;
+  background: #6a6f73;
+  border: 1px solid #acaeb1;
   white-space: nowrap;
   overflow: visible;
-  padding: 0 0.5rem;
   display: none;
 }
+#keyboard-accent-char-menu:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 0.6rem;
+}
+
 .keyboard-key:first-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0.3rem 0; }
 .keyboard-key:last-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0 0.3rem; }
 
@@ -302,42 +333,56 @@ background-position: center 2.2rem;
   right: -1px;
 }
 
+
+/* Non keyboard key styles in menu */
 #keyboard-accent-char-menu .keyboard-key {
-margin-top: 0.3rem;
+  background: none;
+  height: 100%
+}
+#keyboard-accent-char-menu .keyboard-key:first-child {
+  padding-left: 0;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted:first-child > .visual-wrapper {
+  border-left: none;
+}
+#keyboard-accent-char-menu .keyboard-key:last-child {
+  padding-right: 0;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted:last-child > .visual-wrapper {
+  border-right: none;
 }
 
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper {
+  background: none;
+  border: none;
+  border-radius: none;
+  margin: 0;
+  height: 5rem;
+}
+
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
+  border: none;
+  border-radius: 0;
+  line-height: 4rem;
+}
+
+/* Highlighted non keboard key style */
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
-  border: #53B6CC 2px solid;
-  border-radius: 0.3rem;
-  margin:-2px;
-  background: -moz-linear-gradient(#fff, #ebebeb);
+  background: #4ab6cb;
+  color: #1a3f46;
+  border: solid 1px #515356;
+  border-top: none;
+  border-bottom: none;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
   top: 0;
   left: 0;
   right: 0;
+  z-index: 1;
   height: 100%;
-  border: solid 1px #61646A;
-  border-radius: 0.3rem;
-  background: url(images/key.png) repeat-x center bottom;
-  background-size: auto 100%;
-  font-weight: 600;
-  line-height: 3.4rem;
-}
-#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:before {
-  content: "";
-  position: absolute;
-  left: -2px;
-  right: -2px;
-  top: -2px;
-  bottom: -4px;
-  border: #4495A8 2px solid;
-  border-radius: 0.4rem;
-}
-
-#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
-  display: none;
+  font-weight: normal;
+  font-size: 2.4rem;
 }
 
 /* Language alternatives */
@@ -367,19 +412,11 @@ margin-top: 0.3rem;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
-  /* We need to keep this CSS3 properties for using it in the future when the gradients bugs would get resolved */
-/*  background: -moz-linear-gradient(#fff, #ebebeb);
-  box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);*/
   font-family: 'Open Sans Semibold';  
   font-size: 1.8rem;
   color: #333;
-  /*border: 1px solid rgba(0, 0, 0, 0.6);*/
-  /*border-radius: 0.3rem;*/
 }
 
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted {
-  /*margin: 0.7rem 0 2px;*/
-}
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > span {
   box-shadow: none;
   margin: 0;
