@@ -1,7 +1,8 @@
 .apps {
   width: 100%;
-  height: 100%;
+  height: -moz-calc(100% - 7.5rem);
   overflow: hidden;
+	background-color: rgba(0,0,0, .7);
 }
 
 /* pages */
@@ -19,7 +20,7 @@
   list-style-type: none;
   display: block;
   margin: 0 auto;
-	margin-top: 1rem;
+	margin-top: .3rem;
 }
 
 .apps ol > li {
@@ -59,8 +60,8 @@
 .apps ol > li > div {
   height: 100%;
   width: 100%;
-	margin-top: 1rem;
-	margin-bottom: 1.2rem;
+	margin-top: .8rem;
+	margin-bottom: .8rem;
   pointer-events: none; /* NO touchable area */
 }
 
@@ -78,7 +79,7 @@
 
 /* text label */
 .apps ol > li > div > span > span {
-  font-size: -moz-calc(5.5 * 0.226rem); /* 5.5pt */
+  font-size: -moz-calc(5 * 0.226rem); /* 5pt */
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
 }
 
@@ -91,7 +92,7 @@
   position: relative;
   height: 1.6rem; /* 15px in otoro */
   margin: 0 auto;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .apps .draggable {
@@ -104,8 +105,8 @@
 
 .apps .draggable > div {
   width: 100%;
-	margin-top: 1rem;
-	margin-bottom: 1.2rem;
+	margin-top: .8rem;
+	margin-bottom: .8rem;
   -moz-transform: scale(1.25);
   -moz-transition: -moz-transform .4s;
 }
@@ -123,7 +124,7 @@
 
 /* text label */
 .apps .draggable > div > span > span {
-  font-size: -moz-calc(5.5 * 0.226rem); /* 5.5pt */
+  font-size: -moz-calc(5 * 0.226rem); /* 5pt */
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
   /* shift left edge of text half distance to left */
   margin-left: -106%;

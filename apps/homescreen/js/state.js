@@ -3,10 +3,13 @@
 
 const HomeState = (function() {
   const DB_NAME = 'HomeScreen';
-  const STORE_NAME = 'HomeScreen';
-  const VERSION = 1;
+  const GRID_STORE_NAME = 'Grid';
+  const DOCK_STORE_NAME = 'Dock';
+  const VERSION = 2;
 
   var database = null;
+
+  var onUpgradeNeeded = false;
 
   function openDB(success, error) {
     try {
@@ -26,7 +29,7 @@ const HomeState = (function() {
       var request = indexedDB.open(DB_NAME, VERSION);
       request.onsuccess = function(event) {
         database = event.target.result;
-        success();
+        success(onUpgradeNeeded);
       };
 
       request.onerror = function(event) {
@@ -35,17 +38,22 @@ const HomeState = (function() {
 
       request.onupgradeneeded = function(event) {
         var db = event.target.result;
-        var objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-        objectStore.createIndex('byPage', 'id', { unique: true });
+        var gridStore = db.createObjectStore(GRID_STORE_NAME,
+                                               { keyPath: 'id' });
+        gridStore.createIndex('byPage', 'id', { unique: true });
+        var dockStore = db.createObjectStore(DOCK_STORE_NAME,
+                                               { keyPath: 'id' });
+        dockStore.createIndex('byId', 'id', { unique: true });
+        onUpgradeNeeded = true;
       };
     } catch (ex) {
       error(ex.message);
     }
   }
 
-  function newTxn(txn_type, callback, successCb, failureCb) {
-    var txn = database.transaction([STORE_NAME], txn_type);
-    var store = txn.objectStore(STORE_NAME);
+  function newTxn(txn_type, callback, successCb, failureCb, storeName) {
+    var txn = database.transaction([storeName || GRID_STORE_NAME], txn_type);
+    var store = txn.objectStore(storeName || GRID_STORE_NAME);
 
     txn.oncomplete = function(event) {
       if (successCb) {
@@ -70,7 +78,7 @@ const HomeState = (function() {
       openDB(success, error);
     },
 
-    save: function(pages, success, error) {
+    saveGrid: function(pages, success, error) {
       if (!database) {
         if (error) {
           error('Database is not available');
@@ -117,7 +125,40 @@ const HomeState = (function() {
           }
         };
       }, function() { success(results) }, error);
+    },
+
+    saveShortcuts: function(list, success, error) {
+      if (!database) {
+        if (error) {
+          error('Database is not available');
+        }
+        return;
+      }
+
+      newTxn('readwrite', function(txn, store) {
+        store.put({
+          id: 'shortcuts',
+          shortcuts: list
+        });
+      }, success, error, DOCK_STORE_NAME);
+    },
+
+    getShortcuts: function(success, error) {
+      if (!database) {
+        if (error) {
+          error('Database is not available');
+        }
+        return;
+      }
+
+      var result = [];
+      newTxn('readonly', function(txn, store) {
+        var index = store.index('byId');
+        var request = index.get('shortcuts');
+        request.onsuccess = function(event) {
+          result = event.target.result.shortcuts;
+        };
+      }, function() { success(result) }, error, DOCK_STORE_NAME);
     }
   };
 })();
-

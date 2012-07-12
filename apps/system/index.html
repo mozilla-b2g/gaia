@@ -85,6 +85,7 @@
 
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
+    <script defer src="js/GestureDetector.js"></script>
     <script defer src="js/notifications.js"></script>
 
     <!-- Permission Manager -->
@@ -274,6 +275,12 @@
           <div id="statusbar-battery-charging" hidden></div>
         </div>
         <div id="statusbar-time"></div>
+      </div>
+
+      <div id="notification-toaster" class="notification">
+        <img id="toaster-icon" />
+        <div id="toaster-title"></div>
+        <div id="toaster-detail"></div>
       </div>
 
       <!-- attention screen -->
