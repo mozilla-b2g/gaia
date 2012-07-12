@@ -24,9 +24,14 @@ EVENT TIME COLOR: #333
 
 }
 
+#wrapper {
+  height: 100%;
+}
+
 /* view management */
 
 #views {
+  background: white;
   height: -moz-calc(100% - 8rem);
 }
 
@@ -85,12 +90,6 @@ EVENT TIME COLOR: #333
 
 /* month view */
 /* sub common: day headers, day boxes */
-
-
-#month-view {
-  box-shadow: 1px 1px 5px 2px #888;
-  margin-bottom: 0.8rem;
-}
 
 #month-days {
   overflow: hidden;
@@ -196,14 +195,11 @@ section.month li:last-child {
 
 section.month li {
   padding-top: 0.3%;
-  
+
   border-right: 1px solid #A4A4A4;
   border-left: 1px solid #FDFDFD;
-  
   border-top: 1px solid white;
   border-bottom: 1px solid #9D9D9D;
-  
-  
   height: 100%;
   position: relative;
   background-color: white;
@@ -316,26 +312,27 @@ Indicators are in units of 12
   font-family: 'Open Sans Light';
   color: #F93700;
   border-bottom: 1px solid #F93700;
+  box-shadow: 0px 4px 5px -1px #888 inset;
+  padding-top: 1rem;
 }
 
 /** sub: view selector **/
 
-#bottom-toolbar {
-  height: 3.33rem;
-  background: #949494;
-}
-
+#bottom-toolbar,
 #view-selector li,
 #view-selector,
 #view-selector menu {
   height: 3.33rem;
 }
 
+#bottom-toolbar {
+  height: 3.33rem;
+  background: #949494;
+}
+
 #view-selector {
   line-height: 2.1rem;
   overflow: hidden;
-  height: 3.33rem;
-  margin-top: 2px;
   box-shadow: 0px 0 0.5px 0.5px #6F7070;
 }
 
@@ -352,6 +349,7 @@ Indicators are in units of 12
   float: left;
 }
 
+#view-selector > li.toggle-settings,
 #view-selector > li.today {
   width: 25%;
   height: 3.33rem;
@@ -359,10 +357,22 @@ Indicators are in units of 12
   border-right: 1px solid black;
 }
 
+.rtl #view-selector > li.toggle-settings,
 .rtl #view-selector > li.today {
   border-left: 1px solid #666;
 }
 
+
+#view-selector > li.toggle-settings,
+body.configure #view-selector .today {
+  display: none;
+}
+
+body.configure #view-selector .toggle-settings {
+  display: block !important;
+}
+
+.ltr #view-selector > li.toggle-settings,
 .ltr #view-selector > li.today {
   border-right: 1px solid #666;
 }
@@ -413,7 +423,7 @@ body[data-path="/month"] #view-selector .month a {
   html, body {
     font-size: 12px;
   }
-  
+
   #month-view {
     height: 55%;
   }
@@ -421,7 +431,7 @@ body[data-path="/month"] #view-selector .month a {
   #month-days-view {
     height: 45%;
   }
-  
+
 }
 
 @media screen and (max-width: 480px) {

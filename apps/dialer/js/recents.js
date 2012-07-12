@@ -124,8 +124,10 @@ var Recents = {
 
   createRecentEntry: function re_createRecentEntry(recent) {
     var classes = 'icon ';
+    var fontDateClasses = '';
     if (recent.type == 'incoming-refused') {
       classes += 'icon-missed';
+      fontDateClasses = 'missed-call-font';
     } else if (recent.type.indexOf('dialing') != -1) {
       classes += 'icon-outgoing';
     } else if (recent.type.indexOf('incoming') != -1) {
@@ -145,8 +147,8 @@ var Recents = {
       '      <section class="primary-info ellipsis">' +
       recent.number +
       '      </section>' +
-      '      <section class="secondary-info ellipsis">' +
-      prettyDate(recent.date) +
+      '      <section class="' + fontDateClasses +
+      '        secondary-info ellipsis">' + prettyDate(recent.date) +
       '      </section>' +
       '    </div>' +
       '  </section>' +

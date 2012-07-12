@@ -1,0 +1,75 @@
+body.configure[role="app"] #wrapper {
+  position: relative;
+  -moz-transform: translateX(75%);
+  box-shadow: 1px 1px 5px 5px #222;
+  z-index: 2;
+
+  -moz-transition: -moz-transform 0.5s ease-in-out;
+}
+
+body[role="app"] #wrapper {
+  -moz-transform: translateX(0%);
+  -moz-transition: -moz-transform 0.5s ease-in-out;
+}
+
+#settings.active {
+  display: block;
+}
+
+#settings {
+  height: 100%;
+  width: 75%;
+  position: absolute;
+  background-color: #303540;
+  color: white;
+  font-size: 1.35rem;
+}
+
+#settings header {
+  background: #242931;
+  padding: 2.1rem 0 2.6rem 2.1rem;
+  font-size: 2.1rem;
+  font-weight: normal;
+  line-height: 45%;
+  box-shadow: none;
+  border-bottom: 1px solid #454B53;
+}
+
+#settings .calendars > li {
+  padding: 1.6rem;
+  border-bottom: 1px solid #454B53;
+}
+
+#more-settings {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  text-indent: -1000em;
+  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat;
+  width: 30px;
+  height: 30px;
+}
+
+#advanced-setting-selection:target {
+  position: absolute;
+  bottom: 5.5rem;
+  left: 1.5rem;
+  display: block;
+  width: 20rem;
+  background: white;
+  border: 1px solid black;
+}
+
+#advanced-setting-selection {
+  display: none
+}
+
+#advanced-setting-selection li {
+  border-bottom: 1px solid #CCC;
+}
+
+#advanced-setting-selection a {
+  color: black;
+  display: block;
+  padding: 1rem;
+}
