@@ -19,8 +19,11 @@ var Activities = {
     this._id = detail.id;
 
     var choices = detail.list.choices;
-    // TODO: automatic selection of the only choice to be debated
-    ListMenu.request(this._listItems(choices), this.choose.bind(this));
+    if (choices.length === 1) {
+      this.choose('0');
+    } else {
+      ListMenu.request(this._listItems(choices), this.choose.bind(this));
+    }
   },
 
   choose: function act_choose(choice) {
@@ -45,7 +48,8 @@ var Activities = {
     choices.forEach(function(choice, index) {
       items.push({label: choice.title,
                   icon: choice.icon,
-                  value: index
+                  value: index,
+                  type: 'menuitem'
       });
     });
 

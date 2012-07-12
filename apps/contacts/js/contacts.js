@@ -504,13 +504,14 @@ var Contacts = (function() {
   };
 
   var sendSms = function sendSms() {
-    SmsIntegration.sendSms(currentContact.tel[0].number);
+    if (!ActivityHandler.currentlyHandling)
+      SmsIntegration.sendSms(currentContact.tel[0].number);
   }
 
   var callOrPick = function callOrPick() {
     // FIXME: only handling 1 number
     var number = currentContact.tel[0].number;
-    if (ActivityHandler.currentActivity) {
+    if (ActivityHandler.currentlyHandling) {
       ActivityHandler.pick(number);
     } else {
       var sanitizedNumber = number.replace(/-/g, '');
@@ -826,30 +827,32 @@ var Contacts = (function() {
 })();
 
 var ActivityHandler = {
-  currentActivity: null,
+  _currentActivity: null,
+
+  get currentlyHandling() {
+    return !!this._currentActivity;
+  },
+
+  handle: function ah_handle(activity) {
+    this._currentActivity = activity;
+  },
 
   pick: function ah_pick(number) {
-    this.currentActivity.postResult({ number: number });
-    this.currentActivity = null;
+    this._currentActivity.postResult({ number: number });
+    this._currentActivity = null;
   },
   cancel: function ah_cancel() {
-    this.currentActivity.postError('canceled');
-    this.currentActivity = null;
+    this._currentActivity.postError('canceled');
+    this._currentActivity = null;
   }
 };
 
-window.navigator.mozSetMessageHandler('activity',
-                                       function activityHandler(activity) {
-  ActivityHandler.currentActivity = activity;
-  navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-    var app = evt.target.result;
-    app.launch();
-  }
-});
+var actHandle = ActivityHandler.handle.bind(ActivityHandler);
+window.navigator.mozSetMessageHandler('activity', actHandle);
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (document.mozHidden) {
-    if (ActivityHandler.currentActivity)
+    if (ActivityHandler.currentlyHandling)
       ActivityHandler.cancel();
   }
 });

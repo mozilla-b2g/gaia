@@ -776,10 +776,10 @@ var ThreadUI = {
 
   pickContact: function cv_pickContact() {
     try {
-      var activity  = new MozActivity({
-        name: "pick",
+      var activity = new MozActivity({
+        name: 'pick',
         data: {
-          type: "webcontacts/contact"
+          type: 'webcontacts/contact'
         }
       });
       activity.onsuccess = function() {
@@ -791,7 +791,6 @@ var ThreadUI = {
             window.location.hash = '#num=' + number;
           }
         };
-        console.log("onsuccess: " + JSON.stringify(this.result));
       }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
@@ -807,15 +806,20 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
-window.navigator.mozSetMessageHandler('activity', function activityHandler(activity) {
-  ConversationView.toggleEditMode(false);
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var number = activity.source.data.number;
-  if (number)
-    ConversationView.showConversation(number);
+  var displayThread = function actHandleDisplay() {
+    if (number)
+      window.location.hash = '#num=' + number;
+  }
 
-  navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-    var app = evt.target.result;
-    app.launch();
+  if (document.readyState == 'complete') {
+    displayThread();
+  } else {
+    window.addEventListener('localized', function loadWait() {
+      window.removeEventListener('localized', loadWait);
+      displayThread();
+    });
   }
 
   activity.postResult({ status: 'accepted' });
