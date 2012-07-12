@@ -94,6 +94,23 @@ button::-moz-focus-inner {
   background-size: 100% 100%;
 }
 
+/* Rounded corners hack, this was testes against using border-radius CSS propery
+    The result is an slowness keyboard using this approach
+ */
+/*.keyboard-key i {
+  background: #6A6F73 url(images/key-radius.png) no-repeat left top;
+  background-size: 0.6rem 0.6rem;
+  height: 0.3rem;
+  width: 0.3rem;
+  position: absolute;
+  z-index: 100;
+}
+.keyboard-key .top-start { back ground-position: left top; left: -1px; top: -1px; }
+.keyboard-key .top-end { background-position: right top; right: -1px; top: -1px; }
+.keyboard-key .bottom-start { background-position: left bottom; left: -1px; bottom: -1px; }
+.keyboard-key .bottom-end { background-position: right bottom; right: -1px; bottom: -1px; }*/
+
+
 .keyboard-key > .visual-wrapper > span {
   border-top: solid 1px #514e4d;
   border-radius: 0.2rem 0.2rem 0 0;
@@ -183,26 +200,6 @@ button::-moz-focus-inner {
 .keyboard-key[data-keycode="32"] > .visual-wrapper {
 background-position: center 2.2rem; 
 }
-
-/*.keyboard-key > .visual-wrapper {
-  display: inline-block;
-  height: 4rem;
-  width: 100%;
-  -moz-box-sizing: border-box;
-  position: relative;
-}*/
-
-/*.keyboard-key > .visual-wrapper > span {
-  border-radius: 0.2rem 0.2rem 0 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  font: 2.4rem/3.2rem Open Sans Semibold;
-  text-align: center;
-  color: #fff;
-}*/
 
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper {
   border: solid 1px #000;
