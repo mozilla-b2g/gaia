@@ -101,7 +101,6 @@
           <article class="view-body">
             <div class="view-body-inner" id="cover-img">
               <section id="contact-detail">
-                <h1 id='org-title'></h1>
                 <!-- Phone Template -->
                 <li id='phone-details-template-#i#' data-template>
                   <h2>#type#</h2>
@@ -152,10 +151,12 @@
 
                 <!-- Comment Template -->
                 <p id='note-details-template-#i#' data-template class="comment-notes">#note#</p>
-
-                <ul id='details-list'>
-                  <!-- Iterating mails, phones, addresses adn comments here -->
-                </ul>
+                <div id='contact-detail-inner'>
+                  <h1 id='org-title'></h1>
+                  <ul id='details-list'>
+                    <!-- Iterating mails, phones, addresses adn comments here -->
+                  </ul>
+                </div>
               </section>
             </div>
           </article>
