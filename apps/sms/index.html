@@ -40,9 +40,6 @@
           class="edit-show" data-l10n-id="done">
           Done
         </div>
-        <a role="menuitem" href="#edit" id="view-edit-button" role="menuitem" class="edit-hide">
-          <div class="icon-edit"></div>
-        </a>
         <a role="menuitem" id="view-add-button" class="contact-show">
           <div class="icon-contact"></div>
         </a>
@@ -81,23 +78,9 @@
           <a role="menuitem" href="#num=*" id="msg-new-message" class="edit-hide">
             <span data-icon="add" class="icon-add"></span>
           </a>
-          <a role="menuitem" href="#edit" id="msg-edit-button" class="edit-hide">
-            <span data-icon="edit" class="icon-edit"></span>
-          </a>
         </menu>
         <h1 id="msg-title-container" data-l10n-id="messages">Messages</h1>
       </header>
-
-      <div id="msg-search-container" class="toolbar">
-        <div id="msg-search-toolbar-panel" class="toolbar-panel">
-          <div id="msg-search-input-container" class="toolbar-panel-item">
-            <input id="msg-search" type="search" />
-          </div>
-          <div id="msg-search-cancel-container" class="toolbar-panel-fixed-item">
-            <button id="msg-search-cancel" onclick="window.location.hash = '#';" class="button text-button search-show" data-l10n-id="cancel">Cancel</button>
-          </div>
-        </div>
-      </div>
 
       <article id="msg-conversations-list" class="list">
       </article>
