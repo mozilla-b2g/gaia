@@ -15,6 +15,7 @@ Calendar.init = function calendar_init() {
 
   function setPath(path) {
     return function(ctx, next) {
+      controller.setInSettings(false);
       document.body.setAttribute('data-path', path);
       next();
     }
@@ -27,6 +28,12 @@ Calendar.init = function calendar_init() {
   route.add('/day', setPath('/day'), new Calendar.View('#day-view'));
   route.add('/week', setPath('/week'), new Calendar.View('#week-view'));
   route.add('/add', setPath('/add'), new Calendar.View('#add-event-view'));
+
+  route.add(
+    '/create-account',
+    setPath('/create-account'),
+    new Calendar.Views.CreateAccount()
+  );
 
   route.start();
 

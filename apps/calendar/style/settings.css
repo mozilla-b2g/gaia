@@ -4,12 +4,12 @@ body.configure[role="app"] #wrapper {
   box-shadow: 1px 1px 5px 5px #222;
   z-index: 2;
 
-  -moz-transition: -moz-transform 0.5s ease-in-out;
+  -moz-transition: -moz-transform 0.1s ease-in-out;
 }
 
 body[role="app"] #wrapper {
   -moz-transform: translateX(0%);
-  -moz-transition: -moz-transform 0.5s ease-in-out;
+  -moz-transition: -moz-transform 0.1s ease-in-out;
 }
 
 #settings.active {

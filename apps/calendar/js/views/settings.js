@@ -40,13 +40,7 @@
     },
 
     get settingsElements() {
-      if (!this._settingsElements) {
-        this._settingsElements = document.querySelectorAll(
-          this.selectors.toggle
-        );
-      }
-
-      return this._settingsElements;
+      return this._findElement('toggle', true);
     },
 
     _initEvents: function() {
