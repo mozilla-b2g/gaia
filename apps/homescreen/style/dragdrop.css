@@ -1,7 +1,7 @@
 .draggable {
   z-index: 10000;
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   text-align: center;
   width: 8rem;
 }
