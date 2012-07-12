@@ -270,30 +270,6 @@ background-position: center 2.2rem;
   border-color: transparent;
 }
 
-
-/* Menu for special keys */
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
-  box-shadow: none;
-  z-index: 100;
-  color: #333;
-  background: url(images/key.png) repeat-x center top;
-  background-size: auto 100%;
-}
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before {
-  display: none;
-}
-.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
-  content: "";
-  background: #fefefe;
-  display: block;
-  bottom: 100%;
-  left: 0;
-  right: 0;
-  position: absolute;
-  height: 1px;
-  margin: 0 -1px -2px 0;
-}
-
 /* Alternatives menu */
 #keyboard-accent-char-menu {
   position: absolute;
@@ -319,7 +295,6 @@ background-position: center 2.2rem;
   background: rgba(0, 0, 0, 0.55);
   border-radius: 0.6rem;
 }
-
 .keyboard-key:first-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0.3rem 0; }
 .keyboard-key:last-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0 0.3rem; }
 
@@ -332,7 +307,6 @@ background-position: center 2.2rem;
   left: auto;
   right: -1px;
 }
-
 
 /* Non keyboard key styles in menu */
 #keyboard-accent-char-menu .keyboard-key {
@@ -395,32 +369,63 @@ background-position: center 2.2rem;
   margin-bottom: -2px;
   height: auto;
   max-height: 34rem;
-  overflow-x: hidden;
-  overflow-y: auto;
   white-space: normal;
-  padding: 0.3rem 0.6rem 0.5rem 0.5rem;
-  background: #fff;
+}
+
+/* Special key menu enabled */
+.keyboard-key.special-key.highlighted.kbr-menu-on {
+  position: relative;
+  z-index: 100;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper {
+  border-radius: 0 0 0.3rem 0.3rem;
+  margin-top: -0.5rem;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
+  color: #fff;
+  line-height: 5.2rem;
+  border: none;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.5rem;
+  background: #6A6F73;
+} 
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before {
+  display: none;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key {
   padding: 0;
   display: block;
+  height: 4rem;
 }
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper {
   -moz-box-sizing: border-box;
+  border-bottom: solid 1px #333;
+  border-radius: 0;
   width: 10rem;
+  height: 4rem;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
   font-family: 'Open Sans Semibold';  
   font-size: 1.8rem;
-  color: #333;
+  color: #fff;
 }
 
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > span {
-  box-shadow: none;
-  margin: 0;
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key:last-child {
+  margin-bottom: 0.8rem;
 }
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > .visual-wrapper > span {
+  color: #1a3f46;
+}
+
 
 /* IMEs */
 #keyboard-pending-symbol-panel {
