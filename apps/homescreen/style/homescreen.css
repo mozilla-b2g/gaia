@@ -70,11 +70,11 @@ section,footer,nav,a,img {
   left: 0;
 }
 
-#content > #search {
+#search {
   -moz-transform: translateX(-100%);
 }
 
-#content > #icongrid {
+#icongrid {
   -moz-transform: translateX(0);
   background-color: rgba(0,0,0, .1);
 }
