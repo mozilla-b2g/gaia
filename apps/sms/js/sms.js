@@ -298,7 +298,6 @@ var ThreadListUI = {
         bodyclassList.add('msg-search-result-mode');
         break;
       default:
-        // alert("VOy a ver una hebra");
         var num = this.getNumFromHash();
         if (num) {
           ThreadUI.renderMessages(num);
@@ -445,15 +444,11 @@ var ThreadUI = {
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.view.addEventListener('click', this);
 
-    var windowEvents = ['resize', 'keyup', 'transitionend', 'hashchange'];
+    var windowEvents = ['resize', 'keyup', 'transitionend'];
     windowEvents.forEach(function(eventName) {
       window.addEventListener(eventName, this);
     }, this);
 
-
-    // var num = this.getNumFromHash();
-    // if (num)
-    //   this.renderMessages(num);
 
     document.addEventListener('mozvisibilitychange', this);
   },
@@ -695,18 +690,6 @@ var ThreadUI = {
         this.view.innerHTML = '';
         break;
 
-      // case 'hashchange':
-      //   // this.toggleEditMode(window.location.hash == '#edit');
-
-      //   var num = this.getNumFromHash();
-      //   if (!num) {
-      //     this.filter = null;
-      //     return;
-      //   }
-
-      //   this.renderMessages(num);
-      //   break;
-
       case 'resize':
         if (!document.body.classList.contains('conversation'))
           return;
@@ -715,16 +698,16 @@ var ThreadUI = {
         this.scrollViewToBottom();
         break;
 
-      // case 'mozvisibilitychange':
-      //   if (document.mozHidden)
-      //     return;
+      case 'mozvisibilitychange':
+        if (document.mozHidden)
+          return;
 
-      //   // Refresh the view when app return to foreground.
-      //   var num = this.getNumFromHash();
-      //   if (num) {
-      //     this.renderMessages(num);
-      //   }
-      //   break;
+        // Refresh the view when app return to foreground.
+        var num = this.getNumFromHash();
+        if (num) {
+          this.renderMessages(num);
+        }
+        break;
     }
   },
 
@@ -746,14 +729,6 @@ var ThreadUI = {
     // Only from a existing message thread window (otherwise, no title.num)
     window.location.hash = '#num=' + this.title.num;
   },
-
-  // toggleEditMode: function thui_toggleEditMode(show) {
-  //   if (show) {
-  //     document.body.classList.add('edit-mode');
-  //   } else {
-  //     document.body.classList.remove('edit-mode');
-  //   }
-  // },
 
   onListItemClicked: function thui_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
