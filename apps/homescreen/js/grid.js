@@ -186,6 +186,7 @@ const GridManager = (function() {
       if (isRequestToLandingPage(difX)) {
         releaseEvents();
         dispatchGestureByHome();
+        keepPosition();
       } else {
         pan(difX);
       }
@@ -282,29 +283,33 @@ const GridManager = (function() {
    * Renders the homescreen from moz applications
    */
   function renderFromMozApps(finish) {
-    var max = pageHelper.getMaxPerPage();
-    var list = [];
+    DockManager.getShortcuts(function getShortcuts(shortcuts) {
+      var max = pageHelper.getMaxPerPage();
+      var list = [];
 
-    var apps = Applications.getAll();
-    for (var origin in apps) {
-      list.push(apps[origin]);
-      if (list.length === max) {
-        pageHelper.push(list);
-        list = [];
+      var apps = Applications.getAll();
+      for (var origin in apps) {
+        if (shortcuts.indexOf(origin) === -1) {
+          list.push(apps[origin]);
+          if (list.length === max) {
+            pageHelper.push(list);
+            list = [];
+          }
+        }
       }
-    }
 
-    if (list.length > 0) {
-      pageHelper.push(list);
-    }
+      if (list.length > 0) {
+        pageHelper.push(list);
+      }
 
-    // Renders pagination bar
-    updatePaginationBar();
-    finish();
-    addLanguageListener();
+      // Renders pagination bar
+      updatePaginationBar();
+      finish();
+      addLanguageListener();
 
-    // Saving initial state
-    pageHelper.saveAll();
+      // Saving initial state
+      pageHelper.saveAll();
+    });
   }
 
   /*
@@ -313,20 +318,29 @@ const GridManager = (function() {
   function renderFromDB(finish) {
     var appsInDB = [];
     HomeState.getAppsByPage(
-        function iterate(apps) {
-          pageHelper.push(apps);
-          appsInDB = appsInDB.concat(apps);
-        },
-        function onsuccess(results) {
-          if (results === 0) {
-            renderFromMozApps(finish);
-            return;
-          }
+      function iterate(apps) {
+        pageHelper.push(apps);
+        appsInDB = appsInDB.concat(apps);
+      },
+      function onsuccess(results) {
+        if (results === 0) {
+          renderFromMozApps(finish);
+          return;
+        }
 
-          var installedApps = Applications.getInstalledApplications();
-          var len = appsInDB.length;
+        var installedApps = Applications.getInstalledApplications();
+        var len = appsInDB.length;
+        for (var i = 0; i < len; i++) {
+          var origin = appsInDB[i];
+          if (origin in installedApps) {
+            delete installedApps[origin];
+          }
+        }
+
+        DockManager.getShortcuts(function getShortcuts(shortcuts) {
+          var len = shortcuts.length;
           for (var i = 0; i < len; i++) {
-            var origin = appsInDB[i];
+            var origin = shortcuts[i];
             if (origin in installedApps) {
               delete installedApps[origin];
             }
@@ -336,15 +350,15 @@ const GridManager = (function() {
             GridManager.install(installedApps[origin]);
           }
 
-          // Grid was loaded from DB
           updatePaginationBar();
           finish();
           addLanguageListener();
-        },
-        function onerror() {
-          // Error recovering info about apps
-          renderFromMozApps(finish);
-        }
+        });
+      },
+      function onerror() {
+        // Error recovering info about apps
+        renderFromMozApps(finish);
+      }
     );
   }
 
@@ -352,15 +366,9 @@ const GridManager = (function() {
    * Renders the homescreen
    */
   function render(finish) {
-    Applications.addEventListener('ready', function onAppsReady() {
-      dirCtrl = getDirCtrl();
-      HomeState.init(function success() {
-        renderFromDB(finish);
-      }, function error() {
-        renderFromMozApps(finish);
-      });
-      localize();
-    });
+    dirCtrl = getDirCtrl();
+    renderFromDB(finish);
+    localize();
   }
 
   /*
@@ -525,7 +533,7 @@ const GridManager = (function() {
      * Saves the page state on the database
      */
     save: function(index) {
-      HomeState.save({
+      HomeState.saveGrid({
         id: index,
         apps: pages.list[index].getAppsList()
       });
@@ -535,7 +543,7 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.save(pages.list);
+      HomeState.saveGrid(pages.list);
     },
 
     /*
@@ -760,6 +768,10 @@ const GridManager = (function() {
       }
 
       var classList = overlapElem.classList;
+      if (!classList) {
+        return;
+      }
+
       if (classList.contains('icon') || classList.contains('options')) {
         var overlapElemOrigin = overlapElem.dataset.origin;
         currentPage.drop(draggableIconOrigin, overlapElemOrigin);
@@ -835,10 +847,12 @@ const GridManager = (function() {
      *
      * {Object} moz app
      */
-    install: function gm_install(app) {
+    install: function gm_install(app, animation) {
       var index = checkFirstPageWithGap();
       var origin = Applications.getOrigin(app);
-      Applications.getManifest(origin).hidden = true;
+      if (animation) {
+        Applications.getManifest(origin).hidden = true;
+      }
 
       if (index < pages.total) {
         pages.list[index].append(app);
@@ -846,12 +860,14 @@ const GridManager = (function() {
         pageHelper.push([app], true);
       }
 
-      goTo(index, function() {
-        setTimeout(function() {
-          pageHelper.getCurrent().
-              applyInstallingEffect(Applications.getOrigin(app));
-        }, 200);
-      });
+      if (animation) {
+        goTo(index, function() {
+          setTimeout(function() {
+            pageHelper.getCurrent().
+                applyInstallingEffect(Applications.getOrigin(app));
+          }, 200);
+        });
+      }
 
       // Saving the page
       pageHelper.save(index);
