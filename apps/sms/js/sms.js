@@ -179,11 +179,11 @@ var ThreadListUI = {
           'unreadCount': !messages[i].read ? 1 : 0,
           'id': num
         };
-        fragment += this.createNewConversation(thread);
+        ThreadListUI.appendThread(thread);
         
       }
     }
-    this.view.innerHTML = fragment;
+    
     // var self = this;
     // this._lastHeader = undefined;
     
@@ -237,7 +237,20 @@ var ThreadListUI = {
 
     // }, null);
   },
-
+  appendThread: function thlui_appendThread(thread) {
+    var threadHTML = document.createElement('div');
+    threadHTML.classList.add('item');
+    var structureHTML =
+                       '  <a href="#num=' + thread.num + '">' +
+                       
+                       '    <div class="name">' + thread.num + '</div>' +
+                      
+                       '    <div class="msg">"' + thread.body + '"</div>' +
+                       
+                       '  </a>' ;
+    threadHTML.innerHTML = structureHTML;
+    this.view.appendChild(threadHTML);
+  },
   createNewConversation: function thlui_createNewConversation(conversation) {
     var dataName = Utils.escapeHTML(conversation.name ||
                                     conversation.num, true);
