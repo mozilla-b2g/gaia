@@ -261,17 +261,6 @@ contacts.List = (function() {
     }
   }
 
-  // Deleay the real search for a second, waiting for more chars
-  var searchTimeout;
-  var search = function search() {
-    clearTimeout(searchTimeout);
-    if (searchBox.value && searchBox.value.length == 0) {
-      performSearch();
-      return;
-    }
-    searchTimeout = setTimeout(performSearch, 1);
-  };
-
   var searchNoResults = function searchNoResults() {
     // Show the no results window
     console.log('No search results');
@@ -292,6 +281,31 @@ contacts.List = (function() {
     });
 
     document.querySelector('.block-list').appendChild(list);
+  };
+
+  // Toggle function to show/hide the letters header
+  var showGroupHeaders = function showHeaders(show) {
+    if (show) {
+      var headers = document.querySelectorAll('[data-search]');
+      if(headers) {
+        for(var i=0; i<headers.length; i++) {
+          headers[i].classList.remove('hide');
+          // Remove the search mark
+          delete(headers[i].dataset['search']);
+        }
+      }
+    } else {
+      // Hide the headers, those one NOT with class hide
+      var headers = document.querySelectorAll('.block-title:not(.hide)');
+      if(headers) {
+        for(var i=0; i<headers.length; i++) {
+          headers[i].classList.add('hide');
+          // Mark this headers with a special element in data set
+          // to know that they were visible while not searching
+          headers[i].dataset['search'] = 1;
+        }
+      }
+    }
   }
 
   var exitSearch = function exitSearch() {
@@ -307,19 +321,10 @@ contacts.List = (function() {
       contact.classList.remove('hide');
     }
 
-    var headers = document.querySelectorAll('[data-search]');
-    if(headers) {
-      for(var i in headers) {
-        if(headers[i].classList) {
-          headers[i].classList.remove('hide');
-          delete(headers[i].dataset['search']);
-        }
-      }
-    }
+    showGroupHeaders(true);
   }
 
-  // Performs the real search
-  var performSearch = function performSearch() {
+  var search = function performSearch() {
     cleanContactsList();
 
     if (!searchBox.value || searchBox.value.length == 0) {
@@ -328,17 +333,7 @@ contacts.List = (function() {
     }
 
     var pattern = new RegExp(searchBox.value, 'i');
-
-
-    var headers = document.querySelectorAll('.block-title:not(.hide)');
-    if(headers) {
-      for(var i=0; i<headers.length; i++) {
-        if(headers[i].classList) {
-          headers[i].classList.add('hide');
-          headers[i].dataset['search'] = 1;
-        }
-      }
-    }
+    showGroupHeaders(false);
 
     var allContacts = document.querySelectorAll(".block-item:not([data-uuid='#id#']");
     for(var i=0; i<allContacts.length; i++) {
