@@ -98,7 +98,7 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if (false !== options.popstate) addEventListener('popstate', onpopstate, false);
     if (false !== options.click) addEventListener('click', onclick, false);
     if (!dispatch) return;
-    page.replace(location.pathname, null, true, dispatch);
+    page.replace(location.pathname + location.search, null, true, dispatch);
   };
 
   /**
@@ -193,11 +193,14 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
   function Context(path, state) {
     if ('/' == path[0] && 0 != path.indexOf(base)) path = base + path;
+    var i = path.indexOf('?');
     this.canonicalPath = path;
     this.path = path.replace(base, '') || '/';
     this.title = document.title;
     this.state = state || {};
     this.state.path = path;
+    this.querystring = ~i ? path.slice(i + 1) : '';
+    this.pathname = ~i ? path.slice(0, i) : path;
     this.params = [];
   }
 
@@ -274,8 +277,10 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
   Route.prototype.match = function(path, params){
     var keys = this.keys
-      , m = this.regexp.exec(path);
-
+      , qsIndex = path.indexOf('?')
+      , pathname = ~qsIndex ? path.slice(0, qsIndex) : path
+      , m = this.regexp.exec(pathname);
+  
     if (!m) return false;
 
     for (var i = 1, len = m.length; i < len; ++i) {
@@ -353,11 +358,12 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    */
 
   function onclick(e) {
+    if (e.defaultPrevented) return; 
     var el = e.target;
     while (el && 'A' != el.nodeName) el = el.parentNode;
     if (!el || 'A' != el.nodeName) return;
     var href = el.href;
-    var path = el.pathname;
+    var path = el.pathname + el.search;
     if (el.hash) return;
     if (!sameOrigin(href)) return;
     var orig = path;

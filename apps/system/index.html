@@ -27,6 +27,7 @@
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
+    <script defer src="js/activities.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
     <script defer src="js/sound_manager.js"></script>
@@ -85,6 +86,7 @@
 
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
+    <script defer src="js/GestureDetector.js"></script>
     <script defer src="js/notifications.js"></script>
 
     <!-- Permission Manager -->
@@ -276,6 +278,12 @@
         <div id="statusbar-time"></div>
       </div>
 
+      <div id="notification-toaster" class="notification">
+        <img id="toaster-icon" />
+        <div id="toaster-title"></div>
+        <div id="toaster-detail"></div>
+      </div>
+
       <!-- attention screen -->
       <div id="attention-screen">
         <div id="attention-bar"></div>
@@ -306,6 +314,5 @@
       <div></div>
       <div></div>
     </div>
-
   </body>
 </html>

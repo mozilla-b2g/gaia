@@ -22,6 +22,41 @@
     seen: false,
     activeClass: 'active',
 
+    selectors: {},
+
+    /**
+     * Finds a caches a element defined
+     * by selectors
+     *
+     * @param {String} selector name as defined in selectors.
+     * @param {Boolean} all true when to find all elements. (default false).
+     */
+    _findElement: function(name, all) {
+      var cacheName;
+      var selector;
+
+      if (typeof(all) === 'undefined') {
+        all = false;
+      }
+
+      if (name in this.selectors) {
+        cacheName = '_' + name + 'Element';
+        selector = this.selectors[name];
+
+        if (!this[cacheName]) {
+          if (all) {
+            this[cacheName] = document.querySelectorAll(selector);
+          } else {
+            this[cacheName] = document.querySelector(selector);
+          }
+        }
+
+        return this[cacheName];
+      }
+
+      return null;
+    },
+
     onactive: function() {
       //seen can be set to anything other
       //then false to override this behaviour
