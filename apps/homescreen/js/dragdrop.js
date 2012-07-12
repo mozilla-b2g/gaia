@@ -22,7 +22,7 @@ const DragDropManager = (function() {
 
   var pageHelper = GridManager.pageHelper;
 
-  var dirCtrl;
+  var dirCtrl, limitY, overlapingDock;
 
   var cCoords = {}, iCoords = {};
 
@@ -49,16 +49,34 @@ const DragDropManager = (function() {
     transitioning = false;
   };
 
-  /*
-   * Detects when users are touching on the limits of a page during
-   * the dragging. So we can change the current page and navigate
-   * to prev/next page depending on the position.
-   * Furthermore, this method is in charge of creating a new page when
-   * it's needed
-   */
-  function checkLimits() {
+  function overDock() {
+    if (!overlapingDock) {
+      // I've just entered
+      if (DockManager.isFull()) {
+        isDisabledDrop = true;
+      } else {
+        draggableIcon.addClassToDragElement('overDock');
+        pageHelper.getCurrent().remove(draggableIcon);
+        DockManager.page.append(draggableIcon);
+        overlapingDock = true;
+      }
+    }
+  }
+
+  function overIconGrid() {
     var x = cCoords.x;
-    if (dirCtrl.limitNext(x)) {
+
+    if (overlapingDock) {
+      draggableIcon.removeClassToDragElement('overDock');
+      overlapingDock = false;
+      DockManager.page.remove(draggableIcon);
+      var curPageObj = pageHelper.getCurrent();
+      if (curPageObj.getNumApps() < pageHelper.getMaxPerPage()) {
+        curPageObj.append(draggableIcon);
+      } else {
+        curPageObj.insertBeforeLastIcon(draggableIcon);
+      }
+    } else if (dirCtrl.limitNext(x)) {
       isDisabledDrop = true;
       if (isDisabledCheckingLimits) {
         return;
@@ -102,6 +120,21 @@ const DragDropManager = (function() {
     } else {
       isDisabledDrop = false;
     }
+  }
+
+  /*
+   * Detects when users are touching on the limits of a page during
+   * the dragging. So we can change the current page and navigate
+   * to prev/next page depending on the position.
+   * Furthermore, this method is in charge of creating a new page when
+   * it's needed
+   */
+  function checkLimits() {
+    if (cCoords.y >= limitY) {
+      overDock();
+    } else {
+      overIconGrid();
+    }
   };
 
   /*
@@ -109,10 +142,13 @@ const DragDropManager = (function() {
    *
    * {Object} This is the DOMElement which was tapped and hold
    */
-  function init(elem) {
+  function onStart(elem) {
     draggableIconOrigin = elem.dataset.origin;
-    draggableIcon = pageHelper.getCurrent().getIcon(draggableIconOrigin);
+    draggableIcon = getPage().getIcon(draggableIconOrigin);
     draggableIcon.onDragStart(iCoords.x, iCoords.y);
+    if (overlapingDock) {
+      draggableIcon.addClassToDragElement('overDock');
+    }
   };
 
   /*
@@ -126,34 +162,17 @@ const DragDropManager = (function() {
     isDisabledDrop = false;
     transitioning = false;
 
-    var currentPage = pageHelper.getCurrent();
-    if (currentPage.ready) {
+    var page = getPage();
+    if (page.ready) {
       draggableIcon.onDragStop(callback);
     } else {
       // Probably users release the draggable icon before re-arranged
-      currentPage.onReArranged = function fn_ready() {
-        delete currentPage.onReArranged;
+      page.onReArranged = function fn_ready() {
+        delete page.onReArranged;
         draggableIcon.onDragStop(callback);
       }
     }
   };
-
-  /*
-   * After re-arranged the overlap element could be different so we
-   * create a mousemove event with the same coordinates than the last
-   * mousedown event
-   */
-  function dispatchMouseMoveEvent() {
-    delete pageHelper.getCurrent().onReArranged;
-    var win = document.defaultView;
-    var mousemove = document.createEvent('MouseEvent');
-    mousemove.initMouseEvent(
-      'mousemove', true, true, win, 0,
-      cCoords.x + win.mozInnerScreenX, cCoords.y +
-      win.mozInnerScreenY, cCoords.x,
-      cCoords.y, false, false, false, false, 0, null);
-    win.dispatchEvent(mousemove);
-  }
 
   /*
    * It's performed when the draggable element is moving
@@ -163,9 +182,8 @@ const DragDropManager = (function() {
   function move(overlapElem) {
     draggableIcon.onDragMove(cCoords.x, cCoords.y);
 
-    var currentPage = pageHelper.getCurrent();
-    if (!currentPage.ready) {
-      currentPage.onReArranged = dispatchMouseMoveEvent;
+    var page = getPage();
+    if (!page.ready) {
       return;
     }
 
@@ -181,18 +199,19 @@ const DragDropManager = (function() {
 
     if (classList.contains('icon') || classList.contains('options')) {
       var overlapElemOrigin = overlapElem.dataset.origin;
-      currentPage.drop(draggableIconOrigin, overlapElemOrigin);
+      page.drop(draggableIconOrigin, overlapElemOrigin);
     } else if (classList.contains('page')) {
-      var lastIcon = currentPage.getLastIcon();
+      var lastIcon = page.getLastIcon();
       if (lastIcon && cCoords.y > lastIcon.getTop() &&
-          overlapElem !== lastIcon) {
-        currentPage.drop(draggableIconOrigin, lastIcon.getOrigin());
+          draggableIcon !== lastIcon) {
+        page.drop(draggableIconOrigin, lastIcon.getOrigin());
       }
     }
   }
 
   function onMove(evt) {
     evt.stopPropagation();
+    evt.preventDefault();
     cCoords.x = evt.pageX;
     cCoords.y = evt.pageY;
     move(evt.target);
@@ -200,11 +219,17 @@ const DragDropManager = (function() {
 
   function onEnd(evt) {
     evt.stopPropagation();
+    evt.preventDefault();
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup', onEnd);
     stop(function dg_stop() {
       GridManager.onDragStop();
+      DockManager.onDragStop();
     });
+  }
+
+  function getPage() {
+    return overlapingDock ? DockManager.page : pageHelper.getCurrent();
   }
 
   return {
@@ -214,6 +239,8 @@ const DragDropManager = (function() {
      */
     init: function ddm_init() {
       dirCtrl = GridManager.dirCtrl;
+      limitY = window.innerHeight -
+               document.querySelector('#footer').offsetHeight;
     },
 
     /*
@@ -224,8 +251,11 @@ const DragDropManager = (function() {
     start: function ddm_start(evt, initCoords) {
       window.addEventListener('mousemove', onMove);
       window.addEventListener('mouseup', onEnd);
+      GridManager.onDragStart();
+      DockManager.onDragStart();
       iCoords = initCoords;
-      init(evt.target);
+      overlapingDock = (initCoords.y >= limitY) ? true : false;
+      onStart(evt.target);
     }
   };
 }());

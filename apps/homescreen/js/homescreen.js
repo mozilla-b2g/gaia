@@ -162,8 +162,10 @@ const Homescreen = (function() {
   window.addEventListener('message', function onMessage(e) {
     switch (e.data) {
       case 'home':
-        if (GridManager.isEditMode()) {
-          GridManager.setMode('normal');
+        if (document.body.dataset.mode === 'edit') {
+          document.body.dataset.mode = 'normal';
+          GridManager.saveState();
+          DockManager.saveState();
           Permissions.hide();
         } else if (ViewController.currentPage > 0) {
           GridManager.goTo(0, function finish() {
@@ -181,7 +183,11 @@ const Homescreen = (function() {
 
   // Listening for uninstalled apps
   Applications.addEventListener('uninstall', function onuninstall(app) {
-    GridManager.uninstall(app);
+    if (DockManager.contains(app)) {
+      DockManager.uninstall(app);
+    } else {
+      GridManager.uninstall(app);
+    }
   });
 
   return {

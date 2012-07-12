@@ -36,8 +36,6 @@ Icon.prototype = {
      *   <span class="options"></span>
      * </li>
      */
-    this.dragabbleSection = page.parentNode;
-
     var container = this.container = document.createElement('li');
     container.className = 'icon';
     if (this.descriptor.isHidden) {
@@ -118,13 +116,22 @@ Icon.prototype = {
     container.dataset.dragging = 'true';
 
     var rectangle = container.getBoundingClientRect();
-    var style = draggableElem.style;
+    var style= draggableElem.style;
     style.left = rectangle.left + 'px';
     style.top = rectangle.top + 'px';
     this.initXCenter = (rectangle.left + rectangle.right) / 2;
     this.initYCenter = (rectangle.top + rectangle.bottom) / 2;
+    this.initHeight =  rectangle.bottom - rectangle.top;
 
-    this.dragabbleSection.appendChild(draggableElem);
+    document.body.appendChild(draggableElem);
+  },
+
+  addClassToDragElement: function icon_addStyleToDragElement(className) {
+    this.draggableElem.classList.add(className);
+  },
+
+  removeClassToDragElement: function icon_addStyleToDragElement(className) {
+    this.draggableElem.classList.remove(className);
   },
 
   /*
@@ -147,7 +154,8 @@ Icon.prototype = {
     var x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
     x -= this.initXCenter;
 
-    var y = (rect.top + rect.bottom) / 2;
+    var y = (rect.top + rect.bottom) / 2 +
+            (this.initHeight - (rect.bottom - rect.top)) / 2;
     y -= this.initYCenter;
 
     var draggableElem = this.draggableElem;
@@ -160,7 +168,7 @@ Icon.prototype = {
     draggableElem.addEventListener('transitionend', function draggableEnd(e) {
       draggableElem.removeEventListener('transitionend', draggableEnd);
       delete self.container.dataset.dragging;
-      self.dragabbleSection.removeChild(this);
+      document.body.removeChild(draggableElem);
       callback();
     });
   },
@@ -325,14 +333,24 @@ Page.prototype = {
     this.setReady(false);
 
     var icons = this.icons;
-    var originNode = icons[origin].container;
-    var targetNode = icons[target].container;
+    var originIcon = icons[origin];
+    var targetIcon = icons[target];
 
-    var children = this.olist.children;
-    var indexOf = Array.prototype.indexOf;
-    var oIndex = indexOf.call(children, originNode);
-    var tIndex = indexOf.call(children, targetNode);
+    if (originIcon && targetIcon) {
+      var originNode = originIcon.container;
+      var targetNode = targetIcon.container;
+      var children = this.olist.children;
+      var indexOf = Array.prototype.indexOf;
+      var oIndex = indexOf.call(children, originNode);
+      var tIndex = indexOf.call(children, targetNode);
 
+      this.animate(oIndex, tIndex, children, originNode, targetNode);
+    } else {
+      this.setReady(true);
+    }
+  },
+
+  animate: function pg_anim(oIndex, tIndex, children, originNode, targetNode) {
     if (oIndex < tIndex) {
       for (var i = oIndex + 1; i <= tIndex; i++) {
         var animation = 'jumpPrevCell';
@@ -358,7 +376,7 @@ Page.prototype = {
    * @param{Object} DOM element
    */
   tap: function pg_tap(elem) {
-    if (GridManager.isEditMode()) {
+    if (document.body.dataset.mode === 'edit') {
       if (elem.className === 'options') {
         Homescreen.showAppDialog(elem.dataset.origin);
       }
@@ -391,6 +409,16 @@ Page.prototype = {
     var icon = this.getLastIcon();
     this.remove(icon);
     return icon;
+  },
+
+  insertBefore: function pg_insertBefore(originIcon, targetIcon) {
+    this.setReady(false);
+    var olist = this.olist;
+    if (this.icons[targetIcon.getOrigin()]) {
+      olist.insertBefore(icon.container, olist.lastChild);
+      this.icons[icon.getOrigin()] = icon;
+    }
+    this.setReady(true);
   },
 
   insertBeforeLastIcon: function pg_insertBeforeLastIcon(icon) {
@@ -497,3 +525,16 @@ var Dock = function createDock() {
 };
 
 extend(Dock, Page);
+
+Dock.prototype.animate = function dk_anim(oIndex, tIndex, children,
+                                          originNode, targetNode) {
+  if (oIndex < tIndex) {
+    for (var i = oIndex + 1; i <= tIndex; i++) {
+      this.jumpNode(children[i], 'jumpPrevCell', originNode, targetNode, false);
+    }
+  } else {
+    for (var i = oIndex - 1; i >= tIndex; i--) {
+      this.jumpNode(children[i], 'jumpNextCell', originNode, targetNode, true);
+    }
+  }
+};

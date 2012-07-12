@@ -4,11 +4,6 @@
 const GridManager = (function() {
   var container, homeContainer;
 
-  // Mode can be:
-  //   - normal: the mode used to navigate and launch applications
-  //   - edit: the mode used after a long press to manage applications
-  var currentMode = 'normal';
-
   var status = {
     target: undefined, // target element
     iCoords: {},       // inital position
@@ -164,7 +159,7 @@ const GridManager = (function() {
    * @param{Object} Event object
    */
   function onStartEvent(evt) {
-    container.dataset.transitioning = true;
+    document.body.dataset.transitioning = true;
     evt.stopPropagation();
     status.pCoords = status.cCoords = status.iCoords = getCoordinates(evt);
     attachEvents();
@@ -208,7 +203,7 @@ const GridManager = (function() {
    */
   function isRequestToLandingPage(difX) {
     return pages.current === 0 && difX >= thresholdForTapping &&
-           !GridManager.isEditMode();
+           document.body.dataset.mode === 'normal';
   }
 
   /*
@@ -217,7 +212,7 @@ const GridManager = (function() {
   var thresholdForTapping = 10;
 
   function onTransitionEnd() {
-    delete container.dataset.transitioning;
+    delete document.body.dataset.transitioning;
   }
 
   function releaseEvents() {
@@ -232,6 +227,8 @@ const GridManager = (function() {
     window.addEventListener('mouseup', GridManager);
   }
 
+  var threshold = window.innerWidth / 4;
+
   /*
    * It handles touchend events and swiping
    *
@@ -242,7 +239,6 @@ const GridManager = (function() {
     releaseEvents();
     var difX = status.cCoords.x - status.iCoords.x;
     var absDifX = Math.abs(difX);
-    var threshold = window.innerWidth / 4;
     var forward = dirCtrl.goesForward(difX);
     if (absDifX > threshold) {
       var currentPage = pages.current;
@@ -592,8 +588,8 @@ const GridManager = (function() {
 
       homeContainer = container.parentNode.parentNode;
 
-      limits.left = container.offsetWidth * 0.08;
-      limits.right = container.offsetWidth * 0.92;
+      limits.left = container.offsetWidth * 0.05;
+      limits.right = container.offsetWidth * 0.95;
 
       container.addEventListener('mousedown', this, true);
       container.addEventListener('resize', this, true);
@@ -619,29 +615,31 @@ const GridManager = (function() {
           onEndEvent(evt);
           break;
         case 'resize':
-          limits.left = container.offsetWidth * 0.08;
-          limits.right = container.offsetWidth * 0.92;
+          limits.left = container.offsetWidth * 0.05;
+          limits.right = container.offsetWidth * 0.95;
           break;
         case 'contextmenu':
-          keepPosition(); // Sadly clicking on icons could fire touchmove events
-          GridManager.setMode('edit');
-          if ('origin' in evt.target.dataset) {
-            releaseEvents();
-            container.dataset.dragging = true;
-            DragDropManager.start(evt, status.iCoords);
-          }
-
           evt.preventDefault();
           evt.stopPropagation();
+          keepPosition(); // Sadly clicking on icons could fire touchmove events
+          document.body.dataset.mode = 'edit';
+          if ('origin' in evt.target.dataset) {
+            DragDropManager.start(evt, status.iCoords);
+          }
           break;
       }
     },
 
-    onDragStop: function() {
-      delete container.dataset.dragging;
+    onDragStart: function gm_onDragSart() {
+      releaseEvents();
+      document.body.dataset.dragging = true;
+    },
+
+    onDragStop: function gm_onDragStop() {
+      delete document.body.dataset.dragging;
       checkOverflowPages();
       checkEmptyPages();
-      delete container.dataset.transitioning;
+      delete document.body.dataset.transitioning;
     },
 
     /*
@@ -667,7 +665,7 @@ const GridManager = (function() {
         goTo(index, function() {
           setTimeout(function() {
             pageHelper.getCurrent().
-                applyInstallingEffect(Applications.getOrigin(app));
+              applyInstallingEffect(Applications.getOrigin(app));
           }, 200);
         });
       }
@@ -700,27 +698,12 @@ const GridManager = (function() {
     },
 
     /*
-     * Sets the mode
+     * Save current state
      *
      * {String} the mode ('edit' or 'mode')
      */
-    setMode: function gm_setMode(mode) {
-      if (mode === 'normal' && this.isEditMode()) {
-        // Save current state after edit mode
-        pageHelper.saveAll();
-      }
-
-      if (this.onEditModeChange)
-        this.onEditModeChange(mode);
-
-      container.dataset.mode = currentMode = mode;
-    },
-
-    /*
-     * Returns true if we are in edit mode
-     */
-    isEditMode: function gm_isEditMode() {
-      return currentMode === 'edit';
+    saveState: function gm_saveState() {
+      pageHelper.saveAll();
     },
 
     /*

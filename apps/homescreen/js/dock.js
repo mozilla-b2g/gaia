@@ -5,17 +5,33 @@ const DockManager = (function() {
 
   var container, dock;
 
+  function onClick(evt) {
+    dock.tap(evt.target);
+  }
+
+  function onLongPress(evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+    document.body.dataset.mode = 'edit';
+
+    if ('origin' in evt.target.dataset) {
+      DragDropManager.start(evt, {x: evt.pageX, y: evt.pageY});
+    }
+  }
+
+  function releaseEvents() {
+    container.removeEventListener('click', onClick);
+    container.removeEventListener('contextmenu', onLongPress);
+  }
+
+  function attachEvents() {
+    container.addEventListener('click', onClick);
+    container.addEventListener('contextmenu', onLongPress);
+  }
+
   function initialize(elem) {
     container = elem;
-
-    GridManager.onEditModeChange = function onEditModeChange(value) {
-      container.dataset.mode = value; // Disable/enable dock
-    }
-
-    // Listening for clicks on the dock
-    container.addEventListener('click', function onclick(event) {
-      dock.tap(event.target);
-    });
+    attachEvents();
   }
 
   function render(apps) {
@@ -45,6 +61,53 @@ const DockManager = (function() {
           callback([]);
         }
       );
+    },
+
+    onDragStop: function dm_onDragStop() {
+      attachEvents();
+    },
+
+    onDragStart: function dm_onDragStart() {
+      releaseEvents();
+    },
+
+    /*
+     * Exports the page
+     */
+    get page() {
+      return dock;
+    },
+
+    contains: function dm_contains(app) {
+      return dock.getIcon(Applications.getOrigin(app));
+    },
+
+    /*
+     * Removes an application from the dock
+     *
+     * {Object} moz app
+     */
+    uninstall: function dm_uninstall(app) {
+      if (!this.contains(app)) {
+        return;
+      }
+
+      dock.remove(app);
+      this.saveState();
+    },
+
+    isFull: function dm_isFull() {
+      return dock.getNumApps() === 4;
+    },
+
+    /*
+     * Save current state
+     *
+     * {String} the mode ('edit' or 'mode')
+     */
+    saveState: function dm_saveState() {
+      var nop = function f_nop() {};
+      HomeState.saveShortcuts(dock.getAppsList(), nop, nop);
     }
   };
 }());

@@ -24,6 +24,7 @@ html, body {
   overflow: hidden;
   font-size: 10px;
   font-family:'Open Sans';
+  overflow: hidden;
 }
 
 * {
@@ -56,7 +57,7 @@ section,footer,nav,a,img {
 
 #content {
   width: 100%;
-  height: 100%;
+  height: -moz-calc(100% - 7.5rem);
   position: fixed;
   top: 0;
   left: 0;

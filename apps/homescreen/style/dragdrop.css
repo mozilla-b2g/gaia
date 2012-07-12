@@ -1,0 +1,106 @@
+.draggable {
+  z-index: 10000;
+  pointer-events: none;
+  position: absolute;
+  text-align: center;
+  width: 8rem;
+}
+
+.draggable > div {
+  width: 100%;
+	margin-top: .8rem;
+	margin-bottom: .8rem;
+  -moz-transform: scale(1.25);
+  -moz-transition: -moz-transform .4s;
+}
+
+.draggable > div > img {
+  width: 6rem;
+  height: 6rem;
+}
+
+/* label wrapper */
+.draggable > div > span {
+  /* shift left edge of text to center */
+  left: 50%;
+}
+
+/* text label */
+.draggable > div > span > span {
+  font-size: -moz-calc(5 * 0.226rem); /* 5pt */
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+  /* shift left edge of text half distance to left */
+  margin-left: -106%;
+}
+
+.overDock > div > *:not(img) {
+	opacity: 0;
+}
+
+@-moz-keyframes shake {
+  0% { -moz-transform: scale(1); }
+	25% { -moz-transform: scale(1.05); }
+  50% { -moz-transform: scale(1); }
+  75% { -moz-transform: scale(0.95); }
+	100% { -moz-transform: scale(1); }
+}
+
+@-moz-keyframes none {}
+
+/* Image and label have shaking effect */
+body[data-mode = 'edit'] ol > li > div > img {
+  -moz-animation-name: shake;
+  -moz-animation-duration: .8s;
+  -moz-transform-origin: 50% 50%;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: ease-out;
+}
+
+body[data-transitioning] ol > li > div > img {
+  -moz-animation-name: none;
+}
+
+body[data-mode = 'normal'] ol > li span.options {
+  display: none;
+}
+
+body[data-mode = 'edit'] ol > li[data-dragging] {
+  opacity: 0;
+}
+
+body[data-dragging] ol > li {
+  opacity: 0.6;
+}
+
+body[data-mode = 'edit'] ol > li {
+  -moz-animation-duration: .25s;
+  -moz-animation-timing-function: ease-out;
+}
+
+@-moz-keyframes jumpNextCell {
+  0% { -moz-transform: translateX(0); }
+	100% { -moz-transform: translateX(100%); }
+}
+
+@-moz-keyframes jumpPrevCell {
+  0% { -moz-transform: translateX(0); }
+	100% { -moz-transform: translateX(-100%); }
+}
+
+@-moz-keyframes jumpNextRow {
+  0% { -moz-transform: translate(0,0) }
+  48% { -moz-transform: translateX(100%) }
+  49% { opacity: 0 }
+  50% { -moz-transform: translate(-400%, 100%); opacity: 0 }
+  51% { opacity: 0.6 }
+	100% { -moz-transform: translate(-300%, 100%) }
+}
+
+@-moz-keyframes jumpPrevRow {
+  0% { -moz-transform: translate(0,0) }
+  48% { -moz-transform: translateX(-100%) }
+  49% { opacity: 0 }
+  50% { -moz-transform: translate(400%, -100%); opacity: 0}
+  51% { opacity: 0.6 }
+	100% { -moz-transform: translate(300%, -100%) }
+}
