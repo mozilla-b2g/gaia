@@ -21,18 +21,22 @@ var Places = {
       title: uri
     };
     this.db.getPlace(place.uri, (function(existingPlace) {
-      if (!existingPlace)
+      if (!existingPlace) {
         this.db.savePlace(place, callback);
+      } else {
+        callback();
+      }
     }).bind(this));
   },
 
   addVisit: function gh_addVisit(uri, callback) {
-    this.addPlace(uri);
     var visit = {
       uri: uri,
       timestamp: new Date().getTime()
     };
-    this.db.saveVisit(visit, callback);
+    this.addPlace(uri, (function() {
+      this.db.saveVisit(visit, callback);
+    }).bind(this));
   },
 
   addBookmark: function gh_addBookmark(uri, title, callback) {
@@ -43,11 +47,17 @@ var Places = {
       title: title,
       timestamp: new Date().getTime()
     };
-    this.db.saveBookmark(bookmark, callback);
+    this.addPlace(uri, (function() {
+      this.db.saveBookmark(bookmark, callback);
+    }).bind(this));
   },
 
   getBookmark: function gh_getBookmark(uri, callback) {
     this.db.getBookmark(uri, callback);
+  },
+
+  getBookmarks: function gh_getBookmarks(callback) {
+    this.db.getAllBookmarks(callback);
   },
 
   removeBookmark: function gh_removeBookmark(uri, callback) {
@@ -458,6 +468,36 @@ Places.db = {
 
     request.onerror = function onerror(e) {
       console.log('Error while deleting bookmark');
+    };
+  },
+
+  getAllBookmarks: function db_getAllBookmarks(callback) {
+    var bookmarks = [];
+    var db = this._db;
+
+    function makeBookmarkProcessor(bookmark) {
+      return function(e) {
+        var place = e.target.result;
+        bookmark.title = place.title;
+        bookmark.iconUri = place.iconUri;
+        bookmarks.push(bookmark);
+      };
+    }
+
+    var transaction = db.transaction(['bookmarks', 'places']);
+    var bookmarksStore = transaction.objectStore('bookmarks');
+    var placesStore = transaction.objectStore('places');
+    bookmarksStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        var bookmark = cursor.value;
+        placesStore.get(bookmark.uri).onsuccess =
+          makeBookmarkProcessor(bookmark);
+        cursor.continue();
+      }
+    };
+    transaction.oncomplete = function db_bookmarkTransactionComplete() {
+      callback(bookmarks);
     };
   }
 
