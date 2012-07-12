@@ -4,55 +4,24 @@
 'use strict';
 
 var MessageManager = {
-  allMessagesCache: [],
-
-  // Compare the cache and data return from indexedDB to determine
-  // whether we need to update the cache and callback with latest messages.
-  needUpdateCache: function mm_needUpdateCache(dbData) {
-    var cacheData = this.allMessagesCache;
-    if (cacheData.length !== dbData.length)
-      return true;
-
-    for (var i = 0; i < dbData.length; i++) {
-      if (cacheData[i].id !== dbData[i].id)
-        return true;
-
-      // Since we could only change read property in message,
-      // Add read property checking for cache.
-      if (cacheData[i].read !== dbData[i].read)
-        return true;
-
-    }
-    return false;
+  init: function mm_init() {
+    ThreadUI.init();
+    ThreadListUI.init();
   },
-
-  // Cache all messages for improving the conversation lists update.
-  // getMessages will return cache data syncronusly and query indexedDB
-  // asyncronusly. If message data changed, getMessages will callback again
-  // with latest messages.
+  // Retrieve messages from DB and execute callback
   getMessages: function mm_getMessages(callback, filter, invert) {
-    if (!filter)
-      callback(this.allMessagesCache);
-
     var request = navigator.mozSms.getMessages(filter, !invert);
     var self = this;
     var messages = [];
     request.onsuccess = function onsuccess() {
       var cursor = request.result;
-      if (!cursor.message) {
-        if (!filter) {
-          if (!self.needUpdateCache(messages))
-            return;
-
-          self.allMessagesCache = messages;
-        }
-
+      if (cursor.message) {
+        messages.push(cursor.message);
+        cursor.continue();
+      } else {
+        // TODO Add call to Steve JS for adding 'Pending Messages'
         callback(messages);
-        return;
       }
-
-      messages.push(cursor.message);
-      cursor.continue();
     };
 
     request.onerror = function onerror() {
@@ -130,23 +99,10 @@ var ThreadListUI = {
     return this.view = document.getElementById('msg-conversations-list');
   },
 
-  get searchToolbar() {
-    delete this.searchToolbar;
-    return this.searchToolbar = document.getElementById('msg-search-container');
-  },
-
-  get searchInput() {
-    delete this.searchInput;
-    return this.searchInput = document.getElementById('msg-search');
-  },
-
   init: function thlui_init() {
     this.delNumList = [];
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
-
-    this.searchInput.addEventListener('keyup', this);
-    this.searchInput.addEventListener('focus', this);
 
     this.view.addEventListener('click', this);
     window.addEventListener('hashchange', this);
@@ -306,7 +262,10 @@ var ThreadListUI = {
     return '<div class="groupHeader">' +
       giveHeaderDate(conversation.timestamp) + '</div>';
   },
-
+ getNumFromHash: function thui_getNumFromHash() {
+    var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
+    return num ? num[1] : null;
+  },
   // Update the body class depends on the current hash and original class list.
   pageStatusController: function thlui_pageStatusController() {
     var bodyclassList = document.body.classList;
@@ -318,7 +277,6 @@ var ThreadListUI = {
             !bodyclassList.contains('conversation'))
           return;
 
-        this.searchInput.value = '';
         this.renderThreads();
         bodyclassList.remove('conversation');
         bodyclassList.remove('conversation-new-msg');
@@ -335,13 +293,18 @@ var ThreadListUI = {
         bodyclassList.remove('msg-search-mode');
         bodyclassList.remove('msg-edit-mode');
         bodyclassList.add('msg-search-result-mode');
-        if (!this.searchInput.value)
-          this.view.innerHTML = '';
-        break;
       case '#searchresult_edit':  // Edit mode with the searched conversations.
         bodyclassList.add('msg-edit-mode');
         bodyclassList.add('msg-search-result-mode');
         break;
+      default:
+        var num = this.getNumFromHash();
+        if (num) {
+          ThreadUI.renderMessages(num);
+        
+        }
+        break;
+        
     }
   },
 
@@ -351,19 +314,8 @@ var ThreadListUI = {
         ThreadListUI.renderThreads(evt.message);
         break;
 
-      case 'focus':
-        window.location.hash = '#searchresult';
-        break;
-
       case 'hashchange':
         this.pageStatusController();
-        break;
-
-      case 'click':
-        var hasHrefEntry = 'href' in evt.target;
-        if (evt.currentTarget == this.view && hasHrefEntry) {
-          this.onListItemClicked(evt);
-        }
         break;
 
       case 'mozvisibilitychange':
@@ -431,15 +383,6 @@ var ThreadListUI = {
     window.location.hash = '#';
   },
 
-  /** No search function on new UX **/
-  toggleSearchMode: function thlui_toggleSearchMode(show) {
-    if (show) {
-      document.body.classList.add('msg-search-mode');
-    } else {
-      document.body.classList.remove('msg-search-mode');
-    }
-  },
-
   toggleEditMode: function thlui_toggleEditMode(show) {
     if (show) {
       document.body.classList.add('edit-mode');
@@ -501,15 +444,11 @@ var ThreadUI = {
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.view.addEventListener('click', this);
 
-    var windowEvents = ['resize', 'keyup', 'transitionend', 'hashchange'];
+    var windowEvents = ['resize', 'keyup', 'transitionend'];
     windowEvents.forEach(function(eventName) {
       window.addEventListener(eventName, this);
     }, this);
 
-
-    var num = this.getNumFromHash();
-    if (num)
-      this.renderMessages(num);
 
     document.addEventListener('mozvisibilitychange', this);
   },
@@ -751,18 +690,6 @@ var ThreadUI = {
         this.view.innerHTML = '';
         break;
 
-      case 'hashchange':
-        this.toggleEditMode(window.location.hash == '#edit');
-
-        var num = this.getNumFromHash();
-        if (!num) {
-          this.filter = null;
-          return;
-        }
-
-        this.renderMessages(num);
-        break;
-
       case 'resize':
         if (!document.body.classList.contains('conversation'))
           return;
@@ -779,13 +706,6 @@ var ThreadUI = {
         var num = this.getNumFromHash();
         if (num) {
           this.renderMessages(num);
-        }
-        break;
-
-      case 'click':
-        var targetIsMessage = ~evt.target.className.indexOf('message');
-        if (evt.currentTarget == this.view && targetIsMessage) {
-          this.onListItemClicked(evt);
         }
         break;
     }
@@ -808,14 +728,6 @@ var ThreadUI = {
 
     // Only from a existing message thread window (otherwise, no title.num)
     window.location.hash = '#num=' + this.title.num;
-  },
-
-  toggleEditMode: function thui_toggleEditMode(show) {
-    if (show) {
-      document.body.classList.add('edit-mode');
-    } else {
-      document.body.classList.remove('edit-mode');
-    }
   },
 
   onListItemClicked: function thui_onListItemClicked(evt) {
@@ -916,8 +828,7 @@ var ThreadUI = {
 };
 
 window.addEventListener('localized', function showBody() {
-  ThreadUI.init();
-  ThreadListUI.init();
+  MessageManager.init();
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
