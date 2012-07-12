@@ -86,6 +86,7 @@
         this._savedPath = '/';
       }
 
+      console.log(this._savedPath, 'SAVE <---');
       this.outside.addEventListener('click', this._handleOutsideClick);
     },
 

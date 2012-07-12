@@ -7,8 +7,8 @@ suite('controller', function() {
 
   setup(function() {
     subject = new Calendar.Controller({
-      events: new Calendar.Models.Events,
-      busytime: new Calendar.Models.Busytime
+      events: new Calendar.Store.Event,
+      busytime: new Calendar.Store.Busytime
     });
   });
 

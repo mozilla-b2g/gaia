@@ -1,12 +1,12 @@
 Calendar.init = function calendar_init() {
   var Views = Calendar.Views;
-  var Models = Calendar.Models;
+  var Models = Calendar.Store;
 
   var route = new Calendar.Router(page);
 
   var controller = new Calendar.Controller({
-    eventList: new Models.Events(),
-    busytime: new Models.Busytime()
+    eventList: new Store.Event(),
+    busytime: new Store.Busytime()
   });
 
   var monthView = new Views.Month({ controller: controller });

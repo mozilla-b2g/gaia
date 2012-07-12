@@ -28,18 +28,16 @@ header[role="toolbar"] {
   height: 30px;
 }
 
+.add-icon {
+  background: transparent url('/style/icons/HeaderIcon_30x30_add.png') no-repeat;
+  width: 30px;
+  height: 30px;
+}
 
 header[role="toolbar"] a {
   display: inline-block;
   float: left;
   text-indent: -9999em;
-}
-
-header[role="toolbar"] a:last-child {
-  width: 30px;
-}
-
-header[role="toolbar"] a:first-child {
   width: 30px;
 }
 

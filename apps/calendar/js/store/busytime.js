@@ -3,8 +3,8 @@
     Calendar = {};
   }
 
-  if (typeof(Calendar.Models) === 'undefined') {
-    Calendar.Models = {};
+  if (typeof(Calendar.Store) === 'undefined') {
+    Calendar.Store = {};
   }
 
   function Busytime() {
@@ -99,6 +99,6 @@
     return false;
   };
 
-  Calendar.Models.Busytime = Busytime;
+  Calendar.Store.Busytime = Busytime;
 
 }(this));

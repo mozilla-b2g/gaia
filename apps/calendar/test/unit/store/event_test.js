@@ -1,15 +1,15 @@
 requireApp('calendar/js/responder.js');
 requireApp('calendar/js/calc.js');
-requireApp('calendar/js/models/events.js');
+requireApp('calendar/js/store/event.js');
 
-suite('models/events', function() {
+suite('store/event', function() {
   var subject,
       obj = {
         name: '1'
       };
 
   setup(function() {
-    subject = new Calendar.Models.Events();
+    subject = new Calendar.Store.Event();
   });
 
   test('initialize', function() {

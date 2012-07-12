@@ -3,8 +3,8 @@
     Calendar = {};
   }
 
-  if (typeof(Calendar.Models) === 'undefined') {
-    Calendar.Models = {};
+  if (typeof(Calendar.Store) === 'undefined') {
+    Calendar.Store = {};
   }
 
   function Events() {
@@ -85,7 +85,7 @@
     return false;
   };
 
-  Calendar.Models.Events = Events;
+  Calendar.Store.Event = Events;
 
 }(this));
 

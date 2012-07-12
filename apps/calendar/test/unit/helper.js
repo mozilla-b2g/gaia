@@ -6,16 +6,16 @@
     requireApp('calendar/js/template.js');
     requireApp('calendar/js/format.js');
     requireApp('calendar/js/responder.js');
-    requireApp('calendar/js/models/busytime.js');
-    requireApp('calendar/js/models/events.js');
+    requireApp('calendar/js/store/busytime.js');
+    requireApp('calendar/js/store/event.js');
     requireApp('calendar/js/calc.js');
     requireApp('calendar/js/controller.js');
     requireApp('calendar/js/view.js');
   }
 
   function createController(fn) {
-    var busytime = new Calendar.Models.Busytime();
-    var events = new Calendar.Models.Events();
+    var busytime = new Calendar.Store.Busytime();
+    var events = new Calendar.Store.Event();
 
     var controller = new Calendar.Controller({
       eventList: events,

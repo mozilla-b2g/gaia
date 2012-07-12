@@ -50,6 +50,11 @@
         self.emit('open', self);
       };
 
+      req.onblocked = function(error) {
+        callback(error, null);
+        self.emit('error', error);
+      }
+
       req.onupgradeneeded = function() {
         self._handleVersionChange(req.result);
       };
@@ -97,12 +102,17 @@
     deleteDatabase: function(callback) {
       var req = idb.deleteDatabase(this.name);
 
+      req.onblocked = function() {
+        console.log('BLOCKED');
+      }
+
       req.onsuccess = function(event) {
         callback(null, event);
       }
 
-      req.onerror = function(err) {
-        callback(err, null);
+      req.onerror = function(event) {
+        console.log('->', event.code, event.message, '<-');
+        callback(event, null);
       }
     }
 
