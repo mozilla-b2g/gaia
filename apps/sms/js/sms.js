@@ -28,19 +28,12 @@ var MessageManager = {
         var bodyclassList = document.body.classList;
         switch (window.location.hash) {
           case '':
-            bodyclassList.remove('msg-search-mode');
-            bodyclassList.remove('edit-mode');
-            if (!bodyclassList.contains('msg-search-result-mode') &&
-                !bodyclassList.contains('conversation'))
-              return;
-
             ThreadListUI.renderThreads();
             bodyclassList.remove('conversation');
             bodyclassList.remove('conversation-new-msg');
             break;
-          case '#edit':  // Edit mode with all conversations.
-            bodyclassList.add('edit-mode');
-            bodyclassList.remove('msg-search-mode');
+          case '#edit':
+            //TODO Add new style management
             break;
           default:
             var num = this.getNumFromHash();
@@ -161,35 +154,9 @@ var ThreadListUI = {
     this.renderThreads();
   },
 
-  updateMsgWithContact: function thlui_updateMsgWithContact(msg) {
-    var nameElement = msg.getElementsByClassName('name')[0];
-    var options = {
-      filterBy: ['tel'],
-      filterOp: 'contains',
-      filterValue: msg.dataset.num
-    };
-    ContactDataManager.getContactData(options, function get(result) {
-      // If indexedDB query failed, just leave the previous result.
-      if (!result)
-        return;
-
-      if (result.length === 0) {
-        // Update message while the contact does not exist in DB.
-        if (msg.dataset.name == msg.dataset.num)
-          return;
-
-        msg.dataset.name = msg.dataset.num;
-        nameElement.textContent = msg.dataset.num;
-      } else {
-        // Update message while the contact exist but name does not match.
-        var name = result[0].name[0];
-        if (msg.dataset.name == name)
-          return;
-
-        msg.dataset.name = name;
-        nameElement.textContent = name;
-      }
-    });
+  updateMsgWithContact: function thlui_updateMsgWithContact(contact) {
+    // TODO Update DOM with data retrieved from Contact DB
+    // This will be a callback from ContactManager
   },
 
   renderThreads: function thlui_renderThreads(pendingMsg) {
@@ -247,11 +214,6 @@ var ThreadListUI = {
       self.view.innerHTML = fragment;
       delete self._lastHeader;
       var conversationList = self.view.children;
-
-      // update the conversation sender/receiver name with contact data.
-      for (var i = 0; i < conversationList.length; i++) {
-        self.updateMsgWithContact(conversationList[i]);
-      }
 
     }, null);
   },
@@ -311,77 +273,8 @@ var ThreadListUI = {
     this._lastHeader = conversation.timestamp;
 
     return '<div class="groupHeader">' +
-      Utils.getHeaderDate(conversation.timestamp) + '</div>';
-  },
-  executeMessageDelete: function thlui_executeMessageDelete() {
-    var delList = this.view.querySelectorAll('input[type=checkbox][data-num]');
-    var delNum = [];
-    for (var elem in delList) {
-      if (delList[elem].checked) {
-        delNum.push(delList[elem].dataset.num);
-      }
-    }
-    this.deleteMessages(delNum);
-    this.delNumList = [];
-  },
+    Utils.getHeaderDate(conversation.timestamp) + '</div>';
 
-  executeAllMessagesDelete: function thlui_executeAllMessagesDelete() {
-    // Clean current list in case messages checked
-    this.delNumList = [];
-
-    var inputs = this.view.getElementsByTagName('a');
-    for (var i = 0; i < inputs.length; i++) {
-      this.delNumList.push(inputs[i].dataset.num);
-    }
-
-    this.executeMessageDelete();
-    this.hideConfirmationDialog();
-  },
-
-  showConfirmationDialog: function thlui_showConfirmationDialog() {
-    var dialog = document.getElementById('msg-confirmation-panel');
-    dialog.removeAttribute('hidden');
-  },
-
-  hideConfirmationDialog: function thlui_hideConfirmationDialog() {
-    var dialog = document.getElementById('msg-confirmation-panel');
-    dialog.setAttribute('hidden', 'true');
-  },
-
-  deleteMessages: function thlui_deleteMessages(numberList) {
-    if (numberList == [])
-      return;
-
-    var self = this;
-    var filter = new MozSmsFilter();
-    filter.numbers = numberList;
-
-    MessageManager.getMessages(function mm_getMessages(messages) {
-      var msgs = [];
-      for (var i = 0; i < messages.length; i++) {
-        msgs.push(messages[i].id);
-      }
-      MessageManager.deleteMessages(msgs,
-                                    this.renderThreads.bind(this));
-    }.bind(this), filter);
-
-    window.location.hash = '#';
-  },
-
-  onListItemClicked: function thlui_onListItemClicked(evt) {
-    var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
-    if (!cb || !document.body.classList.contains('edit-mode')) {
-      return;
-    }
-    evt.preventDefault();
-
-    var nums = this.delNumList;
-    cb.checked = !cb.checked;
-    if (cb.checked) {
-      nums.push(evt.target.dataset.num);
-    } else {
-      nums.splice(nums.indexOf(evt.target.dataset.num), 1);
-    }
   }
 };
 
@@ -594,44 +487,6 @@ var ThreadUI = {
            '  </div>' +
            '</div>';
   },
-
-  deleteMessage: function thui_deleteMessage(messageId) {
-    if (!messageId)
-      return;
-
-    MessageManager.deleteMessage(messageId, function(result) {
-      if (result) {
-        console.log('Message id: ' + messageId + ' deleted');
-      } else {
-        console.log('Impossible to delete message ID=' + messageId);
-      }
-    });
-  },
-
-  deleteMessages: function thui_deleteMessages() {
-    var delList = this.view.querySelectorAll('input[type=checkbox]');
-    for (var elem in delList) {
-      if (delList[elem].checked) {
-        this.deleteMessage(parseFloat(delList[elem].dataset.id));
-      }
-    }
-    this.renderMessages(this.title.num);
-    ThreadListUI.renderThreads();
-    this.exitEditMode();
-  },
-
-  deleteAllMessages: function thui_deleteAllMessages() {
-    var inputs = this.view.querySelectorAll('input[type=checkbox]');
-    for (var i = 0; i < inputs.length; i++) {
-      this.deleteMessage(parseFloat(inputs[i].dataset.id));
-    }
-
-    this.hideConfirmationDialog();
-    this.renderMessages(this.title.num);
-    ThreadListUI.renderThreads();
-    this.exitEditMode();
-  },
-
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'keyup':
@@ -658,46 +513,6 @@ var ThreadUI = {
         break;
     }
   },
-
-  showConfirmationDialog: function thui_showConfirmationDialog() {
-    var dialog = document.getElementById('view-confirmation-panel');
-    dialog.removeAttribute('hidden');
-  },
-
-  hideConfirmationDialog: function thui_hideConfirmationDialog() {
-    var dialog = document.getElementById('view-confirmation-panel');
-    dialog.setAttribute('hidden', 'true');
-  },
-
-  exitEditMode: function thui_exitEditMode() {
-    // in case user ticks a message and then Done, we need to empty
-    // the deletion list
-    this.delNumList = [];
-
-    // Only from a existing message thread window (otherwise, no title.num)
-    window.location.hash = '#num=' + this.title.num;
-  },
-
-  onListItemClicked: function thui_onListItemClicked(evt) {
-    var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
-    if (!cb || !document.body.classList.contains('edit-mode')) {
-      return;
-    }
-
-    evt.preventDefault();
-    cb.checked = !cb.checked;
-    console.log('ID-' + evt.target.getAttribute('data-id'));
-    var id = parseFloat(evt.target.getAttribute('data-id'));
-    if (!id) {
-      return;
-    }
-    if (cb.checked) {
-      this.delNumList.push(id);
-    } else {
-      this.delNumList.splice(this.delNumList.indexOf(id), 1);
-    }
-  },
-
   close: function thui_close() {
     if (!document.body.classList.contains('conversation') &&
         !window.location.hash)
@@ -727,12 +542,6 @@ var ThreadUI = {
             ThreadUI.renderMessages(ThreadUI.filter);
         }
         ThreadListUI.renderThreads();
-
-        var resendConfirmStr = _('resendConfirmDialogMsg');
-        var result = confirm(resendConfirmStr);
-        if (result) {
-          window.setTimeout(self.sendMessage.bind(self), 500);
-        }
         return;
       }
 
