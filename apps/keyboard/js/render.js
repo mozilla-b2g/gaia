@@ -1,3 +1,6 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 // Render is in charge of draw and composite HTML elements under requestion
@@ -15,6 +18,8 @@ const IMERender = (function() {
   var getUpperCaseValue, isSpecialKey, onScroll;
 
   var _menuKey, _altContainer;
+
+  var _keyArray = []; // To calculate proximity info for predictive text
 
   // Initiaze the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
@@ -110,7 +115,7 @@ const IMERender = (function() {
     this.menu.addEventListener('scroll', onScroll);
 
     // Builds candidate panel
-    if (layout.needsCandidatePanel) {
+    if (layout.needsCandidatePanel || layout.suggestionEngine) {
       this.ime.insertBefore(
         candidatePanelToggleButtonCode(), this.ime.firstChild);
       this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
@@ -355,6 +360,9 @@ const IMERender = (function() {
       ime.classList.add('landscape');
     }
 
+
+    _keyArray = [];
+
     // Width calc
     if (layout) {
       var layoutWidth = layout.width || 10;
@@ -367,9 +375,21 @@ const IMERender = (function() {
         for (var k = 0, key; key = keys[k]; k += 1) {
           ratio = layout.keys[r][k].ratio || 1;
           key.style.width = (placeHolderWidth * ratio) + 'px';
+
+          _keyArray.push({
+            code: key.dataset.keycode,
+            x: key.offsetLeft,
+            y: key.offsetTop,
+            width: key.clientWidth,
+            height: key.clientHeight
+          });
+
         }
       }
+
+      //console.log('keyArray:' + JSON.stringify(keyArray));
     }
+
   };
 
   //
@@ -417,6 +437,24 @@ const IMERender = (function() {
     return content;
   };
 
+  var getWidth = function getWidth() {
+    if (!this.ime)
+      return 0;
+
+    return this.ime.clientWidth;
+  };
+
+  var getHeight = function getHeight() {
+    if (!this.ime)
+      return 0;
+
+    return this.ime.clientHeight;
+  };
+
+  var getKeyArray = function getKeyArray() {
+    return _keyArray;
+  };
+
   // Exposing pattern
   return {
     'init': init,
@@ -431,6 +469,9 @@ const IMERender = (function() {
     'setUpperCaseLock': setUpperCaseLock,
     'resizeUI': resizeUI,
     'showCandidates': showCandidates,
-    'showPendingSymbols': showPendingSymbols
+    'showPendingSymbols': showPendingSymbols,
+    'getWidth': getWidth,
+    'getHeight': getHeight,
+    'getKeyArray': getKeyArray
   };
 })();

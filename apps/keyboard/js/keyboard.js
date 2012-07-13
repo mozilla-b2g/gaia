@@ -6,6 +6,17 @@
 // Duplicated code in several places
 // TODO Better settings observe interface?
 
+
+if (!window.navigator.mozKeyboard) {
+  window.navigator.mozKeyboard = {};
+}
+
+if (!window.navigator.mozKeyboard.sendKey) {
+  window.navigator.mozKeyboard.sendKey = function moz_sendKey(charCode, keyCode) {
+    console.log('moz sendKey: (' + charCode + ', ' + keyCode + ')' );
+  }
+}
+
 var SettingsListener = {
   _callbacks: {},
 
@@ -24,7 +35,8 @@ var SettingsListener = {
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
-      window.setTimeout(function() { callback(defaultValue); });
+      console.warn("Cannot load mozSettings: default to enable " + name);
+      window.setTimeout(function() { callback(true); });
       return;
     }
 
@@ -147,6 +159,13 @@ const IMEManager = {
       })(key);
     }
 
+    // Handling showime and hideime events, as they are received only in System
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
+    window.addEventListener('message', function receiver(evt) {
+      var event = JSON.parse(evt.data);
+      IMEManager.handleEvent(event);
+    });
+
     window.navigator.mozKeyboard.onfocuschange = function(e) {
       var exclusionList = [
         'button', 'checkbox', 'file',
@@ -183,6 +202,18 @@ const IMEManager = {
       case 'showime':
         clearTimeout(this._hideIMETimer);
         this.showIME(evt.detail.type);
+
+        break;
+
+      case 'hideime':
+        this.hideIMETimer = window.setTimeout((function execHideIME() {
+          IMEController.hideIME();
+        }).bind(this), 0);
+
+        break;
+
+      case 'appwillclose':
+        IMEController.hideIME(true);
 
         break;
 
