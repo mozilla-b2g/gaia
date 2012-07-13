@@ -117,10 +117,19 @@ button::-moz-focus-inner {
   position: absolute;
   z-index: 100;
 }
-.keyboard-key .top-start { back ground-position: left top; left: -1px; top: -1px; }
-.keyboard-key .top-end { background-position: right top; right: -1px; top: -1px; }
-.keyboard-key .bottom-start { background-position: left bottom; left: -1px; bottom: -1px; }
-.keyboard-key .bottom-end { background-position: right bottom; right: -1px; bottom: -1px; }*/
+.keyboard-key .top-start {
+  back ground-position: left top; left: -1px; top: -1px;
+}
+.keyboard-key .top-end {
+  background-position: right top; right: -1px; top: -1px;
+}
+.keyboard-key .bottom-start {
+  background-position: left bottom; left: -1px; bottom: -1px;
+}
+.keyboard-key .bottom-end {
+    background-position: right bottom; right: -1px; bottom: -1px;
+  }
+  */
 
 
 .keyboard-key > .visual-wrapper > span {
@@ -303,12 +312,14 @@ background-position: center 2.2rem;
 
  /* Alt menu enabled */
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper {
-    background: #6EC5D5;
-    border: 1px solid #92D3E0;
-    border-top: none;
-    height: 4.5rem;
+  background: #6EC5D5;
+  border: 1px solid #92D3E0;
+  border-top: none;
+  height: 4.5rem;
 }
-.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after { display: none; }
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
+  display: none;
+}
 .keyboard-key.highlighted.kbr-menu-on  > .visual-wrapper:before {
   background: #6EC5D5;
 }
@@ -342,8 +353,12 @@ background-position: center 2.2rem;
   background: url(images/dark-alpha.png) repeat left top;
   border-radius: 0.6rem 0.6rem 0.6rem 0;
 }
-.keyboard-key:first-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0.3rem 0; }
-.keyboard-key:last-child #keyboard-accent-char-menu { border-radius: 0.3rem 0.3rem 0 0.3rem; }
+.keyboard-key:first-child #keyboard-accent-char-menu {
+  border-radius: 0.3rem 0.3rem 0.3rem 0;
+}
+.keyboard-key:last-child #keyboard-accent-char-menu {
+  border-radius: 0.3rem 0.3rem 0 0.3rem;
+}
 
 #keyboard-accent-char-menu.show {
   display: block;
@@ -387,8 +402,9 @@ background-position: center 2.2rem;
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after, 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:before,
-#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after 
- { display: none; }
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
+  display: none;
+}
 
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
   border: none;
