@@ -67,5 +67,13 @@
     "120": "/style/icons/Sms.png",
     "60": "/style/icons/60/Sms.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "activities": {
+    "new": {
+      "filters": {
+        "type": "websms/sms"
+       },
+      "disposition": "window"
+    }
+  }
 }

@@ -16,7 +16,7 @@ const Homescreen = (function() {
      * @param {Object} The homescreen container
      */
     init: function vw_init(container) {
-      this.currentPage = 0;
+      this.currentPage = 1;
       this.pages = container.children;
       this.total = this.pages.length;
       container.addEventListener('mousedown', this);
@@ -49,10 +49,16 @@ const Homescreen = (function() {
      * @param {int} duration of the transition
      */
     pan: function vw_pan(x, duration) {
+      var width = window.innerWidth;
       var currentPage = this.currentPage;
       var total = this.total;
       for (var n = 0; n < total; n++) {
         var page = this.pages[n];
+        if (currentPage === 0) {
+          x = Math.min(x, 0);
+        } else {
+          x = Math.min(x, width);
+        }
         var calc = (n - currentPage) * 100 + '% + ' + x + 'px';
         var style = page.style;
         style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
@@ -119,30 +125,54 @@ const Homescreen = (function() {
     }
   };
 
-  PaginationBar.init('.paginationScroller');
-
-  GridManager.init('.apps', function gm_init() {
-    PaginationBar.update(0);
-    PaginationBar.show();
-    ViewController.init(document.querySelector('#content'));
-  });
-
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
 
+  PaginationBar.init('.paginationScroller');
   Search.init(domain);
 
-  var shortcuts = document.querySelectorAll('#footer li');
-  for (var i = 0; i < shortcuts.length; i++) {
-    var dataset = shortcuts[i].dataset;
-    dataset.origin = dataset.origin.replace('$DOMAIN$', domain);
+  function initUI() {
+    setLocale();
+    DockManager.init(document.querySelector('#footer'));
+    GridManager.init('.apps', function gm_init() {
+      PaginationBar.update(1);
+      PaginationBar.show();
+      ViewController.init(document.querySelector('#content'));
+      DragDropManager.init();
+      window.addEventListener('localized', function localize() {
+        setLocale();
+        GridManager.localize();
+        DockManager.localize();
+      });
+    });
   }
 
-  var mode = 'normal';
-  var footer = document.querySelector('#footer');
-  GridManager.onEditModeChange = function onEditModeChange(value) {
-    footer.dataset.mode = mode = value;
+  function setLocale() {
+    // set the 'lang' and 'dir' attributes to <html> when the page is translated
+    document.documentElement.lang = navigator.mozL10n.language.code;
+    document.documentElement.dir = navigator.mozL10n.language.direction;
   }
+
+  function start() {
+    if (Applications.isReady()) {
+      initUI();
+    } else {
+      Applications.addEventListener('ready', initUI);
+    }
+  }
+
+  HomeState.init(function success(onUpgradeNeeded) {
+    if (onUpgradeNeeded) {
+      // First time the database is empty -> Dock by default
+      var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
+      appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
+        return 'http://' + name + '.' + domain;
+      });
+      HomeState.saveShortcuts(appsInDockByDef, start, start);
+    } else {
+      start();
+    }
+  }, start);
 
   // XXX Currently the home button communicate only with the
   // system application. It should be an activity that will
@@ -150,10 +180,12 @@ const Homescreen = (function() {
   window.addEventListener('message', function onMessage(e) {
     switch (e.data) {
       case 'home':
-        if (GridManager.isEditMode()) {
-          GridManager.setMode('normal');
+        if (document.body.dataset.mode === 'edit') {
+          document.body.dataset.mode = 'normal';
+          GridManager.saveState();
+          DockManager.saveState();
           Permissions.hide();
-        } else if (ViewController.currentPage > 0){
+        } else if (ViewController.currentPage > 0) {
           GridManager.goTo(0, function finish() {
             ViewController.navigate(0, 0.2);
           });
@@ -164,26 +196,15 @@ const Homescreen = (function() {
 
   // Listening for installed apps
   Applications.addEventListener('install', function oninstall(app) {
-    GridManager.install(app);
+    GridManager.install(app, true);
   });
 
   // Listening for uninstalled apps
   Applications.addEventListener('uninstall', function onuninstall(app) {
-    GridManager.uninstall(app);
-  });
-
-  // Listening for clicks on the footer
-  footer.addEventListener('click', function footer_onclick(event) {
-    if (mode === 'normal') {
-      var dataset = event.target.dataset;
-      if (dataset && typeof dataset.origin !== 'undefined') {
-        var app = Applications.getByOrigin(dataset.origin);
-        if (dataset.entrypoint) {
-          app.launch('#' + dataset.entrypoint);
-        } else {
-          app.launch();
-        }
-      }
+    if (DockManager.contains(app)) {
+      DockManager.uninstall(app);
+    } else {
+      GridManager.uninstall(app);
     }
   });
 
@@ -193,7 +214,7 @@ const Homescreen = (function() {
      *
      * @param {String} the app origin
      */
-    showAppDialog: function showAppDialog(origin) {
+    showAppDialog: function h_showAppDialog(origin) {
       // FIXME: localize this message
       var app = Applications.getByOrigin(origin);
       var title = 'Remove ' + app.manifest.name;
@@ -201,6 +222,10 @@ const Homescreen = (function() {
       Permissions.show(title, body,
                        function onAccept() { app.uninstall() },
                        function onCancel() {});
+    },
+
+    isIcongridInViewport: function h_isIcongridInViewport() {
+      return ViewController.currentPage === 1;
     }
   };
 })();

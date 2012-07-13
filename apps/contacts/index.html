@@ -58,6 +58,11 @@
             </div>
 
             <div id="groups-container" class="view-body-inner">
+              <div id="search-container">
+                <div id="search-input">
+                  <input type="text" name="search" class="textfield" placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
+                </div>
+              </div>
               <ol class="block-list" id="groups-list">
                 <li data-template>
                   <h2 id="group-#group#" class="block-title hide">
@@ -101,7 +106,6 @@
           <article class="view-body">
             <div class="view-body-inner" id="cover-img">
               <section id="contact-detail">
-                <h1 id='org-title'></h1>
                 <!-- Phone Template -->
                 <li id='phone-details-template-#i#' data-template>
                   <h2>#type#</h2>
@@ -110,7 +114,7 @@
                       <button class="action" onclick="Contacts.sendSms()"><span role="button" class="icon-message">Message</span></button>
                     </div>
                     <div class="item-body-exp">
-                      <button class="action">
+                      <button class="action" onclick="Contacts.callOrPick()">
                         <span role="button" class="icon-call">Call</span>
                         <b>#number#</b>
                         <em>#notes#</em>
@@ -152,10 +156,12 @@
 
                 <!-- Comment Template -->
                 <p id='note-details-template-#i#' data-template class="comment-notes">#note#</p>
-
-                <ul id='details-list'>
-                  <!-- Iterating mails, phones, addresses adn comments here -->
-                </ul>
+                <div id='contact-detail-inner'>
+                  <h1 id='org-title'></h1>
+                  <ul id='details-list'>
+                    <!-- Iterating mails, phones, addresses adn comments here -->
+                  </ul>
+                </div>
               </section>
             </div>
           </article>

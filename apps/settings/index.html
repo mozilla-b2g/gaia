@@ -196,7 +196,7 @@
 
       <ul>
         <li>
-          <small></small>
+          <small id="dataNetwork-desc"></small>
           <a data-l10n-id="dataNetwork">Carrier</a>
         </li>
         <li>
@@ -253,8 +253,8 @@
       </label>
 
       <!-- APN database lookup -->
-      <p>
-        <input type="button" id="autoAPN"
+      <p id="autoAPN" style="display: none;">
+        <input type="button"
           data-l10n-id="autoConfigure" value="Auto-Configure" />
       </p>
       <p id="autoAPN-list">
@@ -316,8 +316,7 @@
         </h1>
       </header>
 
-    <!-- Phone -->
-    <div id="phone" class="view" data-title="Phone">
+      <!-- Phone -->
       <ul>
         <li>
           <label>
