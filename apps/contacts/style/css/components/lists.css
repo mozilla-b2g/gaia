@@ -13,6 +13,10 @@
   border-bottom: none;
 }
 
+.block-item.search:last-child {
+  border-bottom: solid 1px #dbdbdb;
+}
+
 /* Base set-up */
 .block-title {
   font-size: 1.8rem;

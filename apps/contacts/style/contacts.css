@@ -121,3 +121,12 @@ hr {
   width: 2rem;
   height: 2rem;
 }
+
+#search-contact {
+  height: 2.5rem;
+  margin-top: -0.8rem;
+}
+
+.search-hide {
+  display: none;
+}
