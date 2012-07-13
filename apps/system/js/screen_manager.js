@@ -45,7 +45,7 @@ var ScreenManager = {
   * Preferred brightness without considering device light nor dimming
   * sync with setting 'screen.brightness'
   */
-  _brightness: 0.5,
+  _brightness: 1,
 
   /*
   * Wait for _dimNotice microseconds during idle-screen-off
@@ -122,7 +122,7 @@ var ScreenManager = {
       self.setDeviceLightEnabled(value);
     });
 
-    SettingsListener.observe('screen.brightness', 0.5,
+    SettingsListener.observe('screen.brightness', 1,
     function brightnessSettingChanged(value) {
       if (typeof value === 'string')
         value = parseFloat(value);
