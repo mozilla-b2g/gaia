@@ -508,4 +508,4 @@ purge:
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /data/local/*
 	$(ADB) shell rm -r /cache/*
-	$(ADB) shell rm -r /data/b2g/mozilla/*
+	$(ADB) shell rm -r /data/b2g/*
