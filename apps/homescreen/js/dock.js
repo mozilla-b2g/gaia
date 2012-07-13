@@ -22,6 +22,15 @@ const DockManager = (function() {
     }
   }
 
+  /*
+   * UI Localization
+   *
+   * Currently we only translate the app names
+   */
+  function localize() {
+    dock.translate();
+  }
+
   function releaseEvents() {
     container.removeEventListener('click', onClick);
     container.removeEventListener('contextmenu', onLongPress);
@@ -40,6 +49,7 @@ const DockManager = (function() {
   function render(apps) {
     dock = new Dock();
     dock.render(apps, container);
+    localize();
   }
 
   return {
@@ -102,6 +112,8 @@ const DockManager = (function() {
     isFull: function dm_isFull() {
       return dock.getNumApps() === 4;
     },
+
+    localize: localize,
 
     /*
      * Save current state
