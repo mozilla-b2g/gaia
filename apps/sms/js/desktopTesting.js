@@ -118,8 +118,7 @@ if (!navigator.mozSms) {
         message: message
       };
       MessageManager.handleEvent.call(MessageManager, evt);
-      // ThreadListUI.handleEvent.call(ThreadListUI, evt);
-
+      
       // the SMS DB is written after the callback
       window.setTimeout(function writeDB() {
         messagesHack.unshift(message);

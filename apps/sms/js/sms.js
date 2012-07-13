@@ -21,16 +21,8 @@ var MessageManager = {
         this.getMessages(ThreadListUI.renderThreads);
         var num = this.getNumFromHash();
         if (num) {
-          //********************
-          //Paint only pending
+          //Append message
           ThreadUI.appendMessage(event.message);
-
-          // var filter = this.createFilter(num);
-              
-          // // ThreadUI.renderMessages(ThreadUI.filter);
-          // this.getMessages(ThreadUI.renderMessages,filter);
-
-          //********************
         }
         break;
 
@@ -51,18 +43,15 @@ var MessageManager = {
 
             if (num) {
               ThreadUI.cleanFields();
-              if(num=='*'){
+              if (num == '*') {
                 document.body.classList.add('conversation-new-msg');
                 document.body.classList.add('conversation');
-              }else{
+              }else {
                 var filter = this.createFilter(num);
-                this.getMessages(ThreadUI.renderMessages,filter);
+                this.getMessages(ThreadUI.renderMessages, filter);
                 document.body.classList.remove('conversation-new-msg');
                 document.body.classList.add('conversation');
               }
-              
-
-              // ThreadUI.renderMessages(num);
             }
           break;
         }
@@ -73,13 +62,13 @@ var MessageManager = {
           var num = this.getNumFromHash();
           if (num) {
             var filter = this.createFilter(num);
-            this.getMessages(ThreadUI.renderMessages,filter);
+            this.getMessages(ThreadUI.renderMessages, filter);
           }
         }
         break;
     }
   },
-  createFilter: function mm_createFilter(num){
+  createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
     filter.numbers = [num || ''];
     return filter;
@@ -357,24 +346,20 @@ var ThreadUI = {
   renderMessages: function thui_renderMessages(messages) {
     // Update Header
     ThreadUI.title.innerHTML = MessageManager.getNumFromHash();
-    
     // Sorting messages reverse
     messages.sort(function(a, b) {
         return a.timestamp - b.timestamp;
       });
-    
     // Clean list of messages
     ThreadUI.view.innerHTML = '';
-
     // Update header index
     ThreadUI.headerIndex = 0;
-
     // Per each message I will append DOM element
     for (var i = 0; i < messages.length; i++) {
       ThreadUI.appendMessage(messages[i]);
     }
   },
-  appendMessage: function thui_appendMessage(message){
+  appendMessage: function thui_appendMessage(message) {
     // Create DOM Element
     var messageDOM = document.createElement('div');
     // Add class
@@ -451,17 +436,15 @@ var ThreadUI = {
     } else {
       var num = hashNum;
     }
-    // Retrieve text  
+    // Retrieve text
     var text = this.input.value;
-    
     // If we have something to send
-    if( num != '' && text != '') {
+    if (num != '' && text != '') {
       if (hashNum == '*') {
         ThreadUI.title.innerHTML = num;
         document.body.classList.remove('conversation-new-msg');
       }
-        
-      // Create 'PendingMessage'  
+      // Create 'PendingMessage'
       var message = {
         sender: null,
         receiver: num,
@@ -469,7 +452,6 @@ var ThreadUI = {
         body: text,
         timestamp: new Date()
       };
-
       // Append to DOM
       this.appendMessage(message);
 
@@ -479,12 +461,12 @@ var ThreadUI = {
 
       // Clean Fields
       ThreadUI.cleanFields();
-      MessageManager.send(num,text,function(){
+      MessageManager.send(num, text, function() {
         //TODO Remove 'pending' from Steve class
 
         // TODO move when Steve code will be landed
         if (window.location.hash == '#num=*') {
-          window.location.hash = '#num='+num;
+          window.location.hash = '#num=' + num;
         } else {
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
