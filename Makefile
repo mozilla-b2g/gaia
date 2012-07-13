@@ -22,7 +22,7 @@
 
 GAIA_DOMAIN?=gaiamobile.org
 
-HOMESCREEN?=http://system.$(GAIA_DOMAIN)
+HOMESCREEN?=app://system.$(GAIA_DOMAIN)
 
 LOCAL_DOMAINS?=1
 
@@ -119,7 +119,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 profile: preferences test-agent-config offline extensions
-	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
+	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -136,16 +136,15 @@ webapp-manifests:
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 			n=$$(basename $$d); \
-			mkdir -p profile/webapps/$$n; \
-			cp $$d/manifest.webapp profile/webapps/$$n/manifest.webapp  ;\
-			cp $$d/manifest.webapp profile/webapps/$$n/manifest.json  ;\
+			mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
+			cp $$d/manifest.webapp profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp  ;\
 			(\
-			echo \"$$n\": { ;\
-			echo \"origin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"installOrigin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\": { ;\
+			echo \"origin\": \"app://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"installOrigin\": \"app://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
+			echo \"manifestURL\": \"app://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
 			echo \"localId\": $$id ;\
 			echo },) >> profile/webapps/webapps.json;\
 			: $$((id++)); \
@@ -175,17 +174,27 @@ webapp-manifests:
 	@cat profile/webapps/webapps.json
 	@echo "Done"
 
-
-# Generate profile/OfflineCache/
-offline: install-xulrunner update-offline-manifests webapp-manifests
-ifneq ($(DEBUG),1)
-	@echo "Building offline cache"
-	@rm -rf profile/OfflineCache
-	@mkdir -p profile/OfflineCache
-	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/offline-cache.js
+# Generate profile/webapps/APP/application.zip
+webapp-zip:
+	@echo "Packaged webapps"
+	@mkdir -p profile/webapps
+	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	do \
+	  if [ -f $$d/manifest.webapp ]; \
+		then \
+			n=$$(basename $$d); \
+			mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
+			cdir=`pwd`; \
+			cd $$d; \
+			zip -r application.zip *; \
+			cd $$cdir; \
+			mv $$d/application.zip profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/application.zip; \
+		fi \
+	done;
 	@echo "Done"
-endif
+
+# Create webapps
+offline: webapp-manifests webapp-zip
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up

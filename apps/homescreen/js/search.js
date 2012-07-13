@@ -19,7 +19,7 @@ const Search = (function() {
      * @param {String} domain
      */
     init: function s_init(domain) {
-      URI_BROWSER = 'http://browser.' + domain;
+      URI_BROWSER = 'app://browser.' + domain;
     }
   };
 }());
