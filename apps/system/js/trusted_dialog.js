@@ -6,6 +6,7 @@
 var TrustedDialog = (function() {
   var lastDisplayedApp = null;
   var trustedDialogElement = document.getElementById('trustedDialog');
+  var currentFrame = null;
 
   function open(trustedFrame) {
     if (!trustedFrame)
@@ -29,6 +30,7 @@ var TrustedDialog = (function() {
     frame.classList.add('screen');
     frame.src = trustedFrame.url;
     trustedDialogElement.appendChild(frame);
+    currentFrame = frame;
 
     // Make the trusted dialog overlay active.
     trustedDialogElement.classList.add('active');
@@ -43,8 +45,11 @@ var TrustedDialog = (function() {
     if (!trustedDialogIsShown())
       return;
 
-    // Make the trusted dialog overlay inactive.
+    // Make the trusted dialog overlay inactive and remove the frame from
+    // the trusted dialog container.
     trustedDialogElement.classList.remove('active');
+    trustedDialogElement.removeChild(currentFrame);
+    currentFrame = null;
     // Shows the previously displayed app.
     WindowManager.setDisplayedApp(lastDisplayedApp);
     // Switch back to apps orientation.
