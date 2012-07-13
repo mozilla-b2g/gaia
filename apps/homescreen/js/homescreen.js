@@ -126,13 +126,26 @@ const Homescreen = (function() {
   Search.init(domain);
 
   function initUI() {
+    setLocale();
     DockManager.init(document.querySelector('#footer'));
     GridManager.init('.apps', function gm_init() {
       PaginationBar.update(1);
       PaginationBar.show();
       ViewController.init(document.querySelector('#content'));
       DragDropManager.init();
+      window.addEventListener('localized', function localize() {
+        console.log('ENTRA XXXXXXXXXXXXX');
+        setLocale();
+        GridManager.localize();
+        DockManager.localize();
+      });
     });
+  }
+
+  function setLocale() {
+    // set the 'lang' and 'dir' attributes to <html> when the page is translated
+    document.documentElement.lang = navigator.mozL10n.language.code;
+    document.documentElement.dir = navigator.mozL10n.language.direction;
   }
 
   function start() {
