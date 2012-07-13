@@ -1,5 +1,6 @@
 requireApp('calendar/js/responder.js');
 requireApp('calendar/js/db.js');
+requireApp('calendar/js/store/abstract.js');
 requireApp('calendar/js/store/account.js');
 requireApp('calendar/test/unit/helper.js');
 
@@ -13,18 +14,8 @@ suite('store/accounts', function() {
   });
 
   test('initialization', function() {
+    assert.instanceOf(subject, Calendar.Store.Abstract);
     assert.equal(subject.db, db);
     assert.deepEqual(subject._accounts, {});
   });
-
-  test('#add', function() {
-    var eventCalled = false;
-
-    subject.add('google', {
-      user: 1,
-      data: 1
-    });
-
-  });
-
 });

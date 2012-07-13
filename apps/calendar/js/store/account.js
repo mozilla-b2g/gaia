@@ -7,26 +7,17 @@
     Calendar.Store = {};
   }
 
-  function Account(db) {
-    this.db = db;
+  function Account() {
+    Calendar.Store.Abstract.apply(this, arguments);
     this._accounts = {};
-    this._dirty = [];
   }
 
   Account.prototype = {
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Calendar.Store.Abstract.prototype,
 
-    add: function(id, name) {
-
-    },
-
-    all: function() {
-
-    },
-
-    remove: function() {
-
-    }
+    add: function() {},
+    all: function() {},
+    remove: function() {}
   };
 
   Calendar.Store.Account = Account;
