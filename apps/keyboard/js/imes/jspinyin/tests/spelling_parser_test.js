@@ -35,7 +35,8 @@ function testSpellingParser() {
   var dictBuilder = new DictBuilder();
   var str = '耙 52.3353762659 0 ba\n' +
     '本能 1111.28553845 0 ben neng\n';
-  dictBuilder.read_raw_dict(str, null, 240000);
+  var str_tr = str;
+  dictBuilder.read_raw_dict(str, null, str_tr, 240000);
   // Arrange the spelling table, and build a spelling tree
   var spl_buf = dictBuilder.spl_table_.arrange();
   var spl_trie = SpellingTrie.get_instance();

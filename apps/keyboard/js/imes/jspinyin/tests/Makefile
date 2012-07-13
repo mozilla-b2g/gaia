@@ -8,10 +8,10 @@ build-dict-test:
 	js -U build_dict_test.js
 
 spelling-parser-test:
-	js -U testSpellingParser.js
+	js -U spelling_parser_test.js
 
 user-dict-test:
-	js -U testUserDict.js
+	js -U user_dict_test.js
 
 matrix-search-test:
 	js -U matrix_search_test.js

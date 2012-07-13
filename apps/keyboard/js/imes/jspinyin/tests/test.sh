@@ -5,7 +5,7 @@
 
 JSSHELL=js
 cwd=`dirname $0`
-for i in `find $cwd/test*.js`
+for i in `find $cwd/*test.js`
 do
   $JSSHELL -U $i
 done

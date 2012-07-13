@@ -19,8 +19,8 @@ function testUserDict() {
       assertEq(success, true, 'Failed to load the dict.');
     });
     print('dict info: ' + JSON.stringify(dict.dict_info_));
-    var lemma1 = dict.put_lemma('你好', [0, 1], 1);
-    var lemma2 = dict.put_lemma('小孩', [2, 3], 10);
+    var lemma1 = dict.put_lemma('欧洲', '歐洲', [0, 1], 1);
+    var lemma2 = dict.put_lemma('欧洲市场', '歐洲市場', [2, 3, 4, 5], 10);
     print('dict info: ' + JSON.stringify(dict.dict_info_));
     print('lemmas: ' + JSON.stringify(dict.lemmas_));
     print('scores: ' + JSON.stringify(dict.scores_));
