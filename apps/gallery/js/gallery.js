@@ -116,23 +116,16 @@ const TRANSITION_SPEED = 1.8;
 
 var currentPhotoIndex = 0;       // What photo is currently displayed
 
+function $(id) { return document.getElementById(id); }
+
 // UI elements
-var thumbnails = document.getElementById('thumbnails');
-var photoFrames = document.getElementById('photo-frames');
-
-// this button goes from photo mode back to thumbnail list mode
-var backButton = document.getElementById('photos-back-button');
-
-// this button goes from thumbnail list mode to thumbnail select mode
-var selectButton = document.getElementById('thumbnails-select-button');
-
-// this button goes from thumbnail select mode to thumbnail list mode
-var cancelButton = document.getElementById('thumbnails-cancel-button');
+var thumbnails = $('thumbnails');
+var photoFrames = $('photo-frames');
 
 // Only one of these three elements will be visible at a time
-var thumbnailListView = document.getElementById('thumbnail-list-view');
-var thumbnailSelectView = document.getElementById('thumbnail-select-view');
-var photoView = document.getElementById('photo-view');
+var thumbnailListView = $('thumbnail-list-view');
+var thumbnailSelectView = $('thumbnail-select-view');
+var photoView = $('photo-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
@@ -210,7 +203,7 @@ function setView(view) {
   // Note that photosView is a special case because we need to insert
   // the thumbnails into the filmstrip container and set its width
   if (view === photoView) {
-    document.getElementById('photos-filmstrip').appendChild(thumbnails);
+    $('photos-filmstrip').appendChild(thumbnails);
     // In order to get a working scrollbar, we apparently have to specify
     // an explict width for list of thumbnails.
     // XXX: we need to update this when images are added or deleted.
@@ -237,7 +230,7 @@ function destroyUI() {
       thumbnails.removeChild(thumbnail);
     }
 
-    document.getElementById('nophotos').classList.remove('hidden');
+    $('nophotos').classList.remove('hidden');
   }
   catch (e) {
     console.error('destroyUI', e);
@@ -286,11 +279,33 @@ function addImage(imagedata) {
   // If this is the first image we've found,
   // remove the 'no images' message
   if (images.length === 0)
-    document.getElementById('nophotos')
-    .classList.add('hidden');
+    $('nophotos').classList.add('hidden');
 
   images.push(imagedata);            // remember the image
   addThumbnail(images.length - 1);   // display its thumbnail
+}
+
+function deleteImage(n) {
+  if (n < 0 || n >= images.length)
+    return;
+
+  // Remove the image from the array
+  var deletedImageData = images.splice(n, 1)[0];
+
+  // Remove the corresponding thumbanail
+  var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
+  thumbnails.removeChild(thumbnailElts[n]);
+
+  if (n < currentPhotoIndex) 
+    currentPhotoIndex--;
+
+  // If we're displaying a single photo, redisplay because it just changed.
+  if (currentView === photoView) {
+    showPhoto(currentPhotoIndex);
+  }
+
+  // XXX
+  // Note that we still have to actually delete the photo from device storage!
 }
 
 //
@@ -354,19 +369,28 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
 });
 
 // Clicking on the back button goes back to the thumbnail view
-backButton.addEventListener('click', function() {
+$('photos-back-button').onclick = function() {
   setView(thumbnailListView);
-});
+};
 
 // Clicking on the select button goes to thumbnail select mode
-selectButton.addEventListener('click', function() {
+$('thumbnails-select-button').onclick = function() {
   setView(thumbnailSelectView);
-});
+};
 
-// Clicking on the cancel button goes to thumbnail list mode
-cancelButton.addEventListener('click', function() {
+// Clicking on the cancel button goes from photo mode to thumbnail list mode
+$('thumbnails-cancel-button').onclick = function() {
   setView(thumbnailListView);
-});
+};
+
+// Clicking the delete button while viewing a single photo deletes that photo
+// XXX ask for confirmation first
+$('photos-delete-button').onclick = function() {
+  var msg = navigator.mozL10n.get('deletephoto?') || 'Delete this photo?';
+  if (confirm(msg)) {
+    deleteImage(currentPhotoIndex);
+  }
+};
 
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
@@ -394,7 +418,7 @@ window.addEventListener('resize', function resizeHandler(evt) {
 
 // On a tap just show or hide the photo overlay
 photoFrames.addEventListener('tap', function(event) {
-  document.getElementById('photos-overlay').classList.toggle('hidden');
+  $('photos-overlay').classList.toggle('hidden');
 });
 
 // Pan the photos sideways when the user moves their finger across the screen
