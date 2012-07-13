@@ -311,10 +311,11 @@ contacts.List = (function() {
     for (var i = 0; i < allContacts.length; i++) {
       var contact = allContacts[i];
       contact.classList.add('search');
-      var text = contact.children[1].children[1].textContent;
+      var text = contact.querySelector('.item-body').textContent;
       if (!pattern.test(text)) {
         contact.classList.add('hide');
-      } else {
+      }
+       else {
         contact.classList.remove('hide');
       }
     }
