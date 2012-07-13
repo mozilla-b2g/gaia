@@ -26,7 +26,7 @@ var LockScreen = {
   * in Settings API.
   * Will be ignored if 'enabled' is set to false.
   */
-  passCodeEnabled: true,
+  passCodeEnabled: false,
 
   /*
   * Four digit Passcode
@@ -101,9 +101,6 @@ var LockScreen = {
 
     var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
-      if (typeof value === 'string')
-        value = (value == 'true');
-
       self.setEnabled(value);
     });
 
@@ -115,10 +112,7 @@ var LockScreen = {
 
 
     SettingsListener.observe(
-        'lockscreen.passcode-lock.enabled', true, function(value) {
-      if (typeof value === 'string')
-        value = (value == 'true');
-
+        'lockscreen.passcode-lock.enabled', false, function(value) {
       self.setPassCodeEnabled(value);
     });
   },
