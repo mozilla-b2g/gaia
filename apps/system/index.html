@@ -27,6 +27,7 @@
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
+    <script defer src="js/activities.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
     <script defer src="js/sound_manager.js"></script>
@@ -205,29 +206,29 @@
           </div>
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
             <p id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</p>
-            <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
-            <div id="lockscreen-passcode-pad">
-              <a href="#" data-key="1">1</a>
-              <a href="#" data-key="2">2<span>ABC<span></a>
-              <a href="#" data-key="3">3<span>DEF<span></a>
-              <a href="#" data-key="4">4<span>GHI<span></a>
-              <a href="#" data-key="5">5<span>JKL<span></a>
-              <a href="#" data-key="6">6<span>MNO<span></a>
-              <a href="#" data-key="7">7<span>PQRS<span></a>
-              <a href="#" data-key="8">8<span>TUV<span></a>
-              <a href="#" data-key="9">9<span>WXYZ<span></a>
-              <a href="#" data-key="e" data-l10n-id="emergency-call-button" class="lockscreen-passcode-pad-func">Emergency Call</a>
-              <a href="#" data-key="0">0</a>
-              <a href="#" data-key="c" data-l10n-id="cancel-button" class="lockscreen-passcode-pad-func">Cancel</a>
-              <a href="#" data-key="b">⌫</a>
-            </div>
+          </div>
+          <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
+          <div id="lockscreen-passcode-pad">
+            <a href="#" data-key="1">1</a>
+            <a href="#" data-key="2">2<span>ABC<span></a>
+            <a href="#" data-key="3">3<span>DEF<span></a>
+            <a href="#" data-key="4">4<span>GHI<span></a>
+            <a href="#" data-key="5">5<span>JKL<span></a>
+            <a href="#" data-key="6">6<span>MNO<span></a>
+            <a href="#" data-key="7">7<span>PQRS<span></a>
+            <a href="#" data-key="8">8<span>TUV<span></a>
+            <a href="#" data-key="9">9<span>WXYZ<span></a>
+            <a href="#" data-key="e" data-l10n-id="emergency-call-button" class="lockscreen-passcode-pad-func">Emergency Call</a>
+            <a href="#" data-key="0">0</a>
+            <a href="#" data-key="c" data-l10n-id="cancel-button" class="lockscreen-passcode-pad-func">Cancel</a>
+            <a href="#" data-key="b">⌫</a>
           </div>
           <div id="lockscreen-panel-emergency-call" class="lockscreen-panel tbd">
             <h1>Emergency call panel</h1>
             <p>To be done.</p>
           </div>
           <div id="lockscreen-panel-camera" class="lockscreen-panel">
-            <iframe id="lockscreen-camera" src="blank.html"></iframe>
+            <div id="lockscreen-camera"></div>
           </div>
         </div>
       </div>
@@ -313,6 +314,5 @@
       <div></div>
       <div></div>
     </div>
-
   </body>
 </html>

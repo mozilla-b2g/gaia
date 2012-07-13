@@ -121,9 +121,8 @@ var ListMenu = {
           return;
         }
         this.hide();
-        if (this.onreturn) {
+        if (this.onreturn)
           this.onreturn(action);
-        }
         break;
 
       case 'keyup':
@@ -131,6 +130,8 @@ var ListMenu = {
           if (evt.keyCode == evt.DOM_VK_ESCAPE ||
             evt.keyCode == evt.DOM_VK_HOME) {
             this.hide();
+            if (this.onreturn)
+              this.onreturn(null);
             evt.stopPropagation();
           }
         }

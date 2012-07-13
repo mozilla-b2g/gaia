@@ -14,34 +14,39 @@
   list-style-type: none;
   display: block;
   margin: 0 auto;
-}
-
-#footer ol > li {
-  position: relative;
-  width: 8rem;
-  display: inline-block;
   text-align: center;
 }
 
-#footer[data-mode = 'edit'] {
-  opacity: 0.2;
-  pointer-events: none;
+#footer li {
+  position: relative;
+  width: 8rem;
+  display: inline-block;
 }
 
 /* Container -> icon + label */
-#footer ol > li > div {
+#footer li > div {
   width: 100%;
 	margin-top: .75rem;
   pointer-events: none;
 }
 
 /* icon */
-#footer ol > li > div > img {
+#footer li > div > img {
   width: 6rem;
   height: 6rem;
 }
 
-#footer ol > li > div *:not(img),
-#footer ol > li span.options {
+/* Option to delete apps */
+#footer li span.options {
+  position: absolute;
+  top: .2rem;
+	left: 0;
+  width: 100%;
+  height: 2.6rem;
+  z-index: 2;
+  background: url(../resources/images/menu.png) no-repeat center top;
+}
+
+#footer li > div > *:not(img) {
   display: none;
 }
