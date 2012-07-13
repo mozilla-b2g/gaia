@@ -131,7 +131,7 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
     if (!manifest)
       return;
 
-    let rootURL = "app://" + dir + "." + GAIA_DOMAIN;
+    let rootURL = GAIA_SCHEME + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
     let domain = dir + "." + GAIA_DOMAIN;
     privileges.push(rootURL);
     domains.push(domain);

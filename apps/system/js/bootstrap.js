@@ -40,7 +40,8 @@ function startup() {
   } else {
     var host = document.location.host;
     var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var src = 'app://homescreen.' + domain;
+console.log(document.location.protocol);
+    var src = document.location.protocol + '//homescreen.' + domain;
   }
   document.getElementById('homescreen').src = src;
 }());

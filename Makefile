@@ -22,13 +22,19 @@
 
 GAIA_DOMAIN?=gaiamobile.org
 
-HOMESCREEN?=app://system.$(GAIA_DOMAIN)
+DEBUG?=0
 
 LOCAL_DOMAINS?=1
 
 ADB?=adb
 
-DEBUG?=0
+ifeq ($(DEBUG),1)
+SCHEME=http://
+else
+SCHEME=app://
+endif
+
+HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 REPORTER=Spec
 
@@ -140,11 +146,11 @@ webapp-manifests:
 			cp $$d/manifest.webapp profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp  ;\
 			(\
 			echo \"$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\": { ;\
-			echo \"origin\": \"app://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"installOrigin\": \"app://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"origin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"installOrigin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"app://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
+			echo \"manifestURL\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
 			echo \"localId\": $$id ;\
 			echo },) >> profile/webapps/webapps.json;\
 			: $$((id++)); \
@@ -176,6 +182,7 @@ webapp-manifests:
 
 # Generate profile/webapps/APP/application.zip
 webapp-zip:
+ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
 	@mkdir -p profile/webapps
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
@@ -192,6 +199,7 @@ webapp-zip:
 		fi \
 	done;
 	@echo "Done"
+endif
 
 # Create webapps
 offline: webapp-manifests webapp-zip
@@ -266,7 +274,7 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
 	if [ -f custom-prefs.js ]; \
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \

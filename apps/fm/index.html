@@ -6,20 +6,23 @@
     <title>FM Radio</title>
     <link rel="stylesheet" href="style/fm.css" type="text/css" />
     <link rel="resource" type="application/l10n" href="locale/l10n.ini" />
-    <!-- Compatibility -->
-    <script type="text/javascript">
-      if (document.location.protocol === 'file:') {
+    <script>
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
         paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
+        var src = protocol + '//' + paths.join('/') + '/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'app://system.' + domain + '/js/webapi.js';
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
+    })();
     </script>
 
     <script type="text/javascript" src="js/fm.js"></script>
