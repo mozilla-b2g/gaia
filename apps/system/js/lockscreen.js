@@ -499,7 +499,7 @@ var LockScreen = {
         frame.src = './camera/';
         frame.addEventListener('load', this);
         if (callback) {
-          frame.onload = function () {
+          frame.onload = function cameraLoaded() {
             callback();
           };
         }
