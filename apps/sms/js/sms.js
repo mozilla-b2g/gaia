@@ -226,6 +226,7 @@ var ThreadListUI = {
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
+    // TODO Call 'ContactManager' in order to update info
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createNewHeader: function thlui_createNewHeader(timestamp) {
