@@ -5,80 +5,30 @@
  */
 var songs = [];
 
-// When the app starts, we scan device storage for musics.
-// For now, we just do this each time. But we really need to store
-// filenames and audio metadata in a database.
-var storages = navigator.getDeviceStorage('music');
-
-storages.forEach(function(storage, storageIndex) {
-  try {
-    var cursor = storage.enumerate();
-
-    cursor.onerror = function() {
-      console.error('Error in DeviceStorage.enumerate()', cursor.error.name);
-    };
-
-    cursor.onsuccess = function() {
-      if (!cursor.result)
-        return;
-
-      // If this is the first song we've found,
-      // hide the "no songs" message
-      if (songs.length === 0) {
-        document.getElementById('nosongs').style.display = 'none';
-      }
-
-      var file = cursor.result;
-
-      var songData = {
-        storageIndex: storageIndex,
-        name: file.name
-      };
-
-      // Meta-data parsing of mp3 and ogg files
-      // On B2G devices, file.type of mp3 format is missing
-      // use file extension instead of file.type
-      var extension = file.name.slice(-4);
-
-      if (extension === '.mp3') {
-
-        ID3.loadTags(file.name, function() {
-          var tags = ID3.getAllTags(file.name);
-
-          songData.album = tags.album;
-          songData.artist = tags.artist;
-          songData.title = tags.title;
-
-          songs.push(songData);
-          ListView.updateList(songData);
-
-          cursor.continue();
-        }, {
-          dataReader: FileAPIReader(file)
-        });
-
-      } else if (extension === '.ogg') {
-        var oggfile = new OggFile(file, function() {
-
-          songData.album = oggfile.metadata.ALBUM;
-          songData.artist = oggfile.metadata.ARTIST;
-          songData.title = oggfile.metadata.TITLE;
-
-          songs.push(songData);
-          ListView.updateList(songData);
-
-          cursor.continue();
-        });
-        oggfile.parse();
-      } else {
-        cursor.continue();
-      }
-    };
-  }
-  catch (e) {
-    console.error('Exception while enumerating files:', e);
-  }
+var musicdb = new MediaDB('music', metadataParser, {
+  indexes: ['metadata.album', 'metadata.artist'],
+  mimeTypes: ['audio/mpeg', 'video/ogg', '']
 });
+musicdb.onready = function() {
+  document.getElementById('nosongs').style.display = 'none';
+  // List files we already know about
+  musicdb.scan();    // Go look for more.
+
+  // Since DeviceStorage doesn't send notifications yet, we're going
+  // to rescan the files every time our app becomes visible again.
+  // This means that if we switch to camera and take a photo, then when
+  // we come back to gallery we should be able to find the new photo.
+  // Eventually DeviceStorage will do notifications and MediaDB will
+  // report them so we don't need to do this.
+  document.addEventListener('mozvisibilitychange', function visibilityChange() {
+    if (!document.mozHidden) {
+      musicdb.scan();
+    }
+  });
+};
+musicdb.onchange = function(type, files) {
+  //rebuildUI();
+};
 
 // This App. has three modes, TILES, LIST and PLAYER
 var MODE_TILES = 1;
@@ -204,23 +154,48 @@ var ListView = {
     this.dataSource = songs;
   },
 
-  updateList: function lv_updateList(songData) {
-    var songTitle = (songData.title) ? songData.title :
-        navigator.mozL10n.get('unknownTitle');
+  cleanList: function lv_cleanList() {
+    this.view.innerHTML = '';
+  },
 
+  updateList: function lv_updateList(data, option) {
     var li = document.createElement('li');
     li.className = 'song';
 
     var a = document.createElement('a');
     a.href = '#';
-    a.dataset.index = this.index;
-    a.textContent = (this.index + 1) + '. ' + songTitle;
 
+    switch (option) {
+      case 'album':
+        a.textContent = data.album;
+        a.dataset.keyRange = data.album;
+        a.dataset.option = option;
+
+        break;
+      case 'artist':
+        a.textContent = data.artist;
+        a.dataset.keyRange = data.artist;
+        a.dataset.option = option;
+
+        break;
+      case 'playlist':
+
+        break;
+      case 'song':
+        var songTitle = (data.title) ? data.title :
+          navigator.mozL10n.get('unknownTitle');
+
+        a.dataset.index = this.index;
+        a.textContent = (this.index + 1) + '. ' + songTitle;
+
+        this.index++;
+
+        break;
+    }
+    
     li.appendChild(a);
 
     this.view.appendChild(li);
-
-    this.index++;
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -230,10 +205,28 @@ var ListView = {
         if (!target)
           return;
 
-        changeMode(MODE_PLAYER);
+        var option = target.dataset.option;
+        if (option) {
+          ListView.cleanList();
+          this.index = 0;
+          
+          var keyRange = IDBKeyRange.only(target.dataset.keyRange);
 
-        PlayerView.dataSource = this.dataSource;
-        PlayerView.play(target);
+          var addListItem = function(result) {
+            if (result === null)
+              return;
+
+            ListView.updateList(result.metadata, 'song');
+          };
+
+          musicdb.enumerate('metadata.' + option, keyRange, 'next', addListItem);
+        } else {
+          changeMode(MODE_PLAYER);
+
+          PlayerView.dataSource = this.dataSource;
+          PlayerView.play(target);
+
+        }
 
         break;
 
@@ -498,6 +491,60 @@ var PlayerView = {
   }
 };
 
+// Tab Bar
+var TabBar = {
+  get view() {
+    delete this._view;
+    return this._view = document.getElementById('tabs');
+  },
+
+  init: function tab_init() {
+    this.view.addEventListener('click', this);
+  },
+
+  handleEvent: function tab_handleEvent(evt) {
+    switch (evt.type) {
+      case 'click':
+        var target = evt.target;
+        if (!target)
+          return;
+
+        switch (target.id) {
+          case 'tabs-mix':
+            changeMode(MODE_TILES);
+
+            break;
+          case 'tabs-playlists':
+          case 'tabs-artists':
+          case 'tabs-albums':
+            changeMode(MODE_LIST);
+            ListView.cleanList();
+            
+            var option = target.dataset.option;
+            
+            var addListItem = function(result) {
+              if (result === null)
+                return;
+              
+              ListView.updateList(result.metadata, option);
+            };
+            
+            musicdb.enumerate('metadata.' + option, null, 'nextunique', addListItem);
+
+            break;
+          case 'tabs-more':
+
+            break;
+        }
+
+        break;
+
+      default:
+        return;
+    }
+  }
+};
+
 // Application start from here after 'DOMContentLoaded' event is fired.
 // Initialize the view objects and default mode is TILES.
 window.addEventListener('DOMContentLoaded', function() {
@@ -505,6 +552,7 @@ window.addEventListener('DOMContentLoaded', function() {
   TilesView.init();
   ListView.init();
   PlayerView.init();
+  TabBar.init();
 
   changeMode(MODE_TILES);
 

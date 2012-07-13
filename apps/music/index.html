@@ -24,6 +24,8 @@
     <!-- Use external libraries of mp3 and ogg -->
     <script type="text/javascript" src="js/ext/id3-minimized.js"></script>
     <script type="text/javascript" src="js/ext/ogg.js"></script>
+    <script type="text/javascript" src="js/MetadataParser.js"></script>
+    <script type="text/javascript" src="js/MediaDB.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
     <script type="text/javascript" src="js/music.js"></script>
   </head>
@@ -84,11 +86,11 @@
       </div>
     </div>
     <div id="tabs">
-      <button class="tabs-button" disabled id="tabs-mix" data-l10n-id="mix">Mix</button>
-      <button class="tabs-button" disabled id="tabs-playlists" data-l10n-id="playlists">Playlists</button>
-      <button class="tabs-button" disabled id="tabs-artists" data-l10n-id="artists">Artists</button>
-      <button class="tabs-button" disabled id="tabs-albums" data-l10n-id="albums">Albums</button>
-      <button class="tabs-button" disabled id="tabs-more" data-l10n-id="more">More</button>
+      <button class="tabs-button" id="tabs-mix" data-l10n-id="mix" data-option="mix">Mix</button>
+      <button class="tabs-button" disabled id="tabs-playlists" data-l10n-id="playlists" data-option="playlist">Playlists</button>
+      <button class="tabs-button" id="tabs-artists" data-l10n-id="artists" data-option="artist">Artists</button>
+      <button class="tabs-button" id="tabs-albums" data-l10n-id="albums" data-option="album">Albums</button>
+      <button class="tabs-button" disabled id="tabs-more" data-l10n-id="more" data-option="more">More</button>
     </div>
     <div id="nosongs">
       <div id="nosongs-text" data-l10n-id="noSongs">No Songs</div>
