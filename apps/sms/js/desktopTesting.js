@@ -117,9 +117,8 @@ if (!navigator.mozSms) {
         type: 'received',
         message: message
       };
-
-      ThreadUI.handleEvent.call(ThreadUI, evt);
-      ThreadListUI.handleEvent.call(ThreadListUI, evt);
+      MessageManager.handleEvent.call(MessageManager, evt);
+      // ThreadListUI.handleEvent.call(ThreadListUI, evt);
 
       // the SMS DB is written after the callback
       window.setTimeout(function writeDB() {
