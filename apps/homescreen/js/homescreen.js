@@ -134,7 +134,6 @@ const Homescreen = (function() {
       ViewController.init(document.querySelector('#content'));
       DragDropManager.init();
       window.addEventListener('localized', function localize() {
-        console.log('ENTRA XXXXXXXXXXXXX');
         setLocale();
         GridManager.localize();
         DockManager.localize();
