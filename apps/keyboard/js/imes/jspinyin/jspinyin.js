@@ -11027,6 +11027,11 @@ SpellingParser.prototype = {
  */
 var SpellingTrie = function spellingTrie_constructor() {
   this.h2f_start_ = [];
+  this.h2f_num_ = [];
+  for (var i = 0; i < SpellingTrie.kFullSplIdStart; i++) {
+    this.h2f_start_[i] = 0;
+    this.h2f_num_[i] = 0;
+  }
   this.szm_enable_shm(true);
   this.szm_enable_ym(true);
 };
@@ -11141,6 +11146,10 @@ SpellingTrie.prototype = {
 
     this.h2f_start_ = [];
     this.h2f_num_ = [];
+    for (var i = 0; i < SpellingTrie.kFullSplIdStart; i++) {
+      this.h2f_start_[i] = 0;
+      this.h2f_num_[i] = 0;
+    }
 
     this.spelling_buf_ = spelling_arr.concat();
     this.spelling_num_ = spelling_arr.length;
@@ -11889,7 +11898,6 @@ SpellingTable.prototype = {
     if (!(spelling_str in this.raw_spellings_)) {
       this.raw_spellings_[spelling_str] = new SpellingTable.RawSpelling(
           spelling_str, 0);
-      this.spelling_num_++;
     }
 
     this.raw_spellings_[spelling_str].freq += freq;
