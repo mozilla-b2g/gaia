@@ -36,16 +36,6 @@
 }
 
 
-/* media queries for removing rounded border when keyboard is shown */
-@media screen and (max-height: 70rem) {
-  .toolbar-bottom {
-    bottom: 0;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-
-  }
-}
-
 html, body {
   height: 100%;
   padding: 0;
@@ -90,16 +80,8 @@ body.conversation .conversation-hide {
   display: none;
 }
 
-body.edit-mode .conversation-hide {
-  display: table-cell !important;
-}
-
 body.conversation-new-msg .contact-show {
   display: block;
-}
-
-body.edit-mode .hide-bottom {
-  display: none;
 }
 
 /* View - Slide Horizontal Transition */
@@ -315,45 +297,8 @@ body.conversation #msg-conversations {
   text-decoration: none;
 }
 
-#msg-search-container {
-  display: none;
-  padding-right: 1.6rem;
-  margin: 0;
-  top: 0;
-  width: 100%;
-  height: 6.4rem;
-  border-bottom: solid 0.3rem #9b9b9b;
-  border-top-left-radius: 0.8rem;
-  border-top-right-radius: 0.8rem;
-  z-index: 1;
-  -moz-transition: -moz-transform 0.3s ease;
-}
-
-body.msg-search-mode #msg-search-container {
-  -moz-transform: translateY(5.8rem);
-}
-
-body.msg-search-result-mode #msg-search-container {
-  -moz-transform: translateY(0px);
-  z-index: 6;
-}
-
 #view-msg-text-container {
   padding-left: 1.5rem;
-}
-
-#msg-search {
-  padding: 0 0 0 3.2rem;
-  background: url("images/input-icon-search.png") no-repeat scroll 0.8rem 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 2rem, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
-  width: -moz-calc(100% - 15px - 15px);
-}
-
-#msg-search-cancel {
-  margin-top: 6px;
-}
-
-body.msg-search-mode #msg-conversations-list {
-  top: 12.2rem;
 }
 
 #msg-title-container {
@@ -461,24 +406,6 @@ a.unread .unread-mark .icon-unread-mark {
   border-radius: 0.5rem;
 }
 
-body.edit-mode #msg-conversations-list .item > a { pointer-events: none; padding-right: 4rem; }
-
-body.edit-mode #msg-conversations-list .item > a > input[type=checkbox]:checked + span {
-  background: url("./images/checked.png") no-repeat scroll center center,
-    -moz-linear-gradient(#ffffff, #eaeae4);
-}
-
-body.edit-mode #msg-conversations-list .item > a > span {
-  opacity: 1.0;
-  visibility: visible;
-  border: 0.4rem solid;
-  -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-left-colors: #c3c9cb #c3c9cb #fff #fff;
-  background: -moz-linear-gradient(#eaeae4, #ffffff);
-}
-
 #msg-conversations-list .photo {
   position: absolute;
   top: 0;
@@ -569,15 +496,6 @@ body.edit-mode #msg-conversations-list .item > a > span {
   margin: 1.7rem auto;
 }
 
-#msg-search-edit-button {
-  right: 0;
-  width: 5rem;
-  margin-right: 2rem;
-  position: absolute;
-
-  height: 100%;
-}
-
 .icon-edit {
   display: block;
   background-image: url('images/edit.png');
@@ -610,26 +528,6 @@ body.edit-mode #msg-conversations-list .item > a > span {
   display: none;
 }
 
-body.msg-search-result-mode .search-hide {
-  display: none;
-}
-
-body.msg-search-result-mode .search-show {
-  display: block;
-}
-
-body.edit-mode .edit-hide {
-  display: none;
-}
-
-body.edit-mode .edit-show {
-  display: block;
-}
-
-body.edit-mode .edit-hide-element {
-  background: red !important;
-}
-
 #view-back {
   position: absolute;
   height: 100%;
@@ -659,10 +557,6 @@ body.conversation-new-msg #view-edit-button #view-name {
   display: none;
 }
 
-body.edit-mode #view-edit-button {
-  display: none;
-}
-
 #view-add-button {
   right: 0;
   width: 4rem;
@@ -681,10 +575,6 @@ body.edit-mode #view-edit-button {
   height: 2.4rem;
   width: 2.2rem;
   margin: 1.3rem auto;
-}
-
-body.edit-mode #view-add-button {
-  display: none;
 }
 
 #view-name {
@@ -858,15 +748,6 @@ body.conversation-new-msg #view-num {
   color: #5B5B5B;
 }
 
-
-body.edit-mode #view-list .text {
-  width: -moz-calc(100% - 9rem);
-}
-
-body.edit-mode #view-list .time {
-  right: 1.6rem;
-}
-
 #view-list > div .message-container::before {
   content: '';
   display: block;
@@ -884,18 +765,6 @@ body.edit-mode #view-list .time {
   background: url(images/bubble_orange_corner-png);
   left: -0.1rem;
 }
-
-
-body.edit-mode #view-list > div.message-block .receiver {
-  -moz-transform: translateX(-0.5rem);
-}
-body.edit-mode #view-list > div.message-block .sender {
-  -moz-transform: translateX(-2rem);
-}
-body.edit-mode .fake-checkbox {
--moz-transform: translateX(0);
-}
-
 
 #view-list > div.message-block {
   -moz-box-sizing: border-box;
@@ -1057,57 +926,6 @@ body.edit-mode .fake-checkbox {
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
-}
-
-.confirmation-panel {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-
-  text-align: center;
-  background: rgba(0,0,0,0.4);
-  width: 0;
-  z-index: 1;
-}
-
-#view-confirmation-panel, #msg-confirmation-panel {
-  width: 100%;
-  z-index: 10;
-}
-
-.confirmation-dialog {
-  background: rgb(255,255,255);
-  opacity: 1;
-  border-radius: 0.3rem;
-  margin: 2rem 2rem;
-  padding: 1rem 1rem;
-}
-.confirmation-dialog p {
-  font-size: 2rem;
-}
-
-.confirmation-dialog h2 {
-  font-size: 2rem;
-}
-
-.view-confirm-options {
-  display: table;
-  table-layout: fixed;
-  width: 100%;
-  height: 4rem;
-  border-spacing: .5rem 0;
-}
-
-.view-confirm-option {
-  display: table-cell;
-  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%);
-  vertical-align: middle;
-  text-align: center;
-  font-size: -moz-calc(7 * 0.226rem);
-  color: #ffffff;
-  border-radius: .4rem;
-
 }
 
 .groupHeader {

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MatrixSearch Tests</title>
+    <script type="text/javascript">
+        var Test = {};
+    </script>
+    <script type="text/javascript" src="../jspinyin.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        var FileSystemService = Test.FileSystemService;
+        var MatrixSearch = Test.MatrixSearch;
+        var USER_DICT_FILE_NAME = 'idb://user_dict_test_file';
+        var SYS_DICT_FILE_NAME = 'xhr://../db.json';
+
+        var MatrixSearchTest = {
+          _ms: null,
+          
+          init: function test_init() {
+            var self = MatrixSearchTest;
+            FileSystemService.init(function fileSystemServiceInitCallback() {
+                self._ms = new MatrixSearch();
+                self._ms.init(SYS_DICT_FILE_NAME, USER_DICT_FILE_NAME,
+                        function msInitCallback(status) {
+                });
+            });
+            var btn = document.getElementById('convert-button');
+            btn.addEventListener('click', self.convert, false);
+            btn = document.getElementById('reset');
+            btn.addEventListener('click', self.reset, false);
+            btn = document.getElementById('search');
+            btn.addEventListener('click', self.search, false);
+            btn = document.getElementById('delsearch');
+            btn.addEventListener('click', self.delsearch, false);
+            
+            btn = document.getElementById('predict-button');
+            btn.addEventListener('click', self.predict, false);
+          },
+            
+          unint: function test_uninit() {
+            var self = MatrixSearchTest;
+            FileSystemService.uninit();
+            self._ms.uninit();
+          },
+          
+          search: function test_search() {
+            var self = MatrixSearchTest;
+            var py = document.getElementById('py-text').value;
+            self._ms.search(py);
+          },
+          
+          reset: function test_reset() {
+            var self = MatrixSearchTest;
+            self._ms.reset_search();
+          },
+          
+          delsearch: function test_delsearch() {
+            var self = MatrixSearchTest;
+            var py = self._ms.get_pystr().str;
+            var pos = py.length - 1;
+            self._ms.delsearch(pos, false, true);
+          },
+          
+          convert: function test_convert() {
+            var self = MatrixSearchTest;
+            var py = self._ms.get_pystr().str;
+            var cands = '';
+            var num = self._ms.get_candidate_num();
+            for (var i=0; i<num; i++) {
+              if (i % 10 == 0) {
+                cands += '<br />';
+              }
+              var strs = self._ms.get_candidate(i);
+              cands += strs[0] + '(' + strs[1] + ') ';
+            }
+            var display = document.getElementById('display');
+            display.innerHTML = cands + '<br />' + num + ' candidate(s) for ' +
+                py;
+            document.getElementById('py-text').value = py;
+            return cands;
+          },
+          
+          predict: function test_predict() {
+            var self = MatrixSearchTest;
+            var predictStr = document.getElementById('predict-input').value;
+            var result = self._ms.get_predicts(predictStr);
+                        var cands = '';
+            var predicts = '';
+            var num = result.length;
+            for (var i=0; i<num; i++) {
+              if (i % 10 == 0) {
+                predicts += '<br />';
+              }
+              var strs = result[i]
+              predicts += strs[0] + '(' + strs[1] + ') ';
+            }
+            var display = document.getElementById('predict-display');
+            display.innerHTML = predicts + '<br />' + num +
+                ' prediction word(s) for ' + predictStr;
+          }
+        };
+        window.addEventListener('load', MatrixSearchTest.init, false);
+        window.addEventListener('unload', MatrixSearchTest.unint, false);
+    </script>
+    <script type="text/javascript" src="../jspinyin.js"></script>
+</head>
+
+<body>
+    <div id="main">
+        <input type="text" id="py-text" placeholder="Enter Pinyin" value="fangan" />
+        <input type="button" id="reset" value="reset" />
+        <input type="button" id="search" value="search" />
+        <input type="button" id="delsearch" value="delsearch" />
+        <input type="button" id="convert-button" value="Convert" />
+        <span id="display" />
+    </div>
+    <hr />
+    <div id="candidates">
+        <input type="text" id="predict-input" placeholder="Enter a Word" value="你" />
+        <input type="button" id="predict-button" value="Predict" />
+        <span id="predict-display" />
+    </div>
+</body>
+</html>
