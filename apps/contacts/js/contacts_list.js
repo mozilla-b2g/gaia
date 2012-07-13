@@ -6,7 +6,8 @@ contacts.List = (function() {
   var groupsList,
       searchBox,
       fastScroll,
-      favoriteGroup;
+      favoriteGroup,
+      inSearchMode = false;
 
   searchBox = document.getElementById('search-contact');
   fastScroll = document.querySelector('.view-jumper');
@@ -264,36 +265,26 @@ contacts.List = (function() {
   }
 
   // Toggle function to show/hide the letters header
-  var showGroupHeaders = function showHeaders(show) {
-    // Search for the ones with data-search mark
-    // Hide the headers, those one NOT with class hide
-    var selector = show ? '[data-search]' : '.block-title:not(.hide)';
-    var headers = document.querySelectorAll(selector);
+  var toggleGroupHeaders = function showHeaders() {
+    var headers = document.querySelectorAll('.block-title:not(.hide)');
     if (!headers) {
       return;
     }
 
     for (var i = 0; i < headers.length; i++) {
       var header = headers[i];
-      if (show) {
-        header.classList.remove('hide');
-        // Remove the search mark
-        delete(header.dataset['search']);
-      } else {
-        header.classList.add('hide');
-        // Mark this headers with a special element in data set
-        // to know that they were visible while not searching
-        header.dataset['search'] = 1;
-      }
+      header.classList.toggle('search-hide');
     }
   }
 
   var exitSearch = function exitSearch() {
+    searchBox.value = '';
+    inSearchMode = false;
     // Show elements that were hidden for the search
     fastScroll.classList.remove('hide');
     groupsList.classList.remove('hide');
     favoriteGroup.classList.remove('hide');
-    showGroupHeaders(true);
+    toggleGroupHeaders();
 
     // Bring back to visibilitiy the contacts
     var allContacts = getContactsDom();
@@ -305,15 +296,16 @@ contacts.List = (function() {
   };
 
   var search = function performSearch() {
-    cleanContactsList();
+    if(!inSearchMode) {
+      cleanContactsList();
+    }
 
     if (!searchBox.value || searchBox.value.length == 0) {
       exitSearch();
       return;
     }
 
-    var pattern = new RegExp(searchBox.value, 'i');
-    showGroupHeaders(false);
+    var pattern = new RegExp(searchBox.value, 'i');    
 
     var allContacts = getContactsDom();
     for (var i = 0; i < allContacts.length; i++) {
@@ -331,6 +323,8 @@ contacts.List = (function() {
   var cleanContactsList = function cleanContactsList() {
     fastScroll.classList.add('hide');
     favoriteGroup.classList.add('hide');
+    toggleGroupHeaders();
+    inSearchMode = true;
   };
 
   var getContactsDom = function contactsDom() {

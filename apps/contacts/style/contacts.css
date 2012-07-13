@@ -126,3 +126,7 @@ hr {
   height: 2.5rem;
   margin-top: -0.8rem;
 }
+
+.search-hide {
+  display: none;
+}
