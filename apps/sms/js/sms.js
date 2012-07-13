@@ -65,11 +65,13 @@ var MessageManager = {
         break;
     }
   },
+
   createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
     filter.numbers = [num || ''];
     return filter;
   },
+
   getNumFromHash: function mm_getNumFromHash() {
     var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
     return num ? num[1] : null;
@@ -178,15 +180,16 @@ var ThreadListUI = {
     ThreadListUI.view.innerHTML = '';
     var threadIds = [], headerIndex;
     for (var i = 0; i < messages.length; i++) {
-      var num = messages[i].delivery == 'received' ?
-      messages[i].sender : messages[i].receiver;
+      var message = messages[i];
+      var num = message.delivery == 'received' ?
+      message.sender : message.receiver;
       if (threadIds.indexOf(num) == -1) {
         var thread = {
-          'body': messages[i].body,
+          'body': message.body,
           'name': num,
           'num': num,
-          'timestamp': messages[i].timestamp.getTime(),
-          'unreadCount': !messages[i].read ? 1 : 0,
+          'timestamp': message.timestamp.getTime(),
+          'unreadCount': !message.read ? 1 : 0,
           'id': num
         };
         if (threadIds.length == 0) {
@@ -194,9 +197,9 @@ var ThreadListUI = {
           headerIndex = Utils.getDayDate(currentTS);
           ThreadListUI.createNewHeader(currentTS);
         }else {
-          var tmpIndex = Utils.getDayDate(messages[i].timestamp.getTime());
+          var tmpIndex = Utils.getDayDate(message.timestamp.getTime());
           if (tmpIndex < headerIndex) {
-            ThreadListUI.createNewHeader(messages[i].timestamp.getTime());
+            ThreadListUI.createNewHeader(message.timestamp.getTime());
             headerIndex = tmpIndex;
           }
         }
@@ -205,6 +208,7 @@ var ThreadListUI = {
       }
     }
   },
+
   appendThread: function thlui_appendThread(thread) {
     // Create DOM element
     var threadHTML = document.createElement('div');
@@ -243,6 +247,7 @@ var ThreadListUI = {
     this.view.appendChild(threadHTML);
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
+
   createNewHeader: function thlui_createNewHeader(timestamp) {
     // Create DOM Element
     var headerHTML = document.createElement('div');
@@ -352,9 +357,7 @@ var ThreadUI = {
     // Update header index
     ThreadUI.headerIndex = 0;
     // Per each message I will append DOM element
-    for (var i = 0; i < messages.length; i++) {
-      ThreadUI.appendMessage(messages[i]);
-    }
+    messages.forEach(ThreadUI.appendMessage);
   },
   appendMessage: function thui_appendMessage(message) {
     // Create DOM Element
@@ -384,7 +387,7 @@ var ThreadUI = {
     // Append element
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
-    this.scrollViewToBottom();
+    ThreadUI.scrollViewToBottom();
   },
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
