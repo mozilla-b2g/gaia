@@ -14,6 +14,7 @@ var CostControl = {
   TOP_UP_FOLL_TEXT: '',
 
   init: function cc_init() {
+/*
     //If we don't have the sender in the variant, just hide the module
     if (!this.CHECK_BALANCE_SEND_NUMBER) {
       document.getElementById("cost-control").style.display = 'none';
@@ -35,22 +36,28 @@ var CostControl = {
       this.telephony = window.navigator.mozTelephony;
       this.telephony.addEventListener('callschanged', this);
     }
-
+*/
     //Show the saved balance while we update it
-    this.feedback = new Array(document.getElementById('cost-control-date'),
-                             document.getElementById('cost-control-container'));
-    this.getInitialBalance();
+    this.feedback = new Array(document.getElementById('cost-control-time'),
+                             document.getElementById('cost-control-credit'));
+//    this.getInitialBalance();
 
-    /*//Listener for check now button
-    this.checkNowBalanceButton = document.getElementById('cost-control-check-balance');
+
+    // Widget
+    this.widget = document.getElementById('cost-control');
+
+    //Listener for check now button
+    this.checkNowBalanceButton = document.getElementById('cost-control-credit-area');
     this.checkNowBalanceButton.addEventListener('click', (function() {
-      this.updateBalance();
-    }).bind(this));*/
+      // this.updateBalance();
+      this.mockup_updateBalance();
+    }).bind(this));
 
     //Listener for Top up button
     this.topUpButton = document.getElementById('cost-control-topup');
     this.topUpButton.addEventListener('click', (function() {
-      this.topUp();
+      // this.topUp();
+      this.mockup_topUp();
     }).bind(this));
   },
 
@@ -91,6 +98,19 @@ var CostControl = {
     this.conn.removeEventListener('voicechange', this.getInitialBalance);
     console.log('Getting initial balance');
     this.updateBalance();
+  },
+
+  mockup_updateBalance: function cc_mockup_updateBalance() {
+    var currentCredit = parseFloat(this.feedback[1].textContent);
+    var newCredit = Math.max(0, currentCredit - 2);
+    this.widget.classList.add('updating');
+    window.setTimeout((function() {
+      newCredit = Math.round(newCredit * 100)/100;
+      this.feedback[1].textContent = newCredit + 'R$';
+      if (newCredit < 2)
+        this.widget.classList.add('low-credit');
+      this.widget.classList.remove('updating');
+    }).bind(this), 3500);
   },
 
   updateBalance: function cc_updateBalance() {
@@ -181,6 +201,15 @@ var CostControl = {
     window.localStorage.setItem('date', date.getTime());
   },
 
+  mockup_topUp: function cc_mockup_topUp() {
+    var currentCredit = parseFloat(this.feedback[1].textContent);
+    var newCredit = currentCredit + 2;
+    if (newCredit >= 2)
+      this.widget.classList.remove('low-credit');
+    newCredit = Math.round(newCredit * 100)/100;
+    this.feedback[1].textContent = newCredit + 'R$';
+  },
+
   topUp: function cc_topUp() {
     //TODO
     alert('TopUp!!');
@@ -197,4 +226,5 @@ var CostControl = {
   }
 };
 
+console.log('Initializing!!!');
 CostControl.init();
