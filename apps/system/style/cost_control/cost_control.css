@@ -1,8 +1,16 @@
+/* Resetting */
 #cost-control * {
   margin:0;
   padding:0;
+  line-height: 100%;
+  text-align: left;
 }
 
+#cost-control button::-moz-focus-inner {
+  border:0;
+}
+
+/* Widget body */
 #cost-control {
   height: 4.5rem;
   width: 50%;
@@ -11,48 +19,16 @@
   background-repeat: no-repeat, repeat;
 }
 
-#cost-control.alert {
+/* Widget states */
+
+/* Low credit warning */
+#cost-control.low-credit {
   background: url('./images/BG-cost-red-tile.png');
   background-repeat: repeat-x;
 }
 
-#cost-control-credit-area {
-  width: 100%;
-  border: none;
-  padding: 0;
-  margin: 0;
-  margin-right: 3.5rem;
-}
-
-#cost-control-credit-area div {
-  display:inline-block;
-}
-
-#cost-control-credit-area div p {
-  margin:none;
-  padding:0;
-}
-
-#cost-control-credit {
-  font-size:18px;
-  font-weight:bold;
-}
-
-#cost-control-time {
-  color: #888;
-  font-size: 11px;
-}
-
-#cost-control-update-icon {
-  display: inline-block;
-  height: 4.5rem;
-  width: 1rem;
-  background: url('./images/ico-reload.png') center no-repeat;
-  margin-left: 0.5rem;
-  opacity: 0.2;
-}
-
-#cost-control-credit-area.updating #cost-control-update-icon {
+/* Updating animation */
+#cost-control.updating #cost-control-update-icon {
   opacity:1.0;
   -moz-animation: cost-control-spin 1.75s infinite linear;
 }
@@ -62,35 +38,49 @@
   100% { -moz-transform:rotate(360deg); }
 }
 
-#cost-control-topup::-moz-focus-inner {
-  border:0;
+/* Credit area with remaining credit and timestamp */
+#cost-control-credit-area {
+  display: table;
+  height: 100%;
+  margin-right: 4.5rem;
+  padding-left: 1rem;
+  border:none;
+  background-color: transparent;
 }
 
+#cost-control-credit-area > div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+#cost-control-credit {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 2.1rem;
+  font-weight: 500;
+  color: white;
+}
+
+#cost-control-time {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 1rem;
+  color: #888;
+  margin-top: 0.2rem;
+}
+
+#cost-control-update-icon {
+  opacity: 0.2;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
+/* Top-up button */
 #cost-control-topup {
   float: right;
   width: 4.5rem;
   height:100%;
-  margin:0;
-  padding:0;
   border:none;
   background-color: transparent;
   background-image: url('./images/ico-plus.png');
   background-position: center;
   background-repeat:no-repeat;
-}
-
-.not-updated {
-  color: green;
-}
-
-.updated {
-  color: pink;
-}
-
-#cost-control-remaining-credit-text {
-  margin-bottom: 0;
-}
-
-#cost-control-spent, #cost-control-currency {
-/*  font-size: 32px;*/
 }
