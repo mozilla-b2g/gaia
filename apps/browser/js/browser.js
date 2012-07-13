@@ -160,7 +160,9 @@ var Browser = {
         tab.loading = false;
         if (isCurrentTab) {
           this.throbber.classList.remove('loading');
-          this.urlInput.value = tab.title || tab.url;
+          if (this.currentScreen !== this.AWESOME_SCREEN) {
+            this.urlInput.value = tab.title || tab.url;
+          }
           this.setUrlButtonMode(this.REFRESH);
         }
 
@@ -195,7 +197,9 @@ var Browser = {
         tab.url = evt.detail;
         this.updateHistory(evt.detail);
         if (isCurrentTab) {
-          this.urlInput.value = tab.url;
+          if (this.currentScreen !== this.AWESOME_SCREEN) {
+            this.urlInput.value = tab.url;
+          }
         }
         break;
 
@@ -204,7 +208,9 @@ var Browser = {
           tab.title = evt.detail;
           Places.setPageTitle(tab.url, tab.title);
           if (isCurrentTab && !tab.loading) {
-            this.urlInput.value = tab.title;
+            if (this.currentScreen !== this.AWESOME_SCREEN) {
+              this.urlInput.value = tab.title;
+            }
           }
           // Refresh the tab screen if we are currently viewing it, for dynamic
           // or not yet loaded titles
