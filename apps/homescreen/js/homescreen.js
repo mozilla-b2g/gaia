@@ -131,6 +131,7 @@ const Homescreen = (function() {
       PaginationBar.update(1);
       PaginationBar.show();
       ViewController.init(document.querySelector('#content'));
+      DragDropManager.init();
     });
   }
 
@@ -161,8 +162,10 @@ const Homescreen = (function() {
   window.addEventListener('message', function onMessage(e) {
     switch (e.data) {
       case 'home':
-        if (GridManager.isEditMode()) {
-          GridManager.setMode('normal');
+        if (document.body.dataset.mode === 'edit') {
+          document.body.dataset.mode = 'normal';
+          GridManager.saveState();
+          DockManager.saveState();
           Permissions.hide();
         } else if (ViewController.currentPage > 0) {
           GridManager.goTo(0, function finish() {
@@ -180,7 +183,11 @@ const Homescreen = (function() {
 
   // Listening for uninstalled apps
   Applications.addEventListener('uninstall', function onuninstall(app) {
-    GridManager.uninstall(app);
+    if (DockManager.contains(app)) {
+      DockManager.uninstall(app);
+    } else {
+      GridManager.uninstall(app);
+    }
   });
 
   return {
@@ -189,7 +196,7 @@ const Homescreen = (function() {
      *
      * @param {String} the app origin
      */
-    showAppDialog: function showAppDialog(origin) {
+    showAppDialog: function h_showAppDialog(origin) {
       // FIXME: localize this message
       var app = Applications.getByOrigin(origin);
       var title = 'Remove ' + app.manifest.name;
@@ -197,6 +204,10 @@ const Homescreen = (function() {
       Permissions.show(title, body,
                        function onAccept() { app.uninstall() },
                        function onCancel() {});
+    },
+
+    isIcongridInViewport: function h_isIcongridInViewport() {
+      return ViewController.currentPage === 1;
     }
   };
 })();
