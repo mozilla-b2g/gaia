@@ -230,7 +230,7 @@ XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
 install-xulrunner:
-	test -d $(XULRUNNER_TEST) || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2) 
+	test -d $(XULRUNNER_TEST) || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 
 install-xulrunner-sdk:
 	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
@@ -499,3 +499,13 @@ dialer-demo:
 demo: install-media-samples install-gaia
 
 production: install-gaia
+
+# Remove everything and install a clean profile
+reset-gaia: purge settingsdb install-gaia
+
+# remove the memories and apps on the phone
+purge:
+	$(ADB) shell stop b2g
+	$(ADB) shell rm -r /data/local/*
+	$(ADB) shell rm -r /cache/*
+	$(ADB) shell rm -r /data/b2g/*
