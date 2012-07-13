@@ -296,7 +296,7 @@ contacts.List = (function() {
   };
 
   var search = function performSearch() {
-    if(!inSearchMode) {
+    if (!inSearchMode) {
       cleanContactsList();
     }
 
@@ -305,7 +305,7 @@ contacts.List = (function() {
       return;
     }
 
-    var pattern = new RegExp(searchBox.value, 'i');    
+    var pattern = new RegExp(searchBox.value, 'i');
 
     var allContacts = getContactsDom();
     for (var i = 0; i < allContacts.length; i++) {
