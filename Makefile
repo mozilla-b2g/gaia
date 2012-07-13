@@ -501,7 +501,7 @@ demo: install-media-samples install-gaia
 production: install-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-gaia
+reset-gaia: purge settingsdb install-gaia
 
 # remove the memories and apps on the phone
 purge:
