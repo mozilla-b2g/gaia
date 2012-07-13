@@ -122,11 +122,54 @@ hr {
   height: 2rem;
 }
 
+/* Search */
+
+#groups-list {
+  padding-top: 3.5rem;
+}
+
 #search-contact {
   height: 2.5rem;
-  margin-top: -0.8rem;
+  margin-top: 0.5rem;
 }
 
 .search-hide {
   display: none;
+}
+
+#search-container {
+  background: url(gphx/bitmap/default/search/searchbar_1x35.png) repeat-x scroll left bottom transparent;
+  position: absolute;
+  width: -moz-calc(100% - 5.8rem);
+  margin: 0;
+  padding: 0 2.5rem;
+  height: 3.5rem;
+  top: 0;
+  left: 0;
+  border-bottom: 1px solid #c8c8c8;
+}
+
+#search-container button {
+  line-height: 3.5rem;
+}
+
+#view-contacts-list.searching #search-container{
+  position: fixed;
+  top: 0;
+  margin: 0;
+  width: -moz-calc(100% - 5rem);
+  z-index: 10;
+}
+
+#view-contacts-list.searching .view-body {
+  z-index: 10;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#view-contacts-list.searching #search-contact{
+  width: 20rem;
+  margin-top: 0;
 }
