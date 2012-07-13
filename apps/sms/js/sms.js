@@ -38,8 +38,6 @@ var MessageManager = {
             break;
           default:
             var num = this.getNumFromHash();
-            alert(num);
-
             if (num) {
               ThreadUI.cleanFields();
               if (num == '*') {
