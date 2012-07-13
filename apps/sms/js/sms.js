@@ -30,7 +30,6 @@ var MessageManager = {
         var bodyclassList = document.body.classList;
         switch (window.location.hash) {
           case '':
-            // this.getMessages(ThreadListUI.renderThreads);
             bodyclassList.remove('conversation');
             bodyclassList.remove('conversation-new-msg');
             break;
