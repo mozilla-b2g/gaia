@@ -464,7 +464,6 @@ background-position: center 2.2rem;
   left: 0;
   right: 0;
   height: 0.5rem;
-  background: #4AB6CB;
   z-index: 1;
 } 
 
@@ -472,28 +471,44 @@ background-position: center 2.2rem;
   padding: 0;
   display: block;
   height: 4rem;
+  top: 0;
 }
+
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper {
   -moz-box-sizing: border-box;
-  border-bottom: solid 1px #333;
+  border: none;
+  border-bottom: solid 1px #92D3E0;
   border-radius: 0;
   width: 10rem;
   height: 4rem;
+}
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key:first-child > .visual-wrapper {
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > .visual-wrapper {
+  left: 0;
+  right: 0;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
   font-family: 'Open Sans Semibold';  
   font-size: 1.8rem;
-  color: #fff;
+  line-height: 4rem;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key:last-child {
   margin-bottom: 0.8rem;
 }
 
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > .visual-wrapper > span {
-  color: #1a3f46;
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.kbr-key-hold > .visual-wrapper {
+  background: #333;
 }
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.kbr-key-hold > .visual-wrapper > span {
+  color: #fff;
+}
+
 
 /* IMEs */
 #keyboard-pending-symbol-panel {
