@@ -26,6 +26,7 @@ var UtilityTray = {
     }, this);
 
     window.addEventListener('screenchange', this);
+    window.addEventListener('keyup', this, true);
 
     this.overlay.addEventListener('transitionend', this);
   },
@@ -33,7 +34,7 @@ var UtilityTray = {
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
       case 'keyup':
-        if (!this.shown || evt.keyCode !== evt.DOM_VK_ESCAPE)
+        if (!this.shown || evt.keyCode !== evt.DOM_VK_HOME)
           return;
 
         // doesn't work right now, see:

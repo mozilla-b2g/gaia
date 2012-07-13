@@ -24,6 +24,11 @@
     <script type="text/javascript" src="js/contacts.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript">
+      if (!navigator.mozSms) {
+        document.write('<script type="text/javascript" src="js/desktopTesting.js"><\/script>');
+      }
+    </script>
   </head>
 
   <body>
@@ -35,15 +40,7 @@
             <div class="icon-back"></div>
           </div>
         </a>
-        <div role="menuitem" id="view-done-button"
-          onclick="ThreadUI.exitEditMode()"
-          class="edit-show" data-l10n-id="done">
-          Done
-        </div>
-        <a role="menuitem" href="#edit" id="view-edit-button" role="menuitem" class="edit-hide">
-          <div class="icon-edit"></div>
-        </a>
-        <a role="menuitem" id="view-add-button" class="contact-show">
+        <a role="button" id="view-add-button" class="contact-show">
           <div class="icon-contact"></div>
         </a>
         <h1 id="view-name"></h1>
@@ -58,12 +55,6 @@
           </div>
           <div role="button" id="view-msg-send" class="edit-hide view-bottom-toolbar-element" data-l10n-id="send">
               Send
-          </div>
-          <div id="view-delete-all-button" onclick="ThreadUI.showConfirmationDialog();" class="view-bottom-toolbar-element view-bottom-toolbar-button conversation-hide" data-l10n-id="delete-all">
-            Delete all
-          </div>
-          <div id="view-delete-button" onclick="ThreadUI.deleteMessages();" class="view-bottom-toolbar-element view-bottom-toolbar-button conversation-hide" data-l10n-id="delete">
-            Delete
           </div>
         </div>
       </footer>
@@ -81,23 +72,9 @@
           <a role="menuitem" href="#num=*" id="msg-new-message" class="edit-hide">
             <span data-icon="add" class="icon-add"></span>
           </a>
-          <a role="menuitem" href="#edit" id="msg-edit-button" class="edit-hide">
-            <span data-icon="edit" class="icon-edit"></span>
-          </a>
         </menu>
         <h1 id="msg-title-container" data-l10n-id="messages">Messages</h1>
       </header>
-
-      <div id="msg-search-container" class="toolbar">
-        <div id="msg-search-toolbar-panel" class="toolbar-panel">
-          <div id="msg-search-input-container" class="toolbar-panel-item">
-            <input id="msg-search" type="search" />
-          </div>
-          <div id="msg-search-cancel-container" class="toolbar-panel-fixed-item">
-            <button id="msg-search-cancel" onclick="window.location.hash = '#';" class="button text-button search-show" data-l10n-id="cancel">Cancel</button>
-          </div>
-        </div>
-      </div>
 
       <article id="msg-conversations-list" class="list">
       </article>
@@ -110,29 +87,5 @@
       </footer>
     </section>
 
-    <!-- Confirmation message for dangerous operations on conversation list-->
-    <div id="msg-confirmation-panel" class="confirmation-panel" hidden>
-        <div id="msg-confirmation-dialog" class="confirmation-dialog">
-            <p>Are you sure you want to clear all conversations</p>
-            <h2>This cannot be undone</h2>
-            <section class="view-confirm-options">
-              <div id="view-cancel-button" onclick="ThreadListUI.hideConfirmationDialog();" class="view-confirm-option">Cancel</div>
-              <div id="view-accept-button" onclick="ThreadListUI.executeAllMessagesDelete();" class="view-confirm-option">Yes</div>
-            </section>
-        </div>
-    </div>
-
-    <!-- Confirmation message for dangerous operations on conversation view-->
-    <div id="view-confirmation-panel" class="confirmation-panel" hidden>
-        <div id="view-confirmation-dialog" class="confirmation-dialog">
-            <p>Are you sure you want to clear all messages from this conversation</p>
-            <h2>This cannot be undone</h2>
-            <section class="view-confirm-options">
-              <div id="view-cancel-button" onclick="ThreadUI.hideConfirmationDialog();" class="view-confirm-option">Cancel</div>
-              <div id="view-accept-button" onclick="ThreadUI.deleteAllMessages();" class="view-confirm-option">Yes</div>
-            </section>
-
-        </div>
-    </div>
   </body>
 </html>

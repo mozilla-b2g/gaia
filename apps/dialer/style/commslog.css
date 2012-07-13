@@ -40,11 +40,38 @@ ol, ul {
   opacity: 0.5;
 }
 
+.recents-filter-container {
+  background: white;
+}
+
+.recents-filter-entry {
+  float: left;
+  width: 50%;
+}
+
+.recents-filter-entry > button {
+  height: 3rem;
+  width: 100%;
+  font-size: -moz-calc(6*0.226rem);
+  opacity: 0.8;
+}
+
+button.selected {
+  opacity: 1.0;
+}
+
+button::-moz-focus-inner {
+  border: 0px;
+}
+
+.hide {
+  display: none;
+}
 
 .view-body {
   background : white;
   color: black;
-  height: -moz-calc(100% - 5rem);
+  height: -moz-calc(100% - 8rem);
   overflow: auto;
 }
 
@@ -108,6 +135,10 @@ ol, ul {
   width: 3rem;
   height: 3rem;
   background-image: url('images/CallLog_30x30_missed.png');
+}
+
+.missed-call-font {
+  color: red !important;
 }
 
 .log-item * {

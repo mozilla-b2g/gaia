@@ -32,7 +32,10 @@
         self._activeObjects.push(object);
 
         if ('onactive' in object) {
-          object.onactive();
+          if (!object.__routerActive) {
+            object.onactive();
+            object.__routerActive = true;
+          }
         }
 
         next();
@@ -47,7 +50,16 @@
       var item;
       while (item = this._activeObjects.pop()) {
         if ('oninactive' in item) {
-          item.oninactive();
+          if ('__routerActive' in item) {
+            if (item.__routerActive) {
+              item.oninactive();
+            }
+          } else {
+            item.oninactive();
+          }
+        }
+        if ('__routerActive' in item) {
+          item.__routerActive = false;
         }
       }
       next();
@@ -56,11 +68,8 @@
     //needed so next works correctly
     _noop: function() {},
 
-    add: function() {
+    _route: function() {
       var args = Array.prototype.slice.call(arguments);
-
-      //clear all previous objects before starting loop
-      args.splice(1, 0, this._clearObjects);
 
       //add noop so next works correctly...
       args.push(this._noop);
@@ -77,6 +86,34 @@
       }
 
       this.page.apply(this.page, args);
+    },
+
+    /**
+     * Adds a state modifier
+     *
+     */
+    modifier: function() {
+      this._route.apply(this, arguments);
+    },
+
+    /**
+     * Adds a route that represents a state of the page.
+     * The theory is that a page can only enter
+     * one state at a time (basically yield control to some
+     * view or other object).
+     *
+     * Modifiers can be used to alter the behaviour
+     * of a given state (without exiting it)
+     *
+     * @param {String} path path as defined by page.js.
+     * @param {Function|Object...} args unlimited number of objects or function
+     *                                  callbacks.
+     */
+    state: function() {
+      var args = Array.prototype.slice.call(arguments);
+      args.splice(1, 0, this._clearObjects);
+
+      this._route.apply(this, args);
     }
 
   };

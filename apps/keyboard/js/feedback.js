@@ -42,7 +42,7 @@ const IMEFeedback = {
     if (this.vibrate) {
       try {
         if (this.vibrate)
-          navigator.mozVibrate(50);
+          navigator.vibrate(50);
       } catch (e) {}
     }
 

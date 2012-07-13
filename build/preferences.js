@@ -86,6 +86,10 @@ let permissions = {
     "urls": [],
     "pref": "dom.telephony.app.phone.url"
   },
+  "mozBluetooth": {
+    "urls": [],
+    "pref": "dom.mozBluetooth.whitelist"
+  },
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"
