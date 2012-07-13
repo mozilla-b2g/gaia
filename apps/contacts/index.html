@@ -101,16 +101,15 @@
           <article class="view-body">
             <div class="view-body-inner" id="cover-img">
               <section id="contact-detail">
-                <h1 id='org-title'></h1>
                 <!-- Phone Template -->
-                <li id='phone-details-template' data-template>
+                <li id='phone-details-template-#i#' data-template>
                   <h2>#type#</h2>
                   <div class="item">
                     <div class="item-media pull-right">
                       <button class="action" onclick="Contacts.sendSms()"><span role="button" class="icon-message">Message</span></button>
                     </div>
                     <div class="item-body-exp">
-                      <button class="action">
+                      <button class="action" onclick="Contacts.callOrPick()">
                         <span role="button" class="icon-call">Call</span>
                         <b>#number#</b>
                         <em>#notes#</em>
@@ -120,8 +119,7 @@
                 </li>
 
                 <!-- Email Template -->
-                <li id='email-details-template' data-template>
-                  <!-- Hardcoded while we don't have a place to store email's type -->
+                <li id='email-details-template-#i#' data-template>
                   <h2>#type#</h2>
                   <div class="item">
                     <div class="item-body-exp">
@@ -134,7 +132,7 @@
                 </li>
 
                 <!-- Address Template -->
-                <li id='address-details-template' data-template>
+                <li id='address-details-template-#i#' data-template>
                   <h2>#type#</h2>
                   <div class="item">
                     <div class="item-body-exp">
@@ -151,9 +149,14 @@
                   </div>
                 </li>
 
-                <ul id='details-list'>
-                  <!-- Iterating mails and phones here -->
-                </ul>
+                <!-- Comment Template -->
+                <p id='note-details-template-#i#' data-template class="comment-notes">#note#</p>
+                <div id='contact-detail-inner'>
+                  <h1 id='org-title'></h1>
+                  <ul id='details-list'>
+                    <!-- Iterating mails, phones, addresses adn comments here -->
+                  </ul>
+                </div>
               </section>
             </div>
           </article>
@@ -237,6 +240,18 @@
             </dl>
           </div>
 
+          <!-- COMMENTS TEMPLATE -->
+          <div id='add-note-#i#' data-template class='note-template' data-index="#i#">
+            <dl class="setbox fillflow-row">
+              <dd class="setbox-body">
+                <p class="setbox-item">
+                  <label class="hide" for="note_#i#">comment:</label>
+                  <input placeholder="Comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
+                </p>
+              </dd>
+            </dl>
+          </div>
+
           <article class="view-body">
             <div class="view-body-inner">
               <form action="#" class="fill-flow">
@@ -273,9 +288,9 @@
                   <b>Add phone number</b>
                 </button>
 
-                <fieldset id='contacts-form-email'>
+                <fieldset>
                   <legend>E-mail address</legend>
-                    <div id='contacts-form-phones'>
+                    <div id='contacts-form-emails'>
                       <!-- Iterating over email template here -->
                     </div>
                 </fieldset>
@@ -285,7 +300,7 @@
                   <b>Add email address</b>
                 </button>
 
-                <fieldset id='contacts-form-address'>
+                <fieldset>
                   <legend>Address</legend>
                     <div id='contacts-form-addresses'>
                       <!-- Iterating over address template here -->
@@ -296,8 +311,25 @@
                   <span role="button" class="icon-add"></span>
                   <b>Add new address</b>
                 </button>
+                
+                <fieldset>
+                  <legend>Comments</legend>
+                    <div id='contacts-form-notes'>
+                      <!-- Iterating over comment template here -->
+                    </div>
                 </fieldset>
+
+                <button onclick='Contacts.addNewNote(); return false;' id='add-new-note' class="fillflow-row action action-add">
+                  <span role="button" class="icon-add"></span>
+                  <b>Add comment</b>
+                </button>
+
+                <hr/>
+                <button onclick='Contacts.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
+                  <b>Add as favorite</b>
+                </button>
               </form>
+
               <button id='delete-contact' class="hide fillflow-row action action-delete">
                 <b>Delete contact</b>
               </button>

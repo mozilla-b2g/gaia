@@ -6,6 +6,9 @@
     <link rel="stylesheet" type="text/css" href="style/request.css"/>
     <link rel="stylesheet" type="text/css" href="style/homescreen.css"/>
     <link rel="stylesheet" type="text/css" href="style/grid.css"/>
+    <link rel="stylesheet" type="text/css" href="style/dragdrop.css"/>
+    <link rel="stylesheet" type="text/css" href="style/dock.css"/>
+    <link rel="stylesheet" type="text/css" href="style/search.css"/>
 
     <!-- compatibility: webAPI loader -->
     <script type="text/javascript">
@@ -30,27 +33,30 @@
     <script type="text/javascript" defer src="js/state.js"></script>
     <script type="text/javascript" defer src="js/page.js"></script>
     <script type="text/javascript" defer src="js/pagbar.js"></script>
+    <script type="text/javascript" defer src="js/dock.js"></script>
     <script type="text/javascript" defer src="js/grid.js"></script>
+    <script type="text/javascript" defer src="js/dragdrop.js"></script>
+    <script type="text/javascript" defer src="js/search.js"></script>
     <script type="text/javascript" defer src="js/homescreen.js"></script>
   </head>
 
-  <body>
+  <body data-mode="normal">
     <header id="paginationBar">
       <div class="paginationScroller"></div>
     </header>
 
-    <section id="icongrid">
-      <div class="apps" data-mode="normal"></div>
-    </section>  <!-- icongrid -->
+    <section id="content">
+      <section id="search">
+        <div>
+          <img id="searchAction" src="resources/images/search/icon.png"></img>
+        </div>
+      </section>  <!-- search -->
 
-    <footer id="footer">
-      <nav>
-        <ul class="dock">
-          <li class="logs" data-origin="http://dialer.$DOMAIN$" data-entrypoint="recents-view">Logs</li>
-          <li class="contacts" data-origin="http://contacts.$DOMAIN$">Contacts</li>
-          <li class="phone" data-origin="http://dialer.$DOMAIN$">Phone</li>
-        </ul>
-      </nav>
-    </footer>
+      <section id="icongrid">
+        <div class="apps"></div>
+      </section>  <!-- icongrid -->
+    </section>
+
+    <footer id="footer"></footer>
   </body>
 </html>

@@ -31,6 +31,10 @@
 
   testSupport.calendar = {
 
+    db: function() {
+      return new Calendar.Db('b2g-test-calendar');
+    },
+
     checkSet: function(set, arr) {
       var i = 0,
           missing = [],

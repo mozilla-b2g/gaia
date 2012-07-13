@@ -38,7 +38,7 @@ ApplicationMock.prototype = {
 var Applications = (function() {
   var installedApps = {};
 
-  var callbacks = [];
+  var callbacks = [], ready = false;
 
   var installer = navigator.mozApps.mgmt;
   installer.getAll().onsuccess = function onSuccess(e) {
@@ -67,6 +67,8 @@ var Applications = (function() {
         installedApps[alternativeOrigin] = newApp;
       }
     });
+
+    ready = true;
 
     callbacks.forEach(function(callback) {
       if (callback.type == 'ready') {
@@ -270,6 +272,10 @@ var Applications = (function() {
     app.launch(params);
   }
 
+  function isReady() {
+    return ready;
+  }
+
   return {
     launch: launch,
     isCore: isCore,
@@ -280,6 +286,7 @@ var Applications = (function() {
     getName: getName,
     getIcon: getIcon,
     getManifest: getManifest,
-    getInstalledApplications: getInstalledApplications
+    getInstalledApplications: getInstalledApplications,
+    isReady: isReady
   };
 })();

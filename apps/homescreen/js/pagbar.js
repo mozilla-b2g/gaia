@@ -34,7 +34,7 @@ const PaginationBar = (function() {
      */
     update: function pb_update(current, total) {
 
-      if (previousTotal !== total) {
+      if (total && previousTotal !== total) {
         style.width = (100 / total) + '%';
         previousTotal = total;
       }
