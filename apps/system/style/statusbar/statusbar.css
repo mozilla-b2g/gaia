@@ -44,6 +44,19 @@
   background: url("images/notification-dot.png") no-repeat 50% 50%;
 }
 
+#statusbar-voicemail {
+  width: 20px;
+  margin-right: 2px;
+  background: url("images/voicemail-statusbar.png") no-repeat 50% 50%;
+}
+
+#statusbar-voicemail-count {
+  margin-left: 2px;
+  font-size: 10px;
+  line-height: 20px;
+  font-weight: bold;
+}
+
 #statusbar-conn {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
   line-height: 20px;

@@ -218,9 +218,7 @@ var OnCallHandler = {
   setupForCall: function och_setupForCall(call, typeOfCall) {
     this.currentCall = call;
 
-    this.lookupContact(call.number);
-
-    CallScreen.update(call.number);
+    this.updateCallNumber(call.number);
 
     CallScreen.render(typeOfCall);
 
@@ -365,8 +363,21 @@ var OnCallHandler = {
       !navigator.mozTelephony.speakerEnabled;
   },
 
-  lookupContact: function och_lookupContact(number) {
+  updateCallNumber: function och_updateCallNumber(number) {
+    var voicemail = navigator.mozVoicemail;
+    if (voicemail) {
+      if (voicemail.number == number) {
+        CallScreen.update(voicemail.displayName);
+        return;
+      }
+    }
+
     Contacts.findByNumber(number, function lookupContact(contact) {
+      if (!contact) {
+        CallScreen.update(number);
+        return;
+      }
+
       if (contact.name) {
         CallScreen.update(contact.name + ' - ');
       }

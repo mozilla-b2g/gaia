@@ -90,6 +90,10 @@ let permissions = {
     "urls": [],
     "pref": "dom.mozBluetooth.whitelist"
   },
+  "voicemail": {
+    "urls": [],
+    "pref": "dom.voicemail.whitelist"
+  },
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"

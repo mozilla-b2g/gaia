@@ -50,6 +50,8 @@ function testContactsEdition(window, document, nextStep) {
     nextStep();
   });
 
+  ok(foundContact != null, 'Contact was found');
+
   var contactId = foundContact.id;
   var entry = document.getElementById(contactId);
   ok(entry != null, 'Entry for the contact created');
@@ -91,6 +93,7 @@ function testContactsEdition(window, document, nextStep) {
     nextStep();
   });
 
+  ok(foundContact != null, 'Contact was found');
   ok(foundContact.id == contactId, 'Contact has been updated');
 
   // -- Deleting the contact

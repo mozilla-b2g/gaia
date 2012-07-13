@@ -218,6 +218,8 @@ var NotificationScreen = {
       this.toaster.classList.remove('displayed');
       this._toasterTimeout = null;
     }).bind(this), this.TOASTER_TIMEOUT);
+
+    return notificationNode;
   },
 
   removeNotification: function ns_removeNotification(notificationNode) {

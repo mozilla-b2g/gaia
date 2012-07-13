@@ -114,26 +114,31 @@
   font-size: 2rem;
 }
 
-.asterisk {
-  background-image: url('images/asterisk.png');
+.keypad-icon {
   background-repeat: no-repeat;
+  background-position: center;
+  pointer-events: none;
+
   height: 3rem;
   width: 3rem;
   background-size: 3rem 3rem;
-  background-position: center;
   margin: auto;
-  pointer-events: none;
+}
+
+.keypad-subicon {
+  vertical-align: text-bottom;
+  padding-bottom: 0.25rem;
+  padding-left: 0rem;
+  margin-left: -0.25rem;
+  -moz-user-select: none;
+}
+
+.asterisk {
+  background-image: url('images/asterisk.png');
 }
 
 .sharp {
   background-image: url('images/sharp.png');
-  background-repeat: no-repeat;
-  height: 3rem;
-  width: 3rem;
-  background-size: 3rem 3rem;
-  background-position: center;
-  margin: auto;
-  pointer-events: none;
 }
 
 #keypad-callbar {

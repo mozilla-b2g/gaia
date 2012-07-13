@@ -48,6 +48,10 @@ var StatusBar = {
       case 'volumechange':
         this.updateMuteState();
         break;
+
+      case 'statuschanged':
+        this.updateVoicemail();
+        break;
     }
   },
 
@@ -56,6 +60,7 @@ var StatusBar = {
     this.updateBattery();
     this.updateConnection();
     this.updateWifi();
+    this.updateVoicemail();
   },
 
   addListeners: function sb_addListeners() {
@@ -77,6 +82,11 @@ var StatusBar = {
     if (wifiManager) {
       wifiManager.onstatuschange =
         wifiManager.connectionInfoUpdate = (this.updateWifi).bind(this);
+    }
+
+    var voicemail = window.navigator.mozVoicemail;
+    if (voicemail) {
+      voicemail.addEventListener('statuschanged', this);
     }
 
     window.addEventListener('volumechange', this);
@@ -101,6 +111,11 @@ var StatusBar = {
     if (wifiManager) {
       wifiManager.onstatuschange =
         wifiManager.connectionInfoUpdate = null;
+    }
+
+    var voicemail = window.navigator.mozVoicemail;
+    if (voicemail) {
+      voicemail.removeEventListener('statuschanged', this);
     }
 
     clearTimeout(this._clockTimer);
@@ -264,6 +279,91 @@ var StatusBar = {
     }
   },
 
+  updateVoicemail: function sb_updateVoicemail() {
+    var voicemail = window.navigator.mozVoicemail;
+    if (!voicemail) {
+      return;
+    }
+
+    var status = voicemail.status;
+    if (!status) {
+      return;
+    }
+
+    this.updateVoicemailStatus(status);
+  },
+
+  updateVoicemailStatus: function updateVoicemailStatus(status) {
+    var _ = window.navigator.mozL10n.get;
+    var title = status.returnMessage;
+    var showCount = status.hasMessages && status.messageCount > 0;
+
+    this.voicemail.hidden = !status.hasMessages;
+    this.voicemailCount.hidden = !showCount;
+
+    if (showCount) {
+      this.voicemailCount.textContent = status.messageCount;
+      if (!title) {
+        title = _('newVoicemails', { n: status.messageCount });
+      }
+    } else {
+      if (!title) {
+        title = _('newVoicemailsUnknown');
+      }
+    }
+
+    var text = title;
+    var voicemailNumber = navigator.mozVoicemail.number;
+    if (voicemailNumber) {
+      text = _('dialNumber', { number: voicemailNumber });
+    }
+
+    this.hideVoicemailNotification();
+
+    if (status.hasMessages) {
+      window.navigator.mozApps.getSelf().onsuccess = (function(event) {
+        var app = event.target.result;
+        var icon = app.installOrigin + '/style/statusbar/images/voicemail.png';
+        this.showVoicemailNotification(title, text, icon, voicemailNumber);
+      }).bind(this);
+    }
+  },
+
+  showVoicemailNotification: function sb_showVoicemailNotification(title, text,
+    icon, voicemailNumber)
+  {
+    this.voicemailNotification = NotificationScreen.addNotification({
+      id: 0, title: title, text: text, icon: icon
+    });
+
+    if (!voicemailNumber) {
+      return;
+    }
+
+    var self = this;
+    function vmNot_onTap(event) {
+      self.voicemailNotification.removeEventListener('tap', vmNot_onTap);
+
+      var telephony = window.navigator.mozTelephony;
+      if (!telephony) {
+        return;
+      }
+
+      telephony.dial(voicemailNumber);
+    }
+
+    this.voicemailNotification.addEventListener('tap', vmNot_onTap);
+  },
+
+  hideVoicemailNotification: function hideVoicemailNotification() {
+    if (this.voicemailNotification) {
+      if (this.voicemailNotification.parentNode) {
+        NotificationScreen.removeNotification(this.voicemailNotification);
+      }
+      this.voicemailNotification = null;
+    }
+  },
+
   updateMuteState: function sb_updateMuteState() {
     SettingsListener.observe('audio.volume.master', 5, (function(volume) {
       this.mute.hidden = volume;
@@ -277,8 +377,8 @@ var StatusBar = {
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
     var elements = ['signal', 'conn', 'data', 'wifi',
-      'notification', 'mute', 'battery', 'battery-fuel',
-      'battery-charging', 'time'];
+      'notification', 'voicemail', 'voicemail-count', 'mute', 'battery',
+      'battery-fuel', 'battery-charging', 'time'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

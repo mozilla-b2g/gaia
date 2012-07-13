@@ -304,7 +304,7 @@ var KeypadManager = {
 
           // Sending the DTMF tone
           var telephony = navigator.mozTelephony;
-          if (telephony) {
+          if (telephony && telephony.startTone) {
             telephony.startTone(key);
             window.setTimeout(function ch_stopTone() {
               telephony.stopTone();
@@ -324,6 +324,14 @@ var KeypadManager = {
             self._longPress = true;
             self._updatePhoneNumberView();
           }, 400, this);
+        }
+
+        // Voicemail long press (needs to be longer since it actually dials)
+        if (key == '1') {
+          this._holdTimer = setTimeout(function(self) {
+            self._longPress = true;
+            self._callVoicemail();
+          }, 3000, this);
         }
       } else if (event.type == 'mouseup') {
         // If it was a long press our work is already done
@@ -368,5 +376,12 @@ var KeypadManager = {
       this.formatPhoneNumber('dialpad');
     }
     this._holdTimer = null;
+  },
+
+  _callVoicemail: function kh_callVoicemail() {
+     var voicemail = navigator.mozVoicemail;
+     if (voicemail && voicemail.number) {
+       CallHandler.call(voicemail.number);
+     }
   }
 };
