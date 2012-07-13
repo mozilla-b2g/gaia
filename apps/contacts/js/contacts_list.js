@@ -272,8 +272,7 @@ contacts.List = (function() {
     }
 
     for (var i = 0; i < headers.length; i++) {
-      var header = headers[i];
-      header.classList.toggle('search-hide');
+      headers[i].classList.toggle('search-hide');
     }
   }
 
