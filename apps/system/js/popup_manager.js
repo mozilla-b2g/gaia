@@ -13,7 +13,7 @@ var PopupManager = {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this));
     window.addEventListener('mozbrowserclose', this.close.bind(this));
 
-    window.addEventListener('keyup', this.backHandling.bind(this), true);
+    window.addEventListener('home', this.backHandling.bind(this), true);
   },
 
   open: function pm_open(evt) {
@@ -58,13 +58,9 @@ var PopupManager = {
     if (!this._currentPopup)
       return;
 
-    if (evt.keyCode == evt.DOM_VK_ESCAPE ||
-        evt.keyCode == evt.DOM_VK_HOME) {
-
-      this.close();
-      evt.preventDefault();
-      evt.stopPropagation();
-    }
+    this.close();
+    evt.preventDefault();
+    evt.stopPropagation();
   }
 };
 

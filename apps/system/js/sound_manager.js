@@ -6,27 +6,14 @@
 var SoundManager = {
   /*
   * return the current volume
-  * Must not multate directly - use changeVolume.
+  * Must not mutate directly - use changeVolume.
   * Listen to 'volumechange' event to properly handle status changes
   */
   currentVolume: 5,
 
-  /*
-  * Starting repeating the key press after the key is being hold down
-  * for kKeyRepeatTimeout ms. 0 to disable.
-  * XXX: Disable to prevent out of sync with actual volume change in Gecko.
-  *
-  */
-  kKeyRepeatTimeout: 0, // was 700
-
-  /*
-  * Interval of each repeat
-  */
-  kKeyRepeatRate: 100,
-
   init: function soundManager_init() {
-    window.addEventListener('keydown', this);
-    window.addEventListener('keyup', this);
+    window.addEventListener('volumeup', this);
+    window.addEventListener('volumedown', this);
   },
 
   handleEvent: function soundManager_handleEvent(evt) {
@@ -34,53 +21,13 @@ var SoundManager = {
       return;
 
     switch (evt.type) {
-      case 'keydown':
-        switch (evt.keyCode) {
-          case evt.DOM_VK_PAGE_UP:
-            this.repeatKey((function repeatKeyCallback() {
-              if (this.currentVolume == 10) {
-                clearTimeout(this._timer);
-                return;
-              }
-              this.changeVolume(1);
-            }).bind(this));
-            break;
-
-          case evt.DOM_VK_PAGE_DOWN:
-            this.repeatKey((function repeatKeyCallback() {
-              if (this.currentVolume == 0) {
-                clearTimeout(this._timer);
-                return;
-              }
-              this.changeVolume(-1);
-            }).bind(this));
-            break;
-        }
+      case 'volumeup':
+        this.changeVolume(1);
         break;
-
-      case 'keyup':
-        if (evt.keyCode !== evt.DOM_VK_PAGE_UP &&
-            evt.keyCode !== evt.DOM_VK_PAGE_DOWN)
-          return;
-
-        clearTimeout(this._timer);
+      case 'volumedown':
+        this.changeVolume(-1);
         break;
     }
-  },
-
-  repeatKey: function soundManager_repeatKey(callback) {
-    callback();
-    clearTimeout(this._timer);
-
-    if (!this.kKeyRepeatTimeout)
-      return;
-
-    this._timer = window.setTimeout((function volumeTimeout() {
-      callback();
-      this._timer = setInterval(function volumeInterval() {
-        callback();
-      }, this.kKeyRepeatRate);
-    }).bind(this), this.kKeyRepeatTimeout);
   },
 
   changeVolume: function soundManager_changeVolume(delta) {

@@ -26,23 +26,16 @@ var UtilityTray = {
     }, this);
 
     window.addEventListener('screenchange', this);
-    window.addEventListener('keyup', this, true);
+    window.addEventListener('home', this, true);
 
     this.overlay.addEventListener('transitionend', this);
   },
 
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
-      case 'keyup':
-        if (!this.shown || evt.keyCode !== evt.DOM_VK_HOME)
-          return;
-
-        // doesn't work right now, see:
-        // https://github.com/mozilla-b2g/gaia/issues/1663
-        evt.preventDefault();
-        evt.stopPropagation();
-
-        this.hide();
+      case 'home':
+        if (this.shown)
+          this.hide();
         break;
 
       case 'screenchange':

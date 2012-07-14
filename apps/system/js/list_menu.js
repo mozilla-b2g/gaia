@@ -22,7 +22,7 @@ var ListMenu = {
   init: function lm_init() {
     window.addEventListener('click', this, true);
     window.addEventListener('screenchange', this, true);
-    window.addEventListener('keyup', this, true);
+    window.addEventListener('home', this, true);
   },
 
   // Pass an array of list items and handler for clicking on the items
@@ -125,15 +125,12 @@ var ListMenu = {
           this.onreturn(action);
         break;
 
-      case 'keyup':
+      case 'home':
         if (this.visible) {
-          if (evt.keyCode == evt.DOM_VK_ESCAPE ||
-            evt.keyCode == evt.DOM_VK_HOME) {
-            this.hide();
-            if (this.onreturn)
-              this.onreturn(null);
-            evt.stopPropagation();
-          }
+          this.hide();
+          if (this.onreturn)
+            this.onreturn(null);
+          evt.stopPropagation();
         }
         break;
     }

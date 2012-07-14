@@ -26,10 +26,8 @@ var ScreenManager = {
   _dimStep: 0.005,
 
   init: function scm_init() {
-    /* Allow others to cancel the keyup event but not the keydown event */
-    window.addEventListener('keydown', this, true);
-    window.addEventListener('keyup', this);
-
+    window.addEventListener('home', this);
+    window.addEventListener('sleep', this);
     window.addEventListener('devicelight', this);
     window.addEventListener('mozfullscreenchange', this);
     window.addEventListener('mozvisibilitychange', this, true);
@@ -126,28 +124,18 @@ var ScreenManager = {
         }
         break;
 
-      // The screenshot module also listens for the SLEEP key and
-      // may call preventDefault() on the keyup and keydown events.
-      case 'keydown':
-        if (evt.keyCode !== evt.DOM_VK_SLEEP &&
-            evt.keyCode !== evt.DOM_VK_HOME || this._screenWakeLocked) {
-          return;
-        }
-
-        if (!evt.defaultPrevented) {
-          this._turnOffScreenOnKeyup = true;
-        }
-
-        if (!this.screenEnabled || this._inTransition) {
+      case 'sleep':
+        if (this._screenWakeLocked)
+          break;
+        if (!this.screenEnabled || this._inTransition)
           this.turnScreenOn();
-          this._turnOffScreenOnKeyup = false;
-        }
+        else
+          this.turnScreenOff(true);
         break;
 
-      case 'keyup':
-        if (this.screenEnabled && this._turnOffScreenOnKeyup &&
-            evt.keyCode == evt.DOM_VK_SLEEP && !evt.defaultPrevented)
-          this.turnScreenOff(true);
+      case 'home':
+        if (this._inTransition)
+          this.turnScreenOn();
         break;
     }
   },
