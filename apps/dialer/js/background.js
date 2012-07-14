@@ -47,7 +47,8 @@
       return;
 
     var host = document.location.host;
-    window.open('http://' + host + '/oncall.html#' + call.state,
+    var protocol = document.location.protocol;
+    window.open(protocol + '//' + host + '/oncall.html#' + call.state,
                 'call_screen', 'attention');
 
     if (call.state != 'incoming')

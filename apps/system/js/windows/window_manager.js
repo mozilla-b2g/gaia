@@ -158,6 +158,7 @@ var WindowManager = (function() {
       windows.classList.add('active');
 
       classes.add('faded');
+      setTimeout(openCallback);
     } else if (classes.contains('faded') && prop === 'opacity') {
       openFrame.setVisible(true);
       openFrame.focus();
@@ -168,7 +169,6 @@ var WindowManager = (function() {
       evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
       openFrame.dispatchEvent(evt);
 
-      setTimeout(openCallback);
     } else if (classes.contains('close') && prop === 'color') {
       closeFrame.classList.remove('active');
       windows.classList.remove('active');

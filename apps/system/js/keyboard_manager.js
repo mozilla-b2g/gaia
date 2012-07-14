@@ -4,7 +4,7 @@ var KeyboardManager = (function() {
   // XXX TODO: Retrieve it from Settings, allowing 3rd party keyboards
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-  var KEYBOARD_URL = 'http://keyboard.' + domain;
+  var KEYBOARD_URL = document.location.protocol + '//keyboard.' + domain;
 
   var keyboardFrame, keyboardOverlay;
 
