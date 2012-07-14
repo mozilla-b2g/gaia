@@ -29,26 +29,39 @@ var MessageManager = {
 
       case 'hashchange':
         var bodyclassList = document.body.classList;
+        var mainWrapper = document.getElementById('main-wrapper');
+        var threadMessages = document.getElementById('thread-messages');
         switch (window.location.hash) {
-          case '':
-            bodyclassList.remove('conversation');
-            bodyclassList.remove('conversation-new-msg');
+          case '#new':
+            document.getElementById('messages-container').innerHTML = '';
+            threadMessages.classList.add('new');
+            mainWrapper.classList.toggle('to-left');
+            break;
+          case '#thread-list':
+            if(mainWrapper.classList.contains('edit')){
+              mainWrapper.classList.remove('edit');
+            }else if(threadMessages.classList.contains('new')){
+              threadMessages.classList.remove('new');
+              mainWrapper.classList.toggle('to-left');
+            }else{
+              mainWrapper.classList.toggle('to-left');
+            }
             break;
           case '#edit':
-            //TODO Add new style management
+            mainWrapper.classList.toggle('edit');
             break;
           default:
             var num = this.getNumFromHash();
+
             if (num) {
-              ThreadUI.cleanFields();
-              if (num == '*') {
-                document.body.classList.add('conversation-new-msg');
-                document.body.classList.add('conversation');
-              }else {
+              if(mainWrapper.classList.contains('edit')){
+                mainWrapper.classList.remove('edit');
+              }else if(threadMessages.classList.contains('new')){
+                threadMessages.classList.remove('new');
+              }else{
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages, filter);
-                document.body.classList.remove('conversation-new-msg');
-                document.body.classList.add('conversation');
+                mainWrapper.classList.toggle('to-left');
               }
             }
           break;
@@ -181,7 +194,7 @@ var MessageManager = {
 var ThreadListUI = {
   get view() {
     delete this.view;
-    return this.view = document.getElementById('messages-container');
+    return this.view = document.getElementById('thread-list-container');
   },
 
   init: function thlui_init() {
@@ -257,7 +270,6 @@ var ThreadListUI = {
             '    </div>') +
             '    <div class="msg">"' + bodyHTML + '"</div>' +
             '    <div class="unread-tag"></div>' +
-            '    <div class="photo"></div>' +
             '  </a>';
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
@@ -280,27 +292,27 @@ var ThreadListUI = {
 var ThreadUI = {
   get view() {
     delete this.view;
-    return this.view = document.getElementById('thread-list-container');
+    return this.view = document.getElementById('messages-container');
   },
 
   get num() {
     delete this.number;
-    return this.number = document.getElementById('view-num');
+    return this.number = document.getElementById('receiver-tel');
   },
 
   get title() {
     delete this.title;
-    return this.title = document.getElementById('view-name');
+    return this.title = document.getElementById('header-text');
   },
 
   get input() {
     delete this.input;
-    return this.input = document.getElementById('view-msg-text');
+    return this.input = document.getElementById('message-to-send');
   },
 
   get sendButton() {
     delete this.sendButton;
-    return this.sendButton = document.getElementById('view-msg-send');
+    return this.sendButton = document.getElementById('send-message');
   },
 
   get pickButton() {
@@ -313,14 +325,14 @@ var ThreadUI = {
     this.headerIndex = 0;
 
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
-    this.pickButton.addEventListener('click', this.pickContact.bind(this));
-    this.input.addEventListener('input', this.updateInputHeight.bind(this));
-    this.view.addEventListener('click', this);
 
-    var windowEvents = ['resize', 'keyup', 'transitionend'];
-    windowEvents.forEach(function(eventName) {
-      window.addEventListener(eventName, this);
-    }, this);
+    this.pickButton.addEventListener('click', this.pickContact.bind(this));
+
+
+    // var windowEvents = ['resize', 'keyup', 'transitionend'];
+    // windowEvents.forEach(function(eventName) {
+    //   window.addEventListener(eventName, this);
+    // }, this);
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -351,7 +363,7 @@ var ThreadUI = {
     var newHeight = input.getBoundingClientRect().height;
     var bottomToolbarHeight = (newHeight + 32) + 'px';
     var bottomToolbar =
-        document.getElementById('view-bottom-toolbar');
+        document.getElementById('new-sms-form');
 
     bottomToolbar.style.height = bottomToolbarHeight;
 
@@ -564,21 +576,21 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
-window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  var number = activity.source.data.number;
-  var displayThread = function actHandleDisplay() {
-    if (number)
-      window.location.hash = '#num=' + number;
-  }
+// window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+//   var number = activity.source.data.number;
+//   var displayThread = function actHandleDisplay() {
+//     if (number)
+//       window.location.hash = '#num=' + number;
+//   }
 
-  if (document.readyState == 'complete') {
-    displayThread();
-  } else {
-    window.addEventListener('localized', function loadWait() {
-      window.removeEventListener('localized', loadWait);
-      displayThread();
-    });
-  }
+//   if (document.readyState == 'complete') {
+//     displayThread();
+//   } else {
+//     window.addEventListener('localized', function loadWait() {
+//       window.removeEventListener('localized', loadWait);
+//       displayThread();
+//     });
+//   }
 
-  activity.postResult({ status: 'accepted' });
-});
+//   activity.postResult({ status: 'accepted' });
+// });

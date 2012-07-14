@@ -12,7 +12,7 @@
     font-size: 10px;
   }
 }
-
+/*
 
 html, body {
   height: 100%;
@@ -62,16 +62,9 @@ body.conversation-new-msg .contact-show {
   display: block;
 }
 
-/* View - Slide Horizontal Transition */
-/* XXX hack: the width is adjusted (0-100%) with a delayed transition in order
- *           to hide the horizontal scrollbar on the device (at least, when the
- *           transition is over).
- * This is just a workaround: the platform bug should be fixed later.  */
-
 #view {
   -moz-transform: translateX(100%);
 
-  /* XXX hack */
   overflow: hidden;
   z-index: 1;
   width: 0%;
@@ -81,7 +74,6 @@ body.conversation-new-msg .contact-show {
 #msg-conversations {
   -moz-transform: translateX(0);
 
-  /* XXX hack */
   overflow: hidden;
   z-index: 10;
 }
@@ -89,7 +81,6 @@ body.conversation-new-msg .contact-show {
 body.conversation #view {
   -moz-transform: translateX(0);
 
-  /* XXX hack */
   z-index: 10;
   width: 100%;
   -moz-transition: -moz-transform 0.3s ease;
@@ -98,7 +89,6 @@ body.conversation #view {
 body.conversation #msg-conversations {
   -moz-transform: translateX(-100%);
 
-  /* XXX hack */
   z-index: 1;
   width: 0%;
   -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
@@ -144,7 +134,6 @@ body.conversation #msg-conversations {
   -moz-box-flex: 0;
 }
 
-/*Generic set of actions in toolbar */
 .toolbar-top [role="menu"] {
   height: 5rem; float: right;
 }
@@ -180,7 +169,6 @@ body.conversation #msg-conversations {
   text-transform: uppercase;
 }
 
-/* Icon definitions */
 .view-header [data-icon] {
   display: inline-block;
   width: 3rem;
@@ -262,7 +250,6 @@ body.conversation #msg-conversations {
                 hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
 }
 
-/* Remove dotted outline for button in firefox. */
 .button::-moz-focus-inner {
   border: 0;
 }
@@ -289,25 +276,24 @@ body.conversation #msg-conversations {
   font-weight: normal;
 }
 
-#messages-container {
+#thread-list-container {
  -moz-transition: top 0.3s ease;
 }
-
-#messages-container .item {
+*/
+#thread-list-container .item {
+  text-align: left;
   position: relative;
   overflow: hidden;
 }
 
-#messages-container .item > a {
+#thread-list-container .item > a {
   -moz-box-sizing: border-box;
   display: block;
   text-decoration: none;
   outline: none;
   height: 6rem;
   position: relative;
-  /* Remove the thumbnail for current stage.
-   *padding need to 11.2rem + img width when social network integration is ready*/
-  padding: 1rem 1.6rem 1rem 3rem;
+ padding: 1rem 1.6rem 1rem 3rem;
   border-top: 0.1rem solid hsla(207,22%,92%,1);
   width: 100%;
   -moz-transition: padding 0.3s ease-out;
@@ -315,32 +301,32 @@ body.conversation #msg-conversations {
   text-overflow: ellipsis;
 }
 
-#messages-container .item > a:active {
+#thread-list-container .item > a:active {
   background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
 }
 
-#messages-container .item > a:active > .name {
+#thread-list-container .item > a:active > .name {
   color: white;
 }
 
-#messages-container .item > a:active > .msg {
+#thread-list-container .item > a:active > .msg {
   color: #ffbc8c;
   text-shadow: none;
 }
 
-#messages-container .item > a.hide {
+#thread-list-container .item > a.hide {
   display: none;
 }
 
-#messages-container .item > a > * {
+#thread-list-container .item > a > * {
   pointer-events: none;
 }
 
-#messages-container .item > a:first-child {
+#thread-list-container .item > a:first-child {
   border-top-color: transparent;
 }
 
-#messages-container .item > a .unread-mark {
+#thread-list-container .item > a .unread-mark {
   display: none;
 }
 
@@ -363,10 +349,8 @@ a.unread .unread-mark .icon-unread-mark {
   background-image: url('images/updates.png');
 }
 
-/* fake input boxes for checkboxes*/
 
-
-#messages-container .item > a > span {
+#thread-list-container .item > a > span {
   position: absolute;
   top: -moz-calc(50% - 3.4rem);
   left: 4rem;
@@ -377,14 +361,14 @@ a.unread .unread-mark .icon-unread-mark {
   -moz-transition: opacity 0.3s ease-in;
 }
 
-#messages-container .item > a > input[type=checkbox] + span {
+#thread-list-container .item > a > input[type=checkbox] + span {
   opacity: 0.0;
   visibility: hidden;
   height: 6rem;
   border-radius: 0.5rem;
 }
 
-#messages-container .photo {
+#thread-list-container .photo {
   position: absolute;
   top: 0;
   right: 0;
@@ -393,7 +377,7 @@ a.unread .unread-mark .icon-unread-mark {
   overflow: hidden;
 }
 
-#messages-container .photo img {
+#thread-list-container .photo img {
   width: 100%;
 }
 
@@ -420,7 +404,7 @@ a.unread .unread-mark .icon-unread-mark {
   left: 10rem;
 }
 
-#messages-container .msg .highlight {
+#thread-list-container .msg .highlight {
   background: rgb(255, 255, 0);
 }
 
@@ -434,11 +418,11 @@ a.unread .unread-mark .icon-unread-mark {
   color: hsla(0,0%,0%,.5);
 }
 
-#messages-container .unread {
+#thread-list-container .unread {
   color: #1D8399;
 }
 
-#messages-container .unread-tag {
+#thread-list-container .unread-tag {
   position: absolute;
   visibility : hidden;
   height: 1rem;
@@ -448,10 +432,10 @@ a.unread .unread-mark .icon-unread-mark {
   background: url(../style/images/unread.png);
 }
 
-#messages-container .item > a.unread .unread-tag {
+#thread-list-container .item > a.unread .unread-tag {
   visibility : visible;
 }
-
+/*
 #msg-new-message-container {
   padding: 0;
   margin: 0;
@@ -629,13 +613,17 @@ body.conversation-new-msg #view-num {
 #view-edit:active {
   background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(0,0%,87%,1) 0.1rem, hsla(280,8%,93%,1) 100%);
 }
-
-#thread-list-container {
+*/
+#messages-container {
   bottom: 5.5rem;
-  background: #F4F4F4;
+  /*background: #F4F4F4;*/
+  text-align: left;
+}
+#messages-container > div:last-child {
+  margin-bottom: 5.5rem;
 }
 
-#thread-list-container > div .message-container {
+#messages-container > div .message-container {
   position: relative;
   padding: 1rem 1.5rem;
   -moz-box-sizing: border-box;
@@ -643,23 +631,23 @@ body.conversation-new-msg #view-num {
   -moz-transition: -moz-transform 0.3s ease;
 }
 
-#thread-list-container > div .message-bubble {
+#messages-container > div .message-bubble {
   position: absolute;
   top: -0.1rem;
   width: 1rem;
   height: 0.9rem;
 }
 
-#thread-list-container > div .sender > .message-bubble {
+#messages-container > div .sender > .message-bubble {
   right: -0.9rem;
   background: url(images/bubble_gray_corner.png);
 }
-#thread-list-container > div .receiver > .message-bubble {
+#messages-container > div .receiver > .message-bubble {
   left: -0.9rem;
   background: url(images/bubble_orange_corner.png);
 }
 
-#thread-list-container > div .sender {
+#messages-container > div .sender {
   border-radius: 0.5rem 0 0.5rem 0.5rem;
   background: #FFFFFF;
   border: 0.1rem solid #878787;
@@ -667,7 +655,7 @@ body.conversation-new-msg #view-num {
   margin-right: 2rem;
 }
 
-#thread-list-container > div .receiver {
+#messages-container > div .receiver {
   border-radius: 0 0.5rem 0.5rem 0.5rem;
   background: #F9F8EE;
   border: 0.1rem solid #F08A48;
@@ -675,7 +663,7 @@ body.conversation-new-msg #view-num {
   margin-right: 3.5rem;
 }
 
-#thread-list-container > div .pending {
+#messages-container > div .pending {
   -moz-animation: fadeIn 2s ease;
   opacity: 0.5;
 }
@@ -689,7 +677,7 @@ body.conversation-new-msg #view-num {
   }
 }
 
-#thread-list-container .photo {
+#messages-container .photo {
   position: absolute;
   top: 0;
   width: 8rem;
@@ -702,19 +690,19 @@ body.conversation-new-msg #view-num {
   z-index: 2;
 }
 
-#thread-list-container > div.sender .photo {
+#messages-container > div.sender .photo {
   left: 0;
 }
 
-#thread-list-container > div.receiver .photo {
+#messages-container > div.receiver .photo {
   right: 0;
 }
 
-#thread-list-container .photo img {
+#messages-container .photo img {
   width: 100%;
 }
 
-#thread-list-container > div .text {
+#messages-container > div .text {
   color: #000000;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -728,7 +716,7 @@ body.conversation-new-msg #view-num {
   color: #5B5B5B;
 }
 
-#thread-list-container > div .message-container::before {
+#messages-container > div .message-container::before {
   content: '';
   display: block;
   width: 1rem;
@@ -736,17 +724,17 @@ body.conversation-new-msg #view-num {
   position: absolute;
 }
 
-#thread-list-container > div .sender::before {
+#messages-container > div .sender::before {
   background: url(images/bubble_gray_corner-png);
   right: 0.1rem;
 }
 
-#thread-list-container > div .receiver::before {
+#messages-container > div .receiver::before {
   background: url(images/bubble_orange_corner-png);
   left: -0.1rem;
 }
 
-#thread-list-container > div.message-block {
+#messages-container > div.message-block {
   -moz-box-sizing: border-box;
   display: block;
   text-decoration: none;
@@ -758,15 +746,14 @@ body.conversation-new-msg #view-num {
   right: 9rem;
 }
 
-#thread-list-container > div.message-block > * {
+#messages-container > div.message-block > * {
   pointer-events: none;
 }
 
-#thread-list-container > div.message-block:first-child {
+#messages-container > div.message-block:first-child {
   border-top-color: transparent;
 }
-
-/* fake input boxes for checkboxes*/
+/*
 .fake-checkbox {
   display: block;
   -moz-transform: translateX(4rem);
@@ -805,7 +792,7 @@ body.conversation-new-msg #view-num {
   background-position: center bottom;
 }
 
-#thread-list-container div.message-block > span {
+#messages-container div.message-block > span {
   position: absolute;
   top: -moz-calc(50% - 3.4rem);
   left: 2rem;
@@ -816,7 +803,7 @@ body.conversation-new-msg #view-num {
 }
 
 
-#thread-list-container div.message-block > span {
+#messages-container div.message-block > span {
   position: absolute;
   top: -moz-calc(50% - 3.4rem);
   left: 2rem;
@@ -826,7 +813,7 @@ body.conversation-new-msg #view-num {
   border: none;
 }
 
-#thread-list-container div.message-block > input[type=checkbox] + span {
+#messages-container div.message-block > input[type=checkbox] + span {
   width: 6rem;
   height: 6rem;
   border: 0.4rem solid;
@@ -838,11 +825,10 @@ body.conversation-new-msg #view-num {
   background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-#thread-list-container div.message-block > input[type=checkbox]:checked + span {
+#messages-container div.message-block > input[type=checkbox]:checked + span {
   background: url("./images/checked.png") no-repeat scroll center center,
   -moz-linear-gradient(#ffffff, #eaeae4);
 }
-/** end fake checkboxes **/
 
 
 #view-bottom-toolbar {
@@ -903,12 +889,43 @@ body.conversation-new-msg #view-num {
 }
 
 
-/* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
+*/
+
+.new-sms-form {
+  border-top: .1rem solid #C6C6C6;
+  background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
+  height: 3.5rem;
+ 
+
+}
+
+#message-to-send {
+  /*background: red;*/
+   margin-top: .5rem;
+   margin-bottom: .5rem;
+   margin-left: 1.5rem;
+   height: 2.5rem;
+   width: -moz-calc(100% - 9.5rem);
+   -moz-box-sizing: border-box;
+   border-radius: 0.3rem;
+    border: 1px solid rgba(0,0,0,.3);
+  box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
+  font-size: -moz-calc(7 * 0.226rem);
+  font-family: 'FontRegular';
+}
+
+#send-message {
+  background: yellow;
+  height: 100%;
+  width: 6rem;
+  float: right;
+}
 
 .groupHeader {
+  text-align: left;
   border-bottom: solid 1px #ff4e00;
   padding-left: 3rem;
   padding-top: 1rem;
@@ -917,13 +934,13 @@ body.hidden *[data-l10n-id] {
   text-transform: uppercase;
   font-family: 'Open Sans';
 }
-
-#thread-list-container .groupHeader {
+/*
+#messages-container .groupHeader {
   margin-bottom: 0.5rem;
 }
 
-/** This is a temporary code for demo **/
 #view-delete-button #view-delete-all-button #msg-delete-all-button #msg-delete-button {
   display: none;
 }
 
+*/
