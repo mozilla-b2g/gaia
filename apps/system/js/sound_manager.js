@@ -27,6 +27,12 @@ var SoundManager = {
   init: function soundManager_init() {
     window.addEventListener('keydown', this);
     window.addEventListener('keyup', this);
+
+    var self = this;
+    SettingsListener.observe('audio.volume.master', this.currentVolume,
+      function soundManager_observe(value) {
+        self.currentVolume = value * 10;
+    });
   },
 
   handleEvent: function soundManager_handleEvent(evt) {
@@ -111,6 +117,11 @@ var SoundManager = {
     this._timeout = window.setTimeout(function hideSound() {
       classes.remove('visible');
     }, 1500);
+
+    var settings = navigator.mozSettings;
+    if (settings) {
+      settings.getLock().set({'audio.volume.master': this.currentVolume / 10});
+    }
 
     this.fireVolumeChangeEvent();
   },
