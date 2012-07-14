@@ -1,33 +1,532 @@
-html, body {
-  margin:0;
-  padding:0;
+/* Media definitions */
+@media screen and (max--moz-device-pixel-ratio: 1.5) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* Font definitions */
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans Bold';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans Semibold';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
   overflow: hidden;
 }
 
+button::-moz-focus-inner {
+  padding: 0;
+  border: 0
+}
+
+.cache {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: -1;
+  opacity: 0;
+  overflow: hidden;
+  width: 0;
+  height: 0;
+}
+
+/* Keyboard */
 #keyboard {
   position: absolute;
-  font-family: 'Open Sans', sans-serif;
-  font-weight: bold;
-  z-index: 9996;
   bottom: 0;
-  overflow: visible;
-  background-color: #f0f1f2;
+  z-index: 15;
   width: 100%;
+  background: #6a6f73 url(images/base-bg.png) repeat-x center bottom;
+  border-top: solid 1px #000;
   -moz-transition: -moz-transform 0.3s ease;
-  border-top: 2px solid #a3a3a3;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
 }
 
-#keyboard.imminent {
-  -moz-transition: none;
-}
-
-#keyboard[data-hidden] {
-  bottom: -2px;
+#keyboard.hide{
   -moz-transform: translateY(100%);
 }
 
+/* Rows */
+.keyboard-row {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+}
+
+.keyboard-row:first-child {
+  padding-top: 0.5rem;
+  border-top: solid 1px #a6a9ab;
+}
+
+/* Buttons: logic keys */
+.keyboard-key {
+  -moz-box-sizing: border-box;
+  padding: 0 0.1rem;
+  border: none;
+  background: url(images/key-shadow.png) no-repeat center -1px;
+  background-size: 100% 100%;
+  min-width: 2.6rem;
+  display: inline-block;
+}
+
+/* Visible keys */
+.keyboard-key > .visual-wrapper {
+  display: inline-block;
+  height: 4rem;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  position: relative;
+  border: solid 1px #000;
+  border-radius: 0.3rem;
+  background: #252220 url(images/key-bg.png) no-repeat center bottom;
+  background-size: 100% 100%;
+}
+
+/* Rounded corners hack, this was tested against using border-radius CSS propery
+    The result is an slowness keyboard using this approach
+ */
+/*.keyboard-key i {
+  background: #6A6F73 url(images/key-radius.png) no-repeat left top;
+  background-size: 0.6rem 0.6rem;
+  height: 0.3rem;
+  width: 0.3rem;
+  position: absolute;
+  z-index: 100;
+}
+.keyboard-key .top-start {
+  back ground-position: left top; left: -1px; top: -1px;
+}
+.keyboard-key .top-end {
+  background-position: right top; right: -1px; top: -1px;
+}
+.keyboard-key .bottom-start {
+  background-position: left bottom; left: -1px; bottom: -1px;
+}
+.keyboard-key .bottom-end {
+    background-position: right bottom; right: -1px; bottom: -1px;
+  }
+  */
+
+
+.keyboard-key > .visual-wrapper > span {
+  border-top: solid 1px #514e4d;
+  border-radius: 0.2rem 0.2rem 0 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  font: 2.4rem/3.2rem Open Sans Bold;
+  text-align: center;
+  color: #fff;
+}
+
+/* Highlights */
+.keyboard-key:not(.special-key).highlighted {
+  position: relative;
+  z-index: 100;
+}
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper {
+  background: #6ec5d5;
+  border-radius: 0 0  0.3rem 0.3rem;
+  border: solid 1px #8BD1DD;
+  border-top: none;
+  margin: -0.5rem 0 0;
+  height: 4.3rem;
+}
+
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem;
+}
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.5rem;
+  background: #6ec5d5;
+  z-index: 1;
+} 
+
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper > span {
+  font: 3.8rem/4.5rem Open Sans Bold, Sans-serif;
+  background: #6ec5d5;
+  color: #1a3f46;
+  border: solid 1px #8BD1DD;
+  border-radius: 0.3rem;
+  height: 5.2rem;
+  top: -5.3rem;
+  left: -0.8rem;
+  right: -0.8rem;
+}
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper > span:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem;
+}
+
+.keyboard-key:not(.special-key).highlighted:last-child  > .visual-wrapper > span {
+  right: -1px;
+  border-bottom-right-radius: 0;
+}
+.keyboard-key:not(.special-key).highlighted:last-child  #keyboard-accent-char-menu {
+  right: -1px;
+}
+
+
+.keyboard-key:not(.special-key).highlighted:first-child  > .visual-wrapper > span {
+  left: -1px;
+  border-bottom-left-radius: 0;
+}
+.keyboard-key:not(.special-key).highlighted:first-child  #keyboard-accent-char-menu {
+  left: -1px;
+}
+
+
+/*  Special keys */
+.keyboard-key.special-key > .visual-wrapper {
+  border-color: #2a2c2e;
+  background: #43474a;
+}
+.keyboard-key.special-key > .visual-wrapper > span { 
+  border-top-color: #696c6e;
+  font-size: 1.5rem;
+  line-height: 4rem;
+  font-family: 'Keyboard Symbols', sans-serif;
+  color: #ccc;
+}
+
+/* Highlight for special keys */
+.keyboard-key.special-key.highlighted > .visual-wrapper {
+  background: #4AB6CB;
+  border-color: #3f5459;
+}
+.keyboard-key.special-key.highlighted > .visual-wrapper > span {
+  border-top-color: #6ec5d5;
+  color: #1e4a52;
+ }
+.keyboard-key.special-key.highlighted > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  left: -0.2rem;
+  right: -0.2rem;
+  top: -0.2rem;
+  bottom: -0.25rem;
+  z-index: -1;
+  background: #4495A8;
+  border-radius: 0.3rem;
+}
+
+/* Spacebar exceptions */
+.keyboard-key[data-keycode="32"] > .visual-wrapper {
+background-position: center 2.2rem; 
+}
+
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper {
+  border: solid 1px #000;
+  border-radius: 0.3rem;
+  background: #252220 url(images/key-bg.png) no-repeat center 2.2rem;
+  background-size: 100% 100%;
+  opacity: 0.5;
+  margin: 0;
+  height: 4rem;
+}
+
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span  {
+  border: none;
+  border-top: solid 1px #514e4d;
+  background: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: 100%;
+}
+
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper:after,
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper:before,
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after {
+  display: none;
+}
+
+/* Key states */
+/* Press */
+.keyboard-key.kbr-key-press > .visual-wrapper > span {
+  box-shadow: 0 0 0 2px #4495A8;
+}
+
+/* Active */
+.keyboard-key.kbr-key-active > .visual-wrapper > span {
+  color: #4495A8;
+}
+/* Hold */
+.keyboard-key.kbr-key-hold> .visual-wrapper {
+  background: #4AB6CB;
+  border-color: #3f5459;
+}
+.keyboard-key.kbr-key-hold> .visual-wrapper > span {
+  border-top-color: #6ec5d5;
+  color: #1e4a52;
+ }
+
+ /* Alt menu enabled */
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper {
+  background: #6EC5D5;
+  border: 1px solid #92D3E0;
+  border-top: none;
+  height: 4.5rem;
+}
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
+  display: none;
+}
+.keyboard-key.highlighted.kbr-menu-on  > .visual-wrapper:before {
+  background: #6EC5D5;
+}
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* Alternatives menu */
+#keyboard-accent-char-menu {
+  position: absolute;
+  bottom: 0;
+  left: 0.6rem;
+  margin-bottom: -1px;
+  height: 5.8rem;
+  border-radius: 0.3rem;
+  background: #6EC5D5;
+  border: 1px solid #92d3e0;
+  white-space: nowrap;
+  overflow: visible;
+  display: none;
+}
+#keyboard-accent-char-menu:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: -0.5rem;
+  bottom: -0.6rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem 0.6rem 0.6rem 0;
+}
+.keyboard-key:first-child #keyboard-accent-char-menu {
+  border-radius: 0.3rem 0.3rem 0.3rem 0;
+}
+.keyboard-key:last-child #keyboard-accent-char-menu {
+  border-radius: 0.3rem 0.3rem 0 0.3rem;
+}
+
+#keyboard-accent-char-menu.show {
+  display: block;
+}
+
+/* Alternatives from right */
+#keyboard-accent-char-menu.kbr-menu-right {
+  left: auto;
+  right: 0.6rem;
+}
+
+/* Non keyboard key styles in menu */
+#keyboard-accent-char-menu .keyboard-key {
+  background: none;
+  height: 100%;
+  vertical-align: top;
+  top: -1px;
+  position: relative;
+}
+#keyboard-accent-char-menu .keyboard-key:first-child {
+  padding-left: 0;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted:first-child > .visual-wrapper {
+  left: -1px;
+}
+#keyboard-accent-char-menu .keyboard-key:last-child {
+  padding-right: 0;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted:last-child > .visual-wrapper {
+  border-right: none;
+  right: 1px;
+}
+
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper {
+  background: none;
+  border: none;
+  border-radius: none;
+  margin: 0;
+  height: 5.8rem;
+}
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after, 
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:before,
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
+  display: none;
+}
+
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
+  border: none;
+  border-radius: 0;
+  font: 3rem/5rem Open Sans Bold;
+  color: #333;
+}
+
+/* Highlighted non keboard key style */
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
+  background: #333;
+  border: solid 0.2rem #333;
+  -moz-box-sizing: content-box;
+  border-top: solid 1px #999;
+  border-bottom: solid 1px #333;
+  border-radius: 0;
+}
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 100%;
+  font-weight: normal;
+  color: #fff;
+  background: none;
+}
+
+/* Language alternatives */
+#keyboard-accent-char-menu.kbr-menu-lang {
+  position: absolute;
+  bottom: 100%;
+  left: -1px;
+  right: auto;
+  top: auto;
+  margin-bottom: -2px;
+  height: auto;
+  max-height: 34rem;
+  white-space: normal;
+}
+
+/* Special key menu enabled */
+.keyboard-key.special-key.highlighted.kbr-menu-on {
+  position: relative;
+  z-index: 100;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper {
+  border-radius: 0 0 0.3rem 0.3rem;
+  margin-top: -0.5rem;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
+  color: #fff;
+  line-height: 5.2rem;
+  border: none;
+}
+
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.5rem;
+  z-index: 1;
+} 
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key {
+  padding: 0;
+  display: block;
+  height: 4rem;
+  top: 0;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper {
+  -moz-box-sizing: border-box;
+  border: none;
+  border-bottom: solid 1px #92D3E0;
+  border-radius: 0;
+  width: 10rem;
+  height: 4rem;
+}
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key:first-child > .visual-wrapper {
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > .visual-wrapper {
+  left: 0;
+  right: 0;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
+  font-family: 'Open Sans Semibold';  
+  font-size: 1.8rem;
+  line-height: 4rem;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key:last-child {
+  margin-bottom: 0.8rem;
+}
+
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.kbr-key-hold > .visual-wrapper {
+  background: #333;
+}
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.kbr-key-hold > .visual-wrapper > span {
+  color: #fff;
+}
+
+
+/* IMEs */
 #keyboard-pending-symbol-panel {
   position: absolute;
   top: -35px;
@@ -58,10 +557,11 @@ html, body {
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
   display: none;
+  margin: 0 -1rem 0 -1rem;
 }
 #keyboard.candidate-panel #keyboard-candidate-panel {
   display: block;
-  width: -moz-calc(100% - 62px);
+  width: -moz-calc(100% - 62px + 1rem);
   overflow-y: hidden;
 }
 
@@ -73,16 +573,17 @@ html, body {
   display: block;
   position: absolute;
   white-space: normal;
-  top: -2px;
-  bottom: 0;
+  top: 0;
   height: 100%;
   width: 100%;
   border: none;
   border-top: 2px solid #a3a3a3;
   z-index: 1;
+  margin:0; padding:0;
   overflow-x: hidden;
   overflow-y: auto;
 }
+
 #keyboard.full-candidate-panel #keyboard-candidate-panel span {
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
@@ -143,314 +644,15 @@ html, body {
   background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
-.keyboard-row {
-  margin: 10px 0;
-  /* XXX: 11 key-row layouts add up to 802px when width=800px,
-  need detail fix on key width calculation */
-  white-space: nowrap;
-}
-
-.keyboard-key {
-  display: inline-block;
-  vertical-align: middle;
-  overflow: hidden;
-  text-align: center;
-  color: rgb(36, 36, 36);
-  font-size: 33px;
-  height: 58px;
-  min-width: 0 !important;
-  margin: 0 2px;
-  -moz-box-sizing: border-box;
-  padding: 0;
-/*
- * Below are the rules from which the following bitmaps were
- * generated.  Painting with the raw style is currently too slow, so
- * we fall back on bitmaps.
- *
-  line-height: 55px;
-  border: 1px solid #d5d5d5;
-  -moz-box-shadow: inset 0 0 2px 2px #fff;
-  border-radius: 5px;
-  background: -moz-linear-gradient(top, #fff 10%, #fff 70%, #f6f6f6 100%);
-*/
-  line-height: 56px;
-  background: url(images/left.png) left top no-repeat,
-              url(images/right.png) right top no-repeat,
-              url(images/middle.png) left top repeat-x;
-}
-
-.keyboard-key.spacekey {
-  color: #9b9b9b;
-  font-size: 18px;
-}
-
-@font-face {
-  font-family: 'Keyboard Symbols';
-  font-weight: 600;
-  src: url('fonts/Keyboard-Symbols.woff');
-}
-
-.keyboard-key[data-keycode="-3"], /* IMEManager.SWITCH_KEYBOARD */
-.keyboard-key[data-keycode="8"], /* KeyEvent.DOM_VK_BACK_SPACE */
-.keyboard-key[data-keycode="20"], /* KeyEvent.DOM_VK_CAPS_LOCK */
-.keyboard-key[data-keycode="13"] { /* KeyEvent.DOM_VK_RETURN */
-  font-family: 'Keyboard Symbols', sans-serif;
-  font-size: 28px;
-}
-
-.keyboard-key[data-active] {
-  color: #fff;
-/*
- * Disable this for now because it's too slow to repaint.
- *
-  -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
-  text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
-  background: rgb(118, 118, 118);
-*/
-  background: url(images/left-active.png) left top no-repeat,
-              url(images/right-active.png) right top no-repeat,
-              rgb(118, 118, 118);
-}
-
-.keyboard-key-special {
-  color: #fff;
-  font-size: 18px;
-  text-shadow: 0 -1px #848d96, 0 1px #bac2cb;
-/*
- * Disable this for now because it's too slow to repaint.
- *
-  background: -moz-linear-gradient(top, #a3aeb9 10%, #a3aeb9 70%, #929ca6 100%);
-  -moz-box-shadow: none;
-  border: 1px solid #8a949d;
-*/
-  background: url(images/left-special.png) left top no-repeat,
-              url(images/right-special.png) right top no-repeat,
-              url(images/middle-special.png) left top repeat-x;
-}
-
-.keyboard-key-special.toggle {
-  position: relative;
-}
-.keyboard-key-special.toggle::before {
-  content: '';
-  display: block;
-  position: absolute;
-  left: 8px;
-  top: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  background-color: #999;
-}
-.keyboard-key-special[data-enabled] {
-  text-shadow: 0 0 5px #fff;
-}
-.keyboard-key-special[data-enabled]::before {
-  background-color: #0c0;
-}
-
-#keyboard-key-highlight {
-  position: absolute;
-  font-family: 'Keyboard Symbols', 'Open Sans', sans-serif;
-  pointer-events: none;
-  top: 0; left: 0;
-  z-index: 2;
-  color: #333;
-  background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
-  font-size: 50px;
-  line-height: 100px;
-  min-width: 70px;
-  padding: 0 5px;
-  height: 100px;
-  margin-top: -110px;
-  text-align: center;
-  border: 1px solid #fff;
-/*
- * Disabled for now ... too slow :(.
- *
-  box-shadow: 0 0 2px #ccc;
-  border-radius: 5px;
-*/
-  display: none;
-}
-
-#keyboard-key-highlight.show {
-  display: block;
-}
-
-#keyboard[data-hidden] #keyboard-key-highlight.show {
-  display: none;
-}
-
-#keyboard-accent-char-menu {
-  position: absolute;
-  display: none;
-  background-color: #cac9c5;
-  height: 58px;
-  padding: 5px;
-  margin-top: -84px;
-  border-radius: 5px;
-  border: 1px solid #fff;
-  box-shadow: 0 0 2px #ccc;
-  white-space: nowrap;
-}
-
-#keyboard-accent-char-menu.show {
-  display: block;
-}
-
-#keyboard-accent-char-menu.menu {
-  height: auto;
-  margin-top: -5px;
-  border: none;
-  padding: 0;
-  overflow: hidden;
-}
-
-#keyboard-accent-char-menu.menu > .keyboard-key {
-  display: block;
-  padding: 5px;
-  margin: 0;
-  background: url(images/middle-special.png) left top repeat-x;
-}
-
-#keyboard-accent-char-menu.menu > .keyboard-key[data-active] {
-  background: rgb(118, 118, 118);
-}
-
-#keyboard-accent-char-menu > .keyboard-key {
-  background: url(images/middle.png) left top repeat-x;
-}
-#keyboard-accent-char-menu > .keyboard-key[data-active] {
-  color: #fff;
-/*
- * Disable this for now because it's too slow to repaint.
- *
-  -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
-  text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
-  background: rgb(118, 118, 118);
-*/
-  background: url(images/left-active-accent.png) left top no-repeat,
-              url(images/right-active-accent.png) right top no-repeat,
-              rgb(118, 118, 118);
-}
-
-#keyboard-accent-char-menu.menu > .current-keyboard::before {
-  content: '';
-  display: block;
-  position: absolute;
-  left: 8px;
-  top: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  background-color: #0c0;
-  box-shadow: 0 0 5px #fff;
-}
-
+/* Pending panel highlight */
 .keyboard-pending-symbols-highlight-green {
-	background:#33aa33;
+  background: #33aa33;
 }
+
 .keyboard-pending-symbols-highlight-red {
-	background:#aa3333;
+  background: #aa3333;
 }
+
 .keyboard-pending-symbols-highlight-blue {
-	background:#3333aa;
-}
-
-/*
- * For HVGA support
- */
-@media (orientation: portrait) and (width: 320px),
-       (orientation: landscape) and (width: 480px) {
-  .keyboard-key {
-    font-size: 19px;
-    height: 36px;
-    min-width: 0 !important;
-    margin: 0 2px;
-    line-height: 34px;
-    border: 1px solid #d5d5d5;
-    box-shadow: inset 0 0 2px 2px #fff;
-    border-radius: 5px;
-    background: -moz-linear-gradient(top, #fff 10%, #fff 70%, #f6f6f6 100%);
-  }
-
-  .keyboard-row {
-    margin: 10px 0;
-  }
-
-  .keyboard-key-special {
-    color: #fff;
-    font-size: 14px;
-    text-shadow: 0 -1px #848d96, 0 1px #bac2cb;
-    background: -moz-linear-gradient(top, #a3aeb9 10%, #a3aeb9 70%, #929ca6 100%);
-    box-shadow: none;
-    border: 1px solid #8a949d;
-  }
-
-  .keyboard-key[data-active] {
-    text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
-    background: rgb(118, 118, 118);
-  }
-
-  .keyboard-key[data-keycode="-3"], /* IMEManager.SWITCH_KEYBOARD */
-  .keyboard-key[data-keycode="8"], /* KeyEvent.DOM_VK_BACK_SPACE */
-  .keyboard-key[data-keycode="20"], /* KeyEvent.DOM_VK_CAPS_LOCK */
-  .keyboard-key[data-keycode="13"] { /* KeyEvent.DOM_VK_RETURN */
-    font-size: 18px;
-  }
-
-  #keyboard-accent-char-menu {
-    height: 36px;
-    padding: 3px;
-    margin-top: -50px;
-    border-radius: 3px;
-    border: 1px solid #fff;
-    box-shadow: 0 0 2px #ccc;
-    white-space: nowrap;
-  }
-
-  #keyboard-pending-symbol-panel {
-    top: -20px;
-    height: 20px;
-    line-height: 20px;
-    font-size: 14px;
-    padding: 0 5px;
-    border-top-right-radius: 5px;
-  }
-
-  #keyboard-key-highlight {
-    font-size: 30px;
-    line-height: 60px;
-    min-width: 42px;
-    padding: 0 3px;
-    height: 60px;
-    margin-top: -66px;
-    box-shadow: 0 0 2px #ccc;
-    border-radius: 10px;
-  }
-
-  #keyboard-candidate-panel {
-    height: 38px;
-  }
-
-  #keyboard-candidate-panel span,
-  #keyboard-candidate-panel[data-truncated]::after {
-    font-size: 18px;
-    line-height: 36px;
-    min-width: 6px;
-    height: 38px;
-    padding: 0 6px;
-  }
-
-  #keyboard-candidate-panel-toggle-button {
-    font-size: 19px;
-    line-height: 36px;
-    width: 36px;
-    height: 38px;
-  }
-
-  #keyboard.candidate-panel #keyboard-candidate-panel {
-    width: -moz-calc(100% - 36px);
-  }
+  background: #3333aa;
 }

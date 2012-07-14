@@ -12,13 +12,15 @@ var CardsView = (function() {
   //display icon of an app on top of app's card
   var DISPLAY_APP_ICON = true;
   var USER_DEFINED_ORDERING = false;
-
   // If 'true', scrolling moves the list one card
   // at time, and snaps the list so the current card
   // is centered in the view
   // If 'false', use free, physics-based scrolling
   // (Gaia default)
   var SNAPPING_SCROLLING = true;
+  // if 'true' user can close the app
+  // by dragging it upwards
+  var MANUAL_CLOSING = true;
 
   var cardsView = document.getElementById('cardsView');
   var cardsList = cardsView.getElementsByTagName('ul')[0];
@@ -42,7 +44,12 @@ var CardsView = (function() {
     sizes.sort(function(x, y) { return y - x; });
 
     var index = sizes[(HVGA) ? sizes.length - 1 : 0];
-    return origin + icons[index];
+
+    if (icons[index].indexOf('data:') !== 0) {
+      icons[index] = origin + icons[index];
+    }
+
+    return icons[index];
   }
 
   // Build and display the card switcher overlay
@@ -81,6 +88,9 @@ var CardsView = (function() {
 
     if (SNAPPING_SCROLLING) {
       cardsView.style.overflow = 'hidden'; //disabling native scrolling
+    }
+
+    if (SNAPPING_SCROLLING || MANUAL_CLOSING) {
       cardsView.addEventListener('mousedown', this);
     }
 
@@ -102,9 +112,9 @@ var CardsView = (function() {
       // Build a card representation of each window.
       // And add it to the card switcher
       var card = document.createElement('li');
+      card.classList.add('card');
       card.style.background = '-moz-element(#' + app.frame.id + ') no-repeat';
-      var close_button = document.createElement('a');
-      card.appendChild(close_button);
+      card.dataset['origin'] = origin;
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
@@ -121,34 +131,14 @@ var CardsView = (function() {
       cardsList.appendChild(card);
 
       // Set up event handling
-
-      // A click on the close button ends that task. And if it is the
-      // last task, it dismisses the task switcher overlay
-      close_button.addEventListener('click', function(e) {
-        // Don't trigger a click on our ancestors
-        e.stopPropagation();
-
-        // Remove the icon from the task list
-        cardsList.removeChild(card);
-
-        // Stop the app itself
-        // If the app is the currently displayed one,
-        // this will also switch back to the homescreen
-        // (though the task switcher will still be displayed over it)
-        WindowManager.kill(origin);
-
-        // if there are no more running apps, then dismiss
-        // the task switcher
-        if (WindowManager.getNumberOfRunningApps() === 0)
-          hideCardSwitcher();
-      });
-
       // A click elsewhere in the card switches to that task
-      card.addEventListener('click', function() {
-        hideCardSwitcher();
-        WindowManager.launch(origin);
-      });
+      card.addEventListener('click', runApp);
     }
+  }
+
+  function runApp() {
+    hideCardSwitcher();
+    WindowManager.launch(this.dataset['origin']);
   }
 
   function hideCardSwitcher() {
@@ -171,8 +161,12 @@ var CardsView = (function() {
   }
 
   //scrolling cards
-  var initialCardViewPosition, initialTouchPosition;
+  var initialCardViewPosition;
+  var initialTouchPosition = {};
   var threshold = window.innerWidth / 4;
+      // Distance after which dragged card starts moving
+  var moveCardThreshold = window.innerHeight / 6;
+  var removeCardThreshold = window.innerHeight / 4;
 
   function alignCard(number) {
     cardsView.scrollLeft = cardsList.children[number].offsetLeft;
@@ -180,39 +174,95 @@ var CardsView = (function() {
 
   function onStartEvent(evt) {
     evt.stopPropagation();
+    evt.target.setCapture(true);
     cardsView.addEventListener('mousemove', CardsView);
     cardsView.addEventListener('mouseup', CardsView);
 
     initialCardViewPosition = cardsView.scrollLeft;
-    initialTouchPosition = evt.touches ? evt.touches[0].pageX : evt.pageX;
+    initialTouchPosition = {
+        x: evt.touches ? evt.touches[0].pageX : evt.pageX,
+        y: evt.touches ? evt.touches[0].pageY : evt.pageY
+    };
   }
 
   function onMoveEvent(evt) {
     evt.stopPropagation();
-    var touchPosition = evt.touches ? evt.touches[0].pageX : evt.pageX;
-    var difference = initialTouchPosition - touchPosition;
-    cardsView.scrollLeft = initialCardViewPosition + difference;
+    var touchPosition = {
+        x: evt.touches ? evt.touches[0].pageX : evt.pageX,
+        y: evt.touches ? evt.touches[0].pageY : evt.pageY
+    };
+
+    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
+      var differenceY = initialTouchPosition.y - touchPosition.y;
+      if (differenceY > moveCardThreshold) {
+        evt.target.style.MozTransform = 'scale(0.6) translate(0, -' +
+                                        differenceY + 'px)';
+      }
+    }
+
+    if (SNAPPING_SCROLLING) {
+      var differenceX = initialTouchPosition.x - touchPosition.x;
+      cardsView.scrollLeft = initialCardViewPosition + differenceX;
+    }
   }
 
   function onEndEvent(evt) {
     evt.stopPropagation();
+    var element = evt.target;
+    document.releaseCapture();
     cardsView.removeEventListener('mousemove', CardsView);
     cardsView.removeEventListener('mouseup', CardsView);
-    var touchPosition = evt.touches ? evt.touches[0].pageX : evt.pageX;
-    var difference = initialTouchPosition - touchPosition;
-    if (Math.abs(difference) > threshold) {
-      if (
-        difference > 0 &&
-        currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
-      ) {
-        currentDisplayed++;
-        alignCard(currentDisplayed);
-      } else if (difference < 0 && currentDisplayed > 0) {
-        currentDisplayed--;
+
+    var touchPosition = {
+        x: evt.touches ? evt.touches[0].pageX : evt.pageX,
+        y: evt.touches ? evt.touches[0].pageY : evt.pageY
+    };
+
+    // if the element we start dragging on is a card
+    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
+      var differenceY = initialTouchPosition.y - touchPosition.y;
+      if (differenceY > removeCardThreshold) {
+        // Without removing the listener before closing card
+        // sometimes the 'click' event fires, even if 'mouseup'
+        // uses stopPropagation()
+        element.removeEventListener('click', runApp);
+
+        // Remove the icon from the task list
+        cardsList.removeChild(element);
+
+        // Stop the app itself
+        // If the app is the currently displayed one,
+        // this will also switch back to the homescreen
+        // (though the task switcher will still be displayed over it)
+        WindowManager.kill(element.dataset['origin']);
+
+        // if there are no more running apps, then dismiss
+        // the task switcher
+        if (WindowManager.getNumberOfRunningApps() === 0)
+          hideCardSwitcher();
+
+        return;
+      } else {
+        evt.target.style.MozTransform = 'scale(0.6)';
+      }
+    }
+
+    if (SNAPPING_SCROLLING) {
+      var differenceX = initialTouchPosition.x - touchPosition.x;
+      if (Math.abs(differenceX) > threshold) {
+        if (
+          differenceX > 0 &&
+          currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
+        ) {
+          currentDisplayed++;
+          alignCard(currentDisplayed);
+        } else if (differenceX < 0 && currentDisplayed > 0) {
+          currentDisplayed--;
+          alignCard(currentDisplayed);
+        }
+      } else {
         alignCard(currentDisplayed);
       }
-    } else {
-      alignCard(currentDisplayed);
     }
   }
 

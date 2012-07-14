@@ -26,12 +26,25 @@ var UtilityTray = {
     }, this);
 
     window.addEventListener('screenchange', this);
+    window.addEventListener('keyup', this, true);
 
     this.overlay.addEventListener('transitionend', this);
   },
 
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
+      case 'keyup':
+        if (!this.shown || evt.keyCode !== evt.DOM_VK_HOME)
+          return;
+
+        // doesn't work right now, see:
+        // https://github.com/mozilla-b2g/gaia/issues/1663
+        evt.preventDefault();
+        evt.stopPropagation();
+
+        this.hide();
+        break;
+
       case 'screenchange':
         if (this.shown && !evt.detail.screenEnabled)
           this.hide(true);
@@ -81,7 +94,7 @@ var UtilityTray = {
     this.startX = touch.pageX;
     this.startY = touch.pageY;
     this.screen.classList.add('utility-tray');
-    this.onTouchMove({ pageY: touch.pageY });
+    this.onTouchMove({ pageY: touch.pageY + this.statusbar.offsetHeight });
   },
 
   onTouchMove: function ut_onTouchMove(touch) {

@@ -18,20 +18,6 @@ var GridView = {
   show: function gv_show() {
     var grid = this.grid;
     if (!grid) {
-      var style = '#debug-grid {' +
-                  '  position: absolute;' +
-                  '  top: 0;' +
-                  '  left: 0;' +
-                  '  display: block;' +
-                  '  width: 100%;' +
-                  '  height: 100%;' +
-                  '  background: url(images/grid.png);' +
-                  '  z-index: 30000;' +
-                  '  opacity: 0.2;' +
-                  '  pointer-events: none;' +
-                  '}';
-      document.styleSheets[0].insertRule(style, 0);
-
       grid = document.createElement('div');
       grid.id = 'debug-grid';
 

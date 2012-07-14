@@ -1,0 +1,143 @@
+/**
+ * ICONS.CSS
+ * Icons provided by the system, could be bitmaps, fonts, or svg
+ * The icons are sorted by component type
+ * ------------------------------------------------------*/
+
+ 
+span[role="button"] {
+  display: inline-block;
+	vertical-align: middle;
+	width: 2.8rem;
+	height: 2.8rem;
+	font: 0/0 a;
+	background: transparent no-repeat center center;
+	background-size: 100% auto;
+}
+
+
+/* header */
+span[role="button"].icon-back {
+  background-image: url(../../gphx/bitmap/default/vw-header/back.png);
+  width: 1.1rem;
+  height: 2.7rem;
+}
+
+span[role="button"].icon-add {
+  background-image: url(../../gphx/bitmap/default/vw-header/add.png);
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+span[role="button"].icon-edit {
+  background-image: url(../../gphx/bitmap/default/vw-header/edit.png);
+  width: 1.9rem;
+  height: 2rem;
+}
+
+span[role="button"].icon-finish {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+span[role="button"].icon-fav {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+
+/* jumper */
+span[role="button"].icon-fav-dark {
+  background-image: url(../../gphx/bitmap/default/vw-jumper/fav.png);
+  width: 1.2rem;
+  height: 1.1rem;
+}
+
+span[role="button"].icon-search {
+  background-image: url(../../gphx/bitmap/default/vw-jumper/search.png);
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+span[role="button"].icon-fav-color {
+  background-image: url(../../gphx/bitmap/default/block-list/fav.png);
+  width: 2rem;
+  height: 2rem;
+}
+
+/* selection list */
+span[role="button"].icon-selected {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* tabs */
+span[role="button"].icon-profile {
+  background-color: rgba(255, 255, 255, 0.5)
+}
+
+/* navigation */
+span[role="button"].icon-log {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+span[role="button"].icon-contacts {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+span[role="button"].icon-messages {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+span[role="button"].icon-grid {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* GENERIC BUTTONS */
+span[role="button"].icon-delete {
+  background-image: url(../../gphx/bitmap/default/forms/delete.png);
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+span[role="button"].icon-call {
+  background-image: url(../../gphx/bitmap/default/buttons/call.png);
+}
+
+span[role="button"].icon-message {
+  background-image: url(../../gphx/bitmap/default/buttons/sms.png);
+}
+
+span[role="button"].icon-email {
+  background-image: url(../../gphx/bitmap/default/buttons/mail.png);
+}
+
+span[role="button"].icon-address {
+  background-image: url(../../gphx/bitmap/default/buttons/location.png);
+}
+
+
+/* arrows */
+span[role="button"].icon-arrow {
+	border: solid 0.4rem transparent;
+	width: 0;
+	height: 0;
+}
+
+span[role="button"].icon-arrow.icon-arrow-top {
+  margin-top: -0.4rem;
+  border-bottom-color: #333;
+}
+
+span[role="button"].icon-arrow.icon-arrow-bottom {
+  margin-top: 0.4rem;
+  border-top-color: #333;
+}
+
+span[role="button"].icon-arrow.icon-arrow-left {
+  margin-right: 0.4rem;
+  border-right-color: #333;
+}
+
+span[role="button"].icon-arrow.icon-arrow-right {
+  margin-left: 0.4rem;
+  border-left-color: #333;
+}
+

@@ -65,7 +65,7 @@ var SoundManager = {
         break;
 
       case 'keyup':
-        if (evt.keyCode !== evt.DOM_VK_PAGE_UP ||
+        if (evt.keyCode !== evt.DOM_VK_PAGE_UP &&
             evt.keyCode !== evt.DOM_VK_PAGE_DOWN)
           return;
 

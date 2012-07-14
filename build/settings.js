@@ -1,3 +1,5 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -15,10 +17,16 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 // Todo: Get a list of settings
 var settings = [
  new Setting("accessibility.invert", false),
+ new Setting("bluetooth.enabled", false),
  new Setting("debug.grid.enabled", false),
  new Setting("debug.fps.enabled", false),
  new Setting("debug.paint-flashing.enabled", false),
+ new Setting("devtools.debugger.force-local", true),
+ new Setting("devtools.debugger.log", false),
+ new Setting("devtools.debugger.remote-enabled", false),
+ new Setting("devtools.debugger.remote-port", 6000),
  new Setting("homescreen.ring", 'classic.wav'),
+ new Setting("homescreen.wallpaper", "default.png"),
  new Setting("keyboard.layouts.english", true),
  new Setting("keyboard.layouts.dvorak", false),
  new Setting("keyboard.layouts.otherlatins", false),
@@ -28,21 +36,49 @@ var settings = [
  new Setting("keyboard.layouts.zhuyin", false),
  new Setting("keyboard.layouts.pinyin", false),
  new Setting("keyboard.layouts.greek", false),
+ new Setting("keyboard.layouts.japanese", false),
+ new Setting("keyboard.layouts.portuguese", false),
+ new Setting("keyboard.layouts.spanish", false),
  new Setting("keyboard.vibration", false),
  new Setting("keyboard.clicksound", false),
  new Setting("language.current", "en-US"),
  new Setting("lockscreen.passcode-lock.enabled", false),
- new Setting("lockscreen.enabled", false),
+ new Setting("lockscreen.enabled", true),
+ new Setting("lockscreen.wallpaper", "balloon.png"),
  new Setting("phone.ring.incoming", true),
- new Setting("phone.vibration.incoming", false),
+ new Setting("phone.ring.keypad", true),
+ new Setting("phone.vibration.incoming", true),
  new Setting("ril.data.enabled", true),
+ new Setting("ril.data.apn", ""),
+ new Setting("ril.data.passwd", ""),
+ new Setting("ril.data.mmsc", ""),
+ new Setting("ril.data.mmsproxy", ""),
+ new Setting("ril.data.mmsport", 0),
+ new Setting("ril.data.roaming.enabled", false),
+ new Setting("ril.data.user", ""),
  new Setting("ril.radio.disabled", false),
  new Setting("screen.automatic-brightness", true),
  new Setting("screen.brightness", 0.5),
+ new Setting("screen.timeout", 60),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
  new Setting("ums.enabled", false),
+ new Setting("ums.mode", ""),
+ new Setting("wifi.notification", false),
 ];
+
+// Ensure there is no duplicate
+for (let i in settings) {
+  var settingName = settings[i].name;
+  for (let j in settings) {
+    if (i === j)
+      continue;
+
+    if (settingName === settings[j].name) {
+      throw new Error('There is a at least 2 settings called: ' + settingName);
+    }
+  }
+}
 
 function Setting(aName, aValue) {
   this.name = aName;

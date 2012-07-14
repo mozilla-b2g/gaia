@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html manifest="manifest.appcache">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
-    <link rel="resource" type="application/l10n" href="locale/gallery.properties" />
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini" />
     <!-- Compatibility -->
-    <script>
+    <script type="text/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -21,9 +21,10 @@
       }
       document.write('<script src="' + src + '"><\/script>');
     </script>
-    <script defer src="js/GestureDetector.js"></script>
-    <script defer src="js/JPEGMetadata.js"></script>
-    <script defer src="js/gallery.js"></script>
+    <script type="text/javascript" defer src="js/MediaDB.js"></script>
+    <script type="text/javascript" defer src="js/MetadataParser.js"></script>
+    <script type="text/javascript" defer src="js/GestureDetector.js"></script>
+    <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
   <body class="hidden">
@@ -33,18 +34,23 @@
       <h1 id="nophotos" data-l10n-id="nophotos">No Photos</h1>
     </ul>
 
+    <div id="footer-menu">
+      <a id="camera-button"></a>
+      <a id="slideshow-button"></a>
+      <a id="select-button"></a>
+    </div>
+
     <!-- Photos inserted here -->
     <div id="photos" class="hidden">
       <!-- the current photo plus next and previous waiting in the wings -->
-      <div class="photoFrame previousPhoto"></div>
-      <div class="photoFrame currentPhoto"></div>
-      <div class="photoFrame nextPhoto"></div>
+      <div class="photoFrame previousPhoto"><img></div>
+      <div class="photoFrame currentPhoto"><img></div>
+      <div class="photoFrame nextPhoto"><img></div>
     </div>
 
     <div id="player-controls" class="hidden">
       <a id="back-button" class="button" href="#"></a>
       <a id="play-button" class="button" href="#"></a>
     </div>
-
   </body>
 </html>

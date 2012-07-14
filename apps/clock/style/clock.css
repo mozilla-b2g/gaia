@@ -3,11 +3,8 @@ html, body {
   height: 100%;
   overflow: hidden;
   margin: 0;
-
-  font-size: 2.5mozmm;
   color: white;
   font-family: sans-serif;
-
   background: url(images/home-texture.png) repeat scroll 2% 50% #666666;
 }
 
@@ -26,47 +23,42 @@ html * {
   position: absolute;
   width: 100%;
   bottom: 0;
-  padding: 15px 0px 10px 0px;
-
+  padding: 2rem 0rem 1.5rem 0rem;
   -moz-transition: bottom 0.3s ease;
+/* === Disable Tab Controller in V1 === */
+  display: none;
 }
 
 #tabs {
-  width: -moz-calc(100% - 38px);
-  padding: 9px 9px 7px 9px;
+  width: -moz-calc(100% - 3.8rem);
+  padding: 0.9rem 0.9rem 0.7rem 0.9rem;
   margin: auto;
-
   background-color: rgba(0,0,0,.3);
-  border-radius: 5px;
+  border-radius: 0.5rem;
 }
 
 #tabs fieldset {
   list-style: none;
-  width: -moz-calc(100% - 2px);
-/*  height: 60px;*/
-  height: 10mozmm;
+  width: -moz-calc(100% - 0.2rem);
+  height: 6.6rem;
   padding: 0;
   margin: 0;
-
   display: -moz-box;
   -moz-box-orient: horizontal;
-
-  border: 1px solid #333333;
-  border-radius: 3px;
-  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1px, hsl(0,0%,37%) 100%);
+  border: 0.1rem solid #333333;
+  border-radius: 0.3rem;
+  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1rem, hsl(0,0%,37%) 100%);
 }
 
 #tabs label {
   float: left;
   display: block;
-  width: -moz-calc(100% / 2 - 2px);
+  width: -moz-calc(100% / 3 - 0.2rem);
   height: 100%;
   padding: 0;
   margin: 0;
-
-  border-right: 1px solid rgb(29,29,29);
-  border-left: 1px solid rgb(123,123,123);
-
+  border-right: 0.1rem solid rgb(29,29,29);
+  border-left: 0.1rem solid rgb(123,123,123);
   background-position: 50% 50%;
   background-repeat: no-repeat;
 }
@@ -76,25 +68,32 @@ html * {
 
 #tabs label:first-child {
   border-left-color: transparent;
-  border-radius: 3px 0 0 3px;
+  border-radius: 0.3rem 0 0 0.3rem;
 }
 #tabs label:last-child {
   border-right-color: transparent;
-  border-radius: 0 3px 3px 0;
+  border-radius: 0 0.3rem 0.3rem 0;
+}
+
+#alarm-label {
+  background-image: url(images/alarm.png);
+}
+#alarm-label[data-active] {
+  background: url(images/alarm.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 0.1rem, hsl(0,0%,56%) 100%);
 }
 
 #stopwatch-label {
   background-image: url(images/stopwatch.png);
 }
 #stopwatch-label[data-active] {
-  background: url(images/stopwatch.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+  background: url(images/stopwatch.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 0.1rem, hsl(0,0%,56%) 100%);
 }
 
 #timer-label {
   background-image: url(images/timer.png);
 }
 #timer-label[data-active] {
-  background: url(images/timer.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+  background: url(images/timer.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 0.1rem, hsl(0,0%,56%) 100%);
 }
 
 #views {
@@ -102,7 +101,7 @@ html * {
   top: 0;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 41px - 10mozmm);
+  height: 100%;
 }
 
 .view {
@@ -111,29 +110,26 @@ html * {
 }
 
 .chrono-view-container {
-  width: -moz-calc(100% - 38px);
-  height: -moz-calc(100% - 20px - 26mozmm - 76px);
-  margin: 20px auto;
-  padding: 9px;
-
-  border-radius: 5px;
+  width: -moz-calc(100% - 3.8rem);
+  height: -moz-calc(100% - 2rem - 3mozmm - 9.4rem);
+  margin: 2rem auto;
+  padding: 0.9rem;
+  border-radius: 0.5rem;
   background:rgba(0,0,0,0.3);
 }
 
 .chrono-view-container > div:first-child {
   position: relative;
   display: block;
-  height: -moz-calc(100% - 20px);
+  height: -moz-calc(100% - 2rem);
   margin: auto;
-
   border: medium none;
-  border-radius: 5px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3) inset;
-
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0.8rem rgba(0, 0, 0, 0.3) inset;
   text-align: center;
-  font-size: 4em;
+  font-size: 0.4em;
   text-overflow: ellipsis;
-  text-shadow:0 0 3px rgba(0,0,0,.5);
+  text-shadow:0 0 0.3rem rgba(0,0,0,.5);
   white-space: nowrap;
 }
 
@@ -143,27 +139,23 @@ html * {
 
 .chrono-view {
   position: absolute;
-  top: -moz-calc(50% - 2em);
+  top: -moz-calc(50% - 0.2em);
   width: 100%;
-  height: 4em;
-  line-height: 4em;
+  height: 0.4em;
+  line-height: 0.4em;
 }
 
 .ticker-view {
-  height: 10px;
-  margin-top: 10px;
-
+  height: 1rem;
+  margin-top: 1rem;
   background: #A7DD11;
-
-  border-radius: 5px;
-  box-shadow: 0 0 3px 3px rgba(167, 221, 17, 0.3);
-
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0.3rem 0.3rem rgba(167, 221, 17, 0.3);
   visibility: hidden;
 }
 
 .ticker-view.running {
   visibility: visible;
-
   -moz-animation-duration: 2s;
   -moz-animation-name: running;
   -moz-animation-iteration-count: infinite;
@@ -189,39 +181,34 @@ html * {
 
 .button-container {
   position: absolute;
-  left: 10px;
-  width: -moz-calc(100% - 38px);
-  padding: 9px;
-
+  left: 1rem;
+  width: -moz-calc(100% - 3.8rem);
+  padding: 0.9rem;
   background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 5px;
-
+  border-radius: 0.5rem;
   text-align: center;
 }
 
 .button-container > div > span {
   display: block;
-  width: -moz-calc(100% - 2px);
-  height: 13mozmm;
-
-  border-radius: 3px;
-
-  background: -moz-linear-gradient(center top , #A5A5A5 0pt, #878787 1px, #545454 100%) repeat scroll 0 0 transparent;
-
-  line-height: 13mozmm;
-  font-size: 2em;
+  width: -moz-calc(100% - 0.2rem);
+  height: 1.5mozmm;
+  border-radius: 0.3rem;
+  background: -moz-linear-gradient(center top , #A5A5A5 0pt, #878787 0.1rem, #545454 100%) repeat scroll 0 0 transparent;
+  line-height: 15mozmm;
+  font-size: 0.2em;
   font-weight: bold;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 0.3rem rgba(0, 0, 0, 0.5);
 }
 
 .button-container:active > div > span {
-  background: -moz-linear-gradient(center bottom , #A5A5A5 0pt, #878787 1px, #545454 100%) repeat scroll 0 0 transparent;
+  background: -moz-linear-gradient(center bottom , #A5A5A5 0pt, #878787 0.1rem, #545454 100%) repeat scroll 0 0 transparent;
 }
 
 /* === Stop watch === */
 
 #reset-button {
-  bottom: -moz-calc(13mozmm + 28px);
+  bottom: -moz-calc(15mozmm + 3.8rem);
 }
 
 #stopwatch-action-button {
@@ -229,10 +216,10 @@ html * {
 }
 
 #stopwatch-action-button > div > span {
-  background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+  background: -moz-linear-gradient(top, rgb(177,214,0) 1rem, rgb(143,195,0) 2rem, rgb(82,107,23) 100%);
 }
 #stopwatch-action-button > div > span:last-child {
-  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
+  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1rem, hsl(353,100%,22%) 100%);
 }
 
 #stopwatch-action-button:active span:first-child {
@@ -252,6 +239,14 @@ html * {
   display: block;
 }
 
+#stopwatch-view {
+  -moz-transform: translateX(-100%);
+}
+#stopwatch-view.active {
+  -moz-transform: none;
+  -moz-transition: none;
+}
+
 /* === Timer === */
 
 #timer-action-button {
@@ -259,10 +254,10 @@ html * {
 }
 
 #timer-action-button > div > span {
-  background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+  background: -moz-linear-gradient(top, rgb(177,214,0) 0.1rem, rgb(143,195,0) 0.2rem, rgb(82,107,23) 100%);
 }
 #timer-action-button > div > span:last-child {
-  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
+  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 0.1rem, hsl(353,100%,22%) 100%);
 }
 
 #timer-action-button:active span:first-child {
@@ -286,21 +281,24 @@ html * {
   -moz-animation-direction: alternate;
 }
 
-#duration-button {
-  bottom: -moz-calc(13mozmm + 28px);
+#timer-view {
+  -moz-transform: translateX(-100%);
+}
+
+#timer-view.active {
+  -moz-transform: none;
+  -moz-transition: none;
 }
 
 #duration-field {
-  height: 13mozmm;
+  height: 15mozmm;
   border: none;
   background: none;
-
   color: white;
   text-align: center;
   font-size: 2em;
   font-weight: bold;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-  width: 100%;
+  text-shadow: 0 0 0.3rem rgba(0, 0, 0, 0.5);
 }
 
 #duration-field:invalid {
@@ -308,75 +306,92 @@ html * {
   color: red;
 }
 
+#clock-view {
+  width: 100%;
+  height: 100%;
+  color: black;
+  background-color: #E6E6E6;
+  border-bottom: 0.2rem solid #ACACAC;
+  text-align: center;
+}
+
+#digital-clock {
+  width: 90%;
+  margin-top: 14%;
+  margin-left: 5%;
+  display: none;
+}
+
+#digital-clock.visible {
+  display: block;
+}
+
+#clock-time {
+  font: 13.5rem 'Open Sans', sans-serif;
+  line-height: 13.5rem;
+  pointer-events: none;
+}
+
+#clock-hour24-state {
+  font: 5rem 'Open Sans', sans-serif;
+  line-height: 5rem;
+  pointer-events: none;
+}
+
+#clock-day-date {
+  width: 50%;
+  margin-left: 25%;
+  font: bold 2.3rem 'Open Sans', sans-serif;
+  line-height: 7.8rem;
+}
+
+#analog-clock {
+  height: auto;
+  max-height: 47rem;
+  margin: auto;
+  display: none;
+}
+
+#analog-clock.visible {
+  display: block;
+}
+/* These CSS styles all apply to the SVG clock elements */
+#analog-clock-svg { /* styles for everything in the clock */
+  stroke: black; /* black lines */
+  stroke-linecap: round; /* with rounded ends */
+  fill: white; /* on a white background */
+  height: -moz-calc(100% - 1rem); /* 1 rem to avoid the second hand overlay the alarm list */
+  pointer-events: none;
+}
+#face {  /* clock face outline */ 
+  stroke-width: 0.1rem;
+  stroke: #4D4D4D;
+  pointer-events: none;
+}
+#hands {
+  pointer-events: none;
+}
+#hourhand {stroke-width: 0.15rem;} /* wide hour hand */
+#minutehand {stroke-width: 0.15rem; stroke-linecap: butt} /* wide no-round minute hand */
+#secondhand {stroke-width: 0.05rem; stroke: #838383;} /* narrow gray minute hand */
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 
-/* 480x800 phones landscape */
-@media (orientation: landscape) and (width: 800px) {
-  .button-container > div > span {
-    height: 6mozmm;
-    line-height: 6mozmm;
+/* 320x480 phones */
+@media screen and (width: 320px) {
+  html {
+    font-size: 6px;
   }
-  
-  #tabs fieldset {
-    height: 6mozmm;
-  }
-  
-  #reset-button {
-    bottom: -moz-calc(6mozmm + 28px);
-  }
-
-  #duration-button {
-    bottom: -moz-calc(6mozmm + 28px);
-  }
-
-  #duration-field {
-    height: 6mozmm;
-  }
-
-  #views {
-    height: -moz-calc(100% - 41px - 6mozmm);
-  }
-  
-  .chrono-view-container {
-    height: -moz-calc(100% - 20px - 12mozmm - 76px);
+  #face {
+    stroke-width: 0.13rem; /* increase stroke-width on low-resolution platform */
   }
 }
 
-/* 320x480 phones landscape */
-@media (orientation: landscape) and (width: 480px) {
-  .button-container > div > span {
-    height: 5mozmm;
-    line-height: 5mozmm;
-  }
-  
-  #tabs fieldset {
-    height: 5mozmm;
-  }
-  
-  #reset-button {
-    bottom: -moz-calc(5mozmm + 28px);
-  }
-
-  #duration-button {
-    bottom: -moz-calc(5mozmm + 28px);
-  }
-
-  #duration-field {
-    height: 5mozmm;
-  }
-
-  #views {
-    height: -moz-calc(100% - 41px - 5mozmm);
-  }
-  
-  .chrono-view-container {
-    height: -moz-calc(100% - 20px - 10mozmm - 76px);
-  }
-  
-  .chrono-view-container > div:first-child {
-    font-size: 3em;
+/* 480x800 phones */
+@media screen and (width: 480px) {
+  html {
+    font-size: 10px;
   }
 }

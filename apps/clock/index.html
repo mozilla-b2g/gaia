@@ -5,9 +5,10 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
-    <link rel="resource" type="application/l10n" href="locale/clock.properties">
+    <link rel="stylesheet" type="text/css" href="style/alarm.css">
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
     <!-- Compatibility -->
-    <script>
+    <script type="application/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -21,14 +22,49 @@
       }
       document.write('<script src="' + src + '"><\/script>');
     </script>
+    <script type="application/javascript" src="js/utils.js"></script>
+    <script type="application/javascript" src="js/alarmsdb.js"></script>
     <script type="application/javascript" src="js/clock.js"></script>
+    <script type="application/javascript" src="js/alarm.js"></script>
     <script type="application/javascript" src="js/stopwatch.js"></script>
     <script type="application/javascript" src="js/timer.js"></script>
   </head>
 
   <body class="hidden">
     <div id="views">
-      <div id="stopwatch-view" class="view">
+      <div id="alarm-view" class="active view">
+        <a id="alarm-new" href="#alarm" class="right button plus"><span class="plus-icon">+</span> Alarm</a>
+        <div id="clock-view">
+          <div id="clock-day-date"></div>
+          <div id="digital-clock">
+            <span id="clock-time"></span>
+            <span id="clock-hour24-state"></span>
+          </div>
+          <div id="analog-clock">
+            <svg id="analog-clock-svg" viewBox="0 0 100 100">
+              <defs> <!-- Define a filter for drop-shadows -->
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
+                  <feOffset in="blur" dx="1" dy="1" result="shadow" />
+                  <feMerge>
+                    <feMergeNode in="SourceGraphic"/><feMergeNode in="shadow"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <circle id="face" cx="50" cy="50" r="45"/> <!-- the clock face -->
+              <!-- Draw hands pointing straight up. We rotate them in the code. -->
+              <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
+                <line id="hourhand" x1="50" y1="50" x2="50" y2="17"/>
+                <line id="minutehand" x1="50" y1="50" x2="50" y2="5"/>
+                <line id="secondhand" x1="50" y1="50" x2="50" y2="0"/>
+              </g>
+            </svg>
+          </div>
+          <ul id="alarms" class="tableView"></ul>
+        </div>
+      </div>
+
+      <div id="stopwatch-view" class="active view" hidden="true">
         <div class="chrono-view-container">
           <div>
             <div class="chrono-view" id="stopwatch-chrono-view">00:00</div>
@@ -51,7 +87,7 @@
         </div>
       </div>
 
-      <div id="timer-view" class="view" hidden="true">
+      <div id="timer-view" class="active view" hidden="true">
         <div class="chrono-view-container">
           <div>
             <div class="chrono-view" id="timer-chrono-view">00:00</div>
@@ -60,7 +96,7 @@
           </div>
         </div>
 
-        <div id="duration-button" class="button-container">
+        <div class="button-container">
           <div>
             <input id="duration-field" type="text" value="02:00" required pattern="([0-9]{1,2}\:)+[0-5][0-9]" />
           </div>
@@ -77,10 +113,240 @@
     <div id="tabs-container">
       <div id="tabs" onclick="choiceChanged(event.target)">
         <fieldset>
-          <label id="stopwatch-label" for="stopwatch-choice" data-choice="stopwatch" data-active="true"><input id="stopwatch-choice" type="radio" name="tabs" checked="checked" /></label>
+          <label id="alarm-label" for="alarm-choice" data-choice="alarm" data-active="true"><input id="alarm-choice" type="radio" name="tabs" checked="true" /></label>
+          <label id="stopwatch-label" for="stopwatch-choice" data-choice="stopwatch"><input id="stopwatch-choice" type="radio" name="tabs" checked="" /></label>
           <label id="timer-label" for="timer-choice" data-choice="timer"><input id="timer-choice" type="radio" name="tabs" checked="" /></label>
         </fieldset>
       </div>
+    </div>
+
+    <!-- Alarm -->
+    <div id="alarm" class="view" data-title="Alarm">
+      <header>
+        <a href="#alarm-view" class="left button" data-l10n-id="back">Back</a>
+        <h1 id="alarm-title" class="label" data-l10n-id="alarm">Alarm</h1>
+        <a id="alarm-save" href="#alarm-view" class="right button save-btn" data-l10n-id="save">Save</a>
+      </header>
+      <ul class="tableView">
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat</span>
+          <a id="repeat-menu" href="#repeat" class="abstract-menu">Never > </a>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="sound">Sound</span>
+          <a id="sound-menu" href="#sound" class="abstract-menu">Default > </a>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze</span>
+          <a id="snooze-menu" href="#snooze" class="abstract-menu">10 minutes > </a>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="color">Color</span>
+          <a id="color-menu" href="#color" class="abstract-menu">Darkorange > </a>
+          <p></p>
+        </li>
+        <li class="singleline">
+        <span class="view-alarm-lbl" data-l10n-id="enable">Enable</span>
+          <label>
+            <input type="checkbox" name="alarm.enable"/>
+            <span></span> </label>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="label">Label</span>
+          <input type="text" class="right" name="alarm.label" placeholder="Alarm" />
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="hour">Hour</span>
+          <input type="number" class="right" name="alarm.hour" maxlength="2" placeholder="08" required pattern="[0-2][0-9]"/>
+
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="minute">Minute</span>
+          <input type="number" class="right" name="alarm.minute" maxlength="2" placeholder="30" required pattern="[0-5][0-9]"/>
+          <p></p>
+        </li>
+        <li class="delete">
+          <a id="alarm-del" href="#root" data-l10n-id="delete">Delete</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Repeat -->
+    <div id="repeat" class="view" data-title="Repeat">
+      <header>
+        <a href="#alarm" id="repeat-back" class="left button" data-l10n-id="back">Back</a>
+        <h1 id="repeat-title" class="label" data-l10n-id="repeat">Repeat</h1>
+      </header>
+      <ul class="tableView">
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="dayofweek-0">Monday</span>
+          <label>
+            <input type="checkbox" name="repeat.Monday"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="dayofweek-1">Tuesday</span>
+          <label>
+            <input type="checkbox" name="repeat.Tuesday"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="dayofweek-2">Wednesday</span>
+          <label>
+            <input type="checkbox" name="repeat.Wednesday"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="dayofweek-3">Thursday</span>
+          <label>
+            <input type="checkbox" name="repeat.Thursday"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="dayofweek-4">Friday</span>
+          <label>
+            <input type="checkbox" name="repeat.Friday"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="dayofweek-5">Saturday</span>
+          <label>
+            <input type="checkbox" name="repeat.Saturday"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="dayofweek-6">Sunday</span>
+          <label>
+            <input type="checkbox" name="repeat.Sunday"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Sound -->
+    <div id="sound" class="view" data-title="Sound">
+      <header>
+        <a href="#alarm" id="sound-back" class="left button" data-l10n-id="back">Back</a>
+        <h1 id="sound-title" class="label" data-l10n-id="sound">Sound</h1>
+      </header>
+      <ul class="tableView">
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="default">Default</span>
+          <label>
+            <input type="radio" name="sound" value="classic.wav" checked="true" />
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl">Bosscaling</span>
+          <label>
+            <input type="radio" name="sound" value="bosscaling.wav"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl">GoodMight</span>
+          <label>
+            <input type="radio" name="sound" value="goodnight.wav"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Snooze -->
+    <div id="snooze" class="view" data-title="Snooze">
+      <header>
+        <a href="#alarm" id="snooze-back" class="left button" data-l10n-id="back">Back</a>
+        <h1 id="snooze-title" class="label" data-l10n-id="snooze">Snooze</h1>
+      </header>
+      <ul class="tableView">
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="default">5 minutes</span>
+          <label>
+            <input type="radio" name="snooze" value="5" checked="true" />
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl">10 minutes</span>
+          <label>
+            <input type="radio" name="snooze" value="10"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl">20 minutes</span>
+          <label>
+            <input type="radio" name="snooze" value="20"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl">30 minutes</span>
+          <label>
+            <input type="radio" name="snooze" value="30"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Color -->
+    <div id="color" class="view" data-title="Color">
+      <header>
+        <a href="#alarm" id="color-back" class="left button" data-l10n-id="back">Back</a>
+        <h1 id="color-title" class="label" data-l10n-id="color">Color</h1>
+      </header>
+      <ul class="tableView">
+        <li class="singleline">
+          <span class="view-alarm-lbl">GhostWhite</span>
+          <label>
+            <input type="radio" name="color" value="GhostWhite" checked="true" />
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl">Darkorange</span>
+          <label>
+            <input type="radio" name="color" value="Darkorange"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl">SkyBlue</span>
+          <label>
+            <input type="radio" name="color" value="SkyBlue"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl">LimeGreen</span>
+          <label>
+            <input type="radio" name="color" value="LimeGreen"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl">Black</span>
+          <label>
+            <input type="radio" name="color" value="Black"/>
+            <span></span> </label>
+          <p></p>
+        </li>
+      </ul>
     </div>
 
   </body>

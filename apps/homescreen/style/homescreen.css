@@ -1,15 +1,29 @@
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/opensans-regular-webfont.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/opensans-semibold-webfont.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/opensans-bold-webfont.woff');
+}
+
 html, body {
   width: 100%;
   height: 100%;
   padding: 0;
   margin: 0;
   border: none;
+  font-size: 10px;
+  font-family:'Open Sans';
   overflow: hidden;
-  font-size: 10px;
-}
-
-html {
-  font-size: 10px;
 }
 
 * {
@@ -28,84 +42,42 @@ section,footer,nav,a,img {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 3;
+  z-index: 1;
+  pointer-events: none;
 }
 
 #paginationBar > .paginationScroller {
   width: 100%;
   height: 100%;
-  background-color: #ff4e00;
+  background-color: #ff7f02;
   -moz-transition: -moz-transform .2s ease;
   visibility: hidden;
 }
 
-#icongrid {
+#content {
   width: 100%;
-  height: -moz-calc(100% - 4rem);
+  height: -moz-calc(100% - 7.5rem);
   position: fixed;
   top: 0;
   left: 0;
-  background-image: url('../resources/images/background.jpg');
-  background-size: cover;
-  z-index: 2;
+  background-color: rgba(0,0,0,.3);
 }
 
-/* START footer */
-
-#footer {
-  height: 4rem;
+#content > section {
   width: 100%;
-  position: fixed;
-  bottom: 0;
-  z-index: 10000;
-  background-color: black;
-}
-
-#footer[data-mode = 'edit'] .dock > li {
-  opacity: 0.2;
-}
-
-#footer nav {
   height: 100%;
-  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-#footer .dock {
-  height: 100%;
-  width: 100%;
-  max-width: 32rem;
-  padding: 0;
-  margin: 0 auto;
-  list-style: none;
+#search {
+  -moz-transform: translateX(-100%);
 }
 
-#footer .dock > li {
-  height: 100%;
-  width: 25%;
-  float: left;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
-  font: 0/0 a;
+#icongrid {
+  -moz-transform: translateX(0);
 }
-
-#footer .dock > .logs {
-  background-image: url('../resources/images/footer/1.png');
-}
-
-#footer .dock > .contacts {
-  background-image: url('../resources/images/footer/2.png');
-}
-
-#footer .dock > .messages {
-  background-image: url('../resources/images/footer/3.png');
-}
-
-#footer .dock > .phone {
-  background-image: url('../resources/images/footer/4.png');
-}
-
-/* END footer */
 
 button:focus::-moz-focus-inner {
   border-color: transparent !important;
@@ -124,4 +96,8 @@ button {
   html {
     font-size: 13.3px;
   }
+}
+
+html[dir=rtl] .apps ol > li {
+  float: right;
 }

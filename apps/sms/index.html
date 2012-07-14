@@ -5,9 +5,9 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Messages</title>
     <link rel="stylesheet" type="text/css" href="style/sms.css">
-    <link rel="resource" type="application/l10n" href="locale/sms.properties">
+    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
     <!-- Compatibility -->
-    <script>
+    <script type="text/javascript">
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -21,89 +21,71 @@
       }
       document.write('<script src="' + src + '"><\/script>');
     </script>
+    <script type="text/javascript" src="js/contacts.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript">
+      if (!navigator.mozSms) {
+        document.write('<script type="text/javascript" src="js/desktopTesting.js"><\/script>');
+      }
+    </script>
   </head>
 
   <body>
     <!-- Single conversation view -->
-    <div id="view" class="panel">
-      <div id="view-toolbar" class="toolbar toolbar-top">
-        <a href="#" id="view-back" class="button text-button edit-hide" data-l10n-id="back">Back</a>
-        <button id="view-done-button" onclick="ConversationView.exitEditMode()" class="button text-button edit-show" data-l10n-id="done">Done</button>
-        <a href="#edit" id="view-edit-button" class="button text-button edit-hide" data-l10n-id="edit">Edit</a>
-        <a href="#" id="view-add-button" class="button text-button edit-hide" data-l10n-id="add-contact">Add</a>
-        <h2 id="view-name"></h2>
+    <section id="view" class="panel">
+      <header id="view-toolbar" class="toolbar toolbar-top">
+        <a role="menuitem" href="#" id="view-back" class="edit-hide">
+          <div class="back-wrapper">
+            <div class="icon-back"></div>
+          </div>
+        </a>
+        <a role="button" id="view-add-button" class="contact-show">
+          <div class="icon-contact"></div>
+        </a>
+        <h1 id="view-name"></h1>
         <input type="tel" id="view-num" />
-      </div>
-      <div id="view-list" class="list">
-      </div>
-      <div id="view-bottom-toolbar" class="toolbar toolbar-bottom">
+      </header>
+      <article id="view-list" class="list">
+      </article>
+      <footer id="view-bottom-toolbar" class="toolbar toolbar-bottom">
         <div id="view-bottom-toolbar-panel" class="toolbar-panel">
-          <div id="view-msg-text-container" class="toolbar-panel-item edit-hide">
+          <div id="view-msg-text-container" class="edit-hide view-bottom-toolbar-element">
             <textarea type="text" id="view-msg-text"></textarea>
           </div>
-          <div id="view-msg-send-container" class="toolbar-panel-fixed-item edit-hide">
-            <button id="view-msg-send" class="button text-button" data-l10n-id="send">Send</button>
+          <div role="button" id="view-msg-send" class="edit-hide view-bottom-toolbar-element" data-l10n-id="send">
+              Send
           </div>
-          <button id="view-delete-all-button" onclick="ConversationView.showConfirmationDialog();" class="button text-button edit-show" data-l10n-id="delete-all">Delete all</button>
-          <button id="view-delete-button" onclick="ConversationView.deleteMessages();" class="button text-button edit-show" data-l10n-id="delete">Delete</button>
-        </div> 
-      </div>
+        </div>
+      </footer>
+    </section>
 
-    </div>
-    
     <!-- Conversations List view -->
-    <div id="msg-conversations" class="panel">
-      <div id="msg-toolbar" class="toolbar toolbar-top">
-        <a href="#" id="msg-conversations-back" class="button text-button edit-show" data-l10n-id="back">Back</a>
-        <a href="#num=*" id="msg-new-message" class="button text-button edit-hide" data-l10n-id="new">New</a>
-        <a href="#edit" id="msg-edit-button" class="button text-button edit-hide" data-l10n-id="edit">Edit</a>
-        <div id="msg-title-container" data-l10n-id="messages">Messages</div>
-      </div>
-      
-      <div id="msg-search-container" class="toolbar">
-        <div id="msg-search-toolbar-panel" class="toolbar-panel">
-          <div id="msg-search-input-container" class="toolbar-panel-item">
-            <input id="msg-search" type="search" />
-          </div>
-          <div id="msg-search-cancel-container" class="toolbar-panel-fixed-item">
-            <button id="msg-search-cancel" onclick="window.location.hash = '#';" class="button text-button search-show" data-l10n-id="cancel">Cancel</button>
-          </div>
-        </div>
-      </div>
-      
-      <div id="msg-conversations-list" class="list">
-      </div>
+    <section id="msg-conversations" class="panel">
+      <header id="msg-toolbar" class="toolbar toolbar-top">
+        <menu role="menu">
+          <a role="menuitem" href="#" id="msg-conversations-back" class="edit-show">
+            <div class="back-wrapper">
+              <div class="icon-back"></div>
+            </div>
+          </a>
+          <a role="menuitem" href="#num=*" id="msg-new-message" class="edit-hide">
+            <span data-icon="add" class="icon-add"></span>
+          </a>
+        </menu>
+        <h1 id="msg-title-container" data-l10n-id="messages">Messages</h1>
+      </header>
 
-      <div id="msg-bottom-toolbar" class="toolbar toolbar-bottom edit-show">
-        <div id="msg-new-message-container">
-          <button id="msg-delete-all-button" onclick="ConversationListView.showConfirmationDialog();" class="button text-button edit-show" data-l10n-id="delete-all">Delete all</button>
-          <button id="msg-delete-button" onclick="ConversationListView.executeMessageDelete();" class="button text-button edit-show" data-l10n-id="delete">Delete</button>
-          <a href="#searchresult_edit" id="msg-search-edit-button" class="button text-button edit-hide search-show" data-l10n-id="edit" hidden>Edit</a>
-          <a href="#search" id="msg-search-button" class="button text-button edit-hide search-hide" data-l10n-id="search" hidden>Search</a>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Confirmation message for dangerous operations on conversation list-->
-    <div id="msg-confirmation-panel" class="confirmation-panel" hidden>
-        <div id="msg-confirmation-dialog" class="confirmation-dialog">
-            <p>Are you sure you want to clear all conversations</p>
-            <h2>This cannot be undone</h2>
-            <button id="msg-cancel-button" onclick="ConversationListView.hideConfirmationDialog();" class="button text-button">Cancel</button>
-            <button id="msg-accept-button" onclick="ConversationListView.executeAllMessagesDelete();" class="button text-button">Yes</button>
-        </div>
-    </div>
-    
-    <!-- Confirmation message for dangerous operations on conversation view-->
-    <div id="view-confirmation-panel" class="confirmation-panel" hidden>
-        <div id="view-confirmation-dialog" class="confirmation-dialog">
-            <p>Are you sure you want to clear all messages from this conversation</p>
-            <h2>This cannot be undone</h2>
-            <button id="view-cancel-button" onclick="ConversationView.hideConfirmationDialog();" class="button text-button">Cancel</button>
-            <button id="view-accept-button" onclick="ConversationView.deleteAllMessages();" class="button text-button">Yes</button>
-        </div>
-    </div>
+      <article id="msg-conversations-list" class="list">
+      </article>
+
+      <footer id="msg-bottom-toolbar" class="toolbar toolbar-bottom edit-show">
+        <menu id="msg-edit-options-bar">
+          <div role="button" id="msg-delete-all-button" onclick="ThreadListUI.showConfirmationDialog();" class="button-bottom-bar" data-l10n-id="delete-all">Delete all</div>
+          <div role="button" id="msg-delete-button" onclick="ThreadListUI.executeMessageDelete();" class="button-bottom-bar " data-l10n-id="delete">Delete</div>
+        </menu>
+      </footer>
+    </section>
+
   </body>
 </html>

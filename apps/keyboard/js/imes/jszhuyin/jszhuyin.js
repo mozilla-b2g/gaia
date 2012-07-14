@@ -671,6 +671,10 @@
       window.webkitIDBIndex ||
       window.msIDBIndex;
 
+    if (IDBObjectStore && IDBObjectStore.prototype.mozGetAll) {
+      IDBObjectStore.prototype.getAll = IDBObjectStore.prototype.mozGetAll;
+    }
+
     /* ==== init functions ==== */
 
     var getTermsInDB = function imedb_getTermsInDB(callback) {
@@ -1363,6 +1367,6 @@
 
   // Expose to IMEManager if we are in Gaia homescreen
   if (typeof IMEManager !== 'undefined')
-    IMEManager.IMEngines.jszhuyin = jszhuyin;
+    IMEController.IMEngines.jszhuyin = jszhuyin;
 
 })();

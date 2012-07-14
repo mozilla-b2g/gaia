@@ -25,28 +25,53 @@ body {
   position: relative;
 }
 
+button::-moz-focus-inner {
+  border: 0;
+}
+
+input[type="image"] {
+  outline: none;
+}
+
 /* These are only in use when we are current on the tabs screen */
 .tabs-screen iframe {
   pointer-events: none;
+}
+
+.tabs-screen #tabs-badge {
+  background-image: url('./images/add.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: transparent;
 }
 
 .awesome-screen #awesomescreen {
   display: block;
 }
 
+.awesome-screen #tabs-badge {
+  background-image: url('./images/close.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+}
+
 .current {
-  background: black;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 #tray {
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
-  left: 70px;
-  right: 20px;
+  left: 50px;
+  right: 0px;
   top: 0;
   bottom: 0;
   color: white;
   z-index: 40;
+  background-image: url('./images/drawer-header-background.png');
+  background-repeat: repeat-x;
+  background-position: top;
 }
 
 #new-tab {
@@ -64,10 +89,11 @@ body {
   border-top: 1px solid #333;
   overflow-y: auto;
   position:absolute;
-  top: 72px;
-  bottom: 20px;
+  top: 50px;
+  bottom: 0px;
   left: 0;
   right: 0;
+  background-image: url('./images/tabs-list-background.png');
 }
 
 #tabs-list ul {
@@ -85,14 +111,15 @@ body {
 #tabs-list li {
   margin: 0;
   height: 70px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #54575c;
   font-family: 'Open Sans', sans-serif;
   overflow: hidden;
   position: relative;
+  padding-left: 5px;
 }
 
 #tabs-list li a.active {
-  background: #333;
+  background-image: -moz-linear-gradient(#ff9400, #e66100);
 }
 
 #tabs-list img {
@@ -146,13 +173,13 @@ body {
   position: absolute;
   right: 0px;
   top: 0;
-  font-size:28px;
+  font-size: 22px;
   color: white;
   z-index: 100;
   display: block;
-  width: 50px;
-  height: 70px;
-  line-height: 70px;
+  width: 44px;
+  height: 50px;
+  line-height: 50px;
   text-align: center;
   cursor: pointer;
   -moz-user-select: none;
@@ -164,19 +191,16 @@ body {
 #toolbar-start {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 20px;
-  margin-right: 50px;
-  height: 70px;
+  height: 50px;
+  background-color: #f9f9fb;
 }
 
 #throbber {
   position: absolute;
-  top: -3px;
+  top: 50px;
   width: 100%;
   height: 3px;
-  background-image: -moz-linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3));
-  z-index: 100;
+  z-index: 200;
 }
 
 #throbber.loading {
@@ -185,7 +209,26 @@ body {
 }
 
 #toolbar-end {
-  border-top: solid 2px #a3a3a3;
+  border-top: solid 2px #a6b3bb;
+  display: none;
+}
+
+.page-screen #toolbar-start {
+  background-image: url('./images/tabs-badge-background.png');
+  background-repeat: no-repeat;
+  background-position: right;
+  padding-right: 74px;
+}
+
+.tabs-screen #toolbar-start {
+  background-image: url('./images/drawer-collapse.png'), url('./images/tabs-badge-background.png');
+  background-repeat: no-repeat, no-repeat;
+  background-position: top right, right;
+  padding-right: 74px;
+}
+
+.page-screen #toolbar-end {
+  display: block;
 }
 
 #url-bar {
@@ -193,30 +236,53 @@ body {
   display: -moz-box;
   -moz-box-orient: horizontal;
   padding: 0;
-  margin: 0;
+  margin: 10;
   border: solid 1px;
-  border-color: #9CA1A6;
-  border-radius: 16px;
-  height: 44px;
-  margin: 9px 8px;
-  padding: 0 0 0 16px;
+  border-color: #c1c5ce;
+  border-radius: 5px;
+  height: 34px;
+  margin: 8px 0px 8px 5px;
+  padding: 0 0 0 10px;
   background-color: #fff;
   font-weight: 600;
 }
 
 #url-button {
   display:none;
-  height:18px;
+  background-position: center;
+}
+
+#ssl-indicator {
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin-right: 5px;
+  text-indent: -1000em;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#ssl-indicator[value=secure] {
+  background-image: url(images/site_security_verified.png);
+}
+
+#ssl-indicator[value=broken] {
+  background-image: url(images/site_security_broken.png);
+}
+
+#ssl-indicator[value=insecure], #ssl-indicator[value=''] {
+  display: none;
 }
 
 #url-input {
   font-family: 'Open Sans';
   font-size: 18px;
-  height: 44px;
+  height: 34px;
   margin: 0;
   -moz-box-flex: 1;
   border: none;
   background-color: transparent;
+  text-overflow: ellipsis;
 }
 
 #url-input:invalid {
@@ -224,9 +290,9 @@ body {
 }
 
 menu[type="toolbar"] {
-  height: 62px;
+  height: 45px;
   background-color: #fff;
-  background-image: -moz-linear-gradient(#EEE, #C3CED9);
+  background-image: -moz-linear-gradient(#323639, #272b2e);
   margin: 0;
   padding: 0;
 }
@@ -238,9 +304,11 @@ menu button {
   display: block;
   margin: 0;
   padding: 0;
-  width: 56px;
-  height: 62px;
+  width: 80px;
+  height: 45px;
   float: left;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 #back-button {
@@ -256,11 +324,6 @@ menu button {
   background-image: url("images/back-pressed.png");
 }
 
-#menu-button {
-  background-image: url("images/menu.png");
-  float: right;
-}
-
 input::-moz-focus-inner {
   border: 0;
 }
@@ -271,6 +334,15 @@ input::-moz-focus-inner {
 
 #forward-button[disabled] {
   display: none;
+}
+
+#bookmark-button {
+  float: right;
+  background-image: url("images/bookmark.png");
+}
+
+#bookmark-button.bookmarked {
+ background-image: url("images/bookmarked.png");
 }
 
 #frames {
@@ -303,45 +375,107 @@ input::-moz-focus-inner {
   display:none;
 }
 
-#awesomescreen h3 {
-  font-size: 1em;
-  margin: 0;
-  background-color: #ccc;
-  padding: 4px;
+nav[data-role="tabs"] {
+  display: block;
+  background-color: #CCD6DF;
+  width: 100%;
+  height: 36px;
 }
 
-#awesomescreen ul {
+ul[role="tablist"] {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+li[role="tab"] {
+  display: inline;
+
+}
+
+li[role="tab"] a {
+  display: block;
+  float: left;
+  height: 36px;
+  text-decoration: none;
+  color: #000;
+  line-height: 36px;
+  text-align: center;
+  padding: 0 32px;
+  font-size: 14px;
+  outline: none;
+  margin-left: -32px;
+}
+
+li[role="tab"]:first-child a {
+  margin-left: 0;
+}
+
+li[role="tab"] a.selected {
+  background-image: url('images/tab-background.png');
+  background-image: url('images/tab-left.png'), url('images/tab-right.png'), url('images/tab-background.png');
+  background-position: left, right, center;
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  background-origin: padding-box;
+}
+
+section[role="tabpanel"] {
+  padding-top: 5px;
+  clear: both;
+  background-color: #f3f4f8;
+  display: none;
+}
+
+section[role="tabpanel"].selected {
+  display: block;
+}
+
+#awesomescreen h3 {
+  font-size: 0.9em;
+  margin: 0 10px;
+  color: #FF5F19;
+  border-bottom: solid 1px #FF5F19;
+  padding: 0;
+}
+
+ul[role="listbox"] {
   margin: 0;
   padding: 0;
 }
 
-#awesomescreen li {
+li[role="listitem"] {
   list-style-type: none;
+  margin: 0 10px;
 }
 
-#awesomescreen li:last-child a {
+li[role="listitem"]:last-child a {
   border-bottom: none;
 }
 
-#awesomescreen li a {
+li[role="listitem"] a {
   display: block;
   padding: 8px;
   text-decoration: none;
   color: #000;
   border-bottom: solid 1px #ccc;
+  padding-left: 32px;
+  background-repeat: no-repeat;
+  background-position: 8px 20px;
+  background-size: 16px;
+  outline: none;
 }
-#awesomescreen li a:hover, #awesomescreen li a:active {
-  background: #EEE;
+li[role="listitem"] a:hover, li[role="listitem"] a:active {
+  background-color: #EEE;
 }
 
-#awesomescreen li span {
+li[role="listitem"] span {
   display: block;
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
 }
 
-#awesomescreen li small {
+li[role="listitem"] small {
   display: block;
   color: #666;
   overflow: hidden;
@@ -349,8 +483,19 @@ input::-moz-focus-inner {
   pointer-events: none;
 }
 
-#history{
-  height: 100%;
+.awesome-screen #toolbar-start {
+  background-color: #ccd6df;
+  margin-right: 50px;
+  background-image: none;
+}
+
+.awesome-screen #tabs-badge {
+  width: 50px;
+  background-color: #ccd6df;
+}
+
+#history, #bookmarks {
+  height: -moz-calc(100% - 36px);
   overflow-y: auto;
   overflow-x: hidden;
 }
