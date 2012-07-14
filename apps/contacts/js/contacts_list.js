@@ -3,7 +3,14 @@
 var contacts = window.contacts || {};
 
 contacts.List = (function() {
-  var groupsList;
+  var groupsList,
+      searchBox,
+      fastScroll,
+      favoriteGroup,
+      inSearchMode = false;
+
+  searchBox = document.getElementById('search-contact');
+  fastScroll = document.querySelector('.view-jumper');
 
   var init = function load(element) {
     groupsList = element;
@@ -18,6 +25,7 @@ contacts.List = (function() {
     alphabet.push({group: 'und', letter: '#'});
 
     utils.templates.append(groupsList, alphabet);
+    favoriteGroup = document.getElementById('group-favorites').parentNode;
   }
 
   var load = function load(contacts) {
@@ -256,12 +264,81 @@ contacts.List = (function() {
     }
   }
 
+  // Toggle function to show/hide the letters header
+  var toggleGroupHeaders = function showHeaders() {
+    var headers = document.querySelectorAll('.block-title:not(.hide)');
+    if (!headers) {
+      return;
+    }
+
+    for (var i = 0; i < headers.length; i++) {
+      headers[i].classList.toggle('search-hide');
+    }
+  }
+
+  var exitSearch = function exitSearch() {
+    searchBox.value = '';
+    inSearchMode = false;
+    // Show elements that were hidden for the search
+    fastScroll.classList.remove('hide');
+    groupsList.classList.remove('hide');
+    favoriteGroup.classList.remove('hide');
+    toggleGroupHeaders();
+
+    // Bring back to visibilitiy the contacts
+    var allContacts = getContactsDom();
+    for (var i = 0; i < allContacts.length; i++) {
+      var contact = allContacts[i];
+      contact.classList.remove('search');
+      contact.classList.remove('hide');
+    }
+  };
+
+  var search = function performSearch() {
+    if (!inSearchMode) {
+      cleanContactsList();
+    }
+
+    if (!searchBox.value || searchBox.value.length == 0) {
+      exitSearch();
+      return;
+    }
+
+    var pattern = new RegExp(searchBox.value, 'i');
+
+    var allContacts = getContactsDom();
+    for (var i = 0; i < allContacts.length; i++) {
+      var contact = allContacts[i];
+      contact.classList.add('search');
+      var text = contact.querySelector('.item-body').textContent;
+      if (!pattern.test(text)) {
+        contact.classList.add('hide');
+      }
+       else {
+        contact.classList.remove('hide');
+      }
+    }
+  };
+
+  var cleanContactsList = function cleanContactsList() {
+    fastScroll.classList.add('hide');
+    favoriteGroup.classList.add('hide');
+    toggleGroupHeaders();
+    inSearchMode = true;
+  };
+
+  var getContactsDom = function contactsDom() {
+    var selector = ".block-item:not([data-uuid='#id#']";
+    return document.querySelectorAll(selector);
+  }
+
   return {
     'init': init,
     'load': load,
     'refresh': refresh,
     'getContactById': getContactById,
     'handleClick': handleClick,
-    'remove': remove
+    'remove': remove,
+    'search': search
   };
 })();

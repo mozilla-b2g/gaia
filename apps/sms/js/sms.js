@@ -7,6 +7,7 @@ var MessageManager = {
   init: function mm_init() {
     ThreadUI.init();
     ThreadListUI.init();
+    this.getMessages(ThreadListUI.renderThreads);
 
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
@@ -17,10 +18,11 @@ var MessageManager = {
   handleEvent: function mm_handleEvent(event) {
     switch (event.type) {
       case 'received':
-        ThreadListUI.renderThreads(event.message);
-        var msg = event.message;
-        if (ThreadUI.filter && ThreadUI.filter == msg.sender) {
-          ThreadUI.renderMessages(ThreadUI.filter);
+        this.getMessages(ThreadListUI.renderThreads);
+        var num = this.getNumFromHash();
+        if (num) {
+          //Append message
+          ThreadUI.appendMessage(event.message);
         }
         break;
 
@@ -28,7 +30,6 @@ var MessageManager = {
         var bodyclassList = document.body.classList;
         switch (window.location.hash) {
           case '':
-            ThreadListUI.renderThreads();
             bodyclassList.remove('conversation');
             bodyclassList.remove('conversation-new-msg');
             break;
@@ -38,23 +39,40 @@ var MessageManager = {
           default:
             var num = this.getNumFromHash();
             if (num) {
-              ThreadUI.renderMessages(num);
+              ThreadUI.cleanFields();
+              if (num == '*') {
+                document.body.classList.add('conversation-new-msg');
+                document.body.classList.add('conversation');
+              }else {
+                var filter = this.createFilter(num);
+                this.getMessages(ThreadUI.renderMessages, filter);
+                document.body.classList.remove('conversation-new-msg');
+                document.body.classList.add('conversation');
+              }
             }
           break;
         }
         break;
       case 'mozvisibilitychange':
         if (!document.mozHidden) {
-          ThreadListUI.renderThreads();
+          this.getMessages(ThreadListUI.renderThreads);
           var num = this.getNumFromHash();
           if (num) {
-            ThreadUI.renderMessages(num);
+            var filter = this.createFilter(num);
+            this.getMessages(ThreadUI.renderMessages, filter);
           }
         }
         break;
     }
   },
-  getNumFromHash: function thui_getNumFromHash() {
+
+  createFilter: function mm_createFilter(num) {
+    var filter = new MozSmsFilter();
+    filter.numbers = [num || ''];
+    return filter;
+  },
+
+  getNumFromHash: function mm_getNumFromHash() {
     var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
     return num ? num[1] : null;
   },
@@ -151,7 +169,6 @@ var ThreadListUI = {
 
   init: function thlui_init() {
     this.delNumList = [];
-    this.renderThreads();
   },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(contact) {
@@ -159,122 +176,87 @@ var ThreadListUI = {
     // This will be a callback from ContactManager
   },
 
-  renderThreads: function thlui_renderThreads(pendingMsg) {
-    var self = this;
-    this._lastHeader = undefined;
-    /*
-      TODO: Conversation list is always order by contact family names
-      not the timestamp.
-      It should be timestamp in normal view, and order by name while searching
-    */
-    MessageManager.getMessages(function getMessagesCallback(messages) {
-      var conversations = {};
-      for (var i = 0; i < messages.length; i++) {
-        var message = messages[i];
-
-        // XXX why does this happen?
-        if (!message.delivery)
-          continue;
-
-        var num = message.delivery == 'received' ?
-                  message.sender : message.receiver;
-
-        var read = message.read;
-        var conversation = conversations[num];
-        if (conversation) {
-          conversation.unreadCount += !read ? 1 : 0;
-          continue;
-        }
-
-        conversations[num] = {
+  renderThreads: function thlui_renderThreads(messages) {
+    ThreadListUI.view.innerHTML = '';
+    var threadIds = [], headerIndex;
+    for (var i = 0; i < messages.length; i++) {
+      var message = messages[i];
+      var num = message.delivery == 'received' ?
+      message.sender : message.receiver;
+      if (threadIds.indexOf(num) == -1) {
+        var thread = {
           'body': message.body,
           'name': num,
           'num': num,
           'timestamp': message.timestamp.getTime(),
-          'unreadCount': !read ? 1 : 0,
-          'id': i
+          'unreadCount': !message.read ? 1 : 0,
+          'id': num
         };
-      }
-
-      var fragment = '';
-      for (var num in conversations) {
-        conversation = conversations[num];
-        if (self.delNumList.indexOf(conversation.num) > -1) {
-          continue;
+        if (threadIds.length == 0) {
+          var currentTS = (new Date()).getTime();
+          headerIndex = Utils.getDayDate(currentTS);
+          ThreadListUI.createNewHeader(currentTS);
+        }else {
+          var tmpIndex = Utils.getDayDate(message.timestamp.getTime());
+          if (tmpIndex < headerIndex) {
+            ThreadListUI.createNewHeader(message.timestamp.getTime());
+            headerIndex = tmpIndex;
+          }
         }
-
-        // Add a grouping header if necessary
-        var header = self.createNewHeader(conversation);
-        if (header != null) {
-          fragment += header;
-        }
-        fragment += self.createNewConversation(conversation);
+        threadIds.push(num);
+        ThreadListUI.appendThread(thread);
       }
-
-      self.view.innerHTML = fragment;
-      delete self._lastHeader;
-      var conversationList = self.view.children;
-
-    }, null);
-  },
-
-  createNewConversation: function thlui_createNewConversation(conversation) {
-    var dataName = Utils.escapeHTML(conversation.name ||
-                                    conversation.num, true);
-    var name = Utils.escapeHTML(conversation.name);
-    var bodyText = conversation.body.split('\n')[0];
-    var bodyHTML = Utils.escapeHTML(bodyText);
-
-    return '<div class="item">' +
-           '  <label class="fake-checkbox">' +
-           '    <input data-num="' +
-                conversation.num + '"' + 'type="checkbox"/>' +
-           '    <span></span>' +
-           '  </label>' +
-           '  <a href="#num=' + conversation.num + '"' +
-           '     data-num="' + conversation.num + '"' +
-           '     data-name="' + dataName + '"' +
-           '     data-notempty="' +
-                 (conversation.timestamp ? 'true' : '') + '"' +
-           '     class="' +
-                 (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
-           '    <span class="unread-mark">' +
-           '      <i class="i-unread-mark"></i>' +
-           '    </span>' +
-           '    <div class="name">' + name + '</div>' +
-                (!conversation.timestamp ? '' :
-           '    <div class="time ' +
-                  (conversation.unreadCount > 0 ? 'unread' : '') +
-           '      " data-time="' + conversation.timestamp + '">' +
-                  Utils.getHourMinute(conversation.timestamp) +
-           '    </div>') +
-           '    <div class="msg">"' + bodyHTML + '"</div>' +
-           '    <div class="unread-tag"></div>' +
-           '    <div class="photo"></div>' +
-           '  </a>' +
-           '</div>';
-  },
-
-  // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createNewHeader: function thlui_createNewHeader(conversation) {
-    function sameDay(timestamp1, timestamp2) {
-      var day1 = new Date(timestamp1);
-      var day2 = new Date(timestamp2);
-
-      return day1.getFullYear() == day2.getFullYear() &&
-             day1.getMonth() == day2.getMonth() &&
-             day1.getDate() == day2.getDate();
-    };
-
-    if (this._lastHeader && sameDay(this._lastHeader, conversation.timestamp)) {
-      return null;
     }
+  },
 
-    this._lastHeader = conversation.timestamp;
+  appendThread: function thlui_appendThread(thread) {
+    // Create DOM element
+    var threadHTML = document.createElement('div');
+    threadHTML.classList.add('item');
 
-    return '<div class="groupHeader">' +
-    Utils.getHeaderDate(conversation.timestamp) + '</div>';
+    // Retrieve info from thread
+    var dataName = Utils.escapeHTML(thread.name ||
+                                    thread.num, true);
+    var name = Utils.escapeHTML(thread.name);
+    var bodyText = thread.body.split('\n')[0];
+    var bodyHTML = Utils.escapeHTML(bodyText);
+    // Create HTML structure
+    var structureHTML = '  <a href="#num=' + thread.num + '"' +
+            '     data-num="' + thread.num + '"' +
+            '     data-name="' + dataName + '"' +
+            '     data-notempty="' +
+                  (thread.timestamp ? 'true' : '') + '"' +
+            '     class="' +
+                 (thread.unreadCount > 0 ? 'unread' : '') + '">' +
+            '    <span class="unread-mark">' +
+            '      <i class="i-unread-mark"></i>' +
+            '    </span>' +
+            '    <div class="name">' + name + '</div>' +
+                (!thread.timestamp ? '' :
+            '    <div class="time ' +
+                  (thread.unreadCount > 0 ? 'unread' : '') +
+            '      " data-time="' + thread.timestamp + '">' +
+                  Utils.getHourMinute(thread.timestamp) +
+            '    </div>') +
+            '    <div class="msg">"' + bodyHTML + '"</div>' +
+            '    <div class="unread-tag"></div>' +
+            '    <div class="photo"></div>' +
+            '  </a>';
+    // Update HTML and append
+    threadHTML.innerHTML = structureHTML;
+    this.view.appendChild(threadHTML);
+  },
+  // Adds a new grouping header if necessary (today, tomorrow, ...)
 
+  createNewHeader: function thlui_createNewHeader(timestamp) {
+    // Create DOM Element
+    var headerHTML = document.createElement('div');
+    headerHTML.classList.add('groupHeader');
+
+    // Create HTML and append
+    var structureHTML = Utils.getHeaderDate(timestamp);
+    headerHTML.innerHTML = structureHTML;
+    ThreadListUI.view.appendChild(headerHTML);
   }
 };
 
@@ -303,9 +285,9 @@ var ThreadUI = {
     delete this.sendButton;
     return this.sendButton = document.getElementById('view-msg-send');
   },
-
   init: function thui_init() {
     this.delNumList = [];
+    this.headerIndex = 0;
 
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
@@ -352,140 +334,60 @@ var ThreadUI = {
     this.view.style.bottom = bottomToolbarHeight;
     this.scrollViewToBottom();
   },
+  // Adds a new grouping header if necessary (today, tomorrow, ...)
+  createHeader: function thui_createHeader(timestamp) {
+    // Create DOM Element
+    var headerHTML = document.createElement('div');
+    headerHTML.classList.add('groupHeader');
 
-  renderMessages: function thui_renderMessages(num, pendingMsg) {
-    delete ThreadListUI._lastHeader;
-    var self = this;
-    var view = this.view;
-    var bodyclassList = document.body.classList;
-    var currentScrollTop;
-
-    if (num !== '*') {
-      var filter = new MozSmsFilter();
-      filter.numbers = [num || ''];
-
-      if (this.filter == num)
-        currentScrollTop = view.scrollTop;
-
-      this.filter = num;
-    } else {
-      /* XXX: gaia issue #483 (New Message dialog design)
-              gaia issue #108 (contact picker)
-      */
-
-      this.num.value = '';
-      this.view.innerHTML = '';
-      bodyclassList.add('conversation-new-msg');
-      bodyclassList.add('conversation');
-      return;
-    }
-
-    bodyclassList.remove('conversation-new-msg');
-
-    var receiverId = parseInt(num);
-
-    var self = this;
-    var options = {
-      filterBy: ['tel'],
-      filterOp: 'contains',
-      filterValue: num
-    };
-
-    this.num.value = num;
-    this.title.num = num;
-    this.title.textContent = num;
-
-    ContactDataManager.getContactData(options, function getContact(result) {
-      var contactImageSrc = 'style/images/contact-placeholder.png';
-      if (result && result.length > 0) {
-        var contact = result[0];
-        self.title.textContent = contact.name[0];
-        //TODO: apply the real contact image:
-        //contactImageSrc = contact.photo;
-      }
-      var images = self.view.querySelectorAll('.photo img');
-      for (var i = 0; i < images.length; i++)
-        images[i].src = contactImageSrc;
-    });
-
-    MessageManager.getMessages(function mm_getMessages(messages) {
-      /** QUICK and dirty fix for the timestamp issues,
-       * it seems that API call does not give the messages ordered
-       * so we need to sort the array
-       */
-      messages.sort(function(a, b) {
+    // Create HTML and append
+    var structureHTML = Utils.getHeaderDate(timestamp);
+    headerHTML.innerHTML = structureHTML;
+    ThreadUI.view.appendChild(headerHTML);
+  },
+  renderMessages: function thui_renderMessages(messages) {
+    // Update Header
+    ThreadUI.title.innerHTML = MessageManager.getNumFromHash();
+    // Sorting messages reverse
+    messages.sort(function(a, b) {
         return a.timestamp - b.timestamp;
       });
-
-      var lastMessage = messages[messages.length - 1];
-      if (pendingMsg &&
-          (!lastMessage || lastMessage.id !== pendingMsg.id))
-        messages.push(pendingMsg);
-
-      var fragment = '';
-      var unreadList = [];
-
-      for (var i = 0; i < messages.length; i++) {
-        var msg = messages[i];
-        if (!msg.read)
-          unreadList.push(msg.id);
-
-        // Add a grouping header if necessary
-        var header = ThreadListUI.createNewHeader(msg) || '';
-        fragment += header;
-
-        fragment += self.createMessage(msg);
-      }
-
-      view.innerHTML = fragment;
-      self.scrollViewToBottom(currentScrollTop);
-
-      bodyclassList.add('conversation');
-
-      MessageManager.markMessagesRead(unreadList, true, function markMsg() {
-        // TODO : Since spec do not specify the behavior after mark success or
-        //        error, we do nothing currently.
-      });
-    }, filter, true);
+    // Clean list of messages
+    ThreadUI.view.innerHTML = '';
+    // Update header index
+    ThreadUI.headerIndex = 0;
+    // Per each message I will append DOM element
+    messages.forEach(ThreadUI.appendMessage);
   },
-
-  createMessage: function thui_createMessage(message) {
-    var dataId = message.id; // uuid
+  appendMessage: function thui_appendMessage(message) {
+    // Create DOM Element
+    var messageDOM = document.createElement('div');
+    // Add class
+    messageDOM.classList.add('message-block');
+    // Get data for rendering
     var outgoing = (message.delivery == 'sent' ||
       message.delivery == 'sending');
-    var num = outgoing ? message.sender : message.receiver;
-    var dataNum = num;
-
     var className = (outgoing ? 'sender' : 'receiver') + '"';
-    if (message.delivery == 'sending')
-      className = 'sender pending"';
-
-    var pic = 'style/images/contact-placeholder.png';
-
-    //Split body in different lines if the sms contains \n
-    var msgLines = message.body.split('\n');
-    //Apply the escapeHTML body to each line
-    msgLines.forEach(function(line, index) {
-      msgLines[index] = Utils.escapeHTML(line);
-    });
-    //Join them back with <br />
-    var body = msgLines.join('<br />');
     var timestamp = message.timestamp.getTime();
-
-    return '<div class="message-block" ' + 'data-num="' + dataNum +
-           '" data-id="' + dataId + '">' +
-           '  <label class="fake-checkbox">' +
-           '    <input data-id="' + dataId + '" type="checkbox"/>' +
-           '    <span></span>' +
-           '  </label>' +
-           '  <div class="message-container ' + className + '>' +
-           '    <div class="message-bubble"></div>' +
-           '    <div class="time" data-time="' + timestamp + '">' +
-                  Utils.getHourMinute(message.timestamp) +
-           '    </div>' +
-           '    <div class="text">' + body + '</div>' +
-           '  </div>' +
-           '</div>';
+    // Create HTML structure
+    var htmlStructure = '  <div class="message-container ' + className + '>' +
+               '    <div class="message-bubble"></div>' +
+               '    <div class="time" data-time="' + timestamp + '">' +
+                      Utils.getHourMinute(message.timestamp) +
+               '    </div>' +
+               '    <div class="text">' + message.body + '</div>' +
+               '  </div>';
+    messageDOM.innerHTML = htmlStructure;
+    //Check if we need a new header
+    var tmpIndex = Utils.getDayDate(timestamp);
+    if (tmpIndex > ThreadUI.headerIndex) {
+      ThreadUI.createHeader(timestamp);
+      ThreadUI.headerIndex = tmpIndex;
+    }
+    // Append element
+    ThreadUI.view.appendChild(messageDOM);
+    // Scroll to bottom
+    ThreadUI.scrollViewToBottom();
   },
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
@@ -521,89 +423,59 @@ var ThreadUI = {
     window.location.hash = '';
     return true;
   },
-
-  sendMessage: function thui_sendMessage() {
-    var num = this.num.value;
-    var self = this;
-    var text = document.getElementById('view-msg-text').value;
-
-    if (num === '' || text === '')
-      return;
-
-    MessageManager.send(num, text, function onsent(msg) {
-      if (!msg) {
-        ThreadUI.input.value = text;
-        ThreadUI.updateInputHeight();
-
-        if (ThreadUI.filter) {
-          if (window.location.hash !== '#num=' + ThreadUI.filter)
-            window.location.hash = '#num=' + ThreadUI.filter;
-          else
-            ThreadUI.renderMessages(ThreadUI.filter);
-        }
-        ThreadListUI.renderThreads();
-        return;
-      }
-
-      // Add a slight delay so that the database has time to write the
-      // message in the background. Ideally we'd just be updating the UI
-      // from "sending..." to "sent" at this point...
-      window.setTimeout(function() {
-        if (ThreadUI.filter) {
-          if (window.location.hash !== '#num=' + ThreadUI.filter)
-            window.location.hash = '#num=' + ThreadUI.filter;
-          else
-            ThreadUI.renderMessages(ThreadUI.filter);
-        }
-        ThreadListUI.renderThreads();
-      }, 100);
-    });
-
-    // Create a preliminary message object and update the view right away.
-    var message = {
-      sender: null,
-      receiver: num,
-      delivery: 'sending',
-      body: text,
-      timestamp: new Date()
-    };
-
-    window.setTimeout((function updateMessageField() {
-      this.input.value = '';
-      this.updateInputHeight();
-      this.input.focus();
-
-      if (this.filter) {
-        this.renderMessages(this.filter, message);
-        return;
-      }
-      this.renderMessages(num, message);
-    }).bind(this), 0);
-
-    ThreadListUI.renderThreads(message);
+  cleanFields: function thui_cleanFields() {
+    this.num.value = '';
+    this.input.value = '';
   },
-
-  pickContact: function thui_pickContact() {
-    try {
-      var activity = new MozActivity({
-        name: 'pick',
-        data: {
-          type: 'webcontacts/contact'
-        }
-      });
-      activity.onsuccess = function() {
-        var number = this.result.number;
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          if (number) {
-            var app = evt.target.result;
-            app.launch();
-            window.location.hash = '#num=' + number;
-          }
-        };
-      }
-    } catch (e) {
-      console.log('WebActivities unavailable? : ' + e);
+  sendMessage: function thui_sendMessage() {
+    // Retrieve num depending on hash
+    var hashNum = MessageManager.getNumFromHash();
+    // Depending where we are, we get different num
+    if (hashNum == '*') {
+      var num = this.num.value;
+    } else {
+      var num = hashNum;
     }
+    // Retrieve text
+    var text = this.input.value;
+    // If we have something to send
+    if (num != '' && text != '') {
+      if (hashNum == '*') {
+        ThreadUI.title.innerHTML = num;
+        document.body.classList.remove('conversation-new-msg');
+      }
+      // Create 'PendingMessage'
+      var message = {
+        sender: null,
+        receiver: num,
+        delivery: 'sending',
+        body: text,
+        timestamp: new Date()
+      };
+      // Append to DOM
+      this.appendMessage(message);
+
+      // TODO Append to Steve class
+      // TODO Once Steve code land, we will change hash to 'num='+num
+      // directly
+
+      // Clean Fields
+      ThreadUI.cleanFields();
+      MessageManager.send(num, text, function() {
+        //TODO Remove 'pending' from Steve class
+
+        // TODO move when Steve code will be landed
+        if (window.location.hash == '#num=*') {
+          window.location.hash = '#num=' + num;
+        } else {
+          MessageManager.getMessages(ThreadListUI.renderThreads);
+        }
+        MessageManager.getMessages(ThreadListUI.renderThreads);
+
+      });
+    }
+
+
   }
 };
 
