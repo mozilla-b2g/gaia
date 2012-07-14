@@ -31,7 +31,7 @@ var SoundManager = {
     var self = this;
     SettingsListener.observe('audio.volume.master', this.currentVolume,
       function soundManager_observe(value) {
-        self.currentVolume = value * 10;
+        self.currentVolume = Math.pow(value, 2);
     });
   },
 
