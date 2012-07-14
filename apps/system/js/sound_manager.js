@@ -9,7 +9,8 @@ var SoundManager = {
   * Must not multate directly - use changeVolume.
   * Listen to 'volumechange' event to properly handle status changes
   */
-  currentVolume: 5,
+  currentVolume: 25,
+  level: 5,
 
   /*
   * Starting repeating the key press after the key is being hold down
@@ -27,6 +28,13 @@ var SoundManager = {
   init: function soundManager_init() {
     window.addEventListener('keydown', this);
     window.addEventListener('keyup', this);
+
+    var self = this;
+    SettingsListener.observe('audio.volume.master', this.currentVolume,
+      function soundManager_observe(value) {
+        self.currentVolume = value * 100;
+        self.level = Math.sqrt(self.currentVolume);
+    });
   },
 
   handleEvent: function soundManager_handleEvent(evt) {
@@ -38,7 +46,7 @@ var SoundManager = {
         switch (evt.keyCode) {
           case evt.DOM_VK_PAGE_UP:
             this.repeatKey((function repeatKeyCallback() {
-              if (this.currentVolume == 10) {
+              if (this.level == 10) {
                 clearTimeout(this._timer);
                 return;
               }
@@ -48,7 +56,7 @@ var SoundManager = {
 
           case evt.DOM_VK_PAGE_DOWN:
             this.repeatKey((function repeatKeyCallback() {
-              if (this.currentVolume == 0) {
+              if (this.level == 0) {
                 clearTimeout(this._timer);
                 return;
               }
@@ -84,8 +92,9 @@ var SoundManager = {
   },
 
   changeVolume: function soundManager_changeVolume(delta) {
-    var volume = this.currentVolume + delta;
-    this.currentVolume = volume = Math.max(0, Math.min(10, volume));
+    var volume = this.level + delta;
+    this.level = volume = Math.max(0, Math.min(10, volume));
+    this.currentVolume = Math.pow(this.level, 2);
 
     var notification = document.getElementById('volume');
     var classes = notification.classList;
@@ -112,6 +121,11 @@ var SoundManager = {
       classes.remove('visible');
     }, 1500);
 
+    var settings = navigator.mozSettings;
+    if (settings) {
+      settings.getLock().set({'audio.volume.master': this.currentVolume / 10});
+    }
+
     this.fireVolumeChangeEvent();
   },
 
@@ -119,7 +133,7 @@ var SoundManager = {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('volumechange',
       /* canBubble */ true, /* cancelable */ false,
-      {currentVolume: this.currentVolume});
+      {currentVolume: this.currentVolume / 100});
     window.dispatchEvent(evt);
   }
 };

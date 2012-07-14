@@ -24,6 +24,13 @@ EVENT TIME COLOR: #333
 
 }
 
+/* general elements */
+
+p {
+  font-size: 1.5rem;
+  line-height: 130%;
+}
+
 #wrapper {
   height: 100%;
 }
@@ -38,6 +45,7 @@ EVENT TIME COLOR: #333
 #views > section {
   display: none
 }
+
 
 #views > section.active {
   display: block;
@@ -63,8 +71,39 @@ EVENT TIME COLOR: #333
 }
 
 
+/* create account view */
+
+#create-account-view > header {
+  margin-bottom: 4rem;
+}
+
+#create-account-view > ol,
+#create-account-view > p {
+  margin: 0 2rem;
+}
+
+#create-account-view > ol {
+  margin-top: 3rem;
+}
+
+#create-account-view > ol a {
+  display: block;
+  width: 100%;
+  height: 4.1rem;
+  line-height: 150%;
+  font-size: 1.3rem;
+  font-weight: bold;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  background: -moz-linear-gradient(#F4F4F4, #C3C3C3);
+  border: 1px solid #B0B0B0;
+  text-decoration: none;
+  color: #333;
+}
+
 /* add event view */
 
+#create-account-view,
 #add-event-view {
   /* completely override other views */
   background: white;
@@ -364,11 +403,11 @@ Indicators are in units of 12
 
 
 #view-selector > li.toggle-settings,
-body.configure #view-selector .today {
+body[data-path="/settings/"] #view-selector .today {
   display: none;
 }
 
-body.configure #view-selector .toggle-settings {
+body[data-path^="/settings/"] #view-selector .toggle-settings {
   display: block !important;
 }
 
@@ -382,19 +421,18 @@ body.configure #view-selector .toggle-settings {
 }
 
 /**  Selected items */
-body[data-path="/day"] #view-selector .day,
-body[data-path="/week"] .time-selection .week,
-body[data-path="/month"] .time-selection .month {
+body[data-path="/day/"] #view-selector .day,
+body[data-path="/week/"] .time-selection .week,
+body[data-path="/month/"] .time-selection .month {
   background-color: white;
   color: black;
 }
 
-body[data-path="/day"] #view-selector .day a,
-body[data-path="/week"] #view-selector .week a,
-body[data-path="/month"] #view-selector .month a {
+body[data-path="/day/"] #view-selector .day a,
+body[data-path="/week/"] #view-selector .week a,
+body[data-path="/month/"] #view-selector .month a {
   color: black;
 }
-
 
 #view-selector > li a {
   padding: 0.55rem 0.74rem;
@@ -436,6 +474,6 @@ body[data-path="/month"] #view-selector .month a {
 
 @media screen and (max-width: 480px) {
   html, body {
-    font-size: 10px;  
+    font-size: 10px;
   }
 }

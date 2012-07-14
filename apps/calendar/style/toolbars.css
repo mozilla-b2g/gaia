@@ -22,7 +22,7 @@ header[role="toolbar"] {
   float: right;
 }
 
-header[role="toolbar"] a.toggle-settings {
+#show-settings {
   background: transparent url('/style/icons/HeaderIcon_30x30_menu.png') no-repeat;
   width: 30px;
   height: 30px;
