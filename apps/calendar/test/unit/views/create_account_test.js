@@ -60,12 +60,12 @@ suite('views/create_account', function() {
     );
   });
 
-  suite('#_updateAccountPresets', function() {
+  suite('#render', function() {
     var presets;
 
     setup(function() {
       presets = Object.keys(Calendar.Presets);
-      subject._updateAccountPresets();
+      subject.render();
     });
 
     test('dom update', function() {

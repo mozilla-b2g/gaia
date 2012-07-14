@@ -1,27 +1,13 @@
 (function(window) {
 
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
   if (typeof(Calendar.Views) === 'undefined') {
     Calendar.Views = {};
   }
 
   var template = Calendar.Templates.Month;
 
-  function Child(options) {
-    var key, self;
-
-    if (typeof(options) === 'undefined') {
-      options = {};
-    }
-
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
+  function Child() {
+    Calendar.View.apply(this, arguments);
 
     this.batch = new Calendar.Batch({
       handler: this._handleBatch.bind(this),

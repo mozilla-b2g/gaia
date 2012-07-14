@@ -1,9 +1,5 @@
 (function(window) {
 
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
   if (typeof(Calendar.Views) === 'undefined') {
     Calendar.Views = {};
   }
@@ -11,22 +7,7 @@
   var template = Calendar.Templates.Account;
 
   function CreateAccount(options) {
-    var key;
-
-    if (typeof(options) === 'undefined') {
-      options = {};
-    }
-
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
-
-    // set this.element
-    Calendar.View.call(this, this.selectors.element);
-
-    this._initEvents();
+    Calendar.View.apply(this, arguments);
   }
 
   CreateAccount.prototype = {
@@ -41,10 +22,7 @@
       return this._findElement('accounts');
     },
 
-    _initEvents: function() {
-    },
-
-    _updateAccountPresets: function() {
+    render: function() {
       var list = Calendar.Presets;
       var output;
 
@@ -52,12 +30,7 @@
         output = template.accountItem.render({ name: preset });
         this.accounts.insertAdjacentHTML('beforeend', output);
       }, this);
-    },
-
-    render: function() {
-      this._updateAccountPresets();
     }
-
   };
 
   CreateAccount.prototype.onfirstseen = CreateAccount.prototype.render;

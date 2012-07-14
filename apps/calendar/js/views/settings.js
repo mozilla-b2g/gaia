@@ -1,29 +1,11 @@
 (function(window) {
 
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
   if (typeof(Calendar.Views) === 'undefined') {
     Calendar.Views = {};
   }
 
   function Settings(options) {
-    var key;
-
-    if (typeof(options) === 'undefined') {
-      options = {};
-    }
-
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
-
-    // set this.element
-    Calendar.View.call(this, this.selectors.element);
-
+    Calendar.View.apply(this, arguments);
     this._handleOutsideClick = this._handleOutsideClick.bind(this);
   }
 

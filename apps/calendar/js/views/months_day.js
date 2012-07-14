@@ -10,17 +10,8 @@
   var template = Calendar.Templates.Day;
 
   function Day(options) {
-    var key;
-
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
-
-    this.element = document.querySelector('#months-day-view');
+    Calendar.View.apply(this, arguments);
     this._initEvents();
-
   }
 
   function getEl(selectorName, elName) {
@@ -35,6 +26,10 @@
   Day.prototype = {
 
     __proto__: Calendar.View.prototype,
+
+    selectors: {
+      element: '#months-day-view'
+    },
 
     /**
      * Hack this should be localized.

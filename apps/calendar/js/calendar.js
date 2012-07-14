@@ -1,6 +1,6 @@
 Calendar.init = function calendar_init() {
   var Views = Calendar.Views;
-  var Models = Calendar.Store;
+  var Store = Calendar.Store;
 
   var route = new Calendar.Router(page);
 

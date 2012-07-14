@@ -5,30 +5,51 @@ suite('view', function() {
   var el, subject;
 
   setup(function() {
-    var childEl = document.createElement('div');
-    childEl.classList.add('foo');
-
     el = document.createElement('div');
+    el.id = 'view';
     document.body.appendChild(el);
 
-    subject = new Calendar.View();
-
-    //we always assume there is some
-    //root level element.
-    subject.element = el;
+    subject = new Calendar.View('#view');
   });
 
   teardown(function() {
     el.parentNode.removeChild(el);
+    el = null;
+  });
+
+  suite('initialization', function() {
+    test('string', function() {
+      subject = new Calendar.View('#view');
+      assert.equal(subject.selectors.element, '#view');
+    });
+
+    test('object', function() {
+      subject = new Calendar.View({ controller: 'a' });
+      assert.equal(subject.controller, 'a');
+      console.log(subject.selectors);
+      assert.ok(!subject.selectors);
+    });
+  });
+
+  test('#element', function() {
+    assert.equal(subject.element.id, el.id);
   });
 
   suite('#_findElement', function() {
 
     var expected;
 
+
+    setup(function() {
+      var thing = document.createElement('div');
+      thing.id = 'foo';
+      el.appendChild(thing);
+    });
+
     setup(function() {
       subject.selectors.myThing = '#foo';
       expected = el.querySelector('#foo');
+      assert.ok(expected);
     });
 
     test('single lookup', function() {

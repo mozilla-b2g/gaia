@@ -13,16 +13,38 @@
    * The .seen property is added to each object
    * with view in its prototype. .seen can be used
    * to detect if the view has ever been activated.
+   *
+   * @param {String|Object} options options or a selector for element.
    */
-  function View(selector) {
-    this.element = document.querySelector(selector);
+  function View(options) {
+    if (typeof(options) === 'undefined') {
+      options = {};
+    }
+
+    if (typeof(options) === 'string') {
+      this.selectors = { element: options };
+    } else {
+      var key;
+
+      if (typeof(options) === 'undefined') {
+        options = {};
+      }
+
+      for (key in options) {
+        if (options.hasOwnProperty(key)) {
+          this[key] = options[key];
+        }
+      }
+    }
   }
 
   View.prototype = {
     seen: false,
     activeClass: 'active',
 
-    selectors: {},
+    get element() {
+      return this._findElement('element');
+    },
 
     /**
      * Finds a caches a element defined
