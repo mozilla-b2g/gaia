@@ -7,6 +7,63 @@ var MessageManager = {
   init: function mm_init() {
     ThreadUI.init();
     ThreadListUI.init();
+
+    if (navigator.mozSms) {
+      navigator.mozSms.addEventListener('received', this);
+    }
+    window.addEventListener('hashchange', this);
+    document.addEventListener('mozvisibilitychange', this);
+  },
+  handleEvent: function mm_handleEvent(event) {
+    switch (event.type) {
+      case 'received':
+        ThreadListUI.renderThreads(event.message);
+        var msg = event.message;
+        if (ThreadUI.filter && ThreadUI.filter == msg.sender) {
+          ThreadUI.renderMessages(ThreadUI.filter);
+        }
+        break;
+
+      case 'hashchange':
+        var bodyclassList = document.body.classList;
+        switch (window.location.hash) {
+          case '':
+            bodyclassList.remove('msg-search-mode');
+            bodyclassList.remove('edit-mode');
+            if (!bodyclassList.contains('msg-search-result-mode') &&
+                !bodyclassList.contains('conversation'))
+              return;
+
+            ThreadListUI.renderThreads();
+            bodyclassList.remove('conversation');
+            bodyclassList.remove('conversation-new-msg');
+            break;
+          case '#edit':  // Edit mode with all conversations.
+            bodyclassList.add('edit-mode');
+            bodyclassList.remove('msg-search-mode');
+            break;
+          default:
+            var num = this.getNumFromHash();
+            if (num) {
+              ThreadUI.renderMessages(num);
+            }
+          break;
+        }
+        break;
+      case 'mozvisibilitychange':
+        if (!document.mozHidden) {
+          ThreadListUI.renderThreads();
+          var num = this.getNumFromHash();
+          if (num) {
+            ThreadUI.renderMessages(num);
+          }
+        }
+        break;
+    }
+  },
+  getNumFromHash: function thui_getNumFromHash() {
+    var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
+    return num ? num[1] : null;
   },
   // Retrieve messages from DB and execute callback
   getMessages: function mm_getMessages(callback, filter, invert) {
@@ -101,14 +158,7 @@ var ThreadListUI = {
 
   init: function thlui_init() {
     this.delNumList = [];
-    if (navigator.mozSms)
-      navigator.mozSms.addEventListener('received', this);
-
-    this.view.addEventListener('click', this);
-    window.addEventListener('hashchange', this);
-
     this.renderThreads();
-    document.addEventListener('mozvisibilitychange', this);
   },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(msg) {
@@ -207,10 +257,11 @@ var ThreadListUI = {
   },
 
   createNewConversation: function thlui_createNewConversation(conversation) {
-    var dataName = escapeHTML(conversation.name || conversation.num, true);
-    var name = escapeHTML(conversation.name);
+    var dataName = Utils.escapeHTML(conversation.name ||
+                                    conversation.num, true);
+    var name = Utils.escapeHTML(conversation.name);
     var bodyText = conversation.body.split('\n')[0];
-    var bodyHTML = escapeHTML(bodyText);
+    var bodyHTML = Utils.escapeHTML(bodyText);
 
     return '<div class="item">' +
            '  <label class="fake-checkbox">' +
@@ -233,7 +284,7 @@ var ThreadListUI = {
            '    <div class="time ' +
                   (conversation.unreadCount > 0 ? 'unread' : '') +
            '      " data-time="' + conversation.timestamp + '">' +
-                  giveHourMinute(conversation.timestamp) +
+                  Utils.getHourMinute(conversation.timestamp) +
            '    </div>') +
            '    <div class="msg">"' + bodyHTML + '"</div>' +
            '    <div class="unread-tag"></div>' +
@@ -260,74 +311,8 @@ var ThreadListUI = {
     this._lastHeader = conversation.timestamp;
 
     return '<div class="groupHeader">' +
-      giveHeaderDate(conversation.timestamp) + '</div>';
+      Utils.getHeaderDate(conversation.timestamp) + '</div>';
   },
- getNumFromHash: function thui_getNumFromHash() {
-    var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
-    return num ? num[1] : null;
-  },
-  // Update the body class depends on the current hash and original class list.
-  pageStatusController: function thlui_pageStatusController() {
-    var bodyclassList = document.body.classList;
-    switch (window.location.hash) {
-      case '':
-        bodyclassList.remove('msg-search-mode');
-        bodyclassList.remove('edit-mode');
-        if (!bodyclassList.contains('msg-search-result-mode') &&
-            !bodyclassList.contains('conversation'))
-          return;
-
-        this.renderThreads();
-        bodyclassList.remove('conversation');
-        bodyclassList.remove('conversation-new-msg');
-        break;
-      case '#edit':  // Edit mode with all conversations.
-        bodyclassList.add('edit-mode');
-        bodyclassList.remove('msg-search-mode');
-        break;
-      case '#search': // Display search toolbar with all conversations.
-        bodyclassList.remove('msg-edit-mode');
-        bodyclassList.add('msg-search-mode');
-        break;
-      case '#searchresult': // Display searched conversations.
-        bodyclassList.remove('msg-search-mode');
-        bodyclassList.remove('msg-edit-mode');
-        bodyclassList.add('msg-search-result-mode');
-      case '#searchresult_edit':  // Edit mode with the searched conversations.
-        bodyclassList.add('msg-edit-mode');
-        bodyclassList.add('msg-search-result-mode');
-        break;
-      default:
-        var num = this.getNumFromHash();
-        if (num) {
-          ThreadUI.renderMessages(num);
-        
-        }
-        break;
-        
-    }
-  },
-
-  handleEvent: function thlui_handleEvent(evt) {
-    switch (evt.type) {
-      case 'received':
-        ThreadListUI.renderThreads(evt.message);
-        break;
-
-      case 'hashchange':
-        this.pageStatusController();
-        break;
-
-      case 'mozvisibilitychange':
-        if (document.mozHidden)
-          return;
-
-        // Refresh the view when app return to foreground.
-        this.renderThreads();
-        break;
-    }
-  },
-
   executeMessageDelete: function thlui_executeMessageDelete() {
     var delList = this.view.querySelectorAll('input[type=checkbox][data-num]');
     var delNum = [];
@@ -383,14 +368,6 @@ var ThreadListUI = {
     window.location.hash = '#';
   },
 
-  toggleEditMode: function thlui_toggleEditMode(show) {
-    if (show) {
-      document.body.classList.add('edit-mode');
-    } else {
-      document.body.classList.remove('edit-mode');
-    }
-  },
-
   onListItemClicked: function thlui_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb || !document.body.classList.contains('edit-mode')) {
@@ -437,9 +414,6 @@ var ThreadUI = {
   init: function thui_init() {
     this.delNumList = [];
 
-    if (navigator.mozSms)
-      navigator.mozSms.addEventListener('received', this);
-
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.view.addEventListener('click', this);
@@ -448,14 +422,6 @@ var ThreadUI = {
     windowEvents.forEach(function(eventName) {
       window.addEventListener(eventName, this);
     }, this);
-
-
-    document.addEventListener('mozvisibilitychange', this);
-  },
-
-  getNumFromHash: function thui_getNumFromHash() {
-    var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
-    return num ? num[1] : null;
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -607,7 +573,7 @@ var ThreadUI = {
     var msgLines = message.body.split('\n');
     //Apply the escapeHTML body to each line
     msgLines.forEach(function(line, index) {
-      msgLines[index] = escapeHTML(line);
+      msgLines[index] = Utils.escapeHTML(line);
     });
     //Join them back with <br />
     var body = msgLines.join('<br />');
@@ -622,7 +588,7 @@ var ThreadUI = {
            '  <div class="message-container ' + className + '>' +
            '    <div class="message-bubble"></div>' +
            '    <div class="time" data-time="' + timestamp + '">' +
-                  giveHourMinute(message.timestamp) +
+                  Utils.getHourMinute(message.timestamp) +
            '    </div>' +
            '    <div class="text">' + body + '</div>' +
            '  </div>' +
@@ -676,13 +642,6 @@ var ThreadUI = {
           evt.preventDefault();
         break;
 
-      case 'received':
-        var msg = evt.message;
-        if (this.filter && this.filter == msg.sender) {
-          this.renderMessages(ThreadUI.filter);
-        }
-        break;
-
       case 'transitionend':
         if (document.body.classList.contains('conversation'))
           return;
@@ -696,17 +655,6 @@ var ThreadUI = {
 
         this.updateInputHeight();
         this.scrollViewToBottom();
-        break;
-
-      case 'mozvisibilitychange':
-        if (document.mozHidden)
-          return;
-
-        // Refresh the view when app return to foreground.
-        var num = this.getNumFromHash();
-        if (num) {
-          this.renderMessages(num);
-        }
         break;
     }
   },
@@ -824,6 +772,29 @@ var ThreadUI = {
     }).bind(this), 0);
 
     ThreadListUI.renderThreads(message);
+  },
+
+  pickContact: function thui_pickContact() {
+    try {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/contact'
+        }
+      });
+      activity.onsuccess = function() {
+        var number = this.result.number;
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          if (number) {
+            var app = evt.target.result;
+            app.launch();
+            window.location.hash = '#num=' + number;
+          }
+        };
+      }
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   }
 };
 
@@ -833,4 +804,23 @@ window.addEventListener('localized', function showBody() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
+});
+
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  var number = activity.source.data.number;
+  var displayThread = function actHandleDisplay() {
+    if (number)
+      window.location.hash = '#num=' + number;
+  }
+
+  if (document.readyState == 'complete') {
+    displayThread();
+  } else {
+    window.addEventListener('localized', function loadWait() {
+      window.removeEventListener('localized', loadWait);
+      displayThread();
+    });
+  }
+
+  activity.postResult({ status: 'accepted' });
 });

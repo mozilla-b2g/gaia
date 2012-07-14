@@ -121,17 +121,17 @@ var StatusBar = {
   },
 
   updateBattery: function sb_updateBattery() {
-    var mozBattery = window.navigator.battery;
-    if (!mozBattery)
+    var battery = window.navigator.battery;
+    if (!battery)
       return;
 
     var battery = this.battery;
     var fuel = this.batteryFuel;
     var charging = this.batteryCharging;
 
-    var level = mozBattery.level * 100;
+    var level = battery.level * 100;
 
-    if (mozBattery.charging) {
+    if (battery.charging) {
       charging.hidden = false;
       fuel.className = 'charging';
       fuel.style.minWidth = (level / 5.88) + 'px';

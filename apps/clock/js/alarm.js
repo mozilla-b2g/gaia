@@ -332,10 +332,10 @@ var FakeAlarmManager = {
       window.open(protocol + '//' + host + '/onring.html',
                   'ring_screen', 'attention');
 
-      if ('mozVibrate' in navigator) {
+      if ('vibrate' in navigator) {
         var vibrateInterval = 0;
         vibrateInterval = window.setInterval(function vibrate() {
-          navigator.mozVibrate([200]);
+          navigator.vibrate([200]);
         }, 600);
         window.setTimeout(function clearVibration() {
           window.clearInterval(vibrateInterval);

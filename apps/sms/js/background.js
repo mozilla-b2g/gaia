@@ -34,8 +34,8 @@
       }, 500);
     }
 
-    if (activateSMSVibration && 'mozVibrate' in navigator) {
-      navigator.mozVibrate([200, 200, 200, 200]);
+    if (activateSMSVibration && 'vibrate' in navigator) {
+      navigator.vibrate([200, 200, 200, 200]);
     }
 
     navigator.mozApps.getSelf().onsuccess = function(evt) {

@@ -73,7 +73,7 @@ var UITest = {
           // openTest
           this.iframe.src = './tests/' + name + '.html';
         } else {
-          // clseTest
+          // closeTest
           this.iframe.src = 'about:blank';
         }
         break;
