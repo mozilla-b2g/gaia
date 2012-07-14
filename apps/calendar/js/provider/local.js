@@ -32,6 +32,11 @@
     useCredentials: false,
 
     /**
+     * Does this provider require a url.
+     */
+    useUrl: false,
+
+    /**
      * Can provider sync with remote server?
      */
     canSync: false,
@@ -44,11 +49,11 @@
     /**
      * Verify credentials with backend service.
      */
-    verifyCredentials: function(callback) {
+    setupConnection: function(callback) {
       var self = this;
       //XXX: Make async
       self._connection = true;
-      callback(null, true);
+      callback(null, {});
     },
 
     /**

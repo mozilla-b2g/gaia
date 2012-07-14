@@ -4,8 +4,9 @@
   }
 
   var Presets = {
+
     'google': {
-      provider: 'Caldav',
+      providerType: 'Caldav',
       group: 'remote',
       options: {
         domain: 'https://calendar.google.com',
@@ -14,7 +15,7 @@
     },
 
     'yahoo': {
-      provider: 'Caldav',
+      providerType: 'Caldav',
       group: 'remote',
       options: {
         domain: 'https://caldav.calendar.yahoo.com',
@@ -23,7 +24,7 @@
     },
 
     'local': {
-      provider: 'Local',
+      providerType: 'Local',
       group: 'local',
       options: {}
     }

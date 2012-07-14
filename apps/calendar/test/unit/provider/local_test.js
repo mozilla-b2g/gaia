@@ -15,11 +15,11 @@ suite('provider/local', function() {
     assert.equal(subject.user, 'foo');
   });
 
-  test('#verifyCredentials', function(done) {
-    subject.verifyCredentials(function(err, success) {
+  test('#setupConnection', function(done) {
+    subject.setupConnection(function(err, success) {
       assert.ok(!err);
-      assert.ok(success);
       assert.ok(subject._connection);
+      assert.deepEqual(success, {});
       done();
     });
   });

@@ -7,29 +7,123 @@
     Calendar.Models = {};
   }
 
-  function Account() {
+  function Account(options) {
+    var key;
+
+    if (typeof(options) === 'undefined') {
+      options = {};
+    }
+
+    for (key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    }
 
   }
 
   Account.prototype = {
 
+    providerType: null,
     provider: null,
 
-    url: '',
-    user: '',
-    passsword: '',
+    /**
+     * ID for this model always set
+     * by the store when hydrating
+     */
+    id: null,
 
     /**
-     * Verifies account settings on server
+     * Domain for account
+     */
+    domain: '',
+
+    /**
+     * url/path for account
+     */
+    url: '',
+
+    /**
+     * username for authentication
+     */
+    user: '',
+
+    /**
+     * password for authentication
+     */
+    passsword: '',
+
+    _setupProvider: function() {
+      var provider = this.provider;
+      var type = this.providerType;
+
+      if (!provider) {
+        this.provider = provider = new Calendar.Provider[type];
+      }
+
+      if (provider.useUrl) {
+        provider.url = this.url;
+        provider.domain = this.domain;
+      }
+
+      if (provider.useCredentials) {
+        provider.user = this.user;
+        provider.passsword = this.passsword;
+      }
+    },
+
+    /**
+     * Connects to server with new credentials
+     * this operation will possibly update
      *
      * @param {Function} callback node style callback.
      */
-    verify: function() {
+    setup: function(callback) {
+      var self = this;
+      this.provider.setupConnection(function(err, data) {
+        if (err) {
+          return callback(err);
+        }
 
+        if ('url' in data) {
+          self.url = data.url;
+        }
+
+        if ('domain' in data) {
+          self.domain = data.domain;
+        }
+
+        // update provider
+        self._setupProvider();
+
+        callback(null, self);
+      });
+    },
+
+    /**
+     * Data only version of this object.
+     * Used for both passing data between
+     * threads (workers) and persisting data
+     * in indexeddb.
+     */
+    toJSON: function() {
+      var output = Object.create(null);
+      var fields = [
+        'url',
+        'domain',
+        'password',
+        'user',
+        'providerType'
+      ];
+
+      fields.forEach(function(key) {
+        output[key] = this[key];
+      }, this);
+
+      return output;
     }
 
   };
-
 
   Calendar.Models.Account = Account;
 

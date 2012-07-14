@@ -66,6 +66,22 @@
       };
     },
 
+    transaction: function(list, state) {
+      var names;
+      var self = this;
+
+      if (typeof(list) === 'string') {
+        names = [];
+        names.push(this.store[list] || list);
+      } else {
+        names = list.map(function(name) {
+          return self.store[name] || name;
+        });
+      }
+
+      return this.connection.transaction(names, state || 'readonly');
+    },
+
     _handleVersionChange: function(db) {
       // remove previous stores for now
       var existingNames = db.objectStoreNames;
@@ -77,7 +93,7 @@
       db.createObjectStore(store.events);
 
       // accounts -> has many calendars
-      db.createObjectStore(store.accounts);
+      db.createObjectStore(store.accounts, { autoIncrement: true });
 
       // calendars -> has many events
       db.createObjectStore(store.calendars);
@@ -87,7 +103,7 @@
       return VERSION;
     },
 
-    get stores() {
+    get store() {
       return store;
     },
 
@@ -103,7 +119,8 @@
       var req = idb.deleteDatabase(this.name);
 
       req.onblocked = function() {
-        console.log('BLOCKED');
+        // improve interface
+        callback(new Error('blocked'));
       }
 
       req.onsuccess = function(event) {
@@ -111,7 +128,6 @@
       }
 
       req.onerror = function(event) {
-        console.log('->', event.code, event.message, '<-');
         callback(event, null);
       }
     }

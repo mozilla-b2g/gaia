@@ -20,10 +20,32 @@ suite('db', function() {
     // create test db
     assert.equal(subject.name, name);
     assert.ok(subject.version);
-    assert.ok(subject.stores);
+    assert.ok(subject.store);
 
     assert.instanceOf(subject, Calendar.Responder);
-    assert.isTrue(Object.isFrozen(subject.stores));
+    assert.isTrue(Object.isFrozen(subject.store));
+  });
+
+  suite('#transaction', function() {
+
+    setup(function(done) {
+      subject.open(function() {
+        done();
+      });
+    });
+
+    test('result', function(done) {
+      var trans = subject.transaction(['events'], 'readonly');
+
+      assert.equal(trans.mode, 'readonly');
+
+      trans.onabort = function() {
+        done();
+      }
+
+      trans.abort();
+    });
+
   });
 
   teardown(function() {
@@ -50,7 +72,7 @@ suite('db', function() {
               // check that each store now exists
               var stores = subject.connection.objectStoreNames;
               var actualStore;
-              for (actualStore in subject.stores) {
+              for (actualStore in subject.store) {
                 assert.ok(
                   (stores.contains(actualStore)),
                   actualStore + ' was not created'
