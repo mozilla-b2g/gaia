@@ -181,7 +181,7 @@ var MessageManager = {
 var ThreadListUI = {
   get view() {
     delete this.view;
-    return this.view = document.getElementById('msg-conversations-list');
+    return this.view = document.getElementById('messages-container');
   },
 
   init: function thlui_init() {
@@ -280,7 +280,7 @@ var ThreadListUI = {
 var ThreadUI = {
   get view() {
     delete this.view;
-    return this.view = document.getElementById('view-list');
+    return this.view = document.getElementById('thread-list-container');
   },
 
   get num() {
