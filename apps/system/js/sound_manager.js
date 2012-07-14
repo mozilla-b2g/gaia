@@ -17,7 +17,6 @@
     }
   }
 
-
   var currentVolume = 5;
   if ('mozSettings' in navigator) {
     var req = navigator.mozSettings.getLock().set({

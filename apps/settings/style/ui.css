@@ -225,7 +225,7 @@ ul li button {
   max-width: -moz-calc(60% - 50px);
 }
 
-#brightness-level progress {
+.view progress {
   width: 40%;
   height: 40%;
   position: absolute;
