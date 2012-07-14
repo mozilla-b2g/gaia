@@ -217,7 +217,7 @@ function setView(view) {
     view.appendChild(thumbnails);
     thumbnails.style.width = '';
     // Set the view header to a localized string
-    displaySelectionMessage();
+    updateSelectionState();
     break;
   case photoView:
     // photoView is a special case because we need to insert
@@ -400,14 +400,26 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
   }
   else if (currentView === thumbnailSelectView) {
     target.classList.toggle('selected');
-    displaySelectionMessage();
+    updateSelectionState();
   }
 });
 
-function displaySelectionMessage() {
+// When we enter thumbnail selection mode, or when the selection changes
+// we call this function to update the message the top of the screen and to
+// enable or disable the Delete and Share buttons
+function updateSelectionState() {
   var n = thumbnails.querySelectorAll('.selected.thumbnail').length;
   var msg = navigator.mozL10n.get('number-selected', { n: n });
   $('thumbnails-number-selected').textContent = msg;
+
+  if (n === 0) {
+    $('thumbnails-delete-button').classList.add('disabled');
+    $('thumbnails-share-button').classList.add('disabled');
+  }
+  else {
+    $('thumbnails-delete-button').classList.remove('disabled');
+    $('thumbnails-share-button').classList.remove('disabled');
+  }
 }
 
 // Clicking on the back button goes back to the thumbnail view
@@ -441,7 +453,7 @@ $('thumbnails-delete-button').onclick = function() {
     for (var i = 0; i < selected.length; i++) {
       deleteImage(parseInt(selected[i].dataset.index));
     }
-    displaySelectionMessage();
+    updateSelectionState();
   }
 };
 

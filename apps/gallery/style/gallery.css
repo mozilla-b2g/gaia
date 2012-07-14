@@ -250,6 +250,10 @@ a.button:active, a.button:focus {
   outline: none;
 }
 
+a.button.disabled {
+  opacity: 0.4;
+}
+
 #thumbnails-bottom {
   background: #888;
   height: 50px;
