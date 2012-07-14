@@ -63,7 +63,10 @@ var MessageManager = {
               else{
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages, filter);
-                mainWrapper.classList.toggle('to-left');
+                
+                  // mainWrapper.classList.toggle('to-left');
+                
+                
               }
             }
           break;
@@ -396,6 +399,8 @@ var ThreadUI = {
     ThreadUI.headerIndex = 0;
     // Per each message I will append DOM element
     messages.forEach(ThreadUI.appendMessage);
+    var mainWrapper = document.getElementById('main-wrapper');
+    mainWrapper.classList.toggle('to-left');
   },
   appendMessage: function thui_appendMessage(message) {
     // Create DOM Element

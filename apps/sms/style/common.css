@@ -289,3 +289,16 @@ html, body {
   display: block;
 }
 
+
+#mirror {
+  z-index: 100;
+  position: absolute;
+  left: -10rem;
+  top: 0;
+  width: 100%;
+  height: 200%;
+  /*background: red;*/
+  transition:left .15s ease-in;
+  -moz-transition: left .15s ease-in;
+  background:-moz-element(#main-wrapper) no-repeat;
+}
