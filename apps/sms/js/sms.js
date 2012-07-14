@@ -52,13 +52,15 @@ var MessageManager = {
             break;
           default:
             var num = this.getNumFromHash();
-
             if (num) {
               if(mainWrapper.classList.contains('edit')){
                 mainWrapper.classList.remove('edit');
-              }else if(threadMessages.classList.contains('new')){
+              }
+              else if(threadMessages.classList.contains('new')){
                 threadMessages.classList.remove('new');
-              }else{
+                ThreadUI.title.innerHTML = num;
+              }
+              else{
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages, filter);
                 mainWrapper.classList.toggle('to-left');
@@ -465,21 +467,22 @@ var ThreadUI = {
   },
   sendMessage: function thui_sendMessage() {
     // Retrieve num depending on hash
-    var hashNum = MessageManager.getNumFromHash();
+    var hash = window.location.hash;
     // Depending where we are, we get different num
-    if (hashNum == '*') {
+    if (hash == '#new') {
       var num = this.num.value;
     } else {
-      var num = hashNum;
+      var num = MessageManager.getNumFromHash();
     }
     // Retrieve text
     var text = this.input.value;
     // If we have something to send
     if (num != '' && text != '') {
-      if (hashNum == '*') {
-        ThreadUI.title.innerHTML = num;
-        document.body.classList.remove('conversation-new-msg');
-      }
+      // if (hash == '#new') {
+      //   // ThreadUI.title.innerHTML = num;
+      //   // document.getElementById('thread-messages').classList.remove('new');
+      //   // document.getElementById('thread-messages').classList.add('waiting');
+      // }
       // Create 'PendingMessage'
       var tempDate = new Date();
       var message = {
@@ -493,6 +496,7 @@ var ThreadUI = {
       // Append to DOM
       this.appendMessage(message);
 
+
       var self = this;
       // Save the message into pendind DB before send.
       PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
@@ -502,7 +506,8 @@ var ThreadUI = {
           PendingMsgManager.saveToMsgDB(message, this);
         }
         // Update ThreadListUI when new message in pending database.
-        if (window.location.hash == '#num=*') {
+        if (window.location.hash == '#new') {
+
           window.location.hash = '#num=' + num;
         } else {
           MessageManager.getMessages(ThreadListUI.renderThreads);
