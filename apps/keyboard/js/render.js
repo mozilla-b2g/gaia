@@ -315,7 +315,7 @@ const IMERender = (function() {
     _altContainer.style.width = key.style.width;
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
-    _altContainer.classList.add("kbr-menu-on");
+    _altContainer.classList.add('kbr-menu-on');
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
