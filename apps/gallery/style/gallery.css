@@ -101,6 +101,11 @@ body {
   background-repeat: no-repeat;
 }
 
+.thumbnail.selected {
+  outline: solid orange 5px;
+  outline-offset: -5px;
+}
+
 /* 320x480 phones */
 @media (orientation: portrait) and (width: 320px) {
   .thumbnail {

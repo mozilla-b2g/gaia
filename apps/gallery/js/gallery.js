@@ -191,6 +191,13 @@ function setView(view) {
   if (currentView === view)
     return;
 
+  // Do any necessary cleanup of the view we're exiting
+  if (currentView === thumbnailSelectView) {
+    // Clear the selection, if there is one
+    Array.forEach(thumbnails.querySelectorAll('.selected.thumbnail'),
+                  function(elt) { elt.classList.remove('selected'); });
+  }
+
   // Show the specified view, and hide the others
   for (var i = 0; i < views.length; i++) {
     if (views[i] === view)
@@ -199,21 +206,31 @@ function setView(view) {
       views[i].classList.add('hidden');
   }
 
-  // Move the thumbnails into the new current view.
-  // Note that photosView is a special case because we need to insert
-  // the thumbnails into the filmstrip container and set its width
-  if (view === photoView) {
+  // Now do setup for the view we're entering
+  // In particular, we've got to move the thumbnails list into each view
+  switch (view) {
+  case thumbnailListView:
+    view.appendChild(thumbnails);
+    thumbnails.style.width = '';
+    break;
+  case thumbnailSelectView:
+    view.appendChild(thumbnails);
+    thumbnails.style.width = '';
+    // Set the view header to a localized string
+    displaySelectionMessage();
+    break;
+  case photoView:
+    // photoView is a special case because we need to insert
+    // the thumbnails into the filmstrip container and set its width
     $('photos-filmstrip').appendChild(thumbnails);
     // In order to get a working scrollbar, we apparently have to specify
     // an explict width for list of thumbnails.
     // XXX: we need to update this when images are added or deleted.
     // XXX: avoid using hardcoded 50px per image?
     thumbnails.style.width = (images.length * 50) + 'px';
+    break;
   }
-  else {
-    view.appendChild(thumbnails);
-    thumbnails.style.width = '';
-  }
+
   // Remember the current view
   currentView = view;
 }
@@ -377,8 +394,21 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
   var target = evt.target;
   if (!target || !target.classList.contains('thumbnail'))
     return;
-  showPhoto(parseInt(target.dataset.index));
+
+  if (currentView === thumbnailListView || currentView === photoView) {
+    showPhoto(parseInt(target.dataset.index));
+  }
+  else if (currentView === thumbnailSelectView) {
+    target.classList.toggle('selected');
+    displaySelectionMessage();
+  }
 });
+
+function displaySelectionMessage() {
+  var n = thumbnails.querySelectorAll('.selected.thumbnail').length;
+  var msg = navigator.mozL10n.get('number-selected', { n: n });
+  $('thumbnails-number-selected').textContent = msg;
+}
 
 // Clicking on the back button goes back to the thumbnail view
 $('photos-back-button').onclick = function() {
@@ -395,10 +425,29 @@ $('thumbnails-cancel-button').onclick = function() {
   setView(thumbnailListView);
 };
 
+// Clicking on the delete button in thumbnail select mode deletes all
+// selected photos
+$('thumbnails-delete-button').onclick = function() {
+  var selected = thumbnails.querySelectorAll('.selected.thumbnail');
+  if (selected.length === 0)
+    return;
+
+  var msg = navigator.mozL10n.get('delete-n-photos?', {n: selected.length});
+  if (confirm(msg)) {
+    // XXX
+    // deleteImage is O(n), so this loop is O(n*n). If used with really large
+    // selections, it might have noticably bad performance.  If so, we
+    // can write a more efficient deleteImages() function.
+    for (var i = 0; i < selected.length; i++) {
+      deleteImage(parseInt(selected[i].dataset.index));
+    }
+    displaySelectionMessage();
+  }
+};
+
 // Clicking the delete button while viewing a single photo deletes that photo
-// XXX ask for confirmation first
 $('photos-delete-button').onclick = function() {
-  var msg = navigator.mozL10n.get('deletephoto?') || 'Delete this photo?';
+  var msg = navigator.mozL10n.get('delete-photo?');
   if (confirm(msg)) {
     deleteImage(currentPhotoIndex);
   }
