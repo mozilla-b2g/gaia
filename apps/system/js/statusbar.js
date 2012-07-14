@@ -265,7 +265,9 @@ var StatusBar = {
   },
 
   updateMuteState: function sb_updateMuteState() {
-    this.mute.hidden = !!SoundManager.currentVolume;
+    SettingsListener.observe('audio.volume.master', 5, (function(volume) {
+      this.mute.hidden = volume;
+    }).bind(this));
   },
 
   updateNotification: function sb_updateNotification(show) {
