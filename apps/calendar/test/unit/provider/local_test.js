@@ -1,5 +1,6 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('provider/calendar_model.js');
+  requireLib('provider/calendar/abstract.js');
+  requireLib('provider/calendar/local.js');
   requireLib('provider/local.js');
 });
 
@@ -38,7 +39,7 @@ suite('provider/local', function() {
     subject.findCalendars(function(err, list) {
       done(function() {
         var first = list[0];
-        assert.instanceOf(first, Calendar.Provider.CalendarModel);
+        assert.instanceOf(first, Calendar.Provider.Calendar.Local);
         assert.equal(first.provider, subject);
         //XXX This should be localized
         assert.equal(first.id, 'local-first');

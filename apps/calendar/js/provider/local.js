@@ -17,6 +17,7 @@
   }
 
   Local.prototype = {
+    calendarType: 'Local',
 
     /**
      * Does this provider require credentials.
@@ -56,6 +57,8 @@
       return !!this._connection;
     },
 
+    calendarClass: Calendar.Provider.Calendar.Local,
+
     /**
      * Attempts to find calendars for
      * provider.
@@ -67,7 +70,7 @@
      */
     findCalendars: function(callback) {
       //XXX: Make async
-      var cal = new Calendar.Provider.CalendarModel(this, {
+      var cal = new this.calendarClass(this, {
         // XXX localize this name somewhere
         name: 'your_device',
         id: LOCAL_CALENDAR_ID
