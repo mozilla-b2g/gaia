@@ -149,7 +149,11 @@ hr {
 
 #search-container button {
   line-height: 2.5rem;
-  margin-left: 2rem;
+  padding: 0 2rem;
+}
+
+#view-contacts-list.searching.transitioning #search-container {
+  position: absolute;
 }
 
 #view-contacts-list.searching #search-container {
