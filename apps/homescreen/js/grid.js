@@ -4,11 +4,13 @@
 const GridManager = (function() {
   var container, homeContainer;
 
-  var status = {
-    target: undefined, // target element
-    iCoords: {},       // inital position
-    pCoords: {},       // previous position
-    cCoords: {}       // current position
+  var thresholdForPanning = window.innerWidth / 4;
+  var thresholdForTapping = 10;
+
+  var position = {
+    start: {},
+    prevous: {},
+    current: {}
   };
 
   var pages = {
@@ -42,7 +44,6 @@ const GridManager = (function() {
     };
   }
 
-
   /*
    * Returns the coordinates x and y given an event. The returned object
    * is composed of two attributes named x and y
@@ -50,17 +51,11 @@ const GridManager = (function() {
    * @param {Object} the event object
    */
   function getCoordinates(evt) {
-    if (evt.touches) {
-      return {
-        x: evt.touches[0].pageX,
-        y: evt.touches[0].pageY
-      };
-    } else {
-      return {
-        x: evt.pageX,
-        y: evt.pageY
-      };
+    if ('touches' in evt) {
+      evt = evt.touches[0];
     }
+
+    return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
   }
 
   /*
@@ -68,12 +63,11 @@ const GridManager = (function() {
    *
    * @param {int} the difference between the last and initial position
    */
-  function pan(movementX) {
-    var currentPage = pages.current;
-    var move = movementX + 'px';
-
+  function pan(deltaX) {
+    var move = deltaX + 'px';
     pageHelper.getCurrent().moveTo(move);
 
+    var currentPage = pages.current;
     if (currentPage > 0) {
       pageHelper.getPrevious().moveTo(dirCtrl.offsetPrev + ' + ' + move);
     }
@@ -87,24 +81,24 @@ const GridManager = (function() {
    * This method is in charge of keeping the position of the
    * current page when the swipe is not enough for paginating
    */
-  function keepPosition(transEndCallbck) {
-    var ix = status.iCoords.x;
-    var cx = status.cCoords.x;
-    if (ix !== cx) {
-      var currentPage = pages.current;
-
-      if (currentPage > 0) {
-        pageHelper.getPrevious().moveToBegin();
-      }
-
-      if (currentPage < pages.total - 1) {
-        pageHelper.getNext().moveToEnd();
-      }
-
-      pageHelper.getCurrent().moveToCenter(transEndCallbck);
-    } else if (transEndCallbck) {
-      transEndCallbck();
+  function keepPosition(callback) {
+    var deltaX = position.start.x - position.current.x;
+    if (deltaX === 0) {
+      callback();
+      return;
     }
+
+    var currentPage = pages.current;
+
+    if (currentPage > 0) {
+      pageHelper.getPrevious().moveToBegin();
+    }
+
+    if (currentPage < pages.total - 1) {
+      pageHelper.getNext().moveToEnd();
+    }
+
+    pageHelper.getCurrent().moveToCenter(callback);
   }
 
   /*
@@ -158,40 +152,40 @@ const GridManager = (function() {
    *
    * @param{Object} Event object
    */
-  function onStartEvent(evt) {
+  function onTouchStart(evt) {
+    position.previous = position.current = position.start = getCoordinates(evt);
+
     document.body.dataset.transitioning = true;
-    evt.stopPropagation();
-    status.pCoords = status.cCoords = status.iCoords = getCoordinates(evt);
     attachEvents();
   }
 
   /*
    * Handles touchmove events and swiping
    *
-   * @param{Object} Event object
+   * @param {Object} Event object
    */
-  function onMoveEvent(evt) {
-    evt.stopPropagation();
-    status.pCoords = status.cCoords; // save previous coords
-    status.cCoords = getCoordinates(evt); // update coords
-    var difX = -(status.iCoords.x - status.cCoords.x);
-    if (isRequestToLandingPage(difX)) {
-      releaseEvents();
-      dispatchGestureByHome();
-      keepPosition();
-    } else {
-      pan(difX);
+  function onTouchMove(evt) {
+    position.previous = position.current;
+    position.current = getCoordinates(evt);
+
+    var deltaX = -(position.start.x - position.current.x);
+    if (!isRequestToLandingPage(deltaX)) {
+      pan(deltaX);
+      return;
     }
+
+    releaseEvents();
+    dispatchGestureByHome();
+    keepPosition();
   }
 
   /*
    * Homescreen will dispatch the gesture
-   *
    */
   function dispatchGestureByHome() {
     var ev = document.createEvent('Event');
     ev.initEvent('mousedown', true, true);
-    ev.pageX = status.cCoords.x;
+    ev.pageX = position.current.x;
     homeContainer.dispatchEvent(ev);
   }
 
@@ -206,13 +200,10 @@ const GridManager = (function() {
            document.body.dataset.mode === 'normal';
   }
 
-  /*
-   * Clicks on icons fires touchmove events for poor devices
-   */
-  var thresholdForTapping = 10;
-
-  function onTransitionEnd() {
-    delete document.body.dataset.transitioning;
+  function attachEvents() {
+    container.addEventListener('contextmenu', GridManager);
+    window.addEventListener('mousemove', GridManager);
+    window.addEventListener('mouseup', GridManager);
   }
 
   function releaseEvents() {
@@ -221,27 +212,22 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', GridManager);
   }
 
-  function attachEvents() {
-    container.addEventListener('contextmenu', GridManager);
-    window.addEventListener('mousemove', GridManager);
-    window.addEventListener('mouseup', GridManager);
-  }
-
-  var threshold = window.innerWidth / 4;
-
   /*
    * It handles touchend events and swiping
    *
-   * @param{Object} Event object
+   * @param {Object} Event object
    */
-  function onEndEvent(evt) {
-    evt.stopPropagation();
+  function onTouchEnd(evt) {
     releaseEvents();
-    var difX = status.cCoords.x - status.iCoords.x;
-    var absDifX = Math.abs(difX);
-    var forward = dirCtrl.goesForward(difX);
-    if (absDifX > threshold) {
+    var deltaX = position.current.x - position.start.x;
+    
+    var onTransitionEnd = function() {
+      delete document.body.dataset.transitioning;
+    }
+
+    if (Math.asb(deltaX) > thresholdForPanning) {
       var currentPage = pages.current;
+      var forward = dirCtrl.goesForward(difX);
       if (forward && currentPage < pages.total - 1) {
         // Swipe to next page
         goNext(onTransitionEnd);
@@ -252,8 +238,8 @@ const GridManager = (function() {
         // Bouncing effect for first or last page
         keepPosition(onTransitionEnd);
       }
-    } else if (absDifX < thresholdForTapping) {
-      pageHelper.getCurrent().tap(status.target);
+    } else if (Math.abs(deltaX) < thresholdForTapping) {
+      pageHelper.getCurrent().tap(evt.target);
       // Sometime poor devices fire touchmove events when users are only
       // tapping
       keepPosition(onTransitionEnd);
@@ -595,16 +581,18 @@ const GridManager = (function() {
      * @param {Object} The event object from browser
      */
     handleEvent: function gm_handleEvent(evt) {
-      status.target = evt.target;
       switch (evt.type) {
         case 'mousedown':
-          onStartEvent(evt);
+          evt.stopPropagation();
+          onTouchStart(evt);
           break;
         case 'mousemove':
-          onMoveEvent(evt);
+          evt.stopPropagation();
+          onTouchMove(evt);
           break;
         case 'mouseup':
-          onEndEvent(evt);
+          evt.stopPropagation();
+          onTouchEnd(evt);
           break;
         case 'resize':
           limits.left = container.offsetWidth * 0.05;
