@@ -128,7 +128,11 @@ var QuickSettings = {
             var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
             Applications.getByOrigin('http://settings.' + domain).launch();
 
-            UtilityTray.hide();
+            window.addEventListener('appopen', function hideTray(evt) {
+              window.removeEventListener('appopen', hideTray);
+              UtilityTray.hide();
+            });
+
             break;
         }
         break;
