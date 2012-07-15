@@ -34,6 +34,11 @@
     id: null,
 
     /**
+     * Which preset this model came from.
+     */
+    preset: null,
+
+    /**
      * Domain for account
      */
     domain: '',
@@ -52,6 +57,21 @@
      * password for authentication
      */
     passsword: '',
+
+    get fullUrl() {
+      return this.domain + this.url;
+    },
+
+    set fullUrl(value) {
+      var idx = value.indexOf('/');
+      if (idx !== -1) {
+        this.domain = value.substr(0, idx);
+        this.url = value.substr(idx);
+      } else {
+        this.domain = value;
+        this.url = '/';
+      }
+    },
 
     _setupProvider: function() {
       var provider = this.provider;
@@ -113,7 +133,8 @@
         'domain',
         'password',
         'user',
-        'providerType'
+        'providerType',
+        'preset'
       ];
 
       fields.forEach(function(key) {

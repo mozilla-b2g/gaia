@@ -2,6 +2,9 @@ requireApp('calendar/test/unit/helper.js');
 requireApp('calendar/js/responder.js');
 requireApp('calendar/js/db.js');
 
+requireApp('calendar/js/store/abstract.js');
+requireApp('calendar/js/store/account.js');
+
 suite('db', function() {
   var subject;
   var name;
@@ -16,6 +19,13 @@ suite('db', function() {
     });
   });
 
+  test('accounts', function() {
+    var result = subject.accounts;
+
+    assert.instanceOf(result, Calendar.Store.Account);
+    assert.equal(result.db, subject);
+  });
+
   test('initialization', function() {
     // create test db
     assert.equal(subject.name, name);
@@ -24,6 +34,20 @@ suite('db', function() {
 
     assert.instanceOf(subject, Calendar.Responder);
     assert.isTrue(Object.isFrozen(subject.store));
+  });
+
+  test('#_openStore', function() {
+    var Store = function(db) {
+      this.db = db;
+    }
+
+    Store.prototype = {
+      __proto__: Calendar.Store.Abstract.prototype,
+
+      onopen: function() {
+        this.open = true;
+      }
+    };
   });
 
   suite('#transaction', function() {

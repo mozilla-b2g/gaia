@@ -16,17 +16,13 @@
   Account.prototype = {
     __proto__: Calendar.Store.Abstract.prototype,
 
-    _objectData: function(obj) {
-      if ('toJSON' in obj) {
-        return obj.toJSON();
-      } else {
-        return obj;
-      }
-    },
-
-    _hydrate: function(obj) {
+    _hydrate: function(obj, id) {
       if (!(obj instanceof Calendar.Models.Account)) {
-        return new Calendar.Models.Account(obj);
+        obj = new Calendar.Models.Account(obj);
+      }
+
+      if (typeof(id) !== 'undefined') {
+        obj._id = id;
       }
 
       return obj;
@@ -53,7 +49,7 @@
 
       req.onsuccess = function() {
         if (req.result) {
-          result = self._hydrate(req.result);
+          result = self._hydrate(req.result, id);
         }
       }
 
@@ -73,7 +69,7 @@
      * @param {Object} object reference to account object to store.
      * @param {Function} callback node style callback.
      */
-    add: function(object, callback) {
+    persist: function(object, callback) {
       var self = this;
       var trans = this.db.transaction('accounts', 'readwrite');
       var store = trans.objectStore('accounts');
@@ -88,11 +84,18 @@
 
       trans.oncomplete = function(data) {
         var id = putReq.result;
-        var result = self._hydrate(object);
+        var result = self._hydrate(object, id);
 
         self._accounts[id] = result;
         callback(null, id, result);
-        self.emit('add', id, result);
+
+        if (object._id) {
+          self.emit('update', id, result);
+        } else {
+          self.emit('add', id, result);
+        }
+
+        self.emit('persist', id, result);
       };
     },
 
@@ -107,7 +110,7 @@
         var cursor = event.target.result;
 
         if (cursor) {
-          var object = self._hydrate(cursor.value);
+          var object = self._hydrate(cursor.value, cursor.key);
           results[cursor.key] = object;
           self._accounts[cursor.key] = object;
           cursor.continue();

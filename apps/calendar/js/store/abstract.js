@@ -19,7 +19,14 @@
   }
 
   Abstract.prototype = {
-    __proto__: Calendar.Responder.prototype
+    __proto__: Calendar.Responder.prototype,
+
+    _objectData: function(data) {
+      if ('toJSON' in data) {
+        return data.toJSON();
+      }
+      return data;
+    }
   };
 
   Calendar.Store.Abstract = Abstract;

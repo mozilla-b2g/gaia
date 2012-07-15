@@ -17,5 +17,22 @@ suite('store/abstract', function() {
     assert.instanceOf(subject, Calendar.Responder);
   });
 
-});
 
+  suite('#_objectData', function() {
+    test('with toJSON', function() {
+      var obj = {};
+      obj.toJSON = function() {
+        return 'foo';
+      }
+
+      assert.equal(subject._objectData(obj), 'foo');
+    });
+
+    test('without toJSON', function() {
+      var obj = Object.create(null);
+      obj.foo = '1';
+
+      assert.equal(subject._objectData(obj), obj);
+    });
+  });
+});

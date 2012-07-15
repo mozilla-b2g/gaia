@@ -23,14 +23,22 @@
 
   Db.prototype = {
 
-    // Some may hate me for this
-    // but the syntax is nice
     __proto__: Object.create(Calendar.Responder.prototype),
 
     /**
      * Database connection
      */
     connection: null,
+
+    get accounts() {
+      if (!this._accounts) {
+        this._accounts = new Calendar.Store.Account(
+          this
+        );
+      }
+
+      return this._accounts;
+    },
 
     /**
      * Opens connection to database.
@@ -90,13 +98,25 @@
       }
 
       // events -> belongs to calendar
-      db.createObjectStore(store.events);
+      var events = db.createObjectStore(store.events);
+
+      events.createIndex(
+        'calendarId',
+        'calendarId',
+        { unique: false, multientry: false }
+      );
 
       // accounts -> has many calendars
       db.createObjectStore(store.accounts, { autoIncrement: true });
 
       // calendars -> has many events
-      db.createObjectStore(store.calendars);
+      var calendar = db.createObjectStore(store.calendars);
+
+      calendar.createIndex(
+        'accountId',
+        'accountId',
+        { unique: false, multientry: false }
+      );
     },
 
     get version() {

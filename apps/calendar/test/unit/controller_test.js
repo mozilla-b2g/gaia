@@ -2,6 +2,8 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireCalendarController();
 });
 
+window.page = window.page || {};
+
 suite('controller', function() {
   var subject;
 
@@ -14,6 +16,32 @@ suite('controller', function() {
 
   test('initialize', function() {
     assert.instanceOf(subject, Calendar.Responder);
+  });
+
+  suite('#go', function() {
+    var oldShow;
+    var calledWith;
+
+    setup(function() {
+      if (!window.page) {
+        window.page = {};
+      }
+
+      oldShow = page.show;
+      page.show = function(url) {
+        calledWith = url;
+      };
+    });
+
+    teardown(function() {
+      page.show = oldShow;
+    });
+
+    test('result', function() {
+      subject.go('/settings');
+      assert.equal(calledWith, '/settings');
+    });
+
   });
 
   suite('setters', function() {

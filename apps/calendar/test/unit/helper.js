@@ -8,6 +8,7 @@
     requireApp('calendar/js/responder.js');
     requireApp('calendar/js/store/busytime.js');
     requireApp('calendar/js/store/event.js');
+    requireApp('calendar/js/store/account.js');
     requireApp('calendar/js/calc.js');
     requireApp('calendar/js/controller.js');
     requireApp('calendar/js/view.js');

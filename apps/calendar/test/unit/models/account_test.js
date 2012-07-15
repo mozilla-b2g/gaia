@@ -77,6 +77,22 @@ suite('account', function() {
     });
   });
 
+  suite('fullUrl', function() {
+    test('get', function() {
+      subject.domain = 'google.com';
+      subject.url = '/foo';
+
+      assert.equal(subject.fullUrl, 'google.com/foo');
+    });
+
+    test('set', function() {
+      subject.fullUrl = 'google.com/foo';
+
+      assert.equal(subject.domain, 'google.com');
+      assert.equal(subject.url, '/foo');
+    });
+  });
+
   suite('#toJSON', function() {
     setup(function() {
       subject.url = 'url';
@@ -84,6 +100,7 @@ suite('account', function() {
       subject.password = 'pass';
       subject.user = 'user';
       subject.providerType = 'local';
+      subject.preset = 'google';
     });
 
     test('output', function() {
@@ -92,7 +109,8 @@ suite('account', function() {
         domain: subject.domain,
         password: subject.password,
         user: subject.user,
-        providerType: subject.providerType
+        providerType: subject.providerType,
+        preset: 'google'
       };
 
       assert.deepEqual(subject.toJSON(), expected);

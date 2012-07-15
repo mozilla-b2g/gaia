@@ -11,8 +11,7 @@ suite('store/accounts', function() {
 
   setup(function(done) {
     db = testSupport.calendar.db();
-    subject = new Calendar.Store.Account(db);
-
+    subject = db.accounts;
 
     db.open(function(err) {
       assert.ok(!err);
@@ -54,7 +53,7 @@ suite('store/accounts', function() {
 
     function add() {
       setup(function(done) {
-        subject.add({ providerType: 'Local' }, function(err, id) {
+        subject.persist({ providerType: 'Local' }, function(err, id) {
           ids.push(id.toString());
 
           done();
@@ -86,6 +85,7 @@ suite('store/accounts', function() {
 
             assert.ok(subject._accounts[key]);
             assert.instanceOf(subject._accounts[key], Calendar.Models.Account);
+            assert.ok(obj._id);
             assert.instanceOf(obj, Calendar.Models.Account);
             assert.equal(obj.providerType, 'Local');
           }
@@ -108,7 +108,8 @@ suite('store/accounts', function() {
       var id, result;
 
       setup(function(done) {
-        subject.add({ providerType: 'Local' }, function(err, key) {
+        subject.persist({ providerType: 'Local' }, function(err, key) {
+          subject._accounts = {};
           if (err) {
             done(new Error('could not add'));
           } else {
@@ -135,6 +136,7 @@ suite('store/accounts', function() {
         );
 
         assert.equal(result.providerType, 'Local');
+        assert.equal(result._id, id);
         assert.equal(subject._accounts[id], result);
       });
 
@@ -162,11 +164,11 @@ suite('store/accounts', function() {
         { providerType: 'Local' }
       );
 
-      subject.add(object, function(err, key) {
+      subject.persist(object, function(err, key) {
         id = key;
       });
 
-      subject.once('add', function(key, value) {
+      subject.once('persist', function(key, value) {
         addEvent = arguments;
         done();
       });
@@ -187,6 +189,7 @@ suite('store/accounts', function() {
       req.onsuccess = function(data) {
         var result = req.result;
         done(function() {
+          assert.equal(object._id, id);
           assert.equal(subject._accounts[id], object);
           assert.deepEqual(result.providerType, object.providerType);
         });
@@ -204,7 +207,7 @@ suite('store/accounts', function() {
     var callbackCalled = false;
 
     setup(function(done) {
-      subject.add({ providerType: 'Local' }, function(err, key) {
+      subject.persist({ providerType: 'Local' }, function(err, key) {
         if (err) {
           done(new Error('could not add'));
         } else {

@@ -32,6 +32,15 @@
   }
 
   /**
+   * Navigates app to a new location.
+   *
+   * @param {String} url new view url.
+   */
+  proto.go = function(url) {
+    page.show(url);
+  };
+
+  /**
    * Sets current month and emits currentMonthChange event.
    *
    * @param {Date} month month.
