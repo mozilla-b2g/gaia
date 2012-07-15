@@ -130,7 +130,6 @@ hr {
 
 #search-contact {
   height: 2.5rem;
-  margin-top: 0.5rem;
 }
 
 .search-hide {
@@ -142,23 +141,23 @@ hr {
   position: absolute;
   width: -moz-calc(100% - 5.8rem);
   margin: 0;
-  padding: 0 2.5rem;
-  height: 3.5rem;
+  padding: 0.5rem 2.5rem;
+  height: 2.5rem;
   top: 0;
   left: 0;
-  border-bottom: 1px solid #c8c8c8;
 }
 
 #search-container button {
-  line-height: 3.5rem;
+  line-height: 2.5rem;
+  margin-left: 2rem;
 }
 
-#view-contacts-list.searching #search-container{
+#view-contacts-list.searching #search-container {
   position: fixed;
+  z-index: 101;
   top: 0;
-  margin: 0;
-  width: -moz-calc(100% - 5rem);
-  z-index: 10;
+  width: -moz-calc(100% + 0.8rem);
+  background-size: 100% 100%;
 }
 
 #view-contacts-list.searching .view-body {
@@ -169,7 +168,10 @@ hr {
   width: 100%;
 }
 
-#view-contacts-list.searching #search-contact{
+#view-contacts-list.searching header {
+  top: -5rem;
+}
+
+#view-contacts-list.searching #search-contact {
   width: 20rem;
-  margin-top: 0;
 }
