@@ -133,6 +133,8 @@ var Contacts = (function() {
   var numberEmails = 0;
   var numberPhones = 0;
   var numberAddresses = 0;
+  var numberNotes = 0;
+  var photoPos = 8;
   var currentContactId,
       detailsName,
       givenName,
@@ -142,15 +144,19 @@ var Contacts = (function() {
       phoneTemplate,
       emailTemplate,
       addressTemplate,
+      noteTemplate,
       phonesContainer,
       emailContainer,
       addressContainer,
+      noteContainer,
       selectedTag,
       customTag,
       contactTag,
       contactDetails,
       saveButton,
-      deleteContactButton;
+      deleteContactButton,
+      favoriteMessage,
+      cover;
 
   var currentContact = {};
 
@@ -166,13 +172,17 @@ var Contacts = (function() {
     phoneTemplate = document.getElementById('add-phone-#i#');
     emailTemplate = document.getElementById('add-email-#i#');
     addressTemplate = document.getElementById('add-address-#i#');
+    noteTemplate = document.getElementById('add-note-#i#');
     phonesContainer = document.getElementById('contacts-form-phones');
-    emailContainer = document.getElementById('contacts-form-email');
-    addressContainer = document.getElementById('contacts-form-address');
+    emailContainer = document.getElementById('contacts-form-emails');
+    addressContainer = document.getElementById('contacts-form-addresses');
+    noteContainer = document.getElementById('contacts-form-notes');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
     deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
+    favoriteMessage = document.getElementById('toggle-favorite').children[0];
+    cover = document.getElementById('cover-img');
 
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = 'Are you sure you want to remove this contact?';
@@ -203,7 +213,8 @@ var Contacts = (function() {
     });
 
     var position = 0;
-    contactDetails.addEventListener('mousedown', function(event) {
+
+    cover.addEventListener('mousedown', function(event) {
       if (contactDetails.classList.contains('no-photo'))
         return;
 
@@ -211,26 +222,33 @@ var Contacts = (function() {
       var currentPosition;
       var initMargin = '8rem';
       contactDetails.classList.add('up');
+      cover.classList.add('up');
 
       var onMouseMove = function onMouseMove(event) {
         currentPosition = event.clientY;
         var newMargin = currentPosition - startPosition;
         if (newMargin > 0 && newMargin < 200) {
           contactDetails.classList.remove('up');
+          cover.classList.remove('up');
           var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
-          contactDetails.style.marginTop = calc;
+          // Divide by 40 (4 times slower and in rems)
+          contactDetails.style.transform = 'translateY(' + calc + ')';
+          var newPos = 'center ' + (-photoPos + (newMargin / 40)) + 'rem';
+          cover.style.backgroundPosition = newPos;
         }
       };
 
       var onMouseUp = function onMouseUp(event) {
         contactDetails.classList.add('up');
-        contactDetails.style.marginTop = initMargin;
-        contactDetails.removeEventListener('mousemove', onMouseMove);
-        contactDetails.removeEventListener('mouseup', onMouseUp);
+        cover.classList.add('up');
+        contactDetails.style.transform = 'translateY(' + initMargin + ')';
+        cover.style.backgroundPosition = 'center -' + photoPos + 'rem';
+        cover.removeEventListener('mousemove', onMouseMove);
+        cover.removeEventListener('mouseup', onMouseUp);
       };
 
-      contactDetails.addEventListener('mousemove', onMouseMove);
-      contactDetails.addEventListener('mouseup', onMouseUp);
+      cover.addEventListener('mousemove', onMouseMove);
+      cover.addEventListener('mouseup', onMouseUp);
     });
   });
 
@@ -239,6 +257,9 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
+    if (contact.category && contact.category.indexOf('favorite') != -1) {
+      detailsName.innerHTML += '<sup></sup>';
+    }
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
 
@@ -253,30 +274,33 @@ var Contacts = (function() {
     var listContainer = document.getElementById('details-list');
     listContainer.innerHTML = '';
 
-    var phonesTemplate = document.getElementById('phone-details-template');
+    var phonesTemplate = document.getElementById('phone-details-template-#i#');
     for (var tel in contact.tel) {
       var currentTel = contact.tel[tel];
       var telField = {
         number: currentTel.number || '',
         type: currentTel.type || TAG_OPTIONS['phone-type'][0].value,
-        notes: ''
+        notes: '',
+        i: tel
       };
       var template = utils.templates.render(phonesTemplate, telField);
       listContainer.appendChild(template);
     }
 
-    var emailsTemplate = document.getElementById('email-details-template');
+    var emailsTemplate = document.getElementById('email-details-template-#i#');
     for (var email in contact.email) {
       var currentEmail = contact.email[email];
       var emailField = {
         address: currentEmail['address'] || '',
-        type: currentEmail['type'] || ''
+        type: currentEmail['type'] || '',
+        i: email
       };
       var template = utils.templates.render(emailsTemplate, emailField);
       listContainer.appendChild(template);
     }
 
-    var addressesTemplate = document.getElementById('address-details-template');
+    var selector = document.getElementById('address-details-template-#i#');
+    var addressesTemplate = selector;
     for (var i in contact.adr) {
       var currentAddress = contact.adr[i];
       var addressField = {
@@ -284,28 +308,48 @@ var Contacts = (function() {
         postalCode: currentAddress['postalCode'] || '',
         locality: currentAddress['locality'] || '',
         countryName: currentAddress['countryName'] || '',
-        type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value
+        type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value,
+        i: i
       };
       var template = utils.templates.render(addressesTemplate, addressField);
       listContainer.appendChild(template);
     }
 
-    var cover = document.getElementById('cover-img');
-    var existsPhoto = 'photo' in contact && contact.photo;
-    if (existsPhoto) {
-      contactDetails.classList.add('up');
-      cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
-    } else {
-      cover.style.backgroundImage = null;
-      contactDetails.style.marginTop = null;
-      contactDetails.classList.add('no-photo');
+    if (contact.note && contact.note.length > 0) {
+      var container = document.createElement('li');
+      var title = document.createElement('h2');
+      title.textContent = 'Comments';
+      container.appendChild(title);
+      var notesTemplate = document.getElementById('note-details-template-#i#');
+      for (var i in contact.note) {
+        var currentNote = contact.note[i];
+        var noteField = {
+          note: currentNote || '',
+          i: i
+        };
+        var template = utils.templates.render(notesTemplate, noteField);
+        container.appendChild(template);
+        listContainer.appendChild(container);
+      }
     }
 
-    //Removes unnecesary scroll
-    if (contactDetails.offsetHeight == cover.clientHeight) {
-      cover.style.overflow = 'hidden';
+
+    var existsPhoto = 'photo' in contact && contact.photo;
+    if (existsPhoto) {
+      var detailsInner = document.getElementById('contact-detail-inner');
+      contactDetails.classList.add('up');
+      var photoOffset = (photoPos + 1) * 10;
+      if ((detailsInner.offsetHeight + photoOffset) < cover.clientHeight) {
+        cover.style.overflow = 'hidden';
+      } else {
+        cover.style.overflow = null;
+      }
+      cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
     } else {
       cover.style.overflow = null;
+      cover.style.backgroundImage = null;
+      contactDetails.style.transform = null;
+      contactDetails.classList.add('no-photo');
     }
   };
 
@@ -347,6 +391,7 @@ var Contacts = (function() {
       numberEmails++;
     }
 
+    toggleFavoriteMessage(isFavorite(currentContact));
     for (var adr in currentContact.adr) {
       var currentAddress = currentContact.adr[adr];
       var default_type = TAG_OPTIONS['address-type'][0].value;
@@ -364,8 +409,26 @@ var Contacts = (function() {
       addressContainer.appendChild(template);
       numberAddresses++;
     }
+
+    for (var index in currentContact.note) {
+      var currentNote = currentContact.note[index];
+      var noteField = {
+        note: currentNote || '',
+        i: index
+      };
+      var template = utils.templates.render(noteTemplate, noteField);
+      template.appendChild(removeFieldIcon(template.id));
+      noteContainer.appendChild(template);
+      numberNotes++;
+    }
+
     edit();
   };
+
+  var isFavorite = function isFavorite(contact) {
+    return contact != null & contact.category != null &&
+              contact.category.indexOf('favorite') != -1;
+  }
 
   var goToSelectTag = function goToSelectTag(event) {
     var tagList = event.target.dataset.taglist;
@@ -453,9 +516,24 @@ var Contacts = (function() {
   };
 
   var sendSms = function sendSms() {
-    SmsIntegration.sendSms(currentContact.tel[0].number);
+    if (!ActivityHandler.currentlyHandling)
+      SmsIntegration.sendSms(currentContact.tel[0].number);
   }
 
+  var callOrPick = function callOrPick() {
+    // FIXME: only handling 1 number
+    var number = currentContact.tel[0].number;
+    if (ActivityHandler.currentlyHandling) {
+      ActivityHandler.pick(number);
+    } else {
+      var sanitizedNumber = number.replace(/-/g, '');
+
+      var telephony = window.navigator.mozTelephony;
+      if (telephony) {
+        telephony.dial(sanitizedNumber);
+      }
+    }
+  }
 
   var showAdd = function showAdd() {
     resetForm();
@@ -465,9 +543,33 @@ var Contacts = (function() {
     insertEmptyPhone(0);
     insertEmptyEmail(0);
     insertEmptyAddress(0);
+    insertEmptyNote(0);
 
     edit();
   };
+
+  var toggleFavorite = function toggleFavorite() {
+    var favorite = !isFavorite(currentContact);
+    toggleFavoriteMessage(favorite);
+    if (favorite) {
+      currentContact.category = currentContact.category || [];
+      currentContact.category.push('favorite');
+    } else {
+      if (!currentContact.category) {
+        return;
+      }
+      var pos = currentContact.category.indexOf('favorite');
+      if (pos > -1) {
+        delete currentContact.category[pos];
+      }
+    }
+  };
+
+  var toggleFavoriteMessage = function toggleFavMessage(isFav) {
+    favoriteMessage.textContent = !isFav ?
+                    'Add as favorite' :
+                    'Remove as favorite';
+  }
 
   var deleteContact = function deleteContact(contact) {
     var request = navigator.mozContacts.remove(currentContact);
@@ -492,18 +594,21 @@ var Contacts = (function() {
       familyName: lastName,
       additionalName: '',
       org: org,
-      name: name[0] + ' ' + lastName[0]
+      name: name[0] + ' ' + lastName[0],
+      category: currentContact.category || []
     };
 
     getPhones(myContact);
     getEmails(myContact);
     getAddresses(myContact);
+    getNotes(myContact);
 
     var contact;
     if (myContact.id) { //Editing a contact
       currentContact.tel = [];
       currentContact.email = [];
       currentContact.adr = [];
+      currentContact.note = [];
       for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
@@ -522,6 +627,7 @@ var Contacts = (function() {
         currentContact = savedContact;
         myContact.id = savedContact.id;
         myContact.photo = savedContact.photo;
+        myContact.category = savedContact.category;
         contactsList.refresh(myContact);
         reloadContactDetails(myContact);
         navigation.back();
@@ -608,6 +714,23 @@ var Contacts = (function() {
     }
   };
 
+  var getNotes = function getNotes(contact) {
+    var selector = '#view-contact-form form div.note-template';
+    var notes = document.querySelectorAll(selector);
+    for (var i = 0; i < notes.length; i++) {
+      var currentNote = notes[i];
+      var arrayIndex = currentNote.dataset.index;
+      var noteField = document.getElementById('note_' + arrayIndex);
+      var noteValue = noteField.value;
+      if (!noteValue) {
+        continue;
+      }
+
+      contact['note'] = contact['note'] || [];
+      contact['note'].push(noteValue);
+    }
+  };
+
   var insertEmptyPhone = function insertEmptyPhone() {
     var telField = {
       number: '',
@@ -650,6 +773,18 @@ var Contacts = (function() {
     numberAddresses++;
   };
 
+  var insertEmptyNote = function insertEmptyNote() {
+    var noteField = {
+      note: '',
+      i: numberNotes || 0
+    };
+
+    var template = utils.templates.render(noteTemplate, noteField);
+    template.appendChild(removeFieldIcon(template.id));
+    noteContainer.appendChild(template);
+    numberNotes++;
+  };
+
   var resetForm = function resetForm() {
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
@@ -657,14 +792,17 @@ var Contacts = (function() {
     familyName.value = '';
     company.value = '';
     var phones = document.getElementById('contacts-form-phones');
-    var emails = document.getElementById('contacts-form-email');
-    var addresses = document.getElementById('contacts-form-address');
+    var emails = document.getElementById('contacts-form-emails');
+    var addresses = document.getElementById('contacts-form-addresses');
+    var notes = document.getElementById('contacts-form-notes');
     phones.innerHTML = '';
     emails.innerHTML = '';
     addresses.innerHTML = '';
+    notes.innerHTML = '';
     numberEmails = 0;
     numberPhones = 0;
     numberAddresses = 0;
+    numberNotes = 0;
   };
 
   var removeFieldIcon = function removeFieldIcon(selector) {
@@ -690,9 +828,43 @@ var Contacts = (function() {
     'addNewPhone' : insertEmptyPhone,
     'addNewEmail' : insertEmptyEmail,
     'addNewAddress' : insertEmptyAddress,
+    'addNewNote' : insertEmptyNote,
     'goBack' : navigation.back,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
-    'saveContact': saveContact
+    'saveContact': saveContact,
+    'toggleFavorite': toggleFavorite,
+    'callOrPick': callOrPick
   };
 })();
+
+var ActivityHandler = {
+  _currentActivity: null,
+
+  get currentlyHandling() {
+    return !!this._currentActivity;
+  },
+
+  handle: function ah_handle(activity) {
+    this._currentActivity = activity;
+  },
+
+  pick: function ah_pick(number) {
+    this._currentActivity.postResult({ number: number });
+    this._currentActivity = null;
+  },
+  cancel: function ah_cancel() {
+    this._currentActivity.postError('canceled');
+    this._currentActivity = null;
+  }
+};
+
+var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+window.navigator.mozSetMessageHandler('activity', actHandler);
+
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  if (document.mozHidden) {
+    if (ActivityHandler.currentlyHandling)
+      ActivityHandler.cancel();
+  }
+});

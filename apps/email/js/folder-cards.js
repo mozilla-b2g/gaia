@@ -88,6 +88,15 @@ Cards.defineCard({
   constructor: AccountPickerCard
 });
 
+const FOLDER_DEPTH_CLASSES = [
+    'fld-folder-depth0',
+    'fld-folder-depth1',
+    'fld-folder-depth2',
+    'fld-folder-depth3',
+    'fld-folder-depth4',
+    'fld-folder-depth5',
+    'fld-folder-depthmax'
+  ];
 
 function FolderPickerCard(domNode, mode, args) {
   this.domNode = domNode;
@@ -169,6 +178,9 @@ FolderPickerCard.prototype = {
     if (firstTime) {
       if (!folder.selectable)
         folderNode.classList.add('fld-folder-unselectable');
+
+      var depthIdx = Math.min(FOLDER_DEPTH_CLASSES.length - 1, folder.depth);
+      folderNode.classList.add(FOLDER_DEPTH_CLASSES[depthIdx]);
 
       folderNode.getElementsByClassName('fld-folder-name')[0]
         .textContent = folder.name;

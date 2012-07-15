@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
@@ -9,16 +9,19 @@
     <link rel="resource" type="application/l10n" href="locale/l10n.ini">
     <!-- Compatibility -->
     <script type="application/javascript">
-      if (document.location.protocol === 'file:') {
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
         paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
+        var src = protocol + '//' + paths.join('/') + '/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
     </script>
@@ -34,11 +37,31 @@
     <div id="views">
       <div id="alarm-view" class="active view">
         <a id="alarm-new" href="#alarm" class="right button plus"><span class="plus-icon">+</span> Alarm</a>
-        <div id="clock">
+        <div id="clock-view">
           <div id="clock-day-date"></div>
-          <div id="clock-display">
+          <div id="digital-clock">
             <span id="clock-time"></span>
             <span id="clock-hour24-state"></span>
+          </div>
+          <div id="analog-clock">
+            <svg id="analog-clock-svg" viewBox="0 0 100 100">
+              <defs> <!-- Define a filter for drop-shadows -->
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
+                  <feOffset in="blur" dx="1" dy="1" result="shadow" />
+                  <feMerge>
+                    <feMergeNode in="SourceGraphic"/><feMergeNode in="shadow"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <circle id="face" cx="50" cy="50" r="45"/> <!-- the clock face -->
+              <!-- Draw hands pointing straight up. We rotate them in the code. -->
+              <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
+                <line id="hourhand" x1="50" y1="50" x2="50" y2="17"/>
+                <line id="minutehand" x1="50" y1="50" x2="50" y2="5"/>
+                <line id="secondhand" x1="50" y1="50" x2="50" y2="0"/>
+              </g>
+            </svg>
           </div>
           <ul id="alarms" class="tableView"></ul>
         </div>

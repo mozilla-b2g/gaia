@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
@@ -27,7 +27,19 @@
       <div id="frames">
         <img id="tab-cover" />
         <div id="awesomescreen">
-          <section id="history">
+          <nav data-role="tabs">
+            <ul role="tablist">
+              <li role="tab">
+                <a id="history-tab" href="#" class="selected">History</a>
+              </li>
+              <li role="tab">
+                <a id="bookmarks-tab" href="#">Bookmarks</a>
+              </li>
+            </ul>
+          </nav>
+          <section id="bookmarks" role="tabpanel">
+          </section>
+          <section id="history" role="tabpanel" class="selected">
           </section>
         </div>
       </div>
