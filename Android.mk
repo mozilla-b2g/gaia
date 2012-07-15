@@ -16,7 +16,6 @@ include $(BUILD_PREBUILT)
 
 $(LOCAL_INSTALLED_MODULE):
 	@echo Install dir: $(TARGET_OUT_DATA)/local
-	rm -rf $(TARGET_OUT_DATA)/local/OfflineCache
 	rm -rf $(TARGET_OUT_DATA)/local/webapps
 	mkdir -p $(TARGET_OUT_DATA)/local
 	cd $(TARGET_OUT_DATA)/local && tar xfz $(abspath $<)
@@ -24,5 +23,5 @@ $(LOCAL_INSTALLED_MODULE):
 .PHONY: $(LOCAL_PATH)/profile.tar.gz
 $(LOCAL_PATH)/profile.tar.gz:
 	$(MAKE) -C $(GAIA_PATH) profile
-	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) OfflineCache webapps user.js
+	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) webapps user.js
 
