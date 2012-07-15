@@ -1,4 +1,6 @@
-requireApp('calendar/js/router.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('router.js');
+});
 
 suite('router', function() {
 

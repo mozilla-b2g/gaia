@@ -1,34 +1,25 @@
 (function(window) {
+  requireLib('calendar.js');
 
   function requireCalendarController() {
-    requireApp('calendar/js/set.js');
-    requireApp('calendar/js/batch.js');
-    requireApp('calendar/js/template.js');
-    requireApp('calendar/js/format.js');
-    requireApp('calendar/js/responder.js');
-    requireApp('calendar/js/store/busytime.js');
-    requireApp('calendar/js/store/event.js');
-    requireApp('calendar/js/store/account.js');
-    requireApp('calendar/js/calc.js');
-    requireApp('calendar/js/controller.js');
-    requireApp('calendar/js/view.js');
-  }
-
-  function createController(fn) {
-    var busytime = new Calendar.Store.Busytime();
-    var events = new Calendar.Store.Event();
-
-    var controller = new Calendar.Controller({
-      eventList: events,
-      busytime: busytime
-    });
-
-    return controller;
+    requireLib('set.js');
+    requireLib('batch.js');
+    requireLib('template.js');
+    requireLib('format.js');
+    requireLib('responder.js');
+    requireLib('store/busytime.js');
+    requireLib('store/event.js');
+    requireLib('store/account.js');
+    requireLib('calc.js');
+    requireLib('controller.js');
+    requireLib('view.js');
   }
 
   if (typeof(testSupport) === 'undefined') {
     testSupport = {};
   }
+
+  /* testSupport */
 
   testSupport.calendar = {
 
@@ -77,9 +68,41 @@
     }
   };
 
+  /* global exports */
+
+  function createController(fn) {
+    var busytime = new Calendar.Store.Busytime();
+    var events = new Calendar.Store.Event();
+
+    var controller = new Calendar.Controller({
+      eventList: events,
+      busytime: busytime
+    });
+
+    return controller;
+  }
+
+  function requireLib() {
+    var args = Array.prototype.slice.call(arguments);
+    args[0] = 'calendar/js/' + args[0];
+
+    return requireApp.apply(this, args);
+  }
+
+  function requireSupport() {
+    var args = Array.prototype.slice.call(arguments);
+    args[0] = 'calendar/test/unit/support/' + args[0];
+
+    return requireApp.apply(this, args);
+  }
+
   window.requireCalendarController = requireCalendarController;
   window.createController = createController;
   window.testSupport = testSupport;
+  window.requireLib = requireLib;
+  window.requireSupport = requireSupport;
+
+  /* chai extensions */
 
   assert.setHas = function(subject, values, msg) {
     var check;

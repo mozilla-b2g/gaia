@@ -1,13 +1,5 @@
 (function(window) {
 
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
-  if (typeof(Calendar.Store) === 'undefined') {
-    Calendar.Store = {};
-  }
-
   /**
    * Creates an abstract store instance.
    * Every store must contain a reference
@@ -29,6 +21,6 @@
     }
   };
 
-  Calendar.Store.Abstract = Abstract;
+  Calendar.ns('Store').Abstract = Abstract;
 
 }(this));

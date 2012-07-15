@@ -1,9 +1,5 @@
 (function(window) {
 
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   var template = Calendar.Templates.Month;
 
   /**
@@ -259,6 +255,6 @@
 
   proto.onfirstseen = proto.render;
 
-  Calendar.Views.Month = Month;
+  Calendar.ns('Views').Month = Month;
 
 }(this));

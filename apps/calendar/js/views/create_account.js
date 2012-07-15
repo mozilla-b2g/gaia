@@ -1,9 +1,5 @@
 (function(window) {
 
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   var template = Calendar.Templates.Account;
 
   function CreateAccount(options) {
@@ -34,6 +30,6 @@
   };
 
   CreateAccount.prototype.onfirstseen = CreateAccount.prototype.render;
-  Calendar.Views.CreateAccount = CreateAccount;
+  Calendar.ns('Views').CreateAccount = CreateAccount;
 
 }(this));

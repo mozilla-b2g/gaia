@@ -1,5 +1,7 @@
-requireApp('calendar/js/provider/calendar_model.js');
-requireApp('calendar/js/provider/local.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('provider/calendar_model.js');
+  requireLib('provider/local.js');
+});
 
 suite('provider/local', function() {
 

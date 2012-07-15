@@ -1,8 +1,4 @@
 (function(window) {
-  if (typeof(window.Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
   var idb = window.indexedDB || window.mozIndexedDB;
 
   const VERSION = 1;

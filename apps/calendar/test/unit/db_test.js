@@ -1,9 +1,9 @@
-requireApp('calendar/test/unit/helper.js');
-requireApp('calendar/js/responder.js');
-requireApp('calendar/js/db.js');
-
-requireApp('calendar/js/store/abstract.js');
-requireApp('calendar/js/store/account.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('responder.js');
+  requireLib('db.js');
+  requireLib('store/abstract.js');
+  requireLib('store/account.js');
+});
 
 suite('db', function() {
   var subject;

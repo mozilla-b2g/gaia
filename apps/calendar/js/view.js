@@ -1,8 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
   /**
    * Very simple base class for views.
    * Provides functionality for active/inactive.

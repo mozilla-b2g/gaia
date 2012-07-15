@@ -1,4 +1,6 @@
-requireApp('calendar/js/view.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('view.js');
+});
 
 suite('view', function() {
 
@@ -26,7 +28,6 @@ suite('view', function() {
     test('object', function() {
       subject = new Calendar.View({ controller: 'a' });
       assert.equal(subject.controller, 'a');
-      console.log(subject.selectors);
       assert.ok(!subject.selectors);
     });
   });

@@ -1,12 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
-  if (typeof(Calendar.Provider) === 'undefined') {
-    Calendar.Provider = {};
-  }
-
   function Cal(provider, options) {
     var key;
 
@@ -27,6 +19,6 @@
     color: '#CCC'
   };
 
-  Calendar.Provider.CalendarModel = Cal;
+  Calendar.ns('Provider').CalendarModel = Cal;
 
 }(this));

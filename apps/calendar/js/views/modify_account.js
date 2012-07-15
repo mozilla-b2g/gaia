@@ -1,9 +1,5 @@
 (function(window) {
 
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   function ModifyAccount(options) {
     Calendar.View.apply(this, arguments);
 
@@ -162,6 +158,6 @@
   };
 
   ModifyAccount.prototype.onfirstseen = ModifyAccount.prototype.render;
-  Calendar.Views.ModifyAccount = ModifyAccount;
+  Calendar.ns('Views').ModifyAccount = ModifyAccount;
 
 }(this));

@@ -1,9 +1,4 @@
 (function(window) {
-
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   var template = Calendar.Templates.Month;
 
   function Child() {
@@ -410,5 +405,5 @@
 
   };
 
-  Calendar.Views.MonthChild = Child;
+  Calendar.ns('Views').MonthChild = Child;
 }(this));

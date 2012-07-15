@@ -1,11 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
-  if (typeof(Calendar.Store) === 'undefined') {
-    Calendar.Store = {};
-  }
 
   function Account() {
     Calendar.Store.Abstract.apply(this, arguments);
@@ -152,6 +145,6 @@
 
   };
 
-  Calendar.Store.Account = Account;
+  Calendar.ns('Store').Account = Account;
 
 }(this));

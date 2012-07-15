@@ -1,11 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
-  if (typeof(Calendar.Store) === 'undefined') {
-    Calendar.Store = {};
-  }
 
   function Busytime() {
     Calendar.Responder.call(this);
@@ -99,6 +92,6 @@
     return false;
   };
 
-  Calendar.Store.Busytime = Busytime;
+  Calendar.ns('Store').Busytime = Busytime;
 
 }(this));

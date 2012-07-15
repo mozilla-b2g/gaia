@@ -1,7 +1,4 @@
 (function(window) {
-  if (typeof(Calendar.Templates) === 'undefined') {
-    Calendar.Templates = {};
-  }
 
   var Account = Calendar.Template.create({
     accountItem: [
@@ -11,6 +8,6 @@
     ].join('')
   });
 
-  Calendar.Templates.Account = Account;
+  Calendar.ns('Templates').Account = Account;
 
 }(this));

@@ -1,12 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   var template = Calendar.Templates.Day;
 
   function Day(options) {
@@ -206,6 +198,6 @@
 
   Day.prototype.onfirstseen = Day.prototype.render;
 
-  Calendar.Views.MonthsDay = Day;
+  Calendar.ns('Views').MonthsDay = Day;
 
 }(this));

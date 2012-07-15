@@ -1,8 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
   var COPY_METHODS = ['start', 'stop', 'show'];
 
   function Router(page) {

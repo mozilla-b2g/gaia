@@ -1,5 +1,7 @@
-requireApp('calendar/js/models/account.js');
-requireApp('calendar/js/provider/local.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireApp('calendar/js/models/account.js');
+  requireApp('calendar/js/provider/local.js');
+});
 
 suite('account', function() {
   var subject;

@@ -1,8 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
   var Presets = {
 
     'google': {

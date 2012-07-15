@@ -1,9 +1,5 @@
 (function(window) {
 
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   function Settings(options) {
     Calendar.View.apply(this, arguments);
     this._handleOutsideClick = this._handleOutsideClick.bind(this);
@@ -78,6 +74,6 @@
 
   };
 
-  Calendar.Views.Settings = Settings;
+  Calendar.ns('Views').Settings = Settings;
 
 }(this));

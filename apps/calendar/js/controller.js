@@ -1,9 +1,5 @@
 (function(window) {
 
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
   Calendar.Controller = function(options) {
     var key;
 

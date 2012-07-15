@@ -1,12 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
-  if (typeof(Calendar.Models) === 'undefined') {
-    Calendar.Models = {};
-  }
-
   function Account(options) {
     var key;
 
@@ -146,6 +138,6 @@
 
   };
 
-  Calendar.Models.Account = Account;
+  Calendar.ns('Models').Account = Account;
 
 }(this));

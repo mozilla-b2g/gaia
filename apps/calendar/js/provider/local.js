@@ -1,12 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
-  if (typeof(Calendar.Provider) === 'undefined') {
-    Calendar.Provider = {};
-  }
-
   // this should never change
   const LOCAL_CALENDAR_ID = 'local-first';
 
@@ -86,6 +78,6 @@
 
   };
 
-  Calendar.Provider.Local = Local;
+  Calendar.ns('Provider').Local = Local;
 
 }(this));

@@ -1,6 +1,7 @@
-requireApp('calendar/js/format.js');
-requireApp('calendar/js/template.js');
-requireApp('calendar/test/unit/helper.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('format.js');
+  requireLib('template.js');
+});
 
 suite('calendar/template', function() {
   var Template, subject,
