@@ -71,5 +71,12 @@
     "120": "/style/icons/Dialer.png",
     "60": "/style/icons/60/Dialer.png"
   },
-  "orientation": "portrait-primary"
+  "activities": {
+    "dial": {
+      "filters": {
+        "type": "number"
+      },
+      "disposition": "window"
+    }
+  } 
 }
