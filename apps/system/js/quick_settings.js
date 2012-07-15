@@ -129,7 +129,11 @@ var QuickSettings = {
             var protocol = document.location.protocol + '//';
             Applications.getByOrigin(protocol + 'settings.' + domain).launch();
 
-            UtilityTray.hide();
+            window.addEventListener('appopen', function hideTray(evt) {
+              window.removeEventListener('appopen', hideTray);
+              UtilityTray.hide();
+            });
+
             break;
         }
         break;
