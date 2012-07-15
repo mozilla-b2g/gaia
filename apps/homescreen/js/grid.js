@@ -646,11 +646,11 @@ const GridManager = (function() {
       return dirCtrl;
     },
 
-    goTo: goToPage,
+    goToPage: goToPage,
 
-    goPrev: goToPreviousPage,
+    goToPreviousPage: goToPreviousPage,
 
-    goNext: goToNextPage,
+    goToNextPage: goToNextPage,
 
     localize: localize,
 

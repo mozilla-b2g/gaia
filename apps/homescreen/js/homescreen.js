@@ -186,7 +186,7 @@ const Homescreen = (function() {
           DockManager.saveState();
           Permissions.hide();
         } else if (ViewController.currentPage > 0) {
-          GridManager.goTo(0, function finish() {
+          GridManager.goToPage(0, function finish() {
             ViewController.navigate(0, 0.2);
           });
         }
