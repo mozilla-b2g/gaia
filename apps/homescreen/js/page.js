@@ -226,7 +226,7 @@ Page.prototype = {
    *
    * @param{int} the duration in milliseconds
    */
-  setTranstionDuration: function pg_setTranstionDuration(style, duration) {
+  setTransitionDuration: function pg_setTransitionDuration(style, duration) {
     style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
   },
 
@@ -241,7 +241,7 @@ Page.prototype = {
   moveToEnd: function pg_moveToEnd() {
     var style = this.container.style;
     style.MozTransform = GridManager.dirCtrl.translateNext;
-    this.setTranstionDuration(style, this.transitionDuration);
+    this.setTransitionDuration(style, this.transitionDuration);
   },
 
   /*
@@ -250,21 +250,24 @@ Page.prototype = {
   moveToBegin: function pg_moveToBegin() {
     var style = this.container.style;
     style.MozTransform = GridManager.dirCtrl.translatePrev;
-    this.setTranstionDuration(style, this.transitionDuration);
+    this.setTransitionDuration(style, this.transitionDuration);
   },
 
   /*
    * Moves the page to the center of the screen
    */
-  moveToCenter: function pg_moveToCenter(onTransitionEnd) {
-    var cont = this.container;
-    var style = cont.style;
+  moveToCenter: function pg_moveToCenter(callback) {
+    var container = this.container;
+
+    var style = container.style;
+    this.setTransitionDuration(style, this.transitionDuration);
+
     style.MozTransform = 'translateX(0)';
-    this.setTranstionDuration(style, this.transitionDuration);
-    if (onTransitionEnd) {
-      cont.addEventListener('transitionend', function ft(e) {
-        onTransitionEnd();
-        cont.removeEventListener('transitionend', ft);
+
+    if (callbak) {
+      container.addEventListener('transitionend', function tr_end(e) {
+        container.removeEventListener('transitionend', tr_end);
+        callback();
       });
     }
   },
@@ -274,10 +277,10 @@ Page.prototype = {
    *
    * @param{String} the app origin
    */
-  moveTo: function pg_moveTo(translate) {
+  moveTo: function pg_moveTo(deltaX) {
     var style = this.container.style;
-    style.MozTransform = 'translateX(-moz-calc(' + translate + '))';
-    this.setTranstionDuration(style, 0);
+    style.MozTransform = 'translateX(-moz-calc(' + deltaX + 'px))';
+    this.setTransitionDuration(style, 0);
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
