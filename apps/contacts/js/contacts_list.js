@@ -299,7 +299,7 @@ contacts.List = (function() {
   };
 
   var enterSearchMode = function searchMode() {
-    if(!inSearchMode) {
+    if (!inSearchMode) {
       cancel.classList.remove('hide');
       conctactsListView.classList.add('searching');
       cleanContactsList();
