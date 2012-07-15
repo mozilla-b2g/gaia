@@ -3,10 +3,13 @@
 /*
  * This is Music Application of Gaia
  */
-var songs = [];
 
 var musicdb = new MediaDB('music', metadataParser, {
   indexes: ['metadata.album', 'metadata.artist'],
+  // mp3 mediaType: 'audio/mpeg'
+  // ogg mediaType: 'video/ogg'
+  // empty mediaType: no mp3 mediaType on B2G device
+  // desktop build does not has this issue
   mimeTypes: ['audio/mpeg', 'video/ogg', '']
 });
 musicdb.onready = function() {
@@ -27,13 +30,14 @@ musicdb.onready = function() {
   });
 };
 musicdb.onchange = function(type, files) {
-  //rebuildUI();
+  //rebuild the UI
 };
 
-// This App. has three modes, TILES, LIST and PLAYER
+// This Application has four modes, TILES, LIST, SUBLIST and PLAYER
 var MODE_TILES = 1;
 var MODE_LIST = 2;
-var MODE_PLAYER = 3;
+var MODE_SUBLIST = 3;
+var MODE_PLAYER = 4;
 var currentMode;
 
 function changeMode(mode) {
@@ -41,6 +45,7 @@ function changeMode(mode) {
 
   document.body.classList.remove('tiles-mode');
   document.body.classList.remove('list-mode');
+  document.body.classList.remove('sublist-mode');
   document.body.classList.remove('player-mode');
 
   switch (mode) {
@@ -49,6 +54,9 @@ function changeMode(mode) {
       break;
     case MODE_LIST:
       document.body.classList.add('list-mode');
+      break;
+    case MODE_SUBLIST:
+      document.body.classList.add('sublist-mode');
       break;
     case MODE_PLAYER:
       document.body.classList.add('player-mode');
@@ -85,7 +93,11 @@ var TitleBar = {
 
         switch (target.id) {
           case 'title-back':
-            changeMode(MODE_LIST);
+            if (currentMode === MODE_SUBLIST) {
+              changeMode(MODE_LIST);
+            } else if (currentMode === MODE_PLAYER) {
+              changeMode(MODE_SUBLIST);
+            }
 
             break;
           case 'title-text':
@@ -150,15 +162,18 @@ var ListView = {
     this.index = 0;
 
     this.view.addEventListener('click', this);
-
-    this.dataSource = songs;
   },
 
   cleanList: function lv_cleanList() {
+    this.dataSource = [];
+    this.index = 0;
     this.view.innerHTML = '';
+    this.view.scrollTop = 0;
   },
 
-  updateList: function lv_updateList(data, option) {
+  updateList: function lv_updateList(result, option) {
+    this.dataSource.push(result);
+    
     var li = document.createElement('li');
     li.className = 'song';
 
@@ -167,30 +182,22 @@ var ListView = {
 
     switch (option) {
       case 'album':
-        a.textContent = data.album;
-        a.dataset.keyRange = data.album;
+        a.textContent = result.metadata.album;
+        a.dataset.keyRange = result.metadata.album;
         a.dataset.option = option;
 
         break;
       case 'artist':
-        a.textContent = data.artist;
-        a.dataset.keyRange = data.artist;
+        a.textContent = result.metadata.artist;
+        a.dataset.keyRange = result.metadata.artist;
         a.dataset.option = option;
 
         break;
       case 'playlist':
 
         break;
-      case 'song':
-        var songTitle = (data.title) ? data.title :
-          navigator.mozL10n.get('unknownTitle');
-
-        a.dataset.index = this.index;
-        a.textContent = (this.index + 1) + '. ' + songTitle;
-
-        this.index++;
-
-        break;
+      default:
+        return;
     }
     
     li.appendChild(a);
@@ -207,25 +214,92 @@ var ListView = {
 
         var option = target.dataset.option;
         if (option) {
-          ListView.cleanList();
-          this.index = 0;
-          
           var keyRange = IDBKeyRange.only(target.dataset.keyRange);
 
           var addListItem = function(result) {
             if (result === null)
               return;
 
-            ListView.updateList(result.metadata, 'song');
+            SubListView.updateList(result);
           };
 
           musicdb.enumerate('metadata.' + option, keyRange, 'next', addListItem);
-        } else {
-          changeMode(MODE_PLAYER);
+          
+          SubListView.cleanList();
+          changeMode(MODE_SUBLIST);
+        }
 
+        break;
+
+      default:
+        return;
+    }
+  }
+};
+
+// View of SubList
+var SubListView = {
+  get view() {
+    delete this._view;
+    return this._view = document.getElementById('views-sublist');
+  },
+
+  get dataSource() {
+    return this._dataSource;
+  },
+
+  set dataSource(source) {
+    this._dataSource = source;
+  },
+
+  init: function slv_init() {
+    this.dataSource = [];
+    this.index = 0;
+
+    this.view.addEventListener('click', this);
+  },
+
+  cleanList: function slv_cleanList() {
+    this.dataSource = [];
+    this.index = 0;
+    this.view.innerHTML = '';
+    this.view.scrollTop = 0;
+  },
+
+  updateList: function slv_updateList(result) {
+    this.dataSource.push(result);
+    
+    var li = document.createElement('li');
+    li.className = 'song';
+
+    var a = document.createElement('a');
+    a.href = '#';
+    
+    var songTitle = (result.metadata.title) ? result.metadata.title :
+      navigator.mozL10n.get('unknownTitle');
+
+    a.dataset.index = this.index;
+    a.textContent = (this.index + 1) + '. ' + songTitle;
+
+    this.index++;
+
+    li.appendChild(a);
+
+    this.view.appendChild(li);
+  },
+
+  handleEvent: function slv_handleEvent(evt) {
+    switch (evt.type) {
+      case 'click':
+        var target = evt.target;
+        if (!target)
+          return;
+
+        if (target.dataset.index) {
           PlayerView.dataSource = this.dataSource;
           PlayerView.play(target);
-
+          
+          changeMode(MODE_PLAYER);
         }
 
         break;
@@ -327,36 +401,33 @@ var PlayerView = {
 
     if (target) {
       var targetIndex = parseInt(target.dataset.index);
-      var songData = songs[targetIndex];
+      var songData = this.dataSource[targetIndex];
 
-      TitleBar.changeTitleText((songData.title) ?
-        songData.title : navigator.mozL10n.get('unknownTitle'));
-      this.artist.textContent = (songData.artist) ?
-        songData.artist : navigator.mozL10n.get('unknownArtist');
-      this.album.textContent = (songData.album) ?
-        songData.album : navigator.mozL10n.get('unknownAlbum');
+      TitleBar.changeTitleText((songData.metadata.title) ?
+        songData.metadata.title : navigator.mozL10n.get('unknownTitle'));
+      this.artist.textContent = (songData.metadata.artist) ?
+        songData.metadata.artist : navigator.mozL10n.get('unknownArtist');
+      this.album.textContent = (songData.metadata.album) ?
+        songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
       this.currentIndex = targetIndex;
 
-      // An object URL must be released by calling window.URL.revokeObjectURL()
-      // when we no longer need them
-      this.audio.onloadeddata = function(evt) {
-        window.URL.revokeObjectURL(this.src);
-      }
+      musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
+        // On B2G devices, file.type of mp3 format is missing
+        // use file extension instead of file.type
+        this.playingFormat = file.name.slice(-4);
+        
+        // An object URL must be released by calling URL.revokeObjectURL()
+        // when we no longer need them
+        var url = URL.createObjectURL(file);
+        this.audio.src = url
+        this.audio.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
 
-      storages[songData.storageIndex].get(songData.name).onsuccess =
-        function(evt) {
-          // On B2G devices, file.type of mp3 format is missing
-          // use file extension instead of file.type
-          this.playingFormat = evt.target.result.name.slice(-4);
-
-          this.audio.src = window.URL.createObjectURL(evt.target.result);
-
-          // when play a new song, reset the seekBar first
-          // this can prevent showing wrong duration
-          // due to b2g cannot get some mp3's duration
-          // and the seekBar can still show 00:00 to -00:00
-          this.setSeekBar(0, 0, 0);
-        }.bind(this);
+        // when play a new song, reset the seekBar first
+        // this can prevent showing wrong duration
+        // due to b2g cannot get some mp3's duration
+        // and the seekBar can still show 00:00 to -00:00
+        this.setSeekBar(0, 0, 0);
+      }.bind(this));
     } else {
       this.audio.play();
     }
@@ -373,7 +444,7 @@ var PlayerView = {
   },
 
   next: function pv_next() {
-    var songElements = ListView.view.children;
+    var songElements = SubListView.view.children;
 
     if (this.currentIndex >= this.dataSource.length - 1)
       return;
@@ -384,7 +455,7 @@ var PlayerView = {
   },
 
   previous: function pv_previous() {
-    var songElements = ListView.view.children;
+    var songElements = SubListView.view.children;
 
     if (this.currentIndex <= 0)
       return;
@@ -526,7 +597,7 @@ var TabBar = {
               if (result === null)
                 return;
               
-              ListView.updateList(result.metadata, option);
+              ListView.updateList(result, option);
             };
             
             musicdb.enumerate('metadata.' + option, null, 'nextunique', addListItem);
@@ -551,6 +622,7 @@ window.addEventListener('DOMContentLoaded', function() {
   TitleBar.init();
   TilesView.init();
   ListView.init();
+  SubListView.init();
   PlayerView.init();
   TabBar.init();
 
@@ -563,6 +635,10 @@ window.addEventListener('DOMContentLoaded', function() {
           break;
         case MODE_LIST:
           changeMode(MODE_TILES);
+          evt.preventDefault();
+          break;
+        case MODE_SUBLIST:
+          changeMode(MODE_LIST);
           evt.preventDefault();
           break;
         case MODE_PLAYER:
