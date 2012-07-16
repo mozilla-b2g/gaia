@@ -48,9 +48,9 @@ var Utils = {
         break;
     }
 
-    var today = Math.floor((new Date()).getTime() / 86400000);
-    var otherDay = Math.floor(time / 86400000);
-    var dayDiff = today - otherDay;
+    var today = Utils.getDayDate((new Date()).getTime());
+    var otherDay = Utils.getDayDate(time);
+    var dayDiff = (today - otherDay) / 86400000;
 
     if (isNaN(dayDiff))
       return '(incorrect date)';
