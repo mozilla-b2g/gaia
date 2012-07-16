@@ -19,7 +19,7 @@ var MessageManager = {
   slide: function mm_slide(){
     var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
-    var messagesMirror = document.getElementById('thread-messages-mirror');
+    var messagesMirror = document.getElementById('thread-messages-snapshot');
     
     bodyClass.add('snapshot');
     bodyClass.toggle('mirror-swipe');
@@ -33,7 +33,8 @@ var MessageManager = {
       case 'received':
         this.getMessages(ThreadListUI.renderThreads);
         var num = this.getNumFromHash();
-        if (num) {
+        var sender = event.message.sender;
+        if (num == sender) {
           //Append message
           ThreadUI.appendMessage(event.message);
         }
@@ -49,50 +50,16 @@ var MessageManager = {
             threadMessages.classList.add('new');
             // mainWrapper.classList.toggle('to-left');
             MessageManager.slide();
-             // document.body.classList.add('snapshot');
-             //  // alert("asdasd");
-             //  document.body.classList.toggle('mirror-swipe');
-             //  document.getElementById('main-wrapper').classList.toggle('to-left');
-              
-             //  document.getElementById('thread-messages-mirror').addEventListener("transitionend", function(){
-                
-             //    document.body.classList.remove('snapshot');
-                
-                
-             //  }, true);
             break;
           case '#thread-list':
             if(mainWrapper.classList.contains('edit')){
               mainWrapper.classList.remove('edit');
             }else if(threadMessages.classList.contains('new')){
               threadMessages.classList.remove('new');
-              // mainWrapper.classList.toggle('to-left');
               MessageManager.slide();
-              // document.body.classList.add('snapshot');
-              // // alert("asdasd");
-              // document.body.classList.toggle('mirror-swipe');
-              // document.getElementById('main-wrapper').classList.toggle('to-left');
               
-              // document.getElementById('thread-messages-mirror').addEventListener("transitionend", function(){
-                
-              //   document.body.classList.remove('snapshot');
-                
-                
-              // }, true);
             }else{
-              document.body.classList.add('snapshot');
-              // alert("asdasd");
-              document.body.classList.toggle('mirror-swipe');
-              document.getElementById('main-wrapper').classList.toggle('to-left');
-              
-              document.getElementById('thread-messages-mirror').addEventListener("transitionend", function(){
-                
-                document.body.classList.remove('snapshot');
-                
-                
-              }, true);
-
-
+              MessageManager.slide();
 
               // mainWrapper.classList.toggle('to-left');
             }
