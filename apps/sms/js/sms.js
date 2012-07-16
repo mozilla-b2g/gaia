@@ -489,7 +489,7 @@ var ThreadUI = {
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
         MessageManager.getMessages(ThreadListUI.renderThreads);
-        
+
       });
 
       MessageManager.send(num, text, function onsent(msg) {
@@ -517,7 +517,7 @@ var ThreadUI = {
               //TODO: Handle message delete failed in pending DB.
             }
           });
-          // TODO: We might need to update the sent message's actual timestamp. 
+          // TODO: We might need to update the sent message's actual timestamp.
         }
         // Clean Fields
         ThreadUI.cleanFields();
