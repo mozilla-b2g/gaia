@@ -339,6 +339,7 @@ const GridManager = (function() {
     push: function(apps, appsFromMarket) {
       var index = this.total();
       var page = new Page(index);
+      pages.push(page);
 
       var pageElement = document.createElement('div');
       pageElement.className = 'page';
@@ -346,21 +347,7 @@ const GridManager = (function() {
 
       page.render(apps, pageElement);
 
-/*
-      if (!appsFromMarket) {
-        if (index === 0) {
-          page.moveToCenter();
-        } else {
-          page.moveToEnd();
-        }
-      }
-*/
-
-      pages.push(page);
-
-      if (!appsFromMarket) {
-        updatePaginationBar();
-      }
+      updatePaginationBar();
     },
 
     /*
@@ -369,19 +356,7 @@ const GridManager = (function() {
      * @param {int} index of the page
      */
     remove: function gm_remove(index) {
-      if (pages.current === index) {
-        if (index === 0) {
-          // If current page is the first -> seconds page to the center
-          // Not fear because we cannot have only one page
-          pages[index + 1].moveToCenter();
-        } else {
-          // Move to center the previous page
-          pages[index - 1].moveToCenter();
-          pages.current--;
-        }
-      } else if (pages.current > index) {
-        pages.current--;
-      }
+      goToPage(index);
 
       pages[index].destroy(); // Destroy page
       pages.splice(index, 1); // Removes page from the list
