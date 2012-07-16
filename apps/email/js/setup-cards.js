@@ -65,15 +65,11 @@ SetupPickServiceCard.prototype = {
   die: function() {
   }
 };
-Cards.defineCard({
-  name: 'setup-pick-service',
-  modes: {
-    efault: {
-      tray: false
-    }
-  },
-  constructor: SetupPickServiceCard
-});
+Cards.defineCardWithDefaultMode(
+    'setup-pick-service',
+     { tray: false },
+    SetupPickServiceCard
+);
 
 /**
  * Enter basic account info card (name, e-mail address, password) to try and
@@ -133,15 +129,11 @@ SetupAccountInfoCard.prototype = {
   die: function() {
   }
 };
-Cards.defineCard({
-  name: 'setup-account-info',
-  modes: {
-    efault: {
-      tray: false
-    }
-  },
-  constructor: SetupAccountInfoCard
-});
+Cards.defineCardWithDefaultMode(
+    'setup-account-info',
+    { tray: false },
+    SetupAccountInfoCard
+);
 
 /**
  * Show a spinner until success, or errors when there is failure.
@@ -203,15 +195,11 @@ SetupProgressCard.prototype = {
     this.cancelCreation();
   }
 };
-Cards.defineCard({
-  name: 'setup-progress',
-  modes: {
-    efault: {
-      tray: false
-    }
-  },
-  constructor: SetupProgressCard
-});
+Cards.defineCardWithDefaultMode(
+    'setup-progress',
+    { tray: false },
+    SetupProgressCard
+);
 
 /**
  * Setup is done; add another account?
@@ -243,15 +231,11 @@ SetupDoneCard.prototype = {
   die: function() {
   }
 };
-Cards.defineCard({
-  name: 'setup-done',
-  modes: {
-    efault: {
-      tray: false
-    }
-  },
-  constructor: SetupDoneCard
-});
+Cards.defineCardWithDefaultMode(
+    'setup-done',
+    { tray: false },
+    SetupDoneCard
+);
 
 /**
  * Asks the user to re-enter their password for the account
