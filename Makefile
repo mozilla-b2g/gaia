@@ -524,5 +524,6 @@ reset-gaia: purge install-settingsdb install-gaia
 purge:
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /data/local/*
+	$(ADB) shell mkdir -p /data/local/tmp
 	$(ADB) shell rm -r /cache/*
 	$(ADB) shell rm -r /data/b2g/*
