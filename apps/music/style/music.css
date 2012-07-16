@@ -6,16 +6,6 @@ html {
   overflow: hidden;
 }
 
-@font-face {
-  font-family: "Open Sans";
-  src: url("fonts/Open-Sans.woff");
-}
-@font-face {
-  font-family: "Open Sans";
-  font-weight: bold;
-  src: url("fonts/Open-Sans-Bold.woff");
-}
-
 body {
   background-color: #000;
   color: #fff;

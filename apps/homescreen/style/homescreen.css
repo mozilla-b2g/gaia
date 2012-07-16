@@ -1,20 +1,3 @@
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/opensans-regular-webfont.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/opensans-semibold-webfont.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/opensans-bold-webfont.woff');
-}
-
 html, body {
   width: 100%;
   height: 100%;
