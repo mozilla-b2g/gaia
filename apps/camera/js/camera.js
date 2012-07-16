@@ -117,11 +117,20 @@ var Camera = {
   },
 
   galleryBtnPressed: function camera_galleryBtnPressed() {
+/*
     if (this._filmStripTimer) {
       window.clearTimeout(this._filmStripTimer);
     }
 
     !this._filmStripShown ? this.showFilmStrip() : this.hideFilmStrip();
+*/
+    // Launch the gallery with an activity
+    var a = new MozActivity({
+      name: 'browse',
+      data: {
+        type: 'photos'
+      }
+    });
   },
 
   orientChange: function camera_orientChange(e) {
