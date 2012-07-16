@@ -7,14 +7,17 @@
 // TODO Better settings observe interface?
 
 
+/* Debugging code for the environment without mozKeyboard,
+ * such as Firefox Nightly build */
 if (!window.navigator.mozKeyboard) {
   window.navigator.mozKeyboard = {};
 }
 
 if (!window.navigator.mozKeyboard.sendKey) {
-  window.navigator.mozKeyboard.sendKey = function moz_sendKey(charCode, keyCode) {
-    console.log('moz sendKey: (' + charCode + ', ' + keyCode + ')' );
-  }
+  window.navigator.mozKeyboard.sendKey = function moz_sendKey(charCode,
+                                                              keyCode) {
+    console.log('moz sendKey: (' + charCode + ', ' + keyCode + ')');
+  };
 }
 
 var SettingsListener = {
@@ -35,8 +38,7 @@ var SettingsListener = {
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
-      console.warn("Cannot load mozSettings: default to enable " + name);
-      window.setTimeout(function() { callback(true); });
+      window.setTimeout(function() { callback(defaultValue); });
       return;
     }
 
@@ -159,8 +161,8 @@ const IMEManager = {
       })(key);
     }
 
-    // Handling showime and hideime events, as they are received only in System
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
+    // Handle event from system app, i.e. keyboard manager
+    // Now this is for keyboard demo only
     window.addEventListener('message', function receiver(evt) {
       var event = JSON.parse(evt.data);
       IMEManager.handleEvent(event);
@@ -205,6 +207,7 @@ const IMEManager = {
 
         break;
 
+      // Now this is for keyboard demo only
       case 'hideime':
         this.hideIMETimer = window.setTimeout((function execHideIME() {
           IMEController.hideIME();
@@ -212,6 +215,7 @@ const IMEManager = {
 
         break;
 
+      // Now this is for keyboard demo only
       case 'appwillclose':
         IMEController.hideIME(true);
 
@@ -247,3 +251,4 @@ window.addEventListener('load', function initIMEManager(evt) {
   window.removeEventListener('load', initIMEManager);
   IMEManager.init();
 });
+

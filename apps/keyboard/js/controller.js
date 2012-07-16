@@ -52,6 +52,7 @@ WordComposer.prototype = {
       var lastChar = this._typedWord[lastPos];
 
       this._typedWord = this._typedWord.substring(0, lastPos);
+      this._codes.pop();
     }
   }
 };
@@ -104,14 +105,10 @@ const IMEController = (function() {
   // Suggestion Engines are self registering here.
   var _SuggestionEngines = {};
   function _getCurrentSuggestionEngine() {
-    console.log('in getCurrentSuggestion ' + _baseLayoutName);
 
-    if (Keyboards[_baseLayoutName].suggestionEngine) {
-      console.log('in getCurrentSuggestion - ok');
+    if (Keyboards[_baseLayoutName].suggestionEngine)
       return _SuggestionEngines[Keyboards[_baseLayoutName].suggestionEngine];
-    }
 
-    console.log('in getCurrentSuggestion - null');
     return null;
   };
 
@@ -792,7 +789,7 @@ const IMEController = (function() {
       if (suggestionEngine && suggestionEngine.click && _currentWordComposer) {
         suggestionEngine.click(keyCode, _currentWordComposer);
       } else {
-        debug('Cannot get click func the engine in sendNormalKey');
+        debug('click func of suggestionEngine undefined in sendNormalKey');
       }
     }
 
@@ -815,7 +812,6 @@ const IMEController = (function() {
     if (!_currentKey)
       return;
 
-
     clearTimeout(_deleteTimeout);
     clearInterval(_deleteInterval);
     clearTimeout(_menuTimeout);
@@ -826,7 +822,6 @@ const IMEController = (function() {
     var keyCode = parseInt(target.dataset.keycode);
     if (!_isNormalKey(target))
       return;
-
 
     // IME candidate selected
     var dataset = target.dataset;
@@ -849,9 +844,6 @@ const IMEController = (function() {
     // Delete is a special key, it reacts when pressed not released
     if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
       return;
-
-    _currentWordComposer.add(keyCode, evt.layerX,
-      _getKeyCoordinateY(evt.layerY));
 
     // Reset the flag when a non-space key is pressed,
     // used in space key double tap handling
@@ -1030,6 +1022,9 @@ const IMEController = (function() {
 
       // Normal key
       default:
+        _currentWordComposer.add(keyCode, evt.layerX,
+          _getKeyCoordinateY(evt.layerY));
+
         _sendNormalKey(keyCode);
         break;
     }
@@ -1081,12 +1076,6 @@ const IMEController = (function() {
     _dimensionsObserver.observe(IMERender.ime, _dimensionsObserverConfig);
 
     _currentWordComposer = new WordComposer();
-
-
-
-
-
-
   }
 
   // Finalizes the keyboard (exposed, controlled by IMEManager)
@@ -1112,8 +1101,10 @@ const IMEController = (function() {
 
   function _prepareLayoutParams(_layoutParams) {
     _layoutParams.keyboardWidth = IMERender.getWidth();
-    _layoutParams.keyboardHeight = IMERender.getHeight();
+    _layoutParams.keyboardHeight = _getKeyCoordinateY(IMERender.getHeight());
     _layoutParams.keyArray = IMERender.getKeyArray();
+    _layoutParams.keyWidth = IMERender.getKeyWidth();
+    _layoutParams.keyHeight = IMERender.getKeyHeight();
   }
 
 
@@ -1158,6 +1149,7 @@ const IMEController = (function() {
     hideIME: function kc_hideIME(imminent) {
       IMERender.ime.classList.add('hide');
       IMERender.hideIME(imminent);
+      _currentWordComposer.reset();
     },
 
     // Controlled by IMEManager, i.e. when orientation change
@@ -1178,12 +1170,8 @@ const IMEController = (function() {
       if (keyboard.imEngine)
         this.loadIMEngine(name);
 
-
-
-      if (keyboard.suggestionEngine) {
-        console.log('load suggestion Engine');
+      if (keyboard.suggestionEngine)
         this.loadSuggestionEngine(name);
-      }
     },
 
     loadIMEngine: function kc_loadIMEngine(name) {
@@ -1300,9 +1288,6 @@ const IMEController = (function() {
     },
 
     updateLayoutParams: function() {
-
-      //console.log(JSON.stringify(_layoutParams));
-
       if (_requireSuggestion()) {
         var suggestionEngine = _getCurrentSuggestionEngine();
         if (suggestionEngine && suggestionEngine.setLayoutParams)
