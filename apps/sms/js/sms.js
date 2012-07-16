@@ -482,6 +482,14 @@ var ThreadUI = {
           console.log('Message app - pending message save failed!');
           PendingMsgManager.saveToMsgDB(message, this);
         }
+        // Update ThreadListUI when new message in pending database.
+        if (window.location.hash == '#num=*') {
+          window.location.hash = '#num=' + num;
+        } else {
+          MessageManager.getMessages(ThreadListUI.renderThreads);
+        }
+        MessageManager.getMessages(ThreadListUI.renderThreads);
+        
       });
 
       MessageManager.send(num, text, function onsent(msg) {
@@ -509,18 +517,10 @@ var ThreadUI = {
               //TODO: Handle message delete failed in pending DB.
             }
           });
+          // TODO: We might need to update the sent message's actual timestamp. 
         }
         // Clean Fields
         ThreadUI.cleanFields();
-
-        // TODO move when Steve code will be landed
-        if (window.location.hash == '#num=*') {
-          window.location.hash = '#num=' + num;
-        } else {
-          MessageManager.getMessages(ThreadListUI.renderThreads);
-        }
-        MessageManager.getMessages(ThreadListUI.renderThreads);
-
       });
     }
 
