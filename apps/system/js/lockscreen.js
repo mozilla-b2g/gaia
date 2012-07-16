@@ -191,9 +191,8 @@ var LockScreen = {
           maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
             (handle.offsetWidth - rightTarget.offsetWidth) / 2
         };
-        handle.setCapture(true);
-        handle.addEventListener('mouseup', this);
-        handle.addEventListener('mousemove', this);
+        window.addEventListener('mouseup', this);
+        window.addEventListener('mousemove', this);
 
         switch (target) {
           case leftTarget:
@@ -220,9 +219,8 @@ var LockScreen = {
 
       case 'mouseup':
         var handle = this.areaHandle;
-        handle.removeEventListener('mousemove', this);
-        handle.removeEventListener('mouseup', this);
-        document.releaseCapture();
+        window.removeEventListener('mousemove', this);
+        window.removeEventListener('mouseup', this);
 
         this.overlay.classList.remove('touched-left');
         this.overlay.classList.remove('touched-right');
