@@ -32,6 +32,7 @@
 //   home        short press and release of home button
 //   holdhome    long press and hold of home button
 //   sleep       short press and release of sleep button
+//   wake        sleep or home pressed while sleeping
 //   holdsleep   long press and hold of sleep button
 //   volumeup    volume up pressed and released or autorepeated
 //   volumedown  volume down pressed and released or autorepeated
@@ -89,10 +90,24 @@
     process: function(t) {
       switch (t) {
       case 'home-button-press':
-        setState(homeState);
+        // If the phone is sleeping, then pressing Home wakes it 
+        // (on press, not release)
+        if (!ScreenManager.screenEnabled) {
+          fire('wake');
+          setState(wakeState, t);
+        }
+        else
+          setState(homeState);
         return;
       case 'sleep-button-press':
-        setState(sleepState);
+        // If the phone is sleeping, then pressing Sleep wakes it 
+        // (on press, not release)
+        if (!ScreenManager.screenEnabled) {
+          fire('wake');
+          setState(wakeState, t);
+        }
+        else
+          setState(sleepState);
         return;
       case 'volume-up-button-press':
       case 'volume-down-button-press':
@@ -235,11 +250,57 @@
           return;
         }
         break;
+      default:
+        // Ignore anything else (such as sleep button release)
+        return;
       }
       console.error('Unexpected hardware key: ', t);
       setState(baseState);
     }
   };
+
+  // We enter this state when the user presses Home or Sleep on a sleeping
+  // phone.  We give immediate feedback by waking the phone up on the press
+  // rather than waiting for the release, but this means we need a special
+  // state so that we don't actually send a home or sleep event on the 
+  // key release.  Note, however, that this state does set a timer so that
+  // it can send holdhome or holdsleep events.  (This means that pressing and
+  // holding sleep will bring up the power menu, even on a sleeping phone.)
+  var wakeState = {
+    timer: null,
+    delegateState: null,
+    enter: function(t) {
+      if (t === 'home-button-press')
+        this.delegateState = homeState;
+      else
+        this.delegateState = sleepState;
+      this.timer = setTimeout(function() {
+        if (t === 'home-button-press')
+          fire('holdhome');
+        else if (t === 'sleep-button-press')
+          fire('holdsleep');
+        setState(baseState);
+      }, HOLD_INTERVAL);
+    },
+    exit: function() {
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+    },
+    process: function(t) {
+      switch (t) {
+      case 'home-button-release':
+      case 'sleep-button-release':
+        setState(baseState);
+        return;
+      default:
+        this.delegateState.process(t);
+        return;
+      }
+    }
+  };
+
 
   // Kick off the FSM in the base state
   setState(baseState);
