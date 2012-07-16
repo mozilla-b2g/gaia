@@ -31,7 +31,7 @@ html, body {
   top: 0;
 }
 
-.panel{
+.panel {
   position: relative;
   float: left;
   width: 50%;
@@ -48,8 +48,12 @@ html, body {
   left: -100%;
 }
 
+#icon-contact {
+  display: none;
+}
+
 /*
-  Snapshot for increasing performance
+  Snapshot for increasing performance in slide transition
 */
 
 #thread-list-snapshot {
@@ -61,7 +65,7 @@ html, body {
   width: 50%;
   height: 100%;
   background: red;
-  -moz-transition: -moz-transform .5s ease;
+  -moz-transition: -moz-transform .4s ease;
   background:-moz-element(#thread-list) no-repeat;
 }
 
@@ -73,7 +77,7 @@ html, body {
   top: 0;
   width: 50% !important;
   height: 100% ;
-  -moz-transition: -moz-transform .5s ease;
+  -moz-transition: -moz-transform .4s ease;
   background:-moz-element(#thread-messages) no-repeat;
 }
 
@@ -86,31 +90,21 @@ html, body {
    z-index: 100;
 }
 
-
 .mirror-swipe #thread-list-snapshot {
   -moz-transform: translateX(-100%);
- 
 }
-
-
 
 .mirror-swipe #thread-messages-snapshot {
   -moz-transform: translateX(-100%);
-  
 }
 
+/* Styles for Edit mode */
 
-
-
-
-
-/* Clases para EDIT MODE*/
-
-.edit .options{
+.edit .options {
   bottom: 0rem;
 }
 
-.edit .new-sms-form{
+.edit .new-sms-form {
   bottom: -3.6rem;
 }
 
@@ -133,29 +127,9 @@ html, body {
   display: block;
 }
 
-
-
-
-
-/*.mirror-swipe #mirror {
-  top: -100%;
-}
-.mirror-swipe #main-wrapper {
-  top: -100%;
-}*/
-
-
-
-/*.mirror-swipe #thread-list {
-  -moz-transform: translateX(-100%);
-}*/
-
-
-
-
-
 /*
   Thread list styles
+  //TODO Update with VISUALS
 */
 
 #thread-list-container .item {
@@ -171,7 +145,7 @@ html, body {
   outline: none;
   height: 6rem;
   position: relative;
- padding: 1rem 1.6rem 1rem 3rem;
+  padding: 1rem 1.6rem 1rem 3rem;
   border-top: 0.1rem solid hsla(207,22%,92%,1);
   width: 100%;
   -moz-transition: padding 0.3s ease-out;
@@ -216,7 +190,6 @@ a.unread .unread-mark {
   top: 0 !important;
   background: transparent !important;
   border-style: none !important;
-
 }
 
 a.unread .unread-mark .icon-unread-mark {
@@ -226,7 +199,6 @@ a.unread .unread-mark .icon-unread-mark {
   margin: 4.3rem auto;
   background-image: url('images/updates.png');
 }
-
 
 #thread-list-container .item > a > span {
   position: absolute;
@@ -319,13 +291,14 @@ a.unread .unread-mark .icon-unread-mark {
 
 /*
   Messages Style as 'bubbles'
+  //TODO Include new styles and icons
 */
 
 #messages-container {
   bottom: 5.5rem;
-  /*background: #F4F4F4;*/
   text-align: left;
 }
+
 #messages-container > div:last-child {
   margin-bottom: 5.5rem;
 }
@@ -368,20 +341,6 @@ a.unread .unread-mark .icon-unread-mark {
   border: 0.1rem solid #F08A48;
   margin-left: 2rem;
   margin-right: 3.5rem;
-}
-
-#messages-container > div .pending {
-  -moz-animation: fadeIn 2s ease;
-  opacity: 0.5;
-}
-
-@-moz-keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 0.5;
-  }
 }
 
 #messages-container .photo {
@@ -490,28 +449,23 @@ a.unread .unread-mark .icon-unread-mark {
   border-top: .1rem solid #C6C6C6;
   background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
   height: 3.5rem;
- 
-
 }
 
 #message-to-send {
-  /*background: red;*/
-   margin-top: .5rem;
-   margin-bottom: .5rem;
-   margin-left: 1.5rem;
-   height: 2.5rem;
-   width: -moz-calc(100% - 9.5rem);
-   -moz-box-sizing: border-box;
-   border-radius: 0.3rem;
-    border: 1px solid rgba(0,0,0,.3);
+  margin-top: .5rem;
+  margin-bottom: .5rem;
+  margin-left: 1.5rem;
+  height: 2.5rem;
+  width: -moz-calc(100% - 9.5rem);
+  -moz-box-sizing: border-box;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(0,0,0,.3);
   box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
   font-size: -moz-calc(7 * 0.226rem);
   font-family: 'Open Sans';
-
 }
 
 #send-message {
-  background: yellow;
   height: 100%;
   width: 6rem;
   float: right;

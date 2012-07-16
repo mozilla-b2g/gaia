@@ -12,7 +12,7 @@ var PendingMsgManager = {
     console.log('Pending Message Database Error : ' + errorMsg);
   },
 
-  init: function pm_init() {
+  init: function pm_init(callback) {
     try {
       var indexedDB = window.indexedDB || window.webkitIndexedDB ||
                       window.mozIndexedDB || window.msIndexedDB;
@@ -27,11 +27,15 @@ var PendingMsgManager = {
     }
 
     try {
+      var msgCallback = callback;
       var msgManager = this;
       var request = indexedDB.open(this.dbName, this.dbVersion);
       request.onsuccess = function(event) {
         msgManager.db = event.target.result;
         msgManager.dbReady = true;
+        if(msgCallback!=undefined){
+          msgCallback();
+        }
       };
 
       request.onerror = function(event) {
