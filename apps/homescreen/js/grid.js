@@ -22,7 +22,6 @@ const GridManager = (function() {
     switch (evt.type) {
       case 'mousedown':
         evt.stopPropagation();
-        document.body.dataset.transitioning = 'true';
 
         startEvent = currentEvent = cloneEvent(evt);
         onTouchStart(currentEvent.x - startEvent.x);
@@ -48,6 +47,9 @@ const GridManager = (function() {
 
       case 'mouseup':
         evt.stopPropagation();
+        if (!isPanning) {
+          delete document.body.dataset.transitioning;
+        }
         isPanning = false;
 
         currentEvent = cloneEvent(evt);
@@ -133,16 +135,21 @@ const GridManager = (function() {
   }
 
   function goToPage(index, callback) {
+    var isSamePage = pages.current === index;
     pages.current = index;
+    callback = callback || function() {};
 
-    var container = pageHelper.getCurrent().container;
-    container.addEventListener('transitionend', function tr_end(e) {
-      container.removeEventListener('transitionend', tr_end);
+    if (isSamePage) {
       delete document.body.dataset.transitioning;
-      if (callback) {
+      callback();
+    } else {
+      var container = pageHelper.getCurrent().container;
+      container.addEventListener('transitionend', function tr_end(e) {
+        container.removeEventListener('transitionend', tr_end);
+        delete document.body.dataset.transitioning;
         callback();
-      }
-    });
+      });
+    }
 
     pan(0, .2);
     updatePaginationBar();
@@ -282,7 +289,6 @@ const GridManager = (function() {
       }
     }
 
-    // Do we need to create a new page ourself?
     return pagesCount;
   }
 
@@ -483,7 +489,7 @@ const GridManager = (function() {
         });
       }
 
-      pageHelper.save(index);
+      pageHelper.saveAll();
     },
 
     /*
