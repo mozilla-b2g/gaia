@@ -158,6 +158,7 @@ var WindowManager = (function() {
       windows.classList.add('active');
 
       classes.add('faded');
+      setTimeout(openCallback);
     } else if (classes.contains('faded') && prop === 'opacity') {
       openFrame.setVisible(true);
       openFrame.focus();
@@ -168,7 +169,6 @@ var WindowManager = (function() {
       evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
       openFrame.dispatchEvent(evt);
 
-      setTimeout(openCallback);
     } else if (classes.contains('close') && prop === 'color') {
       closeFrame.classList.remove('active');
       windows.classList.remove('active');
@@ -484,15 +484,19 @@ var WindowManager = (function() {
   // There are two types of mozChromeEvent we need to handle
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
+    console.log('mozChromeEvent received: ' + e.detail.type);
+
     var origin = e.detail.origin;
+    if (!origin)
+      return;
+
     var app = Applications.getByOrigin(origin);
     var name = app.manifest.name;
 
-    /*
-    * Check if it's a virtual app from a entry point.
-    * If so, change the app name and origin to the
-    * entry point.
-    */
+
+    // Check if it's a virtual app from a entry point.
+    // If so, change the app name and origin to the
+    // entry point.
     var entryPoints = app.manifest.entry_points;
     if (entryPoints) {
       for (var ep in entryPoints) {

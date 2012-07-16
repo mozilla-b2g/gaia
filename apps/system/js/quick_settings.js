@@ -126,9 +126,14 @@ var QuickSettings = {
             // XXX: This should be replaced probably by Web Activities
             var host = document.location.host;
             var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-            Applications.getByOrigin('http://settings.' + domain).launch();
+            var protocol = document.location.protocol + '//';
+            Applications.getByOrigin(protocol + 'settings.' + domain).launch();
 
-            UtilityTray.hide();
+            window.addEventListener('appopen', function hideTray(evt) {
+              window.removeEventListener('appopen', hideTray);
+              UtilityTray.hide();
+            });
+
             break;
         }
         break;
