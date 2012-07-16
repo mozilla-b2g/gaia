@@ -4,6 +4,7 @@
 const GridManager = (function() {
   var container;
 
+  var windowWidth = window.innerWidth;
   var thresholdForPanning = window.innerWidth / 4;
   var thresholdForTapping = 10;
 
@@ -83,7 +84,7 @@ const GridManager = (function() {
 
   function onTouchEnd(deltaX, target) {
     releaseEvents();
-    
+
     var currentPage = pages.current;
 
     if (Math.abs(deltaX) > thresholdForPanning) {
@@ -129,8 +130,9 @@ const GridManager = (function() {
    * Page Navigation utils.
    */
   function pan(deltaX, duration) {
-    pages.forEach(function(page) {
-      page.moveBy(-pages.current * 320 + deltaX, duration);
+    pages.forEach(function(page, index) {
+      var scrollX = (-pages.current + index) * windowWidth + deltaX;
+      page.moveBy(scrollX, duration);
     });
   }
 

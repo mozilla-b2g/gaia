@@ -1,8 +1,6 @@
 
 'use strict';
 
-var innerWidth = 320;
-
 /*
  * Icon constructor
  *
@@ -187,7 +185,6 @@ Icon.prototype = {
  * Page constructor
  */
 var Page = function(index) {
-  this.index = index;
   this.icons = {};
 };
 
@@ -226,12 +223,11 @@ Page.prototype = {
    *
    * @param{String} the app origin
    */
-  moveBy: function pg_moveBy(deltaX, duration) {
+  moveBy: function pg_moveBy(scrollX, duration) {
     var style = this.container.style;
-    style.MozTransform = 'translateX(-moz-calc(' +
-                         (this.index * innerWidth) +
-                         'px + ' + deltaX + 'px))';
-    style.MozTransition = duration ? ('-moz-transform ' + duration + 's ease') : '';
+    style.MozTransform = 'translateX(' + scrollX + 'px)';
+    style.MozTransition =
+      duration ? ('-moz-transform ' + duration + 's ease') : '';
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
