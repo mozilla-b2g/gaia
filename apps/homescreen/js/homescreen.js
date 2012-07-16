@@ -2,26 +2,23 @@
 'use strict';
 
 const Homescreen = (function() {
+  // Initialize the search page
+  var host = document.location.host;
+  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+  Search.init(domain);
+
+  // Initialize the pagination scroller
+  PaginationBar.init('.paginationScroller');
+
   function initUI() {
+    // Initialize the dock
+    DockManager.init(document.querySelector('#footer'));
+
     setLocale();
     GridManager.init('.apps', function gm_init() {
-      // Initialize the search page
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      Search.init(domain);
-
-      // Initialize the pagination scroller
-      PaginationBar.init('.paginationScroller');
-      PaginationBar.show();
-
-      // Initialize the dock
-      DockManager.init(document.querySelector('#footer'));
-
-      // Initialize drag&drop
-      DragDropManager.init();
-
-      // Go to the first page
       GridManager.goToPage(1);
+      PaginationBar.show();
+      DragDropManager.init();
 
       window.addEventListener('localized', function localize() {
         setLocale();
