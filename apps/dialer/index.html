@@ -7,8 +7,8 @@
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="stylesheet" type="text/css" href="style/keypad.css">
     <link rel="stylesheet" type="text/css" href="style/commslog.css">
-    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
-    <script>
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <script type="application/javascript">
     // The following code loads a shared WebAPI shim from webapi.js
     (function webapiJSLoader() {
       var protocol = document.location.protocol;
@@ -16,8 +16,7 @@
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
-        paths.pop();
-        var src = protocol + '//' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');

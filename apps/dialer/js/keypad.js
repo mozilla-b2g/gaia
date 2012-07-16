@@ -346,6 +346,11 @@ var KeypadManager = {
     }
   },
 
+  updatePhoneNumber: function kh_updatePhoneNumber(number) {
+    this._phoneNumber = number;
+    this._updatePhoneNumberView();
+  },
+
   _updatePhoneNumberView: function kh_updatePhoneNumberview() {
     // If there are digits in the phone number, show the delete button.
     if (typeof CallScreen == 'undefined') {

@@ -11,6 +11,9 @@ contacts.List = (function() {
 
   searchBox = document.getElementById('search-contact');
   fastScroll = document.querySelector('.view-jumper');
+  var cancel = document.getElementById('cancel-search');
+  var clearSearchButton = document.getElementById('clear-search');
+  var conctactsListView = document.getElementById('view-contacts-list');
 
   var init = function load(element) {
     groupsList = element;
@@ -276,13 +279,18 @@ contacts.List = (function() {
     }
   }
 
-  var exitSearch = function exitSearch() {
+  var exitSearchMode = function exitSearchMode() {
+    cancel.classList.add('hide');
+    clearSearchButton.classList.add('hide');
+    conctactsListView.classList.remove('searching');
     searchBox.value = '';
     inSearchMode = false;
     // Show elements that were hidden for the search
     fastScroll.classList.remove('hide');
     groupsList.classList.remove('hide');
-    favoriteGroup.classList.remove('hide');
+    if (favoriteGroup) {
+      favoriteGroup.classList.remove('hide');
+    }
     toggleGroupHeaders();
 
     // Bring back to visibilitiy the contacts
@@ -292,17 +300,21 @@ contacts.List = (function() {
       contact.classList.remove('search');
       contact.classList.remove('hide');
     }
+    return false;
+  };
+
+  var enterSearchMode = function searchMode() {
+    if (!inSearchMode) {
+      cancel.classList.remove('hide');
+      clearSearchButton.classList.remove('hide');
+      conctactsListView.classList.add('searching');
+      cleanContactsList();
+      inSearchMode = true;
+    }
+    return false;
   };
 
   var search = function performSearch() {
-    if (!inSearchMode) {
-      cleanContactsList();
-    }
-
-    if (!searchBox.value || searchBox.value.length == 0) {
-      exitSearch();
-      return;
-    }
 
     var pattern = new RegExp(searchBox.value, 'i');
 
@@ -322,14 +334,21 @@ contacts.List = (function() {
 
   var cleanContactsList = function cleanContactsList() {
     fastScroll.classList.add('hide');
-    favoriteGroup.classList.add('hide');
+    if (favoriteGroup) {
+      favoriteGroup.classList.add('hide');
+    }
     toggleGroupHeaders();
-    inSearchMode = true;
   };
 
   var getContactsDom = function contactsDom() {
     var selector = ".block-item:not([data-uuid='#id#']";
     return document.querySelectorAll(selector);
+  }
+
+  var clearSearch = function clearSearch() {
+    searchBox.value = '';
+    search();
+    return false;
   }
 
   return {
@@ -339,6 +358,9 @@ contacts.List = (function() {
     'getContactById': getContactById,
     'handleClick': handleClick,
     'remove': remove,
-    'search': search
+    'search': search,
+    'enterSearchMode': enterSearchMode,
+    'exitSearchMode': exitSearchMode,
+    'clearSearch': clearSearch
   };
 })();
