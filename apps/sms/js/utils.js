@@ -50,7 +50,7 @@ var Utils = {
 
     var today = Utils.getDayDate((new Date()).getTime());
     var otherDay = Utils.getDayDate(time);
-    var dayDiff = (today - otherDay)/86400000;
+    var dayDiff = (today - otherDay) / 86400000;
 
     if (isNaN(dayDiff))
       return '(incorrect date)';
