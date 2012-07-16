@@ -12,6 +12,7 @@ contacts.List = (function() {
   searchBox = document.getElementById('search-contact');
   fastScroll = document.querySelector('.view-jumper');
   var cancel = document.getElementById('cancel-search');
+  var clearSearchButton = document.getElementById('clear-search');
   var conctactsListView = document.getElementById('view-contacts-list');
 
   var init = function load(element) {
@@ -280,6 +281,7 @@ contacts.List = (function() {
 
   var exitSearchMode = function exitSearchMode() {
     cancel.classList.add('hide');
+    clearSearchButton.classList.add('hide');
     conctactsListView.classList.remove('searching');
     searchBox.value = '';
     inSearchMode = false;
@@ -302,6 +304,7 @@ contacts.List = (function() {
   var enterSearchMode = function searchMode() {
     if (!inSearchMode) {
       cancel.classList.remove('hide');
+      clearSearchButton.classList.remove('hide');
       conctactsListView.classList.add('searching');
       cleanContactsList();
       inSearchMode = true;
@@ -338,6 +341,12 @@ contacts.List = (function() {
     return document.querySelectorAll(selector);
   }
 
+  var clearSearch = function clearSearch() {
+    searchBox.value = '';
+    search();
+    return false;
+  }
+
   return {
     'init': init,
     'load': load,
@@ -347,6 +356,7 @@ contacts.List = (function() {
     'remove': remove,
     'search': search,
     'enterSearchMode': enterSearchMode,
-    'exitSearchMode': exitSearchMode
+    'exitSearchMode': exitSearchMode,
+    'clearSearch': clearSearch
   };
 })();
