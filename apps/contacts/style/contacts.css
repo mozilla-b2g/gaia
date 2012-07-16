@@ -65,13 +65,13 @@
 }
 
 .view-contact-profile .view-body-inner .comment-notes {
-  font-family: System Sans Semibold;
+  font-family: Open Sans Semibold;
   font-size: 1.3rem;
   line-height: 1.3em;
 }
 
 #contact-detail h1 {
-  font: 1.4rem/1.5em System Sans Semibold, Sans-serif;
+  font: 1.4rem/1.5em Open Sans Semibold, Sans-serif;
   border-bottom: solid 1px #dbd9d9;
   margin-bottom: 1rem;
 }

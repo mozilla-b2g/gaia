@@ -20,7 +20,7 @@ body {
   overflow: hidden;
   background: #000;
   color: #fff;
-  font: 1.6rem/2.2rem System Sans, Sans-serif;
+  font: 1.6rem/2.2rem Open Sans, Sans-serif;
   text-align: center;
   vertical-align: middle;
 }
@@ -70,17 +70,17 @@ abbr, acronym {
 }
 
 strong {
-  font-family: System Sans Bold, Sans-serif;
+  font-family: Open Sans Bold, Sans-serif;
   font-weight: normal
 }
 
 b {
-  font-family: System Sans Semibold, Sans-serif;
+  font-family: Open Sans Semibold, Sans-serif;
   font-weight: normal
 }
 
 small {
-  font: 1.1rem/1rem System Sans, Sans-serif;
+  font: 1.1rem/1rem Open Sans, Sans-serif;
   color: #999;
 }
 
@@ -167,7 +167,7 @@ button {
   background: none;
   border: none;
   outline: none;
-  font: 1.1rem/1.3rem System Sans, Sans-serif;
+  font: 1.1rem/1.3rem Open Sans, Sans-serif;
   color: #666;
   white-space: nowrap;
   cursor: pointer;
@@ -195,7 +195,7 @@ textarea {
 }
 
 input[type="text"], textarea {
-  font: 1.3rem/4rem System Sans Semibold, Sans-serif;
+  font: 1.3rem/4rem Open Sans Semibold, Sans-serif;
 }
 
 input[type="text"]:focus, textarea:focus {

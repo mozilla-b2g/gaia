@@ -69,7 +69,7 @@
   height: 0.5rem;
 }
 .view-header h1 {
-  font: 2.2rem/4.8rem System Sans, Sans-serif;
+  font: 2.2rem/4.8rem Open Sans, Sans-serif;
   text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -89,7 +89,7 @@
   overflow: hidden;
 }
 .view-header h1 em {
-  font: 1.5rem/1em System Sans Bold, Sans-serif;
+  font: 1.5rem/1em Open Sans Bold, Sans-serif;
 }
 
 .view-header form {
@@ -112,7 +112,7 @@
   border-radius: 0.3rem;
   background: #fff url(../../gphx/bitmap/default/vw-header/ui/shadow-header.png) repeat-x left -1px;
   /*box-shadow: inset 0 2px 1px -1px rgba(0, 0, 0, 0.3);*/
-  font: 1.2rem/1em System Sans, Sans-serif;
+  font: 1.2rem/1em Open Sans, Sans-serif;
 }
 .view-header form .clear {
   text-indent: 100%;
@@ -187,7 +187,7 @@ overflow: visible;
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 1.4rem/1.1em System Sans Semibold, Sans-serif;  
+  font: 1.4rem/1.1em Open Sans Semibold, Sans-serif;  
   color: #fff;
 }
 
@@ -288,7 +288,7 @@ overflow: visible;
 #current-jumper {
   width: 10.5rem;
   background: rgba(0, 0, 0, 0.7);
-  font: 6rem/10.5rem System Sans Light, Sans-serif;
+  font: 6rem/10.5rem Open Sans Light, Sans-serif;
   color: #fff;
   text-align: center;
 }

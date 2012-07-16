@@ -26,7 +26,7 @@
 
 .block-name {
   font-size: 1.8rem;
-  font-family: System Sans, Sans-serif;
+  font-family: Open Sans, Sans-serif;
   color: #333;
   display: block;
   margin: 1.5rem 0 0;
@@ -124,7 +124,7 @@
 .selection-list > li {
   background: #fff;
   border-bottom: solid 1px #c8c8c8;
-  font: 1.4rem/2.6em System Sans Semibold, Sans-serif;
+  font: 1.4rem/2.6em Open Sans Semibold, Sans-serif;
 }
 
 .selection-list > li:last-child {

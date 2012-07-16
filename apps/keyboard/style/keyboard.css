@@ -5,24 +5,6 @@
   }
 }
 
-/* Font definitions */
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans Bold';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans Semibold';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
-}
-
 @font-face {
   font-family: 'Keyboard Symbols';
   font-weight: 600;
