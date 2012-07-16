@@ -288,7 +288,9 @@ contacts.List = (function() {
     // Show elements that were hidden for the search
     fastScroll.classList.remove('hide');
     groupsList.classList.remove('hide');
-    favoriteGroup.classList.remove('hide');
+    if (favoriteGroup) {
+      favoriteGroup.classList.remove('hide');
+    }
     toggleGroupHeaders();
 
     // Bring back to visibilitiy the contacts
@@ -332,7 +334,9 @@ contacts.List = (function() {
 
   var cleanContactsList = function cleanContactsList() {
     fastScroll.classList.add('hide');
-    favoriteGroup.classList.add('hide');
+    if (favoriteGroup) {
+      favoriteGroup.classList.add('hide');
+    }
     toggleGroupHeaders();
   };
 
