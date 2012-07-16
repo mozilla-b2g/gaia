@@ -67,18 +67,18 @@ window.addEventListener('localized', function startup(evt) {
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var number = activity.source.data.number;
-  var displayThread = function actHandleDisplay() {
+  var fillNumber = function actHandleDisplay() {
     if (number) {
-      KeypadManager._phoneNumber = number;
+      KeypadManager.updatePhoneNumber(number);
     }
   }
 
   if (document.readyState == 'complete') {
-    displayThread();
+    fillNumber();
   } else {
     window.addEventListener('localized', function loadWait() {
       window.removeEventListener('localized', loadWait);
-      displayThread();
+      fillNumber();
     });
   }
 

@@ -530,13 +530,11 @@ var Contacts = (function() {
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.pick(number);
     } else {
-      var sanitizedNumber = number.replace(/-/g, '');
-
       try {
         var activity = new MozActivity({
           name: 'dial',
           data: {
-            type: 'number',
+            type: 'webtelephony/number',
             number: number
           }
         });
