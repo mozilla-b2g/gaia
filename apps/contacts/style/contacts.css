@@ -65,13 +65,15 @@
 }
 
 .view-contact-profile .view-body-inner .comment-notes {
-  font-family: System Sans Semibold;
+  font-family: Open Sans;
+  font-weight: 600;
   font-size: 1.3rem;
   line-height: 1.3em;
 }
 
 #contact-detail h1 {
-  font: 1.4rem/1.5em System Sans Semibold, Sans-serif;
+  font: 1.4rem/1.5em Open Sans, Sans-serif;
+  font-weight: 600;
   border-bottom: solid 1px #dbd9d9;
   margin-bottom: 1rem;
 }
@@ -120,4 +122,72 @@ hr {
   background-size: 100% auto;
   width: 2rem;
   height: 2rem;
+}
+
+/* Search */
+
+#groups-list {
+  padding-top: 2rem;
+}
+
+#search-contact {
+  height: 2.5rem;
+  color: #000;
+  font-family: 'Open Sans';
+  font-size: 1.2rem;
+}
+
+.search-hide {
+  display: none;
+}
+
+#search-container {
+  background: url(gphx/bitmap/default/search/searchbar_1x35.png) repeat-x scroll left bottom transparent;
+  position: absolute;
+  width: -moz-calc(100% - 5.8rem);
+  padding: 0.5rem 2.5rem;
+  height: 2.5rem;
+  top: 0;
+  left: 0;
+}
+
+#search-container button {
+  line-height: 2.5rem;
+  padding: 0 2rem;
+  font-family: 'Open Sans';
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #707070;
+}
+
+#view-contacts-list.searching.transitioning #search-container {
+  position: absolute;
+}
+
+#view-contacts-list.searching #search-container {
+  position: fixed;
+  z-index: 101;
+  top: 0;
+  width: -moz-calc(100% + 0.8rem);
+  background-size: 100% 100%;
+}
+
+#view-contacts-list.searching .view-body {
+  z-index: 10;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#view-contacts-list.searching header {
+  top: -5rem;
+}
+
+#view-contacts-list.searching #search-contact {
+  width: 20rem;
+}
+
+#view-contacts-list.searching .block-item {
+  border-bottom: 1px solid #DBDBDB;
 }

@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = navigator.mozL10n.get;
+
 var Browser = {
 
   currentTab: null,
@@ -504,13 +506,13 @@ var Browser = {
     timestamp) {
     //TODO: localise
     const LABELS = [
-      'Future',
-      'Today',
-      'Yesterday',
-      'Last 7 Days',
-      'This Month',
-      'Last 6 Months',
-      'Older than 6 Months'
+      'future',
+      'today',
+      'yesterday',
+      'last-7-days',
+      'this-month',
+      'last-6-months',
+      'older-than-6-months'
     ];
 
     var text = '';
@@ -520,11 +522,11 @@ var Browser = {
     if (threshold == 5 && timestamp) {
       var date = new Date(timestamp);
       var now = new Date();
-      text = DateHelper.MONTHS[date.getMonth()];
+      text = _('month-' + date.getMonth());
       if (date.getFullYear() != now.getFullYear())
         text += ' ' + date.getFullYear();
     } else {
-      text = LABELS[threshold];
+      text = _(LABELS[threshold]);
     }
 
     var textNode = document.createTextNode(text);
@@ -564,7 +566,7 @@ var Browser = {
       'A' : {
         'open_in_tab': {
           src: 'default',
-          label: 'Open link in New Tab',
+          label: _('open-in-new-tab'),
           selected: this.openInNewTab.bind(this)
         }
       }
@@ -792,7 +794,7 @@ var Browser = {
     var ul = document.createElement('ul');
 
     for (var tab in this.tabs) {
-      var title = this.tabs[tab].title || this.tabs[tab].url || 'New Tab';
+      var title = this.tabs[tab].title || this.tabs[tab].url || _('new-tab');
       var a = document.createElement('a');
       var li = document.createElement('li');
       var span = document.createElement('span');

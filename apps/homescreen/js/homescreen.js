@@ -49,10 +49,16 @@ const Homescreen = (function() {
      * @param {int} duration of the transition
      */
     pan: function vw_pan(x, duration) {
+      var width = window.innerWidth;
       var currentPage = this.currentPage;
       var total = this.total;
       for (var n = 0; n < total; n++) {
         var page = this.pages[n];
+        if (currentPage === 0) {
+          x = Math.min(x, 0);
+        } else {
+          x = Math.min(x, width);
+        }
         var calc = (n - currentPage) * 100 + '% + ' + x + 'px';
         var style = page.style;
         style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
@@ -126,13 +132,25 @@ const Homescreen = (function() {
   Search.init(domain);
 
   function initUI() {
+    setLocale();
     DockManager.init(document.querySelector('#footer'));
     GridManager.init('.apps', function gm_init() {
       PaginationBar.update(1);
       PaginationBar.show();
       ViewController.init(document.querySelector('#content'));
       DragDropManager.init();
+      window.addEventListener('localized', function localize() {
+        setLocale();
+        GridManager.localize();
+        DockManager.localize();
+      });
     });
+  }
+
+  function setLocale() {
+    // set the 'lang' and 'dir' attributes to <html> when the page is translated
+    document.documentElement.lang = navigator.mozL10n.language.code;
+    document.documentElement.dir = navigator.mozL10n.language.direction;
   }
 
   function start() {
@@ -147,8 +165,9 @@ const Homescreen = (function() {
     if (onUpgradeNeeded) {
       // First time the database is empty -> Dock by default
       var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
+      var protocol = window.location.protocol;
       appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
-        return 'http://' + name + '.' + domain;
+        return protocol + '//' + name + '.' + domain;
       });
       HomeState.saveShortcuts(appsInDockByDef, start, start);
     } else {

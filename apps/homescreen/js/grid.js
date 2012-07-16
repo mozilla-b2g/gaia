@@ -289,7 +289,6 @@ const GridManager = (function() {
       // Renders pagination bar
       updatePaginationBar();
       finish();
-      addLanguageListener();
 
       // Saving initial state
       pageHelper.saveAll();
@@ -336,7 +335,6 @@ const GridManager = (function() {
 
           updatePaginationBar();
           finish();
-          addLanguageListener();
         });
       },
       function onerror() {
@@ -361,10 +359,6 @@ const GridManager = (function() {
    * Currently we only translate the app names
    */
   function localize() {
-    // set the 'lang' and 'dir' attributes to <html> when the page is translated
-    document.documentElement.lang = navigator.mozL10n.language.code;
-    document.documentElement.dir = navigator.mozL10n.language.direction;
-
     // switch RTL-sensitive methods accordingly
     dirCtrl = getDirCtrl();
 
@@ -373,10 +367,6 @@ const GridManager = (function() {
     for (var i = 0; i < total; i++) {
       pages.list[i].translate();
     }
-  }
-
-  function addLanguageListener() {
-    window.addEventListener('localized', localize);
   }
 
   /*
@@ -721,6 +711,8 @@ const GridManager = (function() {
 
     // Go to next page
     goNext: goNext,
+
+    localize: localize,
 
     /*
      * Exports the pageHelper utils
