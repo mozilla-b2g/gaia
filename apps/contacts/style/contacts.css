@@ -130,6 +130,9 @@ hr {
 
 #search-contact {
   height: 2.5rem;
+  color: #000;
+  font-family: 'System Sans';
+  font-size: 1.2rem;
 }
 
 .search-hide {
@@ -150,6 +153,9 @@ hr {
 #search-container button {
   line-height: 2.5rem;
   padding: 0 2rem;
+  font-family: 'System Sans Semibold';
+  font-size: 1.2rem;
+  color: #707070;
 }
 
 #view-contacts-list.searching.transitioning #search-container {
