@@ -202,20 +202,14 @@ var MessageManager = {
   },
 
   markMessagesRead: function mm_markMessagesRead(list, value, callback) {
+    // TODO Will be fixed in https://bugzilla.mozilla.org/show_bug.cgi?id=771463
     for (var i = 0; i < list.length; i++) {
-      if ( i == list.length-1) {
+      if (i == list.length - 1) {
         MessageManager.markMessageRead(list[i], value, callback);
       } else {
         MessageManager.markMessageRead(list[i], value);
       }
-    };
-    // if (list.length > 0) {
-    //   this.markMessageRead(list.shift(), value, function markReadCb(result) {
-    //     this.markMessagesRead(list, value, callback);
-    //   }.bind(this));
-    // } else {
-    //   callback();
-    // }
+    }
   }
 };
 
@@ -241,7 +235,7 @@ var ThreadListUI = {
       var message = messages[i];
       var num = message.delivery == 'received' ?
       message.sender : message.receiver;
-      if(!message.read) {
+      if (!message.read) {
         if (unreadThreads.indexOf(num) == -1) {
           unreadThreads.push(num);
         }
@@ -273,7 +267,7 @@ var ThreadListUI = {
     // Update threads with 'unread'
     for (var i = 0; i < unreadThreads.length; i++) {
       document.getElementById(unreadThreads[i]).classList.add('unread');
-    };
+    }
   },
 
   appendThread: function thlui_appendThread(thread) {
@@ -288,7 +282,8 @@ var ThreadListUI = {
     var bodyText = thread.body.split('\n')[0];
     var bodyHTML = Utils.escapeHTML(bodyText);
     // Create HTML structure
-    var structureHTML = '  <a id="'+ thread.num +'" href="#num=' + thread.num + '"' +
+    var structureHTML = '  <a id="' + thread.num +
+            '" href="#num=' + thread.num + '"' +
             '     data-num="' + thread.num + '"' +
             '     data-name="' + dataName + '"' +
             '     data-notempty="' +
@@ -423,7 +418,8 @@ var ThreadUI = {
     messages.forEach(ThreadUI.appendMessage);
     // Update read messages if necessary
     if (ThreadUI.readMessages.length > 0) {
-      MessageManager.markMessagesRead(ThreadUI.readMessages, 'true', function(){
+      MessageManager.markMessagesRead(ThreadUI.readMessages, 'true',
+        function() {
         MessageManager.getMessages(ThreadListUI.renderThreads);
       });
     }
@@ -582,21 +578,21 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
-// window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-//   var number = activity.source.data.number;
-//   var displayThread = function actHandleDisplay() {
-//     if (number)
-//       window.location.hash = '#num=' + number;
-//   }
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  var number = activity.source.data.number;
+  var displayThread = function actHandleDisplay() {
+    if (number)
+      window.location.hash = '#num=' + number;
+  }
 
-//   if (document.readyState == 'complete') {
-//     displayThread();
-//   } else {
-//     window.addEventListener('localized', function loadWait() {
-//       window.removeEventListener('localized', loadWait);
-//       displayThread();
-//     });
-//   }
+  if (document.readyState == 'complete') {
+    displayThread();
+  } else {
+    window.addEventListener('localized', function loadWait() {
+      window.removeEventListener('localized', loadWait);
+      displayThread();
+    });
+  }
 
-//   activity.postResult({ status: 'accepted' });
-// });
+  activity.postResult({ status: 'accepted' });
+});
