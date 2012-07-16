@@ -19,7 +19,7 @@ const GridManager = (function() {
     right: 0
   };
 
-  var startEvent, currentEvent;
+  var startEvent, currentEvent, isTransitioning = false;
 
   function handleEvent(evt) {
     switch (evt.type) {
@@ -33,8 +33,20 @@ const GridManager = (function() {
       case 'mousemove':
         evt.stopPropagation();
 
+        // Starts dragging only when tapping does not make sense
+        // anymore. The drag will then start from this point to avoid
+        // a jump effect.
         currentEvent = getCoordinates(evt);
-        if (onTouchMove(currentEvent.x - startEvent.x)) {
+        var tap = Math.abs(currentEvent.x - startEvent.x) < thresholdForTapping;
+        if (!isTransitioning && tap) {
+          return;
+        } else if (!isTransitioning) {
+          isTransitioning = true;
+          document.body.dataset.transitioning = 'true';
+          startEvent = currentEvent;
+        }
+
+        if (!onTouchMove(currentEvent.x - startEvent.x)) {
           // Forward a mouse event to the homecontainer so it can
           // start to drag if needed.
           var e = document.createEvent('Event');
@@ -46,6 +58,7 @@ const GridManager = (function() {
 
       case 'mouseup':
         evt.stopPropagation();
+        isTransitioning = false;
 
         currentEvent = getCoordinates(evt);
         onTouchEnd(currentEvent.x - startEvent.x, evt.target);
@@ -57,10 +70,9 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
+        return;
         evt.stopPropagation();
         evt.preventDefault();
-
-        keepPosition(); // Sadly clicking on icons could fire touchmove events
 
         document.body.dataset.mode = 'edit';
         if ('origin' in evt.target.dataset) {
@@ -71,7 +83,6 @@ const GridManager = (function() {
   }
 
   function onTouchStart(deltaX) {
-    document.body.dataset.transitioning = true;
     attachEvents();
   }
 
@@ -82,35 +93,31 @@ const GridManager = (function() {
     }
 
     releaseEvents();
-    keepPosition();
     return false;
   }
 
   function onTouchEnd(deltaX, target) {
     releaseEvents();
     
-    var callback = function() {
-      delete document.body.dataset.transitioning;
-    }
+    var currentPage = pages.current;
 
     if (Math.abs(deltaX) > thresholdForPanning) {
-      var currentPage = pages.current;
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.total - 1) {
-        goToNextPage(callback);
+        goToNextPage();
       } else if (!forward && currentPage > 0) {
-        goToPreviousPage(callback);
+        goToPreviousPage();
       } else {
-        keepPosition(callback);
+        goToPage(currentPage);
       }
     } else if (Math.abs(deltaX) < thresholdForTapping) {
       pageHelper.getCurrent().tap(target);
 
       // Sometime poor devices fire touchmove events when users are only
       // tapping
-      keepPosition(callback);
+      goToPage(currentPage);
     } else {
-      keepPosition(callback);
+      goToPage(currentPage);
     }
   }
 
@@ -123,8 +130,8 @@ const GridManager = (function() {
     function limitRight(x) { return (x > limits.right); }
     var rtl = (document.documentElement.dir == 'rtl');
     return {
-      offsetPrev: rtl ? 1 : -1,
-      offsetNext: rtl ? -1 : 1,
+      offsetPrev: rtl ? -1 : 1,
+      offsetNext: rtl ? 1 : -1,
       limitPrev: rtl ? limitRight : limitLeft,
       limitNext: rtl ? limitLeft : limitRight,
       translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
@@ -148,92 +155,36 @@ const GridManager = (function() {
   }
 
   /*
-   * This method moves the pages following the gesture of the user
-   *
-   * @param {int} the difference between the last and initial position
+   * Page Navigation utils.
    */
-  function pan(deltaX) {
-    pageHelper.getCurrent().moveTo(deltaX);
-
-    var currentPage = pages.current;
-    if (currentPage > 0) {
-      pageHelper.getPrevious().moveTo(dirCtrl.offsetPrev * deltaX);
-    }
-
-    if (currentPage < pages.total - 1) {
-      pageHelper.getNext().moveTo(dirCtrl.offsetNext * deltaX);
-    }
+  function pan(deltaX, duration) {
+    pages.list.forEach(function(page) {
+      page.moveBy(-pages.current * 320 + deltaX, duration);
+    });
   }
 
-  /*
-   * This method is in charge of keeping the position of the
-   * current page when the swipe is not enough for paginating
-   */
-  function keepPosition(callback) {
-    var deltaX = startEvent.x - currentEvent.x;
-    if (deltaX === 0) {
+  function goToPage(index, callback) {
+    pages.current = index;
+
+    var container = pageHelper.getCurrent().container;
+    container.addEventListener('transitionend', function tr_end(e) {
+      container.removeEventListener('transitionend', tr_end);
+      delete document.body.dataset.transitioning;
       if (callback) {
         callback();
       }
-      return;
-    }
+    });
 
-    var currentPage = pages.current;
-
-    if (currentPage > 0) {
-      pageHelper.getPrevious().moveToBegin();
-    }
-
-    if (currentPage < pages.total - 1) {
-      pageHelper.getNext().moveToEnd();
-    }
-
-    pageHelper.getCurrent().moveToCenter(callback);
-  }
-
-  /*
-   * Page Navigation utils.
-   */
-  function goToPage(index, callback) {
-    var currentPage = pages.current;
-
-    if (currentPage === index) {
-      callback();
-      return;
-    }
-
-    if (currentPage < index) {
-      pageHelper.getCurrent().moveToBegin();
-    } else {
-      pageHelper.getCurrent().moveToEnd();
-    }
-
-    pages.current = index;
-    pageHelper.getCurrent().moveToCenter(callback);
-
+    pan(0, .2);
     updatePaginationBar();
   }
 
   function goToNextPage(callback) {
-    var currentPage = pageHelper.getCurrent();
-    currentPage.moveToBegin();
-
-    var nextPage = pageHelper.getNext();
-    nextPage.moveToCenter(callback);
-
-    pages.current++;
-    updatePaginationBar();
+    goToPage(pages.current + 1, callback);
   }
 
   function goToPreviousPage(callback) {
-    var currentPage = pageHelper.getCurrent();
-    currentPage.moveToEnd();
-
-    var previousPage = pageHelper.getPrevious();
-    previousPage.moveToCenter(callback);
-
-    pages.current--;
-    updatePaginationBar();
+    goToPage(pages.current - 1, callback);
   }
 
   /*
@@ -243,6 +194,9 @@ const GridManager = (function() {
    * @param {int} horizontal movement from start and current position
    */
   function isRequestToLandingPage(deltaX) {
+    // XXX
+    return false;
+
     return pages.current === 0 && deltaX >= thresholdForTapping &&
            document.body.dataset.mode === 'normal';
   }
@@ -451,6 +405,7 @@ const GridManager = (function() {
 
       page.render(apps, pageElement);
 
+/*
       if (!appsFromMarket) {
         if (index === 0) {
           page.moveToCenter();
@@ -458,6 +413,7 @@ const GridManager = (function() {
           page.moveToEnd();
         }
       }
+*/
 
       pages.list.push(page);
       pages.total = index + 1;

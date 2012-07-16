@@ -1,6 +1,8 @@
 
 'use strict';
 
+var innerWidth = 320;
+
 /*
  * Icon constructor
  *
@@ -184,7 +186,8 @@ Icon.prototype = {
 /*
  * Page constructor
  */
-var Page = function() {
+var Page = function(index) {
+  this.index = index;
   this.icons = {};
 };
 
@@ -219,67 +222,16 @@ Page.prototype = {
   },
 
   /*
-   * Sets the duration of the translations
-   *
-   * @param{Object} style object for a DOM element
-   *
-   * @param{int} the duration in milliseconds
-   */
-  setTransitionDuration: function pg_setTransitionDuration(style, duration) {
-    style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
-  },
-
-  /*
-   * Duration of the transition defined in seconds
-   */
-  transitionDuration: 0.2,
-
-  /*
-   * Moves the page to the end of the screen
-   */
-  moveToEnd: function pg_moveToEnd() {
-    var style = this.container.style;
-    style.MozTransform = GridManager.dirCtrl.translateNext;
-    this.setTransitionDuration(style, this.transitionDuration);
-  },
-
-  /*
-   * Moves the page to the beginning of the screen
-   */
-  moveToBegin: function pg_moveToBegin() {
-    var style = this.container.style;
-    style.MozTransform = GridManager.dirCtrl.translatePrev;
-    this.setTransitionDuration(style, this.transitionDuration);
-  },
-
-  /*
-   * Moves the page to the center of the screen
-   */
-  moveToCenter: function pg_moveToCenter(callback) {
-    var container = this.container;
-
-    var style = container.style;
-    this.setTransitionDuration(style, this.transitionDuration);
-
-    style.MozTransform = 'translateX(0)';
-
-    if (callback) {
-      container.addEventListener('transitionend', function tr_end(e) {
-        container.removeEventListener('transitionend', tr_end);
-        callback();
-      });
-    }
-  },
-
-  /*
    * Applies a translation to the page
    *
    * @param{String} the app origin
    */
-  moveTo: function pg_moveTo(deltaX) {
+  moveBy: function pg_moveBy(deltaX, duration) {
     var style = this.container.style;
-    style.MozTransform = 'translateX(-moz-calc(' + deltaX + 'px))';
-    this.setTransitionDuration(style, 0);
+    style.MozTransform = 'translateX(-moz-calc(' +
+                         (this.index * innerWidth) +
+                         'px + ' + deltaX + 'px))';
+    style.MozTransition = duration ? ('-moz-transform ' + duration + 's ease') : '';
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
