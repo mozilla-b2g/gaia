@@ -5,7 +5,7 @@
 
 var MessageManager = {
   init: function mm_init() {
-    this.openPendingMsgDB();
+    PendingMsgManager.init();
     ThreadUI.init();
     ThreadListUI.init();
     this.getMessages(ThreadListUI.renderThreads);
@@ -89,13 +89,13 @@ var MessageManager = {
         cursor.continue();
       } else {
         //TODO: Render the correct message data when pendingDB is ready.
-        if (!self.pendingDBReady) {
+        if (!PendingMsgManager.dbReady) {
           callback(messages);
           return;
         }
         var filterNum = filter ? filter.numbers[0] : null;
         //TODO: Refine the pending message append with non-blocking method.
-        self.getPendingMsgDB(filterNum, function msgCallback(pendingMsgs) {
+        PendingMsgManager.getMsgDB(filterNum, function msgCb(pendingMsgs) {
           if (!pendingMsgs) {
             return;
           }
@@ -174,96 +174,6 @@ var MessageManager = {
       }.bind(this));
     } else {
       callback();
-    }
-  },
-
-  // Sending failed message management: Add a database for the pending message
-  // which didn't send successfully.
-  pendingDB: null,
-  pendingDBReady: false,
-  pendingDBName: 'Pending_DB',
-  pendingDBVersion: 1,
-  pendingDBError: function mm_pendingDBError(errorMsg) {
-    console.log('Pending Message Database Error : ' + errorMsg);
-  },
-
-  openPendingMsgDB: function mm_openPendingMsgDB() {
-    try {
-      var indexedDB = window.indexedDB || window.webkitIndexedDB ||
-                      window.mozIndexedDB || window.msIndexedDB;
-    } catch (e) {
-      this.pendingDBError(e);
-      return;
-    }
-
-    if (!indexedDB) {
-      this.pendingDBError('Indexed DB is not available!!!');
-      return;
-    }
-
-    try {
-      var msgManager = this;
-      var request = indexedDB.open(this.pendingDBName, this.pendingDBVersion);
-      request.onsuccess = function(event) {
-        msgManager.pendingDB = event.target.result;
-        msgManager.pendingDBReady = true;
-      };
-
-      request.onerror = function(event) {
-        msgManager.pendingDBError('Database error: ' + event.target.errorCode);
-      };
-
-      request.onupgradeneeded = function(event) {
-        var db = event.target.result;
-        var objStore = db.createObjectStore('msgs', { keyPath: 'timestamp' });
-        objStore.createIndex('receiver', 'receiver');
-      };
-    } catch (ex) {
-      msgManager.pendingDBError(ex.message);
-    }
-  },
-
-  getPendingMsgDB: function mm_getPendingMsgDB(num, callback) {
-    var store = this.pendingDB.transaction('msgs').objectStore('msgs');
-    store = store.index('receiver'); // receiver number.
-    var boundKeyRange = num ? IDBKeyRange.only(num) : null;
-    var cursorRequest = store.openCursor(boundKeyRange, 'next');
-    var msg = [];
-    cursorRequest.onsuccess = function onsuccess() {
-      var cursor = cursorRequest.result;
-      if (!cursor) {
-        callback(msg);
-        return;
-      }
-      msg.push(cursor.value);
-      cursor.continue();
-    }
-    cursorRequest.onerror = function onerror() {
-      callback(null);
-    }
-  },
-
-  saveToPendingMsgDB: function mm_saveToPendingMsgDB(msg, callback) {
-    var transaction = this.pendingDB.transaction('msgs', 'readwrite');
-    var store = transaction.objectStore('msgs');
-    var addRequest = store.add(msg);
-    addRequest.onsuccess = function onsuccess() {
-      callback(addRequest.result);
-    }
-    addRequest.onerror = function onerror() {
-      callback(null);
-    }
-  },
-
-  deleteFromPendingMsgDB: function mm_deleteFromPendingMsgDB(msg, callback) {
-    var transaction = this.pendingDB.transaction('msgs', 'readwrite');
-    var store = transaction.objectStore('msgs');
-    var deleteRequest = store.delete(msg.timestamp);
-    deleteRequest.onsuccess = function onsuccess() {
-      callback(deleteRequest);
-    }
-    deleteRequest.onerror = function onerror() {
-      callback(null);
     }
   }
 };
@@ -566,10 +476,11 @@ var ThreadUI = {
 
       var self = this;
       // Save the message into pendind DB before send.
-      MessageManager.saveToPendingMsgDB(message, function onsave(msg) {
+      PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
         if (!msg) {
           // TODO: We need to handle the pending message save failed.
           console.log('Message app - pending message save failed!');
+          PendingMsgManager.saveToMsgDB(message, this);
         }
       });
 
@@ -579,7 +490,7 @@ var ThreadUI = {
           var result = confirm(resendConfirmStr);
           if (result) {
             // Remove the message from pending message DB before resend.
-            MessageManager.deleteFromPendingMsgDB(message, function save(msg) {
+            PendingMsgManager.deleteFromMsgDB(message, function save(msg) {
               if (!msg) {
                 //TODO: Handle message delete failed in pending DB.
                 return;
@@ -593,7 +504,7 @@ var ThreadUI = {
         } else {
           // Remove the message from pending message DB since it could be sent
           // successfully.
-          MessageManager.deleteFromPendingMsgDB(message, function onsave(msg) {
+          PendingMsgManager.deleteFromMsgDB(message, function onsave(msg) {
             if (!msg) {
               //TODO: Handle message delete failed in pending DB.
             }
