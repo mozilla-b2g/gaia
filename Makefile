@@ -22,13 +22,19 @@
 
 GAIA_DOMAIN?=gaiamobile.org
 
-HOMESCREEN?=http://system.$(GAIA_DOMAIN)
+DEBUG?=0
 
 LOCAL_DOMAINS?=1
 
 ADB?=adb
 
-DEBUG?=0
+ifeq ($(DEBUG),1)
+SCHEME=http://
+else
+SCHEME=app://
+endif
+
+HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 REPORTER=Spec
 
@@ -119,7 +125,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 profile: preferences test-agent-config offline extensions
-	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
+	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -136,16 +142,15 @@ webapp-manifests:
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 			n=$$(basename $$d); \
-			mkdir -p profile/webapps/$$n; \
-			cp $$d/manifest.webapp profile/webapps/$$n/manifest.webapp  ;\
-			cp $$d/manifest.webapp profile/webapps/$$n/manifest.json  ;\
+			mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
+			cp $$d/manifest.webapp profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp  ;\
 			(\
-			echo \"$$n\": { ;\
-			echo \"origin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"installOrigin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\": { ;\
+			echo \"origin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"installOrigin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
+			echo \"manifestURL\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
 			echo \"localId\": $$id ;\
 			echo },) >> profile/webapps/webapps.json;\
 			: $$((id++)); \
@@ -175,17 +180,29 @@ webapp-manifests:
 	@cat profile/webapps/webapps.json
 	@echo "Done"
 
-
-# Generate profile/OfflineCache/
-offline: install-xulrunner update-offline-manifests webapp-manifests
+# Generate profile/webapps/APP/application.zip
+webapp-zip:
 ifneq ($(DEBUG),1)
-	@echo "Building offline cache"
-	@rm -rf profile/OfflineCache
-	@mkdir -p profile/OfflineCache
-	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/offline-cache.js
+	@echo "Packaged webapps"
+	@mkdir -p profile/webapps
+	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	do \
+	  if [ -f $$d/manifest.webapp ]; \
+		then \
+			n=$$(basename $$d); \
+			mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
+			cdir=`pwd`; \
+			cd $$d; \
+			zip -r application.zip *; \
+			cd $$cdir; \
+			mv $$d/application.zip profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/application.zip; \
+		fi \
+	done;
 	@echo "Done"
 endif
+
+# Create webapps
+offline: webapp-manifests webapp-zip
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
@@ -257,7 +274,7 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
 	if [ -f custom-prefs.js ]; \
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
@@ -301,7 +318,7 @@ tests: webapp-manifests offline
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
-	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
+	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/user.js"
 
 .PHONY: common-install
 common-install:

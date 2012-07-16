@@ -166,7 +166,7 @@ const Homescreen = (function() {
       // First time the database is empty -> Dock by default
       var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
       appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
-        return 'http://' + name + '.' + domain;
+        return 'app://' + name + '.' + domain;
       });
       HomeState.saveShortcuts(appsInDockByDef, start, start);
     } else {

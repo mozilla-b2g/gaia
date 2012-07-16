@@ -65,41 +65,6 @@
 })(this);
 
 
-// Register a handler to automatically update apps when the app cache
-// changes.
-(function(window) {
-  if (!window.applicationCache)
-    return;
-
-  window.applicationCache.addEventListener('updateready', function(evt) {
-    if (!navigator.mozNotification)
-      return;
-
-    // Figure out what our name is and where we come from
-    navigator.mozApps.getSelf().onsuccess = function(e) {
-      var app = e.target.result;
-      var name = app.manifest.name;
-      var origin = app.origin;
-
-      // FIXME Localize this message:
-      var notification = navigator.mozNotification.createNotification(
-          'Update Available',
-          'A new version of ' + name + ' is available');
-
-      notification.onclick = function(event) {
-
-        // If we're still running when the user taps on the notification
-        // then ask if they want to reload now
-        // FIXME: uncomment and localize when confirm() dialogs work
-        /* if (confirm('Update ' + name + ' from ' + origin + ' now?')) */
-        window.location.reload();
-      };
-
-      notification.show();
-    }
-  });
-})(this);
-
 // Emulate device buttons. This is groteskly unsafe and should be removed
 // soon.
 (function(window) {
