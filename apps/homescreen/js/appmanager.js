@@ -13,7 +13,7 @@ var ApplicationMock = function(app, launchPath, alternativeOrigin) {
 
   var entryPoint = app.manifest.entry_points[launchPath];
   this.manifest.name = entryPoint.name;
-  this.manifest.launch_path = entryPoint.path;
+  this.manifest.launch_path = entryPoint.launch_path;
   this.manifest.icons = entryPoint.icons;
   this.manifest.origin = alternativeOrigin;
 
@@ -38,7 +38,7 @@ ApplicationMock.prototype = {
 var Applications = (function() {
   var installedApps = {};
 
-  var callbacks = [];
+  var callbacks = [], ready = false;
 
   var installer = navigator.mozApps.mgmt;
   installer.getAll().onsuccess = function onSuccess(e) {
@@ -67,6 +67,8 @@ var Applications = (function() {
         installedApps[alternativeOrigin] = newApp;
       }
     });
+
+    ready = true;
 
     callbacks.forEach(function(callback) {
       if (callback.type == 'ready') {
@@ -167,7 +169,8 @@ var Applications = (function() {
   };
 
   // Core applications should be flagged at some point. Not sure how?
-  var host = document.location.host;
+  var protocol = window.location.protocol;
+  var host = window.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
 
   var coreApplications = [
@@ -177,9 +180,10 @@ var Applications = (function() {
   ];
 
   coreApplications = coreApplications.map(function mapCoreApp(name) {
-    return 'http://' + name + '.' + domain;
+    return protocol + '//' + name + '.' + domain;
   });
 
+  // XXX which marketplace app we are going to flag as a core app?
   coreApplications.push('https://marketplace-dev.allizom.org');
 
   /*
@@ -270,6 +274,10 @@ var Applications = (function() {
     app.launch(params);
   }
 
+  function isReady() {
+    return ready;
+  }
+
   return {
     launch: launch,
     isCore: isCore,
@@ -280,6 +288,7 @@ var Applications = (function() {
     getName: getName,
     getIcon: getIcon,
     getManifest: getManifest,
-    getInstalledApplications: getInstalledApplications
+    getInstalledApplications: getInstalledApplications,
+    isReady: isReady
   };
 })();

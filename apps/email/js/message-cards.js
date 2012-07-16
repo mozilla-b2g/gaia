@@ -483,12 +483,12 @@ console.log("adding", addedItems.length, "messages @", index);
     // collapsing does not make :last-child work right).
     contents.removeChild(
       contents.getElementsByClassName(
-        header.isStarred ? 'msg-edit-menu-star'
-                         : 'msg-edit-menu-unstar')[0]);
+        header.isStarred ? 'msg-edit-menu-star' :
+                           'msg-edit-menu-unstar')[0]);
     contents.removeChild(
       contents.getElementsByClassName(
-        header.isRead ? 'msg-edit-menu-mark-read'
-                      : 'msg-edit-menu-mark-unread')[0]);
+        header.isRead ? 'msg-edit-menu-mark-read' :
+                        'msg-edit-menu-mark-unread')[0]);
 
     return contents;
   },
@@ -507,17 +507,13 @@ console.log("adding", addedItems.length, "messages @", index);
       this.messagesSlice.die();
       this.messagesSlice = null;
     }
-  },
+  }
 };
-Cards.defineCard({
-  name: 'message-list',
-  modes: {
-    default: {
-      tray: false,
-    },
-  },
-  constructor: MessageListCard,
-});
+Cards.defineCardWithDefaultMode(
+    'message-list',
+    { tray: false },
+    MessageListCard
+);
 
 const CONTENT_TYPES_TO_CLASS_NAMES = [
     null,
@@ -528,7 +524,7 @@ const CONTENT_TYPES_TO_CLASS_NAMES = [
     'msg-body-disclaimer',
     'msg-body-list',
     'msg-body-product',
-    'msg-body-ads',
+    'msg-body-ads'
   ];
 const CONTENT_QUOTE_CLASS_NAMES = [
     'msg-body-q1',
@@ -539,7 +535,7 @@ const CONTENT_QUOTE_CLASS_NAMES = [
     'msg-body-q6',
     'msg-body-q7',
     'msg-body-q8',
-    'msg-body-q9',
+    'msg-body-q9'
   ];
 const MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
 
@@ -650,9 +646,9 @@ MessageReaderCard.prototype = {
     for (var i = 0; i < rep.length; i += 2) {
       var node = document.createElement('div'), cname;
 
-      var etype = rep[i]&0xf, rtype = null;
+      var etype = rep[i] & 0xf, rtype = null;
       if (etype === 0x4) {
-        var qdepth = (((rep[i] >> 8)&0xff) + 1);
+        var qdepth = (((rep[i] >> 8) & 0xff) + 1);
         if (qdepth > 8)
           cname = MAX_QUOTE_CLASS_NAME;
         else
@@ -663,7 +659,7 @@ MessageReaderCard.prototype = {
       }
       if (cname)
         node.setAttribute('class', cname);
-      node.textContent = rep[i+1];
+      node.textContent = rep[i + 1];
       bodyNode.appendChild(node);
     }
 
@@ -690,15 +686,11 @@ MessageReaderCard.prototype = {
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'message-reader',
-  modes: {
-    default: {
-      tray: false,
-    },
-  },
-  constructor: MessageReaderCard,
-});
+Cards.defineCardWithDefaultMode(
+    'message-reader',
+    { tray: false },
+    MessageReaderCard
+);
 

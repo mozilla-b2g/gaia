@@ -3,23 +3,6 @@
    box-sizing: border-box;
 }
 
-@font-face {
-  font-family: 'Open Sans Light';
-  src: local('Open Sans Light'), url('fonts/opensans-light-webfont.woff') format('woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  src: local('Open Sans'), url('fonts/opensans-regular-webfont.woff') format('woff');
-}
-@font-face {
-  font-family: 'Open Sans Semibold';
-  src: local('Open Sans Semibold'), url('fonts/opensans-semibold-webfont.woff') format('woff');
-}
-@font-face {
-  font-family: 'Open Sans Bold';
-  src: local('Open Sans Bold'), url('fonts/opensans-bold-webfont.woff') format('woff');
-}
-
 html, body {
   margin: 0;
   padding: 0;
@@ -45,6 +28,13 @@ section {
   padding: 0px;
   margin: 0px;
   width: 100%;
+}
+
+button {
+  border: none;
+  background: transparent;
+  padding: 0px;
+  margin: 0px;
 }
 
 ol,
