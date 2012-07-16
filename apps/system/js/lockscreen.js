@@ -93,7 +93,7 @@ var LockScreen = {
     this.passcodePad.addEventListener('click', this);
 
     /* switching panels */
-    window.addEventListener('home', this, true);
+    window.addEventListener('home', this);
 
     var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
@@ -244,8 +244,10 @@ var LockScreen = {
         break;
 
       case 'home':
-        if (this.locked)
+        if (this.locked) {
           this.switchPanel();
+          evt.stopImmediatePropagation();
+        }
         break;
 
       case 'load':

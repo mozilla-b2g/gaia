@@ -99,9 +99,6 @@
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
     <script defer src="js/cards_view/cards_view.js"></script>
 
-    <!-- Windows -->
-    <script defer src="js/window_manager.js"></script>
-
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
 
@@ -115,6 +112,11 @@
     <!-- Trusted dialog -->
     <link rel="stylesheet" type="text/css" href="style/trusted_dialog/trusted_dialog.css">
     <script defer src="js/trusted_dialog.js"></script>
+
+    <!-- Windows -->
+    <!-- Any module that wants to intercept the Home button and prevent the -->
+    <!-- homescreen from being displayed must come before this script. -->
+    <script defer src="js/window_manager.js"></script>
   </head>
 
   <body onload="startup()">

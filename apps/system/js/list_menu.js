@@ -22,7 +22,7 @@ var ListMenu = {
   init: function lm_init() {
     window.addEventListener('click', this, true);
     window.addEventListener('screenchange', this, true);
-    window.addEventListener('home', this, true);
+    window.addEventListener('home', this);
   },
 
   // Pass an array of list items and handler for clicking on the items
@@ -130,7 +130,7 @@ var ListMenu = {
           this.hide();
           if (this.onreturn)
             this.onreturn(null);
-          evt.stopPropagation();
+          evt.stopImmediatePropagation();
         }
         break;
     }

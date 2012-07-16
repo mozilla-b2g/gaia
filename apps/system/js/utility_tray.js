@@ -26,7 +26,7 @@ var UtilityTray = {
     }, this);
 
     window.addEventListener('screenchange', this);
-    window.addEventListener('home', this, true);
+    window.addEventListener('home', this);
 
     this.overlay.addEventListener('transitionend', this);
   },
@@ -34,8 +34,10 @@ var UtilityTray = {
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
       case 'home':
-        if (this.shown)
+        if (this.shown) {
           this.hide();
+          evt.stopImmediatePropagation();
+        }
         break;
 
       case 'screenchange':

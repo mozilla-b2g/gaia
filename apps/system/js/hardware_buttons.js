@@ -39,6 +39,14 @@
 //   home+sleep  home and sleep pressed at same time (used for screenshots)
 //   home+volume home and either volume key at the same time (view source)
 //
+// Because these events are fired at the window object, they cannot be
+// captured.  Many modules listen for the home event. Those that want
+// to respond to it and prevent others from responding should call
+// stopImmediatePropagation(). Overlays that want to prevent the window
+// manager from showing the homescreen on the home event should call that
+// method.  Note, however, that this only works for scripts that run and 
+// register their event handlers before window_manager.js does.
+// 
 'use strict';
 
 (function() {

@@ -53,8 +53,8 @@ var ScreenManager = {
   _dimNotice: 10 * 1000,
 
   init: function scm_init() {
-    window.addEventListener('home', this);
     window.addEventListener('sleep', this);
+    window.addEventListener('wake', this);
     window.addEventListener('devicelight', this);
     window.addEventListener('mozfullscreenchange', this);
 
