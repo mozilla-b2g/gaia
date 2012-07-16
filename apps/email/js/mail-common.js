@@ -105,8 +105,7 @@ const UI_WIDTH = 320, UI_HEIGHT = 480;
  * implementation created jrburke.
  */
 var Cards = {
-  /**
-   * @dictof[
+  /* @dictof[
    *   @key[name String]
    *   @value[@dict[
    *     @key[name String]{
@@ -131,8 +130,7 @@ var Cards = {
    */
   _cardDefs: {},
 
-  /**
-   * @listof[@typedef[CardInstance @dict[
+  /* @listof[@typedef[CardInstance @dict[
    *   @key[domNode]{
    *   }
    *   @key[cardDef]
@@ -265,8 +263,10 @@ var Cards = {
   },
 
   _adjustCardSizes: function() {
-    var cardWidth = Math.min(UI_WIDTH, window.innerWidth), //this._containerNode.offsetWidth,
-        cardHeight = Math.min(UI_HEIGHT, window.innerHeight), //this._containerNode.offsetHeight,
+    var cardWidth = Math.min(UI_WIDTH, window.innerWidth),
+                    //this._containerNode.offsetWidth,
+        cardHeight = Math.min(UI_HEIGHT, window.innerHeight),
+                     //this._containerNode.offsetHeight,
         totalWidth = 0;
 
     for (var i = 0; i < this._cardStack.length; i++) {
@@ -300,10 +300,20 @@ var Cards = {
     }
   },
 
+  defineCardWithDefaultMode: function(name, defaultMode, constructor) {
+    var cardDef = {
+      name: name,
+      modes: {},
+      constructor: constructor
+    };
+    cardDef.modes['default'] = defaultMode;
+    this.defineCard(cardDef);
+  },
+
   /**
    * Push a card onto the card-stack.
-   *
-   * @args[
+   */
+  /* @args[
    *   @param[type]
    *   @param[mode String]{
    *   }
@@ -350,7 +360,7 @@ var Cards = {
       domNode: domNode,
       cardDef: cardDef,
       modeDef: modeDef,
-      cardImpl: cardImpl,
+      cardImpl: cardImpl
     };
     var cardIndex, insertBuddy;
     if (!placement) {
@@ -472,12 +482,12 @@ var Cards = {
    *
    * https://wiki.mozilla.org/Gaia/Design/Patterns#Dialogues:_Popups
    */
-  popupMenuForNode: function(menuDomTree, domNode, legalClickTargets, callback) {
+  popupMenuForNode: function(menuTree, domNode, legalClickTargets, callback) {
     var self = this,
         bounds = domNode.getBoundingClientRect();
 
     var popupInfo = this._popupActive = {
-      popupNode: menuDomTree,
+      popupNode: menuTree,
       maskNodeCleanup: this._createMaskForNode(domNode, bounds),
       close: function(result) {
         self._popupActive = false;
@@ -531,8 +541,8 @@ var Cards = {
   /**
    * Remove the card identified by its DOM node and all the cards to its right.
    * Pass null to remove all of the cards!
-   *
-   * @args[
+   */
+  /* @args[
    *   @param[cardDomNode]{
    *     The DOM node that is the first card to remove; all of the cards to its
    *     right will also be removed.  If null is passed it is understood you
@@ -709,7 +719,7 @@ var Cards = {
     if (this._cardStack.length)
       throw new Error('There are ' + this._cardStack.length + ' cards but' +
                       ' there should be ZERO');
-  },
+  }
 };
 
 /**
@@ -737,7 +747,7 @@ var Toaster = {
    * Tell toaster listeners about a mutation we just made.
    */
   logMutation: function(undoableOp) {
-  },
+  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
