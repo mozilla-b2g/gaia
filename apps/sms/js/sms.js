@@ -191,14 +191,9 @@ var ThreadListUI = {
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
     if (contact.length <= 0)
       return;
-    console.log("se actualiza el enlace " + number +
-                "\ncon los datos " + contact);
     var root = document.getElementById(number);
-    if (root) console.log("Found root element");
-
     var element = root.getElementsByClassName('name')[0];
     if (element) {
-      console.log("Encontrado elemento");
       element.innerHTML = contact[0].name;
     }
   },
@@ -385,11 +380,11 @@ var ThreadUI = {
     headerHTML.innerHTML = structureHTML;
     ThreadUI.view.appendChild(headerHTML);
   },
-  updateHeaderData: function thui_updateHeaderData(){
+  updateHeaderData: function thui_updateHeaderData() {
     var number = MessageManager.getNumFromHash();
     ThreadUI.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
-      if (contact && contact.length > 0){
+      if (contact && contact.length > 0) {
         ThreadUI.title.innerHTML = contact[0].name;
       }
     });
@@ -607,3 +602,4 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 
   activity.postResult({ status: 'accepted' });
 });
+
