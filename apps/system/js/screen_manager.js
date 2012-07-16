@@ -59,7 +59,6 @@ var ScreenManager = {
 
     window.addEventListener('devicelight', this);
     window.addEventListener('mozfullscreenchange', this);
-    window.addEventListener('mozvisibilitychange', this, true);
 
     this.screen = document.getElementById('screen');
     this.screen.classList.remove('screenoff');
@@ -150,12 +149,6 @@ var ScreenManager = {
           this.screen.classList.add('fullscreen');
         } else {
           this.screen.classList.remove('fullscreen');
-        }
-        break;
-
-      case 'mozvisibilitychange':
-        if (document.mozHidden && this.screenEnabled) {
-          this.turnScreenOff(true);
         }
         break;
 
