@@ -61,12 +61,8 @@ var Recents = {
       return;
     }
     var action = event.target.dataset.action;
-    var noMissedCallsSelector = '.log-item[data-type=dialing]:not(.collapsed)' +
-      ':not([data-missed-calls]), ' +
-      '.log-item[data-type=dialing-refused]:not(.collapsed)' +
-      ':not([data-missed-calls]), ' +
-      '.log-item[data-type=dialing-connected]:not(.collapsed)' +
-      ':not([data-missed-calls]), ' +
+    var noMissedCallsSelector = '.log-item[data-type^=dialing]' +
+      ':not(.collapsed):not([data-missed-calls]), ' +
       '.log-item[data-type=incoming-connected]:not(.collapsed):not([data-missed-calls])';
     var noMissedCallsItems = document.querySelectorAll(noMissedCallsSelector);
     var noMissedCallsLength = noMissedCallsItems.length;
@@ -77,6 +73,9 @@ var Recents = {
     var missedCallsItems = document.querySelectorAll(missedCallsSelector);
     var missedCallsLength = missedCallsItems.length;
     var missedCallItem;
+    var primaryInfo;
+    var secondaryInfo;
+    var callTypeIcon;
     if (action == 'all') {
       for (var i = 0; i < noMissedCallsLength; i++) {
           noMissedCallsItems[i].classList.remove('hide');
@@ -84,63 +83,56 @@ var Recents = {
       for (var i = 0; i < missedCallsLength; i++) {
         missedCallItem = missedCallsItems[i];
         if (missedCallItem.dataset.missedCalls) {
-          missedCallItem.querySelector('.primary-info').textContent =
+          primaryInfo = missedCallItem.querySelector('.primary-info');
+          secondaryInfo = missedCallItem.querySelector('.secondary-info');
+          primaryInfo.textContent =
             missedCallItem.dataset.num + ' (' +
               missedCallItem.dataset.totalCalls + ')';
-          missedCallItem.querySelector('.secondary-info').textContent =
-            missedCallItem.dataset.lastCallTime;
+          secondaryInfo.textContent = missedCallItem.dataset.lastCallTime;
           var iconClass;
           var callType = missedCallItem.dataset.type;
           if (callType.indexOf('dialing') != -1) {
             iconClass = 'icon-outgoing';
-            missedCallItem.querySelector('.secondary-info').
-              classList.remove('missed-call-font');
+            secondaryInfo.classList.remove('missed-call-font');
           } else if (callType.indexOf('incoming') != -1) {
             if (callType.indexOf('connected') == -1) {
               iconClass = 'icon-missed';
-              missedCallItem.querySelector('.secondary-info').
-                classList.add('missed-call-font');
+              secondaryInfo.classList.add('missed-call-font');
             } else {
               iconClass = 'icon-incoming';
-              missedCallItem.querySelector('.secondary-info').
-                classList.remove('missed-call-font');
+              secondaryInfo.classList.remove('missed-call-font');
             }
           }
-          missedCallItem.querySelector('.call-type-icon').
-            classList.remove('icon-outgoing');
-          missedCallItem.querySelector('.call-type-icon').
-            classList.remove('icon-incoming');
-          missedCallItem.querySelector('.call-type-icon').
-            classList.remove('icon-missed');
-          missedCallItem.querySelector('.call-type-icon').
-            classList.add(iconClass);
+          callTypeIcon = missedCallItem.querySelector('.call-type-icon');
+          callTypeIcon.classList.remove('icon-outgoing');
+          callTypeIcon.classList.remove('icon-incoming');
+          callTypeIcon.classList.remove('icon-missed');
+          callTypeIcon.classList.add(iconClass);
         }
       }
     } else {
-      for (var i = 0; i < noMissedCallsLength; i++) {
+      var i;
+      for (i = 0; i < noMissedCallsLength; i++) {
         noMissedCallsItems[i].classList.add('hide');
       }
-      for (var i = 0; i < missedCallsLength; i++) {
+      for (i = 0; i < missedCallsLength; i++) {
         missedCallItem = missedCallsItems[i];
         if (missedCallItem.dataset.missedCalls) {
+          primaryInfo = missedCallItem.querySelector('.primary-info');
+          secondaryInfo = missedCallItem.querySelector('.secondary-info');
           if (missedCallItem.dataset.missedCalls > 1) {
-            missedCallItem.querySelector('.primary-info').textContent =
+            primaryInfo.textContent =
               missedCallItem.dataset.num + ' (' +
                 missedCallItem.dataset.missedCalls + ')';
           } else {
-            missedCallItem.querySelector('.primary-info').textContent =
-              missedCallItem.dataset.num;
+            primaryInfo.textContent = missedCallItem.dataset.num;
           }
-          missedCallItem.querySelector('.secondary-info').textContent =
-            missedCallItem.dataset.lastMissedCallTime;
-          missedCallItem.querySelector('.secondary-info').
-            classList.add('missed-call-font');
-          missedCallItem.querySelector('.call-type-icon').
-            classList.remove('icon-outgoing');
-          missedCallItem.querySelector('.call-type-icon').
-            classList.remove('icon-incoming');
-          missedCallItem.querySelector('.call-type-icon').
-            classList.add('icon-missed');
+          secondaryInfo.textContent = missedCallItem.dataset.lastMissedCallTime;
+          secondaryInfo.classList.add('missed-call-font');
+          callTypeIcon = missedCallItem.querySelector('.call-type-icon');
+          callTypeIcon.classList.remove('icon-outgoing');
+          callTypeIcon.classList.remove('icon-incoming');
+          callTypeIcon.classList.add('icon-missed');
         }
       }
     }
