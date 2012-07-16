@@ -58,7 +58,7 @@ var settings = [
  new Setting("ril.data.user", ""),
  new Setting("ril.radio.disabled", false),
  new Setting("screen.automatic-brightness", true),
- new Setting("screen.brightness", 0.5),
+ new Setting("screen.brightness", 1),
  new Setting("screen.timeout", 60),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
