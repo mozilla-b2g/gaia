@@ -530,11 +530,16 @@ var Contacts = (function() {
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.pick(number);
     } else {
-      var sanitizedNumber = number.replace(/-/g, '');
-
-      var telephony = window.navigator.mozTelephony;
-      if (telephony) {
-        telephony.dial(sanitizedNumber);
+      try {
+        var activity = new MozActivity({
+          name: 'dial',
+          data: {
+            type: 'webtelephony/number',
+            number: number
+          }
+        });
+      } catch (e) {
+        console.log('WebActivities unavailable? : ' + e);
       }
     }
   }
