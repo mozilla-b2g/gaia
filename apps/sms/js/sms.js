@@ -385,9 +385,19 @@ var ThreadUI = {
     headerHTML.innerHTML = structureHTML;
     ThreadUI.view.appendChild(headerHTML);
   },
+  updateHeaderData: function thui_updateHeaderData(){
+    var number = MessageManager.getNumFromHash();
+    ThreadUI.title.innerHTML = number;
+    ContactDataManager.getContactData(number, function gotContact(contact) {
+      if (contact && contact.length > 0){
+        ThreadUI.title.innerHTML = contact[0].name;
+      }
+    });
+  },
   renderMessages: function thui_renderMessages(messages) {
     // Update Header
-    ThreadUI.title.innerHTML = MessageManager.getNumFromHash();
+    ThreadUI.updateHeaderData();
+
     // Sorting messages reverse
     messages.sort(function(a, b) {
         return a.timestamp - b.timestamp;
