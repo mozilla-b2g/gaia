@@ -16,7 +16,7 @@ const GridManager = (function() {
     right: 0
   };
 
-  var startEvent, currentEvent, isTransitioning = false;
+  var startEvent, currentEvent, isPanning = false;
 
   function handleEvent(evt) {
     switch (evt.type) {
@@ -24,7 +24,7 @@ const GridManager = (function() {
         evt.stopPropagation();
         document.body.dataset.transitioning = 'true';
 
-        startEvent = currentEvent = getCoordinates(evt);
+        startEvent = currentEvent = cloneEvent(evt);
         onTouchStart(currentEvent.x - startEvent.x);
         break;
 
@@ -34,12 +34,12 @@ const GridManager = (function() {
         // Starts dragging only when tapping does not make sense
         // anymore. The drag will then start from this point to avoid
         // a jump effect.
-        currentEvent = getCoordinates(evt);
+        currentEvent = cloneEvent(evt);
         var tap = Math.abs(currentEvent.x - startEvent.x) < thresholdForTapping;
-        if (!isTransitioning && tap) {
+        if (!isPanning && tap) {
           return;
-        } else if (!isTransitioning) {
-          isTransitioning = true;
+        } else if (!isPanning) {
+          isPanning = true;
           startEvent = currentEvent;
         }
 
@@ -48,9 +48,9 @@ const GridManager = (function() {
 
       case 'mouseup':
         evt.stopPropagation();
-        isTransitioning = false;
+        isPanning = false;
 
-        currentEvent = getCoordinates(evt);
+        currentEvent = cloneEvent(evt);
         onTouchEnd(currentEvent.x - startEvent.x, evt.target);
         break;
 
@@ -104,36 +104,22 @@ const GridManager = (function() {
     }
   }
 
-  // right-to-left compatibility
-  var dirCtrl = {};
-  function getDirCtrl() {
-    function goesLeft(x) { return (x > 0); }
-    function goesRight(x) { return (x < 0); }
-    function limitLeft(x) { return (x < limits.left); }
-    function limitRight(x) { return (x > limits.right); }
-    var rtl = (document.documentElement.dir == 'rtl');
-    return {
-      offsetPrev: rtl ? -1 : 1,
-      offsetNext: rtl ? 1 : -1,
-      limitPrev: rtl ? limitRight : limitLeft,
-      limitNext: rtl ? limitLeft : limitRight,
-      translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
-      translateNext: rtl ? 'translateX(-100%)' : 'translateX(100%)',
-      goesForward: rtl ? goesLeft : goesRight
-    };
+  function attachEvents() {
+    container.addEventListener('contextmenu', handleEvent);
+    window.addEventListener('mousemove', handleEvent);
+    window.addEventListener('mouseup', handleEvent);
   }
 
-  /*
-   * Returns the coordinates x and y given an event. The returned object
-   * is composed of two attributes named x and y
-   *
-   * @param {Object} the event object
-   */
-  function getCoordinates(evt) {
+  function releaseEvents() {
+    container.removeEventListener('contextmenu', handleEvent);
+    window.removeEventListener('mousemove', handleEvent);
+    window.removeEventListener('mouseup', handleEvent);
+  }
+
+  function cloneEvent(evt) {
     if ('touches' in evt) {
       evt = evt.touches[0];
     }
-
     return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
   }
 
@@ -173,19 +159,6 @@ const GridManager = (function() {
   function updatePaginationBar() {
     PaginationBar.update(pages.current, pageHelper.total());
   }
-
-  function attachEvents() {
-    container.addEventListener('contextmenu', handleEvent);
-    window.addEventListener('mousemove', handleEvent);
-    window.addEventListener('mouseup', handleEvent);
-  }
-
-  function releaseEvents() {
-    container.removeEventListener('contextmenu', handleEvent);
-    window.removeEventListener('mousemove', handleEvent);
-    window.removeEventListener('mouseup', handleEvent);
-  }
-
 
   /*
    * Renders the homescreen from moz applications
@@ -271,8 +244,25 @@ const GridManager = (function() {
   /*
    * UI Localization
    *
-   * Currently we only translate the app names
    */
+  var dirCtrl = {};
+  function getDirCtrl() {
+    function goesLeft(x) { return (x > 0); }
+    function goesRight(x) { return (x < 0); }
+    function limitLeft(x) { return (x < limits.left); }
+    function limitRight(x) { return (x > limits.right); }
+    var rtl = (document.documentElement.dir == 'rtl');
+    return {
+      offsetPrev: rtl ? -1 : 1,
+      offsetNext: rtl ? 1 : -1,
+      limitPrev: rtl ? limitRight : limitLeft,
+      limitNext: rtl ? limitLeft : limitRight,
+      translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
+      translateNext: rtl ? 'translateX(-100%)' : 'translateX(100%)',
+      goesForward: rtl ? goesLeft : goesRight
+    };
+  }
+
   function localize() {
     // switch RTL-sensitive methods accordingly
     dirCtrl = getDirCtrl();
@@ -282,10 +272,7 @@ const GridManager = (function() {
     });
   }
 
-  /*
-   * Checks empty pages and deletes them
-   */
-  function checkFirstPageWithGap() {
+  function getFirstPageWithEmptySpace() {
     var index = 0;
     var total = pageHelper.total();
 
@@ -301,10 +288,7 @@ const GridManager = (function() {
     return index;
   }
 
-  /*
-   * Checks empty pages and deletes them
-   */
-  function checkEmptyPages() {
+  function removeEmptyPages() {
     pages.forEach(function checkIsEmpty(page, index) {
       // ignore the search page
       if (index === 0) {
@@ -323,7 +307,7 @@ const GridManager = (function() {
    * It propagates icons in order to avoiding overflow in
    * pages with a number of apps greater that the maximum
    */
-  function checkOverflowPages() {
+  function ensurePagesOverflow() {
     var max = pageHelper.getMaxPerPage();
 
     pages.forEach(function checkIsOverflow(page, index) {
@@ -494,8 +478,8 @@ const GridManager = (function() {
     onDragStop: function gm_onDragStop() {
       delete document.body.dataset.dragging;
       delete document.body.dataset.transitioning;
-      checkOverflowPages();
-      checkEmptyPages();
+      ensurePagesOverflow();
+      removeEmptyPages();
     },
 
     /*
@@ -505,7 +489,7 @@ const GridManager = (function() {
      * {Object} moz app
      */
     install: function gm_install(app, animation) {
-      var index = checkFirstPageWithGap();
+      var index = getFirstPageWithEmptySpace();
       var origin = Applications.getOrigin(app);
       if (animation) {
         Applications.getManifest(origin).hidden = true;
@@ -548,7 +532,7 @@ const GridManager = (function() {
         index++;
       }
 
-      checkEmptyPages();
+      removeEmptyPages();
       pageHelper.saveAll();
     },
 
