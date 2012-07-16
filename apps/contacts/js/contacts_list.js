@@ -296,6 +296,7 @@ contacts.List = (function() {
       contact.classList.remove('search');
       contact.classList.remove('hide');
     }
+    return false;
   };
 
   var enterSearchMode = function searchMode() {
@@ -305,6 +306,7 @@ contacts.List = (function() {
       cleanContactsList();
       inSearchMode = true;
     }
+    return false;
   };
 
   var search = function performSearch() {
