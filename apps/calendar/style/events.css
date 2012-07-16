@@ -15,7 +15,8 @@
 }
 
 .day-events {
-  font-family: 'Open Sans Light';
+  font-family: 'Open Sans';
+  font-weight: light;
 }
 
 .day-events section > ol,

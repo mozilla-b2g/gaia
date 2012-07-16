@@ -49,10 +49,16 @@ const Homescreen = (function() {
      * @param {int} duration of the transition
      */
     pan: function vw_pan(x, duration) {
+      var width = window.innerWidth;
       var currentPage = this.currentPage;
       var total = this.total;
       for (var n = 0; n < total; n++) {
         var page = this.pages[n];
+        if (currentPage === 0) {
+          x = Math.min(x, 0);
+        } else {
+          x = Math.min(x, width);
+        }
         var calc = (n - currentPage) * 100 + '% + ' + x + 'px';
         var style = page.style;
         style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
@@ -159,8 +165,9 @@ const Homescreen = (function() {
     if (onUpgradeNeeded) {
       // First time the database is empty -> Dock by default
       var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
+      var protocol = window.location.protocol;
       appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
-        return 'http://' + name + '.' + domain;
+        return protocol + '//' + name + '.' + domain;
       });
       HomeState.saveShortcuts(appsInDockByDef, start, start);
     } else {

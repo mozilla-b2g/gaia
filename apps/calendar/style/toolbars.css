@@ -46,7 +46,8 @@ header[role="toolbar"] a:first-child {
 header[role="toolbar"] h1 {
   width: -moz-calc(100% - 60px);
   float: left;
-  font-family: 'Open Sans Light';
+  font-family: 'Open Sans';
+  font-weight: light;
   text-align: left;
   font-weight: normal;
   padding: 0 0.6rem;

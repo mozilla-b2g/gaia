@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1">
@@ -11,10 +11,22 @@
   <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
   <link rel="resource" type="application/l10n" href="locale/l10n.ini">
   <script type="text/javascript">
-    var host = document.location.host;
-    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var src = 'http://' + domain + '/webapi.js';
-    document.write('<script src="' + src + '"><\/script>');
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = protocol + '//' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
+      }
+      document.write('<script src="' + src + '"><\/script>');
+    })();
 
     // when running in B2G, send output to the console, ANSI-style
     if ('MozTCPSocket' in window) {

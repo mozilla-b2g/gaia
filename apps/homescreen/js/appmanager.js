@@ -169,7 +169,8 @@ var Applications = (function() {
   };
 
   // Core applications should be flagged at some point. Not sure how?
-  var host = document.location.host;
+  var protocol = window.location.protocol;
+  var host = window.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
 
   var coreApplications = [
@@ -179,9 +180,10 @@ var Applications = (function() {
   ];
 
   coreApplications = coreApplications.map(function mapCoreApp(name) {
-    return 'http://' + name + '.' + domain;
+    return protocol + '//' + name + '.' + domain;
   });
 
+  // XXX which marketplace app we are going to flag as a core app?
   coreApplications.push('https://marketplace-dev.allizom.org');
 
   /*
