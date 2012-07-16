@@ -23,6 +23,7 @@ const GridManager = (function() {
     switch (evt.type) {
       case 'mousedown':
         evt.stopPropagation();
+        document.body.dataset.transitioning = 'true';
 
         startEvent = currentEvent = cloneEvent(evt);
         onTouchStart(currentEvent.x - startEvent.x);
