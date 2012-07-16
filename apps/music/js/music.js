@@ -4,8 +4,11 @@
  * This is Music Application of Gaia
  */
 
+// Here we use the MediaDB.js which gallery is using
+// to index our music contents with metadata parsed.
+// So the behaviors of musicdb are the same as the MediaDB in gallery
 var musicdb = new MediaDB('music', metadataParser, {
-  indexes: ['metadata.album', 'metadata.artist'],
+  indexes: ['metadata.album', 'metadata.artist', 'metadata.title'],
   // mp3 mediaType: 'audio/mpeg'
   // ogg mediaType: 'video/ogg'
   // empty mediaType: no mp3 mediaType on B2G device
@@ -13,14 +16,11 @@ var musicdb = new MediaDB('music', metadataParser, {
   mimeTypes: ['audio/mpeg', 'video/ogg', '']
 });
 musicdb.onready = function() {
-  document.getElementById('nosongs').style.display = 'none';
-  // List files we already know about
-  musicdb.scan();    // Go look for more.
+  buildUI();  // List files we already know about
+  musicdb.scan();  // Go look for more.
 
   // Since DeviceStorage doesn't send notifications yet, we're going
   // to rescan the files every time our app becomes visible again.
-  // This means that if we switch to camera and take a photo, then when
-  // we come back to gallery we should be able to find the new photo.
   // Eventually DeviceStorage will do notifications and MediaDB will
   // report them so we don't need to do this.
   document.addEventListener('mozvisibilitychange', function visibilityChange() {
@@ -30,8 +30,40 @@ musicdb.onready = function() {
   });
 };
 musicdb.onchange = function(type, files) {
-  //rebuild the UI
+  rebuildUI();
 };
+
+function buildUI() {
+  // Enumerate existing song entries in the database
+  // List the all, and sort them in ascending order by artist.
+  var option = 'artist';
+
+  musicdb.enumerate('metadata.' + option, null, 'nextunique',
+    ListView.update.bind(ListView, option));
+}
+
+//
+// XXX
+// This is kind of a hack. Our onchange handler is dumb and just
+// tears down and rebuilds the UI on every change. But rebuilding
+// does an async enumerate, and sometimes we get two changes in
+// a row, so these flags prevent two enumerations from happening in parallel.
+// Ideally, we'd just handle the changes individually.
+//
+var buildingUI = false;
+var needsRebuild = false;
+function rebuildUI() {
+  if (buildingUI) {
+    needsRebuild = true;
+    return;
+  }
+
+  buildingUI = true;
+  ListView.clean();
+  // This is asynchronous, but will set buildingUI to false when done
+  buildUI();
+
+}
 
 // This Application has four modes, TILES, LIST, SUBLIST and PLAYER
 var MODE_TILES = 1;
@@ -164,16 +196,22 @@ var ListView = {
     this.view.addEventListener('click', this);
   },
 
-  cleanList: function lv_cleanList() {
+  clean: function lv_clean() {
     this.dataSource = [];
     this.index = 0;
     this.view.innerHTML = '';
     this.view.scrollTop = 0;
   },
 
-  updateList: function lv_updateList(result, option) {
+  update: function lv_update(option, result) {
+    if (result === null)
+      return;
+
+    if (this.dataSource.length === 0)
+      document.getElementById('nosongs').style.display = 'none';
+
     this.dataSource.push(result);
-    
+
     var li = document.createElement('li');
     li.className = 'song';
 
@@ -194,12 +232,15 @@ var ListView = {
 
         break;
       case 'playlist':
+        a.textContent = result.metadata.title;
+        a.dataset.keyRange = 'all';
+        a.dataset.option = 'title';
 
         break;
       default:
         return;
     }
-    
+
     li.appendChild(a);
 
     this.view.appendChild(li);
@@ -214,18 +255,13 @@ var ListView = {
 
         var option = target.dataset.option;
         if (option) {
-          var keyRange = IDBKeyRange.only(target.dataset.keyRange);
+          var keyRange = (target.dataset.keyRange != 'all') ?
+            IDBKeyRange.only(target.dataset.keyRange) : null;
 
-          var addListItem = function(result) {
-            if (result === null)
-              return;
+          musicdb.enumerate('metadata.' + option, keyRange, 'next',
+            SubListView.update.bind(SubListView));
 
-            SubListView.updateList(result);
-          };
-
-          musicdb.enumerate('metadata.' + option, keyRange, 'next', addListItem);
-          
-          SubListView.cleanList();
+          SubListView.clean();
           changeMode(MODE_SUBLIST);
         }
 
@@ -259,22 +295,25 @@ var SubListView = {
     this.view.addEventListener('click', this);
   },
 
-  cleanList: function slv_cleanList() {
+  clean: function slv_clean() {
     this.dataSource = [];
     this.index = 0;
     this.view.innerHTML = '';
     this.view.scrollTop = 0;
   },
 
-  updateList: function slv_updateList(result) {
+  update: function slv_update(result) {
+    if (result === null)
+      return;
+
     this.dataSource.push(result);
-    
+
     var li = document.createElement('li');
     li.className = 'song';
 
     var a = document.createElement('a');
     a.href = '#';
-    
+
     var songTitle = (result.metadata.title) ? result.metadata.title :
       navigator.mozL10n.get('unknownTitle');
 
@@ -298,7 +337,7 @@ var SubListView = {
         if (target.dataset.index) {
           PlayerView.dataSource = this.dataSource;
           PlayerView.play(target);
-          
+
           changeMode(MODE_PLAYER);
         }
 
@@ -415,11 +454,11 @@ var PlayerView = {
         // On B2G devices, file.type of mp3 format is missing
         // use file extension instead of file.type
         this.playingFormat = file.name.slice(-4);
-        
+
         // An object URL must be released by calling URL.revokeObjectURL()
         // when we no longer need them
         var url = URL.createObjectURL(file);
-        this.audio.src = url
+        this.audio.src = url;
         this.audio.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
 
         // when play a new song, reset the seekBar first
@@ -577,6 +616,7 @@ var TabBar = {
     switch (evt.type) {
       case 'click':
         var target = evt.target;
+        var option = target.dataset.option;
         if (!target)
           return;
 
@@ -586,21 +626,24 @@ var TabBar = {
 
             break;
           case 'tabs-playlists':
+            changeMode(MODE_LIST);
+            ListView.clean();
+
+            var data = {
+              metadata: {
+                title: 'All Songs'
+              }
+            };
+
+            ListView.update(option, data);
+            break;
           case 'tabs-artists':
           case 'tabs-albums':
             changeMode(MODE_LIST);
-            ListView.cleanList();
-            
-            var option = target.dataset.option;
-            
-            var addListItem = function(result) {
-              if (result === null)
-                return;
-              
-              ListView.updateList(result, option);
-            };
-            
-            musicdb.enumerate('metadata.' + option, null, 'nextunique', addListItem);
+            ListView.clean();
+
+            musicdb.enumerate('metadata.' + option, null, 'nextunique',
+              ListView.update.bind(ListView, option));
 
             break;
           case 'tabs-more':
