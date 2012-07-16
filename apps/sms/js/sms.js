@@ -16,6 +16,18 @@ var MessageManager = {
     window.addEventListener('hashchange', this);
     document.addEventListener('mozvisibilitychange', this);
   },
+  slide: function mm_slide(){
+    var bodyClass = document.body.classList;
+    var mainWrapper = document.getElementById('main-wrapper');
+    var messagesMirror = document.getElementById('thread-messages-mirror');
+    
+    bodyClass.add('snapshot');
+    bodyClass.toggle('mirror-swipe');
+    mainWrapper.classList.toggle('to-left');
+    messagesMirror.addEventListener("transitionend", function(){
+      bodyClass.remove('snapshot');
+    }, true);
+  },
   handleEvent: function mm_handleEvent(event) {
     switch (event.type) {
       case 'received':
@@ -35,16 +47,54 @@ var MessageManager = {
           case '#new':
             document.getElementById('messages-container').innerHTML = '';
             threadMessages.classList.add('new');
-            mainWrapper.classList.toggle('to-left');
+            // mainWrapper.classList.toggle('to-left');
+            MessageManager.slide();
+             // document.body.classList.add('snapshot');
+             //  // alert("asdasd");
+             //  document.body.classList.toggle('mirror-swipe');
+             //  document.getElementById('main-wrapper').classList.toggle('to-left');
+              
+             //  document.getElementById('thread-messages-mirror').addEventListener("transitionend", function(){
+                
+             //    document.body.classList.remove('snapshot');
+                
+                
+             //  }, true);
             break;
           case '#thread-list':
             if(mainWrapper.classList.contains('edit')){
               mainWrapper.classList.remove('edit');
             }else if(threadMessages.classList.contains('new')){
               threadMessages.classList.remove('new');
-              mainWrapper.classList.toggle('to-left');
+              // mainWrapper.classList.toggle('to-left');
+              MessageManager.slide();
+              // document.body.classList.add('snapshot');
+              // // alert("asdasd");
+              // document.body.classList.toggle('mirror-swipe');
+              // document.getElementById('main-wrapper').classList.toggle('to-left');
+              
+              // document.getElementById('thread-messages-mirror').addEventListener("transitionend", function(){
+                
+              //   document.body.classList.remove('snapshot');
+                
+                
+              // }, true);
             }else{
-              mainWrapper.classList.toggle('to-left');
+              document.body.classList.add('snapshot');
+              // alert("asdasd");
+              document.body.classList.toggle('mirror-swipe');
+              document.getElementById('main-wrapper').classList.toggle('to-left');
+              
+              document.getElementById('thread-messages-mirror').addEventListener("transitionend", function(){
+                
+                document.body.classList.remove('snapshot');
+                
+                
+              }, true);
+
+
+
+              // mainWrapper.classList.toggle('to-left');
             }
             break;
           case '#edit':
@@ -399,8 +449,10 @@ var ThreadUI = {
     ThreadUI.headerIndex = 0;
     // Per each message I will append DOM element
     messages.forEach(ThreadUI.appendMessage);
-    var mainWrapper = document.getElementById('main-wrapper');
-    mainWrapper.classList.toggle('to-left');
+
+    // ****
+    MessageManager.slide();
+    
   },
   appendMessage: function thui_appendMessage(message) {
     // Create DOM Element

@@ -168,8 +168,9 @@ html, body {
   position: relative;
   left: 0;
   top: 0;
+  /* -moz-transition: -moz-transform 0.3s ease;
   transition:left .15s ease-in;
-  -moz-transition: left .15s ease-in;
+  -moz-transition: left .15s ease-in;*/
 }
 
 .panel{
@@ -290,15 +291,87 @@ html, body {
 }
 
 
-#mirror {
-  z-index: 100;
+#thread-list-mirror {
+  z-index: 0;
+  pointer-events: none;
   position: absolute;
-  left: -10rem;
+  left: 0;
   top: 0;
-  width: 100%;
-  height: 200%;
-  /*background: red;*/
-  transition:left .15s ease-in;
-  -moz-transition: left .15s ease-in;
-  background:-moz-element(#main-wrapper) no-repeat;
+  width: 50%;
+  height: 100%;
+  background: red;
+  -moz-transition: -moz-transform .5s ease;
+  background:-moz-element(#thread-list) no-repeat;
 }
+
+#thread-messages-mirror {
+  z-index: 0;
+  
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 50% !important;
+  height: 100% ;
+  /*background: blue !important;*/
+  -moz-transition: -moz-transform .5s ease;
+  background:-moz-element(#thread-messages) no-repeat;
+}
+
+
+
+/*.mirror-swipe #mirror {
+  top: -100%;
+}
+.mirror-swipe #main-wrapper {
+  top: -100%;
+}*/
+
+#thread-list {
+  z-index: 10;
+  background: white;
+ 
+}
+
+#thread-messages {
+ z-index: 10;
+ background: white;
+}
+
+/*.mirror-swipe #thread-list {
+  -moz-transform: translateX(-100%);
+}*/
+
+
+.snapshot #snapshot {
+   top: -100%;
+   z-index: 100;
+}
+
+
+.mirror-swipe #thread-list-mirror {
+  -moz-transform: translateX(-100%);
+ 
+}
+
+
+
+.mirror-swipe #thread-messages-mirror {
+  -moz-transform: translateX(-100%);
+  
+}
+
+.tooo-left {
+  left: -100%;
+}
+
+
+/*  TODO Hacer que al darle hacia num=
+    -mirror se ponga al frente
+    -mainwrapper no sea visible
+    -mainwrapper se desplace hacia la izq
+    -mirror hacia la izq.*/
+
+
+
+
