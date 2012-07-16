@@ -5,24 +5,6 @@
   }
 }
 
-/* Font definitions */
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans Bold';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans Semibold';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
-}
-
 @font-face {
   font-family: 'Keyboard Symbols';
   font-weight: 600;
@@ -140,7 +122,8 @@ button::-moz-focus-inner {
   left: 0;
   right: 0;
   height: 100%;
-  font: 2.4rem/3.2rem Open Sans Bold;
+  font: 2.4rem/3.2rem Open Sans;
+  font-weight: 600;
   text-align: center;
   color: #fff;
 }
@@ -182,7 +165,8 @@ button::-moz-focus-inner {
 } 
 
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper > span {
-  font: 3.8rem/4.5rem Open Sans Bold, Sans-serif;
+  font: 3.8rem/4.5rem Open Sans, Sans-serif;
+  font-weight: bold;
   background: #6ec5d5;
   color: #1a3f46;
   border: solid 1px #8BD1DD;
@@ -409,7 +393,8 @@ background-position: center 2.2rem;
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
   border: none;
   border-radius: 0;
-  font: 3rem/5rem Open Sans Bold;
+  font: 3rem/5rem Open Sans;
+  font-weight: bold;
   color: #333;
 }
 
@@ -508,7 +493,8 @@ background-position: center 2.2rem;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
-  font-family: 'Open Sans Semibold';  
+  font-family: 'Open Sans';  
+  font-weight: 600;
   font-size: 1.8rem;
   line-height: 4rem;
 }
