@@ -65,3 +65,23 @@ window.addEventListener('localized', function startup(evt) {
   document.body.classList.remove('hidden');
 });
 
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  var number = activity.source.data.number;
+  var displayThread = function actHandleDisplay() {
+    if (number) {
+      KeypadManager._phoneNumber = number;
+    }
+  }
+
+  if (document.readyState == 'complete') {
+    displayThread();
+  } else {
+    window.addEventListener('localized', function loadWait() {
+      window.removeEventListener('localized', loadWait);
+      displayThread();
+    });
+  }
+
+  activity.postResult({ status: 'accepted' });
+});
+
