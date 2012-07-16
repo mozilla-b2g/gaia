@@ -2,134 +2,11 @@
 'use strict';
 
 const Homescreen = (function() {
-
-  var threshold = window.innerWidth / 3;
-
-  /*
-   * This component deals with the transitions between landing and grid pages
-   */
-  var ViewController = {
-
-    /*
-     * Initializes the component
-     *
-     * @param {Object} The homescreen container
-     */
-    init: function vw_init(container) {
-      this.currentPage = 1;
-      this.pages = container.children;
-      this.total = this.pages.length;
-      container.addEventListener('mousedown', this);
-    },
-
-    /*
-     * Navigates to a section given the number
-     *
-     * @param {int} number of the section
-     *
-     * @param {int} duration of the transition
-     */
-    navigate: function vw_navigate(number, duration) {
-      var total = this.total;
-      for (var n = 0; n < total; n++) {
-        var page = this.pages[n];
-        var style = page.style;
-        style.MozTransform = 'translateX(' + (n - number) + '00%)';
-        style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
-      }
-      this.currentPage = number;
-      PaginationBar.update(number);
-    },
-
-    /*
-     * Implements the transition of sections following the finger
-     *
-     * @param {int} x-coordinate
-     *
-     * @param {int} duration of the transition
-     */
-    pan: function vw_pan(x, duration) {
-      var width = window.innerWidth;
-      var currentPage = this.currentPage;
-      var total = this.total;
-      for (var n = 0; n < total; n++) {
-        var page = this.pages[n];
-        if (currentPage === 0) {
-          x = Math.min(x, 0);
-        } else {
-          x = Math.min(x, width);
-        }
-        var calc = (n - currentPage) * 100 + '% + ' + x + 'px';
-        var style = page.style;
-        style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
-        style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
-      }
-    },
-
-    /*
-     * Event handling for the homescreen
-     *
-     * @param {Object} The event object from browser
-     */
-    handleEvent: function vw_handleEvent(evt) {
-      switch (evt.type) {
-        case 'mousedown':
-          this.onStart(evt);
-          break;
-        case 'mousemove':
-          this.onMove(evt);
-          break;
-        case 'mouseup':
-          this.onEnd(evt);
-          break;
-      }
-    },
-
-    /*
-     * Listens mousedown events
-     *
-     * @param {Object} the event
-     */
-    onStart: function vw_onStart(evt) {
-      evt.preventDefault();
-      this.startX = evt.pageX;
-      window.addEventListener('mousemove', this);
-      window.addEventListener('mouseup', this);
-    },
-
-    /*
-     * Listens mousemove events
-     *
-     * @param {Object} the event
-     */
-    onMove: function vw_onMove(evt) {
-      this.pan(-(this.startX - evt.pageX), 0);
-    },
-
-    /*
-     * Listens mouseup events
-     *
-     * @param {Object} the event
-     */
-    onEnd: function vw_onEnd(evt) {
-      window.removeEventListener('mousemove', this);
-      window.removeEventListener('mouseup', this);
-      var diffX = evt.pageX - this.startX;
-      var dir = 0; // Keep the position
-      if (diffX > threshold && this.currentPage > 0) {
-        dir = -1; // Previous
-      } else if (diffX < -threshold && this.currentPage < this.total - 1) {
-        dir = 1; // Next
-      }
-      this.navigate(this.currentPage + dir, 0.2);
-    }
-  };
-
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+  Search.init(domain);
 
   PaginationBar.init('.paginationScroller');
-  Search.init(domain);
 
   function initUI() {
     setLocale();
@@ -137,7 +14,6 @@ const Homescreen = (function() {
     GridManager.init('.apps', function gm_init() {
       PaginationBar.update(1);
       PaginationBar.show();
-      ViewController.init(document.querySelector('#content'));
       DragDropManager.init();
       window.addEventListener('localized', function localize() {
         setLocale();
@@ -162,17 +38,18 @@ const Homescreen = (function() {
   }
 
   HomeState.init(function success(onUpgradeNeeded) {
-    if (onUpgradeNeeded) {
-      // First time the database is empty -> Dock by default
-      var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
-      var protocol = window.location.protocol;
-      appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
-        return protocol + '//' + name + '.' + domain;
-      });
-      HomeState.saveShortcuts(appsInDockByDef, start, start);
-    } else {
+    if (!onUpgradeNeeded) {
       start();
+      return;
     }
+
+    // First time the database is empty -> Dock by default
+    var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
+    var protocol = window.location.protocol;
+    appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
+      return protocol + '//' + name + '.' + domain;
+    });
+    HomeState.saveShortcuts(appsInDockByDef, start, start);
   }, start);
 
   // XXX Currently the home button communicate only with the
@@ -186,12 +63,12 @@ const Homescreen = (function() {
           GridManager.saveState();
           DockManager.saveState();
           Permissions.hide();
-        } else if (ViewController.currentPage > 0) {
-          GridManager.goToPage(0, function finish() {
-            ViewController.navigate(0, 0.2);
-          });
+        /*} else if (ViewController.currentPage > 0) {
+          GridManager.goToPage(0);
         }
+        */
         break;
+      }
     }
   });
 
@@ -226,7 +103,7 @@ const Homescreen = (function() {
     },
 
     isIcongridInViewport: function h_isIcongridInViewport() {
-      return ViewController.currentPage === 1;
+      return GridManager.pageHelper.getCurrentPageNumber() >= 1;
     }
   };
 })();

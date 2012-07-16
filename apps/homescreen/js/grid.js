@@ -2,16 +2,13 @@
 'use strict';
 
 const GridManager = (function() {
-  var container, homeContainer;
+  var container;
 
   var thresholdForPanning = window.innerWidth / 4;
   var thresholdForTapping = 10;
 
-  var pages = {
-    list: [],
-    current: 0,
-    total: 0
-  };
+  var pages = [];
+  pages.current = 0;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -25,6 +22,7 @@ const GridManager = (function() {
     switch (evt.type) {
       case 'mousedown':
         evt.stopPropagation();
+        document.body.dataset.transitioning = 'true';
 
         startEvent = currentEvent = getCoordinates(evt);
         onTouchStart(currentEvent.x - startEvent.x);
@@ -42,18 +40,10 @@ const GridManager = (function() {
           return;
         } else if (!isTransitioning) {
           isTransitioning = true;
-          document.body.dataset.transitioning = 'true';
           startEvent = currentEvent;
         }
 
-        if (!onTouchMove(currentEvent.x - startEvent.x)) {
-          // Forward a mouse event to the homecontainer so it can
-          // start to drag if needed.
-          var e = document.createEvent('Event');
-          e.initEvent('mousedown', true, true);
-          e.pageX = currentEvent.x;
-          homeContainer.dispatchEvent(e);
-        }
+        onTouchMove(currentEvent.x - startEvent.x);
         break;
 
       case 'mouseup':
@@ -70,7 +60,6 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
-        return;
         evt.stopPropagation();
         evt.preventDefault();
 
@@ -87,13 +76,7 @@ const GridManager = (function() {
   }
 
   function onTouchMove(deltaX) {
-    if (!isRequestToLandingPage(deltaX)) {
-      pan(deltaX);
-      return true;
-    }
-
-    releaseEvents();
-    return false;
+    pan(deltaX);
   }
 
   function onTouchEnd(deltaX, target) {
@@ -103,7 +86,7 @@ const GridManager = (function() {
 
     if (Math.abs(deltaX) > thresholdForPanning) {
       var forward = dirCtrl.goesForward(deltaX);
-      if (forward && currentPage < pages.total - 1) {
+      if (forward && currentPage < pageHelper.total() - 1) {
         goToNextPage();
       } else if (!forward && currentPage > 0) {
         goToPreviousPage();
@@ -158,7 +141,7 @@ const GridManager = (function() {
    * Page Navigation utils.
    */
   function pan(deltaX, duration) {
-    pages.list.forEach(function(page) {
+    pages.forEach(function(page) {
       page.moveBy(-pages.current * 320 + deltaX, duration);
     });
   }
@@ -187,18 +170,8 @@ const GridManager = (function() {
     goToPage(pages.current - 1, callback);
   }
 
-  /*
-   * Returns true when we are in the first page swiping from left to
-   * right and not edit mode
-   *
-   * @param {int} horizontal movement from start and current position
-   */
-  function isRequestToLandingPage(deltaX) {
-    // XXX
-    return false;
-
-    return pages.current === 0 && deltaX >= thresholdForTapping &&
-           document.body.dataset.mode === 'normal';
+  function updatePaginationBar() {
+    PaginationBar.update(pages.current, pageHelper.total());
   }
 
   function attachEvents() {
@@ -296,15 +269,6 @@ const GridManager = (function() {
   }
 
   /*
-   * Renders the homescreen
-   */
-  function render(finish) {
-    dirCtrl = getDirCtrl();
-    renderFromDB(finish);
-    localize();
-  }
-
-  /*
    * UI Localization
    *
    * Currently we only translate the app names
@@ -313,11 +277,9 @@ const GridManager = (function() {
     // switch RTL-sensitive methods accordingly
     dirCtrl = getDirCtrl();
 
-    // translate each page
-    var total = pageHelper.total();
-    for (var i = 0; i < total; i++) {
-      pages.list[i].translate();
-    }
+    pages.forEach(function translate(page) {
+      page.translate();
+    });
   }
 
   /*
@@ -325,11 +287,11 @@ const GridManager = (function() {
    */
   function checkFirstPageWithGap() {
     var index = 0;
-    var total = pages.total;
+    var total = pageHelper.total();
 
     var maxPerPage = pageHelper.getMaxPerPage();
     while (index < total) {
-      var page = pages.list[index];
+      var page = pages[index];
       if (page.getNumApps() < maxPerPage) {
         break;
       }
@@ -343,24 +305,16 @@ const GridManager = (function() {
    * Checks empty pages and deletes them
    */
   function checkEmptyPages() {
-    var index = 0;
-    var total = pages.total;
+    pages.forEach(function checkIsEmpty(page, index) {
+      // ignore the search page
+      if (index === 0) {
+        return;
+      }
 
-    while (index < total) {
-      var page = pages.list[index];
       if (page.getNumApps() === 0) {
         pageHelper.remove(index);
-        break;
       }
-      index++;
-    }
-  }
-
-  var gridPageNumber = 1;
-
-  function updatePaginationBar() {
-    PaginationBar.update(pages.current + gridPageNumber,
-                         pageHelper.total() + gridPageNumber);
+    });
   }
 
   /*
@@ -370,23 +324,26 @@ const GridManager = (function() {
    * pages with a number of apps greater that the maximum
    */
   function checkOverflowPages() {
-    var index = 0;
-    var total = pages.total;
     var max = pageHelper.getMaxPerPage();
 
-    while (index < total) {
-      var page = pages.list[index];
-      if (page.getNumApps() > max) {
-        var propagateIco = page.popIcon();
-        if (index === total - 1) {
-          pageHelper.push([propagateIco]); // new page
-        } else {
-          pages.list[index + 1].prependIcon(propagateIco); // next page
-        }
-        break;
+    pages.forEach(function checkIsOverflow(page, index) {
+      // ignore the search page
+      if (index === 0) {
+        return;
       }
-      index++;
-    }
+
+      // if the page is not full
+      if (page.getNumApps() < max) {
+        return;
+      }
+
+      var propagateIco = page.popIcon();
+      if (index === pageHelper.total() - 1) {
+        pageHelper.push([propagateIco]); // new page
+      } else {
+        pages[index + 1].prependIcon(propagateIco); // next page
+      }
+    });
   }
 
   var pageHelper = {
@@ -415,8 +372,7 @@ const GridManager = (function() {
       }
 */
 
-      pages.list.push(page);
-      pages.total = index + 1;
+      pages.push(page);
 
       if (!appsFromMarket) {
         updatePaginationBar();
@@ -433,19 +389,18 @@ const GridManager = (function() {
         if (index === 0) {
           // If current page is the first -> seconds page to the center
           // Not fear because we cannot have only one page
-          pages.list[index + 1].moveToCenter();
+          pages[index + 1].moveToCenter();
         } else {
           // Move to center the previous page
-          pages.list[index - 1].moveToCenter();
+          pages[index - 1].moveToCenter();
           pages.current--;
         }
       } else if (pages.current > index) {
         pages.current--;
       }
 
-      pages.list[index].destroy(); // Destroy page
-      pages.list.splice(index, 1); // Removes page from the list
-      pages.total--; // Reset total number of pages
+      pages[index].destroy(); // Destroy page
+      pages.splice(index, 1); // Removes page from the list
       updatePaginationBar();
     },
 
@@ -453,7 +408,7 @@ const GridManager = (function() {
      * Returns the total number of pages
      */
     total: function() {
-      return pages.list.length;
+      return pages.length;
     },
 
     /*
@@ -462,7 +417,7 @@ const GridManager = (function() {
     save: function(index) {
       HomeState.saveGrid({
         id: index,
-        apps: pages.list[index].getAppsList()
+        apps: pages[index].getAppsList()
       });
     },
 
@@ -470,7 +425,7 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.list);
+      HomeState.saveGrid(pages.slice(1));
     },
 
     /*
@@ -482,19 +437,19 @@ const GridManager = (function() {
     },
 
     getNext: function() {
-      return pages.list[pages.current + 1];
+      return pages[pages.current + 1];
     },
 
     getPrevious: function() {
-      return pages.list[pages.current - 1];
+      return pages[pages.current - 1];
     },
 
     getCurrent: function() {
-      return pages.list[pages.current];
+      return pages[pages.current];
     },
 
     getLast: function() {
-      return pages.list[this.total() - 1];
+      return pages[this.total() - 1];
     },
 
     getCurrentPageNumber: function() {
@@ -502,7 +457,7 @@ const GridManager = (function() {
     },
 
     getTotalPagesNumber: function() {
-      return pages.total;
+      return pageHelper.total();
     }
   };
 
@@ -515,17 +470,20 @@ const GridManager = (function() {
      */
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
-      container.innerHTML = '';
-
-      homeContainer = container.parentNode.parentNode;
-
-      limits.left = container.offsetWidth * 0.05;
-      limits.right = container.offsetWidth * 0.95;
+      for (var i = 0; i < container.children.length; i++) {
+        var page = new Page(i);
+        page.render([], container.children[i]);
+        pages.push(page);
+      }
 
       container.addEventListener('mousedown', handleEvent, true);
       container.addEventListener('resize', handleEvent, true);
 
-      render(finish);
+      limits.left = container.offsetWidth * 0.05;
+      limits.right = container.offsetWidth * 0.95;
+
+      dirCtrl = getDirCtrl();
+      renderFromDB(finish);
     },
 
     onDragStart: function gm_onDragSart() {
@@ -553,8 +511,8 @@ const GridManager = (function() {
         Applications.getManifest(origin).hidden = true;
       }
 
-      if (index < pages.total) {
-        pages.list[index].append(app);
+      if (index < pageHelper.total()) {
+        pages[index].append(app);
       } else {
         pageHelper.push([app], true);
       }
@@ -578,11 +536,11 @@ const GridManager = (function() {
      */
     uninstall: function gm_uninstall(app) {
       var index = 0;
-      var total = pages.total;
+      var total = pageHelper.total();
       var origin = Applications.getOrigin(app).toString();
 
       while (index < total) {
-        var page = pages.list[index];
+        var page = pages[index];
         if (page.getIcon(origin)) {
           page.remove(app);
           break;
@@ -598,10 +556,6 @@ const GridManager = (function() {
       pageHelper.saveAll();
     },
 
-    get dirCtrl() {
-      return dirCtrl;
-    },
-
     goToPage: goToPage,
 
     goToPreviousPage: goToPreviousPage,
@@ -609,6 +563,10 @@ const GridManager = (function() {
     goToNextPage: goToNextPage,
 
     localize: localize,
+
+    get dirCtrl() {
+      return dirCtrl;
+    },
 
     get pageHelper() {
       return pageHelper;

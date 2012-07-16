@@ -37,7 +37,7 @@ section,footer,nav,a,img {
   visibility: hidden;
 }
 
-#content {
+#icongrid {
   width: 100%;
   height: -moz-calc(100% - 7.5rem);
   position: fixed;
@@ -46,20 +46,9 @@ section,footer,nav,a,img {
   background-color: rgba(0,0,0,.3);
 }
 
-#content > section {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
 #search {
-  -moz-transform: translateX(-100%);
-}
-
-#icongrid {
-  -moz-transform: translateX(0);
+  outline: 1px solid red;
+  outline-offset: -1px;
 }
 
 button:focus::-moz-focus-inner {

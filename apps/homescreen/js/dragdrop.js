@@ -91,7 +91,7 @@ const DragDropManager = (function() {
         pageHelper.getNext().prependIcon(draggableIcon);
         setDisabledCheckingLimits(true);
         transitioning = true;
-        GridManager.goNext(onNavigationEnd);
+        GridManager.goToNextPage(onNavigationEnd);
       } else if (curPageObj.getNumApps() > 1) {
         // New page if there are two or more icons
         curPageObj.remove(draggableIcon);
@@ -102,7 +102,7 @@ const DragDropManager = (function() {
       }
     } else if (dirCtrl.limitPrev(currentX)) {
       isDisabledDrop = true;
-      if (pageHelper.getCurrentPageNumber() === 0 || isDisabledCheckingLimits) {
+      if (pageHelper.getCurrentPageNumber() === 1 || isDisabledCheckingLimits) {
         return;
       }
 
