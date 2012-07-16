@@ -28,10 +28,9 @@ button::-moz-focus-inner {
 
 .cache {
   position: absolute;
-  left: 0;
-  bottom: 0;
-  z-index: -1;
-  opacity: 0;
+  /* make the cache keys out of screen,
+   * or it may affect performance during layer composition with the keyboard*/
+  left: -100%;
   overflow: hidden;
   width: 0;
   height: 0;
@@ -83,7 +82,7 @@ button::-moz-focus-inner {
   -moz-box-sizing: border-box;
   position: relative;
   border: solid 1px #000;
-  border-radius: 0.3rem;
+  /*border-radius: 0.3rem;*/
   background: #252220 url(images/key-bg.png) no-repeat center bottom;
   background-size: 100% 100%;
 }
@@ -100,7 +99,7 @@ button::-moz-focus-inner {
   z-index: 100;
 }
 .keyboard-key .top-start {
-  back ground-position: left top; left: -1px; top: -1px;
+  background-position: left top; left: -1px; top: -1px;
 }
 .keyboard-key .top-end {
   background-position: right top; right: -1px; top: -1px;
@@ -116,7 +115,7 @@ button::-moz-focus-inner {
 
 .keyboard-key > .visual-wrapper > span {
   border-top: solid 1px #514e4d;
-  border-radius: 0.2rem 0.2rem 0 0;
+  /*border-radius: 0.2rem 0.2rem 0 0;*/
   position: absolute;
   top: 0;
   left: 0;
@@ -135,7 +134,7 @@ button::-moz-focus-inner {
 }
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper {
   background: #6ec5d5;
-  border-radius: 0 0  0.3rem 0.3rem;
+  /*border-radius: 0 0  0.3rem 0.3rem;*/
   border: solid 1px #8BD1DD;
   border-top: none;
   margin: -0.5rem 0 0;
@@ -151,7 +150,7 @@ button::-moz-focus-inner {
   right: -0.5rem;
   z-index: -1;
   background: url(images/dark-alpha.png) repeat left top;
-  border-radius: 0.6rem;
+  /*border-radius: 0.6rem;*/
 }
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper:before {
   content: "";
@@ -170,7 +169,7 @@ button::-moz-focus-inner {
   background: #6ec5d5;
   color: #1a3f46;
   border: solid 1px #8BD1DD;
-  border-radius: 0.3rem;
+  /*border-radius: 0.3rem;*/
   height: 5.2rem;
   top: -5.3rem;
   left: -0.8rem;
@@ -185,12 +184,12 @@ button::-moz-focus-inner {
   right: -0.5rem;
   z-index: -1;
   background: url(images/dark-alpha.png) repeat left top;
-  border-radius: 0.6rem;
+  /*border-radius: 0.6rem;*/
 }
 
 .keyboard-key:not(.special-key).highlighted:last-child  > .visual-wrapper > span {
   right: -1px;
-  border-bottom-right-radius: 0;
+  /*border-bottom-right-radius: 0;*/
 }
 .keyboard-key:not(.special-key).highlighted:last-child  #keyboard-accent-char-menu {
   right: -1px;
@@ -199,7 +198,7 @@ button::-moz-focus-inner {
 
 .keyboard-key:not(.special-key).highlighted:first-child  > .visual-wrapper > span {
   left: -1px;
-  border-bottom-left-radius: 0;
+  /*border-bottom-left-radius: 0;*/
 }
 .keyboard-key:not(.special-key).highlighted:first-child  #keyboard-accent-char-menu {
   left: -1px;
@@ -237,7 +236,7 @@ button::-moz-focus-inner {
   bottom: -0.25rem;
   z-index: -1;
   background: #4495A8;
-  border-radius: 0.3rem;
+  /*border-radius: 0.3rem;*/
 }
 
 /* Spacebar exceptions */
@@ -247,7 +246,7 @@ background-position: center 2.2rem;
 
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper {
   border: solid 1px #000;
-  border-radius: 0.3rem;
+  /*border-radius: 0.3rem;*/
   background: #252220 url(images/key-bg.png) no-repeat center 2.2rem;
   background-size: 100% 100%;
   opacity: 0.5;
@@ -277,7 +276,7 @@ background-position: center 2.2rem;
 /* Key states */
 /* Press */
 .keyboard-key.kbr-key-press > .visual-wrapper > span {
-  box-shadow: 0 0 0 2px #4495A8;
+  /*box-shadow: 0 0 0 2px #4495A8;*/
 }
 
 /* Active */
@@ -319,7 +318,7 @@ background-position: center 2.2rem;
   left: 0.6rem;
   margin-bottom: -1px;
   height: 5.8rem;
-  border-radius: 0.3rem;
+  /*border-radius: 0.3rem;*/
   background: #6EC5D5;
   border: 1px solid #92d3e0;
   white-space: nowrap;
@@ -335,13 +334,13 @@ background-position: center 2.2rem;
   right: -0.5rem;
   z-index: -1;
   background: url(images/dark-alpha.png) repeat left top;
-  border-radius: 0.6rem 0.6rem 0.6rem 0;
+  /*border-radius: 0.6rem 0.6rem 0.6rem 0;*/
 }
 .keyboard-key:first-child #keyboard-accent-char-menu {
-  border-radius: 0.3rem 0.3rem 0.3rem 0;
+  /*border-radius: 0.3rem 0.3rem 0.3rem 0;*/
 }
 .keyboard-key:last-child #keyboard-accent-char-menu {
-  border-radius: 0.3rem 0.3rem 0 0.3rem;
+  /*border-radius: 0.3rem 0.3rem 0 0.3rem;*/
 }
 
 #keyboard-accent-char-menu.show {
@@ -392,7 +391,7 @@ background-position: center 2.2rem;
 
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
   border: none;
-  border-radius: 0;
+  /*border-radius: 0;*/
   font: 3rem/5rem Open Sans;
   font-weight: bold;
   color: #333;
@@ -405,7 +404,7 @@ background-position: center 2.2rem;
   -moz-box-sizing: content-box;
   border-top: solid 1px #999;
   border-bottom: solid 1px #333;
-  border-radius: 0;
+  /*border-radius: 0;*/
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
@@ -438,7 +437,7 @@ background-position: center 2.2rem;
   z-index: 100;
 }
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper {
-  border-radius: 0 0 0.3rem 0.3rem;
+  /*border-radius: 0 0 0.3rem 0.3rem;*/
   margin-top: -0.5rem;
 }
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
@@ -456,7 +455,7 @@ background-position: center 2.2rem;
   right: -0.5rem;
   z-index: -1;
   background: url(images/dark-alpha.png) repeat left top;
-  border-radius: 0.6rem;
+  /*border-radius: 0.6rem;*/
 }
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before {
   content: "";
@@ -479,12 +478,12 @@ background-position: center 2.2rem;
   -moz-box-sizing: border-box;
   border: none;
   border-bottom: solid 1px #92D3E0;
-  border-radius: 0;
+  /*border-radius: 0;*/
   width: 10rem;
   height: 4rem;
 }
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key:first-child > .visual-wrapper {
-  border-radius: 0.3rem 0.3rem 0 0;
+  /*border-radius: 0.3rem 0.3rem 0 0;*/
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > .visual-wrapper {
@@ -524,7 +523,7 @@ background-position: center 2.2rem;
   padding: 0 8px;
   background: rgba(245, 245, 245, 0.7);
   color: rgb(36, 36, 36);
-  border-top-right-radius: 8px;
+  /*border-top-right-radius: 8px;*/
   border-top: 1px solid #d5d5d5;
   border-right: 1px solid #d5d5d5;
   white-space: nowrap;
@@ -606,11 +605,11 @@ background-position: center 2.2rem;
   right: 0;
   top: 1px;
   text-align: center;
-  box-shadow: -4px 0 5px -5px black;
+  /*box-shadow: -4px 0 5px -5px black;*/
   width: 60px;
   height: 64px;
   color: black;
-  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  /*background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);*/
   display: none;
 }
 
