@@ -64,12 +64,14 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
-        evt.stopPropagation();
-        evt.preventDefault();
+        if (pages.current !== 0) {
+          evt.stopPropagation();
+          evt.preventDefault();
 
-        document.body.dataset.mode = 'edit';
-        if ('origin' in evt.target.dataset) {
-          DragDropManager.start(evt, startEvent);
+          document.body.dataset.mode = 'edit';
+          if ('origin' in evt.target.dataset) {
+            DragDropManager.start(evt, startEvent);
+          }
         }
         break;
     }

@@ -142,14 +142,16 @@ Icon.prototype = {
    */
   onDragMove: function icon_onDragMove(x, y) {
     this.draggableElem.style.MozTransform =
-        'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
+      'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
   },
 
   /*
    * This method is invoked when the drag gesture finishes
    */
   onDragStop: function icon_onDragStop(callback) {
-    var rect = this.container.getBoundingClientRect();
+    var container = this.container;
+
+    var rect = container.getBoundingClientRect();
     var x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
     x -= this.initXCenter;
 
@@ -163,10 +165,9 @@ Icon.prototype = {
     style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
     draggableElem.querySelector('div').style.MozTransform = 'scale(1)';
 
-    var self = this;
     draggableElem.addEventListener('transitionend', function draggableEnd(e) {
       draggableElem.removeEventListener('transitionend', draggableEnd);
-      delete self.container.dataset.dragging;
+      delete container.dataset.dragging;
       document.body.removeChild(draggableElem);
       callback();
     });
