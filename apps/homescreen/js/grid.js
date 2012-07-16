@@ -286,7 +286,6 @@ const GridManager = (function() {
       // Renders pagination bar
       updatePaginationBar();
       finish();
-      addLanguageListener();
 
       // Saving initial state
       pageHelper.saveAll();
@@ -333,7 +332,6 @@ const GridManager = (function() {
 
           updatePaginationBar();
           finish();
-          addLanguageListener();
         });
       },
       function onerror() {

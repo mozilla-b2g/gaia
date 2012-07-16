@@ -6,7 +6,7 @@
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
-    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Compatibility -->
     <script type="application/javascript">
     // The following code loads a shared WebAPI shim from webapi.js
@@ -16,14 +16,14 @@
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
-        paths.pop();
-        var src = protocol + '//' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
         var src = protocol + '//system.' + domain + '/js/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
+    })();
     </script>
     <script type="application/javascript" src="js/utils.js"></script>
     <script type="application/javascript" src="js/alarmsdb.js"></script>

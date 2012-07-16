@@ -13,7 +13,7 @@
         paths.pop();
         paths.pop();
         paths.pop();
-        var src = protocol + '//' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
@@ -109,7 +109,11 @@
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
-    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+    <!-- Trusted dialog -->
+    <link rel="stylesheet" type="text/css" href="style/trusted_dialog/trusted_dialog.css">
+    <script defer src="js/trusted_dialog.js"></script>
   </head>
 
   <body onload="startup()">
@@ -315,5 +319,9 @@
       <div></div>
       <div></div>
     </div>
+
+    <div id="trustedDialog">
+    </div>
+
   </body>
 </html>

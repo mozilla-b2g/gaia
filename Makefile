@@ -318,7 +318,7 @@ tests: webapp-manifests offline
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
-	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
+	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/user.js"
 
 .PHONY: common-install
 common-install:
@@ -524,5 +524,6 @@ reset-gaia: purge install-settingsdb install-gaia
 purge:
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /data/local/*
+	$(ADB) shell mkdir -p /data/local/tmp
 	$(ADB) shell rm -r /cache/*
 	$(ADB) shell rm -r /data/b2g/*

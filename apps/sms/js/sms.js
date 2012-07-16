@@ -5,6 +5,7 @@
 
 var MessageManager = {
   init: function mm_init() {
+    PendingMsgManager.init();
     ThreadUI.init();
     ThreadListUI.init();
     this.getMessages(ThreadListUI.renderThreads);
@@ -87,8 +88,24 @@ var MessageManager = {
         messages.push(cursor.message);
         cursor.continue();
       } else {
-        // TODO Add call to Steve JS for adding 'Pending Messages'
-        callback(messages);
+        //TODO: Render the correct message data when pendingDB is ready.
+        if (!PendingMsgManager.dbReady) {
+          callback(messages);
+          return;
+        }
+        var filterNum = filter ? filter.numbers[0] : null;
+        //TODO: Refine the pending message append with non-blocking method.
+        PendingMsgManager.getMsgDB(filterNum, function msgCb(pendingMsgs) {
+          if (!pendingMsgs) {
+            return;
+          }
+          messages = messages.concat(pendingMsgs);
+          messages.sort(function(a, b) {
+              return filterNum ? a.timestamp - b.timestamp :
+                                b.timestamp - a.timestamp;
+          });
+          callback(messages);
+        });
       }
     };
 
@@ -285,11 +302,18 @@ var ThreadUI = {
     delete this.sendButton;
     return this.sendButton = document.getElementById('view-msg-send');
   },
+
+  get pickButton() {
+    delete this.pickButton;
+    return this.pickButton = document.getElementById('view-add-button');
+  },
+
   init: function thui_init() {
     this.delNumList = [];
     this.headerIndex = 0;
 
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
+    this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.view.addEventListener('click', this);
 
@@ -445,26 +469,27 @@ var ThreadUI = {
         document.body.classList.remove('conversation-new-msg');
       }
       // Create 'PendingMessage'
+      var tempDate = new Date();
       var message = {
         sender: null,
         receiver: num,
         delivery: 'sending',
         body: text,
-        timestamp: new Date()
+        read: 1,
+        timestamp: tempDate
       };
       // Append to DOM
       this.appendMessage(message);
 
-      // TODO Append to Steve class
-      // TODO Once Steve code land, we will change hash to 'num='+num
-      // directly
-
-      // Clean Fields
-      ThreadUI.cleanFields();
-      MessageManager.send(num, text, function() {
-        //TODO Remove 'pending' from Steve class
-
-        // TODO move when Steve code will be landed
+      var self = this;
+      // Save the message into pendind DB before send.
+      PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+        if (!msg) {
+          // TODO: We need to handle the pending message save failed.
+          console.log('Message app - pending message save failed!');
+          PendingMsgManager.saveToMsgDB(message, this);
+        }
+        // Update ThreadListUI when new message in pending database.
         if (window.location.hash == '#num=*') {
           window.location.hash = '#num=' + num;
         } else {
@@ -473,9 +498,61 @@ var ThreadUI = {
         MessageManager.getMessages(ThreadListUI.renderThreads);
 
       });
+
+      MessageManager.send(num, text, function onsent(msg) {
+        if (!msg) {
+          var resendConfirmStr = _('resendConfirmDialogMsg');
+          var result = confirm(resendConfirmStr);
+          if (result) {
+            // Remove the message from pending message DB before resend.
+            PendingMsgManager.deleteFromMsgDB(message, function save(msg) {
+              if (!msg) {
+                //TODO: Handle message delete failed in pending DB.
+                return;
+              }
+              var filter = MessageManager.createFilter(num);
+              MessageManager.getMessages(ThreadUI.renderMessages, filter, true);
+            });
+            window.setTimeout(self.sendMessage.bind(self), 500);
+            return;
+          }
+        } else {
+          // Remove the message from pending message DB since it could be sent
+          // successfully.
+          PendingMsgManager.deleteFromMsgDB(message, function onsave(msg) {
+            if (!msg) {
+              //TODO: Handle message delete failed in pending DB.
+            }
+          });
+          // TODO: We might need to update the sent message's actual timestamp.
+        }
+        // Clean Fields
+        ThreadUI.cleanFields();
+      });
     }
+  },
 
-
+  pickContact: function thui_pickContact() {
+    try {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/contact'
+        }
+      });
+      activity.onsuccess = function() {
+        var number = this.result.number;
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          if (number) {
+            var app = evt.target.result;
+            app.launch();
+            window.location.hash = '#num=' + number;
+          }
+        };
+      }
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   }
 };
 
