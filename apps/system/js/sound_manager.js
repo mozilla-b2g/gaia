@@ -3,36 +3,25 @@
 
 'use strict';
 
-var SoundManager = {
-  /*
-  * return the current volume
-  * Must not mutate directly - use changeVolume.
-  * Listen to 'volumechange' event to properly handle status changes
-  */
-  currentVolume: 5,
+(function() {
+  window.addEventListener('volumeup', function() {
+    changeVolume(1);
+  });
+  window.addEventListener('volumedown', function() {
+    changeVolume(-1);
+  });
 
-  init: function soundManager_init() {
-    window.addEventListener('volumeup', this);
-    window.addEventListener('volumedown', this);
-  },
+  var currentVolume = 5;
+  if ('mozSettings' in navigator) {
+    var req = navigator.mozSettings.getLock().set({
+      'audio.volume.master': currentVolume / 10
+    });
+  }
 
-  handleEvent: function soundManager_handleEvent(evt) {
-    if (!ScreenManager.screenEnabled)
-      return;
-
-    switch (evt.type) {
-      case 'volumeup':
-        this.changeVolume(1);
-        break;
-      case 'volumedown':
-        this.changeVolume(-1);
-        break;
-    }
-  },
-
-  changeVolume: function soundManager_changeVolume(delta) {
-    var volume = this.currentVolume + delta;
-    this.currentVolume = volume = Math.max(0, Math.min(10, volume));
+  var activeTimeout = 0;
+  function changeVolume(delta) {
+    var volume = currentVolume + delta;
+    currentVolume = volume = Math.max(0, Math.min(10, volume));
 
     var notification = document.getElementById('volume');
     var classes = notification.classList;
@@ -45,28 +34,33 @@ var SoundManager = {
     var steps = notification.children;
     for (var i = 0; i < steps.length; i++) {
       var step = steps[i];
-      if (i < volume)
+      if (i < volume) {
         step.classList.add('active');
-      else
+      } else {
         step.classList.remove('active');
+      }
     }
 
     classes.add('visible');
-    if (this._timeout)
-      window.clearTimeout(this._timeout);
-
-    this._timeout = window.setTimeout(function hideSound() {
+    window.clearTimeout(activeTimeout);
+    activeTimeout = window.setTimeout(function hideSound() {
       classes.remove('visible');
     }, 1500);
 
-    this.fireVolumeChangeEvent();
-  },
+    if ('mozSettings' in navigator) {
+      navigator.mozSettings.getLock().set({
+        'audio.volume.master': currentVolume / 10
+      });
+    }
 
-  fireVolumeChangeEvent: function soundManager_fireVolumeChangeEvent() {
+    fireVolumeChangeEvent();
+  }
+
+  function fireVolumeChangeEvent() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('volumechange',
       /* canBubble */ true, /* cancelable */ false,
-      {currentVolume: this.currentVolume});
+      { currentVolume: currentVolume });
     window.dispatchEvent(evt);
   }
-};
+})();

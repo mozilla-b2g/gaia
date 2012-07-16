@@ -568,7 +568,9 @@ var LockScreen = {
   },
 
   updateMuteState: function ls_updateMuteState() {
-    this.mute.hidden = !!SoundManager.currentVolume;
+    SettingsListener.observe('audio.volume.master', 5, (function(volume) {
+      this.mute.hidden = volume;
+    }).bind(this));
   },
 
   showNotification: function lockscreen_showNotification(detail) {
