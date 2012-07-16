@@ -33,7 +33,7 @@ var PendingMsgManager = {
       request.onsuccess = function(event) {
         msgManager.db = event.target.result;
         msgManager.dbReady = true;
-        if(msgCallback!=undefined){
+        if (msgCallback != undefined) {
           msgCallback();
         }
       };

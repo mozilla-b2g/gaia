@@ -45,7 +45,7 @@ if (!navigator.mozSms) {
     messagesHack = messages;
   })();
 
-  var GetMessagesHack = function gmhack(callback, filter, invert, callbackArgs) {
+  var GetMessagesHack = function gmhack(callback, filter, invert, cllbckArgs) {
     function applyFilter(msgs) {
       if (!filter)
         return msgs;
@@ -64,11 +64,11 @@ if (!navigator.mozSms) {
     var msg = messagesHack.slice();
     if (invert)
       msg.reverse();
-    callback(applyFilter(msg),callbackArgs);
+    callback(applyFilter(msg), cllbckArgs);
   };
 
-  MessageManager.getMessages = function(callback, filter, invert, callbackArgs) {
-    GetMessagesHack(callback, filter, invert, callbackArgs);
+  MessageManager.getMessages = function(callback, filter, invert, cllbckArgs) {
+    GetMessagesHack(callback, filter, invert, cllbckArgs);
     return;
   };
 
