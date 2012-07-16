@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" href="style/dock.css"/>
     <link rel="stylesheet" type="text/css" href="style/search.css"/>
 
-    <script>
+    <script type="text/javascript">
     // The following code loads a shared WebAPI shim from webapi.js
     (function webapiJSLoader() {
       var protocol = document.location.protocol;
@@ -19,7 +19,7 @@
         paths.pop();
         paths.pop();
         paths.pop();
-        var src = protocol + '//' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');

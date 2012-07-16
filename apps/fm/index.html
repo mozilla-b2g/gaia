@@ -6,7 +6,7 @@
     <title>FM Radio</title>
     <link rel="stylesheet" href="style/fm.css" type="text/css" />
     <link rel="resource" type="application/l10n" href="locale/l10n.ini" />
-    <script>
+    <script type="text/javascript">
     // The following code loads a shared WebAPI shim from webapi.js
     (function webapiJSLoader() {
       var protocol = document.location.protocol;
@@ -15,7 +15,7 @@
         paths.pop();
         paths.pop();
         paths.pop();
-        var src = protocol + '//' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
