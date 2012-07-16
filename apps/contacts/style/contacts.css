@@ -188,3 +188,7 @@ hr {
 #view-contacts-list.searching #search-contact {
   width: 20rem;
 }
+
+#view-contacts-list.searching .block-item {
+    border-bottom: 1px solid #DBDBDB;
+}
