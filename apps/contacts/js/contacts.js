@@ -29,6 +29,8 @@ function navigationStack(currentView) {
   };
 
   var setCacheView = function(current, next, transition) {
+    current.classList.add('transitioning');
+    next.classList.add('transitioning');
     var currentMirror = document.getElementById(current.dataset.mirror);
     var nextMirror = document.getElementById(next.dataset.mirror);
     var move = transitions[transition] || transition;
@@ -45,6 +47,8 @@ function navigationStack(currentView) {
       app.dataset.state = 'active';
       cache.dataset.state = 'inactive';
       nextMirror.removeEventListener('transitionend', nocache);
+      current.classList.remove('transitioning');
+      next.classList.remove('transitioning');
     });
   };
 
