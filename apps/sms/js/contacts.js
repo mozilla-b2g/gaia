@@ -26,7 +26,6 @@ var ContactDataManager = {
 
     var cacheResult = this.contactData[number];
     if (typeof cacheResult !== 'undefined') {
-      console.log('Encontrado en cache');
       var cacheArray = cacheResult ? [cacheResult] : [];
       callback(cacheArray);
     }
