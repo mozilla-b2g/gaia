@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>setCapture test</title>
+    <style>
+    #target {
+      width: 100px;
+      height: 100px;
+      background-color: #f00;
+    }
+    </style>
+    <script>
+window.onload = function () {
+  var target = document.getElementById('target');
+
+  target.addEventListener('mousedown', function () {
+    target.setCapture(true);
+  });
+
+  target.addEventListener('mouseup', function () {
+    document.releaseCapture();
+    alert('mouseup fired from target.');
+  });
+}
+    </script>
+  </head>
+  <body>
+    <h1>setCapture test</h1>
+    <p>Press the red box, move your finger out of it and lift the finger. You should see an alert() if setCapture works.</p>
+    <div id="target">
+    </div>
+  </body>
+</html>
