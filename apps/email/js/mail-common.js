@@ -307,7 +307,7 @@ var Cards = {
       constructor: constructor
     };
     cardDef.modes['default'] = defaultMode;
-    defineCard(cardDef);
+    this.defineCard(cardDef);
   },
 
   /**
