@@ -63,6 +63,13 @@ span[role="button"].icon-fav-color {
   height: 2rem;
 }
 
+span[role="button"].icon-clear {
+  background-image: url(../../gphx/bitmap/default/vw-header/icons/clear.png);
+  width: 1.7rem;
+  height: 1.7rem;
+  margin-left: -2.7rem;
+}
+
 /* selection list */
 span[role="button"].icon-selected {
   background-color: rgba(0, 0, 0, 0.5);
