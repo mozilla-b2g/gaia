@@ -12,7 +12,7 @@ const Homescreen = (function() {
     setLocale();
     DockManager.init(document.querySelector('#footer'));
     GridManager.init('.apps', function gm_init() {
-      PaginationBar.update(1);
+      GridManager.goToPage(1);
       PaginationBar.show();
       DragDropManager.init();
       window.addEventListener('localized', function localize() {
@@ -63,12 +63,18 @@ const Homescreen = (function() {
           GridManager.saveState();
           DockManager.saveState();
           Permissions.hide();
-        /*} else if (ViewController.currentPage > 0) {
-          GridManager.goToPage(0);
+        } else {
+          var num = GridManager.pageHelper.getCurrentPageNumber();
+          switch (num) {
+            case 1:
+              GridManager.goToPage(0);
+              break;
+            default:
+              GridManager.goToPage(1);
+              break;
+          }
         }
-        */
         break;
-      }
     }
   });
 

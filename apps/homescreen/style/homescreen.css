@@ -46,11 +46,6 @@ section,footer,nav,a,img {
   background-color: rgba(0,0,0,.3);
 }
 
-#search {
-  outline: 1px solid red;
-  outline-offset: -1px;
-}
-
 button:focus::-moz-focus-inner {
   border-color: transparent !important;
 }
