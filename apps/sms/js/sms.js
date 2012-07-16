@@ -188,14 +188,9 @@ var ThreadListUI = {
     this.delNumList = [];
   },
 
-  updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    if (contact.length <= 0)
-      return;
-    var root = document.getElementById(number);
-    var element = root.getElementsByClassName('name')[0];
-    if (element) {
-      element.innerHTML = contact[0].name;
-    }
+  updateMsgWithContact: function thlui_updateMsgWithContact(contact) {
+    // TODO Update DOM with data retrieved from Contact DB
+    // This will be a callback from ContactManager
   },
 
   renderThreads: function thlui_renderThreads(messages) {
@@ -243,8 +238,7 @@ var ThreadListUI = {
     var bodyText = thread.body.split('\n')[0];
     var bodyHTML = Utils.escapeHTML(bodyText);
     // Create HTML structure
-    var structureHTML = '  <a id="' + thread.num + '"' +
-            '     href="#num=' + thread.num + '"' +
+    var structureHTML = '  <a href="#num=' + thread.num + '"' +
             '     data-num="' + thread.num + '"' +
             '     data-name="' + dataName + '"' +
             '     data-notempty="' +
@@ -268,12 +262,6 @@ var ThreadListUI = {
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
-
-    // Get the contact data for the number
-    ContactDataManager.getContactData(thread.num, function gotContact(contact) {
-      if (contact && contact.length > 0)
-        ThreadListUI.updateMsgWithContact(thread.num, contact);
-    });
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
 
@@ -352,6 +340,7 @@ var ThreadUI = {
       }
       view.scrollTop += Math.ceil((height - view.scrollTop) / 2);
     }).bind(this), 100);
+
   },
 
   updateInputHeight: function thui_updateInputHeight() {
@@ -380,19 +369,9 @@ var ThreadUI = {
     headerHTML.innerHTML = structureHTML;
     ThreadUI.view.appendChild(headerHTML);
   },
-  updateHeaderData: function thui_updateHeaderData() {
-    var number = MessageManager.getNumFromHash();
-    ThreadUI.title.innerHTML = number;
-    ContactDataManager.getContactData(number, function gotContact(contact) {
-      if (contact && contact.length > 0) {
-        ThreadUI.title.innerHTML = contact[0].name;
-      }
-    });
-  },
   renderMessages: function thui_renderMessages(messages) {
     // Update Header
-    ThreadUI.updateHeaderData();
-
+    ThreadUI.title.innerHTML = MessageManager.getNumFromHash();
     // Sorting messages reverse
     messages.sort(function(a, b) {
         return a.timestamp - b.timestamp;
@@ -517,6 +496,7 @@ var ThreadUI = {
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
         MessageManager.getMessages(ThreadListUI.renderThreads);
+
       });
 
       MessageManager.send(num, text, function onsent(msg) {
@@ -602,4 +582,3 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 
   activity.postResult({ status: 'accepted' });
 });
-
