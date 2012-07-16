@@ -202,13 +202,20 @@ var MessageManager = {
   },
 
   markMessagesRead: function mm_markMessagesRead(list, value, callback) {
-    if (list.length > 0) {
-      this.markMessageRead(list.shift(), value, function markReadCb(result) {
-        this.markMessagesRead(list, value, callback);
-      }.bind(this));
-    } else {
-      callback();
-    }
+    for (var i = 0; i < list.length; i++) {
+      if ( i == list.length-1) {
+        MessageManager.markMessageRead(list[i], value, callback);
+      } else {
+        MessageManager.markMessageRead(list[i], value);
+      }
+    };
+    // if (list.length > 0) {
+    //   this.markMessageRead(list.shift(), value, function markReadCb(result) {
+    //     this.markMessagesRead(list, value, callback);
+    //   }.bind(this));
+    // } else {
+    //   callback();
+    // }
   }
 };
 
@@ -229,11 +236,16 @@ var ThreadListUI = {
 
   renderThreads: function thlui_renderThreads(messages) {
     ThreadListUI.view.innerHTML = '';
-    var threadIds = [], headerIndex;
+    var threadIds = [], headerIndex, unreadThreads = [];
     for (var i = 0; i < messages.length; i++) {
       var message = messages[i];
       var num = message.delivery == 'received' ?
       message.sender : message.receiver;
+      if(!message.read) {
+        if (unreadThreads.indexOf(num) == -1) {
+          unreadThreads.push(num);
+        }
+      }
       if (threadIds.indexOf(num) == -1) {
         var thread = {
           'body': message.body,
@@ -258,6 +270,10 @@ var ThreadListUI = {
         ThreadListUI.appendThread(thread);
       }
     }
+    // Update threads with 'unread'
+    for (var i = 0; i < unreadThreads.length; i++) {
+      document.getElementById(unreadThreads[i]).classList.add('unread');
+    };
   },
 
   appendThread: function thlui_appendThread(thread) {
@@ -272,13 +288,11 @@ var ThreadListUI = {
     var bodyText = thread.body.split('\n')[0];
     var bodyHTML = Utils.escapeHTML(bodyText);
     // Create HTML structure
-    var structureHTML = '  <a href="#num=' + thread.num + '"' +
+    var structureHTML = '  <a id="'+ thread.num +'" href="#num=' + thread.num + '"' +
             '     data-num="' + thread.num + '"' +
             '     data-name="' + dataName + '"' +
             '     data-notempty="' +
-                  (thread.timestamp ? 'true' : '') + '"' +
-            '     class="' +
-                 (thread.unreadCount > 0 ? 'unread' : '') + '">' +
+                  (thread.timestamp ? 'true' : '') + '">' +
             '    <span class="unread-mark">' +
             '      <i class="i-unread-mark"></i>' +
             '    </span>' +
@@ -407,13 +421,21 @@ var ThreadUI = {
     ThreadUI.readMessages = [];
     // Per each message I will append DOM element
     messages.forEach(ThreadUI.appendMessage);
+    // Update read messages if necessary
+    if (ThreadUI.readMessages.length > 0) {
+      MessageManager.markMessagesRead(ThreadUI.readMessages, 'true', function(){
+        MessageManager.getMessages(ThreadListUI.renderThreads);
+      });
+    }
     // Callback when every message is appended
     if (callback) {
       callback();
     }
   },
   appendMessage: function thui_appendMessage(message) {
-    // alert(JSON.stringify(message));
+    if (!message.read) {
+      ThreadUI.readMessages.push(message.id);
+    }
     // Create DOM Element
     var messageDOM = document.createElement('div');
     // Add class
@@ -560,21 +582,21 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
-window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  var number = activity.source.data.number;
-  var displayThread = function actHandleDisplay() {
-    if (number)
-      window.location.hash = '#num=' + number;
-  }
+// window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+//   var number = activity.source.data.number;
+//   var displayThread = function actHandleDisplay() {
+//     if (number)
+//       window.location.hash = '#num=' + number;
+//   }
 
-  if (document.readyState == 'complete') {
-    displayThread();
-  } else {
-    window.addEventListener('localized', function loadWait() {
-      window.removeEventListener('localized', loadWait);
-      displayThread();
-    });
-  }
+//   if (document.readyState == 'complete') {
+//     displayThread();
+//   } else {
+//     window.addEventListener('localized', function loadWait() {
+//       window.removeEventListener('localized', loadWait);
+//       displayThread();
+//     });
+//   }
 
-  activity.postResult({ status: 'accepted' });
-});
+//   activity.postResult({ status: 'accepted' });
+// });
