@@ -48,7 +48,7 @@ var ScreenManager = {
   _brightness: 1,
 
   /*
-  * Wait for _dimNotice microseconds during idle-screen-off
+  * Wait for _dimNotice milliseconds during idle-screen-off
   */
   _dimNotice: 10 * 1000,
 
