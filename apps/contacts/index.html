@@ -15,7 +15,7 @@
 
     <link href="style/contacts.css" rel="stylesheet">
     <link href="style/request.css" rel="stylesheet">
-    <link rel="resource" type="application/l10n" href="locale/contacts.properties"/>
+    <link rel="resource" type="application/l10n" href="locales/locales.properties"/>
 
     <script defer type="text/javascript" src="js/utilities/responsive.js"></script>
     <script defer type="text/javascript" src="js/utilities/templates.js"></script>
@@ -28,7 +28,7 @@
   </head>
 
   <body class="app-contacts">
-    
+
     <div id="app" class="views" data-state="active">
         <!-- Contacts List Section -->
       <section id='view-contacts-list' data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
@@ -315,7 +315,7 @@
                   <span role="button" class="icon-add"></span>
                   <b>Add new address</b>
                 </button>
-                
+
                 <fieldset>
                   <legend>Comments</legend>
                     <div id='contacts-form-notes'>
@@ -345,7 +345,7 @@
       <!-- Tag selection -->
       <section id="view-select-tag" data-mirror="mirror-contact-tags" class="view view-select-tag">
         <div class="view-inner">
-          
+
            <header role="toolbar" class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back">back</span></button>
             <menu role="menu" id='contact-form-actions' >
@@ -372,6 +372,6 @@
       <div id="mirror-contact-details" class="view view-right" style="background-image: -moz-element(#view-contact-details);"></div>
       <div id="current-jumper"></div>
     </div>
-    
+
   </body>
 </html>
