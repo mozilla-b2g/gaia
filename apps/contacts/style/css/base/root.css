@@ -70,13 +70,13 @@ abbr, acronym {
 }
 
 strong {
-  font-family: Open Sans Bold, Sans-serif;
-  font-weight: normal
+  font-family: Open Sans, Sans-serif;
+  font-weight: bold;
 }
 
 b {
-  font-family: Open Sans Semibold, Sans-serif;
-  font-weight: normal
+  font-family: Open Sans, Sans-serif;
+  font-weight: 600;
 }
 
 small {
@@ -195,7 +195,8 @@ textarea {
 }
 
 input[type="text"], textarea {
-  font: 1.3rem/4rem Open Sans Semibold, Sans-serif;
+  font: 1.3rem/4rem Open Sans, Sans-serif;
+  font-weight: 600;
 }
 
 input[type="text"]:focus, textarea:focus {

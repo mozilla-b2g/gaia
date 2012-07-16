@@ -124,7 +124,8 @@
 .selection-list > li {
   background: #fff;
   border-bottom: solid 1px #c8c8c8;
-  font: 1.4rem/2.6em Open Sans Semibold, Sans-serif;
+  font: 1.4rem/2.6em Open Sans, Sans-serif;
+  font-weight: 600;
 }
 
 .selection-list > li:last-child {

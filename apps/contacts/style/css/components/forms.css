@@ -1,7 +1,8 @@
 
 /* TEXTFIELD: we use a classname to avoid redefine with type=mail, type=number, type=text, etc...; */
 .textfield {
-  font: 1.3rem/4rem Open Sans Semibold, Sans-serif;
+  font: 1.3rem/4rem Open Sans, Sans-serif;
+  font-weight: 600;
   border-radius: 0.3rem;
   border: solid 1px #c8c8c8;
   width: 100%;

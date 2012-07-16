@@ -89,7 +89,8 @@
   overflow: hidden;
 }
 .view-header h1 em {
-  font: 1.5rem/1em Open Sans Bold, Sans-serif;
+  font: 1.5rem/1em Open Sans, Sans-serif;
+  font-weight: bold;
 }
 
 .view-header form {
@@ -187,7 +188,8 @@ overflow: visible;
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 1.4rem/1.1em Open Sans Semibold, Sans-serif;  
+  font: 1.4rem/1.1em Open Sans, Sans-serif; 
+  font-weight: 600;
   color: #fff;
 }
 
@@ -288,7 +290,8 @@ overflow: visible;
 #current-jumper {
   width: 10.5rem;
   background: rgba(0, 0, 0, 0.7);
-  font: 6rem/10.5rem Open Sans Light, Sans-serif;
+  font: 6rem/10.5rem Open Sans, Sans-serif;
+  font-weight: light;
   color: #fff;
   text-align: center;
 }

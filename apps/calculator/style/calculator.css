@@ -9,13 +9,15 @@ body, html {
 
 body {
   color: white;
-  font-family: 'Open Sans Semibold', sans-serif;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
   font-size: 2.5mozmm;
   background: url("images/home-texture.png") repeat scroll 2% 50% #666666;
 }
 
 input {
-  font-family: 'Open Sans Semibold', sans-serif;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
 }
 
 #calc-wrapper {
