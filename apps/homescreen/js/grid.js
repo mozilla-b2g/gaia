@@ -273,19 +273,17 @@ const GridManager = (function() {
   }
 
   function getFirstPageWithEmptySpace() {
-    var index = 0;
-    var total = pageHelper.total();
-
     var maxPerPage = pageHelper.getMaxPerPage();
-    while (index < total) {
-      var page = pages[index];
-      if (page.getNumApps() < maxPerPage) {
-        break;
+
+    var pagesCount = pageHelper.total();
+    for (var i = 1; i < pagesCount; i++) {
+      if (pages[i].getNumApps() < maxPerPage) {
+        return i;
       }
-      index++;
     }
 
-    return index;
+    // Do we need to create a new page ourself?
+    return pagesCount;
   }
 
   function removeEmptyPages() {
