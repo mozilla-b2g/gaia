@@ -18,8 +18,8 @@ html, body {
   width: 100%;
   padding: 0;
   margin: 0;
-  overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important; 
   font-family: 'Open Sans', sans-serif;
 }
 
@@ -260,7 +260,7 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 #thread-list-container .name {
-  font-family: 'System Sans';
+  font-family: 'Open Sans';
   font-size: -moz-calc(8 * 0.226rem);
   color: #000000;
   overflow: hidden;
@@ -270,7 +270,7 @@ a.unread .unread-mark .icon-unread-mark {
 
 
 #thread-list-container .msg {
-  font-family: 'System Sans';
+  font-family: 'Open Sans';
   font-size: -moz-calc(6 * 0.226rem);
   color: #5B5B5B;
   text-shadow: 0 0.1rem 0 #ddd;
@@ -289,7 +289,8 @@ a.unread .unread-mark .icon-unread-mark {
 
 
 #thread-list-container .time {
-  font-family: 'System Sans Semibold';
+  font-family: 'Open Sans';
+  font-weight: 600;
   font-size: -moz-calc(6 * 0.226rem);
   font-weight: 600;
   color: #5B5B5B;
@@ -415,8 +416,9 @@ a.unread .unread-mark .icon-unread-mark {
   word-wrap: break-word;
 }
 
-#view-list > div .time {
+#messages-container > div .time {
   font-family: 'Open Sans';
+  font-weight: 600;
   font-size: -moz-calc(6 * 0.226rem);
   font-weight: 600;
   color: #5B5B5B;
@@ -504,7 +506,8 @@ a.unread .unread-mark .icon-unread-mark {
     border: 1px solid rgba(0,0,0,.3);
   box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
   font-size: -moz-calc(7 * 0.226rem);
-  font-family: 'System Sans';
+  font-family: 'Open Sans';
+
 }
 
 #send-message {
@@ -522,4 +525,5 @@ a.unread .unread-mark .icon-unread-mark {
   font-size: -moz-calc(6 * 0.226rem);
   color: #ff4e00;
   text-transform: uppercase;
+  font-family: 'Open Sans';
 }

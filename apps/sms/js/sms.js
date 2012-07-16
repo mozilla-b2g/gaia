@@ -55,8 +55,9 @@ var MessageManager = {
             if(mainWrapper.classList.contains('edit')){
               mainWrapper.classList.remove('edit');
             }else if(threadMessages.classList.contains('new')){
-              threadMessages.classList.remove('new');
+              
               MessageManager.slide();
+              threadMessages.classList.remove('new');
               
             }else{
               MessageManager.slide();
@@ -75,12 +76,15 @@ var MessageManager = {
               }
               else if(threadMessages.classList.contains('new')){
                 threadMessages.classList.remove('new');
-                ThreadUI.title.innerHTML = num;
+                // ThreadUI.title.innerHTML = num;
+                alert("VENGO DE NEW DE HABER ENVIADO UN SMS");
+                var filter = this.createFilter(num);
+                this.getMessages(ThreadUI.renderMessages, filter);
               }
               else{
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages, filter);
-                
+                MessageManager.slide();
                   // mainWrapper.classList.toggle('to-left');
                 
                 
@@ -123,13 +127,13 @@ var MessageManager = {
         messages.push(cursor.message);
         cursor.continue();
       } else {
-        //TODO: Render the correct message data when pendingDB is ready.
+        // //TODO: Render the correct message data when pendingDB is ready.
         if (!PendingMsgManager.dbReady) {
           callback(messages);
           return;
         }
         var filterNum = filter ? filter.numbers[0] : null;
-        //TODO: Refine the pending message append with non-blocking method.
+        // //TODO: Refine the pending message append with non-blocking method.
         PendingMsgManager.getMsgDB(filterNum, function msgCb(pendingMsgs) {
           if (!pendingMsgs) {
             return;
@@ -141,6 +145,8 @@ var MessageManager = {
           });
           callback(messages);
         });
+
+        // callback(messages);
       }
     };
 
@@ -229,6 +235,7 @@ var ThreadListUI = {
   },
 
   renderThreads: function thlui_renderThreads(messages) {
+    alert('Threads');
     ThreadListUI.view.innerHTML = '';
     var threadIds = [], headerIndex;
     for (var i = 0; i < messages.length; i++) {
@@ -348,7 +355,7 @@ var ThreadUI = {
 
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
 
-    this.pickButton.addEventListener('click', this.pickContact.bind(this));
+    // this.pickButton.addEventListener('click', this.pickContact.bind(this));
 
 
     // var windowEvents = ['resize', 'keyup', 'transitionend'];
@@ -418,7 +425,7 @@ var ThreadUI = {
     messages.forEach(ThreadUI.appendMessage);
 
     // ****
-    MessageManager.slide();
+    
     
   },
   appendMessage: function thui_appendMessage(message) {
@@ -524,6 +531,7 @@ var ThreadUI = {
       var self = this;
       // Save the message into pendind DB before send.
       PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+        alert('stored');
         if (!msg) {
           // TODO: We need to handle the pending message save failed.
           console.log('Message app - pending message save failed!');
@@ -536,40 +544,40 @@ var ThreadUI = {
         } else {
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
-        MessageManager.getMessages(ThreadListUI.renderThreads);
+        // MessageManager.getMessages(ThreadListUI.renderThreads);
 
       });
 
-      MessageManager.send(num, text, function onsent(msg) {
-        if (!msg) {
-          var resendConfirmStr = _('resendConfirmDialogMsg');
-          var result = confirm(resendConfirmStr);
-          if (result) {
-            // Remove the message from pending message DB before resend.
-            PendingMsgManager.deleteFromMsgDB(message, function save(msg) {
-              if (!msg) {
-                //TODO: Handle message delete failed in pending DB.
-                return;
-              }
-              var filter = MessageManager.createFilter(num);
-              MessageManager.getMessages(ThreadUI.renderMessages, filter, true);
-            });
-            window.setTimeout(self.sendMessage.bind(self), 500);
-            return;
-          }
-        } else {
-          // Remove the message from pending message DB since it could be sent
-          // successfully.
-          PendingMsgManager.deleteFromMsgDB(message, function onsave(msg) {
-            if (!msg) {
-              //TODO: Handle message delete failed in pending DB.
-            }
-          });
-          // TODO: We might need to update the sent message's actual timestamp.
-        }
-        // Clean Fields
-        ThreadUI.cleanFields();
-      });
+      // MessageManager.send(num, text, function onsent(msg) {
+      //   if (!msg) {
+      //     var resendConfirmStr = _('resendConfirmDialogMsg');
+      //     var result = confirm(resendConfirmStr);
+      //     if (result) {
+      //       // Remove the message from pending message DB before resend.
+      //       PendingMsgManager.deleteFromMsgDB(message, function save(msg) {
+      //         if (!msg) {
+      //           //TODO: Handle message delete failed in pending DB.
+      //           return;
+      //         }
+      //         var filter = MessageManager.createFilter(num);
+      //         MessageManager.getMessages(ThreadUI.renderMessages, filter, true);
+      //       });
+      //       window.setTimeout(self.sendMessage.bind(self), 500);
+      //       return;
+      //     }
+      //   } else {
+      //     // Remove the message from pending message DB since it could be sent
+      //     // successfully.
+      //     PendingMsgManager.deleteFromMsgDB(message, function onsave(msg) {
+      //       if (!msg) {
+      //         //TODO: Handle message delete failed in pending DB.
+      //       }
+      //     });
+      //     // TODO: We might need to update the sent message's actual timestamp.
+      //   }
+      //   // Clean Fields
+      //   ThreadUI.cleanFields();
+      // });
     }
   },
 

@@ -47,7 +47,7 @@
 
 .view-header h1 {
   color: white;
-  font: 2.2rem/4.8rem System Sans, Sans-serif;
+  font: 2.2rem/4.8rem 'Open Sans', Sans-serif;
   text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -60,7 +60,7 @@
 .view-header .tel {
   display:none;
   color: black;
-  font: 2.2rem/4.8rem System Sans, Sans-serif;
+  font: 2.2rem/4.8rem 'Open Sans', Sans-serif;
   text-align: left;
   
   display: block;
@@ -115,7 +115,8 @@
   float: left; 
   background: none;
   padding: 0 1.75rem;
-  font: 1.4rem/1.1em System Sans Semibold, Sans-serif;
+  font: 1.4rem/1.1em 'Open Sans', Sans-serif;
+  font-weight: 600;
   color: #fff;
 }
 .view-header menu[type="toolbar"] button:first-letter {
