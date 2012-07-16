@@ -285,11 +285,18 @@ var ThreadUI = {
     delete this.sendButton;
     return this.sendButton = document.getElementById('view-msg-send');
   },
+
+  get pickButton() {
+    delete this.pickButton;
+    return this.pickButton = document.getElementById('view-add-button');
+  },
+
   init: function thui_init() {
     this.delNumList = [];
     this.headerIndex = 0;
 
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
+    this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.view.addEventListener('click', this);
 
@@ -474,8 +481,29 @@ var ThreadUI = {
 
       });
     }
+  },
 
-
+  pickContact: function thui_pickContact() {
+    try {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/contact'
+        }
+      });
+      activity.onsuccess = function() {
+        var number = this.result.number;
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          if (number) {
+            var app = evt.target.result;
+            app.launch();
+            window.location.hash = '#num=' + number;
+          }
+        };
+      }
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   }
 };
 
