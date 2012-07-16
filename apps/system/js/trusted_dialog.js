@@ -63,7 +63,7 @@ var TrustedDialog = (function() {
   };
 
   window.addEventListener('mozChromeEvent', function(e) {
-    console.log("mozChromeEvent.received: " + e.detail.type);
+    console.log('mozChromeEvent.received: ' + e.detail.type);
     switch (e.detail.type) {
       // Chrome asks Gaia to create a trusted iframe. Once it is created,
       // Gaia sends the iframe back to chrome so frame scripts can be loaded
