@@ -145,7 +145,6 @@ hr {
   background: url(gphx/bitmap/default/search/searchbar_1x35.png) repeat-x scroll left bottom transparent;
   position: absolute;
   width: -moz-calc(100% - 5.8rem);
-  margin: 0;
   padding: 0.5rem 2.5rem;
   height: 2.5rem;
   top: 0;
@@ -190,5 +189,5 @@ hr {
 }
 
 #view-contacts-list.searching .block-item {
-    border-bottom: 1px solid #DBDBDB;
+  border-bottom: 1px solid #DBDBDB;
 }
