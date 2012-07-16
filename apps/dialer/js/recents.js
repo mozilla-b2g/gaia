@@ -76,64 +76,59 @@ var Recents = {
     var primaryInfo;
     var secondaryInfo;
     var callTypeIcon;
-    if (action == 'all') {
-      for (var i = 0; i < noMissedCallsLength; i++) {
-          noMissedCallsItems[i].classList.remove('hide');
+    var i;
+    var allCalls = (action == 'all');
+    if (allCalls) {
+      for (i = 0; i < noMissedCallsLength; i++) {
+        noMissedCallsItems[i].classList.remove('hide');
       }
-      for (var i = 0; i < missedCallsLength; i++) {
-        missedCallItem = missedCallsItems[i];
-        if (missedCallItem.dataset.missedCalls) {
-          primaryInfo = missedCallItem.querySelector('.primary-info');
-          secondaryInfo = missedCallItem.querySelector('.secondary-info');
+    } else {
+      for (i = 0; i < noMissedCallsLength; i++) {
+        noMissedCallsItems[i].classList.add('hide');
+      }
+    }
+    for (i = 0; i < missedCallsLength; i++) {
+      missedCallItem = missedCallsItems[i];
+      if (missedCallItem.dataset.missedCalls) {
+        var iconClass;
+        primaryInfo = missedCallItem.querySelector('.primary-info');
+        secondaryInfo = missedCallItem.querySelector('.secondary-info');
+        callTypeIcon = missedCallItem.querySelector('.call-type-icon');
+        if (allCalls) {
           primaryInfo.textContent =
             missedCallItem.dataset.num + ' (' +
               missedCallItem.dataset.totalCalls + ')';
           secondaryInfo.textContent = missedCallItem.dataset.lastCallTime;
-          var iconClass;
           var callType = missedCallItem.dataset.type;
+          secondaryInfo.classList.remove('missed-call-font');
           if (callType.indexOf('dialing') != -1) {
             iconClass = 'icon-outgoing';
-            secondaryInfo.classList.remove('missed-call-font');
           } else if (callType.indexOf('incoming') != -1) {
             if (callType.indexOf('connected') == -1) {
               iconClass = 'icon-missed';
               secondaryInfo.classList.add('missed-call-font');
             } else {
               iconClass = 'icon-incoming';
-              secondaryInfo.classList.remove('missed-call-font');
             }
           }
-          callTypeIcon = missedCallItem.querySelector('.call-type-icon');
-          callTypeIcon.classList.remove('icon-outgoing');
-          callTypeIcon.classList.remove('icon-incoming');
-          callTypeIcon.classList.remove('icon-missed');
-          callTypeIcon.classList.add(iconClass);
-        }
-      }
-    } else {
-      var i;
-      for (i = 0; i < noMissedCallsLength; i++) {
-        noMissedCallsItems[i].classList.add('hide');
-      }
-      for (i = 0; i < missedCallsLength; i++) {
-        missedCallItem = missedCallsItems[i];
-        if (missedCallItem.dataset.missedCalls) {
-          primaryInfo = missedCallItem.querySelector('.primary-info');
-          secondaryInfo = missedCallItem.querySelector('.secondary-info');
+        } else {
+          iconClass = 'icon-missed';
+          secondaryInfo.textContent = missedCallItem.dataset.lastMissedCallTime;
+          secondaryInfo.classList.add('missed-call-font');
           if (missedCallItem.dataset.missedCalls > 1) {
             primaryInfo.textContent =
               missedCallItem.dataset.num + ' (' +
                 missedCallItem.dataset.missedCalls + ')';
+            secondaryInfo.textContent =
+              missedCallItem.dataset.lastMissedCallTime;
           } else {
             primaryInfo.textContent = missedCallItem.dataset.num;
           }
-          secondaryInfo.textContent = missedCallItem.dataset.lastMissedCallTime;
-          secondaryInfo.classList.add('missed-call-font');
-          callTypeIcon = missedCallItem.querySelector('.call-type-icon');
-          callTypeIcon.classList.remove('icon-outgoing');
-          callTypeIcon.classList.remove('icon-incoming');
-          callTypeIcon.classList.add('icon-missed');
         }
+        callTypeIcon.classList.remove('icon-outgoing');
+        callTypeIcon.classList.remove('icon-incoming');
+        callTypeIcon.classList.remove('icon-missed');
+        callTypeIcon.classList.add(iconClass);
       }
     }
     this.allFilter.classList.toggle('selected');
