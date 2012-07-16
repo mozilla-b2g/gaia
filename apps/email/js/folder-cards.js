@@ -77,16 +77,9 @@ AccountPickerCard.prototype = {
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'account-picker',
-  modes: {
-    default: {
-    },
-  },
-  constructor: AccountPickerCard
-});
+Cards.defineCardWithDefaultMode('account-picker', {}, AccountPickerCard);
 
 const FOLDER_DEPTH_CLASSES = [
     'fld-folder-depth0',
@@ -252,18 +245,19 @@ FolderPickerCard.prototype = {
    * graphical glitches.
    */
   die: function() {
-  },
+  }
 };
 Cards.defineCard({
   name: 'folder-picker',
   modes: {
     // Navigation mode acts like a tray
     navigation: {
-      tray: true,
+      tray: true
     },
     movetarget: {
-      tray: false,
-    },
+      tray: false
+    }
   },
   constructor: FolderPickerCard
 });
+

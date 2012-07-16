@@ -77,13 +77,7 @@ ComposeCard.prototype = {
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'compose',
-  modes: {
-    default: {
-    },
-  },
-  constructor: ComposeCard
-});
+Cards.defineCardWithDefaultMode('compose', {}, ComposeCard);
+
