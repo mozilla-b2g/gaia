@@ -39,7 +39,7 @@ const GridManager = (function() {
           // start to drag if needed.
           var e = document.createEvent('Event');
           e.initEvent('mousedown', true, true);
-          e.pageX = position.current.x;
+          e.pageX = currentEvent.x;
           homeContainer.dispatchEvent(e);
         }
         break;
@@ -48,7 +48,7 @@ const GridManager = (function() {
         evt.stopPropagation();
 
         currentEvent = getCoordinates(evt);
-        onTouchEnd(currentEvent.x - startEvent.x);
+        onTouchEnd(currentEvent.x - startEvent.x, evt.target);
         break;
 
       case 'resize':
@@ -64,7 +64,7 @@ const GridManager = (function() {
 
         document.body.dataset.mode = 'edit';
         if ('origin' in evt.target.dataset) {
-          DragDropManager.start(evt, status.iCoords);
+          DragDropManager.start(evt, startEvent);
         }
         break;
     }
@@ -86,16 +86,16 @@ const GridManager = (function() {
     return false;
   }
 
-  function onTouchEnd(deltaX) {
+  function onTouchEnd(deltaX, target) {
     releaseEvents();
     
     var callback = function() {
       delete document.body.dataset.transitioning;
     }
 
-    if (Math.asb(deltaX) > thresholdForPanning) {
+    if (Math.abs(deltaX) > thresholdForPanning) {
       var currentPage = pages.current;
-      var forward = dirCtrl.goesForward(difX);
+      var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.total - 1) {
         goToNextPage(callback);
       } else if (!forward && currentPage > 0) {
@@ -104,7 +104,7 @@ const GridManager = (function() {
         keepPosition(callback);
       }
     } else if (Math.abs(deltaX) < thresholdForTapping) {
-      pageHelper.getCurrent().tap(evt.target);
+      pageHelper.getCurrent().tap(target);
 
       // Sometime poor devices fire touchmove events when users are only
       // tapping
@@ -123,8 +123,8 @@ const GridManager = (function() {
     function limitRight(x) { return (x > limits.right); }
     var rtl = (document.documentElement.dir == 'rtl');
     return {
-      offsetPrev: rtl ? '100%' : '-100%',
-      offsetNext: rtl ? '-100%' : '100%',
+      offsetPrev: rtl ? 1 : -1,
+      offsetNext: rtl ? -1 : 1,
       limitPrev: rtl ? limitRight : limitLeft,
       limitNext: rtl ? limitLeft : limitRight,
       translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
@@ -157,11 +157,11 @@ const GridManager = (function() {
 
     var currentPage = pages.current;
     if (currentPage > 0) {
-      pageHelper.getPrevious().moveTo(dirCtrl.offsetPrev + deltaX);
+      pageHelper.getPrevious().moveTo(dirCtrl.offsetPrev * deltaX);
     }
 
     if (currentPage < pages.total - 1) {
-      pageHelper.getNext().moveTo(dirCtrl.offsetNext + deltaX);
+      pageHelper.getNext().moveTo(dirCtrl.offsetNext * deltaX);
     }
   }
 
@@ -170,9 +170,11 @@ const GridManager = (function() {
    * current page when the swipe is not enough for paginating
    */
   function keepPosition(callback) {
-    var deltaX = position.start.x - position.current.x;
+    var deltaX = startEvent.x - currentEvent.x;
     if (deltaX === 0) {
-      callback();
+      if (callback) {
+        callback();
+      }
       return;
     }
 
@@ -566,8 +568,8 @@ const GridManager = (function() {
       limits.left = container.offsetWidth * 0.05;
       limits.right = container.offsetWidth * 0.95;
 
-      container.addEventListener('mousedown', this, true);
-      container.addEventListener('resize', this, true);
+      container.addEventListener('mousedown', handleEvent, true);
+      container.addEventListener('resize', handleEvent, true);
 
       render(finish);
     },

@@ -264,7 +264,7 @@ Page.prototype = {
 
     style.MozTransform = 'translateX(0)';
 
-    if (callbak) {
+    if (callback) {
       container.addEventListener('transitionend', function tr_end(e) {
         container.removeEventListener('transitionend', tr_end);
         callback();
