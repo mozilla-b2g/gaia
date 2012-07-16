@@ -13,6 +13,7 @@
 
   function Db(name) {
     this.name = name;
+    this._stores = {};
 
     Calendar.Responder.call(this);
   }
@@ -26,14 +27,12 @@
      */
     connection: null,
 
-    get accounts() {
-      if (!this._accounts) {
-        this._accounts = new Calendar.Store.Account(
-          this
-        );
+    getStore: function(name) {
+      if (!(name in this._stores)) {
+        this._stores[name] = new Calendar.Store[name](this);
       }
 
-      return this._accounts;
+      return this._stores[name];
     },
 
     /**

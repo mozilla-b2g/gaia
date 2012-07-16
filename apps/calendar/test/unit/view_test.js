@@ -70,15 +70,21 @@ suite('view', function() {
   });
 
   test('#onactive', function() {
+
     var seen = 0;
+    var dispatched;
 
     assert.isFalse(subject.seen);
+    subject.dispatch = function() {
+      dispatched = arguments;
+    }
     subject.onfirstseen = function() {
       seen += 1;
     };
 
-    subject.onactive();
+    subject.onactive('foo');
     assert.isTrue(subject.seen);
+    assert.equal(dispatched[0], 'foo');
 
     assert.ok(el.classList.contains(subject.activeClass));
 

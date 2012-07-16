@@ -10,8 +10,6 @@
 
     selectors: {
       element: '#settings',
-      calendars: '#settings-calendars',
-      accounts: '#settings-accounts',
       outside: '#wrapper'
     },
 
@@ -43,16 +41,6 @@
         // when we switch out of the view this is a failsafe
         this._removeClickHandler();
       }
-    },
-
-    showCalendars: function() {
-      this.calendars.classList.add(this.activeClass);
-      this.accounts.classList.remove(this.activeClass);
-    },
-
-    showAccounts: function() {
-      this.calendars.classList.remove(this.activeClass);
-      this.accounts.classList.add(this.activeClass);
     },
 
     onactive: function() {

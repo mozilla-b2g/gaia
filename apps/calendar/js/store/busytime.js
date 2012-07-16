@@ -1,14 +1,14 @@
 (function(window) {
 
   function Busytime() {
-    Calendar.Responder.call(this);
+    Calendar.Store.Abstract.apply(this, arguments);
 
     this.ids = {};
     this.times = {};
   }
 
   var proto = Busytime.prototype = Object.create(
-    Calendar.Responder.prototype
+    Calendar.Store.Abstract.prototype
   );
 
   /**

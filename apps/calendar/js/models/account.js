@@ -70,7 +70,7 @@
       var type = this.providerType;
 
       if (!provider) {
-        this.provider = provider = new Calendar.Provider[type];
+        this.provider = provider = new Calendar.Provider[type]();
       }
 
       if (provider.useUrl) {
@@ -110,6 +110,10 @@
 
         callback(null, self);
       });
+    },
+
+    connect: function() {
+      this._setupProvider();
     },
 
     /**

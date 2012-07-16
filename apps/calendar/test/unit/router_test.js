@@ -1,45 +1,21 @@
 requireApp('calendar/test/unit/helper.js', function() {
+  requireSupport('fake_page.js');
+  requireSupport('mock_view.js');
   requireLib('router.js');
 });
 
 suite('router', function() {
 
   var subject;
-  var page = function() {
-    page.routes.push(Array.prototype.slice.call(arguments));
-  };
+  var page;
+  var View;
 
-  page.routes = [];
-
-  page.show = function(item) {
-    this.shown = item;
-  }
-
-  page.start = function() {
-    this.started = true;
-  }
-
-  page.stop = function() {
-    this.started = false;
-  }
-
-  function View() {
-    var self = this;
-
-    this.called = 1;
-    this.args = arguments;
-
-    this.onactive = function() {
-      self.active = true;
-    };
-
-    this.oninactive = function() {
-      self.active = false;
-    };
-  }
-
+  suiteSetup(function() {
+    View = Calendar.Test.MockView;
+  });
 
   setup(function() {
+    page = Calendar.Test.FakePage;
     subject = new Calendar.Router(page);
     page.routes.length = 0;
   });
@@ -49,59 +25,42 @@ suite('router', function() {
     assert.deepEqual(subject._activeObjects, [], 'should have active objects');
   });
 
-  suite('#_wrapObject', function() {
-    var view, calledNext, result;
+  suite('#mangeObject', function() {
 
-    function callResult(arg) {
-      result(arg, function() {
-        calledNext = true;
-      });
-    }
+    var object;
 
     setup(function() {
-      calledNext = false;
-      view = new View();
-      result = subject._wrapObject(view);
-      callResult({});
+      object = {};
     });
 
-    test('creating function', function() {
-      assert.deepEqual(subject._activeObjects, [
-        view
-      ]);
+    test('with onactive', function() {
+      var calledWith;
+      object.onactive = function() {
+        calledWith = arguments;
+        object.onactiveCalled = true;
+      }
+      subject.mangeObject(object, 'foo');
+      assert.ok(object.onactiveCalled);
+      assert.ok(object.__routerActive);
+      assert.equal(subject._activeObjects[0], object);
 
-      assert.isTrue(view.active);
-      assert.isTrue(view.__routerActive);
+      assert.equal(calledWith[0], 'foo');
+    });
+
+    test('without onactive', function() {
+      subject.mangeObject(object);
+      assert.ok(!subject.__routerActive);
+      assert.equal(subject._activeObjects[0], object);
     });
 
   });
 
-  suite('#modifer', function() {
+  test('#modifer', function() {
     function uniq() {};
 
-    test('with objects', function() {
-      var calledWith;
-
-      subject._wrapObject = function() {
-        calledWith = arguments;
-        return uniq;
-      }
-
-      var view = new View();
-
-      subject.modifier('/foo', view);
-      assert.deepEqual(calledWith, [view]);
-
-      assert.equal(page.routes[0][0], '/foo');
-      assert.equal(page.routes[0][1], uniq);
-    });
-
-    test('without objects', function() {
-      subject.modifier('/foo', uniq);
-
-      assert.equal(page.routes[0][0], '/foo');
-      assert.equal(page.routes[0][1], uniq);
-    });
+    subject.modifier('/foo', uniq);
+    assert.equal(page.routes[0][0], '/foo');
+    assert.equal(page.routes[0][1], uniq);
   });
 
 
@@ -113,25 +72,6 @@ suite('router', function() {
       assert.equal(page.routes[0][1], subject._clearObjects);
       assert.equal(page.routes[0][3], subject._noop);
     }
-
-    test('with objects', function() {
-      var calledWith;
-
-      subject._wrapObject = function() {
-        calledWith = arguments;
-        return uniq;
-      }
-
-      var view = new View();
-
-      subject.state('/foo', view);
-      hasClear();
-
-      assert.equal(page.routes[0][0], '/foo');
-      assert.equal(page.routes[0][2], uniq);
-
-      assert.deepEqual(calledWith, [view]);
-    });
 
     test('without objects', function() {
       subject.state('/foo', uniq);

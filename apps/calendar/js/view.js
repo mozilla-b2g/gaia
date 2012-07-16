@@ -82,6 +82,10 @@
         this.onfirstseen();
       }
 
+      if ('dispatch' in this) {
+        this.dispatch.apply(this, arguments);
+      }
+
       this.seen = true;
       if (this.element) {
         this.element.classList.add(this.activeClass);

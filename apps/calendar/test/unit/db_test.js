@@ -1,8 +1,5 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('responder.js');
   requireLib('db.js');
-  requireLib('store/abstract.js');
-  requireLib('store/account.js');
 });
 
 suite('db', function() {
@@ -19,11 +16,12 @@ suite('db', function() {
     });
   });
 
-  test('accounts', function() {
-    var result = subject.accounts;
-
+  test('#getStore', function() {
+    var result = subject.getStore('Account');
     assert.instanceOf(result, Calendar.Store.Account);
+
     assert.equal(result.db, subject);
+    assert.equal(subject._stores['Account'], result);
   });
 
   test('initialization', function() {
@@ -33,6 +31,7 @@ suite('db', function() {
     assert.ok(subject.store);
 
     assert.instanceOf(subject, Calendar.Responder);
+    assert.deepEqual(subject._stores, {});
     assert.isTrue(Object.isFrozen(subject.store));
   });
 

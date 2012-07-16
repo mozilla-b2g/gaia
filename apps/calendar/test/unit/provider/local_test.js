@@ -38,7 +38,7 @@ suite('provider/local', function() {
 
     subject.findCalendars(function(err, list) {
       done(function() {
-        var first = list[0];
+        var first = list['local-first'];
         assert.instanceOf(first, Calendar.Provider.Calendar.Local);
         assert.equal(first.provider, subject);
         //XXX This should be localized

@@ -1,18 +1,19 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('responder.js');
+  testSupport.calendar.requireProvider();
+
   requireLib('db.js');
   requireLib('models/account.js');
   requireLib('store/abstract.js');
   requireLib('store/account.js');
 });
 
-suite('store/accounts', function() {
+suite('store/account', function() {
 
   var subject, db;
 
   setup(function(done) {
     db = testSupport.calendar.db();
-    subject = db.accounts;
+    subject = db.getStore('Account');
 
     db.open(function(err) {
       assert.ok(!err);

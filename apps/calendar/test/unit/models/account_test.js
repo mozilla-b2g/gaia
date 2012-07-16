@@ -1,6 +1,9 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireApp('calendar/js/models/account.js');
-  requireApp('calendar/js/provider/local.js');
+  requireLib('provider/calendar/abstract.js');
+  requireLib('provider/calendar/local.js');
+  requireLib('provider/local.js');
+
+  requireLib('models/account.js');
 });
 
 suite('account', function() {
@@ -16,6 +19,13 @@ suite('account', function() {
 
   test('initialization', function() {
     assert.equal(subject.user, 'foo');
+  });
+
+  test('#connect', function(done) {
+    subject._setupProvider = function() {
+      done();
+    }
+    subject.connect();
   });
 
   suite('#_setupProvider', function() {
@@ -58,7 +68,7 @@ suite('account', function() {
   });
 
 
-  suite('#setup', function() {
+  suite('#_setupProvider', function() {
     setup(function() {
       subject._setupProvider();
       provider = subject.provider;

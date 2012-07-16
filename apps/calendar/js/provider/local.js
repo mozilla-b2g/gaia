@@ -57,8 +57,6 @@
       return !!this._connection;
     },
 
-    calendarClass: Calendar.Provider.Calendar.Local,
-
     /**
      * Attempts to find calendars for
      * provider.
@@ -70,13 +68,16 @@
      */
     findCalendars: function(callback) {
       //XXX: Make async
-      var cal = new this.calendarClass(this, {
+      var list = {};
+      var calendarClass = Calendar.Provider.Calendar.Local;
+      var cal = new calendarClass(this, {
         // XXX localize this name somewhere
         name: 'your_device',
         id: LOCAL_CALENDAR_ID
       });
 
-      callback(null, [cal]);
+      list[LOCAL_CALENDAR_ID] = cal;
+      callback(null, list);
     }
 
   };

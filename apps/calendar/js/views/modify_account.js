@@ -85,7 +85,7 @@
       this._persistForm(function(err) {
         list.remove(self.progressClass);
         if (!err) {
-          self.controller.go(self.completeUrl);
+          self.app.go(self.completeUrl);
         }
       });
     },
@@ -107,7 +107,7 @@
         }
 
         // XXX: Handle Errors
-        var store = self.controller.accounts;
+        var store = self.app.store('Account');
         store.persist(self.model, function(err, success) {
           // unblock user
           if (err) {
@@ -153,6 +153,11 @@
       this.form.reset();
 
       this.saveButton.removeEventListener('click', this.save);
+    },
+
+    oninactive: function() {
+      Calendar.View.oninactive.apply(this, arguments);
+      this.destroy();
     }
 
   };

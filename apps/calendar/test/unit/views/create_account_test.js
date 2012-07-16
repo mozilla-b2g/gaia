@@ -1,5 +1,4 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireCalendarController();
   requireApp('calendar/js/templates/account.js');
   requireApp('calendar/js/presets.js');
   requireApp('calendar/js/views/create_account.js');
@@ -8,7 +7,6 @@ requireApp('calendar/test/unit/helper.js', function() {
 suite('views/create_account', function() {
 
   var subject;
-  var controller;
   var template;
 
 
@@ -33,17 +31,9 @@ suite('views/create_account', function() {
     ].join('');
 
     document.body.appendChild(div);
-    controller = createController();
 
     template = Calendar.Templates.Account;
-
-    subject = new Calendar.Views.CreateAccount({
-      controller: controller
-    });
-  });
-
-  test('initialization', function() {
-    assert.equal(subject.controller, controller);
+    subject = new Calendar.Views.CreateAccount();
   });
 
   test('#element', function() {

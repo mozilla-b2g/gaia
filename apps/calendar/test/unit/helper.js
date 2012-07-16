@@ -1,19 +1,4 @@
 (function(window) {
-  requireLib('calendar.js');
-
-  function requireCalendarController() {
-    requireLib('set.js');
-    requireLib('batch.js');
-    requireLib('template.js');
-    requireLib('format.js');
-    requireLib('responder.js');
-    requireLib('store/busytime.js');
-    requireLib('store/event.js');
-    requireLib('store/account.js');
-    requireLib('calc.js');
-    requireLib('controller.js');
-    requireLib('view.js');
-  }
 
   if (typeof(testSupport) === 'undefined') {
     testSupport = {};
@@ -23,8 +8,23 @@
 
   testSupport.calendar = {
 
+    requireProvider: function() {
+      requireLib('provider/calendar/abstract.js');
+      requireLib('provider/calendar/local.js');
+      requireLib('provider/local.js');
+    },
+
     db: function() {
       return new Calendar.Db('b2g-test-calendar');
+    },
+
+    app: function() {
+      Calendar.App.configure(
+        this.db(),
+        new Calendar.Router(Calendar.Test.FakePage)
+      );
+
+      return Calendar.App;
     },
 
     checkSet: function(set, arr) {
@@ -96,8 +96,6 @@
     return requireApp.apply(this, args);
   }
 
-  window.requireCalendarController = requireCalendarController;
-  window.createController = createController;
   window.testSupport = testSupport;
   window.requireLib = requireLib;
   window.requireSupport = requireSupport;
@@ -126,6 +124,32 @@
       throw new Error(msg);
     }
   }
+
+  /* require most of the coupled / util objects */
+
+  requireLib('calendar.js');
+  requireLib('set.js');
+  requireLib('batch.js');
+  requireLib('template.js');
+  requireLib('responder.js');
+  requireLib('provider/calendar/abstract.js');
+  requireLib('provider/calendar/local.js');
+  requireLib('provider/local.js');
+  requireLib('store/abstract.js');
+  requireLib('store/account.js');
+  requireLib('store/busytime.js');
+  requireLib('store/calendar.js');
+  requireLib('store/event.js');
+  requireLib('view.js');
+  requireLib('calc.js');
+  requireLib('controller.js');
+  requireLib('router.js');
+  requireLib('db.js');
+  requireLib('app.js');
+
+  /* test helpers */
+
+  requireSupport('fake_page.js');
 
 }(this));
 

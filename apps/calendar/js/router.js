@@ -17,24 +17,25 @@
   Router.prototype = {
 
     /**
-     * Creates a view callback
+     * Tells router to manage
+     * the object. This will call
+     * the 'onactive' method if present on
+     * the object.
      *
-     * @param {Object} object object to wrap as a function.
+     * When the route is changed all 'manged'
+     * object will be cleared and 'oninactive'
+     * will be fired.
      */
-    _wrapObject: function(object) {
-      var self = this;
+    mangeObject: function(object) {
+      var args = Array.prototype.slice.call(arguments);
+      var object = args.shift();
 
-      return function viewResponder(ctx, next) {
-        self._activeObjects.push(object);
-
-        if ('onactive' in object) {
-          if (!object.__routerActive) {
-            object.onactive();
-            object.__routerActive = true;
-          }
+      this._activeObjects.push(object);
+      if ('onactive' in object) {
+        if (!object.__routerActive) {
+          object.onactive.apply(object, args);
+          object.__routerActive = true;
         }
-
-        next();
       }
     },
 
@@ -61,7 +62,12 @@
       next();
     },
 
-    //needed so next works correctly
+    // needed so next works correctly
+    // the idea is the last hook
+    // will not call next but we don't
+    // manage that here so we need to
+    // have an extra function which will now
+    // call next.
     _noop: function() {},
 
     _route: function() {
@@ -73,13 +79,6 @@
       var len = args.length;
       var i = 0;
       var item;
-
-      for (; i < len; i++) {
-        item = args[i];
-        if (typeof(item) === 'object') {
-          args[i] = this._wrapObject(item);
-        }
-      }
 
       this.page.apply(this.page, args);
     },

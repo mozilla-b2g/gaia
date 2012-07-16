@@ -14,6 +14,8 @@
 
     this._onBusyAdd = this._onBusyAdd.bind(this);
     this._onBusyRemove = this._onBusyRemove.bind(this);
+
+    this.controller = this.app.timeController;
   }
 
   Child.prototype = {
@@ -123,7 +125,7 @@
     },
 
     _initEvents: function() {
-      var busy = this.controller.busytime;
+      var busy = this.app.store('Busytime');
 
       //TODO: Its a known issue that changes in days in different
       //      months for this view will not be changed.
@@ -132,7 +134,7 @@
     },
 
     _destroyEvents: function() {
-      var busy = this.controller.busytime;
+      var busy = this.app.store('Busytime');
 
       busy.removeEventListener(
         'add ' + this.monthId, this._onBusyAdd
@@ -277,7 +279,7 @@
           id = Calendar.Calc.getDayId(date),
           state,
           units,
-          busytimes = this.controller.busytime;
+          busytimes = this.app.store('Busytime');
 
       hours = busytimes.getHours(date);
       units = this._getBusyUnits(hours);

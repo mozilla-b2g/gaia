@@ -1,5 +1,4 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireCalendarController();
   requireApp('calendar/js/templates/account.js');
   requireApp('calendar/js/presets.js');
   requireApp('calendar/js/provider/local.js');
@@ -10,9 +9,8 @@ requireApp('calendar/test/unit/helper.js', function() {
 suite('views/modify_account', function() {
 
   var subject;
-  var controller;
   var account;
-
+  var app;
 
   function triggerEvent(element, eventName) {
     var event = document.createEvent('HTMLEvents');
@@ -54,7 +52,8 @@ suite('views/modify_account', function() {
     ].join('');
 
     document.body.appendChild(div);
-    controller = createController();
+
+    app = testSupport.calendar.app();
 
     account = new Calendar.Models.Account({
       providerType: 'Local',
@@ -62,7 +61,7 @@ suite('views/modify_account', function() {
     });
 
     subject = new Calendar.Views.ModifyAccount({
-      controller: controller,
+      app: app,
       model: account
     });
   });
@@ -71,7 +70,6 @@ suite('views/modify_account', function() {
 
     test('when given correct fields', function() {
       var subject = new Calendar.Views.ModifyAccount({
-        controller: controller,
         model: account,
         type: 'new'
       });
@@ -124,7 +122,8 @@ suite('views/modify_account', function() {
       calledSetup = null;
       calledPersist = null;
 
-      controller.accounts = store;
+      // mock out account store
+      app.db._stores.Account = store;
 
       // mock out setup
       // and save arguments
@@ -166,9 +165,6 @@ suite('views/modify_account', function() {
     setup(function() {
       calledWith = null;
       subject.completeUrl = '/settings';
-      controller.go = function() {
-        calledWith = arguments;
-      }
     });
 
     test('on success', function(done) {
@@ -176,7 +172,7 @@ suite('views/modify_account', function() {
         setTimeout(function() {
           callback(null, true);
           done(function() {
-            assert.equal(calledWith[0], subject.completeUrl);
+            assert.equal(Calendar.Test.FakePage.shown, subject.completeUrl);
             assert.isFalse(hasClass(subject.progressClass));
           });
         }, 0);

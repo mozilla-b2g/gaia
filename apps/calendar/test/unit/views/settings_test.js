@@ -2,15 +2,15 @@ requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/js/ext/gesture_detector.js');
-  requireCalendarController();
   requireApp('calendar/js/views/settings.js');
 });
 
 suite('views/settings', function() {
 
-  var subject,
-    controller,
-    busytimes;
+  var subject;
+  var app;
+  var controller;
+  var busytimes;
 
 
   function triggerEvent(element, eventName) {
@@ -37,16 +37,17 @@ suite('views/settings', function() {
 
     document.body.appendChild(div);
 
-    controller = createController();
+    app = testSupport.calendar.app();
+    controller = app.timeController;
 
     subject = new Calendar.Views.Settings({
-      controller: controller
+      app: app
     });
   });
 
   test('initialization', function() {
     assert.instanceOf(subject, Calendar.View);
-    assert.equal(subject.controller, controller);
+    assert.equal(subject.app, app);
     assert.equal(
       subject.element, document.querySelector('#settings')
     );

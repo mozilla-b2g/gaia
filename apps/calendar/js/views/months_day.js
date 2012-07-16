@@ -3,6 +3,9 @@
 
   function Day(options) {
     Calendar.View.apply(this, arguments);
+
+    this.controller = this.app.timeController;
+
     this._initEvents();
   }
 
@@ -86,7 +89,7 @@
     },
 
     _renderDay: function(date) {
-      var events = this.controller.eventList,
+      var events = this.app.store('Event'),
           eventItems = events.eventsForDay(date),
           self = this,
           eventHtml = [],

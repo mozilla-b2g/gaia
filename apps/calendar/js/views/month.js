@@ -8,6 +8,7 @@
   function Month(options) {
     Calendar.View.apply(this, arguments);
 
+    this.controller = this.app.timeController;
     this.children = {};
     this._initEvents();
   };
@@ -230,8 +231,8 @@
       }
 
       this.currentChild = new Calendar.Views.MonthChild({
-        month: date,
-        controller: this.controller
+        app: this.app,
+        month: date
       });
 
       this.currentChild.attach(display);
