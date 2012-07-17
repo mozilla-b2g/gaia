@@ -103,7 +103,8 @@
       this.model.setup(function(err, success) {
         if (err) {
           self._displayError(err);
-          return callback(err);
+          callback(err);
+          return;
         }
 
         // XXX: Handle Errors
@@ -112,7 +113,8 @@
           // unblock user
           if (err) {
             self._displayError(err);
-            return callback(err);
+            callback(err);
+            return;
           }
           callback(null, success);
         });
@@ -140,7 +142,8 @@
       var self = this;
       store.get(id, function(err, model) {
         if (err) {
-          return callback(err);
+          callback(err);
+          return;
         }
         callback(null, model);
       });

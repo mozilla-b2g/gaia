@@ -32,7 +32,8 @@
       var result;
 
       if (id in this._accounts) {
-        return callback(null, this._accounts[id]);
+        callback(null, this._accounts[id]);
+        return;
       }
 
       var self = this;

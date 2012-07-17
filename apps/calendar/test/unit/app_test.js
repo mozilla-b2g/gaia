@@ -96,11 +96,41 @@ suite('app', function() {
     assert.equal(result, second);
   });
 
+  test('#modifier', function() {
+    var uniq = function() {};
+    subject.modifier('/foo', 'Mock');
+
+    var cb = subject._routeViewFn['Mock'];
+    assert.ok(cb);
+
+    var route = page.routes[0];
+    assert.equal(route[0], '/foo');
+    assert.equal(route[1], cb, 'should set mock view');
+  });
+
   suite('#route', function() {
+
+    test('object', function(done) {
+      var mock = new Calendar.Views.Mock();
+
+      subject.state('/obj', mock);
+
+      var route = page.routes[0];
+      var cb = route[2];
+      var ctx = {
+        params: { hit: true}
+      };
+
+      cb(ctx, function() {
+        done(function() {
+          assert.equal(mock.activeWith[0], ctx);
+        });
+      });
+    });
 
     test('normal', function() {
       var uniq = function() {};
-      subject.route('/foo', 'Mock', 'Mock', uniq);
+      subject.state('/foo', 'Mock', 'Mock', uniq);
 
       var cb = subject._routeViewFn['Mock'];
       assert.ok(cb);
@@ -111,19 +141,6 @@ suite('app', function() {
       assert.equal(route[3], cb, 'should set second mock view');
       assert.equal(route[4], uniq, 'should add normal fn');
     });
-
-    test('(option) clear: true', function() {
-      var uniq = function() {};
-      subject.route('/foo', 'Mock', { clear: false });
-
-      var cb = subject._routeViewFn['Mock'];
-      assert.ok(cb);
-
-      var route = page.routes[0];
-      assert.equal(route[0], '/foo');
-      assert.equal(route[1], cb, 'should set mock view');
-    });
-
   });
 
 });

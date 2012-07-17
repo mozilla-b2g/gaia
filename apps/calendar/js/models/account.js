@@ -12,7 +12,9 @@
       }
     }
 
-    this._setupProvider();
+    if (this.providerType) {
+      this._setupProvider();
+    }
   }
 
   Account.prototype = {
@@ -100,7 +102,8 @@
 
       this.provider.setupConnection(function(err, data) {
         if (err) {
-          return callback(err);
+          callback(err);
+          return;
         }
 
         if ('url' in data) {

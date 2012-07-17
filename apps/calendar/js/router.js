@@ -26,7 +26,7 @@
      * object will be cleared and 'oninactive'
      * will be fired.
      */
-    mangeObject: function(object) {
+    mangeObject: function() {
       var args = Array.prototype.slice.call(arguments);
       var object = args.shift();
 
@@ -45,7 +45,7 @@
      */
     _clearObjects: function(ctx, next) {
       var item;
-      while (item = this._activeObjects.pop()) {
+      while ((item = this._activeObjects.pop())) {
         if ('oninactive' in item) {
           if ('__routerActive' in item) {
             if (item.__routerActive) {
