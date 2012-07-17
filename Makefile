@@ -49,6 +49,9 @@ GAIA_APP_RELATIVEPATH=$(foreach dir, $(GAIA_APP_SRCDIRS), $(wildcard $(dir)/*))
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
+else ifeq ($(MAKECMDGOALS), cool-apps)
+GAIA_DOMAIN=thisdomaindoesnotexist.org
+GAIA_APP_SRCDIRS=apps cool_apps
 else ifeq ($(MAKECMDGOALS), production)
 GAIA_APP_SRCDIRS=apps
 endif
@@ -532,6 +535,9 @@ dialer-demo:
 demo: install-media-samples install-gaia
 
 production: install-gaia
+
+.PHONY: cool-apps
+cool-apps: install-gaia
 
 # Remove everything and install a clean profile
 reset-gaia: purge install-settingsdb install-gaia
