@@ -1,0 +1,181 @@
+
+/*
+  Common styles. Shared by apps
+*/
+
+/*
+  Structure of app
+*/
+.header-wrapper {
+  width: 200%;
+  height: 100%;
+  position: relative;
+  left: 0;
+  top:0;
+  transition:left .15s ease-in;
+  -moz-transition: left .15s ease-in;
+}
+
+.header-group {
+  width: 100%;
+  height: 5rem;
+  overflow: hidden;
+}
+
+.view-header {
+  float: left;
+  width: 50%;
+  height: 100%;
+  position: relative;
+}
+
+.view-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: -moz-calc(100% - 5rem);
+  width: 100%;
+}
+
+/* 
+  Styles of header 
+*/
+
+.regular-header {
+  background: url(images/ui/header.png) repeat-x left top;
+}
+
+.dark-header {
+  background: url(images/ui/dark/header.png) repeat-x left top;
+}
+
+.view-header h1 {
+  color: white;
+  font: 2.2rem/4.8rem 'Open Sans', Sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden;
+  margin: 0 0 0 3rem;
+  height: 100%
+}
+
+.view-header .tel {
+  display:none;
+  color: black;
+  font: 2.2rem/4.8rem 'Open Sans', Sans-serif;
+  text-align: left;
+  display: block;
+  overflow: hidden;
+  -moz-box-sizing: border-box;
+  width: -moz-calc(100% - 8rem);
+  margin: 1rem 3rem;
+  position: relative;
+  height: -moz-calc(100% - 2rem);
+}
+
+.view-header [role="link"] {
+  padding: 1rem 0;
+  position: absolute;
+  left: 0;
+  width: 4rem;
+  cursor: pointer;
+  background: url(images/ui/separator-large.png) no-repeat 2rem center;
+  overflow: visible;
+}
+
+.view-header [role="link"] .icon {
+  overflow: visible;
+  text-indent: -9999px;
+  position: static;
+  margin-left: -3rem;
+}
+
+.view-header [role="link"] .icon:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 2rem;
+  height: 4.9rem;
+  background: #9d3d26 url(images/ui/negative.png) repeat-x left top;
+}
+
+.view-header [role="link"] .icon.icon-menu { 
+  background-position: -0.6rem center; 
+}
+
+.view-header menu[type="toolbar"] { 
+  height: 100%; 
+  float: right; 
+  padding: 0; 
+  margin: 0;
+}
+
+.view-header menu[type="toolbar"] button { 
+  height: 100%; 
+  float: left; 
+  background: none;
+  padding: 0 1.75rem;
+  font: 1.4rem/1.1em 'Open Sans', Sans-serif;
+  font-weight: 600;
+  color: #fff;
+}
+
+.view-header menu[type="toolbar"] button:first-letter {
+  text-transform: uppercase;
+}
+
+.view-header menu[type="toolbar"] button:last-child {
+  background: url(images/ui/separator.png) no-repeat left center;
+}
+
+.view-header menu[type="toolbar"] a { 
+  height: 100%; 
+  float: left; 
+  background: url(images/ui/separator.png) no-repeat right center;
+  padding: 1rem 1.75rem;
+  -moz-box-sizing: border-box;
+}
+
+.view-header menu[type="toolbar"] a:last-child {
+  background: none !important;
+}
+
+.view-header .icon {
+  display: inline-block;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 -1rem;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+  text-indent: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.view-header .icon.icon-add { 
+  background-image: url(images/icons/add.png); 
+}
+
+.view-header .icon.icon-edit { 
+  background-image: url(images/icons/edit.png); 
+}
+
+.view-header .icon.icon-close { 
+  background-image: url(images/icons/close.png); 
+}
+
+.view-header .icon.icon-back { 
+  background-image: url(images/icons/back.png); 
+}
+
+.view-header .icon.icon-menu { 
+  background-image: url(images/icons/menu.png); 
+}
+
+.view-header .icon.icon-user { 
+  background-image: url(images/icons/user.png); 
+}
+
