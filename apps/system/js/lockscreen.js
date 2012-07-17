@@ -452,6 +452,7 @@ var LockScreen = {
 
     if (!wasAlreadyUnlocked) {
       this.dispatchEvent('unlock');
+      this.writeSetting(false);
       this.hideNotification();
     }
   },
@@ -477,6 +478,7 @@ var LockScreen = {
 
     if (!wasAlreadyLocked) {
       this.dispatchEvent('lock');
+      this.writeSetting(true);
     }
   },
 
@@ -686,6 +688,16 @@ var LockScreen = {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(name, true, true, null);
     window.dispatchEvent(evt);
+  },
+
+  writeSetting: function ls_writeSetting(value) {
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
+
+    settings.getLock().set({
+      'lockscreen.locked': value
+    });
   }
 };
 
