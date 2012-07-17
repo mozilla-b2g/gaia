@@ -33,8 +33,10 @@ var Browser = {
     this.urlButton = document.getElementById('url-button');
     this.content = document.getElementById('browser-content');
     this.awesomescreen = document.getElementById('awesomescreen');
-    this.history = document.getElementById('history');
+    this.topSites = document.getElementById('top-sites');
     this.bookmarks = document.getElementById('bookmarks');
+    this.history = document.getElementById('history');
+    this.topSitesTab = document.getElementById('top-sites-tab');
     this.bookmarksTab = document.getElementById('bookmarks-tab');
     this.historyTab = document.getElementById('history-tab');
     this.backButton = document.getElementById('back-button');
@@ -59,10 +61,13 @@ var Browser = {
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
-    this.history.addEventListener('click', this.followLink.bind(this));
+    this.topSites.addEventListener('click', this.followLink.bind(this));
     this.bookmarks.addEventListener('click', this.followLink.bind(this));
+    this.history.addEventListener('click', this.followLink.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
+    this.topSitesTab.addEventListener('click',
+      this.showTopSitesTab.bind(this));
     this.bookmarksTab.addEventListener('click',
       this.showBookmarksTab.bind(this));
     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
@@ -422,9 +427,34 @@ var Browser = {
     }
   },
 
-  showHistoryTab: function browser_showHistoryTab() {
-    this.bookmarksTab.classList.remove('selected');
+  deselectAwesomescreenTabs: function browser_deselectAwesomescreenTabs() {
+    this.topSites.classList.remove('selected');
+    this.topSitesTab.classList.remove('selected');
     this.bookmarks.classList.remove('selected');
+    this.bookmarksTab.classList.remove('selected');
+    this.history.classList.remove('selected');
+    this.historyTab.classList.remove('selected');
+  },
+
+  showTopSitesTab: function browser_showTopSitesTab() {
+    this.deselectAwesomescreenTabs();
+    this.topSitesTab.classList.add('selected');
+    this.topSites.classList.add('selected');
+    Places.getTopSites(this.showTopSites.bind(this));
+  },
+
+  showTopSites: function browser_showTopSites(topSites) {
+    this.topSites.innerHTML = '';
+    var list = document.createElement('ul');
+    list.setAttribute('role', 'listbox');
+    this.topSites.appendChild(list);
+    topSites.forEach(function browser_processTopSite(data) {
+      this.drawAwesomescreenListItem(list, data);
+    }, this);
+  },
+
+  showHistoryTab: function browser_showHistoryTab() {
+    this.deselectAwesomescreenTabs();
     this.historyTab.classList.add('selected');
     this.history.classList.add('selected');
     Places.getHistory(this.showGlobalHistory.bind(this));
@@ -542,9 +572,8 @@ var Browser = {
     this.history.appendChild(ul);
   },
 
-  showBookmarksTab: function browser_showHistoryTab() {
-    this.historyTab.classList.remove('selected');
-    this.history.classList.remove('selected');
+  showBookmarksTab: function browser_showBookmarksTab() {
+    this.deselectAwesomescreenTabs();
     this.bookmarksTab.classList.add('selected');
     this.bookmarks.classList.add('selected');
     Places.getBookmarks(this.showBookmarks.bind(this));
@@ -778,7 +807,7 @@ var Browser = {
     this.tabsBadge.innerHTML = '';
     this.switchScreen(this.AWESOME_SCREEN);
     this.tabCover.style.display = 'none';
-    this.showHistoryTab();
+    this.showTopSitesTab();
   },
 
   showPageScreen: function browser_showPageScreen() {
