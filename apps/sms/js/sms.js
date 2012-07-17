@@ -249,8 +249,7 @@ var ThreadListUI = {
   },
 
   cleanForm: function thlui_cleanForm() {
-    var container = document.getElementById('thread-list-container');
-    var inputs = container.getElementsByTagName('input');
+    var inputs = this.view.getElementsByTagName('input');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
@@ -263,8 +262,7 @@ var ThreadListUI = {
 
   deleteThreads: function thlui_deleteThreads() {
     //TODO Include delete selected threads
-    var container = document.getElementById('thread-list-container');
-    var inputs = container.getElementsByTagName('input');
+    var inputs = this.view.getElementsByTagName('input');
     for (var i = 0; i < inputs.length; i++) {
       if (inputs[i].checked) {
         inputs[i].parentNode.parentNode.classList.add('undo-candidate');
