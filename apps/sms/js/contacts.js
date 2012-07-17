@@ -15,8 +15,7 @@ var ContactDataManager = {
   contactData: {},
   getContactData: function cm_getContactData(number, callback) {
     // so desktop keeps working
-    if (!navigator.mozSms || !navigator.mozContacts)
-      callback(null);
+    if (!navigator.mozSms) return;
 
     var options = {
       filterBy: ['tel'],
