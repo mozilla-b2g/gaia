@@ -179,7 +179,6 @@ if (DEBUG) {
   content += "user_pref(\"javascript.options.strict\", true);\n";
   content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
   content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
-  content += "user_pref(\"browser.cache.offline.enable\", false);\n";
   content += "user_pref(\"extensions.autoDisableScopes\", 0);\n";
   content += "user_pref(\"browser.startup.homepage\", \"" + homescreen + "\");\n";
 
@@ -191,11 +190,6 @@ if (DEBUG) {
   content += "user_pref(\"device.storage.enabled\", true);\n";
   content += "\n";
 }
-
-// https://bugzilla.mozilla.org/show_bug.cgi?id=764718
-// Until this bug is fixed, window.close is allowed for content
-// windows.
-content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n";
 
 writeContent(content);
 dump("\n" + content);
