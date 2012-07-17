@@ -48,3 +48,37 @@ function summarizeDaysOfWeek(bitStr) {
   }
   return summary;
 }
+
+function calDiffDays(repeat, hour, minute) { // calculate the diff day from now
+  var now = new Date();
+  var diffDays = 0;
+  if (repeat == '0000000') { // one time only and alarm within 24 hours
+      // if alarm has passed already
+      // XXX compare the hour after converted it to format 24-hours 
+      if (!(hour >= now.getHours() && minute > now.getMinutes()))
+        diffDays = 1; // alarm tomorrow
+
+      return diffDays;
+  }
+  // find out the first alarm day from the repeat info.
+  var weekDayFormatRepeat = 
+  repeat.slice(-1).concat(repeat.slice(0, repeat.length - 1));
+  var weekDayOfToday = now.getDay();
+  var index = 0;
+  for (var i = 0; i < weekDayFormatRepeat.length; i++) {
+    index = (i + weekDayOfToday) % 7;
+    if (weekDayFormatRepeat.charAt(index) == '1') {
+      if (diffDays == 0) { // if alarm has passed already
+        if (hour >= now.getHours() && minute > now.getMinutes()) {
+          break;
+        } else {
+          diffDays++;
+          continue;
+        }
+      }
+      break;
+    }
+    diffDays++;
+  }
+  return diffDays;
+}

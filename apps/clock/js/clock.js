@@ -32,3 +32,7 @@ window.addEventListener('localized', function showBody() {
   document.body.classList.remove('hidden');
 });
 
+// window.setTimeout(function alarm() {
+  // console.log('========= IAN ========= set mozSetMessageHandler in Clock.js');
+  // window.navigator.mozSetMessageHandler('alarm', function(e) { console.log("Alarm " + JSON.stringify(e)) });
+// }, 15000);

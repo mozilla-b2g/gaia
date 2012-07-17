@@ -105,6 +105,10 @@ var ClockView = {
       self.updateAnalogClock();
     }, (1000 - now.getMilliseconds()));
   },
+  
+  updateAlarmIndicator: function cv_updateAlarmIndicator() {
+    
+  },
 
   handleEvent: function cv_handleEvent(evt) {
     switch (evt.type) {
@@ -296,9 +300,9 @@ var AlarmList = {
       self.refresh();
     });
     if (enabled) {
-      FakeAlarmManager.set(alarm);
+      AlarmManager.set(alarm);
     } else {
-      FakeAlarmManager.cancel(alarm);
+      AlarmManager.cancel(alarm);
     }
   },
 
@@ -311,15 +315,48 @@ var AlarmList = {
 
 };
 
-var FakeAlarmManager = {
-  // Need Maintain timeout object for multiple alarm
+var AlarmManager = {
+
+  init: function am_init() {
+    console.log('======== Ian ========= init and set System Message Handler ');
+    navigator.mozSetMessageHandler("alarm", function (message) { 
+      console.log('======== Ian ========= alarm fired by System Message');
+      // get id , and use the alarm id to query db to do respect behavior
+      // this.onAlarmFiredHandler(message);
+    });
+  },
+  
   set: function am_set(alarm) {
-    var date = new Date();
+    var alarmDate = new Date();
+    var diffDays = calDiffDays(alarm.repeat, alarm.hour, alarm.minute);
+    alarmDate.setDate(alarmDate.getDate() + diffDays);
+    alarmDate.setHours(alarm.hour);
+    alarmDate.setMinutes(alarm.minute);
+    alarmDate.setSeconds(0,0);
+    console.log('========= Ian ========= start to set alarm ');
+    var request = navigator.mozAlarms.add(alarmDate, "honorTimezone",
+                  { id: alarm.id });
+    request.onsuccess = function (e) { 
+      console.log('======== Ian ========= set alarm successfully');
+      alarm.alarmId = e.target.result;
+      console.log('======== Ian ========= id = ' + alarm.id);
+      console.log('======== Ian ========= alarmId = ' + alarm.alarmId);
+      // save the id to DB
+      // AlarmsDB.putAlarm(alarm, function am_putAlarm() {
+        // ClockView.updateAlarmIndicator();
+      // });
+    };
+    request.onerror = function (e) { // alert("set alarm fail");
+      console.log('======== Ian ========= set alarm fail');
+    };
+    
+    // Fake alarm is prepared for demo only since AlarmAPI not ready yet
+    /*var date = new Date();
+    var now = new Date();
     var alarmDate = new Date(date.getFullYear(), date.getMonth(),
                     date.getDate(), alarm.hour, alarm.minute, 0, 0);
-    var remaining = alarmDate.getTime() - Date.now();
+      var remaining = alarmDate.getTime() - Date.now();
 
-    // Fake alarm is prepared for demo only since AlarmAPI not ready yet
     this._fakeAlarmTimeout = window.setTimeout(function() {
 
       var ringtonePlayer = new Audio();
@@ -345,16 +382,25 @@ var FakeAlarmManager = {
       window.setTimeout(function pauseRingtone() {
         ringtonePlayer.pause();
       }, 2000);
-    }, remaining);
+    }, remaining);*/
+  },
+
+  cancel: function am_cancel(alarm) {
+    if (alarm.alarmId) {
+      navigator.mozAlarms.remove(alarm.alarmId);
+    }
+    // window.clearTimeout(this._fakeAlarmTimeout);
+    // this._fakeAlarmTimeout = null;
+  },
+  
+  onAlarmFiredHandler: function am_onAlarmFiredHandler(message) {
+    // use the alarmId to query db
+    // find out which alarm onfire the event 
+    // pop out attention screen
   },
 
   snoozeHandler: function am_snoozeHandler() {
     // Need to implement snooze
-  },
-
-  cancel: function am_cancel(alarm) {
-    window.clearTimeout(this._fakeAlarmTimeout);
-    this._fakeAlarmTimeout = null;
   }
 
 };
@@ -464,7 +510,8 @@ var AlarmEditView = {
   getDefaultAlarm: function aev_getDefaultAlarm() {
     // Reset the required message with default value
     return {
-      id: '',
+      id: '', // for indexedDB id
+      alarmId: '', // for request AlarmAPI id
       label: 'Alarm',
       hour: '10',
       minute: '00',
@@ -545,14 +592,14 @@ var AlarmEditView = {
     }
 
     if (!error) {
+      if (this.alarm.enabled) {
+        AlarmManager.set(this.alarm);
+      } else {
+        AlarmManager.cancel(this.alarm);
+      }
       AlarmsDB.putAlarm(this.alarm, function al_putAlarmList() {
         AlarmList.refresh();
       });
-      if (this.alarm.enabled) {
-        FakeAlarmManager.set(this.alarm);
-      } else {
-        FakeAlarmManager.cancel(this.alarm);
-      }
     }
 
     return !error;
@@ -774,4 +821,5 @@ window.addEventListener('localized', function showBody() {
   SoundPickerView.init();
   SnoozePickerView.init();
   ColorPickerView.init();
+  AlarmManager.init();
 });
