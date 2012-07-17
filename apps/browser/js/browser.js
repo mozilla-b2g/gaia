@@ -474,27 +474,34 @@ var Browser = {
     var threshold = 0;
     var month = null;
     var year = null;
+    var urls = []; // List of URLs under each heading for de-duplication
 
     visits.forEach(function browser_processVisit(visit) {
-       var timestamp = visit.timestamp;
-       // Draw new heading if new threshold reached
-       if (timestamp > 0 && timestamp < thresholds[threshold]) {
-         threshold = this.incrementHistoryThreshold(timestamp, threshold,
-           thresholds);
-         // Special case for month headings
-         if (threshold != 5)
-           this.drawHistoryHeading(threshold);
-       }
-       if (threshold == 5) {
-         var timestampDate = new Date(timestamp);
-         if (timestampDate.getMonth() != month ||
-           timestampDate.getFullYear() != year) {
-           month = timestampDate.getMonth();
-           year = timestampDate.getFullYear();
-           this.drawHistoryHeading(threshold, timestamp);
-         }
+      var timestamp = visit.timestamp;
+      // Draw new heading if new threshold reached
+      if (timestamp > 0 && timestamp < thresholds[threshold]) {
+        urls = [];
+        threshold = this.incrementHistoryThreshold(timestamp, threshold,
+          thresholds);
+        // Special case for month headings
+        if (threshold != 5)
+          this.drawHistoryHeading(threshold);
       }
-      this.drawAwesomescreenListItem(this.history.lastChild, visit);
+      if (threshold == 5) {
+        var timestampDate = new Date(timestamp);
+        if (timestampDate.getMonth() != month ||
+          timestampDate.getFullYear() != year) {
+          urls = [];
+          month = timestampDate.getMonth();
+          year = timestampDate.getFullYear();
+          this.drawHistoryHeading(threshold, timestamp);
+        }
+      }
+      // If not a duplicate, draw list item & add to list
+      if (urls.indexOf(visit.uri) == -1) {
+        urls.push(visit.uri);
+        this.drawAwesomescreenListItem(this.history.lastChild, visit);
+      }
     }, this);
   },
 
