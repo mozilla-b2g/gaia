@@ -12,11 +12,17 @@ var TrustedDialog = (function() {
     if (!trustedFrame)
       return;
 
-    // We only allow one trusted dialog at a time.
-    if (trustedDialogIsShown())
-      return;
+    // If the trusted dialog is being shown, we remove the current frame and
+    // substitute it for the new one.
+    if (trustedDialogIsShown()) {
+      trustedDialogElement.removeChild(currentFrame);
+      currentFrame = null;
+    }
 
-    lastDisplayedApp = WindowManager.getDisplayedApp();
+    // Save the current displayer app in order to show it after closing the
+    // trusted dialog.
+    if (!lastDisplayedApp)
+      lastDisplayedApp = WindowManager.getDisplayedApp();
 
     // Show the homescreen.
     WindowManager.setDisplayedApp(null);
@@ -52,6 +58,7 @@ var TrustedDialog = (function() {
     currentFrame = null;
     // Shows the previously displayed app.
     WindowManager.setDisplayedApp(lastDisplayedApp);
+    lastDisplayedApp = null;
     // Switch back to apps orientation.
     WindowManager.setOrientationForApp(lastDisplayedApp);
 
