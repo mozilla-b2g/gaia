@@ -60,6 +60,35 @@
   background-position: 50% 50%;
 }
 
+#lockscreen h2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100px;
+  margin: 0;
+  padding: 20px 28px;
+  -moz-box-sizing: border-box;
+  font-size: 32px;
+  font-weight: normal;
+  line-height: 32px;
+  text-shadow: 0 0 3px #333;
+
+  -moz-transform: translateY(-100px);
+  -moz-transition: -moz-transform 0.2s ease;
+}
+
+@media screen and (height: 800px) {
+  #lockscreen h2 {
+    height: 150px;
+    padding: 30px 42px;
+    font-size: 48px;
+    line-height: 48px;
+
+    -moz-transform: translateY(-150px);
+  }
+}
+
 #lockscreen-header {
   position: absolute;
   top: 0;
@@ -537,27 +566,9 @@
   display: none;
 }
 
-#lockscreen-passcode-status {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100px;
-  margin: 0;
-  padding: 20px 28px;
-  -moz-box-sizing: border-box;
-  font-size: 32px;
-  line-height: 32px;
-  text-shadow: 0 0 3px #333;
-
-  -moz-transform: translateY(-100px);
-  -moz-transition: -moz-transform 0.2s ease;
+[data-panel="passcode"] h2#lockscreen-passcode-status {
+  -moz-transform: none;
 }
-
-[data-panel="passcode"] #lockscreen-passcode-status {
-  -moz-transform: translateY(0);
-}
-
 
 /* Smiley */
 .smiley #lockscreen-panel-passcode::after {
@@ -588,14 +599,6 @@
 }
 
 @media screen and (height: 800px) {
-  #lockscreen-passcode-status {
-    height: 150px;
-    padding: 30px 42px;
-    font-size: 48px;
-    line-height: 48px;
-
-    -moz-transform: translateY(-150px);
-  }
   .smiley #lockscreen-panel-passcode::after {
     top: 45px;
     right: 30px;
@@ -810,6 +813,41 @@
 
 [data-panel="emergency-call"] .lockscreen-panel:not(#lockscreen-panel-emergency-call) {
   display: none;
+}
+
+[data-panel="emergency-call"] h2#lockscreen-emergency-title {
+  -moz-transform: none;
+}
+
+#lockscreen-emergency-pad {
+  -moz-box-sizing: border-box;
+  position: absolute;
+  bottom: 0;
+  height: 320px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding-top: 100px;
+  border-top: 2px solid #525050;
+
+  -moz-transform: translateY(320px);
+  -moz-transition: -moz-transform 0.2s ease;
+
+  /* TBD */
+  font-size: 115px;
+  color: #e0e0e0;
+  text-align: center;
+}
+
+[data-panel="emergency-call"] #lockscreen-emergency-pad {
+  -moz-transform: translateY(0);
+}
+
+@media screen and (height: 800px) {
+  #lockscreen-emergency-pad {
+    height: 480px;
+    -moz-transform: translateY(480px);
+    font-size: 172.5px;
+  }
 }
 
 #lockscreen-panel-camera {
