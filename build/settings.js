@@ -44,6 +44,7 @@ var settings = [
  new Setting("language.current", "en-US"),
  new Setting("lockscreen.passcode-lock.enabled", false),
  new Setting("lockscreen.enabled", true),
+ new Setting("lockscreen.locked", true),
  new Setting("lockscreen.wallpaper", "balloon.png"),
  new Setting("phone.ring.incoming", true),
  new Setting("phone.ring.keypad", true),
