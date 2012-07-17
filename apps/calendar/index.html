@@ -9,6 +9,26 @@
   <link rel="stylesheet" type="text/css" href="/style/settings.css">
   <link rel="stylesheet" type="text/css" href="/style/toolbars.css">
 
+  <link rel="resource" type="application/l10n" href="/locales/locales.ini">
+
+  <script type="text/javascript">
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
+      }
+      document.write('<script src="' + src + '"><\/script>');
+    })();
+  </script>
+
   <!--- vendor -->
   <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
@@ -69,7 +89,7 @@
 <section id="settings">
 
   <header role="toolbar">
-    <h1>Calendars</h1>
+    <h1 data-l10n-id="settings-header">Calendars</h1>
     <a class="add-icon" href="/select-preset/">Create Account</a>
   </header>
 
@@ -79,7 +99,7 @@
     <li class="calendar-2">Friends</li>
   </ol>
 
-  <a href="/advanced-settings/" class="settings">
+  <a href="/advanced-settings/" data-l10n-id="advanced-settings" class="settings">
     Account Settings
   </a>
 
@@ -90,7 +110,7 @@
 
 <section id="top-toolbar">
   <header role="toolbar">
-    <a data-l10n-id="buttons.settings"
+    <a data-l10n-id="settings"
        id="show-settings"
        role="button" href="/settings/">
       Settings
@@ -99,8 +119,8 @@
     <h1 id="current-month-year">
     </h1>
 
-    <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="/add">
-      New Event
+    <a data-l10n-id="add-event" role="button" class="new-event" href="/add">
+      Add Event
     </a>
   </header>
 </section>
@@ -111,13 +131,13 @@
     <!--- title row all the days this will be static -->
     <header id="month-days" role="row">
       <ol role="row">
-        <li data-l10n-id="day.sun" role="column">sun</li>
-        <li data-l10n-id="day.mon" role="column">mon</li>
-        <li data-l10n-id="day.tue" role="column">tue</li>
-        <li data-l10n-id="day.wed" role="column">wed</li>
-        <li data-l10n-id="day.thu" role="column">thu</li>
-        <li data-l10n-id="day.fri" role="column">fri</li>
-        <li data-l10n-id="day.sat" role="column">sat</li>
+        <li data-l10n-id="day-sun" role="column">sun</li>
+        <li data-l10n-id="day-mon" role="column">mon</li>
+        <li data-l10n-id="day-tue" role="column">tue</li>
+        <li data-l10n-id="day-wed" role="column">wed</li>
+        <li data-l10n-id="day-thu" role="column">thu</li>
+        <li data-l10n-id="day-fri" role="column">fri</li>
+        <li data-l10n-id="day-sat" role="column">sat</li>
       </ol>
     </header>
     <!---
@@ -141,7 +161,7 @@
         Cancel
       </a>
 
-      <h1>
+      <h1 data-l10n-id="add-account">
         Add Account
       </h1>
     </header>
@@ -158,15 +178,17 @@
 
   <section class="fullscreen-view" id="advanced-settings-view">
     <header role="toolbar">
-      <h1>Account</h1>
-      <a class="done" href="/settings/">Done</a>
+      <h1 data-l10n-id="account-header">Account</h1>
+      <a class="done" data-l10n-id="done" href="/settings/">Done</a>
     </header>
 
     <div class="errors"></div>
 
     <section class="account">
       <header>
-        <h2>Accounts</h2>
+        <h2 data-l10n-id="account-list-header">
+          Accounts
+        </h2>
       </header>
       <ol class="account-list">
       </ol>
@@ -176,24 +198,24 @@
 
   <section class="fullscreen-view" id="modify-account-view">
     <header role="toolbar">
-      <a class="cancel"  href="javascript: window.history.go(-1);">
+      <a class="cancel" data-l10n-id="back" href="javascript: window.history.go(-1);">
         Back
       </a>
-      <h1>Account</h1>
-      <a class="save" href="#">Save</a>
+      <h1 data-l10n-id="account-header">Account</h1>
+      <a class="save" data-l10n-id="save" href="#">Save</a>
     </header>
     <div class="errors"></div>
     <form>
       <fieldset>
         <ol>
           <li class="user">
-            <input name="user" placeholder="Username:" />
+            <input name="user" data-l10n-id="field-user" placeholder="Username:" />
           </li>
           <li class="password">
-            <input name="password" placeholder="Password:" type="password" />
+            <input name="password" data-l10n-id="field-password" placeholder="Password:" type="password" />
           </li>
           <li class="fullUrl">
-            <input name="fullUrl" placeholder="Url:" />
+            <input name="fullUrl" data-l10n-id="field-fullUrl" placeholder="Url:" />
           </li>
         </ol>
       </fieldset>
@@ -222,7 +244,7 @@
 
   <section class="fullscreen-view" id="add-event-view">
     <header role="toolbar">
-      <a data-l10n-id="buttons.cancel"
+      <a data-l10n-id="cancel"
          role="button"
          class="cancel"
          href="javascript: window.history.go(-1);">
@@ -230,11 +252,11 @@
         Cancel
       </a>
 
-      <h1>
+      <h1 data-l10n-id="add-event-header">
         EVENT
       </h1>
 
-      <a data-l10n-id="buttons.save" role="button" class="save" href="#">
+      <a data-l10n-id="save" role="button" class="save" href="#">
         Save
       </a>
     </header>
@@ -303,7 +325,7 @@
 <section id="bottom-toolbar">
   <menu id="view-selector">
     <li class="toggle toggle-settings">
-      <a>Hide</a>
+      <a data-l10n-id="hide">Hide</a>
     </li>
     <li class="today">
       <a href="#today">Today</a>
