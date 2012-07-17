@@ -61,43 +61,46 @@ suite('views/settings', function() {
     assert.equal(subject.element.id, 'settings');
   });
 
-  test('#calendars', function() {
-    assert.ok(subject.calendars);
-  });
-
-  test('#accounts', function() {
-    assert.ok(subject.accounts);
-  });
-
-  suite('show functions', function() {
-    var cals;
-    var accounts;
-    var active;
+  suite('#_handleOutsideClick', function() {
+    var page;
 
     setup(function() {
-      cals = subject.calendars;
-      accounts = subject.accounts;
-      active = subject.activeClass;
+      page = Calendar.Test.FakePage;
     });
 
-    test('#showCalendars', function() {
-      cals.classList.remove(active);
-      accounts.classList.add(active);
+    test('fallback', function() {
+      window.history.replaceState(
+        {},
+        'test',
+        subject.selfPath
+      );
 
-      subject.showCalendars();
+      subject._savedPath = subject.selfPath;
+      subject.onactive();
 
-      assert.isTrue(cals.classList.contains(active));
-      assert.isFalse(accounts.classList.contains(active));
+      triggerEvent(subject.outside, 'click');
+      assert.equal(page.shown, subject.fallbackPath);
     });
 
-    test('#showAccounts', function() {
-      accounts.classList.remove(active);
-      cals.classList.add(active);
+    test('active', function() {
+      subject.onactive();
+      subject._savedPath = '/foo';
 
-      subject.showAccounts();
+      triggerEvent(subject.outside, 'click');
+      assert.equal(page.shown, '/foo');
+      page.shown = null;
 
-      assert.isTrue(accounts.classList.contains(active));
-      assert.isFalse(cals.classList.contains(active));
+      subject.oninactive();
+
+      triggerEvent(subject.outside, 'click');
+      assert.equal(page.shown, null);
+    });
+
+    test('inactive', function() {
+      subject._savedPath = '/foo';
+
+      triggerEvent(subject.outside, 'click');
+      assert.ok(!page.shown);
     });
 
   });

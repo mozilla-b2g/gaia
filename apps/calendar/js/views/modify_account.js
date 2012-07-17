@@ -197,7 +197,6 @@
       function updateModel(err, model) {
         self.model = model;
         self.render();
-        console.log(self.model.provider);
       }
 
       if (params.id) {

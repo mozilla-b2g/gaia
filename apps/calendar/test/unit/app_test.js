@@ -4,7 +4,6 @@ requireApp('calendar/test/unit/helper.js', function() {
 
   requireLib('router.js');
   requireLib('app.js');
-  requireLib('controller.js');
 });
 
 suite('app', function() {
@@ -32,7 +31,11 @@ suite('app', function() {
 
   test('#configure', function() {
     assert.deepEqual(subject._routeViewFn, {});
-    assert.instanceOf(subject.timeController, Calendar.Controller);
+
+    assert.instanceOf(
+      subject.timeController,
+      Calendar.Controllers.Time
+    );
 
     assert.instanceOf(subject.db, Calendar.Db);
     assert.instanceOf(subject.router, Calendar.Router);

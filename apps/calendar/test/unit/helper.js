@@ -142,7 +142,7 @@
   requireLib('store/event.js');
   requireLib('view.js');
   requireLib('calc.js');
-  requireLib('controller.js');
+  requireLib('controllers/time.js');
   requireLib('router.js');
   requireLib('db.js');
   requireLib('app.js');

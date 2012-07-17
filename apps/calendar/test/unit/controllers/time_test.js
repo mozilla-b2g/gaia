@@ -7,7 +7,7 @@ suite('controller', function() {
   var subject;
 
   setup(function() {
-    subject = new Calendar.Controller();
+    subject = new Calendar.Controllers.Time();
   });
 
   test('initialize', function() {

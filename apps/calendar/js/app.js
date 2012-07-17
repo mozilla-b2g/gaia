@@ -21,7 +21,7 @@ Calendar.App = (function(window) {
       this._views = {};
       this._routeViewFn = {};
 
-      this.timeController = new Calendar.Controller();
+      this.timeController = new Calendar.Controllers.Time();
     },
 
     /**

@@ -13,6 +13,10 @@
       outside: '#wrapper'
     },
 
+    fallbackPath: '/month/',
+
+    selfPath: '/settings/',
+
     get calendars() {
       return this._findElement('calendars');
     },
@@ -31,7 +35,7 @@
 
     _handleOutsideClick: function(e) {
       if (this._savedPath) {
-        page(this._savedPath);
+        this.app.go(this._savedPath);
         this._savedPath = null;
 
         e.preventDefault();
@@ -49,7 +53,7 @@
       this._savedPath = window.location.pathname;
 
       if (this._savedPath.indexOf('/settings') === 0) {
-        this._savedPath = '/';
+        this._savedPath = '/month/';
       }
 
       this.outside.addEventListener('click', this._handleOutsideClick);
