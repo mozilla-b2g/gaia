@@ -34,6 +34,10 @@ header[role="toolbar"] {
   height: 30px;
 }
 
+header[role="toolbar"] a.done {
+  text-indent: 0em;
+}
+
 header[role="toolbar"] a {
   display: inline-block;
   float: left;

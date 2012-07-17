@@ -1,3 +1,5 @@
+/* calendar settings */
+
 body[data-path^="/settings/"][role="app"] #wrapper {
   position: relative;
   -moz-transform: translateX(75%);
@@ -82,5 +84,16 @@ body[role="app"] #wrapper {
 #advanced-setting-selection a {
   color: black;
   display: block;
+  padding: 1rem;
+}
+
+/* advanced settings */
+
+#advanced-settings-view > section {
+  margin-top: 1rem;
+  font-size: 1.2em;
+}
+
+#advanced-settings-view > section header {
   padding: 1rem;
 }

@@ -24,6 +24,12 @@ EVENT TIME COLOR: #333
 
 }
 
+/* loading */
+
+body.loading {
+  visibility: hidden;
+}
+
 /* general elements */
 
 p {

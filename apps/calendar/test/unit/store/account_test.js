@@ -185,7 +185,7 @@ suite('store/account', function() {
 
   });
 
-  suite('#add', function() {
+  suite('#persist', function() {
 
     var addEvent;
     var id;

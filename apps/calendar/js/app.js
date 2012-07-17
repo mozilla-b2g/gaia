@@ -90,6 +90,7 @@ Calendar.App = (function(window) {
       account.load(function(err, data) {
         // after finished start router.
         self.router.start();
+        document.body.classList.remove('loading');
       });
     },
 
@@ -98,6 +99,19 @@ Calendar.App = (function(window) {
      */
     init: function() {
       var self = this;
+      var pending = 2;
+
+      function next() {
+        pending--;
+        if (!pending) {
+          complete();
+        }
+      }
+
+      function complete() {
+        self._init();
+      }
+
       if (!this.db) {
         this.configure(
           new Calendar.Db('b2g-calendar'),
@@ -105,8 +119,12 @@ Calendar.App = (function(window) {
         );
       }
 
+      window.addEventListener('localized', function() {
+        next();
+      });
+
       this.db.open(function() {
-        self._init();
+        next();
       });
     },
 
