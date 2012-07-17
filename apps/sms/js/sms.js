@@ -225,9 +225,12 @@ var ThreadListUI = {
     this.delNumList = [];
    },
 
-  updateMsgWithContact: function thlui_updateMsgWithContact(contact) {
-    // TODO Update DOM with data retrieved from Contact DB
-    // This will be a callback from ContactManager
+  updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
+    var element =
+      this.view.querySelector('a[data-num="' + number + '"] div.name');
+    if (element) {
+      element.innerHTML = contact[0].name;
+    }
   },
 
   renderThreads: function thlui_renderThreads(messages) {
@@ -306,6 +309,12 @@ var ThreadListUI = {
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
+
+    // Get the contact data for the number
+    ContactDataManager.getContactData(thread.num, function gotContact(contact) {
+      if (contact && contact.length > 0)
+        ThreadListUI.updateMsgWithContact(thread.num, contact);
+    });
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
 
@@ -403,9 +412,18 @@ var ThreadUI = {
     headerHTML.innerHTML = structureHTML;
     ThreadUI.view.appendChild(headerHTML);
   },
+  updateHeaderData: function thui_updateHeaderData() {
+    var number = MessageManager.getNumFromHash();
+    ThreadUI.title.innerHTML = number;
+    ContactDataManager.getContactData(number, function gotContact(contact) {
+      if (contact && contact.length > 0) {
+        ThreadUI.title.innerHTML = contact[0].name;
+      }
+    });
+  },
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
-    ThreadUI.title.innerHTML = MessageManager.getNumFromHash();
+    ThreadUI.updateHeaderData();
     // Sorting messages reverse
     messages.sort(function(a, b) {
         return a.timestamp - b.timestamp;
