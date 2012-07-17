@@ -267,7 +267,7 @@ body.player-mode #views-player {
   font-size: 2.5em;
   line-height: 1.9em;
   text-align: left;
-  text-indent: 5%;
+  text-indent: 3%;
   opacity: 0.75;
   text-shadow: black 1px 1px;
   white-space: nowrap;
@@ -386,15 +386,23 @@ body.player-mode #views-player {
   background-image: -moz-radial-gradient(50% 50%, ellipse farthest-corner, rgba(255, 255, 255, 1) 0%, rgba(0, 0, 0, 0.4) 100%);
 }
 
-#player-cover-image {
+#player-cover-default-image {
   position: absolute;
   width: 100%;
+  height: 100%;
   text-align: center;
   font-size: 28em;
   line-height: 100%;
   opacity: 0.4;
   color: orange;
   text-shadow: 0.2em 0.5em 0.1em #660000, -0.3em 0.1em 0.1em #006600, 0.4em -0.3em 0.1em #000066;
+}
+
+#player-cover-image {
+  position: absolute;
+  /*width: 100%;
+  height: 100%;*/
+  /*-moz-transition: opacity 800ms ease-in-out;*/
 }
 
 .slideDown {
@@ -417,7 +425,7 @@ body.player-mode #views-player {
   position: absolute;
   width: 100%;
   height: 16%;
-  background-color: rgba(0, 0, 0, 0.15);
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 #player-cover-caption {
@@ -440,7 +448,7 @@ body.player-mode #views-player {
   height: auto;
   text-align: left;
   font-size: 1.8em;
-  text-indent: 10%;
+  text-indent: 11%;
 }
 
 #player-cover-album {
@@ -448,7 +456,7 @@ body.player-mode #views-player {
   height: auto;
   text-align: left;
   font-size: 1.5em;
-  text-indent: 10%;
+  text-indent: 11%;
 }
 
 #player-cover-buttons {

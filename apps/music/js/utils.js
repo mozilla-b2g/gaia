@@ -32,3 +32,26 @@ function formatTime(secs) {
 
   return formatedTime;
 }
+
+function cropImage(evt) {
+  var image = evt.target;
+
+  var parentWidth = image.parentElement.clientWidth;
+  var parentHeight = image.parentElement.clientHeight;
+
+  var childRatio = image.naturalWidth / image.naturalHeight;
+  var parentRatio = parentWidth / parentHeight;
+  
+  // cilentWidth and clientHeight is 0 when image onloads
+  if (childRatio > parentRatio) {
+    image.style.width = 'auto';
+    image.style.height = parentHeight + 'px';
+
+    image.style.left = -(parentHeight * childRatio - parentWidth)/2 + 'px';
+  } else {
+    image.style.width = parentWidth + 'px';
+    image.style.height = 'auto';
+
+    image.style.top = -(parentWidth / childRatio - parentHeight)/2 + 'px';
+  }
+}

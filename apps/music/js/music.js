@@ -383,6 +383,7 @@ var PlayerView = {
 
     this.timeoutID;
     this.caption = document.getElementById('player-cover-caption');
+    this.coverImage = document.getElementById('player-cover-image');
     this.coverControl = document.getElementById('player-cover-buttons');
 
     this.seekBar = document.getElementById('player-seek-bar-progress');
@@ -449,6 +450,19 @@ var PlayerView = {
       this.album.textContent = (songData.metadata.album) ?
         songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
       this.currentIndex = targetIndex;
+
+      var image = songData.metadata.picture;
+      if (image) {
+        this.coverImage.onload = function(evt) {
+          cropImage(evt);
+          this.coverImage.classList.remove('hidden');
+        }.bind(this);
+        
+        this.coverImage.src = "data:" + image.format + ";base64," + Base64.encodeBytes(image.data);
+      } else {
+        this.coverImage.classList.add('hidden');
+        this.coverImage.src = '';
+      }
 
       musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
         // On B2G devices, file.type of mp3 format is missing
@@ -553,6 +567,7 @@ var PlayerView = {
     switch (evt.type) {
       case 'click':
         switch (target.id) {
+          case 'player-cover-default-image':
           case 'player-cover-image':
             this.showInfo();
 

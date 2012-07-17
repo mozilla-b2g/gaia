@@ -61,7 +61,8 @@
       <div id="views-sublist" class="view"></div>
       <div id="views-player" class="view">
         <div id="player-cover">
-          <div id="player-cover-image">&#9834;</div>
+          <div id="player-cover-default-image">&#9834;</div>
+          <img id="player-cover-image" />
           <div id="player-cover-caption">
             <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
             <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
@@ -81,8 +82,8 @@
           <span id="player-seek-remaining">00:00</span>
         </div>
         <div id="player-controls">
-          <button id="player-controls-play" class="player-controls-button">&#9654;</button>
           <button id="player-controls-previous" class="player-controls-button">&#9621;&#9664;&#9664;</button>
+          <button id="player-controls-play" class="player-controls-button">&#9654;</button>
           <button id="player-controls-next" class="player-controls-button">&#9654;&#9654;&#9615;</button>
         </div>
         <audio id="player-audio" class="hidden" controls autoplay></audio>
