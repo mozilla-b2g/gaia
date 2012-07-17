@@ -25,8 +25,12 @@ var SleepMenu = {
   turnOffFlightMode: function sm_turnOffFlightMode() {
     var settings = navigator.mozSettings;
     if (settings) {
-      settings.getLock().set({'ril.data.enabled': this.reservedSettings.data});
-      settings.getLock().set({'bluetooth.enabled': this.reservedSettings.bluetooth});
+      if (this.reservedSettings.data) {
+        settings.getLock().set({'ril.data.enabled': true});
+      }
+      if (this.reservedSettings.bluetooth) {
+        settings.getLock().set({'bluetooth.enabled': true});
+      }
     }
 
     // Set wifi as previous

@@ -15,8 +15,9 @@ var Bluetooth = {
         return;
       }
       var req = bluetooth.setEnabled(value);
-      req.onerror = function bt_EnabledError(){
-        // rollback
+      req.onerror = function bt_EnabledError() {
+        // roll back the setting value to notify the UIs
+        // that bluetooth has failed to enable.
         var settings = window.navigator.mozSettings;
         if (settings) {
           settings.getLock().set({

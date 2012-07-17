@@ -10,14 +10,24 @@ window.addEventListener('DOMContentLoaded', function bluetoothSettings(evt) {
   var settings = window.navigator.mozSettings;
   if (settings) {
     settings.addObserver('bluetooth.enabled', function(event) {
-      gBluetoothPowerStatus.textContent = (event.settingValue)? 'Enabled':'Disabled';
+      if (event.settingValue) {
+        gBluetoothPowerStatus.textContent = 'Enabled';
+      }
+      else {
+        gBluetoothPowerStatus.textContent = 'Disabled';
+      }
       gBluetoothCheckBox.checked = event.settingValue;
     });
 
     var req = settings.getLock().get('bluetooth.enabled');
     req.onsuccess = function bt_EnabledSuccess() {
       var enabled = req.result['bluetooth.enabled'];
-      gBluetoothPowerStatus.textContent = (enabled)? 'Enabled':'Disabled';
+      if (enabled) {
+        gBluetoothPowerStatus.textContent = 'Enabled';
+      }
+      else {
+        gBluetoothPowerStatus.textContent = 'Disabled';
+      }
       gBluetoothCheckBox.checked = enabled;
     };
 

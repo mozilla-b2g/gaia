@@ -81,13 +81,11 @@ var QuickSettings = {
               }
 
               // Turn off Data
-              this.data.dataset.enabled = false;
               navigator.mozSettings.getLock().set({
                 'ril.data.enabled': false
               });
 
               // Turn off Bluetooth
-              this.bluetooth.dataset.enabled = false;
               navigator.mozSettings.getLock().set({
                 'bluetooth.enabled': false
               });
@@ -107,7 +105,6 @@ var QuickSettings = {
 
               if (this._powerSaveResume.data) {
                 // Turn on Data
-                this.data.dataset.enabled = true;
                 navigator.mozSettings.getLock().set({
                   'ril.data.enabled': true
                 });
@@ -115,7 +112,6 @@ var QuickSettings = {
 
               if (this._powerSaveResume.bluetooth) {
                 // Turn on Bluetooth
-                this.bluetooth.dataset.enabled = true;
                 navigator.mozSettings.getLock().set({
                   'bluetooth.enabled': true
                 });
