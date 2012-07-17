@@ -53,6 +53,7 @@
   <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/settings.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/advanced_settings.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/create_account.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/modify_account.js" type="text/javascript" charset="utf-8"></script>
 
@@ -78,7 +79,7 @@
     <li class="calendar-2">Friends</li>
   </ol>
 
-  <a href="#" class="settings">
+  <a href="/advanced-settings/" class="settings">
     Account Settings
   </a>
 
@@ -153,6 +154,24 @@
 
     <ol id="create-account-presets">
     </ol>
+  </section>
+
+  <section class="fullscreen-view" id="advanced-settings-view">
+    <header role="toolbar">
+      <h1>Account</h1>
+      <a class="done" href="/settings/">Done</a>
+    </header>
+
+    <div class="errors"></div>
+
+    <section class="account">
+      <header>
+        <h2>Accounts</h2>
+      </header>
+      <ol class="account-list">
+      </ol>
+    </section>
+
   </section>
 
   <section class="fullscreen-view" id="modify-account-view">

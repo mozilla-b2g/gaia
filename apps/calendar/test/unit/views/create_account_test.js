@@ -95,7 +95,7 @@ suite('views/create_account', function() {
       presets.forEach(function(val) {
         assert.include(
           html,
-          template.accountItem.render({ name: val })
+          template.provider.render({ name: val })
         );
       });
     });

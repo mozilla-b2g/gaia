@@ -65,10 +65,19 @@ Calendar.App = (function(window) {
 
       this.route('/month/', setPath, 'Month', 'MonthsDay');
       this.route('/settings/', setPath, 'Settings', { clear: false });
+      this.route('/advanced-settings/', setPath, 'AdvancedSettings');
 
       this.route('/select-preset/', setPath, 'CreateAccount');
       this.route('/create-account/:preset', setPath, 'ModifyAccount');
       this.route('/update-account/:id', setPath, 'ModifyAccount');
+
+      // I am not sure where this logic really belongs...
+      this.route('/remove-account/:id', function(data) {
+        var store = self.store('Account');
+        store.remove(data.params.id, function(id) {
+          self.go('/advanced-settings/');
+        });
+      });
 
       // default view
       if (window.location.pathname === '/') {

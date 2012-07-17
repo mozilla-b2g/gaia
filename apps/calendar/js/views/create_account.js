@@ -32,7 +32,7 @@
           }
         }
 
-        output = template.accountItem.render({ name: preset });
+        output = template.provider.render({ name: preset });
         this.accounts.insertAdjacentHTML('beforeend', output);
       }, this);
     }
