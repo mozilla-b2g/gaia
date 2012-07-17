@@ -130,6 +130,15 @@ html, body {
   pointer-events: none;
 }
 
+.edit #thread-list-container .checkbox-container {
+  pointer-events:auto;
+  opacity: 1;
+}
+
+
+.edit .undo-candidate {
+  display: none;
+}
 /*
   Thread list styles
   //TODO Update with VISUALS
@@ -230,12 +239,45 @@ a.unread .unread-mark .icon-unread-mark {
   top: 0;
   right: 0;
   width: 5.9rem;
-  height: 5.9rem;
+  height: 100%;
   overflow: hidden;
 }
 
 #thread-list-container .photo img {
   width: 100%;
+}
+
+#thread-list-container .checkbox-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5.9rem;
+  height: 100%;
+  overflow: hidden;
+  background: white;
+  pointer-events:none;
+  opacity: 0;
+}
+
+#thread-list-container .checkbox-container input {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  opacity: 0;
+}
+#thread-list-container .checkbox-container span {
+  left: 1.85rem;
+  top: 1.9rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  position: absolute;
+  pointer-events: none;
+  background-image: url('images/check-delete.png'); 
+}
+
+#thread-list-container .checkbox-container input:checked + span {
+  /*background: pink;*/
+  background-position: center bottom;
 }
 
 #thread-list-container .name {
@@ -305,6 +347,7 @@ a.unread .unread-mark .icon-unread-mark {
   color: #ff4e00;
   text-transform: uppercase;
   font-family: 'Open Sans';
+  /*margin-bottom: -0.1rem;*/
 }
 
 
@@ -371,31 +414,6 @@ a.unread .unread-mark .icon-unread-mark {
   border: 0.1rem solid #F08A48;
   margin-left: 2rem;
   margin-right: 3.5rem;
-}
-
-#messages-container .photo {
-  position: absolute;
-  top: 0;
-  width: 8rem;
-  height: 8rem;
-  margin: 0.8rem;
-  border-radius: 0.5rem;
-  box-shadow: inset 0 0.1rem 0 #ddd, 0 0.1rem 0 #999;
-  overflow: hidden;
-  background-color: #ccc;
-  z-index: 2;
-}
-
-#messages-container > div.sender .photo {
-  left: 0;
-}
-
-#messages-container > div.receiver .photo {
-  right: 0;
-}
-
-#messages-container .photo img {
-  width: 100%;
 }
 
 #messages-container > div .text {

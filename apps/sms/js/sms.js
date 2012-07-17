@@ -69,6 +69,7 @@ var MessageManager = {
             }
             break;
           case '#edit':
+            ThreadListUI.cleanForm();
             mainWrapper.classList.toggle('edit');
             break;
           default:
@@ -220,9 +221,23 @@ var ThreadListUI = {
     delete this.view;
     return this.view = document.getElementById('thread-list-container');
   },
+  get deleteAllButton() {
+    delete this.deleteAllButton;
+    return this.deleteAllButton =
+    document.getElementById('delete-all-threads');
+  },
+  get deleteSelectedButton() {
+    delete this.deleteSelectedButton;
+    return this.deleteSelectedButton =
+    document.getElementById('delete-selected-threads');
+  },
 
   init: function thlui_init() {
     this.delNumList = [];
+    this.deleteAllButton.addEventListener('click',
+      this.deleteAllThreads.bind(this));
+    this.deleteSelectedButton.addEventListener('click',
+      this.deleteThreads.bind(this));
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
@@ -230,6 +245,28 @@ var ThreadListUI = {
       this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
       element.innerHTML = contact[0].name;
+    }
+  },
+
+  cleanForm: function thlui_cleanForm() {
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].checked = false;
+      inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
+    }
+  },
+
+  deleteAllThreads: function thlui_deleteAllThreads() {
+    //TODO Include delete all threads functionality
+  },
+
+  deleteThreads: function thlui_deleteThreads() {
+    //TODO Include delete selected threads
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].checked) {
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+      }
     }
   },
 
@@ -305,7 +342,14 @@ var ThreadListUI = {
             '    </div>') +
             '    <div class="msg">"' + bodyHTML + '"</div>' +
             '    <div class="unread-tag"></div>' +
-            '  </a>';
+            '    <div class="photo">' +
+            '    <img src="">' +
+            '    </div>' +
+            '  </a>' +
+            '  <div class="checkbox-container">' +
+            '  <input type="checkbox">' +
+            '  <span></span>' +
+            '</div>';
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
@@ -364,9 +408,25 @@ var ThreadUI = {
     return this.pickButton = document.getElementById('icon-contact');
   },
 
+  get deleteAllButton() {
+    delete this.deleteAllButton;
+    return this.deleteAllButton =
+    document.getElementById('delete-all-messages');
+  },
+
+  get deleteSelectedButton() {
+    delete this.deleteSelecteButton;
+    return this.deleteSelecteButton =
+    document.getElementById('delete-selected-messages');
+  },
+
   init: function thui_init() {
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
+    this.deleteAllButton.addEventListener('click',
+      this.deleteAllMessages.bind(this));
+    this.deleteSelectedButton.addEventListener('click',
+      this.deleteMessages.bind(this));
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -492,6 +552,19 @@ var ThreadUI = {
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
   },
+
+  cleanForm: function thui_cleanForm() {
+    //TODO Clean UI when it will be ready
+  },
+
+  deleteAllMessages: function thui_deleteAllMessages() {
+    //TODO Include delete all messages functionality
+  },
+
+  deleteMessages: function thui_deleteMessages() {
+    //TODO Include delete selected messages
+  },
+
   handleEvent: function thui_handleEvent(evt) {
     //TODO We will use for updating height of input if necessary
   },
