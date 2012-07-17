@@ -62,20 +62,10 @@ var Recents = {
     }
     var action = event.target.dataset.action;
     var noMissedCallsSelector = '.log-item[data-type^=dialing]' +
-      ':not(.collapsed):not([data-missed-calls]), ' +
-      '.log-item[data-type=incoming-connected]:not(.collapsed):not([data-missed-calls])';
+      ':not(.collapsed), ' +
+      '.log-item[data-type=incoming-connected]:not(.collapsed)';
     var noMissedCallsItems = document.querySelectorAll(noMissedCallsSelector);
     var noMissedCallsLength = noMissedCallsItems.length;
-    var missedCallsSelector = '.log-item[data-type=incoming]' +
-      ':not(.collapsed), ' +
-      '.log-item[data-type=incoming-refused]:not(.collapsed), ' +
-      '.log-item[data-missed-calls]';
-    var missedCallsItems = document.querySelectorAll(missedCallsSelector);
-    var missedCallsLength = missedCallsItems.length;
-    var missedCallItem;
-    var primaryInfo;
-    var secondaryInfo;
-    var callTypeIcon;
     var i;
     var allCalls = (action == 'all');
     if (allCalls) {
@@ -85,50 +75,6 @@ var Recents = {
     } else {
       for (i = 0; i < noMissedCallsLength; i++) {
         noMissedCallsItems[i].classList.add('hide');
-      }
-    }
-    for (i = 0; i < missedCallsLength; i++) {
-      missedCallItem = missedCallsItems[i];
-      if (missedCallItem.dataset.missedCalls) {
-        var iconClass;
-        primaryInfo = missedCallItem.querySelector('.primary-info');
-        secondaryInfo = missedCallItem.querySelector('.secondary-info');
-        callTypeIcon = missedCallItem.querySelector('.call-type-icon');
-        if (allCalls) {
-          primaryInfo.textContent =
-            missedCallItem.dataset.num + ' (' +
-              missedCallItem.dataset.totalCalls + ')';
-          secondaryInfo.textContent = missedCallItem.dataset.lastCallTime;
-          var callType = missedCallItem.dataset.type;
-          secondaryInfo.classList.remove('missed-call-font');
-          if (callType.indexOf('dialing') != -1) {
-            iconClass = 'icon-outgoing';
-          } else if (callType.indexOf('incoming') != -1) {
-            if (callType.indexOf('connected') == -1) {
-              iconClass = 'icon-missed';
-              secondaryInfo.classList.add('missed-call-font');
-            } else {
-              iconClass = 'icon-incoming';
-            }
-          }
-        } else {
-          iconClass = 'icon-missed';
-          secondaryInfo.textContent = missedCallItem.dataset.lastMissedCallTime;
-          secondaryInfo.classList.add('missed-call-font');
-          if (missedCallItem.dataset.missedCalls > 1) {
-            primaryInfo.textContent =
-              missedCallItem.dataset.num + ' (' +
-                missedCallItem.dataset.missedCalls + ')';
-            secondaryInfo.textContent =
-              missedCallItem.dataset.lastMissedCallTime;
-          } else {
-            primaryInfo.textContent = missedCallItem.dataset.num;
-          }
-        }
-        callTypeIcon.classList.remove('icon-outgoing');
-        callTypeIcon.classList.remove('icon-incoming');
-        callTypeIcon.classList.remove('icon-missed');
-        callTypeIcon.classList.add(iconClass);
       }
     }
     this.allFilter.classList.toggle('selected');
@@ -197,6 +143,7 @@ var Recents = {
     var entry =
       '<li class="log-item ' +
       '  " data-num="' + recent.number +
+      '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
       '  <section class="icon-container grid center">' +
       '    <div class="grid-cell grid-v-align">' +
@@ -251,7 +198,7 @@ var Recents = {
 
       self.updateContactDetails();
 
-      self.groupCallsByContact();
+      self.groupCallsByContactDayType();
     });
   },
 
@@ -277,68 +224,71 @@ var Recents = {
     }
   },
 
-  groupCallsByContact: function re_groupCallsByContact() {
+  groupCallsByContactDayType: function re_groupCallsByContactDayType() {
     var daySelector = '.log-group';
     var daysElements = document.querySelectorAll(daySelector);
     var daysElementsLength = daysElements.length;
     var itemSelector = '.log-item';
-    var callLogItems, length, phoneNumber, recentCalls, recentCallsLastTime,
-      recentMissedCalls, recentMissedCallsLastTime, logItemEntries,
-      logItemEntry, contactEntry, entryTimes, missedEntryTimes;
+    var callLogItems, length, phoneNumber, callType, callCount, callDate,
+      sameTypeCallSelector, sameTypeCall, sameTypeCallSelectorAux, sameTypeCallAux,
+      sameTypeCallCount;
     for (var dayElementsCounter = 0; dayElementsCounter < daysElementsLength;
       dayElementsCounter++) {
       callLogItems = daysElements[dayElementsCounter].
         querySelectorAll(itemSelector);
       length = callLogItems.length;
-      recentCalls = new Object();
-      recentCallsLastTime = new Object();
-      recentMissedCalls = new Object();
-      recentMissedCallsLastTime = new Object();
       for (var i = 0; i < length; i++) {
-        phoneNumber = callLogItems[i].dataset.num;
-        recentCalls[phoneNumber] = ((recentCalls[phoneNumber]) ?
-          parseInt(recentCalls[phoneNumber]) : 0) + 1;
-        if (!recentCallsLastTime[phoneNumber]) {
-          recentCallsLastTime[phoneNumber] = callLogItems[i].
-            querySelector('.secondary-info').textContent.trim();
+        phoneNumber = callLogItems[i].dataset.num.trim();
+        callType = callLogItems[i].dataset.type;
+        callCount = (callLogItems[i].dataset.count ? parseInt(callLogItems[i].dataset.count) : 1);
+        callDate = callLogItems[i].dataset.date;
+        if (callType.indexOf('dialing') != -1) {
+          sameTypeCallSelector = '[data-num^="' + phoneNumber + '"][data-type^="dialing"][data-count]:not(.hide)';
+          sameTypeCall = daysElements[dayElementsCounter].querySelector(sameTypeCallSelector);
+        } else if(callType.indexOf('incoming-connected') != -1) {
+          sameTypeCallSelector = '[data-num^="' + phoneNumber + '"][data-type="incoming-connected"][data-count]:not(.hide)';
+          sameTypeCall = daysElements[dayElementsCounter].querySelector(sameTypeCallSelector);
+        } else {
+          sameTypeCallSelector = '[data-num^="' + phoneNumber + '"][data-type="incoming"][data-count]:not(.hide)';
+          sameTypeCall = daysElements[dayElementsCounter].querySelector(sameTypeCallSelector);
+          sameTypeCallSelectorAux = '[data-num^="' + phoneNumber + '"][data-type="incoming-refused"][data-count]:not(.hide)';
+          sameTypeCallAux = daysElements[dayElementsCounter].querySelector(sameTypeCallSelectorAux);
+          if (sameTypeCallAux) {
+            if (sameTypeCall) {
+              if (sameTypeCall.dataset.date < sameTypeCallAux.dataset.date) {
+                sameTypeCall = sameTypeCallAux;
+              }
+            } else {
+              sameTypeCall = sameTypeCallAux;
+            }
+          }
         }
-        if ((callLogItems[i].dataset.type == 'incoming') ||
-          (callLogItems[i].dataset.type == 'incoming-refused')) {
-          recentMissedCalls[phoneNumber] = ((recentMissedCalls[phoneNumber]) ?
-            parseInt(recentMissedCalls[phoneNumber]) : 0) + 1;
-          if (!recentMissedCallsLastTime[phoneNumber]) {
-            recentMissedCallsLastTime[phoneNumber] = callLogItems[i].
-              querySelector('.secondary-info').textContent.trim();
+        callLogItems[i].dataset.count = callCount;
+        if (sameTypeCall) {
+          sameTypeCallCount = parseInt(sameTypeCall.dataset.count);
+          if (sameTypeCall.dataset.date > callDate) {
+            this.groupCalls(callLogItems[i], sameTypeCall, sameTypeCallCount, 1);
+          } else {
+            this.groupCalls(sameTypeCall, callLogItems[i], callCount, sameTypeCallCount);
           }
         }
       }
-      for (phoneNumber in recentCalls) {
-        entryTimes = recentCalls[phoneNumber];
-        if (entryTimes == 1) {
-          continue;
-        }
-        itemSelector = '.log-item[data-num="' + phoneNumber + '"]';
-        logItemEntries = daysElements[dayElementsCounter].
-          querySelectorAll(itemSelector);
-        logItemEntry = logItemEntries[0];
-        contactEntry = logItemEntry.querySelector('.primary-info');
-        contactEntry.textContent = contactEntry.textContent.trim() +
-          ' (' + entryTimes + ')';
-        logItemEntry.dataset.totalCalls = entryTimes;
-        logItemEntry.dataset.lastCallTime = recentCallsLastTime[phoneNumber];
-        missedEntryTimes = recentMissedCalls[phoneNumber];
-        if (missedEntryTimes) {
-          logItemEntry.dataset.missedCalls = missedEntryTimes;
-          logItemEntry.dataset.lastMissedCallTime =
-            recentMissedCallsLastTime[phoneNumber];
-        }
-        length = logItemEntries.length;
-        for (i = 1; i < length; i++) {
-          logItemEntries[i].classList.add('hide');
-          logItemEntries[i].classList.add('collapsed');
-        }
-      }
     }
+  },
+
+  groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, increment) {
+    olderCallEl.classList.add('hide');
+    olderCallEl.classList.add('collapsed');
+    var primaryInfo = newerCallEl.querySelector('.primary-info');
+    var callDetails = primaryInfo.textContent.trim();
+    var countIndex = callDetails.indexOf('(' + count + ')');
+    count += increment;
+    if (countIndex != -1) {
+      primaryInfo.textContent = callDetails.substr(0, countIndex) + '(' + count + ')';
+    } else {
+      primaryInfo.textContent = callDetails + ' (' + count + ')';
+    }
+    newerCallEl.dataset.count = count;
   },
 
   getDayDate: function re_getDayDate(timestamp) {
