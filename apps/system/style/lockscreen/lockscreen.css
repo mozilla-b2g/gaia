@@ -288,9 +288,12 @@
   }
 }
 
-.touched #lockscreen-area-handle::before,
-#lockscreen-area-handle.triggered::before {
+.touched #lockscreen-area-handle::before {
   -moz-animation: lockscreen-handlegrow 1s 1;
+  opacity: 1;
+}
+
+#lockscreen-area-handle.triggered::before {
   opacity: 1;
 }
 
