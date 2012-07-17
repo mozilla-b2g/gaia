@@ -263,7 +263,7 @@ var CardsView = (function() {
     }
 
     // If re are in reordering mode (there is a DOM element in)
-    // reorderedCArd variable) we are able to put this element somewere
+    // reorderedCard variable) we are able to put this element somewere
     // among the others
     if (USER_DEFINED_ORDERING && reorderedCard !== null) {
       var differenceX = touchPosition.x - initialTouchPosition.x;
@@ -277,7 +277,7 @@ var CardsView = (function() {
         'scale(0.6) translate(' + moveOffset + 'px, 0)';
 
       if (Math.abs(differenceX) > threshold) {
-        // We don't want to jump to the next page immidiately,
+        // We don't want to jump to the next page immediately,
         // We are waiting half a second for user to decide if
         // he wants to leave the Card here or scroll further
         if (allowScrollingWhileSorting) {
