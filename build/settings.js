@@ -42,6 +42,7 @@ var settings = [
  new Setting("keyboard.vibration", false),
  new Setting("keyboard.clicksound", false),
  new Setting("language.current", "en-US"),
+ new Setting("lockscreen.passcode-lock.code", "0000"),
  new Setting("lockscreen.passcode-lock.enabled", false),
  new Setting("lockscreen.enabled", true),
  new Setting("lockscreen.locked", true),
