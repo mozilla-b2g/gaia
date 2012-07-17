@@ -13,8 +13,11 @@
       }
     ], 
     "bday": "1974-03-11", 
-    "email": [
-      "LucasCastroAzevedo@teleworm.us"
+    "email": [ 
+      {
+        "address": "LucasCastroAzevedo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Azevedo"
@@ -48,8 +51,11 @@
       }
     ], 
     "bday": "1978-12-20", 
-    "email": [
-      "KathrinMehler@teleworm.us"
+    "email": [ 
+      {
+        "address": "KathrinMehler@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mehler"
@@ -83,8 +89,11 @@
       }
     ], 
     "bday": "1958-02-20", 
-    "email": [
-      "YvonDupont@teleworm.us"
+    "email": [ 
+      {
+        "address": "YvonDupont@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dupont"
@@ -118,8 +127,11 @@
       }
     ], 
     "bday": "1984-12-10", 
-    "email": [
-      "MaxWeber@teleworm.us"
+    "email": [ 
+      {
+        "address": "MaxWeber@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Weber"
@@ -157,8 +169,11 @@
       }
     ], 
     "bday": "1970-08-18", 
-    "email": [
-      "DanielABrown@teleworm.us"
+    "email": [ 
+      {
+        "address": "DanielABrown@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Brown"
@@ -196,8 +211,11 @@
       }
     ], 
     "bday": "1991-04-16", 
-    "email": [
-      "MariaDiasLima@teleworm.us"
+    "email": [ 
+      {
+        "address": "MariaDiasLima@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lima"
@@ -234,8 +252,11 @@
       }
     ], 
     "bday": "1943-07-12", 
-    "email": [
-      "SeymourGuertin@teleworm.us"
+    "email": [ 
+      {
+        "address": "SeymourGuertin@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Guertin"
@@ -302,8 +323,11 @@
       }
     ], 
     "bday": "1977-03-13", 
-    "email": [
-      "PetruosLuceroRivas@teleworm.us"
+    "email": [ 
+      {
+        "address": "PetruosLuceroRivas@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lucero Rivas"
@@ -341,8 +365,11 @@
       }
     ], 
     "bday": "1989-12-12", 
-    "email": [
-      "LeeTHarris@teleworm.us"
+    "email": [ 
+      {
+        "address": "LeeTHarris@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Harris"
@@ -376,8 +403,11 @@
       }
     ], 
     "bday": "1974-08-29", 
-    "email": [
-      "RebeccaMascarenasOzuna@teleworm.us"
+    "email": [ 
+      {
+        "address": "RebeccaMascarenasOzuna@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mascarenas Ozuna"
@@ -447,8 +477,11 @@
       }
     ], 
     "bday": "1939-02-24", 
-    "email": [
-      "ArmandGagn@teleworm.us"
+    "email": [ 
+      {
+        "address": "ArmandGagn@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gagn\u00e9"
@@ -486,8 +519,11 @@
       }
     ], 
     "bday": "1987-06-24", 
-    "email": [
-      "FelipeCorreiaSousa@teleworm.us"
+    "email": [ 
+      {
+        "address": "FelipeCorreiaSousa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Sousa"
@@ -521,8 +557,11 @@
       }
     ], 
     "bday": "1952-09-12", 
-    "email": [
-      "MarieGranadosCazares@teleworm.us"
+    "email": [ 
+      {
+        "address": "MarieGranadosCazares@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Granados Cazares"
@@ -556,8 +595,11 @@
       }
     ], 
     "bday": "1970-11-10", 
-    "email": [
-      "DillanArroyoChacn@teleworm.us"
+    "email": [ 
+      {
+        "address": "DillanArroyoChacn@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Arroyo Chac\u00f3n"
@@ -591,8 +633,11 @@
       }
     ], 
     "bday": "1965-10-14", 
-    "email": [
-      "CampbellCaouette@teleworm.us"
+    "email": [ 
+      {
+        "address": "CampbellCaouette@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Caouette"
@@ -659,8 +704,11 @@
       }
     ], 
     "bday": "1959-09-28", 
-    "email": [
-      "SabrinaWexler@teleworm.us"
+    "email": [ 
+      {
+        "address": "SabrinaWexler@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Wexler"
@@ -698,8 +746,11 @@
       }
     ], 
     "bday": "1945-04-05", 
-    "email": [
-      "JulietaOliveiraAlves@teleworm.us"
+    "email": [ 
+      {
+        "address": "JulietaOliveiraAlves@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Alves"
@@ -733,8 +784,11 @@
       }
     ], 
     "bday": "1972-10-18", 
-    "email": [
-      "PalomaMenaNegrn@teleworm.us"
+    "email": [ 
+      {
+        "address": "PalomaMenaNegrn@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mena Negr\u00f3n"
@@ -768,8 +822,11 @@
       }
     ], 
     "bday": "1958-11-02", 
-    "email": [
-      "LisaScholz@teleworm.us"
+    "email": [ 
+      {
+        "address": "LisaScholz@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Scholz"
@@ -803,8 +860,11 @@
       }
     ], 
     "bday": "1934-11-18", 
-    "email": [
-      "AishaCoronaCortez@teleworm.us"
+    "email": [ 
+      {
+        "address": "AishaCoronaCortez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Corona Cortez"
@@ -875,8 +935,11 @@
       }
     ], 
     "bday": "1943-09-11", 
-    "email": [
-      "GuilhermeAraujoSouza@teleworm.us"
+    "email": [ 
+      {
+        "address": "GuilhermeAraujoSouza@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Souza"
@@ -914,8 +977,11 @@
       }
     ], 
     "bday": "1927-12-07", 
-    "email": [
-      "MarianaSilvaGoncalves@teleworm.us"
+    "email": [ 
+      {
+        "address": "MarianaSilvaGoncalves@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Goncalves"
@@ -986,8 +1052,11 @@
       }
     ], 
     "bday": "1961-12-21", 
-    "email": [
-      "LetciaCostaAraujo@teleworm.us"
+    "email": [ 
+      {
+        "address": "LetciaCostaAraujo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Araujo"
@@ -1025,8 +1094,11 @@
       }
     ], 
     "bday": "1932-02-23", 
-    "email": [
-      "AndresBBrown@teleworm.us"
+    "email": [ 
+      {
+        "address": "AndresBBrown@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Brown"
@@ -1064,8 +1136,11 @@
       }
     ], 
     "bday": "1989-01-13", 
-    "email": [
-      "YasminDiasAzevedo@teleworm.us"
+    "email": [ 
+      {
+        "address": "YasminDiasAzevedo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Azevedo"
@@ -1103,8 +1178,11 @@
       }
     ], 
     "bday": "1986-03-02", 
-    "email": [
-      "SamuelRodriguesCavalcanti@teleworm.us"
+    "email": [ 
+      {
+        "address": "SamuelRodriguesCavalcanti@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cavalcanti"
@@ -1204,8 +1282,11 @@
       }
     ], 
     "bday": "1952-05-16", 
-    "email": [
-      "NidiaVallesCrdenas@teleworm.us"
+    "email": [ 
+      {
+        "address": "NidiaVallesCrdenas@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Valles C\u00e1rdenas"
@@ -1239,8 +1320,11 @@
       }
     ], 
     "bday": "1982-08-04", 
-    "email": [
-      "SavilleRen@teleworm.us"
+    "email": [ 
+      {
+        "address": "SavilleRen@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ren\u00e9"
@@ -1278,8 +1362,11 @@
       }
     ], 
     "bday": "1949-04-20", 
-    "email": [
-      "MorrisFRoss@teleworm.us"
+    "email": [ 
+      {
+        "address": "MorrisFRoss@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ross"
@@ -1313,8 +1400,11 @@
       }
     ], 
     "bday": "1975-09-14", 
-    "email": [
-      "JolieReault@teleworm.us"
+    "email": [ 
+      {
+        "address": "JolieReault@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Reault"
@@ -1348,8 +1438,11 @@
       }
     ], 
     "bday": "1944-02-27", 
-    "email": [
-      "UdolfoPadrnLoya@teleworm.us"
+    "email": [ 
+      {
+        "address": "UdolfoPadrnLoya@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Padr\u00f3n Loya"
@@ -1420,8 +1513,11 @@
       }
     ], 
     "bday": "1974-11-18", 
-    "email": [
-      "CauGoncalvesRocha@teleworm.us"
+    "email": [ 
+      {
+        "address": "CauGoncalvesRocha@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rocha"
@@ -1459,8 +1555,11 @@
       }
     ], 
     "bday": "1938-05-13", 
-    "email": [
-      "TanishaIWashington@teleworm.us"
+    "email": [ 
+      {
+        "address": "TanishaIWashington@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Washington"
@@ -1494,8 +1593,11 @@
       }
     ], 
     "bday": "1963-06-06", 
-    "email": [
-      "FanchonChandonnet@teleworm.us"
+    "email": [ 
+      {
+        "address": "FanchonChandonnet@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Chandonnet"
@@ -1565,8 +1667,11 @@
       }
     ], 
     "bday": "1961-04-10", 
-    "email": [
-      "RoxanneVadnais@teleworm.us"
+    "email": [ 
+      {
+        "address": "RoxanneVadnais@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Vadnais"
@@ -1604,8 +1709,11 @@
       }
     ], 
     "bday": "1945-04-28", 
-    "email": [
-      "JohnnieAOliver@teleworm.us"
+    "email": [ 
+      {
+        "address": "JohnnieAOliver@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Oliver"
@@ -1643,8 +1751,11 @@
       }
     ], 
     "bday": "1930-10-05", 
-    "email": [
-      "DonaldLFerguson@teleworm.us"
+    "email": [ 
+      {
+        "address": "DonaldLFerguson@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ferguson"
@@ -1678,8 +1789,11 @@
       }
     ], 
     "bday": "1935-03-11", 
-    "email": [
-      "JoannaLacombe@teleworm.us"
+    "email": [ 
+      {
+        "address": "JoannaLacombe@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lacombe"
@@ -1717,8 +1831,11 @@
       }
     ], 
     "bday": "1934-11-30", 
-    "email": [
-      "AndrCarvalhoFerreira@teleworm.us"
+    "email": [ 
+      {
+        "address": "AndrCarvalhoFerreira@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ferreira"
@@ -1752,8 +1869,11 @@
       }
     ], 
     "bday": "1968-04-02", 
-    "email": [
-      "AngelikaBader@teleworm.us"
+    "email": [ 
+      {
+        "address": "AngelikaBader@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Bader"
@@ -1791,8 +1911,11 @@
       }
     ], 
     "bday": "1954-11-11", 
-    "email": [
-      "LindaJJolly@teleworm.us"
+    "email": [ 
+      {
+        "address": "LindaJJolly@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Jolly"
@@ -1830,8 +1953,11 @@
       }
     ], 
     "bday": "1929-09-13", 
-    "email": [
-      "LarissaCardosoSilva@teleworm.us"
+    "email": [ 
+      {
+        "address": "LarissaCardosoSilva@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Silva"
@@ -1869,8 +1995,11 @@
       }
     ], 
     "bday": "1975-01-06", 
-    "email": [
-      "ConnieMWood@teleworm.us"
+    "email": [ 
+      {
+        "address": "ConnieMWood@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Wood"
@@ -1904,8 +2033,11 @@
       }
     ], 
     "bday": "1936-05-15", 
-    "email": [
-      "RaifroidCabreraQuiones@teleworm.us"
+    "email": [ 
+      {
+        "address": "RaifroidCabreraQuiones@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cabrera Qui\u00f1ones"
@@ -1943,8 +2075,11 @@
       }
     ], 
     "bday": "1972-07-31", 
-    "email": [
-      "NicolasCardosoCastro@teleworm.us"
+    "email": [ 
+      {
+        "address": "NicolasCardosoCastro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Castro"
@@ -1978,8 +2113,11 @@
       }
     ], 
     "bday": "1984-04-01", 
-    "email": [
-      "EngraciaAlmarazCandelaria@teleworm.us"
+    "email": [ 
+      {
+        "address": "EngraciaAlmarazCandelaria@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Almaraz Candelaria"
@@ -2013,8 +2151,11 @@
       }
     ], 
     "bday": "1991-02-18", 
-    "email": [
-      "LouisLouis@teleworm.us"
+    "email": [ 
+      {
+        "address": "LouisLouis@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Louis"
@@ -2085,8 +2226,11 @@
       }
     ], 
     "bday": "1972-10-10", 
-    "email": [
-      "GiovannaMeloCastro@teleworm.us"
+    "email": [ 
+      {
+        "address": "GiovannaMeloCastro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Castro"
@@ -2124,8 +2268,11 @@
       }
     ], 
     "bday": "1932-01-24", 
-    "email": [
-      "WalterKAlbright@teleworm.us"
+    "email": [ 
+      {
+        "address": "WalterKAlbright@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Albright"
@@ -2324,8 +2471,11 @@
       }
     ], 
     "bday": "1935-11-21", 
-    "email": [
-      "KarolinDreher@teleworm.us"
+    "email": [ 
+      {
+        "address": "KarolinDreher@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dreher"
@@ -2396,8 +2546,11 @@
       }
     ], 
     "bday": "1939-12-08", 
-    "email": [
-      "RobertAMurray@teleworm.us"
+    "email": [ 
+      {
+        "address": "RobertAMurray@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Murray"
@@ -2431,8 +2584,11 @@
       }
     ], 
     "bday": "1939-06-25", 
-    "email": [
-      "FiammaDueasFierro@teleworm.us"
+    "email": [ 
+      {
+        "address": "FiammaDueasFierro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Due\u00f1as Fierro"
@@ -2499,8 +2655,11 @@
       }
     ], 
     "bday": "1949-01-14", 
-    "email": [
-      "BenjaminTraugott@teleworm.us"
+    "email": [ 
+      {
+        "address": "BenjaminTraugott@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Traugott"
@@ -2538,8 +2697,11 @@
       }
     ], 
     "bday": "1970-07-11", 
-    "email": [
-      "JulianLimaDias@teleworm.us"
+    "email": [ 
+      {
+        "address": "JulianLimaDias@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dias"
@@ -2573,8 +2735,11 @@
       }
     ], 
     "bday": "1979-01-14", 
-    "email": [
-      "GiffordSacr@teleworm.us"
+    "email": [ 
+      {
+        "address": "GiffordSacr@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Sacr\u00e9"
@@ -2608,8 +2773,11 @@
       }
     ], 
     "bday": "1956-10-26", 
-    "email": [
-      "AluecheMelndezHuerta@teleworm.us"
+    "email": [ 
+      {
+        "address": "AluecheMelndezHuerta@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mel\u00e9ndez Huerta"
@@ -2680,8 +2848,11 @@
       }
     ], 
     "bday": "1953-11-01", 
-    "email": [
-      "GustavoSilvaBarbosa@teleworm.us"
+    "email": [ 
+      {
+        "address": "GustavoSilvaBarbosa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Barbosa"
@@ -2748,8 +2919,11 @@
       }
     ], 
     "bday": "1983-12-24", 
-    "email": [
-      "JohannaBarth@teleworm.us"
+    "email": [ 
+      {
+        "address": "JohannaBarth@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Barth"
@@ -2787,8 +2961,11 @@
       }
     ], 
     "bday": "1963-06-14", 
-    "email": [
-      "PaulaWOxley@teleworm.us"
+    "email": [ 
+      {
+        "address": "PaulaWOxley@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Oxley"
@@ -2822,8 +2999,11 @@
       }
     ], 
     "bday": "1945-02-18", 
-    "email": [
-      "ClovisMalaveMedrano@teleworm.us"
+    "email": [ 
+      {
+        "address": "ClovisMalaveMedrano@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Malave Medrano"
@@ -2960,8 +3140,11 @@
       }
     ], 
     "bday": "1935-09-01", 
-    "email": [
-      "AlineRibeiroFerreira@teleworm.us"
+    "email": [ 
+      {
+        "address": "AlineRibeiroFerreira@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ferreira"
@@ -2995,8 +3178,11 @@
       }
     ], 
     "bday": "1959-06-02", 
-    "email": [
-      "NedarLedesmaPonce@teleworm.us"
+    "email": [ 
+      {
+        "address": "NedarLedesmaPonce@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ledesma Ponce"
@@ -3030,8 +3216,11 @@
       }
     ], 
     "bday": "1963-01-12", 
-    "email": [
-      "AlCarmonaGodnez@teleworm.us"
+    "email": [ 
+      {
+        "address": "AlCarmonaGodnez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carmona God\u00ednez"
@@ -3065,8 +3254,11 @@
       }
     ], 
     "bday": "1942-11-21", 
-    "email": [
-      "AriannaTamezAlejandro@teleworm.us"
+    "email": [ 
+      {
+        "address": "AriannaTamezAlejandro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Tamez Alejandro"
@@ -3100,8 +3292,11 @@
       }
     ], 
     "bday": "1977-10-01", 
-    "email": [
-      "QuerimaRodarteAdomo@teleworm.us"
+    "email": [ 
+      {
+        "address": "QuerimaRodarteAdomo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rodarte Adomo"
@@ -3139,8 +3334,11 @@
       }
     ], 
     "bday": "1970-09-23", 
-    "email": [
-      "BrunaBarrosSouza@teleworm.us"
+    "email": [ 
+      {
+        "address": "BrunaBarrosSouza@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Souza"
@@ -3207,8 +3405,11 @@
       }
     ], 
     "bday": "1977-06-27", 
-    "email": [
-      "ArthurBaron@teleworm.us"
+    "email": [ 
+      {
+        "address": "ArthurBaron@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Baron"
@@ -3246,8 +3447,11 @@
       }
     ], 
     "bday": "1963-04-06", 
-    "email": [
-      "VitoriaFerreiraSousa@teleworm.us"
+    "email": [ 
+      {
+        "address": "VitoriaFerreiraSousa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Sousa"
@@ -3281,8 +3485,11 @@
       }
     ], 
     "bday": "1947-08-12", 
-    "email": [
-      "MelusinaPolancoVallejo@teleworm.us"
+    "email": [ 
+      {
+        "address": "MelusinaPolancoVallejo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Polanco Vallejo"
@@ -3353,8 +3560,11 @@
       }
     ], 
     "bday": "1976-12-24", 
-    "email": [
-      "AliceCastroSouza@teleworm.us"
+    "email": [ 
+      {
+        "address": "AliceCastroSouza@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Souza"
@@ -3454,8 +3664,11 @@
       }
     ], 
     "bday": "1948-04-14", 
-    "email": [
-      "DionneMontemayorCabrera@teleworm.us"
+    "email": [ 
+      {
+        "address": "DionneMontemayorCabrera@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Montemayor Cabrera"
@@ -3489,8 +3702,11 @@
       }
     ], 
     "bday": "1946-04-20", 
-    "email": [
-      "GuerinFongemie@teleworm.us"
+    "email": [ 
+      {
+        "address": "GuerinFongemie@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fongemie"
@@ -3528,8 +3744,11 @@
       }
     ], 
     "bday": "1986-03-02", 
-    "email": [
-      "DebbieRSnell@teleworm.us"
+    "email": [ 
+      {
+        "address": "DebbieRSnell@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Snell"
@@ -3596,8 +3815,11 @@
       }
     ], 
     "bday": "1931-09-01", 
-    "email": [
-      "MasonLAnglais@teleworm.us"
+    "email": [ 
+      {
+        "address": "MasonLAnglais@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "L'Anglais"
@@ -3631,8 +3853,11 @@
       }
     ], 
     "bday": "1971-05-12", 
-    "email": [
-      "FabriceHtu@teleworm.us"
+    "email": [ 
+      {
+        "address": "FabriceHtu@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "H\u00e9tu"
@@ -3666,8 +3891,11 @@
       }
     ], 
     "bday": "1951-12-05", 
-    "email": [
-      "KerstinVogler@teleworm.us"
+    "email": [ 
+      {
+        "address": "KerstinVogler@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Vogler"
@@ -3705,8 +3933,11 @@
       }
     ], 
     "bday": "1987-01-26", 
-    "email": [
-      "KaraESmith@teleworm.us"
+    "email": [ 
+      {
+        "address": "KaraESmith@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Smith"
@@ -3744,8 +3975,11 @@
       }
     ], 
     "bday": "1940-08-27", 
-    "email": [
-      "AlexAraujoRibeiro@teleworm.us"
+    "email": [ 
+      {
+        "address": "AlexAraujoRibeiro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ribeiro"
@@ -3779,8 +4013,11 @@
       }
     ], 
     "bday": "1975-08-11", 
-    "email": [
-      "ArmandBisson@teleworm.us"
+    "email": [ 
+      {
+        "address": "ArmandBisson@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Bisson"
@@ -3814,8 +4051,11 @@
       }
     ], 
     "bday": "1969-01-29", 
-    "email": [
-      "BabsAlanizVillalobos@teleworm.us"
+    "email": [ 
+      {
+        "address": "BabsAlanizVillalobos@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Alaniz Villalobos"
@@ -3853,8 +4093,11 @@
       }
     ], 
     "bday": "1935-11-26", 
-    "email": [
-      "EdwardSEmberton@teleworm.us"
+    "email": [ 
+      {
+        "address": "EdwardSEmberton@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Emberton"
@@ -3921,8 +4164,11 @@
       }
     ], 
     "bday": "1927-11-10", 
-    "email": [
-      "MerciDufresne@teleworm.us"
+    "email": [ 
+      {
+        "address": "MerciDufresne@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dufresne"
@@ -3960,8 +4206,11 @@
       }
     ], 
     "bday": "1953-11-29", 
-    "email": [
-      "CarlaAraujoCardoso@teleworm.us"
+    "email": [ 
+      {
+        "address": "CarlaAraujoCardoso@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cardoso"
@@ -3995,8 +4244,11 @@
       }
     ], 
     "bday": "1973-06-01", 
-    "email": [
-      "UlrichSchmid@teleworm.us"
+    "email": [ 
+      {
+        "address": "UlrichSchmid@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Schmid"
@@ -4034,8 +4286,11 @@
       }
     ], 
     "bday": "1963-07-28", 
-    "email": [
-      "LuanPintoSousa@teleworm.us"
+    "email": [ 
+      {
+        "address": "LuanPintoSousa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Sousa"
@@ -4069,8 +4324,11 @@
       }
     ], 
     "bday": "1937-06-23", 
-    "email": [
-      "FabianoFrancoSauceda@teleworm.us"
+    "email": [ 
+      {
+        "address": "FabianoFrancoSauceda@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Franco Sauceda"
@@ -4104,8 +4362,11 @@
       }
     ], 
     "bday": "1949-10-17", 
-    "email": [
-      "VernnOlivasPantoja@teleworm.us"
+    "email": [ 
+      {
+        "address": "VernnOlivasPantoja@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Olivas Pantoja"
@@ -4139,8 +4400,11 @@
       }
     ], 
     "bday": "1984-01-05", 
-    "email": [
-      "LasteniaPoncePeres@teleworm.us"
+    "email": [ 
+      {
+        "address": "LasteniaPoncePeres@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ponce Peres"
@@ -4178,8 +4442,11 @@
       }
     ], 
     "bday": "1983-06-14", 
-    "email": [
-      "KathrynWCarter@teleworm.us"
+    "email": [ 
+      {
+        "address": "KathrynWCarter@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carter"
@@ -4250,8 +4517,11 @@
       }
     ], 
     "bday": "1943-10-25", 
-    "email": [
-      "MichaelLSmith@teleworm.us"
+    "email": [ 
+      {
+        "address": "MichaelLSmith@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Smith"
@@ -4289,8 +4559,11 @@
       }
     ], 
     "bday": "1983-12-23", 
-    "email": [
-      "BiancaGomesSantos@teleworm.us"
+    "email": [ 
+      {
+        "address": "BiancaGomesSantos@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Santos"
@@ -4328,8 +4601,11 @@
       }
     ], 
     "bday": "1954-10-08", 
-    "email": [
-      "MistiJEdgerton@teleworm.us"
+    "email": [ 
+      {
+        "address": "MistiJEdgerton@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Edgerton"
@@ -4367,8 +4643,11 @@
       }
     ], 
     "bday": "1947-08-21", 
-    "email": [
-      "DouglasMartinsRocha@teleworm.us"
+    "email": [ 
+      {
+        "address": "DouglasMartinsRocha@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rocha"
@@ -4402,8 +4681,11 @@
       }
     ], 
     "bday": "1968-03-22", 
-    "email": [
-      "PaulLafontaine@teleworm.us"
+    "email": [ 
+      {
+        "address": "PaulLafontaine@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lafontaine"
@@ -4437,8 +4719,11 @@
       }
     ], 
     "bday": "1948-11-23", 
-    "email": [
-      "BrunildaGuevaraSantiago@teleworm.us"
+    "email": [ 
+      {
+        "address": "BrunildaGuevaraSantiago@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Guevara Santiago"
@@ -4472,8 +4757,11 @@
       }
     ], 
     "bday": "1927-04-20", 
-    "email": [
-      "TobiasLuft@teleworm.us"
+    "email": [ 
+      {
+        "address": "TobiasLuft@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Luft"
@@ -4507,8 +4795,11 @@
       }
     ], 
     "bday": "1930-07-05", 
-    "email": [
-      "JulesEspinoJimnez@teleworm.us"
+    "email": [ 
+      {
+        "address": "JulesEspinoJimnez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Espino Jim\u00ednez"
@@ -4546,8 +4837,11 @@
       }
     ], 
     "bday": "1941-01-07", 
-    "email": [
-      "BeatrizSantosRodrigues@teleworm.us"
+    "email": [ 
+      {
+        "address": "BeatrizSantosRodrigues@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rodrigues"
@@ -4585,8 +4879,11 @@
       }
     ], 
     "bday": "1946-02-06", 
-    "email": [
-      "ManuelaFernandesRodrigues@teleworm.us"
+    "email": [ 
+      {
+        "address": "ManuelaFernandesRodrigues@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rodrigues"
@@ -4624,8 +4921,11 @@
       }
     ], 
     "bday": "1941-02-14", 
-    "email": [
-      "LauraPintoCarvalho@teleworm.us"
+    "email": [ 
+      {
+        "address": "LauraPintoCarvalho@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carvalho"
@@ -4692,8 +4992,11 @@
       }
     ], 
     "bday": "1952-09-06", 
-    "email": [
-      "LaureneLamontagne@teleworm.us"
+    "email": [ 
+      {
+        "address": "LaureneLamontagne@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lamontagne"
@@ -4727,8 +5030,11 @@
       }
     ], 
     "bday": "1974-05-10", 
-    "email": [
-      "ClineFecteau@teleworm.us"
+    "email": [ 
+      {
+        "address": "ClineFecteau@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fecteau"
@@ -4766,8 +5072,11 @@
       }
     ], 
     "bday": "1958-10-07", 
-    "email": [
-      "AnthonyRParham@teleworm.us"
+    "email": [ 
+      {
+        "address": "AnthonyRParham@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Parham"
@@ -4801,8 +5110,11 @@
       }
     ], 
     "bday": "1966-08-17", 
-    "email": [
-      "FortunataAnguloCabn@teleworm.us"
+    "email": [ 
+      {
+        "address": "FortunataAnguloCabn@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Angulo Cab\u00e1n"
@@ -4836,8 +5148,11 @@
       }
     ], 
     "bday": "1977-03-26", 
-    "email": [
-      "KarolinWeisz@teleworm.us"
+    "email": [ 
+      {
+        "address": "KarolinWeisz@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Weisz"
@@ -4871,8 +5186,11 @@
       }
     ], 
     "bday": "1967-03-03", 
-    "email": [
-      "AhinoaBarajasEstrada@teleworm.us"
+    "email": [ 
+      {
+        "address": "AhinoaBarajasEstrada@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Barajas Estrada"
@@ -4910,8 +5228,11 @@
       }
     ], 
     "bday": "1980-08-10", 
-    "email": [
-      "EdgarELopez@teleworm.us"
+    "email": [ 
+      {
+        "address": "EdgarELopez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lopez"
@@ -4945,8 +5266,11 @@
       }
     ], 
     "bday": "1979-01-27", 
-    "email": [
-      "DardoCamposBurgos@teleworm.us"
+    "email": [ 
+      {
+        "address": "DardoCamposBurgos@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Campos Burgos"
@@ -4984,8 +5308,11 @@
       }
     ], 
     "bday": "1932-09-25", 
-    "email": [
-      "ThomasNSutton@teleworm.us"
+    "email": [ 
+      {
+        "address": "ThomasNSutton@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Sutton"
@@ -5019,8 +5346,11 @@
       }
     ], 
     "bday": "1930-11-01", 
-    "email": [
-      "JustinaMontoyaPrado@teleworm.us"
+    "email": [ 
+      {
+        "address": "JustinaMontoyaPrado@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Montoya Prado"
@@ -5054,8 +5384,11 @@
       }
     ], 
     "bday": "1945-12-07", 
-    "email": [
-      "JessicaFeierabend@teleworm.us"
+    "email": [ 
+      {
+        "address": "JessicaFeierabend@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Feierabend"
@@ -5093,8 +5426,11 @@
       }
     ], 
     "bday": "1958-05-13", 
-    "email": [
-      "MonicaCDove@teleworm.us"
+    "email": [ 
+      {
+        "address": "MonicaCDove@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dove"
@@ -5132,8 +5468,11 @@
       }
     ], 
     "bday": "1951-10-16", 
-    "email": [
-      "JessicaWBeard@teleworm.us"
+    "email": [ 
+      {
+        "address": "JessicaWBeard@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Beard"
@@ -5167,8 +5506,11 @@
       }
     ], 
     "bday": "1972-07-04", 
-    "email": [
-      "DavidAdler@teleworm.us"
+    "email": [ 
+      {
+        "address": "DavidAdler@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Adler"
@@ -5206,8 +5548,11 @@
       }
     ], 
     "bday": "1969-04-28", 
-    "email": [
-      "AnnaGomesRibeiro@teleworm.us"
+    "email": [ 
+      {
+        "address": "AnnaGomesRibeiro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ribeiro"
@@ -5241,8 +5586,11 @@
       }
     ], 
     "bday": "1991-04-02", 
-    "email": [
-      "DonaldoMuozJimnez@teleworm.us"
+    "email": [ 
+      {
+        "address": "DonaldoMuozJimnez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mu\u00f1oz Jim\u00e9nez"
@@ -5309,8 +5657,11 @@
       }
     ], 
     "bday": "1929-06-05", 
-    "email": [
-      "LeaSanger@teleworm.us"
+    "email": [ 
+      {
+        "address": "LeaSanger@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Sanger"
@@ -5344,8 +5695,11 @@
       }
     ], 
     "bday": "1956-12-23", 
-    "email": [
-      "LeonieHahn@teleworm.us"
+    "email": [ 
+      {
+        "address": "LeonieHahn@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Hahn"
@@ -5383,8 +5737,11 @@
       }
     ], 
     "bday": "1953-10-29", 
-    "email": [
-      "KevinDMyers@teleworm.us"
+    "email": [ 
+      {
+        "address": "KevinDMyers@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Myers"
@@ -5418,8 +5775,11 @@
       }
     ], 
     "bday": "1934-09-13", 
-    "email": [
-      "LoringSaindon@teleworm.us"
+    "email": [ 
+      {
+        "address": "LoringSaindon@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Saindon"
@@ -5453,8 +5813,11 @@
       }
     ], 
     "bday": "1964-12-05", 
-    "email": [
-      "AudaFouquet@teleworm.us"
+    "email": [ 
+      {
+        "address": "AudaFouquet@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fouquet"
@@ -5492,8 +5855,11 @@
       }
     ], 
     "bday": "1949-02-24", 
-    "email": [
-      "JuliaCostaSousa@teleworm.us"
+    "email": [ 
+      {
+        "address": "JuliaCostaSousa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Sousa"
@@ -5531,8 +5897,11 @@
       }
     ], 
     "bday": "1934-10-18", 
-    "email": [
-      "WilliamMMiller@teleworm.us"
+    "email": [ 
+      {
+        "address": "WilliamMMiller@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Miller"
@@ -5603,8 +5972,11 @@
       }
     ], 
     "bday": "1978-10-12", 
-    "email": [
-      "BiancaGomesPinto@teleworm.us"
+    "email": [ 
+      {
+        "address": "BiancaGomesPinto@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Pinto"
@@ -5638,8 +6010,11 @@
       }
     ], 
     "bday": "1956-05-15", 
-    "email": [
-      "OdeletteMorin@teleworm.us"
+    "email": [ 
+      {
+        "address": "OdeletteMorin@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Morin"
@@ -5677,8 +6052,11 @@
       }
     ], 
     "bday": "1930-12-15", 
-    "email": [
-      "RobertaCBailey@teleworm.us"
+    "email": [ 
+      {
+        "address": "RobertaCBailey@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Bailey"
@@ -5745,8 +6123,11 @@
       }
     ], 
     "bday": "1989-02-10", 
-    "email": [
-      "CherBinet@teleworm.us"
+    "email": [ 
+      {
+        "address": "CherBinet@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Binet"
@@ -5780,8 +6161,11 @@
       }
     ], 
     "bday": "1948-09-12", 
-    "email": [
-      "StefanNeustadt@teleworm.us"
+    "email": [ 
+      {
+        "address": "StefanNeustadt@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Neustadt"
@@ -5815,8 +6199,11 @@
       }
     ], 
     "bday": "1955-08-30", 
-    "email": [
-      "AgustinaRamosBonilla@teleworm.us"
+    "email": [ 
+      {
+        "address": "AgustinaRamosBonilla@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ramos Bonilla"
@@ -5850,8 +6237,11 @@
       }
     ], 
     "bday": "1977-08-31", 
-    "email": [
-      "LisaKoehler@teleworm.us"
+    "email": [ 
+      {
+        "address": "LisaKoehler@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Koehler"
@@ -5889,8 +6279,11 @@
       }
     ], 
     "bday": "1943-12-13", 
-    "email": [
-      "DonaldRWorley@teleworm.us"
+    "email": [ 
+      {
+        "address": "DonaldRWorley@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Worley"
@@ -5957,8 +6350,11 @@
       }
     ], 
     "bday": "1933-07-27", 
-    "email": [
-      "RomaineDodier@teleworm.us"
+    "email": [ 
+      {
+        "address": "RomaineDodier@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dodier"
@@ -5996,8 +6392,11 @@
       }
     ], 
     "bday": "1971-01-05", 
-    "email": [
-      "LuanaCorreiaCardoso@teleworm.us"
+    "email": [ 
+      {
+        "address": "LuanaCorreiaCardoso@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cardoso"
@@ -6068,8 +6467,11 @@
       }
     ], 
     "bday": "1992-06-16", 
-    "email": [
-      "AstridGGomez@teleworm.us"
+    "email": [ 
+      {
+        "address": "AstridGGomez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gomez"
@@ -6136,8 +6538,11 @@
       }
     ], 
     "bday": "1941-08-16", 
-    "email": [
-      "AinaraVillanuevaRamn@teleworm.us"
+    "email": [ 
+      {
+        "address": "AinaraVillanuevaRamn@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Villanueva Ram\u00f3n"
@@ -6208,8 +6613,11 @@
       }
     ], 
     "bday": "1965-12-25", 
-    "email": [
-      "TrevorATrumbull@teleworm.us"
+    "email": [ 
+      {
+        "address": "TrevorATrumbull@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Trumbull"
@@ -6247,8 +6655,11 @@
       }
     ], 
     "bday": "1953-09-26", 
-    "email": [
-      "MarianaSantosRocha@teleworm.us"
+    "email": [ 
+      {
+        "address": "MarianaSantosRocha@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rocha"
@@ -6286,8 +6697,11 @@
       }
     ], 
     "bday": "1949-12-22", 
-    "email": [
-      "IgorOliveiraAlves@teleworm.us"
+    "email": [ 
+      {
+        "address": "IgorOliveiraAlves@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Alves"
@@ -6358,8 +6772,11 @@
       }
     ], 
     "bday": "1985-06-23", 
-    "email": [
-      "TniaGomesPereira@teleworm.us"
+    "email": [ 
+      {
+        "address": "TniaGomesPereira@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Pereira"
@@ -6393,8 +6810,11 @@
       }
     ], 
     "bday": "1938-06-08", 
-    "email": [
-      "BaptisteChalifour@teleworm.us"
+    "email": [ 
+      {
+        "address": "BaptisteChalifour@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Chalifour"
@@ -6432,8 +6852,11 @@
       }
     ], 
     "bday": "1976-05-26", 
-    "email": [
-      "LuizSantosCarvalho@teleworm.us"
+    "email": [ 
+      {
+        "address": "LuizSantosCarvalho@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carvalho"
@@ -6471,8 +6894,11 @@
       }
     ], 
     "bday": "1936-04-19", 
-    "email": [
-      "AnthonyTGaines@teleworm.us"
+    "email": [ 
+      {
+        "address": "AnthonyTGaines@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gaines"
@@ -6506,8 +6932,11 @@
       }
     ], 
     "bday": "1982-07-10", 
-    "email": [
-      "DuarteEnrquezRodrguez@teleworm.us"
+    "email": [ 
+      {
+        "address": "DuarteEnrquezRodrguez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Enr\u00edquez Rodr\u00edguez"
@@ -6545,8 +6974,11 @@
       }
     ], 
     "bday": "1986-12-04", 
-    "email": [
-      "EricBMartinez@teleworm.us"
+    "email": [ 
+      {
+        "address": "EricBMartinez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Martinez"
@@ -6584,8 +7016,11 @@
       }
     ], 
     "bday": "1929-03-03", 
-    "email": [
-      "AnnaFJohnson@teleworm.us"
+    "email": [ 
+      {
+        "address": "AnnaFJohnson@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Johnson"
@@ -6623,8 +7058,11 @@
       }
     ], 
     "bday": "1962-04-06", 
-    "email": [
-      "DiegoMartinsFerreira@teleworm.us"
+    "email": [ 
+      {
+        "address": "DiegoMartinsFerreira@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ferreira"
@@ -6662,8 +7100,11 @@
       }
     ], 
     "bday": "1937-01-04", 
-    "email": [
-      "ThiagoPereiraRodrigues@teleworm.us"
+    "email": [ 
+      {
+        "address": "ThiagoPereiraRodrigues@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rodrigues"
@@ -6730,8 +7171,11 @@
       }
     ], 
     "bday": "1932-05-11", 
-    "email": [
-      "ViolaIglesiasMendoza@teleworm.us"
+    "email": [ 
+      {
+        "address": "ViolaIglesiasMendoza@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Iglesias Mendoza"
@@ -6769,8 +7213,11 @@
       }
     ], 
     "bday": "1933-10-25", 
-    "email": [
-      "DiogoCardosoOliveira@teleworm.us"
+    "email": [ 
+      {
+        "address": "DiogoCardosoOliveira@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Oliveira"
@@ -6808,8 +7255,11 @@
       }
     ], 
     "bday": "1967-10-17", 
-    "email": [
-      "EssieRCarr@teleworm.us"
+    "email": [ 
+      {
+        "address": "EssieRCarr@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carr"
@@ -6847,8 +7297,11 @@
       }
     ], 
     "bday": "1960-05-22", 
-    "email": [
-      "GlenSCramer@teleworm.us"
+    "email": [ 
+      {
+        "address": "GlenSCramer@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cramer"
@@ -6886,8 +7339,11 @@
       }
     ], 
     "bday": "1985-10-28", 
-    "email": [
-      "VitriaBarrosSantos@teleworm.us"
+    "email": [ 
+      {
+        "address": "VitriaBarrosSantos@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Santos"
@@ -6954,8 +7410,11 @@
       }
     ], 
     "bday": "1943-04-21", 
-    "email": [
-      "MartinDiederich@teleworm.us"
+    "email": [ 
+      {
+        "address": "MartinDiederich@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Diederich"
@@ -6993,8 +7452,11 @@
       }
     ], 
     "bday": "1936-05-30", 
-    "email": [
-      "NicolashCarvalhoRibeiro@teleworm.us"
+    "email": [ 
+      {
+        "address": "NicolashCarvalhoRibeiro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ribeiro"
@@ -7032,8 +7494,11 @@
       }
     ], 
     "bday": "1988-05-15", 
-    "email": [
-      "KerriBGray@teleworm.us"
+    "email": [ 
+      {
+        "address": "KerriBGray@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gray"
@@ -7071,8 +7536,11 @@
       }
     ], 
     "bday": "1980-01-04", 
-    "email": [
-      "VitrCunhaRocha@teleworm.us"
+    "email": [ 
+      {
+        "address": "VitrCunhaRocha@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rocha"
@@ -7139,8 +7607,11 @@
       }
     ], 
     "bday": "1974-05-08", 
-    "email": [
-      "UrsulaKuester@teleworm.us"
+    "email": [ 
+      {
+        "address": "UrsulaKuester@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Kuester"
@@ -7174,8 +7645,11 @@
       }
     ], 
     "bday": "1973-09-26", 
-    "email": [
-      "EmillenRuizMora@teleworm.us"
+    "email": [ 
+      {
+        "address": "EmillenRuizMora@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ruiz Mora"
@@ -7213,8 +7687,11 @@
       }
     ], 
     "bday": "1983-07-12", 
-    "email": [
-      "FernandaDiasCorreia@teleworm.us"
+    "email": [ 
+      {
+        "address": "FernandaDiasCorreia@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Correia"
@@ -7281,8 +7758,11 @@
       }
     ], 
     "bday": "1959-10-08", 
-    "email": [
-      "UtkaLoyaCarmona@teleworm.us"
+    "email": [ 
+      {
+        "address": "UtkaLoyaCarmona@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Loya Carmona"
@@ -7382,8 +7862,11 @@
       }
     ], 
     "bday": "1964-10-22", 
-    "email": [
-      "AlexanderFoerster@teleworm.us"
+    "email": [ 
+      {
+        "address": "AlexanderFoerster@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Foerster"
@@ -7417,8 +7900,11 @@
       }
     ], 
     "bday": "1951-06-11", 
-    "email": [
-      "LowellGurette@teleworm.us"
+    "email": [ 
+      {
+        "address": "LowellGurette@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gu\u00e9rette"
@@ -7452,8 +7938,11 @@
       }
     ], 
     "bday": "1987-05-09", 
-    "email": [
-      "EugneThivierge@teleworm.us"
+    "email": [ 
+      {
+        "address": "EugneThivierge@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Thivierge"
@@ -7487,8 +7976,11 @@
       }
     ], 
     "bday": "1978-08-30", 
-    "email": [
-      "CourtlandCollin@teleworm.us"
+    "email": [ 
+      {
+        "address": "CourtlandCollin@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Collin"
@@ -7522,8 +8014,11 @@
       }
     ], 
     "bday": "1970-06-03", 
-    "email": [
-      "MirenRamnGaytan@teleworm.us"
+    "email": [ 
+      {
+        "address": "MirenRamnGaytan@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ram\u00f3n Gaytan"
@@ -7557,8 +8052,11 @@
       }
     ], 
     "bday": "1955-01-03", 
-    "email": [
-      "UlrikeRothschild@teleworm.us"
+    "email": [ 
+      {
+        "address": "UlrikeRothschild@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rothschild"
@@ -7596,8 +8094,11 @@
       }
     ], 
     "bday": "1978-10-24", 
-    "email": [
-      "DouglasJBarnes@teleworm.us"
+    "email": [ 
+      {
+        "address": "DouglasJBarnes@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Barnes"
@@ -7631,8 +8132,11 @@
       }
     ], 
     "bday": "1978-07-22", 
-    "email": [
-      "MilcavalosBenavides@teleworm.us"
+    "email": [ 
+      {
+        "address": "MilcavalosBenavides@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "\u00c1valos Benavides"
@@ -7666,8 +8170,11 @@
       }
     ], 
     "bday": "1980-03-23", 
-    "email": [
-      "MatthiasEggers@teleworm.us"
+    "email": [ 
+      {
+        "address": "MatthiasEggers@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Eggers"
@@ -7734,8 +8241,11 @@
       }
     ], 
     "bday": "1963-07-14", 
-    "email": [
-      "ThomasEiffel@teleworm.us"
+    "email": [ 
+      {
+        "address": "ThomasEiffel@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Eiffel"
@@ -7773,8 +8283,11 @@
       }
     ], 
     "bday": "1942-08-24", 
-    "email": [
-      "BrendaCavalcantiFernandes@teleworm.us"
+    "email": [ 
+      {
+        "address": "BrendaCavalcantiFernandes@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fernandes"
@@ -7808,8 +8321,11 @@
       }
     ], 
     "bday": "1930-08-09", 
-    "email": [
-      "DelmaGuajardoRegalado@teleworm.us"
+    "email": [ 
+      {
+        "address": "DelmaGuajardoRegalado@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Guajardo Regalado"
@@ -7847,8 +8363,11 @@
       }
     ], 
     "bday": "1964-04-16", 
-    "email": [
-      "CatherineTStone@teleworm.us"
+    "email": [ 
+      {
+        "address": "CatherineTStone@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Stone"
@@ -7882,8 +8401,11 @@
       }
     ], 
     "bday": "1976-11-20", 
-    "email": [
-      "AngelikaSchmitz@teleworm.us"
+    "email": [ 
+      {
+        "address": "AngelikaSchmitz@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Schmitz"
@@ -7917,8 +8439,11 @@
       }
     ], 
     "bday": "1984-12-28", 
-    "email": [
-      "MariaEggers@teleworm.us"
+    "email": [ 
+      {
+        "address": "MariaEggers@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Eggers"
@@ -7952,8 +8477,11 @@
       }
     ], 
     "bday": "1990-01-25", 
-    "email": [
-      "JulianeLemann@teleworm.us"
+    "email": [ 
+      {
+        "address": "JulianeLemann@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lemann"
@@ -7987,8 +8515,11 @@
       }
     ], 
     "bday": "1935-04-15", 
-    "email": [
-      "HortenseBrault@teleworm.us"
+    "email": [ 
+      {
+        "address": "HortenseBrault@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Brault"
@@ -8055,8 +8586,11 @@
       }
     ], 
     "bday": "1948-05-30", 
-    "email": [
-      "UlrikeLang@teleworm.us"
+    "email": [ 
+      {
+        "address": "UlrikeLang@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lang"
@@ -8090,8 +8624,11 @@
       }
     ], 
     "bday": "1938-02-09", 
-    "email": [
-      "UlrikeGrtner@teleworm.us"
+    "email": [ 
+      {
+        "address": "UlrikeGrtner@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "G\u00e4rtner"
@@ -8129,8 +8666,11 @@
       }
     ], 
     "bday": "1963-11-16", 
-    "email": [
-      "MadeleineMParshall@teleworm.us"
+    "email": [ 
+      {
+        "address": "MadeleineMParshall@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Parshall"
@@ -8164,8 +8704,11 @@
       }
     ], 
     "bday": "1930-01-25", 
-    "email": [
-      "EddieMondragnVillanueva@teleworm.us"
+    "email": [ 
+      {
+        "address": "EddieMondragnVillanueva@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mondrag\u00f3n Villanueva"
@@ -8199,8 +8742,11 @@
       }
     ], 
     "bday": "1944-06-04", 
-    "email": [
-      "KamiliaTelloBenavides@teleworm.us"
+    "email": [ 
+      {
+        "address": "KamiliaTelloBenavides@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Tello Benavides"
@@ -8234,8 +8780,11 @@
       }
     ], 
     "bday": "1970-12-30", 
-    "email": [
-      "AnayansiCarranzaPolanco@teleworm.us"
+    "email": [ 
+      {
+        "address": "AnayansiCarranzaPolanco@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carranza Polanco"
@@ -8269,8 +8818,11 @@
       }
     ], 
     "bday": "1950-04-27", 
-    "email": [
-      "IlaBourgouin@teleworm.us"
+    "email": [ 
+      {
+        "address": "IlaBourgouin@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Bourgouin"
@@ -8304,8 +8856,11 @@
       }
     ], 
     "bday": "1954-06-12", 
-    "email": [
-      "PaolaVelaBalderas@teleworm.us"
+    "email": [ 
+      {
+        "address": "PaolaVelaBalderas@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Vela Balderas"
@@ -8343,8 +8898,11 @@
       }
     ], 
     "bday": "1934-03-04", 
-    "email": [
-      "LisaRCarter@teleworm.us"
+    "email": [ 
+      {
+        "address": "LisaRCarter@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carter"
@@ -8415,8 +8973,11 @@
       }
     ], 
     "bday": "1963-08-08", 
-    "email": [
-      "SamuelLimaCarvalho@teleworm.us"
+    "email": [ 
+      {
+        "address": "SamuelLimaCarvalho@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carvalho"
@@ -8450,8 +9011,11 @@
       }
     ], 
     "bday": "1952-06-25", 
-    "email": [
-      "ChapinBrian@teleworm.us"
+    "email": [ 
+      {
+        "address": "ChapinBrian@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Brian"
@@ -8518,8 +9082,11 @@
       }
     ], 
     "bday": "1985-04-30", 
-    "email": [
-      "JanocPinedaVillalpando@teleworm.us"
+    "email": [ 
+      {
+        "address": "JanocPinedaVillalpando@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Pineda Villalpando"
@@ -8557,8 +9124,11 @@
       }
     ], 
     "bday": "1937-09-04", 
-    "email": [
-      "JosephVShugart@teleworm.us"
+    "email": [ 
+      {
+        "address": "JosephVShugart@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Shugart"
@@ -8658,8 +9228,11 @@
       }
     ], 
     "bday": "1935-04-18", 
-    "email": [
-      "ArcadiaCarrinArgello@teleworm.us"
+    "email": [ 
+      {
+        "address": "ArcadiaCarrinArgello@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carri\u00f3n Arg\u00fcello"
@@ -8693,8 +9266,11 @@
       }
     ], 
     "bday": "1974-09-08", 
-    "email": [
-      "ProserpinaEscobedoFuentes@teleworm.us"
+    "email": [ 
+      {
+        "address": "ProserpinaEscobedoFuentes@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Escobedo Fuentes"
@@ -8728,8 +9304,11 @@
       }
     ], 
     "bday": "1933-06-27", 
-    "email": [
-      "SabrinaFrey@teleworm.us"
+    "email": [ 
+      {
+        "address": "SabrinaFrey@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Frey"
@@ -8763,8 +9342,11 @@
       }
     ], 
     "bday": "1929-02-01", 
-    "email": [
-      "KerstinReinhard@teleworm.us"
+    "email": [ 
+      {
+        "address": "KerstinReinhard@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Reinhard"
@@ -8864,8 +9446,11 @@
       }
     ], 
     "bday": "1966-09-19", 
-    "email": [
-      "RaymondCharron@teleworm.us"
+    "email": [ 
+      {
+        "address": "RaymondCharron@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Charron"
@@ -8899,8 +9484,11 @@
       }
     ], 
     "bday": "1958-07-08", 
-    "email": [
-      "FlorenciaAliceaCastaneda@teleworm.us"
+    "email": [ 
+      {
+        "address": "FlorenciaAliceaCastaneda@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Alicea Castaneda"
@@ -8934,8 +9522,11 @@
       }
     ], 
     "bday": "1968-01-03", 
-    "email": [
-      "BayardEcheverri@teleworm.us"
+    "email": [ 
+      {
+        "address": "BayardEcheverri@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Echeverri"
@@ -8973,8 +9564,11 @@
       }
     ], 
     "bday": "1965-03-07", 
-    "email": [
-      "AlineDiasSilva@teleworm.us"
+    "email": [ 
+      {
+        "address": "AlineDiasSilva@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Silva"
@@ -9012,8 +9606,11 @@
       }
     ], 
     "bday": "1948-01-30", 
-    "email": [
-      "MargaretDVelez@teleworm.us"
+    "email": [ 
+      {
+        "address": "MargaretDVelez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Velez"
@@ -9051,8 +9648,11 @@
       }
     ], 
     "bday": "1958-11-17", 
-    "email": [
-      "SarahAzevedoAraujo@teleworm.us"
+    "email": [ 
+      {
+        "address": "SarahAzevedoAraujo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Araujo"
@@ -9090,8 +9690,11 @@
       }
     ], 
     "bday": "1934-02-17", 
-    "email": [
-      "DorisCColeman@teleworm.us"
+    "email": [ 
+      {
+        "address": "DorisCColeman@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Coleman"
@@ -9125,8 +9728,11 @@
       }
     ], 
     "bday": "1984-09-15", 
-    "email": [
-      "AfrodisioPolancoLoya@teleworm.us"
+    "email": [ 
+      {
+        "address": "AfrodisioPolancoLoya@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Polanco Loya"
@@ -9164,8 +9770,11 @@
       }
     ], 
     "bday": "1979-11-15", 
-    "email": [
-      "MarissaTConner@teleworm.us"
+    "email": [ 
+      {
+        "address": "MarissaTConner@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Conner"
@@ -9203,8 +9812,11 @@
       }
     ], 
     "bday": "1931-06-08", 
-    "email": [
-      "IrwinKClayton@teleworm.us"
+    "email": [ 
+      {
+        "address": "IrwinKClayton@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Clayton"
@@ -9238,8 +9850,11 @@
       }
     ], 
     "bday": "1993-03-18", 
-    "email": [
-      "AndreasTrommler@teleworm.us"
+    "email": [ 
+      {
+        "address": "AndreasTrommler@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Trommler"
@@ -9277,8 +9892,11 @@
       }
     ], 
     "bday": "1936-12-29", 
-    "email": [
-      "ClaireCWinston@teleworm.us"
+    "email": [ 
+      {
+        "address": "ClaireCWinston@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Winston"
@@ -9316,8 +9934,11 @@
       }
     ], 
     "bday": "1990-02-09", 
-    "email": [
-      "GabrielleSilvaBarros@teleworm.us"
+    "email": [ 
+      {
+        "address": "GabrielleSilvaBarros@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Barros"
@@ -9351,8 +9972,11 @@
       }
     ], 
     "bday": "1974-10-21", 
-    "email": [
-      "MatthiasBaumgartner@teleworm.us"
+    "email": [ 
+      {
+        "address": "MatthiasBaumgartner@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Baumgartner"
@@ -9390,8 +10014,11 @@
       }
     ], 
     "bday": "1951-08-03", 
-    "email": [
-      "FeliciaWMarshall@teleworm.us"
+    "email": [ 
+      {
+        "address": "FeliciaWMarshall@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Marshall"
@@ -9425,8 +10052,11 @@
       }
     ], 
     "bday": "1961-10-16", 
-    "email": [
-      "HortenseAllaire@teleworm.us"
+    "email": [ 
+      {
+        "address": "HortenseAllaire@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Allaire"
@@ -9497,8 +10127,11 @@
       }
     ], 
     "bday": "1959-04-08", 
-    "email": [
-      "JoyceJCovey@teleworm.us"
+    "email": [ 
+      {
+        "address": "JoyceJCovey@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Covey"
@@ -9532,8 +10165,11 @@
       }
     ], 
     "bday": "1960-04-15", 
-    "email": [
-      "FrankStrauss@teleworm.us"
+    "email": [ 
+      {
+        "address": "FrankStrauss@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Strauss"
@@ -9567,8 +10203,11 @@
       }
     ], 
     "bday": "1954-01-15", 
-    "email": [
-      "FayetteQuenneville@teleworm.us"
+    "email": [ 
+      {
+        "address": "FayetteQuenneville@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Quenneville"
@@ -9606,8 +10245,11 @@
       }
     ], 
     "bday": "1965-09-11", 
-    "email": [
-      "AnnMIbarra@teleworm.us"
+    "email": [ 
+      {
+        "address": "AnnMIbarra@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ibarra"
@@ -9641,8 +10283,11 @@
       }
     ], 
     "bday": "1983-03-22", 
-    "email": [
-      "MerlnSalcidoVillegas@teleworm.us"
+    "email": [ 
+      {
+        "address": "MerlnSalcidoVillegas@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Salcido Villegas"
@@ -9676,8 +10321,11 @@
       }
     ], 
     "bday": "1981-01-12", 
-    "email": [
-      "MonikaGaertner@teleworm.us"
+    "email": [ 
+      {
+        "address": "MonikaGaertner@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gaertner"
@@ -9711,8 +10359,11 @@
       }
     ], 
     "bday": "1988-10-24", 
-    "email": [
-      "BrigitteSaenger@teleworm.us"
+    "email": [ 
+      {
+        "address": "BrigitteSaenger@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Saenger"
@@ -9746,8 +10397,11 @@
       }
     ], 
     "bday": "1966-09-23", 
-    "email": [
-      "MalenaZepedaCaldern@teleworm.us"
+    "email": [ 
+      {
+        "address": "MalenaZepedaCaldern@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Zepeda Calder\u00f3n"
@@ -9781,8 +10435,11 @@
       }
     ], 
     "bday": "1983-10-20", 
-    "email": [
-      "ChristinaFrei@teleworm.us"
+    "email": [ 
+      {
+        "address": "ChristinaFrei@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Frei"
@@ -9820,8 +10477,11 @@
       }
     ], 
     "bday": "1931-11-17", 
-    "email": [
-      "JeannetteANunez@teleworm.us"
+    "email": [ 
+      {
+        "address": "JeannetteANunez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Nunez"
@@ -9855,8 +10515,11 @@
       }
     ], 
     "bday": "1964-04-28", 
-    "email": [
-      "SarahKohler@teleworm.us"
+    "email": [ 
+      {
+        "address": "SarahKohler@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Kohler"
@@ -9890,8 +10553,11 @@
       }
     ], 
     "bday": "1930-07-15", 
-    "email": [
-      "PauletteAupry@teleworm.us"
+    "email": [ 
+      {
+        "address": "PauletteAupry@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Aupry"
@@ -9925,8 +10591,11 @@
       }
     ], 
     "bday": "1954-11-09", 
-    "email": [
-      "ZairaGuardadoGamboa@teleworm.us"
+    "email": [ 
+      {
+        "address": "ZairaGuardadoGamboa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Guardado Gamboa"
@@ -9960,8 +10629,11 @@
       }
     ], 
     "bday": "1981-07-28", 
-    "email": [
-      "DanielaSchwartz@teleworm.us"
+    "email": [ 
+      {
+        "address": "DanielaSchwartz@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Schwartz"
@@ -9999,8 +10671,11 @@
       }
     ], 
     "bday": "1947-02-05", 
-    "email": [
-      "JoaoFerreiraDias@teleworm.us"
+    "email": [ 
+      {
+        "address": "JoaoFerreiraDias@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dias"
@@ -10034,8 +10709,11 @@
       }
     ], 
     "bday": "1990-10-25", 
-    "email": [
-      "JessicaHoch@teleworm.us"
+    "email": [ 
+      {
+        "address": "JessicaHoch@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Hoch"
@@ -10073,8 +10751,11 @@
       }
     ], 
     "bday": "1953-08-01", 
-    "email": [
-      "RafaelGoncalvesAlmeida@teleworm.us"
+    "email": [ 
+      {
+        "address": "RafaelGoncalvesAlmeida@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Almeida"
@@ -10112,8 +10793,11 @@
       }
     ], 
     "bday": "1972-03-11", 
-    "email": [
-      "RickyKMerrill@teleworm.us"
+    "email": [ 
+      {
+        "address": "RickyKMerrill@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Merrill"
@@ -10151,8 +10835,11 @@
       }
     ], 
     "bday": "1942-05-16", 
-    "email": [
-      "MartinAKnipe@teleworm.us"
+    "email": [ 
+      {
+        "address": "MartinAKnipe@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Knipe"
@@ -10219,8 +10906,11 @@
       }
     ], 
     "bday": "1974-12-08", 
-    "email": [
-      "NiklasWagner@teleworm.us"
+    "email": [ 
+      {
+        "address": "NiklasWagner@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Wagner"
@@ -10258,8 +10948,11 @@
       }
     ], 
     "bday": "1968-02-17", 
-    "email": [
-      "DionneRRaper@teleworm.us"
+    "email": [ 
+      {
+        "address": "DionneRRaper@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Raper"
@@ -10293,8 +10986,11 @@
       }
     ], 
     "bday": "1951-06-04", 
-    "email": [
-      "ThodoreDostie@teleworm.us"
+    "email": [ 
+      {
+        "address": "ThodoreDostie@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dostie"
@@ -10332,8 +11028,11 @@
       }
     ], 
     "bday": "1944-03-20", 
-    "email": [
-      "RooseveltMKelley@teleworm.us"
+    "email": [ 
+      {
+        "address": "RooseveltMKelley@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Kelley"
@@ -10367,8 +11066,11 @@
       }
     ], 
     "bday": "1968-01-23", 
-    "email": [
-      "AnisioValverdeSisneros@teleworm.us"
+    "email": [ 
+      {
+        "address": "AnisioValverdeSisneros@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Valverde Sisneros"
@@ -10402,8 +11104,11 @@
       }
     ], 
     "bday": "1985-01-12", 
-    "email": [
-      "ElsyCalderaLlarnas@teleworm.us"
+    "email": [ 
+      {
+        "address": "ElsyCalderaLlarnas@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Caldera Llarnas"
@@ -10437,8 +11142,11 @@
       }
     ], 
     "bday": "1934-09-03", 
-    "email": [
-      "OlympiaBrousseau@teleworm.us"
+    "email": [ 
+      {
+        "address": "OlympiaBrousseau@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Brousseau"
@@ -10476,8 +11184,11 @@
       }
     ], 
     "bday": "1931-01-07", 
-    "email": [
-      "PedroAlmeidaLima@teleworm.us"
+    "email": [ 
+      {
+        "address": "PedroAlmeidaLima@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lima"
@@ -10511,8 +11222,11 @@
       }
     ], 
     "bday": "1951-06-07", 
-    "email": [
-      "KermanVeronneau@teleworm.us"
+    "email": [ 
+      {
+        "address": "KermanVeronneau@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Veronneau"
@@ -10546,8 +11260,11 @@
       }
     ], 
     "bday": "1973-11-05", 
-    "email": [
-      "FlorenceDeblois@teleworm.us"
+    "email": [ 
+      {
+        "address": "FlorenceDeblois@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Deblois"
@@ -10581,8 +11298,11 @@
       }
     ], 
     "bday": "1977-03-11", 
-    "email": [
-      "Patriciatoile@teleworm.us"
+    "email": [ 
+      {
+        "address": "Patriciatoile@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "\u00c9toile"
@@ -10649,8 +11369,11 @@
       }
     ], 
     "bday": "1940-10-06", 
-    "email": [
-      "MariePropst@teleworm.us"
+    "email": [ 
+      {
+        "address": "MariePropst@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Propst"
@@ -10684,8 +11407,11 @@
       }
     ], 
     "bday": "1977-09-20", 
-    "email": [
-      "ComforteCaisse@teleworm.us"
+    "email": [ 
+      {
+        "address": "ComforteCaisse@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Caisse"
@@ -10723,8 +11449,11 @@
       }
     ], 
     "bday": "1939-11-23", 
-    "email": [
-      "JoshuaPVasquez@teleworm.us"
+    "email": [ 
+      {
+        "address": "JoshuaPVasquez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Vasquez"
@@ -10758,8 +11487,11 @@
       }
     ], 
     "bday": "1953-02-04", 
-    "email": [
-      "OgierCharest@teleworm.us"
+    "email": [ 
+      {
+        "address": "OgierCharest@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Charest"
@@ -10793,8 +11525,11 @@
       }
     ], 
     "bday": "1972-06-19", 
-    "email": [
-      "HughPerreault@teleworm.us"
+    "email": [ 
+      {
+        "address": "HughPerreault@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Perreault"
@@ -10865,8 +11600,11 @@
       }
     ], 
     "bday": "1964-06-26", 
-    "email": [
-      "SandraDGarcia@teleworm.us"
+    "email": [ 
+      {
+        "address": "SandraDGarcia@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Garcia"
@@ -10904,8 +11642,11 @@
       }
     ], 
     "bday": "1981-02-03", 
-    "email": [
-      "RenanCostaCastro@teleworm.us"
+    "email": [ 
+      {
+        "address": "RenanCostaCastro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Castro"
@@ -10972,8 +11713,11 @@
       }
     ], 
     "bday": "1962-09-21", 
-    "email": [
-      "GhitaPedrazaCrdenas@teleworm.us"
+    "email": [ 
+      {
+        "address": "GhitaPedrazaCrdenas@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Pedraza C\u00e1rdenas"
@@ -11007,8 +11751,11 @@
       }
     ], 
     "bday": "1964-10-17", 
-    "email": [
-      "EdipoLinaresCervntez@teleworm.us"
+    "email": [ 
+      {
+        "address": "EdipoLinaresCervntez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Linares Cerv\u00e1ntez"
@@ -11042,8 +11789,11 @@
       }
     ], 
     "bday": "1934-04-16", 
-    "email": [
-      "KarumantaRosadoOrellana@teleworm.us"
+    "email": [ 
+      {
+        "address": "KarumantaRosadoOrellana@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Rosado Orellana"
@@ -11081,8 +11831,11 @@
       }
     ], 
     "bday": "1951-04-23", 
-    "email": [
-      "KarenJWilliams@teleworm.us"
+    "email": [ 
+      {
+        "address": "KarenJWilliams@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Williams"
@@ -11116,8 +11869,11 @@
       }
     ], 
     "bday": "1963-02-27", 
-    "email": [
-      "VedetteGauthier@teleworm.us"
+    "email": [ 
+      {
+        "address": "VedetteGauthier@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gauthier"
@@ -11151,8 +11907,11 @@
       }
     ], 
     "bday": "1949-08-29", 
-    "email": [
-      "GregorCuellarTirado@teleworm.us"
+    "email": [ 
+      {
+        "address": "GregorCuellarTirado@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cuellar Tirado"
@@ -11186,8 +11945,11 @@
       }
     ], 
     "bday": "1947-02-20", 
-    "email": [
-      "SusanneFried@teleworm.us"
+    "email": [ 
+      {
+        "address": "SusanneFried@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fried"
@@ -11258,8 +12020,11 @@
       }
     ], 
     "bday": "1957-08-12", 
-    "email": [
-      "CourtneyRCody@teleworm.us"
+    "email": [ 
+      {
+        "address": "CourtneyRCody@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cody"
@@ -11293,8 +12058,11 @@
       }
     ], 
     "bday": "1945-06-11", 
-    "email": [
-      "OthelloHerreraLaureano@teleworm.us"
+    "email": [ 
+      {
+        "address": "OthelloHerreraLaureano@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Herrera Laureano"
@@ -11328,8 +12096,11 @@
       }
     ], 
     "bday": "1972-03-24", 
-    "email": [
-      "MarsiliusGuertin@teleworm.us"
+    "email": [ 
+      {
+        "address": "MarsiliusGuertin@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Guertin"
@@ -11367,8 +12138,11 @@
       }
     ], 
     "bday": "1974-09-12", 
-    "email": [
-      "RebecaCavalcantiCardoso@teleworm.us"
+    "email": [ 
+      {
+        "address": "RebecaCavalcantiCardoso@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cardoso"
@@ -11406,8 +12180,11 @@
       }
     ], 
     "bday": "1964-08-07", 
-    "email": [
-      "AmandaCunhaRibeiro@teleworm.us"
+    "email": [ 
+      {
+        "address": "AmandaCunhaRibeiro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ribeiro"
@@ -11445,8 +12222,11 @@
       }
     ], 
     "bday": "1942-04-29", 
-    "email": [
-      "JoaoRibeiroFernandes@teleworm.us"
+    "email": [ 
+      {
+        "address": "JoaoRibeiroFernandes@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fernandes"
@@ -11480,8 +12260,11 @@
       }
     ], 
     "bday": "1967-09-13", 
-    "email": [
-      "VenusBatistaArriaga@teleworm.us"
+    "email": [ 
+      {
+        "address": "VenusBatistaArriaga@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Batista Arriaga"
@@ -11515,8 +12298,11 @@
       }
     ], 
     "bday": "1929-05-15", 
-    "email": [
-      "NanOlivrezLaureano@teleworm.us"
+    "email": [ 
+      {
+        "address": "NanOlivrezLaureano@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Oliv\u00e1rez Laureano"
@@ -11550,8 +12336,11 @@
       }
     ], 
     "bday": "1953-10-16", 
-    "email": [
-      "MaximilianFuchs@teleworm.us"
+    "email": [ 
+      {
+        "address": "MaximilianFuchs@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fuchs"
@@ -11618,8 +12407,11 @@
       }
     ], 
     "bday": "1937-05-28", 
-    "email": [
-      "KarinHofmann@teleworm.us"
+    "email": [ 
+      {
+        "address": "KarinHofmann@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Hofmann"
@@ -11653,8 +12445,11 @@
       }
     ], 
     "bday": "1972-01-13", 
-    "email": [
-      "ChapinGuertin@teleworm.us"
+    "email": [ 
+      {
+        "address": "ChapinGuertin@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Guertin"
@@ -11758,8 +12553,11 @@
       }
     ], 
     "bday": "1927-12-02", 
-    "email": [
-      "GabrielleGoncalvesCorreia@teleworm.us"
+    "email": [ 
+      {
+        "address": "GabrielleGoncalvesCorreia@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Correia"
@@ -11830,8 +12628,11 @@
       }
     ], 
     "bday": "1945-12-29", 
-    "email": [
-      "PatriciaDPoe@teleworm.us"
+    "email": [ 
+      {
+        "address": "PatriciaDPoe@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Poe"
@@ -11902,8 +12703,11 @@
       }
     ], 
     "bday": "1942-05-04", 
-    "email": [
-      "JenniferGMoney@teleworm.us"
+    "email": [ 
+      {
+        "address": "JenniferGMoney@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Money"
@@ -11937,8 +12741,11 @@
       }
     ], 
     "bday": "1949-08-24", 
-    "email": [
-      "MarcSantillnGaytan@teleworm.us"
+    "email": [ 
+      {
+        "address": "MarcSantillnGaytan@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Santill\u00e1n Gaytan"
@@ -11972,8 +12779,11 @@
       }
     ], 
     "bday": "1946-06-09", 
-    "email": [
-      "HartmanOrdezFajardo@teleworm.us"
+    "email": [ 
+      {
+        "address": "HartmanOrdezFajardo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ord\u00f3\u00f1ez Fajardo"
@@ -12007,8 +12817,11 @@
       }
     ], 
     "bday": "1929-08-14", 
-    "email": [
-      "BenjaminOster@teleworm.us"
+    "email": [ 
+      {
+        "address": "BenjaminOster@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Oster"
@@ -12042,8 +12855,11 @@
       }
     ], 
     "bday": "1992-04-02", 
-    "email": [
-      "AndreasHertzog@teleworm.us"
+    "email": [ 
+      {
+        "address": "AndreasHertzog@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Hertzog"
@@ -12081,8 +12897,11 @@
       }
     ], 
     "bday": "1935-01-30", 
-    "email": [
-      "PaulCGomez@teleworm.us"
+    "email": [ 
+      {
+        "address": "PaulCGomez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gomez"
@@ -12120,8 +12939,11 @@
       }
     ], 
     "bday": "1954-04-06", 
-    "email": [
-      "KauDiasFerreira@teleworm.us"
+    "email": [ 
+      {
+        "address": "KauDiasFerreira@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ferreira"
@@ -12155,8 +12977,11 @@
       }
     ], 
     "bday": "1937-02-13", 
-    "email": [
-      "WenceslaoGalindoNegrn@teleworm.us"
+    "email": [ 
+      {
+        "address": "WenceslaoGalindoNegrn@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Galindo Negr\u00f3n"
@@ -12223,8 +13048,11 @@
       }
     ], 
     "bday": "1984-11-19", 
-    "email": [
-      "JensLuft@teleworm.us"
+    "email": [ 
+      {
+        "address": "JensLuft@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Luft"
@@ -12262,8 +13090,11 @@
       }
     ], 
     "bday": "1927-02-03", 
-    "email": [
-      "LuisJBrandt@teleworm.us"
+    "email": [ 
+      {
+        "address": "LuisJBrandt@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Brandt"
@@ -12297,8 +13128,11 @@
       }
     ], 
     "bday": "1989-08-27", 
-    "email": [
-      "JohannaFreitag@teleworm.us"
+    "email": [ 
+      {
+        "address": "JohannaFreitag@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Freitag"
@@ -12336,8 +13170,11 @@
       }
     ], 
     "bday": "1956-10-17", 
-    "email": [
-      "NumbersAKim@teleworm.us"
+    "email": [ 
+      {
+        "address": "NumbersAKim@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Kim"
@@ -12408,8 +13245,11 @@
       }
     ], 
     "bday": "1973-04-24", 
-    "email": [
-      "EmilyAlvesBarros@teleworm.us"
+    "email": [ 
+      {
+        "address": "EmilyAlvesBarros@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Barros"
@@ -12443,8 +13283,11 @@
       }
     ], 
     "bday": "1958-05-18", 
-    "email": [
-      "KurtHaroReyes@teleworm.us"
+    "email": [ 
+      {
+        "address": "KurtHaroReyes@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Haro Reyes"
@@ -12548,8 +13391,11 @@
       }
     ], 
     "bday": "1953-10-10", 
-    "email": [
-      "WandaCJacob@teleworm.us"
+    "email": [ 
+      {
+        "address": "WandaCJacob@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Jacob"
@@ -12587,8 +13433,11 @@
       }
     ], 
     "bday": "1968-02-12", 
-    "email": [
-      "ParisDSmith@teleworm.us"
+    "email": [ 
+      {
+        "address": "ParisDSmith@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Smith"
@@ -12626,8 +13475,11 @@
       }
     ], 
     "bday": "1975-08-25", 
-    "email": [
-      "VictorCavalcantiGomes@teleworm.us"
+    "email": [ 
+      {
+        "address": "VictorCavalcantiGomes@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gomes"
@@ -12694,8 +13546,11 @@
       }
     ], 
     "bday": "1985-03-05", 
-    "email": [
-      "MikiHolgunPaez@teleworm.us"
+    "email": [ 
+      {
+        "address": "MikiHolgunPaez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Holgu\u00edn Paez"
@@ -12729,8 +13584,11 @@
       }
     ], 
     "bday": "1977-09-02", 
-    "email": [
-      "ManqueMurilloGuzmn@teleworm.us"
+    "email": [ 
+      {
+        "address": "ManqueMurilloGuzmn@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Murillo Guzm\u00e1n"
@@ -12764,8 +13622,11 @@
       }
     ], 
     "bday": "1951-06-29", 
-    "email": [
-      "PeterEiffel@teleworm.us"
+    "email": [ 
+      {
+        "address": "PeterEiffel@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Eiffel"
@@ -12799,8 +13660,11 @@
       }
     ], 
     "bday": "1931-10-23", 
-    "email": [
-      "CarpoUrenaFerrer@teleworm.us"
+    "email": [ 
+      {
+        "address": "CarpoUrenaFerrer@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Urena Ferrer"
@@ -12838,8 +13702,11 @@
       }
     ], 
     "bday": "1972-07-27", 
-    "email": [
-      "DiogoSilvaDias@teleworm.us"
+    "email": [ 
+      {
+        "address": "DiogoSilvaDias@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dias"
@@ -12877,8 +13744,11 @@
       }
     ], 
     "bday": "1933-12-29", 
-    "email": [
-      "RafaelaSousaRibeiro@teleworm.us"
+    "email": [ 
+      {
+        "address": "RafaelaSousaRibeiro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ribeiro"
@@ -12952,8 +13822,11 @@
       }
     ], 
     "bday": "1970-05-01", 
-    "email": [
-      "JamesMHatch@teleworm.us"
+    "email": [ 
+      {
+        "address": "JamesMHatch@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Hatch"
@@ -12991,8 +13864,11 @@
       }
     ], 
     "bday": "1931-03-09", 
-    "email": [
-      "DennisBCox@teleworm.us"
+    "email": [ 
+      {
+        "address": "DennisBCox@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cox"
@@ -13026,8 +13902,11 @@
       }
     ], 
     "bday": "1961-03-30", 
-    "email": [
-      "DavidLabelle@teleworm.us"
+    "email": [ 
+      {
+        "address": "DavidLabelle@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Labelle"
@@ -13065,8 +13944,11 @@
       }
     ], 
     "bday": "1936-02-18", 
-    "email": [
-      "EdithJChildress@teleworm.us"
+    "email": [ 
+      {
+        "address": "EdithJChildress@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Childress"
@@ -13100,8 +13982,11 @@
       }
     ], 
     "bday": "1988-04-06", 
-    "email": [
-      "FrdricPoirier@teleworm.us"
+    "email": [ 
+      {
+        "address": "FrdricPoirier@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Poirier"
@@ -13135,8 +14020,11 @@
       }
     ], 
     "bday": "1959-11-16", 
-    "email": [
-      "VickDumoulin@teleworm.us"
+    "email": [ 
+      {
+        "address": "VickDumoulin@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dumoulin"
@@ -13174,8 +14062,11 @@
       }
     ], 
     "bday": "1985-06-27", 
-    "email": [
-      "AliceAraujoAzevedo@teleworm.us"
+    "email": [ 
+      {
+        "address": "AliceAraujoAzevedo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Azevedo"
@@ -13209,8 +14100,11 @@
       }
     ], 
     "bday": "1930-12-13", 
-    "email": [
-      "LothairBusson@teleworm.us"
+    "email": [ 
+      {
+        "address": "LothairBusson@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Busson"
@@ -13277,8 +14171,11 @@
       }
     ], 
     "bday": "1984-07-02", 
-    "email": [
-      "EtoileBeausoleil@teleworm.us"
+    "email": [ 
+      {
+        "address": "EtoileBeausoleil@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Beausoleil"
@@ -13378,8 +14275,11 @@
       }
     ], 
     "bday": "1937-06-19", 
-    "email": [
-      "ExequielBarelaSosa@teleworm.us"
+    "email": [ 
+      {
+        "address": "ExequielBarelaSosa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Barela Sosa"
@@ -13413,8 +14313,11 @@
       }
     ], 
     "bday": "1937-10-07", 
-    "email": [
-      "HuenuLpezPalomo@teleworm.us"
+    "email": [ 
+      {
+        "address": "HuenuLpezPalomo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "L\u00f3pez Palomo"
@@ -13448,8 +14351,11 @@
       }
     ], 
     "bday": "1963-01-22", 
-    "email": [
-      "PehunMontsRomo@teleworm.us"
+    "email": [ 
+      {
+        "address": "PehunMontsRomo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mont\u00e9s Romo"
@@ -13483,8 +14389,11 @@
       }
     ], 
     "bday": "1931-01-07", 
-    "email": [
-      "SidneyCourse@teleworm.us"
+    "email": [ 
+      {
+        "address": "SidneyCourse@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Course"
@@ -13518,8 +14427,11 @@
       }
     ], 
     "bday": "1936-10-14", 
-    "email": [
-      "MaikNacht@teleworm.us"
+    "email": [ 
+      {
+        "address": "MaikNacht@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Nacht"
@@ -13557,8 +14469,11 @@
       }
     ], 
     "bday": "1945-09-03", 
-    "email": [
-      "SamuelRodriguesAraujo@teleworm.us"
+    "email": [ 
+      {
+        "address": "SamuelRodriguesAraujo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Araujo"
@@ -13629,8 +14544,11 @@
       }
     ], 
     "bday": "1973-02-14", 
-    "email": [
-      "MichaelSNorton@teleworm.us"
+    "email": [ 
+      {
+        "address": "MichaelSNorton@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Norton"
@@ -13664,8 +14582,11 @@
       }
     ], 
     "bday": "1959-03-09", 
-    "email": [
-      "OrsonBouvier@teleworm.us"
+    "email": [ 
+      {
+        "address": "OrsonBouvier@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Bouvier"
@@ -13699,8 +14620,11 @@
       }
     ], 
     "bday": "1986-02-02", 
-    "email": [
-      "OtnColnCovas@teleworm.us"
+    "email": [ 
+      {
+        "address": "OtnColnCovas@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Col\u00f3n Covas"
@@ -13734,8 +14658,11 @@
       }
     ], 
     "bday": "1946-12-09", 
-    "email": [
-      "KevinFink@teleworm.us"
+    "email": [ 
+      {
+        "address": "KevinFink@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fink"
@@ -13773,8 +14700,11 @@
       }
     ], 
     "bday": "1969-07-23", 
-    "email": [
-      "LuanaRochaOliveira@teleworm.us"
+    "email": [ 
+      {
+        "address": "LuanaRochaOliveira@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Oliveira"
@@ -13845,8 +14775,11 @@
       }
     ], 
     "bday": "1955-10-27", 
-    "email": [
-      "LarryRJoslin@teleworm.us"
+    "email": [ 
+      {
+        "address": "LarryRJoslin@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Joslin"
@@ -13884,8 +14817,11 @@
       }
     ], 
     "bday": "1956-01-13", 
-    "email": [
-      "LeilaDiasCarvalho@teleworm.us"
+    "email": [ 
+      {
+        "address": "LeilaDiasCarvalho@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Carvalho"
@@ -13923,8 +14859,11 @@
       }
     ], 
     "bday": "1933-09-26", 
-    "email": [
-      "SamuelAOsborne@teleworm.us"
+    "email": [ 
+      {
+        "address": "SamuelAOsborne@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Osborne"
@@ -13958,8 +14897,11 @@
       }
     ], 
     "bday": "1955-06-01", 
-    "email": [
-      "FrdricGuernon@teleworm.us"
+    "email": [ 
+      {
+        "address": "FrdricGuernon@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Guernon"
@@ -13997,8 +14939,11 @@
       }
     ], 
     "bday": "1965-05-07", 
-    "email": [
-      "KauSouzaOliveira@teleworm.us"
+    "email": [ 
+      {
+        "address": "KauSouzaOliveira@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Oliveira"
@@ -14036,8 +14981,11 @@
       }
     ], 
     "bday": "1942-06-09", 
-    "email": [
-      "PhillipOReichenbach@teleworm.us"
+    "email": [ 
+      {
+        "address": "PhillipOReichenbach@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Reichenbach"
@@ -14075,8 +15023,11 @@
       }
     ], 
     "bday": "1986-03-03", 
-    "email": [
-      "SamLThurlow@teleworm.us"
+    "email": [ 
+      {
+        "address": "SamLThurlow@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Thurlow"
@@ -14114,8 +15065,11 @@
       }
     ], 
     "bday": "1979-03-07", 
-    "email": [
-      "SallieGVelasco@teleworm.us"
+    "email": [ 
+      {
+        "address": "SallieGVelasco@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Velasco"
@@ -14186,8 +15140,11 @@
       }
     ], 
     "bday": "1991-01-24", 
-    "email": [
-      "TomsLimaGomes@teleworm.us"
+    "email": [ 
+      {
+        "address": "TomsLimaGomes@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gomes"
@@ -14221,8 +15178,11 @@
       }
     ], 
     "bday": "1943-06-28", 
-    "email": [
-      "EdanMayongaQuiroz@teleworm.us"
+    "email": [ 
+      {
+        "address": "EdanMayongaQuiroz@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mayonga Quiroz"
@@ -14289,8 +15249,11 @@
       }
     ], 
     "bday": "1971-02-21", 
-    "email": [
-      "JrgBach@teleworm.us"
+    "email": [ 
+      {
+        "address": "JrgBach@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Bach"
@@ -14328,8 +15291,11 @@
       }
     ], 
     "bday": "1943-02-18", 
-    "email": [
-      "WalterKKay@teleworm.us"
+    "email": [ 
+      {
+        "address": "WalterKKay@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Kay"
@@ -14396,8 +15362,11 @@
       }
     ], 
     "bday": "1950-02-19", 
-    "email": [
-      "EditMarreroPabn@teleworm.us"
+    "email": [ 
+      {
+        "address": "EditMarreroPabn@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Marrero Pab\u00f3n"
@@ -14431,8 +15400,11 @@
       }
     ], 
     "bday": "1942-11-06", 
-    "email": [
-      "IlaBaril@teleworm.us"
+    "email": [ 
+      {
+        "address": "IlaBaril@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Baril"
@@ -14470,8 +15442,11 @@
       }
     ], 
     "bday": "1961-05-29", 
-    "email": [
-      "BryceKFishman@teleworm.us"
+    "email": [ 
+      {
+        "address": "BryceKFishman@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fishman"
@@ -14505,8 +15480,11 @@
       }
     ], 
     "bday": "1955-02-14", 
-    "email": [
-      "HiplitoVigilZaragoza@teleworm.us"
+    "email": [ 
+      {
+        "address": "HiplitoVigilZaragoza@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Vigil Zaragoza"
@@ -14540,8 +15518,11 @@
       }
     ], 
     "bday": "1959-05-09", 
-    "email": [
-      "NachoAdomoPonce@teleworm.us"
+    "email": [ 
+      {
+        "address": "NachoAdomoPonce@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Adomo Ponce"
@@ -14579,8 +15560,11 @@
       }
     ], 
     "bday": "1984-09-26", 
-    "email": [
-      "IdaJGannon@teleworm.us"
+    "email": [ 
+      {
+        "address": "IdaJGannon@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gannon"
@@ -14614,8 +15598,11 @@
       }
     ], 
     "bday": "1988-04-14", 
-    "email": [
-      "GodfredHerediaGracia@teleworm.us"
+    "email": [ 
+      {
+        "address": "GodfredHerediaGracia@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Heredia Gracia"
@@ -14649,8 +15636,11 @@
       }
     ], 
     "bday": "1975-10-23", 
-    "email": [
-      "SargentLaboissonnire@teleworm.us"
+    "email": [ 
+      {
+        "address": "SargentLaboissonnire@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Laboissonni\u00e8re"
@@ -14684,8 +15674,11 @@
       }
     ], 
     "bday": "1985-02-09", 
-    "email": [
-      "LaurentChampagne@teleworm.us"
+    "email": [ 
+      {
+        "address": "LaurentChampagne@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Champagne"
@@ -14719,8 +15712,11 @@
       }
     ], 
     "bday": "1937-03-03", 
-    "email": [
-      "KristinFaber@teleworm.us"
+    "email": [ 
+      {
+        "address": "KristinFaber@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Faber"
@@ -14754,8 +15750,11 @@
       }
     ], 
     "bday": "1973-01-05", 
-    "email": [
-      "PatrickBaer@teleworm.us"
+    "email": [ 
+      {
+        "address": "PatrickBaer@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Baer"
@@ -14789,8 +15788,11 @@
       }
     ], 
     "bday": "1930-11-23", 
-    "email": [
-      "DorcasMerazCadena@teleworm.us"
+    "email": [ 
+      {
+        "address": "DorcasMerazCadena@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Meraz Cadena"
@@ -14824,8 +15826,11 @@
       }
     ], 
     "bday": "1970-10-07", 
-    "email": [
-      "ChristianWaechter@teleworm.us"
+    "email": [ 
+      {
+        "address": "ChristianWaechter@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Waechter"
@@ -14863,8 +15868,11 @@
       }
     ], 
     "bday": "1956-09-24", 
-    "email": [
-      "MargartMSalinas@teleworm.us"
+    "email": [ 
+      {
+        "address": "MargartMSalinas@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Salinas"
@@ -14898,8 +15906,11 @@
       }
     ], 
     "bday": "1948-12-24", 
-    "email": [
-      "BrigitteFoerster@teleworm.us"
+    "email": [ 
+      {
+        "address": "BrigitteFoerster@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Foerster"
@@ -14933,8 +15944,11 @@
       }
     ], 
     "bday": "1938-03-30", 
-    "email": [
-      "OdeletteFluet@teleworm.us"
+    "email": [ 
+      {
+        "address": "OdeletteFluet@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Fluet"
@@ -15005,8 +16019,11 @@
       }
     ], 
     "bday": "1993-08-03", 
-    "email": [
-      "KauSilvaRibeiro@teleworm.us"
+    "email": [ 
+      {
+        "address": "KauSilvaRibeiro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ribeiro"
@@ -15040,8 +16057,11 @@
       }
     ], 
     "bday": "1989-02-28", 
-    "email": [
-      "InalnLugoMorales@teleworm.us"
+    "email": [ 
+      {
+        "address": "InalnLugoMorales@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lugo Morales"
@@ -15075,8 +16095,11 @@
       }
     ], 
     "bday": "1960-03-17", 
-    "email": [
-      "PhillippGoldschmidt@teleworm.us"
+    "email": [ 
+      {
+        "address": "PhillippGoldschmidt@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Goldschmidt"
@@ -15114,8 +16137,11 @@
       }
     ], 
     "bday": "1976-01-29", 
-    "email": [
-      "EduardoCostaSousa@teleworm.us"
+    "email": [ 
+      {
+        "address": "EduardoCostaSousa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Sousa"
@@ -15149,8 +16175,11 @@
       }
     ], 
     "bday": "1928-05-19", 
-    "email": [
-      "DominiqueClavette@teleworm.us"
+    "email": [ 
+      {
+        "address": "DominiqueClavette@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Clavette"
@@ -15221,8 +16250,11 @@
       }
     ], 
     "bday": "1954-10-26", 
-    "email": [
-      "LaviniaBarbosaCavalcanti@teleworm.us"
+    "email": [ 
+      {
+        "address": "LaviniaBarbosaCavalcanti@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cavalcanti"
@@ -15289,8 +16321,11 @@
       }
     ], 
     "bday": "1934-08-28", 
-    "email": [
-      "QuillnMolinaEnrquez@teleworm.us"
+    "email": [ 
+      {
+        "address": "QuillnMolinaEnrquez@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Molina Enr\u00edquez"
@@ -15324,8 +16359,11 @@
       }
     ], 
     "bday": "1956-04-18", 
-    "email": [
-      "MarcProvencher@teleworm.us"
+    "email": [ 
+      {
+        "address": "MarcProvencher@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Provencher"
@@ -15363,8 +16401,11 @@
       }
     ], 
     "bday": "1952-09-07", 
-    "email": [
-      "LaraGomesRibeiro@teleworm.us"
+    "email": [ 
+      {
+        "address": "LaraGomesRibeiro@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ribeiro"
@@ -15398,8 +16439,11 @@
       }
     ], 
     "bday": "1969-07-31", 
-    "email": [
-      "EulalieMainville@teleworm.us"
+    "email": [ 
+      {
+        "address": "EulalieMainville@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mainville"
@@ -15433,8 +16477,11 @@
       }
     ], 
     "bday": "1934-02-18", 
-    "email": [
-      "PetraMeier@teleworm.us"
+    "email": [ 
+      {
+        "address": "PetraMeier@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Meier"
@@ -15505,8 +16552,11 @@
       }
     ], 
     "bday": "1985-06-25", 
-    "email": [
-      "JuliaSousaBarbosa@teleworm.us"
+    "email": [ 
+      {
+        "address": "JuliaSousaBarbosa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Barbosa"
@@ -15540,8 +16590,11 @@
       }
     ], 
     "bday": "1956-01-28", 
-    "email": [
-      "CapucineRuest@teleworm.us"
+    "email": [ 
+      {
+        "address": "CapucineRuest@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ruest"
@@ -15579,8 +16632,11 @@
       }
     ], 
     "bday": "1937-07-22", 
-    "email": [
-      "gathaCavalcantiSantos@teleworm.us"
+    "email": [ 
+      {
+        "address": "gathaCavalcantiSantos@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Santos"
@@ -15618,8 +16674,11 @@
       }
     ], 
     "bday": "1942-08-16", 
-    "email": [
-      "DanielCarvalhoSantos@teleworm.us"
+    "email": [ 
+      {
+        "address": "DanielCarvalhoSantos@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Santos"
@@ -15653,8 +16712,11 @@
       }
     ], 
     "bday": "1928-11-18", 
-    "email": [
-      "JulienneDesruisseaux@teleworm.us"
+    "email": [ 
+      {
+        "address": "JulienneDesruisseaux@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Desruisseaux"
@@ -15692,8 +16754,11 @@
       }
     ], 
     "bday": "1933-05-21", 
-    "email": [
-      "GayeCLikens@teleworm.us"
+    "email": [ 
+      {
+        "address": "GayeCLikens@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Likens"
@@ -15760,8 +16825,11 @@
       }
     ], 
     "bday": "1984-11-09", 
-    "email": [
-      "ChristinaFreeh@teleworm.us"
+    "email": [ 
+      {
+        "address": "ChristinaFreeh@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Freeh"
@@ -15795,8 +16863,11 @@
       }
     ], 
     "bday": "1929-11-28", 
-    "email": [
-      "VictorineDagenais@teleworm.us"
+    "email": [ 
+      {
+        "address": "VictorineDagenais@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dagenais"
@@ -15834,8 +16905,11 @@
       }
     ], 
     "bday": "1957-03-03", 
-    "email": [
-      "ThomasTReinoso@teleworm.us"
+    "email": [ 
+      {
+        "address": "ThomasTReinoso@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Reinoso"
@@ -15869,8 +16943,11 @@
       }
     ], 
     "bday": "1979-11-16", 
-    "email": [
-      "GabrielePropst@teleworm.us"
+    "email": [ 
+      {
+        "address": "GabrielePropst@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Propst"
@@ -15908,8 +16985,11 @@
       }
     ], 
     "bday": "1959-07-22", 
-    "email": [
-      "RenanMartinsSousa@teleworm.us"
+    "email": [ 
+      {
+        "address": "RenanMartinsSousa@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Sousa"
@@ -15947,8 +17027,11 @@
       }
     ], 
     "bday": "1960-12-25", 
-    "email": [
-      "KerenJMabry@teleworm.us"
+    "email": [ 
+      {
+        "address": "KerenJMabry@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mabry"
@@ -15982,8 +17065,11 @@
       }
     ], 
     "bday": "1988-05-24", 
-    "email": [
-      "BarbaraPeters@teleworm.us"
+    "email": [ 
+      {
+        "address": "BarbaraPeters@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Peters"
@@ -16021,8 +17107,11 @@
       }
     ], 
     "bday": "1975-01-11", 
-    "email": [
-      "GaryDClaassen@teleworm.us"
+    "email": [ 
+      {
+        "address": "GaryDClaassen@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Claassen"
@@ -16122,8 +17211,11 @@
       }
     ], 
     "bday": "1935-01-27", 
-    "email": [
-      "DieterSeiler@teleworm.us"
+    "email": [ 
+      {
+        "address": "DieterSeiler@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Seiler"
@@ -16157,8 +17249,11 @@
       }
     ], 
     "bday": "1937-02-01", 
-    "email": [
-      "NicolasaOrtegaRoque@teleworm.us"
+    "email": [ 
+      {
+        "address": "NicolasaOrtegaRoque@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Ortega Roque"
@@ -16192,8 +17287,11 @@
       }
     ], 
     "bday": "1942-02-19", 
-    "email": [
-      "CosetteLabrosse@teleworm.us"
+    "email": [ 
+      {
+        "address": "CosetteLabrosse@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Labrosse"
@@ -16227,8 +17325,11 @@
       }
     ], 
     "bday": "1991-07-11", 
-    "email": [
-      "RobertDecker@teleworm.us"
+    "email": [ 
+      {
+        "address": "RobertDecker@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Decker"
@@ -16262,8 +17363,11 @@
       }
     ], 
     "bday": "1939-10-01", 
-    "email": [
-      "UlrichBohm@teleworm.us"
+    "email": [ 
+      {
+        "address": "UlrichBohm@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Bohm"
@@ -16301,8 +17405,11 @@
       }
     ], 
     "bday": "1941-03-26", 
-    "email": [
-      "MaryJPatton@teleworm.us"
+    "email": [ 
+      {
+        "address": "MaryJPatton@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Patton"
@@ -16340,8 +17447,11 @@
       }
     ], 
     "bday": "1987-12-09", 
-    "email": [
-      "CarlaSousaLima@teleworm.us"
+    "email": [ 
+      {
+        "address": "CarlaSousaLima@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lima"
@@ -16375,8 +17485,11 @@
       }
     ], 
     "bday": "1963-01-11", 
-    "email": [
-      "HughThibodeau@teleworm.us"
+    "email": [ 
+      {
+        "address": "HughThibodeau@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Thibodeau"
@@ -16410,8 +17523,11 @@
       }
     ], 
     "bday": "1956-07-06", 
-    "email": [
-      "YvonneBeike@teleworm.us"
+    "email": [ 
+      {
+        "address": "YvonneBeike@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Beike"
@@ -16445,8 +17561,11 @@
       }
     ], 
     "bday": "1968-10-04", 
-    "email": [
-      "HuetteGaillard@teleworm.us"
+    "email": [ 
+      {
+        "address": "HuetteGaillard@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gaillard"
@@ -16517,8 +17636,11 @@
       }
     ], 
     "bday": "1992-05-23", 
-    "email": [
-      "EmillyGomesCavalcanti@teleworm.us"
+    "email": [ 
+      {
+        "address": "EmillyGomesCavalcanti@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Cavalcanti"
@@ -16552,8 +17674,11 @@
       }
     ], 
     "bday": "1964-09-07", 
-    "email": [
-      "AngeletteMailly@teleworm.us"
+    "email": [ 
+      {
+        "address": "AngeletteMailly@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mailly"
@@ -16587,8 +17712,11 @@
       }
     ], 
     "bday": "1978-09-30", 
-    "email": [
-      "ZaqueoReynosoRos@teleworm.us"
+    "email": [ 
+      {
+        "address": "ZaqueoReynosoRos@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Reynoso R\u00edos"
@@ -16622,8 +17750,11 @@
       }
     ], 
     "bday": "1986-03-30", 
-    "email": [
-      "TrinityVegaDvila@teleworm.us"
+    "email": [ 
+      {
+        "address": "TrinityVegaDvila@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Vega D\u00e1vila"
@@ -16694,8 +17825,11 @@
       }
     ], 
     "bday": "1965-11-19", 
-    "email": [
-      "MatheusCastroCosta@teleworm.us"
+    "email": [ 
+      {
+        "address": "MatheusCastroCosta@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Costa"
@@ -16762,8 +17896,11 @@
       }
     ], 
     "bday": "1972-07-20", 
-    "email": [
-      "BeverlyMascarenasCerda@teleworm.us"
+    "email": [ 
+      {
+        "address": "BeverlyMascarenasCerda@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Mascarenas Cerda"
@@ -16801,8 +17938,11 @@
       }
     ], 
     "bday": "1957-08-07", 
-    "email": [
-      "SamanthaJBryan@teleworm.us"
+    "email": [ 
+      {
+        "address": "SamanthaJBryan@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Bryan"
@@ -16840,8 +17980,11 @@
       }
     ], 
     "bday": "1935-04-18", 
-    "email": [
-      "AmandaMartinsDias@teleworm.us"
+    "email": [ 
+      {
+        "address": "AmandaMartinsDias@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Dias"
@@ -16879,8 +18022,11 @@
       }
     ], 
     "bday": "1927-05-19", 
-    "email": [
-      "JuliaJRobinson@teleworm.us"
+    "email": [ 
+      {
+        "address": "JuliaJRobinson@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Robinson"
@@ -16918,8 +18064,11 @@
       }
     ], 
     "bday": "1983-03-23", 
-    "email": [
-      "ArthurPereiraMelo@teleworm.us"
+    "email": [ 
+      {
+        "address": "ArthurPereiraMelo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Melo"
@@ -16953,8 +18102,11 @@
       }
     ], 
     "bday": "1946-04-18", 
-    "email": [
-      "JanLowe@teleworm.us"
+    "email": [ 
+      {
+        "address": "JanLowe@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Lowe"
@@ -17021,8 +18173,11 @@
       }
     ], 
     "bday": "1957-07-30", 
-    "email": [
-      "IrmaCallasNajera@teleworm.us"
+    "email": [ 
+      {
+        "address": "IrmaCallasNajera@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Callas Najera"
@@ -17060,8 +18215,11 @@
       }
     ], 
     "bday": "1954-11-16", 
-    "email": [
-      "LaureenMJones@teleworm.us"
+    "email": [ 
+      {
+        "address": "LaureenMJones@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Jones"
@@ -17095,8 +18253,11 @@
       }
     ], 
     "bday": "1975-10-29", 
-    "email": [
-      "DanielaEberhart@teleworm.us"
+    "email": [ 
+      {
+        "address": "DanielaEberhart@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Eberhart"
@@ -17130,8 +18291,11 @@
       }
     ], 
     "bday": "1985-03-26", 
-    "email": [
-      "DelmareBenjamin@teleworm.us"
+    "email": [ 
+      {
+        "address": "DelmareBenjamin@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Benjamin"
@@ -17165,8 +18329,11 @@
       }
     ], 
     "bday": "1970-05-15", 
-    "email": [
-      "LouisCharette@teleworm.us"
+    "email": [ 
+      {
+        "address": "LouisCharette@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Charette"
@@ -17200,8 +18367,11 @@
       }
     ], 
     "bday": "1993-04-23", 
-    "email": [
-      "NatanGilCollazo@teleworm.us"
+    "email": [ 
+      {
+        "address": "NatanGilCollazo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gil Collazo"
@@ -17239,8 +18409,11 @@
       }
     ], 
     "bday": "1979-03-04", 
-    "email": [
-      "EthelWMichel@teleworm.us"
+    "email": [ 
+      {
+        "address": "EthelWMichel@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Michel"
@@ -17274,8 +18447,11 @@
       }
     ], 
     "bday": "1990-11-01", 
-    "email": [
-      "MelusinaJodion@teleworm.us"
+    "email": [ 
+      {
+        "address": "MelusinaJodion@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Jodion"
@@ -17313,8 +18489,11 @@
       }
     ], 
     "bday": "1973-01-31", 
-    "email": [
-      "FrancineATanner@teleworm.us"
+    "email": [ 
+      {
+        "address": "FrancineATanner@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Tanner"
@@ -17348,8 +18527,11 @@
       }
     ], 
     "bday": "1986-03-19", 
-    "email": [
-      "GarcaPedrozaMuiz@teleworm.us"
+    "email": [ 
+      {
+        "address": "GarcaPedrozaMuiz@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Pedroza Mu\u00f1iz"
@@ -17387,8 +18569,11 @@
       }
     ], 
     "bday": "1931-02-19", 
-    "email": [
-      "JamesTHenderson@teleworm.us"
+    "email": [ 
+      {
+        "address": "JamesTHenderson@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Henderson"
@@ -17422,8 +18607,11 @@
       }
     ], 
     "bday": "1955-09-27", 
-    "email": [
-      "GeneviveSimon@teleworm.us"
+    "email": [ 
+      {
+        "address": "GeneviveSimon@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Simon"
@@ -17457,8 +18645,11 @@
       }
     ], 
     "bday": "1975-10-19", 
-    "email": [
-      "KatjaEgger@teleworm.us"
+    "email": [ 
+      {
+        "address": "KatjaEgger@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Egger"
@@ -17562,8 +18753,11 @@
       }
     ], 
     "bday": "1970-12-12", 
-    "email": [
-      "LaviniaFerreiraCorreia@teleworm.us"
+    "email": [ 
+      {
+        "address": "LaviniaFerreiraCorreia@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Correia"
@@ -17634,8 +18828,11 @@
       }
     ], 
     "bday": "1944-06-02", 
-    "email": [
-      "MariannaJAnderton@teleworm.us"
+    "email": [ 
+      {
+        "address": "MariannaJAnderton@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Anderton"
@@ -17702,8 +18899,11 @@
       }
     ], 
     "bday": "1982-05-02", 
-    "email": [
-      "LenaFriedman@teleworm.us"
+    "email": [ 
+      {
+        "address": "LenaFriedman@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Friedman"
@@ -17737,8 +18937,11 @@
       }
     ], 
     "bday": "1929-02-25", 
-    "email": [
-      "FranziskaMaur@teleworm.us"
+    "email": [ 
+      {
+        "address": "FranziskaMaur@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Maur"
@@ -17772,8 +18975,11 @@
       }
     ], 
     "bday": "1991-05-16", 
-    "email": [
-      "TatianaVillegasSalcedo@teleworm.us"
+    "email": [ 
+      {
+        "address": "TatianaVillegasSalcedo@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Villegas Salcedo"
@@ -17811,8 +19017,11 @@
       }
     ], 
     "bday": "1946-12-24", 
-    "email": [
-      "ViniciusCostaSouza@teleworm.us"
+    "email": [ 
+      {
+        "address": "ViniciusCostaSouza@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Souza"
@@ -17846,8 +19055,11 @@
       }
     ], 
     "bday": "1944-03-30", 
-    "email": [
-      "FabriceBriard@teleworm.us"
+    "email": [ 
+      {
+        "address": "FabriceBriard@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Briard"
@@ -17885,8 +19097,11 @@
       }
     ], 
     "bday": "1987-07-02", 
-    "email": [
-      "GinaGBoice@teleworm.us"
+    "email": [ 
+      {
+        "address": "GinaGBoice@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Boice"
@@ -17920,8 +19135,11 @@
       }
     ], 
     "bday": "1991-06-12", 
-    "email": [
-      "VeronaBravoTovar@teleworm.us"
+    "email": [ 
+      {
+        "address": "VeronaBravoTovar@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Bravo Tovar"
@@ -17988,8 +19206,11 @@
       }
     ], 
     "bday": "1958-05-27", 
-    "email": [
-      "MelvilleGregoire@teleworm.us"
+    "email": [ 
+      {
+        "address": "MelvilleGregoire@teleworm.us",
+        "type": ""
+      }
     ], 
     "familyName": [
       "Gregoire"

@@ -2,6 +2,7 @@
   position: absolute;
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
   z-index: 2147483647;
+  /* 20px = height of status bar */
   top: 20px;
   width: -moz-calc(100%);
   height: -moz-calc(100% - 20px);
@@ -10,11 +11,15 @@
 
   -moz-user-select: none;
 
-  -moz-transition: -moz-transform 0.5s ease 0.3s;
+  -moz-transition:
+    -moz-transform 0.5s ease 0.3s,
+    opacity 0.5s ease 0.3s;
+  opacity: 1;
 }
 
 #screen:not(.locked) > #lockscreen {
-  -moz-transform: translateY(-moz-calc(-100% - 20px));
+  -moz-transform: scale(2);
+  opacity: 0;
 }
 
 #lockscreen.uninit > * {
@@ -56,68 +61,71 @@
   background-position: 50% 50%;
 }
 
+#lockscreen h2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10rem;
+  margin: 0;
+  padding: 2.5rem 2.8rem;
+  -moz-box-sizing: border-box;
+  font-size: 3.2rem;
+  font-weight: normal;
+  line-height: 3.2rem;
+  text-shadow: 0 0 3px #333;
+
+  -moz-transform: translateY(-10rem);
+  -moz-transition: -moz-transform 0.2s ease;
+}
+
 #lockscreen-header {
   position: absolute;
   top: 0;
   left: 0;
-  height: 100px;
+  height: 10rem;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 12px 24px 12px 16px;
+  padding: 1.2rem 2.4rem 1.2rem 1.6rem;
   color: #fff;
   text-shadow: 0 0 3px #333;
+
+  -moz-transform: translateY(-10rem);
+  -moz-transition: -moz-transform 0.2s ease;
+}
+
+[data-panel=""] #lockscreen-header {
+  -moz-transform: translateY(0);
 }
 
 #lockscreen-mute {
   float: right;
-  width: 40px;
-  height: 40px;
-  margin-top: 8px;
+  width: 4rem;
+  height: 4rem;
+  margin-top: 0.8rem;
 
   background: transparent url('./images/mute.png') center center no-repeat;
 }
 
 #lockscreen-clock {
-  font: 50px 'Open Sans', sans-serif;
-  line-height: 54px;
+  font: 5rem 'Open Sans', sans-serif;
+  line-height: 5.4rem;
 }
 
 #lockscreen-date {
-  font: 16px 'Open Sans', sans-serif;
-}
-
-@media screen and (height: 800px) {
-  #lockscreen-header {
-    height: 150px;
-    padding: 16px 36px 16px 24px;
-  }
-  #lockscreen-mute {
-    width: 60px;
-    height: 60px;
-    margin-top: 12px;
-    font-size: 18px;
-    border-radius: 15px;
-  }
-  #lockscreen-clock {
-    font: 75px 'Open Sans', sans-serif;
-    line-height: 81px;
-  }
-
-  #lockscreen-date {
-    font: 24px 'Open Sans', sans-serif;
-  }
+  font: 1.6rem 'Open Sans', sans-serif;
 }
 
 #lockscreen-notification {
   position: absolute;
-  top: 96px;
+  top: 9.6rem;
   left: 0;
-  height: 60px;
+  height: 6rem;
   width: 100%;
   border-top: 1px solid #333;
   border-bottom: 1px solid #000;
   -moz-box-sizing: border-box;
-  padding: 8px 26px;
+  padding: 0.8rem 2.6rem;
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.8);
 }
@@ -125,16 +133,16 @@
 #lockscreen-notification-icon {
   float: left;
   display: block;
-  width: 32px;
-  height: 32px;
+  width: 3.2rem;
+  height: 3.2rem;
   -moz-box-sizing: border-box;
-  margin-top: 2px;
-  margin-right: 12px;
+  margin-top: 0.2rem;
+  margin-right: 1.2rem;
 }
 
 #lockscreen-notification-title {
-  font: 16px 'Open Sans', sans-serif;
-  line-height: 20px;
+  font: 1.6rem 'Open Sans', sans-serif;
+  line-height: 2rem;
   color: #ccc;
   font-weight: 600;
   overflow: hidden;
@@ -143,8 +151,8 @@
 }
 
 #lockscreen-notification-detail {
-  font: 14px 'Open Sans', sans-serif;
-  line-height: 20px;
+  font: 1.4rem 'Open Sans', sans-serif;
+  line-height: 2rem;
   color: #ccc;
   overflow: hidden;
   white-space: nowrap;
@@ -153,40 +161,14 @@
 
 #lockscreen-notification-time {
   float: right;
-  font: 16px 'Open Sans', sans-serif;
-  line-height: 20px;
+  font: 1.6rem 'Open Sans', sans-serif;
+  line-height: 2rem;
   color: #52b6cc;
-}
-
-@media screen and (height: 800px) {
-  #lockscreen-notification {
-    top: 150px;
-    height: 90px;
-    padding: 12px 42px;
-  }
-  #lockscreen-notification-icon {
-    width: 48px;
-    height: 48px;
-    margin-right: 18px;
-  }
-  #lockscreen-notification-title {
-    font: 24px 'Open Sans', sans-serif;
-    line-height: 30px;
-  }
-  #lockscreen-notification-detail {
-    font: 21px 'Open Sans', sans-serif;
-    line-height: 30px;
-  }
-
-  #lockscreen-notification-time {
-    font: 24px 'Open Sans', sans-serif;
-    line-height: 30px;
-  }
 }
 
 #lockscreen-area {
   position: absolute;
-  height: 100px;
+  height: 10rem;
   left: 0;
   right: 0;
   bottom: 0;
@@ -194,12 +176,12 @@
 
 #lockscreen-area-handle {
   position: absolute;
-  width: 50px;
-  height: 50px;
+  width: 5rem;
+  height: 5rem;
   left: 50%;
-  bottom: 50px;
-  margin-bottom: -25px;
-  margin-left: -25px;
+  bottom: 5rem;
+  margin-bottom: -2.5rem;
+  margin-left: -2.5rem;
 
   -moz-transition: -moz-transform 0.1s linear;
 }
@@ -209,7 +191,7 @@
 	  -moz-transform: translateX(0);
 	}
 	20%, 40% {
-	  -moz-transform: translateX(15px);
+	  -moz-transform: translateX(1.5rem);
 	}
 }
 
@@ -222,7 +204,7 @@
 	  -moz-transform: translateX(0);
 	}
 	20%, 40% {
-	  -moz-transform: translateX(-15px);
+	  -moz-transform: translateX(-1.5rem);
 	}
 }
 
@@ -261,10 +243,10 @@
 #lockscreen-area-handle::before {
   position: absolute;
   content: '';
-  width: 68px;
-  height: 68px;
-  top: -9px;
-  left: -9px;
+  width: 6.8rem;
+  height: 6.8rem;
+  top: -0.9rem;
+  left: -0.9rem;
 
   background-image: url('./images/handle-grow.png');
   background-size: contain;
@@ -284,19 +266,22 @@
   }
 }
 
-.touched #lockscreen-area-handle::before,
-#lockscreen-area-handle.triggered::before {
+.touched #lockscreen-area-handle::before {
   -moz-animation: lockscreen-handlegrow 1s 1;
+  opacity: 1;
+}
+
+#lockscreen-area-handle.triggered::before {
   opacity: 1;
 }
 
 .lockscreen-icon {
   position: absolute;
-  border-radius: 27px;
-  width: 42px;
-  height: 42px;
-  bottom: 50px;
-  margin-bottom: -21px;
+  border-radius: 2.7rem;
+  width: 4.2rem;
+  height: 4.2rem;
+  bottom: 5rem;
+  margin-bottom: -2.1rem;
 
   -moz-box-sizing: border-box;
   border: 2px solid rgba(255, 255, 255, 0.8);
@@ -310,10 +295,10 @@
 
 .lockscreen-rail {
   position: absolute;
-  bottom: 50px;
+  bottom: 5rem;
   margin: -1px;
-  width: -moz-calc(50% - 50px - 22px);
-  height: 2px;
+  width: -moz-calc(50% - 5rem - 2.2rem);
+  height: 0.2rem;
   background-color: rgba(255, 255, 255, 0.8);
   opacity: 0;
   -moz-transition: opacity 0.1s linear;
@@ -324,11 +309,11 @@
 }
 
 #lockscreen-rail-left {
-  left: 73px;
+  left: 7.3rem;
 }
 
 #lockscreen-rail-right {
-  right: 73px;
+  right: 7.3rem;
 }
 
 /* the arrow animation for idle */
@@ -336,11 +321,11 @@
   position: absolute;
   display: block;
   content: '';
-  top: 19px;
+  top: 1.9rem;
 
-  width: 12px;
-  height: 22px;
-  margin: -11px;
+  width: 1.2rem;
+  height: 2.2rem;
+  margin: -1.1rem;
 }
 
 .touched .lockscreen-icon::after,
@@ -352,7 +337,7 @@
 }
 
 #lockscreen-area-unlock {
-  right: 30px;
+  right: 3rem;
   background: rgba(0, 0, 0, 0.3) url('./images/icon-unlock.png') center center no-repeat;
 }
 
@@ -363,7 +348,7 @@
   }
 
   to {
-    -moz-transform: translateX(-55px);
+    -moz-transform: translateX(-5.5rem);
     opacity: 0;
   }
 }
@@ -375,137 +360,26 @@
   }
 
   to {
-    -moz-transform: translateX(55px);
+    -moz-transform: translateX(5.5rem);
     opacity: 0;
   }
 }
 
 #lockscreen-area-unlock::after {
-  left: -60px;
+  left: -6rem;
   background: transparent url('./images/arrow-right.png') center center no-repeat;
   -moz-animation: lockscreen-arrow-right 2s infinite;
 }
 
 #lockscreen-area-camera {
-  left: 30px;
+  left: 3rem;
   background: rgba(0, 0, 0, 0.3) url('./images/icon-camera.png') center center no-repeat;
 }
 
 #lockscreen-area-camera::after {
-  right: -60px;
+  right: -6rem;
   background: transparent url('./images/arrow-left.png') center center no-repeat;
   -moz-animation: lockscreen-arrow-left 2s infinite;
-}
-
-@media screen and (height: 800px) {
-  #lockscreen-area {
-    height: 150px;
-  }
-
-  #lockscreen-area-handle {
-    width: 75px;
-    height: 75px;
-    bottom: 75px;
-    margin-bottom: -37.5px;
-    margin-left: -37.5px;
-  }
-
-  @-moz-keyframes lockscreen-handleshake-right {
-    0%, 60% {
-      -moz-transform: translateX(0);
-    }
-    20%, 40% {
-      -moz-transform: translateX(22.5px);
-    }
-  }
-
-  @-moz-keyframes lockscreen-handleshake-left {
-    0%, 60% {
-      -moz-transform: translateX(0);
-    }
-    20%, 40% {
-      -moz-transform: translateX(-22.5px);
-    }
-  }
-
-  #lockscreen-area-handle::before {
-    width: 102px;
-    height: 102px;
-    top: -13.5px;
-    left: -13.5px;
-  }
-
-  .lockscreen-icon {
-    border-radius: 40.5px;
-    width: 63px;
-    height: 63px;
-    bottom: 75px;
-    margin-bottom: -31.5px;
-  }
-
-  .lockscreen-rail {
-    bottom: 75px;
-    width: -moz-calc(50% - 75px - 33px);
-  }
-
-  #lockscreen-rail-left {
-    left: 109.5px;
-  }
-
-  #lockscreen-rail-right {
-    right: 109.5px;
-  }
-
-  .lockscreen-icon::after {
-    top: 28.5px;
-
-    width: 18px;
-    height: 33px;
-    margin: -16.5px;
-    background-size: cover;
-  }
-
-  #lockscreen-area-unlock {
-    right: 45px;
-  }
-
-  @-moz-keyframes lockscreen-arrow-left {
-    from {
-      -moz-transform: none;
-      opacity: 1;
-    }
-
-    to {
-      -moz-transform: translateX(-82.5px);
-      opacity: 0;
-    }
-  }
-
-  @-moz-keyframes lockscreen-arrow-right {
-    from {
-      -moz-transform: none;
-      opacity: 1;
-    }
-
-    to {
-      -moz-transform: translateX(82.5px);
-      opacity: 0;
-    }
-  }
-
-  #lockscreen-area-unlock::after {
-    left: -90px;
-
-    -moz-animation: lockscreen-arrow-right 2s infinite;
-  }
-
-  #lockscreen-area-camera {
-    left: 45px;
-  }
-
-  #lockscreen-area-camera::after {
-    right: -90px;
-  }
 }
 
 #lockscreen-panel-passcode {
@@ -523,18 +397,8 @@
   display: none;
 }
 
-#lockscreen-passcode-status {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100px;
-  margin: 0;
-  padding: 20px 28px;
-  -moz-box-sizing: border-box;
-  font-size: 32px;
-  line-height: 32px;
-  text-shadow: 0 0 3px #333;
+[data-panel="passcode"] h2#lockscreen-passcode-status {
+  -moz-transform: none;
 }
 
 /* Smiley */
@@ -543,14 +407,14 @@
   position: absolute;
   display: block;
 
-  top: 30px;
+  top: 3rem;
   width: 20%;
-  right: 20px;
+  right: 2rem;
   text-align: center;
 
   color: #fff;
   text-shadow: 0 0 3px #333;
-  font-size: 40px;
+  font-size: 4rem;
   font-weight: 600;
   letter-spacing: -2px;
   line-height: 1.1em;
@@ -565,50 +429,42 @@
   content: "\\o/";
 }
 
-@media screen and (height: 800px) {
-  #lockscreen-passcode-status {
-    height: 150px;
-    padding: 30px 42px;
-    font-size: 48px;
-    line-height: 48px;
-  }
-  .smiley #lockscreen-panel-passcode::after {
-    top: 45px;
-    right: 30px;
-    font-size: 60px;
-  }
-}
-
 #lockscreen-passcode-code {
   position: absolute;
-  bottom: 214px;
-  height: 72px;
+  bottom: 21.4rem;
+  height: 7.2rem;
   width: 100%;
-  background: -moz-linear-gradient(#2b2e33, #424851);
+  background-color: #313c46;
   margin: 0;
-  padding: 0 8px;
+  padding: 0 0.8rem;
   -moz-box-sizing: border-box;
   border-top: #434953;
   border-bottom: #000;
+  -moz-transform: translateY(-moz-calc(21.4rem + 7.2rem));
+  -moz-transition: -moz-transform 0.2s ease;
+}
+
+[data-panel="passcode"] #lockscreen-passcode-code {
+  -moz-transform: translateY(0);
 }
 
 #lockscreen-passcode-code > span {
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: -moz-calc(25% - 8px);
-  margin: 16px 4px;
-  height: -moz-calc(100% - 32px);
+  width: -moz-calc(25% - 0.8rem);
+  margin: 1.6rem 0.4rem;
+  height: -moz-calc(100% - 3.2rem);
   text-align: center;
-  box-shadow: 0 0 8px #999 inset;
+  box-shadow: 0 0 0.8rem #999 inset;
   background-color: #fff;
-  border-radius: 5px;
+  border-radius: 0.5rem;
 
   position: relative;
 }
 
 [data-passcode-status="error"] #lockscreen-passcode-code > span {
-  box-shadow: 0 0 8px #f00 inset;
+  box-shadow: 0 0 0.8rem #f00 inset;
 }
 
 [data-passcode-status="error"] #lockscreen-passcode-code > span[data-dot]::before {
@@ -616,7 +472,7 @@
 }
 
 [data-passcode-status="success"] #lockscreen-passcode-code > span {
-  box-shadow: 0 0 8px #0c0 inset;
+  box-shadow: 0 0 0.8rem #0c0 inset;
 }
 
 [data-passcode-status="success"] #lockscreen-passcode-code > span[data-dot]::before {
@@ -628,44 +484,30 @@
   display: block;
   position: absolute;
 
-  width: 30px;
-  height: 30px;
+  width: 1.5rem;
+  height: 1.5rem;
   background-color: #000;
-  border-radius: 15px;
+  border-radius: 0.75rem;
   top: 50%;
   left: 50%;
-  margin-left: -15px;
-  margin-top: -15px;
-}
-
-@media screen and (height: 800px) {
-  #lockscreen-passcode-code {
-    bottom: 320px;
-    height: 108px;
-    padding: 0 12px;
-  }
-  #lockscreen-passcode-code > span {
-    width: -moz-calc(25% - 12px);
-    margin: 24px 6px;
-    height: -moz-calc(100% - 48px);
-    border-radius: 7.5px;
-  }
-  #lockscreen-passcode-code > span[data-dot]::before {
-    width: 45px;
-    height: 45px;
-    border-radius: 22.5px;
-    margin-left: -22.5px;
-    margin-top: -22.5px;
-  }
+  margin-left: -0.75rem;
+  margin-top: -0.75rem;
 }
 
 #lockscreen-passcode-pad {
   -moz-box-sizing: border-box;
   position: absolute;
   bottom: 0;
-  height: 214px;
+  height: 21.4rem;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
+
+  -moz-transform: translateY(21.4rem);
+  -moz-transition: -moz-transform 0.2s ease;
+}
+
+[data-panel="passcode"] #lockscreen-passcode-pad {
+  -moz-transform: translateY(0);
 }
 
 #lockscreen-passcode-pad > a {
@@ -673,24 +515,32 @@
   display: block;
   float: left;
   width: 33.333%;
-  height: 50px;
-  border-top: 1px solid rgba(255, 255, 255, 0.8);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+  height: 5rem;
+  border-top: 1px solid #525050;
+  border-bottom: 1px solid #000000;
+  border-left: 1px solid #525050;
+  border-right: 1px solid #000000;
   outline: none;
-  padding: 0 20px;
+  padding: 0 2rem;
 
-  font-size: 32px;
-  line-height: 50px;
+  font-size: 3.2rem;
+  font-weight: 600;
+  line-height: 5rem;
 
   color: #fff;
   text-decoration: none;
   text-shadow: 0 0 3px #000;
 }
 
+#lockscreen-passcode-pad > a.last-row {
+  height: 6.4rem;
+}
+
 #lockscreen-passcode-pad > a > span {
   pointer-events: none;
-  font-size: 12px;
-  padding: 12px;
+  font-size: 1.2rem;
+  font-weight: normal;
+  padding: 1.2rem;
 }
 
 .passcode-entered #lockscreen-passcode-pad > a[data-key="c"] {
@@ -699,7 +549,7 @@
 
 @font-face {
   font-family: 'Keyboard Symbols';
-  font-weight: 600;
+  font-weight: bold;
   src: url('fonts/Keyboard-Symbols.woff');
 }
 
@@ -719,32 +569,12 @@
 }
 
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
-  font-size: 12px;
-  line-height: 16px;
-  padding: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1.6rem;
+  padding: 1rem;
   text-align: center;
   text-transform: uppercase;
-}
-
-@media screen and (height: 800px) {
-  #lockscreen-passcode-pad {
-    height: 320px;
-  }
-  #lockscreen-passcode-pad > a {
-    padding: 0 30px;
-    height: 75px;
-    font-size: 48px;
-    line-height: 75px;
-  }
-  #lockscreen-passcode-pad > a > span {
-    font-size: 18px;
-    padding: 18px;
-  }
-  #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
-    font-size: 18px;
-    line-height: 24px;
-    padding: 15px;
-  }
 }
 
 #lockscreen-panel-emergency-call {
@@ -762,6 +592,33 @@
   display: none;
 }
 
+[data-panel="emergency-call"] h2#lockscreen-emergency-title {
+  -moz-transform: none;
+}
+
+#lockscreen-emergency-pad {
+  -moz-box-sizing: border-box;
+  position: absolute;
+  bottom: 0;
+  height: 32rem;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding-top: 10rem;
+  border-top: 2px solid #525050;
+
+  -moz-transform: translateY(32rem);
+  -moz-transition: -moz-transform 0.2s ease;
+
+  /* TBD */
+  font-size: 11.5rem;
+  color: #e0e0e0;
+  text-align: center;
+}
+
+[data-panel="emergency-call"] #lockscreen-emergency-pad {
+  -moz-transform: translateY(0);
+}
+
 #lockscreen-panel-camera {
   position: absolute;
   top: 0;
@@ -775,6 +632,11 @@
 }
 
 #lockscreen-camera {
+  width: 100%;
+  height: 100%;
+}
+
+#lockscreen-camera > iframe {
   width: 100%;
   height: 100%;
   border: none;

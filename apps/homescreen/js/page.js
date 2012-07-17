@@ -36,8 +36,6 @@ Icon.prototype = {
      *   <span class="options"></span>
      * </li>
      */
-    this.dragabbleSection = page.parentNode;
-
     var container = this.container = document.createElement('li');
     container.className = 'icon';
     if (this.descriptor.isHidden) {
@@ -55,8 +53,7 @@ Icon.prototype = {
     icon.appendChild(img);
 
     img.onerror = function imgError() {
-      img.src =
-          'http://' + document.location.host + '/resources/images/Unknown.png';
+      img.src = '//' + window.location.host + '/resources/images/Unknown.png';
     }
 
     // Label
@@ -123,8 +120,17 @@ Icon.prototype = {
     style.top = rectangle.top + 'px';
     this.initXCenter = (rectangle.left + rectangle.right) / 2;
     this.initYCenter = (rectangle.top + rectangle.bottom) / 2;
+    this.initHeight = rectangle.bottom - rectangle.top;
 
-    this.dragabbleSection.appendChild(draggableElem);
+    document.body.appendChild(draggableElem);
+  },
+
+  addClassToDragElement: function icon_addStyleToDragElement(className) {
+    this.draggableElem.classList.add(className);
+  },
+
+  removeClassToDragElement: function icon_addStyleToDragElement(className) {
+    this.draggableElem.classList.remove(className);
   },
 
   /*
@@ -136,18 +142,21 @@ Icon.prototype = {
    */
   onDragMove: function icon_onDragMove(x, y) {
     this.draggableElem.style.MozTransform =
-        'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
+      'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
   },
 
   /*
    * This method is invoked when the drag gesture finishes
    */
   onDragStop: function icon_onDragStop(callback) {
-    var rect = this.container.getBoundingClientRect();
+    var container = this.container;
+
+    var rect = container.getBoundingClientRect();
     var x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
     x -= this.initXCenter;
 
-    var y = (rect.top + rect.bottom) / 2;
+    var y = (rect.top + rect.bottom) / 2 +
+            (this.initHeight - (rect.bottom - rect.top)) / 2;
     y -= this.initYCenter;
 
     var draggableElem = this.draggableElem;
@@ -156,11 +165,10 @@ Icon.prototype = {
     style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
     draggableElem.querySelector('div').style.MozTransform = 'scale(1)';
 
-    var self = this;
     draggableElem.addEventListener('transitionend', function draggableEnd(e) {
       draggableElem.removeEventListener('transitionend', draggableEnd);
-      delete self.container.dataset.dragging;
-      self.dragabbleSection.removeChild(this);
+      delete container.dataset.dragging;
+      document.body.removeChild(draggableElem);
       callback();
     });
   },
@@ -177,7 +185,7 @@ Icon.prototype = {
 /*
  * Page constructor
  */
-var Page = function() {
+var Page = function(index) {
   this.icons = {};
 };
 
@@ -212,64 +220,15 @@ Page.prototype = {
   },
 
   /*
-   * Sets the duration of the translations
-   *
-   * @param{Object} style object for a DOM element
-   *
-   * @param{int} the duration in milliseconds
-   */
-  setTranstionDuration: function pg_setTranstionDuration(style, duration) {
-    style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
-  },
-
-  /*
-   * Duration of the transition defined in seconds
-   */
-  transitionDuration: 0.2,
-
-  /*
-   * Moves the page to the end of the screen
-   */
-  moveToEnd: function pg_moveToEnd() {
-    var style = this.container.style;
-    style.MozTransform = GridManager.dirCtrl.translateNext;
-    this.setTranstionDuration(style, this.transitionDuration);
-  },
-
-  /*
-   * Moves the page to the beginning of the screen
-   */
-  moveToBegin: function pg_moveToBegin() {
-    var style = this.container.style;
-    style.MozTransform = GridManager.dirCtrl.translatePrev;
-    this.setTranstionDuration(style, this.transitionDuration);
-  },
-
-  /*
-   * Moves the page to the center of the screen
-   */
-  moveToCenter: function pg_moveToCenter(onTransitionEnd) {
-    var cont = this.container;
-    var style = cont.style;
-    style.MozTransform = 'translateX(0)';
-    this.setTranstionDuration(style, this.transitionDuration);
-    if (onTransitionEnd) {
-      cont.addEventListener('transitionend', function ft(e) {
-        onTransitionEnd();
-        cont.removeEventListener('transitionend', ft);
-      });
-    }
-  },
-
-  /*
    * Applies a translation to the page
    *
    * @param{String} the app origin
    */
-  moveTo: function pg_moveTo(translate) {
+  moveBy: function pg_moveBy(scrollX, duration) {
     var style = this.container.style;
-    style.MozTransform = 'translateX(-moz-calc(' + translate + '))';
-    this.setTranstionDuration(style, 0);
+    style.MozTransform = 'translateX(' + scrollX + 'px)';
+    style.MozTransition =
+      duration ? ('-moz-transform ' + duration + 's ease') : '';
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
@@ -325,14 +284,24 @@ Page.prototype = {
     this.setReady(false);
 
     var icons = this.icons;
-    var originNode = icons[origin].container;
-    var targetNode = icons[target].container;
+    var originIcon = icons[origin];
+    var targetIcon = icons[target];
 
-    var children = this.olist.children;
-    var indexOf = Array.prototype.indexOf;
-    var oIndex = indexOf.call(children, originNode);
-    var tIndex = indexOf.call(children, targetNode);
+    if (originIcon && targetIcon) {
+      var originNode = originIcon.container;
+      var targetNode = targetIcon.container;
+      var children = this.olist.children;
+      var indexOf = Array.prototype.indexOf;
+      var oIndex = indexOf.call(children, originNode);
+      var tIndex = indexOf.call(children, targetNode);
 
+      this.animate(oIndex, tIndex, children, originNode, targetNode);
+    } else {
+      this.setReady(true);
+    }
+  },
+
+  animate: function pg_anim(oIndex, tIndex, children, originNode, targetNode) {
     if (oIndex < tIndex) {
       for (var i = oIndex + 1; i <= tIndex; i++) {
         var animation = 'jumpPrevCell';
@@ -358,7 +327,7 @@ Page.prototype = {
    * @param{Object} DOM element
    */
   tap: function pg_tap(elem) {
-    if (GridManager.isEditMode()) {
+    if (document.body.dataset.mode === 'edit') {
       if (elem.className === 'options') {
         Homescreen.showAppDialog(elem.dataset.origin);
       }
@@ -391,6 +360,16 @@ Page.prototype = {
     var icon = this.getLastIcon();
     this.remove(icon);
     return icon;
+  },
+
+  insertBefore: function pg_insertBefore(originIcon, targetIcon) {
+    this.setReady(false);
+    var olist = this.olist;
+    if (this.icons[targetIcon.getOrigin()]) {
+      olist.insertBefore(icon.container, olist.lastChild);
+      this.icons[icon.getOrigin()] = icon;
+    }
+    this.setReady(true);
   },
 
   insertBeforeLastIcon: function pg_insertBeforeLastIcon(icon) {
@@ -497,3 +476,16 @@ var Dock = function createDock() {
 };
 
 extend(Dock, Page);
+
+Dock.prototype.animate = function dk_anim(oIndex, tIndex, children,
+                                          originNode, targetNode) {
+  if (oIndex < tIndex) {
+    for (var i = oIndex + 1; i <= tIndex; i++) {
+      this.jumpNode(children[i], 'jumpPrevCell', originNode, targetNode, false);
+    }
+  } else {
+    for (var i = oIndex - 1; i >= tIndex; i--) {
+      this.jumpNode(children[i], 'jumpNextCell', originNode, targetNode, true);
+    }
+  }
+};

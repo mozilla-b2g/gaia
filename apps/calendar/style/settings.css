@@ -1,15 +1,15 @@
-body.configure[role="app"] #wrapper {
+body[data-path^="/settings/"][role="app"] #wrapper {
   position: relative;
   -moz-transform: translateX(75%);
   box-shadow: 1px 1px 5px 5px #222;
   z-index: 2;
 
-  -moz-transition: -moz-transform 0.5s ease-in-out;
+  -moz-transition: -moz-transform 0.1s ease-in-out;
 }
 
 body[role="app"] #wrapper {
   -moz-transform: translateX(0%);
-  -moz-transition: -moz-transform 0.5s ease-in-out;
+  -moz-transition: -moz-transform 0.1s ease-in-out;
 }
 
 #settings.active {
@@ -23,6 +23,14 @@ body[role="app"] #wrapper {
   background-color: #303540;
   color: white;
   font-size: 1.35rem;
+}
+
+#settings > section {
+  display: none;
+}
+
+#settings > section.active {
+  display: block;
 }
 
 #settings header {
@@ -40,7 +48,7 @@ body[role="app"] #wrapper {
   border-bottom: 1px solid #454B53;
 }
 
-#more-settings {
+#settings a.settings {
   position: absolute;
   bottom: 1rem;
   left: 1rem;

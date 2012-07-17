@@ -28,11 +28,10 @@ suite('views/settings', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
+      '<div id="wrapper"></div>',
       '<div id="settings">',
-        '<button class="toggle-settings"></button>',
-        '<button id="toggle-settings"></button>',
-        '<ul id="calendar-list"></ul>',
-        '<a id="more-settings" href="#foo"></a>',
+        '<div id="settings-calendars"></div>',
+        '<div id="settings-accounts"></div>',
       '</div>'
     ].join('');
 
@@ -53,48 +52,51 @@ suite('views/settings', function() {
     );
   });
 
+  test('#outside', function() {
+    assert.ok(subject.outside);
+  });
+
   test('#element', function() {
     assert.equal(subject.element.id, 'settings');
   });
 
-  test('#settingsElements', function() {
-    assert.ok(subject.settingsElements);
+  test('#calendars', function() {
+    assert.ok(subject.calendars);
   });
 
-  suite('_initEvents', function() {
+  test('#accounts', function() {
+    assert.ok(subject.accounts);
+  });
 
-    test('default mode', function() {
-      assert.ok(!subject.element.classList.contains(
-        subject.activeClass
-      ));
+  suite('show functions', function() {
+    var cals;
+    var accounts;
+    var active;
+
+    setup(function() {
+      cals = subject.calendars;
+      accounts = subject.accounts;
+      active = subject.activeClass;
     });
 
-    test('when entering settings', function() {
-      controller.setInSettings(true);
+    test('#showCalendars', function() {
+      cals.classList.remove(active);
+      accounts.classList.add(active);
 
-      assert.ok(subject.element.classList.contains(
-        subject.activeClass
-      ));
+      subject.showCalendars();
+
+      assert.isTrue(cals.classList.contains(active));
+      assert.isFalse(accounts.classList.contains(active));
     });
 
-    test('clicking show settings', function() {
-      controller.setInSettings(false);
-      triggerEvent(subject.settingsElements[0], 'click');
+    test('#showAccounts', function() {
+      accounts.classList.remove(active);
+      cals.classList.add(active);
 
-      assert.isTrue(controller.inSettings);
-      assert.isTrue(document.body.classList.contains(
-        subject.bodyClass
-      ));
-    });
+      subject.showAccounts();
 
-    test('clicking hide settings', function() {
-      controller.setInSettings(true);
-      triggerEvent(subject.settingsElements[1], 'click');
-
-      assert.isFalse(controller.inSettings);
-      assert.isFalse(document.body.classList.contains(
-        subject.bodyClass
-      ));
+      assert.isTrue(accounts.classList.contains(active));
+      assert.isFalse(cals.classList.contains(active));
     });
 
   });

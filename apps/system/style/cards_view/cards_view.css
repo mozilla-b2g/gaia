@@ -35,7 +35,15 @@
   margin: 0;
   margin-left: -25%;
   position: relative;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
   -moz-transform: scale(0.6);
+}
+
+#cardsView .card[data-edit = 'true'] {
+  opacity: 0.8;
+  position:relative;
+  z-index: 99999;
 }
 
 #cardsView .card:first-child {

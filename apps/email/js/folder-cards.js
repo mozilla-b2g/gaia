@@ -77,17 +77,19 @@ AccountPickerCard.prototype = {
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'account-picker',
-  modes: {
-    default: {
-    },
-  },
-  constructor: AccountPickerCard
-});
+Cards.defineCardWithDefaultMode('account-picker', {}, AccountPickerCard);
 
+const FOLDER_DEPTH_CLASSES = [
+    'fld-folder-depth0',
+    'fld-folder-depth1',
+    'fld-folder-depth2',
+    'fld-folder-depth3',
+    'fld-folder-depth4',
+    'fld-folder-depth5',
+    'fld-folder-depthmax'
+  ];
 
 function FolderPickerCard(domNode, mode, args) {
   this.domNode = domNode;
@@ -170,6 +172,9 @@ FolderPickerCard.prototype = {
       if (!folder.selectable)
         folderNode.classList.add('fld-folder-unselectable');
 
+      var depthIdx = Math.min(FOLDER_DEPTH_CLASSES.length - 1, folder.depth);
+      folderNode.classList.add(FOLDER_DEPTH_CLASSES[depthIdx]);
+
       folderNode.getElementsByClassName('fld-folder-name')[0]
         .textContent = folder.name;
     }
@@ -240,18 +245,19 @@ FolderPickerCard.prototype = {
    * graphical glitches.
    */
   die: function() {
-  },
+  }
 };
 Cards.defineCard({
   name: 'folder-picker',
   modes: {
     // Navigation mode acts like a tray
     navigation: {
-      tray: true,
+      tray: true
     },
     movetarget: {
-      tray: false,
-    },
+      tray: false
+    }
   },
   constructor: FolderPickerCard
 });
+

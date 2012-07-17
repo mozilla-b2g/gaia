@@ -1,19 +1,20 @@
 <!DOCTYPE HTML>
-<html class="ltr" manifest="manifest.appcache">
+<html class="ltr">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <link rel="stylesheet" type="text/css" href="./style/calendar.css">
-  <link rel="stylesheet" type="text/css" href="./style/ui.css">
-  <link rel="stylesheet" type="text/css" href="./style/events.css">
-  <link rel="stylesheet" type="text/css" href="./style/forms.css">
-  <link rel="stylesheet" type="text/css" href="./style/settings.css">
-  <link rel="stylesheet" type="text/css" href="./style/toolbars.css">
+  <link rel="stylesheet" type="text/css" href="/style/calendar.css">
+  <link rel="stylesheet" type="text/css" href="/style/ui.css">
+  <link rel="stylesheet" type="text/css" href="/style/events.css">
+  <link rel="stylesheet" type="text/css" href="/style/forms.css">
+  <link rel="stylesheet" type="text/css" href="/style/settings.css">
+  <link rel="stylesheet" type="text/css" href="/style/toolbars.css">
 
   <!--- vendor -->
   <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- utils -->
+  <script defer src="/js/presets.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/calc.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/format.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/batch.js" type="text/javascript" charset="utf-8"></script>
@@ -26,6 +27,7 @@
   <!--- templates -->
   <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/account.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- models -->
   <script defer src="/js/models/busytime.js" type="text/javascript" charset="utf-8"></script>
@@ -36,6 +38,8 @@
   <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/settings.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/create_account.js" type="text/javascript" charset="utf-8"></script>
+
 
   <!-- workers / main / controller -->
   <script defer src="/js/controller.js" type="text/javascript" charset="utf-8"></script>
@@ -43,27 +47,37 @@
 
   <title>Gaia Calendar</title>
 </head>
+
 <body role="app" onload="Calendar.init();">
 
 <section id="settings">
-  <header role="toolbar">
-    <h1>Calendars</h1>
-  </header>
 
-  <ol class="calendars">
-    <li class="calendar-1">Work (1)</li>
-    <li class="calendar-2">Friends</li>
-  </ol>
+  <section id="settings-accounts">
+    <header role="toolbar">
+      <h1>Accounts</h1>
+    </header>
 
-  <section id="advanced-setting-selection">
-    <ol>
-      <li><a href="#">Add Account</a></li>
-    </ol>
+    <a href="/settings/" class="settings">
+      Calendar Settings
+    </a>
   </section>
 
-  <a class="toggle" href="#advanced-setting-selection" id="more-settings">
-    More Settings
-  </a>
+  <section id="settings-calendars">
+    <header role="toolbar">
+      <h1>Calendars</h1>
+    </header>
+
+
+    <ol class="calendars">
+      <li class="calendar-1">Work (1)</li>
+      <li class="calendar-2">Friends</li>
+    </ol>
+
+    <a href="/settings/accounts/" class="settings">
+      Account Settings
+    </a>
+  </section>
+
 </section>
 
 
@@ -73,7 +87,7 @@
   <header role="toolbar">
     <a data-l10n-id="buttons.settings"
        id="show-settings"
-       role="button" class="toggle-settings" href="#clear">
+       role="button" href="/settings/">
       Settings
     </a>
 
@@ -112,6 +126,32 @@
 
   </section>
 
+  <section id="create-account-view">
+    <header role="toolbar">
+      <a data-l10n-id="buttons.cancel"
+         role="button"
+         class="cancel"
+         href="javascript: window.history.go(-1);">
+
+        Cancel
+      </a>
+
+      <h1>
+        Add Account
+      </h1>
+    </header>
+
+    <p>
+      Please select the type of
+      account you would like to add.
+    </p>
+
+
+    <ol id="create-account-presets">
+    <ol>
+
+  </section>
+
   <!---
   When a day is selected you have
   access to the details here
@@ -137,7 +177,7 @@
       <a data-l10n-id="buttons.cancel"
          role="button"
          class="cancel"
-         href="javascript: window.history.back();">
+         href="javascript: window.history.go(-1);">
 
         Cancel
       </a>
@@ -214,8 +254,8 @@
 
 <section id="bottom-toolbar">
   <menu id="view-selector">
-    <li class="toggle-settings">
-      <a href="#clear">Hide</a>
+    <li class="toggle toggle-settings">
+      <a>Hide</a>
     </li>
     <li class="today">
       <a href="#today">Today</a>
@@ -223,13 +263,13 @@
     <li class="time-selection">
       <menu>
         <li class="month">
-          <a href="/month">Month</a>
+          <a href="/month/">Month</a>
         </li>
         <li class="week">
-          <a href="/week">Week</a>
+          <a href="/week/">Week</a>
         </li>
         <li class="day">
-          <a href="/day">Day</a>
+          <a href="/day/">Day</a>
         </li>
       </menu>
     </li>

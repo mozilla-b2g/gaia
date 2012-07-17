@@ -45,7 +45,7 @@ if (!navigator.mozSms) {
     messagesHack = messages;
   })();
 
-  var GetMessagesHack = function gmhack(callback, filter, invert) {
+  var GetMessagesHack = function gmhack(callback, filter, invert, cllbckArgs) {
     function applyFilter(msgs) {
       if (!filter)
         return msgs;
@@ -64,11 +64,11 @@ if (!navigator.mozSms) {
     var msg = messagesHack.slice();
     if (invert)
       msg.reverse();
-    callback(applyFilter(msg));
+    callback(applyFilter(msg), cllbckArgs);
   };
 
-  MessageManager.getMessages = function(callback, filter, invert) {
-    GetMessagesHack(callback, filter, invert);
+  MessageManager.getMessages = function(callback, filter, invert, cllbckArgs) {
+    GetMessagesHack(callback, filter, invert, cllbckArgs);
     return;
   };
 
@@ -117,10 +117,7 @@ if (!navigator.mozSms) {
         type: 'received',
         message: message
       };
-
-      ThreadUI.handleEvent.call(ThreadUI, evt);
-      ThreadListUI.handleEvent.call(ThreadListUI, evt);
-
+      MessageManager.handleEvent.call(MessageManager, evt);
       // the SMS DB is written after the callback
       window.setTimeout(function writeDB() {
         messagesHack.unshift(message);

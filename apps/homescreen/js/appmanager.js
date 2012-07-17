@@ -169,7 +169,8 @@ var Applications = (function() {
   };
 
   // Core applications should be flagged at some point. Not sure how?
-  var host = document.location.host;
+  var protocol = window.location.protocol;
+  var host = window.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
 
   var coreApplications = [
@@ -179,10 +180,10 @@ var Applications = (function() {
   ];
 
   coreApplications = coreApplications.map(function mapCoreApp(name) {
-    return 'http://' + name + '.' + domain;
+    return protocol + '//' + name + '.' + domain;
   });
 
-  coreApplications.push('https://marketplace-dev.allizom.org');
+  coreApplications.push('https://marketplace.mozilla.org');
 
   /*
    *  Returns true if it's a core application
