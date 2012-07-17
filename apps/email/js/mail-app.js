@@ -105,3 +105,34 @@ function hookStartup() {
 }
 hookStartup();
 
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  var to = activity.source.data.to,
+  subject = activity.source.data.subject,
+  body  = activity.source.data.body;;
+  var sendMail = function actHandleMail() {
+    if (to && subject) {
+  
+      var folderToUse =  Cards._cardStack[Cards._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
+      var composer = MailAPI.beginMessageComposition(
+        null, folderToUse, null,
+        function() {
+          composer.to = to;
+          composer.subject = subject;
+          composer.body =  body;
+          Cards.pushCard('compose', 'default', 'immediate', {composer: composer });
+        });
+    }
+  }
+
+  if (document.readyState == 'complete') {
+    sendMail();
+  } else {
+    window.addEventListener('localized', function loadWait() {
+      window.removeEventListener('localized', loadWait);
+      sendMail();
+    });
+  }
+
+  activity.postResult({ status: 'accepted' });
+});
+

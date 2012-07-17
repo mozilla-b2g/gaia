@@ -63,5 +63,15 @@
   "icons": {
     "60": "/style/icons/60/Email.png",
     "79": "/style/icons/Email.png"
+  },
+  "activities": {
+    "MAILTO": {
+      "filters": {
+        "type": "to",
+        "type": "subject",
+        "type": "body",
+      },
+      "disposition": "window"
+    }
   }
 }
