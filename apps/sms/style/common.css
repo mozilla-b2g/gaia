@@ -12,9 +12,8 @@
   position: relative;
   left: 0;
   top:0;
-  /* REMOVED only until check timing with UX Team */
-  /*transition:left .15s ease-in;
-  -moz-transition: left .15s ease-in;*/
+  transition:left .15s ease-in;
+  -moz-transition: left .15s ease-in;
 }
 
 .header-group {
