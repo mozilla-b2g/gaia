@@ -89,7 +89,12 @@
       var data = this._objectData(object);
       var id;
 
-      var putReq = store.put(data);
+      var putReq;
+      if (object._id) {
+        putReq = store.put(data, object._id);
+      } else {
+        putReq = store.put(data);
+      }
 
       trans.onerror = function() {
         callback(err);
