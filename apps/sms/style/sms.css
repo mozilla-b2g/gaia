@@ -296,10 +296,33 @@ a.unread .unread-mark .icon-unread-mark {
   visibility : visible;
 }
 
+#thread-list-container h2 {
+  text-align: left;
+  border-bottom: solid 1px #ff4e00;
+  padding-left: 3rem;
+  padding-top: 1rem;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #ff4e00;
+  text-transform: uppercase;
+  font-family: 'Open Sans';
+}
+
+
 /*
   Messages Style as 'bubbles'
   //TODO Include new styles and icons
 */
+
+#messages-container h2 {
+  text-align: left;
+  padding-left: 3rem;
+  padding-top: 1rem;
+  padding-bottom: .5rem;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #C6C6C6;
+  text-transform: uppercase;
+  font-family: 'Open Sans';
+}
 
 #messages-container {
   bottom: 5.5rem;
@@ -504,13 +527,4 @@ a.unread .unread-mark .icon-unread-mark {
   float: right;
 }
 
-.groupHeader {
-  text-align: left;
-  border-bottom: solid 1px #ff4e00;
-  padding-left: 3rem;
-  padding-top: 1rem;
-  font-size: -moz-calc(6 * 0.226rem);
-  color: #ff4e00;
-  text-transform: uppercase;
-  font-family: 'Open Sans';
-}
+
