@@ -79,11 +79,11 @@ var CardsView = (function() {
     // Apps info from WindowManager
     displayedApp = WindowManager.getDisplayedApp();
     currentDisplayed = 0;
+    runningApps = WindowManager.getRunningApps();
 
     // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
     if (!USER_DEFINED_ORDERING) {
-      runningApps = WindowManager.getRunningApps();
       var sortable = [];
       for (var origin in runningApps)
         sortable.push({origin: origin, app: runningApps[origin]});
@@ -100,11 +100,33 @@ var CardsView = (function() {
       sortable.forEach(function(element) {
         runningApps[element.origin] = element.app;
       });
-    } else {
-      //if (runningApps.length === 0) {
-        runningApps = WindowManager.getRunningApps();
-      //}
+
+      // First add an item to the cardsList for each running app
+      for (var origin in runningApps)
+        addCard(origin, runningApps[origin]);
+
+    } else { // user ordering
+
+      // first run
+      if (userSortedApps.length === 0) {
+        for (var origin in runningApps) {
+          userSortedApps.push(origin);
+        }
+      } else {
+        for (var origin in runningApps) {
+          // if we have some new app opened
+          if (userSortedApps.indexOf(origin) === -1) {
+            userSortedApps.push(origin);
+          }
+        }
+      }
+
+      userSortedApps.forEach(function(origin) {
+        addCard(origin, runningApps[origin]);
+      });
+
       cardsView.addEventListener('contextmenu', this);
+
     }
 
     if (SNAPPING_SCROLLING) {
@@ -115,9 +137,6 @@ var CardsView = (function() {
       cardsView.addEventListener('mousedown', this);
     }
 
-    // First add an item to the cardsList for each running app
-    for (var origin in runningApps)
-      addCard(origin, runningApps[origin]);
 
     // Then make the cardsView overlay active
     cardsView.classList.add('active');
@@ -322,9 +341,22 @@ var CardsView = (function() {
       MANUAL_CLOSING &&
       reorderedCard === null
     ) {
+
       var differenceY = initialTouchPosition.y - touchPosition.y;
       draggingCardUp = false;
       if (differenceY > removeCardThreshold) {
+
+        // remove the app also from the ordering list
+        if (
+          userSortedApps.indexOf(element.dataset['origin']) !== -1 &&
+          USER_DEFINED_ORDERING
+        ) {
+          userSortedApps.splice(
+            userSortedApps.indexOf(element.dataset['origin']),
+            1
+          );
+        }
+
         // Without removing the listener before closing card
         // sometimes the 'click' event fires, even if 'mouseup'
         // uses stopPropagation()
@@ -372,6 +404,14 @@ var CardsView = (function() {
       reorderedCard = null;
 
       alignCard(currentDisplayed);
+
+      // remove the app origin from ordering array
+      userSortedApps.splice(
+        userSortedApps.indexOf(element.dataset['origin']),
+        1
+      );
+      // and put in on the new position
+      userSortedApps.splice(currentDisplayed, 0, element.dataset['origin']);
     }
   }
 
