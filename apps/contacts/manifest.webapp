@@ -6,7 +6,6 @@
     "url": "http://openwebdevice.com"
   },
   "permissions": [
-    "telephony",
     "contacts"
   ],
   "locales": {

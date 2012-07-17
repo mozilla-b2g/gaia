@@ -53,8 +53,7 @@ Icon.prototype = {
     icon.appendChild(img);
 
     img.onerror = function imgError() {
-      img.src =
-          'http://' + document.location.host + '/resources/images/Unknown.png';
+      img.src = '//' + window.location.host + '/resources/images/Unknown.png';
     }
 
     // Label

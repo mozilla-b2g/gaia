@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
     <meta charset="utf-8"/>
     <meta http-equiv="pragma" content="no-cache"/>
@@ -7,21 +7,24 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
-    <link rel="resource" type="application/l10n" href="locale/l10n.ini"/>
+    <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <!-- Compatibility -->
     <script type="text/javascript">
-      if (document.location.protocol === 'file:') {
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
+    })();
     </script>
     <script type="text/javascript" src="js/settings.js"></script>
     <script type="text/javascript" src="js/data.js"></script>
