@@ -147,7 +147,7 @@ var Browser = {
           return;
         }
         tab.loading = true;
-        if (isCurrentTab) {
+        if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.add('loading');
           this.setUrlButtonMode(this.STOP);
         }
@@ -160,11 +160,9 @@ var Browser = {
           return;
         }
         tab.loading = false;
-        if (isCurrentTab) {
+        if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.remove('loading');
-          if (this.currentScreen !== this.AWESOME_SCREEN) {
-            this.urlInput.value = tab.title || tab.url;
-          }
+          this.urlInput.value = tab.title || tab.url;
           this.setUrlButtonMode(this.REFRESH);
         }
 
@@ -199,7 +197,7 @@ var Browser = {
         tab.url = evt.detail;
         this.updateHistory(evt.detail);
         if (isCurrentTab) {
-          if (this.currentScreen !== this.AWESOME_SCREEN) {
+          if (this.currentScreen === this.PAGE_SCREEN) {
             this.urlInput.value = tab.url;
           }
         }
@@ -209,10 +207,9 @@ var Browser = {
         if (evt.detail) {
           tab.title = evt.detail;
           Places.setPageTitle(tab.url, tab.title);
-          if (isCurrentTab && !tab.loading) {
-            if (this.currentScreen !== this.AWESOME_SCREEN) {
-              this.urlInput.value = tab.title;
-            }
+          if (isCurrentTab && !tab.loading &&
+              this.currentScreen === this.PAGE_SCREEN) {
+            this.urlInput.value = tab.title;
           }
           // Refresh the tab screen if we are currently viewing it, for dynamic
           // or not yet loaded titles
@@ -737,11 +734,6 @@ var Browser = {
     this.urlInput.value = this.currentTab.title;
     this.tabCover.setAttribute('src', this.currentTab.screenshot);
 
-    if (this.currentTab.loading) {
-      this.throbber.classList.add('loading');
-    } else {
-      this.throbber.classList.remove('loading');
-    }
     this.updateSecurityIcon();
     this.refreshButtons();
   },
@@ -783,6 +775,16 @@ var Browser = {
     } else {
       this.setTabVisibility(this.currentTab, true);
     }
+
+    if (this.currentTab.loading) {
+      this.setUrlButtonMode(this.STOP);
+      this.throbber.classList.add('loading');
+    } else {
+      var urlButton = this.currentTab.url ? this.REFRESH : this.GO;
+      this.setUrlButtonMode(urlButton);
+      this.throbber.classList.remove('loading');
+    }
+
     this.switchScreen(this.PAGE_SCREEN);
     this.urlInput.value = this.currentTab.title || this.currentTab.url;
     this.updateTabsCount();
