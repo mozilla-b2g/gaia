@@ -10,11 +10,15 @@
 
   -moz-user-select: none;
 
-  -moz-transition: -moz-transform 0.5s ease 0.3s;
+  -moz-transition:
+    -moz-transform 0.5s ease 0.3s,
+    opacity 0.5s ease 0.3s;
+  opacity: 1;
 }
 
 #screen:not(.locked) > #lockscreen {
-  -moz-transform: translateY(-moz-calc(-100% - 20px));
+  -moz-transform: scale(2);
+  opacity: 0;
 }
 
 #lockscreen.uninit > * {

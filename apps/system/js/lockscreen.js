@@ -233,11 +233,12 @@ var LockScreen = {
         break;
 
       case 'transitionend':
-        if (evt.currentTarget !== evt.target)
+        if (evt.target !== this.overlay)
           return;
 
         if (!this.locked) {
           this.switchPanel();
+          this.overlay.hidden = true;
         }
         break;
 
@@ -440,6 +441,7 @@ var LockScreen = {
     if (instant) {
       this.overlay.classList.add('no-transition');
       this.switchPanel();
+      this.overlay.hidden = true;
     } else {
       this.overlay.classList.remove('no-transition');
     }
@@ -460,6 +462,7 @@ var LockScreen = {
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
+    this.overlay.hidden = false;
 
     this.switchPanel();
 
