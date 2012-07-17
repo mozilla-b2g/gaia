@@ -2,20 +2,14 @@
 'use strict';
 
 const GridManager = (function() {
-  var container, homeContainer;
+  var container;
 
-  var status = {
-    target: undefined, // target element
-    iCoords: {},       // inital position
-    pCoords: {},       // previous position
-    cCoords: {}       // current position
-  };
+  var windowWidth = window.innerWidth;
+  var thresholdForPanning = window.innerWidth / 4;
+  var thresholdForTapping = 10;
 
-  var pages = {
-    list: [],
-    current: 0,
-    total: 0
-  };
+  var pages = [];
+  pages.current = 0;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -23,244 +17,159 @@ const GridManager = (function() {
     right: 0
   };
 
-  // right-to-left compatibility
-  var dirCtrl = {};
-  function getDirCtrl() {
-    function goesLeft(x) { return (x > 0); }
-    function goesRight(x) { return (x < 0); }
-    function limitLeft(x) { return (x < limits.left); }
-    function limitRight(x) { return (x > limits.right); }
-    var rtl = (document.documentElement.dir == 'rtl');
-    return {
-      offsetPrev: rtl ? '100%' : '-100%',
-      offsetNext: rtl ? '-100%' : '100%',
-      limitPrev: rtl ? limitRight : limitLeft,
-      limitNext: rtl ? limitLeft : limitRight,
-      translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
-      translateNext: rtl ? 'translateX(-100%)' : 'translateX(100%)',
-      goesForward: rtl ? goesLeft : goesRight
-    };
-  }
+  var startEvent, currentEvent, isPanning = false;
 
+  function handleEvent(evt) {
+    switch (evt.type) {
+      case 'mousedown':
+        evt.stopPropagation();
+        document.body.dataset.transitioning = 'true';
 
-  /*
-   * Returns the coordinates x and y given an event. The returned object
-   * is composed of two attributes named x and y
-   *
-   * @param {Object} the event object
-   */
-  function getCoordinates(evt) {
-    if (evt.touches) {
-      return {
-        x: evt.touches[0].pageX,
-        y: evt.touches[0].pageY
-      };
-    } else {
-      return {
-        x: evt.pageX,
-        y: evt.pageY
-      };
+        startEvent = currentEvent = cloneEvent(evt);
+        onTouchStart(currentEvent.x - startEvent.x);
+        break;
+
+      case 'mousemove':
+        evt.stopPropagation();
+
+        // Starts dragging only when tapping does not make sense
+        // anymore. The drag will then start from this point to avoid
+        // a jump effect.
+        currentEvent = cloneEvent(evt);
+        var tap = Math.abs(currentEvent.x - startEvent.x) < thresholdForTapping;
+        if (!isPanning && tap) {
+          return;
+        } else if (!isPanning) {
+          isPanning = true;
+          startEvent = currentEvent;
+        }
+
+        onTouchMove(currentEvent.x - startEvent.x);
+        break;
+
+      case 'mouseup':
+        evt.stopPropagation();
+        if (!isPanning) {
+          delete document.body.dataset.transitioning;
+        }
+        isPanning = false;
+
+        currentEvent = cloneEvent(evt);
+        onTouchEnd(currentEvent.x - startEvent.x, evt.target);
+        break;
+
+      case 'resize':
+        limits.left = container.offsetWidth * 0.05;
+        limits.right = container.offsetWidth * 0.95;
+        break;
+
+      case 'contextmenu':
+        if (pages.current !== 0) {
+          evt.stopPropagation();
+          evt.preventDefault();
+
+          document.body.dataset.mode = 'edit';
+          if ('origin' in evt.target.dataset) {
+            DragDropManager.start(evt, startEvent);
+          }
+        }
+        break;
     }
   }
 
-  /*
-   * This method moves the pages following the gesture of the user
-   *
-   * @param {int} the difference between the last and initial position
-   */
-  function pan(movementX) {
-    var currentPage = pages.current;
-    var move = movementX + 'px';
-
-    pageHelper.getCurrent().moveTo(move);
-
-    if (currentPage > 0) {
-      pageHelper.getPrevious().moveTo(dirCtrl.offsetPrev + ' + ' + move);
-    }
-
-    if (currentPage < pages.total - 1) {
-      pageHelper.getNext().moveTo(dirCtrl.offsetNext + ' + ' + move);
-    }
-  }
-
-  /*
-   * This method is in charge of keeping the position of the
-   * current page when the swipe is not enough for paginating
-   */
-  function keepPosition(transEndCallbck) {
-    var ix = status.iCoords.x;
-    var cx = status.cCoords.x;
-    if (ix !== cx) {
-      var currentPage = pages.current;
-
-      if (currentPage > 0) {
-        pageHelper.getPrevious().moveToBegin();
-      }
-
-      if (currentPage < pages.total - 1) {
-        pageHelper.getNext().moveToEnd();
-      }
-
-      pageHelper.getCurrent().moveToCenter(transEndCallbck);
-    } else if (transEndCallbck) {
-      transEndCallbck();
-    }
-  }
-
-  /*
-   * Navigates to one page
-   */
-  function goTo(index, transEndCallbck) {
-    var currentPage = pages.current;
-
-    if (currentPage !== index) {
-      if (currentPage < index) {
-        pageHelper.getCurrent().moveToBegin();
-      } else {
-        pageHelper.getCurrent().moveToEnd();
-      }
-      pages.current = index;
-
-      pageHelper.getCurrent().moveToCenter(transEndCallbck);
-
-      updatePaginationBar();
-    } else {
-      transEndCallbck();
-    }
-  }
-
-  /*
-   * Navigates to next page
-   */
-  function goNext(transEndCallbck) {
-    var nextPage = pageHelper.getNext();
-    var curPage = pageHelper.getCurrent();
-    curPage.moveToBegin();
-    nextPage.moveToCenter(transEndCallbck);
-    pages.current++;
-    updatePaginationBar();
-  }
-
-  /*
-   * Navigates to previous page
-   */
-  function goPrev(transEndCallbck) {
-    var prevPage = pageHelper.getPrevious();
-    var curPage = pageHelper.getCurrent();
-    curPage.moveToEnd();
-    prevPage.moveToCenter(transEndCallbck);
-    pages.current--;
-    updatePaginationBar();
-  }
-
-  /*
-   * It handles touchstart events and swiping
-   *
-   * @param{Object} Event object
-   */
-  function onStartEvent(evt) {
-    document.body.dataset.transitioning = true;
-    evt.stopPropagation();
-    status.pCoords = status.cCoords = status.iCoords = getCoordinates(evt);
+  function onTouchStart(deltaX) {
     attachEvents();
   }
 
-  /*
-   * Handles touchmove events and swiping
-   *
-   * @param{Object} Event object
-   */
-  function onMoveEvent(evt) {
-    evt.stopPropagation();
-    status.pCoords = status.cCoords; // save previous coords
-    status.cCoords = getCoordinates(evt); // update coords
-    var difX = -(status.iCoords.x - status.cCoords.x);
-    if (isRequestToLandingPage(difX)) {
-      releaseEvents();
-      dispatchGestureByHome();
-      keepPosition();
+  function onTouchMove(deltaX) {
+    pan(deltaX);
+  }
+
+  function onTouchEnd(deltaX, target) {
+    releaseEvents();
+
+    var currentPage = pages.current;
+
+    if (Math.abs(deltaX) > thresholdForPanning) {
+      var forward = dirCtrl.goesForward(deltaX);
+      if (forward && currentPage < pageHelper.total() - 1) {
+        goToNextPage();
+      } else if (!forward && currentPage > 0) {
+        goToPreviousPage();
+      } else {
+        goToPage(currentPage);
+      }
+    } else if (Math.abs(deltaX) < thresholdForTapping) {
+      pageHelper.getCurrent().tap(target);
+
+      // Sometime poor devices fire touchmove events when users are only
+      // tapping
+      goToPage(currentPage);
     } else {
-      pan(difX);
+      goToPage(currentPage);
     }
-  }
-
-  /*
-   * Homescreen will dispatch the gesture
-   *
-   */
-  function dispatchGestureByHome() {
-    var ev = document.createEvent('Event');
-    ev.initEvent('mousedown', true, true);
-    ev.pageX = status.cCoords.x;
-    homeContainer.dispatchEvent(ev);
-  }
-
-  /*
-   * Returns true when we are in the first page swiping from left to
-   * right and not edit mode
-   *
-   * @param{int} horizontal movement from start and current position
-   */
-  function isRequestToLandingPage(difX) {
-    return pages.current === 0 && difX >= thresholdForTapping &&
-           document.body.dataset.mode === 'normal';
-  }
-
-  /*
-   * Clicks on icons fires touchmove events for poor devices
-   */
-  var thresholdForTapping = 10;
-
-  function onTransitionEnd() {
-    delete document.body.dataset.transitioning;
-  }
-
-  function releaseEvents() {
-    container.removeEventListener('contextmenu', GridManager);
-    window.removeEventListener('mousemove', GridManager);
-    window.removeEventListener('mouseup', GridManager);
   }
 
   function attachEvents() {
-    container.addEventListener('contextmenu', GridManager);
-    window.addEventListener('mousemove', GridManager);
-    window.addEventListener('mouseup', GridManager);
+    container.addEventListener('contextmenu', handleEvent);
+    window.addEventListener('mousemove', handleEvent);
+    window.addEventListener('mouseup', handleEvent);
   }
 
-  var threshold = window.innerWidth / 4;
+  function releaseEvents() {
+    container.removeEventListener('contextmenu', handleEvent);
+    window.removeEventListener('mousemove', handleEvent);
+    window.removeEventListener('mouseup', handleEvent);
+  }
+
+  function cloneEvent(evt) {
+    if ('touches' in evt) {
+      evt = evt.touches[0];
+    }
+    return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
+  }
 
   /*
-   * It handles touchend events and swiping
-   *
-   * @param{Object} Event object
+   * Page Navigation utils.
    */
-  function onEndEvent(evt) {
-    evt.stopPropagation();
-    releaseEvents();
-    var difX = status.cCoords.x - status.iCoords.x;
-    var absDifX = Math.abs(difX);
-    var forward = dirCtrl.goesForward(difX);
-    if (absDifX > threshold) {
-      var currentPage = pages.current;
-      if (forward && currentPage < pages.total - 1) {
-        // Swipe to next page
-        goNext(onTransitionEnd);
-      } else if (!forward && currentPage > 0) {
-        // Swipe to previous page
-        goPrev(onTransitionEnd);
-      } else {
-        // Bouncing effect for first or last page
-        keepPosition(onTransitionEnd);
-      }
-    } else if (absDifX < thresholdForTapping) {
-      pageHelper.getCurrent().tap(status.target);
-      // Sometime poor devices fire touchmove events when users are only
-      // tapping
-      keepPosition(onTransitionEnd);
+  function pan(deltaX, duration) {
+    pages.forEach(function(page, index) {
+      var scrollX = (-pages.current + index) * windowWidth + deltaX;
+      page.moveBy(scrollX, duration);
+    });
+  }
+
+  function goToPage(index, callback) {
+    var isSamePage = pages.current === index;
+    pages.current = index;
+    callback = callback || function() {};
+
+    if (isSamePage) {
+      delete document.body.dataset.transitioning;
+      callback();
     } else {
-      // Keep position when the movement is less than the threshold
-      keepPosition(onTransitionEnd);
+      var container = pageHelper.getCurrent().container;
+      container.addEventListener('transitionend', function tr_end(e) {
+        container.removeEventListener('transitionend', tr_end);
+        delete document.body.dataset.transitioning;
+        callback();
+      });
     }
+
+    pan(0, .2);
+    updatePaginationBar();
+  }
+
+  function goToNextPage(callback) {
+    goToPage(pages.current + 1, callback);
+  }
+
+  function goToPreviousPage(callback) {
+    goToPage(pages.current - 1, callback);
+  }
+
+  function updatePaginationBar() {
+    PaginationBar.update(pages.current, pageHelper.total());
   }
 
   /*
@@ -345,71 +254,60 @@ const GridManager = (function() {
   }
 
   /*
-   * Renders the homescreen
-   */
-  function render(finish) {
-    dirCtrl = getDirCtrl();
-    renderFromDB(finish);
-    localize();
-  }
-
-  /*
    * UI Localization
    *
-   * Currently we only translate the app names
    */
+  var dirCtrl = {};
+  function getDirCtrl() {
+    function goesLeft(x) { return (x > 0); }
+    function goesRight(x) { return (x < 0); }
+    function limitLeft(x) { return (x < limits.left); }
+    function limitRight(x) { return (x > limits.right); }
+    var rtl = (document.documentElement.dir == 'rtl');
+    return {
+      offsetPrev: rtl ? -1 : 1,
+      offsetNext: rtl ? 1 : -1,
+      limitPrev: rtl ? limitRight : limitLeft,
+      limitNext: rtl ? limitLeft : limitRight,
+      translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
+      translateNext: rtl ? 'translateX(-100%)' : 'translateX(100%)',
+      goesForward: rtl ? goesLeft : goesRight
+    };
+  }
+
   function localize() {
     // switch RTL-sensitive methods accordingly
     dirCtrl = getDirCtrl();
 
-    // translate each page
-    var total = pageHelper.total();
-    for (var i = 0; i < total; i++) {
-      pages.list[i].translate();
-    }
+    pages.forEach(function translate(page) {
+      page.translate();
+    });
   }
 
-  /*
-   * Checks empty pages and deletes them
-   */
-  function checkFirstPageWithGap() {
-    var index = 0;
-    var total = pages.total;
-
+  function getFirstPageWithEmptySpace() {
     var maxPerPage = pageHelper.getMaxPerPage();
-    while (index < total) {
-      var page = pages.list[index];
-      if (page.getNumApps() < maxPerPage) {
-        break;
+
+    var pagesCount = pageHelper.total();
+    for (var i = 1; i < pagesCount; i++) {
+      if (pages[i].getNumApps() < maxPerPage) {
+        return i;
       }
-      index++;
     }
 
-    return index;
+    return pagesCount;
   }
 
-  /*
-   * Checks empty pages and deletes them
-   */
-  function checkEmptyPages() {
-    var index = 0;
-    var total = pages.total;
+  function removeEmptyPages() {
+    pages.forEach(function checkIsEmpty(page, index) {
+      // ignore the search page
+      if (index === 0) {
+        return;
+      }
 
-    while (index < total) {
-      var page = pages.list[index];
       if (page.getNumApps() === 0) {
         pageHelper.remove(index);
-        break;
       }
-      index++;
-    }
-  }
-
-  var gridPageNumber = 1;
-
-  function updatePaginationBar() {
-    PaginationBar.update(pages.current + gridPageNumber,
-                         pageHelper.total() + gridPageNumber);
+    });
   }
 
   /*
@@ -418,24 +316,27 @@ const GridManager = (function() {
    * It propagates icons in order to avoiding overflow in
    * pages with a number of apps greater that the maximum
    */
-  function checkOverflowPages() {
-    var index = 0;
-    var total = pages.total;
+  function ensurePagesOverflow() {
     var max = pageHelper.getMaxPerPage();
 
-    while (index < total) {
-      var page = pages.list[index];
-      if (page.getNumApps() > max) {
-        var propagateIco = page.popIcon();
-        if (index === total - 1) {
-          pageHelper.push([propagateIco]); // new page
-        } else {
-          pages.list[index + 1].prependIcon(propagateIco); // next page
-        }
-        break;
+    pages.forEach(function checkIsOverflow(page, index) {
+      // ignore the search page
+      if (index === 0) {
+        return;
       }
-      index++;
-    }
+
+      // if the page is not full
+      if (page.getNumApps() < max) {
+        return;
+      }
+
+      var propagateIco = page.popIcon();
+      if (index === pageHelper.total() - 1) {
+        pageHelper.push([propagateIco]); // new page
+      } else {
+        pages[index + 1].prependIcon(propagateIco); // next page
+      }
+    });
   }
 
   var pageHelper = {
@@ -447,6 +348,7 @@ const GridManager = (function() {
     push: function(apps, appsFromMarket) {
       var index = this.total();
       var page = new Page(index);
+      pages.push(page);
 
       var pageElement = document.createElement('div');
       pageElement.className = 'page';
@@ -454,20 +356,7 @@ const GridManager = (function() {
 
       page.render(apps, pageElement);
 
-      if (!appsFromMarket) {
-        if (index === 0) {
-          page.moveToCenter();
-        } else {
-          page.moveToEnd();
-        }
-      }
-
-      pages.list.push(page);
-      pages.total = index + 1;
-
-      if (!appsFromMarket) {
-        updatePaginationBar();
-      }
+      updatePaginationBar();
     },
 
     /*
@@ -476,23 +365,10 @@ const GridManager = (function() {
      * @param {int} index of the page
      */
     remove: function gm_remove(index) {
-      if (pages.current === index) {
-        if (index === 0) {
-          // If current page is the first -> seconds page to the center
-          // Not fear because we cannot have only one page
-          pages.list[index + 1].moveToCenter();
-        } else {
-          // Move to center the previous page
-          pages.list[index - 1].moveToCenter();
-          pages.current--;
-        }
-      } else if (pages.current > index) {
-        pages.current--;
-      }
+      goToPage(index);
 
-      pages.list[index].destroy(); // Destroy page
-      pages.list.splice(index, 1); // Removes page from the list
-      pages.total--; // Reset total number of pages
+      pages[index].destroy(); // Destroy page
+      pages.splice(index, 1); // Removes page from the list
       updatePaginationBar();
     },
 
@@ -500,7 +376,7 @@ const GridManager = (function() {
      * Returns the total number of pages
      */
     total: function() {
-      return pages.list.length;
+      return pages.length;
     },
 
     /*
@@ -509,7 +385,7 @@ const GridManager = (function() {
     save: function(index) {
       HomeState.saveGrid({
         id: index,
-        apps: pages.list[index].getAppsList()
+        apps: pages[index].getAppsList()
       });
     },
 
@@ -517,7 +393,7 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.list);
+      HomeState.saveGrid(pages.slice(1));
     },
 
     /*
@@ -528,32 +404,20 @@ const GridManager = (function() {
       return 4 * 4;
     },
 
-    /*
-     * Returns the next page object
-     */
     getNext: function() {
-      return pages.list[pages.current + 1];
+      return pages[pages.current + 1];
     },
 
-    /*
-     * Returns the previous page object
-     */
     getPrevious: function() {
-      return pages.list[pages.current - 1];
+      return pages[pages.current - 1];
     },
 
-    /*
-     * Returns the current page object
-     */
     getCurrent: function() {
-      return pages.list[pages.current];
+      return pages[pages.current];
     },
 
-    /*
-     * Returns the last page object
-     */
     getLast: function() {
-      return pages.list[this.total() - 1];
+      return pages[this.total() - 1];
     },
 
     getCurrentPageNumber: function() {
@@ -561,7 +425,7 @@ const GridManager = (function() {
     },
 
     getTotalPagesNumber: function() {
-      return pages.total;
+      return pageHelper.total();
     }
   };
 
@@ -574,50 +438,20 @@ const GridManager = (function() {
      */
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
-      container.innerHTML = '';
+      for (var i = 0; i < container.children.length; i++) {
+        var page = new Page(i);
+        page.render([], container.children[i]);
+        pages.push(page);
+      }
 
-      homeContainer = container.parentNode.parentNode;
+      container.addEventListener('mousedown', handleEvent, true);
+      container.addEventListener('resize', handleEvent, true);
 
       limits.left = container.offsetWidth * 0.05;
       limits.right = container.offsetWidth * 0.95;
 
-      container.addEventListener('mousedown', this, true);
-      container.addEventListener('resize', this, true);
-
-      render(finish);
-    },
-
-    /*
-     * Event handling in the grid layout
-     *
-     * @param {Object} The event object from browser
-     */
-    handleEvent: function gm_handleEvent(evt) {
-      status.target = evt.target;
-      switch (evt.type) {
-        case 'mousedown':
-          onStartEvent(evt);
-          break;
-        case 'mousemove':
-          onMoveEvent(evt);
-          break;
-        case 'mouseup':
-          onEndEvent(evt);
-          break;
-        case 'resize':
-          limits.left = container.offsetWidth * 0.05;
-          limits.right = container.offsetWidth * 0.95;
-          break;
-        case 'contextmenu':
-          evt.preventDefault();
-          evt.stopPropagation();
-          keepPosition(); // Sadly clicking on icons could fire touchmove events
-          document.body.dataset.mode = 'edit';
-          if ('origin' in evt.target.dataset) {
-            DragDropManager.start(evt, status.iCoords);
-          }
-          break;
-      }
+      dirCtrl = getDirCtrl();
+      renderFromDB(finish);
     },
 
     onDragStart: function gm_onDragSart() {
@@ -628,8 +462,8 @@ const GridManager = (function() {
     onDragStop: function gm_onDragStop() {
       delete document.body.dataset.dragging;
       delete document.body.dataset.transitioning;
-      checkOverflowPages();
-      checkEmptyPages();
+      ensurePagesOverflow();
+      removeEmptyPages();
     },
 
     /*
@@ -639,20 +473,20 @@ const GridManager = (function() {
      * {Object} moz app
      */
     install: function gm_install(app, animation) {
-      var index = checkFirstPageWithGap();
+      var index = getFirstPageWithEmptySpace();
       var origin = Applications.getOrigin(app);
       if (animation) {
         Applications.getManifest(origin).hidden = true;
       }
 
-      if (index < pages.total) {
-        pages.list[index].append(app);
+      if (index < pageHelper.total()) {
+        pages[index].append(app);
       } else {
         pageHelper.push([app], true);
       }
 
       if (animation) {
-        goTo(index, function() {
+        goToPage(index, function() {
           setTimeout(function() {
             pageHelper.getCurrent().
               applyInstallingEffect(Applications.getOrigin(app));
@@ -660,8 +494,7 @@ const GridManager = (function() {
         });
       }
 
-      // Saving the page
-      pageHelper.save(index);
+      pageHelper.saveAll();
     },
 
     /*
@@ -671,11 +504,11 @@ const GridManager = (function() {
      */
     uninstall: function gm_uninstall(app) {
       var index = 0;
-      var total = pages.total;
+      var total = pageHelper.total();
       var origin = Applications.getOrigin(app).toString();
 
       while (index < total) {
-        var page = pages.list[index];
+        var page = pages[index];
         if (page.getIcon(origin)) {
           page.remove(app);
           break;
@@ -683,42 +516,29 @@ const GridManager = (function() {
         index++;
       }
 
-      checkEmptyPages();
+      removeEmptyPages();
       pageHelper.saveAll();
     },
 
-    /*
-     * Save current state
-     *
-     * {String} the mode ('edit' or 'mode')
-     */
     saveState: function gm_saveState() {
       pageHelper.saveAll();
     },
 
-    /*
-     * Exports the dirCtrl utils
-     */
+    goToPage: goToPage,
+
+    goToPreviousPage: goToPreviousPage,
+
+    goToNextPage: goToNextPage,
+
+    localize: localize,
+
     get dirCtrl() {
       return dirCtrl;
     },
 
-    // Go directly to one page
-    goTo: goTo,
-
-    // Go to previous page
-    goPrev: goPrev,
-
-    // Go to next page
-    goNext: goNext,
-
-    localize: localize,
-
-    /*
-     * Exports the pageHelper utils
-     */
     get pageHelper() {
       return pageHelper;
     }
   };
 })();
+

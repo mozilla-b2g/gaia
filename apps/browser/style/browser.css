@@ -34,6 +34,10 @@ input[type="image"] {
   display: block;
 }
 
+.awesome-screen #throbber {
+  display: none;
+}
+
 .awesome-screen #tabs-badge {
   background-image: url('./images/close.png');
   background-position: center;

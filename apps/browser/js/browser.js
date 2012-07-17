@@ -124,8 +124,10 @@ var Browser = {
   handleTabsBadgeClicked: function browser_handleTabsBadgeClicked() {
     if (this.currentScreen === this.TABS_SCREEN) {
       var tabId = this.createTab();
-      this.selectTab(tabId);
-      this.showAwesomeScreen();
+      this.showNewTabAnimation((function browser_showNewTabAnimation() {
+        this.selectTab(tabId);
+        this.showAwesomeScreen();
+      }).bind(this));
       return;
     }
     if (this.currentScreen === this.AWESOME_SCREEN &&
@@ -152,7 +154,7 @@ var Browser = {
           return;
         }
         tab.loading = true;
-        if (isCurrentTab) {
+        if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.add('loading');
           this.setUrlButtonMode(this.STOP);
         }
@@ -165,7 +167,7 @@ var Browser = {
           return;
         }
         tab.loading = false;
-        if (isCurrentTab) {
+        if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.remove('loading');
           this.urlInput.value = tab.title || tab.url;
           this.setUrlButtonMode(this.REFRESH);
@@ -202,7 +204,9 @@ var Browser = {
         tab.url = evt.detail;
         this.updateHistory(evt.detail);
         if (isCurrentTab) {
-          this.urlInput.value = tab.url;
+          if (this.currentScreen === this.PAGE_SCREEN) {
+            this.urlInput.value = tab.url;
+          }
         }
         break;
 
@@ -210,7 +214,8 @@ var Browser = {
         if (evt.detail) {
           tab.title = evt.detail;
           Places.setPageTitle(tab.url, tab.title);
-          if (isCurrentTab && !tab.loading) {
+          if (isCurrentTab && !tab.loading &&
+              this.currentScreen === this.PAGE_SCREEN) {
             this.urlInput.value = tab.title;
           }
           // Refresh the tab screen if we are currently viewing it, for dynamic
@@ -747,6 +752,28 @@ var Browser = {
     }
   },
 
+  // Show a quick animation while creating a new tab to indicate
+  // that a new tab has been created
+  showNewTabAnimation: function browser_showNewTab(showTabCompleteFun) {
+    var ul = this.tabsList.childNodes[0];
+    var li = document.createElement('li');
+    li.innerHTML = '<a><img /><span>New Tab</span></a>';
+    li.style.height = '0px';
+    li.style.transition = 'height 0.2s ease-in';
+    ul.insertBefore(li, ul.childNodes[0]);
+
+    li.addEventListener('transitionend', function() {
+      // Pause so the user has time to see the new tab
+      setTimeout(showTabCompleteFun, 500);
+    });
+
+    // TODO: remove setTimeout
+    //   https://bugzilla.mozilla.org/show_bug.cgi?id=774642)
+    setTimeout(function() {
+      li.style.height = '';
+    }, 50);
+  },
+
   hideCurrentTab: function browser_hideCurrentTab() {
     var tab = this.currentTab;
     this.setTabVisibility(tab, false);
@@ -760,11 +787,6 @@ var Browser = {
     this.urlInput.value = this.currentTab.title;
     this.tabCover.setAttribute('src', this.currentTab.screenshot);
 
-    if (this.currentTab.loading) {
-      this.throbber.classList.add('loading');
-    } else {
-      this.throbber.classList.remove('loading');
-    }
     this.updateSecurityIcon();
     this.refreshButtons();
   },
@@ -806,6 +828,16 @@ var Browser = {
     } else {
       this.setTabVisibility(this.currentTab, true);
     }
+
+    if (this.currentTab.loading) {
+      this.setUrlButtonMode(this.STOP);
+      this.throbber.classList.add('loading');
+    } else {
+      var urlButton = this.currentTab.url ? this.REFRESH : this.GO;
+      this.setUrlButtonMode(urlButton);
+      this.throbber.classList.remove('loading');
+    }
+
     this.switchScreen(this.PAGE_SCREEN);
     this.urlInput.value = this.currentTab.title || this.currentTab.url;
     this.updateTabsCount();
