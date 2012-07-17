@@ -470,13 +470,15 @@ var ThreadUI = {
       message.delivery == 'sending');
     var className = (outgoing ? 'sender' : 'receiver') + '"';
     var timestamp = message.timestamp.getTime();
+    var bodyText = message.body.split('\n')[0];
+    var bodyHTML = Utils.escapeHTML(bodyText);
     // Create HTML structure
     var htmlStructure = '  <div class="message-container ' + className + '>' +
                '    <div class="message-bubble"></div>' +
                '    <div class="time" data-time="' + timestamp + '">' +
                       Utils.getHourMinute(message.timestamp) +
                '    </div>' +
-               '    <div class="text">' + message.body + '</div>' +
+               '    <div class="text">' + bodyHTML + '</div>' +
                '  </div>';
     messageDOM.innerHTML = htmlStructure;
     //Check if we need a new header
