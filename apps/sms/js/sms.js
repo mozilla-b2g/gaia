@@ -508,7 +508,6 @@ var ThreadUI = {
       var num = MessageManager.getNumFromHash();
     }
     // Retrieve text
-    //TODO Añadir scapeHTML
     var text = this.input.value;
     // If we have something to send
     if (num != '' && text != '') {
