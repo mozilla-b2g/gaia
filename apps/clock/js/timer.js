@@ -68,9 +68,9 @@ var Timer = {
 
   end: function ti_end() {
     //TODO: ring too
-    try {
-      navigator.mozVibrate([200, 200, 200, 200, 200]);
-    } catch (e) {}
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 200, 200, 200, 200]);
+    }
 
     this.cancel();
     this.chronoView.parentNode.classList.add('ended');

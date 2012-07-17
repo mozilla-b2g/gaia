@@ -61,7 +61,7 @@ body[role="app"] #wrapper {
   height: 30px;
 }
 
-:target#advanced-setting-selection {
+#advanced-setting-selection:target {
   position: absolute;
   bottom: 5.5rem;
   left: 1.5rem;
