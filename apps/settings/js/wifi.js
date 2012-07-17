@@ -533,9 +533,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
       }
 
       // OK|Cancel buttons
-      var buttons = dialog.querySelectorAll('footer button');
+      //var buttons = dialog.querySelectorAll('footer button');
 
-      var okButton = buttons[0];
+      //var okButton = buttons[0];
+      var okButton = dialog.querySelector('[type=submit]');
       okButton.onclick = function() {
         if (identity)
           network.identity = identity.value;
@@ -545,7 +546,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
         return callback ? callback() : false;
       };
 
-      var cancelButton = buttons[1];
+      //var cancelButton = buttons[1];
+      var cancelButton = dialog.querySelector('[type=reset]');
       cancelButton.onclick = function() {
         close();
         return;

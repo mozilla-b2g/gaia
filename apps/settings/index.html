@@ -186,6 +186,122 @@
       </ul>
     </section>
 
+    <!-- Connectivity :: Wi-Fi :: network status -->
+    <form role="dialog" action="#wifi" id="wifi-status">
+      <header>
+        <button type="reset" data-l10n-id="back">Back</button>
+        <h2 data-ssid> Network </h2>
+      </header>
+
+      <!-- network properties -->
+      <dl>
+        <dt data-l10n-id="security">security:</dt>
+        <dd data-security>WPA-PSK</dd>
+        <dt data-l10n-id="signalStrength">signal strength:</dt>
+        <dd data-signal>good</dd>
+        <dt hidden data-l10n-id="linkSpeed">link speed:</dt>
+        <dd hidden data-speed></dd>
+      </dl>
+
+      <footer>
+        <button type="submit" data-l10n-id="forget">Forget</button>
+      </footer>
+    </form>
+
+    <!-- Connectivity :: Wi-Fi :: WEP authentication -->
+    <form role="dialog" action="#wifi" id="wifi-wep">
+      <header>
+        <button type="reset" data-l10n-id="back">Back</button>
+        <h2 data-ssid> Authentication </h2>
+      </header>
+
+      <!-- network properties -->
+      <dl>
+        <dt data-l10n-id="security">security:</dt>
+        <dd data-security>WPA-WEP</dd>
+        <dt data-l10n-id="signalStrength">signal strength:</dt>
+        <dd data-signal>good</dd>
+      </dl>
+
+      <!-- password input -->
+      <label>
+        <span data-l10n-id="password">password</span>
+        <input data-wep data-ignore name="password" type="password" />
+      </label>
+      <label>
+        <input data-ignore name="show-pwd" type="checkbox" />
+        <span data-l10n-id="showPassword">show password</span>
+      </label>
+
+      <footer>
+        <button type="submit" data-l10n-id="ok">OK</button>
+      </footer>
+    </form>
+
+    <!-- Connectivity :: Wi-Fi :: PSK authentication -->
+    <form role="dialog" action="#wifi" id="wifi-psk">
+      <header>
+        <button type="reset" data-l10n-id="back">Back</button>
+        <h2 data-ssid> Authentication </h2>
+      </header>
+
+      <!-- network properties -->
+      <dl>
+        <dt data-l10n-id="security">security:</dt>
+        <dd data-security>WPA-PSK</dd>
+        <dt data-l10n-id="signalStrength">signal strength:</dt>
+        <dd data-signal>good</dd>
+      </dl>
+
+      <!-- password input -->
+      <label>
+        <span data-l10n-id="password">password</span>
+        <input data-psk data-ignore name="password" type="password" />
+      </label>
+      <label>
+        <input data-ignore name="show-pwd" type="checkbox" />
+        <span data-l10n-id="showPassword">show password</span>
+      </label>
+
+      <footer>
+        <button type="submit" data-l10n-id="ok">OK</button>
+      </footer>
+    </form>
+
+    <!-- Connectivity :: Wi-Fi :: EAP authentication -->
+    <form role="dialog" action="#wifi" id="wifi-eap">
+      <header>
+        <button type="reset" data-l10n-id="back">Back</button>
+        <h2 data-ssid> Authentication </h2>
+      </header>
+
+      <!-- network properties -->
+      <dl>
+        <dt data-l10n-id="security">security:</dt>
+        <dd data-security>WPA-EAP</dd>
+        <dt data-l10n-id="signalStrength">signal strength:</dt>
+        <dd data-signal>good</dd>
+      </dl>
+
+      <!-- password input -->
+      <label>
+        <span data-l10n-id="identity">identity</span>
+        <input data-identity data-ignore name="identity" type="text" />
+      </label>
+      <label>
+        <span data-l10n-id="password">password</span>
+        <input data-password data-ignore name="password" type="password" />
+      </label>
+      <label>
+        <input data-ignore name="show-pwd" type="checkbox" />
+        <span data-l10n-id="showPassword">show password</span>
+      </label>
+
+      <footer>
+        <button type="submit" data-l10n-id="ok">OK</button>
+      </footer>
+    </form>
+
     <!-- Connectivity :: 3G/data -->
     <section role="region" id="data">
       <header>
@@ -816,104 +932,9 @@
     <div id="dialogs">
       <div>
 
-        <!-- network status -->
-        <div role="dialog" id="wifi-status">
-          <header data-ssid>Network</header>
-          <dl>
-            <dt data-l10n-id="security">security:</dt>
-            <dd data-security>WPA-PSK</dd>
-            <dt data-l10n-id="signalStrength">signal strength:</dt>
-            <dd data-signal>good</dd>
-            <dt hidden data-l10n-id="linkSpeed">link speed:</dt>
-            <dd hidden data-speed></dd>
-          </dl>
-          <footer>
-            <button data-l10n-id="forget">Forget</button>
-            <button data-l10n-id="cancel">Cancel</button>
-          </footer>
-        </div>
-
-        <!-- WEP authentication -->
-        <div role="dialog" id="wifi-wep">
-          <header data-ssid>Authentication</header>
-          <dl>
-            <dt data-l10n-id="security">security:</dt>
-            <dd data-security>WPA-WEP</dd>
-            <dt data-l10n-id="signalStrength">signal strength:</dt>
-            <dd data-signal>good</dd>
-          </dl>
-          <form action="#">
-            <label>
-              <span data-l10n-id="password">password</span>
-              <input data-wep data-ignore name="password" type="password" />
-            </label>
-            <label>
-              <input data-ignore name="show-pwd" type="checkbox" />
-              <span data-l10n-id="showPassword">show password</span>
-            </label>
-          </form>
-          <footer>
-            <button data-l10n-id="ok">OK</button>
-            <button data-l10n-id="cancel">Cancel</button>
-          </footer>
-        </div>
-
-        <!-- PSK authentication -->
-        <div role="dialog" id="wifi-psk">
-          <header data-ssid>Authentication</header>
-          <dl>
-            <dt data-l10n-id="security">security:</dt>
-            <dd data-security>WPA-PSK</dd>
-            <dt data-l10n-id="signalStrength">signal strength:</dt>
-            <dd data-signal>good</dd>
-          </dl>
-          <form action="#">
-            <label>
-              <span data-l10n-id="password">password</span>
-              <input data-psk data-ignore name="password" type="password" />
-            </label>
-            <label>
-              <input data-ignore name="show-pwd" type="checkbox" />
-              <span data-l10n-id="showPassword">show password</span>
-            </label>
-          </form>
-          <footer>
-            <button data-l10n-id="ok">OK</button>
-            <button data-l10n-id="cancel">Cancel</button>
-          </footer>
-        </div>
-
-        <!-- EAP authentication -->
-        <div role="dialog" id="wifi-eap">
-          <header data-ssid>Authentication</header>
-          <dl>
-            <dt data-l10n-id="security">security:</dt>
-            <dd data-security>WPA-EAP</dd>
-            <dt data-l10n-id="signalStrength">signal strength:</dt>
-            <dd data-signal>good</dd>
-          </dl>
-          <form action="#">
-            <label>
-              <span data-l10n-id="identity">identity</span>
-              <input data-identity data-ignore name="identity" type="text" />
-            </label>
-            <label>
-              <span data-l10n-id="password">password</span>
-              <input data-password data-ignore name="password" type="password" />
-            </label>
-            <label>
-              <input data-ignore name="show-pwd" type="checkbox" />
-              <span data-l10n-id="showPassword">show password</span>
-            </label>
-          </form>
-          <footer>
-            <button data-l10n-id="ok">OK</button>
-            <button data-l10n-id="cancel">Cancel</button>
-          </footer>
-        </div>
-
       </div>
     </div>
 
   </body>
 </html>
+
