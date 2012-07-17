@@ -5,20 +5,6 @@ html, body {
   background-color: black;
 }
 
-@font-face {
-  font-family: "Open Sans";
-  src: url("fonts/Open-Sans.woff");
-}
-@font-face {
-  font-family: "Open Sans";
-  font-weight: bold;
-  src: url("fonts/Open-Sans-Bold.woff");
-}
-@font-face {
-  font-family: "Open Sans";
-  font-weight: 600;
-  src: url("fonts/Open-Sans-Semibold.woff");
-}
 
 #novideos {
   margin: 0;

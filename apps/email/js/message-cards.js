@@ -362,12 +362,12 @@ MessageListCard.prototype = {
     // collapsing does not make :last-child work right).
     contents.removeChild(
       contents.getElementsByClassName(
-        header.isStarred ? 'msg-edit-menu-star'
-                         : 'msg-edit-menu-unstar')[0]);
+        header.isStarred ? 'msg-edit-menu-star' :
+                           'msg-edit-menu-unstar')[0]);
     contents.removeChild(
       contents.getElementsByClassName(
-        header.isRead ? 'msg-edit-menu-mark-read'
-                      : 'msg-edit-menu-mark-unread')[0]);
+        header.isRead ? 'msg-edit-menu-mark-read' :
+                        'msg-edit-menu-mark-unread')[0]);
 
     return contents;
   },
@@ -386,17 +386,37 @@ MessageListCard.prototype = {
       this.messagesSlice.die();
       this.messagesSlice = null;
     }
-  },
+  }
 };
-Cards.defineCard({
-  name: 'message-list',
-  modes: {
-    default: {
-      tray: false,
-    },
-  },
-  constructor: MessageListCard,
-});
+Cards.defineCardWithDefaultMode(
+    'message-list',
+    { tray: false },
+    MessageListCard
+);
+
+const CONTENT_TYPES_TO_CLASS_NAMES = [
+    null,
+    'msg-body-content',
+    'msg-body-signature',
+    'msg-body-leadin',
+    null,
+    'msg-body-disclaimer',
+    'msg-body-list',
+    'msg-body-product',
+    'msg-body-ads'
+  ];
+const CONTENT_QUOTE_CLASS_NAMES = [
+    'msg-body-q1',
+    'msg-body-q2',
+    'msg-body-q3',
+    'msg-body-q4',
+    'msg-body-q5',
+    'msg-body-q6',
+    'msg-body-q7',
+    'msg-body-q8',
+    'msg-body-q9'
+  ];
+const MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
 
 function MessageReaderCard(domNode, mode, args) {
   this.domNode = domNode;
@@ -463,6 +483,7 @@ MessageReaderCard.prototype = {
   buildBodyDom: function(domNode) {
     var header = this.header, body = this.body;
 
+    // -- Header
     function addHeaderEmails(lineClass, peeps) {
       var lineNode = domNode.getElementsByClassName(lineClass)[0];
 
@@ -497,9 +518,31 @@ MessageReaderCard.prototype = {
 
     domNode.getElementsByClassName('msg-envelope-subject')[0]
       .textContent = header.subject;
-    domNode.getElementsByClassName('msg-body-container')[0]
-      .textContent = body.bodyText;
 
+    // -- Body (Plaintext)
+    var bodyNode = domNode.getElementsByClassName('msg-body-container')[0];
+    var rep = body.bodyRep;
+    for (var i = 0; i < rep.length; i += 2) {
+      var node = document.createElement('div'), cname;
+
+      var etype = rep[i] & 0xf, rtype = null;
+      if (etype === 0x4) {
+        var qdepth = (((rep[i] >> 8) & 0xff) + 1);
+        if (qdepth > 8)
+          cname = MAX_QUOTE_CLASS_NAME;
+        else
+          cname = CONTENT_QUOTE_CLASS_NAMES[qdepth];
+      }
+      else {
+        cname = CONTENT_TYPES_TO_CLASS_NAMES[etype];
+      }
+      if (cname)
+        node.setAttribute('class', cname);
+      node.textContent = rep[i + 1];
+      bodyNode.appendChild(node);
+    }
+
+    // -- Attachments (footer)
     var attachmentsContainer =
       domNode.getElementsByClassName('msg-attachments-container')[0];
     if (body.attachments && body.attachments.length) {
@@ -522,15 +565,11 @@ MessageReaderCard.prototype = {
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'message-reader',
-  modes: {
-    default: {
-      tray: false,
-    },
-  },
-  constructor: MessageReaderCard,
-});
+Cards.defineCardWithDefaultMode(
+    'message-reader',
+    { tray: false },
+    MessageReaderCard
+);
 

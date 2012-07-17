@@ -47,7 +47,8 @@
       return;
 
     var host = document.location.host;
-    window.open('http://' + host + '/oncall.html#' + call.state,
+    var protocol = document.location.protocol;
+    window.open(protocol + '//' + host + '/oncall.html#' + call.state,
                 'call_screen', 'attention');
 
     if (call.state != 'incoming')
@@ -56,8 +57,8 @@
     var vibrateInterval = 0;
     if (activateVibration) {
       vibrateInterval = window.setInterval(function vibrate() {
-        if ('mozVibrate' in navigator) {
-          navigator.mozVibrate([200]);
+        if ('vibrate' in navigator) {
+          navigator.vibrate([200]);
         }
       }, 600);
     }

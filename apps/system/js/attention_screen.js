@@ -41,10 +41,6 @@ var AttentionScreen = {
     this.screen.appendChild(attentionFrame);
     this.screen.classList.add('displayed');
 
-    // XXX: before probing ScreenManager.screenEnabled,
-    // sync it's value with mozPower
-    ScreenManager._syncScreenEnabledValue();
-
     // We want the user attention, so we need to turn the screen on
     // if it's off.
     this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
@@ -72,13 +68,6 @@ var AttentionScreen = {
       var frame = WindowManager.getAppFrame(displayedOrigin);
       if ('setVisible' in frame) {
         frame.setVisible(true);
-
-        // FIXME: Forcing a repaint
-        // Tracked here https://bugzilla.mozilla.org/show_bug.cgi?id=769172
-        frame.style.MozTransform = 'translateY(1px)';
-        setTimeout(function hackRepaint() {
-          frame.style.MozTransform = '';
-        });
       }
     }
 

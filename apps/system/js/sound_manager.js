@@ -3,89 +3,31 @@
 
 'use strict';
 
-var SoundManager = {
-  /*
-  * return the current volume
-  * Must not multate directly - use changeVolume.
-  * Listen to 'volumechange' event to properly handle status changes
-  */
-  currentVolume: 5,
+(function() {
+  window.addEventListener('keydown', handleEvent);
 
-  /*
-  * Starting repeating the key press after the key is being hold down
-  * for kKeyRepeatTimeout ms. 0 to disable.
-  * XXX: Disable to prevent out of sync with actual volume change in Gecko.
-  *
-  */
-  kKeyRepeatTimeout: 0, // was 700
-
-  /*
-  * Interval of each repeat
-  */
-  kKeyRepeatRate: 100,
-
-  init: function soundManager_init() {
-    window.addEventListener('keydown', this);
-    window.addEventListener('keyup', this);
-  },
-
-  handleEvent: function soundManager_handleEvent(evt) {
+  function handleEvent(evt) {
     if (!ScreenManager.screenEnabled)
       return;
 
-    switch (evt.type) {
-      case 'keydown':
-        switch (evt.keyCode) {
-          case evt.DOM_VK_PAGE_UP:
-            this.repeatKey((function repeatKeyCallback() {
-              if (this.currentVolume == 10) {
-                clearTimeout(this._timer);
-                return;
-              }
-              this.changeVolume(1);
-            }).bind(this));
-            break;
-
-          case evt.DOM_VK_PAGE_DOWN:
-            this.repeatKey((function repeatKeyCallback() {
-              if (this.currentVolume == 0) {
-                clearTimeout(this._timer);
-                return;
-              }
-              this.changeVolume(-1);
-            }).bind(this));
-            break;
-        }
-        break;
-
-      case 'keyup':
-        if (evt.keyCode !== evt.DOM_VK_PAGE_UP ||
-            evt.keyCode !== evt.DOM_VK_PAGE_DOWN)
-          return;
-
-        clearTimeout(this._timer);
-        break;
+    if (evt.keyCode === evt.DOM_VK_PAGE_UP) {
+      changeVolume(1);
+    } else if (evt.keyCode === evt.DOM_VK_PAGE_DOWN) {
+      changeVolume(-1);
     }
-  },
+  }
 
-  repeatKey: function soundManager_repeatKey(callback) {
-    callback();
-    clearTimeout(this._timer);
+  var currentVolume = 5;
+  if ('mozSettings' in navigator) {
+    var req = navigator.mozSettings.getLock().set({
+      'audio.volume.master': currentVolume / 10
+    });
+  }
 
-    if (!this.kRepeatTimeout)
-      return;
-
-    this._timer = window.setTimeout((function volumeTimeout() {
-      actionCallback();
-      this._timer = setInterval(function volumeInterval() {
-        callback();
-      }, this.kRepeatRate);
-    }).bind(this), this.kRepeatTimeout);
-  },
-
-  changeVolume: function soundManager_changeVolume(delta) {
-    var volume = this.currentVolume + delta;
-    this.currentVolume = volume = Math.max(0, Math.min(10, volume));
+  var activeTimeout = 0;
+  function changeVolume(delta) {
+    var volume = currentVolume + delta;
+    currentVolume = volume = Math.max(0, Math.min(10, volume));
 
     var notification = document.getElementById('volume');
     var classes = notification.classList;
@@ -98,28 +40,34 @@ var SoundManager = {
     var steps = notification.children;
     for (var i = 0; i < steps.length; i++) {
       var step = steps[i];
-      if (i < volume)
+      if (i < volume) {
         step.classList.add('active');
-      else
+      } else {
         step.classList.remove('active');
+      }
     }
 
     classes.add('visible');
-    if (this._timeout)
-      window.clearTimeout(this._timeout);
-
-    this._timeout = window.setTimeout(function hideSound() {
+    window.clearTimeout(activeTimeout);
+    activeTimeout = window.setTimeout(function hideSound() {
       classes.remove('visible');
     }, 1500);
 
-    this.fireVolumeChangeEvent();
-  },
+    if ('mozSettings' in navigator) {
+      navigator.mozSettings.getLock().set({
+        'audio.volume.master': currentVolume / 10
+      });
+    }
 
-  fireVolumeChangeEvent: function soundManager_fireVolumeChangeEvent() {
+    fireVolumeChangeEvent();
+  }
+
+  function fireVolumeChangeEvent() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('volumechange',
       /* canBubble */ true, /* cancelable */ false,
-      {currentVolume: this.currentVolume});
+      { currentVolume: currentVolume });
     window.dispatchEvent(evt);
   }
-};
+})();
+

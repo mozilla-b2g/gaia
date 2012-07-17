@@ -136,184 +136,120 @@ var WindowManager = (function() {
     frame.style.height = window.innerHeight - statusbar.offsetHeight + 'px';
   }
 
+  var openFrame = null;
+  var closeFrame = null;
+  var openCallback = null;
+  var closeCallback = null;
+
+  // Create a window sprite element to perform windows open/close
+  // animations.
+  var sprite = document.createElement('div');
+  sprite.id = 'windowSprite';
+  document.body.appendChild(sprite);
+
+  // This event handler is triggered when the transition ends.
+  // We're going to do two transitions, so it gets called twice.
+  sprite.addEventListener('transitionend', function spriteTransition(e) {
+    var prop = e.propertyName;
+    var classes = sprite.classList;
+
+    if (sprite.className === 'open' && prop.indexOf('transform') != -1) {
+      openFrame.classList.add('active');
+      windows.classList.add('active');
+
+      classes.add('faded');
+      setTimeout(openCallback);
+    } else if (classes.contains('faded') && prop === 'opacity') {
+      openFrame.setVisible(true);
+      openFrame.focus();
+
+      // Dispatch a 'appopen' event,
+      // Modal dialog would use this.
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+      openFrame.dispatchEvent(evt);
+
+    } else if (classes.contains('close') && prop === 'color') {
+      closeFrame.classList.remove('active');
+      windows.classList.remove('active');
+    } else if (classes.contains('close') && prop.indexOf('transform') != -1) {
+      classes.remove('open');
+      classes.remove('close');
+
+      setTimeout(closeCallback);
+    }
+  });
+
   // Perform an "open" animation for the app's iframe
   function openWindow(origin, callback) {
     var app = runningApps[origin];
-    var frame = app.frame;
-    var manifest = app.manifest;
+    openFrame = app.frame;
+    openCallback = callback || function() {};
 
-    // Create a window sprite element to perform an window open animation.
-    // Start it off in its 'closed' state.
-    var sprite = document.createElement('div');
-    sprite.className = 'closed windowSprite';
-
-    // Make the sprite look like the app that it is animating for.
-    // Animating an image resize is quicker than animating and resizing
-    // the live app in its iframe.  But if even this background image
-    // animation is too slow, then just comment this line out.
-    //sprite.style.background = '-moz-element(#' + frame.id + ') no-repeat';
-
-    // Add the sprite to the document
-    document.body.appendChild(sprite);
-
-    // Query css to flush this change
-    var width = document.documentElement.clientWidth;
-
-    // And start the animation
-    sprite.classList.add('open');
-    sprite.classList.remove('closed');
-
-    // This event handler is triggered when the transition ends.
-    // We're going to do two transitions, so it gets called twice.
-    sprite.addEventListener('transitionend', function transitionListener(e) {
-      // Only listen for opacity transition
-      // Otherwise we may get called multiple times for each transition
-      if (e.propertyName !== 'opacity')
-        return;
-
-      // If the sprite is not yet faded
-      if (!sprite.classList.contains('faded')) {
-        // The first transition has just completed.
-        // Make the app window visible and then fade the sprite away
-        frame.classList.add('active');
-        windows.classList.add('active');
-        sprite.classList.add('faded');
-
-        if ('setVisible' in frame) {
-          frame.setVisible(true);
-        }
-      } else {
-        // The second transition has just completed
-        // give the app focus and discard the sprite.
-        frame.focus();
-        document.body.removeChild(sprite);
-        // Finally, call the callback if there is one.
-        if (callback)
-          callback();
-      }
-    });
-
-    // FIXME
-    // We broadcast an 'appopen' event here.
-    // Currently notification screen code in homescreen.js listens for
-    // this event and uses it to clear notifications when the dialer
-    // or sms apps are opened up. We probably need a better way to do this.
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, { url: origin });
-    frame.dispatchEvent(evt);
+    sprite.className = 'open';
   }
 
-  function closeWindow(origin, instant, callback) {
+  function closeWindow(origin, callback) {
     var app = runningApps[origin];
-    var frame = app.frame;
-    var manifest = app.manifest;
+    closeFrame = app.frame;
+    closeCallback = callback || function() {};
 
     // Send a synthentic 'appwillclose' event.
     // The keyboard uses this and the appclose event to know when to close
     // See https://github.com/andreasgal/gaia/issues/832
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillclose', true, false, {});
-    frame.dispatchEvent(evt);
-
-    // Send a synthentic 'appclose' event.
-    // The keyboard uses this event to know when to close
-    // FIXME: this second event should probably happen
-    // below, after the animation. But the event isn't being
-    // delivered correctly if I do that.
-    // See https://github.com/andreasgal/gaia/issues/832
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appclose', true, false, {});
-    frame.dispatchEvent(evt);
+    evt.initCustomEvent('appwillclose', true, false, { origin: origin });
+    closeFrame.dispatchEvent(evt);
 
     // Take keyboard focus away from the closing window
-    frame.blur();
-
-    if ('setVisible' in frame) {
-      frame.setVisible(false);
-    }
-
-    // If we're not doing an animation, then just switch directly
-    // to the closed state.
-    if (instant) {
-      frame.classList.remove('active');
-      if (callback)
-        callback();
-      return;
-    }
-
-    // Create a window sprite object in the open state, then hide
-    // the app window and transition the sprite down to the closed state.
-    var sprite = document.createElement('div');
-    sprite.className = 'open windowSprite';
-
-    // Make the sprite look like the app that it is animating for.
-    // Animating an image resize is quicker than animating and resizing
-    // the live app in its iframe.  But if even this background image
-    // animation is too slow, then just comment this line out.
-    //sprite.style.background = '-moz-element(#' + frame.id + ') no-repeat';
-
-    // Add the sprite to the document
-    document.body.appendChild(sprite);
-
-    // And close the real app window
-    frame.classList.remove('active');
-    windows.classList.remove('active');
-
-    // Query css to flush this change
-    var width = document.documentElement.clientWidth;
+    closeFrame.blur();
+    closeFrame.setVisible(false);
 
     // And begin the transition
-    sprite.classList.remove('open');
-    sprite.classList.add('closed');
-
-    // When the transition ends, discard the sprite.
-    sprite.addEventListener('transitionend', function transitionListener() {
-      sprite.removeEventListener('transitionend', transitionListener);
-      document.body.removeChild(sprite);
-      if (callback)
-        callback();
-    });
+    sprite.classList.remove('faded');
+    sprite.classList.add('close');
   }
 
   //last time app was launched,
   //needed to display them in proper
   //order on CardsView
   function updateLaunchTime(origin) {
-    if (!runningApps[origin]) {
+    if (!runningApps[origin])
       return;
-    } else {
-      runningApps[origin].launchTime = Date.now();
-    }
+
+    runningApps[origin].launchTime = Date.now();
   }
 
   // Switch to a different app
   function setDisplayedApp(origin, callback, url) {
     var currentApp = displayedApp, newApp = origin;
 
-    // There are four cases that we handle in different ways:
-    // 1) The new app is already displayed: do nothing
-    // 2) We're going from the homescreen to an app
-    // 3) We're going from an app to the homescreen
-    // 4) We're going from one app to another (via card switcher)
-
-    // Case 1
-    if (currentApp == newApp) {
+    // Case 1: the app is already displayed
+    if (currentApp && currentApp == newApp) {
       // Just run the callback right away
       if (callback)
         callback();
     }
     // Case 2: homescreen->app
-    else if (currentApp == null) {
+    else if (currentApp == null && newApp) {
       setAppSize(newApp);
       updateLaunchTime(newApp);
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
-    else if (newApp == null) {
+    else if (currentApp && newApp == null) {
       // Animate the window close
-      closeWindow(currentApp, false, callback);
+      closeWindow(currentApp, callback);
     }
-    // Case 4: app-to-app transition
+    // Case 4: homescreen-to-homescreen transition
+    else if (currentApp == null && newApp == null) {
+      // XXX Until the HOME button works as an activity, just
+      // send a message to the homescreen so he nows about the
+      // home key.
+      var home = document.getElementById('homescreen');
+      home.contentWindow.postMessage('home', home.src);
+    }
+    // Case 5: app-to-app transition
     else {
       // XXX Note: Hack for demo when current app want to set specific hash
       //           url in newApp(e.g. contact trigger SMS message list page).
@@ -323,8 +259,8 @@ var WindowManager = (function() {
       }
       setAppSize(newApp);
       updateLaunchTime(newApp);
-      openWindow(newApp, function() {
-        closeWindow(currentApp, true, callback);
+      closeWindow(currentApp, function closeWindow() {
+        openWindow(newApp, callback);
       });
     }
 
@@ -548,21 +484,26 @@ var WindowManager = (function() {
   // There are two types of mozChromeEvent we need to handle
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
+    console.log('mozChromeEvent received: ' + e.detail.type);
+
     var origin = e.detail.origin;
+    if (!origin)
+      return;
+
     var app = Applications.getByOrigin(origin);
     var name = app.manifest.name;
 
-    /*
-    * Check if it's a virtual app from a entry point.
-    * If so, change the app name and origin to the
-    * entry point.
-    */
+
+    // Check if it's a virtual app from a entry point.
+    // If so, change the app name and origin to the
+    // entry point.
     var entryPoints = app.manifest.entry_points;
     if (entryPoints) {
       for (var ep in entryPoints) {
         //Remove the origin and / to find if if the url is the entry point
         var path = e.detail.url.substr(e.detail.origin.length + 1);
-        if (path.indexOf(ep) == 0 && (ep + entryPoints[ep].path) == path) {
+        if (path.indexOf(ep) == 0 &&
+            (ep + entryPoints[ep].launch_path) == path) {
           origin = origin + '/' + ep;
           name = entryPoints[ep].name;
         }
@@ -584,34 +525,37 @@ var WindowManager = (function() {
 
       // System Message Handler API is asking us to open the specific URL
       // that handles the pending system message.
-      // We will launch it in background.
+      // We will launch it in background if it's not handling an activity.
       case 'open-app':
         if (isRunning(origin)) {
           var frame = getAppFrame(origin);
-          // If the app is opened and it is loaded to the correct page,
-          // then there is nothing to do.
-          if (frame.src === e.detail.url)
-            return;
-
           // If the app is in foreground, it's too risky to change it's
           // URL. We'll ignore this request.
           if (displayedApp === origin)
             return;
 
-          // Rewrite the URL of the app frame to the requested URL.
+          // If the app is opened and it is loaded to the correct page,
+          // then there is nothing to do.
+          if (frame.src !== e.detail.url) {
+            // Rewrite the URL of the app frame to the requested URL.
+            // XXX: We could ended opening URls not for the app frame
+            // in the app frame. But we don't care.
+            frame.src = e.detail.url;
+          }
+        } else {
+          if (!app)
+            return;
+
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
-          frame.src = e.detail.url;
-          return;
+          appendFrame(origin, e.detail.url,
+                      app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
-        if (!app)
-          return;
-
-        // XXX: We could ended opening URls not for the app frame
-        // in the app frame. But we don't care.
-        appendFrame(origin, e.detail.url,
-                    app.manifest.name, app.manifest, app.manifestURL, true);
+        // TODO: handle the inline disposition
+        if (e.detail.disposition) {
+          setDisplayedApp(origin);
+        }
 
         break;
     }
@@ -743,15 +687,10 @@ var WindowManager = (function() {
     // homescreen. Unlike the Home key, apps can intercept this event
     // and use it for their own purposes.
     if (e.keyCode === e.DOM_VK_ESCAPE &&
-        !ModalDialog.blocked &&
         !e.defaultPrevented &&
         displayedApp !== null) {
 
       setDisplayedApp(null); // back to the homescreen
-    }
-
-    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.blocked) {
-      ModalDialog.cancelHandler();
     }
   });
 
@@ -772,9 +711,7 @@ var WindowManager = (function() {
     // a handled keyup, we've got to clear the timer.
 
     function keydownHandler(e) {
-      if (e.keyCode !== e.DOM_VK_HOME) return;
-
-      if (e.defaultPrevented)
+      if (e.keyCode !== e.DOM_VK_HOME || e.defaultPrevented)
         return;
 
       // We don't do anything else until the Home key is released...
@@ -819,7 +756,7 @@ var WindowManager = (function() {
         // the we also itnore it
         // Otherwise, make the homescreen visible.
         // Also, if the card switcher is visible, then hide it.
-        if (!ModalDialog.blocked && !LockScreen.locked && !e.defaultPrevented) {
+        if (!LockScreen.locked && !e.defaultPrevented) {
           // The attention screen can 'eat' this event
           if (!e.defaultPrevented)
             setDisplayedApp(null);
@@ -838,8 +775,7 @@ var WindowManager = (function() {
       // and if the card switcher is not already shown
       timer = null;
 
-      if (!ModalDialog.blocked &&
-          !LockScreen.locked &&
+      if (!LockScreen.locked &&
           !CardsView.cardSwitcherIsShown()) {
         CardsView.showCardSwitcher();
       }

@@ -16,7 +16,7 @@ header {
 }
 
 /* ------------- Button ------------- */
-a.button, span.button {
+a.button, span.button, p.button {
   margin: 0.4rem;
   padding: 1.2rem 1.2rem 1rem 1.2rem;
   border: 0.4rem solid;
@@ -337,7 +337,7 @@ input ~ *:empty {
 }
 
 .tableView {
-  height: -moz-calc(100% -6.2rem);
+  height: -moz-calc(100% - 6.2rem);
   
 }
 #alarms.tableView {
@@ -409,16 +409,14 @@ li img {
 }
 
 /* 320x480 phones */
-@media (orientation: portrait) and (width: 320px),
-       (orientation: landscape) and (width: 480px) {
+@media screen and (width: 320px) {
   html {
     font-size: 6px;
   }
 }
 
 /* 480x800 phones */
-@media (orientation: portrait) and (width: 480px),
-       (orientation: landscape) and (width: 800px) {
+@media screen and (width: 480px) {
   html {
     font-size: 10px;
   }

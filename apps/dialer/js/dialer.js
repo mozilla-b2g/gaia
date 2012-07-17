@@ -3,9 +3,6 @@
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (!document.mozHidden) {
     Recents.render();
-    Recents.startUpdatingDates();
-  } else {
-    Recents.stopUpdatingDates();
   }
 });
 
@@ -16,11 +13,6 @@ var CallHandler = {
     if (telephony) {
       telephony.dial(sanitizedNumber);
     }
-  },
-
-  get numberView() {
-    delete this.numberView;
-    return this.numberView = document.getElementById('call-number-view');
   }
 };
 
@@ -71,5 +63,25 @@ window.addEventListener('localized', function startup(evt) {
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
+});
+
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  var number = activity.source.data.number;
+  var fillNumber = function actHandleDisplay() {
+    if (number) {
+      KeypadManager.updatePhoneNumber(number);
+    }
+  }
+
+  if (document.readyState == 'complete') {
+    fillNumber();
+  } else {
+    window.addEventListener('localized', function loadWait() {
+      window.removeEventListener('localized', loadWait);
+      fillNumber();
+    });
+  }
+
+  activity.postResult({ status: 'accepted' });
 });
 

@@ -15,12 +15,12 @@ var MAIL_SERVICES = [
   {
     name: 'OtheR EmaiL',
     l10nId: 'setup-other-email',
-    domain: '',
+    domain: ''
   },
   {
     name: 'Fake Account',
     l10nId: null,
-    domain: 'example.com',
+    domain: 'example.com'
   }
 ];
 
@@ -58,22 +58,18 @@ SetupPickServiceCard.prototype = {
     Cards.pushCard(
       'setup-account-info', 'default', 'animate',
       {
-        serviceDef: serviceDef,
+        serviceDef: serviceDef
       });
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-pick-service',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SetupPickServiceCard,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-pick-service',
+     { tray: false },
+    SetupPickServiceCard
+);
 
 /**
  * Enter basic account info card (name, e-mail address, password) to try and
@@ -107,7 +103,7 @@ function SetupAccountInfoCard(domNode, mode, args) {
   if (args.serviceDef.domain === 'example.com') {
     this.nameNode.value = 'John Madeup';
     this.emailNode.value = 'john@example.com';
-    this.passwordNode.value= 'secret!sosecret!';
+    this.passwordNode.value = 'secret!sosecret!';
   }
 }
 SetupAccountInfoCard.prototype = {
@@ -126,22 +122,18 @@ SetupAccountInfoCard.prototype = {
       {
         name: this.nameNode.value,
         emailAddress: this.emailNode.value,
-        password: this.passwordNode.value,
+        password: this.passwordNode.value
       });
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-account-info',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SetupAccountInfoCard,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-account-info',
+    { tray: false },
+    SetupAccountInfoCard
+);
 
 /**
  * Show a spinner until success, or errors when there is failure.
@@ -156,7 +148,7 @@ function SetupProgressCard(domNode, mode, args) {
     {
       displayName: args.name,
       emailAddress: args.emailAddress,
-      password: args.password,
+      password: args.password
     },
     function(err) {
       self.creationInProcess = false;
@@ -201,17 +193,13 @@ SetupProgressCard.prototype = {
 
   die: function() {
     this.cancelCreation();
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-progress',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SetupProgressCard,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-progress',
+    { tray: false },
+    SetupProgressCard
+);
 
 /**
  * Setup is done; add another account?
@@ -241,17 +229,13 @@ SetupDoneCard.prototype = {
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-done',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SetupDoneCard,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-done',
+    { tray: false },
+    SetupDoneCard
+);
 
 /**
  * Asks the user to re-enter their password for the account
@@ -289,17 +273,13 @@ SetupFixPassword.prototype = {
 
   die: function() {
     // no special cleanup required
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-fix-password',
-  modes: {
-    default: {
-      tray: false,
-    }
-  },
-  constructor: SetupFixPassword,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-fix-password',
+    { tray: false },
+    SetupFixPassword
+);
 
 /**
  * Global settings, list of accounts.
@@ -402,15 +382,11 @@ SettingsMainCard.prototype = {
     this.acctsSlice.die();
   }
 };
-Cards.defineCard({
-  name: 'settings-main',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SettingsMainCard,
-});
+Cards.defineCardWithDefaultMode(
+    'settings-main',
+    { tray: false },
+    SettingsMainCard
+);
 
 /**
  * Per-account settings, maybe some metadata.
@@ -419,15 +395,11 @@ function SettingsAccountCard(domNode, mode, args) {
 }
 SettingsAccountCard.prototype = {
 };
-Cards.defineCard({
-  name: 'settings-account',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SettingsAccountCard,
-});
+Cards.defineCardWithDefaultMode(
+    'settings-account',
+    { tray: false },
+    SettingsAccountCard
+);
 
 /**
  * Quasi-secret card for troubleshooting/debugging support.  Not part of the
@@ -438,12 +410,9 @@ function SettingsDebugCard(domNode, mode, args) {
 }
 SettingsDebugCard.prototype = {
 };
-Cards.defineCard({
-  name: 'settings-debug',
-  modes: {
-    default: {
-      tray: false
-    }
-  },
-  constructor: SettingsDebugCard,
-});
+Cards.defineCardWithDefaultMode(
+    'settings-debug',
+    { tray: false },
+    SettingsDebugCard
+);
+

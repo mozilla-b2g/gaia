@@ -16,7 +16,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       switching = false;
       var currentNetwork = wifiManager.connection.network;
       if (currentNetwork) {
-        infoBlock.textContent = _('connected', { ssid: currentNetwork.ssid });
+        infoBlock.textContent = _('fullStatus-connected', currentNetwork);
         checkbox.checked = true;
       } else if (wifiManager.enabled) {
         infoBlock.textContent = _('fullStatus-disconnected');
@@ -38,15 +38,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         gNetworkList.clear();
         infoBlock.textContent = '';
         req = wifiManager.setEnabled(false);
-        req.onsuccess = updateState;
       } else {
         // start wifi
         req = wifiManager.setEnabled(true);
-        gNetworkList.clear(true);
-        req.onsuccess = function() {
-          updateState();
-          gNetworkList.scan();
-        }
+        req.onerror = function() {
+          gNetworkList.autoscan = false;
+        };
       }
     };
 
@@ -234,7 +231,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     }
   });
 
-  /** mozWifiManager events / callbacks
+  /** mozWifiManager status
     * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
     *  - connecting:
     *        fires when we start the process of connecting to a network.
@@ -261,6 +258,18 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     gStatus.textContent = _('fullStatus-' + status, event.network);
     gNetworkList.display(ssid, _('shortStatus-' + status));
   };
+
+  /** mozWifiManager events / callbacks
+    * requires bug 766497
+    */
+  wifiManager.onenabled = function onWifiEnabled() {
+    gStatus.update();
+    gNetworkList.clear(true);
+    gNetworkList.scan();
+  }
+  wifiManager.ondisabled = function onWifiDisabled() {
+    gStatus.update();
+  }
 
   function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
@@ -381,6 +390,14 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       // hide dialog box
       function close() {
+        // reset identity/password fields
+        if (identity)
+          identity.value = '';
+        if (password)
+          password.value = '';
+        if (showPassword)
+          showPassword.checked = false;
+        // 'close' (hide) the dialog
         document.body.classList.remove('dialog');
         dialog.classList.remove('active');
       }
@@ -390,11 +407,11 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       var okButton = buttons[0];
       okButton.onclick = function() {
-        close();
         if (identity)
           network.identity = identity.value;
         if (password)
           setPassword(password.value);
+        close();
         return callback ? callback() : false;
       };
 

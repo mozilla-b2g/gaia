@@ -276,7 +276,7 @@ MediaDB.prototype = {
 
   // Look up the specified filename in DeviceStorage and pass the
   // resulting File object to the specified callback.
-  getFile: function(filename, callback, errback) {
+  getFile: function getFile(filename, callback, errback) {
     var getRequest = this.storage.get(filename);
     getRequest.onsuccess = function() {
       callback(getRequest.result);
@@ -287,6 +287,25 @@ MediaDB.prototype = {
         errback(errmsg);
       else
         console.error('MediaDB.getFile:', errmsg);
+    }
+  },
+
+  // Delete the named file from the database and from device storage.
+  // Runs asynchronously and returns before the deletions are complete.
+  deleteFile: function deleteFile(filename) {
+    // Delete from the db
+    this.db.transaction('files', 'readwrite').
+      objectStore('files').
+      delete(filename).
+      onerror = function(e) {
+        console.error('MediaDB: Failed to delete', filename,
+                      'from IndexedDB:', e.target.error);
+      };
+
+    // Delete it from device storage, too
+    this.storage.delete(filename).onerror = function(e) {
+      console.error('MediaDB: Failed to delete', filename,
+                    'from DeviceStorage:', e.target.error);
     }
   },
 
@@ -307,7 +326,7 @@ MediaDB.prototype = {
   // }
   //
   //
-  enumerate: function(key, range, direction, callback) {
+  enumerate: function enumerate(key, range, direction, callback) {
     if (!this.db)
       throw Error('MediaDB is not ready yet. Use the onready callback');
 
@@ -372,7 +391,7 @@ MediaDB.prototype = {
   // that, a full scan will be compared with a full dump of the DB
   // to see if any files have been deleted.
   //
-  scan: function() {
+  scan: function scan() {
     if (!this.db)
       throw Error('MediaDB is not ready yet. Use the onready callback');
 

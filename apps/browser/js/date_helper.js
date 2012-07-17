@@ -1,20 +1,4 @@
 var DateHelper = {
-  //TODO: localise
-  MONTHS: [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ],
-
   todayStarted: function dh_todayStarted() {
     var now = (new Date()).valueOf();
     return this.getMidnight(now);

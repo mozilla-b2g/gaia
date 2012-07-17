@@ -1,18 +1,3 @@
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
-}
-
 html, body {
   height: 100%;
   padding: 0;
@@ -307,28 +292,21 @@ menu button {
   width: 80px;
   height: 45px;
   float: left;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 #back-button {
   background-image: url("images/back.png");
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 #forward-button {
   background-image: url("images/forward.png");
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 
 #back-button:active {
   background-image: url("images/back-pressed.png");
-}
-
-#menu-button {
-  background-image: url("images/menu.png");
-  float: right;
 }
 
 input::-moz-focus-inner {
@@ -341,6 +319,15 @@ input::-moz-focus-inner {
 
 #forward-button[disabled] {
   display: none;
+}
+
+#bookmark-button {
+  float: right;
+  background-image: url("images/bookmark.png");
+}
+
+#bookmark-button.bookmarked {
+ background-image: url("images/bookmarked.png");
 }
 
 #frames {
@@ -373,6 +360,61 @@ input::-moz-focus-inner {
   display:none;
 }
 
+nav[data-role="tabs"] {
+  display: block;
+  background-color: #CCD6DF;
+  width: 100%;
+  height: 36px;
+}
+
+ul[role="tablist"] {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+li[role="tab"] {
+  display: inline;
+
+}
+
+li[role="tab"] a {
+  display: block;
+  float: left;
+  height: 36px;
+  text-decoration: none;
+  color: #000;
+  line-height: 36px;
+  text-align: center;
+  padding: 0 32px;
+  font-size: 14px;
+  outline: none;
+  margin-left: -32px;
+}
+
+li[role="tab"]:first-child a {
+  margin-left: 0;
+}
+
+li[role="tab"] a.selected {
+  background-image: url('images/tab-background.png');
+  background-image: url('images/tab-left.png'), url('images/tab-right.png'), url('images/tab-background.png');
+  background-position: left, right, center;
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  background-origin: padding-box;
+}
+
+section[role="tabpanel"] {
+  padding-top: 5px;
+  clear: both;
+  background-color: #f3f4f8;
+  display: none;
+}
+
+section[role="tabpanel"].selected {
+  display: block;
+}
+
 #awesomescreen h3 {
   font-size: 0.9em;
   margin: 0 10px;
@@ -381,21 +423,21 @@ input::-moz-focus-inner {
   padding: 0;
 }
 
-#awesomescreen ul {
+ul[role="listbox"] {
   margin: 0;
   padding: 0;
 }
 
-#awesomescreen li {
+li[role="listitem"] {
   list-style-type: none;
   margin: 0 10px;
 }
 
-#awesomescreen li:last-child a {
+li[role="listitem"]:last-child a {
   border-bottom: none;
 }
 
-#awesomescreen li a {
+li[role="listitem"] a {
   display: block;
   padding: 8px;
   text-decoration: none;
@@ -405,19 +447,20 @@ input::-moz-focus-inner {
   background-repeat: no-repeat;
   background-position: 8px 20px;
   background-size: 16px;
+  outline: none;
 }
-#awesomescreen li a:hover, #awesomescreen li a:active {
+li[role="listitem"] a:hover, li[role="listitem"] a:active {
   background-color: #EEE;
 }
 
-#awesomescreen li span {
+li[role="listitem"] span {
   display: block;
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
 }
 
-#awesomescreen li small {
+li[role="listitem"] small {
   display: block;
   color: #666;
   overflow: hidden;
@@ -436,8 +479,8 @@ input::-moz-focus-inner {
   background-color: #ccd6df;
 }
 
-#history{
-  height: 100%;
+#history, #bookmarks {
+  height: -moz-calc(100% - 36px);
   overflow-y: auto;
   overflow-x: hidden;
 }

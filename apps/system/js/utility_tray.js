@@ -15,7 +15,6 @@ var UtilityTray = {
   firstShown: document.getElementById('utility-tray-first-shown'),
 
   gripBar: document.getElementById('utility-tray-grippy'),
-
   screen: document.getElementById('screen'),
 
   init: function ut_init() {
@@ -120,7 +119,6 @@ var UtilityTray = {
 //      this.firstShown.style.MozTransition = '';
 //      this.firstShown.style.MozTransform = 'translateY(' + newHeight + 'px)';
     }
-
     var style = this.overlay.style;
     style.MozTransition = '';
     style.MozTransform = 'translateY(' + dy + 'px)';
@@ -168,7 +166,6 @@ var UtilityTray = {
 
 //    firstShownStyle.MozTransition = '-moz-transform 0.2s linear';
 //    firstShownStyle.MozTransform = 'translateY(0px)';
-
     this.shown = true;
     this.screen.classList.add('utility-tray');
 

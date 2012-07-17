@@ -1,13 +1,31 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Browser</title>
 
-    <link rel="stylesheet" href="style/browser.css" type="text/css" />
+    <link rel="stylesheet" href="style/browser.css" type="text/css">
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <script type="text/javascript">
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
+      }
+      document.write('<script src="' + src + '"><\/script>');
+    })();
+    </script>
     <script type="text/javascript" src="js/GestureDetector.js"></script>
-    <script type="text/javascript" src="js/global_history.js"></script>
+    <script type="text/javascript" src="js/places.js"></script>
     <script type="text/javascript" src="js/date_helper.js"></script>
     <script type="text/javascript" src="js/browser.js"></script>
   </head>
@@ -19,7 +37,8 @@
       <menu type="toolbar" id="toolbar-start">
         <form id="url-bar" novalidate>
           <input type="image" id="ssl-indicator" value="" />
-          <input type="url" id="url-input" placeholder="Enter Address" />
+          <input type="url" id="url-input" placeholder="Enter Address"
+                 data-l10n-id="enter-address" />
           <input type="image" id="url-button" value="" />
         </form>
       </menu>
@@ -27,7 +46,21 @@
       <div id="frames">
         <img id="tab-cover" />
         <div id="awesomescreen">
-          <section id="history">
+          <nav data-role="tabs">
+            <ul role="tablist">
+              <li role="tab">
+                <a id="history-tab" href="#" class="selected"
+                   data-l10n-id="history">History</a>
+              </li>
+              <li role="tab">
+                <a id="bookmarks-tab" href="#"
+                   data-l10n-id="bookmarks">Bookmarks</a>
+              </li>
+            </ul>
+          </nav>
+          <section id="bookmarks" role="tabpanel">
+          </section>
+          <section id="history" role="tabpanel" class="selected">
           </section>
         </div>
       </div>
@@ -37,6 +70,8 @@
                 title="" disabled="true"></button>
         <button type="button" value="" id="forward-button" alt="Forward"
                 title="" disabled="true"></button>
+        <button type="button" value="" id="bookmark-button" alt="Bookmark"
+                title=""></button>
       </menu>
 
     </div>

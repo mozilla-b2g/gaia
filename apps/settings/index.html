@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
     <meta charset="utf-8"/>
     <meta http-equiv="pragma" content="no-cache"/>
@@ -7,29 +7,34 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
-    <link rel="resource" type="application/l10n" href="locale/l10n.ini"/>
+    <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <!-- Compatibility -->
     <script type="text/javascript">
-      if (document.location.protocol === 'file:') {
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
+    })();
     </script>
     <script type="text/javascript" src="js/settings.js"></script>
+    <script type="text/javascript" src="js/data.js"></script>
     <script type="text/javascript" src="js/wifi.js"></script>
+    <script type="text/javascript" src="js/bluetooth.js"></script>
   </head>
   <body class="hidden">
 
     <!-- Main List -->
-    <section class="view" id="root">
+    <section role="region" id="root">
       <header>
         <h1 data-l10n-id="settings">Settings</h1>
       </header>
@@ -37,7 +42,7 @@
       <!-- Main :: Network & Connectivity -->
       <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
       <ul>
-        <li hidden>
+        <li>
           <label>
             <input type="checkbox" name="ril.radio.disabled" />
             <span></span>
@@ -52,7 +57,7 @@
           <small id="data-desc"></small>
           <a href="#data" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
         </li>
-        <li hidden>
+        <li>
           <small id="bluetooth-desc"></small>
           <a href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
         </li>
@@ -139,7 +144,7 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
-    <section class="view" id="wifi">
+    <section role="region" id="wifi">
       <header>
         <h1>
           <a href="#root" data-l10n-id="wifi">Wi-Fi</a>
@@ -182,7 +187,7 @@
     </section>
 
     <!-- Connectivity :: 3G/data -->
-    <section class="view" id="data">
+    <section role="region" id="data">
       <header>
         <h1>
           <a href="#root" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
@@ -191,7 +196,7 @@
 
       <ul>
         <li>
-          <small></small>
+          <small id="dataNetwork-desc"></small>
           <a data-l10n-id="dataNetwork">Carrier</a>
         </li>
         <li>
@@ -212,37 +217,114 @@
         </li>
       </ul>
 
-      <h2> Advanced Settings </h2>
-      <form action="#">
-        <p data-l10n-id="apn">APN</p>
-        <input type="text" name="ril.data.apn" />
-        <p data-l10n-id="identity">identity</p>
-        <input type="text" name="ril.data.user" />
-        <p data-l10n-id="password">password</p>
-        <input type="text" name="ril.data.passwd" />
-        <p data-l10n-id="mmsproxy">MMS Proxy</p>
-        <input type="text" name="ril.data.mmsproxy" />
-        <p data-l10n-id="mmsport">MMS Port</p>
-        <input type="text" name="ril.data.mmsport" />
-        <p data-l10n-id="mmsc">MMSC</p>
-        <input type="text" name="ril.data.mmsc" />
-      </form>
+      <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      <ul>
+        <li>
+          <button onclick="Settings.openDialog('apnSettings');"
+            data-l10n-id="apnSettings">APN Settings</button>
+        </li>
+        <li>
+          <button onclick="Settings.openDialog('mmsSettings');"
+            data-l10n-id="mmsSettings">MMS Settings</button>
+        </li>
+      </ul>
     </section>
 
-    <!-- [TODO] Connectivity :: Bluetooth -->
+    <!-- Connectivity :: 3G/data :: APN Settings Dialog -->
+    <form role="dialog" id="apnSettings" action="#data">
+      <header>
+        <button data-l10n-id="back" type="reset">Back</button>
+        <button data-l10n-id="ok" type="submit">OK</button>
+        <h2 data-l10n-id="apnSettings"> APN Settings </h2>
+      </header>
+
+      <!-- APN settings -->
+      <label>
+        <span data-l10n-id="apn">APN</span>
+        <input type="text" data-setting="ril.data.apn" />
+      </label>
+      <label>
+        <span data-l10n-id="identity">identity</span>
+        <input type="text" data-setting="ril.data.user" />
+      </label>
+      <label>
+        <span data-l10n-id="password">password</span>
+        <input type="text" data-setting="ril.data.passwd" />
+      </label>
+
+      <!-- APN database lookup -->
+      <p id="autoAPN" style="display: none;">
+        <input type="button"
+          data-l10n-id="autoConfigure" value="Auto-Configure" />
+      </p>
+      <p id="autoAPN-list">
+        <!-- list of compatible <apn> elements
+          <input type="button" value="Orange" />
+          <input type="button" value="Telefonica" />
+        -->
+      </p>
+    </form>
+
+    <!-- Connectivity :: 3G/data :: MMS Settings Dialog -->
+    <form role="dialog" id="mmsSettings" action="#data">
+      <header>
+        <button data-l10n-id="back" type="reset">Back</button>
+        <button data-l10n-id="ok" type="submit">OK</button>
+        <h2 data-l10n-id="mmsSettings"> MMS Settings </h2>
+      </header>
+
+      <!-- MMS settings -->
+      <label>
+        <span data-l10n-id="mmsproxy">MMS Proxy</span>
+        <input type="text" data-setting="ril.data.mmsproxy" />
+      </label>
+      <label>
+        <span data-l10n-id="mmsport">MMS Port</span>
+        <input type="text" data-setting="ril.data.mmsport" />
+      </label>
+      <label>
+        <span data-l10n-id="mmsc">MMSC</span>
+        <input type="text" data-setting="ril.data.mmsc" />
+      </label>
+    </form>
+
+    <!-- Connectivity :: Bluetooth -->
+    <section role="region" id="bluetooth">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="bluetooth">Bluetooth</a>
+        </h1>
+      </header>
+
+      <ul>
+        <li id="bluetooth-status">
+          <label>
+            <input type="checkbox"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="enabled">disabled</small>
+          <a data-l10n-id="bluetooth-power">Bluetooth Power</a>
+        </li>
+      </ul>
+    </section>
 
     <!-- Personalization :: Sound -->
-    <section class="view" id="sounds">
+    <section role="region" id="sounds">
       <header>
         <h1>
           <a href="#root" data-l10n-id="sound">Sound</a>
         </h1>
       </header>
 
+      <!-- Phone -->
       <ul>
         <li>
+          <a data-l10n-id="volume">Volume</a>
+          <progress data-name="audio.volume.master" value="5" max="10"></progress>
+        </li>
+        <li>
           <label>
-            <input type="radio" name="homescreen.ring" value="classic.wav" checked="true" />
+            <input type="radio" name="homescreen.ring" value="classic.wav" checked />
             <span></span>
           </label>
           <a data-l10n-id="default">Default</a>
@@ -267,21 +349,21 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" name="phone.vibration.incoming" checked="true"/>
+            <input type="checkbox" name="phone.vibration.incoming" checked />
             <span></span>
           </label>
           <a data-l10n-id="vibrate">Vibrate</a>
         </li>
         <li>
           <label>
-            <input type="checkbox" name="phone.ring.keypad" checked="true"/>
+            <input type="checkbox" name="phone.ring.keypad" checked />
             <span></span>
           </label>
           <a data-l10n-id="keypad">Keypad</a>
         </li>
         <li>
           <label>
-            <input type="checkbox" name="phone.ring.incoming" checked="true" />
+            <input type="checkbox" name="phone.ring.incoming" checked />
             <span></span>
           </label>
           <a data-l10n-id="ring">Ring</a>
@@ -292,14 +374,14 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" name="sms.vibration.received" checked="true"/>
+            <input type="checkbox" name="sms.vibration.received" checked />
             <span></span>
           </label>
           <a data-l10n-id="vibrate">Vibrate</a>
         </li>
         <li>
           <label>
-            <input type="checkbox" name="sms.ring.received" checked="true" />
+            <input type="checkbox" name="sms.ring.received" checked />
             <span></span>
           </label>
           <a data-l10n-id="ring">Ring</a>
@@ -308,7 +390,7 @@
     </section>
 
     <!-- Personalization :: Brightness -->
-    <section class="view" id="brightness">
+    <section role="region" id="brightness">
       <header>
         <h1>
           <a href="#root" data-l10n-id="brightness">Brightness</a>
@@ -324,7 +406,7 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" name="screen.automatic-brightness" checked="true"/>
+            <input type="checkbox" name="screen.automatic-brightness" checked />
             <span></span>
           </label>
           <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
@@ -333,7 +415,7 @@
     </section>
 
     <!-- Personalization :: Wallpaper -->
-    <section class="view" id="wallpaper">
+    <section role="region" id="wallpaper">
       <header>
         <h1>
           <a href="#root" data-l10n-id="wallpaper">Wallpaper</a>
@@ -344,7 +426,7 @@
       <ul>
         <li>
           <label>
-            <input type="radio" name="lockscreen.wallpaper" value="default.png" checked="true" />
+            <input type="radio" name="lockscreen.wallpaper" value="default.png" checked />
             <span></span>
           </label>
           <a data-l10n-id="default">Default</a>
@@ -376,7 +458,7 @@
       <ul>
         <li>
           <label>
-            <input type="radio" name="homescreen.wallpaper" value="default.png" checked="true" />
+            <input type="radio" name="homescreen.wallpaper" value="default.png" checked />
             <span></span>
           </label>
           <a data-l10n-id="default">Default</a>
@@ -408,7 +490,7 @@
     <!-- [TODO] Personalization :: Time & Date -->
 
     <!-- Personalization :: Language & Region -->
-    <section class="view" id="languages">
+    <section role="region" id="languages">
       <header>
         <h1>
           <a href="#root" data-l10n-id="languageAndRegion">Language &amp; Region</a>
@@ -439,7 +521,7 @@
         </li>
         <li>
           <label>
-            <input type="radio" name="language.current" value="en-US" checked="true" />
+            <input type="radio" name="language.current" value="en-US" checked />
             <span></span>
           </label>
           <a dir="ltr">English (US)</a>
@@ -497,7 +579,7 @@
     </section>
 
     <!-- Personalization :: Keyboard -->
-    <section class="view" id="keyboard">
+    <section role="region" id="keyboard">
       <header>
         <h1>
           <a href="#root" data-l10n-id="keyboard">Keyboard</a>
@@ -514,7 +596,7 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" name="keyboard.clicksound" checked="true" />
+            <input type="checkbox" name="keyboard.clicksound" checked />
             <span></span>
           </label>
           <a data-l10n-id="clickSound">Click sound</a>
@@ -525,7 +607,7 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" name="keyboard.layouts.english" checked="true" />
+            <input type="checkbox" name="keyboard.layouts.english" checked />
             <span></span>
           </label>
           <a data-l10n-id="english">English</a>
@@ -619,7 +701,7 @@
     <!-- [TODO] Accounts :: Mail -->
 
     <!-- Security :: Phone Lock -->
-    <section class="view" id="phoneLock">
+    <section role="region" id="phoneLock">
       <header>
         <h1>
           <a href="#root" data-l10n-id="phoneLock">Phone Lock</a>
@@ -629,14 +711,14 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" name="lockscreen.enabled" checked="true"/>
+            <input type="checkbox" name="lockscreen.enabled" checked />
             <span></span>
           </label>
           <a data-l10n-id="lockScreen">Lock Screen</a>
         </li>
         <li>
           <label>
-            <input type="checkbox" name="lockscreen.passcode-lock.enabled" checked="true"/>
+            <input type="checkbox" name="lockscreen.passcode-lock.enabled" checked />
             <span></span>
           </label>
           <small data-l10n-id="passcode-lock-desc">Passcode: 0000</small>
@@ -651,7 +733,7 @@
     <!-- [TODO] Security :: Do Not Track -->
 
     <!-- Device :: About -->
-    <section class="view" id="about">
+    <section role="region" id="about">
       <header>
         <h1>
           <a href="#root" data-l10n-id="aboutPhone">About Phone</a>
@@ -693,7 +775,7 @@
     </section>
 
     <!-- Device :: Storage -->
-    <section class="view" id="storage">
+    <section role="region" id="storage">
       <header>
         <h1>
           <a href="#root" data-l10n-id="storage">Storage</a>
@@ -712,7 +794,7 @@
     </section>
 
     <!-- Device :: Accessibility -->
-    <section class="view" id="accessibility">
+    <section role="region" id="accessibility">
       <header>
         <h1>
           <a href="#root" data-l10n-id="accessibility">Accessibility</a>
@@ -735,7 +817,7 @@
       <div>
 
         <!-- network status -->
-        <div id="wifi-status" class="dialog">
+        <div role="dialog" id="wifi-status">
           <header data-ssid>Network</header>
           <dl>
             <dt data-l10n-id="security">security:</dt>
@@ -752,7 +834,7 @@
         </div>
 
         <!-- WEP authentication -->
-        <div id="wifi-wep" class="dialog">
+        <div role="dialog" id="wifi-wep">
           <header data-ssid>Authentication</header>
           <dl>
             <dt data-l10n-id="security">security:</dt>
@@ -763,10 +845,10 @@
           <form action="#">
             <label>
               <span data-l10n-id="password">password</span>
-              <input data-wep name="password" type="password" />
+              <input data-wep data-ignore name="password" type="password" />
             </label>
             <label>
-              <input name="show-pwd" type="checkbox" />
+              <input data-ignore name="show-pwd" type="checkbox" />
               <span data-l10n-id="showPassword">show password</span>
             </label>
           </form>
@@ -777,7 +859,7 @@
         </div>
 
         <!-- PSK authentication -->
-        <div id="wifi-psk" class="dialog">
+        <div role="dialog" id="wifi-psk">
           <header data-ssid>Authentication</header>
           <dl>
             <dt data-l10n-id="security">security:</dt>
@@ -788,10 +870,10 @@
           <form action="#">
             <label>
               <span data-l10n-id="password">password</span>
-              <input data-psk name="password" type="password" />
+              <input data-psk data-ignore name="password" type="password" />
             </label>
             <label>
-              <input name="show-pwd" type="checkbox" />
+              <input data-ignore name="show-pwd" type="checkbox" />
               <span data-l10n-id="showPassword">show password</span>
             </label>
           </form>
@@ -802,7 +884,7 @@
         </div>
 
         <!-- EAP authentication -->
-        <div id="wifi-eap" class="dialog">
+        <div role="dialog" id="wifi-eap">
           <header data-ssid>Authentication</header>
           <dl>
             <dt data-l10n-id="security">security:</dt>
@@ -813,14 +895,14 @@
           <form action="#">
             <label>
               <span data-l10n-id="identity">identity</span>
-              <input data-identity name="identity" type="text" />
+              <input data-identity data-ignore name="identity" type="text" />
             </label>
             <label>
               <span data-l10n-id="password">password</span>
-              <input data-password name="password" type="password" />
+              <input data-password data-ignore name="password" type="password" />
             </label>
             <label>
-              <input name="show-pwd" type="checkbox" />
+              <input data-ignore name="show-pwd" type="checkbox" />
               <span data-l10n-id="showPassword">show password</span>
             </label>
           </form>

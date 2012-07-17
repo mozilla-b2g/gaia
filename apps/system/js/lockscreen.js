@@ -26,7 +26,7 @@ var LockScreen = {
   * in Settings API.
   * Will be ignored if 'enabled' is set to false.
   */
-  passCodeEnabled: true,
+  passCodeEnabled: false,
 
   /*
   * Four digit Passcode
@@ -81,6 +81,7 @@ var LockScreen = {
     window.addEventListener('mozChromeEvent', this);
 
     /* Gesture */
+    this.area.addEventListener('mousedown', this);
     this.areaHandle.addEventListener('mousedown', this);
     this.areaCamera.addEventListener('mousedown', this);
     this.areaUnlock.addEventListener('mousedown', this);
@@ -91,18 +92,11 @@ var LockScreen = {
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
 
-    /* Camera app frame load/unload */
-    this.camera.addEventListener('load', this);
-    this.camera.addEventListener('unload', this);
-
     /* switching panels */
     window.addEventListener('keyup', this, true);
 
     var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
-      if (typeof value === 'string')
-        value = (value == 'true');
-
       self.setEnabled(value);
     });
 
@@ -114,10 +108,7 @@ var LockScreen = {
 
 
     SettingsListener.observe(
-        'lockscreen.passcode-lock.enabled', true, function(value) {
-      if (typeof value === 'string')
-        value = (value == 'true');
-
+        'lockscreen.passcode-lock.enabled', false, function(value) {
       self.setPassCodeEnabled(value);
     });
   },
@@ -190,10 +181,20 @@ var LockScreen = {
         var handle = this.areaHandle;
         var overlay = this.overlay;
         var target = evt.target;
-        target.setCapture(true);
-        target.addEventListener('mouseup', this);
 
-        switch (evt.target) {
+        this._touch = {
+          target: null,
+          touched: false,
+          leftTarget: leftTarget,
+          rightTarget: rightTarget,
+          initRailLength: this.railLeft.offsetWidth,
+          maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
+            (handle.offsetWidth - rightTarget.offsetWidth) / 2
+        };
+        window.addEventListener('mouseup', this);
+        window.addEventListener('mousemove', this);
+
+        switch (target) {
           case leftTarget:
             overlay.classList.add('touched-left');
             break;
@@ -203,39 +204,28 @@ var LockScreen = {
             break;
 
           case this.areaHandle:
+            this._touch.touched = true;
+            this._touch.initX = evt.pageX;
+            this._touch.initY = evt.pageY;
 
-            this._touch = {
-              initX: evt.screenX,
-              initY: evt.screenY,
-              target: null,
-              leftTarget: leftTarget,
-              rightTarget: rightTarget,
-              initRailLength: this.railLeft.offsetWidth,
-              maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
-                (handle.offsetWidth - rightTarget.offsetWidth) / 2
-            };
             overlay.classList.add('touched');
-            target.addEventListener('mousemove', this);
             break;
         }
         break;
 
       case 'mousemove':
-        this.handleMove(evt.screenX, evt.screenY);
+        this.handleMove(evt.pageX, evt.pageY);
         break;
 
       case 'mouseup':
+        var handle = this.areaHandle;
         window.removeEventListener('mousemove', this);
         window.removeEventListener('mouseup', this);
-        document.releaseCapture();
 
-        if (evt.target !== this.areaHandle) {
-          this.overlay.classList.remove('touched-left');
-          this.overlay.classList.remove('touched-right');
-          break;
-        }
+        this.overlay.classList.remove('touched-left');
+        this.overlay.classList.remove('touched-right');
 
-        this.handleMove(evt.screenX, evt.screenY);
+        this.handleMove(evt.pageX, evt.pageY);
         this.handleGesture();
         delete this._touch;
         this.overlay.classList.remove('touched');
@@ -263,32 +253,36 @@ var LockScreen = {
         break;
 
       case 'load':
-        this.camera.contentWindow.addEventListener(
+        var win = this.camera.firstElementChild.contentWindow;
+        win.addEventListener(
           'keydown', (this.redirectKeyEventFromFrame).bind(this));
-        this.camera.contentWindow.addEventListener(
+        win.addEventListener(
           'keypress', (this.redirectKeyEventFromFrame).bind(this));
-        this.camera.contentWindow.addEventListener(
-          'keyup', (this.redirectKeyEventFromFrame).bind(this));
-        break;
-
-      case 'unload':
-        this.camera.contentWindow.removeEventListener(
-          'keydown', (this.redirectKeyEventFromFrame).bind(this));
-        this.camera.contentWindow.removeEventListener(
-          'keypress', (this.redirectKeyEventFromFrame).bind(this));
-        this.camera.contentWindow.removeEventListener(
+        win.addEventListener(
           'keyup', (this.redirectKeyEventFromFrame).bind(this));
         break;
     }
   },
 
-  handleMove: function ls_handleMove(screenX, screenY) {
+  handleMove: function ls_handleMove(pageX, pageY) {
     var touch = this._touch;
-    if (!touch) {
-      return;
+
+    if (!touch.touched) {
+      // Do nothing if the user have not move the finger to the handle yet
+      if (document.elementFromPoint(pageX, pageY) !== this.areaHandle)
+        return;
+
+      touch.touched = true;
+      touch.initX = pageX;
+      touch.initY = pageY;
+
+      var overlay = this.overlay;
+      overlay.classList.remove('touched-left');
+      overlay.classList.remove('touched-right');
+      overlay.classList.add('touched');
     }
 
-    var dx = screenX - touch.initX;
+    var dx = pageX - touch.initX;
 
     var handleMax = touch.maxHandleOffset;
     this.areaHandle.style.MozTransition = 'none';
@@ -488,22 +482,31 @@ var LockScreen = {
     }
   },
 
-  loadPanel: function ls_loadPanel(panel) {
+  loadPanel: function ls_loadPanel(panel, callback) {
     switch (panel) {
       case 'passcode':
+      case 'emergency':
+      default:
+        if (callback)
+          callback();
         break;
 
       case 'camera':
-        // load the camera iframe
-        this.camera.src = './camera/';
-        break;
-
-      case 'emergency':
+        // create the iframe and load the camera
+        var frame = document.createElement('iframe');
+        frame.src = './camera/';
+        frame.addEventListener('load', this);
+        if (callback) {
+          frame.onload = function cameraLoaded() {
+            callback();
+          };
+        }
+        this.camera.appendChild(frame);
         break;
     }
   },
 
-  unloadPanel: function ls_loadPanel(panel) {
+  unloadPanel: function ls_loadPanel(panel, callback) {
     switch (panel) {
       case 'passcode':
         // Reset passcode panel only if the status is not error
@@ -516,8 +519,8 @@ var LockScreen = {
         break;
 
       case 'camera':
-        // unload the camera iframe
-        this.camera.src = './blank.html';
+        // Remove the iframe element
+        this.camera.removeChild(this.camera.firstElementChild);
         break;
 
       case 'emergency':
@@ -536,18 +539,19 @@ var LockScreen = {
         this.areaUnlock.classList.remove('triggered');
         break;
     }
+
+    if (callback)
+      callback();
   },
 
   switchPanel: function ls_switchPanel(panel) {
     var overlay = this.overlay;
-    this.unloadPanel(overlay.dataset.panel);
-
-    if (panel) {
-      overlay.dataset.panel = panel;
-      this.loadPanel(panel);
-    } else {
-      overlay.dataset.panel = '';
-    }
+    var self = this;
+    this.loadPanel(panel, function panelLoaded() {
+      self.unloadPanel(overlay.dataset.panel, function panelUnloaded() {
+        overlay.dataset.panel = panel || '';
+      });
+    });
   },
 
   updateTime: function ls_updateTime() {
@@ -568,7 +572,9 @@ var LockScreen = {
   },
 
   updateMuteState: function ls_updateMuteState() {
-    this.mute.hidden = !!SoundManager.currentVolume;
+    SettingsListener.observe('audio.volume.master', 5, (function(volume) {
+      this.mute.hidden = volume;
+    }).bind(this));
   },
 
   showNotification: function lockscreen_showNotification(detail) {
@@ -619,8 +625,8 @@ var LockScreen = {
       this.unlock();
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
-      if (navigator.mozVibrate)
-        navigator.mozVibrate([50, 50, 50]);
+      if ('vibrate' in navigator)
+        navigator.vibrate([50, 50, 50]);
 
       var timeout = this.kPassCodeErrorTimeout;
       this.passCodeError++;
@@ -650,7 +656,7 @@ var LockScreen = {
     var elements = ['mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
-        'area-unlock', 'area-camera', 'area-handle',
+        'area', 'area-unlock', 'area-camera', 'area-handle',
         'rail-left', 'rail-right',
         'passcode-code', 'passcode-pad',
         'camera'];

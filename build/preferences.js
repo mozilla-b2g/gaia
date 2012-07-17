@@ -86,6 +86,10 @@ let permissions = {
     "urls": [],
     "pref": "dom.telephony.app.phone.url"
   },
+  "mozBluetooth": {
+    "urls": [],
+    "pref": "dom.mozBluetooth.whitelist"
+  },
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"
@@ -118,14 +122,16 @@ let privileges = [];
 let domains = [];
 domains.push(GAIA_DOMAIN);
 
-['apps', 'test_apps'].forEach(function parseDirectory(directoryName) {
+let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
+
+appSrcDirs.forEach(function parseDirectory(directoryName) {
   let directories = getSubDirectories(directoryName);
   directories.forEach(function readManifests(dir) {
     let manifest = getJSON(directoryName, dir, "manifest.webapp");
     if (!manifest)
       return;
 
-    let rootURL = "http://" + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
+    let rootURL = GAIA_SCHEME + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
     let domain = dir + "." + GAIA_DOMAIN;
     privileges.push(rootURL);
     domains.push(domain);

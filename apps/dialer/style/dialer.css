@@ -1,26 +1,11 @@
-@font-face {
-  font-family: 'FontLight';
-  src: url('fonts/opensans-light-webfont.woff');
-}
-
-@font-face {
-  font-family: 'FontRegular';
-  src: url('fonts/opensans-regular-webfont.woff');
-}
-
-@font-face {
-  font-family: 'FontSemibold';
-  font-weight: 600;
-  src: url('fonts/opensans-semibold-webfont.woff');
-}
-
 html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
   margin: 0;
   color: white;
-  font-family: 'FontLight', sans-serif;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: light;
   font-size: 10px;
   background: black;
 }
@@ -30,15 +15,17 @@ html * {
 }
 
 .font-regular {
-  font-family: 'FontRegular';
+  font-family: 'Open Sans';
 }
 
 .font-semibold {
-  font-family: 'FontSemibold';
+  font-family: 'Open Sans';
+  font-weight: 600;
 }
 
 .font-light {
-  font-family: 'FontLight';
+  font-family: 'Open Sans';
+  font-weight: light;
 }
 
 .contact-primary-info {
