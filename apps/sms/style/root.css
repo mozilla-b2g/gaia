@@ -35,7 +35,6 @@ ul, ol, dl, dt, dd {
 }
 
 p, li {
-  -moz-hyphens: auto;
   word-wrap: break-word;
   margin: 0;
   padding: 0;

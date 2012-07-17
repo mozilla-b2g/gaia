@@ -12,7 +12,7 @@ var MessageManager = {
     // Init UI Managers
     ThreadUI.init();
     ThreadListUI.init();
-    // Init fist time
+    // Init first time
     this.getMessages(ThreadListUI.renderThreads);
 
     if (navigator.mozSms) {
@@ -60,11 +60,11 @@ var MessageManager = {
           case '#thread-list':
             if (mainWrapper.classList.contains('edit')) {
               mainWrapper.classList.remove('edit');
-            }else if (threadMessages.classList.contains('new')) {
+            } else if (threadMessages.classList.contains('new')) {
               MessageManager.slide(function() {
                 threadMessages.classList.remove('new');
               });
-            }else {
+            } else {
               MessageManager.slide();
             }
             break;
