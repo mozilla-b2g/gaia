@@ -320,12 +320,15 @@ var ThreadListUI = {
 
   createNewHeader: function thlui_createNewHeader(timestamp) {
     // Create DOM Element
-    var headerHTML = document.createElement('div');
-    headerHTML.classList.add('groupHeader');
-
-    // Create HTML and append
-    var structureHTML = Utils.getHeaderDate(timestamp);
-    headerHTML.innerHTML = structureHTML;
+    var headerHTML = document.createElement('h2');
+    // Append 'time-update' state
+    headerHTML.setAttribute('data-time-update', true);
+    headerHTML.setAttribute('data-time', timestamp);
+    // Boot update of headers
+    Utils.updateHeaders();
+    // Add text
+    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
+    //Add to DOM
     ThreadListUI.view.appendChild(headerHTML);
   }
 };
@@ -404,12 +407,18 @@ var ThreadUI = {
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createHeader: function thui_createHeader(timestamp) {
     // Create DOM Element
-    var headerHTML = document.createElement('div');
-    headerHTML.classList.add('groupHeader');
+    var headerHTML = document.createElement('h2');
+    // Append 'time-update' state
+    headerHTML.setAttribute('data-time-update', true);
+    headerHTML.setAttribute('data-time', timestamp);
+    // Boot update of headers
+    Utils.updateHeaders();
+    // Add text
+    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
+    // Add text
+    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
 
-    // Create HTML and append
-    var structureHTML = Utils.getHeaderDate(timestamp);
-    headerHTML.innerHTML = structureHTML;
+    // Append to DOM
     ThreadUI.view.appendChild(headerHTML);
   },
   updateHeaderData: function thui_updateHeaderData() {
