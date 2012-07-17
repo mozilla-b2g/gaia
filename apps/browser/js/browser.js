@@ -119,8 +119,10 @@ var Browser = {
   handleTabsBadgeClicked: function browser_handleTabsBadgeClicked() {
     if (this.currentScreen === this.TABS_SCREEN) {
       var tabId = this.createTab();
-      this.selectTab(tabId);
-      this.showAwesomeScreen();
+      this.showNewTabAnimation((function browser_showNewTabAnimation() {
+        this.selectTab(tabId);
+        this.showAwesomeScreen();
+      }).bind(this));
       return;
     }
     if (this.currentScreen === this.AWESOME_SCREEN &&
@@ -719,6 +721,28 @@ var Browser = {
       }
       this.selectTab(Object.keys(this.tabs)[newTab]);
     }
+  },
+
+  // Show a quick animation while creating a new tab to indicate
+  // that a new tab has been created
+  showNewTabAnimation: function browser_showNewTab(showTabCompleteFun) {
+    var ul = this.tabsList.childNodes[0];
+    var li = document.createElement('li');
+    li.innerHTML = '<a><img /><span>New Tab</span></a>';
+    li.style.height = '0px';
+    li.style.transition = 'height 0.2s ease-in';
+    ul.insertBefore(li, ul.childNodes[0]);
+
+    li.addEventListener('transitionend', function() {
+      // Pause so the user has time to see the new tab
+      setTimeout(showTabCompleteFun, 500);
+    });
+
+    // TODO: remove setTimeout
+    //   https://bugzilla.mozilla.org/show_bug.cgi?id=774642)
+    setTimeout(function() {
+      li.style.height = '';
+    }, 50);
   },
 
   hideCurrentTab: function browser_hideCurrentTab() {
