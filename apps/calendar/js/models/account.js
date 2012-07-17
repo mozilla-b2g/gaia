@@ -12,6 +12,7 @@
       }
     }
 
+    this._setupProvider();
   }
 
   Account.prototype = {
@@ -92,6 +93,11 @@
      */
     setup: function(callback) {
       var self = this;
+
+      if (!this.provider) {
+        self._setupProvider();
+      }
+
       this.provider.setupConnection(function(err, data) {
         if (err) {
           return callback(err);

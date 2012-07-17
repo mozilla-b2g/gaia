@@ -119,6 +119,33 @@
       });
     },
 
+    /**
+     * @param {String} preset name of value in Calendar.Presets.
+     */
+    _createModel: function(preset, callback) {
+      var settings = Calendar.Presets[preset];
+      var model = new Calendar.Models.Account(
+        settings.options
+      );
+
+      model.preset = preset;
+      callback(null, model);
+    },
+
+    /**
+     * @param {String} id account id.
+     */
+    _updateModel: function(id, callback) {
+      var store = this.app.store('Account');
+      var self = this;
+      store.get(id, function(err, model) {
+        if (err) {
+          return callback(err);
+        }
+        callback(null, model);
+      });
+    },
+
     render: function() {
       if (!this.model) {
         throw new Error('must provider model to ModifyAccount');
@@ -149,20 +176,38 @@
       list.remove('preset-' + this.model.preset);
       list.remove('provider-' + this.model.providerType);
 
-      this._fields = {};
+      this._fields = null;
       this.form.reset();
 
       this.saveButton.removeEventListener('click', this.save);
     },
 
     oninactive: function() {
-      Calendar.View.oninactive.apply(this, arguments);
+      Calendar.View.prototype.oninactive.apply(this, arguments);
       this.destroy();
+    },
+
+    dispatch: function(data) {
+      var params = data.params;
+      var self = this;
+
+      function updateModel(err, model) {
+        self.model = model;
+        self.render();
+        console.log(self.model.provider);
+      }
+
+      if (params.id) {
+        this._updateModel(params.id, updateModel);
+        this.completeUrl = '/settings/';
+      } else if (params.preset) {
+        this._createModel(params.preset, updateModel);
+        this.completeUrl = '/settings/';
+      }
     }
 
   };
 
-  ModifyAccount.prototype.onfirstseen = ModifyAccount.prototype.render;
   Calendar.ns('Views').ModifyAccount = ModifyAccount;
 
 }(this));

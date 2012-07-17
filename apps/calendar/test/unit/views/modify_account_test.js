@@ -213,6 +213,34 @@ suite('views/modify_account', function() {
     assert.equal(subject.errors.textContent, 'foo');
   });
 
+  test('#_createModel', function(done) {
+    var preset = 'local';
+
+    subject.model = null;
+
+    subject._createModel(preset, function(err, model) {
+      done(function() {
+        assert.instanceOf(model, Calendar.Models.Account);
+
+        assert.equal(
+          model.providerType,
+          Calendar.Presets.local.providerType
+        );
+      });
+    });
+  });
+
+  test('#_updateModel', function(done) {
+    var model = new Calendar.Models.Account();
+    var store = app.store('Account');
+    store._accounts['1'] = model;
+    subject._updateModel('1', function(err, data) {
+      done(function() {
+        assert.equal(model, data);
+      });
+    });
+  });
+
   test('#updateForm', function() {
     account.user = 'james';
     //we never display the password.
@@ -239,6 +267,57 @@ suite('views/modify_account', function() {
     assert.equal(account.user, 'user');
     assert.equal(account.password, 'pass');
     assert.equal(account.fullUrl, 'google.com/foo');
+  });
+
+  suite('#dispatch', function() {
+    var rendered;
+    var model;
+
+    setup(function() {
+      rendered = false;
+      model = {};
+      subject.render = function() {
+        rendered = true;
+      };
+    });
+
+    test('new', function() {
+      var calledWith;
+      subject._createModel = function() {
+        var cb = arguments[arguments.length - 1];
+        calledWith = arguments;
+
+        cb(null, model);
+      }
+
+      subject.dispatch({
+        params: { preset: 'local' }
+      });
+
+      assert.equal(subject.completeUrl, '/settings/');
+      assert.equal(calledWith[0], 'local');
+      assert.equal(subject.model, model);
+      assert.ok(rendered);
+    });
+
+    test('existing', function() {
+      var calledWith;
+      subject._updateModel = function() {
+        var cb = arguments[arguments.length - 1];
+        calledWith = arguments;
+        cb(null, model);
+      }
+
+      subject.dispatch({
+        params: { id: '1' }
+      });
+
+      assert.equal(subject.completeUrl, '/settings/');
+      assert.equal(calledWith[0], '1');
+      assert.equal(subject.model, model);
+      assert.ok(rendered);
+    });
+
   });
 
   suite('#render', function() {
@@ -299,6 +378,9 @@ suite('views/modify_account', function() {
       assert.ok(!called);
     });
 
+    test('fields', function() {
+      assert.equal(subject._fields, null);
+    });
 
     test('type class', function() {
       assert.isFalse(hasClass(subject.type));

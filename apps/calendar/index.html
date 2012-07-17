@@ -33,10 +33,16 @@
   <script defer src="/js/templates/day.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/account.js" type="text/javascript" charset="utf-8"></script>
 
+  <!--- providers -->
+  <script defer src="/js/provider/calendar/abstract.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/calendar/local.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/local.js" type="text/javascript" charset="utf-8"></script>
+
   <!--- store -->
   <script defer src="/js/store/abstract.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/busytime.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/event.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/store/account.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- models -->
   <script defer src="/js/models/account.js" type="text/javascript" charset="utf-8"></script>
@@ -63,7 +69,7 @@
 
   <header role="toolbar">
     <h1>Calendars</h1>
-    <a class="add-icon" href="/create-account/">Create Account</a>
+    <a class="add-icon" href="/select-preset/">Create Account</a>
   </header>
 
 
@@ -124,7 +130,7 @@
 
   </section>
 
-  <section id="create-account-view">
+  <section class="fullscreen-view" id="create-account-view">
     <header role="toolbar">
       <a data-l10n-id="buttons.cancel"
          role="button"
@@ -149,7 +155,7 @@
     </ol>
   </section>
 
-  <section id="modify-account-view">
+  <section class="fullscreen-view" id="modify-account-view">
     <header role="toolbar">
       <a class="cancel"  href="javascript: window.history.go(-1);">
         Back
@@ -157,7 +163,7 @@
       <h1>Account</h1>
       <a class="save" href="#">Save</a>
     </header>
-
+    <div class="errors"></div>
     <form>
       <fieldset>
         <ol>
@@ -195,7 +201,7 @@
     [Week] Coming soon...
   </section>
 
-  <section id="add-event-view">
+  <section class="fullscreen-view" id="add-event-view">
     <header role="toolbar">
       <a data-l10n-id="buttons.cancel"
          role="button"

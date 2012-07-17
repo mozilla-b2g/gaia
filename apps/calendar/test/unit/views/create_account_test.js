@@ -8,6 +8,7 @@ suite('views/create_account', function() {
 
   var subject;
   var template;
+  var app;
 
 
   function triggerEvent(element, eventName) {
@@ -32,8 +33,12 @@ suite('views/create_account', function() {
 
     document.body.appendChild(div);
 
+    app = testSupport.calendar.app();
+
     template = Calendar.Templates.Account;
-    subject = new Calendar.Views.CreateAccount();
+    subject = new Calendar.Views.CreateAccount({
+      app: app
+    });
   });
 
   test('#element', function() {
@@ -55,10 +60,34 @@ suite('views/create_account', function() {
 
     setup(function() {
       presets = Object.keys(Calendar.Presets);
+    });
+
+    test('preset marked for single use', function() {
+
+      var store = app.store('Account');
+
+      store.presetActive = function(name) {
+        return name === 'local';
+      };
+
       subject.render();
+
+      var html = subject.accounts.innerHTML;
+      assert.ok(html);
+      assert.ok(Calendar.Presets.local.singleUse);
+
+      var hasLocal = (html.indexOf('local') !== -1);
+
+      assert.isFalse(
+        hasLocal,
+        'single use presets should not be displayed'
+      );
+
     });
 
     test('dom update', function() {
+      subject.render();
+
       var html = subject.accounts.innerHTML;
 
       assert.ok(html);

@@ -103,8 +103,7 @@ p {
 
 /* add event view */
 
-#create-account-view,
-#add-event-view {
+.fullscreen-view {
   /* completely override other views */
   background: white;
   z-index: 10;

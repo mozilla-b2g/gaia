@@ -5,6 +5,7 @@
       providerType: 'Caldav',
       group: 'remote',
       options: {
+        providerType: 'Caldav',
         domain: 'https://calendar.google.com',
         uri: '/calendar/dav/'
       }
@@ -15,14 +16,18 @@
       group: 'remote',
       options: {
         domain: 'https://caldav.calendar.yahoo.com',
+        providerType: 'Caldav',
         uri: '/'
       }
     },
 
     'local': {
+      singleUse: true,
       providerType: 'Local',
       group: 'local',
-      options: {}
+      options: {
+        providerType: 'Local'
+      }
     }
 
   };

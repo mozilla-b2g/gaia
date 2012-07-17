@@ -58,6 +58,24 @@
     },
 
     /**
+     * Checks if provider type is used
+     * in any of the cached records.
+     *
+     * @param {String} type (like Local).
+     */
+    presetActive: function(type) {
+      var key;
+
+      for (key in this._accounts) {
+        if (this._accounts[key].preset === type) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+
+    /**
      * Adds an account to the database.
      *
      * @param {Object} object reference to account object to store.
@@ -93,7 +111,16 @@
       };
     },
 
-    all: function(callback) {
+    /**
+     * Don't mutate the result.
+     *
+     * @return {Object} key,value pairs of accounts.
+     */
+    cached: function() {
+      return this._accounts;
+    },
+
+    load: function(callback) {
       var value;
       var self = this;
       var trans = this.db.transaction('accounts', 'readwrite');
@@ -117,6 +144,7 @@
 
       trans.oncomplete = function() {
         callback(null, results);
+        self.emit('load', self._accounts);
       };
     },
 

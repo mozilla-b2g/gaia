@@ -33,17 +33,7 @@ Calendar.App = (function(window) {
       this.router.show(url);
     },
 
-    /**
-     * Primary code for app can go here.
-     */
-    init: function() {
-      if (!this.db) {
-        this.configure(
-          new Calendar.Db('b2g-calendar'),
-          new Calendar.Router(page)
-        );
-      }
-
+    _init: function() {
       var self = this;
       /* HACKS */
       function setPath(data, next) {
@@ -76,12 +66,39 @@ Calendar.App = (function(window) {
       this.route('/month/', setPath, 'Month', 'MonthsDay');
       this.route('/settings/', setPath, 'Settings', { clear: false });
 
+      this.route('/select-preset/', setPath, 'CreateAccount');
+      this.route('/create-account/:preset', setPath, 'ModifyAccount');
+      this.route('/update-account/:id', setPath, 'ModifyAccount');
+
       // default view
       if (window.location.pathname === '/') {
         this.go('/month/');
       }
 
-      this.router.start();
+      var account = this.db.getStore('Account');
+
+      // load the current set of accounts
+      account.load(function(err, data) {
+        // after finished start router.
+        self.router.start();
+      });
+    },
+
+    /**
+     * Primary code for app can go here.
+     */
+    init: function() {
+      var self = this;
+      if (!this.db) {
+        this.configure(
+          new Calendar.Db('b2g-calendar'),
+          new Calendar.Router(page)
+        );
+      }
+
+      this.db.open(function() {
+        self._init();
+      });
     },
 
     /**

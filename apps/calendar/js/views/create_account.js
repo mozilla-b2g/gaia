@@ -20,9 +20,18 @@
 
     render: function() {
       var list = Calendar.Presets;
+      var store = this.app.store('Account');
       var output;
 
       Object.keys(list).forEach(function(preset) {
+        var obj = list[preset];
+
+        if (obj.singleUse) {
+          if (store.presetActive(preset)) {
+            return;
+          }
+        }
+
         output = template.accountItem.render({ name: preset });
         this.accounts.insertAdjacentHTML('beforeend', output);
       }, this);
