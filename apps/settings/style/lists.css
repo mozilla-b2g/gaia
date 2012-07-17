@@ -107,6 +107,7 @@ ul li > label + * + * {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: -moz-calc(100% - 66px);
+  max-width: calc(100% - 66px);
 }
 
 /* sublines */
@@ -151,6 +152,7 @@ ul li button {
 [role=region] label > span {
   position: absolute;
   top: -moz-calc(50% - 22px);
+  top: calc(50% - 22px);
   right: 15px;
   -moz-box-sizing: border-box;
   display: block;
@@ -200,6 +202,7 @@ ul li button {
 
 #brightness-level a {
   max-width: -moz-calc(60% - 50px);
+  max-width: calc(60% - 50px);
 }
 
 [role=region] progress {

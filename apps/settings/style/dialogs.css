@@ -7,14 +7,14 @@
   position: absolute;
   top: 0;
   left: 0;
-  height: 100%;
+  z-index: 10;
+  background-color: #eee;
+  min-height: -moz-calc(100% - 100px);
+  min-height: calc(100% - 100px);
   width: 100%;
   overflow: auto;
-  background-color: #eee;
-  background-color: #eaeae4;
-  z-index: 10;
   margin: 0;
-  padding: 0;
+  padding: 0 0 100px 0;
 }
 
 [role=dialog].active,
@@ -35,12 +35,10 @@
   text-align: center;
   line-height: 80px;
   height: 80px;
-  margin-top: 20px;
-  padding: 0;
-  background-color: #ccc;
-  /* XXX this supposes that the dialog content won't have to be scrolled */
-  position: absolute;
   width: 100%;
+  padding: 0;
+  background-color: #999;
+  position: absolute;
   bottom: 0;
 }
 
@@ -109,13 +107,12 @@
 }
 
 [role=dialog] label input {
-  width: 100%;
   font-size: 1em;
 }
 
 [role=dialog] input[type=text],
 [role=dialog] input[type=password] {
-  margin-bottom: 1em;
+  width: 100%;
 }
 
 

@@ -478,23 +478,23 @@ window.addEventListener('localized', function wifiSettings(evt) {
         return null;
 
       // network info
-      var ssid = dialog.querySelector('*[data-ssid]');
+      var ssid = dialog.querySelector('[data-ssid]');
       if (ssid)
         ssid.textContent = network.ssid;
 
       var keys = network.capabilities;
-      var security = dialog.querySelector('*[data-security]');
+      var security = dialog.querySelector('[data-security]');
       if (security)
         security.textContent = (keys && keys.length) ?
             keys.join(', ') : _('securityNone');
 
-      var signal = dialog.querySelector('*[data-signal]');
+      var signal = dialog.querySelector('[data-signal]');
       if (signal) {
         var lvl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
         signal.textContent = _('signalLevel' + lvl);
       }
 
-      var speed = dialog.querySelector('*[data-speed]');
+      var speed = dialog.querySelector('[data-speed]');
       if (speed) {
         speed.textContent = network.linkSpeed;
       }
@@ -528,14 +528,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
         if (showPassword)
           showPassword.checked = false;
         // 'close' (hide) the dialog
-        document.body.classList.remove('dialog');
         dialog.classList.remove('active');
       }
 
       // OK|Cancel buttons
-      //var buttons = dialog.querySelectorAll('footer button');
-
-      //var okButton = buttons[0];
       var okButton = dialog.querySelector('[type=submit]');
       okButton.onclick = function() {
         if (identity)
@@ -546,16 +542,30 @@ window.addEventListener('localized', function wifiSettings(evt) {
         return callback ? callback() : false;
       };
 
-      //var cancelButton = buttons[1];
       var cancelButton = dialog.querySelector('[type=reset]');
       cancelButton.onclick = function() {
         close();
         return;
       };
 
+      // XXX hack: hide the footer (which contains the 'OK' button...)
+      //     when the virtual keyboard is shown
+      var footer = dialog.querySelector('footer');
+      function hideFooter() {
+        footer.style.display = 'none';
+      };
+      function showFooter() {
+        footer.style.display = 'block';
+      };
+
+      var inputs = dialog.querySelectorAll('input');
+      for (var i = 0; i < inputs.length; i++) {
+        inputs[i].onfocus = hideFooter;
+        inputs[i].onblur = showFooter;
+      }
+
       // show dialog box
       dialog.classList.add('active');
-      document.body.classList.add('dialog');
       return dialog;
     }
   }

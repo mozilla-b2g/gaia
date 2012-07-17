@@ -186,7 +186,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: Wi-Fi :: network status -->
+    <!-- Connectivity :: Wi-Fi :: Network Status Dialog -->
     <form role="dialog" action="#wifi" id="wifi-status">
       <header>
         <button type="reset" data-l10n-id="back">Back</button>
@@ -203,12 +203,13 @@
         <dd hidden data-speed></dd>
       </dl>
 
+      <!-- disconnect from network -->
       <footer>
         <button type="submit" data-l10n-id="forget">Forget</button>
       </footer>
     </form>
 
-    <!-- Connectivity :: Wi-Fi :: WEP authentication -->
+    <!-- Connectivity :: Wi-Fi :: WEP Authentication Dialog -->
     <form role="dialog" action="#wifi" id="wifi-wep">
       <header>
         <button type="reset" data-l10n-id="back">Back</button>
@@ -233,12 +234,13 @@
         <span data-l10n-id="showPassword">show password</span>
       </label>
 
+      <!-- connect to network -->
       <footer>
         <button type="submit" data-l10n-id="ok">OK</button>
       </footer>
     </form>
 
-    <!-- Connectivity :: Wi-Fi :: PSK authentication -->
+    <!-- Connectivity :: Wi-Fi :: PSK Authentication Dialog -->
     <form role="dialog" action="#wifi" id="wifi-psk">
       <header>
         <button type="reset" data-l10n-id="back">Back</button>
@@ -263,12 +265,13 @@
         <span data-l10n-id="showPassword">show password</span>
       </label>
 
+      <!-- connect to network -->
       <footer>
         <button type="submit" data-l10n-id="ok">OK</button>
       </footer>
     </form>
 
-    <!-- Connectivity :: Wi-Fi :: EAP authentication -->
+    <!-- Connectivity :: Wi-Fi :: EAP Authentication Dialog -->
     <form role="dialog" action="#wifi" id="wifi-eap">
       <header>
         <button type="reset" data-l10n-id="back">Back</button>
@@ -297,6 +300,7 @@
         <span data-l10n-id="showPassword">show password</span>
       </label>
 
+      <!-- connect to network -->
       <footer>
         <button type="submit" data-l10n-id="ok">OK</button>
       </footer>
@@ -347,7 +351,7 @@
     </section>
 
     <!-- Connectivity :: 3G/data :: APN Settings Dialog -->
-    <form role="dialog" id="apnSettings" action="#data">
+    <form role="dialog" action="#data" id="apnSettings">
       <header>
         <button data-l10n-id="back" type="reset">Back</button>
         <button data-l10n-id="ok" type="submit">OK</button>
@@ -382,7 +386,7 @@
     </form>
 
     <!-- Connectivity :: 3G/data :: MMS Settings Dialog -->
-    <form role="dialog" id="mmsSettings" action="#data">
+    <form role="dialog" action="#data" id="mmsSettings">
       <header>
         <button data-l10n-id="back" type="reset">Back</button>
         <button data-l10n-id="ok" type="submit">OK</button>
@@ -927,13 +931,6 @@
         </li>
       </ul>
     </section>
-
-    <!-- Dialog Boxes -->
-    <div id="dialogs">
-      <div>
-
-      </div>
-    </div>
 
   </body>
 </html>
