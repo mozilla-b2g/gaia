@@ -190,7 +190,7 @@ endif
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/07/2012-07-17-03-05-55-mozilla-central/xulrunner-17.0a1.en-US.
 XULRUNNER_TEST=xulrunner
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory

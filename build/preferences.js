@@ -78,10 +78,6 @@ let permissions = {
     "urls": [],
     "pref": "dom.sms.whitelist"
   },
-  "contacts": {
-    "urls": [],
-    "pref": "dom.mozContacts.whitelist"
-  },
   "telephony": {
     "urls": [],
     "pref": "dom.telephony.app.phone.url"
@@ -124,6 +120,39 @@ domains.push(GAIA_DOMAIN);
 
 let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 
+(function registerProfileDirectory() {
+
+  let directoryProvider = {
+    getFile: function provider_getFile(prop, persistent) {
+      persistent.value = true;
+      debug("prop: " + prop);
+      if (prop != "ProfD" && prop != "ProfLDS") {
+        throw Cr.NS_ERROR_FAILURE;
+      }
+
+      let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile)
+      file.initWithPath(PROFILE_DIR);
+      return file;
+    },
+
+    QueryInterface: function provider_queryInterface(iid) {
+      if (iid.equals(Ci.nsIDirectoryServiceProvider) ||
+          iid.equals(Ci.nsISupports)) {
+        return this;
+      }
+      throw Cr.NS_ERROR_NO_INTERFACE;
+    }
+  };
+
+  Cc["@mozilla.org/file/directory_service;1"]
+    .getService(Ci.nsIProperties)
+    .QueryInterface(Ci.nsIDirectoryService)
+    .registerProvider(directoryProvider);
+})();
+
+let permissionManager = Components.classes["@mozilla.org/permissionmanager;1"].getService(Ci.nsIPermissionManager);
+let ioservice = Components.classes["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
+
 appSrcDirs.forEach(function parseDirectory(directoryName) {
   let directories = getSubDirectories(directoryName);
   directories.forEach(function readManifests(dir) {
@@ -142,14 +171,32 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
         if (!permissions[name])
           continue;
 
+        let uri = ioservice.newURI(rootURL, null, null);
+        dump("add permission: " + rootURL + ", " + name + "\n");
+        permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
+
+        // XXX REMOVE once bug 774716 is fixed
         permissions[name].urls.push(rootURL);
 
         // special case for the telephony API which needs full URLs
-        if (name == 'telephony')
-          if (manifest.background_page)
+        if (name == 'telephony') {
+          if (manifest.background_page) {
+            let uri = ioservice.newURI(rootURL + manifest.background_page, null, null);
+            dump("add permission: " + rootURL + manifest.background_page + ", " + name + "\n");
+            permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
+
+            // XXX REMOVEME
             permissions[name].urls.push(rootURL + manifest.background_page);
-        if (manifest.attention_page)
+          }
+        }
+        if (manifest.attention_page) {
+          let uri = ioservice.newURI(rootURL + manifest.attention_page, null, null);
+          dump("add permission: " + rootURL + manifest.attention_page+ ", " + name + "\n");
+          permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
+
+          // XXX REMOVEME
           permissions[name].urls.push(rootURL + manifest.attention_page);
+        }
       }
     }
   });
