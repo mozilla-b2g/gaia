@@ -3,6 +3,11 @@
 
 'use strict';
 
+/**
+ * Debug note: to test this app in a desktop browser, you'll have to set
+ * the `dom.mozSettings.enabled' preference to false.
+ */
+
 var Settings = {
   init: function settings_init() {
     this.loadGaiaCommit();
@@ -84,7 +89,8 @@ var Settings = {
   handleEvent: function settings_handleEvent(evt) {
     var input = evt.target;
     var key = input.name || input.dataset.name;
-    if (!key)
+    var settings = window.navigator.mozSettings;
+    if (!key || !settings)
       return;
 
     switch (evt.type) {
@@ -97,8 +103,8 @@ var Settings = {
                    (input.type == 'password')) {
           value = input.value;
         }
-        var cset = { }; cset[key] = value;
-        window.navigator.mozSettings.getLock().set(cset);
+        var cset = {}; cset[key] = value;
+        settings.getLock().set(cset);
         break;
 
       case 'click':
@@ -111,8 +117,8 @@ var Settings = {
         value = Math.max(0, Math.min(1, value));
         input.value = position;
 
-        var cset = { }; cset[key] = value;
-        window.navigator.mozSettings.getLock().set(cset);
+        var cset = {}; cset[key] = value;
+        settings.getLock().set(cset);
         break;
     }
   },

@@ -3,8 +3,138 @@
 
 'use strict';
 
-window.addEventListener('localized', function scanWifiNetworks(evt) {
-  var wifiManager = navigator.mozWifiManager;
+// create a fake mozWifiManager if required (e.g. desktop browser)
+var gWifiManager = (function(window) {
+  var navigator = window.navigator;
+
+  try {
+    if ('mozWifiManager' in navigator)
+      return navigator.mozWifiManager;
+  } catch (e) {
+    //Bug 739234 - state[0] is undefined when initializing DOMWifiManager
+    dump(e);
+  }
+
+  /** fake network list, where each network object looks like:
+    * {
+    *   ssid              : SSID string (human-readable name)
+    *   bssid             : network identifier string
+    *   capabilities      : array of strings (supported authentication methods)
+    *   relSignalStrength : 0-100 signal level (integer)
+    *   connected         : boolean state
+    * }
+    */
+  var fakeNetworks = {
+    'Mozilla-G': {
+      ssid: 'Mozilla-G',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      capabilities: ['WPA-EAP'],
+      relSignalStrength: 67,
+      connected: false
+    },
+    'Livebox 6752': {
+      ssid: 'Livebox 6752',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      capabilities: ['WEP'],
+      relSignalStrength: 32,
+      connected: false
+    },
+    'Mozilla Guest': {
+      ssid: 'Mozilla Guest',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      capabilities: [],
+      relSignalStrength: 98,
+      connected: false
+    },
+    'Freebox 8953': {
+      ssid: 'Freebox 8953',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      capabilities: ['WPA2-PSK'],
+      relSignalStrength: 89,
+      connected: false
+    }
+  };
+
+  return {
+    // true if the wifi is enabled
+    enabled: false,
+
+    // enables/disables the wifi
+    setEnabled: function fakeSetEnabled(bool) {
+      var self = this;
+      var request = { result: bool };
+
+      setTimeout(function() {
+        if (request.onsuccess) {
+          request.onsuccess();
+        }
+        if (bool) {
+          self.onenabled();
+        } else {
+          self.ondisabled();
+        }
+      }, 0);
+
+      self.enabled = bool;
+      return request;
+    },
+
+    // returns a list of visible networks
+    getNetworks: function() {
+      var request = { result: fakeNetworks };
+
+      setTimeout(function() {
+        if (request.onsuccess)
+          request.onsuccess();
+      }, 2000);
+
+      return request;
+    },
+
+    // selects a network
+    associate: function(network) {
+      var self = this;
+      var connection = { result: network };
+      var networkEvent = { network: network };
+
+      setTimeout(function() {
+        self.connection.status = 'connecting';
+        self.onstatuschange(networkEvent);
+      }, 0);
+
+      setTimeout(function() {
+        self.connection.status = 'associated';
+        self.onstatuschange(networkEvent);
+      }, 1000);
+
+      setTimeout(function() {
+        network.connected = true;
+        self.connected = network;
+        self.connection.network = network;
+        self.connection.status = 'connected';
+        self.onstatuschange(networkEvent);
+      }, 2000);
+
+      return connection;
+    },
+
+    // event listeners
+    onenabled: function(event) {},
+    ondisabled: function(event) {},
+    onstatuschange: function(event) {},
+
+    // returns a network object for the currently connected network (if any)
+    connected: null,
+
+    connection: {
+      status: 'disconnected',
+      network: null
+    }
+  };
+})(this);
+
+// handle Wi-Fi settings
+window.addEventListener('localized', function wifiSettings(evt) {
   var _ = navigator.mozL10n.get;
 
   // main wifi button
@@ -14,11 +144,11 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     // current state
     function updateState() {
       switching = false;
-      var currentNetwork = wifiManager.connection.network;
+      var currentNetwork = gWifiManager.connection.network;
       if (currentNetwork) {
         infoBlock.textContent = _('fullStatus-connected', currentNetwork);
         checkbox.checked = true;
-      } else if (wifiManager.enabled) {
+      } else if (gWifiManager.enabled) {
         infoBlock.textContent = _('fullStatus-disconnected');
         checkbox.checked = true;
       } else {
@@ -33,14 +163,14 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         return;
       switching = true;
       var req;
-      if (wifiManager.enabled) {
+      if (gWifiManager.enabled) {
         // stop wifi
         gNetworkList.clear();
         infoBlock.textContent = '';
-        req = wifiManager.setEnabled(false);
+        req = gWifiManager.setEnabled(false);
       } else {
         // start wifi
-        req = wifiManager.setEnabled(true);
+        req = gWifiManager.setEnabled(true);
         req.onerror = function() {
           gNetworkList.autoscan = false;
         };
@@ -136,12 +266,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         return;
 
       // stop auto-scanning if wifi disabled or the app is hidden
-      if (!wifiManager.enabled || document.mozHidden) {
+      if (!gWifiManager.enabled || document.mozHidden) {
         scanning = false;
         return;
       }
 
-      var req = wifiManager.getNetworks();
+      var req = gWifiManager.getNetworks();
       scanning = true;
 
       req.onsuccess = function() {
@@ -247,11 +377,11 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     *        or when we were connected to a network but have disconnected
     *          (transition: connected -> disconnected).
     */
-  wifiManager.onstatuschange = function(event) {
-    if (!wifiManager.connection || !wifiManager.connection.network)
+  gWifiManager.onstatuschange = function(event) {
+    if (!gWifiManager.connection || !gWifiManager.connection.network)
       return;
-    var ssid = wifiManager.connection.network.ssid;
-    var status = wifiManager.connection.status;
+    var ssid = gWifiManager.connection.network.ssid;
+    var status = gWifiManager.connection.status;
     if (status == 'connected')
       gNetworkList.scan(); // refresh the network list
     // 'fullStatus' can use 'ssid' as an argument, 'shortStatus' cannot
@@ -262,21 +392,21 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   /** mozWifiManager events / callbacks
     * requires bug 766497
     */
-  wifiManager.onenabled = function onWifiEnabled() {
+  gWifiManager.onenabled = function onWifiEnabled() {
     gStatus.update();
     gNetworkList.clear(true);
     gNetworkList.scan();
   }
-  wifiManager.ondisabled = function onWifiDisabled() {
+  gWifiManager.ondisabled = function onWifiDisabled() {
     gStatus.update();
   }
 
   function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
-    // and 'wifiManager.connection.network' should be comparable to 'network'.
+    // and 'gWifiManager.connection.network' should be comparable to 'network'.
     // Until this is properly implemented, we just compare SSIDs to tell wether
     // the network is already connected or not.
-    var currentNetwork = wifiManager.connection.network;
+    var currentNetwork = gWifiManager.connection.network;
     return currentNetwork && (currentNetwork.ssid == network.ssid);
   }
 
@@ -305,13 +435,13 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     }
 
     function wifiConnect() {
-      wifiManager.associate(network);
+      gWifiManager.associate(network);
       gStatus.textContent = '';
       gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
     }
 
     function wifiDisconnect() {
-      wifiManager.forget(network);
+      gWifiManager.forget(network);
       gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
       gStatus.textContent = '';
     }
@@ -430,7 +560,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
   // startup
   gStatus.update();
-  if (wifiManager.enabled) {
+  if (gWifiManager.enabled) {
     gNetworkList.clear(true);
     gNetworkList.scan();
   }

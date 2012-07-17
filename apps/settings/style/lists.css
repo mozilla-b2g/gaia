@@ -1,0 +1,243 @@
+/**
+ * Setting panels
+ * = full-size blocks, identified by a 'region' role
+ */
+
+[role=region] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+}
+
+/* list separators */
+[role=region] > h2 {
+  margin: 0;
+  padding: 0 0 0 30px;
+  height: 40px;
+  line-height: 40px;
+  font-size: 0.85em;
+  color: white;
+  background-color: #666;
+  border-bottom: 1px inset #bbf;
+}
+
+
+/******************************************************************************
+ * Horizontal Slide Transition
+ *
+ * XXX hack: the width is adjusted (0-100%) with a delayed transition
+ *           in order to hide the horizontal scrollbar on the device
+ *           -- at least, when the transition is over.
+ * This is just a workaround: the platform bug should be fixed later.
+ */
+
+[role=region] {
+  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0.5s;
+  -moz-transform: translateX(100%);
+  width: 0;
+}
+
+#root {
+  -moz-transform: translateX(-100%);
+}
+
+#root:target, *[role=region]:target {
+  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0s;
+  -moz-transform: none;
+  width: 100%;
+}
+
+body.hidden #root {
+  -moz-transform: none;
+  -moz-transition: none;
+}
+
+
+/******************************************************************************
+ * Table View
+ * line height = 64px, border included
+ */
+
+ul {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+ul li {
+  position: relative;
+  border-bottom: 1px solid #c3c9cb;
+  background-color: #f5f5f5;
+  color: #000;
+  -moz-box-sizing: border-box;
+  height: 64px;
+}
+
+ul li.active {
+  background-color: #fee;
+}
+
+ul li:active {
+  background-color: rgba(0, 0, 0, .07);
+  text-shadow: #999 0 -1px 0;
+  color: #222;
+}
+
+ul li > a {
+  display: block;
+  text-decoration: none;
+  outline: 0;
+  color: #000;
+  -moz-box-sizing: border-box;
+  height: 64px;
+  line-height: 64px;
+  padding: 0 30px;
+}
+
+/* text ellipsis */
+ul li > label + *,
+ul li > label + * + * {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: -moz-calc(100% - 66px);
+}
+
+/* sublines */
+ul li > small {
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  padding-top: 8px;
+  font-size: 0.65em;
+  color: #4f5859;
+}
+
+ul li > small + a {
+  line-height: 58px;
+}
+
+/* action buttons */
+ul li button {
+  width: 50%;
+  height: 52px;
+  margin: 6px 30px;
+  font-size: 1em;
+}
+
+
+/******************************************************************************
+ * fake input boxes for checkboxes & radio buttons
+ */
+
+[role=region] label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+[role=region] label > input {
+  display: none;
+}
+
+[role=region] label > span {
+  position: absolute;
+  top: -moz-calc(50% - 22px);
+  right: 15px;
+  -moz-box-sizing: border-box;
+  display: block;
+  width: 42px;
+  height: 42px;
+  border: none;
+}
+
+[role=region] label > input[type=radio] + span {
+  background: url(images/radio-off.png) no-repeat scroll center center;
+}
+
+[role=region] label > input[type=radio]:checked + span {
+  background: url(images/radio-on.png) no-repeat scroll center center;
+}
+
+[role=region] label > input[type=checkbox] + span {
+  border: 2px solid;
+  border-radius: 5px;
+  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
+  background-color: #eaeae4;
+}
+
+[role=region] label > input[type=checkbox]:checked + span {
+  background: url(images/checked.png) no-repeat scroll center center;
+}
+
+
+/******************************************************************************
+ * brightness level
+ */
+
+[role=region] label > progress {
+  float: right;
+  width: 150px;
+  margin: 22px 20px 0 0;
+}
+
+#brightness-level:active {
+  background-color: #f5f5f5;
+  text-shadow: none;
+  color: #555;
+}
+
+#brightness-level a {
+  max-width: -moz-calc(60% - 50px);
+}
+
+[role=region] progress {
+  width: 40%;
+  height: 40%;
+  position: absolute;
+  right: 20px;
+  top: 30%;
+}
+
+
+/******************************************************************************
+ * Wi-Fi icons
+ */
+
+#wifi-networks span {
+  -moz-border-top-colors:    transparent;
+  -moz-border-right-colors:  transparent;
+  -moz-border-bottom-colors: transparent;
+  -moz-border-left-colors:   transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+/* signal levels */
+#wifi-networks .wifi-signal0 { background-image: url(images/wifi-0.png); }
+#wifi-networks .wifi-signal1 { background-image: url(images/wifi-1.png); }
+#wifi-networks .wifi-signal2 { background-image: url(images/wifi-2.png); }
+#wifi-networks .wifi-signal3 { background-image: url(images/wifi-3.png); }
+#wifi-networks .wifi-signal4 { background-image: url(images/wifi-4.png); }
+
+/* secured networks */
+#wifi-networks .wifi-secure {
+  background-image: url(images/wifi-lock.png);
+}
+
+/* searching... */
+#wifi-networks .wifi-search {
+  background-image: url(images/wifi-scan.png);
+}
+

@@ -1,60 +1,96 @@
+/**
+ * Settings style & layout
+ * warning: `lists.css' and `dialogs.css' must be loaded before this file
+ */
+
 html, body {
-  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 0;
+  font-size: 3mozmm;
+  overflow: hidden !important;
+  font-family: "Open Sans", sans-serif;
 }
 
-@font-face {
-  font-family: Roboto;
-  src: url('fonts/Roboto-Regular.ttf');
+body.hidden * {
+  display: none;
 }
-@font-face {
-  font-family: Roboto;
+
+
+/******************************************************************************
+ * Title bars
+ */
+
+header {
+  height: 63px;
+  border-bottom: 1px solid #111;
+}
+
+header h1 {
+  margin: 0;
+  padding: 0;
+  height: 62px;
+  line-height: 62px;
+  text-align: center;
   font-weight: bold;
-  src: url('fonts/Roboto-Bold.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-style: italic;
-  src: url('fonts/Roboto-Italic.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-weight: bold;
-  font-style: italic;
-  src: url('fonts/Roboto-BoldItalic.ttf');
+  font-size: 1em;
+  color: white;
+  background-color: #333;
+  border-bottom: 1px solid #222;
 }
 
-*[dir=rtl] .view > h2 {
-  padding: 0 10px 0 0;
+header h1 a {
+  display: block;
+  text-decoration: none;
+  background: url(images/header-left-arrow.png) no-repeat 20px 50%;
+  color: white;
 }
 
-*[dir=rtl] .view {
+header h1 a:active {
+  background-color: #444;
+}
+
+
+/******************************************************************************
+ * Right-to-Left layout
+ */
+
+[dir=rtl] header h1 a {
+  background-image: url(images/header-right-arrow.png);
+  background-position: right 20px top 50%;
+}
+
+[dir=rtl] [role=region] > h2 {
+  padding: 0 30px 0 0;
+}
+
+[dir=rtl] [role=region] {
   -moz-transform: translateX(-100%);
 }
-*[dir=rtl] #root {
+[dir=rtl] #root {
   -moz-transform: translateX(+100%);
 }
 
-*[dir=rtl] #root:target,
-*[dir=rtl] .view:target {
+[dir=rtl] #root:target,
+[dir=rtl] [role=region]:target {
   -moz-transform: none;
 }
 
-*[dir=rtl] ul li > span,
-*[dir=rtl] ul li > small {
+[dir=rtl] ul li > span,
+[dir=rtl] ul li > small {
   left: auto;
-  right: 20px;
+  right: 30px;
 }
 
-*[dir=rtl] .view label > span {
-  left: 20px;
+[dir=rtl] [role=region] label > span {
+  left: 15px;
   right: auto;
 }
 
-*[dir=ltr] a[dir=rtl] {
+[dir=ltr] a[dir=rtl] {
   text-align: left;
 }
 
-*[dir=rtl] a[dir=ltr] {
+[dir=rtl] a[dir=ltr] {
   text-align: right;
 }
 
