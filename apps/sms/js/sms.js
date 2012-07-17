@@ -225,9 +225,14 @@ var ThreadListUI = {
     this.delNumList = [];
    },
 
-  updateMsgWithContact: function thlui_updateMsgWithContact(contact) {
-    // TODO Update DOM with data retrieved from Contact DB
-    // This will be a callback from ContactManager
+  updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
+    if (contact.length <= 0)
+      return;
+    var root = document.getElementById(number);
+    var element = root.getElementsByClassName('name')[0];
+    if (element) {
+      element.innerHTML = contact[0].name;
+    }
   },
 
   renderThreads: function thlui_renderThreads(messages) {
@@ -306,6 +311,12 @@ var ThreadListUI = {
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
+
+    // Get the contact data for the number
+    ContactDataManager.getContactData(thread.num, function gotContact(contact) {
+      if (contact && contact.length > 0)
+        ThreadListUI.updateMsgWithContact(thread.num, contact);
+    });
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
 
