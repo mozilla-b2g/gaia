@@ -183,8 +183,7 @@ var Applications = (function() {
     return protocol + '//' + name + '.' + domain;
   });
 
-  // XXX which marketplace app we are going to flag as a core app?
-  coreApplications.push('https://marketplace-dev.allizom.org');
+  coreApplications.push('https://marketplace.mozilla.org');
 
   /*
    *  Returns true if it's a core application
