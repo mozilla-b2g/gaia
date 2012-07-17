@@ -228,8 +228,7 @@ var ThreadListUI = {
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
     if (contact.length <= 0)
       return;
-    var root = document.getElementById(number);
-    var element = root.getElementsByClassName('name')[0];
+    var element = document.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
       element.innerHTML = contact[0].name;
     }
