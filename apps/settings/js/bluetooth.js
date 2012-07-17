@@ -12,8 +12,7 @@ window.addEventListener('DOMContentLoaded', function bluetoothSettings(evt) {
     settings.addObserver('bluetooth.enabled', function(event) {
       if (event.settingValue) {
         gBluetoothPowerStatus.textContent = 'Enabled';
-      }
-      else {
+      } else {
         gBluetoothPowerStatus.textContent = 'Disabled';
       }
       gBluetoothCheckBox.checked = event.settingValue;
@@ -24,8 +23,7 @@ window.addEventListener('DOMContentLoaded', function bluetoothSettings(evt) {
       var enabled = req.result['bluetooth.enabled'];
       if (enabled) {
         gBluetoothPowerStatus.textContent = 'Enabled';
-      }
-      else {
+      } else {
         gBluetoothPowerStatus.textContent = 'Disabled';
       }
       gBluetoothCheckBox.checked = enabled;
