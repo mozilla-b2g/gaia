@@ -7,7 +7,7 @@ var SuggestionEngine = {};
 
 (function() {
 
-  var debugging = true;
+  var debugging = false;
   var TAG = '[PredictiveText] ';
 
   var debug = function(str) {

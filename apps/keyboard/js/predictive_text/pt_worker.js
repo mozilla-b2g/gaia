@@ -3,7 +3,7 @@
 
 'use strict';
 
-var debugging = true;
+var debugging = false;
 
 function debug(msg) {
   if (!debugging)
