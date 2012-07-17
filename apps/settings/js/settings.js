@@ -140,7 +140,7 @@ var Settings = {
     var req = new XMLHttpRequest();
     req.onreadystatechange = (function(e) {
       if (req.readyState === 4) {
-        if (req.status === 200) {
+        if (req.status === 0 || req.status === 200) {
           var data = req.responseText.split('\n');
           var dispDate = document.getElementById('gaia-commit-date');
           var disp = document.getElementById('gaia-commit-hash');
