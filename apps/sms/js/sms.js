@@ -189,16 +189,18 @@ var MessageManager = {
   },
 
   markMessageRead: function mm_markMessageRead(id, value, callback) {
-    var req = navigator.mozSms.markMessageRead(id, value);
-    req.onsuccess = function onsuccess() {
-      callback(req.result);
-    };
+    if (navigator.mozSms) {
+      var req = navigator.mozSms.markMessageRead(id, value);
+      req.onsuccess = function onsuccess() {
+        callback(req.result);
+      };
 
-    req.onerror = function onerror() {
-      var msg = 'Mark message error in the database. Error: ' + req.errorCode;
-      console.log(msg);
-      callback(null);
-    };
+      req.onerror = function onerror() {
+        var msg = 'Mark message error in the database. Error: ' + req.errorCode;
+        console.log(msg);
+        callback(null);
+      };
+    }
   },
 
   markMessagesRead: function mm_markMessagesRead(list, value, callback) {
