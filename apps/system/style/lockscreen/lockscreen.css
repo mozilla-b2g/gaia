@@ -588,7 +588,7 @@
   bottom: 214px;
   height: 72px;
   width: 100%;
-  background: -moz-linear-gradient(#2b2e33, #424851);
+  background-color: #313c46;
   margin: 0;
   padding: 0 8px;
   -moz-box-sizing: border-box;
@@ -638,14 +638,14 @@
   display: block;
   position: absolute;
 
-  width: 30px;
-  height: 30px;
+  width: 15px;
+  height: 15px;
   background-color: #000;
-  border-radius: 15px;
+  border-radius: 7.5px;
   top: 50%;
   left: 50%;
-  margin-left: -15px;
-  margin-top: -15px;
+  margin-left: -7.5px;
+  margin-top: -7.5px;
 }
 
 @media screen and (height: 800px) {
@@ -663,11 +663,11 @@
     border-radius: 7.5px;
   }
   #lockscreen-passcode-code > span[data-dot]::before {
-    width: 45px;
-    height: 45px;
-    border-radius: 22.5px;
-    margin-left: -22.5px;
-    margin-top: -22.5px;
+    width: 22.5px;
+    height: 22.5px;
+    border-radius: 11.25px;
+    margin-left: -11.25px;
+    margin-top: -11.25px;
   }
 }
 
@@ -693,8 +693,10 @@
   float: left;
   width: 33.333%;
   height: 50px;
-  border-top: 1px solid rgba(255, 255, 255, 0.8);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+  border-top: 1px solid #525050;
+  border-bottom: 1px solid #000000;
+  border-left: 1px solid #525050;
+  border-right: 1px solid #000000;
   outline: none;
   padding: 0 20px;
 
@@ -704,6 +706,10 @@
   color: #fff;
   text-decoration: none;
   text-shadow: 0 0 3px #000;
+}
+
+#lockscreen-passcode-pad > a.last-row {
+  height: 64px;
 }
 
 #lockscreen-passcode-pad > a > span {
@@ -756,6 +762,9 @@
     height: 75px;
     font-size: 48px;
     line-height: 75px;
+  }
+  #lockscreen-passcode-pad > a.last-row {
+    height: 96px;
   }
   #lockscreen-passcode-pad > a > span {
     font-size: 18px;
