@@ -451,10 +451,7 @@ var LockScreen = {
     WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
 
     if (!wasAlreadyUnlocked) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('unlocked', true, true, null);
-      window.dispatchEvent(evt);
-
+      this.dispatchEvent('unlock');
       this.hideNotification();
     }
   },
@@ -479,9 +476,7 @@ var LockScreen = {
     this.updateTime();
 
     if (!wasAlreadyLocked) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('locked', true, true, null);
-      window.dispatchEvent(evt);
+      this.dispatchEvent('lock');
     }
   },
 
@@ -685,6 +680,12 @@ var LockScreen = {
                                 evt.keyCode, evt.charCode);
 
     this.camera.dispatchEvent(generatedEvent);
+  },
+
+  dispatchEvent: function ls_dispatchEvent(name) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(name, true, true, null);
+    window.dispatchEvent(evt);
   }
 };
 
