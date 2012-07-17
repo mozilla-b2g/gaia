@@ -1,0 +1,35 @@
+{
+  "name": "FbImport",
+  "description": "OWD FB Import",
+  "launch_path": "/fbint.html",
+  "developer": {
+    "name": "Telefonica",
+    "url": "http://www.tid.es"
+  },
+  "permissions": [
+    "contacts",
+    "systemXHR"
+  ],
+  "locales": {
+    "en-US": {
+      "name": "FbImport",
+      "description": "Social Network"
+    },
+    "es": {
+      "name": "FbImport",
+      "description": "Red Social"
+    },
+    "fr": {
+      "name": "Horloge",
+      "description": "Horloge Gaia"
+    },
+    "pt-BR": {
+      "name": "Rel\u00f3gio",
+      "description": "Rel\u00f3gio do Gaia"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "facebook.png"
+  }
+}

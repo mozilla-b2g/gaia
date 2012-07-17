@@ -1,0 +1,189 @@
+*[data-template] {
+    display: none !important;
+}
+
+/*
+ html,body {
+        overflow: auto !important;
+      }
+*/
+
+      ol {
+            list-style: none;
+            padding:0;
+            border: none;
+            margin:0;
+            width:100%;
+      }
+
+#myFbContacts .contactEntry {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin:0;
+  height: 50px;
+}
+
+     #myFbContacts .contactEntry dl {
+  margin: 0px 0px;
+  padding: 0;
+}
+
+
+
+#myFbContacts .contactEntry dt {
+  float:left;
+  margin: 0 4px;
+  padding: 0;
+  font-size: 16px;
+  font-weight: bold;
+  width: -moz-calc(100% - 50px - 20px - 20px);
+  line-height: 50px;
+  overflow: hidden;
+  text-overflow:ellipsis;
+}
+
+#myFbContacts .contactEntry dd {
+  margin: 0;
+  padding: 0;
+}
+
+#myFbContacts dd.img img {
+  float: left;
+  height: 50px;
+  margin: 0;
+  padding:0;
+  border:0;
+}
+
+#myFbContacts .contactEntry dd.input {
+  width:20px;
+  float: right;
+  margin: 0;
+  padding:0;
+  border:0;
+}
+
+dd.input {
+  width:100%;
+}
+
+#content {
+ clear:left;
+ width:100%;
+ height:90%;
+}
+
+#main {
+  width: 100%;
+  height:100%;
+}
+
+#curtain {
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: transparent;
+  z-index:1;
+  display:none;
+}
+
+
+#welcome {
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display: none;
+}
+
+#curtain div {
+  position:absolute;
+  top:50%;
+  height:32px;
+  margin-top:-16px;
+  left:50%;
+  margin-left: -16px;
+}
+
+#welcome div {
+  position:absolute;
+  top:50%;
+  height:100px;
+  margin-top:-50px;
+  left:50%;
+  margin-left: -50px;
+}
+
+#welcome button {
+ width:100px;
+ height:100px;
+}
+
+#content {
+  z-index:2;
+}
+
+body[data-state='waiting'] #curtain {
+  z-index:3;
+  display:block;
+}
+
+body[data-state='waiting'] #main {
+  opacity:0.6;
+}
+
+
+body[data-state='welcome'] #welcome {
+  display:block;
+}
+
+body[data-state='welcome'] #main {
+  display:none;
+}
+
+
+body[data-state='welcome'] header {
+  display:none;
+}
+
+/* For Facebook colors */
+.view-header {
+  background: -moz-linear-gradient(center top , #4D77CF, #3B5998);
+}
+
+.view-contacts-list .block-list > li {
+  padding-right: 1.5rem;
+}
+
+.block-title { border-bottom: 1px solid #4D77CF; color: #4D77CF; }
+
+button.bheader {
+  color:white;
+  padding: 0 1rem;
+}
+
+.myMenu {
+  width: 100%;
+}
+
+.myMenu button { display: block;
+    width: 100% !important;
+    height: 4rem !important;
+    border-radius: 0.4rem 0.4rem 0.4rem 0.4rem;
+    padding: 1rem;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: rgb(255, 255, 255);
+    box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.5) inset;
+    background: -moz-linear-gradient(center bottom , rgb(31, 65, 137), rgb(75, 103, 161)) repeat scroll 0px 0px transparent;
+    margin-bottom: 1rem; border: none;
+}
+
+.myMenu li {
+ display:block;
+ width:100%;
+}

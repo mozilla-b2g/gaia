@@ -1,0 +1,14 @@
+{
+  "name": "Maps",
+  "description": "Maps",
+  "launch_path": "/",
+  "developer": {
+    "name": "Twitter",
+    "url": "http://twitter.com"
+  },
+  "icons": {
+    "120": "/style/icons/icon.png",
+    "60": "/style/icons/60/icon.png"
+  },
+  "orientation": "portrait-primary"
+}
