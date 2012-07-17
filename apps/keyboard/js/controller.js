@@ -1028,6 +1028,7 @@ const IMEController = (function() {
     hideIME: function kc_hideIME(imminent) {
       IMERender.ime.classList.add('hide');
       IMERender.hideIME(imminent);
+      _reset();
     },
 
     // Controlled by IMEManager, i.e. when orientation change
