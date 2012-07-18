@@ -190,7 +190,7 @@
     <form role="dialog" action="#wifi" id="wifi-status">
       <header>
         <button type="reset" data-l10n-id="back">Back</button>
-        <h2 data-ssid> Network </h2>
+        <h2 data-ssid> Network Status </h2>
       </header>
 
       <!-- network properties -->
@@ -209,73 +209,11 @@
       </footer>
     </form>
 
-    <!-- Connectivity :: Wi-Fi :: WEP Authentication Dialog -->
-    <form role="dialog" action="#wifi" id="wifi-wep">
-      <header>
-        <button type="reset" data-l10n-id="back">Back</button>
-        <h2 data-ssid> Authentication </h2>
-      </header>
-
-      <!-- network properties -->
-      <dl>
-        <dt data-l10n-id="security">security:</dt>
-        <dd data-security>WPA-WEP</dd>
-        <dt data-l10n-id="signalStrength">signal strength:</dt>
-        <dd data-signal>good</dd>
-      </dl>
-
-      <!-- password input -->
-      <label>
-        <span data-l10n-id="password">password</span>
-        <input data-wep data-ignore name="password" type="password" />
-      </label>
-      <label>
-        <input data-ignore name="show-pwd" type="checkbox" />
-        <span data-l10n-id="showPassword">show password</span>
-      </label>
-
-      <!-- connect to network -->
-      <footer>
-        <button type="submit" data-l10n-id="ok">OK</button>
-      </footer>
-    </form>
-
-    <!-- Connectivity :: Wi-Fi :: PSK Authentication Dialog -->
-    <form role="dialog" action="#wifi" id="wifi-psk">
-      <header>
-        <button type="reset" data-l10n-id="back">Back</button>
-        <h2 data-ssid> Authentication </h2>
-      </header>
-
-      <!-- network properties -->
-      <dl>
-        <dt data-l10n-id="security">security:</dt>
-        <dd data-security>WPA-PSK</dd>
-        <dt data-l10n-id="signalStrength">signal strength:</dt>
-        <dd data-signal>good</dd>
-      </dl>
-
-      <!-- password input -->
-      <label>
-        <span data-l10n-id="password">password</span>
-        <input data-psk data-ignore name="password" type="password" />
-      </label>
-      <label>
-        <input data-ignore name="show-pwd" type="checkbox" />
-        <span data-l10n-id="showPassword">show password</span>
-      </label>
-
-      <!-- connect to network -->
-      <footer>
-        <button type="submit" data-l10n-id="ok">OK</button>
-      </footer>
-    </form>
-
     <!-- Connectivity :: Wi-Fi :: EAP Authentication Dialog -->
-    <form role="dialog" action="#wifi" id="wifi-eap">
+    <form role="dialog" action="#wifi" id="wifi-auth">
       <header>
         <button type="reset" data-l10n-id="back">Back</button>
-        <h2 data-ssid> Authentication </h2>
+        <h2 data-ssid> Network Authentication </h2>
       </header>
 
       <!-- network properties -->
@@ -284,18 +222,20 @@
         <dd data-security>WPA-EAP</dd>
         <dt data-l10n-id="signalStrength">signal strength:</dt>
         <dd data-signal>good</dd>
+        <dt hidden data-l10n-id="linkSpeed">link speed:</dt>
+        <dd hidden data-speed></dd>
       </dl>
 
-      <!-- password input -->
-      <label>
+      <!-- identity/password input -->
+      <label for="identity">
         <span data-l10n-id="identity">identity</span>
         <input data-identity data-ignore name="identity" type="text" />
       </label>
-      <label>
+      <label for="password">
         <span data-l10n-id="password">password</span>
         <input data-password data-ignore name="password" type="password" />
       </label>
-      <label>
+      <label for="show-pwd">
         <input data-ignore name="show-pwd" type="checkbox" />
         <span data-l10n-id="showPassword">show password</span>
       </label>

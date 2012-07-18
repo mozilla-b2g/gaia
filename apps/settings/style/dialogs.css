@@ -118,19 +118,31 @@
 
 
 /******************************************************************************
- * Specific: Wi-Fi property lists
+ * Specific Wi-Fi rules
  */
 
-[role=dialog] dl > * {
+/* hide identity field by default */
+
+[action="#wifi"] label[for=identity] {
+  display: none;
+}
+
+[action="#wifi"].WPA-EAP label[for=identity] {
+  display: block;
+}
+
+/* Wi-Fi property lists */
+
+[action="#wifi"] dl > * {
   line-height: 2.0em;
 }
 
-[role=dialog] dt {
+[action="#wifi"] dt {
   float: left;
   margin-right: 0.5em;
 }
 
-[role=dialog] dd {
+[action="#wifi"] dd {
   font-weight: bold;
 }
 
