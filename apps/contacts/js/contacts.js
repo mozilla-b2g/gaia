@@ -166,6 +166,71 @@ var Contacts = (function() {
 
   var contactsList = contacts.List;
 
+  var checkUrl = function checkUrl() {
+    var hasParams = window.location.hash.split('?');
+    var hash = hasParams[0];
+    var sectionId = hash.substr(1, hash.length) || "";
+    var cList = contacts.List;
+    var params = extractParams(hasParams[1]);
+
+    switch (sectionId) {
+      case "view-contact-details":
+        if(params == -1 || !('id' in params)){
+          console.log("Param missing");
+          return;
+        }
+        var id = params['id'];
+        cList.getContactById(id, function onSuccess(savedContact) {
+          currentContact = savedContact;
+          reloadContactDetails();
+          navigation.go(sectionId, 'none');
+        }, function onError() {
+          console.error("Error retrieving contact");
+        });
+        break;
+
+      case "view-contact-form":
+        if(params == -1 || !('id' in params)){
+          // Adding new Contact
+          currentContact = {};
+          showAdd();
+        } else {
+          // Editing existinv
+          var params = extractParams(hasParams[1]);
+          if('id' in params) {
+            var id = params['id'];
+            cList.getContactById(id, function onSuccess(savedContact) {
+              currentContact = savedContact;
+              showEdit();
+            }, function onError() {
+              console.log("Error retrieving contact to be edited");
+              currentContact = {};
+              showAdd();
+            });
+          }
+        }
+        break;
+
+      default:
+        loadList();
+    }
+
+    window.addEventListener('hashchange', checkUrl);
+  }
+
+  var extractParams = function extractParams(url) {
+    if(!url) {
+      return -1;
+    }
+    var ret = {};
+    var params = url.split('&');
+    for(var i = 0; i<params.length; i++) {
+      var currentParam = params[i].split('=');
+      ret[currentParam[0]] = currentParam[1];
+    }
+    return ret;
+  }
+
   var initContainers = function initContainers() {
     currentContactId = document.getElementById('contact-form-id');
     givenName = document.getElementById('givenName');
@@ -191,16 +256,11 @@ var Contacts = (function() {
 
   window.addEventListener('load', function initContacts(evt) {
     initContainers();
+    initPullEffect(cover);
+    checkUrl();
+  });
 
-    deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = 'Are you sure you want to remove this contact?';
-      Permissions.show('', msg, function onAccept() {
-        deleteContact(currentContact);
-      },function onCancel() {
-        Permissions.hide();
-      });
-    };
-
+  var loadList = function loadList() {
     var list = document.getElementById('groups-list');
     contactsList.init(list);
     contactsList.load();
@@ -215,13 +275,11 @@ var Contacts = (function() {
       var request = navigator.mozContacts.find(options);
       request.onsuccess = function findCallback() {
         currentContact = request.result[0];
-        reloadContactDetails(currentContact);
+        reloadContactDetails();
         navigation.go('view-contact-details', 'right-left');
       };
     });
-
-    initPullEffect(cover);
-  });
+  }
 
   var initPullEffect = function initPullEffect(cover) {
     cover.addEventListener('mousedown', function(event) {
@@ -265,7 +323,8 @@ var Contacts = (function() {
   //
   // Method that generates HTML markup for the contact
   //
-  var reloadContactDetails = function reloadContactDetails(contact) {
+  var reloadContactDetails = function reloadContactDetails() {
+    var contact = currentContact;
     detailsName.textContent = contact.name;
     if (contact.category && contact.category.indexOf('favorite') != -1) {
       detailsName.innerHTML += '<sup></sup>';
@@ -431,6 +490,15 @@ var Contacts = (function() {
       noteContainer.appendChild(template);
       numberNotes++;
     }
+
+    deleteContactButton.onclick = function deleteClicked(event) {
+      var msg = 'Are you sure you want to remove this contact?';
+      Permissions.show('', msg, function onAccept() {
+        deleteContact(currentContact);
+      },function onCancel() {
+        Permissions.hide();
+      });
+    };
 
     edit();
   };
@@ -644,7 +712,7 @@ var Contacts = (function() {
         myContact.photo = savedContact.photo;
         myContact.category = savedContact.category;
         contactsList.refresh(myContact);
-        reloadContactDetails(myContact);
+        reloadContactDetails();
         navigation.back();
       }, function onError() {
         saveButton.removeAttribute('disabled');
