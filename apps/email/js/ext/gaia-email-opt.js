@@ -11511,7 +11511,8 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
     for (var i = 1; i < line.length; i++) {
       var c = line.charCodeAt(i);
       if (c === CHARCODE_GT) {
-        lastStartOffset = ++count;
+        count++;
+        lastStartOffset++;
         spaceOk = true;
       }
       else if (c === CHARCODE_SPACE) {
@@ -19844,6 +19845,147 @@ FakeFolderStorage.prototype = {
 }); // end define
 ;
 /**
+ * Implements a fake account type for UI testing/playing only.
+ **/
+
+define('rdimap/imapclient/activesync',[
+    'mailcomposer',
+    'exports'
+  ],
+  function(
+    $mailcomposer,
+    exports
+  ) {
+
+function ActiveSyncAccount(universe, accountDef, folderInfo, receiveProtoConn,
+                           _LOG) {
+  this.universe = universe;
+  this.id = accountDef.id;
+  this.accountDef = accountDef;
+
+  this.enabled = true;
+  this.problems = [];
+
+  this.identities = accountDef.identities;
+
+  var ourIdentity = accountDef.identities[0];
+  var ourNameAndAddress = {
+    name: ourIdentity.name,
+    address: ourIdentity.address,
+  };
+
+  var inboxFolder = {
+    id: this.id + '/0',
+    name: 'Inbox',
+    path: 'Inbox',
+    type: 'inbox',
+    delim: '/',
+    depth: 0,
+  };
+  this.folders = [inboxFolder];
+  this._folderStorages = {};
+  this._folderStorages[inboxFolder.id] = new ActiveSyncFolderStorage();
+
+  this.meta = folderInfo.$meta;
+  this.mutations = folderInfo.$mutations;
+}
+exports.ActiveSyncAccount = ActiveSyncAccount;
+ActiveSyncAccount.prototype = {
+  toString: function fa_toString() {
+    return '[ActiveSyncAccount: ' + this.id + ']';
+  },
+  toBridgeWire: function fa_toBridgeWire() {
+    return {
+      id: this.accountDef.id,
+      name: this.accountDef.name,
+      path: this.accountDef.name,
+      type: this.accountDef.type,
+
+      enabled: this.enabled,
+      problems: this.problems,
+
+      identities: this.identities,
+
+      credentials: {
+        username: this.accountDef.credentials.username,
+      },
+
+      servers: [
+        {
+          type: this.accountDef.type,
+          connInfo: this.accountDef.connInfo
+        },
+      ]
+    };
+  },
+  toBridgeFolder: function() {
+    return {
+      id: this.accountDef.id,
+      name: this.accountDef.name,
+      path: this.accountDef.name,
+      type: 'account',
+    };
+  },
+
+  get numActiveConns() {
+    return 0;
+  },
+
+  saveAccountState: function(reuseTrans) {
+    return reuseTrans;
+  },
+
+  shutdown: function() {
+  },
+
+  createFolder: function() {
+    throw new Error('XXX not implemented');
+  },
+
+  deleteFolder: function() {
+    throw new Error('XXX not implemented');
+  },
+
+  sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {
+    return this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
+  },
+  syncFolderList: function fa_syncFolderList(callback) {
+    // NOP; our list of folders is eternal (for now)
+    callback();
+  },
+  sendMessage: function fa_sendMessage(composedMessage, callback) {
+    // XXX put a copy of the message in the sent folder
+    callback(null);
+  },
+
+  getFolderStorageForFolderId: function fa_getFolderStorageForFolderId(folderId){
+    return this._folderStorages[folderId];
+  },
+
+  runOp: function(op, mode, callback) {
+    // Just pretend we performed the op so no errors trigger.
+    if (callback)
+      setZeroTimeout(callback);
+  },
+};
+
+function ActiveSyncFolderStorage() {
+  this._headers = [];
+  this._bodiesBySuid = {};
+}
+ActiveSyncFolderStorage.prototype = {
+  _sliceFolderMessages: function ffs__sliceFolderMessages(bridgeHandle) {
+    bridgeHandle.sendSplice(0, 0, this._headers, true, false);
+  },
+
+  getMessageBody: function ffs_getMessageBody(suid, date, callback) {
+    callback(this._bodiesBySuid[suid]);
+  },
+};
+
+}); // end define
+;
+/**
  *
  **/
 
@@ -23524,7 +23666,6 @@ ImapAccount.prototype = {
         // - new to us!
         else {
           var type = self._determineFolderType(box, path);
-console.log("learning about", path, "depth", pathDepth);
           self._learnAboutFolder(boxName, path, type, box.delim, pathDepth);
         }
 
@@ -23675,6 +23816,7 @@ define('rdimap/imapclient/mailuniverse',[
     './smtpprobe',
     './smtpacct',
     './fakeacct',
+    './activesync',
     'module',
     'exports'
   ],
@@ -23688,6 +23830,7 @@ define('rdimap/imapclient/mailuniverse',[
     $smtpprobe,
     $smtpacct,
     $fakeacct,
+    $activesync,
     $module,
     exports
   ) {
@@ -23860,6 +24003,7 @@ CompositeAccount.prototype = {
 const COMPOSITE_ACCOUNT_TYPE_TO_CLASS = {
   'imap+smtp': CompositeAccount,
   'fake': $fakeacct.FakeAccount,
+  'activesync': $activesync.ActiveSyncAccount,
 };
 
 
@@ -23918,6 +24062,9 @@ var autoconfigByDomain = {
   },
   'example.com': {
     type: 'fake',
+  },
+  'hotmail.com': {
+    type: 'activesync',
   },
 };
 
@@ -24045,6 +24192,50 @@ Configurators['fake'] = {
       credentials: credentials,
       connInfo: {
         hostname: 'magic.example.com',
+        port: 1337,
+        crypto: true,
+      },
+
+      identities: [
+        {
+          id: accountId + '/' +
+                $a64.encodeInt(universe.config.nextIdentityNum++),
+          name: userDetails.displayName,
+          address: userDetails.emailAddress,
+          replyTo: null,
+          signature: DEFAULT_SIGNATURE
+        },
+      ]
+    };
+
+    var folderInfo = {
+      $meta: {
+        nextMutationNum: 0,
+      },
+      $mutations: [],
+    };
+    universe.saveAccountDef(accountDef, folderInfo);
+    var account = universe._loadAccount(accountDef, folderInfo, null);
+    callback(true, account);
+  },
+};
+Configurators['activesync'] = {
+  tryToCreateAccount: function cfg_fake(universe, userDetails, domainInfo,
+                                        callback, _LOG) {
+    var credentials = {
+      username: userDetails.emailAddress,
+      password: userDetails.password,
+    };
+    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+    var accountDef = {
+      id: accountId,
+      name: userDetails.emailAddress,
+
+      type: 'activesync',
+
+      credentials: credentials,
+      connInfo: {
+        hostname: 'm.hotmail.com',
         port: 1337,
         crypto: true,
       },
