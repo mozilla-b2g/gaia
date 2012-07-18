@@ -11,7 +11,7 @@ const SCROLL_MIN_BUFFER_SCREENS = 2;
 /**
  * Keep around at most this many display heights worth of undisplayed messages.
  */
-const SCROLL_MAX_RETENTION_SCREENS = 5;
+const SCROLL_MAX_RETENTION_SCREENS = 7;
 
 /**
  * List messages for listing, multi-editing, and maybe displaying searches.
@@ -59,7 +59,13 @@ function MessageListCard(domNode, mode, args) {
     domNode.getElementsByClassName('msg-list-scrollouter')[0];
   this.scrollContainer.addEventListener('scroll', this.onScroll.bind(this),
                                         false);
-  this._lastScrollTop = this.scrollContainer.scrollTop;
+
+  this.syncingNode =
+    domNode.getElementsByClassName('msg-messages-syncing')[0];
+  this.syncMoreNode =
+    domNode.getElementsByClassName('msg-messages-sync-more')[0];
+  this.syncMoreNode
+    .addEventListener('click', this.onGetMoreMessages.bind(this), false);
 
   // - header buttons: non-edit mode
   domNode.getElementsByClassName('msg-folder-list-btn')[0]
@@ -244,13 +250,41 @@ MessageListCard.prototype = {
     this.messagesSlice = MailAPI.viewFolderMessages(folder);
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
     this.messagesSlice.onchange = this.updateMessageDom.bind(this, false);
+    this.messagesSlice.onstatus = this.onStatusChange.bind(this);
     this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
     return true;
   },
 
+  onGetMoreMessages: function() {
+    this.messagesSlice.requestGrowth(1, true);
+    // Provide instant feedback that they pressed the button by hiding the
+    // button.  However, don't show 'synchronizing' because that might not
+    // actually happen.
+    this.syncMoreNode.classList.add('collapsed');
+  },
+
+  onStatusChange: function(newStatus) {
+    if (newStatus === 'synchronizing') {
+      this.syncingNode.classList.remove('collapsed');
+      this.syncMoreNode.classList.add('collapsed');
+    }
+    else {
+      this.syncingNode.classList.add('collapsed');
+    }
+  },
+
   onSliceRequestComplete: function() {
+console.log("ONCOMPLETE!!!!!!!!!!!!!!!!");
     // We always want our logic to fire, but complete auto-clears before firing.
     this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
+
+console.log("slice flags:", "top", this.messagesSlice.atTop,
+            "bottom", this.messagesSlice.atBottom, "grow",
+            this.messagesSlice.userCanGrowDownwards);
+    if (this.messagesSlice.userCanGrowDownwards)
+      this.syncMoreNode.classList.remove('collapsed');
+    else
+      this.syncMoreNode.classList.add('collapsed');
 
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
@@ -270,7 +304,7 @@ MessageListCard.prototype = {
   onScroll: function(event) {
     // Defer processing until any pending requests have completed;
     // `onSliceRequestComplete` will call us.
-    if (!this.messagesSlice || this.messagesSlice.pendingRequests)
+    if (!this.messagesSlice || this.messagesSlice.pendingRequestCount)
       return;
 
     var curScrollTop = this.scrollContainer.scrollTop,
@@ -281,22 +315,26 @@ MessageListCard.prototype = {
                        (curScrollTop + viewHeight)) /
                       viewHeight;
 
-    var shrinkLowIncl = 0, shrinkHighExcl = this.messagesSlice.items.length,
+    var shrinkLowIncl = 0, shrinkHighIncl= this.messagesSlice.items.length - 1,
         messageNode = null, targOff;
-
+console.log("preScreens", preScreens, "postScreens", postScreens);
     if (preScreens < SCROLL_MIN_BUFFER_SCREENS &&
         !this.messagesSlice.atTop) {
       this.messagesSlice.requestGrowth(-1);
       return;
     }
     else if (preScreens > SCROLL_MAX_RETENTION_SCREENS) {
-      targOff = this.scrollContainer.offsetTop + curScrollTop -
-                (viewHeight * SCROLL_MAX_RETENTION_SCREENS);
-      for (messageNode = this.messagesContainer.firstChild;
+      // Take off one screen at a time.
+      targOff = curScrollTop -
+                (viewHeight * (SCROLL_MAX_RETENTION_SCREENS - 1));
+console.log(" mn ot:", this.messagesContainer.firstElementChild.offsetTop, "ch", this.messagesContainer.firstElementChild.clientHeight);
+      for (messageNode = this.messagesContainer.firstElementChild;
            messageNode.offsetTop + messageNode.clientHeight < targOff;
-           messageNode = messageNode.nextSibling) {
+           messageNode = messageNode.nextElementSibling) {
+console.log("  mn ot:", messageNode.offsetTop, "ch", messageNode.clientHeight);
         shrinkLowIncl++;
       }
+      console.log("shrinkLowIncl", shrinkLowIncl, "targOff", targOff);
     }
 
     if (postScreens < SCROLL_MIN_BUFFER_SCREENS &&
@@ -304,41 +342,63 @@ MessageListCard.prototype = {
       this.messagesSlice.requestGrowth(1);
     }
     else if (postScreens > SCROLL_MAX_RETENTION_SCREENS) {
-      targOff = this.scrollContainer.offsetTop + curScrollTop +
+      targOff = curScrollTop +
                 this.scrollContainer.clientHeight +
-                (viewHeight * SCROLL_MAX_RETENTION_SCREENS);
-      for (messageNode = this.messagesContainer.lastChild;
+                (viewHeight * (SCROLL_MAX_RETENTION_SCREENS - 1));
+      for (messageNode = this.messagesContainer.lastElementChild;
            messageNode.offsetTop > targOff;
-           messageNode = messageNode.previousSibling) {
-        shrinkHighExcl--;
+           messageNode = messageNode.previousElementSibling) {
+        shrinkHighIncl--;
       }
     }
 
     if (shrinkLowIncl !== 0 ||
-        shrinkHighExcl !== this.messagesSlice.items.length) {
-      this.messagesSlice.requestShrinkage(shrinkLowIncl, shrinkHighExcl);
+        shrinkHighIncl !== this.messagesSlice.items.length - 1) {
+      this.messagesSlice.requestShrinkage(shrinkLowIncl, shrinkHighIncl);
     }
   },
 
   onMessagesSplice: function(index, howMany, addedItems,
                              requested, moreExpected) {
+    var prevHeight;
     // - removed messages
     if (howMany) {
 console.log("removing", howMany, "messages @", index);
-      // XXX if the splice affects messages prior to the first visible message,
-      // then update our scroll offset.
+      // Plan to fixup the scroll position if we are deleting a message that
+      // starts before the (visible) scrolled area.  (We add the container's
+      // start offset because it is as big as the occluding header bar.)
+      prevHeight = null;
+      if (this.messagesSlice.items[index].element.offsetTop <
+          this.scrollContainer.scrollTop  + this.messagesContainer.offsetTop) {
+        prevHeight = this.messagesContainer.clientHeight;
+      }
+
       for (var i = index + howMany - 1; i >= index; i--) {
         var message = this.messagesSlice.items[i];
         message.element.parentNode.removeChild(message.element);
       }
+
+      // If fixup is requred, adjust.
+      if (prevHeight !== null) {
+        this.scrollContainer.scrollTop -=
+          (prevHeight - this.messagesContainer.clientHeight);
+      }
     }
 
     // - added/existing
+    if (!addedItems.length)
+      return;
     var insertBuddy, self = this;
     if (index >= this.messagesContainer.childElementCount)
       insertBuddy = null;
     else
       insertBuddy = this.messagesContainer.children[index];
+    if (insertBuddy &&
+        (insertBuddy.offsetTop <
+         this.scrollContainer.scrollTop + this.messagesContainer.offsetTop))
+      prevHeight = this.messagesContainer.clientHeight;
+    else
+      prevHeight = null;
 
 console.log("adding", addedItems.length, "messages @", index);
     addedItems.forEach(function(message) {
@@ -350,6 +410,11 @@ console.log("adding", addedItems.length, "messages @", index);
 
       self.messagesContainer.insertBefore(domMessage, insertBuddy);
     });
+
+    if (prevHeight) {
+      this.scrollContainer.scrollTop +=
+        (this.messagesContainer.clientHeight - prevHeight);
+    }
   },
 
   updateMessageDom: function(firstTime, message) {

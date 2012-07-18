@@ -133,6 +133,18 @@
             -->
             <div class="msg-messages-container">
             </div>
+            <!-- maintain vertical space for the syncing/sync more div's
+                 regardless of their displayed status so we don't scroll them
+                 out of the way -->
+            <div class="msg-messages-sync-container">
+              <div class="msg-messages-syncing collapsed">
+                <span class="msg-messages-syncing-label"
+                      data-l10n-id="messages-syncing"></span>
+                <img class="msg-messages-syncing-spinner" />
+              </div>
+              <div class="msg-messages-sync-more collapsed"
+                   data-l10n-id="messages-sync-more">SynC MorE</div>
+            </div>
             <div class="bottom-toolbar-spacer"></div>
           </div>
         </div>
@@ -214,8 +226,7 @@
             </div>
             <h3 class="msg-envelope-subject"></h3>
           </div>
-          <div class="msg-body-container">
-          </div>
+          <div class="msg-body-container"></div>
           <ul class="msg-attachments-container">
           </ul>
           <div class="bottom-toolbar-spacer"></div>
