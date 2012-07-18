@@ -9,12 +9,11 @@
   left: 0;
   z-index: 10;
   background-color: #eee;
-  min-height: -moz-calc(100% - 100px);
-  min-height: calc(100% - 100px);
+  height: 100%;
   width: 100%;
   overflow: auto;
   margin: 0;
-  padding: 0 0 100px 0;
+  padding: 0;
 }
 
 [role=dialog].active,
@@ -33,11 +32,13 @@
 
 [role=dialog] footer {
   text-align: center;
-  line-height: 80px;
-  height: 80px;
+  line-height: 62px;
+  height: 62px;
   width: 100%;
   padding: 0;
-  background-color: #999;
+  background-color: #ccc;
+  border-top: 2px outset #ddd;
+  /* XXX this assumes that the dialog content always fits on screen */
   position: absolute;
   bottom: 0;
 }
@@ -49,7 +50,7 @@
 [role=dialog] button,
 [role=dialog] input[type=button] {
   height: 40px;
-  margin: 10px;
+  margin: 11px;
   border: 4px solid;
   -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
   -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
