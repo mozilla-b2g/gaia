@@ -8,7 +8,7 @@ var TrustedDialog = (function() {
   var trustedDialogElement = document.getElementById('trustedDialog');
   var currentFrame = null;
 
-  function open(url, onLoadCb) {
+  function open(url, callback) {
     if (!url)
       return;
 
@@ -30,8 +30,8 @@ var TrustedDialog = (function() {
     frame.classList.add('frame');
     frame.classList.add('screen');
     frame.src = url;
-    if (onLoadCb)
-      frame.onload = onLoadCb;
+    if (callback)
+      frame.addEventListener('mozbrowserloadend', callback);
     trustedDialogElement.appendChild(frame);
     currentFrame = frame;
 
