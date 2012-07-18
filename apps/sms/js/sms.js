@@ -255,7 +255,7 @@ var ThreadListUI = {
   },
 
   cleanForm: function thlui_cleanForm() {
-    var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
+    var inputs = this.view.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
@@ -289,7 +289,7 @@ var ThreadListUI = {
     var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-      var filter = MessageManager.createFilter(inputs[i].name);
+      var filter = MessageManager.createFilter(inputs[i].value);
       MessageManager.getMessages(function gotMessages(messages) {
         for (var j = 0; j < messages.length; j++) {
           ThreadListUI.delNumList.push(parseFloat(messages[j].id));
@@ -300,9 +300,12 @@ var ThreadListUI = {
 
   executeDeletion: function thlui_executeDeletion() {
     MessageManager.deleteMessages(this.delNumList, function repaint() {
-      MessageManager.getMessages(ThreadListUI.renderThreads);
+      MessageManager.getMessages(function recoverMessages(messages) {
+        ThreadListUI.renderThreads(messages);
+        window.location.hash = '#thread-list';
+      });
     });
-    window.location.hash = '#thread-list';
+
   },
 
   renderThreads: function thlui_renderThreads(messages) {
@@ -382,7 +385,7 @@ var ThreadListUI = {
             '    </div>' +
             '  </a>' +
             '  <div class="checkbox-container">' +
-            '   <input type="checkbox" name="' + thread.num + '">' +
+            '   <input type="checkbox" value="' + thread.num + '">' +
             '   <span></span>' +
             '  </div>';
     // Update HTML and append
@@ -597,7 +600,7 @@ var ThreadUI = {
     }
     //Add edit options
     htmlStructure += '<span class="message-option msg-checkbox">' +
-                        '  <input id="' + message.id + '" type="checkbox">' +
+                        '  <input value="' + message.id + '" type="checkbox">' +
                         '  <span></span>' +
                       '</span>';
     // Add structure to DOM element
@@ -631,8 +634,8 @@ var ThreadUI = {
       var inputs = this.view.querySelectorAll('input[type="checkbox"]');
       for (var i = 0; i < inputs.length; i++) {
         inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-        if (inputs[i].id) { // sent or received
-          this.delNumList.push(parseFloat(inputs[i].id));
+        if (inputs[i].value) { // sent or received
+          this.delNumList.push(parseFloat(inputs[i].value));
         } else { // pending
           // another list to delete from pending?
         }
@@ -644,8 +647,8 @@ var ThreadUI = {
     var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-      if (inputs[i].id) { // sent or received
-        this.delNumList.push(parseFloat(inputs[i].id));
+      if (inputs[i].value) { // sent or received
+        this.delNumList.push(parseFloat(inputs[i].value));
       } else { // pending
           // another list to delete from pending?
       }
@@ -653,11 +656,29 @@ var ThreadUI = {
   },
 
   executeDeletion: function thui_executeDeletion() {
-    MessageManager.deleteMessages(this.delNumList, function repaint() {
-      MessageManager.getMessages(ThreadUI.renderMessages);
-    });
-    //TODODeletepending
-    window.history.back();
+    if (this.delNumList.length > 0) {
+      var messagesInThread = this.view.querySelectorAll('input[type="checkbox"]');
+      console.log("A borrar "+this.delNumList.length+" mensajes\n" +
+                  "de un total de "+messagesInThread);
+      var totalDelete = this.delNumList.length == messagesInThread.length;
+      MessageManager.deleteMessages(this.delNumList, function reloadMessages() {
+        MessageManager.getMessages(function repaint(messages) {
+          ThreadUI.renderMessages(messages);
+          ThreadListUI.renderThreads(messages);
+          if (totalDelete){
+            window.location.hash = '#thread-list'
+            console.log("jump a threads");
+          } else {
+            window.history.go(-1);
+            console.log("jump al anterior");
+          }
+        });
+      });
+      //TODODeletepending
+      // window.history.back();
+    } else {
+      window.history.go(-1);
+    }
   },
 
   handleEvent: function thui_handleEvent(evt) {
