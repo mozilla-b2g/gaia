@@ -1173,6 +1173,7 @@ const IMEController = (function() {
       IMERender.ime.classList.add('hide');
       IMERender.hideIME(imminent);
       _currentWordComposer.reset();
+      _reset();
     },
 
     // Controlled by IMEManager, i.e. when orientation change

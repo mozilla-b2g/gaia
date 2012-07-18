@@ -12,8 +12,14 @@ var QuickSettings = {
 
     var self = this;
 
+    // monitor data status
     SettingsListener.observe('ril.data.enabled', true, function(value) {
       self.data.dataset.enabled = value;
+    });
+
+    // monitor bluetooth status
+    SettingsListener.observe('bluetooth.enabled', true, function(value) {
+      self.bluetooth.dataset.enabled = value;
     });
 
   },
@@ -24,6 +30,7 @@ var QuickSettings = {
       case 'click':
         switch (evt.target) {
           case this.wifi:
+            // XXX: should use mozSettings instead
             var wifiManager = navigator.mozWifiManager;
             if (!wifiManager)
               return;
@@ -47,13 +54,11 @@ var QuickSettings = {
             break;
 
           case this.bluetooth:
-            var bluetooth = navigator.mozBluetooth;
-            if (!bluetooth)
-              return;
-
             var enabled = (this.bluetooth.dataset.enabled == 'true');
-            bluetooth.setEnabled(!enabled);
             this.bluetooth.dataset.enabled = !enabled;
+            navigator.mozSettings.getLock().set({
+              'bluetooth.enabled': !enabled
+            });
             break;
 
           case this.powerSave:
@@ -68,6 +73,7 @@ var QuickSettings = {
               };
 
               // Turn off Wifi
+              // XXX: should use mozSetting instead
               var wifiManager = navigator.mozWifiManager;
               if (wifiManager) {
                 wifiManager.setEnabled(false);
@@ -75,24 +81,21 @@ var QuickSettings = {
               }
 
               // Turn off Data
-              this.data.dataset.enabled = false;
-
               navigator.mozSettings.getLock().set({
                 'ril.data.enabled': false
               });
 
               // Turn off Bluetooth
-              var bluetooth = navigator.mozBluetooth;
-              if (bluetooth) {
-                bluetooth.setEnabled(false);
-                this.bluetooth.dataset.enabled = false;
-              }
+              navigator.mozSettings.getLock().set({
+                'bluetooth.enabled': false
+              });
 
               // XXX: How do I turn off GPS?
 
             } else if (this._powerSaveResume) {
               if (this._powerSaveResume.wifi) {
                 // Turn on Wifi
+                // XXX: use mozSetting instead
                 var wifiManager = navigator.mozWifiManager;
                 if (wifiManager) {
                   wifiManager.setEnabled(true);
@@ -102,7 +105,6 @@ var QuickSettings = {
 
               if (this._powerSaveResume.data) {
                 // Turn on Data
-                this.data.dataset.enabled = true;
                 navigator.mozSettings.getLock().set({
                   'ril.data.enabled': true
                 });
@@ -110,11 +112,9 @@ var QuickSettings = {
 
               if (this._powerSaveResume.bluetooth) {
                 // Turn on Bluetooth
-                var wifiManager = navigator.mozBluetooth;
-                if (bluetooth) {
-                  bluetooth.setEnabled(true);
-                  this.bluetooth.dataset.enabled = true;
-                }
+                navigator.mozSettings.getLock().set({
+                  'bluetooth.enabled': true
+                });
               }
 
               delete this._powerSaveResume;
@@ -145,11 +145,9 @@ var QuickSettings = {
   },
 
   updateStatus: function qs_updateStatus() {
+    //XXX: if use mozSetting instead, remove here and add a observe at init()
     var wifiManager = navigator.mozWifiManager;
     this.wifi.dataset.enabled = !!(wifiManager && wifiManager.enabled);
-
-    var bluetooth = navigator.mozBluetooth;
-    this.bluetooth.dataset.enabled = !!(bluetooth && bluetooth.enabled);
   },
 
   getAllElements: function qs_getAllElements() {
