@@ -16,6 +16,10 @@
       "name": "\u0631\u0633\u0627\u0626\u0644",
       "description": "Gaia \u0631\u0633\u0627\u0626\u0644"
     },
+    "ca": {
+      "name": "Missatges",
+      "description": "Missatges del Gaia"
+    },
     "de": {
       "name": "Nachrichten",
       "description": "Gaia Nachrichten"
@@ -63,5 +67,13 @@
     "120": "/style/icons/Sms.png",
     "60": "/style/icons/60/Sms.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "activities": {
+    "new": {
+      "filters": {
+        "type": "websms/sms"
+       },
+      "disposition": "window"
+    }
+  }
 }

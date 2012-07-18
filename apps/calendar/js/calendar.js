@@ -1,22 +1,43 @@
-(function(window) {
+Calendar.init = function calendar_init() {
+  var Views = Calendar.Views;
+  var Models = Calendar.Models;
+
+  var route = new Calendar.Router(page);
+
   var controller = new Calendar.Controller({
-    eventList: new Calendar.Models.Events(),
-    busytime: new Calendar.Models.Busytime()
+    eventList: new Models.Events(),
+    busytime: new Models.Busytime()
   });
 
-  var monthView = new Calendar.Views.Month({
-    controller: controller
-  });
+  var monthView = new Views.Month({ controller: controller });
+  var monthDayView = new Views.MonthsDay({ controller: controller });
+  var settings = new Views.Settings({ controller: controller });
+  var createAccount = new Views.CreateAccount({ controller: controller });
 
-  var dayView = new Calendar.Views.MonthsDay({
-    controller: controller
-  });
+  function setPath(data, next) {
+    document.body.setAttribute('data-path', data.canonicalPath);
+    next();
+  }
 
-  monthView.render();
-  dayView.render();
+  route.state('/month/', setPath, monthView, monthDayView);
+  route.state('/create-account/', setPath, createAccount);
 
-  //quick hack for today button
+  route.modifier('/settings/', setPath, settings,
+                 settings.showCalendars.bind(settings));
 
+  route.modifier('/settings/accounts/', setPath, settings,
+                 settings.showAccounts.bind(settings));
+
+  //temp routes
+  route.state('/day/', setPath, new Calendar.View('#day-view'));
+  route.state('/week/', setPath, new Calendar.View('#week-view'));
+  route.state('/add/', setPath, new Calendar.View('#add-event-view'));
+
+  if (window.location.pathname === '/') {
+    page.replace('/month/');
+  }
+
+  // quick hack for today button
   var today = document.querySelector('#view-selector .today');
 
   today.addEventListener('click', function() {
@@ -24,4 +45,5 @@
     controller.setSelectedDay(new Date());
   });
 
-}(this));
+  route.start();
+};

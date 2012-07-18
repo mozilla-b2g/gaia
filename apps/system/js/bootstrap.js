@@ -5,10 +5,10 @@
 
 function startup() {
   PinLock.init();
-  SoundManager.init();
   SleepMenu.init();
   SourceView.init();
   Shortcuts.init();
+  Bluetooth.init();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
@@ -39,7 +39,7 @@ function startup() {
   } else {
     var host = document.location.host;
     var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var src = 'http://homescreen.' + domain;
+    var src = document.location.protocol + '//homescreen.' + domain;
   }
   document.getElementById('homescreen').src = src;
 }());
@@ -84,5 +84,16 @@ try {
 window.addEventListener('localized', function onlocalized() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
+});
+
+// Define the default background to use for all homescreens
+SettingsListener.observe(
+  'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
+  var url = 'url(resources/images/backgrounds/' + value + ')';
+  document.getElementById('screen').style.backgroundImage = url;
+});
+
+window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
+  WindowManager.setDisplayedApp(null);
 });
 

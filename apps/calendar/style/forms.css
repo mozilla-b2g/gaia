@@ -1,0 +1,147 @@
+/* generic stuff that will probably live in the building blocks */
+
+fieldset, input, textarea {
+  border: 0px;
+  background-color: transparent;
+  padding: 0px;
+  margin: 0px;
+}
+
+input, textarea {
+  width: 100%;
+}
+
+select {
+  border: none;
+  background: transparent;
+}
+
+input[type="checkbox"] {
+  width: inherit;
+}
+
+.ltr input,
+.ltr textarea,
+.ltr select,
+.ltr option {
+  text-align: left;
+}
+
+
+.rtl input,
+.rtl textarea,
+.rtl select,
+.rtl option {
+  text-align: right
+}
+
+fieldset,
+fieldset ol {
+  margin: 0px;
+  padding: 0px;
+}
+
+fieldset li {
+  height: 3rem;
+}
+
+label[role="listbox"] select:focus option.default {
+  display: none;
+}
+
+label[role="checkbox"] {
+  display: block;
+}
+
+label[role="checkbox"] span {
+  padding: 2px 0.5rem 0;
+  display: block;
+}
+
+.rtl label[role="checkbox"] input,
+.rtl label[role="checkbox"] span {
+  float: left;
+}
+
+.ltr label[role="checkbox"] span,
+.ltr label[role="checkbox"] input {
+  float: right;right
+}
+
+/* for calendar */
+
+fieldset {
+  height: -moz-calc(100% - 2.95rem);
+}
+
+fieldset ol {
+  height: 100%;
+}
+
+fieldset li {
+  border-bottom: 1px solid #CCC;
+  padding: 0.25rem;
+}
+
+fieldset li {
+  padding: 0.8rem 0.8rem 0;
+}
+
+fieldset li.location {
+  width: 70%;
+}
+
+fieldset li.all-day {
+  width: 30%;
+}
+
+.rtl fieldset li.location,
+.rtl fieldset li.all-day {
+  float: right;
+}
+
+.ltr fieldset li.location,
+.ltr fieldset li.all-day {
+  float: left;
+}
+
+.rtl fieldset li.end-time,
+.ltr fieldset li.start-time {
+  width: -moz-calc(50% - 1px);
+  border-right: 1px solid #CCC;
+  float: left
+}
+
+.rtl fieldset li.start-time,
+.ltr fieldset li.end-time {
+  width: 50%;
+  float: left;
+}
+
+
+.rtl fieldset li.alert,
+.ltr fieldset li.repeat {
+  width: -moz-calc(50% - 1px);
+  border-right: 1px solid #CCC;
+  float: left
+}
+
+.rtl fieldset li.repeat,
+.ltr fieldset li.alert{
+  width: 50%;
+  float: left;
+}
+
+fieldset li.notes  {
+  height: 25rem;
+}
+
+fieldset li.notes textarea {
+  height: 100%;
+}
+
+fieldset li.notes,
+fieldset li.repeat,
+fieldset li.start-time {
+  clear: both;
+}

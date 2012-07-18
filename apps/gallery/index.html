@@ -1,50 +1,83 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
-    <link rel="resource" type="application/l10n" href="locale/gallery.properties" />
-    <!-- Compatibility -->
-    <script>
-      if (document.location.protocol === 'file:') {
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <script type="text/javascript">
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
+    })();
     </script>
-    <script defer src="js/GestureDetector.js"></script>
-    <script defer src="js/JPEGMetadata.js"></script>
-    <script defer src="js/gallery.js"></script>
+    <script type="text/javascript" defer src="js/MediaDB.js"></script>
+    <script type="text/javascript" defer src="js/MetadataParser.js"></script>
+    <script type="text/javascript" defer src="js/GestureDetector.js"></script>
+    <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
   <body class="hidden">
-    <!-- Thumbnails inserted here -->
+
+    <!-- This element gets inserted into the different view elements --> 
+    <!-- It gets styled differently depending on what its parent is -->
     <ul id="thumbnails">
       <!-- We'll hide this as soon as we find a photo -->
       <h1 id="nophotos" data-l10n-id="nophotos">No Photos</h1>
+      <!-- Thumbnails inserted here -->
     </ul>
 
-    <!-- Photos inserted here -->
-    <div id="photos" class="hidden">
-      <!-- the current photo plus next and previous waiting in the wings -->
-      <div class="photoFrame previousPhoto"></div>
-      <div class="photoFrame currentPhoto"></div>
-      <div class="photoFrame nextPhoto"></div>
+    <div id="thumbnail-list-view">
+      <div id="thumbnails-bottom">
+        <a id="thumbnails-camera-button" class="button"></a>
+        <a id="thumbnails-select-button" class="button"></a>
+      </div>
     </div>
 
-    <div id="player-controls" class="hidden">
-      <a id="back-button" class="button" href="#"></a>
-      <a id="play-button" class="button" href="#"></a>
+    <div id="thumbnail-select-view" class="hidden">
+      <div id="thumbnails-select-top">
+        <a id="thumbnails-cancel-button" class="button"></a>
+        <div id="thumbnails-number-selected"></div>
+      </div>
+
+      <div id="thumbnails-select-bottom">
+        <a id="thumbnails-delete-button" class="button"></a>
+        <a id="thumbnails-share-button" class="button"></a>
+      </div>
     </div>
 
+    <div id="photo-view" class="hidden">
+      <div id="photo-frames">
+        <!-- the current photo plus next and previous waiting in the wings -->
+        <div class="photoFrame previousPhoto"><img></div>
+        <div class="photoFrame currentPhoto"><img></div>
+        <div class="photoFrame nextPhoto"><img></div>
+      </div>
+
+      <div id="photos-overlay">
+        <div id="photos-overlay-top">
+          <div id="photos-filmstrip"><!-- thumbnails here --></div>
+          <a id="photos-back-button" class="button"></a>
+        </div>
+        <div id="photos-overlay-bottom">
+          <a id="photos-camera-button" class="button"></a>
+          <a id="photos-edit-button" class="button"></a>
+          <a id="photos-share-button" class="button"></a>
+          <a id="photos-delete-button" class="button"></a>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

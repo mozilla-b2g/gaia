@@ -16,15 +16,13 @@
 }
 
 .list-menu {
+  display: block;
+  border-radius: 8px;
+  border: 1px solid hsla(0,0%,0%,0);
   position: absolute;
   top: 20%;
   left: 50%;
-  width: 320px;
-  height: 300px;
-  margin: 0 0 0 -160px;
-  background: -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
-  border-radius: 8px;
-  border: 1px solid hsla(0,0%,0%,0);
+  overflow-x: hidden;
 }
 
 /* 320x480 phones */
@@ -32,7 +30,14 @@
        (orientation: landscape) and (width: 480px) {
   .list-menu {
     width: 280px;
-    margin: 0 0 0 -140px;
+    height: 204px;
+    overflow-y: hidden;
+    margin-left: -140px;
+  }
+  .list-menu div.list-menu-container div {
+    height: 49px;
+    line-height: 49px;
+    font-size: 16px;
   }
 }
 
@@ -40,33 +45,92 @@
 @media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
   .list-menu {
-    width: 320px;
-    margin: 0 0 0 -160px;
+    width: 400px;
+    height: 300px;
+    overflow-y: hidden;
+    margin-left: -200px;
+  }
+  .list-menu div.list-menu-container div {
+    height: 73px;
+    line-height: 73px;
+    font-size: 26px;
   }
 }
 
-
-.list-menu div {
-  height: 73px;
-  line-height: 73px;
-  font-size: 26px;
+.list-menu div.list-menu-container div {
+  padding: 0 15px 0 66px;
+  text-align: left;
   color: #778;
-  padding: 0 20px 0 100px;
   border-top: 1px solid hsla(0, 0%, 100%,0.2);
   border-bottom: 1px solid hsla(0, 0%, 0%,0.4);
+}
+
+.list-menu div.list-menu-container div:active {
+  background-color: #ddd;
+}
+
+div.list-menu-container div a:active {
+  outline: none;
+}
+
+div.list-menu-container div a {
+  display: block;
+  text-decoration: none;
+  background: url(images/header-right-arrow.png) no-repeat 100% 50%;
+  color:#778 !important;
+}
+
+div.list-menu-container div.back {
+  background: url(images/header-left-arrow.png) no-repeat 10px 50% black;
+  color: white;
+}
+
+div.list-menu-container div.back a {
+  background: none;
 }
 
 .list-menu div[data-value] {
   background-repeat: no-repeat;
   background-position: 0 50%;
+  background-size: 66px 66px;
 }
 
-.list-menu div:first-child {
+.list-menu > div > div:first-child {
   border-radius: 9px 9px 0 0;
   border-top-color: transparent;
 }
 
-.list-menu div:last-child {
+.list-menu > div > div:last-child {
   border-radius: 0 0 9px 9px;
   border-bottom-color: transparent;
+}
+
+.list-menu-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background: -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
+}
+
+.list-menu-container {
+  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0.5s;
+  -moz-transform: translateX(100%);
+  width: 0;
+}
+
+#list-menu-root {
+  width: 100%;
+  -moz-transform: none;
+  -moz-transition: none;
+}
+
+#list-menu-root:target,
+.list-menu-container:target {
+  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0s;
+  -moz-transform: none;
+  width: 100%;
 }

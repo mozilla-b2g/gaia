@@ -10,6 +10,7 @@
     requireApp('calendar/js/models/events.js');
     requireApp('calendar/js/calc.js');
     requireApp('calendar/js/controller.js');
+    requireApp('calendar/js/view.js');
   }
 
   function createController(fn) {
@@ -29,6 +30,10 @@
   }
 
   testSupport.calendar = {
+
+    db: function() {
+      return new Calendar.Db('b2g-test-calendar');
+    },
 
     checkSet: function(set, arr) {
       var i = 0,

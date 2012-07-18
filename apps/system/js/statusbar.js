@@ -59,7 +59,7 @@ var StatusBar = {
   },
 
   addListeners: function sb_addListeners() {
-    var battery = window.navigator.mozBattery;
+    var battery = window.navigator.battery;
     if (battery) {
       battery.addEventListener('chargingchange', this);
       battery.addEventListener('levelchange', this);
@@ -83,7 +83,7 @@ var StatusBar = {
   },
 
   removeListeners: function sb_removeListeners(evt) {
-    var battery = window.navigator.mozBattery;
+    var battery = window.navigator.battery;
     if (battery) {
       battery.removeEventListener('chargingchange', this);
       battery.removeEventListener('levelchange', this);
@@ -121,17 +121,17 @@ var StatusBar = {
   },
 
   updateBattery: function sb_updateBattery() {
-    var mozBattery = window.navigator.mozBattery;
-    if (!mozBattery)
+    var battery = window.navigator.battery;
+    if (!battery)
       return;
 
     var battery = this.battery;
     var fuel = this.batteryFuel;
     var charging = this.batteryCharging;
 
-    var level = mozBattery.level * 100;
+    var level = battery.level * 100;
 
-    if (mozBattery.charging) {
+    if (battery.charging) {
       charging.hidden = false;
       fuel.className = 'charging';
       fuel.style.minWidth = (level / 5.88) + 'px';
@@ -161,7 +161,7 @@ var StatusBar = {
 
     if (this.radioDisabled) {
       this.conn.textContent = _('airplane');
-      this.comm.dataset.l10nId = 'airplane';
+      this.conn.dataset.l10nId = 'airplane';
       this.signal.hidden = true;
       this.data.textContent = '';
       return;
@@ -251,7 +251,7 @@ var StatusBar = {
     this.wifi.hidden = !network;
     this.data.hidden = !!network;
 
-    if (network && evt.relSignalStrength) {
+    if (network && evt && evt.relSignalStrength) {
       // relSignalStrength should be between 0 and 100
       var relSignalStrength = evt.relSignalStrength || 0;
       if (wifiManager.connectionInformation) {
@@ -265,7 +265,9 @@ var StatusBar = {
   },
 
   updateMuteState: function sb_updateMuteState() {
-    this.mute.hidden = !!SoundManager.currentVolume;
+    SettingsListener.observe('audio.volume.master', 5, (function(volume) {
+      this.mute.hidden = volume;
+    }).bind(this));
   },
 
   updateNotification: function sb_updateNotification(show) {

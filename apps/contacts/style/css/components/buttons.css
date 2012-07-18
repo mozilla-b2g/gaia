@@ -1,0 +1,90 @@
+ 
+.action {
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 4rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-moz-box-sizing: border-box;
+	font-size: 1.4rem;
+	color: #333;
+	text-align: left;
+	border-radius: 0.4rem;
+	border: solid 1px #c8c8c8;
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+}
+
+.action:hover {
+  text-decoration: none;
+}
+
+.action:active {
+  border-color: #7a7a7a;
+}
+
+.action span[role="button"] {
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.action b, .action em {
+  vertical-align: middle;
+  margin: 0 0.5rem;
+}
+
+.action em {
+  color: #727272;
+  font-style: normal;
+}
+
+.action b + em, .action span[role="button"] + b {
+  margin-left: 0;
+}
+
+
+/* Block type (long text) */
+.action-block {
+  height: auto;
+  min-height: 4rem;
+  word-wrap: normal;
+}
+.action-block span[role="button"] {
+  float: left;
+  display: inline;
+}
+.action-block b {
+  display: block;
+  overflow: hidden;
+  line-height: 1.4em;
+}
+.action-block span {
+  display: block;
+}
+
+
+/* Add style */
+.action-add {
+  background: -moz-linear-gradient(bottom, #ccc, #fafafa);
+  border: solid 1px #bcbcbc;
+  box-shadow: none;
+  color: #333;
+  text-align: left;
+  padding-left: 1rem;
+}
+.action-add span.icon-add[role="button"] {
+  background: url(/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center;
+}
+
+.action-add:active {
+  background: -moz-linear-gradient(bottom, #fafafa, #ccc);
+}
+
+/* Remove/delete style */
+.action-delete {
+  color: #fff;
+  background: -moz-linear-gradient(bottom, #900010, #c90010);
+  border: none;
+  padding-left: 0.8rem;
+}

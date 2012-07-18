@@ -10,12 +10,17 @@
     "mozbrowser",
     "power",
     "mozApps",
-    "mobileconnection"
+    "mobileconnection",
+    "mozBluetooth"
   ],
   "locales": {
     "ar": {
       "name": "System",
       "description": "Main System"
+    },
+    "ca": {
+      "name": "Sistema",
+      "description": "Sistema principal"
     },
     "de": {
       "name": "System",

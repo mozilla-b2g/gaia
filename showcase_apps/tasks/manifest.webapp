@@ -1,0 +1,65 @@
+{
+  "name": "Tasks",
+  "description": "Gaia Tasks",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "ca": {
+      "name": "Tasques",
+      "description": "Tasques del Gaia"
+    },
+    "de": {
+      "name": "Aufgaben",
+      "description": "Gaia Aufgaben"
+    },
+    "el": {
+      "name": "\u0394\u03b9\u03b5\u03c1\u03b3\u03b1\u03c3\u03af\u03b5\u03c2",
+      "description": "\u0394\u03b9\u03b5\u03c1\u03b3\u03b1\u03c3\u03af\u03b5\u03c2 Gaia"
+    },
+    "en-US": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "es": {
+      "name": "Tareas",
+      "description": "Tareas de Gaia"
+    },
+    "fr": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "it": {
+      "name": "Attivit\u00e0",
+      "description": "Attivit\u00e0 di Gaia"
+    },
+    "pt-BR": {
+      "name": "Tarefas",
+      "description": "Tarefas do Gaia"
+    },
+    "ru": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "tr": {
+      "name": "G\u00f6revler",
+      "description": "Gaia G\u00f6revler"
+    },
+    "zh-TW": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Tasks.png",
+    "60": "/style/icons/60/Tasks.png"
+  },
+  "orientation": "portrait-primary"
+}

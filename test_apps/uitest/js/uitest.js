@@ -9,6 +9,14 @@ var UITest = {
     delete this.iframe;
     return this.iframe = document.getElementById('test-iframe');
   },
+  get backBtn() {
+    delete this.backBtn;
+    return this.backBtn = document.getElementById('test-panel-back');
+  },
+  get panelTitle() {
+    delete this.panelTitle;
+    return this.panelTitle = document.getElementById('test-panel-title');
+  },
   init: function ut_init() {
     this.testList.addEventListener('click', this);
     this.iframe.addEventListener('load', this);
@@ -16,6 +24,7 @@ var UITest = {
     document.body.addEventListener('transitionend', this);
     window.addEventListener('keyup', this);
     window.addEventListener('hashchange', this);
+    this.backBtn.addEventListener('click', this);
 
     var name = this.getNameFromHash();
     if (name)
@@ -28,19 +37,20 @@ var UITest = {
     document.body.removeEventListener('transitionend', this);
     window.removeEventListener('keyup', this);
     window.removeEventListener('hashchange', this);
+    this.backBtn.removeEventListener('click', this);
   },
   getNameFromHash: function ut_getNameFromHash() {
     return (/\btest=(.+)(&|$)/.exec(window.location.hash) || [])[1];
   },
   handleEvent: function ut_handleEvent(ev) {
     switch (ev.type) {
-      case 'keyup':
-        if (ev.keyCode != ev.DOM_VK_ESCAPE)
+      case 'click':
+        if (ev.target != this.backBtn) { 
           return;
+        }
         if (window.location.hash) {
           window.location.hash = '';
-          ev.preventDefault();
-        }
+        }          
         break;
       case 'load':
         this.iframe.contentWindow.addEventListener('keyup', this);
@@ -54,6 +64,7 @@ var UITest = {
           this.closeTest();
           return;
         }
+        this.panelTitle.textContent = name;
         this.openTest(name);
         break;
       case 'transitionend':
@@ -62,7 +73,7 @@ var UITest = {
           // openTest
           this.iframe.src = './tests/' + name + '.html';
         } else {
-          // clseTest
+          // closeTest
           this.iframe.src = 'about:blank';
         }
         break;

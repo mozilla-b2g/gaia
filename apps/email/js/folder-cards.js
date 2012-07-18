@@ -62,8 +62,6 @@ AccountPickerCard.prototype = {
    * Clicking a different account changes the list of folders displayed.  We
    * then trigger a select of the inbox for that account because otherwise
    * things get permutationally complex.
-   *
-   * UXXX get signoff on this behavior (e-mail out)
    */
   onClickAccount: function(accountNode, event) {
    var oldAccount = this.curAccount,
@@ -79,17 +77,19 @@ AccountPickerCard.prototype = {
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'account-picker',
-  modes: {
-    default: {
-    },
-  },
-  constructor: AccountPickerCard
-});
+Cards.defineCardWithDefaultMode('account-picker', {}, AccountPickerCard);
 
+const FOLDER_DEPTH_CLASSES = [
+    'fld-folder-depth0',
+    'fld-folder-depth1',
+    'fld-folder-depth2',
+    'fld-folder-depth3',
+    'fld-folder-depth4',
+    'fld-folder-depth5',
+    'fld-folder-depthmax'
+  ];
 
 function FolderPickerCard(domNode, mode, args) {
   this.domNode = domNode;
@@ -107,6 +107,8 @@ function FolderPickerCard(domNode, mode, args) {
 
   domNode.getElementsByClassName('fld-accounts-btn')[0]
     .addEventListener('click', this.onShowAccounts.bind(this), false);
+  domNode.getElementsByClassName('fld-nav-settings-btn')[0]
+    .addEventListener('click', this.onShowSettings.bind(this), false);
 
   // - DOM!
   this.updateSelfDom();
@@ -116,6 +118,11 @@ function FolderPickerCard(domNode, mode, args) {
 FolderPickerCard.prototype = {
   onShowAccounts: function() {
     Cards.moveToCard(['account-picker', 'default']);
+  },
+
+  onShowSettings: function() {
+    Cards.pushCard(
+      'settings-main', 'default', 'animate', {}, 'left');
   },
 
   onFoldersSplice: function(index, howMany, addedItems,
@@ -164,6 +171,9 @@ FolderPickerCard.prototype = {
     if (firstTime) {
       if (!folder.selectable)
         folderNode.classList.add('fld-folder-unselectable');
+
+      var depthIdx = Math.min(FOLDER_DEPTH_CLASSES.length - 1, folder.depth);
+      folderNode.classList.add(FOLDER_DEPTH_CLASSES[depthIdx]);
 
       folderNode.getElementsByClassName('fld-folder-name')[0]
         .textContent = folder.name;
@@ -235,18 +245,19 @@ FolderPickerCard.prototype = {
    * graphical glitches.
    */
   die: function() {
-  },
+  }
 };
 Cards.defineCard({
   name: 'folder-picker',
   modes: {
     // Navigation mode acts like a tray
     navigation: {
-      tray: true,
+      tray: true
     },
     movetarget: {
-      tray: false,
-    },
+      tray: false
+    }
   },
   constructor: FolderPickerCard
 });
+

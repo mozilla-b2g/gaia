@@ -61,7 +61,7 @@
         screen.appendChild(dialog);
 
         message = document.createElement('div');
-        message.id = 'permissions-message';
+        message.id = 'permission-message';
         dialog.appendChild(message);
 
         yes = document.createElement('button');

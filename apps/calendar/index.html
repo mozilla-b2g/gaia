@@ -1,24 +1,33 @@
 <!DOCTYPE HTML>
-<html class="ltr" manifest="manifest.appcache">
+<html class="ltr">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <link rel="stylesheet" type="text/css" href="./style/calendar.css">
-  <link rel="stylesheet" type="text/css" href="./style/ui.css">
-  <link rel="stylesheet" type="text/css" href="./style/events.css">
-  <link rel="stylesheet" type="text/css" href="./style/hacks.css">
+  <link rel="stylesheet" type="text/css" href="/style/calendar.css">
+  <link rel="stylesheet" type="text/css" href="/style/ui.css">
+  <link rel="stylesheet" type="text/css" href="/style/events.css">
+  <link rel="stylesheet" type="text/css" href="/style/forms.css">
+  <link rel="stylesheet" type="text/css" href="/style/settings.css">
+  <link rel="stylesheet" type="text/css" href="/style/toolbars.css">
+
+  <!--- vendor -->
+  <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- utils -->
+  <script defer src="/js/presets.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/calc.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/format.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/batch.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/set.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/template.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/responder.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/view.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/router.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- templates -->
   <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/account.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- models -->
   <script defer src="/js/models/busytime.js" type="text/javascript" charset="utf-8"></script>
@@ -28,6 +37,9 @@
   <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/settings.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/create_account.js" type="text/javascript" charset="utf-8"></script>
+
 
   <!-- workers / main / controller -->
   <script defer src="/js/controller.js" type="text/javascript" charset="utf-8"></script>
@@ -35,18 +47,54 @@
 
   <title>Gaia Calendar</title>
 </head>
-<body>
+
+<body role="app" onload="Calendar.init();">
+
+<section id="settings">
+
+  <section id="settings-accounts">
+    <header role="toolbar">
+      <h1>Accounts</h1>
+    </header>
+
+    <a href="/settings/" class="settings">
+      Calendar Settings
+    </a>
+  </section>
+
+  <section id="settings-calendars">
+    <header role="toolbar">
+      <h1>Calendars</h1>
+    </header>
+
+
+    <ol class="calendars">
+      <li class="calendar-1">Work (1)</li>
+      <li class="calendar-2">Friends</li>
+    </ol>
+
+    <a href="/settings/accounts/" class="settings">
+      Account Settings
+    </a>
+  </section>
+
+</section>
+
+
+<div id="wrapper">
 
 <section id="top-toolbar">
-  <header class="toolbar">
-    <a data-l10n-id="buttons.accounts" role="button" class="accounts" href="#accounts">
-      Accounts
+  <header role="toolbar">
+    <a data-l10n-id="buttons.settings"
+       id="show-settings"
+       role="button" href="/settings/">
+      Settings
     </a>
 
-    <h3 id="current-month-year">
-    </h3>
+    <h1 id="current-month-year">
+    </h1>
 
-    <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="#new-event">
+    <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="/add">
       New Event
     </a>
   </header>
@@ -54,7 +102,7 @@
 
 <section id="views">
 
-  <section id="month">
+  <section id="month-view">
     <!--- title row all the days this will be static -->
     <header id="month-days" role="row">
       <ol role="row">
@@ -72,49 +120,163 @@
       in the DOM at any one time for caching.
       only one will ever be displayed.
       -->
-
     <section id="month-displays">
 
     </section>
 
-    <!---
-    When a day is selected you have
-    access to the details here
-    -->
+  </section>
 
-    <section id="months-day-view">
-      <header class="toolbar">
-        <h3 id="selected-day-title"></h3>
-      </header>
-       <section id="event-list" class="day-events">
-      </section>
+  <section id="create-account-view">
+    <header role="toolbar">
+      <a data-l10n-id="buttons.cancel"
+         role="button"
+         class="cancel"
+         href="javascript: window.history.go(-1);">
+
+        Cancel
+      </a>
+
+      <h1>
+        Add Account
+      </h1>
+    </header>
+
+    <p>
+      Please select the type of
+      account you would like to add.
+    </p>
+
+
+    <ol id="create-account-presets">
+    <ol>
+
+  </section>
+
+  <!---
+  When a day is selected you have
+  access to the details here
+  -->
+  <section id="months-day-view">
+    <header>
+      <h1 id="selected-day-title"></h1>
+    </header>
+     <section id="event-list" class="day-events">
     </section>
+  </section>
+
+  <section id="day-view">
+    [Day] Coming soon....
+  </section>
+
+  <section id="week-view">
+    [Week] Coming soon...
+  </section>
+
+  <section id="add-event-view">
+    <header role="toolbar">
+      <a data-l10n-id="buttons.cancel"
+         role="button"
+         class="cancel"
+         href="javascript: window.history.go(-1);">
+
+        Cancel
+      </a>
+
+      <h1>
+        EVENT
+      </h1>
+
+      <a data-l10n-id="buttons.save" role="button" class="save" href="#">
+        Save
+      </a>
+    </header>
+    <fieldset>
+      <ol>
+        <li class="title">
+          <input name="title" placeholder="Title" />
+        </li>
+
+        <li class="location">
+          <input name="location" placeholder="Location" />
+        </li>
+
+        <li class="all-day">
+          <label role="checkbox">
+            <span>All Day?</span>
+            <input type="checkbox" name="allDay" />
+          </label>
+        </li>
+
+        <li class="start-time">
+          <input type="time" placeholder="12:00" name="startTime" />
+        </li>
+
+        <li class="end-time">
+          <input type="time" placeholder="12:00" name="endTime" />
+        </li>
+
+        <li class="repeat">
+          <label role="listbox">
+            <select name="repeat">
+              <option class="default" value="" selected>
+                Repeat
+              </option>
+              <option>None</option>
+              <option>Every Day</option>
+              <option>Every Week</option>
+              <option>Every Month</option>
+              <option>Every Year</option>
+            </select>
+          </label>
+        </li>
+
+        <li class="alert">
+          <label role="listbox">
+            <select value="" name="alert">
+              <option class="default" selected>
+                Alert
+              </option>
+              <option>Event Time</option>
+              <option>5 min before</option>
+            </select>
+          </label>
+        </li>
+
+        <li class="notes">
+          <textarea name="notes" placeholder="Notes"></textarea>
+        </li>
+
+      </ol>
+    </fieldset>
   </section>
 </section>
 
 
 <section id="bottom-toolbar">
   <menu id="view-selector">
+    <li class="toggle toggle-settings">
+      <a>Hide</a>
+    </li>
     <li class="today">
       <a href="#today">Today</a>
     </li>
     <li class="time-selection">
       <menu>
         <li class="month">
-          <a href="#view-month">MONTH</a>
+          <a href="/month/">Month</a>
         </li>
         <li class="week">
-          <a href="#view-week">WEEK</a>
+          <a href="/week/">Week</a>
         </li>
         <li class="day">
-          <a href="#view-day">DAY</a>
+          <a href="/day/">Day</a>
         </li>
       </menu>
     </li>
   </menu>
 </section>
 
-
+</div>
 </body>
 </html>
 

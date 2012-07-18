@@ -7,6 +7,19 @@ var MailAPI = null;
 
 var App = {
   /**
+   * Bind any global notifications.
+   */
+  _init: function() {
+    // If our password is bad, we need to pop up a card to ask for the updated
+    // password.
+    MailAPI.onbadlogin = function(account) {
+      Cards.pushCard('setup-fix-password', 'default', 'animate',
+                     { account: account, restoreCard: Cards.activeCardIndex },
+                     'right');
+    };
+  },
+
+  /**
    * Show the best inbox we have (unified if >1 account, just the inbox if 1) or
    * start the setup process if we have no accounts.
    */
@@ -23,28 +36,30 @@ var App = {
         foldersSlice.oncomplete = function() {
           var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
           if (!inboxFolder)
-            dieOnFatalError('We have an account without an inbox!', foldersSlice.items);
+            dieOnFatalError('We have an account without an inbox!',
+                foldersSlice.items);
 
           Cards.assertNoCards();
+
           // Push the navigation cards
           Cards.pushCard(
             'account-picker', 'default', 'none',
             {
               acctsSlice: acctsSlice,
-              curAccount: account,
+              curAccount: account
             });
           Cards.pushCard(
             'folder-picker', 'navigation', 'none',
             {
               curAccount: account,
               foldersSlice: foldersSlice,
-              curFolder: inboxFolder,
+              curFolder: inboxFolder
             });
           // Push the message list card
           Cards.pushCard(
             'message-list', 'default', 'immediate',
             {
-              folder: inboxFolder,
+              folder: inboxFolder
             });
         };
       }
@@ -57,7 +72,7 @@ var App = {
           {});
       }
     };
-  },
+  }
 };
 
 function hookStartup() {
@@ -66,6 +81,7 @@ function hookStartup() {
     try {
       populateTemplateNodes();
       Cards._init();
+      App._init();
       App.showMessageViewOrSetup();
     }
     catch (ex) {
@@ -86,3 +102,4 @@ function hookStartup() {
   }, false);
 }
 hookStartup();
+

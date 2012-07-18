@@ -1,20 +1,4 @@
-DateHelper = {
-  //TODO: localise
-  MONTHS: [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ],
-
+var DateHelper = {
   todayStarted: function dh_todayStarted() {
     var now = (new Date()).valueOf();
     return this.getMidnight(now);
@@ -29,8 +13,16 @@ DateHelper = {
   thisWeekStarted: function dh_thisWeekStarted() {
     var now = new Date();
     var dayOfTheWeek = now.getDay();
-    var offset = 1 - dayOfTheWeek;
-    var firstDay = now.valueOf() + offset * 86400000;
+    var firstDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      //getDay is zero based so if today
+      //is the start of the week it will not
+      //change the date. Also if we get
+      //into negative days the date object
+      //handles that too...
+      now.getDate() - dayOfTheWeek
+    );
     return this.getMidnight(firstDay);
   },
 
