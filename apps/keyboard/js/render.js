@@ -94,7 +94,7 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
-        content += buildKey(keyChar, className, keyWidth, dataset);
+        content += buildKey(keyChar, className, keyWidth + 'px', dataset);
 
       }));
       content += '</div>';
@@ -251,7 +251,7 @@ const IMERender = (function() {
       ];
       content += buildKey(
         Keyboards[kbr].menuLabel,
-        className, cssWidth,
+        className, cssWidth + 'px',
         dataset
       );
 
@@ -277,7 +277,7 @@ const IMERender = (function() {
   // Show char alternatives. The first element of altChars is ALWAYS the
   // original char.
   var showAlternativesCharMenu = function(key, altChars) {
-    var content = '', cssWidth = key.scrollWidth;
+    var content = '';
 
     var original = altChars[0];
     altChars = altChars.slice(1);
@@ -303,9 +303,10 @@ const IMERender = (function() {
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var dataset = [{'key': 'keycode', 'value': keyCode}];
       var label = keyChar.label || keyChar;
+      var cssWidth = key.scrollWidth * (1 + 0.5 * (label.length - 1));
       if (label.length > 1)
         dataset.push({'key': 'compositekey', 'value': label});
-      content += buildKey(label, '', cssWidth, dataset);
+      content += buildKey(label, '', cssWidth + 'px', dataset);
     });
     this.menu.innerHTML = content;
 
@@ -411,7 +412,7 @@ const IMERender = (function() {
     dataset.forEach(function(data) {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
-    content += ' style="width:' + width + 'px"';
+    content += ' style="width: ' + width + '"';
     content += '><span class="visual-wrapper"><span>' +
                label + '</span></span></button>';
     return content;
