@@ -163,8 +163,8 @@ var MessageManager = {
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
+    console.log("SMS: Eliminando mensaje " + typeof(id) + id);
 
-    console.log("SMS: Eliminando mensaje " + id);
     var req = navigator.mozSms.delete(id);
     req.onsuccess = function onsuccess() {
       callback(req.result);
@@ -284,8 +284,8 @@ var ThreadListUI = {
   },
 
   executeDeletion: function thui_executeDeletion() {
-    //TODO call MManager
-    window.alert("EXECUTION");
+    MessageManager.deleteMessages(this.delNumList, callback);
+    //TODO delete pending
   },
 
   renderThreads: function thlui_renderThreads(messages) {
@@ -615,7 +615,7 @@ var ThreadUI = {
       for (var i = 0; i < inputs.length; i++) {
         inputs[i].parentNode.parentNode.classList.add('undo-candidate');
         if (inputs[i].id) { // sent or received
-          this.delNumList.push(inputs[i].id);
+          this.delNumList.push(parseFloat(inputs[i].id));
         } else { // pending
           // another list to delete from pending?
         }
@@ -628,7 +628,7 @@ var ThreadUI = {
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
       if (inputs[i].id) { // sent or received
-        this.delNumList.push(inputs[i].id);
+        this.delNumList.push(parseFloat(inputs[i].id));
       } else { // pending
           // another list to delete from pending?
       }
@@ -636,11 +636,8 @@ var ThreadUI = {
   },
 
   executeDeletion: function thui_executeDeletion() {
-    MessageManager.deleteMessages(this.delNumList, function deleted(ok) {
-      if (ok)
-        window.alert("MESSAGES DELETED");
-    });
-    // Delete from pending with second list??
+    MessageManager.deleteMessages(this.delNumList, callback);
+    //TODO Delete pending
   },
 
   handleEvent: function thui_handleEvent(evt) {
