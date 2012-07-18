@@ -390,10 +390,10 @@ li[role="tab"] a {
   color: #000;
   line-height: 36px;
   text-align: center;
-  padding: 0 32px;
+  padding: 0 30px;
   font-size: 14px;
   outline: none;
-  margin-left: -32px;
+  margin-left: -30px;
 }
 
 li[role="tab"]:first-child a {
@@ -483,7 +483,7 @@ li[role="listitem"] small {
   background-color: #ccd6df;
 }
 
-#history, #bookmarks {
+#history, #bookmarks, #top-sites {
   height: -moz-calc(100% - 36px);
   overflow-y: auto;
   overflow-x: hidden;

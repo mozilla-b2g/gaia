@@ -41,12 +41,15 @@ var NavbarManager = {
     switch (destination) {
       case '#recents-view':
         recent.classList.add('toolbar-option-selected');
+        Recents.updateLatestVisit();
         break;
       case '#contacts-view':
         contacts.classList.add('toolbar-option-selected');
+        Recents.updateHighlighted();
         break;
       case '#keyboard-view':
         keypad.classList.add('toolbar-option-selected');
+        Recents.updateHighlighted();
         break;
     }
   }
