@@ -104,6 +104,7 @@ const IMEController = (function() {
 
   // Suggestion Engines are self registering here.
   var _SuggestionEngines = {};
+  var _wordSuggestionEnabled = false;
   function _getCurrentSuggestionEngine() {
 
     if (Keyboards[_baseLayoutName].suggestionEngine)
@@ -179,6 +180,9 @@ const IMEController = (function() {
   }
 
   function _requireSuggestion() {
+    if (!_wordSuggestionEnabled)
+      return '';
+
     return Keyboards[_baseLayoutName].suggestionEngine;
   }
 
@@ -1189,7 +1193,7 @@ const IMEController = (function() {
       if (keyboard.imEngine)
         this.loadIMEngine(name);
 
-      if (keyboard.suggestionEngine)
+      if (_wordSuggestionEnabled && keyboard.suggestionEngine)
         this.loadSuggestionEngine(name);
     },
 
@@ -1312,7 +1316,14 @@ const IMEController = (function() {
         if (suggestionEngine && suggestionEngine.setLayoutParams)
           suggestionEngine.setLayoutParams(_layoutParams);
       }
-    }
+    },
 
+    enableWordSuggestion: function kc_enableWordSuggestion(enabled) {
+      _wordSuggestionEnabled = enabled;
+
+      var suggestionEngineName = Keyboards[_baseLayoutName].suggestionEngine;
+      if (enabled && suggestionEngineName)
+          this.loadSuggestionEngine(_baseLayoutName);
+    }
   };
 })();

@@ -83,8 +83,7 @@ const Keyboards = {
     type: 'keyboard',
     label: 'English',
     menuLabel: 'English',
-    // commented out due to performance issue on Otoro
-    // suggestionEngine: 'predictive_text',
+    suggestionEngine: 'predictive_text',
     alt: {
       a: 'áàâäå',//ãāæ', XXX: commented to avoid overflows for the demo
       c: 'çćč',

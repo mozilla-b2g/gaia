@@ -484,7 +484,7 @@ BinaryDictionary.prototype = {
 
       if (!alternatives) {
         debug('alternatives undefined/null');
-        return;
+        return -1;
       }
 
       debug('alternatives for ' + i + ' ' + JSON.stringify(alternatives));

@@ -148,6 +148,11 @@ const IMEManager = {
     }).bind(this));
 
     var self = this;
+    SettingsListener.observe('keyboard.wordsuggestion', false, function(value) {
+      var wordSuggestionEnabled = !!value;
+      IMEController.enableWordSuggestion(wordSuggestionEnabled);
+    });
+
     for (var key in this.keyboardSettingGroups) {
       (function observeSettings(key) {
         SettingsListener.observe('keyboard.layouts.' + key, false,
