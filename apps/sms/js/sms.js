@@ -258,7 +258,10 @@ var ThreadListUI = {
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
-    //TODO Include delete all threads functionality
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+    }
   },
 
   deleteThreads: function thlui_deleteThreads() {
@@ -572,7 +575,10 @@ var ThreadUI = {
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
-    //TODO Include delete all messages functionality
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+    }
   },
 
   deleteMessages: function thui_deleteMessages() {
