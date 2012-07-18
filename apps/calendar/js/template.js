@@ -1,5 +1,8 @@
 (function(window) {
-  var FORMAT_REGEX = /\{([a-zA-Z0-9\-\_\.]+)\|?([a-z0-9A-Z]+)?(=([a-z-A-Z0-9\-_ ]+))?\}/g;
+  var FORMAT_REGEX;
+  FORMAT_REGEX = new RegExp('\\{([a-zA-Z0-9\\-\\_\\.]+)\\|?' +
+                           '([a-z0-9A-Z]+)?' +
+                           '(=([a-z-A-Z0-9\\-_ ]+))?\\}', 'g');
 
   var POSSIBLE_HTML = /[&<>"'`]/;
 
