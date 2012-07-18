@@ -1,38 +1,21 @@
 (function(window) {
-
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   var template = Calendar.Templates.Month;
 
-  function Child(options) {
-    var key, self;
-
-    if (typeof(options) === 'undefined') {
-      options = {};
-    }
-
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
+  function Child() {
+    Calendar.View.apply(this, arguments);
 
     this.batch = new Calendar.Batch({
       handler: this._handleBatch.bind(this),
       verify: this._verifyBatchItem.bind(this)
     });
 
-    this._busytimes = {};
+    this._busytimes = Object.create(null);
     this.monthId = Calendar.Calc.getMonthId(this.month);
 
     this._onBusyAdd = this._onBusyAdd.bind(this);
     this._onBusyRemove = this._onBusyRemove.bind(this);
+
+    this.controller = this.app.timeController;
   }
 
   Child.prototype = {
@@ -142,7 +125,7 @@
     },
 
     _initEvents: function() {
-      var busy = this.controller.busytime;
+      var busy = this.app.store('Busytime');
 
       //TODO: Its a known issue that changes in days in different
       //      months for this view will not be changed.
@@ -151,7 +134,7 @@
     },
 
     _destroyEvents: function() {
-      var busy = this.controller.busytime;
+      var busy = this.app.store('Busytime');
 
       busy.removeEventListener(
         'add ' + this.monthId, this._onBusyAdd
@@ -296,7 +279,7 @@
           id = Calendar.Calc.getDayId(date),
           state,
           units,
-          busytimes = this.controller.busytime;
+          busytimes = this.app.store('Busytime');
 
       hours = busytimes.getHours(date);
       units = this._getBusyUnits(hours);
@@ -424,5 +407,5 @@
 
   };
 
-  Calendar.Views.MonthChild = Child;
+  Calendar.ns('Views').MonthChild = Child;
 }(this));
