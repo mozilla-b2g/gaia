@@ -60,6 +60,24 @@ var ContactsTest = {
           type: 'webcontacts/contact'
         }
       });
+
+    activity.onsuccess = function() {
+      var contact = this.result.contact;
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {        
+        document.getElementById('activities-result').innerHTML = 'New contact' + ' create with id: ' + contact.id;
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+    activity.onerror = function() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        //document.getElementById('activities-result').innerHTML = 'Activity canceled';
+        var app = evt.target.result;
+        app.launch();      
+      };
+    };
+
   },
 
   loadContacts: function ct_loadContacts() {

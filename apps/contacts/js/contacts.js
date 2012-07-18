@@ -169,14 +169,14 @@ var Contacts = (function() {
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
-    var sectionId = hash.substr(1, hash.length) || "";
+    var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
     var params = extractParams(hasParams[1]);
 
     switch (sectionId) {
-      case "view-contact-details":
-        if(params == -1 || !('id' in params)){
-          console.log("Param missing");
+      case 'view-contact-details':
+        if (params == -1 || !('id' in params)) {
+          console.log('Param missing');
           return;
         }
         var id = params['id'];
@@ -185,25 +185,25 @@ var Contacts = (function() {
           reloadContactDetails();
           navigation.go(sectionId, 'none');
         }, function onError() {
-          console.error("Error retrieving contact");
+          console.error('Error retrieving contact');
         });
         break;
 
-      case "view-contact-form":
-        if(params == -1 || !('id' in params)){
+      case 'view-contact-form':
+        if (params == -1 || !('id' in params)) {
           // Adding new Contact
           currentContact = {};
           showAdd();
         } else {
           // Editing existinv
           var params = extractParams(hasParams[1]);
-          if('id' in params) {
+          if ('id' in params) {
             var id = params['id'];
             cList.getContactById(id, function onSuccess(savedContact) {
               currentContact = savedContact;
               showEdit();
             }, function onError() {
-              console.log("Error retrieving contact to be edited");
+              console.log('Error retrieving contact to be edited');
               currentContact = {};
               showAdd();
             });
@@ -219,12 +219,12 @@ var Contacts = (function() {
   }
 
   var extractParams = function extractParams(url) {
-    if(!url) {
+    if (!url) {
       return -1;
     }
     var ret = {};
     var params = url.split('&');
-    for(var i = 0; i<params.length; i++) {
+    for (var i = 0; i < params.length; i++) {
       var currentParam = params[i].split('=');
       ret[currentParam[0]] = currentParam[1];
     }
@@ -711,12 +711,19 @@ var Contacts = (function() {
         myContact.id = savedContact.id;
         myContact.photo = savedContact.photo;
         myContact.category = savedContact.category;
-        contactsList.refresh(myContact);
-        reloadContactDetails();
-        navigation.back();
+        if (ActivityHandler.currentlyHandling) {
+          ActivityHandler.create(myContact);
+        } else {
+          contactsList.refresh(myContact);
+          reloadContactDetails();
+          navigation.back();
+        }
       }, function onError() {
         saveButton.removeAttribute('disabled');
         console.error('Error reloading contact');
+        if (ActivityHandler.currentlyHandling) {
+          ActivityHandler.cancel();
+        }
       });
     };
 
@@ -904,6 +911,15 @@ var Contacts = (function() {
     return delButton;
   };
 
+  var handleBack = function handleBack() {
+    //If in an activity, cancel it
+    if(ActivityHandler.currentlyHandling) {
+      ActivityHandler.cancel();
+    } else {
+      navigation.back();
+    }
+  };
+
   return {
     'showEdit' : showEdit,
     'doneTag': doneTag,
@@ -912,7 +928,7 @@ var Contacts = (function() {
     'addNewEmail' : insertEmptyEmail,
     'addNewAddress' : insertEmptyAddress,
     'addNewNote' : insertEmptyNote,
-    'goBack' : navigation.back,
+    'goBack' : handleBack,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
     'saveContact': saveContact,
@@ -928,7 +944,7 @@ var ActivityHandler = {
     return !!this._currentActivity;
   },
 
-  getActivityName: function activityName() {
+  get activityName() {
     if (!this._currentActivity) {
       return null;
     }
@@ -939,7 +955,7 @@ var ActivityHandler = {
   handle: function ah_handle(activity) {
     this._currentActivity = activity;
 
-    switch(this.getActivityName()) {
+    switch(this.activityName) {
       case 'new':
         document.location.hash = 'view-contact-form';
         return;
@@ -947,10 +963,16 @@ var ActivityHandler = {
     }
   },
 
+  create: function ah_create(contact) {
+    this._currentActivity.postResult({contact: contact});
+    this._currentActivity = null;
+  },
+
   pick: function ah_pick(number) {
     this._currentActivity.postResult({ number: number });
     this._currentActivity = null;
   },
+
   cancel: function ah_cancel() {
     this._currentActivity.postError('canceled');
     this._currentActivity = null;
