@@ -166,7 +166,7 @@ var Contacts = (function() {
 
   var contactsList = contacts.List;
 
-  window.addEventListener('load', function initContacts(evt) {
+  var initContainers = function initContainers() {
     currentContactId = document.getElementById('contact-form-id');
     givenName = document.getElementById('givenName');
     company = document.getElementById('org');
@@ -187,6 +187,10 @@ var Contacts = (function() {
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
+  };
+
+  window.addEventListener('load', function initContacts(evt) {
+    initContainers();
 
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = 'Are you sure you want to remove this contact?';
@@ -216,8 +220,10 @@ var Contacts = (function() {
       };
     });
 
-    var position = 0;
+    initPullEffect(cover);
+  });
 
+  var initPullEffect = function initPullEffect(cover) {
     cover.addEventListener('mousedown', function(event) {
       if (contactDetails.classList.contains('no-photo'))
         return;
@@ -254,7 +260,7 @@ var Contacts = (function() {
       cover.addEventListener('mousemove', onMouseMove);
       cover.addEventListener('mouseup', onMouseUp);
     });
-  });
+  };
 
   //
   // Method that generates HTML markup for the contact
