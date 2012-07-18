@@ -98,11 +98,13 @@ var gWifiManager = (function(window) {
       var networkEvent = { network: network };
 
       setTimeout(function() {
+        self.connection.network = network;
         self.connection.status = 'connecting';
         self.onstatuschange(networkEvent);
       }, 0);
 
       setTimeout(function() {
+        self.connection.network = network;
         self.connection.status = 'associated';
         self.onstatuschange(networkEvent);
       }, 1000);
@@ -116,6 +118,20 @@ var gWifiManager = (function(window) {
       }, 2000);
 
       return connection;
+    },
+
+    // forgets a network (disconnect)
+    forget: function(network) {
+      var self = this;
+      var networkEvent = { network: network };
+
+      setTimeout(function() {
+        network.connected = false;
+        self.connected = null;
+        self.connection.network = null;
+        self.connection.status = 'disconnected';
+        self.onstatuschange(networkEvent);
+      }, 0);
     },
 
     // event listeners
@@ -415,7 +431,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     if (isConnected(network)) {
       // online: show status + offer to disconnect
       wifiDialog('#wifi-status', wifiDisconnect);
-    } else if (network.password == '*') {
+    } else if (network.password && (network.password == '*')) {
       // offline, known network (hence the '*' password value):
       // no further authentication required.
       setPassword();
@@ -520,7 +536,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
       // hide dialog box
       function close() {
-        // reset identity/password fields
+        // reset authentication fields
         if (key) {
           identity.value = '';
           password.value = '';
