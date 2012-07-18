@@ -1067,6 +1067,7 @@ const IMEController = (function() {
   function _reset() {
     _currentLayoutMode = LAYOUT_MODE_DEFAULT;
     _isUpperCase = false;
+    _currentWordComposer.reset();
   }
 
   var _imeEvents = {
@@ -1172,7 +1173,6 @@ const IMEController = (function() {
     hideIME: function kc_hideIME(imminent) {
       IMERender.ime.classList.add('hide');
       IMERender.hideIME(imminent);
-      _currentWordComposer.reset();
       _reset();
     },
 
