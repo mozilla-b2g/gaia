@@ -142,7 +142,8 @@ var Recents = {
 
     var entry =
       '<li class="log-item ' +
-      ((localStorage.getItem('latestCallLogVisit') < recent.date) ? 'highlighted': '') +
+      ((localStorage.getItem('latestCallLogVisit') < recent.date) ?
+        'highlighted' : '') +
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
