@@ -11,7 +11,7 @@ body {
   color: white;
   font-family: 'Open Sans', sans-serif;
   font-weight: 600;
-  font-size: 2.5mozmm;
+  font-size: 0.8rem;
   background: url("images/home-texture.png") repeat scroll 2% 50% #666666;
 }
 
@@ -63,8 +63,8 @@ input {
 #display b {
   position: absolute;
   right: 0;
-  font-size: 600%;
   line-height: 150px;
+  font-size:600%;
   display: block;
   -moz-transform-origin: right center;
 }
