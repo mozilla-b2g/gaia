@@ -130,9 +130,27 @@ html, body {
   pointer-events: none;
 }
 
+.edit #thread-list-container .checkbox-container {
+  pointer-events:auto;
+  opacity: 1;
+}
+
+.edit .undo-candidate {
+  display: none;
+}
+
+.edit .msg-checkbox {
+  display: table-cell;
+}
+
+.edit .message-block {
+  padding: 1rem 0;
+  border-top: .1rem solid #DBDBDB; 
+  margin-bottom: 0;
+}
+
 /*
   Thread list styles
-  //TODO Update with VISUALS
 */
 
 #thread-list-container .item {
@@ -215,14 +233,6 @@ a.unread .unread-mark .icon-unread-mark {
   width: 6.4rem;
   height: 6.4rem;
   border: none;
-  -moz-transition: opacity 0.3s ease-in;
-}
-
-#thread-list-container .item > a > input[type=checkbox] + span {
-  opacity: 0.0;
-  visibility: hidden;
-  height: 6rem;
-  border-radius: 0.5rem;
 }
 
 #thread-list-container .photo {
@@ -230,12 +240,44 @@ a.unread .unread-mark .icon-unread-mark {
   top: 0;
   right: 0;
   width: 5.9rem;
-  height: 5.9rem;
+  height: 100%;
   overflow: hidden;
 }
 
 #thread-list-container .photo img {
   width: 100%;
+}
+
+#thread-list-container .checkbox-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5.9rem;
+  height: 100%;
+  overflow: hidden;
+  background: white;
+  pointer-events:none;
+  opacity: 0;
+}
+
+#thread-list-container .checkbox-container input {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  opacity: 0;
+}
+#thread-list-container .checkbox-container span {
+  left: 1.85rem;
+  top: 1.9rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  position: absolute;
+  pointer-events: none;
+  background-image: url('images/check-delete.png'); 
+}
+
+#thread-list-container .checkbox-container input:checked + span {
+  background-position: center bottom;
 }
 
 #thread-list-container .name {
@@ -246,7 +288,6 @@ a.unread .unread-mark .icon-unread-mark {
   text-overflow: ellipsis;
   width: -moz-calc(100% - 7rem);
 }
-
 
 #thread-list-container .msg {
   font-family: 'Open Sans';
@@ -261,11 +302,6 @@ a.unread .unread-mark .icon-unread-mark {
   top: 3rem;
   left: 10rem;
 }
-
-#thread-list-container .msg .highlight {
-  background: rgb(255, 255, 0);
-}
-
 
 #thread-list-container .time {
   font-family: 'Open Sans';
@@ -310,7 +346,6 @@ a.unread .unread-mark .icon-unread-mark {
 
 /*
   Messages Style as 'bubbles'
-  //TODO Include new styles and icons
 */
 
 #messages-container h2 {
@@ -319,13 +354,12 @@ a.unread .unread-mark .icon-unread-mark {
   padding-top: 1rem;
   padding-bottom: .5rem;
   font-size: -moz-calc(6 * 0.226rem);
-  color: #C6C6C6;
+  color: #666666;
   text-transform: uppercase;
   font-family: 'Open Sans';
 }
 
 #messages-container {
-  bottom: 5.5rem;
   text-align: left;
 }
 
@@ -333,121 +367,107 @@ a.unread .unread-mark .icon-unread-mark {
   margin-bottom: 7rem;
 }
 
-#messages-container > div .message-container {
+.message-block {
+  display: table;
+  table-layout: fixed; 
+  width: 100%;
+  margin-bottom:1rem;
+}
+
+.message-block .bubble-container {
+  display: table-cell;
+}
+
+.message-block .bubble-container .bubble{
+  max-width: 23rem;
+  word-wrap:break-word;
+  display: inline-block;
   position: relative;
   padding: 1rem 1.5rem;
   -moz-box-sizing: border-box;
-  display: block;
-  -moz-transition: -moz-transform 0.3s ease;
 }
 
-#messages-container > div .message-bubble {
-  position: absolute;
-  top: -0.1rem;
-  width: 1rem;
-  height: 0.9rem;
+.message-option {
+  width: 3.5rem;
+  vertical-align: middle;
+  display: table-cell;
 }
 
-#messages-container > div .sender > .message-bubble {
-  right: -0.9rem;
-  background: url(images/bubble_gray_corner.png);
-}
-#messages-container > div .receiver > .message-bubble {
-  left: -0.9rem;
-  background: url(images/bubble_orange_corner.png);
+.message-option .gif{
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: 0 auto;
 }
 
-#messages-container > div .sender {
-  border-radius: 0.5rem 0 0.5rem 0.5rem;
-  background: #FFFFFF;
-  border: 0.1rem solid #878787;
-  margin-left: 3.5rem;
-  margin-right: 2rem;
+.msg-checkbox {
+  display: none;
 }
 
-#messages-container > div .receiver {
-  border-radius: 0 0.5rem 0.5rem 0.5rem;
-  background: #F9F8EE;
-  border: 0.1rem solid #F08A48;
-  margin-left: 2rem;
-  margin-right: 3.5rem;
-}
-
-#messages-container .photo {
-  position: absolute;
-  top: 0;
-  width: 8rem;
-  height: 8rem;
-  margin: 0.8rem;
-  border-radius: 0.5rem;
-  box-shadow: inset 0 0.1rem 0 #ddd, 0 0.1rem 0 #999;
-  overflow: hidden;
-  background-color: #ccc;
-  z-index: 2;
-}
-
-#messages-container > div.sender .photo {
-  left: 0;
-}
-
-#messages-container > div.receiver .photo {
-  right: 0;
-}
-
-#messages-container .photo img {
+.message-option input {
   width: 100%;
-}
-
-#messages-container > div .text {
-  color: #000000;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  word-wrap: break-word;
-}
-
-#messages-container > div .time {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  font-size: -moz-calc(6 * 0.226rem);
-  color: #5B5B5B;
-}
-
-#messages-container > div .message-container::before {
-  content: '';
-  display: block;
-  width: 1rem;
-  height: 0.9rem;
-  position: absolute;
-}
-
-#messages-container > div .sender::before {
-  background: url(images/bubble_gray_corner-png);
-  right: 0.1rem;
-}
-
-#messages-container > div .receiver::before {
-  background: url(images/bubble_orange_corner-png);
-  left: -0.1rem;
-}
-
-#messages-container > div.message-block {
-  -moz-box-sizing: border-box;
-  display: block;
-  text-decoration: none;
-  outline: none;
+  height: 4rem;
   position: relative;
-  overflow: hidden;
-  padding: 0.5rem 0 0.5rem 9rem;
-  width: -moz-calc(100% + 9rem);
-  right: 9rem;
-}
+  opacity: 0;
+  margin-top: -2rem;
 
-#messages-container > div.message-block > * {
+}
+.message-option span {
+  display: block;
+  position: relative;
+  margin-top: -4rem;
   pointer-events: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  left: .5rem;
+  top: .9rem; 
+  background-image: url('images/check-delete.png'); 
+}
+.message-option  input:checked + span {
+  background-position: center bottom;
 }
 
-#messages-container > div.message-block:first-child {
-  border-top-color: transparent;
+.sent {
+  text-align: right;
+}
+
+.sent .bubble{
+  margin-right: 1.4rem;
+  background: white;
+  border: .1rem solid #969FA0;
+  box-shadow: 0 0.1rem 0.1rem #4F595B;
+  border-radius: .5rem;
+  text-align: left;
+}
+
+.sent .bubble:after {
+  content: '';
+  width: .9rem;
+  height: 1rem;
+  background-image: url('images/outgoing_9x10.png');
+  position: absolute;
+  right: 0;
+  margin-right: -0.9rem;
+  top: .9rem;
+}
+
+.received .bubble{
+  margin-left: 1.4rem;
+  background: #FBEAE0;
+  border: .1rem solid #FF4E00;
+  box-shadow: 0 0.1rem 0.1rem #F1AF84;
+  border-radius: .5rem;
+  text-align: left;
+}
+
+.received .bubble:after {
+  content: '';
+  width: .9rem;
+  height: 1rem;
+  background-image: url('images/incoming_9x10.png');
+  position: absolute;
+  left: 0;
+  margin-left: -0.9rem;
+  top: 1rem;
 }
 
 /*
