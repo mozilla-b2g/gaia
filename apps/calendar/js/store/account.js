@@ -9,7 +9,7 @@
   Account.prototype = {
     __proto__: Calendar.Store.Abstract.prototype,
 
-    _hydrate: function(obj, id) {
+    _createModel: function(obj, id) {
       if (!(obj instanceof Calendar.Models.Account)) {
         obj = new Calendar.Models.Account(obj);
         obj.connect();
@@ -70,7 +70,7 @@
 
       trans.oncomplete = function(data) {
         var id = putReq.result;
-        var result = self._hydrate(object, id);
+        var result = self._createModel(object, id);
 
         self._accounts[id] = result;
         callback(null, id, result);
@@ -100,7 +100,7 @@
         var cursor = event.target.result;
 
         if (cursor) {
-          var object = self._hydrate(cursor.value, cursor.key);
+          var object = self._createModel(cursor.value, cursor.key);
           results[cursor.key] = object;
           self._accounts[cursor.key] = object;
           cursor.continue();
