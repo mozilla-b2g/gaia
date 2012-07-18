@@ -233,32 +233,22 @@ else
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)x86_64.sdk.tar.bz2
 endif
 XULRUNNER_DOWNLOAD=$(XULRUNNER_SDK_DOWNLOAD)
-XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
-XPCSHELL=./xulrunner-sdk/bin/xpcshell
-XULRUNNERSDK=$(XULRUNNER)
-XPCSHELLSDK=$(XPCSHELL)
+XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
+XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 else
 # Not a mac: assume linux
 # Linux only!
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
-XULRUNNER_LINUX_BASE_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-
 XULRUNNER_LINUX_SDK_URL=$(XULRUNNER_SDK_URL)linux-
 ifeq ($(ARCH),x86_64)
-XULRUNNER_DOWNLOAD=$(XULRUNNER_LINUX_BASE_URL)x86_64.tar.bz2
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)x86_64.sdk.tar.bz2
 else
-XULRUNNER_DOWNLOAD=$(XULRUNNER_LINUX_BASE_URL)i686.tar.bz2
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)i686.sdk.tar.bz2
 endif
-XULRUNNER=./xulrunner/run-mozilla.sh
-XPCSHELL=./xulrunner/xpcshell
 XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
-
-install-xulrunner:
-	test -d $(XULRUNNER_TEST) || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 
 install-xulrunner-sdk:
 	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
@@ -282,10 +272,10 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 	@echo 'Rebooting b2g now. '
 
 # Generate profile/prefs.js
-preferences: install-xulrunner
+preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
 	test -d profile || mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
+	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
 	if [ -f custom-prefs.js ]; \
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
@@ -297,7 +287,7 @@ preferences: install-xulrunner
 permissions: install-xulrunner-sdk
 	@echo "Generating permissions.sqlite..."
 	test -d profile || mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/permissions.js
+	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/permissions.js
 	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/extensions

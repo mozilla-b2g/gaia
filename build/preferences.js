@@ -79,6 +79,10 @@ let permissions = {
     "urls": [],
     "pref": "dom.sms.whitelist"
   },
+  "contacts": {
+    "urls": [],
+    "pref": "dom.mozContacts.whitelist"
+  },
   "telephony": {
     "urls": [],
     "pref": "dom.telephony.app.phone.url"
