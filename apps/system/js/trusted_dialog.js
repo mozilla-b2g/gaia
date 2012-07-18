@@ -12,36 +12,32 @@ var TrustedDialog = (function() {
     if (!trustedFrame)
       return;
 
-    // If the trusted dialog is being shown, we remove the current frame and
-    // substitute it for the new one.
+    // If the trusted dialog is being shown, we just browse to the new url.
     if (trustedDialogIsShown()) {
-      trustedDialogElement.removeChild(currentFrame);
-      currentFrame = null;
+      currentFrame.src = trustedFrame.url;
+      return currentFrame;
     }
 
-    // Save the current displayer app in order to show it after closing the
+    // Save the current displayed app in order to show it after closing the
     // trusted dialog.
-    if (!lastDisplayedApp)
-      lastDisplayedApp = WindowManager.getDisplayedApp();
+    lastDisplayedApp = WindowManager.getDisplayedApp();
 
     // Show the homescreen.
     WindowManager.setDisplayedApp(null);
 
     // Create the iframe to be shown as a trusted dialog.
     var frame = document.createElement('iframe');
-    frame.dataset.frameType = 'window';
-    frame.dataset.frameOrigin = trustedFrame.url;
     frame.setAttribute('mozbrowser', 'true');
     frame.classList.add('frame');
     frame.classList.add('screen');
     frame.src = trustedFrame.url;
-    frame.onload = onLoadCb;
+    if (onLoadCb)
+      frame.onload = onLoadCb;
     trustedDialogElement.appendChild(frame);
     currentFrame = frame;
 
     // Make the trusted dialog overlay active.
     trustedDialogElement.classList.add('active');
-
     // Make sure we're in portrait mode.
     screen.mozLockOrientation('portrait');
 
@@ -71,7 +67,6 @@ var TrustedDialog = (function() {
   };
 
   window.addEventListener('mozChromeEvent', function(e) {
-    console.log('mozChromeEvent.received: ' + e.detail.type);
     switch (e.detail.type) {
       // Chrome asks Gaia to create a trusted iframe. Once it is created,
       // Gaia sends the iframe back to chrome so frame scripts can be loaded
