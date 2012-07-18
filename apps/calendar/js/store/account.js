@@ -23,42 +23,6 @@
     },
 
     /**
-     * Returns a single instance of an account by id.
-     *
-     * @param {String} id uuid for account.
-     * @param {Function} callback node style callback.
-     */
-    get: function(id, callback) {
-      var result;
-
-      if (id in this._accounts) {
-        callback(null, this._accounts[id]);
-        return;
-      }
-
-      var self = this;
-      var trans = this.db.transaction('accounts');
-      var store = trans.objectStore('accounts');
-
-      var req = store.get(id);
-
-      req.onsuccess = function() {
-        if (req.result) {
-          result = self._hydrate(req.result, id);
-        }
-      }
-
-      trans.onerror = function(err) {
-        callback(err);
-      }
-
-      trans.oncomplete = function() {
-        self._accounts[id] = result;
-        callback(null, result);
-      }
-    },
-
-    /**
      * Checks if provider type is used
      * in any of the cached records.
      *
@@ -121,7 +85,7 @@
      *
      * @return {Object} key,value pairs of accounts.
      */
-    cached: function() {
+    get cached() {
       return this._accounts;
     },
 

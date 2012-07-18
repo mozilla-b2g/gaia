@@ -54,7 +54,7 @@
 
     render: function() {
       var store = this.app.store('Account');
-      var items = store.cached();
+      var items = store.cached;
       var list = this.accountList;
 
       var key;

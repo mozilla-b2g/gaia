@@ -123,66 +123,7 @@ suite('store/account', function() {
   });
 
   test('#cached', function() {
-    assert.equal(subject.cached(), subject._accounts);
-  });
-
-  suite('#get', function() {
-
-    test('missing', function(done) {
-      subject.get('foo', function(err, obj) {
-        done(function() {
-          assert.ok(!obj);
-        });
-      });
-    });
-
-    suite('success', function(done) {
-      var id, result;
-
-      setup(function(done) {
-        subject.persist({ providerType: 'Local' }, function(err, key) {
-          subject._accounts = {};
-          if (err) {
-            done(new Error('could not add'));
-          } else {
-            id = key;
-            done();
-          }
-        });
-      });
-
-      setup(function(done) {
-        subject.get(id, function(err, object) {
-          if (err) {
-            return done(new Error('could not get'));
-          }
-          result = object;
-          done();
-        });
-      });
-
-      test('db load', function() {
-        assert.instanceOf(
-          result,
-          Calendar.Models.Account
-        );
-
-        assert.equal(result.providerType, 'Local');
-        assert.equal(result._id, id);
-        assert.equal(subject._accounts[id], result);
-      });
-
-      test('cached', function(done) {
-        // close db for effect
-        subject.get(id, function(err, object) {
-          done(function() {
-            assert.equal(object, result);
-          });
-        });
-      });
-
-    });
-
+    assert.equal(subject.cached, subject._accounts);
   });
 
   suite('#persist', function() {
@@ -265,18 +206,9 @@ suite('store/account', function() {
       assert.equal(removeEvent[0], id);
     });
 
-    test('remove', function(done) {
+    test('remove', function() {
       assert.ok(callbackCalled);
       assert.ok(!subject._accounts[id], 'should remove cached account');
-      subject.get(id, function(err, obj) {
-        if (err) {
-          return done(new Error('error loading'));
-        }
-
-        done(function() {
-          assert.ok(!obj);
-        });
-      });
     });
 
   });

@@ -213,32 +213,29 @@ suite('views/modify_account', function() {
     assert.equal(subject.errors.textContent, 'foo');
   });
 
-  test('#_createModel', function(done) {
+  test('#_createModel', function() {
     var preset = 'local';
 
     subject.model = null;
 
-    subject._createModel(preset, function(err, model) {
-      done(function() {
-        assert.instanceOf(model, Calendar.Models.Account);
+    var model = subject._createModel(preset);
 
-        assert.equal(
-          model.providerType,
-          Calendar.Presets.local.providerType
-        );
-      });
-    });
+    assert.instanceOf(model, Calendar.Models.Account);
+
+    assert.equal(
+      model.providerType,
+      Calendar.Presets.local.providerType
+    );
   });
 
-  test('#_updateModel', function(done) {
+  test('#_updateModel', function() {
     var model = new Calendar.Models.Account();
     var store = app.store('Account');
     store._accounts['1'] = model;
-    subject._updateModel('1', function(err, data) {
-      done(function() {
-        assert.equal(model, data);
-      });
-    });
+
+    var data = subject._updateModel('1');
+
+    assert.equal(model, data);
   });
 
   test('#updateForm', function() {

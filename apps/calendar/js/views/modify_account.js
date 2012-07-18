@@ -131,7 +131,7 @@
       );
 
       model.preset = preset;
-      callback(null, model);
+      return model;
     },
 
     /**
@@ -140,13 +140,8 @@
     _updateModel: function(id, callback) {
       var store = this.app.store('Account');
       var self = this;
-      store.get(id, function(err, model) {
-        if (err) {
-          callback(err);
-          return;
-        }
-        callback(null, model);
-      });
+
+      return store.cached[id];
     },
 
     render: function() {
