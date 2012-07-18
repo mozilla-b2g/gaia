@@ -546,20 +546,21 @@ window.addEventListener('localized', function wifiSettings(evt) {
         dialog.removeAttribute('class');
       }
 
-      // OK|Cancel buttons
-      var okButton = dialog.querySelector('[type=submit]');
-      okButton.onclick = function() {
+      // OK button (connect/forget)
+      dialog.onsubmit = function() {
         if (key) {
           setPassword(password.value, identity.value);
         }
         close();
-        return callback ? callback() : false;
+        if (callback)
+          callback();
+        return false;
       };
 
-      var cancelButton = dialog.querySelector('[type=reset]');
-      cancelButton.onclick = function() {
+      // Back button (cancel)
+      dialog.onreset = function() {
         close();
-        return;
+        return false;
       };
 
       // show dialog box
