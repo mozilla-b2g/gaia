@@ -3,6 +3,33 @@
   height: 100%;
 }
 
+/* Page have movement feedback */ 
+@-moz-keyframes feedbackPositive {
+  0% { -moz-transform: translateX(0px); }
+	100% { -moz-transform: translateX(-10px); }
+}
+
+@-moz-keyframes feedbackNegative {
+  0% { -moz-transform: translateX(0px); }
+  100% { -moz-transform: translateX(10px); }
+}
+
+.apps > div[data-shaking = 'positive'] {
+  -moz-animation-name: feedbackPositive;
+  -moz-animation-duration: .8s;
+  -moz-animation-iteration-count: 1;
+  -moz-animation-timing-function: ease-out;
+  -moz-transform-origin:50% 50%;
+}
+
+.apps > div[data-shaking = 'negative'] {
+  -moz-animation-name: feedbackNegative;
+  -moz-animation-duration: .8s;
+  -moz-animation-iteration-count: 1;
+  -moz-animation-timing-function: ease-out;
+  -moz-transform-origin:50% 50%;
+}
+
 /* pages */
 .apps > div {
   position: absolute;

@@ -135,11 +135,21 @@ const GridManager = (function() {
   function pan(deltaX, duration) {
     pages.forEach(function(page, index) {
       var scrollX = (-pages.current + index) * windowWidth + deltaX;
-      page.moveBy(scrollX, duration);
+
+      if (duration && index === 0) {
+        if (deltaX > 0) {
+          page.moveBy(scrollX, duration * 1.5);
+        } else {
+          page.moveBy(scrollX, duration / 1.5);
+        }
+      } else {
+        page.moveBy(scrollX, duration);
+      }
     });
   }
 
   function goToPage(index, callback) {
+    var previousIndex = pages.current;
     var isSamePage = pages.current === index;
     pages.current = index;
     callback = callback || function() {};
@@ -149,10 +159,22 @@ const GridManager = (function() {
       callback();
     } else {
       var container = pageHelper.getCurrent().container;
+      var icongrid = document.getElementById('icongrid');
+
+      // From search page to app grid page
+      if (previousIndex === 0)
+        icongrid.classList.add('darken');
+
       container.addEventListener('transitionend', function tr_end(e) {
         container.removeEventListener('transitionend', tr_end);
         delete document.body.dataset.transitioning;
         callback();
+        Search.resetIcon();
+        if (index === 0) {
+          icongrid.classList.remove('darken');
+        } else {
+          pageHelper.getCurrent().shake(previousIndex - index);
+        }
       });
     }
 

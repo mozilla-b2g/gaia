@@ -460,6 +460,24 @@ Page.prototype = {
     return Array.prototype.map.call(nodes, function extractOrigin(node) {
       return node.dataset.origin;
     });
+  },
+
+  /*
+   * Movement feedback 
+  */
+  shake: function(direction) {
+    var container = this.container;
+    var dataset = this.container.dataset;
+    container.addEventListener('animationend', function animationEnd(e) {
+      container.removeEventListener('animationend', animationEnd);
+      dataset.shaking = '';
+    });
+
+    if (direction > 0) {
+      dataset.shaking = 'positive';
+    } else {
+      dataset.shaking = 'negative';
+    }
   }
 };
 
