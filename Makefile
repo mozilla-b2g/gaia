@@ -36,6 +36,8 @@ endif
 
 HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
+BUILD_APP_NAME?=*
+
 REPORTER=Spec
 
 GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
@@ -142,18 +144,21 @@ webapp-manifests:
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 			n=$$(basename $$d); \
-			mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
-			cp $$d/manifest.webapp profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp  ;\
-			(\
-			echo \"$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\": { ;\
-			echo \"origin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"installOrigin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"receipt\": null, ;\
-			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
-			echo \"localId\": $$id ;\
-			echo },) >> profile/webapps/webapps.json;\
-			: $$((id++)); \
+			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
+			then \
+				mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
+				cp $$d/manifest.webapp profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp  ;\
+				(\
+				echo \"$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\": { ;\
+				echo \"origin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+				echo \"installOrigin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+				echo \"receipt\": null, ;\
+				echo \"installTime\": 132333986000, ;\
+				echo \"manifestURL\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
+				echo \"localId\": $$id ;\
+				echo },) >> profile/webapps/webapps.json;\
+				: $$((id++)); \
+			fi \
 		fi \
 	done; \
 	cd external-apps; \
@@ -161,18 +166,21 @@ webapp-manifests:
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
-		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
+			if [ "$(BUILD_APP_NAME)" = "$$d" -o "$(BUILD_APP_NAME)" = "*" ]; \
+			then \
+		  	mkdir -p ../profile/webapps/$$d; \
+		  	cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
                   (\
-			echo \"$$d\": { ;\
-			echo \"origin\": \"`cat $$d/origin`\", ;\
-			echo \"installOrigin\": \"`cat $$d/origin`\", ;\
-			echo \"receipt\": null, ;\
-			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\", ;\
-			echo \"localId\": $$id ;\
-			echo },) >> ../profile/webapps/webapps.json;\
-			: $$((id++)); \
+				echo \"$$d\": { ;\
+				echo \"origin\": \"`cat $$d/origin`\", ;\
+				echo \"installOrigin\": \"`cat $$d/origin`\", ;\
+				echo \"receipt\": null, ;\
+				echo \"installTime\": 132333986000, ;\
+				echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\", ;\
+				echo \"localId\": $$id ;\
+				echo },) >> ../profile/webapps/webapps.json;\
+				: $$((id++)); \
+			fi \
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
@@ -190,12 +198,15 @@ ifneq ($(DEBUG),1)
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 			n=$$(basename $$d); \
-			mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
-			cdir=`pwd`; \
-			cd $$d; \
-			zip -r application.zip *; \
-			cd $$cdir; \
-			mv $$d/application.zip profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/application.zip; \
+			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
+			then \
+				mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
+				cdir=`pwd`; \
+				cd $$d; \
+				zip -r application.zip *; \
+				cd $$cdir; \
+				mv $$d/application.zip profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/application.zip; \
+			fi \
 		fi \
 	done;
 	@echo "Done"
@@ -412,7 +423,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email,music/js/ext,calendar/js/ext'
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email/js/ext,music/js/ext,calendar/js/ext'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -477,14 +488,19 @@ update-offline-manifests: stamp-commit-hash
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
 PROFILE_PATH = /data/local/
+TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 install-gaia: profile
 	$(ADB) start-server
 	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /cache/*
-	python build/install-gaia.py "$(ADB)"
 
-	$(ADB) push profile/user.js ${PROFILE_PATH}/user.js
+ifeq ($(BUILD_APP_NAME),*)
+	python build/install-gaia.py "$(ADB)"
+else
+	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp /data/local/$(TARGET_FOLDER)/manifest.webapp
+	$(ADB) push profile/$(TARGET_FOLDER)/application.zip /data/local/$(TARGET_FOLDER)/application.zip
+endif
 
 	@echo "Installed gaia into profile/."
 	@echo 'Starting b2g'

@@ -24,18 +24,20 @@ var SleepMenu = {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=766895
   turnOffFlightMode: function sm_turnOffFlightMode() {
     var settings = navigator.mozSettings;
-    if (settings && this.reservedSettings.data) {
-      settings.getLock().set({'ril.data.disabled': this.reservedSettings.data});
+    if (settings) {
+      if (this.reservedSettings.data) {
+        settings.getLock().set({'ril.data.enabled': true});
+      }
+      if (this.reservedSettings.bluetooth) {
+        settings.getLock().set({'bluetooth.enabled': true});
+      }
     }
 
+    // Set wifi as previous
+    // XXX: should set mozSettings instead
     var wifiManager = navigator.mozWifiManager;
     if (wifiManager && this.reservedSettings.wifi && !wifiManager.enabled) {
       wifiManager.setEnabled(true);
-    }
-
-    var bluetooth = navigator.mozBluetooth;
-    if (bluetooth && this.reservedSettings.bluetooth && !bluetooth.enabled) {
-      bluetooth.setEnabled(true);
     }
   },
 
@@ -43,24 +45,28 @@ var SleepMenu = {
     var settings = navigator.mozSettings;
     var self = this;
     if (settings) {
-      var req = settings.getLock().get('ril.data.disabled');
+      // Turn off data
+      var req = settings.getLock().get('ril.data.enabled');
       req.onsuccess = function sm_EnabledFetched() {
-        self.reservedSettings.data = req.result['ril.data.disabled'];
-        settings.getLock().set({'ril.data.disabled': true});
+        self.reservedSettings.data = req.result['ril.data.enabled'];
+        settings.getLock().set({'ril.data.enabled': false});
+      };
+      // Turn off blueTooth
+      var req = settings.getLock().get('bluetooth.enabled');
+      req.onsuccess = function bt_EnabledSuccess() {
+        self.reservedSettings.bluetooth = req.result['bluetooth.enabled'];
+        settings.getLock().set({'bluetooth.enabled': false});
       };
     }
 
+    // Turn off wifi
+    // XXX: should set mozSettings instead
     var wifiManager = navigator.mozWifiManager;
     if (wifiManager) {
       this.reservedSettings.wifi = wifiManager.enabled;
       wifiManager.setEnabled(false);
     }
 
-    var bluetooth = navigator.mozBluetooth;
-    if (bluetooth) {
-      this.reservedSettings.bluetooth = bluetooth.enabled;
-      bluetooth.setEnabled(false);
-    }
   },
 
   init: function sm_init() {
@@ -173,7 +179,7 @@ var SleepMenu = {
         // Airplane mode should turn off
         //
         // Radio ('ril.radio.disabled'`)
-        // Data ('ril.data.disabled'`)
+        // Data ('ril.data.enabled'`)
         // Wifi
         // Bluetooth
         // Geolocation
