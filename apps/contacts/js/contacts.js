@@ -928,8 +928,23 @@ var ActivityHandler = {
     return !!this._currentActivity;
   },
 
+  getActivityName: function activityName() {
+    if (!this._currentActivity) {
+      return null;
+    }
+
+    return this._currentActivity.source.name;
+  },
+
   handle: function ah_handle(activity) {
     this._currentActivity = activity;
+
+    switch(this.getActivityName()) {
+      case 'new':
+        document.location.hash = 'view-contact-form';
+        return;
+      break;
+    }
   },
 
   pick: function ah_pick(number) {
