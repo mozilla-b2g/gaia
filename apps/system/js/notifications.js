@@ -73,12 +73,14 @@ var NotificationScreen = {
 
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
+
+    this._toasterGD = new GestureDetector(this.toaster);
     ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
       this.container.addEventListener(evt, this);
       this.toaster.addEventListener(evt, this);
     }, this);
 
-    this._toasterGD = new GestureDetector(this.toaster);
+    window.addEventListener('utilitytrayshow', this);
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -111,6 +113,9 @@ var NotificationScreen = {
         break;
       case 'swipe':
         this.swipe(evt);
+        break;
+      case 'utilitytrayshow':
+        StatusBar.updateNotificationUnread(false);
         break;
     }
   },
@@ -235,7 +240,7 @@ var NotificationScreen = {
       this._toasterGD.stopDetecting();
     }).bind(this), this.TOASTER_TIMEOUT);
 
-    this.updateStatusBarIcon();
+    this.updateStatusBarIcon(true);
   },
 
   removeNotification: function ns_removeNotification(notificationID) {
@@ -260,8 +265,11 @@ var NotificationScreen = {
     this.updateStatusBarIcon();
   },
 
-  updateStatusBarIcon: function ns_updateStatusBarIcon() {
+  updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
     StatusBar.updateNotification(this.container.children.length);
+
+    if (unread)
+      StatusBar.updateNotificationUnread(true);
   }
 };
 

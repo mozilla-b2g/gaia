@@ -343,6 +343,14 @@ var StatusBar = {
     icon.dataset.num = count;
   },
 
+  updateNotificationUnread: function sb_updateNotificationUnread(unread) {
+    if (unread) {
+      this.notification.classList.add('unread');
+    } else {
+      this.notification.classList.remove('unread');
+    }
+  },
+
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
     var elements = ['notification', 'time',
