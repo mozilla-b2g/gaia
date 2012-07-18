@@ -70,6 +70,7 @@ var MessageManager = {
             break;
           case '#edit':
             ThreadListUI.cleanForm();
+            ThreadUI.cleanForm();
             mainWrapper.classList.toggle('edit');
             break;
           default:
@@ -261,7 +262,7 @@ var ThreadListUI = {
   },
 
   deleteThreads: function thlui_deleteThreads() {
-    //TODO Include delete selected threads
+    //TODO Include call to MessageManager
     var inputs = this.view.getElementsByTagName('input');
     for (var i = 0; i < inputs.length; i++) {
       if (inputs[i].checked) {
@@ -477,7 +478,6 @@ var ThreadUI = {
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
-
     // Append to DOM
     ThreadUI.view.appendChild(headerHTML);
   },
@@ -525,21 +525,30 @@ var ThreadUI = {
     var messageDOM = document.createElement('div');
     // Add class
     messageDOM.classList.add('message-block');
+
     // Get data for rendering
     var outgoing = (message.delivery == 'sent' ||
       message.delivery == 'sending');
-    var className = (outgoing ? 'sender' : 'receiver') + '"';
+    var className = (outgoing ? 'sent' : 'received');
     var timestamp = message.timestamp.getTime();
     var bodyText = message.body.split('\n')[0];
     var bodyHTML = Utils.escapeHTML(bodyText);
-    // Create HTML structure
-    var htmlStructure = '  <div class="message-container ' + className + '>' +
-               '    <div class="message-bubble"></div>' +
-               '    <div class="time" data-time="' + timestamp + '">' +
-                      Utils.getHourMinute(message.timestamp) +
-               '    </div>' +
-               '    <div class="text">' + bodyHTML + '</div>' +
-               '  </div>';
+    messageDOM.id = timestamp;
+    var htmlStructure = '<span class="bubble-container ' + className + '">' +
+                        '<div class="bubble">' + bodyHTML + '</div>' +
+                        '</span>';
+    // Add 'gif' if necessary
+    if (message.delivery == 'sending') {
+      htmlStructure += '<span class="message-option">' +
+                        '<img src="style/images/ajax-loader.gif" class="gif">' +
+                        '</span>';
+    }
+    //Add edit options
+    htmlStructure += '<span class="message-option msg-checkbox">' +
+                        '  <input type="checkbox">' +
+                        '  <span></span>' +
+                      '</span>';
+    // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
     //Check if we need a new header
     var tmpIndex = Utils.getDayDate(timestamp);
@@ -551,10 +560,15 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
+
   },
 
   cleanForm: function thui_cleanForm() {
-    //TODO Clean UI when it will be ready
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].checked = false;
+      inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
+    }
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
@@ -562,7 +576,12 @@ var ThreadUI = {
   },
 
   deleteMessages: function thui_deleteMessages() {
-    //TODO Include delete selected messages
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].checked) {
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+      }
+    }
   },
 
   handleEvent: function thui_handleEvent(evt) {
@@ -636,9 +655,10 @@ var ThreadUI = {
             return;
           }
         } else {
+          var root = document.getElementById(message.timestamp.getTime());
+          root.removeChild(root.childNodes[1]);
           // Remove the message from pending message DB since it could be sent
           // successfully.
-          // TODO: Removed 'pending' style
           PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
             if (!msg) {
               //TODO: Handle message delete failed in pending DB.
