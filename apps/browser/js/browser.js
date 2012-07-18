@@ -265,7 +265,7 @@ var Browser = {
         if (this.currentScreen !== this.PAGE_SCREEN) {
           this.showPageScreen();
         }
-        ModalDialog.handleEvent(evt, tab);
+        ModalDialog.handleEvent(evt, tab.id);
         break;
       }
     }).bind(this);
@@ -702,6 +702,13 @@ var Browser = {
   },
 
   setTabVisibility: function(tab, visible) {
+    if (ModalDialog.originHasEvent(tab.id)) {
+      if (visible) {
+        ModalDialog.show(tab.id);
+      } else {
+        ModalDialog.hide();
+      }
+    }
     // We put loading tabs off screen as we want to screenshot
     // them when loaded
     if (tab.loading && !visible) {

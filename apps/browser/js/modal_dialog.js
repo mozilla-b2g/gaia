@@ -19,6 +19,8 @@ var ModalDialog = {
   // DOM
   elements: {},
 
+  boundToWindow: false,
+
   // Get all elements when inited.
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
@@ -45,15 +47,19 @@ var ModalDialog = {
   // e.g., 'http://uitest.gaiamobile.org': evt
   currentEvents: {},
 
-  init: function md_init() {
+  init: function md_init(bindToWindow) {
     // Get all elements initially.
     this.getAllElements();
     var elements = this.elements;
 
+    this.boundToWindow = bindToWindow || false;
+
     // Bind events
-    // window.addEventListener('mozbrowsershowmodalprompt', this);
-    // window.addEventListener('appopen', this);
-    // window.addEventListener('appwillclose', this);
+    if (this.boundToWindow) {
+      window.addEventListener('mozbrowsershowmodalprompt', this);
+      window.addEventListener('appopen', this);
+      window.addEventListener('appwillclose', this);
+    }
 
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
@@ -63,15 +69,13 @@ var ModalDialog = {
   },
 
   // Default event handler
-  handleEvent: function md_handleEvent(evt, tab) {
+  handleEvent: function md_handleEvent(evt, origin) {
     var elements = this.elements;
     switch (evt.type) {
       case 'mozbrowsershowmodalprompt':
-        //if (evt.target.dataset.frameType != 'window')
-        //   return;
+        if (this.boundToWindow && evt.target.dataset.frameType != 'window')
+          return;
         evt.preventDefault();
-        var origin = tab.id;
-        //var origin = evt.target.dataset.frameOrigin;
         this.currentEvents[origin] = evt;
 
         // Show modal dialog only if
@@ -142,6 +146,8 @@ var ModalDialog = {
   },
 
   hide: function md_hide() {
+    var evt = this.currentEvents[this.currentOrigin];
+    this.elements[evt.detail.promptType].classList.remove('visible');
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
   },
@@ -212,6 +218,10 @@ var ModalDialog = {
     delete this.currentEvents[this.currentOrigin];
   },
 
+  originHasEvent: function(origin) {
+    return origin in this.currentEvents;
+  },
+
   // The below is for system apps to use.
   alert: function md_alert(text, callback) {
     this.showWithPseudoEvent({
@@ -260,5 +270,3 @@ var ModalDialog = {
     this.show('system');
   }
 };
-
-ModalDialog.init();
