@@ -55,11 +55,12 @@ var RingView = {
 
         switch (input.id) {
           case 'ring-btn-snooze':
-            window.opener.FakeAlarmManager.snoozeHandler();
+            window.opener.AlarmManager.snoozeHandler();
             window.close();
             break;
 
           case 'ring-btn-close':
+            window.opener.AlarmManager.cancelHandler();
             window.close();
             break;
         }

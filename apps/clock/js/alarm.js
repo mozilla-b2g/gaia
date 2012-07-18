@@ -105,9 +105,9 @@ var ClockView = {
       self.updateAnalogClock();
     }, (1000 - now.getMilliseconds()));
   },
-  
+
   updateAlarmIndicator: function cv_updateAlarmIndicator() {
-    
+
   },
 
   handleEvent: function cv_handleEvent(evt) {
@@ -317,90 +317,112 @@ var AlarmList = {
 
 var AlarmManager = {
 
+  _onFireAlarm: {},
+  _vibrateInterval: null,
+  _ringtonePlayer: null,
+
   init: function am_init() {
-    console.log('======== Ian ========= init and set System Message Handler ');
-    navigator.mozSetMessageHandler("alarm", function (message) { 
-      console.log('======== Ian ========= alarm fired by System Message');
-      // get id , and use the alarm id to query db to do respect behavior
-      // this.onAlarmFiredHandler(message);
+    navigator.mozSetMessageHandler('alarm', function(message) {
+      this.onAlarmFiredHandler(message);
     });
   },
-  
+
   set: function am_set(alarm) {
     var alarmDate = new Date();
     var diffDays = calDiffDays(alarm.repeat, alarm.hour, alarm.minute);
     alarmDate.setDate(alarmDate.getDate() + diffDays);
     alarmDate.setHours(alarm.hour);
     alarmDate.setMinutes(alarm.minute);
-    alarmDate.setSeconds(0,0);
-    console.log('========= Ian ========= start to set alarm ');
-    var request = navigator.mozAlarms.add(alarmDate, "honorTimezone",
-                  { id: alarm.id });
-    request.onsuccess = function (e) { 
-      console.log('======== Ian ========= set alarm successfully');
+    alarmDate.setSeconds(0, 0);
+    var request = navigator.mozAlarms.add(alarmDate, 'honorTimezone',
+                  { id: alarm.id }); // give the alarm id for the request
+    request.onsuccess = function(e) {
       alarm.alarmId = e.target.result;
-      console.log('======== Ian ========= id = ' + alarm.id);
-      console.log('======== Ian ========= alarmId = ' + alarm.alarmId);
-      // save the id to DB
-      // AlarmsDB.putAlarm(alarm, function am_putAlarm() {
-        // ClockView.updateAlarmIndicator();
-      // });
+      // save the AlarmAPI's request id to DB
+      AlarmsDB.putAlarm(alarm);
+      // XXX update alarm indicator for ClockView
     };
-    request.onerror = function (e) { // alert("set alarm fail");
-      console.log('======== Ian ========= set alarm fail');
+    request.onerror = function(e) {
+      alert('set alarm fail');
     };
-    
-    // Fake alarm is prepared for demo only since AlarmAPI not ready yet
-    /*var date = new Date();
-    var now = new Date();
-    var alarmDate = new Date(date.getFullYear(), date.getMonth(),
-                    date.getDate(), alarm.hour, alarm.minute, 0, 0);
-      var remaining = alarmDate.getTime() - Date.now();
+  },
 
-    this._fakeAlarmTimeout = window.setTimeout(function() {
-
-      var ringtonePlayer = new Audio();
-      ringtonePlayer.loop = true;
-      var selectedAlarmSound = 'style/ringtones/classic.wav';
-      ringtonePlayer.src = selectedAlarmSound;
-
-      var protocol = window.location.protocol;
-      var host = window.location.host;
-      window.open(protocol + '//' + host + '/onring.html',
-                  'ring_screen', 'attention');
-
-      if ('vibrate' in navigator) {
-        var vibrateInterval = 0;
-        vibrateInterval = window.setInterval(function vibrate() {
-          navigator.vibrate([200]);
-        }, 600);
-        window.setTimeout(function clearVibration() {
-          window.clearInterval(vibrateInterval);
-        }, 3000);
-      }
-      ringtonePlayer.play();
-      window.setTimeout(function pauseRingtone() {
-        ringtonePlayer.pause();
-      }, 2000);
-    }, remaining);*/
+  setSnoozeAlarm: function am_setSnoozeAlarm(alarm) {
+    var alarmDate = new Date();
+    alarmDate.setMinutes(alarmDate.getMinutes() + alarm.snooze);
+    var request = navigator.mozAlarms.add(alarmDate, 'honorTimezone',
+                  { id: alarm.id });  // give the alarm id for the request
+    request.onsuccess = function(e) {
+      alarm.alarmId = e.target.result;
+      // save the AlarmAPI's request id to DB
+      AlarmsDB.putAlarm(alarm);
+      // XXX update alarm indicator for ClockView
+    };
+    request.onerror = function(e) {
+      alert('set snooze alarm fail');
+    };
   },
 
   cancel: function am_cancel(alarm) {
     if (alarm.alarmId) {
       navigator.mozAlarms.remove(alarm.alarmId);
+      // XXX update alarm indicator for ClockView
     }
-    // window.clearTimeout(this._fakeAlarmTimeout);
-    // this._fakeAlarmTimeout = null;
   },
-  
+
   onAlarmFiredHandler: function am_onAlarmFiredHandler(message) {
-    // use the alarmId to query db
-    // find out which alarm onfire the event 
-    // pop out attention screen
+    // XXX receive and paser the alarm id from the message
+    var id = JSON.stringify(message);
+    // use the alarm id to query db
+    // find out which alarm onfire the event
+    var self = this;
+    AlarmsDB.getAlarm(id, function am_gotAlarm(alarm) {
+      // prepare to pop out attention screen, ring the ringtone, vibrate
+      self._onFireAlarm = alarm;
+      self._ringtonePlayer = new Audio();
+      self._ringtonePlayer.loop = true;
+      // XXX Need to set the ringtone according to alarm's property of 'sound'
+      var selectedAlarmSound = 'style/ringtones/classic.wav';
+      self._ringtonePlayer.src = selectedAlarmSound;
+
+      var protocol = window.location.protocol;
+      var host = window.location.host;
+      window.open(protocol + '//' + host + '/onring.html',
+                  'ring_screen', 'attention');
+      if ('vibrate' in navigator) {
+        self._vibrateInterval = window.setInterval(function vibrate() {
+          navigator.vibrate([200]);
+        }, 600);
+        /* If user don't handle the onFire alarm,
+         turn off vibraction after 7 secs */
+        window.setTimeout(function clearVibration() {
+          window.clearInterval(self._vibrateInterval);
+        }, 7000);
+      }
+      self._ringtonePlayer.play();
+      /* If user don't handle the onFire alarm,
+         pause the ringtone after 20 secs */
+      window.setTimeout(function pauseRingtone() {
+        self._ringtonePlayer.pause();
+      }, 20000);
+    });
   },
 
   snoozeHandler: function am_snoozeHandler() {
-    // Need to implement snooze
+    window.clearInterval(this._vibrateInterval);
+    this._ringtonePlayer.pause();
+    this.setSnoozeAlarm(this._onFireAlarm);
+  },
+
+  cancelHandler: function am_cancelHandler() {
+    window.clearInterval(this._vibrateInterval);
+    this._ringtonePlayer.pause();
+    // Check the property of repeat
+    if (this._onFireAlarm.repeat == '0000000') { // disable alarm
+      AlarmList.updateAlarmEnableState(false, this._onFireAlarm);
+    } else { // set the alarm again for next repeat date
+      this.set(this._onFireAlarm);
+    }
   }
 
 };
@@ -510,7 +532,7 @@ var AlarmEditView = {
   getDefaultAlarm: function aev_getDefaultAlarm() {
     // Reset the required message with default value
     return {
-      id: '', // for indexedDB id
+      id: '', // for Alarm APP indexedDB id
       alarmId: '', // for request AlarmAPI id
       label: 'Alarm',
       hour: '10',
