@@ -1,0 +1,44 @@
+html, body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 10px;
+  color: white;
+  background: rgba(0,0,0,.8);
+}
+
+html * {
+  overflow: hidden;
+}
+
+#message {
+  height: -moz-calc(100% - 7rem);
+  padding: 2em;
+  overflow: scroll;
+
+  font-size: 2em;
+}
+
+#close {
+  position: absolute;
+  width: -moz-calc(100% - 2rem);
+  bottom: 0;
+
+  background: -moz-linear-gradient(top, #ff0000 0%, #ce0000 100%);
+  margin: 1rem;
+
+  border-radius: 6px;
+}
+
+#close > div {
+  margin: 0 auto;
+  background-image: url('images/ActionIcon_40x40_hangup.png');
+  background-repeat: no-repeat;
+  background-size: 4rem 4rem;
+  background-position: center;
+  width: 100%;
+  height: 4rem;
+}

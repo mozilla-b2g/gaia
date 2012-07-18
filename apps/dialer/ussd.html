@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>USSD</title>
+    <script type="application/javascript" src="js/ussd_ui.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/ussd.css">
+    <link rel="resource" type="application/l10n" href="locale/dialer.properties">
+    <script>
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = protocol + '//' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
+      }
+      document.write('<script src="' + src + '"><\/script>');
+    })();
+    </script>
+  </head>
+  <body class="hidden">
+    <div id="message">
+      ...
+    </div>
+    <div id="close" onclick="UssdUI.close()">
+      <div>
+      </div>
+    </div>
+  </body>
+</html>
