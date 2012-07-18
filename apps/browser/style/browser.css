@@ -595,7 +595,9 @@ li[role="listitem"] small {
   margin-right: 10px;
 }
 
-#modal-dialog-alert, #modal-dialog-confirm, #modal-dialog-prompt {
+#modal-dialog-alert,
+#modal-dialog-confirm,
+#modal-dialog-prompt {
   width: 90% !important;
   margin: 0 auto !important;
 }
