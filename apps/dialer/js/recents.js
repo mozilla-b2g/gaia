@@ -142,6 +142,7 @@ var Recents = {
 
     var entry =
       '<li class="log-item ' +
+      ((localStorage.getItem('latestCallLogVisit') < recent.date) ? 'highlighted': '') +
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
@@ -333,6 +334,19 @@ var Recents = {
         callback([]);
       };
     }).bind(this));
+  },
+
+  updateLatestVisit: function re_updateLatestVisit() {
+    localStorage.setItem('latestCallLogVisit', Date.now());
+  },
+
+  updateHighlighted: function re_updateHighlighted() {
+    var itemSelector = '.log-item.highlighted';
+    var items = document.querySelectorAll(itemSelector);
+    var itemsLength = items.length;
+    for (var i = 0; i < itemsLength; i++) {
+      items[i].classList.remove('highlighted');
+    }
   }
 
 };
