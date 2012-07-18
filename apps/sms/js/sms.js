@@ -163,8 +163,6 @@ var MessageManager = {
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
-    console.log("SMS: Eliminando mensaje " + typeof(id) + id);
-
     var req = navigator.mozSms.delete(id);
     req.onsuccess = function onsuccess() {
       callback(req.result);
@@ -257,35 +255,55 @@ var ThreadListUI = {
   },
 
   cleanForm: function thlui_cleanForm() {
-    var inputs = this.view.querySelectorAll('input[type="checkbox"]');
+    var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
+    this.delNumList = [];
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
-    var response = window.confirm("Delete all conversations\n" +
-                                  "Are you sure you want to do this?");
+    var response = window.confirm('Delete all conversations\n' +
+                                  'Are you sure you want to do this?');
     if (response) {
       var inputs = this.view.querySelectorAll('input[type="checkbox"]');
       for (var i = 0; i < inputs.length; i++) {
-          inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+        // this.delNumList.push(parseFloat(inputs[i].name));
       }
+      // We get ALL the messages
+      MessageManager.getMessages(function deleteAll(messages) {
+        for (var i = 0; i < messages.length; i++) {
+          if (messages[i].delivery == 'sent' ||
+           messages[i].delivery == 'received') {
+            ThreadListUI.delNumList.push(messages[i].id);
+          } else {//pending
+            //TODO delete pending
+          }
+        }
+      });
     }
   },
 
   deleteThreads: function thlui_deleteThreads() {
-    //TODO Include call to MessageManager
     var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+      var filter = MessageManager.createFilter(inputs[i].name);
+      MessageManager.getMessages(function gotMessages(messages) {
+        for (var j = 0; j < messages.length; j++) {
+          ThreadListUI.delNumList.push(parseFloat(messages[j].id));
+        }
+      }, filter);
     }
   },
 
-  executeDeletion: function thui_executeDeletion() {
-    MessageManager.deleteMessages(this.delNumList, callback);
-    //TODO delete pending
+  executeDeletion: function thlui_executeDeletion() {
+    MessageManager.deleteMessages(this.delNumList, function repaint() {
+      MessageManager.getMessages(ThreadListUI.renderThreads);
+    });
+    window.location.hash = '#thread-list';
   },
 
   renderThreads: function thlui_renderThreads(messages) {
@@ -365,9 +383,9 @@ var ThreadListUI = {
             '    </div>' +
             '  </a>' +
             '  <div class="checkbox-container">' +
-            '  <input type="checkbox">' +
-            '  <span></span>' +
-            '</div>';
+            '   <input type="checkbox" name="' + thread.num + '">' +
+            '   <span></span>' +
+            '  </div>';
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
@@ -591,13 +609,13 @@ var ThreadUI = {
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
-      this.delNumList = [];
     }
+    this.delNumList = [];
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
-    var response = window.confirm("Delete all messages\n" +
-                                  "Are you sure you want to do this?");
+    var response = window.confirm('Delete all messages\n' +
+                                  'Are you sure you want to do this?');
     if (response) {
       var inputs = this.view.querySelectorAll('input[type="checkbox"]');
       for (var i = 0; i < inputs.length; i++) {
@@ -624,8 +642,11 @@ var ThreadUI = {
   },
 
   executeDeletion: function thui_executeDeletion() {
-    MessageManager.deleteMessages(this.delNumList, callback);
-    //TODO Delete pending
+    MessageManager.deleteMessages(this.delNumList, function repaint() {
+      MessageManager.getMessages(ThreadUI.renderMessages);
+    });
+    //TODODeletepending
+    window.history.back();
   },
 
   handleEvent: function thui_handleEvent(evt) {
@@ -708,6 +729,8 @@ var ThreadUI = {
               //TODO: Handle message delete failed in pending DB.
             }
           });
+          // TODO: update message input with DB-id so we can delete it
+
           // TODO: We might need to update the sent message's actual timestamp.
         }
       });
