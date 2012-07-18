@@ -17,10 +17,9 @@
   Router.prototype = {
 
     /**
-     * Tells router to manage
-     * the object. This will call
-     * the 'onactive' method if present on
-     * the object.
+     * Tells router to manage the object.
+     * This will call the 'onactive'
+     * method if present on the object.
      *
      * When the route is changed all 'manged'
      * object will be cleared and 'oninactive'
