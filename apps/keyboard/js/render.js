@@ -320,11 +320,19 @@ const IMERender = (function() {
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
-    // Adjust menu style
+    // Adjust menu style and offset
     _altContainer
       .querySelectorAll('.visual-wrapper > span')[0]
       .appendChild(this.menu);
     this.menu.style.display = 'block';
+
+    var alternativesLeft = getWindowLeft(this.menu);
+    var alternativesRight = alternativesLeft + this.menu.scrollWidth;
+    if (left && alternativesRight > window.innerWidth) {
+      console.log('se sale por la derecha');
+    } else if (!left && alternativesLeft < 0) {
+      console.log('se sale por la izquierda');
+    }
   };
 
   // Hide the alternative menu

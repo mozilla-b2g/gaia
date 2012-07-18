@@ -477,24 +477,6 @@ const IMEController = (function() {
 
     // Locked limits
     // TODO: look for [LOCKED_AREA]
-    function getWindowTop(obj) {
-      var top;
-      top = obj.offsetTop;
-      while (!!(obj = obj.offsetParent)) {
-        top += obj.offsetTop;
-      }
-      return top;
-    }
-
-    function getWindowLeft(obj) {
-      var left;
-      left = obj.offsetLeft;
-      while (!!(obj = obj.offsetParent)) {
-        left += obj.offsetLeft;
-      }
-      return left;
-    }
-
     _menuLockedArea = {
       top: top,
       bottom: bottom,

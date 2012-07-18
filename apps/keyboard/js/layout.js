@@ -84,11 +84,11 @@ const Keyboards = {
     label: 'English',
     menuLabel: 'English',
     alt: {
-      a: 'áàâäå',//ãāæ', XXX: commented to avoid overflows for the demo
+      a: 'áàâäåãāæ',// XXX: commented to avoid overflows for the demo
       c: 'çćč',
-      e: 'éèêëē',//ȩ€ɛ', XXX: commented to avoid overflows for the demo
-      i: 'ïíìîī',//į', XXX: commented to avoid overflows for the demo
-      o: 'öóòôō',//œøɵ', XXX: commented to avoid overflows for the demo
+      e: 'éèêëēȩ€ɛ',// XXX: commented to avoid overflows for the demo
+      i: 'ïíìîīį',// XXX: commented to avoid overflows for the demo
+      o: 'öóòôōœøɵ',// XXX: commented to avoid overflows for the demo
       u: 'üúùûū',
       s: 'ßśš$',
       S: 'ŚŠŞ',
