@@ -65,7 +65,6 @@ let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
   let directoryProvider = {
     getFile: function provider_getFile(prop, persistent) {
       persistent.value = true;
-      dump("XXXXX prop: " + prop + '\n');
       if (prop != "ProfD" && prop != "ProfLDS") {
         throw Cr.NS_ERROR_FAILURE;
       }
