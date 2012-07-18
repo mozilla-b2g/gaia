@@ -3,6 +3,7 @@ html, body {
   padding: 0;
   margin: 0;
   background-color: #575E66;
+  font-family: 'Open Sans', sans-serif;
 }
 
 body {
@@ -592,4 +593,13 @@ li[role="listitem"] small {
 
 #cover ul li img {
   margin-right: 10px;
+}
+
+#modal-dialog-alert, #modal-dialog-confirm, #modal-dialog-prompt {
+  width: 90% !important;
+  margin: 0 auto !important;
+}
+
+#modal-dialog-tablecell {
+  background: rgba(0, 0, 0, 0.5);
 }

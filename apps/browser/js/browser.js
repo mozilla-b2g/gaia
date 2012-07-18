@@ -252,6 +252,20 @@ var Browser = {
         this.handleWindowClose(tab.id);
         this.setTabVisibility(this.currentTab, true);
         this.updateTabsCount();
+        if (tab.id === ModalDialog.currentOrigin) {
+          ModalDialog.hide();
+        }
+        break;
+
+      case 'mozbrowsershowmodalprompt':
+        if (!isCurrentTab) {
+          this.hideCurrentTab();
+          this.selectTab(tab.id);
+        }
+        if (this.currentScreen !== this.PAGE_SCREEN) {
+          this.showPageScreen();
+        }
+        ModalDialog.handleEvent(evt, tab);
         break;
       }
     }).bind(this);
@@ -718,7 +732,8 @@ var Browser = {
 
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
-                         'securitychange', 'openwindow', 'close'];
+                         'securitychange', 'openwindow', 'close',
+                         'showmodalprompt'];
     iframe.style.top = '-999px';
 
     // FIXME: content shouldn't control this directly
