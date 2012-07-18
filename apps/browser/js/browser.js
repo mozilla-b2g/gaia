@@ -25,7 +25,7 @@ var Browser = {
 
   urlButtonMode: null,
 
-  waitingActivity: [],
+  waitingActivities: [],
   hasLoaded: false,
 
   init: function browser_init() {
@@ -91,13 +91,8 @@ var Browser = {
     // (currently homepage is blank)
     Places.init((function() {
       this.hasLoaded = true;
-      var handleWaitingActivity = function _handleWaitingActivity() {
-        for (var i = 0; i < this.waitingActivity.length; i++) {
-          Browser.createTab(this.waitingActivity[i].source.data.string);
-        }
-      }
-      if (this.waitingActivity.length) {
-        handleWaitingActivity();
+      if (this.waitingActivities.length) {
+        this.waitingActivities.forEach(this.handleActivity, this);
         return;
       }
       this.selectTab(this.createTab());
@@ -1002,7 +997,7 @@ window.addEventListener('load', function browserOnLoad(evt) {
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   if (Browser.hasLoaded) {
-    handleActivity(activity);
+    Browser.handleActivity(activity);
   } else {
     Browser.waitingActivities.push(activity);
   }
