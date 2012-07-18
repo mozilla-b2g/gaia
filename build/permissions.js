@@ -58,55 +58,6 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "mobileconnection", "mozFM", "systemXHR",
                       "background"];
 
-let permissions = {
-  "power": {
-    "urls": [],
-    "pref": "dom.power.whitelist"
-  },
-  "sms": {
-    "urls": [],
-    "pref": "dom.sms.whitelist"
-  },
-  "telephony": {
-    "urls": [],
-    "pref": "dom.telephony.app.phone.url"
-  },
-  "mozBluetooth": {
-    "urls": [],
-    "pref": "dom.mozBluetooth.whitelist"
-  },
-  "mozbrowser": {
-    "urls": [],
-    "pref": "dom.mozBrowserFramesWhitelist"
-  },
-  "mozApps": {
-    "urls": [],
-    "pref": "dom.mozApps.whitelist"
-  },
-  "mobileconnection": {
-    "urls": [],
-    "pref": "dom.mobileconnection.whitelist"
-  },
-  "mozFM": {
-    "urls": [],
-    "pref": "dom.mozFMRadio.whitelist"
-  },
-  "systemXHR": {
-    "urls": [],
-    "pref": "dom.systemXHR.whitelist"
-  },
-};
-
-let content = "";
-
-let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
-content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
-content += "user_pref(\"browser.manifestURL\",\"" + homescreen + "/manifest.webapp\");\n\n";
-
-let privileges = [];
-let domains = [];
-domains.push(GAIA_DOMAIN);
-
 let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 
 (function registerProfileDirectory() {
@@ -150,9 +101,6 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
       return;
 
     let rootURL = GAIA_SCHEME + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
-    let domain = dir + "." + GAIA_DOMAIN;
-    privileges.push(rootURL);
-    domains.push(domain);
 
     let perms = manifest.permissions;
     if (perms) {
@@ -166,37 +114,20 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
         dump("add permission: " + rootURL + ", " + name + "\n");
         permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
 
-        // XXX REMOVE once bug 774716 is fixed
-        if (permissions[name])
-          permissions[name].urls.push(rootURL);
-
         // special case for the telephony API which needs full URLs
         if (name == 'telephony') {
           if (manifest.background_page) {
             let uri = ioservice.newURI(rootURL + manifest.background_page, null, null);
             dump("add permission: " + rootURL + manifest.background_page + ", " + name + "\n");
             permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-
-            // XXX REMOVEME
-            if (permissions[name])
-              permissions[name].urls.push(rootURL + manifest.background_page);
           }
         }
         if (manifest.attention_page) {
           let uri = ioservice.newURI(rootURL + manifest.attention_page, null, null);
           dump("add permission: " + rootURL + manifest.attention_page+ ", " + name + "\n");
           permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-
-          // XXX REMOVEME
-          if (permissions[name])
-            permissions[name].urls.push(rootURL + manifest.attention_page);
         }
       }
     }
   });
 });
-
-for (let name in permissions) {
-  let perm = permissions[name];
-  content += "user_pref(\"" + perm.pref + "\",\"" + perm.urls.join(",") + "\");\n";
-}

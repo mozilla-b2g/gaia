@@ -68,6 +68,51 @@ function writeContent(content) {
   stream.close();
 }
 
+// XXX Remove all the permission parts here once bug 774716 is resolved
+
+let permissions = {
+  "power": {
+    "urls": [],
+    "pref": "dom.power.whitelist"
+  },
+  "sms": {
+    "urls": [],
+    "pref": "dom.sms.whitelist"
+  },
+  "contacts": {
+    "urls": [],
+    "pref": "dom.mozContacts.whitelist"
+  },
+  "telephony": {
+    "urls": [],
+    "pref": "dom.telephony.app.phone.url"
+  },
+  "mozBluetooth": {
+    "urls": [],
+    "pref": "dom.mozBluetooth.whitelist"
+  },
+  "mozbrowser": {
+    "urls": [],
+    "pref": "dom.mozBrowserFramesWhitelist"
+  },
+  "mozApps": {
+    "urls": [],
+    "pref": "dom.mozApps.whitelist"
+  },
+  "mobileconnection": {
+    "urls": [],
+    "pref": "dom.mobileconnection.whitelist"
+  },
+  "mozFM": {
+    "urls": [],
+    "pref": "dom.mozFMRadio.whitelist"
+  },
+  "systemXHR": {
+    "urls": [],
+    "pref": "dom.systemXHR.whitelist"
+  },
+};
+
 let content = "";
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
@@ -91,6 +136,23 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
     let domain = dir + "." + GAIA_DOMAIN;
     privileges.push(rootURL);
     domains.push(domain);
+
+    let perms = manifest.permissions;
+    if (perms) {
+      for each(let name in perms) {
+        if (!permissions[name])
+          continue;
+
+        permissions[name].urls.push(rootURL);
+
+        // special case for the telephony API which needs full URLs
+        if (name == 'telephony')
+          if (manifest.background_page)
+            permissions[name].urls.push(rootURL + manifest.background_page);
+        if (manifest.attention_page)
+          permissions[name].urls.push(rootURL + manifest.attention_page);
+      }
+    }
   });
 });
 
@@ -100,6 +162,11 @@ content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "
 
 if (LOCAL_DOMAINS) {
   content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
+}
+
+for (let name in permissions) {
+  let perm = permissions[name];
+  content += "user_pref(\"" + perm.pref + "\",\"" + perm.urls.join(",") + "\");\n";
 }
 
 if (DEBUG) {
