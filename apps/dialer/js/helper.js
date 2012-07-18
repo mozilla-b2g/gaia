@@ -11,15 +11,15 @@ function prettyDate(time) {
   if (hours < 10) {
     hoursStr = '0' + hoursStr;
   } else if (hours >= 12) {
-    meridiem = "PM";
+    meridiem = 'PM';
     if (hours > 12) {
       hoursStr = new String(hours - 12);
     }
-  } 
+  }
   if (minutes < 10) {
     minutesStr = '0' + minutesStr;
   }
-  return (hoursStr + ':' + minutesStr + " " + meridiem);
+  return (hoursStr + ':' + minutesStr + ' ' + meridiem);
 }
 
 function headerDate(time) {
