@@ -18,15 +18,24 @@ var ContactsTest = {
     return this.clearButton = document.getElementById('clear-contacts');
   },
 
+  get newActivityButton() {
+    delete this.newActivityButton;
+    return this.newActivityButton = document.getElementById('activities-new');
+  },
+
   init: function ct_init() {
     this.loadButton.addEventListener('click', this.loadContacts.bind(this));
     this.clearButton.addEventListener('click', this.clearContacts.bind(this));
+    this.newActivityButton.addEventListener('click',
+                                            this.newActivity.bind(this));
   },
 
   uninit: function ct_uninit() {
     this.loadButton.removeEventListener('click', this.loadContacts.bind(this));
     this.clearButton.removeEventListener('click',
                                          this.clearContacts.bind(this));
+    this.newActivityButton.removeEventListener('click',
+                                            this.newActivity.bind(this));
   },
 
   clearContacts: function ct_clearContacts() {
@@ -42,6 +51,15 @@ var ContactsTest = {
     req.onerror = function() {
       alert('Problem deleting contacts');
     };
+  },
+
+  newActivity: function ct_newActivity() {
+    var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'webcontacts/contact'
+        }
+      });
   },
 
   loadContacts: function ct_loadContacts() {
