@@ -9,7 +9,7 @@
     Calendar.View.apply(this, arguments);
 
     this.controller = this.app.timeController;
-    this.children = {};
+    this.children = Object.create(null);
     this._initEvents();
   };
 

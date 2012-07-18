@@ -3,7 +3,7 @@
   function Account() {
     Calendar.Store.Abstract.apply(this, arguments);
 
-    this._accounts = {};
+    this._accounts = Object.create(null);
   }
 
   Account.prototype = {

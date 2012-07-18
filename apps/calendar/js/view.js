@@ -82,6 +82,7 @@
         this.onfirstseen();
       }
 
+      // intentionally using 'in'
       if ('dispatch' in this) {
         this.dispatch.apply(this, arguments);
       }

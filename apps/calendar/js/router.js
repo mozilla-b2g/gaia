@@ -31,6 +31,7 @@
       var object = args.shift();
 
       this._activeObjects.push(object);
+      // intentionally using 'in'
       if ('onactive' in object) {
         object.onactive.apply(object, args);
       }
@@ -43,6 +44,7 @@
     _clearObjects: function(ctx, next) {
       var item;
       while ((item = this._activeObjects.pop())) {
+        // intentionally using 'in'
         if ('oninactive' in item) {
           item.oninactive();
         }

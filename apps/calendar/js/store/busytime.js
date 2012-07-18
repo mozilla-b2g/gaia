@@ -3,8 +3,8 @@
   function Busytime() {
     Calendar.Store.Abstract.apply(this, arguments);
 
-    this.ids = {};
-    this.times = {};
+    this.ids = Object.create(null);
+    this.times = Object.create(null);
   }
 
   var proto = Busytime.prototype = Object.create(
