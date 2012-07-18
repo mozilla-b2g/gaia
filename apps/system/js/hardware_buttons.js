@@ -193,7 +193,7 @@
         setState(baseState);
         return;
       case 'home-button-press':
-        fire('homesleep');
+        fire('home+sleep');
         setState(baseState);
         return;
       case 'volume-up-button-press':
