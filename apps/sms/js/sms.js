@@ -255,7 +255,7 @@ var ThreadListUI = {
   },
 
   cleanForm: function thlui_cleanForm() {
-    var inputs = this.view.getElementsByTagName('input');
+    var inputs = this.view.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
@@ -263,7 +263,7 @@ var ThreadListUI = {
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
-    var inputs = this.view.getElementsByTagName('input');
+    var inputs = this.view.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < inputs.length; i++) {
         inputs[i].parentNode.parentNode.classList.add('undo-candidate');
     }
@@ -271,11 +271,9 @@ var ThreadListUI = {
 
   deleteThreads: function thlui_deleteThreads() {
     //TODO Include call to MessageManager
-    var inputs = this.view.getElementsByTagName('input');
+    var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
-      if (inputs[i].checked) {
-        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-      }
+      inputs[i].parentNode.parentNode.classList.add('undo-candidate');
     }
   },
 
@@ -466,7 +464,6 @@ var ThreadUI = {
       }
       view.scrollTop += Math.ceil((height - view.scrollTop) / 2);
     }).bind(this), 100);
-
   },
 
   updateInputHeight: function thui_updateInputHeight() {
@@ -583,7 +580,7 @@ var ThreadUI = {
   },
 
   cleanForm: function thui_cleanForm() {
-    var inputs = this.view.getElementsByTagName('input');
+    var inputs = this.view.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
@@ -591,18 +588,16 @@ var ThreadUI = {
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
-    var inputs = this.view.getElementsByTagName('input');
+    var inputs = this.view.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < inputs.length; i++) {
         inputs[i].parentNode.parentNode.classList.add('undo-candidate');
     }
   },
 
   deleteMessages: function thui_deleteMessages() {
-    var inputs = this.view.getElementsByTagName('input');
+    var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
-      if (inputs[i].checked) {
-        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-      }
+      inputs[i].parentNode.parentNode.classList.add('undo-candidate');
     }
   },
 
