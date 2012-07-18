@@ -145,6 +145,10 @@ button::-moz-focus-inner {
   pointer-events: none;
 }
 
+.log-item.highlighted {
+  background: rgba(255,255,0,.2);
+}
+
 .log-item-info {
   float: left;
   height: 100%;
