@@ -1,0 +1,16 @@
+About BusyBox
+
+BusyBox is licensed under the GNU General Public License version 2
+
+Check busybox' site for more information:
+    http://busybox.net
+    http://busybox.net/license.html
+    
+Distributed busybox-armv6l binary was obtained from:
+    http://www.busybox.net/downloads/binaries/1.19.0/busybox-armv6l
+
+You can check this by comparing the sha1 signature of the binary:
+    b7d3edcd61956f4dfcccad7c5ee4d92bcbbcb172
+
+The sources are available at:
+    http://www.busybox.net/downloads/busybox-1.19.0.tar.bz2

@@ -1,11 +1,11 @@
 
 const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
 
-function getDirectories() {
+function getSubDirectories(directory) {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
   appsDir.initWithPath(GAIA_DIR);
-  appsDir.append('apps');
+  appsDir.append(directory);
 
   let dirs = [];
   let files = appsDir.directoryEntries;
@@ -39,11 +39,11 @@ function getFileContent(file) {
   return [content, count];
 }
 
-function getJSON(dir, name) {
+function getJSON(root, dir, name) {
   let file = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
   file.initWithPath(GAIA_DIR);
-  file.append('apps');
+  file.append(root);
   file.append(dir);
   file.append(name);
 
@@ -86,6 +86,10 @@ let permissions = {
     "urls": [],
     "pref": "dom.telephony.app.phone.url"
   },
+  "mozBluetooth": {
+    "urls": [],
+    "pref": "dom.mozBluetooth.whitelist"
+  },
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"
@@ -97,44 +101,67 @@ let permissions = {
   "mobileconnection": {
     "urls": [],
     "pref": "dom.mobileconnection.whitelist"
-  }
+  },
+  "mozFM": {
+    "urls": [],
+    "pref": "dom.mozFMRadio.whitelist"
+  },
+  "systemXHR": {
+    "urls": [],
+    "pref": "dom.systemXHR.whitelist"
+  },
 };
 
 let content = "";
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
-content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
+content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
+content += "user_pref(\"browser.manifestURL\",\"" + homescreen + "/manifest.webapp\");\n\n";
 
 let privileges = [];
 let domains = [];
 domains.push(GAIA_DOMAIN);
 
-let directories = getDirectories();
-directories.forEach(function readManifests(dir) {
-  let manifest = getJSON(dir, "manifest.webapp");
-  if (!manifest)
-    return;
+let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 
-  let rootURL = "http://" + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
-  let domain = dir + "." + GAIA_DOMAIN;
-  privileges.push(rootURL);
-  domains.push(domain);
+appSrcDirs.forEach(function parseDirectory(directoryName) {
+  let directories = getSubDirectories(directoryName);
+  directories.forEach(function readManifests(dir) {
+    let manifest = getJSON(directoryName, dir, "manifest.webapp");
+    if (!manifest)
+      return;
 
-  let perms = manifest.permissions;
-  if (perms) {
-    for each(let name in perms) {
-      permissions[name].urls.push(rootURL);
+    let rootURL = GAIA_SCHEME + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
+    let domain = dir + "." + GAIA_DOMAIN;
+    privileges.push(rootURL);
+    domains.push(domain);
 
-      // special case for the telephony API which needs full URLs
-      if (name == 'telephony')
-        if (manifest.background_page)
-          permissions[name].urls.push(rootURL + manifest.background_page);
+    let perms = manifest.permissions;
+    if (perms) {
+      for each(let name in perms) {
+        if (!permissions[name])
+          continue;
+
+        permissions[name].urls.push(rootURL);
+
+        // special case for the telephony API which needs full URLs
+        if (name == 'telephony')
+          if (manifest.background_page)
+            permissions[name].urls.push(rootURL + manifest.background_page);
+        if (manifest.attention_page)
+          permissions[name].urls.push(rootURL + manifest.attention_page);
+      }
     }
-  }
+  });
 });
 
+//XXX: only here while waiting for https://bugzilla.mozilla.org/show_bug.cgi?id=764718 to be fixed
+content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
-content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
+
+if (LOCAL_DOMAINS) {
+  content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
+}
 
 for (let name in permissions) {
   let perm = permissions[name];
@@ -152,7 +179,6 @@ if (DEBUG) {
   content += "user_pref(\"javascript.options.strict\", true);\n";
   content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
   content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
-  content += "user_pref(\"browser.cache.offline.enable\", false);\n";
   content += "user_pref(\"extensions.autoDisableScopes\", 0);\n";
   content += "user_pref(\"browser.startup.homepage\", \"" + homescreen + "\");\n";
 

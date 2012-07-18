@@ -1,0 +1,193 @@
+/* Contact detail header */
+.contact-header {
+  margin: -1.4rem -2rem 1rem;
+}
+
+.contact-header img {
+  width: 100%;
+  height: 7.6rem;
+  background: transparent no-repeat center 30%;
+  background-size: 100% auto;
+}
+
+.view-contacts-list .block-list {
+  padding-right: 1rem;
+}
+
+/* Contact detail main section */
+
+.view-contact-profile article.view-body {
+  overflow: scroll;
+  position: absolute;
+  min-height: 100%;
+  width: -moz-calc(100% + 1rem);
+}
+
+.view-contact-profile .view-body-inner {
+  background: transparent no-repeat center -8rem;
+  background-size: 100% auto;
+  padding: 0;
+  background-color: #f5f5f5;
+  overflow: visible;
+  position: relative;
+  min-height: 100%;
+}
+
+.view-contact-profile .view-body-inner.up {
+  background-position: center -8rem;
+  -moz-transition: background-position 0.25s ease-out;
+}
+
+.view-contact-profile .view-body-inner > section {
+  padding: 0 2rem;
+  background: #f5f5f5;
+  min-height: 100%;
+  overflow: hidden;
+  width: 100%;
+  position: absolute;
+  -moz-box-sizing: border-box;
+}
+
+.view-contact-profile .view-body-inner > section #contact-detail-inner{
+  padding-bottom: 1rem;
+}
+.view-contact-profile .view-body-inner > section h1{
+  padding-top: 1.4rem;
+}
+
+.view-contact-profile .view-body-inner > section.no-photo {
+  transform: translateY(0);
+}
+
+.view-contact-profile .view-body-inner > section.up {
+  transform: translateY(8rem);
+  -moz-transition: transform 0.5s ease-out;
+}
+
+.view-contact-profile .view-body-inner .comment-notes {
+  font-family: Open Sans;
+  font-weight: 600;
+  font-size: 1.3rem;
+  line-height: 1.3em;
+}
+
+#contact-detail h1 {
+  font: 1.4rem/1.5em Open Sans, Sans-serif;
+  font-weight: 600;
+  border-bottom: solid 1px #dbd9d9;
+  margin-bottom: 1rem;
+}
+
+#contact-detail li .item-body-exp {
+  padding-bottom: 1rem;
+}
+
+#contact-detail h2 {
+  text-transform: uppercase;
+  font-size: 1.4rem;
+}
+
+.block-item > * {
+  pointer-events: none;
+}
+
+.view-jumper-inner > li > * {
+  pointer-events: none;
+}
+
+/* Edit contact section */
+.view-edit-contact fieldset:not(.first) {
+  position: relative;
+  margin-right: 3rem;
+}
+.view-edit-contact fieldset div {
+  position: relative;
+}
+.view-edit-contact .fillflow-row-action {
+  width: 5rem;
+  height: 5rem;
+  margin: -2.5rem 0 0 0;
+}
+
+hr {
+  background-color: #BCBCBC;
+  border: 0;
+  height: 1px;
+}
+
+/* Favorites handling */
+#group-favorites abbr {
+  background: url(gphx/bitmap/default/lists/favorites.png);
+  display: block;
+  background-size: 100% auto;
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Search */
+
+#groups-list {
+  padding-top: 2rem;
+}
+
+#search-contact {
+  height: 2.5rem;
+  color: #000;
+  font-family: 'Open Sans';
+  font-size: 1.2rem;
+}
+
+.search-hide {
+  display: none;
+}
+
+#search-container {
+  background: url(gphx/bitmap/default/search/searchbar_1x35.png) repeat-x scroll left bottom transparent;
+  position: absolute;
+  width: -moz-calc(100% - 5.8rem);
+  padding: 0.5rem 2.5rem;
+  height: 2.5rem;
+  top: 0;
+  left: 0;
+}
+
+#search-container button {
+  line-height: 2.5rem;
+  padding: 0 2rem;
+  font-family: 'Open Sans';
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #707070;
+}
+
+#view-contacts-list.searching.transitioning #search-container {
+  position: absolute;
+}
+
+#view-contacts-list.searching #search-container {
+  position: fixed;
+  z-index: 101;
+  top: 0;
+  width: -moz-calc(100% + 0.8rem);
+  background-size: 100% 100%;
+}
+
+#view-contacts-list.searching .view-body {
+  z-index: 10;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#view-contacts-list.searching header {
+  top: -5rem;
+}
+
+#view-contacts-list.searching #search-contact {
+  width: 20rem;
+}
+
+#view-contacts-list.searching .block-item {
+  border-bottom: 1px solid #DBDBDB;
+}

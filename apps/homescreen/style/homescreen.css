@@ -1,175 +1,70 @@
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
-}
-
-body {
+html, body {
   width: 100%;
   height: 100%;
-  margin: 0px;
-  padding: 0px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  font-size: 10px;
+  font-family:'Open Sans';
   overflow: hidden;
-  font-family: 'Open Sans Semibold', sans-serif;
-  color: white;
-  font-size: 15px;
 }
 
-#home {
+* {
+  -moz-user-select:none;
+}
+
+section,footer,nav,a,img {
+  margin:  0;
+  padding: 0;
+  border:none;
+}
+
+#paginationBar {
   width: 100%;
-  height: 100%;
-  overflow: hidden;
-  position: absolute;
+  height: .3rem;
+  position: fixed;
   top: 0;
   left: 0;
-
-  border-radius: 8px;
-  background-color: #000;
-  background-attachment: fixed;
-  background-clip: border-box;
-  background-image: url(backgrounds/default.png);
-  background-origin: padding-box;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 100%;
-}
-
-#apps {
-  position: absolute;
-  top: 0;
-  margin-top: 20px;
-
-  /* height = -margin-top +100% - dots.height - shortcuts.height*/
-  height: -moz-calc(-20px + 100% - 14px - 135px);
-  width: 100%;
-}
-
-#dots {
-  position: absolute;
-  bottom: 140px;
-  height: 14px;
-  line-height: 14px;
-  text-align: center;
-  width: 100%;
-}
-
-.page {
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  width: -moz-calc(100%);
-  overflow: hidden;
-}
-
-/* 
- * When changing the icon size, also update homescreen.js
- */
-.icon {
-  position: relative;
-  float: left;
-
-  width: 79px;
-  height: 79px;
-  margin: 30px 20px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-*[dir=rtl] .icon {
-  float: right;
-}
-
-.icon > * {
+  z-index: 1;
   pointer-events: none;
 }
 
-.icon > div {
-  display: inline-block;
-
-  width: 79px;
-  height: 79px;
-  text-align: center;
-  color: white;
-}
-
-.icon > .label {
-  margin-top: 10px;
-}
-
-.icon.hidden {
+#paginationBar > .paginationScroller {
+  width: 100%;
+  height: 100%;
+  background-color: #ff7f02;
+  -moz-transition: -moz-transform .2s ease;
   visibility: hidden;
 }
 
-body > .icon {
-  z-index: 100000;
-  box-shadow: 0 0 5px 5px #666;
-}
-
-.edit .icon:before {
-  content: url(icons/close.png);
-  position: absolute;
-  top: -10px;
-  right: -10px;
-}
-
-.dot {
-  display: inline-block;
-  height: 5px;
-  background-color: transparent;
-
-  width: 10px;
-  height: 10px;
-  background-color: rgba(255,255,255,0.5);
-  margin-left: 5px;
-  margin-right: 5px;
-  border-radius: 50%;
-}
-
-.dot.active {
-  background-color: white;
-}
-
-/*
- * Localization: RTL layout
- */
-
-*[dir=rtl] .page {
-  left: auto;
-}
-
-/* Shortcuts */
-
-#shortcuts {
-  position: absolute;
-  bottom: 0;
-  height: 135px;
+#icongrid {
   width: 100%;
-  background: rgba(0,0,0,0.1);
+  height: -moz-calc(100% - 7.5rem);
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: rgba(0,0,0,.3);
 }
 
-#shortcuts .shortcut {
-  float: left;
-  width: 25%;
-  margin: 5px 0;
-  text-align: center;
+button:focus::-moz-focus-inner {
+  border-color: transparent !important;
 }
 
-#shortcuts .shortcut img {
-  display: block;
-  height: 79px;
-  height: 79px;
-  border-radius: 10px;
-  margin: 10px auto 15px auto;
+button::-moz-focus-inner {
+  border: none;
+  padding: 0;
 }
 
+button {
+   outline: none;
+}
+
+@media screen and (min-width: 480px) {
+  html {
+    font-size: 13.3px;
+  }
+}
+
+html[dir=rtl] .apps ol > li {
+  float: right;
+}

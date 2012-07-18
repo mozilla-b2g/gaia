@@ -193,7 +193,7 @@ function dumpn(str)
         prefix += min + ":" + sec.toFixed(3) + " | ";
     }
 
-    dumpn(prefix + str + "\n");
+    dump(prefix + str + "\n");
   }
 }
 
@@ -1420,10 +1420,11 @@ RequestReader.prototype =
           var hostPort = request._headers.getHeader("Host");
           var colon = hostPort.indexOf(":");
           var host = (colon < 0) ? hostPort : hostPort.substring(0, colon);
-          if (host != '@GAIA_DOMAIN@' && host.indexOf('.') != -1) {
+          if (host != "@GAIA_DOMAIN@" && host.indexOf(".") != -1) {
             var oldPath = request._path;
-            request._path = '/apps/' + host.split('.')[0] + oldPath;
-            dumpn(request._path + '\n');
+
+            var applicationName = host.split(".")[0];
+            request._path = this._findRealPath(applicationName) + oldPath;
           }
         } catch (e) {
           dump(e);
@@ -1438,6 +1439,30 @@ RequestReader.prototype =
       this._handleError(e);
       return false;
     }
+  },
+
+  /**
+   * Try to find out real path of apps,
+   * according to GAIA_APP_RELATIVEPATH provided by Makefile. 
+   */ 
+  _findRealPath: function(appName) {
+    if (this._realPath) {
+      return this._realPath[appName];
+    }
+
+    this._realPath = {};
+
+    var appPathList = "@GAIA_APP_RELATIVEPATH@".trim().split(" ");
+    for (var i = 0; i < appPathList.length; i++) {
+      var currentAppName = appPathList[i].split('/')[1];
+
+      if (!currentAppName) {
+        continue;
+      }
+
+      this._realPath[currentAppName] = appPathList[i];
+    }
+    return '/' + this._realPath[appName];
   },
 
   /**

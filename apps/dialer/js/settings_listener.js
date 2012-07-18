@@ -1,3 +1,5 @@
+'use strict';
+
 var SettingsListener = {
   _callbacks: {},
 
@@ -29,3 +31,5 @@ var SettingsListener = {
     this._callbacks[name] = callback;
   }
 };
+
+SettingsListener.init();

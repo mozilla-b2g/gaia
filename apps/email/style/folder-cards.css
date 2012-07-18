@@ -1,0 +1,89 @@
+.card-account-picker {
+}
+
+.fld-accounts-header {
+}
+.fld-accounts-header-label {
+}
+
+.fld-account-item {
+  display: block;
+  line-height: 24px;
+}
+.fld-account-selected {
+  background-color: #ddf;
+  border: 2px solid #224;
+}
+.fld-account-name {
+  font-size: 20px;
+}
+.fld-account-unread {
+  display: none;
+}
+
+
+.card-folder-picker {
+  box-shadow: inset 0 0 1em black;
+}
+
+.fld-folders-header {
+}
+.fld-accounts-btn {
+  font-size: 12px;
+}
+.fld-folders-header-account-label {
+  font-size: 10px;
+}
+
+.fld-folder-item {
+  display: block;
+  line-height: 20px;
+  padding: 6px;
+}
+.fld-folder-item.fld-folder-selected {
+  background-color: rgba(200, 200, 255, 0.6);
+}
+.fld-folder-unselectable {
+  color: #444;
+  background-color: #eee;
+}
+
+.fld-folder-name {
+  font-size: 20px;
+}
+.fld-folder-unread {
+  display: none;
+}
+
+.fld-folder-depth0 {
+}
+.fld-folder-depth1 {
+  margin-left: 12px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depth2 {
+  margin-left: 24px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depth3 {
+  margin-left: 36px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depth4 {
+  margin-left: 48px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depth5 {
+  margin-left: 60px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}
+.fld-folder-depthmax {
+  margin-left: 72px;
+  border-left: 1px solid gray;
+  padding-left: 4px;
+}

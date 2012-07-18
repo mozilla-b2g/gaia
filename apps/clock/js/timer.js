@@ -68,9 +68,9 @@ var Timer = {
 
   end: function ti_end() {
     //TODO: ring too
-    try {
-      navigator.mozVibrate([200, 200, 200, 200, 200]);
-    } catch (e) {}
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 200, 200, 200, 200]);
+    }
 
     this.cancel();
     this.chronoView.parentNode.classList.add('ended');
@@ -78,7 +78,7 @@ var Timer = {
 
   updateChrono: function ti_updateChrono(remaining) {
     var currentValue = this.chronoView.innerHTML;
-    var newValue =  new Date(remaining).toLocaleFormat('%M:%S');
+    var newValue = new Date(remaining).toLocaleFormat('%M:%S');
     if (currentValue != newValue)
       this.chronoView.innerHTML = newValue;
   },

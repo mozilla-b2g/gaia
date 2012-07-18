@@ -1,659 +1,550 @@
-html, body {
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  overflow-x: hidden;
-  overflow-y: hidden;
+
+@media screen and (min-resolution: 200dpi) {
+
+  html {
+    font-size: 13.5px;
+  }
 }
 
-body {
-  margin: 0;
-  width: 100%;
+@media screen and (max-resolution: 200dpi) {
+
+  html {
+    font-size: 10px;
+  }
+}
+
+html, body {
   height: 100%;
-  background-color: #000;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important; 
   font-family: 'Open Sans', sans-serif;
 }
 
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
+.wrapper {
+  width: 200%;
+  height: 100%;
+  position: relative;
+  left: 0;
+  top: 0;
 }
 
 .panel {
-  position: absolute;
-  display: block;
-  width: 100%;
-  height: 100%;
-  -moz-transition: -moz-transform 0.3s ease;
-  top: 0;
-}
-
-body.conversation .panel {
-  -moz-transform: translateX(-100%);
-}
-
-/* View - Slide Horizontal Transition */
-/* XXX hack: the width is adjusted (0-100%) with a delayed transition in order
- *           to hide the horizontal scrollbar on the device (at least, when the
- *           transition is over).
- * This is just a workaround: the platform bug should be fixed later.  */
-
-#view {
-  -moz-transform: translateX(100%);
-
-  /* XXX hack */
-  overflow: hidden;
-  z-index: 1;
-  width: 0%;
-  -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
-}
-
-#msg-conversations {
-  -moz-transform: translateX(0);
-
-  /* XXX hack */
-  overflow: hidden;
-  z-index: 10;
-}
-
-body.conversation #view {
-  -moz-transform: translateX(0);
-
-  /* XXX hack */
-  z-index: 10;
-  width: 100%;
-  -moz-transition: -moz-transform 0.3s ease;
-}
-
-body.conversation #msg-conversations {
-  -moz-transform: translateX(-100%);
-
-  /* XXX hack */
-  z-index: 1;
-  width: 0%;
-  -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
-}
-
-.toolbar {
-  -moz-box-sizing: border-box;
-  position: absolute;
-  display: block;
-  left: 0;
-  right: 0;
-  background-color: #fff;
-  background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
-  margin: 0;
-  padding: 0;
-}
-
-.toolbar-top {
-  top: 0;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  height: 64px;
-  border-bottom: solid 3px #9b9b9b;
-  z-index: 5;
-}
-
-.toolbar-bottom {
-  bottom: 0;
-  height: 80px;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-  border-top: solid 3px #9b9b9b;
-}
-
-.toolbar-panel {
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  width: 100%;
-}
-
-.toolbar-panel-item {
-  -moz-box-flex: 1;
-}
-
-.toolbar-panel-fixed-item {
-  -moz-box-flex: 0;
-}
-
-/* media queries for removing rounded border when keyboard is shown */
-@media screen and (max-height: 700px) {
-  .toolbar-bottom {
-    bottom: 0;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top: solid 3px #9b9b9b;
-  }
-}
-
-.list {
-  position: absolute;
-  top: 64px;
-  bottom: 80px;
-  left: 0;
-  right: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -moz-user-select: none;
-}
-
-input, textarea {
-  -moz-box-sizing: border-box;
-  border: solid 3px #7d8389;
-  border-radius: 20px;
-  height: 40px;
-  margin: 10px 15px;
-  font-size: 20px;
-  line-height: 25px;
-  font-family: 'Open Sans', sans-serif;
-  padding: 0;
-  background: -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, rgb(255, 255, 255) 100%) repeat scroll 0% 0% rgb(255, 255, 255);
-}
-
-.button {
-  -moz-box-sizing: border-box;
-  text-align: center;
-  border-radius: 20px;
-  color: #fff;
-  text-shadow: 0pt -1px 1px rgba(0, 0, 0, 0.5);
-  border: none;
-  padding: 0 16px;
-  outline: medium none;  
-  background: -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
-                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
-                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
-}
-
-.back-button {
-  width: 80px;
-  height: 48px;
-  position: absolute;
-  margin: 6px 0 0 24px;
-}
-
-.back-button-img {
-  background: url("./images/top-navibar-left-arrow.png") no-repeat scroll 30px 50% transparent;
-  left: 0px;
-  top: 0px;
-  width: 80px;
-  height: 48px;
-  position: absolute;
-}
-
-.back-button > h2 {
-  display: none;
-}
-
-.button:active {
-  background: -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
-                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
-                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
-}
-
-/* Remove dotted outline for button in firefox. */
-.button::-moz-focus-inner {
-  border: 0;
-}
-
-.text-button {
-  font-size: 24px;
-  font-weight: bold;
-  height: 48px;
-  line-height: 48px;
-  text-decoration: none;
-}
-
-#msg-search-container {
-  padding: 0;
-  margin: 0;
-  top: 4px;
-  width: 100%;
-  height: 60px;
-  border-bottom: solid 3px #9b9b9b;
-  position: absolute;
-  z-index: 1;
-  -moz-transition: -moz-transform 0.3s ease;
-}
-body.msg-search-mode #msg-search-container {
-  -moz-transform: translateY(60px);
-}
-
-#msg-title-container {
-  padding: 0;
-  margin: 0;
-  text-align: center;
-  line-height: 60px;
-  font-size: 24px;
-  font-weight: bold;  
-}
-
-#msg-search {
-  padding: 0 0 0 32px;
-  background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
-  width: -moz-calc(100% - 15px - 15px);
-}
-
-#msg-conversations-list {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
-  top: 64px;
-  -moz-transition: top 0.3s ease;
-}
-
-body.msg-search-mode #msg-conversations-list {
-  top: 124px;
-}
-
-#msg-conversations-list > a {
-  -moz-box-sizing: border-box;
-  display: block;
-  text-decoration: none;
-  outline: none;
-  height: 96px;
   position: relative;
-  /* Remove the thumbnail for current stage.
-   *padding need to 112px + img width when social network integration is ready*/
-  padding: 13px 16px 0 112px;
-  border-top: 1px solid hsla(207,22%,92%,1);
-  border-bottom: 1px solid hsla(223,7%,81%,1);
-  width: -moz-calc(100% + 90px);
-  right: 90px;
-  -moz-transition: -moz-transform 0.3s ease;
+  float: left;
+  width: 50%;
+  height: 100%;
 }
 
-body.msg-edit-mode #msg-conversations-list > a {
-  -moz-transform: translateX(90px);
+#thread-list,#thread-messages {
+  z-index: 10;
+  background: white;
+ 
 }
 
-#msg-conversations-list > a:active {
-  background: hsla(35,100%,50%,.2);
+.to-left {
+  left: -100%;
 }
 
-#msg-conversations-list > a.hide {
+#icon-contact {
   display: none;
 }
 
-#msg-conversations-list > a > * {
+/*
+  Snapshot for increasing performance in slide transition
+*/
+
+#thread-list-snapshot {
+  z-index: 0;
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#thread-list) no-repeat;
+}
+
+#thread-messages-snapshot {
+  z-index: 0;
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 50% !important;
+  height: 100% ;
+  -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#thread-messages) no-repeat;
+}
+
+/*
+  Smooth lateral slide
+*/
+
+.snapshot #snapshot {
+   top: -100%;
+   z-index: 100;
+}
+
+.mirror-swipe #thread-list-snapshot {
+  -moz-transform: translateX(-100%);
+}
+
+.mirror-swipe #thread-messages-snapshot {
+  -moz-transform: translateX(-100%);
+}
+
+/* Styles for Edit mode */
+
+.edit .options {
+  bottom: 0rem;
+}
+
+.edit .new-sms-form {
+  bottom: -3.6rem;
+}
+
+.edit .header-wrapper{
+  left: -100%;
+}
+
+.new h1 {
+  display: none;
+}
+
+.new .tel {
+  display: block;
+}
+.new #icon-edit {
+  display: none;
+}
+
+.new #icon-contact {
+  display: block;
+}
+
+.edit > #thread-list > #thread-list-container a {
   pointer-events: none;
 }
 
-#msg-conversations-list > a:first-child {
-  border-top-color: transparent;
+.edit #thread-list-container .checkbox-container {
+  pointer-events:auto;
+  opacity: 1;
 }
 
-/* fake input boxes for checkboxes*/
-#msg-conversations-list label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-#msg-conversations-list a > input.fake-checkbox {
+.edit .undo-candidate {
   display: none;
 }
 
-#msg-conversations-list a > span {
-  position: absolute;
-  top: -moz-calc(50% - 34px);
-  left: 20px;
+.edit .msg-checkbox {
+  display: table-cell;
+}
+
+.edit .message-block {
+  padding: 1rem 0;
+  border-top: .1rem solid #DBDBDB; 
+  margin-bottom: 0;
+}
+
+/*
+  Thread list styles
+*/
+
+#thread-list-container .item {
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+#thread-list-container .item:last-child {
+  margin-bottom: 7rem;
+}
+
+#thread-list-container .item > a {
+  -moz-box-sizing: border-box;
   display: block;
-  width: 64px;
-  height: 64px;
-  border: none;
-}
-
-#msg-conversations-list a > input[type=checkbox] + span {
-  width: 60px;
-  height: 60px;
-  border: 4px solid;
-  border-radius: 5px;
-  -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-left-colors: #c3c9cb #c3c9cb #fff #fff;
-  background: -moz-linear-gradient(#eaeae4, #ffffff);
-}
-
-#msg-conversations-list a > input[type=checkbox]:checked + span {
-  background: url("./images/checked.png") no-repeat scroll center center,
-    -moz-linear-gradient(#ffffff, #eaeae4);
-}
-
-#msg-conversations-list .photo {
-  position: absolute;
-  top: -1px;
-  left: 0;
-  width: 95px;
-  height: 95px;
-  overflow: hidden;
-  background-color: #ccc;
-  box-shadow: inset 0 1px 0 #ddd;
-}
-
-#msg-conversations-list .photo img {
+  text-decoration: none;
+  outline: none;
+  height: 6rem;
+  position: relative;
+  padding: 1rem 1.6rem 1rem 3rem;
+  border-top: 0.1rem solid hsla(207,22%,92%,1);
   width: 100%;
-}
-
-#msg-conversations-list .name {
-  font-size: 26px;
-  color: rgb(18, 47, 64);
-  line-height: 32px;
-  font-weight: 600;
+  -moz-transition: padding 0.3s ease-out;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 100px);
 }
 
-#msg-conversations-list .msg {
-  color: #666;
-  text-shadow: 0 1px 0 #ddd;
-  font-size: 22px;
-  height: 32px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+#thread-list-container .item > a:active {
+  background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
 }
 
-#msg-conversations-list .time {
-  position: absolute;
-  top: 9px;
-  right: 16px;
-  text-align: right;
-  color: hsla(0,0%,0%,.5);
-  font-size: 18px;
-}
-
-body.msg-edit-mode #msg-conversations-list .name {
-  width: -moz-calc(100% - 190px);
-}
-
-body.msg-edit-mode #msg-conversations-list .msg {
-  width: -moz-calc(100% - 90px);
-}
-
-body.msg-edit-mode #msg-conversations-list .time {
-  right: 106px;
-}
-
-#msg-undo-toolbar {
-  height: 80px;
-  bottom: 80px;
-  background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , #000, #444) repeat scroll 0% 0% transparent;
-  visibility: hidden;
-}
-
-#msg-undo-toolbar.show {
-  visibility: visible;
-}
-
-#msg-undo-title-container {
-  text-align: center;
-  line-height: 80px;
-  font-size: 16px;
-  font-weight: bold;
+#thread-list-container .item > a:active > .name {
   color: white;
 }
 
-#msg-new-message-container {
-  padding: 0;
-  margin: 0;
+#thread-list-container .item > a:active > .msg {
+  color: #ffbc8c;
+  text-shadow: none;
 }
 
-#msg-new-message {
-  margin-top: 6px;
-  margin-right: 24px;
-  top: 0px;
-  right: 0px;
-  height: 48px;
-  line-height: 48px;
-  font-size: 24px;
-  font-weight: bold;
-  min-width: 100px;
-  text-decoration: none;
-  outline: none;
-  position: absolute;
+#thread-list-container .item > a.hide {
+  display: none;
 }
 
-#msg-edit-button { 
-  left: 0px;
-  margin-top: 14px;
-  margin-left: 24px; 
-  position: absolute;
-  min-width: 120px;
+#thread-list-container .item > a > * {
+  pointer-events: none;
 }
 
-#msg-search-button, #msg-delete-button, #msg-undo-button{ 
-  right: 0px;
-  top: 0px;
-  margin-top: 14px;
-  margin-right: 24px;  
-  position: absolute;
-  min-width: 120px;
+#thread-list-container .item > a:first-child {
+  border-top-color: transparent;
 }
 
-.edit-hide {
+#thread-list-container .item > a .unread-mark {
+  display: none;
+}
+
+a.unread .unread-mark {
+  display: block !important;
+  width: 3rem !important;
+  left: 0 !important;
+  height: 100% !important;
+  top: 0 !important;
+  background: transparent !important;
+  border-style: none !important;
+}
+
+a.unread .unread-mark .icon-unread-mark {
   display: block;
+  width: .9rem;
+  height: .9rem;
+  margin: 4.3rem auto;
+  background-image: url('images/updates.png');
 }
 
-.edit-show {
-  display: none;
-}
-
-body.msg-edit-mode .edit-hide {
-  display: none;
-}
-
-body.msg-edit-mode .edit-show {
-  display: block;
-}
-
-#view-name {
-  font-size: 26px;
-  font-weight: bold;
-  margin: 0 96px;
-  padding: 0;
-  line-height: 64px;
-  text-align: center;
-  color: rgb(51, 51, 51);
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-body.conversation-new-msg #view-name {
-  display: none;
-}
-
-#view-num {
-  display: none;
-  margin: 10px 152px;
-  padding: 0 20px;
-  -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 300px);
-}
-
-body.conversation-new-msg #view-num {
-  display: block;
-}
-
-#view-edit-container {
+#thread-list-container .item > a > span {
   position: absolute;
-  top: 0; right: 0;
-  height: 60px;
-  width: 96px;
+  top: -moz-calc(50% - 3.4rem);
+  left: 4rem;
+  display: block;
+  width: 6.4rem;
+  height: 6.4rem;
+  border: none;
 }
 
-#view-edit {
-  position: absolute;
-  -moz-box-sizing: border-box;
-  top: 16px;
-  right: 16px;
-  height: 32px;
-  line-height: 32px;
-  width: 64px;
-  padding: 0 8px;
-  border-radius: 5px;
-  border: 1px solid hsl(60,2%,62%);
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  color: #666;
-  text-shadow: 1px 1px 1px hsla(0,0%,100%,.5);
-  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(280,8%,93%,1) 1px, hsla(0,0%,87%,1) 100%);
-}
-
-#view-edit:active {
-  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(0,0%,87%,1) 1px, hsla(280,8%,93%,1) 100%);
-}
-
-#view-list {
-  background: url('images/conversation-view-list-bg.png');
-}
-
-#view-list > div {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-  margin: 8px;
-  min-height: 64px;
-  border-radius: 8px;
-  position: relative;
-  padding: 16px;
-  -moz-box-sizing: border-box;
-}
-
-#view-list > div.sender {
-  /* Remove the thumbnail for current stage.
-   *padding need shit back to 96px when social network integration is ready*/  
-  padding-left: 16px;
-}
-
-#view-list > div.receiver {
-  /* Remove the thumbnail for current stage.
-   *padding need shit back to 96px when social network integration is ready*/  
-  padding-right: 16px;
-  text-align: right;
-}
-
-#view-list > div.pending {
-  -moz-animation: fadeIn 2s ease;
-  opacity: 0.5;
-}
-
-@-moz-keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 0.5;
-  }
-}
-
-#view-list .photo {
+#thread-list-container .photo {
   position: absolute;
   top: 0;
-  width: 80px;
-  height: 80px;
-  margin: 8px;
-  border-radius: 5px;
-  box-shadow: inset 0 1px 0 #ddd, 0 1px 0 #999;
-  overflow: hidden;
-  background-color: #ccc;
-  z-index: 2;
-}
-
-#view-list > div.sender .photo {
-  left: 0;
-}
-
-#view-list > div.receiver .photo {
   right: 0;
+  width: 5.9rem;
+  height: 100%;
+  overflow: hidden;
 }
 
-#view-list .photo img {
+#thread-list-container .photo img {
   width: 100%;
 }
 
-#view-list > div .text {
-  font-size: 24px;
-  font-weight: 600;
-  color: rgb(18, 47, 64);
-  text-shadow: 0 1px 0 #ddd;
-  line-height: 32px;
-}
-
-#view-list > div .time {
-  font-size: 18px;
-  line-height: 23px;
-  color: rgb(62, 86, 106);
-  text-shadow: 0 1px 0 #ddd;
-}
-
-#view-list > div::before {
-  content: '';
-  display: block;
-  width: 11.2px; /* 8px * sqrt(2) */
-  height: 11.2px;
+#thread-list-container .checkbox-container {
   position: absolute;
-  top: 20px;
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-  -moz-transform: rotate(45deg);
+  top: 0;
+  right: 0;
+  width: 5.9rem;
+  height: 100%;
+  overflow: hidden;
+  background: white;
+  pointer-events:none;
+  opacity: 0;
 }
 
-#view-list > div.sender::before {
-  left: -5.6px;
+#thread-list-container .checkbox-container input {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  opacity: 0;
+}
+#thread-list-container .checkbox-container span {
+  left: 1.85rem;
+  top: 1.9rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  position: absolute;
+  pointer-events: none;
+  background-image: url('images/check-delete.png'); 
 }
 
-#view-list > div.receiver::before {
-  right: -5.6px;
+#thread-list-container .checkbox-container input:checked + span {
+  background-position: center bottom;
 }
 
-#view-bottom-toolbar {
-  background: url('images/diagonal-gray-pattern.png'),
-  -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
-  padding-right: 16px;
+#thread-list-container .name {
+  font-family: 'Open Sans';
+  font-size: -moz-calc(8 * 0.226rem);
+  color: #000000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: -moz-calc(100% - 7rem);
 }
 
-#view-msg-text-container {
+#thread-list-container .msg {
+  font-family: 'Open Sans';
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #5B5B5B;
+  text-shadow: 0 0.1rem 0 #ddd;
+  width: -moz-calc(100% - 20rem);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: '..."';
+  position: absolute;
+  top: 3rem;
+  left: 10rem;
 }
 
-#view-msg-text {
-  padding: 0 10px;
-  width: -moz-calc(100% - 16px);
+#thread-list-container .time {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  font-size: -moz-calc(6 * 0.226rem);
+  font-weight: 600;
+  color: #5B5B5B;
+  position: absolute;
+  top: 3rem;
+  color: hsla(0,0%,0%,.5);
+}
+
+#thread-list-container .unread {
+  color: #1D8399;
+}
+
+#thread-list-container .unread-tag {
+  position: absolute;
+  visibility : hidden;
+  height: 1rem;
+  width: 1rem;
+  top: 2rem;
+  left: 1rem;
+  background: url(../style/images/unread.png);
+}
+
+#thread-list-container .item > a.unread .unread-tag {
+  visibility : visible;
+}
+
+#thread-list-container h2 {
+  text-align: left;
+  border-bottom: solid 1px #ff4e00;
+  padding-left: 3rem;
+  padding-top: 1rem;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #ff4e00;
+  text-transform: uppercase;
+  font-family: 'Open Sans';
+}
+
+
+/*
+  Messages Style as 'bubbles'
+*/
+
+#messages-container h2 {
+  text-align: left;
+  padding-left: 3rem;
+  padding-top: 1rem;
+  padding-bottom: .5rem;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #666666;
+  text-transform: uppercase;
+  font-family: 'Open Sans';
+}
+
+#messages-container {
+  text-align: left;
+}
+
+#messages-container > div:last-child {
+  margin-bottom: 7rem;
+}
+
+.message-block {
+  display: table;
+  table-layout: fixed; 
+  width: 100%;
+  margin-bottom:1rem;
+}
+
+.message-block .bubble-container {
+  display: table-cell;
+}
+
+.message-block .bubble-container .bubble{
+  max-width: 23rem;
+  word-wrap:break-word;
+  display: inline-block;
+  position: relative;
+  padding: 1rem 1.5rem;
+  -moz-box-sizing: border-box;
+}
+
+.message-option {
+  width: 3.5rem;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+.message-option .gif{
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: 0 auto;
+}
+
+.msg-checkbox {
+  display: none;
+}
+
+.message-option input {
+  width: 100%;
+  height: 4rem;
+  position: relative;
+  opacity: 0;
+  margin-top: -2rem;
+
+}
+.message-option span {
   display: block;
-  resize: none;
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 44px;
-  margin: 14px 0 0 16px;
-  overflow: auto;
-  overflow-x: auto;
-  min-height: 50px;
-  max-height: 200px;
+  position: relative;
+  margin-top: -4rem;
+  pointer-events: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  left: .5rem;
+  top: .9rem; 
+  background-image: url('images/check-delete.png'); 
+}
+.message-option  input:checked + span {
+  background-position: center bottom;
 }
 
-#view-msg-send-container {
+.sent {
+  text-align: right;
 }
 
-#view-msg-send {
-  margin: 14px 0 0 16px;
-  min-width: 96px;
+.sent .bubble{
+  margin-right: 1.4rem;
+  background: white;
+  border: .1rem solid #969FA0;
+  box-shadow: 0 0.1rem 0.1rem #4F595B;
+  border-radius: .5rem;
+  text-align: left;
 }
 
-/* localization */
-body.hidden *[data-l10n-id] {
-  visibility: hidden;
+.sent .bubble:after {
+  content: '';
+  width: .9rem;
+  height: 1rem;
+  background-image: url('images/outgoing_9x10.png');
+  position: absolute;
+  right: 0;
+  margin-right: -0.9rem;
+  top: .9rem;
 }
+
+.received .bubble{
+  margin-left: 1.4rem;
+  background: #FBEAE0;
+  border: .1rem solid #FF4E00;
+  box-shadow: 0 0.1rem 0.1rem #F1AF84;
+  border-radius: .5rem;
+  text-align: left;
+}
+
+.received .bubble:after {
+  content: '';
+  width: .9rem;
+  height: 1rem;
+  background-image: url('images/incoming_9x10.png');
+  position: absolute;
+  left: 0;
+  margin-left: -0.9rem;
+  top: 1rem;
+}
+
+/*
+  Edit mode bar
+*/
+
+.options {
+  height: 6.5rem;
+  background: rgba(0,0,0,.85);
+  bottom: -6.5rem;
+  width: 100%;
+  position: absolute;
+  transition:bottom .15s ease-in;
+  -moz-transition: bottom .15s ease-in;
+}
+
+.option {
+  width: 50%;
+  height: 100%;
+  float: left;
+  padding: 1.5rem .5rem 1.5rem 1.5rem;
+  -moz-box-sizing: border-box;
+
+}
+
+.option:last-child {
+  padding: 1.5rem 1.5rem 1.5rem .5rem;
+}
+
+.edit-button {
+  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
+  height: 100%;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  font-family: 'Open Sans';
+  font-weight: 600;
+  font-size: -moz-calc(7 * 0.226rem);
+  color: white;
+}
+
+/*
+  Bottom bar for sending SMS
+*/
+
+.new-sms-form {
+  height: 3rem;
+  bottom: 0rem;
+  width: 100%;
+  position: absolute;
+  transition:bottom .15s ease-in;
+  -moz-transition: bottom .15s ease-in;
+}
+
+.new-sms-form {
+  border-top: .1rem solid #C6C6C6;
+  background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
+  height: 3.5rem;
+}
+
+#message-to-send {
+  margin-top: .5rem;
+  margin-bottom: .5rem;
+  margin-left: 1.5rem;
+  height: 2.5rem;
+  width: -moz-calc(100% - 9.5rem);
+  -moz-box-sizing: border-box;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(0,0,0,.3);
+  box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
+  font-size: -moz-calc(7 * 0.226rem);
+  font-family: 'Open Sans';
+}
+
+#send-message {
+  height: 100%;
+  width: 6rem;
+  float: right;
+}
+
 

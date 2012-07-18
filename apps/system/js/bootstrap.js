@@ -4,33 +4,16 @@
 'use strict';
 
 function startup() {
-  ScreenManager.init();
-  LockScreen.init();
   PinLock.init();
-  StatusBar.init();
-  SoundManager.init();
   SleepMenu.init();
   SourceView.init();
   Shortcuts.init();
+  Bluetooth.init();
 
-  Applications.rebuild(function start(apps) {
-    // FIXME Loop over all the registered activities from the applications
-    //       list and start up the first application found registered for
-    //       the HOME activity.
-    if (document.location.protocol === 'file:') {
-      var paths = document.location.pathname.split('/');
-      paths.pop();
-      paths.pop();
-      var src = 'file://' + paths.join('/') + '/homescreen/index.html';
-    } else {
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://homescreen.' + domain;
-    }
-    document.getElementById('homescreen').src = src;
-
-    ScreenManager.turnScreenOn();
-  });
+  // We need to be sure to get the focus in order to wake up the screen
+  // if the phone goes to sleep before any user interaction.
+  // Apparently it works because no other window has the focus at this point.
+  window.focus();
 
   // This is code copied from
   // http://dl.dropbox.com/u/8727858/physical-events/index.html
@@ -38,12 +21,28 @@ function startup() {
   // getting orientation data.  See:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
   function dumbListener2(event) {}
-  window.addEventListener("devicemotion", dumbListener2, false);
+  window.addEventListener('devicemotion', dumbListener2);
 
   window.setTimeout(function() {
-    window.removeEventListener("devicemotion", dumbListener2, false);
+    window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
 }
+
+// XXX: homescreen should be an app launched and managed by window manager,
+// instead of living in it's own frame.
+(function homescreenLauncher() {
+  if (document.location.protocol === 'file:') {
+    var paths = document.location.pathname.split('/');
+    paths.pop();
+    paths.pop();
+    var src = 'file://' + paths.join('/') + '/homescreen/index.html';
+  } else {
+    var host = document.location.host;
+    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+    var src = document.location.protocol + '//homescreen.' + domain;
+  }
+  document.getElementById('homescreen').src = src;
+}());
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */
@@ -60,114 +59,41 @@ var Shortcuts = {
   }
 };
 
-// XXX This crap should live in webapi.js for compatibility
-var Mouse2Touch = {
-  'mousedown': 'touchstart',
-  'mousemove': 'touchmove',
-  'mouseup': 'touchend'
-};
+/* === focuschange === */
+/* XXX: should go to keyboard_manager.js */
+try {
+  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+    switch (evt.detail.type) {
+      case 'blur':
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('hideime', true, true, {});
+        window.dispatchEvent(event);
+        break;
 
-var Touch2Mouse = {
-  'touchstart': 'mousedown',
-  'touchmove': 'mousemove',
-  'touchend': 'mouseup'
-};
-
-var ForceOnWindow = {
-  'touchmove': true,
-  'touchend': true
-};
-
-function AddEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.addEventListener(name, {
-      handleEvent: function(e) {
-        if (Mouse2Touch[e.type]) {
-          var original = e;
-          e = {
-            type: Mouse2Touch[original.type],
-            target: original.target,
-            touches: [original],
-            preventDefault: function() {
-              original.preventDefault();
-            }
-          };
-          e.changedTouches = e.touches;
-        }
-        return listener.handleEvent(e);
-      }
-    }, true);
-  }
-}
-
-function RemoveEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.removeEventListener(name, listener);
-  }
-}
-
-
-var Applications = {
-  installedApps: [],
-  rebuild: function a_rebuild(callback) {
-    var self = this;
-    navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
-      var apps = evt.target.result;
-      apps.forEach(function(app) {
-        self.installedApps[app.origin] = app;
-      });
-
-      if (callback)
-        callback();
-    };
-  },
-
-  getByOrigin: function a_getByOrigin(origin) {
-    return this.installedApps[origin];
-  },
-
-  handleEvent: function a_handleEvent(evt) {
-    var detail = evt.detail;
-    if (detail.type !== 'webapps-ask-install')
-      return;
-
-    // This is how we say yes or no to the request after the user decides
-    var self = this;
-    function sendResponse(id, allow) {
-      self.rebuild();
-
-      var event = document.createEvent('CustomEvent');
-      event.initCustomEvent('mozContentEvent', true, true, {
-        id: id,
-        type: allow ? 'webapps-install-granted' : 'webapps-install-denied'
-      });
-      window.dispatchEvent(event);
+      default:
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('showime', true, true, evt.detail);
+        window.dispatchEvent(event);
+        break;
     }
+  };
+} catch (e) {}
 
-    var app = detail.app;
-    if (document.location.toString().indexOf(app.installOrigin) == 0) {
-      sendResponse(detail.id, true);
-      return;
-    }
+/* === Localization === */
+/* set the 'lang' and 'dir' attributes to <html> when the page is translated */
+window.addEventListener('localized', function onlocalized() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+});
 
-    var name = app.manifest.name;
-    var locales = app.manifest.locales;
-    var lang = navigator.language;
-    if (locales && locales[lang] && locales[lang].name)
-      name = locales[lang].name;
+// Define the default background to use for all homescreens
+SettingsListener.observe(
+  'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
+  var url = 'url(resources/images/backgrounds/' + value + ')';
+  document.getElementById('screen').style.backgroundImage = url;
+});
 
-    var str = document.mozL10n.get('install', {
-      'name': name, 'origin': app.origin
-    });
-    requestPermission(str, function() { sendResponse(detail.id, true); },
-                           function() { sendResponse(detail.id, false); });
-  }
-};
+window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
+  WindowManager.setDisplayedApp(null);
+});
 
-window.addEventListener('mozChromeEvent', Applications);

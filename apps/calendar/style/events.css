@@ -1,0 +1,88 @@
+.day-events h4, 
+.day-events h5 {
+  font-weight: normal;
+  /*overflow: hidden;
+    word-wrap: break-word;
+    text-overflow: '...';  
+    white-space: nowrap;
+    max-width: -moz-calc(50% - 10rem);*/
+
+}
+
+.day-events section > h4,
+.day-events section > ol li {
+  padding: 1rem 0px;
+}
+
+.day-events {
+  font-family: 'Open Sans';
+  font-weight: light;
+}
+
+.day-events section > ol,
+.day-events section {
+  overflow-x: hidden;
+}
+
+.day-events section {
+  border-bottom: 1px solid #E7E7E7;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+}
+
+.rtl .day-events section > h4 {
+  -moz-box-ordinal-group: 2;
+  text-aligh: left;
+  padding-left: 0.52rem;
+}
+
+.ltr .day-events section > h4 {
+  text-align: right;
+  padding-right: 0.52rem;
+}
+
+.ltr .day-events section > ol li {
+  padding-left: 0.37rem;
+}
+
+.rtl .day-events section > ol li {
+  padding-right: 0.37rem;
+}
+
+.day-events section > h4 {
+  border-left: 0.4rem solid #FCA900;
+/*  font-size:  1rem;*/
+  width: 2.8rem;
+}
+
+.day-events section > ol,
+.day-events section > ol li  {
+}
+
+.day-events section > ol {
+  -moz-box-flex: 1;
+}
+
+.day-events section > ol li {
+  border-bottom: 1px solid #C3C3C3;
+}
+
+.day-events section > ol li:last-child {
+  border-bottom: none;
+}
+
+.day-events section > ol h5 {
+  padding-top: 0.18rem;
+  font-size: 1.6rem;
+}
+
+.day-events section > ol .details {
+  display: block;
+  padding-top: 0.6rem;
+  color: #535353;
+  font-size: 1.1rem;
+}
+
+.attendee {
+  padding-right: 0.3rem;
+}

@@ -1,67 +1,56 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0"/>
+    <link rel="stylesheet" type="text/css" href="style/request.css"/>
+    <link rel="stylesheet" type="text/css" href="style/homescreen.css"/>
+    <link rel="stylesheet" type="text/css" href="style/grid.css"/>
+    <link rel="stylesheet" type="text/css" href="style/dragdrop.css"/>
+    <link rel="stylesheet" type="text/css" href="style/dock.css"/>
+    <link rel="stylesheet" type="text/css" href="style/search.css"/>
 
-    <!-- Compatibility -->
-    <script>
-      if (document.location.protocol === 'file:') {
+    <script type="text/javascript">
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
+    })();
     </script>
 
-    <!-- The helper can be removed once bug 731746 lands -->
-    <script src="js/settings.js"></script>
-
-    <link rel="stylesheet" type="text/css" href="style/homescreen.css">
-    <script defer src="js/homescreen.js"></script>
-
-    <!-- DragDrop -->
-    <script defer src="js/dragdrop.js"></script>
-
-    <!-- This is used only for uninstalling application and can be
-         replaced with a simple confirm() once bug 741587 lands
-         and handling dialog will be done in the system app.
-     -->
-    <link rel="stylesheet" type="text/css" href="style/request.css">
-    <script defer src="js/request.js"></script>
+    <script type="text/javascript" defer src="js/request.js"></script>
+    <script type="text/javascript" defer src="js/appmanager.js"></script>
+    <script type="text/javascript" defer src="js/state.js"></script>
+    <script type="text/javascript" defer src="js/page.js"></script>
+    <script type="text/javascript" defer src="js/pagbar.js"></script>
+    <script type="text/javascript" defer src="js/dock.js"></script>
+    <script type="text/javascript" defer src="js/grid.js"></script>
+    <script type="text/javascript" defer src="js/dragdrop.js"></script>
+    <script type="text/javascript" defer src="js/search.js"></script>
+    <script type="text/javascript" defer src="js/homescreen.js"></script>
   </head>
 
-  <body>
-    <div id="content">
-      <div id="home">
-        <div id="apps"></div>
-        <div id="dots"></div>
+  <body data-mode="normal">
+    <header id="paginationBar">
+      <div class="paginationScroller"></div>
+    </header>
+
+    <div id="icongrid" class="apps">
+      <div id="search">
+        <img id="searchAction" src="resources/images/search/icon.png"></img>
       </div>
     </div>
 
-    <div id="shortcuts">
-      <div class="shortcut">
-        <img src="style/icons/Dialer.png"></img>
-        <span>Dialer</span>
-      </div>
-      <div class="shortcut">
-        <img src="style/icons/Sms.png"></img>
-        <span>Messages</span>
-      </div>
-      <div class="shortcut">
-        <img src="style/icons/Market.png"></img>
-        <span>Market</span>
-      </div>
-      <div class="shortcut">
-        <img src="style/icons/Browser.png"></img>
-        <span>Browser</span>
-      </div>
-    </div>
+    <footer id="footer"></footer>
   </body>
 </html>

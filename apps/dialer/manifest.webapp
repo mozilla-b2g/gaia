@@ -4,19 +4,24 @@
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
     "telephony",
     "contacts",
     "power",
     "mozApps",
-    "mobileconnection"
+    "mobileconnection",
+    "background"
   ],
   "locales": {
     "ar": {
       "name": "\u0645\u0643\u0627\u0644\u0645\u0629",
       "description": "Gaia \u0645\u0643\u0627\u0644\u0645\u0629 \u0647\u0627\u062a\u0641\u064a\u0629"
+    },
+    "ca": {
+      "name": "Marcador",
+      "description": "Marcador del Gaia"
     },
     "de": {
       "name": "Telefon",
@@ -60,9 +65,19 @@
     }
   },
   "default_locale": "en-US",
+  "attention_page": "/oncall.html",
   "background_page": "/background.html",
   "icons": {
-    "120": "/style/icons/Dialer.png"
+    "120": "/style/icons/Dialer.png",
+    "60": "/style/icons/60/Dialer.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "activities": {
+    "dial": {
+      "filters": {
+        "type": "webtelephony/number"
+      },
+      "disposition": "window"
+    }
+  }
 }

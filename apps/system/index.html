@@ -1,35 +1,61 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <!-- System -->
     <script>
-      if (document.location.protocol === 'file:') {
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
         paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
+    })();
     </script>
-    <link rel="stylesheet" type="text/css" href="style/system.css">
-    <script defer src="js/settings.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/system/system.css">
+    <script defer src="js/settings_listener.js"></script>
+    <script defer src="js/applications.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
+    <script defer src="js/mouse2touch.js"></script>
+    <script defer src="js/activities.js"></script>
     <script defer src="js/bootstrap.js"></script>
+    <script defer src="js/screenshot.js"></script>
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
 
+    <!-- Grid View -->
+    <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
+    <script defer src="js/gridview.js"></script>
+
+    <!-- Modal Dialog -->
+    <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
+    <script defer src="js/modal_dialog.js"></script>
+
+    <!-- Accessibility -->
+    <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
+    <script defer src="js/accessibility.js"></script>
+
+    <!-- List Menu -->
+    <link rel="stylesheet" type="text/css" href="style/list_menu/list_menu.css">
+    <script defer src="js/list_menu.js"></script>
+
     <!-- Sleep Menu -->
-    <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
     <script defer src="js/sleep_menu.js"></script>
+
+    <!-- Context Menu -->
+    <script defer src="js/context_menu.js"></script>
 
     <!-- PIN Unlocking -->
     <link rel="stylesheet" type="text/css" href="style/pinlock/pinlock.css">
@@ -39,121 +65,178 @@
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
     <script defer src="js/lockscreen.js"></script>
 
+    <!-- Attention Screen -->
+    <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
+    <script defer src="js/attention_screen.js"></script>
+
+    <!-- Popup Manager -->
+    <link rel="stylesheet" type="text/css" href="style/popup_manager/popup_manager.css">
+    <script defer src="js/popup_manager.js"></script>
+
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
-    <script defer src="js/statusbar/statusbar.js"></script>
+    <script defer src="js/statusbar.js"></script>
+
+    <!-- Utility Tray -->
+    <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
+    <script defer src="js/utility_tray.js"></script>
+
+    <!-- Quick Settings -->
+    <link rel="stylesheet" type="text/css" href="style/quick_settings/quick_settings.css">
+    <script defer src="js/quick_settings.js"></script>
 
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
-    <script defer src="js/notifications/notifications.js"></script>
+    <script defer src="js/GestureDetector.js"></script>
+    <script defer src="js/notifications.js"></script>
 
-    <!-- Dialogs -->
-    <link rel="stylesheet" type="text/css" href="style/dialogs/request.css">
-    <script defer src="js/dialogs/request.js"></script>
+    <!-- Permission Manager -->
+    <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
+    <script defer src="js/permission_manager.js"></script>
 
+    <!-- Cards View -->
+    <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
+    <script defer src="js/cards_view/cards_view.js"></script>
 
     <!-- Windows -->
-    <link rel="stylesheet" type="text/css" href="style/windows/windows.css">
     <script defer src="js/windows/window_manager.js"></script>
 
     <!-- Keyboard -->
-    <script defer src="js/keyboard/keyboard_manager.js"></script>
+    <script defer src="js/keyboard_manager.js"></script>
 
-    <!-- Bookmarks -->
-    <script defer src="js/bookmarks/bookmarks.js"></script>
+    <!-- Bluetooth -->
+    <script defer src="js/bluetooth.js"></script>
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
-    <link rel="resource" type="application/l10n" href="locale/system.properties">
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+    <!-- Trusted dialog -->
+    <link rel="stylesheet" type="text/css" href="style/trusted_dialog/trusted_dialog.css">
+    <script defer src="js/trusted_dialog.js"></script>
   </head>
 
   <body onload="startup()">
-    <div id="screen">
+    <div id="screen" class="screenoff locked">
 
-      <!-- keyboard -->
-      <iframe id='keyboardFrame' class='keyboardFrame'> </iframe>
-
-      <div id="statusbar">
-        <div id="state">
-          <div id="state-notifications" class="state"></div>
-        </div>
-        <div id="titlebar"></div>
-        <div id="padding"></div>
-        <div id="signal">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div id="wifi"></div>
-        <div id="data"></div>
-        <div class="battery">
-          <div id="fuel"></div>
-          <div id="charging" hidden="true"></div>
-        </div>
-        <div class="time" data-format="%H:%M"></div>
-      </div>
-
-      <!-- homescreen -->
-      <iframe id="homescreen" mozbrowser mozapp></iframe>
+      <div id="keyboard-overlay"></div>
 
       <div id="windows">
         <!-- application windows are added here -->
+        <div id="popup-container">
+        </div>
       </div>
 
-      <div id="notifications-screen">
-        <div id="notifications-container">
-        </div>
-        <div id="grippy">
+      <!-- keyboard -->
+      <iframe id="keyboard-frame" class="hide"></iframe>
+
+      <!-- homescreen -->
+      <iframe id="homescreen" mozbrowser mozapp></iframe>
+      <!-- <iframe id="homescreen" mozbrowser mozapp remote="true"></iframe>
+      Crashing on load
+        https://bugzilla.mozilla.org/show_bug.cgi?id=761933
+      -->
+
+      <div id="modal-dialog">
+        <div id="modal-dialog-table">
+          <div id="modal-dialog-tablecell">
+            <div id="modal-dialog-alert">
+              <div class="modal-dialog-message-container">
+                <span id="modal-dialog-alert-message"></span>
+              </div>
+              <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
+            </div>
+
+            <div id="modal-dialog-confirm">
+              <div class="modal-dialog-message-container">
+                <span id="modal-dialog-confirm-message"></span>
+              </div>
+              <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
+              <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
+            </div>
+
+            <div id="modal-dialog-prompt">
+              <div class="modal-dialog-message-container">
+                <span id="modal-dialog-prompt-message"></span>
+                <input id="modal-dialog-prompt-input" />
+              </div>
+              <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
+              <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
+            </div>
+          </div>
         </div>
       </div>
-      <div id="lockscreen" class="uninit">
+
+      <!-- utility tray -->
+      <div id="utility-tray">
+        <!-- quick settings -->
+        <div id="quick-settings">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
+          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
+          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
+          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
+        </div>
+
+        <!-- TBD: credit module -->
+
+        <!-- notifications -->
+        <div id="notifications-container">
+        </div>
+
+        <div id="utility-tray-grippy">
+        </div>
+      </div>
+
+      <div id="lockscreen" class="uninit" data-panel="">
         <div id="lockscreen-container">
-          <div class="lockscreen-panel">
-            <div id="lockscreen-header">
-              <div id="lockscreen-mute" hidden></div>
-              <div id="lockscreen-cal">
-                <span id="lockscreen-cal-day"></span>
-                <span id="lockscreen-cal-date"></span>
-              </div>
-              <div id="lockscreen-clock"></div>
-            </div>
+          <div id="lockscreen-main-panel" class="lockscreen-panel">
             <div id="lockscreen-notification" hidden>
               <div id="lockscreen-notification-time"></div>
+              <img id="lockscreen-notification-icon" />
               <div id="lockscreen-notification-title"></div>
               <div id="lockscreen-notification-detail"></div>
             </div>
-            <div id="lockscreen-area-start" class="lockscreen-handle"></div>
-            <div id="lockscreen-area-unlock" class="lockscreen-handle"></div>
-            <div id="lockscreen-area-camera" class="lockscreen-handle"></div>
+            <div id="lockscreen-area"></div>
+            <div id="lockscreen-area-unlock" class="lockscreen-icon"></div>
+            <div id="lockscreen-area-camera" class="lockscreen-icon"></div>
+            <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
+            <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
+            <div id="lockscreen-area-handle"></div>
           </div>
+          <div id="lockscreen-header">
+            <div id="lockscreen-mute" hidden></div>
+            <div id="lockscreen-clock"></div>
+            <div id="lockscreen-date"></div>
+          </div>
+
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
-            <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
-            <div id="lockscreen-passcode-pad">
-              <a href="#" data-key="1">1</a>
-              <a href="#" data-key="2">2</a>
-              <a href="#" data-key="3">3</a>
-              <a href="#" data-key="4">4</a>
-              <a href="#" data-key="5">5</a>
-              <a href="#" data-key="6">6</a>
-              <a href="#" data-key="7">7</a>
-              <a href="#" data-key="8">8</a>
-              <a href="#" data-key="9">9</a>
-              <a href="#" data-key="e" class="lockscreen-passcode-pad-func">Emergency</a>
-              <a href="#" data-key="0">0</a>
-              <a href="#" data-key="b" class="lockscreen-passcode-pad-func">Back</a>
-            </div>
           </div>
-          <div id="lockscreen-panel-emergency-call" class="lockscreen-panel tbd">
-            <h1>Emergency call panel</h1>
-            <p>To be done.</p>
-            <p>Turn off screen to go back.</p>
+          <h2 id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</h2>
+          <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
+          <div id="lockscreen-passcode-pad">
+            <a href="#" data-key="1">1<span>.<span></a>
+            <a href="#" data-key="2">2<span>ABC<span></a>
+            <a href="#" data-key="3">3<span>DEF<span></a>
+            <a href="#" data-key="4">4<span>GHI<span></a>
+            <a href="#" data-key="5">5<span>JKL<span></a>
+            <a href="#" data-key="6">6<span>MNO<span></a>
+            <a href="#" data-key="7">7<span>PQRS<span></a>
+            <a href="#" data-key="8">8<span>TUV<span></a>
+            <a href="#" data-key="9">9<span>WXYZ<span></a>
+            <a href="#" data-key="e" data-l10n-id="emergency-call-button" class="lockscreen-passcode-pad-func last-row">Emergency Call</a>
+            <a href="#" data-key="0" class="last-row">0</a>
+            <a href="#" data-key="c" data-l10n-id="cancel-button" class="lockscreen-passcode-pad-func last-row">Cancel</a>
+            <a href="#" data-key="b" class="last-row">⌫</a>
           </div>
-          <div id="lockscreen-panel-camera" class="lockscreen-panel tbd">
-            <h1>Camera app placeholder</h1>
-            <p>To be done.</p>
-            <p>Waiting for attention screen / web activities.</p>
-            <p>Turn off screen to go back.</p>
+
+          <div id="lockscreen-panel-emergency-call" class="lockscreen-panel">
+          </div>
+          <h2 id="lockscreen-emergency-title" data-l10n-id="emergency-call">Emergency Call</h2>
+          <div id="lockscreen-emergency-pad">TBD</div>
+
+          <div id="lockscreen-panel-camera" class="lockscreen-panel">
+            <div id="lockscreen-camera"></div>
           </div>
         </div>
       </div>
@@ -182,12 +265,49 @@
         </div>
       </div>
 
+      <div id="statusbar">
+        <div id="statusbar-signal">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div id="statusbar-conn"></div>
+        <div id="statusbar-data"></div>
+        <div id="statusbar-wifi" hidden></div>
+        <div id="statusbar-loading" hidden></div>
+        <div id="statusbar-padding"></div>
+        <div id="statusbar-notification" hidden></div>
+        <div id="statusbar-mute" hidden></div>
+        <div id="statusbar-battery">
+          <div id="statusbar-battery-fuel"></div>
+          <div id="statusbar-battery-charging" hidden></div>
+        </div>
+        <div id="statusbar-time"></div>
+      </div>
+
+      <div id="notification-toaster" class="notification">
+        <img id="toaster-icon" />
+        <div id="toaster-title"></div>
+        <div id="toaster-detail"></div>
+      </div>
+
+      <!-- attention screen -->
+      <div id="attention-screen">
+        <div id="attention-bar"></div>
+      </div>
+
     </div>
 
-    <div id="taskManager">
+    <div id="cardsView">
       <ul>
 
       </ul>
+    </div>
+
+    <div id="listmenu">
+      <div class="list-menu" id="listmenu-container">
+      </div>
     </div>
 
     <div id="volume" class="vibration">
@@ -203,14 +323,8 @@
       <div></div>
     </div>
 
-    <div id="sleep">
-      <div class="sleep-menu">
-        <div data-l10n-id="airplane" data-value="airplane">Airplane Mode</div>
-        <div data-l10n-id="silent" data-value="silent" id="silent">Silent Mode</div>
-        <div data-l10n-id="normal" data-value="normal" id="normal" hidden>Normal Mode</div>
-        <div data-l10n-id="restart" data-value="restart">Restart</div>
-        <div data-l10n-id="power" data-value="power">Power Off</div>
-      </div>
+    <div id="trustedDialog">
     </div>
+
   </body>
 </html>

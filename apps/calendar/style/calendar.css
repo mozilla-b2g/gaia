@@ -1,0 +1,61 @@
+* {
+  -moz-box-sizing: border-box;
+   box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  height: 100%;
+  font-family: 'Open Sans';
+  background: white;
+  line-height: 100%;
+  overflow: hidden;
+}
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+menu,
+header,
+section {
+  /* unscrew up heights */
+  font-size: 100%;
+  padding: 0px;
+  margin: 0px;
+  width: 100%;
+}
+
+button {
+  border: none;
+  background: transparent;
+  padding: 0px;
+  margin: 0px;
+}
+
+ol,
+menu li,
+ol li {
+  list-style: none;
+  margin: 0px;
+  padding: 0px;
+}
+
+
+html, body {
+  padding: 0px;
+  margin: 0px;
+}
+
+
+.ltr {
+  text-align: left;
+}
+
+.rtl {
+  text-align: right;
+}

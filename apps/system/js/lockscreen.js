@@ -26,13 +26,18 @@ var LockScreen = {
   * in Settings API.
   * Will be ignored if 'enabled' is set to false.
   */
-  passCodeEnabled: true,
+  passCodeEnabled: false,
 
   /*
   * Four digit Passcode
   * XXX: should come for Settings
   */
   passCode: '0000',
+
+  /*
+  * passcode to enable the smiley face easter egg.
+  */
+  smileyCode: '1337',
 
   /*
   * Current passcode entered by the user
@@ -43,11 +48,6 @@ var LockScreen = {
   * Number of passcode tries
   */
   passCodeError: 0,
-
-  /*
-  * Time to wait before slide up after successful Passcode input
-  */
-  kPassCodeSuccessTimeout: 300,
 
   /*
   * Timeout after incorrect attempt
@@ -64,46 +64,55 @@ var LockScreen = {
   */
   kPassCodeTriesTimeout: 10000,
 
-  isUninit: true,
-
   /* init */
   init: function ls_init() {
     this.getAllElements();
     this.updateMuteState();
 
-    this.lockIfEnabled();
-    this.overlay.classList.remove('uninit');
-    delete this.isUninit;
+    this.lockIfEnabled(true);
 
     /* Status changes */
     window.addEventListener('volumechange', this);
     window.addEventListener('screenchange', this);
 
     /* Notification */
+    // XXX: Move to notifications.js
     this.notification.addEventListener('click', this);
     window.addEventListener('mozChromeEvent', this);
 
     /* Gesture */
-    this.areaStart.addEventListener('mousedown', this);
-    window.addEventListener('mouseup', this);
+    this.area.addEventListener('mousedown', this);
+    this.areaHandle.addEventListener('mousedown', this);
+    this.areaCamera.addEventListener('mousedown', this);
+    this.areaUnlock.addEventListener('mousedown', this);
+
+    /* Unlock clean up */
+    this.overlay.addEventListener('transitionend', this);
 
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
 
+    /* switching panels */
+    window.addEventListener('keyup', this, true);
+
     var self = this;
-
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
-      if (typeof value === 'string')
-        value = (value == 'true');
-
       self.setEnabled(value);
     });
 
     SettingsListener.observe(
-        'lockscreen.passcode-lock.enabled', true, function(value) {
-      if (typeof value === 'string')
-        value = (value == 'true');
+      'lockscreen.wallpaper', 'balloon.png', function(value) {
+      self.updateBackground(value);
+      self.overlay.classList.remove('uninit');
+    });
 
+    SettingsListener.observe(
+      'lockscreen.passcode-lock.code', '0000', function(value) {
+      self.passCode = value;
+    });
+
+    SettingsListener.observe(
+        'lockscreen.passcode-lock.enabled', false, function(value) {
       self.setPassCodeEnabled(value);
     });
   },
@@ -114,13 +123,23 @@ var LockScreen = {
   * This function will unlock it.
   */
   setEnabled: function ls_setEnabled(val) {
-    this.enabled = !!val;
-    if (!this.enabled && this.locked && !this.isUninit)
+    if (typeof val === 'string') {
+      this.enabled = val == 'false' ? false : true;
+    } else {
+      this.enabled = val;
+    }
+
+    if (!this.enabled && this.locked) {
       this.unlock();
+    }
   },
 
   setPassCodeEnabled: function ls_setPassCodeEnabled(val) {
-    this.passCodeEnabled = !!val;
+    if (typeof val === 'string') {
+      this.passCodeEnabled = val == 'false' ? false : true;
+    } else {
+      this.passCodeEnabled = val;
+    }
   },
 
   handleEvent: function ls_handleEvent(evt) {
@@ -130,15 +149,17 @@ var LockScreen = {
         break;
 
       case 'screenchange':
-        this.lockIfEnabled();
-        this.switchPanel();
+        // XXX: If the screen is not turned off by ScreenManager
+        // we would need to lock the screen again
+        // when it's being turned back on
+        this.lockIfEnabled(true);
         break;
 
       case 'mozChromeEvent':
         if (!this.locked || evt.detail.type !== 'desktop-notification')
           return;
 
-        this.showNotification(evt.detail.title, evt.detail.text);
+        this.showNotification(evt.detail);
         break;
 
       case 'click':
@@ -159,51 +180,220 @@ var LockScreen = {
         break;
 
       case 'mousedown':
+        var leftTarget = this.areaCamera;
+        var rightTarget = this.areaUnlock;
+        var handle = this.areaHandle;
+        var overlay = this.overlay;
+        var target = evt.target;
+
         this._touch = {
-          x: evt.screenX,
-          y: evt.screenY
+          target: null,
+          touched: false,
+          leftTarget: leftTarget,
+          rightTarget: rightTarget,
+          initRailLength: this.railLeft.offsetWidth,
+          maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
+            (handle.offsetWidth - rightTarget.offsetWidth) / 2
         };
-        this.overlay.classList.add('touch');
+        window.addEventListener('mouseup', this);
+        window.addEventListener('mousemove', this);
+
+        switch (target) {
+          case leftTarget:
+            overlay.classList.add('touched-left');
+            break;
+
+          case rightTarget:
+            overlay.classList.add('touched-right');
+            break;
+
+          case this.areaHandle:
+            this._touch.touched = true;
+            this._touch.initX = evt.pageX;
+            this._touch.initY = evt.pageY;
+
+            overlay.classList.add('touched');
+            break;
+        }
+        break;
+
+      case 'mousemove':
+        this.handleMove(evt.pageX, evt.pageY);
         break;
 
       case 'mouseup':
-        if (!this._touch)
-          return;
-        var dx = evt.screenX - this._touch.x;
-        var dy = evt.screenY - this._touch.y;
-        delete this._touch;
-        this.overlay.classList.remove('touch');
+        var handle = this.areaHandle;
+        window.removeEventListener('mousemove', this);
+        window.removeEventListener('mouseup', this);
 
-        this.handleGesture(dx, dy);
+        this.overlay.classList.remove('touched-left');
+        this.overlay.classList.remove('touched-right');
+
+        this.handleMove(evt.pageX, evt.pageY);
+        this.handleGesture();
+        delete this._touch;
+        this.overlay.classList.remove('touched');
+
+        break;
+
+      case 'transitionend':
+        if (evt.target !== this.overlay)
+          return;
+
+        if (!this.locked) {
+          this.switchPanel();
+          this.overlay.hidden = true;
+        }
+        break;
+
+      case 'keyup':
+        if (!this.locked)
+          break;
+
+        if (evt.keyCode !== evt.DOM_VK_ESCAPE &&
+            evt.keyCode !== evt.DOM_VK_HOME)
+          break;
+
+        this.switchPanel();
+        break;
+
+      case 'load':
+        var win = this.camera.firstElementChild.contentWindow;
+        win.addEventListener(
+          'keydown', (this.redirectKeyEventFromFrame).bind(this));
+        win.addEventListener(
+          'keypress', (this.redirectKeyEventFromFrame).bind(this));
+        win.addEventListener(
+          'keyup', (this.redirectKeyEventFromFrame).bind(this));
         break;
     }
   },
 
-  handleGesture: function ls_handleGesture(dx, dy) {
-    var dim = {
-      x: this.overlay.offsetWidth,
-      y: this.overlay.offsetHeight
-    };
+  handleMove: function ls_handleMove(pageX, pageY) {
+    var touch = this._touch;
 
-    // These are gesture rule with camera gesture
+    if (!touch.touched) {
+      // Do nothing if the user have not move the finger to the handle yet
+      if (document.elementFromPoint(pageX, pageY) !== this.areaHandle)
+        return;
 
-    var ratioX = dx / this.overlay.offsetWidth;
-    var ratioY = dy / this.overlay.offsetHeight;
+      touch.touched = true;
+      touch.initX = pageX;
+      touch.initY = pageY;
 
-    if (Math.abs(ratioY) > 0.2) {
-      // Go upwards - do nothing
+      var overlay = this.overlay;
+      overlay.classList.remove('touched-left');
+      overlay.classList.remove('touched-right');
+      overlay.classList.add('touched');
+    }
+
+    var dx = pageX - touch.initX;
+
+    var handleMax = touch.maxHandleOffset;
+    this.areaHandle.style.MozTransition = 'none';
+    this.areaHandle.style.MozTransform =
+      'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)';
+
+    var railMax = touch.initRailLength;
+    var railLeft = railMax + dx;
+    var railRight = railMax - dx;
+
+    this.railLeft.style.width =
+      Math.max(0, Math.min(railMax * 2, railLeft)) + 'px';
+    this.railRight.style.width =
+      Math.max(0, Math.min(railMax * 2, railRight)) + 'px';
+
+    var base = this.overlay.offsetWidth / 4;
+    var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
+    if (dx > 0) {
+      touch.rightTarget.style.opacity =
+        this.railRight.style.opacity = '';
+      touch.leftTarget.style.opacity =
+        this.railLeft.style.opacity = opacity;
+    } else {
+      touch.rightTarget.style.opacity =
+        this.railRight.style.opacity = opacity;
+      touch.leftTarget.style.opacity =
+        this.railLeft.style.opacity = '';
+    }
+
+    var handleWidth = this.areaHandle.offsetWidth;
+
+    if (railLeft < handleWidth / 2) {
+      touch.leftTarget.classList.add('triggered');
+      touch.rightTarget.classList.remove('triggered');
+      touch.target = touch.leftTarget;
+    } else if (railRight < handleWidth / 2) {
+      touch.leftTarget.classList.remove('triggered');
+      touch.rightTarget.classList.add('triggered');
+      touch.target = touch.rightTarget;
+    } else {
+      touch.leftTarget.classList.remove('triggered');
+      touch.rightTarget.classList.remove('triggered');
+      touch.target = null;
+    }
+  },
+
+  handleGesture: function ls_handleGesture() {
+    var touch = this._touch;
+    var target = touch.target;
+    this.areaHandle.style.MozTransition = null;
+
+    if (!target) {
+      this.unloadPanel();
       return;
     }
 
-    if (ratioX > 0.2) {
-      this.switchPanel('camera');
-    } else if (ratioX < -0.2) {
-      // Moving left to unlock icon
-      if (!this.passCodeEnabled) {
-        this.unlock();
-      } else {
-        this.switchPanel('passcode');
-      }
+    var distance = target.offsetLeft - this.areaHandle.offsetLeft -
+      (this.areaHandle.offsetWidth - target.offsetWidth) / 2;
+    this.areaHandle.classList.add('triggered');
+
+    var transition = 'translateX(' + distance + 'px)';
+    var railLength = touch.rightTarget.offsetLeft -
+      touch.leftTarget.offsetLeft -
+      (this.areaHandle.offsetWidth + target.offsetWidth) / 2;
+
+    var self = this;
+    switch (target) {
+      case this.areaCamera:
+        this.railRight.style.width = railLength + 'px';
+        this.railLeft.style.width = '0';
+
+        if (this.areaHandle.style.MozTransform == transition) {
+          self.switchPanel('camera');
+          break;
+        }
+        this.areaHandle.style.MozTransform = transition;
+
+        this.areaHandle.addEventListener('transitionend', function goCamera() {
+          self.areaHandle.removeEventListener('transitionend', goCamera);
+          self.switchPanel('camera');
+        });
+        break;
+
+      case this.areaUnlock:
+        this.railLeft.style.width = railLength + 'px';
+        this.railRight.style.width = '0';
+
+        var passcodeOrUnlock = function passcodeOrUnlock() {
+          if (!self.passCodeEnabled) {
+            self.unlock();
+          } else {
+            self.switchPanel('passcode');
+          }
+        };
+
+        if (this.areaHandle.style.MozTransform == transition) {
+          passcodeOrUnlock();
+          break;
+        }
+        this.areaHandle.style.MozTransform = transition;
+
+        this.areaHandle.addEventListener('transitionend', function goUnlock() {
+          self.areaHandle.removeEventListener('transitionend', goUnlock);
+          passcodeOrUnlock();
+        });
+        break;
     }
   },
 
@@ -212,11 +402,14 @@ var LockScreen = {
       case 'e': // Emergency Call
         this.switchPanel('emergency-call');
         break;
+
+      case 'c':
+        this.switchPanel();
+        break;
+
       case 'b':
-        if (!this.passCodeEntered) {
-          this.switchPanel();
-          break;
-        }
+        if (this.overlay.dataset.passcodeStatus)
+          return;
 
         this.passCodeEntered =
           this.passCodeEntered.substr(0, this.passCodeEntered.length - 1);
@@ -224,6 +417,9 @@ var LockScreen = {
 
         break;
       default:
+        if (this.overlay.dataset.passcodeStatus)
+          return;
+
         this.passCodeEntered += key;
         this.updatePassCodeUI();
 
@@ -233,11 +429,11 @@ var LockScreen = {
     }
   },
 
-  lockIfEnabled: function ls_lockIfEnabled() {
+  lockIfEnabled: function ls_lockIfEnabled(instant) {
     if (this.enabled) {
-      this.lock(true);
+      this.lock(instant);
     } else {
-      this.unlock(true);
+      this.unlock(instant);
     }
   },
 
@@ -245,17 +441,22 @@ var LockScreen = {
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
-    this.overlay.classList.add('unlocked');
-    if (instant)
+    this.mainScreen.focus();
+    if (instant) {
       this.overlay.classList.add('no-transition');
-    else
+      this.switchPanel();
+      this.overlay.hidden = true;
+    } else {
       this.overlay.classList.remove('no-transition');
+    }
+
+    this.mainScreen.classList.remove('locked');
+
+    WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
 
     if (!wasAlreadyUnlocked) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('unlocked', true, true, null);
-      window.dispatchEvent(evt);
-
+      this.dispatchEvent('unlock');
+      this.writeSetting(false);
       this.hideNotification();
     }
   },
@@ -263,34 +464,98 @@ var LockScreen = {
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
+    this.overlay.hidden = false;
 
-    this.overlay.classList.remove('unlocked');
+    this.switchPanel();
+
+    this.overlay.focus();
     if (instant)
       this.overlay.classList.add('no-transition');
     else
       this.overlay.classList.remove('no-transition');
+
+    this.mainScreen.classList.add('locked');
 
     screen.mozLockOrientation('portrait-primary');
 
     this.updateTime();
 
     if (!wasAlreadyLocked) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('locked', true, true, null);
-      window.dispatchEvent(evt);
+      this.dispatchEvent('lock');
+      this.writeSetting(true);
     }
   },
 
-  switchPanel: function ls_switchPanel(panel) {
-    if (panel) {
-      this.overlay.dataset.panel = panel;
-    } else {
-      delete this.overlay.dataset.panel;
+  loadPanel: function ls_loadPanel(panel, callback) {
+    switch (panel) {
+      case 'passcode':
+      case 'emergency':
+      default:
+        if (callback)
+          callback();
+        break;
+
+      case 'camera':
+        // create the iframe and load the camera
+        var frame = document.createElement('iframe');
+        frame.src = './camera/';
+        frame.addEventListener('load', this);
+        if (callback) {
+          frame.onload = function cameraLoaded() {
+            callback();
+          };
+        }
+        this.camera.appendChild(frame);
+        break;
+    }
+  },
+
+  unloadPanel: function ls_loadPanel(panel, callback) {
+    switch (panel) {
+      case 'passcode':
+        // Reset passcode panel only if the status is not error
+        if (this.overlay.dataset.passcodeStatus == 'error')
+          break;
+
+        delete this.overlay.dataset.passcodeStatus;
+        this.passCodeEntered = '';
+        this.updatePassCodeUI();
+        break;
+
+      case 'camera':
+        // Remove the iframe element
+        this.camera.removeChild(this.camera.firstElementChild);
+        break;
+
+      case 'emergency':
+        break;
+
+      default:
+        this.areaHandle.style.MozTransform =
+          this.areaUnlock.style.opacity =
+          this.railRight.style.opacity =
+          this.areaCamera.style.opacity =
+          this.railLeft.style.opacity =
+          this.railRight.style.width =
+          this.railLeft.style.width = '';
+        this.areaHandle.classList.remove('triggered');
+        this.areaCamera.classList.remove('triggered');
+        this.areaUnlock.classList.remove('triggered');
+        break;
     }
 
-    // Reset passcode panel
-    this.passCodeEntered = '';
-    this.updatePassCodeUI();
+    if (callback)
+      callback();
+  },
+
+  switchPanel: function ls_switchPanel(panel) {
+    var overlay = this.overlay;
+    var self = this;
+    this.loadPanel(panel, function panelLoaded() {
+      self.unloadPanel(overlay.dataset.panel, function panelUnloaded() {
+        overlay.dataset.panel = panel || '';
+      });
+    });
   },
 
   updateTime: function ls_updateTime() {
@@ -302,8 +567,7 @@ var LockScreen = {
     // XXX: respect clock format in Settings
     this.clock.textContent = d.toLocaleFormat('%R');
 
-    this.calDay.textContent = d.toLocaleFormat('%a');
-    this.calDate.textContent = d.getDate();
+    this.date.textContent = d.toLocaleFormat('%A %e %B');
 
     var self = this;
     window.setTimeout(function ls_clockTimeout() {
@@ -312,16 +576,19 @@ var LockScreen = {
   },
 
   updateMuteState: function ls_updateMuteState() {
-    this.mute.hidden = !!SoundManager.currentVolume;
+    SettingsListener.observe('audio.volume.master', 5, (function(volume) {
+      this.mute.hidden = volume;
+    }).bind(this));
   },
 
-  showNotification: function lockscreen_showNotification(title, detail) {
+  showNotification: function lockscreen_showNotification(detail) {
     this.notification.hidden = false;
 
     // XXX: pretty date, respect clock format in Settings
     this.notificationTime.textContent = (new Date()).toLocaleFormat('%R');
-    this.notificationTitle.textContent = title;
-    this.notificationDetail.textContent = detail;
+    this.notificationIcon.src = detail.icon;
+    this.notificationTitle.textContent = detail.title;
+    this.notificationDetail.textContent = detail.text;
   },
 
   hideNotification: function lockscreen_hideNotification() {
@@ -332,51 +599,71 @@ var LockScreen = {
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
+    var overlay = this.overlay;
+    if (overlay.dataset.passcodeStatus)
+      return;
+    if (this.passCodeEntered) {
+      overlay.classList.add('passcode-entered');
+    } else {
+      overlay.classList.remove('passcode-entered');
+    }
     var i = 4;
     while (i--) {
       var span = this.passcodeCode.childNodes[i];
-      if (this.passCodeEntered.length > i)
+      if (this.passCodeEntered.length > i) {
         span.dataset.dot = true;
-      else
+      } else {
         delete span.dataset.dot;
+      }
     }
   },
 
   checkPassCode: function lockscreen_checkPassCode() {
+    if (this.passCodeEntered === this.smileyCode)
+      this.overlay.classList.add('smiley');
+
     if (this.passCodeEntered === this.passCode) {
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
 
-      setTimeout((function success() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.unlock();
-        this.passCodeEntered = '';
-        this.updatePassCodeUI();
-      }).bind(this), this.kPassCodeSuccessTimeout);
+      this.unlock();
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
-      if (navigator.mozVibrate)
-        navigator.mozVibrate([50, 50, 50]);
+      if ('vibrate' in navigator)
+        navigator.vibrate([50, 50, 50]);
 
       var timeout = this.kPassCodeErrorTimeout;
       this.passCodeError++;
       if (this.passCodeError >= 3)
         timeout = this.kPassCodeTriesTimeout;
 
-      setTimeout((function error() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.passCodeEntered = '';
-        this.updatePassCodeUI();
-      }).bind(this), timeout);
+      var self = this;
+      setTimeout(function error() {
+        delete self.overlay.dataset.passcodeStatus;
+        self.passCodeEntered = '';
+        self.updatePassCodeUI();
+      }, timeout);
+    }
+  },
+
+  updateBackground: function ls_updateBackground(value) {
+    var panels = document.querySelectorAll('.lockscreen-panel');
+    var url = 'url(resources/images/backgrounds/' + value + ')';
+
+    for (var i = 0; i < panels.length; i++) {
+      panels[i].style.backgroundImage = url;
     }
   },
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['mute', 'clock', 'cal-day', 'cal-date',
-        'notification', 'notification-title', 'notification-detail',
-        'notification-time', 'area-unlock', 'area-start', 'area-camera',
-        'passcode-code', 'passcode-pad'];
+    var elements = ['mute', 'clock', 'date',
+        'notification', 'notification-icon', 'notification-title',
+        'notification-detail', 'notification-time',
+        'area', 'area-unlock', 'area-camera', 'area-handle',
+        'rail-left', 'rail-right',
+        'passcode-code', 'passcode-pad',
+        'camera'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -389,5 +676,33 @@ var LockScreen = {
     }).bind(this));
 
     this.overlay = document.getElementById('lockscreen');
+    this.mainScreen = document.getElementById('screen');
+  },
+
+  redirectKeyEventFromFrame: function ls_redirectKeyEventFromFrame(evt) {
+    var generatedEvent = document.createEvent('KeyboardEvent');
+    generatedEvent.initKeyEvent(evt.type, true, true, evt.view, evt.ctrlKey,
+                                evt.altKey, evt.shiftKey, evt.metaKey,
+                                evt.keyCode, evt.charCode);
+
+    this.camera.dispatchEvent(generatedEvent);
+  },
+
+  dispatchEvent: function ls_dispatchEvent(name) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(name, true, true, null);
+    window.dispatchEvent(evt);
+  },
+
+  writeSetting: function ls_writeSetting(value) {
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
+
+    settings.getLock().set({
+      'lockscreen.locked': value
+    });
   }
 };
+
+LockScreen.init();

@@ -1,0 +1,179 @@
+
+.view-header {
+  height: 5rem;
+  background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+h1, h2, li, ol, ul {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+ol, ul {
+  list-style: none;
+}
+
+
+.view-header h1 {
+  font-family: FontRegular;
+  padding-left: 3rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+  font-size: -moz-calc(10 * 0.226rem);
+}
+
+.view-header .view-header-options {
+  width: 4rem;
+  padding-right: 2rem;
+}
+
+.icon-edit {
+  background-image: url('images/edit.png');
+  height: 2rem;
+  width: 1.9rem;
+  opacity: 0.5;
+}
+
+.recents-filter-container {
+  background: white;
+}
+
+.recents-filter-entry {
+  float: left;
+  width: 50%;
+}
+
+.recents-filter-entry > button {
+  height: 3rem;
+  width: 100%;
+  font-size: -moz-calc(6*0.226rem);
+  opacity: 0.8;
+}
+
+button.selected {
+  opacity: 1.0;
+}
+
+button::-moz-focus-inner {
+  border: 0px;
+}
+
+.hide {
+  display: none;
+}
+
+.view-body {
+  background : white;
+  color: black;
+  height: -moz-calc(100% - 8rem);
+  overflow: auto;
+}
+
+.view-body h2 {
+  font-family: FontRegular;
+  border-bottom: solid 1px #ff4e00;
+  padding-left: 3rem;
+  padding-top:1rem;
+  font-size: -moz-calc(6*0.226rem);
+  color: #ff4e00;
+  text-transform: uppercase;
+}
+
+.header-noresult {
+  padding-bottom: 4rem;
+}
+
+.header-text-noresult {
+  font-family: FontSemibold;
+  font-size: -moz-calc(7 * 0.226rem);
+  color: #373E45;
+}
+
+.icon-noresult {
+  width: 20rem;
+  height: 20rem;
+  margin: 0 auto;
+  background-image: url('images/ComLog_200x200_clock.png');
+}
+
+.log-group li {
+  height: 5rem;
+  border-bottom: .1rem solid  #dbdbdb;
+  color:black;
+}
+
+.log-group li:last-child{
+  border-bottom: 0;
+}
+
+.icon-container {
+  float: left;
+  height: 100%;
+  width: 5rem;
+
+}
+
+.icon-incoming {
+  width: 3rem;
+  height: 3rem;
+  background-image: url('images/CallLog_30x30_incoming.png');
+}
+
+.icon-outgoing {
+  width: 3rem;
+  height: 3rem;
+  background-image: url('images/CallLog_30x30_outgoing.png');
+}
+
+.icon-missed {
+  width: 3rem;
+  height: 3rem;
+  background-image: url('images/CallLog_30x30_missed.png');
+}
+
+.missed-call-font {
+  color: red !important;
+}
+
+.log-item * {
+  pointer-events: none;
+}
+
+.log-item-info {
+  float: left;
+  height: 100%;
+  width: -moz-calc(100% - 10rem);
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primary-info {
+  font-family: FontRegular;
+  font-size: -moz-calc(8 * 0.226rem);
+  color: #000000;
+}
+
+.secondary-info {
+  font-family: FontRegular;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #5b5b5b;
+}
+
+.call-log-contact-photo {
+  float: left;
+  height: 100%;
+  width: 5rem;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}

@@ -1,0 +1,55 @@
+
+/* ITEM: The smallest complete structure; */
+.item {
+  display: block;
+} 
+
+.item:before, .item:after {
+  content: "";
+  display: table;
+} 
+
+.item:after {
+  clear: both;
+}
+
+.item-media {
+  float: left;
+  margin-right: 1rem;
+}
+
+.item-media.pull-right {
+  margin-left: 1rem;
+  margin-right: 0;
+}
+
+.item-body {
+  display: table;
+}
+
+.item-body-exp {
+  display: block;
+  overflow: hidden;
+}
+
+/* PULLS: Float an element to the desired position; */
+.pull-right {
+  float: right;
+}
+
+.pull-left {
+  float: left;
+}
+
+/* STACK: inline block list items; */
+.stack {
+  letter-spacing: -0.4rem;
+  text-align: center;
+}
+
+.stack > li {
+  display: inline-block;
+  vertical-align: middle;
+  letter-spacing: 0;
+}
+

@@ -4,12 +4,16 @@
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629",
       "description": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629"
+    },
+    "ca": {
+      "name": "Calculadora",
+      "description": "Calculadora"
     },
     "de": {
       "name": "Taschenrechner",
@@ -54,7 +58,8 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Calculator.png"
+    "120": "/style/icons/Calculator.png",
+    "60": "/style/icons/60/Calculator.png"
   },
   "orientation": "portrait-primary"
 }

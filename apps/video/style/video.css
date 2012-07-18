@@ -2,86 +2,47 @@ html, body {
   font-family: "Open Sans", sans-serif;
   height: 100%;
   margin: 0 auto;
+  background-color: black;
 }
 
-@font-face {
-  font-family: "Open Sans";
-  src: url("fonts/Open-Sans.woff");
-}
-@font-face {
-  font-family: "Open Sans";
-  font-weight: bold;
-  src: url("fonts/Open-Sans-Bold.woff");
-}
-@font-face {
-  font-family: "Open Sans";
-  font-weight: 600;
-  src: url("fonts/Open-Sans-Semibold.woff");
-}
 
-/* title bar */
-header {
-  background-color: #fff;
-  background-image: -moz-linear-gradient(#fff, #eaeae4);
-  border-bottom: solid 2px #a3a3a3;
-  border-radius: 8px 8px 0 0;
-  height: 62px;
-  position: relative;
-}
-header h1 {
+#novideos {
   margin: 0;
+  margin-top: 40%;
   padding: 0;
-  line-height: 64px;
+  width: 100%;
   text-align: center;
   font-family: "Open Sans", sans-serif;
   font-weight: bold;
   font-size: 26px;
-}
-header button {
-  display: none; /* disabled atm */
-  background: url("images/grippy.png") repeat scroll -16px -16px transparent;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 64px;
-  height: 64px;
-  border: none;
-}
-header button:active {
-  background-position: -16px -116px;
+  color: #fff;
+  -moz-user-select: none;
 }
 
-/* git nail list */
+
 ul {
-  /*width: 100%;*/
   width: -moz-calc(100% + 8px);
   margin: 0 auto;
   padding: 0;
-  height: -moz-calc(100% - 70px);
+  height: 100%;
   overflow-y: scroll;
-  background-color: #e0e5ea;
 }
 ul li:first-child {
   border-top: none;
 }
 li {
   margin: 0;
-  padding: 0 20px 0 144px;
-  height: 94px;
-  border-top: 1px solid rgba(255, 255, 255, 0.4);
-  border-bottom: 2px solid #c3c9cb;
+  height: -moz-calc(100% / 4); 
+  width: 100%;
+  border-bottom: 1px solid black;
   position: relative;
   list-style-type: none;
   overflow: hidden;
-  background-color: #f5f5f5;
-}
-li:active, li.active {
-  /*background: -moz-linear-gradient(center top , #FFCE75 0pt, rgba(255, 212, 153, 0.2) 2px, rgba(255, 148, 0, 0.4) 20%, #C16700 98%, #C16700 99%, #FF8300 100%) repeat scroll 0 0%, -moz-linear-gradient(center top , #FFCE75 0pt, #FF9400 2px, #C16700 98%, #C16700 99%, #FF8300 100%) repeat scroll 0 0 transparent;*/
-  background-color: rgba(0, 0, 0, .07);
+  background-color: #222;
 }
 li img {
-  width: 128px;
-  height: 94px;
+  width: -moz-calc(100% * 2 / 3);
+  height: 100%;
   overflow: hidden;
   position: absolute;
   left: 0;
@@ -89,23 +50,24 @@ li img {
   padding: 0;
 }
 li p {
-  margin: 0;
+  width: -moz-calc((100% / 3) - 15px);
+  margin-top: 10px;
+  margin-left: -moz-calc((100% * 2 / 3) + 10px);
+  margin-right: 5px;
+  margin-bottom: 0px;
   padding: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: ellipsis; 
 }
-p.name {
-  height: 30px;
-  margin-top: 12px;
-  color: #333;
+li p.name {
+  color: #fff;
   font-weight: 600;
-  font-size: 26px;
+  font-size: 18px;
 }
-p.time {
-  font-size: 22px;
-  color: #666;
-  text-shadow: 0 1px 0 #ddd;
+li p.time {
+  margin-top: 4px;
+  font-size: 16px;
+  color: #bbb;
 }
 
 /* fullscreen video player */
@@ -116,18 +78,15 @@ p.time {
   height: 100%;
 }
 
-#videoFrame.hidden {
+#videoFrame.hidden, #novideos.hidden {
   display: none;
 }
 
-/*
-body.fullscreen > * {
-  display: none;
+#player {
+  /* size and position are set in JS depending on*/
+  /* video size and screen orientation */
+  position: absolute; 
 }
-body.fullscreen #videoFrame {
-  display: block;
-}
-*/
 
 /* localization */
 body.hidden *[data-l10n-id] {

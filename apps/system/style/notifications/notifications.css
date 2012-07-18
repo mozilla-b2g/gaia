@@ -1,18 +1,81 @@
-
-#statusbar {
-  display: -moz-box;
-  overflow: hidden;
-  position: relative;
-  z-index: 20001;
-  -moz-box-orient: horizontal;
-
+#notification-toaster {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  -moz-box-sizing: border-box;
-  height: 32px;
-  padding: 2px;
+  height: 80px;
+
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
+
+  -moz-transform: translateY(-80px);
+  -moz-transition: -moz-transform 0.3s ease-in-out;
 }
 
-#statusbar > * {
-  -moz-box-flex: 0;
+#notification-toaster.displayed {
+  -moz-transform: translateY(0);
+}
+
+#notifications-container {
+  /* accounting for the scrollbar bug */
+  width: -moz-calc(100% + 8px);
+
+  /* minus quick settings and grippy */
+  height: -moz-calc(100% - 60px - 20px);
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.notification {
+  position: relative;
+  background-image: url("images/notifications.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+
+  height: 80px;
+  font-weight: bold;
+}
+
+.notification div {
+  pointer-events: none;
+}
+
+.notification > div:first-of-type {
+  margin: 0 0 0 85px;
+  padding: 20px 0 0 0;
+
+  font-size: 2.5mozmm;
+  line-height: 2.5mozmm;
+  color: #111;
+}
+
+.notification > div {
+  margin: 0 0 0 85px;
+  padding: 0;
+  width: -moz-calc(100% - 105px);
+  height: 25px;
+
+  font-size: 2mozmm;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification > a.close {
+  display: block;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 80px;
+  height: 80px;
+}
+
+.notification > img {
+  float: left;
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
   pointer-events: none;
 }

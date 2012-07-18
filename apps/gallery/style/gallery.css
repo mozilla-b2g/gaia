@@ -1,3 +1,5 @@
+* { -moz-box-sizing: border-box; }
+
 html {
   height: 100%;
   width: 100%;
@@ -6,82 +8,158 @@ html {
   overflow: hidden;
 }
 
-@font-face {
-  font-family: "Open Sans";
-  src: url("fonts/Open-Sans.woff");
-}
-@font-face {
-  font-family: "Open Sans";
-  font-weight: bold;
-  src: url("fonts/Open-Sans-Bold.woff");
-}
-
 body {
   background-color: #000;
   color: #fff;
   font-family: "Open Sans", sans-serif;
-  font-size: 1.8mozmm;
+  font-size: 20px;
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
   overflow: hidden;
+  padding-bottom: 50px;
 }
 
-header {
-  border-bottom: 2px solid #7F7F7F;
-  background: url(images/app-texture.png) 50% 50%, -moz-linear-gradient(top, hsla(0,0%,96%,1), hsla(0,0%,92%,1) );
-  border-radius: 6px 6px 0 0;
-  height: 64px;
-  margin: 0;
+/* All of the main views fill the screen */
+#thumbnail-list-view, #thumbnail-select-view, #photo-view {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
 }
 
-header h1 {
+#nophotos {
   margin: 0;
+  margin-top: 40%;
   padding: 0;
   width: 100%;
-  height: 64px;
-  line-height: 64px;
   text-align: center;
   font-family: "Open Sans", sans-serif;
   font-weight: bold;
   font-size: 26px;
-  color: #000;
+  color: #fff;
+  -moz-user-select: none;
 }
 
+
+/*
+ * Thumbnails are implemented as <li> elements in a <ul> with background-image
+ * set to display the image. We use background-size: cover to automatically
+ * resize the image as needed.
+ * 
+ * The thumbnail list appears in regular browsing mode, in selection mode, 
+ * and also in "filmstrip" form in single-photo mode. So the thumbnail list
+ * and the individual thumbnails are styled differently depending on 
+ * what element they are contained within, and also depending on the phone
+ * resolution and orientation (and also language direction).
+ */
+
 #thumbnails {
+  position: absolute;
   padding: 0;
   margin: 0;
   overflow-y: scroll;
   overflow-x: hidden;
-  width: -moz-calc(100% + 8px);
-  height: -moz-calc(100% - 70px);
-  background-color: #e0e5ea;
-}
-
-#thumbnails li {
-  width: 160px;
-  height: 140px;
-  overflow: hidden;
-  float: left;
-  margin: 0;
-  list-style-type: none;
-  padding: 0;
-  -moz-user-select: none;
+  /* If we want to scroll up and down, then apparently we have to add */
+  /* some extra width to keep the scrollbar offscreen */
+  width: -moz-calc(100% + 10px);
+  background-color: #000;
 }
 
 .thumbnail {
-/*
-  width: 160px;
-  height: 140px;
-*/
   margin: 0;
   padding: 0;
-  border: none;
-  pointer-events: none;
+  /* borders only on right and bottom */
+  border-right: solid black 1px;
+  border-bottom: solid black 1px;
+  overflow: hidden;
+  /* default to left-to-right, but overridden for rtl languages below */
+  float: left;
+  /* no list item bullets */
+  list-style-type: none;
+  /* don't let the user select the items */
+  -moz-user-select: none;
+  /* thumbnail images will be displayed with background-image */
+  /* these properties scale and position the images correctly */
+  background-size: cover;        /* allow some cropping */
+  background-position: center;   /* keep the cropping at the edges */
+  background-repeat: no-repeat;
 }
 
-#photos {
+.thumbnail.selected {
+  outline: solid orange 5px;
+  outline-offset: -5px;
+}
+
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px) {
+  .thumbnail {
+    width: 107px;
+    height: 107px;
+  }
+}
+
+@media (orientation: landscape) and (width: 480px) {
+  .thumbnail {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* 480x800 phones portrait */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+    .thumbnail {
+        width: 160px;
+        height: 160px;
+    }
+}
+
+/* thumbnails in regular thumbnail list view */
+#thumbnail-list-view > #thumbnails {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 50px;
+}
+
+/* thumbnails in thumbnail select view where there is a top bar */
+#thumbnail-select-view > #thumbnails {
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 50px;
+}
+
+/*
+ * In photo view mode, the thumbnail list becomes a "filmstrip"
+ * and the thumbnail images become much smaller.
+ * JavaScript will set the width of the thumbnails container so that 
+ * we get working scrollbars
+ */
+#photos-filmstrip #thumbnails {
+  left:0;
+  top:0;
+  height:50px;
+  overflow-y: hidden;
+  overflow-x: scroll;
+}
+
+#photos-filmstrip li.thumbnail {
+    border-left: solid black 2px;
+    border-right: none;
+    border-top: solid black 2px;
+    border-bottom: solid black 2px;
+    width: 50px;
+    height: 50px;
+}
+
+#photo-frames {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -135,48 +213,8 @@ div.previousPhoto {
   -moz-user-select: none;
 }
 
-.hidden, #photos.hidden {
+.hidden {
   display: none;
-}
-
-#player-controls {
-  position: absolute;
-  top: 0;
-  margin: 0;
-  width: 100%;
-}
-
-.button {
-  border-radius: 6px;
-  display: block;
-  background-color: rgba(5, 5, 5, 0.5);
-  position: fixed;
-  padding: 0;
-  width: 40px;
-  height: 40px;
-  background-position: 10px 10px;
-  background-repeat: no-repeat;
-
-}
-
-.button:active, .button:focus {
-  outline: none;
-}
-
-#back-button {
-  top: 15px;
-  left: 15px;
-  background-image: url('images/close.png');
-}
-
-#play-button {
-  top: 15px;
-  right: 15px;
-  background-image: url('images/play.png');
-}
-
-#play-button.playing {
-  background-image: url('images/pause.png');
 }
 
 /* localization */
@@ -184,6 +222,171 @@ body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 
-*[dir=rtl] #thumbnails li {
+*[dir=rtl] .thumbnail {
   float: right;
+}
+
+/* buttons */
+a.button {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+a.button:active, a.button:focus {
+  outline: none;
+}
+
+a.button.disabled {
+  opacity: 0.4;
+}
+
+#thumbnails-bottom {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#thumbnails-camera-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/camera.png');
+  border-right: 1px solid #000;
+}
+
+#thumbnails-select-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/select.png');
+}
+
+#thumbnails-select-top {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#thumbnails-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#thumbnails-number-selected {
+  position: absolute;
+  width: 75%;
+  height: 100%;
+  left: 25%;
+  margin-top: 10px;
+}
+
+#thumbnails-select-bottom {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#thumbnails-delete-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/delete.png');
+  border-right: 1px solid #000;
+}
+
+#thumbnails-share-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/share.png');
+}
+
+#photos-overlay-top {
+  position: absolute;
+  height: 50px;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.4);
+  /* the filmstrip is taller than 50px so we can hide its scrollbar */
+  overflow: hidden; 
+}
+
+#photos-filmstrip {
+  position: absolute;
+  height: 100%;
+  left: 0;
+  right: 60px; /* 50px plus extra for the scrollbar we don't want to see */
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+#photos-back-button {
+  position: absolute;
+  width: 50px;
+  height: 100%;
+  right: 0;
+  background-image: url('images/gallery.png');
+}
+
+
+#photos-overlay-bottom {
+  background: rgba(0, 0, 0, 0.4);
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#photos-camera-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/camera.png');
+}
+
+#photos-edit-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 25%;
+  background-image: url('images/edit.png');
+}
+
+#photos-share-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/share.png');
+}
+
+#photos-delete-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 75%;
+  background-image: url('images/delete.png');
 }
