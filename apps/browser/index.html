@@ -5,7 +5,25 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Browser</title>
 
-    <link rel="stylesheet" href="style/browser.css" type="text/css" />
+    <link rel="stylesheet" href="style/browser.css" type="text/css">
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <script type="text/javascript">
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
+      var protocol = document.location.protocol;
+      if (protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = protocol + '//system.' + domain + '/js/webapi.js';
+      }
+      document.write('<script src="' + src + '"><\/script>');
+    })();
+    </script>
     <script type="text/javascript" src="js/GestureDetector.js"></script>
     <script type="text/javascript" src="js/places.js"></script>
     <script type="text/javascript" src="js/date_helper.js"></script>
@@ -19,7 +37,8 @@
       <menu type="toolbar" id="toolbar-start">
         <form id="url-bar" novalidate>
           <input type="image" id="ssl-indicator" value="" />
-          <input type="url" id="url-input" placeholder="Enter Address" />
+          <input type="url" id="url-input" placeholder="Enter Address"
+                 data-l10n-id="enter-address" />
           <input type="image" id="url-button" value="" />
         </form>
       </menu>
@@ -30,16 +49,24 @@
           <nav data-role="tabs">
             <ul role="tablist">
               <li role="tab">
-                <a id="history-tab" href="#" class="selected">History</a>
+                <a id="top-sites-tab" href="#" class="selected"
+                   data-l10n-id="top-sites">Top Sites</a>
               </li>
               <li role="tab">
-                <a id="bookmarks-tab" href="#">Bookmarks</a>
+                <a id="bookmarks-tab" href="#"
+                   data-l10n-id="bookmarks">Bookmarks</a>
+              </li>
+              <li role="tab">
+                <a id="history-tab" href="#"
+                   data-l10n-id="history">History</a>
               </li>
             </ul>
           </nav>
+          <section id="top-sites" role="tabpanel" class="selected">
+          </section>
           <section id="bookmarks" role="tabpanel">
           </section>
-          <section id="history" role="tabpanel" class="selected">
+          <section id="history" role="tabpanel">
           </section>
         </div>
       </div>

@@ -33,8 +33,8 @@ var Activities = {
       type: 'activity-choice'
     };
 
-    if (choice !== null)
-      returnedChoice.value = choice;
+    // If the user cancels, the choice is -1
+    returnedChoice.value = choice || '-1';
 
     event.initCustomEvent('mozContentEvent', true, true, returnedChoice);
     window.dispatchEvent(event);
@@ -48,8 +48,7 @@ var Activities = {
     choices.forEach(function(choice, index) {
       items.push({label: choice.title,
                   icon: choice.icon,
-                  value: index,
-                  type: 'menuitem'
+                  value: index
       });
     });
 

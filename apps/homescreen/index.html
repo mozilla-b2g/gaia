@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" href="style/dock.css"/>
     <link rel="stylesheet" type="text/css" href="style/search.css"/>
 
-    <script>
+    <script type="text/javascript">
     // The following code loads a shared WebAPI shim from webapi.js
     (function webapiJSLoader() {
       var protocol = document.location.protocol;
@@ -18,8 +18,7 @@
         var paths = document.location.pathname.split('/');
         paths.pop();
         paths.pop();
-        paths.pop();
-        var src = protocol + '//' + paths.join('/') + '/webapi.js';
+        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
       } else {
         var host = document.location.host;
         var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
@@ -46,17 +45,11 @@
       <div class="paginationScroller"></div>
     </header>
 
-    <section id="content">
-      <section id="search">
-        <div>
-          <img id="searchAction" src="resources/images/search/icon.png"></img>
-        </div>
-      </section>  <!-- search -->
-
-      <section id="icongrid">
-        <div class="apps"></div>
-      </section>  <!-- icongrid -->
-    </section>
+    <div id="icongrid" class="apps">
+      <div id="search">
+        <img id="searchAction" src="resources/images/search/icon.png"></img>
+      </div>
+    </div>
 
     <footer id="footer"></footer>
   </body>
