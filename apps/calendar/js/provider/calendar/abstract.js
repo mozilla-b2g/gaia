@@ -102,10 +102,8 @@
     },
 
     /**
-     * Reload the details of the calendar.
-     * *WARN* this will mutate the calendar
-     * directly when successful you should
-     * *never* write to calendar objects directly.
+     * Updates object with the
+     * latest properties on the server.
      *
      * @param {Function} callback node style.
      */
