@@ -22,7 +22,7 @@ body {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, edit-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -234,6 +234,12 @@ a.button {
   border-width: 0;
   background-position: center center;
   background-repeat: no-repeat;
+
+  /* for buttons that display text */
+  font-size: smaller;
+  text-align: center;
+  vertical-align: 75%;
+  line-height: 50px;;
 }
 
 a.button:active, a.button:focus {
@@ -389,4 +395,101 @@ a.button.disabled {
   height: 100%;
   left: 75%;
   background-image: url('images/delete.png');
+}
+
+#edit-header {
+  background: #ccc;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#edit-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#edit-title {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 25%;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  line-height: 50px;
+  vertical-align: 75%;
+  text-align: center;
+  font-variant: small-caps;
+}
+
+#edit-save-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  right: 0;
+}
+
+#edit-preview-area {
+}
+
+#edit-preview-canvas {
+}
+
+#edit-options {
+}
+
+#edit-exposure-options {
+}
+
+#edit-crop-options {
+}
+
+#edit-effects-options {
+}
+
+#edit-borders-options {
+}
+
+#edit-toolbar {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* all buttons in the toolbar share these styles */
+#edit-toolbar > .button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  border-right: 1px solid #000;
+  background: #666;
+}
+
+/* If the button is selected, it has a different background */
+#edit-toolbar > .button.selected {
+  background: #999;
+}
+
+#edit-exposure-button {
+  left: 0;
+}
+
+#edit-crop-button {
+  left: 25%
+}
+
+#edit-effects-button {
+  left: 50%
+}
+
+#edit-borders-button {
+  left: 75%
 }

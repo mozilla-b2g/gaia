@@ -126,10 +126,11 @@ var photoFrames = $('photo-frames');
 var thumbnailListView = $('thumbnail-list-view');
 var thumbnailSelectView = $('thumbnail-select-view');
 var photoView = $('photo-view');
+var editView = $('edit-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
-var views = [thumbnailListView, thumbnailSelectView, photoView];
+var views = [thumbnailListView, thumbnailSelectView, photoView, editView];
 var currentView;
 
 // These three divs hold the previous, current and next photos
@@ -228,6 +229,12 @@ function setView(view) {
     // XXX: we need to update this when images are added or deleted.
     // XXX: avoid using hardcoded 50px per image?
     thumbnails.style.width = (images.length * 50) + 'px';
+    break;
+
+  case editView:
+    // We don't display the thumbnails in edit view.
+    // XXX But we do probably need to precompute some mini images for
+    // the edit buttons
     break;
   }
 
@@ -464,6 +471,17 @@ $('photos-delete-button').onclick = function() {
     deleteImage(currentPhotoIndex);
   }
 };
+
+// Clicking the Edit button while viewing a photo switches to edit mode
+$('photos-edit-button').onclick = function() {
+  setView(editView);
+};
+
+// In edit mode, clicking the Cancel button goes back to single photo mode
+$('edit-cancel-button').onclick = function() {
+  setView(photoView);
+};
+
 
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {

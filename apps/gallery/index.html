@@ -79,5 +79,40 @@
         </div>
       </div>
     </div>
+    
+    <div id="edit-view" class="hidden">
+      <div id="edit-header">
+        <a id="edit-cancel-button" class="button"></a>
+        <div id="edit-title" data-l10n-id="edit"></div>
+        <a id="edit-save-button" class="button" data-l10n-id="save"></a>
+      </div>
+
+      <!-- preview of edited photo goes here -->
+      <div id="edit-preview-area">
+        <canvas id="edit-preview-canvas"></canvas>
+      </div>
+
+
+      <!-- this holds different options for different editing modes -->
+      <!-- only one set of options will be visible at a time -->
+      <div id="edit-options">
+        <div id="edit-exposure-options" class="hidden"> 
+        </div>
+        <div id="edit-crop-options" class="hidden"> 
+        </div>
+        <div id="edit-effects-options" class="hidden"> 
+        </div>
+        <div id="edit-borders-options" class="hidden"> 
+        </div>
+      </div>
+
+      <!-- buttons for selecting the type of edit to perform -->
+      <div id="edit-toolbar">
+        <a id="edit-exposure-button" class="button" data-l10n-id="exposure"></a>
+        <a id="edit-crop-button" class="button" data-l10n-id="crop"></a>
+        <a id="edit-effects-button" class="button" data-l10n-id="effects"></a>
+        <a id="edit-borders-button" class="button" data-l10n-id="borders"></a>
+      </div>
+    </div>
   </body>
 </html>
