@@ -189,18 +189,15 @@
       var params = data.params;
       var self = this;
 
-      function updateModel(err, model) {
-        self.model = model;
-        self.render();
-      }
-
       if (params.id) {
-        this._updateModel(params.id, updateModel);
+        self.model = this._updateModel(params.id);
         this.completeUrl = '/settings/';
       } else if (params.preset) {
-        this._createModel(params.preset, updateModel);
+        self.model = this._createModel(params.preset);
         this.completeUrl = '/settings/';
       }
+
+      self.render();
     }
 
   };

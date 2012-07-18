@@ -281,10 +281,8 @@ suite('views/modify_account', function() {
     test('new', function() {
       var calledWith;
       subject._createModel = function() {
-        var cb = arguments[arguments.length - 1];
         calledWith = arguments;
-
-        cb(null, model);
+        return model;
       }
 
       subject.dispatch({
@@ -300,9 +298,8 @@ suite('views/modify_account', function() {
     test('existing', function() {
       var calledWith;
       subject._updateModel = function() {
-        var cb = arguments[arguments.length - 1];
         calledWith = arguments;
-        cb(null, model);
+        return model;
       }
 
       subject.dispatch({

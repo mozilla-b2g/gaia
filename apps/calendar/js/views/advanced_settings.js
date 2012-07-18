@@ -61,7 +61,7 @@
       var result = '';
 
       for (key in items) {
-        if (items.hasOwnProperty(key)) {
+        if (key in items) {
           result += template.account.render(
             this._formatModel(items[key])
           );
