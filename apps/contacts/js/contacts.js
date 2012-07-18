@@ -195,8 +195,7 @@ var Contacts = (function() {
           currentContact = {};
           showAdd();
         } else {
-          // Editing existinv
-          var params = extractParams(hasParams[1]);
+          // Editing existing contact
           if('id' in params) {
             var id = params['id'];
             cList.getContactById(id, function onSuccess(savedContact) {
