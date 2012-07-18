@@ -90,9 +90,13 @@
       var id;
 
       var putReq;
+      var reqType;
+
       if (object._id) {
         putReq = store.put(data, object._id);
+        reqType = 'update';
       } else {
+        reqType = 'add';
         putReq = store.put(data);
       }
 
@@ -107,12 +111,7 @@
         self._accounts[id] = result;
         callback(null, id, result);
 
-        if (object._id) {
-          self.emit('update', id, result);
-        } else {
-          self.emit('add', id, result);
-        }
-
+        self.emit(reqType, id, result);
         self.emit('persist', id, result);
       };
     },

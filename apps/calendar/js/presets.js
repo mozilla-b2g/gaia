@@ -1,6 +1,6 @@
 (function(window) {
   var Presets = {
-
+    /*
     'google': {
       providerType: 'Caldav',
       group: 'remote',
@@ -20,6 +20,17 @@
         uri: '/'
       }
     },
+
+    'caldav': {
+      providerType: 'Caldav',
+      group: 'remote',
+      options: {
+        domain: '',
+        providerType: 'Caldav',
+        uri: ''
+      }
+    },
+    */
 
     'local': {
       singleUse: true,

@@ -32,10 +32,7 @@
 
       this._activeObjects.push(object);
       if ('onactive' in object) {
-        if (!object.__routerActive) {
-          object.onactive.apply(object, args);
-          object.__routerActive = true;
-        }
+        object.onactive.apply(object, args);
       }
     },
 
@@ -47,16 +44,7 @@
       var item;
       while ((item = this._activeObjects.pop())) {
         if ('oninactive' in item) {
-          if ('__routerActive' in item) {
-            if (item.__routerActive) {
-              item.oninactive();
-            }
-          } else {
-            item.oninactive();
-          }
-        }
-        if ('__routerActive' in item) {
-          item.__routerActive = false;
+          item.oninactive();
         }
       }
       next();

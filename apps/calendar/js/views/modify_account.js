@@ -13,7 +13,7 @@
       element: '#modify-account-view',
       form: '#modify-account-view form',
       fields: '*[name]',
-      saveButton: '#modify-account-view .save',
+      saveButton: '#modify-account-view .save-icon',
       errors: '#modify-account-view .errors'
     },
 

@@ -41,7 +41,6 @@ suite('router', function() {
       }
       subject.mangeObject(object, 'foo');
       assert.ok(object.onactiveCalled);
-      assert.ok(object.__routerActive);
       assert.equal(subject._activeObjects[0], object);
 
       assert.equal(calledWith[0], 'foo');
@@ -90,7 +89,6 @@ suite('router', function() {
     var two = new View();
 
     two.active = one.active = true;
-    one.__routerActive = two.__routerActive = true;
 
     subject._activeObjects.push(one);
     subject._activeObjects.push(two);
@@ -102,9 +100,6 @@ suite('router', function() {
     assert.isTrue(calledNext);
     assert.isFalse(one.active);
     assert.isFalse(two.active);
-
-    assert.isFalse(one.__routerActive);
-    assert.isFalse(two.__routerActive);
   });
 
   var wrappedMethods = ['start', 'stop', 'show'];

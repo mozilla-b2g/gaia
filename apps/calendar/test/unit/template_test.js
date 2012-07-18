@@ -161,8 +161,8 @@ suite('calendar/template', function() {
       };
 
       suiteSetup(function() {
-        var old = navigator.mozl10n;
-        navigator.mozl10n = {
+        var old = navigator.mozL10n;
+        navigator.mozL10n = {
           get: function(name) {
             return lookup[name];
           }
@@ -170,7 +170,9 @@ suite('calendar/template', function() {
       });
 
       suiteTeardown(function() {
-        navigator.mozl10n = old;
+        if (old) {
+          navigator.mozL10n = old;
+        }
       });
 
       test('prefix', function() {

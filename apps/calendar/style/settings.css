@@ -41,7 +41,7 @@ body[role="app"] #wrapper {
 
 #settings header {
   background: #242931;
-  padding: 0.9rem 2.6rem;
+  padding: 0.9rem 1rem;
   font-size: 2.1rem;
   font-weight: normal;
   box-shadow: none;
@@ -89,11 +89,26 @@ body[role="app"] #wrapper {
 
 /* advanced settings */
 
-#advanced-settings-view > section {
-  margin-top: 1rem;
-  font-size: 1.2em;
+#advanced-settings-view > header h1 {
+  width: -moz-calc(100% - 40px);
 }
 
-#advanced-settings-view > section header {
+#advanced-settings-view > section {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+}
+
+#advanced-settings-view > section h2 {
   padding: 1rem;
+  background-color: #CCC;
+}
+
+#advanced-settings-view > section ol li a.remove {
+  color: red;
+  padding: 1rem;
+}
+
+#advanced-settings-view > section ol li {
+  border-bottom: 1px solid #CCC;
+  padding: 2rem;
 }

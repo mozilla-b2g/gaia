@@ -65,17 +65,19 @@ Calendar.App = (function(window) {
 
       this.state('/month/', setPath, 'Month', 'MonthsDay');
       this.modifier('/settings/', setPath, 'Settings', { clear: false });
-      this.state('/advanced-settings/', setPath, 'AdvancedSettings');
+      this.modifier(
+        '/advanced-settings/', setPath, 'AdvancedSettings'
+      );
 
-      this.state('/select-preset/', setPath, 'CreateAccount');
-      this.state('/create-account/:preset', setPath, 'ModifyAccount');
-      this.state('/update-account/:id', setPath, 'ModifyAccount');
+      this.modifier('/select-preset/', setPath, 'CreateAccount');
+      this.modifier('/create-account/:preset', setPath, 'ModifyAccount');
+      this.modifier('/update-account/:id', setPath, 'ModifyAccount');
 
       // I am not sure where this logic really belongs...
       this.state('/remove-account/:id', function(data) {
         var store = self.store('Account');
         store.remove(data.params.id, function(id) {
-          self.go('/advanced-settings/');
+          page.replace('/advanced-settings/');
         });
       });
 
@@ -220,10 +222,25 @@ Calendar.App = (function(window) {
       return list;
     },
 
+    resetState: function() {
+      if (!this.currentPath) {
+        this.currentPath = '/month/';
+      }
+
+      this.go(this.currentPath);
+    },
+
     state: function() {
+      var self = this;
       this.router.state.apply(
         this.router,
-        this._mapRoutes(arguments)
+        this._mapRoutes(arguments).concat([
+          // HACK: Sets current path in app.
+          function(ctx, next) {
+            self.currentPath = ctx.canonicalPath;
+            next();
+          }
+        ])
       );
     },
 

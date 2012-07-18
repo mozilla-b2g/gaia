@@ -55,16 +55,56 @@ suite('views/create_account', function() {
     );
   });
 
+  suite('#_initEvents', function() {
+
+    test('when an account is added', function() {
+      var store = app.store('Account');
+      var renderCalled = false;
+      subject.render = function() {
+        renderCalled = true;
+      }
+
+      store.emit('add');
+
+      assert.equal(renderCalled, true);
+    });
+
+    test('when an account is removed', function() {
+      var store = app.store('Account');
+      var renderCalled = false;
+      subject.render = function() {
+        renderCalled = true;
+      }
+
+      store.emit('remove');
+
+      assert.equal(renderCalled, true);
+    });
+
+
+  });
+
   suite('#render', function() {
     var presets;
 
     setup(function() {
       presets = Object.keys(Calendar.Presets);
+      subject.accounts.innerHTML = '__MARKER__';
     });
 
     test('preset marked for single use', function() {
 
       var store = app.store('Account');
+      subject.presets = {
+        'one': {
+          singleUse: true,
+          providerType: 'local'
+        },
+        'two': {
+          singleUse: true,
+          providerType: 'local'
+        }
+      };
 
       store.presetActive = function(name) {
         return name === 'local';
@@ -72,10 +112,12 @@ suite('views/create_account', function() {
 
       subject.render();
 
+      assert.ok(
+        subject.accounts.innerHTML.indexOf('__MARKER__') === -1
+      );
+
       var html = subject.accounts.innerHTML;
       assert.ok(html);
-      assert.ok(Calendar.Presets.local.singleUse);
-
       var hasLocal = (html.indexOf('local') !== -1);
 
       assert.isFalse(

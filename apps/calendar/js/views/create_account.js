@@ -4,10 +4,13 @@
 
   function CreateAccount(options) {
     Calendar.View.apply(this, arguments);
+    this._initEvents();
   }
 
   CreateAccount.prototype = {
     __proto__: Calendar.View.prototype,
+
+    presets: Calendar.Presets,
 
     selectors: {
       element: '#create-account-view',
@@ -18,10 +21,26 @@
       return this._findElement('accounts');
     },
 
+    _initEvents: function() {
+      var self = this;
+      var store = this.app.store('Account');
+
+      // Here instead of bind
+      // for inheritance / testing reasons.
+      function render() {
+        self.render();
+      }
+
+      store.on('remove', render);
+      store.on('add', render);
+    },
+
     render: function() {
-      var list = Calendar.Presets;
+      var list = this.presets;
       var store = this.app.store('Account');
       var output;
+
+      this.accounts.innerHTML = '';
 
       Object.keys(list).forEach(function(preset) {
         var obj = list[preset];

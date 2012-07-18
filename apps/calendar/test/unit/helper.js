@@ -127,6 +127,15 @@
 
   /* require most of the coupled / util objects */
 
+  // HACK - disable mozL10n right now
+  //        tests that actually use it
+  //        mock it out anyway.
+  navigator.mozL10n = {
+    get: function(value) {
+      return value;
+    }
+  };
+
   requireLib('calendar.js');
   requireLib('set.js');
   requireLib('batch.js');

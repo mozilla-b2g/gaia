@@ -38,7 +38,7 @@
       if (prefix) {
         name = prefix + name;
       }
-      return navigator.mozl10n.get(name);
+      return navigator.mozL10n.get(name);
     }
 
   };

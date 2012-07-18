@@ -8,6 +8,7 @@
   <link rel="stylesheet" type="text/css" href="/style/forms.css">
   <link rel="stylesheet" type="text/css" href="/style/settings.css">
   <link rel="stylesheet" type="text/css" href="/style/toolbars.css">
+  <link rel="stylesheet" type="text/css" href="/style/overlay.css">
 
   <link rel="resource" type="application/l10n" href="/locales/locales.ini">
 
@@ -88,7 +89,7 @@
 
 <section id="settings">
 
-  <header role="toolbar">
+  <header>
     <h1 data-l10n-id="settings-header">Calendars</h1>
     <a class="add-icon" href="/select-preset/">Create Account</a>
   </header>
@@ -108,38 +109,41 @@
 
 <div id="wrapper">
 
-<section id="top-toolbar">
-  <header role="toolbar">
-    <a data-l10n-id="settings"
-       id="show-settings"
-       role="button" href="/settings/">
-      Settings
-    </a>
 
-    <h1 id="current-month-year">
-    </h1>
+<header id="top-toolbar">
+  <a data-l10n-id="settings-show"
+     id="show-settings"
+     href="/settings/">
+    Show Settings
+  </a>
 
-    <a data-l10n-id="add-event" role="button" class="new-event" href="/add">
-      Add Event
-    </a>
-  </header>
-</section>
+  <a data-l10n-id="settings-hide"
+     id="hide-settings"
+     href="javascript: Calendar.App.resetState()">
+     Hide Settings
+  </a>
+
+  <h1 id="current-month-year">
+  </h1>
+
+  <a data-l10n-id="add-event" role="button" class="new-event" href="/add">
+    Add Event
+  </a>
+</header>
 
 <section id="views">
 
   <section id="month-view">
     <!--- title row all the days this will be static -->
-    <header id="month-days" role="row">
-      <ol role="row">
-        <li data-l10n-id="day-sun" role="column">sun</li>
-        <li data-l10n-id="day-mon" role="column">mon</li>
-        <li data-l10n-id="day-tue" role="column">tue</li>
-        <li data-l10n-id="day-wed" role="column">wed</li>
-        <li data-l10n-id="day-thu" role="column">thu</li>
-        <li data-l10n-id="day-fri" role="column">fri</li>
-        <li data-l10n-id="day-sat" role="column">sat</li>
-      </ol>
-    </header>
+    <ol id="month-days" role="row">
+      <li data-l10n-id="day-sun" role="column">sun</li>
+      <li data-l10n-id="day-mon" role="column">mon</li>
+      <li data-l10n-id="day-tue" role="column">tue</li>
+      <li data-l10n-id="day-wed" role="column">wed</li>
+      <li data-l10n-id="day-thu" role="column">thu</li>
+      <li data-l10n-id="day-fri" role="column">fri</li>
+      <li data-l10n-id="day-sat" role="column">sat</li>
+    </ol>
     <!---
       month grid there may be multiple of these
       in the DOM at any one time for caching.
@@ -152,12 +156,12 @@
   </section>
 
   <section class="fullscreen-view" id="create-account-view">
-    <header role="toolbar">
-      <a data-l10n-id="buttons.cancel"
+    
+    <header>
+      <a data-l10n-id="cancel"
          role="button"
-         class="cancel"
+         class="cancel-icon"
          href="javascript: window.history.go(-1);">
-
         Cancel
       </a>
 
@@ -176,19 +180,19 @@
   </section>
 
   <section class="fullscreen-view" id="advanced-settings-view">
-    <header role="toolbar">
+    <header>
       <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
-      <a class="done" data-l10n-id="done" href="/settings/">Done</a>
+      <a class="done-icon"
+        data-l10n-id="done"
+        href="/settings/">Done</a>
     </header>
 
     <div class="errors"></div>
 
     <section class="account">
-      <header>
-        <h2 data-l10n-id="account-list-header">
-          Accounts
-        </h2>
-      </header>
+      <h2 data-l10n-id="account-list-header">
+        Accounts
+      </h2>
       <ol class="account-list">
       </ol>
     </section>
@@ -196,12 +200,12 @@
   </section>
 
   <section class="fullscreen-view" id="modify-account-view">
-    <header role="toolbar">
-      <a class="cancel" data-l10n-id="back" href="javascript: window.history.go(-1);">
+    <header>
+      <a class="back-icon" data-l10n-id="back" href="javascript: window.history.go(-1);">
         Back
       </a>
       <h1 data-l10n-id="account-header">Account</h1>
-      <a class="save" data-l10n-id="save" href="#">Save</a>
+      <a class="save-icon" data-l10n-id="save" href="#">Save</a>
     </header>
     <div class="errors"></div>
     <form>
@@ -226,10 +230,9 @@
   access to the details here
   -->
   <section id="months-day-view">
-    <header>
-      <h1 id="selected-day-title"></h1>
-    </header>
-     <section id="event-list" class="day-events">
+    <h1 id="selected-day-title"></h1>
+
+    <section id="event-list" class="day-events">
     </section>
   </section>
 
@@ -242,12 +245,11 @@
   </section>
 
   <section class="fullscreen-view" id="add-event-view">
-    <header role="toolbar">
+    <header>
       <a data-l10n-id="cancel"
          role="button"
-         class="cancel"
+         class="cancel-icon"
          href="javascript: window.history.go(-1);">
-
         Cancel
       </a>
 
@@ -255,7 +257,7 @@
         EVENT
       </h1>
 
-      <a data-l10n-id="save" role="button" class="save" href="#">
+      <a data-l10n-id="save" role="button" class="save-icon" href="#">
         Save
       </a>
     </header>
@@ -324,7 +326,8 @@
 <section id="bottom-toolbar">
   <menu id="view-selector">
     <li class="toggle toggle-settings">
-      <a data-l10n-id="hide">Hide</a>
+      <a data-l10n-id="hide"
+         href="javascript: Calendar.App.resetState();">Hide</a>
     </li>
     <li class="today">
       <a href="#today">Today</a>

@@ -5,12 +5,15 @@ window.page = window.page || {};
 
 suite('controller', function() {
   var subject;
+  var app;
 
   setup(function() {
-    subject = new Calendar.Controllers.Time();
+    app = testSupport.calendar.app();
+    subject = new Calendar.Controllers.Time(app);
   });
 
   test('initialize', function() {
+    assert.equal(subject.app, app);
     assert.instanceOf(subject, Calendar.Responder);
   });
 
