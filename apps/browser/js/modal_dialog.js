@@ -3,10 +3,6 @@
 
 'use strict';
 
-// TODO: Patch this to allow the exact same code to be used for system
-// and browser dialogs, so when one is changed we can copy the file into
-// the other app without modifications
-
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
 // (alert/confirm/prompt)
