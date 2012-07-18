@@ -20,7 +20,7 @@
 
   Db.prototype = {
 
-    __proto__: Object.create(Calendar.Responder.prototype),
+    __proto__: Calendar.Responder.prototype,
 
     /**
      * Database connection
