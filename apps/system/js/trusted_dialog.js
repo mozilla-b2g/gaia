@@ -8,38 +8,39 @@ var TrustedDialog = (function() {
   var trustedDialogElement = document.getElementById('trustedDialog');
   var currentFrame = null;
 
-  function open(trustedFrame, onLoadCb) {
-    if (!trustedFrame)
+  function open(url, onLoadCb) {
+    if (!url)
       return;
 
-    // If the trusted dialog is being shown, we just browse to the new url.
+    // If the trusted dialog is being shown we swap frames.
     if (trustedDialogIsShown()) {
-      currentFrame.src = trustedFrame.url;
-      return currentFrame;
+      trustedDialogElement.removeChild(currentFrame);
+      currentFrame = null;
+    } else {
+      // Save the current displayed app in order to show it after closing the
+      // trusted dialog.
+      lastDisplayedApp = WindowManager.getDisplayedApp();
+      // Show the homescreen.
+      WindowManager.setDisplayedApp(null);
     }
-
-    // Save the current displayed app in order to show it after closing the
-    // trusted dialog.
-    lastDisplayedApp = WindowManager.getDisplayedApp();
-
-    // Show the homescreen.
-    WindowManager.setDisplayedApp(null);
 
     // Create the iframe to be shown as a trusted dialog.
     var frame = document.createElement('iframe');
     frame.setAttribute('mozbrowser', 'true');
     frame.classList.add('frame');
     frame.classList.add('screen');
-    frame.src = trustedFrame.url;
+    frame.src = url;
     if (onLoadCb)
       frame.onload = onLoadCb;
     trustedDialogElement.appendChild(frame);
     currentFrame = frame;
 
-    // Make the trusted dialog overlay active.
-    trustedDialogElement.classList.add('active');
-    // Make sure we're in portrait mode.
-    screen.mozLockOrientation('portrait');
+    if (!trustedDialogIsShown()) {
+      // Make the trusted dialog overlay active.
+      trustedDialogElement.classList.add('active');
+      // Make sure we're in portrait mode.
+      screen.mozLockOrientation('portrait');
+    }
 
     return frame;
   };
