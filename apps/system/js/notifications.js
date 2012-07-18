@@ -39,13 +39,14 @@
 }());
 
 var NotificationScreen = {
-  TOASTER_TIMEOUT: 900,
+  TOASTER_TIMEOUT: 1200,
   TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
 
   _notification: null,
   _containerWidth: null,
   _toasterTimeout: null,
+  _toasterGD: null,
 
   get container() {
     delete this.container;
@@ -74,7 +75,10 @@ var NotificationScreen = {
     window.addEventListener('mozChromeEvent', this);
     ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
       this.container.addEventListener(evt, this);
+      this.toaster.addEventListener(evt, this);
     }, this);
+
+    this._toasterGD = new GestureDetector(this.toaster);
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -135,30 +139,36 @@ var NotificationScreen = {
 
     if (!(farEnough || fastEnough)) {
       // Werent far or fast enough to delete, restore
-      var time = Math.abs(distance) / this.TRANSITION_SPEED;
-      var transition = '-moz-transform ' + time + 'ms linear';
-
-      var notificationNode = this._notification;
-      notificationNode.style.MozTransition = transition;
-      notificationNode.style.MozTransform = 'translateX(0px)';
-      notificationNode.style.opacity = 1;
       delete this._notification;
       return;
     }
 
-    var speed = Math.max(Math.abs(detail.vx), 1.8);
-    var time = (this._containerWidth - Math.abs(distance)) / speed;
     var offset = detail.direction === 'right' ?
       this._containerWidth : -this._containerWidth;
 
-    this._notification.style.MozTransition = '-moz-transform ' +
-      time + 'ms linear';
+    this._notification.style.MozTransition = '-moz-transform 0.3s linear';
     this._notification.style.MozTransform = 'translateX(' + offset + 'px)';
+
     var self = this;
     this._notification.addEventListener('transitionend', function trListener() {
       self._notification.removeEventListener('transitionend', trListener);
 
-      self.removeNotification(self._notification);
+      self.removeNotification(self._notification.dataset.notificationID);
+
+      // Putting back the toaster in a clean state for the next notification
+      if (self._notification == self.toaster) {
+        self.toaster.style.display = 'none';
+        setTimeout(function nextLoop() {
+          self.toaster.style.MozTransition = '';
+          self.toaster.style.MozTransform = '';
+          self.toaster.classList.remove('displayed');
+
+          setTimeout(function nextLoop() {
+            self.toaster.style.display = 'block';
+          });
+        });
+      }
+
       self._notification = null;
     });
   },
@@ -173,9 +183,13 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    this.removeNotification(notificationNode);
+    this.removeNotification(notificationNode.dataset.notificationID);
 
-    UtilityTray.hide();
+    if (notificationNode == this.toaster) {
+      this.toaster.classList.remove('displayed');
+    } else {
+      UtilityTray.hide();
+    }
   },
 
   addNotification: function ns_addNotification(detail) {
@@ -209,7 +223,10 @@ var NotificationScreen = {
     new GestureDetector(notificationNode).startDetecting();
 
     // Notification toast
+    this.toaster.dataset.notificationID = detail.id;
+
     this.toaster.classList.add('displayed');
+    this._toasterGD.startDetecting();
 
     if (this._toasterTimeout)
       clearTimeout(this._toasterTimeout);
@@ -217,10 +234,13 @@ var NotificationScreen = {
     this._toasterTimeout = setTimeout((function() {
       this.toaster.classList.remove('displayed');
       this._toasterTimeout = null;
+      this._toasterGD.stopDetecting();
     }).bind(this), this.TOASTER_TIMEOUT);
   },
 
-  removeNotification: function ns_removeNotification(notificationNode) {
+  removeNotification: function ns_removeNotification(notificationID) {
+    var notifSelector = '[data-notification-i-d="' + notificationID + '"]';
+    var notificationNode = this.container.querySelector(notifSelector);
     // Animating the next notification up
     var nextNotification = notificationNode.nextSibling;
     if (nextNotification) {
@@ -239,7 +259,7 @@ var NotificationScreen = {
 
       // Hiding the notification indicator in the status bar
       // if this is the last desktop notification
-      var notifSelector = 'div[data-type="desktop-notification"]';
+      var notifSelector = '.notification';
       var desktopNotifications = this.container.querySelectorAll(notifSelector);
       if (desktopNotifications.length == 0) {
         StatusBar.updateNotification(false);
