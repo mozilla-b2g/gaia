@@ -97,7 +97,7 @@ var Calculator = {
   backSpace: function calculator_backSpace() {
     this.clearBackspaceTimeout();
     this.startBackspaceTimeout();
-    this.stack.splice(this.stack.length-1, 1);
+    this.stack.splice(this.stack.length - 1, 1);
     this.updateDisplay();
   },
 
@@ -172,11 +172,14 @@ var Calculator = {
   infix2postfix: function(infix) {
     // We cant know up till this point whether - is for negation or subtraction
     // at this point we modify negation operators into (0-N) so 4+-5 -> 4+(0-5)
-    infix = infix.replace(/(([^0-9])-|^-)([0-9.]+)/g, function(match, _, pre, num) {
-      pre = pre || '';
-      return pre + '(0-' + num + ')';
-    });
- 
+    infix = infix.replace(
+      /(([^0-9])-|^-)([0-9.]+)/g,
+      function(match, _, pre, num) {
+        pre = pre || '';
+        return pre + '(0-' + num + ')';
+      }
+    );
+
     // basic tokenisation to ensure we group numbers with >1 digit together
     var tokens = infix.match(/[0-9.]+|\*|\/|\+|\-|\(|\)/g);
     var output = [];
@@ -233,13 +236,13 @@ var Calculator = {
         var op1 = stack.pop();
         var result = this.evaluate[token](op1, op2);
         if (isNaN(result) || !isFinite(result))
-          throw { type: 'error', msg: 'Value is '+result }
+          throw { type: 'error', msg: 'Value is ' + result };
         stack.push(result);
       }
     }, this);
     var result = stack.pop();
     if (isNaN(result) || !isFinite(result))
-      throw { type: 'error', msg: 'Value is '+result }
+      throw { type: 'error', msg: 'Value is ' + result };
     return result;
   },
 
@@ -266,7 +269,7 @@ var Calculator = {
               this.calculate();
               delete this.isDecimalSeparatorPresent;
             } else if (value === 'C') {
-              if (this.stack[this.stack.length-1])
+              if (this.stack[this.stack.length - 1])
                 delete this.isDecimalSeparatorPresent;
               this.backSpace();
             } else if (value === 'TIP') {
