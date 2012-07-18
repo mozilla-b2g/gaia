@@ -1,3 +1,5 @@
+/* calendar settings */
+
 body[data-path^="/settings/"][role="app"] #wrapper {
   position: relative;
   -moz-transform: translateX(75%);
@@ -25,6 +27,10 @@ body[role="app"] #wrapper {
   font-size: 1.35rem;
 }
 
+#settings header h1 {
+  width: -moz-calc(100% - 30px);
+}
+
 #settings > section {
   display: none;
 }
@@ -35,10 +41,9 @@ body[role="app"] #wrapper {
 
 #settings header {
   background: #242931;
-  padding: 2.1rem 0 2.6rem 2.1rem;
+  padding: 0.9rem 1rem;
   font-size: 2.1rem;
   font-weight: normal;
-  line-height: 45%;
   box-shadow: none;
   border-bottom: 1px solid #454B53;
 }
@@ -80,4 +85,30 @@ body[role="app"] #wrapper {
   color: black;
   display: block;
   padding: 1rem;
+}
+
+/* advanced settings */
+
+#advanced-settings-view > header h1 {
+  width: -moz-calc(100% - 40px);
+}
+
+#advanced-settings-view > section {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+}
+
+#advanced-settings-view > section h2 {
+  padding: 1rem;
+  background-color: #CCC;
+}
+
+#advanced-settings-view > section ol li a.remove {
+  color: red;
+  padding: 1rem;
+}
+
+#advanced-settings-view > section ol li {
+  border-bottom: 1px solid #CCC;
+  padding: 2rem;
 }
