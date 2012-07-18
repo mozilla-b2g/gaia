@@ -163,6 +163,8 @@ var MessageManager = {
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
+
+    console.log("SMS: Eliminando mensaje " + id);
     var req = navigator.mozSms.delete(id);
     req.onsuccess = function onsuccess() {
       callback(req.result);
@@ -442,6 +444,7 @@ var ThreadUI = {
   },
 
   init: function thui_init() {
+    this.delNumList = [];
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.deleteAllButton.addEventListener('click',
@@ -577,7 +580,7 @@ var ThreadUI = {
     }
     //Add edit options
     htmlStructure += '<span class="message-option msg-checkbox">' +
-                        '  <input type="checkbox">' +
+                        '  <input id="' + message.id + '" type="checkbox">' +
                         '  <span></span>' +
                       '</span>';
     // Add structure to DOM element
@@ -600,6 +603,7 @@ var ThreadUI = {
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
+      this.delNumList = [];
     }
   },
 
@@ -609,7 +613,12 @@ var ThreadUI = {
     if (response) {
       var inputs = this.view.querySelectorAll('input[type="checkbox"]');
       for (var i = 0; i < inputs.length; i++) {
-          inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+        if (inputs[i].id) { // sent or received
+          this.delNumList.push(inputs[i].id);
+        } else { // pending
+          // another list to delete from pending?
+        }
       }
     }
   },
@@ -618,12 +627,20 @@ var ThreadUI = {
     var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+      if (inputs[i].id) { // sent or received
+        this.delNumList.push(inputs[i].id);
+      } else { // pending
+          // another list to delete from pending?
+      }
     }
   },
 
   executeDeletion: function thui_executeDeletion() {
-    //TODO call MManager
-    window.alert("EXECUTION");
+    MessageManager.deleteMessages(this.delNumList, function deleted(ok) {
+      if (ok)
+        window.alert("MESSAGES DELETED");
+    });
+    // Delete from pending with second list??
   },
 
   handleEvent: function thui_handleEvent(evt) {
