@@ -432,14 +432,13 @@
 #lockscreen-passcode-code {
   position: absolute;
   bottom: 21.4rem;
-  height: 7.2rem;
+  height: 7rem;
   width: 100%;
-  background-color: #313c46;
+  background-color: rgba(49, 60, 70, 0.9);
   margin: 0;
-  padding: 0 0.8rem;
+  padding: 0 1rem;
   -moz-box-sizing: border-box;
-  border-top: #434953;
-  border-bottom: #000;
+  border-top: 1px solid #525050;
   -moz-transform: translateY(-moz-calc(21.4rem + 7.2rem));
   -moz-transition: -moz-transform 0.2s ease;
 }
@@ -452,9 +451,9 @@
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: -moz-calc(25% - 0.8rem);
-  margin: 1.6rem 0.4rem;
-  height: -moz-calc(100% - 3.2rem);
+  width: -moz-calc(25% - 1rem);
+  margin: 1.5rem 0.5rem;
+  height: -moz-calc(100% - 3rem);
   text-align: center;
   box-shadow: 0 0 0.8rem #999 inset;
   background-color: #fff;
@@ -486,7 +485,7 @@
 
   width: 1.5rem;
   height: 1.5rem;
-  background-color: #000;
+  background-color: #3e3b39;
   border-radius: 0.75rem;
   top: 50%;
   left: 50%;
@@ -539,8 +538,8 @@
 #lockscreen-passcode-pad > a > span {
   pointer-events: none;
   font-size: 1.2rem;
-  font-weight: normal;
   padding: 1.2rem;
+  color: #9aaabc;
 }
 
 .passcode-entered #lockscreen-passcode-pad > a[data-key="c"] {
