@@ -106,20 +106,51 @@ function hookStartup() {
 hookStartup();
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  var to = activity.source.data.to,
-  subject = activity.source.data.subject,
-  body  = activity.source.data.body;;
+  var to,
+  subject,
+  body,
+  cc,
+  bcc;
+  var queryURI = function _queryURI(uri) {
+    var mailtoReg = /^mailto:(.*)/i;
+    if (uri.match(mailtoReg)) {
+      uri = uri.match(mailtoReg)[1];
+      var parts = uri.split('?');
+      var subjectReg = /(?:^|&)subject=([^\&]*)/i,
+      bodyReg = /(?:^|&)body=([^\&]*)/i,
+      ccReg = /(?:^|&)cc=([^\&]*)/i,
+      bccReg = /(?:^|&)bcc=([^\&]*)/i;
+      to = unescape(parts[0]);
+
+
+      if (parts[1].match(subjectReg))
+        subject = unescape(parts[1].match(subjectReg)[1]);
+      if (parts[1].match(bodyReg))
+        body = unescape(parts[1].match(bodyReg)[1]);
+      if (parts[1].match(ccReg))
+        cc = unescape(parts[1].match(ccReg)[1]);
+      if (parts[1].match(bccReg))
+        bcc = unescape(parts[1].match(bccyReg)[1]);
+
+    }
+
+  }
+  queryURI(activity.source.data.URI);
   var sendMail = function actHandleMail() {
     if (to && subject) {
-  
-      var folderToUse =  Cards._cardStack[Cards._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
-      var composer = MailAPI.beginMessageComposition(
+
+      var folderToUse = Cards._cardStack[Cards
+        ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
+      var composer = MailAPI.(
         null, folderToUse, null,
         function() {
           composer.to = to;
           composer.subject = subject;
-          composer.body =  body;
-          Cards.pushCard('compose', 'default', 'immediate', {composer: composer });
+          composer.body = body;
+          composer.cc = cc;
+          composer.bcc = bcc;
+          Cards.pushCard('compose',
+            'default', 'immediate', {composer: composer });
         });
     }
   }
