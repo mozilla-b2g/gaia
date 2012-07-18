@@ -270,7 +270,6 @@ var ThreadListUI = {
       var inputs = this.view.querySelectorAll('input[type="checkbox"]');
       for (var i = 0; i < inputs.length; i++) {
         inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-        // this.delNumList.push(parseFloat(inputs[i].name));
       }
       // We get ALL the messages
       MessageManager.getMessages(function deleteAll(messages) {
