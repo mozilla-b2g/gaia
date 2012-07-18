@@ -398,11 +398,26 @@ body.player-mode #views-player {
   text-shadow: 0.2em 0.5em 0.1em #660000, -0.3em 0.1em 0.1em #006600, 0.4em -0.3em 0.1em #000066;
 }
 
+@-moz-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.fadeIn {  
+  -moz-animation-name: fadeIn;
+  -moz-animation-duration: 1500ms;
+  -moz-animation-timing-function: ease-in-out;
+  -moz-animation-fill-mode: forwards;
+}
+
 #player-cover-image {
   position: absolute;
-  /*width: 100%;
-  height: 100%;*/
-  /*-moz-transition: opacity 800ms ease-in-out;*/
+  opacity: 0;
 }
 
 .slideDown {
@@ -653,15 +668,19 @@ body.player-mode #views-player {
 }
 
 .hidden {
-  display: none;
+  /*display: none;*/
+  visibility: hidden;
 }
 
 li.song {
   list-style-type: none;
+  position: relative;
+  width: 100%;
+  font-size: 1.8em;
 }
 
 li.song a {
-  font-size: 1.8em;
+  /*font-size: 1.8em;*/
   display: block;
   color: #fff;
   text-decoration: none;
@@ -673,6 +692,7 @@ li.song a {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: -moz-calc(100% - 3.3em - 2em);
 }
 
 li.song a:active {
@@ -680,4 +700,31 @@ li.song a:active {
   font-weight: bold;
   text-shadow: rgba(255, 255, 255, 0.5) 1px 1px;
   background-color: orange;
+}
+
+.list-image-parent {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  height: 3.3em;
+  width: 3.3em;
+  overflow: hidden;
+  background-color: gray;
+  /*background-image: -moz-radial-gradient(50% 50%, ellipse farthest-corner, rgba(255, 255, 255, 1) 0%, rgba(0, 0, 0, 0.4) 100%);*/
+}
+
+.list-default-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  font-size: 3.3em;
+  line-height: 100%;
+  opacity: 0.4;
+  color: orange;
+  /*text-shadow: 0.2em 0.5em 0.1em #660000, -0.3em 0.1em 0.1em #006600, 0.4em -0.3em 0.1em #000066;*/
+}
+
+.list-image {
+  position: absolute;
 }

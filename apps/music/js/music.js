@@ -217,6 +217,17 @@ var ListView = {
 
     var a = document.createElement('a');
     a.href = '#';
+    
+    var parent = document.createElement('div');
+    parent.className = 'list-image-parent';
+    var div = document.createElement('div');
+    div.className = 'list-default-image';
+    div.innerHTML = '&#9834;';
+    var img = document.createElement('img');
+    img.className = 'list-image';
+    
+    parent.appendChild(div);
+    parent.appendChild(img);
 
     switch (option) {
       case 'album':
@@ -242,8 +253,18 @@ var ListView = {
     }
 
     li.appendChild(a);
+    li.appendChild(parent);
 
     this.view.appendChild(li);
+    
+    var image = result.metadata.picture;
+    if (image) {
+      img.onload = function(evt) {
+        cropImage(evt);
+      }.bind(this);
+
+      img.src = 'data:' + image.format + ';base64,' + Base64.encodeBytes(image.data);
+    }
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -451,17 +472,19 @@ var PlayerView = {
         songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
       this.currentIndex = targetIndex;
 
+      // Reset the image to be ready for fade-in
+      this.coverImage.src = '';
+      this.coverImage.classList.remove('fadeIn');
+
       var image = songData.metadata.picture;
       if (image) {
         this.coverImage.onload = function(evt) {
           cropImage(evt);
-          this.coverImage.classList.remove('hidden');
+
+          this.coverImage.classList.add('fadeIn');
         }.bind(this);
         
-        this.coverImage.src = "data:" + image.format + ";base64," + Base64.encodeBytes(image.data);
-      } else {
-        this.coverImage.classList.add('hidden');
-        this.coverImage.src = '';
+        this.coverImage.src = 'data:' + image.format + ';base64,' + Base64.encodeBytes(image.data);
       }
 
       musicdb.getFile(this.dataSource[targetIndex].name, function(file) {

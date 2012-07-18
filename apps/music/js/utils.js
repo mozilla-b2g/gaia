@@ -33,6 +33,11 @@ function formatTime(secs) {
   return formatedTime;
 }
 
+// This function is for cropping the onloaded IMG.
+// If a DIV(parent) contains a IMG(child),
+// the IMG will be cropped and fitted to vertical or horizontal center.
+// DIV(parent) - overflow: hidden;
+// IMG(child) - position: absolute; 
 function cropImage(evt) {
   var image = evt.target;
 
@@ -41,8 +46,7 @@ function cropImage(evt) {
 
   var childRatio = image.naturalWidth / image.naturalHeight;
   var parentRatio = parentWidth / parentHeight;
-  
-  // cilentWidth and clientHeight is 0 when image onloads
+
   if (childRatio > parentRatio) {
     image.style.width = 'auto';
     image.style.height = parentHeight + 'px';
