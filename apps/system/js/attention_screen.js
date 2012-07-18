@@ -3,6 +3,11 @@
 'use strict';
 
 var AttentionScreen = {
+  get mainScreen() {
+    delete this.mainScreen;
+    return this.mainScreen = document.getElementById('screen');
+  },
+
   get screen() {
     delete this.screen;
     return this.screen = document.getElementById('attention-screen');
@@ -72,7 +77,9 @@ var AttentionScreen = {
     }
 
     this.screen.classList.remove('displayed');
-    this.screen.classList.remove('status');
+    this.mainScreen.classList.remove('active-statusbar');
+    this.screen.classList.remove('status-mode');
+    this.dispatchEvent('status-inactive');
     this.screen.removeChild(evt.target);
 
     if (this._screenInitiallyDisabled)
@@ -84,7 +91,36 @@ var AttentionScreen = {
   },
 
   show: function as_show() {
-    this.screen.classList.remove('status');
+    this.screen.style.MozTransition = 'none';
+    this.screen.classList.remove('status-mode');
+
+    // hardening against the unavailability of MozAfterPaint
+    var finished = false;
+
+    var self = this;
+    var finishTransition = function ch_finishTransition() {
+      if (finished)
+        return;
+
+      if (securityTimeout) {
+        clearTimeout(securityTimeout);
+        securityTimeout = null;
+      }
+
+      finished = true;
+
+      setTimeout(function nextLoop() {
+        self.screen.style.MozTransition = '';
+        self.mainScreen.classList.remove('active-statusbar');
+        self.dispatchEvent('status-inactive');
+      });
+    };
+
+    window.addEventListener('MozAfterPaint', function finishAfterPaint() {
+      window.removeEventListener('MozAfterPaint', finishAfterPaint);
+      finishTransition();
+    });
+    var securityTimeout = window.setTimeout(finishTransition, 100);
   },
 
   hide: function as_hide(evt) {
@@ -92,15 +128,28 @@ var AttentionScreen = {
         evt.keyCode == evt.DOM_VK_HOME) {
 
       if (this.screen.querySelectorAll('iframe').length > 0) {
-        if (!this.screen.classList.contains('status')) {
-          this.screen.classList.add('status');
-
+        if (!this.mainScreen.classList.contains('active-statusbar')) {
           // The user is hiding the attention screen to use the phone we better
           // not turn the sreen off when the attention screen is closed.
           this._screenInitiallyDisabled = false;
+
+          this.dispatchEvent('status-active');
+          this.mainScreen.classList.add('active-statusbar');
+
+          var screen = this.screen;
+          screen.addEventListener('transitionend', function trWait() {
+            screen.removeEventListener('transitionend', trWait);
+            screen.classList.add('status-mode');
+          });
         }
       }
     }
+  },
+
+  dispatchEvent: function ls_dispatchEvent(name) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(name, true, true, null);
+    window.dispatchEvent(evt);
   },
 
   showForOrigin: function as_showForOrigin(origin) {

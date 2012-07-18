@@ -18,6 +18,10 @@
   background: #000 url('images/grippy.png') no-repeat 50% 50%;
 }
 
+#screen.active-statusbar #statusbar {
+  height: 40px;
+}
+
 #screen.locked > #statusbar,
 #screen.utility-tray > #statusbar {
   background: #000;
