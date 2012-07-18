@@ -232,6 +232,10 @@ var ThreadListUI = {
     return this.deleteSelectedButton =
     document.getElementById('delete-selected-threads');
   },
+  get doneButton() {
+    delete this.doneButton;
+    return this.doneButton = document.getElementById('thread-done-button');
+  },
 
   init: function thlui_init() {
     this.delNumList = [];
@@ -239,6 +243,7 @@ var ThreadListUI = {
       this.deleteAllThreads.bind(this));
     this.deleteSelectedButton.addEventListener('click',
       this.deleteThreads.bind(this));
+    this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
@@ -272,6 +277,11 @@ var ThreadListUI = {
         inputs[i].parentNode.parentNode.classList.add('undo-candidate');
       }
     }
+  },
+
+  executeDeletion: function thui_executeDeletion() {
+    //TODO call MManager
+    window.alert("EXECUTION");
   },
 
   renderThreads: function thlui_renderThreads(messages) {
@@ -424,6 +434,11 @@ var ThreadUI = {
     document.getElementById('delete-selected-messages');
   },
 
+  get doneButton() {
+    delete this.doneButton;
+    return this.doneButton = document.getElementById('messages-done-button');
+  },
+
   init: function thui_init() {
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
@@ -431,6 +446,7 @@ var ThreadUI = {
       this.deleteAllMessages.bind(this));
     this.deleteSelectedButton.addEventListener('click',
       this.deleteMessages.bind(this));
+    this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -588,6 +604,11 @@ var ThreadUI = {
         inputs[i].parentNode.parentNode.classList.add('undo-candidate');
       }
     }
+  },
+
+  executeDeletion: function thui_executeDeletion() {
+    //TODO call MManager
+    window.alert("EXECUTION");
   },
 
   handleEvent: function thui_handleEvent(evt) {
