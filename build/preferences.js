@@ -68,46 +68,6 @@ function writeContent(content) {
   stream.close();
 }
 
-
-let permissions = {
-  "power": {
-    "urls": [],
-    "pref": "dom.power.whitelist"
-  },
-  "sms": {
-    "urls": [],
-    "pref": "dom.sms.whitelist"
-  },
-  "telephony": {
-    "urls": [],
-    "pref": "dom.telephony.app.phone.url"
-  },
-  "mozBluetooth": {
-    "urls": [],
-    "pref": "dom.mozBluetooth.whitelist"
-  },
-  "mozbrowser": {
-    "urls": [],
-    "pref": "dom.mozBrowserFramesWhitelist"
-  },
-  "mozApps": {
-    "urls": [],
-    "pref": "dom.mozApps.whitelist"
-  },
-  "mobileconnection": {
-    "urls": [],
-    "pref": "dom.mobileconnection.whitelist"
-  },
-  "mozFM": {
-    "urls": [],
-    "pref": "dom.mozFMRadio.whitelist"
-  },
-  "systemXHR": {
-    "urls": [],
-    "pref": "dom.systemXHR.whitelist"
-  },
-};
-
 let content = "";
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
@@ -120,39 +80,6 @@ domains.push(GAIA_DOMAIN);
 
 let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 
-(function registerProfileDirectory() {
-
-  let directoryProvider = {
-    getFile: function provider_getFile(prop, persistent) {
-      persistent.value = true;
-      debug("prop: " + prop);
-      if (prop != "ProfD" && prop != "ProfLDS") {
-        throw Cr.NS_ERROR_FAILURE;
-      }
-
-      let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile)
-      file.initWithPath(PROFILE_DIR);
-      return file;
-    },
-
-    QueryInterface: function provider_queryInterface(iid) {
-      if (iid.equals(Ci.nsIDirectoryServiceProvider) ||
-          iid.equals(Ci.nsISupports)) {
-        return this;
-      }
-      throw Cr.NS_ERROR_NO_INTERFACE;
-    }
-  };
-
-  Cc["@mozilla.org/file/directory_service;1"]
-    .getService(Ci.nsIProperties)
-    .QueryInterface(Ci.nsIDirectoryService)
-    .registerProvider(directoryProvider);
-})();
-
-let permissionManager = Components.classes["@mozilla.org/permissionmanager;1"].getService(Ci.nsIPermissionManager);
-let ioservice = Components.classes["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-
 appSrcDirs.forEach(function parseDirectory(directoryName) {
   let directories = getSubDirectories(directoryName);
   directories.forEach(function readManifests(dir) {
@@ -164,41 +91,6 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
     let domain = dir + "." + GAIA_DOMAIN;
     privileges.push(rootURL);
     domains.push(domain);
-
-    let perms = manifest.permissions;
-    if (perms) {
-      for each(let name in perms) {
-        if (!permissions[name])
-          continue;
-
-        let uri = ioservice.newURI(rootURL, null, null);
-        dump("add permission: " + rootURL + ", " + name + "\n");
-        permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-
-        // XXX REMOVE once bug 774716 is fixed
-        permissions[name].urls.push(rootURL);
-
-        // special case for the telephony API which needs full URLs
-        if (name == 'telephony') {
-          if (manifest.background_page) {
-            let uri = ioservice.newURI(rootURL + manifest.background_page, null, null);
-            dump("add permission: " + rootURL + manifest.background_page + ", " + name + "\n");
-            permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-
-            // XXX REMOVEME
-            permissions[name].urls.push(rootURL + manifest.background_page);
-          }
-        }
-        if (manifest.attention_page) {
-          let uri = ioservice.newURI(rootURL + manifest.attention_page, null, null);
-          dump("add permission: " + rootURL + manifest.attention_page+ ", " + name + "\n");
-          permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-
-          // XXX REMOVEME
-          permissions[name].urls.push(rootURL + manifest.attention_page);
-        }
-      }
-    }
   });
 });
 
@@ -208,11 +100,6 @@ content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "
 
 if (LOCAL_DOMAINS) {
   content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
-}
-
-for (let name in permissions) {
-  let perm = permissions[name];
-  content += "user_pref(\"" + perm.pref + "\",\"" + perm.urls.join(",") + "\");\n";
 }
 
 if (DEBUG) {

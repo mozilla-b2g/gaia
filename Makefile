@@ -126,7 +126,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: preferences test-agent-config offline extensions
+profile: preferences permissions test-agent-config offline extensions
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -284,7 +284,7 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 # Generate profile/prefs.js
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
-	@mkdir -p profile
+	test -d profile || mkdir -p profile
 	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
 	if [ -f custom-prefs.js ]; \
 	  then \
@@ -292,6 +292,13 @@ preferences: install-xulrunner
 	  fi
 	@echo "Done"
 
+
+# Generate profile/permissions.sqlite
+permissions: install-xulrunner-sdk
+	@echo "Generating prefs.js..."
+	test -d profile || mkdir -p profile
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/permissions.js
+	@echo "Done"
 
 # Generate profile/extensions
 EXT_DIR=profile/extensions
