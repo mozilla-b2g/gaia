@@ -138,9 +138,9 @@ const GridManager = (function() {
 
       if (duration && index === 0) {
         if (deltaX > 0) {
-          page.moveBy(scrollX, duration * 1.5);
+          page.moveBy(scrollX, duration * 2);
         } else {
-          page.moveBy(scrollX, duration / 1.5);
+          page.moveBy(scrollX, duration / 2);
         }
       } else {
         page.moveBy(scrollX, duration);
@@ -160,10 +160,13 @@ const GridManager = (function() {
     } else {
       var container = pageHelper.getCurrent().container;
       var icongrid = document.getElementById('icongrid');
+      var footer = document.getElementById('footer');
 
       // From search page to app grid page
-      if (previousIndex === 0)
+      if (previousIndex === 0) {
         icongrid.classList.add('darken');
+        footer.classList.add('darken');
+      }
 
       container.addEventListener('transitionend', function tr_end(e) {
         container.removeEventListener('transitionend', tr_end);
@@ -172,6 +175,7 @@ const GridManager = (function() {
         Search.resetIcon();
         if (index === 0) {
           icongrid.classList.remove('darken');
+          footer.classList.remove('darken');
         } else {
           pageHelper.getCurrent().shake(previousIndex - index);
         }
