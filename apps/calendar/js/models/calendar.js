@@ -6,6 +6,8 @@
       options = {};
     }
 
+    this.remote = {};
+
     for (key in options) {
       if (options.hasOwnProperty(key)) {
         this[key] = options[key];
@@ -50,6 +52,12 @@
      * @type {Boolean}
      */
     localDisplayed: true,
+
+    /**
+     * Id of account this record
+     * is associated with.
+     */
+    accountId: null,
 
     /**
      * Updates remote with data from a calendar provider.

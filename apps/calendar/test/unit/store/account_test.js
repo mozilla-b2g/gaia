@@ -53,8 +53,6 @@ suite('store/account', function() {
   });
 
   suite('#_createModel', function() {
-    var connected;
-
     test('with id', function() {
       var result = subject._createModel({
         providerType: 'Local'

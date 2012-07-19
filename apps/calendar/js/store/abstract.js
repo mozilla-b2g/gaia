@@ -20,6 +20,16 @@
       return this._cached;
     },
 
+    _addToCache: function(object) {
+      this._cached[object._id] = object;
+    },
+
+    _removeFromCache: function(id) {
+      if (id in this.cached) {
+        delete this.cached[id];
+      }
+    },
+
     /**
      * Adds an account to the database.
      *
@@ -64,7 +74,7 @@
         var id = putReq.result;
         var result = self._createModel(object, id);
 
-        self._cached[id] = result;
+        self._addToCache(object);
         callback(null, id, result);
 
         self.emit(reqType, id, result);
@@ -94,7 +104,7 @@
         if (cursor) {
           var object = self._createModel(cursor.value, cursor.key);
           results[cursor.key] = object;
-          self._cached[cursor.key] = object;
+          self._addToCache(object);
           cursor.continue();
         }
       };
@@ -139,7 +149,7 @@
       });
 
       trans.addEventListener('complete', function() {
-        delete self._cached[id];
+        self._removeFromCache(id);
         callback(null, id);
         self.emit('remove', id);
       });
