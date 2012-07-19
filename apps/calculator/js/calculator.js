@@ -239,13 +239,13 @@ var Calculator = {
         var op1 = stack.pop();
         var result = this.evaluate[token](op1, op2);
         if (isNaN(result))
-          throw { type: 'error', msg: 'Value is ' + result };
+          throw ({ type: 'error', msg: 'Value is ' + result });
         stack.push(result);
       }
     }, this);
     var finalResult = stack.pop();
     if (isNaN(finalResult))
-      throw { type: 'error', msg: 'Value is ' + finalResult };
+      throw ({ type: 'error', msg: 'Value is ' + finalResult });
     return finalResult;
   },
 
