@@ -146,7 +146,7 @@ button::-moz-focus-inner {
 }
 
 .log-item.highlighted {
-  background: rgba(255,255,0,.2);
+  background: rgba(255,255,0,.3);
 }
 
 .log-item-info {
@@ -171,6 +171,7 @@ button::-moz-focus-inner {
   font-family: FontRegular;
   font-size: -moz-calc(6 * 0.226rem);
   color: #5b5b5b;
+  white-space: pre-wrap;
 }
 
 .call-log-contact-photo {

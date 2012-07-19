@@ -212,14 +212,27 @@ var Recents = {
       Contacts.findByNumber(
         callLogItems[i].querySelector('.primary-info').textContent.trim(),
         function re_contactCallBack(itemLogEl, contact) {
+          var primaryInfo = itemLogEl.querySelector('.primary-info');
+          var phoneNumber = itemLogEl.dataset.num.trim();
+          var secondaryInfo = itemLogEl.querySelector('.secondary-info');
+          var contactPhoneNumber;
+          var length = contact.tel.length;
+          var phoneEntry;
           if (contact) {
             if (contact.name) {
-              itemLogEl.querySelector('.primary-info').textContent =
+              primaryInfo.textContent =
                 contact.name;
             }
             if (contact.photo) {
               itemLogEl.querySelector('.call-log-contact-photo').
                 style.backgroundImage = 'url(' + contact.photo + ')';
+            }
+            for (var i = 0; i < length; i++) {
+              phoneEntry = contact.tel[i];
+              contactPhoneNumber = phoneEntry.number.replace(' ', '', 'g');
+              if ((phoneNumber == contactPhoneNumber) && (phoneEntry.type)) {
+                secondaryInfo.textContent = secondaryInfo.textContent.trim() + '   ' + phoneEntry.type;
+              }
             }
           }
         }.bind(this, callLogItems[i]));
