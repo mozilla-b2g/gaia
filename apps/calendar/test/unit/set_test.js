@@ -1,5 +1,6 @@
-requireApp('calendar/js/set.js');
-requireApp('calendar/test/unit/helper.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('set.js');
+});
 
 suite('set', function() {
 

@@ -106,6 +106,10 @@ var LockScreen = {
       self.overlay.classList.remove('uninit');
     });
 
+    SettingsListener.observe(
+      'lockscreen.passcode-lock.code', '0000', function(value) {
+      self.passCode = value;
+    });
 
     SettingsListener.observe(
         'lockscreen.passcode-lock.enabled', false, function(value) {

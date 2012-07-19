@@ -25,7 +25,6 @@ html * {
 
 .font-light {
   font-family: 'Open Sans';
-  font-weight: light;
 }
 
 #phone-number-view {
@@ -363,4 +362,59 @@ button[disabled] .icon-keypad-visibility {
 
 #screen-off.displayed {
   display: block;
+}
+
+/* Handling the status bar mode */
+@media screen and (max-height: 40px) {
+  body {
+    background-color: rgb(4, 76, 41);
+    -moz-animation-duration: 1.5s;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-direction: alternate;
+    -moz-animation-timing-function: ease;
+    -moz-animation-name: pulse;
+  }
+
+  @-moz-keyframes pulse {
+    from {
+      background-color: rgb(4, 76, 41);
+    }
+
+    to {
+      background-color: rgb(22, 127, 57);
+    }
+  }
+
+  #call-screen {
+    background: transparent;
+  }
+
+  #cs-header {
+    background: transparent;
+  }
+
+  #contact-primary-info, .contact-primary-info {
+    position: absolute;
+    top: 4px;
+    left: 10px;
+    height: 32px;
+    width: 80%;
+
+    padding: 0;
+
+    color: white;
+  }
+
+  #call-duration, #call-duration.ongoing {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    height: 24px;
+    width: 20%;
+
+    padding: 0;
+    font-size: 18px;
+    line-height: 24px;
+    text-align: right;
+  }
 }

@@ -1,36 +1,16 @@
 (function(window) {
 
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   var template = Calendar.Templates.Account;
 
   function CreateAccount(options) {
-    var key;
-
-    if (typeof(options) === 'undefined') {
-      options = {};
-    }
-
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
-
-    // set this.element
-    Calendar.View.call(this, this.selectors.element);
-
+    Calendar.View.apply(this, arguments);
     this._initEvents();
   }
 
   CreateAccount.prototype = {
     __proto__: Calendar.View.prototype,
+
+    presets: Calendar.Presets,
 
     selectors: {
       element: '#create-account-view',
@@ -42,25 +22,42 @@
     },
 
     _initEvents: function() {
-    },
+      var self = this;
+      var store = this.app.store('Account');
 
-    _updateAccountPresets: function() {
-      var list = Calendar.Presets;
-      var output;
+      // Here instead of bind
+      // for inheritance / testing reasons.
+      function render() {
+        self.render();
+      }
 
-      Object.keys(list).forEach(function(preset) {
-        output = template.accountItem.render({ name: preset });
-        this.accounts.insertAdjacentHTML('beforeend', output);
-      }, this);
+      store.on('remove', render);
+      store.on('add', render);
     },
 
     render: function() {
-      this._updateAccountPresets();
-    }
+      var list = this.presets;
+      var store = this.app.store('Account');
+      var output;
 
+      this.accounts.innerHTML = '';
+
+      Object.keys(list).forEach(function(preset) {
+        var obj = list[preset];
+
+        if (obj.singleUse) {
+          if (store.presetActive(preset)) {
+            return;
+          }
+        }
+
+        output = template.provider.render({ name: preset });
+        this.accounts.insertAdjacentHTML('beforeend', output);
+      }, this);
+    }
   };
 
   CreateAccount.prototype.onfirstseen = CreateAccount.prototype.render;
-  Calendar.Views.CreateAccount = CreateAccount;
+  Calendar.ns('Views').CreateAccount = CreateAccount;
 
 }(this));

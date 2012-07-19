@@ -2,7 +2,7 @@
   position: absolute;
   top: 0px;
   width: 100%;
-  height: -moz-calc(100% + 20px);
+  height: 100%;
   overflow: hidden;
 
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
@@ -16,17 +16,25 @@
   display: block;
 }
 
-#attention-screen.status {
-  -moz-transform: translateY(-moz-calc(-100% + 20px));
+#screen.active-statusbar #attention-screen {
+  -moz-transform: translateY(-moz-calc(-100% + 40px));
+}
+
+#screen.active-statusbar #attention-screen.status-mode {
+  height: 40px;
+  -moz-transform: translateY(0px);
+}
+
+#attention-screen.status-mode > iframe {
+  margin-top: 0;
+  height: 100%;
 }
 
 #attention-screen > iframe {
   border: 0;
   width: 100%;
-  /* we have the 20px status bar on top and the 20px
-   * attention-bar at the bottom, we need to remove 40px
-   * to the iframe height. */
-  height: -moz-calc(100% - 40px);
+  /* we have the 20px status bar on top */
+  height: -moz-calc(100% - 20px);
   margin-top: 20px;
 
   background-color: transparent;
@@ -34,34 +42,15 @@
 
 #attention-screen > #attention-bar {
   position: absolute;
-  bottom: 2px;
+  bottom: 0px;
   width: 100%;
-  height: 28px;
+  /* Status bar height * 2 */
+  height: 40px;
 
   z-index: 1000;
-  opacity: 0.1;
-  background-color: #22b04d;
-  border-radius: 14px;
-
   display: none;
-
-  -moz-animation-duration: 1s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-direction: alternate;
-  -moz-animation-timing-function: ease;
-  -moz-animation-name: pulse;
 }
 
-@-moz-keyframes pulse {
-  from {
-    opacity: 0.1;
-  }
-
-  to {
-    opacity: 0.5;
-  }
-}
-
-#attention-screen.status > #attention-bar {
+#screen.active-statusbar #attention-screen > #attention-bar {
   display: block;
 }
