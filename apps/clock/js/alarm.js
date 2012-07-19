@@ -293,11 +293,7 @@ var AlarmList = {
 
     var self = this;
     AlarmsDB.putAlarm(alarm, function al_putAlarmList(alarm) {
-      if (alarm.enabled) {
-        AlarmManager.set(alarm);
-      } else {
-        AlarmManager.cancel(alarm);
-      }
+      AlarmManager.setEnabled(alarm, alarm.enabled);
       self.refresh();
     });
   },
@@ -305,7 +301,7 @@ var AlarmList = {
   deleteCurrent: function al_deleteCurrent(id) {
     var self = this;
     if (alarm.alarmId)
-      AlarmManager.cancel(alarm);
+      AlarmManager.setEnabled(alarm, false);
 
     AlarmsDB.deleteAlarm(id, function al_deletedAlarm() {
       self.refresh();
@@ -325,8 +321,23 @@ var AlarmManager = {
     });
   },
 
-  set: function am_set(alarm) {
-    var nextAlarmFireTime = getNextAlarmFireTime(alarm);
+  setEnabled: function am_setEnabled(alarm, enabled) {
+    if (enabled) {
+      this.set(alarm);
+    } else {
+      this.unset(alarm);
+    }
+  },
+
+  set: function am_set(alarm, bSnooze) {
+    var nextAlarmFireTime = null;
+    if (bSnooze) {
+      nextAlarmFireTime = new Date();
+      nextAlarmFireTime.setMinutes(nextAlarmFireTime.getMinutes() +
+                                   alarm.snooze);
+    } else {
+      nextAlarmFireTime = getNextAlarmFireTime(alarm);
+    }
     var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
                   { id: alarm.id }); // give the alarm id for the request
     request.onsuccess = function(e) {
@@ -337,28 +348,12 @@ var AlarmManager = {
       });
     };
     request.onerror = function(e) {
-      console.log('set alarm fail');
+      var logInfo = bSnooze ? ' snooze' : '';
+      console.log('set' + logInfo + ' alarm fail');
     };
   },
 
-  setSnoozeAlarm: function am_setSnoozeAlarm(alarm) {
-    var nextAlarmFireTime = new Date();
-    nextAlarmFireTime.setMinutes(nextAlarmFireTime.getMinutes() + alarm.snooze);
-    var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
-                  { id: alarm.id });  // give the alarm id for the request
-    request.onsuccess = function(e) {
-      alarm.alarmId = e.target.result;
-      // save the AlarmAPI's request id to DB
-      AlarmsDB.putAlarm(alarm, function am_putAlarm(alarm) {
-        AlarmList.refresh();
-      });
-    };
-    request.onerror = function(e) {
-      console.log('set snooze alarm fail');
-    };
-  },
-
-  cancel: function am_cancel(alarm) {
+  unset: function am_unset(alarm) {
     if (alarm.alarmId) {
       navigator.mozAlarms.remove(alarm.alarmId);
     }
@@ -381,7 +376,7 @@ var AlarmManager = {
   },
 
   snoozeHandler: function am_snoozeHandler() {
-    this.setSnoozeAlarm(this._onFireAlarm);
+    this.set(this._onFireAlarm, true);
   },
 
   cancelHandler: function am_cancelHandler() {
@@ -583,11 +578,7 @@ var AlarmEditView = {
 
     if (!error) {
       AlarmsDB.putAlarm(this.alarm, function al_putAlarmList(alarm) {
-        if (alarm.enabled) {
-          AlarmManager.set(alarm);
-        } else {
-          AlarmManager.cancel(alarm);
-        }
+        AlarmManager.setEnabled(alarm, alarm.enabled);
         AlarmList.refresh();
       });
     }

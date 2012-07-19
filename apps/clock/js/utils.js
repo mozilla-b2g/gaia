@@ -61,36 +61,31 @@ function getNextAlarmFireTime(alarm) { // get the next alarm fire time
     // XXX compare the hour after converted it to format 24-hours
     if (!(hour >= now.getHours() && minute > now.getMinutes()))
       diffDays = 1; // alarm tomorrow
+  } else { // find out the first alarm day from the repeat info.
+    var weekDayFormatRepeat =
+      repeat.slice(-1).concat(repeat.slice(0, repeat.length - 1));
+    var weekDayOfToday = now.getDay();
+    var index = 0;
+    for (var i = 0; i < weekDayFormatRepeat.length; i++) {
+      index = (i + weekDayOfToday) % 7;
+      if (weekDayFormatRepeat.charAt(index) == '1') {
+        if (diffDays == 0) { // if alarm has passed already
+          if (hour >= now.getHours() && minute > now.getMinutes())
+            break;
 
-    nextAlarmFireTime.setDate(nextAlarmFireTime.getDate() + diffDays);
-    nextAlarmFireTime.setHours(hour);
-    nextAlarmFireTime.setMinutes(minute);
-    nextAlarmFireTime.setSeconds(0, 0);
-    return nextAlarmFireTime;
-  }
-  // find out the first alarm day from the repeat info.
-  var weekDayFormatRepeat =
-    repeat.slice(-1).concat(repeat.slice(0, repeat.length - 1));
-  var weekDayOfToday = now.getDay();
-  var index = 0;
-  for (var i = 0; i < weekDayFormatRepeat.length; i++) {
-    index = (i + weekDayOfToday) % 7;
-    if (weekDayFormatRepeat.charAt(index) == '1') {
-      if (diffDays == 0) { // if alarm has passed already
-        if (hour >= now.getHours() && minute > now.getMinutes()) {
-          break;
-        } else {
           diffDays++;
           continue;
         }
+        break;
       }
-      break;
+      diffDays++;
     }
-    diffDays++;
   }
+
   nextAlarmFireTime.setDate(nextAlarmFireTime.getDate() + diffDays);
   nextAlarmFireTime.setHours(hour);
   nextAlarmFireTime.setMinutes(minute);
   nextAlarmFireTime.setSeconds(0, 0);
+
   return nextAlarmFireTime;
 }

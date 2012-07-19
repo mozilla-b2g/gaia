@@ -44,16 +44,16 @@ var RingView = {
 
   ring: function rv_ring() {
     this._ringtonePlayer = new Audio();
-    this._ringtonePlayer.loop = true;
+    var ringtonePlayer = this._ringtonePlayer;
+    ringtonePlayer.loop = true;
     // XXX Need to set the ringtone according to alarm's property of 'sound'
     var selectedAlarmSound = 'style/ringtones/classic.wav';
-    this._ringtonePlayer.src = selectedAlarmSound;
-    this._ringtonePlayer.play();
+    ringtonePlayer.src = selectedAlarmSound;
+    ringtonePlayer.play();
     /* If user don't handle the onFire alarm,
        pause the ringtone after 20 secs */
-    var self = this;
     window.setTimeout(function rv_pauseRingtone() {
-      self._ringtonePlayer.pause();
+      ringtonePlayer.pause();
     }, 20000);
   },
 
@@ -63,7 +63,7 @@ var RingView = {
         navigator.vibrate([200]);
       }, 600);
       /* If user don't handle the onFire alarm,
-       turn off vibraction after 7 secs */
+       turn off vibration after 7 secs */
       var self = this;
       window.setTimeout(function rv_clearVibration() {
         window.clearInterval(self._vibrateInterval);
