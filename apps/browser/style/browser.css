@@ -238,8 +238,10 @@ input[type="image"] {
 }
 
 #url-button {
-  display:none;
   background-position: center;
+  display: block;
+  height: 32px;
+  width: 32px;
 }
 
 #ssl-indicator {

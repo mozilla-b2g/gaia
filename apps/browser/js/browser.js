@@ -341,6 +341,11 @@ var Browser = {
       return;
     }
 
+    if (this.urlButtonMode == this.STOP) {
+      this.currentTab.dom.stop();
+      return;
+    }
+
     var url = this.urlInput.value.trim();
     // If the address entered starts with a quote then search, if it
     // contains a . or : then treat as a url, else search
@@ -429,16 +434,13 @@ var Browser = {
     this.urlButtonMode = mode;
     switch (mode) {
       case this.GO:
-        this.urlButton.src = 'style/images/go.png';
-        this.urlButton.style.display = 'block';
+        this.urlButton.style.backgroundImage = 'url(style/images/go.png)';
         break;
       case this.REFRESH:
-        this.urlButton.src = 'style/images/refresh.png';
-        this.urlButton.style.display = 'block';
+        this.urlButton.style.backgroundImage = 'url(style/images/refresh.png)';
         break;
       case this.STOP:
-        // Dont currently have a stop button
-        this.urlButton.style.display = 'none';
+        this.urlButton.style.backgroundImage = 'url(style/images/stop.png)';
         break;
     }
   },
