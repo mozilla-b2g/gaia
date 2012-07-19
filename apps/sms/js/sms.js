@@ -299,7 +299,7 @@ var ThreadListUI = {
         for (var j = 0; j < messages.length; j++) {
           if (messages[j].delivery == 'sent' ||
               messages[j].delivery == 'received') {
-            ThreadListUI.delNumList.push(parseFloat(messages[j]));
+            ThreadListUI.delNumList.push(parseFloat(messages[j].id));
           } else {
             ThreadListUI.pendingDelList.push(messages[j]);
           }
@@ -309,15 +309,21 @@ var ThreadListUI = {
   },
 
   executeDeletion: function thlui_executeDeletion() {
-    MessageManager.deleteMessages(this.delNumList, function repaint() {
-      for (var i = 0; i < this.pendingDelList; i++) {
-        //TODO proper recursive mode adding a function on PendingMsgManager
-        PendingMsgManager.deleteFromMsgDB(this.pendingDelList[i]);
+    MessageManager.deleteMessages(ThreadListUI.delNumList, function repaint() {
+      for (var i = 0; i < ThreadListUI.pendingDelList.length; i++) {
+        //TODO Change this functionality with Steve code
+        if (i == ThreadListUI.pendingDelList.length -1) {
+          PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i], function() {
+            MessageManager.getMessages(function recoverMessages(messages) {
+              ThreadListUI.renderThreads(messages);
+              window.location.hash = '#thread-list';
+            });
+          });
+        } else {
+          PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i]);
+        }
       }
-      MessageManager.getMessages(function recoverMessages(messages) {
-        ThreadListUI.renderThreads(messages);
-        window.location.hash = '#thread-list';
-      });
+      
     });
 
   },

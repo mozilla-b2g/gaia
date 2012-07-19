@@ -94,10 +94,15 @@ var PendingMsgManager = {
     var deleteRequest = store.delete(msg.timestamp);
     var pendingMgr = this;
     deleteRequest.onsuccess = function onsuccess() {
-      callback(deleteRequest);
+      if(callback){
+        callback(deleteRequest);
+      }
+      
     }
     deleteRequest.onerror = function onerror() {
-      callback(null);
+      if(callback){
+        callback(null);
+      }
       // Execute save operation again if failed.
       window.setTimeout(
         pendingMgr.deleteFromMsgDB(msg, callback).bind(pendingMgr), 500);
