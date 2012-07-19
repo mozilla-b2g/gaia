@@ -88,12 +88,8 @@ Calendar.App = (function(window) {
 
       var account = this.db.getStore('Account');
 
-      // load the current set of accounts
-      account.load(function(err, data) {
-        // after finished start router.
-        self.router.start();
-        document.body.classList.remove('loading');
-      });
+      self.router.start();
+      document.body.classList.remove('loading');
     },
 
     /**
@@ -125,7 +121,7 @@ Calendar.App = (function(window) {
         next();
       });
 
-      this.db.open(function() {
+      this.db.load(function() {
         next();
       });
     },

@@ -231,7 +231,7 @@ suite('views/modify_account', function() {
   test('#_updateModel', function() {
     var model = new Calendar.Models.Account();
     var store = app.store('Account');
-    store._accounts['1'] = model;
+    store._cached['1'] = model;
 
     var data = subject._updateModel('1');
 
