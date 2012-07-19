@@ -5,21 +5,6 @@
 
 // Duplicated code in several places
 // TODO Better settings observe interface?
-
-
-/* Debugging code for the environment without mozKeyboard,
- * such as Firefox Nightly build */
-if (!window.navigator.mozKeyboard) {
-  window.navigator.mozKeyboard = {};
-}
-
-if (!window.navigator.mozKeyboard.sendKey) {
-  window.navigator.mozKeyboard.sendKey = function moz_sendKey(charCode,
-                                                              keyCode) {
-    console.log('moz sendKey: (' + charCode + ', ' + keyCode + ')');
-  };
-}
-
 var SettingsListener = {
   _callbacks: {},
 
@@ -53,6 +38,19 @@ var SettingsListener = {
 };
 
 SettingsListener.init();
+
+/* Debugging code for the environment without mozKeyboard,
+ * such as Firefox Nightly build */
+if (!window.navigator.mozKeyboard) {
+  window.navigator.mozKeyboard = {};
+}
+
+if (!window.navigator.mozKeyboard.sendKey) {
+  window.navigator.mozKeyboard.sendKey = function moz_sendKey(charCode,
+                                                              keyCode) {
+    console.log('moz sendKey: (' + charCode + ', ' + keyCode + ')');
+  };
+}
 
 // in charge of initiate the controller and be aware about settings changes
 const IMEManager = {
