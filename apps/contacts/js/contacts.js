@@ -359,7 +359,7 @@ var Contacts = (function() {
       var currentEmail = contact.email[email];
       var emailField = {
         address: currentEmail['address'] || '',
-        type: currentEmail['type'] || '',
+        type: currentEmail['type'] || TAG_OPTIONS['email-type'][0].value,
         i: email
       };
       var template = utils.templates.render(emailsTemplate, emailField);
