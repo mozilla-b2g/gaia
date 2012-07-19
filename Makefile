@@ -193,7 +193,7 @@ webapp-zip:
 ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
 	@mkdir -p profile/webapps
-	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	@for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
@@ -202,6 +202,14 @@ ifneq ($(DEBUG),1)
 			then \
 				mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
 				cdir=`pwd`; \
+				for f in `grep -r shared/js $$d` ;\
+				do \
+					if [[ "$$f" == *shared/js* ]] ;\
+					then \
+						file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1;`; \
+						cp --parents shared/js/$$file_to_copy $$d ;\
+					fi \
+				done; \
 				cd $$d; \
 				zip -r application.zip *; \
 				cd $$cdir; \
