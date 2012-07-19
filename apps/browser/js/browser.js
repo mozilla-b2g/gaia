@@ -337,7 +337,7 @@ var Browser = {
     }
 
     if (this.urlButtonMode == this.REFRESH) {
-      this.navigate(this.currentTab.url);
+      this.currentTab.dom.reload(true);
       return;
     }
 
