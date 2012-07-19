@@ -5,7 +5,6 @@ html, body {
   margin: 0;
   color: white;
   font-family: 'Open Sans', sans-serif;
-  font-weight: light;
   font-size: 10px;
   background: black;
 }
@@ -33,7 +32,6 @@ html * {
 
 .font-light {
   font-family: 'Open Sans';
-  font-weight: light;
 }
 
 .contact-primary-info {
