@@ -7,6 +7,8 @@ var Calculator = {
   display: document.querySelector('#display b'),
   tip: document.querySelector('#tip-window'),
 
+  isDecimalSeparatorPresent: false,
+
   backSpaceTimeout: null,
   errorTimeout: null,
   toClear: false,
@@ -21,7 +23,8 @@ var Calculator = {
       this.display.innerHTML = '0';
       return;
     }
-    var outval = this.stack.join('');
+    var infinite = new RegExp((1 / 0) + '', 'g');
+    var outval = this.stack.join('').replace(infinite, '∞');
     this.display.innerHTML = outval;
     var valWidth = this.display.offsetWidth;
     var screenWidth = this.display.parentNode.offsetWidth;
@@ -235,15 +238,15 @@ var Calculator = {
         var op2 = stack.pop();
         var op1 = stack.pop();
         var result = this.evaluate[token](op1, op2);
-        if (isNaN(result) || !isFinite(result))
+        if (isNaN(result))
           throw { type: 'error', msg: 'Value is ' + result };
         stack.push(result);
       }
     }, this);
-    var result = stack.pop();
-    if (isNaN(result) || !isFinite(result))
-      throw { type: 'error', msg: 'Value is ' + result };
-    return result;
+    var finalResult = stack.pop();
+    if (isNaN(finalResult))
+      throw { type: 'error', msg: 'Value is ' + finalResult };
+    return finalResult;
   },
 
   init: function calculator_init() {
@@ -262,15 +265,15 @@ var Calculator = {
             break;
           case 'operator':
             this.appendOperator(value);
-            delete this.isDecimalSeparatorPresent;
+            this.isDecimalSeparatorPresent = false;
             break;
           case 'command':
             if (value === '=') {
               this.calculate();
-              delete this.isDecimalSeparatorPresent;
+              this.isDecimalSeparatorPresent = false;
             } else if (value === 'C') {
               if (this.stack[this.stack.length - 1])
-                delete this.isDecimalSeparatorPresent;
+                this.isDecimalSeparatorPresent = false;
               this.backSpace();
             } else if (value === 'TIP') {
               this.showTip();

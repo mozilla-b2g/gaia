@@ -64,7 +64,7 @@ input {
   position: absolute;
   right: 0;
   line-height: 150px;
-  font-size:600%;
+  font-size: 600%;
   display: block;
   -moz-transform-origin: right center;
 }
