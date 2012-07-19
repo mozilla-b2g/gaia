@@ -320,18 +320,25 @@ const IMERender = (function() {
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
-    // Adjust menu style and offset
+    // Adjust menu style
     _altContainer
       .querySelectorAll('.visual-wrapper > span')[0]
       .appendChild(this.menu);
     this.menu.style.display = 'block';
 
+    // Adjust offset when alternatives menu overflows
     var alternativesLeft = getWindowLeft(this.menu);
-    var alternativesRight = alternativesLeft + this.menu.scrollWidth;
+    var alternativesRight = alternativesLeft + this.menu.offsetWidth;
+
+    // It overflows on the right
     if (left && alternativesRight > window.innerWidth) {
-      console.log('se sale por la derecha');
+      var offset = window.innerWidth - alternativesRight;
+      this.menu.style.left = offset + 'px';
+
+    // It overflows on the left
     } else if (!left && alternativesLeft < 0) {
-      console.log('se sale por la izquierda');
+      var offset = -alternativesLeft;
+      this.menu.style.right = offset + 'px';
     }
   };
 
@@ -344,6 +351,9 @@ const IMERender = (function() {
 
     if (_altContainer)
       _altContainer.parentNode.replaceChild(_menuKey, _altContainer);
+
+    this.menu.style.left = '';
+    this.menu.style.right = '';
   };
 
   // Recalculate dimensions for the current render
