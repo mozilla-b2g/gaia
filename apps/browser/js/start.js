@@ -7,7 +7,7 @@ var Start = {
     this.thumbnails = document.getElementById('thumbnails');
     this.noTopSites = document.getElementById('no-top-sites');
     Places.init((function() {
-      Places.getTopSites(this.MAX_TOP_SITES, this.showThumbnails);
+      Places.getTopSites(this.MAX_TOP_SITES, this.showThumbnails.bind(this));
     }).bind(this));
 
   },
@@ -33,7 +33,7 @@ var Start = {
       link.style.backgroundImage = 'url(' + place.screenshot + ')';
       thumbnail.appendChild(link);
       thumbnail.appendChild(title);
-      Start.thumbnails.appendChild(thumbnail);
+      this.thumbnails.appendChild(thumbnail);
     }, this);
   }
 
