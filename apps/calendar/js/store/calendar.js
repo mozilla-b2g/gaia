@@ -43,6 +43,17 @@
       }
 
       return obj;
+    },
+
+    cachedByAccount: function(accountId) {
+      if (accountId in this._accountMap) {
+        return this._accountMap[accountId];
+      }
+      return Object.create(null);
+    },
+
+    cachedByRemote: function(remoteId) {
+      return this._remoteCache[remoteId];
     }
 
    };

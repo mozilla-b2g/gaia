@@ -13,11 +13,19 @@ requireApp('calendar/test/unit/helper.js', function() {
 
 suite('store/calendar', function() {
 
-  var subject, db;
+  var subject;
+  var db;
+  var model;
 
   setup(function(done) {
     db = testSupport.calendar.db();
     subject = db.getStore('Calendar');
+
+    model = {
+      _id: 1,
+      remote: { id: 'uuid' },
+      accountId: 'acc1'
+    };
 
     db.open(function(err) {
       assert.ok(!err);
@@ -53,14 +61,7 @@ suite('store/calendar', function() {
   });
 
   suite('cache handling', function() {
-    var model;
     setup(function() {
-      model = {
-        _id: 1,
-        remote: { id: 'uuid' },
-        accountId: 'acc1'
-      };
-
       subject._addToCache(model);
     });
 
@@ -103,6 +104,27 @@ suite('store/calendar', function() {
       assert.equal(result.remote, remote);
       assert.isFalse(('_id' in result));
     });
+  });
+
+  test('#cachedByAccount', function() {
+    subject._addToCache(model);
+
+    var result = subject.cachedByAccount(
+      model.accountId
+    );
+
+    assert.deepEqual(result, {
+      1: model
+    });
+  });
+
+  test('#cachedByRemote', function() {
+    subject._addToCache(model);
+
+    assert.equal(
+      subject.cachedByRemote(model.remote.id),
+      model
+    );
   });
 
 });
