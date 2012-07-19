@@ -84,8 +84,6 @@ var NotificationScreen = {
         switch (detail.type) {
           case 'desktop-notification':
             this.addNotification(detail);
-
-            StatusBar.updateNotification(true);
             break;
 
           case 'permission-prompt':
@@ -218,6 +216,8 @@ var NotificationScreen = {
       this.toaster.classList.remove('displayed');
       this._toasterTimeout = null;
     }).bind(this), this.TOASTER_TIMEOUT);
+
+    this.updateStatusBarIcon();
   },
 
   removeNotification: function ns_removeNotification(notificationNode) {
@@ -236,15 +236,12 @@ var NotificationScreen = {
       });
     } else {
       notificationNode.parentNode.removeChild(notificationNode);
-
-      // Hiding the notification indicator in the status bar
-      // if this is the last desktop notification
-      var notifSelector = 'div[data-type="desktop-notification"]';
-      var desktopNotifications = this.container.querySelectorAll(notifSelector);
-      if (desktopNotifications.length == 0) {
-        StatusBar.updateNotification(false);
-      }
     }
+    this.updateStatusBarIcon();
+  },
+
+  updateStatusBarIcon: function ns_updateStatusBarIcon() {
+    StatusBar.updateNotification(this.container.children.length);
   }
 };
 

@@ -1,191 +1,308 @@
+/* The status bar disregard the rem rule because we have only 16px icons for now */
+
 #screen.fullscreen:not(.locked) > #statusbar {
   display: none;
 }
 
 #statusbar {
-  display: -moz-box;
   overflow: hidden;
-  position: relative;
+  position: absolute;
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
   z-index: 2147483647;
-  -moz-box-orient: horizontal;
 
   width: 100%;
-  -moz-box-sizing: border-box;
   height: 20px;
+  top: 0;
+  left: 0;
+  background-color: #000;
 
-  color: #999;
-  background: #000 url('images/grippy.png') no-repeat 50% 50%;
-}
-
-#screen.locked > #statusbar,
-#screen.utility-tray > #statusbar {
-  background: #000;
+  padding: 2px 0;
+  -moz-box-sizing: border-box;
 }
 
 #statusbar > * {
-  -moz-box-flex: 0;
   pointer-events: none;
+  float: right;
+  margin: 0 2.5px;
 }
 
-#statusbar-padding {
-  -moz-box-flex: 1;
-}
-
-#statusbar-mute {
-  width: 20px;
-  margin: 2px;
-  background: url("images/mute.png") no-repeat 50% 50%;
-}
-
-#statusbar-notification {
-  width: 20px;
-  margin: 2px;
-  background: url("images/notification-dot.png") no-repeat 50% 50%;
-}
-
-#statusbar-conn {
-  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
-  line-height: 20px;
-  font-size: 12px;
-  margin: 0 2px;
-}
-
-#statusbar-signal {
-  width: 20px;
-  margin: 2px 4px;
-}
-
-#statusbar-signal.roaming::before {
-  position: absolute;
-  content: 'R';
-  display: block;
-  font-size: 8px;
-  line-height: 8px;
-  top: 2px;
-  left: 4px;
-}
-
-#statusbar-signal > span {
-  background: #333333;
+#statusbar > .sb-start {
   float: left;
-  width: 3px;
-  margin: 1px;
 }
 
-#statusbar-signal > span.have-signal {
-  background: #999999;
-}
-
-#statusbar-signal > span:nth-child(1) { /* poor signal */
-  margin-top: 12px;
-  height: 2px;
-}
-
-#statusbar-signal > span:nth-child(2) { /* medium signal */
-  margin-top: 8px;
-  height: 6px;
-}
-
-#statusbar-signal span:nth-child(3) { /* good signal */
-  margin-top: 5px;
-  height: 9px;
-}
-
-#statusbar-signal > span:nth-child(4) { /* awesome signal */
-  margin-top: 2px;
-  height: 12px;
-}
-
-*[dir=rtl] #statusbar-signal > span {
+*[dir=rtl] #statusbar > .sb-start {
   float: right;
 }
 
-#statusbar-wifi {
-  width: 20px;
-  margin: 2px;
-  background: url("images/wifi/wifi-0.png") 50% 2px no-repeat;
-}
-
-#statusbar-wifi.signal-level0 {
-  background-image: url("images/wifi/wifi-0.png");
-}
-
-#statusbar-wifi.signal-level1 {
-  background-image: url("images/wifi/wifi-1.png");
-}
-
-#statusbar-wifi.signal-level2 {
-  background-image: url("images/wifi/wifi-2.png");
-}
-
-#statusbar-wifi.signal-level3 {
-  background-image: url("images/wifi/wifi-3.png");
-}
-
-#statusbar-wifi.signal-level4 {
-  background-image: url("images/wifi/wifi-4.png");
+#statusbar-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: url('images/loading.gif') center center repeat-x;
 }
 
 #statusbar-time {
-  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
-  line-height: 20px;
-  font-size: 12px;
-  margin: 0 2px;
+  padding: 0;
+  color: #fff;
+  font: 14px/14px 'Open Sans', sans-serif;
+  font-weight: 600;
 }
 
-#statusbar-data {
-  font-size: 8px;
-  line-height: 10px;
-  text-align: center;
-  padding: 0 1px;
-  margin: 4px;
-  border: 1px solid #999;
+.sb-icon {
+  width: 16px;
+  height: 16px;
+
+  background: url('images/icons.png') no-repeat;
 }
 
-#statusbar-data:empty {
-  display: none;
+.sb-i-battery {
+  width: 21px;
+}
+.sb-i-battery:not([data-level]) {
+  background-position: -286px 0;
+}
+.sb-i-battery[data-level="0"] {
+  background-position: 0 0;
+}
+.sb-i-battery[data-level="10"] {
+  background-position: -26px 0;
+}
+.sb-i-battery[data-level="20"] {
+  background-position: -52px 0;
+}
+.sb-i-battery[data-level="30"] {
+  background-position: -78px 0;
+}
+.sb-i-battery[data-level="40"] {
+  background-position: -104px 0;
+}
+.sb-i-battery[data-level="50"] {
+  background-position: -130px 0;
+}
+.sb-i-battery[data-level="60"] {
+  background-position: -156px 0;
+}
+.sb-i-battery[data-level="70"] {
+  background-position: -182px 0;
+}
+.sb-i-battery[data-level="80"] {
+  background-position: -208px 0;
+}
+.sb-i-battery[data-level="90"] {
+  background-position: -234px 0;
+}
+.sb-i-battery[data-level="100"] {
+  background-position: -260px 0;
 }
 
-#statusbar-loading {
-  width: 20px;
-  height: 20px;
-  margin: 2px;
-  background: transparent url("images/loading.gif") center center no-repeat;
-  background-size: 14px;
+.sb-i-battery:not([data-level])[data-charging="true"],
+.sb-i-battery[data-level="0"][data-charging="true"] {
+  background-position: 0 -20px;
+}
+.sb-i-battery[data-level="10"][data-charging="true"] {
+  background-position: -26px -20px;
+}
+.sb-i-battery[data-level="20"][data-charging="true"] {
+  background-position: -52px -20px;
+}
+.sb-i-battery[data-level="30"][data-charging="true"] {
+  background-position: -78px -20px;
+}
+.sb-i-battery[data-level="40"][data-charging="true"] {
+  background-position: -104px -20px;
+}
+.sb-i-battery[data-level="50"][data-charging="true"] {
+  background-position: -130px -20px;
+}
+.sb-i-battery[data-level="60"][data-charging="true"] {
+  background-position: -156px -20px;
+}
+.sb-i-battery[data-level="70"][data-charging="true"] {
+  background-position: -182px -20px;
+}
+.sb-i-battery[data-level="80"][data-charging="true"] {
+  background-position: -208px -20px;
+}
+.sb-i-battery[data-level="90"][data-charging="true"] {
+  background-position: -234px -20px;
+}
+.sb-i-battery[data-level="100"][data-charging="true"] {
+  background-position: -260px -20px;
 }
 
-#statusbar-battery {
-  float:right;
-  margin: 2px;
-  padding: 5px 7px 5px 5px;
-  width: 29px;
-  background: url("images/battery/battery-main.png");
-  background-repeat: no-repeat;
-  background-size: 29px 16px;
+.sb-i-wifi:not([data-level]),
+.sb-i-wifi[data-level="0"] {
+  background-position: 0 -60px;
+}
+.sb-i-wifi[data-level="1"] {
+  background-position: -21px -60px;
+}
+.sb-i-wifi[data-level="2"] {
+  background-position: -42px -60px;
+}
+.sb-i-wifi[data-level="3"] {
+  background-position: -63px -60px;
+}
+.sb-i-wifi[data-level="4"] {
+  background-position: -84px -60px;
+}
+
+.sb-i-data[data-type="LTE"] {
+  background-position: 0 -80px;
+}
+
+.sb-i-data[data-type="4G"] {
+  background-position: -21px -80px;
+}
+
+.sb-i-data[data-type="3G"] {
+  background-position: -42px -80px;
+}
+
+.sb-i-data[data-type="EDGE"] {
+  background-position: -63px -80px;
+}
+
+.sb-i-data[data-type="GPRS"] {
+  background-position: -84px -80px;
+}
+
+.sb-i-flight-mode {
+  background-position: 0 -40px;
+}
+
+.sb-i-signal[data-level="-1"] {
+  background-position: -21px -40px;
+}
+
+.sb-i-signal[data-level="0"] {
+  background-position: -42px -40px;
+}
+
+.sb-i-signal[data-level="1"] {
+  background-position: -63px -40px;
+}
+
+.sb-i-signal[data-level="2"] {
+  background-position: -84px -40px;
+}
+
+.sb-i-signal[data-level="3"] {
+  background-position: -105px -40px;
+}
+
+.sb-i-signal[data-level="4"] {
+  background-position: -126px -40px;
+}
+
+.sb-i-signal[data-level="5"] {
+  background-position: -147px -40px;
+}
+
+.sb-i-signal {
   position: relative;
 }
 
-#statusbar-battery-fuel {
-  height: 6px;
-  background-color: #999999;
-}
-
-#statusbar-battery-fuel.low { /* < 30% */
-}
-
-#statusbar-battery-fuel.critical { /* < 10% */
-  background-color: #c00;
-}
-
-#statusbar-battery-fuel.charging {
-}
-
-#statusbar-battery-charging {
-  height: 8px;
-  width: 18px;
-  background: transparent url("images/battery/battery-charging.png") center center no-repeat;
+.sb-i-signal[data-roaming="true"]::after {
+  content: '';
   position: absolute;
+  width: 8px;
+  height: 5px;
+  top: 0;
+  left: 0;
+  background: url('images/icons.png') no-repeat;
+  background-position: -168px -40px;
+}
+
+.sb-i-geolocation {
+  background-position: -231px -40px;
+}
+
+.sb-i-geolocation[data-active="true"] {
+  background-position: -210px -40px;
+}
+
+.sb-i-recording {
+  background-position: -273px -40px;
+}
+
+.sb-i-recording[data-active="true"] {
+  background-position: -252px -40px;
+}
+
+.sb-i-alarm {
+  background-position: -294px -40px;
+}
+
+.sb-i-tethering {
+  background-position: -126px -60px;
+}
+
+.sb-i-tethering[data-active="true"] {
+  background-position: -105px -60px;
+}
+
+.sb-i-bluetooth {
+  background-position: -252px -60px;
+}
+
+.sb-i-bluetooth[data-active="true"] {
+  background-position: -231px -60px;
+}
+
+.sb-i-mute {
+  background-position: -273px -60px;
+}
+
+.sb-i-usb {
+  background-position: -294px -60px;
+}
+
+.sb-i-notification {
+  background: #000;
+  width: 32px;
+  position: relative;
+}
+
+.sb-i-notification::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+
+  background: url('images/icons.png') no-repeat;
+  background-position: -168px -60px;
+}
+
+.sb-i-notification::after {
+  content: attr(data-num);
+  position: absolute;
+  color: #27b9cf;
+  width: 16px;
+  height: 16px;
+  top: 0;
+  right: 0;
+  font: 14px/14px 'Open Sans', sans-serif;
+  font-weight: 600;
+}
+
+.sb-i-sms {
+  background-position: -147px -60px;
+  position: relative;
+}
+
+.sb-i-sms::before {
+  content: attr(data-num);
+  position: absolute;
+  color: #000;
   top: 4px;
-  left: 5px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font: 8px/8px 'Open Sans', sans-serif;
+  font-weight: 600;
 }

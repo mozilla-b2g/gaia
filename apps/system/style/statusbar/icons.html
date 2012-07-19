@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Status bar icons</title>
+  <link rel="stylesheet" type="text/css" href="statusbar.css">
   <style>
   body {
     color: #fff;
@@ -10,260 +11,7 @@
   }
   .sb-icon {
     display: inline-block;
-    width: 16px;
-    height: 16px;
     margin: 5px;
-
-    background: url('images/icons.png') no-repeat;
-  }
-  .sb-i-battery {
-    width: 21px;
-  }
-  .sb-i-battery:not([data-level]):not([data-charging]) {
-    background-position: -286px 0;
-  }
-  .sb-i-battery[data-level="0"]:not([data-charging]) {
-    background-position: 0 0;
-  }
-  .sb-i-battery[data-level="10"]:not([data-charging]) {
-    background-position: -26px 0;
-  }
-  .sb-i-battery[data-level="20"]:not([data-charging]) {
-    background-position: -52px 0;
-  }
-  .sb-i-battery[data-level="30"]:not([data-charging]) {
-    background-position: -78px 0;
-  }
-  .sb-i-battery[data-level="40"]:not([data-charging]) {
-    background-position: -104px 0;
-  }
-  .sb-i-battery[data-level="50"]:not([data-charging]) {
-    background-position: -130px 0;
-  }
-  .sb-i-battery[data-level="60"]:not([data-charging]) {
-    background-position: -156px 0;
-  }
-  .sb-i-battery[data-level="70"]:not([data-charging]) {
-    background-position: -182px 0;
-  }
-  .sb-i-battery[data-level="80"]:not([data-charging]) {
-    background-position: -208px 0;
-  }
-  .sb-i-battery[data-level="90"]:not([data-charging]) {
-    background-position: -234px 0;
-  }
-  .sb-i-battery[data-level="100"]:not([data-charging]) {
-    background-position: -260px 0;
-  }
-
-  .sb-i-battery:not([data-level])[data-charging],
-  .sb-i-battery[data-level="0"][data-charging] {
-    background-position: 0 -20px;
-  }
-  .sb-i-battery[data-level="10"][data-charging] {
-    background-position: -26px -20px;
-  }
-  .sb-i-battery[data-level="20"][data-charging] {
-    background-position: -52px -20px;
-  }
-  .sb-i-battery[data-level="30"][data-charging] {
-    background-position: -78px -20px;
-  }
-  .sb-i-battery[data-level="40"][data-charging] {
-    background-position: -104px -20px;
-  }
-  .sb-i-battery[data-level="50"][data-charging] {
-    background-position: -130px -20px;
-  }
-  .sb-i-battery[data-level="60"][data-charging] {
-    background-position: -156px -20px;
-  }
-  .sb-i-battery[data-level="70"][data-charging] {
-    background-position: -182px -20px;
-  }
-  .sb-i-battery[data-level="80"][data-charging] {
-    background-position: -208px -20px;
-  }
-  .sb-i-battery[data-level="90"][data-charging] {
-    background-position: -234px -20px;
-  }
-  .sb-i-battery[data-level="100"][data-charging] {
-    background-position: -260px -20px;
-  }
-
-  .sb-i-wifi:not([data-level]),
-  .sb-i-wifi[data-level="0"] {
-    background-position: 0 -60px;
-  }
-  .sb-i-wifi[data-level="1"] {
-    background-position: -21px -60px;
-  }
-  .sb-i-wifi[data-level="2"] {
-    background-position: -42px -60px;
-  }
-  .sb-i-wifi[data-level="3"] {
-    background-position: -63px -60px;
-  }
-  .sb-i-wifi[data-level="4"] {
-    background-position: -84px -60px;
-  }
-
-  .sb-i-data[data-type="LTE"] {
-    background-position: 0 -80px;
-  }
-
-  .sb-i-data[data-type="4G"] {
-    background-position: -21px -80px;
-  }
-
-  .sb-i-data[data-type="3G"] {
-    background-position: -42px -80px;
-  }
-
-  .sb-i-data[data-type="EDGE"] {
-    background-position: -63px -80px;
-  }
-
-  .sb-i-data[data-type="GPRS"] {
-    background-position: -84px -80px;
-  }
-
-  .sb-i-flight-mode {
-    background-position: 0 -40px;
-  }
-
-  .sb-i-signal[data-level="-1"] {
-    background-position: -21px -40px;
-  }
-
-  .sb-i-signal[data-level="0"] {
-    background-position: -42px -40px;
-  }
-
-  .sb-i-signal[data-level="1"] {
-    background-position: -63px -40px;
-  }
-
-  .sb-i-signal[data-level="2"] {
-    background-position: -84px -40px;
-  }
-
-  .sb-i-signal[data-level="3"] {
-    background-position: -105px -40px;
-  }
-
-  .sb-i-signal[data-level="4"] {
-    background-position: -126px -40px;
-  }
-
-  .sb-i-signal[data-level="5"] {
-    background-position: -147px -40px;
-  }
-
-  .sb-i-signal {
-    position: relative;
-  }
-
-  .sb-i-signal[data-roaming]::after {
-    content: '';
-    position: absolute;
-    width: 8px;
-    height: 5px;
-    top: 0;
-    left: 0;
-    background: url('images/icons.png') no-repeat;
-    background-position: -168px -40px;
-  }
-
-  .sb-i-geolocation:not([data-active]) {
-    background-position: -231px -40px;
-  }
-
-  .sb-i-geolocation[data-active] {
-    background-position: -210px -40px;
-  }
-
-  .sb-i-recording:not([data-active]) {
-    background-position: -273px -40px;
-  }
-
-  .sb-i-recording[data-active] {
-    background-position: -252px -40px;
-  }
-
-  .sb-i-alarm {
-    background-position: -294px -40px;
-  }
-
-  .sb-i-tethering:not([data-active]) {
-    background-position: -126px -60px;
-  }
-
-  .sb-i-tethering[data-active] {
-    background-position: -105px -60px;
-  }
-
-  .sb-i-bluetooth:not([data-active]) {
-    background-position: -252px -60px;
-  }
-
-  .sb-i-bluetooth[data-active] {
-    background-position: -231px -60px;
-  }
-
-  .sb-i-mute {
-    background-position: -273px -60px;
-  }
-
-  .sb-i-usb {
-    background-position: -294px -60px;
-  }
-
-  .sb-i-notification {
-    background: #000;
-    width: 32px;
-    position: relative;
-  }
-
-  .sb-i-notification::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 16px;
-    height: 16px;
-
-    background: url('images/icons.png') no-repeat;
-    background-position: -168px -60px;
-  }
-
-  .sb-i-notification::after {
-    content: attr(data-num);
-    position: absolute;
-    color: #27b9cf;
-    width: 16px;
-    height: 16px;
-    top: 2px;
-    right: 0;
-    font: 14px/14px 'Open Sans', sans-serif;
-    font-weight: 600;
-  }
-
-  .sb-i-sms {
-    background-position: -147px -60px;
-    position: relative;
-  }
-
-  .sb-i-sms::before {
-    content: attr(data-num);
-    position: absolute;
-    color: #000;
-    top: 4px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    font: 8px/8px 'Open Sans', sans-serif;
-    font-weight: 600;
   }
 
   </style>
@@ -284,18 +32,18 @@
   <span class="sb-icon sb-i-battery" data-level="100"></span>
 </p>
 <p>
-  <span class="sb-icon sb-i-battery" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="0" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="10" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="20" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="30" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="40" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="50" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="60" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="70" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="80" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="90" data-charging></span>
-  <span class="sb-icon sb-i-battery" data-level="100" data-charging></span>
+  <span class="sb-icon sb-i-battery" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="0" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="10" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="20" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="30" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="40" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="50" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="60" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="70" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="80" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="90" data-charging="true"></span>
+  <span class="sb-icon sb-i-battery" data-level="100" data-charging="true"></span>
 </p>
 <p>
   <span class="sb-icon sb-i-wifi" data-level="0"></span>
@@ -320,22 +68,22 @@
   <span class="sb-icon sb-i-signal" data-level="3"></span>
   <span class="sb-icon sb-i-signal" data-level="4"></span>
   <span class="sb-icon sb-i-signal" data-level="5"></span>
-  <span class="sb-icon sb-i-signal" data-level="0" data-roaming></span>
-  <span class="sb-icon sb-i-signal" data-level="1" data-roaming></span>
-  <span class="sb-icon sb-i-signal" data-level="2" data-roaming></span>
-  <span class="sb-icon sb-i-signal" data-level="3" data-roaming></span>
-  <span class="sb-icon sb-i-signal" data-level="4" data-roaming></span>
-  <span class="sb-icon sb-i-signal" data-level="5" data-roaming></span>
+  <span class="sb-icon sb-i-signal" data-level="0" data-roaming="true"></span>
+  <span class="sb-icon sb-i-signal" data-level="1" data-roaming="true"></span>
+  <span class="sb-icon sb-i-signal" data-level="2" data-roaming="true"></span>
+  <span class="sb-icon sb-i-signal" data-level="3" data-roaming="true"></span>
+  <span class="sb-icon sb-i-signal" data-level="4" data-roaming="true"></span>
+  <span class="sb-icon sb-i-signal" data-level="5" data-roaming="true"></span>
 </p>
 <p>
   <span class="sb-icon sb-i-geolocation"></span>
-  <span class="sb-icon sb-i-geolocation" data-active></span>
+  <span class="sb-icon sb-i-geolocation" data-active="true"></span>
   <span class="sb-icon sb-i-recording"></span>
-  <span class="sb-icon sb-i-recording" data-active></span>
+  <span class="sb-icon sb-i-recording" data-active="true"></span>
   <span class="sb-icon sb-i-tethering"></span>
-  <span class="sb-icon sb-i-tethering" data-active></span>
+  <span class="sb-icon sb-i-tethering" data-active="true"></span>
   <span class="sb-icon sb-i-bluetooth"></span>
-  <span class="sb-icon sb-i-bluetooth" data-active></span>
+  <span class="sb-icon sb-i-bluetooth" data-active="true"></span>
 </p>
 <p>
   <span class="sb-icon sb-i-alarm"></span>
