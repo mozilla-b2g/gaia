@@ -1428,7 +1428,7 @@ RequestReader.prototype =
             // used from a common place.
             var filePath = this._findRealPath(applicationName);
             if (oldPath.indexOf('/shared/js/') === 0) {
-              filePath += '/..';
+              filePath += '/../..';
             }
             request._path = filePath + oldPath;
           }
