@@ -255,17 +255,19 @@ var NotificationScreen = {
       nextNotification.style.MozTransition = '-moz-transform 0.2s linear';
       nextNotification.style.MozTransform = 'translateY(-80px)';
 
+      var self = this;
       nextNotification.addEventListener('transitionend', function trWait() {
         nextNotification.removeEventListener('transitionend', trWait);
         nextNotification.style.MozTransition = '';
         nextNotification.style.MozTransform = '';
 
         notificationNode.parentNode.removeChild(notificationNode);
+        self.updateStatusBarIcon();
       });
     } else {
       notificationNode.parentNode.removeChild(notificationNode);
+      this.updateStatusBarIcon();
     }
-    this.updateStatusBarIcon();
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
