@@ -57,16 +57,16 @@ function getNextAlarmFireTime(alarm) { // get the next alarm fire time
   var nextAlarmFireTime = new Date();
   var diffDays = 0; // calculate the diff days from now
   if (repeat == '0000000') { // one time only and alarm within 24 hours
-      // if alarm has passed already
-      // XXX compare the hour after converted it to format 24-hours
-      if (!(hour >= now.getHours() && minute > now.getMinutes()))
-        diffDays = 1; // alarm tomorrow
+    // if alarm has passed already
+    // XXX compare the hour after converted it to format 24-hours
+    if (!(hour >= now.getHours() && minute > now.getMinutes()))
+      diffDays = 1; // alarm tomorrow
 
-      nextAlarmFireTime.setDate(nextAlarmFireTime.getDate() + diffDays);
-      nextAlarmFireTime.setHours(hour);
-      nextAlarmFireTime.setMinutes(minute);
-      nextAlarmFireTime.setSeconds(0, 0);
-      return nextAlarmFireTime;
+    nextAlarmFireTime.setDate(nextAlarmFireTime.getDate() + diffDays);
+    nextAlarmFireTime.setHours(hour);
+    nextAlarmFireTime.setMinutes(minute);
+    nextAlarmFireTime.setSeconds(0, 0);
+    return nextAlarmFireTime;
   }
   // find out the first alarm day from the repeat info.
   var weekDayFormatRepeat =

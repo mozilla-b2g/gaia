@@ -19,8 +19,8 @@ var RingView = {
 
   init: function rv_init() {
     this.updateTime();
-    this.onRing();
-    this.onVibrate();
+    this.ring();
+    this.vibrate();
     document.addEventListener('mozvisibilitychange', this);
     document.getElementById('ring-btn-snooze').addEventListener('click', this);
     document.getElementById('ring-btn-close').addEventListener('click', this);
@@ -42,8 +42,7 @@ var RingView = {
     }, (59 - d.getSeconds()) * 1000);
   },
 
-  onRing: function rv_onRing() {
-
+  ring: function rv_ring() {
     this._ringtonePlayer = new Audio();
     this._ringtonePlayer.loop = true;
     // XXX Need to set the ringtone according to alarm's property of 'sound'
@@ -58,7 +57,7 @@ var RingView = {
     }, 20000);
   },
 
-  onVibrate: function rv_onVibrate() {
+  vibrate: function rv_vibrate() {
     if ('vibrate' in navigator) {
       this._vibrateInterval = window.setInterval(function vibrate() {
         navigator.vibrate([200]);
