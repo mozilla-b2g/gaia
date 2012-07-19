@@ -8,6 +8,7 @@
 
 'use strict';
 
+// WordComposer to store each key the user inputs
 var WordComposer = function WordComposer() {
   var N = WordComposer.MAX_WORD_LENGTH;
   this._codes = [];
@@ -20,6 +21,7 @@ var WordComposer = function WordComposer() {
 WordComposer.MAX_WORD_LENGTH = 48;
 
 WordComposer.prototype = {
+  //  add a key stroke
   add: function(primaryCode, x, y) {
     this._codes.push(primaryCode);
     var newIndex = this.size();
@@ -36,15 +38,18 @@ WordComposer.prototype = {
     return this._codes[index];
   },
 
+  // reset the stored key strokes
   reset: function() {
     this._codes.length = 0;
     this._typedWord = '';
   },
 
+  // the length of the user input
   size: function() {
     return this._typedWord.length;
   },
 
+  // remove the last key stroke, for delete key
   deleteLast: function() {
     var size = this.size();
     if (size > 0) {
@@ -103,12 +108,12 @@ const IMEController = (function() {
   };
 
   // Suggestion Engines are self registering here.
-  var _SuggestionEngines = {};
+  var _suggestionEngines = {};
   var _wordSuggestionEnabled = false;
   function _getCurrentSuggestionEngine() {
 
     if (Keyboards[_baseLayoutName].suggestionEngine)
-      return _SuggestionEngines[Keyboards[_baseLayoutName].suggestionEngine];
+      return _suggestionEngines[Keyboards[_baseLayoutName].suggestionEngine];
 
     return null;
   };
@@ -1026,7 +1031,7 @@ const IMEController = (function() {
 
       // Normal key
       default:
-        var offset = getOffset(evt);
+        var offset = _getOffset(evt);
         _currentWordComposer.add(keyCode, offset.x,
            _getKeyCoordinateY(offset.y));
         _sendNormalKey(keyCode);
@@ -1044,13 +1049,13 @@ const IMEController = (function() {
     return y - yBias;
   }
 
-  function getOffset(evt) {
+  function _getOffset(evt) {
     var el = evt.currentTarget;
     var x = 0;
     var y = 0;
 
 
-    while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
+    while (el) {
       x += el.offsetLeft - el.scrollLeft;
       y += el.offsetTop - el.scrollTop;
       el = el.offsetParent;
@@ -1136,7 +1141,7 @@ const IMEController = (function() {
   return {
     // IME Engines are self registering here.
     get IMEngines() { return _IMEngines; },
-    get SuggestionEngines() { return _SuggestionEngines; },
+    get suggestionEngines() { return _suggestionEngines; },
 
     // Current keyboard as the name of the layout
     get currentKeyboard() { return _baseLayoutName; },
@@ -1266,10 +1271,10 @@ const IMEController = (function() {
       var sourceDir = './js/predictive_text/';
       var engineName = keyboard.suggestionEngine;
 
-      if (this.SuggestionEngines[engineName])
+      if (this.suggestionEngines[engineName])
         return;
 
-      this.SuggestionEngines[engineName] = {};
+      this.suggestionEngines[engineName] = {};
 
       var script = document.createElement('script');
       script.src = sourceDir + engineName + '.js';
@@ -1303,7 +1308,7 @@ const IMEController = (function() {
       };
 
       script.addEventListener('load', (function SuggestionEngineLoaded() {
-        this.SuggestionEngines[engineName].init(glue);
+        this.suggestionEngines[engineName].init(glue);
         this.updateLayoutParams();
 
       }).bind(this));

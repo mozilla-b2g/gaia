@@ -18,8 +18,6 @@ const IMERender = (function() {
 
   var _menuKey, _altContainer;
 
-  var _keyArray = []; // To calculate proximity info for predictive text
-
   var layoutWidth = 10;
 
   // Initiaze the render. It needs some business logic to determine:
@@ -342,6 +340,8 @@ const IMERender = (function() {
     if (_altContainer)
       _altContainer.parentNode.replaceChild(_menuKey, _altContainer);
   };
+
+  var _keyArray = []; // To calculate proximity info for predictive text
 
   // Recalculate dimensions for the current render
   var resizeUI = function(layout) {

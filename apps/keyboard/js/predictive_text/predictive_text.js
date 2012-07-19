@@ -1,6 +1,10 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/*
+ * The upper layer for predictive text feature, it would pass the user input to
+ * the underlying engine for word suggestions
+ */
 'use strict';
 
 var SuggestionEngine = {};
@@ -45,7 +49,7 @@ var SuggestionEngine = {};
     };
   }
 
-  var settings;
+  var _settings;
 
   var SpellChecker = function spellchecker() {
 
@@ -53,17 +57,15 @@ var SuggestionEngine = {};
     var ptWorker;
     var _layoutParams = null;
 
+    // init: to setup the message bridge with the predictive text worker
     this.init = function spellchecker_init(options) {
 
-      settings = options;
+      _settings = options;
+      var lang = _settings.lang;
 
-      /* load dictionaries */
-      var lang = settings.lang;
-
-      ptWorker = new Worker(settings.path + 'pt_worker.js');
+      ptWorker = new Worker(_settings.path + 'pt_worker.js');
       ptWorker.onmessage = function(evt) {
         if (typeof evt.data == 'string') {
-          // for debug message
           debug(evt.data);
         } else {
 
@@ -72,7 +74,7 @@ var SuggestionEngine = {};
           var sendCandidates = function send_can(wordList) {
 
             if (!wordList || wordList.length == 0) {
-              settings.sendCandidates([]);
+              _settings.sendCandidates([]);
               return;
             }
 
@@ -81,7 +83,7 @@ var SuggestionEngine = {};
               list.push([wordList[i]]);
             }
 
-            settings.sendCandidates(list);
+            _settings.sendCandidates(list);
           };
 
           if (evt.data.word._typedWord == currentWord._typedWord)
@@ -94,13 +96,12 @@ var SuggestionEngine = {};
                         event.filename + ':' + event.lineno + ')');
       };
 
-
       ptWorker.postMessage({
         action: 'init'
       });
-
     };
 
+    // clear the current input
     var empty = function spellchecker_empty() {
       debug('Empty');
       currentWord.reset();
@@ -108,10 +109,11 @@ var SuggestionEngine = {};
 
     this.empty = empty;
 
+    // ask the worker for word suggestions
     var doSpellCheck = function() {
 
       if (currentWord.size() < 1) {
-        settings.sendCandidates([]);
+        _settings.sendCandidates([]);
         return;
       }
 
@@ -121,13 +123,14 @@ var SuggestionEngine = {};
       });
     };
 
+    // handler when a key is clicked
     this.click = function spellchecker_click(keyCode, wordComposer) {
 
       switch (keyCode) {
         case KeyEvent.DOM_VK_RETURN:
         case KeyEvent.DOM_VK_SPACE:
           empty();
-          settings.sendCandidates([]);
+          _settings.sendCandidates([]);
           break;
         case KeyEvent.DOM_VK_BACK_SPACE:
           currentWord.deleteLast();
@@ -145,17 +148,19 @@ var SuggestionEngine = {};
       }
     };
 
+    // handler when a suggestion is selected by the user
     this.select = function(text, type) {
       var i = currentWord.size();
       while (i--) {
-        settings.sendKey(KeyEvent.DOM_VK_BACK_SPACE);
+        _settings.sendKey(KeyEvent.DOM_VK_BACK_SPACE);
       }
 
-      settings.sendString(text + ' ');
+      _settings.sendString(text + ' ');
       empty();
-      settings.sendCandidates([]);
+      _settings.sendCandidates([]);
     };
 
+    // Interface for controller to set the keyboard layout info
     this.setLayoutParams = function(layoutParams) {
       _layoutParams = layoutParams;
 
@@ -176,6 +181,6 @@ var SuggestionEngine = {};
 
   // Expose to IMEController if we are in Gaia homescreen
   if (typeof IMEManager !== 'undefined') {
-    IMEController.SuggestionEngines['predictive_text'] = predictiveTextWrapper;
+    IMEController.suggestionEngines['predictive_text'] = predictiveTextWrapper;
   }
 })();

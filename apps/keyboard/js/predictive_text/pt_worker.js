@@ -18,6 +18,7 @@ var keyDetector;
 var currentWord;
 var mostCommonKeyWidth;
 
+// callback function to inform the client of the word suggestions
 var callback = {
   addWords: function callback_addWords(wordList, scores) {
     debug('post back for result ' + wordList + ' ' + currentWord._typedWord);
@@ -39,7 +40,7 @@ self.onmessage = function(evt) {
 
       setLayoutParams(evt.data.layoutParams);
 
-    }else if (evt.data.currentWord) {
+    } else if (evt.data.currentWord) {
 
       currentWord = new WordComposer(evt.data.currentWord);
 
@@ -54,15 +55,15 @@ self.onmessage = function(evt) {
 
 };
 
-
+// To init the binary dictionary
 function init() {
-
   var sourceDir = 'dict/onlinedict.dict';
   var dictOffset = 0;
   var dictSize = 0;
   binDict = new BinaryDictionary(sourceDir, dictOffset, dictSize);
 }
 
+// Interface for the client code the set the keyboard layout info
 function setLayoutParams(layoutParams) {
 
   var gridWidth = 32;
@@ -87,8 +88,6 @@ function setLayoutParams(layoutParams) {
     mostCommonKeyWidth, keys[0].height, keys, null);
 
   keyDetector = new KeyDetector(keys);
-
-
 }
 
 var typedLetterMultiplier = 2;
@@ -96,19 +95,18 @@ var fullWordMultiplier = 2;
 var maxWords = 18;
 var maxAlternatives = 8;
 
-function array_fill(array, value) {
+function fillArray(array, value) {
   var length = array.length;
   for (var i = 0; i < length; i++) {
     array[i] = value;
   }
 }
 
-function array_copy(array1, start1, array2, start2, count) {
+function copyArray(array1, start1, array2, start2, count) {
   for (var i = start1, j = start2, n = 0; n < count; i++, j++, n++) {
     array2[j] = array1[i];
   }
 }
-
 
 var KeyDetector = function(keys) {
 
@@ -155,8 +153,8 @@ KeyDetector.prototype = {
 
   initializeNearbyKeys: function kd_initializeNearbyKeys() {
     var INT_MAX = Math.pow(2, 31) - 1;
-    array_fill(this._distances, INT_MAX);
-    array_fill(this._indices, -1);
+    fillArray(this._distances, INT_MAX);
+    fillArray(this._indices, -1);
   },
 
   getNearbyKeyCodes: function kd_getNearbyKeyCodes(allCodes) {
@@ -177,10 +175,6 @@ KeyDetector.prototype = {
         break;
 
       var code = allKeys[index].code;
-      // filter out a non-letter key from nearby keys
-      //if (code < ' ')
-      //  continue;
-
       allCodes[numCodes++] = code;
     }
   },
@@ -198,11 +192,11 @@ KeyDetector.prototype = {
         if (nextPos < distances.length) {
 
           var tempDistances = new Int32Array(distances);
-          array_copy(tempDistances, insertPos, distances, nextPos,
+          copyArray(tempDistances, insertPos, distances, nextPos,
             distances.length - nextPos);
 
           var tempIndices = new Int32Array(indices);
-          array_copy(tempIndices, insertPos, indices, nextPos,
+          copyArray(tempIndices, insertPos, indices, nextPos,
             indices.length - nextPos);
         }
 
@@ -305,7 +299,7 @@ ProximityInfo.prototype = {
         }
 
         var cell = new Int32Array(count);
-        array_copy(indices, 0, cell, 0, count);
+        copyArray(indices, 0, cell, 0, count);
 
         var index = (y / this._cellHeight) * this._gridWidth +
                     (x / this._cellWidth);
@@ -322,7 +316,7 @@ ProximityInfo.prototype = {
     var proximityCharsArray = new Int32Array(this._gridSize *
       ProximityInfo.MAX_PROXIMITY_CHARS_SIZE);
 
-    array_fill(proximityCharsArray, -1); // should be KeyDetector.NOT_A_CODE
+    fillArray(proximityCharsArray, -1); // should be KeyDetector.NOT_A_CODE
 
     for (var i = 0; i < this._gridSize; ++i) {
       var proximityCharsLength = gridNeighborKeyIndices[i].length;
@@ -476,7 +470,7 @@ BinaryDictionary.prototype = {
       return -1;
 
     var flags = 0;
-    array_fill(this._inputCodes, -1);  // -1 should be wordComposer.NOT_A_CODE
+    fillArray(this._inputCodes, -1);  // -1 should be wordComposer.NOT_A_CODE
 
     for (var i = 0; i < codesSize; i++) {
 
@@ -489,13 +483,13 @@ BinaryDictionary.prototype = {
 
       debug('alternatives for ' + i + ' ' + JSON.stringify(alternatives));
 
-      array_copy(alternatives, 0,
+      copyArray(alternatives, 0,
                  this._inputCodes, i * this.MAX_PROXIMITY_CHARS_SIZE,
                  Math.min(alternatives.length, this.MAX_PROXIMITY_CHARS_SIZE));
     }
 
-    array_fill(outputChars, 0);
-    array_fill(scores, 0);
+    fillArray(outputChars, 0);
+    fillArray(scores, 0);
 
     var start = new Date().getTime();
     var suggestions = emScriptenGetSuggestions(this._nativeDict,
@@ -528,7 +522,7 @@ var WordComposer = function WordComposer(word) {
   for (var i = 0; i < length; i++) {
     var keys = keyDetector.keys;
     var codes = new Int32Array(KeyDetector.MAX_NEARBY_KEYS);
-    array_fill(codes, -1);
+    fillArray(codes, -1);
 
     var x = word._xCoordinates[i];
     var y = word._yCoordinates[i];
