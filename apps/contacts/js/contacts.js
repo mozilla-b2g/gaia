@@ -912,7 +912,7 @@ var Contacts = (function() {
 
   var handleBack = function handleBack() {
     //If in an activity, cancel it
-    if(ActivityHandler.currentlyHandling) {
+    if (ActivityHandler.currentlyHandling) {
       ActivityHandler.cancel();
     } else {
       navigation.back();
@@ -954,11 +954,14 @@ var ActivityHandler = {
   handle: function ah_handle(activity) {
     this._currentActivity = activity;
 
-    switch(this.activityName) {
+    switch (this.activityName) {
       case 'new':
         document.location.hash = 'view-contact-form';
-        return;
-      break;
+        break;
+      case 'edit':
+        var id = this._currentActivity.source.data.contactId;
+        document.location.hash = 'view-contact-form?id=' + id;
+        break;
     }
   },
 
