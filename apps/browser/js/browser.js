@@ -57,7 +57,7 @@ var Browser = {
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
-    this.urlButton.addEventListener('click', this.go.bind(this));
+    this.urlButton.addEventListener('click', this.handleUrlFormSubmit.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
@@ -277,7 +277,7 @@ var Browser = {
     var urlInput = this.urlInput;
     switch (evt.type) {
       case 'submit':
-        this.go(evt);
+        this.handleUrlFormSubmit(evt);
         break;
 
       case 'keyup':
@@ -331,13 +331,18 @@ var Browser = {
     this.urlInput.value = url;
   },
 
-  go: function browser_go(e) {
+  handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
     if (e) {
       e.preventDefault();
     }
 
     if (this.urlButtonMode == this.REFRESH) {
-      this.navigate(this.currentTab.url);
+      this.currentTab.dom.reload(true);
+      return;
+    }
+
+    if (this.urlButtonMode == this.STOP) {
+      this.currentTab.dom.stop();
       return;
     }
 
@@ -429,16 +434,13 @@ var Browser = {
     this.urlButtonMode = mode;
     switch (mode) {
       case this.GO:
-        this.urlButton.src = 'style/images/go.png';
-        this.urlButton.style.display = 'block';
+        this.urlButton.style.backgroundImage = 'url(style/images/go.png)';
         break;
       case this.REFRESH:
-        this.urlButton.src = 'style/images/refresh.png';
-        this.urlButton.style.display = 'block';
+        this.urlButton.style.backgroundImage = 'url(style/images/refresh.png)';
         break;
       case this.STOP:
-        // Dont currently have a stop button
-        this.urlButton.style.display = 'none';
+        this.urlButton.style.backgroundImage = 'url(style/images/stop.png)';
         break;
     }
   },
