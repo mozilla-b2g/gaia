@@ -669,7 +669,7 @@ var Contacts = (function() {
     var request = navigator.mozContacts.remove(currentContact);
     request.onsuccess = function successDelete() {
       contactsList.remove(currentContact.id);
-      currentContact = null;
+      currentContact = {};
       navigation.home();
     };
     request.onerror = function errorDelete() {
