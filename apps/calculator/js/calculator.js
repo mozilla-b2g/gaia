@@ -7,6 +7,8 @@ var Calculator = {
   display: document.querySelector('#display b'),
   tip: document.querySelector('#tip-window'),
 
+  isDecimalSeparatorPresent: false,
+
   backSpaceTimeout: null,
   errorTimeout: null,
   toClear: false,
@@ -21,7 +23,8 @@ var Calculator = {
       this.display.innerHTML = '0';
       return;
     }
-    var outval = this.stack.join('');
+    var infinite = new RegExp((1 / 0) + '', 'g');
+    var outval = this.stack.join('').replace(infinite, '∞');
     this.display.innerHTML = outval;
     var valWidth = this.display.offsetWidth;
     var screenWidth = this.display.parentNode.offsetWidth;
@@ -57,6 +60,13 @@ var Calculator = {
   },
 
   appendValue: function calculator_appendValue(value) {
+
+    // To avoid decimal separator repetition
+    if (value === '.' && this.isDecimalSeparatorPresent)
+      return;
+    else if (value === '.')
+      this.isDecimalSeparatorPresent = true;
+
     if (this.toClear) {
       this.stack = [];
       this.toClear = false;
@@ -90,7 +100,7 @@ var Calculator = {
   backSpace: function calculator_backSpace() {
     this.clearBackspaceTimeout();
     this.startBackspaceTimeout();
-    this.stack = this.stack.slice(0, -1);
+    this.stack.splice(this.stack.length - 1, 1);
     this.updateDisplay();
   },
 
@@ -123,10 +133,10 @@ var Calculator = {
       this.updateDisplay();
       this.toClear = true;
     } catch (err) {
-      this.display.classList.add('error');
+      this.display.parentNode.classList.add('error');
       if (this.errorTimeout === null) {
         this.errorTimeout = window.setTimeout(function calc_errorTimeout(self) {
-          self.display.classList.remove('error');
+          self.display.parentNode.classList.remove('error');
           self.errorTimeout = null;
         }, 300, this);
       }
@@ -165,9 +175,13 @@ var Calculator = {
   infix2postfix: function(infix) {
     // We cant know up till this point whether - is for negation or subtraction
     // at this point we modify negation operators into (0-N) so 4+-5 -> 4+(0-5)
-    infix = infix.replace(/(.)?(-)([0-9.]+)/g, function(match, pre, _, num) {
-      return Calculator.isOperator(match[0]) ? pre + '(0-' + num + ')' : match;
-    });
+    infix = infix.replace(
+      /(([^0-9])-|^-)([0-9.]+)/g,
+      function(match, _, pre, num) {
+        pre = pre || '';
+        return pre + '(0-' + num + ')';
+      }
+    );
 
     // basic tokenisation to ensure we group numbers with >1 digit together
     var tokens = infix.match(/[0-9.]+|\*|\/|\+|\-|\(|\)/g);
@@ -224,10 +238,15 @@ var Calculator = {
         var op2 = stack.pop();
         var op1 = stack.pop();
         var result = this.evaluate[token](op1, op2);
+        if (isNaN(result))
+          throw { type: 'error', msg: 'Value is ' + result };
         stack.push(result);
       }
     }, this);
-    return stack.pop();
+    var finalResult = stack.pop();
+    if (isNaN(finalResult))
+      throw { type: 'error', msg: 'Value is ' + finalResult };
+    return finalResult;
   },
 
   init: function calculator_init() {
@@ -246,11 +265,15 @@ var Calculator = {
             break;
           case 'operator':
             this.appendOperator(value);
+            this.isDecimalSeparatorPresent = false;
             break;
           case 'command':
             if (value === '=') {
               this.calculate();
+              this.isDecimalSeparatorPresent = false;
             } else if (value === 'C') {
+              if (this.stack[this.stack.length - 1])
+                this.isDecimalSeparatorPresent = false;
               this.backSpace();
             } else if (value === 'TIP') {
               this.showTip();
@@ -291,7 +314,9 @@ Calculator.test = function() {
     ['4+-5', -1],
     ['-5*6', -30],
     ['-5.5*6', -33],
-    ['-5.5*-6.4', 35.2]
+    ['-5.5*-6.4', 35.2],
+    ['-6-6-6', -18],
+    ['6-6-6', -6]
   ];
 
   var passed = formulas.every(run);
