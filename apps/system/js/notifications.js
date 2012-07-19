@@ -152,27 +152,30 @@ var NotificationScreen = {
     this._notification.style.MozTransition = '-moz-transform 0.3s linear';
     this._notification.style.MozTransform = 'translateX(' + offset + 'px)';
 
-    var self = this;
-    this._notification.addEventListener('transitionend', function trListener() {
-      self._notification.removeEventListener('transitionend', trListener);
+    var notification = this._notification;
+    this._notification = null;
 
-      self.removeNotification(self._notification.dataset.notificationID);
+    var toaster = this.toaster;
+    var self = this;
+    notification.addEventListener('transitionend', function trListener() {
+      notification.removeEventListener('transitionend', trListener);
+
+      self.removeNotification(notification.dataset.notificationID);
+
+      if (notification != toaster)
+        return;
 
       // Putting back the toaster in a clean state for the next notification
-      if (self._notification == self.toaster) {
-        self.toaster.style.display = 'none';
+      toaster.style.display = 'none';
+      setTimeout(function nextLoop() {
+        toaster.style.MozTransition = '';
+        toaster.style.MozTransform = '';
+        toaster.classList.remove('displayed');
+
         setTimeout(function nextLoop() {
-          self.toaster.style.MozTransition = '';
-          self.toaster.style.MozTransform = '';
-          self.toaster.classList.remove('displayed');
-
-          setTimeout(function nextLoop() {
-            self.toaster.style.display = 'block';
-          });
+          toaster.style.display = 'block';
         });
-      }
-
-      self._notification = null;
+      });
     });
   },
 

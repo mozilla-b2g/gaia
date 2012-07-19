@@ -344,11 +344,7 @@ var StatusBar = {
   },
 
   updateNotificationUnread: function sb_updateNotificationUnread(unread) {
-    if (unread) {
-      this.notification.classList.add('unread');
-    } else {
-      this.notification.classList.remove('unread');
-    }
+    this.icons.notification.dataset.unread = unread;
   },
 
   getAllElements: function sb_getAllElements() {
