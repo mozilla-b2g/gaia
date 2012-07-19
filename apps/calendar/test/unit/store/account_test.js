@@ -42,7 +42,7 @@ suite('store/account', function() {
   test('initialization', function() {
     assert.instanceOf(subject, Calendar.Store.Abstract);
     assert.equal(subject.db, db);
-    assert.deepEqual(subject._accounts, {});
+    assert.deepEqual(subject._cached, {});
   });
 
   suite('#load', function() {
@@ -74,10 +74,10 @@ suite('store/account', function() {
         eventFired = data;
       });
 
-      // wipe out _accounts beforehand
+      // wipe out _cached beforehand
       // so not to confuse add's caching
       // with alls
-      subject._accounts = {};
+      subject._cached = {};
       subject.load(function(err, data) {
         if (err) {
           return done(err);
@@ -101,13 +101,13 @@ suite('store/account', function() {
         ids.sort()
       );
 
-      assert.equal(eventFired, subject._accounts);
+      assert.equal(eventFired, subject._cached);
 
       for (key in result) {
         var obj = result[key];
 
-        assert.ok(subject._accounts[key]);
-        assert.instanceOf(subject._accounts[key], Calendar.Models.Account);
+        assert.ok(subject._cached[key]);
+        assert.instanceOf(subject._cached[key], Calendar.Models.Account);
         assert.ok(obj._id);
         assert.instanceOf(obj, Calendar.Models.Account);
         assert.equal(obj.providerType, 'Local');
@@ -116,101 +116,14 @@ suite('store/account', function() {
   });
 
   test('#presetActive', function() {
-    subject._accounts[1] = { preset: 'A' };
+    subject._cached[1] = { preset: 'A' };
 
     assert.isTrue(subject.presetActive('A'));
     assert.isFalse(subject.presetActive('B'));
   });
 
   test('#cached', function() {
-    assert.equal(subject.cached, subject._accounts);
-  });
-
-  suite('#persist', function() {
-
-    var addEvent;
-    var id;
-    var object;
-
-    setup(function(done) {
-      object = new Calendar.Models.Account(
-        { providerType: 'Local' }
-      );
-
-      subject.persist(object, function(err, key) {
-        id = key;
-      });
-
-      subject.once('persist', function(key, value) {
-        addEvent = arguments;
-        done();
-      });
-    });
-
-    test('event', function() {
-      assert.equal(addEvent[0], id);
-      assert.equal(addEvent[1], object);
-    });
-
-    test('with an id', function(done) {
-      // get cannot be used
-      // because it will check for the cached
-      // value.
-      var trans = subject.db.transaction('accounts');
-      var req = trans.objectStore('accounts').get(id);
-
-      req.onsuccess = function(data) {
-        var result = req.result;
-        done(function() {
-          assert.equal(object._id, id);
-          assert.equal(subject._accounts[id], object);
-          assert.deepEqual(result.providerType, object.providerType);
-        });
-      }
-
-      req.onerror = function(err) {
-        done(new Error('could not get object'));
-      }
-    });
-  });
-
-  suite('#remove', function() {
-    var id;
-    var removeEvent;
-    var callbackCalled = false;
-
-    setup(function(done) {
-      subject.persist({ providerType: 'Local' }, function(err, key) {
-        if (err) {
-          done(new Error('could not add'));
-        } else {
-          id = key;
-          done();
-        }
-      });
-    });
-
-    setup(function(done) {
-      callbackCalled = false;
-      subject.remove(id, function() {
-        callbackCalled = true;
-      });
-
-      subject.once('remove', function() {
-        removeEvent = arguments;
-        done();
-      });
-    });
-
-    test('event', function() {
-      assert.equal(removeEvent[0], id);
-    });
-
-    test('remove', function() {
-      assert.ok(callbackCalled);
-      assert.ok(!subject._accounts[id], 'should remove cached account');
-    });
-
+    assert.equal(subject.cached, subject._cached);
   });
 
 });
