@@ -431,6 +431,7 @@ var ThreadUI = {
       this.deleteAllMessages.bind(this));
     this.deleteSelectedButton.addEventListener('click',
       this.deleteMessages.bind(this));
+    this.input.addEventListener('input', this.updateInputHeight.bind(this));
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -455,13 +456,24 @@ var ThreadUI = {
 
   updateInputHeight: function thui_updateInputHeight() {
     var input = this.input;
+    var inputCss = window.getComputedStyle(input, null);
+    var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'));
+    if (input.scrollHeight > inputMaxHeight) {
+      return;
+    }
+
     input.style.height = null;
-    input.style.height = input.scrollHeight + 12 + 'px';
+    // If the scroll height is smaller than original offset height, we keep
+    // offset height to keep original height, otherwise we use scroll height
+    // with additional margin for preventing scroll bar.
+    input.style.height = input.offsetHeight > input.scrollHeight ?
+      input.offsetHeight + 'px' : input.scrollHeight + 8 + 'px';
 
     var newHeight = input.getBoundingClientRect().height;
-    var bottomToolbarHeight = (newHeight + 32) + 'px';
+    // Add 1 rem to fit the margin top and bottom space.
+    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 1.0) + 'rem';
     var bottomToolbar =
-        document.getElementById('new-sms-form');
+        document.querySelector('.new-sms-form');
 
     bottomToolbar.style.height = bottomToolbarHeight;
 
@@ -596,6 +608,7 @@ var ThreadUI = {
   cleanFields: function thui_cleanFields() {
     this.num.value = '';
     this.input.value = '';
+    this.updateInputHeight();
   },
 
   sendMessage: function thui_sendMessage() {
