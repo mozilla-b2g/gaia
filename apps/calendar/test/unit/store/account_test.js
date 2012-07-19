@@ -45,76 +45,6 @@ suite('store/account', function() {
     assert.deepEqual(subject._cached, {});
   });
 
-  suite('#load', function() {
-    var ids = [];
-    var all;
-    var result;
-    var eventFired;
-
-    suiteSetup(function() {
-      ids.length = 0;
-    });
-
-    function add() {
-      setup(function(done) {
-        subject.persist({ providerType: 'Local' }, function(err, id) {
-          ids.push(id.toString());
-
-          done();
-        });
-      });
-    }
-
-    add();
-    add();
-
-    setup(function(done) {
-      eventFired = null;
-      subject.once('load', function(data) {
-        eventFired = data;
-      });
-
-      // wipe out _cached beforehand
-      // so not to confuse add's caching
-      // with alls
-      subject._cached = {};
-      subject.load(function(err, data) {
-        if (err) {
-          return done(err);
-        }
-        result = data;
-        // HACK - required
-        // so the state of this test
-        // actually is in the next tick.
-        setTimeout(function() {
-          done();
-        }, 0);
-      });
-    });
-
-    test('result', function() {
-      var keys = Object.keys(result);
-      var key;
-
-      assert.deepEqual(
-        keys.sort(),
-        ids.sort()
-      );
-
-      assert.equal(eventFired, subject._cached);
-
-      for (key in result) {
-        var obj = result[key];
-
-        assert.ok(subject._cached[key]);
-        assert.instanceOf(subject._cached[key], Calendar.Models.Account);
-        assert.ok(obj._id);
-        assert.instanceOf(obj, Calendar.Models.Account);
-        assert.equal(obj.providerType, 'Local');
-      }
-    });
-  });
-
   test('#presetActive', function() {
     subject._cached[1] = { preset: 'A' };
 
@@ -122,8 +52,28 @@ suite('store/account', function() {
     assert.isFalse(subject.presetActive('B'));
   });
 
-  test('#cached', function() {
-    assert.equal(subject.cached, subject._cached);
+  suite('#_createModel', function() {
+    var connected;
+
+    test('with id', function() {
+      var result = subject._createModel({
+        providerType: 'Local'
+      }, 'id');
+
+      assert.equal(result.providerType, 'Local');
+      assert.equal(result._id, 'id');
+      assert.instanceOf(result, Calendar.Models.Account);
+    });
+
+    test('without id', function() {
+     var result = subject._createModel({
+        providerType: 'Local'
+      });
+
+      assert.equal(result.providerType, 'Local');
+      assert.isFalse(('_id' in result));
+    });
+
   });
 
 });

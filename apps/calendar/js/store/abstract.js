@@ -73,6 +73,43 @@
     },
 
     /**
+     * Loads all records in the database
+     * for this store.
+     *
+     * Using this function will fill
+     * the cache with all records in the store.
+     * As such this should only be used once
+     * during the app life-cycle.
+     */
+    load: function(callback) {
+      var value;
+      var self = this;
+      var trans = this.db.transaction(this._store);
+      var store = trans.objectStore(this._store);
+      var results = {};
+
+      store.openCursor().onsuccess = function(event) {
+        var cursor = event.target.result;
+
+        if (cursor) {
+          var object = self._createModel(cursor.value, cursor.key);
+          results[cursor.key] = object;
+          self._cached[cursor.key] = object;
+          cursor.continue();
+        }
+      };
+
+      trans.onerror = function(event) {
+        callback(event);
+      }
+
+      trans.oncomplete = function() {
+        callback(null, results);
+        self.emit('load', self._cached);
+      };
+    },
+
+    /**
      * Removes a object from the store.
      *
      * @param {String} id record reference.

@@ -38,34 +38,6 @@
       }
 
       return false;
-    },
-
-    load: function(callback) {
-      var value;
-      var self = this;
-      var trans = this.db.transaction('accounts', 'readwrite');
-      var store = trans.objectStore('accounts');
-      var results = {};
-
-      store.openCursor().onsuccess = function(event) {
-        var cursor = event.target.result;
-
-        if (cursor) {
-          var object = self._createModel(cursor.value, cursor.key);
-          results[cursor.key] = object;
-          self._cached[cursor.key] = object;
-          cursor.continue();
-        }
-      };
-
-      trans.onerror = function(event) {
-        callback(event);
-      }
-
-      trans.oncomplete = function() {
-        callback(null, results);
-        self.emit('load', self._cached);
-      };
     }
 
   };
