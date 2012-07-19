@@ -16,7 +16,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (settings) {
       settings.getLock().set({'wifi.enabled': this.checked});
     }
-  };
+  }
 
   /** mozWifiManager status
     * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
@@ -128,12 +128,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         return;
 
       // stop auto-scanning if wifi disabled or the app is hidden
-      if (!wifiManager.enabled || document.mozHidden) {
+      if (!gWifiManager.enabled || document.mozHidden) {
         scanning = false;
         return;
       }
 
-      var req = wifiManager.getNetworks();
+      var req = gWifiManager.getNetworks();
       scanning = true;
       // clear list before starting scan
       clear();
@@ -215,13 +215,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     };
   }) (document.getElementById('wifi-networks'));
 
-
   function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
-    // and 'wifiManager.connection.network' should be comparable to 'network'.
+    // and 'gWifiManager.connection.network' should be comparable to 'network'.
     // Until this is properly implemented, we just compare SSIDs to tell wether
     // the network is already connected or not.
-    var currentNetwork = wifiManager.connection.network;
+    var currentNetwork = gWifiManager.connection.network;
     return currentNetwork && (currentNetwork.ssid == network.ssid);
   }
 
@@ -230,7 +229,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (isConnected(network)) {
       // online: show status + offer to disconnect
       wifiDialog('#wifi-status', wifiDisconnect);
-    } else if (network.password == '*') {
+    } else if (network.password && (network.password == '*')) {
       // offline, known network (hence the '*' password value):
       // no further authentication required.
       setPassword();
@@ -238,14 +237,14 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     } else {
       // offline, unknonw network: offer to connect
       var key = getKeyManagement();
-      if (key == 'WEP') {
-        wifiDialog('#wifi-wep', wifiConnect);
-      } else if (key == 'WPA-PSK') {
-        wifiDialog('#wifi-psk', wifiConnect);
-      } else if (key == 'WPA-EAP') {
-        wifiDialog('#wifi-eap', wifiConnect);
-      } else {
-        wifiConnect();
+      switch (key) {
+        case 'WEP':
+        case 'WPA-PSK':
+        case 'WPA-EAP':
+          wifiDialog('#wifi-auth', wifiConnect, key);
+          break;
+        default:
+          wifiConnect();
       }
     }
 
@@ -255,7 +254,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     }
 
     function wifiDisconnect() {
-      wifiManager.forget(network);
+      gWifiManager.forget(network);
       gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
     }
 
@@ -270,7 +269,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       return '';
     }
 
-    function setPassword(password) {
+    function setPassword(password, identity) {
       var key = getKeyManagement();
       if (key == 'WEP') {
         network.wep = password;
@@ -278,6 +277,9 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         network.psk = password;
       } else if (key == 'WPA-EAP') {
         network.password = password;
+        if (identity) {
+          network.identity = identity;
+        }
       }
       network.keyManagement = key;
     }
@@ -285,88 +287,80 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     // generic wifi property dialog
     // TODO: the 'OK' button should be disabled until the password string
     //       has a suitable length (e.g. 8..63)
-    function wifiDialog(selector, callback) {
+    function wifiDialog(selector, callback, key) {
       var dialog = document.querySelector(selector);
       if (!dialog || !network)
         return null;
 
       // network info
-      var ssid = dialog.querySelector('*[data-ssid]');
-      if (ssid)
-        ssid.textContent = network.ssid;
-
       var keys = network.capabilities;
-      var security = dialog.querySelector('*[data-security]');
-      if (security)
-        security.textContent = (keys && keys.length) ?
-            keys.join(', ') : _('securityNone');
+      var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+      dialog.querySelector('[data-ssid]').textContent = network.ssid;
+      dialog.querySelector('[data-speed]').textContent = network.linkSpeed;
+      dialog.querySelector('[data-signal]').textContent = _('signalLevel' + sl);
+      dialog.querySelector('[data-security]').textContent =
+          (keys && keys.length) ? keys.join(', ') : _('securityNone');
 
-      var signal = dialog.querySelector('*[data-signal]');
-      if (signal) {
-        var lvl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-        signal.textContent = _('signalLevel' + lvl);
-      }
-
-      var speed = dialog.querySelector('*[data-speed]');
-      if (speed) {
-        speed.textContent = network.linkSpeed;
-      }
-
-      // identity/password
-      var identity = dialog.querySelector('input[name=identity]');
-      if (identity)
+      // authentication fields
+      if (key) {
+        var identity = dialog.querySelector('input[name=identity]');
         identity.value = network.identity || '';
 
-      var password = dialog.querySelector('input[name=password]');
-      if (password) {
+        var password = dialog.querySelector('input[name=password]');
         password.type = 'password';
         password.value = network.password || '';
-      }
 
-      var showPassword = dialog.querySelector('input[name=show-pwd]');
-      if (showPassword) {
+        var showPassword = dialog.querySelector('input[name=show-pwd]');
         showPassword.checked = false;
         showPassword.onchange = function() {
           password.type = this.checked ? 'text' : 'password';
         };
+
+        // XXX hack: hide the footer (which contains the 'OK' button...)
+        //           when the virtual keyboard is shown
+        var footer = dialog.querySelector('footer');
+        var inputs = dialog.querySelectorAll('[type=text], [type=password]');
+        for (var i = 0; i < inputs.length; i++) {
+          inputs[i].onfocus = function hideFooter() {
+            footer.style.display = 'none';
+          };
+          inputs[i].onblur = function showFooter() {
+            footer.style.display = 'block';
+          };
+        }
       }
 
       // hide dialog box
       function close() {
-        // reset identity/password fields
-        if (identity)
+        // reset authentication fields
+        if (key) {
           identity.value = '';
-        if (password)
           password.value = '';
-        if (showPassword)
           showPassword.checked = false;
+        }
         // 'close' (hide) the dialog
-        document.body.classList.remove('dialog');
-        dialog.classList.remove('active');
+        dialog.removeAttribute('class');
       }
 
-      // OK|Cancel buttons
-      var buttons = dialog.querySelectorAll('footer button');
-
-      var okButton = buttons[0];
-      okButton.onclick = function() {
-        if (identity)
-          network.identity = identity.value;
-        if (password)
-          setPassword(password.value);
+      // OK button (connect/forget)
+      dialog.onsubmit = function() {
+        if (key) {
+          setPassword(password.value, identity.value);
+        }
         close();
-        return callback ? callback() : false;
+        if (callback)
+          callback();
+        return false;
       };
 
-      var cancelButton = buttons[1];
-      cancelButton.onclick = function() {
+      // Back button (cancel)
+      dialog.onreset = function() {
         close();
-        return;
+        return false;
       };
 
       // show dialog box
-      dialog.classList.add('active');
-      document.body.classList.add('dialog');
+      dialog.className = 'active ' + key;
       return dialog;
     }
   }

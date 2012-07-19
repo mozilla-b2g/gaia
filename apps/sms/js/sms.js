@@ -69,6 +69,8 @@ var MessageManager = {
             }
             break;
           case '#edit':
+            ThreadListUI.cleanForm();
+            ThreadUI.cleanForm();
             mainWrapper.classList.toggle('edit');
             break;
           default:
@@ -220,14 +222,56 @@ var ThreadListUI = {
     delete this.view;
     return this.view = document.getElementById('thread-list-container');
   },
+  get deleteAllButton() {
+    delete this.deleteAllButton;
+    return this.deleteAllButton =
+    document.getElementById('delete-all-threads');
+  },
+  get deleteSelectedButton() {
+    delete this.deleteSelectedButton;
+    return this.deleteSelectedButton =
+    document.getElementById('delete-selected-threads');
+  },
 
   init: function thlui_init() {
     this.delNumList = [];
+    this.deleteAllButton.addEventListener('click',
+      this.deleteAllThreads.bind(this));
+    this.deleteSelectedButton.addEventListener('click',
+      this.deleteThreads.bind(this));
    },
 
-  updateMsgWithContact: function thlui_updateMsgWithContact(contact) {
-    // TODO Update DOM with data retrieved from Contact DB
-    // This will be a callback from ContactManager
+  updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
+    var element =
+      this.view.querySelector('a[data-num="' + number + '"] div.name');
+    if (element) {
+      element.innerHTML = contact[0].name;
+    }
+  },
+
+  cleanForm: function thlui_cleanForm() {
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].checked = false;
+      inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
+    }
+  },
+
+  deleteAllThreads: function thlui_deleteAllThreads() {
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+    }
+  },
+
+  deleteThreads: function thlui_deleteThreads() {
+    //TODO Include call to MessageManager
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].checked) {
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+      }
+    }
   },
 
   renderThreads: function thlui_renderThreads(messages) {
@@ -302,21 +346,37 @@ var ThreadListUI = {
             '    </div>') +
             '    <div class="msg">"' + bodyHTML + '"</div>' +
             '    <div class="unread-tag"></div>' +
-            '  </a>';
+            '    <div class="photo">' +
+            '    <img src="">' +
+            '    </div>' +
+            '  </a>' +
+            '  <div class="checkbox-container">' +
+            '  <input type="checkbox">' +
+            '  <span></span>' +
+            '</div>';
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
+
+    // Get the contact data for the number
+    ContactDataManager.getContactData(thread.num, function gotContact(contact) {
+      if (contact && contact.length > 0)
+        ThreadListUI.updateMsgWithContact(thread.num, contact);
+    });
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
 
   createNewHeader: function thlui_createNewHeader(timestamp) {
     // Create DOM Element
-    var headerHTML = document.createElement('div');
-    headerHTML.classList.add('groupHeader');
-
-    // Create HTML and append
-    var structureHTML = Utils.getHeaderDate(timestamp);
-    headerHTML.innerHTML = structureHTML;
+    var headerHTML = document.createElement('h2');
+    // Append 'time-update' state
+    headerHTML.setAttribute('data-time-update', true);
+    headerHTML.setAttribute('data-time', timestamp);
+    // Boot update of headers
+    Utils.updateHeaders();
+    // Add text
+    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
+    //Add to DOM
     ThreadListUI.view.appendChild(headerHTML);
   }
 };
@@ -352,9 +412,26 @@ var ThreadUI = {
     return this.pickButton = document.getElementById('icon-contact');
   },
 
+  get deleteAllButton() {
+    delete this.deleteAllButton;
+    return this.deleteAllButton =
+    document.getElementById('delete-all-messages');
+  },
+
+  get deleteSelectedButton() {
+    delete this.deleteSelecteButton;
+    return this.deleteSelecteButton =
+    document.getElementById('delete-selected-messages');
+  },
+
   init: function thui_init() {
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
+    this.deleteAllButton.addEventListener('click',
+      this.deleteAllMessages.bind(this));
+    this.deleteSelectedButton.addEventListener('click',
+      this.deleteMessages.bind(this));
+    this.input.addEventListener('input', this.updateInputHeight.bind(this));
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -379,13 +456,24 @@ var ThreadUI = {
 
   updateInputHeight: function thui_updateInputHeight() {
     var input = this.input;
+    var inputCss = window.getComputedStyle(input, null);
+    var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'));
+    if (input.scrollHeight > inputMaxHeight) {
+      return;
+    }
+
     input.style.height = null;
-    input.style.height = input.scrollHeight + 12 + 'px';
+    // If the scroll height is smaller than original offset height, we keep
+    // offset height to keep original height, otherwise we use scroll height
+    // with additional margin for preventing scroll bar.
+    input.style.height = input.offsetHeight > input.scrollHeight ?
+      input.offsetHeight + 'px' : input.scrollHeight + 8 + 'px';
 
     var newHeight = input.getBoundingClientRect().height;
-    var bottomToolbarHeight = (newHeight + 32) + 'px';
+    // Add 1 rem to fit the margin top and bottom space.
+    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 1.0) + 'rem';
     var bottomToolbar =
-        document.getElementById('new-sms-form');
+        document.querySelector('.new-sms-form');
 
     bottomToolbar.style.height = bottomToolbarHeight;
 
@@ -395,17 +483,31 @@ var ThreadUI = {
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createHeader: function thui_createHeader(timestamp) {
     // Create DOM Element
-    var headerHTML = document.createElement('div');
-    headerHTML.classList.add('groupHeader');
-
-    // Create HTML and append
-    var structureHTML = Utils.getHeaderDate(timestamp);
-    headerHTML.innerHTML = structureHTML;
+    var headerHTML = document.createElement('h2');
+    // Append 'time-update' state
+    headerHTML.setAttribute('data-time-update', true);
+    headerHTML.setAttribute('data-time', timestamp);
+    // Boot update of headers
+    Utils.updateHeaders();
+    // Add text
+    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
+    // Add text
+    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
+    // Append to DOM
     ThreadUI.view.appendChild(headerHTML);
+  },
+  updateHeaderData: function thui_updateHeaderData() {
+    var number = MessageManager.getNumFromHash();
+    ThreadUI.title.innerHTML = number;
+    ContactDataManager.getContactData(number, function gotContact(contact) {
+      if (contact && contact.length > 0) {
+        ThreadUI.title.innerHTML = contact[0].name;
+      }
+    });
   },
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
-    ThreadUI.title.innerHTML = MessageManager.getNumFromHash();
+    ThreadUI.updateHeaderData();
     // Sorting messages reverse
     messages.sort(function(a, b) {
         return a.timestamp - b.timestamp;
@@ -438,19 +540,30 @@ var ThreadUI = {
     var messageDOM = document.createElement('div');
     // Add class
     messageDOM.classList.add('message-block');
+
     // Get data for rendering
     var outgoing = (message.delivery == 'sent' ||
       message.delivery == 'sending');
-    var className = (outgoing ? 'sender' : 'receiver') + '"';
+    var className = (outgoing ? 'sent' : 'received');
     var timestamp = message.timestamp.getTime();
-    // Create HTML structure
-    var htmlStructure = '  <div class="message-container ' + className + '>' +
-               '    <div class="message-bubble"></div>' +
-               '    <div class="time" data-time="' + timestamp + '">' +
-                      Utils.getHourMinute(message.timestamp) +
-               '    </div>' +
-               '    <div class="text">' + message.body + '</div>' +
-               '  </div>';
+    var bodyText = message.body.split('\n')[0];
+    var bodyHTML = Utils.escapeHTML(bodyText);
+    messageDOM.id = timestamp;
+    var htmlStructure = '<span class="bubble-container ' + className + '">' +
+                        '<div class="bubble">' + bodyHTML + '</div>' +
+                        '</span>';
+    // Add 'gif' if necessary
+    if (message.delivery == 'sending') {
+      htmlStructure += '<span class="message-option">' +
+                        '<img src="style/images/ajax-loader.gif" class="gif">' +
+                        '</span>';
+    }
+    //Add edit options
+    htmlStructure += '<span class="message-option msg-checkbox">' +
+                        '  <input type="checkbox">' +
+                        '  <span></span>' +
+                      '</span>';
+    // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
     //Check if we need a new header
     var tmpIndex = Utils.getDayDate(timestamp);
@@ -462,13 +575,40 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
+
   },
+
+  cleanForm: function thui_cleanForm() {
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].checked = false;
+      inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
+    }
+  },
+
+  deleteAllMessages: function thui_deleteAllMessages() {
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+    }
+  },
+
+  deleteMessages: function thui_deleteMessages() {
+    var inputs = this.view.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].checked) {
+        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
+      }
+    }
+  },
+
   handleEvent: function thui_handleEvent(evt) {
     //TODO We will use for updating height of input if necessary
   },
   cleanFields: function thui_cleanFields() {
     this.num.value = '';
     this.input.value = '';
+    this.updateInputHeight();
   },
 
   sendMessage: function thui_sendMessage() {
@@ -534,9 +674,10 @@ var ThreadUI = {
             return;
           }
         } else {
+          var root = document.getElementById(message.timestamp.getTime());
+          root.removeChild(root.childNodes[1]);
           // Remove the message from pending message DB since it could be sent
           // successfully.
-          // TODO: Removed 'pending' style
           PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
             if (!msg) {
               //TODO: Handle message delete failed in pending DB.

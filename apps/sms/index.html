@@ -66,6 +66,16 @@
         <article id="thread-list-container" class="view-body">
         </article>
         <footer class="options">
+          <section class="option">
+            <button id="delete-all-threads" class="edit-button">
+              Delete all
+            </button>
+          </section>
+          <section class="option">
+            <button id="delete-selected-threads" class="edit-button">
+              Delete selected
+            </button>
+          </section>
         </footer>  
       </section>
      
@@ -101,10 +111,22 @@
         <article id="messages-container" class="view-body">
         </article>
         <footer class="options">
+          <section class="option">
+            <button id="delete-all-messages" class="edit-button">
+              Delete all
+            </button>
+          </section>
+          <section class="option">
+            <button id="delete-selected-messages" class="edit-button">
+              Delete selected
+            </button>
+          </section>
         </footer>
         <footer class="new-sms-form">
-          <input type="text" id="message-to-send" name="message-to-send" />
-          <button id="send-message"> SEND </button>
+          <textarea type="text" id="message-to-send" name="message-to-send"></textarea>
+          <div id="send-message-container">
+            <button id="send-message">SEND</button>
+          </div>
         </footer>
       </section>
     </article>

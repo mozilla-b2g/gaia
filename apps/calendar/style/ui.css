@@ -24,6 +24,12 @@ EVENT TIME COLOR: #333
 
 }
 
+/* loading */
+
+body.loading {
+  visibility: hidden;
+}
+
 /* general elements */
 
 p {
@@ -103,8 +109,7 @@ p {
 
 /* add event view */
 
-#create-account-view,
-#add-event-view {
+.fullscreen-view {
   /* completely override other views */
   background: white;
   z-index: 10;
@@ -114,13 +119,13 @@ p {
   height: 100%
 }
 
-.rtl header[role="toolbar"] a.cancel,
-.ltr header[role="toolbar"] a.save {
+.rtl header a.cancel,
+.ltr header a.save {
   text-align: right;
 }
 
-.ltr header[role="toolbar"] a.cancel,
-.rtl header[role="toolbar"] a.save {
+.ltr header a.cancel,
+.rtl header a.save {
   text-align: left;
 }
 
@@ -343,7 +348,7 @@ Indicators are in units of 12
   overflow-y: auto;
 }
 
-#months-day-view  header {
+#months-day-view  h1 {
   letter-spacing: 0.05rem;
   font-size: 1.1rem;
   padding: 0.4rem 1.2rem 0.7rem;

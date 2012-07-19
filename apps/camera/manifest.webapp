@@ -1,7 +1,7 @@
 {
   "name": "Camera",
   "description": "Gaia Camera",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "orientation": "portrait-primary",
   "fullscreen": true,
   "developer": {
