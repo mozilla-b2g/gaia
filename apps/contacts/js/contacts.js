@@ -213,8 +213,6 @@ var Contacts = (function() {
       default:
         loadList();
     }
-
-    window.addEventListener('hashchange', checkUrl);
   }
 
   var extractParams = function extractParams(url) {
@@ -257,6 +255,7 @@ var Contacts = (function() {
     initContainers();
     initPullEffect(cover);
     checkUrl();
+    window.addEventListener('hashchange', checkUrl);
   });
 
   var loadList = function loadList() {
