@@ -81,7 +81,7 @@ var ContactsTest = {
     var activity = new MozActivity({
         name: 'new',
         data: {
-          type: 'webcontacts/contact',
+          type: 'webcontacts/contact'
         }
       });
 
@@ -101,7 +101,7 @@ var ContactsTest = {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
         document.getElementById('activities-result').innerHTML = 'Activity canceled';
         var app = evt.target.result;
-        app.launch();      
+        app.launch();
       };
     };
 
@@ -140,7 +140,7 @@ var ContactsTest = {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
         document.getElementById('activities-result').innerHTML = 'Activity canceled';
         var app = evt.target.result;
-        app.launch();      
+        app.launch();
       };
     };
 
@@ -157,7 +157,7 @@ var ContactsTest = {
 
       activity.onsuccess = function() {
         var contact = this.result.contact;
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {        
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
           document.getElementById('activities-result').innerHTML = 'Finished editing new contact';
           var app = evt.target.result;
           app.launch();
@@ -168,7 +168,7 @@ var ContactsTest = {
         navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
           document.getElementById('activities-result').innerHTML = 'Activity canceled';
           var app = evt.target.result;
-          app.launch();      
+          app.launch();
         };
       };
   },
