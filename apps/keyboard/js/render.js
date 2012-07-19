@@ -303,7 +303,8 @@ const IMERender = (function() {
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var dataset = [{'key': 'keycode', 'value': keyCode}];
       var label = keyChar.label || keyChar;
-      var cssWidth = key.scrollWidth * (1 + 0.5 * (label.length - 1));
+      var cssWidth =
+        key.scrollWidth * (1 + 0.5 * (label.length - original.length));
       if (label.length > 1)
         dataset.push({'key': 'compositekey', 'value': label});
       content += buildKey(label, '', cssWidth + 'px', dataset);
@@ -332,12 +333,16 @@ const IMERender = (function() {
 
     // It overflows on the right
     if (left && alternativesRight > window.innerWidth) {
+      console.log('overflowing right');
       var offset = window.innerWidth - alternativesRight;
+      console.log(offset);
       this.menu.style.left = offset + 'px';
 
     // It overflows on the left
     } else if (!left && alternativesLeft < 0) {
-      var offset = -alternativesLeft;
+      console.log('overflowing left');
+      var offset = alternativesLeft;
+      console.log(offset);
       this.menu.style.right = offset + 'px';
     }
   };
