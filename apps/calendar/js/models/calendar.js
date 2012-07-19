@@ -44,6 +44,14 @@
     lastEventSyncDate: null,
 
     /**
+     * Indicates if calendar is displayed
+     * locally in the ui.
+     *
+     * @type {Boolean}
+     */
+    localDisplayed: true,
+
+    /**
      * Updates remote with data from a calendar provider.
      *
      * @param {Calendar.Provider.Calendar.Abstract} provider remote.
@@ -84,6 +92,7 @@
     toJSON: function() {
       return {
         remote: this.remote,
+        localDisplayed: this.localDisplayed,
         lastEventSyncDate: this.lastEventSyncDate,
         lastEventSyncToken: this.lastEventSyncToken
       };

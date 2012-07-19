@@ -82,6 +82,7 @@ suite('models/calendar', function() {
     var expected = {
       lastEventSyncToken: subject.lastEventSyncToken,
       lastEventSyncDate: subject.lastEventSyncDate,
+      localDisplayed: subject.localDisplayed,
       remote: subject.remote
     };
 
