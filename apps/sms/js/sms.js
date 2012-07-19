@@ -463,10 +463,15 @@ var ThreadUI = {
     }
 
     input.style.height = null;
-    input.style.height = input.scrollHeight + 8 + 'px';
+    // If the scroll height is smaller than original offset height, we keep
+    // offset height to keep original height, otherwise we use scroll height
+    // with additional margin for preventing scroll bar.
+    input.style.height = input.offsetHeight > input.scrollHeight ?
+      input.offsetHeight + 'px' : input.scrollHeight + 8 + 'px';
 
     var newHeight = input.getBoundingClientRect().height;
-    var bottomToolbarHeight = (newHeight + 10) + 'px';
+    // Add 1 rem to fit the margin top and bottom space.
+    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 1.0) + 'rem';
     var bottomToolbar =
         document.querySelector('.new-sms-form');
 
