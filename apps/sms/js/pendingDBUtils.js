@@ -44,7 +44,7 @@ var PendingMsgManager = {
 
       request.onupgradeneeded = function(event) {
         var db = event.target.result;
-        var objStore = db.createObjectStore('msgs', { keyPath: 'timestamp' });
+        var objStore = db.createObjectStore('msgs', { keyPath: 'id' });
         objStore.createIndex('receiver', 'receiver');
       };
     } catch (ex) {
@@ -88,10 +88,10 @@ var PendingMsgManager = {
     }
   },
 
-  deleteFromMsgDB: function pm_deleteFromMsgDB(msg, callback) {
+  deleteFromMsgDB: function pm_deleteFromMsgDB(id, callback) {
     var transaction = this.db.transaction('msgs', 'readwrite');
     var store = transaction.objectStore('msgs');
-    var deleteRequest = store.delete(msg.timestamp);
+    var deleteRequest = store.delete(id);
     var pendingMgr = this;
     deleteRequest.onsuccess = function onsuccess() {
       callback(deleteRequest);
@@ -100,7 +100,7 @@ var PendingMsgManager = {
       callback(null);
       // Execute save operation again if failed.
       window.setTimeout(
-        pendingMgr.deleteFromMsgDB(msg, callback).bind(pendingMgr), 500);
+        pendingMgr.deleteFromMsgDB(id, callback).bind(pendingMgr), 500);
     }
   }
 };

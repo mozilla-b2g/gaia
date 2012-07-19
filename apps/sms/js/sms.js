@@ -169,9 +169,16 @@ var MessageManager = {
     };
 
     req.onerror = function onerror() {
-      var msg = 'Deleting in the database. Error: ' + req.errorCode;
-      console.log(msg);
-      callback(null);
+      // Check if the message is in pending DB:
+      PendingMsgManager.deleteFromMsgDB(id, function ondelete(msg) {
+        if (!msg) {
+          var msg = 'Deleting in the database. Error: ' + req.errorCode;
+          console.log(msg);
+          callback(null);
+          return;
+        }
+        callback(req.result);
+      });
     };
   },
 
@@ -632,13 +639,11 @@ var ThreadUI = {
         delivery: 'sending',
         body: text,
         read: 1,
-        timestamp: tempDate
+        timestamp: tempDate,
+        id: tempDate
       };
       // Append to DOM
       this.appendMessage(message);
-
-      // Clean Fields
-      ThreadUI.cleanFields();
 
       var self = this;
       // Save the message into pendind DB before send.
@@ -657,12 +662,13 @@ var ThreadUI = {
       });
 
       MessageManager.send(num, text, function onsent(msg) {
+        var msgId = message.id;
         if (!msg) {
           var resendConfirmStr = _('resendConfirmDialogMsg');
           var result = confirm(resendConfirmStr);
           if (result) {
             // Remove the message from pending message DB before resend.
-            PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
+            PendingMsgManager.deleteFromMsgDB(msgId, function ondelete(msg) {
               if (!msg) {
                 //TODO: Handle message delete failed in pending DB.
                 return;
@@ -678,13 +684,15 @@ var ThreadUI = {
           root.removeChild(root.childNodes[1]);
           // Remove the message from pending message DB since it could be sent
           // successfully.
-          PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
+          PendingMsgManager.deleteFromMsgDB(msgId, function ondelete(msg) {
             if (!msg) {
               //TODO: Handle message delete failed in pending DB.
             }
           });
           // TODO: We might need to update the sent message's actual timestamp.
         }
+        // Clean Fields
+        ThreadUI.cleanFields();
       });
     }
   },
