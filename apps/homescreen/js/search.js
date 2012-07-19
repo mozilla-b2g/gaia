@@ -28,35 +28,20 @@ const Search = (function() {
     }
   );
 
-  function handler(action) {
-    switch(action) {
-      case 'wallpapers':
-        // generate an UI to pick default wallpapers
-        break;
-      case 'gallery':
-        // web activity here
-        var a = new Activity({
-          name: "pick",
-          data: {
-            type: "image/png",
-            multiple: false
-          }
-        });
-        a.onsuccess = function pickSuccess() {
-          var image = a.result;
-        };
-        a.onerror = function pickFail() {
-          console.warn("Failure when trying to pick an image!");
-        };
-        break;
-      case 'cancel':
-      default:
-        break;
-    }
-  }
-
-  function onLongPress(evt) {
-    ListMenu.request(options, handler);
+  function onLongPress() {
+    var a = new Activity({
+        name: "pick",
+        data: {
+          type: "image/png",
+          multiple: false
+        }
+    });
+    a.onsuccess = function pickSuccess() {
+      var image = a.result;
+    };
+    a.onerror = function pickFail() {
+      console.warn("Failure when trying to pick an image!");
+    };
   }
 
   searchPage.addEventListener('contextmenu', onLongPress);
