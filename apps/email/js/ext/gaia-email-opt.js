@@ -19844,16 +19844,31 @@ FakeFolderStorage.prototype = {
 
 }); // end define
 ;
+define('wbxml',[],function() {
+  return WBXML;
+});
+define('activesync/codepages',[],function() {
+  return ActiveSyncCodepages;
+});
+define('activesync/protocol',[],function() {
+  return ActiveSyncProtocol;
+});
 /**
- * Implements a fake account type for UI testing/playing only.
+ * Implements the ActiveSync protocol for Hotmail and Exchange.
  **/
 
 define('rdimap/imapclient/activesync',[
     'mailcomposer',
+    'wbxml',
+    'activesync/codepages',
+    'activesync/protocol',
     'exports'
   ],
   function(
     $mailcomposer,
+    $wbxml,
+    $ascp,
+    $activesync,
     exports
   ) {
 
@@ -19874,6 +19889,43 @@ function ActiveSyncAccount(universe, accountDef, folderInfo, receiveProtoConn,
     address: ourIdentity.address,
   };
 
+  var account = this;
+  var conn = new $activesync.Connection(
+    accountDef.credentials.username, accountDef.credentials.password,
+    function(aResult) {
+      var fh = $ascp.FolderHierarchy.Tags;
+      var w = new $wbxml.Writer("1.3", 1, "UTF-8");
+      w.stag(fh.FolderSync)
+         .tag(fh.SyncKey, "0")
+       .etag();
+
+      this.doCommand(w, function(aResponse) {
+        for (var node in aResponse.document) {
+          if (node.type == "STAG" && node.tag == fh.DisplayName) {
+            var text = aResponse.document.next();
+            if (text.type != "TEXT")
+              throw new Error("expected TEXT node");
+
+            var folder = {
+              id: account.id + '/' + text.textContent,
+              name: text.textContent,
+              path: text.textContent,
+              type: 'normal',
+              delim: '/',
+              depth: 0,
+            };
+            account.folders.push(folder);
+            account._folderStorages[folder.id] = new ActiveSyncFolderStorage();
+            account.universe.__notifyAddedFolder(account.id, folder);
+
+            if (aResponse.document.next().type != "ETAG")
+              throw new Error("expected ETAG node");
+          }
+        }
+      });
+    });
+
+  // Pretend we have an inbox for now. We'll get the real inbox later.
   var inboxFolder = {
     id: this.id + '/0',
     name: 'Inbox',
