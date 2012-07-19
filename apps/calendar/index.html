@@ -10,25 +10,11 @@
   <link rel="stylesheet" type="text/css" href="/style/toolbars.css">
   <link rel="stylesheet" type="text/css" href="/style/overlay.css">
 
+  <!-- localization -->
   <link rel="resource" type="application/l10n" href="/locales/locales.ini">
 
-  <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-  </script>
+  <!-- shared code -->
+  <script type="text/javascript" defer src="/shared/js/l10n.js"></script>
 
   <!--- vendor -->
   <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>

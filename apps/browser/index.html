@@ -4,28 +4,13 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Browser</title>
-
     <link rel="stylesheet" href="style/browser.css" type="text/css">
-    <link rel="stylesheet" href="style/modal_dialog.css" type="text/css" >
-
+    <link rel="stylesheet" href="style/modal_dialog.css" type="text/css">
+    <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
+    <!-- Shared code -->
+    <script type="text/javascript" defer src="shared/js/l10n.js"></script>
+    <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
   </head>
 
   <body>
@@ -123,7 +108,6 @@
     <div id="throbber"></div>
     <div id="tabs-badge"></div>
 
-    <script src="js/GestureDetector.js"></script>
     <script src="js/places.js"></script>
     <script src="js/date_helper.js"></script>
     <script src="js/modal_dialog.js"></script>
@@ -132,3 +116,4 @@
   </body>
 
 </html>
+
