@@ -131,7 +131,7 @@ var KeypadManager = {
     this._phoneNumber = '';
 
     var keyHandler = this.keyHandler.bind(this);
-    this.keypad.addEventListener('mousedown',keyHandler, true);
+    this.keypad.addEventListener('mousedown', keyHandler, true);
     this.keypad.addEventListener('mouseup', keyHandler, true);
     this.deleteButton.addEventListener('mousedown', keyHandler);
     this.deleteButton.addEventListener('mouseup', keyHandler);
