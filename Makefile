@@ -431,7 +431,8 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email/js/ext,music/js/ext,calendar/js/ext'
+	@gjslint --nojsdoc -r apps -e 'email/js/ext,music/js/ext,calendar/js/ext'
+	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
