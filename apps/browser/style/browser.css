@@ -3,6 +3,7 @@ html, body {
   padding: 0;
   margin: 0;
   background-color: #575E66;
+  font-family: 'Open Sans', sans-serif;
 }
 
 body {
@@ -32,6 +33,10 @@ input[type="image"] {
 
 .awesome-screen #awesomescreen {
   display: block;
+}
+
+.awesome-screen #throbber {
+  display: none;
 }
 
 .awesome-screen #tabs-badge {
@@ -386,10 +391,10 @@ li[role="tab"] a {
   color: #000;
   line-height: 36px;
   text-align: center;
-  padding: 0 32px;
+  padding: 0 30px;
   font-size: 14px;
   outline: none;
-  margin-left: -32px;
+  margin-left: -30px;
 }
 
 li[role="tab"]:first-child a {
@@ -479,7 +484,7 @@ li[role="listitem"] small {
   background-color: #ccd6df;
 }
 
-#history, #bookmarks {
+#history, #bookmarks, #top-sites {
   height: -moz-calc(100% - 36px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -588,4 +593,15 @@ li[role="listitem"] small {
 
 #cover ul li img {
   margin-right: 10px;
+}
+
+#modal-dialog-alert,
+#modal-dialog-confirm,
+#modal-dialog-prompt {
+  width: 90% !important;
+  margin: 0 auto !important;
+}
+
+#modal-dialog-tablecell {
+  background: rgba(0, 0, 0, 0.5);
 }

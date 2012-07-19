@@ -4,16 +4,14 @@ var contacts = window.contacts || {};
 
 contacts.List = (function() {
   var groupsList,
-      searchBox,
-      fastScroll,
       favoriteGroup,
-      inSearchMode = false;
-
-  searchBox = document.getElementById('search-contact');
-  fastScroll = document.querySelector('.view-jumper');
-  var cancel = document.getElementById('cancel-search');
-  var clearSearchButton = document.getElementById('clear-search');
-  var conctactsListView = document.getElementById('view-contacts-list');
+      inSearchMode = false,
+      cancel = document.getElementById('cancel-search'),
+      clearSearchButton = document.getElementById('clear-search'),
+      conctactsListView = document.getElementById('view-contacts-list'),
+      searchBox = document.getElementById('search-contact'),
+      searchNoResult = document.getElementById('no-result'),
+      fastScroll = document.querySelector('.view-jumper');
 
   var init = function load(element) {
     groupsList = element;
@@ -317,6 +315,7 @@ contacts.List = (function() {
   var search = function performSearch() {
 
     var pattern = new RegExp(searchBox.value, 'i');
+    var count = 0;
 
     var allContacts = getContactsDom();
     for (var i = 0; i < allContacts.length; i++) {
@@ -328,7 +327,14 @@ contacts.List = (function() {
       }
        else {
         contact.classList.remove('hide');
+        count++;
       }
+    }
+
+    if (count == 0) {
+      searchNoResult.classList.remove('hide');
+    } else {
+      searchNoResult.classList.add('hide');
     }
   };
 

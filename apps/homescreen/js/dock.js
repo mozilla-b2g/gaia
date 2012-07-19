@@ -12,7 +12,7 @@ const DockManager = (function() {
   function onLongPress(evt) {
     evt.preventDefault();
     evt.stopPropagation();
-    if (Homescreen.isIcongridInViewport()) {
+    if (GridManager.pageHelper.getCurrentPageNumber() >= 1) {
       document.body.dataset.mode = 'edit';
 
       if ('origin' in evt.target.dataset) {

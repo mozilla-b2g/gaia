@@ -173,7 +173,7 @@
         <div id="quick-settings">
           <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
           <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluetooth">Bluetooth</a>
           <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
           <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
         </div>
@@ -191,11 +191,6 @@
       <div id="lockscreen" class="uninit" data-panel="">
         <div id="lockscreen-container">
           <div id="lockscreen-main-panel" class="lockscreen-panel">
-            <div id="lockscreen-header">
-              <div id="lockscreen-mute" hidden></div>
-              <div id="lockscreen-clock"></div>
-              <div id="lockscreen-date"></div>
-            </div>
             <div id="lockscreen-notification" hidden>
               <div id="lockscreen-notification-time"></div>
               <img id="lockscreen-notification-icon" />
@@ -209,12 +204,18 @@
             <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
             <div id="lockscreen-area-handle"></div>
           </div>
-          <div id="lockscreen-panel-passcode" class="lockscreen-panel">
-            <p id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</p>
+          <div id="lockscreen-header">
+            <div id="lockscreen-mute" hidden></div>
+            <div id="lockscreen-clock"></div>
+            <div id="lockscreen-date"></div>
           </div>
+
+          <div id="lockscreen-panel-passcode" class="lockscreen-panel">
+          </div>
+          <h2 id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</h2>
           <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
           <div id="lockscreen-passcode-pad">
-            <a href="#" data-key="1">1</a>
+            <a href="#" data-key="1">1<span>.<span></a>
             <a href="#" data-key="2">2<span>ABC<span></a>
             <a href="#" data-key="3">3<span>DEF<span></a>
             <a href="#" data-key="4">4<span>GHI<span></a>
@@ -223,15 +224,17 @@
             <a href="#" data-key="7">7<span>PQRS<span></a>
             <a href="#" data-key="8">8<span>TUV<span></a>
             <a href="#" data-key="9">9<span>WXYZ<span></a>
-            <a href="#" data-key="e" data-l10n-id="emergency-call-button" class="lockscreen-passcode-pad-func">Emergency Call</a>
-            <a href="#" data-key="0">0</a>
-            <a href="#" data-key="c" data-l10n-id="cancel-button" class="lockscreen-passcode-pad-func">Cancel</a>
-            <a href="#" data-key="b">⌫</a>
+            <a href="#" data-key="e" data-l10n-id="emergency-call-button" class="lockscreen-passcode-pad-func last-row">Emergency Call</a>
+            <a href="#" data-key="0" class="last-row">0</a>
+            <a href="#" data-key="c" data-l10n-id="cancel-button" class="lockscreen-passcode-pad-func last-row">Cancel</a>
+            <a href="#" data-key="b" class="last-row">⌫</a>
           </div>
-          <div id="lockscreen-panel-emergency-call" class="lockscreen-panel tbd">
-            <h1>Emergency call panel</h1>
-            <p>To be done.</p>
+
+          <div id="lockscreen-panel-emergency-call" class="lockscreen-panel">
           </div>
+          <h2 id="lockscreen-emergency-title" data-l10n-id="emergency-call">Emergency Call</h2>
+          <div id="lockscreen-emergency-pad">TBD</div>
+
           <div id="lockscreen-panel-camera" class="lockscreen-panel">
             <div id="lockscreen-camera"></div>
           </div>

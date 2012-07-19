@@ -642,9 +642,13 @@ var WindowManager = (function() {
   });
 
   // When a resize event occurs, resize the running app, if there is one
-  window.addEventListener('resize', function() {
-    if (displayedApp)
-      setAppSize(displayedApp);
+  // When the status bar is active it doubles in height so we need a resize
+  var appResizeEvents = ['resize', 'status-active', 'status-inactive'];
+  appResizeEvents.forEach(function eventIterator(event) {
+    window.addEventListener(event, function() {
+      if (displayedApp)
+        setAppSize(displayedApp);
+    });
   });
 
   // Listen for the Back button.  We need both a capturing listener
