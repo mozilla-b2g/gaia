@@ -428,11 +428,12 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
+    var default_type = TAG_OPTIONS['phone-type'][0].value;
     for (var tel in currentContact.tel) {
       var currentTel = currentContact.tel[tel];
       var telField = {
         number: currentTel.number,
-        type: currentTel.type,
+        type: currentTel.type || default_type,
         notes: '',
         i: tel
       };
