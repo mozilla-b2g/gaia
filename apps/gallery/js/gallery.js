@@ -193,10 +193,15 @@ function setView(view) {
     return;
 
   // Do any necessary cleanup of the view we're exiting
-  if (currentView === thumbnailSelectView) {
+  switch(currentView) {
+  case thumbnailSelectView:
     // Clear the selection, if there is one
     Array.forEach(thumbnails.querySelectorAll('.selected.thumbnail'),
                   function(elt) { elt.classList.remove('selected'); });
+    break;
+  case editView:
+    exitEditMode();
+    break;
   }
 
   // Show the specified view, and hide the others
@@ -233,8 +238,8 @@ function setView(view) {
 
   case editView:
     // We don't display the thumbnails in edit view.
-    // XXX But we do probably need to precompute some mini images for
-    // the edit buttons
+    // the editPhoto() function does the necessary setup and 
+    // calls setView(), so there isn't anything to do here.
     break;
   }
 
@@ -474,7 +479,7 @@ $('photos-delete-button').onclick = function() {
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 $('photos-edit-button').onclick = function() {
-  setView(editView);
+  editPhoto(currentPhotoIndex);
 };
 
 // In edit mode, clicking the Cancel button goes back to single photo mode
@@ -497,8 +502,8 @@ window.addEventListener('resize', function resizeHandler(evt) {
       return;
 
     var imagedata = images[n];
-    var fit = fitImageToScreen(imagedata.metadata.width,
-                               imagedata.metadata.height);
+    var fit = fitImage(imagedata.metadata.width, imagedata.metadata.height,
+                       photoView.offsetWidth, photoView.offsetHeight);
     var style = img.style;
     style.width = fit.width + 'px';
     style.height = fit.height + 'px';
@@ -646,8 +651,9 @@ function displayImageInFrame(n, frame) {
   });
 
   // Figure out the size and position of the image
-  var fit = fitImageToScreen(images[n].metadata.width,
-                             images[n].metadata.height);
+  var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
+                     photoView.offsetWidth, photoView.offsetHeight);
+
   var style = img.style;
   style.width = fit.width + 'px';
   style.height = fit.height + 'px';
@@ -657,9 +663,7 @@ function displayImageInFrame(n, frame) {
 
 // figure out the size and position of an image based on its size
 // and the screen size.
-function fitImageToScreen(photoWidth, photoHeight) {
-  var viewportWidth = photoView.offsetWidth;
-  var viewportHeight = photoView.offsetHeight;
+function fitImage(photoWidth, photoHeight, viewportWidth, viewportHeight) {
   var scalex = viewportWidth / photoWidth;
   var scaley = viewportHeight / photoHeight;
   var scale = Math.min(Math.min(scalex, scaley), 1);
@@ -919,7 +923,8 @@ PhotoState.prototype.reset = function() {
   this.viewportHeight = photoFrames.offsetHeight;
 
   // Compute the default size and position of the image
-  var fit = fitImageToScreen(this.photoWidth, this.photoHeight);
+  var fit = fitImage(this.photoWidth, this.photoHeight,
+                     this.viewportWidth, this.viewportHeight);
   this.baseScale = fit.scale;
   this.width = fit.width;
   this.height = fit.height;
@@ -1067,3 +1072,115 @@ PhotoState.prototype.setFrameStyles = function(/*frames...*/) {
   for (var i = 0; i < arguments.length; i++)
     arguments[i].style.MozTransform = translate;
 };
+
+// The blob URL of the photo we're currently editing
+var editedPhotoIndex
+var editedPhotoURL;
+var editSettings;
+
+function editPhoto(n) {
+  editedPhotoIndex = n;
+
+  // Start with no edits 
+  editSettings = {
+    crop: { x: 0, y: 0, w: images[n].width, h: images[n].height },
+    exposure: 0, 
+    effect: null,
+    border: null
+  };
+
+  // Start looking up the image file
+  photodb.getFile(images[n].name, function(file) {
+    // Once we get the file create a URL for it and use that url for the
+    // preview image and all the buttons that need it.
+    editedPhotoURL = URL.createObjectURL(file);
+    $('edit-preview-image').src = editedPhotoURL;
+    var backgroundImage = 'url(' + editedPhotoURL + ')';
+
+    // Set the background for all of the image buttons
+    var buttonids = [
+      'edit-exposure-minus-one',
+      'edit-exposure-minus-half',
+      'edit-exposure-zero',
+      'edit-exposure-plus-half',
+      'edit-exposure-plus-one',
+      'edit-effect-none',
+      'edit-effect-bw',
+      'edit-effect-sepia',
+      'edit-border-none',
+      'edit-border-thin-white',
+      'edit-border-thick-white',
+      'edit-border-thin-black',
+      'edit-border-thick-black',
+    ];
+    buttonids.forEach(function(id) {
+      var button = $(id);
+      button.style.backgroundImage = backgroundImage;
+      button.onclick = function() {
+        if (button.data.exposure)
+          editSettings.exposure = button.data.exposure;
+        if (button.data.effect)
+          editSettings.effect = button.data.effect;
+        // XXX: separate color and width here?
+        if (button.data.border)
+          editSettings.border = button.data.border;
+      }
+      setEditPreviewStyles();
+    });
+  });
+
+  // Meanwhile, set the size of the preview image
+  setEditPreviewSize();
+
+  // Configure the exposure tool as the first one shown
+  setEditTool('exposure');
+
+  // Display the edit screen
+  setView(editView);
+}
+
+function setEditPreviewSize() {
+}
+
+function setEditPreviewStyles() {
+}
+
+function setEditTool(tool) {
+  // Deselect all tool buttons and hide all options
+  var buttons = $('edit-toolbar').querySelectorAll('a.button');
+  Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
+  var options = $('edit-options').querySelectorAll('div');
+  Array.forEach(options, function(o) { o.classList.add('hidden'); });
+  
+  // Now select and show the correct set based on tool
+  switch(tool) {
+  case 'exposure':
+    $('edit-exposure-button').classList.add('selected');
+    $('edit-exposure-options').classList.remove('hidden');
+    break;
+  case 'crop':
+    $('edit-crop-button').classList.add('selected');
+    $('edit-crop-options').classList.remove('hidden');
+    break;
+  case 'effect':
+    $('edit-effect-button').classList.add('selected');
+    $('edit-effect-options').classList.remove('hidden');
+    break;
+  case 'border':
+    $('edit-border-button').classList.add('selected');
+    $('edit-border-options').classList.remove('hidden');
+    break;
+  }
+}
+
+$('edit-exposure-button').onclick = function() { setEditTool('exposure'); };
+$('edit-crop-button').onclick = function() { setEditTool('crop'); };
+$('edit-effect-button').onclick = function() { setEditTool('effect'); };
+$('edit-border-button').onclick = function() { setEditTool('border'); };
+
+function exitEditMode() {
+  // XXX
+  // Revoke the blob URL we've been using?
+  URL.revokeObjectURL(editedPhotoURL);
+  editedPhotoURL = null;
+}

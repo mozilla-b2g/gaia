@@ -399,8 +399,8 @@ a.button.disabled {
 
 #edit-header {
   background: #ccc;
-  height: 50px;
   position: absolute;
+  height: 50px;
   top: 0;
   left: 0;
   right: 0;
@@ -435,12 +435,50 @@ a.button.disabled {
 }
 
 #edit-preview-area {
+  position: absolute;
+  top: 50px;
+  bottom: 100px;
+  left: 0;
+  width: 100%;
 }
 
-#edit-preview-canvas {
+#edit-preview-image {
+  width:100%;
+  height:100%;
 }
 
 #edit-options {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  bottom: 50px;
+  background: #ccc;
+}
+
+/* All the edit option divs have the same placement */
+#edit-options > div {
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  overflow-y: hidden;
+  overflow-x: scroll;
+}
+
+/* All the buttons within any of the edit option divs share these styles */
+#edit-options > div > a.button {
+  display: inline-block;
+  width: 45px;
+  height: 45px;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-top: 2px;
+  margin-bottom: 3px;
+
+  background-size: cover;        /* allow some cropping */
+  background-position: center;   /* keep the cropping at the edges */
+  background-repeat: no-repeat;
 }
 
 #edit-exposure-options {
@@ -449,11 +487,44 @@ a.button.disabled {
 #edit-crop-options {
 }
 
-#edit-effects-options {
+#edit-effect-options {
 }
 
-#edit-borders-options {
+#edit-border-options {
 }
+
+a.filter-exposure-minus-one {
+  filter: url(../index.html#filter-exposure-minus-one);
+}
+a.filter-exposure-minus-half {
+  filter: url(../index.html#filter-exposure-minus-half);
+}
+a.filter-exposure-plus-half {
+  filter: url(../index.html#filter-exposure-plus-half);
+}
+a.filter-exposure-plus-one {
+  filter: url(../index.html#filter-exposure-plus-one);
+}
+a.filter-bw {
+  filter: url(../index.html#filter-bw);
+}
+a.filter-sepia {
+  filter: url(../index.html#filter-sepia);
+}
+
+a.border-thin-white {
+  border: 2px solid white;  
+}
+a.border-thick-white {
+  border: 4px solid white;  
+}
+a.border-thin-black {
+  border: 2px solid black;  
+}
+a.border-thick-black {
+  border: 4px solid black;  
+}
+
 
 #edit-toolbar {
   background: #888;
@@ -486,10 +557,10 @@ a.button.disabled {
   left: 25%
 }
 
-#edit-effects-button {
+#edit-effect-button {
   left: 50%
 }
 
-#edit-borders-button {
+#edit-border-button {
   left: 75%
 }
