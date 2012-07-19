@@ -1,5 +1,10 @@
 const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
 
+function debug(msg) {
+  if (DEBUG)
+    dump("-*- " + msg + "\n");
+}
+
 function getSubDirectories(directory) {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
@@ -110,20 +115,20 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
         }
         dump("name: " + name + "\n");
         let uri = ioservice.newURI(rootURL, null, null);
-        dump("add permission: " + rootURL + ", " + name + "\n");
+        debug("add permission: " + rootURL + ", " + name);
         permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
 
         // special case for the telephony API which needs full URLs
         if (name == 'telephony') {
           if (manifest.background_page) {
             let uri = ioservice.newURI(rootURL + manifest.background_page, null, null);
-            dump("add permission: " + rootURL + manifest.background_page + ", " + name + "\n");
+            debug("add permission: " + rootURL + manifest.background_page + ", " + name);
             permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
           }
         }
         if (manifest.attention_page) {
           let uri = ioservice.newURI(rootURL + manifest.attention_page, null, null);
-          dump("add permission: " + rootURL + manifest.attention_page+ ", " + name + "\n");
+          debug("add permission: " + rootURL + manifest.attention_page+ ", " + name);
           permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
         }
       }
