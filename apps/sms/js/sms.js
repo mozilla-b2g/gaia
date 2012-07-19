@@ -750,19 +750,21 @@ var ThreadUI = {
                   var filter = MessageManager.createFilter(
                     MessageManager.currentNum);
                   MessageManager.getMessages(function(messages) {
-                    if(messages.length>0){
+                    if (messages.length > 0) {
                       // If there are messages yet
                       ThreadUI.renderMessages(messages);
                       window.history.back();
-                    }else{
+                    }else {
                       // If there is no more messages (delete all)
                       ThreadUI.view.innerHTML = '';
-                      MessageManager.getMessages(ThreadListUI.renderThreads,null,null, function(){
-                        var mainWrapper = document.getElementById('main-wrapper');
+                      MessageManager.getMessages(ThreadListUI.renderThreads,
+                                                 null, null, function() {
+                        var mainWrapper =
+                          document.getElementById('main-wrapper');
                         mainWrapper.classList.remove('edit');
-                        window.location.hash ='#thread-list';
+                        window.location.hash = '#thread-list';
                       });
-                      
+
                     }
                 },filter);
               });
@@ -770,25 +772,26 @@ var ThreadUI = {
               PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i]);
             }
           }
-        }else{
+        }else {
           var filter = MessageManager.createFilter(MessageManager.currentNum);
           MessageManager.getMessages(function recoverMessages(messages) {
-            if(messages.length>0){
+            if (messages.length > 0) {
               ThreadUI.renderMessages(messages);
               window.history.back();
-            }else{
+            }else {
               ThreadUI.view.innerHTML = '';
-              MessageManager.getMessages(ThreadListUI.renderThreads,null,null, function(){
+              MessageManager.getMessages(ThreadListUI.renderThreads,
+                                         null, null, function() {
                 var mainWrapper = document.getElementById('main-wrapper');
                 mainWrapper.classList.remove('edit');
-                window.location.hash ='#thread-list';
+                window.location.hash = '#thread-list';
               });
-              
+
             }
-            
+
           },filter);
         }
-      
+
       });
     } else {
       window.history.back();
@@ -827,9 +830,9 @@ var ThreadUI = {
         read: 1,
         timestamp: tempDate
       };
-      
 
-      
+
+
 
       var self = this;
       // Save the message into pendind DB before send.
@@ -862,35 +865,37 @@ var ThreadUI = {
             PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
               var filter = MessageManager.createFilter(num);
               MessageManager.getMessages(function(messages) {
-                if(messages.length>0){
+                if (messages.length > 0) {
                   ThreadUI.renderMessages(messages);
                   MessageManager.getMessages(ThreadListUI.renderThreads);
                 } else {
-                  MessageManager.getMessages(ThreadListUI.renderThreads, null, null, function(){
+                  MessageManager.getMessages(ThreadListUI.renderThreads,
+                                             null, null, function() {
                     window.location.hash = '#thread-list';
                   });
-                  
+
                 }
               }, filter, true);
             });
             window.setTimeout(self.sendMessage.bind(self), 500);
             return;
           } else {
-            // TODO We found that there is no resend! Steve, could you take a look?!
+            // TODO We found that there is no resend!
+            // Steve, could you take a look?!
           }
         } else {
           var root = document.getElementById(message.timestamp.getTime());
-          if(root){
+          if (root) {
 
             root.removeChild(root.childNodes[1]);
             var inputs = root.querySelectorAll('input[type="checkbox"]');
-            if(inputs){
-              inputs[0].value = 'id_'+msg.id; 
+            if (inputs) {
+              inputs[0].value = 'id_' + msg.id;
             }
-            
+
           }
-          
-         
+
+
           // Remove the message from pending message DB since it could be sent
           // successfully.
           PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
