@@ -617,11 +617,15 @@ var Contacts = (function() {
   }
 
   var showAdd = function showAdd(params) {
-    resetForm(params);
+    resetForm();
     deleteContactButton.classList.add('hide');
     formTitle.innerHTML = 'Add Contact';
 
     params = params || {};
+
+    givenName.value = params.giveName || '';
+    familyName.value = params.lastName || '';
+    company.value = params.company || '';
 
     var paramsMapping = {
       'tel' : insertPhone,
@@ -881,13 +885,12 @@ var Contacts = (function() {
     numberNotes++;
   };
 
-  var resetForm = function resetForm(params) {
-    params = params || {};
+  var resetForm = function resetForm() {
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
-    givenName.value = params.giveName || '';
-    familyName.value = params.familyName || '';
-    company.value = params.company || '';
+    givenName.value = '';
+    familyName.value = '';
+    company.value = '';
     var phones = document.getElementById('contacts-form-phones');
     var emails = document.getElementById('contacts-form-emails');
     var addresses = document.getElementById('contacts-form-addresses');
