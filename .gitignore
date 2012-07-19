@@ -8,6 +8,7 @@ apps/settings/gaia-commit.txt
 test_apps/test-agent/test/config.json
 apps/*/test/unit/_sandbox.html
 apps/*/test/unit/_proxy.html
+apps/*/shared
 apps/dialer/contacts
 test_apps/*/test/unit/_sandbox.html
 test_apps/*/test/unit/_proxy.html
