@@ -80,7 +80,7 @@ var gWifiManager = (function(window) {
     },
 
     // returns a list of visible networks
-    getNetworks: function() {
+    getNetworks: function fakeGetNetworks() {
       var request = { result: fakeNetworks };
 
       setTimeout(function() {
@@ -92,24 +92,24 @@ var gWifiManager = (function(window) {
     },
 
     // selects a network
-    associate: function(network) {
+    associate: function fakeAssociate(network) {
       var self = this;
       var connection = { result: network };
       var networkEvent = { network: network };
 
-      setTimeout(function() {
+      setTimeout(function fakeConnecting() {
         self.connection.network = network;
         self.connection.status = 'connecting';
         self.onstatuschange(networkEvent);
       }, 0);
 
-      setTimeout(function() {
+      setTimeout(function fakeAssociated() {
         self.connection.network = network;
         self.connection.status = 'associated';
         self.onstatuschange(networkEvent);
       }, 1000);
 
-      setTimeout(function() {
+      setTimeout(function fakeConnected() {
         network.connected = true;
         self.connected = network;
         self.connection.network = network;
@@ -121,7 +121,7 @@ var gWifiManager = (function(window) {
     },
 
     // forgets a network (disconnect)
-    forget: function(network) {
+    forget: function fakeForget(network) {
       var self = this;
       var networkEvent = { network: network };
 
@@ -457,7 +457,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
     function wifiConnect() {
       gWifiManager.associate(network);
       gStatus.textContent = '';
-      //gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
       gNetworkList.display(network.ssid, _('shortStatus-connecting'));
     }
 
