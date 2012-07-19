@@ -106,10 +106,6 @@ var ClockView = {
     }, (1000 - now.getMilliseconds()));
   },
 
-  updateAlarmIndicator: function cv_updateAlarmIndicator() {
-
-  },
-
   handleEvent: function cv_handleEvent(evt) {
     switch (evt.type) {
       case 'mozvisibilitychange':
@@ -296,19 +292,22 @@ var AlarmList = {
     alarm.enabled = enabled;
 
     var self = this;
-    AlarmsDB.putAlarm(alarm, function al_putAlarmList() {
+    AlarmsDB.putAlarm(alarm, function al_putAlarmList(alarm) {
+      if (alarm.enabled) {
+        AlarmManager.set(alarm);
+      } else {
+        AlarmManager.cancel(alarm);
+      }
       self.refresh();
     });
-    if (enabled) {
-      AlarmManager.set(alarm);
-    } else {
-      AlarmManager.cancel(alarm);
-    }
   },
 
-  deleteCurrent: function al_deleteCurrent(alarmID) {
+  deleteCurrent: function al_deleteCurrent(id) {
     var self = this;
-    AlarmsDB.deleteAlarm(alarmID, function al_deletedAlarm() {
+    if (alarm.alarmId)
+      AlarmManager.cancel(alarm);
+
+    AlarmsDB.deleteAlarm(id, function al_deletedAlarm() {
       self.refresh();
     });
   }
@@ -318,105 +317,74 @@ var AlarmList = {
 var AlarmManager = {
 
   _onFireAlarm: {},
-  _vibrateInterval: null,
-  _ringtonePlayer: null,
 
   init: function am_init() {
-    navigator.mozSetMessageHandler('alarm', function(message) {
-      this.onAlarmFiredHandler(message);
+    var self = this;
+    navigator.mozSetMessageHandler('alarm', function gotMessage(message) {
+      self.onAlarmFiredHandler(message);
     });
   },
 
   set: function am_set(alarm) {
-    var alarmDate = new Date();
-    var diffDays = calDiffDays(alarm.repeat, alarm.hour, alarm.minute);
-    alarmDate.setDate(alarmDate.getDate() + diffDays);
-    alarmDate.setHours(alarm.hour);
-    alarmDate.setMinutes(alarm.minute);
-    alarmDate.setSeconds(0, 0);
-    var request = navigator.mozAlarms.add(alarmDate, 'honorTimezone',
+    var nextAlarmFireTime = getNextAlarmFireTime(alarm);
+    var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
                   { id: alarm.id }); // give the alarm id for the request
     request.onsuccess = function(e) {
       alarm.alarmId = e.target.result;
       // save the AlarmAPI's request id to DB
-      AlarmsDB.putAlarm(alarm);
-      // XXX update alarm indicator for ClockView
+      AlarmsDB.putAlarm(alarm, function am_putAlarm(alarm) {
+        AlarmList.refresh();
+      });
     };
     request.onerror = function(e) {
-      alert('set alarm fail');
+      console.log('set alarm fail');
     };
   },
 
   setSnoozeAlarm: function am_setSnoozeAlarm(alarm) {
-    var alarmDate = new Date();
-    alarmDate.setMinutes(alarmDate.getMinutes() + alarm.snooze);
-    var request = navigator.mozAlarms.add(alarmDate, 'honorTimezone',
+    var nextAlarmFireTime = new Date();
+    nextAlarmFireTime.setMinutes(nextAlarmFireTime.getMinutes() + alarm.snooze);
+    var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
                   { id: alarm.id });  // give the alarm id for the request
     request.onsuccess = function(e) {
       alarm.alarmId = e.target.result;
       // save the AlarmAPI's request id to DB
-      AlarmsDB.putAlarm(alarm);
-      // XXX update alarm indicator for ClockView
+      AlarmsDB.putAlarm(alarm, function am_putAlarm(alarm) {
+        AlarmList.refresh();
+      });
     };
     request.onerror = function(e) {
-      alert('set snooze alarm fail');
+      console.log('set snooze alarm fail');
     };
   },
 
   cancel: function am_cancel(alarm) {
     if (alarm.alarmId) {
       navigator.mozAlarms.remove(alarm.alarmId);
-      // XXX update alarm indicator for ClockView
     }
   },
 
   onAlarmFiredHandler: function am_onAlarmFiredHandler(message) {
     // XXX receive and paser the alarm id from the message
-    var id = JSON.stringify(message);
+    var id = message.data.id;
     // use the alarm id to query db
-    // find out which alarm onfire the event
+    // find out which alarm is being fired.
     var self = this;
     AlarmsDB.getAlarm(id, function am_gotAlarm(alarm) {
       // prepare to pop out attention screen, ring the ringtone, vibrate
       self._onFireAlarm = alarm;
-      self._ringtonePlayer = new Audio();
-      self._ringtonePlayer.loop = true;
-      // XXX Need to set the ringtone according to alarm's property of 'sound'
-      var selectedAlarmSound = 'style/ringtones/classic.wav';
-      self._ringtonePlayer.src = selectedAlarmSound;
-
       var protocol = window.location.protocol;
       var host = window.location.host;
       window.open(protocol + '//' + host + '/onring.html',
                   'ring_screen', 'attention');
-      if ('vibrate' in navigator) {
-        self._vibrateInterval = window.setInterval(function vibrate() {
-          navigator.vibrate([200]);
-        }, 600);
-        /* If user don't handle the onFire alarm,
-         turn off vibraction after 7 secs */
-        window.setTimeout(function clearVibration() {
-          window.clearInterval(self._vibrateInterval);
-        }, 7000);
-      }
-      self._ringtonePlayer.play();
-      /* If user don't handle the onFire alarm,
-         pause the ringtone after 20 secs */
-      window.setTimeout(function pauseRingtone() {
-        self._ringtonePlayer.pause();
-      }, 20000);
     });
   },
 
   snoozeHandler: function am_snoozeHandler() {
-    window.clearInterval(this._vibrateInterval);
-    this._ringtonePlayer.pause();
     this.setSnoozeAlarm(this._onFireAlarm);
   },
 
   cancelHandler: function am_cancelHandler() {
-    window.clearInterval(this._vibrateInterval);
-    this._ringtonePlayer.pause();
     // Check the property of repeat
     if (this._onFireAlarm.repeat == '0000000') { // disable alarm
       AlarmList.updateAlarmEnableState(false, this._onFireAlarm);
@@ -614,12 +582,12 @@ var AlarmEditView = {
     }
 
     if (!error) {
-      if (this.alarm.enabled) {
-        AlarmManager.set(this.alarm);
-      } else {
-        AlarmManager.cancel(this.alarm);
-      }
-      AlarmsDB.putAlarm(this.alarm, function al_putAlarmList() {
+      AlarmsDB.putAlarm(this.alarm, function al_putAlarmList(alarm) {
+        if (alarm.enabled) {
+          AlarmManager.set(alarm);
+        } else {
+          AlarmManager.cancel(alarm);
+        }
         AlarmList.refresh();
       });
     }
