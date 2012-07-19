@@ -1,18 +1,19 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireCalendarController();
 });
+
+window.page = window.page || {};
 
 suite('controller', function() {
   var subject;
+  var app;
 
   setup(function() {
-    subject = new Calendar.Controller({
-      events: new Calendar.Models.Events,
-      busytime: new Calendar.Models.Busytime
-    });
+    app = testSupport.calendar.app();
+    subject = new Calendar.Controllers.Time(app);
   });
 
   test('initialize', function() {
+    assert.equal(subject.app, app);
     assert.instanceOf(subject, Calendar.Responder);
   });
 

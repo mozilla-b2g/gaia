@@ -1,7 +1,7 @@
 {
   "name": "TowerJelly",
   "description": "Tower Jelly",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "hackNetworkBound": "true",
   "developer": {
     "name": "The Original Author",

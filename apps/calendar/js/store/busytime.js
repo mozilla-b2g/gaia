@@ -1,21 +1,14 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
-  if (typeof(Calendar.Models) === 'undefined') {
-    Calendar.Models = {};
-  }
 
   function Busytime() {
-    Calendar.Responder.call(this);
+    Calendar.Store.Abstract.apply(this, arguments);
 
-    this.ids = {};
-    this.times = {};
+    this.ids = Object.create(null);
+    this.times = Object.create(null);
   }
 
   var proto = Busytime.prototype = Object.create(
-    Calendar.Responder.prototype
+    Calendar.Store.Abstract.prototype
   );
 
   /**
@@ -99,6 +92,6 @@
     return false;
   };
 
-  Calendar.Models.Busytime = Busytime;
+  Calendar.ns('Store').Busytime = Busytime;
 
 }(this));

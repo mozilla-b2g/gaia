@@ -156,7 +156,9 @@ const HomeState = (function() {
         var index = store.index('byId');
         var request = index.get('shortcuts');
         request.onsuccess = function(event) {
-          result = event.target.result.shortcuts;
+          if (event.target.result) {
+            result = event.target.result.shortcuts;
+          }
         };
       }, function() { success(result) }, error, DOCK_STORE_NAME);
     }

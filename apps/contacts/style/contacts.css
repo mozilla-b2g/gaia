@@ -127,7 +127,7 @@ hr {
 /* Search */
 
 #groups-list {
-  padding-top: 2rem;
+  padding-top: 2.5rem;
 }
 
 #search-contact {
@@ -190,4 +190,10 @@ hr {
 
 #view-contacts-list.searching .block-item {
   border-bottom: 1px solid #DBDBDB;
+}
+
+#no-result {
+  margin-top: -moz-calc((100% - 0.5rem) / 2);
+  text-align: center;
+  margin-left: -0.8rem;
 }
