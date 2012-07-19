@@ -57,155 +57,155 @@
   background: url('images/icons.png') no-repeat;
 }
 
-.sb-i-battery {
+.sb-icon-battery {
   width: 21px;
 }
-.sb-i-battery:not([data-level]) {
+.sb-icon-battery:not([data-level]) {
   background-position: -286px 0;
 }
-.sb-i-battery[data-level="0"] {
+.sb-icon-battery[data-level="0"] {
   background-position: 0 0;
 }
-.sb-i-battery[data-level="10"] {
+.sb-icon-battery[data-level="10"] {
   background-position: -26px 0;
 }
-.sb-i-battery[data-level="20"] {
+.sb-icon-battery[data-level="20"] {
   background-position: -52px 0;
 }
-.sb-i-battery[data-level="30"] {
+.sb-icon-battery[data-level="30"] {
   background-position: -78px 0;
 }
-.sb-i-battery[data-level="40"] {
+.sb-icon-battery[data-level="40"] {
   background-position: -104px 0;
 }
-.sb-i-battery[data-level="50"] {
+.sb-icon-battery[data-level="50"] {
   background-position: -130px 0;
 }
-.sb-i-battery[data-level="60"] {
+.sb-icon-battery[data-level="60"] {
   background-position: -156px 0;
 }
-.sb-i-battery[data-level="70"] {
+.sb-icon-battery[data-level="70"] {
   background-position: -182px 0;
 }
-.sb-i-battery[data-level="80"] {
+.sb-icon-battery[data-level="80"] {
   background-position: -208px 0;
 }
-.sb-i-battery[data-level="90"] {
+.sb-icon-battery[data-level="90"] {
   background-position: -234px 0;
 }
-.sb-i-battery[data-level="100"] {
+.sb-icon-battery[data-level="100"] {
   background-position: -260px 0;
 }
 
-.sb-i-battery:not([data-level])[data-charging="true"],
-.sb-i-battery[data-level="0"][data-charging="true"] {
+.sb-icon-battery:not([data-level])[data-charging="true"],
+.sb-icon-battery[data-level="0"][data-charging="true"] {
   background-position: 0 -20px;
 }
-.sb-i-battery[data-level="10"][data-charging="true"] {
+.sb-icon-battery[data-level="10"][data-charging="true"] {
   background-position: -26px -20px;
 }
-.sb-i-battery[data-level="20"][data-charging="true"] {
+.sb-icon-battery[data-level="20"][data-charging="true"] {
   background-position: -52px -20px;
 }
-.sb-i-battery[data-level="30"][data-charging="true"] {
+.sb-icon-battery[data-level="30"][data-charging="true"] {
   background-position: -78px -20px;
 }
-.sb-i-battery[data-level="40"][data-charging="true"] {
+.sb-icon-battery[data-level="40"][data-charging="true"] {
   background-position: -104px -20px;
 }
-.sb-i-battery[data-level="50"][data-charging="true"] {
+.sb-icon-battery[data-level="50"][data-charging="true"] {
   background-position: -130px -20px;
 }
-.sb-i-battery[data-level="60"][data-charging="true"] {
+.sb-icon-battery[data-level="60"][data-charging="true"] {
   background-position: -156px -20px;
 }
-.sb-i-battery[data-level="70"][data-charging="true"] {
+.sb-icon-battery[data-level="70"][data-charging="true"] {
   background-position: -182px -20px;
 }
-.sb-i-battery[data-level="80"][data-charging="true"] {
+.sb-icon-battery[data-level="80"][data-charging="true"] {
   background-position: -208px -20px;
 }
-.sb-i-battery[data-level="90"][data-charging="true"] {
+.sb-icon-battery[data-level="90"][data-charging="true"] {
   background-position: -234px -20px;
 }
-.sb-i-battery[data-level="100"][data-charging="true"] {
+.sb-icon-battery[data-level="100"][data-charging="true"] {
   background-position: -260px -20px;
 }
 
-.sb-i-wifi:not([data-level]),
-.sb-i-wifi[data-level="0"] {
+.sb-icon-wifi:not([data-level]),
+.sb-icon-wifi[data-level="0"] {
   background-position: 0 -60px;
 }
-.sb-i-wifi[data-level="1"] {
+.sb-icon-wifi[data-level="1"] {
   background-position: -21px -60px;
 }
-.sb-i-wifi[data-level="2"] {
+.sb-icon-wifi[data-level="2"] {
   background-position: -42px -60px;
 }
-.sb-i-wifi[data-level="3"] {
+.sb-icon-wifi[data-level="3"] {
   background-position: -63px -60px;
 }
-.sb-i-wifi[data-level="4"] {
+.sb-icon-wifi[data-level="4"] {
   background-position: -84px -60px;
 }
 
-.sb-i-data[data-type="LTE"] {
+.sb-icon-data[data-type="LTE"] {
   background-position: 0 -80px;
 }
 
-.sb-i-data[data-type="4G"] {
+.sb-icon-data[data-type="4G"] {
   background-position: -21px -80px;
 }
 
-.sb-i-data[data-type="3G"] {
+.sb-icon-data[data-type="3G"] {
   background-position: -42px -80px;
 }
 
-.sb-i-data[data-type="EDGE"] {
+.sb-icon-data[data-type="EDGE"] {
   background-position: -63px -80px;
 }
 
-.sb-i-data[data-type="2G"] {
+.sb-icon-data[data-type="2G"] {
   background-position: -84px -80px;
 }
 
-.sb-i-flight-mode {
+.sb-icon-flight-mode {
   background-position: 0 -40px;
 }
 
-.sb-i-signal[data-level="-1"] {
+.sb-icon-signal[data-level="-1"] {
   background-position: -21px -40px;
 }
 
-.sb-i-signal[data-level="0"] {
+.sb-icon-signal[data-level="0"] {
   background-position: -42px -40px;
 }
 
-.sb-i-signal[data-level="1"] {
+.sb-icon-signal[data-level="1"] {
   background-position: -63px -40px;
 }
 
-.sb-i-signal[data-level="2"] {
+.sb-icon-signal[data-level="2"] {
   background-position: -84px -40px;
 }
 
-.sb-i-signal[data-level="3"] {
+.sb-icon-signal[data-level="3"] {
   background-position: -105px -40px;
 }
 
-.sb-i-signal[data-level="4"] {
+.sb-icon-signal[data-level="4"] {
   background-position: -126px -40px;
 }
 
-.sb-i-signal[data-level="5"] {
+.sb-icon-signal[data-level="5"] {
   background-position: -147px -40px;
 }
 
-.sb-i-signal {
+.sb-icon-signal {
   position: relative;
 }
 
-.sb-i-signal[data-roaming="true"]::after {
+.sb-icon-signal[data-roaming="true"]::after {
   content: '';
   position: absolute;
   width: 8px;
@@ -216,57 +216,57 @@
   background-position: -168px -40px;
 }
 
-.sb-i-geolocation {
+.sb-icon-geolocation {
   background-position: -231px -40px;
 }
 
-.sb-i-geolocation[data-active="true"] {
+.sb-icon-geolocation[data-active="true"] {
   background-position: -210px -40px;
 }
 
-.sb-i-recording {
+.sb-icon-recording {
   background-position: -273px -40px;
 }
 
-.sb-i-recording[data-active="true"] {
+.sb-icon-recording[data-active="true"] {
   background-position: -252px -40px;
 }
 
-.sb-i-alarm {
+.sb-icon-alarm {
   background-position: -294px -40px;
 }
 
-.sb-i-tethering {
+.sb-icon-tethering {
   background-position: -126px -60px;
 }
 
-.sb-i-tethering[data-active="true"] {
+.sb-icon-tethering[data-active="true"] {
   background-position: -105px -60px;
 }
 
-.sb-i-bluetooth {
+.sb-icon-bluetooth {
   background-position: -252px -60px;
 }
 
-.sb-i-bluetooth[data-active="true"] {
+.sb-icon-bluetooth[data-active="true"] {
   background-position: -231px -60px;
 }
 
-.sb-i-mute {
+.sb-icon-mute {
   background-position: -273px -60px;
 }
 
-.sb-i-usb {
+.sb-icon-usb {
   background-position: -294px -60px;
 }
 
-.sb-i-notification {
+.sb-icon-notification {
   background: #000;
   width: 32px;
   position: relative;
 }
 
-.sb-i-notification::before {
+.sb-icon-notification::before {
   content: '';
   position: absolute;
   top: 0;
@@ -278,7 +278,7 @@
   background-position: -168px -60px;
 }
 
-.sb-i-notification::after {
+.sb-icon-notification::after {
   content: attr(data-num);
   position: absolute;
   color: #27b9cf;
@@ -290,12 +290,12 @@
   font-weight: 600;
 }
 
-.sb-i-sms {
+.sb-icon-sms {
   background-position: -147px -60px;
   position: relative;
 }
 
-.sb-i-sms::before {
+.sb-icon-sms::before {
   content: attr(data-num);
   position: absolute;
   color: #000;
