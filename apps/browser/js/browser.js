@@ -57,7 +57,7 @@ var Browser = {
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
-    this.urlButton.addEventListener('click', this.go.bind(this));
+    this.urlButton.addEventListener('click', this.handleUrlFormSubmit.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
@@ -277,7 +277,7 @@ var Browser = {
     var urlInput = this.urlInput;
     switch (evt.type) {
       case 'submit':
-        this.go(evt);
+        this.handleUrlFormSubmit(evt);
         break;
 
       case 'keyup':
@@ -331,7 +331,7 @@ var Browser = {
     this.urlInput.value = url;
   },
 
-  go: function browser_go(e) {
+  handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
     if (e) {
       e.preventDefault();
     }
