@@ -195,24 +195,28 @@ var StatusBar = {
       icon.hidden = false;
       var type = '';
 
-      // XXX need to verify all possible values and their generations
       switch (data.type) {
         case 'lte':
           type = 'LTE';
           break;
 
-        case '4g':
-          type = '4G';
-          break;
+        // This icon is not used
+        // type = '4G';
+        //  break;
 
+        // 3.5G, show them as 3G
         case 'hsdpa':
-        case 'umts':
+        case 'hsupa':
+        case 'hspa+':
 
+        // CDMA 3G
         case 'evdo0':
         case 'evdoa':
         case 'evdob':
+        case '1xrtt':
 
-        case 'cdma':
+        // 3G
+        case 'umts':
           type = '3G';
           break;
 
@@ -220,10 +224,14 @@ var StatusBar = {
           type = 'EDGE';
           break;
 
+        // CDMA 2G
+        case 'is95a':
+        case 'is95b':
+
+        // 2G
         case 'gprs':
-        case 'gsm':
         default:
-          type = 'GPRS';
+          type = '2G';
       }
 
       icon.dataset.type = type;
