@@ -3,22 +3,44 @@
 
 'use strict';
 
+// create a fake mozMobileConnection if required (e.g. desktop browser)
+var gMobileConnection = (function(window) {
+  var navigator = window.navigator;
+  if (('mozMobileConnection' in navigator) &&
+      navigator.mozMobileConnection &&
+      navigator.mozMobileConnection.data) {
+    return navigator.mozMobileConnection;
+  }
+
+  var initialized = false;
+  var fakeNetwork = { shortName: 'Fake Orange', mcc: 208, mnc: 1 };
+
+  function fakeEventListener(type, callback, bubble) {
+    if (initialized)
+      return;
+
+    // simulates a connection to a data network;
+    setTimeout(function fakeCallback() {
+      initialized = true;
+      callback();
+    }, 5000);
+  }
+
+  return {
+    addEventListener: fakeEventListener,
+    get data() {
+      return initialized ? { network: fakeNetwork } : null;
+    }
+  };
+})(this);
+
+// handle Data settings
 window.addEventListener('localized', function getCarrierSettings(evt) {
-  var DEBUG = false; // set to `true' to debug the UI in a desktop browser
   var gNetwork;
 
   // initialize data settings
-  var conn = window.navigator.mozMobileConnection;
-  if (conn && conn.data) {
-    conn.addEventListener('cardstatechange', updateConnection);
-    conn.addEventListener('voicechange', updateConnection);
-    conn.addEventListener('datachange', updateConnection);
-    updateConnection();
-  } else if (DEBUG) { // = DEBUG mode in a desktop browser
-    setTimeout(function fakeConnection() {
-      updateConnection({ shortName: 'Fake Orange', mcc: 208, mnc: 1 });
-    }, 5000);
-  }
+  gMobileConnection.addEventListener('datachange', updateConnection);
+  updateConnection();
 
   // query <apn> elements matching the mcc/mnc arguments
   function queryAPN(apnDocument, mcc, mnc) {
@@ -80,21 +102,14 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
     if (!gNetwork) // XXX should never happen
       return;
 
-    // get MCC/MNC values
-    var mcc = gNetwork.mcc;
-    var mnc = gNetwork.mnc;
-
     var apnList = document.getElementById('autoAPN-list');
     apnList.innerHTML = '';
-    if (DEBUG) { // display MCC/MNC in the UI
-      apnList.innerHTML += 'mcc: ' + mcc + ' / mnc: ' + mnc + '<br />';
-    }
 
     var xhr = new XMLHttpRequest();
     xhr.open('GET', APN_FILE, false); // synchronous (boo!)
     xhr.send();
 
-    var results = queryAPN(xhr.responseXML, mcc, mnc);
+    var results = queryAPN(xhr.responseXML, gNetwork.mcc, gNetwork.mnc);
     for (var i = 0; i < results.length; i++) {
       var button = createAPNButton(results[i]);
       apnList.appendChild(button);
@@ -104,13 +119,8 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
   };
 
   // update `gNetwork' when the data connection has changed
-  function updateConnection(fakeNetwork) {
-    var conn = window.navigator.mozMobileConnection;
-    if (conn && conn.data && conn.data.network) {
-      gNetwork = conn.data.network;
-    } else { // in DEBUG mode, a fake network can be provided
-      gNetwork = fakeNetwork;
-    }
+  function updateConnection() {
+    gNetwork = gMobileConnection.data ? gMobileConnection.data.network : null;
 
     // display data carrier name
     var shortName = gNetwork ? gNetwork.shortName : '';
