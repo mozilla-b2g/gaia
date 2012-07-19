@@ -56,8 +56,7 @@ suite('store/calendar', function() {
     assert.equal(subject._store, 'calendars');
     assert.equal(subject.db, db);
 
-    assert.ok(subject._remoteCache);
-    assert.ok(subject._accountMap);
+    assert.ok(subject._remoteByAccount);
   });
 
   suite('cache handling', function() {
@@ -67,9 +66,8 @@ suite('store/calendar', function() {
 
     test('#_addToCache', function() {
       assert.equal(subject._cached[1], model);
-      assert.equal(subject._remoteCache['uuid'], model);
       assert.equal(
-        subject._accountMap['acc1'][1],
+        subject._remoteByAccount['acc1']['uuid'],
         model
       );
     });
@@ -77,8 +75,7 @@ suite('store/calendar', function() {
     test('#_removeFromCache', function() {
       subject._removeFromCache(1);
       assert.ok(!subject._cached[1]);
-      assert.ok(!subject._remoteCache['uuid']);
-      assert.ok(!subject._accountMap['acc1'][1]);
+      assert.ok(!subject._remoteByAccount['acc1']['uuid']);
     });
 
   });
@@ -106,25 +103,16 @@ suite('store/calendar', function() {
     });
   });
 
-  test('#cachedByAccount', function() {
+  test('#remotesByAccount', function() {
     subject._addToCache(model);
 
-    var result = subject.cachedByAccount(
+    var result = subject.remotesByAccount(
       model.accountId
     );
 
     assert.deepEqual(result, {
-      1: model
+      'uuid': model
     });
-  });
-
-  test('#cachedByRemote', function() {
-    subject._addToCache(model);
-
-    assert.equal(
-      subject.cachedByRemote(model.remote.id),
-      model
-    );
   });
 
 });

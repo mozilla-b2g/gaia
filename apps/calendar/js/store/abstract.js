@@ -66,17 +66,26 @@
         putReq = store.put(data);
       }
 
+
       trans.addEventListener('error', function() {
-        callback(err);
+        if (callback) {
+          callback(err);
+        }
       });
+
+      var fired = false;
 
       trans.addEventListener('complete', function(data) {
         var id = putReq.result;
         var result = self._createModel(object, id);
 
         self._addToCache(object);
-        callback(null, id, result);
 
+        if (callback) {
+          callback(null, id, result);
+        }
+
+        console.log('FIRE', reqType, result);
         self.emit(reqType, id, result);
         self.emit('persist', id, result);
       });
@@ -140,17 +149,23 @@
       }
 
       var self = this;
-      var store = trans.objectStore('accounts');
+      var store = trans.objectStore(this._store);
 
       var req = store.delete(parseInt(id));
 
       trans.addEventListener('error', function(event) {
-        callback(event);
+        if (callback) {
+          callback(event);
+        }
       });
 
       trans.addEventListener('complete', function() {
         self._removeFromCache(id);
-        callback(null, id);
+
+        if (callback) {
+          callback(null, id);
+        }
+
         self.emit('remove', id);
       });
     },

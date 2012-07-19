@@ -3,9 +3,7 @@
   function Store() {
     Calendar.Store.Abstract.apply(this, arguments);
 
-    // uuid cache
-    this._remoteCache = Object.create(null);
-    this._accountMap = Object.create(null);
+    this._remoteByAccount = Object.create(null);
   }
 
   Store.prototype = {
@@ -14,22 +12,22 @@
     _store: 'calendars',
 
     _addToCache: function(object) {
+      var remote = object.remote.id;
+
       this._cached[object._id] = object;
-      this._remoteCache[object.remote.id] = object;
 
-      if (!(object._id in this._accountMap)) {
-        this._accountMap[object.accountId] = {};
+      if (!(object.accountId in this._remoteByAccount)) {
+        this._remoteByAccount[object.accountId] = {};
       }
-
-      this._accountMap[object.accountId][object._id] = object;
+      this._remoteByAccount[object.accountId][remote] = object;
     },
 
     _removeFromCache: function(id) {
       if (id in this.cached) {
         var object = this.cached[id];
+        var remote = object.remote.id;
         delete this.cached[id];
-        delete this._remoteCache[object.remote.id];
-        delete this._accountMap[object.accountId][id];
+        delete this._remoteByAccount[object.accountId][remote];
       }
     },
 
@@ -45,18 +43,14 @@
       return obj;
     },
 
-    cachedByAccount: function(accountId) {
-      if (accountId in this._accountMap) {
-        return this._accountMap[accountId];
+    remotesByAccount: function(accountId) {
+      if (accountId in this._remoteByAccount) {
+        return this._remoteByAccount[accountId];
       }
       return Object.create(null);
-    },
-
-    cachedByRemote: function(remoteId) {
-      return this._remoteCache[remoteId];
     }
 
-   };
+  };
 
   Calendar.ns('Store').Calendar = Store;
 

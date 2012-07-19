@@ -3,6 +3,7 @@ requireApp('calendar/test/unit/helper.js', function() {
 
   requireLib('db.js');
   requireLib('models/account.js');
+  requireLib('models/calendar.js');
   requireLib('store/abstract.js');
   requireLib('store/account.js');
 });
@@ -10,6 +11,23 @@ requireApp('calendar/test/unit/helper.js', function() {
 suite('store/account', function() {
 
   var subject, db;
+
+  function add(object) {
+    setup(function(done) {
+      var store = subject.db.getStore('Calendar');
+      var model = store._createModel(object);
+      store.once('persist', function() {
+        done();
+      });
+      store.persist(model);
+    });
+  }
+
+  function createCal(object) {
+    return new Calendar.Provider.Calendar.Abstract(
+      subject.provider, object
+    );
+  }
 
   setup(function(done) {
     db = testSupport.calendar.db();
@@ -22,17 +40,11 @@ suite('store/account', function() {
   });
 
   teardown(function(done) {
-    var trans = db.transaction('accounts', 'readwrite');
-    var accounts = trans.objectStore('accounts');
-    var res = accounts.clear();
+    testSupport.calendar.clearStore('accounts', done);
+  });
 
-    res.onerror = function() {
-      done(new Error('could not wipe accounts db'));
-    }
-
-    res.onsuccess = function() {
-      done();
-    }
+  teardown(function(done) {
+    testSupport.calendar.clearStore('calendars', done);
   });
 
   teardown(function() {
@@ -70,6 +82,104 @@ suite('store/account', function() {
 
       assert.equal(result.providerType, 'Local');
       assert.isFalse(('_id' in result));
+    });
+
+  });
+
+  suite('#sync: add, remove, update', function() {
+    var remote;
+    var events;
+    var model;
+    var results;
+    var store;
+
+    add({ accountId: 6, remote: { id: 1, name: 'remove' } });
+    add({ accountId: 6, remote: { id: 2, name: 'update' } });
+
+    setup(function() {
+      model = new Calendar.Models.Account({
+        providerType: 'Local',
+        _id: 6
+      });
+
+      remote = {};
+
+      remote[2] = createCal({
+        id: 2,
+        name: 'update!',
+        description: 'new desc'
+      });
+
+      remote[3] = createCal({
+        id: 3,
+        name: 'new item'
+      });
+
+      model.provider.findCalendars = function(cb) {
+        cb(null, remote);
+      };
+    });
+
+    setup(function(done) {
+      store = subject.db.getStore('Calendar');
+      events = {
+        add: [],
+        remove: [],
+        update: []
+      };
+
+      store.on('add', function() {
+        events.add.push(arguments);
+      });
+
+      store.on('update', function() {
+        events.update.push(arguments);
+      });
+
+      store.on('remove', function() {
+        events.remove.push(arguments);
+      });
+
+      subject.sync(model, function() {
+        done();
+      });
+    });
+
+    setup(function(done) {
+      var store = subject.db.getStore('Calendar');
+      store.load(function(err, data) {
+        results = data;
+        done();
+      });
+    });
+
+    test('after sync', function() {
+      var byRemote = {};
+      assert.equal(Object.keys(results).length, 2);
+
+      // re-index all records by remote
+      Object.keys(results).forEach(function(key) {
+        var obj = results[key];
+        byRemote[obj.remote.id] = obj;
+      });
+
+      // EVENTS
+      assert.ok(events.remove[0][0]);
+
+      var updateObj = events.update[0][1].remote;
+      assert.equal(updateObj.id, '2');
+
+      var addObj = events.add[0][1].remote;
+      assert.equal(addObj.id, '3');
+
+      // update
+      assert.instanceOf(byRemote[2], Calendar.Models.Calendar);
+      assert.equal(byRemote[2].remote.description, 'new desc');
+      assert.equal(byRemote[2].name, 'update!');
+
+      // add
+      assert.instanceOf(byRemote[3], Calendar.Models.Calendar);
+      assert.equal(byRemote[3].name, 'new item');
     });
 
   });
