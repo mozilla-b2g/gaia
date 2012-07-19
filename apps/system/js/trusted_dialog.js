@@ -8,35 +8,39 @@ var TrustedDialog = (function() {
   var trustedDialogElement = document.getElementById('trustedDialog');
   var currentFrame = null;
 
-  function open(trustedFrame) {
-    if (!trustedFrame)
+  function open(url, callback) {
+    if (!url)
       return;
 
-    // We only allow one trusted dialog at a time.
-    if (trustedDialogIsShown())
-      return;
-
-    lastDisplayedApp = WindowManager.getDisplayedApp();
-
-    // Show the homescreen.
-    WindowManager.setDisplayedApp(null);
+    // If the trusted dialog is being shown we swap frames.
+    if (trustedDialogIsShown()) {
+      trustedDialogElement.removeChild(currentFrame);
+      currentFrame = null;
+    } else {
+      // Save the current displayed app in order to show it after closing the
+      // trusted dialog.
+      lastDisplayedApp = WindowManager.getDisplayedApp();
+      // Show the homescreen.
+      WindowManager.setDisplayedApp(null);
+    }
 
     // Create the iframe to be shown as a trusted dialog.
     var frame = document.createElement('iframe');
-    frame.dataset.frameType = 'window';
-    frame.dataset.frameOrigin = trustedFrame.url;
     frame.setAttribute('mozbrowser', 'true');
     frame.classList.add('frame');
     frame.classList.add('screen');
-    frame.src = trustedFrame.url;
+    frame.src = url;
+    if (callback)
+      frame.addEventListener('mozbrowserloadend', callback);
     trustedDialogElement.appendChild(frame);
     currentFrame = frame;
 
-    // Make the trusted dialog overlay active.
-    trustedDialogElement.classList.add('active');
-
-    // Make sure we're in portrait mode.
-    screen.mozLockOrientation('portrait');
+    if (!trustedDialogIsShown()) {
+      // Make the trusted dialog overlay active.
+      trustedDialogElement.classList.add('active');
+      // Make sure we're in portrait mode.
+      screen.mozLockOrientation('portrait');
+    }
 
     return frame;
   };
@@ -52,6 +56,7 @@ var TrustedDialog = (function() {
     currentFrame = null;
     // Shows the previously displayed app.
     WindowManager.setDisplayedApp(lastDisplayedApp);
+    lastDisplayedApp = null;
     // Switch back to apps orientation.
     WindowManager.setOrientationForApp(lastDisplayedApp);
 
@@ -63,7 +68,6 @@ var TrustedDialog = (function() {
   };
 
   window.addEventListener('mozChromeEvent', function(e) {
-    console.log('mozChromeEvent.received: ' + e.detail.type);
     switch (e.detail.type) {
       // Chrome asks Gaia to create a trusted iframe. Once it is created,
       // Gaia sends the iframe back to chrome so frame scripts can be loaded
