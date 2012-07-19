@@ -28,6 +28,11 @@ var ContactsTest = {
     return this.editActivityButton = document.getElementById('activities-edit');
   },
 
+  get newWithDataActivityButton() {
+    delete this.newWithDataActivityButton;
+    return this.newWithDataActivityButton = document.getElementById('activities-new-data');
+  },
+
   init: function ct_init() {
     this.loadButton.addEventListener('click', this.loadContacts.bind(this));
     this.clearButton.addEventListener('click', this.clearContacts.bind(this));
@@ -35,6 +40,8 @@ var ContactsTest = {
                                             this.newActivity.bind(this));
     this.editActivityButton.addEventListener('click',
                                             this.editActivity.bind(this));
+    this.newWithDataActivityButton.addEventListener('click',
+                                            this.newWithDataActivity.bind(this));
   },
 
   uninit: function ct_uninit() {
@@ -74,7 +81,46 @@ var ContactsTest = {
     var activity = new MozActivity({
         name: 'new',
         data: {
-          type: 'webcontacts/contact'
+          type: 'webcontacts/contact',
+        }
+      });
+
+    var self = this;
+    activity.onsuccess = function() {
+      var contact = this.result.contact;
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'New contact' + ' create with id: ' + contact.id;
+        self.setContactId(contact.id);
+        document.getElementById('activities-edit').disabled = false;
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+    activity.onerror = function() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'Activity canceled';
+        var app = evt.target.result;
+        app.launch();      
+      };
+    };
+
+  },
+
+  newWithDataActivity: function ct_newActivity() {
+    var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'webcontacts/contact',
+          params: {
+            'tel': '555-555-555',
+            'email': 'cool-hunter@telefonica.es',
+            'address': 'San Francisco',
+            'note': 'This is a note',
+            'giveName': 'John',
+            'familyName': 'Orlock',
+            'company': 'Lost Industries'
+          }
         }
       });
 

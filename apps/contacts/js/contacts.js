@@ -193,7 +193,7 @@ var Contacts = (function() {
         if (params == -1 || !('id' in params)) {
           // Adding new Contact
           currentContact = {};
-          showAdd();
+          showAdd(params);
         } else {
           // Editing existing contact
           if ('id' in params) {
@@ -617,15 +617,23 @@ var Contacts = (function() {
     }
   }
 
-  var showAdd = function showAdd() {
-    resetForm();
+  var showAdd = function showAdd(params) {
+    resetForm(params);
     deleteContactButton.classList.add('hide');
     formTitle.innerHTML = 'Add Contact';
 
-    insertEmptyPhone(0);
-    insertEmptyEmail(0);
-    insertEmptyAddress(0);
-    insertEmptyNote(0);
+    params = params || {};
+
+    var paramsMapping = {
+      'tel' : insertPhone,
+      'email' : insertEmail,
+      'address' : insertAddress,
+      'note' : insertNote
+    };
+
+    for (var i in paramsMapping) {
+      paramsMapping[i].call(this, params[i] || 0);
+    }
 
     edit();
   };
@@ -820,9 +828,9 @@ var Contacts = (function() {
     }
   };
 
-  var insertEmptyPhone = function insertEmptyPhone() {
+  var insertPhone = function insertPhone(phone) {
     var telField = {
-      number: '',
+      number: phone || '',
       type: TAG_OPTIONS['phone-type'][0].value,
       notes: '',
       i: numberPhones || 0
@@ -833,9 +841,9 @@ var Contacts = (function() {
     numberPhones++;
   };
 
-  var insertEmptyEmail = function insertEmptyEmail() {
+  var insertEmail = function insertEmail(email) {
     var emailField = {
-      address: '',
+      address: email || '',
       type: TAG_OPTIONS['email-type'][0].value,
       i: numberEmails || 0
     };
@@ -846,10 +854,10 @@ var Contacts = (function() {
     numberEmails++;
   };
 
-  var insertEmptyAddress = function insertEmptyAddress() {
+  var insertAddress = function insertAddress(address) {
     var addressField = {
       type: TAG_OPTIONS['address-type'][0].value,
-      streetAddress: '',
+      streetAddress: address || '',
       postalCode: '',
       locality: '',
       countryName: '',
@@ -862,9 +870,9 @@ var Contacts = (function() {
     numberAddresses++;
   };
 
-  var insertEmptyNote = function insertEmptyNote() {
+  var insertNote = function insertNote(note) {
     var noteField = {
-      note: '',
+      note: note || '',
       i: numberNotes || 0
     };
 
@@ -874,12 +882,13 @@ var Contacts = (function() {
     numberNotes++;
   };
 
-  var resetForm = function resetForm() {
+  var resetForm = function resetForm(params) {
+    params = params || {};
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
-    givenName.value = '';
-    familyName.value = '';
-    company.value = '';
+    givenName.value = params.giveName || '';
+    familyName.value = params.familyName || '';
+    company.value = params.company || '';
     var phones = document.getElementById('contacts-form-phones');
     var emails = document.getElementById('contacts-form-emails');
     var addresses = document.getElementById('contacts-form-addresses');
@@ -923,10 +932,10 @@ var Contacts = (function() {
     'showEdit' : showEdit,
     'doneTag': doneTag,
     'showAdd': showAdd,
-    'addNewPhone' : insertEmptyPhone,
-    'addNewEmail' : insertEmptyEmail,
-    'addNewAddress' : insertEmptyAddress,
-    'addNewNote' : insertEmptyNote,
+    'addNewPhone' : insertPhone,
+    'addNewEmail' : insertEmail,
+    'addNewAddress' : insertAddress,
+    'addNewNote' : insertNote,
     'goBack' : handleBack,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
@@ -957,6 +966,14 @@ var ActivityHandler = {
     switch (this.activityName) {
       case 'new':
         document.location.hash = 'view-contact-form';
+        if (this._currentActivity.source.data.params) {
+          var param, params = [];
+          for (var i in this._currentActivity.source.data.params) {
+            param = this._currentActivity.source.data.params[i];
+            params.push(i + '=' + param);
+          }
+          document.location.hash += '?' + params.join('&');
+        }
         break;
       case 'edit':
         var id = this._currentActivity.source.data.contactId;
