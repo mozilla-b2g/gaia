@@ -231,7 +231,8 @@ var Recents = {
               phoneEntry = contact.tel[i];
               contactPhoneNumber = phoneEntry.number.replace(' ', '', 'g');
               if ((phoneNumber == contactPhoneNumber) && (phoneEntry.type)) {
-                secondaryInfo.textContent = secondaryInfo.textContent.trim() + '   ' + phoneEntry.type;
+                secondaryInfo.textContent = secondaryInfo.textContent.trim() +
+                  '   ' + phoneEntry.type;
               }
             }
           }
