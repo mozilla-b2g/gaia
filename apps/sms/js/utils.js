@@ -85,6 +85,13 @@ var Utils = {
       dayDiff == 1 && _('yesterday') ||
       dayDiff < 4 && (new Date(time)).toLocaleFormat('%A') ||
       (new Date(time)).toLocaleFormat('%x');
+  },
+  getFontSize: function ut_getFontSize() {
+    if (!this.rootFontSize) {
+      var htmlCss = window.getComputedStyle(document.documentElement, null);
+      this.rootFontSize = parseInt(htmlCss.getPropertyValue('font-size'));
+    }
+    return this.rootFontSize;
   }
 };
 
