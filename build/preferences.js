@@ -145,11 +145,14 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
         permissions[name].urls.push(rootURL);
 
         // special case for the telephony API which needs full URLs
-        if (name == 'telephony')
+        if (name == 'telephony') {
+          permissions[name].urls.push(rootURL + '/index.html');
+
           if (manifest.background_page)
             permissions[name].urls.push(rootURL + manifest.background_page);
-        if (manifest.attention_page)
-          permissions[name].urls.push(rootURL + manifest.attention_page);
+          if (manifest.attention_page)
+            permissions[name].urls.push(rootURL + manifest.attention_page);
+        }
       }
     }
   });

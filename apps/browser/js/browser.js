@@ -89,6 +89,8 @@ var Browser = {
 
     this.handleWindowResize();
 
+    ModalDialog.init(false);
+
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function() {
@@ -252,6 +254,20 @@ var Browser = {
         this.handleWindowClose(tab.id);
         this.setTabVisibility(this.currentTab, true);
         this.updateTabsCount();
+        if (tab.id === ModalDialog.currentOrigin) {
+          ModalDialog.hide();
+        }
+        break;
+
+      case 'mozbrowsershowmodalprompt':
+        if (!isCurrentTab) {
+          this.hideCurrentTab();
+          this.selectTab(tab.id);
+        }
+        if (this.currentScreen !== this.PAGE_SCREEN) {
+          this.showPageScreen();
+        }
+        ModalDialog.handleEvent(evt, tab.id);
         break;
       }
     }).bind(this);
@@ -688,6 +704,13 @@ var Browser = {
   },
 
   setTabVisibility: function(tab, visible) {
+    if (ModalDialog.originHasEvent(tab.id)) {
+      if (visible) {
+        ModalDialog.show(tab.id);
+      } else {
+        ModalDialog.hide();
+      }
+    }
     // We put loading tabs off screen as we want to screenshot
     // them when loaded
     if (tab.loading && !visible) {
@@ -718,7 +741,8 @@ var Browser = {
 
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
-                         'securitychange', 'openwindow', 'close'];
+                         'securitychange', 'openwindow', 'close',
+                         'showmodalprompt'];
     iframe.style.top = '-999px';
 
     // FIXME: content shouldn't control this directly
