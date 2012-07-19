@@ -263,7 +263,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       // bind connection callback
       li.onclick = function() {
         toggleNetwork(network);
-      }
+      };
       return li;
     }
 
@@ -290,46 +290,50 @@ window.addEventListener('localized', function wifiSettings(evt) {
       var req = gWifiManager.getNetworks();
       scanning = true;
 
-      req.onsuccess = function() {
+      req.onsuccess = function onScanSuccess() {
         scanning = false;
-        var networks = req.result;
 
-        // sort networks: connected network first, then by signal strength
-        var ssids = Object.getOwnPropertyNames(networks);
-        ssids.sort(function(a, b) {
-          return isConnected(networks[b]) ? 100 :
-              networks[b].relSignalStrength - networks[a].relSignalStrength;
-        });
-
-        // create list
+        // create a list with a 'scan again' button
         clear();
-        for (var i = 0; i < ssids.length; i++) {
-          var network = networks[ssids[i]];
-          var listItem = newListItem(network);
-          if (network.connected)
-            listItem.querySelector('small').textContent =
-                _('shortStatus-connected');
-          list.appendChild(listItem);
-          index[network.ssid] = listItem; // add to index
-        }
-
-        // append 'scan again' button
         var button = document.createElement('button');
         button.textContent = _('scanNetworks');
         button.onclick = function() {
           clear(true);
           scan();
         };
-        var li = document.createElement('li');
-        li.appendChild(button);
-        list.appendChild(li);
+        var scanItem = document.createElement('li');
+        scanItem.appendChild(button);
+        list.appendChild(scanItem);
+
+        // sort networks by signal strength
+        var networks = req.result;
+        var ssids = Object.getOwnPropertyNames(networks);
+        ssids.sort(function(a, b) {
+          return networks[b].relSignalStrength - networks[a].relSignalStrength;
+        });
+
+        // add detected networks
+        for (var i = 0; i < ssids.length; i++) {
+          var network = networks[ssids[i]];
+          var listItem = newListItem(network);
+          // put connected network on top of list
+          if (isConnected(network)) {
+            listItem.className = 'active';
+            listItem.querySelector('small').textContent =
+                _('shortStatus-connected');
+            list.insertBefore(listItem, list.firstChild);
+          } else {
+            list.insertBefore(listItem, scanItem);
+          }
+          index[network.ssid] = listItem; // add to index
+        }
 
         // auto-rescan if requested
         if (autoscan)
           window.setTimeout(scan, scanRate);
       };
 
-      req.onerror = function(error) {
+      req.onerror = function onScanError(error) {
         scanning = false;
         console.warn('wifi error: ' + req.error.name);
         gStatus.textContent = req.error.name;
@@ -453,12 +457,12 @@ window.addEventListener('localized', function wifiSettings(evt) {
     function wifiConnect() {
       gWifiManager.associate(network);
       gStatus.textContent = '';
-      gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
+      //gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
+      gNetworkList.display(network.ssid, _('shortStatus-connecting'));
     }
 
     function wifiDisconnect() {
       gWifiManager.forget(network);
-      gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
       gStatus.textContent = '';
     }
 
@@ -544,23 +548,19 @@ window.addEventListener('localized', function wifiSettings(evt) {
         }
         // 'close' (hide) the dialog
         dialog.removeAttribute('class');
+        return false; // ignore <form> action
       }
 
-      // OK button (connect/forget)
+      // OK|Cancel buttons
+      dialog.onreset = close;
       dialog.onsubmit = function() {
         if (key) {
           setPassword(password.value, identity.value);
         }
-        close();
-        if (callback)
+        if (callback) {
           callback();
-        return false;
-      };
-
-      // Back button (cancel)
-      dialog.onreset = function() {
-        close();
-        return false;
+        }
+        return close();
       };
 
       // show dialog box
