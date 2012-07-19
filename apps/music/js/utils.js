@@ -37,7 +37,7 @@ function formatTime(secs) {
 // If a DIV(parent) contains a IMG(child),
 // the IMG will be cropped and fitted to vertical or horizontal center.
 // DIV(parent) - overflow: hidden;
-// IMG(child) - position: absolute; 
+// IMG(child) - position: absolute;
 function cropImage(evt) {
   var image = evt.target;
 
@@ -51,11 +51,15 @@ function cropImage(evt) {
     image.style.width = 'auto';
     image.style.height = parentHeight + 'px';
 
-    image.style.left = -(parentHeight * childRatio - parentWidth)/2 + 'px';
+    image.style.left = -(parentHeight * childRatio - parentWidth) / 2 + 'px';
   } else {
     image.style.width = parentWidth + 'px';
     image.style.height = 'auto';
 
-    image.style.top = -(parentWidth / childRatio - parentHeight)/2 + 'px';
+    image.style.top = -(parentWidth / childRatio - parentHeight) / 2 + 'px';
   }
+}
+
+function createBase64URL(image) {
+  return 'data:' + image.format + ';base64,' + Base64.encodeBytes(image.data);
 }

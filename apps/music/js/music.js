@@ -213,11 +213,12 @@ var ListView = {
     this.dataSource.push(result);
 
     var li = document.createElement('li');
-    li.className = 'song';
+    li.className = 'list-item';
 
     var a = document.createElement('a');
     a.href = '#';
-    
+    a.dataset.index = this.index;
+
     var parent = document.createElement('div');
     parent.className = 'list-image-parent';
     var div = document.createElement('div');
@@ -225,25 +226,41 @@ var ListView = {
     div.innerHTML = '&#9834;';
     var img = document.createElement('img');
     img.className = 'list-image';
-    
+
     parent.appendChild(div);
     parent.appendChild(img);
 
     switch (option) {
       case 'album':
-        a.textContent = result.metadata.album;
+        var albumSpan = document.createElement('span');
+        var artistSpan = document.createElement('span');
+        albumSpan.className = 'list-main-title';
+        artistSpan.className = 'list-sub-title';
+        albumSpan.textContent = result.metadata.album;
+        artistSpan.textContent = result.metadata.artist;
+        a.appendChild(albumSpan);
+        a.appendChild(artistSpan);
+
         a.dataset.keyRange = result.metadata.album;
         a.dataset.option = option;
 
         break;
       case 'artist':
-        a.textContent = result.metadata.artist;
+        var artistSpan = document.createElement('span');
+        artistSpan.className = 'list-single-title';
+        artistSpan.textContent = result.metadata.artist;
+        a.appendChild(artistSpan);
+
         a.dataset.keyRange = result.metadata.artist;
         a.dataset.option = option;
 
         break;
       case 'playlist':
-        a.textContent = result.metadata.title;
+        var titleSpan = document.createElement('span');
+        titleSpan.className = 'list-single-title';
+        titleSpan.textContent = result.metadata.title;
+        a.appendChild(titleSpan);
+
         a.dataset.keyRange = 'all';
         a.dataset.option = 'title';
 
@@ -256,15 +273,18 @@ var ListView = {
     li.appendChild(parent);
 
     this.view.appendChild(li);
-    
+
+    // Set source to image and crop it to be fitted when it's onloded
     var image = result.metadata.picture;
     if (image) {
       img.onload = function(evt) {
         cropImage(evt);
       }.bind(this);
 
-      img.src = 'data:' + image.format + ';base64,' + Base64.encodeBytes(image.data);
+      img.src = createBase64URL(image);
     }
+
+    this.index++;
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -276,13 +296,27 @@ var ListView = {
 
         var option = target.dataset.option;
         if (option) {
+          SubListView.clean();
+
+          var index = target.dataset.index;
+          var data = this.dataSource[index];
+          var image = data.metadata.picture;
+
+          if (image)
+            SubListView.setAlbumSrc(createBase64URL(image));
+
+          if (option === 'artist') {
+            SubListView.setAlbumName(data.metadata.artist);
+          } else if (option === 'album') {
+            SubListView.setAlbumName(data.metadata.album);
+          }
+
           var keyRange = (target.dataset.keyRange != 'all') ?
             IDBKeyRange.only(target.dataset.keyRange) : null;
 
           musicdb.enumerate('metadata.' + option, keyRange, 'next',
             SubListView.update.bind(SubListView));
 
-          SubListView.clean();
           changeMode(MODE_SUBLIST);
         }
 
@@ -305,6 +339,11 @@ var SubListView = {
     return this._dataSource;
   },
 
+  get anchor() {
+    delete this._anchor;
+    return this._anchor = document.getElementById('views-sublist-anchor');
+  },
+
   set dataSource(source) {
     this._dataSource = source;
   },
@@ -313,14 +352,33 @@ var SubListView = {
     this.dataSource = [];
     this.index = 0;
 
+    this.albumImage = document.getElementById('views-sublist-header-image');
+    this.albumName = document.getElementById('views-sublist-header-name');
+
     this.view.addEventListener('click', this);
   },
 
   clean: function slv_clean() {
     this.dataSource = [];
     this.index = 0;
-    this.view.innerHTML = '';
+    this.albumImage.src = '';
+    this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
+  },
+
+  setAlbumSrc: function slv_setAlbumSrc(url) {
+    // Set source to image and crop it to be fitted when it's onloded
+    this.albumImage.src = url;
+    this.albumImage.classList.remove('fadeIn');
+
+    this.albumImage.onload = function(evt) {
+      cropImage(evt);
+      this.albumImage.classList.add('fadeIn');
+    }.bind(this);
+  },
+
+  setAlbumName: function slv_setAlbumName(name) {
+    this.albumName.textContent = name;
   },
 
   update: function slv_update(result) {
@@ -330,7 +388,7 @@ var SubListView = {
     this.dataSource.push(result);
 
     var li = document.createElement('li');
-    li.className = 'song';
+    li.className = 'list-song-item';
 
     var a = document.createElement('a');
     a.href = '#';
@@ -339,13 +397,17 @@ var SubListView = {
       navigator.mozL10n.get('unknownTitle');
 
     a.dataset.index = this.index;
-    a.textContent = (this.index + 1) + '. ' + songTitle;
 
-    this.index++;
+    var titleSpan = document.createElement('span');
+    titleSpan.className = 'list-song-title';
+    titleSpan.textContent = (this.index + 1) + '. ' + songTitle;
+    a.appendChild(titleSpan);
 
     li.appendChild(a);
 
-    this.view.appendChild(li);
+    this.anchor.appendChild(li);
+
+    this.index++;
   },
 
   handleEvent: function slv_handleEvent(evt) {
@@ -425,6 +487,7 @@ var PlayerView = {
     this.seekBar.addEventListener('mousemove', this);
 
     this.audio.addEventListener('timeupdate', this);
+    this.audio.addEventListener('ended', this);
   },
 
   // This function is for the animation on the album art (cover).
@@ -476,6 +539,7 @@ var PlayerView = {
       this.coverImage.src = '';
       this.coverImage.classList.remove('fadeIn');
 
+      // Set source to image and crop it to be fitted when it's onloded
       var image = songData.metadata.picture;
       if (image) {
         this.coverImage.onload = function(evt) {
@@ -483,8 +547,8 @@ var PlayerView = {
 
           this.coverImage.classList.add('fadeIn');
         }.bind(this);
-        
-        this.coverImage.src = 'data:' + image.format + ';base64,' + Base64.encodeBytes(image.data);
+
+        this.coverImage.src = createBase64URL(image);
       }
 
       musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
@@ -520,7 +584,7 @@ var PlayerView = {
   },
 
   next: function pv_next() {
-    var songElements = SubListView.view.children;
+    var songElements = SubListView.anchor.children;
 
     if (this.currentIndex >= this.dataSource.length - 1)
       return;
@@ -531,7 +595,7 @@ var PlayerView = {
   },
 
   previous: function pv_previous() {
-    var songElements = SubListView.view.children;
+    var songElements = SubListView.anchor.children;
 
     if (this.currentIndex <= 0)
       return;
@@ -631,6 +695,9 @@ var PlayerView = {
         break;
       case 'timeupdate':
         this.updateSeekBar();
+        break;
+      case 'ended':
+        this.next();
         break;
 
       default:
@@ -737,5 +804,5 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
+  document.body.classList.remove('invisible');
 });
