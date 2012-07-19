@@ -3,6 +3,22 @@
 
 const Search = (function() {
   var URI_BROWSER;
+  var searchPage = document.querySelector('#search');
+  var _ = navigator.mozL10n.get;
+  var options = [
+    {
+      label: _('camera photos'),
+      value: 'gallery'
+    },
+    {
+      label: _('wallpapers'),
+      value: 'wallpapers'
+    },
+    {
+      label: _('cancel'),
+      value: 'cancel'
+    }
+  ];
 
   // It should be an activity to search anything on search engine launching
   // the browser and reading the text from an input in the landing page
@@ -11,6 +27,39 @@ const Search = (function() {
       Applications.getByOrigin(URI_BROWSER).launch();
     }
   );
+
+  function handler(action) {
+    switch(action) {
+      case 'wallpapers':
+        // generate an UI to pick default wallpapers
+        break;
+      case 'gallery':
+        // web activity here
+        var a = new Activity({
+          name: "pick",
+          data: {
+            type: "image/png",
+            multiple: false
+          }
+        });
+        a.onsuccess = function pickSuccess() {
+          var image = a.result;
+        };
+        a.onerror = function pickFail() {
+          console.warn("Failure when trying to pick an image!");
+        };
+        break;
+      case 'cancel':
+      default:
+        break;
+    }
+  }
+
+  function onLongPress(evt) {
+    ListMenu.request(options, handler);
+  }
+
+  searchPage.addEventListener('contextmenu', onLongPress);
 
   return {
     /*

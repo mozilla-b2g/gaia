@@ -18,6 +18,8 @@ var ListMenu = {
     return this.element.classList.contains('visible');
   },
 
+  title: '',
+
   // Listen to click event only
   init: function lm_init() {
     window.addEventListener('click', this, true);
@@ -99,10 +101,18 @@ var ListMenu = {
 
   show: function lm_show() {
     this.element.classList.add('visible');
+    this.container.style.MozTransition = '-moz-transform 1s';
+    this.container.style.MozTransform = 'translateY(-100%)';
   },
 
   hide: function lm_hide() {
-    this.element.classList.remove('visible');
+    var self = this;
+    this.container.addEventListener('transitionend', function onSlideDown(){
+      self.container.removeEventListener('transitionend', onSlideDown);
+      self.element.classList.remove('visible');
+    });
+    this.container.style.MozTransition = '-moz-transform .5s';
+    this.container.style.MozTransform = 'translateY(0)';
   },
 
   handleEvent: function lm_handleEvent(evt) {
@@ -118,6 +128,7 @@ var ListMenu = {
 
         var action = evt.target.dataset.value;
         if (!action) {
+          this.hide();
           return;
         }
         this.hide();
@@ -137,6 +148,11 @@ var ListMenu = {
         }
         break;
     }
+  },
+
+  // Set the title of contextmenu
+  setTitle: function lm_setTitle(title) {
+    this.title = title;
   }
 };
 
