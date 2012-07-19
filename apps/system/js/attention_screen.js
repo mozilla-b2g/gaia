@@ -8,10 +8,11 @@ var AttentionScreen = {
     return this.mainScreen = document.getElementById('screen');
   },
 
-  get screen() {
-    delete this.screen;
-    return this.screen = document.getElementById('attention-screen');
+  get attentionScreen() {
+    delete this.attentionScreen;
+    return this.attentionScreen = document.getElementById('attention-screen');
   },
+
   get bar() {
     delete this.bar;
     return this.bar = document.getElementById('attention-bar');
@@ -43,8 +44,8 @@ var AttentionScreen = {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
     attentionFrame.src = evt.detail.url;
 
-    this.screen.appendChild(attentionFrame);
-    this.screen.classList.add('displayed');
+    this.attentionScreen.appendChild(attentionFrame);
+    this.attentionScreen.classList.add('displayed');
 
     // We want the user attention, so we need to turn the screen on
     // if it's off.
@@ -76,11 +77,11 @@ var AttentionScreen = {
       }
     }
 
-    this.screen.classList.remove('displayed');
+    this.attentionScreen.classList.remove('displayed');
     this.mainScreen.classList.remove('active-statusbar');
-    this.screen.classList.remove('status-mode');
+    this.attentionScreen.classList.remove('status-mode');
     this.dispatchEvent('status-inactive');
-    this.screen.removeChild(evt.target);
+    this.attentionScreen.removeChild(evt.target);
 
     if (this._screenInitiallyDisabled)
       ScreenManager.turnScreenOff();
@@ -91,8 +92,8 @@ var AttentionScreen = {
   },
 
   show: function as_show() {
-    this.screen.style.MozTransition = 'none';
-    this.screen.classList.remove('status-mode');
+    this.attentionScreen.style.MozTransition = 'none';
+    this.attentionScreen.classList.remove('status-mode');
 
     // hardening against the unavailability of MozAfterPaint
     var finished = false;
@@ -110,7 +111,7 @@ var AttentionScreen = {
       finished = true;
 
       setTimeout(function nextLoop() {
-        self.screen.style.MozTransition = '';
+        self.attentionScreen.style.MozTransition = '';
         self.mainScreen.classList.remove('active-statusbar');
         self.dispatchEvent('status-inactive');
       });
@@ -127,7 +128,7 @@ var AttentionScreen = {
     if (evt.keyCode == evt.DOM_VK_ESCAPE ||
         evt.keyCode == evt.DOM_VK_HOME) {
 
-      if (this.screen.querySelectorAll('iframe').length > 0) {
+      if (this.attentionScreen.querySelectorAll('iframe').length > 0) {
         if (!this.mainScreen.classList.contains('active-statusbar')) {
           // The user is hiding the attention screen to use the phone we better
           // not turn the sreen off when the attention screen is closed.
@@ -136,10 +137,10 @@ var AttentionScreen = {
           this.dispatchEvent('status-active');
           this.mainScreen.classList.add('active-statusbar');
 
-          var screen = this.screen;
-          screen.addEventListener('transitionend', function trWait() {
-            screen.removeEventListener('transitionend', trWait);
-            screen.classList.add('status-mode');
+          var attentionScreen = this.attentionScreen;
+          attentionScreen.addEventListener('transitionend', function trWait() {
+            attentionScreen.removeEventListener('transitionend', trWait);
+            attentionScreen.classList.add('status-mode');
           });
         }
       }
@@ -153,7 +154,7 @@ var AttentionScreen = {
   },
 
   showForOrigin: function as_showForOrigin(origin) {
-    var iframes = this.screen.querySelectorAll('iframe');
+    var iframes = this.attentionScreen.querySelectorAll('iframe');
     for (var i = 0; i < iframes.length; i++) {
       if (iframes[i].dataset.frameOrigin == origin) {
         this.show();
