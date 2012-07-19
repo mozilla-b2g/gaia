@@ -1,12 +1,14 @@
-requireApp('calendar/js/responder.js');
-requireApp('calendar/js/calc.js');
-requireApp('calendar/js/models/busytime.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('responder.js');
+  requireLib('calc.js');
+  requireLib('store/busytime.js');
+});
 
-suite('models/busytime', function() {
+suite('store/busytime', function() {
   var subject, events;
 
   setup(function() {
-    subject = new Calendar.Models.Busytime();
+    subject = new Calendar.Store.Busytime();
     events = {};
   });
 

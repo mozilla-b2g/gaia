@@ -1,12 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
-  if (typeof(Calendar.Models) === 'undefined') {
-    Calendar.Models = {};
-  }
-
   function Events() {
     Calendar.Responder.call(this);
 
@@ -85,7 +77,7 @@
     return false;
   };
 
-  Calendar.Models.Events = Events;
+  Calendar.ns('Store').Event = Events;
 
 }(this));
 
