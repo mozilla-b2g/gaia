@@ -1,7 +1,7 @@
 {
   "name": "Cut The Rope",
   "description": "http://cuttherope.ie",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "orientation": "landscape-primary",
   "fullscreen": true,
   "hackNetworkBound": "true",
