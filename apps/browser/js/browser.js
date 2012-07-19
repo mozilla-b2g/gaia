@@ -89,6 +89,8 @@ var Browser = {
 
     this.handleWindowResize();
 
+    ModalDialog.init(false);
+
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function() {
