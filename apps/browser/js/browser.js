@@ -20,10 +20,13 @@ var Browser = {
   PAGE_SCREEN: 'page-screen',
   TABS_SCREEN: 'tabs-screen',
   AWESOME_SCREEN: 'awesome-screen',
+  SETTINGS_SCREEN: 'settings-screen',
 
   DEFAULT_FAVICON: 'style/images/favicon.png',
   START_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/start.html',
+  ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
+    '/about.html',
 
   urlButtonMode: null,
 
@@ -52,6 +55,9 @@ var Browser = {
     this.tabsList = document.getElementById('tabs-list');
     this.mainScreen = document.getElementById('main-screen');
     this.tabCover = document.getElementById('tab-cover');
+    this.settingsButton = document.getElementById('settings-button');
+    this.settingsDoneButton = document.getElementById('settings-done-button');
+    this.aboutFirefoxButton = document.getElementById('about-firefox-button');
 
     // Add event listeners
     window.addEventListener('submit', this);
@@ -59,7 +65,8 @@ var Browser = {
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
-    this.urlButton.addEventListener('click', this.handleUrlFormSubmit.bind(this));
+    this.urlButton.addEventListener('click',
+      this.handleUrlFormSubmit.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
@@ -73,6 +80,12 @@ var Browser = {
     this.bookmarksTab.addEventListener('click',
       this.showBookmarksTab.bind(this));
     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
+    this.settingsButton.addEventListener('click',
+      this.showSettingsScreen.bind(this));
+    this.settingsDoneButton.addEventListener('click',
+      this.showPageScreen.bind(this));
+    this.aboutFirefoxButton.addEventListener('click',
+      this.showAboutPage.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -434,7 +447,8 @@ var Browser = {
   },
 
   setUrlBar: function browser_setUrlBar(data) {
-    if (this.currentTab.url == this.START_PAGE_URL) {
+    if (this.currentTab.url == this.START_PAGE_URL ||
+      this.currentTab.url == this.ABOUT_PAGE_URL) {
       this.urlInput.value = '';
     } else {
       this.urlInput.value = data;
@@ -556,6 +570,8 @@ var Browser = {
     title.textContent = data.title ? data.title : data.uri;
     if (data.uri == this.START_PAGE_URL) {
       url.textContent = 'about:home';
+    } else if (data.uri == this.ABOUT_PAGE_URL) {
+      url.textContent = 'about:';
     } else {
       url.textContent = data.uri;
     }
@@ -932,6 +948,19 @@ var Browser = {
     this.switchScreen(this.TABS_SCREEN);
     this.screenSwipeMngr.gestureDetector.startDetecting();
     new GestureDetector(ul).startDetecting();
+  },
+
+  showSettingsScreen: function browser_showSettingsScreen() {
+    this.switchScreen(this.SETTINGS_SCREEN);
+  },
+
+  showAboutPage: function browser_showAboutPage() {
+    var tab = this.createTab(this.ABOUT_PAGE_URL);
+    this.hideCurrentTab();
+    this.selectTab(tab);
+    this.setTabVisibility(this.currentTab, true);
+    this.updateTabsCount();
+    this.showPageScreen();
   },
 
   screenSwipeMngr: {
