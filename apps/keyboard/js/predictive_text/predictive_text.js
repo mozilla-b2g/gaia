@@ -3,8 +3,13 @@
 
 /*
  * The upper layer for predictive text feature, it would pass the user input to
- * the underlying engine for word suggestions
+ * the underlying engine for word suggestions.
+ *
+ * Overview: The predictive text feature is based on Android's solution in
+ * LatinIME module.
+ * see https://android.googlesource.com/platform/packages/inputmethods/LatinIME
  */
+
 'use strict';
 
 var SuggestionEngine = {};
@@ -55,7 +60,7 @@ var SuggestionEngine = {};
 
     var currentWord = null;
     var ptWorker;
-    var _layoutParams = null;
+    var layoutParams = null;
 
     // init: to setup the message bridge with the predictive text worker
     this.init = function spellchecker_init(options) {
@@ -161,12 +166,12 @@ var SuggestionEngine = {};
     };
 
     // Interface for controller to set the keyboard layout info
-    this.setLayoutParams = function(layoutParams) {
-      _layoutParams = layoutParams;
+    this.setLayoutParams = function(params) {
+      layoutParams = params;
 
       ptWorker.postMessage({
         action: 'setLayoutParams',
-        layoutParams: _layoutParams
+        layoutParams: layoutParams
       });
     };
 
