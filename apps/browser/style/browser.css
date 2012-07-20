@@ -609,10 +609,8 @@ li[role="listitem"] small {
 }
 
 /* This is a dirty hack to hide the bottom toolbar while
- * the keyboard is active, otoro resolution is 320 x 480, so
- * if the browser app is 320px wide (taking up full width), then
- * if the app is shorter than 480px - 20px (for status bar), then
- * the keyboard is likely activated
+ * the keyboard is active, than device-height - 20px (for status bar),
+ * then the keyboard is likely activated
  */
 /* For the Otoro, 320x480 */
 @media (device-height: 480px) and (max-height: 450px),
