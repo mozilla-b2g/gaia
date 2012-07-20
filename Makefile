@@ -93,8 +93,8 @@ ARCH?=$(shell uname -m)
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
-SED_INPLACE_NO_SUFFIX = sed -i ''
-DOWNLOAD_CMD = curl -s -O
+SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
+DOWNLOAD_CMD = /usr/bin/curl -O
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
@@ -207,7 +207,8 @@ ifneq ($(DEBUG),1)
 					if [[ "$$f" == *shared/js* ]] ;\
 					then \
 						file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1;`; \
-						cp --parents shared/js/$$file_to_copy $$d ;\
+						mkdir -p $$d/shared/js ;\
+						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
 					fi \
 				done; \
 				cd $$d; \
