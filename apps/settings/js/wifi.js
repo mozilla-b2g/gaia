@@ -2,6 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+
 // create a fake mozWifiManager if required (e.g. desktop browser)
 var gWifiManager = (function(window) {
   var navigator = window.navigator;
@@ -148,7 +149,8 @@ var gWifiManager = (function(window) {
   };
 })(this);
 
-window.addEventListener('localized', function scanWifiNetworks(evt) {
+// handle Wi-Fi settings
+window.addEventListener('localized', function wifiSettings(evt) {
   var settings = window.navigator.mozSettings;
   var _ = navigator.mozL10n.get;
 
@@ -161,7 +163,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (settings) {
       settings.getLock().set({'wifi.enabled': this.checked});
     }
-  }
+  };
 
   /** mozWifiManager status
     * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
@@ -194,7 +196,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   gWifiManager.onenabled = function onWifiEnabled() {
     updateNetworkState(); // update wifi state
     gNetworkList.scan();
-  }
+  };
 
   // network list
   var gNetworkList = (function networkList(list) {
@@ -256,7 +258,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       // bind connection callback
       li.onclick = function() {
         toggleNetwork(network);
-      }
+      };
       return li;
     }
 
@@ -298,7 +300,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         scanItem.appendChild(button);
         list.appendChild(scanItem);
 
-        // sort networks: connected network first, then by signal strength
+        // sort networks by signal strength
         var networks = req.result;
         var ssids = Object.getOwnPropertyNames(networks);
         ssids.sort(function(a, b) {
@@ -313,7 +315,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
           if (isConnected(network)) {
             listItem.className = 'active';
             listItem.querySelector('small').textContent =
-              _('shortStatus-connected');
+                _('shortStatus-connected');
             list.insertBefore(listItem, list.firstChild);
           } else {
             list.insertBefore(listItem, scanItem);
@@ -328,7 +330,6 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       req.onerror = function onScanError(error) {
         scanning = false;
-        console.warn('====== wifi error: ' + req.error.name);
         clear(false);
 
         // auto-rescan if requested
@@ -513,9 +514,9 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   function updateNetworkState() {
     var currentNetwork = gWifiManager.connection.network;
     var networkStatus = gWifiManager.connection.status;
-    //XXX: we need a 'initializing' state
+    //XXX: we need a 'initializing' state, use 'offline' here.
     if (!gWifiManager.enabled) {
-        gWifiInfoBlock.textContent = _('fullStatus-connecting', currentNetwork);
+        gWifiInfoBlock.textContent = _('fullStatus-disconnected');
     } else {
       if (networkStatus === 'associated' || networkStatus === 'connecting') {
         gWifiInfoBlock.textContent = _('fullStatus-connecting', currentNetwork);
@@ -541,7 +542,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   }
 
   if (settings) {
-    // regiter observer
+    // register an observer to monitor wifi.enabled changes
     settings.addObserver('wifi.enabled', function(event) {
       setWifiEnabled(event.settingValue);
     });

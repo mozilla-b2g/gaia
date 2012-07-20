@@ -28,7 +28,7 @@ var Wifi = {
 
     //XXX: these code should be removed
     // when WifiManager read 'wifi.enabled' from DB
-    // bugzilla: https://bugzilla.mozilla.org/show_bug.cgi?id=729877 
+    // bugzilla: https://bugzilla.mozilla.org/show_bug.cgi?id=729877
     var settings = window.navigator.mozSettings;
     if (settings) {
       var wifiManager = window.navigator.mozWifiManager;
