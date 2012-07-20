@@ -53,6 +53,7 @@
   <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/day.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/account.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/calendar.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- providers -->
   <script defer src="/js/provider/calendar/abstract.js" type="text/javascript" charset="utf-8"></script>
@@ -64,6 +65,7 @@
   <script defer src="/js/store/busytime.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/event.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/account.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/store/calendar.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- models -->
   <script defer src="/js/models/account.js" type="text/javascript" charset="utf-8"></script>
@@ -80,6 +82,7 @@
 
   <!-- workers / main / controller -->
   <script defer src="/js/controllers/time.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/controllers/sync.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/app.js" type="text/javascript" charset="utf-8"></script>
 
   <title>Gaia Calendar</title>
@@ -96,8 +99,6 @@
 
 
   <ol class="calendars">
-    <li class="calendar-1">Work (1)</li>
-    <li class="calendar-2">Friends</li>
   </ol>
 
   <a href="/advanced-settings/" data-l10n-id="advanced-settings" class="settings">
@@ -156,7 +157,6 @@
   </section>
 
   <section class="fullscreen-view" id="create-account-view">
-    
     <header>
       <a data-l10n-id="cancel"
          role="button"
