@@ -207,7 +207,8 @@ ifneq ($(DEBUG),1)
 					if [[ "$$f" == *shared/js* ]] ;\
 					then \
 						file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1;`; \
-						cp --parents shared/js/$$file_to_copy $$d ;\
+						mkdir -p $$d/shared/js ;\
+						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
 					fi \
 				done; \
 				cd $$d; \
