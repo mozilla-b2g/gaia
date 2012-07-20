@@ -32,7 +32,7 @@
     <script type="text/javascript" src="js/music.js"></script>
   </head>
 
-  <body class="hidden">
+  <body class="invisible">
     <div id="title">
       <button id="title-back" class="title-back-button">
         <span id="title-back-text">&#8249;</span>
@@ -58,10 +58,24 @@
         <div class="sub-tile"><br></div>
       </div>
       <div id="views-list" class="view"></div>
-      <div id="views-sublist" class="view"></div>
+      <div id="views-sublist" class="view">
+        <div id="views-sublist-header">
+          <div id="views-sublist-header-album">
+            <div id="views-sublist-header-default">&#9834;</div>
+            <img id="views-sublist-header-image" />
+          </div>
+          <div id="views-sublist-header-controls">
+            <div id="views-sublist-header-name">Name</div>
+            <button id="views-sublist-controls-play" class="album-controls-button" disabled>Play All</button>
+            <button id="views-sublist-controls-shuffle" class="album-controls-button" disabled>Shuffle</button>
+          </div>
+        </div>
+        <div id="views-sublist-anchor"></div>
+      </div>
       <div id="views-player" class="view">
         <div id="player-cover">
-          <div id="player-cover-image">&#9834;</div>
+          <div id="player-cover-default-image">&#9834;</div>
+          <img id="player-cover-image" />
           <div id="player-cover-caption">
             <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
             <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
@@ -81,8 +95,8 @@
           <span id="player-seek-remaining">00:00</span>
         </div>
         <div id="player-controls">
-          <button id="player-controls-play" class="player-controls-button">&#9654;</button>
           <button id="player-controls-previous" class="player-controls-button">&#9621;&#9664;&#9664;</button>
+          <button id="player-controls-play" class="player-controls-button">&#9654;</button>
           <button id="player-controls-next" class="player-controls-button">&#9654;&#9654;&#9615;</button>
         </div>
         <audio id="player-audio" class="hidden" controls autoplay></audio>
