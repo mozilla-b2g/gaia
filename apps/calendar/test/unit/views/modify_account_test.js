@@ -231,7 +231,7 @@ suite('views/modify_account', function() {
   test('#_updateModel', function() {
     var model = new Calendar.Models.Account();
     var store = app.store('Account');
-    store._accounts['1'] = model;
+    store._cached['1'] = model;
 
     var data = subject._updateModel('1');
 
@@ -276,6 +276,37 @@ suite('views/modify_account', function() {
       subject.render = function() {
         rendered = true;
       };
+    });
+
+    suite('provider no creds', function() {
+      var calledSave;
+      var model;
+
+      setup(function() {
+        calledSave = false;
+
+        subject.save = function() {
+          calledSave = true;
+        }
+
+        model = new Calendar.Models.Account({
+          providerType: 'Local'
+        });
+
+
+        subject._createModel = function() {
+          return model;
+        }
+      });
+
+      test('result', function() {
+        assert.isFalse(model.provider.useCredentials);
+        assert.isFalse(model.provider.useUrl);
+
+        subject.dispatch({ params: { preset: 'local'} });
+        assert.isTrue(calledSave);
+      });
+
     });
 
     test('new', function() {

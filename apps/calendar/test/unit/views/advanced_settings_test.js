@@ -112,7 +112,7 @@ suite('views/advanced_settings', function() {
     setup(function() {
       var store = app.store('Account');
       list = subject.accountList;
-      store._accounts = fixtures;
+      store._cached = fixtures;
       subject.render();
       result = subject.element.innerHTML;
     });

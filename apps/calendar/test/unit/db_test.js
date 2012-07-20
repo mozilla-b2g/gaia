@@ -75,6 +75,40 @@ suite('db', function() {
     subject.close();
   });
 
+  test('#load', function(done) {
+    var loaded = {
+      account: false,
+      calendar: false
+    };
+
+    var account = subject.getStore('Account');
+    var calendar = subject.getStore('Calendar');
+
+    account.load = function(callback) {
+      callback(null, {});
+      loaded.account = true;
+    }
+
+    calendar.load = function(callback) {
+      callback(null, {});
+      loaded.calendar = true;
+    }
+
+    assert.ok(!subject.isOpen);
+
+    subject.load(function(err) {
+      if (err) {
+        done(err);
+        return;
+      }
+      assert.ok(subject.isOpen);
+      done(function() {
+        assert.ok(loaded.account, 'should load account');
+        assert.ok(loaded.calendar, 'should load calendar');
+      });
+    });
+  });
+
   suite('#open', function() {
     suite('on version change', function() {
       // db should be destroyed at this point
@@ -107,6 +141,7 @@ suite('db', function() {
 
         subject.open(function() {
           assert.ok(subject.connection);
+          assert.ok(subject.isOpen);
           assert.equal(subject.connection.name, name);
           finishedOpen = true;
         });
