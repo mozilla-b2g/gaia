@@ -3106,6 +3106,1637 @@ window.process = {
 
 }); // end define
 ;
+/**
+ *
+ **/
+
+define('rdimap/imapclient/mailapi',[
+    'exports'
+  ],
+  function(
+
+    exports
+  ) {
+
+/**
+ *
+ */
+function MailAccount(api, wireRep) {
+  this._api = api;
+  this.id = wireRep.id;
+  this.type = wireRep.type;
+  this.name = wireRep.name;
+
+  /**
+   * Is the account currently enabled, as in will we talk to the server?
+   * Accounts will be automatically disabled in cases where it would be
+   * counter-productive for us to keep trying to access the server.
+   *
+   * For example: the user's password being (apparently) bad, or gmail getting
+   * upset about the amount of data transfer and locking the account out for the
+   * rest of the day.
+   */
+  this.enabled = wireRep.enabled;
+  /**
+   * @listof[@oneof[
+   *   @case['login-failed']{
+   *     The login explicitly failed, suggesting that the user's password is
+   *     bad.  Other possible interpretations include the account settings are
+   *     somehow wrong now, the server is experiencing a transient failure,
+   *     or who knows.
+   *   }
+   * ]]{
+   *   A list of known problems with the account which explain why the account
+   *   might not be `enabled`.  Once a problem is believed to have been
+   *   addressed, `clearProblems` should be called.
+   * }
+   */
+  this.problems = wireRep.problems;
+
+  this.identities = [];
+  for (var iIdent = 0; iIdent < wireRep.identities.length; iIdent++) {
+    this.identities.push(new MailSenderIdentity(this._api,
+                                                wireRep.identities[iIdent]));
+  }
+
+  this.username = wireRep.credentials.username;
+  this.servers = wireRep.servers;
+
+  // build a place for the DOM element and arbitrary data into our shape
+  this.element = null;
+  this.data = null;
+}
+MailAccount.prototype = {
+  toString: function() {
+    return '[MailAccount: ' + this.type + ' ' + this.id + ']';
+  },
+  toJSON: function() {
+    return {
+      type: 'MailAccount',
+      accountType: this.type,
+      id: this.id,
+    };
+  },
+
+  /**
+   * Tell the back-end to clear the list of problems with the account, re-enable
+   * it, and try and connect.
+   */
+  clearProblems: function() {
+    this._api._clearAccountProblems(this);
+  },
+
+  /**
+   * @args[
+   *   @param[mods @dict[
+   *     @key[password String]
+   *   ]]
+   * ]
+   */
+  modifyAccount: function(mods) {
+    this._api._modifyAccount(this, mods);
+  },
+
+  /**
+   * Delete the account and all its associated data.  No privacy guarantees are
+   * provided; we just delete the data from the database, so it's up to the
+   * (IndexedDB) database's guarantees on that.
+   */
+  deleteAccount: function() {
+    this._api._deleteAccount(this);
+  },
+};
+
+/**
+ * Sender identities define one of many possible sets of sender info and are
+ * associated with a single `MailAccount`.
+ *
+ * Things that can vary:
+ * - user's display name
+ * - e-mail address,
+ * - reply-to address
+ * - signature
+ */
+function MailSenderIdentity(api, wireRep) {
+  // We store the API so that we can create identities for the composer without
+  // needing to create an account too.
+  this._api = api;
+  this.id = wireRep.id;
+
+  this.name = wireRep.displayName;
+  this.address = wireRep.address;
+  this.replyTo = wireRep.replyTo;
+  this.signature = wireRep.signature;
+}
+MailSenderIdentity.prototype = {
+  toString: function() {
+    return '[MailSenderIdentity: ' + this.type + ' ' + this.id + ']';
+  },
+  toJSON: function() {
+    return { type: 'MailSenderIdentity' };
+  },
+};
+
+function MailFolder(api, wireRep) {
+  this._api = api;
+  this.id = wireRep.id;
+
+  /**
+   * The human-readable name of the folder.  (As opposed to its path or the
+   * modified utf-7 encoded folder names.)
+   */
+  this.name = wireRep.name;
+  /**
+   * The full string of the path.
+   */
+  this.path = wireRep.path;
+  /**
+   * The hierarchical depth of this folder.
+   */
+  this.depth = wireRep.depth;
+  /**
+   * @oneof[
+   *   @case['account']{
+   *     It's not really a folder at all, just an account serving as hierarchy.
+   *   }
+   *   @case['nomail']{
+   *     A folder that exists only to provide hierarchy but which can't
+   *     contain messages.  An artifact of various mail backends that are
+   *     reflected in IMAP as NOSELECT.
+   *   }
+   *   @case['inbox']
+   *   @case['drafts']
+   *   @case['sent']
+   *   @case['trash']
+   *   @case['archive']
+   *   @case['junk']
+   *   @case['starred']
+   *   @case['normal']{
+   *     A traditional mail folder with nothing special about it.
+   *   }
+   * ]{
+   *   Non-localized string indicating the type of folder this is, primarily
+   *   for styling purposes.
+   * }
+   */
+  this.type = wireRep.type;
+
+  this.selectable = (wireRep.type !== 'account') && (wireRep.type !== 'nomail');
+
+  this.onchange = null;
+  this.onremove = null;
+
+  // build a place for the DOM element and arbitrary data into our shape
+  this.element = null;
+  this.data = null;
+}
+MailFolder.prototype = {
+  toString: function() {
+    return '[MailFolder: ' + this.path + ']';
+  },
+  toJSON: function() {
+    return {
+      type: 'MailFolder',
+      path: this.path
+    };
+  },
+};
+
+function filterOutBuiltinFlags(flags) {
+  // so, we could mutate in-place if we were sure the wire rep actually came
+  // over the wire.  Right now there is de facto rep sharing, so let's not
+  // mutate and screw ourselves over.
+  var outFlags = [];
+  for (var i = flags.length - 1; i >= 0; i--) {
+    if (flags[i][0] !== '\\')
+      outFlags.push(flags[i]);
+  }
+  return outFlags;
+}
+
+/**
+ * Extract the canonical naming attributes out of the MailHeader instance.
+ */
+function serializeMessageName(x) {
+  return { date: x.date.valueOf(), suid: x.id };
+}
+
+/**
+ * Email overview information for displaying the message in the list as planned
+ * for the current UI.  Things that we don't need (ex: to/cc/bcc) for the list
+ * end up on the body, currently.  They will probably migrate to the header in
+ * the future.
+ *
+ * Events are generated if the metadata of the message changes or if the message
+ * is removed.  The `BridgedViewSlice` instance is how the system keeps track
+ * of what messages are being displayed/still alive to need updates.
+ */
+function MailHeader(slice, wireRep) {
+  this._slice = slice;
+  this.id = wireRep.suid;
+  this.guid = wireRep.guid;
+
+  this.author = wireRep.author;
+
+  this.date = new Date(wireRep.date);
+  this.__update(wireRep);
+  this.hasAttachments = wireRep.hasAttachments;
+
+  this.subject = wireRep.subject;
+  this.snippet = wireRep.snippet;
+
+  this.onchange = null;
+  this.onremove = null;
+
+  // build a place for the DOM element and arbitrary data into our shape
+  this.element = null;
+  this.data = null;
+}
+MailHeader.prototype = {
+  toString: function() {
+    return '[MailHeader: ' + this.id + ']';
+  },
+  toJSON: function() {
+    return {
+      type: 'MailHeader',
+      id: this.id
+    };
+  },
+
+  __update: function(wireRep) {
+    this.isRead = wireRep.flags.indexOf('\\Seen') !== -1;
+    this.isStarred = wireRep.flags.indexOf('\\Flagged') !== -1;
+    this.isRepliedTo = wireRep.flags.indexOf('\\Answered') !== -1;
+    this.isForwarded = wireRep.flags.indexOf('$Forwarded') !== -1;
+    this.isJunk = wireRep.flags.indexOf('$Junk') !== -1;
+    this.tags = filterOutBuiltinFlags(wireRep.flags);
+  },
+
+  /**
+   * Delete this message
+   */
+  deleteMessage: function() {
+    return this._slice._api.deleteMessages([this]);
+  },
+
+  /**
+   * Copy this message to another folder.
+   */
+  copyMessage: function(targetFolder) {
+    return this._slice._api.copyMessages([this], targetFolder);
+  },
+
+  /**
+   * Move this message to another folder.
+   */
+  moveMessage: function(targetFolder) {
+    return this._slice._api.moveMessages([this], targetFolder);
+  },
+
+  /**
+   * Set or clear the read status of this message.
+   */
+  setRead: function(beRead) {
+    return this._slice._api.markMessagesRead([this], beRead);
+  },
+
+  /**
+   * Set or clear the starred/flagged status of this message.
+   */
+  setStarred: function(beStarred) {
+    return this._slice._api.markMessagesStarred([this], beStarred);
+  },
+
+  /**
+   * Add and/or remove tags/flags from this messages.
+   */
+  modifyTags: function(addTags, removeTags) {
+    return this._slice._api.modifyMessageTags([this], addTags, removeTags);
+  },
+
+  /**
+   * Request the `MailBody` instance for this message, passing it to the
+   * provided callback function once retrieved.
+   */
+  getBody: function(callback) {
+    this._slice._api._getBodyForMessage(this, callback);
+  },
+
+  /**
+   * Assume this is a draft message and return a MessageComposition object
+   * that will be asynchronously populated.  The provided callback will be
+   * notified once all composition state has been loaded.
+   *
+   * The underlying message will be replaced by other messages as the draft
+   * is updated and effectively deleted once the draft is completed.  (A
+   * move may be performed instead.)
+   */
+  editAsDraft: function(callback) {
+    return this._slice._api.resumeMessageComposition(this, callback);
+  },
+
+  /**
+   * Start composing a reply to this message.
+   *
+   * @args[
+   *   @param[replyMode @oneof[
+   *     @default[null]{
+   *       To be specified...
+   *     }
+   *     @case['sender']{
+   *       Reply to the author of the message.
+   *     }
+   *     @case['list']{
+   *       Reply to the mailing list the message was received from.  If there
+   *       were other mailing lists copied on the message, they will not
+   *       be included.
+   *     }
+   *     @case['all']{
+   *       Reply to the sender and all listed recipients of the message.
+   *     }
+   *   ]]{
+   *     The not currently used reply-mode.
+   *   }
+   * ]
+   * @return[MessageComposition]
+   */
+  replyToMessage: function(replyMode, callback) {
+    return this._slice._api.beginMessageComposition(
+      this, null, { replyTo: this, replyMode: replyMode }, callback);
+  },
+
+  /**
+   * Start composing a forward of this message.
+   *
+   * @args[
+   *   @param[forwardMode @oneof[
+   *     @case['inline']{
+   *       Forward the message inline.
+   *     }
+   *   ]]
+   * ]
+   * @return[MessageComposition]
+   */
+  forwardMessage: function(forwardMode, callback) {
+    return this._slice._api.beginMessageComposition(
+      this, null, { forwardOf: this, forwardMode: forwardMode }, callback);
+  },
+};
+
+/**
+ * Lists the attachments in a message as well as providing a way to display the
+ * body while (eventually) also accounting for message quoting.
+ *
+ * Mail bodies are immutable and so there are no events on them or lifetime
+ * management to worry about.  However, you should keep the `MailHeader` alive
+ * and worry about its lifetime since the message can get deleted, etc.
+ */
+function MailBody(api, suid, wireRep) {
+  this._api = api;
+  this.id = suid;
+
+  this.to = wireRep.to;
+  this.cc = wireRep.cc;
+  this.bcc = wireRep.bcc;
+  this.replyTo = wireRep.replyTo;
+  this.attachments = null;
+  if (wireRep.attachments) {
+    this.attachments = [];
+    for (var iAtt = 0; iAtt < wireRep.attachments.length; iAtt++) {
+      this.attachments.push(new MailAttachment(wireRep.attachments[iAtt]));
+    }
+  }
+  // for the time being, we only provide text/plain contents, and we provide
+  // those flattened.
+  this.bodyRep = wireRep.bodyRep;
+}
+MailBody.prototype = {
+  toString: function() {
+    return '[MailBody: ' + id + ']';
+  },
+  toJSON: function() {
+    return {
+      type: 'MailBody',
+      id: this.id
+    };
+  },
+};
+
+/**
+ * Provides the file name, mime-type, and estimated file size of an attachment.
+ * In the future this will also be the means for requesting the download of
+ * an attachment or for attachment-forwarding semantics.
+ */
+function MailAttachment(wireRep) {
+  this.partId = wireRep.part;
+  this.filename = wireRep.name;
+  this.mimetype = wireRep.type;
+  this.sizeEstimateInBytes = wireRep.sizeEstimate;
+
+  // build a place for the DOM element and arbitrary data into our shape
+  this.element = null;
+  this.data = null;
+}
+MailAttachment.prototype = {
+  toString: function() {
+    return '[MailAttachment: "' + this.filename + '"]';
+  },
+  toJSON: function() {
+    return {
+      type: 'MailAttachment',
+      filename: this.filename
+    };
+  },
+};
+
+/**
+ * Undoable operations describe the operation that was performed for
+ * presentation to the user and hold onto a handle that can be used to undo
+ * whatever it was.  While the current UI plan does not call for the ability to
+ * get a list of recently performed actions, the goal is to make it feasible
+ * in the future.
+ */
+function UndoableOperation(_api, operation, affectedCount,
+                           _tempHandle, _longtermIds) {
+  this._api = _api;
+  /**
+   * @oneof[
+   *   @case['read']{
+   *     Marked message(s) as read.
+   *   }
+   *   @case['unread']{
+   *     Marked message(s) as unread.
+   *   }
+   *   @case['star']{
+   *     Starred message(s).
+   *   }
+   *   @case['unstar']{
+   *     Unstarred message(s).
+   *   }
+   *   @case['addtag']{
+   *     Added tag(s).
+   *   }
+   *   @case['removetag']{
+   *     Removed tag(s).
+   *   }
+   *   @case['move']{
+   *     Moved message(s).
+   *   }
+   *   @case['copy']{
+   *     Copied message(s).
+   *   }
+   *   @case['delete']{
+   *     Deleted message(s) by moving to trash folder.
+   *   }
+   * ]
+   */
+  this.operation = operation;
+  /**
+   * The number of messages affected by this operation.
+   */
+  this.affectedCount = affectedCount;
+
+  /**
+   * The temporary handle we use to refer to the operation immediately after
+   * issuing it until we hear back from the mail bridge about its more permanent
+   * _longtermIds.
+   */
+  this._tempHandle = _tempHandle;
+  /**
+   * The names of the per-account operations that this operation was mapped
+   * to.
+   */
+  this._longtermIds = null;
+
+  this._undoRequested = false;
+}
+UndoableOperation.prototype = {
+  toString: function() {
+    return '[UndoableOperation]';
+  },
+  toJSON: function() {
+    return {
+      type: 'UndoableOperation',
+      handle: this._tempHandle,
+      longtermIds: this._longtermIds,
+    };
+  },
+
+  undo: function() {
+    // We can't issue the undo until we've heard the longterm id, so just flag
+    // it to be processed when we do.
+    if (!this._longtermIds) {
+      this._undoRequested = true;
+      return;
+    }
+    this._api.__undo(this);
+  },
+};
+
+/**
+ * Ordered list collection abstraction where we may potentially only be viewing
+ * a subset of the actual items in the collection.  This allows us to handle
+ * lists with lots of items as well as lists where we have to retrieve data
+ * from a remote server to populate the list.
+ */
+function BridgedViewSlice(api, ns, handle) {
+  this._api = api;
+  this._ns = ns;
+  this._handle = handle;
+
+  this.items = [];
+
+  /**
+   * @oneof[
+   *   @case['synchronizing']{
+   *     We are talking to a server to populate/expand the contents of this
+   *     list.
+   *   }
+   *   @case['synced']{
+   *     We are not talking to a server.
+   *   }
+   * ]{
+   *   Quasi-extensible indicator of whether we are synchronizing or not.  The
+   *   idea is that if we are synchronizing, a spinner indicator can be shown
+   *   at the end of the list of messages.
+   * }
+   */
+  this.status = 'synced';
+
+  /**
+   * False if we can grow the slice in the negative direction without
+   * requiring user prompting.
+   */
+  this.atTop = false;
+  /**
+   * False if we can grow the slice in the positive direction without
+   * requiring user prompting.
+   */
+  this.atBottom = false;
+
+  /**
+   * Can we potentially grow the slice in the positive direction if the user
+   * requests it?  For example, triggering an IMAP sync for a part of the
+   * time-range we have not previously synchronized.
+   *
+   * This is only really meaningful when `atBottom` is true; if we are not at
+   * the bottom, this value will be false.
+   */
+  this.userCanGrowDownwards = false;
+
+  /**
+   * Number of pending requests to the back-end.  To be used by logic that can
+   * defer further requests until existing requests are complete.  For example,
+   * infinite scrolling logic would do best to wait for the back-end to service
+   * its requests before issuing new ones.
+   */
+  this.pendingRequestCount = 0;
+  /**
+   * The direction we are growing, if any (0 if not).
+   */
+  this._growing = 0;
+
+  this.onadd = null;
+  this.onchange = null;
+  this.onsplice = null;
+  this.onremove = null;
+  this.onstatus = null;
+  this.oncomplete = null;
+  this.ondead = null;
+}
+BridgedViewSlice.prototype = {
+  toString: function() {
+    return '[BridgedViewSlice: ' + this._ns + ' ' + this._handle + ']';
+  },
+  toJSON: function() {
+    return {
+      type: 'BridgedViewSlice',
+      namespace: this._ns,
+      handle: this._handle
+    };
+  },
+
+  /**
+   * Tell the back-end we no longer need some of the items we know about.  This
+   * will manifest as a requested splice at some point in the future, although
+   * the back-end may attenuate partially or entirely.
+   */
+  requestShrinkage: function(firstUsedIndex, lastUsedIndex) {
+    this.pendingRequestCount++;
+    if (lastUsedIndex >= this.items.length)
+      lastUsedIndex = this.items.length - 1;
+
+    // We send indices and suid's.  The indices are used for fast-pathing;
+    // if the suid's don't match, a linear search is undertaken.
+    this._api.__bridgeSend({
+        type: 'shrinkSlice',
+        firstIndex: firstUsedIndex,
+        firstSuid: this.items[firstUsedIndex].id,
+        lastIndex: lastUsedIndex,
+        lastSuid: this.items[lastUsedIndex].id,
+        handle: this._handle
+      });
+  },
+
+  /**
+   * Request additional data in the given direction, optionally specifying that
+   * some potentially costly growth of the data set should be performed.
+   */
+  requestGrowth: function(dirMagnitude, userRequestsGrowth) {
+    if (this._growing)
+      throw new Error('Already growing in ' + this._growing + ' dir.');
+    this._growing = dirMagnitude;
+    this.pendingRequestCount++;
+
+    this._api.__bridgeSend({
+        type: 'growSlice',
+        dirMagnitude: dirMagnitude,
+        userRequestsGrowth: userRequestsGrowth,
+        handle: this._handle
+      });
+  },
+
+  die: function() {
+    this._api.__bridgeSend({
+        type: 'killSlice',
+        handle: this._handle
+      });
+  },
+};
+
+function FoldersViewSlice(api, handle) {
+  BridgedViewSlice.call(this, api, 'folders', handle);
+}
+FoldersViewSlice.prototype = Object.create(BridgedViewSlice.prototype);
+
+FoldersViewSlice.prototype.getFirstFolderWithType = function(type, items) {
+  // allow an explicit list of items to be provided, specifically for use in
+  // onsplice handlers where the items have not yet been spliced in.
+  if (!items)
+    items = this.items;
+  for (var i = 0; i < items.length; i++) {
+    var folder = items[i];
+    if (folder.type === type)
+      return folder;
+  }
+  return null;
+};
+
+FoldersViewSlice.prototype.getFirstFolderWithName = function(name, items) {
+  if (!items)
+    items = this.items;
+  for (var i = 0; i < items.length; i++) {
+    var folder = items[i];
+    if (folder.name === name)
+      return folder;
+  }
+  return null;
+};
+
+function HeadersViewSlice(api, handle) {
+  BridgedViewSlice.call(this, api, 'headers', handle);
+}
+HeadersViewSlice.prototype = Object.create(BridgedViewSlice.prototype);
+/**
+ * Request a re-sync of the time interval covering the effective/visible time
+ * range.  If the most recently displayed message is the most recent message
+ * known to us, then the date range will cover through "now".
+ */
+HeadersViewSlice.prototype.refresh = function() {
+  this._api.__bridgeSend({
+      type: 'refreshHeaders',
+      handle: this._handle,
+    });
+};
+
+
+/**
+ * Handle for a current/ongoing message composition process.  The UI reads state
+ * out of the object when it resumes editing a draft, otherwise this can just be
+ * treated as write-only.
+ *
+ * == Other clients and drafts:
+ *
+ * If another client deletes our draft out from under us, we currently won't
+ * notice.
+ */
+function MessageComposition(api, handle) {
+  this._api = api;
+  this._handle = handle;
+
+  this.senderIdentity = null;
+
+  this.to = null;
+  this.cc = null;
+  this.bcc = null;
+
+  this.subject = null;
+
+  this.body = null;
+
+  this._references = null;
+  this._customHeaders = null;
+  // XXX attachments aren't implemented yet, of course.  They will be added
+  // via helper method.
+  this._attachments = null;
+}
+MessageComposition.prototype = {
+  toString: function() {
+    return '[MessageComposition: ' + this._handle + ']';
+  },
+  toJSON: function() {
+    return {
+      type: 'MessageComposition',
+      handle: this._handle
+    };
+  },
+
+  /**
+   * Add custom headers; don't use this for built-in headers.
+   */
+  addHeader: function(key, value) {
+    if (!this._customHeaders)
+      this._customHeaders = [];
+    this._customHeaders.push(key);
+    this._customHeaders.push(value);
+  },
+
+  /**
+   * Populate our state to send over the wire to the back-end.
+   */
+  _buildWireRep: function() {
+    return {
+      senderId: this.senderIdentity.id,
+      to: this.to,
+      cc: this.cc,
+      bcc: this.bcc,
+      subject: this.subject,
+      body: this.body,
+      referencesStr: this._references,
+      customHeaders: this._customHeaders,
+      attachments: this._attachments,
+    };
+  },
+
+  /**
+   * Finalize and send the message in its current state.
+   *
+   * @args[
+   *   @param[callback @func[
+   *     @args[
+   *       @param[state @oneof[
+   *         @case['sent']{
+   *           The message made it to the SMTP server and we believe it was sent
+   *           successfully.
+   *         }
+   *         @case['offline']{
+   *           We are known to be offline and so we can't send it right now.
+   *           We will attempt to send when we next get good network.
+   *         }
+   *         @case['will-retry']{
+   *           Something didn't work, but we will automatically retry again
+   *           at some point in the future.
+   *         }
+   *         @case['fatal']{
+   *           Something really bad happened, probably a bug in the program.
+   *           The error will be reported using console.error or internal
+   *           logging or something.
+   *         }
+   *       ]]
+   *       }
+   *     ]
+   *   ]]{
+   *     The callback to invoke on success/failure/deferral to later.
+   *   }
+   * ]
+   */
+  finishCompositionSendMessage: function(callback) {
+    this._api._composeDone(this._handle, 'send', this._buildWireRep(),
+                           callback);
+  },
+
+  /**
+   * The user is done writing the message for now; save it to the drafts folder
+   * and close out this handle.
+   */
+  saveDraftEndComposition: function() {
+    this._api._composeDone(this._handle, 'save', this._buildWireRep());
+  },
+
+  /**
+   * The user has indicated they neither want to send nor save the draft.  We
+   * want to delete the message so it is gone from everywhere.
+   *
+   * In the future, we might support some type of very limited undo
+   * functionality, possibly on the UI side of the house.  This is not a secure
+   * delete.
+   */
+  abortCompositionDeleteDraft: function() {
+    this._api._composeDone(this._handle, 'delete', null);
+  },
+
+};
+
+
+/**
+ * Error reporting helper; we will probably eventually want different behaviours
+ * under development, under unit test, when in use by QA, advanced users, and
+ * normal users, respectively.  By funneling all errors through one spot, we
+ * help reduce inadvertent breakage later on.
+ */
+function reportError() {
+  console.error.apply(console, arguments);
+  var msg = null;
+  for (var i = 0; i < arguments.length; i++) {
+    if (msg)
+      msg += " " + arguments[i];
+    else
+      msg = "" + arguments[i];
+  }
+  throw new Error(msg);
+}
+var unexpectedBridgeDataError = reportError,
+    internalError = reportError,
+    reportClientCodeError = reportError;
+
+/**
+ * The public API exposed to the client via the MailAPI global.
+ */
+function MailAPI() {
+  this._nextHandle = 1;
+
+  this._slices = {};
+  this._pendingRequests = {};
+
+  /**
+   * Various, unsupported config data.
+   */
+  this.config = {};
+
+  /**
+   * @func[
+   *   @args[
+   *     @param[account MailAccount]
+   *   ]
+   * ]{
+   *   A callback invoked when we fail to login to an account and the server
+   *   explicitly told us the login failed and we have no reason to suspect
+   *   the login was temporarily disabled.
+   *
+   *   The account is put in a disabled/offline state until such time as the
+   *
+   * }
+   */
+  this.onbadlogin = null;
+}
+exports.MailAPI = MailAPI;
+MailAPI.prototype = {
+  toString: function() {
+    return '[MailAPI]';
+  },
+  toJSON: function() {
+    return { type: 'MailAPI' };
+  },
+
+  /**
+   * Send a message over/to the bridge.  The idea is that we (can) communicate
+   * with the backend using only a postMessage-style JSON channel.
+   */
+  __bridgeSend: function(msg) {
+    // actually, this method gets clobbered.
+  },
+
+  /**
+   * Process a message received from the bridge.
+   */
+  __bridgeReceive: function ma___bridgeReceive(msg) {
+    var methodName = '_recv_' + msg.type;
+    if (!(methodName in this)) {
+      unexpectedBridgeDataError('Unsupported message type:', msg.type);
+      return;
+    }
+    try {
+      this[methodName](msg);
+    }
+    catch (ex) {
+      internalError('Problem handling message type:', msg.type, ex,
+                    '\n', ex.stack);
+      return;
+    }
+  },
+
+  _recv_badLogin: function ma__recv_badLogin(msg) {
+    if (this.onbadlogin)
+      this.onbadlogin(new MailAccount(this, msg.account));
+  },
+
+  _recv_sliceSplice: function ma__recv_sliceSplice(msg) {
+    var slice = this._slices[msg.handle];
+    if (!slice) {
+      unexpectedBridgeDataError('Received message about a nonexistent slice:',
+                                msg.handle);
+      return;
+    }
+
+    var addItems = msg.addItems, transformedItems = [], i, stopIndex;
+    switch (slice._ns) {
+      case 'accounts':
+        for (i = 0; i < addItems.length; i++) {
+          transformedItems.push(new MailAccount(this, addItems[i]));
+        }
+        break;
+
+      case 'identities':
+        for (i = 0; i < addItems.length; i++) {
+          transformedItems.push(new MailSenderIdentity(this, addItems[i]));
+        }
+        break;
+
+      case 'folders':
+        for (i = 0; i < addItems.length; i++) {
+          transformedItems.push(new MailFolder(this, addItems[i]));
+        }
+        break;
+
+      case 'headers':
+        for (i = 0; i < addItems.length; i++) {
+          transformedItems.push(new MailHeader(slice, addItems[i]));
+        }
+        break;
+
+      default:
+        console.error('Slice notification for unknown type:', slice._ns);
+        break;
+    }
+
+    // - generate namespace-specific notifications
+    slice.atTop = msg.atTop;
+    slice.atBottom = msg.atBottom;
+    slice.userCanGrowDownwards = msg.userCanGrowDownwards;
+    if (msg.status && slice.status !== msg.status) {
+      slice.status = msg.status;
+      if (slice.onstatus)
+        slice.onstatus(slice.status);
+    }
+
+    // - generate slice 'onsplice' notification
+    if (slice.onsplice) {
+      try {
+        slice.onsplice(msg.index, msg.howMany, transformedItems,
+                       msg.requested, msg.moreExpected);
+      }
+      catch (ex) {
+        reportClientCodeError('onsplice notification error', ex,
+                              '\n', ex.stack);
+      }
+    }
+    // - generate item 'onremove' notifications
+    if (msg.howMany) {
+      try {
+        stopIndex = msg.index + msg.howMany;
+        for (i = msg.index; i < stopIndex; i++) {
+          var item = slice.items[i];
+          if (slice.onremove)
+            slice.onremove(item, i);
+          if (item.onremove)
+            item.onremove(item, i);
+        }
+      }
+      catch (ex) {
+        reportClientCodeError('onremove notification error', ex,
+                              '\n', ex.stack);
+      }
+    }
+    // - perform actual splice
+    slice.items.splice.apply(slice.items,
+                             [msg.index, msg.howMany].concat(transformedItems));
+    // - generate item 'onadd' notifications
+    if (slice.onadd) {
+      try {
+        stopIndex = msg.index + transformedItems.length;
+        for (i = msg.index; i < stopIndex; i++) {
+          slice.onadd(slice.items[i], i);
+        }
+      }
+      catch (ex) {
+        reportClientCodeError('onadd notification error', ex,
+                              '\n', ex.stack);
+      }
+    }
+
+    // - generate 'oncomplete' notification
+    if (msg.requested && !msg.moreExpected) {
+      slice._growing = 0;
+      if (slice.pendingRequestCount)
+        slice.pendingRequestCount--;
+
+      if (slice.oncomplete) {
+        var completeFunc = slice.oncomplete;
+        // reset before calling in case it wants to chain.
+        slice.oncomplete = null;
+        try {
+          completeFunc();
+        }
+        catch (ex) {
+          reportClientCodeError('oncomplete notification error', ex,
+                                '\n', ex.stack);
+        }
+      }
+    }
+  },
+
+  _recv_sliceUpdate: function ma__recv_sliceUpdate(msg) {
+    var slice = this._slices[msg.handle];
+    if (!slice) {
+      unexpectedBridgeDataError('Received message about a nonexistent slice:',
+                                msg.handle);
+      return;
+    }
+
+    var updates = msg.updates;
+    try {
+      for (var i = 0; i < updates.length; i += 2) {
+        var idx = updates[i], wireRep = updates[i + 1],
+            itemObj = slice.items[idx];
+        itemObj.__update(wireRep);
+        if (slice.onchange)
+          slice.onchange(itemObj, idx);
+        if (itemObj.onchange)
+          itemObj.onchange(itemObj, idx);
+      }
+    }
+    catch (ex) {
+      reportClientCodeError('onchange notification error', ex,
+                            '\n', ex.stack);
+    }
+  },
+
+  _recv_sliceDead: function(msg) {
+    var slice = this._slices[msg.handle];
+    delete this._slices[msg.handle];
+    if (slice.ondead)
+      slice.ondead(slice);
+  },
+
+  _getBodyForMessage: function(header, callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'getBody',
+      suid: header.id,
+      callback: callback,
+    };
+    this.__bridgeSend({
+      type: 'getBody',
+      handle: handle,
+      suid: header.id,
+      date: header.date.valueOf(),
+    });
+  },
+
+  _recv_gotBody: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    if (!req) {
+      unexpectedBridgeDataError('Bad handle for got body:', msg.handle);
+      return;
+    }
+    delete this._pendingRequests[msg.handle];
+
+    var body = msg.bodyInfo ? new MailBody(this, req.suid, msg.bodyInfo) : null;
+    req.callback.call(null, body);
+  },
+
+  /**
+   * Try to create an account.  There is currently no way to abort the process
+   * of creating an account.
+   *
+   * @typedef[AccountCreationError @oneof[
+   *   @case['offline']{
+   *     We are offline and have no network access to try and create the
+   *     account.
+   *   }
+   *   @case['no-dns-entry']{
+   *     We couldn't find the domain name in question, full stop.
+   *   }
+   *   @case['unresponsive-server']{
+   *     Requests to the server timed out.  AKA we sent packets into a black
+   *     hole.
+   *   }
+   *   @case['port-not-listening']{
+   *     Attempts to connect to the given port on the server failed.  We got
+   *     packets back rejecting our connection.
+   *   }
+   *   @case['bad-security']{
+   *     We were able to connect to the port and initiate TLS, but we didn't
+   *     like what we found.  This could be a mismatch on the server domain,
+   *     a self-signed or otherwise invalid certificate, insufficient crypto,
+   *     or a vulnerable server implementation.
+   *   }
+   *   @case['not-an-imap-server']{
+   *     Whatever is there isn't actually an IMAP server.
+   *   }
+   *   @case['sucky-imap-server']{
+   *     The IMAP server is too bad for us to use.
+   *   }
+   *   @case['bad-user-or-pass']{
+   *     The username and password didn't check out.  We don't know which one
+   *     is wrong, just that one of them is wrong.
+   *   }
+   *   @case['unknown']{
+   *     We don't know what happened; count this as our bug for not knowing.
+   *   }
+   *   @case[null]{
+   *     No error, the account was created and everything is terrific.
+   *   }
+   * ]]
+   *
+   * @args[
+   *   @param[details @dict[
+   *     @key[displayName String]{
+   *       The name the (human, per EULA) user wants to be known to the world
+   *       as.
+   *     }
+   *     @key[emailAddress String]
+   *     @key[password String]
+   *   ]]
+   *   @param[callback @func[
+   *     @args[
+   *       @param[err AccountCreationError]
+   *     ]
+   *   ]
+   * ]
+   */
+  tryToCreateAccount: function ma_tryToCreateAccount(details, callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'tryToCreateAccount',
+      details: details,
+      callback: callback
+    };
+    this.__bridgeSend({
+      type: 'tryToCreateAccount',
+      handle: handle,
+      details: details
+    });
+  },
+
+  _recv_tryToCreateAccountResults:
+      function ma__recv_tryToCreateAccountResults(msg) {
+    var req = this._pendingRequests[msg.handle];
+    if (!req) {
+      unexpectedBridgeDataError('Bad handle for create account:', msg.handle);
+      return;
+    }
+    delete this._pendingRequests[msg.handle];
+
+    req.callback.call(null, msg.error);
+  },
+
+  _clearAccountProblems: function ma__clearAccountProblems(account) {
+    this.__bridgeSend({
+      type: 'clearAccountProblems',
+      accountId: account.id,
+    });
+  },
+
+  _modifyAccount: function ma__modifyAccount(account, mods) {
+    this.__bridgeSend({
+      type: 'modifyAccount',
+      accountId: account.id,
+      mods: mods,
+    });
+  },
+
+  _deleteAccount: function ma__deleteAccount(account) {
+    this.__bridgeSend({
+      type: 'deleteAccount',
+      accountId: account.id,
+    });
+  },
+
+  /**
+   * Get the list of accounts.  This can be used for the list of accounts in
+   * setttings or for a folder tree where only one account's folders are visible
+   * at a time.
+   *
+   * @args[
+   *   @param[realAccountsOnly Boolean]{
+   *     Should we only list real accounts (aka not unified accounts)?  This is
+   *     meaningful for the settings UI and for the move-to-folder UI where
+   *     selecting a unified account's folders is useless.
+   *   }
+   * ]
+   */
+  viewAccounts: function ma_viewAccounts(realAccountsOnly) {
+    var handle = this._nextHandle++,
+        slice = new BridgedViewSlice(this, 'accounts', handle);
+    this._slices[handle] = slice;
+
+    this.__bridgeSend({
+      type: 'viewAccounts',
+      handle: handle,
+    });
+    return slice;
+  },
+
+  /**
+   * Get the list of sender identities.  The identities can also be found on
+   * their owning accounts via `viewAccounts`.
+   */
+  viewSenderIdentities: function ma_viewSenderIdentities() {
+    var handle = this._nextHandle++,
+        slice = new BridgedViewSlice(this, 'identities', handle);
+    this._slices[handle] = slice;
+
+    this.__bridgeSend({
+      type: 'viewSenderIdentities',
+      handle: handle,
+    });
+    return slice;
+  },
+
+  /**
+   * Retrieve the entire folder hierarchy for either 'navigation' (pick what
+   * folder to show the contents of, including unified folders), 'movetarget'
+   * (pick target folder for moves, does not include unified folders), or
+   * 'account' (only show the folders belonging to a given account, implies
+   * selection).  In all cases, there may exist non-selectable folders such as
+   * the account roots or IMAP folders that cannot contain messages.
+   *
+   * When accounts are presented as folders via this UI, they do not expose any
+   * of their `MailAccount` semantics.
+   *
+   * @args[
+   *   @param[mode @oneof['navigation' 'movetarget' 'account']
+   *   @param[argument #:optional]{
+   *     Arguent appropriate to the mode; currently will only be a `MailAccount`
+   *     instance.
+   *   }
+   * ]
+   */
+  viewFolders: function ma_viewFolders(mode, argument) {
+    var handle = this._nextHandle++,
+        slice = new FoldersViewSlice(this, handle);
+    this._slices[handle] = slice;
+
+    this.__bridgeSend({
+      type: 'viewFolders',
+      mode: mode,
+      handle: handle,
+      argument: argument ? argument.id : null,
+    });
+
+    return slice;
+  },
+
+  /**
+   * Retrieve a slice of the contents of a folder, starting from the most recent
+   * messages.
+   */
+  viewFolderMessages: function ma_viewFolderMessages(folder) {
+    var handle = this._nextHandle++,
+        slice = new HeadersViewSlice(this, handle);
+    // the initial population counts as a request.
+    slice.pendingRequestCount++;
+    this._slices[handle] = slice;
+
+    this.__bridgeSend({
+      type: 'viewFolderMessages',
+      folderId: folder.id,
+      handle: handle,
+    });
+
+    return slice;
+  },
+
+  /**
+   * Search a folder for messages containing the given text in the sender,
+   * recipients, or subject fields, as well as (optionally), the body with a
+   * default time constraint so we don't entirely kill the server or us.
+   *
+   * Expected UX: run the search once without body, then the user can ask for
+   * the body search too if the first match doesn't meet their expectations.
+   */
+  quicksearchFolderMessages:
+      function ma_quicksearchFolderMessages(folder, text, searchBodyToo) {
+    throw new Error("NOT YET IMPLEMENTED");
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Batch Message Mutation
+  //
+  // If you want to modify a single message, you can use the methods on it
+  // directly.
+  //
+  // All actions are undoable and return an `UndoableOperation`.
+
+  deleteMessages: function ma_deleteMessages(messages) {
+    // XXX for now, just pose this as a flag change rather than any moving
+    // to trash semantics.  We just want to be able to make our sync logic
+    // perceive a deletion.  Obviously, DO NOT HOOK THIS UP TO THE UI YET.
+    return this.modifyMessageTags(messages,
+                                  ['\\Deleted'], null, 'delete');
+  },
+
+  copyMessages: function ma_copyMessages(messages, targetFolder) {
+  },
+
+  moveMessages: function ma_moveMessages(messages, targetFolder) {
+  },
+
+  markMessagesRead: function ma_markMessagesRead(messages, beRead) {
+    return this.modifyMessageTags(messages,
+                                  beRead ? ['\\Seen'] : null,
+                                  beRead ? null : ['\\Seen'],
+                                  beRead ? 'read' : 'unread');
+  },
+
+  markMessagesStarred: function ma_markMessagesStarred(messages, beStarred) {
+    return this.modifyMessageTags(messages,
+                                  beStarred ? ['\\Flagged'] : null,
+                                  beStarred ? null : ['\\Flagged'],
+                                  beStarred ? 'star' : 'unstar');
+  },
+
+  modifyMessageTags: function ma_modifyMessageTags(messages, addTags,
+                                                   removeTags, _opcode) {
+    // We allocate a handle that provides a temporary name for our undoable
+    // operation until we hear back from the other side about it.
+    var handle = this._nextHandle++;
+
+    if (!_opcode) {
+      if (addTags && addTags.length)
+        _opcode = 'addtag';
+      else if (removeTags && removeTags.length)
+        _opcode = 'removetag';
+    }
+    var undoableOp = new UndoableOperation(this, _opcode, messages.length,
+                                           handle),
+        msgSuids = messages.map(serializeMessageName);
+
+    this._pendingRequests[handle] = {
+      type: 'mutation',
+      handle: handle,
+      undoableOp: undoableOp
+    };
+    this.__bridgeSend({
+      type: 'modifyMessageTags',
+      handle: handle,
+      opcode: _opcode,
+      addTags: addTags,
+      removeTags: removeTags,
+      messages: msgSuids,
+    });
+
+    return undoableOp;
+  },
+
+  _recv_mutationConfirmed: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    if (!req) {
+      unexpectedBridgeDataError('Bad handle for mutation:', msg.handle);
+      return;
+    }
+
+    req.undoableOp._tempHandle = null;
+    req.undoableOp._longtermIds = msg.longtermIds;
+    if (req.undoableOp._undoRequested)
+      req.undoableOp.undo();
+  },
+
+  __undo: function undo(undoableOp) {
+    this.__bridgeSend({
+      type: 'undo',
+      longtermIds: undoableOp._longtermIds,
+    });
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Message Composition
+
+  /**
+   * Begin the message composition process, creating a MessageComposition that
+   * stores the current message state and periodically persists its state to the
+   * backend so that the message is potentially available to other clients and
+   * recoverable in the event of a local crash.
+   *
+   * Composition is triggered in the context of a given message and folder so
+   * that the correct account and sender identity for composition can be
+   * inferred.  Message may be null if there are no messages in the folder.
+   * Folder is not required if a message is provided.
+   *
+   * @args[
+   *   @param[message #:optional MailHeader]{
+   *     Some message to use as context when not issuing a reply/forward.
+   *   }
+   *   @param[folder #:optional MailFolder]{
+   *     The folder to use as context if no `message` is provided and not
+   *     issuing a reply/forward.
+   *   }
+   *   @param[options #:optional @dict[
+   *     @key[replyTo #:optional MailHeader]
+   *     @key[replyMode #:optional @oneof[null 'list' 'all']]
+   *     @key[forwardOf #:optional MailHeader]
+   *     @key[forwardMode #:optional @oneof['inline']]
+   *   ]]
+   *   @param[callback #:optional Function]{
+   *     The callback to invoke once the composition handle is fully populated.
+   *     This is necessary because the back-end decides what identity is
+   *     appropriate, handles "re:" prefixing, quoting messages, etc.
+   *   }
+   * ]
+   */
+  beginMessageComposition: function(message, folder, options, callback) {
+    if (!callback)
+      throw new Error('A callback must be provided; you are using the API ' +
+                      'wrong if you do not.');
+    if (!options)
+      options = {};
+
+    var handle = this._nextHandle++,
+        composer = new MessageComposition(this, handle);
+
+    this._pendingRequests[handle] = {
+      type: 'compose',
+      composer: composer,
+      callback: callback,
+    };
+    var msg = {
+      type: 'beginCompose',
+      handle: handle,
+      mode: null,
+      submode: null,
+      refSuid: null,
+      refDate: null,
+      refGuid: null,
+      refAuthor: null,
+      refSubject: null,
+    };
+    if (options.hasOwnProperty('replyTo') && options.replyTo) {
+      msg.mode = 'reply';
+      msg.submode = options.replyMode;
+      msg.refSuid = options.replyTo.id;
+      msg.refDate = options.replyTo.date.valueOf();
+      msg.refGuid = options.replyTo.guid;
+      msg.refAuthor = options.replyTo.author;
+      msg.refSubject = options.replyTo.subject;
+    }
+    else if (options.hasOwnProperty('forwardOf') && options.forwardOf) {
+      msg.mode = 'forward';
+      msg.submode = options.forwardMode;
+      msg.refSuid = options.forwardOf.id;
+      msg.refDate = options.forwardOf.date.valueOf();
+      msg.refSubject = options.forwardOf.subject;
+    }
+    else {
+      msg.mode = 'new';
+      if (message) {
+        msg.submode = 'message';
+        msg.refSuid = message.id;
+      }
+      else if (folder) {
+        msg.submode = 'folder';
+        msg.refSuid = folder.id;
+      }
+    }
+    this.__bridgeSend(msg);
+    return composer;
+  },
+
+  /**
+   * Open a message as if it were a draft message (hopefully it is), returning
+   * a MessageComposition object that will be asynchronously populated.  The
+   * provided callback will be notified once all composition state has been
+   * loaded.
+   *
+   * The underlying message will be replaced by other messages as the draft
+   * is updated and effectively deleted once the draft is completed.  (A
+   * move may be performed instead.)
+   */
+  resumeMessageComposition: function(message, callback) {
+    throw new Error('XXX No resuming composition right now.  Sorry!');
+  },
+
+  _recv_composeBegun: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    if (!req) {
+      unexpectedBridgeDataError('Bad handle for compose begun:', msg.handle);
+      return;
+    }
+
+    req.composer.senderIdentity = new MailSenderIdentity(this, msg.identity);
+    req.composer.subject = msg.subject;
+    req.composer.body = msg.body;
+    req.composer.to = msg.to;
+    req.composer.cc = msg.cc;
+    req.composer.bcc = msg.bcc;
+    req.composer._references = msg.referencesStr;
+    // XXX attachments
+
+    if (req.callback) {
+      var callback = req.callback;
+      req.callback = null;
+      callback.call(null, req.composer);
+    }
+  },
+
+  _composeDone: function(handle, command, state, callback) {
+    var req = this._pendingRequests[handle];
+    if (!req) {
+      unexpectedBridgeDataError('Bad handle for compose done:', handle);
+      return;
+    }
+    switch (command) {
+      case 'send':
+        req.type = 'send';
+        req.callback = callback;
+        break;
+      case 'save':
+      case 'delete':
+        delete this._pendingRequests[handle];
+        break;
+      default:
+        throw new Error('Illegal composeDone command: ' + command);
+    }
+    this.__bridgeSend({
+      type: 'doneCompose',
+      handle: handle,
+      command: command,
+      state: state,
+    });
+  },
+
+  _recv_sent: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    if (!req) {
+      unexpectedBridgeDataError('Bad handle for sent:', msg.handle);
+      return;
+    }
+    delete this._pendingRequests[msg.handle];
+    if (req.callback) {
+      req.callback.call(null, msg.err, msg.badAddresses);
+      req.callback = null;
+    }
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Localization
+
+  /**
+   * Provide a list of localized strings for use in message composition.  This
+   * should be a dictionary with the following values, with their expected
+   * default values for English provided.  Try to avoid being clever and instead
+   * just pick the same strings Thunderbird uses for these for the given locale.
+   *
+   * - wrote: "{{name}} wrote".  Used for the lead-in to the quoted message.
+   * - originalMessage: "Original Message".  Gets put between a bunch of dashes
+   *    when forwarding a message inline.
+   */
+  useLocalizedStrings: function(strings) {
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Diagnostics / Test Hacks
+
+  /**
+   * Send a 'ping' to the bridge which will send a 'pong' back, notifying the
+   * provided callback.  This is intended to be hack to provide a way to ensure
+   * that some function only runs after all of the notifications have been
+   * received and processed by the back-end.
+   */
+  ping: function(callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'ping',
+      callback: callback,
+    };
+    this.__bridgeSend({
+      type: 'ping',
+      handle: handle,
+    });
+  },
+
+  _recv_pong: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    delete this._pendingRequests[msg.handle];
+    req.callback();
+  },
+
+  debugSupport: function(command, argument) {
+    if (command === 'setLogging')
+      this.config.debugLogging = argument;
+    this.__bridgeSend({
+      type: 'debugSupport',
+      cmd: command,
+      arg: argument
+    });
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+};
+
+
+}); // end define
+;
 // vim:ts=4:sts=4:sw=4:
 /*!
  *
@@ -6244,9 +7875,21 @@ exports.__augmentFab = augmentFab;
 
 var ALL_KNOWN_FABS = [];
 
+/**
+ * Do not turn on event-logging without an explicit call to
+ * `enableGeneralLogging`.  This is done because logging is a memory leak
+ * without a known consumer.
+ */
+var GENERAL_LOG_DEFAULT = false;
+
 exports.register = function register(mod, defs) {
-  var fab = {_generalLog: true, _underTest: false, _actorCons: {},
-             _rawDefs: {}, _onDeath: null};
+  var fab = {
+    _generalLog: GENERAL_LOG_DEFAULT,
+    _underTest: false,
+    _actorCons: {},
+    _rawDefs: {},
+    _onDeath: null
+  };
   ALL_KNOWN_FABS.push(fab);
   return augmentFab(mod, fab, defs);
 };
@@ -6271,6 +7914,17 @@ var BogusTester = {
     //  triggered.
     return parentLogger;
   },
+};
+
+/**
+ * Turn on logging at an event granularity.
+ */
+exports.enableGeneralLogging = function() {
+  GENERAL_LOG_DEFAULT = true;
+  for (var i = 0; i < ALL_KNOWN_FABS.length; i++) {
+    var logfab = ALL_KNOWN_FABS[i];
+    logfab._generalLog = true;
+  }
 };
 
 /**
@@ -6383,1789 +8037,6 @@ var STATEANNO = exports.STATEANNO = 'stateanno';
 var STATEDELTA = exports.STATEDELTA = 'statedelta';
 
 ////////////////////////////////////////////////////////////////////////////////
-
-}); // end define
-;
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at:
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Raindrop Code.
- *
- * The Initial Developer of the Original Code is
- *   The Mozilla Foundation
- * Portions created by the Initial Developer are Copyright (C) 2011
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Andrew Sutherland <asutherland@asutherland.org>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-/**
- * Mechanism for periodic log hierarchy traversal and transmission of the
- *  serialized data, forgetting about the logging entries after transmitted.  We
- *  additionally may perform interesting-ness analysis and only transmit data
- *  or send an out-of-band notification if something interesting has happened,
- *  such as an error being reported.
- *
- * Log transmission and reconstruction is slightly more complicated than just
- *  serializing a hierarchy because the lifetime of the loggers is expected to
- *  be much longer than our log transmission interval.
- **/
-
-define('rdcommon/logreaper',[
-    './log',
-    'microtime',
-    'exports'
-  ],
-  function(
-    $log,
-    $microtime,
-    exports
-  ) {
-
-var EMPTY = [];
-
-function LogReaper(rootLogger) {
-  this._rootLogger = rootLogger;
-  this._lastTimestamp = null;
-  this._lastSeq = null;
-}
-exports.LogReaper = LogReaper;
-LogReaper.prototype = {
-  /**
-   * Process a logger, producing a time slice representation.
-   *
-   * Our strategy is roughly to manually traverse the logger hiearchy and:
-   * - Ignore loggers with no entries/events and no notably active children that
-   *    were already alive at the last reaping and have not died, not mentioning
-   *    them at all in the output fragment.  This can also be thought of as:
-   * - Emit loggers that have been born.
-   * - Emit loggers that have died.
-   * - Emit loggers with entries/events.
-   * - Emit loggers whose children have had notable activity so that the
-   *    hierarchy can be known.
-   * - Emit loggers that have experienced a semantic ident change.
-   *
-   * Potential future optimizations:
-   */
-  reapHierLogTimeSlice: function() {
-    var rootLogger = this._rootLogger,
-        startSeq, startTimestamp;
-    if (this._lastTimestamp === null) {
-      startSeq = 0;
-      startTimestamp = rootLogger._born;
-    }
-    else {
-      startSeq = this._lastSeq + 1;
-      startTimestamp = this._lastTimestamp;
-    }
-    var endSeq = $log.getCurrentSeq(),
-        endTimestamp = this._lastTimestamp = $microtime.now();
-
-    function traverseLogger(logger) {
-      var empty = true;
-      // speculatively start populating an output representation
-      var outrep = logger.toJSON();
-      outrep.events = null;
-      outrep.kids = null;
-
-      // - check born/death
-      // actually, being born doesn't generate an event, so ignore.
-      //if (logger._born >= startTimestamp)
-      //  empty = false;
-      if (logger._died !== null)
-        empty = false;
-
-      // - check events
-      var outEvents = null;
-      for (var eventKey in logger._eventMap) {
-        var eventVal = logger._eventMap[eventKey];
-        if (eventVal) {
-          empty = false;
-          if (outEvents === null)
-            outrep.events = outEvents = {};
-          outEvents[eventKey] = eventVal;
-          logger._eventMap[eventKey] = 0;
-        }
-      }
-
-      // - check and reap entries
-      if (outrep.entries.length) {
-        empty = false;
-        // (we keep/use outrep.entries, and zero the logger's entries)
-        logger._entries = [];
-      }
-      else {
-        // Avoid subsequent mutation of the list mutating our representation
-        //  and without creating gratuitous garbage by using a shared empty
-        //  list for such cases.
-        outrep.entries = EMPTY;
-      }
-
-      // - check and reap children
-      if (logger._kids && logger._kids.length) {
-        for (var iKid = 0; iKid < logger._kids.length; iKid++) {
-          var kidLogger = logger._kids[iKid];
-          var kidrep = traverseLogger(kidLogger);
-          if (kidrep) {
-            if (!outrep.kids)
-              outrep.kids = [];
-            outrep.kids.push(kidrep);
-            empty = false;
-          }
-          // reap (and adjust iteration)
-          if (kidLogger._died !== null)
-            logger._kids.splice(iKid--, 1);
-        }
-      }
-
-      return (empty ? null : outrep);
-    }
-
-    return {
-      begin: startTimestamp,
-      end: endTimestamp,
-      logFrag: traverseLogger(rootLogger),
-    };
-  },
-};
-
-}); // end define
-;
-/**
- *
- **/
-
-define('rdimap/imapclient/mailapi',[
-    'exports'
-  ],
-  function(
-
-    exports
-  ) {
-
-/**
- *
- */
-function MailAccount(api, wireRep) {
-  this._api = api;
-  this.id = wireRep.id;
-  this.type = wireRep.type;
-  this.name = wireRep.name;
-
-  /**
-   * Is the account currently enabled, as in will we talk to the server?
-   * Accounts will be automatically disabled in cases where it would be
-   * counter-productive for us to keep trying to access the server.
-   *
-   * For example: the user's password being (apparently) bad, or gmail getting
-   * upset about the amount of data transfer and locking the account out for the
-   * rest of the day.
-   */
-  this.enabled = wireRep.enabled;
-  /**
-   * @listof[@oneof[
-   *   @case['login-failed']{
-   *     The login explicitly failed, suggesting that the user's password is
-   *     bad.  Other possible interpretations include the account settings are
-   *     somehow wrong now, the server is experiencing a transient failure,
-   *     or who knows.
-   *   }
-   * ]]{
-   *   A list of known problems with the account which explain why the account
-   *   might not be `enabled`.  Once a problem is believed to have been
-   *   addressed, `clearProblems` should be called.
-   * }
-   */
-  this.problems = wireRep.problems;
-
-  this.identities = [];
-  for (var iIdent = 0; iIdent < wireRep.identities.length; iIdent++) {
-    this.identities.push(new MailSenderIdentity(this._api,
-                                                wireRep.identities[iIdent]));
-  }
-
-  this.username = wireRep.credentials.username;
-  this.servers = wireRep.servers;
-
-  // build a place for the DOM element and arbitrary data into our shape
-  this.element = null;
-  this.data = null;
-}
-MailAccount.prototype = {
-  toString: function() {
-    return '[MailAccount: ' + this.type + ' ' + this.id + ']';
-  },
-  toJSON: function() {
-    return {
-      type: 'MailAccount',
-      accountType: this.type,
-      id: this.id,
-    };
-  },
-
-  /**
-   * Tell the back-end to clear the list of problems with the account, re-enable
-   * it, and try and connect.
-   */
-  clearProblems: function() {
-    this._api._clearAccountProblems(this);
-  },
-
-  /**
-   * @args[
-   *   @param[mods @dict[
-   *     @key[password String]
-   *   ]]
-   * ]
-   */
-  modifyAccount: function(mods) {
-    this._api._modifyAccount(this, mods);
-  },
-
-  /**
-   * Delete the account and all its associated data.  No privacy guarantees are
-   * provided; we just delete the data from the database, so it's up to the
-   * (IndexedDB) database's guarantees on that.
-   */
-  deleteAccount: function() {
-    this._api._deleteAccount(this);
-  },
-};
-
-/**
- * Sender identities define one of many possible sets of sender info and are
- * associated with a single `MailAccount`.
- *
- * Things that can vary:
- * - user's display name
- * - e-mail address,
- * - reply-to address
- * - signature
- */
-function MailSenderIdentity(api, wireRep) {
-  // We store the API so that we can create identities for the composer without
-  // needing to create an account too.
-  this._api = api;
-  this.id = wireRep.id;
-
-  this.name = wireRep.displayName;
-  this.address = wireRep.address;
-  this.replyTo = wireRep.replyTo;
-  this.signature = wireRep.signature;
-}
-MailSenderIdentity.prototype = {
-  toString: function() {
-    return '[MailSenderIdentity: ' + this.type + ' ' + this.id + ']';
-  },
-  toJSON: function() {
-    return { type: 'MailSenderIdentity' };
-  },
-};
-
-function MailFolder(api, wireRep) {
-  this._api = api;
-  this.id = wireRep.id;
-
-  /**
-   * The human-readable name of the folder.  (As opposed to its path or the
-   * modified utf-7 encoded folder names.)
-   */
-  this.name = wireRep.name;
-  /**
-   * The full string of the path.
-   */
-  this.path = wireRep.path;
-  /**
-   * The hierarchical depth of this folder.
-   */
-  this.depth = wireRep.depth;
-  /**
-   * @oneof[
-   *   @case['account']{
-   *     It's not really a folder at all, just an account serving as hierarchy.
-   *   }
-   *   @case['nomail']{
-   *     A folder that exists only to provide hierarchy but which can't
-   *     contain messages.  An artifact of various mail backends that are
-   *     reflected in IMAP as NOSELECT.
-   *   }
-   *   @case['inbox']
-   *   @case['drafts']
-   *   @case['sent']
-   *   @case['trash']
-   *   @case['archive']
-   *   @case['junk']
-   *   @case['starred']
-   *   @case['normal']{
-   *     A traditional mail folder with nothing special about it.
-   *   }
-   * ]{
-   *   Non-localized string indicating the type of folder this is, primarily
-   *   for styling purposes.
-   * }
-   */
-  this.type = wireRep.type;
-
-  this.selectable = (wireRep.type !== 'account') && (wireRep.type !== 'nomail');
-
-  this.onchange = null;
-  this.onremove = null;
-
-  // build a place for the DOM element and arbitrary data into our shape
-  this.element = null;
-  this.data = null;
-}
-MailFolder.prototype = {
-  toString: function() {
-    return '[MailFolder: ' + this.path + ']';
-  },
-  toJSON: function() {
-    return {
-      type: 'MailFolder',
-      path: this.path
-    };
-  },
-};
-
-function filterOutBuiltinFlags(flags) {
-  // so, we could mutate in-place if we were sure the wire rep actually came
-  // over the wire.  Right now there is de facto rep sharing, so let's not
-  // mutate and screw ourselves over.
-  var outFlags = [];
-  for (var i = flags.length - 1; i >= 0; i--) {
-    if (flags[i][0] !== '\\')
-      outFlags.push(flags[i]);
-  }
-  return outFlags;
-}
-
-/**
- * Extract the canonical naming attributes out of the MailHeader instance.
- */
-function serializeMessageName(x) {
-  return { date: x.date.valueOf(), suid: x.id };
-}
-
-/**
- * Email overview information for displaying the message in the list as planned
- * for the current UI.  Things that we don't need (ex: to/cc/bcc) for the list
- * end up on the body, currently.  They will probably migrate to the header in
- * the future.
- *
- * Events are generated if the metadata of the message changes or if the message
- * is removed.  The `BridgedViewSlice` instance is how the system keeps track
- * of what messages are being displayed/still alive to need updates.
- */
-function MailHeader(slice, wireRep) {
-  this._slice = slice;
-  this.id = wireRep.suid;
-  this.guid = wireRep.guid;
-
-  this.author = wireRep.author;
-
-  this.date = new Date(wireRep.date);
-  this.__update(wireRep);
-  this.hasAttachments = wireRep.hasAttachments;
-
-  this.subject = wireRep.subject;
-  this.snippet = wireRep.snippet;
-
-  this.onchange = null;
-  this.onremove = null;
-
-  // build a place for the DOM element and arbitrary data into our shape
-  this.element = null;
-  this.data = null;
-}
-MailHeader.prototype = {
-  toString: function() {
-    return '[MailHeader: ' + this.id + ']';
-  },
-  toJSON: function() {
-    return {
-      type: 'MailHeader',
-      id: this.id
-    };
-  },
-
-  __update: function(wireRep) {
-    this.isRead = wireRep.flags.indexOf('\\Seen') !== -1;
-    this.isStarred = wireRep.flags.indexOf('\\Flagged') !== -1;
-    this.isRepliedTo = wireRep.flags.indexOf('\\Answered') !== -1;
-    this.isForwarded = wireRep.flags.indexOf('$Forwarded') !== -1;
-    this.isJunk = wireRep.flags.indexOf('$Junk') !== -1;
-    this.tags = filterOutBuiltinFlags(wireRep.flags);
-  },
-
-  /**
-   * Delete this message
-   */
-  deleteMessage: function() {
-    return this._slice._api.deleteMessages([this]);
-  },
-
-  /**
-   * Copy this message to another folder.
-   */
-  copyMessage: function(targetFolder) {
-    return this._slice._api.copyMessages([this], targetFolder);
-  },
-
-  /**
-   * Move this message to another folder.
-   */
-  moveMessage: function(targetFolder) {
-    return this._slice._api.moveMessages([this], targetFolder);
-  },
-
-  /**
-   * Set or clear the read status of this message.
-   */
-  setRead: function(beRead) {
-    return this._slice._api.markMessagesRead([this], beRead);
-  },
-
-  /**
-   * Set or clear the starred/flagged status of this message.
-   */
-  setStarred: function(beStarred) {
-    return this._slice._api.markMessagesStarred([this], beStarred);
-  },
-
-  /**
-   * Add and/or remove tags/flags from this messages.
-   */
-  modifyTags: function(addTags, removeTags) {
-    return this._slice._api.modifyMessageTags([this], addTags, removeTags);
-  },
-
-  /**
-   * Request the `MailBody` instance for this message, passing it to the
-   * provided callback function once retrieved.
-   */
-  getBody: function(callback) {
-    this._slice._api._getBodyForMessage(this, callback);
-  },
-
-  /**
-   * Assume this is a draft message and return a MessageComposition object
-   * that will be asynchronously populated.  The provided callback will be
-   * notified once all composition state has been loaded.
-   *
-   * The underlying message will be replaced by other messages as the draft
-   * is updated and effectively deleted once the draft is completed.  (A
-   * move may be performed instead.)
-   */
-  editAsDraft: function(callback) {
-    return this._slice._api.resumeMessageComposition(this, callback);
-  },
-
-  /**
-   * Start composing a reply to this message.
-   *
-   * @args[
-   *   @param[replyMode @oneof[
-   *     @default[null]{
-   *       To be specified...
-   *     }
-   *     @case['sender']{
-   *       Reply to the author of the message.
-   *     }
-   *     @case['list']{
-   *       Reply to the mailing list the message was received from.  If there
-   *       were other mailing lists copied on the message, they will not
-   *       be included.
-   *     }
-   *     @case['all']{
-   *       Reply to the sender and all listed recipients of the message.
-   *     }
-   *   ]]{
-   *     The not currently used reply-mode.
-   *   }
-   * ]
-   * @return[MessageComposition]
-   */
-  replyToMessage: function(replyMode, callback) {
-    return this._slice._api.beginMessageComposition(
-      this, null, { replyTo: this, replyMode: replyMode }, callback);
-  },
-
-  /**
-   * Start composing a forward of this message.
-   *
-   * @args[
-   *   @param[forwardMode @oneof[
-   *     @case['inline']{
-   *       Forward the message inline.
-   *     }
-   *   ]]
-   * ]
-   * @return[MessageComposition]
-   */
-  forwardMessage: function(forwardMode, callback) {
-    return this._slice._api.beginMessageComposition(
-      this, null, { forwardOf: this, forwardMode: forwardMode }, callback);
-  },
-};
-
-/**
- * Lists the attachments in a message as well as providing a way to display the
- * body while (eventually) also accounting for message quoting.
- *
- * Mail bodies are immutable and so there are no events on them or lifetime
- * management to worry about.  However, you should keep the `MailHeader` alive
- * and worry about its lifetime since the message can get deleted, etc.
- */
-function MailBody(api, suid, wireRep) {
-  this._api = api;
-  this.id = suid;
-
-  this.to = wireRep.to;
-  this.cc = wireRep.cc;
-  this.bcc = wireRep.bcc;
-  this.replyTo = wireRep.replyTo;
-  this.attachments = null;
-  if (wireRep.attachments) {
-    this.attachments = [];
-    for (var iAtt = 0; iAtt < wireRep.attachments.length; iAtt++) {
-      this.attachments.push(new MailAttachment(wireRep.attachments[iAtt]));
-    }
-  }
-  // for the time being, we only provide text/plain contents, and we provide
-  // those flattened.
-  this.bodyRep = wireRep.bodyRep;
-}
-MailBody.prototype = {
-  toString: function() {
-    return '[MailBody: ' + id + ']';
-  },
-  toJSON: function() {
-    return {
-      type: 'MailBody',
-      id: this.id
-    };
-  },
-};
-
-/**
- * Provides the file name, mime-type, and estimated file size of an attachment.
- * In the future this will also be the means for requesting the download of
- * an attachment or for attachment-forwarding semantics.
- */
-function MailAttachment(wireRep) {
-  this.partId = wireRep.part;
-  this.filename = wireRep.name;
-  this.mimetype = wireRep.type;
-  this.sizeEstimateInBytes = wireRep.sizeEstimate;
-
-  // build a place for the DOM element and arbitrary data into our shape
-  this.element = null;
-  this.data = null;
-}
-MailAttachment.prototype = {
-  toString: function() {
-    return '[MailAttachment: "' + this.filename + '"]';
-  },
-  toJSON: function() {
-    return {
-      type: 'MailAttachment',
-      filename: this.filename
-    };
-  },
-};
-
-/**
- * Undoable operations describe the operation that was performed for
- * presentation to the user and hold onto a handle that can be used to undo
- * whatever it was.  While the current UI plan does not call for the ability to
- * get a list of recently performed actions, the goal is to make it feasible
- * in the future.
- */
-function UndoableOperation(_api, operation, affectedCount,
-                           _tempHandle, _longtermIds) {
-  this._api = _api;
-  /**
-   * @oneof[
-   *   @case['read']{
-   *     Marked message(s) as read.
-   *   }
-   *   @case['unread']{
-   *     Marked message(s) as unread.
-   *   }
-   *   @case['star']{
-   *     Starred message(s).
-   *   }
-   *   @case['unstar']{
-   *     Unstarred message(s).
-   *   }
-   *   @case['addtag']{
-   *     Added tag(s).
-   *   }
-   *   @case['removetag']{
-   *     Removed tag(s).
-   *   }
-   *   @case['move']{
-   *     Moved message(s).
-   *   }
-   *   @case['copy']{
-   *     Copied message(s).
-   *   }
-   *   @case['delete']{
-   *     Deleted message(s) by moving to trash folder.
-   *   }
-   * ]
-   */
-  this.operation = operation;
-  /**
-   * The number of messages affected by this operation.
-   */
-  this.affectedCount = affectedCount;
-
-  /**
-   * The temporary handle we use to refer to the operation immediately after
-   * issuing it until we hear back from the mail bridge about its more permanent
-   * _longtermIds.
-   */
-  this._tempHandle = _tempHandle;
-  /**
-   * The names of the per-account operations that this operation was mapped
-   * to.
-   */
-  this._longtermIds = null;
-
-  this._undoRequested = false;
-}
-UndoableOperation.prototype = {
-  toString: function() {
-    return '[UndoableOperation]';
-  },
-  toJSON: function() {
-    return {
-      type: 'UndoableOperation',
-      handle: this._tempHandle,
-      longtermIds: this._longtermIds,
-    };
-  },
-
-  undo: function() {
-    // We can't issue the undo until we've heard the longterm id, so just flag
-    // it to be processed when we do.
-    if (!this._longtermIds) {
-      this._undoRequested = true;
-      return;
-    }
-    this._api.__undo(this);
-  },
-};
-
-/**
- * Ordered list collection abstraction where we may potentially only be viewing
- * a subset of the actual items in the collection.  This allows us to handle
- * lists with lots of items as well as lists where we have to retrieve data
- * from a remote server to populate the list.
- */
-function BridgedViewSlice(api, ns, handle) {
-  this._api = api;
-  this._ns = ns;
-  this._handle = handle;
-
-  this.items = [];
-
-  /**
-   * @oneof[
-   *   @case['synchronizing']{
-   *     We are talking to a server to populate/expand the contents of this
-   *     list.
-   *   }
-   *   @case['synced']{
-   *     We are not talking to a server.
-   *   }
-   * ]{
-   *   Quasi-extensible indicator of whether we are synchronizing or not.  The
-   *   idea is that if we are synchronizing, a spinner indicator can be shown
-   *   at the end of the list of messages.
-   * }
-   */
-  this.status = 'synced';
-
-  /**
-   * False if we can grow the slice in the negative direction without
-   * requiring user prompting.
-   */
-  this.atTop = false;
-  /**
-   * False if we can grow the slice in the positive direction without
-   * requiring user prompting.
-   */
-  this.atBottom = false;
-
-  /**
-   * Can we potentially grow the slice in the positive direction if the user
-   * requests it?  For example, triggering an IMAP sync for a part of the
-   * time-range we have not previously synchronized.
-   *
-   * This is only really meaningful when `atBottom` is true; if we are not at
-   * the bottom, this value will be false.
-   */
-  this.userCanGrowDownwards = false;
-
-  /**
-   * Number of pending requests to the back-end.  To be used by logic that can
-   * defer further requests until existing requests are complete.  For example,
-   * infinite scrolling logic would do best to wait for the back-end to service
-   * its requests before issuing new ones.
-   */
-  this.pendingRequestCount = 0;
-  /**
-   * The direction we are growing, if any (0 if not).
-   */
-  this._growing = 0;
-
-  this.onadd = null;
-  this.onchange = null;
-  this.onsplice = null;
-  this.onremove = null;
-  this.onstatus = null;
-  this.oncomplete = null;
-  this.ondead = null;
-}
-BridgedViewSlice.prototype = {
-  toString: function() {
-    return '[BridgedViewSlice: ' + this._ns + ' ' + this._handle + ']';
-  },
-  toJSON: function() {
-    return {
-      type: 'BridgedViewSlice',
-      namespace: this._ns,
-      handle: this._handle
-    };
-  },
-
-  /**
-   * Tell the back-end we no longer need some of the items we know about.  This
-   * will manifest as a requested splice at some point in the future, although
-   * the back-end may attenuate partially or entirely.
-   */
-  requestShrinkage: function(firstUsedIndex, lastUsedIndex) {
-    this.pendingRequestCount++;
-    if (lastUsedIndex >= this.items.length)
-      lastUsedIndex = this.items.length - 1;
-
-    // We send indices and suid's.  The indices are used for fast-pathing;
-    // if the suid's don't match, a linear search is undertaken.
-    this._api.__bridgeSend({
-        type: 'shrinkSlice',
-        firstIndex: firstUsedIndex,
-        firstSuid: this.items[firstUsedIndex].id,
-        lastIndex: lastUsedIndex,
-        lastSuid: this.items[lastUsedIndex].id,
-        handle: this._handle
-      });
-  },
-
-  /**
-   * Request additional data in the given direction, optionally specifying that
-   * some potentially costly growth of the data set should be performed.
-   */
-  requestGrowth: function(dirMagnitude, userRequestsGrowth) {
-    if (this._growing)
-      throw new Error('Already growing in ' + this._growing + ' dir.');
-    this._growing = dirMagnitude;
-    this.pendingRequestCount++;
-
-    this._api.__bridgeSend({
-        type: 'growSlice',
-        dirMagnitude: dirMagnitude,
-        userRequestsGrowth: userRequestsGrowth,
-        handle: this._handle
-      });
-  },
-
-  die: function() {
-    this._api.__bridgeSend({
-        type: 'killSlice',
-        handle: this._handle
-      });
-  },
-};
-
-function FoldersViewSlice(api, handle) {
-  BridgedViewSlice.call(this, api, 'folders', handle);
-}
-FoldersViewSlice.prototype = Object.create(BridgedViewSlice.prototype);
-
-FoldersViewSlice.prototype.getFirstFolderWithType = function(type, items) {
-  // allow an explicit list of items to be provided, specifically for use in
-  // onsplice handlers where the items have not yet been spliced in.
-  if (!items)
-    items = this.items;
-  for (var i = 0; i < items.length; i++) {
-    var folder = items[i];
-    if (folder.type === type)
-      return folder;
-  }
-  return null;
-};
-
-FoldersViewSlice.prototype.getFirstFolderWithName = function(name, items) {
-  if (!items)
-    items = this.items;
-  for (var i = 0; i < items.length; i++) {
-    var folder = items[i];
-    if (folder.name === name)
-      return folder;
-  }
-  return null;
-};
-
-function HeadersViewSlice(api, handle) {
-  BridgedViewSlice.call(this, api, 'headers', handle);
-}
-HeadersViewSlice.prototype = Object.create(BridgedViewSlice.prototype);
-/**
- * Request a re-sync of the time interval covering the effective/visible time
- * range.  If the most recently displayed message is the most recent message
- * known to us, then the date range will cover through "now".
- */
-HeadersViewSlice.prototype.refresh = function() {
-  this._api.__bridgeSend({
-      type: 'refreshHeaders',
-      handle: this._handle,
-    });
-};
-
-
-/**
- * Handle for a current/ongoing message composition process.  The UI reads state
- * out of the object when it resumes editing a draft, otherwise this can just be
- * treated as write-only.
- *
- * == Other clients and drafts:
- *
- * If another client deletes our draft out from under us, we currently won't
- * notice.
- */
-function MessageComposition(api, handle) {
-  this._api = api;
-  this._handle = handle;
-
-  this.senderIdentity = null;
-
-  this.to = null;
-  this.cc = null;
-  this.bcc = null;
-
-  this.subject = null;
-
-  this.body = null;
-
-  this._references = null;
-  this._customHeaders = null;
-  // XXX attachments aren't implemented yet, of course.  They will be added
-  // via helper method.
-  this._attachments = null;
-}
-MessageComposition.prototype = {
-  toString: function() {
-    return '[MessageComposition: ' + this._handle + ']';
-  },
-  toJSON: function() {
-    return {
-      type: 'MessageComposition',
-      handle: this._handle
-    };
-  },
-
-  /**
-   * Add custom headers; don't use this for built-in headers.
-   */
-  addHeader: function(key, value) {
-    if (!this._customHeaders)
-      this._customHeaders = [];
-    this._customHeaders.push(key);
-    this._customHeaders.push(value);
-  },
-
-  /**
-   * Populate our state to send over the wire to the back-end.
-   */
-  _buildWireRep: function() {
-    return {
-      senderId: this.senderIdentity.id,
-      to: this.to,
-      cc: this.cc,
-      bcc: this.bcc,
-      subject: this.subject,
-      body: this.body,
-      referencesStr: this._references,
-      customHeaders: this._customHeaders,
-      attachments: this._attachments,
-    };
-  },
-
-  /**
-   * Finalize and send the message in its current state.
-   *
-   * @args[
-   *   @param[callback @func[
-   *     @args[
-   *       @param[state @oneof[
-   *         @case['sent']{
-   *           The message made it to the SMTP server and we believe it was sent
-   *           successfully.
-   *         }
-   *         @case['offline']{
-   *           We are known to be offline and so we can't send it right now.
-   *           We will attempt to send when we next get good network.
-   *         }
-   *         @case['will-retry']{
-   *           Something didn't work, but we will automatically retry again
-   *           at some point in the future.
-   *         }
-   *         @case['fatal']{
-   *           Something really bad happened, probably a bug in the program.
-   *           The error will be reported using console.error or internal
-   *           logging or something.
-   *         }
-   *       ]]
-   *       }
-   *     ]
-   *   ]]{
-   *     The callback to invoke on success/failure/deferral to later.
-   *   }
-   * ]
-   */
-  finishCompositionSendMessage: function(callback) {
-    this._api._composeDone(this._handle, 'send', this._buildWireRep(),
-                           callback);
-  },
-
-  /**
-   * The user is done writing the message for now; save it to the drafts folder
-   * and close out this handle.
-   */
-  saveDraftEndComposition: function() {
-    this._api._composeDone(this._handle, 'save', this._buildWireRep());
-  },
-
-  /**
-   * The user has indicated they neither want to send nor save the draft.  We
-   * want to delete the message so it is gone from everywhere.
-   *
-   * In the future, we might support some type of very limited undo
-   * functionality, possibly on the UI side of the house.  This is not a secure
-   * delete.
-   */
-  abortCompositionDeleteDraft: function() {
-    this._api._composeDone(this._handle, 'delete', null);
-  },
-
-};
-
-
-/**
- * Error reporting helper; we will probably eventually want different behaviours
- * under development, under unit test, when in use by QA, advanced users, and
- * normal users, respectively.  By funneling all errors through one spot, we
- * help reduce inadvertent breakage later on.
- */
-function reportError() {
-  console.error.apply(console, arguments);
-  var msg = null;
-  for (var i = 0; i < arguments.length; i++) {
-    if (msg)
-      msg += " " + arguments[i];
-    else
-      msg = "" + arguments[i];
-  }
-  throw new Error(msg);
-}
-var unexpectedBridgeDataError = reportError,
-    internalError = reportError,
-    reportClientCodeError = reportError;
-
-/**
- * The public API exposed to the client via the MailAPI global.
- */
-function MailAPI() {
-  this._nextHandle = 1;
-
-  this._slices = {};
-  this._pendingRequests = {};
-
-  /**
-   * @func[
-   *   @args[
-   *     @param[account MailAccount]
-   *   ]
-   * ]{
-   *   A callback invoked when we fail to login to an account and the server
-   *   explicitly told us the login failed and we have no reason to suspect
-   *   the login was temporarily disabled.
-   *
-   *   The account is put in a disabled/offline state until such time as the
-   *
-   * }
-   */
-  this.onbadlogin = null;
-}
-exports.MailAPI = MailAPI;
-MailAPI.prototype = {
-  toString: function() {
-    return '[MailAPI]';
-  },
-  toJSON: function() {
-    return { type: 'MailAPI' };
-  },
-
-  /**
-   * Send a message over/to the bridge.  The idea is that we (can) communicate
-   * with the backend using only a postMessage-style JSON channel.
-   */
-  __bridgeSend: function(msg) {
-    // actually, this method gets clobbered.
-  },
-
-  /**
-   * Process a message received from the bridge.
-   */
-  __bridgeReceive: function ma___bridgeReceive(msg) {
-    var methodName = '_recv_' + msg.type;
-    if (!(methodName in this)) {
-      unexpectedBridgeDataError('Unsupported message type:', msg.type);
-      return;
-    }
-    try {
-      this[methodName](msg);
-    }
-    catch (ex) {
-      internalError('Problem handling message type:', msg.type, ex,
-                    '\n', ex.stack);
-      return;
-    }
-  },
-
-  _recv_badLogin: function ma__recv_badLogin(msg) {
-    if (this.onbadlogin)
-      this.onbadlogin(new MailAccount(this, msg.account));
-  },
-
-  _recv_sliceSplice: function ma__recv_sliceSplice(msg) {
-    var slice = this._slices[msg.handle];
-    if (!slice) {
-      unexpectedBridgeDataError('Received message about a nonexistent slice:',
-                                msg.handle);
-      return;
-    }
-
-    var addItems = msg.addItems, transformedItems = [], i, stopIndex;
-    switch (slice._ns) {
-      case 'accounts':
-        for (i = 0; i < addItems.length; i++) {
-          transformedItems.push(new MailAccount(this, addItems[i]));
-        }
-        break;
-
-      case 'identities':
-        for (i = 0; i < addItems.length; i++) {
-          transformedItems.push(new MailSenderIdentity(this, addItems[i]));
-        }
-        break;
-
-      case 'folders':
-        for (i = 0; i < addItems.length; i++) {
-          transformedItems.push(new MailFolder(this, addItems[i]));
-        }
-        break;
-
-      case 'headers':
-        for (i = 0; i < addItems.length; i++) {
-          transformedItems.push(new MailHeader(slice, addItems[i]));
-        }
-        break;
-
-      default:
-        console.error('Slice notification for unknown type:', slice._ns);
-        break;
-    }
-
-    // - generate namespace-specific notifications
-    slice.atTop = msg.atTop;
-    slice.atBottom = msg.atBottom;
-    slice.userCanGrowDownwards = msg.userCanGrowDownwards;
-    if (msg.status && slice.status !== msg.status) {
-      slice.status = msg.status;
-      if (slice.onstatus)
-        slice.onstatus(slice.status);
-    }
-
-    // - generate slice 'onsplice' notification
-    if (slice.onsplice) {
-      try {
-        slice.onsplice(msg.index, msg.howMany, transformedItems,
-                       msg.requested, msg.moreExpected);
-      }
-      catch (ex) {
-        reportClientCodeError('onsplice notification error', ex,
-                              '\n', ex.stack);
-      }
-    }
-    // - generate item 'onremove' notifications
-    if (msg.howMany) {
-      try {
-        stopIndex = msg.index + msg.howMany;
-        for (i = msg.index; i < stopIndex; i++) {
-          var item = slice.items[i];
-          if (slice.onremove)
-            slice.onremove(item, i);
-          if (item.onremove)
-            item.onremove(item, i);
-        }
-      }
-      catch (ex) {
-        reportClientCodeError('onremove notification error', ex,
-                              '\n', ex.stack);
-      }
-    }
-    // - perform actual splice
-    slice.items.splice.apply(slice.items,
-                             [msg.index, msg.howMany].concat(transformedItems));
-    // - generate item 'onadd' notifications
-    if (slice.onadd) {
-      try {
-        stopIndex = msg.index + transformedItems.length;
-        for (i = msg.index; i < stopIndex; i++) {
-          slice.onadd(slice.items[i], i);
-        }
-      }
-      catch (ex) {
-        reportClientCodeError('onadd notification error', ex,
-                              '\n', ex.stack);
-      }
-    }
-
-    // - generate 'oncomplete' notification
-    if (msg.requested && !msg.moreExpected) {
-      slice._growing = 0;
-      if (slice.pendingRequestCount)
-        slice.pendingRequestCount--;
-
-      if (slice.oncomplete) {
-        var completeFunc = slice.oncomplete;
-        // reset before calling in case it wants to chain.
-        slice.oncomplete = null;
-        try {
-          completeFunc();
-        }
-        catch (ex) {
-          reportClientCodeError('oncomplete notification error', ex,
-                                '\n', ex.stack);
-        }
-      }
-    }
-  },
-
-  _recv_sliceUpdate: function ma__recv_sliceUpdate(msg) {
-    var slice = this._slices[msg.handle];
-    if (!slice) {
-      unexpectedBridgeDataError('Received message about a nonexistent slice:',
-                                msg.handle);
-      return;
-    }
-
-    var updates = msg.updates;
-    try {
-      for (var i = 0; i < updates.length; i += 2) {
-        var idx = updates[i], wireRep = updates[i + 1],
-            itemObj = slice.items[idx];
-        itemObj.__update(wireRep);
-        if (slice.onchange)
-          slice.onchange(itemObj, idx);
-        if (itemObj.onchange)
-          itemObj.onchange(itemObj, idx);
-      }
-    }
-    catch (ex) {
-      reportClientCodeError('onchange notification error', ex,
-                            '\n', ex.stack);
-    }
-  },
-
-  _recv_sliceDead: function(msg) {
-    var slice = this._slices[msg.handle];
-    delete this._slices[msg.handle];
-    if (slice.ondead)
-      slice.ondead(slice);
-  },
-
-  _getBodyForMessage: function(header, callback) {
-    var handle = this._nextHandle++;
-    this._pendingRequests[handle] = {
-      type: 'getBody',
-      suid: header.id,
-      callback: callback,
-    };
-    this.__bridgeSend({
-      type: 'getBody',
-      handle: handle,
-      suid: header.id,
-      date: header.date.valueOf(),
-    });
-  },
-
-  _recv_gotBody: function(msg) {
-    var req = this._pendingRequests[msg.handle];
-    if (!req) {
-      unexpectedBridgeDataError('Bad handle for got body:', msg.handle);
-      return;
-    }
-    delete this._pendingRequests[msg.handle];
-
-    var body = msg.bodyInfo ? new MailBody(this, req.suid, msg.bodyInfo) : null;
-    req.callback.call(null, body);
-  },
-
-  /**
-   * Try to create an account.  There is currently no way to abort the process
-   * of creating an account.
-   *
-   * @typedef[AccountCreationError @oneof[
-   *   @case['offline']{
-   *     We are offline and have no network access to try and create the
-   *     account.
-   *   }
-   *   @case['no-dns-entry']{
-   *     We couldn't find the domain name in question, full stop.
-   *   }
-   *   @case['unresponsive-server']{
-   *     Requests to the server timed out.  AKA we sent packets into a black
-   *     hole.
-   *   }
-   *   @case['port-not-listening']{
-   *     Attempts to connect to the given port on the server failed.  We got
-   *     packets back rejecting our connection.
-   *   }
-   *   @case['bad-security']{
-   *     We were able to connect to the port and initiate TLS, but we didn't
-   *     like what we found.  This could be a mismatch on the server domain,
-   *     a self-signed or otherwise invalid certificate, insufficient crypto,
-   *     or a vulnerable server implementation.
-   *   }
-   *   @case['not-an-imap-server']{
-   *     Whatever is there isn't actually an IMAP server.
-   *   }
-   *   @case['sucky-imap-server']{
-   *     The IMAP server is too bad for us to use.
-   *   }
-   *   @case['bad-user-or-pass']{
-   *     The username and password didn't check out.  We don't know which one
-   *     is wrong, just that one of them is wrong.
-   *   }
-   *   @case['unknown']{
-   *     We don't know what happened; count this as our bug for not knowing.
-   *   }
-   *   @case[null]{
-   *     No error, the account was created and everything is terrific.
-   *   }
-   * ]]
-   *
-   * @args[
-   *   @param[details @dict[
-   *     @key[displayName String]{
-   *       The name the (human, per EULA) user wants to be known to the world
-   *       as.
-   *     }
-   *     @key[emailAddress String]
-   *     @key[password String]
-   *   ]]
-   *   @param[callback @func[
-   *     @args[
-   *       @param[err AccountCreationError]
-   *     ]
-   *   ]
-   * ]
-   */
-  tryToCreateAccount: function ma_tryToCreateAccount(details, callback) {
-    var handle = this._nextHandle++;
-    this._pendingRequests[handle] = {
-      type: 'tryToCreateAccount',
-      details: details,
-      callback: callback
-    };
-    this.__bridgeSend({
-      type: 'tryToCreateAccount',
-      handle: handle,
-      details: details
-    });
-  },
-
-  _recv_tryToCreateAccountResults:
-      function ma__recv_tryToCreateAccountResults(msg) {
-    var req = this._pendingRequests[msg.handle];
-    if (!req) {
-      unexpectedBridgeDataError('Bad handle for create account:', msg.handle);
-      return;
-    }
-    delete this._pendingRequests[msg.handle];
-
-    req.callback.call(null, msg.error);
-  },
-
-  _clearAccountProblems: function ma__clearAccountProblems(account) {
-    this.__bridgeSend({
-      type: 'clearAccountProblems',
-      accountId: account.id,
-    });
-  },
-
-  _modifyAccount: function ma__modifyAccount(account, mods) {
-    this.__bridgeSend({
-      type: 'modifyAccount',
-      accountId: account.id,
-      mods: mods,
-    });
-  },
-
-  _deleteAccount: function ma__deleteAccount(account) {
-    this.__bridgeSend({
-      type: 'deleteAccount',
-      accountId: account.id,
-    });
-  },
-
-  /**
-   * Get the list of accounts.  This can be used for the list of accounts in
-   * setttings or for a folder tree where only one account's folders are visible
-   * at a time.
-   *
-   * @args[
-   *   @param[realAccountsOnly Boolean]{
-   *     Should we only list real accounts (aka not unified accounts)?  This is
-   *     meaningful for the settings UI and for the move-to-folder UI where
-   *     selecting a unified account's folders is useless.
-   *   }
-   * ]
-   */
-  viewAccounts: function ma_viewAccounts(realAccountsOnly) {
-    var handle = this._nextHandle++,
-        slice = new BridgedViewSlice(this, 'accounts', handle);
-    this._slices[handle] = slice;
-
-    this.__bridgeSend({
-      type: 'viewAccounts',
-      handle: handle,
-    });
-    return slice;
-  },
-
-  /**
-   * Get the list of sender identities.  The identities can also be found on
-   * their owning accounts via `viewAccounts`.
-   */
-  viewSenderIdentities: function ma_viewSenderIdentities() {
-    var handle = this._nextHandle++,
-        slice = new BridgedViewSlice(this, 'identities', handle);
-    this._slices[handle] = slice;
-
-    this.__bridgeSend({
-      type: 'viewSenderIdentities',
-      handle: handle,
-    });
-    return slice;
-  },
-
-  /**
-   * Retrieve the entire folder hierarchy for either 'navigation' (pick what
-   * folder to show the contents of, including unified folders), 'movetarget'
-   * (pick target folder for moves, does not include unified folders), or
-   * 'account' (only show the folders belonging to a given account, implies
-   * selection).  In all cases, there may exist non-selectable folders such as
-   * the account roots or IMAP folders that cannot contain messages.
-   *
-   * When accounts are presented as folders via this UI, they do not expose any
-   * of their `MailAccount` semantics.
-   *
-   * @args[
-   *   @param[mode @oneof['navigation' 'movetarget' 'account']
-   *   @param[argument #:optional]{
-   *     Arguent appropriate to the mode; currently will only be a `MailAccount`
-   *     instance.
-   *   }
-   * ]
-   */
-  viewFolders: function ma_viewFolders(mode, argument) {
-    var handle = this._nextHandle++,
-        slice = new FoldersViewSlice(this, handle);
-    this._slices[handle] = slice;
-
-    this.__bridgeSend({
-      type: 'viewFolders',
-      mode: mode,
-      handle: handle,
-      argument: argument ? argument.id : null,
-    });
-
-    return slice;
-  },
-
-  /**
-   * Retrieve a slice of the contents of a folder, starting from the most recent
-   * messages.
-   */
-  viewFolderMessages: function ma_viewFolderMessages(folder) {
-    var handle = this._nextHandle++,
-        slice = new HeadersViewSlice(this, handle);
-    this._slices[handle] = slice;
-
-    this.__bridgeSend({
-      type: 'viewFolderMessages',
-      folderId: folder.id,
-      handle: handle,
-    });
-
-    return slice;
-  },
-
-  /**
-   * Search a folder for messages containing the given text in the sender,
-   * recipients, or subject fields, as well as (optionally), the body with a
-   * default time constraint so we don't entirely kill the server or us.
-   *
-   * Expected UX: run the search once without body, then the user can ask for
-   * the body search too if the first match doesn't meet their expectations.
-   */
-  quicksearchFolderMessages:
-      function ma_quicksearchFolderMessages(folder, text, searchBodyToo) {
-    throw new Error("NOT YET IMPLEMENTED");
-  },
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Batch Message Mutation
-  //
-  // If you want to modify a single message, you can use the methods on it
-  // directly.
-  //
-  // All actions are undoable and return an `UndoableOperation`.
-
-  deleteMessages: function ma_deleteMessages(messages) {
-    // XXX for now, just pose this as a flag change rather than any moving
-    // to trash semantics.  We just want to be able to make our sync logic
-    // perceive a deletion.  Obviously, DO NOT HOOK THIS UP TO THE UI YET.
-    return this.modifyMessageTags(messages,
-                                  ['\\Deleted'], null, 'delete');
-  },
-
-  copyMessages: function ma_copyMessages(messages, targetFolder) {
-  },
-
-  moveMessages: function ma_moveMessages(messages, targetFolder) {
-  },
-
-  markMessagesRead: function ma_markMessagesRead(messages, beRead) {
-    return this.modifyMessageTags(messages,
-                                  beRead ? ['\\Seen'] : null,
-                                  beRead ? null : ['\\Seen'],
-                                  beRead ? 'read' : 'unread');
-  },
-
-  markMessagesStarred: function ma_markMessagesStarred(messages, beStarred) {
-    return this.modifyMessageTags(messages,
-                                  beStarred ? ['\\Flagged'] : null,
-                                  beStarred ? null : ['\\Flagged'],
-                                  beStarred ? 'star' : 'unstar');
-  },
-
-  modifyMessageTags: function ma_modifyMessageTags(messages, addTags,
-                                                   removeTags, _opcode) {
-    // We allocate a handle that provides a temporary name for our undoable
-    // operation until we hear back from the other side about it.
-    var handle = this._nextHandle++;
-
-    if (!_opcode) {
-      if (addTags && addTags.length)
-        _opcode = 'addtag';
-      else if (removeTags && removeTags.length)
-        _opcode = 'removetag';
-    }
-    var undoableOp = new UndoableOperation(this, _opcode, messages.length,
-                                           handle),
-        msgSuids = messages.map(serializeMessageName);
-
-    this._pendingRequests[handle] = {
-      type: 'mutation',
-      handle: handle,
-      undoableOp: undoableOp
-    };
-    this.__bridgeSend({
-      type: 'modifyMessageTags',
-      handle: handle,
-      opcode: _opcode,
-      addTags: addTags,
-      removeTags: removeTags,
-      messages: msgSuids,
-    });
-
-    return undoableOp;
-  },
-
-  _recv_mutationConfirmed: function(msg) {
-    var req = this._pendingRequests[msg.handle];
-    if (!req) {
-      unexpectedBridgeDataError('Bad handle for mutation:', msg.handle);
-      return;
-    }
-
-    req.undoableOp._tempHandle = null;
-    req.undoableOp._longtermIds = msg.longtermIds;
-    if (req.undoableOp._undoRequested)
-      req.undoableOp.undo();
-  },
-
-  __undo: function undo(undoableOp) {
-    this.__bridgeSend({
-      type: 'undo',
-      longtermIds: undoableOp._longtermIds,
-    });
-  },
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Message Composition
-
-  /**
-   * Begin the message composition process, creating a MessageComposition that
-   * stores the current message state and periodically persists its state to the
-   * backend so that the message is potentially available to other clients and
-   * recoverable in the event of a local crash.
-   *
-   * Composition is triggered in the context of a given message and folder so
-   * that the correct account and sender identity for composition can be
-   * inferred.  Message may be null if there are no messages in the folder.
-   * Folder is not required if a message is provided.
-   *
-   * @args[
-   *   @param[message #:optional MailHeader]{
-   *     Some message to use as context when not issuing a reply/forward.
-   *   }
-   *   @param[folder #:optional MailFolder]{
-   *     The folder to use as context if no `message` is provided and not
-   *     issuing a reply/forward.
-   *   }
-   *   @param[options #:optional @dict[
-   *     @key[replyTo #:optional MailHeader]
-   *     @key[replyMode #:optional @oneof[null 'list' 'all']]
-   *     @key[forwardOf #:optional MailHeader]
-   *     @key[forwardMode #:optional @oneof['inline']]
-   *   ]]
-   *   @param[callback #:optional Function]{
-   *     The callback to invoke once the composition handle is fully populated.
-   *     This is necessary because the back-end decides what identity is
-   *     appropriate, handles "re:" prefixing, quoting messages, etc.
-   *   }
-   * ]
-   */
-  beginMessageComposition: function(message, folder, options, callback) {
-    if (!callback)
-      throw new Error('A callback must be provided; you are using the API ' +
-                      'wrong if you do not.');
-    if (!options)
-      options = {};
-
-    var handle = this._nextHandle++,
-        composer = new MessageComposition(this, handle);
-
-    this._pendingRequests[handle] = {
-      type: 'compose',
-      composer: composer,
-      callback: callback,
-    };
-    var msg = {
-      type: 'beginCompose',
-      handle: handle,
-      mode: null,
-      submode: null,
-      refSuid: null,
-      refDate: null,
-      refGuid: null,
-      refAuthor: null,
-      refSubject: null,
-    };
-    if (options.hasOwnProperty('replyTo') && options.replyTo) {
-      msg.mode = 'reply';
-      msg.submode = options.replyMode;
-      msg.refSuid = options.replyTo.id;
-      msg.refDate = options.replyTo.date.valueOf();
-      msg.refGuid = options.replyTo.guid;
-      msg.refAuthor = options.replyTo.author;
-      msg.refSubject = options.replyTo.subject;
-    }
-    else if (options.hasOwnProperty('forwardOf') && options.forwardOf) {
-      msg.mode = 'forward';
-      msg.submode = options.forwardMode;
-      msg.refSuid = options.forwardOf.id;
-      msg.refDate = options.forwardOf.date.valueOf();
-      msg.refSubject = options.forwardOf.subject;
-    }
-    else {
-      msg.mode = 'new';
-      if (message) {
-        msg.submode = 'message';
-        msg.refSuid = message.id;
-      }
-      else if (folder) {
-        msg.submode = 'folder';
-        msg.refSuid = folder.id;
-      }
-    }
-    this.__bridgeSend(msg);
-    return composer;
-  },
-
-  /**
-   * Open a message as if it were a draft message (hopefully it is), returning
-   * a MessageComposition object that will be asynchronously populated.  The
-   * provided callback will be notified once all composition state has been
-   * loaded.
-   *
-   * The underlying message will be replaced by other messages as the draft
-   * is updated and effectively deleted once the draft is completed.  (A
-   * move may be performed instead.)
-   */
-  resumeMessageComposition: function(message, callback) {
-    throw new Error('XXX No resuming composition right now.  Sorry!');
-  },
-
-  _recv_composeBegun: function(msg) {
-    var req = this._pendingRequests[msg.handle];
-    if (!req) {
-      unexpectedBridgeDataError('Bad handle for compose begun:', msg.handle);
-      return;
-    }
-
-    req.composer.senderIdentity = new MailSenderIdentity(this, msg.identity);
-    req.composer.subject = msg.subject;
-    req.composer.body = msg.body;
-    req.composer.to = msg.to;
-    req.composer.cc = msg.cc;
-    req.composer.bcc = msg.bcc;
-    req.composer._references = msg.referencesStr;
-    // XXX attachments
-
-    if (req.callback) {
-      var callback = req.callback;
-      req.callback = null;
-      callback.call(null, req.composer);
-    }
-  },
-
-  _composeDone: function(handle, command, state, callback) {
-    var req = this._pendingRequests[handle];
-    if (!req) {
-      unexpectedBridgeDataError('Bad handle for compose done:', handle);
-      return;
-    }
-    switch (command) {
-      case 'send':
-        req.type = 'send';
-        req.callback = callback;
-        break;
-      case 'save':
-      case 'delete':
-        delete this._pendingRequests[handle];
-        break;
-      default:
-        throw new Error('Illegal composeDone command: ' + command);
-    }
-    this.__bridgeSend({
-      type: 'doneCompose',
-      handle: handle,
-      command: command,
-      state: state,
-    });
-  },
-
-  _recv_sent: function(msg) {
-    var req = this._pendingRequests[msg.handle];
-    if (!req) {
-      unexpectedBridgeDataError('Bad handle for sent:', msg.handle);
-      return;
-    }
-    delete this._pendingRequests[msg.handle];
-    if (req.callback) {
-      req.callback.call(null, msg.err, msg.badAddresses);
-      req.callback = null;
-    }
-  },
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Localization
-
-  /**
-   * Provide a list of localized strings for use in message composition.  This
-   * should be a dictionary with the following values, with their expected
-   * default values for English provided.  Try to avoid being clever and instead
-   * just pick the same strings Thunderbird uses for these for the given locale.
-   *
-   * - wrote: "{{name}} wrote".  Used for the lead-in to the quoted message.
-   * - originalMessage: "Original Message".  Gets put between a bunch of dashes
-   *    when forwarding a message inline.
-   */
-  useLocalizedStrings: function(strings) {
-  },
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Diagnostics / Test Hacks
-
-  /**
-   * Send a 'ping' to the bridge which will send a 'pong' back, notifying the
-   * provided callback.  This is intended to be hack to provide a way to ensure
-   * that some function only runs after all of the notifications have been
-   * received and processed by the back-end.
-   */
-  ping: function(callback) {
-    var handle = this._nextHandle++;
-    this._pendingRequests[handle] = {
-      type: 'ping',
-      callback: callback,
-    };
-    this.__bridgeSend({
-      type: 'ping',
-      handle: handle,
-    });
-  },
-
-  _recv_pong: function(msg) {
-    var req = this._pendingRequests[msg.handle];
-    delete this._pendingRequests[msg.handle];
-    req.callback();
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-};
-
 
 }); // end define
 ;
@@ -12494,6 +12365,22 @@ MailBridge.prototype = {
     });
   },
 
+  _cmd_debugSupport: function mb__cmd_debugSupport(msg) {
+    switch (msg.cmd) {
+      case 'setLogging':
+        this.universe.modifyConfig({ debugLogging: msg.arg });
+        break;
+
+      case 'dumpLog':
+        switch (msg.arg) {
+          case 'disk':
+            this.universe.dumpLogToDisk();
+            break;
+        }
+        break;
+    }
+  },
+
   _cmd_tryToCreateAccount: function mb__cmd_tryToCreateAccount(msg) {
     var self = this;
     this.universe.tryToCreateAccount(msg.details, function(good, account) {
@@ -13121,6 +13008,175 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     },
   },
 });
+
+}); // end define
+;
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at:
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Raindrop Code.
+ *
+ * The Initial Developer of the Original Code is
+ *   The Mozilla Foundation
+ * Portions created by the Initial Developer are Copyright (C) 2011
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/**
+ * Mechanism for periodic log hierarchy traversal and transmission of the
+ *  serialized data, forgetting about the logging entries after transmitted.  We
+ *  additionally may perform interesting-ness analysis and only transmit data
+ *  or send an out-of-band notification if something interesting has happened,
+ *  such as an error being reported.
+ *
+ * Log transmission and reconstruction is slightly more complicated than just
+ *  serializing a hierarchy because the lifetime of the loggers is expected to
+ *  be much longer than our log transmission interval.
+ **/
+
+define('rdcommon/logreaper',[
+    './log',
+    'microtime',
+    'exports'
+  ],
+  function(
+    $log,
+    $microtime,
+    exports
+  ) {
+
+var EMPTY = [];
+
+function LogReaper(rootLogger) {
+  this._rootLogger = rootLogger;
+  this._lastTimestamp = null;
+  this._lastSeq = null;
+}
+exports.LogReaper = LogReaper;
+LogReaper.prototype = {
+  /**
+   * Process a logger, producing a time slice representation.
+   *
+   * Our strategy is roughly to manually traverse the logger hiearchy and:
+   * - Ignore loggers with no entries/events and no notably active children that
+   *    were already alive at the last reaping and have not died, not mentioning
+   *    them at all in the output fragment.  This can also be thought of as:
+   * - Emit loggers that have been born.
+   * - Emit loggers that have died.
+   * - Emit loggers with entries/events.
+   * - Emit loggers whose children have had notable activity so that the
+   *    hierarchy can be known.
+   * - Emit loggers that have experienced a semantic ident change.
+   *
+   * Potential future optimizations:
+   */
+  reapHierLogTimeSlice: function() {
+    var rootLogger = this._rootLogger,
+        startSeq, startTimestamp;
+    if (this._lastTimestamp === null) {
+      startSeq = 0;
+      startTimestamp = rootLogger._born;
+    }
+    else {
+      startSeq = this._lastSeq + 1;
+      startTimestamp = this._lastTimestamp;
+    }
+    var endSeq = $log.getCurrentSeq(),
+        endTimestamp = this._lastTimestamp = $microtime.now();
+
+    function traverseLogger(logger) {
+      var empty = true;
+      // speculatively start populating an output representation
+      var outrep = logger.toJSON();
+      outrep.events = null;
+      outrep.kids = null;
+
+      // - check born/death
+      // actually, being born doesn't generate an event, so ignore.
+      //if (logger._born >= startTimestamp)
+      //  empty = false;
+      if (logger._died !== null)
+        empty = false;
+
+      // - check events
+      var outEvents = null;
+      for (var eventKey in logger._eventMap) {
+        var eventVal = logger._eventMap[eventKey];
+        if (eventVal) {
+          empty = false;
+          if (outEvents === null)
+            outrep.events = outEvents = {};
+          outEvents[eventKey] = eventVal;
+          logger._eventMap[eventKey] = 0;
+        }
+      }
+
+      // - check and reap entries
+      if (outrep.entries.length) {
+        empty = false;
+        // (we keep/use outrep.entries, and zero the logger's entries)
+        logger._entries = [];
+      }
+      else {
+        // Avoid subsequent mutation of the list mutating our representation
+        //  and without creating gratuitous garbage by using a shared empty
+        //  list for such cases.
+        outrep.entries = EMPTY;
+      }
+
+      // - check and reap children
+      if (logger._kids && logger._kids.length) {
+        for (var iKid = 0; iKid < logger._kids.length; iKid++) {
+          var kidLogger = logger._kids[iKid];
+          var kidrep = traverseLogger(kidLogger);
+          if (kidrep) {
+            if (!outrep.kids)
+              outrep.kids = [];
+            outrep.kids.push(kidrep);
+            empty = false;
+          }
+          // reap (and adjust iteration)
+          if (kidLogger._died !== null)
+            logger._kids.splice(iKid--, 1);
+        }
+      }
+
+      return (empty ? null : outrep);
+    }
+
+    return {
+      begin: startTimestamp,
+      end: endTimestamp,
+      logFrag: traverseLogger(rootLogger),
+    };
+  },
+};
 
 }); // end define
 ;
@@ -20506,8 +20562,10 @@ ImapSlice.prototype = {
     if (lastIndex + 1 < this.headers.length) {
       this.atBottom = false;
       this.userCanGrowDownwards = false;
+      var delCount = this.headers.length - lastIndex  - 1;
+      this.desiredHeaders -= delCount;
       this._bridgeHandle.sendSplice(
-        lastIndex + 1, this.headers.length - lastIndex  - 1, [],
+        lastIndex + 1, delCount, [],
         // This is expected; more coming if there's a low-end splice
         true, firstIndex > 0);
       this.headers.splice(lastIndex + 1, this.headers.length - lastIndex - 1);
@@ -20517,6 +20575,7 @@ ImapSlice.prototype = {
     }
     if (firstIndex > 0) {
       this.atTop = false;
+      this.desiredHeaders -= firstIndex;
       this._bridgeHandle.sendSplice(
         0, firstIndex, [], true, false);
       this.headers.splice(0, firstIndex);
@@ -21073,6 +21132,7 @@ ImapFolderConn.prototype = {
    * mercy to the server.)
    */
   syncDateRange: function(startTS, endTS, newToOld, doneCallback) {
+console.log("syncDateRange:", startTS, endTS);
     var searchOptions = BASELINE_SEARCH_OPTIONS.concat(), self = this,
       storage = self._storage;
     if (startTS)
@@ -21182,7 +21242,8 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
    */
   _commonSync: function(newUIDs, knownUIDs, knownHeaders, doneCallback) {
     var conn = this._conn, storage = this._storage;
-
+console.log("_commonSync", 'newUIDs', newUIDs.length, 'knownUIDs',
+            knownUIDs.length, 'knownHeaders', knownHeaders.length);
     var callbacks = allbackMaker(
       ['newMsgs', 'knownMsgs'],
       function() {
@@ -21195,7 +21256,9 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
       var newFetcher = this._conn.fetch(newUIDs, INITIAL_FETCH_PARAMS);
       newFetcher.on('message', function onNewMessage(msg) {
           msg.on('end', function onNewMsgEnd() {
+console.log('  new fetched, header processing');
             newChewReps.push($imapchew.chewHeaderAndBodyStructure(msg));
+console.log('   header processed');
           });
         });
       newFetcher.on('error', function onNewFetchError(err) {
@@ -21276,12 +21339,25 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
               var opts = { request: { body: bodyPart.partID } };
               pendingFetches++;
 
-              var fetcher = conn.fetch(chewRep.msg.id, opts);
+console.log('  fetching for', chewRep.msg.id, bodyPart.partID);
+              var fetcher;
+try {
+              fetcher = conn.fetch(chewRep.msg.id, opts);
+} catch (ex) {
+  console.warn('!failure fetching', ex);
+  return;
+}
               setupBodyParser(bodyPart);
+              fetcher.on('error', function(err) {
+                console.warn('body fetch error', err);
+                if (--pendingFetches === 0)
+                  callbacks.newMsgs();
+              });
               fetcher.on('message', function(msg) {
                 setupBodyParser(bodyPart);
                 msg.on('data', bodyParseBuffer);
                 msg.on('end', function() {
+console.log('  !fetched body part for', chewRep.msg.id, bodyPart.partID);
                   partsReceived.push(finishBodyParsing());
 
                   // -- Process
@@ -21291,15 +21367,16 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
                       storage.addMessageHeader(chewRep.header);
                       storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
                     }
-                   // If this is the last chew rep, then use its completion
-                   // to report our completion.
-                    if (--pendingFetches === 0)
-                      callbacks.newMsgs();
                   }
+                  // If this is the last chew rep, then use its completion
+                  // to report our completion.
+                  if (--pendingFetches === 0)
+                    callbacks.newMsgs();
                 });
               });
             });
           });
+console.log('  pending fetches', pendingFetches);
           if (pendingFetches === 0)
             callbacks.newMsgs();
         });
@@ -21499,9 +21576,19 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
  *   }
  * ]]
  * @typedef[AttachmentInfo @dict[
- *   @key[name String]
- *   @key[type String]
- *   @key[part String]
+ *   @key[name String]{
+ *     The filename of the attachment if this is an attachment, the content-id
+ *     of the attachemtn if this is a related part for inline display.
+ *   }
+ *   @key[type String]{
+ *     The (full) mime-type of the attachment.
+ *   }
+ *   @key[part String]{
+ *     The IMAP part number for fetching the attachment.
+ *   }
+ *   @key[encoding String]{
+ *     The encoding of the attachment so we know how to decode it.
+ *   }
  *   @key[sizeEstimate Number]{
  *     Estimated file size in bytes.
  *   }
@@ -21518,13 +21605,28 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
  *   @key[cc @listof[NameAddressPair]]
  *   @key[bcc @listof[NameAddressPair]]
  *   @key[replyTo EmailAddress]
- *   @key[attachments @listof[AttachmentInfo]]
+ *   @key[attachments @listof[AttachmentInfo]]{
+ *     Proper attachments for explicit downloading.
+ *   }
+ *   @key[relatedParts @oneof[null @listof[AttachmentInfo]]]{
+ *     Attachments for inline display in the contents of the (hopefully)
+ *     multipart/related message.
+ *   }
  *   @key[references @oneof[null @listof[String]]]{
  *     The contents of the references header as a list of de-quoted ('<' and
  *     '>' removed) message-id's.  If there was no header, this is null.
  *   }
- *   @key[bodyRep Array]{
- *     The `quotechew.js` processed body representation.
+ *   @key[bodyRep @oneof[String Array]]{
+ *     If it's an array, then it's the `quotechew.js` processed body
+ *     representation.  If it's a string, then this is an HTML message and the
+ *     contents are already sanitized and already quote-normalized.
+ *   }
+ *   @key[htmlFixups Array]{
+ *     The list of fixups that can be performed.  Elements that are strings are
+ *     external image URLs.  Elements that are integers are indexes into
+ *     `relatedParts`.  All things that need to be fixed up are marked with a
+ *     attribute so that we can get the nodes and then in one pass perform the
+ *     appropriate fixups.  Or maybe we just need a flag?
  *   }
  * ]]{
  *   Information on the message body that is only for full message display.
@@ -22436,6 +22538,7 @@ ImapFolderStorage.prototype = {
     if (dirMagnitude < 0) {
       dir = -1;
       desiredCount = -dirMagnitude;
+      slice.desiredHeaders += desiredCount;
 
       // Request 'desiredCount' messages, provide them in a batch.
       this.getMessagesAfterMessage(
@@ -22477,10 +22580,12 @@ ImapFolderStorage.prototype = {
           // the messages.
           else if (batchHeaders.length) {
             slice.batchAppendHeaders(batchHeaders, -1, false);
+            slice.desiredHeaders = slice.headers.length;
           }
           // If growth was requested/is allowed or our accuracy range already
           // covers as far back as we go, issue a (potentially expanding) sync.
           else if (userRequestsGrowth) {
+            slice.desiredHeaders += desiredCount;
             this._startSync(slice, null, slice.startTS);
           }
           // We are at the 'bottom', as it were.  Send an empty set.
@@ -22588,6 +22693,9 @@ console.log("growing startTS to", syncStartTS, "from", startTS);
       // expand the accuracy range to cover everybody
       this.markSyncedEntireFolder();
     }
+    else if (this.syncedToDawnOfTime()) {
+      this._curSyncSlice.desiredHeaders = this._curSyncSlice.headers.length;
+    }
 
     // - Done if we don't want any more headers.
     // XXX prefetch may need a different success heuristic
@@ -22599,6 +22707,7 @@ console.log("growing startTS to", syncStartTS, "from", startTS);
                   "box knows about", this.folderConn.box.messages.total,
                   "sync date", this._curSyncStartTS,
                   "[oldest defined as", OLDEST_SYNC_DATE, "]");
+      this._curSyncSlice.desiredHeaders = this._curSyncSlice.headers.length;
       this._curSyncSlice.waitingOnData = false;
       this._curSyncSlice.setStatus('synced', true, false);
       this._curSyncSlice = null;
@@ -24295,6 +24404,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 
 define('rdimap/imapclient/mailuniverse',[
     'rdcommon/log',
+    'rdcommon/logreaper',
     './a64',
     './allback',
     './imapdb',
@@ -24308,6 +24418,7 @@ define('rdimap/imapclient/mailuniverse',[
   ],
   function(
     $log,
+    $logreaper,
     $a64,
     $allback,
     $imapdb,
@@ -24702,6 +24813,12 @@ Configurators['fake'] = {
 };
 
 /**
+ * When debug logging is enabled, how many second's worth of samples should
+ * we keep?
+ */
+const MAX_LOG_BACKLOG = 30;
+
+/**
  * The MailUniverse is the keeper of the database, the root logging instance,
  * and the mail accounts.  It loads the accounts from the database on startup
  * asynchronously, so whoever creates it needs to pass a callback for it to
@@ -24762,6 +24879,15 @@ Configurators['fake'] = {
  *     it must be plaintext.
  *   }
  * ]]
+ * @typedef[UniverseConfig @dict[
+ *   @key[nextAccountNum Number]
+ *   @key[nextIdentityNum Number]
+ *   @key[debugLogging Boolean]{
+ *     Has logging been turned on for debug purposes?
+ *   }
+ * ]]{
+ *   The configuration fields stored in the database.
+ * }
  * @typedef[AccountDef @dict[
  *   @key[id AccountId]
  *   @key[name String]{
@@ -24819,7 +24945,7 @@ Configurators['fake'] = {
  *   }
  * ]]
  */
-function MailUniverse(testingModeLogData, callAfterBigBang) {
+function MailUniverse(callAfterBigBang) {
   /** @listof[CompositeAccount] */
   this.accounts = [];
   this._accountsById = {};
@@ -24854,22 +24980,21 @@ function MailUniverse(testingModeLogData, callAfterBigBang) {
   this._pendingMutationsByAcct = {};
 
   this.config = null;
+  this._logReaper = null;
+  this._logBacklog = null;
 
-  if (testingModeLogData) {
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    console.log("! DEVELOPMENT MODE ACTIVE!                !");
-    console.log("! LOGGING SUBSYSTEM ENTRAINING USER DATA! !");
-    console.log("! (the data does not leave the browser.)  !");
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    $log.DEBUG_markAllFabsUnderTest();
-  }
-
-  this._LOG = LOGFAB.MailUniverse(this, null, null);
+  this._LOG = null;
   this._db = new $imapdb.ImapDB();
   var self = this;
   this._db.getConfig(function(configObj, accountInfos) {
-    self._LOG.configLoaded(configObj, accountInfos);
     if (configObj) {
+      if (configObj.debugLogging) {
+        console.warn("GENERAL LOGGING ENABLED!");
+        console.warn("(CIRCULAR EVENT LOGGING WITH NON-SENSITIVE DATA)");
+        $log.enableGeneralLogging();
+        self._enableCircularLogging();
+      }
+
       self.config = configObj;
       for (var i = 0; i < accountInfos.length; i++) {
         var accountInfo = accountInfos[i];
@@ -24883,14 +25008,80 @@ function MailUniverse(testingModeLogData, callAfterBigBang) {
         id: 'config',
         nextAccountNum: 0,
         nextIdentityNum: 0,
+        debugLogging: false,
       };
       self._db.saveConfig(self.config);
     }
+    self._LOG = LOGFAB.MailUniverse(this, null, null);
+    self._LOG.configLoaded(self.config, accountInfos);
     callAfterBigBang();
   });
 }
 exports.MailUniverse = MailUniverse;
 MailUniverse.prototype = {
+  //////////////////////////////////////////////////////////////////////////////
+  // Logging
+  _enableCircularLogging: function() {
+    this._logReaper = new $logreaper.LogReaper(this._LOG);
+    this._logBacklog = [];
+    window.setInterval(
+      function() {
+        var logTimeSlice = this._logReaper.reapHierLogTimeSlice();
+        // if nothing interesting happened, this could be empty, yos.
+        if (logTimeSlice.logFrag) {
+          this._logBacklog.push(logTimeSlice);
+          // throw something away if we've got too much stuff already
+          if (this._logBacklog.length > MAX_LOG_BACKLOG)
+            this._logBacklog.shift();
+        }
+      }.bind(this),
+      1000);
+  },
+
+  createLogBacklogRep: function(id) {
+    return {
+      type: 'backlog',
+      id: id,
+      schema: $log.provideSchemaForAllKnownFabs(),
+      backlog: this._logBacklog,
+    };
+  },
+
+  dumpLogToDisk: function() {
+    var storage = navigator.getDeviceStorage('default');
+    var blob = new Blob([JSON.stringify(this.createLogBacklogRep)],
+                        'application/json');
+    var filename = 'gem-log-' + Date.now() + '.json';
+    var req = storage.addNamed(blob, filename);
+    req.onsuccess = function() {
+      console.log("saved log to", filename);
+    };
+    req.onerror = function() {
+      console.error("failed to save log to", filename);
+    };
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Config / Settings
+
+  /**
+   * Return the subset of our configuration that the client can know about.
+   */
+  exposeConfigForClient: function() {
+    // eventually, iterate over a whitelist, but for now, it's easy...
+    return {
+      debugLogging: this.config.debugLogging,
+    };
+  },
+
+  modifyConfig: function(changes) {
+    for (var key in changes) {
+      this.config[key] = changes[key];
+    }
+    this._db.saveConfig(self.config);
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
   _onConnectionChange: function() {
     var connection = window.navigator.connection ||
                        window.navigator.mozConnection ||
@@ -25401,8 +25592,6 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 
 define('rdimap/imapclient/same-frame-setup',[
     './shim-sham',
-    'rdcommon/log',
-    'rdcommon/logreaper',
     './mailapi',
     './mailbridge',
     './mailuniverse',
@@ -25411,8 +25600,6 @@ define('rdimap/imapclient/same-frame-setup',[
   ],
   function(
     $shim_setup,
-    $log,
-    $logreaper,
     $mailapi,
     $mailbridge,
     $mailuniverse,
@@ -25444,6 +25631,8 @@ function createBridgePair(universe) {
 var _universeCallbacks = [], localMailAPI = null;
 function onUniverse() {
   localMailAPI = createBridgePair(universe).api;
+  // This obviously needs to be sent over the wire in a worker/multi-page setup.
+  localMailAPI.config = universe.exposeConfigForClient();
   console.log("Mail universe/bridge created, notifying.");
   for (var i = 0; i < _universeCallbacks.length; i++) {
     _universeCallbacks[i](universe);
@@ -25454,24 +25643,8 @@ function onUniverse() {
   evtObject.mailAPI = localMailAPI;
   window.dispatchEvent(evtObject);
 }
-/**
- * Should the logging subsystem run at unit-test levels of detail (which means
- * capturing potential user data like the contents of e-mails)?  The answer
- * is NEVER BY DEFAULT and ALMOST NEVER THE REST OF THE TIME.
- *
- * The only time we would want to turn this on is when detailed debugging is
- * required, we have data censoring in place for all super-sensitive data like
- * credentials (we have it for IMAP, but not SMTP, although it's not logging
- * right now), there is express user consent, and we have made a reasonable
- * level of effort to create automated tooling that can extract answers from
- * the logs in an oracular fashion so that the user doesn't need to provide
- * us with the logs, but can instead have our analysis code derive answers.
- */
-const DANGEROUS_LOG_EVERYTHING = false;
-var universe = new $mailuniverse.MailUniverse(DANGEROUS_LOG_EVERYTHING,
-                                              onUniverse);
-var LOG_REAPER, LOG_BACKLOG = [], MAX_LOG_BACKLOG = 60;
-LOG_REAPER = new $logreaper.LogReaper(universe._LOG);
+
+var universe = new $mailuniverse.MailUniverse(onUniverse);
 
 function runOnUniverse(callback) {
   if (_universeCallbacks !== null) {
@@ -25516,38 +25689,13 @@ document.enableLogSpawner = function enableLogSpawner(spawnNow) {
     clearInterval(spamIntervalId);
 
     event.source.postMessage(
-      {
-        type: "backlog",
-        id: channelId,
-        schema: $log.provideSchemaForAllKnownFabs(),
-        backlog: LOG_BACKLOG,
-      },
+      universe.createLogBacklogRep(channelId),
       event.origin);
   }, false);
 
   if (spawnNow)
     document.spawnLogWindow();
 };
-
-////////////////////////////////////////////////////////////////////////////////
-// Logging
-
-// once a second, potentially generate a log
-setInterval(function() {
-  if (!LOG_REAPER)
-    return;
-  var logTimeSlice = LOG_REAPER.reapHierLogTimeSlice();
-  // if nothing interesting happened, this could be empty, yos.
-  if (logTimeSlice.logFrag) {
-    LOG_BACKLOG.push(logTimeSlice);
-    // throw something away if we've got too much stuff already
-    if (LOG_BACKLOG.length > MAX_LOG_BACKLOG)
-      LOG_BACKLOG.shift();
-
-    // In deuxdrop, this is where we would also update our subscribers.  We
-    // may also want to do that here.
-  }
-}, 1000);
 
 ////////////////////////////////////////////////////////////////////////////////
 
