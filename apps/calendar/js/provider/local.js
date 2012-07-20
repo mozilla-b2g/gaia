@@ -17,8 +17,6 @@
   }
 
   Local.prototype = {
-    calendarType: 'Local',
-
     /**
      * Does this provider require credentials.
      */

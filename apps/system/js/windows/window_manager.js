@@ -342,34 +342,48 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=761925
       // Cross-process fullscreen
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=684620
-      // Cross-process IME
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=761927
-      // Cross-process MediaStorage
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=761930
-      // Cross-process settings
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=743018
-      // Mouse click not delivered
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=761934
       // Nested content processes
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=761935
       // Stop audio when app dies
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=761936
-      // WebGL texture sharing:
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=728524
       // w->mApp Assertion
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775576
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775576 
       // Gallery App crash (in IndexedDB)
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=775591
       // Electrolysize b2g-bluetooth
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=755943
       // VolumeService doesn't work when called OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=775833
+      // Message App crashes when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775997
+      // Dialer doesn't seem to see touches when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776069
+      // ICS camera support
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=740997
+      // Marketplace app doesn't seem to work when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776086
+      // Keyboard always shows up alpha when app using keyboard is run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776118
+      // Keyboard doesn't show up correctly when app run OOP
+      //   https://github.com/mozilla-b2g/gaia/issues/2656
+      // UI Test app - Insert Fake Contacts hangs when run OOP (or not OOP)
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776128
+      // UI Test - window.open doesn't work properly when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776129
+      // UI Test app - window.close test causes seg fault when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776132
+      // UI Test App - Notifications don't work properly when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776134
+
+      //'Browser',
+      // - Needs Nested Content Process (bug 761935) for OOP
 
       'Calculator',
       'Calendar',
 
-      //=== Test === ICS ===
       //'Camera',
+      // - Camera app doesn't work yet on otoro - bug 740997
+      // - When run OOP, VolumeService dies - bug 775833
       //   Cross-process camera control
       //   Cross-process preview stream
 
@@ -377,17 +391,14 @@ var WindowManager = (function() {
       //  - OOP - asserts on w->mApp (bug 775576)
 
       'Contacts',
+      // Keyboard always shows up alpha when app using keyboard is run OOP - bug 776118
 
-      //'CrystalSkull',
-      // - Doesn't crash when run OOP
-      //   WebGL texture sharing (for full perf)
+      'CrystalSkull',
 
-      //'CubeVid',
+      'CubeVid',
       // - Doesn't crash when run OOP, but audio is extremely choppy
       //   Stop audio when app dies
-      //   WebGL texture sharing (for full perf)
 
-      //=== Test ===
       //'Cut The Rope',
       // - Doesn't seem to work when non-OOP so didn't test OOP
       // - couldn't test OOP - since wifi wasn't working
@@ -396,9 +407,8 @@ var WindowManager = (function() {
 
       'Dev Marketplace',
 
-      //=== Test ===
       //'Dialer',
-      //   Crashes when launching
+      // - Dialer doesn't seem to see touches when run OOP - bug 776069
 
       'E-Mail',
       // - works OOP with Fake account
@@ -408,21 +418,18 @@ var WindowManager = (function() {
       'Galactians2',  // Install from Dev Marketplace
 
       //'Gallery',
-      // - When run OOP, doesn't detect any photos or crashes (bug 775591)
+      // - When run OOP, doesn't detect any photos or crashes - bug 775591
       // - When run OOP, VolumeService dies - bug 775833
 
       'Homescreen',
       'Keyboard',
 
       //'Marketplace',
-      // - When run OOP - After trying to Login/Register, got white screen
+      // - When run OOP - After trying to Login/Register, never get to persona scren - bug 776086
       // - When run OOP - Sometimes get w->mApp assert (bug 775576)
-      //   Cross-process IME
-      //   Cross-process mozApps
 
-      //=== Test ===
       //'Messages',
-      //   - crashes when launched OOP on otoro
+      // - crashes when launched OOP on otoro - bug 775997
 
       //'Music',
       // - When run OOP, VolumeService dies - bug 775833
@@ -430,10 +437,11 @@ var WindowManager = (function() {
       'PenguinPop',
 
       //'Settings',
-      // Most of settings seems to work OOP. However, apprarently bluetooth doesn't - 755943
+      // Most of settings seems to work OOP.
+      // However, apprarently bluetooth doesn't - bug 755943
 
-      //=== Test ===
       //'Staging Marketplace',
+      // - When run OOP - After trying to Login/Register, never get to persona scren - bug 776086
       // - When run OOP - After trying to Login/Register, got white screen
       // - Works ok when run non-OOP
 
@@ -445,11 +453,16 @@ var WindowManager = (function() {
       'TowerJelly',
 
       //'UI tests',
-      // some stuff works, some doesn't when OOP
+      // Keyboard always shows up alpha when app using keyboard is run OOP - bug 776118
+      // Insert Fake Contacts hangs when run OOP (or not OOP) - bug 776128
+      // UI Test - window.open doesn't work properly when run OOP - bug 776129
+      // UI Test app - window.close test causes seg fault when run OOP - bug 776132
+      // UI Test App - Notifications don't work properly when run OOP - bug 776134
 
-      //=== Test === ICS ===
       //'Video',
-      //   OOP - Assertion failure: w->mApp, at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
+      // - When run OOP, VolumeService dies - bug 775833
+      //   OOP - Assertion failure: w->mApp,
+      //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
       //   Stop audio when app dies
     ];
     if (outOfProcessWhitelist.indexOf(name) >= 0) {
@@ -582,11 +595,7 @@ var WindowManager = (function() {
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
-        // TODO: handle the inline disposition
-        if (e.detail.disposition) {
-          setDisplayedApp(origin);
-        }
-
+        setDisplayedApp(origin);
         break;
     }
   });

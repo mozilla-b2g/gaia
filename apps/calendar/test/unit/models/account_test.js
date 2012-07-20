@@ -55,7 +55,7 @@ suite('account', function() {
     test('useCredentials', function() {
       provider.useCredentials = true;
       subject.user = 'foo';
-      subject.passsword = 'bar';
+      subject.password = 'bar';
       subject.url = 'missing';
 
       update();
@@ -91,17 +91,17 @@ suite('account', function() {
 
   suite('fullUrl', function() {
     test('get', function() {
-      subject.domain = 'google.com';
+      subject.domain = 'http://google.com';
       subject.url = '/foo';
 
-      assert.equal(subject.fullUrl, 'google.com/foo');
+      assert.equal(subject.fullUrl, 'http://google.com/foo');
     });
 
     test('set', function() {
-      subject.fullUrl = 'google.com/foo';
+      subject.fullUrl = 'http://google.com/foo/bar';
 
-      assert.equal(subject.domain, 'google.com');
-      assert.equal(subject.url, '/foo');
+      assert.equal(subject.domain, 'http://google.com');
+      assert.equal(subject.url, '/foo/bar');
     });
   });
 
