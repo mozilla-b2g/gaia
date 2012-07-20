@@ -22,7 +22,7 @@ body {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view, edit-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #edit-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -397,6 +397,10 @@ a.button.disabled {
   background-image: url('images/delete.png');
 }
 
+#edit-view {
+  background: #888;
+}
+
 #edit-header {
   background: #ccc;
   position: absolute;
@@ -436,15 +440,15 @@ a.button.disabled {
 
 #edit-preview-area {
   position: absolute;
-  top: 50px;
-  bottom: 100px;
-  left: 0;
-  width: 100%;
+  top: 60px;     /* 10 pixel top margin */
+  bottom: 110px; /* 10 pixel bottom margin */
+  left: 10px;    /* 10 pixel left margin */
+  right: 10px;   /* 10 pixel right margin */
 }
 
 #edit-preview-image {
-  width:100%;
-  height:100%;
+  position: absolute;
+  /* size and position is set by js */
 }
 
 #edit-options {
@@ -481,10 +485,11 @@ a.button.disabled {
   background-repeat: no-repeat;
 }
 
-#edit-exposure-options {
+#edit-options > div > a.button.selected {
+  outline: solid orange 3px;
 }
 
-#edit-crop-options {
+#edit-exposure-options {
 }
 
 #edit-effect-options {
@@ -493,17 +498,17 @@ a.button.disabled {
 #edit-border-options {
 }
 
-a.filter-exposure-minus-one {
-  filter: url(../index.html#filter-exposure-minus-one);
+a.filter-gamma-2 {
+  filter: url(../index.html#filter-gamma-2);
 }
-a.filter-exposure-minus-half {
-  filter: url(../index.html#filter-exposure-minus-half);
+a.filter-gamma-1-414 {
+  filter: url(../index.html#filter-gamma-1-414);
 }
-a.filter-exposure-plus-half {
-  filter: url(../index.html#filter-exposure-plus-half);
+a.filter-gamma-0-707 {
+  filter: url(../index.html#filter-gamma-0-707);
 }
-a.filter-exposure-plus-one {
-  filter: url(../index.html#filter-exposure-plus-one);
+a.filter-gamma-0-5 {
+  filter: url(../index.html#filter-gamma-0-5);
 }
 a.filter-bw {
   filter: url(../index.html#filter-bw);
@@ -538,7 +543,7 @@ a.border-thick-black {
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > .button {
   position: absolute;
-  width: 25%;
+  width: 33.3%;
   height: 100%;
   border-right: 1px solid #000;
   background: #666;
@@ -553,14 +558,10 @@ a.border-thick-black {
   left: 0;
 }
 
-#edit-crop-button {
-  left: 25%
-}
-
 #edit-effect-button {
-  left: 50%
+  left: 33.3%
 }
 
 #edit-border-button {
-  left: 75%
+  left: 66.6%
 }

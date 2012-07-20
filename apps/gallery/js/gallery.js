@@ -168,8 +168,8 @@ var photodb = new MediaDB('pictures', metadataParser, {
 });
 
 photodb.onready = function() {
-  buildUI();  // List files we already know about
-  photodb.scan();    // Go look for more.
+  createThumbnailList();  // Display thumbnails for the images we know about
+  photodb.scan();         // Go look for more.
 
   // Since DeviceStorage doesn't send notifications yet, we're going
   // to rescan the files every time our app becomes visible again.
@@ -185,8 +185,131 @@ photodb.onready = function() {
 };
 
 photodb.onchange = function(type, files) {
-  rebuildUI();
+  if (type === 'deleted') {
+    files.forEach(function(f) { imageDeleted(f); });
+  }
+  else if (type === 'created') {
+    files.forEach(function(f) { imageCreated(f); });
+  }
 };
+
+function imageDeleted(fileinfo) {
+  // Find the deleted file in our images array
+  for(var n = 0; n < images.length; n++) {
+    if (images[n].name === fileinfo.name)
+      break;
+  }
+
+  if (n >= images.length)  // It was a file we didn't know about
+    return;
+
+  // Remove the image from the array
+  var deletedImageData = images.splice(n, 1)[0];
+
+  // Remove the corresponding thumbnail
+  var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
+  URL.revokeObjectURL(thumbnailElts[n].style.backgroundImage.slice(5, -2));
+  thumbnails.removeChild(thumbnailElts[n]);
+
+  // Change the index associated with all the thumbnails after the deleted one
+  // This keeps the data-index attribute of each thumbnail element in sync
+  // with the images[] array.
+  for (var i = n + 1; i < thumbnailElts.length; i++) {
+    thumbnailElts[i].dataset.index = i - 1;
+  }
+
+  // Adjust currentPhotoIndex, too, if we have to.
+  if (n < currentPhotoIndex)
+    currentPhotoIndex--;
+  if (n < editedPhotoIndex)
+    editedPhotoIndex--;  
+
+  // If we're in single photo display mode, then the only way this function,
+  // gets called is when we delete the currently displayed photo.  This means
+  // that we need to redisplay.
+  if (currentView === photoView) {
+    showPhoto(currentPhotoIndex);
+  }
+};
+
+function deleteImage(n) {
+  if (n < 0 || n >= images.length)
+    return;
+
+  // Delete the file from the MediaDB. This removes the db entry and
+  // deletes the file in device storage. This will generate an change
+  // event which will call imageDeleted()
+  photodb.deleteFile(images[n].name);
+}
+
+function imageCreated(fileinfo) {
+  var insertPosition;
+
+  // If this new image is newer than the first one, it goes first
+  // This is the most common case for photos, screenshots, and edits
+  if (fileinfo.date > images[0].date)
+    insertPosition = 0;
+  else {
+    // Otherwise we have to search for the right insertion spot
+    insertPosition = binarysearch(images, fileinfo, function(a,b) {
+      if (a.name < b.name) 
+        return -1
+      else if (a.name > b.name)
+        return 1;
+      return 0;
+    });
+  }
+
+  // Insert the image info into the array
+  images.splice(insertPosition, 0, fileinfo);
+
+  // Create a thumbnail for this image and insert it at the right spot
+  var thumbnail = createThumbnail(insertPosition);
+  var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
+  thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
+
+  // increment the index of each of the thumbnails after the new one
+  for(var i = insertPosition; i < thumbnailElts.length; i++) {
+    thumbnailElts[i].dataset.index = i + 1;
+  }
+
+  if (currentPhotoIndex >= insertPosition)
+    currentPhotoIndex++;
+  if (editedPhotoIndex >= insertPosition)
+    editedPhotoIndex++;
+
+  // Redisplay the current photo if we're in photo view
+  if (currentView === photoView) {
+    showPhoto(currentPhotoIndex);
+  }
+}
+
+// Assuming that array is sorted according to comparator, return the
+// array index at which element should be inserted to maintain sort order
+function binarysearch(array, element, comparator, from, to) {
+  if (comparator === undefined) 
+    comparator = function(a,b) { 
+      if (a < b)
+        return -1;
+      if (a > b)
+        return 1;
+      return 0;
+    };
+
+  if (from === undefined)
+    return binarysearch(array, element, comparator, 0, array.length);
+
+  if (from === to)
+    return from;
+
+  var mid = Math.floor((from + to) / 2);
+
+  var result = comparator(element, array[mid]);
+  if (result < 0) 
+    return binarysearch(array, element, comparator, from, mid);
+  else
+    return binarysearch(array, element, comparator, mid+1, to);
+}
 
 function setView(view) {
   if (currentView === view)
@@ -200,7 +323,7 @@ function setView(view) {
                   function(elt) { elt.classList.remove('selected'); });
     break;
   case editView:
-    exitEditMode();
+    // Cleanup is done in exitEditMode() before this function is called
     break;
   }
 
@@ -247,123 +370,38 @@ function setView(view) {
   currentView = view;
 }
 
-function destroyUI() {
-  images = [];
-  try {
-    var items = thumbnails.querySelectorAll('li');
-    for (var i = 0; i < items.length; i++) {
-      var thumbnail = items[i];
-      var backgroundImage = thumbnail.style.backgroundImage;
-      if (backgroundImage)
-        URL.revokeObjectURL(backgroundImage.slice(5, -2));
-      thumbnails.removeChild(thumbnail);
-    }
-
-    $('nophotos').classList.remove('hidden');
-  }
-  catch (e) {
-    console.error('destroyUI', e);
-  }
-}
-
-function buildUI() {
+function createThumbnailList() {
   // Enumerate existing image entries in the database and add thumbnails
   // List the all, and sort them in descending order by date.
-  photodb.enumerate('metadata.date', null, 'prev', addImage);
+  photodb.enumerate('metadata.date', null, 'prev', function(imagedata) {
+    if (imagedata === null) // No more images
+      return;
+    
+    // If this is the first image we've found,
+    // remove the 'no images' message
+    if (images.length === 0)
+      $('nophotos').classList.add('hidden');
+    
+    images.push(imagedata);                             // remember the image
+    var thumbnail = createThumbnail(images.length - 1); // create its thumbnail
+    thumbnails.appendChild(thumbnail); // display the thumbnail
+  });
 }
 
 //
-// XXX
-// This is kind of a hack. Our onchange handler is dumb and just
-// tears down and rebuilds the UI on every change. But rebuilding
-// does an async enumerate, and sometimes we get two changes in
-// a row, so these flags prevent two enumerations from happening in parallel.
-// Ideally, we'd just handle the changes individually.
+// Create a thumbnail <img> element 
 //
-var buildingUI = false;
-var needsRebuild = false;
-function rebuildUI() {
-  if (buildingUI) {
-    needsRebuild = true;
-    return;
-  }
-
-  buildingUI = true;
-  destroyUI();
-  // This is asynchronous, but will set buildingUI to false when done
-  buildUI();
-
-}
-
-function addImage(imagedata) {
-  if (imagedata === null) { // No more images
-    buildingUI = false;
-    if (needsRebuild) {
-      needsRebuild = false;
-      rebuildUI();
-    }
-    return;
-  }
-
-  // If this is the first image we've found,
-  // remove the 'no images' message
-  if (images.length === 0)
-    $('nophotos').classList.add('hidden');
-
-  images.push(imagedata);            // remember the image
-  addThumbnail(images.length - 1);   // display its thumbnail
-}
-
-function deleteImage(n) {
-  if (n < 0 || n >= images.length)
-    return;
-
-  // Remove the image from the array
-  var deletedImageData = images.splice(n, 1)[0];
-
-  // Delete the file from the MediaDB. This removes the db entry and
-  // deletes the file in device storage. This method returns immediately
-  // and the deletion happens asynchronously.
-  photodb.deleteFile(deletedImageData.name);
-
-  // Remove the corresponding thumbanail
-  var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
-  thumbnails.removeChild(thumbnailElts[n]);
-
-  // Change the index associated with all the thumbnails after the deleted one
-  // This keeps the data-index attribute of each thumbnail element in sync
-  // with the images[] array.
-  for (var i = n + 1; i < thumbnailElts.length; i++) {
-    thumbnailElts[i].dataset.index = i - 1;
-  }
-
-  // Adjust currentPhotoIndex, too, if we have to.
-  if (n < currentPhotoIndex)
-    currentPhotoIndex--;
-
-  // If we're in single photo display mode, then the only way this function,
-  // gets called is when we delete the currently displayed photo.  This means
-  // that we need to redisplay.
-  if (currentView === photoView) {
-    showPhoto(currentPhotoIndex);
-  }
-}
-
-//
-// Create the <img> elements for the thumbnails
-//
-function addThumbnail(imagenum) {
+function createThumbnail(imagenum) {
   var li = document.createElement('li');
   li.dataset.index = imagenum;
   li.classList.add('thumbnail');
-  thumbnails.appendChild(li);
 
   var imagedata = images[imagenum];
-  // XXX When is it save to revoke this url?
-  // Can't do it on load as I would with an <img>
-  // Currently doing it in destroyUI()
+  // We revoke this url in imageDeleted
   var url = URL.createObjectURL(imagedata.metadata.thumbnail);
   li.style.backgroundImage = 'url("' + url + '")';
+
+  return li;
 }
 
 //
@@ -484,7 +522,7 @@ $('photos-edit-button').onclick = function() {
 
 // In edit mode, clicking the Cancel button goes back to single photo mode
 $('edit-cancel-button').onclick = function() {
-  setView(photoView);
+  exitEditMode();
 };
 
 
@@ -1073,64 +1111,53 @@ PhotoState.prototype.setFrameStyles = function(/*frames...*/) {
     arguments[i].style.MozTransform = translate;
 };
 
-// The blob URL of the photo we're currently editing
-var editedPhotoIndex
-var editedPhotoURL;
+
+var editedPhotoIndex;
+var editedPhotoURL; // The blob URL of the photo we're currently editing
 var editSettings;
+var imageEditor;
+
+var editOptionButtons =
+  Array.slice($('edit-options').querySelectorAll('a.button'), 0);
+
+editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
 
 function editPhoto(n) {
   editedPhotoIndex = n;
 
   // Start with no edits 
   editSettings = {
-    crop: { x: 0, y: 0, w: images[n].width, h: images[n].height },
-    exposure: 0, 
-    effect: null,
-    border: null
+    crop: {
+      x: 0, y: 0, w: images[n].metadata.width, h: images[n].metadata.height
+    },
+    gamma: 1, 
+    effect: 'none',
+    borderWidth: 0,
+    borderColor: '#fff'
   };
+
+  // Set the default option buttons to correspond to those edits
+  editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
+  $('edit-exposure-zero').classList.add('selected');
+  $('edit-effect-none').classList.add('selected');
+  $('edit-border-none').classList.add('selected');
 
   // Start looking up the image file
   photodb.getFile(images[n].name, function(file) {
     // Once we get the file create a URL for it and use that url for the
     // preview image and all the buttons that need it.
     editedPhotoURL = URL.createObjectURL(file);
-    $('edit-preview-image').src = editedPhotoURL;
-    var backgroundImage = 'url(' + editedPhotoURL + ')';
+    
+    imageEditor = new ImageEditor(editedPhotoURL,
+                                  $('edit-preview-area'), 
+                                  editSettings);
 
     // Set the background for all of the image buttons
-    var buttonids = [
-      'edit-exposure-minus-one',
-      'edit-exposure-minus-half',
-      'edit-exposure-zero',
-      'edit-exposure-plus-half',
-      'edit-exposure-plus-one',
-      'edit-effect-none',
-      'edit-effect-bw',
-      'edit-effect-sepia',
-      'edit-border-none',
-      'edit-border-thin-white',
-      'edit-border-thick-white',
-      'edit-border-thin-black',
-      'edit-border-thick-black',
-    ];
-    buttonids.forEach(function(id) {
-      var button = $(id);
-      button.style.backgroundImage = backgroundImage;
-      button.onclick = function() {
-        if (button.data.exposure)
-          editSettings.exposure = button.data.exposure;
-        if (button.data.effect)
-          editSettings.effect = button.data.effect;
-        // XXX: separate color and width here?
-        if (button.data.border)
-          editSettings.border = button.data.border;
-      }
-      setEditPreviewStyles();
+    var backgroundImage = 'url(' + editedPhotoURL + ')';
+    editOptionButtons.forEach(function(b) {
+      b.style.backgroundImage = backgroundImage;
     });
   });
-
-  // Meanwhile, set the size of the preview image
-  setEditPreviewSize();
 
   // Configure the exposure tool as the first one shown
   setEditTool('exposure');
@@ -1139,10 +1166,27 @@ function editPhoto(n) {
   setView(editView);
 }
 
-function setEditPreviewSize() {
-}
+// Effects and border buttons call this
+function editOptionsHandler() {
+  // First, unhighlight all buttons in this group and then
+  // highlight the button that has just been chosen. These 
+  // buttons have radio behavior
+  var parent = this.parentNode;
+  var buttons = parent.querySelectorAll('a.button');
+  Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
+  this.classList.add('selected');
 
-function setEditPreviewStyles() {
+  if (this.dataset.gamma)
+    editSettings.gamma = parseFloat(this.dataset.gamma);
+  if (this.dataset.effect)
+    editSettings.effect = this.dataset.effect;
+  if (this.dataset.borderWidth) {
+    editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
+  }
+  if (this.dataset.borderColor) {
+    editSettings.borderColor = this.dataset.borderColor;
+  }
+  imageEditor.edit(editSettings);
 }
 
 function setEditTool(tool) {
@@ -1158,10 +1202,6 @@ function setEditTool(tool) {
     $('edit-exposure-button').classList.add('selected');
     $('edit-exposure-options').classList.remove('hidden');
     break;
-  case 'crop':
-    $('edit-crop-button').classList.add('selected');
-    $('edit-crop-options').classList.remove('hidden');
-    break;
   case 'effect':
     $('edit-effect-button').classList.add('selected');
     $('edit-effect-options').classList.remove('hidden');
@@ -1174,13 +1214,76 @@ function setEditTool(tool) {
 }
 
 $('edit-exposure-button').onclick = function() { setEditTool('exposure'); };
-$('edit-crop-button').onclick = function() { setEditTool('crop'); };
 $('edit-effect-button').onclick = function() { setEditTool('effect'); };
 $('edit-border-button').onclick = function() { setEditTool('border'); };
 
-function exitEditMode() {
-  // XXX
-  // Revoke the blob URL we've been using?
+function exitEditMode(saved) {
+  // Revoke the blob URL we've been using
   URL.revokeObjectURL(editedPhotoURL);
   editedPhotoURL = null;
+
+  // close the editor object
+  imageEditor.close();
+  imageEditor = null;
+
+  // We came in to edit mode from photoView.  If the user cancels the edit
+  // go back to photoView.  Otherwise, if the user saves the photo, we go
+  // back to thumbnail list view because that is where the newly saved 
+  // image is going to show up.
+  // XXX: this isn't really right. Ideally the new photo should show up
+  // right next to the old one and we should go back to photoView to view
+  // the edited photo.
+  if (saved) 
+    setView(thumbnailListView);
+  else
+    setView(photoView);
 }
+
+// When the user clicks the save button, we produce a full-size version
+// of the edited image, save it into the media database and return to
+// photo view mode.
+// XXX: figure out what the image number of the edited photo is or will be
+// and return to viewing that one.  Ideally, edited photos would be grouped
+// with the original, rather than by date, but I'm not sure I can 
+// do that sort order.  Ideally, I'd like the mediadb to not generate a 
+// change event when we manually add something to it or at least have that
+// option
+$('edit-save-button').onclick = function() {
+  imageEditor.getFullSizeBlob(editSettings, 'image/jpeg', function(blob) {
+
+    var original = images[editedPhotoIndex].name;
+    var basename, extension, filename;
+    var version = 1;
+    var p = original.lastIndexOf('.');
+    if (p === -1) {
+      basename = original
+      extension = '';
+    }
+    else {
+      basename = original.substring(0, p);
+      extension = original.substring(p);
+    }
+
+    // Create a filename for the edited image.  Loop if necessary and
+    // increment the version number until we find a version a name that
+    // is not in use.
+    // XXX: this loop is O(n^2) and slow if the user saves many edits
+    // of the same image.
+    filename = basename + ".edit" + version + extension;
+    while (images.some(function(i) { return i.name === filename; })) {
+      version++;
+      filename = basename + ".edit" + version + extension;
+    } 
+
+    // Now that we have a filename, save the file This will send a
+    // change event, which will cause us to rebuild our thumbnails.
+    // For now, the edited image will become the first thumbnail since
+    // it si the most recent one. Ideally, I'd like a more
+    // sophisticated sort order that put edited sets of photos next to
+    // each other.
+    photodb.addFile(filename, blob);
+
+    // We're done.
+    exitEditMode(true);
+  });
+};

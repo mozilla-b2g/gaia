@@ -8,10 +8,10 @@
  * The edits object may include these properties:
  *  
  *  crop: an object with x, y, w, and h properties specifying a crop rectangle
- *  exposure: a float specifying the # of stops of exposure compensation
- *  effects: a string naming an effect. "bw" and "sepia" are the options now.
+ *  gamma: a float specifying gamma correction
+ *  effects: "bw" and "sepia" or "none"
  *  borderColor: a CSS color string for the border
- *  borderWidth: the size of the border as a percent of the image width
+ *  borderWidth: the size of the border as a fraction of the image width
  * 
  * In addition to previewing the image, this class also defines a 
  * getFullSizeBlob() function that creates a full-size version of the
@@ -26,8 +26,9 @@ function ImageEditor(imageURL, container, edits) {
 
   // The canvas that displays the preview
   this.previewCanvas = document.createElement('canvas');
+  this.previewCanvas.style.position = "absolute";
   this.previewContext = this.previewCanvas.getContext('2d');
-  container.appendChild(previewCanvas);
+  this.container.appendChild(this.previewCanvas);
 
   // An offscreen canvas for resizing and extracting pixels
   this.offscreenCanvas = document.createElement('canvas');
@@ -35,7 +36,7 @@ function ImageEditor(imageURL, container, edits) {
 
   // A full-size offscreen image 
   this.original = new Image();
-  original.src = imageURL;
+  this.original.src = imageURL;
   var self = this;
   // When the image loads....
   this.original.onload = function() {
@@ -43,14 +44,16 @@ function ImageEditor(imageURL, container, edits) {
     self.edit(edits);
   }
 
-  this.worker = new Worker('ImageEditorWorker.js');
+  this.worker = new Worker('js/ImageEditorWorker.js');
   this.worker.onmessage = function(e) {
-    // Whenever the worker sends us some image data, we copy it into the
-    // middle of the preview canvas
-    var imagedata = e.data;
-    var x = (self.previewCanvas.width - imagedata.width)/2;
-    var y = (self.previewCanvas.height - imagedata.height)/2;
-    self.previewContext.putImageData(imagedata, x, y);
+    if (e.data.type === 'preview') {
+      // Whenever the worker sends us some image data, we copy it into the
+      // middle of the preview canvas
+      var imagedata = e.data.imagedata;
+      var x = (self.previewCanvas.width - imagedata.width)/2;
+      var y = (self.previewCanvas.height - imagedata.height)/2;
+      self.previewContext.putImageData(imagedata, x, y);
+    }
   }
 }
 
@@ -72,7 +75,7 @@ ImageEditor.prototype.edit = function(edits) {
   // Add in the borders, if there are any
   var borderWidth = edits.borderWidth || 0;
   if (borderWidth > 0) {
-    borderWidth = Math.round(borderWidth * imageWidth / 100);
+    borderWidth = Math.round(borderWidth * imageWidth);
     imageWidth += 2*borderWidth;
     imageHeight += 2*borderWidth;
   }
@@ -103,15 +106,16 @@ ImageEditor.prototype.edit = function(edits) {
   this.offscreenContext.drawImage(this.original, 
                                   edits.crop ? edits.crop.x : 0,
                                   edits.crop ? edits.crop.y : 0,
-                                  imageWidth,
-                                  imageHeight,
+                                  imageWidth - 2*borderWidth,
+                                  imageHeight - 2*borderWidth,
                                   0, 0, width, height);
   var imagedata = this.offscreenContext.getImageData(0, 0, width, height);
 
   // Ask our worker thread to process the pixels.
   // They'll get drawn to the preview canvas when the editing is done
   this.worker.postMessage({
-    pixels: imagedata,
+    type: "preview",
+    imagedata: imagedata,
     edits: edits
   });
                                   
@@ -122,15 +126,79 @@ ImageEditor.prototype.edit = function(edits) {
     this.previewContext.strokeRect(scaledBorderWidth/2,
                                    scaledBorderWidth/2,
                                    width + scaledBorderWidth,
-                                   height + scaledBorderHeight);
+                                   height + scaledBorderWidth);
   }
 };
 
 // Apply the edits offscreen and pass the full-size edited image as a blob
-// to the specified callback function
+// to the specified callback function. The code here is much like the
+// code above in edit().
 ImageEditor.prototype.getFullSizeBlob = function(edits, type, callback) {
+  // Use crop size or full-size of image
+  var imageWidth = edits.crop ? edits.crop.w : this.original.width;
+  var imageHeight = edits.crop ? edits.crop.h : this.original.height;
+
+  // Add in the borders, if there are any
+  var borderWidth = edits.borderWidth || 0;
+  if (borderWidth > 0) {
+    borderWidth = Math.round(borderWidth * imageWidth);
+  }
+
+  // Use the offscreen canvas to get image pixels that we want to edit
+  this.offscreenCanvas.width = imageWidth + 2*borderWidth;
+  this.offscreenCanvas.height = imageHeight + 2*borderWidth;
+  this.offscreenContext.drawImage(this.original, 
+                                  edits.crop ? edits.crop.x : 0,
+                                  edits.crop ? edits.crop.y : 0,
+                                  imageWidth, imageHeight,
+                                  borderWidth, borderWidth,
+                                  imageWidth, imageHeight);
+  var imagedata = this.offscreenContext.getImageData(borderWidth, borderWidth,
+                                                     imageWidth, imageHeight);
+
+
+  // Ask our worker thread to process the pixels.
+  this.worker.postMessage({
+    type: "fullsize",
+    imagedata: imagedata,
+    edits: edits
+  });
+
+  // Meanwhile, draw the border, if there is one
+  if (borderWidth > 0) {
+    this.offscreenContext.lineWidth = borderWidth;
+    this.offscreenContext.strokeStyle = edits.borderColor || "#fff";
+    this.offscreenContext.strokeRect(borderWidth/2,
+                                     borderWidth/2,
+                                     imageWidth + borderWidth,
+                                     imageHeight + borderWidth);
+  }
+
+  // Handle a response from the worker
+  var oldhandler = this.worker.onmessage; // Remember preview handler
+  var self = this;
+  this.worker.onmessage = function(e) {
+    // restore the preview handler
+    self.worker.onmessage = oldhandler;
+
+    // Copy the edited imagedata into the offscreen canvas
+    var imagedata = e.data.imagedata;
+    self.offscreenContext.putImageData(imagedata, borderWidth, borderWidth);
+
+    // Now get it as a blob and pass it to the callback
+    callback(self.offscreenCanvas.mozGetAsFile("", type));
+  };
 };
 
-// Remove the preview canvas from the container and release any other resources
+// Stop the worker thread and remove the preview canvas.
 ImageEditor.prototype.close = function() {
+  // Stop the thread
+  this.worker.terminate();
+  // Remove the canvas from the container
+  this.container.removeChild(this.previewCanvas);
+  // Forget the URL of the offscreen image
+  this.original.src = "";
+  // Set canvas sizes to zero 
+  this.offscreenCanvas.width = 0;
+  this.previewCanvas.width = 0;
 };
