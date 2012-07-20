@@ -57,13 +57,14 @@ var Browser = {
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
-    this.urlButton.addEventListener('click', this.handleUrlFormSubmit.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.topSites.addEventListener('click', this.followLink.bind(this));
     this.bookmarks.addEventListener('click', this.followLink.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
+    this.urlButton.addEventListener('click',
+      this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
     this.topSitesTab.addEventListener('click',
