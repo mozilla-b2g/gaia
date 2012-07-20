@@ -83,6 +83,7 @@ suite('models/calendar', function() {
       lastEventSyncToken: subject.lastEventSyncToken,
       lastEventSyncDate: subject.lastEventSyncDate,
       localDisplayed: subject.localDisplayed,
+      accountId: subject.accountId,
       remote: subject.remote
     };
 

@@ -80,6 +80,31 @@ suite('store/calendar', function() {
 
   });
 
+  suite('#persist', function() {
+    test('error case', function(done) {
+      var sample = {
+        remote: {
+          id: 'local-first',
+          url: '',
+          name: 'your_device',
+          color: '',
+          description: '',
+          syncToken: '',
+          updatedAt: '',
+          createdAt: '',
+          calendarType: 'Local'
+        },
+        localDisplayed: true,
+        lastEventSyncDate: '',
+        lastEventSyncToken: ''
+      };
+
+      subject.persist(sample, function(err, data) {
+        done();
+      });
+    });
+  });
+
   suite('#_createModel', function() {
     var remote = {};
 

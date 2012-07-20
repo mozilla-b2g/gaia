@@ -169,6 +169,7 @@
   requireLib('calc.js');
   requireLib('router.js');
   requireLib('controllers/time.js');
+  requireLib('controllers/sync.js');
   requireLib('db.js');
   requireLib('app.js');
 

@@ -16,6 +16,14 @@
 
     _store: null,
 
+    /**
+     * Stores that will need to be removed
+     * when a record is removed from this store.
+     *
+     * @type {Array}
+     */
+    _dependentStores: null,
+
     get cached() {
       return this._cached;
     },
@@ -66,7 +74,6 @@
         putReq = store.put(data);
       }
 
-
       trans.addEventListener('error', function() {
         if (callback) {
           callback(err);
@@ -85,7 +92,6 @@
           callback(null, id, result);
         }
 
-        console.log('FIRE', reqType, result);
         self.emit(reqType, id, result);
         self.emit('persist', id, result);
       });
@@ -128,6 +134,8 @@
       };
     },
 
+    _removeDependents: function(trans) {},
+
     /**
      * Removes a object from the store.
      *
@@ -143,7 +151,7 @@
 
       if (typeof(trans) === 'undefined') {
         trans = this.db.transaction(
-          this._store,
+          this._dependentStores || this._store,
           'readwrite'
         );
       }
@@ -152,6 +160,8 @@
       var store = trans.objectStore(this._store);
 
       var req = store.delete(parseInt(id));
+
+      this._removeDependents(id, trans);
 
       trans.addEventListener('error', function(event) {
         if (callback) {

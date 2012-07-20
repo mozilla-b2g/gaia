@@ -41,6 +41,7 @@ suite('store/account', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore('accounts', done);
+    subject._cached = {};
   });
 
   teardown(function(done) {
@@ -62,6 +63,67 @@ suite('store/account', function() {
 
     assert.isTrue(subject.presetActive('A'));
     assert.isFalse(subject.presetActive('B'));
+  });
+
+  suite('#remove', function() {
+    var calStore;
+    var model;
+    var calendars;
+
+    setup(function(done) {
+      calendars = {};
+      calStore = subject.db.getStore('Calendar');
+
+      model = subject._createModel({
+        providerType: 'Local'
+      });
+
+      subject.persist(model, done);
+    });
+
+    setup(function(done) {
+      assert.ok(model._id);
+      // we will eventually remove this
+      calendars[1] = new Calendar.Models.Calendar({
+        accountId: model._id,
+        remote: { id: 777 }
+      });
+
+      calStore.persist(calendars[1], done);
+    });
+
+    setup(function(done) {
+      calendars[2] = new Calendar.Models.Calendar({
+        accountId: 'some-other',
+        remote: { id: 666 }
+      });
+
+      // this is our control to ensure
+      // we are not removing extra stuff
+      calStore.persist(calendars[2], done);
+    });
+
+    test('removal', function(done) {
+      var id = model._id;
+      var keys = Object.keys(calStore.cached);
+      // make sure records are still here
+      assert.equal(keys.length, 2);
+
+      subject.remove(model._id, function() {
+        done(function() {
+          assert.ok(!subject.cached[id]);
+
+          var keys = Object.keys(calStore.cached);
+          var accountKeys = Object.keys(
+            calStore.remotesByAccount(id)
+          );
+
+          assert.equal(accountKeys.length, 0);
+          assert.equal(keys.length, 1);
+        });
+      });
+    });
+
   });
 
   suite('#_createModel', function() {

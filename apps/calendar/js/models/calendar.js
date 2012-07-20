@@ -36,14 +36,14 @@
      *
      * @type {String}
      */
-    lastEventSyncToken: null,
+    lastEventSyncToken: '',
 
     /**
      * Last date of event synchronization.
      *
      * @type {Date}
      */
-    lastEventSyncDate: null,
+    lastEventSyncDate: '',
 
     /**
      * Indicates if calendar is displayed
@@ -57,7 +57,7 @@
      * Id of account this record
      * is associated with.
      */
-    accountId: null,
+    accountId: '',
 
     /**
      * Updates remote with data from a calendar provider.
@@ -100,6 +100,7 @@
     toJSON: function() {
       return {
         remote: this.remote,
+        accountId: this.accountId,
         localDisplayed: this.localDisplayed,
         lastEventSyncDate: this.lastEventSyncDate,
         lastEventSyncToken: this.lastEventSyncToken

@@ -1,6 +1,8 @@
 (function(window) {
 
   function Account() {
+    var self = this;
+
     Calendar.Store.Abstract.apply(this, arguments);
   }
 
@@ -8,6 +10,25 @@
     __proto__: Calendar.Store.Abstract.prototype,
 
     _store: 'accounts',
+
+    /**
+     * Because this is a top-level store
+     * when we remove an account all records
+     * related to it must be removed.
+     */
+    _dependentStores: [
+      'accounts', 'calendars', 'events'
+    ],
+
+    _removeDependents: function(id, trans) {
+      var store = this.db.getStore('Calendar');
+      var related = store.remotesByAccount(id);
+      var key;
+
+      for (key in related) {
+        store.remove(related[key]._id, trans);
+      }
+    },
 
     /**
      * Syncs all calendars for account.
@@ -25,8 +46,10 @@
       var store = this.db.getStore('Calendar');
 
       var persist = [];
+
       // remotesByAccount return an object indexed by remote ids
       var calendars = store.remotesByAccount(account._id);
+
       // these are remote ids not local ones
       var originalIds = Object.keys(calendars);
 
@@ -53,7 +76,10 @@
             } else {
               // create a new calendar
               persist.push(
-                store._createModel({ provider: cal })
+                store._createModel({
+                  provider: cal,
+                  accountId: account._id
+                })
               );
             }
           }

@@ -21,7 +21,8 @@ Calendar.App = (function(window) {
       this._views = Object.create(null);
       this._routeViewFn = Object.create(null);
 
-      this.timeController = new Calendar.Controllers.Time();
+      this.timeController = new Calendar.Controllers.Time(this);
+      this.syncController = new Calendar.Controllers.Sync(this);
     },
 
     /**
@@ -74,7 +75,7 @@ Calendar.App = (function(window) {
       this.modifier('/update-account/:id', setPath, 'ModifyAccount');
 
       // I am not sure where this logic really belongs...
-      this.state('/remove-account/:id', function(data) {
+      this.modifier('/remove-account/:id', function(data) {
         var store = self.store('Account');
         store.remove(data.params.id, function(id) {
           page.replace('/advanced-settings/');

@@ -1,7 +1,7 @@
 (function(window) {
   var idb = window.indexedDB || window.mozIndexedDB;
 
-  const VERSION = 1;
+  const VERSION = 2;
 
   var store = {
     events: 'events',

@@ -214,6 +214,7 @@ suite('store/abstract', function() {
     var id;
     var removeEvent;
     var callbackCalled = false;
+    var removeDepsCalled = false;
 
     setup(function(done) {
       subject.persist({ providerType: 'Local' }, function(err, key) {
@@ -228,6 +229,12 @@ suite('store/abstract', function() {
 
     setup(function(done) {
       callbackCalled = false;
+      removeDepsCalled = false;
+
+      subject._removeDependents = function() {
+        removeDepsCalled = true;
+      };
+
       subject.remove(id, function() {
         callbackCalled = true;
       });
@@ -244,6 +251,7 @@ suite('store/abstract', function() {
 
     test('remove', function() {
       assert.ok(callbackCalled);
+      assert.ok(removeDepsCalled);
       assert.ok(!subject._cached[id], 'should remove cached account');
     });
 

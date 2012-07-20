@@ -37,6 +37,14 @@
       }
     },
 
+    bool: function(value, onTrue) {
+      if (value) {
+        return onTrue;
+      } else {
+        return '';
+      }
+    },
+
     'l10n': function(name, prefix) {
       if (prefix) {
         name = prefix + name;
