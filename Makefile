@@ -89,7 +89,7 @@ SHELL := /bin/bash
 
 # what OS are we on?
 SYS=$(shell uname -s)
-ARCH=$(shell uname -m)
+ARCH?=$(shell uname -m)
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
