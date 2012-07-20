@@ -68,6 +68,7 @@ function writeContent(content) {
   stream.close();
 }
 
+// XXX Remove all the permission parts here once bug 774716 is resolved
 
 let permissions = {
   "power": {
@@ -160,6 +161,9 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
 
 //XXX: only here while waiting for https://bugzilla.mozilla.org/show_bug.cgi?id=764718 to be fixed
 content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
+
+// Probably wont be needed when https://bugzilla.mozilla.org/show_bug.cgi?id=768440 lands
+content += "user_pref(\"dom.send_after_paint_to_content\", true);\n\n";
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
 
 if (LOCAL_DOMAINS) {

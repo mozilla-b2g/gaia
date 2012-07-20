@@ -6,18 +6,20 @@ Boot to Gecko aims to create a complete, standalone operating system for the ope
 
 You can read more about B2G here:
 
-  http://wiki.mozilla.org/B2G
+  http://mozilla.org/b2g
 
 follow us on twitter: @Boot2Gecko
 
   http://twitter.com/Boot2Gecko
 
-join the Mozilla Platform mailing list:
+join the Gaia mailing list:
 
-  http://groups.google.com/group/mozilla.dev.platform
+  http://groups.google.com/group/mozilla.dev.gaia
 
 and talk to us on IRC:
 
-  #B2G on irc.mozilla.org
+  #gaia on irc.mozilla.org
 
-See INSTALL file in B2G repository for instructions on building and running B2G.
+See INSTALL file in B2G repository for instructions on building and running B2G. To try out Gaia on desktop, see
+
+  https://wiki.mozilla.org/Gaia/Hacking
