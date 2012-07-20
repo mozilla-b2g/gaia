@@ -26,6 +26,7 @@ var Browser = {
     '/start.html',
 
   urlButtonMode: null,
+  inTransition: false,
 
   init: function browser_init() {
     // Assign UI elements to variables
@@ -59,13 +60,15 @@ var Browser = {
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
-    this.urlButton.addEventListener('click', this.handleUrlFormSubmit.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
+    this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.topSites.addEventListener('click', this.followLink.bind(this));
     this.bookmarks.addEventListener('click', this.followLink.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
+    this.urlButton.addEventListener('click',
+      this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
     this.topSitesTab.addEventListener('click',
@@ -104,6 +107,9 @@ var Browser = {
   // Clicking the page preview on the left gutter of the tab page opens
   // that page
   handlePageScreenClicked: function browser_handlePageScreenClicked(e) {
+    if (this.inTransition) {
+      return;
+    }
     if (this.currentScreen === this.TABS_SCREEN) {
       this.showPageScreen();
     }
@@ -125,8 +131,12 @@ var Browser = {
 
   // Tabs badge is the button at the top left, used to show the number of tabs
   // and to create new ones
-  handleTabsBadgeClicked: function browser_handleTabsBadgeClicked() {
+  handleTabsBadgeClicked: function browser_handleTabsBadgeClicked(e) {
+    if (this.inTransition) {
+      return;
+    }
     if (this.currentScreen === this.TABS_SCREEN) {
+      this.inTransition = true;
       var tabId = this.createTab();
       this.showNewTabAnimation((function browser_showNewTabAnimation() {
         this.selectTab(tabId);
@@ -425,11 +435,25 @@ var Browser = {
     this.refreshButtons();
   },
 
-  urlFocus: function browser_urlFocus() {
-    if (this.currentScreen === this.PAGE_SCREEN) {
-      this.setUrlBar(this.currentTab.url);
+  shouldFocus: false,
+
+  urlMouseUp: function browser_urlMouseUp(e) {
+    if (this.shouldFocus) {
+      e.preventDefault();
+      this.urlInput.focus();
       this.urlInput.select();
+      this.shouldFocus = false;
+    }
+  },
+
+  urlFocus: function browser_urlFocus(e) {
+    if (this.currentScreen === this.PAGE_SCREEN) {
+      this.urlInput.value = this.currentTab.url;
+      this.setUrlBar(this.currentTab.url);
       this.showAwesomeScreen();
+      this.shouldFocus = true;
+    } else if (this.currentScreen === this.AWESOME_SCREEN) {
+      this.shouldFocus = true;
     }
   },
 
@@ -855,6 +879,7 @@ var Browser = {
     this.urlInput.focus();
     this.setUrlButtonMode(this.GO);
     this.tabsBadge.innerHTML = '';
+    this.inTransition = false;
     this.switchScreen(this.AWESOME_SCREEN);
     this.tabCover.style.display = 'none';
     this.showTopSitesTab();
@@ -891,6 +916,7 @@ var Browser = {
     this.switchScreen(this.PAGE_SCREEN);
     this.setUrlBar(this.currentTab.title || this.currentTab.url);
     this.updateTabsCount();
+    this.inTransition = false;
   },
 
   showTabScreen: function browser_showTabScreen() {
@@ -932,6 +958,7 @@ var Browser = {
     this.switchScreen(this.TABS_SCREEN);
     this.screenSwipeMngr.gestureDetector.startDetecting();
     new GestureDetector(ul).startDetecting();
+    this.inTransition = false;
   },
 
   screenSwipeMngr: {
@@ -1001,7 +1028,7 @@ var Browser = {
       this.containerWidth = this.tab.parentNode.clientWidth;
       // We cant delete the last tab
       this.deleteable = Object.keys(this.browser.tabs).length > 1;
-      if (!this.deleteable) {
+      if (!this.deleteable || this.browser.inTransition) {
         return;
       }
       this.tab.classList.add('active');
@@ -1011,7 +1038,7 @@ var Browser = {
     },
 
     pan: function tabSwipe_pan(e) {
-      if (!this.deleteable) {
+      if (!this.deleteable || this.browser.inTransition) {
         return;
       }
       var movement = Math.min(this.containerWidth,
@@ -1023,12 +1050,15 @@ var Browser = {
     },
 
     tap: function tabSwipe_tap() {
+      if (this.browser.inTransition) {
+        return;
+      }
       this.browser.selectTab(this.id);
       this.browser.showPageScreen();
     },
 
     swipe: function tabSwipe_swipe(e) {
-      if (!this.deleteable) {
+      if (!this.deleteable || this.browser.inTransition) {
         return;
       }
 
