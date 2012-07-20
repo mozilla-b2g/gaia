@@ -61,6 +61,7 @@ var Browser = {
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
+    this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.topSites.addEventListener('click', this.followLink.bind(this));
     this.bookmarks.addEventListener('click', this.followLink.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
@@ -431,11 +432,24 @@ var Browser = {
     this.refreshButtons();
   },
 
-  urlFocus: function browser_urlFocus() {
+  shouldFocus: false,
+
+  urlMouseUp: function browser_urlMouseUp(e) {
+    if (this.shouldFocus) {
+      e.preventDefault();
+      this.urlInput.focus();
+      this.urlInput.select();
+      this.shouldFocus = false;
+    }
+  },
+
+  urlFocus: function browser_urlFocus(e) {
     if (this.currentScreen === this.PAGE_SCREEN) {
       this.urlInput.value = this.currentTab.url;
-      this.urlInput.select();
+      this.shouldFocus = true;
       this.showAwesomeScreen();
+    } else if (this.currentScreen === this.AWESOME_SCREEN) {
+      this.shouldFocus = true;
     }
   },
 
