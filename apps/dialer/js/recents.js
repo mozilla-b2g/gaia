@@ -53,6 +53,7 @@ var Recents = {
       db.createObjectStore(self.STORENAME, { keyPath: 'date' });
     };
 
+    this._cachedContacts = new Object();
     this.render();
   },
 
@@ -199,8 +200,6 @@ var Recents = {
       self.view.innerHTML = content;
 
       self.updateContactDetails();
-
-      self.groupCallsByContactDayType();
     });
   },
 
@@ -208,47 +207,66 @@ var Recents = {
     var itemSelector = '.log-item';
     var callLogItems = document.querySelectorAll(itemSelector);
     var length = callLogItems.length;
+    var phoneNumber;
+    this._updateCounter = 0;
     for (var i = 0; i < length; i++) {
-      Contacts.findByNumber(
-        callLogItems[i].querySelector('.primary-info').textContent.trim(),
-        function re_contactCallBack(itemLogEl, contact) {
-          var primaryInfo = itemLogEl.querySelector('.primary-info');
-          var phoneNumber = itemLogEl.dataset.num.trim();
-          var secondaryInfo = itemLogEl.querySelector('.secondary-info');
-          var contactPhoneNumber;
-          var length = contact.tel.length;
-          var phoneEntry;
-          if (contact) {
-            if (contact.name) {
-              primaryInfo.textContent =
-                contact.name;
-            }
-            if (contact.photo) {
-              itemLogEl.querySelector('.call-log-contact-photo').
-                style.backgroundImage = 'url(' + contact.photo + ')';
-            }
-            for (var i = 0; i < length; i++) {
-              phoneEntry = contact.tel[i];
-              contactPhoneNumber = phoneEntry.number.replace(' ', '', 'g');
-              if ((phoneNumber == contactPhoneNumber) && (phoneEntry.type)) {
-                secondaryInfo.textContent = secondaryInfo.textContent.trim() +
-                  '   ' + phoneEntry.type;
-              }
-            }
-          }
-        }.bind(this, callLogItems[i]));
+      phoneNumber = callLogItems[i].dataset.num.trim();
+      var cachedContact = this._cachedContacts[phoneNumber];
+      if (cachedContact) {
+        this.contactCallBack(callLogItems[i], length, cachedContact);
+      } else {
+        Contacts.findByNumber(
+          phoneNumber,
+          this.contactCallBack.bind(this, callLogItems[i], length));
+      }
     }
   },
 
-  groupCallsByContactDayType: function re_groupCallsByContactDayType() {
+  contactCallBack: function re_contactCallBack(logItem, max, contact) {
+    var primaryInfo = logItem.querySelector('.primary-info');
+    if (contact) {
+      if (contact.name) {
+        primaryInfo.textContent =
+        contact.name;
+      }
+      if (contact.photo) {
+        logItem.querySelector('.call-log-contact-photo').
+        style.backgroundImage = 'url(' + contact.photo + ')';
+      }
+      var phoneNumber = logItem.dataset.num.trim();
+      var secondaryInfo = logItem.querySelector('.secondary-info');
+      var contactPhoneNumber;
+      var phoneEntry;
+      var length = contact.tel.length;
+      for (var i = 0; i < length; i++) {
+        phoneEntry = contact.tel[i];
+        contactPhoneNumber = phoneEntry.number.replace(' ', '', 'g');
+        if ((phoneNumber == contactPhoneNumber) && (phoneEntry.type)) {
+          secondaryInfo.textContent = secondaryInfo.textContent.trim() +
+            '   ' + phoneEntry.type;
+          logItem.dataset.phoneType = phoneEntry.type;
+        }
+      }
+      this._cachedContacts[phoneNumber] = contact;
+    }
+    this._updateCounter++;
+ 
+    if (this._updateCounter == max) {
+      this.groupCallsInCallLog();
+    }
+  },
+
+  groupCallsInCallLog: function re_groupCallsInCallLog() {
+    // The grouping of the calls is per day, per contact, per contact
+    //  phone number type (Home, Work, Mobile, etc.) and per type of call
+    //  (outgoing, incoming, missed).
     var daySelector = '.log-group';
     var daysElements = document.querySelectorAll(daySelector);
     var daysElementsLength = daysElements.length;
     var itemSelector = '.log-item';
-    var callLogItems, length, phoneNumber, callType, callCount, callDate,
-      sameTypeCallSelector, sameTypeCall, sameTypeCallSelectorAux,
-      sameTypeCallAux,
-      sameTypeCallCount;
+    var callLogItems, length, phoneNumber, phoneNumberType, callType,
+      callCount, callDate, sameTypeCallSelector, sameTypeCall,
+      sameTypeCallSelectorAux, sameTypeCallAux, sameTypeCallCount;
     for (var dayElementsCounter = 0; dayElementsCounter < daysElementsLength;
       dayElementsCounter++) {
       callLogItems = daysElements[dayElementsCounter].
@@ -256,27 +274,36 @@ var Recents = {
       length = callLogItems.length;
       for (var i = 0; i < length; i++) {
         phoneNumber = callLogItems[i].dataset.num.trim();
+        phoneNumberType = callLogItems[i].dataset.phoneType;
         callType = callLogItems[i].dataset.type;
         callCount = (callLogItems[i].dataset.count ?
           parseInt(callLogItems[i].dataset.count) : 1);
         callDate = callLogItems[i].dataset.date;
         if (callType.indexOf('dialing') != -1) {
           sameTypeCallSelector = '[data-num^="' + phoneNumber +
-            '"][data-type="dialing-refused"][data-count]:not(.hide)';
+            '"]' + (phoneNumberType ? ('[data-phone-type="' +
+              phoneNumberType + '"]') : '') +
+            '[data-type="dialing-refused"][data-count]:not(.hide)';
           sameTypeCall = daysElements[dayElementsCounter].
             querySelector(sameTypeCallSelector);
         } else if (callType.indexOf('incoming-connected') != -1) {
           sameTypeCallSelector = '[data-num^="' + phoneNumber +
-            '"][data-type="incoming-connected"][data-count]:not(.hide)';
+            '"]' + (phoneNumberType ? ('[data-phone-type="' +
+              phoneNumberType + '"]') : '') +
+            '[data-type="incoming-connected"][data-count]:not(.hide)';
           sameTypeCall = daysElements[dayElementsCounter].
             querySelector(sameTypeCallSelector);
         } else {
           sameTypeCallSelector = '[data-num^="' + phoneNumber +
-            '"][data-type="incoming"][data-count]:not(.hide)';
+            '"]' + (phoneNumberType ? ('[data-phone-type="' +
+              phoneNumberType + '"]') : '') +
+            '[data-type="incoming"][data-count]:not(.hide)';
           sameTypeCall = daysElements[dayElementsCounter].
             querySelector(sameTypeCallSelector);
           sameTypeCallSelectorAux = '[data-num^="' + phoneNumber +
-            '"][data-type="incoming-refused"][data-count]:not(.hide)';
+            '"]' + (phoneNumberType ? ('[data-phone-type="' +
+              phoneNumberType + '"]') : '') +
+            '[data-type="incoming-refused"][data-count]:not(.hide)';
           sameTypeCallAux = daysElements[dayElementsCounter].
             querySelector(sameTypeCallSelectorAux);
           if (sameTypeCallAux) {
