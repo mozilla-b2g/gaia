@@ -4,6 +4,7 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
+  font-size: 62.5%;
 }
 
 body {
@@ -24,105 +25,70 @@ a:active {
   color: #000;
 }
 
-div#containter {
+#containter {
   height: 100%;
   width: 100%;
-}
-
-div#title-bar {
-  height: 20px;
+  display: -moz-box;
+  -moz-box-orient: vertical;
 }
 
 /****** styles for frequency view *******/
-div#freq-view {
-  height: 100px;
+#freq-view {
+  padding-top: 3rem;
+  height: 10rem;
   width: 100%;
+  text-align: center;
+  -moz-box-flex: 0;
 }
 
-div#freq-view a {
-  outline: 0 none;
-  text-decoration: none;
-  color: #555;
+#frequency {
+  font-size: 7rem;
 }
-
-a#bookmark-button {
-  position: relative;
-  top: -24px;
-  font-size: 50px;
-  cursor: pointer;
-}
-
-a#bookmark-button:after {
-  content: "♡";
-}
-
-div#freq-view a.in-fav-list:after {
-  content: "♥" !important;
-}
-
-label#frequency {
-  font-size: 80px;
-}
-
-label#frequency:after {
+#frequency:after {
   content: "MHz";
-  font-size: 40px;
-  padding-left: 10px;
+  font-size: 2rem;
+  padding-left: 0.3rem;
+}
+
+#audio-routing-switch {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  line-height: 4rem;
+  width: 4rem;
+  font-size: 3rem;
+  border: 2px solid #aaa;
+  border-radius: 50%;
+  background: #eee;
+}
+#audio-routing-switch:focus {
+  border-color: #888;
+}
+#audio-routing-switch[data-current-state="speaker"]::after {
+  content: "S";
+}
+#audio-routing-switch[data-current-state="headset"]::after {
+  content: "H";
+}
+
+#bookmark-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 4rem;
+}
+#bookmark-button::after {
+  content: "☆";
+}
+#bookmark-button[data-bookmarked="true"]::after {
+  content: "★";
 }
 /*****  end  *****/
 
-/*** styles for the operations of frequency ***/
-div#freq-ops {
-  height: 80px;
-  text-align: center;
-}
-
-div#freq-ops > a {
-  font-size: 80px;
-  padding-right: 30px;
-  position: relative;
-  top: -25px;
-}
-
-div#freq-ops > a:last-child {
-  padding-right: 0;
-}
-
-a#freq-op-seekdown:after {
-  content: "«";
-}
-
-a#freq-op-100khz-down:after {
-  content: "<";
-}
-
-a#freq-op-seekup:after {
-  content: "»";
-}
-
-a#freq-op-100khz-up:after {
-  content: ">";
-}
-/**** end *******/
-
 /***** styles for favorites list ******/
-div.auto {
-  height: -moz-calc(100% - 200px);
-  overflow: hidden;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
-  margin: 0 0 -60px 0;
-  padding: 0 0 60px 0;
-  clear: both;
-}
-
 div#fav-list {
-  float: left;
   overflow: auto;
-  height: 100%;
-  width: 100%;
+  -moz-box-flex: 1;
 }
 
 div#fav-list-container {
@@ -157,7 +123,7 @@ div#fav-list-container > div:after {
 }
 
 div#fav-list-container > div:before {
-  content: "♥";
+  content: "☆";
   font-size: 30px;
   left: 0;
   position: absolute;
@@ -165,54 +131,55 @@ div#fav-list-container > div:before {
 }
 /***** end *****/
 
-/***** styles for status bar *****/
-div#status-bar {
-  height: 60px;
+/***** styles for status bars *****/
+#action-bar, #edit-bar {
+  -moz-box-flex: 0;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
 }
-
-div#status-bar > div {
-  height: 100%;
-  overflow: hidden;
+/* FIX: it doesn't hide itself */
+#action-bar[hidden], #edit-bar[hidden] {
+  display: none;
 }
-
-div#status-bar > div > div {
-  float: left;
-  height: 100%;
-  width: 33%;
-  font-size: 32px;
+#action-bar>div {
   text-align: center;
+  padding: 1.5rem 0;
+  -moz-box-flex: 1;
+  background: #fff;
+  border-top: 2px solid #888;
 }
 
-div#switch-bar a.poweron label.poweron {
+#action-bar a:not(#edit-button) {
+  display: inline-block;
+  width: 6rem;
+  height: 6rem;
+  font-size: 5rem;
+  background: #fff;
+  border: 2px solid #aaa;
+  border-radius: 50%;
+}
+#action-bar a:not(#edit-button):focus {
+  border-color: #888;
+}
+
+#power-switch::after {
+  content: "▸";
+}
+#power-switch[data-enabled="true"]::after {
+  content: "▪";
+}
+
+#edit-button {
+  font-size: 2rem;
+  line-height: 6rem;
+}
+
+#edit-bar a {
+  -moz-box-flex: 1;
   display: block;
-}
-
-div#switch-bar a.poweron label.poweroff {
-  display: none;
-}
-
-div#switch-bar a.poweroff label.poweron {
-  display: none;
-}
-
-div#switch-bar a.poweroff label.poweroff {
-  display: block;
-}
-
-div#switch-bar a.speaker label.speaker {
-  display: block;
-}
-
-div#switch-bar a.speaker label.headset {
-  display: none;
-}
-
-div#switch-bar a.headset label.speaker {
-  display: none;
-}
-
-div#switch-bar a.headset label.headset {
-  display: block;
+  text-align: center;
+  font-size: 3rem;
+  line-height: 8rem;
 }
 /**** end ****/
 
@@ -262,7 +229,7 @@ div#popup-delete-box {
 
 /* localization */
 body.hidden *[data-l10n-id] {
-  visibility: hidden;
+  /*visibility: hidden;*/
 }
 /******* end *******/
 
