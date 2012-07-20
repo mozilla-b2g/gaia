@@ -28,7 +28,8 @@ var StatusBar = {
       'bluetooth.enabled': ['bluetooth'],
       'tethering.usb.enabled': ['tethering'],
       'tethering.wifi.enabled': ['tethering'],
-      'tethering.wifi.stations.clients': ['tethering'],
+      'tethering.wifi.connectedClients': ['tethering'],
+      'tethering.usb.connectedClients': ['tethering'],
       'audio.volume.master': ['mute'],
       'alarm.enabled': ['alarm']
     };
@@ -282,11 +283,9 @@ var StatusBar = {
       icon.hidden = !(this.settingValues['tethering.usb.enabled'] ||
                       this.settingValues['tethering.wifi.enabled']);
 
-      // XXX no way to probe active state from USB tethering for now
-      // 'tethering.usb.active'??
-
       icon.dataset.active =
-        (this.settingValues['tethering.wifi.stations.clients'] !== 0);
+        (this.settingValues['tethering.wifi.connectedClients'] !== 0) ||
+        (this.settingValues['tethering.usb.connectedClients'] !== 0);
     },
 
     bluetooth: function sb_updateBluetooth() {

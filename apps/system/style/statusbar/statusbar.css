@@ -275,13 +275,17 @@
   height: 16px;
 
   background: url('images/icons.png') no-repeat;
+  background-position: -189px -60px;
+}
+
+.sb-icon-notification[data-unread="true"]::before {
   background-position: -168px -60px;
 }
 
 .sb-icon-notification::after {
   content: attr(data-num);
   position: absolute;
-  color: #27b9cf;
+  color: #666;
   width: 16px;
   height: 16px;
   top: 0;
@@ -290,9 +294,8 @@
   font-weight: 600;
 }
 
-/* TODO: waiting for the real unread visual */
 .sb-icon-notification[data-unread="true"]::after {
-  font-weight: 900;
+  color: #27b9cf;
 }
 
 .sb-icon-sms {
