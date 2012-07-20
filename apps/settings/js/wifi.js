@@ -194,6 +194,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     }
   };
 
+  gWifiManager.onenabled = function onWifiEnabled() {
+    console.log("===== wifiManager enabled");
+    updateNetworkState(); // update wifi state
+    gNetworkList.scan();
+  }
+
   // network list
   var gNetworkList = (function networkList(list) {
     var scanning = false;
@@ -272,6 +278,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       if (scanning)
         return;
 
+      console.log("==== scan: wifiManager: " + gWifiManager.enabled);
       // stop auto-scanning if wifi disabled or the app is hidden
       if (!gWifiManager.enabled || document.mozHidden) {
         scanning = false;
@@ -304,7 +311,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
           return networks[b].relSignalStrength - networks[a].relSignalStrength;
         });
 
-        console.log("==== scan callback: get " + ssids.length + "networks");
+        console.log("==== scan callback: get " + ssids.length + " networks");
         for (var i = 0; i < ssids.length; i++) {
           var network = networks[ssids[i]];
           var listItem = newListItem(network);
@@ -512,13 +519,17 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     var currentNetwork = gWifiManager.connection.network;
     var networkStatus = gWifiManager.connection.status;
     //XXX: we need a 'initial' state
-    console.log("===== network status: " + networkStatus);
-    if (networkStatus === "associated" || networkStatus === "connecting") {
-      gWifiInfoBlock.textContent = _('fullStatus-connecting', currentNetwork);
-    } else if (networkStatus === "connected") {
-      gWifiInfoBlock.textContent = _('fullStatus-connected', currentNetwork);
-    } else { 
-      gWifiInfoBlock.textContent = _('fullStatus-disconnected');
+    if (!gWifiManager.enabled) {
+        gWifiInfoBlock.textContent = _('fullStatus-connecting', currentNetwork);
+    } else {
+      console.log("===== network status: " + networkStatus);
+      if (networkStatus === "associated" || networkStatus === "connecting") {
+        gWifiInfoBlock.textContent = _('fullStatus-connecting', currentNetwork);
+      } else if (networkStatus === "connected") {
+        gWifiInfoBlock.textContent = _('fullStatus-connected', currentNetwork);
+      } else { 
+        gWifiInfoBlock.textContent = _('fullStatus-disconnected');
+      }
     }
   }
 
@@ -528,7 +539,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (val) {
       updateNetworkState(); // update wifi state
       gNetworkList.clear(true);
-      gNetworkList.scan(); // init network list
+      gNetworkList.scan();
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       gNetworkList.clear(false);
