@@ -87,9 +87,8 @@ Calendar.App = (function(window) {
         this.go('/month/');
       }
 
-      var account = this.db.getStore('Account');
-
-      self.router.start();
+      this.syncController.observe();
+      this.router.start();
       document.body.classList.remove('loading');
     },
 

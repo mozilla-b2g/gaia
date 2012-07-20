@@ -11,14 +11,12 @@ Calendar.ns('Controllers').Sync = (function() {
   function Sync(app) {
     this.app = app;
     Calendar.Responder.call(this);
-
-    this._initEvents();
   }
 
   Sync.prototype = {
     __proto__: Calendar.Responder.prototype,
 
-    _initEvents: function() {
+    observe: function() {
       var self = this;
       var account = this.app.store('Account');
 

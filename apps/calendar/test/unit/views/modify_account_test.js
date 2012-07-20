@@ -278,6 +278,37 @@ suite('views/modify_account', function() {
       };
     });
 
+    suite('provider no creds', function() {
+      var calledSave;
+      var model;
+
+      setup(function() {
+        calledSave = false;
+
+        subject.save = function() {
+          calledSave = true;
+        }
+
+        model = new Calendar.Models.Account({
+          providerType: 'Local'
+        });
+
+
+        subject._createModel = function() {
+          return model;
+        }
+      });
+
+      test('result', function() {
+        assert.isFalse(model.provider.useCredentials);
+        assert.isFalse(model.provider.useUrl);
+
+        subject.dispatch({ params: { preset: 'local'} });
+        assert.isTrue(calledSave);
+      });
+
+    });
+
     test('new', function() {
       var calledWith;
       subject._createModel = function() {

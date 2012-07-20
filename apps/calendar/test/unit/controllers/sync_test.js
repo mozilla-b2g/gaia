@@ -15,6 +15,8 @@ suite('controllers/sync', function() {
 
     calendar = app.store('Calendar');
     account = app.store('Account');
+
+    subject.observe();
   });
 
   test('#_syncAccount', function() {
