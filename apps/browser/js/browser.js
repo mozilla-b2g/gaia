@@ -983,7 +983,7 @@ var Browser = {
   handleActivity: function browser_handleActivity(activity) {
     switch (activity.type) {
       case 'view':
-        var url = activity.source.data.string;
+        var url = activity.source.data.url;
         this.createTab(url);
         break;
     }
