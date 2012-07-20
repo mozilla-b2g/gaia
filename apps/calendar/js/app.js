@@ -82,8 +82,9 @@ Calendar.App = (function(window) {
         });
       });
 
+      var pathname = window.location.pathname;
       // default view
-      if (window.location.pathname === '/') {
+      if (pathname === '/index.html' || pathname === '/') {
         this.go('/month/');
       }
 
