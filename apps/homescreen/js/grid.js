@@ -326,7 +326,7 @@ const GridManager = (function() {
       }
 
       // if the page is not full
-      if (page.getNumApps() < max) {
+      if (page.getNumApps() <= max) {
         return;
       }
 

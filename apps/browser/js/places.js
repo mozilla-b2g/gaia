@@ -9,6 +9,7 @@ IDBTransaction.READ = IDBTransaction.READ || 'readonly';
 
 var Places = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
+  TOP_SITE_SCREENSHOTS: 6, // Number of top sites to keep screenshots for
 
   init: function places_init(callback) {
     this.db.open(callback);
@@ -32,6 +33,17 @@ var Places = {
 
   updateFrecency: function places_updateFrecency(uri, callback) {
     this.db.updatePlaceFrecency(uri, callback);
+  },
+
+  updateScreenshot: function place_updateScreenshot(uri, screenshot, callback) {
+    this.db.getPlaceUrisByFrecency(this.TOP_SITE_SCREENSHOTS,
+      (function(topSites) {
+      // If uri is not one of the top sites, don't store the screenshot
+      if (topSites.indexOf(uri) == -1)
+        return;
+
+      this.db.updatePlaceScreenshot(uri, screenshot);
+    }).bind(this));
   },
 
   addBookmark: function places_addBookmark(uri, title, callback) {
@@ -105,9 +117,9 @@ var Places = {
     }).bind(this));
   },
 
-  getTopSites: function places_getTopSites(callback) {
+  getTopSites: function places_getTopSites(maximum, callback) {
     // Get the top 20 sites
-    this.db.getPlacesByFrecency(20, callback);
+    this.db.getPlacesByFrecency(maximum, callback);
   },
 
   getHistory: function places_getHistory(callback) {
@@ -119,6 +131,8 @@ var Places = {
 
 Places.db = {
   _db: null,
+  START_PAGE_URI: document.location.protocol + '//' + document.location.host +
+    '/start.html',
 
   open: function db_open(callback) {
     const DB_VERSION = 4;
@@ -189,8 +203,7 @@ Places.db = {
       } else {
         place = {
           uri: uri,
-          title: uri,
-          frecency: 0
+          title: uri
         };
       }
 
@@ -308,6 +321,23 @@ Places.db = {
       if (cursor && topSites.length < maximum) {
         var place = cursor.value;
         topSites.push(cursor.value);
+        cursor.continue();
+      } else {
+        callback(topSites);
+      }
+    };
+  },
+
+  getPlaceUrisByFrecency: function db_getPlaceUrisByFrecency(maximum,
+    callback) {
+    var topSites = [];
+    var transaction = this._db.transaction('places');
+    var placesStore = transaction.objectStore('places');
+    var frecencyIndex = placesStore.index('frecency');
+    frecencyIndex.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor && topSites.length < maximum) {
+        topSites.push(cursor.value.uri);
         cursor.continue();
       } else {
         callback(topSites);
@@ -502,6 +532,13 @@ Places.db = {
   },
 
   updatePlaceFrecency: function db_updatePlaceFrecency(uri, callback) {
+    // Don't assign frecency to the start page
+    if (uri == this.START_PAGE_URI) {
+      if (callback)
+        callback();
+      return;
+    }
+
     var transaction = this._db.transaction(['places'],
       IDBTransaction.READ_WRITE);
 
@@ -610,6 +647,45 @@ Places.db = {
 
     transaction.onerror = function dbTransactionError(e) {
       console.log('Transaction error while trying to save title for ' +
+        place.uri);
+    };
+  },
+
+  updatePlaceScreenshot: function db_updatePlaceScreenshot(uri, screenshot,
+    callback) {
+    var transaction = this._db.transaction(['places'],
+      IDBTransaction.READ_WRITE);
+
+    var objectStore = transaction.objectStore('places');
+    var readRequest = objectStore.get(uri);
+
+    readRequest.onsuccess = function(event) {
+      var place = event.target.result;
+      if (place) {
+        place.screenshot = screenshot;
+      } else {
+        place = {
+          uri: uri,
+          title: uri,
+          screenshot: screenshot
+        };
+      }
+
+      var writeRequest = objectStore.put(place);
+
+      writeRequest.onerror = function() {
+        console.log('Error while saving screenshot for ' + uri);
+      };
+
+      writeRequest.onsuccess = function() {
+        if (callback)
+          callback();
+      };
+
+    };
+
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to save screenshot for ' +
         place.uri);
     };
   }

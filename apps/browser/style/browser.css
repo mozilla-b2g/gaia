@@ -3,6 +3,7 @@ html, body {
   padding: 0;
   margin: 0;
   background-color: #575E66;
+  font-family: 'Open Sans', sans-serif;
 }
 
 body {
@@ -237,8 +238,10 @@ input[type="image"] {
 }
 
 #url-button {
-  display:none;
   background-position: center;
+  display: block;
+  height: 32px;
+  width: 32px;
 }
 
 #ssl-indicator {
@@ -592,4 +595,30 @@ li[role="listitem"] small {
 
 #cover ul li img {
   margin-right: 10px;
+}
+
+#modal-dialog-alert,
+#modal-dialog-confirm,
+#modal-dialog-prompt {
+  width: 90% !important;
+  margin: 0 auto !important;
+}
+
+#modal-dialog-tablecell {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* This is a dirty hack to hide the bottom toolbar while
+ * the keyboard is active, than device-height - 20px (for status bar),
+ * then the keyboard is likely activated
+ */
+/* For the Otoro, 320x480 */
+@media (device-height: 480px) and (max-height: 450px),
+       (device-height: 320px) and (max-height: 290px) {
+  .page-screen #toolbar-end { display: none; }
+}
+/* For the Galaxy SII, 640x480 */
+@media (device-height: 480px) and (max-height: 450px),
+       (device-height: 640px) and (max-height: 610px) {
+  .page-screen #toolbar-end { display: none; }
 }
