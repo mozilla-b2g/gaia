@@ -114,31 +114,45 @@
   font-size: 2rem;
 }
 
-.keypad-icon {
+.keypad-subicon {
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: center bottom;
+
+  -moz-user-select: none;
   pointer-events: none;
 
-  height: 3rem;
+  position: absolute;
+  left: 4rem;
+  top: 2rem;
+
   width: 3rem;
-  background-size: 3rem 3rem;
-  margin: auto;
+  height: 3rem;
 }
 
-.keypad-subicon {
-  vertical-align: text-bottom;
-  padding-bottom: 0.25rem;
-  padding-left: 0rem;
-  margin-left: -0.25rem;
-  -moz-user-select: none;
+.voicemail {
+  background-image: url('images/voicemail.png');
 }
 
 .asterisk {
   background-image: url('images/asterisk.png');
+  background-repeat: no-repeat;
+  height: 3rem;
+  width: 3rem;
+  background-size: 3rem 3rem;
+  background-position: center;
+  margin: auto;
+  pointer-events: none;
 }
 
 .sharp {
   background-image: url('images/sharp.png');
+  background-repeat: no-repeat;
+  height: 3rem;
+  width: 3rem;
+  background-size: 3rem 3rem;
+  background-position: center;
+  margin: auto;
+  pointer-events: none;
 }
 
 #keypad-callbar {
