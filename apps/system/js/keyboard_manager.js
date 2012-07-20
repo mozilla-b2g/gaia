@@ -26,12 +26,17 @@ var KeyboardManager = (function() {
         return;
 
       var app = WindowManager.getDisplayedApp();
-      if (!app)
+      if (!app && !TrustedDialog.trustedDialogIsShown())
         return;
 
-      // Reset the height of the app
-      WindowManager.setAppSize(app);
-      var currentApp = WindowManager.getAppFrame(app);
+      var currentApp;
+      if (TrustedDialog.trustedDialogIsShown()) {
+        currentApp = TrustedDialog.getFrame();
+      } else {
+        // Reset the height of the app
+        WindowManager.setAppSize(app);
+        currentApp = WindowManager.getAppFrame(app);
+      }
 
       if (!message.hidden) {
         var height = (parseInt(currentApp.style.height) -
