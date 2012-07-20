@@ -90,6 +90,11 @@ SHELL := /bin/bash
 # what OS are we on?
 SYS=$(shell uname -s)
 ARCH?=$(shell uname -m)
+SEP=/
+ifneq (,$(findstring MINGW32_,$(SYS)))
+CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
+SEP=\\
+endif
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -127,7 +132,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 profile: preferences permissions test-agent-config offline extensions
-	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
+	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -230,10 +235,9 @@ offline: webapp-manifests webapp-zip
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
 XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/07/2012-07-17-03-05-55-mozilla-central/xulrunner-17.0a1.en-US.
-XULRUNNER_TEST=xulrunner
+
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
-XULRUNNER_TEST=xulrunner-sdk
 # We're on a mac
 XULRUNNER_MAC_SDK_URL=$(XULRUNNER_SDK_URL)mac-
 ifeq ($(ARCH),i386)
@@ -243,12 +247,17 @@ else
 # 64-bit
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)x86_64.sdk.tar.bz2
 endif
-XULRUNNER_DOWNLOAD=$(XULRUNNER_SDK_DOWNLOAD)
 XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
+
+else ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
+# For windows we only have one binary
+XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_SDK_URL)win32.sdk.zip
+XULRUNNERSDK=
+XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
+
 else
-# Not a mac: assume linux
-# Linux only!
+# Otherwise, assume linux
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
 XULRUNNER_LINUX_SDK_URL=$(XULRUNNER_SDK_URL)linux-
@@ -262,11 +271,15 @@ XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
 install-xulrunner-sdk:
+ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
+	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && unzip xulrunner*.zip && rm xulrunner*.zip)
+else
 	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+endif
 
 settingsdb: install-xulrunner-sdk
 	@echo "B2G pre-populate settings DB."
-	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
+	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const PROFILE_DIR = "$(CURDIR)$(SEP)profile";' build/settings.js
 
 DB_TARGET_PATH = /data/local/indexedDB
 ifneq ($(SYS),Darwin)
@@ -312,7 +325,7 @@ ifeq ($(DEBUG),1)
 	# httpd
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/httpd.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_RELATIVEPATH@|$(GAIA_APP_RELATIVEPATH)|g' $(EXT_DIR)/httpd/content/httpd.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd/bootstrap.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(subst \\,\\\\,$(CURDIR))|g' $(EXT_DIR)/httpd/bootstrap.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/bootstrap.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_PORT@|$(subst :,,$(GAIA_PORT))|g' $(EXT_DIR)/httpd/bootstrap.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_SRCDIRS@|$(GAIA_APP_SRCDIRS)|g' $(EXT_DIR)/httpd/bootstrap.js
