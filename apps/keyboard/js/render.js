@@ -1,3 +1,5 @@
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 // Render is in charge of draw and composite HTML elements under requestion
@@ -15,6 +17,8 @@ const IMERender = (function() {
   var getUpperCaseValue, isSpecialKey, onScroll;
 
   var _menuKey, _altContainer;
+
+  var layoutWidth = 10;
 
   // Initiaze the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
@@ -55,7 +59,7 @@ const IMERender = (function() {
     // density used in media queries
 
     var content = '';
-    var layoutWidth = layout.width || 10;
+    layoutWidth = layout.width || 10;
     var totalWidth = document.getElementById('keyboard').clientWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
     var inputType = flags.inputType || 'text';
@@ -110,7 +114,7 @@ const IMERender = (function() {
     this.menu.addEventListener('scroll', onScroll);
 
     // Builds candidate panel
-    if (layout.needsCandidatePanel) {
+    if (layout.needsCandidatePanel || layout.suggestionEngine) {
       this.ime.insertBefore(
         candidatePanelToggleButtonCode(), this.ime.firstChild);
       this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
@@ -337,6 +341,8 @@ const IMERender = (function() {
       _altContainer.parentNode.replaceChild(_menuKey, _altContainer);
   };
 
+  var _keyArray = []; // To calculate proximity info for predictive text
+
   // Recalculate dimensions for the current render
   var resizeUI = function(layout) {
     var changeScale, scale;
@@ -355,9 +361,12 @@ const IMERender = (function() {
       ime.classList.add('landscape');
     }
 
+
+    _keyArray = [];
+
     // Width calc
     if (layout) {
-      var layoutWidth = layout.width || 10;
+      layoutWidth = layout.width || 10;
       var totalWidth = document.getElementById('keyboard').clientWidth;
       var placeHolderWidth = totalWidth / layoutWidth;
 
@@ -367,6 +376,18 @@ const IMERender = (function() {
         for (var k = 0, key; key = keys[k]; k += 1) {
           ratio = layout.keys[r][k].ratio || 1;
           key.style.width = (placeHolderWidth * ratio) + 'px';
+
+          // to get the visual width/height of the key
+          // for better proximity info
+          var visualKey = key.querySelector('.visual-wrapper');
+
+          _keyArray.push({
+            code: key.dataset.keycode,
+            x: visualKey.offsetLeft,
+            y: visualKey.offsetTop,
+            width: visualKey.clientWidth,
+            height: visualKey.clientHeight
+          });
         }
       }
     }
@@ -417,6 +438,43 @@ const IMERender = (function() {
     return content;
   };
 
+  var getWidth = function getWidth() {
+    if (!this.ime)
+      return 0;
+
+    return this.ime.clientWidth;
+  };
+
+  var getHeight = function getHeight() {
+    if (!this.ime)
+      return 0;
+
+    return this.ime.clientHeight;
+  };
+
+  var getKeyArray = function getKeyArray() {
+    return _keyArray;
+  };
+
+  var getKeyWidth = function getKeyWidth() {
+    if (!this.ime)
+      return 0;
+
+    return Math.ceil(this.ime.clientWidth / layoutWidth);
+  };
+
+  var getKeyHeight = function getKeyHeight() {
+    if (!this.ime)
+      return 0;
+
+    this.ime.clientHeight;
+    var rows = document.querySelectorAll('.keyboard-row');
+
+
+    var rowCount = rows.length || 3;
+    return Math.ceil(this.ime.clientHeight / rowCount);
+  };
+
   // Exposing pattern
   return {
     'init': init,
@@ -431,6 +489,11 @@ const IMERender = (function() {
     'setUpperCaseLock': setUpperCaseLock,
     'resizeUI': resizeUI,
     'showCandidates': showCandidates,
-    'showPendingSymbols': showPendingSymbols
+    'showPendingSymbols': showPendingSymbols,
+    'getWidth': getWidth,
+    'getHeight': getHeight,
+    'getKeyArray': getKeyArray,
+    'getKeyWidth': getKeyWidth,
+    'getKeyHeight': getKeyHeight
   };
 })();
