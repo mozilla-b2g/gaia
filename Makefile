@@ -146,10 +146,11 @@ webapp-manifests:
 			n=$$(basename $$d); \
 			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
 			then \
-				mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
-				cp $$d/manifest.webapp profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp  ;\
+				dirname=$$n.$(GAIA_DOMAIN); \
+				mkdir -p profile/webapps/$$dirname; \
+				cp $$d/manifest.webapp profile/webapps/$$dirname/manifest.webapp  ;\
 				(\
-				echo \"$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\": { ;\
+				echo \"$$dirname\": { ;\
 				echo \"origin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 				echo \"installOrigin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 				echo \"receipt\": null, ;\
@@ -200,7 +201,8 @@ ifneq ($(DEBUG),1)
 			n=$$(basename $$d); \
 			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
 			then \
-				mkdir -p profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT); \
+				dirname=$$n.$(GAIA_DOMAIN); \
+				mkdir -p profile/webapps/$$dirname; \
 				cdir=`pwd`; \
 				for f in `grep -r shared/js $$d` ;\
 				do \
@@ -214,7 +216,7 @@ ifneq ($(DEBUG),1)
 				cd $$d; \
 				zip -r application.zip *; \
 				cd $$cdir; \
-				mv $$d/application.zip profile/webapps/$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/application.zip; \
+				mv $$d/application.zip profile/webapps/$$dirname/application.zip; \
 			fi \
 		fi \
 	done;
