@@ -343,6 +343,10 @@ var StatusBar = {
     icon.dataset.num = count;
   },
 
+  updateNotificationUnread: function sb_updateNotificationUnread(unread) {
+    this.icons.notification.dataset.unread = unread;
+  },
+
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
     var elements = ['notification', 'time',
