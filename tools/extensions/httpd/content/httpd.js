@@ -1422,9 +1422,15 @@ RequestReader.prototype =
           var host = (colon < 0) ? hostPort : hostPort.substring(0, colon);
           if (host != "@GAIA_DOMAIN@" && host.indexOf(".") != -1) {
             var oldPath = request._path;
-
             var applicationName = host.split(".")[0];
-            request._path = this._findRealPath(applicationName) + oldPath;
+
+            // For convenience when debugging, load JS files commonly
+            // used from a common place.
+            var filePath = this._findRealPath(applicationName);
+            if (oldPath.indexOf('/shared/js/') === 0) {
+              filePath += '/../..';
+            }
+            request._path = filePath + oldPath;
           }
         } catch (e) {
           dump(e);

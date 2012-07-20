@@ -18,11 +18,12 @@ var Activities = {
 
     this._id = detail.id;
 
-    var choices = detail.list.choices;
+    var choices = detail.choices;
     if (choices.length === 1) {
       this.choose('0');
     } else {
-      ListMenu.request(this._listItems(choices), this.choose.bind(this));
+      ListMenu.request(this._listItems(choices),
+                       this.choose.bind(this));
     }
   },
 
@@ -33,8 +34,8 @@ var Activities = {
       type: 'activity-choice'
     };
 
-    if (choice !== null)
-      returnedChoice.value = choice;
+    // If the user cancels, the choice is -1
+    returnedChoice.value = choice || '-1';
 
     event.initCustomEvent('mozContentEvent', true, true, returnedChoice);
     window.dispatchEvent(event);
@@ -46,10 +47,10 @@ var Activities = {
     var items = [];
 
     choices.forEach(function(choice, index) {
-      items.push({label: choice.title,
-                  icon: choice.icon,
-                  value: index,
-                  type: 'menuitem'
+      items.push({
+        label: choice.title,
+        icon: choice.icon,
+        value: index
       });
     });
 

@@ -24,18 +24,16 @@ var SleepMenu = {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=766895
   turnOffFlightMode: function sm_turnOffFlightMode() {
     var settings = navigator.mozSettings;
-    if (settings && this.reservedSettings.data) {
-      settings.getLock().set({'ril.data.disabled': this.reservedSettings.data});
-    }
-
-    var wifiManager = navigator.mozWifiManager;
-    if (wifiManager && this.reservedSettings.wifi && !wifiManager.enabled) {
-      wifiManager.setEnabled(true);
-    }
-
-    var bluetooth = navigator.mozBluetooth;
-    if (bluetooth && this.reservedSettings.bluetooth && !bluetooth.enabled) {
-      bluetooth.setEnabled(true);
+    if (settings) {
+      if (this.reservedSettings.data) {
+        settings.getLock().set({'ril.data.enabled': true});
+      }
+      if (this.reservedSettings.bluetooth) {
+        settings.getLock().set({'bluetooth.enabled': true});
+      }
+      if (this.reservedSettings.wifi) {
+        settings.getLock().set({'wifi.enabled': true});
+      }
     }
   },
 
@@ -43,23 +41,24 @@ var SleepMenu = {
     var settings = navigator.mozSettings;
     var self = this;
     if (settings) {
-      var req = settings.getLock().get('ril.data.disabled');
-      req.onsuccess = function sm_EnabledFetched() {
-        self.reservedSettings.data = req.result['ril.data.disabled'];
-        settings.getLock().set({'ril.data.disabled': true});
+      // Turn off data
+      var reqData = settings.getLock().get('ril.data.enabled');
+      reqData.onsuccess = function sm_EnabledFetched() {
+        self.reservedSettings.data = reqData.result['ril.data.enabled'];
+        settings.getLock().set({'ril.data.enabled': false});
       };
-    }
-
-    var wifiManager = navigator.mozWifiManager;
-    if (wifiManager) {
-      this.reservedSettings.wifi = wifiManager.enabled;
-      wifiManager.setEnabled(false);
-    }
-
-    var bluetooth = navigator.mozBluetooth;
-    if (bluetooth) {
-      this.reservedSettings.bluetooth = bluetooth.enabled;
-      bluetooth.setEnabled(false);
+      // Turn off bluetooth
+      var reqBt = settings.getLock().get('bluetooth.enabled');
+      reqBt.onsuccess = function bt_EnabledSuccess() {
+        self.reservedSettings.bluetooth = reqBt.result['bluetooth.enabled'];
+        settings.getLock().set({'bluetooth.enabled': false});
+      };
+      // Turn off wifi
+      var reqWifi = settings.getLock().get('wifi.enabled');
+      reqWifi.onsuccess = function wf_EnabledSuccess() {
+        self.reservedSettings.wifi = reqWifi.result['wifi.enabled'];
+        settings.getLock().set({'wifi.enabled': false});
+      };
     }
   },
 
@@ -173,7 +172,7 @@ var SleepMenu = {
         // Airplane mode should turn off
         //
         // Radio ('ril.radio.disabled'`)
-        // Data ('ril.data.disabled'`)
+        // Data ('ril.data.enabled'`)
         // Wifi
         // Bluetooth
         // Geolocation

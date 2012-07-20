@@ -1,26 +1,4 @@
 
-@font-face {
-  font-family: 'FontLight';
-  src: url('fonts/opensans-light-webfont.woff');
-}
-
-@font-face {
-  font-family: 'FontRegular';
-  src: url('fonts/opensans-regular-webfont.woff');
-}
-
-@font-face {
-  font-family: 'FontSemibold';
-  font-weight: 600;
-  src: url('fonts/opensans-semibold-webfont.woff');
-}
-
-@font-face {
-  font-family: 'FontBold';
-  font-weight: bold;
-  src: url('fonts/opensans-bold-webfont.woff');
-}
-
 @media screen and (min-resolution: 200dpi) {
 
   html {
@@ -35,300 +13,163 @@
   }
 }
 
-
 html, body {
   height: 100%;
+  width: 100%;
   padding: 0;
   margin: 0;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  font-family: 'FontRegular', sans-serif;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important; 
+  font-family: 'Open Sans', sans-serif;
 }
 
-a {
-  outline: none;
-}
-
-body {
-  margin: 0;
-  width: 100%;
+.wrapper {
+  width: 200%;
   height: 100%;
-  font-family: 'FontRegular', sans-serif;
-  font-size: -moz-calc(6 * 0.226rem);
-}
-a:active, a:focus, button::-moz-focus-inner {
-  border: none;
-  outline: none;
-}
-.panel {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  -moz-transition: -moz-transform 0.3s ease;
-  top: 0;
-}
-
-body.conversation .panel {
-  -moz-transform: translateX(-100%);
-}
-
-body.conversation-new-msg .conversation-hide {
-  display: none;
-}
-
-body.conversation .conversation-hide {
-  display: none;
-}
-
-body.conversation-new-msg .contact-show {
-  display: block;
-}
-
-/* View - Slide Horizontal Transition */
-/* XXX hack: the width is adjusted (0-100%) with a delayed transition in order
- *           to hide the horizontal scrollbar on the device (at least, when the
- *           transition is over).
- * This is just a workaround: the platform bug should be fixed later.  */
-
-#view {
-  -moz-transform: translateX(100%);
-
-  /* XXX hack */
-  overflow: hidden;
-  z-index: 1;
-  width: 0%;
-  -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
-}
-
-#msg-conversations {
-  -moz-transform: translateX(0);
-
-  /* XXX hack */
-  overflow: hidden;
-  z-index: 10;
-}
-
-body.conversation #view {
-  -moz-transform: translateX(0);
-
-  /* XXX hack */
-  z-index: 10;
-  width: 100%;
-  -moz-transition: -moz-transform 0.3s ease;
-}
-
-body.conversation #msg-conversations {
-  -moz-transform: translateX(-100%);
-
-  /* XXX hack */
-  z-index: 1;
-  width: 0%;
-  -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
-}
-
-.toolbar {
-  -moz-box-sizing: border-box;
-  position: absolute;
-  display: block;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%);
-  margin: 0;
-  padding: 0;
-}
-
-.toolbar-top {
-  height: 5rem;
-  top: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  z-index: 5;
-}
-
-.toolbar-bottom {
-  bottom: 0;
-  height: 6rem;
-  background: rgba(0,0,0, 0.75);
-
-}
-
-.toolbar-panel {
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  width: 100%;
-}
-
-.toolbar-panel-item {
-  -moz-box-flex: 1;
-}
-
-.toolbar-panel-fixed-item {
-  -moz-box-flex: 0;
-}
-
-/*Generic set of actions in toolbar */
-.toolbar-top [role="menu"] {
-  height: 5rem; float: right;
-}
-
-.toolbar-top [role="menuitem"] {
-  height: 5rem; float: left;
-}
-
-.toolbar-top [role="menuitem"]:first-child {
-  background: none; padding: 0 1.5rem;
-}
-
-.toolbar-top [role="menuitem"], .toolbar-top [role="menuitem"]:last-child {
-  background: url(./images/separator.png) no-repeat left center;
-  padding: 0 1.5rem;
-}
-
-.toolbar-top menu {
-  padding: 0;
-  margin: 0;
-}
-
-.toolbar-top a {
-  border: none;
-  background: none;
-  padding: 0;
-  overflow: hidden;
-  font: 1.4rem/1.1em System Sans Semibold, Sans-serif;
-  color: #fff;
-}
-
-.toolbar-top a:first-letter {
-  text-transform: uppercase;
-}
-
-/* Icon definitions */
-.view-header [data-icon] {
-  display: inline-block;
-  width: 3rem;
-  height: 3rem;
-  margin: 0 -1rem;
-  background: transparent no-repeat center center;
-  background-size: 100% auto;
-  text-indent: 100%;
-  overflow: hidden;
   position: relative;
-}
-
-.list {
-  position: absolute;
-  top: 5rem;
-  bottom: 0;
   left: 0;
-  right: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -moz-user-select: none;
+  top: 0;
 }
 
-.button {
-  -moz-box-sizing: border-box;
-  text-align: center;
-  border-radius: 2rem;
-  color: #fff;
-  text-shadow: 0pt -0.1rem 0.1rem rgba(0, 0, 0, 0.5);
-  border: none;
-  padding: 0 1.6rem;
-  outline: medium none;
-  background: -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 0.2rem, hsla(35,100%,50%,.4) 20%,
-                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 0.2rem, hsl(32,100%,38%) 98%,
-                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
+.panel {
+  position: relative;
+  float: left;
+  width: 50%;
+  height: 100%;
 }
 
-.button-bottom-bar {
-  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%);
-  vertical-align: middle;
-  text-align: center;
-  font-size: -moz-calc(7*0.226rem);
-  color: #ffffff;
+#thread-list,#thread-messages {
+  z-index: 10;
+  background: white;
+ 
+}
+
+.to-left {
+  left: -100%;
+}
+
+#icon-contact {
+  display: none;
+}
+
+/*
+  Snapshot for increasing performance in slide transition
+*/
+
+#thread-list-snapshot {
+  z-index: 0;
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#thread-list) no-repeat;
+}
+
+#thread-messages-snapshot {
+  z-index: 0;
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 50% !important;
+  height: 100% ;
+  -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#thread-messages) no-repeat;
+}
+
+/*
+  Smooth lateral slide
+*/
+
+.snapshot #snapshot {
+   top: -100%;
+   z-index: 100;
+}
+
+.mirror-swipe #thread-list-snapshot {
+  -moz-transform: translateX(-100%);
+}
+
+.mirror-swipe #thread-messages-snapshot {
+  -moz-transform: translateX(-100%);
+}
+
+/* Styles for Edit mode */
+
+.edit .options {
+  bottom: 0rem;
+}
+
+.edit .new-sms-form {
+  bottom: -3.6rem;
+}
+
+.edit .header-wrapper{
+  left: -100%;
+}
+
+.new h1 {
+  display: none;
+}
+
+.new .tel {
+  display: block;
+}
+.new #icon-edit {
+  display: none;
+}
+
+.new #icon-contact {
+  display: block;
+}
+
+.edit > #thread-list > #thread-list-container a {
+  pointer-events: none;
+}
+
+.edit #thread-list-container .checkbox-container {
+  pointer-events:auto;
+  opacity: 1;
+}
+
+.edit .undo-candidate {
+  display: none;
+}
+
+.edit .msg-checkbox {
   display: table-cell;
 }
 
-.back-wrapper {
-  height: inherit;
-  text-align: center;
-  border-right: solid .1rem rgba(0, 0, 0, 0.2);
-  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
-  width: 2rem;
-  left: 0;
-  position: absolute;
-}
-.back-button {
-  position: absolute;
-  margin: 0.6rem 0 0 2.4rem;
+.edit .message-block {
+  padding: 1rem 0;
+  border-top: .1rem solid #DBDBDB; 
+  margin-bottom: 0;
 }
 
-.back-button-img {
-  background: url("./images/top-navibar-left-arrow.png") no-repeat scroll 3rem 50% transparent;
-  left: 0;
-  top: 0;
-  width: 8rem;
-  height: 4.8rem;
-  position: absolute;
-}
+/*
+  Thread list styles
+*/
 
-.back-button > h2 {
-  display: none;
-}
-
-.button:active {
-  background: -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 0.2rem, hsla(35,100%,50%,.4) 20%,
-                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 0.2rem, hsl(32,100%,38%) 98%,
-                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
-}
-
-/* Remove dotted outline for button in firefox. */
-.button::-moz-focus-inner {
-  border: 0;
-}
-
-.text-button {
-  font-size: 2.4rem;
-  font-weight: bold;
-  height: 4.8rem;
-  line-height: 4.8rem;
-  text-decoration: none;
-}
-
-#view-msg-text-container {
-  padding-left: 1.5rem;
-}
-
-#msg-title-container {
-  padding: 0;
-  margin: 0;
-  margin-left: 3rem;
-  line-height: 5rem;
-  color: #ffffff;
-  font-size: -moz-calc(10 * 0.226rem);
-  font-weight: normal;
-}
-
-#msg-conversations-list {
- -moz-transition: top 0.3s ease;
-}
-
-#msg-conversations-list .item {
+#thread-list-container .item {
+  text-align: left;
   position: relative;
   overflow: hidden;
 }
 
-#msg-conversations-list .item > a {
+#thread-list-container .item:last-child {
+  margin-bottom: 7rem;
+}
+
+#thread-list-container .item > a {
   -moz-box-sizing: border-box;
   display: block;
   text-decoration: none;
   outline: none;
   height: 6rem;
   position: relative;
-  /* Remove the thumbnail for current stage.
-   *padding need to 11.2rem + img width when social network integration is ready*/
   padding: 1rem 1.6rem 1rem 3rem;
   border-top: 0.1rem solid hsla(207,22%,92%,1);
   width: 100%;
@@ -337,32 +178,32 @@ body.conversation #msg-conversations {
   text-overflow: ellipsis;
 }
 
-#msg-conversations-list .item > a:active {
+#thread-list-container .item > a:active {
   background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
 }
 
-#msg-conversations-list .item > a:active > .name {
+#thread-list-container .item > a:active > .name {
   color: white;
 }
 
-#msg-conversations-list .item > a:active > .msg {
+#thread-list-container .item > a:active > .msg {
   color: #ffbc8c;
   text-shadow: none;
 }
 
-#msg-conversations-list .item > a.hide {
+#thread-list-container .item > a.hide {
   display: none;
 }
 
-#msg-conversations-list .item > a > * {
+#thread-list-container .item > a > * {
   pointer-events: none;
 }
 
-#msg-conversations-list .item > a:first-child {
+#thread-list-container .item > a:first-child {
   border-top-color: transparent;
 }
 
-#msg-conversations-list .item > a .unread-mark {
+#thread-list-container .item > a .unread-mark {
   display: none;
 }
 
@@ -374,7 +215,6 @@ a.unread .unread-mark {
   top: 0 !important;
   background: transparent !important;
   border-style: none !important;
-
 }
 
 a.unread .unread-mark .icon-unread-mark {
@@ -385,10 +225,7 @@ a.unread .unread-mark .icon-unread-mark {
   background-image: url('images/updates.png');
 }
 
-/* fake input boxes for checkboxes*/
-
-
-#msg-conversations-list .item > a > span {
+#thread-list-container .item > a > span {
   position: absolute;
   top: -moz-calc(50% - 3.4rem);
   left: 4rem;
@@ -396,31 +233,55 @@ a.unread .unread-mark .icon-unread-mark {
   width: 6.4rem;
   height: 6.4rem;
   border: none;
-  -moz-transition: opacity 0.3s ease-in;
 }
 
-#msg-conversations-list .item > a > input[type=checkbox] + span {
-  opacity: 0.0;
-  visibility: hidden;
-  height: 6rem;
-  border-radius: 0.5rem;
-}
-
-#msg-conversations-list .photo {
+#thread-list-container .photo {
   position: absolute;
   top: 0;
   right: 0;
   width: 5.9rem;
-  height: 5.9rem;
+  height: 100%;
   overflow: hidden;
 }
 
-#msg-conversations-list .photo img {
+#thread-list-container .photo img {
   width: 100%;
 }
 
-#msg-conversations-list .name {
-  font-family: 'FontRegular';
+#thread-list-container .checkbox-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5.9rem;
+  height: 100%;
+  overflow: hidden;
+  background: white;
+  pointer-events:none;
+  opacity: 0;
+}
+
+#thread-list-container .checkbox-container input {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  opacity: 0;
+}
+#thread-list-container .checkbox-container span {
+  left: 1.85rem;
+  top: 1.9rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  position: absolute;
+  pointer-events: none;
+  background-image: url('images/check-delete.png'); 
+}
+
+#thread-list-container .checkbox-container input:checked + span {
+  background-position: center bottom;
+}
+
+#thread-list-container .name {
+  font-family: 'Open Sans';
   font-size: -moz-calc(8 * 0.226rem);
   color: #000000;
   overflow: hidden;
@@ -428,8 +289,8 @@ a.unread .unread-mark .icon-unread-mark {
   width: -moz-calc(100% - 7rem);
 }
 
-#msg-conversations-list .msg {
-  font-family: 'FontRegular';
+#thread-list-container .msg {
+  font-family: 'Open Sans';
   font-size: -moz-calc(6 * 0.226rem);
   color: #5B5B5B;
   text-shadow: 0 0.1rem 0 #ddd;
@@ -442,24 +303,22 @@ a.unread .unread-mark .icon-unread-mark {
   left: 10rem;
 }
 
-#msg-conversations-list .msg .highlight {
-  background: rgb(255, 255, 0);
-}
-
-#msg-conversations-list .time {
-  font-family: 'FontSemibold';
+#thread-list-container .time {
+  font-family: 'Open Sans';
+  font-weight: 600;
   font-size: -moz-calc(6 * 0.226rem);
+  font-weight: 600;
   color: #5B5B5B;
   position: absolute;
   top: 3rem;
   color: hsla(0,0%,0%,.5);
 }
 
-#msg-conversations-list .unread {
+#thread-list-container .unread {
   color: #1D8399;
 }
 
-#msg-conversations-list .unread-tag {
+#thread-list-container .unread-tag {
   position: absolute;
   visibility : hidden;
   height: 1rem;
@@ -469,481 +328,233 @@ a.unread .unread-mark .icon-unread-mark {
   background: url(../style/images/unread.png);
 }
 
-#msg-conversations-list .item > a.unread .unread-tag {
+#thread-list-container .item > a.unread .unread-tag {
   visibility : visible;
 }
 
-#msg-new-message-container {
-  padding: 0;
-  margin: 0;
-}
-
-#msg-edit-options-bar {
-  padding: 0;
-  margin: 0;
-  height: 100%;
-  width: 100%;
-  display: table;
-  border-spacing: 2rem 1rem;
-  table-layout: fixed;
-}
-
-.icon-add {
-  display: block;
-  background-image: url('images/add.png');
-  height: 1.6rem;
-  width: 1.5rem;
-  margin: 1.7rem auto;
-}
-
-.icon-edit {
-  display: block;
-  background-image: url('images/edit.png');
-  height: 2rem;
-  width: 1.9rem;
-  margin: 1.5rem auto;
-}
-
-#msg-conversations-back {
-  position: absolute;
-  left: 0;
-  height: 100%;
-  width: 5rem;
-}
-
-.icon-back {
-  display: block;
-  background-image: url('images/back.png');
-  height: 2.7rem;
-  width: 1.1rem;
-
-  margin: 1.15rem auto;
-}
-
-.edit-hide, .search-hide {
-  display: block;
-}
-
-.edit-show, .search-show {
-  display: none;
-}
-
-#view-back {
-  position: absolute;
-  height: 100%;
-  width: 5rem;
-}
-
-#view-done-button {
-  position: absolute;
-  cursor: pointer;
-  padding: 0;
-  width: 7rem;
-  right: 0;
-  text-align: center;
-  font-size: 1.6rem;
-  line-height: 4.9rem;
-  color: #ffffff;
-}
-
-#view-edit-button {
-  right: 0;
-  position: absolute;
-  height: 100%;
-}
-
-
-body.conversation-new-msg #view-edit-button #view-name {
-  display: none;
-}
-
-#view-add-button {
-  right: 0;
-  width: 4rem;
-  margin-right: 1rem;
-  position: absolute;
-  display: none;
-  height: 100%;
-
-}
-
-.icon-contact {
-  opacity: .5;
-  display: block;
-  background-image: url('images/contacts_icon.png');
-
-  height: 2.4rem;
-  width: 2.2rem;
-  margin: 1.3rem auto;
-}
-
-#view-name {
-  padding: 0;
-  margin: 0;
-  margin-left: 3rem;
-  font-weight: normal;
-  line-height: 5rem;
-  color: #ffffff;
-  font-size: -moz-calc(10 * 0.226rem);
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-body.conversation-new-msg #view-name {
-  display: none;
-}
-
-body.conversation-new-msg #view-add-button {
-  display: block;
-}
-
-body.conversation-new-msg #view-edit-button {
-  display: none;
-}
-
-#view-num {
-  height: 3rem;
-  display: none;
-  margin: 1rem 5rem 1rem 4rem;
-  padding: 0 2rem;
-  -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 10rem);
-  font-size: -moz-calc(7 * 0.226rem);
-  border-radius: .3rem;
-  border: 1px solid #A83F22;
-  box-shadow: inset 0 .2rem .1rem rgba(0,0,0,.2);
-}
-
-body.conversation-new-msg #view-num {
-  display: block;
-  position: absolute;
-  z-index: 100;
-}
-
-#view-edit-container {
-  position: absolute;
-  top: 0; right: 0;
-  height: 6rem;
-  width: 9.6rem;
-}
-
-#view-edit {
-  position: absolute;
-  -moz-box-sizing: border-box;
-  top: 1.6rem;
-  right: 1.6rem;
-  height: 3.2rem;
-  line-height: 30.2rem;
-  width: 6.4rem;
-  padding: 0 0.8rem;
-  border-radius: 0.5rem;
-  border: 0.1rem solid hsl(60,2%,62%);
-  text-align: center;
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #666;
-  text-shadow: 0.1rem 0.1rem 0.1rem hsla(0,0%,100%,.5);
-  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(280,8%,93%,1) 0.1rem, hsla(0,0%,87%,1) 100%);
-}
-
-#view-edit:active {
-  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(0,0%,87%,1) 0.1rem, hsla(280,8%,93%,1) 100%);
-}
-
-#view-list {
-  bottom: 5.5rem;
-  background: #F4F4F4;
-}
-
-#view-list > div .message-container {
-  position: relative;
-  padding: 1rem 1.5rem;
-  -moz-box-sizing: border-box;
-  display: block;
-  -moz-transition: -moz-transform 0.3s ease;
-}
-
-#view-list > div .message-bubble {
-  position: absolute;
-  top: -0.1rem;
-  width: 1rem;
-  height: 0.9rem;
-}
-
-#view-list > div .sender > .message-bubble {
-  right: -0.9rem;
-  background: url(images/bubble_gray_corner.png);
-}
-#view-list > div .receiver > .message-bubble {
-  left: -0.9rem;
-  background: url(images/bubble_orange_corner.png);
-}
-
-#view-list > div .sender {
-  border-radius: 0.5rem 0 0.5rem 0.5rem;
-  background: #FFFFFF;
-  border: 0.1rem solid #878787;
-  margin-left: 3.5rem;
-  margin-right: 2rem;
-}
-
-#view-list > div .receiver {
-  border-radius: 0 0.5rem 0.5rem 0.5rem;
-  background: #F9F8EE;
-  border: 0.1rem solid #F08A48;
-  margin-left: 2rem;
-  margin-right: 3.5rem;
-}
-
-#view-list > div .pending {
-  -moz-animation: fadeIn 2s ease;
-  opacity: 0.5;
-}
-
-@-moz-keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 0.5;
-  }
-}
-
-#view-list .photo {
-  position: absolute;
-  top: 0;
-  width: 8rem;
-  height: 8rem;
-  margin: 0.8rem;
-  border-radius: 0.5rem;
-  box-shadow: inset 0 0.1rem 0 #ddd, 0 0.1rem 0 #999;
-  overflow: hidden;
-  background-color: #ccc;
-  z-index: 2;
-}
-
-#view-list > div.sender .photo {
-  left: 0;
-}
-
-#view-list > div.receiver .photo {
-  right: 0;
-}
-
-#view-list .photo img {
-  width: 100%;
-}
-
-#view-list > div .text {
-  color: #000000;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  word-wrap: break-word;
-}
-
-#view-list > div .time {
-  font-family: 'FontSemibold';
-  font-size: -moz-calc(6 * 0.226rem);
-  color: #5B5B5B;
-}
-
-#view-list > div .message-container::before {
-  content: '';
-  display: block;
-  width: 1rem;
-  height: 0.9rem;
-  position: absolute;
-}
-
-#view-list > div .sender::before {
-  background: url(images/bubble_gray_corner-png);
-  right: 0.1rem;
-}
-
-#view-list > div .receiver::before {
-  background: url(images/bubble_orange_corner-png);
-  left: -0.1rem;
-}
-
-#view-list > div.message-block {
-  -moz-box-sizing: border-box;
-  display: block;
-  text-decoration: none;
-  outline: none;
-  position: relative;
-  overflow: hidden;
-  padding: 0.5rem 0 0.5rem 9rem;
-  width: -moz-calc(100% + 9rem);
-  right: 9rem;
-}
-
-#view-list > div.message-block > * {
-  pointer-events: none;
-}
-
-#view-list > div.message-block:first-child {
-  border-top-color: transparent;
-}
-
-/* fake input boxes for checkboxes*/
-.fake-checkbox {
-  display: block;
-  -moz-transform: translateX(4rem);
-  -moz-transition: -moz-transform 0.3s ease;
-  width: 4rem;
-  height: 4rem;
-  position: absolute;
-  left: auto;
-  right: 0;
-  top: 50%;
-  z-index: 5;
-  margin-top: -2rem;
-  pointer-events: all!important;
-}
-
-.fake-checkbox input {
-  width: 100%;
-  height: 100%;
-  display: block;
-  margin: 0;
-  border: none;
-  opacity: 0;
-}
-.fake-checkbox span {
-  background: url(images/check-delete.png) no-repeat center top;
-  background-size: 100% auto;
-  width: 2.2rem;
-  height: 2.2rem;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: -1.1rem 0 0 -1.1rem;
-  pointer-events: none;
-}
-.fake-checkbox input:checked + span {
-  background-position: center bottom;
-}
-
-#view-list div.message-block > span {
-  position: absolute;
-  top: -moz-calc(50% - 3.4rem);
-  left: 2rem;
-  display: block;
-  width: 6.4rem;
-  height: 6.4rem;
-  border: none;
-}
-
-
-#view-list div.message-block > span {
-  position: absolute;
-  top: -moz-calc(50% - 3.4rem);
-  left: 2rem;
-  display: block;
-  width: 6.4rem;
-  height: 6.4rem;
-  border: none;
-}
-
-#view-list div.message-block > input[type=checkbox] + span {
-  width: 6rem;
-  height: 6rem;
-  border: 0.4rem solid;
-  border-radius: 0.5rem;
-  -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-left-colors: #c3c9cb #c3c9cb #fff #fff;
-  background: -moz-linear-gradient(#eaeae4, #ffffff);
-}
-
-#view-list div.message-block > input[type=checkbox]:checked + span {
-  background: url("./images/checked.png") no-repeat scroll center center,
-  -moz-linear-gradient(#ffffff, #eaeae4);
-}
-/** end fake checkboxes **/
-
-
-#view-bottom-toolbar {
-  background: rgba(0,0,0,.7);
-  height: 5.5rem;
-}
-
-#view-bottom-toolbar-panel {
-  padding: 0;
-  margin: 0;
-  height: 100%;
-  width: 100%;
-  display: table;
-  border-spacing: .5rem 1rem;
-  table-layout: fixed;
-}
-
-.view-bottom-toolbar-element {
-  display: table-cell;
-}
-
-.view-bottom-toolbar-button {
-  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%);
-  vertical-align: middle;
-  text-align: center;
-  font-size: -moz-calc(7 * 0.226rem);
-  color: #ffffff;
-  display: table-cell;
-}
-
-#view-msg-send {
-  width: 7rem;
-  text-align: center;
-  vertical-align: middle;
-  font-size: -moz-calc(7 * 0.226rem);
-  color: white;
-  cursor: pointer;
-}
-
-#view-msg-text {
-  height: 3rem;
-  width: 100%;
-  padding: 0.4rem 0.8rem;
-  margin: 0 !important;
-  -moz-box-sizing: border-box;
-  resize: none;
-  overflow: hidden;
-  font-size: -moz-calc(7 * 0.226rem);
-  font-family: 'FontRegular';
-  border-radius: 0.3rem;
-  border: 1px solid rgba(0,0,0,.3);
-  box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
-}
-
-#view-msg-send {
-  margin: 1.4rem 0 0 1.6rem;
-  min-width: 7rem;
-}
-
-
-/* localization */
-body.hidden *[data-l10n-id] {
-  visibility: hidden;
-}
-
-.groupHeader {
+#thread-list-container h2 {
+  text-align: left;
   border-bottom: solid 1px #ff4e00;
   padding-left: 3rem;
   padding-top: 1rem;
   font-size: -moz-calc(6 * 0.226rem);
   color: #ff4e00;
   text-transform: uppercase;
-  font-family: 'FontRegular';
+  font-family: 'Open Sans';
 }
 
-#view-list .groupHeader {
-  margin-bottom: 0.5rem;
+
+/*
+  Messages Style as 'bubbles'
+*/
+
+#messages-container h2 {
+  text-align: left;
+  padding-left: 3rem;
+  padding-top: 1rem;
+  padding-bottom: .5rem;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #666666;
+  text-transform: uppercase;
+  font-family: 'Open Sans';
 }
 
-/** This is a temporary code for demo **/
-#view-delete-button #view-delete-all-button #msg-delete-all-button #msg-delete-button {
+#messages-container {
+  text-align: left;
+}
+
+#messages-container > div:last-child {
+  margin-bottom: 7rem;
+}
+
+.message-block {
+  display: table;
+  table-layout: fixed; 
+  width: 100%;
+  margin-bottom:1rem;
+}
+
+.message-block .bubble-container {
+  display: table-cell;
+}
+
+.message-block .bubble-container .bubble{
+  max-width: 23rem;
+  word-wrap:break-word;
+  display: inline-block;
+  position: relative;
+  padding: 1rem 1.5rem;
+  -moz-box-sizing: border-box;
+}
+
+.message-option {
+  width: 3.5rem;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+.message-option .gif{
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: 0 auto;
+}
+
+.msg-checkbox {
   display: none;
+}
+
+.message-option input {
+  width: 100%;
+  height: 4rem;
+  position: relative;
+  opacity: 0;
+  margin-top: -2rem;
+
+}
+.message-option span {
+  display: block;
+  position: relative;
+  margin-top: -4rem;
+  pointer-events: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  left: .5rem;
+  top: .9rem; 
+  background-image: url('images/check-delete.png'); 
+}
+.message-option  input:checked + span {
+  background-position: center bottom;
+}
+
+.sent {
+  text-align: right;
+}
+
+.sent .bubble{
+  margin-right: 1.4rem;
+  background: white;
+  border: .1rem solid #969FA0;
+  box-shadow: 0 0.1rem 0.1rem #4F595B;
+  border-radius: .5rem;
+  text-align: left;
+}
+
+.sent .bubble:after {
+  content: '';
+  width: .9rem;
+  height: 1rem;
+  background-image: url('images/outgoing_9x10.png');
+  position: absolute;
+  right: 0;
+  margin-right: -0.9rem;
+  top: .9rem;
+}
+
+.received .bubble{
+  margin-left: 1.4rem;
+  background: #FBEAE0;
+  border: .1rem solid #FF4E00;
+  box-shadow: 0 0.1rem 0.1rem #F1AF84;
+  border-radius: .5rem;
+  text-align: left;
+}
+
+.received .bubble:after {
+  content: '';
+  width: .9rem;
+  height: 1rem;
+  background-image: url('images/incoming_9x10.png');
+  position: absolute;
+  left: 0;
+  margin-left: -0.9rem;
+  top: 1rem;
+}
+
+/*
+  Edit mode bar
+*/
+
+.options {
+  height: 6.5rem;
+  background: rgba(0,0,0,.85);
+  bottom: -6.5rem;
+  width: 100%;
+  position: absolute;
+  transition:bottom .15s ease-in;
+  -moz-transition: bottom .15s ease-in;
+}
+
+.option {
+  width: 50%;
+  height: 100%;
+  float: left;
+  padding: 1.5rem .5rem 1.5rem 1.5rem;
+  -moz-box-sizing: border-box;
+
+}
+
+.option:last-child {
+  padding: 1.5rem 1.5rem 1.5rem .5rem;
+}
+
+.edit-button {
+  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
+  height: 100%;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  font-family: 'Open Sans';
+  font-weight: 600;
+  font-size: -moz-calc(7 * 0.226rem);
+  color: white;
+}
+
+/*
+  Bottom bar for sending SMS
+*/
+
+.new-sms-form {
+  height: 3rem;
+  bottom: 0rem;
+  width: 100%;
+  position: absolute;
+  transition:bottom .15s ease-in;
+  -moz-transition: bottom .15s ease-in;
+}
+
+.new-sms-form {
+  border-top: .1rem solid #C6C6C6;
+  background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
+  height: 3.5rem;
+}
+
+#message-to-send {
+  margin-top: .5rem;
+  margin-bottom: .5rem;
+  margin-left: 1.5rem;
+  height: 2.5rem;
+  line-height: 2rem;
+  max-height: 10rem;
+  width: -moz-calc(100% - 9.5rem);
+  -moz-box-sizing: border-box;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(0,0,0,.3);
+  box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
+  font-size: -moz-calc(7 * 0.226rem);
+  font-family: 'Open Sans';
+}
+
+#send-message-container {
+  height: 100%;
+  width: 6rem;
+  float: right;
+}
+
+#send-message {
+  position: absolute;
+  height: 3rem;
+  width: 6rem;
+  right:0;
+  bottom:0;
+  margin-bottom: 0.5rem;
 }
 

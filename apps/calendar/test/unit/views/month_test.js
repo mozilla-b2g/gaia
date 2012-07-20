@@ -1,8 +1,7 @@
 requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
-  requireApp('calendar/js/ext/gesture_detector.js');
-  requireCalendarController();
+  require('/shared/js/gesture_detector.js');
   requireApp('calendar/js/templates/month.js');
   requireApp('calendar/js/views/month_child.js');
   requireApp('calendar/js/views/month.js');
@@ -10,6 +9,7 @@ requireApp('calendar/test/unit/helper.js', function() {
 
 suite('views/month', function() {
   var subject,
+      app,
       controller,
       busytimes;
 
@@ -37,12 +37,12 @@ suite('views/month', function() {
 
     document.body.appendChild(div);
 
-    controller = createController();
-
-    busytimes = controller.busytime;
+    app = testSupport.calendar.app();
+    controller = app.timeController;
+    busytimes = app.store('Busytime');
 
     subject = new Calendar.Views.Month({
-      controller: controller,
+      app: app,
       monthSelector: '#test .monthView',
       currentMonthSelector: '#test .monthHeader'
     });

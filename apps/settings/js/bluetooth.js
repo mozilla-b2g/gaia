@@ -3,21 +3,50 @@
 
 'use strict';
 
-window.addEventListener('DOMContentLoaded', function bluetoothSettings(evt) {
-  var gBluetoothManager = navigator.mozBluetooth;
+// create a fake mozBluetooth if required (e.g. desktop browser)
+var gBluetooth = (function(window) {
+  var navigator = window.navigator;
+  if (('mozBluetooth' in navigator) && navigator.mozBluetooth)
+    return navigator.mozBluetooth;
 
-  var gBluetoothPowerStatus = document.querySelector('#bluetooth-status small');
+  var enabled = false;
+  return {
+    get enabled() {
+      return enabled;
+    },
+    setEnabled: function(value) {
+      enabled = value;
+      return { // fake DOM request
+        set onsuccess(callback) { setTimeout(callback, 500); },
+        set onerror(callback) {}
+      };
+    }
+  };
+})(this);
 
+// handle BlueTooth settings
+window.addEventListener('localized', function bluetoothSettings(evt) {
+  var _ = navigator.mozL10n.get;
   var settings = window.navigator.mozSettings;
+  var infoBlock = document.querySelector('#bluetooth-status small');
+
+  // display Bluetooth power state
+  function updatePowerState(error) {
+    if (error) {
+      infoBlock.textContent = _('error');
+    } else {
+      infoBlock.textContent = gBluetooth.enabled ? _('enabled') : _('disabled');
+    }
+  }
+
+  // enable Bluetooth if the related settings says so
+  // XXX this should rather be done in `System' than in `Settings'...
   if (settings) {
     var req = settings.getLock().get('bluetooth.enabled');
-    req.onsuccess = function bt_EnabledSuccess() {
-      var bluetooth = window.navigator.mozBluetooth;
-      if (!bluetooth)
-        return;
 
+    req.onsuccess = function bt_EnabledSuccess() {
       var enabled = req.result['bluetooth.enabled'];
-      bluetooth.setEnabled(enabled);
+      gBluetooth.setEnabled(enabled);
       document.querySelector('#bluetooth-status input').checked = enabled;
     };
 
@@ -26,28 +55,27 @@ window.addEventListener('DOMContentLoaded', function bluetoothSettings(evt) {
     };
   }
 
+  // update BT description and setting
   function changeBT() {
-    var req = gBluetoothManager.setEnabled(this.checked);
+    infoBlock.textContent = '';
+    var req = gBluetooth.setEnabled(this.checked);
 
     req.onsuccess = function bt_enabledSuccess() {
-      if (gBluetoothManager.enabled) {
-        gBluetoothPowerStatus.textContent = 'Enabled';
-      } else {
-        gBluetoothPowerStatus.textContent = 'Disabled';
-      }
-
-      var settings = window.navigator.mozSettings;
+      updatePowerState();
       if (settings) {
         settings.getLock().set({
-          'bluetooth.enabled': gBluetoothManager.enabled
+          'bluetooth.enabled': gBluetooth.enabled
         });
       }
     };
 
     req.onerror = function bt_enabledError() {
-      gBluetoothPowerStatus.textContent = 'Error';
+      updatePowerState(true);
     };
   };
 
+  // activate main button
   document.querySelector('#bluetooth-status input').onchange = changeBT;
+  updatePowerState();
 });
+
