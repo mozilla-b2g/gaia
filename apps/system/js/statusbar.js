@@ -21,7 +21,7 @@ var StatusBar = {
     var settings = {
       'ril.radio.disabled': ['signal', 'data'],
       'ril.data.enabled': ['data'],
-      'wifi.enabled': ['wifi', 'data'],
+      'wifi.enabled': ['wifi'],
       'bluetooth.enabled': ['bluetooth'],
       'tethering.usb.enabled': ['tethering'],
       'tethering.wifi.enabled': ['tethering'],
@@ -187,7 +187,8 @@ var StatusBar = {
       var data = conn.data;
       var icon = this.icons.data;
 
-      if (!this.settingValues['ril.data.enabled'] ||
+      if (this.settingValues['ril.radio.disabled'] ||
+          !this.settingValues['ril.data.enabled'] ||
           this.wifiConnected || !data.connected) {
         icon.hidden = true;
 
@@ -250,16 +251,23 @@ var StatusBar = {
       if (!this.settingValues['wifi.enabled']) {
         icon.hidden = true;
 
+        var updateData = this.wifiConnected;
+        this.wifiConnected = false;
+        if (updateData)
+          this.update.data.call(this);
+
         return;
       }
 
-      var network = wifiManager.connection.network;
-      this.wifiConnected = !!network;
+      var connected = !!wifiManager.connection.network;
+      var updateData = (this.wifiConnected !== connected);
+
+      this.wifiConnected = connected;
+      if (updateData)
+        this.update.data.call(this);
 
       if (!this.wifiConnected) {
         icon.hidden = true;
-        this.update.data.call(this);
-
         return;
       }
 
