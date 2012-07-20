@@ -186,18 +186,30 @@
     },
 
     dispatch: function(data) {
+      var provider;
+      var autoSubmit;
       var params = data.params;
-      var self = this;
 
       if (params.id) {
-        self.model = this._updateModel(params.id);
+        this.model = this._updateModel(params.id);
         this.completeUrl = '/settings/';
       } else if (params.preset) {
-        self.model = this._createModel(params.preset);
+        this.model = this._createModel(params.preset);
         this.completeUrl = '/settings/';
       }
 
-      self.render();
+      if (this.model.hasOwnProperty('provider')) {
+        provider = this.model.provider;
+        autoSubmit = !provider.useCredentials && !provider.useUrl;
+      }
+
+      // when provider requires no credentials
+      // auto submit form (which will also redirect)
+      if (provider && autoSubmit) {
+        this.save();
+      } else {
+        this.render();
+      }
     }
 
   };
