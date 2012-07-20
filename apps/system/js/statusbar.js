@@ -18,9 +18,6 @@ var StatusBar = {
   init: function sb_init() {
     this.getAllElements();
 
-    window.addEventListener('screenchange', this);
-    this.setActive(true);
-
     var settings = {
       'ril.radio.disabled': ['signal', 'data'],
       'ril.data.enabled': ['data'],
@@ -47,8 +44,12 @@ var StatusBar = {
             );
           }
         );
+        self.settingValues[settingKey] = false;
       })(settingKey);
     }
+
+    window.addEventListener('screenchange', this);
+    this.setActive(true);
   },
 
   handleEvent: function sb_handleEvent(evt) {
