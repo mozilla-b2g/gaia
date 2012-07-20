@@ -334,7 +334,7 @@ body.player-mode #views-player {
 }
 
 #views-sublist-header-album,
-#views-sublist-header-contorls {
+#views-sublist-header-controls {
   position: relative;
   float: left;
 }
@@ -346,7 +346,7 @@ body.player-mode #views-player {
   background-image: -moz-radial-gradient(50% 50%, ellipse farthest-corner, rgba(255, 255, 255, 1) 0%, rgba(0, 0, 0, 0.4) 100%);
 }
 
-#views-sublist-header-default-image {
+#views-sublist-header-default {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -376,13 +376,13 @@ body.player-mode #views-player {
   text-overflow: ellipsis;
 }
 
-#views-sublist-header-contorls {
+#views-sublist-header-controls {
   width: -moz-calc(100% - 8em);
   height: 8em;
 }
 
-#views-sublist-contorls-play,
-#views-sublist-contorls-shuffle {
+#views-sublist-controls-play,
+#views-sublist-controls-shuffle {
   position:relative;
   float: left;
   width: 50%;
@@ -390,19 +390,22 @@ body.player-mode #views-player {
   height: -moz-calc(100% - 2em);
 }
 
-.album-contorls-button {
+.album-controls-button {
   background: -moz-linear-gradient(center top , #00ADEE, #0078A5) repeat scroll 0 0 transparent;
   border: 1px solid #0076A3;
   color: #D9EEF7;
 }
-.album-contorls-button:hover {
+
+.album-controls-button:hover {
   background: -moz-linear-gradient(center top , #0095CC, #00678E) repeat scroll 0 0 transparent;
 }
-.album-contorls-button:active {
+
+.album-controls-button:active {
   background: -moz-linear-gradient(center top , #0078A5, #00ADEE) repeat scroll 0 0 transparent;
   color: #80BED6;
 }
-.album-contorls-button:disabled {
+
+.album-controls-button:disabled {
   opacity: 0.3;
 }
 

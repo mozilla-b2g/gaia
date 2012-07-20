@@ -29,7 +29,8 @@ var metadataParser = (function() {
         metadata.picture = tags.picture;
 
         callback(metadata);
-      }, {tags: ['album', 'artist', 'title', 'picture'],
+      }, {
+        tags: ['album', 'artist', 'title', 'picture'],
         dataReader: FileAPIReader(file)
       });
 

@@ -40,6 +40,7 @@ function formatTime(secs) {
 // IMG(child) - position: absolute;
 function cropImage(evt) {
   var image = evt.target;
+  var style = image.style;
 
   var parentWidth = image.parentElement.clientWidth;
   var parentHeight = image.parentElement.clientHeight;
@@ -48,15 +49,15 @@ function cropImage(evt) {
   var parentRatio = parentWidth / parentHeight;
 
   if (childRatio > parentRatio) {
-    image.style.width = 'auto';
-    image.style.height = parentHeight + 'px';
+    style.width = 'auto';
+    style.height = parentHeight + 'px';
 
-    image.style.left = -(parentHeight * childRatio - parentWidth) / 2 + 'px';
+    style.left = -(parentHeight * childRatio - parentWidth) / 2 + 'px';
   } else {
-    image.style.width = parentWidth + 'px';
-    image.style.height = 'auto';
+    style.width = parentWidth + 'px';
+    style.height = 'auto';
 
-    image.style.top = -(parentWidth / childRatio - parentHeight) / 2 + 'px';
+    style.top = -(parentWidth / childRatio - parentHeight) / 2 + 'px';
   }
 }
 

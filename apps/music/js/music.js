@@ -203,6 +203,14 @@ var ListView = {
     this.view.scrollTop = 0;
   },
 
+  setItemImage: function lv_setItemImage(item, image) {
+    // Set source to image and crop it to be fitted when it's onloded
+    if (image) {
+      item.addEventListener('load', cropImage);
+      item.src = createBase64URL(image);
+    }
+  },
+
   update: function lv_update(option, result) {
     if (result === null)
       return;
@@ -229,6 +237,9 @@ var ListView = {
 
     parent.appendChild(div);
     parent.appendChild(img);
+
+    var image = result.metadata.picture;
+    this.setItemImage(img, image);
 
     switch (option) {
       case 'album':
@@ -274,16 +285,6 @@ var ListView = {
 
     this.view.appendChild(li);
 
-    // Set source to image and crop it to be fitted when it's onloded
-    var image = result.metadata.picture;
-    if (image) {
-      img.onload = function(evt) {
-        cropImage(evt);
-      }.bind(this);
-
-      img.src = createBase64URL(image);
-    }
-
     this.index++;
   },
 
@@ -309,6 +310,8 @@ var ListView = {
             SubListView.setAlbumName(data.metadata.artist);
           } else if (option === 'album') {
             SubListView.setAlbumName(data.metadata.album);
+          } else {
+            SubListView.setAlbumName(data.metadata.title);
           }
 
           var keyRange = (target.dataset.keyRange != 'all') ?
@@ -370,11 +373,12 @@ var SubListView = {
     // Set source to image and crop it to be fitted when it's onloded
     this.albumImage.src = url;
     this.albumImage.classList.remove('fadeIn');
+    this.albumImage.addEventListener('load', slv_showImage.bind(this));
 
-    this.albumImage.onload = function(evt) {
+    function slv_showImage(evt) {
       cropImage(evt);
       this.albumImage.classList.add('fadeIn');
-    }.bind(this);
+    };
   },
 
   setAlbumName: function slv_setAlbumName(name) {
@@ -518,6 +522,23 @@ var PlayerView = {
     );
   },
 
+  setCoverImage: function pv_setCoverImage(image) {
+    // Reset the image to be ready for fade-in
+    this.coverImage.src = '';
+    this.coverImage.classList.remove('fadeIn');
+
+    // Set source to image and crop it to be fitted when it's onloded
+    if (image) {
+      this.coverImage.src = createBase64URL(image);
+      this.coverImage.addEventListener('load', pv_showImage.bind(this));
+    }
+
+    function pv_showImage(evt) {
+      cropImage(evt);
+      this.coverImage.classList.add('fadeIn');
+    };
+  },
+
   play: function pv_play(target) {
     this.isPlaying = true;
 
@@ -526,6 +547,7 @@ var PlayerView = {
     if (target) {
       var targetIndex = parseInt(target.dataset.index);
       var songData = this.dataSource[targetIndex];
+      var image = songData.metadata.picture;
 
       TitleBar.changeTitleText((songData.metadata.title) ?
         songData.metadata.title : navigator.mozL10n.get('unknownTitle'));
@@ -535,21 +557,7 @@ var PlayerView = {
         songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
       this.currentIndex = targetIndex;
 
-      // Reset the image to be ready for fade-in
-      this.coverImage.src = '';
-      this.coverImage.classList.remove('fadeIn');
-
-      // Set source to image and crop it to be fitted when it's onloded
-      var image = songData.metadata.picture;
-      if (image) {
-        this.coverImage.onload = function(evt) {
-          cropImage(evt);
-
-          this.coverImage.classList.add('fadeIn');
-        }.bind(this);
-
-        this.coverImage.src = createBase64URL(image);
-      }
+      this.setCoverImage(image);
 
       musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
         // On B2G devices, file.type of mp3 format is missing
