@@ -338,6 +338,12 @@ var AlarmManager = {
     } else {
       nextAlarmFireTime = getNextAlarmFireTime(alarm);
     }
+    //=================================
+    var protocol = window.location.protocol;
+    var host = window.location.host;
+    window.open(protocol + '//' + host + '/onring.html',
+                'ring_screen', 'attention');
+    return;
     var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
                   { id: alarm.id }); // give the alarm id for the request
     request.onsuccess = function(e) {

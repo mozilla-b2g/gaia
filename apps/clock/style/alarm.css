@@ -16,7 +16,8 @@ header {
 }
 
 /* ------------- Button ------------- */
-a.button, span.button, p.button {
+/*a.button, span.button, p.button {*/
+a.button, span.button {
   margin: 0.4rem;
   padding: 1.2rem 1.2rem 1rem 1.2rem;
   border: 0.4rem solid;
