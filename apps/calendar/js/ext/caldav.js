@@ -72,22 +72,6 @@ function SAXParser (strict, opt) {
   emit(parser, "onready")
 }
 
-if (!Object.create) Object.create = function (o) {
-  function f () { this.__proto__ = o }
-  f.prototype = o
-  return new f
-}
-
-if (!Object.getPrototypeOf) Object.getPrototypeOf = function (o) {
-  return o.__proto__
-}
-
-if (!Object.keys) Object.keys = function (o) {
-  var a = []
-  for (var i in o) if (o.hasOwnProperty(i)) a.push(i)
-  return a
-}
-
 function checkBufferLength (parser) {
   var maxAllowed = Math.max(sax.MAX_BUFFER_LENGTH, 10)
     , maxActual = 0
