@@ -57,6 +57,26 @@ p {
   display: block;
 }
 
+/* view loading */
+
+.during-progress {
+  display: none;
+}
+
+#views .in-progress .during-progress {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  z-index: 100;
+  background-color: #CCC;
+  opacity: 0.5;
+  text-align: center;
+}
+
+
 /* view heights */
 
 #month-view {

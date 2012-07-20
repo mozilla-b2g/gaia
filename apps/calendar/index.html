@@ -19,6 +19,7 @@
 
   <!--- vendor -->
   <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ext/caldav.js" type="text/javascript" charset="utf-8"></script>
 
   <!-- lib root must load before anything else --!>
   <script defer src="/js/calendar.js" type="text/javascript" charset="utf-8"></script>
@@ -44,7 +45,9 @@
   <!--- providers -->
   <script defer src="/js/provider/calendar/abstract.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/provider/calendar/local.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/calendar/caldav.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/provider/local.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/caldav.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- store -->
   <script defer src="/js/store/abstract.js" type="text/javascript" charset="utf-8"></script>
@@ -165,7 +168,7 @@
     </ol>
   </section>
 
-  <section class="fullscreen-view" id="advanced-settings-view">
+  <section class="fullscreen-view in-progress" id="advanced-settings-view">
     <header>
       <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
       <a class="done-icon"
@@ -191,7 +194,7 @@
         Back
       </a>
       <h1 data-l10n-id="account-header">Account</h1>
-      <a class="save-icon" data-l10n-id="save" href="#">Save</a>
+      <a class="save-icon" data-l10n-id="save">Save</a>
     </header>
     <div class="errors"></div>
     <form>
@@ -209,6 +212,8 @@
         </ol>
       </fieldset>
     </form>
+    <div class="during-progress">
+    </div>
   </section>
 
   <!---

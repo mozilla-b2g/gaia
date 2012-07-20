@@ -51,20 +51,32 @@
     /**
      * password for authentication
      */
-    passsword: '',
+    password: '',
 
     get fullUrl() {
       return this.domain + this.url;
     },
 
     set fullUrl(value) {
-      var idx = value.indexOf('/');
-      if (idx !== -1) {
-        this.domain = value.substr(0, idx);
-        this.url = value.substr(idx);
-      } else {
-        this.domain = value;
-        this.url = '/';
+      var protocolIdx = value.indexOf('://');
+
+      this.domain = value;
+      this.url = '/';
+
+      if (protocolIdx !== -1) {
+        protocolIdx += 3;
+        // next chunk
+        var domainChunk = value.substr(protocolIdx);
+        var pathIdx = domainChunk.indexOf('/');
+
+
+        if (pathIdx !== -1) {
+          pathIdx = pathIdx + protocolIdx;
+
+          this.url = value.substr(pathIdx);
+          this.domain = value.substr(0, pathIdx);
+        }
+
       }
     },
 
@@ -83,7 +95,7 @@
 
       if (provider.useCredentials) {
         provider.user = this.user;
-        provider.passsword = this.passsword;
+        provider.password = this.password;
       }
     },
 
@@ -96,9 +108,7 @@
     setup: function(callback) {
       var self = this;
 
-      if (!this.provider) {
-        self._setupProvider();
-      }
+      self._setupProvider();
 
       this.provider.setupConnection(function(err, data) {
         if (err) {
