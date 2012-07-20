@@ -290,6 +290,11 @@
   font-weight: 600;
 }
 
+/* TODO: waiting for the real unread visual */
+.sb-icon-notification[data-unread="true"]::after {
+  font-weight: 900;
+}
+
 .sb-icon-sms {
   background-position: -147px -60px;
   position: relative;
