@@ -24,6 +24,7 @@ var Browser = {
   DEFAULT_FAVICON: 'style/images/favicon.png',
 
   urlButtonMode: null,
+  inTransition: false,
 
   init: function browser_init() {
     // Assign UI elements to variables
@@ -103,6 +104,9 @@ var Browser = {
   // Clicking the page preview on the left gutter of the tab page opens
   // that page
   handlePageScreenClicked: function browser_handlePageScreenClicked(e) {
+    if (this.inTransition) {
+      return;
+    }
     if (this.currentScreen === this.TABS_SCREEN) {
       this.showPageScreen();
     }
@@ -124,8 +128,12 @@ var Browser = {
 
   // Tabs badge is the button at the top left, used to show the number of tabs
   // and to create new ones
-  handleTabsBadgeClicked: function browser_handleTabsBadgeClicked() {
+  handleTabsBadgeClicked: function browser_handleTabsBadgeClicked(e) {
+    if (this.inTransition) {
+      return;
+    }
     if (this.currentScreen === this.TABS_SCREEN) {
+      this.inTransition = true;
       var tabId = this.createTab();
       this.showNewTabAnimation((function browser_showNewTabAnimation() {
         this.selectTab(tabId);
@@ -839,6 +847,7 @@ var Browser = {
     this.urlInput.focus();
     this.setUrlButtonMode(this.GO);
     this.tabsBadge.innerHTML = '';
+    this.inTransition = false;
     this.switchScreen(this.AWESOME_SCREEN);
     this.tabCover.style.display = 'none';
     this.showTopSitesTab();
@@ -875,6 +884,7 @@ var Browser = {
     this.switchScreen(this.PAGE_SCREEN);
     this.urlInput.value = this.currentTab.title || this.currentTab.url;
     this.updateTabsCount();
+    this.inTransition = false;
   },
 
   showTabScreen: function browser_showTabScreen() {
@@ -916,6 +926,7 @@ var Browser = {
     this.switchScreen(this.TABS_SCREEN);
     this.screenSwipeMngr.gestureDetector.startDetecting();
     new GestureDetector(ul).startDetecting();
+    this.inTransition = false;
   },
 
   screenSwipeMngr: {
@@ -985,7 +996,7 @@ var Browser = {
       this.containerWidth = this.tab.parentNode.clientWidth;
       // We cant delete the last tab
       this.deleteable = Object.keys(this.browser.tabs).length > 1;
-      if (!this.deleteable) {
+      if (!this.deleteable || this.browser.inTransition) {
         return;
       }
       this.tab.classList.add('active');
@@ -995,7 +1006,7 @@ var Browser = {
     },
 
     pan: function tabSwipe_pan(e) {
-      if (!this.deleteable) {
+      if (!this.deleteable || this.browser.inTransition) {
         return;
       }
       var movement = Math.min(this.containerWidth,
@@ -1007,12 +1018,15 @@ var Browser = {
     },
 
     tap: function tabSwipe_tap() {
+      if (this.browser.inTransition) {
+        return;
+      }
       this.browser.selectTab(this.id);
       this.browser.showPageScreen();
     },
 
     swipe: function tabSwipe_swipe(e) {
-      if (!this.deleteable) {
+      if (!this.deleteable || this.browser.inTransition) {
         return;
       }
 
