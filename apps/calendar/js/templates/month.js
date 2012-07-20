@@ -1,7 +1,4 @@
 (function(window) {
-  if (typeof(Calendar.Templates) === 'undefined') {
-    Calendar.Templates = {};
-  }
 
   var Month = Calendar.Template.create({
     busy: '<span class="{value}">&nbsp;</span>',
@@ -46,6 +43,6 @@
     ].join('')
   });
 
-  Calendar.Templates.Month = Month;
+  Calendar.ns('Templates').Month = Month;
 
 }(this));

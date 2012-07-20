@@ -356,78 +356,110 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=761936
       // WebGL texture sharing:
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=728524
+      // w->mApp Assertion
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775576
+      // Gallery App crash (in IndexedDB)
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775591
+      // Electrolysize b2g-bluetooth
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=755943
+      // VolumeService doesn't work when called OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775833
 
-      //'Browser',
-      //   Cross-process IME
-      //   Nested content processes
+      'Calculator',
+      'Calendar',
 
-      'Calculator'
-
+      //=== Test === ICS ===
       //'Camera',
       //   Cross-process camera control
       //   Cross-process preview stream
 
       //'Clock',
-      //   Cross-process IME (to program alarm)
+      //  - OOP - asserts on w->mApp (bug 775576)
+
+      'Contacts',
 
       //'CrystalSkull',
+      // - Doesn't crash when run OOP
       //   WebGL texture sharing (for full perf)
 
       //'CubeVid',
+      // - Doesn't crash when run OOP, but audio is extremely choppy
       //   Stop audio when app dies
       //   WebGL texture sharing (for full perf)
 
+      //=== Test ===
       //'Cut The Rope',
+      // - Doesn't seem to work when non-OOP so didn't test OOP
+      // - couldn't test OOP - since wifi wasn't working
       //   Mouse click not delivered
       //   Stop audio when app dies
 
+      'Dev Marketplace',
+
+      //=== Test ===
       //'Dialer',
-      //   Crash when placing call
-      //   ...
+      //   Crashes when launching
+
+      'E-Mail',
+      // - works OOP with Fake account
+
+      'FM Radio',
+
+      'Galactians2',  // Install from Dev Marketplace
 
       //'Gallery',
-      //   Cross-process MediaStorage
+      // - When run OOP, doesn't detect any photos or crashes (bug 775591)
+      // - When run OOP, VolumeService dies - bug 775833
 
-      //'Keyboard'
-      //   Cross-process IME
+      'Homescreen',
+      'Keyboard',
 
-      //'Market',
+      //'Marketplace',
+      // - When run OOP - After trying to Login/Register, got white screen
+      // - When run OOP - Sometimes get w->mApp assert (bug 775576)
       //   Cross-process IME
       //   Cross-process mozApps
 
+      //=== Test ===
       //'Messages',
-      //   Cross-process IME
+      //   - crashes when launched OOP on otoro
 
       //'Music',
-      //   Cross-process MediaStorage
-      //   Stop audio when app dies
+      // - When run OOP, VolumeService dies - bug 775833
 
-      //'PenguinPop',
-      //   Mouse click not delivered
-      //   Stop audio when app dies
+      'PenguinPop',
 
       //'Settings',
-      //   Cross-process IME
-      //   Cross-process settings
+      // Most of settings seems to work OOP.
+      // However, apprarently bluetooth doesn't - 755943
 
-      //'Tasks',
-      //   Cross-process IME
+      //=== Test ===
+      //'Staging Marketplace',
+      // - When run OOP - After trying to Login/Register, got white screen
+      // - Works ok when run non-OOP
 
-      //'Template',
-      //   Run this in or out of process, depending on what you want
-      //   to test.
+      //'System',
 
-      //'TowerJelly',
-      //   Mouse click not delivered
+      'Tasks',
+      'Template',
+      'Test Agent',
+      'TowerJelly'
 
+      //'UI tests',
+      // some stuff works, some doesn't when OOP
+
+      //=== Test === ICS ===
       //'Video',
-      //   Cross-process fullscreen
-      //   Cross-process MediaStorage
+      //   OOP - Assertion failure: w->mApp,
+      //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
       //   Stop audio when app dies
     ];
     if (outOfProcessWhitelist.indexOf(name) >= 0) {
       // FIXME: content shouldn't control this directly
       frame.setAttribute('remote', 'true');
+      console.info('%%%%% Launching', name, 'as remote (OOP)');
+    } else {
+      console.info('%%%%% Launching', name, 'as local');
     }
 
     // Add the iframe to the document
@@ -552,11 +584,7 @@ var WindowManager = (function() {
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
-        // TODO: handle the inline disposition
-        if (e.detail.disposition) {
-          setDisplayedApp(origin);
-        }
-
+        setDisplayedApp(origin);
         break;
     }
   });
@@ -642,9 +670,13 @@ var WindowManager = (function() {
   });
 
   // When a resize event occurs, resize the running app, if there is one
-  window.addEventListener('resize', function() {
-    if (displayedApp)
-      setAppSize(displayedApp);
+  // When the status bar is active it doubles in height so we need a resize
+  var appResizeEvents = ['resize', 'status-active', 'status-inactive'];
+  appResizeEvents.forEach(function eventIterator(event) {
+    window.addEventListener(event, function() {
+      if (displayedApp)
+        setAppSize(displayedApp);
+    });
   });
 
   // Listen for the Back button.  We need both a capturing listener

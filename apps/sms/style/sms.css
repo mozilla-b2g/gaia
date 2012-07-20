@@ -532,6 +532,8 @@ a.unread .unread-mark .icon-unread-mark {
   margin-bottom: .5rem;
   margin-left: 1.5rem;
   height: 2.5rem;
+  line-height: 2rem;
+  max-height: 10rem;
   width: -moz-calc(100% - 9.5rem);
   -moz-box-sizing: border-box;
   border-radius: 0.3rem;
@@ -541,10 +543,18 @@ a.unread .unread-mark .icon-unread-mark {
   font-family: 'Open Sans';
 }
 
-#send-message {
+#send-message-container {
   height: 100%;
   width: 6rem;
   float: right;
 }
 
+#send-message {
+  position: absolute;
+  height: 3rem;
+  width: 6rem;
+  right:0;
+  bottom:0;
+  margin-bottom: 0.5rem;
+}
 

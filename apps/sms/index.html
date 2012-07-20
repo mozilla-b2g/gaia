@@ -57,10 +57,10 @@
                 <span class="icon icon-close">close</span>
               </a>
               <menu type="toolbar">
-                 <button>done</button>
+                 <button id="thread-done-button">done</button>
               </menu>
               <h1>Edit mode</h1>
-            </header> 
+            </header>
           </div>
         </div>
         <article id="thread-list-container" class="view-body">
@@ -76,9 +76,9 @@
               Delete selected
             </button>
           </section>
-        </footer>  
+        </footer>
       </section>
-     
+
       <section id="thread-messages" class="panel">
         <div class="header-group">
           <div class="header-wrapper">
@@ -102,10 +102,10 @@
                 <span class="icon icon-close"></span>
               </a>
               <menu type="toolbar">
-                 <button>done</button>
+                 <button id="messages-done-button">done</button>
               </menu>
               <h1>Edit mode</h1>
-            </header> 
+            </header>
           </div>
         </div>
         <article id="messages-container" class="view-body">
@@ -123,8 +123,10 @@
           </section>
         </footer>
         <footer class="new-sms-form">
-          <input type="text" id="message-to-send" name="message-to-send" />
-          <button id="send-message"> SEND </button>
+          <textarea type="text" id="message-to-send" name="message-to-send"></textarea>
+          <div id="send-message-container">
+            <button id="send-message">SEND</button>
+          </div>
         </footer>
       </section>
     </article>
