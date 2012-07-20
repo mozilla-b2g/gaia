@@ -68,6 +68,7 @@ function writeContent(content) {
   stream.close();
 }
 
+// XXX Remove all the permission parts here once bug 774716 is resolved
 
 let permissions = {
   "power": {
