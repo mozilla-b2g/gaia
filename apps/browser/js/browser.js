@@ -22,6 +22,8 @@ var Browser = {
   AWESOME_SCREEN: 'awesome-screen',
 
   DEFAULT_FAVICON: 'style/images/favicon.png',
+  START_PAGE_URL: document.location.protocol + '//' + document.location.host +
+    '/start.html',
 
   urlButtonMode: null,
 
@@ -57,7 +59,7 @@ var Browser = {
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
-    this.urlButton.addEventListener('click', this.go.bind(this));
+    this.urlButton.addEventListener('click', this.handleUrlFormSubmit.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
@@ -94,7 +96,7 @@ var Browser = {
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function() {
-      this.selectTab(this.createTab());
+      this.selectTab(this.createTab(this.START_PAGE_URL));
       this.showPageScreen();
     }).bind(this));
   },
@@ -171,7 +173,7 @@ var Browser = {
         tab.loading = false;
         if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.remove('loading');
-          this.urlInput.value = tab.title || tab.url;
+          this.setUrlBar(tab.title || tab.url);
           this.setUrlButtonMode(this.REFRESH);
         }
 
@@ -186,6 +188,7 @@ var Browser = {
             if (this.currentScreen === this.TABS_SCREEN) {
               this.showTabScreen();
             }
+            Places.updateScreenshot(tab.url, tab.screenshot);
           }).bind(this);
         }
 
@@ -207,7 +210,7 @@ var Browser = {
         this.updateHistory(evt.detail);
         if (isCurrentTab) {
           if (this.currentScreen === this.PAGE_SCREEN) {
-            this.urlInput.value = tab.url;
+            this.setUrlBar(tab.url);
           }
         }
         break;
@@ -218,7 +221,7 @@ var Browser = {
           Places.setPageTitle(tab.url, tab.title);
           if (isCurrentTab && !tab.loading &&
               this.currentScreen === this.PAGE_SCREEN) {
-            this.urlInput.value = tab.title;
+            this.setUrlBar(tab.title);
           }
           // Refresh the tab screen if we are currently viewing it, for dynamic
           // or not yet loaded titles
@@ -277,7 +280,7 @@ var Browser = {
     var urlInput = this.urlInput;
     switch (evt.type) {
       case 'submit':
-        this.go(evt);
+        this.handleUrlFormSubmit(evt);
         break;
 
       case 'keyup':
@@ -328,16 +331,21 @@ var Browser = {
     this.currentTab.title = null;
     this.currentTab.url = url;
     this.currentTab.dom.setAttribute('src', url);
-    this.urlInput.value = url;
+    this.setUrlBar(url);
   },
 
-  go: function browser_go(e) {
+  handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
     if (e) {
       e.preventDefault();
     }
 
     if (this.urlButtonMode == this.REFRESH) {
-      this.navigate(this.currentTab.url);
+      this.currentTab.dom.reload(true);
+      return;
+    }
+
+    if (this.urlButtonMode == this.STOP) {
+      this.currentTab.dom.stop();
       return;
     }
 
@@ -355,7 +363,7 @@ var Browser = {
     }
 
     if (url != this.currentTab.url) {
-      this.urlInput.value = url;
+      this.setUrlBar(url);
       this.currentTab.url = url;
     }
     this.navigate(url);
@@ -419,26 +427,33 @@ var Browser = {
 
   urlFocus: function browser_urlFocus() {
     if (this.currentScreen === this.PAGE_SCREEN) {
-      this.urlInput.value = this.currentTab.url;
+      this.setUrlBar(this.currentTab.url);
       this.urlInput.select();
       this.showAwesomeScreen();
     }
   },
 
+  setUrlBar: function browser_setUrlBar(data) {
+    if (this.currentTab.url == this.START_PAGE_URL) {
+      this.urlInput.value = '';
+    } else {
+      this.urlInput.value = data;
+    }
+  },
+
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
+    if (this.currentTab.url == this.START_PAGE_URL)
+      mode = this.GO;
     this.urlButtonMode = mode;
     switch (mode) {
       case this.GO:
-        this.urlButton.src = 'style/images/go.png';
-        this.urlButton.style.display = 'block';
+        this.urlButton.style.backgroundImage = 'url(style/images/go.png)';
         break;
       case this.REFRESH:
-        this.urlButton.src = 'style/images/refresh.png';
-        this.urlButton.style.display = 'block';
+        this.urlButton.style.backgroundImage = 'url(style/images/refresh.png)';
         break;
       case this.STOP:
-        // Dont currently have a stop button
-        this.urlButton.style.display = 'none';
+        this.urlButton.style.backgroundImage = 'url(style/images/stop.png)';
         break;
     }
   },
@@ -456,7 +471,7 @@ var Browser = {
     this.deselectAwesomescreenTabs();
     this.topSitesTab.classList.add('selected');
     this.topSites.classList.add('selected');
-    Places.getTopSites(this.showTopSites.bind(this));
+    Places.getTopSites(20, this.showTopSites.bind(this));
   },
 
   showTopSites: function browser_showTopSites(topSites) {
@@ -539,7 +554,11 @@ var Browser = {
     entry.setAttribute('role', 'listitem');
     link.href = data.uri;
     title.textContent = data.title ? data.title : data.uri;
-    url.textContent = data.uri;
+    if (data.uri == this.START_PAGE_URL) {
+      url.textContent = 'about:home';
+    } else {
+      url.textContent = data.uri;
+    }
     link.appendChild(title);
     link.appendChild(url);
     entry.appendChild(link);
@@ -815,7 +834,7 @@ var Browser = {
     this.currentTab = this.tabs[id];
     // We may have picked a currently loading background tab
     // that was positioned off screen
-    this.urlInput.value = this.currentTab.title;
+    this.setUrlBar(this.currentTab.title);
     this.tabCover.setAttribute('src', this.currentTab.screenshot);
 
     this.updateSecurityIcon();
@@ -870,7 +889,7 @@ var Browser = {
     }
 
     this.switchScreen(this.PAGE_SCREEN);
-    this.urlInput.value = this.currentTab.title || this.currentTab.url;
+    this.setUrlBar(this.currentTab.title || this.currentTab.url);
     this.updateTabsCount();
   },
 

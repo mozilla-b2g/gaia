@@ -5,7 +5,6 @@
 
 // Duplicated code in several places
 // TODO Better settings observe interface?
-
 var SettingsListener = {
   _callbacks: {},
 
@@ -39,6 +38,19 @@ var SettingsListener = {
 };
 
 SettingsListener.init();
+
+/* Debugging code for the environment without mozKeyboard,
+ * such as Firefox Nightly build */
+if (!window.navigator.mozKeyboard) {
+  window.navigator.mozKeyboard = {};
+}
+
+if (!window.navigator.mozKeyboard.sendKey) {
+  window.navigator.mozKeyboard.sendKey = function moz_sendKey(charCode,
+                                                              keyCode) {
+    console.log('moz sendKey: (' + charCode + ', ' + keyCode + ')');
+  };
+}
 
 // in charge of initiate the controller and be aware about settings changes
 const IMEManager = {
@@ -134,6 +146,11 @@ const IMEManager = {
     }).bind(this));
 
     var self = this;
+    SettingsListener.observe('keyboard.wordsuggestion', false, function(value) {
+      var wordSuggestionEnabled = !!value;
+      IMEController.enableWordSuggestion(wordSuggestionEnabled);
+    });
+
     for (var key in this.keyboardSettingGroups) {
       (function observeSettings(key) {
         SettingsListener.observe('keyboard.layouts.' + key, false,
@@ -146,6 +163,13 @@ const IMEManager = {
         );
       })(key);
     }
+
+    // Handle event from system app, i.e. keyboard manager
+    // Now this is for keyboard demo only
+    window.addEventListener('message', function receiver(evt) {
+      var event = JSON.parse(evt.data);
+      IMEManager.handleEvent(event);
+    });
 
     window.navigator.mozKeyboard.onfocuschange = function(e) {
       var exclusionList = [
@@ -186,6 +210,20 @@ const IMEManager = {
 
         break;
 
+      // Now this is for keyboard demo only
+      case 'hideime':
+        this.hideIMETimer = window.setTimeout((function execHideIME() {
+          IMEController.hideIME();
+        }).bind(this), 0);
+
+        break;
+
+      // Now this is for keyboard demo only
+      case 'appwillclose':
+        IMEController.hideIME(true);
+
+        break;
+
       case 'resize':
         var currentWidth = window.innerWidth;
         var currentHeight = window.innerHeight;
@@ -216,3 +254,4 @@ window.addEventListener('load', function initIMEManager(evt) {
   window.removeEventListener('load', initIMEManager);
   IMEManager.init();
 });
+
