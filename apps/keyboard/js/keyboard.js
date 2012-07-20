@@ -250,6 +250,25 @@ const IMEManager = {
   }
 };
 
+// Utility functions
+function getWindowTop(obj) {
+  var top;
+  top = obj.offsetTop;
+  while (!!(obj = obj.offsetParent)) {
+    top += obj.offsetTop;
+  }
+  return top;
+}
+
+function getWindowLeft(obj) {
+  var left;
+  left = obj.offsetLeft;
+  while (!!(obj = obj.offsetParent)) {
+    left += obj.offsetLeft;
+  }
+  return left;
+}
+
 window.addEventListener('load', function initIMEManager(evt) {
   window.removeEventListener('load', initIMEManager);
   IMEManager.init();

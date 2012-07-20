@@ -85,11 +85,11 @@ const Keyboards = {
     menuLabel: 'English',
     suggestionEngine: 'predictive_text',
     alt: {
-      a: 'áàâäå',//ãāæ', XXX: commented to avoid overflows for the demo
+      a: 'áàâäåãāæ',
       c: 'çćč',
-      e: 'éèêëē',//ȩ€ɛ', XXX: commented to avoid overflows for the demo
-      i: 'ïíìîī',//į', XXX: commented to avoid overflows for the demo
-      o: 'öóòôō',//œøɵ', XXX: commented to avoid overflows for the demo
+      e: 'éèêëēȩ€ɛ',
+      i: 'ïíìîīį',
+      o: 'öóòôōœøɵ',
       u: 'üúùûū',
       s: 'ßśš$',
       S: 'ŚŠŞ',
@@ -750,11 +750,11 @@ const Keyboards = {
     label: 'Spanish',
     menuLabel: 'Español',
     alt: {
-      a: 'áªàâä',//åãāæ', XXX: commented to avoid overflows for the demo
+      a: 'áªàâäåãāæ',
       c: 'ç',
-      e: 'é€èêë',//ēȩɛ', XXX: commented to avoid overflows for the demo
-      i: 'íïìîī',//į', XXX: commented to avoid overflows for the demo
-      o: 'óºöòô',//ōœøɵ', XXX: commented to avoid overflows for the demo
+      e: 'é€èêëēȩɛ',
+      i: 'íïìîīį',
+      o: 'óºöòôōœøɵ',
       u: 'üúùûū',
       s: '$ßš',
       l: '£',
@@ -852,10 +852,10 @@ const Keyboards = {
     label: 'Portuguese',
     menuLabel: 'Português',
     alt: {
-      a: 'áãàâä',//åæª', XXX: commented to avoid overflows for the demo
-      e: 'éêèȩė',//ēëɛ', XXX: commented to avoid overflows for the demo
-      i: 'íîìïį',//ī', XXX: commented to avoid overflows for the demo
-      o: 'óõôòö',//œøōɵ', XXX: commented to avoid overflows for the demo
+      a: 'áãàâäåæª',
+      e: 'éêèȩėēëɛ',
+      i: 'íîìïįī',
+      o: 'óõôòöœøōɵ',
       u: 'úüùûū',
       s: '$ßš',
       l: '£',
