@@ -89,7 +89,7 @@ SHELL := /bin/bash
 
 # what OS are we on?
 SYS=$(shell uname -s)
-ARCH=$(shell uname -m)
+ARCH?=$(shell uname -m)
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -431,7 +431,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email/js/ext,music/js/ext,calendar/js/ext'
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email/js/ext,music/js/ext,calendar/js/ext,keyboard/js/predictive_text'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
