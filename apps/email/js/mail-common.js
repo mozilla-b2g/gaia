@@ -621,7 +621,7 @@ var Cards = {
       if (nextCardSpec)
         nextCardIndex = this._findCard(nextCardSpec);
       else if (this._cardStack.length)
-        nextCardIndex = this._cardStack.length - 1;
+        nextCardIndex = Math.min(firstIndex - 1, this._cardStack.length - 1);
       this._showCard(nextCardIndex, showMethod);
     }
   },

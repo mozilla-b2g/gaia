@@ -327,14 +327,11 @@ console.log("preScreens", preScreens, "postScreens", postScreens);
       // Take off one screen at a time.
       targOff = curScrollTop -
                 (viewHeight * (SCROLL_MAX_RETENTION_SCREENS - 1));
-console.log(" mn ot:", this.messagesContainer.firstElementChild.offsetTop, "ch", this.messagesContainer.firstElementChild.clientHeight);
       for (messageNode = this.messagesContainer.firstElementChild;
            messageNode.offsetTop + messageNode.clientHeight < targOff;
            messageNode = messageNode.nextElementSibling) {
-console.log("  mn ot:", messageNode.offsetTop, "ch", messageNode.clientHeight);
         shrinkLowIncl++;
       }
-      console.log("shrinkLowIncl", shrinkLowIncl, "targOff", targOff);
     }
 
     if (postScreens < SCROLL_MIN_BUFFER_SCREENS &&
@@ -369,7 +366,7 @@ console.log("removing", howMany, "messages @", index);
       // start offset because it is as big as the occluding header bar.)
       prevHeight = null;
       if (this.messagesSlice.items[index].element.offsetTop <
-          this.scrollContainer.scrollTop  + this.messagesContainer.offsetTop) {
+          this.scrollContainer.scrollTop + this.messagesContainer.offsetTop) {
         prevHeight = this.messagesContainer.clientHeight;
       }
 

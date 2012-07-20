@@ -301,6 +301,11 @@ function SettingsMainCard(domNode, mode, args) {
 
   domNode.getElementsByClassName('tng-account-add')[0]
     .addEventListener('click', this.onClickAddAccount.bind(this), false);
+
+  this._secretButtonClickCount = 0;
+  this._secretButtonTimer = null;
+  domNode.getElementsByClassName('tng-email-lib-version')[0]
+    .addEventListener('click', this.onClickSecretButton.bind(this), false);
 }
 SettingsMainCard.prototype = {
   onClose: function() {
@@ -378,6 +383,23 @@ SettingsMainCard.prototype = {
       {});
   },
 
+  onClickSecretButton: function() {
+    if (this._secretButtonTimer === null) {
+      this._secretButtonTimer = window.setTimeout(
+        function() {
+          self._secretButtonTimer = null;
+          self._secretButtonClickCount = 0;
+        }.bind(this), 2000);
+    }
+
+    if (++this._secretButtonClickCount >= 5) {
+      window.clearTimeout(this._secretButtonTimer);
+      this._secretButtonTimer = null;
+      this._secretButtonClickCount = 0;
+      Cards.pushCard('settings-debug', 'default', 'animate', {}, 'right');
+    }
+  },
+
   die: function() {
     this.acctsSlice.die();
   }
@@ -394,6 +416,8 @@ Cards.defineCardWithDefaultMode(
 function SettingsAccountCard(domNode, mode, args) {
 }
 SettingsAccountCard.prototype = {
+  die: function() {
+  }
 };
 Cards.defineCardWithDefaultMode(
     'settings-account',
@@ -407,8 +431,51 @@ Cards.defineCardWithDefaultMode(
  * be shipped after initial dogfooding.
  */
 function SettingsDebugCard(domNode, mode, args) {
+  this.domNode = domNode;
+
+  domNode.getElementsByClassName('tng-close-btn')[0]
+    .addEventListener('click', this.onClose.bind(this), false);
+
+  // - hookup buttons
+  domNode.getElementsByClassName('tng-dbg-reset')[0]
+    .addEventListener('click', window.location.reload.bind(window.location),
+                      false);
+
+  domNode.getElementsByClassName('tng-dbg-dump-storage')[0]
+    .addEventListener('click', this.dumpLog.bind(this, 'storage'), false);
+
+  this.loggingButton = domNode.getElementsByClassName('tng-dbg-logging')[0];
+  this.loggingButton.addEventListener(
+    'click', this.cycleLogging.bind(this, true), false);
+  this.cycleLogging(false);
+
+  // - hookup
 }
 SettingsDebugCard.prototype = {
+  onClose: function() {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
+  },
+
+  dumpLog: function(target) {
+    MailAPI.debugSupport('dumpLog', target);
+  },
+
+  cycleLogging: function(doChange) {
+    var value = MailAPI.config.debugLogging;
+    if (doChange) {
+      value = !value;
+      MailAPI.debugSupport('setLogging', value);
+    }
+    var label;
+    if (value)
+      label = 'Logging is ENABLED; toggle';
+    else
+      label = 'Logging is DISABLED; toggle';
+    this.loggingButton.textContent = label;
+  },
+
+  die: function() {
+  }
 };
 Cards.defineCardWithDefaultMode(
     'settings-debug',
