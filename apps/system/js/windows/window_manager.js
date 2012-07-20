@@ -430,7 +430,8 @@ var WindowManager = (function() {
       'PenguinPop',
 
       //'Settings',
-      // Most of settings seems to work OOP. However, apprarently bluetooth doesn't - 755943
+      // Most of settings seems to work OOP.
+      // However, apprarently bluetooth doesn't - 755943
 
       //=== Test ===
       //'Staging Marketplace',
@@ -442,14 +443,15 @@ var WindowManager = (function() {
       'Tasks',
       'Template',
       'Test Agent',
-      'TowerJelly',
+      'TowerJelly'
 
       //'UI tests',
       // some stuff works, some doesn't when OOP
 
       //=== Test === ICS ===
       //'Video',
-      //   OOP - Assertion failure: w->mApp, at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
+      //   OOP - Assertion failure: w->mApp,
+      //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
       //   Stop audio when app dies
     ];
     if (outOfProcessWhitelist.indexOf(name) >= 0) {
