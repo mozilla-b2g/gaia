@@ -584,11 +584,7 @@ var WindowManager = (function() {
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
-        // TODO: handle the inline disposition
-        if (e.detail.disposition) {
-          setDisplayedApp(origin);
-        }
-
+        setDisplayedApp(origin);
         break;
     }
   });
