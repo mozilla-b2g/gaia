@@ -4,27 +4,26 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Wallpaper</title>
-
-    <style>
-    </style>
-
+    <link rel="stylesheet" href="style/wallpaper.css" type="text/css" />
     <script defer src="js/wallpaper.js"></script>
   </head>
   <body>
+    <header>
+      <span data-i10-id="wallpaper"></span>
+    </header>
     <div id="thumbnail-list-view">
       <ul id="thumbnails">
-        <li class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_01.png')"></li>
-        <li class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_02.png')"></li>
-        <li class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_03.png')"></li>
-        <li class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_04.png')"></li>
-        <li class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_05.png')"></li>
-        <li class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_06.png')"></li>
-        <li class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_07.png')"></li>
+        <li data-index=0 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_01.png')"></li>
+        <li data-index=1 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_02.png')"></li>
+        <li data-index=2 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_03.png')"></li>
+        <li data-index=3 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_04.png')"></li>
+        <li data-index=4 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_05.png')"></li>
+        <li data-index=5 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_06.png')"></li>
+        <li data-index=6 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_07.png')"></li>
       </ul>
-      <div id="thumbnails-bottom">
-        <a id="thumbnails-camera-button" class="button"></a>
-        <a id="thumbnails-select-button" class="button"></a>
-      </div>
     </div>
+    <footer>
+      <span id="cancel" data-i10-id="cancel"></span>
+    </footer>
   </body>
 </html>
