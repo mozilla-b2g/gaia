@@ -30,8 +30,17 @@
     <div id="message">
       ...
     </div>
+    <div id="answer" hidden>
+      <input type="text" />
+      <button data-l10n-id="send" onclick="UssdUI.reply()">send</button>
+    </div>
     <div id="close" onclick="UssdUI.close()">
       <div>
+      </div>
+    </div>
+    <div id="reply" onclick="UssdUI.showAnswer()">
+      <div data-l10n-id="reply">
+        Reply
       </div>
     </div>
   </body>

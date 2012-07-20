@@ -7,6 +7,7 @@ var UssdManager = {
   init: function um_init() {
     if (this._conn) {
       this._conn.addEventListener('ussdreceived', this);
+      window.addEventListener('message', this);
     }
   },
 
@@ -18,16 +19,24 @@ var UssdManager = {
   },
 
   handleEvent: function ph_handleEvent(evt) {
-    if (evt.type != 'ussdreceived')
+    if (evt.type == 'ussdreceived') {
+      if (this._popup) {
+        var origin = document.location.protocol + '//' +
+          document.location.host;
+        this._popup.postMessage(evt.message, origin);
+      }
       return;
-
-    if (this._popup) {
-      var origin = document.location.protocol + '//' +
-        document.location.host;
-      this._popup.postMessage(evt.message, origin);
     }
 
-    this._popup = null;
+    switch (evt.data.type) {
+      case 'reply':
+        this.send(evt.data.number);
+        break;
+      case 'close':
+        this._conn.cancelUSSD();
+        this._popup = null;
+        break;
+    }
   }
 };
 
