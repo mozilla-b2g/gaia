@@ -33,6 +33,11 @@ suite('app', function() {
     assert.deepEqual(subject._routeViewFn, {});
 
     assert.instanceOf(
+      subject.syncController,
+      Calendar.Controllers.Sync
+    );
+
+    assert.instanceOf(
       subject.timeController,
       Calendar.Controllers.Time
     );

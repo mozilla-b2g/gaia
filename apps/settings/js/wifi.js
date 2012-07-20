@@ -152,7 +152,8 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   var settings = window.navigator.mozSettings;
   var _ = navigator.mozL10n.get;
 
-  var gWifiCheckBox = document.querySelector('#wifi-enabled input[type=checkbox]');
+  var gWifiCheckBox =
+    document.querySelector('#wifi-enabled input[type=checkbox]');
   var gWifiInfoBlock = document.querySelector('#wifi-desc');
 
   // toggle wifi on/off
@@ -180,7 +181,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     */
   gWifiManager.onstatuschange = function(event) {
     // update network status only if wifi is enabled.
-    console.log("===== network becomes: " + event.status);
+    console.log('===== network becomes: ' + event.status);
     var req = settings.getLock().get('wifi.enabled');
     req.onsuccess = function wf_stateGet() {
       if (req.result['wifi.enabled']) {
@@ -195,7 +196,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   };
 
   gWifiManager.onenabled = function onWifiEnabled() {
-    console.log("===== wifiManager enabled");
+    console.log('===== wifiManager enabled');
     updateNetworkState(); // update wifi state
     gNetworkList.scan();
   }
@@ -278,7 +279,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       if (scanning)
         return;
 
-      console.log("==== scan: wifiManager: " + gWifiManager.enabled);
+      console.log('==== scan: wifiManager: ' + gWifiManager.enabled);
       // stop auto-scanning if wifi disabled or the app is hidden
       if (!gWifiManager.enabled || document.mozHidden) {
         scanning = false;
@@ -287,9 +288,9 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       var req = gWifiManager.getNetworks();
       scanning = true;
-      console.log("==== start scan");
+      console.log('==== start scan');
 
-      req.onsuccess = function() {
+      req.onsuccess = function onScanSuccess() {
         scanning = false;
 
         // clear list again for showing scaning result.
@@ -311,14 +312,16 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
           return networks[b].relSignalStrength - networks[a].relSignalStrength;
         });
 
-        console.log("==== scan callback: get " + ssids.length + " networks");
+        console.log('==== scan callback: get ' + ssids.length + ' networks');
+        // add detected networks
         for (var i = 0; i < ssids.length; i++) {
           var network = networks[ssids[i]];
           var listItem = newListItem(network);
           // put connected network on top of list
           if (isConnected(network)) {
             listItem.className = 'active';
-            listItem.querySelector('small').textContent = _('shortStatus-connected');
+            listItem.querySelector('small').textContent =
+              _('shortStatus-connected');
             list.insertBefore(listItem, list.firstChild);
           } else {
             list.insertBefore(listItem, scanItem);
@@ -331,7 +334,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
           window.setTimeout(scan, scanRate);
       };
 
-      req.onerror = function(error) {
+      req.onerror = function onScanError(error) {
         scanning = false;
         console.warn('====== wifi error: ' + req.error.name);
         clear(false);
@@ -496,7 +499,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         return false; // ignore <form> action
       }
 
-      // OK button (connect/forget)
+      // OK|Cancel buttons
       dialog.onreset = close;
       dialog.onsubmit = function() {
         if (key) {
@@ -522,12 +525,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (!gWifiManager.enabled) {
         gWifiInfoBlock.textContent = _('fullStatus-connecting', currentNetwork);
     } else {
-      console.log("===== network status: " + networkStatus);
-      if (networkStatus === "associated" || networkStatus === "connecting") {
+      console.log('===== network status: ' + networkStatus);
+      if (networkStatus === 'associated' || networkStatus === 'connecting') {
         gWifiInfoBlock.textContent = _('fullStatus-connecting', currentNetwork);
-      } else if (networkStatus === "connected") {
+      } else if (networkStatus === 'connected') {
         gWifiInfoBlock.textContent = _('fullStatus-connected', currentNetwork);
-      } else { 
+      } else {
         gWifiInfoBlock.textContent = _('fullStatus-disconnected');
       }
     }
@@ -535,7 +538,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
   function setWifiEnabled(val) {
     gWifiCheckBox.checked = val;
-    console.log("===== network enabled: " + val);
+    console.log('===== network enabled: ' + val);
     if (val) {
       updateNetworkState(); // update wifi state
       gNetworkList.clear(true);

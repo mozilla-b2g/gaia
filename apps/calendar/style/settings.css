@@ -24,7 +24,7 @@ body[role="app"] #wrapper {
   position: absolute;
   background-color: #303540;
   color: white;
-  font-size: 1.35rem;
+  font-size: 1.6rem;
 }
 
 #settings header h1 {
@@ -48,9 +48,12 @@ body[role="app"] #wrapper {
   border-bottom: 1px solid #454B53;
 }
 
-#settings .calendars > li {
-  padding: 1.6rem;
+#settings .calendars label {
+  display: block;
+  padding: 2rem 1.6rem;
   border-bottom: 1px solid #454B53;
+  -moz-user-select: none;
+  user-select: none;
 }
 
 #settings a.settings {
@@ -62,6 +65,26 @@ body[role="app"] #wrapper {
   width: 30px;
   height: 30px;
 }
+
+#settings .calendars input[type="checkbox"] {
+ display: none;
+}
+
+
+#settings .calendars input[type="checkbox"]:checked + span {
+  width: 14px;
+  height: 14px;
+  background: transparent url('/style/icons/checkmark.png') no-repeat;
+}
+
+#settings .calendars input[type="checkbox"]+span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  float: right;
+}
+
+/* advanced settings */
 
 #advanced-setting-selection:target {
   position: absolute;
@@ -86,8 +109,6 @@ body[role="app"] #wrapper {
   display: block;
   padding: 1rem;
 }
-
-/* advanced settings */
 
 #advanced-settings-view > header h1 {
   width: -moz-calc(100% - 40px);

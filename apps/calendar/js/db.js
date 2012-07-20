@@ -1,7 +1,7 @@
 (function(window) {
   var idb = window.indexedDB || window.mozIndexedDB;
 
-  const VERSION = 1;
+  const VERSION = 2;
 
   var store = {
     events: 'events',
@@ -36,6 +36,59 @@
     },
 
     /**
+     * Loads all records in Calendar & Account stores.
+     * Will open database if not already opened.
+     *
+     * @param {Function} callback node style.
+     */
+    load: function(callback) {
+      var pending = 2;
+      var self = this;
+
+      function next() {
+        pending--;
+        if (!pending)
+          complete();
+      }
+
+      function complete() {
+        callback(null);
+      }
+
+      // if there is an error case we must
+      // throw an error any error here is completely
+      // fatal.
+      function loadRecords() {
+        self.getStore('Account').load(function(err) {
+          if (err) {
+            throw err;
+          }
+          next();
+        });
+
+        self.getStore('Calendar').load(function(err) {
+          if (err) {
+            throw err;
+          }
+          next();
+        });
+      }
+
+      if (!this.isOpen) {
+        pending++;
+        this.open(function(err) {
+          if (err) {
+            throw err;
+          }
+          loadRecords();
+          next();
+        });
+      } else {
+        loadRecords();
+      }
+    },
+
+    /**
      * Opens connection to database.
      *
      * @param {Function} callback first argument is error, second
@@ -47,6 +100,7 @@
       var self = this;
 
       req.onsuccess = function(event) {
+        self.isOpen = true;
         self.connection = req.result;
 
         callback(null, self);
@@ -63,7 +117,7 @@
       };
 
       req.onerror = function(error) {
-        // steal asuth's error handling...
+        //TODO: steal asuth's error handling...
         callback(error, null);
         self.emit('error', error);
       };
@@ -105,13 +159,7 @@
       db.createObjectStore(store.accounts, { autoIncrement: true });
 
       // calendars -> has many events
-      var calendar = db.createObjectStore(store.calendars);
-
-      calendar.createIndex(
-        'accountId',
-        'accountId',
-        { unique: false, multientry: false }
-      );
+      db.createObjectStore(store.calendars, { autoIncrement: true });
     },
 
     get version() {
