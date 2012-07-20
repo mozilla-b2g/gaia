@@ -513,7 +513,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   function updateNetworkState() {
     var currentNetwork = gWifiManager.connection.network;
     var networkStatus = gWifiManager.connection.status;
-    //XXX: we need a 'initial' state
+    //XXX: we need a 'initializing' state
     if (!gWifiManager.enabled) {
         gWifiInfoBlock.textContent = _('fullStatus-connecting', currentNetwork);
     } else {
