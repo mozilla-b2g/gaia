@@ -275,19 +275,27 @@
   height: 16px;
 
   background: url('images/icons.png') no-repeat;
+  background-position: -189px -60px;
+}
+
+.sb-icon-notification[data-unread="true"]::before {
   background-position: -168px -60px;
 }
 
 .sb-icon-notification::after {
   content: attr(data-num);
   position: absolute;
-  color: #27b9cf;
+  color: #666;
   width: 16px;
   height: 16px;
   top: 0;
   right: 0;
   font: 14px/14px 'Open Sans', sans-serif;
   font-weight: 600;
+}
+
+.sb-icon-notification[data-unread="true"]::after {
+  color: #27b9cf;
 }
 
 .sb-icon-sms {
