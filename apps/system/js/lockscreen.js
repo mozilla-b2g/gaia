@@ -96,8 +96,10 @@ var LockScreen = {
 
     /* mobile connection state on lock screen */
     var conn = window.navigator.mozMobileConnection;
-    if (conn && conn.voice)
+    if (conn && conn.voice) {
       conn.addEventListener('voicechange', this);
+      this.updateConnState();
+    }
 
     var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
