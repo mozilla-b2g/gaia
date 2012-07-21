@@ -657,6 +657,14 @@ li[role="listitem"] small {
   float: right;
 }
 
+#settings h3 {
+  font-size: 0.9em;
+  margin: 0 10px;
+  color: #FF5F19;
+  border-bottom: solid 1px #FF5F19;
+  padding: 0;
+}
+
 #settings ul {
   margin: 0;
   padding: 0;

@@ -59,6 +59,7 @@ var Browser = {
     this.settingsButton = document.getElementById('settings-button');
     this.settingsDoneButton = document.getElementById('settings-done-button');
     this.aboutFirefoxButton = document.getElementById('about-firefox-button');
+    this.clearHistoryButton = document.getElementById('clear-history-button');
 
     // Add event listeners
     window.addEventListener('submit', this);
@@ -88,6 +89,8 @@ var Browser = {
       this.showPageScreen.bind(this));
     this.aboutFirefoxButton.addEventListener('click',
       this.showAboutPage.bind(this));
+    this.clearHistoryButton.addEventListener('click',
+      this.handleClearHistory.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -978,6 +981,7 @@ var Browser = {
 
   showSettingsScreen: function browser_showSettingsScreen() {
     this.switchScreen(this.SETTINGS_SCREEN);
+    this.clearHistoryButton.disabled = false;
   },
 
   showAboutPage: function browser_showAboutPage() {
@@ -987,6 +991,12 @@ var Browser = {
     this.setTabVisibility(this.currentTab, true);
     this.updateTabsCount();
     this.showPageScreen();
+  },
+
+  handleClearHistory: function browser_handleClearHistory() {
+    Places.clearHistory((function() {
+      this.clearHistoryButton.disabled = true;
+    }).bind(this));
   },
 
   screenSwipeMngr: {

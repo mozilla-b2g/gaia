@@ -125,6 +125,13 @@ var Places = {
   getHistory: function places_getHistory(callback) {
     // Just get the most recent 20 for now
     this.db.getHistory(20, callback);
+  },
+
+  clearHistory: function places_clearHistory(callback) {
+    // Get a list of bookmarks
+    this.db.getAllBookmarkUris((function(bookmarks) {
+      this.db.clearHistoryExcluding(bookmarks, callback);
+    }).bind(this));
   }
 
 };
@@ -372,7 +379,8 @@ Places.db = {
     var objectStore = transaction.objectStore('visits');
     var request = objectStore.clear();
     request.onsuccess = function() {
-      callback();
+      if (callback)
+        callback();
     };
     request.onerror = function(e) {
       console.log('Error clearing visits object store');
@@ -531,6 +539,25 @@ Places.db = {
     };
   },
 
+  getAllBookmarkUris: function db_getAllBookmarks(callback) {
+    var uris = [];
+    var db = this._db;
+
+    var transaction = db.transaction('bookmarks');
+    var objectStore = transaction.objectStore('bookmarks');
+
+    objectStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        uris.push(cursor.value.uri);
+        cursor.continue();
+      }
+    };
+    transaction.oncomplete = function db_bookmarkTransactionComplete() {
+      callback(uris);
+    };
+  },
+
   updatePlaceFrecency: function db_updatePlaceFrecency(uri, callback) {
     // Don't assign frecency to the start page
     if (uri == this.START_PAGE_URI) {
@@ -572,6 +599,39 @@ Places.db = {
 
     transaction.onerror = function dbTransactionError(e) {
       console.log('Transaction error while trying to update place: ' +
+        place.uri);
+    };
+  },
+
+  resetPlaceFrecency: function db_resetPlaceFrecency(uri, callback) {
+    var transaction = this._db.transaction(['places'],
+      IDBTransaction.READ_WRITE);
+
+    var objectStore = transaction.objectStore('places');
+    var readRequest = objectStore.get(uri);
+
+    readRequest.onsuccess = function(event) {
+      var place = event.target.result;
+      if (!place)
+        return;
+
+      place.frecency = null;
+
+      var writeRequest = objectStore.put(place);
+
+      writeRequest.onerror = function() {
+        console.log('Error while resetting frecency for ' + uri);
+      };
+
+      writeRequest.onsuccess = function() {
+        if (callback)
+          callback();
+      };
+
+    };
+
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to reset frecency: ' +
         place.uri);
     };
   },
@@ -688,6 +748,38 @@ Places.db = {
       console.log('Transaction error while trying to save screenshot for ' +
         place.uri);
     };
+  },
+
+  clearHistoryExcluding: function db_clearHistoryExcluding(exceptions,
+    callback) {
+    // Clear all visits
+    this.clearVisits();
+
+    var transaction = this._db.transaction(['places', 'icons'],
+      IDBTransaction.READ_WRITE);
+    var placesStore = transaction.objectStore('places');
+    var iconStore = transaction.objectStore('icons');
+
+    placesStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        var place = cursor.value;
+        // If not one of the exceptions then delete place and icon
+        if (exceptions.indexOf(place.uri) == -1) {
+          placesStore.delete(place.uri);
+          iconStore.delete(place.iconUri);
+        } else {
+          // For exceptions, just reset frecency
+          Places.db.resetPlaceFrecency(place.uri);
+        }
+        cursor.continue();
+      }
+    };
+    transaction.oncomplete = function db_bookmarkTransactionComplete() {
+      if (callback)
+        callback();
+    };
+
   }
 
 };
