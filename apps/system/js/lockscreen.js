@@ -586,9 +586,9 @@ var LockScreen = {
   updateConnState: function ls_updateConnState() {
     var voice = window.navigator.mozMobileConnection.voice;
     var _ = navigator.mozL10n.get;
-    this.connstate.hidden = false;
 
     if (voice.emergencyCallsOnly) {
+      this.connstate.hidden = false;
       this.connstate.dataset.l10nId = 'emergencyCallsOnly';
       this.connstate.textContent = _('emergencyCallsOnly') || '';
 
@@ -596,12 +596,12 @@ var LockScreen = {
     }
 
     if (!voice.connected) {
-      this.connstate.dataset.l10nId = 'searching';
-      this.connstate.textContent = _('searching') || '';
+      this.connstate.hidden = true;
 
       return;
     }
 
+    this.connstate.hidden = false;
     delete this.connstate.dataset.l10nId;
     this.connstate.textContent = voice.network.shortName;
   },
