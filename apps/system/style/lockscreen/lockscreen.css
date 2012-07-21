@@ -83,10 +83,10 @@
   position: absolute;
   top: 0;
   left: 0;
-  height: 10rem;
+  height: 12rem;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.2rem 2.4rem 1.2rem 1.6rem;
+  padding: 1.5rem 2.4rem 1.2rem 1.6rem;
   color: #fff;
   text-shadow: 0 0 3px #333;
 
@@ -98,11 +98,35 @@
   -moz-transform: translateY(0);
 }
 
+#lockscreen-connstate {
+  background-color: #546578;
+  max-width: 60%;
+  display: inline-block;
+  border-radius: 0.4rem;
+  padding: 0.4rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  line-height: 1.2rem;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#lockscreen-connstate:empty {
+  display: none;
+}
+
+/* For some reason display: inline-block disregards hidden attribute */
+#lockscreen-connstate[hidden] {
+  display: none;
+}
+
 #lockscreen-mute {
   float: right;
   width: 4rem;
   height: 4rem;
-  margin-top: 0.8rem;
+  margin-top: 3.5rem;
 
   background: transparent url('./images/mute.png') center center no-repeat;
 }
@@ -110,6 +134,7 @@
 #lockscreen-clock {
   font: 5rem 'Open Sans', sans-serif;
   line-height: 5.4rem;
+  font-weight: 300;
 }
 
 #lockscreen-date {

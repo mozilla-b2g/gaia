@@ -95,6 +95,11 @@ var LockScreen = {
     /* switching panels */
     window.addEventListener('keyup', this, true);
 
+    /* mobile connection state on lock screen */
+    var conn = window.navigator.mozMobileConnection;
+    if (conn && conn.voice)
+      conn.addEventListener('voicechange', this);
+
     var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
@@ -154,6 +159,8 @@ var LockScreen = {
         // when it's being turned back on
         this.lockIfEnabled(true);
         break;
+      case 'voicechange':
+        this.updateConnState();
 
       case 'mozChromeEvent':
         if (!this.locked || evt.detail.type !== 'desktop-notification')
@@ -581,6 +588,29 @@ var LockScreen = {
     }).bind(this));
   },
 
+  updateConnState: function ls_updateConnState() {
+    var voice = window.navigator.mozMobileConnection.voice;
+    var _ = navigator.mozL10n.get;
+    this.connstate.hidden = false;
+
+    if (voice.emergencyCallsOnly) {
+      this.connstate.dataset.l10nId = 'emergencyCallsOnly';
+      this.connstate.textContent = _('emergencyCallsOnly') || '';
+
+      return;
+    }
+
+    if (!voice.connected) {
+      this.connstate.dataset.l10nId = 'searching';
+      this.connstate.textContent = _('searching') || '';
+
+      return;
+    }
+
+    delete this.connstate.dataset.l10nId;
+    this.connstate.textContent = voice.network.shortName;
+  },
+
   showNotification: function lockscreen_showNotification(detail) {
     this.notification.hidden = false;
 
@@ -657,7 +687,7 @@ var LockScreen = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['mute', 'clock', 'date',
+    var elements = ['connstate', 'mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
         'area', 'area-unlock', 'area-camera', 'area-handle',
