@@ -67,7 +67,6 @@ var LockScreen = {
   /* init */
   init: function ls_init() {
     this.getAllElements();
-    this.updateMuteState();
 
     this.lockIfEnabled(true);
 
@@ -103,6 +102,10 @@ var LockScreen = {
     var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
+    });
+
+    SettingsListener.observe('audio.volume.master', 5, function(volume) {
+      self.mute.hidden = !!volume;
     });
 
     SettingsListener.observe(
@@ -149,10 +152,6 @@ var LockScreen = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
-      case 'volumechange':
-        this.updateMuteState();
-        break;
-
       case 'screenchange':
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
@@ -580,12 +579,6 @@ var LockScreen = {
     window.setTimeout(function ls_clockTimeout() {
       self.updateTime();
     }, (59 - d.getSeconds()) * 1000);
-  },
-
-  updateMuteState: function ls_updateMuteState() {
-    SettingsListener.observe('audio.volume.master', 5, (function(volume) {
-      this.mute.hidden = volume;
-    }).bind(this));
   },
 
   updateConnState: function ls_updateConnState() {
