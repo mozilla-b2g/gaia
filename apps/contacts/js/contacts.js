@@ -601,7 +601,7 @@ var Contacts = (function() {
     // FIXME: only handling 1 number
     var number = currentContact.tel[0].number;
     if (ActivityHandler.currentlyHandling) {
-      ActivityHandler.pick(number);
+      ActivityHandler.postPickSuccess(number);
     } else {
       try {
         var activity = new MozActivity({
@@ -723,7 +723,7 @@ var Contacts = (function() {
         myContact.photo = savedContact.photo;
         myContact.category = savedContact.category;
         if (ActivityHandler.currentlyHandling) {
-          ActivityHandler.create(myContact);
+          ActivityHandler.postNewSuccess(myContact);
         } else {
           contactsList.refresh(myContact);
           reloadContactDetails();
@@ -733,7 +733,7 @@ var Contacts = (function() {
         saveButton.removeAttribute('disabled');
         console.error('Error reloading contact');
         if (ActivityHandler.currentlyHandling) {
-          ActivityHandler.cancel();
+          ActivityHandler.postCancel();
         }
       });
     };
@@ -925,7 +925,7 @@ var Contacts = (function() {
   var handleBack = function handleBack() {
     //If in an activity, cancel it
     if (ActivityHandler.currentlyHandling) {
-      ActivityHandler.cancel();
+      ActivityHandler.postCancel();
     } else {
       navigation.back();
     }
@@ -981,17 +981,17 @@ var ActivityHandler = {
     }
   },
 
-  create: function ah_create(contact) {
+  postNewSuccess: function ah_postNewSuccess(contact) {
     this._currentActivity.postResult({contact: contact});
     this._currentActivity = null;
   },
 
-  pick: function ah_pick(number) {
+  postPickSuccess: function ah_postPickSuccess(number) {
     this._currentActivity.postResult({ number: number });
     this._currentActivity = null;
   },
 
-  cancel: function ah_cancel() {
+  postCancel: function ah_postCancel() {
     this._currentActivity.postError('canceled');
     this._currentActivity = null;
   }
@@ -1003,6 +1003,6 @@ window.navigator.mozSetMessageHandler('activity', actHandler);
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (document.mozHidden) {
     if (ActivityHandler.currentlyHandling)
-      ActivityHandler.cancel();
+      ActivityHandler.postCancel();
   }
 });
