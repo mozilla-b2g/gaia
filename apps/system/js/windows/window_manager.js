@@ -410,8 +410,10 @@ var WindowManager = (function() {
       //'Dialer',
       // - Dialer doesn't seem to see touches when run OOP - bug 776069
 
-      'E-Mail',
-      // - works OOP with Fake account
+      //'E-Mail',
+      // - SSL/TLS support can only happen in the main process although the TCP
+      //   support without security will accidentally work OOP:
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=770778
 
       'FM Radio',
 
