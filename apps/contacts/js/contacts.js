@@ -114,23 +114,23 @@ var Contacts = (function() {
 
   var TAG_OPTIONS = {
     'phone-type' : [
-      {value: 'Mobile'},
-      {value: 'Home'},
-      {value: 'Work'},
-      {value: 'Personal'},
-      {value: 'Fax Home'},
-      {value: 'Fax Office'},
-      {value: 'Other Fax'},
-      {value: 'Another'}
+      {value: _('mobile')},
+      {value: _('home')},
+      {value: _('work')},
+      {value: _('personal')},
+      {value: _('faxHome')},
+      {value: _('faxOffice')},
+      {value: _('faxOther')},
+      {value: _('another')}
     ],
     'email-type' : [
-      {value: 'Personal'},
-      {value: 'Home'},
-      {value: 'Work'}
+      {value: _('personal')},
+      {value: _('home')},
+      {value: _('work')}
     ],
     'address-type' : [
-      {value: 'Home'},
-      {value: 'Work'}
+      {value: _('home')},
+      {value: _('work')}
     ]
   };
 
@@ -251,12 +251,23 @@ var Contacts = (function() {
     cover = document.getElementById('cover-img');
   };
 
+<<<<<<< OURS
   window.addEventListener('load', function initContacts(evt) {
     initContainers();
     initPullEffect(cover);
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
   });
+=======
+    deleteContactButton.onclick = function deleteClicked(event) {
+      var msg = _('deleteConfirmMsg');
+      Permissions.show('', msg, function onAccept() {
+        deleteContact(currentContact);
+      },function onCancel() {
+        Permissions.hide();
+      });
+    };
+>>>>>>> THEIRS
 
   var loadList = function loadList() {
     var list = document.getElementById('groups-list');
@@ -385,7 +396,7 @@ var Contacts = (function() {
     if (contact.note && contact.note.length > 0) {
       var container = document.createElement('li');
       var title = document.createElement('h2');
-      title.textContent = 'Comments';
+      title.textContent = _('comments');
       container.appendChild(title);
       var notesTemplate = document.getElementById('note-details-template-#i#');
       for (var i in contact.note) {
@@ -423,7 +434,7 @@ var Contacts = (function() {
   var showEdit = function showEdit() {
     resetForm();
     deleteContactButton.classList.remove('hide');
-    formTitle.innerHTML = 'Edit contact';
+    formTitle.innerHTML = _('editContact');
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
@@ -620,7 +631,7 @@ var Contacts = (function() {
   var showAdd = function showAdd(params) {
     resetForm();
     deleteContactButton.classList.add('hide');
-    formTitle.innerHTML = 'Add Contact';
+    formTitle.innerHTML = _('addContact');
 
     params = params || {};
 
@@ -634,6 +645,7 @@ var Contacts = (function() {
       'address' : insertAddress,
       'note' : insertNote
     };
+    formTitle.innerHTML = _('addContact');
 
     for (var i in paramsMapping) {
       paramsMapping[i].call(this, params[i] || 0);
@@ -661,8 +673,8 @@ var Contacts = (function() {
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {
     favoriteMessage.textContent = !isFav ?
-                    'Add as favorite' :
-                    'Remove as favorite';
+                    _('addFavorite') :
+                    _('removeFavorite');
   }
 
   var deleteContact = function deleteContact(contact) {

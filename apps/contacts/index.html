@@ -61,9 +61,9 @@
               <div id="search-container">
                 <input type="text" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
                 <span id="clear-search" onclick="return contacts.List.clearSearch();" role="button" class="icon-clear hide"></span>
-                <button id='cancel-search' class="hide" onclick='return contacts.List.exitSearchMode()'>Cancel</button>
+                <button id='cancel-search' class="hide" onclick='return contacts.List.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
               </div>
-              <p id="no-result" class="hide">No contacts found</p>
+              <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
               <ol class="block-list" id="groups-list">
                 <li data-template>
                   <h2 id="group-#group#" class="block-title hide">
@@ -97,9 +97,9 @@
         <div class="view-inner">
 
           <header role="toolbar" id='details-view-header' class="view-header">
-            <button class="negative" onclick="Contacts.goBack();"><span data-icon="back">back</span></button>
+            <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
             <menu role="menu">
-              <button role="menuitem"  id='edit-contact-button' onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit">edit</span></button>
+              <button role="menuitem"  id='edit-contact-button' onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
             </menu>
             <h1 id='contact-name-title'></h1>
           </header>
@@ -116,7 +116,7 @@
                     </div>
                     <div class="item-body-exp">
                       <button class="action" onclick="Contacts.callOrPick()">
-                        <span role="button" class="icon-call">Call</span>
+                        <span role="button" class="icon-call" data-l10n-id="call">Call</span>
                         <b>#number#</b>
                         <em>#notes#</em>
                       </button>
@@ -143,7 +143,7 @@
                   <div class="item">
                     <div class="item-body-exp">
                       <a href="javascript: void(0);" class="action action-block">
-                        <span role="button" class="icon-address">Address</span>
+                        <span role="button" class="icon-address" data-l10n-id="legendAddress">Address</span>
                         <b>
                         <span>#streetAddress#</span>
                           #postalCode#
@@ -175,9 +175,9 @@
         <div class="view-inner">
 
           <header role="toolbar" class="view-header">
-            <button class="negative" onclick="Contacts.goBack();"><span data-icon="close">Exit</span></button>
+            <button class="negative" onclick="Contacts.goBack();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
             <menu role="menu" id='contact-form-actions'>
-              <button id="save-button" onclick="Contacts.saveContact();" role="menuitem">Done</button>
+              <button id="save-button" onclick="Contacts.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
             </menu>
             <h1 id='contact-form-title'></h1>
           </header>
@@ -187,15 +187,15 @@
             <dl class="setbox fillflow-row">
               <dt class="setbox-title">
                   <a data-taglist='phone-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</a>
-                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon" data-l10n-id="expand">Expand</span>
               </dt>
               <dd class="setbox-body">
                 <p class="setbox-item">
-                  <label class="hide" for="tel_#i#">Phone number:</label>
+                  <label class="hide" for="tel_#i#" data-l10n-id="labelPhoneNumber">Phone number:</label>
                   <input placeholder="Phone" data-field="number" name="tel" class="textfield" type="tel" value="#number#" id="number_#i#">
                 </p>
                 <p class="setbox-item">
-                  <label class="hide" for="notes_#i#">Name:</label>
+                  <label class="hide" for="notes_#i#" data-l10n-id="labelName">Name:</label>
                   <input placeholder="Notes" data-field="notes" name="tel" class="textfield" type="text" value="#notes#" id="notes_#i#">
                 </p>
               </dd>
@@ -207,11 +207,11 @@
             <dl class="setbox fillflow-row">
               <dt class="setbox-title">
                 <a data-taglist='email-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>
-                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon" data-l10n-id="expand">Expand</span>
                 </dt>
               <dd class="setbox-body">
                 <p class="setbox-item">
-                  <label class="hide" for="email_#i#">e-mail:</label>
+                  <label class="hide" for="email_#i#" data-l10n-id="labelEmail">e-mail:</label>
                   <input placeholder="Email" name="email" class="textfield" type="email" value="#address#" id="email_#i#">
                 </p>
               </dd>
@@ -223,23 +223,23 @@
             <dl class="setbox fillflow-row">
               <dt class="setbox-title">
                   <a data-taglist='address-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>
-                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon" data-l10n-id="expand">Expand</span>
               </dt>
               <dd class="setbox-body">
                 <p class="setbox-item">
-                  <label class="hide" for="streetAddress_#i#">Street:</label>
+                  <label class="hide" for="streetAddress_#i#" data-l10n-id="labelStreet">Street:</label>
                   <input placeholder="Street" data-field="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
                 </p>
                 <p class="setbox-item">
-                  <label class="hide" for="postalCode_#i#">Zip Code:</label>
+                  <label class="hide" for="postalCode_#i#" data-l10n-id="labelZip">Zip Code:</label>
                   <input placeholder="Zip Code" data-field="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
                 </p>
                 <p class="setbox-item">
-                  <label class="hide" for="locality_#i#">City:</label>
+                  <label class="hide" for="locality_#i#" data-l10n-id="labelCity">City:</label>
                   <input placeholder="City" data-field="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
                 </p>
                 <p class="setbox-item">
-                  <label class="hide" for="countryName_#i#">Country:</label>
+                  <label class="hide" for="countryName_#i#" data-l10n-id="labelCountry">Country:</label>
                   <input placeholder="Country" data-field="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
                 </p>
               </dd>
@@ -251,7 +251,7 @@
             <dl class="setbox fillflow-row">
               <dd class="setbox-body">
                 <p class="setbox-item">
-                  <label class="hide" for="note_#i#">comment:</label>
+                  <label class="hide" for="note_#i#" data-l10n-id="labelComment">comment:</label>
                   <input placeholder="Comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
                 </p>
               </dd>
@@ -263,17 +263,17 @@
               <form action="#" class="fill-flow">
                 <input name="id" id="contact-form-id" type="hidden" value=""\>
                 <fieldset class="item first">
-                  <legend class="hide">Main information</legend>
+                  <legend class="hide" data-l10n-id="legendTitleMain">Main information</legend>
                   <a href="#" class="item-media fillflow-media">
                     <img alt="" style="background-image: url(#photo#);">
                   </a>
                   <div class="item-body-exp">
                     <p class="fillflow-row">
-                      <label class="hide" for="givenName">Name:</label>
+                      <label class="hide" for="givenName" data-l10n-id="labelLastName">Name:</label>
                       <input placeholder="Name" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
                     </p>
                     <p class="fillflow-row">
-                      <label class="hide" for="user_lastname">Last name:</label>
+                      <label class="hide" for="user_lastname" data-l10n-id="labelLastName">Last name:</label>
                       <input placeholder="Last name" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
                     </p>
                   </div>
@@ -283,7 +283,7 @@
                 </fieldset>
 
                 <fieldset>
-                  <legend>Phone numbers</legend>
+                  <legend data-l10n-id="legendPhones">Phone numbers</legend>
                     <div id='contacts-form-phones'>
                       <!-- Iterating over phone template here -->
                     </div>
@@ -291,11 +291,11 @@
 
                 <button onclick='Contacts.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
                   <span role="button" class="icon-add"></span>
-                  <b>Add phone number</b>
+                  <b data-l10n-id="addPhone">Add phone number</b>
                 </button>
 
                 <fieldset>
-                  <legend>E-mail address</legend>
+                  <legend data-l10n-id="legendEmail">E-mail address</legend>
                     <div id='contacts-form-emails'>
                       <!-- Iterating over email template here -->
                     </div>
@@ -303,11 +303,11 @@
 
                 <button onclick='Contacts.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
                   <span role="button" class="icon-add"></span>
-                  <b>Add email address</b>
+                  <b data-l10n-id="addEmail">Add email address</b>
                 </button>
 
                 <fieldset>
-                  <legend>Address</legend>
+                  <legend data-l10n-id="legendAddress">Address</legend>
                     <div id='contacts-form-addresses'>
                       <!-- Iterating over address template here -->
                     </div>
@@ -315,11 +315,11 @@
 
                 <button onclick='Contacts.addNewAddress(); return false;' id='add-new-address' class="fillflow-row action action-add">
                   <span role="button" class="icon-add"></span>
-                  <b>Add new address</b>
+                  <b data-l10n-id="addAddress">Add new address</b>
                 </button>
 
                 <fieldset>
-                  <legend>Comments</legend>
+                  <legend data-l10n-id="comments">Comments</legend>
                     <div id='contacts-form-notes'>
                       <!-- Iterating over comment template here -->
                     </div>
@@ -327,17 +327,17 @@
 
                 <button onclick='Contacts.addNewNote(); return false;' id='add-new-note' class="fillflow-row action action-add">
                   <span role="button" class="icon-add"></span>
-                  <b>Add comment</b>
+                  <b data-l10n-id="addComment">Add comment</b>
                 </button>
 
                 <hr/>
                 <button onclick='Contacts.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
-                  <b>Add as favorite</b>
+                  <b data-l10n-id="addFavorite">Add as favorite</b>
                 </button>
               </form>
 
               <button id='delete-contact' class="hide fillflow-row action action-delete">
-                <b>Delete contact</b>
+                <b data-l10n-id="deleteContact">Delete contact</b>
               </button>
             </div>
           </article>
@@ -349,11 +349,11 @@
         <div class="view-inner">
 
            <header role="toolbar" class="view-header">
-            <button class="negative" onclick="Contacts.goBack();"><span data-icon="back">back</span></button>
+            <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
             <menu role="menu" id='contact-form-actions' >
-                <button role="menuitem" onclick="Contacts.doneTag();">Done</button>
+                <button role="menuitem" onclick="Contacts.doneTag();" data-l10n-id="done">Done</button>
             </menu>
-            <h1>Label</h1>
+            <h1 data-l10n-id="label">Label</h1>
           </header>
 
           <article class="view-body">
