@@ -1,5 +1,7 @@
 ﻿'use strict';
 
+var _ = navigator.mozL10n.get;
+
 function navigationStack(currentView) {
   var transitions = {
     'left-right': { from: 'view-left', to: 'view-right'},
