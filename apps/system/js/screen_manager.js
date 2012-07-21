@@ -11,7 +11,7 @@ var ScreenManager = {
   * This value can be "out of sync" with real mozPower value,
   * we do this to give screen some time to flash before actual turn off.
   */
-  screenEnabled: true,
+  screenEnabled: false,
 
   /*
   * before idle-screen-off, invoke a nice dimming to the brightness
@@ -56,9 +56,6 @@ var ScreenManager = {
     /* Allow others to cancel the keyup event but not the keydown event */
     window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this);
-
-    window.addEventListener('devicelight', this);
-    window.addEventListener('mozfullscreenchange', this);
 
     this.screen = document.getElementById('screen');
     this.screen.classList.remove('screenoff');
@@ -128,6 +125,8 @@ var ScreenManager = {
 
       self.setBrightness(value);
     });
+
+    self.turnScreenOn();
   },
 
   handleEvent: function scm_handleEvent(evt) {
@@ -191,6 +190,9 @@ var ScreenManager = {
     if (!this.screenEnabled)
       return false;
 
+    window.removeEventListener('devicelight', this);
+    window.removeEventListener('mozfullscreenchange', this);
+
     var self = this;
     var screenBrightness = navigator.mozPower.screenBrightness;
 
@@ -219,6 +221,7 @@ var ScreenManager = {
       self._inTransition = false;
       self.screen.classList.add('screenoff');
       setTimeout(function realScreenOff() {
+        navigator.mozPower.screenBrightness = 0;
         navigator.mozPower.screenEnabled = false;
       }, 20);
 
@@ -238,6 +241,9 @@ var ScreenManager = {
   turnScreenOn: function scm_turnScreenOn() {
     if (this.screenEnabled)
       return false;
+
+    window.addEventListener('devicelight', this);
+    window.addEventListener('mozfullscreenchange', this);
 
     navigator.mozPower.screenEnabled = this.screenEnabled = true;
     navigator.mozPower.screenBrightness = this._brightness;
