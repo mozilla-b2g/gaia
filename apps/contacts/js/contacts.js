@@ -924,7 +924,8 @@ var Contacts = (function() {
 
   var handleBack = function handleBack() {
     //If in an activity, cancel it
-    if (ActivityHandler.currentlyHandling) {
+    var inActivity = ActivityHandler.currentlyHandling;
+    if (inActivity && ActivityHandler.activityName == 'new') {
       ActivityHandler.postCancel();
     } else {
       navigation.back();
@@ -944,7 +945,8 @@ var Contacts = (function() {
     'sendSms': sendSms,
     'saveContact': saveContact,
     'toggleFavorite': toggleFavorite,
-    'callOrPick': callOrPick
+    'callOrPick': callOrPick,
+    'navigation': navigation
   };
 })();
 
@@ -977,6 +979,9 @@ var ActivityHandler = {
           }
           document.location.hash += '?' + params.join('&');
         }
+        break;
+      case 'pick':
+        Contacts.navigation.home();
         break;
     }
   },

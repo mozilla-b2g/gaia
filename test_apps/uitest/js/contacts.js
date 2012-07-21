@@ -18,6 +18,11 @@ var ContactsTest = {
     return this.clearButton = document.getElementById('clear-contacts');
   },
 
+  get pickActivityButton() {
+    delete this.pickActivityButton;
+    return this.pickActivityButton = document.getElementById('activities-pick');
+  },
+
   get newActivityButton() {
     delete this.newActivityButton;
     return this.newActivityButton = document.getElementById('activities-new');
@@ -31,6 +36,8 @@ var ContactsTest = {
   init: function ct_init() {
     this.loadButton.addEventListener('click', this.loadContacts.bind(this));
     this.clearButton.addEventListener('click', this.clearContacts.bind(this));
+    this.pickActivityButton.addEventListener('click',
+                                            this.pickActivity.bind(this));
     this.newActivityButton.addEventListener('click',
                                             this.newActivity.bind(this));
 
@@ -67,6 +74,34 @@ var ContactsTest = {
 
   getContactId: function ct_getContactId() {
     return this.contactId;
+  },
+
+  pickActivity: function ct_pickActivity() {
+    var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/contact'
+        }
+      });
+
+    var self = this;
+    activity.onsuccess = function() {
+      var number = this.result.number;
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'Picked contact with number: ' + number;
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+    activity.onerror = function() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'Activity canceled';
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
   },
 
   newActivity: function ct_newActivity() {
