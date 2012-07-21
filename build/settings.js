@@ -16,6 +16,7 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 
 // Todo: Get a list of settings
 var settings = [
+ new Setting("alarm.enabled", false),
  new Setting("accessibility.invert", false),
  new Setting("bluetooth.enabled", false),
  new Setting("debug.grid.enabled", false),
@@ -50,7 +51,7 @@ var settings = [
  new Setting("phone.ring.incoming", true),
  new Setting("phone.ring.keypad", true),
  new Setting("phone.vibration.incoming", true),
- new Setting("ril.data.enabled", true),
+ new Setting("ril.data.enabled", false),
  new Setting("ril.data.apn", ""),
  new Setting("ril.data.passwd", ""),
  new Setting("ril.data.mmsc", ""),
@@ -64,9 +65,14 @@ var settings = [
  new Setting("screen.timeout", 60),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
+ new Setting("tethering.usb.enabled", false),
+ new Setting("tethering.wifi.enabled", false),
+ new Setting("tethering.wifi.connectedClients", 0),
+ new Setting("tethering.usb.connectedClients", 0),
  new Setting("ums.enabled", false),
  new Setting("ums.mode", ""),
- new Setting("wifi.notification", false),
+ new Setting("wifi.enabled", true),
+ new Setting("wifi.notification", false)
 ];
 
 // Ensure there is no duplicate

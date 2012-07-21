@@ -1,31 +1,43 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
-
   var Presets = {
+    /*
     'google': {
-      provider: 'Caldav',
+      providerType: 'Caldav',
       group: 'remote',
       options: {
+        providerType: 'Caldav',
         domain: 'https://calendar.google.com',
-        uri: '/calendar/dav/'
+        url: '/calendar/dav/'
       }
     },
-
+   */
     'yahoo': {
-      provider: 'Caldav',
+      providerType: 'Caldav',
       group: 'remote',
       options: {
         domain: 'https://caldav.calendar.yahoo.com',
-        uri: '/'
+        providerType: 'Caldav',
+        url: '/'
+      }
+    },
+
+    'caldav': {
+      providerType: 'Caldav',
+      group: 'remote',
+      options: {
+        domain: '',
+        providerType: 'Caldav',
+        url: ''
       }
     },
 
     'local': {
-      provider: 'Local',
+      singleUse: true,
+      providerType: 'Local',
       group: 'local',
-      options: {}
+      options: {
+        providerType: 'Local'
+      }
     }
 
   };

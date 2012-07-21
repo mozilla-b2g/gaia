@@ -3,25 +3,11 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
+    <!-- Shared code -->
+    <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/gesture_detector.js"></script>
+
     <!-- System -->
-    <script>
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <script defer src="js/settings_listener.js"></script>
     <script defer src="js/applications.js"></script>
@@ -87,7 +73,6 @@
 
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
-    <script defer src="js/GestureDetector.js"></script>
     <script defer src="js/notifications.js"></script>
 
     <!-- Permission Manager -->
@@ -106,6 +91,9 @@
 
     <!-- Bluetooth -->
     <script defer src="js/bluetooth.js"></script>
+
+    <!-- Wifi -->
+    <script defer src="js/wifi.js"></script>
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
@@ -173,7 +161,7 @@
         <div id="quick-settings">
           <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
           <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluetooth">Bluetooth</a>
           <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
           <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
         </div>
@@ -266,24 +254,36 @@
       </div>
 
       <div id="statusbar">
-        <div id="statusbar-signal">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div id="statusbar-conn"></div>
-        <div id="statusbar-data"></div>
-        <div id="statusbar-wifi" hidden></div>
+        <!-- Loading -->
         <div id="statusbar-loading" hidden></div>
-        <div id="statusbar-padding"></div>
-        <div id="statusbar-notification" hidden></div>
-        <div id="statusbar-mute" hidden></div>
-        <div id="statusbar-battery">
-          <div id="statusbar-battery-fuel"></div>
-          <div id="statusbar-battery-charging" hidden></div>
-        </div>
+
+        <!-- Notification -->
+        <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
+          data-num="" hidden></div>
+
+        <!-- Time -->
         <div id="statusbar-time"></div>
+
+        <!-- Status -->
+        <div id="statusbar-battery" class="sb-icon sb-icon-battery"
+          data-level="100" charging hidden></div>
+        <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
+          data-level="4" hidden></div>
+        <div id="statusbar-data" class="sb-icon sb-icon-data"
+          data-type="" hidden></div>
+        <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
+        <div id="statusbar-signal" class="sb-icon sb-icon-signal"
+          data-level="5" hidden></div>
+
+        <!-- Permissions -->
+        <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
+        <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden></div>
+        <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden></div>
+        <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
+        <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
+        <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
+        <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
+        <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
       </div>
 
       <div id="notification-toaster" class="notification">
