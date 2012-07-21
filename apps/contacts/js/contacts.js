@@ -978,14 +978,6 @@ var ActivityHandler = {
           document.location.hash += '?' + params.join('&');
         }
         break;
-      case 'edit':
-        var id = this._currentActivity.source.data.contactId;
-        if (!id) {
-          this.cancel();
-          return;
-        }
-        document.location.hash = 'view-contact-form?id=' + id;
-        break;
     }
   },
 

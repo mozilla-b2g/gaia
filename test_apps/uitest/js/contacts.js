@@ -23,11 +23,6 @@ var ContactsTest = {
     return this.newActivityButton = document.getElementById('activities-new');
   },
 
-  get editActivityButton() {
-    delete this.editActivityButton;
-    return this.editActivityButton = document.getElementById('activities-edit');
-  },
-
   get newWithDataActivityButton() {
     delete this.newWithDataActivityButton;
     return this.newWithDataActivityButton = document.getElementById('activities-new-data');
@@ -38,8 +33,7 @@ var ContactsTest = {
     this.clearButton.addEventListener('click', this.clearContacts.bind(this));
     this.newActivityButton.addEventListener('click',
                                             this.newActivity.bind(this));
-    this.editActivityButton.addEventListener('click',
-                                            this.editActivity.bind(this));
+
     this.newWithDataActivityButton.addEventListener('click',
                                             this.newWithDataActivity.bind(this));
   },
@@ -50,8 +44,6 @@ var ContactsTest = {
                                          this.clearContacts.bind(this));
     this.newActivityButton.removeEventListener('click',
                                             this.newActivity.bind(this));
-    this.editActivityButton.removeEventListener('click',
-                                            this.editActivity.bind(this));
   },
 
   clearContacts: function ct_clearContacts() {
@@ -91,7 +83,6 @@ var ContactsTest = {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
         document.getElementById('activities-result').innerHTML = 'New contact' + ' create with id: ' + contact.id;
         self.setContactId(contact.id);
-        document.getElementById('activities-edit').disabled = false;
         var app = evt.target.result;
         app.launch();
       };
@@ -130,7 +121,6 @@ var ContactsTest = {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
         document.getElementById('activities-result').innerHTML = 'New contact' + ' create with id: ' + contact.id;
         self.setContactId(contact.id);
-        document.getElementById('activities-edit').disabled = false;
         var app = evt.target.result;
         app.launch();
       };
@@ -144,33 +134,6 @@ var ContactsTest = {
       };
     };
 
-  },
-
-  editActivity: function ct_editActivity() {
-    var activity = new MozActivity({
-        name: 'edit',
-        data: {
-          type: 'webcontacts/contact',
-          contactId: this.getContactId()
-        }
-      });
-
-      activity.onsuccess = function() {
-        var contact = this.result.contact;
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          document.getElementById('activities-result').innerHTML = 'Finished editing new contact';
-          var app = evt.target.result;
-          app.launch();
-        };
-      };
-
-      activity.onerror = function() {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          document.getElementById('activities-result').innerHTML = 'Activity canceled';
-          var app = evt.target.result;
-          app.launch();
-        };
-      };
   },
 
   loadContacts: function ct_loadContacts() {
