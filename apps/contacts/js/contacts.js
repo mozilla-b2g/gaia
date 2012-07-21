@@ -253,23 +253,12 @@ var Contacts = (function() {
     cover = document.getElementById('cover-img');
   };
 
-<<<<<<< OURS
   window.addEventListener('load', function initContacts(evt) {
     initContainers();
     initPullEffect(cover);
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
   });
-=======
-    deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = _('deleteConfirmMsg');
-      Permissions.show('', msg, function onAccept() {
-        deleteContact(currentContact);
-      },function onCancel() {
-        Permissions.hide();
-      });
-    };
->>>>>>> THEIRS
 
   var loadList = function loadList() {
     var list = document.getElementById('groups-list');
@@ -504,7 +493,7 @@ var Contacts = (function() {
     }
 
     deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = 'Are you sure you want to remove this contact?';
+      var msg = _('deleteConfirmMsg');
       Permissions.show('', msg, function onAccept() {
         deleteContact(currentContact);
       },function onCancel() {
