@@ -39,6 +39,10 @@
   }
 
   Connection.prototype = {
+    _getAuth: function() {
+      return "Basic " + btoa(this._email + ":" + this._password);
+    },
+
     autodiscover: function(aCallback) {
       // TODO: we need to be smarter here and do some stuff with redirects and
       // other fun stuff, but this works for hotmail, so yay.
@@ -47,7 +51,10 @@
 
       let xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open("POST", "https://m.hotmail.com/autodiscover/autodiscover.xml",
-               true, this._email, this._password);
+               true);
+      xhr.setRequestHeader("Content-Type", "text/xml");
+      xhr.setRequestHeader("Authorization", this._getAuth());
+
       xhr.onload = function() {
         if (typeof logXhr == "function") // TODO: remove this debug code
           logXhr(xhr);
@@ -108,7 +115,6 @@
       '  </Request>\n' +
       '</Autodiscover>';
 
-      xhr.setRequestHeader("Content-Type", "text/xml");
       xhr.send(postdata);
     },
 
@@ -135,10 +141,12 @@
       let xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open("POST", this.baseURL + "?Cmd=" + command + "&User=" +
                this._email + "&DeviceId=v140Device&DeviceType=SmartPhone",
-               true, this._email, this._password);
+               true);
       xhr.setRequestHeader("MS-ASProtocolVersion", "14.0");
       xhr.setRequestHeader("Content-Type", "application/vnd.ms-sync.wbxml");
       xhr.setRequestHeader("User-Agent", "B2G");
+      xhr.setRequestHeader("Authorization", this._getAuth());
+
 
       let conn = this;
       xhr.onload = function() {
