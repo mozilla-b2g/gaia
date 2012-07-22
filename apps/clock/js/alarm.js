@@ -299,10 +299,11 @@ var AlarmList = {
   },
 
   deleteCurrent: function al_deleteCurrent(id) {
-    var self = this;
+    var alarm = this.getAlarmFromList(id);
     if (alarm.alarmId)
       AlarmManager.setEnabled(alarm, false);
 
+    var self = this;
     AlarmsDB.deleteAlarm(id, function al_deletedAlarm() {
       self.refresh();
     });
@@ -340,12 +341,14 @@ var AlarmManager = {
     }
     var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
                   { id: alarm.id }); // give the alarm id for the request
+    var self = this;
     request.onsuccess = function(e) {
       alarm.alarmId = e.target.result;
       // save the AlarmAPI's request id to DB
       AlarmsDB.putAlarm(alarm, function am_putAlarm(alarm) {
         AlarmList.refresh();
       });
+      self.updateAlarmStatusBar();
     };
     request.onerror = function(e) {
       var logInfo = bSnooze ? ' snooze' : '';
@@ -356,6 +359,7 @@ var AlarmManager = {
   unset: function am_unset(alarm) {
     if (alarm.alarmId) {
       navigator.mozAlarms.remove(alarm.alarmId);
+      this.updateAlarmStatusBar();
     }
   },
 
@@ -373,6 +377,7 @@ var AlarmManager = {
       window.open(protocol + '//' + host + '/onring.html',
                   'ring_screen', 'attention');
     });
+    this.updateAlarmStatusBar();
   },
 
   snoozeHandler: function am_snoozeHandler() {
@@ -386,6 +391,19 @@ var AlarmManager = {
     } else { // set the alarm again for next repeat date
       this.set(this._onFireAlarm);
     }
+  },
+
+  updateAlarmStatusBar: function am_updateAlarmStatusBar() {
+    var request = navigator.mozAlarms.getAll();
+    request.onsuccess = function(e) {
+      var hasAlarmEnabled = (e.target.result.length == 0) ? false : true;
+      if ('mozSettings' in navigator) {
+        navigator.mozSettings.getLock().set({'alarm.enabled': hasAlarmEnabled});
+      }
+    };
+    request.onerror = function(e) {
+      console.log('get all alarm fail');
+    };
   }
 
 };
@@ -589,6 +607,10 @@ var AlarmEditView = {
   delete: function aev_delete() {
     if (!this.element.dataset.id)
       return;
+
+    var alarm = this.alarm;
+    if (alarm.alarmId)
+      AlarmManager.setEnabled(alarm, false);
 
     var id = parseInt(this.element.dataset.id);
     AlarmsDB.deleteAlarm(id, function al_deletedAlarm() {
