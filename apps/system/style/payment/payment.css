@@ -1,0 +1,14 @@
+html, body {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  background-color: rgb(222, 227, 230);
+  background-image: url("../../resources/images/payment/grain.png?d99a08c");
+  -moz-box-sizing: border-box;
+}
+
+li {
+  list-style: none;
+}
