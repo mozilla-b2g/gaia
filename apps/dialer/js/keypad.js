@@ -311,10 +311,13 @@ var KeypadManager = {
           // Sending the DTMF tone
           var telephony = navigator.mozTelephony;
           if (telephony) {
-            telephony.startTone(key);
-            window.setTimeout(function ch_stopTone() {
-              telephony.stopTone();
-            }, 100);
+            if ((telephony.active != null) 
+                 && (telephony.active.state == 'connected')) {
+              telephony.startTone(key);
+              window.setTimeout(function ch_stopTone() {
+                telephony.stopTone();
+              }, 100);
+            }
           }
         }
 
