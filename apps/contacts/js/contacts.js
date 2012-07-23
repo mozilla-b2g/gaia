@@ -368,18 +368,24 @@ var Contacts = (function() {
 
     var selector = document.getElementById('address-details-template-#i#');
     var addressesTemplate = selector;
-    for (var i in contact.adr) {
-      var currentAddress = contact.adr[i];
-      var addressField = {
-        streetAddress: currentAddress['streetAddress'],
-        postalCode: currentAddress['postalCode'] || '',
-        locality: currentAddress['locality'] || '',
-        countryName: currentAddress['countryName'] || '',
-        type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value,
-        i: i
-      };
-      var template = utils.templates.render(addressesTemplate, addressField);
-      listContainer.appendChild(template);
+    if (contact.adr) {
+      contact.adr.forEach(function fillAddress(currentAddress) {
+        // Sanity check
+        if (!currentAddress.streetAddress && !currentAddress.postalCode &&
+          !currentAddress.locality && !currentAddress.countryName) {
+          return;
+        }
+        var addressField = {
+          streetAddress: currentAddress['streetAddress'],
+          postalCode: currentAddress['postalCode'] || '',
+          locality: currentAddress['locality'] || '',
+          countryName: currentAddress['countryName'] || '',
+          type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value,
+          i: i
+        };
+        var template = utils.templates.render(addressesTemplate, addressField);
+        listContainer.appendChild(template);
+        });
     }
 
     if (contact.note && contact.note.length > 0) {
