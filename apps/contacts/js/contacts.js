@@ -376,8 +376,8 @@ var Contacts = (function() {
       for (var i = 0; i < contact.adr.length; i++) {
         var currentAddress = contact.adr[i];
         // Sanity check
-        if (!currentAddress.streetAddress && !currentAddress.postalCode &&
-          !currentAddress.locality && !currentAddress.countryName) {
+        if (isEmpty(currentAddress, ['streetAddress', 'postalCode',
+          'locality', 'countryName'])) {
           return;
         }
         var addressField = {
@@ -470,26 +470,28 @@ var Contacts = (function() {
       numberEmails++;
     }
 
-    for (var adr = 0; adr < currentContact.adr.length; adr++) {
-      var currentAddress = currentContact.adr[adr];
-      if (!currentAddress.streetAddress && !currentAddress.postalCode &&
-          !currentAddress.locality && !currentAddress.countryName) {
-          continue;
-      }
-      var default_type = TAG_OPTIONS['address-type'][0].value;
-      var adrField = {
-        streetAddress: currentAddress['streetAddress'] || '',
-        postalCode: currentAddress['postalCode'] || '',
-        locality: currentAddress['locality'] || '',
-        countryName: currentAddress['countryName'] || '',
-        type: currentAddress['type'] || default_type,
-        i: adr
-      };
+    if (currentContact.adr) {
+      for (var adr = 0; adr < currentContact.adr.length; adr++) {
+        var currentAddress = currentContact.adr[adr];
+        if (isEmpty(currentAddress, ['streetAddress', 'postalCode',
+          'locality', 'countryName'])) {
+            continue;
+        }
+        var default_type = TAG_OPTIONS['address-type'][0].value;
+        var adrField = {
+          streetAddress: currentAddress['streetAddress'] || '',
+          postalCode: currentAddress['postalCode'] || '',
+          locality: currentAddress['locality'] || '',
+          countryName: currentAddress['countryName'] || '',
+          type: currentAddress['type'] || default_type,
+          i: adr
+        };
 
-      var template = utils.templates.render(addressTemplate, adrField);
-      template.appendChild(removeFieldIcon(template.id));
-      addressContainer.appendChild(template);
-      numberAddresses++;
+        var template = utils.templates.render(addressTemplate, adrField);
+        template.appendChild(removeFieldIcon(template.id));
+        addressContainer.appendChild(template);
+        numberAddresses++;
+      }
     }
 
     for (var index in currentContact.note) {
@@ -515,6 +517,19 @@ var Contacts = (function() {
 
     edit();
   };
+
+  var isEmpty = function isEmpty(obj, fields) {
+    if (obj == null || typeof(obj) != 'object' ||
+        !fields || !fields.length) {
+      return true;
+    }
+    for (var i = 0; i < fields.length; i++) {
+      if (obj.hasOwnProperty(fields[i]) && obj[fields[i]]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   var isFavorite = function isFavorite(contact) {
     return contact != null & contact.category != null &&
