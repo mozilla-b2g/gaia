@@ -63,7 +63,6 @@ var ScreenManager = {
     window.addEventListener('keyup', this);
 
     this.screen = document.getElementById('screen');
-    this.screen.classList.remove('screenoff');
 
     var self = this;
     var power = navigator.mozPower;
@@ -110,9 +109,15 @@ var ScreenManager = {
       }
     };
 
+    this._firstOn = false;
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       self._idleTimeout = value;
+
+      if (!self._firstOn) {
+        self._firstOn = true;
+        self.turnScreenOn();
+      }
     });
 
     SettingsListener.observe('screen.automatic-brightness', true,
@@ -130,8 +135,6 @@ var ScreenManager = {
 
       self.setBrightness(value);
     });
-
-    self.turnScreenOn();
   },
 
   handleEvent: function scm_handleEvent(evt) {
@@ -282,7 +285,6 @@ var ScreenManager = {
 
   // The idleObserver that we will pass to IdleAPI
   idleObserver: {
-    time: 60,
     onidle: null,
     onactive: null
   },
