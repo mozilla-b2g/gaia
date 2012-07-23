@@ -25,7 +25,7 @@ a:active {
   color: #000;
 }
 
-#containter {
+#container {
   height: 100%;
   width: 100%;
   display: -moz-box;
@@ -33,7 +33,7 @@ a:active {
 }
 
 /****** styles for frequency view *******/
-#freq-view {
+#frequency-view {
   padding-top: 3rem;
   height: 10rem;
   width: 100%;
@@ -229,7 +229,7 @@ div#popup-delete-box {
 
 /* localization */
 body.hidden *[data-l10n-id] {
-  /*visibility: hidden;*/
+  visibility: hidden;
 }
 /******* end *******/
 
