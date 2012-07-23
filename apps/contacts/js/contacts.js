@@ -323,6 +323,7 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails() {
     var contact = currentContact;
+    toggleFavoriteMessage(isFavorite(currentContact));
     detailsName.textContent = contact.name;
     if (contact.category && contact.category.indexOf('favorite') != -1) {
       detailsName.innerHTML += '<sup></sup>';
@@ -459,7 +460,6 @@ var Contacts = (function() {
       numberEmails++;
     }
 
-    toggleFavoriteMessage(isFavorite(currentContact));
     for (var adr in currentContact.adr) {
       var currentAddress = currentContact.adr[adr];
       var default_type = TAG_OPTIONS['address-type'][0].value;
@@ -657,6 +657,21 @@ var Contacts = (function() {
         delete currentContact.category[pos];
       }
     }
+
+    var request = navigator.mozContacts.save(currentContact);
+    request.onsuccess = function onsuccess() {
+      var cList = contacts.List;
+      cList.getContactById(currentContact.id, function onSuccess(savedContact) {
+        currentContact = savedContact;
+        contactsList.refresh(currentContact);
+        reloadContactDetails();
+      }, function onError() {
+        console.error('Error reloading contact');
+      });
+    };
+    request.onerror = function onerror() {
+      console.error('Error saving favorite');
+    };
   };
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {

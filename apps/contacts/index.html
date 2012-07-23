@@ -163,6 +163,10 @@
                     <!-- Iterating mails, phones, addresses adn comments here -->
                   </ul>
                 </div>
+                <hr/>
+                <button onclick='Contacts.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
+                  <b>Add as favorite</b>
+                </button>
               </section>
             </div>
           </article>
@@ -328,11 +332,6 @@
                 <button onclick='Contacts.addNewNote(); return false;' id='add-new-note' class="fillflow-row action action-add">
                   <span role="button" class="icon-add"></span>
                   <b>Add comment</b>
-                </button>
-
-                <hr/>
-                <button onclick='Contacts.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
-                  <b>Add as favorite</b>
                 </button>
               </form>
 
