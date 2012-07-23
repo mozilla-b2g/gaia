@@ -325,8 +325,11 @@ var Contacts = (function() {
     var contact = currentContact;
     toggleFavoriteMessage(isFavorite(currentContact));
     detailsName.textContent = contact.name;
+    var star = document.getElementById('favorite-star');
     if (contact.category && contact.category.indexOf('favorite') != -1) {
-      detailsName.innerHTML += '<sup></sup>';
+      star.classList.remove('hide');
+    } else {
+      star.classList.add('hide');
     }
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
