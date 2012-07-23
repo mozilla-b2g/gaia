@@ -464,6 +464,11 @@ var ThreadUI = {
     return this.number = document.getElementById('receiver-tel');
   },
 
+  get clearButton() {
+    delete this.clearButton;
+    return this.clearButton = document.getElementById('clear-search');
+  },
+
   get title() {
     delete this.title;
     return this.title = document.getElementById('header-text');
@@ -518,6 +523,7 @@ var ThreadUI = {
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
     this.headerTitle.addEventListener('click', this.activateContact.bind(this));
+    this.clearButton.addEventListener('click', this.clearContact.bind(this));
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -667,7 +673,6 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
-
   },
 
   cleanForm: function thui_cleanForm() {
@@ -678,6 +683,10 @@ var ThreadUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
+  },
+
+  clearContact: function thui_clearContact() {
+    this.num.value = '';
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {

@@ -19,7 +19,7 @@ html, body {
   padding: 0;
   margin: 0;
   overflow-x: hidden !important;
-  overflow-y: hidden !important; 
+  overflow-y: hidden !important;
   font-family: 'Open Sans', sans-serif;
 }
 
@@ -41,7 +41,7 @@ html, body {
 #thread-list,#thread-messages {
   z-index: 10;
   background: white;
- 
+
 }
 
 .to-left {
@@ -145,7 +145,7 @@ html, body {
 
 .edit .message-block {
   padding: 1rem 0;
-  border-top: .1rem solid #DBDBDB; 
+  border-top: .1rem solid #DBDBDB;
   margin-bottom: 0;
 }
 
@@ -273,7 +273,7 @@ a.unread .unread-mark .icon-unread-mark {
   height: 2.2rem;
   position: absolute;
   pointer-events: none;
-  background-image: url('images/check-delete.png'); 
+  background-image: url('images/check-delete.png');
 }
 
 #thread-list-container .checkbox-container input:checked + span {
@@ -369,7 +369,7 @@ a.unread .unread-mark .icon-unread-mark {
 
 .message-block {
   display: table;
-  table-layout: fixed; 
+  table-layout: fixed;
   width: 100%;
   margin-bottom:1rem;
 }
@@ -419,8 +419,8 @@ a.unread .unread-mark .icon-unread-mark {
   width: 2.2rem;
   height: 2.2rem;
   left: .5rem;
-  top: .9rem; 
-  background-image: url('images/check-delete.png'); 
+  top: .9rem;
+  background-image: url('images/check-delete.png');
 }
 .message-option  input:checked + span {
   background-position: center bottom;
@@ -498,7 +498,7 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 .edit-button {
-  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
+  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%);
   height: 100%;
   width: 100%;
   -moz-box-sizing: border-box;
