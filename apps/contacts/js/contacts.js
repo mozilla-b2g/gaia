@@ -537,9 +537,10 @@ var Contacts = (function() {
   }
 
   var goToSelectTag = function goToSelectTag(event) {
-    var tagList = event.target.dataset.taglist;
+    var target = event.currentTarget.children[0];
+    var tagList = target.dataset.taglist;
     var options = TAG_OPTIONS[tagList];
-    fillTagOptions(options, tagList, event.target);
+    fillTagOptions(options, tagList, target);
     navigation.go('view-select-tag', 'right-left');
   };
 
