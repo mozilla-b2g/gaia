@@ -70,6 +70,12 @@
         "type": "webcontacts/contact"
        },
       "disposition": "window"
+    },
+    "new": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "window"
     }
   }
 }

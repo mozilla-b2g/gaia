@@ -67,7 +67,6 @@ var LockScreen = {
   /* init */
   init: function ls_init() {
     this.getAllElements();
-    this.updateMuteState();
 
     this.lockIfEnabled(true);
 
@@ -95,9 +94,20 @@ var LockScreen = {
     /* switching panels */
     window.addEventListener('keyup', this, true);
 
+    /* mobile connection state on lock screen */
+    var conn = window.navigator.mozMobileConnection;
+    if (conn && conn.voice) {
+      conn.addEventListener('voicechange', this);
+      this.updateConnState();
+    }
+
     var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
+    });
+
+    SettingsListener.observe('audio.volume.master', 5, function(volume) {
+      self.mute.hidden = !!volume;
     });
 
     SettingsListener.observe(
@@ -144,16 +154,14 @@ var LockScreen = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
-      case 'volumechange':
-        this.updateMuteState();
-        break;
-
       case 'screenchange':
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
         // when it's being turned back on
         this.lockIfEnabled(true);
         break;
+      case 'voicechange':
+        this.updateConnState();
 
       case 'mozChromeEvent':
         if (!this.locked || evt.detail.type !== 'desktop-notification')
@@ -575,10 +583,27 @@ var LockScreen = {
     }, (59 - d.getSeconds()) * 1000);
   },
 
-  updateMuteState: function ls_updateMuteState() {
-    SettingsListener.observe('audio.volume.master', 5, (function(volume) {
-      this.mute.hidden = volume;
-    }).bind(this));
+  updateConnState: function ls_updateConnState() {
+    var voice = window.navigator.mozMobileConnection.voice;
+    var _ = navigator.mozL10n.get;
+
+    if (voice.emergencyCallsOnly) {
+      this.connstate.hidden = false;
+      this.connstate.dataset.l10nId = 'emergencyCallsOnly';
+      this.connstate.textContent = _('emergencyCallsOnly') || '';
+
+      return;
+    }
+
+    if (!voice.connected) {
+      this.connstate.hidden = true;
+
+      return;
+    }
+
+    this.connstate.hidden = false;
+    delete this.connstate.dataset.l10nId;
+    this.connstate.textContent = voice.network.shortName;
   },
 
   showNotification: function lockscreen_showNotification(detail) {
@@ -657,7 +682,7 @@ var LockScreen = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['mute', 'clock', 'date',
+    var elements = ['connstate', 'mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
         'area', 'area-unlock', 'area-camera', 'area-handle',

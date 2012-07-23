@@ -242,7 +242,7 @@ suite('views/modify_account', function() {
     account.user = 'james';
     //we never display the password.
     account.password = 'baz';
-    account.fullUrl = 'google.com/path';
+    account.fullUrl = 'http://google.com/path/';
 
     subject.updateForm();
 
@@ -250,20 +250,20 @@ suite('views/modify_account', function() {
 
     assert.equal(fieldValue('user'), 'james');
     assert.equal(fieldValue('password'), '');
-    assert.equal(fieldValue('fullUrl'), 'google.com/path');
+    assert.equal(fieldValue('fullUrl'), 'http://google.com/path/');
   });
 
   test('#updateModel', function() {
     var fields = subject.fields;
     fields.user.value = 'user';
     fields.password.value = 'pass';
-    fields.fullUrl.value = 'google.com/foo';
+    fields.fullUrl.value = 'http://google.com/foo/';
 
     subject.updateModel();
 
     assert.equal(account.user, 'user');
     assert.equal(account.password, 'pass');
-    assert.equal(account.fullUrl, 'google.com/foo');
+    assert.equal(account.fullUrl, 'http://google.com/foo/');
   });
 
   suite('#dispatch', function() {

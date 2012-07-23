@@ -160,7 +160,7 @@ body.hidden *[data-l10n-id] {
 }
 
 #call-screen.displayed.prerender {
-  -moz-transform: translateY(-1px); 
+  -moz-transform: translateY(-1px);
 }
 
 #cs-header {

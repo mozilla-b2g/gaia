@@ -172,6 +172,7 @@ content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "
 
 if (LOCAL_DOMAINS) {
   content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
+  content += "user_pref(\"network.http.max-connections-per-server\", 15);\n";
 }
 
 for (let name in permissions) {

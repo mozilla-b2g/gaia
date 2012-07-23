@@ -175,20 +175,27 @@ var StatusBar = {
       var voice = conn.voice;
       var icon = this.icons.signal;
       var flightModeIcon = this.icons.flightMode;
+      var connLabel = this.icons.conn;
+      var _ = navigator.mozL10n.get;
 
       if (this.settingValues['ril.radio.disabled']) {
         icon.hidden = true;
+        connLabel.hidden = true;
         flightModeIcon.hidden = false;
         return;
       }
 
-      icon.hidden = false;
       flightModeIcon.hidden = true;
 
       icon.dataset.roaming = voice.roaming;
-      if (voice.relSignalStrength === 0 && !voice.connected) {
-        icon.dataset.level = '-1';
+      if (!voice.connected && !voice.emergencyCallsOnly) {
+        icon.hidden = true;
+        connLabel.hidden = false;
+        connLabel.dataset.l10nId = 'searching';
+        connLabel.textContent = _('searching') || '';
       } else {
+        icon.hidden = false;
+        connLabel.hidden = true;
         icon.dataset.level = Math.floor(voice.relSignalStrength / 20); // 0-5
       }
     },
@@ -463,7 +470,7 @@ var StatusBar = {
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
     var elements = ['notification', 'time',
-    'battery', 'wifi', 'data', 'flight-mode', 'signal',
+    'battery', 'wifi', 'data', 'flight-mode', 'conn', 'signal',
     'tethering', 'alarm', 'bluetooth', 'mute',
     'recording', 'sms', 'voicemail', 'geolocation', 'usb'];
 

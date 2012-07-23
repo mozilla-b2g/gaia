@@ -12,29 +12,16 @@
 
   <link rel="resource" type="application/l10n" href="/locales/locales.ini">
 
-  <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-  </script>
+  <!--- shared -->
+  <script src="/shared/js/desktop.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/shared/js/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/shared/js/l10n.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- vendor -->
-  <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ext/caldav.js" type="text/javascript" charset="utf-8"></script>
 
-  <!-- lib root must load before anything else --!>
+  <!--lib root must load before anything else -->
   <script defer src="/js/calendar.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- utils -->
@@ -58,7 +45,9 @@
   <!--- providers -->
   <script defer src="/js/provider/calendar/abstract.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/provider/calendar/local.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/calendar/caldav.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/provider/local.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/caldav.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- store -->
   <script defer src="/js/store/abstract.js" type="text/javascript" charset="utf-8"></script>
@@ -179,7 +168,7 @@
     </ol>
   </section>
 
-  <section class="fullscreen-view" id="advanced-settings-view">
+  <section class="fullscreen-view in-progress" id="advanced-settings-view">
     <header>
       <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
       <a class="done-icon"
@@ -205,7 +194,7 @@
         Back
       </a>
       <h1 data-l10n-id="account-header">Account</h1>
-      <a class="save-icon" data-l10n-id="save" href="#">Save</a>
+      <a class="save-icon" data-l10n-id="save">Save</a>
     </header>
     <div class="errors"></div>
     <form>
@@ -223,6 +212,8 @@
         </ol>
       </fieldset>
     </form>
+    <div class="during-progress">
+    </div>
   </section>
 
   <!---

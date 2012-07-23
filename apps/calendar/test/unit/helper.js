@@ -1,5 +1,15 @@
 (function(window) {
 
+  var oldRequire = require;
+
+  require = function(path) {
+    if (path === 'stream') {
+      throw new Error('skip');
+    }
+    return oldRequire.apply(this, arguments);
+  };
+
+
   if (typeof(testSupport) === 'undefined') {
     testSupport = {};
   }
