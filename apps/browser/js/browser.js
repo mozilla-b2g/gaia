@@ -300,7 +300,7 @@ var Browser = {
           this.showPageScreen();
           this.urlInput.blur();
         } else {
-          this.showTopSitesTab(this.urlInput.value);
+          this.updateAwesomeScreen(this.urlInput.value);
         }
     }
   },
@@ -494,17 +494,21 @@ var Browser = {
     this.historyTab.classList.remove('selected');
   },
 
-  showTopSitesTab: function browser_showTopSitesTab(filter) {
+  updateAwesomeScreen: function browser_updateAwesomeScreen(filter) {
     if (!filter) {
       this.tabHeaders.style.display = 'block';
       filter = false;
     } else {
       this.tabHeaders.style.display = 'none';
     }
+    Places.getTopSites(20, filter, this.showTopSites.bind(this));
+  },
+
+  showTopSitesTab: function browser_showTopSitesTab(filter) {
     this.deselectAwesomescreenTabs();
     this.topSitesTab.classList.add('selected');
     this.topSites.classList.add('selected');
-    Places.getTopSites(20, filter, this.showTopSites.bind(this));
+    this.updateAwesomeScreen();
   },
 
   showTopSites: function browser_showTopSites(topSites) {
