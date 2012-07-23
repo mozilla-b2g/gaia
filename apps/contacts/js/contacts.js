@@ -518,14 +518,27 @@ var Contacts = (function() {
     edit();
   };
 
+  // Checks if an object fields are empty, by empty means
+  // fields could be declared as arrays and those arrays
+  // being empty or with a single '' value
   var isEmpty = function isEmpty(obj, fields) {
     if (obj == null || typeof(obj) != 'object' ||
         !fields || !fields.length) {
       return true;
     }
+    var attr;
     for (var i = 0; i < fields.length; i++) {
-      if (obj.hasOwnProperty(fields[i]) && obj[fields[i]]) {
-        return false;
+      attr = fields[i];
+      if (obj.hasOwnProperty(attr) && obj[attr]) {
+        if (Array.isArray(obj[attr])) {
+          for (var j = 0; j < obj[attr].length; j++) {
+            if (obj[attr][j] != '') {
+              return false;
+            }
+          }
+        } else {
+          return false;
+        }
       }
     }
     return true;
@@ -724,9 +737,9 @@ var Contacts = (function() {
 
   var saveContact = function saveContact() {
     saveButton.setAttribute('disabled', 'disabled');
-    var name = [givenName.value] || [''];
-    var lastName = [familyName.value] || [''];
-    var org = [company.value] || [''];
+    var name = [givenName.value] || [];
+    var lastName = [familyName.value] || [];
+    var org = [company.value] || [];
     var myContact = {
       id: document.getElementById('contact-form-id').value,
       givenName: name,
@@ -753,8 +766,18 @@ var Contacts = (function() {
       }
       contact = currentContact;
     } else {
+      // Use the isEmpty function to check fields but address
+      // and inspect address by it self.
+      if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
+        'email', 'note']) && isEmpty(myContact.adr[0], ['countryName',
+        'locality', 'postalCode', 'region', 'streetAddress'])) {
+        saveButton.removeAttribute('disabled');
+        return;
+      }
+
       contact = new mozContact();
       contact.init(myContact);
+
     }
 
     var request = navigator.mozContacts.save(contact);
