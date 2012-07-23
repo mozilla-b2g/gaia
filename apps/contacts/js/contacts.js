@@ -370,7 +370,8 @@ var Contacts = (function() {
     var selector = document.getElementById('address-details-template-#i#');
     var addressesTemplate = selector;
     if (contact.adr) {
-      contact.adr.forEach(function fillAddress(currentAddress) {
+      for(var i = 0; i < contact.adr.length; i++) {
+        var currentAddress = contact.adr[i];
         // Sanity check
         if (!currentAddress.streetAddress && !currentAddress.postalCode &&
           !currentAddress.locality && !currentAddress.countryName) {
@@ -386,7 +387,7 @@ var Contacts = (function() {
         };
         var template = utils.templates.render(addressesTemplate, addressField);
         listContainer.appendChild(template);
-        });
+        };
     }
 
     if (contact.note && contact.note.length > 0) {
@@ -466,10 +467,11 @@ var Contacts = (function() {
       numberEmails++;
     }
 
-    currentContact.adr.forEach(function fillAddress(currentAddress) {
+    for(var adr = 0; adr < currentContact.adr.length; adr++) {
+      var currentAddress = currentContact.adr[adr];
       if (!currentAddress.streetAddress && !currentAddress.postalCode &&
           !currentAddress.locality && !currentAddress.countryName) {
-          return;
+          continue;
       }
       var default_type = TAG_OPTIONS['address-type'][0].value;
       var adrField = {
@@ -485,7 +487,7 @@ var Contacts = (function() {
       template.appendChild(removeFieldIcon(template.id));
       addressContainer.appendChild(template);
       numberAddresses++;
-    });
+    };
 
     for (var index in currentContact.note) {
       var currentNote = currentContact.note[index];
