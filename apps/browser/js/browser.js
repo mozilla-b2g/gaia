@@ -32,6 +32,7 @@ var Browser = {
     // Assign UI elements to variables
     this.toolbarStart = document.getElementById('toolbar-start');
     this.urlBar = document.getElementById('url-bar');
+    this.tabHeaders = document.getElementById('tab-headers');
     this.urlInput = document.getElementById('url-input');
     this.urlButton = document.getElementById('url-button');
     this.content = document.getElementById('browser-content');
@@ -298,6 +299,8 @@ var Browser = {
           evt.preventDefault();
           this.showPageScreen();
           this.urlInput.blur();
+        } else {
+          this.showTopSitesTab(this.urlInput.value);
         }
     }
   },
@@ -491,11 +494,17 @@ var Browser = {
     this.historyTab.classList.remove('selected');
   },
 
-  showTopSitesTab: function browser_showTopSitesTab() {
+  showTopSitesTab: function browser_showTopSitesTab(filter) {
+    if (!filter) {
+      this.tabHeaders.style.display = 'block';
+      filter = false;
+    } else {
+      this.tabHeaders.style.display = 'none';
+    }
     this.deselectAwesomescreenTabs();
     this.topSitesTab.classList.add('selected');
     this.topSites.classList.add('selected');
-    Places.getTopSites(20, this.showTopSites.bind(this));
+    Places.getTopSites(20, filter, this.showTopSites.bind(this));
   },
 
   showTopSites: function browser_showTopSites(topSites) {

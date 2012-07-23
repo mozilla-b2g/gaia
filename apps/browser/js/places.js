@@ -117,9 +117,9 @@ var Places = {
     }).bind(this));
   },
 
-  getTopSites: function places_getTopSites(maximum, callback) {
+  getTopSites: function places_getTopSites(maximum, filter, callback) {
     // Get the top 20 sites
-    this.db.getPlacesByFrecency(maximum, callback);
+    this.db.getPlacesByFrecency(maximum, filter, callback);
   },
 
   getHistory: function places_getHistory(callback) {
@@ -310,22 +310,28 @@ Places.db = {
     };
   },
 
-  getPlacesByFrecency: function db_getPlacesByFrecency(maximum, callback) {
+  getPlacesByFrecency: function db_getPlacesByFrecency(maximum, filter, callback) {
     var topSites = [];
-    var db = this._db;
-    var transaction = db.transaction('places');
+    var self = this;
+    var transaction = self._db.transaction('places');
     var placesStore = transaction.objectStore('places');
     var frecencyIndex = placesStore.index('frecency');
     frecencyIndex.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
       var cursor = e.target.result;
       if (cursor && topSites.length < maximum) {
         var place = cursor.value;
-        topSites.push(cursor.value);
+        if (filter === false || self.matchesFilter(place.uri, filter)) {
+          topSites.push(cursor.value);
+        }
         cursor.continue();
       } else {
         callback(topSites);
       }
     };
+  },
+
+  matchesFilter: function db_matchesFilter(uri, filter) {
+    return uri.match(new RegExp(filter, 'i')) !== null;
   },
 
   getPlaceUrisByFrecency: function db_getPlaceUrisByFrecency(maximum,
