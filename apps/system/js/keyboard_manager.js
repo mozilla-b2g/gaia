@@ -6,6 +6,10 @@ var KeyboardManager = (function() {
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
   var KEYBOARD_URL = document.location.protocol + '//keyboard.' + domain;
 
+  if (KEYBOARD_URL.substring(0,6) == "app://") { // B2G bug 773884
+      KEYBOARD_URL += "/index.html";
+  }
+
   var keyboardFrame, keyboardOverlay;
 
   var init = function kbManager_init() {
