@@ -64,12 +64,12 @@ contacts.List = (function() {
       var letter = getGroupName(contacts[i]);
 
       if (letter === group) {
-        ret.push(contacts[i]);
+        ret.push(refillContactData(contacts[i]));
         continue;
       }
 
       iterateOverGroup(group, ret);
-      ret = [contacts[i]];
+      ret = [refillContactData(contacts[i])];
       group = letter;
     }
 
@@ -163,9 +163,26 @@ contacts.List = (function() {
     }
   }
 
+  // Fills the contact data to display if no givenName and familyName
+  var refillContactData = function refillContactData(contact) {
+    if (!contact.givenName[0] && !contact.familyName[0]) {
+      if (contact.tel) {
+        contact.givenName = contact.tel[0].number;
+      } else if (contact.email) {
+        contact.givenName = contact.email[0].address;
+      } else {
+        contact.givenName = 'No name';
+      }
+    }
+
+    return contact;
+  }
+
   var addToGroup = function addToGroup(contact, list) {
     var newLi;
     var cName = getStringToBeOrdered(contact);
+
+    refillContactData(contact);
 
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;
@@ -219,6 +236,9 @@ contacts.List = (function() {
 
     ret.push(contact.familyName ? contact.familyName[0] : '');
     ret.push(contact.givenName ? contact.givenName[0] : '');
+    ret.push(contact.tel ? contact.tel[0].number : '');
+    ret.push(contact.email ? contact.email[0].address : '');
+    ret.push('#');
 
     return ret.join('');
   }
