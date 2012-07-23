@@ -687,6 +687,7 @@ li[role="listitem"] small {
 
 #settings li button {
   padding: 10px;
+}
 
 /* This is a dirty hack to hide the bottom toolbar while
  * the keyboard is active, than device-height - 20px (for status bar),

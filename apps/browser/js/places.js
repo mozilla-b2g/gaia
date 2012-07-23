@@ -201,7 +201,7 @@ Places.db = {
 
     var objectStore = transaction.objectStore('places');
     var readRequest = objectStore.get(uri);
-    readRequest.onsuccess = function(event) {
+    readRequest.onsuccess = function onReadSuccess(event) {
       var place = event.target.result;
       if (place) {
         if (callback)
@@ -216,12 +216,12 @@ Places.db = {
 
       var writeRequest = objectStore.add(place);
 
-      writeRequest.onsuccess = function onsucess(event) {
+      writeRequest.onsuccess = function onWriteSuccess(event) {
         if (callback)
           callback();
       };
 
-      writeRequest.onerror = function onerror(event) {
+      writeRequest.onerror = function onError(event) {
         console.log('error writing place');
       };
     };
@@ -236,11 +236,11 @@ Places.db = {
     var db = this._db;
     var request = db.transaction('places').objectStore('places').get(uri);
 
-    request.onsuccess = function(event) {
+    request.onsuccess = function onSuccess(event) {
       callback(event.target.result);
     };
 
-    request.onerror = function(event) {
+    request.onerror = function onError(event) {
       if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
         callback();
     };
@@ -258,12 +258,12 @@ Places.db = {
     var objectStore = transaction.objectStore('places');
     var request = objectStore.put(place);
 
-    request.onsuccess = function onsuccess(e) {
+    request.onsuccess = function onSuccess(e) {
       if (callback)
         callback();
     };
 
-    request.onerror = function onerror(e) {
+    request.onerror = function onError(e) {
       console.log('Error while updating place in global history store: ' +
         place.uri);
     };
@@ -279,11 +279,11 @@ Places.db = {
      var objectStore = transaction.objectStore('visits');
      var request = objectStore.add(visit);
 
-     request.onerror = function onerror(e) {
+     request.onerror = function onError(e) {
        console.log('Error while adding visit to global history store');
      };
 
-     request.onsuccess = function onsuccess(e) {
+     request.onsuccess = function onSuccess(e) {
        if (callback)
          callback();
      };
@@ -305,7 +305,8 @@ Places.db = {
     var transaction = db.transaction(['visits', 'places']);
     var visitsStore = transaction.objectStore('visits');
     var placesStore = transaction.objectStore('places');
-    visitsStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+    visitsStore.openCursor(null, IDBCursor.PREV).onsuccess =
+      function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor && history.length < maximum) {
         var visit = cursor.value;
@@ -323,7 +324,8 @@ Places.db = {
     var transaction = db.transaction('places');
     var placesStore = transaction.objectStore('places');
     var frecencyIndex = placesStore.index('frecency');
-    frecencyIndex.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+    frecencyIndex.openCursor(null, IDBCursor.PREV).onsuccess =
+      function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor && topSites.length < maximum) {
         var place = cursor.value;
@@ -341,7 +343,8 @@ Places.db = {
     var transaction = this._db.transaction('places');
     var placesStore = transaction.objectStore('places');
     var frecencyIndex = placesStore.index('frecency');
-    frecencyIndex.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+    frecencyIndex.openCursor(null, IDBCursor.PREV).onsuccess =
+      function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor && topSites.length < maximum) {
         topSites.push(cursor.value.uri);
@@ -361,10 +364,10 @@ Places.db = {
     };
     var objectStore = transaction.objectStore('places');
     var request = objectStore.clear();
-    request.onsuccess = function() {
+    request.onsuccess = function onSuccess() {
       callback();
     };
-    request.onerror = function(e) {
+    request.onerror = function onError(e) {
       console.log('Error clearing places object store');
     };
   },
@@ -378,11 +381,11 @@ Places.db = {
     };
     var objectStore = transaction.objectStore('visits');
     var request = objectStore.clear();
-    request.onsuccess = function() {
+    request.onsuccess = function onSuccess() {
       if (callback)
         callback();
     };
-    request.onerror = function(e) {
+    request.onerror = function onError(e) {
       console.log('Error clearing visits object store');
     };
   },
@@ -396,10 +399,10 @@ Places.db = {
     };
     var objectStore = transaction.objectStore('icons');
     var request = objectStore.clear();
-    request.onsuccess = function() {
+    request.onsuccess = function onSuccess() {
       callback();
     };
-    request.onerror = function(e) {
+    request.onerror = function onError(e) {
       console.log('Error clearing icons object store');
     };
   },
@@ -413,10 +416,10 @@ Places.db = {
     };
     var objectStore = transaction.objectStore('bookmarks');
     var request = objectStore.clear();
-    request.onsuccess = function() {
+    request.onsuccess = function onSuccess() {
       callback();
     };
-    request.onerror = function(e) {
+    request.onerror = function onError(e) {
       console.log('Error clearing bookmarks object store');
     };
   },
@@ -431,12 +434,12 @@ Places.db = {
     var objectStore = transaction.objectStore('icons');
     var request = objectStore.put(iconEntry);
 
-    request.onsuccess = function onsuccess(e) {
+    request.onsuccess = function onSuccess(e) {
       if (callback)
         callback();
     };
 
-    request.onerror = function onerror(e) {
+    request.onerror = function onError(e) {
       console.log('Error while saving icon');
     };
   },
@@ -445,11 +448,11 @@ Places.db = {
     var request = this._db.transaction('icons').objectStore('icons').
       get(iconUri);
 
-    request.onsuccess = function(event) {
+    request.onsuccess = function onSuccess(event) {
       callback(event.target.result);
     };
 
-    request.onerror = function(event) {
+    request.onerror = function onError(event) {
       if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
         callback();
     };
@@ -466,12 +469,12 @@ Places.db = {
 
     var request = objectStore.put(bookmark);
 
-    request.onsuccess = function onsuccess(e) {
+    request.onsuccess = function onSuccess(e) {
       if (callback)
         callback();
     };
 
-    request.onerror = function onerror(e) {
+    request.onerror = function onError(e) {
       console.log('Error while saving bookmark');
     };
   },
@@ -480,11 +483,11 @@ Places.db = {
     var request = this._db.transaction('bookmarks').objectStore('bookmarks').
       get(uri);
 
-    request.onsuccess = function(event) {
+    request.onsuccess = function onSuccess(event) {
       callback(event.target.result);
     };
 
-    request.onerror = function(event) {
+    request.onerror = function onError(event) {
       if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
         callback();
     };
@@ -500,11 +503,11 @@ Places.db = {
     var objectStore = transaction.objectStore('bookmarks');
     var request = objectStore.delete(uri);
 
-    request.onsuccess = function(event) {
+    request.onsuccess = function onSuccess(event) {
       callback();
     };
 
-    request.onerror = function onerror(e) {
+    request.onerror = function onError(e) {
       console.log('Error while deleting bookmark');
     };
   },
@@ -525,7 +528,8 @@ Places.db = {
     var transaction = db.transaction(['bookmarks', 'places']);
     var bookmarksStore = transaction.objectStore('bookmarks');
     var placesStore = transaction.objectStore('places');
-    bookmarksStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+    bookmarksStore.openCursor(null, IDBCursor.PREV).onsuccess =
+      function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
         var bookmark = cursor.value;
@@ -546,7 +550,8 @@ Places.db = {
     var transaction = db.transaction('bookmarks');
     var objectStore = transaction.objectStore('bookmarks');
 
-    objectStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+    objectStore.openCursor(null, IDBCursor.PREV).onsuccess =
+      function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
         uris.push(cursor.value.uri);
@@ -572,7 +577,7 @@ Places.db = {
     var objectStore = transaction.objectStore('places');
     var readRequest = objectStore.get(uri);
 
-    readRequest.onsuccess = function(event) {
+    readRequest.onsuccess = function onReadSuccess(event) {
       var place = event.target.result;
       if (!place)
         return;
@@ -586,11 +591,11 @@ Places.db = {
 
       var writeRequest = objectStore.put(place);
 
-      writeRequest.onerror = function() {
+      writeRequest.onerror = function onError() {
         console.log('Error while saving new frecency for ' + uri);
       };
 
-      writeRequest.onsuccess = function() {
+      writeRequest.onsuccess = function onWriteSuccess() {
         if (callback)
           callback();
       };
@@ -610,7 +615,7 @@ Places.db = {
     var objectStore = transaction.objectStore('places');
     var readRequest = objectStore.get(uri);
 
-    readRequest.onsuccess = function(event) {
+    readRequest.onsuccess = function onReadSuccess(event) {
       var place = event.target.result;
       if (!place)
         return;
@@ -619,11 +624,11 @@ Places.db = {
 
       var writeRequest = objectStore.put(place);
 
-      writeRequest.onerror = function() {
+      writeRequest.onerror = function onError() {
         console.log('Error while resetting frecency for ' + uri);
       };
 
-      writeRequest.onsuccess = function() {
+      writeRequest.onsuccess = function onWriteSuccess() {
         if (callback)
           callback();
       };
@@ -643,7 +648,7 @@ Places.db = {
     var objectStore = transaction.objectStore('places');
     var readRequest = objectStore.get(uri);
 
-    readRequest.onsuccess = function(event) {
+    readRequest.onsuccess = function onReadSuccess(event) {
       var place = event.target.result;
       if (place) {
         place.iconUri = iconUri;
@@ -657,7 +662,7 @@ Places.db = {
 
       var writeRequest = objectStore.put(place);
 
-      writeRequest.onerror = function() {
+      writeRequest.onerror = function onError() {
         console.log('Error while saving iconUri for ' + uri);
       };
 
@@ -681,7 +686,7 @@ Places.db = {
     var objectStore = transaction.objectStore('places');
     var readRequest = objectStore.get(uri);
 
-    readRequest.onsuccess = function(event) {
+    readRequest.onsuccess = function onReadSuccess(event) {
       var place = event.target.result;
       if (place) {
         place.title = title;
@@ -694,11 +699,11 @@ Places.db = {
 
       var writeRequest = objectStore.put(place);
 
-      writeRequest.onerror = function() {
+      writeRequest.onerror = function onError() {
         console.log('Error while saving title for ' + uri);
       };
 
-      writeRequest.onsuccess = function() {
+      writeRequest.onsuccess = function onWriteSuccess() {
         if (callback)
           callback();
       };
@@ -719,7 +724,7 @@ Places.db = {
     var objectStore = transaction.objectStore('places');
     var readRequest = objectStore.get(uri);
 
-    readRequest.onsuccess = function(event) {
+    readRequest.onsuccess = function onReadSuccess(event) {
       var place = event.target.result;
       if (place) {
         place.screenshot = screenshot;
@@ -733,11 +738,11 @@ Places.db = {
 
       var writeRequest = objectStore.put(place);
 
-      writeRequest.onerror = function() {
+      writeRequest.onerror = function onError() {
         console.log('Error while saving screenshot for ' + uri);
       };
 
-      writeRequest.onsuccess = function() {
+      writeRequest.onsuccess = function onWriteSuccess() {
         if (callback)
           callback();
       };
@@ -760,7 +765,8 @@ Places.db = {
     var placesStore = transaction.objectStore('places');
     var iconStore = transaction.objectStore('icons');
 
-    placesStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+    placesStore.openCursor(null, IDBCursor.PREV).onsuccess =
+      function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
         var place = cursor.value;

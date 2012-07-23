@@ -904,12 +904,12 @@ var Browser = {
   },
 
   showPageScreen: function browser_showPageScreen() {
-    if (this.currentScreen === this.TABS_SCREEN) {
-      var hideCover = (function browser_hideCover() {
-        this.tabCover.removeAttribute('src');
-        this.tabCover.style.display = 'none';
-      }).bind(this);
+    var hideCover = (function browser_hideCover() {
+      this.tabCover.removeAttribute('src');
+      this.tabCover.style.display = 'none';
+    }).bind(this);
 
+    if (this.currentScreen === this.TABS_SCREEN) {
       var switchLive = (function browser_switchLive() {
         this.mainScreen.removeEventListener('transitionend', switchLive, true);
         this.setTabVisibility(this.currentTab, true);
@@ -920,6 +920,7 @@ var Browser = {
       this.mainScreen.addEventListener('transitionend', switchLive, true);
     } else {
       this.setTabVisibility(this.currentTab, true);
+      hideCover();
     }
 
     if (this.currentTab.loading) {
