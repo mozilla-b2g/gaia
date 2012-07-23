@@ -394,12 +394,13 @@ var AlarmManager = {
   },
 
   updateAlarmStatusBar: function am_updateAlarmStatusBar() {
+    if (!('mozSettings' in navigator))
+      return;
+
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function(e) {
       var hasAlarmEnabled = (e.target.result.length == 0) ? false : true;
-      if ('mozSettings' in navigator) {
-        navigator.mozSettings.getLock().set({'alarm.enabled': hasAlarmEnabled});
-      }
+      navigator.mozSettings.getLock().set({'alarm.enabled': hasAlarmEnabled});
     };
     request.onerror = function(e) {
       console.log('get all alarm fail');
