@@ -1,11 +1,39 @@
+'use strict';
 
 var Wallpaper = {
+  images: [],
+
+  getAllElements: function md_getAllElements() {
+    var elementsID = ['thumbnails', 'thumbnail-vist-view',
+        'photo-view', 'photo-filmstrip', 'photo-frame', 'current-frame'];
+
+    var toCamelCase = function toCamelCase(str) {
+      return str.replace(/\-(.)/g, function replacer(str, p1) {
+        return p1.toUpperCase();
+      });
+    };
+
+    // Loop and add element with camel style name to Modal Dialog attribute.
+    elementsID.forEach(function createElementRef(name) {
+      this.elements[toCamelCase(name)] =
+        document.getElementById(this.prefix + name);
+    }, this);
+
+    this.screen = document.getElementById('screen');
+  },
+
   init: function wp_init() {
-    this.activityListener();
-    window.addEventListener('click', this);
+    this.createThumbnailList();
+    //this.activityListener();
+    this.getAllElements();
+
+    console.log(this.thumbnails,'=====');
+    this.thumbnails.addEventListener('click', this);
+
     window.addEventListener('mozvisibilitychange', this);
     window.addEventListener('resize', this);
   },
+
   handleEvent: function wp_handleEvent(evt) {
     switch(evt.type) {
       case 'mozvisibilitychange':
@@ -13,14 +41,16 @@ var Wallpaper = {
         break;
       case 'click':
         var target = evt.target;
+        console.warn('======', target.dataset.index);
         if (!target || !target.classList.contains('thumbnail'))
           return;
         this.showPhoto(parseInt(target.dataset.index));
         break;
     }
   },
+
   activityListener: function wp_activityListener() {
-    if(!navigator.mozSetMessageHandler)
+    if(!navigator.mozSetMessageHandler || false)
       return;
 
     navigator.mozSetMessageHandler('activity', function(activityRequest) {
@@ -36,47 +66,45 @@ var Wallpaper = {
       }
     });
   },
+
   startPick: function wp_startPick(activityRequest) {
     this.pendingPick = activityRequest;
-    this.setView(pickView);
+    this.setView(this.pickView);
   },
+
   finishPick: function wp_finishPick(filename) {
     this.pendingPick.postResult({
       type: 'image/jpeg',
       filename: filename
     });
     this.pendingPick = null;
-    this.setView(thumbnailListView);
+    this.setView(this.thumbnailListView);
   },
+
   cancelPick: function wp_cancelPick() {
     this.pendingPick.postError('pick cancelled');
     this.pendingPick = null;
-    this.setView(thumbnailListView);
+    this.setView(this.thumbnailListView);
   },
+  
   // Switch from thumbnail list view to single-picture view
   // and display the specified photo.
   showPhoto: function wp_showPhoto(n) {
-    this.setView(photoView); // Switch to photo view mode if not already there
-    this.displayImageInFrame(n, currentPhotoFrame);
+    this.setView(this.photoView); // Switch to photo view mode if not already there
+    this.displayImageInFrame(n);
   },
-  displayImageInFrame: function wp_displayImageInFrame(n, frame) {
+  
+  displayImageInFrame: function wp_displayImageInFrame(n) {
     // Make sure n is in range
     if (n < 0 || n >= this.images.length)
       return;
 
-    var img = frame.firstChild;
-
-    // Asynchronously set the image url
-    var imagedata = images[n];
-    photodb.getFile(imagedata.name, function(file) {
-      var url = URL.createObjectURL(file);
-      img.src = url;
-      img.onload = function() { URL.revokeObjectURL(url); };
-    });
+    var img = this.currentFrame.firstChild;
+    img.src = images.src;
 
     // Figure out the size and position of the image
-    var fit = fitImageToScreen(images[n].metadata.width,
-                             images[n].metadata.height);
+    var fit = fitImage(this.images[n].width,
+                             this.images[n].height);
     var style = img.style;
     style.width = fit.width + 'px';
     style.height = fit.height + 'px';
@@ -102,28 +130,61 @@ var Wallpaper = {
     // Now do setup for the view we're entering
     // In particular, we've got to move the thumbnails list into each view
     switch (view) {
-      case thumbnailListView:
-        view.appendChild(thumbnails);
-        thumbnails.style.width = '';
+      case this.thumbnailListView:
+        view.appendChild(this.thumbnails);
+        this.thumbnails.style.width = '';
         break;
-      case photoView:
+      case this.photoView:
         // photoView is a special case because we need to insert
         // the thumbnails into the filmstrip container and set its width
-        $('photos-filmstrip').appendChild(thumbnails);
+        this.photosFilmstrip.appendChild(this.thumbnails);
         // In order to get a working scrollbar, we apparently have to specify
         // an explict width for list of thumbnails.
         // XXX: we need to update this when images are added or deleted.
         // XXX: avoid using hardcoded 50px per image?
-        thumbnails.style.width = (images.length * 50) + 'px';
+        this.thumbnails.style.width = (this.images.length * 50) + 'px';
         break;
     }
     // Remember the current view
     this.currentView = view;
+  },
+  
+  createThumbnailList: function wp_createThumbnailList() {
+    var self = this;
+    var defaultWallpapers = document.querySelectorAll('#thumbnails li');
+    console.log(defaultWallpapers.length,'=====');
+    for (var i = 0; i < defaultWallpapers.length; i++) {
+      var src = defaultWallpapers[i].style.backgroundImage;
+      src = src.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+      console.log('=====',src);
+      var img = new Image();
+      img.onload = function getWH() {
+        self.images.push({ src: src, width: img.width, height: img.height });
+        console.log('====={ src: '+src+', width: '+img.width+', height: '+img.height+'}');
+      };
+      img.src = src;
+    }
+  },
+
+  // figure out the size and position of an image based on its size
+  // and the screen size.
+  fitImage: function wp_fitImage(photoWidth, photoHeight, viewportWidth, viewportHeight) {
+    var scalex = viewportWidth / photoWidth;
+    var scaley = viewportHeight / photoHeight;
+    var scale = Math.min(Math.min(scalex, scaley), 1);
+
+    // Set the image size and position
+    var width = Math.floor(photoWidth * scale);
+    var height = Math.floor(photoHeight * scale);
+
+    return {
+      width: width,
+      height: height,
+      left: Math.floor((viewportWidth - width) / 2),
+      top: Math.floor((viewportHeight - height) / 2),
+      scale: scale
+    };
   }
 }
-
-function destroyUI() {
-  images = [];
-};
 
 Wallpaper.init();

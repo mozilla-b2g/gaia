@@ -22,6 +22,19 @@
         <li data-index=6 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_07.png')"></li>
       </ul>
     </div>
+    <div id="photo-view" class="hidden">
+      <div id="photo-frames">
+        <!-- the current photo plus next and previous waiting in the wings -->
+        <div class="photoFrame currentPhoto" id="current-photo"><img></div>
+      </div>
+      <div id="photos-overlay">
+        <div id="photos-overlay-top">
+          <div id="photos-filmstrip"><!-- thumbnails here --></div>
+          <a id="photos-back-button" class="button"></a>
+        </div>
+      </div>
+    </div>
+    
     <footer>
       <span id="cancel" data-i10-id="cancel"></span>
     </footer>
