@@ -615,6 +615,8 @@ a.border-thick-black {
   background-color: #eee;
   text-align: center;
   padding-top: 12px;
+  font-size: smaller;
+  color: black;
 }
 
 #sliderlabels {
