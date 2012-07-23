@@ -327,7 +327,7 @@ Places.db = {
         }
         cursor.continue();
       } else {
-        callback(topSites);
+        callback(topSites, filter);
       }
     };
   },

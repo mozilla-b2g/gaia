@@ -511,13 +511,13 @@ var Browser = {
     this.updateAwesomeScreen();
   },
 
-  showTopSites: function browser_showTopSites(topSites) {
+  showTopSites: function browser_showTopSites(topSites, filter) {
     this.topSites.innerHTML = '';
     var list = document.createElement('ul');
     list.setAttribute('role', 'listbox');
     this.topSites.appendChild(list);
     topSites.forEach(function browser_processTopSite(data) {
-      this.drawAwesomescreenListItem(list, data);
+      this.drawAwesomescreenListItem(list, data, filter);
     }, this);
   },
 
@@ -583,18 +583,20 @@ var Browser = {
   },
 
   drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(list,
-    data) {
+    data, filter) {
     var entry = document.createElement('li');
     var link = document.createElement('a');
-    var title = document.createElement('span');
+    var title = document.createElement('h5');
     var url = document.createElement('small');
     entry.setAttribute('role', 'listitem');
     link.href = data.uri;
-    title.textContent = data.title ? data.title : data.uri;
+    var titleText = data.title ? data.title : data.url;
+    title.innerHTML = Utils.createHighlightHTML(titleText, filter);
+
     if (data.uri == this.START_PAGE_URL) {
       url.textContent = 'about:home';
     } else {
-      url.textContent = data.uri;
+      url.innerHTML = Utils.createHighlightHTML(data.uri, filter);
     }
     link.appendChild(title);
     link.appendChild(url);
@@ -1117,6 +1119,42 @@ var Browser = {
       this.tab.style.MozTransition = 'left ' + time + 'ms linear';
       this.tab.style.left = offset + 'px';
     }
+  }
+};
+
+// Taken (and modified) from /apps/sms/js/searchUtils.js
+// and /apps/sms/js/utils.js
+var Utils = {
+  createHighlightHTML: function ut_createHighlightHTML(text, searchRegExp) {
+    if (!searchRegExp) {
+      return text;
+    }
+    searchRegExp = new RegExp(searchRegExp, 'i');
+    var sliceStrs = text.split(searchRegExp);
+    var patterns = text.match(searchRegExp);
+    if (!patterns) {
+      return text;
+    }
+    var str = '';
+    for (var i = 0; i < patterns.length; i++) {
+      str = str +
+        Utils.escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
+        Utils.escapeHTML(patterns[i]) + '</span>';
+    }
+    str += Utils.escapeHTML(sliceStrs.pop());
+    return str;
+  },
+
+  escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
+    var span = document.createElement('span');
+    span.textContent = str;
+
+    // Escape space for displaying multiple space in message.
+    span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
+
+    if (escapeQuotes)
+      return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    return span.innerHTML;
   }
 };
 

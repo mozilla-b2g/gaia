@@ -460,11 +460,14 @@ li[role="listitem"] a:hover, li[role="listitem"] a:active {
   background-color: #EEE;
 }
 
-li[role="listitem"] span {
+li[role="listitem"] h5 {
   display: block;
+  font-weight: normal;
+  margin: 0;
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
+  font-size: 14px;
 }
 
 li[role="listitem"] small {
@@ -473,6 +476,11 @@ li[role="listitem"] small {
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
+}
+
+.highlight {
+  font-weight: bold;
+  text-decoration: underline;
 }
 
 .awesome-screen #toolbar-start {
