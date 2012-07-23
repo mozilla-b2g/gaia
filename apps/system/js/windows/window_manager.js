@@ -347,7 +347,7 @@ var WindowManager = (function() {
       // Stop audio when app dies
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=761936
       // w->mApp Assertion
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775576 
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775576
       // Gallery App crash (in IndexedDB)
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=775591
       // Electrolysize b2g-bluetooth
@@ -391,7 +391,8 @@ var WindowManager = (function() {
       //  - OOP - asserts on w->mApp (bug 775576)
 
       'Contacts',
-      // Keyboard always shows up alpha when app using keyboard is run OOP - bug 776118
+      // Keyboard always shows up alpha when app using keyboard is run OOP
+      // - bug 776118
 
       'CrystalSkull',
 
@@ -408,7 +409,7 @@ var WindowManager = (function() {
       'Dev Marketplace',
 
       //'Dialer',
-      // - Dialer doesn't seem to see touches when run OOP - bug 776069
+      // - Dialer doesn't seem to see touches when running OOP - bug 776069
 
       //'E-Mail',
       // - SSL/TLS support can only happen in the main process although the TCP
@@ -420,21 +421,22 @@ var WindowManager = (function() {
       'Galactians2',  // Install from Dev Marketplace
 
       //'Gallery',
-      // - When run OOP, doesn't detect any photos or crashes - bug 775591
-      // - When run OOP, VolumeService dies - bug 775833
+      // - When running OOP, doesn't detect any photos or crashes - bug 775591
+      // - When running OOP, VolumeService dies - bug 775833
 
       'Homescreen',
       'Keyboard',
 
       //'Marketplace',
-      // - When run OOP - After trying to Login/Register, never get to persona scren - bug 776086
-      // - When run OOP - Sometimes get w->mApp assert (bug 775576)
+      // - When running OOP - After trying to Login/Register, never get to
+      //   persona scren - bug 776086
+      // - When running OOP - Sometimes get w->mApp assert (bug 775576)
 
       //'Messages',
       // - crashes when launched OOP on otoro - bug 775997
 
       //'Music',
-      // - When run OOP, VolumeService dies - bug 775833
+      // - When running OOP, VolumeService dies - bug 775833
 
       'PenguinPop',
 
@@ -443,26 +445,32 @@ var WindowManager = (function() {
       // However, apprarently bluetooth doesn't - bug 755943
 
       //'Staging Marketplace',
-      // - When run OOP - After trying to Login/Register, never get to persona scren - bug 776086
-      // - When run OOP - After trying to Login/Register, got white screen
-      // - Works ok when run non-OOP
+      // - When running OOP - After trying to Login/Register, never get to
+      //   persona scren - bug 776086
+      // - When running OOP - After trying to Login/Register, got white screen
+      // - Works ok when running non-OOP
 
       //'System',
 
       'Tasks',
       'Template',
       'Test Agent',
-      'TowerJelly',
+      'TowerJelly'
 
       //'UI tests',
-      // Keyboard always shows up alpha when app using keyboard is run OOP - bug 776118
-      // Insert Fake Contacts hangs when run OOP (or not OOP) - bug 776128
-      // UI Test - window.open doesn't work properly when run OOP - bug 776129
-      // UI Test app - window.close test causes seg fault when run OOP - bug 776132
-      // UI Test App - Notifications don't work properly when run OOP - bug 776134
+      // Keyboard always shows up alpha when app using keyboard is running OOP
+      //   - bug 776118
+      // Insert Fake Contacts hangs when running OOP (or not OOP)
+      //   - bug 776128
+      // UI Test - window.open doesn't work properly when running OOP
+      //   - bug 776129
+      // UI Test app - window.close test causes seg fault when running OOP
+      //   - bug 776132
+      // UI Test App - Notifications don't work properly when running OOP
+      //   - bug 776134
 
       //'Video',
-      // - When run OOP, VolumeService dies - bug 775833
+      // - When running OOP, VolumeService dies - bug 775833
       //   OOP - Assertion failure: w->mApp,
       //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
       //   Stop audio when app dies

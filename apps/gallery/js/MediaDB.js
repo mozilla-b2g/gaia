@@ -327,7 +327,7 @@ MediaDB.prototype = {
         };
       };
   },
-  
+
   // Add a new file to both the database and device storage.
   addFile: function addFile(filename, file) {
     var media = this;
@@ -336,7 +336,7 @@ MediaDB.prototype = {
     media.storage.delete(filename);
     var storeRequest = media.storage.addNamed(file, filename);
     storeRequest.onerror = function() {
-      console.error('MediaDB: Failed to store', filename, 
+      console.error('MediaDB: Failed to store', filename,
                     'in DeviceStorage:', storeRequest.error);
     };
     storeRequest.onsuccess = function() {
@@ -350,9 +350,9 @@ MediaDB.prototype = {
         name: filename,
         type: file.type,
         size: file.size,
-        // XXX: this should be the lastModifiedTime of the actual 
+        // XXX: this should be the lastModifiedTime of the actual
         // file that is now on the disk
-        date: Date.now(),  
+        date: Date.now()
       };
 
       // Get its metadata
@@ -367,7 +367,7 @@ MediaDB.prototype = {
                              var request = store.put(fileinfo);
                              request.onsuccess = function(e) {
                                // When done call the onchange handler
-                               // XXX: do I have to handle the case of 
+                               // XXX: do I have to handle the case of
                                // overwriting an existing file?
                                if (media.onchange)
                                  media.onchange('created', [fileinfo]);
