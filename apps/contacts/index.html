@@ -59,7 +59,7 @@
 
             <div id="groups-container" class="view-body-inner">
               <div id="search-container">
-                <input type="text" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
+                <input type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
                 <span id="clear-search" onclick="return contacts.List.clearSearch();" role="button" class="icon-clear hide"></span>
                 <button id='cancel-search' class="hide" onclick='return contacts.List.exitSearchMode()'>Cancel</button>
               </div>
@@ -102,6 +102,7 @@
               <button role="menuitem"  id='edit-contact-button' onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit">edit</span></button>
             </menu>
             <h1 id='contact-name-title'></h1>
+            <sup id='favorite-star' class='hide'></sup>
           </header>
 
           <article class="view-body">
