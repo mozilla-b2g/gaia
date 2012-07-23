@@ -755,6 +755,16 @@ var Contacts = (function() {
     getAddresses(myContact);
     getNotes(myContact);
 
+    // Use the isEmpty function to check fields but address
+    // and inspect address by it self.
+    if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
+      'email', 'note']) && (!myContact.adr || isEmpty(myContact.adr[0],
+        ['countryName', 'locality', 'postalCode', 'region',
+         'streetAddress']))) {
+      saveButton.removeAttribute('disabled');
+      return;
+    }
+
     var contact;
     if (myContact.id) { //Editing a contact
       currentContact.tel = [];
@@ -766,15 +776,6 @@ var Contacts = (function() {
       }
       contact = currentContact;
     } else {
-      // Use the isEmpty function to check fields but address
-      // and inspect address by it self.
-      if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
-        'email', 'note']) && isEmpty(myContact.adr[0], ['countryName',
-        'locality', 'postalCode', 'region', 'streetAddress'])) {
-        saveButton.removeAttribute('disabled');
-        return;
-      }
-
       contact = new mozContact();
       contact.init(myContact);
 
