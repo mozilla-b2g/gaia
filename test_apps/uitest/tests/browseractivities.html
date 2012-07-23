@@ -11,7 +11,7 @@
     <script>
 var go = function _go() {
   var URL = document.getElementById('URL');
-  var a = new Activity({ name: 'view', data: { url: URL }});
+  var a = new MozActivity({ name: 'view', data: { url: URL }});
   a.onsuccess = function() { alert('Success!'); };
   a.onerror = function() { alert('Failure going to URL'); };
 };
