@@ -170,7 +170,8 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    evt.detail.unblock();
+    if (!evt.isPseudo)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
@@ -204,7 +205,8 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    evt.detail.unblock();
+    if (!evt.isPseudo)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
