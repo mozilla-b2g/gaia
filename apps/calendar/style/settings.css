@@ -1,3 +1,5 @@
+/* calendar settings */
+
 body[data-path^="/settings/"][role="app"] #wrapper {
   position: relative;
   -moz-transform: translateX(75%);
@@ -22,7 +24,11 @@ body[role="app"] #wrapper {
   position: absolute;
   background-color: #303540;
   color: white;
-  font-size: 1.35rem;
+  font-size: 1.6rem;
+}
+
+#settings header h1 {
+  width: -moz-calc(100% - 30px);
 }
 
 #settings > section {
@@ -35,17 +41,19 @@ body[role="app"] #wrapper {
 
 #settings header {
   background: #242931;
-  padding: 2.1rem 0 2.6rem 2.1rem;
+  padding: 0.9rem 1rem;
   font-size: 2.1rem;
   font-weight: normal;
-  line-height: 45%;
   box-shadow: none;
   border-bottom: 1px solid #454B53;
 }
 
-#settings .calendars > li {
-  padding: 1.6rem;
+#settings .calendars label {
+  display: block;
+  padding: 2rem 1.6rem;
   border-bottom: 1px solid #454B53;
+  -moz-user-select: none;
+  user-select: none;
 }
 
 #settings a.settings {
@@ -57,6 +65,26 @@ body[role="app"] #wrapper {
   width: 30px;
   height: 30px;
 }
+
+#settings .calendars input[type="checkbox"] {
+ display: none;
+}
+
+
+#settings .calendars input[type="checkbox"]:checked + span {
+  width: 14px;
+  height: 14px;
+  background: transparent url('/style/icons/checkmark.png') no-repeat;
+}
+
+#settings .calendars input[type="checkbox"]+span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  float: right;
+}
+
+/* advanced settings */
 
 #advanced-setting-selection:target {
   position: absolute;
@@ -80,4 +108,28 @@ body[role="app"] #wrapper {
   color: black;
   display: block;
   padding: 1rem;
+}
+
+#advanced-settings-view > header h1 {
+  width: -moz-calc(100% - 40px);
+}
+
+#advanced-settings-view > section {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+}
+
+#advanced-settings-view > section h2 {
+  padding: 1rem;
+  background-color: #CCC;
+}
+
+#advanced-settings-view > section ol li a.remove {
+  color: red;
+  padding: 1rem;
+}
+
+#advanced-settings-view > section ol li {
+  border-bottom: 1px solid #CCC;
+  padding: 2rem;
 }

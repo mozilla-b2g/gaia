@@ -22,7 +22,7 @@ body {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #edit-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -234,6 +234,12 @@ a.button {
   border-width: 0;
   background-position: center center;
   background-repeat: no-repeat;
+
+  /* for buttons that display text */
+  font-size: smaller;
+  text-align: center;
+  vertical-align: 75%;
+  line-height: 50px;;
 }
 
 a.button:active, a.button:focus {
@@ -389,4 +395,173 @@ a.button.disabled {
   height: 100%;
   left: 75%;
   background-image: url('images/delete.png');
+}
+
+#edit-view {
+  background: #888;
+}
+
+#edit-header {
+  background: #ccc;
+  position: absolute;
+  height: 50px;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#edit-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#edit-title {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 25%;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  line-height: 50px;
+  vertical-align: 75%;
+  text-align: center;
+  font-variant: small-caps;
+}
+
+#edit-save-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  right: 0;
+}
+
+#edit-preview-area {
+  position: absolute;
+  top: 60px;     /* 10 pixel top margin */
+  bottom: 110px; /* 10 pixel bottom margin */
+  left: 10px;    /* 10 pixel left margin */
+  right: 10px;   /* 10 pixel right margin */
+}
+
+#edit-preview-image {
+  position: absolute;
+  /* size and position is set by js */
+}
+
+#edit-options {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  bottom: 50px;
+  background: #ccc;
+}
+
+/* All the edit option divs have the same placement */
+#edit-options > div {
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  overflow-y: hidden;
+  overflow-x: scroll;
+}
+
+/* All the buttons within any of the edit option divs share these styles */
+#edit-options > div > a.button {
+  display: inline-block;
+  width: 45px;
+  height: 45px;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-top: 2px;
+  margin-bottom: 3px;
+
+  background-size: cover;        /* allow some cropping */
+  background-position: center;   /* keep the cropping at the edges */
+  background-repeat: no-repeat;
+}
+
+#edit-options > div > a.button.selected {
+  outline: solid orange 3px;
+}
+
+#edit-exposure-options {
+}
+
+#edit-effect-options {
+}
+
+#edit-border-options {
+}
+
+a.filter-gamma-2 {
+  filter: url(../index.html#filter-gamma-2);
+}
+a.filter-gamma-1-414 {
+  filter: url(../index.html#filter-gamma-1-414);
+}
+a.filter-gamma-0-707 {
+  filter: url(../index.html#filter-gamma-0-707);
+}
+a.filter-gamma-0-5 {
+  filter: url(../index.html#filter-gamma-0-5);
+}
+a.filter-bw {
+  filter: url(../index.html#filter-bw);
+}
+a.filter-sepia {
+  filter: url(../index.html#filter-sepia);
+}
+
+a.border-thin-white {
+  border: 2px solid white;  
+}
+a.border-thick-white {
+  border: 4px solid white;  
+}
+a.border-thin-black {
+  border: 2px solid black;  
+}
+a.border-thick-black {
+  border: 4px solid black;  
+}
+
+
+#edit-toolbar {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* all buttons in the toolbar share these styles */
+#edit-toolbar > .button {
+  position: absolute;
+  width: 33.3%;
+  height: 100%;
+  border-right: 1px solid #000;
+  background: #666;
+}
+
+/* If the button is selected, it has a different background */
+#edit-toolbar > .button.selected {
+  background: #999;
+}
+
+#edit-exposure-button {
+  left: 0;
+}
+
+#edit-effect-button {
+  left: 33.3%
+}
+
+#edit-border-button {
+  left: 66.6%
 }

@@ -1,8 +1,4 @@
 (function(window) {
-  if (typeof(Calendar.Templates) === 'undefined') {
-    Calendar.Templates = {};
-  }
-
   var Day = Calendar.Template.create({
     hour: [
       '<section>',
@@ -29,6 +25,6 @@
     ].join('')
   });
 
-  Calendar.Templates.Day = Day;
+  Calendar.ns('Templates').Day = Day;
 }(this));
 

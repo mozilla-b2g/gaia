@@ -51,6 +51,11 @@ body {
   overflow: hidden;
 }
 
+#screen.active-statusbar #homescreen {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
+}
+
 #windows {
   position: absolute;
   left: 0px;
@@ -91,6 +96,10 @@ body {
  *
   border-radius: 8px;
  */
+}
+
+#screen.active-statusbar #windows > iframe.appWindow {
+  top: 40px;
 }
 
 #windows > iframe.appWindow.active {

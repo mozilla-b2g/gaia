@@ -31,13 +31,9 @@ var SleepMenu = {
       if (this.reservedSettings.bluetooth) {
         settings.getLock().set({'bluetooth.enabled': true});
       }
-    }
-
-    // Set wifi as previous
-    // XXX: should set mozSettings instead
-    var wifiManager = navigator.mozWifiManager;
-    if (wifiManager && this.reservedSettings.wifi && !wifiManager.enabled) {
-      wifiManager.setEnabled(true);
+      if (this.reservedSettings.wifi) {
+        settings.getLock().set({'wifi.enabled': true});
+      }
     }
   },
 
@@ -46,27 +42,24 @@ var SleepMenu = {
     var self = this;
     if (settings) {
       // Turn off data
-      var req = settings.getLock().get('ril.data.enabled');
-      req.onsuccess = function sm_EnabledFetched() {
-        self.reservedSettings.data = req.result['ril.data.enabled'];
+      var reqData = settings.getLock().get('ril.data.enabled');
+      reqData.onsuccess = function sm_EnabledFetched() {
+        self.reservedSettings.data = reqData.result['ril.data.enabled'];
         settings.getLock().set({'ril.data.enabled': false});
       };
-      // Turn off blueTooth
-      var req = settings.getLock().get('bluetooth.enabled');
-      req.onsuccess = function bt_EnabledSuccess() {
-        self.reservedSettings.bluetooth = req.result['bluetooth.enabled'];
+      // Turn off bluetooth
+      var reqBt = settings.getLock().get('bluetooth.enabled');
+      reqBt.onsuccess = function bt_EnabledSuccess() {
+        self.reservedSettings.bluetooth = reqBt.result['bluetooth.enabled'];
         settings.getLock().set({'bluetooth.enabled': false});
       };
+      // Turn off wifi
+      var reqWifi = settings.getLock().get('wifi.enabled');
+      reqWifi.onsuccess = function wf_EnabledSuccess() {
+        self.reservedSettings.wifi = reqWifi.result['wifi.enabled'];
+        settings.getLock().set({'wifi.enabled': false});
+      };
     }
-
-    // Turn off wifi
-    // XXX: should set mozSettings instead
-    var wifiManager = navigator.mozWifiManager;
-    if (wifiManager) {
-      this.reservedSettings.wifi = wifiManager.enabled;
-      wifiManager.setEnabled(false);
-    }
-
   },
 
   init: function sm_init() {

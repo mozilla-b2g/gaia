@@ -7,24 +7,12 @@
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/desktop.js"></script>
+    <!-- Specific code -->
     <script type="text/javascript" src="js/contacts.js"></script>
     <script type="text/javascript" src="js/pendingDBUtils.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
@@ -57,18 +45,28 @@
                 <span class="icon icon-close">close</span>
               </a>
               <menu type="toolbar">
-                 <button>done</button>
+                 <button id="thread-done-button">done</button>
               </menu>
               <h1>Edit mode</h1>
-            </header> 
+            </header>
           </div>
         </div>
         <article id="thread-list-container" class="view-body">
         </article>
         <footer class="options">
-        </footer>  
+          <section class="option">
+            <button id="delete-all-threads" class="edit-button">
+              Delete all
+            </button>
+          </section>
+          <section class="option">
+            <button id="delete-selected-threads" class="edit-button">
+              Delete selected
+            </button>
+          </section>
+        </footer>
       </section>
-     
+
       <section id="thread-messages" class="panel">
         <div class="header-group">
           <div class="header-wrapper">
@@ -92,19 +90,31 @@
                 <span class="icon icon-close"></span>
               </a>
               <menu type="toolbar">
-                 <button>done</button>
+                 <button id="messages-done-button">done</button>
               </menu>
               <h1>Edit mode</h1>
-            </header> 
+            </header>
           </div>
         </div>
         <article id="messages-container" class="view-body">
         </article>
         <footer class="options">
+          <section class="option">
+            <button id="delete-all-messages" class="edit-button">
+              Delete all
+            </button>
+          </section>
+          <section class="option">
+            <button id="delete-selected-messages" class="edit-button">
+              Delete selected
+            </button>
+          </section>
         </footer>
         <footer class="new-sms-form">
-          <input type="text" id="message-to-send" name="message-to-send" />
-          <button id="send-message"> SEND </button>
+          <textarea type="text" id="message-to-send" name="message-to-send"></textarea>
+          <div id="send-message-container">
+            <button id="send-message">SEND</button>
+          </div>
         </footer>
       </section>
     </article>

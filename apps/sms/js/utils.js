@@ -7,7 +7,28 @@
 var _ = navigator.mozL10n.get;
 
 var Utils = {
-
+  updateHeaders: function ut_updateHeaders() {
+    if (!Utils.updating) {
+      Utils.updating = true;
+      Utils.updateTimer = setInterval(function() {
+        var elementsToUpdate =
+        document.querySelectorAll('h2[data-time-update]');
+        if (elementsToUpdate.length > 0) {
+          for (var i = 0; i < elementsToUpdate.length; i++) {
+            var ts = elementsToUpdate[i].getAttribute('data-time');
+            var tmpHeaderDate = Utils.getHeaderDate(ts);
+            var currentHeader = elementsToUpdate[i].innerHTML;
+            if (tmpHeaderDate != currentHeader) {
+              elementsToUpdate[i].innerHTML = tmpHeaderDate;
+            }
+          }
+        } else {
+          clearInterval(Utils.updateTimer);
+          Utils.updating = false;
+        }
+      },60000);
+    }
+  },
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
     var span = document.createElement('span');
     span.textContent = str;
@@ -64,6 +85,13 @@ var Utils = {
       dayDiff == 1 && _('yesterday') ||
       dayDiff < 4 && (new Date(time)).toLocaleFormat('%A') ||
       (new Date(time)).toLocaleFormat('%x');
+  },
+  getFontSize: function ut_getFontSize() {
+    if (!this.rootFontSize) {
+      var htmlCss = window.getComputedStyle(document.documentElement, null);
+      this.rootFontSize = parseInt(htmlCss.getPropertyValue('font-size'));
+    }
+    return this.rootFontSize;
   }
 };
 

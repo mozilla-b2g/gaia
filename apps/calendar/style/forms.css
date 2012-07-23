@@ -65,7 +65,7 @@ label[role="checkbox"] span {
 
 .ltr label[role="checkbox"] span,
 .ltr label[role="checkbox"] input {
-  float: right;right
+  float: right;
 }
 
 /* for calendar */
