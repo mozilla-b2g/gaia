@@ -485,7 +485,7 @@ var Contacts = (function() {
       template.appendChild(removeFieldIcon(template.id));
       addressContainer.appendChild(template);
       numberAddresses++;
-    })
+    });
 
     for (var index in currentContact.note) {
       var currentNote = currentContact.note[index];
