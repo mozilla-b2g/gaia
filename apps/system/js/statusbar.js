@@ -360,7 +360,15 @@ var StatusBar = {
         return;
       }
 
-      this.updateVoicemailStatus(status);
+      var showCount = status.hasMessages && status.messageCount > 0;
+      this.icons.voicemail.hidden = !status.hasMessages;
+      this.icons.voicemail.dataset.showNum = showCount;
+
+      if (showCount) {
+        this.icons.voicemail.dataset.num = status.messageCount;
+      }
+
+      Voicemail.updateNotification(status);
     },
 
     geolocation: function sb_updateGeolocation() {
@@ -372,83 +380,6 @@ var StatusBar = {
     usb: function sb_updateUsb() {
       // XXX no way to probe active state of USB mess storage right now
       // this.icon.usb.hidden = ?
-    }
-  },
-
-  updateVoicemailStatus: function updateVoicemailStatus(status) {
-    var _ = window.navigator.mozL10n.get;
-    var title = status.returnMessage;
-    var showCount = status.hasMessages && status.messageCount > 0;
-
-    this.icons.voicemail.hidden = !status.hasMessages;
-    this.icons.voicemail.dataset.showNum = showCount;
-
-    if (showCount) {
-      this.icons.voicemail.dataset.num = status.messageCount;
-      if (!title) {
-        title = _('newVoicemails', { n: status.messageCount });
-      }
-    } else {
-      if (!title) {
-        title = _('newVoicemailsUnknown');
-      }
-    }
-
-    var text = title;
-    var voicemailNumber = navigator.mozVoicemail.number;
-    if (voicemailNumber) {
-      text = _('dialNumber', { number: voicemailNumber });
-    }
-
-    this.hideVoicemailNotification();
-
-    if (status.hasMessages) {
-      window.navigator.mozApps.getSelf().onsuccess = (function(event) {
-        var app = event.target.result;
-        var icon = app.installOrigin + '/style/statusbar/images/voicemail.png';
-        this.showVoicemailNotification(title, text, icon, voicemailNumber);
-      }).bind(this);
-    }
-  },
-
-  showVoicemailNotification: function sb_showVoicemailNotification(title, text,
-    icon, voicemailNumber)
-  {
-    if (!this.vmNotificationStart) {
-      this.vmNotificationStart = 3000 + Math.floor(Math.random() * 999);
-    }
-
-    this.vmNotificationId = this.vmNotificationStart++;
-    this.voicemailNotification = NotificationScreen.addNotification({
-      id: this.vmNotificationId, title: title, text: text, icon: icon
-    });
-
-    if (!voicemailNumber) {
-      return;
-    }
-
-    var self = this;
-    function vmNot_onTap(event) {
-      self.voicemailNotification.removeEventListener('tap', vmNot_onTap);
-
-      var telephony = window.navigator.mozTelephony;
-      if (!telephony) {
-        return;
-      }
-
-      telephony.dial(voicemailNumber);
-    }
-
-    this.voicemailNotification.addEventListener('tap', vmNot_onTap);
-  },
-
-  hideVoicemailNotification: function sb_hideVoicemailNotification() {
-    if (this.voicemailNotification) {
-      if (this.voicemailNotification.parentNode) {
-        NotificationScreen.removeNotification(this.vmNotificationId);
-      }
-      this.voicemailNotification = null;
-      this.vmNotificationId = 0;
     }
   },
 
