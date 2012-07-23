@@ -381,7 +381,7 @@ var Contacts = (function() {
           return;
         }
         var addressField = {
-          streetAddress: currentAddress['streetAddress'],
+          streetAddress: currentAddress['streetAddress'] || '',
           postalCode: currentAddress['postalCode'] || '',
           locality: currentAddress['locality'] || '',
           countryName: currentAddress['countryName'] || '',
@@ -478,7 +478,7 @@ var Contacts = (function() {
       }
       var default_type = TAG_OPTIONS['address-type'][0].value;
       var adrField = {
-        streetAddress: currentAddress['streetAddress'],
+        streetAddress: currentAddress['streetAddress'] || '',
         postalCode: currentAddress['postalCode'] || '',
         locality: currentAddress['locality'] || '',
         countryName: currentAddress['countryName'] || '',
