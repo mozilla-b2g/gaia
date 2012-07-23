@@ -43,12 +43,17 @@
   background: url('images/loading.gif') center center repeat-x;
 }
 
-#statusbar-time,
-#statusbar-conn {
+#statusbar-time {
   padding: 0;
   color: #fff;
   font: 14px/14px 'Open Sans', sans-serif;
   font-weight: 600;
+}
+
+#statusbar-conn {
+  padding: 0;
+  color: #fff;
+  font: 12px/14px 'Open Sans', sans-serif;
 }
 
 #statusbar-conn:empty {
