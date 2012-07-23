@@ -19872,11 +19872,13 @@ define('rdimap/imapclient/activesync',[
     exports
   ) {
 
-function ActiveSyncAccount(universe, accountDef, folderInfo, receiveProtoConn,
-                           _LOG) {
+function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
+                           receiveProtoConn, _LOG) {
   this.universe = universe;
   this.id = accountDef.id;
   this.accountDef = accountDef;
+
+  this._db = dbConn;
 
   this.enabled = true;
   this.problems = [];
@@ -19889,57 +19891,34 @@ function ActiveSyncAccount(universe, accountDef, folderInfo, receiveProtoConn,
     address: ourIdentity.address,
   };
 
-  var account = this;
-  var conn = new $activesync.Connection(
-    accountDef.credentials.username, accountDef.credentials.password,
-    function(aResult) {
-      var fh = $ascp.FolderHierarchy.Tags;
-      var w = new $wbxml.Writer("1.3", 1, "UTF-8");
-      w.stag(fh.FolderSync)
-         .tag(fh.SyncKey, "0")
-       .etag();
-
-      this.doCommand(w, function(aResponse) {
-        for (var node in aResponse.document) {
-          if (node.type == "STAG" && node.tag == fh.DisplayName) {
-            var text = aResponse.document.next();
-            if (text.type != "TEXT")
-              throw new Error("expected TEXT node");
-
-            var folder = {
-              id: account.id + '/' + text.textContent,
-              name: text.textContent,
-              path: text.textContent,
-              type: 'normal',
-              delim: '/',
-              depth: 0,
-            };
-            account.folders.push(folder);
-            account._folderStorages[folder.id] = new ActiveSyncFolderStorage();
-            account.universe.__notifyAddedFolder(account.id, folder);
-
-            if (aResponse.document.next().type != "ETAG")
-              throw new Error("expected ETAG node");
-          }
-        }
-      });
-    });
-
-  // Pretend we have an inbox for now. We'll get the real inbox later.
-  var inboxFolder = {
-    id: this.id + '/0',
-    name: 'Inbox',
-    path: 'Inbox',
-    type: 'inbox',
-    delim: '/',
-    depth: 0,
-  };
-  this.folders = [inboxFolder];
+  this.folders = [];
   this._folderStorages = {};
-  this._folderStorages[inboxFolder.id] = new ActiveSyncFolderStorage();
+  this._folderInfos = folderInfos;
+  this._deadFolderIds = null;
 
-  this.meta = folderInfo.$meta;
-  this.mutations = folderInfo.$mutations;
+  this.meta = folderInfos.$meta;
+  this.mutations = folderInfos.$mutations;
+
+  // Sync existing folders
+  for (var folderId in folderInfos) {
+    if (folderId[0] === '$')
+      continue;
+    var folderInfo = folderInfos[folderId];
+
+    this._folderStorages[folderId] =
+      new ActiveSyncFolderStorage();
+    this.folders.push(folderInfo.$meta);
+  }
+  // TODO: we should probably be smarter about sorting.
+  this.folders.sort(function(a, b) {
+    return a.path.localeCompare(b.path);
+  });
+
+  if (this.meta.syncKey != "0") {
+    // TODO: this is a really hacky way of syncing folders later
+    var account = this;
+    setTimeout(function() { account.syncFolderList(function() {}) }, 1000);
+  }
 }
 exports.ActiveSyncAccount = ActiveSyncAccount;
 ActiveSyncAccount.prototype = {
@@ -19984,7 +19963,13 @@ ActiveSyncAccount.prototype = {
   },
 
   saveAccountState: function(reuseTrans) {
-    return reuseTrans;
+    var trans = this._db.saveAccountFolderStates(
+      this.id, this._folderInfos, [], this._deadFolderIds,
+      function stateSaved() {
+      },
+      reuseTrans);
+    this._deadFolderIds = null;
+    return trans;
   },
 
   shutdown: function() {
@@ -20001,10 +19986,127 @@ ActiveSyncAccount.prototype = {
   sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {
     return this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
   },
+
   syncFolderList: function fa_syncFolderList(callback) {
-    // NOP; our list of folders is eternal (for now)
-    callback();
+    var account = this;
+    var conn = new $activesync.Connection(
+      this.accountDef.credentials.username,
+      this.accountDef.credentials.password,
+      function(aResult) {
+        var fh = $ascp.FolderHierarchy.Tags;
+        var w = new $wbxml.Writer("1.3", 1, "UTF-8");
+        w.stag(fh.FolderSync)
+           .tag(fh.SyncKey, account.meta.syncKey)
+         .etag();
+
+        var folder;
+        var depth = 0;
+        this.doCommand(w, function(aResponse) {
+          dump(aResponse.dump());
+          aResponse.rewind();
+
+          for (var node in aResponse.document) {
+            if (node.type == "STAG" && node.tag == fh.SyncKey) {
+              var text = aResponse.document.next();
+              if (text.type != "TEXT")
+                throw new Error("expected TEXT node");
+              if (aResponse.document.next().type != "ETAG")
+                throw new Error("expected ETAG node");
+
+              account.meta.syncKey = text.textContent;
+            }
+            else if (node.type == "STAG" &&
+                     (node.tag == fh.Add || node.tag == fh.Remove)) {
+              depth = 1;
+              folder = { add: node.tag == fh.Add };
+            }
+            else if (depth) {
+              if (node.type == "ETAG") {
+                if (--depth == 0) {
+                  if (folder.add)
+                    account._addFolder(folder.ServerId, folder.DisplayName,
+                                       folder.Type);
+                  else
+                    account._removeFolder(folder.ServerId, folder.DisplayName,
+                                          folder.Type);                    
+                }
+              }
+              else if (node.type == "STAG") {
+                var text = aResponse.document.next();
+                if (text.type != "TEXT")
+                  throw new Error("expected TEXT node");
+                if (aResponse.document.next().type != "ETAG")
+                  throw new Error("expected ETAG node");
+
+                folder[node.localTagName] = text.textContent;
+              }
+              else {
+                throw new Error("unexpected node!");
+              }
+            }
+          }
+
+          account.saveAccountState();
+          callback();
+        });
+    });
   },
+
+  _addFolder: function as__addFolder(serverId, displayName, typeNum) {
+    const types = {
+       1: "normal", // User-created generic folder
+       2: "inbox",
+       3: "drafts",
+       4: "trash",
+       5: "sent",
+       6: "normal", // Outbox, actually
+      12: "normal", // User-created mail folder
+    };
+
+    if (!(typeNum in types))
+      return; // Not a folder type we care about.
+
+    var folderInfo = {
+      $meta: {
+        id: this.id + '/' + serverId,
+        name: displayName,
+        path: displayName,
+        type: types[typeNum],
+        delim: "/",
+        depth: 0,
+      },
+      $impl: {
+        nextHeaderBlock: 0,
+        nextBodyBlock: 0,
+      },
+      accuracy: [],
+      headerBlocks: [],
+      bodyBlocks: [],
+    };
+
+    this._folderInfos[folderInfo.$meta.id] = folderInfo;
+    this.folders.push(folderInfo.$meta);
+    this._folderStorages[folderInfo.$meta.id] = new ActiveSyncFolderStorage();
+    this.universe.__notifyAddedFolder(this.id, folderInfo.$meta);
+  },
+
+  _removeFolder: function as__removeFolder(serverId) {
+    var folderId = this.id + '/' + serverId;
+    var folderInfo = this._folderInfos[folderId],
+        folderMeta = folderInfo.$meta;
+    delete this._folderInfos[folderId];
+    delete this._folderStorages[folderId];
+
+    var idx = this.folders.indexOf(folderMeta);
+    this.folders.splice(idx, 1);
+
+    if (this._deadFolderIds === null)
+      this._deadFolderIds = [];
+    this._deadFolderIds.push(folderId);
+
+    this.universe.__notifyRemovedFolder(this.id, folderMeta);
+  },
+
   sendMessage: function fa_sendMessage(composedMessage, callback) {
     // XXX put a copy of the message in the sent folder
     callback(null);
@@ -24272,8 +24374,8 @@ Configurators['fake'] = {
   },
 };
 Configurators['activesync'] = {
-  tryToCreateAccount: function cfg_fake(universe, userDetails, domainInfo,
-                                        callback, _LOG) {
+  tryToCreateAccount: function cfg_activesync(universe, userDetails, domainInfo,
+                                              callback, _LOG) {
     var credentials = {
       username: userDetails.emailAddress,
       password: userDetails.password,
@@ -24307,12 +24409,15 @@ Configurators['activesync'] = {
     var folderInfo = {
       $meta: {
         nextMutationNum: 0,
+        syncKey: "0",
       },
       $mutations: [],
     };
     universe.saveAccountDef(accountDef, folderInfo);
     var account = universe._loadAccount(accountDef, folderInfo, null);
-    callback(true, account);
+    account.syncFolderList(function() {
+      callback(true, account);
+    });
   },
 };
 
