@@ -20,10 +20,13 @@ var Browser = {
   PAGE_SCREEN: 'page-screen',
   TABS_SCREEN: 'tabs-screen',
   AWESOME_SCREEN: 'awesome-screen',
+  SETTINGS_SCREEN: 'settings-screen',
 
   DEFAULT_FAVICON: 'style/images/favicon.png',
   START_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/start.html',
+  ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
+    '/about.html',
 
   urlButtonMode: null,
   inTransition: false,
@@ -53,6 +56,10 @@ var Browser = {
     this.tabsList = document.getElementById('tabs-list');
     this.mainScreen = document.getElementById('main-screen');
     this.tabCover = document.getElementById('tab-cover');
+    this.settingsButton = document.getElementById('settings-button');
+    this.settingsDoneButton = document.getElementById('settings-done-button');
+    this.aboutFirefoxButton = document.getElementById('about-firefox-button');
+    this.clearHistoryButton = document.getElementById('clear-history-button');
 
     // Add event listeners
     window.addEventListener('submit', this);
@@ -76,6 +83,14 @@ var Browser = {
     this.bookmarksTab.addEventListener('click',
       this.showBookmarksTab.bind(this));
     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
+    this.settingsButton.addEventListener('click',
+      this.showSettingsScreen.bind(this));
+    this.settingsDoneButton.addEventListener('click',
+      this.showPageScreen.bind(this));
+    this.aboutFirefoxButton.addEventListener('click',
+      this.showAboutPage.bind(this));
+    this.clearHistoryButton.addEventListener('click',
+      this.handleClearHistory.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -458,7 +473,8 @@ var Browser = {
   },
 
   setUrlBar: function browser_setUrlBar(data) {
-    if (this.currentTab.url == this.START_PAGE_URL) {
+    if (this.currentTab.url == this.START_PAGE_URL ||
+      this.currentTab.url == this.ABOUT_PAGE_URL) {
       this.urlInput.value = '';
     } else {
       this.urlInput.value = data;
@@ -580,6 +596,8 @@ var Browser = {
     title.textContent = data.title ? data.title : data.uri;
     if (data.uri == this.START_PAGE_URL) {
       url.textContent = 'about:home';
+    } else if (data.uri == this.ABOUT_PAGE_URL) {
+      url.textContent = 'about:';
     } else {
       url.textContent = data.uri;
     }
@@ -886,12 +904,12 @@ var Browser = {
   },
 
   showPageScreen: function browser_showPageScreen() {
-    if (this.currentScreen === this.TABS_SCREEN) {
-      var hideCover = (function browser_hideCover() {
-        this.tabCover.removeAttribute('src');
-        this.tabCover.style.display = 'none';
-      }).bind(this);
+    var hideCover = (function browser_hideCover() {
+      this.tabCover.removeAttribute('src');
+      this.tabCover.style.display = 'none';
+    }).bind(this);
 
+    if (this.currentScreen === this.TABS_SCREEN) {
       var switchLive = (function browser_switchLive() {
         this.mainScreen.removeEventListener('transitionend', switchLive, true);
         this.setTabVisibility(this.currentTab, true);
@@ -902,6 +920,7 @@ var Browser = {
       this.mainScreen.addEventListener('transitionend', switchLive, true);
     } else {
       this.setTabVisibility(this.currentTab, true);
+      hideCover();
     }
 
     if (this.currentTab.loading) {
@@ -959,6 +978,26 @@ var Browser = {
     this.screenSwipeMngr.gestureDetector.startDetecting();
     new GestureDetector(ul).startDetecting();
     this.inTransition = false;
+  },
+
+  showSettingsScreen: function browser_showSettingsScreen() {
+    this.switchScreen(this.SETTINGS_SCREEN);
+    this.clearHistoryButton.disabled = false;
+  },
+
+  showAboutPage: function browser_showAboutPage() {
+    var tab = this.createTab(this.ABOUT_PAGE_URL);
+    this.hideCurrentTab();
+    this.selectTab(tab);
+    this.setTabVisibility(this.currentTab, true);
+    this.updateTabsCount();
+    this.showPageScreen();
+  },
+
+  handleClearHistory: function browser_handleClearHistory() {
+    Places.clearHistory((function() {
+      this.clearHistoryButton.disabled = true;
+    }).bind(this));
   },
 
   screenSwipeMngr: {
