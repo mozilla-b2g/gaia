@@ -399,7 +399,7 @@ var AlarmManager = {
 
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function(e) {
-      var hasAlarmEnabled = (e.target.result.length == 0) ? false : true;
+      var hasAlarmEnabled = !!e.target.result.length;
       navigator.mozSettings.getLock().set({'alarm.enabled': hasAlarmEnabled});
     };
     request.onerror = function(e) {
