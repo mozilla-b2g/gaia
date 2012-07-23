@@ -3,10 +3,18 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
+    
     <!-- Payment -->
     <link rel="stylesheet" type="text/css" href="style/payment/payment.css">
     <script defer src="js/payment.js"></script>
+
+    <!-- Trusted Dialog -->
+    <script defer src="js/trusted_dialog.js"></script>
   </head>
+
+  <header>
+    Payment Provider Selection
+  </header>
 
   <body>
     <div id="providers">
@@ -15,4 +23,8 @@
       </ul>
     </div>
   </body>
+
+  <footer>
+    <button class="buttonclose" onclick="Payment.close()">Close</button>
+  </footer>
 </html>

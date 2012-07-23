@@ -64,6 +64,8 @@ var TrustedDialog = (function() {
   };
 
   function trustedDialogIsShown() {
+    if (!trustedDialogElement)
+      trustedDialogElement = document.getElementById('trustedDialog');
     return trustedDialogElement.classList.contains('active');
   };
 

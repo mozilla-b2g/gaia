@@ -35,12 +35,17 @@ var Payment = (function() {
       };
       var image = frameDocument.createElement('img');
       image.setAttribute('alt', providers[i].name);
-      image.src = kPaymentProvidersDir + providers[i].logo;
+      image.classList.add(providers[i].name);
+      //image.src = kPaymentProvidersDir + providers[i].name + '.jpg';
       button.appendChild(image);
       providerElement.appendChild(button);
       providerList.appendChild(providerElement);
     }
     return true;
+  };
+
+  function close() {
+    TrustedDialog.close();
   };
 
   window.addEventListener('mozChromeEvent', function(e) {
@@ -75,4 +80,8 @@ var Payment = (function() {
         break;
     }
   });
+
+  return {
+    close: close
+  };
 })();
