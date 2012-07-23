@@ -61,7 +61,7 @@
 
             <div id="groups-container" class="view-body-inner">
               <div id="search-container">
-                <input type="text" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
+                <input type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
                 <span id="clear-search" onclick="return contacts.List.clearSearch();" role="button" class="icon-clear hide"></span>
                 <button id='cancel-search' class="hide" onclick='return contacts.List.exitSearchMode()'>Cancel</button>
               </div>
@@ -104,6 +104,7 @@
               <button role="menuitem"  id='edit-contact-button' onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit">edit</span></button>
             </menu>
             <h1 id='contact-name-title'></h1>
+            <sup id='favorite-star' class='hide'></sup>
           </header>
 
           <article class="view-body">
@@ -165,6 +166,10 @@
                     <!-- Iterating mails, phones, addresses adn comments here -->
                   </ul>
                 </div>
+                <hr/>
+                <button onclick='Contacts.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
+                  <b>Add as favorite</b>
+                </button>
               </section>
             </div>
           </article>
@@ -187,8 +192,8 @@
           <!-- PHONE TEMPLATE -->
           <div id='add-phone-#i#' data-template class='phone-template' data-index="#i#">
             <dl class="setbox fillflow-row">
-              <dt class="setbox-title">
-                  <a data-taglist='phone-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</a>
+              <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">
+                  <a class='with-arrow' data-taglist='phone-type' name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</a>
                   <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
               </dt>
               <dd class="setbox-body">
@@ -207,8 +212,8 @@
           <!-- EMAIL TEMPLATE -->
           <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
             <dl class="setbox fillflow-row">
-              <dt class="setbox-title">
-                <a data-taglist='email-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>
+              <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">
+                <a data-taglist='email-type' name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>
                 <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
                 </dt>
               <dd class="setbox-body">
@@ -223,8 +228,8 @@
           <!-- ADDRESS TEMPLATE -->
           <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
             <dl class="setbox fillflow-row">
-              <dt class="setbox-title">
-                  <a data-taglist='address-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>
+              <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">
+                  <a data-taglist='address-type' name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>
                   <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
               </dt>
               <dd class="setbox-body">
@@ -330,11 +335,6 @@
                 <button onclick='Contacts.addNewNote(); return false;' id='add-new-note' class="fillflow-row action action-add">
                   <span role="button" class="icon-add"></span>
                   <b>Add comment</b>
-                </button>
-
-                <hr/>
-                <button onclick='Contacts.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
-                  <b>Add as favorite</b>
                 </button>
               </form>
 

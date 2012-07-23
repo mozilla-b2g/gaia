@@ -13,11 +13,11 @@
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/MediaDB.js"></script>
     <script type="text/javascript" defer src="js/MetadataParser.js"></script>
+    <script type="text/javascript" defer src="js/ImageEditor.js"></script>
     <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
-  <body class="hidden">
-
+  <body>
     <!-- This element gets inserted into the different view elements --> 
     <!-- It gets styled differently depending on what its parent is -->
     <ul id="thumbnails">
@@ -66,6 +66,121 @@
         </div>
       </div>
     </div>
+    
+    <div id="edit-view" class="hidden">
+      <div id="edit-header">
+        <a id="edit-cancel-button" class="button"></a>
+        <div id="edit-title" data-l10n-id="edit"></div>
+        <a id="edit-save-button" class="button" data-l10n-id="save"></a>
+      </div>
+
+      <!-- preview of edited photo goes here -->
+      <div id="edit-preview-area"></div>
+
+      <!-- this holds different options for different editing modes -->
+      <!-- only one set of options will be visible at a time -->
+      <div id="edit-options">
+        <!-- The style attribute below don't work if moved to a stylesheet -->
+        <div id="edit-exposure-options" class="hidden">
+          <a id="edit-exposure-minus-one"
+             class="button filter-gamma-2"
+             data-gamma="2"></a>
+          <a id="edit-exposure-minus-half"
+             class="button filter-gamma-1-414"
+             data-gamma="1.414"></a>
+          <a id="edit-exposure-zero"
+             class="button"
+             data-gamma="1"></a>
+          <a id="edit-exposure-plus-half"
+             class="button filter-gamma-0-707"
+             data-gamma="0.707"></a>
+          <a id="edit-exposure-plus-one"
+             class="button filter-gamma-0-5"
+             data-gamma="0.5"></a>
+        </div>
+        <div id="edit-effect-options" class="hidden"> 
+          <a id="edit-effect-none" class="button"
+             data-effect="none"></a>
+          <a id="edit-effect-bw" class="button filter-bw"
+             data-effect="bw"></a>
+          <a id="edit-effect-sepia" class="button filter-sepia"
+             data-effect="sepia"></a>
+        </div>
+
+        <div id="edit-border-options" class="hidden"> 
+          <a id="edit-border-none" class="button"
+             data-border-width="0"></a>
+          <a id="edit-border-thin-white" class="button border-thin-white"
+             data-border-width=".015" data-border-color="#fff"></a>
+          <a id="edit-border-thick-white" class="button border-thick-white"
+             data-border-width=".03" data-border-color="#fff"></a>
+          <a id="edit-border-thin-black" class="button border-thin-black"
+             data-border-width=".015" data-border-color="#000"></a>
+          <a id="edit-border-thick-black" class="button border-thick-black"
+             data-border-width=".03" data-border-color="#000"></a>
+        </div>
+      </div>
+
+      <!-- buttons for selecting the type of edit to perform -->
+      <div id="edit-toolbar">
+        <a id="edit-exposure-button" class="button" data-l10n-id="exposure"></a>
+        <a id="edit-effect-button" class="button" data-l10n-id="effects"></a>
+        <a id="edit-border-button" class="button" data-l10n-id="borders"></a>
+      </div>
+    </div>
+
+    <!-- Some SVG filters we use -->
+    <svg id="filters" width="0" height="0">
+      <filter id="filter-bw">
+        <feColorMatrix type="matrix"
+                       values="0.2126 0.7152 0.0722 0 0
+                               0.2126 0.7152 0.0722 0 0
+                               0.2126 0.7152 0.0722 0 0
+                               0      0      0      1 0"/>
+      </filter>
+      <filter id="filter-sepia">
+        <feColorMatrix type="matrix"
+                       values="0.393 0.769 0.189 0 0
+                               0.349 0.686 0.168 0 0
+                               0.272 0.534 0.131 0 0
+                               0     0     0     1 0"/>
+      </filter>
+      <filter id="filter-gamma">
+        <feComponentTransfer>
+          <feFuncR id="filter-gamma-r" type="gamma" exponent="2"/>
+          <feFuncG id="filter-gamma-g" type="gamma" exponent="2"/>
+          <feFuncB id="filter-gamma-b" type="gamma" exponent="2"/>
+        </feComponentTransfer>
+      </filter> 
+      <filter id="filter-gamma-2">
+        <feComponentTransfer>
+          <feFuncR type="gamma" exponent="2"/>
+          <feFuncG type="gamma" exponent="2"/>
+          <feFuncB type="gamma" exponent="2"/>
+        </feComponentTransfer>
+      </filter> 
+      <filter id="filter-gamma-1-414">
+        <feComponentTransfer>
+          <feFuncR type="gamma" exponent="1.414"/>
+          <feFuncG type="gamma" exponent="1.414"/>
+          <feFuncB type="gamma" exponent="1.414"/>
+        </feComponentTransfer>
+      </filter> 
+      <filter id="filter-gamma-0-707">
+        <feComponentTransfer>
+          <feFuncR type="gamma" exponent="0.707"/>
+          <feFuncG type="gamma" exponent="0.707"/>
+          <feFuncB type="gamma" exponent="0.707"/>
+        </feComponentTransfer>
+      </filter> 
+      <filter id="filter-gamma-0-5">
+        <feComponentTransfer>
+          <feFuncR type="gamma" exponent="0.5"/>
+          <feFuncG type="gamma" exponent="0.5"/>
+          <feFuncB type="gamma" exponent="0.5"/>
+        </feComponentTransfer>
+      </filter> 
+    </svg>
   </body>
 </html>
 
