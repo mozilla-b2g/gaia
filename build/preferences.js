@@ -166,11 +166,10 @@ content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
 content += "user_pref(\"dom.send_after_paint_to_content\", true);\n\n";
 
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
-content += "user_pref(\"network.http.max-connections-per-server\", 5);\n\n";
+content += "user_pref(\"network.http.max-connections-per-server\", 15);\n\n";
 
 if (LOCAL_DOMAINS) {
   content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
-  content += "user_pref(\"network.http.max-connections-per-server\", 15);\n";
 }
 
 for (let name in permissions) {
