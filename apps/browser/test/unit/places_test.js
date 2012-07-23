@@ -211,6 +211,33 @@ suite('Places', function() {
         });
       });
     });
+
+    test('getAllBookmarkUris', function(done) {
+      Places.addBookmark('http://mozilla.org/test1', 'Mozilla', function() {
+        Places.addBookmark('http://mozilla.org/test2', 'Mozilla', function() {
+          Places.db.getAllBookmarks(function(uris) {
+            done(function() {
+              assert.equal(uris.length, 2);
+            });
+          });
+        });
+      });
+    });
+
+    test('resetPlaceFrecency', function(done) {
+      Places.addPlace('http://mozilla.org/test8', function() {
+        Places.updateFrecency('http://mozilla.org/test8', function() {
+          Places.db.resetPlaceFrecency('http://mozilla.org/test8', function() {
+            Places.db.getPlace('http://mozilla.org/test8', function(place) {
+              done(function() {
+                assert.equal(null, place.frecency);
+              });
+            });
+          });
+        });
+      });
+    });
+
   });
 
   suite('Places', function() {

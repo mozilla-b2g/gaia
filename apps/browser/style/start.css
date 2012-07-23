@@ -13,15 +13,11 @@ body {
   font-family: 'Open Sans', sans-serif;
 }
 
-h1, h2 {
+h1 {
   margin: 5px;
 }
 
 h1 {
-  font-size: 22px;
-}
-
-h2 {
   font-size: 16px;
 }
 
