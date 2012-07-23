@@ -161,7 +161,7 @@ iframe.backgroundWindow {
 /* XXX: better fix would be resize the
  * #popup-container and #modal-dialog
  * when keyboard is shown.
- */
+ */ 
 #screen.popup #keyboard-frame,
 #screen.modal-dialog #keyboard-frame {
   z-index: 10001;

@@ -24,7 +24,7 @@
   background: #111 url('images/grippy.png') no-repeat 50% 50%;
 }
 
-#utility-tray-first-shown {
+#utility-bottom-box {
   width:100%;
   position: absolute;
   bottom: 20px;

@@ -5,18 +5,60 @@
 
 var CostControl = {
 
-  //Constants. Should we get it from variant? Issue 4
-  CHECK_BALANCE_SEND_NUMBER: '8000',
-  CHECK_BALANCE_RECEIVE_NUMBER: '8000',
-  CHECK_BALANCE_TEXT: '',
-  TOP_UP_NUMBER: '8000',
-  TOP_UP_PREV_TEXT: '',
-  TOP_UP_FOLL_TEXT: '',
+  REQUEST_BALANCE_TIMEOUT: 5 * 60 * 1000,
+
+  configure: function cc_configure() {
+    var self = this;
+
+    function assignTo(name) {
+      return function assign_to(value) {
+        self[name] = value;
+        console.log(name + ': ' + value);
+      }
+    }
+
+    // For balance
+    // Send to...
+    SettingsListener.observe('costcontrol.balance.destination', '8000',
+      assignTo('CHECK_BALANCE_DESTINATION'));
+
+    // Text to send
+    SettingsListener.observe('costcontrol.balance.text', '',
+      assignTo('CHECK_BALANCE_TEXT'));
+
+    // Wait from...
+    SettingsListener.observe('costcontrol.balance.senders', '1515',
+      assignTo('CHECK_BALANCE_SENDERS'));
+
+    // Parse following...
+    SettingsListener.observe('costcontrol.balance.regexp',
+      '(R\$ [0-9]+,[0-9]+)',
+      assignTo('CHECK_BALANCE_REGEXP'));
+
+    // For top up
+    // Send to...
+    SettingsListener.observe('costcontrol.topup.destination', '7000',
+      assignTo('TOP_UP_SEND_NUMBER'));
+
+    // Balance text
+    SettingsListener.observe('costcontrol.topup.text', '&code',
+      assignTo('TOP_UP_TEXT'));
+
+    // Wait from...
+    SettingsListener.observe('costcontrol.topup.senders', '1515',
+      assignTo('TOP_UP_RECEIVE_NUMBER'));
+
+    // Parse confirmation following...
+    SettingsListener.observe('costcontrol.topup.regexp',
+      '(R\$ [0-9]+,[0-9]+)',
+      assignTo('TOP_UP_CONFIRMATION_REGEXP'));
+  },
 
   init: function cc_init() {
+    this.configure();
 /*
     //If we don't have the sender in the variant, just hide the module
-    if (!this.CHECK_BALANCE_SEND_NUMBER) {
+    if (!this.CHECK_BALANCE_DESTINATION) {
       document.getElementById("cost-control").style.display = 'none';
       return;
     }
@@ -54,11 +96,23 @@ var CostControl = {
     }).bind(this));
 
     //Listener for Top up button
+    var _ = navigator.mozL10n.get;
     this.topUpButton = document.getElementById('cost-control-topup');
     this.topUpButton.addEventListener('click', (function() {
       // this.topUp();
-      this.mockup_topUp();
+      ModalDialog.prompt(
+        _('Enter the top up code:\ntypically found in the scratch ' +
+        'card or directly in your receipt.'),
+        '000002',
+        this.mockup_topUp.bind(this)
+      );
     }).bind(this));
+  },
+
+  inRoaming: function cc_inRoaming() {
+    var conn = window.navigator.mozMobileConnection;
+    var voice = conn.voice;
+    return voice.roaming;
   },
 
   handleEvent: function cc_handleEvent(evt) {
@@ -116,13 +170,13 @@ var CostControl = {
   updateBalance: function cc_updateBalance() {
     console.log('Sending SMS to get balance');
     this.updateUI(true);
-    this.sms.send(this.CHECK_BALANCE_SEND_NUMBER, this.CHECK_BALANCE_TEXT);
+    this.sms.send(this.CHECK_BALANCE_DESTINATION, this.CHECK_BALANCE_TEXT);
     //We listen for the SMS a prudential time, then, we just skip any SMS
     this.timeout = window.setTimeout((function() {
       console.log('Removing listener for incoming balance check SMS');
       this.sms.removeEventListener('received', this);
       this.updateUI(false, 0);
-    }).bind(this), 1000 * 60 * 5); //5 minutes to wait for a message
+    }).bind(this), this.REQUEST_BALANCE_TIMEOUT); // 5min waiting
     this.sms.addEventListener('received', this);
   },
 
@@ -138,7 +192,7 @@ var CostControl = {
 
   _parseSMS: function(message) {
     //Checking sender. Not cheking type (number vs string)
-    if(evt.message.sender != this.CHECK_BALANCE_RECEIVE_NUMBER) return null;
+    if(evt.message.sender != this.CHECK_BALANCE_SENDERS) return null;
     //Regexp, should be on the variant? Issue 6
     var regex = new RegExp('[0-9]+.[0-9]+');
     var m = regex.exec(message.body);
@@ -201,9 +255,12 @@ var CostControl = {
     window.localStorage.setItem('date', date.getTime());
   },
 
-  mockup_topUp: function cc_mockup_topUp() {
+  mockup_topUp: function cc_mockup_topUp(howMuch) {
+    if (!howMuch)
+      return;
+
     var currentCredit = parseFloat(this.feedback[1].textContent);
-    var newCredit = currentCredit + 2;
+    var newCredit = currentCredit + parseInt(howMuch);
     if (newCredit >= 2)
       this.widget.classList.remove('low-credit');
     newCredit = Math.round(newCredit * 100)/100;

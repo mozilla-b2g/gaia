@@ -12,8 +12,6 @@ var UtilityTray = {
 
   statusbar: document.getElementById('statusbar'),
 
-  firstShown: document.getElementById('utility-tray-first-shown'),
-
   gripBar: document.getElementById('utility-tray-grippy'),
   screen: document.getElementById('screen'),
 
@@ -109,13 +107,14 @@ var UtilityTray = {
     dy = Math.min(screenHeight, dy);
 
     if (dy > gripBarHeight) {
-      var firstShownHeight = this.firstShown.getBoundingClientRect().height;
+//      var firstShownHeight = this.firstShown.getBoundingClientRect().height;
 
-      if (dy < firstShownHeight + gripBarHeight) {
+/*      if (dy < firstShownHeight + gripBarHeight) {
         newHeight = screenHeight - firstShownHeight - gripBarHeight;
       } else {
         newHeight = screenHeight - dy;
       }
+*/
 //      this.firstShown.style.MozTransition = '';
 //      this.firstShown.style.MozTransform = 'translateY(' + newHeight + 'px)';
     }
@@ -159,7 +158,7 @@ var UtilityTray = {
   show: function ut_show(dy) {
     var alreadyShown = this.shown;
     var trayStyle = this.overlay.style;
-    var firstShownStyle = this.firstShown.style;
+//    var firstShownStyle = this.firstShown.style;
 
     trayStyle.MozTransition = '-moz-transform 0.2s linear';
     trayStyle.MozTransform = 'translateY(100%)';
