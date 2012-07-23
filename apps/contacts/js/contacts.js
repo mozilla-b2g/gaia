@@ -466,8 +466,11 @@ var Contacts = (function() {
       numberEmails++;
     }
 
-    for (var adr in currentContact.adr) {
-      var currentAddress = currentContact.adr[adr];
+    currentContact.adr.forEach(function fillAddress(currentAddress) {
+      if (!currentAddress.streetAddress && !currentAddress.postalCode &&
+          !currentAddress.locality && !currentAddress.countryName) {
+          return;
+      }
       var default_type = TAG_OPTIONS['address-type'][0].value;
       var adrField = {
         streetAddress: currentAddress['streetAddress'],
@@ -482,7 +485,7 @@ var Contacts = (function() {
       template.appendChild(removeFieldIcon(template.id));
       addressContainer.appendChild(template);
       numberAddresses++;
-    }
+    })
 
     for (var index in currentContact.note) {
       var currentNote = currentContact.note[index];
