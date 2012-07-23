@@ -1139,12 +1139,6 @@ function editPhoto(n) {
     borderColor: '#fff'
   };
 
-  // Set the default option buttons to correspond to those edits
-  editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
-  $('edit-exposure-zero').classList.add('selected');
-  $('edit-effect-none').classList.add('selected');
-  $('edit-border-none').classList.add('selected');
-
   // Start looking up the image file
   photodb.getFile(images[n].name, function(file) {
     // Once we get the file create a URL for it and use that url for the
@@ -1162,11 +1156,20 @@ function editPhoto(n) {
     });
   });
 
+  // Display the edit screen
+  setView(editView);
+
   // Configure the exposure tool as the first one shown
   setEditTool('exposure');
 
-  // Display the edit screen
-  setView(editView);
+  // Set the exposure slider to its default value
+  exposureSlider.setExposure(0);
+
+  // Set the default option buttons to correspond to those edits
+  editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
+  $('edit-effect-none').classList.add('selected');
+  $('edit-border-none').classList.add('selected');
+
 }
 
 // Effects and border buttons call this
@@ -1179,8 +1182,6 @@ function editOptionsHandler() {
   Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
   this.classList.add('selected');
 
-  if (this.dataset.gamma)
-    editSettings.gamma = parseFloat(this.dataset.gamma);
   if (this.dataset.effect)
     editSettings.effect = this.dataset.effect;
   if (this.dataset.borderWidth) {
@@ -1192,18 +1193,110 @@ function editOptionsHandler() {
   imageEditor.edit(editSettings);
 }
 
+/*
+ * This is the exposure slider component for edit mode.  This ought to be
+ * converted into a reusable slider module, but for now this is a
+ * custom version that hardcodes things like the -3 to +3 range of values.
+ */
+var exposureSlider = (function() {
+  var slider = document.getElementById('exposure-slider');
+  var bar = document.getElementById('sliderbar');
+  var thumb = document.getElementById('sliderthumb');
+
+  thumb.addEventListener('mousedown', sliderStartDrag);
+
+  var currentExposure;
+  var sliderStartPixel;
+  var sliderStartExposure;
+
+  function sliderStartDrag(e) {
+    document.addEventListener('mousemove', sliderDrag, true);
+    document.addEventListener('mouseup', sliderEndDrag, true);
+    sliderStartPixel = e.clientX;
+    sliderStartExposure = currentExposure;
+    e.preventDefault();
+  }
+
+  function sliderDrag(e) {
+    var delta = e.clientX - sliderStartPixel;
+    var exposureDelta = delta / (parseInt(bar.clientWidth) * .8) * 6;
+    var oldExposure = currentExposure;
+    setExposure(sliderStartExposure + exposureDelta);
+    if (currentExposure !== oldExposure)
+      slider.dispatchEvent(new Event("change", {bubbles:true}));
+    e.preventDefault();
+  }
+
+  function sliderEndDrag(e) {
+    document.removeEventListener('mousemove', sliderDrag, true);
+    document.removeEventListener('mouseup', sliderEndDrag, true);
+    e.preventDefault();
+  }
+
+  // Set the thumb position between -3 and +3
+  function setExposure(exposure) {
+    // Make sure it is not out of bounds
+    if (exposure < -3) 
+      exposure = -3;
+    else if (exposure > 3) 
+      exposure = 3;
+
+    // Round to the closest .25
+    exposure = Math.round(exposure * 4)/4;
+
+    if (exposure === currentExposure) 
+      return;
+
+    var barWidth = parseInt(bar.clientWidth);
+    var thumbWidth = parseInt(thumb.clientWidth);
+
+    // Remember the new exposure value
+    currentExposure = exposure;
+
+    // Convert exposure value to % position of thumb center
+    var percent = 10 + (exposure+3) * 80/6;
+
+    // Convert percent to pixel position of thumb center
+    var pixel = barWidth * percent / 100;
+
+    // Compute pixel position of left edge of thumb
+    pixel -= thumbWidth / 2;
+
+    // Move the thumb to that position
+    thumb.style.left = pixel + "px";
+
+    // Display exposure value in thumb
+    thumb.textContent = exposure;
+  }
+
+  return {
+    setExposure: setExposure,
+    getExposure: function() { return currentExposure; }
+  };
+}());
+
+$('exposure-slider').onchange = function() {
+  var stops = exposureSlider.getExposure();
+  
+  // Convert the exposure compensation stops gamma correction value.
+  var factor = -1;  // XXX: adjust this factor to get something reasonable.
+  var gamma = Math.pow(2, stops*factor);
+  editSettings.gamma = gamma;
+  imageEditor.edit(editSettings);
+}
+
 function setEditTool(tool) {
   // Deselect all tool buttons and hide all options
   var buttons = $('edit-toolbar').querySelectorAll('a.button');
   Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
-  var options = $('edit-options').querySelectorAll('div');
+  var options = $('edit-options').querySelectorAll('div.edit-options-bar');
   Array.forEach(options, function(o) { o.classList.add('hidden'); });
 
   // Now select and show the correct set based on tool
   switch (tool) {
   case 'exposure':
     $('edit-exposure-button').classList.add('selected');
-    $('edit-exposure-options').classList.remove('hidden');
+    $('exposure-slider').classList.remove('hidden');
     break;
   case 'effect':
     $('edit-effect-button').classList.add('selected');
@@ -1290,4 +1383,3 @@ $('edit-save-button').onclick = function() {
     exitEditMode(true);
   });
 };
-
