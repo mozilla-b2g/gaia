@@ -1,0 +1,22 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-image: url('images/start-background.png'), -moz-linear-gradient(#f8f8fa, #cadce6);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center center, top left;
+  overflow: hidden;
+  padding: 0 10px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+h1, p {
+  margin: 5px;
+}
+
+h1 {
+  font-size: 22px;
+}
