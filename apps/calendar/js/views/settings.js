@@ -1,30 +1,11 @@
 (function(window) {
 
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
+  var template = Calendar.Templates.Calendar;
 
   function Settings(options) {
-    var key;
+    Calendar.View.apply(this, arguments);
 
-    if (typeof(options) === 'undefined') {
-      options = {};
-    }
-
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
-
-    // set this.element
-    Calendar.View.call(this, this.selectors.element);
-
-    this._handleOutsideClick = this._handleOutsideClick.bind(this);
+    this._initEvents();
   }
 
   Settings.prototype = {
@@ -32,70 +13,64 @@
 
     selectors: {
       element: '#settings',
-      calendars: '#settings-calendars',
-      accounts: '#settings-accounts',
-      outside: '#wrapper'
+      calendars: '#settings .calendars'
     },
 
     get calendars() {
       return this._findElement('calendars');
     },
 
-    get accounts() {
-      return this._findElement('accounts');
+    _initEvents: function() {
+      var store = this.app.store('Calendar');
+
+      store.on('update', this._update.bind(this));
+      store.on('add', this._add.bind(this));
+      store.on('remove', this._remove.bind(this));
     },
 
-    get outside() {
-      return this._findElement('outside');
+    _update: function(id, model) {
+      var htmlId = 'calendar-' + id;
+      var el = document.getElementById(htmlId);
+      var check = el.querySelector('input[type="checkbox"]');
+
+      el.textContent = model.name;
+      check.checked = model.localDisplayed;
     },
 
-    _removeClickHandler: function() {
-      this.outside.removeEventListener('click', this._handleOutsideClick);
+    _add: function(id, object) {
+      var html = template.item.render(object);
+      this.calendars.insertAdjacentHTML(
+        'beforeend',
+        html
+      );
     },
 
-    _handleOutsideClick: function(e) {
-      if (this._savedPath) {
-        page(this._savedPath);
-        this._savedPath = null;
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        // in theory this should happen during oninactive
-        // when we switch out of the view this is a failsafe
-        this._removeClickHandler();
+    _remove: function(id) {
+      var htmlId = 'calendar-' + id;
+      var el = document.getElementById(htmlId);
+      if (el) {
+        el.parentNode.removeChild(el);
       }
     },
 
-    showCalendars: function() {
-      this.calendars.classList.add(this.activeClass);
-      this.accounts.classList.remove(this.activeClass);
-    },
+    render: function() {
+      var list = this.calendars;
+      var store = this.app.store('Calendar');
+      var key;
+      var html = '';
 
-    showAccounts: function() {
-      this.calendars.classList.remove(this.activeClass);
-      this.accounts.classList.add(this.activeClass);
-    },
-
-    onactive: function() {
-      var path;
-      Calendar.View.prototype.onactive.apply(this, arguments);
-      this._savedPath = window.location.pathname;
-
-      if (this._savedPath.indexOf('/settings') === 0) {
-        this._savedPath = '/';
+      for (key in store.cached) {
+        html += template.item.render(
+          store.cached[key]
+        );
       }
 
-      this.outside.addEventListener('click', this._handleOutsideClick);
-    },
-
-    oninactive: function() {
-      this._removeClickHandler();
-      Calendar.View.prototype.onactive.apply(this, arguments);
+      list.innerHTML = html;
     }
 
   };
 
-  Calendar.Views.Settings = Settings;
+  Settings.prototype.onfirstseen = Settings.prototype.render;
+  Calendar.ns('Views').Settings = Settings;
 
 }(this));

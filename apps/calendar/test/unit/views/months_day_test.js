@@ -1,16 +1,12 @@
-requireApp('calendar/js/ext/gesture_detector.js');
-
 requireApp('calendar/test/unit/helper.js', function() {
-
-  requireApp('calendar/js/ext/gesture_detector.js');
-  requireCalendarController();
+  require('/shared/js/gesture_detector.js');
   requireApp('calendar/js/templates/day.js');
   requireApp('calendar/js/views/months_day.js');
-
 });
 
 suite('views/months_day', function() {
   var subject,
+      app,
       controller,
       events;
 
@@ -29,12 +25,13 @@ suite('views/months_day', function() {
 
     document.body.appendChild(div);
 
-    controller = createController();
-    events = controller.eventList;
+    app = testSupport.calendar.app();
+    controller = app.timeController;
+    events = app.store('Event');
 
 
     subject = new Calendar.Views.MonthsDay({
-      controller: controller,
+      app: app,
       headerSelector: '#test .dayHeader',
       eventsSelector: '#test .eventList'
     });

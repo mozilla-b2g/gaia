@@ -1,38 +1,56 @@
 (function(window) {
 
-  function requireCalendarController() {
-    requireApp('calendar/js/set.js');
-    requireApp('calendar/js/batch.js');
-    requireApp('calendar/js/template.js');
-    requireApp('calendar/js/format.js');
-    requireApp('calendar/js/responder.js');
-    requireApp('calendar/js/models/busytime.js');
-    requireApp('calendar/js/models/events.js');
-    requireApp('calendar/js/calc.js');
-    requireApp('calendar/js/controller.js');
-    requireApp('calendar/js/view.js');
-  }
+  var oldRequire = require;
 
-  function createController(fn) {
-    var busytime = new Calendar.Models.Busytime();
-    var events = new Calendar.Models.Events();
+  require = function(path) {
+    if (path === 'stream') {
+      throw new Error('skip');
+    }
+    return oldRequire.apply(this, arguments);
+  };
 
-    var controller = new Calendar.Controller({
-      eventList: events,
-      busytime: busytime
-    });
-
-    return controller;
-  }
 
   if (typeof(testSupport) === 'undefined') {
     testSupport = {};
   }
 
+  /* testSupport */
+
   testSupport.calendar = {
 
+    requireProvider: function() {
+      requireLib('provider/calendar/abstract.js');
+      requireLib('provider/calendar/local.js');
+      requireLib('provider/local.js');
+    },
+
     db: function() {
-      return new Calendar.Db('b2g-test-calendar');
+      var db = new Calendar.Db('b2g-test-calendar');
+      this._lastDb = db;
+      return this._lastDb;
+    },
+
+    clearStore: function(name, done) {
+      var trans = this._lastDb.transaction(name, 'readwrite');
+      var store = trans.objectStore(name);
+      var res = store.clear();
+
+      res.onerror = function() {
+        done(new Error('could not wipe accounts db'));
+      }
+
+      res.onsuccess = function() {
+        done(null);
+      }
+    },
+
+    app: function() {
+      Calendar.App.configure(
+        this.db(),
+        new Calendar.Router(Calendar.Test.FakePage)
+      );
+
+      return Calendar.App;
     },
 
     checkSet: function(set, arr) {
@@ -76,9 +94,39 @@
     }
   };
 
-  window.requireCalendarController = requireCalendarController;
-  window.createController = createController;
+  /* global exports */
+
+  function createController(fn) {
+    var busytime = new Calendar.Store.Busytime();
+    var events = new Calendar.Store.Event();
+
+    var controller = new Calendar.Controller({
+      eventList: events,
+      busytime: busytime
+    });
+
+    return controller;
+  }
+
+  function requireLib() {
+    var args = Array.prototype.slice.call(arguments);
+    args[0] = 'calendar/js/' + args[0];
+
+    return requireApp.apply(this, args);
+  }
+
+  function requireSupport() {
+    var args = Array.prototype.slice.call(arguments);
+    args[0] = 'calendar/test/unit/support/' + args[0];
+
+    return requireApp.apply(this, args);
+  }
+
   window.testSupport = testSupport;
+  window.requireLib = requireLib;
+  window.requireSupport = requireSupport;
+
+  /* chai extensions */
 
   assert.setHas = function(subject, values, msg) {
     var check;
@@ -102,6 +150,42 @@
       throw new Error(msg);
     }
   }
+
+  /* require most of the coupled / util objects */
+
+  // HACK - disable mozL10n right now
+  //        tests that actually use it
+  //        mock it out anyway.
+  navigator.mozL10n = {
+    get: function(value) {
+      return value;
+    }
+  };
+
+  requireLib('calendar.js');
+  requireLib('set.js');
+  requireLib('batch.js');
+  requireLib('template.js');
+  requireLib('responder.js');
+  requireLib('provider/calendar/abstract.js');
+  requireLib('provider/calendar/local.js');
+  requireLib('provider/local.js');
+  requireLib('store/abstract.js');
+  requireLib('store/account.js');
+  requireLib('store/busytime.js');
+  requireLib('store/calendar.js');
+  requireLib('store/event.js');
+  requireLib('view.js');
+  requireLib('calc.js');
+  requireLib('router.js');
+  requireLib('controllers/time.js');
+  requireLib('controllers/sync.js');
+  requireLib('db.js');
+  requireLib('app.js');
+
+  /* test helpers */
+
+  requireSupport('fake_page.js');
 
 }(this));
 

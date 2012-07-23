@@ -1,7 +1,7 @@
 {
   "name": "Homescreen",
   "description": "Gaia Homescreen",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
