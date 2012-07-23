@@ -206,12 +206,12 @@ var Settings = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
-        var cset = {};
         for (var i = 0; i < fields.length; i++) {
           var input = fields[i];
+          var cset = {};
           cset[input.dataset.setting] = input.value;
+          settings.getLock().set(cset);
         }
-        settings.getLock().set(cset);
       }
       return close();
     }
