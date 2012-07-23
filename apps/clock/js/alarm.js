@@ -292,69 +292,119 @@ var AlarmList = {
     alarm.enabled = enabled;
 
     var self = this;
-    AlarmsDB.putAlarm(alarm, function al_putAlarmList() {
+    AlarmsDB.putAlarm(alarm, function al_putAlarmList(alarm) {
+      AlarmManager.setEnabled(alarm, alarm.enabled);
       self.refresh();
     });
-    if (enabled) {
-      FakeAlarmManager.set(alarm);
-    } else {
-      FakeAlarmManager.cancel(alarm);
-    }
   },
 
-  deleteCurrent: function al_deleteCurrent(alarmID) {
+  deleteCurrent: function al_deleteCurrent(id) {
+    var alarm = this.getAlarmFromList(id);
+    if (alarm.alarmId)
+      AlarmManager.setEnabled(alarm, false);
+
     var self = this;
-    AlarmsDB.deleteAlarm(alarmID, function al_deletedAlarm() {
+    AlarmsDB.deleteAlarm(id, function al_deletedAlarm() {
       self.refresh();
     });
   }
 
 };
 
-var FakeAlarmManager = {
-  // Need Maintain timeout object for multiple alarm
-  set: function am_set(alarm) {
-    var date = new Date();
-    var alarmDate = new Date(date.getFullYear(), date.getMonth(),
-                    date.getDate(), alarm.hour, alarm.minute, 0, 0);
-    var remaining = alarmDate.getTime() - Date.now();
+var AlarmManager = {
 
-    // Fake alarm is prepared for demo only since AlarmAPI not ready yet
-    this._fakeAlarmTimeout = window.setTimeout(function() {
+  _onFireAlarm: {},
 
-      var ringtonePlayer = new Audio();
-      ringtonePlayer.loop = true;
-      var selectedAlarmSound = 'style/ringtones/classic.wav';
-      ringtonePlayer.src = selectedAlarmSound;
+  init: function am_init() {
+    var self = this;
+    navigator.mozSetMessageHandler('alarm', function gotMessage(message) {
+      self.onAlarmFiredHandler(message);
+    });
+  },
 
+  setEnabled: function am_setEnabled(alarm, enabled) {
+    if (enabled) {
+      this.set(alarm);
+    } else {
+      this.unset(alarm);
+    }
+  },
+
+  set: function am_set(alarm, bSnooze) {
+    var nextAlarmFireTime = null;
+    if (bSnooze) {
+      nextAlarmFireTime = new Date();
+      nextAlarmFireTime.setMinutes(nextAlarmFireTime.getMinutes() +
+                                   alarm.snooze);
+    } else {
+      nextAlarmFireTime = getNextAlarmFireTime(alarm);
+    }
+    var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
+                  { id: alarm.id }); // give the alarm id for the request
+    var self = this;
+    request.onsuccess = function(e) {
+      alarm.alarmId = e.target.result;
+      // save the AlarmAPI's request id to DB
+      AlarmsDB.putAlarm(alarm, function am_putAlarm(alarm) {
+        AlarmList.refresh();
+      });
+      self.updateAlarmStatusBar();
+    };
+    request.onerror = function(e) {
+      var logInfo = bSnooze ? ' snooze' : '';
+      console.log('set' + logInfo + ' alarm fail');
+    };
+  },
+
+  unset: function am_unset(alarm) {
+    if (alarm.alarmId) {
+      navigator.mozAlarms.remove(alarm.alarmId);
+      this.updateAlarmStatusBar();
+    }
+  },
+
+  onAlarmFiredHandler: function am_onAlarmFiredHandler(message) {
+    // XXX receive and paser the alarm id from the message
+    var id = message.data.id;
+    // use the alarm id to query db
+    // find out which alarm is being fired.
+    var self = this;
+    AlarmsDB.getAlarm(id, function am_gotAlarm(alarm) {
+      // prepare to pop out attention screen, ring the ringtone, vibrate
+      self._onFireAlarm = alarm;
       var protocol = window.location.protocol;
       var host = window.location.host;
       window.open(protocol + '//' + host + '/onring.html',
                   'ring_screen', 'attention');
-
-      if ('vibrate' in navigator) {
-        var vibrateInterval = 0;
-        vibrateInterval = window.setInterval(function vibrate() {
-          navigator.vibrate([200]);
-        }, 600);
-        window.setTimeout(function clearVibration() {
-          window.clearInterval(vibrateInterval);
-        }, 3000);
-      }
-      ringtonePlayer.play();
-      window.setTimeout(function pauseRingtone() {
-        ringtonePlayer.pause();
-      }, 2000);
-    }, remaining);
+    });
+    this.updateAlarmStatusBar();
   },
 
   snoozeHandler: function am_snoozeHandler() {
-    // Need to implement snooze
+    this.set(this._onFireAlarm, true);
   },
 
-  cancel: function am_cancel(alarm) {
-    window.clearTimeout(this._fakeAlarmTimeout);
-    this._fakeAlarmTimeout = null;
+  cancelHandler: function am_cancelHandler() {
+    // Check the property of repeat
+    if (this._onFireAlarm.repeat == '0000000') { // disable alarm
+      AlarmList.updateAlarmEnableState(false, this._onFireAlarm);
+    } else { // set the alarm again for next repeat date
+      this.set(this._onFireAlarm);
+    }
+  },
+
+  updateAlarmStatusBar: function am_updateAlarmStatusBar() {
+    if (!('mozSettings' in navigator))
+      return;
+
+    var request = navigator.mozAlarms.getAll();
+    request.onsuccess = function(e) {
+      var hasAlarmEnabled = !!e.target.result.length;
+      navigator.mozSettings.getLock().set({'alarm.enabled': hasAlarmEnabled});
+    };
+    request.onerror = function(e) {
+      console.log('get all alarm fail');
+    };
   }
 
 };
@@ -464,7 +514,8 @@ var AlarmEditView = {
   getDefaultAlarm: function aev_getDefaultAlarm() {
     // Reset the required message with default value
     return {
-      id: '',
+      id: '', // for Alarm APP indexedDB id
+      alarmId: '', // for request AlarmAPI id
       label: 'Alarm',
       hour: '10',
       minute: '00',
@@ -545,14 +596,10 @@ var AlarmEditView = {
     }
 
     if (!error) {
-      AlarmsDB.putAlarm(this.alarm, function al_putAlarmList() {
+      AlarmsDB.putAlarm(this.alarm, function al_putAlarmList(alarm) {
+        AlarmManager.setEnabled(alarm, alarm.enabled);
         AlarmList.refresh();
       });
-      if (this.alarm.enabled) {
-        FakeAlarmManager.set(this.alarm);
-      } else {
-        FakeAlarmManager.cancel(this.alarm);
-      }
     }
 
     return !error;
@@ -561,6 +608,10 @@ var AlarmEditView = {
   delete: function aev_delete() {
     if (!this.element.dataset.id)
       return;
+
+    var alarm = this.alarm;
+    if (alarm.alarmId)
+      AlarmManager.setEnabled(alarm, false);
 
     var id = parseInt(this.element.dataset.id);
     AlarmsDB.deleteAlarm(id, function al_deletedAlarm() {
@@ -774,4 +825,5 @@ window.addEventListener('localized', function showBody() {
   SoundPickerView.init();
   SnoozePickerView.init();
   ColorPickerView.init();
+  AlarmManager.init();
 });

@@ -1,7 +1,7 @@
 {
   "name": "Settings",
   "description": "Gaia Settings",
-  "launch_path": "/#root",
+  "launch_path": "/index.html#root",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"

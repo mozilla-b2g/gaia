@@ -1,16 +1,17 @@
 requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
-  requireApp('calendar/js/ext/gesture_detector.js');
-  requireCalendarController();
-  requireApp('calendar/js/views/settings.js');
+  requireLib('templates/calendar.js');
+  requireLib('views/settings.js');
 });
 
 suite('views/settings', function() {
 
-  var subject,
-    controller,
-    busytimes;
+  var subject;
+  var app;
+  var store;
+  var controller;
+  var template;
 
 
   function triggerEvent(element, eventName) {
@@ -30,73 +31,126 @@ suite('views/settings', function() {
     div.innerHTML = [
       '<div id="wrapper"></div>',
       '<div id="settings">',
-        '<div id="settings-calendars"></div>',
-        '<div id="settings-accounts"></div>',
+        '<ul class="calendars"></ul>',
       '</div>'
     ].join('');
 
     document.body.appendChild(div);
 
-    controller = createController();
+    app = testSupport.calendar.app();
+    controller = app.timeController;
+    store = app.store('Calendar');
+    template = Calendar.Templates.Calendar;
 
     subject = new Calendar.Views.Settings({
-      controller: controller
+      app: app
     });
   });
 
   test('initialization', function() {
     assert.instanceOf(subject, Calendar.View);
-    assert.equal(subject.controller, controller);
+    assert.equal(subject.app, app);
     assert.equal(
       subject.element, document.querySelector('#settings')
     );
-  });
-
-  test('#outside', function() {
-    assert.ok(subject.outside);
-  });
-
-  test('#element', function() {
-    assert.equal(subject.element.id, 'settings');
   });
 
   test('#calendars', function() {
     assert.ok(subject.calendars);
   });
 
-  test('#accounts', function() {
-    assert.ok(subject.accounts);
-  });
+  suite('#_initEvents', function() {
 
-  suite('show functions', function() {
-    var cals;
-    var accounts;
-    var active;
+    var models;
+    var children;
 
     setup(function() {
-      cals = subject.calendars;
-      accounts = subject.accounts;
-      active = subject.activeClass;
+      models = {};
+      // render out one model
+      models[1] = {
+        name: 'first',
+        localDisplayed: true,
+        _id: 'one'
+      };
+
+      store._cached = models;
+      subject.render();
+      children = subject.calendars.children;
     });
 
-    test('#showCalendars', function() {
-      cals.classList.remove(active);
-      accounts.classList.add(active);
+    test('update', function() {
+      var check = children[0].querySelector(
+        '*[type="checkbox"]'
+      );
 
-      subject.showCalendars();
+      models[1].name = 'foo';
+      models[1].localDisplayed = false;
 
-      assert.isTrue(cals.classList.contains(active));
-      assert.isFalse(accounts.classList.contains(active));
+      store.emit('update', 'one', models[1]);
+
+      assert.equal(children[0].textContent, 'foo');
+      assert.isFalse(
+        check.checked
+      );
     });
 
-    test('#showAccounts', function() {
-      accounts.classList.remove(active);
-      cals.classList.add(active);
+    test('add', function() {
+      models[2] = {
+        name: 'second',
+        localDisplayed: false,
+        _id: 'two'
+      };
 
-      subject.showAccounts();
+      assert.equal(children.length, 1);
+      store.emit('add', 'two', models[2]);
+      assert.equal(children.length, 2);
 
-      assert.isTrue(accounts.classList.contains(active));
-      assert.isFalse(cals.classList.contains(active));
+      assert.equal(children[1].textContent, 'second');
+    });
+
+    test('remove', function() {
+      store.emit('remove', 'one');
+      assert.equal(children.length, 0);
+    });
+
+  });
+
+  suite('#render', function() {
+    var models = {};
+
+    setup(function() {
+      models[1] = {
+        name: 'First',
+        localDisplayed: true,
+        _id: 1
+      };
+
+      models[2] = {
+        name: 'Second',
+        localDisplayed: false,
+        _id: 2
+      };
+      store._cached = models;
+      subject.render();
+    });
+
+    test('output', function() {
+      var children = subject.calendars.children;
+      assert.equal(children.length, 2);
+
+      var one = children[0];
+      var two = children[1];
+
+      assert.equal(one.textContent, models[1].name);
+      assert.equal(two.textContent, models[2].name);
+
+      assert.isTrue(
+        one.querySelector('*[type="checkbox"]').checked
+      );
+
+      assert.isFalse(
+        two.querySelector('*[type="checkbox"]').checked
+      );
     });
 
   });
