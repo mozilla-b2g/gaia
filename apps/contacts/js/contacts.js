@@ -378,7 +378,7 @@ var Contacts = (function() {
         // Sanity check
         if (isEmpty(currentAddress, ['streetAddress', 'postalCode',
           'locality', 'countryName'])) {
-          return;
+          continue;
         }
         var addressField = {
           streetAddress: currentAddress['streetAddress'] || '',
