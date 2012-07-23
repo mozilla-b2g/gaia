@@ -93,34 +93,31 @@
       <!-- this holds different options for different editing modes -->
       <!-- only one set of options will be visible at a time -->
       <div id="edit-options">
-        <!-- The style attribute below don't work if moved to a stylesheet -->
-        <div id="edit-exposure-options" class="hidden">
-          <a id="edit-exposure-minus-one"
-             class="button filter-gamma-2"
-             data-gamma="2"></a>
-          <a id="edit-exposure-minus-half"
-             class="button filter-gamma-1-414"
-             data-gamma="1.414"></a>
-          <a id="edit-exposure-zero"
-             class="button"
-             data-gamma="1"></a>
-          <a id="edit-exposure-plus-half"
-             class="button filter-gamma-0-707"
-             data-gamma="0.707"></a>
-          <a id="edit-exposure-plus-one"
-             class="button filter-gamma-0-5"
-             data-gamma="0.5"></a>
+        <div id="exposure-slider" class="edit-options-bar hidden">
+          <div id="sliderbar">
+            <hr id="sliderline"/>
+            <div id="sliderthumb"></div>
+          </div>
+          <div id="sliderlabels">
+            <div id="slider-3" class="sliderlabel" data-label="-3"></div>
+            <div id="slider-2" class="sliderlabel" data-label="-2"></div>
+            <div id="slider-1" class="sliderlabel" data-label="-1"></div>
+            <div id="slider0" class="sliderlabel" data-label="0"></div>
+            <div id="slider1" class="sliderlabel" data-label="+1"></div>
+            <div id="slider2" class="sliderlabel" data-label="+2"></div>
+            <div id="slider3" class="sliderlabel" data-label="+3"></div>
+          </div>
         </div>
-        <div id="edit-effect-options" class="hidden"> 
+        <div id="edit-effect-options" class="edit-options-bar hidden"> 
           <a id="edit-effect-none" class="button"
-             data-effect="none"></a>
+             data-effect="none" data-l10n-id="original"></a>
           <a id="edit-effect-bw" class="button filter-bw"
-             data-effect="bw"></a>
+             data-effect="bw" data-l10n-id="blackandwhite"></a>
           <a id="edit-effect-sepia" class="button filter-sepia"
-             data-effect="sepia"></a>
+             data-effect="sepia" data-l10n-id="sepia"></a>
         </div>
 
-        <div id="edit-border-options" class="hidden"> 
+        <div id="edit-border-options" class="edit-options-bar hidden"> 
           <a id="edit-border-none" class="button"
              data-border-width="0"></a>
           <a id="edit-border-thin-white" class="button border-thin-white"
@@ -158,41 +155,6 @@
                                0.272 0.534 0.131 0 0
                                0     0     0     1 0"/>
       </filter>
-      <filter id="filter-gamma">
-        <feComponentTransfer>
-          <feFuncR id="filter-gamma-r" type="gamma" exponent="2"/>
-          <feFuncG id="filter-gamma-g" type="gamma" exponent="2"/>
-          <feFuncB id="filter-gamma-b" type="gamma" exponent="2"/>
-        </feComponentTransfer>
-      </filter> 
-      <filter id="filter-gamma-2">
-        <feComponentTransfer>
-          <feFuncR type="gamma" exponent="2"/>
-          <feFuncG type="gamma" exponent="2"/>
-          <feFuncB type="gamma" exponent="2"/>
-        </feComponentTransfer>
-      </filter> 
-      <filter id="filter-gamma-1-414">
-        <feComponentTransfer>
-          <feFuncR type="gamma" exponent="1.414"/>
-          <feFuncG type="gamma" exponent="1.414"/>
-          <feFuncB type="gamma" exponent="1.414"/>
-        </feComponentTransfer>
-      </filter> 
-      <filter id="filter-gamma-0-707">
-        <feComponentTransfer>
-          <feFuncR type="gamma" exponent="0.707"/>
-          <feFuncG type="gamma" exponent="0.707"/>
-          <feFuncB type="gamma" exponent="0.707"/>
-        </feComponentTransfer>
-      </filter> 
-      <filter id="filter-gamma-0-5">
-        <feComponentTransfer>
-          <feFuncR type="gamma" exponent="0.5"/>
-          <feFuncG type="gamma" exponent="0.5"/>
-          <feFuncB type="gamma" exponent="0.5"/>
-        </feComponentTransfer>
-      </filter> 
     </svg>
   </body>
 </html>
