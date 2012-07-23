@@ -50,6 +50,16 @@
   font-weight: 600;
 }
 
+#statusbar-conn {
+  padding: 0;
+  color: #fff;
+  font: 12px/14px 'Open Sans', sans-serif;
+}
+
+#statusbar-conn:empty {
+  display: none;
+}
+
 .sb-icon {
   width: 16px;
   height: 16px;

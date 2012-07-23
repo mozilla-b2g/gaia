@@ -292,22 +292,99 @@ MediaDB.prototype = {
 
   // Delete the named file from the database and from device storage.
   // Runs asynchronously and returns before the deletions are complete.
+  // Sends an change event for the deleted file.
   deleteFile: function deleteFile(filename) {
-    // Delete from the db
-    this.db.transaction('files', 'readwrite').
-      objectStore('files').
-      delete(filename).
-      onerror = function(e) {
-        console.error('MediaDB: Failed to delete', filename,
-                      'from IndexedDB:', e.target.error);
+    var media = this;
+
+    // First, look up the fileinfo record in the db
+    media.db.transaction('files', 'readonly')
+      .objectStore('files')
+      .get(filename)
+      .onsuccess = function(e) {
+        var fileinfo = e.target.result;
+        // Now delete it from the db
+        var dbrequest = media.db.transaction('files', 'readwrite').
+          objectStore('files').
+          delete(filename);
+        dbrequest.onerror = function(e) {
+          console.error('MediaDB: Failed to delete', filename,
+                        'from IndexedDB:', e.target.error);
+        };
+        dbrequest.onsuccess = function() {
+          // Delete it from device storage, too
+          // XXX: when device storage starts generating change events,
+          // this will send one that we may have to supress
+          var dsrequest = media.storage.delete(filename);
+          dsrequest.onerror = function(e) {
+            console.error('MediaDB: Failed to delete', filename,
+                          'from DeviceStorage:', e.target.error);
+          }
+          dsrequest.onsuccess = function() {
+            if (media.onchange) {
+              media.onchange('deleted', [fileinfo]);
+            }
+          };
+        };
+      };
+  },
+  
+  // Add a new file to both the database and device storage.
+  addFile: function addFile(filename, file) {
+    var media = this;
+
+    // Delete any existing file by this name, then save the file.
+    media.storage.delete(filename);
+    var storeRequest = media.storage.addNamed(file, filename);
+    storeRequest.onerror = function() {
+      console.error('MediaDB: Failed to store', filename, 
+                    'in DeviceStorage:', storeRequest.error);
+    };
+    storeRequest.onsuccess = function() {
+      // We've stored it in device storage, so now save it in the db, too.
+      // XXX
+      // Device storage will send a change event here, and we may have
+      // to ignore it somehow
+
+      // Start with basic information about the file
+      var fileinfo = {
+        name: filename,
+        type: file.type,
+        size: file.size,
+        // XXX: this should be the lastModifiedTime of the actual 
+        // file that is now on the disk
+        date: Date.now(),  
       };
 
-    // Delete it from device storage, too
-    this.storage.delete(filename).onerror = function(e) {
-      console.error('MediaDB: Failed to delete', filename,
-                    'from DeviceStorage:', e.target.error);
-    }
+      // Get its metadata
+      media.metadataParser(file,
+                           function gotMetadata(metadata) {
+                             // When we get the metadata, store everything
+                             // in the database
+                             fileinfo.metadata = metadata;
+                             var store =
+                               media.db.transaction('files', 'readwrite').
+                               objectStore('files');
+                             var request = store.put(fileinfo);
+                             request.onsuccess = function(e) {
+                               // When done call the onchange handler
+                               // XXX: do I have to handle the case of 
+                               // overwriting an existing file?
+                               if (media.onchange)
+                                 media.onchange('created', [fileinfo]);
+                             };
+                             request.onerror = function(e) {
+                               console.error('MediaDB: Failed to store',
+                                             filename,
+                                             'in IndexedDB:', e.target.error);
+                             };
+                           },
+                           function(error) {
+                             console.error('MediaDB: Metadata read failed for',
+                                           filename, ':', error);
+                           });
+    };
   },
+
 
   // Enumerate all files in the filesystem, sorting by the specified
   // property (which must be one of the indexes, or null for the filename).

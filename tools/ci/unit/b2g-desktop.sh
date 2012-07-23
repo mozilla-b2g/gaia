@@ -15,10 +15,24 @@ cd $GAIA_PATH && make -C $GAIA_PATH \
   GAIA_DOMAIN=$GAIA_DOMAIN
 
 DOMAIN=http://test-agent.$GAIA_DOMAIN$GAIA_PORT/index.html#?websocketUrl=$TEST_AGENT_SERVER
-
+echo
 echo "Starting B2G Desktop";
+echo "Test Agent URL: $DOMAIN"
+echo
 
-$B2G_HOME/dist/bin/b2g -profile $GAIA_PATH/profile &
+B2G=`which b2g`;
+
+if [ ! -x $B2G ];
+then
+  B2G=$B2G_HOME/dist/bin/b2g
+  if [ ! -x $B2G ]
+  then
+    echo "b2g is not in your \$PATH and can't be founder with $B2G_HOME/dist/bin/b2g"
+    exit 1;
+  fi
+fi
+
+$B2G -profile $GAIA_PATH/profile &
 PID=`jobs -p | tail -n 1`;
 
 cd $GAIA_PATH;
