@@ -14,6 +14,11 @@
   padding-right: 1rem;
 }
 
+#contact-name-title {
+  max-width: 23rem;
+  float: left;
+}
+
 /* Contact detail main section */
 
 .view-contact-profile article.view-body {
