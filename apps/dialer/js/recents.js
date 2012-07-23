@@ -227,11 +227,14 @@ var Recents = {
     if (contact) {
       if (contact.name) {
         primaryInfo.textContent =
-        contact.name;
+          contact.name;
       }
+      var contactPhoto = logItem.querySelector('.call-log-contact-photo');
       if (contact.photo) {
-        logItem.querySelector('.call-log-contact-photo').
-        style.backgroundImage = 'url(' + contact.photo + ')';
+        contactPhoto.classList.add('knownContact');
+        contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
+      } else {
+        contactPhoto.classList.add('unknownContact');
       }
       var phoneNumber = logItem.dataset.num.trim();
       var secondaryInfo = logItem.querySelector('.secondary-info');
@@ -250,7 +253,7 @@ var Recents = {
       this._cachedContacts[phoneNumber] = contact;
     }
     this._updateCounter++;
- 
+
     if (this._updateCounter == max) {
       this.groupCallsInCallLog();
     }
