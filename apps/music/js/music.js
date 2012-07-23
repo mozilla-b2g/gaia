@@ -154,6 +154,35 @@ var TilesView = {
   },
 
   init: function tv_init() {
+    for (var i = 0; i < 36; i++) {
+      var tile = document.createElement('div');
+      var defaultImage = document.createElement('div');
+      defaultImage.innerHTML = '&#9834;';
+      
+      // There are 6 tiles in one group
+      // and the first tile is the main-tile
+      // so we mod 6 to find out who is the main-tile
+      if (i % 6 === 0) {
+        tile.classList.add('main-tile');
+        defaultImage.classList.add('main-tile-default-image');
+      } else {
+        tile.classList.add('sub-tile');
+        defaultImage.classList.add('sub-tile-default-image');
+      }
+
+      // Since 6 tiles are in one group
+      // the even group will be floated to left
+      // the odd group will be floated to right 
+      if (Math.floor(i / 6) % 2 === 0) {
+        tile.classList.add('float-left');
+      } else {
+        tile.classList.add('float-right');
+      }
+      
+      tile.appendChild(defaultImage);
+      this.view.appendChild(tile);
+    }
+    
     this.view.addEventListener('click', this);
   },
 
