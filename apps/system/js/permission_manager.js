@@ -4,23 +4,25 @@
 'use strict';
 
 (function PermissionManager() {
-  window.addEventListener('mozChromeEvent', function handleWebappInstall(evt) {
+  window.addEventListener('mozChromeEvent', function pm_chromeEventHandler(evt) {
     var detail = evt.detail;
-    if (detail.type !== 'webapps-ask-install')
-      return;
-
-    // This is how we say yes or no to the request after the user decides
-    var self = this;
-    function sendResponse(id, allow) {
-
-      var event = document.createEvent('CustomEvent');
-      event.initCustomEvent('mozContentEvent', true, true, {
-        id: id,
-        type: allow ? 'webapps-install-granted' : 'webapps-install-denied'
-      });
-      window.dispatchEvent(event);
+    switch (detail.type) {
+      case 'webapps-ask-install':
+        handleInstallationPrompt(detail);
+        break;
+      case 'permission-prompt':
+        handlePermissionPrompt(detail);
+        break;
     }
+  });
 
+  var handlePermissionPrompt = function pm_handlePermissionPrompt(detail) {
+    // XXX are going to l10n the permissions name/messages?
+    requestPermission(detail.permission, function() { dispatchResponse(detail.id, 'permission-allow'); },
+                                         function() { dispatchResponse(detail.id, 'permission-deny'); });
+  };
+
+  var handleInstallationPrompt = function pm_handleInstallationPrompt(detail) {
     var app = detail.app;
     if (document.location.toString().indexOf(app.installOrigin) == 0) {
       sendResponse(detail.id, true);
@@ -36,9 +38,18 @@
     var str = navigator.mozL10n.get('install', {
       'name': name, 'origin': app.origin
     });
-    requestPermission(str, function() { sendResponse(detail.id, true); },
-                           function() { sendResponse(detail.id, false); });
-  });
+    requestPermission(str, function() { dispatchResponse(detail.id, 'webapps-install-granted'); },
+                           function() { dispatchResponse(detail.id, 'webapps-install-denied'); });
+  };
+
+  var dispatchResponse = function pm_dispatchResponse(id, type) {
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, {
+      id: id,
+      type: type
+    });
+    window.dispatchEvent(event);
+  };
 
   var requestPermission = (function() {
     // A queue of pending requests.
@@ -128,5 +139,4 @@
     };
   }());
 })();
-
 
