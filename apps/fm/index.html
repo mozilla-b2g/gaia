@@ -5,25 +5,8 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title>FM Radio</title>
     <link rel="stylesheet" href="style/fm.css" type="text/css" />
-    <link rel="resource" type="application/l10n" href="locale/l10n.ini" />
-    <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
-
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="js/fm.js"></script>
   </head>
 
@@ -84,3 +67,4 @@
     </div>
   </body>
 </html>
+
