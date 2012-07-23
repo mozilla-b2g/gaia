@@ -1,3 +1,6 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 // TODO:
 // - Get orientation working when leaving fullscreen
 // - Don't say "no photos" on startup... say "scanning" and localize it.
@@ -195,7 +198,7 @@ photodb.onchange = function(type, files) {
 
 function imageDeleted(fileinfo) {
   // Find the deleted file in our images array
-  for(var n = 0; n < images.length; n++) {
+  for (var n = 0; n < images.length; n++) {
     if (images[n].name === fileinfo.name)
       break;
   }
@@ -222,7 +225,7 @@ function imageDeleted(fileinfo) {
   if (n < currentPhotoIndex)
     currentPhotoIndex--;
   if (n < editedPhotoIndex)
-    editedPhotoIndex--;  
+    editedPhotoIndex--;
 
   // If we're in single photo display mode, then the only way this function,
   // gets called is when we delete the currently displayed photo.  This means
@@ -230,7 +233,7 @@ function imageDeleted(fileinfo) {
   if (currentView === photoView) {
     showPhoto(currentPhotoIndex);
   }
-};
+}
 
 function deleteImage(n) {
   if (n < 0 || n >= images.length)
@@ -251,9 +254,9 @@ function imageCreated(fileinfo) {
     insertPosition = 0;
   else {
     // Otherwise we have to search for the right insertion spot
-    insertPosition = binarysearch(images, fileinfo, function(a,b) {
-      if (a.name < b.name) 
-        return -1
+    insertPosition = binarysearch(images, fileinfo, function(a, b) {
+      if (a.name < b.name)
+        return -1;
       else if (a.name > b.name)
         return 1;
       return 0;
@@ -269,7 +272,7 @@ function imageCreated(fileinfo) {
   thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
 
   // increment the index of each of the thumbnails after the new one
-  for(var i = insertPosition; i < thumbnailElts.length; i++) {
+  for (var i = insertPosition; i < thumbnailElts.length; i++) {
     thumbnailElts[i].dataset.index = i + 1;
   }
 
@@ -287,8 +290,8 @@ function imageCreated(fileinfo) {
 // Assuming that array is sorted according to comparator, return the
 // array index at which element should be inserted to maintain sort order
 function binarysearch(array, element, comparator, from, to) {
-  if (comparator === undefined) 
-    comparator = function(a,b) { 
+  if (comparator === undefined)
+    comparator = function(a, b) {
       if (a < b)
         return -1;
       if (a > b)
@@ -305,10 +308,10 @@ function binarysearch(array, element, comparator, from, to) {
   var mid = Math.floor((from + to) / 2);
 
   var result = comparator(element, array[mid]);
-  if (result < 0) 
+  if (result < 0)
     return binarysearch(array, element, comparator, from, mid);
   else
-    return binarysearch(array, element, comparator, mid+1, to);
+    return binarysearch(array, element, comparator, mid + 1, to);
 }
 
 function setView(view) {
@@ -316,7 +319,7 @@ function setView(view) {
     return;
 
   // Do any necessary cleanup of the view we're exiting
-  switch(currentView) {
+  switch (currentView) {
   case thumbnailSelectView:
     // Clear the selection, if there is one
     Array.forEach(thumbnails.querySelectorAll('.selected.thumbnail'),
@@ -361,7 +364,7 @@ function setView(view) {
 
   case editView:
     // We don't display the thumbnails in edit view.
-    // the editPhoto() function does the necessary setup and 
+    // the editPhoto() function does the necessary setup and
     // calls setView(), so there isn't anything to do here.
     break;
   }
@@ -376,12 +379,12 @@ function createThumbnailList() {
   photodb.enumerate('metadata.date', null, 'prev', function(imagedata) {
     if (imagedata === null) // No more images
       return;
-    
+
     // If this is the first image we've found,
     // remove the 'no images' message
     if (images.length === 0)
       $('nophotos').classList.add('hidden');
-    
+
     images.push(imagedata);                             // remember the image
     var thumbnail = createThumbnail(images.length - 1); // create its thumbnail
     thumbnails.appendChild(thumbnail); // display the thumbnail
@@ -389,7 +392,7 @@ function createThumbnailList() {
 }
 
 //
-// Create a thumbnail <img> element 
+// Create a thumbnail <img> element
 //
 function createThumbnail(imagenum) {
   var li = document.createElement('li');
@@ -1125,12 +1128,12 @@ editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
 function editPhoto(n) {
   editedPhotoIndex = n;
 
-  // Start with no edits 
+  // Start with no edits
   editSettings = {
     crop: {
       x: 0, y: 0, w: images[n].metadata.width, h: images[n].metadata.height
     },
-    gamma: 1, 
+    gamma: 1,
     effect: 'none',
     borderWidth: 0,
     borderColor: '#fff'
@@ -1147,9 +1150,9 @@ function editPhoto(n) {
     // Once we get the file create a URL for it and use that url for the
     // preview image and all the buttons that need it.
     editedPhotoURL = URL.createObjectURL(file);
-    
+
     imageEditor = new ImageEditor(editedPhotoURL,
-                                  $('edit-preview-area'), 
+                                  $('edit-preview-area'),
                                   editSettings);
 
     // Set the background for all of the image buttons
@@ -1169,7 +1172,7 @@ function editPhoto(n) {
 // Effects and border buttons call this
 function editOptionsHandler() {
   // First, unhighlight all buttons in this group and then
-  // highlight the button that has just been chosen. These 
+  // highlight the button that has just been chosen. These
   // buttons have radio behavior
   var parent = this.parentNode;
   var buttons = parent.querySelectorAll('a.button');
@@ -1195,9 +1198,9 @@ function setEditTool(tool) {
   Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
   var options = $('edit-options').querySelectorAll('div');
   Array.forEach(options, function(o) { o.classList.add('hidden'); });
-  
+
   // Now select and show the correct set based on tool
-  switch(tool) {
+  switch (tool) {
   case 'exposure':
     $('edit-exposure-button').classList.add('selected');
     $('edit-exposure-options').classList.remove('hidden');
@@ -1228,12 +1231,12 @@ function exitEditMode(saved) {
 
   // We came in to edit mode from photoView.  If the user cancels the edit
   // go back to photoView.  Otherwise, if the user saves the photo, we go
-  // back to thumbnail list view because that is where the newly saved 
+  // back to thumbnail list view because that is where the newly saved
   // image is going to show up.
   // XXX: this isn't really right. Ideally the new photo should show up
   // right next to the old one and we should go back to photoView to view
   // the edited photo.
-  if (saved) 
+  if (saved)
     setView(thumbnailListView);
   else
     setView(photoView);
@@ -1244,8 +1247,8 @@ function exitEditMode(saved) {
 // photo view mode.
 // XXX: figure out what the image number of the edited photo is or will be
 // and return to viewing that one.  Ideally, edited photos would be grouped
-// with the original, rather than by date, but I'm not sure I can 
-// do that sort order.  Ideally, I'd like the mediadb to not generate a 
+// with the original, rather than by date, but I'm not sure I can
+// do that sort order.  Ideally, I'd like the mediadb to not generate a
 // change event when we manually add something to it or at least have that
 // option
 $('edit-save-button').onclick = function() {
@@ -1256,7 +1259,7 @@ $('edit-save-button').onclick = function() {
     var version = 1;
     var p = original.lastIndexOf('.');
     if (p === -1) {
-      basename = original
+      basename = original;
       extension = '';
     }
     else {
@@ -1269,11 +1272,11 @@ $('edit-save-button').onclick = function() {
     // is not in use.
     // XXX: this loop is O(n^2) and slow if the user saves many edits
     // of the same image.
-    filename = basename + ".edit" + version + extension;
+    filename = basename + '.edit' + version + extension;
     while (images.some(function(i) { return i.name === filename; })) {
       version++;
-      filename = basename + ".edit" + version + extension;
-    } 
+      filename = basename + '.edit' + version + extension;
+    }
 
     // Now that we have a filename, save the file This will send a
     // change event, which will cause us to rebuild our thumbnails.
@@ -1287,3 +1290,4 @@ $('edit-save-button').onclick = function() {
     exitEditMode(true);
   });
 };
+
