@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Location of the B2G REPO
-if [ -z "$B2G_HOME" ];
-then
-  echo "B2G_HOME must be set";
-  exit 1;
-fi
-
 # Websocket server location: 
 # example: ws://localhost:8789
 if [ -z "$TEST_AGENT_SERVER" ];
