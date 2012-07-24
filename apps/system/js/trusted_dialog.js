@@ -99,6 +99,14 @@ var TrustedDialog = (function() {
     }
   });
 
+  window.addEventListener('keyup', function(e) {
+    if (e.keyCode === e.DOM_VK_HOME) {
+      close();
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
   return {
     open: open,
     close: close,
