@@ -7,7 +7,8 @@ var Start = {
     this.thumbnails = document.getElementById('thumbnails');
     this.noTopSites = document.getElementById('no-top-sites');
     Places.init((function() {
-      Places.getTopSites(this.MAX_TOP_SITES, this.showThumbnails.bind(this));
+      Places.getTopSites(this.MAX_TOP_SITES, null,
+        this.showThumbnails.bind(this));
     }).bind(this));
 
   },
