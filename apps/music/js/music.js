@@ -39,7 +39,14 @@ function buildUI() {
   var option = 'artist';
 
   musicdb.enumerate('metadata.' + option, null, 'nextunique',
-    ListView.update.bind(ListView, option));
+    //ListView.update.bind(ListView, option));
+    //TilesView.update.bind(TilesView));
+    showHomepage);
+
+  function showHomepage(result) {
+    ListView.update(option, result);
+    TilesView.update(result);
+  }
 }
 
 //
@@ -152,38 +159,79 @@ var TilesView = {
     delete this._view;
     return this._view = document.getElementById('views-tiles');
   },
+  
+  get dataSource() {
+    return this._dataSource;
+  },
+
+  set dataSource(source) {
+    this._dataSource = source;
+  },
 
   init: function tv_init() {
-    for (var i = 0; i < 36; i++) {
-      var tile = document.createElement('div');
-      var defaultImage = document.createElement('div');
-      defaultImage.innerHTML = '&#9834;';
-      
-      // There are 6 tiles in one group
-      // and the first tile is the main-tile
-      // so we mod 6 to find out who is the main-tile
-      if (i % 6 === 0) {
-        tile.classList.add('main-tile');
-        defaultImage.classList.add('main-tile-default-image');
-      } else {
-        tile.classList.add('sub-tile');
-        defaultImage.classList.add('sub-tile-default-image');
-      }
+    this.dataSource = [];
+    this.index = 0;
 
-      // Since 6 tiles are in one group
-      // the even group will be floated to left
-      // the odd group will be floated to right 
-      if (Math.floor(i / 6) % 2 === 0) {
-        tile.classList.add('float-left');
-      } else {
-        tile.classList.add('float-right');
-      }
-      
-      tile.appendChild(defaultImage);
-      this.view.appendChild(tile);
-    }
-    
     this.view.addEventListener('click', this);
+  },
+
+  setItemImage: function tv_setItemImage(item, image) {
+    // Set source to image and crop it to be fitted when it's onloded
+    if (image) {
+      item.addEventListener('load', cropImage);
+      item.src = createBase64URL(image);
+    }
+  },
+
+  update: function tv_update(result) {
+    if (result === null)
+      return;
+    
+    if (this.dataSource.length === 0)
+      document.getElementById('nosongs').style.display = 'none';
+    
+    this.dataSource.push(result);
+    
+    var tile = document.createElement('div');
+
+    var defaultImage = document.createElement('div');
+    defaultImage.innerHTML = (result.metadata.title) ?
+      result.metadata.title :
+      navigator.mozL10n.get('unknownTitle');
+
+    var img = document.createElement('img');
+    img.className = 'tile-image';
+
+    var image = result.metadata.picture;
+    this.setItemImage(img, image);
+
+    // There are 6 tiles in one group
+    // and the first tile is the main-tile
+    // so we mod 6 to find out who is the main-tile
+    if (this.index % 6 === 0) {
+      tile.classList.add('main-tile');
+      defaultImage.classList.add('main-tile-default-image');
+    } else {
+      tile.classList.add('sub-tile');
+      defaultImage.classList.add('sub-tile-default-image');
+    }
+  
+    // Since 6 tiles are in one group
+    // the even group will be floated to left
+    // the odd group will be floated to right
+    if (Math.floor(this.index / 6) % 2 === 0) {
+      tile.classList.add('float-left');
+    } else {
+      tile.classList.add('float-right');
+    }
+  
+    tile.dataset.index = this.index;
+    
+    tile.appendChild(defaultImage);
+    tile.appendChild(img);
+    this.view.appendChild(tile);
+
+    this.index++; 
   },
 
   handleEvent: function tv_handleEvent(evt) {
