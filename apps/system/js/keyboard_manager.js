@@ -4,7 +4,11 @@ var KeyboardManager = (function() {
   // XXX TODO: Retrieve it from Settings, allowing 3rd party keyboards
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-  var KEYBOARD_URL = 'http://keyboard.' + domain;
+  var KEYBOARD_URL = document.location.protocol + '//keyboard.' + domain;
+
+  if (KEYBOARD_URL.substring(0, 6) == 'app://') { // B2G bug 773884
+      KEYBOARD_URL += '/index.html';
+  }
 
   var keyboardFrame, keyboardOverlay;
 
@@ -26,12 +30,17 @@ var KeyboardManager = (function() {
         return;
 
       var app = WindowManager.getDisplayedApp();
-      if (!app)
+      if (!app && !TrustedDialog.trustedDialogIsShown())
         return;
 
-      // Reset the height of the app
-      WindowManager.setAppSize(app);
-      var currentApp = WindowManager.getAppFrame(app);
+      var currentApp;
+      if (TrustedDialog.trustedDialogIsShown()) {
+        currentApp = TrustedDialog.getFrame();
+      } else {
+        // Reset the height of the app
+        WindowManager.setAppSize(app);
+        currentApp = WindowManager.getAppFrame(app);
+      }
 
       if (!message.hidden) {
         var height = (parseInt(currentApp.style.height) -

@@ -18,15 +18,39 @@ var ContactsTest = {
     return this.clearButton = document.getElementById('clear-contacts');
   },
 
+  get pickActivityButton() {
+    delete this.pickActivityButton;
+    return this.pickActivityButton = document.getElementById('activities-pick');
+  },
+
+  get newActivityButton() {
+    delete this.newActivityButton;
+    return this.newActivityButton = document.getElementById('activities-new');
+  },
+
+  get newWithDataActivityButton() {
+    delete this.newWithDataActivityButton;
+    return this.newWithDataActivityButton = document.getElementById('activities-new-data');
+  },
+
   init: function ct_init() {
     this.loadButton.addEventListener('click', this.loadContacts.bind(this));
     this.clearButton.addEventListener('click', this.clearContacts.bind(this));
+    this.pickActivityButton.addEventListener('click',
+                                            this.pickActivity.bind(this));
+    this.newActivityButton.addEventListener('click',
+                                            this.newActivity.bind(this));
+
+    this.newWithDataActivityButton.addEventListener('click',
+                                            this.newWithDataActivity.bind(this));
   },
 
   uninit: function ct_uninit() {
     this.loadButton.removeEventListener('click', this.loadContacts.bind(this));
     this.clearButton.removeEventListener('click',
                                          this.clearContacts.bind(this));
+    this.newActivityButton.removeEventListener('click',
+                                            this.newActivity.bind(this));
   },
 
   clearContacts: function ct_clearContacts() {
@@ -44,12 +68,117 @@ var ContactsTest = {
     };
   },
 
+  setContactId: function ct_setContactId(id) {
+    this.contactId = id;
+  },
+
+  getContactId: function ct_getContactId() {
+    return this.contactId;
+  },
+
+  pickActivity: function ct_pickActivity() {
+    var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/contact'
+        }
+      });
+
+    var self = this;
+    activity.onsuccess = function() {
+      var number = this.result.number;
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'Picked contact with number: ' + number;
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+    activity.onerror = function() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'Activity canceled';
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+  },
+
+  newActivity: function ct_newActivity() {
+    var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'webcontacts/contact'
+        }
+      });
+
+    var self = this;
+    activity.onsuccess = function() {
+      var contact = this.result.contact;
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'New contact' + ' create with id: ' + contact.id;
+        self.setContactId(contact.id);
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+    activity.onerror = function() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'Activity canceled';
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+  },
+
+  newWithDataActivity: function ct_newActivity() {
+    var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'webcontacts/contact',
+          params: {
+            'tel': '555-555-555',
+            'email': 'cool-hunter@telefonica.es',
+            'address': 'San Francisco',
+            'note': 'This is a note',
+            'giveName': 'John',
+            'familyName': 'Orlock',
+            'company': 'Lost Industries'
+          }
+        }
+      });
+
+    var self = this;
+    activity.onsuccess = function() {
+      var contact = this.result.contact;
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'New contact' + ' create with id: ' + contact.id;
+        self.setContactId(contact.id);
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+    activity.onerror = function() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        document.getElementById('activities-result').innerHTML = 'Activity canceled';
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+  },
+
   loadContacts: function ct_loadContacts() {
     var req = new XMLHttpRequest();
     req.overrideMimeType('application/json');
     req.open('GET', '../data/fakecontacts/fakecontacts.json', true);
     req.onreadystatechange = function() {
-      if (req.readyState === 4 && req.status === 200) {
+      // We will get a 0 status if the app is in app://
+      if (req.readyState === 4 && (req.status === 200 ||
+                                   req.status === 0)) {
         var contacts = JSON.parse(req.responseText);
         this._insertContacts(contacts);
       }

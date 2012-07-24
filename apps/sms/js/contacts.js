@@ -13,11 +13,19 @@
 */
 var ContactDataManager = {
   contactData: {},
-  getContactData: function cm_getContactData(options, callback) {
-    var isCacheable = options.filterBy.indexOf('tel') !== -1 &&
-                      options.filterOp == 'contains';
-    var cacheResult = this.contactData[options.filterValue];
-    if (isCacheable && typeof cacheResult !== 'undefined') {
+  getContactData: function cm_getContactData(number, callback) {
+    // so desktop keeps working
+    if (!navigator.mozSms)
+      return;
+
+    var options = {
+      filterBy: ['tel'],
+      filterOp: 'contains',
+      filterValue: number
+    };
+
+    var cacheResult = this.contactData[number];
+    if (typeof cacheResult !== 'undefined') {
       var cacheArray = cacheResult ? [cacheResult] : [];
       callback(cacheArray);
     }
@@ -26,20 +34,18 @@ var ContactDataManager = {
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
       // Update the cache before callback.
-      if (isCacheable) {
-        var cacheData = self.contactData[options.filterValue];
-        var result = req.result;
-        if (result.length > 0) {
-          if (cacheData && (cacheData.name[0] == dbData.name[0]))
-            return;
+      var cacheData = self.contactData[number];
+      var result = req.result;
+      if (result.length > 0) {
+        if (cacheData && (cacheData.name[0] == dbData.name[0]))
+          return;
 
-          self.contactData[options.filterValue] = result[0];
-        } else {
-          if (cacheData === null)
-            return;
+        self.contactData[number] = result[0];
+      } else {
+        if (cacheData === null)
+          return;
 
-          self.contactData[options.filterValue] = null;
-        }
+        self.contactData[number] = null;
       }
       callback(result);
     };

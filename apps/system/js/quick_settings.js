@@ -12,8 +12,19 @@ var QuickSettings = {
 
     var self = this;
 
+    // monitor data status
     SettingsListener.observe('ril.data.enabled', true, function(value) {
       self.data.dataset.enabled = value;
+    });
+
+    // monitor bluetooth status
+    SettingsListener.observe('bluetooth.enabled', true, function(value) {
+      self.bluetooth.dataset.enabled = value;
+    });
+
+    // monitor wifi status
+    SettingsListener.observe('wifi.enabled', true, function(value) {
+      self.wifi.dataset.enabled = value;
     });
 
   },
@@ -24,13 +35,11 @@ var QuickSettings = {
       case 'click':
         switch (evt.target) {
           case this.wifi:
-            var wifiManager = navigator.mozWifiManager;
-            if (!wifiManager)
-              return;
-
             var enabled = (this.wifi.dataset.enabled == 'true');
-            wifiManager.setEnabled(!enabled);
             this.wifi.dataset.enabled = !enabled;
+            navigator.mozSettings.getLock().set({
+              'wifi.enabled': !enabled
+            });
             break;
 
           case this.data:
@@ -47,13 +56,11 @@ var QuickSettings = {
             break;
 
           case this.bluetooth:
-            var bluetooth = navigator.mozBluetooth;
-            if (!bluetooth)
-              return;
-
             var enabled = (this.bluetooth.dataset.enabled == 'true');
-            bluetooth.setEnabled(!enabled);
             this.bluetooth.dataset.enabled = !enabled;
+            navigator.mozSettings.getLock().set({
+              'bluetooth.enabled': !enabled
+            });
             break;
 
           case this.powerSave:
@@ -68,41 +75,32 @@ var QuickSettings = {
               };
 
               // Turn off Wifi
-              var wifiManager = navigator.mozWifiManager;
-              if (wifiManager) {
-                wifiManager.setEnabled(false);
-                this.wifi.dataset.enabled = false;
-              }
+              navigator.mozSettings.getLock().set({
+                'wifi.enabled': false
+              });
 
               // Turn off Data
-              this.data.dataset.enabled = false;
-
               navigator.mozSettings.getLock().set({
                 'ril.data.enabled': false
               });
 
               // Turn off Bluetooth
-              var bluetooth = navigator.mozBluetooth;
-              if (bluetooth) {
-                bluetooth.setEnabled(false);
-                this.bluetooth.dataset.enabled = false;
-              }
+              navigator.mozSettings.getLock().set({
+                'bluetooth.enabled': false
+              });
 
               // XXX: How do I turn off GPS?
 
             } else if (this._powerSaveResume) {
               if (this._powerSaveResume.wifi) {
                 // Turn on Wifi
-                var wifiManager = navigator.mozWifiManager;
-                if (wifiManager) {
-                  wifiManager.setEnabled(true);
-                  this.wifi.dataset.enabled = true;
-                }
+                navigator.mozSettings.getLock().set({
+                  'wifi.enabled': true
+                });
               }
 
               if (this._powerSaveResume.data) {
                 // Turn on Data
-                this.data.dataset.enabled = true;
                 navigator.mozSettings.getLock().set({
                   'ril.data.enabled': true
                 });
@@ -110,11 +108,9 @@ var QuickSettings = {
 
               if (this._powerSaveResume.bluetooth) {
                 // Turn on Bluetooth
-                var wifiManager = navigator.mozBluetooth;
-                if (bluetooth) {
-                  bluetooth.setEnabled(true);
-                  this.bluetooth.dataset.enabled = true;
-                }
+                navigator.mozSettings.getLock().set({
+                  'bluetooth.enabled': true
+                });
               }
 
               delete this._powerSaveResume;
@@ -126,25 +122,21 @@ var QuickSettings = {
             // XXX: This should be replaced probably by Web Activities
             var host = document.location.host;
             var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-            Applications.getByOrigin('http://settings.' + domain).launch();
+            var protocol = document.location.protocol + '//';
+            Applications.getByOrigin(protocol + 'settings.' + domain).launch();
 
-            UtilityTray.hide();
+            window.addEventListener('appopen', function hideTray(evt) {
+              window.removeEventListener('appopen', hideTray);
+              UtilityTray.hide();
+            });
+
             break;
         }
         break;
 
       case 'utilitytrayshow':
-        this.updateStatus();
         break;
     }
-  },
-
-  updateStatus: function qs_updateStatus() {
-    var wifiManager = navigator.mozWifiManager;
-    this.wifi.dataset.enabled = !!(wifiManager && wifiManager.enabled);
-
-    var bluetooth = navigator.mozBluetooth;
-    this.bluetooth.dataset.enabled = !!(bluetooth && bluetooth.enabled);
   },
 
   getAllElements: function qs_getAllElements() {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1">
@@ -9,13 +9,12 @@
   <link rel="stylesheet" type="text/css" href="style/folder-cards.css">
   <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
   <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
-  <link rel="resource" type="application/l10n" href="locale/l10n.ini">
+  <!-- Localization -->
+  <link rel="resource" type="application/l10n" href="locales/locales.ini">
+  <!-- Shared code -->
+  <script type="text/javascript" src="shared/js/l10n.js"></script>
+  <!-- Specific code -->
   <script type="text/javascript">
-    var host = document.location.host;
-    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var src = 'http://' + domain + '/webapi.js';
-    document.write('<script src="' + src + '"><\/script>');
-
     // when running in B2G, send output to the console, ANSI-style
     if ('MozTCPSocket' in window) {
       function consoleHelper() {
@@ -30,7 +29,7 @@
         log:   consoleHelper.bind(null, '\x1b[32mLOG'),
         error: consoleHelper.bind(null, '\x1b[31mERR'),
         info:  consoleHelper.bind(null, '\x1b[36mINF'),
-        warn:  consoleHelper.bind(null, '\x1b[33mWAR'),
+        warn:  consoleHelper.bind(null, '\x1b[33mWAR')
       };
     }
     window.onerror = function errHandler(msg, url, line) {
@@ -464,3 +463,4 @@
   </div>
 </body>
 </html>
+

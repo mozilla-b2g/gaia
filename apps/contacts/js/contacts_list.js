@@ -3,7 +3,15 @@
 var contacts = window.contacts || {};
 
 contacts.List = (function() {
-  var groupsList;
+  var groupsList,
+      favoriteGroup,
+      inSearchMode = false,
+      cancel = document.getElementById('cancel-search'),
+      clearSearchButton = document.getElementById('clear-search'),
+      conctactsListView = document.getElementById('view-contacts-list'),
+      searchBox = document.getElementById('search-contact'),
+      searchNoResult = document.getElementById('no-result'),
+      fastScroll = document.querySelector('.view-jumper');
 
   var init = function load(element) {
     groupsList = element;
@@ -18,6 +26,7 @@ contacts.List = (function() {
     alphabet.push({group: 'und', letter: '#'});
 
     utils.templates.append(groupsList, alphabet);
+    favoriteGroup = document.getElementById('group-favorites').parentNode;
   }
 
   var load = function load(contacts) {
@@ -256,12 +265,108 @@ contacts.List = (function() {
     }
   }
 
+  // Toggle function to show/hide the letters header
+  var toggleGroupHeaders = function showHeaders() {
+    var headers = document.querySelectorAll('.block-title:not(.hide)');
+    if (!headers) {
+      return;
+    }
+
+    for (var i = 0; i < headers.length; i++) {
+      headers[i].classList.toggle('search-hide');
+    }
+  }
+
+  var exitSearchMode = function exitSearchMode() {
+    cancel.classList.add('hide');
+    clearSearchButton.classList.add('hide');
+    conctactsListView.classList.remove('searching');
+    searchBox.value = '';
+    inSearchMode = false;
+    // Show elements that were hidden for the search
+    fastScroll.classList.remove('hide');
+    groupsList.classList.remove('hide');
+    if (favoriteGroup) {
+      favoriteGroup.classList.remove('hide');
+    }
+    toggleGroupHeaders();
+
+    // Bring back to visibilitiy the contacts
+    var allContacts = getContactsDom();
+    for (var i = 0; i < allContacts.length; i++) {
+      var contact = allContacts[i];
+      contact.classList.remove('search');
+      contact.classList.remove('hide');
+    }
+    return false;
+  };
+
+  var enterSearchMode = function searchMode() {
+    if (!inSearchMode) {
+      cancel.classList.remove('hide');
+      clearSearchButton.classList.remove('hide');
+      conctactsListView.classList.add('searching');
+      cleanContactsList();
+      inSearchMode = true;
+    }
+    return false;
+  };
+
+  var search = function performSearch() {
+
+    var pattern = new RegExp(searchBox.value, 'i');
+    var count = 0;
+
+    var allContacts = getContactsDom();
+    for (var i = 0; i < allContacts.length; i++) {
+      var contact = allContacts[i];
+      contact.classList.add('search');
+      var text = contact.querySelector('.item-body').textContent;
+      if (!pattern.test(text)) {
+        contact.classList.add('hide');
+      }
+       else {
+        contact.classList.remove('hide');
+        count++;
+      }
+    }
+
+    if (count == 0) {
+      searchNoResult.classList.remove('hide');
+    } else {
+      searchNoResult.classList.add('hide');
+    }
+  };
+
+  var cleanContactsList = function cleanContactsList() {
+    fastScroll.classList.add('hide');
+    if (favoriteGroup) {
+      favoriteGroup.classList.add('hide');
+    }
+    toggleGroupHeaders();
+  };
+
+  var getContactsDom = function contactsDom() {
+    var selector = ".block-item:not([data-uuid='#id#']";
+    return document.querySelectorAll(selector);
+  }
+
+  var clearSearch = function clearSearch() {
+    searchBox.value = '';
+    search();
+    return false;
+  }
+
   return {
     'init': init,
     'load': load,
     'refresh': refresh,
     'getContactById': getContactById,
     'handleClick': handleClick,
-    'remove': remove
+    'remove': remove,
+    'search': search,
+    'enterSearchMode': enterSearchMode,
+    'exitSearchMode': exitSearchMode,
+    'clearSearch': clearSearch
   };
 })();

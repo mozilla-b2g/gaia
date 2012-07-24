@@ -1,3 +1,6 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 // TODO:
 // - Get orientation working when leaving fullscreen
 // - Don't say "no photos" on startup... say "scanning" and localize it.
@@ -5,7 +8,6 @@
 // - retain scroll position in thumbnail view
 // - put most recent photos (or screenshots) first
 // - in landscape mode, the 'no photos' message is too low
-// - get Back button (and slideshow) showing again?
 // - match visual design and wireframes better
 // - add delete capability
 // - add filter effects
@@ -86,18 +88,21 @@
  * touch-sensitive devices and can't be tested on the desktop.  They're
  * implemented on top of basic touch events in the separate file gestures.js.
  *
+ * This app has varous display states it can be in:
+ *
+ *   - Thumbnail browsing mode
+ *   - Thumbnail selection mode (enables delete and share for multiple photos)
+ *   - Photo viewing mode with controls hidden
+ *   - Photo viewing mode with controls shown
+ *   - Edit mode and its sub modes
+ *   - Pick a photo mode (when invoked via web activities?)
  *
  * TODO:
  *   we need a way to get photos from the camera and to store them on the device
  *   the ability to download photos from the web might be nice, too.
- *   we need to be able to determine the size of a photo, I think.
- *   do we need to read metadata?
  *   we should probably have a way to organize photos into albums
- *   How do we localize the slideshow Play button for RTL languages?
  *   Do we want users to be able to rotate photos to tell the
  *     gallery app how to display them?
- *   Do we want borders around the photos?
- *   Do we want to be able to send photos by email and sms?
  */
 
 //
@@ -112,29 +117,32 @@ const TRANSITION_FRACTION = 0.25;
 // never go slower (except slide show transitions).
 const TRANSITION_SPEED = 1.8;
 
-// Slide show constants
-const SLIDE_INTERVAL = 3000;      // 3 seconds on each slides
-const SLIDE_TRANSITION = 500;     // 1/2 second transition between slides
-
 var currentPhotoIndex = 0;       // What photo is currently displayed
-var thumbnailsDisplayed = true;  // Or is the thumbnail view showing
-var slideshowTimer = null;       // Non-null if we're doing a slide show
+
+function $(id) { return document.getElementById(id); }
 
 // UI elements
-var thumbnails = document.getElementById('thumbnails');
-var photos = document.getElementById('photos');
-var playerControls = document.getElementById('player-controls');
-var backButton = document.getElementById('back-button');
-var slideshowButton = document.getElementById('play-button');
-var footerMenu = document.getElementById('footer-menu');
+var thumbnails = $('thumbnails');
+var photoFrames = $('photo-frames');
+
+// Only one of these three elements will be visible at a time
+var thumbnailListView = $('thumbnail-list-view');
+var thumbnailSelectView = $('thumbnail-select-view');
+var photoView = $('photo-view');
+var editView = $('edit-view');
+
+// These are the top-level view objects.
+// This array is used by setView()
+var views = [thumbnailListView, thumbnailSelectView, photoView, editView];
+var currentView;
 
 // These three divs hold the previous, current and next photos
 // The divs get swapped around and reused when we pan to the
 // next or previous photo: next becomes current, current becomes previous
 // etc.  See nextPhoto() and previousPhoto().
-var previousPhotoFrame = photos.querySelector('div.previousPhoto');
-var currentPhotoFrame = photos.querySelector('div.currentPhoto');
-var nextPhotoFrame = photos.querySelector('div.nextPhoto');
+var previousPhotoFrame = photoFrames.querySelector('div.previousPhoto');
+var currentPhotoFrame = photoFrames.querySelector('div.currentPhoto');
+var nextPhotoFrame = photoFrames.querySelector('div.nextPhoto');
 
 // The currently displayed <img> element.
 // This changes as photos are panned, but showPhoto(), nextPhoto() and
@@ -153,13 +161,18 @@ var transitioning = false;
 // This will be set to "ltr" or "rtl" when we get our localized event
 var languageDirection;
 
+// Where we store the images that photodb finds for us.
+// Each array element is an object that includes a filename and metadata
+var images = [];
+
 var photodb = new MediaDB('pictures', metadataParser, {
   indexes: ['metadata.date'],
   mimeTypes: ['image/jpeg', 'image/png']
 });
+
 photodb.onready = function() {
-  buildUI();  // List files we already know about
-  photodb.scan();    // Go look for more.
+  createThumbnailList();  // Display thumbnails for the images we know about
+  photodb.scan();         // Go look for more.
 
   // Since DeviceStorage doesn't send notifications yet, we're going
   // to rescan the files every time our app becomes visible again.
@@ -173,95 +186,225 @@ photodb.onready = function() {
     }
   });
 };
+
 photodb.onchange = function(type, files) {
-  rebuildUI();
+  if (type === 'deleted') {
+    files.forEach(function(f) { imageDeleted(f); });
+  }
+  else if (type === 'created') {
+    files.forEach(function(f) { imageCreated(f); });
+  }
 };
 
-var images = [];
-
-function destroyUI() {
-  images = [];
-  try {
-    var items = thumbnails.querySelectorAll('li');
-    for (var i = 0; i < items.length; i++) {
-      var thumbnail = items[i];
-      var backgroundImage = thumbnail.style.backgroundImage;
-      if (backgroundImage)
-        URL.revokeObjectURL(backgroundImage.slice(5, -2));
-      thumbnails.removeChild(thumbnail);
-    }
-
-    document.getElementById('nophotos').classList.remove('hidden');
+function imageDeleted(fileinfo) {
+  // Find the deleted file in our images array
+  for (var n = 0; n < images.length; n++) {
+    if (images[n].name === fileinfo.name)
+      break;
   }
-  catch (e) {
-    console.error('destroyUI', e);
+
+  if (n >= images.length)  // It was a file we didn't know about
+    return;
+
+  // Remove the image from the array
+  var deletedImageData = images.splice(n, 1)[0];
+
+  // Remove the corresponding thumbnail
+  var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
+  URL.revokeObjectURL(thumbnailElts[n].style.backgroundImage.slice(5, -2));
+  thumbnails.removeChild(thumbnailElts[n]);
+
+  // Change the index associated with all the thumbnails after the deleted one
+  // This keeps the data-index attribute of each thumbnail element in sync
+  // with the images[] array.
+  for (var i = n + 1; i < thumbnailElts.length; i++) {
+    thumbnailElts[i].dataset.index = i - 1;
+  }
+
+  // Adjust currentPhotoIndex, too, if we have to.
+  if (n < currentPhotoIndex)
+    currentPhotoIndex--;
+  if (n < editedPhotoIndex)
+    editedPhotoIndex--;
+
+  // If we're in single photo display mode, then the only way this function,
+  // gets called is when we delete the currently displayed photo.  This means
+  // that we need to redisplay.
+  if (currentView === photoView) {
+    showPhoto(currentPhotoIndex);
   }
 }
 
-function buildUI() {
+function deleteImage(n) {
+  if (n < 0 || n >= images.length)
+    return;
+
+  // Delete the file from the MediaDB. This removes the db entry and
+  // deletes the file in device storage. This will generate an change
+  // event which will call imageDeleted()
+  photodb.deleteFile(images[n].name);
+}
+
+function imageCreated(fileinfo) {
+  var insertPosition;
+
+  // If this new image is newer than the first one, it goes first
+  // This is the most common case for photos, screenshots, and edits
+  if (fileinfo.date > images[0].date)
+    insertPosition = 0;
+  else {
+    // Otherwise we have to search for the right insertion spot
+    insertPosition = binarysearch(images, fileinfo, function(a, b) {
+      if (a.name < b.name)
+        return -1;
+      else if (a.name > b.name)
+        return 1;
+      return 0;
+    });
+  }
+
+  // Insert the image info into the array
+  images.splice(insertPosition, 0, fileinfo);
+
+  // Create a thumbnail for this image and insert it at the right spot
+  var thumbnail = createThumbnail(insertPosition);
+  var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
+  thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
+
+  // increment the index of each of the thumbnails after the new one
+  for (var i = insertPosition; i < thumbnailElts.length; i++) {
+    thumbnailElts[i].dataset.index = i + 1;
+  }
+
+  if (currentPhotoIndex >= insertPosition)
+    currentPhotoIndex++;
+  if (editedPhotoIndex >= insertPosition)
+    editedPhotoIndex++;
+
+  // Redisplay the current photo if we're in photo view
+  if (currentView === photoView) {
+    showPhoto(currentPhotoIndex);
+  }
+}
+
+// Assuming that array is sorted according to comparator, return the
+// array index at which element should be inserted to maintain sort order
+function binarysearch(array, element, comparator, from, to) {
+  if (comparator === undefined)
+    comparator = function(a, b) {
+      if (a < b)
+        return -1;
+      if (a > b)
+        return 1;
+      return 0;
+    };
+
+  if (from === undefined)
+    return binarysearch(array, element, comparator, 0, array.length);
+
+  if (from === to)
+    return from;
+
+  var mid = Math.floor((from + to) / 2);
+
+  var result = comparator(element, array[mid]);
+  if (result < 0)
+    return binarysearch(array, element, comparator, from, mid);
+  else
+    return binarysearch(array, element, comparator, mid + 1, to);
+}
+
+function setView(view) {
+  if (currentView === view)
+    return;
+
+  // Do any necessary cleanup of the view we're exiting
+  switch (currentView) {
+  case thumbnailSelectView:
+    // Clear the selection, if there is one
+    Array.forEach(thumbnails.querySelectorAll('.selected.thumbnail'),
+                  function(elt) { elt.classList.remove('selected'); });
+    break;
+  case editView:
+    // Cleanup is done in exitEditMode() before this function is called
+    break;
+  }
+
+  // Show the specified view, and hide the others
+  for (var i = 0; i < views.length; i++) {
+    if (views[i] === view)
+      views[i].classList.remove('hidden');
+    else
+      views[i].classList.add('hidden');
+  }
+
+  // Now do setup for the view we're entering
+  // In particular, we've got to move the thumbnails list into each view
+  switch (view) {
+  case thumbnailListView:
+    view.appendChild(thumbnails);
+    thumbnails.style.width = '';
+    break;
+  case thumbnailSelectView:
+    view.appendChild(thumbnails);
+    thumbnails.style.width = '';
+    // Set the view header to a localized string
+    updateSelectionState();
+    break;
+  case photoView:
+    // photoView is a special case because we need to insert
+    // the thumbnails into the filmstrip container and set its width
+    $('photos-filmstrip').appendChild(thumbnails);
+    // In order to get a working scrollbar, we apparently have to specify
+    // an explict width for list of thumbnails.
+    // XXX: we need to update this when images are added or deleted.
+    // XXX: avoid using hardcoded 50px per image?
+    thumbnails.style.width = (images.length * 50) + 'px';
+    break;
+
+  case editView:
+    // We don't display the thumbnails in edit view.
+    // the editPhoto() function does the necessary setup and
+    // calls setView(), so there isn't anything to do here.
+    break;
+  }
+
+  // Remember the current view
+  currentView = view;
+}
+
+function createThumbnailList() {
   // Enumerate existing image entries in the database and add thumbnails
   // List the all, and sort them in descending order by date.
-  photodb.enumerate('metadata.date', null, 'prev', addImage);
+  photodb.enumerate('metadata.date', null, 'prev', function(imagedata) {
+    if (imagedata === null) // No more images
+      return;
+
+    // If this is the first image we've found,
+    // remove the 'no images' message
+    if (images.length === 0)
+      $('nophotos').classList.add('hidden');
+
+    images.push(imagedata);                             // remember the image
+    var thumbnail = createThumbnail(images.length - 1); // create its thumbnail
+    thumbnails.appendChild(thumbnail); // display the thumbnail
+  });
 }
 
 //
-// XXX
-// This is kind of a hack. Our onchange handler is dumb and just
-// tears down and rebuilds the UI on every change. But rebuilding
-// does an async enumerate, and sometimes we get two changes in
-// a row, so these flags prevent two enumerations from happening in parallel.
-// Ideally, we'd just handle the changes individually.
+// Create a thumbnail <img> element
 //
-var buildingUI = false;
-var needsRebuild = false;
-function rebuildUI() {
-  if (buildingUI) {
-    needsRebuild = true;
-    return;
-  }
-
-  buildingUI = true;
-  destroyUI();
-  // This is asynchronous, but will set buildingUI to false when done
-  buildUI();
-
-}
-
-function addImage(imagedata) {
-  if (imagedata === null) { // No more images
-    buildingUI = false;
-    if (needsRebuild) {
-      needsRebuild = false;
-      rebuildUI();
-    }
-    return;
-  }
-
-  // If this is the first image we've found,
-  // remove the "no images" message
-  if (images.length === 0)
-    document.getElementById('nophotos')
-    .classList.add('hidden');
-
-  images.push(imagedata);            // remember the image
-  addThumbnail(images.length - 1);   // display its thumbnail
-}
-
-//
-// Create the <img> elements for the thumbnails
-//
-function addThumbnail(imagenum) {
+function createThumbnail(imagenum) {
   var li = document.createElement('li');
   li.dataset.index = imagenum;
   li.classList.add('thumbnail');
-  thumbnails.appendChild(li);
 
   var imagedata = images[imagenum];
-  // XXX When is it save to revoke this url?
-  // Can't do it on load as I would with an <img>
-  // Currently doing it in destroyUI()
+  // We revoke this url in imageDeleted
   var url = URL.createObjectURL(imagedata.metadata.thumbnail);
   li.style.backgroundImage = 'url("' + url + '")';
+
+  return li;
 }
 
 //
@@ -276,6 +419,11 @@ window.addEventListener('localized', function showBody() {
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
+
+  // Start off in thumbnail list view.
+  // XXX: if we're invoked by a web activity, we may want to
+  // start in some different mode
+  setView(thumbnailListView);
 });
 
 // Each of the photoFrame <div> elements may be subject to animated
@@ -291,7 +439,7 @@ nextPhotoFrame.addEventListener('transitionend', removeTransition);
 
 // Use the GestureDetector.js library to handle gestures.
 // This will generate tap, pan, swipe and transform events
-new GestureDetector(photos).startDetecting();
+new GestureDetector(photoFrames).startDetecting();
 
 // Clicking on a thumbnail displays the photo
 // FIXME: add a transition here
@@ -299,40 +447,86 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
   var target = evt.target;
   if (!target || !target.classList.contains('thumbnail'))
     return;
-  showPhoto(parseInt(target.dataset.index));
+
+  if (currentView === thumbnailListView || currentView === photoView) {
+    showPhoto(parseInt(target.dataset.index));
+  }
+  else if (currentView === thumbnailSelectView) {
+    target.classList.toggle('selected');
+    updateSelectionState();
+  }
 });
+
+// When we enter thumbnail selection mode, or when the selection changes
+// we call this function to update the message the top of the screen and to
+// enable or disable the Delete and Share buttons
+function updateSelectionState() {
+  var n = thumbnails.querySelectorAll('.selected.thumbnail').length;
+  var msg = navigator.mozL10n.get('number-selected', { n: n });
+  $('thumbnails-number-selected').textContent = msg;
+
+  if (n === 0) {
+    $('thumbnails-delete-button').classList.add('disabled');
+    $('thumbnails-share-button').classList.add('disabled');
+  }
+  else {
+    $('thumbnails-delete-button').classList.remove('disabled');
+    $('thumbnails-share-button').classList.remove('disabled');
+  }
+}
 
 // Clicking on the back button goes back to the thumbnail view
-backButton.addEventListener('click', function backButtonClick(evt) {
-  showThumbnails();
-});
+$('photos-back-button').onclick = function() {
+  setView(thumbnailListView);
+};
 
-// Clicking on the "play/pause" button starts or stops the slideshow
-slideshowButton.addEventListener('click', function slideshowClick() {
-  if (slideshowTimer)
-    stopSlideshow();
-  else
-    startSlideshow();
-});
+// Clicking on the select button goes to thumbnail select mode
+$('thumbnails-select-button').onclick = function() {
+  setView(thumbnailSelectView);
+};
 
-// If a photo is displayed, then the back button goes back to
-// the thumbnail view.
-window.addEventListener('keyup', function keyPressHandler(evt) {
-  if (!thumbnailsDisplayed && evt.keyCode == evt.DOM_VK_ESCAPE) {
-    showThumbnails();
-    evt.preventDefault();
+// Clicking on the cancel button goes from photo mode to thumbnail list mode
+$('thumbnails-cancel-button').onclick = function() {
+  setView(thumbnailListView);
+};
+
+// Clicking on the delete button in thumbnail select mode deletes all
+// selected photos
+$('thumbnails-delete-button').onclick = function() {
+  var selected = thumbnails.querySelectorAll('.selected.thumbnail');
+  if (selected.length === 0)
+    return;
+
+  var msg = navigator.mozL10n.get('delete-n-photos?', {n: selected.length});
+  if (confirm(msg)) {
+    // XXX
+    // deleteImage is O(n), so this loop is O(n*n). If used with really large
+    // selections, it might have noticably bad performance.  If so, we
+    // can write a more efficient deleteImages() function.
+    for (var i = 0; i < selected.length; i++) {
+      deleteImage(parseInt(selected[i].dataset.index));
+    }
+    updateSelectionState();
   }
-});
+};
 
-// The handler above is unlikely to actually be called.  Instead,
-// the Back button (bound to escape) is caught by gecko and takes
-// us out of fullscreen mode. So we listen for full-screen changes
-// and when we leave fullscreen mode, we show the thumbnails as above
-document.addEventListener('mozfullscreenchange', function leaveFullScreen() {
-  if (!document.mozFullScreenElement) {
-    showThumbnails();
+// Clicking the delete button while viewing a single photo deletes that photo
+$('photos-delete-button').onclick = function() {
+  var msg = navigator.mozL10n.get('delete-photo?');
+  if (confirm(msg)) {
+    deleteImage(currentPhotoIndex);
   }
-});
+};
+
+// Clicking the Edit button while viewing a photo switches to edit mode
+$('photos-edit-button').onclick = function() {
+  editPhoto(currentPhotoIndex);
+};
+
+// In edit mode, clicking the Cancel button goes back to single photo mode
+$('edit-cancel-button').onclick = function() {
+  exitEditMode();
+};
 
 
 // We get a resize event when the user rotates the screen
@@ -349,8 +543,8 @@ window.addEventListener('resize', function resizeHandler(evt) {
       return;
 
     var imagedata = images[n];
-    var fit = fitImageToScreen(imagedata.metadata.width,
-                               imagedata.metadata.height);
+    var fit = fitImage(imagedata.metadata.width, imagedata.metadata.height,
+                       photoView.offsetWidth, photoView.offsetHeight);
     var style = img.style;
     style.width = fit.width + 'px';
     style.height = fit.height + 'px';
@@ -359,13 +553,13 @@ window.addEventListener('resize', function resizeHandler(evt) {
   }
 });
 
-// On a tap just show or hide the back and play buttons.
-photos.addEventListener('tap', function(event) {
-  playerControls.classList.toggle('hidden');
+// On a tap just show or hide the photo overlay
+photoFrames.addEventListener('tap', function(event) {
+  $('photos-overlay').classList.toggle('hidden');
 });
 
 // Pan the photos sideways when the user moves their finger across the screen
-photos.addEventListener('pan', function(event) {
+photoFrames.addEventListener('pan', function(event) {
   if (transitioning)
     return;
 
@@ -377,7 +571,7 @@ photos.addEventListener('pan', function(event) {
 });
 
 // When the user lifts their finger after panning we get this event
-photos.addEventListener('swipe', function(event) {
+photoFrames.addEventListener('swipe', function(event) {
   // How far past the edge of the photo have we panned?
   var pastEdge = photoState.swipe;
   var direction;
@@ -420,9 +614,12 @@ photos.addEventListener('swipe', function(event) {
     else
       previousPhoto(time);
 
+    /*
+     * slideshows are deferred until v2
     // If a slideshow is in progress then restart the slide timer.
     if (slideshowTimer)
       continueSlideshow();
+    */
   }
   else if (pastEdge !== 0) {
     // Otherwise, just restore the current photo by undoing
@@ -445,7 +642,7 @@ photos.addEventListener('swipe', function(event) {
 });
 
 // Quick zoom in and out with dbltap events
-photos.addEventListener('dbltap', function(e) {
+photoFrames.addEventListener('dbltap', function(e) {
   var scale;
   if (photoState.scale > 1)      // If already zoomed in,
     scale = 1 / photoState.scale;  // zoom out to starting scale
@@ -461,7 +658,7 @@ photos.addEventListener('dbltap', function(e) {
 });
 
 // We also support pinch-to-zoom
-photos.addEventListener('transform', function(e) {
+photoFrames.addEventListener('transform', function(e) {
   if (transitioning)
     return;
 
@@ -469,16 +666,6 @@ photos.addEventListener('transform', function(e) {
                   e.detail.midpoint.clientX,
                   e.detail.midpoint.clientY);
 });
-
-// Switch from single-picture view to thumbnail view
-function showThumbnails() {
-  stopSlideshow();
-  thumbnails.classList.remove('hidden');
-  footerMenu.classList.remove('hidden');
-  photos.classList.add('hidden');
-  playerControls.classList.add('hidden');
-  thumbnailsDisplayed = true;
-}
 
 // A utility function to set the src attribute of the <img> element inside
 // the specified frame, which must be previousPhotoFrame, currentPhotoFrame
@@ -505,8 +692,9 @@ function displayImageInFrame(n, frame) {
   });
 
   // Figure out the size and position of the image
-  var fit = fitImageToScreen(images[n].metadata.width,
-                             images[n].metadata.height);
+  var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
+                     photoView.offsetWidth, photoView.offsetHeight);
+
   var style = img.style;
   style.width = fit.width + 'px';
   style.height = fit.height + 'px';
@@ -516,8 +704,7 @@ function displayImageInFrame(n, frame) {
 
 // figure out the size and position of an image based on its size
 // and the screen size.
-function fitImageToScreen(photoWidth, photoHeight) {
-  var viewportWidth = photos.offsetWidth, viewportHeight = photos.offsetHeight;
+function fitImage(photoWidth, photoHeight, viewportWidth, viewportHeight) {
   var scalex = viewportWidth / photoWidth;
   var scaley = viewportHeight / photoHeight;
   var scale = Math.min(Math.min(scalex, scaley), 1);
@@ -538,13 +725,7 @@ function fitImageToScreen(photoWidth, photoHeight) {
 // Switch from thumbnail list view to single-picture view
 // and display the specified photo.
 function showPhoto(n) {
-  if (thumbnailsDisplayed) {
-    thumbnails.classList.add('hidden');
-    footerMenu.classList.add('hidden');
-    photos.classList.remove('hidden');
-    playerControls.classList.remove('hidden');
-    thumbnailsDisplayed = false;
-  }
+  setView(photoView); // Switch to photo view mode if not already there
 
   displayImageInFrame(n - 1, previousPhotoFrame);
   displayImageInFrame(n, currentPhotoFrame);
@@ -688,6 +869,14 @@ function previousPhoto(time) {
   });
 }
 
+/*
+ * Slideshows are a v2 feature
+ *
+// Slide show constants
+const SLIDE_INTERVAL = 3000;      // 3 seconds on each slides
+const SLIDE_TRANSITION = 500;     // 1/2 second transition between slides
+var slideshowTimer = null;       // Non-null if we're doing a slide show
+
 function startSlideshow() {
   // If we're already displaying the last slide, then move to the first
   if (currentPhotoIndex === images.length - 1)
@@ -738,6 +927,7 @@ function continueSlideshow() {
     stopSlideshow();
   }
 }
+*/
 
 /*
  * This class encapsulates the zooming and panning functionality for
@@ -770,11 +960,12 @@ PhotoState.prototype._reposition = function() {
 PhotoState.prototype.reset = function() {
   // Store the display space we have for photos
   // call reset() when we get a resize or orientationchange event
-  this.viewportWidth = photos.offsetWidth;
-  this.viewportHeight = photos.offsetHeight;
+  this.viewportWidth = photoFrames.offsetWidth;
+  this.viewportHeight = photoFrames.offsetHeight;
 
   // Compute the default size and position of the image
-  var fit = fitImageToScreen(this.photoWidth, this.photoHeight);
+  var fit = fitImage(this.photoWidth, this.photoHeight,
+                     this.viewportWidth, this.viewportHeight);
   this.baseScale = fit.scale;
   this.width = fit.width;
   this.height = fit.height;
@@ -921,4 +1112,274 @@ PhotoState.prototype.setFrameStyles = function(/*frames...*/) {
   var translate = 'translate(' + this.swipe + 'px)';
   for (var i = 0; i < arguments.length; i++)
     arguments[i].style.MozTransform = translate;
+};
+
+
+var editedPhotoIndex;
+var editedPhotoURL; // The blob URL of the photo we're currently editing
+var editSettings;
+var imageEditor;
+
+var editOptionButtons =
+  Array.slice($('edit-options').querySelectorAll('a.button'), 0);
+
+editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
+
+function editPhoto(n) {
+  editedPhotoIndex = n;
+
+  // Start with no edits
+  editSettings = {
+    crop: {
+      x: 0, y: 0, w: images[n].metadata.width, h: images[n].metadata.height
+    },
+    gamma: 1,
+    effect: 'none',
+    borderWidth: 0,
+    borderColor: '#fff'
+  };
+
+  // Start looking up the image file
+  photodb.getFile(images[n].name, function(file) {
+    // Once we get the file create a URL for it and use that url for the
+    // preview image and all the buttons that need it.
+    editedPhotoURL = URL.createObjectURL(file);
+
+    imageEditor = new ImageEditor(editedPhotoURL,
+                                  $('edit-preview-area'),
+                                  editSettings);
+
+    // Set the background for all of the image buttons
+    var backgroundImage = 'url(' + editedPhotoURL + ')';
+    editOptionButtons.forEach(function(b) {
+      b.style.backgroundImage = backgroundImage;
+    });
+  });
+
+  // Display the edit screen
+  setView(editView);
+
+  // Configure the exposure tool as the first one shown
+  setEditTool('exposure');
+
+  // Set the exposure slider to its default value
+  exposureSlider.setExposure(0);
+
+  // Set the default option buttons to correspond to those edits
+  editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
+  $('edit-effect-none').classList.add('selected');
+  $('edit-border-none').classList.add('selected');
+
+}
+
+// Effects and border buttons call this
+function editOptionsHandler() {
+  // First, unhighlight all buttons in this group and then
+  // highlight the button that has just been chosen. These
+  // buttons have radio behavior
+  var parent = this.parentNode;
+  var buttons = parent.querySelectorAll('a.button');
+  Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
+  this.classList.add('selected');
+
+  if (this.dataset.effect)
+    editSettings.effect = this.dataset.effect;
+  if (this.dataset.borderWidth) {
+    editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
+  }
+  if (this.dataset.borderColor) {
+    editSettings.borderColor = this.dataset.borderColor;
+  }
+  imageEditor.edit(editSettings);
+}
+
+/*
+ * This is the exposure slider component for edit mode.  This ought to be
+ * converted into a reusable slider module, but for now this is a
+ * custom version that hardcodes things like the -3 to +3 range of values.
+ */
+var exposureSlider = (function() {
+  var slider = document.getElementById('exposure-slider');
+  var bar = document.getElementById('sliderbar');
+  var thumb = document.getElementById('sliderthumb');
+
+  thumb.addEventListener('mousedown', sliderStartDrag);
+
+  var currentExposure;
+  var sliderStartPixel;
+  var sliderStartExposure;
+
+  function sliderStartDrag(e) {
+    document.addEventListener('mousemove', sliderDrag, true);
+    document.addEventListener('mouseup', sliderEndDrag, true);
+    sliderStartPixel = e.clientX;
+    sliderStartExposure = currentExposure;
+    e.preventDefault();
+  }
+
+  function sliderDrag(e) {
+    var delta = e.clientX - sliderStartPixel;
+    var exposureDelta = delta / (parseInt(bar.clientWidth) * .8) * 6;
+    var oldExposure = currentExposure;
+    setExposure(sliderStartExposure + exposureDelta);
+    if (currentExposure !== oldExposure)
+      slider.dispatchEvent(new Event('change', {bubbles: true}));
+    e.preventDefault();
+  }
+
+  function sliderEndDrag(e) {
+    document.removeEventListener('mousemove', sliderDrag, true);
+    document.removeEventListener('mouseup', sliderEndDrag, true);
+    e.preventDefault();
+  }
+
+  // Set the thumb position between -3 and +3
+  function setExposure(exposure) {
+    // Make sure it is not out of bounds
+    if (exposure < -3)
+      exposure = -3;
+    else if (exposure > 3)
+      exposure = 3;
+
+    // Round to the closest .25
+    exposure = Math.round(exposure * 4) / 4;
+
+    if (exposure === currentExposure)
+      return;
+
+    var barWidth = parseInt(bar.clientWidth);
+    var thumbWidth = parseInt(thumb.clientWidth);
+
+    // Remember the new exposure value
+    currentExposure = exposure;
+
+    // Convert exposure value to % position of thumb center
+    var percent = 10 + (exposure + 3) * 80 / 6;
+
+    // Convert percent to pixel position of thumb center
+    var pixel = barWidth * percent / 100;
+
+    // Compute pixel position of left edge of thumb
+    pixel -= thumbWidth / 2;
+
+    // Move the thumb to that position
+    thumb.style.left = pixel + 'px';
+
+    // Display exposure value in thumb
+    thumb.textContent = exposure;
+  }
+
+  return {
+    setExposure: setExposure,
+    getExposure: function() { return currentExposure; }
+  };
+}());
+
+$('exposure-slider').onchange = function() {
+  var stops = exposureSlider.getExposure();
+
+  // Convert the exposure compensation stops gamma correction value.
+  var factor = -1;  // XXX: adjust this factor to get something reasonable.
+  var gamma = Math.pow(2, stops * factor);
+  editSettings.gamma = gamma;
+  imageEditor.edit(editSettings);
+};
+
+function setEditTool(tool) {
+  // Deselect all tool buttons and hide all options
+  var buttons = $('edit-toolbar').querySelectorAll('a.button');
+  Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
+  var options = $('edit-options').querySelectorAll('div.edit-options-bar');
+  Array.forEach(options, function(o) { o.classList.add('hidden'); });
+
+  // Now select and show the correct set based on tool
+  switch (tool) {
+  case 'exposure':
+    $('edit-exposure-button').classList.add('selected');
+    $('exposure-slider').classList.remove('hidden');
+    break;
+  case 'effect':
+    $('edit-effect-button').classList.add('selected');
+    $('edit-effect-options').classList.remove('hidden');
+    break;
+  case 'border':
+    $('edit-border-button').classList.add('selected');
+    $('edit-border-options').classList.remove('hidden');
+    break;
+  }
+}
+
+$('edit-exposure-button').onclick = function() { setEditTool('exposure'); };
+$('edit-effect-button').onclick = function() { setEditTool('effect'); };
+$('edit-border-button').onclick = function() { setEditTool('border'); };
+
+function exitEditMode(saved) {
+  // Revoke the blob URL we've been using
+  URL.revokeObjectURL(editedPhotoURL);
+  editedPhotoURL = null;
+
+  // close the editor object
+  imageEditor.close();
+  imageEditor = null;
+
+  // We came in to edit mode from photoView.  If the user cancels the edit
+  // go back to photoView.  Otherwise, if the user saves the photo, we go
+  // back to thumbnail list view because that is where the newly saved
+  // image is going to show up.
+  // XXX: this isn't really right. Ideally the new photo should show up
+  // right next to the old one and we should go back to photoView to view
+  // the edited photo.
+  if (saved)
+    setView(thumbnailListView);
+  else
+    setView(photoView);
+}
+
+// When the user clicks the save button, we produce a full-size version
+// of the edited image, save it into the media database and return to
+// photo view mode.
+// XXX: figure out what the image number of the edited photo is or will be
+// and return to viewing that one.  Ideally, edited photos would be grouped
+// with the original, rather than by date, but I'm not sure I can
+// do that sort order.  Ideally, I'd like the mediadb to not generate a
+// change event when we manually add something to it or at least have that
+// option
+$('edit-save-button').onclick = function() {
+  imageEditor.getFullSizeBlob(editSettings, 'image/jpeg', function(blob) {
+
+    var original = images[editedPhotoIndex].name;
+    var basename, extension, filename;
+    var version = 1;
+    var p = original.lastIndexOf('.');
+    if (p === -1) {
+      basename = original;
+      extension = '';
+    }
+    else {
+      basename = original.substring(0, p);
+      extension = original.substring(p);
+    }
+
+    // Create a filename for the edited image.  Loop if necessary and
+    // increment the version number until we find a version a name that
+    // is not in use.
+    // XXX: this loop is O(n^2) and slow if the user saves many edits
+    // of the same image.
+    filename = basename + '.edit' + version + extension;
+    while (images.some(function(i) { return i.name === filename; })) {
+      version++;
+      filename = basename + '.edit' + version + extension;
+    }
+
+    // Now that we have a filename, save the file This will send a
+    // change event, which will cause us to rebuild our thumbnails.
+    // For now, the edited image will become the first thumbnail since
+    // it si the most recent one. Ideally, I'd like a more
+    // sophisticated sort order that put edited sets of photos next to
+    // each other.
+    photodb.addFile(filename, blob);
+
+    // We're done.
+    exitEditMode(true);
+  });
 };

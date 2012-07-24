@@ -47,7 +47,8 @@
       return;
 
     var host = document.location.host;
-    window.open('http://' + host + '/oncall.html#' + call.state,
+    var protocol = document.location.protocol;
+    window.open(protocol + '//' + host + '/oncall.html#' + call.state,
                 'call_screen', 'attention');
 
     if (call.state != 'incoming')
@@ -85,7 +86,7 @@
           };
 
           var title = 'Missed call';
-          var body = 'From ' + call.number;
+          var body = 'From ' + (call.number.length ? call.number : 'Anonymous');
 
           NotificationHelper.send(title, body, iconURL, notiClick);
         };

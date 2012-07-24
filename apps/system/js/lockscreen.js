@@ -67,7 +67,6 @@ var LockScreen = {
   /* init */
   init: function ls_init() {
     this.getAllElements();
-    this.updateMuteState();
 
     this.lockIfEnabled(true);
 
@@ -95,9 +94,20 @@ var LockScreen = {
     /* switching panels */
     window.addEventListener('keyup', this, true);
 
+    /* mobile connection state on lock screen */
+    var conn = window.navigator.mozMobileConnection;
+    if (conn && conn.voice) {
+      conn.addEventListener('voicechange', this);
+      this.updateConnState();
+    }
+
     var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
+    });
+
+    SettingsListener.observe('audio.volume.master', 5, function(volume) {
+      self.mute.hidden = !!volume;
     });
 
     SettingsListener.observe(
@@ -106,6 +116,10 @@ var LockScreen = {
       self.overlay.classList.remove('uninit');
     });
 
+    SettingsListener.observe(
+      'lockscreen.passcode-lock.code', '0000', function(value) {
+      self.passCode = value;
+    });
 
     SettingsListener.observe(
         'lockscreen.passcode-lock.enabled', false, function(value) {
@@ -140,16 +154,14 @@ var LockScreen = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
-      case 'volumechange':
-        this.updateMuteState();
-        break;
-
       case 'screenchange':
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
         // when it's being turned back on
         this.lockIfEnabled(true);
         break;
+      case 'voicechange':
+        this.updateConnState();
 
       case 'mozChromeEvent':
         if (!this.locked || evt.detail.type !== 'desktop-notification')
@@ -191,9 +203,8 @@ var LockScreen = {
           maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
             (handle.offsetWidth - rightTarget.offsetWidth) / 2
         };
-        handle.setCapture(true);
-        handle.addEventListener('mouseup', this);
-        handle.addEventListener('mousemove', this);
+        window.addEventListener('mouseup', this);
+        window.addEventListener('mousemove', this);
 
         switch (target) {
           case leftTarget:
@@ -220,9 +231,8 @@ var LockScreen = {
 
       case 'mouseup':
         var handle = this.areaHandle;
-        handle.removeEventListener('mousemove', this);
-        handle.removeEventListener('mouseup', this);
-        document.releaseCapture();
+        window.removeEventListener('mousemove', this);
+        window.removeEventListener('mouseup', this);
 
         this.overlay.classList.remove('touched-left');
         this.overlay.classList.remove('touched-right');
@@ -235,11 +245,12 @@ var LockScreen = {
         break;
 
       case 'transitionend':
-        if (evt.currentTarget !== evt.target)
+        if (evt.target !== this.overlay)
           return;
 
         if (!this.locked) {
           this.switchPanel();
+          this.overlay.hidden = true;
         }
         break;
 
@@ -442,6 +453,7 @@ var LockScreen = {
     if (instant) {
       this.overlay.classList.add('no-transition');
       this.switchPanel();
+      this.overlay.hidden = true;
     } else {
       this.overlay.classList.remove('no-transition');
     }
@@ -451,10 +463,8 @@ var LockScreen = {
     WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
 
     if (!wasAlreadyUnlocked) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('unlocked', true, true, null);
-      window.dispatchEvent(evt);
-
+      this.dispatchEvent('unlock');
+      this.writeSetting(false);
       this.hideNotification();
     }
   },
@@ -462,6 +472,7 @@ var LockScreen = {
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
+    this.overlay.hidden = false;
 
     this.switchPanel();
 
@@ -478,9 +489,8 @@ var LockScreen = {
     this.updateTime();
 
     if (!wasAlreadyLocked) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('locked', true, true, null);
-      window.dispatchEvent(evt);
+      this.dispatchEvent('lock');
+      this.writeSetting(true);
     }
   },
 
@@ -573,8 +583,27 @@ var LockScreen = {
     }, (59 - d.getSeconds()) * 1000);
   },
 
-  updateMuteState: function ls_updateMuteState() {
-    this.mute.hidden = !!SoundManager.currentVolume;
+  updateConnState: function ls_updateConnState() {
+    var voice = window.navigator.mozMobileConnection.voice;
+    var _ = navigator.mozL10n.get;
+
+    if (voice.emergencyCallsOnly) {
+      this.connstate.hidden = false;
+      this.connstate.dataset.l10nId = 'emergencyCallsOnly';
+      this.connstate.textContent = _('emergencyCallsOnly') || '';
+
+      return;
+    }
+
+    if (!voice.connected) {
+      this.connstate.hidden = true;
+
+      return;
+    }
+
+    this.connstate.hidden = false;
+    delete this.connstate.dataset.l10nId;
+    this.connstate.textContent = voice.network.shortName;
   },
 
   showNotification: function lockscreen_showNotification(detail) {
@@ -653,7 +682,7 @@ var LockScreen = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['mute', 'clock', 'date',
+    var elements = ['connstate', 'mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
         'area', 'area-unlock', 'area-camera', 'area-handle',
@@ -682,6 +711,22 @@ var LockScreen = {
                                 evt.keyCode, evt.charCode);
 
     this.camera.dispatchEvent(generatedEvent);
+  },
+
+  dispatchEvent: function ls_dispatchEvent(name) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(name, true, true, null);
+    window.dispatchEvent(evt);
+  },
+
+  writeSetting: function ls_writeSetting(value) {
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
+
+    settings.getLock().set({
+      'lockscreen.locked': value
+    });
   }
 };
 

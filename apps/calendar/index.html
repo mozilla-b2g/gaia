@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html class="ltr" manifest="manifest.appcache">
+<html class="ltr">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
@@ -8,10 +8,22 @@
   <link rel="stylesheet" type="text/css" href="/style/forms.css">
   <link rel="stylesheet" type="text/css" href="/style/settings.css">
   <link rel="stylesheet" type="text/css" href="/style/toolbars.css">
+  <link rel="stylesheet" type="text/css" href="/style/overlay.css">
+
+  <!-- localization -->
+  <link rel="resource" type="application/l10n" href="/locales/locales.ini">
+
+  <!--- shared -->
+  <script src="/shared/js/desktop.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/shared/js/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/shared/js/l10n.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- vendor -->
-  <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ext/caldav.js" type="text/javascript" charset="utf-8"></script>
+
+  <!--lib root must load before anything else -->
+  <script defer src="/js/calendar.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- utils -->
   <script defer src="/js/presets.js" type="text/javascript" charset="utf-8"></script>
@@ -23,98 +35,106 @@
   <script defer src="/js/responder.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/view.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/router.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/db.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- templates -->
   <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/day.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/account.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/calendar.js" type="text/javascript" charset="utf-8"></script>
+
+  <!--- providers -->
+  <script defer src="/js/provider/calendar/abstract.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/calendar/local.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/calendar/caldav.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/local.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/caldav.js" type="text/javascript" charset="utf-8"></script>
+
+  <!--- store -->
+  <script defer src="/js/store/abstract.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/store/busytime.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/store/event.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/store/account.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/store/calendar.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- models -->
-  <script defer src="/js/models/busytime.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/models/events.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/models/account.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/models/calendar.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- views -->
   <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/settings.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/advanced_settings.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/create_account.js" type="text/javascript" charset="utf-8"></script>
-
+  <script defer src="/js/views/modify_account.js" type="text/javascript" charset="utf-8"></script>
 
   <!-- workers / main / controller -->
-  <script defer src="/js/controller.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/calendar.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/controllers/time.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/controllers/sync.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/app.js" type="text/javascript" charset="utf-8"></script>
 
   <title>Gaia Calendar</title>
 </head>
 
-<body role="app" onload="Calendar.init();">
+<body role="app" class="loading" onload="Calendar.App.init();">
 
 <section id="settings">
 
-  <section id="settings-accounts">
-    <header role="toolbar">
-      <h1>Accounts</h1>
-    </header>
-
-    <a href="/settings/" class="settings">
-      Calendar Settings
-    </a>
-  </section>
-
-  <section id="settings-calendars">
-    <header role="toolbar">
-      <h1>Calendars</h1>
-    </header>
+  <header>
+    <h1 data-l10n-id="settings-header">Calendars</h1>
+    <a class="add-icon" href="/select-preset/">Create Account</a>
+  </header>
 
 
-    <ol class="calendars">
-      <li class="calendar-1">Work (1)</li>
-      <li class="calendar-2">Friends</li>
-    </ol>
+  <ol class="calendars">
+  </ol>
 
-    <a href="/settings/accounts/" class="settings">
-      Account Settings
-    </a>
-  </section>
+  <a href="/advanced-settings/" data-l10n-id="advanced-settings" class="settings">
+    Account Settings
+  </a>
 
 </section>
 
 
 <div id="wrapper">
 
-<section id="top-toolbar">
-  <header role="toolbar">
-    <a data-l10n-id="buttons.settings"
-       id="show-settings"
-       role="button" href="/settings/">
-      Settings
-    </a>
 
-    <h1 id="current-month-year">
-    </h1>
+<header id="top-toolbar">
+  <a data-l10n-id="settings-show"
+     id="show-settings"
+     href="/settings/">
+    Show Settings
+  </a>
 
-    <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="/add">
-      New Event
-    </a>
-  </header>
-</section>
+  <a data-l10n-id="settings-hide"
+     id="hide-settings"
+     href="javascript: Calendar.App.resetState()">
+     Hide Settings
+  </a>
+
+  <h1 id="current-month-year">
+  </h1>
+
+  <a data-l10n-id="add-event" role="button" class="new-event" href="/add">
+    Add Event
+  </a>
+</header>
 
 <section id="views">
 
   <section id="month-view">
     <!--- title row all the days this will be static -->
-    <header id="month-days" role="row">
-      <ol role="row">
-        <li data-l10n-id="day.sun" role="column">sun</li>
-        <li data-l10n-id="day.mon" role="column">mon</li>
-        <li data-l10n-id="day.tue" role="column">tue</li>
-        <li data-l10n-id="day.wed" role="column">wed</li>
-        <li data-l10n-id="day.thu" role="column">thu</li>
-        <li data-l10n-id="day.fri" role="column">fri</li>
-        <li data-l10n-id="day.sat" role="column">sat</li>
-      </ol>
-    </header>
+    <ol id="month-days" role="row">
+      <li data-l10n-id="day-sun" role="column">sun</li>
+      <li data-l10n-id="day-mon" role="column">mon</li>
+      <li data-l10n-id="day-tue" role="column">tue</li>
+      <li data-l10n-id="day-wed" role="column">wed</li>
+      <li data-l10n-id="day-thu" role="column">thu</li>
+      <li data-l10n-id="day-fri" role="column">fri</li>
+      <li data-l10n-id="day-sat" role="column">sat</li>
+    </ol>
     <!---
       month grid there may be multiple of these
       in the DOM at any one time for caching.
@@ -126,17 +146,16 @@
 
   </section>
 
-  <section id="create-account-view">
-    <header role="toolbar">
-      <a data-l10n-id="buttons.cancel"
+  <section class="fullscreen-view" id="create-account-view">
+    <header>
+      <a data-l10n-id="cancel"
          role="button"
-         class="cancel"
+         class="cancel-icon"
          href="javascript: window.history.go(-1);">
-
         Cancel
       </a>
 
-      <h1>
+      <h1 data-l10n-id="add-account">
         Add Account
       </h1>
     </header>
@@ -146,10 +165,56 @@
       account you would like to add.
     </p>
 
-
     <ol id="create-account-presets">
-    <ol>
+    </ol>
+  </section>
 
+  <section class="fullscreen-view in-progress" id="advanced-settings-view">
+    <header>
+      <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
+      <a class="done-icon"
+        data-l10n-id="done"
+        href="/settings/">Done</a>
+    </header>
+
+    <div class="errors"></div>
+
+    <section class="account">
+      <h2 data-l10n-id="account-list-header">
+        Accounts
+      </h2>
+      <ol class="account-list">
+      </ol>
+    </section>
+
+  </section>
+
+  <section class="fullscreen-view" id="modify-account-view">
+    <header>
+      <a class="back-icon" data-l10n-id="back" href="javascript: window.history.go(-1);">
+        Back
+      </a>
+      <h1 data-l10n-id="account-header">Account</h1>
+      <a class="save-icon" data-l10n-id="save">Save</a>
+    </header>
+    <div class="errors"></div>
+    <form>
+      <fieldset>
+        <ol>
+          <li class="user">
+            <input name="user" data-l10n-id="field-user" placeholder="Username:" />
+          </li>
+          <li class="password">
+            <input name="password" data-l10n-id="field-password" placeholder="Password:" type="password" />
+          </li>
+          <li class="fullUrl">
+            <input name="fullUrl" data-l10n-id="field-fullUrl" placeholder="Url:" />
+          </li>
+        </ol>
+      </fieldset>
+    </form>
+    <div class="during-progress">
+    </div>
   </section>
 
   <!---
@@ -157,10 +222,9 @@
   access to the details here
   -->
   <section id="months-day-view">
-    <header>
-      <h1 id="selected-day-title"></h1>
-    </header>
-     <section id="event-list" class="day-events">
+    <h1 id="selected-day-title"></h1>
+
+    <section id="event-list" class="day-events">
     </section>
   </section>
 
@@ -172,21 +236,20 @@
     [Week] Coming soon...
   </section>
 
-  <section id="add-event-view">
-    <header role="toolbar">
-      <a data-l10n-id="buttons.cancel"
+  <section class="fullscreen-view" id="add-event-view">
+    <header>
+      <a data-l10n-id="cancel"
          role="button"
-         class="cancel"
+         class="cancel-icon"
          href="javascript: window.history.go(-1);">
-
         Cancel
       </a>
 
-      <h1>
+      <h1 data-l10n-id="add-event-header">
         EVENT
       </h1>
 
-      <a data-l10n-id="buttons.save" role="button" class="save" href="#">
+      <a data-l10n-id="save" role="button" class="save-icon" href="#">
         Save
       </a>
     </header>
@@ -255,7 +318,8 @@
 <section id="bottom-toolbar">
   <menu id="view-selector">
     <li class="toggle toggle-settings">
-      <a>Hide</a>
+      <a data-l10n-id="hide"
+         href="javascript: Calendar.App.resetState();">Hide</a>
     </li>
     <li class="today">
       <a href="#today">Today</a>

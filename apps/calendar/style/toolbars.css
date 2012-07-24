@@ -1,52 +1,87 @@
-#top-toolbar {
+header {
   position: relative;
-}
-
-header[role="toolbar"] {
   border-bottom: 0.1rem solid #992f21;
   background-image: -moz-linear-gradient(#B84F00, #AB3319);
   box-shadow: 0px -1px 4px 1px black;
-}
-
-header[role="toolbar"] {
   width: 100%;
-  padding: 0.9rem 0;
+  padding: 1.2rem 0;
   font-size: 1.8rem;
-  height: 4.46rem;
-  line-height: 3.0rem;
+  height: 5rem;
+  line-height: 3rem;
   color: white;
+  vertical-align: center;
 }
 
-.rtl header[role="toolbar"] h1,
-.rtl header[role="toolbar"] a {
+
+.rtl header h1,
+.rtl header a {
   float: right;
 }
 
+.add-icon,
+.done-icon,
+.save-icon,
+.back-icon,
+.cancel-icon,
+#hide-settings,
 #show-settings {
-  background: transparent url('/style/icons/HeaderIcon_30x30_menu.png') no-repeat;
   width: 30px;
-  height: 30px;
+  height: 30px
+}
+
+.cancel-icon {
+  background: transparent url('/style/icons/HeaderIcon_30x30_close.png') no-repeat;
+}
+
+.add-icon {
+  background: transparent url('/style/icons/HeaderIcon_30x30_add.png') no-repeat;
+}
+
+.save-icon,
+.done-icon {
+  background: transparent url('/style/icons/ActionIcons_30x30_done.png') no-repeat;
+}
+
+.back-icon {
+  background: transparent url('/style/icons/ActionIcons_30x30_back_nav.png') no-repeat;
 }
 
 
-header[role="toolbar"] a {
+#hide-settings,
+#show-settings {
+  display: none;
+  background: transparent url('/style/icons/HeaderIcon_30x30_menu.png') no-repeat;
+}
+
+body[data-path="/settings/"] #show-settings {
+  display: none;
+}
+
+body[data-path="/settings/"] #hide-settings {
+  display: block;
+}
+
+#show-settings {
+  display: block;
+}
+
+header a.done {
+  text-indent: 0em;
+  color: white;
+}
+
+header a {
   display: inline-block;
   float: left;
   text-indent: -9999em;
-}
-
-header[role="toolbar"] a:last-child {
   width: 30px;
 }
 
-header[role="toolbar"] a:first-child {
-  width: 30px;
-}
-
-header[role="toolbar"] h1 {
-  width: -moz-calc(100% - 60px);
+header h1 {
+  width: -moz-calc(100% - 70px);
   float: left;
-  font-family: 'Open Sans Light';
+  font-family: 'Open Sans';
+  font-weight: light;
   text-align: left;
   font-weight: normal;
   padding: 0 0.6rem;

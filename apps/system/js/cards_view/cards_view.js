@@ -11,7 +11,7 @@ var CardsView = (function() {
 
   //display icon of an app on top of app's card
   var DISPLAY_APP_ICON = true;
-  var USER_DEFINED_ORDERING = false;
+  var USER_DEFINED_ORDERING = true;
   // If 'true', scrolling moves the list one card
   // at time, and snaps the list so the current card
   // is centered in the view
@@ -26,7 +26,24 @@ var CardsView = (function() {
   var cardsList = cardsView.getElementsByTagName('ul')[0];
   var displayedApp;
   var runningApps;
+  // Card which we are re-ordering now
+  var reorderedCard = null;
   var currentDisplayed = 0;
+  // Timer between scrolling CardList further,
+  // when reordering Cards
+  var scrollWhileSortingTimer;
+  // We don't allow user to scroll CardList
+  // before the timer ticks while in reordering
+  // mode
+  var allowScrollingWhileSorting = false;
+  // Initial margin of the reordered card
+  var dragMargin = 0;
+  // Are we reordering or removing the card now?
+  var draggingCardUp = false;
+  // Are we moving card left or right?
+  var sortingDirection;
+  // List of sorted apps
+  var userSortedApps = [];
   var HVGA = document.documentElement.clientWidth < 480;
 
   /*
@@ -44,12 +61,13 @@ var CardsView = (function() {
     sizes.sort(function(x, y) { return y - x; });
 
     var index = sizes[(HVGA) ? sizes.length - 1 : 0];
+    var iconPath = icons[index];
 
-    if (icons[index].indexOf('data:') !== 0) {
-      icons[index] = origin + icons[index];
+    if (iconPath.indexOf('data:') !== 0) {
+      iconPath = origin + iconPath;
     }
 
-    return icons[index];
+    return iconPath;
   }
 
   // Build and display the card switcher overlay
@@ -60,8 +78,8 @@ var CardsView = (function() {
   function showCardSwitcher() {
     // Apps info from WindowManager
     displayedApp = WindowManager.getDisplayedApp();
-    runningApps = WindowManager.getRunningApps();
     currentDisplayed = 0;
+    runningApps = WindowManager.getRunningApps();
 
     // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
@@ -82,8 +100,33 @@ var CardsView = (function() {
       sortable.forEach(function(element) {
         runningApps[element.origin] = element.app;
       });
-    } else {
-      // user ordering actions
+
+      // First add an item to the cardsList for each running app
+      for (var origin in runningApps)
+        addCard(origin, runningApps[origin]);
+
+    } else { // user ordering
+
+      // first run
+      if (userSortedApps.length === 0) {
+        for (var origin in runningApps) {
+          userSortedApps.push(origin);
+        }
+      } else {
+        for (var origin in runningApps) {
+          // if we have some new app opened
+          if (userSortedApps.indexOf(origin) === -1) {
+            userSortedApps.push(origin);
+          }
+        }
+      }
+
+      userSortedApps.forEach(function(origin) {
+        addCard(origin, runningApps[origin]);
+      });
+
+      cardsView.addEventListener('contextmenu', this);
+
     }
 
     if (SNAPPING_SCROLLING) {
@@ -94,9 +137,6 @@ var CardsView = (function() {
       cardsView.addEventListener('mousedown', this);
     }
 
-    // First add an item to the cardsList for each running app
-    for (var origin in runningApps)
-      addCard(origin, runningApps[origin]);
 
     // Then make the cardsView overlay active
     cardsView.classList.add('active');
@@ -113,7 +153,18 @@ var CardsView = (function() {
       // And add it to the card switcher
       var card = document.createElement('li');
       card.classList.add('card');
-      card.style.background = '-moz-element(#' + app.frame.id + ') no-repeat';
+
+      // First we create white background
+      card.style.backgroundColor = '#FFF';
+
+      // And then switch it with screenshots when one will be ready
+      // (instead of -moz-element backgrounds)
+      app.frame.getScreenshot().onsuccess = function(screenshot) {
+        if (screenshot.target.result) {
+          this.style.backgroundImage = 'url(' + screenshot.target.result + ')';
+        }
+      }.bind(card);
+
       card.dataset['origin'] = origin;
 
       //display app icon on the tab
@@ -164,7 +215,7 @@ var CardsView = (function() {
   var initialCardViewPosition;
   var initialTouchPosition = {};
   var threshold = window.innerWidth / 4;
-      // Distance after which dragged card starts moving
+  // Distance after which dragged card starts moving
   var moveCardThreshold = window.innerHeight / 6;
   var removeCardThreshold = window.innerHeight / 4;
 
@@ -195,14 +246,61 @@ var CardsView = (function() {
     if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
       if (differenceY > moveCardThreshold) {
+        // We don't want user to scroll the CardsView when one of the card is
+        // already dragger upwards
+        draggingCardUp = true;
         evt.target.style.MozTransform = 'scale(0.6) translate(0, -' +
                                         differenceY + 'px)';
       }
     }
 
-    if (SNAPPING_SCROLLING) {
+    // If we are not reordering or removing Cards now
+    // and Snapping Scrolling is enabled, we want to scroll
+    // the CardList
+    if (SNAPPING_SCROLLING && reorderedCard === null && !draggingCardUp) {
       var differenceX = initialTouchPosition.x - touchPosition.x;
       cardsView.scrollLeft = initialCardViewPosition + differenceX;
+    }
+
+    // If re are in reordering mode (there is a DOM element in)
+    // reorderedCard variable) we are able to put this element somewere
+    // among the others
+    if (USER_DEFINED_ORDERING && reorderedCard !== null) {
+      var differenceX = touchPosition.x - initialTouchPosition.x;
+      // Probably there is more clever solution for calculating
+      // position of transformed DOM element, but this was my
+      // first thought and it seems to work
+      var moveOffset = (cardsList.children[currentDisplayed].offsetLeft / 0.6) +
+                       differenceX - (dragMargin / 0.6);
+
+      reorderedCard.style.MozTransform =
+        'scale(0.6) translate(' + moveOffset + 'px, 0)';
+
+      if (Math.abs(differenceX) > threshold) {
+        // We don't want to jump to the next page immediately,
+        // We are waiting half a second for user to decide if
+        // he wants to leave the Card here or scroll further
+        if (allowScrollingWhileSorting) {
+          allowScrollingWhileSorting = false;
+
+          scrollWhileSortingTimer = setTimeout(function() {
+            allowScrollingWhileSorting = true;
+          }, 500);
+
+          if (
+            differenceX > 0 &&
+            currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
+          ) {
+            currentDisplayed++;
+            sortingDirection = 'right';
+            alignCard(currentDisplayed);
+          } else if (differenceX < 0 && currentDisplayed > 0) {
+            currentDisplayed--;
+            sortingDirection = 'left';
+            alignCard(currentDisplayed);
+          }
+        }
+      }
     }
   }
 
@@ -218,10 +316,47 @@ var CardsView = (function() {
         y: evt.touches ? evt.touches[0].pageY : evt.pageY
     };
 
-    // if the element we start dragging on is a card
-    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
+    if (SNAPPING_SCROLLING && !draggingCardUp && reorderedCard === null) {
+      var differenceX = initialTouchPosition.x - touchPosition.x;
+      if (Math.abs(differenceX) > threshold) {
+        if (
+          differenceX > 0 &&
+          currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
+        ) {
+          currentDisplayed++;
+          alignCard(currentDisplayed);
+        } else if (differenceX < 0 && currentDisplayed > 0) {
+          currentDisplayed--;
+          alignCard(currentDisplayed);
+        }
+      } else {
+        alignCard(currentDisplayed);
+      }
+    }
+
+    // if the element we start dragging on
+    // is a card and we are not in reordering mode
+    if (
+      evt.target.classList.contains('card') &&
+      MANUAL_CLOSING &&
+      reorderedCard === null
+    ) {
+
       var differenceY = initialTouchPosition.y - touchPosition.y;
+      draggingCardUp = false;
       if (differenceY > removeCardThreshold) {
+
+        // remove the app also from the ordering list
+        if (
+          userSortedApps.indexOf(element.dataset['origin']) !== -1 &&
+          USER_DEFINED_ORDERING
+        ) {
+          userSortedApps.splice(
+            userSortedApps.indexOf(element.dataset['origin']),
+            1
+          );
+        }
+
         // Without removing the listener before closing card
         // sometimes the 'click' event fires, even if 'mouseup'
         // uses stopPropagation()
@@ -243,28 +378,62 @@ var CardsView = (function() {
 
         return;
       } else {
-        evt.target.style.MozTransform = 'scale(0.6)';
+        evt.target.style.MozTransform = '';
       }
     }
 
-    if (SNAPPING_SCROLLING) {
-      var differenceX = initialTouchPosition.x - touchPosition.x;
-      if (Math.abs(differenceX) > threshold) {
-        if (
-          differenceX > 0 &&
-          currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
-        ) {
-          currentDisplayed++;
-          alignCard(currentDisplayed);
-        } else if (differenceX < 0 && currentDisplayed > 0) {
-          currentDisplayed--;
-          alignCard(currentDisplayed);
+    if (USER_DEFINED_ORDERING && reorderedCard !== null) {
+      // Position of the card depends on direction of scrolling
+      if (sortingDirection === 'right') {
+        if (currentDisplayed < WindowManager.getNumberOfRunningApps() - 1) {
+          cardsList.insertBefore(
+            reorderedCard,
+            cardsList.children[currentDisplayed + 1]
+          );
+        } else {
+          cardsList.appendChild(reorderedCard);
         }
-      } else {
-        alignCard(currentDisplayed);
+      } else if (sortingDirection === 'left') {
+        cardsList.insertBefore(
+          reorderedCard,
+          cardsList.children[currentDisplayed]
+        );
       }
+      reorderedCard.style.MozTransform = '';
+      reorderedCard.dataset['edit'] = 'false';
+      reorderedCard = null;
+
+      alignCard(currentDisplayed);
+
+      // remove the app origin from ordering array
+      userSortedApps.splice(
+        userSortedApps.indexOf(element.dataset['origin']),
+        1
+      );
+      // and put in on the new position
+      userSortedApps.splice(currentDisplayed, 0, element.dataset['origin']);
     }
   }
+
+  function manualOrderStart(evt) {
+    evt.preventDefault();
+    reorderedCard = evt.target;
+    allowScrollingWhileSorting = true;
+    if (reorderedCard.classList.contains('card')) {
+      dragMargin = reorderedCard.offsetLeft;
+      reorderedCard.dataset['edit'] = true;
+      sortingDirection = 'left';
+    }
+  }
+
+  window.addEventListener('applicationuninstall',
+    function removeUninstaledApp(evt) {
+      var origin = evt.detail.application.origin;
+      if (userSortedApps.indexOf(origin) !== -1) {
+        userSortedApps.splice(userSortedApps.indexOf(origin), 1);
+      }
+    },
+  false);
 
   function cv_handleEvent(evt) {
     switch (evt.type) {
@@ -277,8 +446,12 @@ var CardsView = (function() {
       case 'mouseup':
         onEndEvent(evt);
         break;
+      case 'contextmenu':
+        manualOrderStart(evt);
+        break;
     }
   }
+
   // Public API of CardsView
   return {
     showCardSwitcher: showCardSwitcher,

@@ -1,3 +1,5 @@
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 // Render is in charge of draw and composite HTML elements under requestion
@@ -15,6 +17,8 @@ const IMERender = (function() {
   var getUpperCaseValue, isSpecialKey, onScroll;
 
   var _menuKey, _altContainer;
+
+  var layoutWidth = 10;
 
   // Initiaze the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
@@ -55,7 +59,7 @@ const IMERender = (function() {
     // density used in media queries
 
     var content = '';
-    var layoutWidth = layout.width || 10;
+    layoutWidth = layout.width || 10;
     var totalWidth = document.getElementById('keyboard').clientWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
     var inputType = flags.inputType || 'text';
@@ -94,7 +98,7 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
-        content += buildKey(keyChar, className, keyWidth, dataset);
+        content += buildKey(keyChar, className, keyWidth + 'px', dataset);
 
       }));
       content += '</div>';
@@ -110,7 +114,7 @@ const IMERender = (function() {
     this.menu.addEventListener('scroll', onScroll);
 
     // Builds candidate panel
-    if (layout.needsCandidatePanel) {
+    if (layout.needsCandidatePanel || layout.suggestionEngine) {
       this.ime.insertBefore(
         candidatePanelToggleButtonCode(), this.ime.firstChild);
       this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
@@ -251,7 +255,7 @@ const IMERender = (function() {
       ];
       content += buildKey(
         Keyboards[kbr].menuLabel,
-        className, cssWidth,
+        className, cssWidth + 'px',
         dataset
       );
 
@@ -277,7 +281,7 @@ const IMERender = (function() {
   // Show char alternatives. The first element of altChars is ALWAYS the
   // original char.
   var showAlternativesCharMenu = function(key, altChars) {
-    var content = '', cssWidth = key.scrollWidth;
+    var content = '';
 
     var original = altChars[0];
     altChars = altChars.slice(1);
@@ -303,9 +307,11 @@ const IMERender = (function() {
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var dataset = [{'key': 'keycode', 'value': keyCode}];
       var label = keyChar.label || keyChar;
+      var cssWidth =
+        key.offsetWidth * (0.9 + 0.5 * (label.length - original.length));
       if (label.length > 1)
         dataset.push({'key': 'compositekey', 'value': label});
-      content += buildKey(label, '', cssWidth, dataset);
+      content += buildKey(label, '', cssWidth + 'px', dataset);
     });
     this.menu.innerHTML = content;
 
@@ -315,7 +321,7 @@ const IMERender = (function() {
     _altContainer.style.width = key.style.width;
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
-    _altContainer.classList.add("kbr-menu-on");
+    _altContainer.classList.add('kbr-menu-on');
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
@@ -324,6 +330,25 @@ const IMERender = (function() {
       .querySelectorAll('.visual-wrapper > span')[0]
       .appendChild(this.menu);
     this.menu.style.display = 'block';
+
+    // Adjust offset when alternatives menu overflows
+    var alternativesLeft = getWindowLeft(this.menu);
+    var alternativesRight = alternativesLeft + this.menu.offsetWidth;
+
+    // It overflows on the right
+    if (left && alternativesRight > window.innerWidth) {
+      console.log('overflowing right');
+      var offset = window.innerWidth - alternativesRight;
+      console.log(offset);
+      this.menu.style.left = offset + 'px';
+
+    // It overflows on the left
+    } else if (!left && alternativesLeft < 0) {
+      console.log('overflowing left');
+      var offset = alternativesLeft;
+      console.log(offset);
+      this.menu.style.right = offset + 'px';
+    }
   };
 
   // Hide the alternative menu
@@ -335,7 +360,12 @@ const IMERender = (function() {
 
     if (_altContainer)
       _altContainer.parentNode.replaceChild(_menuKey, _altContainer);
+
+    this.menu.style.left = '';
+    this.menu.style.right = '';
   };
+
+  var _keyArray = []; // To calculate proximity info for predictive text
 
   // Recalculate dimensions for the current render
   var resizeUI = function(layout) {
@@ -355,9 +385,12 @@ const IMERender = (function() {
       ime.classList.add('landscape');
     }
 
+
+    _keyArray = [];
+
     // Width calc
     if (layout) {
-      var layoutWidth = layout.width || 10;
+      layoutWidth = layout.width || 10;
       var totalWidth = document.getElementById('keyboard').clientWidth;
       var placeHolderWidth = totalWidth / layoutWidth;
 
@@ -367,6 +400,18 @@ const IMERender = (function() {
         for (var k = 0, key; key = keys[k]; k += 1) {
           ratio = layout.keys[r][k].ratio || 1;
           key.style.width = (placeHolderWidth * ratio) + 'px';
+
+          // to get the visual width/height of the key
+          // for better proximity info
+          var visualKey = key.querySelector('.visual-wrapper');
+
+          _keyArray.push({
+            code: key.dataset.keycode,
+            x: visualKey.offsetLeft,
+            y: visualKey.offsetTop,
+            width: visualKey.clientWidth,
+            height: visualKey.clientHeight
+          });
         }
       }
     }
@@ -411,10 +456,47 @@ const IMERender = (function() {
     dataset.forEach(function(data) {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
-    content += ' style="width:' + width + 'px"';
+    content += ' style="width: ' + width + '"';
     content += '><span class="visual-wrapper"><span>' +
                label + '</span></span></button>';
     return content;
+  };
+
+  var getWidth = function getWidth() {
+    if (!this.ime)
+      return 0;
+
+    return this.ime.clientWidth;
+  };
+
+  var getHeight = function getHeight() {
+    if (!this.ime)
+      return 0;
+
+    return this.ime.clientHeight;
+  };
+
+  var getKeyArray = function getKeyArray() {
+    return _keyArray;
+  };
+
+  var getKeyWidth = function getKeyWidth() {
+    if (!this.ime)
+      return 0;
+
+    return Math.ceil(this.ime.clientWidth / layoutWidth);
+  };
+
+  var getKeyHeight = function getKeyHeight() {
+    if (!this.ime)
+      return 0;
+
+    this.ime.clientHeight;
+    var rows = document.querySelectorAll('.keyboard-row');
+
+
+    var rowCount = rows.length || 3;
+    return Math.ceil(this.ime.clientHeight / rowCount);
   };
 
   // Exposing pattern
@@ -431,6 +513,11 @@ const IMERender = (function() {
     'setUpperCaseLock': setUpperCaseLock,
     'resizeUI': resizeUI,
     'showCandidates': showCandidates,
-    'showPendingSymbols': showPendingSymbols
+    'showPendingSymbols': showPendingSymbols,
+    'getWidth': getWidth,
+    'getHeight': getHeight,
+    'getKeyArray': getKeyArray,
+    'getKeyWidth': getKeyWidth,
+    'getKeyHeight': getKeyHeight
   };
 })();

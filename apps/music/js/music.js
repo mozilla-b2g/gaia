@@ -3,87 +3,73 @@
 /*
  * This is Music Application of Gaia
  */
-var songs = [];
 
-// When the app starts, we scan device storage for musics.
-// For now, we just do this each time. But we really need to store
-// filenames and audio metadata in a database.
-var storages = navigator.getDeviceStorage('music');
-
-storages.forEach(function(storage, storageIndex) {
-  try {
-    var cursor = storage.enumerate();
-
-    cursor.onerror = function() {
-      console.error('Error in DeviceStorage.enumerate()', cursor.error.name);
-    };
-
-    cursor.onsuccess = function() {
-      if (!cursor.result)
-        return;
-
-      // If this is the first song we've found,
-      // hide the "no songs" message
-      if (songs.length === 0) {
-        document.getElementById('nosongs').style.display = 'none';
-      }
-
-      var file = cursor.result;
-
-      var songData = {
-        storageIndex: storageIndex,
-        name: file.name
-      };
-
-      // Meta-data parsing of mp3 and ogg files
-      // On B2G devices, file.type of mp3 format is missing
-      // use file extension instead of file.type
-      var extension = file.name.slice(-4);
-
-      if (extension === '.mp3') {
-
-        ID3.loadTags(file.name, function() {
-          var tags = ID3.getAllTags(file.name);
-
-          songData.album = tags.album;
-          songData.artist = tags.artist;
-          songData.title = tags.title;
-
-          songs.push(songData);
-          ListView.updateList(songData);
-
-          cursor.continue();
-        }, {
-          dataReader: FileAPIReader(file)
-        });
-
-      } else if (extension === '.ogg') {
-        var oggfile = new OggFile(file, function() {
-
-          songData.album = oggfile.metadata.ALBUM;
-          songData.artist = oggfile.metadata.ARTIST;
-          songData.title = oggfile.metadata.TITLE;
-
-          songs.push(songData);
-          ListView.updateList(songData);
-
-          cursor.continue();
-        });
-        oggfile.parse();
-      } else {
-        cursor.continue();
-      }
-    };
-  }
-  catch (e) {
-    console.error('Exception while enumerating files:', e);
-  }
+// Here we use the MediaDB.js which gallery is using
+// to index our music contents with metadata parsed.
+// So the behaviors of musicdb are the same as the MediaDB in gallery
+var musicdb = new MediaDB('music', metadataParser, {
+  indexes: ['metadata.album', 'metadata.artist', 'metadata.title'],
+  // mp3 mediaType: 'audio/mpeg'
+  // ogg mediaType: 'video/ogg'
+  // empty mediaType: no mp3 mediaType on B2G device
+  // desktop build does not has this issue
+  mimeTypes: ['audio/mpeg', 'video/ogg', '']
 });
+musicdb.onready = function() {
+  buildUI();  // List files we already know about
+  musicdb.scan();  // Go look for more.
 
-// This App. has three modes, TILES, LIST and PLAYER
+  // Since DeviceStorage doesn't send notifications yet, we're going
+  // to rescan the files every time our app becomes visible again.
+  // Eventually DeviceStorage will do notifications and MediaDB will
+  // report them so we don't need to do this.
+  document.addEventListener('mozvisibilitychange', function visibilityChange() {
+    if (!document.mozHidden) {
+      musicdb.scan();
+    }
+  });
+};
+musicdb.onchange = function(type, files) {
+  rebuildUI();
+};
+
+function buildUI() {
+  // Enumerate existing song entries in the database
+  // List the all, and sort them in ascending order by artist.
+  var option = 'artist';
+
+  musicdb.enumerate('metadata.' + option, null, 'nextunique',
+    ListView.update.bind(ListView, option));
+}
+
+//
+// XXX
+// This is kind of a hack. Our onchange handler is dumb and just
+// tears down and rebuilds the UI on every change. But rebuilding
+// does an async enumerate, and sometimes we get two changes in
+// a row, so these flags prevent two enumerations from happening in parallel.
+// Ideally, we'd just handle the changes individually.
+//
+var buildingUI = false;
+var needsRebuild = false;
+function rebuildUI() {
+  if (buildingUI) {
+    needsRebuild = true;
+    return;
+  }
+
+  buildingUI = true;
+  ListView.clean();
+  // This is asynchronous, but will set buildingUI to false when done
+  buildUI();
+
+}
+
+// This Application has four modes, TILES, LIST, SUBLIST and PLAYER
 var MODE_TILES = 1;
 var MODE_LIST = 2;
-var MODE_PLAYER = 3;
+var MODE_SUBLIST = 3;
+var MODE_PLAYER = 4;
 var currentMode;
 
 function changeMode(mode) {
@@ -91,6 +77,7 @@ function changeMode(mode) {
 
   document.body.classList.remove('tiles-mode');
   document.body.classList.remove('list-mode');
+  document.body.classList.remove('sublist-mode');
   document.body.classList.remove('player-mode');
 
   switch (mode) {
@@ -99,6 +86,9 @@ function changeMode(mode) {
       break;
     case MODE_LIST:
       document.body.classList.add('list-mode');
+      break;
+    case MODE_SUBLIST:
+      document.body.classList.add('sublist-mode');
       break;
     case MODE_PLAYER:
       document.body.classList.add('player-mode');
@@ -135,7 +125,11 @@ var TitleBar = {
 
         switch (target.id) {
           case 'title-back':
-            changeMode(MODE_LIST);
+            if (currentMode === MODE_SUBLIST) {
+              changeMode(MODE_LIST);
+            } else if (currentMode === MODE_PLAYER) {
+              changeMode(MODE_SUBLIST);
+            }
 
             break;
           case 'title-text':
@@ -200,23 +194,94 @@ var ListView = {
     this.index = 0;
 
     this.view.addEventListener('click', this);
-
-    this.dataSource = songs;
   },
 
-  updateList: function lv_updateList(songData) {
-    var songTitle = (songData.title) ? songData.title :
-        navigator.mozL10n.get('unknownTitle');
+  clean: function lv_clean() {
+    this.dataSource = [];
+    this.index = 0;
+    this.view.innerHTML = '';
+    this.view.scrollTop = 0;
+  },
+
+  setItemImage: function lv_setItemImage(item, image) {
+    // Set source to image and crop it to be fitted when it's onloded
+    if (image) {
+      item.addEventListener('load', cropImage);
+      item.src = createBase64URL(image);
+    }
+  },
+
+  update: function lv_update(option, result) {
+    if (result === null)
+      return;
+
+    if (this.dataSource.length === 0)
+      document.getElementById('nosongs').style.display = 'none';
+
+    this.dataSource.push(result);
 
     var li = document.createElement('li');
-    li.className = 'song';
+    li.className = 'list-item';
 
     var a = document.createElement('a');
     a.href = '#';
     a.dataset.index = this.index;
-    a.textContent = (this.index + 1) + '. ' + songTitle;
+
+    var parent = document.createElement('div');
+    parent.className = 'list-image-parent';
+    var div = document.createElement('div');
+    div.className = 'list-default-image';
+    div.innerHTML = '&#9834;';
+    var img = document.createElement('img');
+    img.className = 'list-image';
+
+    parent.appendChild(div);
+    parent.appendChild(img);
+
+    var image = result.metadata.picture;
+    this.setItemImage(img, image);
+
+    switch (option) {
+      case 'album':
+        var albumSpan = document.createElement('span');
+        var artistSpan = document.createElement('span');
+        albumSpan.className = 'list-main-title';
+        artistSpan.className = 'list-sub-title';
+        albumSpan.textContent = result.metadata.album;
+        artistSpan.textContent = result.metadata.artist;
+        a.appendChild(albumSpan);
+        a.appendChild(artistSpan);
+
+        a.dataset.keyRange = result.metadata.album;
+        a.dataset.option = option;
+
+        break;
+      case 'artist':
+        var artistSpan = document.createElement('span');
+        artistSpan.className = 'list-single-title';
+        artistSpan.textContent = result.metadata.artist;
+        a.appendChild(artistSpan);
+
+        a.dataset.keyRange = result.metadata.artist;
+        a.dataset.option = option;
+
+        break;
+      case 'playlist':
+        var titleSpan = document.createElement('span');
+        titleSpan.className = 'list-single-title';
+        titleSpan.textContent = result.metadata.title;
+        a.appendChild(titleSpan);
+
+        a.dataset.keyRange = 'all';
+        a.dataset.option = 'title';
+
+        break;
+      default:
+        return;
+    }
 
     li.appendChild(a);
+    li.appendChild(parent);
 
     this.view.appendChild(li);
 
@@ -230,10 +295,138 @@ var ListView = {
         if (!target)
           return;
 
-        changeMode(MODE_PLAYER);
+        var option = target.dataset.option;
+        if (option) {
+          SubListView.clean();
 
-        PlayerView.dataSource = this.dataSource;
-        PlayerView.play(target);
+          var index = target.dataset.index;
+          var data = this.dataSource[index];
+          var image = data.metadata.picture;
+
+          if (image)
+            SubListView.setAlbumSrc(createBase64URL(image));
+
+          if (option === 'artist') {
+            SubListView.setAlbumName(data.metadata.artist);
+          } else if (option === 'album') {
+            SubListView.setAlbumName(data.metadata.album);
+          } else {
+            SubListView.setAlbumName(data.metadata.title);
+          }
+
+          var keyRange = (target.dataset.keyRange != 'all') ?
+            IDBKeyRange.only(target.dataset.keyRange) : null;
+
+          musicdb.enumerate('metadata.' + option, keyRange, 'next',
+            SubListView.update.bind(SubListView));
+
+          changeMode(MODE_SUBLIST);
+        }
+
+        break;
+
+      default:
+        return;
+    }
+  }
+};
+
+// View of SubList
+var SubListView = {
+  get view() {
+    delete this._view;
+    return this._view = document.getElementById('views-sublist');
+  },
+
+  get dataSource() {
+    return this._dataSource;
+  },
+
+  get anchor() {
+    delete this._anchor;
+    return this._anchor = document.getElementById('views-sublist-anchor');
+  },
+
+  set dataSource(source) {
+    this._dataSource = source;
+  },
+
+  init: function slv_init() {
+    this.dataSource = [];
+    this.index = 0;
+
+    this.albumImage = document.getElementById('views-sublist-header-image');
+    this.albumName = document.getElementById('views-sublist-header-name');
+
+    this.view.addEventListener('click', this);
+  },
+
+  clean: function slv_clean() {
+    this.dataSource = [];
+    this.index = 0;
+    this.albumImage.src = '';
+    this.anchor.innerHTML = '';
+    this.view.scrollTop = 0;
+  },
+
+  setAlbumSrc: function slv_setAlbumSrc(url) {
+    // Set source to image and crop it to be fitted when it's onloded
+    this.albumImage.src = url;
+    this.albumImage.classList.remove('fadeIn');
+    this.albumImage.addEventListener('load', slv_showImage.bind(this));
+
+    function slv_showImage(evt) {
+      cropImage(evt);
+      this.albumImage.classList.add('fadeIn');
+    };
+  },
+
+  setAlbumName: function slv_setAlbumName(name) {
+    this.albumName.textContent = name;
+  },
+
+  update: function slv_update(result) {
+    if (result === null)
+      return;
+
+    this.dataSource.push(result);
+
+    var li = document.createElement('li');
+    li.className = 'list-song-item';
+
+    var a = document.createElement('a');
+    a.href = '#';
+
+    var songTitle = (result.metadata.title) ? result.metadata.title :
+      navigator.mozL10n.get('unknownTitle');
+
+    a.dataset.index = this.index;
+
+    var titleSpan = document.createElement('span');
+    titleSpan.className = 'list-song-title';
+    titleSpan.textContent = (this.index + 1) + '. ' + songTitle;
+    a.appendChild(titleSpan);
+
+    li.appendChild(a);
+
+    this.anchor.appendChild(li);
+
+    this.index++;
+  },
+
+  handleEvent: function slv_handleEvent(evt) {
+    switch (evt.type) {
+      case 'click':
+        var target = evt.target;
+        if (!target)
+          return;
+
+        if (target.dataset.index) {
+          PlayerView.dataSource = this.dataSource;
+          PlayerView.play(target);
+
+          changeMode(MODE_PLAYER);
+        }
 
         break;
 
@@ -277,6 +470,7 @@ var PlayerView = {
 
     this.timeoutID;
     this.caption = document.getElementById('player-cover-caption');
+    this.coverImage = document.getElementById('player-cover-image');
     this.coverControl = document.getElementById('player-cover-buttons');
 
     this.seekBar = document.getElementById('player-seek-bar-progress');
@@ -297,6 +491,7 @@ var PlayerView = {
     this.seekBar.addEventListener('mousemove', this);
 
     this.audio.addEventListener('timeupdate', this);
+    this.audio.addEventListener('ended', this);
   },
 
   // This function is for the animation on the album art (cover).
@@ -327,6 +522,23 @@ var PlayerView = {
     );
   },
 
+  setCoverImage: function pv_setCoverImage(image) {
+    // Reset the image to be ready for fade-in
+    this.coverImage.src = '';
+    this.coverImage.classList.remove('fadeIn');
+
+    // Set source to image and crop it to be fitted when it's onloded
+    if (image) {
+      this.coverImage.src = createBase64URL(image);
+      this.coverImage.addEventListener('load', pv_showImage.bind(this));
+    }
+
+    function pv_showImage(evt) {
+      cropImage(evt);
+      this.coverImage.classList.add('fadeIn');
+    };
+  },
+
   play: function pv_play(target) {
     this.isPlaying = true;
 
@@ -334,36 +546,36 @@ var PlayerView = {
 
     if (target) {
       var targetIndex = parseInt(target.dataset.index);
-      var songData = songs[targetIndex];
+      var songData = this.dataSource[targetIndex];
+      var image = songData.metadata.picture;
 
-      TitleBar.changeTitleText((songData.title) ?
-        songData.title : navigator.mozL10n.get('unknownTitle'));
-      this.artist.textContent = (songData.artist) ?
-        songData.artist : navigator.mozL10n.get('unknownArtist');
-      this.album.textContent = (songData.album) ?
-        songData.album : navigator.mozL10n.get('unknownAlbum');
+      TitleBar.changeTitleText((songData.metadata.title) ?
+        songData.metadata.title : navigator.mozL10n.get('unknownTitle'));
+      this.artist.textContent = (songData.metadata.artist) ?
+        songData.metadata.artist : navigator.mozL10n.get('unknownArtist');
+      this.album.textContent = (songData.metadata.album) ?
+        songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
       this.currentIndex = targetIndex;
 
-      // An object URL must be released by calling window.URL.revokeObjectURL()
-      // when we no longer need them
-      this.audio.onloadeddata = function(evt) {
-        window.URL.revokeObjectURL(this.src);
-      }
+      this.setCoverImage(image);
 
-      storages[songData.storageIndex].get(songData.name).onsuccess =
-        function(evt) {
-          // On B2G devices, file.type of mp3 format is missing
-          // use file extension instead of file.type
-          this.playingFormat = evt.target.result.name.slice(-4);
+      musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
+        // On B2G devices, file.type of mp3 format is missing
+        // use file extension instead of file.type
+        this.playingFormat = file.name.slice(-4);
 
-          this.audio.src = window.URL.createObjectURL(evt.target.result);
+        // An object URL must be released by calling URL.revokeObjectURL()
+        // when we no longer need them
+        var url = URL.createObjectURL(file);
+        this.audio.src = url;
+        this.audio.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
 
-          // when play a new song, reset the seekBar first
-          // this can prevent showing wrong duration
-          // due to b2g cannot get some mp3's duration
-          // and the seekBar can still show 00:00 to -00:00
-          this.setSeekBar(0, 0, 0);
-        }.bind(this);
+        // when play a new song, reset the seekBar first
+        // this can prevent showing wrong duration
+        // due to b2g cannot get some mp3's duration
+        // and the seekBar can still show 00:00 to -00:00
+        this.setSeekBar(0, 0, 0);
+      }.bind(this));
     } else {
       this.audio.play();
     }
@@ -380,7 +592,7 @@ var PlayerView = {
   },
 
   next: function pv_next() {
-    var songElements = ListView.view.children;
+    var songElements = SubListView.anchor.children;
 
     if (this.currentIndex >= this.dataSource.length - 1)
       return;
@@ -391,7 +603,7 @@ var PlayerView = {
   },
 
   previous: function pv_previous() {
-    var songElements = ListView.view.children;
+    var songElements = SubListView.anchor.children;
 
     if (this.currentIndex <= 0)
       return;
@@ -450,6 +662,7 @@ var PlayerView = {
     switch (evt.type) {
       case 'click':
         switch (target.id) {
+          case 'player-cover-default-image':
           case 'player-cover-image':
             this.showInfo();
 
@@ -491,6 +704,67 @@ var PlayerView = {
       case 'timeupdate':
         this.updateSeekBar();
         break;
+      case 'ended':
+        this.next();
+        break;
+
+      default:
+        return;
+    }
+  }
+};
+
+// Tab Bar
+var TabBar = {
+  get view() {
+    delete this._view;
+    return this._view = document.getElementById('tabs');
+  },
+
+  init: function tab_init() {
+    this.view.addEventListener('click', this);
+  },
+
+  handleEvent: function tab_handleEvent(evt) {
+    switch (evt.type) {
+      case 'click':
+        var target = evt.target;
+        var option = target.dataset.option;
+        if (!target)
+          return;
+
+        switch (target.id) {
+          case 'tabs-mix':
+            changeMode(MODE_TILES);
+
+            break;
+          case 'tabs-playlists':
+            changeMode(MODE_LIST);
+            ListView.clean();
+
+            var data = {
+              metadata: {
+                title: 'All Songs'
+              }
+            };
+
+            ListView.update(option, data);
+            break;
+          case 'tabs-artists':
+          case 'tabs-albums':
+            changeMode(MODE_LIST);
+            ListView.clean();
+
+            musicdb.enumerate('metadata.' + option, null, 'nextunique',
+              ListView.update.bind(ListView, option));
+
+            break;
+          case 'tabs-more':
+
+            break;
+        }
+
+        break;
 
       default:
         return;
@@ -504,7 +778,9 @@ window.addEventListener('DOMContentLoaded', function() {
   TitleBar.init();
   TilesView.init();
   ListView.init();
+  SubListView.init();
   PlayerView.init();
+  TabBar.init();
 
   changeMode(MODE_TILES);
 
@@ -515,6 +791,10 @@ window.addEventListener('DOMContentLoaded', function() {
           break;
         case MODE_LIST:
           changeMode(MODE_TILES);
+          evt.preventDefault();
+          break;
+        case MODE_SUBLIST:
+          changeMode(MODE_LIST);
           evt.preventDefault();
           break;
         case MODE_PLAYER:
@@ -532,5 +812,5 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
+  document.body.classList.remove('invisible');
 });

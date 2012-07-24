@@ -22,13 +22,21 @@
 
 GAIA_DOMAIN?=gaiamobile.org
 
-HOMESCREEN?=http://system.$(GAIA_DOMAIN)
+DEBUG?=0
 
 LOCAL_DOMAINS?=1
 
 ADB?=adb
 
-DEBUG?=0
+ifeq ($(DEBUG),1)
+SCHEME=http://
+else
+SCHEME=app://
+endif
+
+HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
+
+BUILD_APP_NAME?=*
 
 REPORTER=Spec
 
@@ -81,12 +89,17 @@ SHELL := /bin/bash
 
 # what OS are we on?
 SYS=$(shell uname -s)
-ARCH=$(shell uname -m)
+ARCH?=$(shell uname -m)
+SEP=/
+ifneq (,$(findstring MINGW32_,$(SYS)))
+CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
+SEP=\\
+endif
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
-SED_INPLACE_NO_SUFFIX = sed -i ''
-DOWNLOAD_CMD = curl -s -O
+SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
+DOWNLOAD_CMD = /usr/bin/curl -O
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
@@ -118,8 +131,8 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: preferences test-agent-config offline extensions
-	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
+profile: preferences permissions test-agent-config offline extensions
+	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -136,19 +149,22 @@ webapp-manifests:
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 			n=$$(basename $$d); \
-			mkdir -p profile/webapps/$$n; \
-			cp $$d/manifest.webapp profile/webapps/$$n/manifest.webapp  ;\
-			cp $$d/manifest.webapp profile/webapps/$$n/manifest.json  ;\
-			(\
-			echo \"$$n\": { ;\
-			echo \"origin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"installOrigin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"receipt\": null, ;\
-			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
-			echo \"localId\": $$id ;\
-			echo },) >> profile/webapps/webapps.json;\
-			: $$((id++)); \
+			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
+			then \
+				dirname=$$n.$(GAIA_DOMAIN); \
+				mkdir -p profile/webapps/$$dirname; \
+				cp $$d/manifest.webapp profile/webapps/$$dirname/manifest.webapp  ;\
+				(\
+				echo \"$$dirname\": { ;\
+				echo \"origin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+				echo \"installOrigin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+				echo \"receipt\": null, ;\
+				echo \"installTime\": 132333986000, ;\
+				echo \"manifestURL\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
+				echo \"localId\": $$id ;\
+				echo },) >> profile/webapps/webapps.json;\
+				: $$((id++)); \
+			fi \
 		fi \
 	done; \
 	cd external-apps; \
@@ -156,18 +172,21 @@ webapp-manifests:
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
-		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
+			if [ "$(BUILD_APP_NAME)" = "$$d" -o "$(BUILD_APP_NAME)" = "*" ]; \
+			then \
+		  	mkdir -p ../profile/webapps/$$d; \
+		  	cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
                   (\
-			echo \"$$d\": { ;\
-			echo \"origin\": \"`cat $$d/origin`\", ;\
-			echo \"installOrigin\": \"`cat $$d/origin`\", ;\
-			echo \"receipt\": null, ;\
-			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\", ;\
-			echo \"localId\": $$id ;\
-			echo },) >> ../profile/webapps/webapps.json;\
-			: $$((id++)); \
+				echo \"$$d\": { ;\
+				echo \"origin\": \"`cat $$d/origin`\", ;\
+				echo \"installOrigin\": \"`cat $$d/origin`\", ;\
+				echo \"receipt\": null, ;\
+				echo \"installTime\": 132333986000, ;\
+				echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\", ;\
+				echo \"localId\": $$id ;\
+				echo },) >> ../profile/webapps/webapps.json;\
+				: $$((id++)); \
+			fi \
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
@@ -175,26 +194,50 @@ webapp-manifests:
 	@cat profile/webapps/webapps.json
 	@echo "Done"
 
-
-# Generate profile/OfflineCache/
-offline: install-xulrunner update-offline-manifests webapp-manifests
+# Generate profile/webapps/APP/application.zip
+webapp-zip:
 ifneq ($(DEBUG),1)
-	@echo "Building offline cache"
-	@rm -rf profile/OfflineCache
-	@mkdir -p profile/OfflineCache
-	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/offline-cache.js
+	@echo "Packaged webapps"
+	@mkdir -p profile/webapps
+	@for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	do \
+	  if [ -f $$d/manifest.webapp ]; \
+		then \
+			n=$$(basename $$d); \
+			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
+			then \
+				dirname=$$n.$(GAIA_DOMAIN); \
+				mkdir -p profile/webapps/$$dirname; \
+				cdir=`pwd`; \
+				for f in `grep -r shared/js $$d` ;\
+				do \
+					if [[ "$$f" == *shared/js* ]] ;\
+					then \
+						file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1;`; \
+						mkdir -p $$d/shared/js ;\
+						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
+					fi \
+				done; \
+				cd $$d; \
+				zip -r application.zip *; \
+				cd $$cdir; \
+				mv $$d/application.zip profile/webapps/$$dirname/application.zip; \
+			fi \
+		fi \
+	done;
 	@echo "Done"
 endif
+
+# Create webapps
+offline: webapp-manifests webapp-zip
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.
-XULRUNNER_TEST=xulrunner
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/07/2012-07-17-03-05-55-mozilla-central/xulrunner-17.0a1.en-US.
+
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
-XULRUNNER_TEST=xulrunner-sdk
 # We're on a mac
 XULRUNNER_MAC_SDK_URL=$(XULRUNNER_SDK_URL)mac-
 ifeq ($(ARCH),i386)
@@ -204,40 +247,39 @@ else
 # 64-bit
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)x86_64.sdk.tar.bz2
 endif
-XULRUNNER_DOWNLOAD=$(XULRUNNER_SDK_DOWNLOAD)
-XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
-XPCSHELL=./xulrunner-sdk/bin/xpcshell
-XULRUNNERSDK=$(XULRUNNER)
-XPCSHELLSDK=$(XPCSHELL)
+XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
+XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
+
+else ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
+# For windows we only have one binary
+XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_SDK_URL)win32.sdk.zip
+XULRUNNERSDK=
+XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
+
 else
-# Not a mac: assume linux
-# Linux only!
+# Otherwise, assume linux
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
-XULRUNNER_LINUX_BASE_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-
 XULRUNNER_LINUX_SDK_URL=$(XULRUNNER_SDK_URL)linux-
 ifeq ($(ARCH),x86_64)
-XULRUNNER_DOWNLOAD=$(XULRUNNER_LINUX_BASE_URL)x86_64.tar.bz2
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)x86_64.sdk.tar.bz2
 else
-XULRUNNER_DOWNLOAD=$(XULRUNNER_LINUX_BASE_URL)i686.tar.bz2
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)i686.sdk.tar.bz2
 endif
-XULRUNNER=./xulrunner/run-mozilla.sh
-XPCSHELL=./xulrunner/xpcshell
 XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
-install-xulrunner:
-	test -d $(XULRUNNER_TEST) || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
-
 install-xulrunner-sdk:
+ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
+	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && unzip xulrunner*.zip && rm xulrunner*.zip)
+else
 	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+endif
 
 settingsdb: install-xulrunner-sdk
 	@echo "B2G pre-populate settings DB."
-	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
+	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const PROFILE_DIR = "$(CURDIR)$(SEP)profile";' build/settings.js
 
 DB_TARGET_PATH = /data/local/indexedDB
 ifneq ($(SYS),Darwin)
@@ -254,16 +296,23 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 	@echo 'Rebooting b2g now. '
 
 # Generate profile/prefs.js
-preferences: install-xulrunner
+preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
-	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
+	test -d profile || mkdir -p profile
+	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
 	if [ -f custom-prefs.js ]; \
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
 	  fi
 	@echo "Done"
 
+
+# Generate profile/permissions.sqlite
+permissions: install-xulrunner-sdk
+	@echo "Generating permissions.sqlite..."
+	test -d profile || mkdir -p profile
+	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/permissions.js
+	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/extensions
 EXT_DIR=profile/extensions
@@ -274,10 +323,9 @@ extensions:
 ifeq ($(DEBUG),1)
 	cp -r tools/extensions $(EXT_DIR)
 	# httpd
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd@gaiamobile.org
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/httpd.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_RELATIVEPATH@|$(GAIA_APP_RELATIVEPATH)|g' $(EXT_DIR)/httpd/content/httpd.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd/bootstrap.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(subst \\,\\\\,$(CURDIR))|g' $(EXT_DIR)/httpd/bootstrap.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/bootstrap.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_PORT@|$(subst :,,$(GAIA_PORT))|g' $(EXT_DIR)/httpd/bootstrap.js
 	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_SRCDIRS@|$(GAIA_APP_SRCDIRS)|g' $(EXT_DIR)/httpd/bootstrap.js
@@ -301,7 +349,7 @@ tests: webapp-manifests offline
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
-	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
+	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/user.js"
 
 .PHONY: common-install
 common-install:
@@ -395,7 +443,8 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email,music/js/ext,calendar/js/ext'
+	@gjslint --nojsdoc -r apps -e 'email/js/ext,music/js/ext,calendar/js/ext,keyboard/js/predictive_text'
+	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -460,14 +509,19 @@ update-offline-manifests: stamp-commit-hash
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
 PROFILE_PATH = /data/local/
+TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 install-gaia: profile
 	$(ADB) start-server
 	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /cache/*
-	python build/install-gaia.py "$(ADB)"
 
-	$(ADB) push profile/user.js ${PROFILE_PATH}/user.js
+ifeq ($(BUILD_APP_NAME),*)
+	python build/install-gaia.py "$(ADB)"
+else
+	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp /data/local/$(TARGET_FOLDER)/manifest.webapp
+	$(ADB) push profile/$(TARGET_FOLDER)/application.zip /data/local/$(TARGET_FOLDER)/application.zip
+endif
 
 	@echo "Installed gaia into profile/."
 	@echo 'Starting b2g'
@@ -507,5 +561,6 @@ reset-gaia: purge install-settingsdb install-gaia
 purge:
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /data/local/*
+	$(ADB) shell mkdir -p /data/local/tmp
 	$(ADB) shell rm -r /cache/*
 	$(ADB) shell rm -r /data/b2g/*
