@@ -60,8 +60,6 @@ var ScreenManager = {
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
-    window.addEventListener('devicelight', this);
-    window.addEventListener('mozfullscreenchange', this);
 
     this.screen = document.getElementById('screen');
 
