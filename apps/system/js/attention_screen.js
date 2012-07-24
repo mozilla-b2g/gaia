@@ -35,14 +35,9 @@ var AttentionScreen = {
     evt.stopPropagation();
 
     var attentionFrame = evt.detail.frameElement;
-    attentionFrame.setAttribute('mozapp', evt.target.getAttribute('mozapp'));
     attentionFrame.dataset.frameType = 'attention';
     attentionFrame.dataset.frameName = evt.detail.name;
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
-
-    // FIXME: won't be needed once
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
-    attentionFrame.src = evt.detail.url;
 
     this.attentionScreen.appendChild(attentionFrame);
     this.attentionScreen.classList.add('displayed');
