@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Alert/prompt test</title>
+    <style>
+    button {
+      font-size: 40px;
+    }
+    </style>
+    <script>
+var go = function _go() {
+  var URL = document.getElementById('URL');
+  var a = new MozActivity({ name: 'view', data: { url: URL }});
+  a.onsuccess = function() { alert('Success!'); };
+  a.onerror = function() { alert('Failure going to URL'); };
+};
+    </script>
+  </head>
+  <body>
+    <h1>Browser Web Activities Test</h1>
+    <h2>Go to:</h2>
+    <p>URL: <input type="text" id="URL" />
+    <button onclick="go()">Go</button></p>
+    <p>Press back button to go back.</p>
+  </body>
+</html>

@@ -31,6 +31,9 @@ var Browser = {
   urlButtonMode: null,
   inTransition: false,
 
+  waitingActivities: [],
+  hasLoaded: false,
+
   init: function browser_init() {
     // Assign UI elements to variables
     this.toolbarStart = document.getElementById('toolbar-start');
@@ -115,7 +118,12 @@ var Browser = {
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function() {
-      this.selectTab(this.createTab(this.START_PAGE_URL));
+      this.hasLoaded = true;
+      if (this.waitingActivities.length) {
+        this.waitingActivities.forEach(this.handleActivity, this);
+        return;
+      }
+      this.selectTab(this.createTab());
       this.showPageScreen();
     }).bind(this));
   },
@@ -1158,6 +1166,14 @@ var Browser = {
       this.tab.style.MozTransition = 'left ' + time + 'ms linear';
       this.tab.style.left = offset + 'px';
     }
+  },
+  handleActivity: function browser_handleActivity(activity) {
+    switch (activity.type) {
+      case 'view':
+        var url = activity.source.data.url;
+        this.createTab(url);
+        break;
+    }
   }
 };
 
@@ -1200,4 +1216,13 @@ var Utils = {
 window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
+});
+
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  if (Browser.hasLoaded) {
+    Browser.handleActivity(activity);
+  } else {
+    Browser.waitingActivities.push(activity);
+  }
+  activity.postResult({ status: 'accepted' });
 });
