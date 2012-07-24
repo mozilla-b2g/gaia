@@ -1,11 +1,22 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+
 'use strict';
+
+/*
+ * Wallpaper app is, in fact, 'Default wallpaper selector'.
+ * This app is invisable.
+ * It is a web activity provider, 'pick'.
+ * (In fact, pick and then crop)
+ */
 
 var Wallpaper = {
   images: [],
 
   getAllElements: function md_getAllElements() {
-    var elementsID = ['thumbnails', 'thumbnail-vist-view',
-        'photo-view', 'photo-filmstrip', 'photo-frame', 'current-frame'];
+    var elementsID = ['thumbnails', 'thumbnail-list-view',
+        'photo-view', 'photos-filmstrip', 'photo-frame', 'current-frame'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -15,21 +26,21 @@ var Wallpaper = {
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementsID.forEach(function createElementRef(name) {
-      this.elements[toCamelCase(name)] =
-        document.getElementById(this.prefix + name);
+      this[toCamelCase(name)] =
+        document.getElementById(name);
     }, this);
-
-    this.screen = document.getElementById('screen');
   },
 
   init: function wp_init() {
     this.createThumbnailList();
+    // XXX: pending on platform support, marked.
+    //
     //this.activityListener();
     this.getAllElements();
 
-    console.log(this.thumbnails,'=====');
-    this.thumbnails.addEventListener('click', this);
 
+    // Event Binding
+    this.thumbnails.addEventListener('click', this);
     window.addEventListener('mozvisibilitychange', this);
     window.addEventListener('resize', this);
   },
@@ -41,7 +52,6 @@ var Wallpaper = {
         break;
       case 'click':
         var target = evt.target;
-        console.warn('======', target.dataset.index);
         if (!target || !target.classList.contains('thumbnail'))
           return;
         this.showPhoto(parseInt(target.dataset.index));
@@ -100,7 +110,7 @@ var Wallpaper = {
       return;
 
     var img = this.currentFrame.firstChild;
-    img.src = images.src;
+    img.src = this.images[n].src;
 
     // Figure out the size and position of the image
     var fit = fitImage(this.images[n].width,
@@ -118,6 +128,8 @@ var Wallpaper = {
   setView: function wp_setView(view) {
     if (this.currentView === view)
       return;
+    
+    var views = [this.thumbnailListView, this.photoView];
 
     // Show the specified view, and hide the others
     for (var i = 0; i < views.length; i++) {
@@ -135,14 +147,6 @@ var Wallpaper = {
         this.thumbnails.style.width = '';
         break;
       case this.photoView:
-        // photoView is a special case because we need to insert
-        // the thumbnails into the filmstrip container and set its width
-        this.photosFilmstrip.appendChild(this.thumbnails);
-        // In order to get a working scrollbar, we apparently have to specify
-        // an explict width for list of thumbnails.
-        // XXX: we need to update this when images are added or deleted.
-        // XXX: avoid using hardcoded 50px per image?
-        this.thumbnails.style.width = (this.images.length * 50) + 'px';
         break;
     }
     // Remember the current view
