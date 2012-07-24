@@ -5,7 +5,7 @@
 
 var CostControl = {
 
-  REQUEST_BALANCE_TIMEOUT: 5 * 60 * 1000, // 5 minutes
+  WAITING_TIMEOUT: 5 * 60 * 1000, // 5 minutes
   REQUEST_BALANCE_UPDATE_INTERVAL: 1 * 60 * 60 * 1000, // 1 hour
 
   // Enable observers for the basic parameters of the cost control
@@ -34,13 +34,13 @@ var CostControl = {
 
     // Parse following...
     SettingsListener.observe('costcontrol.balance.regexp',
-      '(R\\$\\s+[0-9]+[,\\.][0-9]+)',
+      '(R\\$\\s+[0-9]+([,\\.][0-9]+)?)',
       assignTo('CHECK_BALANCE_REGEXP'));
 
     // For top up
     // Send to...
     SettingsListener.observe('costcontrol.topup.destination', '7000',
-      assignTo('TOP_UP_SEND_NUMBER'));
+      assignTo('TOP_UP_DESTINATION'));
 
     // Balance text
     SettingsListener.observe('costcontrol.topup.text', '&code',
@@ -48,11 +48,11 @@ var CostControl = {
 
     // Wait from...
     SettingsListener.observe('costcontrol.topup.senders', '1515',
-      assignTo('TOP_UP_RECEIVE_NUMBER'));
+      assignTo('TOP_UP_SENDERS'));
 
     // Parse confirmation following...
     SettingsListener.observe('costcontrol.topup.regexp',
-      '(R\\$\\s+[0-9]+[,\\.][0-9]+)',
+      '(R\\$\\s+[0-9]+([,\\.][0-9]+)?)',
       assignTo('TOP_UP_CONFIRMATION_REGEXP'));
   },
 
@@ -61,8 +61,6 @@ var CostControl = {
   //  * After sending a message
   //  * Periodically
   configureEventListeners: function cc_configureEventListeners() {
-    var periodicallyUpdateEvent =
-      new CustomEvent('costcontrolPeriodicallyUpdate');
 
     // Listen for SMS
     if (window.navigator.mozSms) {
@@ -77,6 +75,8 @@ var CostControl = {
     }
 
     // Periodically update
+    var periodicallyUpdateEvent =
+      new CustomEvent('costcontrolPeriodicallyUpdate');
     this.widget.addEventListener('costcontrolPeriodicallyUpdate', this);
     window.setInterval((function cc_periodicUpdateBalance() {
       this.widget.dispatchEvent(periodicallyUpdateEvent);
@@ -94,38 +94,33 @@ var CostControl = {
     this.checkNowBalanceButton = document.getElementById('cost-control-credit-area');
     this.checkNowBalanceButton.addEventListener(
       'click',
-      (function() {
-        if (!this.isWaiting)
-          this.mockup_updateBalance();
+      (function cc_manualCheckBalance() {
+        this.mockup_updateBalance();
       }).bind(this)
     );
 
     // Listener for top up button
     this.topUpButton = document.getElementById('cost-control-topup');
-    this.topUpButton.addEventListener('click', (function() {
-      var _ = navigator.mozL10n.get;
-      ModalDialog.prompt(
-        _('Enter the top up code:') + '\n' +
-        _('Typically found in the scratch card or directly in your receipt.'),
-        '000002',
-        this.mockup_topUp.bind(this)
-      );
-    }).bind(this));
+    this.topUpButton.addEventListener(
+      'click',
+      (function cc_topUp() {
+        var _ = navigator.mozL10n.get;
+        ModalDialog.prompt(
+          _('Enter the top up code:') + '\n' +
+          _('Typically found in the scratch card or directly in your receipt.'),
+          '000002',
+          this.mockup_topUp.bind(this)
+        );
+      }).bind(this)
+    );
   },
 
   // Initializes the cost control module: basic parameters, autmatic and manual
   // updates.
   init: function cc_init() {
-    console.log('---- Cost control init -----');
     this.configure();
     this.configureWidget();
     this.configureEventListeners();
-    this.updateUI();
-
-    // Show the saved balance while we update it
-    this.feedback = new Array(document.getElementById('cost-control-time'),
-                               document.getElementById('cost-control-credit'));
-
     this.updateUI();
   },
 
@@ -138,14 +133,14 @@ var CostControl = {
 
   // Handle the events that triggers automatic balance updates
   handleEvent: function cc_handleEvent(evt) {
+    console.log('Evento escuchado: ' + evt.type);
 
     // Ignore if the device is in roaming
-    if (inRoaming()) {
+    if (this.inRoaming()) {
       console.warn('Device in roaming, no automatic updates allowed');
       return;
     }
 
-    console.log('Evento escuchado: ' + evt.type);
     switch (evt.type) {
 
       // Periodically updates
@@ -153,18 +148,29 @@ var CostControl = {
 
       // After sending a message
       case 'sent':
+
+        // Ignore messages to cost control numbers
+        if (evt.type === 'sent') {
+          var receiver = evt.message.receiver;
+          if (reciever === '+34638358467' /* this.CHECK_BALANCE_DESTINATION */ || receiver === '+34638358467' /* this.TOP_UP_DESTINATION*/ )
+            return;
+        }
+
         this.mockup_updateBalance();
         break;
 
       // After ending a call
       case 'callschanged':
-        //Test this. Issue 2
-        console.log("Calls array " + this.telephony.calls.length);
-        for (var i = 0, call; call = this.telephony.calls[i]; i++) {
-          console.log('Estado de la llamada: ' + call.state);
-          if (call.state === 'disconnected')
-            this.mockup_updateBalance();
-        };
+        // Set the first time
+        if (this._activeCalls === undefined)
+          this._activeCalls = this.telephony.calls.length;
+
+        // Some call has ended
+        if (this.telephony.calls.length < this._activeCalls)
+          this.mockup_updateBalance();
+
+        // Update calls
+        this._activeCalls = this.telephony.calls.length;
         break;
     }
   },
@@ -179,15 +185,15 @@ var CostControl = {
   },
 
   mockup_updateBalance: function cc_mockup_updateBalance() {
+    if (this.isWaiting)
+      return;
+
     var self = this;
 
     // Return the balance from the message or null if impossible to parse
     function parseBalanceSMS(message) {
       var newBalance = null;
       var found = message.body.match(new RegExp(self.CHECK_BALANCE_REGEXP));
-      console.log('body: '+ message.body);
-      console.log('regexp: '+ self.CHECK_BALANCE_REGEXP);
-      console.log('found: ' + found);
 
       // Impossible parse
       if (!found || !found[1]) {
@@ -224,26 +230,27 @@ var CostControl = {
 
     // Send the request SMS
     // XXX: Uncomment after removing mockups
-    /*var result = this.sms.send(
+    self.setWaitingMode(true);
+    /*var request = this.sms.send(
       this.CHECK_BALANCE_DESTINATION,
       this.CHECK_BALANCE_TEXT
     );*/
-
-    // Wait for the balance SMS
-    this.setWaitingMode(true);
-    this.sms.addEventListener('received', onSMSReceived);
-    this.balanceTimeout = window.setTimeout(
-      stopWaiting,
-      this.REQUEST_BALANCE_TIMEOUT
+    var currentCredit = parseFloat(this.widgetCredit.textContent.slice(2));
+    var newCredit = Math.max(0, currentCredit - 2);
+    newCredit = Math.round(newCredit * 100)/100;
+    var request = this.sms.send(
+      '+34638358467',
+      'R$ ' + newCredit
     );
 
-    // Mockup to emulate SMS reception
-    window.setTimeout((function() {
-      var currentCredit = parseFloat(this.feedback[1].textContent.slice(2));
-      var newCredit = Math.max(0, currentCredit - 2);
-      newCredit = Math.round(newCredit * 100)/100;
-      this.sms.send('+34638358467', 'R$ ' + newCredit);
-    }).bind(this), 3500);
+    request.onsuccess = function cc_onSuccessSendingBalanceRequest() {
+      // Wait for the balance SMS
+      self.sms.addEventListener('received', onSMSReceived);
+      self.balanceTimeout = window.setTimeout(
+        stopWaiting,
+        self.WAITING_TIMEOUT
+      );
+    }
   },
 
   updateUI: function cc_updateUI(balance) {
@@ -259,7 +266,7 @@ var CostControl = {
   },
 
   getSavedBalance: function cc_getSavedBalance() {
-    return window.localStorage.getItem('costcontrolBalance') || 'R$12.34';
+    return window.localStorage.getItem('costcontrolBalance') || 'R$ 12.34';
   },
 
   getSavedDate: function cc_getSavedDate() {
@@ -271,24 +278,77 @@ var CostControl = {
     return date.toLocaleFormat('%b %d %H:%M');
   },
 
-  mockup_topUp: function cc_mockup_topUp(howMuch) {
-    if (!howMuch)
+  mockup_topUp: function cc_mockup_topUp(code) {
+    if (!code || this.isWaiting)
       return;
 
-    // Introduce errors
+    var self = this;
 
-    // 
+    // Return the balance from the message or null if impossible to parse
+    function parseConfirmationSMS(message) {
+      var newBalance = null;
+      var found = message.body.match(new RegExp(self.CHECK_BALANCE_REGEXP));
 
-    var currentCredit = parseFloat(this.feedback[1].textContent);
-    var newCredit = currentCredit + parseInt(howMuch);
-    if (newCredit >= 2)
-      this.widget.classList.remove('low-credit');
-    newCredit = Math.round(newCredit * 100)/100;
-    this.feedback[1].textContent = newCredit + 'R$';
-  },
+      // Impossible parse
+      if (!found || !found[1]) {
+        console.warn('Impossible to parse confirmation message.')
 
-  toppedUp: function cc_toppedUP() {
-    //TODO
+      // Parsing succsess
+      } else {
+        newBalance = found[1];
+      }
+
+      return newBalance;
+    }
+
+    // What happend when the a SMS is received
+    function onSMSReceived(evt) {
+      // Ignore messages from other senders
+      var message = evt.message;
+      if (message.sender !== '800268'/*self.TOP_UP_SENDERS*/)
+        return;
+
+      stopWaiting();
+      // XXX: Uncomment after removing mock ups
+//      var newBalance = parseConfirmationSMS(message);
+
+      // TODO: If no parsing, notificate error and return
+
+      // XXX: Remove when removing mock ups
+      var currentBalance = parseFloat(self.widgetCredit.textContent.slice(2));
+      var newBalance = currentBalance + parseInt(message.body);
+      newBalance = 'R$ ' + Math.round(newBalance * 100)/100;
+
+      self.updateUI(newBalance);
+      // TODO: Add confirmation notification
+    }
+
+    // Disable processing SMS
+    function stopWaiting() {
+      window.clearTimeout(self.balanceTimeout);
+      self.setWaitingMode(false);
+      self.sms.removeEventListener('received', onSMSReceived);
+    }
+
+    this.setWaitingMode(true);
+
+    // Compose topup message and send
+    var messageBody = this.TOP_UP_TEXT.replace('&code', code);
+    var request = this.sms.send('+34638358467' /*this.TOP_UP_DESTINATION*/, messageBody);
+    request.onsuccess = function cc_onSuccessSendingTopup() {
+      // Wait for the confirmation SMS
+      self.sms.addEventListener('received', onSMSReceived);
+      self.balanceTimeout = window.setTimeout(
+        stopWaiting,
+        self.WAITING_TIMEOUT
+      );
+    }
+
+    request.onerror = function cc_onErrorSendingTopup() {
+      var _ = navigator.mozL10n.get;
+      self.setWaitingMode(false);
+      ModalDialog.alert(_('It is not possible to update your balance now.'));
+    }
   },
 
   _pad: function(num) {
@@ -298,5 +358,4 @@ var CostControl = {
   }
 };
 
-console.log('Initializing!!!');
 CostControl.init();
