@@ -1,23 +1,23 @@
 /*
  * ImageEditor.js: simple image editing and previews in a <canvas> element
- * 
+ *
  * Display an edited version of the specified image in a <canvas> element
  * inside the specified container element. The image (or cropped region of
  * the image) will be displayed as large as possible within the container's
  * area.  Edits is an object that specifies the edits to apply to the image.
  * The edits object may include these properties:
- *  
+ *
  *  crop: an object with x, y, w, and h properties specifying a crop rectangle
  *  gamma: a float specifying gamma correction
  *  effects: "bw" and "sepia" or "none"
  *  borderColor: a CSS color string for the border
  *  borderWidth: the size of the border as a fraction of the image width
- * 
- * In addition to previewing the image, this class also defines a 
+ *
+ * In addition to previewing the image, this class also defines a
  * getFullSizeBlob() function that creates a full-size version of the
  * edited image.
  */
-"use strict";
+'use strict';
 
 function ImageEditor(imageURL, container, edits) {
   this.imageURL = imageURL;
@@ -26,7 +26,7 @@ function ImageEditor(imageURL, container, edits) {
 
   // The canvas that displays the preview
   this.previewCanvas = document.createElement('canvas');
-  this.previewCanvas.style.position = "absolute";
+  this.previewCanvas.style.position = 'absolute';
   this.previewContext = this.previewCanvas.getContext('2d');
   this.container.appendChild(this.previewCanvas);
 
@@ -34,7 +34,7 @@ function ImageEditor(imageURL, container, edits) {
   this.offscreenCanvas = document.createElement('canvas');
   this.offscreenContext = this.offscreenCanvas.getContext('2d');
 
-  // A full-size offscreen image 
+  // A full-size offscreen image
   this.original = new Image();
   this.original.src = imageURL;
   var self = this;
@@ -50,8 +50,8 @@ function ImageEditor(imageURL, container, edits) {
       // Whenever the worker sends us some image data, we copy it into the
       // middle of the preview canvas
       var imagedata = e.data.imagedata;
-      var x = (self.previewCanvas.width - imagedata.width)/2;
-      var y = (self.previewCanvas.height - imagedata.height)/2;
+      var x = (self.previewCanvas.width - imagedata.width) / 2;
+      var y = (self.previewCanvas.height - imagedata.height) / 2;
       self.previewContext.putImageData(imagedata, x, y);
     }
   }
@@ -59,10 +59,10 @@ function ImageEditor(imageURL, container, edits) {
 
 // Preview the image with the specified edits applyed. If edits is omitted,
 // displays the original image. Clients should call this function when the
-// desired edits change or when the size of the container changes (on 
+// desired edits change or when the size of the container changes (on
 // orientation change events, for example)
 ImageEditor.prototype.edit = function(edits) {
-  if (!edits) 
+  if (!edits)
     edits = {};
 
   var containerWidth = this.container.clientWidth;
@@ -76,55 +76,55 @@ ImageEditor.prototype.edit = function(edits) {
   var borderWidth = edits.borderWidth || 0;
   if (borderWidth > 0) {
     borderWidth = Math.round(borderWidth * imageWidth);
-    imageWidth += 2*borderWidth;
-    imageHeight += 2*borderWidth;
+    imageWidth += 2 * borderWidth;
+    imageHeight += 2 * borderWidth;
   }
 
   // Now figure out the size and position of the canvas within the container
   // based on the size of the image and the size of the container.
   // See also fitImageToScreen() in gallery.js
-  var scalex = containerWidth/imageWidth;
-  var scaley = containerHeight/imageHeight;
+  var scalex = containerWidth / imageWidth;
+  var scaley = containerHeight / imageHeight;
   var scale = Math.min(Math.min(scalex, scaley), 1);
 
   // Set the image size and position
   var scaledBorderWidth = Math.ceil(borderWidth * scale);
-  var width = Math.floor((imageWidth-2*borderWidth) * scale);
-  var height = Math.floor((imageHeight-2*borderWidth) * scale);
-  var left = Math.floor((containerWidth - width - 2*scaledBorderWidth) / 2);
-  var top = Math.floor((containerHeight - height - 2*scaledBorderWidth) / 2);
+  var width = Math.floor((imageWidth - 2 * borderWidth) * scale);
+  var height = Math.floor((imageHeight - 2 * borderWidth) * scale);
+  var left = Math.floor((containerWidth - width - 2 * scaledBorderWidth) / 2);
+  var top = Math.floor((containerHeight - height - 2 * scaledBorderWidth) / 2);
 
   // Set the on-screen position of the preview canvas.
-  this.previewCanvas.width = width + 2*scaledBorderWidth;
-  this.previewCanvas.height = height + 2*scaledBorderWidth;
+  this.previewCanvas.width = width + 2 * scaledBorderWidth;
+  this.previewCanvas.height = height + 2 * scaledBorderWidth;
   this.previewCanvas.style.left = left + 'px';
   this.previewCanvas.style.top = top + 'px';
 
   // Use the offscreen canvas to get image pixels that we want to edit
   this.offscreenCanvas.width = width;
   this.offscreenCanvas.height = height;
-  this.offscreenContext.drawImage(this.original, 
+  this.offscreenContext.drawImage(this.original,
                                   edits.crop ? edits.crop.x : 0,
                                   edits.crop ? edits.crop.y : 0,
-                                  imageWidth - 2*borderWidth,
-                                  imageHeight - 2*borderWidth,
+                                  imageWidth - 2 * borderWidth,
+                                  imageHeight - 2 * borderWidth,
                                   0, 0, width, height);
   var imagedata = this.offscreenContext.getImageData(0, 0, width, height);
 
   // Ask our worker thread to process the pixels.
   // They'll get drawn to the preview canvas when the editing is done
   this.worker.postMessage({
-    type: "preview",
+    type: 'preview',
     imagedata: imagedata,
     edits: edits
   });
-                                  
+
   // Meanwhile, draw the border, if there is one
   if (borderWidth > 0) {
     this.previewContext.lineWidth = scaledBorderWidth;
-    this.previewContext.strokeStyle = edits.borderColor || "#fff";
-    this.previewContext.strokeRect(scaledBorderWidth/2,
-                                   scaledBorderWidth/2,
+    this.previewContext.strokeStyle = edits.borderColor || '#fff';
+    this.previewContext.strokeRect(scaledBorderWidth / 2,
+                                   scaledBorderWidth / 2,
                                    width + scaledBorderWidth,
                                    height + scaledBorderWidth);
   }
@@ -145,9 +145,9 @@ ImageEditor.prototype.getFullSizeBlob = function(edits, type, callback) {
   }
 
   // Use the offscreen canvas to get image pixels that we want to edit
-  this.offscreenCanvas.width = imageWidth + 2*borderWidth;
-  this.offscreenCanvas.height = imageHeight + 2*borderWidth;
-  this.offscreenContext.drawImage(this.original, 
+  this.offscreenCanvas.width = imageWidth + 2 * borderWidth;
+  this.offscreenCanvas.height = imageHeight + 2 * borderWidth;
+  this.offscreenContext.drawImage(this.original,
                                   edits.crop ? edits.crop.x : 0,
                                   edits.crop ? edits.crop.y : 0,
                                   imageWidth, imageHeight,
@@ -159,7 +159,7 @@ ImageEditor.prototype.getFullSizeBlob = function(edits, type, callback) {
 
   // Ask our worker thread to process the pixels.
   this.worker.postMessage({
-    type: "fullsize",
+    type: 'fullsize',
     imagedata: imagedata,
     edits: edits
   });
@@ -167,9 +167,9 @@ ImageEditor.prototype.getFullSizeBlob = function(edits, type, callback) {
   // Meanwhile, draw the border, if there is one
   if (borderWidth > 0) {
     this.offscreenContext.lineWidth = borderWidth;
-    this.offscreenContext.strokeStyle = edits.borderColor || "#fff";
-    this.offscreenContext.strokeRect(borderWidth/2,
-                                     borderWidth/2,
+    this.offscreenContext.strokeStyle = edits.borderColor || '#fff';
+    this.offscreenContext.strokeRect(borderWidth / 2,
+                                     borderWidth / 2,
                                      imageWidth + borderWidth,
                                      imageHeight + borderWidth);
   }
@@ -186,7 +186,7 @@ ImageEditor.prototype.getFullSizeBlob = function(edits, type, callback) {
     self.offscreenContext.putImageData(imagedata, borderWidth, borderWidth);
 
     // Now get it as a blob and pass it to the callback
-    callback(self.offscreenCanvas.mozGetAsFile("", type));
+    callback(self.offscreenCanvas.mozGetAsFile('', type));
   };
 };
 
@@ -197,8 +197,8 @@ ImageEditor.prototype.close = function() {
   // Remove the canvas from the container
   this.container.removeChild(this.previewCanvas);
   // Forget the URL of the offscreen image
-  this.original.src = "";
-  // Set canvas sizes to zero 
+  this.original.src = '';
+  // Set canvas sizes to zero
   this.offscreenCanvas.width = 0;
   this.previewCanvas.width = 0;
 };
