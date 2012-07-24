@@ -96,6 +96,9 @@
     <!-- Wifi -->
     <script defer src="js/wifi.js"></script>
 
+    <!-- Voicemail -->
+    <script defer src="js/voicemail.js"></script>
+
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -258,7 +261,6 @@
       <div id="statusbar">
         <!-- Loading -->
         <div id="statusbar-loading" hidden></div>
-
         <!-- Notification -->
         <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
           data-num="" hidden></div>
@@ -285,6 +287,7 @@
         <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
         <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
         <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
+        <div id="statusbar-voicemail" data-show-num="false" data-num="" hidden></div>
         <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
         <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
       </div>

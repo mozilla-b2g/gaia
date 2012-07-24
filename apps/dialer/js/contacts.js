@@ -17,11 +17,16 @@ var Contacts = {
     if (mozContacts) {
       var request = mozContacts.find(options, callback);
       request.onsuccess = function findCallback() {
-        if (request.result.length == 0)
+        if (request.result.length == 0) {
+          callback(null);
           return;
+        }
 
         var contacts = request.result;
         callback(contacts[0]);
+      };
+      request.onerror = function findError() {
+        callback(null, request.error);
       };
     } else {
       callback(null);
