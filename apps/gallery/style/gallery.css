@@ -65,9 +65,7 @@ body {
   margin: 0;
   overflow-y: scroll;
   overflow-x: hidden;
-  /* If we want to scroll up and down, then apparently we have to add */
-  /* some extra width to keep the scrollbar offscreen */
-  width: -moz-calc(100% + 10px);
+  width: 100%;
   background-color: #000;
 }
 
@@ -143,9 +141,9 @@ body {
  * we get working scrollbars
  */
 #photos-filmstrip #thumbnails {
-  left:0;
-  top:0;
-  height:50px;
+  left: 0;
+  top: 0;
+  height: 50px;
   overflow-y: hidden;
   overflow-x: scroll;
 }

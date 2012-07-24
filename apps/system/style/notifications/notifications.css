@@ -17,8 +17,7 @@
 }
 
 #notifications-container {
-  /* accounting for the scrollbar bug */
-  width: -moz-calc(100% + 8px);
+  width: 100%;
 
   /* minus quick settings and grippy */
   height: -moz-calc(100% - 60px - 20px);
