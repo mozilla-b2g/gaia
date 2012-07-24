@@ -21,7 +21,6 @@ header {
   background-color: rgb(64, 79, 90);
   color: rgb(255, 255, 255);
   padding: 10px 10px 10px 48px;
-  font-family: "Open Sans","Helvetica Neue",Arial,sans-serif;
   font-weight: 300;
   font-size: 13px;
 }
@@ -51,7 +50,6 @@ footer .buttonclose {
   text-decoration: none;
   text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.25);
   white-space: nowrap;
-  font: 600 16px/31px "Open Sans","Helvetica Neue",Arial,sans-serif;
   border-radius: 0.5em 0.5em 0.5em 0.5em;
   box-shadow: 0px 2px 1px rgba(0, 0, 0, 0.2), 0px -1px 0px rgba(0, 0, 0, 0.2) inset, 0px 1px 0px 0px rgba(255, 255, 255, 0.2) inset;
   background-color: rgb(38, 124, 194);
@@ -66,20 +64,20 @@ header .buttonclose:hover {
   text-decoration: none;
 }
 
-.bluevia {
+#providers .bluevia {
   background-image: url("../../resources/images/payment/bluevia.jpg");
   background-repeat: no-repeat;
-  width: auto;
-  height: auto;
+  width: 229px;
+  height: 97px;
   margin: 0;
   padding: 0;
 }
 
-.mozilla {
+#providers .mozilla {
   background-image: url("../../resources/images/payment/mozilla.jpg");
   background-repeat: no-repeat;
-  width: auto;
-  height: auto;
+  width: 193px;
+  height: 96px;
   margin: 0;
   padding: 0;
 }

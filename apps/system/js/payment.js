@@ -33,11 +33,7 @@ var Payment = (function() {
         window.dispatchEvent(event);
         eventId = null;
       };
-      var image = frameDocument.createElement('img');
-      image.setAttribute('alt', providers[i].name);
-      image.classList.add(providers[i].name);
-      //image.src = kPaymentProvidersDir + providers[i].name + '.jpg';
-      button.appendChild(image);
+      button.classList.add(providers[i].name);
       providerElement.appendChild(button);
       providerList.appendChild(providerElement);
     }
