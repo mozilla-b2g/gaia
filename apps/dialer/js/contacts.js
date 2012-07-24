@@ -5,7 +5,7 @@ var Contacts = {
   findByNumber: function findByNumber(number, callback) {
     var options = {
       filterBy: ['tel'],
-      filterOp: 'contains',
+      filterOp: 'equals',
       filterValue: number
     };
 
