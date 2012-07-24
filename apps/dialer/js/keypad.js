@@ -308,16 +308,16 @@ var KeypadManager = {
             TonePlayer.play(gTonesFrequencies[key]);
           }
 
-          // Sending the DTMF tone
+          // Sending the DTMF tone if on a call
           var telephony = navigator.mozTelephony;
-          if (telephony) {
-            if ((telephony.active != null) 
-                 && (telephony.active.state == 'connected')) {
-              telephony.startTone(key);
-              window.setTimeout(function ch_stopTone() {
-                telephony.stopTone();
-              }, 100);
-            }
+          if (telephony && telephony.active &&
+              telephony.active.state == 'connected') {
+
+            telephony.startTone(key);
+            window.setTimeout(function ch_stopTone() {
+              telephony.stopTone();
+            }, 100);
+
           }
         }
 
