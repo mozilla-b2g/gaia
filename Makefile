@@ -508,7 +508,6 @@ else
 	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp /data/local/$(TARGET_FOLDER)/manifest.webapp
 	$(ADB) push profile/$(TARGET_FOLDER)/application.zip /data/local/$(TARGET_FOLDER)/application.zip
 endif
-	$(ADB) push $(CURDIR)/profile/permissions.sqlite $(shell $(ADB) shell echo /data/b2g/mozilla/*.default/)
 	@echo "Installed gaia into profile/."
 	@echo 'Starting b2g'
 	$(ADB) shell start b2g
