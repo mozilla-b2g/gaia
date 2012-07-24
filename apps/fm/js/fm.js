@@ -98,14 +98,14 @@ function setFreq(freq) {
 }
 
 function updateFreqUI() {
-  $('frequency').textContent = mozFMRadio.frequency;
-  $('bookmark-button').className =
-       favoritesList.contains(mozFMRadio.frequency) ? 'in-fav-list' : '';
+  $('frequency').textContent = mozFMRadio.frequency.toFixed(1);
+  $('bookmark-button').setAttribute('data-bookmarked',
+       favoritesList.contains(mozFMRadio.frequency));
 }
 
 function updatePowerUI() {
   console.log('Power status: ' + (mozFMRadio.enabled ? 'on' : 'off'));
-  $('power-switch').className = mozFMRadio.enabled ? 'poweron' : 'poweroff';
+  $('power-switch').setAttribute('data-enabled', mozFMRadio.enabled);
 }
 
 function updateAntennaUI() {
@@ -125,7 +125,7 @@ function seekUp() {
   }
 
   request.onsuccess = function seekup_onsuccess() {
-    $('current_freq').innerHTML = mozFMRadio.frequency;
+    updateFreqUI();
     console.log('Seek up complete, and got new program.');
   };
 
@@ -147,7 +147,7 @@ function seekDown() {
   }
 
   request.onsuccess = function seekdown_onsuccess() {
-    $('current_freq').innerHTML = mozFMRadio.frequency;
+    updateFreqUI();
     console.log('Seek down complete, and got new program.');
   };
 
@@ -257,7 +257,7 @@ var favoritesList = {
     var container = $('fav-list-container');
     var elem = document.createElement('div');
     elem.id = this._getUIElemId(item);
-    elem.textContent = item.frequency;
+    elem.textContent = item.frequency.toFixed(1);
     container.appendChild(elem);
 
     this._autoShowHideEditBtn();
@@ -343,13 +343,13 @@ var favoritesList = {
 
   startEdit: function(event) {
     this.editing = true;
-    $('switch-bar').hidden = true;
+    $('action-bar').hidden = true;
     $('edit-bar').hidden = false;
   },
 
   cancelEdit: function(event) {
     this.editing = false;
-    $('switch-bar').hidden = false;
+    $('action-bar').hidden = false;
     $('edit-bar').hidden = true;
     var selectedItems = $$('#fav-list-container > div.selected');
     for (var i = 0; i < selectedItems.length; i++) {
@@ -411,17 +411,40 @@ var favoritesList = {
 
 function init() {
   favoritesList.init();
-
-  $('freq-op-seekdown').addEventListener('click', seekDown, false);
-  $('freq-op-seekup').addEventListener('click', seekUp, false);
-
-  $('freq-op-100khz-down').addEventListener('click', function set_freq_down() {
+  
+  var seekDownTimeout = null;
+  var seekUpTimeout = null;
+  
+  $('freq-op-seekdown').addEventListener('mousedown', function() {
     setFreq(mozFMRadio.frequency - 0.1);
+    seekDownTimeout = window.setTimeout(function() {
+      seekDown();
+      seekDownTimeout = null;
+    }, 800);
   }, false);
+  $('freq-op-seekdown').addEventListener('mouseup', function() {
+    if (seekDownTimeout === null)
+      return;
 
-  $('freq-op-100khz-up').addEventListener('click', function set_freq_up() {
-    setFreq(mozFMRadio.frequency + 0.1);
+    window.clearTimeout(seekDownTimeout);
+    seekDownTimeout = null;
   }, false);
+  
+  $('freq-op-seekup').addEventListener('mousedown', function() {
+    setFreq(mozFMRadio.frequency + 0.1);
+    seekUpTimeout = window.setTimeout(function() {
+      seekUp();
+      seekUpTimeout = null;
+    }, 800);
+  }, false);
+  $('freq-op-seekup').addEventListener('mouseup', function() {
+    if (seekUpTimeout === null)
+      return;
+
+    window.clearTimeout(seekUpTimeout);
+    seekUpTimeout = null;
+  }, false);
+  
 
   $('power-switch').addEventListener('click', function toggle_fm() {
     enableFM(!mozFMRadio.enabled);
