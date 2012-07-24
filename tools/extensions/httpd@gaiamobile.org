@@ -1,1 +1,1 @@
-@GAIA_DIR@/profile/extensions/httpd/
+httpd
