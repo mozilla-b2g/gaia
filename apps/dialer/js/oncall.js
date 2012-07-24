@@ -347,6 +347,11 @@ var OnCallHandler = {
   },
 
   updateCallNumber: function och_updateCallNumber(number) {
+    if (!number.length) {
+      CallScreen.update('Anonymous');
+      return;
+    }
+
     var voicemail = navigator.mozVoicemail;
     if (voicemail) {
       if (voicemail.number == number) {
