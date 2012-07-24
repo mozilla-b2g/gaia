@@ -411,10 +411,10 @@ var favoritesList = {
 
 function init() {
   favoritesList.init();
-  
+
   var seekDownTimeout = null;
   var seekUpTimeout = null;
-  
+
   $('freq-op-seekdown').addEventListener('mousedown', function() {
     setFreq(mozFMRadio.frequency - 0.1);
     seekDownTimeout = window.setTimeout(function() {
@@ -429,7 +429,7 @@ function init() {
     window.clearTimeout(seekDownTimeout);
     seekDownTimeout = null;
   }, false);
-  
+
   $('freq-op-seekup').addEventListener('mousedown', function() {
     setFreq(mozFMRadio.frequency + 0.1);
     seekUpTimeout = window.setTimeout(function() {
@@ -444,7 +444,7 @@ function init() {
     window.clearTimeout(seekUpTimeout);
     seekUpTimeout = null;
   }, false);
-  
+
 
   $('power-switch').addEventListener('click', function toggle_fm() {
     enableFM(!mozFMRadio.enabled);

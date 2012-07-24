@@ -1223,7 +1223,7 @@ var exposureSlider = (function() {
     var oldExposure = currentExposure;
     setExposure(sliderStartExposure + exposureDelta);
     if (currentExposure !== oldExposure)
-      slider.dispatchEvent(new Event("change", {bubbles:true}));
+      slider.dispatchEvent(new Event('change', {bubbles: true}));
     e.preventDefault();
   }
 
@@ -1236,15 +1236,15 @@ var exposureSlider = (function() {
   // Set the thumb position between -3 and +3
   function setExposure(exposure) {
     // Make sure it is not out of bounds
-    if (exposure < -3) 
+    if (exposure < -3)
       exposure = -3;
-    else if (exposure > 3) 
+    else if (exposure > 3)
       exposure = 3;
 
     // Round to the closest .25
-    exposure = Math.round(exposure * 4)/4;
+    exposure = Math.round(exposure * 4) / 4;
 
-    if (exposure === currentExposure) 
+    if (exposure === currentExposure)
       return;
 
     var barWidth = parseInt(bar.clientWidth);
@@ -1254,7 +1254,7 @@ var exposureSlider = (function() {
     currentExposure = exposure;
 
     // Convert exposure value to % position of thumb center
-    var percent = 10 + (exposure+3) * 80/6;
+    var percent = 10 + (exposure + 3) * 80 / 6;
 
     // Convert percent to pixel position of thumb center
     var pixel = barWidth * percent / 100;
@@ -1263,7 +1263,7 @@ var exposureSlider = (function() {
     pixel -= thumbWidth / 2;
 
     // Move the thumb to that position
-    thumb.style.left = pixel + "px";
+    thumb.style.left = pixel + 'px';
 
     // Display exposure value in thumb
     thumb.textContent = exposure;
@@ -1277,13 +1277,13 @@ var exposureSlider = (function() {
 
 $('exposure-slider').onchange = function() {
   var stops = exposureSlider.getExposure();
-  
+
   // Convert the exposure compensation stops gamma correction value.
   var factor = -1;  // XXX: adjust this factor to get something reasonable.
-  var gamma = Math.pow(2, stops*factor);
+  var gamma = Math.pow(2, stops * factor);
   editSettings.gamma = gamma;
   imageEditor.edit(editSettings);
-}
+};
 
 function setEditTool(tool) {
   // Deselect all tool buttons and hide all options
