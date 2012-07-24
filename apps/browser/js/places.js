@@ -318,7 +318,7 @@ Places.db = {
     };
   },
 
-  getPlacesByFrecency: function db_getPlacesByFrecency(maximum, filter, callback) {
+  getPlacesByFrecency: function db_placesByFrecency(maximum, filter, callback) {
     var topSites = [];
     var self = this;
     var transaction = self._db.transaction('places');
