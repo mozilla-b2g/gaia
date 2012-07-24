@@ -320,7 +320,7 @@ var Recents = {
 
   click: function re_click(target) {
     if (!this._recentsEditionMode) {
-      var number = target.dataset.num;
+      var number = target.dataset.num.trim();
       if (number) {
         CallHandler.call(number);
       }
