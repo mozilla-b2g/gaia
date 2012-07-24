@@ -1168,7 +1168,7 @@ var Utils = {
     if (!searchRegExp) {
       return text;
     }
-    searchRegExp = new RegExp(searchRegExp, 'i');
+    searchRegExp = new RegExp(searchRegExp, 'gi');
     var sliceStrs = text.split(searchRegExp);
     var patterns = text.match(searchRegExp);
     if (!patterns) {
