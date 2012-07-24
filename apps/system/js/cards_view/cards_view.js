@@ -426,6 +426,15 @@ var CardsView = (function() {
     }
   }
 
+  window.addEventListener('applicationuninstall',
+    function removeUninstaledApp(evt) {
+      var origin = evt.detail.application.origin;
+      if (userSortedApps.indexOf(origin) !== -1) {
+        userSortedApps.splice(userSortedApps.indexOf(origin), 1);
+      }
+    },
+  false);
+
   function cv_handleEvent(evt) {
     switch (evt.type) {
       case 'mousedown':
