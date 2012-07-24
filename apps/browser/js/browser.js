@@ -38,6 +38,7 @@ var Browser = {
     // Assign UI elements to variables
     this.toolbarStart = document.getElementById('toolbar-start');
     this.urlBar = document.getElementById('url-bar');
+    this.tabHeaders = document.getElementById('tab-headers');
     this.urlInput = document.getElementById('url-input');
     this.urlButton = document.getElementById('url-button');
     this.content = document.getElementById('browser-content');
@@ -321,6 +322,8 @@ var Browser = {
           evt.preventDefault();
           this.showPageScreen();
           this.urlInput.blur();
+        } else {
+          this.updateAwesomeScreen(this.urlInput.value);
         }
     }
   },
@@ -515,20 +518,30 @@ var Browser = {
     this.historyTab.classList.remove('selected');
   },
 
-  showTopSitesTab: function browser_showTopSitesTab() {
+  updateAwesomeScreen: function browser_updateAwesomeScreen(filter) {
+    if (!filter) {
+      this.tabHeaders.style.display = 'block';
+      filter = false;
+    } else {
+      this.tabHeaders.style.display = 'none';
+    }
+    Places.getTopSites(20, filter, this.showTopSites.bind(this));
+  },
+
+  showTopSitesTab: function browser_showTopSitesTab(filter) {
     this.deselectAwesomescreenTabs();
     this.topSitesTab.classList.add('selected');
     this.topSites.classList.add('selected');
-    Places.getTopSites(20, this.showTopSites.bind(this));
+    this.updateAwesomeScreen();
   },
 
-  showTopSites: function browser_showTopSites(topSites) {
+  showTopSites: function browser_showTopSites(topSites, filter) {
     this.topSites.innerHTML = '';
     var list = document.createElement('ul');
     list.setAttribute('role', 'listbox');
     this.topSites.appendChild(list);
     topSites.forEach(function browser_processTopSite(data) {
-      this.drawAwesomescreenListItem(list, data);
+      this.drawAwesomescreenListItem(list, data, filter);
     }, this);
   },
 
@@ -594,20 +607,22 @@ var Browser = {
   },
 
   drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(list,
-    data) {
+    data, filter) {
     var entry = document.createElement('li');
     var link = document.createElement('a');
-    var title = document.createElement('span');
+    var title = document.createElement('h5');
     var url = document.createElement('small');
     entry.setAttribute('role', 'listitem');
     link.href = data.uri;
-    title.textContent = data.title ? data.title : data.uri;
+    var titleText = data.title ? data.title : data.url;
+    title.innerHTML = Utils.createHighlightHTML(titleText, filter);
+
     if (data.uri == this.START_PAGE_URL) {
       url.textContent = 'about:home';
     } else if (data.uri == this.ABOUT_PAGE_URL) {
       url.textContent = 'about:';
     } else {
-      url.textContent = data.uri;
+      url.innerHTML = Utils.createHighlightHTML(data.uri, filter);
     }
     link.appendChild(title);
     link.appendChild(url);
@@ -1159,6 +1174,42 @@ var Browser = {
         this.createTab(url);
         break;
     }
+  }
+};
+
+// Taken (and modified) from /apps/sms/js/searchUtils.js
+// and /apps/sms/js/utils.js
+var Utils = {
+  createHighlightHTML: function ut_createHighlightHTML(text, searchRegExp) {
+    if (!searchRegExp) {
+      return text;
+    }
+    searchRegExp = new RegExp(searchRegExp, 'i');
+    var sliceStrs = text.split(searchRegExp);
+    var patterns = text.match(searchRegExp);
+    if (!patterns) {
+      return text;
+    }
+    var str = '';
+    for (var i = 0; i < patterns.length; i++) {
+      str = str +
+        Utils.escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
+        Utils.escapeHTML(patterns[i]) + '</span>';
+    }
+    str += Utils.escapeHTML(sliceStrs.pop());
+    return str;
+  },
+
+  escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
+    var span = document.createElement('span');
+    span.textContent = str;
+
+    // Escape space for displaying multiple space in message.
+    span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
+
+    if (escapeQuotes)
+      return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    return span.innerHTML;
   }
 };
 

@@ -238,8 +238,7 @@ a.button {
   /* for buttons that display text */
   font-size: smaller;
   text-align: center;
-  vertical-align: 75%;
-  line-height: 50px;;
+  line-height: 50px;
 }
 
 a.button:active, a.button:focus {
@@ -460,18 +459,41 @@ a.button.disabled {
   background: #ccc;
 }
 
-/* All the edit option divs have the same placement */
-#edit-options > div {
-  width: 100%;
-  height: 100%;
-  left: 0;
+/* All the effects buttons share these styles */
+#edit-effect-options > a.button {
+  position: absolute;
+  display: block;
   top: 0;
-  overflow-y: hidden;
-  overflow-x: scroll;
+  width: 33.3%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-right: solid black 1px;
+  padding-top: 15px;
+  overflow: hidden;
 }
 
-/* All the buttons within any of the edit option divs share these styles */
-#edit-options > div > a.button {
+#edit-effect-options > a.button.selected {
+  outline: solid orange 3px;
+  outline-offset: -3px;
+}
+
+#edit-effect-none {
+  left:0;
+}
+#edit-effect-bw {
+  left:33.3%
+}
+#edit-effect-sepia {
+  left:66.6%
+}
+
+/* All the border buttons share these styles */
+#edit-border-options > a.button {
   display: inline-block;
   width: 45px;
   height: 45px;
@@ -485,11 +507,8 @@ a.button.disabled {
   background-repeat: no-repeat;
 }
 
-#edit-options > div > a.button.selected {
+#edit-border-options > a.button.selected {
   outline: solid orange 3px;
-}
-
-#edit-exposure-options {
 }
 
 #edit-effect-options {
@@ -498,18 +517,6 @@ a.button.disabled {
 #edit-border-options {
 }
 
-a.filter-gamma-2 {
-  filter: url(../index.html#filter-gamma-2);
-}
-a.filter-gamma-1-414 {
-  filter: url(../index.html#filter-gamma-1-414);
-}
-a.filter-gamma-0-707 {
-  filter: url(../index.html#filter-gamma-0-707);
-}
-a.filter-gamma-0-5 {
-  filter: url(../index.html#filter-gamma-0-5);
-}
 a.filter-bw {
   filter: url(../index.html#filter-bw);
 }
@@ -564,4 +571,99 @@ a.border-thick-black {
 
 #edit-border-button {
   left: 66.6%
+}
+
+/*
+ * All of these slider styles are for the exposure compensation slider
+ * If this app ever needs another slider, we'll have lots of name
+ * collisions.  Ideally, this slider stuff should all be packaged up
+ * into a reusable component. But this is one-off for now
+ */
+#exposure-slider {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-color: #444;
+  font-size: smaller;
+}
+
+#sliderbar {
+  position: relative;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+#sliderline {
+  position: absolute;
+  height: 2px;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  margin: 0;
+}
+
+#sliderthumb {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  top: -10px;
+  left: -moz-calc(10% - 20px);
+  border-radius: 50%;
+  background-color: #eee;
+  text-align: center;
+  padding-top: 12px;
+  font-size: smaller;
+  color: black;
+}
+
+#sliderlabels {
+  position: relative;
+  height: 30px;
+  padding: 0;
+  margin: 0;
+  background-color: #222;
+  color: white;
+  border-top: solid #eee 1px;
+}
+
+.sliderlabel {
+  position: absolute;
+  top: 0;
+  height: 5px;
+  border-left: solid #eee 1px;
+}
+
+.sliderlabel:after {
+  content: attr(data-label);
+  position: relative;
+  display: block;
+  text-align: center;
+  top: 5px;
+  width: 100px;
+  left: -50px;
+}
+
+#slider-3 {
+  left: -moz-calc(10% + 0 * 80%/6);
+}
+#slider-2 {
+  left: -moz-calc(10% + 1 * 80%/6);
+}
+#slider-1 {
+  left: -moz-calc(10% + 2 * 80%/6);
+}
+#slider0 {
+  left: -moz-calc(10% + 3 * 80%/6);
+}
+#slider1 {
+  left: -moz-calc(10% + 4 * 80%/6);
+}
+#slider2 {
+  left: -moz-calc(10% + 5 * 80%/6);
+}
+#slider3 {
+  left: -moz-calc(10% + 6 * 80%/6);
 }
