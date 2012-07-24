@@ -15,8 +15,5 @@
       "disposition": "window"
     }
   },
-  "icons": {
-    "120": "/style/icons/Blank.png",
-    "60": "/style/icons/Blank.png"
-  }
+  "orientation": "portrait"
 }

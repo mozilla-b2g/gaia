@@ -16,7 +16,8 @@ var Wallpaper = {
 
   getAllElements: function md_getAllElements() {
     var elementsID = ['thumbnails', 'thumbnail-list-view',
-        'photo-view', 'photos-filmstrip', 'photo-frame', 'current-frame'];
+        'photo-view', 'photos-filmstrip', 'photo-frame', 'current-frame',
+        'set', 'cancel', 'back'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -33,25 +34,30 @@ var Wallpaper = {
 
   init: function wp_init() {
     this.createThumbnailList();
-    // XXX: pending on platform support, marked.
-    //
-    //this.activityListener();
+    // XXX: pending on platform support!
+    this.activityListener();
     this.getAllElements();
-
 
     // Event Binding
     this.thumbnails.addEventListener('click', this);
     window.addEventListener('mozvisibilitychange', this);
     window.addEventListener('resize', this);
+    this.back.addEventListener('click', this);
+    this.set.addEventListener('click', this);
   },
 
   handleEvent: function wp_handleEvent(evt) {
-    switch(evt.type) {
+    switch (evt.type) {
       case 'mozvisibilitychange':
         this.cancelPick();
         break;
       case 'click':
         var target = evt.target;
+        if (target === this.back) {
+          this.setView(this.thumbnailListView);
+        } else if (target === this.set) {
+          this.finishPick(this.currentFrame.firstChild.src);
+        }
         if (!target || !target.classList.contains('thumbnail'))
           return;
         this.showPhoto(parseInt(target.dataset.index));
@@ -60,15 +66,15 @@ var Wallpaper = {
   },
 
   activityListener: function wp_activityListener() {
-    if(!navigator.mozSetMessageHandler || false)
+    if (!navigator.mozSetMessageHandler || false)
       return;
 
     navigator.mozSetMessageHandler('activity', function(activityRequest) {
       if (this.pendingPick)
         this.cancelPick();
-      
+
       var activityName = activityRequest.source.name;
-      
+
       switch (activityName) {
         case 'pick':
           this.startPick(activityRequest);
@@ -96,24 +102,37 @@ var Wallpaper = {
     this.pendingPick = null;
     this.setView(this.thumbnailListView);
   },
-  
+
   // Switch from thumbnail list view to single-picture view
   // and display the specified photo.
   showPhoto: function wp_showPhoto(n) {
-    this.setView(this.photoView); // Switch to photo view mode if not already there
-    this.displayImageInFrame(n);
+    this.setView(this.photoView);
+    // Switch to photo view mode if not already there
+    var self = this;
+    if (!this.images[n].width) {
+      var img = new Image();
+      img.onload = function getWH() {
+        self.images[n].width = img.width;
+        self.images[n].width = img.height;
+        self.displayImageInFrame(n);
+      };
+      img.src = self.images[n].src;
+    } else {
+      this.displayImageInFrame(n);
+    }
   },
-  
+
   displayImageInFrame: function wp_displayImageInFrame(n) {
     // Make sure n is in range
     if (n < 0 || n >= this.images.length)
       return;
 
+    var self = this;
     var img = this.currentFrame.firstChild;
     img.src = this.images[n].src;
 
     // Figure out the size and position of the image
-    var fit = fitImage(this.images[n].width,
+    var fit = this.fitImage(this.images[n].width,
                              this.images[n].height);
     var style = img.style;
     style.width = fit.width + 'px';
@@ -121,14 +140,15 @@ var Wallpaper = {
     style.left = fit.left + 'px';
     style.top = fit.top + 'px';
   },
-  
+
+  // XXX: to do!
   crop: function wp_crop(url) {
   },
 
   setView: function wp_setView(view) {
     if (this.currentView === view)
       return;
-    
+
     var views = [this.thumbnailListView, this.photoView];
 
     // Show the specified view, and hide the others
@@ -145,34 +165,30 @@ var Wallpaper = {
       case this.thumbnailListView:
         view.appendChild(this.thumbnails);
         this.thumbnails.style.width = '';
+        this.back.classList.add('hidden');
         break;
       case this.photoView:
+        this.back.classList.remove('hidden');
         break;
     }
     // Remember the current view
     this.currentView = view;
   },
-  
+
   createThumbnailList: function wp_createThumbnailList() {
     var self = this;
     var defaultWallpapers = document.querySelectorAll('#thumbnails li');
-    console.log(defaultWallpapers.length,'=====');
     for (var i = 0; i < defaultWallpapers.length; i++) {
       var src = defaultWallpapers[i].style.backgroundImage;
       src = src.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
-      console.log('=====',src);
-      var img = new Image();
-      img.onload = function getWH() {
-        self.images.push({ src: src, width: img.width, height: img.height });
-        console.log('====={ src: '+src+', width: '+img.width+', height: '+img.height+'}');
-      };
-      img.src = src;
+      this.images.push({src: src});
     }
   },
 
   // figure out the size and position of an image based on its size
   // and the screen size.
-  fitImage: function wp_fitImage(photoWidth, photoHeight, viewportWidth, viewportHeight) {
+  fitImage: function wp_fitImage(photoWidth, photoHeight,
+      viewportWidth, viewportHeight) {
     var scalex = viewportWidth / photoWidth;
     var scaley = viewportHeight / photoHeight;
     var scale = Math.min(Math.min(scalex, scaley), 1);
@@ -189,6 +205,6 @@ var Wallpaper = {
       scale: scale
     };
   }
-}
+};
 
 Wallpaper.init();

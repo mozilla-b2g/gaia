@@ -9,7 +9,8 @@
   </head>
   <body>
     <header>
-      <span data-i10-id="wallpaper"></span>
+      <button id="back" data-i10-i10="back" class="hidden">Back</button>
+      <span data-i10-id="wallpapers">Wallpapers</span>
     </header>
     <div id="thumbnail-list-view">
       <ul id="thumbnails">
@@ -21,16 +22,22 @@
         <li data-index=5 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_06.png')"></li>
         <li data-index=6 class="thumbnail" style="background: url('style/images/OWD_12_Background_vpg_v01_07.png')"></li>
       </ul>
+      <footer>
+        <span id="cancel" data-i10-id="cancel">Cancel</span>
+      </footer>
     </div>
     <div id="photo-view" class="hidden">
       <div id="photo-frames">
         <!-- the current photo plus next and previous waiting in the wings -->
         <div class="photoFrame currentPhoto" id="current-frame"><img></div>
+        <div id="crop">
+          <button id="zoomin">+</button>
+          <button id="zoomout">-</button>
+        </div>
       </div>
+      <footer>
+        <span id="set" data-i10-id="set">Set</span>
+      </footer>
     </div>
-    
-    <footer>
-      <span id="cancel" data-i10-id="cancel"></span>
-    </footer>
   </body>
 </html>

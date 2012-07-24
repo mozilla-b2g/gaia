@@ -22,14 +22,40 @@ body {
   padding-bottom: 50px;
 }
 
-header, footer {
+header {
   background: grey;
   height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 2;
 }
 
 footer {
-  position: fixed;
+  background: grey;
+  height: 50px;
+  position: absolute;
   bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+header span, footer span {
+  text-align: center;
+  width: -moz-calc(100% - 6px);
+  height: -moz-calc(100% - 6px);
+  background: silver;
+  color: white;
+  display: inline-block;
+  margin: 3px;
+  border: solid 1px white;
+}
+
+#back {
+  position: absolute;
+  top: 5px;
+  left: 5px;
 }
 
 /* All of the main views fill the screen */
@@ -42,6 +68,7 @@ footer {
   padding: 0px;
   margin: 0px;
   overflow: hidden;
+  z-index: 1;
 }
 
 /*
@@ -252,3 +279,14 @@ a.button.disabled {
   background-image: url('images/gallery.png');
 }
 
+#crop {
+  position: absolute;
+  bottom: 100px;
+  right: 20px;
+  width: 50px;
+}
+
+#crop button {
+  width: 50px;
+  height: 50px;
+}
