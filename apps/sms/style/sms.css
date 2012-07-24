@@ -508,6 +508,12 @@ a.unread .unread-mark .icon-unread-mark {
   color: white;
 }
 
+.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+
 /*
   Bottom bar for sending SMS
 */

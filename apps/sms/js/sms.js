@@ -345,6 +345,9 @@ var ThreadListUI = {
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
     var threadIds = [], headerIndex, unreadThreads = [];
+    if (messages.length == 0) {
+      this.noMessages();
+    }
     for (var i = 0; i < messages.length; i++) {
       var message = messages[i];
       var num = message.delivery == 'received' ?
@@ -437,6 +440,13 @@ var ThreadListUI = {
     });
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
+
+  noMessages: function thlui_noMessages() {
+    //TODO show information to the user (borja?)
+
+    // disable edit mode
+    this.view.getElementById('icon-edit').classList.add('disabled');
+  },
 
   createNewHeader: function thlui_createNewHeader(timestamp) {
     // Create DOM Element
