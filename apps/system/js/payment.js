@@ -40,10 +40,6 @@ var Payment = (function() {
     return true;
   };
 
-  function close() {
-    TrustedDialog.close();
-  };
-
   window.addEventListener('mozChromeEvent', function(e) {
     switch (e.detail.type) {
       // Chrome asks Gaia to show the payment provider selection dialog
@@ -76,8 +72,4 @@ var Payment = (function() {
         break;
     }
   });
-
-  return {
-    close: close
-  };
 })();
