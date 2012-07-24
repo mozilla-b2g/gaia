@@ -17,5 +17,15 @@
     "48": "/icon.png",
     "64": "/icon64.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "activities": {
+    "view" : {
+      "filters": {
+        "type": "application/pdf"
+      }
+    }
+  },
+  "permissions": [
+    "systemXHR"
+  ]
 }

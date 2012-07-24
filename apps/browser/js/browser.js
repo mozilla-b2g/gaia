@@ -789,7 +789,7 @@ var Browser = {
     iframe.style.top = '-999px';
 
     // FIXME: content shouldn't control this directly
-    iframe.setAttribute('remote', 'true');
+    iframe.setAttribute('remote', 'remote');
 
     var tab = {
       id: 'tab_' + this.tabCounter++,

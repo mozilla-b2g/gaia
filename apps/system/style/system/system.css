@@ -74,7 +74,7 @@ body {
 }
 
 #windows > iframe.appWindow {
-  position: absolute;
+  position: fixed;
   border: 0;
   margin: 0;
   padding: 0;
