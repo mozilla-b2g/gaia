@@ -6,6 +6,14 @@ var Recents = {
 
   _recentsEditionMode: false,
 
+  _selectedEntriesCounter: 0,
+
+  get headerEditModeText() {
+    delete this.headerEditModeText;
+    return this.headerEditModeText = document.
+      getElementById('header-edit-mode-text');
+  },
+
   get recentsIconEdit() {
     delete this.recentsIconEdit;
     return this.recentsIconEdit = document.getElementById('recents-icon-edit');
@@ -114,18 +122,23 @@ var Recents = {
 
   recentsHeaderAction: function re_recentsIconEditAction(event) {
     this.recentsView.classList.toggle('recents-edit');
+    this._selectedEntriesCounter = 0;
+    this.headerEditModeText.textContent = 'Edit';
     var logItems = this.recentsContainer.
       querySelectorAll('.log-item:not(.collapsed)');
     var logItemsLenght = logItems.length;
     var contactPhoto;
     var contactSelection;
+    var logItem;
     for (var i = 0; i < logItemsLenght; i++) {
-      contactPhoto = logItems[i].querySelector('.call-log-contact-photo');
-      contactSelection = logItems[i].querySelector('.call-log-selection');
+      logItem = logItems[i];
+      contactPhoto = logItem.querySelector('.call-log-contact-photo');
+      contactSelection = logItem.querySelector('.call-log-selection');
       contactPhoto.classList.toggle('hide');
       contactSelection.classList.toggle('show');
       if (this._recentsEditionMode) {
         contactSelection.classList.remove('selected');
+        logItem.classList.remove('selected');
       }
     }
     this._recentsEditionMode = !this._recentsEditionMode;
@@ -327,6 +340,17 @@ var Recents = {
     } else {
       target.classList.toggle('selected');
       target.querySelector('.call-log-selection').classList.toggle('selected');
+      if (target.classList.contains('selected')) {
+        this._selectedEntriesCounter++;
+      } else {
+        this._selectedEntriesCounter--;
+      }
+      if (this._selectedEntriesCounter == 0) {
+        this.headerEditModeText.textContent = 'Edit';
+      } else {
+        this.headerEditModeText.textContent =
+          this._selectedEntriesCounter + ' Selected';
+      }
     }
   },
 
