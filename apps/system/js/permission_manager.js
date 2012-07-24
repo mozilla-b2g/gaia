@@ -4,8 +4,8 @@
 'use strict';
 
 (function PermissionManager() {
-  window.addEventListener('mozChromeEvent', function pm_chromeEventHandler(evt) {
-    var detail = evt.detail;
+  window.addEventListener('mozChromeEvent', function pm_chromeEventHandler(e) {
+    var detail = e.detail;
     switch (detail.type) {
       case 'webapps-ask-install':
         handleInstallationPrompt(detail);
@@ -18,8 +18,11 @@
 
   var handlePermissionPrompt = function pm_handlePermissionPrompt(detail) {
     // XXX are going to l10n the permissions name/messages?
-    requestPermission(detail.permission, function() { dispatchResponse(detail.id, 'permission-allow'); },
-                                         function() { dispatchResponse(detail.id, 'permission-deny'); });
+    requestPermission(detail.permission, function pm_permYesCB() {
+      dispatchResponse(detail.id, 'permission-allow');
+    }, function pm_permNoCB() {
+      dispatchResponse(detail.id, 'permission-deny');
+    });
   };
 
   var handleInstallationPrompt = function pm_handleInstallationPrompt(detail) {
@@ -38,8 +41,12 @@
     var str = navigator.mozL10n.get('install', {
       'name': name, 'origin': app.origin
     });
-    requestPermission(str, function() { dispatchResponse(detail.id, 'webapps-install-granted'); },
-                           function() { dispatchResponse(detail.id, 'webapps-install-denied'); });
+
+    requestPermission(str, function pm_installYesCB() {
+      dispatchResponse(detail.id, 'webapps-install-granted');
+    }, function pm_installNoCB() {
+      dispatchResponse(detail.id, 'webapps-install-denied');
+    });
   };
 
   var dispatchResponse = function pm_dispatchResponse(id, type) {
