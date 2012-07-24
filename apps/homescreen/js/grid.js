@@ -135,16 +135,7 @@ const GridManager = (function() {
   function pan(deltaX, duration) {
     pages.forEach(function(page, index) {
       var scrollX = (-pages.current + index) * windowWidth + deltaX;
-
-      if (duration && index === 0) {
-        if (deltaX > 0) {
-          page.moveBy(scrollX, duration * 2);
-        } else {
-          page.moveBy(scrollX, duration / 2);
-        }
-      } else {
-        page.moveBy(scrollX, duration);
-      }
+      page.moveBy(scrollX, duration);
     });
   }
 
@@ -158,24 +149,22 @@ const GridManager = (function() {
       delete document.body.dataset.transitioning;
       callback();
     } else {
-      var container = pageHelper.getCurrent().container;
-      var icongrid = document.getElementById('icongrid');
-      var footer = document.getElementById('footer');
+      var currentPageContainer = pageHelper.getCurrent().container;
 
       // From search page to app grid page
       if (previousIndex === 0) {
-        icongrid.classList.add('darken');
-        footer.classList.add('darken');
+        container.classList.add('darken');
+        DockManager.page.container.classList.add('darken');
       }
 
-      container.addEventListener('transitionend', function tr_end(e) {
-        container.removeEventListener('transitionend', tr_end);
+      currentPageContainer.addEventListener('transitionend', function tr_end(e) {
+        currentPageContainer.removeEventListener('transitionend', tr_end);
         delete document.body.dataset.transitioning;
         callback();
         Search.resetIcon();
         if (index === 0) {
-          icongrid.classList.remove('darken');
-          footer.classList.remove('darken');
+          container.classList.remove('darken');
+          DockManager.page.container.classList.remove('darken');
         } else {
           pageHelper.getCurrent().shake(previousIndex - index);
         }

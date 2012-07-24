@@ -465,7 +465,7 @@ Page.prototype = {
   /*
    * Movement feedback 
   */
-  shake: function(direction) {
+  shake: function pg_shake(direction) {
     var container = this.container;
     var dataset = this.container.dataset;
     container.addEventListener('animationend', function animationEnd(e) {
