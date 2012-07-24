@@ -160,20 +160,27 @@
         <!-- <iframe id="iframe-contacts" src="" frameBorder="no" class="grid-wrapper"></iframe> -->
       </section>
       <section class="view" role="tabpanel" id="recents-view">
-        <div class="grid-wrapper">
-          <header class="view-header">
-            <div class="grid-wrapper grid">
-              <h1 class="grid-cell grid-v-align">Call log</h1>
-              <section class="grid-cell grid-v-align view-header-options">
-                <div class="grid-wrapper grid">
-                  <span class="grid-cell grid-v-align">
-                    <div class="icon icon-edit">
-                    </div>
-                  </span>
-                </div>
-              </section>
-            </div>
-          </header>
+        <div class="header-group">
+          <div class="header-wrapper">
+            <header class="view-header regular-header">
+              <menu type="toolbar">
+                 <a id="recents-icon-edit">
+                  <span class="recents-icon icon-edit"></span>
+                 </a>
+              </menu>
+              <h1>Call log</h1>
+            </header>
+            <header class="view-header dark-header">
+              <a id="recents-icon-close" role="link">
+                <span class="recents-icon icon-close">close</span>
+              </a>
+              <menu type="toolbar">
+                 <button id="thread-done-button">done</button>
+              </menu>
+              <h1>Edit mode</h1>
+            </header>
+          </div>
+        </div>
           <nav id="recents-filter-container">
             <ul>
               <li class="recents-filter-entry">
@@ -186,7 +193,18 @@
           </nav>
           <article id="recents-container" onclick="Recents.click(event.target)" class="view-body">
           </article>
-        </div>
+          <footer class="options">
+            <section class="option">
+              <button id="delete-all-threads" class="edit-button">
+                Delete all
+              </button>
+            </section>
+            <section class="option">
+              <button id="delete-selected-threads" class="edit-button">
+                Delete selected
+              </button>
+            </section>
+          </footer>
       </section>
     </article>
     <nav id="main-toolbar" class="toolbar grid center">
