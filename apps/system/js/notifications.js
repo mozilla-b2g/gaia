@@ -232,6 +232,7 @@ var NotificationScreen = {
     }).bind(this), this.TOASTER_TIMEOUT);
 
     this.updateStatusBarIcon(true);
+    return notificationNode;
   },
 
   removeNotification: function ns_removeNotification(notificationID) {
