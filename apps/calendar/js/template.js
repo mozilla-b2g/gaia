@@ -1,11 +1,12 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
-  }
+  var FORMAT_REGEX;
+  FORMAT_REGEX = new RegExp('\\{([a-zA-Z0-9\\-\\_\\.]+)\\|?' +
+                           '([a-z0-9A-Z]+)?' +
+                           '(=([a-z-A-Z0-9\\-_ ]+))?\\}', 'g');
 
-  var FORMAT_REGEX = /\{([a-zA-Z0-9\-\_\.]+)\|?([a-z]{1,1})?\}/g,
-      POSSIBLE_HTML = /[&<>"'`]/,
-      span = document.createElement('span');
+  var POSSIBLE_HTML = /[&<>"'`]/;
+
+  var span = document.createElement('span');
 
   function create(templates) {
     var key, result = {};
@@ -34,8 +35,23 @@
       } else {
         return arg.toString();
       }
+    },
 
+    bool: function(value, onTrue) {
+      if (value) {
+        return onTrue;
+      } else {
+        return '';
+      }
+    },
+
+    'l10n': function(name, prefix) {
+      if (prefix) {
+        name = prefix + name;
+      }
+      return navigator.mozL10n.get(name);
     }
+
   };
 
   Template.prototype = {
@@ -61,7 +77,7 @@
         fn += 'a = {"' + this.DEFAULT_KEY + '": a };';
       fn += '}';
 
-      fnStr = str.replace(FORMAT_REGEX, function(match, name, type) {
+      function handleReplace(match, name, type, wrap, value) {
         if (type === '') {
           type = 'h';
         }
@@ -69,10 +85,16 @@
         if (type === 's') {
           return '" + String((a["' + name + '"] || "")) + "';
         } else {
-          return '" + h["' + type + '"]((a["' + name + '"] || "")) + "';
+          if (value) {
+            return '" + h["' + type + '"]' +
+                    '(a["' + name + '"] || "", "' + (value || '') + '") + "';
+          } else {
+            return '" + h["' + type + '"](a["' + name + '"] || "") + "';
+          }
         }
+      }
 
-      });
+      fnStr = str.replace(FORMAT_REGEX, handleReplace);
 
       fnStr = fn + 'return "' + fnStr + '";';
 

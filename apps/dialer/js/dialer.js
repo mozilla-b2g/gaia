@@ -8,11 +8,27 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
 
 var CallHandler = {
   call: function ch_call(number) {
-    var sanitizedNumber = number.replace(/-/g, '');
-    var telephony = window.navigator.mozTelephony;
-    if (telephony) {
-      telephony.dial(sanitizedNumber);
+    if (this._isUSSD(number)) {
+      UssdManager.send(number);
+    } else {
+      var sanitizedNumber = number.replace(/-/g, '');
+      var telephony = window.navigator.mozTelephony;
+      if (telephony) {
+        telephony.dial(sanitizedNumber);
+      }
     }
+  },
+
+  _isUSSD: function ch_isUSSD(number) {
+    var ussdChars = ['*', '#'];
+
+    var relevantNumbers = [];
+    relevantNumbers.push(number.slice(0, 1));
+    relevantNumbers.push(number.slice(-1));
+
+    return relevantNumbers.every(function ussdTest(number) {
+      return ussdChars.indexOf(number) !== -1;
+    });
   }
 };
 
@@ -41,12 +57,15 @@ var NavbarManager = {
     switch (destination) {
       case '#recents-view':
         recent.classList.add('toolbar-option-selected');
+        Recents.updateLatestVisit();
         break;
       case '#contacts-view':
         contacts.classList.add('toolbar-option-selected');
+        Recents.updateHighlighted();
         break;
       case '#keyboard-view':
         keypad.classList.add('toolbar-option-selected');
+        Recents.updateHighlighted();
         break;
     }
   }

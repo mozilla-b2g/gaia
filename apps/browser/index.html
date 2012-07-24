@@ -4,30 +4,13 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Browser</title>
-
     <link rel="stylesheet" href="style/browser.css" type="text/css">
+    <link rel="stylesheet" href="style/modal_dialog.css" type="text/css">
+    <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
-    <script type="text/javascript" src="js/GestureDetector.js"></script>
-    <script type="text/javascript" src="js/places.js"></script>
-    <script type="text/javascript" src="js/date_helper.js"></script>
-    <script type="text/javascript" src="js/browser.js"></script>
+    <!-- Shared code -->
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <script type="application/javascript" defer src="shared/js/gesture_detector.js"></script>
   </head>
 
   <body>
@@ -46,7 +29,7 @@
       <div id="frames">
         <img id="tab-cover" />
         <div id="awesomescreen">
-          <nav data-role="tabs">
+          <nav data-role="tabs" id="tab-headers">
             <ul role="tablist">
               <li role="tab">
                 <a id="top-sites-tab" href="#" class="selected"
@@ -69,6 +52,43 @@
           <section id="history" role="tabpanel">
           </section>
         </div>
+
+        <div id="screen">
+          <div id="modal-dialog">
+            <div id="modal-dialog-table">
+              <div id="modal-dialog-tablecell">
+                <div id="modal-dialog-alert">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-alert-message"></span>
+                  </div>
+                  <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
+                </div>
+
+                <div id="modal-dialog-confirm">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-confirm-message"></span>
+                  </div>
+                  <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
+                  <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">
+                    Cancel
+                  </button>
+                </div>
+
+                <div id="modal-dialog-prompt">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-prompt-message"></span>
+                    <input id="modal-dialog-prompt-input" />
+                  </div>
+                  <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
+                  <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <menu type="toolbar" id="toolbar-end">
@@ -83,11 +103,41 @@
     </div>
 
     <div id="tray">
+      <menu type="toolbar" id="tray-toolbar">
+        <button type="button" id="settings-button"></button>
+      </menu>
       <div id="tabs-list"></div>
     </div>
     <div id="throbber"></div>
     <div id="tabs-badge"></div>
 
+    <div id="settings">
+      <header id="settings-header">
+        <menu type="toolbar">
+          <button id="settings-done-button" data-i10n-id="done">Done</button>
+        </menu>
+        <h1 data-i10n-id="firefox-settings">Firefox Settings</h1>
+      </header>
+      <ul>
+        <li>
+          <button id="about-firefox-button" data-i10n-id="about-firefox">About Firefox</button>
+        </li>
+      </ul>
+      <h3 data-i10n-id="privacy-and-security">Privacy & Security</h3>
+      <ul>
+        <li>
+          <button id="clear-history-button" data-i10n-id="clear-history">Clear History</button>
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/GestureDetector.js"></script>
+    <script src="js/places.js"></script>
+    <script src="js/date_helper.js"></script>
+    <script src="js/modal_dialog.js"></script>
+    <script src="js/browser.js"></script>
+
   </body>
 
 </html>
+

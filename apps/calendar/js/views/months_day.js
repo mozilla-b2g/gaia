@@ -1,26 +1,12 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   var template = Calendar.Templates.Day;
 
   function Day(options) {
-    var key;
+    Calendar.View.apply(this, arguments);
 
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
+    this.controller = this.app.timeController;
 
-    this.element = document.querySelector('#months-day-view');
     this._initEvents();
-
   }
 
   function getEl(selectorName, elName) {
@@ -35,6 +21,10 @@
   Day.prototype = {
 
     __proto__: Calendar.View.prototype,
+
+    selectors: {
+      element: '#months-day-view'
+    },
 
     /**
      * Hack this should be localized.
@@ -99,7 +89,7 @@
     },
 
     _renderDay: function(date) {
-      var events = this.controller.eventList,
+      var events = this.app.store('Event'),
           eventItems = events.eventsForDay(date),
           self = this,
           eventHtml = [],
@@ -211,6 +201,6 @@
 
   Day.prototype.onfirstseen = Day.prototype.render;
 
-  Calendar.Views.MonthsDay = Day;
+  Calendar.ns('Views').MonthsDay = Day;
 
 }(this));

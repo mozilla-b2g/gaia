@@ -40,6 +40,13 @@ function startup() {
     var host = document.location.host;
     var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
     var src = document.location.protocol + '//homescreen.' + domain;
+    // To fix the 'no index.html added anymore' bug 773884
+    // This isn't very pretty but beats reading all the apps to find
+    // if the launch_path is different. Not much worse than having
+    // '//homescreen' as a literal here
+    if (document.location.protocol === 'app:') {
+      src += '/index.html';
+    }
   }
   document.getElementById('homescreen').src = src;
 }());

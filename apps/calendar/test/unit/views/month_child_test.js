@@ -1,13 +1,9 @@
 requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
-
-  requireApp('calendar/js/ext/gesture_detector.js');
-  requireCalendarController();
+  require('/shared/js/gesture_detector.js');
   requireApp('calendar/js/templates/month.js');
-  requireApp('calendar/js/batch.js');
   requireApp('calendar/js/views/month_child.js');
-
 });
 
 
@@ -15,6 +11,7 @@ suite('views/month_child', function() {
   var subject,
       controller,
       busytimes,
+      app,
       testEl,
       //Nov 1st, 2012
       month = new Date(2012, 10, 1);
@@ -47,11 +44,12 @@ suite('views/month_child', function() {
     testEl.id = 'test';
     document.body.appendChild(testEl);
 
-    controller = createController();
+    app = testSupport.calendar.app();
+    controller = app.timeController;
 
-    busytimes = controller.busytime;
+    busytimes = app.store('Busytime');
     subject = new Calendar.Views.MonthChild({
-      controller: controller,
+      app: app,
       month: month
     });
   });
