@@ -323,9 +323,13 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails() {
     var contact = currentContact;
+    toggleFavoriteMessage(isFavorite(currentContact));
     detailsName.textContent = contact.name;
+    var star = document.getElementById('favorite-star');
     if (contact.category && contact.category.indexOf('favorite') != -1) {
-      detailsName.innerHTML += '<sup></sup>';
+      star.classList.remove('hide');
+    } else {
+      star.classList.add('hide');
     }
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
@@ -368,18 +372,25 @@ var Contacts = (function() {
 
     var selector = document.getElementById('address-details-template-#i#');
     var addressesTemplate = selector;
-    for (var i in contact.adr) {
-      var currentAddress = contact.adr[i];
-      var addressField = {
-        streetAddress: currentAddress['streetAddress'],
-        postalCode: currentAddress['postalCode'] || '',
-        locality: currentAddress['locality'] || '',
-        countryName: currentAddress['countryName'] || '',
-        type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value,
-        i: i
-      };
-      var template = utils.templates.render(addressesTemplate, addressField);
-      listContainer.appendChild(template);
+    if (contact.adr) {
+      for (var i = 0; i < contact.adr.length; i++) {
+        var currentAddress = contact.adr[i];
+        // Sanity check
+        if (isEmpty(currentAddress, ['streetAddress', 'postalCode',
+          'locality', 'countryName'])) {
+          return;
+        }
+        var addressField = {
+          streetAddress: currentAddress['streetAddress'] || '',
+          postalCode: currentAddress['postalCode'] || '',
+          locality: currentAddress['locality'] || '',
+          countryName: currentAddress['countryName'] || '',
+          type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value,
+          i: i
+        };
+        var template = utils.templates.render(addressesTemplate, addressField);
+        listContainer.appendChild(template);
+        }
     }
 
     if (contact.note && contact.note.length > 0) {
@@ -459,23 +470,28 @@ var Contacts = (function() {
       numberEmails++;
     }
 
-    toggleFavoriteMessage(isFavorite(currentContact));
-    for (var adr in currentContact.adr) {
-      var currentAddress = currentContact.adr[adr];
-      var default_type = TAG_OPTIONS['address-type'][0].value;
-      var adrField = {
-        streetAddress: currentAddress['streetAddress'],
-        postalCode: currentAddress['postalCode'] || '',
-        locality: currentAddress['locality'] || '',
-        countryName: currentAddress['countryName'] || '',
-        type: currentAddress['type'] || default_type,
-        i: adr
-      };
+    if (currentContact.adr) {
+      for (var adr = 0; adr < currentContact.adr.length; adr++) {
+        var currentAddress = currentContact.adr[adr];
+        if (isEmpty(currentAddress, ['streetAddress', 'postalCode',
+          'locality', 'countryName'])) {
+            continue;
+        }
+        var default_type = TAG_OPTIONS['address-type'][0].value;
+        var adrField = {
+          streetAddress: currentAddress['streetAddress'] || '',
+          postalCode: currentAddress['postalCode'] || '',
+          locality: currentAddress['locality'] || '',
+          countryName: currentAddress['countryName'] || '',
+          type: currentAddress['type'] || default_type,
+          i: adr
+        };
 
-      var template = utils.templates.render(addressTemplate, adrField);
-      template.appendChild(removeFieldIcon(template.id));
-      addressContainer.appendChild(template);
-      numberAddresses++;
+        var template = utils.templates.render(addressTemplate, adrField);
+        template.appendChild(removeFieldIcon(template.id));
+        addressContainer.appendChild(template);
+        numberAddresses++;
+      }
     }
 
     for (var index in currentContact.note) {
@@ -502,15 +518,29 @@ var Contacts = (function() {
     edit();
   };
 
+  var isEmpty = function isEmpty(obj, fields) {
+    if (obj == null || typeof(obj) != 'object' ||
+        !fields || !fields.length) {
+      return true;
+    }
+    for (var i = 0; i < fields.length; i++) {
+      if (obj.hasOwnProperty(fields[i]) && obj[fields[i]]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   var isFavorite = function isFavorite(contact) {
     return contact != null & contact.category != null &&
               contact.category.indexOf('favorite') != -1;
   }
 
   var goToSelectTag = function goToSelectTag(event) {
-    var tagList = event.target.dataset.taglist;
+    var target = event.currentTarget.children[0];
+    var tagList = target.dataset.taglist;
     var options = TAG_OPTIONS[tagList];
-    fillTagOptions(options, tagList, event.target);
+    fillTagOptions(options, tagList, target);
     navigation.go('view-select-tag', 'right-left');
   };
 
@@ -657,6 +687,21 @@ var Contacts = (function() {
         delete currentContact.category[pos];
       }
     }
+
+    var request = navigator.mozContacts.save(currentContact);
+    request.onsuccess = function onsuccess() {
+      var cList = contacts.List;
+      cList.getContactById(currentContact.id, function onSuccess(savedContact) {
+        currentContact = savedContact;
+        contactsList.refresh(currentContact);
+        reloadContactDetails();
+      }, function onError() {
+        console.error('Error reloading contact');
+      });
+    };
+    request.onerror = function onerror() {
+      console.error('Error saving favorite');
+    };
   };
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {
@@ -669,7 +714,7 @@ var Contacts = (function() {
     var request = navigator.mozContacts.remove(currentContact);
     request.onsuccess = function successDelete() {
       contactsList.remove(currentContact.id);
-      currentContact = null;
+      currentContact = {};
       navigation.home();
     };
     request.onerror = function errorDelete() {
