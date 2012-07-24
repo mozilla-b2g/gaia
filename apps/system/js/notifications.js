@@ -87,22 +87,10 @@ var NotificationScreen = {
     switch (evt.type) {
       case 'mozChromeEvent':
         var detail = evt.detail;
-        switch (detail.type) {
-          case 'desktop-notification':
-            this.addNotification(detail);
-            break;
+        if (detail.type !== 'desktop-notification')
+          return;
 
-          case 'permission-prompt':
-            // XXX Needs to implements more UI but for now let's allow stuffs
-            // XXX Needs to be moved elsewhere
-            var event = document.createEvent('CustomEvent');
-            event.initCustomEvent('mozContentEvent', true, true, {
-              type: 'permission-allow',
-              id: detail.id
-            });
-            window.dispatchEvent(event);
-            break;
-        }
+        this.addNotification(detail);
         break;
       case 'tap':
         var target = evt.target;
