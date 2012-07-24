@@ -4,7 +4,6 @@
 'use strict';
 
 const kPaymentProvidersDialog = 'payment.html';
-const kPaymentProvidersDir = 'resources/images/payment/';
 
 var Payment = (function() {
   var providers = null;
