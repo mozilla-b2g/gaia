@@ -345,8 +345,12 @@ var ThreadListUI = {
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
     var threadIds = [], headerIndex, unreadThreads = [];
+    console.log("MESSAGES = " + messages);
+    console.log("NºMSSGS = " + messages.length);
     if (messages.length == 0) {
-      this.noMessages();
+      ThreadListUI.emptyList();
+    } else {
+      ThreadListUI.listFull();
     }
     for (var i = 0; i < messages.length; i++) {
       var message = messages[i];
@@ -441,11 +445,17 @@ var ThreadListUI = {
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
 
-  noMessages: function thlui_noMessages() {
+  emptyList: function thlui_emptyList() {
     //TODO show information to the user (borja?)
 
     // disable edit mode
-    this.view.getElementById('icon-edit').classList.add('disabled');
+    console.log("DISABLING EDIT MODE");
+    document.querySelector('#icon-edit').classList.add('disabled');
+  },
+
+  listFull: function thlui_listFull() {
+    console.log("ENABLING EDIT MODE");
+    document.querySelector('#icon-edit').classList.remove('disabled');
   },
 
   createNewHeader: function thlui_createNewHeader(timestamp) {
