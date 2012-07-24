@@ -1135,6 +1135,11 @@ const IMEController = (function() {
 
     // Show IME, receives the input's type
     showIME: function kc_showIME(type) {
+
+      // To prevent redundant calls of showIME
+      if (!IMERender.ime.classList.contains('hide'))
+        return;
+
       delete IMERender.ime.dataset.hidden;
       IMERender.ime.classList.remove('hide');
 
