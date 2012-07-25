@@ -461,7 +461,7 @@ var WindowManager = (function() {
 
       'Tasks',
       'Template',
-      'Test Agent',
+      //'Test Agent',
       'TowerJelly'
 
       //'UI tests',
