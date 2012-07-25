@@ -148,7 +148,7 @@ suite('Places', function() {
       Places.db.updatePlace(place1, function() {
         Places.db.updatePlace(place2, function() {
           Places.db.updatePlace(place3, function() {
-            Places.db.getPlacesByFrecency(2, function(topSites) {
+            Places.db.getPlacesByFrecency(2, null, function(topSites) {
               done(function() {
                 assert.equal(2, topSites.length);
                 assert.equal(topSites[0].uri, 'http://mozilla.org/test1');
