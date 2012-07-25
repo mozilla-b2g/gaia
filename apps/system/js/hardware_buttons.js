@@ -44,9 +44,9 @@
 // to respond to it and prevent others from responding should call
 // stopImmediatePropagation(). Overlays that want to prevent the window
 // manager from showing the homescreen on the home event should call that
-// method.  Note, however, that this only works for scripts that run and 
+// method.  Note, however, that this only works for scripts that run and
 // register their event handlers before window_manager.js does.
-// 
+//
 'use strict';
 
 (function() {
@@ -99,7 +99,7 @@
     process: function(type) {
       switch (type) {
       case 'home-button-press':
-        // If the phone is sleeping, then pressing Home wakes it 
+        // If the phone is sleeping, then pressing Home wakes it
         // (on press, not release)
         if (!ScreenManager.screenEnabled) {
           fire('wake');
@@ -109,7 +109,7 @@
         }
         return;
       case 'sleep-button-press':
-        // If the phone is sleeping, then pressing Sleep wakes it 
+        // If the phone is sleeping, then pressing Sleep wakes it
         // (on press, not release)
         if (!ScreenManager.screenEnabled) {
           fire('wake');
@@ -271,7 +271,7 @@
   // We enter this state when the user presses Home or Sleep on a sleeping
   // phone.  We give immediate feedback by waking the phone up on the press
   // rather than waiting for the release, but this means we need a special
-  // state so that we don't actually send a home or sleep event on the 
+  // state so that we don't actually send a home or sleep event on the
   // key release.  Note, however, that this state does set a timer so that
   // it can send holdhome or holdsleep events.  (This means that pressing and
   // holding sleep will bring up the power menu, even on a sleeping phone.)

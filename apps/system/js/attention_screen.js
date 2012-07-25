@@ -108,10 +108,10 @@ var AttentionScreen = {
         // The user is hiding the attention screen to use the phone we better
         // not turn the sreen off when the attention screen is closed.
         this._screenInitiallyDisabled = false;
-        
+
         this.dispatchEvent('status-active');
         this.mainScreen.classList.add('active-statusbar');
-        
+
         var attentionScreen = this.attentionScreen;
         attentionScreen.addEventListener('transitionend', function trWait() {
             attentionScreen.removeEventListener('transitionend', trWait);

@@ -1,105 +1,96 @@
 'use strict';
 
 var KeyboardManager = (function() {
+  function debug(str) {
+    dump('  +++ KeyboardManager.js +++ : ' + str + '\n');
+  }
+
   // XXX TODO: Retrieve it from Settings, allowing 3rd party keyboards
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
   var KEYBOARD_URL = document.location.protocol + '//keyboard.' + domain;
 
   if (KEYBOARD_URL.substring(0, 6) == 'app://') { // B2G bug 773884
-      KEYBOARD_URL += '/index.html';
+    KEYBOARD_URL += '/index.html';
   }
 
-  var keyboardFrame, keyboardOverlay;
+  var keyboardFrame = document.getElementById('keyboard-frame');
+  keyboardFrame.src = KEYBOARD_URL;
 
-  var init = function kbManager_init() {
-    keyboardFrame = document.getElementById('keyboard-frame');
-    keyboardOverlay = document.getElementById('keyboard-overlay');
-    keyboardFrame.src = KEYBOARD_URL;
+  var keyboardOverlay = document.getElementById('keyboard-overlay');
 
-    listenUpdateHeight();
-    listenShowHide();
-  };
+  // TODO Think on a way of doing this
+  // without postMessages between Keyboard and System
+  window.addEventListener('message', function receiver(evt) {
+    var message = JSON.parse(evt.data);
+    if (message.action !== 'updateHeight')
+      return;
 
-  var listenUpdateHeight = function() {
-    // TODO Think on a way of doing this
-    // without postMessages between Keyboard and System
-    window.addEventListener('message', function receiver(evt) {
-      var message = JSON.parse(evt.data);
-      if (message.action !== 'updateHeight')
-        return;
+    var app = WindowManager.getDisplayedApp();
+    if (!app && !TrustedDialog.trustedDialogIsShown())
+      return;
 
-      var app = WindowManager.getDisplayedApp();
-      if (!app && !TrustedDialog.trustedDialogIsShown())
-        return;
+    var currentApp;
+    if (TrustedDialog.trustedDialogIsShown()) {
+      currentApp = TrustedDialog.getFrame();
+    } else {
+      WindowManager.setAppSize(app);
+      currentApp = WindowManager.getAppFrame(app);
+    }
 
-      var currentApp;
-      if (TrustedDialog.trustedDialogIsShown()) {
-        currentApp = TrustedDialog.getFrame();
-      } else {
-        // Reset the height of the app
-        WindowManager.setAppSize(app);
-        currentApp = WindowManager.getAppFrame(app);
-      }
+    var height = (parseInt(currentApp.style.height) -
+                  message.keyboardHeight);
 
-      if (!message.hidden) {
-        var height = (parseInt(currentApp.style.height) -
-                      message.keyboardHeight);
-
-        keyboardOverlay.style.height = (height + 20) + 'px';
-
+    if (!message.hidden && !keyboardFrame.classList.contains('hide')) {
+      currentApp.style.height = height + 'px';
+      keyboardOverlay.style.height = (height + 20) + 'px';
+    } else if (!message.hidden) {
+      keyboardFrame.classList.remove('hide');
+      keyboardFrame.addEventListener('transitionend', function keyboardShown() {
+        keyboardFrame.removeEventListener('transitionend', keyboardShown);
         currentApp.style.height = height + 'px';
-        currentApp.classList.add('keyboardOn');
-        keyboardFrame.classList.remove('hide');
-      } else {
-        currentApp.classList.remove('keyboardOn');
-        keyboardFrame.classList.add('hide');
-      }
-    });
-  };
+        keyboardOverlay.style.height = (height + 20) + 'px';
+        keyboardFrame.classList.add('visible');
+      });
+    } else {
+      keyboardFrame.classList.add('hide');
+      keyboardFrame.classList.remove('visible');
+    }
+  });
 
-  var listenShowHide = function() {
-    var keyboardWindow = keyboardFrame.contentWindow;
+  var previousKeyboardType = null;
 
-    // Handling showime and hideime events, as they are received only in System
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
+  var kKeyboardDelay = 100;
+  var updateKeyboardTimeout = 0;
 
-    function kbdEventRelay(evt) {
-      //
-      // We will trusted keyboard app to send back correct updateHeight message
-      // for us to hide the keyboardFrame when the keyboard transition is
-      // finished.
-      //
-      switch (evt.type) {
-        case 'appwillclose':
-          // Hide the keyboardFrame!
-          var app = WindowManager.getDisplayedApp();
-          var currentApp = WindowManager.getAppFrame(app);
-          currentApp.classList.remove('keyboardOn');
-          keyboardFrame.classList.add('hide');
-          break;
-      }
+  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+    var currentType = evt.detail.type;
+    if (previousKeyboardType === currentType)
+      return;
+    previousKeyboardType = currentType;
+    clearTimeout(updateKeyboardTimeout);
 
-      var message = { type: evt.type };
-      if (evt.detail)
+    var message = {};
+
+    switch (previousKeyboardType) {
+      case 'blur':
+        message.type = 'hideime';
+        break;
+
+      default:
+        message.type = 'showime';
         message.detail = evt.detail;
+        break;
+    }
 
+    var keyboardWindow = keyboardFrame.contentWindow;
+    updateKeyboardTimeout = setTimeout(function updateKeyboard() {
+      if (message.type === 'hideime') {
+        keyboardFrame.classList.add('hide');
+        keyboardFrame.classList.remove('visible');
+      }
       keyboardWindow.postMessage(JSON.stringify(message), KEYBOARD_URL);
-    };
-
-    window.addEventListener('showime', kbdEventRelay);
-    window.addEventListener('hideime', kbdEventRelay);
-    window.addEventListener('appwillclose', kbdEventRelay);
+    }, kKeyboardDelay);
   };
-
-  return {
-    'init': init
-  };
-
-}());
-
-window.addEventListener('load', function initKeyboardManager(evt) {
-  window.removeEventListener('load', initKeyboardManager);
-  KeyboardManager.init();
-});
+})();
 

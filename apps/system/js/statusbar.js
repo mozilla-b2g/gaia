@@ -25,7 +25,7 @@ var StatusBar = {
     this.getAllElements();
 
     var settings = {
-      'ril.radio.disabled': ['signal', 'data', 'voicemail'],
+      'ril.radio.disabled': ['signal', 'data'],
       'ril.data.enabled': ['data'],
       'wifi.enabled': ['wifi'],
       'bluetooth.enabled': ['bluetooth'],
@@ -79,10 +79,6 @@ var StatusBar = {
         this.update.data.call(this);
         break;
 
-      case 'statuschanged':
-        this.update.voicemail.call(this);
-        break;
-
       case 'mozChromeEvent':
         if (evt.detail.type !== 'geolocation-status')
           return;
@@ -127,13 +123,6 @@ var StatusBar = {
         // connected or not here.
         this.update.bluetooth.call(this);
       }
-
-      var voicemail = window.navigator.mozVoicemail;
-      if (voicemail) {
-        voicemail.addEventListener('statuschanged', this);
-        this.update.voicemail.call(this);
-      }
-
     } else {
       clearTimeout(this._clockTimer);
 
@@ -148,11 +137,6 @@ var StatusBar = {
       if (conn) {
         conn.removeEventListener('voicechange', this);
         conn.removeEventListener('datachange', this);
-      }
-
-      var voicemail = window.navigator.mozVoicemail;
-      if (voicemail) {
-        voicemail.removeEventListener('statuschanged', this);
       }
     }
   },
@@ -364,28 +348,6 @@ var StatusBar = {
       // this.icon.sms.dataset.num = ?;
     },
 
-    voicemail: function sb_updateVoicemail() {
-      var voicemail = window.navigator.mozVoicemail;
-      if (!voicemail) {
-        return;
-      }
-
-      var status = voicemail.status;
-      if (!status) {
-        return;
-      }
-
-      var showCount = status.hasMessages && status.messageCount > 0;
-      this.icons.voicemail.hidden = !status.hasMessages;
-      this.icons.voicemail.dataset.showNum = showCount;
-
-      if (showCount) {
-        this.icons.voicemail.dataset.num = status.messageCount;
-      }
-
-      Voicemail.updateNotification(status);
-    },
-
     geolocation: function sb_updateGeolocation() {
       if (this.geolocationTimer) {
         window.clearTimeout(this.geolocationTimer);
@@ -429,7 +391,7 @@ var StatusBar = {
     var elements = ['notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'conn', 'signal',
     'tethering', 'alarm', 'bluetooth', 'mute',
-    'recording', 'sms', 'voicemail', 'geolocation', 'usb'];
+    'recording', 'sms', 'geolocation', 'usb'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

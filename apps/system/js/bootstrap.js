@@ -8,7 +8,6 @@ function startup() {
   SleepMenu.init();
   SourceView.init();
   Shortcuts.init();
-  Bluetooth.init();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
@@ -65,26 +64,6 @@ var Shortcuts = {
     document.location.reload();
   }
 };
-
-/* === focuschange === */
-/* XXX: should go to keyboard_manager.js */
-try {
-  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-    switch (evt.detail.type) {
-      case 'blur':
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('hideime', true, true, {});
-        window.dispatchEvent(event);
-        break;
-
-      default:
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('showime', true, true, evt.detail);
-        window.dispatchEvent(event);
-        break;
-    }
-  };
-} catch (e) {}
 
 /* === Localization === */
 /* set the 'lang' and 'dir' attributes to <html> when the page is translated */

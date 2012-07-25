@@ -9,6 +9,10 @@ html, body {
   overflow: hidden;
 }
 
+body {
+  background-color: rgba(52,64,82,.3);
+}
+
 * {
   -moz-user-select:none;
 }
@@ -43,7 +47,6 @@ section,footer,nav,a,img {
   position: fixed;
   top: 0;
   left: 0;
-  background-color: rgba(0,0,0,.3);
 }
 
 button:focus::-moz-focus-inner {
@@ -67,8 +70,4 @@ button {
 
 html[dir=rtl] .apps ol > li {
   float: right;
-}
-
-#icongrid.darken {
-  background: none #344052;
 }
