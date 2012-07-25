@@ -3,10 +3,10 @@
 
 'use strict';
 
-/* Timeout for 'recently active' indicators */
-const ACTIVE_INDICATOR_TIMEOUT = 60 * 1000;
-
 var StatusBar = {
+  /* Timeout for 'recently active' indicators */
+  ACTIVE_INDICATOR_TIMEOUT: 60 * 1000,
+
   /* Whether or not status bar is actively updating or not */
   active: true,
 
@@ -84,10 +84,11 @@ var StatusBar = {
         break;
 
       case 'mozChromeEvent':
-        if (evt.detail.type == 'geolocation-status') {
-          this.geolocationActive = evt.detail.active;
-          this.update.geolocation.call(this);
-        }
+        if (evt.detail.type !== 'geolocation-status')
+          return;
+
+        this.geolocationActive = evt.detail.active;
+        this.update.geolocation.call(this);
         break;
     }
   },
@@ -398,7 +399,7 @@ var StatusBar = {
         this.geolocationTimer = window.setTimeout((function() {
           this.geolocationTimer = null;
           this.icons.geolocation.hidden = true;
-        }).bind(this), ACTIVE_INDICATOR_TIMEOUT);
+        }).bind(this), this.ACTIVE_INDICATOR_TIMEOUT);
       }
     },
 
