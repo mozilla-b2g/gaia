@@ -367,6 +367,7 @@ background-position: center 2.2rem;
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper {
   background: none;
   border: none;
+  border-radius: 0;
   margin: 0;
   height: 5.8rem;
 }
