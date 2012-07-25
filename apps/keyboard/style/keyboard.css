@@ -267,11 +267,6 @@ background-position: center 2.2rem;
 }
 
 /* Key states */
-/* Press */
-.keyboard-key.kbr-key-press > .visual-wrapper > span {
-  box-shadow: 0 0 0 2px #4495A8;
-}
-
 /* Active */
 .keyboard-key.kbr-key-active > .visual-wrapper > span {
   color: #4495A8;
