@@ -40,6 +40,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// GAIA-
+Components.utils.import('resource://gre/modules/Services.jsm');
+const GAIA_DOMAIN = Services.prefs.getCharPref("gaia.domain");
+const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("gaia.app_relative_path");
+// -GAIA
+
 /*
  * An implementation of an HTTP server both as a loadable script and as an XPCOM
  * component.  See the accompanying README file for user documentation on
@@ -1420,7 +1426,7 @@ RequestReader.prototype =
           var hostPort = request._headers.getHeader("Host");
           var colon = hostPort.indexOf(":");
           var host = (colon < 0) ? hostPort : hostPort.substring(0, colon);
-          if (host != "@GAIA_DOMAIN@" && host.indexOf(".") != -1) {
+          if (host != GAIA_DOMAIN && host.indexOf(".") != -1) {
             var oldPath = request._path;
             var applicationName = host.split(".")[0];
 
@@ -1458,7 +1464,7 @@ RequestReader.prototype =
 
     this._realPath = {};
 
-    var appPathList = "@GAIA_APP_RELATIVEPATH@".trim().split(" ");
+    var appPathList = GAIA_APP_RELATIVEPATH.trim().split(" ");
     for (var i = 0; i < appPathList.length; i++) {
       var currentAppName = appPathList[i].split('/')[1];
 
