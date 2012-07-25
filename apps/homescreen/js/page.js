@@ -226,9 +226,9 @@ Page.prototype = {
    */
   moveBy: function pg_moveBy(scrollX, duration) {
     var style = this.container.style;
-    style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition =
-      duration ? ('-moz-transform ' + duration + 's ease') : '';
+      style.MozTransform = 'translateX(' + scrollX + 'px)';
+      style.MozTransition =
+        duration ? ('-moz-transform ' + duration + 's ease') : '';
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
