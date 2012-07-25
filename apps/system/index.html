@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
+
     <!-- Shared code -->
-    <script defer src="shared/js/l10n.js"></script>
+    <script src="shared/js/l10n.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
 
     <!-- System -->
@@ -20,6 +21,7 @@
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
+    <script defer src="js/hardware_buttons.js"></script>
 
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
@@ -83,9 +85,6 @@
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
     <script defer src="js/cards_view/cards_view.js"></script>
 
-    <!-- Windows -->
-    <script defer src="js/windows/window_manager.js"></script>
-
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
 
@@ -95,6 +94,9 @@
     <!-- Wifi -->
     <script defer src="js/wifi.js"></script>
 
+    <!-- Voicemail -->
+    <script defer src="js/voicemail.js"></script>
+
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -102,6 +104,11 @@
     <!-- Trusted dialog -->
     <link rel="stylesheet" type="text/css" href="style/trusted_dialog/trusted_dialog.css">
     <script defer src="js/trusted_dialog.js"></script>
+
+    <!-- Windows -->
+    <!-- Any module that wants to intercept the Home button and prevent the -->
+    <!-- homescreen from being displayed must come before this script. -->
+    <script defer src="js/window_manager.js"></script>
   </head>
 
   <body onload="startup()">
@@ -132,15 +139,12 @@
               <div class="modal-dialog-message-container">
                 <span id="modal-dialog-alert-message"></span>
               </div>
-              <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
             </div>
 
             <div id="modal-dialog-confirm">
               <div class="modal-dialog-message-container">
                 <span id="modal-dialog-confirm-message"></span>
               </div>
-              <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
-              <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
             </div>
 
             <div id="modal-dialog-prompt">
@@ -148,10 +152,15 @@
                 <span id="modal-dialog-prompt-message"></span>
                 <input id="modal-dialog-prompt-input" />
               </div>
-              <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
-              <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
             </div>
           </div>
+        </div>
+        <div id="modal-dialog-buttons">
+          <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
+          <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
+          <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
+          <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
+          <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
         </div>
       </div>
 
@@ -186,8 +195,8 @@
               <div id="lockscreen-notification-detail"></div>
             </div>
             <div id="lockscreen-area"></div>
-            <div id="lockscreen-area-unlock" class="lockscreen-icon"></div>
-            <div id="lockscreen-area-camera" class="lockscreen-icon"></div>
+            <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right"></div>
+            <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left"></div>
             <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
             <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
             <div id="lockscreen-area-handle"></div>
@@ -257,7 +266,6 @@
       <div id="statusbar">
         <!-- Loading -->
         <div id="statusbar-loading" hidden></div>
-
         <!-- Notification -->
         <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
           data-num="" hidden></div>

@@ -4,10 +4,11 @@
 const Search = (function() {
   var URI_BROWSER;
   var searchPage = document.querySelector('#search');
+  var searchIcon = document.querySelector('#searchAction');
 
   // It should be an activity to search anything on search engine launching
   // the browser and reading the text from an input in the landing page
-  document.querySelector('#searchAction').addEventListener('click',
+  searchIcon.addEventListener('click',
     function launchBrowser(evt) {
       Applications.getByOrigin(URI_BROWSER).launch();
     }
@@ -32,6 +33,10 @@ const Search = (function() {
 
   searchPage.addEventListener('contextmenu', onLongPress);
 
+  function resetIcon() {
+    searchIcon.style.MozTransform = '';
+  }
+
   return {
     /*
      * Initializes the search module
@@ -40,6 +45,7 @@ const Search = (function() {
      */
     init: function s_init(domain) {
       URI_BROWSER = document.location.protocol + '//browser.' + domain;
-    }
+    },
+    resetIcon: resetIcon
   };
 }());

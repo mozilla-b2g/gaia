@@ -1,5 +1,8 @@
 ﻿'use strict';
 
+var _ = navigator.mozL10n.get;
+var TAG_OPTIONS;
+
 function navigationStack(currentView) {
   var transitions = {
     'left-right': { from: 'view-left', to: 'view-right'},
@@ -111,28 +114,6 @@ var Contacts = (function() {
   function edit() {
     navigation.go('view-contact-form', 'right-left');
   }
-
-  var TAG_OPTIONS = {
-    'phone-type' : [
-      {value: 'Mobile'},
-      {value: 'Home'},
-      {value: 'Work'},
-      {value: 'Personal'},
-      {value: 'Fax Home'},
-      {value: 'Fax Office'},
-      {value: 'Other Fax'},
-      {value: 'Another'}
-    ],
-    'email-type' : [
-      {value: 'Personal'},
-      {value: 'Home'},
-      {value: 'Work'}
-    ],
-    'address-type' : [
-      {value: 'Home'},
-      {value: 'Work'}
-    ]
-  };
 
   var numberEmails = 0;
   var numberPhones = 0;
@@ -323,9 +304,13 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails() {
     var contact = currentContact;
+    toggleFavoriteMessage(isFavorite(currentContact));
     detailsName.textContent = contact.name;
+    var star = document.getElementById('favorite-star');
     if (contact.category && contact.category.indexOf('favorite') != -1) {
-      detailsName.innerHTML += '<sup></sup>';
+      star.classList.remove('hide');
+    } else {
+      star.classList.add('hide');
     }
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
@@ -368,24 +353,31 @@ var Contacts = (function() {
 
     var selector = document.getElementById('address-details-template-#i#');
     var addressesTemplate = selector;
-    for (var i in contact.adr) {
-      var currentAddress = contact.adr[i];
-      var addressField = {
-        streetAddress: currentAddress['streetAddress'],
-        postalCode: currentAddress['postalCode'] || '',
-        locality: currentAddress['locality'] || '',
-        countryName: currentAddress['countryName'] || '',
-        type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value,
-        i: i
-      };
-      var template = utils.templates.render(addressesTemplate, addressField);
-      listContainer.appendChild(template);
+    if (contact.adr) {
+      for (var i = 0; i < contact.adr.length; i++) {
+        var currentAddress = contact.adr[i];
+        // Sanity check
+        if (isEmpty(currentAddress, ['streetAddress', 'postalCode',
+          'locality', 'countryName'])) {
+          continue;
+        }
+        var addressField = {
+          streetAddress: currentAddress['streetAddress'] || '',
+          postalCode: currentAddress['postalCode'] || '',
+          locality: currentAddress['locality'] || '',
+          countryName: currentAddress['countryName'] || '',
+          type: currentAddress['type'] || TAG_OPTIONS['address-type'][0].value,
+          i: i
+        };
+        var template = utils.templates.render(addressesTemplate, addressField);
+        listContainer.appendChild(template);
+        }
     }
 
     if (contact.note && contact.note.length > 0) {
       var container = document.createElement('li');
       var title = document.createElement('h2');
-      title.textContent = 'Comments';
+      title.textContent = _('comments');
       container.appendChild(title);
       var notesTemplate = document.getElementById('note-details-template-#i#');
       for (var i in contact.note) {
@@ -423,7 +415,7 @@ var Contacts = (function() {
   var showEdit = function showEdit() {
     resetForm();
     deleteContactButton.classList.remove('hide');
-    formTitle.innerHTML = 'Edit contact';
+    formTitle.innerHTML = _('editContact');
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
@@ -459,23 +451,28 @@ var Contacts = (function() {
       numberEmails++;
     }
 
-    toggleFavoriteMessage(isFavorite(currentContact));
-    for (var adr in currentContact.adr) {
-      var currentAddress = currentContact.adr[adr];
-      var default_type = TAG_OPTIONS['address-type'][0].value;
-      var adrField = {
-        streetAddress: currentAddress['streetAddress'],
-        postalCode: currentAddress['postalCode'] || '',
-        locality: currentAddress['locality'] || '',
-        countryName: currentAddress['countryName'] || '',
-        type: currentAddress['type'] || default_type,
-        i: adr
-      };
+    if (currentContact.adr) {
+      for (var adr = 0; adr < currentContact.adr.length; adr++) {
+        var currentAddress = currentContact.adr[adr];
+        if (isEmpty(currentAddress, ['streetAddress', 'postalCode',
+          'locality', 'countryName'])) {
+            continue;
+        }
+        var default_type = TAG_OPTIONS['address-type'][0].value;
+        var adrField = {
+          streetAddress: currentAddress['streetAddress'] || '',
+          postalCode: currentAddress['postalCode'] || '',
+          locality: currentAddress['locality'] || '',
+          countryName: currentAddress['countryName'] || '',
+          type: currentAddress['type'] || default_type,
+          i: adr
+        };
 
-      var template = utils.templates.render(addressTemplate, adrField);
-      template.appendChild(removeFieldIcon(template.id));
-      addressContainer.appendChild(template);
-      numberAddresses++;
+        var template = utils.templates.render(addressTemplate, adrField);
+        template.appendChild(removeFieldIcon(template.id));
+        addressContainer.appendChild(template);
+        numberAddresses++;
+      }
     }
 
     for (var index in currentContact.note) {
@@ -491,7 +488,7 @@ var Contacts = (function() {
     }
 
     deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = 'Are you sure you want to remove this contact?';
+      var msg = _('deleteConfirmMsg');
       Permissions.show('', msg, function onAccept() {
         deleteContact(currentContact);
       },function onCancel() {
@@ -502,15 +499,40 @@ var Contacts = (function() {
     edit();
   };
 
+  // Checks if an object fields are empty, by empty means
+  // field is null and if it's an array it's length is 0
+  var isEmpty = function isEmpty(obj, fields) {
+    if (obj == null || typeof(obj) != 'object' ||
+        !fields || !fields.length) {
+      return true;
+    }
+    var attr;
+    var isArray;
+    for (var i = 0; i < fields.length; i++) {
+      attr = fields[i];
+      if (obj.hasOwnProperty(attr) && obj[attr]) {
+        if (Array.isArray(obj[attr])) {
+          if (obj[attr].length > 0) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   var isFavorite = function isFavorite(contact) {
     return contact != null & contact.category != null &&
               contact.category.indexOf('favorite') != -1;
   }
 
   var goToSelectTag = function goToSelectTag(event) {
-    var tagList = event.target.dataset.taglist;
+    var target = event.currentTarget.children[0];
+    var tagList = target.dataset.taglist;
     var options = TAG_OPTIONS[tagList];
-    fillTagOptions(options, tagList, event.target);
+    fillTagOptions(options, tagList, target);
     navigation.go('view-select-tag', 'right-left');
   };
 
@@ -620,7 +642,7 @@ var Contacts = (function() {
   var showAdd = function showAdd(params) {
     resetForm();
     deleteContactButton.classList.add('hide');
-    formTitle.innerHTML = 'Add Contact';
+    formTitle.innerHTML = _('addContact');
 
     params = params || {};
 
@@ -634,6 +656,7 @@ var Contacts = (function() {
       'address' : insertAddress,
       'note' : insertNote
     };
+    formTitle.innerHTML = _('addContact');
 
     for (var i in paramsMapping) {
       paramsMapping[i].call(this, params[i] || 0);
@@ -657,19 +680,34 @@ var Contacts = (function() {
         delete currentContact.category[pos];
       }
     }
+
+    var request = navigator.mozContacts.save(currentContact);
+    request.onsuccess = function onsuccess() {
+      var cList = contacts.List;
+      cList.getContactById(currentContact.id, function onSuccess(savedContact) {
+        currentContact = savedContact;
+        contactsList.refresh(currentContact);
+        reloadContactDetails();
+      }, function onError() {
+        console.error('Error reloading contact');
+      });
+    };
+    request.onerror = function onerror() {
+      console.error('Error saving favorite');
+    };
   };
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {
     favoriteMessage.textContent = !isFav ?
-                    'Add as favorite' :
-                    'Remove as favorite';
+                    _('addFavorite') :
+                    _('removeFavorite');
   }
 
   var deleteContact = function deleteContact(contact) {
     var request = navigator.mozContacts.remove(currentContact);
     request.onsuccess = function successDelete() {
       contactsList.remove(currentContact.id);
-      currentContact = null;
+      currentContact = {};
       navigation.home();
     };
     request.onerror = function errorDelete() {
@@ -679,23 +717,45 @@ var Contacts = (function() {
 
   var saveContact = function saveContact() {
     saveButton.setAttribute('disabled', 'disabled');
-    var name = [givenName.value] || [''];
-    var lastName = [familyName.value] || [''];
-    var org = [company.value] || [''];
     var myContact = {
       id: document.getElementById('contact-form-id').value,
-      givenName: name,
-      familyName: lastName,
-      additionalName: '',
-      org: org,
-      name: name[0] + ' ' + lastName[0],
-      category: currentContact.category || []
+      additionalName: ''
     };
+
+    if (givenName.value && givenName.value.length > 0) {
+      myContact.givenName = [givenName.value];
+    }
+    if (familyName.value && familyName.value.length > 0) {
+      myContact.familyName = [familyName.value];
+    }
+    if (company.value && company.value.length > 0) {
+      myContact.org = [company.value];
+    }
+    if (currentContact.category) {
+      myContact.category = currentContact.category;
+    }
+
+    if (myContact.givenName || myContact.familyName) {
+      var name = myContact.givenName || '';
+      name += ' ';
+      if (myContact.familyName) {
+        name += myContact.familyName;
+      }
+      myContact.name = name;
+    }
 
     getPhones(myContact);
     getEmails(myContact);
     getAddresses(myContact);
     getNotes(myContact);
+
+    // Use the isEmpty function to check fields but address
+    // and inspect address by it self.
+    if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
+      'email', 'note', 'adr'])) {
+      saveButton.removeAttribute('disabled');
+      return;
+    }
 
     var contact;
     if (myContact.id) { //Editing a contact
@@ -710,6 +770,7 @@ var Contacts = (function() {
     } else {
       contact = new mozContact();
       contact.init(myContact);
+
     }
 
     var request = navigator.mozContacts.save(contact);
@@ -804,6 +865,13 @@ var Contacts = (function() {
       var postalCode = document.getElementById(selector).value || '';
       selector = 'countryName_' + arrayIndex;
       var countryName = document.getElementById(selector).value || '';
+
+      // Sanity check for pameters, check all params but the typeField
+      if (addressValue == '' && locality == '' &&
+          postalCode == '' && countryName == '') {
+        continue;
+      }
+
       contact['adr'] = contact['adr'] || [];
       contact['adr'][i] = {
         streetAddress: addressValue,
@@ -1001,6 +1069,35 @@ var ActivityHandler = {
     this._currentActivity = null;
   }
 };
+
+// set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showPanel() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+  document.body.classList.remove('hide');
+
+  TAG_OPTIONS = {
+    'phone-type' : [
+      {value: _('mobile')},
+      {value: _('home')},
+      {value: _('work')},
+      {value: _('personal')},
+      {value: _('faxHome')},
+      {value: _('faxOffice')},
+      {value: _('faxOther')},
+      {value: _('another')}
+    ],
+    'email-type' : [
+      {value: _('personal')},
+      {value: _('home')},
+      {value: _('work')}
+    ],
+    'address-type' : [
+      {value: _('home')},
+      {value: _('work')}
+    ]
+  };
+});
 
 var actHandler = ActivityHandler.handle.bind(ActivityHandler);
 window.navigator.mozSetMessageHandler('activity', actHandler);

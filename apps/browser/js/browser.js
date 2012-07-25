@@ -20,18 +20,25 @@ var Browser = {
   PAGE_SCREEN: 'page-screen',
   TABS_SCREEN: 'tabs-screen',
   AWESOME_SCREEN: 'awesome-screen',
+  SETTINGS_SCREEN: 'settings-screen',
 
   DEFAULT_FAVICON: 'style/images/favicon.png',
   START_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/start.html',
+  ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
+    '/about.html',
 
   urlButtonMode: null,
   inTransition: false,
+
+  waitingActivities: [],
+  hasLoaded: false,
 
   init: function browser_init() {
     // Assign UI elements to variables
     this.toolbarStart = document.getElementById('toolbar-start');
     this.urlBar = document.getElementById('url-bar');
+    this.tabHeaders = document.getElementById('tab-headers');
     this.urlInput = document.getElementById('url-input');
     this.urlButton = document.getElementById('url-button');
     this.content = document.getElementById('browser-content');
@@ -53,6 +60,10 @@ var Browser = {
     this.tabsList = document.getElementById('tabs-list');
     this.mainScreen = document.getElementById('main-screen');
     this.tabCover = document.getElementById('tab-cover');
+    this.settingsButton = document.getElementById('settings-button');
+    this.settingsDoneButton = document.getElementById('settings-done-button');
+    this.aboutFirefoxButton = document.getElementById('about-firefox-button');
+    this.clearHistoryButton = document.getElementById('clear-history-button');
 
     // Add event listeners
     window.addEventListener('submit', this);
@@ -76,6 +87,14 @@ var Browser = {
     this.bookmarksTab.addEventListener('click',
       this.showBookmarksTab.bind(this));
     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
+    this.settingsButton.addEventListener('click',
+      this.showSettingsScreen.bind(this));
+    this.settingsDoneButton.addEventListener('click',
+      this.showPageScreen.bind(this));
+    this.aboutFirefoxButton.addEventListener('click',
+      this.showAboutPage.bind(this));
+    this.clearHistoryButton.addEventListener('click',
+      this.handleClearHistory.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -99,6 +118,11 @@ var Browser = {
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function() {
+      this.hasLoaded = true;
+      if (this.waitingActivities.length) {
+        this.waitingActivities.forEach(this.handleActivity, this);
+        return;
+      }
       this.selectTab(this.createTab(this.START_PAGE_URL));
       this.showPageScreen();
     }).bind(this));
@@ -298,6 +322,8 @@ var Browser = {
           evt.preventDefault();
           this.showPageScreen();
           this.urlInput.blur();
+        } else {
+          this.updateAwesomeScreen(this.urlInput.value);
         }
     }
   },
@@ -344,6 +370,23 @@ var Browser = {
     this.setUrlBar(url);
   },
 
+  getUrlFromInput: function browser_getUrlFromInput(url) {
+    url = url.trim();
+    // If the address entered starts with a quote then search, if it
+    // contains a . or : then treat as a url, else search
+    var isSearch = /^"|\'/.test(url) || !(/\.|\:/.test(url));
+    var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
+    var protocol = protocolRegexp.exec(url);
+
+    if (isSearch) {
+      return 'http://www.bing.com/search?q=' + url;
+    }
+    if (!protocol) {
+      return 'http://' + url;
+    }
+    return url;
+  },
+
   handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
     if (e) {
       e.preventDefault();
@@ -359,18 +402,7 @@ var Browser = {
       return;
     }
 
-    var url = this.urlInput.value.trim();
-    // If the address entered starts with a quote then search, if it
-    // contains a . or : then treat as a url, else search
-    var isSearch = /^"|\'/.test(url) || !(/\.|\:/.test(url));
-    var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
-    var protocol = protocolRegexp.exec(url);
-
-    if (isSearch) {
-      url = 'http://www.bing.com/search?q=' + url;
-    } else if (!protocol) {
-      url = 'http://' + url;
-    }
+    var url = this.getUrlFromInput(this.urlInput.value);
 
     if (url != this.currentTab.url) {
       this.setUrlBar(url);
@@ -458,7 +490,8 @@ var Browser = {
   },
 
   setUrlBar: function browser_setUrlBar(data) {
-    if (this.currentTab.url == this.START_PAGE_URL) {
+    if (this.currentTab.url == this.START_PAGE_URL ||
+      this.currentTab.url == this.ABOUT_PAGE_URL) {
       this.urlInput.value = '';
     } else {
       this.urlInput.value = data;
@@ -491,20 +524,30 @@ var Browser = {
     this.historyTab.classList.remove('selected');
   },
 
-  showTopSitesTab: function browser_showTopSitesTab() {
+  updateAwesomeScreen: function browser_updateAwesomeScreen(filter) {
+    if (!filter) {
+      this.tabHeaders.style.display = 'block';
+      filter = false;
+    } else {
+      this.tabHeaders.style.display = 'none';
+    }
+    Places.getTopSites(20, filter, this.showTopSites.bind(this));
+  },
+
+  showTopSitesTab: function browser_showTopSitesTab(filter) {
     this.deselectAwesomescreenTabs();
     this.topSitesTab.classList.add('selected');
     this.topSites.classList.add('selected');
-    Places.getTopSites(20, this.showTopSites.bind(this));
+    this.updateAwesomeScreen();
   },
 
-  showTopSites: function browser_showTopSites(topSites) {
+  showTopSites: function browser_showTopSites(topSites, filter) {
     this.topSites.innerHTML = '';
     var list = document.createElement('ul');
     list.setAttribute('role', 'listbox');
     this.topSites.appendChild(list);
     topSites.forEach(function browser_processTopSite(data) {
-      this.drawAwesomescreenListItem(list, data);
+      this.drawAwesomescreenListItem(list, data, filter);
     }, this);
   },
 
@@ -570,18 +613,22 @@ var Browser = {
   },
 
   drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(list,
-    data) {
+    data, filter) {
     var entry = document.createElement('li');
     var link = document.createElement('a');
-    var title = document.createElement('span');
+    var title = document.createElement('h5');
     var url = document.createElement('small');
     entry.setAttribute('role', 'listitem');
     link.href = data.uri;
-    title.textContent = data.title ? data.title : data.uri;
+    var titleText = data.title ? data.title : data.url;
+    title.innerHTML = Utils.createHighlightHTML(titleText, filter);
+
     if (data.uri == this.START_PAGE_URL) {
       url.textContent = 'about:home';
+    } else if (data.uri == this.ABOUT_PAGE_URL) {
+      url.textContent = 'about:';
     } else {
-      url.textContent = data.uri;
+      url.innerHTML = Utils.createHighlightHTML(data.uri, filter);
     }
     link.appendChild(title);
     link.appendChild(url);
@@ -886,12 +933,12 @@ var Browser = {
   },
 
   showPageScreen: function browser_showPageScreen() {
-    if (this.currentScreen === this.TABS_SCREEN) {
-      var hideCover = (function browser_hideCover() {
-        this.tabCover.removeAttribute('src');
-        this.tabCover.style.display = 'none';
-      }).bind(this);
+    var hideCover = (function browser_hideCover() {
+      this.tabCover.removeAttribute('src');
+      this.tabCover.style.display = 'none';
+    }).bind(this);
 
+    if (this.currentScreen === this.TABS_SCREEN) {
       var switchLive = (function browser_switchLive() {
         this.mainScreen.removeEventListener('transitionend', switchLive, true);
         this.setTabVisibility(this.currentTab, true);
@@ -902,6 +949,7 @@ var Browser = {
       this.mainScreen.addEventListener('transitionend', switchLive, true);
     } else {
       this.setTabVisibility(this.currentTab, true);
+      hideCover();
     }
 
     if (this.currentTab.loading) {
@@ -959,6 +1007,26 @@ var Browser = {
     this.screenSwipeMngr.gestureDetector.startDetecting();
     new GestureDetector(ul).startDetecting();
     this.inTransition = false;
+  },
+
+  showSettingsScreen: function browser_showSettingsScreen() {
+    this.switchScreen(this.SETTINGS_SCREEN);
+    this.clearHistoryButton.disabled = false;
+  },
+
+  showAboutPage: function browser_showAboutPage() {
+    var tab = this.createTab(this.ABOUT_PAGE_URL);
+    this.hideCurrentTab();
+    this.selectTab(tab);
+    this.setTabVisibility(this.currentTab, true);
+    this.updateTabsCount();
+    this.showPageScreen();
+  },
+
+  handleClearHistory: function browser_handleClearHistory() {
+    Places.clearHistory((function() {
+      this.clearHistoryButton.disabled = true;
+    }).bind(this));
   },
 
   screenSwipeMngr: {
@@ -1104,10 +1172,69 @@ var Browser = {
       this.tab.style.MozTransition = 'left ' + time + 'ms linear';
       this.tab.style.left = offset + 'px';
     }
+  },
+
+  handleActivity: function browser_handleActivity(activity) {
+    // Activities can send multiple names, right now we only handle
+    // one so we only filter on types
+    switch (activity.source.data.type) {
+      case 'url':
+        var url = this.getUrlFromInput(activity.source.data.url);
+        this.selectTab(this.createTab(url));
+        if (this.currentScreen !== this.PAGE_SCREEN) {
+          this.showPageScreen();
+        }
+        break;
+    }
+  }
+};
+
+// Taken (and modified) from /apps/sms/js/searchUtils.js
+// and /apps/sms/js/utils.js
+var Utils = {
+  createHighlightHTML: function ut_createHighlightHTML(text, searchRegExp) {
+    if (!searchRegExp) {
+      return text;
+    }
+    searchRegExp = new RegExp(searchRegExp, 'gi');
+    var sliceStrs = text.split(searchRegExp);
+    var patterns = text.match(searchRegExp);
+    if (!patterns) {
+      return text;
+    }
+    var str = '';
+    for (var i = 0; i < patterns.length; i++) {
+      str = str +
+        Utils.escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
+        Utils.escapeHTML(patterns[i]) + '</span>';
+    }
+    str += Utils.escapeHTML(sliceStrs.pop());
+    return str;
+  },
+
+  escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
+    var span = document.createElement('span');
+    span.textContent = str;
+
+    // Escape space for displaying multiple space in message.
+    span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
+
+    if (escapeQuotes)
+      return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    return span.innerHTML;
   }
 };
 
 window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
+});
+
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  if (Browser.hasLoaded) {
+    Browser.handleActivity(activity);
+  } else {
+    Browser.waitingActivities.push(activity);
+  }
+  activity.postResult({ status: 'accepted' });
 });

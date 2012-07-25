@@ -41,14 +41,29 @@
   width: 100%;
   height: 1px;
   background: url('images/loading.gif') center center repeat-x;
+
+  opacity: 0.5;
+  -moz-transition: opacity 0.3s ease 0.2s;
 }
 
-#statusbar-time,
-#statusbar-conn {
+#statusbar-loading[hidden] {
+  display: block;
+  opacity: 0;
+
+  -moz-transition: none;
+}
+
+#statusbar-time {
   padding: 0;
   color: #fff;
   font: 14px/14px 'Open Sans', sans-serif;
   font-weight: 600;
+}
+
+#statusbar-conn {
+  padding: 0;
+  color: #fff;
+  font: 12px/14px 'Open Sans', sans-serif;
 }
 
 #statusbar-conn:empty {
