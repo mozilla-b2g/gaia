@@ -11,10 +11,22 @@ var Voicemail = {
   notificationId: 3000 + Math.floor(Math.random() * 999),
 
   init: function vm_init() {
-    window.navigator.mozApps.getSelf().onsuccess = (function(event) {
-      var app = event.target.result;
-      this.icon = app.installOrigin + '/style/statusbar/images/voicemail.png';
-    }).bind(this);
+    var voicemail = window.navigator.mozVoicemail;
+    if (!voicemail)
+      return;
+
+    voicemail.addEventListener('statuschanged', this);
+
+    this.icon = window.location.protocol + '//' +
+      window.location.hostname + '/style/icons/voicemail.png';
+  },
+
+  handleEvent: function vm_handleEvent(evt) {
+    var voicemail = window.navigator.mozVoicemail;
+    if (!voicemail.status)
+      return;
+
+    this.updateNotification(voicemail.status);
   },
 
   updateNotification: function vm_updateNotification(status) {
