@@ -68,3 +68,7 @@ button {
 html[dir=rtl] .apps ol > li {
   float: right;
 }
+
+#icongrid.darken {
+  background: none #344052;
+}
