@@ -24,14 +24,22 @@ var CostControl = (function() {
   function _configure() {
 
     function assignTo(name) {
-      return function assign_to(value) {
+      return function cc_configure_assignTo(value) {
         _settings[name] = value;
+      }
+    }
+
+    function changeFormat() {
+      var assignToCreditFormat = assignTo('CREDIT_FORMAT');
+      return function cc_configure_changeFormat(value) {
+        assignToCreditFormat(value);
+        _updateUI();
       }
     }
 
     // Credit stuff
     SettingsListener.observe('costcontrol.credit.format', 'R$ &i,&d',
-      assignTo('CREDIT_FORMAT'));
+      changeFormat());
 
     SettingsListener.observe('costcontrol.credit.lowlimit', 4,
       assignTo('CREDIT_LOW_LIMIT'));
@@ -129,7 +137,6 @@ var CostControl = (function() {
     _configure();
     _configureWidget();
     _configureEventListeners();
-    _updateUI();
   }
 
   // Return true if the device is in roaming
@@ -182,11 +189,8 @@ var CostControl = (function() {
   // Return the balance from the message or null if impossible to parse
   function _parseBalanceSMS(message) {
     var newBalance = null;
-    console.log('regexp: ' + _settings.CHECK_BALANCE_REGEXP);
-    console.log('body: ' + message.body);
     var found = message.body.match(
       new RegExp(_settings.CHECK_BALANCE_REGEXP));
-    console.log('found: ' + found);
 
     // Impossible parse
     if (!found || found.length < 2) {
@@ -249,8 +253,6 @@ var CostControl = (function() {
 
     // XXX: Remove when removing mock ups
     var currentBalance = parseFloat(_widgetCredit.textContent.slice(2));
-    if (isNaN(currentBalance))
-      currentBalance = 12.34;
 
     var newBalance = currentBalance + parseInt(message.body);
     newBalance = Math.round(newBalance * 100)/100;
@@ -344,7 +346,6 @@ var CostControl = (function() {
   }
 
   function _updateUI(balance) {
-    console.log('input balance: ' + balance);
     var now = new Date();
     if (balance !== undefined) {
       var timestring = now.toISOString();
@@ -374,14 +375,17 @@ var CostControl = (function() {
     // Format time
     var time = rawTime.toLocaleFormat('%H:%M');
     var date = rawTime.toLocaleFormat('%a');
-    var dateDay = parseInt(rawTime.toDateString('%u'));
-    var nowDateDay = parseInt(now.toDateString('%u'));
+    var dateDay = parseInt(rawTime.toLocaleFormat('%u'));
+    var nowDateDay = parseInt(now.toLocaleFormat('%u'));
+    var _ = navigator.mozL10n.get;
     if (nowDateDay === dateDay)
       date = _('Today') || 'Today';
     else if ((nowDateDay === dateDay + 1) || (nowDateDay === 7 && dateDay === 1))
       date = _('Yesterday') || 'Yesterday';
 
     _widgetTime.textContent = date + ', ' + time;
+
+    //
   }
 
   return {
