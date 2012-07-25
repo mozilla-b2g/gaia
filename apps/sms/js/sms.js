@@ -338,6 +338,7 @@ var ThreadListUI = {
       } else {
         MessageManager.getMessages(function recoverMessages(messages) {
           ThreadListUI.renderThreads(messages);
+          WaitingScreen.hide();
           window.location.hash = '#thread-list';
         });
       }
@@ -666,7 +667,7 @@ var ThreadUI = {
     // Add 'gif' if necessary
     if (message.delivery == 'sending') {
       htmlStructure += '<span class="message-option">' +
-                        '<img src="style/images/ajax-loader.gif" class="gif">' +
+      '<img src="style/images/spinningwheel_small_animation.gif" class="gif">' +
                         '</span>';
       //Add edit options for pending
       htmlStructure += '<span class="message-option msg-checkbox">' +
@@ -777,6 +778,7 @@ var ThreadUI = {
     if (ThreadUI.delNumList.length + ThreadUI.pendingDelList.length > 0) {
       MessageManager.deleteMessages(ThreadUI.delNumList, function() {
         //TODO Change this functionality with Steve code
+        WaitingScreen.show();
         if (ThreadUI.pendingDelList.length > 0) {
           for (var i = 0; i < ThreadUI.pendingDelList.length; i++) {
             if (i == ThreadUI.pendingDelList.length - 1) {
@@ -789,6 +791,7 @@ var ThreadUI = {
                     if (messages.length > 0) {
                       // If there are messages yet
                       ThreadUI.renderMessages(messages);
+                      WaitingScreen.hide();
                       window.history.back();
                     }else {
                       // If there is no more messages (delete all)
@@ -797,6 +800,7 @@ var ThreadUI = {
                                                  null, null, function() {
                         var mainWrapper =
                           document.getElementById('main-wrapper');
+                        WaitingScreen.hide();
                         mainWrapper.classList.remove('edit');
                         window.location.hash = '#thread-list';
                       });
@@ -813,12 +817,14 @@ var ThreadUI = {
           MessageManager.getMessages(function recoverMessages(messages) {
             if (messages.length > 0) {
               ThreadUI.renderMessages(messages);
+              WaitingScreen.hide();
               window.history.back();
             }else {
               ThreadUI.view.innerHTML = '';
               MessageManager.getMessages(ThreadListUI.renderThreads,
                                          null, null, function() {
                 var mainWrapper = document.getElementById('main-wrapper');
+                WaitingScreen.hide();
                 mainWrapper.classList.remove('edit');
                 window.location.hash = '#thread-list';
               });
@@ -987,15 +993,20 @@ var WaitingScreen = {
     delete this.loading;
     return this.loading = document.getElementById('loading');
   },
+  get loadingHeader() {
+    delete this.loadingHeader;
+    return this.loadingHeader = document.getElementById('loading-header');
+  },
   show: function ws_show() {
     // alert("show");
     this.loading.classList.add('show-loading');
   },
   hide: function ws_hide() {
+    // alert("END");
     this.loading.classList.remove('show-loading');
   },
-  update: function ws_update() {
-
+  update: function ws_update(text) {
+    this.loadingHeader.innerHTML = text;
   }
 };
 

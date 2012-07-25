@@ -394,8 +394,8 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 .message-option .gif{
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 2.5rem;
+  height: 2.5rem;
   margin: 0 auto;
 }
 
@@ -571,7 +571,6 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 #loading {
-  /*display: none;*/
   pointer-events: none;
   z-index: 200;
   background: rgba(0,0,0,.8);
