@@ -136,6 +136,15 @@ const GridManager = (function() {
     pages.forEach(function(page, index) {
       var scrollX = (-pages.current + index) * windowWidth + deltaX;
       page.moveBy(scrollX, duration);
+      if (index === 0 && scrollX < 0) {
+        document.body.style.MozTransition =
+            duration ? 'background-color 1s ease' : '';
+        document.body.style.backgroundColor = 'rgba(52,64,82,1)';
+      } else if (index === 1 && scrollX > 0) {
+        document.body.style.MozTransition =
+            duration ? 'background-color 1s ease' : '';
+        document.body.style.backgroundColor = 'rgba(52,64,82,.3)';
+      }
     });
   }
 
@@ -151,23 +160,12 @@ const GridManager = (function() {
     } else {
       var currentPageContainer = pageHelper.getCurrent().container;
 
-      // From search page to app grid page
-      if (previousIndex === 0) {
-        container.classList.add('darken');
-        DockManager.page.container.classList.add('darken');
-      }
-
       currentPageContainer.addEventListener('transitionend', function tr_end(e) {
         currentPageContainer.removeEventListener('transitionend', tr_end);
         delete document.body.dataset.transitioning;
         callback();
         Search.resetIcon();
-        if (index === 0) {
-          container.classList.remove('darken');
-          DockManager.page.container.classList.remove('darken');
-        } else {
-          pageHelper.getCurrent().bounce(previousIndex - index);
-        }
+        pageHelper.getCurrent().bounce(previousIndex - index);
       });
     }
 
