@@ -136,15 +136,6 @@ const GridManager = (function() {
     pages.forEach(function(page, index) {
       var scrollX = (-pages.current + index) * windowWidth + deltaX;
       page.moveBy(scrollX, duration);
-      if (index === 0 && scrollX < 0) {
-        document.body.style.MozTransition =
-            duration ? 'background-color 1s ease' : '';
-        document.body.style.backgroundColor = 'rgba(52,64,82,1)';
-      } else if (index === 1 && scrollX > 0) {
-        document.body.style.MozTransition =
-            duration ? 'background-color 1s ease' : '';
-        document.body.style.backgroundColor = 'rgba(52,64,82,.3)';
-      }
     });
   }
 
