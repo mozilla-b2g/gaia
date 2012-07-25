@@ -137,9 +137,9 @@
   for (let [k, v] in Iterator(mib2str))
     str2mib[v] = k;
 
-  function Element(type, tag, codepages) {
+  function Element(ownerDocument, type, tag) {
+    this.ownerDocument = ownerDocument;
     this.type = type;
-    this._codepages = codepages;
     this._attrs = {};
 
     if (typeof tag == "string") {
@@ -155,10 +155,10 @@
         "namespace":     { get: function() this.tag >> 8 },
         "localTag":      { get: function() this.tag & 0xff },
         "namespaceName": { get: function() {
-          return this._codepages.__nsnames__[this.namespace];
+          return this.ownerDocument._codepages.__nsnames__[this.namespace];
         } },
         "localTagName":  { get: function() {
-          return this._codepages.__tagnames__[this.tag];
+          return this.ownerDocument._codepages.__tagnames__[this.tag];
         } },
       });
     }
@@ -181,7 +181,7 @@
 
     getAttribute: function(attr) {
       if (typeof attr == "number")
-        attr = this._codepages.__attrdata__[attr].name;
+        attr = this.ownerDocument._codepages.__attrdata__[attr].name;
       else if (!(attr in this._attrs) && this.namespace != null &&
                attr.indexOf(":") == -1)
         attr = this.namespaceName + ":" + attr;
@@ -201,7 +201,8 @@
           array.push(hunk);
         }
         else if (typeof hunk == "number") {
-          strValue += this._codepages.__attrdata__[hunk].data || "";
+          strValue += this.ownerDocument._codepages.__attrdata__[hunk].data ||
+                      "";
         }
         else {
           strValue += hunk;
@@ -223,9 +224,10 @@
         let namespace = attr >> 8;
         let localAttr = attr & 0xff;
 
-        let localName = this._codepages.__attrdata__[localAttr].name;
-        let namespaceName = this._codepages.__nsnames__[namespace];
-        let name = namespaceName + ":" + localName;
+        let localName = this.ownerDocument._codepages.__attrdata__[localAttr]
+                            .name;
+        let nsName = this.ownerDocument._codepages.__nsnames__[namespace];
+        let name = nsName + ":" + localName;
 
         if (name in this._attrs)
           throw new ParseError("attribute "+name+" is repeated");
@@ -234,13 +236,16 @@
     },
   };
 
-  function EndTag() {}
+  function EndTag(ownerDocument) {
+    this.ownerDocument = ownerDocument;
+  }
 
   EndTag.prototype = {
     get type() "ETAG",
   };
 
-  function Text(textContent) {
+  function Text(ownerDocument, textContent) {
+    this.ownerDocument = ownerDocument;
     this.textContent = textContent;
   }
 
@@ -248,7 +253,8 @@
     get type() "TEXT",
   };
 
-  function Extension(subtype, index, value) {
+  function Extension(ownerDocument, subtype, index, value) {
+    this.ownerDocument = ownerDocument;
     this.subtype = subtype;
     this.index = index;
     this.value = value;
@@ -258,8 +264,8 @@
     get type() "EXT",
   };
 
-  function ProcessingInstruction(codepages) {
-    this._codepages = codepages;
+  function ProcessingInstruction(ownerDocument) {
+    this.ownerDocument = ownerDocument;
   }
 
   ProcessingInstruction.prototype = {
@@ -269,7 +275,7 @@
       if (typeof this.targetID == "string")
         return this.targetID;
       else
-        return this._codepages.__attrdata__[this.targetID].name;
+        return this.ownerDocument._codepages.__attrdata__[this.targetID].name;
     },
 
     _setTarget: function(target) {
@@ -286,7 +292,8 @@
     get data() this._getAttribute(this._data),
   };
 
-  function Opaque(data) {
+  function Opaque(ownerDocument, data) {
+    this.ownerDocument = ownerDocument;
     this.data = data;
   }
 
@@ -386,10 +393,10 @@
       let depth = 0;
       let foundRoot = false;
 
-      let appendString = function(s) {
+      let appendString = (function(s) {
         if (state == States.BODY) {
           if (!currentNode)
-            currentNode = new Text(s);
+            currentNode = new Text(this, s);
           else
             currentNode.textContent += s;
         }
@@ -398,8 +405,12 @@
         }
         // We can assume that we're in a valid state, so don't bother checking
         // here.
-      };
+      }).bind(this);
 
+      // Beware! We're going to grab multiple tokens from our iterator inside
+      // this for loop. This simplifies the actual structure of the loop quite a
+      // bit, since we can eat as many tokens as we need to for each logical
+      // chunk of the document.
       for (let tok in this._iter) {
         if (tok == Tokens.SWITCH_PAGE) {
           codepage = this._get_uint8();
@@ -412,7 +423,7 @@
               yield currentNode;
               currentNode = null;
             }
-            yield new EndTag();
+            yield new EndTag(this);
           }
           else if (state == States.ATTRIBUTES || state == States.ATTRIBUTE_PI) {
             state = States.BODY;
@@ -448,7 +459,7 @@
 
           if (currentNode)
             yield currentNode;
-          currentNode = new ProcessingInstruction(this._codepages);
+          currentNode = new ProcessingInstruction(this);
         }
         else if (tok == Tokens.STR_T) {
           if (state == States.BODY && depth == 0)
@@ -468,7 +479,7 @@
             yield currentNode;
             currentNode = null;
           }
-          yield new Opaque(s);
+          yield new Opaque(this, s);
         }
         else if (((tok & 0x40) || (tok & 0x80)) && (tok & 0x3f) < 3) {
           let hi = tok & 0xc0;
@@ -493,7 +504,7 @@
             value = null;
           }
 
-          let ext = new Extension(subtype, lo, value);
+          let ext = new Extension(this, subtype, lo, value);
           if (state == States.BODY) {
             if (currentNode) {
               yield currentNode;
@@ -520,8 +531,7 @@
 
           if (currentNode)
             yield currentNode;
-          currentNode = new Element( (tok & 0x40) ? "STAG" : "TAG", tag,
-                                          this._codepages);
+          currentNode = new Element(this, (tok & 0x40) ? "STAG" : "TAG", tag);
           if (tok & 0x40)
             depth++;
 
@@ -602,6 +612,9 @@
           if (node.data)
             result += " " + node.data;
           result += "?>\n";
+        }
+        else if (node.type == "OPAQUE") {
+          result += indent(tagstack.length) + "<![CDATA[" + node.data + "]]>\n";
         }
         else {
           throw new Error("Unknown node type \"" + node.type + "\"");
@@ -729,6 +742,9 @@
     },
 
     _writeTag: function(tag, stag, attrs) {
+      if (tag === undefined)
+        throw new Error("unknown tag");
+
       let flags = 0x00;
       if (stag)
         flags += 0x40;
@@ -804,7 +820,7 @@
 
     tag: function(tag) {
       let tail = arguments.length > 1 ? arguments[arguments.length - 1] : null;
-      if (tail instanceof Writer.Attribute) {
+      if (tail === null || tail instanceof Writer.Attribute) {
         let rest = Array.prototype.slice.call(arguments, 1);
         this._writeTag(tag, false, rest);
         return this;
@@ -859,6 +875,79 @@
 
     get buffer() this._rawbuf.slice(0, this._pos),
     get bytes() new Uint8Array(this._rawbuf, 0, this._pos),
+  };
+
+  function EventParser(reader) {
+    this.reader = reader;
+    this.listeners = [];
+  }
+
+  EventParser.prototype = {
+    addEventListener: function(path, callback) {
+      this.listeners.push({path: path, callback: callback});
+    },
+
+    _pathMatches: function(a, b) {
+      return a.length == b.length && a.every(function(val, i) {
+        return val == b[i];
+      });
+    },
+
+    run: function() {
+      let fullPath = [];
+      let recPath = [];
+      let recording = 0;
+
+      for (let node in this.reader.document) {
+        if (node.type == "TAG") {
+          fullPath.push(node.tag);
+          for (let [,listener] in Iterator(this.listeners)) {
+            if (this._pathMatches(fullPath, listener.path)) {
+              node.children = [];
+              listener.callback(node);
+            }
+          }
+
+          fullPath.pop();
+        }
+        else if (node.type == "STAG") {
+          fullPath.push(node.tag);
+
+          for (let [,listener] in Iterator(this.listeners)) {
+            if (this._pathMatches(fullPath, listener.path)) {
+              recording++;
+            }
+          }
+        }
+        else if (node.type == "ETAG") {
+          for (let [,listener] in Iterator(this.listeners)) {
+            if (this._pathMatches(fullPath, listener.path)) {
+              recording--;
+              listener.callback(recPath[recPath.length-1]);
+            }
+          }
+
+          fullPath.pop();
+        }
+
+        if (recording) {
+          if (node.type == "STAG") {
+            node.type = "TAG";
+            node.children = [];
+            if (recPath.length)
+              recPath[recPath.length-1].children.push(node);
+            recPath.push(node);
+          }
+          else if (node.type == "ETAG") {
+            recPath.pop();
+          }
+          else {
+            node.children = [];
+            recPath[recPath.length-1].children.push(node);
+          }
+        }
+      }
+    },
   };
 
   let exported = {};

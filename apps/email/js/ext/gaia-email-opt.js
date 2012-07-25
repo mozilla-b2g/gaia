@@ -19862,6 +19862,7 @@ define('rdimap/imapclient/activesync',[
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
+    './util',
     'exports'
   ],
   function(
@@ -19869,8 +19870,10 @@ define('rdimap/imapclient/activesync',[
     $wbxml,
     $ascp,
     $activesync,
+    $imaputil,
     exports
   ) {
+const bsearchForInsert = $imaputil.bsearchForInsert;
 
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
                            receiveProtoConn, _LOG) {
@@ -19878,6 +19881,8 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.id = accountDef.id;
   this.accountDef = accountDef;
 
+  this.conn = new $activesync.Connection(accountDef.credentials.username,
+                                         accountDef.credentials.password);
   this._db = dbConn;
 
   this.enabled = true;
@@ -19910,9 +19915,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
     this.folders.push(folderInfo.$meta);
   }
   // TODO: we should probably be smarter about sorting.
-  this.folders.sort(function(a, b) {
-    return a.path.localeCompare(b.path);
-  });
+  this.folders.sort(function(a, b) { return a.path.localeCompare(b.path); });
 
   if (this.meta.syncKey != "0") {
     // TODO: this is a really hacky way of syncing folders later
@@ -19989,70 +19992,62 @@ ActiveSyncAccount.prototype = {
 
   syncFolderList: function fa_syncFolderList(callback) {
     var account = this;
-    var conn = new $activesync.Connection(
-      this.accountDef.credentials.username,
-      this.accountDef.credentials.password,
-      function(aResult) {
-        var fh = $ascp.FolderHierarchy.Tags;
-        var w = new $wbxml.Writer("1.3", 1, "UTF-8");
-        w.stag(fh.FolderSync)
-           .tag(fh.SyncKey, account.meta.syncKey)
-         .etag();
 
-        var folder;
-        var depth = 0;
-        this.doCommand(w, function(aResponse) {
-          dump(aResponse.dump());
-          aResponse.rewind();
+    var fh = $ascp.FolderHierarchy.Tags;
+    var w = new $wbxml.Writer("1.3", 1, "UTF-8");
+    w.stag(fh.FolderSync)
+       .tag(fh.SyncKey, account.meta.syncKey)
+     .etag();
 
-          for (var node in aResponse.document) {
-            if (node.type == "STAG" && node.tag == fh.SyncKey) {
-              var text = aResponse.document.next();
-              if (text.type != "TEXT")
-                throw new Error("expected TEXT node");
-              if (aResponse.document.next().type != "ETAG")
-                throw new Error("expected ETAG node");
+    this.conn.doCommand(w, function(aResponse) {
+      var folder;
+      var depth = 0;
+      for (var node in aResponse.document) {
+        if (node.type == "STAG" && node.tag == fh.SyncKey) {
+          var text = aResponse.document.next();
+          if (text.type != "TEXT")
+            throw new Error("expected TEXT node");
+          if (aResponse.document.next().type != "ETAG")
+            throw new Error("expected ETAG node");
 
-              account.meta.syncKey = text.textContent;
-            }
-            else if (node.type == "STAG" &&
-                     (node.tag == fh.Add || node.tag == fh.Remove)) {
-              depth = 1;
-              folder = { add: node.tag == fh.Add };
-            }
-            else if (depth) {
-              if (node.type == "ETAG") {
-                if (--depth == 0) {
-                  if (folder.add)
-                    account._addFolder(folder.ServerId, folder.DisplayName,
-                                       folder.Type);
-                  else
-                    account._removeFolder(folder.ServerId, folder.DisplayName,
-                                          folder.Type);                    
-                }
-              }
-              else if (node.type == "STAG") {
-                var text = aResponse.document.next();
-                if (text.type != "TEXT")
-                  throw new Error("expected TEXT node");
-                if (aResponse.document.next().type != "ETAG")
-                  throw new Error("expected ETAG node");
-
-                folder[node.localTagName] = text.textContent;
-              }
-              else {
-                throw new Error("unexpected node!");
-              }
+          account.meta.syncKey = text.textContent;
+        }
+        else if (node.type == "STAG" &&
+                 (node.tag == fh.Add || node.tag == fh.Delete)) {
+          depth = 1;
+          folder = { add: node.tag == fh.Add };
+        }
+        else if (depth) {
+          if (node.type == "ETAG") {
+            if (--depth == 0) {
+              if (folder.add)
+                account._addedFolder(folder.ServerId, folder.DisplayName,
+                                     folder.Type);
+              else
+                account._deletedFolder(folder.ServerId);
             }
           }
+          else if (node.type == "STAG") {
+            var text = aResponse.document.next();
+            if (text.type != "TEXT")
+              throw new Error("expected TEXT node");
+            if (aResponse.document.next().type != "ETAG")
+              throw new Error("expected ETAG node");
 
-          account.saveAccountState();
-          callback();
-        });
+            folder[node.localTagName] = text.textContent;
+          }
+          else {
+            throw new Error("unexpected node!");
+          }
+        }
+      }
+
+      account.saveAccountState();
+      callback();
     });
   },
 
-  _addFolder: function as__addFolder(serverId, displayName, typeNum) {
+  _addedFolder: function as__addFolder(serverId, displayName, typeNum) {
     const types = {
        1: "normal", // User-created generic folder
        2: "inbox",
@@ -20066,9 +20061,10 @@ ActiveSyncAccount.prototype = {
     if (!(typeNum in types))
       return; // Not a folder type we care about.
 
+    var folderId = this.id + '/' + serverId;
     var folderInfo = {
       $meta: {
-        id: this.id + '/' + serverId,
+        id: folderId,
         name: displayName,
         path: displayName,
         type: types[typeNum],
@@ -20084,13 +20080,19 @@ ActiveSyncAccount.prototype = {
       bodyBlocks: [],
     };
 
-    this._folderInfos[folderInfo.$meta.id] = folderInfo;
-    this.folders.push(folderInfo.$meta);
-    this._folderStorages[folderInfo.$meta.id] = new ActiveSyncFolderStorage();
+    this._folderInfos[folderId] = folderInfo;
+    this._folderStorages[folderId] = new ActiveSyncFolderStorage();
+
+    var account = this;
+    var idx = bsearchForInsert(this.folders, folderInfo.$meta, function(a, b) {
+      return a.path.localeCompare(b.path);
+    });
+    this.folders.splice(idx, 0, folderInfo.$meta);
+
     this.universe.__notifyAddedFolder(this.id, folderInfo.$meta);
   },
 
-  _removeFolder: function as__removeFolder(serverId) {
+  _deletedFolder: function as__removeFolder(serverId) {
     var folderId = this.id + '/' + serverId;
     var folderInfo = this._folderInfos[folderId],
         folderMeta = folderInfo.$meta;
@@ -20108,8 +20110,24 @@ ActiveSyncAccount.prototype = {
   },
 
   sendMessage: function fa_sendMessage(composedMessage, callback) {
-    // XXX put a copy of the message in the sent folder
-    callback(null);
+    // XXX: This is very hacky and gross. Fix it to use pipes later.
+    composedMessage._cacheOutput = true;
+    composedMessage._composeMessage();
+
+    var cm = $ascp.ComposeMail.Tags;
+    var w = new $wbxml.Writer("1.3", 1, "UTF-8");
+    w.stag(cm.SendMail)
+       .tag(cm.ClientId, Date.now().toString()+"@mozgaia")
+       .tag(cm.SaveInSentItems)
+       .stag(cm.Mime)
+         .opaque(composedMessage._outputBuffer)
+       .etag()
+     .etag();
+
+    this.conn.doCommand(w, function(aResponse) {
+      dump(aResponse.dump()+"\n\n");
+      callback(null);
+    });
   },
 
   getFolderStorageForFolderId: function fa_getFolderStorageForFolderId(folderId){

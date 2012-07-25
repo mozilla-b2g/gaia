@@ -32,10 +32,10 @@
     return ns[prefix] || null;
   }
 
-  function Connection(aEmail, aPassword, aCallback) {
+  function Connection(aEmail, aPassword) {
     this._email = aEmail;
     this._password = aPassword;
-    this.autodiscover(aCallback);
+    this.connected = false;
   }
 
   Connection.prototype = {
@@ -98,8 +98,10 @@
 
           conn.baseURL = result.server.url + "/Microsoft-Server-ActiveSync";
           conn.options(conn.baseURL, function(aSubResult) {
+            conn.connected = true;
             result.options = aSubResult;
-            aCallback.call(conn, result);
+            if (aCallback)
+              aCallback.call(conn, result);
           });
         }
       };
@@ -136,6 +138,13 @@
     },
 
     doCommand: function(aXml, aCallback) {
+      if (!this.connected)
+        this.autodiscover(this._doCommandReal.bind(this, aXml, aCallback));
+      else
+        this._doCommandReal(aXml, aCallback);
+    },
+
+    _doCommandReal: function(aXml, aCallback) {
       let r = new WBXML.Reader(aXml, ASCP);
       let command = r.document.next().localTagName;
       let xhr = new XMLHttpRequest({mozSystem: true});
