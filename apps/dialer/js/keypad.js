@@ -138,7 +138,8 @@ var KeypadManager = {
 
     if (this.callBarAddContact) {
       this.callBarAddContact.addEventListener('mouseup', this.addContact);
-      this.callBarCallAction.addEventListener('mouseup', this.makeCall);
+      this.callBarCallAction.addEventListener('mouseup',
+                                              this.makeCall.bind(this));
     }
 
     // The keypad hide bar is only included in the on call version of the
@@ -198,7 +199,7 @@ var KeypadManager = {
   makeCall: function hk_makeCall(event) {
     event.stopPropagation();
 
-    if (KeypadManager._phoneNumber != '') {
+    if (this._phoneNumber != '') {
       CallHandler.call(KeypadManager._phoneNumber);
     }
   },
