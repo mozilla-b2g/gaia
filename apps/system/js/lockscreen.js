@@ -506,12 +506,20 @@ var LockScreen = {
         frame.dataset.frameOrigin = origin;
 
         frame.src = origin + app.manifest.launch_path;
+        var mainScreen = this.mainScreen;
         frame.addEventListener('mozbrowserloadend', function cameraLoaded() {
+          mainScreen.classList.add('lockscreen-camera');
           callback();
         });
         this.overlay.classList.remove('no-transition');
         this.camera.hidden = false;
         this.camera.appendChild(frame);
+
+        if (app.manifest.orientation) {
+          screen.mozLockOrientation(app.manifest.orientation);
+        } else {
+          screen.mozUnlockOrientation();
+        }
         break;
     }
   },
@@ -530,12 +538,14 @@ var LockScreen = {
 
       case 'camera':
         var self = this;
+        screen.mozLockOrientation('portrait-primary');
         this.overlay.addEventListener('transitionend',
           function ls_unloadCamera() {
             self.overlay.removeEventListener('transitionend',
                                              ls_unloadCamera);
 
             // Remove the iframe element
+            self.mainScreen.classList.remove('lockscreen-camera');
             self.camera.hidden = true;
             self.camera.removeChild(this.camera.firstElementChild);
           });

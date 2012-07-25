@@ -654,10 +654,10 @@
 
 #lockscreen-camera {
   position: absolute;
-  top: 20px;
+  top: 0;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 20px);
+  height: 100%;
   background-color: #000;
 }
 
