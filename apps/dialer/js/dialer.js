@@ -14,7 +14,11 @@ var CallHandler = {
       var sanitizedNumber = number.replace(/-/g, '');
       var telephony = window.navigator.mozTelephony;
       if (telephony) {
-        telephony.dial(sanitizedNumber);
+        var call = telephony.dial(sanitizedNumber);
+
+        call.onconnected = function clearPhoneView() {
+          KeypadManager.updatePhoneNumber('');
+        };
       }
     }
   },

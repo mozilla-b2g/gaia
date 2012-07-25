@@ -27,10 +27,6 @@ var PopupManager = {
     popup.dataset.frameName = evt.detail.name;
     popup.dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
-    // FIXME: won't be needed once
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
-    popup.src = evt.detail.url;
-
     this.container.appendChild(popup);
     this.screen.classList.add('popup');
   },

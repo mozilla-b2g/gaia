@@ -19,7 +19,7 @@ var StatusBar = {
     this.getAllElements();
 
     var settings = {
-      'ril.radio.disabled': ['signal', 'data'],
+      'ril.radio.disabled': ['signal', 'data', 'voicemail'],
       'ril.data.enabled': ['data'],
       'wifi.enabled': ['wifi'],
       'bluetooth.enabled': ['bluetooth'],
@@ -72,6 +72,9 @@ var StatusBar = {
         this.update.data.call(this);
         break;
 
+      case 'statuschanged':
+        this.update.voicemail.call(this);
+        break;
     }
   },
 
@@ -107,9 +110,15 @@ var StatusBar = {
       if (bluetooth) {
         // XXX need a reliable way to see if bluetooth is currently
         // connected or not here.
-
         this.update.bluetooth.call(this);
       }
+
+      var voicemail = window.navigator.mozVoicemail;
+      if (voicemail) {
+        voicemail.addEventListener('statuschanged', this);
+        this.update.voicemail.call(this);
+      }
+
     } else {
       clearTimeout(this._clockTimer);
 
@@ -124,6 +133,11 @@ var StatusBar = {
       if (conn) {
         conn.removeEventListener('voicechange', this);
         conn.removeEventListener('datachange', this);
+      }
+
+      var voicemail = window.navigator.mozVoicemail;
+      if (voicemail) {
+        voicemail.removeEventListener('statuschanged', this);
       }
     }
   },
@@ -335,6 +349,28 @@ var StatusBar = {
       // this.icon.sms.dataset.num = ?;
     },
 
+    voicemail: function sb_updateVoicemail() {
+      var voicemail = window.navigator.mozVoicemail;
+      if (!voicemail) {
+        return;
+      }
+
+      var status = voicemail.status;
+      if (!status) {
+        return;
+      }
+
+      var showCount = status.hasMessages && status.messageCount > 0;
+      this.icons.voicemail.hidden = !status.hasMessages;
+      this.icons.voicemail.dataset.showNum = showCount;
+
+      if (showCount) {
+        this.icons.voicemail.dataset.num = status.messageCount;
+      }
+
+      Voicemail.updateNotification(status);
+    },
+
     geolocation: function sb_updateGeolocation() {
       // XXX no way to probe active state of Geolocation
       // this.icon.geolocation.hidden = ?
@@ -367,7 +403,7 @@ var StatusBar = {
     var elements = ['notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'conn', 'signal',
     'tethering', 'alarm', 'bluetooth', 'mute',
-    'recording', 'sms', 'geolocation', 'usb'];
+    'recording', 'sms', 'voicemail', 'geolocation', 'usb'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
