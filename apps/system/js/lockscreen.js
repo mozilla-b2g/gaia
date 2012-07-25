@@ -509,12 +509,14 @@ var LockScreen = {
         frame.addEventListener('mozbrowserloadend', function cameraLoaded() {
           callback();
         });
+        this.overlay.classList.remove('no-transition');
+        this.camera.hidden = false;
         this.camera.appendChild(frame);
         break;
     }
   },
 
-  unloadPanel: function ls_loadPanel(panel, callback) {
+  unloadPanel: function ls_loadPanel(panel, toPanel, callback) {
     switch (panel) {
       case 'passcode':
         // Reset passcode panel only if the status is not error
@@ -527,24 +529,49 @@ var LockScreen = {
         break;
 
       case 'camera':
-        // Remove the iframe element
-        this.camera.removeChild(this.camera.firstElementChild);
+        var self = this;
+        this.overlay.addEventListener('transitionend',
+          function ls_unloadCamera() {
+            self.overlay.removeEventListener('transitionend',
+                                             ls_unloadCamera);
+
+            // Remove the iframe element
+            self.camera.hidden = true;
+            self.camera.removeChild(this.camera.firstElementChild);
+          });
         break;
 
       case 'emergency':
         break;
 
       default:
-        this.areaHandle.style.MozTransform =
-          this.areaUnlock.style.opacity =
-          this.railRight.style.opacity =
-          this.areaCamera.style.opacity =
-          this.railLeft.style.opacity =
-          this.railRight.style.width =
-          this.railLeft.style.width = '';
-        this.areaHandle.classList.remove('triggered');
-        this.areaCamera.classList.remove('triggered');
-        this.areaUnlock.classList.remove('triggered');
+        var self = this;
+        var unload = function unload() {
+          self.areaHandle.style.MozTransform =
+            self.areaUnlock.style.opacity =
+            self.railRight.style.opacity =
+            self.areaCamera.style.opacity =
+            self.railLeft.style.opacity =
+            self.railRight.style.width =
+            self.railLeft.style.width = '';
+          self.areaHandle.classList.remove('triggered');
+          self.areaCamera.classList.remove('triggered');
+          self.areaUnlock.classList.remove('triggered');
+        };
+
+        if (toPanel !== 'camera') {
+          unload();
+          break;
+        }
+
+        this.overlay.addEventListener('transitionend',
+          function ls_unloadDefaultPanel() {
+            self.overlay.removeEventListener('transitionend',
+                                             ls_unloadDefaultPanel);
+            unload();
+          }
+        );
+
         break;
     }
 
@@ -555,10 +582,12 @@ var LockScreen = {
   switchPanel: function ls_switchPanel(panel) {
     var overlay = this.overlay;
     var self = this;
+    panel = panel || '';
     this.loadPanel(panel, function panelLoaded() {
-      self.unloadPanel(overlay.dataset.panel, function panelUnloaded() {
-        overlay.dataset.panel = panel || '';
-      });
+      self.unloadPanel(overlay.dataset.panel, panel,
+        function panelUnloaded() {
+          overlay.dataset.panel = panel;
+        });
     });
   },
 
