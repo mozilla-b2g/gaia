@@ -7,7 +7,7 @@ var CostControl = (function() {
 
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
-  
+
   var STATE_IDLE = 'idle';
   var STATE_TOPPING_UP = 'toppingup';
   var STATE_CHECKING = 'checking';
@@ -26,9 +26,15 @@ var CostControl = (function() {
     function assignTo(name) {
       return function assign_to(value) {
         _settings[name] = value;
-        console.log(name + ': ' + _settings[name]);
       }
     }
+
+    // Credit stuff
+    SettingsListener.observe('costcontrol.credit.format', 'R$ &i,&d',
+      assignTo('CREDIT_FORMAT'));
+
+    SettingsListener.observe('costcontrol.credit.lowlimit', 4,
+      assignTo('CREDIT_LOW_LIMIT'));
 
     // For balance
     // Send to...
@@ -45,7 +51,7 @@ var CostControl = (function() {
 
     // Parse following...
     SettingsListener.observe('costcontrol.balance.regexp',
-      '(R\\$\\s+[0-9]+([,\\.][0-9]+)?)',
+      'R\\$\\s+([0-9]+)(?:[,\\.]([0-9]+))?',
       assignTo('CHECK_BALANCE_REGEXP'));
 
     // For top up
@@ -63,7 +69,7 @@ var CostControl = (function() {
 
     // Parse confirmation following...
     SettingsListener.observe('costcontrol.topup.regexp',
-      '(R\\$\\s+[0-9]+([,\\.][0-9]+)?)',
+      'R\\$\\s+([0-9]+)(?:[,\\.]([0-9]+))?',
       assignTo('TOP_UP_CONFIRMATION_REGEXP'));
   }
 
@@ -96,7 +102,6 @@ var CostControl = (function() {
 
   // Attach event listeners for manual updates
   function _configureWidget() {
-    console.log('---- Configuring widget -----');
     _widget = document.getElementById('cost-control');
     _widgetCredit = document.getElementById('cost-control-credit');
     _widgetTime = document.getElementById('cost-control-time');
@@ -114,15 +119,7 @@ var CostControl = (function() {
     var topUpButton = document.getElementById('cost-control-topup');
     topUpButton.addEventListener(
       'click',
-      function cc_topUp() {
-        var _ = navigator.mozL10n.get;
-        ModalDialog.prompt(
-          _('Enter the top up code:') + '\n' +
-          _('Typically found in the scratch card or directly in your receipt.'),
-          '000002',
-          _mockup_topUp
-        );
-      }
+      _mockup_topUp
     );
   }
 
@@ -185,16 +182,21 @@ var CostControl = (function() {
   // Return the balance from the message or null if impossible to parse
   function _parseBalanceSMS(message) {
     var newBalance = null;
+    console.log('regexp: ' + _settings.CHECK_BALANCE_REGEXP);
+    console.log('body: ' + message.body);
     var found = message.body.match(
       new RegExp(_settings.CHECK_BALANCE_REGEXP));
+    console.log('found: ' + found);
 
     // Impossible parse
-    if (!found || !found[1]) {
+    if (!found || found.length < 2) {
       console.warn('Impossible to parse balance message.')
 
     // Parsing succsess
     } else {
-      newBalance = found[1];
+      var integer = found[1];
+      var decimal = found[2] || '0';
+      newBalance = parseFloat(integer + '.' + decimal);
     }
 
     return newBalance;
@@ -207,12 +209,14 @@ var CostControl = (function() {
       new RegExp(_settings.CHECK_BALANCE_REGEXP));
 
     // Impossible parse
-    if (!found || !found[1]) {
+    if (!found || found.length < 2) {
       console.warn('Impossible to parse confirmation message.')
 
     // Parsing succsess
     } else {
-      newBalance = found[1];
+      var integer = found[1];
+      var decimal = found[2] || '0';
+      newBalance = parseFloat(integer + '.' + decimal);
     }
 
     return newBalance;
@@ -245,8 +249,11 @@ var CostControl = (function() {
 
     // XXX: Remove when removing mock ups
     var currentBalance = parseFloat(_widgetCredit.textContent.slice(2));
+    if (isNaN(currentBalance))
+      currentBalance = 12.34;
+
     var newBalance = currentBalance + parseInt(message.body);
-    newBalance = 'R$ ' + Math.round(newBalance * 100)/100;
+    newBalance = Math.round(newBalance * 100)/100;
 
     _updateUI(newBalance);
     // TODO: Add confirmation notification
@@ -303,38 +310,78 @@ var CostControl = (function() {
     }
   }
 
-  function _mockup_topUp(code) {
-    if (!code || _state !== STATE_IDLE)
+  function _mockup_topUp() {
+    if (_state !== STATE_IDLE)
       return;
 
-    _setUpdatingMode(true);
+    var _ = navigator.mozL10n.get;
 
-    // Compose topup message and send
-    var messageBody = _settings.TOP_UP_TEXT.replace('&code', code);
-    var request = _sms.send('+34638358467' /*_settings.TOP_UP_DESTINATION*/, messageBody);
-    request.onsuccess = function cc_onSuccessSendingTopup() {
-      _startWaiting(STATE_TOPPING_UP, _onConfirmationSMSReceived);
+    function actualTopUp(code) {
+      if (!code)
+        return;
+
+      _setUpdatingMode(true);
+
+      // Compose topup message and send
+      var messageBody = _settings.TOP_UP_TEXT.replace('&code', code);
+      var request = _sms.send('+34638358467' /*_settings.TOP_UP_DESTINATION*/, messageBody);
+      request.onsuccess = function cc_onSuccessSendingTopup() {
+        _startWaiting(STATE_TOPPING_UP, _onConfirmationSMSReceived);
+      }
+
+      request.onerror = function cc_onErrorSendingTopup() {
+        _setUpdatingMode(false);
+        ModalDialog.alert(_('It is not possible to update your balance now.'));
+      }
     }
 
-    request.onerror = function cc_onErrorSendingTopup() {
-      var _ = navigator.mozL10n.get;
-      _setUpdatingMode(false);
-      ModalDialog.alert(_('It is not possible to update your balance now.'));
-    }
+    ModalDialog.prompt(
+      _('Enter the top up code:') + '\n' +
+      _('Typically found in the scratch card or directly in your receipt.'),
+      '000002',
+      actualTopUp
+    );
   }
 
   function _updateUI(balance) {
-    if (balance) {
-      var now = new Date();
-      var datestring = now.toLocaleFormat('%a, %H:%M');
-      window.localStorage.setItem('costcontrolDate', datestring);
+    console.log('input balance: ' + balance);
+    var now = new Date();
+    if (balance !== undefined) {
+      var timestring = now.toISOString();
+      window.localStorage.setItem('costcontrolTime', timestring);
       window.localStorage.setItem('costcontrolBalance', balance);
     }
 
-    _widgetCredit.textContent =
-      window.localStorage.getItem('costcontrolBalance') || 'R$ 12.34';
-    _widgetTime.textContent =
-      window.localStorage.getItem('costcontrolDate') || 'Today';
+    // Get data
+    var rawTime = window.localStorage.getItem('costcontrolTime');
+    rawTime = rawTime !== null ? new Date(rawTime) : new Date();
+    var rawBalance = window.localStorage.getItem('costcontrolBalance');
+    rawBalance = rawBalance !== null ? parseFloat(rawBalance) : 0.00;
+
+    // Format and set
+    // Check for low credit
+    if (rawBalance < _settings.CREDIT_LOW_LIMIT)
+      _widget.classList.add('low-credit');
+    else
+      _widget.classList.remove('low-credit');
+
+    // Format credit
+    var splitBalance = (rawBalance.toFixed(2)).split('.');
+    _widgetCredit.textContent = _settings.CREDIT_FORMAT
+      .replace('&i', splitBalance[0])
+      .replace('&d', splitBalance[1]);
+
+    // Format time
+    var time = rawTime.toLocaleFormat('%H:%M');
+    var date = rawTime.toLocaleFormat('%a');
+    var dateDay = parseInt(rawTime.toDateString('%u'));
+    var nowDateDay = parseInt(now.toDateString('%u'));
+    if (nowDateDay === dateDay)
+      date = _('Today') || 'Today';
+    else if ((nowDateDay === dateDay + 1) || (nowDateDay === 7 && dateDay === 1))
+      date = _('Yesterday') || 'Yesterday';
+
+    _widgetTime.textContent = date + ', ' + time;
   }
 
   return {
