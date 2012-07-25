@@ -463,7 +463,7 @@ Page.prototype = {
   },
 
   /*
-   * Movement feedback 
+   * Movement feedback
   */
   bounce: function pg_bounce(direction) {
     var container = this.container;

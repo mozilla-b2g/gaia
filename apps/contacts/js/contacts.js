@@ -867,8 +867,8 @@ var Contacts = (function() {
       var countryName = document.getElementById(selector).value || '';
 
       // Sanity check for pameters, check all params but the typeField
-      if (addressValue == '' && locality == '' && postalCode == ''
-        && countryName == '') {
+      if (addressValue == '' && locality == '' &&
+          postalCode == '' && countryName == '') {
         continue;
       }
 
