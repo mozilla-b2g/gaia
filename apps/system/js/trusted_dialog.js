@@ -100,6 +100,9 @@ var TrustedDialog = (function() {
   });
 
   window.addEventListener('home', function(e) {
+    if (!trustedDialogIsShown())
+      return;
+
     close();
     e.stopImmediatePropagation();
   });

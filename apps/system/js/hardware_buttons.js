@@ -66,60 +66,61 @@
   var state;
 
   // This function transitions to a new state
-  function setState(s, t) {
+  function setState(s, type) {
     // Exit the current state()
     if (state && state.exit)
-      state.exit(t);
+      state.exit(type);
     state = s;
     // Enter the new state
     if (state && state.enter)
-      state.enter(t);
+      state.enter(type);
   }
 
   // This event handler listens for hardware button events and passes the
   // event type to the process() method of the current state for processing
   window.addEventListener('mozChromeEvent', function(e) {
-    switch (e.detail.type) {
-    case 'home-button-press':
-    case 'home-button-release':
-    case 'sleep-button-press':
-    case 'sleep-button-release':
-    case 'volume-up-button-press':
-    case 'volume-up-button-release':
-    case 'volume-down-button-press':
-    case 'volume-down-button-release':
-      state.process(e.detail.type);
-      break;
+    var type = e.detail.type;
+    switch (type) {
+      case 'home-button-press':
+      case 'home-button-release':
+      case 'sleep-button-press':
+      case 'sleep-button-release':
+      case 'volume-up-button-press':
+      case 'volume-up-button-release':
+      case 'volume-down-button-press':
+      case 'volume-down-button-release':
+        state.process(type);
+        break;
     }
   });
 
   // The base state is the default, when no hardware buttons are pressed
   var baseState = {
-    process: function(t) {
-      switch (t) {
+    process: function(type) {
+      switch (type) {
       case 'home-button-press':
         // If the phone is sleeping, then pressing Home wakes it 
         // (on press, not release)
         if (!ScreenManager.screenEnabled) {
           fire('wake');
-          setState(wakeState, t);
+          setState(wakeState, type);
+        } else {
+          setState(homeState, type);
         }
-        else
-          setState(homeState);
         return;
       case 'sleep-button-press':
         // If the phone is sleeping, then pressing Sleep wakes it 
         // (on press, not release)
         if (!ScreenManager.screenEnabled) {
           fire('wake');
-          setState(wakeState, t);
+          setState(wakeState, type);
+        } else {
+          setState(sleepState, type);
         }
-        else
-          setState(sleepState);
         return;
       case 'volume-up-button-press':
       case 'volume-down-button-press':
-        setState(volumeState, t);
+        setState(volumeState, type);
         return;
       case 'home-button-release':
       case 'sleep-button-release':
@@ -129,7 +130,7 @@
         // These can happen after home+sleep and home+volume.
         return;
       }
-      console.error('Unexpected hardware key: ', t);
+      console.error('Unexpected hardware key: ', type);
     }
   };
 
@@ -149,24 +150,24 @@
         this.timer = null;
       }
     },
-    process: function(t) {
-      switch (t) {
+    process: function(type) {
+      switch (type) {
       case 'home-button-release':
         fire('home');
-        setState(baseState);
+        setState(baseState, type);
         return;
       case 'sleep-button-press':
         fire('home+sleep');
-        setState(baseState);
+        setState(baseState, type);
         return;
       case 'volume-up-button-press':
       case 'volume-down-button-press':
         fire('home+volume');
-        setState(baseState, t);
+        setState(baseState, type);
         return;
       }
-      console.error('Unexpected hardware key: ', t);
-      setState(baseState);
+      console.error('Unexpected hardware key: ', type);
+      setState(baseState, type);
     }
   };
 
@@ -186,23 +187,23 @@
         this.timer = null;
       }
     },
-    process: function(t) {
-      switch (t) {
+    process: function(type) {
+      switch (type) {
       case 'sleep-button-release':
         fire('sleep');
-        setState(baseState);
+        setState(baseState, type);
         return;
       case 'home-button-press':
         fire('home+sleep');
-        setState(baseState);
+        setState(baseState, type);
         return;
       case 'volume-up-button-press':
       case 'volume-down-button-press':
-        setState(volumeState, t);
+        setState(volumeState, type);
         return;
       }
-      console.error('Unexpected hardware key: ', t);
-      setState(baseState);
+      console.error('Unexpected hardware key: ', type);
+      setState(baseState, type);
     }
   };
 
@@ -221,9 +222,9 @@
         fire('volumedown');
       this.timer = setTimeout(this.repeat.bind(this), REPEAT_INTERVAL);
     },
-    enter: function(t) {
+    enter: function(type) {
       var self = this;
-      this.direction = t;  // Is volume going up or down?
+      this.direction = type;  // Is volume going up or down?
       this.repeating = false;
       this.timer = setTimeout(this.repeat.bind(this), REPEAT_DELAY);
     },
@@ -233,20 +234,20 @@
         this.timer = null;
       }
     },
-    process: function(t) {
-      switch (t) {
+    process: function(type) {
+      switch (type) {
       case 'home-button-press':
         fire('home+volume');
-        setState(baseState);
+        setState(baseState, type);
         return;
       case 'sleep-button-press':
-        setState(sleepState);
+        setState(sleepState, type);
         return;
       case 'volume-up-button-release':
         if (this.direction === 'volume-up-button-press') {
           if (!this.repeating)
             fire('volumeup');
-          setState(baseState);
+          setState(baseState, type);
           return;
         }
         break;
@@ -254,7 +255,7 @@
         if (this.direction === 'volume-down-button-press') {
           if (!this.repeating)
             fire('volumedown');
-          setState(baseState);
+          setState(baseState, type);
           return;
         }
         break;
@@ -262,8 +263,8 @@
         // Ignore anything else (such as sleep button release)
         return;
       }
-      console.error('Unexpected hardware key: ', t);
-      setState(baseState);
+      console.error('Unexpected hardware key: ', type);
+      setState(baseState, type);
     }
   };
 
@@ -277,17 +278,18 @@
   var wakeState = {
     timer: null,
     delegateState: null,
-    enter: function(t) {
-      if (t === 'home-button-press')
+    enter: function(type) {
+      if (type === 'home-button-press')
         this.delegateState = homeState;
       else
         this.delegateState = sleepState;
       this.timer = setTimeout(function() {
-        if (t === 'home-button-press')
+        if (t === 'home-button-press') {
           fire('holdhome');
-        else if (t === 'sleep-button-press')
+        } else if (t === 'sleep-button-press') {
           fire('holdsleep');
-        setState(baseState);
+        }
+        setState(baseState, type);
       }, HOLD_INTERVAL);
     },
     exit: function() {
@@ -296,19 +298,18 @@
         this.timer = null;
       }
     },
-    process: function(t) {
-      switch (t) {
+    process: function(type) {
+      switch (type) {
       case 'home-button-release':
       case 'sleep-button-release':
-        setState(baseState);
+        setState(baseState, type);
         return;
       default:
-        this.delegateState.process(t);
+        this.delegateState.process(type);
         return;
       }
     }
   };
-
 
   // Kick off the FSM in the base state
   setState(baseState);
