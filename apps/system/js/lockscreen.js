@@ -353,15 +353,32 @@ var LockScreen = {
         this.railRight.style.width = railLength + 'px';
         this.railLeft.style.width = '0';
 
+        var panelOrFullApp = function panelOrFullApp() {
+          if (self.passCodeEnabled) {
+            // Go to secure camera panel
+            self.switchPanel('camera');
+            return;
+          }
+
+          self.unlock();
+
+          // XXX: This should be replaced probably by Web Activities *safely*
+          var host = document.location.host;
+          var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+          var protocol = document.location.protocol + '//';
+          Applications.getByOrigin(protocol + 'camera.' + domain).launch();
+        };
+
+
         if (this.areaHandle.style.MozTransform == transition) {
-          self.switchPanel('camera');
+          panelOrFullApp();
           break;
         }
         this.areaHandle.style.MozTransform = transition;
 
         this.areaHandle.addEventListener('transitionend', function goCamera() {
           self.areaHandle.removeEventListener('transitionend', goCamera);
-          self.switchPanel('camera');
+          panelOrFullApp();
         });
         break;
 
