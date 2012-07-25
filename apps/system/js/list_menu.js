@@ -18,8 +18,6 @@ var ListMenu = {
     return this.element.classList.contains('visible');
   },
 
-  title: '',
-
   // Listen to click event only
   init: function lm_init() {
     window.addEventListener('click', this, true);
@@ -148,11 +146,6 @@ var ListMenu = {
         }
         break;
     }
-  },
-
-  // Set the title of contextmenu
-  setTitle: function lm_setTitle(title) {
-    this.title = title;
   }
 };
 
