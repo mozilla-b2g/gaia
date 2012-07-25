@@ -99,11 +99,14 @@ var BackgroundServiceManager = (function bsm() {
 
     if (!frame) {
       frame = document.createElement('iframe');
+
+      // If we have a frame element, it's provided by mozbrowseropenwindow, and
+      // it has the mozbrowser, mozapp, and src attributes set already.
+      frame.setAttribute('mozbrowser', 'mozbrowser');
+      frame.setAttribute('mozapp', app.manifestURL);
+      frame.src = url;
     }
     frame.className = 'backgroundWindow';
-    frame.setAttribute('mozbrowser', 'true');
-    frame.setAttribute('mozapp', app.manifestURL);
-    frame.src = url;
     frame.dataset.frameType = 'background';
     frame.dataset.frameName = name;
     frame.dataset.frameOrigin = origin;

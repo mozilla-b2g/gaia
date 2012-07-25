@@ -230,7 +230,7 @@ input[type="image"] {
   display: -moz-box;
   -moz-box-orient: horizontal;
   padding: 0;
-  margin: 10;
+  margin: 10px;
   border: solid 1px;
   border-color: #c1c5ce;
   border-radius: 5px;

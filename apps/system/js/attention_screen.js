@@ -35,14 +35,9 @@ var AttentionScreen = {
     evt.stopPropagation();
 
     var attentionFrame = evt.detail.frameElement;
-    attentionFrame.setAttribute('mozapp', evt.target.getAttribute('mozapp'));
     attentionFrame.dataset.frameType = 'attention';
     attentionFrame.dataset.frameName = evt.detail.name;
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
-
-    // FIXME: won't be needed once
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
-    attentionFrame.src = evt.detail.url;
 
     this.attentionScreen.appendChild(attentionFrame);
     this.attentionScreen.classList.add('displayed');
@@ -84,7 +79,7 @@ var AttentionScreen = {
     this.attentionScreen.removeChild(evt.target);
 
     if (this._screenInitiallyDisabled)
-      ScreenManager.turnScreenOff();
+      ScreenManager.turnScreenOff(true);
 
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.
