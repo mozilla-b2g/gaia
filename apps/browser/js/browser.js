@@ -118,13 +118,12 @@ var Browser = {
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function() {
-      this.selectTab(this.createTab(this.START_PAGE_URL));
       this.hasLoaded = true;
       if (this.waitingActivities.length) {
         this.waitingActivities.forEach(this.handleActivity, this);
         return;
       }
-      this.selectTab(this.createTab());
+      this.selectTab(this.createTab(this.START_PAGE_URL));
       this.showPageScreen();
     }).bind(this));
   },
