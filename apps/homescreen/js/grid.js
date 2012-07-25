@@ -166,7 +166,7 @@ const GridManager = (function() {
           container.classList.remove('darken');
           DockManager.page.container.classList.remove('darken');
         } else {
-          pageHelper.getCurrent().shake(previousIndex - index);
+          pageHelper.getCurrent().bounce(previousIndex - index);
         }
       });
     }

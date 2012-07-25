@@ -4,28 +4,28 @@
 }
 
 /* Page have movement feedback */ 
-@-moz-keyframes feedbackPositive {
+@-moz-keyframes bounceRight {
   0% { -moz-transform: translateX(0px); }
 	50% { -moz-transform: translateX(10px); }
 	100% { -moz-transform: translateX(0px); }
 }
 
-@-moz-keyframes feedbackNegative {
+@-moz-keyframes bounceLeft {
   0% { -moz-transform: translateX(0px); }
   50% { -moz-transform: translateX(-10px); }
   100% { -moz-transform: translateX(0px); }
 }
 
-.apps > div[data-shaking = 'positive'] {
-  -moz-animation-name: feedbackPositive;
+.apps > div[data-bouncing = 'right'] {
+  -moz-animation-name: bounceRight;
   -moz-animation-duration: .2s;
   -moz-animation-iteration-count: 1;
   -moz-animation-timing-function: ease-out;
   -moz-transform-origin:50% 50%;
 }
 
-.apps > div[data-shaking = 'negative'] {
-  -moz-animation-name: feedbackNegative;
+.apps > div[data-bouncing = 'left'] {
+  -moz-animation-name: bounceLeft;
   -moz-animation-duration: .2s;
   -moz-animation-iteration-count: 1;
   -moz-animation-timing-function: ease-out;

@@ -465,18 +465,18 @@ Page.prototype = {
   /*
    * Movement feedback 
   */
-  shake: function pg_shake(direction) {
+  bounce: function pg_bounce(direction) {
     var container = this.container;
     var dataset = this.container.dataset;
     container.addEventListener('animationend', function animationEnd(e) {
       container.removeEventListener('animationend', animationEnd);
-      dataset.shaking = '';
+      dataset.bouncing = '';
     });
 
     if (direction > 0) {
-      dataset.shaking = 'positive';
+      dataset.bouncing = 'right';
     } else {
-      dataset.shaking = 'negative';
+      dataset.bouncing = 'left';
     }
   }
 };
