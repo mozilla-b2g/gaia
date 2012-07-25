@@ -88,7 +88,7 @@ var Voicemail = {
 
     this.notification = null;
     this.notificationId = 0;
-  },
+  }
 
 };
 
