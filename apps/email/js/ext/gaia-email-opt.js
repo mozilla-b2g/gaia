@@ -20250,8 +20250,12 @@ ActiveSyncAccount.prototype = {
      .etag();
 
     this.conn.doCommand(w, function(aResponse) {
-      dump(aResponse.dump()+"\n\n");
-      callback(null);
+      if (aResponse === null)
+        callback(null);
+      else {
+        dump("Error sending message. XML dump follows:\n" + aResponse.dump() +
+             "\n");
+      }
     });
   },
 
