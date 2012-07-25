@@ -31,6 +31,9 @@ var Browser = {
   urlButtonMode: null,
   inTransition: false,
 
+  waitingActivity: [],
+  hasLoaded: false,
+
   init: function browser_init() {
     // Assign UI elements to variables
     this.toolbarStart = document.getElementById('toolbar-start');
@@ -116,6 +119,17 @@ var Browser = {
     // (currently homepage is blank)
     Places.init((function() {
       this.selectTab(this.createTab(this.START_PAGE_URL));
+      this.hasLoaded = true;
+      var handleWaitingActivity = function _handleWaitingActivity() {
+        for (var i = 0; i < this.waitingActivity.length; i++) {
+          Browser.createTab(this.waitingActivity[i].source.data.string);
+        }
+      }
+      if (this.waitingActivity.length) {
+        handleWaitingActivity();
+        return;
+      }
+      this.selectTab(this.createTab());
       this.showPageScreen();
     }).bind(this));
   },
@@ -1158,6 +1172,14 @@ var Browser = {
       this.tab.style.MozTransition = 'left ' + time + 'ms linear';
       this.tab.style.left = offset + 'px';
     }
+  },
+  handleActivity: function browser_handleActivity(activity) {
+    switch (activity.type) {
+      case 'view':
+        var url = activity.source.data.string;
+        this.createTab(url);
+        break;
+    }
   }
 };
 
@@ -1200,4 +1222,13 @@ var Utils = {
 window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
+});
+
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  if (Browser.hasLoaded) {
+    handleActivity(activity);
+  } else {
+    Browser.waitingActivities.push(activity);
+  }
+  activity.postResult({ status: 'accepted' });
 });
