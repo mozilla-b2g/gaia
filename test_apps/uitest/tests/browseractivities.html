@@ -10,8 +10,8 @@
     </style>
     <script>
     var go = function _go() {
-      var URL = document.getElementById('URL');
-      var a = new Activity({ name: 'view', data: { url: URL }});
+      var URL = document.getElementById('URL').value;
+      var a = new MozActivity({ name: 'view', data: {type: 'url', url: URL }});
       a.onsuccess = function() { alert('Success!'); };
       a.onerror = function() { alert('Failure going to URL'); };
     };

@@ -118,13 +118,12 @@ var Browser = {
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function() {
-      this.selectTab(this.createTab(this.START_PAGE_URL));
       this.hasLoaded = true;
       if (this.waitingActivities.length) {
         this.waitingActivities.forEach(this.handleActivity, this);
         return;
       }
-      this.selectTab(this.createTab());
+      this.selectTab(this.createTab(this.START_PAGE_URL));
       this.showPageScreen();
     }).bind(this));
   },
@@ -371,6 +370,23 @@ var Browser = {
     this.setUrlBar(url);
   },
 
+  getUrlFromInput: function browser_getUrlFromInput(url) {
+    url = url.trim();
+    // If the address entered starts with a quote then search, if it
+    // contains a . or : then treat as a url, else search
+    var isSearch = /^"|\'/.test(url) || !(/\.|\:/.test(url));
+    var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
+    var protocol = protocolRegexp.exec(url);
+
+    if (isSearch) {
+      return 'http://www.bing.com/search?q=' + url;
+    }
+    if (!protocol) {
+      return 'http://' + url;
+    }
+    return url;
+  },
+
   handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
     if (e) {
       e.preventDefault();
@@ -386,18 +402,7 @@ var Browser = {
       return;
     }
 
-    var url = this.urlInput.value.trim();
-    // If the address entered starts with a quote then search, if it
-    // contains a . or : then treat as a url, else search
-    var isSearch = /^"|\'/.test(url) || !(/\.|\:/.test(url));
-    var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
-    var protocol = protocolRegexp.exec(url);
-
-    if (isSearch) {
-      url = 'http://www.bing.com/search?q=' + url;
-    } else if (!protocol) {
-      url = 'http://' + url;
-    }
+    var url = getUrlFromInput(this.urlInput.value);
 
     if (url != this.currentTab.url) {
       this.setUrlBar(url);
@@ -1168,11 +1173,17 @@ var Browser = {
       this.tab.style.left = offset + 'px';
     }
   },
+
   handleActivity: function browser_handleActivity(activity) {
-    switch (activity.type) {
-      case 'view':
-        var url = activity.source.data.url;
-        this.createTab(url);
+    // Activities can send multiple names, right now we only handle
+    // one so we only filter on types
+    switch (activity.source.data.type) {
+      case 'url':
+        var url = this.getUrlFromInput(activity.source.data.url);
+        this.selectTab(this.createTab(url));
+        if (this.currentScreen !== this.PAGE_SCREEN) {
+          this.showPageScreen();
+        }
         break;
     }
   }
