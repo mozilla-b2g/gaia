@@ -151,12 +151,21 @@ const GridManager = (function() {
     } else {
       var currentPageContainer = pageHelper.getCurrent().container;
 
+      // From search page to app grid page
+      if (previousIndex === 0) {
+        container.classList.add('darken');
+        DockManager.page.container.classList.add('darken');
+      }
+
       currentPageContainer.addEventListener('transitionend', function tr_end(e) {
         currentPageContainer.removeEventListener('transitionend', tr_end);
         delete document.body.dataset.transitioning;
         callback();
         Search.resetIcon();
-        if (index !== 0) {
+        if (index === 0) {
+          container.classList.remove('darken');
+          DockManager.page.container.classList.remove('darken');
+        } else {
           pageHelper.getCurrent().bounce(previousIndex - index);
         }
       });
