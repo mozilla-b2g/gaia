@@ -39,14 +39,7 @@ function buildUI() {
   var option = 'artist';
 
   musicdb.enumerate('metadata.' + option, null, 'nextunique',
-    //ListView.update.bind(ListView, option));
-    //TilesView.update.bind(TilesView));
-    showHomepage);
-
-  function showHomepage(result) {
-    ListView.update(option, result);
-    TilesView.update(result);
-  }
+    TilesView.update.bind(TilesView));
 }
 
 //
@@ -77,9 +70,17 @@ var MODE_TILES = 1;
 var MODE_LIST = 2;
 var MODE_SUBLIST = 3;
 var MODE_PLAYER = 4;
-var currentMode;
+var currentMode, fromMode;
 
 function changeMode(mode) {
+  if (mode === currentMode)
+    return;
+  
+  if (fromMode >= mode) {
+    fromMode = mode - 1;
+  } else {
+    fromMode = currentMode;
+  }
   currentMode = mode;
 
   document.body.classList.remove('tiles-mode');
@@ -132,11 +133,7 @@ var TitleBar = {
 
         switch (target.id) {
           case 'title-back':
-            if (currentMode === MODE_SUBLIST) {
-              changeMode(MODE_LIST);
-            } else if (currentMode === MODE_PLAYER) {
-              changeMode(MODE_SUBLIST);
-            }
+            changeMode(fromMode);
 
             break;
           case 'title-text':
@@ -224,7 +221,9 @@ var TilesView = {
     } else {
       tile.classList.add('float-right');
     }
-  
+
+    tile.classList.add('color-' + this.index % 7);
+    
     tile.dataset.index = this.index;
     
     tile.appendChild(defaultImage);
@@ -241,7 +240,12 @@ var TilesView = {
         if (!target)
           return;
 
-        changeMode(MODE_LIST);
+        if (target.dataset.index) {
+          PlayerView.dataSource = this.dataSource;
+          PlayerView.play(target);
+
+          changeMode(MODE_PLAYER);
+        }
 
         break;
 
@@ -875,7 +879,7 @@ window.addEventListener('DOMContentLoaded', function() {
           evt.preventDefault();
           break;
         case MODE_PLAYER:
-          changeMode(MODE_LIST);
+          changeMode(MODE_SUBLIST);
           evt.preventDefault();
           break;
       }

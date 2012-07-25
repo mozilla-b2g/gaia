@@ -428,13 +428,14 @@ body.player-mode #views-player {
   font-size: 10em;
   line-height: 100%;
   opacity: 0.4;
-  color: orange;
+  pointer-events: none;
 }
 
 .sub-tile {
   width: 158px;
   height: 158px;
   border: 1px solid rgba(0, 0, 0, 0.4);
+  font-weight: lighter;
   overflow: hidden;
 }
 
@@ -446,11 +447,12 @@ body.player-mode #views-player {
   font-size: 5em;
   line-height: 100%;
   opacity: 0.4;
-  color: orange;
+  pointer-events: none;
 }
 
 .tile-image {
   position: absolute;
+  pointer-events: none;
 }
 
 .float-left {
@@ -462,6 +464,37 @@ body.player-mode #views-player {
   position: relative;
   float: right;
   right: 7px;
+}
+
+.color-0 {
+  color: LightSkyBlue;
+  font-weight: normal;
+}
+
+.color-1 {
+  color: red;
+}
+
+.color-2 {
+  color: HotPink;
+}
+
+.color-3 {
+  color: YellowGreen;
+  font-weight: normal;
+}
+
+.color-4 {
+  color: turquoise;
+}
+
+.color-5 {
+  color: orange;
+  font-weight: normal;
+}
+
+.color-6 {
+  color: white;
 }
 
 /* 320x480 phones */
