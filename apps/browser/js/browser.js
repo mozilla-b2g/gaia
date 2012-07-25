@@ -402,7 +402,7 @@ var Browser = {
       return;
     }
 
-    var url = getUrlFromInput(this.urlInput.value);
+    var url = this.getUrlFromInput(this.urlInput.value);
 
     if (url != this.currentTab.url) {
       this.setUrlBar(url);
