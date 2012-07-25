@@ -92,7 +92,7 @@ var LockScreen = {
     this.passcodePad.addEventListener('click', this);
 
     /* switching panels */
-    window.addEventListener('keyup', this, true);
+    window.addEventListener('home', this);
 
     /* mobile connection state on lock screen */
     var conn = window.navigator.mozMobileConnection;
@@ -254,15 +254,11 @@ var LockScreen = {
         }
         break;
 
-      case 'keyup':
-        if (!this.locked)
-          break;
-
-        if (evt.keyCode !== evt.DOM_VK_ESCAPE &&
-            evt.keyCode !== evt.DOM_VK_HOME)
-          break;
-
-        this.switchPanel();
+      case 'home':
+        if (this.locked) {
+          this.switchPanel();
+          evt.stopImmediatePropagation();
+        }
         break;
 
       case 'load':

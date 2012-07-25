@@ -99,6 +99,11 @@ var TrustedDialog = (function() {
     }
   });
 
+  window.addEventListener('home', function(e) {
+    close();
+    e.stopImmediatePropagation();
+  });
+
   return {
     open: open,
     close: close,
