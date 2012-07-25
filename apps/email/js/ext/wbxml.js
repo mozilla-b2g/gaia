@@ -23,7 +23,7 @@
 }(this, function() {
   const __exports__ = [
     "ParseError", "CompileCodepages", "Element", "EndTag", "Text", "Extension",
-    "ProcessingInstruction", "Opaque", "Reader", "Writer" ];
+    "ProcessingInstruction", "Opaque", "Reader", "Writer", "EventParser" ];
 
   const Tokens = {
     SWITCH_PAGE: 0x00,
@@ -878,7 +878,6 @@
   };
 
   function EventParser(reader) {
-    this.reader = reader;
     this.listeners = [];
   }
 
@@ -889,16 +888,22 @@
 
     _pathMatches: function(a, b) {
       return a.length == b.length && a.every(function(val, i) {
-        return val == b[i];
+        if (b[i] == "*")
+          return true;
+        else if (Array.isArray(b[i])) {
+          return b[i].indexOf(val) != -1;
+        }
+        else
+          return val == b[i];
       });
     },
 
-    run: function() {
+    run: function(reader) {
       let fullPath = [];
       let recPath = [];
       let recording = 0;
 
-      for (let node in this.reader.document) {
+      for (let node in reader.document) {
         if (node.type == "TAG") {
           fullPath.push(node.tag);
           for (let [,listener] in Iterator(this.listeners)) {

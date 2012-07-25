@@ -19918,7 +19918,8 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.folders.sort(function(a, b) { return a.path.localeCompare(b.path); });
 
   if (this.meta.syncKey != "0") {
-    // TODO: this is a really hacky way of syncing folders later
+    // TODO: this is a really hacky way of syncing folders after the first
+    // time.
     var account = this;
     setTimeout(function() { account.syncFolderList(function() {}) }, 1000);
   }
@@ -20000,50 +20001,133 @@ ActiveSyncAccount.prototype = {
      .etag();
 
     this.conn.doCommand(w, function(aResponse) {
-      var folder;
-      var depth = 0;
-      for (var node in aResponse.document) {
-        if (node.type == "STAG" && node.tag == fh.SyncKey) {
-          var text = aResponse.document.next();
-          if (text.type != "TEXT")
-            throw new Error("expected TEXT node");
-          if (aResponse.document.next().type != "ETAG")
-            throw new Error("expected ETAG node");
+      var e = new $wbxml.EventParser();
 
-          account.meta.syncKey = text.textContent;
-        }
-        else if (node.type == "STAG" &&
-                 (node.tag == fh.Add || node.tag == fh.Delete)) {
-          depth = 1;
-          folder = { add: node.tag == fh.Add };
-        }
-        else if (depth) {
-          if (node.type == "ETAG") {
-            if (--depth == 0) {
-              if (folder.add)
-                account._addedFolder(folder.ServerId, folder.DisplayName,
-                                     folder.Type);
-              else
-                account._deletedFolder(folder.ServerId);
-            }
-          }
-          else if (node.type == "STAG") {
-            var text = aResponse.document.next();
-            if (text.type != "TEXT")
-              throw new Error("expected TEXT node");
-            if (aResponse.document.next().type != "ETAG")
-              throw new Error("expected ETAG node");
+      e.addEventListener([fh.FolderSync, fh.SyncKey], function(node) {
+        account.meta.syncKey = node.children[0].textContent;
+      });
 
-            folder[node.localTagName] = text.textContent;
-          }
-          else {
-            throw new Error("unexpected node!");
-          }
+      e.addEventListener([fh.FolderSync, fh.Changes, [fh.Add, fh.Remove]],
+                         function(node) {
+        var folder = {};
+        for (var i = 0; i < node.children.length; i++) {
+          folder[node.children[i].localTagName] =
+            node.children[i].children[0].textContent;
         }
-      }
+
+        if (node.tag == fh.Add)
+          account._addedFolder(folder.ServerId, folder.DisplayName,
+                               folder.Type);
+        else
+          account._deletedFolder(folder.ServerId);
+      });
+
+      e.run(aResponse);
 
       account.saveAccountState();
       callback();
+
+      // XXX: remove this (it loads messages for the inbox)
+      account._loadMessages('00000000-0000-0000-0000-000000000001');
+    });
+  },
+
+  _loadMessages: function(serverId) {
+    var account = this;
+    var as = ActiveSyncCodepages.AirSync.Tags;
+    var em = ActiveSyncCodepages.Email.Tags;
+
+    var w = new WBXML.Writer("1.3", 1, "UTF-8");
+    w.stag(as.Sync)
+       .stag(as.Collections)
+         .stag(as.Collection)
+           .tag(as.SyncKey, "0")
+           .tag(as.CollectionId, serverId)
+         .etag()
+       .etag()
+     .etag();
+
+    this.conn.doCommand(w, function(aResponse) {
+      var syncKey;
+      var e = new $wbxml.EventParser();
+      e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
+                         function(node) {
+        syncKey = node.children[0].textContent;
+      });
+      e.run(aResponse);
+
+      var w = new WBXML.Writer("1.3", 1, "UTF-8");
+      w.stag(as.Sync)
+         .stag(as.Collections)
+           .stag(as.Collection)
+             .tag(as.SyncKey, syncKey)
+             .tag(as.CollectionId, serverId)
+             .tag(as.GetChanges)
+           .etag()
+         .etag()
+       .etag();
+
+      var folderId = account.id + '/' + serverId;
+      var folderStorage = account._folderStorages[folderId];
+      account.conn.doCommand(w, function(aResponse) {
+        var e = new $wbxml.EventParser();
+        e.addEventListener([as.Sync, as.Collections, as.Collection, as.Commands,
+                            as.Add, as.ApplicationData],
+        function(node) {
+          var guid = Date.now() + Math.random().toString(16).substr(1) +
+            '@mozgaia';
+          var headers = {
+            subject: null,
+            author: null,
+            date: null,
+            flags: [],
+            id: null,
+            suid: folderId + '/' + guid,
+            guid: guid,
+            hasAttachments: false,
+            snippet: null,
+          };
+          var body = {
+            to: null,
+            cc: null,
+            bcc: null,
+            replyTo: null,
+            attachments: null,
+            references: null,
+            bodyRep: [0x1, "This is my message body. There are many like it, " +
+                      "but this one is mine."],
+          };
+
+          for (var i = 0; i < node.children.length; i++) {
+            var child = node.children[i];
+            var childText = child.children.length &&
+                            child.children[0].textContent;
+
+            if (child.tag == em.Subject)
+              headers.subject = childText;
+            else if (child.tag == em.From || child.tag == em.To) {
+              // XXX: This address parser is probably very bad. Fix it.
+              var m = childText.match(/"(.+?)" <(.+)>/);
+              var addr = m ? { name: m[1], address: m[2] } :
+                             { name: "", address: childText };
+              if (child.tag == em.From)
+                headers.author = addr;
+              else // XXX: I wonder how this works with multiple To: fields???
+                body.to = [addr];
+            }
+            else if (child.tag == em.DateReceived)
+              headers.date = new Date(childText).valueOf();
+            else if (child.tag == em.Read) {
+              if (childText == "1")
+                headers.flags.push('\\Seen');
+            }
+          }
+
+          folderStorage._headers.push(headers);
+          folderStorage._bodiesBySuid[headers.suid] = body;
+        });
+        e.run(aResponse);
+      });
     });
   },
 
