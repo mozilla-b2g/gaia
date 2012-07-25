@@ -127,11 +127,9 @@ var Recents = {
     this._selectedEntriesCounter = 0;
     this.headerEditModeText.textContent = 'Edit';
     var logItems = this.recentsContainer.
-      querySelectorAll('.log-item:not(.collapsed)');
-    var logItemsLenght = logItems.length;
-    var contactPhoto;
-    var contactSelection;
-    var logItem;
+      querySelectorAll('.log-item:not(.collapsed)'),
+      logItemsLenght = logItems.length,
+      contactPhoto, contactSelection, logItem;
     for (var i = 0; i < logItemsLenght; i++) {
       logItem = logItems[i];
       contactPhoto = logItem.querySelector('.call-log-contact-photo');
@@ -182,6 +180,10 @@ var Recents = {
           this.headerEditModeText.textContent =
             selectedCallsLength + ' Selected';
         }
+      }
+      if (this._allViewGroupingPending) {
+        this.groupCallsInCallLog();
+        this._allViewGroupingPending = false;
       }
     } else {
       for (i = 0; i < noMissedCallsLength; i++) {
@@ -281,20 +283,13 @@ var Recents = {
     var self = this;
 
     this.getDatabase(function(database) {
-      var txn = database.transaction(self.STORENAME, 'readwrite');
-      var store = txn.objectStore(self.STORENAME);
-
-      var selectedLogItems = self.recentsContainer.
-        querySelectorAll('.log-item:not(.hide).selected');
-      var selectedLogItemsLength = selectedLogItems.length;
-      var callType;
-      var phoneNumber;
-      var phoneNumberType;
-      var groupSelector;
-      var groupSelectorAux;
-      var groupItemLogs;
-      var groupItemLogsAux;
-      var sameDaySection;
+      var txn = database.transaction(self.STORENAME, 'readwrite'),
+        store = txn.objectStore(self.STORENAME),
+        selectedLogItems = self.recentsContainer.
+          querySelectorAll('.log-item:not(.hide).selected'),
+        selectedLogItemsLength = selectedLogItems.length,
+        callType, phoneNumber, phoneNumberType, groupItemLogs, groupItemLogsAux,
+        sameDaySection;
       for (var i = 0; i < selectedLogItemsLength; i++) {
         if (selectedLogItems[i].dataset.count > 1) {
           callType = selectedLogItems[i].dataset.type;
@@ -302,28 +297,18 @@ var Recents = {
           phoneNumberType = selectedLogItems[i].dataset.phoneType;
           sameDaySection = selectedLogItems[i].parentNode;
           if (callType.indexOf('dialing') != -1) {
-            groupSelector = '[data-num^="' + phoneNumber +
-              '"]' + (phoneNumberType ? ('[data-phone-type="' +
-                phoneNumberType + '"]') : '') +
-              '[data-type="dialing-refused"].collapsed';
-            groupItemLogs = sameDaySection.querySelectorAll(groupSelector);
+            groupItemLogs = self.getSameTypeCallsOnSameDayForDeletion(
+              sameDaySection, phoneNumber, phoneNumberType, 'dialing', true);
           } else if (callType.indexOf('incoming-connected') != -1) {
-            groupSelector = '[data-num^="' + phoneNumber +
-              '"]' + (phoneNumberType ? ('[data-phone-type="' +
-                phoneNumberType + '"]') : '') +
-              '[data-type="incoming-connected"].collapsed';
-            groupItemLogs = sameDaySection.querySelectorAll(groupSelector);
+            groupItemLogs = self.getSameTypeCallsOnSameDayForDeletion(
+              sameDaySection, phoneNumber, phoneNumberType,
+              'incoming-connected', false);
           } else {
-            groupSelector = '[data-num^="' + phoneNumber +
-              '"]' + (phoneNumberType ? ('[data-phone-type="' +
-                phoneNumberType + '"]') : '') +
-              '[data-type="incoming"].collapsed';
-            groupItemLogs = sameDaySection.querySelectorAll(groupSelector);
-            groupSelectorAux = '[data-num^="' + phoneNumber +
-              '"]' + (phoneNumberType ? ('[data-phone-type="' +
-                phoneNumberType + '"]') : '') +
-              '[data-type="incoming-refused"].collapsed';
-            groupItemLogsAux = sameDaySection.querySelector(groupSelectorAux);
+            groupItemLogs = self.getSameTypeCallsOnSameDayForDeletion(
+              sameDaySection, phoneNumber, phoneNumberType, 'incoming', false);
+            groupItemLogsAux = self.getSameTypeCallsOnSameDayForDeletion(
+              sameDaySection, phoneNumber, phoneNumberType, 'incoming-refused',
+              false);
           }
           var groupItemLogsLength = groupItemLogs.length;
           for (var j = 0; j < groupItemLogsLength; j++) {
@@ -342,6 +327,16 @@ var Recents = {
       }
     });
     self.recentsHeaderAction(null);
+  },
+
+  getSameTypeCallsOnSameDayForDeletion: function re_getSameTypeCallsOnSameDay(
+    day, phoneNumber, phoneNumberType, callType, startingWith) {
+    var groupSelector = '[data-num^="' + phoneNumber +
+      '"]' + (phoneNumberType ? ('[data-phone-type="' +
+      phoneNumberType + '"]') : '') +
+      '[data-type' + (startingWith ? '^' : '') + '="' + callType +
+      '"].collapsed';
+    return day.querySelectorAll(groupSelector);
   },
 
   deleteEntry: function re_deleteEntry(store, logItem) {
@@ -467,8 +462,8 @@ var Recents = {
       }
 
       self.recentsIconEdit.classList.remove('disabled');
-      var content = '';
-      var currentDay = '';
+      var content = '',
+        currentDay = '';
       for (var i = 0; i < recents.length; i++) {
         var day = self.getDayDate(recents[i].date);
         if (day != currentDay) {
@@ -495,16 +490,17 @@ var Recents = {
         self.filter(theEvent);
         self.missedFilter.classList.add('selected');
         self.allFilter.classList.remove('selected');
+        self._allViewGroupingPending = true;
       }
 
     });
   },
 
   updateContactDetails: function re_updateContactDetails() {
-    var itemSelector = '.log-item';
-    var callLogItems = document.querySelectorAll(itemSelector);
-    var length = callLogItems.length;
-    var phoneNumber;
+    var itemSelector = '.log-item',
+      callLogItems = document.querySelectorAll(itemSelector),
+      length = callLogItems.length,
+      phoneNumber;
     this._updateCounter = 0;
     for (var i = 0; i < length; i++) {
       phoneNumber = callLogItems[i].dataset.num.trim();
@@ -520,8 +516,8 @@ var Recents = {
   },
 
   contactCallBack: function re_contactCallBack(logItem, max, contact) {
-    var primaryInfo = logItem.querySelector('.primary-info');
-    var contactPhoto = logItem.querySelector('.call-log-contact-photo');
+    var primaryInfo = logItem.querySelector('.primary-info'),
+      contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact) {
       if (contact.name) {
         primaryInfo.textContent =
@@ -531,11 +527,10 @@ var Recents = {
         contactPhoto.classList.add('knownContact');
         contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
       }
-      var phoneNumber = logItem.dataset.num.trim();
-      var secondaryInfo = logItem.querySelector('.secondary-info');
-      var contactPhoneNumber;
-      var phoneEntry;
-      var length = contact.tel.length;
+      var phoneNumber = logItem.dataset.num.trim(),
+        secondaryInfo = logItem.querySelector('.secondary-info'),
+        contactPhoneNumber, phoneEntry,
+        length = contact.tel.length;
       for (var i = 0; i < length; i++) {
         phoneEntry = contact.tel[i];
         contactPhoneNumber = phoneEntry.number.replace(' ', '', 'g');
@@ -549,7 +544,6 @@ var Recents = {
     } else {
       contactPhoto.classList.add('unknownContact');
     }
-
     this._updateCounter++;
     if (this._updateCounter == max) {
       this.groupCallsInCallLog();
@@ -560,13 +554,13 @@ var Recents = {
     // The grouping of the calls is per day, per contact, per contact
     //  phone number type (Home, Work, Mobile, etc.) and per type of call
     //  (outgoing, incoming, missed).
-    var daySelector = '.log-group';
-    var daysElements = document.querySelectorAll(daySelector);
-    var daysElementsLength = daysElements.length;
-    var itemSelector = '.log-item';
-    var callLogItems, length, phoneNumber, phoneNumberType, callType,
-      callCount, callDate, sameTypeCallSelector, sameTypeCall,
-      sameTypeCallSelectorAux, sameTypeCallAux, sameTypeCallCount;
+    var daySelector = '.log-group',
+      daysElements = document.querySelectorAll(daySelector),
+      daysElementsLength = daysElements.length,
+      itemSelector = '.log-item:not(.hide)',
+      callLogItems, length, phoneNumber, phoneNumberType, callType,
+      callCount, callDate, sameTypeCall,
+      sameTypeCallAux, sameTypeCallCount;
     for (var dayElementsCounter = 0; dayElementsCounter < daysElementsLength;
       dayElementsCounter++) {
       callLogItems = daysElements[dayElementsCounter].
@@ -580,32 +574,20 @@ var Recents = {
           parseInt(callLogItems[i].dataset.count) : 1);
         callDate = callLogItems[i].dataset.date;
         if (callType.indexOf('dialing') != -1) {
-          sameTypeCallSelector = '[data-num^="' + phoneNumber +
-            '"]' + (phoneNumberType ? ('[data-phone-type="' +
-              phoneNumberType + '"]') : '') +
-            '[data-type="dialing-refused"][data-count]:not(.hide)';
-          sameTypeCall = daysElements[dayElementsCounter].
-            querySelector(sameTypeCallSelector);
+          sameTypeCall = this.getSameTypeCallsOnSameDayForGrouping(
+            daysElements[dayElementsCounter], phoneNumber, phoneNumberType,
+            'dialing', true);
         } else if (callType.indexOf('incoming-connected') != -1) {
-          sameTypeCallSelector = '[data-num^="' + phoneNumber +
-            '"]' + (phoneNumberType ? ('[data-phone-type="' +
-              phoneNumberType + '"]') : '') +
-            '[data-type="incoming-connected"][data-count]:not(.hide)';
-          sameTypeCall = daysElements[dayElementsCounter].
-            querySelector(sameTypeCallSelector);
+          sameTypeCall = this.getSameTypeCallsOnSameDayForGrouping(
+            daysElements[dayElementsCounter], phoneNumber, phoneNumberType,
+            'incoming-connected', false);
         } else {
-          sameTypeCallSelector = '[data-num^="' + phoneNumber +
-            '"]' + (phoneNumberType ? ('[data-phone-type="' +
-              phoneNumberType + '"]') : '') +
-            '[data-type="incoming"][data-count]:not(.hide)';
-          sameTypeCall = daysElements[dayElementsCounter].
-            querySelector(sameTypeCallSelector);
-          sameTypeCallSelectorAux = '[data-num^="' + phoneNumber +
-            '"]' + (phoneNumberType ? ('[data-phone-type="' +
-              phoneNumberType + '"]') : '') +
-            '[data-type="incoming-refused"][data-count]:not(.hide)';
-          sameTypeCallAux = daysElements[dayElementsCounter].
-            querySelector(sameTypeCallSelectorAux);
+          sameTypeCall = this.getSameTypeCallsOnSameDayForGrouping(
+            daysElements[dayElementsCounter], phoneNumber, phoneNumberType,
+            'incoming', false);
+          sameTypeCallAux = this.getSameTypeCallsOnSameDayForGrouping(
+            daysElements[dayElementsCounter], phoneNumber, phoneNumberType,
+            'incoming-refused', false);
           if (sameTypeCallAux) {
             if (sameTypeCall) {
               if (sameTypeCall.dataset.date < sameTypeCallAux.dataset.date) {
@@ -616,8 +598,9 @@ var Recents = {
             }
           }
         }
+
         callLogItems[i].dataset.count = callCount;
-        if (sameTypeCall) {
+        if (sameTypeCall && (sameTypeCall != callLogItems[i])) {
           sameTypeCallCount = parseInt(sameTypeCall.dataset.count);
           if (sameTypeCall.dataset.date > callDate) {
             this.groupCalls(callLogItems[i], sameTypeCall,
@@ -631,12 +614,23 @@ var Recents = {
     }
   },
 
+  getSameTypeCallsOnSameDayForGrouping:
+    function re_getSameTypeCallsOnSameDayForGrouping(
+      day, phoneNumber, phoneNumberType, callType, startingWith) {
+    var sameTypeCallSelector = '[data-num^="' + phoneNumber +
+      '"]' + (phoneNumberType ? ('[data-phone-type="' +
+      phoneNumberType + '"]') : '') +
+      '[data-type' + (startingWith ? '^' : '') + '="' + callType +
+      '"][data-count]:not(.hide)';
+    return day.querySelector(sameTypeCallSelector);
+  },
+
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
     olderCallEl.classList.add('hide');
     olderCallEl.classList.add('collapsed');
-    var primaryInfo = newerCallEl.querySelector('.primary-info');
-    var callDetails = primaryInfo.textContent.trim();
-    var countIndex = callDetails.indexOf('(' + count + ')');
+    var primaryInfo = newerCallEl.querySelector('.primary-info'),
+      callDetails = primaryInfo.textContent.trim(),
+      countIndex = callDetails.indexOf('(' + count + ')');
     count += inc;
     if (countIndex != -1) {
       primaryInfo.textContent = callDetails.substr(0, countIndex) +
@@ -648,18 +642,17 @@ var Recents = {
   },
 
   getDayDate: function re_getDayDate(timestamp) {
-    var date = new Date(timestamp);
-    var startDate = new Date(date.getFullYear(),
+    var date = new Date(timestamp),
+      startDate = new Date(date.getFullYear(),
                              date.getMonth(), date.getDate());
     return startDate.getTime();
   },
 
   history: function re_history(callback) {
     this.getDatabase((function(database) {
-      var recents = [];
-
-      var txn = database.transaction(this.STORENAME, 'readonly');
-      var store = txn.objectStore(this.STORENAME);
+      var recents = [],
+        txn = database.transaction(this.STORENAME, 'readonly'),
+        store = txn.objectStore(this.STORENAME);
 
       var cursor = store.openCursor(null, 'prev');
       cursor.onsuccess = function(event) {
@@ -683,9 +676,9 @@ var Recents = {
   },
 
   updateHighlighted: function re_updateHighlighted() {
-    var itemSelector = '.log-item.highlighted';
-    var items = document.querySelectorAll(itemSelector);
-    var itemsLength = items.length;
+    var itemSelector = '.log-item.highlighted',
+      items = document.querySelectorAll(itemSelector),
+      itemsLength = items.length;
     for (var i = 0; i < itemsLength; i++) {
       items[i].classList.remove('highlighted');
     }
