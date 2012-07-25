@@ -345,8 +345,6 @@ var ThreadListUI = {
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
     var threadIds = [], headerIndex, unreadThreads = [];
-    console.log("MESSAGES = " + messages);
-    console.log("NºMSSGS = " + messages.length);
     if (messages.length == 0) {
       ThreadListUI.emptyList();
     } else {
@@ -449,12 +447,10 @@ var ThreadListUI = {
     //TODO show information to the user (borja?)
 
     // disable edit mode
-    console.log("DISABLING EDIT MODE");
     document.querySelector('#icon-edit').classList.add('disabled');
   },
 
   listFull: function thlui_listFull() {
-    console.log("ENABLING EDIT MODE");
     document.querySelector('#icon-edit').classList.remove('disabled');
   },
 
