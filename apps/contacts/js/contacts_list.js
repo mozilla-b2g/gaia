@@ -186,7 +186,6 @@ contacts.List = (function() {
       } else if (contact.email) {
         contact.givenName = contact.email[0].address;
       } else {
-        contact.givenName = 'No name';
         contact.givenName = _('noName');
       }
     }
