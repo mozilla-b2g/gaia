@@ -66,26 +66,6 @@ var Shortcuts = {
   }
 };
 
-/* === focuschange === */
-/* XXX: should go to keyboard_manager.js */
-try {
-  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-    switch (evt.detail.type) {
-      case 'blur':
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('hideime', true, true, {});
-        window.dispatchEvent(event);
-        break;
-
-      default:
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('showime', true, true, evt.detail);
-        window.dispatchEvent(event);
-        break;
-    }
-  };
-} catch (e) {}
-
 /* === Localization === */
 /* set the 'lang' and 'dir' attributes to <html> when the page is translated */
 window.addEventListener('localized', function onlocalized() {
