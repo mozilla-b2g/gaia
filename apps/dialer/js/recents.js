@@ -8,6 +8,8 @@ var Recents = {
 
   _selectedEntriesCounter: 0,
 
+  _selectedEntries: new Object(),
+
   get headerEditModeText() {
     delete this.headerEditModeText;
     return this.headerEditModeText = document.
@@ -142,6 +144,7 @@ var Recents = {
       }
     }
     this._recentsEditionMode = !this._recentsEditionMode;
+    this._selectedEntries = new Object();
   },
 
   filter: function re_filter(event) {
@@ -163,6 +166,23 @@ var Recents = {
         noMissedCallsDay.classList.remove('hide');
         noMissedCallsItem.classList.remove('hide');
       }
+      var visibleCalls = this.recentsContainer.
+        querySelectorAll('.log-item:not(.hide)');
+      if (visibleCalls.length > 0) {
+        this.recentsIconEdit.classList.remove('disabled');
+      }
+      if (this._recentsEditionMode) {
+        var selectedCalls = this.recentsContainer.
+          querySelectorAll('.log-item:not(.hide).selected');
+        var selectedCallsLength = selectedCalls.length;
+        this._selectedEntriesCounter = selectedCallsLength;
+        if (selectedCallsLength == 0) {
+          this.headerEditModeText.textContent = 'Edit';
+        } else {
+          this.headerEditModeText.textContent =
+            selectedCallsLength + ' Selected';
+        }
+      }
     } else {
       for (i = 0; i < noMissedCallsLength; i++) {
         var noMissedCallsItem = noMissedCallsItems[i];
@@ -173,6 +193,23 @@ var Recents = {
         if (notHiddenCalls.length == 0) {
           var notHiddenCallsDay = noMissedCallsItemParent.parentNode;
           notHiddenCallsDay.classList.add('hide');
+        }
+        var visibleCalls = this.recentsContainer.
+          querySelectorAll('.log-item:not(.hide)');
+        if (visibleCalls.length == 0) {
+          this.recentsIconEdit.classList.add('disabled');
+        }
+        if (this._recentsEditionMode) {
+          var selectedCalls = this.recentsContainer.
+            querySelectorAll('.log-item:not(.hide).selected');
+          var selectedCallsLength = selectedCalls.length;
+          this._selectedEntriesCounter = selectedCallsLength;
+          if (selectedCallsLength == 0) {
+            this.headerEditModeText.textContent = 'Edit';
+          } else {
+            this.headerEditModeText.textContent =
+              selectedCallsLength + ' Selected';
+          }
         }
       }
     }
@@ -228,7 +265,9 @@ var Recents = {
       var delAllReq = store.clear();
       delAllReq.onsuccess = function da_onsuccess() {
         self.recentsContainer.innerHTML = '';
+        self.recentsIconEdit.classList.add('disabled');
         self.recentsHeaderAction(null);
+        this._selectedEntries = new Object();
       };
 
       delAllReq.onerror = function da_onerror(e) {
@@ -246,7 +285,7 @@ var Recents = {
       var store = txn.objectStore(self.STORENAME);
 
       var selectedLogItems = self.recentsContainer.
-        querySelectorAll('.log-item.selected');
+        querySelectorAll('.log-item:not(.hide).selected');
       var selectedLogItemsLength = selectedLogItems.length;
       var callType;
       var phoneNumber;
@@ -311,16 +350,25 @@ var Recents = {
     delSelReq.onsuccess = function ds_onsuccess(deletedLogItem, e) {
       var deletedLogItemParent = deletedLogItem.parentNode;
       deletedLogItemParent.removeChild(deletedLogItem);
+      delete this._selectedEntries[deletedLogItem.dataset.date];
       if (deletedLogItemParent.childNodes.length == 0) {
         var deletedLogItemDay = deletedLogItemParent.parentNode;
         var deletedLogItemDayParent = deletedLogItemDay.parentNode;
         deletedLogItemDayParent.removeChild(deletedLogItemDay);
+        if (this.recentsContainer.innerHTML == '') {
+          this.recentsIconEdit.classList.add('disabled');
+        }
       } else if (this.missedFilter.classList.contains('selected')) {
         var notHiddenCalls = deletedLogItemParent.
           querySelectorAll('.log-item:not(.hide)');
         if (notHiddenCalls.length == 0) {
           var notHiddenCallsDay = deletedLogItemParent.parentNode;
           notHiddenCallsDay.classList.add('hide');
+        }
+        var visibleCalls = this.recentsContainer.
+          querySelectorAll('.log-item:not(.hide)');
+        if (visibleCalls.length == 0) {
+          this.recentsIconEdit.classList.add('disabled');
         }
       }
     }.bind(this, logItem);
@@ -332,6 +380,9 @@ var Recents = {
   },
 
   click: function re_click(target) {
+    if (!target.classList.contains('log-item')) {
+      return;
+    }
     if (!this._recentsEditionMode) {
       var number = target.dataset.num.trim();
       if (number) {
@@ -342,8 +393,10 @@ var Recents = {
       target.querySelector('.call-log-selection').classList.toggle('selected');
       if (target.classList.contains('selected')) {
         this._selectedEntriesCounter++;
+        this._selectedEntries[target.dataset.date.trim()] = 1;
       } else {
         this._selectedEntriesCounter--;
+        delete this._selectedEntries[target.dataset.date.trim()];
       }
       if (this._selectedEntriesCounter == 0) {
         this.headerEditModeText.textContent = 'Edit';
@@ -367,11 +420,11 @@ var Recents = {
         classes += 'icon-incoming';
       }
     }
-
     var entry =
       '<li class="log-item ' +
-      ((localStorage.getItem('latestCallLogVisit') < recent.date) ?
-        'highlighted' : '') +
+        (this._selectedEntries[recent.date] ? 'selected' : '') +
+        ((localStorage.getItem('latestCallLogVisit') < recent.date) ?
+          'highlighted' : '') +
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
@@ -383,16 +436,20 @@ var Recents = {
       '  <section class="log-item-info grid">' +
       '    <div class="grid-cell grid-v-align">' +
       '      <section class="primary-info ellipsis">' +
-      recent.number +
+               recent.number +
       '      </section>' +
       '      <section class="' + fontDateClasses +
       '        secondary-info ellipsis">' + prettyDate(recent.date) +
       '      </section>' +
       '    </div>' +
       '  </section>' +
-      '  <section class="call-log-contact-photo">' +
+      '  <section class="call-log-contact-photo ' +
+           (this._recentsEditionMode ? 'hide' : '') + '">' +
       '  </section>' +
-      '  <section class="call-log-selection">' +
+      '  <section class="call-log-selection ' +
+           (this._recentsEditionMode ? 'show ' : '') +
+           (this._selectedEntries[recent.date] ? 'selected' : '') +
+           '">' +
       '  </section>' +
       '</li>';
     return entry;
@@ -406,9 +463,11 @@ var Recents = {
     this.history(function showRecents(recents) {
       if (recents.length == 0) {
         self.recentsContainer.innerHTML = '';
+        self.recentsIconEdit.classList.add('disabled');
         return;
       }
 
+      self.recentsIconEdit.classList.remove('disabled');
       var content = '';
       var currentDay = '';
       for (var i = 0; i < recents.length; i++) {
@@ -429,6 +488,16 @@ var Recents = {
       self.recentsContainer.innerHTML = content;
 
       self.updateContactDetails();
+
+      if (self.missedFilter.classList.contains('selected')) {
+        self.missedFilter.classList.remove('selected');
+        var theEvent = new Object();
+        theEvent.target = self.missedFilter;
+        self.filter(theEvent);
+        self.missedFilter.classList.add('selected');
+        self.allFilter.classList.remove('selected');
+      }
+
     });
   },
 

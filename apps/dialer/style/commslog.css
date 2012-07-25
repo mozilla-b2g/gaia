@@ -151,6 +151,11 @@
   position: relative;
 }
 
+#recents-icon-edit.disabled {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
 .view-header .recents-icon.icon-add { 
   background-image: url(images/icons/add.png); 
 }
