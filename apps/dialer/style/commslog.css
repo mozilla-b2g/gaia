@@ -288,19 +288,23 @@ button::-moz-focus-inner {
 .icon-missed {
   width: 3rem;
   height: 3rem;
-  background-image: url('images/CallLog_30x30_missed.png');
-}
-
-.missed-call-font {
-  color: red !important;
+  background-image: url('images/CallLog_30x30_missed_grey.png');
 }
 
 .log-item * {
   pointer-events: none;
 }
 
-.log-item.highlighted {
-  background: rgba(255,255,0,.3);
+.log-item.highlighted .icon-missed {
+  background-image: url('images/CallLog_30x30_missed.png');
+}
+
+.log-item.highlighted[data-type='incoming'] .secondary-info {
+  color: red !important;
+}
+
+.log-item.highlighted[data-type='incoming-refused'] .secondary-info {
+  color: red !important;
 }
 
 .log-item-info {

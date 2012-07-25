@@ -386,6 +386,7 @@ var Recents = {
     if (!this._recentsEditionMode) {
       var number = target.dataset.num.trim();
       if (number) {
+        this.updateLatestVisit();
         CallHandler.call(number);
       }
     } else {
@@ -409,13 +410,11 @@ var Recents = {
 
   createRecentEntry: function re_createRecentEntry(recent) {
     var classes = 'icon ';
-    var fontDateClasses = '';
     if (recent.type.indexOf('dialing') != -1) {
       classes += 'icon-outgoing';
     } else if (recent.type.indexOf('incoming') != -1) {
       if (recent.type.indexOf('connected') == -1) {
         classes += 'icon-missed';
-        fontDateClasses = 'missed-call-font';
       } else {
         classes += 'icon-incoming';
       }
@@ -438,8 +437,8 @@ var Recents = {
       '      <section class="primary-info ellipsis">' +
                recent.number +
       '      </section>' +
-      '      <section class="' + fontDateClasses +
-      '        secondary-info ellipsis">' + prettyDate(recent.date) +
+      '      <section class="secondary-info ellipsis">' +
+               prettyDate(recent.date) +
       '      </section>' +
       '    </div>' +
       '  </section>' +
