@@ -27,6 +27,7 @@
     <script defer type="text/javascript" src="js/contacts.js"></script>
     <script defer type="text/javascript" src="js/request.js"></script>
     <script defer type="text/javascript" src="js/sms_integration.js"></script>
+    <script defer type="text/javascript" src="js/input_cancel_button.js"></script>
   </head>
 
   <body class="app-contacts">
@@ -62,7 +63,6 @@
             <div id="groups-container" class="view-body-inner">
               <div id="search-container">
                 <input type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
-                <span id="clear-search" onclick="return contacts.List.clearSearch();" role="button" class="icon-clear hide"></span>
                 <button id='cancel-search' class="hide" onclick='return contacts.List.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
               </div>
               <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
