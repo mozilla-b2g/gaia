@@ -79,6 +79,7 @@
   font-weight: 600;
   font-size: 1.3rem;
   line-height: 1.3em;
+  white-space: pre-wrap;
 }
 
 #contact-detail h1 {
