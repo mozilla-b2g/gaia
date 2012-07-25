@@ -104,7 +104,7 @@ button::-moz-focus-inner {
   bottom: -1px;
   left: -1px;
   right: -1px;
-  font: 2.4rem/3.5rem Open Sans;
+  font: 2.4rem/3.5rem Open Sans, Sans-serif;
   font-weight: 600;
   text-align: center;
   color: #fff;
@@ -383,7 +383,7 @@ background-position: center 2.2rem;
 
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
   border: none;
-  font: 3rem/5rem Open Sans;
+  font: 3rem/5rem Open Sans, Sans-serif;
   font-weight: bold;
   color: #333;
 }
@@ -481,7 +481,7 @@ background-position: center 2.2rem;
 }
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
-  font-family: 'Open Sans';  
+  font-family: 'Open Sans', Sans-serif;  
   font-weight: 600;
   font-size: 1.8rem;
   line-height: 4rem;
