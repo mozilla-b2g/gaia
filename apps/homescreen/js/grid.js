@@ -151,8 +151,8 @@ const GridManager = (function() {
     } else {
       var currentPageContainer = pageHelper.getCurrent().container;
 
-      currentPageContainer.addEventListener('transitionend', function tr_end(e) {
-        currentPageContainer.removeEventListener('transitionend', tr_end);
+      currentPageContainer.addEventListener('transitionend', function end(e) {
+        currentPageContainer.removeEventListener('transitionend', end);
         delete document.body.dataset.transitioning;
         callback();
         Search.resetIcon();
