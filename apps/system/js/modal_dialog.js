@@ -19,7 +19,7 @@ var ModalDialog = {
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message'];
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message', 'buttons'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -136,6 +136,8 @@ var ModalDialog = {
         elements.confirmMessage.innerHTML = message;
         break;
     }
+
+    this.elements.buttons.dataset.type = evt.detail.promptType;
   },
 
   hide: function md_hide() {
