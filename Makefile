@@ -195,7 +195,7 @@ webapp-manifests:
 	@echo "Done"
 
 # Generate profile/webapps/APP/application.zip
-webapp-zip:
+webapp-zip: stamp-commit-hash
 ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
 	@mkdir -p profile/webapps
@@ -483,7 +483,7 @@ forward:
 
 
 # update the manifest.appcache files to match what's actually there
-update-offline-manifests: stamp-commit-hash
+update-offline-manifests:
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		rm -rf $$d/manifest.appcache ;\

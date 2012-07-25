@@ -318,11 +318,55 @@
   border-color: #52b6cc;
 }
 
+.lockscreen-icon-right {
+  right: 1.5rem;
+}
+
+.lockscreen-icon-left {
+  left: 1.5rem;
+}
+
+@-moz-keyframes lockscreen-arrow-left {
+  from {
+    -moz-transform: none;
+    opacity: 1;
+  }
+
+  to {
+    -moz-transform: translateX(-7rem);
+    opacity: 0;
+  }
+}
+
+@-moz-keyframes lockscreen-arrow-right {
+  from {
+    -moz-transform: none;
+    opacity: 1;
+  }
+
+  to {
+    -moz-transform: translateX(7rem);
+    opacity: 0;
+  }
+}
+
+.lockscreen-icon-right::after {
+  left: -7.5rem;
+  background: transparent url('./images/arrow-right.png') center center no-repeat;
+  -moz-animation: lockscreen-arrow-right 2s infinite;
+}
+
+.lockscreen-icon-left::after {
+  right: -7.5rem;
+  background: transparent url('./images/arrow-left.png') center center no-repeat;
+  -moz-animation: lockscreen-arrow-left 2s infinite;
+}
+
 .lockscreen-rail {
   position: absolute;
   bottom: 5rem;
   margin: -1px;
-  width: -moz-calc(50% - 5rem - 2.2rem);
+  width: -moz-calc(50% - 5rem - 0.7rem);
   height: 0.2rem;
   background-color: rgba(255, 255, 255, 0.8);
   opacity: 0;
@@ -334,11 +378,11 @@
 }
 
 #lockscreen-rail-left {
-  left: 7.3rem;
+  left: 5.8rem;
 }
 
 #lockscreen-rail-right {
-  right: 7.3rem;
+  right: 5.8rem;
 }
 
 /* the arrow animation for idle */
@@ -362,50 +406,13 @@
 }
 
 #lockscreen-area-unlock {
-  right: 3rem;
   background: rgba(0, 0, 0, 0.3) url('./images/icon-unlock.png') center center no-repeat;
 }
 
-@-moz-keyframes lockscreen-arrow-left {
-  from {
-    -moz-transform: none;
-    opacity: 1;
-  }
-
-  to {
-    -moz-transform: translateX(-5.5rem);
-    opacity: 0;
-  }
-}
-
-@-moz-keyframes lockscreen-arrow-right {
-  from {
-    -moz-transform: none;
-    opacity: 1;
-  }
-
-  to {
-    -moz-transform: translateX(5.5rem);
-    opacity: 0;
-  }
-}
-
-#lockscreen-area-unlock::after {
-  left: -6rem;
-  background: transparent url('./images/arrow-right.png') center center no-repeat;
-  -moz-animation: lockscreen-arrow-right 2s infinite;
-}
-
 #lockscreen-area-camera {
-  left: 3rem;
   background: rgba(0, 0, 0, 0.3) url('./images/icon-camera.png') center center no-repeat;
 }
 
-#lockscreen-area-camera::after {
-  right: -6rem;
-  background: transparent url('./images/arrow-left.png') center center no-repeat;
-  -moz-animation: lockscreen-arrow-left 2s infinite;
-}
 
 #lockscreen-panel-passcode {
   position: absolute;

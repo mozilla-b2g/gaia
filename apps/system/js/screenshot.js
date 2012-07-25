@@ -4,60 +4,13 @@
 // or homescreen and stores it with DeviceStorage when the user
 // presses the home and sleep buttons at the same time. It communicates
 // with gecko code running in b2g/chrome/content/shell.js using a private
-// event-based API. It is the gecko code that creates and saves the screenshot.
-//
-// Other modules that listen for the home and sleep buttons should
-// ignore those events if defaultPrevented is set on them. Note that
-// defaultPrevented will only be set on the key up events and the key
-// down event for the button that was pressed second. The key down
-// event for the button that is pressed first will not be defaultPrevented.
+// event-based API. It is the gecko code that creates the screenshot.
 //
 // This script must be used with the defer attribute.
 //
-// This script probably needs to run before the window_manager.js script
-// which tries to prevent propagation of the HOME key to other modules.
 //
 (function() {
-  // Register capturing handlers for both keydown and keyup
-  window.addEventListener('keydown', keyDownHandler, true);
-  window.addEventListener('keyup', keyUpHandler, true);
-
-  // The current state of the two keys we care about
-  var homeKeyDown = false, sleepKeyDown = false;
-
-  var preventDefaultOnHomeKeyUp = false;
-  var preventDefaultOnSleepKeyUp = false;
-
-  function keyDownHandler(e) {
-    if (e.keyCode === e.DOM_VK_HOME)
-      homeKeyDown = true;
-    if (e.keyCode === e.DOM_VK_SLEEP)
-      sleepKeyDown = true;
-    if (homeKeyDown && sleepKeyDown) {
-      e.preventDefault();
-      takeScreenshot();
-      preventDefaultOnHomeKeyUp = true;
-      preventDefaultOnSleepKeyUp = true;
-    }
-  }
-
-  function keyUpHandler(e) {
-    if (e.keyCode === e.DOM_VK_HOME) {
-      homeKeyDown = false;
-      if (preventDefaultOnHomeKeyUp) {
-        e.preventDefault();
-        preventDefaultOnHomeKeyUp = false;
-      }
-    }
-    if (e.keyCode === e.DOM_VK_SLEEP) {
-      sleepKeyDown = false;
-      if (preventDefaultOnSleepKeyUp) {
-        e.preventDefault();
-        preventDefaultOnSleepKeyUp = false;
-      }
-    }
-  }
-
+  window.addEventListener('home+sleep', takeScreenshot);
 
   function takeScreenshot() {
     // Give feedback that the screenshot request was received

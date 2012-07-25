@@ -31,6 +31,9 @@ var Browser = {
   urlButtonMode: null,
   inTransition: false,
 
+  waitingActivities: [],
+  hasLoaded: false,
+
   init: function browser_init() {
     // Assign UI elements to variables
     this.toolbarStart = document.getElementById('toolbar-start');
@@ -115,6 +118,11 @@ var Browser = {
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function() {
+      this.hasLoaded = true;
+      if (this.waitingActivities.length) {
+        this.waitingActivities.forEach(this.handleActivity, this);
+        return;
+      }
       this.selectTab(this.createTab(this.START_PAGE_URL));
       this.showPageScreen();
     }).bind(this));
@@ -362,6 +370,23 @@ var Browser = {
     this.setUrlBar(url);
   },
 
+  getUrlFromInput: function browser_getUrlFromInput(url) {
+    url = url.trim();
+    // If the address entered starts with a quote then search, if it
+    // contains a . or : then treat as a url, else search
+    var isSearch = /^"|\'/.test(url) || !(/\.|\:/.test(url));
+    var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
+    var protocol = protocolRegexp.exec(url);
+
+    if (isSearch) {
+      return 'http://www.bing.com/search?q=' + url;
+    }
+    if (!protocol) {
+      return 'http://' + url;
+    }
+    return url;
+  },
+
   handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
     if (e) {
       e.preventDefault();
@@ -377,18 +402,7 @@ var Browser = {
       return;
     }
 
-    var url = this.urlInput.value.trim();
-    // If the address entered starts with a quote then search, if it
-    // contains a . or : then treat as a url, else search
-    var isSearch = /^"|\'/.test(url) || !(/\.|\:/.test(url));
-    var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
-    var protocol = protocolRegexp.exec(url);
-
-    if (isSearch) {
-      url = 'http://www.bing.com/search?q=' + url;
-    } else if (!protocol) {
-      url = 'http://' + url;
-    }
+    var url = this.getUrlFromInput(this.urlInput.value);
 
     if (url != this.currentTab.url) {
       this.setUrlBar(url);
@@ -1158,6 +1172,20 @@ var Browser = {
       this.tab.style.MozTransition = 'left ' + time + 'ms linear';
       this.tab.style.left = offset + 'px';
     }
+  },
+
+  handleActivity: function browser_handleActivity(activity) {
+    // Activities can send multiple names, right now we only handle
+    // one so we only filter on types
+    switch (activity.source.data.type) {
+      case 'url':
+        var url = this.getUrlFromInput(activity.source.data.url);
+        this.selectTab(this.createTab(url));
+        if (this.currentScreen !== this.PAGE_SCREEN) {
+          this.showPageScreen();
+        }
+        break;
+    }
   }
 };
 
@@ -1200,4 +1228,13 @@ var Utils = {
 window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
+});
+
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  if (Browser.hasLoaded) {
+    Browser.handleActivity(activity);
+  } else {
+    Browser.waitingActivities.push(activity);
+  }
+  activity.postResult({ status: 'accepted' });
 });

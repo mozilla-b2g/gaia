@@ -216,7 +216,7 @@ var KeypadManager = {
         data: {
           type: 'webcontacts/contact',
           params: {
-            'tel': number,
+            'tel': number
           }
         }
       });

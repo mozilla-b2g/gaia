@@ -4,6 +4,9 @@
 'use strict';
 
 var StatusBar = {
+  /* Timeout for 'recently active' indicators */
+  ACTIVE_INDICATOR_TIMEOUT: 60 * 1000,
+
   /* Whether or not status bar is actively updating or not */
   active: true,
 
@@ -14,6 +17,9 @@ var StatusBar = {
   icons: {},
 
   wifiConnected: false,
+
+  geolocationActive: false,
+  geolocationTimer: null,
 
   init: function sb_init() {
     this.getAllElements();
@@ -49,6 +55,7 @@ var StatusBar = {
     }
 
     window.addEventListener('screenchange', this);
+    window.addEventListener('mozChromeEvent', this);
     this.setActive(true);
   },
 
@@ -70,6 +77,14 @@ var StatusBar = {
 
       case 'datachange':
         this.update.data.call(this);
+        break;
+
+      case 'mozChromeEvent':
+        if (evt.detail.type !== 'geolocation-status')
+          return;
+
+        this.geolocationActive = evt.detail.active;
+        this.update.geolocation.call(this);
         break;
     }
   },
@@ -334,9 +349,20 @@ var StatusBar = {
     },
 
     geolocation: function sb_updateGeolocation() {
-      // XXX no way to probe active state of Geolocation
-      // this.icon.geolocation.hidden = ?
-      // this.icon.geolocation.dataset.active = ?;
+      if (this.geolocationTimer) {
+        window.clearTimeout(this.geolocationTimer);
+        this.geolocationTimer = null;
+      }
+      if (this.geolocationActive) {
+        this.icons.geolocation.hidden = false;
+        this.icons.geolocation.dataset.active = true;
+      } else {
+        this.icons.geolocation.dataset.active = false;
+        this.geolocationTimer = window.setTimeout((function() {
+          this.geolocationTimer = null;
+          this.icons.geolocation.hidden = true;
+        }).bind(this), this.ACTIVE_INDICATOR_TIMEOUT);
+      }
     },
 
     usb: function sb_updateUsb() {

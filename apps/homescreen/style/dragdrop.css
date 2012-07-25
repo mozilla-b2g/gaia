@@ -60,6 +60,7 @@ body[data-transitioning] ol > li > div > img {
   -moz-animation-name: none;
 }
 
+
 body[data-mode = 'normal'] ol > li span.options {
   display: none;
 }
