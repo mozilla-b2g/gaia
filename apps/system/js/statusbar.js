@@ -386,13 +386,13 @@ var StatusBar = {
     },
 
     geolocation: function sb_updateGeolocation() {
+      if (this.geolocationTimer) {
+        window.clearTimeout(this.geolocationTimer);
+        this.geolocationTimer = null;
+      }
       if (this.geolocationActive) {
         this.icons.geolocation.hidden = false;
         this.icons.geolocation.dataset.active = true;
-        if (this.geolocationTimer) {
-          window.clearTimeout(this.geolocationTimer);
-          this.geolocationTimer = null;
-        }
       } else {
         this.icons.geolocation.dataset.active = false;
         this.geolocationTimer = window.setTimeout((function() {
