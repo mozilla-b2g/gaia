@@ -506,6 +506,11 @@ var ThreadUI = {
     return this.headerTitle = document.getElementById('header-text');
   },
 
+  get contactInput() {
+    delete this.contactInput;
+    return this.contactInput = document.getElementById('receiver-tel');
+  },
+
   init: function thui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
@@ -516,6 +521,7 @@ var ThreadUI = {
     this.deleteSelectedButton.addEventListener('click',
       this.deleteMessages.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
+    this.contactInput.addEventListener('input', this.searchContact.bind(this));
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
     this.headerTitle.addEventListener('click', this.activateContact.bind(this));
   },
@@ -912,6 +918,44 @@ var ThreadUI = {
         }
       });
     }
+  },
+
+  renderContactData: function thui_renderContactData(contact) {
+    // Create DOM element
+    var threadHTML = document.createElement('div');
+    threadHTML.classList.add('item');
+
+    // Retrieve info from thread
+    var name = Utils.escapeHTML(contact.name);
+    var bodyHTML = Utils.escapeHTML(contact.tel[0].number);
+    // Create HTML structure
+    var structureHTML =
+            '  <a href="#num=' + contact.tel[0].number + '">' +
+            '    <div class="name">' + name + '</div>' +
+            '    <div class="msg">"' + bodyHTML + '"</div>' +
+            '    <div class="photo">' +
+            '    <img src="">' +
+            '    </div>' +
+            '  </a>';
+    // Update HTML and append
+    threadHTML.innerHTML = structureHTML;
+    ThreadUI.view.appendChild(threadHTML);
+  },
+
+  searchContact: function thui_searchContact() {
+    var input = this.contactInput;
+    var string = input.value;
+    var self = this;
+    this.view.innerHTML = '';
+    if (!string) {
+      return;
+    }
+    ContactDataManager.searchContactData(string, function gotContact(contacts) {
+      if (!contacts || contacts.length == 0) {
+        return;
+      }
+      contacts.forEach(self.renderContactData);
+    });
   },
 
   pickContact: function thui_pickContact() {

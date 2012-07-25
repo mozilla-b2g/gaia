@@ -558,3 +558,65 @@ a.unread .unread-mark .icon-unread-mark {
   margin-bottom: 0.5rem;
 }
 
+/*
+  Contact search list
+*/
+
+#messages-container .item {
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+#messages-container .item:last-child {
+  margin-bottom: 7rem;
+}
+
+#messages-container .item > a {
+  -moz-box-sizing: border-box;
+  display: block;
+  text-decoration: none;
+  outline: none;
+  height: 6rem;
+  position: relative;
+  padding: 1rem 1.6rem 1rem 3rem;
+  border-top: 0.1rem solid hsla(207,22%,92%,1);
+  width: 100%;
+  -moz-transition: padding 0.3s ease-out;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#messages-container .item > a:active {
+  background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
+}
+
+#messages-container .item > a:active > .name {
+  color: white;
+}
+
+#messages-container .item > a:active > .msg {
+  color: #ffbc8c;
+  text-shadow: none;
+}
+
+#messages-container .item > a > * {
+  pointer-events: none;
+}
+
+#messages-container .item > a:first-child {
+  border-top-color: transparent;
+}
+
+#messages-container .photo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5.9rem;
+  height: 100%;
+  overflow: hidden;
+}
+
+#messages-container .photo img {
+  width: 100%;
+}
