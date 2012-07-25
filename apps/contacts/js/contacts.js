@@ -521,22 +521,20 @@ var Contacts = (function() {
   };
 
   // Checks if an object fields are empty, by empty means
-  // fields could be declared as arrays and those arrays
-  // being empty or with a single '' value
+  // field is null and if it's an array it's length is 0
   var isEmpty = function isEmpty(obj, fields) {
     if (obj == null || typeof(obj) != 'object' ||
         !fields || !fields.length) {
       return true;
     }
     var attr;
+    var isArray;
     for (var i = 0; i < fields.length; i++) {
       attr = fields[i];
       if (obj.hasOwnProperty(attr) && obj[attr]) {
         if (Array.isArray(obj[attr])) {
-          for (var j = 0; j < obj[attr].length; j++) {
-            if (obj[attr][j] != '') {
-              return false;
-            }
+          if (obj[attr].length > 0) {
+            return false;
           }
         } else {
           return false;
@@ -740,18 +738,32 @@ var Contacts = (function() {
 
   var saveContact = function saveContact() {
     saveButton.setAttribute('disabled', 'disabled');
-    var name = [givenName.value] || [];
-    var lastName = [familyName.value] || [];
-    var org = [company.value] || [];
     var myContact = {
       id: document.getElementById('contact-form-id').value,
-      givenName: name,
-      familyName: lastName,
-      additionalName: '',
-      org: org,
-      name: name[0] + ' ' + lastName[0],
-      category: currentContact.category || []
+      additionalName: ''
     };
+
+    if (givenName.value && givenName.value.length > 0) {
+      myContact.givenName = [givenName.value];
+    }
+    if (familyName.value && familyName.value.length > 0) {
+      myContact.familyName = [familyName.value];
+    }
+    if (company.value && company.value.length > 0) {
+      myContact.org = [company.value];
+    }
+    if (currentContact.category) {
+      myContact.category = currentContact.category;
+    }
+
+    if (myContact.givenName || myContact.familyName) {
+      var name = myContact.givenName || '';
+      name += ' ';
+      if (myContact.familyName) {
+        name += myContact.familyName;
+      }
+      myContact.name = name;
+    }
 
     getPhones(myContact);
     getEmails(myContact);
@@ -761,9 +773,7 @@ var Contacts = (function() {
     // Use the isEmpty function to check fields but address
     // and inspect address by it self.
     if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
-      'email', 'note']) && (!myContact.adr || isEmpty(myContact.adr[0],
-        ['countryName', 'locality', 'postalCode', 'region',
-         'streetAddress']))) {
+      'email', 'note', 'adr'])) {
       saveButton.removeAttribute('disabled');
       return;
     }
@@ -876,6 +886,13 @@ var Contacts = (function() {
       var postalCode = document.getElementById(selector).value || '';
       selector = 'countryName_' + arrayIndex;
       var countryName = document.getElementById(selector).value || '';
+
+      // Sanity check for pameters, check all params but the typeField
+      if (addressValue == '' && locality == '' && postalCode == ''
+        && countryName == '') {
+        continue;
+      }
+
       contact['adr'] = contact['adr'] || [];
       contact['adr'][i] = {
         streetAddress: addressValue,

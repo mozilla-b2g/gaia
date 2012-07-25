@@ -109,7 +109,6 @@ contacts.List = (function() {
     }
 
     var options = {
-      sortBy: 'familyName',
       sortOrder: 'ascending'
     };
 
@@ -165,7 +164,7 @@ contacts.List = (function() {
 
   // Fills the contact data to display if no givenName and familyName
   var refillContactData = function refillContactData(contact) {
-    if (!contact.givenName[0] && !contact.familyName[0]) {
+    if (!contact.givenName && !contact.familyName) {
       if (contact.tel) {
         contact.givenName = contact.tel[0].number;
       } else if (contact.email) {
@@ -234,10 +233,14 @@ contacts.List = (function() {
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {
     var ret = [];
 
-    ret.push(contact.familyName ? contact.familyName[0] : '');
-    ret.push(contact.givenName ? contact.givenName[0] : '');
-    ret.push(contact.tel ? contact.tel[0].number : '');
-    ret.push(contact.email ? contact.email[0].address : '');
+    ret.push(contact.familyName && contact.familyName.length > 0 ?
+      contact.familyName[0] : '');
+    ret.push(contact.givenName && contact.givenName.length > 0 ?
+      contact.givenName[0] : '');
+    ret.push(contact.tel && contact.tel.length > 0 ?
+      contact.tel[0].number : '');
+    ret.push(contact.email && contact.email.length > 0 ?
+      contact.email[0].address : '');
     ret.push('#');
 
     return ret.join('');
