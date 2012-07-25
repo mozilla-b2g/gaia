@@ -19949,13 +19949,15 @@ ActiveSyncFolderStorage.prototype = {
               header.subject = childText;
             else if (child.tag == em.From || child.tag == em.To) {
               // XXX: This address parser is probably very bad. Fix it.
-              var m = childText.match(/"(.+?)" <(.+)>/);
-              var addr = m ? { name: m[1], address: m[2] } :
-                             { name: "", address: childText };
+              var addrs = childText.split(/, /).map(function(x) {
+                var m = x.match(/"(.+?)" <(.+)>/);
+                return m ? { name: m[1], address: m[2] } :
+                           { name: "", address: x };
+              });
               if (child.tag == em.From)
-                header.author = addr;
-              else // XXX: I wonder how this works with multiple To: fields???
-                body.to = [addr];
+                header.author = addrs[0];
+              else
+                body.to = addrs;
             }
             else if (child.tag == em.DateReceived)
               header.date = new Date(childText).valueOf();
