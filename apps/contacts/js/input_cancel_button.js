@@ -2,6 +2,8 @@
 
 var InputCancelButton = (function inputCancelButton() {
 
+  var selector = 'input[data-cancelable]';
+
   window.addEventListener('load', function init() {
     initCurrentInputs();
     initMutationsListener();
@@ -10,7 +12,7 @@ var InputCancelButton = (function inputCancelButton() {
 
   // Checking current inputs and addingListeners to them
   var initCurrentInputs = function initCurrentInputs() {
-    var inputs = document.querySelectorAll('input');
+    var inputs = document.querySelectorAll(selector);
     for (var i = 0; i < inputs.length; i++) {
       listenForCheck(inputs[i]);
     }
@@ -24,23 +26,23 @@ var InputCancelButton = (function inputCancelButton() {
         listenForCheck(inserted);
         return;
       }
-      var childInputs = inserted.getElementsByTagName('input');
+      var childInputs = inserted.querySelectorAll(selector);
       if (childInputs) {
         for (var i = 0; i < childInputs.length; i++) {
           listenForCheck(childInputs[i]);
         }
-      };
+      }
     }, false);
-  }; 
+  };
 
   // Listening when someone is typing
   var initInputListener = function initInputListener() {
     document.addEventListener('input', function input(event) {
-      if (event.target.tagName != 'INPUT')
+      var target = event.target;
+      if (target.tagName != 'INPUT' || !('cancelable' in target.dataset))
         return;
 
-      var input = event.target;
-      checkAddingButton(input);
+      checkAddingButton(target);
     });
   };
 
