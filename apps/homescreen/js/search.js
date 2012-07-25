@@ -4,7 +4,6 @@
 const Search = (function() {
   var URI_BROWSER;
   var searchPage = document.querySelector('#search');
-  var _ = navigator.mozL10n.get;
 
   // It should be an activity to search anything on search engine launching
   // the browser and reading the text from an input in the landing page
