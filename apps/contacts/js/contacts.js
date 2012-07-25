@@ -1,6 +1,7 @@
 ﻿'use strict';
 
 var _ = navigator.mozL10n.get;
+var TAG_OPTIONS;
 
 function navigationStack(currentView) {
   var transitions = {
@@ -113,28 +114,6 @@ var Contacts = (function() {
   function edit() {
     navigation.go('view-contact-form', 'right-left');
   }
-
-  var TAG_OPTIONS = {
-    'phone-type' : [
-      {value: _('mobile')},
-      {value: _('home')},
-      {value: _('work')},
-      {value: _('personal')},
-      {value: _('faxHome')},
-      {value: _('faxOffice')},
-      {value: _('faxOther')},
-      {value: _('another')}
-    ],
-    'email-type' : [
-      {value: _('personal')},
-      {value: _('home')},
-      {value: _('work')}
-    ],
-    'address-type' : [
-      {value: _('home')},
-      {value: _('work')}
-    ]
-  };
 
   var numberEmails = 0;
   var numberPhones = 0;
@@ -1096,6 +1075,28 @@ window.addEventListener('localized', function showPanel() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
   document.body.classList.remove('hide');
+
+  TAG_OPTIONS = {
+    'phone-type' : [
+      {value: _('mobile')},
+      {value: _('home')},
+      {value: _('work')},
+      {value: _('personal')},
+      {value: _('faxHome')},
+      {value: _('faxOffice')},
+      {value: _('faxOther')},
+      {value: _('another')}
+    ],
+    'email-type' : [
+      {value: _('personal')},
+      {value: _('home')},
+      {value: _('work')}
+    ],
+    'address-type' : [
+      {value: _('home')},
+      {value: _('work')}
+    ]
+  };
 });
 
 var actHandler = ActivityHandler.handle.bind(ActivityHandler);
