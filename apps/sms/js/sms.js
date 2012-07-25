@@ -317,6 +317,7 @@ var ThreadListUI = {
 
   executeDeletion: function thlui_executeDeletion() {
     MessageManager.deleteMessages(ThreadListUI.delNumList, function repaint() {
+      WaitingScreen.show();
       //TODO Change this functionality with Steve code
       //TODO Steve will add delete pending in deleteMessages!
       if (ThreadListUI.pendingDelList.length > 0) {
@@ -326,6 +327,7 @@ var ThreadListUI = {
               function() {
               MessageManager.getMessages(function recoverMessages(messages) {
                 ThreadListUI.renderThreads(messages);
+                WaitingScreen.hide();
                 window.location.hash = '#thread-list';
               });
             });
@@ -977,6 +979,23 @@ var ThreadUI = {
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
+  }
+};
+
+var WaitingScreen = {
+  get loading() {
+    delete this.loading;
+    return this.loading = document.getElementById('loading');
+  },
+  show: function ws_show() {
+    // alert("show");
+    this.loading.classList.add('show-loading');
+  },
+  hide: function ws_hide() {
+    this.loading.classList.remove('show-loading');
+  },
+  update: function ws_update() {
+
   }
 };
 

@@ -563,3 +563,50 @@ a.unread .unread-mark .icon-unread-mark {
   margin-bottom: 0.5rem;
 }
 
+/*
+  Loading screen while deleting
+*/
+.show-loading {
+  opacity: 1 !important;
+}
+
+#loading {
+  /*display: none;*/
+  pointer-events: none;
+  z-index: 200;
+  background: rgba(0,0,0,.8);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 2rem;
+  -moz-box-sizing: border-box;
+  opacity: 0;
+  -moz-transition: opacity 0.3s ease-out;
+}
+
+.loading-container {
+  position: relative;
+  top: 50%;
+  margin-top: -6rem;
+}
+
+.loading-header {
+  text-align: left;
+  padding: 2rem 1rem 4rem 1rem;
+  -moz-box-sizing: border-box;
+  color: white;
+  font-size: -moz-calc(10 * 0.226rem);
+  font-weight: 300;
+  border-top: .1rem solid white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loading-icon img{
+  width: 28px;
+  height: 28px;  
+  margin: 0 auto;
+}
+
