@@ -90,15 +90,15 @@ button::-moz-focus-inner {
 
 .keyboard-key > .visual-wrapper > span {
   /*
-                 top - begin | top - end
-                          -----------  
-          bottom - begin  | bottom - end
+    top - begin | top - end
+    bottom - begin  | bottom - end
   */
-  background: url(images/key-radius-tb.png) no-repeat left top,
-                      url(images/key-radius-te.png) no-repeat right top,
-                      url(images/key-radius-bb.png) no-repeat left bottom,
-                      url(images/key-radius-be.png) no-repeat right bottom,
-                      url(images/key-light.png) repeat-x left 1px;
+  background: 
+    url(images/key-radius-tb.png) no-repeat left top,
+    url(images/key-radius-te.png) no-repeat right top,
+    url(images/key-radius-bb.png) no-repeat left bottom,
+    url(images/key-radius-be.png) no-repeat right bottom,
+    url(images/key-light.png) repeat-x left 1px;
   position: absolute;
   top: -1px;
   bottom: -1px;
@@ -195,15 +195,15 @@ button::-moz-focus-inner {
 }
 .keyboard-key.special-key > .visual-wrapper > span { 
    /*
-                 top - begin | top - end
-                          -----------  
-          bottom - begin  | bottom - end
+    top - begin | top - end
+    bottom - begin  | bottom - end
   */
-  background: url(images/key-radius-special-tb.png) no-repeat left top,
-                      url(images/key-radius-special-te.png) no-repeat right top,
-                      url(images/key-radius-special-bb.png) no-repeat left bottom,
-                      url(images/key-radius-special-be.png) no-repeat right bottom,
-                      url(images/key-light-special.png) repeat-x left 1px;
+  background:
+    url(images/key-radius-special-tb.png) no-repeat left top,
+    url(images/key-radius-special-te.png) no-repeat right top,
+    url(images/key-radius-special-bb.png) no-repeat left bottom,
+    url(images/key-radius-special-be.png) no-repeat right bottom,
+    url(images/key-light-special.png) repeat-x left 1px;
   font-size: 1.5rem;
   line-height: 4rem;
   font-family: 'Keyboard Symbols', sans-serif;
@@ -212,9 +212,9 @@ button::-moz-focus-inner {
 
 /* Highlight for special keys */
 .keyboard-key.special-key.highlighted > .visual-wrapper {
-    background: #4AB6CB;
-    border-radius: 0.3rem;
-    border: solid 1px #3f5459;
+  background: #4AB6CB;
+  border-radius: 0.3rem;
+  border: solid 1px #3f5459;
 }
 .keyboard-key.special-key.highlighted > .visual-wrapper > span {
   background: none;
@@ -278,9 +278,9 @@ background-position: center 2.2rem;
 }
 /* Hold */
 .keyboard-key.kbr-key-hold> .visual-wrapper {
-   background: #4AB6CB;
-    border-radius: 0.3rem;
-    border: solid 1px #3f5459;
+  background: #4AB6CB;
+  border-radius: 0.3rem;
+  border: solid 1px #3f5459;
 }
 .keyboard-key.kbr-key-hold> .visual-wrapper > span {
   background: none;
@@ -375,10 +375,10 @@ background-position: center 2.2rem;
   margin: 0;
   height: 5.8rem;
 }
+
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper  span {
   background: none;
 }
-
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after, 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:before,
