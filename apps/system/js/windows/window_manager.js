@@ -390,7 +390,9 @@ var WindowManager = (function() {
       //'Clock',
       //  - OOP - asserts on w->mApp (bug 775576)
 
-      'Contacts',
+      //'Contacts',
+      // System message handler (for WebActivities) doesn't get called
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=777195
       // Keyboard always shows up alpha when app using keyboard is run OOP
       // - bug 776118
 
