@@ -3,29 +3,14 @@ html, body {
   padding: 0;
   font-family: "Open Sans", sans-serif;
   overflow: hidden !important;
-/*  background: #E6E6E6;*/
   background-image: url(images/attentionBG.png);
   background-size: 100%;
 }
 
 .ring-display {
-  /*background-color: #FFFFFF;
-  -moz-border-bottom-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
-  -moz-border-left-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
-  -moz-border-right-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
-  -moz-border-top-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
-  background: none repeat scroll 0 0 transparent;
-  background-color: #FFFFFF;
-  border-image: none;
-  border-radius: 3rem 3rem 3rem 3rem;
-  border-style: solid;
-  border-width: 0.4rem;*/
-  margin: 0.4rem 0.4rem 0rem;
   padding: 1.2rem 1.2rem 1rem;
-  width: 88%;
-  height: 97%;
-  top: 0.8%;
-  left: 2%;
+  width: -moz-calc(100% - 2.4rem);
+  height: -moz-calc(100% - 2.2rem);
   position: absolute;
 }
 
@@ -44,7 +29,7 @@ html, body {
 #ring-clock {
   width: 100%;
   height: 100%;
-  color: #f8f8f8;
+  color: #e6e6e6;
   text-align: center;
 }
 
@@ -56,61 +41,82 @@ html, body {
 #ring-clock-time {
   font: lighter 13rem 'Open Sans', sans-serif;
   line-height: 13rem;
+  height: 13rem;
+  width: 100%;
 }
 
 #ring-clock-hour24-state {
   font: lighter 4rem 'Open Sans', sans-serif;
   line-height: 4rem;
+  text-transform:lowercase;
   padding-left: 0.3rem;
 }
 
 #ring-lunch-time {
   font: lighter 5rem 'Open Sans',sans-serif;
   line-height: 7rem;
+  height: 7rem;
 }
 
-.footer-buttons {
+#ring-lunch-time-mask {
+  display: block;
+  height: 7rem;
   position: absolute;
+  width: 100%;
+}
+
+#footer-button-container {
+  width: 100%;
+  height: 10rem;
+  left: 0;
   bottom: 0;
-  height: 14rem;
-  width: 96%;
-  left: 2%;
-  text-align: center;
-  text-decoration: none;
-  cursor: pointer;
-  font: bold 2rem 'Open Sans', sans-serif;
-  line-height: 2.2rem;
-  vertical-align: middle;
+  background: url("images/attentionBtnContainer.png");
+  background-size: 100% 100%;
+  position: absolute;
+}
+
+#footer-buttons {
+  background: -moz-linear-gradient(center top, #ccc 10%, #fcfcfc 30%);
+  height: 8rem;
+  width: 90%;
+  margin: auto;
+  border-left: 0.2rem solid gray;
+  border-right: 0.2rem solid gray;
+  overflow: visible;
 }
 
 #ring-btn-snooze {
-  /*position: absolute;
-  bottom: 6%;
-  left: 5%;
-  width: 35.5%;*/
-/*  background-color: #F7F7F7;*/
-/*  position: relative;*/
   float: left;
   width: 50%;
-  height: 70%;
+  height: 100%;
   background: -moz-linear-gradient(bottom, #ccc, #fafafa);
-  border: solid 1px #bcbcbc;
-  box-shadow: none;
   color: #737373;
-  border: none;
+  font: normal 3rem/9rem 'Open Sans', sans-serif;
+  text-align: center;
+  -moz-box-sizing: border-box;
+  background: url("images/attentionBtnSeparator.png") no-repeat scroll right center transparent;
+  background-size: auto 85%;
+}
+
+#ring-btn-snooze:active {
+  color: #00abcd;
+  -moz-border-bottom-colors: #00abcd #00abcd #00abcd #00abcd #00abcd #008daa #0086a2 #00778f #006f86;
+  border-bottom: solid 1rem;
 }
 
 #ring-btn-close {
-  /*position: absolute;
-  bottom: 6%;
-  right: 5%;
-  width: 35.5%;*/
-/*  position: relative;*/
-  float: right;
+  float: left;
   width: 50%;
-  height: 70%;
-  background-color: #DADADA;
-  border: none;
+  height: 100%;
+  color: #737373;
+  font: normal 3rem/9rem 'Open Sans', sans-serif;
+  text-align: center;
+}
+
+#ring-btn-close:active {
+  color: #00abcd;
+  -moz-border-bottom-colors: #00abcd #00abcd #00abcd #00abcd #00abcd #008daa #0086a2 #00778f #006f86;
+  border-bottom: solid 1rem;
 }
 
 /* 320x480 phones */

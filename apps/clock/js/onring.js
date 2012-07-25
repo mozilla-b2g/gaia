@@ -34,7 +34,7 @@ var RingView = {
     if (!hour)
       hour = 12;
     this.time.textContent = hour + d.toLocaleFormat(':%M');
-    this.hourState.textContent = (d.toLocaleFormat('%p')).toLowerCase();
+    this.hourState.textContent = d.toLocaleFormat('%p');
 
     var self = this;
     this._timeout = window.setTimeout(function cv_clockTimeout() {

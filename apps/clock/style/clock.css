@@ -310,7 +310,6 @@ html * {
   width: 100%;
   height: 100%;
   color: black;
-/*  background-color: #E6E6E6;*/
   background-image: url(images/clockBG.png);
   background-size: 100%;
   background-repeat: no-repeat;
@@ -318,10 +317,19 @@ html * {
   text-align: center;
 }
 
+#digital-clock-bg {
+  background: none;
+}
+
+#digital-clock-bg.visible {
+  height: 48%;
+  background-size: 100% 100%;
+  background-image: url(images/digitalClockBG.png);
+  box-shadow: 0 0.4rem 0.6rem -0.6rem black;
+}
+
 #digital-clock {
-  width: 90%;
-  margin-top: 14%;
-  margin-left: 5%;
+  margin-top: 11%;
   display: none;
 }
 
@@ -329,23 +337,40 @@ html * {
   display: block;
 }
 
+#digital-clock-display {
+  position: absolute;
+  margin-left: 13%;
+  background-image: url(images/alarmIndicator.png);
+  background-repeat: no-repeat;  
+  background-position: 103% -4%;
+  background-size: 13% auto;
+}
+
 #clock-time {
-  font: 13.5rem 'Open Sans', sans-serif;
-  line-height: 13.5rem;
+  font: 100 12rem 'Open Sans', sans-serif;
+  line-height: 12rem;
+  color: #26292a;
   pointer-events: none;
 }
 
 #clock-hour24-state {
-  font: 5rem 'Open Sans', sans-serif;
-  line-height: 5rem;
+  font: 100 3rem 'Open Sans', sans-serif;
+  line-height: 3rem;
+  color: #313334;
+  text-transform:lowercase;
   pointer-events: none;
 }
 
-#clock-day-date {
-  width: 50%;
-  margin-left: 25%;
-  font: bold 2.3rem 'Open Sans', sans-serif;
-  line-height: 7.8rem;
+#clock-day {
+  margin: auto;
+  font: 100 2.5rem 'Open Sans', sans-serif;
+  line-height: 9.8rem;
+}
+
+#clock-date {
+  margin: auto;
+  font: normal 2.5rem 'Open Sans', sans-serif;
+  line-height: 9.8rem;
 }
 
 #analog-clock {
@@ -361,22 +386,40 @@ html * {
 /* These CSS styles all apply to the SVG clock elements */
 #analog-clock-svg { /* styles for everything in the clock */
   stroke: black; /* black lines */
-  stroke-linecap: round; /* with rounded ends */
-  fill: white; /* on a white background */
+  stroke-linecap: butt; /* with butt ends */
+  fill: transparent; /* on a transparent background */
   height: -moz-calc(100% - 1rem); /* 1 rem to avoid the second hand overlay the alarm list */
   pointer-events: none;
 }
 #face {  /* clock face outline */ 
-  stroke-width: 0.1rem;
+  stroke-width: 0.015rem;
   stroke: #4D4D4D;
+  fill: #c5c5c5;
+  opacity: 0.2;
   pointer-events: none;
+}
+#ticks {
+  stroke: #50585b;
+  stroke-width: 0.10rem;
+}
+#tick12 {
+  stroke-width: 0.15rem;
+}
+#tick3, #tick9 {
+  stroke-width: 0.012rem;
+  stroke: #4D4D4D;
+  fill: #ffffff;
+  opacity: 0.7;
 }
 #hands {
   pointer-events: none;
 }
-#hourhand {stroke-width: 0.15rem;} /* wide hour hand */
-#minutehand {stroke-width: 0.15rem; stroke-linecap: butt} /* wide no-round minute hand */
-#secondhand {stroke-width: 0.05rem; stroke: #838383;} /* narrow gray minute hand */
+#hourhand {stroke-width: 0.25rem; stroke: #2e3334; } /* wide hour hand */
+#minutehand {stroke-width: 0.25rem; stroke: #424f54;} /* wide minute hand */
+#secondhand {stroke-width: 0.08rem; stroke: #02accd;} /* narrow blue second hand */
+#backboardcentralpoint {stroke-width: 0.005rem; stroke: #dcdcdc; fill: #dcdcdc;} /* light-gray central point*/
+#minutehandcentralpoint {stroke-width: 0.005rem; stroke: #424f54; fill: #424f54;} /* dark-gray central point*/
+#secondhandcentralpoint {stroke-width: 0.005rem; stroke: #02accd; fill: #02accd;} /* blue central point */
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;

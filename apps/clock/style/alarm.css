@@ -16,7 +16,6 @@ header {
 }
 
 /* ------------- Button ------------- */
-/*a.button, span.button, p.button {*/
 a.button, span.button {
   margin: 0.4rem;
   padding: 1.2rem 1.2rem 1rem 1.2rem;
@@ -44,15 +43,17 @@ a.button.left {
 
 a.button.right {
   position: absolute;
-  top: 0.6rem;
-  right: 0.1rem;
+  top: 1rem;
+  right: 1rem;
 }
 
-.plus-icon {
-  font: bold 4.6rem 'Open Sans', sans-serif;
-  vertical-align: bottom;
-  line-height: 1.9rem;
-  pointer-events: none;
+a.button.right.plus {
+  width: 4.4rem;
+  height: 4.4rem;
+  background-image: url(images/addAlarm.png);
+  background-size: 100%;
+  background-repeat: no-repeat;
+  border: none;  
 }
 
 a.abstract-menu {
@@ -164,11 +165,8 @@ ul {
 
 ul li { /* 9.6rem, including a 0.2rem border */
   position: relative;
-  height: 9rem;
-  background-color: #FFFFFF;
-  border-top: 0.1rem solid #D5D5D5;
-  outline:#ACACAC solid 0.2rem;
-  border-bottom: 0.1rem solid #B3B3B3;
+  height: 10rem;
+  border-top: 0.1rem solid #cbcbcc;
   color: #555;
 }
 
@@ -182,8 +180,8 @@ ul li > a {
   display: block;
   padding-top: 2rem;
   padding-bottom: 2rem;
-  height:      5.4rem; /* -moz-calc(100% - 4rem); */
-  line-height: 5.4rem; /* -moz-calc(100% - 4rem); */
+  height:      6rem; /* -moz-calc(100% - 4rem); */
+  line-height: 6rem; /* -moz-calc(100% - 4rem); */
   text-decoration: none;
   outline: 0;
   color: #555;
@@ -195,8 +193,7 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   text-overflow: ellipsis;
   white-space: nowrap;
   position: absolute;
-  width: -moz-calc(100% - 6rem + 2 * 0.4rem + 1rem);
-  left: -moz-calc(6rem + 2 * 0.4rem + 1rem);
+  width: -moz-calc(100% - 13rem);
 }
 
 #alarm-del {
@@ -222,39 +219,28 @@ ul li > small {
 
 .alarmList-time {
   float: left;
-  width: 32%;
-  padding-top: 1rem;
-  text-align: right;
+  width: 41%;
+  padding-top: 1.4rem;
+  text-align: left;
 }
 
 .alarmList-detail {
   float: left;
   width: 50%;
-  padding-left: 1.4rem;
   text-align: left;
-}
-
-.alarmList-direction {
-  float: left;
-  width: 4%;
-  padding-top: 4%;
-  height: auto;
-  font: bold 2rem 'Open Sans', sans-serif;
-  line-height: 2rem;
-  color: black;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
 .view label {
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   width: 100%;
   height: 100%;
 }
 
 .view label.alarmList {
-  width: -moz-calc(6rem + 2 * 0.4rem + 1rem);
+  width: -moz-calc(13rem);
 }
 
 .view label > input {
@@ -279,7 +265,8 @@ ul li > small {
   background: url(images/radio-on.png) no-repeat scroll center center;
 }
 
-.view label > input[type=checkbox] + span {
+/* ----------- Alarm Set Repeat Btn ------------- */
+.view label > input[type=checkbox] + span.setRepeat {
   width: 4.6rem;
   height: 4.6rem;
   border: 0.4rem solid;
@@ -291,11 +278,45 @@ ul li > small {
   background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-.view label > input[type=checkbox]:checked + span {
+.view label > input[type=checkbox]:checked + span.setRepeat {
   background: url(images/checked.png) no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
+/* ----------- Edit Alarm Set Enabled Btn ------------- */
+.view label > input[type=checkbox] + span.editSetEnabledBtn {
+  width: 4.6rem;
+  height: 4.6rem;
+  border: 0.4rem solid;
+  border-radius: 1.3rem;
+  top: -moz-calc(50% - 2.2rem);
+  -moz-border-top-colors: #696969 #4D4D4D #4D4D4D #696969;
+  -moz-border-right-colors: #696969 #4D4D4D #4D4D4D #696969;
+  -moz-border-bottom-colors: #696969 #4D4D4D #4D4D4D #696969;
+  -moz-border-left-colors: #696969 #4D4D4D #4D4D4D #696969;
+  background: -moz-linear-gradient(#eaeae4, #ffffff);
+}
+
+.view label > input[type=checkbox]:checked + span.editSetEnabledBtn {
+  background: url(images/checked.png) no-repeat scroll center center,
+    -moz-linear-gradient(#ffffff, #eaeae4);
+}
+
+/* ----------- Alarm Set Enabled Btn ------------- */
+.view label > input[type=checkbox] + span.setEnabledBtn {
+  width: 13rem;
+  height: 4.4rem;
+  margin: 0rem;
+  right: 0rem;
+  top: calc(50% - 2.2rem);
+  background: url(images/setEnabledBtn_off.png) no-repeat scroll center center;
+  background-size: 100% 100%;
+}
+
+.view label > input[type=checkbox]:checked + span.setEnabledBtn {
+  background: url(images/setEnabledBtn_on.png) no-repeat scroll center center;
+  background-size: 100% 100%;
+}
 /* ----------- Inputs ------------- */
 
 select, input, textarea {
@@ -339,17 +360,17 @@ input ~ *:empty {
 
 .tableView {
   height: -moz-calc(100% - 6.2rem);
-  
+  background-color: darkorange;
 }
 #alarms.tableView {
-  width: 100%;
+  width: 90%;
   height: auto;
-  max-height: 46%;
+  max-height: 52%;
   position: absolute;
   bottom: 0rem;
-  border-top: 0.1rem solid #D5D5D5;
-  outline:#ACACAC solid 0.2rem;
-  border-bottom: 0.1rem solid #B3B3B3;
+  padding-left: 5%;
+  padding-right: 5%;
+  background-color: transparent;
 }
 
 li img {
@@ -369,31 +390,33 @@ li img {
 
 .alarmList-time span.time {
   height: auto;
-  font: 3.8rem 'Open Sans', sans-serif;
-  line-height: 3.8rem;
+  font: 3.6rem 'Open Sans', sans-serif;
+  line-height: 3.6rem;
   color: black;
 }
 
 .alarmList-time span.hour24-state {
   height: auto;
-  font: 2rem 'Open Sans', sans-serif;
-  line-height: 1.8rem;
-  color: #4D4D4D;
+  font: 1.6rem 'Open Sans', sans-serif;
+  line-height: 1.6rem;
+  color: #25292a;
+  margin-left: -0.3rem;
+  text-transform:lowercase;
 }
 
 .alarmList-detail .label {
   height: auto;
-  font: bold 2rem 'Open Sans', sans-serif;
-  line-height: 2rem;
+  font: bold 2rem/2rem 'Open Sans', sans-serif;
   color: black;
-  padding-top: 2%;
+  text-overflow: ellipsis;
+  padding-top: 6%;
 }
 
 .alarmList-detail .repeat {
   height: auto;
-  font: 1.8rem 'Open Sans', sans-serif;
-  line-height: 1.8rem;
-  color: #4D4D4D;
+  font: 1.8rem/1.8rem 'Open Sans', sans-serif;
+  color: #646768;
+  text-overflow: ellipsis;
   padding-top: 0.8rem;
 }
 
