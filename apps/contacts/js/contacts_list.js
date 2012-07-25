@@ -187,6 +187,7 @@ contacts.List = (function() {
         contact.givenName = contact.email[0].address;
       } else {
         contact.givenName = 'No name';
+        contact.givenName = _('noName');
       }
     }
 
