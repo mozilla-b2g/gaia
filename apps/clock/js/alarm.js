@@ -35,17 +35,17 @@ var ClockView = {
     delete this.day;
     return this.day = document.getElementById('clock-day');
   },
-  
+
   get date() {
     delete this.date;
     return this.date = document.getElementById('clock-date');
   },
-  
+
   get alarmNewBtn() {
     delete this.alarmNewBtn;
-    return this.alarmNewBtn = document.getElementById('alarm-new');  
+    return this.alarmNewBtn = document.getElementById('alarm-new');
   },
-  
+
   get digitalClockBG() {
     delete this.digitalClockBG;
     return this.digitalClockBG = document.getElementById('digital-clock-bg');
@@ -176,7 +176,7 @@ var ClockView = {
 
   resizeAnalogClock: function cv_resizeAnalogClock() {
     var height = this.clockView.offsetHeight -
-                 this.date.offsetHeight - 
+                 this.date.offsetHeight -
                  this.alarmNewBtn.offsetTop -
                  this.alarmNewBtn.offsetHeight -
                  AlarmList.alarms.offsetHeight;
@@ -357,12 +357,6 @@ var AlarmManager = {
     } else {
       nextAlarmFireTime = getNextAlarmFireTime(alarm);
     }
-    //=================================
-    var protocol = window.location.protocol;
-    var host = window.location.host;
-    window.open(protocol + '//' + host + '/onring.html',
-                'ring_screen', 'attention');
-    return;
     var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
                   { id: alarm.id }); // give the alarm id for the request
     request.onsuccess = function(e) {
