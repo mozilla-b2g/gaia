@@ -137,7 +137,8 @@ var KeypadManager = {
     this.deleteButton.addEventListener('mouseup', keyHandler);
 
     if (this.callBarAddContact) {
-      this.callBarAddContact.addEventListener('mouseup', this.addContact);
+      this.callBarAddContact.addEventListener('mouseup',
+                                              this.addContact.bind(this));
       this.callBarCallAction.addEventListener('mouseup',
                                               this.makeCall.bind(this));
     }
@@ -205,7 +206,23 @@ var KeypadManager = {
   },
 
   addContact: function hk_addContact(event) {
-    //TODO Create the request to the contacts app
+    var number = this._phoneNumber;
+    if (!number)
+      return;
+
+    try {
+      var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'webcontacts/contact',
+          params: {
+            'tel': number,
+          }
+        }
+      });
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   },
 
   callbarBackAction: function hk_callbarBackAction(event) {
