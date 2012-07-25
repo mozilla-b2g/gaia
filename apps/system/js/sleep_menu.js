@@ -12,6 +12,7 @@ var SleepMenu = {
 
   init: function sm_init() {
     window.addEventListener('holdsleep', this.show.bind(this));
+
     var self = this;
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       self.isFlightModeEnabled = value;
@@ -136,4 +137,5 @@ var SleepMenu = {
     }
   }
 };
+
 SleepMenu.init();

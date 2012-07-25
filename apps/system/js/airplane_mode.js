@@ -5,13 +5,9 @@
 
 var AirplaneMode = {
   // Reserve settings before turn on airplane mode
-  reservedSettings: {
-    data: true,
+  previousSettings: {
     wifi: true,
-    bluetooth: true,
-
-    // reserve for geolocation
-    geolocation: false
+    bluetooth: true
   },
 
   init: function bt_init() {
@@ -20,33 +16,27 @@ var AirplaneMode = {
       var settings = navigator.mozSettings;
       if (settings) {
         if (value) {
-          // Flight mode ON
-          // Turn off data, bluetooth, wifi
-          var reqData = settings.getLock().get('ril.data.enabled');
-          reqData.onsuccess = function sm_EnabledFetched() {
-            self.reservedSettings.data = reqData.result['ril.data.enabled'];
-            settings.getLock().set({'ril.data.enabled': false});
-          };
-          var reqBt = settings.getLock().get('bluetooth.enabled');
-          reqBt.onsuccess = function bt_EnabledSuccess() {
-            self.reservedSettings.bluetooth = reqBt.result['bluetooth.enabled'];
+          // Turn on airplane mode
+          // Turn off Bluetooth and Wifi.
+          // Data will be turn off automatically since the radio is off.
+          var bluetoothReq = settings.getLock().get('bluetooth.enabled');
+          bluetoothReq.onsuccess = function bt_EnabledSuccess() {
+            self.previousSettings.bluetooth =
+                bluetoothReq.result['bluetooth.enabled'];
             settings.getLock().set({'bluetooth.enabled': false});
           };
-          var reqWifi = settings.getLock().get('wifi.enabled');
-          reqWifi.onsuccess = function wf_EnabledSuccess() {
-            self.reservedSettings.wifi = reqWifi.result['wifi.enabled'];
+          var wifiReq = settings.getLock().get('wifi.enabled');
+          wifiReq.onsuccess = function wf_EnabledSuccess() {
+            self.previousSettings.wifi = wifiReq.result['wifi.enabled'];
             settings.getLock().set({'wifi.enabled': false});
           };
         } else {
-          // Flight mode OFF
+          // Turn off airplane mode
           // Turn on all services that was enabled before.
-          if (self.reservedSettings.data) {
-            settings.getLock().set({'ril.data.enabled': true});
-          }
-          if (self.reservedSettings.bluetooth) {
+          if (self.previousSettings.bluetooth) {
             settings.getLock().set({'bluetooth.enabled': true});
           }
-          if (self.reservedSettings.wifi) {
+          if (self.previousSettings.wifi) {
             settings.getLock().set({'wifi.enabled': true});
           }
         }
@@ -54,4 +44,5 @@ var AirplaneMode = {
     });
   }
 };
+
 AirplaneMode.init();
