@@ -9,24 +9,12 @@
   <link rel="stylesheet" type="text/css" href="style/folder-cards.css">
   <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
   <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
+  <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
+  <!-- Shared code -->
+  <script type="text/javascript" src="shared/js/l10n.js"></script>
+  <!-- Specific code -->
   <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-
     // when running in B2G, send output to the console, ANSI-style
     if ('MozTCPSocket' in window) {
       function consoleHelper() {
@@ -41,7 +29,7 @@
         log:   consoleHelper.bind(null, '\x1b[32mLOG'),
         error: consoleHelper.bind(null, '\x1b[31mERR'),
         info:  consoleHelper.bind(null, '\x1b[36mINF'),
-        warn:  consoleHelper.bind(null, '\x1b[33mWAR'),
+        warn:  consoleHelper.bind(null, '\x1b[33mWAR')
       };
     }
     window.onerror = function errHandler(msg, url, line) {
@@ -484,3 +472,4 @@
   </div>
 </body>
 </html>
+

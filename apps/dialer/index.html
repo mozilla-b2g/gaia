@@ -7,32 +7,21 @@
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="stylesheet" type="text/css" href="style/keypad.css">
     <link rel="stylesheet" type="text/css" href="style/commslog.css">
+    <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script type="application/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
-    <script defer="defer" type="application/javascript" src="js/helper.js"></script>
-    <script defer="defer" type="application/javascript" src="js/contacts.js"></script>
-    <script defer="defer" type="application/javascript" src="js/settings_listener.js"></script>
-    <script defer="defer" type="application/javascript" src="js/notification_helper.js"></script>
-    <script defer="defer" type="application/javascript" src="js/keypad.js"></script>
-    <script defer="defer" type="application/javascript" src="js/dialer.js"></script>
-    <script defer="defer" type="application/javascript" src="js/recents.js"></script>
-    <script defer="defer" type="application/javascript" src="js/proximity.js"></script>
+    <!-- Shared code -->
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <script defer type="application/javascript" src="shared/js/desktop.js"></script>
+    <!-- Specific code -->
+    <script defer type="application/javascript" src="js/helper.js"></script>
+    <script defer type="application/javascript" src="js/contacts.js"></script>
+    <script defer type="application/javascript" src="js/settings_listener.js"></script>
+    <script defer type="application/javascript" src="js/notification_helper.js"></script>
+    <script defer type="application/javascript" src="js/keypad.js"></script>
+    <script defer type="application/javascript" src="js/dialer.js"></script>
+    <script defer type="application/javascript" src="js/recents.js"></script>
+    <script defer type="application/javascript" src="js/proximity.js"></script>
+    <script defer type="application/javascript" src="js/ussd.js"></script>
   </head>
   <body class="hidden">
     <article id="views" role="tablist">
@@ -56,7 +45,7 @@
                 <div class="keypad-key-label-container">
                   <div class="keypad-key-label" data-value="1">
                     <span class="keypad-number font-light">1</span>
-                    <span  class="keypad-text font-semibold"></span>
+                    <div class="keypad-subicon voicemail"></div>
                   </div>
                 </div>
               </div>
@@ -158,7 +147,7 @@
           </section>
           <section id="keypad-callbar">
             <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" >
-              <div class="icon-add-contact disabled-icon"></div>
+              <div class="icon-add-contact"></div>
             </span>
             <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
               <div>
@@ -219,3 +208,4 @@
       }
     </script>
 </html>
+

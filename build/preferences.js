@@ -91,6 +91,10 @@ let permissions = {
     "urls": [],
     "pref": "dom.mozBluetooth.whitelist"
   },
+  "voicemail": {
+    "urls": [],
+    "pref": "dom.voicemail.whitelist"
+  },
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"
@@ -116,8 +120,11 @@ let permissions = {
 let content = "";
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
-content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
 content += "user_pref(\"browser.manifestURL\",\"" + homescreen + "/manifest.webapp\");\n\n";
+if (homescreen.substring(0,6) == "app://") { // B2G bug 773884
+    homescreen += "/index.html";
+}
+content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
 
 let privileges = [];
 let domains = [];
@@ -164,7 +171,9 @@ content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
 
 // Probably wont be needed when https://bugzilla.mozilla.org/show_bug.cgi?id=768440 lands
 content += "user_pref(\"dom.send_after_paint_to_content\", true);\n\n";
+
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
+content += "user_pref(\"network.http.max-connections-per-server\", 15);\n\n";
 
 if (LOCAL_DOMAINS) {
   content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";

@@ -5,31 +5,16 @@
     <meta http-equiv="pragma" content="no-cache">
     <title data-l10n-id="firefox-start">Firefox Start</title>
     <link rel="stylesheet" href="style/start.css" type="text/css">
+    <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
+    <!-- Shared code -->
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="js/start.js"></script>
     <script type="text/javascript" src="js/places.js"></script>
   </head>
 
   <body>
-  <h1 data-l10n-id="firefox">Firefox</h1>
-  <h2 data-l10n-id="top-sites">Top Sites</h2>
+  <h1 data-l10n-id="top-sites">Top Sites</h1>
   <section id="top-sites">
     <ul id="thumbnails">
     </ul>
