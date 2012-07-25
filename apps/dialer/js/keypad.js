@@ -293,73 +293,70 @@ var KeypadManager = {
   },
 
   keyHandler: function kh_keyHandler(event) {
-    if (event.target.dataset.value != null) {
-      var key = event.target.dataset.value;
-    } else if (event.target.parentNode.dataset.value != null) {
-      var key = event.target.parentNode.dataset.value;
-    }
+    var key = event.target.dataset.value;
 
-    if (key != undefined) {
-      event.stopPropagation();
+    if (!key)
+      return;
 
-      if (event.type == 'mousedown') {
-        if (key != 'delete') {
-          if (keypadSoundIsEnabled) {
-            TonePlayer.play(gTonesFrequencies[key]);
-          }
+    event.stopPropagation();
 
-          // Sending the DTMF tone if on a call
-          var telephony = navigator.mozTelephony;
-          if (telephony && telephony.active &&
-              telephony.active.state == 'connected') {
-
-            telephony.startTone(key);
-            window.setTimeout(function ch_stopTone() {
-              telephony.stopTone();
-            }, 100);
-
-          }
+    if (event.type == 'mousedown') {
+      if (key != 'delete') {
+        if (keypadSoundIsEnabled) {
+          TonePlayer.play(gTonesFrequencies[key]);
         }
 
-        // Manage long press
-        if (key == '0' || key == 'delete') {
-          this._holdTimer = setTimeout(function(self) {
-            if (key == 'delete') {
-              self._phoneNumber = '';
-            } else {
-              self._phoneNumber += '+';
-            }
+        // Sending the DTMF tone if on a call
+        var telephony = navigator.mozTelephony;
+        if (telephony && telephony.active &&
+            telephony.active.state == 'connected') {
 
-            self._longPress = true;
-            self._updatePhoneNumberView();
-          }, 400, this);
-        }
+          telephony.startTone(key);
+          window.setTimeout(function ch_stopTone() {
+            telephony.stopTone();
+          }, 100);
 
-        // Voicemail long press (needs to be longer since it actually dials)
-        if (key == '1') {
-          this._holdTimer = setTimeout(function vm_call(self) {
-            self._longPress = true;
-            self._callVoicemail();
-          }, 3000, this);
         }
-      } else if (event.type == 'mouseup') {
-        // If it was a long press our work is already done
-        if (this._longPress) {
-          this._longPress = false;
-          this._holdTimer = null;
-          return;
-        }
-        if (key == 'delete') {
-          this._phoneNumber = this._phoneNumber.slice(0, -1);
-        } else {
-          this._phoneNumber += key;
-        }
-
-        if (this._holdTimer)
-          clearTimeout(this._holdTimer);
-
-        this._updatePhoneNumberView();
       }
+
+      // Manage long press
+      if (key == '0' || key == 'delete') {
+        this._holdTimer = setTimeout(function(self) {
+          if (key == 'delete') {
+            self._phoneNumber = '';
+          } else {
+            self._phoneNumber += '+';
+          }
+
+          self._longPress = true;
+          self._updatePhoneNumberView();
+        }, 400, this);
+      }
+
+      // Voicemail long press (needs to be longer since it actually dials)
+      if (key == '1') {
+        this._holdTimer = setTimeout(function vm_call(self) {
+          self._longPress = true;
+          self._callVoicemail();
+        }, 3000, this);
+      }
+    } else if (event.type == 'mouseup') {
+      // If it was a long press our work is already done
+      if (this._longPress) {
+        this._longPress = false;
+        this._holdTimer = null;
+        return;
+      }
+      if (key == 'delete') {
+        this._phoneNumber = this._phoneNumber.slice(0, -1);
+      } else {
+        this._phoneNumber += key;
+      }
+
+      if (this._holdTimer)
+        clearTimeout(this._holdTimer);
+
+      this._updatePhoneNumberView();
     }
   },
 
@@ -386,8 +383,6 @@ var KeypadManager = {
       this.moveCaretToEnd(this.phoneNumberView);
       this.formatPhoneNumber('dialpad');
     }
-
-    this._holdTimer = null;
   },
 
   _callVoicemail: function kh_callVoicemail() {
