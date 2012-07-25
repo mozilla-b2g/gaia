@@ -69,8 +69,7 @@
     "view": {
       "filters": {
         "type": "url"
-      },
-      "disposition": "window"
+      }
     }
   }
 }
