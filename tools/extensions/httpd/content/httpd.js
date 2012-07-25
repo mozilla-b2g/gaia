@@ -42,8 +42,8 @@
 
 // GAIA-
 Components.utils.import('resource://gre/modules/Services.jsm');
-const GAIA_DOMAIN = Services.prefs.getCharPref("gaia.domain");
-const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("gaia.app_relative_path");
+const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
+const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("extensions.gaia.app_relative_path");
 // -GAIA
 
 /*

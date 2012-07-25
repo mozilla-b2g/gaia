@@ -12,10 +12,10 @@ function startup(data, reason) {
   Cu.import('resource://gre/modules/Services.jsm');
   Cu.import('resource:///modules/devtools/dbg-client.jsm');
   
-  const GAIA_DOMAIN = Services.prefs.getCharPref("gaia.domain");
-  const GAIA_APP_SRCDIRS = Services.prefs.getCharPref("gaia.app_src_dirs");
-  const GAIA_DIR = Services.prefs.getCharPref("gaia.dir");
-  const GAIA_PORT = Services.prefs.getIntPref("gaia.port");
+  const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
+  const GAIA_APP_SRCDIRS = Services.prefs.getCharPref("extensions.gaia.app_src_dirs");
+  const GAIA_DIR = Services.prefs.getCharPref("extensions.gaia.dir");
+  const GAIA_PORT = Services.prefs.getIntPref("extensions.gaia.port");
 
   const LocalFile = CC('@mozilla.org/file/local;1',
                        'nsILocalFile',
