@@ -105,6 +105,11 @@
   vertical-align: middle;
 }
 
+.keypad-key-label *,
+#keypad-delete * {
+  pointer-events: none;
+}
+
 .keypad-key-label-centered {
   padding-left: 0;
   text-align: center;
