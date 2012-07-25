@@ -299,8 +299,9 @@ var KeypadManager = {
       return;
 
     event.stopPropagation();
-
     if (event.type == 'mousedown') {
+      this._longPress = false;
+
       if (key != 'delete') {
         if (keypadSoundIsEnabled) {
           TonePlayer.play(gTonesFrequencies[key]);
