@@ -17,14 +17,12 @@ contacts.List = (function() {
     groupsList.addEventListener('click', onClickHandler);
 
     // Populating contacts by groups
-    var alphabet = [{group: 'favorites', letter: ''}];
+    renderGroupHeader('favorites', '');
     for (var i = 65; i <= 90; i++) {
       var letter = String.fromCharCode(i);
-      alphabet.push({group: letter, letter: letter});
+      renderGroupHeader(letter, letter);
     }
-    alphabet.push({group: 'und', letter: '#'});
-
-    utils.templates.append(groupsList, alphabet);
+    renderGroupHeader('und', '#');
     favoriteGroup = document.getElementById('group-favorites').parentNode;
   }
 
@@ -38,48 +36,63 @@ contacts.List = (function() {
     getFavorites();
   };
 
-  var iterateOverGroup = function iterateOverGroup(group, contacts) {
-    if (contacts.length === 0)
-      return;
+  var renderGroupHeader = function renderGroupHeader(group, letter) {
+    var li = document.createElement('li');
+    var title = document.createElement('h2');
+    title.id = 'group-' + group;
+    title.className = 'block-title hide';
+    title.innerHTML = '<abbr title="Contacts listed ' + group + '">';
+    title.innerHTML += letter + '</abbr>';
+    var contactsContainer = document.createElement('ol');
+    contactsContainer.id = 'contacts-list-' + group;
+    contactsContainer.dataset.group = group;
+    li.appendChild(title);
+    li.appendChild(contactsContainer);
+    groupsList.appendChild(li);
+  }
 
-    var container = groupsList.querySelector('#contacts-list-' + group);
-    if (container) {
-      utils.templates.append(container, contacts);
-      showGroup(group);
-    }
-  };
+  var renderContact = function renderContact(contact) {
+    contact.givenName = contact.givenName || '';
+    contact.familyName = contact.familyName || '';
+    contact.org = contact.org || '';
+    var contactContainer = document.createElement('li');
+    contactContainer.className = 'block-item';
+    contactContainer.dataset.uuid = contact.id;
+    var link = document.createElement('a');
+    link.href = '#';
+    link.className = 'item';
+    var figure = document.createElement('figure');
+    figure.className = 'item-media pull-right block-media';
+    var img = document.createElement('img');
+    img.style.backgroundImage = 'url(' + contact.photo + ')';
+    figure.appendChild(img);
+    link.appendChild(figure);
+    var body = document.createElement('p');
+    body.className = 'item-body';
+    var name = document.createElement('strong');
+    name.className = 'block-name';
+    name.innerHTML = contact.givenName;
+    name.innerHTML += ' <b>' + contact.familyName + '</b>';
+    body.appendChild(name);
+    var small = document.createElement('small');
+    small.className = 'block-company';
+    small.textContent = contact.org;
+    body.appendChild(small);
+    link.appendChild(body);
+    contactContainer.appendChild(link);
+    return contactContainer;
+  }
 
 
   var buildContacts = function buildContacts(contacts) {
-    var group = null;
-
-    var count = contacts.length;
-    if (count > 0) {
-      group = getGroupName(contacts[0]);
-    }
-
-    var ret = [];
-    for (var i = 0; i < count; i++) {
-      var letter = getGroupName(contacts[i]);
-
-      if (letter === group) {
-        ret.push(refillContactData(contacts[i]));
-        continue;
-      }
-
-      iterateOverGroup(group, ret);
-      ret = [refillContactData(contacts[i])];
-      group = letter;
-    }
-
-    if (ret.length > 0) {
-      iterateOverGroup(group, ret);
+    for (var i = 0; i < contacts.length; i++) {
+      var group = getGroupName(contacts[i]);
+      var listContainer = document.getElementById('contacts-list-' + group);
+      var newContact = renderContact(refillContactData(contacts[i]));
+      listContainer.appendChild(newContact);
+      showGroup(group);
     }
   };
-
-  var buildFavorites = function buildFavorites(favorites) {
-    iterateOverGroup('favorites', favorites);
-  }
 
   var getFavorites = function getFavorites() {
     var options = {
@@ -91,13 +104,16 @@ contacts.List = (function() {
     };
 
     var request = navigator.mozContacts.find(options);
+    var group = 'contacts-list-favorites';
+    var container = document.getElementById(group);
     request.onsuccess = function favoritesCallback() {
       //request.result is an object, transform to an array
-      var result = [];
+      if (request.result.length > 0)
+          showGroup('favorites');
       for (var i in request.result) {
-        result.push(request.result[i]);
+        var newContact = renderContact(request.result[i]);
+        container.appendChild(newContact);
       }
-      buildFavorites(result);
     }
   };
 
@@ -108,6 +124,7 @@ contacts.List = (function() {
     }
 
     var options = {
+      sortBy: 'familyName',
       sortOrder: 'ascending'
     };
 
@@ -145,7 +162,7 @@ contacts.List = (function() {
 
     addToGroup(contact, list);
 
-    if (list.children.length === 2) {
+    if (list.children.length === 1) {
       // template + new record
       showGroup(group);
     }
@@ -155,7 +172,7 @@ contacts.List = (function() {
       list = document.getElementById('contacts-list-favorites');
       addToGroup(contact, list);
 
-      if (list.children.length === 2) {
+      if (list.children.length === 1) {
         showGroup('favorites');
       }
     }
@@ -184,7 +201,7 @@ contacts.List = (function() {
 
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;
-    for (var i = 1; i < len; i++) {
+    for (var i = 0; i < len; i++) {
       var liElem = liElems[i];
       var familyName = liElem.querySelector('strong > b').textContent.trim();
       var givenName = liElem.querySelector('strong');
@@ -194,14 +211,15 @@ contacts.List = (function() {
         givenName: [givenName]
       });
       if (name >= cName) {
-        newLi = utils.templates.render(liElems[0], contact);
+        newLi = renderContact(contact);
         list.insertBefore(newLi, liElem);
         break;
       }
     }
 
     if (!newLi) {
-      utils.templates.append(list, contact);
+      newLi = renderContact(contact);
+      list.appendChild(newLi);
     }
 
     return list.children.length;
@@ -222,7 +240,7 @@ contacts.List = (function() {
     Array.prototype.forEach.call(items, function removeItem(item) {
       var ol = item.parentNode;
       ol.removeChild(item);
-      if (ol.children.length === 1) {
+      if (ol.children.length === 0) {
         // Only template
         hideGroup(ol.dataset.group);
       }
@@ -385,6 +403,6 @@ contacts.List = (function() {
     'remove': remove,
     'search': search,
     'enterSearchMode': enterSearchMode,
-    'exitSearchMode': exitSearchMode,
+    'exitSearchMode': exitSearchMode
   };
 })();
