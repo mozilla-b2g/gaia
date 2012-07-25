@@ -184,8 +184,6 @@ var ScreenManager = {
     window.removeEventListener('devicelight', this);
     window.removeEventListener('mozfullscreenchange', this);
 
-    this.setIdleTimeout(0);
-
     var self = this;
     var screenBrightness = navigator.mozPower.screenBrightness;
 
@@ -210,6 +208,8 @@ var ScreenManager = {
     };
 
     var finish = function scm_finish() {
+      self.setIdleTimeout(0);
+
       self.screenEnabled = false;
       self._inTransition = false;
       self.screen.classList.add('screenoff');
