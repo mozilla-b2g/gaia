@@ -85,6 +85,10 @@ var KeyboardManager = (function() {
 
     var keyboardWindow = keyboardFrame.contentWindow;
     updateKeyboardTimeout = setTimeout(function updateKeyboard() {
+      if (message.type === 'hideime') {
+        keyboardFrame.classList.add('hide');
+        keyboardFrame.classList.remove('visible');
+      }
       keyboardWindow.postMessage(JSON.stringify(message), KEYBOARD_URL);
     }, kKeyboardDelay);
   };

@@ -171,8 +171,8 @@ iframe.backgroundWindow {
 }
 
 #keyboard-frame.visible {
-  z-index: 9006;
-  pointer-events: normal;
+  z-index: 9000;
+  pointer-events: auto;
 }
 
 #keyboard-frame.hide {
