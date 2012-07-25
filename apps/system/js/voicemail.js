@@ -51,8 +51,7 @@ var Voicemail = {
     }
   },
 
-  showNotification: function vm_showNotification(title, text, voicemailNumber)
-  {
+  showNotification: function vm_showNotification(title, text, voicemailNumber) {
     this.notificationId++;
     this.notification = NotificationScreen.addNotification({
       id: this.notificationId, title: title, text: text, icon: this.icon
@@ -89,7 +88,6 @@ var Voicemail = {
     this.notification = null;
     this.notificationId = 0;
   }
-
 };
 
 Voicemail.init();

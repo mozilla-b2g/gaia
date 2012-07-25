@@ -501,6 +501,11 @@ var ThreadUI = {
     return this.doneButton = document.getElementById('messages-done-button');
   },
 
+  get headerTitle() {
+    delete this.headerTitle;
+    return this.headerTitle = document.getElementById('header-text');
+  },
+
   init: function thui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
@@ -512,6 +517,7 @@ var ThreadUI = {
       this.deleteMessages.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
+    this.headerTitle.addEventListener('click', this.activateContact.bind(this));
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -926,6 +932,20 @@ var ThreadUI = {
           }
         };
       }
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
+  },
+
+  activateContact: function thui_activateContact() {
+    try {
+      //TODO: We should provide correct params for contact activiy handler.
+      var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'webcontacts/contact'
+        }
+      });
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
