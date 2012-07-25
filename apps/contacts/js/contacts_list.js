@@ -319,6 +319,7 @@ contacts.List = (function() {
 
   var exitSearchMode = function exitSearchMode() {
     cancel.classList.add('hide');
+    searchNoResult.classList.add('hide');
     conctactsListView.classList.remove('searching');
     searchBox.value = '';
     inSearchMode = false;
