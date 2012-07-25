@@ -260,16 +260,6 @@ var LockScreen = {
           evt.stopImmediatePropagation();
         }
         break;
-
-      case 'load':
-        var win = this.camera.firstElementChild.contentWindow;
-        win.addEventListener(
-          'keydown', (this.redirectKeyEventFromFrame).bind(this));
-        win.addEventListener(
-          'keypress', (this.redirectKeyEventFromFrame).bind(this));
-        win.addEventListener(
-          'keyup', (this.redirectKeyEventFromFrame).bind(this));
-        break;
     }
   },
 
@@ -500,15 +490,25 @@ var LockScreen = {
         break;
 
       case 'camera':
-        // create the iframe and load the camera
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var protocol = document.location.protocol + '//';
+
+        var origin = protocol + 'camera.' + domain;
+
+        var app = Applications.getByOrigin(protocol + 'camera.' + domain);
+
+        // create the <iframe mozbrowser mozapp> and load the camera app
         var frame = document.createElement('iframe');
-        frame.src = './camera/';
-        frame.addEventListener('load', this);
-        if (callback) {
-          frame.onload = function cameraLoaded() {
-            callback();
-          };
-        }
+        frame.setAttribute('mozbrowser', 'true');
+        frame.setAttribute('mozapp', app.manifestURL);
+        frame.dataset.frameType = 'lockscreen-camera';
+        frame.dataset.frameOrigin = origin;
+
+        frame.src = origin + app.manifest.launch_path;
+        frame.addEventListener('mozbrowserloadend', function cameraLoaded() {
+          callback();
+        });
         this.camera.appendChild(frame);
         break;
     }
