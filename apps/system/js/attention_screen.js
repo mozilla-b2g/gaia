@@ -23,7 +23,7 @@ var AttentionScreen = {
     window.addEventListener('mozbrowserclose', this.close.bind(this), true);
 
     this.bar.addEventListener('click', this.show.bind(this));
-    window.addEventListener('keyup', this.hide.bind(this), true);
+    window.addEventListener('home', this.hide.bind(this));
   },
 
   open: function as_open(evt) {
@@ -35,14 +35,9 @@ var AttentionScreen = {
     evt.stopPropagation();
 
     var attentionFrame = evt.detail.frameElement;
-    attentionFrame.setAttribute('mozapp', evt.target.getAttribute('mozapp'));
     attentionFrame.dataset.frameType = 'attention';
     attentionFrame.dataset.frameName = evt.detail.name;
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
-
-    // FIXME: won't be needed once
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
-    attentionFrame.src = evt.detail.url;
 
     this.attentionScreen.appendChild(attentionFrame);
     this.attentionScreen.classList.add('displayed');
@@ -84,7 +79,7 @@ var AttentionScreen = {
     this.attentionScreen.removeChild(evt.target);
 
     if (this._screenInitiallyDisabled)
-      ScreenManager.turnScreenOff();
+      ScreenManager.turnScreenOff(true);
 
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.
@@ -106,25 +101,22 @@ var AttentionScreen = {
     });
   },
 
-  hide: function as_hide(evt) {
-    if (evt.keyCode == evt.DOM_VK_ESCAPE ||
-        evt.keyCode == evt.DOM_VK_HOME) {
-
-      if (this.attentionScreen.querySelectorAll('iframe').length > 0) {
-        if (!this.mainScreen.classList.contains('active-statusbar')) {
-          // The user is hiding the attention screen to use the phone we better
-          // not turn the sreen off when the attention screen is closed.
-          this._screenInitiallyDisabled = false;
-
-          this.dispatchEvent('status-active');
-          this.mainScreen.classList.add('active-statusbar');
-
-          var attentionScreen = this.attentionScreen;
-          attentionScreen.addEventListener('transitionend', function trWait() {
+  // Invoked when we get a "home" event
+  hide: function as_hide() {
+    if (this.attentionScreen.querySelectorAll('iframe').length > 0) {
+      if (!this.mainScreen.classList.contains('active-statusbar')) {
+        // The user is hiding the attention screen to use the phone we better
+        // not turn the sreen off when the attention screen is closed.
+        this._screenInitiallyDisabled = false;
+        
+        this.dispatchEvent('status-active');
+        this.mainScreen.classList.add('active-statusbar');
+        
+        var attentionScreen = this.attentionScreen;
+        attentionScreen.addEventListener('transitionend', function trWait() {
             attentionScreen.removeEventListener('transitionend', trWait);
             attentionScreen.classList.add('status-mode');
-          });
-        }
+        });
       }
     }
   },

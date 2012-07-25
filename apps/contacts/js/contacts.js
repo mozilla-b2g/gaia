@@ -1,5 +1,7 @@
 ﻿'use strict';
 
+var _ = navigator.mozL10n.get;
+
 function navigationStack(currentView) {
   var transitions = {
     'left-right': { from: 'view-left', to: 'view-right'},
@@ -114,23 +116,23 @@ var Contacts = (function() {
 
   var TAG_OPTIONS = {
     'phone-type' : [
-      {value: 'Mobile'},
-      {value: 'Home'},
-      {value: 'Work'},
-      {value: 'Personal'},
-      {value: 'Fax Home'},
-      {value: 'Fax Office'},
-      {value: 'Other Fax'},
-      {value: 'Another'}
+      {value: _('mobile')},
+      {value: _('home')},
+      {value: _('work')},
+      {value: _('personal')},
+      {value: _('faxHome')},
+      {value: _('faxOffice')},
+      {value: _('faxOther')},
+      {value: _('another')}
     ],
     'email-type' : [
-      {value: 'Personal'},
-      {value: 'Home'},
-      {value: 'Work'}
+      {value: _('personal')},
+      {value: _('home')},
+      {value: _('work')}
     ],
     'address-type' : [
-      {value: 'Home'},
-      {value: 'Work'}
+      {value: _('home')},
+      {value: _('work')}
     ]
   };
 
@@ -396,7 +398,7 @@ var Contacts = (function() {
     if (contact.note && contact.note.length > 0) {
       var container = document.createElement('li');
       var title = document.createElement('h2');
-      title.textContent = 'Comments';
+      title.textContent = _('comments');
       container.appendChild(title);
       var notesTemplate = document.getElementById('note-details-template-#i#');
       for (var i in contact.note) {
@@ -434,7 +436,7 @@ var Contacts = (function() {
   var showEdit = function showEdit() {
     resetForm();
     deleteContactButton.classList.remove('hide');
-    formTitle.innerHTML = 'Edit contact';
+    formTitle.innerHTML = _('editContact');
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
@@ -507,7 +509,7 @@ var Contacts = (function() {
     }
 
     deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = 'Are you sure you want to remove this contact?';
+      var msg = _('deleteConfirmMsg');
       Permissions.show('', msg, function onAccept() {
         deleteContact(currentContact);
       },function onCancel() {
@@ -650,7 +652,7 @@ var Contacts = (function() {
   var showAdd = function showAdd(params) {
     resetForm();
     deleteContactButton.classList.add('hide');
-    formTitle.innerHTML = 'Add Contact';
+    formTitle.innerHTML = _('addContact');
 
     params = params || {};
 
@@ -664,6 +666,7 @@ var Contacts = (function() {
       'address' : insertAddress,
       'note' : insertNote
     };
+    formTitle.innerHTML = _('addContact');
 
     for (var i in paramsMapping) {
       paramsMapping[i].call(this, params[i] || 0);
@@ -706,8 +709,8 @@ var Contacts = (function() {
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {
     favoriteMessage.textContent = !isFav ?
-                    'Add as favorite' :
-                    'Remove as favorite';
+                    _('addFavorite') :
+                    _('removeFavorite');
   }
 
   var deleteContact = function deleteContact(contact) {
@@ -1046,6 +1049,13 @@ var ActivityHandler = {
     this._currentActivity = null;
   }
 };
+
+// set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showPanel() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+  document.body.classList.remove('hide');
+});
 
 var actHandler = ActivityHandler.handle.bind(ActivityHandler);
 window.navigator.mozSetMessageHandler('activity', actHandler);

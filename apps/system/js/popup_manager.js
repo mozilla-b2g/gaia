@@ -13,7 +13,7 @@ var PopupManager = {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this));
     window.addEventListener('mozbrowserclose', this.close.bind(this));
 
-    window.addEventListener('keyup', this.backHandling.bind(this), true);
+    window.addEventListener('home', this.backHandling.bind(this));
   },
 
   open: function pm_open(evt) {
@@ -26,10 +26,6 @@ var PopupManager = {
     popup.dataset.frameType = 'popup';
     popup.dataset.frameName = evt.detail.name;
     popup.dataset.frameOrigin = evt.target.dataset.frameOrigin;
-
-    // FIXME: won't be needed once
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
-    popup.src = evt.detail.url;
 
     this.container.appendChild(popup);
     this.screen.classList.add('popup');
@@ -58,13 +54,8 @@ var PopupManager = {
     if (!this._currentPopup)
       return;
 
-    if (evt.keyCode == evt.DOM_VK_ESCAPE ||
-        evt.keyCode == evt.DOM_VK_HOME) {
-
-      this.close();
-      evt.preventDefault();
-      evt.stopPropagation();
-    }
+    this.close();
+    evt.stopImmediatePropagation();
   }
 };
 

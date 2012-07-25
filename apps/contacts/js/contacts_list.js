@@ -7,7 +7,6 @@ contacts.List = (function() {
       favoriteGroup,
       inSearchMode = false,
       cancel = document.getElementById('cancel-search'),
-      clearSearchButton = document.getElementById('clear-search'),
       conctactsListView = document.getElementById('view-contacts-list'),
       searchBox = document.getElementById('search-contact'),
       searchNoResult = document.getElementById('no-result'),
@@ -279,7 +278,6 @@ contacts.List = (function() {
 
   var exitSearchMode = function exitSearchMode() {
     cancel.classList.add('hide');
-    clearSearchButton.classList.add('hide');
     conctactsListView.classList.remove('searching');
     searchBox.value = '';
     inSearchMode = false;
@@ -304,7 +302,6 @@ contacts.List = (function() {
   var enterSearchMode = function searchMode() {
     if (!inSearchMode) {
       cancel.classList.remove('hide');
-      clearSearchButton.classList.remove('hide');
       conctactsListView.classList.add('searching');
       cleanContactsList();
       inSearchMode = true;
@@ -351,11 +348,10 @@ contacts.List = (function() {
     return document.querySelectorAll(selector);
   }
 
-  var clearSearch = function clearSearch() {
-    searchBox.value = '';
+  // When the cancel button inside the input is clicked
+  document.addEventListener('cancelInput', function() {
     search();
-    return false;
-  }
+  });
 
   return {
     'init': init,
@@ -367,6 +363,5 @@ contacts.List = (function() {
     'search': search,
     'enterSearchMode': enterSearchMode,
     'exitSearchMode': exitSearchMode,
-    'clearSearch': clearSearch
   };
 })();

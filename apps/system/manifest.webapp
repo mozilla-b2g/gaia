@@ -11,7 +11,9 @@
     "power",
     "mozApps",
     "mobileconnection",
-    "mozBluetooth"
+    "mozBluetooth",
+    "telephony",
+    "voicemail"
   ],
   "locales": {
     "ar": {

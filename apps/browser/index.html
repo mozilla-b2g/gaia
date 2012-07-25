@@ -29,7 +29,7 @@
       <div id="frames">
         <img id="tab-cover" />
         <div id="awesomescreen">
-          <nav data-role="tabs">
+          <nav data-role="tabs" id="tab-headers">
             <ul role="tablist">
               <li role="tab">
                 <a id="top-sites-tab" href="#" class="selected"
@@ -103,11 +103,35 @@
     </div>
 
     <div id="tray">
+      <menu type="toolbar" id="tray-toolbar">
+        <button type="button" id="settings-button"></button>
+      </menu>
       <div id="tabs-list"></div>
     </div>
     <div id="throbber"></div>
     <div id="tabs-badge"></div>
 
+    <div id="settings">
+      <header id="settings-header">
+        <menu type="toolbar">
+          <button id="settings-done-button" data-i10n-id="done">Done</button>
+        </menu>
+        <h1 data-i10n-id="firefox-settings">Firefox Settings</h1>
+      </header>
+      <ul>
+        <li>
+          <button id="about-firefox-button" data-i10n-id="about-firefox">About Firefox</button>
+        </li>
+      </ul>
+      <h3 data-i10n-id="privacy-and-security">Privacy & Security</h3>
+      <ul>
+        <li>
+          <button id="clear-history-button" data-i10n-id="clear-history">Clear History</button>
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/GestureDetector.js"></script>
     <script src="js/places.js"></script>
     <script src="js/date_helper.js"></script>
     <script src="js/modal_dialog.js"></script>
