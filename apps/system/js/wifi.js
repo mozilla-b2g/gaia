@@ -15,12 +15,15 @@ var Wifi = {
     // These code should be removed once this bug is fixed
     // https://bugzilla.mozilla.org/show_bug.cgi?id=729877
     SettingsListener.observe('wifi.enabled', true, function(value) {
-      if (!wifiManager && value) {
+      if (!wifiManager) {
         // roll back the setting value to notify the UIs
         // that wifi interface is not available
-        settings.getLock().set({
-          'wifi.enabled': false
-        });
+        if (value) {
+          settings.getLock().set({
+            'wifi.enabled': false
+          });
+        }
+
         return;
       }
 

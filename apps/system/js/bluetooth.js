@@ -15,12 +15,15 @@ var Bluetooth = {
     // These code should be removed once this bug is fixed
     // https://bugzilla.mozilla.org/show_bug.cgi?id=777665
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
-      if (!bluetooth && value) {
+      if (!bluetooth) {
         // roll back the setting value to notify the UIs
         // that Bluetooth interface is not available
-        settings.getLock().set({
-          'bluetooth.enabled': false
-        });
+        if (value) {
+          settings.getLock().set({
+            'bluetooth.enabled': false
+          });
+        }
+
         return;
       }
 
