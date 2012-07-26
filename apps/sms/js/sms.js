@@ -351,23 +351,8 @@ var ThreadListUI = {
 
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
-// <<<<<<< HEAD
-//     var threadIds = [], headerIndex, unreadThreads = [];
-//     if (messages.length == 0) {
-//       ThreadListUI.showListWithoutMessages();
-//     } else {
-//       ThreadListUI.showListWithMessages();
-//     }
-//     for (var i = 0; i < messages.length; i++) {
-//       var message = messages[i];
-//       var num = message.delivery == 'received' ?
-//       message.sender : message.receiver;
-//       if (!message.read) {
-//         if (unreadThreads.indexOf(num) == -1) {
-//           unreadThreads.push(num);
-// =======
-  var iconEdit = document.querySelector('#icon-edit');
-    if(messages.length > 0) {
+    var iconEdit = document.querySelector('#icon-edit');
+    if (messages.length > 0) {
       this.iconEdit.classList.remove('disabled');
       var threadIds = [], headerIndex, unreadThreads = [];
       for (var i = 0; i < messages.length; i++) {
@@ -378,7 +363,6 @@ var ThreadListUI = {
           if (unreadThreads.indexOf(num) == -1) {
             unreadThreads.push(num);
           }
-// >>>>>>> Bug of ThreadListUI fixed
         }
         if (threadIds.indexOf(num) == -1) {
           var thread = {
@@ -408,7 +392,6 @@ var ThreadListUI = {
       for (var i = 0; i < unreadThreads.length; i++) {
         document.getElementById(unreadThreads[i]).classList.add('unread');
       }
-      
     } else {
       var noResultHTML = '<div id="no-result-container">' +
                           '<div id="no-result-message">' +
@@ -472,20 +455,6 @@ var ThreadListUI = {
       if (contact && contact.length > 0)
         ThreadListUI.updateMsgWithContact(thread.num, contact);
     });
-  },
-
-  // When there's no messages to show, we disable edit mode and
-  // show info message to the user
-  showListWithoutMessages: function thlui_showListWithoutMessages() {
-    //TODO show information to the user (borja?)
-
-    // disable edit mode
-    document.querySelector('#icon-edit').classList.add('disabled');
-  },
-
-  // When there's messages to show, we enable edit mode
-  showListWithMessages: function thlui_showlistWithMessages() {
-    document.querySelector('#icon-edit').classList.remove('disabled');
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
