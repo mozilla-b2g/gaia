@@ -487,10 +487,16 @@ var CostControl = (function() {
   }
 
   return {
-    init: _init
+    init: _init,
     updateBalance: function cc_apiCheck() {
       _isManualRequest = false;
       _mockup_updateBalance();
+    }
+    getLastUpdateTime: function cc_apiGetLastUpdateTime() {
+      var rawTime = window.localStorage.getItem('costcontrolTime');
+      if (rawTime !== null)
+        rawTime = new Date(rawTime);
+      return rawTime;
     }
   };
 })();

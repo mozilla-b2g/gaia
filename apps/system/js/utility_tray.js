@@ -1,4 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -12,7 +12,6 @@ var UtilityTray = {
 
   statusbar: document.getElementById('statusbar'),
 
-  gripBar: document.getElementById('utility-tray-grippy'),
   screen: document.getElementById('screen'),
 
   init: function ut_init() {
@@ -27,22 +26,18 @@ var UtilityTray = {
     }, this);
 
     window.addEventListener('screenchange', this);
+    window.addEventListener('home', this);
 
     this.overlay.addEventListener('transitionend', this);
   },
 
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
-      case 'keyup':
-        if (!this.shown || evt.keyCode !== evt.DOM_VK_ESCAPE)
-          return;
-
-        // doesn't work right now, see:
-        // https://github.com/mozilla-b2g/gaia/issues/1663
-        evt.preventDefault();
-        evt.stopPropagation();
-
-        this.hide();
+      case 'home':
+        if (this.shown) {
+          this.hide();
+          evt.stopImmediatePropagation();
+        }
         break;
 
       case 'screenchange':
@@ -98,26 +93,12 @@ var UtilityTray = {
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
-    var screenHeight = this.overlay.getBoundingClientRect().height,
-        gripBarHeight = this.gripBar.getBoundingClientRect().height,
-        dy = -(this.startY - touch.pageY),
-        newHeight;
+    var screenHeight = this.overlay.getBoundingClientRect().height;
+    var dy = -(this.startY - touch.pageY);
     if (this.shown)
       dy += screenHeight;
     dy = Math.min(screenHeight, dy);
 
-    if (dy > gripBarHeight) {
-//      var firstShownHeight = this.firstShown.getBoundingClientRect().height;
-
-/*      if (dy < firstShownHeight + gripBarHeight) {
-        newHeight = screenHeight - firstShownHeight - gripBarHeight;
-      } else {
-        newHeight = screenHeight - dy;
-      }
-*/
-//      this.firstShown.style.MozTransition = '';
-//      this.firstShown.style.MozTransform = 'translateY(' + newHeight + 'px)';
-    }
     var style = this.overlay.style;
     style.MozTransition = '';
     style.MozTransform = 'translateY(' + dy + 'px)';
@@ -157,14 +138,9 @@ var UtilityTray = {
 
   show: function ut_show(dy) {
     var alreadyShown = this.shown;
-    var trayStyle = this.overlay.style;
-//    var firstShownStyle = this.firstShown.style;
-
-    trayStyle.MozTransition = '-moz-transform 0.2s linear';
-    trayStyle.MozTransform = 'translateY(100%)';
-
-//    firstShownStyle.MozTransition = '-moz-transform 0.2s linear';
-//    firstShownStyle.MozTransform = 'translateY(0px)';
+    var style = this.overlay.style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(100%)';
     this.shown = true;
     this.screen.classList.add('utility-tray');
 
