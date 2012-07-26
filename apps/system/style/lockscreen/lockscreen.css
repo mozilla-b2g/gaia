@@ -102,7 +102,7 @@
 
 #lockscreen-connstate {
   background-color: #546578;
-  max-width: 60%;
+  max-width: -moz-calc(100% - 4rem - 1.6rem);
   display: inline-block;
   border-radius: 0.4rem;
   padding: 0.4rem;
