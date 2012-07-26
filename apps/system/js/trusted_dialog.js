@@ -10,7 +10,7 @@ var TrustedDialog = (function() {
 
   function open(url, callback) {
     if (!url)
-      return;
+      return null;
 
     // If the trusted dialog is being shown we swap frames.
     if (trustedDialogIsShown()) {
@@ -97,6 +97,14 @@ var TrustedDialog = (function() {
         });
         break;
     }
+  });
+
+  window.addEventListener('home', function(e) {
+    if (!trustedDialogIsShown())
+      return;
+
+    close();
+    e.stopImmediatePropagation();
   });
 
   return {
