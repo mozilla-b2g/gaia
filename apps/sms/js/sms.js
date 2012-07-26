@@ -242,6 +242,10 @@ var ThreadListUI = {
     delete this.doneButton;
     return this.doneButton = document.getElementById('thread-done-button');
   },
+  get iconEdit() {
+    delete this.iconEdit;
+    return this.iconEdit = document.getElementById('icon-edit-threads');
+  },
 
   init: function thlui_init() {
     this.delNumList = [];
@@ -364,7 +368,7 @@ var ThreadListUI = {
 // =======
   var iconEdit = document.querySelector('#icon-edit');
     if(messages.length > 0) {
-      iconEdit.classList.remove('disabled');
+      this.iconEdit.classList.remove('disabled');
       var threadIds = [], headerIndex, unreadThreads = [];
       for (var i = 0; i < messages.length; i++) {
         var message = messages[i];
@@ -413,7 +417,7 @@ var ThreadListUI = {
                           '</div>' +
                           '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
-      iconEdit.classList.add('disabled');
+      this.iconEdit.classList.add('disabled');
     }
     // Callback when every message is appended
     if (callback) {
