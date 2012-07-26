@@ -5,18 +5,25 @@
 
 var Wifi = {
   init: function wf_init() {
-    var wifiManager = window.navigator.mozWifiManager;
-    if (!wifiManager)
-      return;
-
     var settings = window.navigator.mozSettings;
     if (!settings)
       return;
+
+    var wifiManager = window.navigator.mozWifiManager;
 
     // Sync the wifi.enabled mozSettings value with real API
     // These code should be removed once this bug is fixed
     // https://bugzilla.mozilla.org/show_bug.cgi?id=729877
     SettingsListener.observe('wifi.enabled', true, function(value) {
+      if (!wifiManager && value) {
+        // roll back the setting value to notify the UIs
+        // that wifi interface is not available
+        settings.getLock().set({
+          'wifi.enabled': false
+        });
+        return;
+      }
+
       if (wifiManager.enabled == value)
         return;
 
