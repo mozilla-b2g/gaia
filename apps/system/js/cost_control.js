@@ -13,19 +13,65 @@ var CostControl = (function() {
   var STATE_CHECKING = 'checking';
 
   var _settings = {};
+  var _allSettings = [
+    'CREDIT_FORMAT',
+    'CREDIT_LOW_LIMIT',
+    'CHECK_BALANCE_DESTINATION',
+    'CHECK_BALANCE_TEXT',
+    'CHECK_BALANCE_SENDERS',
+    'CHECK_BALANCE_REGEXP',
+    'TOP_UP_DESTINATION',
+    'TOP_UP_TEXT',
+    'TOP_UP_SENDERS',
+    'TOP_UP_CONFIRMATION_REGEXP',
+  ];
+  var _notEmptySettings = [
+    'CHECK_BALANCE_DESTINATION',
+    'CHECK_BALANCE_SENDERS',
+    'TOP_UP_DESTINATION',
+    'TOP_UP_SENDERS'
+  ];
+
   var _widget, _widgetCredit, _widgetTime;
   var _sms, _telephony;
   var _onSMSReceived = null;
   var _state = STATE_IDLE;
   var _balanceTimeout = 0;
-  var _activeCalls = 0;
+  var _connectedCalls = 0;
+
+  // Return true if the widget has all the information required to
+  // work. Return false elsewhere.
+  function _checkConfiguration() {
+    // Check for all parameters
+    var isAllSet = _allSettings.every(function cc_mandatory(name) {
+      return name in _settings;
+    });
+
+    if (!isAllSet)
+      return false;
+
+    // Check for not empty parameters
+    var areSettingsValid = _notEmptySettings.every(
+      function cc_notEmpty(name) {
+        return !!_settings[name];
+      }
+    );
+
+    if (!areSettingsValid)
+      return false;
+
+    // All OK
+    return true;
+  }
 
   // Enable observers for the basic parameters of the cost control
-  function _configure() {
+  function _configureSettings() {
 
     function assignTo(name) {
       return function cc_configure_assignTo(value) {
         _settings[name] = value;
+        if(_checkConfiguration())
+          _widget.style.display = '';
       }
     }
 
@@ -90,7 +136,7 @@ var CostControl = (function() {
     // Listen for SMS
     if (window.navigator.mozSms) {
       _sms = window.navigator.mozSms;
-      _sms.addEventListener('sent', _automaticCheck);
+      _sms.addEventListener('sent', function(evt) { console.log('MESSAGE SENT!'); });
     }
 
     // Listen to ending calls
@@ -111,6 +157,7 @@ var CostControl = (function() {
   // Attach event listeners for manual updates
   function _configureWidget() {
     _widget = document.getElementById('cost-control');
+    _widget.style.display = 'none';
     _widgetCredit = document.getElementById('cost-control-credit');
     _widgetTime = document.getElementById('cost-control-time');
 
@@ -134,8 +181,8 @@ var CostControl = (function() {
   // Initializes the cost control module: basic parameters, autmatic and manual
   // updates.
   function _init() {
-    _configure();
     _configureWidget();
+    _configureSettings();
     _configureEventListeners();
   }
 
@@ -150,6 +197,16 @@ var CostControl = (function() {
   function _automaticCheck(evt) {
     console.log('Evento escuchado: ' + evt.type);
 
+    // Filter calls, leaving only connected calls
+    function getConnected(calls) {
+      var connected = [];
+      calls.forEach(function cc_automaticCheck_eachCall(call) {
+        if (call.state === 'connected')
+          connected.push(call);
+      });
+      return connected;
+    }
+
     // Ignore if the device is in roaming
     if (_inRoaming()) {
       console.warn('Device in roaming, no automatic updates allowed');
@@ -160,10 +217,8 @@ var CostControl = (function() {
 
       // Periodically updates
       case 'costcontrolPeriodicallyUpdate':
-
       // After sending a message
       case 'sent':
-
         // Ignore messages to cost control numbers
         if (evt.type === 'sent') {
           var receiver = evt.message.receiver;
@@ -177,11 +232,14 @@ var CostControl = (function() {
       // After ending a call
       case 'callschanged':
         // Some call has ended
-        if (_activeCalls && _telephony.calls.length < _activeCalls)
+        // XXX: Uncomment this line when call changes are properly recorded
+//        var currentConnectedCalls = getConnected(_telephony.calls).length;
+        var currentConnectedCalls = _telephony.calls.length;
+        if (_connectedCalls && currentConnectedCalls < _connectedCalls)
           _mockup_updateBalance();
 
         // Update calls
-        _activeCalls = _telephony.calls.length;
+        _connectedCalls = currentConnectedCalls;
         break;
     }
   }
@@ -253,6 +311,14 @@ var CostControl = (function() {
 
     // XXX: Remove when removing mock ups
     var currentBalance = parseFloat(_widgetCredit.textContent.slice(2));
+    if (Math.random() < 0.4) {
+      window.mozNotification.createNotification(
+        _('Cost Control: Top Up') || 'Cost Control: Top Up',
+        _('Error parsing the confirmation message') ||
+        'Error parsing the confirmation message'
+      ).show();
+      return;
+    }
 
     var newBalance = currentBalance + parseInt(message.body);
     newBalance = Math.round(newBalance * 100)/100;
@@ -380,12 +446,11 @@ var CostControl = (function() {
     var _ = navigator.mozL10n.get;
     if (nowDateDay === dateDay)
       date = _('Today') || 'Today';
-    else if ((nowDateDay === dateDay + 1) || (nowDateDay === 7 && dateDay === 1))
+    else if ((nowDateDay === dateDay + 1) ||
+              (nowDateDay === 7 && dateDay === 1))
       date = _('Yesterday') || 'Yesterday';
 
     _widgetTime.textContent = date + ', ' + time;
-
-    //
   }
 
   return {
