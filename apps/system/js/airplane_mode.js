@@ -30,6 +30,7 @@ var AirplaneMode = {
     var restoreGeolocation = false;
 
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
+      var settingsToSet = {};
       if (value) {
         // Entering airplane mode.
 
@@ -39,72 +40,50 @@ var AirplaneMode = {
         // 'ril.radio.disabled' is true.
         if (mobileData) {
           restoreMobileData = mobileDataEnabled;
-          if (mobileDataEnabled) {
-            settings.getLock().set({
-              'ril.data.enabled': false
-            });
-          }
+          if (mobileDataEnabled)
+            settingsToSet['ril.data.enabled'] = false;
         }
 
         // Turn off Bluetooth.
         if (bluetooth) {
           restoreBluetooth = bluetooth.enabled;
-          if (bluetooth.enabled) {
-            settings.getLock().set({
-              'bluetooth.enabled': false
-            });
-          }
+          if (bluetooth.enabled)
+            settingsToSet['bluetooth.enabled'] = false;
         }
 
         // Turn off Wifi.
         if (wifiManager) {
           restoreWifi = wifiManager.enabled;
-          if (wifiManager.enabled) {
-            settings.getLock().set({
-              'wifi.enabled': false
-            });
-          }
+          if (wifiManager.enabled)
+            settingsToSet['wifi.enabled'] = false;
         }
 
         // Turn off Geolocation
         restoreGeolocation = geolocationEnabled;
-        if (geolocationEnabled) {
-          settings.getLock().set({
-            'geolocation.enabled': false
-          });
-        }
+        if (geolocationEnabled)
+          settingsToSet['geolocation.enabled'] = false;
 
       } else {
         // Leaving airplane mode.
 
         // Don't attempt to turn on mobile data if it's already on
-        if (mobileData && !mobileDataEnabled && restoreMobileData) {
-          settings.getLock().set({
-            'ril.data.enabled': true
-          });
-        }
+        if (mobileData && !mobileDataEnabled && restoreMobileData)
+          settingsToSet['ril.data.enabled'] = true;
 
         // Don't attempt to turn on Bluetooth if it's already on
-        if (bluetooth && !bluetooth.enabled && restoreBluetooth) {
-          settings.getLock().set({
-            'bluetooth.enabled': true
-          });
-        }
+        if (bluetooth && !bluetooth.enabled && restoreBluetooth)
+          settingsToSet['bluetooth.enabled'] = true;
 
         // Don't attempt to turn on Wifi if it's already on
-        if (wifiManager && !wifiManager.enabled && restoreWifi) {
-          settings.getLock().set({
-            'wifi.enabled': true
-          });
-        }
+        if (wifiManager && !wifiManager.enabled && restoreWifi)
+          settingsToSet['wifi.enabled'] = true;
 
         // Don't attempt to turn on Geolocation if it's already on
-        if (!geolocationEnabled && restoreGeolocation) {
-          settings.getLock().set({
-            'geolocation.enabled': true
-          });
-        }
+        if (!geolocationEnabled && restoreGeolocation)
+          settingsToSet['geolocation.enabled'] = true;
       }
+
+      settings.getLock().set(settingsToSet);
     });
   }
 };
