@@ -5,7 +5,7 @@
 
 var StatusBar = {
   /* Timeout for 'recently active' indicators */
-  ACTIVE_INDICATOR_TIMEOUT: 60 * 1000,
+  kActiveIndicatorTimeout: 60 * 1000,
 
   /* Whether or not status bar is actively updating or not */
   active: true,
@@ -349,20 +349,22 @@ var StatusBar = {
     },
 
     geolocation: function sb_updateGeolocation() {
-      if (this.geolocationTimer) {
-        window.clearTimeout(this.geolocationTimer);
-        this.geolocationTimer = null;
-      }
+      window.clearTimeout(this.geolocationTimer);
+
+      var icon = this.icons.geolocation;
+      icon.dataset.active = this.geolocationActive;
+
       if (this.geolocationActive) {
-        this.icons.geolocation.hidden = false;
-        this.icons.geolocation.dataset.active = true;
-      } else {
-        this.icons.geolocation.dataset.active = false;
-        this.geolocationTimer = window.setTimeout((function() {
-          this.geolocationTimer = null;
-          this.icons.geolocation.hidden = true;
-        }).bind(this), this.ACTIVE_INDICATOR_TIMEOUT);
+        // Geolocation is currently active, show the active icon.
+        icon.hidden = false;
+        return;
       }
+
+      // Geolocation is currently inactive.
+      // Show the inactive icon and hide it after kActiveIndicatorTimeout
+      this.geolocationTimer = window.setTimeout(function hideGeoIcon() {
+        icon.hidden = true;
+      }, this.kActiveIndicatorTimeout);
     },
 
     usb: function sb_updateUsb() {
