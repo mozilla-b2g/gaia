@@ -4,6 +4,7 @@
 'use strict';
 
 var CostControl = (function() {
+  var _ = navigator.mozL10n.get;
 
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
@@ -35,6 +36,7 @@ var CostControl = (function() {
   var _widget, _widgetCredit, _widgetTime;
   var _sms, _telephony;
   var _onSMSReceived = null;
+  var _isUpdating = false;
   var _state = STATE_IDLE;
   var _balanceTimeout = 0;
   var _connectedCalls = 0;
@@ -311,8 +313,12 @@ var CostControl = (function() {
 
     // XXX: Remove when removing mock ups
     var currentBalance = parseFloat(_widgetCredit.textContent.slice(2));
-    if (Math.random() < 0.4) {
-      window.mozNotification.createNotification(
+    var newBalance = currentBalance + parseInt(message.body);
+    newBalance = Math.round(newBalance * 100)/100;
+
+    // Notificate when parsing confirmation fails
+    if (newBalance === null) {
+      navigator.mozNotification.createNotification(
         _('Cost Control: Top Up') || 'Cost Control: Top Up',
         _('Error parsing the confirmation message') ||
         'Error parsing the confirmation message'
@@ -320,15 +326,16 @@ var CostControl = (function() {
       return;
     }
 
-    var newBalance = currentBalance + parseInt(message.body);
-    newBalance = Math.round(newBalance * 100)/100;
-
-    _updateUI(newBalance);
-    // TODO: Add confirmation notification
+    var output = _updateUI(newBalance);
+    navigator.mozNotification.createNotification(
+      _('Cost Control: Top Up') || 'Cost Control: Top Up',
+      (_('Your new balance is: ') || 'Your new balance is: ') + output.balance
+    ).show(); 
   }
 
   // Enable / disable waiting mode for the UI
   function _setUpdatingMode(updating) {
+    _isUpdating = updating;
     if (updating)
       _widget.classList.add('updating');
     else
@@ -356,7 +363,7 @@ var CostControl = (function() {
   }
 
   function _mockup_updateBalance() {
-    if (_state !== STATE_IDLE)
+    if (_isUpdating)
       return;
 
     // Send the request SMS
@@ -379,10 +386,8 @@ var CostControl = (function() {
   }
 
   function _mockup_topUp() {
-    if (_state !== STATE_IDLE)
+    if (_isUpdating)
       return;
-
-    var _ = navigator.mozL10n.get;
 
     function actualTopUp(code) {
       if (!code)
@@ -434,23 +439,26 @@ var CostControl = (function() {
 
     // Format credit
     var splitBalance = (rawBalance.toFixed(2)).split('.');
-    _widgetCredit.textContent = _settings.CREDIT_FORMAT
+    var formattedBalance = _settings.CREDIT_FORMAT
       .replace('&i', splitBalance[0])
       .replace('&d', splitBalance[1]);
+    _widgetCredit.textContent = formattedBalance;
 
     // Format time
     var time = rawTime.toLocaleFormat('%H:%M');
     var date = rawTime.toLocaleFormat('%a');
     var dateDay = parseInt(rawTime.toLocaleFormat('%u'));
     var nowDateDay = parseInt(now.toLocaleFormat('%u'));
-    var _ = navigator.mozL10n.get;
     if (nowDateDay === dateDay)
       date = _('Today') || 'Today';
     else if ((nowDateDay === dateDay + 1) ||
               (nowDateDay === 7 && dateDay === 1))
       date = _('Yesterday') || 'Yesterday';
 
-    _widgetTime.textContent = date + ', ' + time;
+    var formattedTime = date + ', ' + time;
+    _widgetTime.textContent = formattedTime;
+
+    return { balance: formattedBalance, time: formattedTime };
   }
 
   return {
