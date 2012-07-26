@@ -10,35 +10,59 @@ var AirplaneMode = {
     bluetooth: true
   },
 
-  init: function bt_init() {
-    var self = this;
+  init: function apm_init() {
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
+
+    var bluetooth = window.navigator.mozBluetooth;
+    var wifiManager = window.navigator.mozWifiManager;
+
+    // XXX: need a way to toggle Geolocation here
+    // https://github.com/mozilla-b2g/gaia/issues/2833
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=777594
+
+    var restoreBluetooth = false;
+    var restoreWifi = false;
+
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
-      var settings = navigator.mozSettings;
-      if (settings) {
-        if (value) {
-          // Turn on airplane mode
-          // Turn off Bluetooth and Wifi.
-          // Data will be turn off automatically since the radio is off.
-          var bluetoothReq = settings.getLock().get('bluetooth.enabled');
-          bluetoothReq.onsuccess = function bt_EnabledSuccess() {
-            self.previousSettings.bluetooth =
-                bluetoothReq.result['bluetooth.enabled'];
-            settings.getLock().set({'bluetooth.enabled': false});
-          };
-          var wifiReq = settings.getLock().get('wifi.enabled');
-          wifiReq.onsuccess = function wf_EnabledSuccess() {
-            self.previousSettings.wifi = wifiReq.result['wifi.enabled'];
-            settings.getLock().set({'wifi.enabled': false});
-          };
-        } else {
-          // Turn off airplane mode
-          // Turn on all services that was enabled before.
-          if (self.previousSettings.bluetooth) {
-            settings.getLock().set({'bluetooth.enabled': true});
+      if (value) {
+        // Entering airplane mode.
+
+        // Turn off Bluetooth.
+        if (bluetooth) {
+          restoreBluetooth = bluetooth.enabled;
+          if (bluetooth.enabled) {
+            settings.getLock().set({
+              'bluetooth.enabled': false
+            });
           }
-          if (self.previousSettings.wifi) {
-            settings.getLock().set({'wifi.enabled': true});
+        }
+
+        // Turn off Wifi.
+        if (wifiManager) {
+          restoreWifi = wifiManager.enabled;
+          if (wifiManager.enabled) {
+            settings.getLock().set({
+              'wifi.enabled': false
+            });
           }
+        }
+
+      } else {
+        // Leaving airplane mode.
+
+        // Don't attempt to turn on the Bluetooth if it's already on
+        if (bluetooth && !bluetooth.enabled && restoreBluetooth) {
+          settings.getLock().set({
+            'bluetooth.enabled': true
+          });
+        }
+
+        if (wifiManager && !wifiManager.enabled && restoreWifi) {
+          settings.getLock().set({
+            'wifi.enabled': true
+          });
         }
       }
     });
