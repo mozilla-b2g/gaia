@@ -23698,16 +23698,18 @@ FakeFolderStorage.prototype = {
  */
 
 (function (root, factory) {
-  if (typeof exports === "object")
+  if (typeof exports === 'object')
     module.exports = factory();
-  else if (typeof define === "function" && define.amd)
+  else if (typeof define === 'function' && define.amd)
     define('wbxml',[],factory);
   else
     root.WBXML = factory();
 }(this, function() {
+  
+
   const __exports__ = [
-    "ParseError", "CompileCodepages", "Element", "EndTag", "Text", "Extension",
-    "ProcessingInstruction", "Opaque", "Reader", "Writer", "EventParser" ];
+    'ParseError', 'CompileCodepages', 'Element', 'EndTag', 'Text', 'Extension',
+    'ProcessingInstruction', 'Opaque', 'Reader', 'Writer', 'EventParser' ];
 
   const Tokens = {
     SWITCH_PAGE: 0x00,
@@ -23733,14 +23735,14 @@ FakeFolderStorage.prototype = {
   };
 
   function ParseError(message) {
-      this.name = "WBXML.ParseError";
-      this.message = message || "";
+      this.name = 'WBXML.ParseError';
+      this.message = message || '';
   }
   ParseError.prototype = new Error();
   ParseError.prototype.constructor = ParseError;
 
   function StringTable(data) {
-    this.strings = data.split("\0");
+    this.strings = data.split('\0');
     this.offsets = {};
     let total = 0;
     for (let i = 0; i < this.strings.length; i++) {
@@ -23757,7 +23759,7 @@ FakeFolderStorage.prototype = {
         return this.strings[this.offsets[offset]];
       else {
         if (offset < 0)
-          throw new WBXMLParseError("offset must be >= 0");
+          throw new WBXMLParseError('offset must be >= 0');
 
         let curr = 0;
         for (let i = 0; i < this.strings.length; i++) {
@@ -23768,7 +23770,7 @@ FakeFolderStorage.prototype = {
           curr += this.strings[i].length + 1;
         }
       }
-      throw new WBXMLParseError("invalid offset");
+      throw new WBXMLParseError('invalid offset');
     },
   };
 
@@ -23791,7 +23793,7 @@ FakeFolderStorage.prototype = {
 
       if (page.Attrs) {
         for (let [attr, data] in Iterator(page.Attrs)) {
-          if (!("name" in data))
+          if (!('name' in data))
             data.name = attr;
           codepages.__attrdata__[data.value] = data;
           page.Attrs[attr] = data.value;
@@ -23801,18 +23803,18 @@ FakeFolderStorage.prototype = {
   }
 
   const mib2str = {
-      3: "US-ASCII",
-      4: "ISO-8859-1",
-      5: "ISO-8859-2",
-      6: "ISO-8859-3",
-      7: "ISO-8859-4",
-      8: "ISO-8859-5",
-      9: "ISO-8859-6",
-     10: "ISO-8859-7",
-     11: "ISO-8859-8",
-     12: "ISO-8859-9",
-     13: "ISO-8859-10",
-    106: "UTF-8",
+      3: 'US-ASCII',
+      4: 'ISO-8859-1',
+      5: 'ISO-8859-2',
+      6: 'ISO-8859-3',
+      7: 'ISO-8859-4',
+      8: 'ISO-8859-5',
+      9: 'ISO-8859-6',
+     10: 'ISO-8859-7',
+     11: 'ISO-8859-8',
+     12: 'ISO-8859-9',
+     13: 'ISO-8859-10',
+    106: 'UTF-8',
   };
 
   // TODO: Really, we should build our own map here with synonyms for the
@@ -23826,8 +23828,8 @@ FakeFolderStorage.prototype = {
     this.type = type;
     this._attrs = {};
 
-    if (typeof tag == "string") {
-      let pieces = tag.split(":");
+    if (typeof tag == 'string') {
+      let pieces = tag.split(':');
       if (pieces.length == 1)
         this.localTagName = pieces[0];
       else        [this.namespaceName, this.localTagName] = pieces;
@@ -23835,12 +23837,12 @@ FakeFolderStorage.prototype = {
     else {
       this.tag = tag;
       Object.defineProperties(this, {
-        "namespace":     { get: function() this.tag >> 8 },
-        "localTag":      { get: function() this.tag & 0xff },
-        "namespaceName": { get: function() {
+        'namespace':     { get: function() this.tag >> 8 },
+        'localTag':      { get: function() this.tag & 0xff },
+        'namespaceName': { get: function() {
           return this.ownerDocument._codepages.__nsnames__[this.namespace];
         } },
-        "localTagName":  { get: function() {
+        'localTagName':  { get: function() {
           return this.ownerDocument._codepages.__tagnames__[this.tag];
         } },
       });
@@ -23850,42 +23852,42 @@ FakeFolderStorage.prototype = {
   Element.prototype = {
     get tagName() {
       let ns = this.namespaceName;
-      ns = ns ? ns + ":" : "";
+      ns = ns ? ns + ':' : '';
       return ns + this.localTagName;
     },
 
     get attributes() {
       for (let [name, pieces] in Iterator(this._attrs)) {
-        let [namespace, localName] = name.split(":");
+        let [namespace, localName] = name.split(':');
         yield { name: name, namespace: namespace, localName: localName,
                 value: this._getAttribute(pieces) };
       }
     },
 
     getAttribute: function(attr) {
-      if (typeof attr == "number")
+      if (typeof attr == 'number')
         attr = this.ownerDocument._codepages.__attrdata__[attr].name;
       else if (!(attr in this._attrs) && this.namespace != null &&
-               attr.indexOf(":") == -1)
-        attr = this.namespaceName + ":" + attr;
+               attr.indexOf(':') == -1)
+        attr = this.namespaceName + ':' + attr;
       return this._getAttribute(this._attrs[attr]);
     },
 
     _getAttribute: function(pieces) {
-      let strValue = "";
+      let strValue = '';
       let array = [];
 
       for (let [,hunk] in Iterator(pieces)) {
         if (hunk instanceof Extension) {
           if (strValue) {
             array.push(strValue);
-            strValue = "";
+            strValue = '';
           }
           array.push(hunk);
         }
-        else if (typeof hunk == "number") {
+        else if (typeof hunk == 'number') {
           strValue += this.ownerDocument._codepages.__attrdata__[hunk].data ||
-                      "";
+                      '';
         }
         else {
           strValue += hunk;
@@ -23898,9 +23900,9 @@ FakeFolderStorage.prototype = {
     },
 
     _addAttribute: function(attr) {
-      if (typeof attr == "string") {
+      if (typeof attr == 'string') {
         if (attr in this._attrs)
-          throw new ParseError("attribute "+attr+" is repeated");
+          throw new ParseError('attribute '+attr+' is repeated');
         return this._attrs[attr] = [];
       }
       else {
@@ -23910,10 +23912,10 @@ FakeFolderStorage.prototype = {
         let localName = this.ownerDocument._codepages.__attrdata__[localAttr]
                             .name;
         let nsName = this.ownerDocument._codepages.__nsnames__[namespace];
-        let name = nsName + ":" + localName;
+        let name = nsName + ':' + localName;
 
         if (name in this._attrs)
-          throw new ParseError("attribute "+name+" is repeated");
+          throw new ParseError('attribute '+name+' is repeated');
         return this._attrs[name] = [attr];
       }
     },
@@ -23924,7 +23926,7 @@ FakeFolderStorage.prototype = {
   }
 
   EndTag.prototype = {
-    get type() "ETAG",
+    get type() 'ETAG',
   };
 
   function Text(ownerDocument, textContent) {
@@ -23933,7 +23935,7 @@ FakeFolderStorage.prototype = {
   }
 
   Text.prototype = {
-    get type() "TEXT",
+    get type() 'TEXT',
   };
 
   function Extension(ownerDocument, subtype, index, value) {
@@ -23944,7 +23946,7 @@ FakeFolderStorage.prototype = {
   }
 
   Extension.prototype = {
-    get type() "EXT",
+    get type() 'EXT',
   };
 
   function ProcessingInstruction(ownerDocument) {
@@ -23952,10 +23954,10 @@ FakeFolderStorage.prototype = {
   }
 
   ProcessingInstruction.prototype = {
-    get type() "PI",
+    get type() 'PI',
 
     get target() {
-      if (typeof this.targetID == "string")
+      if (typeof this.targetID == 'string')
         return this.targetID;
       else
         return this.ownerDocument._codepages.__attrdata__[this.targetID].name;
@@ -23963,7 +23965,7 @@ FakeFolderStorage.prototype = {
 
     _setTarget: function(target) {
       this.targetID = target;
-      if (typeof target == "string")
+      if (typeof target == 'string')
         return this._data = [];
       else
         return this._data = [target];
@@ -23981,7 +23983,7 @@ FakeFolderStorage.prototype = {
   }
 
   Opaque.prototype = {
-    get type() "OPAQUE",
+    get type() 'OPAQUE',
   };
 
   function Reader(xml, codepages) {
@@ -24016,12 +24018,12 @@ FakeFolderStorage.prototype = {
 
       // XXX: only do this once during the constructor?
       let v = this._get_uint8();
-      this.version = ((v & 0xf0) + 1).toString() + "." + (v & 0x0f).toString();
+      this.version = ((v & 0xf0) + 1).toString() + '.' + (v & 0x0f).toString();
       this.pid = this._get_mb_uint32();
-      this.charset = mib2str[this._get_mb_uint32()] || "unknown";
+      this.charset = mib2str[this._get_mb_uint32()] || 'unknown';
 
       let tbl_len = this._get_mb_uint32();
-      let s = "";
+      let s = '';
       for (let j = 0; j < tbl_len; j++)
         s += String.fromCharCode(this._get_uint8());
       this.strings = new StringTable(s);
@@ -24098,7 +24100,7 @@ FakeFolderStorage.prototype = {
         if (tok == Tokens.SWITCH_PAGE) {
           codepage = this._get_uint8();
           if (!(codepage in this._codepages.__nsnames__))
-            throw new ParseError("unknown codepage "+codepage)
+            throw new ParseError('unknown codepage '+codepage)
         }
         else if (tok == Tokens.END) {
           if (state == States.BODY && depth-- > 0) {
@@ -24116,19 +24118,19 @@ FakeFolderStorage.prototype = {
             currentAttr = null;
           }
           else {
-            throw new ParseError("unexpected END token");
+            throw new ParseError('unexpected END token');
           }
         }
         else if (tok == Tokens.ENTITY) {
           if (state == States.BODY && depth == 0)
-            throw new ParseError("unexpected ENTITY token");
+            throw new ParseError('unexpected ENTITY token');
           let e = this._get_mb_uint32();
-          appendString("&#"+e+";");
+          appendString('&#'+e+';');
         }
         else if (tok == Tokens.STR_I) {
           if (state == States.BODY && depth == 0)
-            throw new ParseError("unexpected STR_I token");
-          let s = "";
+            throw new ParseError('unexpected STR_I token');
+          let s = '';
           let c;
           while ( (c = this._get_uint8()) ) {
             s += String.fromCharCode(c);
@@ -24137,7 +24139,7 @@ FakeFolderStorage.prototype = {
         }
         else if (tok == Tokens.PI) {
           if (state != States.BODY)
-            throw new ParseError("unexpected PI token");
+            throw new ParseError('unexpected PI token');
           state = States.ATTRIBUTE_PI;
 
           if (currentNode)
@@ -24146,15 +24148,15 @@ FakeFolderStorage.prototype = {
         }
         else if (tok == Tokens.STR_T) {
           if (state == States.BODY && depth == 0)
-            throw new ParseError("unexpected STR_T token");
+            throw new ParseError('unexpected STR_T token');
           let r = this._get_mb_uint32();
           appendString(this.strings.get(r));
         }
         else if (tok == Tokens.OPAQUE) {
           if (state != States.BODY)
-            throw new ParseError("unexpected OPAQUE token");
+            throw new ParseError('unexpected OPAQUE token');
           let len = this._get_mb_uint32();
-          let s = ""; // XXX: use a typed array here?
+          let s = ''; // XXX: use a typed array here?
           for (let i = 0; i < len; i++)
             s += String.fromCharCode(this._get_uint8());
 
@@ -24171,19 +24173,19 @@ FakeFolderStorage.prototype = {
           let value;
 
           if (hi == Tokens.EXT_I_0) {
-            subtype = "string";
-            value = "";
+            subtype = 'string';
+            value = '';
             let c;
             while ( (c = this._get_uint8()) ) {
               value += String.fromCharCode(c);
             }
           }
           else if (hi == Tokens.EXT_T_0) {
-            subtype = "integer";
+            subtype = 'integer';
             value = this._get_mb_uint32();
           }
           else { // if (hi == Tokens.EXT_0)
-            subtype = "byte";
+            subtype = 'byte';
             value = null;
           }
 
@@ -24202,7 +24204,7 @@ FakeFolderStorage.prototype = {
         else if (state == States.BODY) {
           if (depth == 0) {
             if (foundRoot)
-              throw new ParseError("multiple root nodes found");
+              throw new ParseError('multiple root nodes found');
             foundRoot = true;
           }
 
@@ -24214,7 +24216,7 @@ FakeFolderStorage.prototype = {
 
           if (currentNode)
             yield currentNode;
-          currentNode = new Element(this, (tok & 0x40) ? "STAG" : "TAG", tag);
+          currentNode = new Element(this, (tok & 0x40) ? 'STAG' : 'TAG', tag);
           if (tok & 0x40)
             depth++;
 
@@ -24237,7 +24239,7 @@ FakeFolderStorage.prototype = {
             }
             if (state == States.ATTRIBUTE_PI) {
               if (currentAttr)
-                throw new ParseError("unexpected attribute in PI");
+                throw new ParseError('unexpected attribute in PI');
               currentAttr = currentNode._setTarget(attr);
             }
             else {
@@ -24252,55 +24254,55 @@ FakeFolderStorage.prototype = {
     },
 
     dump: function(indentation, header) {
-      let result = "";
+      let result = '';
 
       if (indentation == undefined)
         indentation = 2;
-      let indent = function(level) new Array(level*indentation + 1).join(" ");
+      let indent = function(level) new Array(level*indentation + 1).join(' ');
       let tagstack = [];
 
       if (header) {
-        result += "Version: " + this.version + "\n";
-        result += "Public ID: " + this.pid + "\n";
-        result += "Charset: " + this.charset + "\n";
-        result += "String table:\n  \"" +
-                  this.strings.strings.join("\"\n  \"") + "\"\n\n";
+        result += 'Version: ' + this.version + '\n';
+        result += 'Public ID: ' + this.pid + '\n';
+        result += 'Charset: ' + this.charset + '\n';
+        result += 'String table:\n  "' +
+                  this.strings.strings.join('"\n  "') + '"\n\n';
       }
 
       let newline = false;
       for (let node in this.document) {
-        if (node.type == "TAG" || node.type == "STAG") {
-          result += indent(tagstack.length) + "<" + node.tagName;
+        if (node.type == 'TAG' || node.type == 'STAG') {
+          result += indent(tagstack.length) + '<' + node.tagName;
 
           for (let [k,v] in node.attributes) {
-            result += " " + k + "=\"" + v + "\"";
+            result += ' ' + k + '="' + v + '"';
           }
 
-          if (node.type == "STAG") {
+          if (node.type == 'STAG') {
             tagstack.push(node.tagName);
-            result += ">\n";
+            result += '>\n';
           }
           else
-            result += "/>\n";
+            result += '/>\n';
         }
-        else if (node.type == "ETAG") {
+        else if (node.type == 'ETAG') {
           let tag = tagstack.pop();
-          result += indent(tagstack.length) + "</" + tag + ">\n";
+          result += indent(tagstack.length) + '</' + tag + '>\n';
         }
-        else if (node.type == "TEXT") {
-          result += indent(tagstack.length) + node.textContent + "\n";
+        else if (node.type == 'TEXT') {
+          result += indent(tagstack.length) + node.textContent + '\n';
         }
-        else if (node.type == "PI") {
-          result += indent(tagstack.length) + "<?" + node.target;
+        else if (node.type == 'PI') {
+          result += indent(tagstack.length) + '<?' + node.target;
           if (node.data)
-            result += " " + node.data;
-          result += "?>\n";
+            result += ' ' + node.data;
+          result += '?>\n';
         }
-        else if (node.type == "OPAQUE") {
-          result += indent(tagstack.length) + "<![CDATA[" + node.data + "]]>\n";
+        else if (node.type == 'OPAQUE') {
+          result += indent(tagstack.length) + '<![CDATA[' + node.data + ']]>\n';
         }
         else {
-          throw new Error("Unknown node type \"" + node.type + "\"");
+          throw new Error('Unknown node type "' + node.type + '"');
         }
       }
 
@@ -24314,14 +24316,14 @@ FakeFolderStorage.prototype = {
     this._pos = 0;
     this._codepage = 0;
 
-    let [major, minor] = version.split(".").map(function(x) parseInt(x));
+    let [major, minor] = version.split('.').map(function(x) parseInt(x));
     let v = ((major - 1) << 4) + minor;
 
     let charsetNum = charset;
-    if (typeof charset == "string") {
+    if (typeof charset == 'string') {
       charsetNum = str2mib[charset];
       if (charsetNum === undefined)
-        throw new Error("unknown charset "+charset);
+        throw new Error('unknown charset '+charset);
     }
 
     this._write(v);
@@ -24356,21 +24358,21 @@ FakeFolderStorage.prototype = {
 
   Writer.Extension = function(subtype, index, data) {
     const validTypes = {
-      "string":  { value:     Tokens.EXT_I_0,
-                   validator: function(data) typeof data == "string" },
-      "integer": { value:     Tokens.EXT_T_0,
-                   validator: function(data) typeof data == "number" },
-      "byte":    { value:     Tokens.EXT_0,
+      'string':  { value:     Tokens.EXT_I_0,
+                   validator: function(data) typeof data == 'string' },
+      'integer': { value:     Tokens.EXT_T_0,
+                   validator: function(data) typeof data == 'number' },
+      'byte':    { value:     Tokens.EXT_0,
                    validator: function(data) data == null || data == undefined },
     };
 
     let info = validTypes[subtype];
     if (!info)
-      throw new Error("Invalid WBXML Extension type");
+      throw new Error('Invalid WBXML Extension type');
     if (!info.validator(data))
-      throw new Error("Data for WBXML Extension does not match type");
+      throw new Error('Data for WBXML Extension does not match type');
     if (index !== 0 && index !== 1 && index !== 2)
-      throw new Error("Invalid WBXML Extension index");
+      throw new Error('Invalid WBXML Extension index');
 
     this.subtype = info.value;
     this.index = index;
@@ -24426,7 +24428,7 @@ FakeFolderStorage.prototype = {
 
     _writeTag: function(tag, stag, attrs) {
       if (tag === undefined)
-        throw new Error("unknown tag");
+        throw new Error('unknown tag');
 
       let flags = 0x00;
       if (stag)
@@ -24452,7 +24454,7 @@ FakeFolderStorage.prototype = {
 
     _writeAttr: function(attr) {
       if (!(attr instanceof Writer.Attribute))
-        throw new Error("Expected an Attribute object");
+        throw new Error('Expected an Attribute object');
 
       if (attr.name instanceof Writer.StringTableRef) {
         this._write(Tokens.LITERAL);
@@ -24488,10 +24490,10 @@ FakeFolderStorage.prototype = {
           this._write_mb_uint32(value.data);
         }
       }
-      else if (typeof value == "number") {
+      else if (typeof value == 'number') {
         if (!inAttr)
-          throw new Error("Can't use attribute value constants outside of " +
-                          "attributes");
+          throw new Error('Can\'t use attribute value constants outside of ' +
+                          'attributes');
         this._write(value);
       }
       else if (value != null) {
@@ -24546,7 +24548,7 @@ FakeFolderStorage.prototype = {
     opaque: function(data) {
       this._write(Tokens.OPAQUE);
       this._write_mb_uint32(data.length);
-      if (typeof data == "string") {
+      if (typeof data == 'string') {
         this._write_str(data);
       }
       else {
@@ -24571,7 +24573,7 @@ FakeFolderStorage.prototype = {
 
     _pathMatches: function(a, b) {
       return a.length == b.length && a.every(function(val, i) {
-        if (b[i] == "*")
+        if (b[i] == '*')
           return true;
         else if (Array.isArray(b[i])) {
           return b[i].indexOf(val) != -1;
@@ -24587,7 +24589,7 @@ FakeFolderStorage.prototype = {
       let recording = 0;
 
       for (let node in reader.document) {
-        if (node.type == "TAG") {
+        if (node.type == 'TAG') {
           fullPath.push(node.tag);
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
@@ -24598,7 +24600,7 @@ FakeFolderStorage.prototype = {
 
           fullPath.pop();
         }
-        else if (node.type == "STAG") {
+        else if (node.type == 'STAG') {
           fullPath.push(node.tag);
 
           for (let [,listener] in Iterator(this.listeners)) {
@@ -24607,7 +24609,7 @@ FakeFolderStorage.prototype = {
             }
           }
         }
-        else if (node.type == "ETAG") {
+        else if (node.type == 'ETAG') {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               recording--;
@@ -24619,14 +24621,14 @@ FakeFolderStorage.prototype = {
         }
 
         if (recording) {
-          if (node.type == "STAG") {
-            node.type = "TAG";
+          if (node.type == 'STAG') {
+            node.type = 'TAG';
             node.children = [];
             if (recPath.length)
               recPath[recPath.length-1].children.push(node);
             recPath.push(node);
           }
-          else if (node.type == "ETAG") {
+          else if (node.type == 'ETAG') {
             recPath.pop();
           }
           else {
@@ -24660,13 +24662,15 @@ FakeFolderStorage.prototype = {
  */
 
 (function (root, factory) {
-  if (typeof exports === "object")
-    module.exports = factory(require("wbxml"));
-  else if (typeof define === "function" && define.amd)
-    define('activesync/codepages',["wbxml"], factory);
+  if (typeof exports === 'object')
+    module.exports = factory(require('wbxml'));
+  else if (typeof define === 'function' && define.amd)
+    define('activesync/codepages',['wbxml'], factory);
   else
     root.ActiveSyncCodepages = factory(WBXML);
 }(this, function(WBXML) {
+  
+
   let codepages = {
     AirSync: {
       Tags: {
@@ -25345,20 +25349,22 @@ FakeFolderStorage.prototype = {
  */
 
 (function (root, factory) {
-  if (typeof exports === "object")
-    module.exports = factory(require("wbxml"), require("activesync/codepages"));
-  else if (typeof define === "function" && define.amd)
-    define('activesync/protocol',["wbxml", "activesync/codepages"], factory);
+  if (typeof exports === 'object')
+    module.exports = factory(require('wbxml'), require('activesync/codepages'));
+  else if (typeof define === 'function' && define.amd)
+    define('activesync/protocol',['wbxml', 'activesync/codepages'], factory);
   else
     root.ActiveSyncProtocol = factory(WBXML, ActiveSyncCodepages);
 }(this, function(WBXML, ASCP) {
-  const __exports__ = ["Connection"];
+  
+
+  const __exports__ = ['Connection'];
 
   function nsResolver(prefix) {
-    const baseUrl = "http://schemas.microsoft.com/exchange/autodiscover/";
+    const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
     const ns = {
-      "ad": baseUrl + "responseschema/2006",
-      "ms": baseUrl + "mobilesync/responseschema/2006",
+      'ad': baseUrl + 'responseschema/2006',
+      'ms': baseUrl + 'mobilesync/responseschema/2006',
     };
     return ns[prefix] || null;
   }
@@ -25371,7 +25377,7 @@ FakeFolderStorage.prototype = {
 
   Connection.prototype = {
     _getAuth: function() {
-      return "Basic " + btoa(this._email + ":" + this._password);
+      return 'Basic ' + btoa(this._email + ':' + this._password);
     },
 
     autodiscover: function(aCallback) {
@@ -25381,53 +25387,53 @@ FakeFolderStorage.prototype = {
       let conn = this;
 
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open("POST", "https://m.hotmail.com/autodiscover/autodiscover.xml",
+      xhr.open('POST', 'https://m.hotmail.com/autodiscover/autodiscover.xml',
                true);
-      xhr.setRequestHeader("Content-Type", "text/xml");
-      xhr.setRequestHeader("Authorization", this._getAuth());
+      xhr.setRequestHeader('Content-Type', 'text/xml');
+      xhr.setRequestHeader('Authorization', this._getAuth());
 
       xhr.onload = function() {
-        if (typeof logXhr == "function") // TODO: remove this debug code
+        if (typeof logXhr == 'function') // TODO: remove this debug code
           logXhr(xhr);
 
-        let doc = new DOMParser().parseFromString(xhr.responseText, "text/xml");
+        let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
         let getString = function(xpath, rel) {
           return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
                               null).stringValue;
         };
 
         let error = doc.evaluate(
-          "/ad:Autodiscover/ms:Response/ms:Error", doc, nsResolver,
+          '/ad:Autodiscover/ms:Response/ms:Error', doc, nsResolver,
           XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
         if (error) {
           aCallback({
-            "error": {
-              "message": getString("ms:Message/text()", error),
+            'error': {
+              'message': getString('ms:Message/text()', error),
             }
           });
         }
         else {
           let user = doc.evaluate(
-            "/ad:Autodiscover/ms:Response/ms:User", doc, nsResolver,
+            '/ad:Autodiscover/ms:Response/ms:User', doc, nsResolver,
             XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
           let server = doc.evaluate(
-            "/ad:Autodiscover/ms:Response/ms:Action/ms:Settings/ms:Server", doc,
+            '/ad:Autodiscover/ms:Response/ms:Action/ms:Settings/ms:Server', doc,
             nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
             .singleNodeValue;
 
           let result = {
-            "user": {
-              "name":  getString("ms:DisplayName/text()",  user),
-              "email": getString("ms:EMailAddress/text()", user),
+            'user': {
+              'name':  getString('ms:DisplayName/text()',  user),
+              'email': getString('ms:EMailAddress/text()', user),
             },
-            "server": {
-              "type": getString("ms:Type/text()", server),
-              "url":  getString("ms:Url/text()",  server),
-              "name": getString("ms:Name/text()", server),
+            'server': {
+              'type': getString('ms:Type/text()', server),
+              'url':  getString('ms:Url/text()',  server),
+              'name': getString('ms:Name/text()', server),
             }
           };
 
-          conn.baseURL = result.server.url + "/Microsoft-Server-ActiveSync";
+          conn.baseURL = result.server.url + '/Microsoft-Server-ActiveSync';
           conn.options(conn.baseURL, function(aSubResult) {
             conn.connected = true;
             result.options = aSubResult;
@@ -25453,14 +25459,14 @@ FakeFolderStorage.prototype = {
 
     options: function(aURL, aCallback) {
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open("OPTIONS", aURL, true);
+      xhr.open('OPTIONS', aURL, true);
       xhr.onload = function() {
-        if (typeof logXhr == "function") // TODO: remove this debug code
+        if (typeof logXhr == 'function') // TODO: remove this debug code
           logXhr(xhr);
 
         let result = {
-          "versions": xhr.getResponseHeader("MS-ASProtocolVersions").split(","),
-          "commands": xhr.getResponseHeader("MS-ASProtocolCommands").split(","),
+          'versions': xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
+          'commands': xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
         };
         aCallback(result);
       };
@@ -25479,27 +25485,27 @@ FakeFolderStorage.prototype = {
       let r = new WBXML.Reader(aXml, ASCP);
       let command = r.document.next().localTagName;
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open("POST", this.baseURL + "?Cmd=" + command + "&User=" +
-               this._email + "&DeviceId=v140Device&DeviceType=SmartPhone",
+      xhr.open('POST', this.baseURL + '?Cmd=' + command + '&User=' +
+               this._email + '&DeviceId=v140Device&DeviceType=SmartPhone',
                true);
-      xhr.setRequestHeader("MS-ASProtocolVersion", "14.0");
-      xhr.setRequestHeader("Content-Type", "application/vnd.ms-sync.wbxml");
-      xhr.setRequestHeader("User-Agent", "B2G");
-      xhr.setRequestHeader("Authorization", this._getAuth());
+      xhr.setRequestHeader('MS-ASProtocolVersion', '14.0');
+      xhr.setRequestHeader('Content-Type', 'application/vnd.ms-sync.wbxml');
+      xhr.setRequestHeader('User-Agent', 'B2G');
+      xhr.setRequestHeader('Authorization', this._getAuth());
 
       let conn = this;
       xhr.onload = function() {
-        if (typeof logXhr == "function") // TODO: remove this debug code
+        if (typeof logXhr == 'function') // TODO: remove this debug code
           logXhr(xhr);
 
         if (xhr.status == 451) {
-          conn.baseURL = xhr.getResponseHeader("X-MS-Location");
+          conn.baseURL = xhr.getResponseHeader('X-MS-Location');
           conn.doCommand(aXml, aCallback);
           return;
         }
         if (xhr.status != 200) {
-          if (typeof print == "function") // TODO: remove this debug code
-            print("Error!\n");
+          if (typeof print == 'function') // TODO: remove this debug code
+            print('Error!\n');
           return;
         }
 
@@ -25508,7 +25514,7 @@ FakeFolderStorage.prototype = {
         }
         else {
           let r = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
-          if (typeof log == "function") { // TODO: remove this debug code
+          if (typeof log == 'function') { // TODO: remove this debug code
             log(r.dump());
             r.rewind();
           }
@@ -25517,7 +25523,7 @@ FakeFolderStorage.prototype = {
         }
       };
 
-      xhr.responseType = "arraybuffer";
+      xhr.responseType = 'arraybuffer';
       xhr.send(aXml.buffer);
     },
   };
@@ -25542,6 +25548,7 @@ define('rdimap/imapclient/asfolder',
     exports
   ) {
 
+
 function ActiveSyncFolderStorage(account, serverId) {
   this.account = account;
   this.serverId = serverId;
@@ -25554,11 +25561,11 @@ ActiveSyncFolderStorage.prototype = {
     var as = $ascp.AirSync.Tags;
     var em = $ascp.Email.Tags;
 
-    var w = new $wbxml.Writer("1.3", 1, "UTF-8");
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection)
-           .tag(as.SyncKey, "0")
+           .tag(as.SyncKey, '0')
            .tag(as.CollectionId, serverId)
          .etag()
        .etag()
@@ -25573,7 +25580,7 @@ ActiveSyncFolderStorage.prototype = {
       });
       e.run(aResponse);
 
-      var w = new $wbxml.Writer("1.3", 1, "UTF-8");
+      var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
       w.stag(as.Sync)
          .stag(as.Collections)
            .stag(as.Collection)
@@ -25612,8 +25619,8 @@ ActiveSyncFolderStorage.prototype = {
             replyTo: null,
             attachments: null,
             references: null,
-            bodyRep: [0x1, "This is my message body. There are many like it, " +
-                      "but this one is mine."],
+            bodyRep: [0x1, 'This is just some filler text. Nothing to see ' +
+                      'here.'],
           };
 
           for (var i = 0; i < node.children.length; i++) {
@@ -25628,7 +25635,7 @@ ActiveSyncFolderStorage.prototype = {
               var addrs = childText.split(/, /).map(function(x) {
                 var m = x.match(/"(.+?)" <(.+)>/);
                 return m ? { name: m[1], address: m[2] } :
-                           { name: "", address: x };
+                           { name: '', address: x };
               });
               if (child.tag == em.From)
                 header.author = addrs[0];
@@ -25638,7 +25645,7 @@ ActiveSyncFolderStorage.prototype = {
             else if (child.tag == em.DateReceived)
               header.date = new Date(childText).valueOf();
             else if (child.tag == em.Read) {
-              if (childText == "1")
+              if (childText == '1')
                 header.flags.push('\\Seen');
             }
           }
@@ -25692,6 +25699,8 @@ define('rdimap/imapclient/activesync',
     $imaputil,
     exports
   ) {
+
+
 const bsearchForInsert = $imaputil.bsearchForInsert;
 
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
@@ -25736,7 +25745,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   // TODO: we should probably be smarter about sorting.
   this.folders.sort(function(a, b) { return a.path.localeCompare(b.path); });
 
-  if (this.meta.syncKey != "0") {
+  if (this.meta.syncKey != '0') {
     // TODO: this is a really hacky way of syncing folders after the first
     // time.
     var account = this;
@@ -25814,7 +25823,7 @@ ActiveSyncAccount.prototype = {
     var account = this;
 
     var fh = $ascp.FolderHierarchy.Tags;
-    var w = new $wbxml.Writer("1.3", 1, "UTF-8");
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderSync)
        .tag(fh.SyncKey, account.meta.syncKey)
      .etag();
@@ -25848,18 +25857,19 @@ ActiveSyncAccount.prototype = {
     });
   },
 
-  _addedFolder: function as__addFolder(serverId, displayName, typeNum) {
-    const types = {
-       1: "normal", // User-created generic folder
-       2: "inbox",
-       3: "drafts",
-       4: "trash",
-       5: "sent",
-       6: "normal", // Outbox, actually
-      12: "normal", // User-created mail folder
-    };
+  // Map folder type numbers from ActiveSync to Gaia's types
+  _folderTypes: {
+     1: 'normal', // User-created generic folder
+     2: 'inbox',
+     3: 'drafts',
+     4: 'trash',
+     5: 'sent',
+     6: 'normal', // Outbox, actually
+    12: 'normal', // User-created mail folder
+  },
 
-    if (!(typeNum in types))
+  _addedFolder: function as__addFolder(serverId, displayName, typeNum) {
+    if (!(typeNum in this._folderTypes))
       return; // Not a folder type we care about.
 
     var folderId = this.id + '/' + serverId;
@@ -25868,8 +25878,8 @@ ActiveSyncAccount.prototype = {
         id: folderId,
         name: displayName,
         path: displayName,
-        type: types[typeNum],
-        delim: "/",
+        type: this._folderTypes[typeNum],
+        delim: '/',
         depth: 0,
       },
       $impl: {
@@ -25917,9 +25927,9 @@ ActiveSyncAccount.prototype = {
     composedMessage._composeMessage();
 
     var cm = $ascp.ComposeMail.Tags;
-    var w = new $wbxml.Writer("1.3", 1, "UTF-8");
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(cm.SendMail)
-       .tag(cm.ClientId, Date.now().toString()+"@mozgaia")
+       .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
        .tag(cm.SaveInSentItems)
        .stag(cm.Mime)
          .opaque(composedMessage._outputBuffer)
@@ -25930,8 +25940,8 @@ ActiveSyncAccount.prototype = {
       if (aResponse === null)
         callback(null);
       else {
-        dump("Error sending message. XML dump follows:\n" + aResponse.dump() +
-             "\n");
+        dump('Error sending message. XML dump follows:\n' + aResponse.dump() +
+             '\n');
       }
     });
   },
