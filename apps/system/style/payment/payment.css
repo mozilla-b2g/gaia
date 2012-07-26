@@ -81,3 +81,12 @@ header .buttonclose:hover {
   margin: 0;
   padding: 0;
 }
+
+#providers .mockpayprovider {
+  background-image: url("../../resources/images/payment/mockprovider.jpg");
+  background-repeat: no-repeat;
+  width: 229px;
+  height: 97px;
+  margin: 0;
+  padding: 0;
+}
