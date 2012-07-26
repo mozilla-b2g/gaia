@@ -59,7 +59,6 @@ var Browser = {
     this.frames = document.getElementById('frames');
     this.tabsList = document.getElementById('tabs-list');
     this.mainScreen = document.getElementById('main-screen');
-    this.tabCover = document.getElementById('tab-cover');
     this.settingsButton = document.getElementById('settings-button');
     this.settingsDoneButton = document.getElementById('settings-done-button');
     this.aboutFirefoxButton = document.getElementById('about-firefox-button');
@@ -906,7 +905,6 @@ var Browser = {
     // We may have picked a currently loading background tab
     // that was positioned off screen
     this.setUrlBar(this.currentTab.title);
-    this.tabCover.setAttribute('src', this.currentTab.screenshot);
 
     this.updateSecurityIcon();
     this.refreshButtons();
@@ -928,28 +926,18 @@ var Browser = {
     this.tabsBadge.innerHTML = '';
     this.inTransition = false;
     this.switchScreen(this.AWESOME_SCREEN);
-    this.tabCover.style.display = 'none';
     this.showTopSitesTab();
   },
 
   showPageScreen: function browser_showPageScreen() {
-    var hideCover = (function browser_hideCover() {
-      this.tabCover.removeAttribute('src');
-      this.tabCover.style.display = 'none';
-    }).bind(this);
-
     if (this.currentScreen === this.TABS_SCREEN) {
       var switchLive = (function browser_switchLive() {
         this.mainScreen.removeEventListener('transitionend', switchLive, true);
         this.setTabVisibility(this.currentTab, true);
-        // Give the page time to render to avoid a flash when switching
-        // TODO: remove
-        setTimeout(hideCover, 250);
       }).bind(this);
       this.mainScreen.addEventListener('transitionend', switchLive, true);
     } else {
       this.setTabVisibility(this.currentTab, true);
-      hideCover();
     }
 
     if (this.currentTab.loading) {
@@ -969,11 +957,11 @@ var Browser = {
 
   showTabScreen: function browser_showTabScreen() {
 
+    // TODO: We shouldnt hide the current tab when switching to the tab
+    // screen, it should be visible in the gutter, but that currently triggers
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=777781
     this.hideCurrentTab();
     this.tabsBadge.innerHTML = '';
-
-    this.tabCover.setAttribute('src', this.currentTab.screenshot);
-    this.tabCover.style.display = 'block';
 
     var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
