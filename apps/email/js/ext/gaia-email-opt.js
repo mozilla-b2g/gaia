@@ -3059,7 +3059,8 @@ BufferPrototype.write  = function(string, offset, length, encoding) {
  * Do the required global namespace clobbering for our node binding friends.
  **/
 
-define('rdimap/imapclient/shim-sham',[
+define('rdimap/imapclient/shim-sham',
+  [
     'buffer',
   ],
   function(
@@ -4488,7 +4489,8 @@ define('microtime',['require'],function (require) {
  *  become obvious real quick.
  **/
 
-define('rdcommon/extransform',[
+define('rdcommon/extransform',
+  [
     'require',
     'exports'
   ],
@@ -4865,7 +4867,8 @@ console.warn("extransform:", e, "\n", e.stack);
  *        its own channel, and its data should be strongly biased to aggregates.
  **/
 
-define('rdcommon/log',[
+define('rdcommon/log',
+  [
     'q',
     'microtime',
     './extransform',
@@ -6435,7 +6438,8 @@ var STATEDELTA = exports.STATEDELTA = 'statedelta';
  *  be much longer than our log transmission interval.
  **/
 
-define('rdcommon/logreaper',[
+define('rdcommon/logreaper',
+  [
     './log',
     'microtime',
     'exports'
@@ -6559,7 +6563,8 @@ LogReaper.prototype = {
  *
  **/
 
-define('rdimap/imapclient/mailapi',[
+define('rdimap/imapclient/mailapi',
+  [
     'exports'
   ],
   function(
@@ -11339,7 +11344,8 @@ define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
  *
  **/
 
-define('rdimap/imapclient/quotechew',[
+define('rdimap/imapclient/quotechew',
+  [
     'exports'
   ],
   function(
@@ -11511,7 +11517,8 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
     for (var i = 1; i < line.length; i++) {
       var c = line.charCodeAt(i);
       if (c === CHARCODE_GT) {
-        lastStartOffset = ++count;
+        count++;
+        lastStartOffset++;
         spaceOk = true;
       }
       else if (c === CHARCODE_SPACE) {
@@ -12182,7 +12189,8 @@ exports.generateForwardMessage = function generateForwardMessage(
  *
  **/
 
-define('rdimap/imapclient/util',[
+define('rdimap/imapclient/util',
+  [
     'exports'
   ],
   function(
@@ -12273,7 +12281,8 @@ exports.partitionMessagesByFolderId =
  *
  **/
 
-define('rdimap/imapclient/mailbridge',[
+define('rdimap/imapclient/mailbridge',
+  [
     'rdcommon/log',
     'mailcomposer',
     './quotechew',
@@ -12990,7 +12999,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
  * The math logic is by me (asuth); hopefully it's not too embarassing.
  **/
 
-define('rdimap/imapclient/a64',[
+define('rdimap/imapclient/a64',
+  [
     'exports'
   ],
   function(
@@ -13173,7 +13183,8 @@ exports.decodeUI64 = function d(es) {
  * we probably have the edge in comprehensibility for now.
  **/
 
-define('rdimap/imapclient/allback',[
+define('rdimap/imapclient/allback',
+  [
     'exports'
   ],
   function(
@@ -13231,7 +13242,8 @@ exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
  *
  **/
 
-define('rdimap/imapclient/imapdb',[
+define('rdimap/imapclient/imapdb',
+  [
     'exports'
   ],
   function(
@@ -17425,7 +17437,8 @@ var LOGFAB = exports.LOGFAB = $log.register(module, {
  * Thunderbird autoconfiguration logic.
  **/
 
-define('rdimap/imapclient/imapprobe',[
+define('rdimap/imapclient/imapprobe',
+  [
     'imap',
     'exports'
   ],
@@ -17487,2367 +17500,11 @@ ImapProber.prototype = {
 }); // end define
 ;
 /**
- * Abstractions for dealing with the various mutation operations.
- *
- * NB: Moves discussion is speculative at this point; we are just thinking
- * things through for architectural implications.
- *
- * == Speculative Operations ==
- *
- * We want our UI to update as soon after requesting an operation as possible.
- * To this end, we have logic to locally apply queued mutation operations.
- * Because we may want to undo operations when we are offline (and have not
- * been able to talk to the server), we also need to be able to reflect these
- * changes locally independent of telling the server.
- *
- * In the case of moves/copies, we issue temporary UIDs like Thunderbird.  We
- * use negative values since IMAP servers can never use them so collisions are
- * impossible and it's a simple check.  This differs from Thunderbird's attempt
- * to guess the next UID; we don't try to do that because the chances are good
- * that our information is out-of-date and it would just make debugging more
- * confusing.
- *
- * == Data Integrity ==
- *
- * Our strategy is always to avoid data-loss, so data-destruction actions
- * must always take place after successful confirmation of persistence actions.
- * (Just keeping the data in-memory is not acceptable because we could crash,
- * etc.)
- *
- * It is also our strategy to avoid cluttering up the place as a side-effect
- * of half-done things.  For example, if we are trying to move N messages,
- * but only copy N/2 because of a timeout, we want to make sure that we
- * don't naively retry and then copy those first N/2 messages a second time.
- * This means that we track sub-steps explicitly, and that operations that we
- * have issued and may or may not have been performed by the server will be
- * checked before they are re-attempted.
- **/
-
-define('rdimap/imapclient/imapjobs',[
-    './util',
-    'exports'
-  ],
-  function(
-    $imaputil,
-    exports
-  ) {
-
-/**
- * The evidence suggests the job has not yet been performed.
- */
-const CHECKED_NOTYET = 1;
-/**
- * The operation is idempotent and atomic; no checking was performed.
- */
-const UNCHECKED_IDEMPOTENT = 2;
-/**
- * The evidence suggests that the job has already happened.
- */
-const CHECKED_HAPPENED = 3;
-/**
- * The job is no longer relevant because some other sequence of events
- * have mooted it.  For example, we can't change tags on a deleted message
- * or move a message between two folders if it's in neither folder.
- */
-const CHECKED_MOOT = 4;
-/**
- * A transient error (from the checker's perspective) made it impossible to
- * check.
- */
-const UNCHECKED_BAILED = 5;
-
-function ImapJobDriver(account) {
-  this.account = account;
-}
-exports.ImapJobDriver = ImapJobDriver;
-ImapJobDriver.prototype = {
-  /**
-   * Request access to an IMAP folder to perform a mutation on it.  This
-   * compels the ImapFolderConn in question to acquire an IMAP connection
-   * if it does not already have one.  It will also XXX EVENTUALLY provide
-   * mututal exclusion guarantees that there are no other active requests
-   * in the folder.
-   *
-   * The callback will be invoked with the folder and raw connections once
-   * they are available.  The raw connection will be actively in the folder.
-   *
-   * This will ideally be migrated to whatever mechanism we end up using for
-   * mailjobs.
-   */
-  _accessFolderForMutation: function(folderId, callback) {
-    var storage = this.account.getFolderStorageForFolderId(folderId);
-    // XXX have folder storage be in charge of this / don't violate privacy
-    storage._pendingMutationCount++;
-    if (!storage.folderConn._conn) {
-      storage.folderConn.acquireConn(callback);
-    }
-    else {
-      callback(storage.folderConn);
-    }
-  },
-
-  _doneMutatingFolder: function(folderId, folderConn) {
-    var storage = this.account.getFolderStorageForFolderId(folderId);
-    // XXX have folder storage be in charge of this / don't violate privacy
-    storage._pendingMutationCount--;
-    if (!storage._slices.length && !storage._pendingMutationCount)
-      storage.folderConn.relinquishConn();
-  },
-
-  local_do_modtags: function(op, ignoredCallback, undo) {
-    var addTags = undo ? op.removeTags : op.addTags,
-        removeTags = undo ? op.addTags : op.removeTags;
-    function modifyHeader(header) {
-      var iTag, tag, existing, modified = false;
-      if (addTags) {
-        for (iTag = 0; iTag < addTags.length; iTag++) {
-          tag = addTags[iTag];
-          // The list should be small enough that native stuff is better than
-          // JS bsearch.
-          existing = header.flags.indexOf(tag);
-          if (existing !== -1)
-            continue;
-          header.flags.push(tag);
-          header.flags.sort(); // (maintain sorted invariant)
-          modified = true;
-        }
-      }
-      if (removeTags) {
-        for (iTag = 0; iTag < removeTags.length; iTag++) {
-          tag = removeTags[iTag];
-          existing = header.flags.indexOf(tag);
-          if (existing === -1)
-            continue;
-          header.flags.splice(existing, 1);
-          modified = true;
-        }
-      }
-      return modified;
-    }
-
-    var lastFolderId = null, lastStorage;
-    for (var i = 0; i < op.messages.length; i++) {
-      var msgNamer = op.messages[i],
-          lslash = msgNamer.suid.lastIndexOf('/'),
-          // folder id's are strings!
-          folderId = msgNamer.suid.substring(0, lslash),
-          // uid's are not strings!
-          uid = parseInt(msgNamer.suid.substring(lslash + 1)),
-          storage;
-      if (folderId === lastFolderId) {
-        storage = lastStorage;
-      }
-      else {
-        storage = lastStorage =
-          this.account.getFolderStorageForFolderId(folderId);
-        lastFolderId = folderId;
-      }
-      storage.updateMessageHeader(msgNamer.date, uid, false, modifyHeader);
-    }
-
-    return null;
-  },
-
-  do_modtags: function(op, callback, undo) {
-    var partitions = $imaputil.partitionMessagesByFolderId(op.messages, true);
-    var folderConn, self = this,
-        folderId = null, messages = null,
-        iNextPartition = 0, curPartition = null, modsToGo = 0;
-
-    var addTags = undo ? op.removeTags : op.addTags,
-        removeTags = undo ? op.addTags : op.removeTags;
-
-    // Perform the 'undo' in the opposite order of the 'do' so that our progress
-    // count is always relative to the normal order.
-    if (undo)
-      partitions.reverse();
-
-    function openNextFolder() {
-      if (iNextPartition >= partitions.length) {
-        done(null);
-        return;
-      }
-
-      curPartition = partitions[iNextPartition++];
-      messages = curPartition.messages;
-      if (curPartition.folderId !== folderId) {
-        if (folderConn) {
-          self._doneMutatingFolder(folderId, folderConn);
-          folderConn = null;
-        }
-        folderId = curPartition.folderId;
-        self._accessFolderForMutation(folderId, gotFolderConn);
-      }
-    }
-    function gotFolderConn(_folderConn) {
-      folderConn = _folderConn;
-      if (addTags) {
-        modsToGo++;
-        folderConn._conn.addFlags(messages, addTags, tagsModded);
-      }
-      if (removeTags) {
-        modsToGo++;
-        folderConn._conn.delFlags(messages, removeTags, tagsModded);
-      }
-    }
-    function tagsModded(err) {
-      if (err) {
-        console.error('failure modifying tags', err);
-        done('unknown');
-        return;
-      }
-      op.progress += (undo ? -curPartition.messages.length
-                           : curPartition.messages.length);
-      if (--modsToGo === 0)
-        openNextFolder();
-    }
-    function done(errString) {
-      if (folderConn) {
-        self._doneMutatingFolder(folderId, folderConn);
-        folderConn = null;
-      }
-      callback(errString);
-    }
-    openNextFolder();
-  },
-
-  check_modtags: function() {
-    return UNCHECKED_IDEMPOTENT;
-  },
-
-  local_undo_modtags: function(op, callback) {
-    // Undoing is just a question of flipping the add and remove lists.
-    return this.local_do_modtags(op, callback, true);
-  },
-
-  undo_modtags: function(op, callback) {
-    // Undoing is just a question of flipping the add and remove lists.
-    return this.do_modtags(op, callback, true);
-  },
-
-  /**
-   * Move the message to the trash folder.  In Gmail, there is no move target,
-   * we just delete it and gmail will (by default) expunge it immediately.
-   */
-  do_delete: function() {
-    // set the deleted flag on the message
-  },
-
-  check_delete: function() {
-    // deleting on IMAP is effectively idempotent
-    return UNCHECKED_IDEMPOTENT;
-  },
-
-  undo_delete: function() {
-  },
-
-  do_move: function() {
-    // get a connection in the source folder, uid validity is asserted
-    // issue the (potentially bulk) copy
-    // wait for copy success
-    // mark the source messages deleted
-  },
-
-  check_move: function() {
-    // get a connection in the target/source folder
-    // do a search to check if the messages got copied across.
-  },
-
-  /**
-   * Move the message back to its original folder.
-   *
-   * - If the source message has not been expunged, remove the Deleted flag from
-   *   the source folder.
-   * - If the source message was expunged, copy the message back to the source
-   *   folder.
-   * - Delete the message from the target folder.
-   */
-  undo_move: function() {
-  },
-
-  do_copy: function() {
-  },
-
-  check_copy: function() {
-    // get a connection in the target folder
-    // do a search to check if the message got copied across
-  },
-
-  /**
-   * Delete the message from the target folder if it exists.
-   */
-  undo_copy: function() {
-  },
-
-  /**
-   * Append a message to a folder.
-   *
-   * XXX update
-   */
-  do_append: function(op, callback) {
-    var folderConn, self = this,
-        storage = this.account.getFolderStorageForFolderId(op.folderId),
-        folderMeta = storage.folderMeta,
-        iNextMessage = 0;
-
-    function gotFolderConn(_folderConn) {
-      if (!_folderConn) {
-        done('unknown');
-        return;
-      }
-      folderConn = _folderConn;
-      if (folderConn._conn.hasCapability('MULTIAPPEND'))
-        multiappend();
-      else
-        append();
-    }
-    function multiappend() {
-      iNextMessage = op.messages.length;
-      folderConn._conn.multiappend(op.messages, appended);
-    }
-    function append() {
-      var message = op.messages[iNextMessage++];
-      folderConn._conn.append(
-        message.messageText,
-        message, // (it will ignore messageText)
-        appended);
-    }
-    function appended(err) {
-      if (err) {
-        console.error('failure appending message', err);
-        done('unknown');
-        return;
-      }
-      if (iNextMessage < op.messages.length)
-        append();
-      else
-        done(null);
-    }
-    function done(errString) {
-      if (folderConn) {
-        self._doneMutatingFolder(op.folderId, folderConn);
-        folderConn = null;
-      }
-      callback(errString);
-    }
-
-    this._accessFolderForMutation(op.folderId, gotFolderConn);
-  },
-
-  /**
-   * Check if the message ended up in the folder.
-   */
-  check_append: function() {
-  },
-
-  undo_append: function() {
-  },
-};
-
-function HighLevelJobDriver() {
-}
-HighLevelJobDriver.prototype = {
-  /**
-   * Perform a cross-folder move:
-   *
-   * - Fetch the entirety of a message from the source location.
-   * - Append the entirety of the message to the target location.
-   * - Delete the message from the source location.
-   */
-  do_xmove: function() {
-  },
-
-  check_xmove: function() {
-
-  },
-
-  /**
-   * Undo a cross-folder move.  Same idea as for normal undo_move; undelete
-   * if possible, re-copy if not.  Delete the target once we're confident
-   * the message made it back into the folder.
-   */
-  undo_xmove: function() {
-  },
-
-  /**
-   * Perform a cross-folder copy:
-   * - Fetch the entirety of a message from the source location.
-   * - Append the message to the target location.
-   */
-  do_xcopy: function() {
-  },
-
-  check_xcopy: function() {
-  },
-
-  /**
-   * Just delete the message from the target location.
-   */
-  undo_xcopy: function() {
-  },
-};
-
-}); // end define
-;
-/**
- * Make our TCPSocket implementation look like node's net library.
- *
- * We make sure to support:
- *
- * Attributes:
- * - encrypted (false, this is not the tls byproduct)
- * - destroyed
- *
- * Methods:
- * - setKeepAlive(Boolean)
- * - write(Buffer)
- * - end
- *
- * Events:
- * - "connect"
- * - "close"
- * - "end"
- * - "data"
- * - "error"
- **/
-define('net',['require','exports','module','util','events'],function(require, exports, module) {
-
-var util = require('util'),
-    EventEmitter = require('events').EventEmitter;
-
-function NetSocket(port, host, crypto) {
-  this._host = host;
-  this._port = port;
-  this._actualSock = MozTCPSocket.open(
-    host, port, { useSSL: crypto, binaryType: 'arraybuffer' });
-  EventEmitter.call(this);
-
-  this._actualSock.onopen = this._onconnect.bind(this);
-  this._actualSock.onerror = this._onerror.bind(this);
-  this._actualSock.ondata = this._ondata.bind(this);
-  this._actualSock.onclose = this._onclose.bind(this);
-}
-exports.NetSocket = NetSocket;
-util.inherits(NetSocket, EventEmitter);
-NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
-};
-NetSocket.prototype.write = function(buffer) {
-  this._actualSock.send(buffer);
-};
-NetSocket.prototype.end = function() {
-  this._actualSock.close();
-};
-
-NetSocket.prototype._onconnect = function(event) {
-  this.emit('connect', event.data);
-};
-NetSocket.prototype._onerror = function(event) {
-  this.emit('error', event.data);
-};
-NetSocket.prototype._ondata = function(event) {
-  var buffer = Buffer(event.data);
-  this.emit('data', buffer);
-};
-NetSocket.prototype._onclose = function(event) {
-  this.emit('close', event.data);
-  this.emit('end', event.data);
-};
-
-
-exports.connect = function(port, host) {
-  return new NetSocket(port, host, false);
-};
-
-}); // end define
-;
-/**
  *
  **/
 
-define('tls',[
-    'net',
-    'exports'
-  ],
-  function(
-    $net,
-    exports
-  ) {
-
-exports.connect = function(port, host, wuh, onconnect) {
-  var socky = new $net.NetSocket(port, host, true);
-  socky.on('connect', onconnect);
-  return socky;
-};
-
-}); // end define
-;
-/**
- *
- **/
-
-define('os',[
-    'exports'
-  ],
-  function(
-    exports
-  ) {
-
-exports.hostname = function() {
-  return 'localhost';
-};
-exports.getHostname = exports.hostname;
-
-}); // end define
-;
-define('simplesmtp/lib/starttls',['require','exports','module','crypto','tls'],function (require, exports, module) {
-// SOURCE: https://gist.github.com/848444
-
-// Target API:
-//
-//  var s = require('net').createStream(25, 'smtp.example.com');
-//  s.on('connect', function() {
-//   require('starttls')(s, options, function() {
-//      if (!s.authorized) {
-//        s.destroy();
-//        return;
-//      }
-//
-//      s.end("hello world\n");
-//    });
-//  });
-//
-//
-
-/**
- * @namespace Client STARTTLS module
- * @name starttls
- */
-module.exports.starttls = starttls;
-
-/**
- * <p>Upgrades a socket to a secure TLS connection</p>
- * 
- * @memberOf starttls
- * @param {Object} socket Plaintext socket to be upgraded
- * @param {Function} callback Callback function to be run after upgrade
- */
-function starttls(socket, callback) {
-    var sslcontext, pair, cleartext;
-    
-    socket.removeAllListeners("data");
-    sslcontext = require('crypto').createCredentials();
-    pair = require('tls').createSecurePair(sslcontext, false);
-    cleartext = pipe(pair, socket);
-
-    pair.on('secure', function() {
-        var verifyError = (pair._ssl || pair.ssl).verifyError();
-
-        if (verifyError) {
-            cleartext.authorized = false;
-            cleartext.authorizationError = verifyError;
-        } else {
-            cleartext.authorized = true;
-        }
-
-        callback(cleartext);
-    });
-
-    cleartext._controlReleased = true;
-    return pair;
-}
-
-function forwardEvents(events, emitterSource, emitterDestination) {
-    var map = [], name, handler;
-    
-    for(var i = 0, len = events.length; i < len; i++) {
-        name = events[i];
-
-        handler = forwardEvent.bind(emitterDestination, name);
-        
-        map.push(name);
-        emitterSource.on(name, handler);
-    }
-    
-    return map;
-}
-
-function forwardEvent() {
-    this.emit.apply(this, arguments);
-}
-
-function removeEvents(map, emitterSource) {
-    for(var i = 0, len = map.length; i < len; i++){
-        emitterSource.removeAllListeners(map[i]);
-    }
-}
-
-function pipe(pair, socket) {
-    pair.encrypted.pipe(socket);
-    socket.pipe(pair.encrypted);
-
-    pair.fd = socket.fd;
-    
-    var cleartext = pair.cleartext;
-  
-    cleartext.socket = socket;
-    cleartext.encrypted = pair.encrypted;
-    cleartext.authorized = false;
-
-    function onerror(e) {
-        if (cleartext._controlReleased) {
-            cleartext.emit('error', e);
-        }
-    }
-
-    var map = forwardEvents(["timeout", "end", "close", "drain", "error"], socket, cleartext);
-  
-    function onclose() {
-        socket.removeListener('error', onerror);
-        socket.removeListener('close', onclose);
-        removeEvents(map,socket);
-    }
-
-    socket.on('error', onerror);
-    socket.on('close', onclose);
-
-    return cleartext;
-}
-});
-define('simplesmtp/lib/client',['require','exports','module','stream','util','net','tls','os','./starttls'],function (require, exports, module) {
-// TODO:
-// * Lisada timeout serveri ühenduse jaoks
-
-var Stream = require('stream').Stream,
-    utillib = require('util'),
-    net = require('net'),
-    tls = require('tls'),
-    oslib = require('os'),
-    starttls = require('./starttls').starttls;
-
-// monkey patch net and tls to support nodejs 0.4
-if(!net.connect && net.createConnection){
-    net.connect = net.createConnection;
-}
-
-if(!tls.connect && tls.createConnection){
-    tls.connect = tls.createConnection;
-}
-
-// expose to the world
-module.exports = function(port, host, options){
-    var connection = new SMTPClient(port, host, options);
-    process.nextTick(connection.connect.bind(connection));
-    return connection;
-};
-
-/**
- * <p>Generates a SMTP connection object</p>
- *
- * <p>Optional options object takes the following possible properties:</p>
- * <ul>
- *     <li><b>secureConnection</b> - use SSL</li>
- *     <li><b>name</b> - the name of the client server</li>
- *     <li><b>auth</b> - authentication object <code>{user:"...", pass:"..."}</code>
- *     <li><b>ignoreTLS</b> - ignore server support for STARTTLS</li>
- *     <li><b>debug</b> - output client and server messages to console</li>
- *     <li><b>instanceId</b> - unique instance id for debugging</li>
- * </ul>
- *
- * @constructor
- * @namespace SMTP Client module
- * @param {Number} [port=25] Port number to connect to
- * @param {String} [host="localhost"] Hostname to connect to
- * @param {Object} [options] Option properties
- */
-function SMTPClient(port, host, options){
-    Stream.call(this);
-    this.writable = true;
-    this.readable = true;
-
-    this.options = options || {};
-
-    this.port = port || (this.options.secureConnection ? 465 : 25);
-    this.host = host || "localhost";
-
-    this.options.secureConnection = !!this.options.secureConnection;
-    this.options.auth = this.options.auth || false;
-    this.options.maxConnections = this.options.maxConnections || 5;
-
-    if(!this.options.name){
-        // defaul hostname is machine hostname or [IP]
-        var defaultHostname = (oslib.hostname && oslib.hostname()) ||
-                              (oslib.getHostname && oslib.getHostname()) ||
-                              "";
-        if(defaultHostname.indexOf('.')<0){
-            defaultHostname = "[127.0.0.1]";
-        }
-        if(defaultHostname.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)){
-            defaultHostname = "["+defaultHostname+"]";
-        }
-
-        this.options.name = defaultHostname;
-    }
-
-    this._init();
-}
-utillib.inherits(SMTPClient, Stream);
-
-/**
- * <p>Initializes instance variables</p>
- */
-SMTPClient.prototype._init = function(){
-    /**
-     * Defines if the current connection is secure or not. If not,
-     * STARTTLS can be used if available
-     * @private
-     */
-    this._secureMode = false;
-
-    /**
-     * Ignore incoming data on TLS negotiation
-     * @private
-     */
-    this._ignoreData = false;
-
-    /**
-     * If set to true, then this object is no longer active
-     * @private
-     */
-    this.destroyed = false;
-
-    /**
-     * The socket connecting to the server
-     * @publick
-     */
-    this.socket = false;
-
-    /**
-     * Lists supported auth mechanisms
-     * @private
-     */
-    this._supportedAuth = [];
-
-    /**
-     * Currently in data transfer state
-     * @private
-     */
-    this._dataMode = false;
-
-    /**
-     * Keep track if the client sends a leading \r\n in data mode
-     * @private
-     */
-    this._lastDataBytes = new Buffer(2);
-
-    /**
-     * Function to run if a data chunk comes from the server
-     * @private
-     */
-    this._currentAction = false;
-
-    if(this.options.ignoreTLS || this.options.secureConnection){
-        this._secureMode = true;
-    }
-};
-
-/**
- * <p>Creates a connection to a SMTP server and sets up connection
- * listener</p>
- */
-SMTPClient.prototype.connect = function(){
-
-    if(this.options.secureConnection){
-        this.socket = tls.connect(this.port, this.host, {}, this._onConnect.bind(this));
-    }else{
-        this.socket = net.connect(this.port, this.host);
-        this.socket.on("connect", this._onConnect.bind(this));
-    }
-
-    this.socket.on("error", this._onError.bind(this));
-};
-
-/**
- * <p>Upgrades the connection to TLS</p>
- *
- * @param {Function} callback Callbac function to run when the connection
- *        has been secured
- */
-SMTPClient.prototype._upgradeConnection = function(callback){
-    this._ignoreData = true;
-    starttls(this.socket, (function(socket){
-        this.socket = socket;
-        this._ignoreData = false;
-        this._secureMode = true;
-        this.socket.on("data", this._onData.bind(this));
-
-        return callback(null, true);
-    }).bind(this));
-};
-
-/**
- * <p>Connection listener that is run when the connection to
- * the server is opened</p>
- *
- * @event
- */
-SMTPClient.prototype._onConnect = function(){
-    if("setKeepAlive" in this.socket){
-        this.socket.setKeepAlive(true);
-    }else if(this.socket.encrypted && "setKeepAlive" in this.socket.encrypted){
-        this.socket.encrypted.setKeepAlive(true); // secure connection
-    }
-
-    this.socket.on("data", this._onData.bind(this));
-    this.socket.on("close", this._onClose.bind(this));
-    this.socket.on("end", this._onEnd.bind(this));
-
-    this._currentAction = this._actionGreeting;
-};
-
-/**
- * <p>Destroys the client - removes listeners etc.</p>
- */
-SMTPClient.prototype._destroy = function(){
-    if(this._destroyed)return;
-    this._destroyed = true;
-    this.emit("end");
-    this.removeAllListeners();
-};
-
-/**
- * <p>'data' listener for data coming from the server</p>
- *
- * @event
- * @param {Buffer} chunk Data chunk coming from the server
- */
-SMTPClient.prototype._onData = function(chunk){
-    if(this._ignoreData){
-        return;
-    }
-
-    var str = chunk.toString().trim();
-
-    if(this.options.debug){
-        console.log("SERVER"+(this.options.instanceId?" "+
-            this.options.instanceId:"")+":\n   "+str.replace(/\n/g,"\n   "));
-    }
-
-    if(typeof this._currentAction == "function"){
-        this._currentAction.call(this, str);
-    }
-};
-
-/**
- * <p>'error' listener for the socket</p>
- *
- * @event
- * @param {Error} err Error object
- * @param {String} type Error name
- */
-SMTPClient.prototype._onError = function(err, type, data){
-    if(type && type != "Error"){
-        err.name = type;
-    }
-    if(data){
-        err.data = data;
-    }
-    this.emit("error", err);
-    this.close();
-};
-
-/**
- * <p>'close' listener for the socket</p>
- *
- * @event
- */
-SMTPClient.prototype._onClose = function(){
-    this._destroy();
-};
-
-/**
- * <p>'end' listener for the socket</p>
- *
- * @event
- */
-SMTPClient.prototype._onEnd = function(){
-    this._destroy();
-};
-
-/**
- * <p>Passes data stream to socket if in data mode</p>
- *
- * @param {Buffer} chunk Chunk of data to be sent to the server
- */
-SMTPClient.prototype.write = function(chunk){
-    // works only in data mode
-    if(!this._dataMode){
-        // this line should never be reached but if it does, then
-        // say act like everything's normal.
-        return true;
-    }
-
-    if(typeof chunk == "string"){
-        chunk = new Buffer(chunk, "utf-8");
-    }
-
-    if(chunk.length > 2){
-        this._lastDataBytes[0] = chunk[chunk.length-2];
-        this._lastDataBytes[1] = chunk[chunk.length-1];
-    }else if(chunk.length == 1){
-        this._lastDataBytes[0] = this._lastDataBytes[1];
-        this._lastDataBytes[1] = chunk[0];
-    }
-
-    if(this.options.debug){
-        console.log("CLIENT (DATA)"+(this.options.instanceId?" "+
-            this.options.instanceId:"")+":\n   "+chunk.toString().trim().replace(/\n/g,"\n   "));
-    }
-
-    // pass the chunk to the socket
-    return this.socket.write(chunk);
-};
-
-/**
- * <p>Indicates that a data stream for the socket is ended. Works only
- * in data mode.</p>
- *
- * @param {Buffer} [chunk] Chunk of data to be sent to the server
- */
-SMTPClient.prototype.end = function(chunk){
-    // works only in data mode
-    if(!this._dataMode){
-        // this line should never be reached but if it does, then
-        // say act like everything's normal.
-        return true;
-    }
-
-    if(chunk && chunk.length){
-        this.write(chunk);
-    }
-
-    // redirect output from the server to _actionStream
-    this._currentAction = this._actionStream;
-
-    // indicate that the stream has ended by sending a single dot on its own line
-    // if the client already closed the data with \r\n no need to do it again
-    if(this._lastDataBytes[0] == 0x0D && this._lastDataBytes[1] == 0x0A){
-        this.socket.write(new Buffer(".\r\n", "utf-8"));
-    }else if(this._lastDataBytes[1] == 0x0D){
-        this.socket.write(new Buffer("\n.\r\n"));
-    }else{
-        this.socket.write(new Buffer("\r\n.\r\n"));
-    }
-
-    // end data mode
-    this._dataMode = false;
-};
-
-/**
- * <p>Send a command to the server, append \r\n</p>
- *
- * @param {String} str String to be sent to the server
- */
-SMTPClient.prototype.sendCommand = function(str){
-    if(this.options.debug){
-        console.log("CLIENT"+(this.options.instanceId?" "+
-            this.options.instanceId:"")+":\n   "+(str || "").toString().trim().replace(/\n/g,"\n   "));
-    }
-    this.socket.write(new Buffer(str+"\r\n", "utf-8"));
-};
-
-/**
- * <p>Sends QUIT</p>
- */
-SMTPClient.prototype.quit = function(){
-    this.sendCommand("QUIT");
-    this._currentAction = this.close;
-};
-
-/**
- * <p>Closes the connection to the server</p>
- */
-SMTPClient.prototype.close = function(){
-    if(this.options.debug){
-        console.log("Closing connection to the server");
-    }
-    if(this.socket && !this.socket.destroyed){
-        this.socket.end();
-    }
-    this._destroy();
-};
-
-/**
- * <p>Initiates a new message by submitting envelope data, starting with
- * <code>MAIL FROM:</code> command</p>
- *
- * @param {Object} envelope Envelope object in the form of
- *        <code>{from:"...", to:["..."]}</code>
- */
-SMTPClient.prototype.useEnvelope = function(envelope){
-    this._envelope = envelope || {};
-    this._envelope.from = this._envelope.from || ("anonymous@"+this.options.name);
-
-    // clone the recipients array for latter manipulation
-    this._envelope.rcptQueue = JSON.parse(JSON.stringify(this._envelope.to || []));
-    this._envelope.rcptFailed = [];
-
-    this._currentAction = this._actionMAIL;
-    this.sendCommand("MAIL FROM:<"+(this._envelope.from)+">");
-};
-
-/**
- * <p>If needed starts the authentication, if not emits 'idle' to
- * indicate that this client is ready to take in an outgoing mail</p>
- */
-SMTPClient.prototype._authenticateUser = function(){
-
-    if(!this.options.auth){
-        // no need to authenticate, at least no data given
-        this._currentAction = this._actionIdle;
-        this.emit("idle"); // ready to take orders
-        return;
-    }
-
-    var auth;
-
-    if(this.options.auth.XOAuthToken && this._supportedAuth.indexOf("XOAUTH")>=0){
-        auth = "XOAUTH";
-    }else{
-        // use first supported
-        auth = (this._supportedAuth[0] || "PLAIN").toUpperCase().trim();
-    }
-
-    switch(auth){
-        case "XOAUTH":
-            this._currentAction = this._actionAUTHComplete;
-
-            if(typeof this.options.auth.XOAuthToken == "object" &&
-              typeof this.options.auth.XOAuthToken.generate == "function"){
-                this.options.auth.XOAuthToken.generate((function(err, XOAuthToken){
-                    if(err){
-                        return this._onError(err, "XOAuthTokenError");
-                    }
-                    this.sendCommand("AUTH XOAUTH " + XOAuthToken);
-                }).bind(this));
-            }else{
-                this.sendCommand("AUTH XOAUTH " + this.options.auth.XOAuthToken.toString());
-            }
-            return;
-        case "LOGIN":
-            this._currentAction = this._actionAUTH_LOGIN_USER;
-            this.sendCommand("AUTH LOGIN");
-            return;
-        case "PLAIN":
-            this._currentAction = this._actionAUTHComplete;
-            this.sendCommand("AUTH PLAIN "+new Buffer(
-                    this.options.auth.user+"\u0000"+
-                    this.options.auth.user+"\u0000"+
-                    this.options.auth.pass,"utf-8").toString("base64"));
-            return;
-    }
-
-    this._onError(new Error("Unknown authentication method - "+auth), "UnknowAuthError");
-};
-
-/** ACTIONS **/
-
-/**
- * <p>Will be run after the connection is created and the server sends
- * a greeting. If the incoming message starts with 220 initiate
- * SMTP session by sending EHLO command</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionGreeting = function(str){
-    if(str.substr(0,3) != "220"){
-        this._onError(new Error("Invalid greeting from server - "+str), false, str);
-        return;
-    }
-
-    this._currentAction = this._actionEHLO;
-    this.sendCommand("EHLO "+this.options.name);
-};
-
-/**
- * <p>Handles server response for EHLO command. If it yielded in
- * error, try HELO instead, otherwise initiate TLS negotiation
- * if STARTTLS is supported by the server or move into the
- * authentication phase.</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionEHLO = function(str){
-    if(str.charAt(0) != "2"){
-        // Try HELO instead
-        this._currentAction = this._actionHELO;
-        this.sendCommand("HELO "+this.options.name);
-        return;
-    }
-
-    // Detect if the server supports STARTTLS
-    if(!this._secureMode && str.match(/[ \-]STARTTLS\r?$/mi)){
-        this.sendCommand("STARTTLS");
-        this._currentAction = this._actionSTARTTLS;
-        return;
-    }
-
-    // Detect if the server supports PLAIN auth
-    if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)PLAIN/i)){
-        this._supportedAuth.push("PLAIN");
-    }
-
-    // Detect if the server supports LOGIN auth
-    if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)LOGIN/i)){
-        this._supportedAuth.push("LOGIN");
-    }
-
-    // Detect if the server supports LOGIN auth
-    if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)XOAUTH/i)){
-        this._supportedAuth.push("XOAUTH");
-    }
-
-    this._authenticateUser.call(this);
-};
-
-/**
- * <p>Handles server response for HELO command. If it yielded in
- * error, emit 'error', otherwise move into the authentication phase.</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionHELO = function(str){
-    if(str.charAt(0) != "2"){
-        this._onError(new Error("Invalid response for EHLO/HELO - "+str), false, str);
-        return;
-    }
-    this._authenticateUser.call(this);
-};
-
-/**
- * <p>Handles server response for STARTTLS command. If there's an error
- * try HELO instead, otherwise initiate TLS upgrade. If the upgrade
- * succeedes restart the EHLO</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionSTARTTLS = function(str){
-    if(str.charAt(0) != "2"){
-        // Try HELO instead
-        this._currentAction = this._actionHELO;
-        this.sendCommand("HELO "+this.options.name);
-        return;
-    }
-
-    this._upgradeConnection((function(err, secured){
-        if(err){
-            this._onError(new Error("Error initiating TLS - "+(err.message || err)), "TLSError");
-            return;
-        }
-        if(this.options.debug){
-            console.log("Connection secured");
-        }
-
-        if(secured){
-            // restart session
-            this._currentAction = this._actionEHLO;
-            this.sendCommand("EHLO "+this.options.name);
-        }else{
-            this._authenticateUser.call(this);
-        }
-    }).bind(this));
-};
-
-/**
- * <p>Handle the response for AUTH LOGIN command. We are expecting
- * '334 VXNlcm5hbWU6' (base64 for 'Username:'). Data to be sent as
- * response needs to be base64 encoded username.</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionAUTH_LOGIN_USER = function(str){
-    if(str != "334 VXNlcm5hbWU6"){
-        this._onError(new Error("Invalid login sequence while waiting for '334 VXNlcm5hbWU6' - "+str), false, str);
-        return;
-    }
-    this._currentAction = this._actionAUTH_LOGIN_PASS;
-    this.sendCommand(new Buffer(
-            this.options.auth.user, "utf-8").toString("base64"));
-};
-
-/**
- * <p>Handle the response for AUTH LOGIN command. We are expecting
- * '334 UGFzc3dvcmQ6' (base64 for 'Password:'). Data to be sent as
- * response needs to be base64 encoded password.</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionAUTH_LOGIN_PASS = function(str){
-    if(str != "334 UGFzc3dvcmQ6"){
-        this._onError(new Error("Invalid login sequence while waiting for '334 UGFzc3dvcmQ6' - "+str), false, str);
-        return;
-    }
-    this._currentAction = this._actionAUTHComplete;
-    this.sendCommand(new Buffer(this.options.auth.pass, "utf-8").toString("base64"));
-};
-
-/**
- * <p>Handles the response for authentication, if there's no error,
- * the user can be considered logged in. Emit 'idle' and start
- * waiting for a message to send</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionAUTHComplete = function(str){
-    if(str.charAt(0) != "2"){
-        this._onError(new Error("Invalid login - "+str), "AuthError", str);
-        return;
-    }
-
-    this._currentAction = this._actionIdle;
-    this.emit("idle"); // ready to take orders
-};
-
-/**
- * <p>This function is not expected to run. If it does then there's probably
- * an error (timeout etc.)</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionIdle = function(str){
-    if(Number(str.charAt(0)) > 3){
-        this._onError(new Error(str), false, str);
-        return;
-    }
-
-    // this line should never get called
-};
-
-/**
- * <p>Handle response for a <code>MAIL FROM:</code> command</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionMAIL = function(str){
-    if(Number(str.charAt(0)) != "2"){
-        this._onError(new Error("Mail from command failed - " + str), "SenderError", str);
-        return;
-    }
-
-    if(!this._envelope.rcptQueue.length){
-        this._onError(new Error("Can't send mail - no recipients defined"), "RecipientError");
-    }else{
-        this._envelope.curRecipient = this._envelope.rcptQueue.shift();
-        this._currentAction = this._actionRCPT;
-        this.sendCommand("RCPT TO:<"+this._envelope.curRecipient+">");
-    }
-};
-
-/**
- * <p>Handle response for a <code>RCPT TO:</code> command</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionRCPT = function(str){
-    if(Number(str.charAt(0)) != "2"){
-        // this is a soft error
-        this._envelope.rcptFailed.push(this._envelope.curRecipient);
-    }
-
-    if(!this._envelope.rcptQueue.length){
-        if(this._envelope.rcptFailed.length < this._envelope.to.length){
-            this.emit("rcptFailed", this._envelope.rcptFailed);
-            this._currentAction = this._actionDATA;
-            this.sendCommand("DATA");
-        }else{
-            this._onError(new Error("Can't send mail - all recipients were rejected"), "RecipientError");
-            return;
-        }
-    }else{
-        this._envelope.curRecipient = this._envelope.rcptQueue.shift();
-        this._currentAction = this._actionRCPT;
-        this.sendCommand("RCPT TO:<"+this._envelope.curRecipient+">");
-    }
-};
-
-/**
- * <p>Handle response for a <code>DATA</code> command</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionDATA = function(str){
-    // response should be 354 but according to this issue https://github.com/eleith/emailjs/issues/24
-    // some servers might use 250 instead, so lets check for 2 or 3 as the first digit
-    if([2,3].indexOf(Number(str.charAt(0)))<0){
-        this._onError(new Error("Data command failed - " + str), false, str);
-        return;
-    }
-
-    // Emit that connection is set up for streaming
-    this._dataMode = true;
-    this._currentAction = this._actionIdle;
-    this.emit("message");
-};
-
-/**
- * <p>Handle response for a <code>DATA</code> stream</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionStream = function(str){
-    if(Number(str.charAt(0)) != "2"){
-        // Message failed
-        this.emit("ready", false, str);
-    }else{
-        // Message sent succesfully
-        this.emit("ready", true, str);
-    }
-
-    // Waiting for new connections
-    this._currentAction = this._actionIdle;
-    process.nextTick(this.emit.bind(this, "idle"));
-};
-
-});
-/**
- *
- **/
-
-define('rdimap/imapclient/smtpprobe',[
-    'simplesmtp/lib/client',
-    'exports'
-  ],
-  function(
-    $simplesmtp,
-    exports
-  ) {
-
-function SmtpProber(credentials, connInfo) {
-  console.log("PROBE:SMTP attempting to connect to", connInfo.hostname);
-  this._conn = $simplesmtp(
-    connInfo.port, connInfo.hostname,
-    {
-      secureConnection: connInfo.crypto === true,
-      ignoreTLS: connInfo.crypto === false,
-      auth: { user: credentials.username, pass: credentials.password },
-      debug: false,
-    });
-  this._conn.on('idle', this.onIdle.bind(this));
-  this._conn.on('error', this.onBadness.bind(this));
-  this._conn.on('end', this.onBadness.bind(this));
-
-  this.onresult = null;
-}
-exports.SmtpProber = SmtpProber;
-SmtpProber.prototype = {
-  /**
-   * onIdle happens after successful login, and so is what our probing uses.
-   */
-  onIdle: function() {
-    console.log('onIdle!');
-    if (this.onresult) {
-      console.log("PROBE:SMTP happy");
-      this.onresult(true);
-      this.onresult = null;
-    }
-    this._conn.close();
-  },
-
-  onBadness: function() {
-    if (this.onresult) {
-      console.warn("PROBE:SMTP sad");
-      this.onresult(false);
-      this.onresult = null;
-    }
-  },
-};
-
-}); // end define
-;
-/**
- *
- **/
-
-define('rdimap/imapclient/smtpacct',[
-    'rdcommon/log',
-    'simplesmtp/lib/client',
-    'module',
-    'exports'
-  ],
-  function(
-    $log,
-    $simplesmtp,
-    $module,
-    exports
-  ) {
-
-function SmtpAccount(universe, compositeAccount, accountId, credentials,
-                     connInfo, _parentLog) {
-  this.universe = universe;
-  this.compositeAccount = compositeAccount;
-  this.accountId = accountId;
-  this.credentials = credentials;
-  this.connInfo = connInfo;
-
-  this._LOG = LOGFAB.SmtpAccount(this, _parentLog, accountId);
-
-  this._activeConnections = [];
-}
-exports.SmtpAccount = SmtpAccount;
-SmtpAccount.prototype = {
-  type: 'smtp',
-  toString: function() {
-    return '[SmtpAccount: ' + this.id + ']';
-  },
-
-  get numActiveConns() {
-    return this._activeConnections.length;
-  },
-
-  _makeConnection: function() {
-    var conn = $simplesmtp(
-      this.connInfo.port, this.connInfo.hostname,
-      {
-        secureConnection: this.connInfo.crypto === true,
-        ignoreTLS: this.connInfo.crypto === false,
-        auth: {
-          user: this.credentials.username,
-          pass: this.credentials.password
-        },
-        debug: false,
-      });
-    return conn;
-  },
-
-  shutdown: function(callback) {
-    // (there should be no live connections during a unit-test initiated
-    // shutdown.)
-    this._LOG.__die();
-  },
-
-  /**
-   * @args[
-   *   @param[callback @func[
-   *     @args[
-   *       @param[error @oneof[
-   *         @case[null]{
-   *           No error, message sent successfully.
-   *         }
-   *         @case['auth']{
-   *           Authentication problem.  This should probably be escalated to
-   *           the user so they can fix their password.
-   *         }
-   *         @case['bad-sender']{
-   *           We logged in, but it didn't like our sender e-mail.
-   *         }
-   *         @case['bad-recipient']{
-   *           There were one or more bad recipients; they are listed in the
-   *           next argument.
-   *         }
-   *         @case['bad-message']{
-   *           It failed during the sending of the message.
-   *         }
-   *         @case['server-maybe-offline']{
-   *           The server won't let us login, maybe because of a bizarre offline
-   *           for service strategy?  (We've seen this with IMAP before...)
-   *
-   *           This should be considered a fatal problem during probing or if
-   *           it happens consistently.
-   *         }
-   *         @case['insecure']{
-   *           We couldn't establish a secure connection.
-   *         }
-   *         @case['connection-lost']{
-   *           The connection went away, we don't know why.  Could be a
-   *           transient thing, could be a jerky server, who knows.
-   *         }
-   *         @case['unknown']{
-   *           Some other error.  Internal error reporting/support should
-   *           ideally be logging this somehow.
-   *         }
-   *       ]]
-   *       @param[badAddresses @listof[String]]
-   *     ]
-   *   ]
-   * ]
-   */
-  sendMessage: function(composedMessage, callback) {
-    var conn = this._makeConnection(), bailed = false, sendingMessage = false;
-    this._activeConnections.push(conn);
-
-    // - Optimistic case
-    // Send the envelope once the connection is ready (fires again after
-    // ready too.)
-    conn.once('idle', function() {
-        conn.useEnvelope(composedMessage.getEnvelope());
-      });
-    // Then send the actual message if everything was cool
-    conn.on('message', function() {
-        if (bailed)
-          return;
-        sendingMessage = true;
-        composedMessage.streamMessage();
-        composedMessage.pipe(conn);
-      });
-    // And close the connection and be done once it has been sent
-    conn.on('ready', function() {
-        bailed = true;
-        conn.close();
-        callback(null);
-      });
-
-    // - Error cases
-    // It's possible for the server to decide some, but not all, of the
-    // recipients are gibberish.  Since we are a mail client and talking to
-    // a smarthost and not the final destination (most of the time), this
-    // is not super likely.
-    //
-    // We upgrade this to a full failure to send
-    conn.on('rcptFailed', function(addresses) {
-        // nb: this gets called all the time, even without any failures
-        if (addresses.length) {
-          bailed = true;
-          // simplesmtp does't view this as fatal, so we have to close it ourself
-          conn.close();
-          callback('bad-recipient', addresses);
-        }
-      });
-    conn.on('error', function(err) {
-        if (bailed) // (paranoia, this shouldn't happen.)
-          return;
-        var reportAs = null;
-        switch (err.name) {
-          // no explicit error type is given for: a bad greeting, failure to
-          // EHLO/HELO, bad login sequence, OR a data problem during send.
-          // The first 3 suggest a broken server or one that just doesn't want
-          // to talk to us right now.
-          case 'Error':
-            if (sendingMessage)
-              reportAs = 'bad-message';
-            else
-              reportAs = 'server-maybe-offline';
-            break;
-          case 'AuthError':
-            reportAs = 'auth';
-            break;
-          case 'UnknownAuthError':
-            reportAs = 'server-maybe-offline';
-            break;
-          case 'TLSError':
-            reportAs = 'insecure';
-            break;
-
-          case 'SenderError':
-            reportAs = 'bad-sender';
-            break;
-          // no recipients (bad message on us) or they all got rejected
-          case 'RecipientError':
-            reportAs = 'bad-recipient';
-            break;
-
-          default:
-            reportAs = 'unknown';
-            break;
-        }
-        bailed = true;
-        callback(reportAs, null);
-        // the connection gets automatically closed.
-      });
-      conn.on('end', function() {
-        var idx = this._activeConnections.indexOf(conn);
-        if (idx !== -1)
-          this._activeConnections.splice(idx, 1);
-        else
-          console.error('Dead unknown connection?');
-        if (bailed)
-          return;
-        callback('connection-lost', null);
-        bailed = true;
-        // (the connection is already closed if we are here)
-      }.bind(this));
-  },
-
-
-};
-
-var LOGFAB = exports.LOGFAB = $log.register($module, {
-  SmtpAccount: {
-    type: $log.ACCOUNT,
-    events: {
-    },
-    TEST_ONLY_events: {
-    },
-    errors: {
-      folderAlreadyHasConn: { folderId: false },
-    },
-  },
-});
-
-}); // end define
-;
-/**
- * Implements a fake account type for UI testing/playing only.
- **/
-
-define('rdimap/imapclient/fakeacct',[
-    'mailcomposer',
-    'exports'
-  ],
-  function(
-    $mailcomposer,
-    exports
-  ) {
-
-////////////////////////////////////////////////////////////////////////////////
-// Message generation helper code from Thunderbird (written by me for MoMo,
-// relicensing is okay) but hackily simplified for this explicit use case.
-
-/**
- * A list of first names for use by MessageGenerator to create deterministic,
- *  reversible names.  To keep things easily reversible, if you add names, make
- *  sure they have no spaces in them!
- */
-const FIRST_NAMES = [
-  "Andy", "Bob", "Chris", "David", "Emily", "Felix",
-  "Gillian", "Helen", "Idina", "Johnny", "Kate", "Lilia",
-  "Martin", "Neil", "Olof", "Pete", "Quinn", "Rasmus",
-  "Sarah", "Troels", "Ulf", "Vince", "Will", "Xavier",
-  "Yoko", "Zig"
-  ];
-
-/**
- * A list of last names for use by MessageGenerator to create deterministic,
- *  reversible names.  To keep things easily reversible, if you add names, make
- *  sure they have no spaces in them!
- */
-const LAST_NAMES = [
-  "Anway", "Bell", "Clarke", "Davol", "Ekberg", "Flowers",
-  "Gilbert", "Hook", "Ivarsson", "Jones", "Kurtz", "Lowe",
-  "Morris", "Nagel", "Orzabal", "Price", "Quinn", "Rolinski",
-  "Stanley", "Tennant", "Ulvaeus", "Vannucci", "Wiggs", "Xavier",
-  "Young", "Zig"
-  ];
-
-/**
- * A list of adjectives used to construct a deterministic, reversible subject
- *  by MessageGenerator.  To keep things easily reversible, if you add more,
- *  make sure they have no spaces in them!  Also, make sure your additions
- *  don't break the secret Monty Python reference!
- */
-const SUBJECT_ADJECTIVES = [
-  "Big", "Small", "Huge", "Tiny",
-  "Red", "Green", "Blue", "My",
-  "Happy", "Sad", "Grumpy", "Angry",
-  "Awesome", "Fun", "Lame", "Funky",
-  ];
-
-/**
- * A list of nouns used to construct a deterministic, reversible subject
- *  by MessageGenerator.  To keep things easily reversible, if you add more,
- *  make sure they have no spaces in them!  Also, make sure your additions
- *  don't break the secret Monty Python reference!
- */
-const SUBJECT_NOUNS = [
-  "Meeting", "Party", "Shindig", "Wedding",
-  "Document", "Report", "Spreadsheet", "Hovercraft",
-  "Aardvark", "Giraffe", "Llama", "Velociraptor",
-  "Laser", "Ray-Gun", "Pen", "Sword",
-  ];
-
-/**
- * A list of suffixes used to construct a deterministic, reversible subject
- *  by MessageGenerator.  These can (clearly) have spaces in them.  Make sure
- *  your additions don't break the secret Monty Python reference!
- */
-const SUBJECT_SUFFIXES = [
-  "Today", "Tomorrow", "Yesterday", "In a Fortnight",
-  "Needs Attention", "Very Important", "Highest Priority", "Full Of Eels",
-  "In The Lobby", "On Your Desk", "In Your Car", "Hiding Behind The Door",
-  ];
-
-/**
- * Provides mechanisms for creating vaguely interesting, but at least valid,
- *  SyntheticMessage instances.
- */
-function MessageGenerator(startDate, mode) {
-  this._clock = startDate || new Date(2012, 5, 14);
-  this._nextNameNumber = 0;
-  this._nextSubjectNumber = 0;
-  this._nextMessageIdNum = 0;
-
-  this._mode = mode || 'info';
-}
-exports.MessageGenerator = MessageGenerator;
-MessageGenerator.prototype = {
-  /**
-   * The maximum number of unique names makeName can produce.
-   */
-  MAX_VALID_NAMES: FIRST_NAMES.length * LAST_NAMES.length,
-  /**
-   * The maximum number of unique e-mail address makeMailAddress can produce.
-   */
-  MAX_VALID_MAIL_ADDRESSES: FIRST_NAMES.length * LAST_NAMES.length,
-  /**
-   * The maximum number of unique subjects makeSubject can produce.
-   */
-  MAX_VALID_SUBJECTS: SUBJECT_ADJECTIVES.length * SUBJECT_NOUNS.length *
-                      SUBJECT_SUFFIXES,
-
-  /**
-   * Generate a consistently determined (and reversible) name from a unique
-   *  value.  Currently up to 26*26 unique names can be generated, which
-   *  should be sufficient for testing purposes, but if your code cares, check
-   *  against MAX_VALID_NAMES.
-   *
-   * @param aNameNumber The 'number' of the name you want which must be less
-   *     than MAX_VALID_NAMES.
-   * @returns The unique name corresponding to the name number.
-   */
-  makeName: function(aNameNumber) {
-    var iFirst = aNameNumber % FIRST_NAMES.length;
-    var iLast = (iFirst + Math.floor(aNameNumber / FIRST_NAMES.length)) %
-                LAST_NAMES.length;
-
-    return FIRST_NAMES[iFirst] + " " + LAST_NAMES[iLast];
-  },
-
-  /**
-   * Generate a consistently determined (and reversible) e-mail address from
-   *  a unique value; intended to work in parallel with makeName.  Currently
-   *  up to 26*26 unique addresses can be generated, but if your code cares,
-   *  check against MAX_VALID_MAIL_ADDRESSES.
-   *
-   * @param aNameNumber The 'number' of the mail address you want which must be
-   *     less than MAX_VALID_MAIL_ADDRESSES.
-   * @returns The unique name corresponding to the name mail address.
-   */
-  makeMailAddress: function(aNameNumber) {
-    var iFirst = aNameNumber % FIRST_NAMES.length;
-    var iLast = (iFirst + Math.floor(aNameNumber / FIRST_NAMES.length)) %
-                LAST_NAMES.length;
-
-    return FIRST_NAMES[iFirst].toLowerCase() + "@" +
-           LAST_NAMES[iLast].toLowerCase() + ".nul";
-  },
-
-  /**
-   * Generate a pair of name and e-mail address.
-   *
-   * @param aNameNumber The optional 'number' of the name and mail address you
-   *     want.  If you do not provide a value, we will increment an internal
-   *     counter to ensure that a new name is allocated and that will not be
-   *     re-used.  If you use our automatic number once, you must use it always,
-   *     unless you don't mind or can ensure no collisions occur between our
-   *     number allocation and your uses.  If provided, the number must be
-   *     less than MAX_VALID_NAMES.
-   * @return A list containing two elements.  The first is a name produced by
-   *     a call to makeName, and the second an e-mail address produced by a
-   *     call to makeMailAddress.  This representation is used by the
-   *     SyntheticMessage class when dealing with names and addresses.
-   */
-  makeNameAndAddress: function(aNameNumber) {
-    if (aNameNumber === undefined)
-      aNameNumber = this._nextNameNumber++;
-    return {
-      name: this.makeName(aNameNumber),
-      address: this.makeMailAddress(aNameNumber)
-    };
-  },
-
-  /**
-   * Generate and return multiple pairs of names and e-mail addresses.  The
-   *  names are allocated using the automatic mechanism as documented on
-   *  makeNameAndAddress.  You should accordingly not allocate / hard code name
-   *  numbers on your own.
-   *
-   * @param aCount The number of people you want name and address tuples for.
-   * @returns a list of aCount name-and-address tuples.
-   */
-  makeNamesAndAddresses: function(aCount) {
-    var namesAndAddresses = [];
-    for (var i=0; i < aCount; i++)
-      namesAndAddresses.push(this.makeNameAndAddress());
-    return namesAndAddresses;
-  },
-
-  /**
-   * Generate a consistently determined (and reversible) subject from a unique
-   *  value.  Up to MAX_VALID_SUBJECTS can be produced.
-   *
-   * @param aSubjectNumber The subject number you want generated, must be less
-   *     than MAX_VALID_SUBJECTS.
-   * @returns The subject corresponding to the given subject number.
-   */
-  makeSubject: function(aSubjectNumber) {
-    if (aSubjectNumber === undefined)
-      aSubjectNumber = this._nextSubjectNumber++;
-    var iAdjective = aSubjectNumber % SUBJECT_ADJECTIVES.length;
-    var iNoun = (iAdjective + Math.floor(aSubjectNumber /
-                                         SUBJECT_ADJECTIVES.length)) %
-                SUBJECT_NOUNS.length;
-    var iSuffix = (iNoun + Math.floor(aSubjectNumber /
-                   (SUBJECT_ADJECTIVES.length * SUBJECT_NOUNS.length))) %
-                  SUBJECT_SUFFIXES.length;
-    return SUBJECT_ADJECTIVES[iAdjective] + " " +
-           SUBJECT_NOUNS[iNoun] + " " +
-           SUBJECT_SUFFIXES[iSuffix];
-  },
-
-  /**
-   * Fabricate a message-id suitable for the given synthetic message.  Although
-   *  we don't use the message yet, in theory it would var us tailor the
-   *  message id to the server that theoretically might be sending it.  Or some
-   *  such.
-   *
-   * @param The synthetic message you would like us to make up a message-id for.
-   *     We don't set the message-id on the message, that's up to you.
-   * @returns a Message-id suitable for the given message.
-   */
-  makeMessageId: function(aSynthMessage) {
-    var msgId = this._nextMessageIdNum + "@made.up";
-    this._nextMessageIdNum++;
-    return msgId;
-  },
-
-  /**
-   * Generates a valid date which is after all previously issued dates by this
-   *  method, ensuring an apparent ordering of time consistent with the order
-   *  in which code is executed / messages are generated.
-   * If you need a precise time ordering or precise times, make them up
-   *  yourself.
-   *
-   * @returns A made-up time in JavaScript Date object form.
-   */
-  makeDate: function() {
-    var date = this._clock;
-    // advance time by an hour
-    this._clock = new Date(date.valueOf() + 60 * 60 * 1000);
-    return date;
-  },
-
-  /**
-   * HACK: copied from our mailbridge implementation.
-   *
-   * mailcomposer wants from/to/cc/bcc delivered basically like it will show
-   * up in the e-mail, except it is fine with unicode.  So we convert our
-   * (possibly) structured representation into a flattened representation.
-   *
-   * (mailcomposer will handle punycode and mime-word encoding as needed.)
-   */
-  _formatAddresses: function(nameAddrPairs) {
-    var addrstrings = [];
-    for (var i = 0; i < nameAddrPairs.length; i++) {
-      var pair = nameAddrPairs[i];
-      // support lazy people providing only an e-mail... or very careful
-      // people who are sure they formatted things correctly.
-      if (typeof(pair) === 'string') {
-        addrstrings.push(pair);
-      }
-      else {
-        addrstrings.push(
-          '"' + pair.name.replace(/["']/g, '') + '" <' +
-            pair.address + '>');
-      }
-    }
-
-    return addrstrings.join(', ');
-  },
-
-
-  /**
-   * Create a SyntheticMessage.  All arguments are optional, but allow
-   *  additional control.  With no arguments specified, a new name/address will
-   *  be generated that has not been used before, and sent to a new name/address
-   *  that has not been used before.
-   *
-   * @param aArgs An object with any of the following attributes provided:
-   * @param [aArgs.age] A dictionary with potential attributes 'minutes',
-   *     'hours', 'days', 'weeks' to specify the message be created that far in
-   *     the past.
-   * @param [aArgs.attachments] A list of dictionaries suitable for passing to
-   *     syntheticPartLeaf, plus a 'body' attribute that has already been
-   *     encoded.  Line chopping is on you FOR NOW.
-   * @param [aArgs.body] A dictionary suitable for passing to SyntheticPart plus
-   *     a 'body' attribute that has already been encoded (if encoding is
-   *     required).  Line chopping is on you FOR NOW.  Alternately, use
-   *     bodyPart.
-   * @param [aArgs.bodyPart] A SyntheticPart to uses as the body.  If you
-   *     provide an attachments value, this part will be wrapped in a
-   *     multipart/mixed to also hold your attachments.  (You can put
-   *     attachments in the bodyPart directly if you want and not use
-   *     attachments.)
-   * @param [aArgs.callerData] A value to propagate to the callerData attribute
-   *     on the resulting message.
-   * @param [aArgs.cc] A list of cc recipients (name and address pairs).  If
-   *     omitted, no cc is generated.
-   * @param [aArgs.from] The name and value pair this message should be from.
-   *     Defaults to the first recipient if this is a reply, otherwise a new
-   *     person is synthesized via |makeNameAndAddress|.
-   * @param [aArgs.inReplyTo] the SyntheticMessage this message should be in
-   *     reply-to.  If that message was in reply to another message, we will
-   *     appropriately compensate for that.  If a SyntheticMessageSet is
-   *     provided we will use the first message in the set.
-   * @param [aArgs.replyAll] a boolean indicating whether this should be a
-   *     reply-to-all or just to the author of the message.  (er, to-only, not
-   *     cc.)
-   * @param [aArgs.subject] subject to use; you are responsible for doing any
-   *     encoding before passing it in.
-   * @param [aArgs.to] The list of recipients for this message, defaults to a
-   *     set of toCount newly created persons.
-   * @param [aArgs.toCount=1] the number of people who the message should be to.
-   * @param [aArgs.clobberHeaders] An object whose contents will overwrite the
-   *     contents of the headers object.  This should only be used to construct
-   *     illegal header values; general usage should use another explicit
-   *     mechanism.
-   * @param [aArgs.junk] Should this message be flagged as junk for the benefit
-   *     of the messageInjection helper so that it can know to flag the message
-   *     as junk?  We have no concept of marking a message as definitely not
-   *     junk at this point.
-   * @param [aArgs.read] Should this message be marked as already read?
-   * @returns a SyntheticMessage fashioned just to your liking.
-   */
-  makeMessage: function makeMessage(aArgs) {
-    aArgs = aArgs || {};
-
-    var headerInfo = {
-      id: null,
-      suid: null,
-      guid: Date.now() + Math.random().toString(16).substr(1) +
-              '@mozgaia',
-      author: null,
-      date: null,
-      flags: [],
-      hasAttachments: false,
-      subject: null,
-      snippet: null,
-    };
-    var bodyInfo = {
-      to: null,
-      cc: null,
-      bcc: null,
-      replyTo: null,
-      attachments: null,
-      references: null,
-      bodyRep: null,
-    };
-
-    if (aArgs.inReplyTo) {
-      var srcMsg = aArgs.inReplyTo;
-
-      headerInfo.subject =
-        (srcMsg.headerInfo.subject.substring(0, 4) == "Re: ") ?
-          srcMsg.headerInfo.subject :
-          ("Re: " + srcMsg.headerInfo.subject);
-      if (aArgs.replyAll)
-        bodyInfo.to = [srcMsg.headerInfo.author].concat(srcMsg.bodyInfo.to.slice(1));
-      else
-        bodyInfo.to = [srcMsg.headerInfo.author];
-      headerInfo.author = srcMsg.bodyInfo.to[0];
-    }
-    else {
-      headerInfo.subject = aArgs.subject || this.makeSubject();
-      headerInfo.author = aArgs.from || this.makeNameAndAddress();
-      bodyInfo.to = aArgs.to || this.makeNamesAndAddresses(aArgs.toCount || 1);
-      if (aArgs.cc)
-        bodyInfo.cc = aArgs.cc;
-    }
-
-    if (aArgs.age) {
-      var age = aArgs.age;
-      // start from 'now'
-      var ts = this._clock || Date.now();
-      if (age.minutes)
-        ts -= age.minutes * 60 * 1000;
-      if (age.hours)
-        ts -= age.hours * 60 * 60 * 1000;
-      if (age.days)
-        ts -= age.days * 24 * 60 * 60 * 1000;
-      if (age.weeks)
-        ts -= age.weeks * 7 * 24 * 60 * 60 * 1000;
-      headerInfo.date = ts;
-    }
-    else {
-      headerInfo.date = this.makeDate().valueOf();
-    }
-
-    // use two subjects for the snippet to get it good and long.
-    headerInfo.snippet = this.makeSubject() + ' ' + this.makeSubject();
-
-    var rawBody = aArgs.rawBody || null, bodyText,
-        replaceHeaders = aArgs.replaceHeaders || null;
-
-    // If a raw body was provided, try and take mailcomposer's logic out of
-    // the picture by providing a stub body that we can replace after the
-    // MIME structure has been built.  (Alternately, we could fall back to
-    // Thunderbird's synthetic mime header stuff, but that is much more
-    // limited...)
-    if (rawBody) {
-      bodyText = '::BODYTEXT::';
-    }
-    else {
-      bodyText = headerInfo.snippet + '\n' +
-        'This message is automatically created for you by robots.\n' +
-        '\nThe robots may or may not be friendly.\n' +
-        'They definitely do not know latin, which is why no lorax gypsum.\n' +
-        '\nI am endeavouring to write more words now because scrolling turns' +
-        ' out to be something important to test.  I know, I know.  You also' +
-        ' are surprised that scrolling is important?  Who would have thunk?\n' +
-        '\nI actually have some synthetic markov chain stuff lying around, do' +
-        ' you think that would go better?  Perhaps?  Possibly?  Potentially?' +
-        ' Pertinent?\n' +
-        '\nTo-do:\n' +
-        '1: Write more made-up text.\n' +
-        '2: Cheat and just add more lines...\n' +
-        '\n\n\n\n' +
-        '3: ...\n' +
-        '\nIt is a tiny screen we target, thank goodness!';
-    }
-    bodyInfo.bodyRep = [0x1, bodyText];
-
-    if (this._mode === 'info') {
-      return {
-        headerInfo: headerInfo,
-        bodyInfo: bodyInfo,
-      };
-    }
-    else { // 'rfc822'
-      var composer = new $mailcomposer.MailComposer();
-      var messageOpts = {
-        from: this._formatAddresses([headerInfo.author]),
-        subject: headerInfo.subject,
-        body: bodyText,
-        to: this._formatAddresses(bodyInfo.to),
-      };
-      if (bodyInfo.cc)
-        messageOpts.cc = this._formatAddresses(bodyInfo.cc);
-
-      composer.setMessageOption(messageOpts);
-      composer.addHeader('Date', new Date(headerInfo.date));
-      composer.addHeader('Message-Id', '<' + headerInfo.guid + '>');
-
-      // have it internally accumulate the data rather than using the stream
-      // mechanism.
-      composer._cacheOutput = true;
-      var data = null;
-      process.immediate = true;
-      composer._processBufferedOutput = function() {
-        data = this._outputBuffer;
-      };
-      composer._composeMessage();
-      process.immediate = false;
-
-      if (rawBody)
-        data = data.replace('::BODYTEXT::', rawBody);
-      if (replaceHeaders) {
-        for (var headerName in replaceHeaders) {
-          var headerValue = replaceHeaders[headerName],
-              headerRE = new RegExp('^' + headerName + ': [^\r]+\r\n', 'm');
-          data = data.replace(headerRE, headerName + ': ' + headerValue +
-                              '\r\n');
-        }
-      }
-
-      return {
-        date: new Date(headerInfo.date),
-        headerInfo: headerInfo,
-        bodyInfo: bodyInfo,
-        // XXX mailcomposer is tacking newlines onto the end of the message that
-        // we don't want.  Ideally we want to fix mailcomposer...
-        messageText: data.trimRight()
-      };
-    }
-  },
-
-  MAKE_MESSAGES_DEFAULTS: {
-    count: 10,
-  },
-  MAKE_MESSAGES_PROPAGATE: ['attachments', 'body',
-                            'cc', 'from', 'to', 'inReplyTo',
-                            'subject', 'clobberHeaders', 'junk', 'read'],
-  /**
-   * Given a set definition, produce a list of synthetic messages.
-   *
-   * The set definition supports the following attributes:
-   *  count: The number of messages to create.
-   *  age: As used by makeMessage.
-   *  age_incr: Similar to age, but used to increment the values in the age
-   *      dictionary (assuming a value of zero if omitted).
-   *  @param [aSetDef.msgsPerThread=1] The number of messages per thread.  If
-   *      you want to create direct-reply threads, you can pass a value for this
-   *      and have it not be one.  If you need fancier reply situations,
-   *      directly use a scenario or hook us up to support that.
-   *
-   * Also supported are the following attributes as defined by makeMessage:
-   *  attachments, body, from, inReplyTo, subject, to, clobberHeaders, junk
-   *
-   * If omitted, the following defaults are used, but don't depend on this as we
-   *  can change these at any time:
-   * - count: 10
-   */
-  makeMessages: function MessageGenerator_makeMessages(aSetDef) {
-    var messages = [];
-
-    var args = {}, unit, delta;
-    // zero out all the age_incr fields in age (if present)
-    if (aSetDef.age_incr) {
-      args.age = {};
-      for (unit in aSetDef.age_incr) {
-        args.age[unit] = 0;
-      }
-    }
-    // copy over the initial values from age (if present)
-    if (aSetDef.age) {
-      args.age = args.age || {};
-      for (unit in aSetDef.age) {
-        var value = aSetDef.age[unit];
-        args.age[unit] = value;
-      }
-    }
-    // just copy over any attributes found from MAKE_MESSAGES_PROPAGATE
-    for (var iPropName = 0;
-         iPropName < this.MAKE_MESSAGES_PROPAGATE.length;
-         iPropName++) {
-      var propAttrName = this.MAKE_MESSAGES_PROPAGATE[iPropName];
-      if (aSetDef[propAttrName])
-        args[propAttrName] = aSetDef[propAttrName];
-    }
-
-    var count = aSetDef.count || this.MAKE_MESSAGES_DEFAULTS.count;
-    var messagsPerThread = aSetDef.msgsPerThread || 1;
-    var rawBodies = aSetDef.hasOwnProperty('rawBodies') ? aSetDef.rawBodies
-                                                        : null,
-        replaceHeaders = aSetDef.hasOwnProperty('replaceHeaders') ?
-                           aSetDef.replaceHeaders : null;
-
-    var lastMessage = null;
-    for (var iMsg = 0; iMsg < count; iMsg++) {
-      // primitive threading support...
-      if (lastMessage && (iMsg % messagsPerThread != 0))
-        args.inReplyTo = lastMessage;
-      else if (!("inReplyTo" in aSetDef))
-        args.inReplyTo = null;
-
-      if (rawBodies)
-        args.rawBody = rawBodies[iMsg];
-      if (replaceHeaders)
-        args.replaceHeaders = replaceHeaders[iMsg];
-
-      lastMessage = this.makeMessage(args);
-      if (this._mode === 'info') {
-        lastMessage.headerInfo.id = '' + iMsg;
-        lastMessage.headerInfo.suid = aSetDef.folderId + '/' + iMsg;
-      }
-      messages.push(lastMessage);
-
-      if (aSetDef.age_incr) {
-        for (unit in aSetDef.age_incr) {
-          delta = aSetDef.age_incr[unit];
-          args.age[unit] += delta;
-        }
-      }
-    }
-    return messages;
-  },
-};
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
- * Fake accounts always regenerate from scratch when instantiated; there is
- * no disk persistence.
- *
- * This might be better off being rejiggered to leverage the IMAP account
- * implementation and use some combination of making it think it is
- * permanently offline, manually cramming messages in, and pretending that
- * jobs actually ran on the server.  A mock/fakish IMAP protocol or real
- * protocol talking to a fake socket would likely be too much effort for
- * something likely to be brittle.
- */
-function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
-  this.universe = universe;
-  this.id = accountDef.id;
-  this.accountDef = accountDef;
-
-  this.enabled = true;
-  this.problems = [];
-
-  var generator = new MessageGenerator();
-
-  this.identities = accountDef.identities;
-
-  var ourIdentity = accountDef.identities[0];
-  var ourNameAndAddress = {
-    name: ourIdentity.name,
-    address: ourIdentity.address,
-  };
-
-  var inboxFolder = {
-    id: this.id + '/0',
-    name: 'Inbox',
-    path: 'Inbox',
-    type: 'inbox',
-    delim: '/',
-    depth: 0,
-  };
-  var todoFolder = {
-    id: this.id + '/1',
-    name: 'ToDo',
-    path: 'Inbox/ToDo',
-    type: 'normal',
-    delim: '/',
-    depth: 1,
-  };
-  var draftsFolder = {
-    id: this.id + '/2',
-    name: 'Drafts',
-    path: 'Drafts',
-    type: 'drafts',
-    delim: '/',
-    depth: 0,
-  };
-  var sentFolder = {
-    id: this.id + '/3',
-    name: 'Sent',
-    path: 'Sent',
-    type: 'sent',
-    delim: '/',
-    depth: 0,
-  };
-
-  this.folders = [inboxFolder, todoFolder, draftsFolder, sentFolder];
-  this._folderStorages = {};
-  this._folderStorages[inboxFolder.id] =
-    new FakeFolderStorage(
-      inboxFolder,
-      generator.makeMessages(
-        { folderId: inboxFolder.id, count: 16, to: [ourNameAndAddress] }));
-  this._folderStorages[todoFolder.id] =
-    new FakeFolderStorage(
-      todoFolder,
-      generator.makeMessages(
-        { folderId: todoFolder.id, count: 2, to: [ourNameAndAddress] }));
-  this._folderStorages[draftsFolder.id] =
-    new FakeFolderStorage(draftsFolder, []);
-  this._folderStorages[sentFolder.id] =
-    new FakeFolderStorage(
-      sentFolder,
-      generator.makeMessages(
-        { folderId: sentFolder.id, count: 4, from: ourNameAndAddress }));
-
-  this.meta = folderInfo.$meta;
-  this.mutations = folderInfo.$mutations;
-}
-exports.FakeAccount = FakeAccount;
-FakeAccount.prototype = {
-  toString: function fa_toString() {
-    return '[FakeAccount: ' + this.id + ']';
-  },
-  toBridgeWire: function fa_toBridgeWire() {
-    return {
-      id: this.accountDef.id,
-      name: this.accountDef.name,
-      path: this.accountDef.name,
-      type: this.accountDef.type,
-
-      enabled: this.enabled,
-      problems: this.problems,
-
-      identities: this.identities,
-
-      credentials: {
-        username: this.accountDef.credentials.username,
-      },
-
-      servers: [
-        {
-          type: this.accountDef.type,
-          connInfo: this.accountDef.connInfo
-        },
-      ]
-    };
-  },
-  toBridgeFolder: function() {
-    return {
-      id: this.accountDef.id,
-      name: this.accountDef.name,
-      path: this.accountDef.name,
-      type: 'account',
-    };
-  },
-
-  get numActiveConns() {
-    return 0;
-  },
-
-  saveAccountState: function(reuseTrans) {
-    return reuseTrans;
-  },
-
-  shutdown: function() {
-  },
-
-  createFolder: function() {
-    throw new Error('XXX not implemented');
-  },
-
-  deleteFolder: function() {
-    throw new Error('XXX not implemented');
-  },
-
-  sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {
-    return this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
-  },
-  syncFolderList: function fa_syncFolderList(callback) {
-    // NOP; our list of folders is eternal (for now)
-    callback();
-  },
-  sendMessage: function fa_sendMessage(composedMessage, callback) {
-    // XXX put a copy of the message in the sent folder
-    callback(null);
-  },
-
-  getFolderStorageForFolderId: function fa_getFolderStorageForFolderId(folderId){
-    return this._folderStorages[folderId];
-  },
-
-  runOp: function(op, mode, callback) {
-    // Just pretend we performed the op so no errors trigger.
-    if (callback)
-      setZeroTimeout(callback);
-  },
-};
-
-function FakeFolderStorage(folderMeta, headersAndBodies) {
-  this._headers = [];
-  this._bodiesBySuid = {};
-  for (var i = 0; i < headersAndBodies.length; i++) {
-    var headerAndBody = headersAndBodies[i];
-    this._headers.push(headerAndBody.headerInfo);
-    this._bodiesBySuid[headerAndBody.headerInfo.suid] =
-      headerAndBody.bodyInfo;
-  }
-}
-FakeFolderStorage.prototype = {
-  _sliceFolderMessages: function ffs__sliceFolderMessages(bridgeHandle) {
-    bridgeHandle.sendSplice(0, 0, this._headers, true, false);
-  },
-
-  getMessageBody: function ffs_getMessageBody(suid, date, callback) {
-    callback(this._bodiesBySuid[suid]);
-  },
-};
-
-}); // end define
-;
-/**
- *
- **/
-
-define('rdimap/imapclient/imapchew',[
+define('rdimap/imapclient/imapchew',
+  [
     './quotechew',
     'exports'
   ],
@@ -20212,7 +17869,8 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
  *
  **/
 
-define('rdimap/imapclient/imapslice',[
+define('rdimap/imapclient/imapslice',
+  [
     'rdcommon/log',
     'mailparser/mailparser',
     './a64',
@@ -22804,10 +20462,415 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 }); // end define
 ;
 /**
+ * Abstractions for dealing with the various mutation operations.
+ *
+ * NB: Moves discussion is speculative at this point; we are just thinking
+ * things through for architectural implications.
+ *
+ * == Speculative Operations ==
+ *
+ * We want our UI to update as soon after requesting an operation as possible.
+ * To this end, we have logic to locally apply queued mutation operations.
+ * Because we may want to undo operations when we are offline (and have not
+ * been able to talk to the server), we also need to be able to reflect these
+ * changes locally independent of telling the server.
+ *
+ * In the case of moves/copies, we issue temporary UIDs like Thunderbird.  We
+ * use negative values since IMAP servers can never use them so collisions are
+ * impossible and it's a simple check.  This differs from Thunderbird's attempt
+ * to guess the next UID; we don't try to do that because the chances are good
+ * that our information is out-of-date and it would just make debugging more
+ * confusing.
+ *
+ * == Data Integrity ==
+ *
+ * Our strategy is always to avoid data-loss, so data-destruction actions
+ * must always take place after successful confirmation of persistence actions.
+ * (Just keeping the data in-memory is not acceptable because we could crash,
+ * etc.)
+ *
+ * It is also our strategy to avoid cluttering up the place as a side-effect
+ * of half-done things.  For example, if we are trying to move N messages,
+ * but only copy N/2 because of a timeout, we want to make sure that we
+ * don't naively retry and then copy those first N/2 messages a second time.
+ * This means that we track sub-steps explicitly, and that operations that we
+ * have issued and may or may not have been performed by the server will be
+ * checked before they are re-attempted.
+ **/
+
+define('rdimap/imapclient/imapjobs',
+  [
+    './util',
+    'exports'
+  ],
+  function(
+    $imaputil,
+    exports
+  ) {
+
+/**
+ * The evidence suggests the job has not yet been performed.
+ */
+const CHECKED_NOTYET = 1;
+/**
+ * The operation is idempotent and atomic; no checking was performed.
+ */
+const UNCHECKED_IDEMPOTENT = 2;
+/**
+ * The evidence suggests that the job has already happened.
+ */
+const CHECKED_HAPPENED = 3;
+/**
+ * The job is no longer relevant because some other sequence of events
+ * have mooted it.  For example, we can't change tags on a deleted message
+ * or move a message between two folders if it's in neither folder.
+ */
+const CHECKED_MOOT = 4;
+/**
+ * A transient error (from the checker's perspective) made it impossible to
+ * check.
+ */
+const UNCHECKED_BAILED = 5;
+
+function ImapJobDriver(account) {
+  this.account = account;
+}
+exports.ImapJobDriver = ImapJobDriver;
+ImapJobDriver.prototype = {
+  /**
+   * Request access to an IMAP folder to perform a mutation on it.  This
+   * compels the ImapFolderConn in question to acquire an IMAP connection
+   * if it does not already have one.  It will also XXX EVENTUALLY provide
+   * mututal exclusion guarantees that there are no other active requests
+   * in the folder.
+   *
+   * The callback will be invoked with the folder and raw connections once
+   * they are available.  The raw connection will be actively in the folder.
+   *
+   * This will ideally be migrated to whatever mechanism we end up using for
+   * mailjobs.
+   */
+  _accessFolderForMutation: function(folderId, callback) {
+    var storage = this.account.getFolderStorageForFolderId(folderId);
+    // XXX have folder storage be in charge of this / don't violate privacy
+    storage._pendingMutationCount++;
+    if (!storage.folderConn._conn) {
+      storage.folderConn.acquireConn(callback);
+    }
+    else {
+      callback(storage.folderConn);
+    }
+  },
+
+  _doneMutatingFolder: function(folderId, folderConn) {
+    var storage = this.account.getFolderStorageForFolderId(folderId);
+    // XXX have folder storage be in charge of this / don't violate privacy
+    storage._pendingMutationCount--;
+    if (!storage._slices.length && !storage._pendingMutationCount)
+      storage.folderConn.relinquishConn();
+  },
+
+  local_do_modtags: function(op, ignoredCallback, undo) {
+    var addTags = undo ? op.removeTags : op.addTags,
+        removeTags = undo ? op.addTags : op.removeTags;
+    function modifyHeader(header) {
+      var iTag, tag, existing, modified = false;
+      if (addTags) {
+        for (iTag = 0; iTag < addTags.length; iTag++) {
+          tag = addTags[iTag];
+          // The list should be small enough that native stuff is better than
+          // JS bsearch.
+          existing = header.flags.indexOf(tag);
+          if (existing !== -1)
+            continue;
+          header.flags.push(tag);
+          header.flags.sort(); // (maintain sorted invariant)
+          modified = true;
+        }
+      }
+      if (removeTags) {
+        for (iTag = 0; iTag < removeTags.length; iTag++) {
+          tag = removeTags[iTag];
+          existing = header.flags.indexOf(tag);
+          if (existing === -1)
+            continue;
+          header.flags.splice(existing, 1);
+          modified = true;
+        }
+      }
+      return modified;
+    }
+
+    var lastFolderId = null, lastStorage;
+    for (var i = 0; i < op.messages.length; i++) {
+      var msgNamer = op.messages[i],
+          lslash = msgNamer.suid.lastIndexOf('/'),
+          // folder id's are strings!
+          folderId = msgNamer.suid.substring(0, lslash),
+          // uid's are not strings!
+          uid = parseInt(msgNamer.suid.substring(lslash + 1)),
+          storage;
+      if (folderId === lastFolderId) {
+        storage = lastStorage;
+      }
+      else {
+        storage = lastStorage =
+          this.account.getFolderStorageForFolderId(folderId);
+        lastFolderId = folderId;
+      }
+      storage.updateMessageHeader(msgNamer.date, uid, false, modifyHeader);
+    }
+
+    return null;
+  },
+
+  do_modtags: function(op, callback, undo) {
+    var partitions = $imaputil.partitionMessagesByFolderId(op.messages, true);
+    var folderConn, self = this,
+        folderId = null, messages = null,
+        iNextPartition = 0, curPartition = null, modsToGo = 0;
+
+    var addTags = undo ? op.removeTags : op.addTags,
+        removeTags = undo ? op.addTags : op.removeTags;
+
+    // Perform the 'undo' in the opposite order of the 'do' so that our progress
+    // count is always relative to the normal order.
+    if (undo)
+      partitions.reverse();
+
+    function openNextFolder() {
+      if (iNextPartition >= partitions.length) {
+        done(null);
+        return;
+      }
+
+      curPartition = partitions[iNextPartition++];
+      messages = curPartition.messages;
+      if (curPartition.folderId !== folderId) {
+        if (folderConn) {
+          self._doneMutatingFolder(folderId, folderConn);
+          folderConn = null;
+        }
+        folderId = curPartition.folderId;
+        self._accessFolderForMutation(folderId, gotFolderConn);
+      }
+    }
+    function gotFolderConn(_folderConn) {
+      folderConn = _folderConn;
+      if (addTags) {
+        modsToGo++;
+        folderConn._conn.addFlags(messages, addTags, tagsModded);
+      }
+      if (removeTags) {
+        modsToGo++;
+        folderConn._conn.delFlags(messages, removeTags, tagsModded);
+      }
+    }
+    function tagsModded(err) {
+      if (err) {
+        console.error('failure modifying tags', err);
+        done('unknown');
+        return;
+      }
+      op.progress += (undo ? -curPartition.messages.length
+                           : curPartition.messages.length);
+      if (--modsToGo === 0)
+        openNextFolder();
+    }
+    function done(errString) {
+      if (folderConn) {
+        self._doneMutatingFolder(folderId, folderConn);
+        folderConn = null;
+      }
+      callback(errString);
+    }
+    openNextFolder();
+  },
+
+  check_modtags: function() {
+    return UNCHECKED_IDEMPOTENT;
+  },
+
+  local_undo_modtags: function(op, callback) {
+    // Undoing is just a question of flipping the add and remove lists.
+    return this.local_do_modtags(op, callback, true);
+  },
+
+  undo_modtags: function(op, callback) {
+    // Undoing is just a question of flipping the add and remove lists.
+    return this.do_modtags(op, callback, true);
+  },
+
+  /**
+   * Move the message to the trash folder.  In Gmail, there is no move target,
+   * we just delete it and gmail will (by default) expunge it immediately.
+   */
+  do_delete: function() {
+    // set the deleted flag on the message
+  },
+
+  check_delete: function() {
+    // deleting on IMAP is effectively idempotent
+    return UNCHECKED_IDEMPOTENT;
+  },
+
+  undo_delete: function() {
+  },
+
+  do_move: function() {
+    // get a connection in the source folder, uid validity is asserted
+    // issue the (potentially bulk) copy
+    // wait for copy success
+    // mark the source messages deleted
+  },
+
+  check_move: function() {
+    // get a connection in the target/source folder
+    // do a search to check if the messages got copied across.
+  },
+
+  /**
+   * Move the message back to its original folder.
+   *
+   * - If the source message has not been expunged, remove the Deleted flag from
+   *   the source folder.
+   * - If the source message was expunged, copy the message back to the source
+   *   folder.
+   * - Delete the message from the target folder.
+   */
+  undo_move: function() {
+  },
+
+  do_copy: function() {
+  },
+
+  check_copy: function() {
+    // get a connection in the target folder
+    // do a search to check if the message got copied across
+  },
+
+  /**
+   * Delete the message from the target folder if it exists.
+   */
+  undo_copy: function() {
+  },
+
+  /**
+   * Append a message to a folder.
+   *
+   * XXX update
+   */
+  do_append: function(op, callback) {
+    var folderConn, self = this,
+        storage = this.account.getFolderStorageForFolderId(op.folderId),
+        folderMeta = storage.folderMeta,
+        iNextMessage = 0;
+
+    function gotFolderConn(_folderConn) {
+      if (!_folderConn) {
+        done('unknown');
+        return;
+      }
+      folderConn = _folderConn;
+      if (folderConn._conn.hasCapability('MULTIAPPEND'))
+        multiappend();
+      else
+        append();
+    }
+    function multiappend() {
+      iNextMessage = op.messages.length;
+      folderConn._conn.multiappend(op.messages, appended);
+    }
+    function append() {
+      var message = op.messages[iNextMessage++];
+      folderConn._conn.append(
+        message.messageText,
+        message, // (it will ignore messageText)
+        appended);
+    }
+    function appended(err) {
+      if (err) {
+        console.error('failure appending message', err);
+        done('unknown');
+        return;
+      }
+      if (iNextMessage < op.messages.length)
+        append();
+      else
+        done(null);
+    }
+    function done(errString) {
+      if (folderConn) {
+        self._doneMutatingFolder(op.folderId, folderConn);
+        folderConn = null;
+      }
+      callback(errString);
+    }
+
+    this._accessFolderForMutation(op.folderId, gotFolderConn);
+  },
+
+  /**
+   * Check if the message ended up in the folder.
+   */
+  check_append: function() {
+  },
+
+  undo_append: function() {
+  },
+};
+
+function HighLevelJobDriver() {
+}
+HighLevelJobDriver.prototype = {
+  /**
+   * Perform a cross-folder move:
+   *
+   * - Fetch the entirety of a message from the source location.
+   * - Append the entirety of the message to the target location.
+   * - Delete the message from the source location.
+   */
+  do_xmove: function() {
+  },
+
+  check_xmove: function() {
+
+  },
+
+  /**
+   * Undo a cross-folder move.  Same idea as for normal undo_move; undelete
+   * if possible, re-copy if not.  Delete the target once we're confident
+   * the message made it back into the folder.
+   */
+  undo_xmove: function() {
+  },
+
+  /**
+   * Perform a cross-folder copy:
+   * - Fetch the entirety of a message from the source location.
+   * - Append the message to the target location.
+   */
+  do_xcopy: function() {
+  },
+
+  check_xcopy: function() {
+  },
+
+  /**
+   * Just delete the message from the target location.
+   */
+  undo_xcopy: function() {
+  },
+};
+
+}); // end define
+;
+/**
  *
  **/
 
-define('rdimap/imapclient/imapacct',[
+define('rdimap/imapclient/imapacct',
+  [
     'imap',
     'rdcommon/log',
     './a64',
@@ -23524,7 +21587,6 @@ ImapAccount.prototype = {
         // - new to us!
         else {
           var type = self._determineFolderType(box, path);
-console.log("learning about", path, "depth", pathDepth);
           self._learnAboutFolder(boxName, path, type, box.delim, pathDepth);
         }
 
@@ -23662,10 +21724,4247 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 }); // end define
 ;
 /**
+ * Make our TCPSocket implementation look like node's net library.
+ *
+ * We make sure to support:
+ *
+ * Attributes:
+ * - encrypted (false, this is not the tls byproduct)
+ * - destroyed
+ *
+ * Methods:
+ * - setKeepAlive(Boolean)
+ * - write(Buffer)
+ * - end
+ *
+ * Events:
+ * - "connect"
+ * - "close"
+ * - "end"
+ * - "data"
+ * - "error"
+ **/
+define('net',['require','exports','module','util','events'],function(require, exports, module) {
+
+var util = require('util'),
+    EventEmitter = require('events').EventEmitter;
+
+function NetSocket(port, host, crypto) {
+  this._host = host;
+  this._port = port;
+  this._actualSock = MozTCPSocket.open(
+    host, port, { useSSL: crypto, binaryType: 'arraybuffer' });
+  EventEmitter.call(this);
+
+  this._actualSock.onopen = this._onconnect.bind(this);
+  this._actualSock.onerror = this._onerror.bind(this);
+  this._actualSock.ondata = this._ondata.bind(this);
+  this._actualSock.onclose = this._onclose.bind(this);
+}
+exports.NetSocket = NetSocket;
+util.inherits(NetSocket, EventEmitter);
+NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
+};
+NetSocket.prototype.write = function(buffer) {
+  this._actualSock.send(buffer);
+};
+NetSocket.prototype.end = function() {
+  this._actualSock.close();
+};
+
+NetSocket.prototype._onconnect = function(event) {
+  this.emit('connect', event.data);
+};
+NetSocket.prototype._onerror = function(event) {
+  this.emit('error', event.data);
+};
+NetSocket.prototype._ondata = function(event) {
+  var buffer = Buffer(event.data);
+  this.emit('data', buffer);
+};
+NetSocket.prototype._onclose = function(event) {
+  this.emit('close', event.data);
+  this.emit('end', event.data);
+};
+
+
+exports.connect = function(port, host) {
+  return new NetSocket(port, host, false);
+};
+
+}); // end define
+;
+/**
  *
  **/
 
-define('rdimap/imapclient/mailuniverse',[
+define('tls',
+  [
+    'net',
+    'exports'
+  ],
+  function(
+    $net,
+    exports
+  ) {
+
+exports.connect = function(port, host, wuh, onconnect) {
+  var socky = new $net.NetSocket(port, host, true);
+  socky.on('connect', onconnect);
+  return socky;
+};
+
+}); // end define
+;
+/**
+ *
+ **/
+
+define('os',
+  [
+    'exports'
+  ],
+  function(
+    exports
+  ) {
+
+exports.hostname = function() {
+  return 'localhost';
+};
+exports.getHostname = exports.hostname;
+
+}); // end define
+;
+define('simplesmtp/lib/starttls',['require','exports','module','crypto','tls'],function (require, exports, module) {
+// SOURCE: https://gist.github.com/848444
+
+// Target API:
+//
+//  var s = require('net').createStream(25, 'smtp.example.com');
+//  s.on('connect', function() {
+//   require('starttls')(s, options, function() {
+//      if (!s.authorized) {
+//        s.destroy();
+//        return;
+//      }
+//
+//      s.end("hello world\n");
+//    });
+//  });
+//
+//
+
+/**
+ * @namespace Client STARTTLS module
+ * @name starttls
+ */
+module.exports.starttls = starttls;
+
+/**
+ * <p>Upgrades a socket to a secure TLS connection</p>
+ * 
+ * @memberOf starttls
+ * @param {Object} socket Plaintext socket to be upgraded
+ * @param {Function} callback Callback function to be run after upgrade
+ */
+function starttls(socket, callback) {
+    var sslcontext, pair, cleartext;
+    
+    socket.removeAllListeners("data");
+    sslcontext = require('crypto').createCredentials();
+    pair = require('tls').createSecurePair(sslcontext, false);
+    cleartext = pipe(pair, socket);
+
+    pair.on('secure', function() {
+        var verifyError = (pair._ssl || pair.ssl).verifyError();
+
+        if (verifyError) {
+            cleartext.authorized = false;
+            cleartext.authorizationError = verifyError;
+        } else {
+            cleartext.authorized = true;
+        }
+
+        callback(cleartext);
+    });
+
+    cleartext._controlReleased = true;
+    return pair;
+}
+
+function forwardEvents(events, emitterSource, emitterDestination) {
+    var map = [], name, handler;
+    
+    for(var i = 0, len = events.length; i < len; i++) {
+        name = events[i];
+
+        handler = forwardEvent.bind(emitterDestination, name);
+        
+        map.push(name);
+        emitterSource.on(name, handler);
+    }
+    
+    return map;
+}
+
+function forwardEvent() {
+    this.emit.apply(this, arguments);
+}
+
+function removeEvents(map, emitterSource) {
+    for(var i = 0, len = map.length; i < len; i++){
+        emitterSource.removeAllListeners(map[i]);
+    }
+}
+
+function pipe(pair, socket) {
+    pair.encrypted.pipe(socket);
+    socket.pipe(pair.encrypted);
+
+    pair.fd = socket.fd;
+    
+    var cleartext = pair.cleartext;
+  
+    cleartext.socket = socket;
+    cleartext.encrypted = pair.encrypted;
+    cleartext.authorized = false;
+
+    function onerror(e) {
+        if (cleartext._controlReleased) {
+            cleartext.emit('error', e);
+        }
+    }
+
+    var map = forwardEvents(["timeout", "end", "close", "drain", "error"], socket, cleartext);
+  
+    function onclose() {
+        socket.removeListener('error', onerror);
+        socket.removeListener('close', onclose);
+        removeEvents(map,socket);
+    }
+
+    socket.on('error', onerror);
+    socket.on('close', onclose);
+
+    return cleartext;
+}
+});
+define('simplesmtp/lib/client',['require','exports','module','stream','util','net','tls','os','./starttls'],function (require, exports, module) {
+// TODO:
+// * Lisada timeout serveri ühenduse jaoks
+
+var Stream = require('stream').Stream,
+    utillib = require('util'),
+    net = require('net'),
+    tls = require('tls'),
+    oslib = require('os'),
+    starttls = require('./starttls').starttls;
+
+// monkey patch net and tls to support nodejs 0.4
+if(!net.connect && net.createConnection){
+    net.connect = net.createConnection;
+}
+
+if(!tls.connect && tls.createConnection){
+    tls.connect = tls.createConnection;
+}
+
+// expose to the world
+module.exports = function(port, host, options){
+    var connection = new SMTPClient(port, host, options);
+    process.nextTick(connection.connect.bind(connection));
+    return connection;
+};
+
+/**
+ * <p>Generates a SMTP connection object</p>
+ *
+ * <p>Optional options object takes the following possible properties:</p>
+ * <ul>
+ *     <li><b>secureConnection</b> - use SSL</li>
+ *     <li><b>name</b> - the name of the client server</li>
+ *     <li><b>auth</b> - authentication object <code>{user:"...", pass:"..."}</code>
+ *     <li><b>ignoreTLS</b> - ignore server support for STARTTLS</li>
+ *     <li><b>debug</b> - output client and server messages to console</li>
+ *     <li><b>instanceId</b> - unique instance id for debugging</li>
+ * </ul>
+ *
+ * @constructor
+ * @namespace SMTP Client module
+ * @param {Number} [port=25] Port number to connect to
+ * @param {String} [host="localhost"] Hostname to connect to
+ * @param {Object} [options] Option properties
+ */
+function SMTPClient(port, host, options){
+    Stream.call(this);
+    this.writable = true;
+    this.readable = true;
+
+    this.options = options || {};
+
+    this.port = port || (this.options.secureConnection ? 465 : 25);
+    this.host = host || "localhost";
+
+    this.options.secureConnection = !!this.options.secureConnection;
+    this.options.auth = this.options.auth || false;
+    this.options.maxConnections = this.options.maxConnections || 5;
+
+    if(!this.options.name){
+        // defaul hostname is machine hostname or [IP]
+        var defaultHostname = (oslib.hostname && oslib.hostname()) ||
+                              (oslib.getHostname && oslib.getHostname()) ||
+                              "";
+        if(defaultHostname.indexOf('.')<0){
+            defaultHostname = "[127.0.0.1]";
+        }
+        if(defaultHostname.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)){
+            defaultHostname = "["+defaultHostname+"]";
+        }
+
+        this.options.name = defaultHostname;
+    }
+
+    this._init();
+}
+utillib.inherits(SMTPClient, Stream);
+
+/**
+ * <p>Initializes instance variables</p>
+ */
+SMTPClient.prototype._init = function(){
+    /**
+     * Defines if the current connection is secure or not. If not,
+     * STARTTLS can be used if available
+     * @private
+     */
+    this._secureMode = false;
+
+    /**
+     * Ignore incoming data on TLS negotiation
+     * @private
+     */
+    this._ignoreData = false;
+
+    /**
+     * If set to true, then this object is no longer active
+     * @private
+     */
+    this.destroyed = false;
+
+    /**
+     * The socket connecting to the server
+     * @publick
+     */
+    this.socket = false;
+
+    /**
+     * Lists supported auth mechanisms
+     * @private
+     */
+    this._supportedAuth = [];
+
+    /**
+     * Currently in data transfer state
+     * @private
+     */
+    this._dataMode = false;
+
+    /**
+     * Keep track if the client sends a leading \r\n in data mode
+     * @private
+     */
+    this._lastDataBytes = new Buffer(2);
+
+    /**
+     * Function to run if a data chunk comes from the server
+     * @private
+     */
+    this._currentAction = false;
+
+    if(this.options.ignoreTLS || this.options.secureConnection){
+        this._secureMode = true;
+    }
+};
+
+/**
+ * <p>Creates a connection to a SMTP server and sets up connection
+ * listener</p>
+ */
+SMTPClient.prototype.connect = function(){
+
+    if(this.options.secureConnection){
+        this.socket = tls.connect(this.port, this.host, {}, this._onConnect.bind(this));
+    }else{
+        this.socket = net.connect(this.port, this.host);
+        this.socket.on("connect", this._onConnect.bind(this));
+    }
+
+    this.socket.on("error", this._onError.bind(this));
+};
+
+/**
+ * <p>Upgrades the connection to TLS</p>
+ *
+ * @param {Function} callback Callbac function to run when the connection
+ *        has been secured
+ */
+SMTPClient.prototype._upgradeConnection = function(callback){
+    this._ignoreData = true;
+    starttls(this.socket, (function(socket){
+        this.socket = socket;
+        this._ignoreData = false;
+        this._secureMode = true;
+        this.socket.on("data", this._onData.bind(this));
+
+        return callback(null, true);
+    }).bind(this));
+};
+
+/**
+ * <p>Connection listener that is run when the connection to
+ * the server is opened</p>
+ *
+ * @event
+ */
+SMTPClient.prototype._onConnect = function(){
+    if("setKeepAlive" in this.socket){
+        this.socket.setKeepAlive(true);
+    }else if(this.socket.encrypted && "setKeepAlive" in this.socket.encrypted){
+        this.socket.encrypted.setKeepAlive(true); // secure connection
+    }
+
+    this.socket.on("data", this._onData.bind(this));
+    this.socket.on("close", this._onClose.bind(this));
+    this.socket.on("end", this._onEnd.bind(this));
+
+    this._currentAction = this._actionGreeting;
+};
+
+/**
+ * <p>Destroys the client - removes listeners etc.</p>
+ */
+SMTPClient.prototype._destroy = function(){
+    if(this._destroyed)return;
+    this._destroyed = true;
+    this.emit("end");
+    this.removeAllListeners();
+};
+
+/**
+ * <p>'data' listener for data coming from the server</p>
+ *
+ * @event
+ * @param {Buffer} chunk Data chunk coming from the server
+ */
+SMTPClient.prototype._onData = function(chunk){
+    if(this._ignoreData){
+        return;
+    }
+
+    var str = chunk.toString().trim();
+
+    if(this.options.debug){
+        console.log("SERVER"+(this.options.instanceId?" "+
+            this.options.instanceId:"")+":\n   "+str.replace(/\n/g,"\n   "));
+    }
+
+    if(typeof this._currentAction == "function"){
+        this._currentAction.call(this, str);
+    }
+};
+
+/**
+ * <p>'error' listener for the socket</p>
+ *
+ * @event
+ * @param {Error} err Error object
+ * @param {String} type Error name
+ */
+SMTPClient.prototype._onError = function(err, type, data){
+    if(type && type != "Error"){
+        err.name = type;
+    }
+    if(data){
+        err.data = data;
+    }
+    this.emit("error", err);
+    this.close();
+};
+
+/**
+ * <p>'close' listener for the socket</p>
+ *
+ * @event
+ */
+SMTPClient.prototype._onClose = function(){
+    this._destroy();
+};
+
+/**
+ * <p>'end' listener for the socket</p>
+ *
+ * @event
+ */
+SMTPClient.prototype._onEnd = function(){
+    this._destroy();
+};
+
+/**
+ * <p>Passes data stream to socket if in data mode</p>
+ *
+ * @param {Buffer} chunk Chunk of data to be sent to the server
+ */
+SMTPClient.prototype.write = function(chunk){
+    // works only in data mode
+    if(!this._dataMode){
+        // this line should never be reached but if it does, then
+        // say act like everything's normal.
+        return true;
+    }
+
+    if(typeof chunk == "string"){
+        chunk = new Buffer(chunk, "utf-8");
+    }
+
+    if(chunk.length > 2){
+        this._lastDataBytes[0] = chunk[chunk.length-2];
+        this._lastDataBytes[1] = chunk[chunk.length-1];
+    }else if(chunk.length == 1){
+        this._lastDataBytes[0] = this._lastDataBytes[1];
+        this._lastDataBytes[1] = chunk[0];
+    }
+
+    if(this.options.debug){
+        console.log("CLIENT (DATA)"+(this.options.instanceId?" "+
+            this.options.instanceId:"")+":\n   "+chunk.toString().trim().replace(/\n/g,"\n   "));
+    }
+
+    // pass the chunk to the socket
+    return this.socket.write(chunk);
+};
+
+/**
+ * <p>Indicates that a data stream for the socket is ended. Works only
+ * in data mode.</p>
+ *
+ * @param {Buffer} [chunk] Chunk of data to be sent to the server
+ */
+SMTPClient.prototype.end = function(chunk){
+    // works only in data mode
+    if(!this._dataMode){
+        // this line should never be reached but if it does, then
+        // say act like everything's normal.
+        return true;
+    }
+
+    if(chunk && chunk.length){
+        this.write(chunk);
+    }
+
+    // redirect output from the server to _actionStream
+    this._currentAction = this._actionStream;
+
+    // indicate that the stream has ended by sending a single dot on its own line
+    // if the client already closed the data with \r\n no need to do it again
+    if(this._lastDataBytes[0] == 0x0D && this._lastDataBytes[1] == 0x0A){
+        this.socket.write(new Buffer(".\r\n", "utf-8"));
+    }else if(this._lastDataBytes[1] == 0x0D){
+        this.socket.write(new Buffer("\n.\r\n"));
+    }else{
+        this.socket.write(new Buffer("\r\n.\r\n"));
+    }
+
+    // end data mode
+    this._dataMode = false;
+};
+
+/**
+ * <p>Send a command to the server, append \r\n</p>
+ *
+ * @param {String} str String to be sent to the server
+ */
+SMTPClient.prototype.sendCommand = function(str){
+    if(this.options.debug){
+        console.log("CLIENT"+(this.options.instanceId?" "+
+            this.options.instanceId:"")+":\n   "+(str || "").toString().trim().replace(/\n/g,"\n   "));
+    }
+    this.socket.write(new Buffer(str+"\r\n", "utf-8"));
+};
+
+/**
+ * <p>Sends QUIT</p>
+ */
+SMTPClient.prototype.quit = function(){
+    this.sendCommand("QUIT");
+    this._currentAction = this.close;
+};
+
+/**
+ * <p>Closes the connection to the server</p>
+ */
+SMTPClient.prototype.close = function(){
+    if(this.options.debug){
+        console.log("Closing connection to the server");
+    }
+    if(this.socket && !this.socket.destroyed){
+        this.socket.end();
+    }
+    this._destroy();
+};
+
+/**
+ * <p>Initiates a new message by submitting envelope data, starting with
+ * <code>MAIL FROM:</code> command</p>
+ *
+ * @param {Object} envelope Envelope object in the form of
+ *        <code>{from:"...", to:["..."]}</code>
+ */
+SMTPClient.prototype.useEnvelope = function(envelope){
+    this._envelope = envelope || {};
+    this._envelope.from = this._envelope.from || ("anonymous@"+this.options.name);
+
+    // clone the recipients array for latter manipulation
+    this._envelope.rcptQueue = JSON.parse(JSON.stringify(this._envelope.to || []));
+    this._envelope.rcptFailed = [];
+
+    this._currentAction = this._actionMAIL;
+    this.sendCommand("MAIL FROM:<"+(this._envelope.from)+">");
+};
+
+/**
+ * <p>If needed starts the authentication, if not emits 'idle' to
+ * indicate that this client is ready to take in an outgoing mail</p>
+ */
+SMTPClient.prototype._authenticateUser = function(){
+
+    if(!this.options.auth){
+        // no need to authenticate, at least no data given
+        this._currentAction = this._actionIdle;
+        this.emit("idle"); // ready to take orders
+        return;
+    }
+
+    var auth;
+
+    if(this.options.auth.XOAuthToken && this._supportedAuth.indexOf("XOAUTH")>=0){
+        auth = "XOAUTH";
+    }else{
+        // use first supported
+        auth = (this._supportedAuth[0] || "PLAIN").toUpperCase().trim();
+    }
+
+    switch(auth){
+        case "XOAUTH":
+            this._currentAction = this._actionAUTHComplete;
+
+            if(typeof this.options.auth.XOAuthToken == "object" &&
+              typeof this.options.auth.XOAuthToken.generate == "function"){
+                this.options.auth.XOAuthToken.generate((function(err, XOAuthToken){
+                    if(err){
+                        return this._onError(err, "XOAuthTokenError");
+                    }
+                    this.sendCommand("AUTH XOAUTH " + XOAuthToken);
+                }).bind(this));
+            }else{
+                this.sendCommand("AUTH XOAUTH " + this.options.auth.XOAuthToken.toString());
+            }
+            return;
+        case "LOGIN":
+            this._currentAction = this._actionAUTH_LOGIN_USER;
+            this.sendCommand("AUTH LOGIN");
+            return;
+        case "PLAIN":
+            this._currentAction = this._actionAUTHComplete;
+            this.sendCommand("AUTH PLAIN "+new Buffer(
+                    this.options.auth.user+"\u0000"+
+                    this.options.auth.user+"\u0000"+
+                    this.options.auth.pass,"utf-8").toString("base64"));
+            return;
+    }
+
+    this._onError(new Error("Unknown authentication method - "+auth), "UnknowAuthError");
+};
+
+/** ACTIONS **/
+
+/**
+ * <p>Will be run after the connection is created and the server sends
+ * a greeting. If the incoming message starts with 220 initiate
+ * SMTP session by sending EHLO command</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionGreeting = function(str){
+    if(str.substr(0,3) != "220"){
+        this._onError(new Error("Invalid greeting from server - "+str), false, str);
+        return;
+    }
+
+    this._currentAction = this._actionEHLO;
+    this.sendCommand("EHLO "+this.options.name);
+};
+
+/**
+ * <p>Handles server response for EHLO command. If it yielded in
+ * error, try HELO instead, otherwise initiate TLS negotiation
+ * if STARTTLS is supported by the server or move into the
+ * authentication phase.</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionEHLO = function(str){
+    if(str.charAt(0) != "2"){
+        // Try HELO instead
+        this._currentAction = this._actionHELO;
+        this.sendCommand("HELO "+this.options.name);
+        return;
+    }
+
+    // Detect if the server supports STARTTLS
+    if(!this._secureMode && str.match(/[ \-]STARTTLS\r?$/mi)){
+        this.sendCommand("STARTTLS");
+        this._currentAction = this._actionSTARTTLS;
+        return;
+    }
+
+    // Detect if the server supports PLAIN auth
+    if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)PLAIN/i)){
+        this._supportedAuth.push("PLAIN");
+    }
+
+    // Detect if the server supports LOGIN auth
+    if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)LOGIN/i)){
+        this._supportedAuth.push("LOGIN");
+    }
+
+    // Detect if the server supports LOGIN auth
+    if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)XOAUTH/i)){
+        this._supportedAuth.push("XOAUTH");
+    }
+
+    this._authenticateUser.call(this);
+};
+
+/**
+ * <p>Handles server response for HELO command. If it yielded in
+ * error, emit 'error', otherwise move into the authentication phase.</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionHELO = function(str){
+    if(str.charAt(0) != "2"){
+        this._onError(new Error("Invalid response for EHLO/HELO - "+str), false, str);
+        return;
+    }
+    this._authenticateUser.call(this);
+};
+
+/**
+ * <p>Handles server response for STARTTLS command. If there's an error
+ * try HELO instead, otherwise initiate TLS upgrade. If the upgrade
+ * succeedes restart the EHLO</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionSTARTTLS = function(str){
+    if(str.charAt(0) != "2"){
+        // Try HELO instead
+        this._currentAction = this._actionHELO;
+        this.sendCommand("HELO "+this.options.name);
+        return;
+    }
+
+    this._upgradeConnection((function(err, secured){
+        if(err){
+            this._onError(new Error("Error initiating TLS - "+(err.message || err)), "TLSError");
+            return;
+        }
+        if(this.options.debug){
+            console.log("Connection secured");
+        }
+
+        if(secured){
+            // restart session
+            this._currentAction = this._actionEHLO;
+            this.sendCommand("EHLO "+this.options.name);
+        }else{
+            this._authenticateUser.call(this);
+        }
+    }).bind(this));
+};
+
+/**
+ * <p>Handle the response for AUTH LOGIN command. We are expecting
+ * '334 VXNlcm5hbWU6' (base64 for 'Username:'). Data to be sent as
+ * response needs to be base64 encoded username.</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionAUTH_LOGIN_USER = function(str){
+    if(str != "334 VXNlcm5hbWU6"){
+        this._onError(new Error("Invalid login sequence while waiting for '334 VXNlcm5hbWU6' - "+str), false, str);
+        return;
+    }
+    this._currentAction = this._actionAUTH_LOGIN_PASS;
+    this.sendCommand(new Buffer(
+            this.options.auth.user, "utf-8").toString("base64"));
+};
+
+/**
+ * <p>Handle the response for AUTH LOGIN command. We are expecting
+ * '334 UGFzc3dvcmQ6' (base64 for 'Password:'). Data to be sent as
+ * response needs to be base64 encoded password.</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionAUTH_LOGIN_PASS = function(str){
+    if(str != "334 UGFzc3dvcmQ6"){
+        this._onError(new Error("Invalid login sequence while waiting for '334 UGFzc3dvcmQ6' - "+str), false, str);
+        return;
+    }
+    this._currentAction = this._actionAUTHComplete;
+    this.sendCommand(new Buffer(this.options.auth.pass, "utf-8").toString("base64"));
+};
+
+/**
+ * <p>Handles the response for authentication, if there's no error,
+ * the user can be considered logged in. Emit 'idle' and start
+ * waiting for a message to send</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionAUTHComplete = function(str){
+    if(str.charAt(0) != "2"){
+        this._onError(new Error("Invalid login - "+str), "AuthError", str);
+        return;
+    }
+
+    this._currentAction = this._actionIdle;
+    this.emit("idle"); // ready to take orders
+};
+
+/**
+ * <p>This function is not expected to run. If it does then there's probably
+ * an error (timeout etc.)</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionIdle = function(str){
+    if(Number(str.charAt(0)) > 3){
+        this._onError(new Error(str), false, str);
+        return;
+    }
+
+    // this line should never get called
+};
+
+/**
+ * <p>Handle response for a <code>MAIL FROM:</code> command</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionMAIL = function(str){
+    if(Number(str.charAt(0)) != "2"){
+        this._onError(new Error("Mail from command failed - " + str), "SenderError", str);
+        return;
+    }
+
+    if(!this._envelope.rcptQueue.length){
+        this._onError(new Error("Can't send mail - no recipients defined"), "RecipientError");
+    }else{
+        this._envelope.curRecipient = this._envelope.rcptQueue.shift();
+        this._currentAction = this._actionRCPT;
+        this.sendCommand("RCPT TO:<"+this._envelope.curRecipient+">");
+    }
+};
+
+/**
+ * <p>Handle response for a <code>RCPT TO:</code> command</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionRCPT = function(str){
+    if(Number(str.charAt(0)) != "2"){
+        // this is a soft error
+        this._envelope.rcptFailed.push(this._envelope.curRecipient);
+    }
+
+    if(!this._envelope.rcptQueue.length){
+        if(this._envelope.rcptFailed.length < this._envelope.to.length){
+            this.emit("rcptFailed", this._envelope.rcptFailed);
+            this._currentAction = this._actionDATA;
+            this.sendCommand("DATA");
+        }else{
+            this._onError(new Error("Can't send mail - all recipients were rejected"), "RecipientError");
+            return;
+        }
+    }else{
+        this._envelope.curRecipient = this._envelope.rcptQueue.shift();
+        this._currentAction = this._actionRCPT;
+        this.sendCommand("RCPT TO:<"+this._envelope.curRecipient+">");
+    }
+};
+
+/**
+ * <p>Handle response for a <code>DATA</code> command</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionDATA = function(str){
+    // response should be 354 but according to this issue https://github.com/eleith/emailjs/issues/24
+    // some servers might use 250 instead, so lets check for 2 or 3 as the first digit
+    if([2,3].indexOf(Number(str.charAt(0)))<0){
+        this._onError(new Error("Data command failed - " + str), false, str);
+        return;
+    }
+
+    // Emit that connection is set up for streaming
+    this._dataMode = true;
+    this._currentAction = this._actionIdle;
+    this.emit("message");
+};
+
+/**
+ * <p>Handle response for a <code>DATA</code> stream</p>
+ *
+ * @param {String} str Message from the server
+ */
+SMTPClient.prototype._actionStream = function(str){
+    if(Number(str.charAt(0)) != "2"){
+        // Message failed
+        this.emit("ready", false, str);
+    }else{
+        // Message sent succesfully
+        this.emit("ready", true, str);
+    }
+
+    // Waiting for new connections
+    this._currentAction = this._actionIdle;
+    process.nextTick(this.emit.bind(this, "idle"));
+};
+
+});
+/**
+ *
+ **/
+
+define('rdimap/imapclient/smtpprobe',
+  [
+    'simplesmtp/lib/client',
+    'exports'
+  ],
+  function(
+    $simplesmtp,
+    exports
+  ) {
+
+function SmtpProber(credentials, connInfo) {
+  console.log("PROBE:SMTP attempting to connect to", connInfo.hostname);
+  this._conn = $simplesmtp(
+    connInfo.port, connInfo.hostname,
+    {
+      secureConnection: connInfo.crypto === true,
+      ignoreTLS: connInfo.crypto === false,
+      auth: { user: credentials.username, pass: credentials.password },
+      debug: false,
+    });
+  this._conn.on('idle', this.onIdle.bind(this));
+  this._conn.on('error', this.onBadness.bind(this));
+  this._conn.on('end', this.onBadness.bind(this));
+
+  this.onresult = null;
+}
+exports.SmtpProber = SmtpProber;
+SmtpProber.prototype = {
+  /**
+   * onIdle happens after successful login, and so is what our probing uses.
+   */
+  onIdle: function() {
+    console.log('onIdle!');
+    if (this.onresult) {
+      console.log("PROBE:SMTP happy");
+      this.onresult(true);
+      this.onresult = null;
+    }
+    this._conn.close();
+  },
+
+  onBadness: function() {
+    if (this.onresult) {
+      console.warn("PROBE:SMTP sad");
+      this.onresult(false);
+      this.onresult = null;
+    }
+  },
+};
+
+}); // end define
+;
+/**
+ *
+ **/
+
+define('rdimap/imapclient/smtpacct',
+  [
+    'rdcommon/log',
+    'simplesmtp/lib/client',
+    'module',
+    'exports'
+  ],
+  function(
+    $log,
+    $simplesmtp,
+    $module,
+    exports
+  ) {
+
+function SmtpAccount(universe, compositeAccount, accountId, credentials,
+                     connInfo, _parentLog) {
+  this.universe = universe;
+  this.compositeAccount = compositeAccount;
+  this.accountId = accountId;
+  this.credentials = credentials;
+  this.connInfo = connInfo;
+
+  this._LOG = LOGFAB.SmtpAccount(this, _parentLog, accountId);
+
+  this._activeConnections = [];
+}
+exports.SmtpAccount = SmtpAccount;
+SmtpAccount.prototype = {
+  type: 'smtp',
+  toString: function() {
+    return '[SmtpAccount: ' + this.id + ']';
+  },
+
+  get numActiveConns() {
+    return this._activeConnections.length;
+  },
+
+  _makeConnection: function() {
+    var conn = $simplesmtp(
+      this.connInfo.port, this.connInfo.hostname,
+      {
+        secureConnection: this.connInfo.crypto === true,
+        ignoreTLS: this.connInfo.crypto === false,
+        auth: {
+          user: this.credentials.username,
+          pass: this.credentials.password
+        },
+        debug: false,
+      });
+    return conn;
+  },
+
+  shutdown: function(callback) {
+    // (there should be no live connections during a unit-test initiated
+    // shutdown.)
+    this._LOG.__die();
+  },
+
+  /**
+   * @args[
+   *   @param[callback @func[
+   *     @args[
+   *       @param[error @oneof[
+   *         @case[null]{
+   *           No error, message sent successfully.
+   *         }
+   *         @case['auth']{
+   *           Authentication problem.  This should probably be escalated to
+   *           the user so they can fix their password.
+   *         }
+   *         @case['bad-sender']{
+   *           We logged in, but it didn't like our sender e-mail.
+   *         }
+   *         @case['bad-recipient']{
+   *           There were one or more bad recipients; they are listed in the
+   *           next argument.
+   *         }
+   *         @case['bad-message']{
+   *           It failed during the sending of the message.
+   *         }
+   *         @case['server-maybe-offline']{
+   *           The server won't let us login, maybe because of a bizarre offline
+   *           for service strategy?  (We've seen this with IMAP before...)
+   *
+   *           This should be considered a fatal problem during probing or if
+   *           it happens consistently.
+   *         }
+   *         @case['insecure']{
+   *           We couldn't establish a secure connection.
+   *         }
+   *         @case['connection-lost']{
+   *           The connection went away, we don't know why.  Could be a
+   *           transient thing, could be a jerky server, who knows.
+   *         }
+   *         @case['unknown']{
+   *           Some other error.  Internal error reporting/support should
+   *           ideally be logging this somehow.
+   *         }
+   *       ]]
+   *       @param[badAddresses @listof[String]]
+   *     ]
+   *   ]
+   * ]
+   */
+  sendMessage: function(composedMessage, callback) {
+    var conn = this._makeConnection(), bailed = false, sendingMessage = false;
+    this._activeConnections.push(conn);
+
+    // - Optimistic case
+    // Send the envelope once the connection is ready (fires again after
+    // ready too.)
+    conn.once('idle', function() {
+        conn.useEnvelope(composedMessage.getEnvelope());
+      });
+    // Then send the actual message if everything was cool
+    conn.on('message', function() {
+        if (bailed)
+          return;
+        sendingMessage = true;
+        composedMessage.streamMessage();
+        composedMessage.pipe(conn);
+      });
+    // And close the connection and be done once it has been sent
+    conn.on('ready', function() {
+        bailed = true;
+        conn.close();
+        callback(null);
+      });
+
+    // - Error cases
+    // It's possible for the server to decide some, but not all, of the
+    // recipients are gibberish.  Since we are a mail client and talking to
+    // a smarthost and not the final destination (most of the time), this
+    // is not super likely.
+    //
+    // We upgrade this to a full failure to send
+    conn.on('rcptFailed', function(addresses) {
+        // nb: this gets called all the time, even without any failures
+        if (addresses.length) {
+          bailed = true;
+          // simplesmtp does't view this as fatal, so we have to close it ourself
+          conn.close();
+          callback('bad-recipient', addresses);
+        }
+      });
+    conn.on('error', function(err) {
+        if (bailed) // (paranoia, this shouldn't happen.)
+          return;
+        var reportAs = null;
+        switch (err.name) {
+          // no explicit error type is given for: a bad greeting, failure to
+          // EHLO/HELO, bad login sequence, OR a data problem during send.
+          // The first 3 suggest a broken server or one that just doesn't want
+          // to talk to us right now.
+          case 'Error':
+            if (sendingMessage)
+              reportAs = 'bad-message';
+            else
+              reportAs = 'server-maybe-offline';
+            break;
+          case 'AuthError':
+            reportAs = 'auth';
+            break;
+          case 'UnknownAuthError':
+            reportAs = 'server-maybe-offline';
+            break;
+          case 'TLSError':
+            reportAs = 'insecure';
+            break;
+
+          case 'SenderError':
+            reportAs = 'bad-sender';
+            break;
+          // no recipients (bad message on us) or they all got rejected
+          case 'RecipientError':
+            reportAs = 'bad-recipient';
+            break;
+
+          default:
+            reportAs = 'unknown';
+            break;
+        }
+        bailed = true;
+        callback(reportAs, null);
+        // the connection gets automatically closed.
+      });
+      conn.on('end', function() {
+        var idx = this._activeConnections.indexOf(conn);
+        if (idx !== -1)
+          this._activeConnections.splice(idx, 1);
+        else
+          console.error('Dead unknown connection?');
+        if (bailed)
+          return;
+        callback('connection-lost', null);
+        bailed = true;
+        // (the connection is already closed if we are here)
+      }.bind(this));
+  },
+
+
+};
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  SmtpAccount: {
+    type: $log.ACCOUNT,
+    events: {
+    },
+    TEST_ONLY_events: {
+    },
+    errors: {
+      folderAlreadyHasConn: { folderId: false },
+    },
+  },
+});
+
+}); // end define
+;
+/**
+ * Implements a fake account type for UI testing/playing only.
+ **/
+
+define('rdimap/imapclient/fakeacct',
+  [
+    'mailcomposer',
+    'exports'
+  ],
+  function(
+    $mailcomposer,
+    exports
+  ) {
+
+////////////////////////////////////////////////////////////////////////////////
+// Message generation helper code from Thunderbird (written by me for MoMo,
+// relicensing is okay) but hackily simplified for this explicit use case.
+
+/**
+ * A list of first names for use by MessageGenerator to create deterministic,
+ *  reversible names.  To keep things easily reversible, if you add names, make
+ *  sure they have no spaces in them!
+ */
+const FIRST_NAMES = [
+  "Andy", "Bob", "Chris", "David", "Emily", "Felix",
+  "Gillian", "Helen", "Idina", "Johnny", "Kate", "Lilia",
+  "Martin", "Neil", "Olof", "Pete", "Quinn", "Rasmus",
+  "Sarah", "Troels", "Ulf", "Vince", "Will", "Xavier",
+  "Yoko", "Zig"
+  ];
+
+/**
+ * A list of last names for use by MessageGenerator to create deterministic,
+ *  reversible names.  To keep things easily reversible, if you add names, make
+ *  sure they have no spaces in them!
+ */
+const LAST_NAMES = [
+  "Anway", "Bell", "Clarke", "Davol", "Ekberg", "Flowers",
+  "Gilbert", "Hook", "Ivarsson", "Jones", "Kurtz", "Lowe",
+  "Morris", "Nagel", "Orzabal", "Price", "Quinn", "Rolinski",
+  "Stanley", "Tennant", "Ulvaeus", "Vannucci", "Wiggs", "Xavier",
+  "Young", "Zig"
+  ];
+
+/**
+ * A list of adjectives used to construct a deterministic, reversible subject
+ *  by MessageGenerator.  To keep things easily reversible, if you add more,
+ *  make sure they have no spaces in them!  Also, make sure your additions
+ *  don't break the secret Monty Python reference!
+ */
+const SUBJECT_ADJECTIVES = [
+  "Big", "Small", "Huge", "Tiny",
+  "Red", "Green", "Blue", "My",
+  "Happy", "Sad", "Grumpy", "Angry",
+  "Awesome", "Fun", "Lame", "Funky",
+  ];
+
+/**
+ * A list of nouns used to construct a deterministic, reversible subject
+ *  by MessageGenerator.  To keep things easily reversible, if you add more,
+ *  make sure they have no spaces in them!  Also, make sure your additions
+ *  don't break the secret Monty Python reference!
+ */
+const SUBJECT_NOUNS = [
+  "Meeting", "Party", "Shindig", "Wedding",
+  "Document", "Report", "Spreadsheet", "Hovercraft",
+  "Aardvark", "Giraffe", "Llama", "Velociraptor",
+  "Laser", "Ray-Gun", "Pen", "Sword",
+  ];
+
+/**
+ * A list of suffixes used to construct a deterministic, reversible subject
+ *  by MessageGenerator.  These can (clearly) have spaces in them.  Make sure
+ *  your additions don't break the secret Monty Python reference!
+ */
+const SUBJECT_SUFFIXES = [
+  "Today", "Tomorrow", "Yesterday", "In a Fortnight",
+  "Needs Attention", "Very Important", "Highest Priority", "Full Of Eels",
+  "In The Lobby", "On Your Desk", "In Your Car", "Hiding Behind The Door",
+  ];
+
+/**
+ * Provides mechanisms for creating vaguely interesting, but at least valid,
+ *  SyntheticMessage instances.
+ */
+function MessageGenerator(startDate, mode) {
+  this._clock = startDate || new Date(2012, 5, 14);
+  this._nextNameNumber = 0;
+  this._nextSubjectNumber = 0;
+  this._nextMessageIdNum = 0;
+
+  this._mode = mode || 'info';
+}
+exports.MessageGenerator = MessageGenerator;
+MessageGenerator.prototype = {
+  /**
+   * The maximum number of unique names makeName can produce.
+   */
+  MAX_VALID_NAMES: FIRST_NAMES.length * LAST_NAMES.length,
+  /**
+   * The maximum number of unique e-mail address makeMailAddress can produce.
+   */
+  MAX_VALID_MAIL_ADDRESSES: FIRST_NAMES.length * LAST_NAMES.length,
+  /**
+   * The maximum number of unique subjects makeSubject can produce.
+   */
+  MAX_VALID_SUBJECTS: SUBJECT_ADJECTIVES.length * SUBJECT_NOUNS.length *
+                      SUBJECT_SUFFIXES,
+
+  /**
+   * Generate a consistently determined (and reversible) name from a unique
+   *  value.  Currently up to 26*26 unique names can be generated, which
+   *  should be sufficient for testing purposes, but if your code cares, check
+   *  against MAX_VALID_NAMES.
+   *
+   * @param aNameNumber The 'number' of the name you want which must be less
+   *     than MAX_VALID_NAMES.
+   * @returns The unique name corresponding to the name number.
+   */
+  makeName: function(aNameNumber) {
+    var iFirst = aNameNumber % FIRST_NAMES.length;
+    var iLast = (iFirst + Math.floor(aNameNumber / FIRST_NAMES.length)) %
+                LAST_NAMES.length;
+
+    return FIRST_NAMES[iFirst] + " " + LAST_NAMES[iLast];
+  },
+
+  /**
+   * Generate a consistently determined (and reversible) e-mail address from
+   *  a unique value; intended to work in parallel with makeName.  Currently
+   *  up to 26*26 unique addresses can be generated, but if your code cares,
+   *  check against MAX_VALID_MAIL_ADDRESSES.
+   *
+   * @param aNameNumber The 'number' of the mail address you want which must be
+   *     less than MAX_VALID_MAIL_ADDRESSES.
+   * @returns The unique name corresponding to the name mail address.
+   */
+  makeMailAddress: function(aNameNumber) {
+    var iFirst = aNameNumber % FIRST_NAMES.length;
+    var iLast = (iFirst + Math.floor(aNameNumber / FIRST_NAMES.length)) %
+                LAST_NAMES.length;
+
+    return FIRST_NAMES[iFirst].toLowerCase() + "@" +
+           LAST_NAMES[iLast].toLowerCase() + ".nul";
+  },
+
+  /**
+   * Generate a pair of name and e-mail address.
+   *
+   * @param aNameNumber The optional 'number' of the name and mail address you
+   *     want.  If you do not provide a value, we will increment an internal
+   *     counter to ensure that a new name is allocated and that will not be
+   *     re-used.  If you use our automatic number once, you must use it always,
+   *     unless you don't mind or can ensure no collisions occur between our
+   *     number allocation and your uses.  If provided, the number must be
+   *     less than MAX_VALID_NAMES.
+   * @return A list containing two elements.  The first is a name produced by
+   *     a call to makeName, and the second an e-mail address produced by a
+   *     call to makeMailAddress.  This representation is used by the
+   *     SyntheticMessage class when dealing with names and addresses.
+   */
+  makeNameAndAddress: function(aNameNumber) {
+    if (aNameNumber === undefined)
+      aNameNumber = this._nextNameNumber++;
+    return {
+      name: this.makeName(aNameNumber),
+      address: this.makeMailAddress(aNameNumber)
+    };
+  },
+
+  /**
+   * Generate and return multiple pairs of names and e-mail addresses.  The
+   *  names are allocated using the automatic mechanism as documented on
+   *  makeNameAndAddress.  You should accordingly not allocate / hard code name
+   *  numbers on your own.
+   *
+   * @param aCount The number of people you want name and address tuples for.
+   * @returns a list of aCount name-and-address tuples.
+   */
+  makeNamesAndAddresses: function(aCount) {
+    var namesAndAddresses = [];
+    for (var i=0; i < aCount; i++)
+      namesAndAddresses.push(this.makeNameAndAddress());
+    return namesAndAddresses;
+  },
+
+  /**
+   * Generate a consistently determined (and reversible) subject from a unique
+   *  value.  Up to MAX_VALID_SUBJECTS can be produced.
+   *
+   * @param aSubjectNumber The subject number you want generated, must be less
+   *     than MAX_VALID_SUBJECTS.
+   * @returns The subject corresponding to the given subject number.
+   */
+  makeSubject: function(aSubjectNumber) {
+    if (aSubjectNumber === undefined)
+      aSubjectNumber = this._nextSubjectNumber++;
+    var iAdjective = aSubjectNumber % SUBJECT_ADJECTIVES.length;
+    var iNoun = (iAdjective + Math.floor(aSubjectNumber /
+                                         SUBJECT_ADJECTIVES.length)) %
+                SUBJECT_NOUNS.length;
+    var iSuffix = (iNoun + Math.floor(aSubjectNumber /
+                   (SUBJECT_ADJECTIVES.length * SUBJECT_NOUNS.length))) %
+                  SUBJECT_SUFFIXES.length;
+    return SUBJECT_ADJECTIVES[iAdjective] + " " +
+           SUBJECT_NOUNS[iNoun] + " " +
+           SUBJECT_SUFFIXES[iSuffix];
+  },
+
+  /**
+   * Fabricate a message-id suitable for the given synthetic message.  Although
+   *  we don't use the message yet, in theory it would var us tailor the
+   *  message id to the server that theoretically might be sending it.  Or some
+   *  such.
+   *
+   * @param The synthetic message you would like us to make up a message-id for.
+   *     We don't set the message-id on the message, that's up to you.
+   * @returns a Message-id suitable for the given message.
+   */
+  makeMessageId: function(aSynthMessage) {
+    var msgId = this._nextMessageIdNum + "@made.up";
+    this._nextMessageIdNum++;
+    return msgId;
+  },
+
+  /**
+   * Generates a valid date which is after all previously issued dates by this
+   *  method, ensuring an apparent ordering of time consistent with the order
+   *  in which code is executed / messages are generated.
+   * If you need a precise time ordering or precise times, make them up
+   *  yourself.
+   *
+   * @returns A made-up time in JavaScript Date object form.
+   */
+  makeDate: function() {
+    var date = this._clock;
+    // advance time by an hour
+    this._clock = new Date(date.valueOf() + 60 * 60 * 1000);
+    return date;
+  },
+
+  /**
+   * HACK: copied from our mailbridge implementation.
+   *
+   * mailcomposer wants from/to/cc/bcc delivered basically like it will show
+   * up in the e-mail, except it is fine with unicode.  So we convert our
+   * (possibly) structured representation into a flattened representation.
+   *
+   * (mailcomposer will handle punycode and mime-word encoding as needed.)
+   */
+  _formatAddresses: function(nameAddrPairs) {
+    var addrstrings = [];
+    for (var i = 0; i < nameAddrPairs.length; i++) {
+      var pair = nameAddrPairs[i];
+      // support lazy people providing only an e-mail... or very careful
+      // people who are sure they formatted things correctly.
+      if (typeof(pair) === 'string') {
+        addrstrings.push(pair);
+      }
+      else {
+        addrstrings.push(
+          '"' + pair.name.replace(/["']/g, '') + '" <' +
+            pair.address + '>');
+      }
+    }
+
+    return addrstrings.join(', ');
+  },
+
+
+  /**
+   * Create a SyntheticMessage.  All arguments are optional, but allow
+   *  additional control.  With no arguments specified, a new name/address will
+   *  be generated that has not been used before, and sent to a new name/address
+   *  that has not been used before.
+   *
+   * @param aArgs An object with any of the following attributes provided:
+   * @param [aArgs.age] A dictionary with potential attributes 'minutes',
+   *     'hours', 'days', 'weeks' to specify the message be created that far in
+   *     the past.
+   * @param [aArgs.attachments] A list of dictionaries suitable for passing to
+   *     syntheticPartLeaf, plus a 'body' attribute that has already been
+   *     encoded.  Line chopping is on you FOR NOW.
+   * @param [aArgs.body] A dictionary suitable for passing to SyntheticPart plus
+   *     a 'body' attribute that has already been encoded (if encoding is
+   *     required).  Line chopping is on you FOR NOW.  Alternately, use
+   *     bodyPart.
+   * @param [aArgs.bodyPart] A SyntheticPart to uses as the body.  If you
+   *     provide an attachments value, this part will be wrapped in a
+   *     multipart/mixed to also hold your attachments.  (You can put
+   *     attachments in the bodyPart directly if you want and not use
+   *     attachments.)
+   * @param [aArgs.callerData] A value to propagate to the callerData attribute
+   *     on the resulting message.
+   * @param [aArgs.cc] A list of cc recipients (name and address pairs).  If
+   *     omitted, no cc is generated.
+   * @param [aArgs.from] The name and value pair this message should be from.
+   *     Defaults to the first recipient if this is a reply, otherwise a new
+   *     person is synthesized via |makeNameAndAddress|.
+   * @param [aArgs.inReplyTo] the SyntheticMessage this message should be in
+   *     reply-to.  If that message was in reply to another message, we will
+   *     appropriately compensate for that.  If a SyntheticMessageSet is
+   *     provided we will use the first message in the set.
+   * @param [aArgs.replyAll] a boolean indicating whether this should be a
+   *     reply-to-all or just to the author of the message.  (er, to-only, not
+   *     cc.)
+   * @param [aArgs.subject] subject to use; you are responsible for doing any
+   *     encoding before passing it in.
+   * @param [aArgs.to] The list of recipients for this message, defaults to a
+   *     set of toCount newly created persons.
+   * @param [aArgs.toCount=1] the number of people who the message should be to.
+   * @param [aArgs.clobberHeaders] An object whose contents will overwrite the
+   *     contents of the headers object.  This should only be used to construct
+   *     illegal header values; general usage should use another explicit
+   *     mechanism.
+   * @param [aArgs.junk] Should this message be flagged as junk for the benefit
+   *     of the messageInjection helper so that it can know to flag the message
+   *     as junk?  We have no concept of marking a message as definitely not
+   *     junk at this point.
+   * @param [aArgs.read] Should this message be marked as already read?
+   * @returns a SyntheticMessage fashioned just to your liking.
+   */
+  makeMessage: function makeMessage(aArgs) {
+    aArgs = aArgs || {};
+
+    var headerInfo = {
+      id: null,
+      suid: null,
+      guid: Date.now() + Math.random().toString(16).substr(1) +
+              '@mozgaia',
+      author: null,
+      date: null,
+      flags: [],
+      hasAttachments: false,
+      subject: null,
+      snippet: null,
+    };
+    var bodyInfo = {
+      to: null,
+      cc: null,
+      bcc: null,
+      replyTo: null,
+      attachments: null,
+      references: null,
+      bodyRep: null,
+    };
+
+    if (aArgs.inReplyTo) {
+      var srcMsg = aArgs.inReplyTo;
+
+      headerInfo.subject =
+        (srcMsg.headerInfo.subject.substring(0, 4) == "Re: ") ?
+          srcMsg.headerInfo.subject :
+          ("Re: " + srcMsg.headerInfo.subject);
+      if (aArgs.replyAll)
+        bodyInfo.to = [srcMsg.headerInfo.author].concat(srcMsg.bodyInfo.to.slice(1));
+      else
+        bodyInfo.to = [srcMsg.headerInfo.author];
+      headerInfo.author = srcMsg.bodyInfo.to[0];
+    }
+    else {
+      headerInfo.subject = aArgs.subject || this.makeSubject();
+      headerInfo.author = aArgs.from || this.makeNameAndAddress();
+      bodyInfo.to = aArgs.to || this.makeNamesAndAddresses(aArgs.toCount || 1);
+      if (aArgs.cc)
+        bodyInfo.cc = aArgs.cc;
+    }
+
+    if (aArgs.age) {
+      var age = aArgs.age;
+      // start from 'now'
+      var ts = this._clock || Date.now();
+      if (age.minutes)
+        ts -= age.minutes * 60 * 1000;
+      if (age.hours)
+        ts -= age.hours * 60 * 60 * 1000;
+      if (age.days)
+        ts -= age.days * 24 * 60 * 60 * 1000;
+      if (age.weeks)
+        ts -= age.weeks * 7 * 24 * 60 * 60 * 1000;
+      headerInfo.date = ts;
+    }
+    else {
+      headerInfo.date = this.makeDate().valueOf();
+    }
+
+    // use two subjects for the snippet to get it good and long.
+    headerInfo.snippet = this.makeSubject() + ' ' + this.makeSubject();
+
+    var rawBody = aArgs.rawBody || null, bodyText,
+        replaceHeaders = aArgs.replaceHeaders || null;
+
+    // If a raw body was provided, try and take mailcomposer's logic out of
+    // the picture by providing a stub body that we can replace after the
+    // MIME structure has been built.  (Alternately, we could fall back to
+    // Thunderbird's synthetic mime header stuff, but that is much more
+    // limited...)
+    if (rawBody) {
+      bodyText = '::BODYTEXT::';
+    }
+    else {
+      bodyText = headerInfo.snippet + '\n' +
+        'This message is automatically created for you by robots.\n' +
+        '\nThe robots may or may not be friendly.\n' +
+        'They definitely do not know latin, which is why no lorax gypsum.\n' +
+        '\nI am endeavouring to write more words now because scrolling turns' +
+        ' out to be something important to test.  I know, I know.  You also' +
+        ' are surprised that scrolling is important?  Who would have thunk?\n' +
+        '\nI actually have some synthetic markov chain stuff lying around, do' +
+        ' you think that would go better?  Perhaps?  Possibly?  Potentially?' +
+        ' Pertinent?\n' +
+        '\nTo-do:\n' +
+        '1: Write more made-up text.\n' +
+        '2: Cheat and just add more lines...\n' +
+        '\n\n\n\n' +
+        '3: ...\n' +
+        '\nIt is a tiny screen we target, thank goodness!';
+    }
+    bodyInfo.bodyRep = [0x1, bodyText];
+
+    if (this._mode === 'info') {
+      return {
+        headerInfo: headerInfo,
+        bodyInfo: bodyInfo,
+      };
+    }
+    else { // 'rfc822'
+      var composer = new $mailcomposer.MailComposer();
+      var messageOpts = {
+        from: this._formatAddresses([headerInfo.author]),
+        subject: headerInfo.subject,
+        body: bodyText,
+        to: this._formatAddresses(bodyInfo.to),
+      };
+      if (bodyInfo.cc)
+        messageOpts.cc = this._formatAddresses(bodyInfo.cc);
+
+      composer.setMessageOption(messageOpts);
+      composer.addHeader('Date', new Date(headerInfo.date));
+      composer.addHeader('Message-Id', '<' + headerInfo.guid + '>');
+
+      // have it internally accumulate the data rather than using the stream
+      // mechanism.
+      composer._cacheOutput = true;
+      var data = null;
+      process.immediate = true;
+      composer._processBufferedOutput = function() {
+        data = this._outputBuffer;
+      };
+      composer._composeMessage();
+      process.immediate = false;
+
+      if (rawBody)
+        data = data.replace('::BODYTEXT::', rawBody);
+      if (replaceHeaders) {
+        for (var headerName in replaceHeaders) {
+          var headerValue = replaceHeaders[headerName],
+              headerRE = new RegExp('^' + headerName + ': [^\r]+\r\n', 'm');
+          data = data.replace(headerRE, headerName + ': ' + headerValue +
+                              '\r\n');
+        }
+      }
+
+      return {
+        date: new Date(headerInfo.date),
+        headerInfo: headerInfo,
+        bodyInfo: bodyInfo,
+        // XXX mailcomposer is tacking newlines onto the end of the message that
+        // we don't want.  Ideally we want to fix mailcomposer...
+        messageText: data.trimRight()
+      };
+    }
+  },
+
+  MAKE_MESSAGES_DEFAULTS: {
+    count: 10,
+  },
+  MAKE_MESSAGES_PROPAGATE: ['attachments', 'body',
+                            'cc', 'from', 'to', 'inReplyTo',
+                            'subject', 'clobberHeaders', 'junk', 'read'],
+  /**
+   * Given a set definition, produce a list of synthetic messages.
+   *
+   * The set definition supports the following attributes:
+   *  count: The number of messages to create.
+   *  age: As used by makeMessage.
+   *  age_incr: Similar to age, but used to increment the values in the age
+   *      dictionary (assuming a value of zero if omitted).
+   *  @param [aSetDef.msgsPerThread=1] The number of messages per thread.  If
+   *      you want to create direct-reply threads, you can pass a value for this
+   *      and have it not be one.  If you need fancier reply situations,
+   *      directly use a scenario or hook us up to support that.
+   *
+   * Also supported are the following attributes as defined by makeMessage:
+   *  attachments, body, from, inReplyTo, subject, to, clobberHeaders, junk
+   *
+   * If omitted, the following defaults are used, but don't depend on this as we
+   *  can change these at any time:
+   * - count: 10
+   */
+  makeMessages: function MessageGenerator_makeMessages(aSetDef) {
+    var messages = [];
+
+    var args = {}, unit, delta;
+    // zero out all the age_incr fields in age (if present)
+    if (aSetDef.age_incr) {
+      args.age = {};
+      for (unit in aSetDef.age_incr) {
+        args.age[unit] = 0;
+      }
+    }
+    // copy over the initial values from age (if present)
+    if (aSetDef.age) {
+      args.age = args.age || {};
+      for (unit in aSetDef.age) {
+        var value = aSetDef.age[unit];
+        args.age[unit] = value;
+      }
+    }
+    // just copy over any attributes found from MAKE_MESSAGES_PROPAGATE
+    for (var iPropName = 0;
+         iPropName < this.MAKE_MESSAGES_PROPAGATE.length;
+         iPropName++) {
+      var propAttrName = this.MAKE_MESSAGES_PROPAGATE[iPropName];
+      if (aSetDef[propAttrName])
+        args[propAttrName] = aSetDef[propAttrName];
+    }
+
+    var count = aSetDef.count || this.MAKE_MESSAGES_DEFAULTS.count;
+    var messagsPerThread = aSetDef.msgsPerThread || 1;
+    var rawBodies = aSetDef.hasOwnProperty('rawBodies') ? aSetDef.rawBodies
+                                                        : null,
+        replaceHeaders = aSetDef.hasOwnProperty('replaceHeaders') ?
+                           aSetDef.replaceHeaders : null;
+
+    var lastMessage = null;
+    for (var iMsg = 0; iMsg < count; iMsg++) {
+      // primitive threading support...
+      if (lastMessage && (iMsg % messagsPerThread != 0))
+        args.inReplyTo = lastMessage;
+      else if (!("inReplyTo" in aSetDef))
+        args.inReplyTo = null;
+
+      if (rawBodies)
+        args.rawBody = rawBodies[iMsg];
+      if (replaceHeaders)
+        args.replaceHeaders = replaceHeaders[iMsg];
+
+      lastMessage = this.makeMessage(args);
+      if (this._mode === 'info') {
+        lastMessage.headerInfo.id = '' + iMsg;
+        lastMessage.headerInfo.suid = aSetDef.folderId + '/' + iMsg;
+      }
+      messages.push(lastMessage);
+
+      if (aSetDef.age_incr) {
+        for (unit in aSetDef.age_incr) {
+          delta = aSetDef.age_incr[unit];
+          args.age[unit] += delta;
+        }
+      }
+    }
+    return messages;
+  },
+};
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Fake accounts always regenerate from scratch when instantiated; there is
+ * no disk persistence.
+ *
+ * This might be better off being rejiggered to leverage the IMAP account
+ * implementation and use some combination of making it think it is
+ * permanently offline, manually cramming messages in, and pretending that
+ * jobs actually ran on the server.  A mock/fakish IMAP protocol or real
+ * protocol talking to a fake socket would likely be too much effort for
+ * something likely to be brittle.
+ */
+function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
+  this.universe = universe;
+  this.id = accountDef.id;
+  this.accountDef = accountDef;
+
+  this.enabled = true;
+  this.problems = [];
+
+  var generator = new MessageGenerator();
+
+  this.identities = accountDef.identities;
+
+  var ourIdentity = accountDef.identities[0];
+  var ourNameAndAddress = {
+    name: ourIdentity.name,
+    address: ourIdentity.address,
+  };
+
+  var inboxFolder = {
+    id: this.id + '/0',
+    name: 'Inbox',
+    path: 'Inbox',
+    type: 'inbox',
+    delim: '/',
+    depth: 0,
+  };
+  var todoFolder = {
+    id: this.id + '/1',
+    name: 'ToDo',
+    path: 'Inbox/ToDo',
+    type: 'normal',
+    delim: '/',
+    depth: 1,
+  };
+  var draftsFolder = {
+    id: this.id + '/2',
+    name: 'Drafts',
+    path: 'Drafts',
+    type: 'drafts',
+    delim: '/',
+    depth: 0,
+  };
+  var sentFolder = {
+    id: this.id + '/3',
+    name: 'Sent',
+    path: 'Sent',
+    type: 'sent',
+    delim: '/',
+    depth: 0,
+  };
+
+  this.folders = [inboxFolder, todoFolder, draftsFolder, sentFolder];
+  this._folderStorages = {};
+  this._folderStorages[inboxFolder.id] =
+    new FakeFolderStorage(
+      inboxFolder,
+      generator.makeMessages(
+        { folderId: inboxFolder.id, count: 16, to: [ourNameAndAddress] }));
+  this._folderStorages[todoFolder.id] =
+    new FakeFolderStorage(
+      todoFolder,
+      generator.makeMessages(
+        { folderId: todoFolder.id, count: 2, to: [ourNameAndAddress] }));
+  this._folderStorages[draftsFolder.id] =
+    new FakeFolderStorage(draftsFolder, []);
+  this._folderStorages[sentFolder.id] =
+    new FakeFolderStorage(
+      sentFolder,
+      generator.makeMessages(
+        { folderId: sentFolder.id, count: 4, from: ourNameAndAddress }));
+
+  this.meta = folderInfo.$meta;
+  this.mutations = folderInfo.$mutations;
+}
+exports.FakeAccount = FakeAccount;
+FakeAccount.prototype = {
+  toString: function fa_toString() {
+    return '[FakeAccount: ' + this.id + ']';
+  },
+  toBridgeWire: function fa_toBridgeWire() {
+    return {
+      id: this.accountDef.id,
+      name: this.accountDef.name,
+      path: this.accountDef.name,
+      type: this.accountDef.type,
+
+      enabled: this.enabled,
+      problems: this.problems,
+
+      identities: this.identities,
+
+      credentials: {
+        username: this.accountDef.credentials.username,
+      },
+
+      servers: [
+        {
+          type: this.accountDef.type,
+          connInfo: this.accountDef.connInfo
+        },
+      ]
+    };
+  },
+  toBridgeFolder: function() {
+    return {
+      id: this.accountDef.id,
+      name: this.accountDef.name,
+      path: this.accountDef.name,
+      type: 'account',
+    };
+  },
+
+  get numActiveConns() {
+    return 0;
+  },
+
+  saveAccountState: function(reuseTrans) {
+    return reuseTrans;
+  },
+
+  shutdown: function() {
+  },
+
+  createFolder: function() {
+    throw new Error('XXX not implemented');
+  },
+
+  deleteFolder: function() {
+    throw new Error('XXX not implemented');
+  },
+
+  sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {
+    return this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
+  },
+  syncFolderList: function fa_syncFolderList(callback) {
+    // NOP; our list of folders is eternal (for now)
+    callback();
+  },
+  sendMessage: function fa_sendMessage(composedMessage, callback) {
+    // XXX put a copy of the message in the sent folder
+    callback(null);
+  },
+
+  getFolderStorageForFolderId: function fa_getFolderStorageForFolderId(folderId){
+    return this._folderStorages[folderId];
+  },
+
+  runOp: function(op, mode, callback) {
+    // Just pretend we performed the op so no errors trigger.
+    if (callback)
+      setZeroTimeout(callback);
+  },
+};
+
+function FakeFolderStorage(folderMeta, headersAndBodies) {
+  this._headers = [];
+  this._bodiesBySuid = {};
+  for (var i = 0; i < headersAndBodies.length; i++) {
+    var headerAndBody = headersAndBodies[i];
+    this._headers.push(headerAndBody.headerInfo);
+    this._bodiesBySuid[headerAndBody.headerInfo.suid] =
+      headerAndBody.bodyInfo;
+  }
+}
+FakeFolderStorage.prototype = {
+  _sliceFolderMessages: function ffs__sliceFolderMessages(bridgeHandle) {
+    bridgeHandle.sendSplice(0, 0, this._headers, true, false);
+  },
+
+  getMessageBody: function ffs_getMessageBody(suid, date, callback) {
+    callback(this._bodiesBySuid[suid]);
+  },
+};
+
+}); // end define
+;
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+(function (root, factory) {
+  if (typeof exports === 'object')
+    module.exports = factory();
+  else if (typeof define === 'function' && define.amd)
+    define('wbxml',[],factory);
+  else
+    root.WBXML = factory();
+}(this, function() {
+  
+
+  const __exports__ = [
+    'ParseError', 'CompileCodepages', 'Element', 'EndTag', 'Text', 'Extension',
+    'ProcessingInstruction', 'Opaque', 'Reader', 'Writer', 'EventParser' ];
+
+  const Tokens = {
+    SWITCH_PAGE: 0x00,
+    END:         0x01,
+    ENTITY:      0x02,
+    STR_I:       0x03,
+    LITERAL:     0x04,
+    EXT_I_0:     0x40,
+    EXT_I_1:     0x41,
+    EXT_I_2:     0x42,
+    PI:          0x43,
+    LITERAL_C:   0x44,
+    EXT_T_0:     0x80,
+    EXT_T_1:     0x81,
+    EXT_T_2:     0x82,
+    STR_T:       0x83,
+    LITERAL_A:   0x84,
+    EXT_0:       0xC0,
+    EXT_1:       0xC1,
+    EXT_2:       0xC2,
+    OPAQUE:      0xC3,
+    LITERAL_AC:  0xC4,
+  };
+
+  function ParseError(message) {
+      this.name = 'WBXML.ParseError';
+      this.message = message || '';
+  }
+  ParseError.prototype = new Error();
+  ParseError.prototype.constructor = ParseError;
+
+  function StringTable(data) {
+    this.strings = data.split('\0');
+    this.offsets = {};
+    let total = 0;
+    for (let i = 0; i < this.strings.length; i++) {
+      this.offsets[total] = i;
+      // Add 1 to the current string's length here because we stripped a null-
+      // terminator earlier.
+      total += this.strings[i].length + 1;
+    }
+  }
+
+  StringTable.prototype = {
+    get: function(offset) {
+      if (offset in this.offsets)
+        return this.strings[this.offsets[offset]];
+      else {
+        if (offset < 0)
+          throw new WBXMLParseError('offset must be >= 0');
+
+        let curr = 0;
+        for (let i = 0; i < this.strings.length; i++) {
+          // Add 1 to the current string's length here because we stripped a
+          // null-terminator earlier.
+          if (offset < curr + this.strings[i].length + 1)
+            return this.strings[i].slice(offset - curr);
+          curr += this.strings[i].length + 1;
+        }
+      }
+      throw new WBXMLParseError('invalid offset');
+    },
+  };
+
+  function CompileCodepages(codepages) {
+    codepages.__nsnames__ = {};
+    codepages.__tagnames__ = {};
+    codepages.__attrdata__ = {};
+
+    for (let [name, page] in Iterator(codepages)) {
+      if (name.match(/^__/))
+        continue;
+
+      if (page.Tags) {
+        let [,v] = Iterator(page.Tags).next();
+        codepages.__nsnames__[v >> 8] = name;
+
+        for (let [tag, value] in Iterator(page.Tags))
+          codepages.__tagnames__[value] = tag;
+      }
+
+      if (page.Attrs) {
+        for (let [attr, data] in Iterator(page.Attrs)) {
+          if (!('name' in data))
+            data.name = attr;
+          codepages.__attrdata__[data.value] = data;
+          page.Attrs[attr] = data.value;
+        }
+      }
+    }
+  }
+
+  const mib2str = {
+      3: 'US-ASCII',
+      4: 'ISO-8859-1',
+      5: 'ISO-8859-2',
+      6: 'ISO-8859-3',
+      7: 'ISO-8859-4',
+      8: 'ISO-8859-5',
+      9: 'ISO-8859-6',
+     10: 'ISO-8859-7',
+     11: 'ISO-8859-8',
+     12: 'ISO-8859-9',
+     13: 'ISO-8859-10',
+    106: 'UTF-8',
+  };
+
+  // TODO: Really, we should build our own map here with synonyms for the
+  // various encodings, but this is a step in the right direction.
+  const str2mib = {};
+  for (let [k, v] in Iterator(mib2str))
+    str2mib[v] = k;
+
+  function Element(ownerDocument, type, tag) {
+    this.ownerDocument = ownerDocument;
+    this.type = type;
+    this._attrs = {};
+
+    if (typeof tag == 'string') {
+      let pieces = tag.split(':');
+      if (pieces.length == 1)
+        this.localTagName = pieces[0];
+      else        [this.namespaceName, this.localTagName] = pieces;
+    }
+    else {
+      this.tag = tag;
+      Object.defineProperties(this, {
+        'namespace':     { get: function() this.tag >> 8 },
+        'localTag':      { get: function() this.tag & 0xff },
+        'namespaceName': { get: function() {
+          return this.ownerDocument._codepages.__nsnames__[this.namespace];
+        } },
+        'localTagName':  { get: function() {
+          return this.ownerDocument._codepages.__tagnames__[this.tag];
+        } },
+      });
+    }
+  }
+
+  Element.prototype = {
+    get tagName() {
+      let ns = this.namespaceName;
+      ns = ns ? ns + ':' : '';
+      return ns + this.localTagName;
+    },
+
+    get attributes() {
+      for (let [name, pieces] in Iterator(this._attrs)) {
+        let [namespace, localName] = name.split(':');
+        yield { name: name, namespace: namespace, localName: localName,
+                value: this._getAttribute(pieces) };
+      }
+    },
+
+    getAttribute: function(attr) {
+      if (typeof attr == 'number')
+        attr = this.ownerDocument._codepages.__attrdata__[attr].name;
+      else if (!(attr in this._attrs) && this.namespace != null &&
+               attr.indexOf(':') == -1)
+        attr = this.namespaceName + ':' + attr;
+      return this._getAttribute(this._attrs[attr]);
+    },
+
+    _getAttribute: function(pieces) {
+      let strValue = '';
+      let array = [];
+
+      for (let [,hunk] in Iterator(pieces)) {
+        if (hunk instanceof Extension) {
+          if (strValue) {
+            array.push(strValue);
+            strValue = '';
+          }
+          array.push(hunk);
+        }
+        else if (typeof hunk == 'number') {
+          strValue += this.ownerDocument._codepages.__attrdata__[hunk].data ||
+                      '';
+        }
+        else {
+          strValue += hunk;
+        }
+      }
+      if (strValue)
+        array.push(strValue);
+
+      return array.length == 1 ? array[0] : array;
+    },
+
+    _addAttribute: function(attr) {
+      if (typeof attr == 'string') {
+        if (attr in this._attrs)
+          throw new ParseError('attribute '+attr+' is repeated');
+        return this._attrs[attr] = [];
+      }
+      else {
+        let namespace = attr >> 8;
+        let localAttr = attr & 0xff;
+
+        let localName = this.ownerDocument._codepages.__attrdata__[localAttr]
+                            .name;
+        let nsName = this.ownerDocument._codepages.__nsnames__[namespace];
+        let name = nsName + ':' + localName;
+
+        if (name in this._attrs)
+          throw new ParseError('attribute '+name+' is repeated');
+        return this._attrs[name] = [attr];
+      }
+    },
+  };
+
+  function EndTag(ownerDocument) {
+    this.ownerDocument = ownerDocument;
+  }
+
+  EndTag.prototype = {
+    get type() 'ETAG',
+  };
+
+  function Text(ownerDocument, textContent) {
+    this.ownerDocument = ownerDocument;
+    this.textContent = textContent;
+  }
+
+  Text.prototype = {
+    get type() 'TEXT',
+  };
+
+  function Extension(ownerDocument, subtype, index, value) {
+    this.ownerDocument = ownerDocument;
+    this.subtype = subtype;
+    this.index = index;
+    this.value = value;
+  }
+
+  Extension.prototype = {
+    get type() 'EXT',
+  };
+
+  function ProcessingInstruction(ownerDocument) {
+    this.ownerDocument = ownerDocument;
+  }
+
+  ProcessingInstruction.prototype = {
+    get type() 'PI',
+
+    get target() {
+      if (typeof this.targetID == 'string')
+        return this.targetID;
+      else
+        return this.ownerDocument._codepages.__attrdata__[this.targetID].name;
+    },
+
+    _setTarget: function(target) {
+      this.targetID = target;
+      if (typeof target == 'string')
+        return this._data = [];
+      else
+        return this._data = [target];
+    },
+
+    // XXX: this seems impolite...
+    _getAttribute: Element.prototype._getAttribute,
+
+    get data() this._getAttribute(this._data),
+  };
+
+  function Opaque(ownerDocument, data) {
+    this.ownerDocument = ownerDocument;
+    this.data = data;
+  }
+
+  Opaque.prototype = {
+    get type() 'OPAQUE',
+  };
+
+  function Reader(xml, codepages) {
+    this._xml = xml instanceof Writer ? xml.bytes : xml;
+    this._codepages = codepages;
+    this.rewind();
+  }
+
+  Reader.prototype = {
+    _get_uint8: function() {
+      return this._iter.next();
+    },
+
+    _get_mb_uint32: function() {
+      let b;
+      let result = 0;
+      do {
+        b = this._iter.next();
+        result = result*128 + (b & 0x7f);
+      } while(b & 0x80);
+      return result;
+    },
+
+    rewind: function() {
+      let self = this;
+      // For some reason, the normal generator syntax doesn't work when |xml| is
+      // a member variable, so do it like this.
+      this._iter = (function() {
+        for (let i = 0; i < self._xml.length; i++)
+          yield self._xml[i];
+      })();
+
+      // XXX: only do this once during the constructor?
+      let v = this._get_uint8();
+      this.version = ((v & 0xf0) + 1).toString() + '.' + (v & 0x0f).toString();
+      this.pid = this._get_mb_uint32();
+      this.charset = mib2str[this._get_mb_uint32()] || 'unknown';
+
+      let tbl_len = this._get_mb_uint32();
+      let s = '';
+      for (let j = 0; j < tbl_len; j++)
+        s += String.fromCharCode(this._get_uint8());
+      this.strings = new StringTable(s);
+
+      this.document = this._getDocument();
+    },
+
+    // start        = version publicid charset strtbl body
+    // strtbl       = length *byte
+    // body         = *pi element *pi
+    // element      = stag [ 1*attribute END ] [ *content END ]
+    //
+    // content      = element | string | extension | entity | pi | opaque
+    //
+    // stag         = TAG | ( LITERAL index )
+    // attribute    = attrStart *attrValue
+    // attrStart    = ATTRSTART | ( LITERAL index )
+    // attrValue    = ATTRVALUE | string | extension | entity
+    //
+    // extension    = ( EXT_I termstr ) | ( EXT_T index ) | EXT
+    //
+    // string       = inline | tableref
+    // inline       = STR_I termstr
+    // tableref     = STR_T index
+    //
+    // entity       = ENTITY entcode
+    // entcode      = mb_u_int32            // UCS-4 character code
+    //
+    // pi           = PI attrStart *attrValue END
+    //
+    // opaque       = OPAQUE length *byte
+    //
+    // version      = u_int8 containing WBXML version number
+    // publicid     = mb_u_int32 | ( zero index )
+    // charset      = mb_u_int32
+    // termstr      = charset-dependent string with termination
+    // index        = mb_u_int32            // integer index into string table.
+    // length       = mb_u_int32            // integer length.
+    // zero         = u_int8                // containing the value zero (0).
+    _getDocument: function() {
+      // Parser states
+      const States = {
+        BODY: 0,
+        ATTRIBUTES: 1,
+        ATTRIBUTE_PI: 2,
+      };
+
+      let state = States.BODY;
+      let currentNode;
+      let currentAttr;
+      let codepage = 0;
+      let depth = 0;
+      let foundRoot = false;
+
+      let appendString = (function(s) {
+        if (state == States.BODY) {
+          if (!currentNode)
+            currentNode = new Text(this, s);
+          else
+            currentNode.textContent += s;
+        }
+        else { // if (state == States.ATTRIBUTES || state == States.ATTRIBUTE_PI)
+          currentAttr.push(s);
+        }
+        // We can assume that we're in a valid state, so don't bother checking
+        // here.
+      }).bind(this);
+
+      // Beware! We're going to grab multiple tokens from our iterator inside
+      // this for loop. This simplifies the actual structure of the loop quite a
+      // bit, since we can eat as many tokens as we need to for each logical
+      // chunk of the document.
+      for (let tok in this._iter) {
+        if (tok == Tokens.SWITCH_PAGE) {
+          codepage = this._get_uint8();
+          if (!(codepage in this._codepages.__nsnames__))
+            throw new ParseError('unknown codepage '+codepage)
+        }
+        else if (tok == Tokens.END) {
+          if (state == States.BODY && depth-- > 0) {
+            if (currentNode) {
+              yield currentNode;
+              currentNode = null;
+            }
+            yield new EndTag(this);
+          }
+          else if (state == States.ATTRIBUTES || state == States.ATTRIBUTE_PI) {
+            state = States.BODY;
+
+            yield currentNode;
+            currentNode = null;
+            currentAttr = null;
+          }
+          else {
+            throw new ParseError('unexpected END token');
+          }
+        }
+        else if (tok == Tokens.ENTITY) {
+          if (state == States.BODY && depth == 0)
+            throw new ParseError('unexpected ENTITY token');
+          let e = this._get_mb_uint32();
+          appendString('&#'+e+';');
+        }
+        else if (tok == Tokens.STR_I) {
+          if (state == States.BODY && depth == 0)
+            throw new ParseError('unexpected STR_I token');
+          let s = '';
+          let c;
+          while ( (c = this._get_uint8()) ) {
+            s += String.fromCharCode(c);
+          }
+          appendString(s);
+        }
+        else if (tok == Tokens.PI) {
+          if (state != States.BODY)
+            throw new ParseError('unexpected PI token');
+          state = States.ATTRIBUTE_PI;
+
+          if (currentNode)
+            yield currentNode;
+          currentNode = new ProcessingInstruction(this);
+        }
+        else if (tok == Tokens.STR_T) {
+          if (state == States.BODY && depth == 0)
+            throw new ParseError('unexpected STR_T token');
+          let r = this._get_mb_uint32();
+          appendString(this.strings.get(r));
+        }
+        else if (tok == Tokens.OPAQUE) {
+          if (state != States.BODY)
+            throw new ParseError('unexpected OPAQUE token');
+          let len = this._get_mb_uint32();
+          let s = ''; // XXX: use a typed array here?
+          for (let i = 0; i < len; i++)
+            s += String.fromCharCode(this._get_uint8());
+
+          if (currentNode) {
+            yield currentNode;
+            currentNode = null;
+          }
+          yield new Opaque(this, s);
+        }
+        else if (((tok & 0x40) || (tok & 0x80)) && (tok & 0x3f) < 3) {
+          let hi = tok & 0xc0;
+          let lo = tok & 0x3f;
+          let subtype;
+          let value;
+
+          if (hi == Tokens.EXT_I_0) {
+            subtype = 'string';
+            value = '';
+            let c;
+            while ( (c = this._get_uint8()) ) {
+              value += String.fromCharCode(c);
+            }
+          }
+          else if (hi == Tokens.EXT_T_0) {
+            subtype = 'integer';
+            value = this._get_mb_uint32();
+          }
+          else { // if (hi == Tokens.EXT_0)
+            subtype = 'byte';
+            value = null;
+          }
+
+          let ext = new Extension(this, subtype, lo, value);
+          if (state == States.BODY) {
+            if (currentNode) {
+              yield currentNode;
+              currentNode = null;
+            }
+            yield ext;
+          }
+          else { // if (state == States.ATTRIBUTES || state == States.ATTRIBUTE_PI)
+            currentAttr.push(ext);
+          }
+        }
+        else if (state == States.BODY) {
+          if (depth == 0) {
+            if (foundRoot)
+              throw new ParseError('multiple root nodes found');
+            foundRoot = true;
+          }
+
+          let tag = (codepage << 8) + (tok & 0x3f);
+          if ((tok & 0x3f) == Tokens.LITERAL) {
+            let r = this._get_mb_uint32();
+            tag = this.strings.get(r);
+          }
+
+          if (currentNode)
+            yield currentNode;
+          currentNode = new Element(this, (tok & 0x40) ? 'STAG' : 'TAG', tag);
+          if (tok & 0x40)
+            depth++;
+
+          if (tok & 0x80) {
+            state = States.ATTRIBUTES;
+          }
+          else {
+            state = States.BODY;
+
+            yield currentNode;
+            currentNode = null;
+          }
+        }
+        else { // if (state == States.ATTRIBUTES || state == States.ATTRIBUTE_PI)
+          let attr = (codepage << 8) + tok;
+          if (!(tok & 0x80)) {
+            if (tok == Tokens.LITERAL) {
+              let r = this._get_mb_uint32();
+              attr = this.strings.get(r);
+            }
+            if (state == States.ATTRIBUTE_PI) {
+              if (currentAttr)
+                throw new ParseError('unexpected attribute in PI');
+              currentAttr = currentNode._setTarget(attr);
+            }
+            else {
+              currentAttr = currentNode._addAttribute(attr);
+            }
+          }
+          else {
+            currentAttr.push(attr);
+          }
+        }
+      }
+    },
+
+    dump: function(indentation, header) {
+      let result = '';
+
+      if (indentation == undefined)
+        indentation = 2;
+      let indent = function(level) new Array(level*indentation + 1).join(' ');
+      let tagstack = [];
+
+      if (header) {
+        result += 'Version: ' + this.version + '\n';
+        result += 'Public ID: ' + this.pid + '\n';
+        result += 'Charset: ' + this.charset + '\n';
+        result += 'String table:\n  "' +
+                  this.strings.strings.join('"\n  "') + '"\n\n';
+      }
+
+      let newline = false;
+      for (let node in this.document) {
+        if (node.type == 'TAG' || node.type == 'STAG') {
+          result += indent(tagstack.length) + '<' + node.tagName;
+
+          for (let [k,v] in node.attributes) {
+            result += ' ' + k + '="' + v + '"';
+          }
+
+          if (node.type == 'STAG') {
+            tagstack.push(node.tagName);
+            result += '>\n';
+          }
+          else
+            result += '/>\n';
+        }
+        else if (node.type == 'ETAG') {
+          let tag = tagstack.pop();
+          result += indent(tagstack.length) + '</' + tag + '>\n';
+        }
+        else if (node.type == 'TEXT') {
+          result += indent(tagstack.length) + node.textContent + '\n';
+        }
+        else if (node.type == 'PI') {
+          result += indent(tagstack.length) + '<?' + node.target;
+          if (node.data)
+            result += ' ' + node.data;
+          result += '?>\n';
+        }
+        else if (node.type == 'OPAQUE') {
+          result += indent(tagstack.length) + '<![CDATA[' + node.data + ']]>\n';
+        }
+        else {
+          throw new Error('Unknown node type "' + node.type + '"');
+        }
+      }
+
+      return result;
+    },
+  };
+
+  function Writer(version, pid, charset, strings) {
+    this._rawbuf = new ArrayBuffer(1024);
+    this._buffer = new Uint8Array(this._rawbuf);
+    this._pos = 0;
+    this._codepage = 0;
+
+    let [major, minor] = version.split('.').map(function(x) parseInt(x));
+    let v = ((major - 1) << 4) + minor;
+
+    let charsetNum = charset;
+    if (typeof charset == 'string') {
+      charsetNum = str2mib[charset];
+      if (charsetNum === undefined)
+        throw new Error('unknown charset '+charset);
+    }
+
+    this._write(v);
+    this._write(pid);
+    this._write(charsetNum);
+    if (strings) {
+      let len = strings.reduce(function(x, y) x + y.length + 1, 0);
+      this._write_mb_uint32(len);
+      for (let [,s] in Iterator(strings)) {
+        for (let i = 0; i < s.length; i++)
+          this._write(s.charCodeAt(i));
+        this._write(0x00);
+      }
+    }
+    else {
+      this._write(0x00);
+    }
+  }
+
+  Writer.Attribute = function(name, value) {
+    this.name = name;
+    this.value = value;
+  };
+
+  Writer.StringTableRef = function(index) {
+    this.index = index;
+  };
+
+  Writer.Entity = function(code) {
+    this.code = code;
+  };
+
+  Writer.Extension = function(subtype, index, data) {
+    const validTypes = {
+      'string':  { value:     Tokens.EXT_I_0,
+                   validator: function(data) typeof data == 'string' },
+      'integer': { value:     Tokens.EXT_T_0,
+                   validator: function(data) typeof data == 'number' },
+      'byte':    { value:     Tokens.EXT_0,
+                   validator: function(data) data == null || data == undefined },
+    };
+
+    let info = validTypes[subtype];
+    if (!info)
+      throw new Error('Invalid WBXML Extension type');
+    if (!info.validator(data))
+      throw new Error('Data for WBXML Extension does not match type');
+    if (index !== 0 && index !== 1 && index !== 2)
+      throw new Error('Invalid WBXML Extension index');
+
+    this.subtype = info.value;
+    this.index = index;
+    this.data = data;
+  };
+
+  Writer.a = function(name, value) new Writer.Attribute(name, value);
+  Writer.str_t = function(index) new Writer.StringTableRef(index);
+  Writer.ent = function(code) new Writer.Entity(code);
+  Writer.ext = function(subtype, index, data) new Writer.Extension(
+    subtype, index, data);
+
+  Writer.prototype = {
+    _write: function(tok) {
+      // Expand the buffer by a factor of two if we ran out of space.
+      if (this._pos == this._buffer.length - 1) {
+        this._rawbuf = new ArrayBuffer(this._rawbuf.byteLength * 2);
+        let buffer = new Uint8Array(this._rawbuf);
+
+        for (let i = 0; i < this._buffer.length; i++)
+          buffer[i] = this._buffer[i];
+
+        this._buffer = buffer;
+      }
+
+      this._buffer[this._pos++] = tok;
+    },
+
+    _write_mb_uint32: function(value) {
+      let bytes = [];
+      bytes.push(value % 0x80);
+      while (value >= 0x80) {
+        value >>= 7;
+        bytes.push(0x80 + (value % 0x80));
+      }
+
+      for (let i = bytes.length - 1; i >= 0; i--)
+        this._write(bytes[i]);
+    },
+
+    _write_str: function(str) {
+      for (let i = 0; i < str.length; i++)
+        this._write(str.charCodeAt(i));
+    },
+
+    _setCodepage: function(codepage) {
+      if (this._codepage != codepage) {
+        this._write(Tokens.SWITCH_PAGE);
+        this._write(codepage);
+        this._codepage = codepage;
+      }
+    },
+
+    _writeTag: function(tag, stag, attrs) {
+      if (tag === undefined)
+        throw new Error('unknown tag');
+
+      let flags = 0x00;
+      if (stag)
+        flags += 0x40;
+      if (attrs.length)
+        flags += 0x80;
+
+      if (tag instanceof Writer.StringTableRef) {
+        this._write(Tokens.LITERAL + flags);
+        this._write_mb_uint32(tag.index);
+      }
+      else {
+        this._setCodepage(tag >> 8);
+        this._write((tag & 0xff) + flags);
+      }
+
+      if (attrs.length) {
+        for (let [,attr] in Iterator(attrs))
+          this._writeAttr(attr);
+        this._write(Tokens.END);
+      }
+    },
+
+    _writeAttr: function(attr) {
+      if (!(attr instanceof Writer.Attribute))
+        throw new Error('Expected an Attribute object');
+
+      if (attr.name instanceof Writer.StringTableRef) {
+        this._write(Tokens.LITERAL);
+        this._write(attr.name.index);
+      }
+      else {
+        this._setCodepage(attr.name >> 8);
+        this._write(attr.name & 0xff);
+      }
+      this._writeText(attr.value, true);
+    },
+
+    _writeText: function(value, inAttr) {
+      if (Array.isArray(value)) {
+        for (let [,piece] in Iterator(value))
+          this._writeText(piece, inAttr);
+      }
+      else if (value instanceof Writer.StringTableRef) {
+        this._write(Tokens.STR_T);
+        this._write_mb_uint32(value.index);
+      }
+      else if (value instanceof Writer.Entity) {
+        this._write(Tokens.ENTITY);
+        this._write_mb_uint32(value.code);
+      }
+      else if (value instanceof Writer.Extension) {
+        this._write(value.subtype + value.index);
+        if (value.subtype == Tokens.EXT_I_0) {
+          this._write_str(value.data);
+          this._write(0x00);
+        }
+        else if (value.subtype == Tokens.EXT_T_0) {
+          this._write_mb_uint32(value.data);
+        }
+      }
+      else if (typeof value == 'number') {
+        if (!inAttr)
+          throw new Error('Can\'t use attribute value constants outside of ' +
+                          'attributes');
+        this._write(value);
+      }
+      else if (value != null) {
+        this._write(Tokens.STR_I);
+        this._write_str(value);
+        this._write(0x00);
+      }
+    },
+
+    tag: function(tag) {
+      let tail = arguments.length > 1 ? arguments[arguments.length - 1] : null;
+      if (tail === null || tail instanceof Writer.Attribute) {
+        let rest = Array.prototype.slice.call(arguments, 1);
+        this._writeTag(tag, false, rest);
+        return this;
+      }
+      else {
+        let head = Array.prototype.slice.call(arguments, 0, -1);
+        return this.stag.apply(this, head)
+                     .text(tail)
+                   .etag();
+      }
+    },
+
+    stag: function(tag) {
+      let rest = Array.prototype.slice.call(arguments, 1);
+      this._writeTag(tag, true, rest);
+      return this;
+    },
+
+    etag: function(tag) {
+      this._write(Tokens.END);
+      return this;
+    },
+
+    text: function(value) {
+      this._writeText(value);
+      return this;
+    },
+
+    pi: function(target, data) {
+      this._write(Tokens.PI);
+      this._writeAttr(Writer.a(target, data));
+      this._write(Tokens.END);
+      return this;
+    },
+
+    ext: function(subtype, index, data) {
+      return this.text(Writer.ext(subtype, index, data));
+    },
+
+    opaque: function(data) {
+      this._write(Tokens.OPAQUE);
+      this._write_mb_uint32(data.length);
+      if (typeof data == 'string') {
+        this._write_str(data);
+      }
+      else {
+        for (let i = 0; i < data.length; i++)
+          this._write(data[i]);
+      }
+      return this;
+    },
+
+    get buffer() this._rawbuf.slice(0, this._pos),
+    get bytes() new Uint8Array(this._rawbuf, 0, this._pos),
+  };
+
+  function EventParser(reader) {
+    this.listeners = [];
+  }
+
+  EventParser.prototype = {
+    addEventListener: function(path, callback) {
+      this.listeners.push({path: path, callback: callback});
+    },
+
+    _pathMatches: function(a, b) {
+      return a.length == b.length && a.every(function(val, i) {
+        if (b[i] == '*')
+          return true;
+        else if (Array.isArray(b[i])) {
+          return b[i].indexOf(val) != -1;
+        }
+        else
+          return val == b[i];
+      });
+    },
+
+    run: function(reader) {
+      let fullPath = [];
+      let recPath = [];
+      let recording = 0;
+
+      for (let node in reader.document) {
+        if (node.type == 'TAG') {
+          fullPath.push(node.tag);
+          for (let [,listener] in Iterator(this.listeners)) {
+            if (this._pathMatches(fullPath, listener.path)) {
+              node.children = [];
+              listener.callback(node);
+            }
+          }
+
+          fullPath.pop();
+        }
+        else if (node.type == 'STAG') {
+          fullPath.push(node.tag);
+
+          for (let [,listener] in Iterator(this.listeners)) {
+            if (this._pathMatches(fullPath, listener.path)) {
+              recording++;
+            }
+          }
+        }
+        else if (node.type == 'ETAG') {
+          for (let [,listener] in Iterator(this.listeners)) {
+            if (this._pathMatches(fullPath, listener.path)) {
+              recording--;
+              listener.callback(recPath[recPath.length-1]);
+            }
+          }
+
+          fullPath.pop();
+        }
+
+        if (recording) {
+          if (node.type == 'STAG') {
+            node.type = 'TAG';
+            node.children = [];
+            if (recPath.length)
+              recPath[recPath.length-1].children.push(node);
+            recPath.push(node);
+          }
+          else if (node.type == 'ETAG') {
+            recPath.pop();
+          }
+          else {
+            node.children = [];
+            recPath[recPath.length-1].children.push(node);
+          }
+        }
+      }
+    },
+  };
+
+  let exported = {};
+  for (let [,exp] in Iterator(__exports__))
+    exported[exp] = eval(exp);
+  return exported;
+}));
+
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+(function (root, factory) {
+  if (typeof exports === 'object')
+    module.exports = factory(require('wbxml'));
+  else if (typeof define === 'function' && define.amd)
+    define('activesync/codepages',['wbxml'], factory);
+  else
+    root.ActiveSyncCodepages = factory(WBXML);
+}(this, function(WBXML) {
+  
+
+  let codepages = {
+    AirSync: {
+      Tags: {
+        Sync:              0x0005,
+        Responses:         0x0006,
+        Add:               0x0007,
+        Change:            0x0008,
+        Delete:            0x0009,
+        Fetch:             0x000A,
+        SyncKey:           0x000B,
+        ClientId:          0x000C,
+        ServerId:          0x000D,
+        Status:            0x000E,
+        Collection:        0x000F,
+        Class:             0x0010,
+        CollectionId:      0x0012,
+        GetChanges:        0x0013,
+        MoreAvailable:     0x0014,
+        WindowSize:        0x0015,
+        Commands:          0x0016,
+        Options:           0x0017,
+        FilterType:        0x0018,
+        Conflict:          0x001B,
+        Collections:       0x001C,
+        ApplicationData:   0x001D,
+        DeletesAsMoves:    0x001E,
+        Supported:         0x0020,
+        SoftDelete:        0x0021,
+        MIMESupport:       0x0022,
+        MIMETruncation:    0x0023,
+        Wait:              0x0024,
+        Limit:             0x0025,
+        Partial:           0x0026,
+        ConversationMode:  0x0027,
+        MaxItems:          0x0028,
+        HeartbeatInterval: 0x0029,
+      },
+    },
+
+    Contacts: {
+      Tags: {
+        Anniversary:               0x0105,
+        AssistantName:             0x0106,
+        AssistantPhoneNumber:      0x0107,
+        Birthday:                  0x0108,
+        Business2PhoneNumber:      0x010C,
+        BusinessAddressCity:       0x010D,
+        BusinessAddressCountry:    0x010E,
+        BusinessAddressPostalCode: 0x010F,
+        BusinessAddressState:      0x0110,
+        BusinessAddressStreet:     0x0111,
+        BusinessFaxNumber:         0x0112,
+        BusinessPhoneNumber:       0x0113,
+        CarPhoneNumber:            0x0114,
+        Categories:                0x0115,
+        Category:                  0x0116,
+        Children:                  0x0117,
+        Child:                     0x0118,
+        CompanyName:               0x0119,
+        Department:                0x011A,
+        Email1Address:             0x011B,
+        Email2Address:             0x011C,
+        Email3Address:             0x011D,
+        FileAs:                    0x011E,
+        FirstName:                 0x011F,
+        Home2PhoneNumber:          0x0120,
+        HomeAddressCity:           0x0121,
+        HomeAddressCountry:        0x0122,
+        HomeAddressPostalCode:     0x0123,
+        HomeAddressState:          0x0124,
+        HomeAddressStreet:         0x0125,
+        HomeFaxNumber:             0x0126,
+        HomePhoneNumber:           0x0127,
+        JobTitle:                  0x0128,
+        LastName:                  0x0129,
+        MiddleName:                0x012A,
+        MobilePhoneNumber:         0x012B,
+        OfficeLocation:            0x012C,
+        OtherAddressCity:          0x012D,
+        OtherAddressCountry:       0x012E,
+        OtherAddressPostalCode:    0x012F,
+        OtherAddressState:         0x0130,
+        OtherAddressStreet:        0x0131,
+        PagerNumber:               0x0132,
+        RadioPhoneNumber:          0x0133,
+        Spouse:                    0x0134,
+        Suffix:                    0x0135,
+        Title:                     0x0136,
+        WebPage:                   0x0137,
+        YomiCompanyName:           0x0138,
+        YomiFirstName:             0x0139,
+        YomiLastName:              0x013A,
+        Picture:                   0x013C,
+        Alias:                     0x013D,
+        WeightedRank:              0x013E,
+      },
+    },
+
+    Email: {
+      Tags: {
+        DateReceived:            0x020F,
+        DisplayTo:               0x0211,
+        Importance:              0x0212,
+        MessageClass:            0x0213,
+        Subject:                 0x0214,
+        Read:                    0x0215,
+        To:                      0x0216,
+        Cc:                      0x0217,
+        From:                    0x0218,
+        ReplyTo:                 0x0219,
+        AllDayEvent:             0x021A,
+        Categories:              0x021B,
+        Category:                0x021C,
+        DTStamp:                 0x021D,
+        EndTime:                 0x021E,
+        InstanceType:            0x021F,
+        BusyStatus:              0x0220,
+        Location:                0x0221,
+        MeetingRequest:          0x0222,
+        Organizer:               0x0223,
+        RecurrenceId:            0x0224,
+        Reminder:                0x0225,
+        ResponseRequested:       0x0226,
+        Recurrences:             0x0227,
+        Recurrence:              0x0228,
+        Recurrence_Type:         0x0229,
+        Recurrence_Until:        0x022A,
+        Recurrence_Occurrences:  0x022B,
+        Recurrence_Interval:     0x022C,
+        Recurrence_DayOfWeek:    0x022D,
+        Recurrence_DayOfMonth:   0x022E,
+        Recurrence_WeekOfMonth:  0x022F,
+        Recurrence_MonthOfYear:  0x0230,
+        StartTime:               0x0231,
+        Sensitivity:             0x0232,
+        TimeZone:                0x0233,
+        GlobalObjId:             0x0234,
+        ThreadTopic:             0x0235,
+        InternetCPID:            0x0239,
+        Flag:                    0x023A,
+        Status:                  0x023B,
+        ContentClass:            0x023C,
+        FlagType:                0x023D,
+        CompleteTime:            0x023E,
+        DisallowNewTimeProposal: 0x023F,
+      },
+    },
+
+    Calendar: {
+      Tags: {
+        TimeZone:                  0x0405,
+        AllDayEvent:               0x0406,
+        Attendees:                 0x0407,
+        Attendee:                  0x0408,
+        Email:                     0x0409,
+        Name:                      0x040A,
+        BusyStatus:                0x040D,
+        Categories:                0x040E,
+        Category:                  0x040F,
+        DtStamp:                   0x0411,
+        EndTime:                   0x0412,
+        Exception:                 0x0413,
+        Exceptions:                0x0414,
+        Deleted:                   0x0415,
+        ExceptionStartTime:        0x0416,
+        Location:                  0x0417,
+        MeetingStatus:             0x0418,
+        OrganizerEmail:            0x0419,
+        OrganizerName:             0x041A,
+        Recurrence:                0x041B,
+        Type:                      0x041C,
+        Until:                     0x041D,
+        Occurrences:               0x041E,
+        Interval:                  0x041F,
+        DayOfWeek:                 0x0420,
+        DayOfMonth:                0x0421,
+        WeekOfMonth:               0x0422,
+        MonthOfYear:               0x0423,
+        Reminder:                  0x0424,
+        Sensitivity:               0x0425,
+        Subject:                   0x0426,
+        StartTime:                 0x0427,
+        UID:                       0x0428,
+        AttendeeStatus:            0x0429,
+        AttendeeType:              0x042A,
+        DisallowNewTimeProposal:   0x0433,
+        ResponseRequested:         0x0434,
+        AppointmentReplyTime:      0x0435,
+        ResponseType:              0x0436,
+        CalendarType:              0x0437,
+        IsLeapMonth:               0x0438,
+        FirstDayOfWeek:            0x0439,
+        OnlineMeetingConfLink:     0x043A,
+        OnlineMeetingExternalLink: 0x043B,
+      },
+    },
+
+    Move: {
+      Tags: {
+        MoveItems: 0x0505,
+        Move:      0x0506,
+        SrcMsgId:  0x0507,
+        SrcFldId:  0x0508,
+        DstFldId:  0x0509,
+        Response:  0x050A,
+        Status:    0x050B,
+        DstMsgId:  0x050C,
+      },
+    },
+
+    ItemEstimate: {
+      Tags: {
+        GetItemEstimate: 0x0605,
+        Version:         0x0606,
+        Collections:     0x0607,
+        Collection:      0x0608,
+        Class:           0x0609,
+        CollectionId:    0x060A,
+        DateTime:        0x060B,
+        Estimate:        0x060C,
+        Response:        0x060D,
+        Status:          0x060E,
+      },
+    },
+
+    FolderHierarchy: {
+      Tags: {
+        DisplayName:  0x0707,
+        ServerId:     0x0708,
+        ParentId:     0x0709,
+        Type:         0x070A,
+        Status:       0x070C,
+        Changes:      0x070E,
+        Add:          0x070F,
+        Delete:       0x0710,
+        Update:       0x0711,
+        SyncKey:      0x0712,
+        FolderCreate: 0x0713,
+        FolderDelete: 0x0714,
+        FolderUpdate: 0x0715,
+        FolderSync:   0x0716,
+        Count:        0x0717,
+      },
+    },
+
+    MeetingResponse: {
+      Tags: {
+        CalendarId:      0x0805,
+        CollectionId:    0x0806,
+        MeetingResponse: 0x0807,
+        RequestId:       0x0808,
+        Request:         0x0809,
+        Result:          0x080A,
+        Status:          0x080B,
+        UserResponse:    0x080C,
+        InstanceId:      0x080E,
+      },
+    },
+
+    Tasks: {
+      Tags: {
+        Categories:             0x0908,
+        Category:               0x0909,
+        Complete:               0x090A,
+        DateCompleted:          0x090B,
+        DueDate:                0x090C,
+        UtcDueDate:             0x090D,
+        Importance:             0x090E,
+        Recurrence:             0x090F,
+        Recurrence_Type:        0x0910,
+        Recurrence_Start:       0x0911,
+        Recurrence_Until:       0x0912,
+        Recurrence_Occurrences: 0x0913,
+        Recurrence_Interval:    0x0914,
+        Recurrence_DayOfMonth:  0x0915,
+        Recurrence_DayOfWeek:   0x0916,
+        Recurrence_WeekOfMonth: 0x0917,
+        Recurrence_MonthOfYear: 0x0918,
+        Recurrence_Regenerate:  0x0919,
+        Recurrence_DeadOccur:   0x091A,
+        ReminderSet:            0x091B,
+        ReminderTime:           0x091C,
+        Sensitivity:            0x091D,
+        StartDate:              0x091E,
+        UtcStartDate:           0x091F,
+        Subject:                0x0920,
+        OrdinalDate:            0x0922,
+        SubOrdinalDate:         0x0923,
+        CalendarType:           0x0924,
+        IsLeapMonth:            0x0925,
+        FirstDayOfWeek:         0x0926,
+      },
+    },
+
+    ResolveRecipients: {
+      Tags: {
+        ResolveRecipients:      0x0A05,
+        Response:               0x0A06,
+        Status:                 0x0A07,
+        Type:                   0x0A08,
+        Recipient:              0x0A09,
+        DisplayName:            0x0A0A,
+        EmailAddress:           0x0A0B,
+        Certificates:           0x0A0C,
+        Certificate:            0x0A0D,
+        MiniCertificate:        0x0A0E,
+        Options:                0x0A0F,
+        To:                     0x0A10,
+        CertificateRetrieval:   0x0A11,
+        RecipientCount:         0x0A12,
+        MaxCertificates:        0x0A13,
+        MaxAmbiguousRecipients: 0x0A14,
+        CertificateCount:       0x0A15,
+        Availability:           0x0A16,
+        StartTime:              0x0A17,
+        EndTime:                0x0A18,
+        MergedFreeBusy:         0x0A19,
+        Picture:                0x0A1A,
+        MaxSize:                0x0A1B,
+        Data:                   0x0A1C,
+        MaxPictures:            0x0A1D,
+      },
+    },
+
+    ValidateCert: {
+      Tags: {
+        ValidateCert:     0x0B05,
+        Certificates:     0x0B06,
+        Certificate:      0x0B07,
+        CertificateChain: 0x0B08,
+        CheckCRL:         0x0B09,
+        Status:           0x0B0A,
+      },
+    },
+
+    Contacts2: {
+      Tags: {
+        CustomerId:       0x0C05,
+        GovernmentId:     0x0C06,
+        IMAddress:        0x0C07,
+        IMAddress2:       0x0C08,
+        IMAddress3:       0x0C09,
+        ManagerName:      0x0C0A,
+        CompanyMainPhone: 0x0C0B,
+        AccountName:      0x0C0C,
+        NickName:         0x0C0D,
+        MMS:              0x0C0E,
+      },
+    },
+
+    Ping: {
+      Tags: {
+        Ping:              0x0D05,
+        AutdState:         0x0D06,
+        Status:            0x0D07,
+        HeartbeatInterval: 0x0D08,
+        Folders:           0x0D09,
+        Folder:            0x0D0A,
+        Id:                0x0D0B,
+        Class:             0x0D0C,
+        MaxFolders:        0x0D0D,
+      },
+    },
+
+    Provision: {
+      Tags: {
+        Provision:                                0x0E05,
+        Policies:                                 0x0E06,
+        Policy:                                   0x0E07,
+        PolicyType:                               0x0E08,
+        PolicyKey:                                0x0E09,
+        Data:                                     0x0E0A,
+        Status:                                   0x0E0B,
+        RemoteWipe:                               0x0E0C,
+        EASProvisionDoc:                          0x0E0D,
+        DevicePasswordEnabled:                    0x0E0E,
+        AlphanumericDevicePasswordRequired:       0x0E0F,
+        DeviceEncryptionEnabled:                  0x0E10,
+        RequireStorageCardEncryption:             0x0E10,
+        PasswordRecoveryEnabled:                  0x0E11,
+        AttachmentsEnabled:                       0x0E13,
+        MinDevicePasswordLength:                  0x0E14,
+        MaxInactivityTimeDeviceLock:              0x0E15,
+        MaxDevicePasswordFailedAttempts:          0x0E16,
+        MaxAttachmentSize:                        0x0E17,
+        AllowSimpleDevicePassword:                0x0E18,
+        DevicePasswordExpiration:                 0x0E19,
+        DevicePasswordHistory:                    0x0E1A,
+        AllowStorageCard:                         0x0E1B,
+        AllowCamera:                              0x0E1C,
+        RequireDeviceEncryption:                  0x0E1D,
+        AllowUnsignedApplications:                0x0E1E,
+        AllowUnsignedInstallationPackages:        0x0E1F,
+        MinDevicePasswordComplexCharacters:       0x0E20,
+        AllowWiFi:                                0x0E21,
+        AllowTextMessaging:                       0x0E22,
+        AllowPOPIMAPEmail:                        0x0E23,
+        AllowBluetooth:                           0x0E24,
+        AllowIrDA:                                0x0E25,
+        RequireManualSyncWhenRoaming:             0x0E26,
+        AllowDesktopSync:                         0x0E27,
+        MaxCalendarAgeFilter:                     0x0E28,
+        AllowHTMLEmail:                           0x0E29,
+        MaxEmailAgeFilter:                        0x0E2A,
+        MaxEmailBodyTruncationSize:               0x0E2B,
+        MaxEmailHTMLBodyTruncationSize:           0x0E2C,
+        RequireSignedSMIMEMessages:               0x0E2D,
+        RequireEncryptedSMIMEMessages:            0x0E2E,
+        RequireSignedSMIMEAlgorithm:              0x0E2F,
+        RequireEncryptionSMIMEAlgorithm:          0x0E30,
+        AllowSMIMEEncryptionAlgorithmNegotiation: 0x0E31,
+        AllowSMIMESoftCerts:                      0x0E32,
+        AllowBrowser:                             0x0E33,
+        AllowConsumerEmail:                       0x0E34,
+        AllowRemoteDesktop:                       0x0E35,
+        AllowInternetSharing:                     0x0E36,
+        UnapprovedInROMApplicationList:           0x0E37,
+        ApplicationName:                          0x0E38,
+        ApprovedApplicationList:                  0x0E39,
+        Hash:                                     0x0E3A,
+      },
+    },
+
+    Search: {
+      Tags: {
+        Search:         0x0F05,
+        Store:          0x0F07,
+        Name:           0x0F08,
+        Query:          0x0F09,
+        Options:        0x0F0A,
+        Range:          0x0F0B,
+        Status:         0x0F0C,
+        Response:       0x0F0D,
+        Result:         0x0F0E,
+        Properties:     0x0F0F,
+        Total:          0x0F10,
+        EqualTo:        0x0F11,
+        Value:          0x0F12,
+        And:            0x0F13,
+        Or:             0x0F14,
+        FreeText:       0x0F15,
+        DeepTraversal:  0x0F17,
+        LongId:         0x0F18,
+        RebuildResults: 0x0F19,
+        LessThan:       0x0F1A,
+        GreaterThan:    0x0F1B,
+        UserName:       0x0F1E,
+        Password:       0x0F1F,
+        ConversationId: 0x0F20,
+        Picture:        0x0F21,
+        MaxSize:        0x0F22,
+        MaxPictures:    0x0F23,
+      },
+    },
+
+    GAL: {
+      Tags: {
+        DisplayName:  0x1005,
+        Phone:        0x1006,
+        Office:       0x1007,
+        Title:        0x1008,
+        Company:      0x1009,
+        Alias:        0x100A,
+        FirstName:    0x100B,
+        LastName:     0x100C,
+        HomePhone:    0x100D,
+        MobilePhone:  0x100E,
+        EmailAddress: 0x100F,
+        Picture:      0x1010,
+        Status:       0x1011,
+        Data:         0x1012,
+      },
+    },
+
+    AirSyncBase: {
+      Tags: {
+        BodyPreference:     0x1105,
+        Type:               0x1106,
+        TruncationSize:     0x1107,
+        AllOrNone:          0x1108,
+        Body:               0x110A,
+        Data:               0x110B,
+        EstimatedDataSize:  0x110C,
+        Truncated:          0x110D,
+        Attachments:        0x110E,
+        Attachment:         0x110F,
+        DisplayName:        0x1110,
+        FileReference:      0x1111,
+        Method:             0x1112,
+        ContentId:          0x1113,
+        ContentLocation:    0x1114,
+        IsInline:           0x1115,
+        NativeBodyType:     0x1116,
+        ContentType:        0x1117,
+        Preview:            0x1118,
+        BodyPartPreference: 0x1119,
+        BodyPart:           0x111A,
+        Status:             0x111B,
+      },
+    },
+
+    Settings: {
+      Tags: {
+        Settings:                    0x1205,
+        Status:                      0x1206,
+        Get:                         0x1207,
+        Set:                         0x1208,
+        Oof:                         0x1209,
+        OofState:                    0x120A,
+        StartTime:                   0x120B,
+        EndTime:                     0x120C,
+        OofMessage:                  0x120D,
+        AppliesToInternal:           0x120E,
+        AppliesToExternalKnown:      0x120F,
+        AppliesToExternalUnknown:    0x1210,
+        Enabled:                     0x1211,
+        ReplyMessage:                0x1212,
+        BodyType:                    0x1213,
+        DevicePassword:              0x1214,
+        Password:                    0x1215,
+        DeviceInformation:           0x1216,
+        Model:                       0x1217,
+        IMEI:                        0x1218,
+        FriendlyName:                0x1219,
+        OS:                          0x121A,
+        OSLanguage:                  0x121B,
+        PhoneNumber:                 0x121C,
+        UserInformation:             0x121D,
+        EmailAddresses:              0x121E,
+        SmtpAddress:                 0x121F,
+        UserAgent:                   0x1220,
+        EnableOutboundSMS:           0x1221,
+        MobileOperator:              0x1222,
+        PrimarySmtpAddress:          0x1223,
+        Accounts:                    0x1224,
+        Account:                     0x1225,
+        AccountId:                   0x1226,
+        AccountName:                 0x1227,
+        UserDisplayName:             0x1228,
+        SendDisabled:                0x1229,
+        RightsManagementInformation: 0x122B,
+      },
+    },
+
+    DocumentLibrary: {
+      Tags: {
+        LinkId:           0x1305,
+        DisplayName:      0x1306,
+        IsFolder:         0x1307,
+        CreationDate:     0x1308,
+        LastModifiedDate: 0x1309,
+        IsHidden:         0x130A,
+        ContentLength:    0x130B,
+        ContentType:      0x130C,
+      },
+    },
+
+    ItemOperations: {
+      Tags: {
+        ItemOperations:      0x1405,
+        Fetch:               0x1406,
+        Store:               0x1407,
+        Options:             0x1408,
+        Range:               0x1409,
+        Total:               0x140A,
+        Properties:          0x140B,
+        Data:                0x140C,
+        Status:              0x140D,
+        Response:            0x140E,
+        Version:             0x140F,
+        Schema:              0x1410,
+        Part:                0x1411,
+        EmptyFolderContents: 0x1412,
+        DeleteSubFolders:    0x1413,
+        UserName:            0x1414,
+        Password:            0x1415,
+        Move:                0x1416,
+        DstFldId:            0x1417,
+        ConversationId:      0x1418,
+        MoveAlways:          0x1419,
+      },
+    },
+
+    ComposeMail: {
+      Tags: {
+        SendMail:        0x1505,
+        SmartForward:    0x1506,
+        SmartReply:      0x1507,
+        SaveInSentItems: 0x1508,
+        ReplaceMime:     0x1509,
+        Source:          0x150B,
+        FolderId:        0x150C,
+        ItemId:          0x150D,
+        LongId:          0x150E,
+        InstanceId:      0x150F,
+        Mime:            0x1510,
+        ClientId:        0x1511,
+        Status:          0x1512,
+        AccountId:       0x1513,
+      },
+    },
+
+    Email2: {
+      Tags: {
+        UmCallerID:            0x1605,
+        UmUserNotes:           0x1606,
+        UmAttDuration:         0x1607,
+        UmAttOrder:            0x1608,
+        ConversationId:        0x1609,
+        ConversationIndex:     0x160A,
+        LastVerbExecuted:      0x160B,
+        LastVerbExecutionTime: 0x160C,
+        ReceivedAsBcc:         0x160D,
+        Sender:                0x160E,
+        CalendarType:          0x160F,
+        IsLeapMonth:           0x1610,
+        AccountId:             0x1611,
+        FirstDayOfWeek:        0x1612,
+        MeetingMessageType:    0x1613,
+      },
+    },
+
+    Notes: {
+      Tags: {
+        Subject:          0x1705,
+        MessageClass:     0x1706,
+        LastModifiedDate: 0x1707,
+        Categories:       0x1708,
+        Category:         0x1709,
+      },
+    },
+
+    RightsManagement: {
+      Tags: {
+        RightsManagementSupport:            0x1805,
+        RightsManagementTemplates:          0x1806,
+        RightsManagementTemplate:           0x1807,
+        RightsManagementLicense:            0x1808,
+        EditAllowed:                        0x1809,
+        ReplyAllowed:                       0x180A,
+        ReplyAllAllowed:                    0x180B,
+        ForwardAllowed:                     0x180C,
+        ModifyRecipientsAllowed:            0x180D,
+        ExtractAllowed:                     0x180E,
+        PrintAllowed:                       0x180F,
+        ExportAllowed:                      0x1810,
+        ProgrammaticAccessAllowed:          0x1811,
+        Owner:                              0x1812,
+        ContentExpiryDate:                  0x1813,
+        TemplateID:                         0x1814,
+        TemplateName:                       0x1815,
+        TemplateDescription:                0x1816,
+        ContentOwner:                       0x1817,
+        RemoveRightsManagementDistribution: 0x1818,
+      },
+    },
+  };
+
+  WBXML.CompileCodepages(codepages);
+
+  return codepages;
+}));
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+(function (root, factory) {
+  if (typeof exports === 'object')
+    module.exports = factory(require('wbxml'), require('activesync/codepages'));
+  else if (typeof define === 'function' && define.amd)
+    define('activesync/protocol',['wbxml', 'activesync/codepages'], factory);
+  else
+    root.ActiveSyncProtocol = factory(WBXML, ActiveSyncCodepages);
+}(this, function(WBXML, ASCP) {
+  
+
+  const __exports__ = ['Connection'];
+
+  function nsResolver(prefix) {
+    const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
+    const ns = {
+      'ad': baseUrl + 'responseschema/2006',
+      'ms': baseUrl + 'mobilesync/responseschema/2006',
+    };
+    return ns[prefix] || null;
+  }
+
+  function Connection(aEmail, aPassword) {
+    this._email = aEmail;
+    this._password = aPassword;
+    this.connected = false;
+  }
+
+  Connection.prototype = {
+    _getAuth: function() {
+      return 'Basic ' + btoa(this._email + ':' + this._password);
+    },
+
+    autodiscover: function(aCallback) {
+      // TODO: we need to be smarter here and do some stuff with redirects and
+      // other fun stuff, but this works for hotmail, so yay.
+
+      let conn = this;
+
+      let xhr = new XMLHttpRequest({mozSystem: true});
+      xhr.open('POST', 'https://m.hotmail.com/autodiscover/autodiscover.xml',
+               true);
+      xhr.setRequestHeader('Content-Type', 'text/xml');
+      xhr.setRequestHeader('Authorization', this._getAuth());
+
+      xhr.onload = function() {
+        if (typeof logXhr == 'function') // TODO: remove this debug code
+          logXhr(xhr);
+
+        let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
+        let getString = function(xpath, rel) {
+          return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
+                              null).stringValue;
+        };
+
+        let error = doc.evaluate(
+          '/ad:Autodiscover/ms:Response/ms:Error', doc, nsResolver,
+          XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        if (error) {
+          aCallback({
+            'error': {
+              'message': getString('ms:Message/text()', error),
+            }
+          });
+        }
+        else {
+          let user = doc.evaluate(
+            '/ad:Autodiscover/ms:Response/ms:User', doc, nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+          let server = doc.evaluate(
+            '/ad:Autodiscover/ms:Response/ms:Action/ms:Settings/ms:Server', doc,
+            nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
+            .singleNodeValue;
+
+          let result = {
+            'user': {
+              'name':  getString('ms:DisplayName/text()',  user),
+              'email': getString('ms:EMailAddress/text()', user),
+            },
+            'server': {
+              'type': getString('ms:Type/text()', server),
+              'url':  getString('ms:Url/text()',  server),
+              'name': getString('ms:Name/text()', server),
+            }
+          };
+
+          conn.baseURL = result.server.url + '/Microsoft-Server-ActiveSync';
+          conn.options(conn.baseURL, function(aSubResult) {
+            conn.connected = true;
+            result.options = aSubResult;
+            if (aCallback)
+              aCallback.call(conn, result);
+          });
+        }
+      };
+
+      // TODO: use something like
+      // http://ejohn.org/blog/javascript-micro-templating/ here?
+      let postdata =
+      '<?xml version="1.0" encoding="utf-8"?>\n' +
+      '<Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/mobilesync/requestschema/2006">\n' +
+      '  <Request>\n' +
+      '    <EMailAddress>' + this._email + '</EMailAddress>\n' +
+      '      <AcceptableResponseSchema>http://schemas.microsoft.com/exchange/autodiscover/mobilesync/responseschema/2006</AcceptableResponseSchema>\n' +
+      '  </Request>\n' +
+      '</Autodiscover>';
+
+      xhr.send(postdata);
+    },
+
+    options: function(aURL, aCallback) {
+      let xhr = new XMLHttpRequest({mozSystem: true});
+      xhr.open('OPTIONS', aURL, true);
+      xhr.onload = function() {
+        if (typeof logXhr == 'function') // TODO: remove this debug code
+          logXhr(xhr);
+
+        let result = {
+          'versions': xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
+          'commands': xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
+        };
+        aCallback(result);
+      };
+
+      xhr.send();
+    },
+
+    doCommand: function(aXml, aCallback) {
+      if (!this.connected)
+        this.autodiscover(this._doCommandReal.bind(this, aXml, aCallback));
+      else
+        this._doCommandReal(aXml, aCallback);
+    },
+
+    _doCommandReal: function(aXml, aCallback) {
+      let r = new WBXML.Reader(aXml, ASCP);
+      let command = r.document.next().localTagName;
+      let xhr = new XMLHttpRequest({mozSystem: true});
+      xhr.open('POST', this.baseURL + '?Cmd=' + command + '&User=' +
+               this._email + '&DeviceId=v140Device&DeviceType=SmartPhone',
+               true);
+      xhr.setRequestHeader('MS-ASProtocolVersion', '14.0');
+      xhr.setRequestHeader('Content-Type', 'application/vnd.ms-sync.wbxml');
+      xhr.setRequestHeader('User-Agent', 'B2G');
+      xhr.setRequestHeader('Authorization', this._getAuth());
+
+      let conn = this;
+      xhr.onload = function() {
+        if (typeof logXhr == 'function') // TODO: remove this debug code
+          logXhr(xhr);
+
+        if (xhr.status == 451) {
+          conn.baseURL = xhr.getResponseHeader('X-MS-Location');
+          conn.doCommand(aXml, aCallback);
+          return;
+        }
+        if (xhr.status != 200) {
+          if (typeof print == 'function') // TODO: remove this debug code
+            print('Error!\n');
+          return;
+        }
+
+        if (xhr.response.byteLength == 0) {
+          aCallback(null);
+        }
+        else {
+          let r = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
+          if (typeof log == 'function') { // TODO: remove this debug code
+            log(r.dump());
+            r.rewind();
+          }
+
+          aCallback(r);
+        }
+      };
+
+      xhr.responseType = 'arraybuffer';
+      xhr.send(aXml.buffer);
+    },
+  };
+
+  let exported = {};
+  for (let [,exp] in Iterator(__exports__))
+    exported[exp] = eval(exp);
+  return exported;
+}));
+
+define('rdimap/imapclient/asfolder',
+  [
+    'wbxml',
+    'activesync/codepages',
+    'activesync/protocol',
+    'exports'
+  ],
+  function(
+    $wbxml,
+    $ascp,
+    $activesync,
+    exports
+  ) {
+
+
+function ActiveSyncFolderStorage(account, serverId) {
+  this.account = account;
+  this.serverId = serverId;
+  this._bodiesBySuid = {};
+}
+exports.ActiveSyncFolderStorage = ActiveSyncFolderStorage;
+ActiveSyncFolderStorage.prototype = {
+  _loadMessages: function(serverId, callback) {
+    var account = this.account;
+    var as = $ascp.AirSync.Tags;
+    var em = $ascp.Email.Tags;
+
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(as.Sync)
+       .stag(as.Collections)
+         .stag(as.Collection)
+           .tag(as.SyncKey, '0')
+           .tag(as.CollectionId, serverId)
+         .etag()
+       .etag()
+     .etag();
+
+    account.conn.doCommand(w, function(aResponse) {
+      var syncKey;
+      var e = new $wbxml.EventParser();
+      e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
+                         function(node) {
+        syncKey = node.children[0].textContent;
+      });
+      e.run(aResponse);
+
+      var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+      w.stag(as.Sync)
+         .stag(as.Collections)
+           .stag(as.Collection)
+             .tag(as.SyncKey, syncKey)
+             .tag(as.CollectionId, serverId)
+             .tag(as.GetChanges)
+           .etag()
+         .etag()
+       .etag();
+
+      var folderId = account.id + '/' + serverId;
+      account.conn.doCommand(w, function(aResponse) {
+        var e = new $wbxml.EventParser();
+        var headers = [];
+        var bodies = [];
+        e.addEventListener([as.Sync, as.Collections, as.Collection, as.Commands,
+                            as.Add, as.ApplicationData],
+        function(node) {
+          var guid = Date.now() + Math.random().toString(16).substr(1) +
+            '@mozgaia';
+          var header = {
+            subject: null,
+            author: null,
+            date: null,
+            flags: [],
+            id: null,
+            suid: folderId + '/' + guid,
+            guid: guid,
+            hasAttachments: false,
+            snippet: null,
+          };
+          var body = {
+            to: null,
+            cc: null,
+            bcc: null,
+            replyTo: null,
+            attachments: null,
+            references: null,
+            bodyRep: [0x1, 'This is just some filler text. Nothing to see ' +
+                      'here.'],
+          };
+
+          for (var i = 0; i < node.children.length; i++) {
+            var child = node.children[i];
+            var childText = child.children.length &&
+                            child.children[0].textContent;
+
+            if (child.tag == em.Subject)
+              header.subject = childText;
+            else if (child.tag == em.From || child.tag == em.To) {
+              // XXX: This address parser is probably very bad. Fix it.
+              var addrs = childText.split(/, /).map(function(x) {
+                var m = x.match(/"(.+?)" <(.+)>/);
+                return m ? { name: m[1], address: m[2] } :
+                           { name: '', address: x };
+              });
+              if (child.tag == em.From)
+                header.author = addrs[0];
+              else
+                body.to = addrs;
+            }
+            else if (child.tag == em.DateReceived)
+              header.date = new Date(childText).valueOf();
+            else if (child.tag == em.Read) {
+              if (childText == '1')
+                header.flags.push('\\Seen');
+            }
+          }
+
+          headers.push(header);
+          bodies.push(body);
+        });
+
+        e.run(aResponse);
+        callback(headers, bodies);
+      });
+    });
+  },
+
+  _sliceFolderMessages: function ffs__sliceFolderMessages(bridgeHandle) {
+    var folderStorage = this;
+    this._loadMessages(this.serverId, function(headers, bodies) {
+      for (var i = 0; i < headers.length; i++)
+        folderStorage._bodiesBySuid[headers[i].suid] = bodies[i];
+      bridgeHandle.sendSplice(0, 0, headers, true, false);
+    });
+  },
+
+  getMessageBody: function ffs_getMessageBody(suid, date, callback) {
+    callback(this._bodiesBySuid[suid]);
+  },
+};
+
+}); // end define
+;
+/**
+ * Implements the ActiveSync protocol for Hotmail and Exchange.
+ **/
+
+define('rdimap/imapclient/activesync',
+  [
+    'mailcomposer',
+    'wbxml',
+    'activesync/codepages',
+    'activesync/protocol',
+    './asfolder',
+    './util',
+    'exports'
+  ],
+  function(
+    $mailcomposer,
+    $wbxml,
+    $ascp,
+    $activesync,
+    $asfolder,
+    $imaputil,
+    exports
+  ) {
+
+
+const bsearchForInsert = $imaputil.bsearchForInsert;
+
+function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
+                           receiveProtoConn, _LOG) {
+  this.universe = universe;
+  this.id = accountDef.id;
+  this.accountDef = accountDef;
+
+  this.conn = new $activesync.Connection(accountDef.credentials.username,
+                                         accountDef.credentials.password);
+  this._db = dbConn;
+
+  this.enabled = true;
+  this.problems = [];
+
+  this.identities = accountDef.identities;
+
+  var ourIdentity = accountDef.identities[0];
+  var ourNameAndAddress = {
+    name: ourIdentity.name,
+    address: ourIdentity.address,
+  };
+
+  this.folders = [];
+  this._folderStorages = {};
+  this._folderInfos = folderInfos;
+  this._deadFolderIds = null;
+
+  this.meta = folderInfos.$meta;
+  this.mutations = folderInfos.$mutations;
+
+  // Sync existing folders
+  for (var folderId in folderInfos) {
+    if (folderId[0] === '$')
+      continue;
+    var folderInfo = folderInfos[folderId];
+
+    this._folderStorages[folderId] =
+      new $asfolder.ActiveSyncFolderStorage(this, folderId.split('/')[1]);
+    this.folders.push(folderInfo.$meta);
+  }
+  // TODO: we should probably be smarter about sorting.
+  this.folders.sort(function(a, b) { return a.path.localeCompare(b.path); });
+
+  if (this.meta.syncKey != '0') {
+    // TODO: this is a really hacky way of syncing folders after the first
+    // time.
+    var account = this;
+    setTimeout(function() { account.syncFolderList(function() {}) }, 1000);
+  }
+}
+exports.ActiveSyncAccount = ActiveSyncAccount;
+ActiveSyncAccount.prototype = {
+  toString: function fa_toString() {
+    return '[ActiveSyncAccount: ' + this.id + ']';
+  },
+  toBridgeWire: function fa_toBridgeWire() {
+    return {
+      id: this.accountDef.id,
+      name: this.accountDef.name,
+      path: this.accountDef.name,
+      type: this.accountDef.type,
+
+      enabled: this.enabled,
+      problems: this.problems,
+
+      identities: this.identities,
+
+      credentials: {
+        username: this.accountDef.credentials.username,
+      },
+
+      servers: [
+        {
+          type: this.accountDef.type,
+          connInfo: this.accountDef.connInfo
+        },
+      ]
+    };
+  },
+  toBridgeFolder: function() {
+    return {
+      id: this.accountDef.id,
+      name: this.accountDef.name,
+      path: this.accountDef.name,
+      type: 'account',
+    };
+  },
+
+  get numActiveConns() {
+    return 0;
+  },
+
+  saveAccountState: function(reuseTrans) {
+    var trans = this._db.saveAccountFolderStates(
+      this.id, this._folderInfos, [], this._deadFolderIds,
+      function stateSaved() {
+      },
+      reuseTrans);
+    this._deadFolderIds = null;
+    return trans;
+  },
+
+  shutdown: function() {
+  },
+
+  createFolder: function() {
+    throw new Error('XXX not implemented');
+  },
+
+  deleteFolder: function() {
+    throw new Error('XXX not implemented');
+  },
+
+  sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {
+    return this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
+  },
+
+  syncFolderList: function fa_syncFolderList(callback) {
+    var account = this;
+
+    var fh = $ascp.FolderHierarchy.Tags;
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(fh.FolderSync)
+       .tag(fh.SyncKey, account.meta.syncKey)
+     .etag();
+
+    this.conn.doCommand(w, function(aResponse) {
+      var e = new $wbxml.EventParser();
+
+      e.addEventListener([fh.FolderSync, fh.SyncKey], function(node) {
+        account.meta.syncKey = node.children[0].textContent;
+      });
+
+      e.addEventListener([fh.FolderSync, fh.Changes, [fh.Add, fh.Remove]],
+                         function(node) {
+        var folder = {};
+        for (var i = 0; i < node.children.length; i++) {
+          folder[node.children[i].localTagName] =
+            node.children[i].children[0].textContent;
+        }
+
+        if (node.tag == fh.Add)
+          account._addedFolder(folder.ServerId, folder.DisplayName,
+                               folder.Type);
+        else
+          account._deletedFolder(folder.ServerId);
+      });
+
+      e.run(aResponse);
+
+      account.saveAccountState();
+      callback();
+    });
+  },
+
+  // Map folder type numbers from ActiveSync to Gaia's types
+  _folderTypes: {
+     1: 'normal', // User-created generic folder
+     2: 'inbox',
+     3: 'drafts',
+     4: 'trash',
+     5: 'sent',
+     6: 'normal', // Outbox, actually
+    12: 'normal', // User-created mail folder
+  },
+
+  _addedFolder: function as__addFolder(serverId, displayName, typeNum) {
+    if (!(typeNum in this._folderTypes))
+      return; // Not a folder type we care about.
+
+    var folderId = this.id + '/' + serverId;
+    var folderInfo = {
+      $meta: {
+        id: folderId,
+        name: displayName,
+        path: displayName,
+        type: this._folderTypes[typeNum],
+        delim: '/',
+        depth: 0,
+      },
+      $impl: {
+        nextHeaderBlock: 0,
+        nextBodyBlock: 0,
+      },
+      accuracy: [],
+      headerBlocks: [],
+      bodyBlocks: [],
+    };
+
+    this._folderInfos[folderId] = folderInfo;
+    this._folderStorages[folderId] = new $asfolder.ActiveSyncFolderStorage(
+      this, serverId);
+
+    var account = this;
+    var idx = bsearchForInsert(this.folders, folderInfo.$meta, function(a, b) {
+      return a.path.localeCompare(b.path);
+    });
+    this.folders.splice(idx, 0, folderInfo.$meta);
+
+    this.universe.__notifyAddedFolder(this.id, folderInfo.$meta);
+  },
+
+  _deletedFolder: function as__removeFolder(serverId) {
+    var folderId = this.id + '/' + serverId;
+    var folderInfo = this._folderInfos[folderId],
+        folderMeta = folderInfo.$meta;
+    delete this._folderInfos[folderId];
+    delete this._folderStorages[folderId];
+
+    var idx = this.folders.indexOf(folderMeta);
+    this.folders.splice(idx, 1);
+
+    if (this._deadFolderIds === null)
+      this._deadFolderIds = [];
+    this._deadFolderIds.push(folderId);
+
+    this.universe.__notifyRemovedFolder(this.id, folderMeta);
+  },
+
+  sendMessage: function fa_sendMessage(composedMessage, callback) {
+    // XXX: This is very hacky and gross. Fix it to use pipes later.
+    composedMessage._cacheOutput = true;
+    composedMessage._composeMessage();
+
+    var cm = $ascp.ComposeMail.Tags;
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(cm.SendMail)
+       .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
+       .tag(cm.SaveInSentItems)
+       .stag(cm.Mime)
+         .opaque(composedMessage._outputBuffer)
+       .etag()
+     .etag();
+
+    this.conn.doCommand(w, function(aResponse) {
+      if (aResponse === null)
+        callback(null);
+      else {
+        dump('Error sending message. XML dump follows:\n' + aResponse.dump() +
+             '\n');
+      }
+    });
+  },
+
+  getFolderStorageForFolderId: function fa_getFolderStorageForFolderId(folderId){
+    return this._folderStorages[folderId];
+  },
+
+  runOp: function(op, mode, callback) {
+    // Just pretend we performed the op so no errors trigger.
+    if (callback)
+      setZeroTimeout(callback);
+  },
+};
+
+}); // end define
+;
+/**
+ *
+ **/
+
+define('rdimap/imapclient/mailuniverse',
+  [
     'rdcommon/log',
     './a64',
     './allback',
@@ -23675,6 +25974,7 @@ define('rdimap/imapclient/mailuniverse',[
     './smtpprobe',
     './smtpacct',
     './fakeacct',
+    './activesync',
     'module',
     'exports'
   ],
@@ -23688,6 +25988,7 @@ define('rdimap/imapclient/mailuniverse',[
     $smtpprobe,
     $smtpacct,
     $fakeacct,
+    $activesync,
     $module,
     exports
   ) {
@@ -23860,6 +26161,7 @@ CompositeAccount.prototype = {
 const COMPOSITE_ACCOUNT_TYPE_TO_CLASS = {
   'imap+smtp': CompositeAccount,
   'fake': $fakeacct.FakeAccount,
+  'activesync': $activesync.ActiveSyncAccount,
 };
 
 
@@ -23918,6 +26220,9 @@ var autoconfigByDomain = {
   },
   'example.com': {
     type: 'fake',
+  },
+  'hotmail.com': {
+    type: 'activesync',
   },
 };
 
@@ -24070,6 +26375,53 @@ Configurators['fake'] = {
     universe.saveAccountDef(accountDef, folderInfo);
     var account = universe._loadAccount(accountDef, folderInfo, null);
     callback(true, account);
+  },
+};
+Configurators['activesync'] = {
+  tryToCreateAccount: function cfg_activesync(universe, userDetails, domainInfo,
+                                              callback, _LOG) {
+    var credentials = {
+      username: userDetails.emailAddress,
+      password: userDetails.password,
+    };
+    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+    var accountDef = {
+      id: accountId,
+      name: userDetails.emailAddress,
+
+      type: 'activesync',
+
+      credentials: credentials,
+      connInfo: {
+        hostname: 'm.hotmail.com',
+        port: 1337,
+        crypto: true,
+      },
+
+      identities: [
+        {
+          id: accountId + '/' +
+                $a64.encodeInt(universe.config.nextIdentityNum++),
+          name: userDetails.displayName,
+          address: userDetails.emailAddress,
+          replyTo: null,
+          signature: DEFAULT_SIGNATURE
+        },
+      ]
+    };
+
+    var folderInfo = {
+      $meta: {
+        nextMutationNum: 0,
+        syncKey: "0",
+      },
+      $mutations: [],
+    };
+    universe.saveAccountDef(accountDef, folderInfo);
+    var account = universe._loadAccount(accountDef, folderInfo, null);
+    account.syncFolderList(function() {
+      callback(true, account);
+    });
   },
 };
 
@@ -24771,7 +27123,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
  * bridge hookup logic.
  **/
 
-define('rdimap/imapclient/same-frame-setup',[
+define('rdimap/imapclient/same-frame-setup',
+  [
     './shim-sham',
     'rdcommon/log',
     'rdcommon/logreaper',
