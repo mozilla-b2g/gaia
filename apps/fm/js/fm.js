@@ -109,6 +109,7 @@ var mozFMRadio = navigator.mozFMRadio || {
 };
 
 function enableFM(enable) {
+  console.log('Antenna available: ' + mozFMRadio.antennaAvailable);
   if (!mozFMRadio.antennaAvailable) {
     updateAntennaUI();
     return;
@@ -158,59 +159,102 @@ var frequencyDialer = {
   },
 
   _addEventListeners: function() {
-    var self = this;
-    var _initMouseX = 0;
-    var _initDialerX = 0;
-    var _initFrequency = 0;
-
-    function _calcTargetFrequency(event) {
-      var space = $('frequency-dialer').clientWidth /
-                 (self._maxFrequency - self._minFrequency + 1);
-      var movingSpace = event.clientX - _initMouseX;
-      var targetFrequency = _initFrequency - movingSpace / space;
-      return parseFloat(targetFrequency.toFixed(1));
-    }
-
-    var _movetimeout = null;
-    function fd_body_mousemove(event) {
-      window.clearTimeout(_movetimeout);
-      window.setTimeout(function fd_body_mousemove_timeout() {
-        var targetFrequency = _calcTargetFrequency(event);
-        self.setFrequency(targetFrequency);
-      }, 100);
-    }
-
-    function fd_body_mouseup(event) {
-      _removeEventListeners();
-
-      var targetFrequency = _calcTargetFrequency(event);
-      self.setFrequency(targetFrequency);
-      var req = mozFMRadio.setFrequency(targetFrequency);
-      req.onerror = function onerror_setFrequency() {
-        self.setFrequency(mozFMRadio.frequency);
-      };
-
-      $('frequency-dialer').classList.add('animation-on');
-    }
-
     function _removeEventListeners() {
       document.body.removeEventListener('mouseup', fd_body_mouseup, false);
       document.body.removeEventListener('mousemove', fd_body_mousemove, false);
     }
 
-    $('frequency-dialer').addEventListener('mousedown',
-        function fd_mousedown(evt) {
-          var dialer = $('frequency-dialer');
-          dialer.classList.remove('animation-on');
-          _initMouseX = evt.clientX;
-          _initDialerX = parseInt(dialer.style.left);
-          _initFrequency = self._currentFreqency;
+    function cloneEvent(evt) {
+      if ('touches' in evt) {
+        evt = evt.touches[0];
+      }
+      return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
+    }
 
-          _removeEventListeners();
-          document.body.addEventListener('mousemove', fd_body_mousemove, false);
-          document.body.addEventListener('mouseup', fd_body_mouseup, false);
-        }
-    , false);
+    var self = this;
+    var SPEED_THRESHOLD = 0.1;
+    var currentEvent, startEvent, currentSpeed;
+    var tunedFrequency = 0;
+
+    function toFixed(frequency) {
+      return parseFloat(frequency.toFixed(1));
+    }
+
+    function _calcSpeed() {
+      var movingSpace = startEvent.x - currentEvent.x;
+      var deltaTime = currentEvent.timestamp - startEvent.timestamp;
+      var speed = movingSpace / deltaTime;
+      currentSpeed = parseFloat(speed.toFixed(2));
+    }
+
+    function _calcTargetFrequency() {
+      return tunedFrequency - getMovingSpace() / self._space;
+    }
+
+    // If the user swap really slow, narrow down the moving space
+    // So the user can fine tune frequency.
+    function getMovingSpace() {
+      var movingSpace = currentEvent.x - startEvent.x;
+      return Math.abs(currentSpeed) > SPEED_THRESHOLD ?
+                                  movingSpace : movingSpace / 4;
+    }
+
+    function fd_body_mousemove(event) {
+      event.stopPropagation();
+      currentEvent = cloneEvent(event);
+
+      _calcSpeed();
+
+      // move dialer
+      var dialer = $('frequency-dialer');
+      dialer.style.left = parseFloat(dialer.style.left) +
+                                getMovingSpace() + 'px';
+
+      tunedFrequency = _calcTargetFrequency();
+      var roundedFrequency = Math.round(tunedFrequency * 10) / 10;
+
+      if (roundedFrequency != self._currentFreqency) {
+        self.setFrequency(toFixed(roundedFrequency), true);
+      }
+
+      startEvent = currentEvent;
+    }
+
+    function fd_body_mouseup(event) {
+      event.stopPropagation();
+      _removeEventListeners();
+
+      // Add animation back
+      $('frequency-dialer').classList.add('animation-on');
+
+      // Add momentum if speed is higher than a given threshold.
+      if (Math.abs(currentSpeed) > SPEED_THRESHOLD) {
+        var direction = currentSpeed > 0 ? 1 : -1;
+        tunedFrequency += Math.min(Math.abs(currentSpeed) * 5, 5) * direction;
+      }
+      tunedFrequency = self.setFrequency(toFixed(tunedFrequency));
+
+      var req = mozFMRadio.setFrequency(tunedFrequency);
+      req.onerror = function onerror_setFrequency() {
+        tunedFrequency = self.setFrequency(mozFMRadio.frequency);
+      };
+    }
+
+    function fd_mousedown(event) {
+      event.stopPropagation();
+
+      // Stop animation
+      $('frequency-dialer').classList.remove('animation-on');
+
+      startEvent = currentEvent = cloneEvent(event);
+      tunedFrequency = self._currentFreqency;
+
+      _removeEventListeners();
+      document.body.addEventListener('mousemove', fd_body_mousemove, false);
+      document.body.addEventListener('mouseup', fd_body_mouseup, false);
+    }
+
+    $('frequency-dialer').addEventListener('mousedown', fd_mousedown, false);
   },
 
   _initUI: function() {
@@ -230,6 +274,13 @@ var frequencyDialer = {
       end = upper < end ? upper : end;
       this._addDialerUnit(start, end);
     }
+
+    // cache the size of dialer
+    this._dialerUnits = $$('#frequency-dialer .dialer-unit');
+    this._dialerWidth = this._dialerUnits[0].clientWidth *
+                                     this._dialerUnits.length;
+    this._space = this._dialerWidth /
+                    (this._maxFrequency - this._minFrequency);
   },
 
   _addDialerUnit: function(start, end) {
@@ -262,23 +313,27 @@ var frequencyDialer = {
     $('frequency-dialer').appendChild(unit);
   },
 
-  _updateUI: function() {
-    var dialerUnits = $$('#frequency-dialer .dialer-unit');
-    var dialerWidth = dialerUnits[0].clientWidth * dialerUnits.length;
-    var space = dialerWidth /
-                 (this._maxFrequency - this._minFrequency);
-    $('frequency-dialer').style.left =
-            (this._minFrequency - this._currentFreqency) * space + 'px';
-    $('frequency').textContent = this._currentFreqency;
+  _updateUI: function(frequency, ignoreDialer) {
+    $('frequency').textContent = parseFloat(frequency.toFixed(1));
+    if (true !== ignoreDialer) {
+      $('frequency-dialer').style.left =
+            (this._minFrequency - frequency) * this._space + 'px';
+    }
   },
 
-  setFrequency: function(frequency) {
-    if (frequency < mozFMRadio.bandRanges.FM.lower ||
-                   frequency > mozFMRadio.bandRanges.FM.upper) {
-      return;
+  setFrequency: function(frequency, ignoreDialer) {
+    if (frequency < mozFMRadio.bandRanges.FM.lower) {
+      frequency = mozFMRadio.bandRanges.FM.lower;
     }
+
+    if (frequency > mozFMRadio.bandRanges.FM.upper) {
+      frequency = mozFMRadio.bandRanges.FM.upper;
+    }
+
     this._currentFreqency = frequency;
-    this._updateUI();
+    this._updateUI(frequency, ignoreDialer);
+
+    return frequency;
   }
 };
 
