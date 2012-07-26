@@ -885,7 +885,7 @@ var Browser = {
 
     li.addEventListener('transitionend', function() {
       // Pause so the user has time to see the new tab
-      setTimeout(showTabCompleteFun, 500);
+      setTimeout(showTabCompleteFun, 100);
     });
 
     // TODO: remove setTimeout
