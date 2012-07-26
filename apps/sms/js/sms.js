@@ -320,8 +320,8 @@ var ThreadListUI = {
   },
 
   executeDeletion: function thlui_executeDeletion() {
+    WaitingScreen.show();
     MessageManager.deleteMessages(ThreadListUI.delNumList, function repaint() {
-      WaitingScreen.show();
       //TODO Change this functionality with Steve code
       //TODO Steve will add delete pending in deleteMessages!
       if (ThreadListUI.pendingDelList.length > 0) {
