@@ -347,48 +347,73 @@ var ThreadListUI = {
 
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
-    var threadIds = [], headerIndex, unreadThreads = [];
-    if (messages.length == 0) {
-      ThreadListUI.showListWithoutMessages();
-    } else {
-      ThreadListUI.showListWithMessages();
-    }
-    for (var i = 0; i < messages.length; i++) {
-      var message = messages[i];
-      var num = message.delivery == 'received' ?
-      message.sender : message.receiver;
-      if (!message.read) {
-        if (unreadThreads.indexOf(num) == -1) {
-          unreadThreads.push(num);
-        }
-      }
-      if (threadIds.indexOf(num) == -1) {
-        var thread = {
-          'body': message.body,
-          'name': num,
-          'num': num,
-          'timestamp': message.timestamp.getTime(),
-          'unreadCount': !message.read ? 1 : 0,
-          'id': num
-        };
-        if (threadIds.length == 0) {
-          var currentTS = (new Date()).getTime();
-          headerIndex = Utils.getDayDate(currentTS);
-          ThreadListUI.createNewHeader(currentTS);
-        }else {
-          var tmpIndex = Utils.getDayDate(message.timestamp.getTime());
-          if (tmpIndex < headerIndex) {
-            ThreadListUI.createNewHeader(message.timestamp.getTime());
-            headerIndex = tmpIndex;
+// <<<<<<< HEAD
+//     var threadIds = [], headerIndex, unreadThreads = [];
+//     if (messages.length == 0) {
+//       ThreadListUI.showListWithoutMessages();
+//     } else {
+//       ThreadListUI.showListWithMessages();
+//     }
+//     for (var i = 0; i < messages.length; i++) {
+//       var message = messages[i];
+//       var num = message.delivery == 'received' ?
+//       message.sender : message.receiver;
+//       if (!message.read) {
+//         if (unreadThreads.indexOf(num) == -1) {
+//           unreadThreads.push(num);
+// =======
+  var iconEdit = document.querySelector('#icon-edit');
+    if(messages.length > 0) {
+      iconEdit.classList.remove('disabled');
+      var threadIds = [], headerIndex, unreadThreads = [];
+      for (var i = 0; i < messages.length; i++) {
+        var message = messages[i];
+        var num = message.delivery == 'received' ?
+        message.sender : message.receiver;
+        if (!message.read) {
+          if (unreadThreads.indexOf(num) == -1) {
+            unreadThreads.push(num);
           }
+// >>>>>>> Bug of ThreadListUI fixed
         }
-        threadIds.push(num);
-        ThreadListUI.appendThread(thread);
+        if (threadIds.indexOf(num) == -1) {
+          var thread = {
+            'body': message.body,
+            'name': num,
+            'num': num,
+            'timestamp': message.timestamp.getTime(),
+            'unreadCount': !message.read ? 1 : 0,
+            'id': num
+          };
+          if (threadIds.length == 0) {
+            var currentTS = (new Date()).getTime();
+            headerIndex = Utils.getDayDate(currentTS);
+            ThreadListUI.createNewHeader(currentTS);
+          }else {
+            var tmpIndex = Utils.getDayDate(message.timestamp.getTime());
+            if (tmpIndex < headerIndex) {
+              ThreadListUI.createNewHeader(message.timestamp.getTime());
+              headerIndex = tmpIndex;
+            }
+          }
+          threadIds.push(num);
+          ThreadListUI.appendThread(thread);
+        }
       }
-    }
-    // Update threads with 'unread'
-    for (var i = 0; i < unreadThreads.length; i++) {
-      document.getElementById(unreadThreads[i]).classList.add('unread');
+      // Update threads with 'unread'
+      for (var i = 0; i < unreadThreads.length; i++) {
+        document.getElementById(unreadThreads[i]).classList.add('unread');
+      }
+      
+    } else {
+      var noResultHTML = '<div id="no-result-container">' +
+                          '<div id="no-result-message">' +
+                          '<p>no messages recorded</p>' +
+                          '<p>start communicating now</p>' +
+                          '</div>' +
+                          '</div>';
+      ThreadListUI.view.innerHTML = noResultHTML;
+      iconEdit.classList.add('disabled');
     }
     // Callback when every message is appended
     if (callback) {
@@ -791,10 +816,13 @@ var ThreadUI = {
                     if (messages.length > 0) {
                       // If there are messages yet
                       ThreadUI.renderMessages(messages);
-                      WaitingScreen.hide();
-                      window.history.back();
+                      MessageManager.getMessages(ThreadListUI.renderThreads,
+                                                 null, null, function() {
+                        WaitingScreen.hide();
+                        window.history.back();
+                      });
                     }else {
-                      // If there is no more messages (delete all)
+                      // If there are no more messages (delete all)
                       ThreadUI.view.innerHTML = '';
                       MessageManager.getMessages(ThreadListUI.renderThreads,
                                                  null, null, function() {
@@ -998,11 +1026,9 @@ var WaitingScreen = {
     return this.loadingHeader = document.getElementById('loading-header');
   },
   show: function ws_show() {
-    // alert("show");
     this.loading.classList.add('show-loading');
   },
   hide: function ws_hide() {
-    // alert("END");
     this.loading.classList.remove('show-loading');
   },
   update: function ws_update(text) {
