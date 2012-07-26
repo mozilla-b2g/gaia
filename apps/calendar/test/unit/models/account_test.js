@@ -21,17 +21,10 @@ suite('account', function() {
     assert.equal(subject.user, 'foo');
   });
 
-  test('#connect', function(done) {
-    subject._setupProvider = function() {
-      done();
-    }
-    subject.connect();
-  });
-
-  suite('#_setupProvider', function() {
+  suite('#_updateProvider', function() {
     function update() {
-      subject._setupProvider();
-      provider = subject.provider;
+      subject._updateProvider();
+      provider = subject._provider;
     }
 
     setup(function() {
@@ -68,10 +61,10 @@ suite('account', function() {
   });
 
 
-  suite('#_setupProvider', function() {
+  suite('#_updateProvider', function() {
     setup(function() {
-      subject._setupProvider();
-      provider = subject.provider;
+      subject._updateProvider();
+      provider = subject._provider;
     });
 
     test('with url changes', function(done) {
@@ -79,7 +72,7 @@ suite('account', function() {
         callback(null, { url: '/foo/bar' });
       };
 
-      subject.setup(function(err, success) {
+      subject.refresh(function(err, success) {
         done(function() {
           assert.ok(!err);
 

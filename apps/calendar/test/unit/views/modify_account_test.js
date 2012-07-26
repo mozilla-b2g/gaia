@@ -127,7 +127,7 @@ suite('views/modify_account', function() {
 
       // mock out setup
       // and save arguments
-      account.setup = function() {
+      account.refresh = function() {
         var callback = arguments[arguments.length - 1];
         calledSetup = arguments;
         setTimeout(function() {

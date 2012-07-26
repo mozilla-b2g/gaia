@@ -100,7 +100,7 @@
 
       this._clearErrors();
       this.updateModel();
-      this.model.setup(function(err, success) {
+      this.model.refresh(function(err, success) {
         if (err) {
           self._displayError(err);
           callback(err);
@@ -198,7 +198,7 @@
         this.completeUrl = '/settings/';
       }
 
-      if (this.model.hasOwnProperty('provider')) {
+      if (this.model && this.model.provider) {
         provider = this.model.provider;
         autoSubmit = !provider.useCredentials && !provider.useUrl;
       }

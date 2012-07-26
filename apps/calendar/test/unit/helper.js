@@ -18,6 +18,21 @@
 
   testSupport.calendar = {
 
+    loadSample: function(file, cb) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/test/unit/fixtures/' + file, true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status !== 200) {
+            cb(new Error('file not found or other error', xhr));
+          } else {
+            cb(null, xhr.responseText);
+          }
+        }
+      }
+      xhr.send(null);
+    },
+
     requireProvider: function() {
       requireLib('provider/calendar/abstract.js');
       requireLib('provider/calendar/local.js');

@@ -32,7 +32,7 @@ suite('provider/calendar/caldav', function() {
     assert.instanceOf(subject, Calendar.Provider.Calendar.Abstract);
   });
 
-  test('#mapRemoteProps', function() {
+  test('#mapRemoteCalendar', function() {
     var remote = remoteCalendar({
       url: 'url',
       name: 'name',

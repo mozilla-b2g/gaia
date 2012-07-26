@@ -13,14 +13,18 @@
     }
 
     if (this.providerType) {
-      this._setupProvider();
+      this._updateProvider();
     }
   }
 
   Account.prototype = {
 
     providerType: null,
-    provider: null,
+
+    /**
+     * Provider object
+     */
+    _provider: null,
 
     /**
      * ID for this model always set
@@ -57,6 +61,14 @@
       return this.domain + this.url;
     },
 
+    get provider() {
+      if (!this._provider) {
+        this._updateProvider();
+      }
+
+      return this._provider;
+    },
+
     set fullUrl(value) {
       var protocolIdx = value.indexOf('://');
 
@@ -80,12 +92,12 @@
       }
     },
 
-    _setupProvider: function() {
-      var provider = this.provider;
+    _updateProvider: function() {
+      var provider = this._provider;
       var type = this.providerType;
 
       if (!provider) {
-        this.provider = provider = new Calendar.Provider[type]();
+        this._provider = provider = new Calendar.Provider[type]();
       }
 
       if (provider.useUrl) {
@@ -105,10 +117,10 @@
      *
      * @param {Function} callback node style callback.
      */
-    setup: function(callback) {
+    refresh: function(callback) {
       var self = this;
 
-      self._setupProvider();
+      self._updateProvider();
 
       this.provider.setupConnection(function(err, data) {
         if (err) {
@@ -125,14 +137,10 @@
         }
 
         // update provider
-        self._setupProvider();
+        self._updateProvider();
 
         callback(null, self);
       });
-    },
-
-    connect: function() {
-      this._setupProvider();
     },
 
     /**
