@@ -59,6 +59,7 @@ var MessageManager = {
           case '#new':
             document.getElementById('messages-container').innerHTML = '';
             document.getElementById('message-to-send').innerHTML = '';
+            document.getElementById('receiver-input').value = '';
             threadMessages.classList.add('new');
             MessageManager.slide();
             break;
@@ -459,9 +460,9 @@ var ThreadUI = {
     return this.view = document.getElementById('messages-container');
   },
 
-  get num() {
-    delete this.number;
-    return this.number = document.getElementById('receiver-tel');
+  get contactInput() {
+    delete this.contactInput;
+    return this.contactInput = document.getElementById('receiver-input');
   },
 
   get title() {
@@ -504,11 +505,6 @@ var ThreadUI = {
   get headerTitle() {
     delete this.headerTitle;
     return this.headerTitle = document.getElementById('header-text');
-  },
-
-  get contactInput() {
-    delete this.contactInput;
-    return this.contactInput = document.getElementById('receiver-tel');
   },
 
   init: function thui_init() {
@@ -814,7 +810,7 @@ var ThreadUI = {
     //TODO We will use for updating height of input if necessary
   },
   cleanFields: function thui_cleanFields() {
-    this.num.value = '';
+    this.contactInput.value = '';
     this.input.value = '';
     this.updateInputHeight();
   },
@@ -824,7 +820,7 @@ var ThreadUI = {
     var hash = window.location.hash;
     // Depending where we are, we get different num
     if (hash == '#new') {
-      var num = this.num.value;
+      var num = this.contactInput.value;
     } else {
       var num = MessageManager.getNumFromHash();
     }
@@ -927,12 +923,12 @@ var ThreadUI = {
 
     // Retrieve info from thread
     var name = Utils.escapeHTML(contact.name);
-    var bodyHTML = Utils.escapeHTML(contact.tel[0].number);
+    var number = Utils.escapeHTML(contact.tel[0].number);
     // Create HTML structure
     var structureHTML =
             '  <a href="#num=' + contact.tel[0].number + '">' +
             '    <div class="name">' + name + '</div>' +
-            '    <div class="msg">"' + bodyHTML + '"</div>' +
+            '    <div class="number">' + number + '</div>' +
             '    <div class="photo">' +
             '    <img src="">' +
             '    </div>' +
