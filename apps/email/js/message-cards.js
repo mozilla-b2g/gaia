@@ -320,6 +320,7 @@ console.log("slice flags:", "top", this.messagesSlice.atTop,
 console.log("preScreens", preScreens, "postScreens", postScreens);
     if (preScreens < SCROLL_MIN_BUFFER_SCREENS &&
         !this.messagesSlice.atTop) {
+console.log('growthRequest', -1);
       this.messagesSlice.requestGrowth(-1);
       return;
     }
@@ -336,6 +337,7 @@ console.log("preScreens", preScreens, "postScreens", postScreens);
 
     if (postScreens < SCROLL_MIN_BUFFER_SCREENS &&
         !this.messagesSlice.atBottom) {
+console.log('growthRequest', 1);
       this.messagesSlice.requestGrowth(1);
     }
     else if (postScreens > SCROLL_MAX_RETENTION_SCREENS) {

@@ -445,8 +445,13 @@ function SettingsDebugCard(domNode, mode, args) {
     .addEventListener('click', this.dumpLog.bind(this, 'storage'), false);
 
   this.loggingButton = domNode.getElementsByClassName('tng-dbg-logging')[0];
+  this.dangerousLoggingButton =
+    domNode.getElementsByClassName('tng-dbg-dangerous-logging')[0];
+
   this.loggingButton.addEventListener(
-    'click', this.cycleLogging.bind(this, true), false);
+    'click', this.cycleLogging.bind(this, true, true), false);
+  this.dangerousLoggingButton.addEventListener(
+    'click', this.cycleLogging.bind(this, true, 'dangerous'), false);
   this.cycleLogging(false);
 
   // - hookup
@@ -460,18 +465,36 @@ SettingsDebugCard.prototype = {
     MailAPI.debugSupport('dumpLog', target);
   },
 
-  cycleLogging: function(doChange) {
+  cycleLogging: function(doChange, changeValue) {
     var value = MailAPI.config.debugLogging;
     if (doChange) {
-      value = !value;
+      if (changeValue === true)
+        value = !value;
+      // only upgrade to dangerous from enabled...
+      else if (changeValue === 'dangerous' && value === true)
+        value = 'dangerous';
+      else if (changeValue === 'dangerous' && value === 'dangerous')
+        value = true;
+      // (ignore dangerous button if not enabled)
+      else
+        return;
       MailAPI.debugSupport('setLogging', value);
     }
-    var label;
-    if (value)
+    var label, dangerLabel;
+    if (value === true) {
       label = 'Logging is ENABLED; toggle';
-    else
+      dangerLabel = 'Logging is SAFE; toggle';
+    }
+    else if (value === 'dangerous') {
+      label = 'Logging is ENABLED; toggle';
+      dangerLabel = 'Logging DANGEROUSLY ENTRAINS USER DATA; toggle';
+    }
+    else {
       label = 'Logging is DISABLED; toggle';
+      dangerLabel = '(enable logging to access this secret button)';
+    }
     this.loggingButton.textContent = label;
+    this.dangerousLoggingButton.textContent = dangerLabel;
   },
 
   die: function() {
