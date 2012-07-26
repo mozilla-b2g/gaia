@@ -402,7 +402,8 @@
 .touched .lockscreen-icon::after,
 .touched-left .lockscreen-icon::after,
 .touched-right .lockscreen-icon::after,
-#screen:not(.locked) .lockscreen-icon::after {
+#screen:not(.locked) .lockscreen-icon::after,
+#lockscreen:not([data-panel=""]) .lockscreen-icon::after {
   display: none;
   -moz-animation: none;
 }
