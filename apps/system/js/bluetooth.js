@@ -28,3 +28,5 @@ var Bluetooth = {
     });
   }
 };
+
+Bluetooth.init();

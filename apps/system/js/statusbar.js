@@ -4,6 +4,9 @@
 'use strict';
 
 var StatusBar = {
+  /* Timeout for 'recently active' indicators */
+  ACTIVE_INDICATOR_TIMEOUT: 60 * 1000,
+
   /* Whether or not status bar is actively updating or not */
   active: true,
 
@@ -14,6 +17,9 @@ var StatusBar = {
   icons: {},
 
   wifiConnected: false,
+
+  geolocationActive: false,
+  geolocationTimer: null,
 
   init: function sb_init() {
     this.getAllElements();
@@ -49,6 +55,7 @@ var StatusBar = {
     }
 
     window.addEventListener('screenchange', this);
+    window.addEventListener('mozChromeEvent', this);
     this.setActive(true);
   },
 
@@ -72,6 +79,13 @@ var StatusBar = {
         this.update.data.call(this);
         break;
 
+      case 'mozChromeEvent':
+        if (evt.detail.type !== 'geolocation-status')
+          return;
+
+        this.geolocationActive = evt.detail.active;
+        this.update.geolocation.call(this);
+        break;
     }
   },
 
@@ -107,7 +121,6 @@ var StatusBar = {
       if (bluetooth) {
         // XXX need a reliable way to see if bluetooth is currently
         // connected or not here.
-
         this.update.bluetooth.call(this);
       }
     } else {
@@ -161,20 +174,27 @@ var StatusBar = {
       var voice = conn.voice;
       var icon = this.icons.signal;
       var flightModeIcon = this.icons.flightMode;
+      var connLabel = this.icons.conn;
+      var _ = navigator.mozL10n.get;
 
       if (this.settingValues['ril.radio.disabled']) {
         icon.hidden = true;
+        connLabel.hidden = true;
         flightModeIcon.hidden = false;
         return;
       }
 
-      icon.hidden = false;
       flightModeIcon.hidden = true;
 
       icon.dataset.roaming = voice.roaming;
-      if (voice.relSignalStrength === 0 && !voice.connected) {
-        icon.dataset.level = '-1';
+      if (!voice.connected && !voice.emergencyCallsOnly) {
+        icon.hidden = true;
+        connLabel.hidden = false;
+        connLabel.dataset.l10nId = 'searching';
+        connLabel.textContent = _('searching') || '';
       } else {
+        icon.hidden = false;
+        connLabel.hidden = true;
         icon.dataset.level = Math.floor(voice.relSignalStrength / 20); // 0-5
       }
     },
@@ -329,9 +349,20 @@ var StatusBar = {
     },
 
     geolocation: function sb_updateGeolocation() {
-      // XXX no way to probe active state of Geolocation
-      // this.icon.geolocation.hidden = ?
-      // this.icon.geolocation.dataset.active = ?;
+      if (this.geolocationTimer) {
+        window.clearTimeout(this.geolocationTimer);
+        this.geolocationTimer = null;
+      }
+      if (this.geolocationActive) {
+        this.icons.geolocation.hidden = false;
+        this.icons.geolocation.dataset.active = true;
+      } else {
+        this.icons.geolocation.dataset.active = false;
+        this.geolocationTimer = window.setTimeout((function() {
+          this.geolocationTimer = null;
+          this.icons.geolocation.hidden = true;
+        }).bind(this), this.ACTIVE_INDICATOR_TIMEOUT);
+      }
     },
 
     usb: function sb_updateUsb() {
@@ -358,7 +389,7 @@ var StatusBar = {
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
     var elements = ['notification', 'time',
-    'battery', 'wifi', 'data', 'flight-mode', 'signal',
+    'battery', 'wifi', 'data', 'flight-mode', 'conn', 'signal',
     'tethering', 'alarm', 'bluetooth', 'mute',
     'recording', 'sms', 'geolocation', 'usb'];
 

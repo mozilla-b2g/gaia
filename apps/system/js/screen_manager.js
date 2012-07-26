@@ -58,12 +58,10 @@ var ScreenManager = {
   _idleTimeout: 0,
 
   init: function scm_init() {
-    /* Allow others to cancel the keyup event but not the keydown event */
-    window.addEventListener('keydown', this, true);
-    window.addEventListener('keyup', this);
+    window.addEventListener('sleep', this);
+    window.addEventListener('wake', this);
 
     this.screen = document.getElementById('screen');
-    this.screen.classList.remove('screenoff');
 
     var self = this;
     var power = navigator.mozPower;
@@ -110,9 +108,15 @@ var ScreenManager = {
       }
     };
 
+    this._firstOn = false;
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       self._idleTimeout = value;
+
+      if (!self._firstOn) {
+        self._firstOn = true;
+        self.turnScreenOn();
+      }
     });
 
     SettingsListener.observe('screen.automatic-brightness', true,
@@ -130,8 +134,6 @@ var ScreenManager = {
 
       self.setBrightness(value);
     });
-
-    self.turnScreenOn();
   },
 
   handleEvent: function scm_handleEvent(evt) {
@@ -156,29 +158,13 @@ var ScreenManager = {
         }
         break;
 
-      // The screenshot module also listens for the SLEEP key and
-      // may call preventDefault() on the keyup and keydown events.
-      case 'keydown':
-        if (evt.keyCode !== evt.DOM_VK_SLEEP &&
-            evt.keyCode !== evt.DOM_VK_HOME) {
-          return;
-        }
-
-        this._turnOffScreenOnKeyup = true;
-
-        if (this._inTransition || evt.defaultPrevented ||
-            !this.screenEnabled) {
-          this._turnOffScreenOnKeyup = false;
-        }
-
-        this.turnScreenOn();
+      case 'sleep':
+        if (!this._screenWakeLocked)
+          this.turnScreenOff(true);
         break;
 
-      case 'keyup':
-        if (this.screenEnabled && this._turnOffScreenOnKeyup &&
-            evt.keyCode == evt.DOM_VK_SLEEP && !evt.defaultPrevented &&
-            !this._screenWakeLocked)
-          this.turnScreenOff(true);
+      case 'wake':
+        this.turnScreenOn();
         break;
     }
   },
@@ -197,8 +183,6 @@ var ScreenManager = {
 
     window.removeEventListener('devicelight', this);
     window.removeEventListener('mozfullscreenchange', this);
-
-    this.setIdleTimeout(0);
 
     var self = this;
     var screenBrightness = navigator.mozPower.screenBrightness;
@@ -224,6 +208,8 @@ var ScreenManager = {
     };
 
     var finish = function scm_finish() {
+      self.setIdleTimeout(0);
+
       self.screenEnabled = false;
       self._inTransition = false;
       self.screen.classList.add('screenoff');
@@ -282,7 +268,6 @@ var ScreenManager = {
 
   // The idleObserver that we will pass to IdleAPI
   idleObserver: {
-    time: 60,
     onidle: null,
     onactive: null
   },

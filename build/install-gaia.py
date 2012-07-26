@@ -33,6 +33,7 @@ def compute_local_hashes():
     hashes = {}
     compute_local_hashes_in_dir('webapps', hashes)
     compute_local_hash('user.js', hashes)
+    compute_local_hash('profile/permissions.sqlite', hashes)
     return hashes
 
 def adb_push(local, remote):
@@ -142,6 +143,7 @@ def install_gaia_slow():
     adb_shell("rm /data/local/user.js", ignore_error=True)
     adb_push('profile/webapps', '/data/local/webapps')
     adb_push('profile/user.js', '/data/local')
+    adb_push('profile/permissions.sqlite', '/data/local')
 
 def install_gaia():
     try:

@@ -91,6 +91,10 @@ let permissions = {
     "urls": [],
     "pref": "dom.mozBluetooth.whitelist"
   },
+  "voicemail": {
+    "urls": [],
+    "pref": "dom.voicemail.whitelist"
+  },
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"
@@ -116,8 +120,11 @@ let permissions = {
 let content = "";
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
-content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
 content += "user_pref(\"browser.manifestURL\",\"" + homescreen + "/manifest.webapp\");\n\n";
+if (homescreen.substring(0,6) == "app://") { // B2G bug 773884
+    homescreen += "/index.html";
+}
+content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
 
 let privileges = [];
 let domains = [];
@@ -164,7 +171,9 @@ content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
 
 // Probably wont be needed when https://bugzilla.mozilla.org/show_bug.cgi?id=768440 lands
 content += "user_pref(\"dom.send_after_paint_to_content\", true);\n\n";
+
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
+content += "user_pref(\"network.http.max-connections-per-server\", 15);\n\n";
 
 if (LOCAL_DOMAINS) {
   content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
@@ -195,6 +204,15 @@ if (DEBUG) {
   content += "user_pref(\"dom.mozContacts.enabled\", true);\n";
   content += "user_pref(\"dom.mozSettings.enabled\", true);\n";
   content += "user_pref(\"device.storage.enabled\", true);\n";
+
+  // Preferences for httpd
+  // (Use JSON.stringify in order to avoid taking care of `\` escaping)
+  content += "user_pref(\"extensions.gaia.dir\", " + JSON.stringify(GAIA_DIR) + ");\n";
+  content += "user_pref(\"extensions.gaia.domain\", " + JSON.stringify(GAIA_DOMAIN) + ");\n";
+  content += "user_pref(\"extensions.gaia.port\", "+ GAIA_PORT.replace(/:/g, "") + ");\n";
+  content += "user_pref(\"extensions.gaia.app_src_dirs\", " + JSON.stringify(GAIA_APP_SRCDIRS) + ");\n";
+  content += "user_pref(\"extensions.gaia.app_relative_path\", " + JSON.stringify(GAIA_APP_RELATIVEPATH) + ");\n";
+
   content += "\n";
 }
 

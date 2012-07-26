@@ -19,7 +19,7 @@ var UssdUI = {
 
   close: function uui_close() {
     window.opener.postMessage({
-      type: 'close',
+      type: 'close'
     }, this._origin);
 
     window.close();
@@ -53,3 +53,4 @@ var UssdUI = {
 };
 
 UssdUI.init();
+
