@@ -394,8 +394,8 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 .message-option .gif{
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 2.5rem;
+  height: 2.5rem;
   margin: 0 auto;
 }
 
@@ -628,4 +628,76 @@ a.unread .unread-mark .icon-unread-mark {
 
 #messages-container .photo img {
   width: 100%;
+}
+
+/*
+  Loading screen while deleting
+*/
+.show-loading {
+  opacity: 1 !important;
+}
+
+#loading {
+  pointer-events: none;
+  z-index: 200;
+  background: rgba(0,0,0,.8);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 2rem;
+  -moz-box-sizing: border-box;
+  opacity: 0;
+  -moz-transition: opacity 0.3s ease-out;
+}
+
+.loading-container {
+  position: relative;
+  top: 50%;
+  margin-top: -6rem;
+}
+
+.loading-header {
+  text-align: left;
+  padding: 2rem 1rem 4rem 1rem;
+  -moz-box-sizing: border-box;
+  color: white;
+  font-size: -moz-calc(10 * 0.226rem);
+  font-weight: 300;
+  border-top: .1rem solid white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loading-icon img{
+  width: 28px;
+  height: 28px;  
+  margin: 0 auto;
+}
+
+/*
+  No result container
+*/
+#no-result-container {
+  background-image: url('images/SMS_200x200_bubble.png');
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  background-position:center;
+  height: 100%;
+  width: 100%;
+}
+
+#no-result-message {
+  text-align: left;
+  line-height: 3rem;
+  position: relative;
+  top: 50%;
+  border-top: .1rem solid rgba(96,96,96,.5);
+  padding: 2rem 0.5rem;
+  width: 270px;
+  margin: -80px auto;
+  color: #606060;
+  font-weight: 300;
+  font-size: -moz-calc(10 * 0.226rem);
 }

@@ -25,6 +25,10 @@ a:active {
   color: #000;
 }
 
+.hidden-block {
+  visibility: hidden;
+}
+
 #container {
   height: 100%;
   width: 100%;
@@ -44,7 +48,8 @@ a:active {
 #frequency {
   font-size: 7rem;
 }
-#frequency:after {
+
+#frequency::after {
   content: "MHz";
   font-size: 2rem;
   padding-left: 0.3rem;
@@ -61,12 +66,15 @@ a:active {
   border-radius: 50%;
   background: #eee;
 }
+
 #audio-routing-switch:focus {
   border-color: #888;
 }
+
 #audio-routing-switch[data-current-state="speaker"]::after {
   content: "S";
 }
+
 #audio-routing-switch[data-current-state="headset"]::after {
   content: "H";
 }
@@ -77,13 +85,68 @@ a:active {
   right: 5px;
   font-size: 4rem;
 }
+
 #bookmark-button::after {
   content: "☆";
 }
+
 #bookmark-button[data-bookmarked="true"]::after {
   content: "★";
 }
 /*****  end  *****/
+
+/**** styles for frequency dialer *****/
+#dialer-bar {
+  font-size: 1rem;
+}
+
+#dialer-container {
+  padding-left: 50%;
+  width: 100%;
+}
+
+#frequency-indicator::after {
+  content: "|";
+}
+
+div.animation-on {
+  -moz-transition-duration: 0.5s;
+  -moz-transition-property: top, left;
+}
+
+#frequency-dialer {
+  display: inline-block;
+  display: -moz-inline-box;
+  -moz-user-select: none;
+  width: 100%;
+}
+
+#frequency-dialer .dialer-unit-mark-box {
+  overflow: hidden;
+}
+
+#frequency-dialer .dialer-unit {
+  text-align: left;
+  float: left;
+}
+
+#frequency-dialer .dialer-mark {
+  height: 3rem;
+  width: 5rem;
+  float: left;
+  font-size: 1rem;
+}
+
+#frequency-dialer .dialer-mark::after {
+  content: "|";
+  position: absolute;
+  bottom: 0;
+}
+
+#frequency-dialer .dialer-mark-long {
+  font-size: 2rem;
+}
+/**** end *******/
 
 /***** styles for favorites list ******/
 div#fav-list {
@@ -99,8 +162,8 @@ div#fav-list-container {
 }
 
 div#fav-list-container > div {
-  font-size: 45px;
-  height: 65px;
+  font-size: 4.5rem;
+  height: 6.5rem;
   text-align: right;
   width: 100%;
   clear: both;
@@ -108,39 +171,53 @@ div#fav-list-container > div {
   -webkit-box-sizing: border-box;
   -ms-box-sizing: border-box;
   box-sizing: border-box;
-  padding-right: -moz-calc(50% - 110px);
+  padding-right: -moz-calc(50% - 11rem);
 }
 
-div#fav-list-container > div.selected,
 div#fav-list-container > div:active {
   background-color: lightGray;
 }
 
-div#fav-list-container > div:after {
+div#fav-list-container > div::after {
   content: "MHz";
-  font-size: 28px;
-  padding-left: 10px;
+  font-size: 2.8rem;
+  padding-left: 1rem;
 }
 
-div#fav-list-container > div:before {
-  content: "☆";
-  font-size: 30px;
-  left: 0;
+div#fav-list-container div.fav-list-remove-button {
+  height: 5rem;
+  width: 5rem;
+  margin-left: 2rem;
+  float: left;
+  cursor: pointer;
+}
+
+div#fav-list-container div.fav-list-remove-button::before {
+  content: "★";
+  font-size: 4rem;
+  left: -2rem;
   position: absolute;
-  padding: 10px 0 0 40px;
+  padding: 0 0 0 3rem;
+}
+
+div#fav-list-container div.fav-list-remove-button:active::before {
+  content: "☆" !important;
 }
 /***** end *****/
 
 /***** styles for status bars *****/
-#action-bar, #edit-bar {
+#action-bar {
   -moz-box-flex: 0;
   display: -moz-box;
   -moz-box-orient: horizontal;
 }
+
+/* Styles for action bar */
 /* FIX: it doesn't hide itself */
-#action-bar[hidden], #edit-bar[hidden] {
+#action-bar[hidden] {
   display: none;
 }
+
 #action-bar>div {
   text-align: center;
   padding: 1.5rem 0;
@@ -149,7 +226,7 @@ div#fav-list-container > div:before {
   border-top: 2px solid #888;
 }
 
-#action-bar a:not(#edit-button) {
+#action-bar a {
   display: inline-block;
   width: 6rem;
   height: 6rem;
@@ -158,28 +235,47 @@ div#fav-list-container > div:before {
   border: 2px solid #aaa;
   border-radius: 50%;
 }
-#action-bar a:not(#edit-button):focus {
+
+#action-bar a:focus {
   border-color: #888;
 }
 
 #power-switch::after {
-  content: "▸";
+  content: "▶";
+  position: relative;
+  left: 0.3rem;
+  top: -0.3rem;
+  font-size: 5rem;
 }
+
 #power-switch[data-enabled="true"]::after {
   content: "▪";
+  top: -0.3rem;
+  left: 0;
 }
 
-#edit-button {
-  font-size: 2rem;
-  line-height: 6rem;
+#frequency-op-seekdown::after {
+  content: "‹";
+  position: relative;
+  top: -0.5rem;
+  left: 0rem;
 }
 
-#edit-bar a {
-  -moz-box-flex: 1;
-  display: block;
-  text-align: center;
-  font-size: 3rem;
-  line-height: 8rem;
+#frequency-op-seekdown[data-status="seeking"]::after {
+  content: "...";
+  top: -1.7rem;
+}
+
+#frequency-op-seekup::after {
+  content: "›";
+  position: relative;
+  top: -0.5rem;
+  left: 0rem;
+}
+
+#frequency-op-seekup[data-status="seeking"]::after {
+  content: "...";
+  top: -1.7rem;
 }
 /**** end ****/
 
@@ -208,22 +304,6 @@ div#antenna-warning > div > div {
   display: table-cell;
   height: 100%;
   width: 100%;
-}
-/******* end *******/
-
-/***** styles for popup delete box ****/
-div#popup-delete-box {
-  position: absolute;
-  height: 40px;
-  width: 150px;
-  top: 0;
-  left: 0;
-  border: 1px solid #555;
-  border-radius: 10px;
-  text-align: center;
-  background-color: #F4F4F4;
-  z-index: 1000;
-  font-size: 30px;
 }
 /******* end *******/
 
