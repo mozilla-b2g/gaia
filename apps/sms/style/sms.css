@@ -100,15 +100,15 @@ html, body {
 /* Styles for Edit mode */
 
 .edit .options {
-  bottom: 0rem;
+  -moz-transform: translateY(-6.5rem);
 }
 
 .edit .new-sms-form {
-  bottom: -3.6rem;
+  -moz-transform: translateY(3.6rem);
 }
 
 .edit .header-wrapper{
-  left: -100%;
+  -moz-transform: translateX(-50%);
 }
 
 .new h1 {
@@ -173,7 +173,6 @@ html, body {
   padding: 1rem 1.6rem 1rem 3rem;
   border-top: 0.1rem solid hsla(207,22%,92%,1);
   width: 100%;
-  -moz-transition: padding 0.3s ease-out;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -476,12 +475,12 @@ a.unread .unread-mark .icon-unread-mark {
 
 .options {
   height: 6.5rem;
+  z-index: 15;
   background: rgba(0,0,0,.85);
   bottom: -6.5rem;
   width: 100%;
   position: absolute;
-  transition:bottom .15s ease-in;
-  -moz-transition: bottom .15s ease-in;
+  -moz-transition: -moz-transform .15s ease-in;
 }
 
 .option {
@@ -522,8 +521,7 @@ a.unread .unread-mark .icon-unread-mark {
   bottom: 0rem;
   width: 100%;
   position: absolute;
-  transition:bottom .15s ease-in;
-  -moz-transition: bottom .15s ease-in;
+  -moz-transition: -moz-transform .2s ease-in;
 }
 
 .new-sms-form {
