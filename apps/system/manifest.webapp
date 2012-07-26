@@ -7,11 +7,13 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "telephony",
     "mozbrowser",
     "power",
     "mozApps",
     "mobileconnection",
+    "mozBluetooth",
+    "telephony",
+    "voicemail",
     "sms"
   ],
   "locales": {

@@ -25,20 +25,9 @@
   border-bottom: 1px inset #bbf;
 }
 
-
-/******************************************************************************
- * Horizontal Slide Transition
- *
- * XXX hack: the width is adjusted (0-100%) with a delayed transition
- *           in order to hide the horizontal scrollbar on the device
- *           -- at least, when the transition is over.
- * This is just a workaround: the platform bug should be fixed later.
- */
-
 [role=region] {
-  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0.5s;
+  -moz-transition: -moz-transform 0.5s ease;
   -moz-transform: translateX(100%);
-  width: 0;
 }
 
 #root {
@@ -46,9 +35,8 @@
 }
 
 #root:target, [role=region]:target {
-  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0s;
+  -moz-transition: -moz-transform 0.5s ease;
   -moz-transform: none;
-  width: 100%;
 }
 
 body.hidden #root {

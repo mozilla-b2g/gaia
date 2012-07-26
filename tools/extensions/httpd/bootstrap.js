@@ -12,6 +12,11 @@ function startup(data, reason) {
   Cu.import('resource://gre/modules/Services.jsm');
   Cu.import('resource:///modules/devtools/dbg-client.jsm');
   
+  const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
+  const GAIA_APP_SRCDIRS = Services.prefs.getCharPref("extensions.gaia.app_src_dirs");
+  const GAIA_DIR = Services.prefs.getCharPref("extensions.gaia.dir");
+  const GAIA_PORT = Services.prefs.getIntPref("extensions.gaia.port");
+
   const LocalFile = CC('@mozilla.org/file/local;1',
                        'nsILocalFile',
                        'initWithPath');
@@ -40,7 +45,7 @@ function startup(data, reason) {
     let identity = server.identity;
     let scheme = 'http';
   
-    let host = '@GAIA_DOMAIN@';
+    let host = GAIA_DOMAIN;
     identity.add(scheme, host, port);
   
     let directories = getDirectories(baseDir);
@@ -53,7 +58,7 @@ function startup(data, reason) {
   
   function getDirectories(dir) {
     let dirs = [];
-    let appSrcDirs = '@GAIA_APP_SRCDIRS@'.split(' ');
+    let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 
     appSrcDirs.forEach(function addDirectory(name) {
       let appsDir = Cc['@mozilla.org/file/local;1']
@@ -333,7 +338,7 @@ function startup(data, reason) {
     }
   };
   
-  startupHttpd('@GAIA_DIR@', @GAIA_PORT@);
+  startupHttpd(GAIA_DIR, GAIA_PORT);
 }
   
 function shutdown(data, reason) {

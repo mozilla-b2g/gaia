@@ -6,9 +6,9 @@
 
 'use strict';
 
-const DEBUG = false;
+const SETTINGS_DEBUG = false;
 function debug(msg) {
-  if (DEBUG)
+  if (SETTINGS_DEBUG)
     dump("-*- Populate SettingsDB: " + msg + "\n");
 }
 

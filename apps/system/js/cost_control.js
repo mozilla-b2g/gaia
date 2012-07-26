@@ -6,11 +6,12 @@
 var CostControl = (function() {
   var _ = function cc_fallbackTranslation(keystring) {
     var r = navigator.mozL10n.get.apply(this, arguments);
-    return r || keystring;
+    return r || '!!' + keystring;
   }
 
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
+  var REQUEST_BALANCE_MAX_DELAY = 1 * 60 * 1000; // 1 minute
 
   var STATE_IDLE = 'idle';
   var STATE_TOPPING_UP = 'toppingup';
@@ -76,6 +77,7 @@ var CostControl = (function() {
     function assignTo(name) {
       return function cc_configure_assignTo(value) {
         _settings[name] = value;
+        console.log(name + ': ' + _settings[name]);
         if(_checkConfiguration())
           _widget.style.display = '';
       }
@@ -136,8 +138,11 @@ var CostControl = (function() {
   // Attach event listeners for automatic updates:
   //  * After calling
   //  * After sending a message
+  //  * After showing the utility tray
   //  * Periodically
-  function _configureEventListeners() {
+  function _configureAutomaticUpdates() {
+    // Listen to utilitytray show
+    window.addEventListener('utilitytrayshow', _automaticCheck);
 
     // Listen for SMS
     if (window.navigator.mozSms) {
@@ -190,7 +195,7 @@ var CostControl = (function() {
   function _init() {
     _configureWidget();
     _configureSettings();
-    _configureEventListeners();
+    _configureAutomaticUpdates();
   }
 
   // Return true if the device is in roaming
@@ -230,11 +235,24 @@ var CostControl = (function() {
         // Ignore messages to cost control numbers
         if (evt.type === 'sent') {
           var receiver = evt.message.receiver;
-          if (reciever === '+34638358467' /* _settings.CHECK_BALANCE_DESTINATION */ || receiver === '+34638358467' /* _settings.TOP_UP_DESTINATION*/ )
+          if (reciever === '+34620970334' /* _settings.CHECK_BALANCE_DESTINATION */ || receiver === '+34620970334' /* _settings.TOP_UP_DESTINATION*/ )
             return;
         }
 
         _mockup_updateBalance();
+        break;
+
+      // When utility tray shows
+      case 'utilitytrayshow':
+        var lastUpdated = window.localStorage.getItem('costcontrolTime');
+        if (lastUpdated !== null)
+          lastUpdated = (new Date(lastUpdated)).getTime();
+
+        var now = (new Date()).getTime();
+        if (now - lastUpdated > REQUEST_BALANCE_MAX_DELAY) {
+          _isManualRequest = false;
+          _mockup_updateBalance();
+        }
         break;
 
       // After ending a call
@@ -296,7 +314,7 @@ var CostControl = (function() {
   function _onBalanceSMSReceived(evt) {
     // Ignore messages from other senders
     var message = evt.message;
-    if (message.sender !== '800268'/*_settings.CHECK_BALANCE_SENDERS*/)
+    if (message.sender !== '800378'/*_settings.CHECK_BALANCE_SENDERS*/)
       return;
 
     _stopWaiting();
@@ -306,8 +324,8 @@ var CostControl = (function() {
     if (newBalance === null) {
       if (_isManualRequest) {
         navigator.mozNotification.createNotification(
-          _('Cost Control: Checking Balance'),
-          _('Error parsing balance message.')
+          _('checking-balance-parsing-error-title'),
+          _('checking-balance-parsing-error-description')
         ).show();
       }
       return;
@@ -320,7 +338,7 @@ var CostControl = (function() {
   function _onConfirmationSMSReceived(evt) {
     // Ignore messages from other senders
     var message = evt.message;
-    if (message.sender !== '800268'/*_settings.TOP_UP_SENDERS*/)
+    if (message.sender !== '800378'/*_settings.TOP_UP_SENDERS*/)
       return;
 
     _stopWaiting();
@@ -331,22 +349,22 @@ var CostControl = (function() {
 
     // XXX: Remove when removing mock ups
     var currentBalance = parseFloat(_widgetCredit.textContent.slice(2));
-    var newBalance = currentBalance + parseInt(message.body);
+    var newBalance = currentBalance + parseInt(message.body, 10);
     newBalance = Math.round(newBalance * 100)/100;
 
     // Notificate when parsing confirmation fails
     if (newBalance === null) {
       navigator.mozNotification.createNotification(
-        _('Cost Control: Top Up'),
-        _('Error parsing the confirmation message')
+        _('topup-parsing-error-title'),
+        _('topup-parsing-error-description')
       ).show();
       return;
     }
 
     var output = _updateUI(newBalance);
     navigator.mozNotification.createNotification(
-      _('Cost Control: Top Up'),
-      _('Your new balance is: ') + output.balance
+      _('topup-confirmation-title'),
+      _('topup-confirmation-message', { credit: output.balance })
     ).show(); 
   }
 
@@ -394,7 +412,7 @@ var CostControl = (function() {
     var newCredit = Math.max(0, currentCredit - 2);
     newCredit = Math.round(newCredit * 100)/100;
     var request = _sms.send(
-      '+34638358467',
+      '+34620970334',
       'R$ ' + newCredit
     );
     request.onsuccess = function cc_onSuccessSendingBalanceRequest() {
@@ -404,7 +422,8 @@ var CostControl = (function() {
     // Alert if it is a manual request
     if (_isManualRequest) {
       request.onerror = function cc_onErrorSendingBalanceRequest() {
-        ModalDialog.alert(_('We can not update your balance now. Try later.'));
+        _setUpdatingMode(false);
+        ModalDialog.alert(_('cannot-check-balance'));
       }
     }
   }
@@ -421,22 +440,21 @@ var CostControl = (function() {
 
       // Compose topup message and send
       var messageBody = _settings.TOP_UP_TEXT.replace('&code', code);
-      var request = _sms.send('+34638358467' /*_settings.TOP_UP_DESTINATION*/, messageBody);
+      var request = _sms.send('+34620970334' /*_settings.TOP_UP_DESTINATION*/, messageBody);
       request.onsuccess = function cc_onSuccessSendingTopup() {
         _startWaiting(STATE_TOPPING_UP, _onConfirmationSMSReceived);
       }
 
       request.onerror = function cc_onErrorSendingTopup() {
         _setUpdatingMode(false);
-        ModalDialog.alert(_('It is not possible to update your balance now.'));
+        ModalDialog.alert(_('cannot-topup'));
       }
     }
 
     // TODO: It is necessary to solve the problem that keyboard is not shown
     ModalDialog.prompt(
-      _('Enter the top up code:') + '\n' +
-      _('Typically found in the scratch card or directly in your receipt.'),
-      '000002',
+      _('prompt-topup-tip') + '\n' + _('prompt-topup-aid'),
+      '0000020',
       actualTopUp
     );
   }
@@ -472,13 +490,13 @@ var CostControl = (function() {
     // Format time
     var time = rawTime.toLocaleFormat('%H:%M');
     var date = rawTime.toLocaleFormat('%a');
-    var dateDay = parseInt(rawTime.toLocaleFormat('%u'));
-    var nowDateDay = parseInt(now.toLocaleFormat('%u'));
+    var dateDay = parseInt(rawTime.toLocaleFormat('%u'), 10);
+    var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
     if (nowDateDay === dateDay)
-      date = _('Today');
+      date = _('today');
     else if ((nowDateDay === dateDay + 1) ||
               (nowDateDay === 7 && dateDay === 1))
-      date = _('Yesterday');
+      date = _('yesterday');
 
     var formattedTime = date + ', ' + time;
     _widgetTime.textContent = formattedTime;
@@ -487,17 +505,7 @@ var CostControl = (function() {
   }
 
   return {
-    init: _init,
-    updateBalance: function cc_apiCheck() {
-      _isManualRequest = false;
-      _mockup_updateBalance();
-    }
-    getLastUpdateTime: function cc_apiGetLastUpdateTime() {
-      var rawTime = window.localStorage.getItem('costcontrolTime');
-      if (rawTime !== null)
-        rawTime = new Date(rawTime);
-      return rawTime;
-    }
+    init: _init
   };
 })();
 
