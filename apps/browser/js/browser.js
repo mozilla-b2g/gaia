@@ -144,12 +144,12 @@ var Browser = {
   handleWindowResize: function browser_handleWindowResize() {
     var leftPos = -(window.innerWidth - 50) + 'px';
     if (!this.gutterPosRule) {
-      var css = '.tabs-screen #main-screen { left: ' + leftPos + ' }';
+      var css = '.tabs-screen #main-screen { transform: translate(' + leftPos + '); }';
       var insertId = this.styleSheet.cssRules.length - 1;
       this.gutterPosRule = this.styleSheet.insertRule(css, insertId);
     } else {
       var rule = this.styleSheet.cssRules[this.gutterPosRule];
-      rule.style.left = leftPos;
+      rule.style.transform = 'translate(' + leftPos + ')';
     }
   },
 
@@ -1055,8 +1055,8 @@ var Browser = {
       if (e.detail.absolute.dx < 0) {
         return;
       }
-      this.screen.style.left = -(this.winWidth - 50) +
-        e.detail.absolute.dx + 'px';
+      var leftPos = -(this.winWidth - 50) + e.detail.absolute.dx;
+      this.screen.style.transform = 'translate(' + leftPos + 'px)';
     },
 
     tap: function screenSwipe_tap(e) {
@@ -1071,7 +1071,7 @@ var Browser = {
       var farenough = Math.abs(distance) >
         this.winWidth * this.TRANSITION_FRACTION;
       this.screen.style.MozTransition = this.DEFAULT_TRANSITION;
-      this.screen.style.left = '';
+      this.screen.style.transform = '';
       if (farenough || fastenough) {
         this.browser.showPageScreen();
         return;
