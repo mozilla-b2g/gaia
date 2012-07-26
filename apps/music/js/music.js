@@ -75,7 +75,7 @@ var currentMode, fromMode;
 function changeMode(mode) {
   if (mode === currentMode)
     return;
-  
+
   if (fromMode >= mode) {
     fromMode = mode - 1;
   } else {
@@ -103,6 +103,11 @@ function changeMode(mode) {
       break;
   }
 }
+
+// We have two types of the playing sources
+// These are for player to know which source type is playing
+var TYPE_MIX = 'mix';
+var TYPE_LIST = 'list';
 
 // Title Bar
 var TitleBar = {
@@ -156,7 +161,7 @@ var TilesView = {
     delete this._view;
     return this._view = document.getElementById('views-tiles');
   },
-  
+
   get dataSource() {
     return this._dataSource;
   },
@@ -183,12 +188,15 @@ var TilesView = {
   update: function tv_update(result) {
     if (result === null)
       return;
-    
+
     if (this.dataSource.length === 0)
       document.getElementById('nosongs').style.display = 'none';
-    
+
     this.dataSource.push(result);
-    
+
+    var container = document.createElement('div');
+    container.className = 'tile-container';
+
     var tile = document.createElement('div');
 
     var defaultImage = document.createElement('div');
@@ -212,7 +220,7 @@ var TilesView = {
       tile.classList.add('sub-tile');
       defaultImage.classList.add('sub-tile-default-image');
     }
-  
+
     // Since 6 tiles are in one group
     // the even group will be floated to left
     // the odd group will be floated to right
@@ -223,14 +231,15 @@ var TilesView = {
     }
 
     tile.classList.add('color-' + this.index % 7);
-    
-    tile.dataset.index = this.index;
-    
-    tile.appendChild(defaultImage);
-    tile.appendChild(img);
+
+    container.dataset.index = this.index;
+
+    container.appendChild(defaultImage);
+    container.appendChild(img);
+    tile.appendChild(container);
     this.view.appendChild(tile);
 
-    this.index++; 
+    this.index++;
   },
 
   handleEvent: function tv_handleEvent(evt) {
@@ -241,16 +250,24 @@ var TilesView = {
           return;
 
         if (target.dataset.index) {
-          PlayerView.dataSource = this.dataSource;
-          PlayerView.play(target);
+          var handler = tv_playSong.bind(this);
 
-          changeMode(MODE_PLAYER);
+          target.addEventListener('transitionend', handler);
         }
 
         break;
 
       default:
         return;
+    }
+
+    function tv_playSong() {
+      PlayerView.setSourceType(TYPE_MIX);
+      PlayerView.dataSource = this.dataSource;
+      PlayerView.play(target);
+
+      changeMode(MODE_PLAYER);
+      target.removeEventListener('transitionend', handler);
     }
   }
 };
@@ -503,6 +520,7 @@ var SubListView = {
           return;
 
         if (target.dataset.index) {
+          PlayerView.setSourceType(TYPE_LIST);
           PlayerView.dataSource = this.dataSource;
           PlayerView.play(target);
 
@@ -573,6 +591,10 @@ var PlayerView = {
 
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
+  },
+
+  setSourceType: function pv_setSourceType(type) {
+    this.sourceType = type;
   },
 
   // This function is for the animation on the album art (cover).
@@ -673,7 +695,8 @@ var PlayerView = {
   },
 
   next: function pv_next() {
-    var songElements = SubListView.anchor.children;
+    var songElements = (this.sourceType === TYPE_MIX) ?
+      TilesView.view.children : SubListView.anchor.children;
 
     if (this.currentIndex >= this.dataSource.length - 1)
       return;
@@ -684,7 +707,8 @@ var PlayerView = {
   },
 
   previous: function pv_previous() {
-    var songElements = SubListView.anchor.children;
+    var songElements = (this.sourceType === TYPE_MIX) ?
+      TilesView.view.children : SubListView.anchor.children;
 
     if (this.currentIndex <= 0)
       return;

@@ -275,6 +275,10 @@ body.player-mode #views-player {
   text-overflow: ellipsis;
 }
 
+#title-text:active {
+  color: orange;
+}
+
 #search {
   width: 100%;
   height: 10%;
@@ -436,6 +440,8 @@ body.player-mode #views-player {
   height: 158px;
   border: 1px solid rgba(0, 0, 0, 0.4);
   font-weight: lighter;
+  font-variant: small-caps;
+  background-color: #303030;
   overflow: hidden;
 }
 
@@ -448,6 +454,17 @@ body.player-mode #views-player {
   line-height: 100%;
   opacity: 0.4;
   pointer-events: none;
+}
+
+.tile-container {
+  width: 100%;
+  height: 100%;
+  -moz-transform: scale(1);
+  -moz-transition: -moz-transform 166ms ease-in-out;
+}
+
+.tile-container:active {
+  -moz-transform: scale(0.9);
 }
 
 .tile-image {
