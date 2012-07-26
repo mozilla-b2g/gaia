@@ -446,6 +446,20 @@ function MessageReaderCard(domNode, mode, args) {
     this.header.setRead(true);
 }
 MessageReaderCard.prototype = {
+  formatFileSize: function(size) {
+    // XXX: localize this!
+    const units = [ "bytes", "KB", "MB", "GB", "TB" ];
+    var unitSize = size;
+    var unitIndex = 0;
+
+    while ((unitSize >= 999.5) && (unitIndex < units.length)) {
+      unitSize /= 1024;
+      unitIndex++;
+    }
+    return (unitIndex == 0 ? unitSize.toFixed(0) : unitSize.toPrecision(3)) +
+           " " + units[unitIndex];
+  },
+
   onBack: function(event) {
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
@@ -549,13 +563,15 @@ MessageReaderCard.prototype = {
       var attTemplate = msgNodes['attachment-item'],
           filenameTemplate =
             attTemplate.getElementsByClassName('msg-attachment-filename')[0],
-          filetypeTemplate =
-            attTemplate.getElementsByClassName('msg-attachment-filetype')[0];
+          filesizeTemplate =
+            attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
       for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
         var attachment = body.attachments[iAttach];
         filenameTemplate.textContent = attachment.filename;
         // XXX perform localized mimetype translation stuff
-        filetypeTemplate.textContent = attachment.mimetype;
+        filesizeTemplate.textContent = this.formatFileSize(
+          attachment.sizeEstimateInBytes);
+        dump(attachment.sizeEstimateInBytes);
         attachmentsContainer.appendChild(attTemplate.cloneNode(true));
       }
     }

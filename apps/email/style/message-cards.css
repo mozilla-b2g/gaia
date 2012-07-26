@@ -170,12 +170,14 @@
 }
 
 .msg-attachment-item {
+  list-style-type: none;
 }
 .msg-attachment-icon {
 }
 .msg-attachment-filename {
 }
-.msg-attachment-filetype {
+.msg-attachment-filesize {
+  color: gray;
 }
 
 .msg-body-content {
