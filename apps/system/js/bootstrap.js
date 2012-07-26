@@ -5,7 +5,6 @@
 
 function startup() {
   PinLock.init();
-  SleepMenu.init();
   SourceView.init();
   Shortcuts.init();
 
