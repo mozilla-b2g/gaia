@@ -65,8 +65,8 @@
     "79": "/style/icons/Email.png"
   },
   "activities": {
-    "Mailto": {
-      "disposition": "window"
+    "new" {
+      filters: "mail"
     }
   }
 }
