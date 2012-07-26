@@ -25539,12 +25539,14 @@ define('rdimap/imapclient/asfolder',
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
+    'mimelib',
     'exports'
   ],
   function(
     $wbxml,
     $ascp,
     $activesync,
+    $mimelib,
     exports
   ) {
 
@@ -25559,6 +25561,7 @@ ActiveSyncFolderStorage.prototype = {
   _loadMessages: function(serverId, callback) {
     var account = this.account;
     var as = $ascp.AirSync.Tags;
+    let asb = $ascp.AirSyncBase.Tags;
     var em = $ascp.Email.Tags;
 
     var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
@@ -25587,6 +25590,13 @@ ActiveSyncFolderStorage.prototype = {
              .tag(as.SyncKey, syncKey)
              .tag(as.CollectionId, serverId)
              .tag(as.GetChanges)
+             .stag(as.Options)
+               .stag(asb.BodyPreference)
+                 .tag(asb.Type, '1')
+               .etag()
+               .tag(as.MIMESupport, '2')
+               .tag(as.MIMETruncation, '7')
+             .etag()
            .etag()
          .etag()
        .etag();
@@ -25598,7 +25608,7 @@ ActiveSyncFolderStorage.prototype = {
         var bodies = [];
         e.addEventListener([as.Sync, as.Collections, as.Collection, as.Commands,
                             as.Add, as.ApplicationData],
-        function(node) {
+                           function(node) {
           var guid = Date.now() + Math.random().toString(16).substr(1) +
             '@mozgaia';
           var header = {
@@ -25619,34 +25629,70 @@ ActiveSyncFolderStorage.prototype = {
             replyTo: null,
             attachments: null,
             references: null,
-            bodyRep: [0x1, 'This is just some filler text. Nothing to see ' +
-                      'here.'],
+            bodyRep: null,
           };
 
-          for (var i = 0; i < node.children.length; i++) {
-            var child = node.children[i];
-            var childText = child.children.length &&
+          for (let [,child] in Iterator(node.children)) {
+            let childText = child.children.length &&
                             child.children[0].textContent;
 
-            if (child.tag == em.Subject)
+            switch (child.tag) {
+            case em.Subject:
               header.subject = childText;
-            else if (child.tag == em.From || child.tag == em.To) {
-              // XXX: This address parser is probably very bad. Fix it.
-              var addrs = childText.split(/, /).map(function(x) {
-                var m = x.match(/"(.+?)" <(.+)>/);
-                return m ? { name: m[1], address: m[2] } :
-                           { name: '', address: x };
-              });
-              if (child.tag == em.From)
-                header.author = addrs[0];
-              else
-                body.to = addrs;
-            }
-            else if (child.tag == em.DateReceived)
+              break;
+            case em.From:
+              header.author = $mimelib.parseAddresses(childText)[0];
+              break;
+            case em.To:
+              body.to = $mimelib.parseAddresses(childText);
+              break;
+            case em.Cc:
+              nody.cc = $mimelib.parseAddresses(childText);
+              break;
+            case em.ReplyTo:
+              body.replyTo = $mimelib.parseAddresses(childText);
+              break;
+            case em.DateReceived:
               header.date = new Date(childText).valueOf();
-            else if (child.tag == em.Read) {
+              break;
+            case em.Read:
               if (childText == '1')
                 header.flags.push('\\Seen');
+              break;
+            case em.Flag:
+              for (let [,grandchild] in Iterator(child.children)) {
+                if (grandchild.tag === em.Status &&
+                    grandchild.children[0].textContent !== '0')
+                  header.flags.push('\\Flagged');
+              }
+              break;
+            case asb.Body:
+              for (let [,grandchild] in Iterator(child.children)) {
+                if (grandchild.tag === asb.Data)
+                  body.bodyRep = [0x1, grandchild.children[0].textContent];
+              }
+              break;
+            case asb.Attachments:
+              header.hasAttachments = true;
+              body.attachments = [];
+              for (let [,attachmentNode] in Iterator(child.children)) {
+                if (attachmentNode.tag !== asb.Attachment)
+                  continue; // XXX: throw an error here??
+                let attachment = { type: 'text/plain' }; // XXX: this is lies
+                for (let [,attachData] in Iterator(attachmentNode.children)) {
+                  switch (attachData.tag) {
+                  case asb.DisplayName:
+                    attachment.name = attachData.children[0].textContent;
+                    break;
+                  case asb.EstimatedDataSize:
+                    attachment.sizeEstimate = attachData.children[0]
+                                                        .textContent;
+                    break;
+                  }
+                }
+                body.attachments.push(attachment);
+              }
+              break;
             }
           }
 
