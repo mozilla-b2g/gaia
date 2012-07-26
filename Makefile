@@ -142,55 +142,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
-	@echo { > profile/webapps/webapps.json
-	id=1; \
-	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
-	do \
-	  if [ -f $$d/manifest.webapp ]; \
-		then \
-			n=$$(basename $$d); \
-			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
-			then \
-				dirname=$$n.$(GAIA_DOMAIN); \
-				mkdir -p profile/webapps/$$dirname; \
-				cp $$d/manifest.webapp profile/webapps/$$dirname/manifest.webapp  ;\
-				(\
-				echo \"$$dirname\": { ;\
-				echo \"origin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-				echo \"installOrigin\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-				echo \"receipt\": null, ;\
-				echo \"installTime\": 132333986000, ;\
-				echo \"manifestURL\": \"$(SCHEME)$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\", ;\
-				echo \"localId\": $$id ;\
-				echo },) >> profile/webapps/webapps.json;\
-				: $$((id++)); \
-			fi \
-		fi \
-	done; \
-	cd external-apps; \
-	for d in `find * -maxdepth 0 -type d` ;\
-	do \
-	  if [ -f $$d/manifest.webapp ]; \
-		then \
-			if [ "$(BUILD_APP_NAME)" = "$$d" -o "$(BUILD_APP_NAME)" = "*" ]; \
-			then \
-		  	mkdir -p ../profile/webapps/$$d; \
-		  	cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
-                  (\
-				echo \"$$d\": { ;\
-				echo \"origin\": \"`cat $$d/origin`\", ;\
-				echo \"installOrigin\": \"`cat $$d/origin`\", ;\
-				echo \"receipt\": null, ;\
-				echo \"installTime\": 132333986000, ;\
-				echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\", ;\
-				echo \"localId\": $$id ;\
-				echo },) >> ../profile/webapps/webapps.json;\
-				: $$((id++)); \
-			fi \
-		fi \
-	done
-	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
-	@echo } >> profile/webapps/webapps.json
+	$(call run-js-command, webapp-manifests)
 	@cat profile/webapps/webapps.json
 	@echo "Done"
 
@@ -277,9 +229,22 @@ else
 	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 endif
 
+define run-js-command
+	@echo "run-js-command $1";                                                  \
+	JS_CONSTS='                                                                 \
+	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
+	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
+	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
+	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
+	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
+	const GAIA_APP_RELATIVEPATH = "$(GAIA_APP_RELATIVEPATH)";                   \
+	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";';                               \
+	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" "build/$(strip $1).js"
+endef
+
 settingsdb: install-xulrunner-sdk
 	@echo "B2G pre-populate settings DB."
-	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const PROFILE_DIR = "$(CURDIR)$(SEP)profile";' build/settings.js
+	$(call run-js-command, settings)
 
 DB_TARGET_PATH = /data/local/indexedDB
 ifneq ($(SYS),Darwin)
@@ -299,7 +264,7 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
 	test -d profile || mkdir -p profile
-	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/preferences.js
+	$(call run-js-command, preferences)
 	if [ -f custom-prefs.js ]; \
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
@@ -311,7 +276,7 @@ preferences: install-xulrunner-sdk
 permissions: install-xulrunner-sdk
 	@echo "Generating permissions.sqlite..."
 	test -d profile || mkdir -p profile
-	$(XULRUNNERSDK) $(XPCSHELLSDK) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/permissions.js
+	$(call run-js-command, permissions)
 	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/extensions
@@ -322,13 +287,6 @@ extensions:
 	@rm -rf $(EXT_DIR)
 ifeq ($(DEBUG),1)
 	cp -r tools/extensions $(EXT_DIR)
-	# httpd
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/httpd.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_RELATIVEPATH@|$(GAIA_APP_RELATIVEPATH)|g' $(EXT_DIR)/httpd/content/httpd.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(subst \\,\\\\,$(CURDIR))|g' $(EXT_DIR)/httpd/bootstrap.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/bootstrap.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_PORT@|$(subst :,,$(GAIA_PORT))|g' $(EXT_DIR)/httpd/bootstrap.js
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_APP_SRCDIRS@|$(GAIA_APP_SRCDIRS)|g' $(EXT_DIR)/httpd/bootstrap.js
 endif
 	@echo "Done"
 
