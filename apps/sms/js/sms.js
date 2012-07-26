@@ -345,6 +345,11 @@ var ThreadListUI = {
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
     var threadIds = [], headerIndex, unreadThreads = [];
+    if (messages.length == 0) {
+      ThreadListUI.showListWithoutMessages();
+    } else {
+      ThreadListUI.showListWithMessages();
+    }
     for (var i = 0; i < messages.length; i++) {
       var message = messages[i];
       var num = message.delivery == 'received' ?
@@ -436,8 +441,22 @@ var ThreadListUI = {
         ThreadListUI.updateMsgWithContact(thread.num, contact);
     });
   },
-  // Adds a new grouping header if necessary (today, tomorrow, ...)
 
+  // When there's no messages to show, we disable edit mode and
+  // show info message to the user
+  showListWithoutMessages: function thlui_showListWithoutMessages() {
+    //TODO show information to the user (borja?)
+
+    // disable edit mode
+    document.querySelector('#icon-edit').classList.add('disabled');
+  },
+
+  // When there's messages to show, we enable edit mode
+  showListWithMessages: function thlui_showlistWithMessages() {
+    document.querySelector('#icon-edit').classList.remove('disabled');
+  },
+
+  // Adds a new grouping header if necessary (today, tomorrow, ...)
   createNewHeader: function thlui_createNewHeader(timestamp) {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
@@ -462,6 +481,11 @@ var ThreadUI = {
   get num() {
     delete this.number;
     return this.number = document.getElementById('receiver-tel');
+  },
+
+  get clearButton() {
+    delete this.clearButton;
+    return this.clearButton = document.getElementById('clear-search');
   },
 
   get title() {
@@ -518,6 +542,7 @@ var ThreadUI = {
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
     this.headerTitle.addEventListener('click', this.activateContact.bind(this));
+    this.clearButton.addEventListener('click', this.clearContact.bind(this));
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -667,7 +692,6 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
-
   },
 
   cleanForm: function thui_cleanForm() {
@@ -678,6 +702,10 @@ var ThreadUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
+  },
+
+  clearContact: function thui_clearContact() {
+    this.num.value = '';
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
