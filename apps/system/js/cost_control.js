@@ -242,7 +242,8 @@ var CostControl = (function() {
         _mockup_updateBalance();
         break;
 
-      // When utility tray shows
+      // When utility tray shows and it has passed "enough" time since the last
+      // update.
       case 'utilitytrayshow':
         var lastUpdated = window.localStorage.getItem('costcontrolTime');
         if (lastUpdated !== null)
