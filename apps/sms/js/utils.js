@@ -31,21 +31,11 @@ var Utils = {
   },
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
     var stringHTML = str;
-    stringHTML = stringHTML.replace(/\r\n/g, '<br />');
-    // stringHTML = stringHTML.replace(/\s/g, '&nbsp;');
-    
+    stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
+    stringHTML = stringHTML.replace(/\s/g, '&nbsp;');
+    if (escapeQuotes)
+      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
     return stringHTML;
-    // var span = document.createElement('span');
-    // span.textContent = str;
-
-    // // Escape space for displaying multiple space in message.
-    // span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
-
-    // span.innerHTML = span.innerHTML.replace(/\n/g, '<br />');
-
-    // if (escapeQuotes)
-    //   return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-    // return span.innerHTML;
   },
 
   getHourMinute: function ut_getHourMinute(time) {
