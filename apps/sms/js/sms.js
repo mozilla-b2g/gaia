@@ -839,9 +839,6 @@ var ThreadUI = {
         timestamp: tempDate
       };
 
-
-
-
       var self = this;
       // Save the message into pendind DB before send.
       PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
@@ -850,8 +847,6 @@ var ThreadUI = {
           console.log('Message app - pending message save failed!');
           PendingMsgManager.saveToMsgDB(message, this);
         } else {
-          // Clean Fields
-          ThreadUI.cleanFields();
           // Update ThreadListUI when new message in pending database.
           if (window.location.hash == '#new') {
             window.location.hash = '#num=' + num;
@@ -868,7 +863,7 @@ var ThreadUI = {
         if (!msg) {
           var resendConfirmStr = _('resendConfirmDialogMsg');
           var result = confirm(resendConfirmStr);
-          if (!result) {
+          if (result) {
             // Remove the message from pending message DB before resend.
             PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
               var filter = MessageManager.createFilter(num);
@@ -887,9 +882,6 @@ var ThreadUI = {
             });
             window.setTimeout(self.sendMessage.bind(self), 500);
             return;
-          } else {
-            // TODO We found that there is no resend!
-            // Steve, could you take a look?!
           }
         } else {
           var root = document.getElementById(message.timestamp.getTime());
@@ -912,6 +904,8 @@ var ThreadUI = {
             }
           });
         }
+        // Clean Fields when send success or cancel resend while error.
+        ThreadUI.cleanFields();
       });
     }
   },
