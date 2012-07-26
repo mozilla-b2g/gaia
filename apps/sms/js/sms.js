@@ -351,7 +351,6 @@ var ThreadListUI = {
 
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
-    var iconEdit = document.querySelector('#icon-edit');
     if (messages.length > 0) {
       ThreadListUI.iconEdit.classList.remove('disabled');
       var threadIds = [], headerIndex, unreadThreads = [];
