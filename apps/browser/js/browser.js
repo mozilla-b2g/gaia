@@ -821,11 +821,6 @@ var Browser = {
       if (url) {
         iframe.setAttribute('src', url);
       }
-    } else {
-      // FIXME: Remove this once
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=769182
-      // has landed
-      iframe.setAttribute('src', url);
     }
 
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
