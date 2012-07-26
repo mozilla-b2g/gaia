@@ -70,5 +70,54 @@ var KeyboardManager = (function() {
       });
     }
   });
+  var previousKeyboardType = null;
+
+  var kKeyboardDelay = 100;
+  var updateKeyboardTimeout = 0;
+
+  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+    var currentType = evt.detail.type;
+    if (previousKeyboardType === currentType &&
+        currentType.indexOf('select') == -1)
+      return;
+    previousKeyboardType = currentType;
+    clearTimeout(updateKeyboardTimeout);
+
+    var message = {};
+
+    switch (previousKeyboardType) {
+      case 'blur':
+        message.type = 'hideime';
+        break;
+      case 'select-one':
+      case 'select-multiple':
+        console.log('onfocus change for select');
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('select', true, true, evt.detail);
+        window.dispatchEvent(event);
+        break;
+      default:
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('select', true, true, evt.detail);
+        window.dispatchEvent(event);
+
+	/*
+	 *  Comment out temporarily to do the same overlay UI test for "input" element
+        console.log('showime event');
+        message.type = 'showime';
+        message.detail = evt.detail;
+	*/
+        break;
+    }
+
+    var keyboardWindow = keyboardFrame.contentWindow;
+    updateKeyboardTimeout = setTimeout(function updateKeyboard() {
+      if (message.type === 'hideime') {
+        keyboardFrame.classList.add('hide');
+        keyboardFrame.classList.remove('visible');
+      }
+      keyboardWindow.postMessage(JSON.stringify(message), KEYBOARD_URL);
+    }, kKeyboardDelay);
+  };
 })();
 

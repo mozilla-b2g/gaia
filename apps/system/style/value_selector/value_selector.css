@@ -1,0 +1,21 @@
+#value-selector {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20000;  /* under modal dialog */
+  background-color: rgba(0,0,0,0.4);
+  display: block;
+  color: red;
+  font-size: 4rem;
+}
+
+#value-selector[hidden] {
+  display: none;
+}
+
+#value-selector button {
+  font-size: 3.2rem;
+  border-radius: 4px 4px 4px 4px;
+}
