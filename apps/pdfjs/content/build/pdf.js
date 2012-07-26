@@ -42,7 +42,7 @@ function getPdf(arg, callback) {
   if (typeof arg === 'string')
     params = { url: arg };
 
-  var xhr = new XMLHttpRequest();
+  var xhr = new XMLHttpRequest({mozSystem: true})
 
   xhr.open('GET', params.url);
 

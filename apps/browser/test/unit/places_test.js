@@ -148,7 +148,7 @@ suite('Places', function() {
       Places.db.updatePlace(place1, function() {
         Places.db.updatePlace(place2, function() {
           Places.db.updatePlace(place3, function() {
-            Places.db.getPlacesByFrecency(2, function(topSites) {
+            Places.db.getPlacesByFrecency(2, null, function(topSites) {
               done(function() {
                 assert.equal(2, topSites.length);
                 assert.equal(topSites[0].uri, 'http://mozilla.org/test1');
@@ -211,6 +211,33 @@ suite('Places', function() {
         });
       });
     });
+
+    test('getAllBookmarkUris', function(done) {
+      Places.addBookmark('http://mozilla.org/test1', 'Mozilla', function() {
+        Places.addBookmark('http://mozilla.org/test2', 'Mozilla', function() {
+          Places.db.getAllBookmarks(function(uris) {
+            done(function() {
+              assert.equal(uris.length, 2);
+            });
+          });
+        });
+      });
+    });
+
+    test('resetPlaceFrecency', function(done) {
+      Places.addPlace('http://mozilla.org/test8', function() {
+        Places.updateFrecency('http://mozilla.org/test8', function() {
+          Places.db.resetPlaceFrecency('http://mozilla.org/test8', function() {
+            Places.db.getPlace('http://mozilla.org/test8', function(place) {
+              done(function() {
+                assert.equal(null, place.frecency);
+              });
+            });
+          });
+        });
+      });
+    });
+
   });
 
   suite('Places', function() {

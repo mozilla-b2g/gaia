@@ -1,6 +1,7 @@
 {
   "name": "Contacts",
   "description": "Default Contacts application",
+  "launch_path": "/index.html",
   "developer": {
     "name": "Telefonica PDI - OWD Team",
     "url": "http://openwebdevice.com"

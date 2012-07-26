@@ -1815,7 +1815,7 @@ window.addEventListener('load', function webViewerLoad(evt) {
       PDFView.renderHighestPriority();
     });
 
-  PDFView.open(file, 0);
+  //PDFView.open(file, 0);
 }, true);
 
 function updateViewarea() {
@@ -2049,3 +2049,9 @@ window.addEventListener('beforeprint', function beforePrint(evt) {
 window.addEventListener('afterprint', function afterPrint(evt) {
   PDFView.afterPrint();
 });
+
+window.navigator.mozSetMessageHandler('activity', function(activity) {
+  var url = activity.source.data.url;
+  PDFView.open(url, 0);
+});
+

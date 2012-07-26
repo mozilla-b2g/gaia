@@ -43,6 +43,35 @@
   background: url('images/loading.gif') center center repeat-x;
 }
 
+#statusbar-voicemail {
+  width: 40px;
+  position: relative;
+}
+
+#statusbar-voicemail[data-show-num="true"]::before {
+  content: attr(data-num);
+  position: absolute;
+  color: #666;
+  width: 24px;
+  height: 16px;
+  top: 0;
+  left: 0;
+  font: 12px/12px 'Open Sans', sans-serif;
+  font-weight: 600;
+  text-align: right;
+}
+
+#statusbar-voicemail::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 0;
+  right: 0;
+  background: url('images/voicemail-statusbar.png') no-repeat;
+  background-position: center -2px;
+}
+
 #statusbar-time {
   padding: 0;
   color: #fff;
