@@ -309,10 +309,15 @@ html * {
 #clock-view {
   width: 100%;
   height: 100%;
+<<<<<<< HEAD
+  color: black;
+  background-color: #2E2E2E;
+=======
   color: black;
   background-image: url(images/clockBG.png);
   background-size: 100%;
   background-repeat: no-repeat;
+>>>>>>> upstream/master
   border-bottom: 0.2rem solid #ACACAC;
   text-align: center;
 }
