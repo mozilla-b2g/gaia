@@ -271,6 +271,11 @@ var WindowManager = (function() {
       setOrientationForApp(newApp);
     }
 
+    // Exit fullscreen mode if we're going to the homescreen
+    if (newApp === null && document.mozFullScreen) {
+      document.mozCancelFullScreen();
+    }
+
     displayedApp = origin;
 
     // Update the loading icon since the displayedApp is changed
@@ -390,7 +395,9 @@ var WindowManager = (function() {
       //'Clock',
       //  - OOP - asserts on w->mApp (bug 775576)
 
-      'Contacts',
+      //'Contacts',
+      // System message handler (for WebActivities) doesn't get called
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=777195
       // Keyboard always shows up alpha when app using keyboard is run OOP
       // - bug 776118
 
@@ -454,7 +461,7 @@ var WindowManager = (function() {
 
       'Tasks',
       'Template',
-      'Test Agent',
+      //'Test Agent',
       'TowerJelly'
 
       //'UI tests',
@@ -537,8 +544,6 @@ var WindowManager = (function() {
   // There are two types of mozChromeEvent we need to handle
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
-    console.log('mozChromeEvent received: ' + e.detail.type);
-
     var origin = e.detail.origin;
     if (!origin)
       return;
@@ -700,140 +705,24 @@ var WindowManager = (function() {
     });
   });
 
-  // Listen for the Back button.  We need both a capturing listener
-  // and a regular listener for this.  If the card switcher (or some
-  // other overlay) is displayed, the capturing listener can intercept
-  // the back key and use it to take down the overlay.  Otherwise, the
-  // back button should go to the displayed app first, so it can use
-  // it if it has more than one screen.  Finally, if the event bubbles
-  // is not cancelled and bubbles back up to the window, we use it to
-  // switch from an app back to the homescreen.
-  //
-  // FIXME: I'm using key up here because the other apps do that.
-  // But I think for back we should use keydown.  Keyup is only for
-  // the Home key since we want to distinguish long from short on that one.
-  //
-  // FIXME: some other apps use capturing listeners for Back.
-  //   they should be changed to use non-capturing, I think.
-  //   See https://github.com/andreasgal/gaia/issues/753
-  //
-  //   Also, we may not event need a capturing listener here. This might
-  //   be a focus management issue instead:
-  //   https://github.com/andreasgal/gaia/issues/753#issuecomment-4559674
-  //
-  // This is the capturing listener for Back.
-  // TODO: right now this only knows about the card switcher, but
-  // there might be other things that it needs to be able to dismiss
-  //
-  window.addEventListener('keyup', function(e) {
-    if (e.keyCode === e.DOM_VK_ESCAPE && CardsView.cardSwitcherIsShown()) {
+  window.addEventListener('home', function(e) {
+    // If the lockscreen is active, it will stop propagation on this event
+    // and we'll never see it here. Similarly, other overlays may use this
+    // event to hide themselves and may prevent the event from getting here.
+    // Note that for this to work, the lockscreen and other overlays must
+    // be included in index.html before this one, so they can register their
+    // event handlers before we do.
+    setDisplayedApp(null);
+    if (CardsView.cardSwitcherIsShown())
       CardsView.hideCardSwitcher();
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, true);
-
-  // The non capturing Back key handler.
-  window.addEventListener('keyup', function(e) {
-    // If we see the Back key, and it hasn't been cancelled, and there
-    // is an app displayed, then hide the app and go back to the
-    // homescreen. Unlike the Home key, apps can intercept this event
-    // and use it for their own purposes.
-    if (e.keyCode === e.DOM_VK_ESCAPE &&
-        !e.defaultPrevented &&
-        displayedApp !== null) {
-
-      setDisplayedApp(null); // back to the homescreen
-    }
   });
 
-  // Handle the Home key with capturing event listeners so that
-  // other homescreen modules never even see the key.
-  (function() {
-    var timer = null;
-    var keydown = false;
-
-    window.addEventListener('keydown', keydownHandler, true);
-    window.addEventListener('keyup', keyupHandler, true);
-
-    // The screenshot module also listens for the HOME key.
-    // If it is pressed along with SLEEP, then it will call preventDefault()
-    // on the keyup event and possibly also on the keydown event.
-    // So we try to ignore these already handled events, but have to
-    // pay attention if a timer has already been set, we can't just ignore
-    // a handled keyup, we've got to clear the timer.
-
-    function keydownHandler(e) {
-      if (e.keyCode !== e.DOM_VK_HOME || e.defaultPrevented)
-        return;
-
-      // We don't do anything else until the Home key is released...
-      // If there is not a timer running, start one so we can
-      // measure how long the key is held down for.  If there is
-      // already a timer running, then this is a key repeat event
-      // during a long Home key press and we ignore it.
-      if (!keydown) {
-        timer = window.setTimeout(longPressHandler, kLongPressInterval);
-        keydown = true;
-      }
-
-      // Exit fullscreen mode
-      if (document.mozFullScreen) {
-        document.mozCancelFullScreen();
-      }
-
-      // No one sees the HOME key but us
-      e.stopPropagation();
-      e.preventDefault();  // Don't generate the keypress event
+  window.addEventListener('holdhome', function(e) {
+    if (!LockScreen.locked &&
+        !CardsView.cardSwitcherIsShown()) {
+      CardsView.showCardSwitcher();
     }
-
-    function keyupHandler(e) {
-      if (e.keyCode !== e.DOM_VK_HOME)
-        return;
-
-      if (!keydown) // the keydown event was defaultPrevented, so
-        return;     // we can ignore this keyup
-
-      keydown = false;
-
-      // If the key was released before the timer, then this was
-      // a short press. Show the homescreen and cancel the timer.
-      // Otherwise it was a long press that was handled in the timer
-      // function so just ignore it.
-      if (timer !== null) {
-        clearInterval(timer);
-        timer = null;
-
-        // If the screen is locked, ignore the home button.
-        // If the event has defualtPrevented (from the screenshot module)
-        // the we also itnore it
-        // Otherwise, make the homescreen visible.
-        // Also, if the card switcher is visible, then hide it.
-        if (!LockScreen.locked && !e.defaultPrevented) {
-          // The attention screen can 'eat' this event
-          if (!e.defaultPrevented)
-            setDisplayedApp(null);
-          if (CardsView.cardSwitcherIsShown())
-            CardsView.hideCardSwitcher();
-        }
-      }
-
-      // No one ever sees the HOME key but us
-      e.stopPropagation();
-    }
-
-    function longPressHandler() {
-      // If the timer fires, then this was a long press on the home key
-      // So bring up the app switcher overlay if we're not locked
-      // and if the card switcher is not already shown
-      timer = null;
-
-      if (!LockScreen.locked &&
-          !CardsView.cardSwitcherIsShown()) {
-        CardsView.showCardSwitcher();
-      }
-    }
-  }());
+  });
 
   // Return the object that holds the public API
   return {

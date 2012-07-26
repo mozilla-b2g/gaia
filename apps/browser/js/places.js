@@ -318,7 +318,7 @@ Places.db = {
     };
   },
 
-  getPlacesByFrecency: function db_getPlacesByFrecency(maximum, filter, callback) {
+  getPlacesByFrecency: function db_placesByFrecency(maximum, filter, callback) {
     var topSites = [];
     var self = this;
     var transaction = self._db.transaction('places');
@@ -329,9 +329,11 @@ Places.db = {
       var cursor = e.target.result;
       if (cursor && topSites.length < maximum) {
         var place = cursor.value;
-        var matched = self.matchesFilter(place.uri, filter) ||
-          self.matchesFilter(place.title, filter);
-        if (matched || filter === false) {
+        var matched = false;
+        if (filter)
+          matched = self.matchesFilter(place.uri, filter) ||
+            self.matchesFilter(place.title, filter);
+        if (matched || !filter) {
           topSites.push(cursor.value);
         }
         cursor.continue();

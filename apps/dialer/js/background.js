@@ -86,7 +86,7 @@
           };
 
           var title = 'Missed call';
-          var body = 'From ' + call.number;
+          var body = 'From ' + (call.number.length ? call.number : 'Anonymous');
 
           NotificationHelper.send(title, body, iconURL, notiClick);
         };
