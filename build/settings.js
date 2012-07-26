@@ -6,9 +6,9 @@
 
 'use strict';
 
-const DEBUG = false;
+const SETTINGS_DEBUG = false;
 function debug(msg) {
-  if (DEBUG)
+  if (SETTINGS_DEBUG)
     dump("-*- Populate SettingsDB: " + msg + "\n");
 }
 
@@ -26,6 +26,7 @@ var settings = [
  new Setting("devtools.debugger.log", false),
  new Setting("devtools.debugger.remote-enabled", false),
  new Setting("devtools.debugger.remote-port", 6000),
+ new Setting("geolocation.enabled", true),
  new Setting("homescreen.ring", 'classic.wav'),
  new Setting("homescreen.wallpaper", "default.png"),
  new Setting("keyboard.layouts.english", true),
@@ -42,6 +43,7 @@ var settings = [
  new Setting("keyboard.layouts.spanish", false),
  new Setting("keyboard.vibration", false),
  new Setting("keyboard.clicksound", false),
+ new Setting("keyboard.wordsuggestion", false),
  new Setting("language.current", "en-US"),
  new Setting("lockscreen.passcode-lock.code", "0000"),
  new Setting("lockscreen.passcode-lock.enabled", false),

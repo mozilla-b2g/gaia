@@ -13,6 +13,11 @@
 var MAIL_SERVICES = [
   // XXX fill these in once enough stuff is working...
   {
+    name: 'HotmaiL AccounT',
+    l10nId: 'setup-hotmail-account',
+    domain: 'hotmail.com'
+  },
+  {
     name: 'OtheR EmaiL',
     l10nId: 'setup-other-email',
     domain: ''

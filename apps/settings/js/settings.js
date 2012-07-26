@@ -16,6 +16,13 @@ var Settings = {
     if (!settings) // e.g. when debugging on a browser...
       return;
 
+    var airplaneCheckBox =
+        document.querySelector('input[name="ril.radio.disabled"]');
+    settings.addObserver('ril.radio.disabled', function(event) {
+       if (airplaneCheckBox.checked !== event.settingValue) {
+         airplaneCheckBox.checked = event.settingValue;
+       }
+    });
     // preset all inputs that have a `name' attribute
     var transaction = settings.getLock();
 
@@ -206,12 +213,12 @@ var Settings = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
-        var cset = {};
         for (var i = 0; i < fields.length; i++) {
           var input = fields[i];
+          var cset = {};
           cset[input.dataset.setting] = input.value;
+          settings.getLock().set(cset);
         }
-        settings.getLock().set(cset);
       }
       return close();
     }
