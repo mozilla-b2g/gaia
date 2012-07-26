@@ -140,6 +140,7 @@ const GridManager = (function() {
   }
 
   function goToPage(index, callback) {
+    var previousIndex = pages.current;
     var isSamePage = pages.current === index;
     pages.current = index;
     callback = callback || function() {};
@@ -148,11 +149,14 @@ const GridManager = (function() {
       delete document.body.dataset.transitioning;
       callback();
     } else {
-      var container = pageHelper.getCurrent().container;
-      container.addEventListener('transitionend', function tr_end(e) {
-        container.removeEventListener('transitionend', tr_end);
+      var currentPageContainer = pageHelper.getCurrent().container;
+
+      currentPageContainer.addEventListener('transitionend', function end(e) {
+        currentPageContainer.removeEventListener('transitionend', end);
         delete document.body.dataset.transitioning;
         callback();
+        Search.resetIcon();
+        pageHelper.getCurrent().bounce(previousIndex - index);
       });
     }
 
@@ -326,7 +330,7 @@ const GridManager = (function() {
       }
 
       // if the page is not full
-      if (page.getNumApps() < max) {
+      if (page.getNumApps() <= max) {
         return;
       }
 

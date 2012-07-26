@@ -1,7 +1,7 @@
 {
   "name": "Browser",
   "description": "Gaia Web Browser",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -64,5 +64,12 @@
   "icons": {
     "120": "/style/icons/Browser.png",
     "60": "/style/icons/60/Browser.png"
+  },
+  "activities": {
+    "view": {
+      "filters": {
+        "type": "url"
+      }
+    }
   }
 }

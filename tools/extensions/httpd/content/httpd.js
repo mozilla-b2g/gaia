@@ -40,6 +40,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// GAIA-
+Components.utils.import('resource://gre/modules/Services.jsm');
+const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
+const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("extensions.gaia.app_relative_path");
+// -GAIA
+
 /*
  * An implementation of an HTTP server both as a loadable script and as an XPCOM
  * component.  See the accompanying README file for user documentation on
@@ -1420,11 +1426,17 @@ RequestReader.prototype =
           var hostPort = request._headers.getHeader("Host");
           var colon = hostPort.indexOf(":");
           var host = (colon < 0) ? hostPort : hostPort.substring(0, colon);
-          if (host != "@GAIA_DOMAIN@" && host.indexOf(".") != -1) {
+          if (host != GAIA_DOMAIN && host.indexOf(".") != -1) {
             var oldPath = request._path;
-
             var applicationName = host.split(".")[0];
-            request._path = this._findRealPath(applicationName) + oldPath;
+
+            // For convenience when debugging, load JS files commonly
+            // used from a common place.
+            var filePath = this._findRealPath(applicationName);
+            if (oldPath.indexOf('/shared/js/') === 0) {
+              filePath += '/../..';
+            }
+            request._path = filePath + oldPath;
           }
         } catch (e) {
           dump(e);
@@ -1452,7 +1464,7 @@ RequestReader.prototype =
 
     this._realPath = {};
 
-    var appPathList = "@GAIA_APP_RELATIVEPATH@".trim().split(" ");
+    var appPathList = GAIA_APP_RELATIVEPATH.trim().split(" ");
     for (var i = 0; i < appPathList.length; i++) {
       var currentAppName = appPathList[i].split('/')[1];
 

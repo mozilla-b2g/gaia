@@ -5,9 +5,16 @@ html, body {
   margin: 0;
   color: white;
   font-family: 'Open Sans', sans-serif;
-  font-weight: light;
   font-size: 10px;
   background: black;
+}
+
+a {
+  outline: 0;
+}
+
+a:hover, a:active, a:focus {
+  outline: 0;
 }
 
 html * {
@@ -25,7 +32,6 @@ html * {
 
 .font-light {
   font-family: 'Open Sans';
-  font-weight: light;
 }
 
 .contact-primary-info {

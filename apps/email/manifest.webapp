@@ -1,11 +1,14 @@
 {
   "name": "E-Mail",
   "description": "Gaia E-Mail",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": [
+    "systemXHR"
+  ],
   "locales": {
     "ar": {
       "name": "E-Mail",

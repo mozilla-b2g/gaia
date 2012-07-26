@@ -30,15 +30,14 @@ var Utils = {
     }
   },
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
-    var span = document.createElement('span');
-    span.textContent = str;
-
-    // Escape space for displaying multiple space in message.
-    span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
-
+    var stringHTML = str;
+    stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
+    stringHTML = stringHTML.replace(/\s/g, '&nbsp;');
+    stringHTML = stringHTML.replace(/\</g, '&#60;');
+    
     if (escapeQuotes)
-      return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-    return span.innerHTML;
+      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    return stringHTML;
   },
 
   getHourMinute: function ut_getHourMinute(time) {
@@ -85,6 +84,13 @@ var Utils = {
       dayDiff == 1 && _('yesterday') ||
       dayDiff < 4 && (new Date(time)).toLocaleFormat('%A') ||
       (new Date(time)).toLocaleFormat('%x');
+  },
+  getFontSize: function ut_getFontSize() {
+    if (!this.rootFontSize) {
+      var htmlCss = window.getComputedStyle(document.documentElement, null);
+      this.rootFontSize = parseInt(htmlCss.getPropertyValue('font-size'));
+    }
+    return this.rootFontSize;
   }
 };
 

@@ -1,8 +1,4 @@
 (function(window) {
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
   var COPY_METHODS = ['start', 'stop', 'show'];
 
   function Router(page) {
@@ -21,24 +17,22 @@
   Router.prototype = {
 
     /**
-     * Creates a view callback
+     * Tells router to manage the object.
+     * This will call the 'onactive'
+     * method if present on the object.
      *
-     * @param {Object} object object to wrap as a function.
+     * When the route is changed all 'manged'
+     * object will be cleared and 'oninactive'
+     * will be fired.
      */
-    _wrapObject: function(object) {
-      var self = this;
+    mangeObject: function() {
+      var args = Array.prototype.slice.call(arguments);
+      var object = args.shift();
 
-      return function viewResponder(ctx, next) {
-        self._activeObjects.push(object);
-
-        if ('onactive' in object) {
-          if (!object.__routerActive) {
-            object.onactive();
-            object.__routerActive = true;
-          }
-        }
-
-        next();
+      this._activeObjects.push(object);
+      // intentionally using 'in'
+      if ('onactive' in object) {
+        object.onactive.apply(object, args);
       }
     },
 
@@ -48,24 +42,21 @@
      */
     _clearObjects: function(ctx, next) {
       var item;
-      while (item = this._activeObjects.pop()) {
+      while ((item = this._activeObjects.pop())) {
+        // intentionally using 'in'
         if ('oninactive' in item) {
-          if ('__routerActive' in item) {
-            if (item.__routerActive) {
-              item.oninactive();
-            }
-          } else {
-            item.oninactive();
-          }
-        }
-        if ('__routerActive' in item) {
-          item.__routerActive = false;
+          item.oninactive();
         }
       }
       next();
     },
 
-    //needed so next works correctly
+    // needed so next works correctly
+    // the idea is the last hook
+    // will not call next but we don't
+    // manage that here so we need to
+    // have an extra function which will now
+    // call next.
     _noop: function() {},
 
     _route: function() {
@@ -77,13 +68,6 @@
       var len = args.length;
       var i = 0;
       var item;
-
-      for (; i < len; i++) {
-        item = args[i];
-        if (typeof(item) === 'object') {
-          args[i] = this._wrapObject(item);
-        }
-      }
 
       this.page.apply(this.page, args);
     },

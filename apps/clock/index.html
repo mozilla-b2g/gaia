@@ -6,25 +6,11 @@
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
+    <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <!-- Compatibility -->
-    <script type="application/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
+    <!-- Shared code -->
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <!-- Specific code -->
     <script type="application/javascript" src="js/utils.js"></script>
     <script type="application/javascript" src="js/alarmsdb.js"></script>
     <script type="application/javascript" src="js/clock.js"></script>
@@ -36,32 +22,52 @@
   <body class="hidden">
     <div id="views">
       <div id="alarm-view" class="active view">
-        <a id="alarm-new" href="#alarm" class="right button plus"><span class="plus-icon">+</span> Alarm</a>
+        <a id="alarm-new" href="#alarm" class="right button plus"></a>
         <div id="clock-view">
-          <div id="clock-day-date"></div>
-          <div id="digital-clock">
-            <span id="clock-time"></span>
-            <span id="clock-hour24-state"></span>
-          </div>
-          <div id="analog-clock">
-            <svg id="analog-clock-svg" viewBox="0 0 100 100">
-              <defs> <!-- Define a filter for drop-shadows -->
-                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
-                  <feOffset in="blur" dx="1" dy="1" result="shadow" />
-                  <feMerge>
-                    <feMergeNode in="SourceGraphic"/><feMergeNode in="shadow"/>
-                  </feMerge>
-                </filter>
-              </defs>
-              <circle id="face" cx="50" cy="50" r="45"/> <!-- the clock face -->
-              <!-- Draw hands pointing straight up. We rotate them in the code. -->
-              <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
-                <line id="hourhand" x1="50" y1="50" x2="50" y2="17"/>
-                <line id="minutehand" x1="50" y1="50" x2="50" y2="5"/>
-                <line id="secondhand" x1="50" y1="50" x2="50" y2="0"/>
-              </g>
-            </svg>
+          <div id="digital-clock-bg">
+            <span id="clock-day"></span>
+            <span id="clock-date"></span>
+            <div id="digital-clock">
+              <div id="digital-clock-display">
+                <span id="clock-time"></span>
+                <span id="clock-hour24-state"></span>
+              </div>
+            </div>
+            <div id="analog-clock">
+              <svg id="analog-clock-svg" viewBox="0 0 100 100">
+                <defs> <!-- Define a filter for drop-shadows -->
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
+                    <feOffset in="blur" dx="1" dy="1" result="shadow" />
+                    <feMerge>
+                      <feMergeNode in="SourceGraphic"/><feMergeNode in="shadow"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <circle id="face" cx="50" cy="50" r="33"/> <!-- the clock face -->
+                
+                <g id="ticks"> <!-- 12 hour tick marks -->
+                  <line id="tick12" x1='50.00' y1='2.000' x2='50.00' y2='16.50'/>
+                  <line x1='91.57' y1='26.00' x2='84.64' y2='30.00'/>
+                  <rect id="tick3" x='82.00' y='48.00' width='30.00' height='4.000' rx='2' ry='4'/>
+                  <line x1='91.57' y1='74.00' x2='84.64' y2='70.00'/>
+                  <line x1='50.00' y1='98.00' x2='50.00' y2='90.00'/>
+                  <line x1='8.431' y1='74.00' x2='15.36' y2='70.00'/>
+                  <rect id="tick9" x='-12.00' y='48.00' width='30.00' height='4.000' rx='2' ry='4'/>
+                  <line x1='8.431' y1='26.00' x2='15.36' y2='30.00'/>
+                </g>
+          
+                <!-- Draw hands pointing straight up. We rotate them in the code. -->
+                <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
+                  <circle id="backboardCentralPoint" cx="50" cy="50" r="3.2"/> <!-- the minute hand central point -->
+                  <line id="hourhand" x1="50" y1="50" x2="50" y2="24"/>
+                  <line id="minutehand" x1="50" y1="50" x2="50" y2="10"/>
+                  <circle id="minutehandCentralPoint" cx="50" cy="50" r="2.1"/> <!-- the minute hand central point -->
+                  <line id="secondhand" x1="50" y1="58" x2="50" y2="9"/>
+                  <circle id="secondhandCentralPoint" cx="50" cy="50" r="1.2"/> <!-- the second hand central point -->
+                </g>
+              </svg>
+            </div>
           </div>
           <ul id="alarms" class="tableView"></ul>
         </div>
@@ -126,9 +132,11 @@
     <!-- Alarm -->
     <div id="alarm" class="view" data-title="Alarm">
       <header>
-        <a href="#alarm-view" class="left button" data-l10n-id="back">Back</a>
-        <h1 id="alarm-title" class="label" data-l10n-id="alarm">Alarm</h1>
-        <a id="alarm-save" href="#alarm-view" class="right button save-btn" data-l10n-id="save">Save</a>
+        <a href="#alarm-view" class="left button close">
+          <div class="icon-close"></div>
+        </a>
+        <h1 id="alarm-title" class="label" data-l10n-id="edit_alarm">Edit Alarm</h1>
+        <a id="alarm-done" href="#alarm-view" class="right button done-button" data-l10n-id="done">Done</a>
       </header>
       <ul class="tableView">
         <li class="singleline">
@@ -155,7 +163,7 @@
         <span class="view-alarm-lbl" data-l10n-id="enable">Enable</span>
           <label>
             <input type="checkbox" name="alarm.enable"/>
-            <span></span> </label>
+            <span class="editSetEnabledBtn"></span> </label>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="label">Label</span>
@@ -182,7 +190,7 @@
     <!-- Repeat -->
     <div id="repeat" class="view" data-title="Repeat">
       <header>
-        <a href="#alarm" id="repeat-back" class="left button" data-l10n-id="back">Back</a>
+        <a href="#alarm" id="repeat-back" class="right button" data-l10n-id="back">Back</a>
         <h1 id="repeat-title" class="label" data-l10n-id="repeat">Repeat</h1>
       </header>
       <ul class="tableView">
@@ -190,49 +198,49 @@
           <span class="view-alarm-lbl" data-l10n-id="dayofweek-0">Monday</span>
           <label>
             <input type="checkbox" name="repeat.Monday"/>
-            <span></span> </label>
+            <span class="setRepeat"></span> </label>
           <p></p>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="dayofweek-1">Tuesday</span>
           <label>
             <input type="checkbox" name="repeat.Tuesday"/>
-            <span></span> </label>
+            <span class="setRepeat"></span> </label>
           <p></p>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="dayofweek-2">Wednesday</span>
           <label>
             <input type="checkbox" name="repeat.Wednesday"/>
-            <span></span> </label>
+            <span class="setRepeat"></span> </label>
           <p></p>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="dayofweek-3">Thursday</span>
           <label>
             <input type="checkbox" name="repeat.Thursday"/>
-            <span></span> </label>
+            <span class="setRepeat"></span> </label>
           <p></p>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="dayofweek-4">Friday</span>
           <label>
             <input type="checkbox" name="repeat.Friday"/>
-            <span></span> </label>
+            <span class="setRepeat"></span> </label>
           <p></p>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="dayofweek-5">Saturday</span>
           <label>
             <input type="checkbox" name="repeat.Saturday"/>
-            <span></span> </label>
+            <span class="setRepeat"></span> </label>
           <p></p>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="dayofweek-6">Sunday</span>
           <label>
             <input type="checkbox" name="repeat.Sunday"/>
-            <span></span> </label>
+            <span class="setRepeat"></span> </label>
           <p></p>
         </li>
       </ul>
@@ -241,7 +249,7 @@
     <!-- Sound -->
     <div id="sound" class="view" data-title="Sound">
       <header>
-        <a href="#alarm" id="sound-back" class="left button" data-l10n-id="back">Back</a>
+        <a href="#alarm" id="sound-back" class="right button" data-l10n-id="back">Back</a>
         <h1 id="sound-title" class="label" data-l10n-id="sound">Sound</h1>
       </header>
       <ul class="tableView">
@@ -272,7 +280,7 @@
     <!-- Snooze -->
     <div id="snooze" class="view" data-title="Snooze">
       <header>
-        <a href="#alarm" id="snooze-back" class="left button" data-l10n-id="back">Back</a>
+        <a href="#alarm" id="snooze-back" class="right button" data-l10n-id="back">Back</a>
         <h1 id="snooze-title" class="label" data-l10n-id="snooze">Snooze</h1>
       </header>
       <ul class="tableView">
@@ -310,7 +318,7 @@
     <!-- Color -->
     <div id="color" class="view" data-title="Color">
       <header>
-        <a href="#alarm" id="color-back" class="left button" data-l10n-id="back">Back</a>
+        <a href="#alarm" id="color-back" class="right button" data-l10n-id="back">Back</a>
         <h1 id="color-title" class="label" data-l10n-id="color">Color</h1>
       </header>
       <ul class="tableView">
@@ -354,3 +362,4 @@
 
   </body>
 </html>
+

@@ -22,6 +22,11 @@ var QuickSettings = {
       self.bluetooth.dataset.enabled = value;
     });
 
+    // monitor wifi status
+    SettingsListener.observe('wifi.enabled', true, function(value) {
+      self.wifi.dataset.enabled = value;
+    });
+
   },
 
   handleEvent: function qs_handleEvent(evt) {
@@ -30,14 +35,11 @@ var QuickSettings = {
       case 'click':
         switch (evt.target) {
           case this.wifi:
-            // XXX: should use mozSettings instead
-            var wifiManager = navigator.mozWifiManager;
-            if (!wifiManager)
-              return;
-
             var enabled = (this.wifi.dataset.enabled == 'true');
-            wifiManager.setEnabled(!enabled);
             this.wifi.dataset.enabled = !enabled;
+            navigator.mozSettings.getLock().set({
+              'wifi.enabled': !enabled
+            });
             break;
 
           case this.data:
@@ -73,12 +75,9 @@ var QuickSettings = {
               };
 
               // Turn off Wifi
-              // XXX: should use mozSetting instead
-              var wifiManager = navigator.mozWifiManager;
-              if (wifiManager) {
-                wifiManager.setEnabled(false);
-                this.wifi.dataset.enabled = false;
-              }
+              navigator.mozSettings.getLock().set({
+                'wifi.enabled': false
+              });
 
               // Turn off Data
               navigator.mozSettings.getLock().set({
@@ -95,12 +94,9 @@ var QuickSettings = {
             } else if (this._powerSaveResume) {
               if (this._powerSaveResume.wifi) {
                 // Turn on Wifi
-                // XXX: use mozSetting instead
-                var wifiManager = navigator.mozWifiManager;
-                if (wifiManager) {
-                  wifiManager.setEnabled(true);
-                  this.wifi.dataset.enabled = true;
-                }
+                navigator.mozSettings.getLock().set({
+                  'wifi.enabled': true
+                });
               }
 
               if (this._powerSaveResume.data) {
@@ -139,15 +135,8 @@ var QuickSettings = {
         break;
 
       case 'utilitytrayshow':
-        this.updateStatus();
         break;
     }
-  },
-
-  updateStatus: function qs_updateStatus() {
-    //XXX: if use mozSetting instead, remove here and add a observe at init()
-    var wifiManager = navigator.mozWifiManager;
-    this.wifi.dataset.enabled = !!(wifiManager && wifiManager.enabled);
   },
 
   getAllElements: function qs_getAllElements() {

@@ -6,9 +6,9 @@
 
 'use strict';
 
-const DEBUG = false;
+const SETTINGS_DEBUG = false;
 function debug(msg) {
-  if (DEBUG)
+  if (SETTINGS_DEBUG)
     dump("-*- Populate SettingsDB: " + msg + "\n");
 }
 
@@ -16,6 +16,7 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 
 // Todo: Get a list of settings
 var settings = [
+ new Setting("alarm.enabled", false),
  new Setting("accessibility.invert", false),
  new Setting("bluetooth.enabled", false),
  new Setting("debug.grid.enabled", false),
@@ -25,6 +26,7 @@ var settings = [
  new Setting("devtools.debugger.log", false),
  new Setting("devtools.debugger.remote-enabled", false),
  new Setting("devtools.debugger.remote-port", 6000),
+ new Setting("geolocation.enabled", true),
  new Setting("homescreen.ring", 'classic.wav'),
  new Setting("homescreen.wallpaper", "default.png"),
  new Setting("keyboard.layouts.english", true),
@@ -41,6 +43,7 @@ var settings = [
  new Setting("keyboard.layouts.spanish", false),
  new Setting("keyboard.vibration", false),
  new Setting("keyboard.clicksound", false),
+ new Setting("keyboard.wordsuggestion", false),
  new Setting("language.current", "en-US"),
  new Setting("lockscreen.passcode-lock.code", "0000"),
  new Setting("lockscreen.passcode-lock.enabled", false),
@@ -50,7 +53,7 @@ var settings = [
  new Setting("phone.ring.incoming", true),
  new Setting("phone.ring.keypad", true),
  new Setting("phone.vibration.incoming", true),
- new Setting("ril.data.enabled", true),
+ new Setting("ril.data.enabled", false),
  new Setting("ril.data.apn", ""),
  new Setting("ril.data.passwd", ""),
  new Setting("ril.data.mmsc", ""),
@@ -64,9 +67,14 @@ var settings = [
  new Setting("screen.timeout", 60),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
+ new Setting("tethering.usb.enabled", false),
+ new Setting("tethering.wifi.enabled", false),
+ new Setting("tethering.wifi.connectedClients", 0),
+ new Setting("tethering.usb.connectedClients", 0),
  new Setting("ums.enabled", false),
  new Setting("ums.mode", ""),
- new Setting("wifi.notification", false),
+ new Setting("wifi.enabled", true),
+ new Setting("wifi.notification", false)
 ];
 
 // Ensure there is no duplicate

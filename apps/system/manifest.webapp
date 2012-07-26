@@ -1,7 +1,7 @@
 {
   "name": "System",
   "description": "Main System",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -11,7 +11,9 @@
     "power",
     "mozApps",
     "mobileconnection",
-    "mozBluetooth"
+    "mozBluetooth",
+    "telephony",
+    "voicemail"
   ],
   "locales": {
     "ar": {

@@ -7,24 +7,12 @@
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/desktop.js"></script>
+    <!-- Specific code -->
     <script type="text/javascript" src="js/contacts.js"></script>
     <script type="text/javascript" src="js/pendingDBUtils.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
@@ -46,7 +34,7 @@
                  <a href="#new" id="icon-add">
                   <span class="icon icon-add"></span>
                  </a>
-                 <a href="#edit" id="icon-edit">
+                 <a href="#edit" id="icon-edit-threads">
                   <span class="icon icon-edit"></span>
                  </a>
               </menu>
@@ -57,10 +45,10 @@
                 <span class="icon icon-close">close</span>
               </a>
               <menu type="toolbar">
-                 <button>done</button>
+                 <button id="thread-done-button">done</button>
               </menu>
               <h1>Edit mode</h1>
-            </header> 
+            </header>
           </div>
         </div>
         <article id="thread-list-container" class="view-body">
@@ -76,9 +64,9 @@
               Delete selected
             </button>
           </section>
-        </footer>  
+        </footer>
       </section>
-     
+
       <section id="thread-messages" class="panel">
         <div class="header-group">
           <div class="header-wrapper">
@@ -96,16 +84,17 @@
               </menu>
               <h1 id="header-text">Messages</h1>
               <input id="receiver-tel" type="tel" name="tel" class="tel" />
+              <span id="clear-search" role="button" class="icon icon-clear"></span>
             </header>
             <header class="view-header dark-header">
               <a href="javascript:history.go(-1)" role="link">
                 <span class="icon icon-close"></span>
               </a>
               <menu type="toolbar">
-                 <button>done</button>
+                 <button id="messages-done-button">done</button>
               </menu>
               <h1>Edit mode</h1>
-            </header> 
+            </header>
           </div>
         </div>
         <article id="messages-container" class="view-body">
@@ -123,8 +112,10 @@
           </section>
         </footer>
         <footer class="new-sms-form">
-          <input type="text" id="message-to-send" name="message-to-send" />
-          <button id="send-message"> SEND </button>
+          <textarea type="text" id="message-to-send" name="message-to-send"></textarea>
+          <div id="send-message-container">
+            <button id="send-message">SEND</button>
+          </div>
         </footer>
       </section>
     </article>
@@ -132,6 +123,16 @@
       <section id="thread-list-snapshot">
       </section>
       <section id="thread-messages-snapshot" >
+      </section>
+    </article>
+    <article id="loading">
+      <section class="loading-container">
+        <header class="loading-header">
+          Deleting messages...
+        </header>
+        <article class="loading-icon">
+          <img src="style/images/spinner.gif">
+        </article>
       </section>
     </article>
   </body>

@@ -3,25 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
+
+    <!-- Shared code -->
+    <script src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/gesture_detector.js"></script>
+
     <!-- System -->
-    <script>
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <script defer src="js/settings_listener.js"></script>
     <script defer src="js/applications.js"></script>
@@ -34,6 +21,7 @@
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
+    <script defer src="js/hardware_buttons.js"></script>
 
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
@@ -50,6 +38,9 @@
     <!-- List Menu -->
     <link rel="stylesheet" type="text/css" href="style/list_menu/list_menu.css">
     <script defer src="js/list_menu.js"></script>
+
+    <!-- Airplane Mode -->
+    <script defer src="js/airplane_mode.js"></script>
 
     <!-- Sleep Menu -->
     <script defer src="js/sleep_menu.js"></script>
@@ -87,7 +78,6 @@
 
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
-    <script defer src="js/GestureDetector.js"></script>
     <script defer src="js/notifications.js"></script>
 
     <!-- Permission Manager -->
@@ -98,14 +88,17 @@
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
     <script defer src="js/cards_view/cards_view.js"></script>
 
-    <!-- Windows -->
-    <script defer src="js/windows/window_manager.js"></script>
-
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
 
     <!-- Bluetooth -->
     <script defer src="js/bluetooth.js"></script>
+
+    <!-- Wifi -->
+    <script defer src="js/wifi.js"></script>
+
+    <!-- Voicemail -->
+    <script defer src="js/voicemail.js"></script>
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
@@ -114,6 +107,11 @@
     <!-- Trusted dialog -->
     <link rel="stylesheet" type="text/css" href="style/trusted_dialog/trusted_dialog.css">
     <script defer src="js/trusted_dialog.js"></script>
+
+    <!-- Windows -->
+    <!-- Any module that wants to intercept the Home button and prevent the -->
+    <!-- homescreen from being displayed must come before this script. -->
+    <script defer src="js/window_manager.js"></script>
   </head>
 
   <body onload="startup()">
@@ -144,15 +142,12 @@
               <div class="modal-dialog-message-container">
                 <span id="modal-dialog-alert-message"></span>
               </div>
-              <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
             </div>
 
             <div id="modal-dialog-confirm">
               <div class="modal-dialog-message-container">
                 <span id="modal-dialog-confirm-message"></span>
               </div>
-              <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
-              <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
             </div>
 
             <div id="modal-dialog-prompt">
@@ -160,10 +155,15 @@
                 <span id="modal-dialog-prompt-message"></span>
                 <input id="modal-dialog-prompt-input" />
               </div>
-              <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
-              <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
             </div>
           </div>
+        </div>
+        <div id="modal-dialog-buttons">
+          <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
+          <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
+          <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
+          <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
+          <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
         </div>
       </div>
 
@@ -173,7 +173,7 @@
         <div id="quick-settings">
           <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
           <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluetooth">Bluetooth</a>
           <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
           <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
         </div>
@@ -188,6 +188,7 @@
         </div>
       </div>
 
+      <div id="lockscreen-camera" hidden></div>
       <div id="lockscreen" class="uninit" data-panel="">
         <div id="lockscreen-container">
           <div id="lockscreen-main-panel" class="lockscreen-panel">
@@ -198,13 +199,14 @@
               <div id="lockscreen-notification-detail"></div>
             </div>
             <div id="lockscreen-area"></div>
-            <div id="lockscreen-area-unlock" class="lockscreen-icon"></div>
-            <div id="lockscreen-area-camera" class="lockscreen-icon"></div>
+            <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right"></div>
+            <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left"></div>
             <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
             <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
             <div id="lockscreen-area-handle"></div>
           </div>
           <div id="lockscreen-header">
+            <div id="lockscreen-connstate" hidden></div>
             <div id="lockscreen-mute" hidden></div>
             <div id="lockscreen-clock"></div>
             <div id="lockscreen-date"></div>
@@ -234,10 +236,6 @@
           </div>
           <h2 id="lockscreen-emergency-title" data-l10n-id="emergency-call">Emergency Call</h2>
           <div id="lockscreen-emergency-pad">TBD</div>
-
-          <div id="lockscreen-panel-camera" class="lockscreen-panel">
-            <div id="lockscreen-camera"></div>
-          </div>
         </div>
       </div>
 
@@ -266,24 +264,36 @@
       </div>
 
       <div id="statusbar">
-        <div id="statusbar-signal">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div id="statusbar-conn"></div>
-        <div id="statusbar-data"></div>
-        <div id="statusbar-wifi" hidden></div>
+        <!-- Loading -->
         <div id="statusbar-loading" hidden></div>
-        <div id="statusbar-padding"></div>
-        <div id="statusbar-notification" hidden></div>
-        <div id="statusbar-mute" hidden></div>
-        <div id="statusbar-battery">
-          <div id="statusbar-battery-fuel"></div>
-          <div id="statusbar-battery-charging" hidden></div>
-        </div>
+        <!-- Notification -->
+        <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
+          data-num="" hidden></div>
+
+        <!-- Time -->
         <div id="statusbar-time"></div>
+
+        <!-- Status -->
+        <div id="statusbar-battery" class="sb-icon sb-icon-battery"
+          data-level="100" charging hidden></div>
+        <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
+          data-level="4" hidden></div>
+        <div id="statusbar-data" class="sb-icon sb-icon-data"
+          data-type="" hidden></div>
+        <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
+        <div id="statusbar-conn" hidden></div>
+        <div id="statusbar-signal" class="sb-icon sb-icon-signal"
+          data-level="5" hidden></div>
+
+        <!-- Permissions -->
+        <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
+        <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden></div>
+        <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden></div>
+        <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
+        <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
+        <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
+        <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
+        <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
       </div>
 
       <div id="notification-toaster" class="notification">

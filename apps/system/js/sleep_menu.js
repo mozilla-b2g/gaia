@@ -10,68 +10,13 @@ var SleepMenu = {
   // Indicate setting status of volume
   isSilentModeEnabled: false,
 
-  // Reserve settings before turn on flight mode
-  reservedSettings: {
-    data: true,
-    wifi: true,
-    bluetooth: true,
-
-    // reserve for geolocation
-    geolocation: false
-  },
-
-  // XXX: bug#766895
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=766895
-  turnOffFlightMode: function sm_turnOffFlightMode() {
-    var settings = navigator.mozSettings;
-    if (settings) {
-      if (this.reservedSettings.data) {
-        settings.getLock().set({'ril.data.enabled': true});
-      }
-      if (this.reservedSettings.bluetooth) {
-        settings.getLock().set({'bluetooth.enabled': true});
-      }
-    }
-
-    // Set wifi as previous
-    // XXX: should set mozSettings instead
-    var wifiManager = navigator.mozWifiManager;
-    if (wifiManager && this.reservedSettings.wifi && !wifiManager.enabled) {
-      wifiManager.setEnabled(true);
-    }
-  },
-
-  turnOnFlightMode: function sm_turnOnFlightMode() {
-    var settings = navigator.mozSettings;
-    var self = this;
-    if (settings) {
-      // Turn off data
-      var req = settings.getLock().get('ril.data.enabled');
-      req.onsuccess = function sm_EnabledFetched() {
-        self.reservedSettings.data = req.result['ril.data.enabled'];
-        settings.getLock().set({'ril.data.enabled': false});
-      };
-      // Turn off blueTooth
-      var req = settings.getLock().get('bluetooth.enabled');
-      req.onsuccess = function bt_EnabledSuccess() {
-        self.reservedSettings.bluetooth = req.result['bluetooth.enabled'];
-        settings.getLock().set({'bluetooth.enabled': false});
-      };
-    }
-
-    // Turn off wifi
-    // XXX: should set mozSettings instead
-    var wifiManager = navigator.mozWifiManager;
-    if (wifiManager) {
-      this.reservedSettings.wifi = wifiManager.enabled;
-      wifiManager.setEnabled(false);
-    }
-
-  },
-
   init: function sm_init() {
-    window.addEventListener('keydown', this, true);
-    window.addEventListener('keyup', this, true);
+    window.addEventListener('holdsleep', this.show.bind(this));
+
+    var self = this;
+    SettingsListener.observe('ril.radio.disabled', false, function(value) {
+      self.isFlightModeEnabled = value;
+    });
   },
 
   // Generate items
@@ -128,44 +73,6 @@ var SleepMenu = {
     return items;
   },
 
-  // Event handler for addEventListener
-  handleEvent: function sm_handleEvent(evt) {
-    switch (evt.type) {
-      case 'keydown':
-        // The screenshot module also listens for the SLEEP key and
-        // can call defaultPrevented() on keydown and key up events.
-        if (evt.keyCode == evt.DOM_VK_SLEEP &&
-            !evt.defaultPrevented && !ListMenu.visible) {
-          this._longpressTriggered = false;
-          this._sleepMenuTimeout = window.setTimeout((function sm_timeout() {
-            this.show();
-            this._longpressTriggered = true;
-            this._sleepMenuTimeout = null;
-          }).bind(this), 1500);
-        }
-        break;
-
-      case 'keyup':
-        if (ListMenu.visible) {
-          if (evt.keyCode == evt.DOM_VK_SLEEP &&
-              this._longpressTriggered) {
-            evt.stopPropagation();
-            this._longpressTriggered = false;
-          }
-
-          return;
-        }
-
-        if (!this._sleepMenuTimeout || evt.keyCode != evt.DOM_VK_SLEEP)
-          return;
-
-        window.clearTimeout(this._sleepMenuTimeout);
-        this._sleepMenuTimeout = null;
-
-        break;
-    }
-  },
-
   show: function sm_show() {
     var self = this;
     ListMenu.request(this.generateItems(), function(action) {
@@ -189,16 +96,8 @@ var SleepMenu = {
 
         var settings = window.navigator.mozSettings;
         if (settings) {
-          this.isFlightModeEnabled = !this.isFlightModeEnabled;
-
-          if (this.isFlightModeEnabled) {
-            this.turnOnFlightMode();
-          } else {
-            this.turnOffFlightMode();
-          }
-
           settings.getLock().set({
-            'ril.radio.disabled': this.isFlightModeEnabled
+            'ril.radio.disabled': !this.isFlightModeEnabled
           });
         }
         break;
@@ -238,3 +137,5 @@ var SleepMenu = {
     }
   }
 };
+
+SleepMenu.init();
