@@ -40,27 +40,33 @@ var KeyboardManager = (function() {
 
     var height = (parseInt(currentApp.style.height) -
                   message.keyboardHeight);
+    keyboardOverlay.hidden = true;
 
-    if (!message.hidden && !keyboardFrame.classList.contains('hide')) {
+    if (message.hidden) {
+      keyboardFrame.classList.add('hide');
+      keyboardFrame.classList.remove('visible');
+      return;
+    }
+
+    if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
       keyboardOverlay.style.height = (height + 20) + 'px';
-    } else if (!message.hidden) {
+      keyboardOverlay.hidden = false;
+    } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
         keyboardFrame.removeEventListener('transitionend', keyboardShown);
         currentApp.style.height = height + 'px';
         keyboardOverlay.style.height = (height + 20) + 'px';
+        keyboardOverlay.hidden = false;
         keyboardFrame.classList.add('visible');
       });
-    } else {
-      keyboardFrame.classList.add('hide');
-      keyboardFrame.classList.remove('visible');
     }
   });
 
   var previousKeyboardType = null;
 
-  var kKeyboardDelay = 100;
+  var kKeyboardDelay = 20;
   var updateKeyboardTimeout = 0;
 
   window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {

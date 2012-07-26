@@ -166,7 +166,7 @@ iframe.backgroundWindow {
   z-index: 10001;
   border: 0;
   transform: translateY(0);
-  -moz-transition: -moz-transform 0.3s ease-in;
+  -moz-transition: all 0.2s ease;
   pointer-events: none;
 }
 
