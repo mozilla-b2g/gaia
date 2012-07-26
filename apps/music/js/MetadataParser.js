@@ -46,6 +46,7 @@ var metadataParser = (function() {
       oggfile.parse();
     } else {
       console.log('Not supported audio file');
+      errback();
     }
   }
 

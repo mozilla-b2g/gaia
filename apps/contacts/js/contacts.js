@@ -1,6 +1,7 @@
 ﻿'use strict';
 
 var _ = navigator.mozL10n.get;
+var TAG_OPTIONS;
 
 function navigationStack(currentView) {
   var transitions = {
@@ -113,28 +114,6 @@ var Contacts = (function() {
   function edit() {
     navigation.go('view-contact-form', 'right-left');
   }
-
-  var TAG_OPTIONS = {
-    'phone-type' : [
-      {value: _('mobile')},
-      {value: _('home')},
-      {value: _('work')},
-      {value: _('personal')},
-      {value: _('faxHome')},
-      {value: _('faxOffice')},
-      {value: _('faxOther')},
-      {value: _('another')}
-    ],
-    'email-type' : [
-      {value: _('personal')},
-      {value: _('home')},
-      {value: _('work')}
-    ],
-    'address-type' : [
-      {value: _('home')},
-      {value: _('work')}
-    ]
-  };
 
   var numberEmails = 0;
   var numberPhones = 0;
@@ -380,7 +359,7 @@ var Contacts = (function() {
         // Sanity check
         if (isEmpty(currentAddress, ['streetAddress', 'postalCode',
           'locality', 'countryName'])) {
-          return;
+          continue;
         }
         var addressField = {
           streetAddress: currentAddress['streetAddress'] || '',
@@ -520,14 +499,25 @@ var Contacts = (function() {
     edit();
   };
 
+  // Checks if an object fields are empty, by empty means
+  // field is null and if it's an array it's length is 0
   var isEmpty = function isEmpty(obj, fields) {
     if (obj == null || typeof(obj) != 'object' ||
         !fields || !fields.length) {
       return true;
     }
+    var attr;
+    var isArray;
     for (var i = 0; i < fields.length; i++) {
-      if (obj.hasOwnProperty(fields[i]) && obj[fields[i]]) {
-        return false;
+      attr = fields[i];
+      if (obj.hasOwnProperty(attr) && obj[attr]) {
+        if (Array.isArray(obj[attr])) {
+          if (obj[attr].length > 0) {
+            return false;
+          }
+        } else {
+          return false;
+        }
       }
     }
     return true;
@@ -727,23 +717,45 @@ var Contacts = (function() {
 
   var saveContact = function saveContact() {
     saveButton.setAttribute('disabled', 'disabled');
-    var name = [givenName.value] || [''];
-    var lastName = [familyName.value] || [''];
-    var org = [company.value] || [''];
     var myContact = {
       id: document.getElementById('contact-form-id').value,
-      givenName: name,
-      familyName: lastName,
-      additionalName: '',
-      org: org,
-      name: name[0] + ' ' + lastName[0],
-      category: currentContact.category || []
+      additionalName: ''
     };
+
+    if (givenName.value && givenName.value.length > 0) {
+      myContact.givenName = [givenName.value];
+    }
+    if (familyName.value && familyName.value.length > 0) {
+      myContact.familyName = [familyName.value];
+    }
+    if (company.value && company.value.length > 0) {
+      myContact.org = [company.value];
+    }
+    if (currentContact.category) {
+      myContact.category = currentContact.category;
+    }
+
+    if (myContact.givenName || myContact.familyName) {
+      var name = myContact.givenName || '';
+      name += ' ';
+      if (myContact.familyName) {
+        name += myContact.familyName;
+      }
+      myContact.name = name;
+    }
 
     getPhones(myContact);
     getEmails(myContact);
     getAddresses(myContact);
     getNotes(myContact);
+
+    // Use the isEmpty function to check fields but address
+    // and inspect address by it self.
+    if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
+      'email', 'note', 'adr'])) {
+      saveButton.removeAttribute('disabled');
+      return;
+    }
 
     var contact;
     if (myContact.id) { //Editing a contact
@@ -758,6 +770,7 @@ var Contacts = (function() {
     } else {
       contact = new mozContact();
       contact.init(myContact);
+
     }
 
     var request = navigator.mozContacts.save(contact);
@@ -852,6 +865,13 @@ var Contacts = (function() {
       var postalCode = document.getElementById(selector).value || '';
       selector = 'countryName_' + arrayIndex;
       var countryName = document.getElementById(selector).value || '';
+
+      // Sanity check for pameters, check all params but the typeField
+      if (addressValue == '' && locality == '' &&
+          postalCode == '' && countryName == '') {
+        continue;
+      }
+
       contact['adr'] = contact['adr'] || [];
       contact['adr'][i] = {
         streetAddress: addressValue,
@@ -1055,6 +1075,28 @@ window.addEventListener('localized', function showPanel() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
   document.body.classList.remove('hide');
+
+  TAG_OPTIONS = {
+    'phone-type' : [
+      {value: _('mobile')},
+      {value: _('home')},
+      {value: _('work')},
+      {value: _('personal')},
+      {value: _('faxHome')},
+      {value: _('faxOffice')},
+      {value: _('faxOther')},
+      {value: _('another')}
+    ],
+    'email-type' : [
+      {value: _('personal')},
+      {value: _('home')},
+      {value: _('work')}
+    ],
+    'address-type' : [
+      {value: _('home')},
+      {value: _('work')}
+    ]
+  };
 });
 
 var actHandler = ActivityHandler.handle.bind(ActivityHandler);

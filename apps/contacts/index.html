@@ -14,6 +14,7 @@
 
     <link href="style/contacts.css" rel="stylesheet">
     <link href="style/request.css" rel="stylesheet">
+    <link href="style/input_cancel_button.css" rel="stylesheet">
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <!-- Shared code -->
@@ -27,6 +28,7 @@
     <script defer type="text/javascript" src="js/contacts.js"></script>
     <script defer type="text/javascript" src="js/request.js"></script>
     <script defer type="text/javascript" src="js/sms_integration.js"></script>
+    <script defer type="text/javascript" src="js/input_cancel_button.js"></script>
   </head>
 
   <body class="hide app-contacts">
@@ -61,33 +63,12 @@
 
             <div id="groups-container" class="view-body-inner">
               <div id="search-container">
-                <input type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
-                <span id="clear-search" onclick="return contacts.List.clearSearch();" role="button" class="icon-clear hide"></span>
+                <input data-cancelable type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
                 <button id='cancel-search' class="hide" onclick='return contacts.List.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
               </div>
               <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
               <ol class="block-list" id="groups-list">
-                <li data-template>
-                  <h2 id="group-#group#" class="block-title hide">
-                    <abbr title="Contacts listed #group#">#letter#</abbr>
-                  </h2>
-                  <ol id="contacts-list-#group#" data-group="#group#">
-                    <li data-template class="block-item" data-uuid="#id#">
-                      <span class="checkbox">
-                        <input type="checkbox" name="#uid#"><i></i>
-                      </span>
-                      <a href="#" class="item">
-                        <figure class="item-media pull-right block-media">
-                           <img alt="" style="background-image: url(#photo#);">
-                        </figure>
-                        <p class="item-body">
-                          <strong class="block-name">#givenName# <b>#familyName#</b></strong>
-                          <small class="block-company">#org#</small>
-                        </p>
-                      </a>
-                    </li>
-                  </ol>
-                </li>
+                <!-- Group template here -->
               </ol>
             </div>
           </article>
@@ -199,11 +180,11 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="tel_#i#" data-l10n-id="labelPhoneNumber">Phone number:</label>
-                  <input placeholder="Phone" data-field="number" name="tel" class="textfield" type="tel" value="#number#" id="number_#i#">
+                  <input data-cancelable placeholder="Phone" data-field="number" name="tel" class="textfield" type="tel" value="#number#" id="number_#i#">
                 </p>
                 <p class="setbox-item">
                   <label class="hide" for="notes_#i#" data-l10n-id="labelName">Name:</label>
-                  <input placeholder="Notes" data-field="notes" name="tel" class="textfield" type="text" value="#notes#" id="notes_#i#">
+                  <input data-cancelable placeholder="Notes" data-field="notes" name="tel" class="textfield" type="text" value="#notes#" id="notes_#i#">
                 </p>
               </dd>
             </dl>
@@ -219,7 +200,7 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="email_#i#" data-l10n-id="labelEmail">e-mail:</label>
-                  <input placeholder="Email" name="email" class="textfield" type="email" value="#address#" id="email_#i#">
+                  <input data-cancelable placeholder="Email" name="email" class="textfield" type="email" value="#address#" id="email_#i#">
                 </p>
               </dd>
             </dl>
@@ -235,19 +216,19 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="streetAddress_#i#" data-l10n-id="labelStreet">Street:</label>
-                  <input placeholder="Street" data-field="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
+                  <input data-cancelable placeholder="Street" data-field="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
                 </p>
                 <p class="setbox-item">
                   <label class="hide" for="postalCode_#i#" data-l10n-id="labelZip">Zip Code:</label>
-                  <input placeholder="Zip Code" data-field="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+                  <input data-cancelable placeholder="Zip Code" data-field="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
                 </p>
                 <p class="setbox-item">
                   <label class="hide" for="locality_#i#" data-l10n-id="labelCity">City:</label>
-                  <input placeholder="City" data-field="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
+                  <input data-cancelable placeholder="City" data-field="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
                 </p>
                 <p class="setbox-item">
                   <label class="hide" for="countryName_#i#" data-l10n-id="labelCountry">Country:</label>
-                  <input placeholder="Country" data-field="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
+                  <input data-cancelable placeholder="Country" data-field="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
                 </p>
               </dd>
             </dl>
@@ -259,7 +240,7 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="note_#i#" data-l10n-id="labelComment">comment:</label>
-                  <input placeholder="Comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
+                  <input data-cancelable placeholder="Comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
                 </p>
               </dd>
             </dl>
@@ -277,15 +258,15 @@
                   <div class="item-body-exp">
                     <p class="fillflow-row">
                       <label class="hide" for="givenName" data-l10n-id="labelLastName">Name:</label>
-                      <input placeholder="Name" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
+                      <input data-cancelable placeholder="Name" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
                     </p>
                     <p class="fillflow-row">
                       <label class="hide" for="user_lastname" data-l10n-id="labelLastName">Last name:</label>
-                      <input placeholder="Last name" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
+                      <input data-cancelable placeholder="Last name" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
                     </p>
                   </div>
                   <p class="fillflow-row">
-                    <input placeholder="Company Name" name="org" class="textfield" type="text" value="" id="org">
+                    <input data-cancelable placeholder="Company Name" name="org" class="textfield" type="text" value="" id="org">
                   </p>
                 </fieldset>
 
@@ -363,7 +344,7 @@
             <div class="view-body-inner">
               <ul id="tags-list" class="selection-list">
               </ul>
-              <input class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag'>
+              <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag'>
             </div>
           </article>
         </div>

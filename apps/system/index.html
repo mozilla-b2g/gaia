@@ -21,6 +21,7 @@
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
+    <script defer src="js/hardware_buttons.js"></script>
 
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
@@ -37,6 +38,9 @@
     <!-- List Menu -->
     <link rel="stylesheet" type="text/css" href="style/list_menu/list_menu.css">
     <script defer src="js/list_menu.js"></script>
+
+    <!-- Airplane Mode -->
+    <script defer src="js/airplane_mode.js"></script>
 
     <!-- Sleep Menu -->
     <script defer src="js/sleep_menu.js"></script>
@@ -84,9 +88,6 @@
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
     <script defer src="js/cards_view/cards_view.js"></script>
 
-    <!-- Windows -->
-    <script defer src="js/windows/window_manager.js"></script>
-
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
 
@@ -106,6 +107,11 @@
     <!-- Trusted dialog -->
     <link rel="stylesheet" type="text/css" href="style/trusted_dialog/trusted_dialog.css">
     <script defer src="js/trusted_dialog.js"></script>
+
+    <!-- Windows -->
+    <!-- Any module that wants to intercept the Home button and prevent the -->
+    <!-- homescreen from being displayed must come before this script. -->
+    <script defer src="js/window_manager.js"></script>
   </head>
 
   <body onload="startup()">
@@ -136,15 +142,12 @@
               <div class="modal-dialog-message-container">
                 <span id="modal-dialog-alert-message"></span>
               </div>
-              <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
             </div>
 
             <div id="modal-dialog-confirm">
               <div class="modal-dialog-message-container">
                 <span id="modal-dialog-confirm-message"></span>
               </div>
-              <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
-              <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
             </div>
 
             <div id="modal-dialog-prompt">
@@ -152,10 +155,15 @@
                 <span id="modal-dialog-prompt-message"></span>
                 <input id="modal-dialog-prompt-input" />
               </div>
-              <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
-              <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
             </div>
           </div>
+        </div>
+        <div id="modal-dialog-buttons">
+          <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
+          <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
+          <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
+          <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
+          <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
         </div>
       </div>
 
@@ -180,6 +188,7 @@
         </div>
       </div>
 
+      <div id="lockscreen-camera" hidden></div>
       <div id="lockscreen" class="uninit" data-panel="">
         <div id="lockscreen-container">
           <div id="lockscreen-main-panel" class="lockscreen-panel">
@@ -190,8 +199,8 @@
               <div id="lockscreen-notification-detail"></div>
             </div>
             <div id="lockscreen-area"></div>
-            <div id="lockscreen-area-unlock" class="lockscreen-icon"></div>
-            <div id="lockscreen-area-camera" class="lockscreen-icon"></div>
+            <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right"></div>
+            <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left"></div>
             <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
             <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
             <div id="lockscreen-area-handle"></div>
@@ -227,10 +236,6 @@
           </div>
           <h2 id="lockscreen-emergency-title" data-l10n-id="emergency-call">Emergency Call</h2>
           <div id="lockscreen-emergency-pad">TBD</div>
-
-          <div id="lockscreen-panel-camera" class="lockscreen-panel">
-            <div id="lockscreen-camera"></div>
-          </div>
         </div>
       </div>
 
@@ -287,7 +292,6 @@
         <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
         <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
         <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
-        <div id="statusbar-voicemail" data-show-num="false" data-num="" hidden></div>
         <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
         <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
       </div>

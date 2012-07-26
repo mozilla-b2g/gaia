@@ -204,6 +204,15 @@ if (DEBUG) {
   content += "user_pref(\"dom.mozContacts.enabled\", true);\n";
   content += "user_pref(\"dom.mozSettings.enabled\", true);\n";
   content += "user_pref(\"device.storage.enabled\", true);\n";
+
+  // Preferences for httpd
+  // (Use JSON.stringify in order to avoid taking care of `\` escaping)
+  content += "user_pref(\"extensions.gaia.dir\", " + JSON.stringify(GAIA_DIR) + ");\n";
+  content += "user_pref(\"extensions.gaia.domain\", " + JSON.stringify(GAIA_DOMAIN) + ");\n";
+  content += "user_pref(\"extensions.gaia.port\", "+ GAIA_PORT.replace(/:/g, "") + ");\n";
+  content += "user_pref(\"extensions.gaia.app_src_dirs\", " + JSON.stringify(GAIA_APP_SRCDIRS) + ");\n";
+  content += "user_pref(\"extensions.gaia.app_relative_path\", " + JSON.stringify(GAIA_APP_RELATIVEPATH) + ");\n";
+
   content += "\n";
 }
 
