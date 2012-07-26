@@ -4,7 +4,10 @@
 'use strict';
 
 var CostControl = (function() {
-  var _ = navigator.mozL10n.get;
+  var _ = function cc_fallbackTranslation(keystring) {
+    var r = navigator.mozL10n.get.apply(this, arguments);
+    return r || keystring;
+  }
 
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
@@ -38,6 +41,7 @@ var CostControl = (function() {
   var _onSMSReceived = null;
   var _isUpdating = false;
   var _state = STATE_IDLE;
+  var _isManualRequest;
   var _balanceTimeout = 0;
   var _connectedCalls = 0;
 
@@ -167,7 +171,8 @@ var CostControl = (function() {
     var checkNowBalanceButton = document.getElementById('cost-control-credit-area');
     checkNowBalanceButton.addEventListener(
       'click',
-      function cc_manualCheckBalance() {
+      function cc_manualCheck() {
+        _isManualRequest = true;
         _mockup_updateBalance();
       }
     );
@@ -198,6 +203,7 @@ var CostControl = (function() {
   // Handle the events that triggers automatic balance updates
   function _automaticCheck(evt) {
     console.log('Evento escuchado: ' + evt.type);
+    _isManualRequest = false;
 
     // Filter calls, leaving only connected calls
     function getConnected(calls) {
@@ -295,6 +301,18 @@ var CostControl = (function() {
 
     _stopWaiting();
     var newBalance = _parseBalanceSMS(message);
+
+    // Error when parsing and manual. If not manual, fail silently
+    if (newBalance === null) {
+      if (_isManualRequest) {
+        navigator.mozNotification.createNotification(
+          _('Cost Control: Checking Balance'),
+          _('Error parsing balance message.')
+        ).show();
+      }
+      return;
+    }
+
     _updateUI(newBalance);
   }
 
@@ -319,17 +337,16 @@ var CostControl = (function() {
     // Notificate when parsing confirmation fails
     if (newBalance === null) {
       navigator.mozNotification.createNotification(
-        _('Cost Control: Top Up') || 'Cost Control: Top Up',
-        _('Error parsing the confirmation message') ||
-        'Error parsing the confirmation message'
+        _('Cost Control: Top Up'),
+        _('Error parsing the confirmation message')
       ).show();
       return;
     }
 
     var output = _updateUI(newBalance);
     navigator.mozNotification.createNotification(
-      _('Cost Control: Top Up') || 'Cost Control: Top Up',
-      (_('Your new balance is: ') || 'Your new balance is: ') + output.balance
+      _('Cost Control: Top Up'),
+      _('Your new balance is: ') + output.balance
     ).show(); 
   }
 
@@ -383,6 +400,13 @@ var CostControl = (function() {
     request.onsuccess = function cc_onSuccessSendingBalanceRequest() {
       _startWaiting(STATE_CHECKING, _onBalanceSMSReceived);
     }
+
+    // Alert if it is a manual request
+    if (_isManualRequest) {
+      request.onerror = function cc_onErrorSendingBalanceRequest() {
+        ModalDialog.alert(_('We can not update your balance now. Try later.'));
+      }
+    }
   }
 
   function _mockup_topUp() {
@@ -408,6 +432,7 @@ var CostControl = (function() {
       }
     }
 
+    // TODO: It is necessary to solve the problem that keyboard is not shown
     ModalDialog.prompt(
       _('Enter the top up code:') + '\n' +
       _('Typically found in the scratch card or directly in your receipt.'),
@@ -450,10 +475,10 @@ var CostControl = (function() {
     var dateDay = parseInt(rawTime.toLocaleFormat('%u'));
     var nowDateDay = parseInt(now.toLocaleFormat('%u'));
     if (nowDateDay === dateDay)
-      date = _('Today') || 'Today';
+      date = _('Today');
     else if ((nowDateDay === dateDay + 1) ||
               (nowDateDay === 7 && dateDay === 1))
-      date = _('Yesterday') || 'Yesterday';
+      date = _('Yesterday');
 
     var formattedTime = date + ', ' + time;
     _widgetTime.textContent = formattedTime;
@@ -463,6 +488,10 @@ var CostControl = (function() {
 
   return {
     init: _init
+    updateBalance: function cc_apiCheck() {
+      _isManualRequest = false;
+      _mockup_updateBalance();
+    }
   };
 })();
 
