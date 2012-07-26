@@ -14,18 +14,20 @@ var AirplaneMode = {
       mobileDataEnabled = value;
     });
 
+    var geolocationEnabled = false;
+    SettingsListener.observe('geolocation.enabled', false, function(value) {
+      geolocationEnabled = value;
+    });
+
     var bluetooth = window.navigator.mozBluetooth;
     var wifiManager = window.navigator.mozWifiManager;
     var mobileData = window.navigator.mozMobileConnection &&
       window.navigator.mozMobileConnection.data;
 
-    // XXX: need a way to toggle Geolocation here
-    // https://github.com/mozilla-b2g/gaia/issues/2833
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=777594
-
     var restoreMobileData = false;
     var restoreBluetooth = false;
     var restoreWifi = false;
+    var restoreGeolocation = false;
 
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       if (value) {
@@ -64,6 +66,14 @@ var AirplaneMode = {
           }
         }
 
+        // Turn off Geolocation
+        restoreGeolocation = geolocationEnabled;
+        if (geolocationEnabled) {
+          settings.getLock().set({
+            'geolocation.enabled': false
+          });
+        }
+
       } else {
         // Leaving airplane mode.
 
@@ -85,6 +95,13 @@ var AirplaneMode = {
         if (wifiManager && !wifiManager.enabled && restoreWifi) {
           settings.getLock().set({
             'wifi.enabled': true
+          });
+        }
+
+        // Don't attempt to turn on Geolocation if it's already on
+        if (!geolocationEnabled && restoreGeolocation) {
+          settings.getLock().set({
+            'geolocation.enabled': true
           });
         }
       }
