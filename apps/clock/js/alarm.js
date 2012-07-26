@@ -357,6 +357,11 @@ var AlarmManager = {
     } else {
       nextAlarmFireTime = getNextAlarmFireTime(alarm);
     }
+    //=================================
+    var protocol = window.location.protocol;
+    var host = window.location.host;
+    window.open(protocol + '//' + host + '/onring.html',
+                'ring_screen', 'attention');
     var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
                   { id: alarm.id }); // give the alarm id for the request
     request.onsuccess = function(e) {
@@ -473,7 +478,7 @@ var AlarmEditView = {
   },
 
   init: function aev_init() {
-    document.getElementById('alarm-save').addEventListener('click', this);
+    document.getElementById('alarm-done').addEventListener('click', this);
     document.getElementById('alarm-del').addEventListener('click', this);
     document.getElementById('repeat-menu').addEventListener('click', this);
     document.getElementById('sound-menu').addEventListener('click', this);
@@ -487,7 +492,7 @@ var AlarmEditView = {
       return;
 
     switch (input.id) {
-      case 'alarm-save':
+      case 'alarm-done':
         if (!this.save()) {
           evt.preventDefault();
           return false;

@@ -7,12 +7,13 @@ html, body {
 
 header {
   height: 8rem;
-  text-align: center;
-  background-color: #F7F7F7;
-  color: #000000;
+  text-align: left;
+  color: white;
   border-bottom: solid 0.2rem #a3a3a3;
   font: 1.3rem 'Open Sans', sans-serif;
   line-height: 4.5rem;
+  padding-left: 5rem;
+  background: url("images/edit_header.png") repeat-x scroll left top transparent;
 }
 
 /* ------------- Button ------------- */
@@ -35,6 +36,31 @@ a.button, span.button {
   -moz-border-bottom-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
 }
 
+a.button.left.close {
+  background: url("images/separator_close.png") no-repeat scroll 2.5rem center transparent;
+  border: none;
+  cursor: pointer;
+  left: 0;
+  overflow: visible;
+  position: absolute;
+  width: 6rem;
+  height: 4.5rem;
+}
+
+.icon-close {
+  display: inline-block;
+  background: url("images/edit_close.png") no-repeat;
+  background-position: left 0.3rem;
+  background-repeat: no-repeat;
+  background-size: 60% 60%;
+  display: inline-block;
+  width: 4rem;
+  height: 4rem;
+  margin-left: -4.6rem;
+  overflow: visible;
+  overflow: visible;
+}
+
 a.button.left {
   position: absolute;
   top: 0.6rem;
@@ -50,10 +76,23 @@ a.button.right {
 a.button.right.plus {
   width: 4.4rem;
   height: 4.4rem;
-  background-image: url(images/addAlarm.png);
+  background-image: url(images/add_alarm.png);
   background-size: 100%;
   background-repeat: no-repeat;
   border: none;  
+}
+
+a.button.right.done-button {
+  background: url("images/separator_done.png") no-repeat scroll left center transparent;
+  border: none;
+  background-size: auto 100%;
+  cursor: pointer;
+  height: 3rem;
+  overflow: visible;
+  position: absolute;
+  color: white;
+  font-weight: normal;
+  line-height: 2.8rem;
 }
 
 a.abstract-menu {
@@ -265,7 +304,7 @@ ul li > small {
   background: url(images/radio-on.png) no-repeat scroll center center;
 }
 
-/* ----------- Alarm Set Repeat Btn ------------- */
+/* ----------- Alarm Set Repeat Button ------------- */
 .view label > input[type=checkbox] + span.setRepeat {
   width: 4.6rem;
   height: 4.6rem;
@@ -283,7 +322,7 @@ ul li > small {
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
-/* ----------- Edit Alarm Set Enabled Btn ------------- */
+/* ----------- Edit Alarm Set Enabled Button ------------- */
 .view label > input[type=checkbox] + span.editSetEnabledBtn {
   width: 4.6rem;
   height: 4.6rem;
@@ -302,7 +341,7 @@ ul li > small {
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
-/* ----------- Alarm Set Enabled Btn ------------- */
+/* ----------- Alarm Set Enabled Button ------------- */
 .view label > input[type=checkbox] + span.setEnabledBtn {
   width: 13rem;
   height: 4.4rem;
@@ -360,7 +399,7 @@ input ~ *:empty {
 
 .tableView {
   height: -moz-calc(100% - 6.2rem);
-  background-color: darkorange;
+  background-color: #ffffff;
 }
 #alarms.tableView {
   width: 90%;

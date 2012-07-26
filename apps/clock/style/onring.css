@@ -70,7 +70,7 @@ html, body {
   height: 10rem;
   left: 0;
   bottom: 0;
-  background: url("images/attentionBtnContainer.png");
+  background: url("images/attentionButtonContainer.png");
   background-size: 100% 100%;
   position: absolute;
 }
@@ -85,7 +85,7 @@ html, body {
   overflow: visible;
 }
 
-#ring-btn-snooze {
+#ring-button-snooze {
   float: left;
   width: 50%;
   height: 100%;
@@ -94,17 +94,17 @@ html, body {
   font: normal 3rem/9rem 'Open Sans', sans-serif;
   text-align: center;
   -moz-box-sizing: border-box;
-  background: url("images/attentionBtnSeparator.png") no-repeat scroll right center transparent;
+  background: url("images/attentionButtonSeparator.png") no-repeat scroll right center transparent;
   background-size: auto 85%;
 }
 
-#ring-btn-snooze:active {
+#ring-button-snooze:active {
   color: #00abcd;
   -moz-border-bottom-colors: #00abcd #00abcd #00abcd #00abcd #00abcd #008daa #0086a2 #00778f #006f86;
   border-bottom: solid 1rem;
 }
 
-#ring-btn-close {
+#ring-button-close {
   float: left;
   width: 50%;
   height: 100%;
@@ -113,7 +113,7 @@ html, body {
   text-align: center;
 }
 
-#ring-btn-close:active {
+#ring-button-close:active {
   color: #00abcd;
   -moz-border-bottom-colors: #00abcd #00abcd #00abcd #00abcd #00abcd #008daa #0086a2 #00778f #006f86;
   border-bottom: solid 1rem;

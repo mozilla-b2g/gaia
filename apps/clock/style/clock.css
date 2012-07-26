@@ -417,9 +417,9 @@ html * {
 #hourhand {stroke-width: 0.25rem; stroke: #2e3334; } /* wide hour hand */
 #minutehand {stroke-width: 0.25rem; stroke: #424f54;} /* wide minute hand */
 #secondhand {stroke-width: 0.08rem; stroke: #02accd;} /* narrow blue second hand */
-#backboardcentralpoint {stroke-width: 0.005rem; stroke: #dcdcdc; fill: #dcdcdc;} /* light-gray central point*/
-#minutehandcentralpoint {stroke-width: 0.005rem; stroke: #424f54; fill: #424f54;} /* dark-gray central point*/
-#secondhandcentralpoint {stroke-width: 0.005rem; stroke: #02accd; fill: #02accd;} /* blue central point */
+#backboardCentralPoint {stroke-width: 0.005rem; stroke: #dcdcdc; fill: #dcdcdc;} /* light-gray central point*/
+#minutehandCentralPoint {stroke-width: 0.005rem; stroke: #424f54; fill: #424f54;} /* dark-gray central point*/
+#secondhandCentralPoint {stroke-width: 0.005rem; stroke: #02accd; fill: #02accd;} /* blue central point */
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;

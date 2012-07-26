@@ -73,12 +73,12 @@
           
                 <!-- Draw hands pointing straight up. We rotate them in the code. -->
                 <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
-                  <circle id="backboardcentralpoint" cx="50" cy="50" r="3.2"/> <!-- the minute hand central point -->
+                  <circle id="backboardCentralPoint" cx="50" cy="50" r="3.2"/> <!-- the minute hand central point -->
                   <line id="hourhand" x1="50" y1="50" x2="50" y2="24"/>
                   <line id="minutehand" x1="50" y1="50" x2="50" y2="10"/>
-                  <circle id="minutehandcentralpoint" cx="50" cy="50" r="2.1"/> <!-- the minute hand central point -->
+                  <circle id="minutehandCentralPoint" cx="50" cy="50" r="2.1"/> <!-- the minute hand central point -->
                   <line id="secondhand" x1="50" y1="58" x2="50" y2="9"/>
-                  <circle id="secondhandcentralpoint" cx="50" cy="50" r="1.2"/> <!-- the second hand central point -->
+                  <circle id="secondhandCentralPoint" cx="50" cy="50" r="1.2"/> <!-- the second hand central point -->
                 </g>
               </svg>
             </div>
@@ -146,9 +146,11 @@
     <!-- Alarm -->
     <div id="alarm" class="view" data-title="Alarm">
       <header>
-        <a href="#alarm-view" class="left button" data-l10n-id="back">Back</a>
-        <h1 id="alarm-title" class="label" data-l10n-id="alarm">Alarm</h1>
-        <a id="alarm-save" href="#alarm-view" class="right button save-btn" data-l10n-id="save">Save</a>
+        <a href="#alarm-view" class="left button close">
+          <div class="icon-close"></div>
+        </a>
+        <h1 id="alarm-title" class="label" data-l10n-id="edit_alarm">Edit Alarm</h1>
+        <a id="alarm-done" href="#alarm-view" class="right button done-button" data-l10n-id="done">Done</a>
       </header>
       <ul class="tableView">
         <li class="singleline">
@@ -202,7 +204,7 @@
     <!-- Repeat -->
     <div id="repeat" class="view" data-title="Repeat">
       <header>
-        <a href="#alarm" id="repeat-back" class="left button" data-l10n-id="back">Back</a>
+        <a href="#alarm" id="repeat-back" class="right button" data-l10n-id="back">Back</a>
         <h1 id="repeat-title" class="label" data-l10n-id="repeat">Repeat</h1>
       </header>
       <ul class="tableView">
@@ -261,7 +263,7 @@
     <!-- Sound -->
     <div id="sound" class="view" data-title="Sound">
       <header>
-        <a href="#alarm" id="sound-back" class="left button" data-l10n-id="back">Back</a>
+        <a href="#alarm" id="sound-back" class="right button" data-l10n-id="back">Back</a>
         <h1 id="sound-title" class="label" data-l10n-id="sound">Sound</h1>
       </header>
       <ul class="tableView">
@@ -292,7 +294,7 @@
     <!-- Snooze -->
     <div id="snooze" class="view" data-title="Snooze">
       <header>
-        <a href="#alarm" id="snooze-back" class="left button" data-l10n-id="back">Back</a>
+        <a href="#alarm" id="snooze-back" class="right button" data-l10n-id="back">Back</a>
         <h1 id="snooze-title" class="label" data-l10n-id="snooze">Snooze</h1>
       </header>
       <ul class="tableView">
@@ -330,7 +332,7 @@
     <!-- Color -->
     <div id="color" class="view" data-title="Color">
       <header>
-        <a href="#alarm" id="color-back" class="left button" data-l10n-id="back">Back</a>
+        <a href="#alarm" id="color-back" class="right button" data-l10n-id="back">Back</a>
         <h1 id="color-title" class="label" data-l10n-id="color">Color</h1>
       </header>
       <ul class="tableView">
