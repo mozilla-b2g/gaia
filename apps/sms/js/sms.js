@@ -353,7 +353,7 @@ var ThreadListUI = {
     ThreadListUI.view.innerHTML = '';
     var iconEdit = document.querySelector('#icon-edit');
     if (messages.length > 0) {
-      this.iconEdit.classList.remove('disabled');
+      ThreadListUI.iconEdit.classList.remove('disabled');
       var threadIds = [], headerIndex, unreadThreads = [];
       for (var i = 0; i < messages.length; i++) {
         var message = messages[i];
@@ -400,7 +400,7 @@ var ThreadListUI = {
                           '</div>' +
                           '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
-      this.iconEdit.classList.add('disabled');
+      ThreadListUI.iconEdit.classList.add('disabled');
     }
     // Callback when every message is appended
     if (callback) {
