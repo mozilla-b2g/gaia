@@ -4,12 +4,6 @@
 'use strict';
 
 var AirplaneMode = {
-  // Reserve settings before turn on airplane mode
-  previousSettings: {
-    wifi: true,
-    bluetooth: true
-  },
-
   init: function apm_init() {
     var settings = window.navigator.mozSettings;
     if (!settings)
