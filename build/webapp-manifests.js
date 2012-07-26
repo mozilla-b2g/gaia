@@ -82,17 +82,22 @@ let id = 1;
 let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 appSrcDirs.forEach(function parseDirectory(srcDir) {
   getSubDirectories(srcDir).forEach(function readManifests(webappSrcDirName) {
+    let webappSrcDir = getFile(GAIA_DIR, srcDir, webappSrcDirName);
+    let manifest = webappSrcDir.clone();
+    manifest.append('manifest.webapp');
+
+    // Ignore directories without manifest
+    if (!manifest.exists())
+      return;
+
     // If BUILD_APP_NAME isn't `*`, we only accept one webapp
     if (BUILD_APP_NAME != '*' && webappSrcDirName != BUILD_APP_NAME)
       return;
-    let webappSrcDir = getFile(GAIA_DIR, srcDir, webappSrcDirName);
 
     // Compute webapp folder name in profile
     let webappTargetDirName = webappSrcDirName + '.' + GAIA_DOMAIN;
 
     // Copy webapp's manifest to the profile
-    let manifest = webappSrcDir.clone();
-    manifest.append('manifest.webapp');
     let webappTargetDir = webappsTargetDir.clone();
     webappTargetDir.append(webappTargetDirName);
     manifest.copyTo(webappTargetDir, 'manifest.webapp');
@@ -116,17 +121,22 @@ appSrcDirs.forEach(function parseDirectory(srcDir) {
 // Process external webapps from /gaia/external-app/ folder
 const EXTERNAL_APPS_DIR = 'external-apps';
 getSubDirectories(EXTERNAL_APPS_DIR).forEach(function readManifests(webappSrcDirName) {
+  let webappSrcDir = getFile(GAIA_DIR, EXTERNAL_APPS_DIR, webappSrcDirName);
+  let manifest = webappSrcDir.clone();
+  manifest.append('manifest.webapp');
+
+  // Ignore directories without manifest
+  if (!manifest.exists())
+    return;
+
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (BUILD_APP_NAME != '*' && webappSrcDirName != BUILD_APP_NAME)
     return;
-  let webappSrcDir = getFile(GAIA_DIR, EXTERNAL_APPS_DIR, webappSrcDirName);
 
   // Compute webapp folder name in profile
   let webappTargetDirName = webappSrcDirName;
 
   // Copy webapp's manifest to the profile
-  let manifest = webappSrcDir.clone();
-  manifest.append('manifest.webapp');
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
   manifest.copyTo(webappTargetDir, 'manifest.webapp');
