@@ -1,0 +1,14 @@
+{
+  "name": "Game",
+  "description": "Game",
+  "launch_path": "http://games.flyapps.me",
+  "developer": {
+    "name": "Twitter",
+    "url": "http://twitter.com"
+  },
+  "icons": {
+    "120": "/style/icons/Twitter.png",
+    "60": "/style/icons/60/Twitter.png"
+  },
+  "orientation": "portrait-primary"
+}

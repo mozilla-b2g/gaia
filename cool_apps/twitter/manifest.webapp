@@ -1,0 +1,14 @@
+{
+  "name": "Twitter",
+  "description": "Twitter",
+  "launch_path": "https://mobile.twitter.com?browser=html5",
+  "developer": {
+    "name": "Twitter",
+    "url": "http://twitter.com"
+  },
+  "icons": {
+    "120": "/style/icons/Twitter.png",
+    "60": "/style/icons/60/Twitter.png"
+  },
+  "orientation": "portrait-primary"
+}

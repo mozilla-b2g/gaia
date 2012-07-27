@@ -1,0 +1,88 @@
+.splash{
+  
+}
+
+.loader {
+    display: block;
+    position: absolute;
+    left: -moz-calc(50% - 16px);
+    top: 85%;
+    z-index: 2;
+}
+
+.splash-icon {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.options-bar{
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 8rem;
+ 
+}
+
+.wrapper{
+  width: 100%;
+  height: 100%;
+}
+
+.bottom-space{
+  padding-bottom: 4rem;
+  box-sizing: border-box;
+}
+
+
+.app{
+  width: 100%;
+  height: 100%;
+}
+
+.view{
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity .5s;
+  -moz-transition: opacity .5s;
+}
+
+.option{
+  background: black;
+  height: 100%;
+  width: 4.5rem;
+  cursor: pointer;
+  transition: opacity .5s;
+  -moz-transition: opacity .5s;
+}
+
+.option-left {
+
+  border-radius: 0 5rem 5rem 0;
+}
+
+.option-right {
+  border-radius: 5rem 0 0 5rem;
+}
+
+.icon-back{
+  margin:2.5rem .3rem;
+  width: 3rem;
+  height: 3rem;
+  background-image: url('images/ActionIcons_30x30_back_browser.png');
+}
+
+.icon-forward{
+  margin:2.5rem 1.2rem;
+  width: 3rem;
+  height: 3rem;
+  background-image: url('images/ActionIcons_30x30_forward_browser.png');
+}
+
+

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <link rel="stylesheet" href="splash/splash.css" type="text/css" />
+</head>
+<body>
+  <section>
+		<img id="splash" src="splash/splash.png" alt="splash screen"/>
+		<img id="loader" src="splash/loader.gif" alt="loader"/>
+		<iframe id="app" type="text/html" src=""></iframe>
+	</section>
+
+	<script>
+		/******************************/
+		var URI = 'http://html5.grooveshark.com';
+		/******************************/
+
+		var appFrame = document.querySelector('#app');
+
+		var splash = document.getElementById('splash');
+
+		var loader = document.getElementById('loader');
+
+		appFrame.src = URI;
+
+		appFrame.onload = function() {
+			// Make it opaque when loaded, hiding the splash icon
+			appFrame.style.opacity = 1;
+			splash.style.opacity = 0;
+			loader.parentNode.removeChild(loader);
+			splash.addEventListener('transitionend', function() {
+				// When the transition is done, remove the splash image completely
+				splash.parentNode.removeChild(splash);
+			});
+		};
+	</script>
+</body>
+</html>

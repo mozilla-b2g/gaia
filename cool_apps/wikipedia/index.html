@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>App launcher</title>
+    <link rel="stylesheet" type="text/css" href="style/reset.css">
+    
+    <link rel="stylesheet" type="text/css" href="style/fonts.css">
+    <link rel="stylesheet" type="text/css" href="style/common.css">
+    <link rel="stylesheet" type="text/css" href="style/appcontainer.css">
+    <link rel="resource" type="application/l10n" href="locale/sms.properties">
+    <!-- Compatibility -->
+    <script>
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
+    <script type="text/javascript" src="js/appcontainer.js"></script>
+  </head>
+
+  <body>
+    <article id="app-container" class="view nodisplay">
+      <section id="wrapper" class="wrapper">
+        <iframe id="app" src="" class="app" remote='false' mozbrowser>
+        </iframe> 
+      </section>
+      <footer id="options-bar" class="options-bar">
+        <section id="back" class="left option option-left nodisplay">
+          <div class="icon-back">
+          </div>
+        </section>
+        <section id="forward" class="right option option-right nodisplay">
+          <div class="icon-forward">
+          </div>
+        </section>  
+        </div>
+      </footer>
+    </article>
+    <article id="splash" class="view splash">
+      <img class="splash-icon" src="style/images/splash.png" alt="splash screen"/>
+      <img class="loader" src="style/images/loader.gif" alt="loader"/>
+    </article>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+/* === Commons === */
+
+
+@font-face {
+  font-family: 'FontLight';
+  src: url('fonts/opensans-light-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontRegular';
+  src: url('fonts/opensans-regular-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontSemibold';
+  font-weight: 600;
+  src: url('fonts/opensans-semibold-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontBold';
+  font-weight: bold;
+  src: url('fonts/opensans-bold-webfont.woff');
+}
+
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+
+
+.font-light{
+  font-family:'FontLight';
+}
+
+.font-regular{
+  font-family:'FontRegular';
+}
+
+.font-semibold{
+  font-family:'FontSemibold';
+}
+
+.font-bold{
+  font-family:'FontBold';
+}
+
+
