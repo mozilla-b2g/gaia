@@ -59,7 +59,6 @@ var Browser = {
     this.frames = document.getElementById('frames');
     this.tabsList = document.getElementById('tabs-list');
     this.mainScreen = document.getElementById('main-screen');
-    this.tabCover = document.getElementById('tab-cover');
     this.settingsButton = document.getElementById('settings-button');
     this.settingsDoneButton = document.getElementById('settings-done-button');
     this.aboutFirefoxButton = document.getElementById('about-firefox-button');
@@ -142,14 +141,14 @@ var Browser = {
   // We want to ensure the current page preview on the tabs screen is in
   // a consistently sized gutter on the left
   handleWindowResize: function browser_handleWindowResize() {
-    var leftPos = -(window.innerWidth - 50) + 'px';
+    var leftPos = 'translate(' + -(window.innerWidth - 50) + 'px)';
     if (!this.gutterPosRule) {
-      var css = '.tabs-screen #main-screen { transform: translate(' + leftPos + '); }';
+      var css = '.tabs-screen #main-screen { transform: ' + leftPos + '; }';
       var insertId = this.styleSheet.cssRules.length - 1;
       this.gutterPosRule = this.styleSheet.insertRule(css, insertId);
     } else {
       var rule = this.styleSheet.cssRules[this.gutterPosRule];
-      rule.style.transform = 'translate(' + leftPos + ')';
+      rule.style.transform = leftPos;
     }
   },
 
@@ -822,11 +821,6 @@ var Browser = {
       if (url) {
         iframe.setAttribute('src', url);
       }
-    } else {
-      // FIXME: Remove this once
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=769182
-      // has landed
-      iframe.setAttribute('src', url);
     }
 
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
@@ -906,7 +900,6 @@ var Browser = {
     // We may have picked a currently loading background tab
     // that was positioned off screen
     this.setUrlBar(this.currentTab.title);
-    this.tabCover.setAttribute('src', this.currentTab.screenshot);
 
     this.updateSecurityIcon();
     this.refreshButtons();
@@ -928,28 +921,18 @@ var Browser = {
     this.tabsBadge.innerHTML = '';
     this.inTransition = false;
     this.switchScreen(this.AWESOME_SCREEN);
-    this.tabCover.style.display = 'none';
     this.showTopSitesTab();
   },
 
   showPageScreen: function browser_showPageScreen() {
-    var hideCover = (function browser_hideCover() {
-      this.tabCover.removeAttribute('src');
-      this.tabCover.style.display = 'none';
-    }).bind(this);
-
     if (this.currentScreen === this.TABS_SCREEN) {
       var switchLive = (function browser_switchLive() {
         this.mainScreen.removeEventListener('transitionend', switchLive, true);
         this.setTabVisibility(this.currentTab, true);
-        // Give the page time to render to avoid a flash when switching
-        // TODO: remove
-        setTimeout(hideCover, 250);
       }).bind(this);
       this.mainScreen.addEventListener('transitionend', switchLive, true);
     } else {
       this.setTabVisibility(this.currentTab, true);
-      hideCover();
     }
 
     if (this.currentTab.loading) {
@@ -969,44 +952,53 @@ var Browser = {
 
   showTabScreen: function browser_showTabScreen() {
 
+    // TODO: We shouldnt hide the current tab when switching to the tab
+    // screen, it should be visible in the gutter, but that currently triggers
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=777781
     this.hideCurrentTab();
     this.tabsBadge.innerHTML = '';
-
-    this.tabCover.setAttribute('src', this.currentTab.screenshot);
-    this.tabCover.style.display = 'block';
 
     var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
 
-    for (var tab in this.tabs) {
-      var title = this.tabs[tab].title || this.tabs[tab].url || _('new-tab');
-      var a = document.createElement('a');
-      var li = document.createElement('li');
-      var span = document.createElement('span');
-      var img = document.createElement('img');
-      var text = document.createTextNode(title);
-
-      a.setAttribute('data-id', this.tabs[tab].id);
-
-      span.appendChild(text);
-      a.appendChild(img);
-      a.appendChild(span);
-      li.appendChild(a);
+    for each(var tab in this.tabs) {
+      var li = this.generateTabLi(tab);
       ul.appendChild(li);
-
-      if (this.tabs[tab].screenshot) {
-        img.setAttribute('src', this.tabs[tab].screenshot);
-      }
-
-      if (this.tabs[tab] == this.currentTab)
-        li.classList.add('current');
     }
+
     this.tabsList.innerHTML = '';
     this.tabsList.appendChild(ul);
     this.switchScreen(this.TABS_SCREEN);
     this.screenSwipeMngr.gestureDetector.startDetecting();
     new GestureDetector(ul).startDetecting();
     this.inTransition = false;
+  },
+
+  generateTabLi: function browser_generateTabLi(tab) {
+    var title = tab.title || tab.url || _('new-tab');
+    var a = document.createElement('a');
+    var li = document.createElement('li');
+    var span = document.createElement('span');
+    var preview = document.createElement('div');
+    var text = document.createTextNode(title);
+
+    a.setAttribute('data-id', tab.id);
+    preview.classList.add('preview');
+
+    span.appendChild(text);
+    a.appendChild(preview);
+    a.appendChild(span);
+    li.appendChild(a);
+
+    if (tab.screenshot) {
+      preview.style.backgroundImage = 'url(' + tab.screenshot + ')';
+    }
+
+    if (tab == this.currentTab) {
+      li.classList.add('current');
+    }
+
+    return li;
   },
 
   showSettingsScreen: function browser_showSettingsScreen() {
