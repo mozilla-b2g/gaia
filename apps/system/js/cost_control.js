@@ -147,8 +147,8 @@ var CostControl = (function() {
     // Listen for SMS
     if (window.navigator.mozSms) {
       _sms = window.navigator.mozSms;
-//      _sms.addEventListener('sent', function(evt) { console.log('MESSAGE SENT!'); });
-      _sms.onsent = function(evt) { console.log('MESSAGE SENT!'); };
+      _sms.addEventListener('sent', function(evt) { console.log('MESSAGE SENT!'); });
+//      _sms.onsent = function(evt) { console.log('MESSAGE SENT!'); };
     }
 
     // Listen to ending calls
@@ -214,7 +214,9 @@ var CostControl = (function() {
     // Filter calls, leaving only connected calls
     function getConnected(calls) {
       var connected = [];
+      console.log('call count: ' + calls.length);
       calls.forEach(function cc_automaticCheck_eachCall(call) {
+        console.log('call state: ' + call.state);
         if (call.state === 'connected')
           connected.push(call);
       });
@@ -261,7 +263,7 @@ var CostControl = (function() {
         // Some call has ended
         // XXX: Uncomment this line when call changes are properly recorded
 //        var currentConnectedCalls = getConnected(_telephony.calls).length;
-        var currentConnectedCalls = _telephony.calls.length;
+        var currentConnectedCalls = getConnected(_telephony.calls).length;
         if (_connectedCalls && currentConnectedCalls < _connectedCalls)
           _mockup_updateBalance();
 
@@ -311,7 +313,7 @@ var CostControl = (function() {
     return newBalance;
   }
 
-  // What happend when the a SMS is received
+  // What happend when the balance SMS is received
   function _onBalanceSMSReceived(evt) {
     // Ignore messages from other senders
     var message = evt.message;
@@ -335,7 +337,7 @@ var CostControl = (function() {
     _updateUI(newBalance);
   }
 
-  // What happend when the a SMS is received
+  // What happend when the confirmation SMS is received
   function _onConfirmationSMSReceived(evt) {
     // Ignore messages from other senders
     var message = evt.message;
