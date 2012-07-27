@@ -532,7 +532,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     gWifiCheckBox.checked = value;
     if (value) {
       // gWifiManager may not be ready (enabled) at this moment.
-      // to be responsive, show 'initializeing' status and 'search...' first.
+      // to be responsive, show 'initializing' status and 'search...' first.
       // a 'scan' would be called when gWifiManager is enabled.
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
