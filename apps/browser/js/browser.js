@@ -961,10 +961,10 @@ var Browser = {
     var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
 
-    this.tabs.forEach(function each_generateTabLi(tab) {
+    for each(var tab in this.tabs) {
       var li = this.generateTabLi(tab);
       ul.appendChild(li);
-    }, this);
+    }
 
     this.tabsList.innerHTML = '';
     this.tabsList.appendChild(ul);
@@ -990,11 +990,11 @@ var Browser = {
     a.appendChild(span);
     li.appendChild(a);
 
-    if (t.screenshot) {
-      preview.style.backgroundImage = 'url(' + t.screenshot + ')';
+    if (tab.screenshot) {
+      preview.style.backgroundImage = 'url(' + tab.screenshot + ')';
     }
 
-    if (t == this.currentTab) {
+    if (tab == this.currentTab) {
       li.classList.add('current');
     }
 
