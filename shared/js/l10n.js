@@ -18,7 +18,7 @@
   var gAsyncResourceLoading = true;
 
   // debug helpers
-  var gDEBUG = true;
+  var gDEBUG = false;
   function consoleLog(message) {
     if (gDEBUG)
       console.log('[l10n] ' + message);
