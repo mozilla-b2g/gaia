@@ -7,7 +7,7 @@ var PDFJS = {};
   // Use strict in our context only - users might not want it
   'use strict';
 
-  PDFJS.build = 'a667a87';
+  PDFJS.build = '09acd7b';
 
   // Files are inserted below - see Makefile
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
@@ -41,9 +41,7 @@ function getPdf(arg, callback) {
   var params = arg;
   if (typeof arg === 'string')
     params = { url: arg };
-
-  var xhr = new XMLHttpRequest({mozSystem: true})
-
+  var xhr = new XMLHttpRequest({mozSystem: true});
   xhr.open('GET', params.url);
 
   var headers = params.headers;
@@ -57,15 +55,23 @@ function getPdf(arg, callback) {
   }
 
   xhr.mozResponseType = xhr.responseType = 'arraybuffer';
-  var protocol = params.url.indexOf(':') < 0 ? window.location.protocol :
-    params.url.substring(0, params.url.indexOf(':') + 1);
+
+  var protocol = params.url.substring(0, params.url.indexOf(':') + 1);
   xhr.expected = (protocol === 'http:' || protocol === 'https:') ? 200 : 0;
 
   if ('progress' in params)
     xhr.onprogress = params.progress || undefined;
 
-  if ('error' in params)
-    xhr.onerror = params.error || undefined;
+  var calledErrorBack = false;
+
+  if ('error' in params) {
+    xhr.onerror = function errorBack(e) {
+      if (!calledErrorBack) {
+        calledErrorBack = true;
+        params.error();
+      }
+    }
+  }
 
   xhr.onreadystatechange = function getPdfOnreadystatechange(e) {
     if (xhr.readyState === 4) {
@@ -73,7 +79,8 @@ function getPdf(arg, callback) {
         var data = (xhr.mozResponseArrayBuffer || xhr.mozResponse ||
                     xhr.responseArrayBuffer || xhr.response);
         callback(data);
-      } else if (params.error) {
+      } else if (params.error && !calledErrorBack) {
+        calledErrorBack = true;
         params.error(e);
       }
     }
@@ -598,6 +605,28 @@ function backtrace() {
 function assert(cond, msg) {
   if (!cond)
     error(msg);
+}
+
+// Combines two URLs. The baseUrl shall be absolute URL. If the url is an
+// absolute URL, it will be returned as is.
+function combineUrl(baseUrl, url) {
+  if (url.indexOf(':') >= 0)
+    return url;
+  if (url.charAt(0) == '/') {
+    // absolute path
+    var i = baseUrl.indexOf('://');
+    i = baseUrl.indexOf('/', i + 3);
+    return baseUrl.substring(0, i) + url;
+  } else {
+    // relative path
+    var pathLength = baseUrl.length, i;
+    i = baseUrl.lastIndexOf('#');
+    pathLength = i >= 0 ? i : pathLength;
+    i = baseUrl.lastIndexOf('?', pathLength);
+    pathLength = i >= 0 ? i : pathLength;
+    var prefixLength = baseUrl.lastIndexOf('/', pathLength);
+    return baseUrl.substring(0, prefixLength + 1) + url;
+  }
 }
 
 // In a well-formed PDF, |cond| holds.  If it doesn't, subsequent
@@ -1177,63 +1206,36 @@ var StatTimer = (function StatTimerClosure() {
  * @return {Promise} A promise that is resolved with {PDFDocumentProxy} object.
  */
 PDFJS.getDocument = function getDocument(source) {
-  var url, data, headers, password, parameters = {}, workerInitializedPromise,
-    workerReadyPromise, transport;
+  var workerInitializedPromise, workerReadyPromise, transport;
 
   if (typeof source === 'string') {
-    url = source;
+    source = { url: source };
   } else if (isArrayBuffer(source)) {
-    data = source;
-  } else if (typeof source === 'object') {
-    url = source.url;
-    data = source.data;
-    headers = source.httpHeaders;
-    password = source.password;
-    parameters.password = password || null;
-
-    if (!url && !data)
-      error('Invalid parameter array, need either .data or .url');
-  } else {
+    source = { data: source };
+  } else if (typeof source !== 'object') {
     error('Invalid parameter in getDocument, need either Uint8Array, ' +
           'string or a parameter object');
+  }
+console.log(source.url);
+  if (!source.url && !source.data)
+    error('Invalid parameter array, need either .data or .url');
+
+  // copy/use all keys as is except 'url' -- full path is required
+  var params = {};
+  for (var key in source) {
+    if (key === 'url' && typeof window !== 'undefined') {
+      params[key] = combineUrl(window.location.href, source[key]);
+      continue;
+    }
+    params[key] = source[key];
   }
 
   workerInitializedPromise = new PDFJS.Promise();
   workerReadyPromise = new PDFJS.Promise();
   transport = new WorkerTransport(workerInitializedPromise, workerReadyPromise);
-  if (data) {
-    // assuming the data is array, instantiating directly from it
-    transport.sendData(data, parameters);
-  } else if (url) {
-    // fetch url
-    PDFJS.getPdf(
-      {
-        url: url,
-        progress: function getPDFProgress(evt) {
-          if (evt.lengthComputable) {
-            workerReadyPromise.progress({
-              loaded: evt.loaded,
-              total: evt.total
-            });
-          }
-        },
-        error: function getPDFError(e) {
-          workerReadyPromise.reject('Unexpected server response of ' +
-            e.target.status + '.');
-        },
-        headers: headers
-      },
-      function getPDFLoad(data) {
-        // sometimes the pdf has finished downloading before the web worker-test
-        // has finished. In that case the rendering of the final pdf would cause
-        // errors. We have to wait for the WorkerTransport to finalize worker-
-        // support detection
-        workerInitializedPromise.then(function workerInitialized() {
-          transport.sendData(data, parameters);
-        });
-      });
-  }
-
+  workerInitializedPromise.then(function transportInitialized() {
+    transport.fetchDocument(params);
+  });
   return workerReadyPromise;
 };
 
@@ -1760,6 +1762,17 @@ var WorkerTransport = (function WorkerTransportClosure() {
         }
       }, this);
 
+      messageHandler.on('DocProgress', function transportDocProgress(data) {
+        this.workerReadyPromise.progress({
+          loaded: data.loaded,
+          total: data.total
+        });
+      }, this);
+
+      messageHandler.on('DocError', function transportDocError(data) {
+        this.workerReadyPromise.reject(data);
+      }, this);
+
       messageHandler.on('PageError', function transportError(data) {
         var page = this.pageCache[data.pageNum - 1];
         if (page.displayReadyPromise)
@@ -1804,11 +1817,11 @@ var WorkerTransport = (function WorkerTransportClosure() {
       });
     },
 
-    sendData: function WorkerTransport_sendData(data, params) {
-      this.messageHandler.send('GetDocRequest', {data: data, params: params});
+    fetchDocument: function WorkerTransport_fetchDocument(source) {
+      this.messageHandler.send('GetDocRequest', {source: source});
     },
 
-    getData: function WorkerTransport_sendData(promise) {
+    getData: function WorkerTransport_getData(promise) {
       this.messageHandler.send('GetData', null, function(data) {
         promise.resolve(data);
       });
@@ -17444,8 +17457,8 @@ var Type1Parser = function type1Parser() {
       '1': 'vstem',
       '2': 'hstem',
 
+      '6': 'endchar', // seac
       // Type1 only command with command not (yet) built-in ,throw an error
-      '6': -1, // seac
       '7': -1, // sbw
 
       '11': 'sub',
@@ -17482,7 +17495,8 @@ var Type1Parser = function type1Parser() {
     for (var i = 0; i < numArgs; i++) {
       if (index < 0) {
         args.unshift({ arg: [0],
-                       value: 0 });
+                       value: 0,
+                       offset: 0 });
         warn('Malformed charstring stack: not enough values on stack.');
         continue;
       }
@@ -17496,11 +17510,13 @@ var Type1Parser = function type1Parser() {
           b = 1;
         }
         args.unshift({ arg: [a, b, 'div'],
-                       value: a / b });
+                       value: a / b,
+                       offset: index - 2 });
         index -= 3;
       } else if (isInt(token)) {
         args.unshift({ arg: stack.slice(index, index + 1),
-                       value: token });
+                       value: token,
+                       offset: index });
         index--;
       } else {
         warn('Malformed charsting stack: found bad token ' + token + '.');
@@ -17551,6 +17567,12 @@ var Type1Parser = function type1Parser() {
             // pop or setcurrentpoint commands can be ignored
             // since we are not doing callothersubr
             continue;
+          } else if (escape == 6) {
+            // seac is like type 2's special endchar but it doesn't use the
+            // first argument asb, so remove it.
+            var args = breakUpArgs(charstring, 5);
+            var arg0 = args[0];
+            charstring.splice(arg0.offset, arg0.arg.length);
           } else if (!kHintingEnabled && (escape == 1 || escape == 2)) {
             charstring.push('drop', 'drop', 'drop', 'drop', 'drop', 'drop');
             continue;
@@ -30466,15 +30488,12 @@ var WorkerMessageHandler = {
   setup: function wphSetup(handler) {
     var pdfModel = null;
 
-    handler.on('test', function wphSetupTest(data) {
-      handler.send('test', data instanceof Uint8Array);
-    });
-
-    handler.on('GetDocRequest', function wphSetupDoc(data) {
+    function loadDocument(pdfData, pdfModelSource) {
       // Create only the model of the PDFDoc, which is enough for
       // processing the content of the pdf.
-      var pdfData = data.data;
-      var pdfPassword = data.params.password;
+      console.log('pdfData: ' + pdfData.length);
+      console.log('pdfData: ' + typeof pdfData);
+      var pdfPassword = pdfModelSource.password;
       try {
         pdfModel = new PDFDocument(new Stream(pdfData), pdfPassword);
       } catch (e) {
@@ -30504,6 +30523,44 @@ var WorkerMessageHandler = {
         encrypted: !!pdfModel.xref.encrypt
       };
       handler.send('GetDoc', {pdfInfo: doc});
+    }
+
+    handler.on('test', function wphSetupTest(data) {
+      handler.send('test', data instanceof Uint8Array);
+    });
+
+    handler.on('GetDocRequest', function wphSetupDoc(data) {
+      var source = data.source;
+      console.log(source.url);
+      if (source.data) {
+        // the data is array, instantiating directly from it
+        console.log('!!!!!!!!!!!!!!direct');
+        loadDocument(source.data, source);
+        return;
+      }
+
+      PDFJS.getPdf(
+        {
+          url: source.url,
+          progress: function getPDFProgress(evt) {
+            if (evt.lengthComputable) {
+              handler.send('DocProgress', {
+                loaded: evt.loaded,
+                total: evt.total
+              });
+            }
+          },
+          error: function getPDFError(e) {
+            console.log('ERRRRRROROROROROROR ' + e.target.status);
+            handler.send('DocError', 'Unexpected server response of ' +
+                         e.target.status + '.');
+          },
+          headers: source.httpHeaders
+        },
+        function getPDFLoad(data) {
+          console.log('hellllllllllasldkfasldfjkaldsjfasd;lfj');
+          loadDocument(data, source);
+        });
     });
 
     handler.on('GetPageRequest', function wphSetupGetPage(data) {
@@ -35039,3 +35096,4 @@ var Metadata = PDFJS.Metadata = (function MetadataClosure() {
 })();
 
 }).call((typeof window === 'undefined') ? this : window);
+

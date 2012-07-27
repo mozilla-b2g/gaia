@@ -3,8 +3,6 @@
 
 'use strict';
 
-PDFJS.disableTextLayer = true;
-
 var kDefaultURL = 'compressed.tracemonkey-pldi-09.pdf';
 var kDefaultScale = 'auto';
 var kDefaultScaleDelta = 1.1;
@@ -1814,8 +1812,6 @@ window.addEventListener('load', function webViewerLoad(evt) {
       PDFView.sidebarOpen = outerContainer.classList.contains('sidebarOpen');
       PDFView.renderHighestPriority();
     });
-
-  //PDFView.open(file, 0);
 }, true);
 
 function updateViewarea() {
@@ -2052,6 +2048,17 @@ window.addEventListener('afterprint', function afterPrint(evt) {
 
 window.navigator.mozSetMessageHandler('activity', function(activity) {
   var url = activity.source.data.url;
-  PDFView.open(url, 0);
+  // Temporarily get the data here since the cross domain xhr is broken in
+  // the worker currently, see bug 761227.
+  var params = {
+    url: url,
+    error: function(e) {
+      PDFView.error(mozL10n.get('loading_error', null,
+                    'An error occurred while loading the PDF.'), e);
+    }
+  };
+  PDFJS.getPdf(params, function successCallback(data) {
+    PDFView.open(data, 0);
+  });
 });
 

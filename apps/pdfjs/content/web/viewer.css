@@ -1159,7 +1159,7 @@ canvas {
   }
 }
 
-/*@media all and (max-width: 950px) {*/
+@media all and (max-width: 950px) {
   html[dir='ltr'] #outerContainer.sidebarMoving .outerCenter,
   html[dir='ltr'] #outerContainer.sidebarOpen .outerCenter {
     float: left;
@@ -1170,9 +1170,9 @@ canvas {
     float: right;
     right: 180px;
   }
-/*}*/
+}
 
-/*@media all and (max-width: 770px) {*/
+@media all and (max-width: 770px) {
   #sidebarContainer {
     top: 33px;
     z-index: 100;
@@ -1200,17 +1200,17 @@ canvas {
     float: right;
     right: 180px;
   }
-/*}*/
+}
 
-/*@media all and (max-width: 600px) {*/
+@media all and (max-width: 600px) {
   #toolbarViewerRight {
     display: none;
   }
-/*}*/
+}
 
-/*@media all and (max-width: 500px) {*/
+@media all and (max-width: 500px) {
   #scaleSelectContainer, #pageNumberLabel {
     display: none;
   }
-/*}*/
+}
 
