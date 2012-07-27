@@ -829,7 +829,7 @@ var Browser = {
     iframe.style.top = '-999px';
 
     // FIXME: content shouldn't control this directly
-    iframe.setAttribute('remote', 'true');
+    iframe.setAttribute('remote', 'remote');
 
     var tab = {
       id: 'tab_' + this.tabCounter++,
@@ -915,12 +915,17 @@ var Browser = {
   },
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
-    this.urlInput.focus();
-    this.setUrlButtonMode(this.GO);
     this.tabsBadge.innerHTML = '';
-    this.inTransition = false;
+    // Ensure the user cannot interact with the browser until the
+    // transition has ended
+    var pageShown = (function() {
+      this.inTransition = false;
+      this.urlInput.focus();
+      this.setUrlButtonMode(this.GO);
+      this.showTopSitesTab();
+    }).bind(this);
+    this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
-    this.showTopSitesTab();
   },
 
   showPageScreen: function browser_showPageScreen() {
