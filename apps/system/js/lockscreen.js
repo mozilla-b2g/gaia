@@ -521,36 +521,19 @@ var LockScreen = {
         break;
 
       case 'camera':
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var protocol = document.location.protocol + '//';
-
-        var origin = protocol + 'camera.' + domain;
-
-        var app = Applications.getByOrigin(protocol + 'camera.' + domain);
-
-        // create the <iframe mozbrowser mozapp> and load the camera app
+        // create the <iframe> and load the camera
         var frame = document.createElement('iframe');
-        frame.setAttribute('mozbrowser', 'true');
-        frame.setAttribute('mozapp', app.manifestURL);
-        frame.dataset.frameType = 'lockscreen-camera';
-        frame.dataset.frameOrigin = origin;
 
-        frame.src = origin + app.manifest.launch_path;
+        frame.src = './camera/';
         var mainScreen = this.mainScreen;
-        frame.addEventListener('mozbrowserloadend', function cameraLoaded() {
+        frame.onload = function cameraLoaded() {
           mainScreen.classList.add('lockscreen-camera');
           callback();
-        });
+        };
         this.overlay.classList.remove('no-transition');
         this.camera.hidden = false;
         this.camera.appendChild(frame);
 
-        if (app.manifest.orientation) {
-          screen.mozLockOrientation(app.manifest.orientation);
-        } else {
-          screen.mozUnlockOrientation();
-        }
         break;
     }
   },
@@ -569,7 +552,6 @@ var LockScreen = {
 
       case 'camera':
         var self = this;
-        screen.mozLockOrientation('portrait-primary');
         this.overlay.addEventListener('transitionend',
           function ls_unloadCamera() {
             self.overlay.removeEventListener('transitionend',
