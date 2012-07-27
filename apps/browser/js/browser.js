@@ -141,14 +141,14 @@ var Browser = {
   // We want to ensure the current page preview on the tabs screen is in
   // a consistently sized gutter on the left
   handleWindowResize: function browser_handleWindowResize() {
-    var leftPos = -(window.innerWidth - 50) + 'px';
+    var leftPos = 'translate(' + -(window.innerWidth - 50) + 'px)';
     if (!this.gutterPosRule) {
-      var css = '.tabs-screen #main-screen { transform: translate(' + leftPos + '); }';
+      var css = '.tabs-screen #main-screen { transform: ' + leftPos + '; }';
       var insertId = this.styleSheet.cssRules.length - 1;
       this.gutterPosRule = this.styleSheet.insertRule(css, insertId);
     } else {
       var rule = this.styleSheet.cssRules[this.gutterPosRule];
-      rule.style.transform = 'translate(' + leftPos + ')';
+      rule.style.transform = leftPos;
     }
   },
 
@@ -961,36 +961,44 @@ var Browser = {
     var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
 
-    for (var tab in this.tabs) {
-      var title = this.tabs[tab].title || this.tabs[tab].url || _('new-tab');
-      var a = document.createElement('a');
-      var li = document.createElement('li');
-      var span = document.createElement('span');
-      var preview = document.createElement('div');
-      var text = document.createTextNode(title);
-
-      a.setAttribute('data-id', this.tabs[tab].id);
-      preview.classList.add('preview');
-
-      span.appendChild(text);
-      a.appendChild(preview);
-      a.appendChild(span);
-      li.appendChild(a);
+    this.tabs.forEach(function each_generateTabLi(tab) {
+      var li = this.generateTabLi(tab);
       ul.appendChild(li);
+    }, this);
 
-      if (this.tabs[tab].screenshot) {
-        preview.style.backgroundImage = 'url(' + this.tabs[tab].screenshot + ')';
-      }
-
-      if (this.tabs[tab] == this.currentTab)
-        li.classList.add('current');
-    }
     this.tabsList.innerHTML = '';
     this.tabsList.appendChild(ul);
     this.switchScreen(this.TABS_SCREEN);
     this.screenSwipeMngr.gestureDetector.startDetecting();
     new GestureDetector(ul).startDetecting();
     this.inTransition = false;
+  },
+
+  generateTabLi: function browser_generateTabLi(tab) {
+    var title = tab.title || tab.url || _('new-tab');
+    var a = document.createElement('a');
+    var li = document.createElement('li');
+    var span = document.createElement('span');
+    var preview = document.createElement('div');
+    var text = document.createTextNode(title);
+
+    a.setAttribute('data-id', tab.id);
+    preview.classList.add('preview');
+
+    span.appendChild(text);
+    a.appendChild(preview);
+    a.appendChild(span);
+    li.appendChild(a);
+
+    if (t.screenshot) {
+      preview.style.backgroundImage = 'url(' + t.screenshot + ')';
+    }
+
+    if (t == this.currentTab) {
+      li.classList.add('current');
+    }
+
+    return li;
   },
 
   showSettingsScreen: function browser_showSettingsScreen() {
