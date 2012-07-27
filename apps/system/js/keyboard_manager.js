@@ -33,6 +33,7 @@ var KeyboardManager = (function() {
     var currentApp;
     if (TrustedDialog.trustedDialogIsShown()) {
       currentApp = TrustedDialog.getFrame();
+    console.log(document.querySelector('#trustedDialog iframe').style.height,'=====');
     } else {
       WindowManager.setAppSize(app);
       currentApp = WindowManager.getAppFrame(app);
@@ -44,9 +45,7 @@ var KeyboardManager = (function() {
                   message.keyboardHeight);
     keyboardOverlay.hidden = true;
 
-    console.log(height, '=======');
     dialogOverlay.style.height = (height + 20) + 'px';
-    console.log(document.querySelector('#trustedDialog iframe').style.height,'=====');
 
     if (message.hidden) {
       keyboardFrame.classList.add('hide');

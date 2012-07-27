@@ -213,6 +213,6 @@ iframe.backgroundWindow {
 }
 
 #screen.modal-dialog #dialog-overlay,
-#screen.trustedDialog #dialog-overlay {
+#screen.popup #dialog-overlay {
   display: block;
 }
