@@ -720,6 +720,10 @@ li[role="listitem"] small {
     url('images/separator-large.png') no-repeat 20px center;
 }
 
+#settings [disabled="disabled"] {
+  opacity: 0.7;
+}
+
 /* This is a dirty hack to hide the bottom toolbar while
  * the keyboard is active, than device-height - 20px (for status bar),
  * then the keyboard is likely activated
