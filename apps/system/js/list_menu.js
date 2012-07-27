@@ -99,8 +99,7 @@ var ListMenu = {
 
   show: function lm_show() {
     this.element.classList.add('visible');
-    this.container.style.MozTransition = '-moz-transform 1s';
-    this.container.style.MozTransform = 'translateY(-100%)';
+    this.element.classList.add('showmenu');
   },
 
   hide: function lm_hide() {
@@ -109,8 +108,7 @@ var ListMenu = {
       self.container.removeEventListener('transitionend', onSlideDown);
       self.element.classList.remove('visible');
     });
-    this.container.style.MozTransition = '-moz-transform .5s';
-    this.container.style.MozTransform = 'translateY(0)';
+    this.element.classList.remove('showmenu');
   },
 
   handleEvent: function lm_handleEvent(evt) {

@@ -13,7 +13,6 @@
 
 #listmenu.visible {
   display: block;
-  -moz-transition: -moz-transform 1s ease;
 }
 
 .list-menu {
@@ -24,6 +23,13 @@
   top: 100%;
   left: 50%;
   overflow-x: hidden;
+  -moz-transition: -moz-transform 1s ease;
+  -moz-transform: translateY(0px);
+}
+
+#listmenu.showmenu .list-menu {
+  -moz-transition: -moz-transform 1s ease;
+  -moz-transform: translateY(-100%);
 }
 
 /* 320x480 phones */

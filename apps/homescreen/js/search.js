@@ -15,10 +15,10 @@ const Search = (function() {
   );
 
   function onLongPress() {
-    var a = new Activity({
+    var a = new MozActivity({
         name: "pick",
         data: {
-          type: "image/png",
+          type: "image/jpeg",
           multiple: false
         }
     });
