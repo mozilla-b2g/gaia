@@ -213,7 +213,12 @@ ifneq ($(DEBUG),1)
 				do \
 					if [[ "$$f" == *shared/js* ]] ;\
 					then \
-						file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1;`; \
+						if [[ "$$f" == */shared/js* ]] ;\
+						then \
+							file_to_copy=`echo "$$f" | cut -d'/' -f 4 | cut -d'"' -f1 | cut -d"'" -f1;`; \
+						else \
+							file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1 | cut -d"'" -f1;`; \
+						fi; \
 						mkdir -p $$d/shared/js ;\
 						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
 					fi \
