@@ -274,13 +274,9 @@ MessageListCard.prototype = {
   },
 
   onSliceRequestComplete: function() {
-console.log("ONCOMPLETE!!!!!!!!!!!!!!!!");
     // We always want our logic to fire, but complete auto-clears before firing.
     this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
 
-console.log("slice flags:", "top", this.messagesSlice.atTop,
-            "bottom", this.messagesSlice.atBottom, "grow",
-            this.messagesSlice.userCanGrowDownwards);
     if (this.messagesSlice.userCanGrowDownwards)
       this.syncMoreNode.classList.remove('collapsed');
     else
@@ -315,12 +311,11 @@ console.log("slice flags:", "top", this.messagesSlice.atTop,
                        (curScrollTop + viewHeight)) /
                       viewHeight;
 
-    var shrinkLowIncl = 0, shrinkHighIncl= this.messagesSlice.items.length - 1,
+    var shrinkLowIncl = 0,
+        shrinkHighIncl = this.messagesSlice.items.length - 1,
         messageNode = null, targOff;
-console.log("preScreens", preScreens, "postScreens", postScreens);
     if (preScreens < SCROLL_MIN_BUFFER_SCREENS &&
         !this.messagesSlice.atTop) {
-console.log('growthRequest', -1);
       this.messagesSlice.requestGrowth(-1);
       return;
     }
@@ -337,7 +332,6 @@ console.log('growthRequest', -1);
 
     if (postScreens < SCROLL_MIN_BUFFER_SCREENS &&
         !this.messagesSlice.atBottom) {
-console.log('growthRequest', 1);
       this.messagesSlice.requestGrowth(1);
     }
     else if (postScreens > SCROLL_MAX_RETENTION_SCREENS) {
@@ -362,7 +356,6 @@ console.log('growthRequest', 1);
     var prevHeight;
     // - removed messages
     if (howMany) {
-console.log("removing", howMany, "messages @", index);
       // Plan to fixup the scroll position if we are deleting a message that
       // starts before the (visible) scrolled area.  (We add the container's
       // start offset because it is as big as the occluding header bar.)
@@ -399,7 +392,6 @@ console.log("removing", howMany, "messages @", index);
     else
       prevHeight = null;
 
-console.log("adding", addedItems.length, "messages @", index);
     addedItems.forEach(function(message) {
       var domMessage;
       domMessage = message.element = msgNodes['header-item'].cloneNode(true);
