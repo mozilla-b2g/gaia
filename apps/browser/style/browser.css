@@ -249,6 +249,10 @@ input[type="image"] {
   width: 32px;
 }
 
+.awesome-screen #url-button {
+  display: none;
+}
+
 #ssl-indicator {
   display: block;
   width: 24px;
