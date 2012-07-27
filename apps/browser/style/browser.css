@@ -116,11 +116,12 @@ input[type="image"] {
   background-image: -moz-linear-gradient(#ff9400, #e66100);
 }
 
-#tabs-list img {
+#tabs-list .preview {
   display: block;
   width: 90px;
   height: 60px;
-  background: grey;
+  background-color: rgba(255, 255, 255, 0.3);
+  background-size: cover;
   float:left;
   border-radius: 5px;
   margin: 5px 10px 5px 5px;
