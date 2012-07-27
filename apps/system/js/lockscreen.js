@@ -103,6 +103,7 @@ var LockScreen = {
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
       conn.addEventListener('voicechange', this);
+      conn.addEventListener('cardstatechange', this);
       this.updateConnState();
       this.connstate.hidden = false;
     }
@@ -173,6 +174,7 @@ var LockScreen = {
         this.lockIfEnabled(true);
         break;
       case 'voicechange':
+      case 'cardstatechange':
         this.updateConnState();
 
       case 'mozChromeEvent':
