@@ -183,5 +183,8 @@
 
 .view-header .icon.icon-clear {
   background-image: url(images/icons/clear.png);
+  top: -4rem;
+  right: -moz-calc(-50% + 7rem);
+  width: 2rem;
 }
 

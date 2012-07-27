@@ -707,7 +707,8 @@ var ThreadUI = {
   },
 
   clearContact: function thui_clearContact() {
-    this.num.value = '';
+    this.contactInput.value = '';
+    this.view.innerHTML = '';
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
@@ -959,9 +960,6 @@ var ThreadUI = {
             '  <a href="#num=' + contact.tel[0].number + '">' +
             '    <div class="name">' + name + '</div>' +
             '    <div class="number">' + number + '</div>' +
-            '    <div class="photo">' +
-            '    <img src="">' +
-            '    </div>' +
             '  </a>';
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;

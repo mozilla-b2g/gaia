@@ -605,7 +605,7 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 #messages-container .item > a:active > .name {
-  color: white;
+  color: #FFFFFF;
 }
 
 #messages-container .item > a:active > .number {
@@ -615,19 +615,6 @@ a.unread .unread-mark .icon-unread-mark {
 
 #messages-container .item > a > * {
   pointer-events: none;
-}
-
-#messages-container .photo {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 5.9rem;
-  height: 100%;
-  overflow: hidden;
-}
-
-#messages-container .photo img {
-  width: 100%;
 }
 
 /*
