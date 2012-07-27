@@ -665,6 +665,8 @@ var ThreadUI = {
                         '</span>';
     // Add 'gif' if necessary
     if (message.delivery == 'sending') {
+      messageDOM.addEventListener('click',
+        ThreadUI.resendMessage.bind(ThreadUI, message));
       htmlStructure += '<span class="message-option">' +
       '<img src="style/images/spinningwheel_small_animation.gif" class="gif">' +
                         '</span>';
@@ -852,7 +854,7 @@ var ThreadUI = {
     this.updateInputHeight();
   },
 
-  sendMessage: function thui_sendMessage() {
+  sendMessage: function thui_sendMessage(resendText) {
     // Retrieve num depending on hash
     var hash = window.location.hash;
     // Depending where we are, we get different num
@@ -862,7 +864,7 @@ var ThreadUI = {
       var num = MessageManager.getNumFromHash();
     }
     // Retrieve text
-    var text = this.input.value;
+    var text = this.input.value || resendText;
     // If we have something to send
     if (num != '' && text != '') {
       // Create 'PendingMessage'
@@ -884,6 +886,8 @@ var ThreadUI = {
           console.log('Message app - pending message save failed!');
           PendingMsgManager.saveToMsgDB(message, this);
         } else {
+          // Clean Fields
+          ThreadUI.cleanFields();
           // Update ThreadListUI when new message in pending database.
           if (window.location.hash == '#new') {
             window.location.hash = '#num=' + num;
@@ -898,28 +902,7 @@ var ThreadUI = {
 
       MessageManager.send(num, text, function onsent(msg) {
         if (!msg) {
-          var resendConfirmStr = _('resendConfirmDialogMsg');
-          var result = confirm(resendConfirmStr);
-          if (result) {
-            // Remove the message from pending message DB before resend.
-            PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
-              var filter = MessageManager.createFilter(num);
-              MessageManager.getMessages(function(messages) {
-                if (messages.length > 0) {
-                  ThreadUI.renderMessages(messages);
-                  MessageManager.getMessages(ThreadListUI.renderThreads);
-                } else {
-                  MessageManager.getMessages(ThreadListUI.renderThreads,
-                                             null, null, function() {
-                    window.location.hash = '#thread-list';
-                  });
-
-                }
-              }, filter, true);
-            });
-            window.setTimeout(self.sendMessage.bind(self), 500);
-            return;
-          }
+          self.resendMessage(message);
         } else {
           var root = document.getElementById(message.timestamp.getTime());
           if (root) {
@@ -931,8 +914,6 @@ var ThreadUI = {
             }
 
           }
-
-
           // Remove the message from pending message DB since it could be sent
           // successfully.
           PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
@@ -941,9 +922,26 @@ var ThreadUI = {
             }
           });
         }
-        // Clean Fields when send success or cancel resend while error.
-        ThreadUI.cleanFields();
       });
+    }
+  },
+
+  resendMessage: function thui_resendMessage(message) {
+    if (window.location.hash == '#edit') {
+      return;
+    }
+    var resendConfirmStr = _('resendConfirmDialogMsg');
+    var result = confirm(resendConfirmStr);
+    if (result) {
+      // Remove the message from pending message DB before resend.
+      PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
+        var filter = MessageManager.createFilter(message.receiver);
+        MessageManager.getMessages(function(messages) {
+          ThreadUI.renderMessages(messages);
+          MessageManager.getMessages(ThreadListUI.renderThreads);
+        }, filter, true);
+      });
+      window.setTimeout(ThreadUI.sendMessage.bind(ThreadUI, message.body), 500);
     }
   },
 
