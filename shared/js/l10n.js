@@ -61,7 +61,6 @@
   }
 
   function fireL10nReadyEvent(lang) {
-    gReadyState = 'complete';
     var evtObject = document.createEvent('Event');
     evtObject.initEvent('localized', false, false);
     evtObject.language = lang;
@@ -235,6 +234,7 @@
     if (langCount == 0) {
       consoleLog('no resource to load, early way out');
       fireL10nReadyEvent(lang);
+      gReadyState = 'complete';
       return;
     }
 
@@ -247,6 +247,7 @@
         if (callback) // execute the [optional] callback
           callback();
         fireL10nReadyEvent(lang);
+        gReadyState = 'complete';
       }
     };
 

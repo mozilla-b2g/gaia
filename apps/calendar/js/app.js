@@ -119,8 +119,10 @@ Calendar.App = (function(window) {
       }
 
       if (navigator.mozL10n && navigator.mozL10n.readyState == 'complete') {
+        // document is already localized
         next();
       } else {
+        // waiting for the document to be localized (= standard case)
         window.addEventListener('localized', function() {
           next();
         });
@@ -256,12 +258,4 @@ Calendar.App = (function(window) {
   return App;
 
 }(this));
-
-/*
-window.addEventListener('localized', function() {
-  console.log('(l10n) localized');
-  Calendar.App.init();
-});
-console.log('(l10n) loaded');
-*/
 

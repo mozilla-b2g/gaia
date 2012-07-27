@@ -29,12 +29,5 @@
 
   };
 
-  /*
-  window.addEventListener('localized', Calendar.App.init);
-  window.addEventListener('localized', function() {
-    Calendar.App.init();
-  });
-  */
-
 }(this));
 
