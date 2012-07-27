@@ -263,17 +263,17 @@ settingsdb: install-xulrunner-sdk
 	$(call run-js-command, settings)
 
 DB_TARGET_PATH = /data/local/indexedDB
-ifneq ($(SYS),Darwin)
-DB_SOURCE_PATH = $(CURDIR)/build/indexeddb
-else
 DB_SOURCE_PATH = profile/indexedDB/chrome
-endif
+
 .PHONY: install-settingsdb
 install-settingsdb: settingsdb install-xulrunner-sdk
 	$(ADB) start-server
+	@echo 'Stoping b2g'
+	$(ADB) shell stop b2g
 	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti ${DB_TARGET_PATH}/chrome/2588645841ssegtnti
 	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
-	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+	@echo 'Starting b2g'
+	$(ADB) shell start b2g
 	@echo 'Rebooting b2g now. '
 
 # Generate profile/prefs.js
