@@ -446,6 +446,7 @@ var WindowManager = (function() {
       // - When running OOP, VolumeService dies - bug 775833
 
       'PenguinPop',
+      'PDF Viewer',
 
       //'Settings',
       // Most of settings seems to work OOP.
@@ -484,7 +485,7 @@ var WindowManager = (function() {
     ];
     if (outOfProcessWhitelist.indexOf(name) >= 0) {
       // FIXME: content shouldn't control this directly
-      frame.setAttribute('remote', 'true');
+      frame.setAttribute('remote', 'remote');
       console.info('%%%%% Launching', name, 'as remote (OOP)');
     } else {
       console.info('%%%%% Launching', name, 'as local');
