@@ -139,7 +139,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # Generate profile/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
 # to accommodate Gecko builds without bug 757613. Should be removed someday.
-webapp-manifests:
+webapp-manifests: install-xulrunner-sdk
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	$(call run-js-command, webapp-manifests)
