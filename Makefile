@@ -150,6 +150,9 @@ webapp-manifests: install-xulrunner-sdk
 webapp-zip: stamp-commit-hash
 ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
+	@rm -rf apps/system/camera
+	@cp -r apps/camera apps/system/camera
+	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
 	@for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
