@@ -17,7 +17,8 @@
   opacity: 1;
 }
 
-#screen:not(.locked) > #lockscreen {
+#screen:not(.locked) > #lockscreen,
+#lockscreen[data-panel="camera"] {
   -moz-transform: scale(2);
   opacity: 0;
 }
@@ -94,13 +95,14 @@
   -moz-transition: -moz-transform 0.2s ease;
 }
 
-[data-panel=""] #lockscreen-header {
+[data-panel=""] #lockscreen-header,
+[data-panel="camera"] #lockscreen-header {
   -moz-transform: translateY(0);
 }
 
 #lockscreen-connstate {
   background-color: #546578;
-  max-width: 60%;
+  max-width: -moz-calc(100% - 4rem - 1.6rem);
   display: inline-block;
   border-radius: 0.4rem;
   padding: 0.4rem;
@@ -400,7 +402,8 @@
 .touched .lockscreen-icon::after,
 .touched-left .lockscreen-icon::after,
 .touched-right .lockscreen-icon::after,
-#screen:not(.locked) .lockscreen-icon::after {
+#screen:not(.locked) .lockscreen-icon::after,
+#lockscreen:not([data-panel=""]) .lockscreen-icon::after {
   display: none;
   -moz-animation: none;
 }
@@ -650,33 +653,19 @@
   -moz-transform: translateY(0);
 }
 
-#lockscreen-panel-camera {
+#lockscreen-camera {
   position: absolute;
   top: 0;
   left: 0;
-  display: none;
-  background-color: #fff;
-}
-
-#lockscreen-panel-camera::before {
-  display: none;
-}
-
-#lockscreen-camera {
   width: 100%;
   height: 100%;
+  background-color: #000;
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
 }
 
 #lockscreen-camera > iframe {
   width: 100%;
   height: 100%;
   border: none;
-}
-
-[data-panel="camera"] #lockscreen-panel-camera {
-  display: block;
-}
-
-[data-panel="camera"] .lockscreen-panel:not(#lockscreen-panel-camera) {
-  display: none;
 }

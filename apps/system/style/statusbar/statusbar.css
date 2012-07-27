@@ -1,6 +1,7 @@
 /* The status bar disregard the rem rule because we have only 16px icons for now */
 
-#screen.fullscreen:not(.locked) > #statusbar {
+#screen.fullscreen:not(.locked) > #statusbar,
+#screen.lockscreen-camera > #statusbar {
   display: none;
 }
 
@@ -58,16 +59,6 @@
   color: #fff;
   font: 14px/14px 'Open Sans', sans-serif;
   font-weight: 600;
-}
-
-#statusbar-conn {
-  padding: 0;
-  color: #fff;
-  font: 12px/14px 'Open Sans', sans-serif;
-}
-
-#statusbar-conn:empty {
-  display: none;
 }
 
 .sb-icon {

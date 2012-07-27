@@ -27,7 +27,6 @@
       </menu>
 
       <div id="frames">
-        <img id="tab-cover" />
         <div id="awesomescreen">
           <nav data-role="tabs" id="tab-headers">
             <ul role="tablist">
@@ -114,20 +113,33 @@
     <div id="settings">
       <header id="settings-header">
         <menu type="toolbar">
-          <button id="settings-done-button" data-i10n-id="done">Done</button>
+          <button id="settings-done-button"></button>
         </menu>
         <h1 data-i10n-id="firefox-settings">Firefox Settings</h1>
       </header>
       <ul>
         <li>
-          <button id="about-firefox-button" data-i10n-id="about-firefox">About Firefox</button>
+          <button id="about-firefox-button"
+                  data-i10n-id="about-firefox">About Firefox</button>
         </li>
       </ul>
       <h3 data-i10n-id="privacy-and-security">Privacy & Security</h3>
       <ul>
-        <li>
-          <button id="clear-history-button" data-i10n-id="clear-history">Clear History</button>
+        <li id="enable-cookies">
+          <label>
+            <input type="checkbox" name="enable-cookies" disabled="disabled" />
+            <span data-i10n-id="enable-cookies" disabled="disabled">Enable Cookies</span>
+          </label>
         </li>
+        <li>
+          <button id="clear-history-button"
+                  data-i10n-id="clear-history">Clear History</button>
+        </li>
+        <li>
+          <button id="clear-private-data-button" disabled="disabled"
+                  data-i10n-id="clear-private-data">Clear Private Data</button>
+        </li>
+
       </ul>
     </div>
 

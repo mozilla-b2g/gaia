@@ -39,6 +39,9 @@
     <link rel="stylesheet" type="text/css" href="style/list_menu/list_menu.css">
     <script defer src="js/list_menu.js"></script>
 
+    <!-- Airplane Mode -->
+    <script defer src="js/airplane_mode.js"></script>
+
     <!-- Sleep Menu -->
     <script defer src="js/sleep_menu.js"></script>
 
@@ -185,6 +188,7 @@
         </div>
       </div>
 
+      <div id="lockscreen-camera" hidden></div>
       <div id="lockscreen" class="uninit" data-panel="">
         <div id="lockscreen-container">
           <div id="lockscreen-main-panel" class="lockscreen-panel">
@@ -232,10 +236,6 @@
           </div>
           <h2 id="lockscreen-emergency-title" data-l10n-id="emergency-call">Emergency Call</h2>
           <div id="lockscreen-emergency-pad">TBD</div>
-
-          <div id="lockscreen-panel-camera" class="lockscreen-panel">
-            <div id="lockscreen-camera"></div>
-          </div>
         </div>
       </div>
 
@@ -281,7 +281,6 @@
         <div id="statusbar-data" class="sb-icon sb-icon-data"
           data-type="" hidden></div>
         <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
-        <div id="statusbar-conn" hidden></div>
         <div id="statusbar-signal" class="sb-icon sb-icon-signal"
           data-level="5" hidden></div>
 

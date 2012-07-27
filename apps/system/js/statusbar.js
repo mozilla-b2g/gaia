@@ -5,7 +5,7 @@
 
 var StatusBar = {
   /* Timeout for 'recently active' indicators */
-  ACTIVE_INDICATOR_TIMEOUT: 60 * 1000,
+  kActiveIndicatorTimeout: 60 * 1000,
 
   /* Whether or not status bar is actively updating or not */
   active: true,
@@ -174,12 +174,11 @@ var StatusBar = {
       var voice = conn.voice;
       var icon = this.icons.signal;
       var flightModeIcon = this.icons.flightMode;
-      var connLabel = this.icons.conn;
       var _ = navigator.mozL10n.get;
 
       if (this.settingValues['ril.radio.disabled']) {
+        // "Airplane Mode"
         icon.hidden = true;
-        connLabel.hidden = true;
         flightModeIcon.hidden = false;
         return;
       }
@@ -188,13 +187,13 @@ var StatusBar = {
 
       icon.dataset.roaming = voice.roaming;
       if (!voice.connected && !voice.emergencyCallsOnly) {
+        // "No Network" / "Searching"
+        // XXX: need differentiate the two
+        // https://github.com/mozilla-b2g/gaia/issues/2763
         icon.hidden = true;
-        connLabel.hidden = false;
-        connLabel.dataset.l10nId = 'searching';
-        connLabel.textContent = _('searching') || '';
       } else {
+        // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
         icon.hidden = false;
-        connLabel.hidden = true;
         icon.dataset.level = Math.floor(voice.relSignalStrength / 20); // 0-5
       }
     },
@@ -349,20 +348,22 @@ var StatusBar = {
     },
 
     geolocation: function sb_updateGeolocation() {
-      if (this.geolocationTimer) {
-        window.clearTimeout(this.geolocationTimer);
-        this.geolocationTimer = null;
-      }
+      window.clearTimeout(this.geolocationTimer);
+
+      var icon = this.icons.geolocation;
+      icon.dataset.active = this.geolocationActive;
+
       if (this.geolocationActive) {
-        this.icons.geolocation.hidden = false;
-        this.icons.geolocation.dataset.active = true;
-      } else {
-        this.icons.geolocation.dataset.active = false;
-        this.geolocationTimer = window.setTimeout((function() {
-          this.geolocationTimer = null;
-          this.icons.geolocation.hidden = true;
-        }).bind(this), this.ACTIVE_INDICATOR_TIMEOUT);
+        // Geolocation is currently active, show the active icon.
+        icon.hidden = false;
+        return;
       }
+
+      // Geolocation is currently inactive.
+      // Show the inactive icon and hide it after kActiveIndicatorTimeout
+      this.geolocationTimer = window.setTimeout(function hideGeoIcon() {
+        icon.hidden = true;
+      }, this.kActiveIndicatorTimeout);
     },
 
     usb: function sb_updateUsb() {
@@ -389,7 +390,7 @@ var StatusBar = {
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
     var elements = ['notification', 'time',
-    'battery', 'wifi', 'data', 'flight-mode', 'conn', 'signal',
+    'battery', 'wifi', 'data', 'flight-mode', 'signal',
     'tethering', 'alarm', 'bluetooth', 'mute',
     'recording', 'sms', 'geolocation', 'usb'];
 

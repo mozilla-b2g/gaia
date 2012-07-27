@@ -118,9 +118,15 @@ Calendar.App = (function(window) {
         );
       }
 
-      window.addEventListener('localized', function() {
+      if (navigator.mozL10n && navigator.mozL10n.readyState == 'complete') {
+        // document is already localized
         next();
-      });
+      } else {
+        // waiting for the document to be localized (= standard case)
+        window.addEventListener('localized', function() {
+          next();
+        });
+      }
 
       this.db.load(function() {
         next();
@@ -252,3 +258,4 @@ Calendar.App = (function(window) {
   return App;
 
 }(this));
+

@@ -116,11 +116,12 @@ input[type="image"] {
   background-image: -moz-linear-gradient(#ff9400, #e66100);
 }
 
-#tabs-list img {
+#tabs-list .preview {
   display: block;
   width: 90px;
   height: 60px;
-  background: grey;
+  background-color: rgba(255, 255, 255, 0.3);
+  background-size: cover;
   float:left;
   border-radius: 5px;
   margin: 5px 10px 5px 5px;
@@ -246,6 +247,10 @@ input[type="image"] {
   display: block;
   height: 32px;
   width: 32px;
+}
+
+.awesome-screen #url-button {
+  display: none;
 }
 
 #ssl-indicator {
@@ -636,7 +641,7 @@ li[role="listitem"] small {
   position: absolute;
   left: 0px;
   top: 0;
-  background-color: #F3F4F8;
+  background-color: #eeefea;
   width: 100%;
   height: 100%;
   z-index: 150;
@@ -644,7 +649,7 @@ li[role="listitem"] small {
 }
 
 #settings header {
-  background-color: black;
+  background-color: #475659;
   height: 50px;
   background-image: linear-gradient(#323639, #272B2E);
 }
@@ -662,14 +667,11 @@ li[role="listitem"] small {
 #settings header menu[type="toolbar"] {
   height: 50px;
   display: inline;
-  float: right;
 }
 
 #settings h3 {
-  font-size: 0.9em;
-  margin: 0 10px;
-  color: #FF5F19;
-  border-bottom: solid 1px #FF5F19;
+  font-size: 1em;
+  margin: 0 30px 15px 30px;
   padding: 0;
 }
 
@@ -679,14 +681,13 @@ li[role="listitem"] small {
 }
 
 #settings li {
-  margin: 10px;
+  margin: 10px 30px;
   list-style-type: none;
 }
 
 #settings header button {
   color: #fff;
   height: 50px;
-  float: right;
 }
 
 #settings header button:active {
@@ -694,7 +695,33 @@ li[role="listitem"] small {
 }
 
 #settings li button {
-  padding: 10px;
+  display: block;
+  color: #333;
+  width: 100%;
+  line-height: 40px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #999;
+  background-image: -moz-linear-gradient(#FAFAFA, #CCC);
+}
+
+#settings li#enable-cookies {
+  margin-bottom: 20px;
+}
+
+#enable-cookies input {
+  position: relative;
+  top: -2px;
+}
+
+#settings-done-button {
+  width: 30px;
+  background: url(images/back-icon.png) no-repeat -3px center,
+    url('images/separator-large.png') no-repeat 20px center;
+}
+
+#settings [disabled="disabled"] {
+  opacity: 0.7;
 }
 
 /* This is a dirty hack to hide the bottom toolbar while

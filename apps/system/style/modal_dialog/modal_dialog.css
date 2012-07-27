@@ -87,7 +87,7 @@
     text-align: left;
     width: 200px;
     height: 60px;
-    color: black;
+    color: white;
     font-size: 30px;
     border-radius: 6px 6px 6px 6px;
     margin: 3px;
@@ -98,7 +98,7 @@
     height: 60px;
     font-size: 30px;
     width: 100%;
-    color: black;
+    color: white;
     -moz-box-sizing: border-box;
   }
 
