@@ -651,7 +651,6 @@ var Browser = {
 
   drawHistoryHeading: function browser_drawHistoryHeading(threshold,
     timestamp) {
-    //TODO: localise
     const LABELS = [
       'future',
       'today',
