@@ -1,4 +1,4 @@
-requireApp('email/test/mail-app.js');
+requireApp('email/js/mail-app.js');
 
 suite('email/mail-app', function() {
 
