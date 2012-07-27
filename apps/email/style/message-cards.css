@@ -88,6 +88,7 @@
   color: black;
 }
 .msg-header-date {
+  color: gray;
 }
 .msg-header-date-unread {
   color: orange;
