@@ -120,7 +120,7 @@
       var reComment = /^\s*#|^\s*$/;
       var reSection = /^\s*\[(.*)\]\s*$/;
       var reImport = /^\s*@import\s+url\((.*)\)\s*$/i;
-      var reSplit = /\s*=\s*/; // TODO: support backslashes to escape EOLs
+      var reSplit = /^([^=\s]*)\s*=\s*(.+)$/; // TODO: escape EOLs with '\'
 
       // parse the *.properties file into an associative array
       function parseRawLines(rawText, extendedSyntax) {
@@ -142,8 +142,8 @@
             if (reSection.test(line)) { // section start?
               match = reSection.exec(line);
               currentLang = match[1];
-              skipLang = (currentLang != '*') &&
-                  (currentLang != lang) && (currentLang != genericLang);
+              skipLang = (currentLang !== '*') &&
+                  (currentLang !== lang) && (currentLang !== genericLang);
               continue;
             } else if (skipLang) {
               continue;
@@ -155,9 +155,9 @@
           }
 
           // key-value pair
-          var tmp = line.split(reSplit);
-          if (tmp.length > 1)
-            dictionary[tmp[0]] = evalString(tmp[1]);
+          var tmp = line.match(reSplit);
+          if (tmp && tmp.length == 3)
+            dictionary[tmp[1]] = evalString(tmp[2]);
         }
       }
 
