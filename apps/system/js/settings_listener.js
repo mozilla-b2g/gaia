@@ -4,6 +4,22 @@
 'use strict';
 
 var SettingsListener = {
+  _callbacks: {},
+
+  init: function sl_init() {
+    if ('mozSettings' in navigator && navigator.mozSettings)
+      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
+  },
+
+  onchange: function sl_onchange(evt) {
+    var callbacks = this._callbacks[evt.settingName];
+    if (callbacks) {
+      callbacks.forEach(function sl_each(callback) {
+        callback(evt.settingValue);
+      });
+    }
+  },
+
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
@@ -17,8 +33,12 @@ var SettingsListener = {
         req.result[name] : defaultValue);
     }));
 
-    settings.addObserver(name, function settingChanged(evt) {
-      callback(evt.settingValue);
-    });
+    if (!this._callbacks[name])
+      this._callbacks[name] = [];
+
+    this._callbacks[name].push(callback);
   }
 };
+
+SettingsListener.init();
+
