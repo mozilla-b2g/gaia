@@ -571,7 +571,6 @@ MessageReaderCard.prototype = {
         // XXX perform localized mimetype translation stuff
         filesizeTemplate.textContent = this.formatFileSize(
           attachment.sizeEstimateInBytes);
-        dump(attachment.sizeEstimateInBytes);
         attachmentsContainer.appendChild(attTemplate.cloneNode(true));
       }
     }
