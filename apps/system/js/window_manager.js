@@ -541,6 +541,29 @@ var WindowManager = (function() {
     app.launch();
   }
 
+  // Handle fullscreen origin change. This shows the UI to approve the
+  // fullscreen transition.
+  window.addEventListener('mozChromeEvent', function(e) {
+    if (e.detail.type != 'fullscreenoriginchange' || !e.detail.fullscreenorigin)
+      return;
+    var origin = e.detail.fullscreenorigin;
+    if (!isRunning(origin)) {
+      document.getElementById('fullscreen-approval-origin').innerHTML = origin;
+      document.getElementById('fullscreen-approval-overlay').classList.add('visible');
+    }
+  }, false);
+
+  document.getElementById('fullscreen-deny-button').addEventListener('click',
+    function(event) {
+      document.getElementById('fullscreen-approval-overlay').classList.remove('visible');
+      document.mozCancelFullScreen();
+  }, false);
+
+  document.getElementById('fullscreen-approve-button').addEventListener('click',
+    function(event) {
+      document.getElementById('fullscreen-approval-overlay').classList.remove('visible');
+    }, false);
+
   // There are two types of mozChromeEvent we need to handle
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
@@ -613,6 +636,12 @@ var WindowManager = (function() {
         setDisplayedApp(origin);
         break;
     }
+  });
+
+  window.addEventListener('mozfullscreenchange', function(e) {
+    // When we exit fullscreen, ensure that the fullscreen approval UI is hidden.
+    if (document.mozFullScreenElement == null)
+      document.getElementById('fullscreen-approval-overlay').classList.remove('visible');
   });
 
   // If the application tried to close themselves by calling window.close()

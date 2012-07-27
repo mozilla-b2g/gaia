@@ -135,6 +135,23 @@
         https://bugzilla.mozilla.org/show_bug.cgi?id=761933
       -->
 
+      <div id="fullscreen-approval-overlay">
+        <div id="fullscreen-table">
+          <div id="fullscreen-tablecell">
+            <div id="fullscreen-approval-prompt">
+              <div>
+                <span id="fullscreen-approval-origin"></span>
+                <span id="fullscreen-approval-message" data-i10n-id="entered-fullscreen">is now fullscreen</span>
+              </div>
+              <button id="fullscreen-approve-button" data-i10n-id="ok">OK</button>
+              <button id="fullscreen-deny-button" data-i10n-id="cancel">Cancel</button>
+              <!-- TODO: Some sort of "remember for $origin" checkbox, backed by
+                         a permission manager or local storage. -->
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="modal-dialog">
         <div id="modal-dialog-table">
           <div id="modal-dialog-tablecell">
