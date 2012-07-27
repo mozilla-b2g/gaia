@@ -174,12 +174,11 @@ var StatusBar = {
       var voice = conn.voice;
       var icon = this.icons.signal;
       var flightModeIcon = this.icons.flightMode;
-      var connLabel = this.icons.conn;
       var _ = navigator.mozL10n.get;
 
       if (this.settingValues['ril.radio.disabled']) {
+        // "Airplane Mode"
         icon.hidden = true;
-        connLabel.hidden = true;
         flightModeIcon.hidden = false;
         return;
       }
@@ -188,13 +187,13 @@ var StatusBar = {
 
       icon.dataset.roaming = voice.roaming;
       if (!voice.connected && !voice.emergencyCallsOnly) {
+        // "No Network" / "Searching"
+        // XXX: need differentiate the two
+        // https://github.com/mozilla-b2g/gaia/issues/2763
         icon.hidden = true;
-        connLabel.hidden = false;
-        connLabel.dataset.l10nId = 'searching';
-        connLabel.textContent = _('searching') || '';
       } else {
+        // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
         icon.hidden = false;
-        connLabel.hidden = true;
         icon.dataset.level = Math.floor(voice.relSignalStrength / 20); // 0-5
       }
     },
@@ -391,7 +390,7 @@ var StatusBar = {
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
     var elements = ['notification', 'time',
-    'battery', 'wifi', 'data', 'flight-mode', 'conn', 'signal',
+    'battery', 'wifi', 'data', 'flight-mode', 'signal',
     'tethering', 'alarm', 'bluetooth', 'mute',
     'recording', 'sms', 'geolocation', 'usb'];
 
