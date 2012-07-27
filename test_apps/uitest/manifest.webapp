@@ -9,6 +9,11 @@
     "120": "/style/icons/Uitest.png"
   },
   "permissions": [
-    "background"
+    "background",
+    "contacts",
+    "contacts-read",
+    "contacts-write",
+    "settings-read",
+    "settings-write"
   ]
 }

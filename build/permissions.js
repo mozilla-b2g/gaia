@@ -50,7 +50,7 @@ function getJSON(root, dir, name) {
   file.append(root);
   file.append(dir);
   file.append(name);
-
+  dump("GET1: " + name + "\n");
   if (!file.exists())
     return null;
 

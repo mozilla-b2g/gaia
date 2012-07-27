@@ -7,7 +7,11 @@
     "url": "http://openwebdevice.com"
   },
   "permissions": [
-    "contacts"
+    "contacts",
+    "webcontacts-manage",
+    "contacts-read",
+    "contacts-write",
+    "indexedDB-unlimited"
   ],
   "locales": {
     "ar": {

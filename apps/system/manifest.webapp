@@ -10,10 +10,17 @@
     "mozbrowser",
     "power",
     "mozApps",
+    "webapps",
     "mobileconnection",
     "mozBluetooth",
     "telephony",
-    "voicemail"
+    "voicemail",
+    "device-storage",
+    "devicestorage",
+    "indexedDB-unlimited",
+    "websettings-readwrite",
+    "settings-read",
+    "settings-write"
   ],
   "locales": {
     "ar": {
