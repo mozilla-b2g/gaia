@@ -34,6 +34,7 @@ var ModalDialog = {
     }, this);
 
     this.screen = document.getElementById('screen');
+    this.overlay = document.getElementById('dialog-overlay');
   },
 
   // Save the events returned by mozbrowsershowmodalprompt for later use.
@@ -97,6 +98,13 @@ var ModalDialog = {
         // Reset currentOrigin
         this.hide();
         break;
+
+      case 'home':
+        if (!this.currentOrigin)
+          return;
+
+        this.cancelHandler();
+        evt.stopImmediatePropagation();
     }
   },
 
@@ -138,6 +146,7 @@ var ModalDialog = {
     }
 
     this.elements.buttons.dataset.type = evt.detail.promptType;
+    this.overlay.style.height = window.innerHeight;
   },
 
   hide: function md_hide() {
