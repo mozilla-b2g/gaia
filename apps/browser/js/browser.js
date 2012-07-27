@@ -966,19 +966,20 @@ var Browser = {
       var a = document.createElement('a');
       var li = document.createElement('li');
       var span = document.createElement('span');
-      var img = document.createElement('img');
+      var preview = document.createElement('div');
       var text = document.createTextNode(title);
 
       a.setAttribute('data-id', this.tabs[tab].id);
+      preview.classList.add('preview');
 
       span.appendChild(text);
-      a.appendChild(img);
+      a.appendChild(preview);
       a.appendChild(span);
       li.appendChild(a);
       ul.appendChild(li);
 
       if (this.tabs[tab].screenshot) {
-        img.setAttribute('src', this.tabs[tab].screenshot);
+        preview.style.backgroundImage = 'url(' + this.tabs[tab].screenshot + ')';
       }
 
       if (this.tabs[tab] == this.currentTab)
