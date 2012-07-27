@@ -21,6 +21,7 @@
     "websettings-readwrite",
     "settings-read",
     "settings-write",
+    "pin-app",
     "offline-app"
   ],
   "locales": {
