@@ -191,7 +191,7 @@ iframe.backgroundWindow {
 }
 
 /*
- * Keyboard is on top of these overlays, hiding the overlayserlay  
+ * Keyboard is on top of these overlays, hiding the overlay
  */
 #screen.popup #keyboard-overlay, 
 #screenscreen.modal-dialog #keyboard-overlay {  
