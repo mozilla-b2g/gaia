@@ -55,7 +55,7 @@ h3 {
   width: 140px;
   height: 100px;
   background-color: rgba(255, 255, 255, 0.3);
-  background-size: 140px auto;
+  background-size: cover;
 }
 
 #thumbnails li span {
