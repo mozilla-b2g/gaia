@@ -5,32 +5,21 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title>Music</title>
     <link rel="stylesheet" href="style/music.css" type="text/css" />
-    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
-    <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
     <!-- Use external libraries of mp3 and ogg -->
     <script type="text/javascript" src="js/ext/id3-minimized.js"></script>
     <script type="text/javascript" src="js/ext/ogg.js"></script>
+    <!-- Specific code -->
+    <script type="text/javascript" src="js/MetadataParser.js"></script>
+    <script type="text/javascript" src="js/MediaDB.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
     <script type="text/javascript" src="js/music.js"></script>
   </head>
 
-  <body class="hidden">
+  <body class="invisible">
     <div id="title">
       <button id="title-back" class="title-back-button">
         <span id="title-back-text">&#8249;</span>
@@ -56,9 +45,24 @@
         <div class="sub-tile"><br></div>
       </div>
       <div id="views-list" class="view"></div>
+      <div id="views-sublist" class="view">
+        <div id="views-sublist-header">
+          <div id="views-sublist-header-album">
+            <div id="views-sublist-header-default">&#9834;</div>
+            <img id="views-sublist-header-image" />
+          </div>
+          <div id="views-sublist-header-controls">
+            <div id="views-sublist-header-name">Name</div>
+            <button id="views-sublist-controls-play" class="album-controls-button" disabled>Play All</button>
+            <button id="views-sublist-controls-shuffle" class="album-controls-button" disabled>Shuffle</button>
+          </div>
+        </div>
+        <div id="views-sublist-anchor"></div>
+      </div>
       <div id="views-player" class="view">
         <div id="player-cover">
-          <div id="player-cover-image">&#9834;</div>
+          <div id="player-cover-default-image">&#9834;</div>
+          <img id="player-cover-image" />
           <div id="player-cover-caption">
             <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
             <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
@@ -78,19 +82,19 @@
           <span id="player-seek-remaining">00:00</span>
         </div>
         <div id="player-controls">
-          <button id="player-controls-play" class="player-controls-button">&#9654;</button>
           <button id="player-controls-previous" class="player-controls-button">&#9621;&#9664;&#9664;</button>
+          <button id="player-controls-play" class="player-controls-button">&#9654;</button>
           <button id="player-controls-next" class="player-controls-button">&#9654;&#9654;&#9615;</button>
         </div>
         <audio id="player-audio" class="hidden" controls autoplay></audio>
       </div>
     </div>
     <div id="tabs">
-      <button class="tabs-button" disabled id="tabs-mix" data-l10n-id="mix">Mix</button>
-      <button class="tabs-button" disabled id="tabs-playlists" data-l10n-id="playlists">Playlists</button>
-      <button class="tabs-button" disabled id="tabs-artists" data-l10n-id="artists">Artists</button>
-      <button class="tabs-button" disabled id="tabs-albums" data-l10n-id="albums">Albums</button>
-      <button class="tabs-button" disabled id="tabs-more" data-l10n-id="more">More</button>
+      <button class="tabs-button" id="tabs-mix" data-l10n-id="mix" data-option="mix">Mix</button>
+      <button class="tabs-button" id="tabs-playlists" data-l10n-id="playlists" data-option="playlist">Playlists</button>
+      <button class="tabs-button" id="tabs-artists" data-l10n-id="artists" data-option="artist">Artists</button>
+      <button class="tabs-button" id="tabs-albums" data-l10n-id="albums" data-option="album">Albums</button>
+      <button class="tabs-button" disabled id="tabs-more" data-l10n-id="more" data-option="more">More</button>
     </div>
     <div id="nosongs">
       <div id="nosongs-text" data-l10n-id="noSongs">No Songs</div>

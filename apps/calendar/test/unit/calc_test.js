@@ -1,4 +1,6 @@
-requireApp('calendar/js/calc.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('calc.js');
+});
 
 suite('calendar/calc', function() {
   var subject, mocked = {};

@@ -142,14 +142,16 @@ Icon.prototype = {
    */
   onDragMove: function icon_onDragMove(x, y) {
     this.draggableElem.style.MozTransform =
-        'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
+      'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
   },
 
   /*
    * This method is invoked when the drag gesture finishes
    */
   onDragStop: function icon_onDragStop(callback) {
-    var rect = this.container.getBoundingClientRect();
+    var container = this.container;
+
+    var rect = container.getBoundingClientRect();
     var x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
     x -= this.initXCenter;
 
@@ -163,10 +165,9 @@ Icon.prototype = {
     style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
     draggableElem.querySelector('div').style.MozTransform = 'scale(1)';
 
-    var self = this;
     draggableElem.addEventListener('transitionend', function draggableEnd(e) {
       draggableElem.removeEventListener('transitionend', draggableEnd);
-      delete self.container.dataset.dragging;
+      delete container.dataset.dragging;
       document.body.removeChild(draggableElem);
       callback();
     });
@@ -184,7 +185,7 @@ Icon.prototype = {
 /*
  * Page constructor
  */
-var Page = function() {
+var Page = function(index) {
   this.icons = {};
 };
 
@@ -219,64 +220,15 @@ Page.prototype = {
   },
 
   /*
-   * Sets the duration of the translations
-   *
-   * @param{Object} style object for a DOM element
-   *
-   * @param{int} the duration in milliseconds
-   */
-  setTranstionDuration: function pg_setTranstionDuration(style, duration) {
-    style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
-  },
-
-  /*
-   * Duration of the transition defined in seconds
-   */
-  transitionDuration: 0.2,
-
-  /*
-   * Moves the page to the end of the screen
-   */
-  moveToEnd: function pg_moveToEnd() {
-    var style = this.container.style;
-    style.MozTransform = GridManager.dirCtrl.translateNext;
-    this.setTranstionDuration(style, this.transitionDuration);
-  },
-
-  /*
-   * Moves the page to the beginning of the screen
-   */
-  moveToBegin: function pg_moveToBegin() {
-    var style = this.container.style;
-    style.MozTransform = GridManager.dirCtrl.translatePrev;
-    this.setTranstionDuration(style, this.transitionDuration);
-  },
-
-  /*
-   * Moves the page to the center of the screen
-   */
-  moveToCenter: function pg_moveToCenter(onTransitionEnd) {
-    var cont = this.container;
-    var style = cont.style;
-    style.MozTransform = 'translateX(0)';
-    this.setTranstionDuration(style, this.transitionDuration);
-    if (onTransitionEnd) {
-      cont.addEventListener('transitionend', function ft(e) {
-        onTransitionEnd();
-        cont.removeEventListener('transitionend', ft);
-      });
-    }
-  },
-
-  /*
    * Applies a translation to the page
    *
    * @param{String} the app origin
    */
-  moveTo: function pg_moveTo(translate) {
+  moveBy: function pg_moveBy(scrollX, duration) {
     var style = this.container.style;
-    style.MozTransform = 'translateX(-moz-calc(' + translate + '))';
-    this.setTranstionDuration(style, 0);
+    style.MozTransform = 'translateX(' + scrollX + 'px)';
+    style.MozTransition =
+      duration ? ('-moz-transform ' + duration + 's ease') : '';
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
@@ -508,6 +460,24 @@ Page.prototype = {
     return Array.prototype.map.call(nodes, function extractOrigin(node) {
       return node.dataset.origin;
     });
+  },
+
+  /*
+   * Movement feedback
+  */
+  bounce: function pg_bounce(direction) {
+    var container = this.container;
+    var dataset = this.container.dataset;
+    container.addEventListener('animationend', function animationEnd(e) {
+      container.removeEventListener('animationend', animationEnd);
+      dataset.bouncing = '';
+    });
+
+    if (direction > 0) {
+      dataset.bouncing = 'right';
+    } else {
+      dataset.bouncing = 'left';
+    }
   }
 };
 

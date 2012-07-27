@@ -7,17 +7,37 @@
 var _ = navigator.mozL10n.get;
 
 var Utils = {
-
+  updateHeaders: function ut_updateHeaders() {
+    if (!Utils.updating) {
+      Utils.updating = true;
+      Utils.updateTimer = setInterval(function() {
+        var elementsToUpdate =
+        document.querySelectorAll('h2[data-time-update]');
+        if (elementsToUpdate.length > 0) {
+          for (var i = 0; i < elementsToUpdate.length; i++) {
+            var ts = elementsToUpdate[i].getAttribute('data-time');
+            var tmpHeaderDate = Utils.getHeaderDate(ts);
+            var currentHeader = elementsToUpdate[i].innerHTML;
+            if (tmpHeaderDate != currentHeader) {
+              elementsToUpdate[i].innerHTML = tmpHeaderDate;
+            }
+          }
+        } else {
+          clearInterval(Utils.updateTimer);
+          Utils.updating = false;
+        }
+      },60000);
+    }
+  },
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
-    var span = document.createElement('span');
-    span.textContent = str;
-
-    // Escape space for displaying multiple space in message.
-    span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
-
+    var stringHTML = str;
+    stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
+    stringHTML = stringHTML.replace(/\s/g, '&nbsp;');
+    stringHTML = stringHTML.replace(/\</g, '&#60;');
+    
     if (escapeQuotes)
-      return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-    return span.innerHTML;
+      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    return stringHTML;
   },
 
   getHourMinute: function ut_getHourMinute(time) {
@@ -48,9 +68,9 @@ var Utils = {
         break;
     }
 
-    var today = Math.floor((new Date()).getTime() / 86400000);
-    var otherDay = Math.floor(time / 86400000);
-    var dayDiff = today - otherDay;
+    var today = Utils.getDayDate((new Date()).getTime());
+    var otherDay = Utils.getDayDate(time);
+    var dayDiff = (today - otherDay) / 86400000;
 
     if (isNaN(dayDiff))
       return '(incorrect date)';
@@ -64,6 +84,13 @@ var Utils = {
       dayDiff == 1 && _('yesterday') ||
       dayDiff < 4 && (new Date(time)).toLocaleFormat('%A') ||
       (new Date(time)).toLocaleFormat('%x');
+  },
+  getFontSize: function ut_getFontSize() {
+    if (!this.rootFontSize) {
+      var htmlCss = window.getComputedStyle(document.documentElement, null);
+      this.rootFontSize = parseInt(htmlCss.getPropertyValue('font-size'));
+    }
+    return this.rootFontSize;
   }
 };
 

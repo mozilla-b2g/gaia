@@ -12,7 +12,7 @@ var PendingMsgManager = {
     console.log('Pending Message Database Error : ' + errorMsg);
   },
 
-  init: function pm_init() {
+  init: function pm_init(callback) {
     try {
       var indexedDB = window.indexedDB || window.webkitIndexedDB ||
                       window.mozIndexedDB || window.msIndexedDB;
@@ -27,11 +27,15 @@ var PendingMsgManager = {
     }
 
     try {
+      var msgCallback = callback;
       var msgManager = this;
       var request = indexedDB.open(this.dbName, this.dbVersion);
       request.onsuccess = function(event) {
         msgManager.db = event.target.result;
         msgManager.dbReady = true;
+        if (msgCallback != undefined) {
+          msgCallback();
+        }
       };
 
       request.onerror = function(event) {
@@ -40,7 +44,7 @@ var PendingMsgManager = {
 
       request.onupgradeneeded = function(event) {
         var db = event.target.result;
-        var objStore = db.createObjectStore('msgs', { keyPath: 'timestamp' });
+        var objStore = db.createObjectStore('msgs', { keyPath: 'id' });
         objStore.createIndex('receiver', 'receiver');
       };
     } catch (ex) {
@@ -84,19 +88,24 @@ var PendingMsgManager = {
     }
   },
 
-  deleteFromMsgDB: function pm_deleteFromMsgDB(msg, callback) {
+  deleteFromMsgDB: function pm_deleteFromMsgDB(id, callback) {
     var transaction = this.db.transaction('msgs', 'readwrite');
     var store = transaction.objectStore('msgs');
-    var deleteRequest = store.delete(msg.timestamp);
+    var deleteRequest = store.delete(id);
     var pendingMgr = this;
     deleteRequest.onsuccess = function onsuccess() {
-      callback(deleteRequest);
+      if (callback) {
+        callback(deleteRequest);
+      }
+
     }
     deleteRequest.onerror = function onerror() {
-      callback(null);
+      if (callback) {
+        callback(null);
+      }
       // Execute save operation again if failed.
       window.setTimeout(
-        pendingMgr.deleteFromMsgDB(msg, callback).bind(pendingMgr), 500);
+        pendingMgr.deleteFromMsgDB(id, callback).bind(pendingMgr), 500);
     }
   }
 };

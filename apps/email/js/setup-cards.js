@@ -13,14 +13,19 @@
 var MAIL_SERVICES = [
   // XXX fill these in once enough stuff is working...
   {
+    name: 'HotmaiL AccounT',
+    l10nId: 'setup-hotmail-account',
+    domain: 'hotmail.com'
+  },
+  {
     name: 'OtheR EmaiL',
     l10nId: 'setup-other-email',
-    domain: '',
+    domain: ''
   },
   {
     name: 'Fake Account',
     l10nId: null,
-    domain: 'example.com',
+    domain: 'example.com'
   }
 ];
 
@@ -58,22 +63,18 @@ SetupPickServiceCard.prototype = {
     Cards.pushCard(
       'setup-account-info', 'default', 'animate',
       {
-        serviceDef: serviceDef,
+        serviceDef: serviceDef
       });
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-pick-service',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SetupPickServiceCard,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-pick-service',
+     { tray: false },
+    SetupPickServiceCard
+);
 
 /**
  * Enter basic account info card (name, e-mail address, password) to try and
@@ -107,7 +108,7 @@ function SetupAccountInfoCard(domNode, mode, args) {
   if (args.serviceDef.domain === 'example.com') {
     this.nameNode.value = 'John Madeup';
     this.emailNode.value = 'john@example.com';
-    this.passwordNode.value= 'secret!sosecret!';
+    this.passwordNode.value = 'secret!sosecret!';
   }
 }
 SetupAccountInfoCard.prototype = {
@@ -126,22 +127,18 @@ SetupAccountInfoCard.prototype = {
       {
         name: this.nameNode.value,
         emailAddress: this.emailNode.value,
-        password: this.passwordNode.value,
+        password: this.passwordNode.value
       });
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-account-info',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SetupAccountInfoCard,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-account-info',
+    { tray: false },
+    SetupAccountInfoCard
+);
 
 /**
  * Show a spinner until success, or errors when there is failure.
@@ -156,7 +153,7 @@ function SetupProgressCard(domNode, mode, args) {
     {
       displayName: args.name,
       emailAddress: args.emailAddress,
-      password: args.password,
+      password: args.password
     },
     function(err) {
       self.creationInProcess = false;
@@ -201,17 +198,13 @@ SetupProgressCard.prototype = {
 
   die: function() {
     this.cancelCreation();
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-progress',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SetupProgressCard,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-progress',
+    { tray: false },
+    SetupProgressCard
+);
 
 /**
  * Setup is done; add another account?
@@ -241,17 +234,13 @@ SetupDoneCard.prototype = {
   },
 
   die: function() {
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-done',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SetupDoneCard,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-done',
+    { tray: false },
+    SetupDoneCard
+);
 
 /**
  * Asks the user to re-enter their password for the account
@@ -289,17 +278,13 @@ SetupFixPassword.prototype = {
 
   die: function() {
     // no special cleanup required
-  },
+  }
 };
-Cards.defineCard({
-  name: 'setup-fix-password',
-  modes: {
-    default: {
-      tray: false,
-    }
-  },
-  constructor: SetupFixPassword,
-});
+Cards.defineCardWithDefaultMode(
+    'setup-fix-password',
+    { tray: false },
+    SetupFixPassword
+);
 
 /**
  * Global settings, list of accounts.
@@ -321,6 +306,11 @@ function SettingsMainCard(domNode, mode, args) {
 
   domNode.getElementsByClassName('tng-account-add')[0]
     .addEventListener('click', this.onClickAddAccount.bind(this), false);
+
+  this._secretButtonClickCount = 0;
+  this._secretButtonTimer = null;
+  domNode.getElementsByClassName('tng-email-lib-version')[0]
+    .addEventListener('click', this.onClickSecretButton.bind(this), false);
 }
 SettingsMainCard.prototype = {
   onClose: function() {
@@ -398,19 +388,32 @@ SettingsMainCard.prototype = {
       {});
   },
 
+  onClickSecretButton: function() {
+    if (this._secretButtonTimer === null) {
+      this._secretButtonTimer = window.setTimeout(
+        function() {
+          self._secretButtonTimer = null;
+          self._secretButtonClickCount = 0;
+        }.bind(this), 2000);
+    }
+
+    if (++this._secretButtonClickCount >= 5) {
+      window.clearTimeout(this._secretButtonTimer);
+      this._secretButtonTimer = null;
+      this._secretButtonClickCount = 0;
+      Cards.pushCard('settings-debug', 'default', 'animate', {}, 'right');
+    }
+  },
+
   die: function() {
     this.acctsSlice.die();
   }
 };
-Cards.defineCard({
-  name: 'settings-main',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SettingsMainCard,
-});
+Cards.defineCardWithDefaultMode(
+    'settings-main',
+    { tray: false },
+    SettingsMainCard
+);
 
 /**
  * Per-account settings, maybe some metadata.
@@ -418,16 +421,14 @@ Cards.defineCard({
 function SettingsAccountCard(domNode, mode, args) {
 }
 SettingsAccountCard.prototype = {
+  die: function() {
+  }
 };
-Cards.defineCard({
-  name: 'settings-account',
-  modes: {
-    default: {
-      tray: false
-    },
-  },
-  constructor: SettingsAccountCard,
-});
+Cards.defineCardWithDefaultMode(
+    'settings-account',
+    { tray: false },
+    SettingsAccountCard
+);
 
 /**
  * Quasi-secret card for troubleshooting/debugging support.  Not part of the
@@ -435,15 +436,78 @@ Cards.defineCard({
  * be shipped after initial dogfooding.
  */
 function SettingsDebugCard(domNode, mode, args) {
+  this.domNode = domNode;
+
+  domNode.getElementsByClassName('tng-close-btn')[0]
+    .addEventListener('click', this.onClose.bind(this), false);
+
+  // - hookup buttons
+  domNode.getElementsByClassName('tng-dbg-reset')[0]
+    .addEventListener('click', window.location.reload.bind(window.location),
+                      false);
+
+  domNode.getElementsByClassName('tng-dbg-dump-storage')[0]
+    .addEventListener('click', this.dumpLog.bind(this, 'storage'), false);
+
+  this.loggingButton = domNode.getElementsByClassName('tng-dbg-logging')[0];
+  this.dangerousLoggingButton =
+    domNode.getElementsByClassName('tng-dbg-dangerous-logging')[0];
+
+  this.loggingButton.addEventListener(
+    'click', this.cycleLogging.bind(this, true, true), false);
+  this.dangerousLoggingButton.addEventListener(
+    'click', this.cycleLogging.bind(this, true, 'dangerous'), false);
+  this.cycleLogging(false);
+
+  // - hookup
 }
 SettingsDebugCard.prototype = {
-};
-Cards.defineCard({
-  name: 'settings-debug',
-  modes: {
-    default: {
-      tray: false
-    }
+  onClose: function() {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
   },
-  constructor: SettingsDebugCard,
-});
+
+  dumpLog: function(target) {
+    MailAPI.debugSupport('dumpLog', target);
+  },
+
+  cycleLogging: function(doChange, changeValue) {
+    var value = MailAPI.config.debugLogging;
+    if (doChange) {
+      if (changeValue === true)
+        value = !value;
+      // only upgrade to dangerous from enabled...
+      else if (changeValue === 'dangerous' && value === true)
+        value = 'dangerous';
+      else if (changeValue === 'dangerous' && value === 'dangerous')
+        value = true;
+      // (ignore dangerous button if not enabled)
+      else
+        return;
+      MailAPI.debugSupport('setLogging', value);
+    }
+    var label, dangerLabel;
+    if (value === true) {
+      label = 'Logging is ENABLED; toggle';
+      dangerLabel = 'Logging is SAFE; toggle';
+    }
+    else if (value === 'dangerous') {
+      label = 'Logging is ENABLED; toggle';
+      dangerLabel = 'Logging DANGEROUSLY ENTRAINS USER DATA; toggle';
+    }
+    else {
+      label = 'Logging is DISABLED; toggle';
+      dangerLabel = '(enable logging to access this secret button)';
+    }
+    this.loggingButton.textContent = label;
+    this.dangerousLoggingButton.textContent = dangerLabel;
+  },
+
+  die: function() {
+  }
+};
+Cards.defineCardWithDefaultMode(
+    'settings-debug',
+    { tray: false },
+    SettingsDebugCard
+);
+

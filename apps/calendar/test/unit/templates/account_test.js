@@ -1,7 +1,9 @@
-requireApp('calendar/js/template.js');
-requireApp('calendar/js/templates/account.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('template.js');
+  requireLib('templates/account.js');
+});
 
-suite('templates/day', function() {
+suite('templates/account', function() {
   var subject;
 
   suiteSetup(function() {
@@ -12,8 +14,8 @@ suite('templates/day', function() {
     return subject[type].render(options);
   }
 
-  test('#accountItem', function() {
-    var output = renderHTML('accountItem', {
+  test('#provider', function() {
+    var output = renderHTML('provider', {
       name: 'yahoo'
     });
 

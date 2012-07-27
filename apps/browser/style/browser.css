@@ -3,6 +3,7 @@ html, body {
   padding: 0;
   margin: 0;
   background-color: #575E66;
+  font-family: 'Open Sans', sans-serif;
 }
 
 body {
@@ -34,11 +35,19 @@ input[type="image"] {
   display: block;
 }
 
+.awesome-screen #throbber {
+  display: none;
+}
+
 .awesome-screen #tabs-badge {
   background-image: url('./images/close.png');
   background-position: center;
   background-repeat: no-repeat;
   background-color: transparent;
+}
+
+.settings-screen #settings {
+  display: block;
 }
 
 .current {
@@ -107,11 +116,12 @@ input[type="image"] {
   background-image: -moz-linear-gradient(#ff9400, #e66100);
 }
 
-#tabs-list img {
+#tabs-list .preview {
   display: block;
   width: 90px;
   height: 60px;
-  background: grey;
+  background-color: rgba(255, 255, 255, 0.3);
+  background-size: cover;
   float:left;
   border-radius: 5px;
   margin: 5px 10px 5px 5px;
@@ -221,7 +231,7 @@ input[type="image"] {
   display: -moz-box;
   -moz-box-orient: horizontal;
   padding: 0;
-  margin: 10;
+  margin: 10px;
   border: solid 1px;
   border-color: #c1c5ce;
   border-radius: 5px;
@@ -233,8 +243,10 @@ input[type="image"] {
 }
 
 #url-button {
-  display:none;
   background-position: center;
+  display: block;
+  height: 32px;
+  width: 32px;
 }
 
 #ssl-indicator {
@@ -357,7 +369,7 @@ input::-moz-focus-inner {
   bottom: 0;
   z-index: 60;
   background-color: #fff;
-  display:none;
+  display: none;
 }
 
 nav[data-role="tabs"] {
@@ -386,10 +398,10 @@ li[role="tab"] a {
   color: #000;
   line-height: 36px;
   text-align: center;
-  padding: 0 32px;
+  padding: 0 30px;
   font-size: 14px;
   outline: none;
-  margin-left: -32px;
+  margin-left: -30px;
 }
 
 li[role="tab"]:first-child a {
@@ -453,11 +465,14 @@ li[role="listitem"] a:hover, li[role="listitem"] a:active {
   background-color: #EEE;
 }
 
-li[role="listitem"] span {
+li[role="listitem"] h5 {
   display: block;
+  font-weight: normal;
+  margin: 0;
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
+  font-size: 14px;
 }
 
 li[role="listitem"] small {
@@ -466,6 +481,11 @@ li[role="listitem"] small {
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
+}
+
+.highlight {
+  font-weight: bold;
+  text-decoration: underline;
 }
 
 .awesome-screen #toolbar-start {
@@ -479,7 +499,7 @@ li[role="listitem"] small {
   background-color: #ccd6df;
 }
 
-#history, #bookmarks {
+#history, #bookmarks, #top-sites {
   height: -moz-calc(100% - 36px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -588,4 +608,107 @@ li[role="listitem"] small {
 
 #cover ul li img {
   margin-right: 10px;
+}
+
+#modal-dialog-alert,
+#modal-dialog-confirm,
+#modal-dialog-prompt {
+  width: 90% !important;
+  margin: 0 auto !important;
+}
+
+#modal-dialog-tablecell {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+#tray-toolbar {
+  background: none;
+  height: 50px;
+  padding-right: 44px;
+}
+
+#settings-button {
+  background-image: url('images/settings.png');
+  float: right;
+  height: 50px;
+}
+
+#settings {
+  position: absolute;
+  left: 0px;
+  top: 0;
+  background-color: #F3F4F8;
+  width: 100%;
+  height: 100%;
+  z-index: 150;
+  display: none;
+}
+
+#settings header {
+  background-color: black;
+  height: 50px;
+  background-image: linear-gradient(#323639, #272B2E);
+}
+
+#settings header h1 {
+  font-size: 20px;
+  color: white;
+  margin: 0;
+  line-height: 50px;
+  padding-left: 10px;
+  width: 100%;
+  font-weight: normal;
+}
+
+#settings header menu[type="toolbar"] {
+  height: 50px;
+  display: inline;
+  float: right;
+}
+
+#settings h3 {
+  font-size: 0.9em;
+  margin: 0 10px;
+  color: #FF5F19;
+  border-bottom: solid 1px #FF5F19;
+  padding: 0;
+}
+
+#settings ul {
+  margin: 0;
+  padding: 0;
+}
+
+#settings li {
+  margin: 10px;
+  list-style-type: none;
+}
+
+#settings header button {
+  color: #fff;
+  height: 50px;
+  float: right;
+}
+
+#settings header button:active {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+#settings li button {
+  padding: 10px;
+}
+
+/* This is a dirty hack to hide the bottom toolbar while
+ * the keyboard is active, than device-height - 20px (for status bar),
+ * then the keyboard is likely activated
+ */
+/* For the Otoro, 320x480 */
+@media (device-height: 480px) and (max-height: 450px),
+       (device-height: 320px) and (max-height: 290px) {
+  .page-screen #toolbar-end { display: none; }
+}
+/* For the Galaxy SII, 640x480 */
+@media (device-height: 480px) and (max-height: 450px),
+       (device-height: 640px) and (max-height: 610px) {
+  .page-screen #toolbar-end { display: none; }
 }

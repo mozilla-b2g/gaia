@@ -7,6 +7,7 @@
   z-index: 10000;
   display: none;
   vertical-align: middle;
+  background: rgba(0, 0, 0, 0.8);
 }
 
 #modal-dialog-table {
@@ -26,13 +27,11 @@
 #modal-dialog-confirm,
 #modal-dialog-prompt {
   width: 100%;
-  background: black;
   color: white;
   border-radius: 6px 6px 6px 6px;
   border-top: #aaa;
   border-bottom: #ddd;
   text-align: center;
-  opacity: 0.6;
   padding: 1em;
   -moz-box-sizing: border-box;
   display: none;
@@ -43,17 +42,19 @@
   height: 40px;
   font-size: 20px;
   width: 100%;
-  color: black;
+  color: white;
+  background: none;
   -moz-box-sizing: border-box;
 }
 
 .modal-dialog-message-container {
+  border-top: solid 4px white;
+  border-bottom: solid 4px white;
   text-align: left;
   width: 100%;
   color: white;
-  padding: 1em;
+  padding: 1em 0;
   min-height: 20px;
-  border-radius: 4px 4px 0 0;
   font-size: 15px;
   -moz-box-sizing: border-box;
 }
@@ -63,14 +64,20 @@
 }
 
 #modal-dialog button {
+  display: none;
+  background: none;
   text-align: left;
-  width: 133px;
+  width: -moz-calc(50% - 4px);
   height: 40px;
-  background: white;
-  color: black;
+  color: white;
   font-size: 20px;
   border-radius: 4px 4px 4px 4px;
-  margin: 2px;
+  border: solid 2px white;
+}
+
+#modal-dialog button:active {
+  background: white;
+  color: black;
 }
 
 /* 480x800 phones */
@@ -80,8 +87,7 @@
     text-align: left;
     width: 200px;
     height: 60px;
-    background: white;
-    color: black;
+    color: white;
     font-size: 30px;
     border-radius: 6px 6px 6px 6px;
     margin: 3px;
@@ -92,7 +98,7 @@
     height: 60px;
     font-size: 30px;
     width: 100%;
-    color: black;
+    color: white;
     -moz-box-sizing: border-box;
   }
 
@@ -102,7 +108,6 @@
     color: white;
     padding: 1em;
     min-height: 30px;
-    border-radius: 6px 6px 0 0;
     font-size: 25px;
     -moz-box-sizing: border-box;
   }
@@ -120,3 +125,34 @@
 #modal-dialog-prompt.visible {
   display: block;
 }
+
+#modal-dialog-buttons {
+  position: absolute;
+  bottom: 1em;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  -moz-box-sizing: border-box;
+  padding: 0 1em;
+}
+
+#modal-dialog-buttons[data-type="alert"] #modal-dialog-alert-ok {
+  display: inline-block;
+}
+
+#modal-dialog-buttons[data-type="prompt"] #modal-dialog-prompt-ok {
+  display: inline-block;
+}
+
+#modal-dialog-buttons[data-type="prompt"] #modal-dialog-prompt-cancel {
+  display: inline-block;
+}
+
+#modal-dialog-buttons[data-type="confirm"] #modal-dialog-confirm-ok {
+  display: inline-block;
+}
+
+#modal-dialog-buttons[data-type="confirm"] #modal-dialog-confirm-cancel {
+  display: inline-block;
+}
+

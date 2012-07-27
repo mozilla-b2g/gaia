@@ -1,6 +1,7 @@
 {
   "name": "Contacts",
   "description": "Default Contacts application",
+  "launch_path": "/index.html",
   "developer": {
     "name": "Telefonica PDI - OWD Team",
     "url": "http://openwebdevice.com"
@@ -69,6 +70,12 @@
       "filters": {
         "type": "webcontacts/contact"
        },
+      "disposition": "window"
+    },
+    "new": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
       "disposition": "window"
     }
   }

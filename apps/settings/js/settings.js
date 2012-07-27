@@ -3,6 +3,11 @@
 
 'use strict';
 
+/**
+ * Debug note: to test this app in a desktop browser, you'll have to set
+ * the `dom.mozSettings.enabled' preference to false.
+ */
+
 var Settings = {
   init: function settings_init() {
     this.loadGaiaCommit();
@@ -11,6 +16,13 @@ var Settings = {
     if (!settings) // e.g. when debugging on a browser...
       return;
 
+    var airplaneCheckBox =
+        document.querySelector('input[name="ril.radio.disabled"]');
+    settings.addObserver('ril.radio.disabled', function(event) {
+       if (airplaneCheckBox.checked !== event.settingValue) {
+         airplaneCheckBox.checked = event.settingValue;
+       }
+    });
     // preset all inputs that have a `name' attribute
     var transaction = settings.getLock();
 
@@ -84,7 +96,8 @@ var Settings = {
   handleEvent: function settings_handleEvent(evt) {
     var input = evt.target;
     var key = input.name || input.dataset.name;
-    if (!key)
+    var settings = window.navigator.mozSettings;
+    if (!key || !settings)
       return;
 
     switch (evt.type) {
@@ -97,8 +110,8 @@ var Settings = {
                    (input.type == 'password')) {
           value = input.value;
         }
-        var cset = { }; cset[key] = value;
-        window.navigator.mozSettings.getLock().set(cset);
+        var cset = {}; cset[key] = value;
+        settings.getLock().set(cset);
         break;
 
       case 'click':
@@ -111,8 +124,8 @@ var Settings = {
         value = Math.max(0, Math.min(1, value));
         input.value = position;
 
-        var cset = { }; cset[key] = value;
-        window.navigator.mozSettings.getLock().set(cset);
+        var cset = {}; cset[key] = value;
+        settings.getLock().set(cset);
         break;
     }
   },
@@ -134,7 +147,7 @@ var Settings = {
     var req = new XMLHttpRequest();
     req.onreadystatechange = (function(e) {
       if (req.readyState === 4) {
-        if (req.status === 200) {
+        if (req.status === 0 || req.status === 200) {
           var data = req.responseText.split('\n');
           var dispDate = document.getElementById('gaia-commit-date');
           var disp = document.getElementById('gaia-commit-hash');
@@ -200,12 +213,12 @@ var Settings = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
-        var cset = {};
         for (var i = 0; i < fields.length; i++) {
           var input = fields[i];
+          var cset = {};
           cset[input.dataset.setting] = input.value;
+          settings.getLock().set(cset);
         }
-        settings.getLock().set(cset);
       }
       return close();
     }

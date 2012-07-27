@@ -36,7 +36,8 @@ var App = {
         foldersSlice.oncomplete = function() {
           var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
           if (!inboxFolder)
-            dieOnFatalError('We have an account without an inbox!', foldersSlice.items);
+            dieOnFatalError('We have an account without an inbox!',
+                foldersSlice.items);
 
           Cards.assertNoCards();
 
@@ -45,20 +46,20 @@ var App = {
             'account-picker', 'default', 'none',
             {
               acctsSlice: acctsSlice,
-              curAccount: account,
+              curAccount: account
             });
           Cards.pushCard(
             'folder-picker', 'navigation', 'none',
             {
               curAccount: account,
               foldersSlice: foldersSlice,
-              curFolder: inboxFolder,
+              curFolder: inboxFolder
             });
           // Push the message list card
           Cards.pushCard(
             'message-list', 'default', 'immediate',
             {
-              folder: inboxFolder,
+              folder: inboxFolder
             });
         };
       }
@@ -71,7 +72,7 @@ var App = {
           {});
       }
     };
-  },
+  }
 };
 
 function hookStartup() {
@@ -89,11 +90,13 @@ function hookStartup() {
   }
 
   window.addEventListener('localized', function() {
+    console.log('got localized!');
     gotLocalized = true;
     if (gotMailAPI)
       doInit();
   }, false);
   window.addEventListener('mailapi', function(event) {
+    console.log('got MailAPI!');
     MailAPI = event.mailAPI;
     gotMailAPI = true;
     if (gotLocalized)
@@ -101,3 +104,4 @@ function hookStartup() {
   }, false);
 }
 hookStartup();
+

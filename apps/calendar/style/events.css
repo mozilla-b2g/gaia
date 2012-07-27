@@ -1,9 +1,9 @@
-.day-events h4, 
+.day-events h4,
 .day-events h5 {
   font-weight: normal;
   /*overflow: hidden;
     word-wrap: break-word;
-    text-overflow: '...';  
+    text-overflow: '...';
     white-space: nowrap;
     max-width: -moz-calc(50% - 10rem);*/
 
@@ -32,7 +32,7 @@
 
 .rtl .day-events section > h4 {
   -moz-box-ordinal-group: 2;
-  text-aligh: left;
+  text-align: left;
   padding-left: 0.52rem;
 }
 

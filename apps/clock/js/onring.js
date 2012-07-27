@@ -4,6 +4,9 @@
 
 var RingView = {
 
+  _ringtonePlayer: null,
+  _vibrateInterval: null,
+
   get time() {
     delete this.time;
     return this.time = document.getElementById('ring-clock-time');
@@ -14,11 +17,23 @@ var RingView = {
     return this.hourState = document.getElementById('ring-clock-hour24-state');
   },
 
+  get snoozeButton() {
+    delete this.snoozeButton;
+    return this.snoozeButton = document.getElementById('ring-button-snooze');
+  },
+
+  get closeButton() {
+    delete this.closeButton;
+    return this.closeButton = document.getElementById('ring-button-close');
+  },
+
   init: function rv_init() {
     this.updateTime();
+    this.ring();
+    this.vibrate();
     document.addEventListener('mozvisibilitychange', this);
-    document.getElementById('ring-btn-snooze').addEventListener('click', this);
-    document.getElementById('ring-btn-close').addEventListener('click', this);
+    this.snoozeButton.addEventListener('click', this);
+    this.closeButton.addEventListener('click', this);
   },
 
   updateTime: function rv_updateTime() {
@@ -35,6 +50,35 @@ var RingView = {
     this._timeout = window.setTimeout(function cv_clockTimeout() {
       self.updateTime();
     }, (59 - d.getSeconds()) * 1000);
+  },
+
+  ring: function rv_ring() {
+    this._ringtonePlayer = new Audio();
+    var ringtonePlayer = this._ringtonePlayer;
+    ringtonePlayer.loop = true;
+    // XXX Need to set the ringtone according to alarm's property of 'sound'
+    var selectedAlarmSound = 'style/ringtones/classic.wav';
+    ringtonePlayer.src = selectedAlarmSound;
+    ringtonePlayer.play();
+    /* If user don't handle the onFire alarm,
+       pause the ringtone after 20 secs */
+    window.setTimeout(function rv_pauseRingtone() {
+      ringtonePlayer.pause();
+    }, 20000);
+  },
+
+  vibrate: function rv_vibrate() {
+    if ('vibrate' in navigator) {
+      this._vibrateInterval = window.setInterval(function vibrate() {
+        navigator.vibrate([200]);
+      }, 600);
+      /* If user don't handle the onFire alarm,
+       turn off vibration after 7 secs */
+      var self = this;
+      window.setTimeout(function rv_clearVibration() {
+        window.clearInterval(self._vibrateInterval);
+      }, 7000);
+    }
   },
 
   handleEvent: function rv_handleEvent(evt) {
@@ -54,12 +98,17 @@ var RingView = {
           return;
 
         switch (input.id) {
-          case 'ring-btn-snooze':
-            window.opener.FakeAlarmManager.snoozeHandler();
+          case 'ring-button-snooze':
+            window.clearInterval(this._vibrateInterval);
+            this._ringtonePlayer.pause();
+            window.opener.AlarmManager.snoozeHandler();
             window.close();
             break;
 
-          case 'ring-btn-close':
+          case 'ring-button-close':
+            window.clearInterval(this._vibrateInterval);
+            this._ringtonePlayer.pause();
+            window.opener.AlarmManager.cancelHandler();
             window.close();
             break;
         }

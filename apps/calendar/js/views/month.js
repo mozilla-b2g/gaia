@@ -1,44 +1,25 @@
 (function(window) {
 
-  if (typeof(Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
-  if (typeof(Calendar.Views) === 'undefined') {
-    Calendar.Views = {};
-  }
-
   var template = Calendar.Templates.Month;
 
   /**
    * Creates an instance of a month.
    */
   function Month(options) {
-    var self = this,
-        key;
+    Calendar.View.apply(this, arguments);
 
-    Calendar.View.call(this);
-
-    if (typeof(options) === 'undefined') {
-      options = {};
-    }
-
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
-
-    this.selectedDay = null;
-    this.children = {};
-    this.element = document.querySelector('#month-view');
-
+    this.controller = this.app.timeController;
+    this.children = Object.create(null);
     this._initEvents();
   };
 
   var proto = Month.prototype = Object.create(
     Calendar.View.prototype
   );
+
+  proto.selectors = {
+    element: '#month-view'
+  };
 
   /**
    * Selector for element that will contain
@@ -250,8 +231,8 @@
       }
 
       this.currentChild = new Calendar.Views.MonthChild({
-        month: date,
-        controller: this.controller
+        app: this.app,
+        month: date
       });
 
       this.currentChild.attach(display);
@@ -275,6 +256,6 @@
 
   proto.onfirstseen = proto.render;
 
-  Calendar.Views.Month = Month;
+  Calendar.ns('Views').Month = Month;
 
 }(this));

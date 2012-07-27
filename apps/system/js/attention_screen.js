@@ -3,10 +3,16 @@
 'use strict';
 
 var AttentionScreen = {
-  get screen() {
-    delete this.screen;
-    return this.screen = document.getElementById('attention-screen');
+  get mainScreen() {
+    delete this.mainScreen;
+    return this.mainScreen = document.getElementById('screen');
   },
+
+  get attentionScreen() {
+    delete this.attentionScreen;
+    return this.attentionScreen = document.getElementById('attention-screen');
+  },
+
   get bar() {
     delete this.bar;
     return this.bar = document.getElementById('attention-bar');
@@ -17,7 +23,7 @@ var AttentionScreen = {
     window.addEventListener('mozbrowserclose', this.close.bind(this), true);
 
     this.bar.addEventListener('click', this.show.bind(this));
-    window.addEventListener('keyup', this.hide.bind(this), true);
+    window.addEventListener('home', this.hide.bind(this));
   },
 
   open: function as_open(evt) {
@@ -29,17 +35,12 @@ var AttentionScreen = {
     evt.stopPropagation();
 
     var attentionFrame = evt.detail.frameElement;
-    attentionFrame.setAttribute('mozapp', evt.target.getAttribute('mozapp'));
     attentionFrame.dataset.frameType = 'attention';
     attentionFrame.dataset.frameName = evt.detail.name;
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
-    // FIXME: won't be needed once
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=769182 is fixed
-    attentionFrame.src = evt.detail.url;
-
-    this.screen.appendChild(attentionFrame);
-    this.screen.classList.add('displayed');
+    this.attentionScreen.appendChild(attentionFrame);
+    this.attentionScreen.classList.add('displayed');
 
     // We want the user attention, so we need to turn the screen on
     // if it's off.
@@ -71,12 +72,14 @@ var AttentionScreen = {
       }
     }
 
-    this.screen.classList.remove('displayed');
-    this.screen.classList.remove('status');
-    this.screen.removeChild(evt.target);
+    this.attentionScreen.classList.remove('displayed');
+    this.mainScreen.classList.remove('active-statusbar');
+    this.attentionScreen.classList.remove('status-mode');
+    this.dispatchEvent('status-inactive');
+    this.attentionScreen.removeChild(evt.target);
 
     if (this._screenInitiallyDisabled)
-      ScreenManager.turnScreenOff();
+      ScreenManager.turnScreenOff(true);
 
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.
@@ -84,27 +87,48 @@ var AttentionScreen = {
   },
 
   show: function as_show() {
-    this.screen.classList.remove('status');
+    this.attentionScreen.style.MozTransition = 'none';
+    this.attentionScreen.classList.remove('status-mode');
+
+    var self = this;
+    window.addEventListener('MozAfterPaint', function finishAfterPaint() {
+      window.removeEventListener('MozAfterPaint', finishAfterPaint);
+      setTimeout(function nextLoop() {
+        self.attentionScreen.style.MozTransition = '';
+        self.mainScreen.classList.remove('active-statusbar');
+        self.dispatchEvent('status-inactive');
+      });
+    });
   },
 
-  hide: function as_hide(evt) {
-    if (evt.keyCode == evt.DOM_VK_ESCAPE ||
-        evt.keyCode == evt.DOM_VK_HOME) {
+  // Invoked when we get a "home" event
+  hide: function as_hide() {
+    if (this.attentionScreen.querySelectorAll('iframe').length > 0) {
+      if (!this.mainScreen.classList.contains('active-statusbar')) {
+        // The user is hiding the attention screen to use the phone we better
+        // not turn the sreen off when the attention screen is closed.
+        this._screenInitiallyDisabled = false;
 
-      if (this.screen.querySelectorAll('iframe').length > 0) {
-        if (!this.screen.classList.contains('status')) {
-          this.screen.classList.add('status');
+        this.dispatchEvent('status-active');
+        this.mainScreen.classList.add('active-statusbar');
 
-          // The user is hiding the attention screen to use the phone we better
-          // not turn the sreen off when the attention screen is closed.
-          this._screenInitiallyDisabled = false;
-        }
+        var attentionScreen = this.attentionScreen;
+        attentionScreen.addEventListener('transitionend', function trWait() {
+            attentionScreen.removeEventListener('transitionend', trWait);
+            attentionScreen.classList.add('status-mode');
+        });
       }
     }
   },
 
+  dispatchEvent: function ls_dispatchEvent(name) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(name, true, true, null);
+    window.dispatchEvent(evt);
+  },
+
   showForOrigin: function as_showForOrigin(origin) {
-    var iframes = this.screen.querySelectorAll('iframe');
+    var iframes = this.attentionScreen.querySelectorAll('iframe');
     for (var i = 0; i < iframes.length; i++) {
       if (iframes[i].dataset.frameOrigin == origin) {
         this.show();
