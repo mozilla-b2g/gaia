@@ -429,10 +429,6 @@ navigator.mozSetMessageHandler('activity', function(activityRequest) {
     setView(thumbnailListView);
     break;
   case 'pick':
-    // XXX
-    // We might see a flash if the UI goes from list view to pick view
-    // Use navigator.mozHasPendingMessage('activity') to prevent this
-    // if possible.
     startPick(activityRequest);
     break;
   }
@@ -460,13 +456,16 @@ function cancelPick() {
   setView(thumbnailListView);
 }
 
+// XXX
 // If the user goes to the homescreen or switches to another app
 // the pick request is implicitly cancelled
+// Remove this code when https://github.com/mozilla-b2g/gaia/issues/2916
+// is fixed and replace it with an onerror handler on the activity to
+// switch out of pickView.
 window.addEventListener('mozvisiblitychange', function() {
   if (document.mozHidden && pendingPick)
     cancelPick();
 });
-
 
 
 //
@@ -487,14 +486,6 @@ window.addEventListener('localized', function showBody() {
   // initial view
   if (!navigator.mozHasPendingMessage('activity'))
     setView(thumbnailListView);
-
-/*
-  // XXX: test pick mode with a stub object
-  startPick({
-    postError: function(msg) { alert(msg); },
-    postResult: function(o) { alert(JSON.stringify(o)); }
-  });
-*/
 });
 
 // Each of the photoFrame <div> elements may be subject to animated
