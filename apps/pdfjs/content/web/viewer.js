@@ -2046,19 +2046,19 @@ window.addEventListener('afterprint', function afterPrint(evt) {
   PDFView.afterPrint();
 });
 
-window.navigator.mozSetMessageHandler('activity', function(activity) {
-  var url = activity.source.data.url;
-  // Temporarily get the data here since the cross domain xhr is broken in
-  // the worker currently, see bug 761227.
-  var params = {
-    url: url,
-    error: function(e) {
-      PDFView.error(mozL10n.get('loading_error', null,
-                    'An error occurred while loading the PDF.'), e);
-    }
-  };
-  PDFJS.getPdf(params, function successCallback(data) {
-    PDFView.open(data, 0);
-  });
-});
+   window.navigator.mozSetMessageHandler('activity', function(activity) {
+     var url = activity.source.data.url;
+     // Temporarily get the data here since the cross domain xhr is broken in
+     // the worker currently, see bug 761227.
+     var params = {
+       url: url,
+       error: function(e) {
+         PDFView.error(mozL10n.get('loading_error', null,
+                       'An error occurred while loading the PDF.'), e);
+       }
+     };
+     PDFJS.getPdf(params, function successCallback(data) {
+       PDFView.open(data, 0);
+     });
+   });
 

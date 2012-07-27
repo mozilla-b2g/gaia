@@ -7,7 +7,7 @@ var PDFJS = {};
   // Use strict in our context only - users might not want it
   'use strict';
 
-  PDFJS.build = '09acd7b';
+  PDFJS.build = '0ca1bef';
 
   // Files are inserted below - see Makefile
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
@@ -20,7 +20,7 @@ var globalScope = (typeof window === 'undefined') ? this : window;
 var isWorker = (typeof window == 'undefined');
 
 var ERRORS = 0, WARNINGS = 1, INFOS = 5;
-var verbosity = INFOS;
+var verbosity = WARNINGS;
 
 // The global PDFJS object exposes the API
 // In production, it will be declared outside a global wrapper
@@ -65,7 +65,7 @@ function getPdf(arg, callback) {
   var calledErrorBack = false;
 
   if ('error' in params) {
-    xhr.onerror = function errorBack(e) {
+    xhr.onerror = function errorBack() {
       if (!calledErrorBack) {
         calledErrorBack = true;
         params.error();
@@ -1216,7 +1216,7 @@ PDFJS.getDocument = function getDocument(source) {
     error('Invalid parameter in getDocument, need either Uint8Array, ' +
           'string or a parameter object');
   }
-console.log(source.url);
+
   if (!source.url && !source.data)
     error('Invalid parameter array, need either .data or .url');
 
@@ -30491,8 +30491,6 @@ var WorkerMessageHandler = {
     function loadDocument(pdfData, pdfModelSource) {
       // Create only the model of the PDFDoc, which is enough for
       // processing the content of the pdf.
-      console.log('pdfData: ' + pdfData.length);
-      console.log('pdfData: ' + typeof pdfData);
       var pdfPassword = pdfModelSource.password;
       try {
         pdfModel = new PDFDocument(new Stream(pdfData), pdfPassword);
@@ -30531,10 +30529,8 @@ var WorkerMessageHandler = {
 
     handler.on('GetDocRequest', function wphSetupDoc(data) {
       var source = data.source;
-      console.log(source.url);
       if (source.data) {
         // the data is array, instantiating directly from it
-        console.log('!!!!!!!!!!!!!!direct');
         loadDocument(source.data, source);
         return;
       }
@@ -30551,14 +30547,12 @@ var WorkerMessageHandler = {
             }
           },
           error: function getPDFError(e) {
-            console.log('ERRRRRROROROROROROR ' + e.target.status);
             handler.send('DocError', 'Unexpected server response of ' +
                          e.target.status + '.');
           },
           headers: source.httpHeaders
         },
         function getPDFLoad(data) {
-          console.log('hellllllllllasldkfasldfjkaldsjfasd;lfj');
           loadDocument(data, source);
         });
     });
