@@ -38,9 +38,15 @@ var KeyboardManager = (function() {
       currentApp = WindowManager.getAppFrame(app);
     }
 
-    var height = (parseInt(currentApp.style.height) -
+    var dialogOverlay = document.getElementById('dialog-overlay');
+
+    var height = (parseInt(currentApp.getBoundingClientRect().height) -
                   message.keyboardHeight);
     keyboardOverlay.hidden = true;
+
+    console.log(height, '=======');
+    dialogOverlay.style.height = (height + 20) + 'px';
+    console.log(document.querySelector('#trustedDialog iframe').style.height,'=====');
 
     if (message.hidden) {
       keyboardFrame.classList.add('hide');
@@ -50,6 +56,7 @@ var KeyboardManager = (function() {
 
     if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
+      dialogOverlay.style.height = height + 'px';
       keyboardOverlay.style.height = (height + 20) + 'px';
       keyboardOverlay.hidden = false;
     } else {

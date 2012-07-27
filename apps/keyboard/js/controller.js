@@ -442,6 +442,8 @@ const IMEController = (function() {
       hidden: !!IMERender.ime.dataset.hidden
     };
 
+
+    console.log('=====',height);
     parent.postMessage(JSON.stringify(message), '*');
   }
 
