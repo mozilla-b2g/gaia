@@ -26,6 +26,22 @@
   height: 80px;
 }
 
+.msg-messages-sync-container {
+  min-height: 48px;
+  height: 48px;
+}
+.msg-messages-sync-more {
+  vertical-align: 50%;
+}
+.msg-messages-syncing {
+  vertical-align: 50%;
+}
+.msg-messages-syncing-spinner {
+  width: 16px;
+  height: 16px;
+  background-image: url('style/images/spinner-from-statusbar.gif');
+}
+
 .msg-search-tease-bar {
   height: 24px;
   background-color: #eee;
