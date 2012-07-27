@@ -42,8 +42,8 @@ var KeyboardManager = (function() {
 
     var dialogOverlay = document.getElementById('dialog-overlay');
 
-    var height = (parseInt(currentApp.getBoundingClientRect().height) -
-                  message.keyboardHeight);
+    var height = currentApp.getBoundingClientRect().height -
+                  message.keyboardHeight;
     keyboardOverlay.hidden = true;
 
     if (message.hidden) {

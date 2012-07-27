@@ -190,14 +190,6 @@ iframe.backgroundWindow {
   pointer-events: none;
 }
 
-/*
- * Keyboard is on top of these overlays, hiding the overlay
- */
-#screen.popup #keyboard-overlay, 
-#screenscreen.modal-dialog #keyboard-overlay {  
-  display: none;
-}
-
 #screen.fullscreen #keyboard-overlay {
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
   z-index: 2147483647;
@@ -214,6 +206,8 @@ iframe.backgroundWindow {
 }
 
 #screen.modal-dialog #dialog-overlay,
-#screen.popup #dialog-overlay {
+#screen.modal-dialog #modal-dialog,
+#screen.popup #dialog-overlay,
+#screen.popup #popup-container {
   display: block;
 }
