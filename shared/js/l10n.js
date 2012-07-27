@@ -12,8 +12,17 @@
   var gTextProp = 'textContent';
   var gLanguage = '';
   var gMacros = {};
+  var gReadyState = 'loading';
 
-  var gDEBUG = false;
+  // read-only setting -- we recommend to load l10n resources synchronously
+  var gAsyncResourceLoading = true;
+
+  // debug helpers
+  var gDEBUG = true;
+  function consoleLog(message) {
+    if (gDEBUG)
+      console.log('[l10n] ' + message);
+  };
   function consoleWarn(message) {
     if (gDEBUG)
       console.warn('[l10n] ' + message);
@@ -52,6 +61,7 @@
   }
 
   function fireL10nReadyEvent(lang) {
+    gReadyState = 'complete';
     var evtObject = document.createEvent('Event');
     evtObject.initEvent('localized', false, false);
     evtObject.language = lang;
@@ -210,7 +220,7 @@
       // trigger callback
       if (successCallback)
         successCallback();
-    }, failureCallback, true);
+    }, failureCallback, gAsyncResourceLoading);
   };
 
   // load and parse all resources for the specified locale
@@ -223,6 +233,7 @@
     var langLinks = getL10nResourceLinks();
     var langCount = langLinks.length;
     if (langCount == 0) {
+      consoleLog('no resource to load, early way out');
       fireL10nReadyEvent(lang);
       return;
     }
@@ -256,8 +267,10 @@
     for (var i = 0; i < langCount; i++) {
       var resource = new l10nResourceLink(langLinks[i]);
       var rv = resource.load(lang, onResourceLoaded);
-      if (rv != lang) // lang not found, used default resource instead
+      if (rv != lang) { // lang not found, used default resource instead
+        consoleWarn('"' + lang + '" resource not found');
         gLanguage = '';
+      }
     }
   }
 
@@ -719,8 +732,9 @@
   // fetch an l10n object, warn if not found, apply `args' if possible
   function getL10nData(key, args) {
     var data = gL10nData[key];
-    if (!data)
+    if (!data) {
       consoleWarn('#' + key + ' missing for [' + gLanguage + ']');
+    }
 
     /** This is where l10n expressions should be processed.
       * The plan is to support C-style expressions from the l20n project;
@@ -830,8 +844,9 @@
       delete data[gTextProp];
     }
 
-    for (var k in data)
+    for (var k in data) {
       element[k] = data[k];
+    }
   }
 
   // translate an HTML subtree
@@ -841,8 +856,9 @@
     // check all translatable children (= w/ a `data-l10n-id' attribute)
     var children = getTranslatableChildren(element);
     var elementCount = children.length;
-    for (var i = 0; i < elementCount; i++)
+    for (var i = 0; i < elementCount; i++) {
       translateElement(children[i]);
+    }
 
     // translate element itself if necessary
     translateElement(element);
@@ -854,7 +870,10 @@
    */
 
   // load the default locale on startup
-  window.addEventListener('DOMContentLoaded', function() {
+  window.addEventListener('DOMContentLoaded', function l10nStartup() {
+    gReadyState = 'interactive';
+    consoleLog('loading [' + navigator.language + '] resources, ' +
+        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously'));
     loadLocale(navigator.language, translateFragment);
   });
 
@@ -889,9 +908,17 @@
           // Arabic, Hebrew, Farsi, Pashto, Urdu
           var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
           return (rtlList.indexOf(gLanguage) >= 0) ? 'rtl' : 'ltr';
-        }
+        },
+
+        // translate an element or document fragment
+        translate: translateFragment
       };
-    }
+    },
+
+    // this can be used to avoid race conditions
+    get readyState() { return gReadyState; },
   };
+
+  consoleLog('library loaded.');
 })(this);
 
