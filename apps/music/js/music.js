@@ -190,7 +190,7 @@ var TilesView = {
       return;
 
     if (this.dataSource.length === 0)
-      document.getElementById('nosongs').style.display = 'none';
+      document.getElementById('nosongs').classList.add('invisible');
 
     this.dataSource.push(result);
 
@@ -200,7 +200,7 @@ var TilesView = {
     var tile = document.createElement('div');
 
     var defaultImage = document.createElement('div');
-    defaultImage.innerHTML = (result.metadata.title) ?
+    defaultImage.textContent = (result.metadata.title) ?
       result.metadata.title :
       navigator.mozL10n.get('unknownTitle');
 
@@ -312,9 +312,6 @@ var ListView = {
   update: function lv_update(option, result) {
     if (result === null)
       return;
-
-    if (this.dataSource.length === 0)
-      document.getElementById('nosongs').style.display = 'none';
 
     this.dataSource.push(result);
 
