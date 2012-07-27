@@ -26613,7 +26613,7 @@ FakeFolderStorage.prototype = {
             nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
             .singleNodeValue;
 
-          let result = {
+          conn.config = {
             'user': {
               'name':  getString('ms:DisplayName/text()',  user),
               'email': getString('ms:EMailAddress/text()', user),
@@ -26625,12 +26625,14 @@ FakeFolderStorage.prototype = {
             }
           };
 
-          conn.baseURL = result.server.url + '/Microsoft-Server-ActiveSync';
+          conn.baseURL = conn.config.server.url +
+            '/Microsoft-Server-ActiveSync';
           conn.options(conn.baseURL, function(aSubResult) {
             conn.connected = true;
-            result.options = aSubResult;
+            conn.config.options = aSubResult;
+
             if (aCallback)
-              aCallback.call(conn, result);
+              aCallback.call();
           });
         }
       };
@@ -27648,7 +27650,7 @@ Configurators['activesync'] = {
         {
           id: accountId + '/' +
                 $a64.encodeInt(universe.config.nextIdentityNum++),
-          name: userDetails.displayName,
+          name: null,
           address: userDetails.emailAddress,
           replyTo: null,
           signature: DEFAULT_SIGNATURE
@@ -27666,6 +27668,7 @@ Configurators['activesync'] = {
     universe.saveAccountDef(accountDef, folderInfo);
     var account = universe._loadAccount(accountDef, folderInfo, null);
     account.syncFolderList(function() {
+      accountDef.identities[0].name = account.conn.config.user.name;
       callback(true, account);
     });
   },

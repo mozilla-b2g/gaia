@@ -15,7 +15,8 @@ var MAIL_SERVICES = [
   {
     name: 'HotmaiL AccounT',
     l10nId: 'setup-hotmail-account',
-    domain: 'hotmail.com'
+    domain: 'hotmail.com',
+    hideDisplayName: true
   },
   {
     name: 'OtheR EmaiL',
@@ -94,11 +95,15 @@ function SetupAccountInfoCard(domNode, mode, args) {
   this.nameNode = this.domNode.getElementsByClassName('sup-info-name')[0];
   this.nameNode.setAttribute('placeholder',
                              mozL10n.get('setup-info-name-placeholder'));
+  if (args.serviceDef.hideDisplayName)
+    this.nameNode.classList.add('collapsed');
+
   this.emailNode = this.domNode.getElementsByClassName('sup-info-email')[0];
   this.emailNode.setAttribute('placeholder',
                               mozL10n.get('setup-info-email-placeholder'));
   // XXX this should maybe be a magic separate label?
   this.emailNode.value = args.serviceDef.domain;
+
   this.passwordNode =
     this.domNode.getElementsByClassName('sup-info-password')[0];
   this.passwordNode.setAttribute(
