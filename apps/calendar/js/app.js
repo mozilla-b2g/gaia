@@ -118,9 +118,13 @@ Calendar.App = (function(window) {
         );
       }
 
-      window.addEventListener('localized', function() {
+      if (navigator.mozL10n && navigator.mozL10n.readyState == 'complete') {
         next();
-      });
+      } else {
+        window.addEventListener('localized', function() {
+          next();
+        });
+      }
 
       this.db.load(function() {
         next();
@@ -252,3 +256,12 @@ Calendar.App = (function(window) {
   return App;
 
 }(this));
+
+/*
+window.addEventListener('localized', function() {
+  console.log('(l10n) localized');
+  Calendar.App.init();
+});
+console.log('(l10n) loaded');
+*/
+
