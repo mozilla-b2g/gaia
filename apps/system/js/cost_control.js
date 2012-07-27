@@ -147,7 +147,8 @@ var CostControl = (function() {
     // Listen for SMS
     if (window.navigator.mozSms) {
       _sms = window.navigator.mozSms;
-      _sms.addEventListener('sent', function(evt) { console.log('MESSAGE SENT!'); });
+//      _sms.addEventListener('sent', function(evt) { console.log('MESSAGE SENT!'); });
+      _sms.onsent = function(evt) { console.log('MESSAGE SENT!'); };
     }
 
     // Listen to ending calls
@@ -250,10 +251,9 @@ var CostControl = (function() {
           lastUpdated = (new Date(lastUpdated)).getTime();
 
         var now = (new Date()).getTime();
-        if (now - lastUpdated > REQUEST_BALANCE_MAX_DELAY) {
-          _isManualRequest = false;
+        if (now - lastUpdated > REQUEST_BALANCE_MAX_DELAY)
           _mockup_updateBalance();
-        }
+
         break;
 
       // After ending a call

@@ -31,3 +31,6 @@ var SettingsListener = {
     this._callbacks[name] = callback;
   }
 };
+
+/* === Setup === */
+SettingsListener.init();

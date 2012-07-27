@@ -75,6 +75,7 @@ var settings = [
  new Setting("screen.timeout", 60),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
+ new Setting("sms.blacklist", "[\"1515\"]"),
  new Setting("tethering.usb.enabled", false),
  new Setting("tethering.wifi.enabled", false),
  new Setting("tethering.wifi.connectedClients", 0),
