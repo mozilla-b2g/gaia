@@ -5,38 +5,41 @@
 
 var Wifi = {
   init: function wf_init() {
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
 
+    var wifiManager = window.navigator.mozWifiManager;
+
+    // Sync the wifi.enabled mozSettings value with real API
+    // These code should be removed once this bug is fixed
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=729877
     SettingsListener.observe('wifi.enabled', true, function(value) {
-      var wifiManager = window.navigator.mozWifiManager;
-      if (!wifiManager || wifiManager.enabled == value) {
-        return;
-      }
-
-      var req = wifiManager.setEnabled(value);
-      req.onerror = function wf_EnabledError() {
+      if (!wifiManager) {
         // roll back the setting value to notify the UIs
-        // that wifi has failed to enable/disable.
-        // XXX: what if a series of failure?
-        var settings = window.navigator.mozSettings;
-        if (settings) {
+        // that wifi interface is not available
+        if (value) {
           settings.getLock().set({
-            'wifi.enabled': !value
+            'wifi.enabled': false
           });
         }
-      }
-    });
 
-    //XXX: these code should be removed
-    // when WifiManager read 'wifi.enabled' from DB
-    // bugzilla: https://bugzilla.mozilla.org/show_bug.cgi?id=729877
-    var settings = window.navigator.mozSettings;
-    if (settings) {
-      var wifiManager = window.navigator.mozWifiManager;
-      if (!wifiManager) {
         return;
       }
-      settings.getLock().set({'wifi.enabled': true});
-    }
+
+      if (wifiManager.enabled == value)
+        return;
+
+      var req = wifiManager.setEnabled(value);
+      req.onerror = function wf_enabledError() {
+        // roll back the setting value to notify the UIs
+        // that wifi has failed to enable/disable.
+        settings.getLock().set({
+          'wifi.enabled': !value
+        });
+      };
+    });
   }
 };
+
 Wifi.init();

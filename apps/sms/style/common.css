@@ -12,8 +12,7 @@
   position: relative;
   left: 0;
   top:0;
-  transition:left .15s ease-in;
-  -moz-transition: left .15s ease-in;
+  -moz-transition: -moz-transform .15s ease;
 }
 
 .header-group {

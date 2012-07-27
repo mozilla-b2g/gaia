@@ -655,7 +655,7 @@ var ThreadUI = {
       message.delivery == 'sending');
     var className = (outgoing ? 'sent' : 'received');
     var timestamp = message.timestamp.getTime();
-    var bodyText = message.body.split('\n')[0];
+    var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
     var htmlStructure = '<span class="bubble-container ' + className + '">' +

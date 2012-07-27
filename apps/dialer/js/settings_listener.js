@@ -1,20 +1,9 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 var SettingsListener = {
-  _callbacks: {},
-
-  init: function sl_init() {
-    if ('mozSettings' in navigator && navigator.mozSettings)
-      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
-  },
-
-  onchange: function sl_onchange(evt) {
-    var callback = this._callbacks[evt.settingName];
-    if (callback) {
-      callback(evt.settingValue);
-    }
-  },
-
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
@@ -28,8 +17,8 @@ var SettingsListener = {
         req.result[name] : defaultValue);
     }));
 
-    this._callbacks[name] = callback;
+    settings.addObserver(name, function settingChanged(evt) {
+      callback(evt.settingValue);
+    });
   }
 };
-
-SettingsListener.init();

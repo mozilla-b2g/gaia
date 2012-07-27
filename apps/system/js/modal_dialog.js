@@ -141,6 +141,9 @@ var ModalDialog = {
   },
 
   hide: function md_hide() {
+    if (this.currentEvents[this.currentOrigin].detail.promptType == 'prompt') {
+      this.elements.promptInput.blur();
+    }
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
   },
