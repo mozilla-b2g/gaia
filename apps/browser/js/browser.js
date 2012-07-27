@@ -651,7 +651,6 @@ var Browser = {
 
   drawHistoryHeading: function browser_drawHistoryHeading(threshold,
     timestamp) {
-    //TODO: localise
     const LABELS = [
       'future',
       'today',
@@ -1016,9 +1015,12 @@ var Browser = {
   },
 
   handleClearHistory: function browser_handleClearHistory() {
-    Places.clearHistory((function() {
-      this.clearHistoryButton.disabled = true;
-    }).bind(this));
+    var msg = navigator.mozL10n.get('confirm-clear-history');
+    if (confirm(msg)) {
+      Places.clearHistory((function() {
+        this.clearHistoryButton.setAttribute('disabled', 'disabled');
+      }).bind(this));
+    }
   },
 
   screenSwipeMngr: {
