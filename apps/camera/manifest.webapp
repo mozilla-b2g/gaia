@@ -11,7 +11,7 @@
   "permissions": [
     "content-camera",
     "camera",
-    "geolocation"
+    "offline-app"
   ],
   "locales": {
     "ar": {

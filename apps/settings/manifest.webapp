@@ -13,7 +13,8 @@
     "devicestorage",
     "websettings-readwrite",
     "settings-read",
-    "settings-write"
+    "settings-write",
+    "offline-app"
   ],
   "locales": {
     "ar": {

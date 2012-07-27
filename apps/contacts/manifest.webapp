@@ -11,7 +11,8 @@
     "webcontacts-manage",
     "contacts-read",
     "contacts-write",
-    "indexedDB-unlimited"
+    "indexedDB-unlimited",
+    "offline-app"
   ],
   "locales": {
     "ar": {

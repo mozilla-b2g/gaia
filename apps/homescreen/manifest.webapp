@@ -11,7 +11,8 @@
     "mozApps",
     "webapps",
     "device-storage",
-    "devicestorage"
+    "devicestorage",
+    "offline-app"
   ],
   "locales": {
     "ar": {
