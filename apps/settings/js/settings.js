@@ -23,6 +23,13 @@ var Settings = {
          airplaneCheckBox.checked = event.settingValue;
        }
     });
+    var mobileDataCheckBox =
+        document.querySelector('input[name="ril.data.enabled"]');
+    settings.addObserver('ril.data.enabled', function(event) {
+       if (mobileDataCheckBox.checked !== event.settingValue) {
+         mobileDataCheckBox.checked = event.settingValue;
+       }
+    });
     // preset all inputs that have a `name' attribute
     var transaction = settings.getLock();
 
