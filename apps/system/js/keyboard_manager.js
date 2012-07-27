@@ -53,6 +53,7 @@ var KeyboardManager = (function() {
 
     if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
+      dialogOverlay.style.height = (height + 20) + 'px';
       keyboardOverlay.style.height = (height + 20) + 'px';
       keyboardOverlay.hidden = false;
     } else {
