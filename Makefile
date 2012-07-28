@@ -382,13 +382,12 @@ test-agent-bootstrap-apps:
 			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
 	@echo "Done bootstrapping test proxies/sandboxes";
+
 # Temp make file method until we can switch
 # over everything in test
-
 ifneq ($(strip $(APP)),)
 APP_TEST_LIST=$(shell find apps/$(APP)/test/unit -name '*_test.js')
 endif
-
 .PHONY: test-agent-test
 test-agent-test:
 ifneq ($(strip $(APP)),)
