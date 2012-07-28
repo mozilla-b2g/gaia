@@ -1,6 +1,6 @@
 #!/bin/bash
 
 DIR=`cd $(dirname ${BASH_SOURCE[0]}); pwd;`
-XPCWINDOW=$DIR/../../../tools/test-agent/node_modules/xpcwindow/bin/xpcwindow
+XPCWINDOW=$DIR/../../../tools/xpcwindow/bin/xpcwindow
 
 $XPCWINDOW $DIR/../xpc.js $@

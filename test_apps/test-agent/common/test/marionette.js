@@ -13,7 +13,7 @@
       var driver;
       this.timeout(10000);
 
-      if (typeof(window.MozTCPSocket) !== 'undefined') {
+      if (typeof(window.TCPSocket) !== 'undefined') {
         driver = new Marionette.Drivers.MozTcp();
       } else {
         driver = new Marionette.Drivers.HttpdPolling({
@@ -25,7 +25,7 @@
       yield driver.connect(MochaTask.next);
 
       device = new Marionette.Client(driver, {
-        defaultCallback: MochaTask.next
+        defaultCallback: MochaTask.nextNodeStyle
       });
 
       yield device.startSession();

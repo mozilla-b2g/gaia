@@ -119,7 +119,6 @@ var ScreenManager = {
       }
     });
 
-    console.log('!NOT DO!', typeof(SettingsListener.observe));
     SettingsListener.observe('screen.automatic-brightness', true,
     function deviceLightSettingChanged(value) {
       if (typeof value === 'string')

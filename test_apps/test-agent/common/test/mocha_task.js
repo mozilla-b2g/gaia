@@ -78,7 +78,40 @@ var MochaTask = (function() {
           }
         }
       }
-    }
+    },
+
+    nextNodeStyle: function(error, value) {
+      //assign references so we
+      //can clear state without messing
+      //up execution order later.
+      var complete = done,
+          generator = current,
+          handler = errorHandler;
+
+      if (error) {
+        throw error;
+      }
+
+      try {
+        generator.send(value);
+      } catch (e) {
+        if (e instanceof StopIteration) {
+          clearState();
+
+          if (complete) {
+            complete();
+          }
+        } else {
+          clearState();
+
+          if (handler) {
+            handler(e);
+          }
+        }
+      }
+    },
+
+
   };
 
 }());
