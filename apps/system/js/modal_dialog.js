@@ -34,6 +34,7 @@ var ModalDialog = {
     }, this);
 
     this.screen = document.getElementById('screen');
+    this.overlay = document.getElementById('dialog-overlay');
   },
 
   // Save the events returned by mozbrowsershowmodalprompt for later use.
@@ -50,6 +51,7 @@ var ModalDialog = {
     window.addEventListener('mozbrowsershowmodalprompt', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
+    window.addEventListener('resize', this);
 
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
@@ -97,7 +99,17 @@ var ModalDialog = {
         // Reset currentOrigin
         this.hide();
         break;
+
+      case 'resize':
+        if (!this.currentOrigin)
+          return;
+
+        this.setHeight();
     }
+  },
+
+  setHeight: function md_setHeight() {
+    this.overlay.style.height = window.innerHeight + 'px';
   },
 
   // Show relative dialog and set message/input value well
@@ -138,6 +150,7 @@ var ModalDialog = {
     }
 
     this.elements.buttons.dataset.type = evt.detail.promptType;
+    this.setHeight();
   },
 
   hide: function md_hide() {
