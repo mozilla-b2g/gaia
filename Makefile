@@ -384,9 +384,18 @@ test-agent-bootstrap-apps:
 	@echo "Done bootstrapping test proxies/sandboxes";
 # Temp make file method until we can switch
 # over everything in test
+
+ifneq ($(strip $(APP)),)
+APP_TEST_LIST=$(shell find apps/$(APP)/test/unit -name '*_test.js')
+endif
+
 .PHONY: test-agent-test
 test-agent-test:
+ifneq ($(strip $(APP)),)
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER) $(APP_TEST_LIST)
+else
 	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER)
+endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install
