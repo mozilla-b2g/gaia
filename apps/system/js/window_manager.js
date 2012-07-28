@@ -434,7 +434,6 @@ var WindowManager = (function() {
       // - When running OOP - After trying to Login/Register, got white screen
       // - Works ok when running non-OOP
 
-      'System',
       'Test Agent',
 
       'UI tests',
