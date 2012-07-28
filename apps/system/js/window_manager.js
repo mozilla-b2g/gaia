@@ -336,9 +336,8 @@ var WindowManager = (function() {
     frame.setAttribute('mozbrowser', 'true');
     frame.setAttribute('mozapp', manifestURL);
 
-    // Run these apps out of process by default (except when OOP is
-    // forced off).  This is temporary: all apps will be out of
-    // process.
+    // These apps currently have bugs preventing them from being
+    // run out of process. All other apps will be run OOP.
     //
     var outOfProcessBlackList = [
       // Crash when placing call
