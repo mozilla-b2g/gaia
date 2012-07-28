@@ -485,7 +485,7 @@ var WindowManager = (function() {
     ];
     if (outOfProcessWhitelist.indexOf(name) >= 0) {
       // FIXME: content shouldn't control this directly
-      frame.setAttribute('remote', 'remote');
+      frame.setAttribute('remote', 'true');
       console.info('%%%%% Launching', name, 'as remote (OOP)');
     } else {
       console.info('%%%%% Launching', name, 'as local');
