@@ -171,7 +171,6 @@ iframe.backgroundWindow {
 }
 
 #keyboard-frame.visible {
-  z-index: 9000;
   pointer-events: auto;
 }
 
