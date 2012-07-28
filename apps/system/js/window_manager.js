@@ -446,6 +446,7 @@ var WindowManager = (function() {
       // - When running OOP, VolumeService dies - bug 775833
 
       'PenguinPop',
+      'PDF Viewer',
 
       //'Settings',
       // Most of settings seems to work OOP.

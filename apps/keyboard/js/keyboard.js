@@ -11,6 +11,20 @@ if (!window.navigator.mozKeyboard) {
       console.log('moz sendKey: (' + charCode + ', ' + keyCode + ')');
     }
   };
+} else {
+  var focusChangeTimeout = 0;
+  var focusChangeDelay = 20;
+  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+    clearTimeout(focusChangeTimeout);
+    focusChangeTimeout = setTimeout(function switchKeyboard() {
+      var type = evt.detail.type;
+      if (type === 'blur') {
+        IMEController.hideIME();
+      } else {
+        IMEController.showIME(type);
+      }
+    }, focusChangeDelay);
+  };
 }
 
 // in charge of initiate the controller and be aware about settings changes
@@ -124,13 +138,6 @@ const IMEManager = {
         );
       })(key);
     }
-
-    // Handle event from system app, i.e. keyboard manager
-    // Now this is for keyboard demo only
-    window.addEventListener('message', function receiver(evt) {
-      var event = JSON.parse(evt.data);
-      IMEManager.handleEvent(event);
-    });
   },
 
   uninit: function km_uninit() {
@@ -151,14 +158,6 @@ const IMEManager = {
   handleEvent: function km_handleEvent(evt) {
     var target = evt.target;
     switch (evt.type) {
-      case 'showime':
-        IMEController.showIME(evt.detail.type);
-        break;
-
-      case 'hideime':
-        IMEController.hideIME();
-        break;
-
       case 'resize':
         var currentWidth = window.innerWidth;
         var currentHeight = window.innerHeight;
@@ -170,11 +169,11 @@ const IMEManager = {
 
         this._formerWidth = currentWidth;
         this._formerHeight = currentHeight;
-      break;
+        break;
 
       case 'unload':
         this.uninit();
-      break;
+        break;
     }
   }
 };
@@ -199,6 +198,20 @@ function getWindowLeft(obj) {
 }
 
 var SettingsListener = {
+  _callbacks: {},
+
+  init: function sl_init() {
+    if ('mozSettings' in navigator && navigator.mozSettings)
+      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
+  },
+
+  onchange: function sl_onchange(evt) {
+    var callback = this._callbacks[evt.settingName];
+    if (callback) {
+      callback(evt.settingValue);
+    }
+  },
+
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
@@ -212,11 +225,11 @@ var SettingsListener = {
         req.result[name] : defaultValue);
     }));
 
-    settings.addObserver(name, function settingChanged(evt) {
-      callback(evt.settingValue);
-    });
+    this._callbacks[name] = callback;
   }
 };
+
+SettingsListener.init();
 
 window.addEventListener('load', function initIMEManager(evt) {
   window.removeEventListener('load', initIMEManager);

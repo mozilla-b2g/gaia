@@ -333,8 +333,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
       };
 
       req.onerror = function onScanError(error) {
-        clear(false);
-
         // auto-rescan if requested
         if (autoscan)
           window.setTimeout(scan, scanRate);
