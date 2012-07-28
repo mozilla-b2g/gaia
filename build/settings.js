@@ -18,6 +18,7 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 var settings = [
  new Setting("alarm.enabled", false),
  new Setting("accessibility.invert", false),
+ new Setting("audio.volume.master", 0.5),
  new Setting("bluetooth.enabled", false),
  new Setting("debug.grid.enabled", false),
  new Setting("debug.fps.enabled", false),
