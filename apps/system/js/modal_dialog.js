@@ -273,6 +273,10 @@ var ModalDialog = {
     // since system-app uses the different way to call ModalDialog.
     this.currentEvents['system'] = pseudoEvt;
     this.show('system');
+  },
+
+  modalDialogIsShown: function md_modalDialogIsShown() {
+    return this.screen.classList.contains('modal-dialog');
   }
 };
 
