@@ -18,6 +18,7 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 var settings = [
  new Setting("alarm.enabled", false),
  new Setting("accessibility.invert", false),
+ new Setting("audio.volume.master", 0.5),
  new Setting("bluetooth.enabled", false),
  new Setting("debug.grid.enabled", false),
  new Setting("debug.fps.enabled", false),
@@ -64,7 +65,6 @@ var settings = [
  new Setting("ril.radio.disabled", false),
  new Setting("screen.automatic-brightness", true),
  new Setting("screen.brightness", 1),
- new Setting("screen.timeout", 60),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
  new Setting("tethering.usb.enabled", false),
@@ -76,6 +76,14 @@ var settings = [
  new Setting("wifi.enabled", true),
  new Setting("wifi.notification", false)
 ];
+
+// Disable the screen timeout in DEBUG mode
+if (DEBUG) {
+  dump("Note: screen.timeout has been set to 0 because of the debug mode.\n");
+  settings[settings.length] = new Setting("screen.timeout", 0);
+} else {
+  settings[settings.length] = new Setting("screen.timeout", 60);
+}
 
 // Ensure there is no duplicate
 for (let i in settings) {

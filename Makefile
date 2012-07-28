@@ -138,8 +138,18 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
+# Settings database setup
+DB_TARGET_PATH = /data/local/indexedDB
+DB_SOURCE_PATH = profile/indexedDB/chrome
+
 # Generate profile/
-profile: preferences permissions test-agent-config offline extensions
+profile: preferences permissions test-agent-config offline extensions install-xulrunner-sdk
+	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
+	then \
+	  echo "Settings DB does not exists, creating an initial one:"; \
+	  $(call run-js-command, settings); \
+	fi ;
+
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -150,7 +160,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 webapp-manifests: install-xulrunner-sdk
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
-	$(call run-js-command, webapp-manifests)
+	@$(call run-js-command, webapp-manifests)
 	@cat profile/webapps/webapps.json
 	@echo "Done"
 
@@ -246,7 +256,7 @@ else
 endif
 
 define run-js-command
-	@echo "run-js-command $1";                                                  \
+	echo "run-js-command $1";                                                  \
 	JS_CONSTS='                                                                 \
 	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
@@ -260,10 +270,7 @@ endef
 
 settingsdb: install-xulrunner-sdk
 	@echo "B2G pre-populate settings DB."
-	$(call run-js-command, settings)
-
-DB_TARGET_PATH = /data/local/indexedDB
-DB_SOURCE_PATH = profile/indexedDB/chrome
+	@$(call run-js-command, settings)
 
 .PHONY: install-settingsdb
 install-settingsdb: settingsdb install-xulrunner-sdk
@@ -280,7 +287,7 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
 	test -d profile || mkdir -p profile
-	$(call run-js-command, preferences)
+	@$(call run-js-command, preferences)
 	if [ -f custom-prefs.js ]; \
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
@@ -292,7 +299,7 @@ preferences: install-xulrunner-sdk
 permissions: install-xulrunner-sdk
 	@echo "Generating permissions.sqlite..."
 	test -d profile || mkdir -p profile
-	$(call run-js-command, permissions)
+	@$(call run-js-command, permissions)
 	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/extensions
