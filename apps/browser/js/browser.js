@@ -15,12 +15,12 @@ var Browser = {
   REFRESH: 1,
   STOP: 2,
 
-  previousScreen: null,
-  currentScreen: null,
   PAGE_SCREEN: 'page-screen',
   TABS_SCREEN: 'tabs-screen',
   AWESOME_SCREEN: 'awesome-screen',
   SETTINGS_SCREEN: 'settings-screen',
+  previousScreen: null,
+  currentScreen: this.PAGE_SCREEN,
 
   DEFAULT_FAVICON: 'style/images/favicon.png',
   START_PAGE_URL: document.location.protocol + '//' + document.location.host +
