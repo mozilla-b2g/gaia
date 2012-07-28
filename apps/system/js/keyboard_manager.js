@@ -40,24 +40,29 @@ var KeyboardManager = (function() {
       currentApp = WindowManager.getAppFrame(app);
     }
 
-    var height = (parseInt(currentApp.style.height) -
-                  message.keyboardHeight);
+    var dialogOverlay = document.getElementById('dialog-overlay');
+
+    var height = currentApp.getBoundingClientRect().height -
+                  message.keyboardHeight;
     keyboardOverlay.hidden = true;
 
     if (message.hidden) {
       keyboardFrame.classList.add('hide');
       keyboardFrame.classList.remove('visible');
+      dialogOverlay.style.height = (height + 20) + 'px';
       return;
     }
 
     if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
+      dialogOverlay.style.height = (height + 20) + 'px';
       keyboardOverlay.style.height = (height + 20) + 'px';
       keyboardOverlay.hidden = false;
     } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
         keyboardFrame.removeEventListener('transitionend', keyboardShown);
+        dialogOverlay.style.height = (height + 20) + 'px';
         currentApp.style.height = height + 'px';
         keyboardOverlay.style.height = (height + 20) + 'px';
         keyboardOverlay.hidden = false;
