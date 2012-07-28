@@ -920,12 +920,11 @@ var Browser = {
     // transition has ended
     var pageShown = (function() {
       this.inTransition = false;
-      this.urlInput.focus();
       this.setUrlButtonMode(this.GO);
-      this.showTopSitesTab();
     }).bind(this);
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
+    this.showTopSitesTab();
   },
 
   showPageScreen: function browser_showPageScreen() {
