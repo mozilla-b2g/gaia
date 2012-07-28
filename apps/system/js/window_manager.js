@@ -340,9 +340,7 @@ var WindowManager = (function() {
     // forced off).  This is temporary: all apps will be out of
     // process.
     //
-    // When we're down to just esoteric bugs here (like edge cases in
-    // telephony API), this needs to become a blacklist.
-    var outOfProcessWhitelist = [
+    var outOfProcessBlackList = [
       // Crash when placing call
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=761925
       // Cross-process fullscreen
@@ -380,92 +378,67 @@ var WindowManager = (function() {
       // UI Test App - Notifications don't work properly when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776134
 
-      //'Browser',
+      'Browser',
       // - Needs Nested Content Process (bug 761935) for OOP
 
-      'Calculator',
-      'Calendar',
-
-      //'Camera',
+      'Camera',
       // - Camera app doesn't work yet on otoro - bug 740997
       // - When run OOP, VolumeService dies - bug 775833
       //   Cross-process camera control
       //   Cross-process preview stream
 
-      //'Clock',
+      'Clock',
       //  - OOP - asserts on w->mApp (bug 775576)
 
-      //'Contacts',
+      'Contacts',
       // System message handler (for WebActivities) doesn't get called
       // https://bugzilla.mozilla.org/show_bug.cgi?id=777195
       // Keyboard always shows up alpha when app using keyboard is run OOP
       // - bug 776118
 
-      'CrystalSkull',
-
-      'CubeVid',
-      // - Doesn't crash when run OOP, but audio is extremely choppy
-      //   Stop audio when app dies
-
-      //'Cut The Rope',
+      'Cut The Rope',
       // - Doesn't seem to work when non-OOP so didn't test OOP
       // - couldn't test OOP - since wifi wasn't working
       //   Mouse click not delivered
       //   Stop audio when app dies
 
-      'Dev Marketplace',
-
-      //'Dialer',
+      'Dialer',
       // - Dialer doesn't seem to see touches when running OOP - bug 776069
 
-      //'E-Mail',
+      'E-Mail',
       // - SSL/TLS support can only happen in the main process although the TCP
       //   support without security will accidentally work OOP:
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=770778
 
-      'FM Radio',
-
-      'Galactians2',  // Install from Dev Marketplace
-
-      //'Gallery',
+      'Gallery',
       // - When running OOP, doesn't detect any photos or crashes - bug 775591
       // - When running OOP, VolumeService dies - bug 775833
 
-      'Homescreen',
-      'Keyboard',
-
-      //'Marketplace',
+      'Marketplace',
       // - When running OOP - After trying to Login/Register, never get to
       //   persona scren - bug 776086
       // - When running OOP - Sometimes get w->mApp assert (bug 775576)
 
-      //'Messages',
+      'Messages',
       // - crashes when launched OOP on otoro - bug 775997
 
-      //'Music',
+      'Music',
       // - When running OOP, VolumeService dies - bug 775833
 
-      'PenguinPop',
-      'PDF Viewer',
-
-      //'Settings',
+      'Settings',
       // Most of settings seems to work OOP.
       // However, apprarently bluetooth doesn't - bug 755943
 
-      //'Staging Marketplace',
+      'Staging Marketplace',
       // - When running OOP - After trying to Login/Register, never get to
       //   persona scren - bug 776086
       // - When running OOP - After trying to Login/Register, got white screen
       // - Works ok when running non-OOP
 
-      //'System',
+      'System',
+      'Test Agent',
 
-      'Tasks',
-      'Template',
-      //'Test Agent',
-      'TowerJelly'
-
-      //'UI tests',
+      'UI tests',
       // Keyboard always shows up alpha when app using keyboard is running OOP
       //   - bug 776118
       // Insert Fake Contacts hangs when running OOP (or not OOP)
@@ -477,13 +450,14 @@ var WindowManager = (function() {
       // UI Test App - Notifications don't work properly when running OOP
       //   - bug 776134
 
-      //'Video',
+      'Video',
       // - When running OOP, VolumeService dies - bug 775833
       //   OOP - Assertion failure: w->mApp,
       //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
       //   Stop audio when app dies
     ];
-    if (outOfProcessWhitelist.indexOf(name) >= 0) {
+
+    if (outOfProcessBlackList.indexOf(name) === -1) {
       // FIXME: content shouldn't control this directly
       frame.setAttribute('remote', 'true');
       console.info('%%%%% Launching', name, 'as remote (OOP)');
