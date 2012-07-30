@@ -179,10 +179,11 @@ var TilesView = {
 
   setItemImage: function tv_setItemImage(item, image) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (image) {
-      item.addEventListener('load', cropImage);
-      item.src = createBase64URL(image);
-    }
+    if (!image)
+      return;
+
+    item.addEventListener('load', cropImage);
+    item.src = createBase64URL(image);
   },
 
   update: function tv_update(result) {
