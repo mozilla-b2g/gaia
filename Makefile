@@ -499,19 +499,19 @@ update-offline-manifests:
 # working on just gaia itself, and you already have B2G firmware on your
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
-PROFILE_PATH = /data/local/
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 install-gaia: profile
 	$(ADB) start-server
 	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /cache/*
+	$(ADB) remount
 
 ifeq ($(BUILD_APP_NAME),*)
 	python build/install-gaia.py "$(ADB)"
 else
-	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp /data/local/$(TARGET_FOLDER)/manifest.webapp
-	$(ADB) push profile/$(TARGET_FOLDER)/application.zip /data/local/$(TARGET_FOLDER)/application.zip
+	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp /system/b2g/$(TARGET_FOLDER)/manifest.webapp
+	$(ADB) push profile/$(TARGET_FOLDER)/application.zip /system/b2g/$(TARGET_FOLDER)/application.zip
 endif
 	@echo "Installed gaia into profile/."
 	@echo 'Starting b2g'
@@ -554,3 +554,4 @@ purge:
 	$(ADB) shell mkdir -p /data/local/tmp
 	$(ADB) shell rm -r /cache/*
 	$(ADB) shell rm -r /data/b2g/*
+	$(ADB) shell rm -r /system/b2g/webapps

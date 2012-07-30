@@ -139,15 +139,18 @@ def install_gaia_fast():
 
 def install_gaia_slow():
     global adb_cmd
-    adb_shell("rm -r /data/local/webapps", ignore_error=True)
+    adb_shell("rm -r /system/b2g/webapps", ignore_error=True)
     adb_shell("rm /data/local/user.js", ignore_error=True)
-    adb_push('profile/webapps', '/data/local/webapps')
+    adb_push('profile/webapps', '/system/b2g/webapps')
     adb_push('profile/user.js', '/data/local')
     adb_push('profile/permissions.sqlite', '/data/local')
 
 def install_gaia():
     try:
-        install_gaia_fast()
+        # XXX Force slow method until we fix the fast one to support
+        # files in both /system/b2b and /data/local
+        # install_gaia_fast()
+        install_gaia_slow()
     except:
         # If anything goes wrong, fall back to the slow method.
         install_gaia_slow()
