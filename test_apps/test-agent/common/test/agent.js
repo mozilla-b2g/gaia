@@ -84,7 +84,6 @@
     groupTestsByDomain: function(test) {
 
       var parsed = TestUrlResolver.parse(test);
-      dump('LOAD TEST:' + JSON.stringify(parsed) + '\n');
 
       var result = {
         domain: parsed.domain + '/test/unit/_proxy.html',
