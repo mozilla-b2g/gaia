@@ -359,7 +359,6 @@ var ThreadListUI = {
       }, filter);
     }
     // Cleaning
-    this.selectedInputList = [];
     this.editHeader.innerHTML = 'Edit mode';
     this.deleteSelectedButton.classList.add('disabled');
   },
@@ -825,7 +824,6 @@ var ThreadUI = {
       }
     });
     // Cleaning
-    this.selectedInputList = [];
     this.editHeader.innerHTML = 'Edit mode';
     this.deleteSelectedButton.classList.add('disabled');
   },
