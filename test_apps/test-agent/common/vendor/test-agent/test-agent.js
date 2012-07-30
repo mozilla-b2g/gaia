@@ -2495,6 +2495,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         if (typeof(data) === 'string') {
           data = JSON.parse(data);
         }
+        dump('GOT MESSAGE:' + JSON.stringify(data) + '\n');
         worker.respond(data);
       }
     },
@@ -2507,6 +2508,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       var args = Array.prototype.slice.call(arguments);
       args = JSON.stringify(args);
+      dump('POST MESSAGE: ' + args + '\n');
       this.targetWindow.postMessage(args, this.allowedDomains);
     }
 
