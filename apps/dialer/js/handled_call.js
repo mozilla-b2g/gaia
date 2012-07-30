@@ -7,11 +7,11 @@ function HandledCall(aCall, aNode) {
   this.call = aCall;
 
   this.node = aNode;
-  this.durationNode = this.node.querySelector('.duration span');
-  this.directionNode = this.node.querySelector('.duration .direction');
-  this.numberNode = this.node.querySelector('.number');
+  this.durationNode = aNode.querySelector('.duration span');
+  this.directionNode = aNode.querySelector('.duration .direction');
+  this.numberNode = aNode.querySelector('.number');
 
-  this.call.addEventListener('statechange', this);
+  aCall.addEventListener('statechange', this);
 
   this.recentsEntry = {
     date: Date.now(),
@@ -61,16 +61,17 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
 
 HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var number = this.call.number;
+  var node = this.numberNode;
 
   if (!number.length) {
-    this.numberNode.textContent = 'Anonymous';
+    node.textContent = 'Anonymous';
     return;
   }
 
   var voicemail = navigator.mozVoicemail;
   if (voicemail) {
     if (voicemail.number == number) {
-      this.numberNode.textContent = voicemail.displayName;
+      node.textContent = voicemail.displayName;
       return;
     }
   }
@@ -78,7 +79,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var self = this;
   Contacts.findByNumber(number, function lookupContact(contact) {
     if (contact && contact.name) {
-      self.numberNode.textContent = contact.name;
+      node.textContent = contact.name;
 
       if (contact.photo) {
         self.photo = contact.photo;
@@ -87,25 +88,23 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       return;
     }
 
-    self.numberNode.textContent = number;
+    node.textContent = number;
   });
 };
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {
   var className;
   if (this._initialState == 'dialing') {
-    className = ((this.call.state == 'connected') ? 'ongoing-out' : 'outgoing');
+    className = (this.call.state == 'connected') ? 'ongoing-out' : 'outgoing';
   } else {
-    className = ((this.call.state == 'connected') ? 'ongoing-in' : 'incoming');
+    className = (this.call.state == 'connected') ? 'ongoing-in' : 'incoming';
   }
 
   this.directionNode.classList.add(className);
 };
 
 HandledCall.prototype.remove = function hc_remove() {
-  if (this._ticker) {
-    clearInterval(this._ticker);
-  }
+  clearInterval(this._ticker);
 
   this.call.removeEventListener('statechange', this);
 

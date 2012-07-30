@@ -545,7 +545,6 @@ button[disabled] .icon-keypad-visibility {
     line-height: 100%;
   }
 
-  #calls > section .duration .direction,
   #calls[data-count="1"] > section .duration .direction {
     display: none;
   }

@@ -69,8 +69,6 @@ var CallScreen = {
 
     KeypadManager.formatPhoneNumber('on-call');
 
-    KeypadManager._phoneNumber = KeypadManager._phoneNumber;
-
     KeypadManager.phoneNumberView.value = KeypadManager._phoneNumber;
     KeypadManager.moveCaretToEnd(KeypadManager.phoneNumberView);
     this.views.classList.add('show');
@@ -225,12 +223,11 @@ var OnCallHandler = {
   },
 
   toggleMute: function ch_toggleMute() {
-    navigator.mozTelephony.muted = !navigator.mozTelephony.muted;
+    this._telephony.muted = !this._telephony.muted;
   },
 
   toggleSpeaker: function ch_toggleSpeaker() {
-    navigator.mozTelephony.speakerEnabled =
-      !navigator.mozTelephony.speakerEnabled;
+    this._telephony.speakerEnabled = !this._telephony.speakerEnabled;
   },
 
   toggleScreen: function ch_toggleScreen() {
