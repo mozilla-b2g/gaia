@@ -269,7 +269,7 @@ var ThreadListUI = {
     var element =
       this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
-      element.innerHTML = name == '' ? 'Unknown' : name;
+      element.innerHTML = name;
       //TODO Use l10n to Unknown string
     }
   },
@@ -621,7 +621,7 @@ var ThreadUI = {
       if (contact && contact.length > 0) {
         var name = contact[0].name || 'Unknown';
         //TODO l10n to 'Unknown' string
-        ThreadUI.title.innerHTML = name == '' ? 'Unknown' : name;
+        ThreadUI.title.innerHTML = name;
       }
     });
   },
