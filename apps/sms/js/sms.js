@@ -541,6 +541,7 @@ var ThreadUI = {
   init: function thui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
+    this.selectedInputList = [];
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.deleteAllButton.addEventListener('click',
@@ -551,6 +552,8 @@ var ThreadUI = {
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
     this.headerTitle.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
+///
+this.view.addEventListener('click', this);
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -755,8 +758,9 @@ var ThreadUI = {
     ThreadUI.delNumList = [];
     ThreadUI.pendingDelList = [];
     var tempTSList = [];
-    var inputs = ThreadUI.view.querySelectorAll(
-      'input[type="checkbox"]:checked');
+    // var inputs = ThreadUI.view.querySelectorAll(
+    //   'input[type="checkbox"]:checked');
+    var inputs = ThreadUI.selectedInputList;
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
       var inputValue = inputs[i].value;
@@ -851,6 +855,20 @@ var ThreadUI = {
 
   handleEvent: function thui_handleEvent(evt) {
     //TODO We will use for updating height of input if necessary
+switch (evt.type) {
+  case 'click':
+    console.log("CLICK ON SCREEN");
+    if (evt.target.type == 'checkbox') {
+      if (evt.target.checked) {
+        ThreadUI.selectedInputList.push(evt.target);
+      }
+        window.alert('CHECKED');
+      else
+        window.alert('UN-CHECKED');
+
+    }
+      break;
+}
   },
   cleanFields: function thui_cleanFields() {
     this.num.value = '';
