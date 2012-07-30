@@ -414,7 +414,6 @@
       return err.stack;
     }
 
-
     errType = err.type || err.constructor.name || 'Error:';
 
     stack = stack.replace(TIME_REGEX, '');
@@ -864,21 +863,12 @@
       element.src = url;
       element.async = false;
       element.type = this.type;
-
-      function oncomplete() {
+      element.onload = function onload() {
         if (callback) {
           callback();
         }
         self._next();
       }
-
-
-      //XXX: should we report missing
-      //files differently ? maybe
-      //fail the whole test case
-      //when a file is missing...?
-      element.onerror = oncomplete;
-      element.onload = oncomplete;
 
       document.getElementsByTagName('head')[0].appendChild(element);
     }
@@ -1408,15 +1398,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         stack = e.stack;
       }
 
-      if (stack) {
-        //re-orgnaize the stack to exlude the above
-        stack = stack.split('\n').map(function(e) {
-          return e.trim().replace(/^at /, '');
-        });
+      //re-orgnaize the stack to exlude the above
+      stack = stack.split('\n').map(function(e) {
+        return e.trim().replace(/^at /, '');
+      });
 
-        stack.splice(0, 1);
-        stack = stack.join('\n');
-      }
+      stack.splice(0, 1);
+      stack = stack.join('\n');
 
       //this is temp
       MochaReporter.send(
@@ -2495,7 +2483,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         if (typeof(data) === 'string') {
           data = JSON.parse(data);
         }
-        dump('GOT MESSAGE:' + JSON.stringify(data) + '\n');
         worker.respond(data);
       }
     },
@@ -2508,7 +2495,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       var args = Array.prototype.slice.call(arguments);
       args = JSON.stringify(args);
-      dump('POST MESSAGE: ' + args + '\n');
       this.targetWindow.postMessage(args, this.allowedDomains);
     }
 
@@ -2546,8 +2532,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     forwardEvents: ['test data', 'error', 'set test envs'],
 
     listenToWorker: 'post-message',
-
-    iframeAttrs: null,
 
     enhance: function(worker) {
       var self = this,
@@ -2611,19 +2595,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     createIframe: function(src) {
       var iframe = document.createElement('iframe');
       iframe.src = src + '?time' + String(Date.now());
-
-      if (this.iframeAttrs) {
-        var key;
-        for (key in this.iframeAttrs) {
-          if (this.iframeAttrs.hasOwnProperty(key)) {
-            iframe.setAttribute(
-              key,
-              this.iframeAttrs[key]
-            );
-          }
-        }
-      }
-
       document.body.appendChild(iframe);
 
       return iframe;
