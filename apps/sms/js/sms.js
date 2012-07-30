@@ -312,6 +312,7 @@ var ThreadListUI = {
     this.delNumList = [];
     this.selectedInputList = [];
     this.editHeader.innerHTML = 'Edit mode';
+    this.deleteSelectedButton.classList.add('disabled');
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
@@ -342,9 +343,7 @@ var ThreadListUI = {
   deleteThreads: function thlui_deleteThreads() {
     this.delNumList = []; //clean the lists before adding stuff
     this.pendingDelList = [];
-    // var inputs =
-    //      this.view.querySelectorAll('input[type="checkbox"]:checked');
-    var inputs = ThreadUI.selectedInputList;
+    var inputs = ThreadListUI.selectedInputList;
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
       var filter = MessageManager.createFilter(inputs[i].value);
@@ -359,6 +358,10 @@ var ThreadListUI = {
         }
       }, filter);
     }
+    // Cleaning
+    this.selectedInputList = [];
+    this.editHeader.innerHTML = 'Edit mode';
+    this.deleteSelectedButton.classList.add('disabled');
   },
 
   executeDeletion: function thlui_executeDeletion() {
@@ -754,6 +757,7 @@ var ThreadUI = {
     this.delNumList = [];
     this.selectedInputList = [];
     this.editHeader.innerHTML = 'Edit mode';
+    this.deleteSelectedButton.classList.add('disabled');
   },
 
   clearContact: function thui_clearContact() {
@@ -820,6 +824,10 @@ var ThreadUI = {
         }
       }
     });
+    // Cleaning
+    this.selectedInputList = [];
+    this.editHeader.innerHTML = 'Edit mode';
+    this.deleteSelectedButton.classList.add('disabled');
   },
 
   executeDeletion: function thui_executeDeletion() {
