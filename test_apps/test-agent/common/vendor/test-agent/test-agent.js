@@ -414,6 +414,7 @@
       return err.stack;
     }
 
+
     errType = err.type || err.constructor.name || 'Error:';
 
     stack = stack.replace(TIME_REGEX, '');
@@ -863,12 +864,21 @@
       element.src = url;
       element.async = false;
       element.type = this.type;
-      element.onload = function onload() {
+
+      function oncomplete() {
         if (callback) {
           callback();
         }
         self._next();
       }
+
+
+      //XXX: should we report missing
+      //files differently ? maybe
+      //fail the whole test case
+      //when a file is missing...?
+      element.onerror = oncomplete;
+      element.onload = oncomplete;
 
       document.getElementsByTagName('head')[0].appendChild(element);
     }
@@ -1398,13 +1408,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         stack = e.stack;
       }
 
-      //re-orgnaize the stack to exlude the above
-      stack = stack.split('\n').map(function(e) {
-        return e.trim().replace(/^at /, '');
-      });
+      if (stack) {
+        //re-orgnaize the stack to exlude the above
+        stack = stack.split('\n').map(function(e) {
+          return e.trim().replace(/^at /, '');
+        });
 
-      stack.splice(0, 1);
-      stack = stack.join('\n');
+        stack.splice(0, 1);
+        stack = stack.join('\n');
+      }
 
       //this is temp
       MochaReporter.send(
@@ -2533,6 +2545,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     listenToWorker: 'post-message',
 
+    iframeAttrs: null,
+
     enhance: function(worker) {
       var self = this,
           onMessage;
@@ -2595,6 +2609,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     createIframe: function(src) {
       var iframe = document.createElement('iframe');
       iframe.src = src + '?time' + String(Date.now());
+
+      if (this.iframeAttrs) {
+        var key;
+        for (key in this.iframeAttrs) {
+          if (this.iframeAttrs.hasOwnProperty(key)) {
+            iframe.setAttribute(
+              key,
+              this.iframeAttrs[key]
+            );
+          }
+        }
+      }
+
       document.body.appendChild(iframe);
 
       return iframe;
