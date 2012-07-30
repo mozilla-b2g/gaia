@@ -21,6 +21,11 @@ var StatusBar = {
   geolocationActive: false,
   geolocationTimer: null,
 
+  /* For other app to acquire */
+  get currentHeight() {
+    return this.element.getBoundingClientRect().height;
+  },
+
   init: function sb_init() {
     this.getAllElements();
 
@@ -404,6 +409,8 @@ var StatusBar = {
       this.icons[toCamelCase(name)] =
         document.getElementById('statusbar-' + name);
     }).bind(this));
+
+    this.element = document.getElementById('statusbar');
   }
 };
 
