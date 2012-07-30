@@ -4,30 +4,28 @@
 'use strict';
 
 var Payment = (function() {
-  var eventId = null;
+  var chromeEventId = null;
 
   function selectProvider(choice) {
     // Gaia sends the selected payment provider back to Chrome
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentEvent', true, true, {
-      id: eventId,
+      id: chromeEventId,      
       userSelection: choice
     });
     window.dispatchEvent(event);
-    eventId = null;  
+    chromeEventId = null;  
   };
 
   window.addEventListener('mozChromeEvent', function(e) {
-    eventId = e.detail.id;
+    chromeEventId = e.detail.id;
     switch (e.detail.type) {
       // Chrome asks Gaia to show the payment provider selection dialog
       case 'open-payment-selection-dialog':
         var providers = e.detail.paymentProviders;
-        if (!providers || !eventId)
+        if (!providers || !chromeEventId)
           return;
-        // Once the trusted dialog is opened and the payment provider
-        // selection screen is loaded the addProviders function creates
-        // and adds one button per payment provider option.
+        // We use ListMenu to show the payment provider options.
         var items = [];
         providers.forEach(function(provider, index) {
           items.push({
