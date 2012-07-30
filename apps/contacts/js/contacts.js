@@ -256,6 +256,7 @@ var Contacts = (function() {
     initPullEffect(cover);
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
+    document.body.classList.remove('hide');
   });
 
   var initLanguages = function initLanguages() {
@@ -894,8 +895,8 @@ var Contacts = (function() {
       var countryName = document.getElementById(selector).value || '';
 
       // Sanity check for pameters, check all params but the typeField
-      if (addressValue == '' && locality == '' && postalCode == ''
-        && countryName == '') {
+      if (addressValue == '' && locality == '' &&
+          postalCode == '' && countryName == '') {
         continue;
       }
 

@@ -43,7 +43,8 @@
   <script type="text/javascript" src="js/compose-cards.js"></script>
   <script type="text/javascript" src="js/setup-cards.js"></script>
   <!-- This one is an optimized vendor library containing our mail backend. -->
-  <script type="text/javascript" src="js/ext/gaia-email-opt.js"></script>
+  <script type="application/javascript;version=1.8"
+          src="js/ext/gaia-email-opt.js"></script>
   <script type="text/javascript" src="js/mail-app.js"></script>
 </head>
 
@@ -120,6 +121,18 @@
             </div>
             -->
             <div class="msg-messages-container">
+            </div>
+            <!-- maintain vertical space for the syncing/sync more div's
+                 regardless of their displayed status so we don't scroll them
+                 out of the way -->
+            <div class="msg-messages-sync-container">
+              <div class="msg-messages-syncing collapsed">
+                <span class="msg-messages-syncing-label"
+                      data-l10n-id="messages-syncing"></span>
+                <img class="msg-messages-syncing-spinner" />
+              </div>
+              <div class="msg-messages-sync-more collapsed"
+                   data-l10n-id="messages-sync-more">SynC MorE</div>
             </div>
             <div class="bottom-toolbar-spacer"></div>
           </div>
@@ -202,8 +215,7 @@
             </div>
             <h3 class="msg-envelope-subject"></h3>
           </div>
-          <div class="msg-body-container">
-          </div>
+          <div class="msg-body-container"></div>
           <ul class="msg-attachments-container">
           </ul>
           <div class="bottom-toolbar-spacer"></div>
@@ -386,7 +398,21 @@
           <button class="tng-close-btn header-left-btn"
                   data-l10n-id="settings-close">ClosE</button>
           <h2 class="tng-main-header-label header-label"
-              data-l10n-id="settings-main-header">MaiL SettingS</h2>
+              >Debug!</h2>
+          <ul>
+            <li>
+              <button class="tng-dbg-reset">Reset App</button>
+            </li>
+            <li>
+              <button class="tng-dbg-logging"></button>
+            </li>
+            <li>
+              <button class="tng-dbg-dangerous-logging"></button>
+            </li>
+            <li>
+              <button class="tng-dbg-dump-storage">Dump log to storage</button>
+            </li>
+          </ul>
         </div>
       </div>
     </div>

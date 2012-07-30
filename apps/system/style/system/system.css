@@ -74,7 +74,7 @@ body {
 }
 
 #windows > iframe.appWindow {
-  position: absolute;
+  position: fixed;
   border: 0;
   margin: 0;
   padding: 0;
@@ -82,7 +82,11 @@ body {
   left: 0;
   top: 20px;
   z-index: 1;
-
+  opacity: 0;
+  -moz-transform: scale(0.5);
+  -moz-transition-property: -moz-transform, opacity;
+  -moz-transition-duration: 0.5s;
+  -moz-transition-timing-function: ease;
 /*
  * Do not specify height/width here! They should go to
  * Window.prototype.resize() in window_manager.js
@@ -105,44 +109,12 @@ body {
 #windows > iframe.appWindow.active {
   z-index: 9995;
   background-color: #fff;
-}
-
-#windows > iframe.appWindow:not(.active) {
-  visibility: hidden;
-}
-
-#windowSprite {
-  position: absolute;
-  top: 20px;
-  left: 0;
-  width: 100%;
-  height: -moz-calc(100% - 20px);
-  z-index: 9999;
-  opacity: 0;
-  background-color: #373a3d;
-  pointer-events: none;
-  -moz-transform: scale(0.5);
-  -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
-}
-
-#windowSprite.open {
   -moz-transform: scale(1);
   opacity: 1;
 }
 
-#windowSprite.faded {
-  opacity: 0;
-}
-
-#windowSprite.close {
-  /* The transition on color is not really useful but it is used to fire
-     a transitionend event on the sprite after a certain amount of time.
-     This amount of time is when the 'transform' animation should start.
-  */
-  -moz-transition: color 0.1s ease, opacity 0.3s ease, -moz-transform 0.3s 0.1s ease;
-  -moz-transform: scale(0.5);
-  opacity: 0.3;
-  color: black;
+#windows > iframe.appWindow:not(.active) {
+  visibility: hidden;
 }
 
 .accessibility-invert {
@@ -163,22 +135,20 @@ iframe.backgroundWindow {
   bottom: 0;
   width: 100%;
   height: 100%;
-  z-index: 9000;
+  z-index: 10001;
   border: 0;
+  transform: translateY(0);
+  -moz-transition: -moz-transform 0.2s ease;
+  pointer-events: none;
 }
 
-/* XXX: better fix would be resize the
- * #popup-container and #modal-dialog
- * when keyboard is shown.
- */
-#screen.popup #keyboard-frame,
-#screen.modal-dialog #keyboard-frame {
-  z-index: 10001;
+#keyboard-frame.visible {
+  z-index: 9000;
+  pointer-events: auto;
 }
 
 #keyboard-frame.hide {
-  visibility: hidden;
-  bottom: 100%;
+  transform: translateY(100%);
 }
 
 #keyboard-overlay {
@@ -192,15 +162,24 @@ iframe.backgroundWindow {
   pointer-events: none;
 }
 
-/*
- * Keyboard is on top of these overlays, hiding the overlay
- */
-#screen.popup #keyboard-overlay,
-#screen.modal-dialog #keyboard-overlay {
-  display: none;
-}
-
 #screen.fullscreen #keyboard-overlay {
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
   z-index: 2147483647;
+}
+
+#dialog-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: none;
+}
+
+#screen.modal-dialog #dialog-overlay,
+#screen.modal-dialog #modal-dialog,
+#screen.popup #dialog-overlay,
+#screen.popup #popup-container {
+  display: block;
 }

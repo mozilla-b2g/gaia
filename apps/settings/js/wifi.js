@@ -158,11 +158,12 @@ window.addEventListener('localized', function wifiSettings(evt) {
     document.querySelector('#wifi-enabled input[type=checkbox]');
   var gWifiInfoBlock = document.querySelector('#wifi-desc');
 
+  if (!settings)
+    return;
+
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
-    if (settings) {
-      settings.getLock().set({'wifi.enabled': this.checked});
-    }
+    settings.getLock().set({'wifi.enabled': this.checked});
   };
 
   /** mozWifiManager status
@@ -182,20 +183,23 @@ window.addEventListener('localized', function wifiSettings(evt) {
     *          (transition: connected -> disconnected).
     */
   gWifiManager.onstatuschange = function(event) {
-    // update network status only if wifi is enabled.
-    if (gWifiManager.enabled) {
-      updateNetworkState();
+    updateNetworkState();
 
-      // refresh the network list when network is connected.
-      if (event.status == 'connected') {
-        gNetworkList.scan();
-      }
+    // refresh the network list when network is connected.
+    if (event.status === 'connected') {
+      gNetworkList.scan();
     }
   };
 
   gWifiManager.onenabled = function onWifiEnabled() {
-    updateNetworkState(); // update wifi state
+    updateNetworkState();
     gNetworkList.scan();
+  };
+
+  gWifiManager.ondisabled = function onWifiDisabled() {
+    gWifiInfoBlock.textContent = _('disabled');
+    gNetworkList.clear(false);
+    gNetworkList.autoscan = false;
   };
 
   // network list
@@ -282,12 +286,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
         return;
       }
 
-      var req = gWifiManager.getNetworks();
       scanning = true;
+      var req = gWifiManager.getNetworks();
 
       req.onsuccess = function onScanSuccess() {
-        scanning = false;
-
         // clear list again for showing scaning result.
         clear(false);
         var button = document.createElement('button');
@@ -326,15 +328,15 @@ window.addEventListener('localized', function wifiSettings(evt) {
         // auto-rescan if requested
         if (autoscan)
           window.setTimeout(scan, scanRate);
+
+        scanning = false;
       };
 
       req.onerror = function onScanError(error) {
-        scanning = false;
-        clear(false);
-
         // auto-rescan if requested
         if (autoscan)
           window.setTimeout(scan, scanRate);
+        scanning = false;
       };
 
     }
@@ -405,6 +407,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
     function wifiDisconnect() {
       gWifiManager.forget(network);
       gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
+      // get available network list
+      gNetworkList.scan();
     }
 
     function getKeyManagement() {
@@ -510,30 +514,26 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
   }
 
-  // current network state
+  // update network state, called only when wifi enabled.
   function updateNetworkState() {
     var currentNetwork = gWifiManager.connection.network;
     var networkStatus = gWifiManager.connection.status;
-    //XXX: we need a 'initializing' state, use 'offline' here.
-    if (!gWifiManager.enabled) {
-        gWifiInfoBlock.textContent = _('fullStatus-disconnected');
+    if (networkStatus === 'disconnected') {
+      gWifiInfoBlock.textContent = _('fullStatus-disconnected');
     } else {
-      if (networkStatus === 'associated' || networkStatus === 'connecting') {
-        gWifiInfoBlock.textContent = _('fullStatus-connecting', currentNetwork);
-      } else if (networkStatus === 'connected') {
-        gWifiInfoBlock.textContent = _('fullStatus-connected', currentNetwork);
-      } else {
-        gWifiInfoBlock.textContent = _('fullStatus-disconnected');
-      }
+      gWifiInfoBlock.textContent =
+          _('fullStatus-' + networkStatus, currentNetwork);
     }
   }
 
-  function setWifiEnabled(val) {
-    gWifiCheckBox.checked = val;
-    if (val) {
-      updateNetworkState(); // update wifi state
+  function setMozSettingsEnabled(value) {
+    gWifiCheckBox.checked = value;
+    if (value) {
+      // gWifiManager may not be ready (enabled) at this moment.
+      // to be responsive, show 'initializing' status and 'search...' first.
+      // a 'scan' would be called when gWifiManager is enabled.
+      gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
-      gNetworkList.scan();
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       gNetworkList.clear(false);
@@ -541,18 +541,29 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
   }
 
-  if (settings) {
-    // register an observer to monitor wifi.enabled changes
-    settings.addObserver('wifi.enabled', function(event) {
-      setWifiEnabled(event.settingValue);
-    });
+  var lastMozSettingValue = true;
 
-    // startup, update status
-    var req = settings.getLock().get('wifi.enabled');
-    req.onsuccess = function wf_EnabledSuccess() {
-      var enabled = req.result['wifi.enabled'];
-      setWifiEnabled(enabled);
+  // register an observer to monitor wifi.enabled changes
+  settings.addObserver('wifi.enabled', function(event) {
+    if (lastMozSettingValue == event.settingValue)
+      return;
+
+    lastMozSettingValue = event.settingValue;
+    setMozSettingsEnabled(event.settingValue);
+  });
+
+  // startup, update status
+  var req = settings.getLock().get('wifi.enabled');
+  req.onsuccess = function wf_getStatusSuccess() {
+    lastMozSettingValue = req.result['wifi.enabled'];
+    setMozSettingsEnabled(lastMozSettingValue);
+    if (lastMozSettingValue) {
+      // at this moment, gWifiManager probably have been enabled.
+      // so there won't invoke any status changed callback function
+      // therefore, we need to get network list here
+      updateNetworkState();
+      gNetworkList.scan();
     }
-  }
+  };
 });
 
