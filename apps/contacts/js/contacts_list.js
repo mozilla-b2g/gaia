@@ -181,9 +181,9 @@ contacts.List = (function() {
   // Fills the contact data to display if no givenName and familyName
   var refillContactData = function refillContactData(contact) {
     if (!contact.givenName && !contact.familyName) {
-      if (contact.tel) {
+      if (contact.tel && contact.tel.length > 0) {
         contact.givenName = contact.tel[0].number;
-      } else if (contact.email) {
+      } else if (contact.email && contact.email.length > 0) {
         contact.givenName = contact.email[0].address;
       } else {
         contact.givenName = _('noName');

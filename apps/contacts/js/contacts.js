@@ -230,14 +230,42 @@ var Contacts = (function() {
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
+    TAG_OPTIONS = {
+      'phone-type' : [
+        {value: _('mobile')},
+        {value: _('home')},
+        {value: _('work')},
+        {value: _('personal')},
+        {value: _('faxHome')},
+        {value: _('faxOffice')},
+        {value: _('faxOther')},
+        {value: _('another')}
+      ],
+      'email-type' : [
+        {value: _('personal')},
+        {value: _('home')},
+        {value: _('work')}
+      ],
+      'address-type' : [
+        {value: _('home')},
+        {value: _('work')}
+      ]
+    };
   };
 
-  window.addEventListener('load', function initContacts(evt) {
+  window.addEventListener('localized', function initContacts(evt) {
+    initLanguages();
     initContainers();
     initPullEffect(cover);
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
+    document.body.classList.remove('hide');
   });
+
+  var initLanguages = function initLanguages() {
+    document.documentElement.lang = navigator.mozL10n.language.code;
+    document.documentElement.dir = navigator.mozL10n.language.direction;
+  };
 
   var loadList = function loadList() {
     var list = document.getElementById('groups-list');
@@ -741,7 +769,7 @@ var Contacts = (function() {
       if (myContact.familyName) {
         name += myContact.familyName;
       }
-      myContact.name = name;
+      myContact.name = [name];
     }
 
     getPhones(myContact);
@@ -1070,34 +1098,6 @@ var ActivityHandler = {
   }
 };
 
-// set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showPanel() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-  document.body.classList.remove('hide');
-
-  TAG_OPTIONS = {
-    'phone-type' : [
-      {value: _('mobile')},
-      {value: _('home')},
-      {value: _('work')},
-      {value: _('personal')},
-      {value: _('faxHome')},
-      {value: _('faxOffice')},
-      {value: _('faxOther')},
-      {value: _('another')}
-    ],
-    'email-type' : [
-      {value: _('personal')},
-      {value: _('home')},
-      {value: _('work')}
-    ],
-    'address-type' : [
-      {value: _('home')},
-      {value: _('work')}
-    ]
-  };
-});
 
 var actHandler = ActivityHandler.handle.bind(ActivityHandler);
 window.navigator.mozSetMessageHandler('activity', actHandler);
