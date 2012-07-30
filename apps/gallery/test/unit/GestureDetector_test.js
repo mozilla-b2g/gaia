@@ -1,5 +1,5 @@
 requireCommon('test/synthetic_gestures.js');
-requireApp('gallery/js/GestureDetector.js');
+require('/shared/js/gesture_detector.js');
 
 suite('GestureDetector', function() {
 

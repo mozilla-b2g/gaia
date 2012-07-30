@@ -115,6 +115,7 @@ DOWNLOAD_CMD = wget
 endif
 
 # Test agent setup
+TEST_COMMON=test_apps/test-agent/common
 TEST_AGENT_DIR=tools/test-agent/
 ifeq ($(strip $(NODEJS)),)
 	NODEJS := `which node`
@@ -324,6 +325,11 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
+TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
+.PHONY: test-integration
+test-integration:
+	test_apps/test-agent/common/test/bin/test $(TESTS)
+
 .PHONY: tests
 tests: webapp-manifests offline
 	echo "Checking if the mozilla build has tests enabled..."
@@ -341,16 +347,18 @@ common-install:
 
 .PHONY: update-common
 update-common: common-install
-	mkdir -p common/vendor/test-agent/
-	mkdir -p common/vendor/marionette-client/
-	mkdir -p common/vendor/chai/
-	rm -f common/vendor/test-agent/test-agent*.js
-	rm -f common/vendor/marionette-client/*.js
-	rm -f common/vendor/chai/*.js
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js common/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css common/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js common/vendor/marionette-client/
-	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js common/vendor/chai/
+	mkdir -p $(TEST_COMMON)/vendor/test-agent/
+	mkdir -p $(TEST_COMMON)/vendor/marionette-client/
+	mkdir -p $(TEST_COMMON)/vendor/chai/
+	rm -Rf tools/xpcwindow
+	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
+	rm -f $(TEST_COMMON)/vendor/marionette-client/*.js
+	rm -f $(TEST_COMMON)/vendor/chai/*.js
+	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
+	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
+	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
+	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js $(TEST_COMMON)/vendor/marionette-client/
+	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI
@@ -378,15 +386,25 @@ test-agent-bootstrap-apps:
 	do \
 		  mkdir -p $$d/test/unit ; \
 		  mkdir -p $$d/test/integration ; \
-			cp -f ./common/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
-			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
+			cp -f $(TEST_COMMON)/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
+			cp -f $(TEST_COMMON)/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
 	@echo "Done bootstrapping test proxies/sandboxes";
+
 # Temp make file method until we can switch
 # over everything in test
+ifneq ($(strip $(APP)),)
+APP_TEST_LIST=$(shell find apps/$(APP)/test/unit -name '*_test.js')
+endif
 .PHONY: test-agent-test
 test-agent-test:
+ifneq ($(strip $(APP)),)
+	@echo 'Running tests for $(APP)';
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER) $(APP_TEST_LIST)
+else
+	@echo 'Running all tests';
 	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER)
+endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install
@@ -424,7 +442,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'email/js/ext,music/js/ext,calendar/js/ext,keyboard/js/predictive_text'
+	@gjslint --nojsdoc -r apps -e 'pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext,keyboard/js/predictive_text'
 	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia

@@ -917,7 +917,7 @@
     },
 
     // this can be used to avoid race conditions
-    get readyState() { return gReadyState; },
+    get readyState() { return gReadyState; }
   };
 
   consoleLog('library loaded.');
