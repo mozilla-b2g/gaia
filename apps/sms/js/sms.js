@@ -664,6 +664,8 @@ var ThreadUI = {
                         '<div class="bubble">' + bodyHTML + '</div>' +
                         '</span>';
     // Add 'gif' if necessary
+    //TODO: We may need to have additional delivery status or parameter for
+    //      appendMessage to add sending/pending icon.
     if (message.delivery == 'sending') {
       messageDOM.addEventListener('click',
         ThreadUI.resendMessage.bind(ThreadUI, message));
@@ -942,6 +944,8 @@ var ThreadUI = {
         }, filter, true);
       });
       window.setTimeout(ThreadUI.sendMessage.bind(ThreadUI, message.body), 500);
+    } else {
+      //TODO: Replace the gif icon with exclamation mark icon.
     }
   },
 
