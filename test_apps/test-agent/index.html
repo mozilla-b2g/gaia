@@ -14,10 +14,10 @@
   <script type="text/javascript" charset="utf-8">
   (function(window){
     var Loader = window.CommonResourceLoader = {},
-        host = document.location.host,
-        domain = host.replace(/(^[\w\d-]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        domain = document.location.host;
 
     Loader.domain = document.location.protocol + '//' + domain;
+    dump('DEBUG::' + Loader.domain + '\n');
     Loader.url = function(url){
       return this.domain + url;
     }
