@@ -76,7 +76,6 @@ if (!webappsTargetDir.exists())
   webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
 
 let manifests = {};
-let id = 1;
 
 // Process webapps from GAIA_APP_SRCDIRS folders
 let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
@@ -111,8 +110,7 @@ appSrcDirs.forEach(function parseDirectory(srcDir) {
       installOrigin: url,
       receipt:       null,
       installTime:   132333986000,
-      manifestURL:   url + '/manifest.webapp',
-      localId:       id++
+      manifestURL:   url + '/manifest.webapp'
     };
 
   });
@@ -154,8 +152,7 @@ getSubDirectories(EXTERNAL_APPS_DIR).forEach(function readManifests(webappSrcDir
     installOrigin: url,
     receipt:       null,
     installTime:   132333986000,
-    manifestURL:   url + '/manifest.webapp',
-    localId:       id++
+    manifestURL:   url + '/manifest.webapp'
   };
 });
 
