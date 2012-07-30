@@ -4,8 +4,6 @@
 'use strict';
 
 var Payment = (function() {
-  var providers = null;
-  var providerList = null;
   var eventId = null;
 
   function selectProvider(choice) {
@@ -24,7 +22,7 @@ var Payment = (function() {
     switch (e.detail.type) {
       // Chrome asks Gaia to show the payment provider selection dialog
       case 'open-payment-selection-dialog':
-        providers = e.detail.paymentProviders;
+        var providers = e.detail.paymentProviders;
         if (!providers || !eventId)
           return;
         // Once the trusted dialog is opened and the payment provider
@@ -45,7 +43,6 @@ var Payment = (function() {
       case 'open-payment-flow-dialog':
         if (!e.detail.url)
           return;
-        providers = null;
         // TODO: For now, known payment providers (BlueVia and Mozilla Market)
         //       only accepts the JWT by GET, so we just add it to the URL.
         e.detail.url += e.detail.jwt;
