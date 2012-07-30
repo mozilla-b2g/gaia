@@ -4,7 +4,7 @@
   left: 0;
   width: 100%;
   height: -moz-calc(100% - 20px);
-  z-index: 10002;  /* under modal dialog */
+  z-index: 10000;  /* as modal dialog */
   background-color: rgba(0, 0, 0, 0.8);
   display: block;
   font-size: 2rem;

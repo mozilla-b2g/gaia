@@ -30,6 +30,8 @@ var ValueSelector = {
     };
 
     window.addEventListener('select', this);
+    window.addEventListener('appopen', this);
+    window.addEventListener('appwillclose', this);
   },
 
   handleEvent: function vs_handleEvent(evt) {
@@ -38,6 +40,11 @@ var ValueSelector = {
         this.debug('select triggered' + JSON.stringify(evt.detail));
         this._singleSelect = !evt.detail.choices.multiple;
         this.show(evt.detail);
+        break;
+
+      case 'appopen':
+      case 'appwillclose':
+        this.hide();
         break;
 
       case 'click':
