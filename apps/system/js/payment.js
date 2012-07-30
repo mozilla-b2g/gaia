@@ -3,40 +3,20 @@
 
 'use strict';
 
-const kPaymentProvidersDialog = 'payment.html';
-
 var Payment = (function() {
   var providers = null;
   var providerList = null;
   var eventId = null;
 
-  function addProviders(evt) {
-    var frame = evt.target;
-    if (!frame || !providers)
-      return
-
-    var frameDocument = frame.contentWindow.document;
-    var providersHolder = frameDocument.getElementById('providers');
-    providerList = providersHolder.getElementsByTagName('ul')[0];
-    for (var i in providers) {
-      var providerElement = frameDocument.createElement('li');
-      var button = frameDocument.createElement('button');
-      button.setAttribute('type', 'button');
-      button.setAttribute('value', providers[i].typ);
-      button.onclick = function selectProvider(evt) {
-        // Gaia sends the selected payment provider back to Chrome
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('mozContentEvent', true, true,
-                              {id: eventId,
-                               userSelection: this.getAttribute('value')});
-        window.dispatchEvent(event);
-        eventId = null;
-      };
-      button.classList.add(providers[i].name);
-      providerElement.appendChild(button);
-      providerList.appendChild(providerElement);
-    }
-    return true;
+  function selectProvider(choice) {
+    // Gaia sends the selected payment provider back to Chrome
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, {
+      id: eventId,
+      userSelection: choice
+    });
+    window.dispatchEvent(event);
+    eventId = null;  
   };
 
   window.addEventListener('mozChromeEvent', function(e) {
@@ -50,8 +30,14 @@ var Payment = (function() {
         // Once the trusted dialog is opened and the payment provider
         // selection screen is loaded the addProviders function creates
         // and adds one button per payment provider option.
-        var frame = TrustedDialog.open(kPaymentProvidersDialog,
-                                       addProviders);
+        var items = [];
+        providers.forEach(function(provider, index) {
+          items.push({
+            label: provider.name,
+            value: provider.typ
+          });
+        });
+        ListMenu.request(items, selectProvider);
         break;
 
       // Chrome asks Gaia to show the payment flow according to the
@@ -68,8 +54,10 @@ var Payment = (function() {
         // flow, we send it back to chrome so payment callbacks can be
         // injected.
         var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('mozContentEvent', true, true,
-                              {id: e.detail.id, frame: frame});
+        event.initCustomEvent('mozContentEvent', true, true, {
+          id: e.detail.id,
+          frame: frame
+        });
         window.dispatchEvent(event);
         break;
     }
