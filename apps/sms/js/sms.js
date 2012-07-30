@@ -257,11 +257,13 @@ var ThreadListUI = {
   init: function thlui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
+    this.selectedInputList = [];
     this.deleteAllButton.addEventListener('click',
       this.deleteAllThreads.bind(this));
     this.deleteSelectedButton.addEventListener('click',
       this.deleteThreads.bind(this));
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
+    this.view.addEventListener('click', this);
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
@@ -273,6 +275,28 @@ var ThreadListUI = {
     }
   },
 
+    handleEvent: function thlui_handleEvent(evt) {
+    //TODO We will use for updating height of input if necessary
+      switch (evt.type) {
+        case 'click':
+          if (evt.target.type == 'checkbox') {
+            if (evt.target.checked) {
+              ThreadListUI.selectedInputList.push(evt.target);
+            } else {
+              ThreadListUI.selectedInputList.splice(
+                        ThreadListUI.selectedInputList.indexOf(evt.target), 1);
+            }
+            var selected = ThreadListUI.selectedInputList.length;
+            if (selected > 0) {
+              ThreadListUI.deleteSelectedButton.classList.remove('disabled');
+            } else {
+              ThreadListUI.deleteSelectedButton.classList.add('disabled');
+            }
+          }
+            break;
+      }
+  },
+
   cleanForm: function thlui_cleanForm() {
     var inputs = this.view.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < inputs.length; i++) {
@@ -280,6 +304,7 @@ var ThreadListUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
+    this.selectedInputList = [];
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
@@ -310,7 +335,9 @@ var ThreadListUI = {
   deleteThreads: function thlui_deleteThreads() {
     this.delNumList = []; //clean the lists before adding stuff
     this.pendingDelList = [];
-    var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
+    // var inputs =
+    //      this.view.querySelectorAll('input[type="checkbox"]:checked');
+    var inputs = ThreadUI.selectedInputList;
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
       var filter = MessageManager.createFilter(inputs[i].value);
@@ -552,8 +579,7 @@ var ThreadUI = {
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
     this.headerTitle.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
-///
-this.view.addEventListener('click', this);
+    this.view.addEventListener('click', this);
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -714,6 +740,7 @@ this.view.addEventListener('click', this);
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
+    this.selectedInputList = [];
   },
 
   clearContact: function thui_clearContact() {
@@ -758,8 +785,6 @@ this.view.addEventListener('click', this);
     ThreadUI.delNumList = [];
     ThreadUI.pendingDelList = [];
     var tempTSList = [];
-    // var inputs = ThreadUI.view.querySelectorAll(
-    //   'input[type="checkbox"]:checked');
     var inputs = ThreadUI.selectedInputList;
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
@@ -817,7 +842,6 @@ this.view.addEventListener('click', this);
                         mainWrapper.classList.remove('edit');
                         window.location.hash = '#thread-list';
                       });
-
                     }
                 },filter);
               });
@@ -841,9 +865,7 @@ this.view.addEventListener('click', this);
                 mainWrapper.classList.remove('edit');
                 window.location.hash = '#thread-list';
               });
-
             }
-
           },filter);
         }
 
@@ -855,20 +877,24 @@ this.view.addEventListener('click', this);
 
   handleEvent: function thui_handleEvent(evt) {
     //TODO We will use for updating height of input if necessary
-switch (evt.type) {
-  case 'click':
-    console.log("CLICK ON SCREEN");
-    if (evt.target.type == 'checkbox') {
-      if (evt.target.checked) {
-        ThreadUI.selectedInputList.push(evt.target);
-      }
-        window.alert('CHECKED');
-      else
-        window.alert('UN-CHECKED');
-
+    switch (evt.type) {
+      case 'click':
+        if (evt.target.type == 'checkbox') {
+          if (evt.target.checked) {
+            ThreadUI.selectedInputList.push(evt.target);
+          } else {
+            ThreadUI.selectedInputList.splice(
+                            ThreadUI.selectedInputList.indexOf(evt.target), 1);
+          }
+          var selected = ThreadUI.selectedInputList.length;
+          if (selected > 0) {
+            ThreadUI.deleteSelectedButton.classList.remove('disabled');
+          } else {
+            ThreadUI.deleteSelectedButton.classList.add('disabled');
+          }
+        }
+          break;
     }
-      break;
-}
   },
   cleanFields: function thui_cleanFields() {
     this.num.value = '';
