@@ -13,7 +13,13 @@ var SourceView = {
   },
 
   init: function sv_init() {
-    window.addEventListener('keyup', this);
+    window.addEventListener('home+volume', function() {
+        if (ScreenManager.screenEnabled)
+          SourceView.toggle();
+      });
+    window.addEventListener('locked', function() {
+        SourceView.hide();
+      });
   },
 
   show: function sv_show() {
@@ -37,8 +43,6 @@ var SourceView = {
       viewsource = document.createElement('iframe');
       viewsource.id = 'appViewsource';
       document.body.appendChild(viewsource);
-
-      window.addEventListener('locked', this);
     }
 
     var url = WindowManager.getDisplayedApp();
@@ -59,21 +63,5 @@ var SourceView = {
 
   toggle: function sv_toggle() {
     this.active ? this.hide() : this.show();
-  },
-
-  handleEvent: function sv_handleEvent(evt) {
-    switch (evt.type) {
-      case 'locked':
-        this.hide();
-        break;
-
-      case 'keyup':
-        if (!ScreenManager.screenEnabled ||
-            evt.keyCode !== evt.DOM_VK_CONTEXT_MENU)
-          return;
-
-        this.toggle();
-        break;
-    }
   }
 };

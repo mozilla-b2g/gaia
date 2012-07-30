@@ -90,11 +90,13 @@ function hookStartup() {
   }
 
   window.addEventListener('localized', function() {
+    console.log('got localized!');
     gotLocalized = true;
     if (gotMailAPI)
       doInit();
   }, false);
   window.addEventListener('mailapi', function(event) {
+    console.log('got MailAPI!');
     MailAPI = event.mailAPI;
     gotMailAPI = true;
     if (gotLocalized)
