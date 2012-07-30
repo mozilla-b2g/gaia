@@ -111,7 +111,7 @@ var queryURI = function _queryURI(uri) {
       return [''];
     addresses = addresses.split(';');
     var addressesArray = addresses.filter(function notEmpty(addr) {
-      return addr.trim() == '';
+      return addr.trim() != '';
     });
     return addressesArray;
   }

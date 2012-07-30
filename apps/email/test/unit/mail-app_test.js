@@ -3,14 +3,14 @@ requireApp('email/js/mail-app.js');
 suite('email/mail-app', function() {
 
 
-  suite('#to', function() {
+  test('#to', function() {
 
     assert.deepEqual(queryURI('mailto:Email.address1@mailto.com'),
     [['Email.address1@mailto.com'], undefined, undefined, undefined, undefined],
     'to single address test fail');
 
     assert.deepEqual(queryURI(
-    'mailto:Email.address1@mailto.com; Email.address2@mailto.com'),
+    'mailto:Email.address1@mailto.com;Email.address2@mailto.com'),
     [['Email.address1@mailto.com', 'Email.address2@mailto.com'],
     undefined, undefined, undefined, undefined],
     'to multi-addresses test fail');
@@ -19,13 +19,13 @@ suite('email/mail-app', function() {
   });
 
 
- suite('#cc', function() {
+  test('#cc', function() {
 
-    assert.deepEqual(queryURI('mailto:?cc= EmailCc.address@mailto.com'),
+    assert.deepEqual(queryURI('mailto:?cc=EmailCc.address@mailto.com'),
     [[''], undefined, undefined, ['EmailCc.address@mailto.com'], undefined],
     'cc single address test fail');
 
-    assert.deepEqual(queryURI('mailto:?cc= EmailCc.address1@mailto.com;' +
+    assert.deepEqual(queryURI('mailto:?cc=EmailCc.address1@mailto.com;' +
     'EmailCc.address2@mailto.com;EmailCc.address3@mailto.com'),
     [[''], undefined, undefined, ['EmailCc.address1@mailto.com',
     'EmailCc.address2@mailto.com',
@@ -36,13 +36,13 @@ suite('email/mail-app', function() {
   });
 
 
- suite('#bcc', function() {
+ test('#bcc', function() {
 
-    assert.deepEqual(queryURI('mailto:?bcc= EmailBcc.address@mailto.com'),
+    assert.deepEqual(queryURI('mailto:?bcc=EmailBcc.address@mailto.com'),
     [[''], undefined, undefined, undefined, ['EmailBcc.address@mailto.com']],
     'bcc single address test');
 
-    assert.deepEqual(queryURI('mailto:?bcc= EmailBcc.address1@mailto.com;' +
+    assert.deepEqual(queryURI('mailto:?bcc=EmailBcc.address1@mailto.com;' +
     'EmailBcc.address2@mailto.com;EmailBcc.address3@mailto.com'),
     [[''], undefined, undefined, undefined, ['EmailBcc.address1@mailto.com',
     'EmailBcc.address2@mailto.com',
@@ -52,7 +52,7 @@ suite('email/mail-app', function() {
   });
 
 
- suite('#subject', function() {
+ test('#subject', function() {
 
     assert.deepEqual(queryURI('mailto:?subject=This is the subject line'),
     [[''], 'This is the subject line', undefined, undefined, undefined],
@@ -62,7 +62,7 @@ suite('email/mail-app', function() {
   });
 
 
- suite('#body', function() {
+ test('#body', function() {
 
     assert.deepEqual(queryURI('mailto:?body=This is the body'),
     [[''], undefined, 'This is the body', undefined, undefined],
@@ -72,7 +72,7 @@ suite('email/mail-app', function() {
   });
 
 
- suite('#complex tests', function() {
+ test('#complex tests', function() {
 
     assert.deepEqual(queryURI(
     'mailto:Email.address1@mailto.com;Email.address2@mailto.com?' +
@@ -93,6 +93,7 @@ suite('email/mail-app', function() {
     ['EmailCc1.address@mailto.com'],
     ['EmailBCc1.address@mailto.com']],
     'complex 2 test fail');
+
 
 
   });
