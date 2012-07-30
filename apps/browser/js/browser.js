@@ -147,7 +147,7 @@ var Browser = {
     }
   },
 
-  // Tabs badge is the button at the top left, used to show the number of tabs
+  // Tabs badge is the button at the top right, used to show the number of tabs
   // and to create new ones
   handleTabsBadgeClicked: function browser_handleTabsBadgeClicked(e) {
     if (this.inTransition) {
