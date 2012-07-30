@@ -73,6 +73,14 @@ contacts.List = (function() {
     name.className = 'block-name';
     name.innerHTML = contact.givenName;
     name.innerHTML += ' <b>' + contact.familyName + '</b>';
+    var searchInfo = [];
+    if (contact.givenName && contact.givenName[0]) {
+      searchInfo.push(contact.givenName[0]);
+    }
+    if (contact.familyName && contact.familyName[0]) {
+      searchInfo.push(contact.familyName[0]);
+    }
+    body.dataset['search'] = normalizeText(searchInfo.join(' '));
     body.appendChild(name);
     var small = document.createElement('small');
     small.className = 'block-company';
@@ -353,14 +361,14 @@ contacts.List = (function() {
 
   var search = function performSearch() {
 
-    var pattern = new RegExp(searchBox.value, 'i');
+    var pattern = new RegExp(normalizeText(searchBox.value), 'i');
     var count = 0;
 
     var allContacts = getContactsDom();
     for (var i = 0; i < allContacts.length; i++) {
       var contact = allContacts[i];
       contact.classList.add('search');
-      var text = contact.querySelector('.item-body').textContent;
+      var text = contact.querySelector('.item-body').dataset['search'];
       if (!pattern.test(text)) {
         contact.classList.add('hide');
       }
