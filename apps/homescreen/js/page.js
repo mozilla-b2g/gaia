@@ -465,12 +465,13 @@ Page.prototype = {
   /*
    * Movement feedback
   */
-  bounce: function pg_bounce(direction) {
+  bounce: function pg_bounce(direction, callback) {
     var container = this.container;
     var dataset = this.container.dataset;
     container.addEventListener('animationend', function animationEnd(e) {
       container.removeEventListener('animationend', animationEnd);
       dataset.bouncing = '';
+      callback();
     });
 
     if (direction > 0) {
