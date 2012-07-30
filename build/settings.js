@@ -6,7 +6,7 @@
 
 'use strict';
 
-const SETTINGS_DEBUG = true;
+const SETTINGS_DEBUG = false;
 function debug(msg) {
   if (SETTINGS_DEBUG)
     dump("-*- Populate SettingsDB: " + msg + "\n");
@@ -20,7 +20,7 @@ var settings = [
  new Setting("accessibility.invert", false),
  new Setting("audio.volume.master", 0.5),
  new Setting("bluetooth.enabled", false),
- new Setting("debug.grid.enabled", true),
+ new Setting("debug.grid.enabled", false),
  new Setting("debug.fps.enabled", false),
  new Setting("debug.paint-flashing.enabled", false),
  new Setting("devtools.debugger.force-local", true),
@@ -116,7 +116,7 @@ const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils' : Cu } = Compone
     getFile: function provider_getFile(prop, persistent) {
       persistent.value = true;
       debug("prop: " + prop);
-      if (prop != "ProfD" && prop != "ProfLDS" && prop != "indexedDBPDir") {
+      if (prop != "ProfD" && prop != "ProfLDS") {
         throw Cr.NS_ERROR_FAILURE;
       }
 
@@ -145,7 +145,6 @@ let settingsDBService = Cc["@mozilla.org/settingsService;1"].getService(Ci.nsISe
 let callback = {
   handle : function handle(name, result)
   {
-    dump("name: " + name + "counter: " + Setting.counter + "\n");
     Setting.counter--;
   },
 
