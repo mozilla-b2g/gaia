@@ -48,6 +48,7 @@ var TonePlayer = {
 
 var KeypadManager = {
   _phoneNumber: '',
+  _onCall: false,
 
   get phoneNumberView() {
     delete this.phoneNumberView;
@@ -111,12 +112,6 @@ var KeypadManager = {
       document.getElementById('keypad-hidebar-hide-keypad-action');
   },
 
-  get contactPrimaryInfo() {
-    delete this.contactPrimaryInfo;
-    return this.contactPrimaryInfo =
-      document.getElementById('contact-primary-info');
-  },
-
   init: function kh_init() {
     // Update the minimum phone number phone size.
     // The UX team states that the minimum font size should be
@@ -173,6 +168,9 @@ var KeypadManager = {
 
   render: function hk_render(layoutType) {
     if (layoutType == 'oncall') {
+      this._onCall = true;
+      var numberNode = CallScreen.activeCall.querySelector('.number');
+      this._phoneNumber = numberNode.textContent;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
       if (this.callBar) {
         this.callBar.classList.add('hide');
@@ -226,7 +224,7 @@ var KeypadManager = {
   },
 
   callbarBackAction: function hk_callbarBackAction(event) {
-    CallScreen.toggleKeypad();
+    CallScreen.hideKeypad();
   },
 
   hangUpCallFromKeypad: function hk_hangUpCallFromKeypad(event) {
@@ -249,8 +247,8 @@ var KeypadManager = {
       break;
 
       case 'on-call':
-        var fakeView = CallScreen.fakeContactPrimaryInfo;
-        var view = CallScreen.contactPrimaryInfo;
+        var fakeView = CallScreen.activeCall.querySelector('.fake-number');
+        var view = CallScreen.activeCall.querySelector('.number');
       break;
     }
 
@@ -393,9 +391,9 @@ var KeypadManager = {
       this.deleteButton.style.visibility = visibility;
     }
 
-    if (this.contactPrimaryInfo) {
-      this.contactPrimaryInfo.value = phoneNumber;
-      this.moveCaretToEnd(this.contactPrimaryInfo);
+    if (this._onCall) {
+      var view = CallScreen.activeCall.querySelector('.number');
+      view.textContent = phoneNumber;
       this.formatPhoneNumber('on-call');
     } else {
       this.phoneNumberView.value = phoneNumber;

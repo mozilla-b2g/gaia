@@ -30,6 +30,7 @@ suite('store/account', function() {
   }
 
   setup(function(done) {
+    this.timeout(5000);
     db = testSupport.calendar.db();
     subject = db.getStore('Account');
 

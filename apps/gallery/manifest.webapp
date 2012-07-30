@@ -12,6 +12,20 @@
     "indexedDB-unlimited",
     "offline-app"
   ],
+  "activities": {
+    "browse": {
+      "filters": {
+        "type": "photos"
+       },
+      "disposition": "window"
+    },
+    "pick": {
+      "filters": {
+        "type": "image/jpeg"
+       },
+      "disposition": "window"
+    }
+  },
   "locales": {
     "ar": {
       "name": "\u0625\u0633\u062a\u062f\u064a\u0648",

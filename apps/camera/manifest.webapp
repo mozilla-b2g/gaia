@@ -13,6 +13,14 @@
     "camera",
     "offline-app"
   ],
+  "activities": {
+    "record": {
+      "filters": {
+        "type": "photos"
+       },
+      "disposition": "window"
+    }
+  },
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627",

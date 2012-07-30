@@ -175,9 +175,16 @@ var MessageManager = {
     };
 
     req.onerror = function onerror() {
-      var msg = 'Deleting in the database. Error: ' + req.errorCode;
-      console.log(msg);
-      callback(null);
+      // Check if the message is in pending DB:
+      PendingMsgManager.deleteFromMsgDB(id, function ondelete(msg) {
+        if (!msg) {
+          var msg = 'Deleting in the database. Error: ' + req.errorCode;
+          console.log(msg);
+          callback(null);
+          return;
+        }
+        callback(req.result);
+      });
     };
   },
 
@@ -261,7 +268,8 @@ var ThreadListUI = {
     var element =
       this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
-      element.innerHTML = contact[0].name;
+      element.innerHTML = contact[0].name || 'Unknown';
+      //TODO Use l10n to Unknown string
     }
   },
 
@@ -610,7 +618,8 @@ var ThreadUI = {
     ThreadUI.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
       if (contact && contact.length > 0) {
-        ThreadUI.title.innerHTML = contact[0].name;
+        //TODO l10n to 'Unknown' string
+        ThreadUI.title.innerHTML = contact[0].name || 'Unknown';
       }
     });
   },
@@ -870,7 +879,8 @@ var ThreadUI = {
         delivery: 'sending',
         body: text,
         read: 1,
-        timestamp: tempDate
+        timestamp: tempDate,
+        id: tempDate
       };
 
 
@@ -884,8 +894,6 @@ var ThreadUI = {
           console.log('Message app - pending message save failed!');
           PendingMsgManager.saveToMsgDB(message, this);
         } else {
-          // Clean Fields
-          ThreadUI.cleanFields();
           // Update ThreadListUI when new message in pending database.
           if (window.location.hash == '#new') {
             window.location.hash = '#num=' + num;
@@ -899,12 +907,17 @@ var ThreadUI = {
       });
 
       MessageManager.send(num, text, function onsent(msg) {
+        var msgId = message.id;
         if (!msg) {
           var resendConfirmStr = _('resendConfirmDialogMsg');
           var result = confirm(resendConfirmStr);
-          if (!result) {
+          if (result) {
             // Remove the message from pending message DB before resend.
-            PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
+            PendingMsgManager.deleteFromMsgDB(msgId, function ondelete(msg) {
+              if (!msg) {
+                //TODO: Handle message delete failed in pending DB.
+                return;
+              }
               var filter = MessageManager.createFilter(num);
               MessageManager.getMessages(function(messages) {
                 if (messages.length > 0) {
@@ -921,9 +934,6 @@ var ThreadUI = {
             });
             window.setTimeout(self.sendMessage.bind(self), 500);
             return;
-          } else {
-            // TODO We found that there is no resend!
-            // Steve, could you take a look?!
           }
         } else {
           var root = document.getElementById(message.timestamp.getTime());
@@ -940,12 +950,15 @@ var ThreadUI = {
 
           // Remove the message from pending message DB since it could be sent
           // successfully.
-          PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
+          PendingMsgManager.deleteFromMsgDB(msgId, function ondelete(msg) {
             if (!msg) {
               //TODO: Handle message delete failed in pending DB.
             }
           });
+          // TODO: We might need to update the sent message's actual timestamp.
         }
+        // Clean Fields
+        ThreadUI.cleanFields();
       });
     }
   },

@@ -121,8 +121,6 @@
 
       <div id="windows">
         <!-- application windows are added here -->
-        <div id="popup-container">
-        </div>
       </div>
 
       <!-- keyboard -->
@@ -135,39 +133,44 @@
         https://bugzilla.mozilla.org/show_bug.cgi?id=761933
       -->
 
-      <div id="modal-dialog">
-        <div id="modal-dialog-table">
-          <div id="modal-dialog-tablecell">
-            <div id="modal-dialog-alert">
-              <div class="modal-dialog-message-container">
-                <span id="modal-dialog-alert-message"></span>
+      <div id="dialog-overlay">
+        <div id="popup-container">
+        </div>
+        <div id="modal-dialog">
+          <div id="modal-dialog-table">
+            <div id="modal-dialog-tablecell">
+              <div id="modal-dialog-alert">
+                <div class="modal-dialog-message-container">
+                  <span id="modal-dialog-alert-message"></span>
+                </div>
               </div>
-            </div>
 
-            <div id="modal-dialog-confirm">
-              <div class="modal-dialog-message-container">
-                <span id="modal-dialog-confirm-message"></span>
+              <div id="modal-dialog-confirm">
+                <div class="modal-dialog-message-container">
+                  <span id="modal-dialog-confirm-message"></span>
+                </div>
               </div>
-            </div>
 
-            <div id="modal-dialog-prompt">
-              <div class="modal-dialog-message-container">
-                <span id="modal-dialog-prompt-message"></span>
-                <input id="modal-dialog-prompt-input" />
+              <div id="modal-dialog-prompt">
+                <div class="modal-dialog-message-container">
+                  <span id="modal-dialog-prompt-message"></span>
+                  <input id="modal-dialog-prompt-input" />
+                </div>
               </div>
             </div>
           </div>
+          <div id="modal-dialog-buttons">
+            <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
+            <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
+            <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
+            <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
+            <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
+          </div>
         </div>
-        <div id="modal-dialog-buttons">
-          <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
-          <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
-          <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
-          <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
-          <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
-        </div>
+
+        <!-- utility tray -->
       </div>
 
-      <!-- utility tray -->
       <div id="utility-tray">
         <!-- quick settings -->
         <div id="quick-settings">
@@ -281,7 +284,6 @@
         <div id="statusbar-data" class="sb-icon sb-icon-data"
           data-type="" hidden></div>
         <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
-        <div id="statusbar-conn" hidden></div>
         <div id="statusbar-signal" class="sb-icon sb-icon-signal"
           data-level="5" hidden></div>
 
@@ -332,7 +334,7 @@
       <div></div>
       <div></div>
     </div>
-
+    
     <div id="trustedDialog">
     </div>
 

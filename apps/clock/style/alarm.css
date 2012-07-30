@@ -1,7 +1,6 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: "Open Sans", sans-serif;
   overflow: hidden !important;
 }
 
@@ -10,10 +9,10 @@ header {
   text-align: left;
   color: white;
   border-bottom: solid 0.2rem #a3a3a3;
-  font: 1.3rem 'Open Sans', sans-serif;
+  font-size: 1.3rem;
   line-height: 4.5rem;
   padding-left: 5rem;
-  background: url("images/edit_header.png") repeat-x scroll left top transparent;
+  background: url(images/edit_header.png) repeat-x scroll left top transparent;
 }
 
 /* ------------- Button ------------- */
@@ -37,7 +36,7 @@ a.button, span.button {
 }
 
 a.button.left.close {
-  background: url("images/separator_close.png") no-repeat scroll 2.5rem center transparent;
+  background: url(images/separator_close.png) no-repeat scroll 2.5rem center transparent;
   border: none;
   cursor: pointer;
   left: 0;
@@ -49,7 +48,7 @@ a.button.left.close {
 
 .icon-close {
   display: inline-block;
-  background: url("images/edit_close.png") no-repeat;
+  background: url(images/edit_close.png) no-repeat;
   background-position: left 0.3rem;
   background-repeat: no-repeat;
   background-size: 60% 60%;
@@ -79,11 +78,11 @@ a.button.right.plus {
   background-image: url(images/add_alarm.png);
   background-size: 100%;
   background-repeat: no-repeat;
-  border: none;  
+  border: none;
 }
 
 a.button.right.done-button {
-  background: url("images/separator_done.png") no-repeat scroll left center transparent;
+  background: url(images/separator_done.png) no-repeat scroll left center transparent;
   border: none;
   background-size: auto 100%;
   cursor: pointer;
@@ -297,11 +296,11 @@ ul li > small {
 }
 
 .view label > input[type=radio] + span {
-  background: url(images/radio-off.png) no-repeat scroll center center;
+  background: url(images/radio_off.png) no-repeat scroll center center;
 }
 
 .view label > input[type=radio]:checked + span {
-  background: url(images/radio-on.png) no-repeat scroll center center;
+  background: url(images/radio_on.png) no-repeat scroll center center;
 }
 
 /* ----------- Alarm Set Repeat Button ------------- */
@@ -348,12 +347,12 @@ ul li > small {
   margin: 0rem;
   right: 0rem;
   top: calc(50% - 2.2rem);
-  background: url(images/setEnabledBtn_off.png) no-repeat scroll center center;
+  background: url(images/set_enabled_btn_off.png) no-repeat scroll center center;
   background-size: 100% 100%;
 }
 
 .view label > input[type=checkbox]:checked + span.setEnabledBtn {
-  background: url(images/setEnabledBtn_on.png) no-repeat scroll center center;
+  background: url(images/set_enabled_btn_on.png) no-repeat scroll center center;
   background-size: 100% 100%;
 }
 /* ----------- Inputs ------------- */
