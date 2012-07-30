@@ -1,7 +1,7 @@
 'use strict';
 
 var Start = {
-  MAX_TOP_SITES: 6, // max number of top sites to display
+  MAX_TOP_SITES: 4, // max number of top sites to display
 
   init: function start_init() {
     this.thumbnails = document.getElementById('thumbnails');

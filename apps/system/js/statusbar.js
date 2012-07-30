@@ -4,6 +4,9 @@
 'use strict';
 
 var StatusBar = {
+  /* Timeout for 'recently active' indicators */
+  kActiveIndicatorTimeout: 60 * 1000,
+
   /* Whether or not status bar is actively updating or not */
   active: true,
 
@@ -15,11 +18,14 @@ var StatusBar = {
 
   wifiConnected: false,
 
+  geolocationActive: false,
+  geolocationTimer: null,
+
   init: function sb_init() {
     this.getAllElements();
 
     var settings = {
-      'ril.radio.disabled': ['signal', 'data', 'voicemail'],
+      'ril.radio.disabled': ['signal', 'data'],
       'ril.data.enabled': ['data'],
       'wifi.enabled': ['wifi'],
       'bluetooth.enabled': ['bluetooth'],
@@ -49,6 +55,7 @@ var StatusBar = {
     }
 
     window.addEventListener('screenchange', this);
+    window.addEventListener('mozChromeEvent', this);
     this.setActive(true);
   },
 
@@ -72,8 +79,12 @@ var StatusBar = {
         this.update.data.call(this);
         break;
 
-      case 'statuschanged':
-        this.update.voicemail.call(this);
+      case 'mozChromeEvent':
+        if (evt.detail.type !== 'geolocation-status')
+          return;
+
+        this.geolocationActive = evt.detail.active;
+        this.update.geolocation.call(this);
         break;
     }
   },
@@ -112,13 +123,6 @@ var StatusBar = {
         // connected or not here.
         this.update.bluetooth.call(this);
       }
-
-      var voicemail = window.navigator.mozVoicemail;
-      if (voicemail) {
-        voicemail.addEventListener('statuschanged', this);
-        this.update.voicemail.call(this);
-      }
-
     } else {
       clearTimeout(this._clockTimer);
 
@@ -133,11 +137,6 @@ var StatusBar = {
       if (conn) {
         conn.removeEventListener('voicechange', this);
         conn.removeEventListener('datachange', this);
-      }
-
-      var voicemail = window.navigator.mozVoicemail;
-      if (voicemail) {
-        voicemail.removeEventListener('statuschanged', this);
       }
     }
   },
@@ -175,12 +174,11 @@ var StatusBar = {
       var voice = conn.voice;
       var icon = this.icons.signal;
       var flightModeIcon = this.icons.flightMode;
-      var connLabel = this.icons.conn;
       var _ = navigator.mozL10n.get;
 
       if (this.settingValues['ril.radio.disabled']) {
+        // "Airplane Mode"
         icon.hidden = true;
-        connLabel.hidden = true;
         flightModeIcon.hidden = false;
         return;
       }
@@ -189,13 +187,13 @@ var StatusBar = {
 
       icon.dataset.roaming = voice.roaming;
       if (!voice.connected && !voice.emergencyCallsOnly) {
+        // "No Network" / "Searching"
+        // XXX: need differentiate the two
+        // https://github.com/mozilla-b2g/gaia/issues/2763
         icon.hidden = true;
-        connLabel.hidden = false;
-        connLabel.dataset.l10nId = 'searching';
-        connLabel.textContent = _('searching') || '';
       } else {
+        // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
         icon.hidden = false;
-        connLabel.hidden = true;
         icon.dataset.level = Math.floor(voice.relSignalStrength / 20); // 0-5
       }
     },
@@ -349,32 +347,23 @@ var StatusBar = {
       // this.icon.sms.dataset.num = ?;
     },
 
-    voicemail: function sb_updateVoicemail() {
-      var voicemail = window.navigator.mozVoicemail;
-      if (!voicemail) {
-        return;
-      }
-
-      var status = voicemail.status;
-      if (!status) {
-        return;
-      }
-
-      var showCount = status.hasMessages && status.messageCount > 0;
-      this.icons.voicemail.hidden = !status.hasMessages;
-      this.icons.voicemail.dataset.showNum = showCount;
-
-      if (showCount) {
-        this.icons.voicemail.dataset.num = status.messageCount;
-      }
-
-      Voicemail.updateNotification(status);
-    },
-
     geolocation: function sb_updateGeolocation() {
-      // XXX no way to probe active state of Geolocation
-      // this.icon.geolocation.hidden = ?
-      // this.icon.geolocation.dataset.active = ?;
+      window.clearTimeout(this.geolocationTimer);
+
+      var icon = this.icons.geolocation;
+      icon.dataset.active = this.geolocationActive;
+
+      if (this.geolocationActive) {
+        // Geolocation is currently active, show the active icon.
+        icon.hidden = false;
+        return;
+      }
+
+      // Geolocation is currently inactive.
+      // Show the inactive icon and hide it after kActiveIndicatorTimeout
+      this.geolocationTimer = window.setTimeout(function hideGeoIcon() {
+        icon.hidden = true;
+      }, this.kActiveIndicatorTimeout);
     },
 
     usb: function sb_updateUsb() {
@@ -401,9 +390,9 @@ var StatusBar = {
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
     var elements = ['notification', 'time',
-    'battery', 'wifi', 'data', 'flight-mode', 'conn', 'signal',
+    'battery', 'wifi', 'data', 'flight-mode', 'signal',
     'tethering', 'alarm', 'bluetooth', 'mute',
-    'recording', 'sms', 'voicemail', 'geolocation', 'usb'];
+    'recording', 'sms', 'geolocation', 'usb'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
