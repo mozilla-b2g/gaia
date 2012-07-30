@@ -250,13 +250,13 @@ var AlarmList = {
 
   setEnabledButtonText: function al_setEnabledButtonText() {
     document.styleSheets[0].insertRule(
-      'input[type=checkbox]:checked + span.setEnabledBtn:after { content: "' + 
+      'input[type=checkbox]:checked + span.setEnabledBtn:after { content: "' +
       _('on') + '";}', 0);
     document.styleSheets[0].insertRule(
-      'input[type=checkbox] + span.setEnabledBtn:after { content: "' + 
+      'input[type=checkbox] + span.setEnabledBtn:after { content: "' +
       _('off') + '";}', 0);
   },
-  
+
   refresh: function al_refresh() {
     var self = this;
     AlarmsDB.getAlarmList(function al_gotAlarmList(list) {
