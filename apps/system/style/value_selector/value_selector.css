@@ -1,21 +1,69 @@
 #value-selector {
   position: absolute;
-  top: 0;
+  top: 20px;  /* status bar height*/
   left: 0;
   width: 100%;
-  height: 100%;
-  z-index: 20000;  /* under modal dialog */
-  background-color: rgba(0,0,0,0.4);
+  height: -moz-calc(100% - 20px);
+  z-index: 10002;  /* under modal dialog */
+  background-color: rgba(0, 0, 0, 0.8);
   display: block;
-  color: red;
-  font-size: 4rem;
+  font-size: 2rem;
 }
 
 #value-selector[hidden] {
   display: none;
 }
 
+#value-selector-buttons {
+  position: absolute;
+  bottom: 1rem;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  -moz-box-sizing: border-box;
+  padding: 0 1rem;
+}
+
 #value-selector button {
-  font-size: 3.2rem;
+  width: -moz-calc(50% - 1rem);
+  background: none;
+  color: white;
+  font-size: 2rem;
   border-radius: 4px 4px 4px 4px;
+  border: solid 2px white;
+}
+
+#value-selector button.active {
+  background: white;
+  color: black;
+}
+
+#value-selector-container {
+ height: -moz-calc(100% - 5rem);
+ overflow-y: auto;
+}
+
+#value-selector-container ol {
+  list-style: none outside none;
+  color: white;
+  padding: 0;
+  margin: 0;
+  border-top: solid 3px gray;
+  border-bottom: solid 3px gray;
+}
+
+#value-selector-container li {
+  border-bottom: solid 1px white;
+  padding: 1rem;
+  position: relative;
+}
+
+#value-selector-container li > .checkmark {
+  display: none;
+  position: absolute;
+  right: 1rem;
+}
+
+#value-selector-container li.selected > .checkmark {
+  display: inline-block;
 }

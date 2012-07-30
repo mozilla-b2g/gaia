@@ -4,11 +4,8 @@
 'use strict';
 
 var ValueSelector = {
-
-  _element: null,
-
   debug: function(msg) {
-    var debugFlag = true;
+    var debugFlag = false;
     if (debugFlag) {
       console.log('[ValueSelector] ', msg);
     }
@@ -18,11 +15,19 @@ var ValueSelector = {
     this._element = document.getElementById('value-selector');
     this._container = document.getElementById('value-selector-container');
 
+    this._container.addEventListener('click', this.handleSelect.bind(this));
+    this._container.onmousedown = function() {
+      return false;
+    };
+
     this._cancelButton = document.getElementById('value-selector-cancel');
     this._cancelButton.addEventListener('click', this);
 
-    this._selectButton = document.getElementById('value-selector-select');
-    this._selectButton.addEventListener('click', this);
+    this._confirmButton = document.getElementById('value-selector-confirm');
+    this._confirmButton.addEventListener('click', this.confirm.bind(this));
+    this._confirmButton.onmousedown = function() {
+      return false;
+    };
 
     window.addEventListener('select', this);
   },
@@ -30,41 +35,60 @@ var ValueSelector = {
   handleEvent: function vs_handleEvent(evt) {
     switch (evt.type) {
       case 'select':
-        this.debug('select triggered');
+        this.debug('select triggered' + JSON.stringify(evt.detail));
+        this._singleSelect = !evt.detail.choices.multiple;
         this.show(evt.detail);
         break;
+
       case 'click':
-        if (evt.currentTarget === this._cancelButton) {
+        if (evt.currentTarget === this._cancelButton)
           this.cancel();
-        }
         break;
+
       default:
         this.debug('no event handler defined for' + evt.type);
         break;
     }
   },
 
+  handleSelect: function vs_handleSelect(evt) {
+    var target = evt.target;
+
+    if (target.dataset === undefined ||
+        target.dataset.optionindex === undefined)
+      return;
+
+    if (this._singleSelect) {
+      var selectee = this._container.querySelectorAll('.selected');
+      for (var i = 0; i < selectee.length; i++) {
+        selectee[i].classList.remove('selected');
+      }
+
+      target.classList.add('selected');
+
+    } else {
+      if (target.classList.contains('selected')) {
+        target.classList.remove('selected');
+      } else {
+        target.classList.add('selected');
+      }
+    }
+  },
+
   show: function vs_show(detail) {
 
-    //TODO: need to handle choices.multiple
     var options = null;
-    if (detail.choices && detail.choices.choices) {
+    if (detail.choices && detail.choices.choices)
       options = detail.choices.choices;
-    }
 
     if (options)
       this.buildOptions(options);
 
     this._element.hidden = false;
-    //this.screen.classList.add('modal-dialog');
-    //this._element.classList.add('visible');
   },
 
   hide: function vs_hide() {
     this._element.hidden = true;
-    //this._element.classList.add('hidden');
-    //this._element.classList.remove('visible');
-    //this.screen.classList.remove('modal-dialog');
   },
 
   cancel: function vs_cancel() {
@@ -72,25 +96,53 @@ var ValueSelector = {
     this.hide();
   },
 
-  select: function vs_select() {
+  confirm: function vs_select() {
 
+    var singleOptionIndex;
+    var optionIndices = [];
+
+    var selectee = this._container.querySelectorAll('.selected');
+
+    if (this._singleSelect) {
+
+      if (selectee.length > 0)
+        singleOptionIndex = selectee[0].dataset.optionindex;
+
+    } else {
+
+      for (var i = 0; i < selectee.length; i++) {
+
+        var i = parseInt(selectee[i].dataset.optionindex);
+        optionIndices.push(i);
+      }
+    }
+
+    if (this._singleSelect) {
+      window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
+    } else {
+      window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
+    }
+
+    this.hide();
   },
 
   buildOptions: function(options) {
 
-    this.debug(JSON.stringify(options));
-
-    var optionHTML = '<ul>';
+    var optionHTML = '<ol>';
 
     for (var i = 0, n = options.length; i < n; i++) {
-      optionHTML += '<li>' +
-                    options[i].text +
+
+      var checked = options[i].selected ? ' class="selected"' : '';
+
+      optionHTML += '<li data-optionindex="' + options[i].optionIndex + '"' +
+                     checked + '>' +
+                     options[i].text +
+                     '<span class="checkmark">&#10004;</span>' +
                     '</li>';
     }
 
-    optionHTML += '</ul>';
+    optionHTML += '</ol>';
 
-    this.debug(optionHTML);
     this._container.innerHTML = optionHTML;
   }
 };
