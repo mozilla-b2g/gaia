@@ -259,6 +259,7 @@ var Contacts = (function() {
     initPullEffect(cover);
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
+    document.body.classList.remove('hide');
   });
 
   var initLanguages = function initLanguages() {
