@@ -1,0 +1,46 @@
+{
+  "name": "xpcwindow",
+  "version": "0.2.0",
+  "author": {
+    "name": "James Lal",
+    "email": "jlal@mozilla.com"
+  },
+  "description": "xpcshell wrapper that provides 'window' shims to run browser code in xpcom. (WARN: Does not use node)",
+  "main": "lib/node/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lightsofapollo/xpcwindow.git"
+  },
+  "bin": {
+    "xpcwindow": "bin/xpcwindow"
+  },
+  "keywords": [
+    "xpcshell",
+    "spidermonkey",
+    "mocha"
+  ],
+  "dependencies": {
+    "mocha": "~1.0"
+  },
+  "devDependencies": {
+    "expect.js": "~0.1"
+  },
+  "license": "MIT",
+  "engine": {
+    "node": ">=0.4"
+  },
+  "_npmUser": {
+    "name": "lights-of-apollo",
+    "email": "james@lightsofapollo.com"
+  },
+  "_id": "xpcwindow@0.2.0",
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  },
+  "_engineSupported": true,
+  "_npmVersion": "1.1.23",
+  "_nodeVersion": "v0.6.14",
+  "_defaultsLoaded": true,
+  "_from": "xpcwindow@0.2.0"
+}
