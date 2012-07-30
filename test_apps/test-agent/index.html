@@ -17,7 +17,6 @@
         domain = document.location.host;
 
     Loader.domain = document.location.protocol + '//' + domain;
-    dump('DEBUG::' + Loader.domain + '\n');
     Loader.url = function(url){
       return this.domain + url;
     }
