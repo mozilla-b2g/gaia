@@ -236,7 +236,7 @@ var Applications = (function() {
     // a data: url.
     var icon = icons[getIconSize(sizes)];
     if ((icon.indexOf('data:') !== 0) &&
-        (icon.indexOf('http://') !== 0)  &&
+        (icon.indexOf('http://') !== 0) &&
         (icon.indexOf('https://') !== 0)) {
       icon = origin + icon;
     }
