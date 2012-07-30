@@ -1,8 +1,13 @@
 window.parent = window;
 window.location.host = 'localhost';
+
 window.require = function(url, cb) {
-  if (url.indexOf('/') === 0 || url.indexOf('apps/') === 0) {
+  if (url.indexOf('/common') === 0) {
     url = '../../' + url;
+  }
+
+  if (url.indexOf('apps/') === 0) {
+    url = '../../../../' + url;
   }
   importScripts(url);
   if (typeof(cb) === 'function') {
