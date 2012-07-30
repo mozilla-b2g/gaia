@@ -168,23 +168,6 @@ var Applications = (function() {
     return app ? app.manifest : null;
   };
 
-  // Core applications should be flagged at some point. Not sure how?
-  var protocol = window.location.protocol;
-  var host = window.location.host;
-  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-
-  var coreApplications = [
-    'dialer', 'sms', 'settings', 'camera', 'gallery', 'browser',
-    'contacts', 'music', 'clock', 'email', 'fm', 'calculator',
-    'calendar', 'video', 'fm'
-  ];
-
-  coreApplications = coreApplications.map(function mapCoreApp(name) {
-    return protocol + '//' + name + '.' + domain;
-  });
-
-  coreApplications.push('https://marketplace.mozilla.org');
-
   /*
    *  Returns true if it's a core application
    *
@@ -192,7 +175,7 @@ var Applications = (function() {
    *
    */
   function isCore(origin) {
-    return coreApplications.indexOf(origin) !== -1;
+    return !getByOrigin(origin).removable;
   };
 
   var deviceWidth = document.documentElement.clientWidth;
