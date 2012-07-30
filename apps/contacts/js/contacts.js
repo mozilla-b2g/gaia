@@ -172,8 +172,6 @@ var Contacts = (function() {
 
       case 'view-contact-form':
         if (params == -1 || !('id' in params)) {
-          // Adding new Contact
-          currentContact = {};
           showAdd(params);
         } else {
           // Editing existing contact
@@ -184,7 +182,6 @@ var Contacts = (function() {
               showEdit();
             }, function onError() {
               console.log('Error retrieving contact to be edited');
-              currentContact = {};
               showAdd();
             });
           }
@@ -668,6 +665,9 @@ var Contacts = (function() {
   }
 
   var showAdd = function showAdd(params) {
+    if (!params || params == -1 || !('id' in params)) {
+      currentContact = {};
+    }
     resetForm();
     deleteContactButton.classList.add('hide');
     formTitle.innerHTML = _('addContact');
