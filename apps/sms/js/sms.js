@@ -265,11 +265,10 @@ var ThreadListUI = {
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    var name = contact[0].name || 'Unknown';
     var element =
       this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
-      element.innerHTML = name;
+      element.innerHTML = contact[0].name || 'Unknown';
       //TODO Use l10n to Unknown string
     }
   },
@@ -619,9 +618,8 @@ var ThreadUI = {
     ThreadUI.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
       if (contact && contact.length > 0) {
-        var name = contact[0].name || 'Unknown';
         //TODO l10n to 'Unknown' string
-        ThreadUI.title.innerHTML = name;
+        ThreadUI.title.innerHTML = contact[0].name || 'Unknown';
       }
     });
   },
