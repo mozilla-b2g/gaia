@@ -43,8 +43,7 @@ var KeyboardManager = (function() {
     // XXX: As system has no iframe, we calc the height separately
     } else if (ModalDialog.modalDialogIsShown()) {
       currentApp = document.getElementById('dialog-overlay');
-      height = window.innerHeight -
-               message.keyboardHeight;
+      height = window.innerHeight - message.keyboardHeight;
     } else {
       WindowManager.setAppSize(app);
       currentApp = WindowManager.getAppFrame(app);
