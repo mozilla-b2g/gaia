@@ -42,6 +42,10 @@ suite('store/abstract', function() {
     }
   });
 
+  teardown(function() {
+    db.close();
+  });
+
   test('initialization', function() {
     assert.equal(subject.db, db);
     assert.instanceOf(subject, Calendar.Responder);

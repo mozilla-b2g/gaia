@@ -31,9 +31,24 @@ var ClockView = {
     return this.hourState = document.getElementById('clock-hour24-state');
   },
 
-  get daydate() {
-    delete this.daydate;
-    return this.daydate = document.getElementById('clock-day-date');
+  get day() {
+    delete this.day;
+    return this.day = document.getElementById('clock-day');
+  },
+
+  get date() {
+    delete this.date;
+    return this.date = document.getElementById('clock-date');
+  },
+
+  get alarmNewBtn() {
+    delete this.alarmNewBtn;
+    return this.alarmNewBtn = document.getElementById('alarm-new');
+  },
+
+  get digitalClockBG() {
+    delete this.digitalClockBG;
+    return this.digitalClockBG = document.getElementById('digital-clock-bg');
   },
 
   init: function cv_init() {
@@ -41,6 +56,7 @@ var ClockView = {
     this.updateDigitalClock();
     this._clockMode = 'digital';
     this.digitalClock.classList.add('visible'); /* digital clock is default */
+    this.digitalClockBG.classList.add('visible');
     this.analogClock.classList.remove('visible');
     document.addEventListener('mozvisibilitychange', this);
     this.digitalClock.addEventListener('click', this);
@@ -48,8 +64,9 @@ var ClockView = {
 
   updateDaydate: function cv_updateDaydate() {
     var d = new Date();
-    var format = navigator.mozL10n.get('daydateFormat');
-    this.daydate.textContent = d.toLocaleFormat(format);
+    this.day.textContent = d.toLocaleFormat('%A ');
+    var format = navigator.mozL10n.get('dateFormat');
+    this.date.textContent = d.toLocaleFormat(format);
 
     var self = this;
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
@@ -131,10 +148,11 @@ var ClockView = {
             return;
 
         switch (input.id) {
-          case 'digital-clock':
+          case 'digital-clock-display':
             window.clearTimeout(this._updateDigitalClockTimeout);
             this.digitalClock.removeEventListener('click', this);
             this.digitalClock.classList.remove('visible');
+            this.digitalClockBG.classList.remove('visible');
             this.updateAnalogClock();
             this._clockMode = 'analog';
             this.analogClock.classList.add('visible');
@@ -148,6 +166,7 @@ var ClockView = {
             this.updateDigitalClock();
             this._clockMode = 'digital';
             this.digitalClock.classList.add('visible');
+            this.digitalClockBG.classList.add('visible');
             this.digitalClock.addEventListener('click', this);
             break;
         }
@@ -157,7 +176,9 @@ var ClockView = {
 
   resizeAnalogClock: function cv_resizeAnalogClock() {
     var height = this.clockView.offsetHeight -
-                 this.daydate.offsetHeight -
+                 this.date.offsetHeight -
+                 this.alarmNewBtn.offsetTop -
+                 this.alarmNewBtn.offsetHeight -
                  AlarmList.alarms.offsetHeight;
     this.analogClock.style.height = height + 'px';
   }
@@ -249,7 +270,7 @@ var AlarmList = {
                  '  <label class="alarmList">' +
                  '    <input id="input-enable" data-id="' + alarm.id +
                         '" type="checkbox"' + isChecked + '>' +
-                 '    <span></span>' +
+                 '    <span class="setEnabledBtn"></span>' +
                  '  </label>' +
                  '  <a href="#alarm" id="alarm-item" data-id="' +
                       alarm.id + '">' +
@@ -265,8 +286,6 @@ var AlarmList = {
                             escapeHTML(alarm.label) + '</div>' +
                  '        <div class="repeat ' + hiddenSummary + '">' +
                             summaryRepeat + '</div>' +
-                 '      </div>' +
-                 '      <div class="alarmList-direction"> &gt' +
                  '      </div>' +
                  '    </div>' +
                  '  </a>' +
@@ -473,7 +492,7 @@ var AlarmEditView = {
   },
 
   init: function aev_init() {
-    document.getElementById('alarm-save').addEventListener('click', this);
+    document.getElementById('alarm-done').addEventListener('click', this);
     document.getElementById('alarm-del').addEventListener('click', this);
     document.getElementById('repeat-menu').addEventListener('click', this);
     document.getElementById('sound-menu').addEventListener('click', this);
@@ -487,7 +506,7 @@ var AlarmEditView = {
       return;
 
     switch (input.id) {
-      case 'alarm-save':
+      case 'alarm-done':
         if (!this.save()) {
           evt.preventDefault();
           return false;

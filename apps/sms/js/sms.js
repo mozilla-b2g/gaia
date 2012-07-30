@@ -175,9 +175,16 @@ var MessageManager = {
     };
 
     req.onerror = function onerror() {
-      var msg = 'Deleting in the database. Error: ' + req.errorCode;
-      console.log(msg);
-      callback(null);
+      // Check if the message is in pending DB:
+      PendingMsgManager.deleteFromMsgDB(id, function ondelete(msg) {
+        if (!msg) {
+          var msg = 'Deleting in the database. Error: ' + req.errorCode;
+          console.log(msg);
+          callback(null);
+          return;
+        }
+        callback(req.result);
+      });
     };
   },
 
@@ -242,6 +249,10 @@ var ThreadListUI = {
     delete this.doneButton;
     return this.doneButton = document.getElementById('thread-done-button');
   },
+  get iconEdit() {
+    delete this.iconEdit;
+    return this.iconEdit = document.getElementById('icon-edit-threads');
+  },
 
   init: function thlui_init() {
     this.delNumList = [];
@@ -257,7 +268,8 @@ var ThreadListUI = {
     var element =
       this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
-      element.innerHTML = contact[0].name;
+      element.innerHTML = contact[0].name || 'Unknown';
+      //TODO Use l10n to Unknown string
     }
   },
 
@@ -316,6 +328,7 @@ var ThreadListUI = {
   },
 
   executeDeletion: function thlui_executeDeletion() {
+    WaitingScreen.show();
     MessageManager.deleteMessages(ThreadListUI.delNumList, function repaint() {
       //TODO Change this functionality with Steve code
       //TODO Steve will add delete pending in deleteMessages!
@@ -326,6 +339,7 @@ var ThreadListUI = {
               function() {
               MessageManager.getMessages(function recoverMessages(messages) {
                 ThreadListUI.renderThreads(messages);
+                WaitingScreen.hide();
                 window.location.hash = '#thread-list';
               });
             });
@@ -336,6 +350,7 @@ var ThreadListUI = {
       } else {
         MessageManager.getMessages(function recoverMessages(messages) {
           ThreadListUI.renderThreads(messages);
+          WaitingScreen.hide();
           window.location.hash = '#thread-list';
         });
       }
@@ -344,43 +359,55 @@ var ThreadListUI = {
 
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
-    var threadIds = [], headerIndex, unreadThreads = [];
-    for (var i = 0; i < messages.length; i++) {
-      var message = messages[i];
-      var num = message.delivery == 'received' ?
-      message.sender : message.receiver;
-      if (!message.read) {
-        if (unreadThreads.indexOf(num) == -1) {
-          unreadThreads.push(num);
-        }
-      }
-      if (threadIds.indexOf(num) == -1) {
-        var thread = {
-          'body': message.body,
-          'name': num,
-          'num': num,
-          'timestamp': message.timestamp.getTime(),
-          'unreadCount': !message.read ? 1 : 0,
-          'id': num
-        };
-        if (threadIds.length == 0) {
-          var currentTS = (new Date()).getTime();
-          headerIndex = Utils.getDayDate(currentTS);
-          ThreadListUI.createNewHeader(currentTS);
-        }else {
-          var tmpIndex = Utils.getDayDate(message.timestamp.getTime());
-          if (tmpIndex < headerIndex) {
-            ThreadListUI.createNewHeader(message.timestamp.getTime());
-            headerIndex = tmpIndex;
+    if (messages.length > 0) {
+      ThreadListUI.iconEdit.classList.remove('disabled');
+      var threadIds = [], headerIndex, unreadThreads = [];
+      for (var i = 0; i < messages.length; i++) {
+        var message = messages[i];
+        var num = message.delivery == 'received' ?
+        message.sender : message.receiver;
+        if (!message.read) {
+          if (unreadThreads.indexOf(num) == -1) {
+            unreadThreads.push(num);
           }
         }
-        threadIds.push(num);
-        ThreadListUI.appendThread(thread);
+        if (threadIds.indexOf(num) == -1) {
+          var thread = {
+            'body': message.body,
+            'name': num,
+            'num': num,
+            'timestamp': message.timestamp.getTime(),
+            'unreadCount': !message.read ? 1 : 0,
+            'id': num
+          };
+          if (threadIds.length == 0) {
+            var currentTS = (new Date()).getTime();
+            headerIndex = Utils.getDayDate(currentTS);
+            ThreadListUI.createNewHeader(currentTS);
+          }else {
+            var tmpIndex = Utils.getDayDate(message.timestamp.getTime());
+            if (tmpIndex < headerIndex) {
+              ThreadListUI.createNewHeader(message.timestamp.getTime());
+              headerIndex = tmpIndex;
+            }
+          }
+          threadIds.push(num);
+          ThreadListUI.appendThread(thread);
+        }
       }
-    }
-    // Update threads with 'unread'
-    for (var i = 0; i < unreadThreads.length; i++) {
-      document.getElementById(unreadThreads[i]).classList.add('unread');
+      // Update threads with 'unread'
+      for (var i = 0; i < unreadThreads.length; i++) {
+        document.getElementById(unreadThreads[i]).classList.add('unread');
+      }
+    } else {
+      var noResultHTML = '<div id="no-result-container">' +
+                          '<div id="no-result-message">' +
+                          '<p>no messages recorded</p>' +
+                          '<p>start communicating now</p>' +
+                          '</div>' +
+                          '</div>';
+      ThreadListUI.view.innerHTML = noResultHTML;
+      ThreadListUI.iconEdit.classList.add('disabled');
     }
     // Callback when every message is appended
     if (callback) {
@@ -436,8 +463,8 @@ var ThreadListUI = {
         ThreadListUI.updateMsgWithContact(thread.num, contact);
     });
   },
-  // Adds a new grouping header if necessary (today, tomorrow, ...)
 
+  // Adds a new grouping header if necessary (today, tomorrow, ...)
   createNewHeader: function thlui_createNewHeader(timestamp) {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
@@ -462,6 +489,11 @@ var ThreadUI = {
   get num() {
     delete this.number;
     return this.number = document.getElementById('receiver-tel');
+  },
+
+  get clearButton() {
+    delete this.clearButton;
+    return this.clearButton = document.getElementById('clear-search');
   },
 
   get title() {
@@ -518,6 +550,7 @@ var ThreadUI = {
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
     this.headerTitle.addEventListener('click', this.activateContact.bind(this));
+    this.clearButton.addEventListener('click', this.clearContact.bind(this));
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -585,7 +618,8 @@ var ThreadUI = {
     ThreadUI.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
       if (contact && contact.length > 0) {
-        ThreadUI.title.innerHTML = contact[0].name;
+        //TODO l10n to 'Unknown' string
+        ThreadUI.title.innerHTML = contact[0].name || 'Unknown';
       }
     });
   },
@@ -630,7 +664,7 @@ var ThreadUI = {
       message.delivery == 'sending');
     var className = (outgoing ? 'sent' : 'received');
     var timestamp = message.timestamp.getTime();
-    var bodyText = message.body.split('\n')[0];
+    var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
     var htmlStructure = '<span class="bubble-container ' + className + '">' +
@@ -639,7 +673,7 @@ var ThreadUI = {
     // Add 'gif' if necessary
     if (message.delivery == 'sending') {
       htmlStructure += '<span class="message-option">' +
-                        '<img src="style/images/ajax-loader.gif" class="gif">' +
+      '<img src="style/images/spinningwheel_small_animation.gif" class="gif">' +
                         '</span>';
       //Add edit options for pending
       htmlStructure += '<span class="message-option msg-checkbox">' +
@@ -667,7 +701,6 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
-
   },
 
   cleanForm: function thui_cleanForm() {
@@ -678,6 +711,10 @@ var ThreadUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
+  },
+
+  clearContact: function thui_clearContact() {
+    this.num.value = '';
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
@@ -747,6 +784,7 @@ var ThreadUI = {
     if (ThreadUI.delNumList.length + ThreadUI.pendingDelList.length > 0) {
       MessageManager.deleteMessages(ThreadUI.delNumList, function() {
         //TODO Change this functionality with Steve code
+        WaitingScreen.show();
         if (ThreadUI.pendingDelList.length > 0) {
           for (var i = 0; i < ThreadUI.pendingDelList.length; i++) {
             if (i == ThreadUI.pendingDelList.length - 1) {
@@ -759,14 +797,19 @@ var ThreadUI = {
                     if (messages.length > 0) {
                       // If there are messages yet
                       ThreadUI.renderMessages(messages);
-                      window.history.back();
+                      MessageManager.getMessages(ThreadListUI.renderThreads,
+                                                 null, null, function() {
+                        WaitingScreen.hide();
+                        window.history.back();
+                      });
                     }else {
-                      // If there is no more messages (delete all)
+                      // If there are no more messages (delete all)
                       ThreadUI.view.innerHTML = '';
                       MessageManager.getMessages(ThreadListUI.renderThreads,
                                                  null, null, function() {
                         var mainWrapper =
                           document.getElementById('main-wrapper');
+                        WaitingScreen.hide();
                         mainWrapper.classList.remove('edit');
                         window.location.hash = '#thread-list';
                       });
@@ -783,12 +826,14 @@ var ThreadUI = {
           MessageManager.getMessages(function recoverMessages(messages) {
             if (messages.length > 0) {
               ThreadUI.renderMessages(messages);
+              WaitingScreen.hide();
               window.history.back();
             }else {
               ThreadUI.view.innerHTML = '';
               MessageManager.getMessages(ThreadListUI.renderThreads,
                                          null, null, function() {
                 var mainWrapper = document.getElementById('main-wrapper');
+                WaitingScreen.hide();
                 mainWrapper.classList.remove('edit');
                 window.location.hash = '#thread-list';
               });
@@ -834,7 +879,8 @@ var ThreadUI = {
         delivery: 'sending',
         body: text,
         read: 1,
-        timestamp: tempDate
+        timestamp: tempDate,
+        id: tempDate
       };
 
 
@@ -848,8 +894,6 @@ var ThreadUI = {
           console.log('Message app - pending message save failed!');
           PendingMsgManager.saveToMsgDB(message, this);
         } else {
-          // Clean Fields
-          ThreadUI.cleanFields();
           // Update ThreadListUI when new message in pending database.
           if (window.location.hash == '#new') {
             window.location.hash = '#num=' + num;
@@ -863,12 +907,17 @@ var ThreadUI = {
       });
 
       MessageManager.send(num, text, function onsent(msg) {
+        var msgId = message.id;
         if (!msg) {
           var resendConfirmStr = _('resendConfirmDialogMsg');
           var result = confirm(resendConfirmStr);
-          if (!result) {
+          if (result) {
             // Remove the message from pending message DB before resend.
-            PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
+            PendingMsgManager.deleteFromMsgDB(msgId, function ondelete(msg) {
+              if (!msg) {
+                //TODO: Handle message delete failed in pending DB.
+                return;
+              }
               var filter = MessageManager.createFilter(num);
               MessageManager.getMessages(function(messages) {
                 if (messages.length > 0) {
@@ -885,9 +934,6 @@ var ThreadUI = {
             });
             window.setTimeout(self.sendMessage.bind(self), 500);
             return;
-          } else {
-            // TODO We found that there is no resend!
-            // Steve, could you take a look?!
           }
         } else {
           var root = document.getElementById(message.timestamp.getTime());
@@ -904,12 +950,15 @@ var ThreadUI = {
 
           // Remove the message from pending message DB since it could be sent
           // successfully.
-          PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
+          PendingMsgManager.deleteFromMsgDB(msgId, function ondelete(msg) {
             if (!msg) {
               //TODO: Handle message delete failed in pending DB.
             }
           });
+          // TODO: We might need to update the sent message's actual timestamp.
         }
+        // Clean Fields
+        ThreadUI.cleanFields();
       });
     }
   },
@@ -949,6 +998,26 @@ var ThreadUI = {
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
+  }
+};
+
+var WaitingScreen = {
+  get loading() {
+    delete this.loading;
+    return this.loading = document.getElementById('loading');
+  },
+  get loadingHeader() {
+    delete this.loadingHeader;
+    return this.loadingHeader = document.getElementById('loading-header');
+  },
+  show: function ws_show() {
+    this.loading.classList.add('show-loading');
+  },
+  hide: function ws_hide() {
+    this.loading.classList.remove('show-loading');
+  },
+  update: function ws_update(text) {
+    this.loadingHeader.innerHTML = text;
   }
 };
 

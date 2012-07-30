@@ -140,6 +140,7 @@ suite('views/modify_account', function() {
     suite('success', function() {
 
       test('result', function(done) {
+        this.timeout(5000);
         getField('user').value = 'user';
         getField('password').value = 'pass';
 

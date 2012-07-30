@@ -174,14 +174,17 @@
      * Shortcut method for connection.close
      */
     close: function() {
-      if (this.connection)
+      if (this.connection) {
+        this.isOpen = false;
         this.connection.close();
+        this.connection = null;
+      }
     },
 
     deleteDatabase: function(callback) {
       var req = idb.deleteDatabase(this.name);
 
-      req.onblocked = function() {
+      req.onblocked = function(e) {
         // improve interface
         callback(new Error('blocked'));
       }
