@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -188,7 +188,8 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    evt.detail.unblock();
+    if (!evt.isPseudo)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
@@ -222,7 +223,8 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    evt.detail.unblock();
+    if (!evt.isPseudo)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
