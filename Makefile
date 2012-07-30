@@ -42,6 +42,14 @@ REPORTER=Spec
 
 GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 
+ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
+  $(shell mkdir -p outoftree_apps \
+    $(foreach dir,$(GAIA_OUTOFTREE_APP_SRCDIRS),\
+      $(foreach appdir,$(wildcard $(dir)/*),\
+        && ln -sf $(appdir) outoftree_apps/)))
+  GAIA_APP_SRCDIRS += outoftree_apps
+endif
+
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
 GAIA_APP_RELATIVEPATH=$(foreach dir, $(GAIA_APP_SRCDIRS), $(wildcard $(dir)/*))
@@ -130,8 +138,18 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
+# Settings database setup
+DB_TARGET_PATH = /data/local/indexedDB
+DB_SOURCE_PATH = profile/indexedDB/chrome
+
 # Generate profile/
-profile: preferences permissions test-agent-config offline extensions
+profile: preferences permissions test-agent-config offline extensions install-xulrunner-sdk
+	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
+	then \
+	  echo "Settings DB does not exists, creating an initial one:"; \
+	  $(call run-js-command, settings); \
+	fi ;
+
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -139,10 +157,10 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # Generate profile/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
 # to accommodate Gecko builds without bug 757613. Should be removed someday.
-webapp-manifests:
+webapp-manifests: install-xulrunner-sdk
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
-	$(call run-js-command, webapp-manifests)
+	@$(call run-js-command, webapp-manifests)
 	@cat profile/webapps/webapps.json
 	@echo "Done"
 
@@ -150,8 +168,11 @@ webapp-manifests:
 webapp-zip: stamp-commit-hash
 ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
+	@rm -rf apps/system/camera
+	@cp -r apps/camera apps/system/camera
+	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
-	@for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	@for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
@@ -165,7 +186,12 @@ ifneq ($(DEBUG),1)
 				do \
 					if [[ "$$f" == *shared/js* ]] ;\
 					then \
-						file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1;`; \
+						if [[ "$$f" == */shared/js* ]] ;\
+						then \
+							file_to_copy=`echo "$$f" | cut -d'/' -f 4 | cut -d'"' -f1 | cut -d"'" -f1;`; \
+						else \
+							file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1 | cut -d"'" -f1;`; \
+						fi; \
 						mkdir -p $$d/shared/js ;\
 						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
 					fi \
@@ -230,7 +256,7 @@ else
 endif
 
 define run-js-command
-	@echo "run-js-command $1";                                                  \
+	echo "run-js-command $1";                                                  \
 	JS_CONSTS='                                                                 \
 	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
@@ -244,27 +270,24 @@ endef
 
 settingsdb: install-xulrunner-sdk
 	@echo "B2G pre-populate settings DB."
-	$(call run-js-command, settings)
+	@$(call run-js-command, settings)
 
-DB_TARGET_PATH = /data/local/indexedDB
-ifneq ($(SYS),Darwin)
-DB_SOURCE_PATH = $(CURDIR)/build/indexeddb
-else
-DB_SOURCE_PATH = profile/indexedDB/chrome
-endif
 .PHONY: install-settingsdb
 install-settingsdb: settingsdb install-xulrunner-sdk
 	$(ADB) start-server
+	@echo 'Stoping b2g'
+	$(ADB) shell stop b2g
 	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti ${DB_TARGET_PATH}/chrome/2588645841ssegtnti
 	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
-	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+	@echo 'Starting b2g'
+	$(ADB) shell start b2g
 	@echo 'Rebooting b2g now. '
 
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
 	test -d profile || mkdir -p profile
-	$(call run-js-command, preferences)
+	@$(call run-js-command, preferences)
 	if [ -f custom-prefs.js ]; \
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
@@ -276,7 +299,7 @@ preferences: install-xulrunner-sdk
 permissions: install-xulrunner-sdk
 	@echo "Generating permissions.sqlite..."
 	test -d profile || mkdir -p profile
-	$(call run-js-command, permissions)
+	@$(call run-js-command, permissions)
 	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/extensions
@@ -351,7 +374,7 @@ test-agent-config: test-agent-bootstrap-apps
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
-	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		  mkdir -p $$d/test/unit ; \
 		  mkdir -p $$d/test/integration ; \
@@ -359,11 +382,21 @@ test-agent-bootstrap-apps:
 			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
 	@echo "Done bootstrapping test proxies/sandboxes";
+
 # Temp make file method until we can switch
 # over everything in test
+ifneq ($(strip $(APP)),)
+APP_TEST_LIST=$(shell find apps/$(APP)/test/unit -name '*_test.js')
+endif
 .PHONY: test-agent-test
 test-agent-test:
+ifneq ($(strip $(APP)),)
+	@echo 'Running tests for $(APP)';
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER) $(APP_TEST_LIST)
+else
+	@echo 'Running all tests';
 	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER)
+endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install
@@ -442,7 +475,7 @@ forward:
 
 # update the manifest.appcache files to match what's actually there
 update-offline-manifests:
-	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		rm -rf $$d/manifest.appcache ;\
 		if [ -f $$d/manifest.webapp ] ;\

@@ -4,41 +4,105 @@
 'use strict';
 
 var AirplaneMode = {
-  // Reserve settings before turn on airplane mode
-  previousSettings: {
-    wifi: true,
-    bluetooth: true
-  },
+  init: function apm_init() {
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
 
-  init: function bt_init() {
-    var self = this;
+    var mobileDataEnabled = false;
+    SettingsListener.observe('ril.data.enabled', false, function(value) {
+      mobileDataEnabled = value;
+    });
+
+    var geolocationEnabled = false;
+    SettingsListener.observe('geolocation.enabled', false, function(value) {
+      geolocationEnabled = value;
+    });
+
+    var bluetooth = window.navigator.mozBluetooth;
+    var wifiManager = window.navigator.mozWifiManager;
+    var mobileData = window.navigator.mozMobileConnection &&
+      window.navigator.mozMobileConnection.data;
+
+    var restoreMobileData = false;
+    var restoreBluetooth = false;
+    var restoreWifi = false;
+    var restoreGeolocation = false;
+
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
-      var settings = navigator.mozSettings;
-      if (settings) {
-        if (value) {
-          // Turn on airplane mode
-          // Turn off Bluetooth and Wifi.
-          // Data will be turn off automatically since the radio is off.
-          var bluetoothReq = settings.getLock().get('bluetooth.enabled');
-          bluetoothReq.onsuccess = function bt_EnabledSuccess() {
-            self.previousSettings.bluetooth =
-                bluetoothReq.result['bluetooth.enabled'];
-            settings.getLock().set({'bluetooth.enabled': false});
-          };
-          var wifiReq = settings.getLock().get('wifi.enabled');
-          wifiReq.onsuccess = function wf_EnabledSuccess() {
-            self.previousSettings.wifi = wifiReq.result['wifi.enabled'];
-            settings.getLock().set({'wifi.enabled': false});
-          };
-        } else {
-          // Turn off airplane mode
-          // Turn on all services that was enabled before.
-          if (self.previousSettings.bluetooth) {
-            settings.getLock().set({'bluetooth.enabled': true});
+      if (value) {
+        // Entering airplane mode.
+
+        // Turn off mobile data
+        // We toggle the mozSettings value here just for the sake of UI,
+        // platform ril dissconnects mobile data when
+        // 'ril.radio.disabled' is true.
+        if (mobileData) {
+          restoreMobileData = mobileDataEnabled;
+          if (mobileDataEnabled) {
+            settings.getLock().set({
+              'ril.data.enabled': false
+            });
           }
-          if (self.previousSettings.wifi) {
-            settings.getLock().set({'wifi.enabled': true});
+        }
+
+        // Turn off Bluetooth.
+        if (bluetooth) {
+          restoreBluetooth = bluetooth.enabled;
+          if (bluetooth.enabled) {
+            settings.getLock().set({
+              'bluetooth.enabled': false
+            });
           }
+        }
+
+        // Turn off Wifi.
+        if (wifiManager) {
+          restoreWifi = wifiManager.enabled;
+          if (wifiManager.enabled) {
+            settings.getLock().set({
+              'wifi.enabled': false
+            });
+          }
+        }
+
+        // Turn off Geolocation
+        restoreGeolocation = geolocationEnabled;
+        if (geolocationEnabled) {
+          settings.getLock().set({
+            'geolocation.enabled': false
+          });
+        }
+
+      } else {
+        // Leaving airplane mode.
+
+        // Don't attempt to turn on mobile data if it's already on
+        if (mobileData && !mobileDataEnabled && restoreMobileData) {
+          settings.getLock().set({
+            'ril.data.enabled': true
+          });
+        }
+
+        // Don't attempt to turn on Bluetooth if it's already on
+        if (bluetooth && !bluetooth.enabled && restoreBluetooth) {
+          settings.getLock().set({
+            'bluetooth.enabled': true
+          });
+        }
+
+        // Don't attempt to turn on Wifi if it's already on
+        if (wifiManager && !wifiManager.enabled && restoreWifi) {
+          settings.getLock().set({
+            'wifi.enabled': true
+          });
+        }
+
+        // Don't attempt to turn on Geolocation if it's already on
+        if (!geolocationEnabled && restoreGeolocation) {
+          settings.getLock().set({
+            'geolocation.enabled': true
+          });
         }
       }
     });

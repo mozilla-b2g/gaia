@@ -22,7 +22,7 @@ body {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view, #edit-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -134,6 +134,14 @@ body {
   left: 0;
   right: 0;
   bottom: 50px;
+}
+
+/* thumbnails in pick view where there is a top bar and no bottom */
+#pick-view > #thumbnails {
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 /*
@@ -297,7 +305,7 @@ a.button.disabled {
   width: 75%;
   height: 100%;
   left: 25%;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 #thumbnails-select-bottom {
@@ -394,6 +402,31 @@ a.button.disabled {
   height: 100%;
   left: 75%;
   background-image: url('images/delete.png');
+}
+
+#pick-top {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#pick-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#pick-header {
+  position: absolute;
+  width: 75%;
+  height: 100%;
+  left: 25%;
+  margin-top: 15px;
 }
 
 #edit-view {

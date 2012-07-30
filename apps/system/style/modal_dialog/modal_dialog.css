@@ -54,7 +54,7 @@
   width: 100%;
   color: white;
   padding: 1em 0;
-  min-height: 20px;
+  min-height: 30px;
   font-size: 15px;
   -moz-box-sizing: border-box;
 }
@@ -87,7 +87,7 @@
     text-align: left;
     width: 200px;
     height: 60px;
-    color: black;
+    color: white;
     font-size: 30px;
     border-radius: 6px 6px 6px 6px;
     margin: 3px;
@@ -98,7 +98,7 @@
     height: 60px;
     font-size: 30px;
     width: 100%;
-    color: black;
+    color: white;
     -moz-box-sizing: border-box;
   }
 

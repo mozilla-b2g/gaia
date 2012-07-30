@@ -18,6 +18,7 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 var settings = [
  new Setting("alarm.enabled", false),
  new Setting("accessibility.invert", false),
+ new Setting("audio.volume.master", 0.5),
  new Setting("bluetooth.enabled", false),
  new Setting("debug.grid.enabled", false),
  new Setting("debug.fps.enabled", false),
@@ -26,6 +27,7 @@ var settings = [
  new Setting("devtools.debugger.log", false),
  new Setting("devtools.debugger.remote-enabled", false),
  new Setting("devtools.debugger.remote-port", 6000),
+ new Setting("geolocation.enabled", true),
  new Setting("homescreen.ring", 'classic.wav'),
  new Setting("homescreen.wallpaper", "default.png"),
  new Setting("keyboard.layouts.english", true),
@@ -42,6 +44,7 @@ var settings = [
  new Setting("keyboard.layouts.spanish", false),
  new Setting("keyboard.vibration", false),
  new Setting("keyboard.clicksound", false),
+ new Setting("keyboard.wordsuggestion", false),
  new Setting("language.current", "en-US"),
  new Setting("lockscreen.passcode-lock.code", "0000"),
  new Setting("lockscreen.passcode-lock.enabled", false),
@@ -62,7 +65,6 @@ var settings = [
  new Setting("ril.radio.disabled", false),
  new Setting("screen.automatic-brightness", true),
  new Setting("screen.brightness", 1),
- new Setting("screen.timeout", 60),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
  new Setting("tethering.usb.enabled", false),
@@ -74,6 +76,14 @@ var settings = [
  new Setting("wifi.enabled", true),
  new Setting("wifi.notification", false)
 ];
+
+// Disable the screen timeout in DEBUG mode
+if (DEBUG) {
+  dump("Note: screen.timeout has been set to 0 because of the debug mode.\n");
+  settings[settings.length] = new Setting("screen.timeout", 0);
+} else {
+  settings[settings.length] = new Setting("screen.timeout", 60);
+}
 
 // Ensure there is no duplicate
 for (let i in settings) {
