@@ -253,6 +253,10 @@ var ThreadListUI = {
     delete this.iconEdit;
     return this.iconEdit = document.getElementById('icon-edit-threads');
   },
+  get editHeader() {
+    delete this.editHeader;
+    return this.editHeader = document.getElementById('list-edit-title');
+  },
 
   init: function thlui_init() {
     this.delNumList = [];
@@ -275,26 +279,28 @@ var ThreadListUI = {
     }
   },
 
-    handleEvent: function thlui_handleEvent(evt) {
-    //TODO We will use for updating height of input if necessary
-      switch (evt.type) {
-        case 'click':
-          if (evt.target.type == 'checkbox') {
-            if (evt.target.checked) {
-              ThreadListUI.selectedInputList.push(evt.target);
-            } else {
-              ThreadListUI.selectedInputList.splice(
-                        ThreadListUI.selectedInputList.indexOf(evt.target), 1);
-            }
-            var selected = ThreadListUI.selectedInputList.length;
-            if (selected > 0) {
-              ThreadListUI.deleteSelectedButton.classList.remove('disabled');
-            } else {
-              ThreadListUI.deleteSelectedButton.classList.add('disabled');
-            }
+  handleEvent: function thlui_handleEvent(evt) {
+  //TODO We will use for updating height of input if necessary
+    switch (evt.type) {
+      case 'click':
+        if (evt.target.type == 'checkbox') {
+          if (evt.target.checked) {
+            ThreadListUI.selectedInputList.push(evt.target);
+          } else {
+            ThreadListUI.selectedInputList.splice(
+                      ThreadListUI.selectedInputList.indexOf(evt.target), 1);
           }
-            break;
-      }
+          var selected = ThreadListUI.selectedInputList.length;
+          if (selected > 0) {
+            ThreadListUI.deleteSelectedButton.classList.remove('disabled');
+            this.editHeader.innerHTML = selected + ' Selected';
+          } else {
+            ThreadListUI.deleteSelectedButton.classList.add('disabled');
+            this.editHeader.innerHTML = 'Edit mode';
+          }
+        }
+          break;
+    }
   },
 
   cleanForm: function thlui_cleanForm() {
@@ -305,6 +311,7 @@ var ThreadListUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
+    this.editHeader.innerHTML = 'Edit mode';
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
@@ -565,6 +572,11 @@ var ThreadUI = {
     return this.headerTitle = document.getElementById('header-text');
   },
 
+  get editHeader() {
+      delete this.editHeader;
+      return this.editHeader = document.getElementById('messages-edit-title');
+  },
+
   init: function thui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
@@ -741,6 +753,7 @@ var ThreadUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
+    this.editHeader.innerHTML = 'Edit mode';
   },
 
   clearContact: function thui_clearContact() {
@@ -889,8 +902,10 @@ var ThreadUI = {
           var selected = ThreadUI.selectedInputList.length;
           if (selected > 0) {
             ThreadUI.deleteSelectedButton.classList.remove('disabled');
+            this.editHeader.innerHTML = selected + ' Selected';
           } else {
             ThreadUI.deleteSelectedButton.classList.add('disabled');
+            this.editHeader.innerHTML = 'Edit mode';
           }
         }
           break;
