@@ -158,7 +158,8 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
     var composer = MailAPI.(
       null, folderToUse, null,
       function() {
-    	//to/cc/bcc/subject/body all have default values that shouldn't be clobbered if they are not specified in the URI
+        /* to/cc/bcc/subject/body all have default values that shouldn't be
+        clobbered if they are not specified in the URI*/
         if (to)
           composer.to = to;
         if (subject)
