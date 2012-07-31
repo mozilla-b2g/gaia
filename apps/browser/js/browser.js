@@ -101,7 +101,7 @@ var Browser = {
     }).bind(this));
   },
 
-  getAllElementsElements: function browser_getAllElements() {
+  getAllElements: function browser_getAllElements() {
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
         return p1.toUpperCase();

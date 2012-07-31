@@ -190,12 +190,13 @@ iframe.backgroundWindow {
   left: 0;
   width: 100%;
   height: 100%;
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
-#screen.popup #dialog-overlay,
-#screen.popup #popup-container {
-  display: block;
+#screen.popup #dialog-overlay {
+  visibility: visible;
+  pointer-events: auto;
 }

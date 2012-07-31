@@ -49,26 +49,41 @@ var KeyboardManager = (function() {
     if (message.hidden) {
       keyboardFrame.classList.add('hide');
       keyboardFrame.classList.remove('visible');
-      dialogOverlay.style.height = (height + 20) + 'px';
+      dialogOverlay.style.height = (height + StatusBar.height) + 'px';
       return;
     }
 
     if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
-      dialogOverlay.style.height = (height + 20) + 'px';
-      keyboardOverlay.style.height = (height + 20) + 'px';
+      dialogOverlay.style.height = (height + StatusBar.height) + 'px';
+      keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
       keyboardOverlay.hidden = false;
     } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
         keyboardFrame.removeEventListener('transitionend', keyboardShown);
-        dialogOverlay.style.height = (height + 20) + 'px';
+        dialogOverlay.style.height = (height + StatusBar.height) + 'px';
         currentApp.style.height = height + 'px';
-        keyboardOverlay.style.height = (height + 20) + 'px';
+        keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
         keyboardOverlay.hidden = false;
         keyboardFrame.classList.add('visible');
       });
     }
   });
+
+  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+    var currentType = evt.detail.type;
+    if (currentType.indexOf('select') == -1)
+      return;
+
+    switch (currentType) {
+      case 'select-one':
+      case 'select-multiple':
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('select', true, true, evt.detail);
+        window.dispatchEvent(event);
+        break;
+    }
+  };
 })();
 

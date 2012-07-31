@@ -7,6 +7,8 @@ const Homescreen = (function() {
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
   Search.init(domain);
 
+  var mode = 'normal';
+
   // Initialize the pagination scroller
   PaginationBar.init('.paginationScroller');
 
@@ -34,8 +36,8 @@ const Homescreen = (function() {
   window.addEventListener('message', function onMessage(e) {
     switch (e.data) {
       case 'home':
-        if (document.body.dataset.mode === 'edit') {
-          document.body.dataset.mode = 'normal';
+        if (Homescreen.isInEditMode()) {
+          Homescreen.setMode('normal');
           GridManager.saveState();
           DockManager.saveState();
           Permissions.hide();
@@ -111,7 +113,14 @@ const Homescreen = (function() {
       Permissions.show(title, body,
                        function onAccept() { app.uninstall() },
                        function onCancel() {});
+    },
+
+    isInEditMode: function() {
+      return mode === 'edit';
+    },
+
+    setMode: function(newMode) {
+      mode = document.body.dataset.mode = newMode;
     }
   };
 })();
-
