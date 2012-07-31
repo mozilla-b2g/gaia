@@ -152,7 +152,8 @@ var Contacts = (function() {
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
-    var params = extractParams(hasParams[1]);
+    var params = hasParams.length > 1 ?
+      extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
@@ -168,6 +169,9 @@ var Contacts = (function() {
         }, function onError() {
           console.error('Error retrieving contact');
         });
+        if(!contactsList.loaded) {
+          loadList();
+        }
         break;
 
       case 'view-contact-form':
@@ -186,11 +190,15 @@ var Contacts = (function() {
             });
           }
         }
+        if(!contactsList.loaded) {
+          loadList();
+        }
         break;
 
       default:
         loadList();
     }
+
   }
 
   var extractParams = function extractParams(url) {
@@ -254,10 +262,16 @@ var Contacts = (function() {
     initLanguages();
     initContainers();
     initPullEffect(cover);
+    initContactsList();
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
     document.body.classList.remove('hide');
   });
+
+  var initContactsList = function initContactsList() {
+    var list = document.getElementById('groups-list');
+    contactsList.init(list);
+  }
 
   var initLanguages = function initLanguages() {
     document.documentElement.lang = navigator.mozL10n.language.code;
@@ -265,8 +279,6 @@ var Contacts = (function() {
   };
 
   var loadList = function loadList() {
-    var list = document.getElementById('groups-list');
-    contactsList.init(list);
     contactsList.load();
 
     contactsList.handleClick(function handleClick(id) {
@@ -754,7 +766,7 @@ var Contacts = (function() {
     var inputs = {
       'givenName': givenName,
       'familyName': familyName,
-      'org': company,
+      'org': company
     };
 
     for (field in inputs) {
@@ -817,13 +829,13 @@ var Contacts = (function() {
         myContact.id = savedContact.id;
         myContact.photo = savedContact.photo;
         myContact.category = savedContact.category;
+        contactsList.refresh(myContact);
         if (ActivityHandler.currentlyHandling) {
           ActivityHandler.postNewSuccess(myContact);
         } else {
-          contactsList.refresh(myContact);
           reloadContactDetails();
-          navigation.back();
         }
+        navigation.back();
       }, function onError() {
         saveButton.removeAttribute('disabled');
         console.error('Error reloading contact');
