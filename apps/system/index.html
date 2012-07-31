@@ -112,6 +112,10 @@
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <script defer src="js/window_manager.js"></script>
+
+    <!-- Value selector -->
+    <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
+    <script defer src="js/value_selector.js"></script>
   </head>
 
   <body onload="startup()">
@@ -307,6 +311,15 @@
       <!-- attention screen -->
       <div id="attention-screen">
         <div id="attention-bar"></div>
+      </div>
+
+      <!-- value selector -->
+      <div id="value-selector" hidden>
+         <div id="value-selector-container" onmousedown="return false;"> </div>
+         <div id="value-selector-buttons">
+           <button id="value-selector-cancel" data-i10n-id="cancel">Cancel</button>
+           <button id="value-selector-confirm" data-i10n-id="ok" onmousedown="return false;">Ok</button>
+         </div>
       </div>
 
     </div>
