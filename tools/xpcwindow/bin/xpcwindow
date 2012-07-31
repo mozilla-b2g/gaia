@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Determine current location
+SOURCE="${BASH_SOURCE[0]}"
+if [ -h "$SOURCE" ];
+then
+  ORIG_SOURCE=$SOURCE;
+  while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
+  DIR="$( cd "$(dirname $ORIG_SOURCE)" && cd -P "$( dirname "$SOURCE" )" && pwd )"
+else
+  DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
+fi
+
+ROOT=`dirname $DIR`
+
+IMPORT_DIR=`dirname $1`
+IMPORT_FILENAME=`echo $1 | sed s:$IMPORT_DIR/::`
+
+IMPORT_ROOT=`cd $IMPORT_DIR; pwd`
+IMPORT_FILE="$IMPORT_ROOT/$IMPORT_FILENAME"
+
+ARGS=`echo $@ | sed s:^$1::`
+
+CONFIG=";const _IMPORT_FILE='$IMPORT_FILE';"
+CONFIG="$CONFIG const _IMPORT_ROOT='$IMPORT_ROOT';"
+CONFIG="$CONFIG const _ARGV=\"$ARGS\";"
+CONFIG="$CONFIG const _ROOT='$ROOT/';"
+
+which run-mozilla.sh 2>&1 1> /dev/null
+
+if [ "$?" != "0" ]
+then
+  echo "You must have run-mozilla.sh in your path."
+  exit 1
+fi
+
+which xpcshell 2>&1 1> /dev/null
+
+if [ "$?" != "0" ]
+then
+  echo "You must have xpcshell in your path."
+  exit 1
+fi
+
+`which run-mozilla.sh` `which xpcshell` -w -e "$CONFIG" -f $ROOT/lib/loader.js
