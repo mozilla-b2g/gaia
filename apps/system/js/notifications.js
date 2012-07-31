@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -42,6 +42,8 @@ var NotificationScreen = {
   TOASTER_TIMEOUT: 1200,
   TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
+  MARQUEE_STEP: 150,
+  MARQUEE_DELAY: 2000,
 
   _notification: null,
   _containerWidth: null,
@@ -200,6 +202,14 @@ var NotificationScreen = {
       this.toasterIcon.src = detail.icon;
     }
 
+    function extraSpace(text) {
+      var space = '';
+      for (var i = 0, l = text.length / 2; i < l; i++) {
+        space += ' ';
+      }
+      return space;
+    }
+
     var title = document.createElement('div');
     title.textContent = detail.title;
     notificationNode.appendChild(title);
@@ -215,6 +225,15 @@ var NotificationScreen = {
 
     this.container.appendChild(notificationNode);
     new GestureDetector(notificationNode).startDetecting();
+
+    // Animate when too title long
+    if (title.scrollWidth > title.clientWidth) {
+      var extra = extraSpace(detail.title);
+      title.textContent += extra;
+      window.setInterval((function nt_titleAnimation() {
+        title.textContent = this.animateText(title.textContent);
+      }).bind(this), this.MARQUEE_STEP);
+    }
 
     // Notification toast
     this.toaster.dataset.notificationID = detail.id;
@@ -264,6 +283,10 @@ var NotificationScreen = {
 
     if (unread)
       StatusBar.updateNotificationUnread(true);
+  },
+
+  animateText: function ns_animateText(text) {
+    return text.slice(1) + text[0];
   }
 };
 
