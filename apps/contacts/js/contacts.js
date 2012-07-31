@@ -754,13 +754,13 @@ var Contacts = (function() {
     var inputs = {
       'givenName': givenName,
       'familyName': familyName,
-      'org': company,
+      'org': company
     };
 
     for (field in inputs) {
       var value = inputs[field].value;
       if (value && value.length > 0) {
-        myContact[field] = [value];  
+        myContact[field] = [value];
       } else {
         myContact[field] = null;
       }
