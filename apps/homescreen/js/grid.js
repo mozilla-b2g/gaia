@@ -158,12 +158,12 @@ const GridManager = (function() {
       currentPageContainer.removeEventListener('transitionend', end);
       Search.resetIcon();
       pageHelper.getCurrent().bounce(previousIndex - index,
-      function bounceEnd() {
-        if (!dragging) {
-          delete document.body.dataset.transitioning;
-        }
-        callback();
-      });
+        function bounceEnd() {
+          if (!dragging) {
+            delete document.body.dataset.transitioning;
+          }
+          callback();
+        });
     });
 
     pan(0, .3);
@@ -555,4 +555,3 @@ const GridManager = (function() {
     }
   };
 })();
-

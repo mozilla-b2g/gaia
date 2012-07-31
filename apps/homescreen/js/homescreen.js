@@ -119,9 +119,8 @@ const Homescreen = (function() {
       return mode === 'edit';
     },
 
-    setMode: function(pmode) {
-      mode = document.body.dataset.mode = pmode;
+    setMode: function(newMode) {
+      mode = document.body.dataset.mode = newMode;
     }
   };
 })();
-
