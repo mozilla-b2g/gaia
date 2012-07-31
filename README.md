@@ -26,11 +26,16 @@ See INSTALL file in B2G repository for instructions on building and running B2G.
 
 ## Tests
 
-## Unit Tests
+### Unit Tests
 
 See: https://developer.mozilla.org/en/Mozilla/Boot_to_Gecko/Gaia_Unit_Tests
 
 ### Integration
+
+Prerequisites:
+
+1. adb
+2. FirefoxOS Device / Emulator
 
 You need a device / emulator connected and marionette running
 on port 2828. For example on a device the steps would be:
