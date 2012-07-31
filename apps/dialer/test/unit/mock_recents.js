@@ -1,6 +1,10 @@
-var Recents = {
-  _calledWith: null,
+var MockRecents = {
   add: function(entry) {
-    this._calledWith = entry;
+    this.mCalledWith = entry;
+  },
+
+  mCalledWith: null,
+  mTearDown: function tearDown() {
+    this._calledWith = null;
   }
 };

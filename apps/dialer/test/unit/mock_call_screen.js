@@ -1,12 +1,16 @@
-var CallScreen = {
-  _enableKeypadCalled: false,
-  _syncSpeakerCalled: false,
-
+var MockCallScreen = {
   enableKeypad: function() {
-    this._enableKeypadCalled = true;
+    this.mEnableKeypadCalled = true;
   },
   syncSpeakerEnabled: function() {
-    this._syncSpeakerCalled = true;
+    this.mSyncSpeakerCalled = true;
+  },
+
+  mEnableKeypadCalled: false,
+  mSyncSpeakerCalled: false,
+  mTearDown: function tearDown() {
+    this.mEnableKeypadCalled = false;
+    this.mSyncSpeakerCalled = false;
   }
 };
 

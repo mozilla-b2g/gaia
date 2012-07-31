@@ -5,10 +5,43 @@ requireApp('dialer/test/unit/mock_contacts.js');
 requireApp('dialer/test/unit/mock_call_screen.js');
 requireApp('dialer/test/unit/mock_recents.js');
 
+// We're going to swap those with mock objects
+// so we need to make sure they are defined.
+if (!this.Contacts) {
+  this.Contacts = null;
+}
+if (!this.Recents) {
+  this.Recents = null;
+}
+if (!this.CallScreen) {
+  this.CallScreen = null;
+}
+
 suite('dialer/handled_call', function() {
   var subject;
   var mockCall;
   var fakeNode;
+
+  var realContacts;
+  var realRecents;
+  var realCallScreen;
+
+  suiteSetup(function() {
+    realContacts = window.Contacts;
+    window.Contacts = MockContacts;
+
+    realRecents = window.Recents;
+    window.Recents = MockRecents;
+
+    realCallScreen = window.CallScreen;
+    window.CallScreen = MockCallScreen;
+  });
+
+  suiteTeardown(function() {
+    window.Contacts = realContacts;
+    window.Recents = realRecents;
+    window.CallScreen = realCallScreen;
+  });
 
   setup(function() {
     fakeNode = document.createElement('section');
@@ -37,10 +70,9 @@ suite('dialer/handled_call', function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
 
-    Recents._calledWith = null;
-    Contacts._calledWith = null;
-    CallScreen._enableKeypadCalled = false;
-    CallScreen._syncSpeakerCalled = false;
+    MockRecents.mTearDown();
+    MockContacts.mTearDown();
+    MockCallScreen.mTearDown();
   });
 
   suite('initialization', function() {
@@ -75,7 +107,7 @@ suite('dialer/handled_call', function() {
 
     test('number', function() {
       assert.ok(subject.numberNode);
-      assert.equal(Contacts._calledWith, mockCall.number);
+      assert.equal(MockContacts.mCalledWith, mockCall.number);
     });
 
     test('initial state', function() {
@@ -97,11 +129,11 @@ suite('dialer/handled_call', function() {
     });
 
     test('keypad enabled', function() {
-      assert.isTrue(CallScreen._enableKeypadCalled);
+      assert.isTrue(MockCallScreen.mEnableKeypadCalled);
     });
 
     test('sync speaker', function() {
-      assert.isTrue(CallScreen._syncSpeakerCalled);
+      assert.isTrue(MockCallScreen.mSyncSpeakerCalled);
     });
   });
 
@@ -112,7 +144,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('save recents entry', function() {
-      assert.equal(Recents._calledWith, subject.recentsEntry);
+      assert.equal(MockRecents.mCalledWith, subject.recentsEntry);
     });
 
     test('remove listener', function() {
@@ -140,7 +172,7 @@ suite('dialer/handled_call', function() {
 
   suite('resuming', function() {
     setup(function() {
-      CallScreen._syncSpeakerCalled = false;
+      MockCallScreen.mSyncSpeakerCalled = false;
       mockCall._resume();
     });
 
@@ -149,7 +181,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('sync speaker', function() {
-      assert.isTrue(CallScreen._syncSpeakerCalled);
+      assert.isTrue(MockCallScreen.mSyncSpeakerCalled);
     });
   });
 
