@@ -53,7 +53,6 @@ var WindowManager = (function() {
   var kLongPressInterval = 1000;
 
   // Some document elements we use
-  var statusbar = document.getElementById('statusbar');
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
 
@@ -133,7 +132,7 @@ var WindowManager = (function() {
     var manifest = app.manifest;
 
     frame.style.width = window.innerWidth + 'px';
-    frame.style.height = window.innerHeight - statusbar.offsetHeight + 'px';
+    frame.style.height = window.innerHeight - StatusBar.getHeight() + 'px';
   }
 
   var openFrame = null;
