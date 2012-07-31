@@ -74,15 +74,12 @@ contacts.List = (function() {
     name.innerHTML = contact.givenName;
     name.innerHTML += ' <b>' + contact.familyName + '</b>';
     var searchInfo = [];
-    if (contact.givenName && contact.givenName[0]) {
-      searchInfo.push(contact.givenName[0]);
-    }
-    if (contact.familyName && contact.familyName[0]) {
-      searchInfo.push(contact.familyName[0]);
-    }
-    if (contact.org && contact.org[0]) {
-      searchInfo.push(contact.org[0]);
-    }
+    var searchable = ['givenName', 'familyName', 'org'];
+    searchable.forEach(function(field) {
+      if (contact[field] && contact[field][0]) {
+        searchInfo.push(contact[field][0]);
+      }
+    });
     body.dataset['search'] = normalizeText(searchInfo.join(' '));
     body.appendChild(name);
     var small = document.createElement('small');
