@@ -80,6 +80,9 @@ contacts.List = (function() {
     if (contact.familyName && contact.familyName[0]) {
       searchInfo.push(contact.familyName[0]);
     }
+    if (contact.org && contact.org[0]) {
+      searchInfo.push(contact.org[0]);
+    }
     body.dataset['search'] = normalizeText(searchInfo.join(' '));
     body.appendChild(name);
     var small = document.createElement('small');
