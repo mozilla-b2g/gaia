@@ -1212,7 +1212,7 @@ var editSettings;
 var imageEditor;
 
 var editOptionButtons =
-  Array.slice($('edit-options').querySelectorAll('a.button'), 0);
+  Array.slice($('edit-options').querySelectorAll('a.radio.button'), 0);
 
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
 
@@ -1245,13 +1245,13 @@ function editPhoto(n) {
     editOptionButtons.forEach(function(b) {
       b.style.backgroundImage = backgroundImage;
     });
+
+    // Display the edit screen
+    setView(editView);
+
+    // Configure the exposure tool as the first one shown
+    setEditTool('exposure');
   });
-
-  // Display the edit screen
-  setView(editView);
-
-  // Configure the exposure tool as the first one shown
-  setEditTool('exposure');
 
   // Set the exposure slider to its default value
   exposureSlider.setExposure(0);
@@ -1281,7 +1281,7 @@ function editOptionsHandler() {
   if (this.dataset.borderColor) {
     editSettings.borderColor = this.dataset.borderColor;
   }
-  imageEditor.edit(editSettings);
+  imageEditor.edit();
 }
 
 /*
@@ -1373,7 +1373,7 @@ $('exposure-slider').onchange = function() {
   var factor = -1;  // XXX: adjust this factor to get something reasonable.
   var gamma = Math.pow(2, stops * factor);
   editSettings.gamma = gamma;
-  imageEditor.edit(editSettings);
+  imageEditor.edit();
 };
 
 function setEditTool(tool) {
@@ -1383,11 +1383,19 @@ function setEditTool(tool) {
   var options = $('edit-options').querySelectorAll('div.edit-options-bar');
   Array.forEach(options, function(o) { o.classList.add('hidden'); });
 
+  // Exit crop mode, if we were in it
+  imageEditor.hideCropOverlay();
+
   // Now select and show the correct set based on tool
   switch (tool) {
   case 'exposure':
     $('edit-exposure-button').classList.add('selected');
     $('exposure-slider').classList.remove('hidden');
+    break;
+  case 'crop':
+    $('edit-crop-button').classList.add('selected');
+    $('edit-crop-options').classList.remove('hidden');
+    imageEditor.showCropOverlay();
     break;
   case 'effect':
     $('edit-effect-button').classList.add('selected');
@@ -1401,8 +1409,11 @@ function setEditTool(tool) {
 }
 
 $('edit-exposure-button').onclick = function() { setEditTool('exposure'); };
+$('edit-crop-button').onclick = function() { setEditTool('crop'); };
 $('edit-effect-button').onclick = function() { setEditTool('effect'); };
 $('edit-border-button').onclick = function() { setEditTool('border'); };
+$('edit-crop-crop').onclick = function() { imageEditor.cropImage(); };
+$('edit-crop-none').onclick = function() { imageEditor.undoCrop(); };
 
 function exitEditMode(saved) {
   // Revoke the blob URL we've been using
@@ -1436,7 +1447,7 @@ function exitEditMode(saved) {
 // change event when we manually add something to it or at least have that
 // option
 $('edit-save-button').onclick = function() {
-  imageEditor.getFullSizeBlob(editSettings, 'image/jpeg', function(blob) {
+  imageEditor.getFullSizeBlob('image/jpeg', function(blob) {
 
     var original = images[editedPhotoIndex].name;
     var basename, extension, filename;
