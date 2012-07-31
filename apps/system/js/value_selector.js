@@ -14,20 +14,13 @@ var ValueSelector = {
   init: function vs_init() {
     this._element = document.getElementById('value-selector');
     this._container = document.getElementById('value-selector-container');
-
     this._container.addEventListener('click', this.handleSelect.bind(this));
-    this._container.onmousedown = function() {
-      return false;
-    };
 
     this._cancelButton = document.getElementById('value-selector-cancel');
     this._cancelButton.addEventListener('click', this);
 
     this._confirmButton = document.getElementById('value-selector-confirm');
     this._confirmButton.addEventListener('click', this.confirm.bind(this));
-    this._confirmButton.onmousedown = function() {
-      return false;
-    };
 
     window.addEventListener('select', this);
     window.addEventListener('appopen', this);
@@ -62,7 +55,7 @@ var ValueSelector = {
     var target = evt.target;
 
     if (target.dataset === undefined ||
-        target.dataset.optionindex === undefined)
+        target.dataset.optionIndex === undefined)
       return;
 
     if (this._singleSelect) {
@@ -72,13 +65,8 @@ var ValueSelector = {
       }
 
       target.classList.add('selected');
-
     } else {
-      if (target.classList.contains('selected')) {
-        target.classList.remove('selected');
-      } else {
-        target.classList.add('selected');
-      }
+      target.classList.toggle('selected');
     }
   },
 
@@ -113,13 +101,13 @@ var ValueSelector = {
     if (this._singleSelect) {
 
       if (selectee.length > 0)
-        singleOptionIndex = selectee[0].dataset.optionindex;
+        singleOptionIndex = selectee[0].dataset.optionIndex;
 
     } else {
 
       for (var i = 0; i < selectee.length; i++) {
 
-        var i = parseInt(selectee[i].dataset.optionindex);
+        var i = parseInt(selectee[i].dataset.optionIndex);
         optionIndices.push(i);
       }
     }
@@ -141,7 +129,7 @@ var ValueSelector = {
 
       var checked = options[i].selected ? ' class="selected"' : '';
 
-      optionHTML += '<li data-optionindex="' + options[i].optionIndex + '"' +
+      optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
                      options[i].text +
                      '<span class="checkmark">&#10004;</span>' +
