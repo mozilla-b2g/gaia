@@ -253,22 +253,52 @@ var ThreadListUI = {
     delete this.iconEdit;
     return this.iconEdit = document.getElementById('icon-edit-threads');
   },
+  get editHeader() {
+    delete this.editHeader;
+    return this.editHeader = document.getElementById('list-edit-title');
+  },
 
   init: function thlui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
+    this.selectedInputList = [];
     this.deleteAllButton.addEventListener('click',
       this.deleteAllThreads.bind(this));
     this.deleteSelectedButton.addEventListener('click',
       this.deleteThreads.bind(this));
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
+    this.view.addEventListener('click', this);
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
     var element =
       this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
-      element.innerHTML = contact[0].name;
+      element.innerHTML = contact[0].name || 'Unknown';
+      //TODO Use l10n to Unknown string
+    }
+  },
+
+  handleEvent: function thlui_handleEvent(evt) {
+    switch (evt.type) {
+      case 'click':
+        if (evt.target.type == 'checkbox') {
+          if (evt.target.checked) {
+            ThreadListUI.selectedInputList.push(evt.target);
+          } else {
+            ThreadListUI.selectedInputList.splice(
+                      ThreadListUI.selectedInputList.indexOf(evt.target), 1);
+          }
+          var selected = ThreadListUI.selectedInputList.length;
+          if (selected > 0) {
+            ThreadListUI.deleteSelectedButton.classList.remove('disabled');
+            this.editHeader.innerHTML = selected + ' Selected';
+          } else {
+            ThreadListUI.deleteSelectedButton.classList.add('disabled');
+            this.editHeader.innerHTML = 'Edit mode';
+          }
+        }
+          break;
     }
   },
 
@@ -279,6 +309,9 @@ var ThreadListUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
+    this.selectedInputList = [];
+    this.editHeader.innerHTML = 'Edit mode';
+    this.deleteSelectedButton.classList.add('disabled');
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
@@ -309,7 +342,7 @@ var ThreadListUI = {
   deleteThreads: function thlui_deleteThreads() {
     this.delNumList = []; //clean the lists before adding stuff
     this.pendingDelList = [];
-    var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
+    var inputs = ThreadListUI.selectedInputList;
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
       var filter = MessageManager.createFilter(inputs[i].value);
@@ -324,6 +357,9 @@ var ThreadListUI = {
         }
       }, filter);
     }
+    // Cleaning
+    this.editHeader.innerHTML = 'Edit mode';
+    this.deleteSelectedButton.classList.add('disabled');
   },
 
   executeDeletion: function thlui_executeDeletion() {
@@ -537,9 +573,15 @@ var ThreadUI = {
     return this.headerTitle = document.getElementById('header-text');
   },
 
+  get editHeader() {
+      delete this.editHeader;
+      return this.editHeader = document.getElementById('messages-edit-title');
+  },
+
   init: function thui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
+    this.selectedInputList = [];
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.deleteAllButton.addEventListener('click',
@@ -550,6 +592,7 @@ var ThreadUI = {
     this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
     this.headerTitle.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
+    this.view.addEventListener('click', this);
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -617,7 +660,8 @@ var ThreadUI = {
     ThreadUI.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
       if (contact && contact.length > 0) {
-        ThreadUI.title.innerHTML = contact[0].name;
+        //TODO l10n to 'Unknown' string
+        ThreadUI.title.innerHTML = contact[0].name || 'Unknown';
       }
     });
   },
@@ -709,6 +753,9 @@ var ThreadUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
+    this.selectedInputList = [];
+    this.editHeader.innerHTML = 'Edit mode';
+    this.deleteSelectedButton.classList.add('disabled');
   },
 
   clearContact: function thui_clearContact() {
@@ -753,8 +800,7 @@ var ThreadUI = {
     ThreadUI.delNumList = [];
     ThreadUI.pendingDelList = [];
     var tempTSList = [];
-    var inputs = ThreadUI.view.querySelectorAll(
-      'input[type="checkbox"]:checked');
+    var inputs = ThreadUI.selectedInputList;
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].parentNode.parentNode.classList.add('undo-candidate');
       var inputValue = inputs[i].value;
@@ -776,6 +822,9 @@ var ThreadUI = {
         }
       }
     });
+    // Cleaning
+    this.editHeader.innerHTML = 'Edit mode';
+    this.deleteSelectedButton.classList.add('disabled');
   },
 
   executeDeletion: function thui_executeDeletion() {
@@ -811,7 +860,6 @@ var ThreadUI = {
                         mainWrapper.classList.remove('edit');
                         window.location.hash = '#thread-list';
                       });
-
                     }
                 },filter);
               });
@@ -835,9 +883,7 @@ var ThreadUI = {
                 mainWrapper.classList.remove('edit');
                 window.location.hash = '#thread-list';
               });
-
             }
-
           },filter);
         }
 
@@ -848,7 +894,26 @@ var ThreadUI = {
   },
 
   handleEvent: function thui_handleEvent(evt) {
-    //TODO We will use for updating height of input if necessary
+    switch (evt.type) {
+      case 'click':
+        if (evt.target.type == 'checkbox') {
+          if (evt.target.checked) {
+            ThreadUI.selectedInputList.push(evt.target);
+          } else {
+            ThreadUI.selectedInputList.splice(
+                            ThreadUI.selectedInputList.indexOf(evt.target), 1);
+          }
+          var selected = ThreadUI.selectedInputList.length;
+          if (selected > 0) {
+            ThreadUI.deleteSelectedButton.classList.remove('disabled');
+            this.editHeader.innerHTML = selected + ' Selected';
+          } else {
+            ThreadUI.deleteSelectedButton.classList.add('disabled');
+            this.editHeader.innerHTML = 'Edit mode';
+          }
+        }
+          break;
+    }
   },
   cleanFields: function thui_cleanFields() {
     this.num.value = '';

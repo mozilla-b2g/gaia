@@ -172,8 +172,6 @@ var Contacts = (function() {
 
       case 'view-contact-form':
         if (params == -1 || !('id' in params)) {
-          // Adding new Contact
-          currentContact = {};
           showAdd(params);
         } else {
           // Editing existing contact
@@ -184,7 +182,6 @@ var Contacts = (function() {
               showEdit();
             }, function onError() {
               console.log('Error retrieving contact to be edited');
-              currentContact = {};
               showAdd();
             });
           }
@@ -230,14 +227,42 @@ var Contacts = (function() {
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
+    TAG_OPTIONS = {
+      'phone-type' : [
+        {value: _('mobile')},
+        {value: _('home')},
+        {value: _('work')},
+        {value: _('personal')},
+        {value: _('faxHome')},
+        {value: _('faxOffice')},
+        {value: _('faxOther')},
+        {value: _('another')}
+      ],
+      'email-type' : [
+        {value: _('personal')},
+        {value: _('home')},
+        {value: _('work')}
+      ],
+      'address-type' : [
+        {value: _('home')},
+        {value: _('work')}
+      ]
+    };
   };
 
-  window.addEventListener('load', function initContacts(evt) {
+  window.addEventListener('localized', function initContacts(evt) {
+    initLanguages();
     initContainers();
     initPullEffect(cover);
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
+    document.body.classList.remove('hide');
   });
+
+  var initLanguages = function initLanguages() {
+    document.documentElement.lang = navigator.mozL10n.language.code;
+    document.documentElement.dir = navigator.mozL10n.language.direction;
+  };
 
   var loadList = function loadList() {
     var list = document.getElementById('groups-list');
@@ -640,6 +665,9 @@ var Contacts = (function() {
   }
 
   var showAdd = function showAdd(params) {
+    if (!params || params == -1 || !('id' in params)) {
+      currentContact = {};
+    }
     resetForm();
     deleteContactButton.classList.add('hide');
     formTitle.innerHTML = _('addContact');
@@ -719,18 +747,25 @@ var Contacts = (function() {
     saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
-      additionalName: ''
+      additionalName: '',
+      name: ''
     };
 
-    if (givenName.value && givenName.value.length > 0) {
-      myContact.givenName = [givenName.value];
+    var inputs = {
+      'givenName': givenName,
+      'familyName': familyName,
+      'org': company,
+    };
+
+    for (field in inputs) {
+      var value = inputs[field].value;
+      if (value && value.length > 0) {
+        myContact[field] = [value];  
+      } else {
+        myContact[field] = null;
+      }
     }
-    if (familyName.value && familyName.value.length > 0) {
-      myContact.familyName = [familyName.value];
-    }
-    if (company.value && company.value.length > 0) {
-      myContact.org = [company.value];
-    }
+
     if (currentContact.category) {
       myContact.category = currentContact.category;
     }
@@ -741,7 +776,7 @@ var Contacts = (function() {
       if (myContact.familyName) {
         name += myContact.familyName;
       }
-      myContact.name = name;
+      myContact.name = [name];
     }
 
     getPhones(myContact);
@@ -770,7 +805,6 @@ var Contacts = (function() {
     } else {
       contact = new mozContact();
       contact.init(myContact);
-
     }
 
     var request = navigator.mozContacts.save(contact);
@@ -1070,34 +1104,6 @@ var ActivityHandler = {
   }
 };
 
-// set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showPanel() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-  document.body.classList.remove('hide');
-
-  TAG_OPTIONS = {
-    'phone-type' : [
-      {value: _('mobile')},
-      {value: _('home')},
-      {value: _('work')},
-      {value: _('personal')},
-      {value: _('faxHome')},
-      {value: _('faxOffice')},
-      {value: _('faxOther')},
-      {value: _('another')}
-    ],
-    'email-type' : [
-      {value: _('personal')},
-      {value: _('home')},
-      {value: _('work')}
-    ],
-    'address-type' : [
-      {value: _('home')},
-      {value: _('work')}
-    ]
-  };
-});
 
 var actHandler = ActivityHandler.handle.bind(ActivityHandler);
 window.navigator.mozSetMessageHandler('activity', actHandler);

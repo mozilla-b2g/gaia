@@ -327,7 +327,7 @@ Page.prototype = {
    * @param{Object} DOM element
    */
   tap: function pg_tap(elem) {
-    if (document.body.dataset.mode === 'edit') {
+    if (Homescreen.isInEditMode()) {
       if (elem.className === 'options') {
         Homescreen.showAppDialog(elem.dataset.origin);
       }
@@ -465,12 +465,13 @@ Page.prototype = {
   /*
    * Movement feedback
   */
-  bounce: function pg_bounce(direction) {
+  bounce: function pg_bounce(direction, callback) {
     var container = this.container;
     var dataset = this.container.dataset;
     container.addEventListener('animationend', function animationEnd(e) {
       container.removeEventListener('animationend', animationEnd);
       dataset.bouncing = '';
+      callback();
     });
 
     if (direction > 0) {

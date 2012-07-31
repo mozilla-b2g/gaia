@@ -62,14 +62,14 @@ var KeyboardManager = (function() {
 
     if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
-      keyboardOverlay.style.height = (height + 20) + 'px';
+      keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
       keyboardOverlay.hidden = false;
     } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
         keyboardFrame.removeEventListener('transitionend', keyboardShown);
         currentApp.style.height = height + 'px';
-        keyboardOverlay.style.height = (height + 20) + 'px';
+        keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
         keyboardOverlay.hidden = false;
         keyboardFrame.classList.add('visible');
       });

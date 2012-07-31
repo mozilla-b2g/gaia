@@ -53,7 +53,6 @@ var WindowManager = (function() {
   var kLongPressInterval = 1000;
 
   // Some document elements we use
-  var statusbar = document.getElementById('statusbar');
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
 
@@ -133,51 +132,81 @@ var WindowManager = (function() {
     var manifest = app.manifest;
 
     frame.style.width = window.innerWidth + 'px';
-    frame.style.height = window.innerHeight - statusbar.offsetHeight + 'px';
+    frame.style.height = window.innerHeight - StatusBar.height + 'px';
   }
+
+  var openFrame = null;
+  var closeFrame = null;
+  var openCallback = null;
+  var closeCallback = null;
+
+  // Create a window sprite element to perform windows open/close
+  // animations.
+  var sprite = document.createElement('div');
+  sprite.id = 'windowSprite';
+  document.body.appendChild(sprite);
+
+  // This event handler is triggered when the transition ends.
+  // We're going to do two transitions, so it gets called twice.
+  sprite.addEventListener('transitionend', function spriteTransition(e) {
+    var prop = e.propertyName;
+    var classes = sprite.classList;
+
+    if (sprite.className === 'open' && prop.indexOf('transform') != -1) {
+      openFrame.classList.add('active');
+      windows.classList.add('active');
+
+      classes.add('faded');
+      setTimeout(openCallback);
+    } else if (classes.contains('faded') && prop === 'opacity') {
+      openFrame.setVisible(true);
+      openFrame.focus();
+
+      // Dispatch a 'appopen' event,
+      // Modal dialog would use this.
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+      openFrame.dispatchEvent(evt);
+
+    } else if (classes.contains('close') && prop === 'color') {
+      closeFrame.classList.remove('active');
+      windows.classList.remove('active');
+    } else if (classes.contains('close') && prop.indexOf('transform') != -1) {
+      classes.remove('open');
+      classes.remove('close');
+
+      setTimeout(closeCallback);
+    }
+  });
 
   // Perform an "open" animation for the app's iframe
   function openWindow(origin, callback) {
     var app = runningApps[origin];
-    var frame = app.frame;
-    frame.classList.add('active');
-    windows.classList.add('active');
+    openFrame = app.frame;
+    openCallback = callback || function() {};
 
-    var width = document.documentElement.clientWidth;
-    // Query css to flush this change
-
-    frame.setVisible(true);
-    frame.focus();
-
-    if (callback)
-      callback();
-
-    // Dispatch a 'appopen' event,
-    // Modal dialog would use this.
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
-    frame.dispatchEvent(evt);
+    sprite.className = 'open';
   }
 
   function closeWindow(origin, callback) {
     var app = runningApps[origin];
-    var frame = app.frame;
-    frame.classList.remove('active');
-    windows.classList.remove('active');
-
-    if (callback)
-      callback();
+    closeFrame = app.frame;
+    closeCallback = callback || function() {};
 
     // Send a synthentic 'appwillclose' event.
     // The keyboard uses this and the appclose event to know when to close
     // See https://github.com/andreasgal/gaia/issues/832
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
-    frame.dispatchEvent(evt);
+    closeFrame.dispatchEvent(evt);
 
     // Take keyboard focus away from the closing window
-    frame.blur();
-    frame.setVisible(false);
+    closeFrame.blur();
+    closeFrame.setVisible(false);
+
+    // And begin the transition
+    sprite.classList.remove('faded');
+    sprite.classList.add('close');
   }
 
   //last time app was launched,
@@ -418,7 +447,7 @@ var WindowManager = (function() {
       // UI Test App - Notifications don't work properly when running OOP
       //   - bug 776134
 
-      'Video',
+      'Video'
       // - When running OOP, VolumeService dies - bug 775833
       //   OOP - Assertion failure: w->mApp,
       //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697

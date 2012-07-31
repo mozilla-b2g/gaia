@@ -8,7 +8,11 @@
   },
   "permissions": [
     "mozbrowser",
-    "mozApps"
+    "mozApps",
+    "webapps",
+    "device-storage",
+    "devicestorage",
+    "offline-app"
   ],
   "locales": {
     "ar": {

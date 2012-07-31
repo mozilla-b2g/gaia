@@ -5,6 +5,12 @@
 var MochaTask = (function() {
   var current, done, errorHandler;
 
+  function clearState() {
+    done = null;
+    current = null;
+    errorHandler = null;
+  }
+
   return {
 
     /**
@@ -48,24 +54,64 @@ var MochaTask = (function() {
      * @param {Object} value object to pass to generator.
      */
     next: function(value) {
+      //assign references so we
+      //can clear state without messing
+      //up execution order later.
+      var complete = done,
+          generator = current,
+          handler = errorHandler;
+
       try {
-        current.send(value);
+        generator.send(value);
       } catch (e) {
         if (e instanceof StopIteration) {
-          if (done)
-            done();
-          current = null;
-          done = null;
-        } else {
-          if (errorHandler) {
-            errorHandler(e);
-          }
+          clearState();
 
-          errorHandler = null;
-          current = null;
-          done = null;
+          if (complete) {
+            complete();
+          }
+        } else {
+          clearState();
+
+          if (handler) {
+            handler(e);
+          }
         }
       }
-    }
+    },
+
+    nextNodeStyle: function(error, value) {
+      //assign references so we
+      //can clear state without messing
+      //up execution order later.
+      var complete = done,
+          generator = current,
+          handler = errorHandler;
+
+      if (error) {
+        throw error;
+      }
+
+      try {
+        generator.send(value);
+      } catch (e) {
+        if (e instanceof StopIteration) {
+          clearState();
+
+          if (complete) {
+            complete();
+          }
+        } else {
+          clearState();
+
+          if (handler) {
+            handler(e);
+          }
+        }
+      }
+    },
+
+
   };
+
 }());

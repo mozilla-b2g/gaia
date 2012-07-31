@@ -4,7 +4,8 @@
   "description": "Gaia Test Agent",
   "launch_path": "/index.html",
   "permissions": [
-    "power"
+    "power",
+    "offline-app"
   ],
   "locales": {
     "en-US": {
