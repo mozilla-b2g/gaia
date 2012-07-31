@@ -123,6 +123,7 @@ div[data-level="6"] {
 }
 
 /* Level 7 under fullscreen */
-#screen.fullscreen #keyboard-overlay {
+#screen.fullscreen #keyboard-overlay,
+#screen.fullscreen #cardsView {
   z-index: 2147483647;
 }
