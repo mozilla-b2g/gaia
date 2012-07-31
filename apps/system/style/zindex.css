@@ -1,10 +1,17 @@
 /* zIndex of important system app parts 
  * is gathered here to clearly specify all system-app hierarchy */
 
-
 /* Level 0: System Overlay */
 #volume,
 div[data-level="0"] {
+  z-index: 2147483647;
+}
+
+#charging-status {
+  z-index: 2147483647;
+}
+
+#usb-connection {
   z-index: 2147483647;
 }
 
@@ -53,7 +60,11 @@ div[data-level="5"] {
 }
 
 /* Level 6: Dialog Module */
-#dialog-overlay {
+#dialog-overlay,
+#value-selector, 
+#date-selector,
+#time-selector,
+div[data-level="6"] {
   z-index: 10000;
 }
 
