@@ -280,7 +280,6 @@ var ThreadListUI = {
   },
 
   handleEvent: function thlui_handleEvent(evt) {
-  //TODO We will use for updating height of input if necessary
     switch (evt.type) {
       case 'click':
         if (evt.target.type == 'checkbox') {
@@ -895,7 +894,6 @@ var ThreadUI = {
   },
 
   handleEvent: function thui_handleEvent(evt) {
-    //TODO We will use for updating height of input if necessary
     switch (evt.type) {
       case 'click':
         if (evt.target.type == 'checkbox') {
