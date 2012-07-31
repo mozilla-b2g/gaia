@@ -263,25 +263,30 @@ var Recents = {
   },
 
   deleteAll: function re_deleteAll() {
-    var self = this;
+    var response = window.confirm('Clear all calls?\n' +
+                                  'Are you sure you want to clear all calls\n' +
+                                  'from your call log?');
+    if (response){
+      var self = this;
 
-    this.getDatabase(function(database) {
-      var txn = database.transaction(self.STORENAME, 'readwrite');
-      var store = txn.objectStore(self.STORENAME);
+      this.getDatabase(function(database) {
+        var txn = database.transaction(self.STORENAME, 'readwrite');
+        var store = txn.objectStore(self.STORENAME);
 
-      var delAllReq = store.clear();
-      delAllReq.onsuccess = function da_onsuccess() {
-        self.recentsContainer.innerHTML = '';
-        self.recentsIconEdit.classList.add('disabled');
-        self.recentsHeaderAction(null);
-        this._selectedEntries = new Object();
-      };
+        var delAllReq = store.clear();
+        delAllReq.onsuccess = function da_onsuccess() {
+          self.recentsContainer.innerHTML = '';
+          self.recentsIconEdit.classList.add('disabled');
+          self.recentsHeaderAction(null);
+          this._selectedEntries = new Object();
+        };
 
-      delAllReq.onerror = function da_onerror(e) {
-        console.log('dialerRecents delete all failure: ',
-          e.message, setreq.errorCode);
-      };
-    });
+        delAllReq.onerror = function da_onerror(e) {
+          console.log('dialerRecents delete all failure: ',
+            e.message, setreq.errorCode);
+        };
+      });
+    }
   },
 
   deleteSelected: function re_deleteSelected() {
