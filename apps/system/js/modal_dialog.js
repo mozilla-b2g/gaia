@@ -277,7 +277,7 @@ var ModalDialog = {
     this.show('system');
   },
 
-  modalDialogIsShown: function md_modalDialogIsShown() {
+  isVisible: function md_isVisible() {
     return this.screen.classList.contains('modal-dialog');
   }
 };
