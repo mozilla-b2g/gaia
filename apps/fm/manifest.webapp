@@ -7,7 +7,9 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "mozFM"
+    "mozFM",
+    "fmradio",
+    "offline-app"
   ],
   "locales": {
     "ar": {

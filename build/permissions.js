@@ -113,7 +113,7 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
           dump("WARNING: permission unknown:" + name + "\n");
           continue;
         }
-        dump("name: " + name + "\n");
+        debug("name: " + name + "\n");
         let uri = ioservice.newURI(rootURL, null, null);
         debug("add permission: " + rootURL + ", " + name);
         permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);

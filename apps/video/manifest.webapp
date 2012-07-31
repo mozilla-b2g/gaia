@@ -6,6 +6,12 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": [
+    "device-storage",
+    "devicestorage",
+    "indexedDB-unlimited",
+    "offline-app"
+  ],
   "locales": {
     "ar": {
       "name": "\u0641\u064a\u062f\u064a\u0648",
