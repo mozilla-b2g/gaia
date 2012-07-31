@@ -23,7 +23,7 @@ var StatusBar = {
 
   /* For other app to acquire */
   getHeight() {
-    if (screen.classList.contain('active-statusbar'))
+    if (this.screen.classList.contain('active-statusbar'))
       return this.attentionBar.offsetHeight;
     else
       return this.element.offsetHeight;
