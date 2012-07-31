@@ -168,7 +168,7 @@ const GridManager = (function() {
 
     pan(0, .3);
 
-    if(!isSamePage) {
+    if (!isSamePage) {
       updatePaginationBar();
     }
   }

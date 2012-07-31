@@ -266,7 +266,7 @@ var Recents = {
     var response = window.confirm('Clear all calls?\n' +
                                   'Are you sure you want to clear all calls\n' +
                                   'from your call log?');
-    if (response){
+    if (response) {
       var self = this;
 
       this.getDatabase(function(database) {
