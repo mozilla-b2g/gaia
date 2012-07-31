@@ -63,6 +63,8 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "mobileconnection", "mozFM", "systemXHR",
                       "background"];
 
+let commonPermissionList = ['offline-app', 'indexedDB-unlimited'];
+
 let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 
 (function registerProfileDirectory() {
@@ -106,7 +108,8 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
 
     let rootURL = GAIA_SCHEME + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
 
-    let perms = manifest.permissions;
+    let perms = commonPermissionList.concat(manifest.permissions);
+
     if (perms) {
       for each(let name in perms) {
         if (permissionList.indexOf(name) == -1) {
