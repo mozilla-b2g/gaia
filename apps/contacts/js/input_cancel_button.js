@@ -20,17 +20,9 @@ var InputCancelButton = (function inputCancelButton() {
 
   // Waiting for new input additions to the DOM
   var initMutationsListener = function initMutationsListener() {
-    document.addEventListener('DOMNodeInserted', function(e) {
-      var inserted = e.target;
-      if (inserted.tagName == 'INPUT') {
-        listenForCheck(inserted);
-        return;
-      }
-      var childInputs = inserted.querySelectorAll(selector);
-      if (childInputs) {
-        for (var i = 0; i < childInputs.length; i++) {
-          listenForCheck(childInputs[i]);
-        }
+    document.addEventListener('animationstart', function(event) {
+      if (event.animationName == 'nodeInserted') {
+        listenForCheck(event.target);
       }
     }, false);
   };

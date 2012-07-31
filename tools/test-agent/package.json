@@ -4,9 +4,10 @@
   "private": true,
   "dependencies": {
     "test-agent": "0.7.0",
-    "marionette-client": "0.3.0",
+    "marionette-client": "0.4.1",
     "b2g-scripts": "0.3.0",
     "chai": "0.5.3",
-    "mocha": "~1.0"
+    "mocha": "~1.0",
+    "xpcwindow": "0.2.0"
   }
 }
