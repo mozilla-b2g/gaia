@@ -42,5 +42,5 @@ on port 2828. For example on a device the steps would be:
 
 0. Make sure b2g desktop / firefox nightly are not running. Port 2828 must not
    be occupied
-1. Forward 2828 to your desktop `adb forward tcp:2828 tcp:2828`
+1. Forward 2828 from your device/emulator using: `adb forward tcp:2828 tcp:2828`
 2. Run: `make test-integration` 
