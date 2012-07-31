@@ -28,8 +28,8 @@
   width: 100%;
 }
 
-/* 
-  Styles of header 
+/*
+  Styles of header
 */
 
 .regular-header {
@@ -97,20 +97,20 @@
   background: #9d3d26 url(images/ui/negative.png) repeat-x left top;
 }
 
-.view-header [role="link"] .recents-icon.icon-menu { 
-  background-position: -0.6rem center; 
+.view-header [role="link"] .recents-icon.icon-menu {
+  background-position: -0.6rem center;
 }
 
-.view-header menu[type="toolbar"] { 
-  height: 100%; 
-  float: right; 
-  padding: 0; 
+.view-header menu[type="toolbar"] {
+  height: 100%;
+  float: right;
+  padding: 0;
   margin: 0;
 }
 
-.view-header menu[type="toolbar"] button { 
-  height: 100%; 
-  float: left; 
+.view-header menu[type="toolbar"] button {
+  height: 100%;
+  float: left;
   background: none;
   padding: 0 1.75rem;
   font: 1.4rem/1.1em 'Open Sans', Sans-serif;
@@ -127,9 +127,9 @@
   background: url(images/ui/separator.png) no-repeat left center;
 }
 
-.view-header menu[type="toolbar"] a { 
-  height: 100%; 
-  float: left; 
+.view-header menu[type="toolbar"] a {
+  height: 100%;
+  float: left;
   background: url(images/ui/separator.png) no-repeat right center;
   padding: 1rem 1.75rem;
   -moz-box-sizing: border-box;
@@ -151,33 +151,33 @@
   position: relative;
 }
 
-#recents-icon-edit.disabled {
+.disabled {
   pointer-events: none;
-  opacity: 0.8;
+  opacity: 0.5;
 }
 
-.view-header .recents-icon.icon-add { 
-  background-image: url(images/icons/add.png); 
+.view-header .recents-icon.icon-add {
+  background-image: url(images/icons/add.png);
 }
 
-.view-header .recents-icon.icon-edit { 
-  background-image: url(images/icons/edit.png); 
+.view-header .recents-icon.icon-edit {
+  background-image: url(images/icons/edit.png);
 }
 
-.view-header .recents-icon.icon-close { 
-  background-image: url(images/icons/close.png); 
+.view-header .recents-icon.icon-close {
+  background-image: url(images/icons/close.png);
 }
 
-.view-header .recents-icon.icon-back { 
-  background-image: url(images/icons/back.png); 
+.view-header .recents-icon.icon-back {
+  background-image: url(images/icons/back.png);
 }
 
-.view-header .recents-icon.icon-menu { 
-  background-image: url(images/icons/menu.png); 
+.view-header .recents-icon.icon-menu {
+  background-image: url(images/icons/menu.png);
 }
 
-.view-header .recents-icon.icon-user { 
-  background-image: url(images/icons/user.png); 
+.view-header .recents-icon.icon-user {
+  background-image: url(images/icons/user.png);
 }
 
 li, ol, ul {
@@ -393,7 +393,7 @@ button::-moz-focus-inner {
 }
 
 .edit-button {
-  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
+  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%);
   height: 100%;
   width: 100%;
   -moz-box-sizing: border-box;

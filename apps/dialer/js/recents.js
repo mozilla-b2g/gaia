@@ -126,6 +126,7 @@ var Recents = {
     this.recentsView.classList.toggle('recents-edit');
     this._selectedEntriesCounter = 0;
     this.headerEditModeText.textContent = 'Edit';
+    this.deleteSelectedThreads.classList.add('disabled');
     var logItems = this.recentsContainer.
       querySelectorAll('.log-item:not(.collapsed)'),
       logItemsLenght = logItems.length,
@@ -176,9 +177,11 @@ var Recents = {
         this._selectedEntriesCounter = selectedCallsLength;
         if (selectedCallsLength == 0) {
           this.headerEditModeText.textContent = 'Edit';
+          this.deleteSelectedThreads.classList.add('disabled');
         } else {
           this.headerEditModeText.textContent =
             selectedCallsLength + ' Selected';
+          this.deleteSelectedThreads.classList.remove('disabled');
         }
       }
       if (this._allViewGroupingPending) {
@@ -208,9 +211,11 @@ var Recents = {
           this._selectedEntriesCounter = selectedCallsLength;
           if (selectedCallsLength == 0) {
             this.headerEditModeText.textContent = 'Edit';
+            this.deleteSelectedThreads.classList.add('disabled');
           } else {
             this.headerEditModeText.textContent =
               selectedCallsLength + ' Selected';
+            this.deleteSelectedThreads.classList.remove('disabled');
           }
         }
       }
@@ -396,9 +401,12 @@ var Recents = {
       }
       if (this._selectedEntriesCounter == 0) {
         this.headerEditModeText.textContent = 'Edit';
+        this.deleteSelectedThreads.classList.add('disabled');
+
       } else {
         this.headerEditModeText.textContent =
           this._selectedEntriesCounter + ' Selected';
+          this.deleteSelectedThreads.classList.remove('disabled');
       }
     }
   },
