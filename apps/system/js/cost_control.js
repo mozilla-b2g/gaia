@@ -211,18 +211,6 @@ var CostControl = (function() {
     console.log('Evento escuchado: ' + evt.type);
     _isManualRequest = false;
 
-    // Filter calls, leaving only connected calls
-    function getConnected(calls) {
-      var connected = [];
-      console.log('call count: ' + calls.length);
-      calls.forEach(function cc_automaticCheck_eachCall(call) {
-        console.log('call state: ' + call.state);
-        if (call.state === 'connected')
-          connected.push(call);
-      });
-      return connected;
-    }
-
     // Ignore if the device is in roaming
     if (_inRoaming()) {
       console.warn('Device in roaming, no automatic updates allowed');
@@ -261,9 +249,7 @@ var CostControl = (function() {
       // After ending a call
       case 'callschanged':
         // Some call has ended
-        // XXX: Uncomment this line when call changes are properly recorded
-//        var currentConnectedCalls = getConnected(_telephony.calls).length;
-        var currentConnectedCalls = getConnected(_telephony.calls).length;
+        var currentConnectedCalls = _telephony.calls.length;
         if (_connectedCalls && currentConnectedCalls < _connectedCalls)
           _mockup_updateBalance();
 
