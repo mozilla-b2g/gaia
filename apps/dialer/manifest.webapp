@@ -17,8 +17,7 @@
     "mozApps",
     "webapps",
     "mobileconnection",
-    "background",
-    "offline-app"
+    "background"
   ],
   "locales": {
     "ar": {

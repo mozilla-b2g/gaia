@@ -7,6 +7,5 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "offline-app"
   ]
 }

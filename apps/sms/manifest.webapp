@@ -13,8 +13,7 @@
     "contacts-read",
     "contacts-write",
     "background",
-    "indexedDB-unlimited",
-    "offline-app"
+    "indexedDB-unlimited"
   ],
   "locales": {
     "ar": {
