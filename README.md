@@ -23,3 +23,24 @@ and talk to us on IRC:
 See INSTALL file in B2G repository for instructions on building and running B2G. To try out Gaia on desktop, see
 
   https://wiki.mozilla.org/Gaia/Hacking
+
+## Tests
+
+### Unit Tests
+
+See: https://developer.mozilla.org/en/Mozilla/Boot_to_Gecko/Gaia_Unit_Tests
+
+### Integration
+
+Prerequisites:
+
+1. adb
+2. FirefoxOS Device / Emulator
+
+You need a device / emulator connected and marionette running
+on port 2828. For example on a device the steps would be:
+
+0. Make sure b2g desktop / firefox nightly is stopped. ( port 2828 must not
+   be occupied)
+1. Forward 2828 to your desktop `adb forward tcp:2828 tcp:2828`
+2. Run: `make test-integration` 
