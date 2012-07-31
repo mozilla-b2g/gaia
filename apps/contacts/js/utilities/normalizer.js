@@ -1,5 +1,10 @@
 'use strict';
 
+// This should be fixed at a plaftorm level using
+// an utf8 normalized form.
+// Platform bug: https://bugzilla.mozilla.org/show_bug.cgi?id=779068
+// Please remove when this bug is fixed.
+
 function normalizeText(value) {
   var map = [
     ['[àáâãäå]', 'a'],
