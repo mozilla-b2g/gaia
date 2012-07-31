@@ -66,7 +66,7 @@ suite('dialer/handled_call', function() {
 
     test('duration', function() {
       assert.ok(subject.durationNode);
-      assert.equal(subject.durationNode.textContent, '...');
+      assert.equal(subject.durationNode.textContent, '…');
     });
 
     test('direction', function() {

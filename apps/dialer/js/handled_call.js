@@ -20,7 +20,7 @@ function HandledCall(aCall, aNode) {
   };
 
   this.updateCallNumber();
-  this.durationNode.textContent = '...';
+  this.durationNode.textContent = '…';
 
   this._initialState = this.call.state;
   this.updateDirection();
