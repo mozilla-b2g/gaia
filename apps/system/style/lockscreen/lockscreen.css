@@ -1,7 +1,5 @@
 #lockscreen {
   position: absolute;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
   /* 20px = height of status bar */
   top: 20px;
   width: -moz-calc(100%);
@@ -660,8 +658,6 @@
   width: 100%;
   height: 100%;
   background-color: #000;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
 }
 
 #lockscreen-camera > iframe {
