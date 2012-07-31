@@ -1414,6 +1414,18 @@ $('edit-effect-button').onclick = function() { setEditTool('effect'); };
 $('edit-border-button').onclick = function() { setEditTool('border'); };
 $('edit-crop-crop').onclick = function() { imageEditor.cropImage(); };
 $('edit-crop-none').onclick = function() { imageEditor.undoCrop(); };
+$('edit-crop-aspect-free').onclick = function() {
+  imageEditor.setCropAspectRatio();
+};
+$('edit-crop-aspect-portrait').onclick = function() {
+  imageEditor.setCropAspectRatio(2, 3);
+};
+$('edit-crop-aspect-landscape').onclick = function() {
+  imageEditor.setCropAspectRatio(3, 2);
+};
+$('edit-crop-aspect-square').onclick = function() {
+  imageEditor.setCropAspectRatio(1, 1);
+};
 
 function exitEditMode(saved) {
   // Revoke the blob URL we've been using
