@@ -12,8 +12,7 @@
     "device-storage",
     "devicestorage",
     "websettings-readwrite",
-    "settings-read",
-    "settings-write"
+    "settings"
   ],
   "locales": {
     "ar": {

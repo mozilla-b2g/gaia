@@ -10,8 +10,6 @@
     "telephony",
     "voicemail",
     "webcontacts-manage",
-    "contacts-read",
-    "contacts-write",
     "contacts",
     "power",
     "mozApps",
