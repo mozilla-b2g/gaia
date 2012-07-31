@@ -16,14 +16,6 @@ var PopupManager = {
     window.addEventListener('mozbrowserclose', this.close.bind(this));
 
     window.addEventListener('home', this.backHandling.bind(this));
-    window.addEventListener('resize', this.resize.bind(this));
-  },
-
-  resize: function pm_resize(evt) {
-    if (!this._currentPopup)
-      return;
-
-    this.overlay.style.height = window.innrtHeight + 'px';
   },
 
   open: function pm_open(evt) {
