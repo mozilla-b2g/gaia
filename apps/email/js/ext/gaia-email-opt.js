@@ -25878,6 +25878,7 @@ FakeFolderStorage.prototype = {
         Status:            0x000E,
         Collection:        0x000F,
         Class:             0x0010,
+        Version:           0x0011,
         CollectionId:      0x0012,
         GetChanges:        0x0013,
         MoreAvailable:     0x0014,
@@ -25885,10 +25886,13 @@ FakeFolderStorage.prototype = {
         Commands:          0x0016,
         Options:           0x0017,
         FilterType:        0x0018,
+        Truncation:        0x0019,
+        RtfTruncation:     0x001A,
         Conflict:          0x001B,
         Collections:       0x001C,
         ApplicationData:   0x001D,
         DeletesAsMoves:    0x001E,
+        NotifyGUID:        0x001F,
         Supported:         0x0020,
         SoftDelete:        0x0021,
         MIMESupport:       0x0022,
@@ -25908,6 +25912,9 @@ FakeFolderStorage.prototype = {
         AssistantName:             0x0106,
         AssistantPhoneNumber:      0x0107,
         Birthday:                  0x0108,
+        Body:                      0x0109,
+        BodySize:                  0x010A,
+        BodyTruncated:             0x010B,
         Business2PhoneNumber:      0x010C,
         BusinessAddressCity:       0x010D,
         BusinessAddressCountry:    0x010E,
@@ -25955,6 +25962,7 @@ FakeFolderStorage.prototype = {
         YomiCompanyName:           0x0138,
         YomiFirstName:             0x0139,
         YomiLastName:              0x013A,
+        CompressedRTF:             0x013B,
         Picture:                   0x013C,
         Alias:                     0x013D,
         WeightedRank:              0x013E,
@@ -25963,7 +25971,18 @@ FakeFolderStorage.prototype = {
 
     Email: {
       Tags: {
+        Attachment:              0x0205,
+        Attachments:             0x0206,
+        AttName:                 0x0207,
+        AttSize:                 0x0208,
+        Att0Id:                  0x0209,
+        AttMethod:               0x020A,
+        AttRemoved:              0x020B,
+        Body:                    0x020C,
+        BodySize:                0x020D,
+        BodyTruncated:           0x020E,
         DateReceived:            0x020F,
+        DisplayName:             0x0210,
         DisplayTo:               0x0211,
         Importance:              0x0212,
         MessageClass:            0x0213,
@@ -26001,6 +26020,9 @@ FakeFolderStorage.prototype = {
         TimeZone:                0x0233,
         GlobalObjId:             0x0234,
         ThreadTopic:             0x0235,
+        MIMEData:                0x0236,
+        MIMETruncated:           0x0237,
+        MIMESize:                0x0238,
         InternetCPID:            0x0239,
         Flag:                    0x023A,
         Status:                  0x023B,
@@ -26019,9 +26041,12 @@ FakeFolderStorage.prototype = {
         Attendee:                  0x0408,
         Email:                     0x0409,
         Name:                      0x040A,
+        Body:                      0x040B,
+        BodyTruncated:             0x040C,
         BusyStatus:                0x040D,
         Categories:                0x040E,
         Category:                  0x040F,
+        CompressedRTF:             0x0410,
         DtStamp:                   0x0411,
         EndTime:                   0x0412,
         Exception:                 0x0413,
@@ -26048,6 +26073,14 @@ FakeFolderStorage.prototype = {
         UID:                       0x0428,
         AttendeeStatus:            0x0429,
         AttendeeType:              0x042A,
+        Attachment:                0x042B,
+        Attachments:               0x042C,
+        AttName:                   0x042D,
+        AttSize:                   0x042E,
+        AttOid:                    0x042F,
+        AttMethod:                 0x0430,
+        AttRemoved:                0x0431,
+        DisplayName:               0x0432,
         DisallowNewTimeProposal:   0x0433,
         ResponseRequested:         0x0434,
         AppointmentReplyTime:      0x0435,
@@ -26090,11 +26123,15 @@ FakeFolderStorage.prototype = {
 
     FolderHierarchy: {
       Tags: {
+        Folders:      0x0705,
+        Folder:       0x0706,
         DisplayName:  0x0707,
         ServerId:     0x0708,
         ParentId:     0x0709,
         Type:         0x070A,
+        Response:     0x070B,
         Status:       0x070C,
+        ContentClass: 0x070D,
         Changes:      0x070E,
         Add:          0x070F,
         Delete:       0x0710,
@@ -26124,6 +26161,9 @@ FakeFolderStorage.prototype = {
 
     Tasks: {
       Tags: {
+        Body:                   0x0905,
+        BodySize:               0x0906,
+        BodyTruncated:          0x0907,
         Categories:             0x0908,
         Category:               0x0909,
         Complete:               0x090A,
@@ -26149,6 +26189,7 @@ FakeFolderStorage.prototype = {
         StartDate:              0x091E,
         UtcStartDate:           0x091F,
         Subject:                0x0920,
+        CompressedRTF:          0x0921,
         OrdinalDate:            0x0922,
         SubOrdinalDate:         0x0923,
         CalendarType:           0x0924,
@@ -26289,6 +26330,7 @@ FakeFolderStorage.prototype = {
     Search: {
       Tags: {
         Search:         0x0F05,
+        Stores:         0x0F06,
         Store:          0x0F07,
         Name:           0x0F08,
         Query:          0x0F09,
@@ -26309,6 +26351,8 @@ FakeFolderStorage.prototype = {
         RebuildResults: 0x0F19,
         LessThan:       0x0F1A,
         GreaterThan:    0x0F1B,
+        Schema:         0x0F1C,
+        Supported:      0x0F1D,
         UserName:       0x0F1E,
         Password:       0x0F1F,
         ConversationId: 0x0F20,
@@ -26343,6 +26387,7 @@ FakeFolderStorage.prototype = {
         Type:               0x1106,
         TruncationSize:     0x1107,
         AllOrNone:          0x1108,
+        Reserved:           0x1109,
         Body:               0x110A,
         Data:               0x110B,
         EstimatedDataSize:  0x110C,
@@ -26403,6 +26448,7 @@ FakeFolderStorage.prototype = {
         AccountName:                 0x1227,
         UserDisplayName:             0x1228,
         SendDisabled:                0x1229,
+        /* Missing tag value 0x122A */
         RightsManagementInformation: 0x122B,
       },
     },
@@ -26453,6 +26499,7 @@ FakeFolderStorage.prototype = {
         SmartReply:      0x1507,
         SaveInSentItems: 0x1508,
         ReplaceMime:     0x1509,
+        /* Missing tag value 0x150A */
         Source:          0x150B,
         FolderId:        0x150C,
         ItemId:          0x150D,
@@ -26550,24 +26597,34 @@ FakeFolderStorage.prototype = {
 }(this, function(WBXML, ASCP) {
   
 
-  const __exports__ = ['Connection'];
+  const __exports__ = ['VersionInt', 'Connection'];
 
   function nsResolver(prefix) {
     const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
     const ns = {
-      'ad': baseUrl + 'responseschema/2006',
-      'ms': baseUrl + 'mobilesync/responseschema/2006',
+      rq: baseUrl + 'mobilesync/requestschema/2006',
+      ad: baseUrl + 'responseschema/2006',
+      ms: baseUrl + 'mobilesync/responseschema/2006',
     };
     return ns[prefix] || null;
   }
 
-  function Connection(aEmail, aPassword) {
+  function VersionInt(str) {
+    let [major, minor] = str.split('.').map(function(x) parseInt(x));
+    return (major << 16) + minor;
+  }
+
+  function Connection(aEmail, aPassword, aDeviceId, aDeviceType) {
     this._email = aEmail;
     this._password = aPassword;
+    this._deviceId = aDeviceId || 'v140Device';
+    this._deviceType = aDeviceType || 'SmartPhone';
     this.connected = false;
   }
 
   Connection.prototype = {
+    get currentVersionInt() VersionInt(this.currentVersion),
+
     _getAuth: function() {
       return 'Basic ' + btoa(this._email + ':' + this._password);
     },
@@ -26585,9 +26642,6 @@ FakeFolderStorage.prototype = {
       xhr.setRequestHeader('Authorization', this._getAuth());
 
       xhr.onload = function() {
-        if (typeof logXhr == 'function') // TODO: remove this debug code
-          logXhr(xhr);
-
         let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
         let getString = function(xpath, rel) {
           return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
@@ -26629,10 +26683,11 @@ FakeFolderStorage.prototype = {
             '/Microsoft-Server-ActiveSync';
           conn.options(conn.baseURL, function(aSubResult) {
             conn.connected = true;
+            conn.currentVersion = aSubResult.versions.slice(-1)[0];
             conn.config.options = aSubResult;
 
             if (aCallback)
-              aCallback.call();
+              aCallback(conn.config);
           });
         }
       };
@@ -26641,10 +26696,11 @@ FakeFolderStorage.prototype = {
       // http://ejohn.org/blog/javascript-micro-templating/ here?
       let postdata =
       '<?xml version="1.0" encoding="utf-8"?>\n' +
-      '<Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/mobilesync/requestschema/2006">\n' +
+      '<Autodiscover xmlns="' + nsResolver('rq') + '">\n' +
       '  <Request>\n' +
       '    <EMailAddress>' + this._email + '</EMailAddress>\n' +
-      '      <AcceptableResponseSchema>http://schemas.microsoft.com/exchange/autodiscover/mobilesync/responseschema/2006</AcceptableResponseSchema>\n' +
+      '    <AcceptableResponseSchema>' + nsResolver('ms') +
+           '</AcceptableResponseSchema>\n' +
       '  </Request>\n' +
       '</Autodiscover>';
 
@@ -26655,9 +26711,6 @@ FakeFolderStorage.prototype = {
       let xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('OPTIONS', aURL, true);
       xhr.onload = function() {
-        if (typeof logXhr == 'function') // TODO: remove this debug code
-          logXhr(xhr);
-
         let result = {
           'versions': xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
           'commands': xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
@@ -26669,52 +26722,69 @@ FakeFolderStorage.prototype = {
     },
 
     doCommand: function(aXml, aCallback) {
-      if (!this.connected)
-        this.autodiscover(this._doCommandReal.bind(this, aXml, aCallback));
-      else
+      if (this.connected) {
         this._doCommandReal(aXml, aCallback);
+      }
+      else {
+        this.autodiscover((function (aConfig) {
+          if ('error' in aConfig) {
+            // TODO: do something here!
+            let error = new Error('Error during autodiscover: ' +
+                                  aConfig.error.message);
+            console.log(error);
+            aCallback(error);
+          }
+          else {
+            this._doCommandReal(aXml, aCallback);
+          }
+        }).bind(this));
+      }
     },
 
     _doCommandReal: function(aXml, aCallback) {
       let r = new WBXML.Reader(aXml, ASCP);
-      let command = r.document.next().localTagName;
+      let commandName = r.document.next().localTagName;
+      if (this.config.options.commands.indexOf(commandName) === -1) {
+        // TODO: do something here!
+        let error = new Error("This server doesn't support the command " +
+                              commandName);
+        console.log(error);
+        aCallback(error);
+        return;
+      }
+
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('POST', this.baseURL + '?Cmd=' + command + '&User=' +
-               this._email + '&DeviceId=v140Device&DeviceType=SmartPhone',
+      xhr.open('POST', this.baseURL +
+               '?Cmd='        + encodeURIComponent(commandName) +
+               '&User='       + encodeURIComponent(this._email) +
+               '&DeviceId='   + encodeURIComponent(this._deviceId) +
+               '&DeviceType=' + encodeURIComponent(this._deviceType),
                true);
-      xhr.setRequestHeader('MS-ASProtocolVersion', '14.0');
+      xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
       xhr.setRequestHeader('Content-Type', 'application/vnd.ms-sync.wbxml');
-      xhr.setRequestHeader('User-Agent', 'B2G');
       xhr.setRequestHeader('Authorization', this._getAuth());
 
       let conn = this;
       xhr.onload = function() {
-        if (typeof logXhr == 'function') // TODO: remove this debug code
-          logXhr(xhr);
-
         if (xhr.status == 451) {
           conn.baseURL = xhr.getResponseHeader('X-MS-Location');
           conn.doCommand(aXml, aCallback);
           return;
         }
+
         if (xhr.status != 200) {
-          if (typeof print == 'function') // TODO: remove this debug code
-            print('Error!\n');
+          // TODO: do something here!
+          let error = new Error('ActiveSync command returned failure ' +
+                                'response ' + xhr.status);
+          console.log(error);
+          aCallback(error);
           return;
         }
 
-        if (xhr.response.byteLength == 0) {
-          aCallback(null);
-        }
-        else {
-          let r = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
-          if (typeof log == 'function') { // TODO: remove this debug code
-            log(r.dump());
-            r.rewind();
-          }
-
-          aCallback(r);
-        }
+        let response = null;
+        if (xhr.response.byteLength > 0)
+          response = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
+        aCallback(null, response);
       };
 
       xhr.responseType = 'arraybuffer';
@@ -26794,13 +26864,20 @@ ActiveSyncFolderStorage.prototype = {
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection)
-           .tag(as.SyncKey, '0')
+
+    if (account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+          w.tag(as.Class, 'Email');
+
+          w.tag(as.SyncKey, '0')
            .tag(as.CollectionId, this.serverId)
          .etag()
        .etag()
      .etag();
 
-    account.conn.doCommand(w, function(aResponse) {
+    account.conn.doCommand(w, function(aError, aResponse) {
+      if (aError)
+        return;
+
       let e = new $wbxml.EventParser();
       e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
                          function(node) {
@@ -26828,25 +26905,35 @@ ActiveSyncFolderStorage.prototype = {
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection)
-           .tag(as.SyncKey, this.folderMeta.syncKey)
+
+    if (account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+          w.tag(as.Class, 'Email');
+
+          w.tag(as.SyncKey, this.folderMeta.syncKey)
            .tag(as.CollectionId, this.serverId)
            .tag(as.GetChanges)
            .stag(as.Options)
-             .stag(asb.BodyPreference)
+
+    if (account.conn.currentVersionInt >= $activesync.VersionInt('12.0'))
+            w.stag(asb.BodyPreference)
                .tag(asb.Type, '1')
-             .etag()
-             .tag(as.MIMESupport, '2')
+             .etag();
+
+            w.tag(as.MIMESupport, '2')
              .tag(as.MIMETruncation, '7')
            .etag()
          .etag()
        .etag()
      .etag();
 
-    account.conn.doCommand(w, function(aResponse) {
+    account.conn.doCommand(w, function(aError, aResponse) {
+      if (aError)
+        return;
       if (!aResponse) {
         callback([], {});
         return;
       }
+
       let e = new $wbxml.EventParser();
       let headers = [];
       let bodies = {};
@@ -26916,7 +27003,7 @@ ActiveSyncFolderStorage.prototype = {
                 header.flags.push('\\Flagged');
             }
             break;
-          case asb.Body:
+          case asb.Body: // ActiveSync 12.0+
             for (let [,grandchild] in Iterator(child.children)) {
               if (grandchild.tag === asb.Data) {
                 body.bodyRep = $quotechew.quoteProcessTextBody(
@@ -26925,21 +27012,29 @@ ActiveSyncFolderStorage.prototype = {
               }
             }
             break;
-          case asb.Attachments:
+          case em.Body: // pre-ActiveSync 12.0
+            body.bodyRep = $quotechew.quoteProcessTextBody(childText);
+            header.snippet = $quotechew.generateSnippet(body.bodyRep);
+            break;
+          case asb.Attachments: // ActiveSync 12.0+
+          case em.Attachments:  // pre-ActiveSync 12.0
             header.hasAttachments = true;
             body.attachments = [];
             for (let [,attachmentNode] in Iterator(child.children)) {
-              if (attachmentNode.tag !== asb.Attachment)
+              if (attachmentNode.tag !== asb.Attachment &&
+                  attachmentNode.tag !== em.Attachment)
                 continue; // XXX: throw an error here??
+
               let attachment = { type: 'text/plain' }; // XXX: this is lies
               for (let [,attachData] in Iterator(attachmentNode.children)) {
                 switch (attachData.tag) {
                 case asb.DisplayName:
+                case em.DisplayName:
                   attachment.name = attachData.children[0].textContent;
                   break;
                 case asb.EstimatedDataSize:
-                  attachment.sizeEstimate = attachData.children[0]
-                    .textContent;
+                case em.AttSize:
+                  attachment.sizeEstimate = attachData.children[0].textContent;
                   break;
                 }
               }
@@ -26956,9 +27051,6 @@ ActiveSyncFolderStorage.prototype = {
       e.run(aResponse);
 
       headers.sort(function(a, b) a.date < b.date);
-      dump('Got '+headers.length+' new messages\n');
-      for (let [,message] in Iterator(headers))
-        dump('  '+message.subject+'\n');
       callback(headers, bodies);
     });
   },
@@ -27147,7 +27239,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.SyncKey, account.meta.syncKey)
      .etag();
 
-    this.conn.doCommand(w, function(aResponse) {
+    this.conn.doCommand(w, function(aError, aResponse) {
       var e = new $wbxml.EventParser();
 
       e.addEventListener([fh.FolderSync, fh.SyncKey], function(node) {
@@ -27251,7 +27343,7 @@ ActiveSyncAccount.prototype = {
        .etag()
      .etag();
 
-    this.conn.doCommand(w, function(aResponse) {
+    this.conn.doCommand(w, function(aError, aResponse) {
       if (aResponse === null)
         callback(null);
       else {
