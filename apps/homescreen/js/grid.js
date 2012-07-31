@@ -69,8 +69,8 @@ const GridManager = (function() {
         if (pages.current !== 0) {
           evt.stopPropagation();
           evt.preventDefault();
-
-          document.body.dataset.mode = 'edit';
+          goToPage(pages.current);
+          Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, startEvent);
           }
@@ -142,34 +142,35 @@ const GridManager = (function() {
   }
 
   function goToPage(index, callback) {
+
     var previousIndex = pages.current;
+    if (index === 0 && previousIndex === 1 && Homescreen.isInEditMode()) {
+      index = 1;
+    }
+
     var isSamePage = pages.current === index;
     pages.current = index;
     callback = callback || function() {};
 
-    if (isSamePage) {
-      callback();
-      if (!dragging) {
-        delete document.body.dataset.transitioning;
-      }
-    } else {
-      var currentPageContainer = pageHelper.getCurrent().container;
+    var currentPageContainer = pageHelper.getCurrent().container;
 
-      currentPageContainer.addEventListener('transitionend', function end(e) {
-        currentPageContainer.removeEventListener('transitionend', end);
-        callback();
-        Search.resetIcon();
-        pageHelper.getCurrent().bounce(previousIndex - index,
+    currentPageContainer.addEventListener('transitionend', function end(e) {
+      currentPageContainer.removeEventListener('transitionend', end);
+      Search.resetIcon();
+      pageHelper.getCurrent().bounce(previousIndex - index,
         function bounceEnd() {
           if (!dragging) {
             delete document.body.dataset.transitioning;
           }
+          callback();
         });
-      });
-    }
+    });
 
-    pan(0, .2);
-    updatePaginationBar();
+    pan(0, .3);
+
+    if(!isSamePage) {
+      updatePaginationBar();
+    }
   }
 
   function goToNextPage(callback) {
@@ -554,4 +555,3 @@ const GridManager = (function() {
     }
   };
 })();
-
