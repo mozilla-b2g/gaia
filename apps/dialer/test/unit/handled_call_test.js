@@ -176,8 +176,6 @@ suite('dialer/handled_call', function() {
     });
 
     suite('type', function() {
-      var savedEntry;
-
       setup(function() {
         mockCall = new MockCall('888', 'incoming');
         subject = new HandledCall(mockCall, fakeNode);
