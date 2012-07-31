@@ -22,8 +22,8 @@ var StatusBar = {
   geolocationTimer: null,
 
   /* For other app to acquire */
-  getHeight() {
-    if (this.screen.classList.contain('active-statusbar'))
+  get height() {
+    if (this.screen.classList.contains('active-statusbar'))
       return this.attentionBar.offsetHeight;
     else
       return this.element.offsetHeight;
