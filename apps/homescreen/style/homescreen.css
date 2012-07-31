@@ -9,10 +9,6 @@ html, body {
   overflow: hidden;
 }
 
-body {
-  background-color: rgba(52,64,82,.3);
-}
-
 * {
   -moz-user-select:none;
 }

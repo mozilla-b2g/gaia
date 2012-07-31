@@ -70,7 +70,7 @@ const GridManager = (function() {
           evt.stopPropagation();
           evt.preventDefault();
           goToPage(pages.current);
-          document.body.dataset.mode = 'edit';
+          Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, startEvent);
           }
@@ -142,35 +142,35 @@ const GridManager = (function() {
   }
 
   function goToPage(index, callback) {
+
+    if (index === 0 && pages.current === 1 && Homescreen.isInEditMode()) {
+      index = 1;
+    }
+
     var previousIndex = pages.current;
     var isSamePage = pages.current === index;
     pages.current = index;
     callback = callback || function() {};
-    var panEnd = isSamePage ? function fncSamePage() {
-      callback();
-      if (!dragging) {
-        delete document.body.dataset.transitioning;
-      }
-    } : function fncNoSamePage() {
-      callback();
+
+    var currentPageContainer = pageHelper.getCurrent().container;
+
+    currentPageContainer.addEventListener('transitionend', function end(e) {
+      currentPageContainer.removeEventListener('transitionend', end);
       Search.resetIcon();
       pageHelper.getCurrent().bounce(previousIndex - index,
       function bounceEnd() {
         if (!dragging) {
           delete document.body.dataset.transitioning;
         }
+        callback();
       });
-    }
-
-    var currentPageContainer = pageHelper.getCurrent().container;
-
-    currentPageContainer.addEventListener('transitionend', function end(e) {
-      currentPageContainer.removeEventListener('transitionend', end);
-      panEnd();
     });
 
-    pan(0, .2);
-    updatePaginationBar();
+    pan(0, .3);
+
+    if(!isSamePage) {
+      updatePaginationBar();
+    }
   }
 
   function goToNextPage(callback) {
