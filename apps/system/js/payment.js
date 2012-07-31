@@ -10,28 +10,29 @@ var Payment = (function() {
     // Gaia sends the selected payment provider back to Chrome
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentEvent', true, true, {
-      id: chromeEventId,      
+      id: chromeEventId,
       userSelection: choice
     });
     window.dispatchEvent(event);
-    chromeEventId = null;  
+    chromeEventId = null;
   };
 
-  window.addEventListener('mozChromeEvent', function(e) {
+  window.addEventListener('mozChromeEvent', function onMozChromeEvent(e) {
     chromeEventId = e.detail.id;
+    if (!chromeEventId)
+      return;
     switch (e.detail.type) {
       // Chrome asks Gaia to show the payment provider selection dialog
       case 'open-payment-selection-dialog':
         var providers = e.detail.paymentProviders;
-        if (!providers || !chromeEventId)
+        if (!providers)
           return;
         // We use ListMenu to show the payment provider options.
-        var items = [];
-        providers.forEach(function(provider, index) {
-          items.push({
+        var items = providers.map(function(provider) {
+          return {
             label: provider.name,
             value: provider.typ
-          });
+          };
         });
         ListMenu.request(items, selectProvider);
         break;
@@ -44,13 +45,14 @@ var Payment = (function() {
         // TODO: For now, known payment providers (BlueVia and Mozilla Market)
         //       only accepts the JWT by GET, so we just add it to the URL.
         e.detail.url += e.detail.jwt;
+
         var frame = TrustedDialog.open(e.detail.url);
         // After creating the new frame containing the payment provider buy
         // flow, we send it back to chrome so payment callbacks can be
         // injected.
         var event = document.createEvent('CustomEvent');
         event.initCustomEvent('mozContentEvent', true, true, {
-          id: e.detail.id,
+          id: chromeEventId,
           frame: frame
         });
         window.dispatchEvent(event);
