@@ -215,29 +215,35 @@ ImageEditor.prototype.close = function() {
 // Display cropping controls
 // XXX: have to handle rotate/resize
 ImageEditor.prototype.showCropOverlay = function showCropOverlay() {
-  this.cropCanvas = document.createElement('canvas');
+  var canvas = this.cropCanvas = document.createElement('canvas');
+  var context = this.cropContext = canvas.getContext('2d');
 
   // Give the overlay 10px margins all around, so crop handles can
-  this.cropCanvas.width = this.previewCanvas.width + 20;
-  this.cropCanvas.height = this.previewCanvas.height + 20;
+  canvas.width = this.previewCanvas.width + 20;
+  canvas.height = this.previewCanvas.height + 20;
 
-  this.cropCanvas.style.position = 'absolute';
-  this.cropCanvas.style.left = (this.previewCanvas.offsetLeft - 10) + 'px';
-  this.cropCanvas.style.top = (this.previewCanvas.offsetTop - 10) + 'px';
-  this.container.appendChild(this.cropCanvas);
-  this.cropContext = this.cropCanvas.getContext('2d');
-  this.cropContext.translate(10, 10);   // Adjust for the margins
-  this.cropContext.lineCap = 'round';   // For crop handles
+  canvas.style.position = 'absolute';
+  canvas.style.left = (this.previewCanvas.offsetLeft - 10) + 'px';
+  canvas.style.top = (this.previewCanvas.offsetTop - 10) + 'px';
+  this.container.appendChild(canvas);
+
+  // Adjust for the margins
+  context.translate(10, 10);
+  // Crop handle styles
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  context.strokeStyle = 'rgba(255,255,255,.75)';
 
   // Start off with a crop region that is the entire preview canvas
-  this.cropRegion.left = 0;
-  this.cropRegion.top = 0;
-  this.cropRegion.right = this.previewCanvas.width;
-  this.cropRegion.bottom = this.previewCanvas.height;
+  var region = this.cropRegion;
+  region.left = 0;
+  region.top = 0;
+  region.right = this.previewCanvas.width;
+  region.bottom = this.previewCanvas.height;
 
   this.drawCropControls();
 
-  this.cropCanvas.addEventListener('mousedown', this.cropStart.bind(this));
+  canvas.addEventListener('mousedown', this.cropStart.bind(this));
 };
 
 ImageEditor.prototype.hideCropOverlay = function hideCropOverlay() {
@@ -257,68 +263,74 @@ ImageEditor.prototype.resetCropRegion = function resetCropRegion() {
 };
 
 ImageEditor.prototype.drawCropControls = function(handle) {
-  var left = this.cropRegion.left;
-  var top = this.cropRegion.top;
-  var right = this.cropRegion.right;
-  var bottom = this.cropRegion.bottom;
+  var canvas = this.cropCanvas;
+  var context = this.cropContext;
+  var region = this.cropRegion;
+  var left = region.left;
+  var top = region.top;
+  var right = region.right;
+  var bottom = region.bottom;
   var centerX = (left + right) / 2;
   var centerY = (top + bottom) / 2;
   var width = right - left;
   var height = bottom - top;
 
-  // Erase everything and reset context
-  this.cropCanvas.width = this.cropCanvas.width;
-
-  // Adjust for the margins
-  this.cropContext.translate(10, 10);
+  // Erase everything
+  context.clearRect(-10, -10, canvas.width, canvas.height);
 
   // Overlay the preview canvas with translucent gray
-  this.cropContext.fillStyle = 'rgba(0, 0, 0, .5)';
-  this.cropContext.fillRect(0, 0,
-                            this.previewCanvas.width,
-                            this.previewCanvas.height);
+  context.fillStyle = 'rgba(0, 0, 0, .5)';
+  context.fillRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
 
   // Clear a rectangle so interior of the crop region shows through
-  this.cropContext.clearRect(left, top, width, height);
+  context.clearRect(left, top, width, height);
 
   // Draw a border around the crop region
-  this.cropContext.strokeStyle = '#fff';
-  this.cropContext.lineWidth = 1;
-  this.cropContext.strokeRect(left, top, width, height);
+  context.lineWidth = 1;
+  context.strokeRect(left, top, width, height);
 
   // Draw the drag handles in the corners of the crop region
-  this.cropContext.lineWidth = 5;
-  this.cropContext.beginPath();
-  this.cropContext.moveTo(left, top + 10);
-  this.cropContext.lineTo(left, top);
-  this.cropContext.lineTo(left + 10, top);
+  context.lineWidth = 4;
+  context.beginPath();
 
-  this.cropContext.moveTo(right - 10, top);
-  this.cropContext.lineTo(right, top);
-  this.cropContext.lineTo(right, top + 10);
+  // N
+  context.moveTo(centerX - 23, top - 1);
+  context.lineTo(centerX + 23, top - 1);
 
-  this.cropContext.moveTo(right, bottom - 10);
-  this.cropContext.lineTo(right, bottom);
-  this.cropContext.lineTo(right - 10, bottom);
+  // NE
+  context.moveTo(right - 23, top - 1);
+  context.lineTo(right + 1, top - 1);
+  context.lineTo(right + 1, top + 23);
 
-  this.cropContext.moveTo(left + 10, bottom);
-  this.cropContext.lineTo(left, bottom);
-  this.cropContext.lineTo(left, bottom - 10);
+  // E
+  context.moveTo(right + 1, centerY - 23);
+  context.lineTo(right + 1, centerY + 23);
 
-  // And drag handles in the centers of each edge, too
-  this.cropContext.moveTo(centerX - 8, top);
-  this.cropContext.lineTo(centerX + 8, top);
+  // SE
+  context.moveTo(right + 1, bottom - 23);
+  context.lineTo(right + 1, bottom + 1);
+  context.lineTo(right - 23, bottom + 1);
 
-  this.cropContext.moveTo(centerX - 8, bottom);
-  this.cropContext.lineTo(centerX + 8, bottom);
+  // S
+  context.moveTo(centerX - 23, bottom + 1);
+  context.lineTo(centerX + 23, bottom + 1);
 
-  this.cropContext.moveTo(left, centerY - 8);
-  this.cropContext.lineTo(left, centerY + 8);
+  // SW
+  context.moveTo(left + 23, bottom + 1);
+  context.lineTo(left - 1, bottom + 1);
+  context.lineTo(left - 1, bottom - 23);
 
-  this.cropContext.moveTo(right, centerY - 8);
-  this.cropContext.lineTo(right, centerY + 8);
+  // W
+  context.moveTo(left - 1, centerY - 23);
+  context.lineTo(left - 1, centerY + 23);
 
-  this.cropContext.stroke();
+  // NW
+  context.moveTo(left - 1, top + 23);
+  context.lineTo(left - 1, top - 1);
+  context.lineTo(left + 23, top - 1);
+
+  // Draw all the handles at once
+  context.stroke();
 
   // If one of the handles is being used, highlight it
   if (handle) {
@@ -358,25 +370,26 @@ ImageEditor.prototype.drawCropControls = function(handle) {
       break;
     }
 
-    this.cropContext.beginPath();
-    this.cropContext.arc(cx, cy, 25, 0, 2 * Math.PI);
-    this.cropContext.fillStyle = 'rgba(255,255,255,.5)';
-    this.cropContext.strokeStyle = '#fff';
-    this.cropContext.lineWidth = 1;
-    this.cropContext.fill();
+    context.beginPath();
+    context.arc(cx, cy, 25, 0, 2 * Math.PI);
+    context.fillStyle = 'rgba(255,255,255,.5)';
+    context.lineWidth = 1;
+    context.fill();
   }
 };
 
 // Called on mousedown in the crop overlay canvas
 ImageEditor.prototype.cropStart = function(startEvent) {
   var self = this;
-  var rect = this.previewCanvas.getBoundingClientRect();
+  var previewCanvas = this.previewCanvas;
+  var region = this.cropRegion;
+  var rect = previewCanvas.getBoundingClientRect();
   var x0 = startEvent.clientX - rect.left;
   var y0 = startEvent.clientY - rect.top;
-  var left = this.cropRegion.left;
-  var top = this.cropRegion.top;
-  var right = this.cropRegion.right;
-  var bottom = this.cropRegion.bottom;
+  var left = region.left;
+  var top = region.top;
+  var right = region.right;
+  var bottom = region.bottom;
 
   // Return true if (x0,y0) is within 25 pixels of (x,y)
   function hit(x, y) {
@@ -420,72 +433,72 @@ ImageEditor.prototype.cropStart = function(startEvent) {
 
       switch (handle) {
       case 'n':
-        self.cropRegion.top = top + dy;
+        region.top = top + dy;
         break;
       case 'ne':
-        self.cropRegion.right = right + dx;
-        self.cropRegion.top = top + dy;
+        region.right = right + dx;
+        region.top = top + dy;
         break;
       case 'e':
-        self.cropRegion.right = right + dx;
+        region.right = right + dx;
         break;
       case 'se':
-        self.cropRegion.right = right + dx;
-        self.cropRegion.bottom = bottom + dy;
+        region.right = right + dx;
+        region.bottom = bottom + dy;
         break;
       case 's':
-        self.cropRegion.bottom = bottom + dy;
+        region.bottom = bottom + dy;
         break;
       case 'sw':
-        self.cropRegion.left = left + dx;
-        self.cropRegion.bottom = bottom + dy;
+        region.left = left + dx;
+        region.bottom = bottom + dy;
         break;
       case 'w':
-        self.cropRegion.left = left + dx;
+        region.left = left + dx;
         break;
       case 'nw':
-        self.cropRegion.left = left + dx;
-        self.cropRegion.top = top + dy;
+        region.left = left + dx;
+        region.top = top + dy;
         break;
       }
 
       // Don't go out of bounds
-      if (self.cropRegion.left < 0)
-        self.cropRegion.left = 0;
-      if (self.cropRegion.right > self.previewCanvas.width)
-        self.cropRegion.right = self.previewCanvas.width;
-      if (self.cropRegion.top < 0)
-        self.cropRegion.top = 0;
-      if (self.cropRegion.bottom > self.previewCanvas.height)
-        self.cropRegion.bottom = self.previewCanvas.height;
+      if (region.left < 0)
+        region.left = 0;
+      if (region.right > previewCanvas.width)
+        region.right = previewCanvas.width;
+      if (region.top < 0)
+        region.top = 0;
+      if (region.bottom > previewCanvas.height)
+        region.bottom = previewCanvas.height;
 
       // Don't let the crop region become smaller than 100x100. If it does
       // then the sensitive regions of the crop handles start to intersect
-      if (self.cropRegion.bottom - self.cropRegion.top < 100) {
+      if (region.bottom - region.top < 100) {
         switch (handle) {
         case 'n':
         case 'ne':
         case 'nw':
-          self.cropRegion.top = self.cropRegion.bottom - 100;
+          region.top = region.bottom - 100;
           break;
         case 's':
         case 'se':
         case 'sw':
-          self.cropRegion.bottom = self.cropRegion.top + 100;
+          region.bottom = region.top + 100;
           break;
         }
       }
-      if (self.cropRegion.right - self.cropRegion.left < 100) {
+      if (region.right - region.left < 100) {
         switch (handle) {
         case 'e':
         case 'ne':
         case 'se':
-          self.cropRegion.right = self.cropRegion.left + 100;
+          region.right = region.left + 100;
           break;
         case 'w':
         case 'nw':
         case 'sw':
-          self.cropRegion.left = self.cropRegion.right - 100;
+          region.left = region.right - 100;
           break;
         }
       }
@@ -495,18 +508,18 @@ ImageEditor.prototype.cropStart = function(startEvent) {
 
     function pan(dx, dy) {
       if (dx > 0)
-        dx = Math.min(dx, self.previewCanvas.width - right);
+        dx = Math.min(dx, previewCanvas.width - right);
       if (dx < 0)
         dx = Math.max(dx, -left);
       if (dy > 0)
-        dy = Math.min(dy, self.previewCanvas.height - bottom);
+        dy = Math.min(dy, previewCanvas.height - bottom);
       if (dy < 0)
         dy = Math.max(dy, -top);
 
-      self.cropRegion.left = left + dx;
-      self.cropRegion.right = right + dx;
-      self.cropRegion.top = top + dy;
-      self.cropRegion.bottom = bottom + dy;
+      region.left = left + dx;
+      region.right = right + dx;
+      region.top = top + dy;
+      region.bottom = bottom + dy;
 
       self.drawCropControls();
     }
@@ -526,11 +539,14 @@ ImageEditor.prototype.cropImage = function() {
   if (!this.cropCanvas)
     return;
 
+  var region = this.cropRegion;
+  var preview = this.previewCanvas;
+
   // Convert the preview crop region to fractions
-  var left = this.cropRegion.left / this.previewCanvas.width;
-  var right = this.cropRegion.right / this.previewCanvas.width;
-  var top = this.cropRegion.top / this.previewCanvas.height;
-  var bottom = this.cropRegion.bottom / this.previewCanvas.height;
+  var left = region.left / preview.width;
+  var right = region.right / preview.width;
+  var top = region.top / preview.height;
+  var bottom = region.bottom / preview.height;
 
   // Now convert those fractions to pixels in the original image
   // Note that the original image may have already been cropped, so we
