@@ -327,7 +327,7 @@ Page.prototype = {
    * @param{Object} DOM element
    */
   tap: function pg_tap(elem) {
-    if (document.body.dataset.mode === 'edit') {
+    if (Homescreen.isInEditMode()) {
       if (elem.className === 'options') {
         Homescreen.showAppDialog(elem.dataset.origin);
       }

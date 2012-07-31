@@ -13,7 +13,7 @@ const DockManager = (function() {
     evt.preventDefault();
     evt.stopPropagation();
     if (GridManager.pageHelper.getCurrentPageNumber() >= 1) {
-      document.body.dataset.mode = 'edit';
+      Homescreen.setMode('edit');
 
       if ('origin' in evt.target.dataset) {
         document.body.dataset.transitioning = true;
