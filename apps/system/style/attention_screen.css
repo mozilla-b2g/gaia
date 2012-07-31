@@ -43,7 +43,6 @@
   /* Status bar height * 2 */
   height: 40px;
 
-  z-index: 1000;
   display: none;
 }
 

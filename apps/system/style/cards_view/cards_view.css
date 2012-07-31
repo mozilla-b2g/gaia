@@ -42,7 +42,6 @@
 #cardsView .card[data-edit = 'true'] {
   opacity: 0.8;
   position:relative;
-  z-index: 99999;
 }
 
 #cardsView .card:first-child {
