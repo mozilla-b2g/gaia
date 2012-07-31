@@ -22,8 +22,11 @@ var StatusBar = {
   geolocationTimer: null,
 
   /* For other app to acquire */
-  get currentHeight() {
-    return this.element.getBoundingClientRect().height;
+  getHeight() {
+    if (screen.classList.contain('active-statusbar'))
+      return this.attentionBar.offsetHeight;
+    else
+      return this.element.offsetHeight;
   },
 
   init: function sb_init() {
@@ -411,6 +414,8 @@ var StatusBar = {
     }).bind(this));
 
     this.element = document.getElementById('statusbar');
+    this.screen = document.getElementById('screen');
+    this.attetionBar = document.getElementById('attention-bar');
   }
 };
 

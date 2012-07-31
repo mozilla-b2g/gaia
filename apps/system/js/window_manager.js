@@ -132,7 +132,7 @@ var WindowManager = (function() {
     var manifest = app.manifest;
 
     frame.style.width = window.innerWidth + 'px';
-    frame.style.height = window.innerHeight - StatusBar.currentHeight + 'px';
+    frame.style.height = window.innerHeight - StatusBar.getHeight() + 'px';
   }
 
   var openFrame = null;

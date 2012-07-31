@@ -49,22 +49,22 @@ var KeyboardManager = (function() {
     if (message.hidden) {
       keyboardFrame.classList.add('hide');
       keyboardFrame.classList.remove('visible');
-      dialogOverlay.style.height = (height + StatusBar.currentHeight) + 'px';
+      dialogOverlay.style.height = (height + StatusBar.getHeight()) + 'px';
       return;
     }
 
     if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
-      dialogOverlay.style.height = (height + StatusBar.currentHeight) + 'px';
-      keyboardOverlay.style.height = (height + StatusBar.currentHeight) + 'px';
+      dialogOverlay.style.height = (height + StatusBar.getHeight()) + 'px';
+      keyboardOverlay.style.height = (height + StatusBar.getHeight()) + 'px';
       keyboardOverlay.hidden = false;
     } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
         keyboardFrame.removeEventListener('transitionend', keyboardShown);
-        dialogOverlay.style.height = (height + StatusBar.currentHeight) + 'px';
+        dialogOverlay.style.height = (height + StatusBar.getHeight()) + 'px';
         currentApp.style.height = height + 'px';
-        keyboardOverlay.style.height = (height + StatusBar.currentHeight) + 'px';
+        keyboardOverlay.style.height = (height + StatusBar.getHeight()) + 'px';
         keyboardOverlay.hidden = false;
         keyboardFrame.classList.add('visible');
       });
