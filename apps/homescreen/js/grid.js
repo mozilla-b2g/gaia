@@ -143,11 +143,11 @@ const GridManager = (function() {
 
   function goToPage(index, callback) {
 
-    if (index === 0 && pages.current === 1 && Homescreen.isInEditMode()) {
+    var previousIndex = pages.current;
+    if (index === 0 && previousIndex === 1 && Homescreen.isInEditMode()) {
       index = 1;
     }
 
-    var previousIndex = pages.current;
     var isSamePage = pages.current === index;
     pages.current = index;
     callback = callback || function() {};
