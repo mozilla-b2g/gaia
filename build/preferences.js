@@ -143,7 +143,7 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
     let domain = dir + "." + GAIA_DOMAIN;
     privileges.push(rootURL);
     domains.push(domain);
-    dump("name:" + dir + "\n");
+
     let perms = manifest.permissions;
     if (perms) {
       for each(let name in perms) {
