@@ -24,7 +24,7 @@ var InputCancelButton = (function inputCancelButton() {
       if (event.animationName == 'nodeInserted') {
         listenForCheck(event.target);
       }
-    }, true);
+    }, false);
   };
 
   // Listening when someone is typing
