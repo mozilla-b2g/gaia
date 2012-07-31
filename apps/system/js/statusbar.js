@@ -415,7 +415,7 @@ var StatusBar = {
 
     this.element = document.getElementById('statusbar');
     this.screen = document.getElementById('screen');
-    this.attetionBar = document.getElementById('attention-bar');
+    this.attentionBar = document.getElementById('attention-bar');
   }
 };
 
