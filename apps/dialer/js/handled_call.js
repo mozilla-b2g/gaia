@@ -20,7 +20,7 @@ function HandledCall(aCall, aNode) {
   };
 
   this.updateCallNumber();
-  this.durationNode.textContent = '...';
+  this.durationNode.textContent = '…';
 
   this._initialState = this.call.state;
   this.updateDirection();
@@ -105,6 +105,7 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
 
 HandledCall.prototype.remove = function hc_remove() {
   clearInterval(this._ticker);
+  this._ticker = null;
 
   this.call.removeEventListener('statechange', this);
 
@@ -130,7 +131,6 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
 
   if (this.recentsEntry) {
     Recents.add(this.recentsEntry);
-    this.recentsEntry = null;
   }
   this.remove();
 };
