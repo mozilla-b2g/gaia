@@ -253,7 +253,7 @@ function imageCreated(fileinfo) {
 
   // If this new image is newer than the first one, it goes first
   // This is the most common case for photos, screenshots, and edits
-  if (fileinfo.date > images[0].date)
+  if (images.length === 0 || fileinfo.date > images[0].date)
     insertPosition = 0;
   else {
     // Otherwise we have to search for the right insertion spot
@@ -1214,7 +1214,11 @@ var imageEditor;
 var editOptionButtons =
   Array.slice($('edit-options').querySelectorAll('a.radio.button'), 0);
 
+var editBgImageButtons =
+  Array.slice($('edit-options').querySelectorAll('a.bgimage.button'), 0);
+
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
+
 
 function editPhoto(n) {
   editedPhotoIndex = n;
@@ -1242,7 +1246,7 @@ function editPhoto(n) {
 
     // Set the background for all of the image buttons
     var backgroundImage = 'url(' + editedPhotoURL + ')';
-    editOptionButtons.forEach(function(b) {
+    editBgImageButtons.forEach(function(b) {
       b.style.backgroundImage = backgroundImage;
     });
 
@@ -1258,30 +1262,42 @@ function editPhoto(n) {
 
   // Set the default option buttons to correspond to those edits
   editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
+  $('edit-crop-aspect-free').classList.add('selected');
   $('edit-effect-none').classList.add('selected');
   $('edit-border-none').classList.add('selected');
-
 }
 
-// Effects and border buttons call this
+// Crop, Effect and border buttons call this
 function editOptionsHandler() {
   // First, unhighlight all buttons in this group and then
   // highlight the button that has just been chosen. These
   // buttons have radio behavior
   var parent = this.parentNode;
-  var buttons = parent.querySelectorAll('a.button');
+  var buttons = parent.querySelectorAll('a.radio.button');
   Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
   this.classList.add('selected');
 
-  if (this.dataset.effect)
+  if (this === $('edit-crop-aspect-free'))
+    imageEditor.setCropAspectRatio();
+  else if (this === $('edit-crop-aspect-portrait'))
+    imageEditor.setCropAspectRatio(2, 3);
+  else if (this === $('edit-crop-aspect-landscape'))
+    imageEditor.setCropAspectRatio(3, 2);
+  else if (this === $('edit-crop-aspect-square'))
+    imageEditor.setCropAspectRatio(1, 1);
+  else if (this.dataset.effect) {
     editSettings.effect = this.dataset.effect;
-  if (this.dataset.borderWidth) {
-    editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
+    imageEditor.edit();
   }
-  if (this.dataset.borderColor) {
-    editSettings.borderColor = this.dataset.borderColor;
+  else {
+    if (this.dataset.borderWidth) {
+      editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
+    }
+    if (this.dataset.borderColor) {
+      editSettings.borderColor = this.dataset.borderColor;
+    }
+    imageEditor.edit();
   }
-  imageEditor.edit();
 }
 
 /*
@@ -1383,7 +1399,11 @@ function setEditTool(tool) {
   var options = $('edit-options').querySelectorAll('div.edit-options-bar');
   Array.forEach(options, function(o) { o.classList.add('hidden'); });
 
-  // Exit crop mode, if we were in it
+  // If we were in crop mode, perform the crop and then
+  // exit crop mode. If the user tapped the Crop button then we'll go
+  // right back into crop mode, but this means that the Crop button both
+  // acts as a mode switch button and a "do the crop now" button.
+  imageEditor.cropImage();
   imageEditor.hideCropOverlay();
 
   // Now select and show the correct set based on tool
@@ -1412,8 +1432,16 @@ $('edit-exposure-button').onclick = function() { setEditTool('exposure'); };
 $('edit-crop-button').onclick = function() { setEditTool('crop'); };
 $('edit-effect-button').onclick = function() { setEditTool('effect'); };
 $('edit-border-button').onclick = function() { setEditTool('border'); };
-$('edit-crop-crop').onclick = function() { imageEditor.cropImage(); };
-$('edit-crop-none').onclick = function() { imageEditor.undoCrop(); };
+$('edit-crop-none').onclick = function() {
+  // Switch to free-form cropping
+  Array.forEach($('edit-crop-options').querySelectorAll('a.radio.button'),
+                function(b) { b.classList.remove('selected'); });
+  $('edit-crop-aspect-free').classList.add('selected');
+  imageEditor.setCropAspectRatio(); // freeform
+
+  // And revert to full-size image
+  imageEditor.undoCrop();
+};
 
 function exitEditMode(saved) {
   // Revoke the blob URL we've been using
