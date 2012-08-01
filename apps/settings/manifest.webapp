@@ -16,6 +16,13 @@
     "settings-write",
     "offline-app"
   ],
+  "activities": {
+    "configure": {
+      "filters": {
+       },
+      "disposition": "window"
+    }
+  },
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u0636\u0628\u0637",
