@@ -1,10 +1,30 @@
 {
   "name": "Gallery",
   "description": "Gaia Gallery",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+    "device-storage",
+    "devicestorage",
+    "indexedDB-unlimited",
+    "offline-app"
+  ],
+  "activities": {
+    "browse": {
+      "filters": {
+        "type": "photos"
+       },
+      "disposition": "window"
+    },
+    "pick": {
+      "filters": {
+        "type": "image/jpeg"
+       },
+      "disposition": "window"
+    }
   },
   "locales": {
     "ar": {

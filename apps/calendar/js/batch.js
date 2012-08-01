@@ -1,9 +1,5 @@
 (function(window) {
 
-  if (typeof(window.Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
-
   /**
    * Batch is a convenience data type
    * designed to make the job of handling

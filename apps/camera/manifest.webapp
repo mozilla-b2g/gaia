@@ -1,12 +1,25 @@
 {
   "name": "Camera",
   "description": "Gaia Camera",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "orientation": "portrait-primary",
   "fullscreen": true,
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+    "content-camera",
+    "camera",
+    "offline-app"
+  ],
+  "activities": {
+    "record": {
+      "filters": {
+        "type": "photos"
+       },
+      "disposition": "window"
+    }
   },
   "locales": {
     "ar": {

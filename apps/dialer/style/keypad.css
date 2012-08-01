@@ -105,6 +105,11 @@
   vertical-align: middle;
 }
 
+.keypad-key-label *,
+#keypad-delete * {
+  pointer-events: none;
+}
+
 .keypad-key-label-centered {
   padding-left: 0;
   text-align: center;
@@ -112,6 +117,25 @@
 
 .font-size-plus {
   font-size: 2rem;
+}
+
+.keypad-subicon {
+  background-repeat: no-repeat;
+  background-position: center bottom;
+
+  -moz-user-select: none;
+  pointer-events: none;
+
+  position: absolute;
+  left: 3.75rem;
+  bottom: 0.75rem;
+
+  width: 3rem;
+  height: 3rem;
+}
+
+.voicemail {
+  background-image: url('images/voicemail.png');
 }
 
 .asterisk {
@@ -242,7 +266,7 @@
   width: 3rem;
   height: 3rem;
 }
- 
+
 .phone-number-font {
   font-size:-moz-calc(18*0.226rem);
   color: white;

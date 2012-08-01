@@ -1,0 +1,21 @@
+span[role="button"].icon-clear {
+  background-image: url(gphx/bitmap/default/vw-header/icons/clear.png);
+  width: 1.7rem;
+  height: 1.7rem;
+  margin-left: -2.7rem;
+}
+
+/* DOMNodeInserted more efficient workaround */
+@keyframes nodeInserted {  
+  from {  
+    clip: rect(1px, auto, auto, auto);  
+  }
+  to {  
+    clip: rect(0px, auto, auto, auto);
+  }  
+}
+
+input[data-cancelable] {
+  animation-duration: 0.001s;
+  animation-name: nodeInserted;
+}

@@ -12,8 +12,8 @@ const DockManager = (function() {
   function onLongPress(evt) {
     evt.preventDefault();
     evt.stopPropagation();
-    if (Homescreen.isIcongridInViewport()) {
-      document.body.dataset.mode = 'edit';
+    if (GridManager.pageHelper.getCurrentPageNumber() >= 1) {
+      Homescreen.setMode('edit');
 
       if ('origin' in evt.target.dataset) {
         document.body.dataset.transitioning = true;

@@ -2,8 +2,7 @@ html, body {
   height: 100%;
   padding: 0;
   margin: 0;
-  overflow-x: hidden;
-  overflow-y: hidden;
+
 }
 
 body {
@@ -12,21 +11,11 @@ body {
   height: 100%;
   background-color: #000;
   font-family: 'Open Sans', sans-serif;
-}
 
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
+  /* XXX: The below overflow property is being ignored by B2G Phone
+     https://bugzilla.mozilla.org/show_bug.cgi?id=777672
+  */
+  overflow: hidden;
 }
 
 .panel {
@@ -42,46 +31,22 @@ body.test .panel {
   -moz-transform: translateX(-100%);
 }
 
-/* View - Slide Horizontal Transition */
-/* XXX hack: the width is adjusted (0-100%) with a delayed transition in order
-* to hide the horizontal scrollbar on the device (at least, when the
-* transition is over).
-* This is just a workaround: the platform bug should be fixed later. */
-
 #test-panel {
   -moz-transform: translateX(100%);
-
-  /* XXX hack */
-  overflow: hidden;
-  z-index: 1;
-  width: 0%;
-  -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
+  -moz-transition: -moz-transform 0.3s ease;
 }
 
 #tests {
   -moz-transform: translateX(0);
-
-  /* XXX hack */
-  overflow: hidden;
-  z-index: 10;
+  -moz-transition: -moz-transform 0.3s ease;
 }
 
 body.test #test-panel {
   -moz-transform: translateX(0);
-
-  /* XXX hack */
-  z-index: 10;
-  width: 100%;
-  -moz-transition: -moz-transform 0.3s ease;
 }
 
 body.test #tests {
   -moz-transform: translateX(-100%);
-
-  /* XXX hack */
-  z-index: 1;
-  width: 0%;
-  -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
 }
 
 .toolbar {

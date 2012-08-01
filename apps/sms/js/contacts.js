@@ -15,8 +15,8 @@ var ContactDataManager = {
   contactData: {},
   getContactData: function cm_getContactData(number, callback) {
     // so desktop keeps working
-    if (!window.navigator.mozSms)
-      callback(null);
+    if (!navigator.mozSms)
+      return;
 
     var options = {
       filterBy: ['tel'],
@@ -48,6 +48,30 @@ var ContactDataManager = {
         self.contactData[number] = null;
       }
       callback(result);
+    };
+
+    req.onerror = function onerror() {
+      var msg = 'Contact finding error. Error: ' + req.errorCode;
+      console.log(msg);
+      callback(null);
+    };
+  },
+
+  searchContactData: function cm_searchContactData(string, callback) {
+    // so desktop keeps working
+    if (!navigator.mozSms)
+      return;
+
+    var options = {
+      filterBy: ['tel', 'givenName'],
+      filterOp: 'contains',
+      filterValue: string
+    };
+
+    var self = this;
+    var req = window.navigator.mozContacts.find(options);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
     };
 
     req.onerror = function onerror() {

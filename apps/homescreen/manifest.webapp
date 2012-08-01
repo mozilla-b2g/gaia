@@ -1,14 +1,18 @@
 {
   "name": "Homescreen",
   "description": "Gaia Homescreen",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
   "permissions": [
     "mozbrowser",
-    "mozApps"
+    "mozApps",
+    "webapps",
+    "device-storage",
+    "devicestorage",
+    "offline-app"
   ],
   "locales": {
     "ar": {

@@ -1,0 +1,55 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+  background-image: url('images/start-page-logo.png'), -moz-linear-gradient(#f8f8fa, #cadce6);
+  background-repeat: no-repeat, no-repeat;
+  background-position: top right;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  color: #3e4041;
+}
+
+#random-line {
+  background: blue;
+  diplay: block;
+  width: 100%;
+}
+
+h1 {
+  font-size: 24px;
+  margin: 10px 15px;
+}
+
+ul {
+  margin: 50px 0 0 0;
+  padding: 0;
+}
+
+li {
+  display: block;
+}
+
+a {
+  display: block;
+  background: #cadce6;
+  padding: 8px;
+  border-top: 1px solid white;
+  text-decoration: none;
+  color: #333;
+  outline: none;
+}
+
+a:active {
+  background: orange;
+}
+
+p {
+  margin: 10px;
+  font-size: 11px;
+}

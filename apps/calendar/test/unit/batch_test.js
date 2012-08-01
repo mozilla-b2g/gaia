@@ -1,5 +1,6 @@
-requireApp('calendar/js/batch.js');
-requireApp('calendar/test/unit/helper.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('batch.js');
+});
 
 suite('batch', function() {
 
@@ -49,7 +50,10 @@ suite('batch', function() {
 
     test('with timer', function(done) {
       var expected = {}, i = 0;
-      this.timeout(3000);
+      // yes this is crazy long
+      // something is wrong with our linode or
+      // something on linux...
+      this.timeout(50000);
 
       expected.one = {
         g1: {

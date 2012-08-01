@@ -25,7 +25,6 @@ html * {
 
 .font-light {
   font-family: 'Open Sans';
-  font-weight: light;
 }
 
 #phone-number-view {
@@ -35,31 +34,6 @@ html * {
   text-align: left;
   cursor:none;
   -moz-user-select: none;
-}
-
-.contact-primary-info {
-  font-size: 3.39rem;
-  color:black;
-}
-
-#contact-primary-info {
-  width:100%;
-  border:0;
-  background:transparent;
-  text-align: left;
-  cursor:none;
-  -moz-user-select: none;
-}
-
-#fake-contact-primary-info {
-  position: absolute;
-  line-height: 0;
-  visibility: hidden;
-}
-
-.contact-secondary-info {
-  font-size: 1.356rem;
-  color:white;
 }
 
 .grid-wrapper {
@@ -112,16 +86,15 @@ html * {
 
 #views {
   position: absolute;
-  top: 0;
+  top: 100%;
   height: 100%;
   width: 100%;
   border-radius: 10px;
   z-index: -1;
-  -moz-transform: translateY(-100%);
 }
 
 #views.show {
-  -moz-transform: translateY(0);
+  top: 0;
   z-index: 500;
 }
 
@@ -136,7 +109,7 @@ body.hidden *[data-l10n-id] {
 
 #call-screen {
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 100%;
@@ -161,63 +134,25 @@ body.hidden *[data-l10n-id] {
 }
 
 #call-screen.displayed.prerender {
-  -moz-transform: translateY(-1px); 
+  -moz-transform: translateY(-1px);
 }
 
-#cs-header {
-  height:10rem;
-  background:#52B6CC;
-}
+#main-container {
+  position: relative;
+  height: 100%;
 
-.contact-info {
-  white-space:nowrap;
-  padding: 0 2rem 0 2rem;
-}
-
-#call-duration {
-  color:white;
-  font-size: 2.825rem;
-  padding: 2rem 1rem 2rem 2rem;
-  float: left;
-}
-
-#call-duration.ongoing {
-  font-size: 5.65rem;
-}
-
-#icon-call-direction {
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 3.5rem 3.5rem;
-  width: 3.5rem;
-  height: 3.5rem;
-}
-
-#call-direction.incoming > #icon-call-direction {
-  background-image: url('images/DialerIcon_35x35_calling.png');
-  padding: 4.825rem 0rem 0rem 0rem;
-}
-
-#call-direction.outgoing > #icon-call-direction {
-  background-image: url('images/DialerIcon_35x35_calling_out.png');
-  padding: 4.825rem 0rem 0rem 0rem;
-}
-
-#call-direction.ongoing-in > #icon-call-direction {
-  background-image: url('images/DialerIcon_35x35_incoming.png');
-  padding: 7.65rem 0rem 0rem 0rem;
-}
-
-#call-direction.ongoing-out > #icon-call-direction {
-  background-image: url('images/DialerIcon_35x35_outgoing.png');
-  padding: 7.65rem 0rem 0rem 0rem;
-}
-
-#call-container {
   background-image: url("images/Generic_image.png");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center top;
+}
+
+#actions-container {
+  position: absolute;
+  bottom: 0;
+
+  width: 100%;
+  height: 15.5rem;
 }
 
 #call-options {
@@ -348,6 +283,185 @@ button[disabled] .icon-keypad-visibility {
   height: 4rem;
 }
 
+/* Multiple call handling */
+#calls {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 12rem;
+
+  z-index: 500;
+}
+#calls[data-count="1"] {
+  height: 22rem;
+}
+
+#calls > section {
+  position: relative;
+  height: 6rem;
+
+  font-size: 1.8em;
+  line-height: 6rem;
+  background-color: rgba(0, 0, 0, 0.8);
+
+  transition: opacity 0.3s linear;
+  opacity: 1;
+}
+
+#calls > section div {
+  padding-left: 0.5rem;
+}
+
+#calls[data-count="1"] > section {
+  height: 22rem;
+  background-color: transparent;
+}
+#calls[data-count="1"] > section .number {
+  height: 6rem;
+  padding: 2rem;
+
+  background: #52B6CC;
+  font-size: 1.6em;
+  line-height: 6rem;
+  color: black;
+}
+#calls[data-count="1"] > section .duration {
+  position: absolute;
+  top: 12rem;
+  left: 0;
+  height: 8rem;
+  padding: 2rem;
+
+  font-size: 2.6em;
+  font-weight: 300;
+  line-height: 8rem;
+}
+
+#calls > section.held {
+  background-image: url('images/CallLog_30x30_missed.png');
+  background-position: 98% 50%;
+  background-repeat: no-repeat;
+
+  opacity: 0.6;
+}
+
+#calls > section .number {
+  font-size: 1.5em;
+}
+
+#calls > section .duration {
+  position: absolute;
+  top: 0;
+  right: 0.5rem;
+}
+
+#calls > section.held .duration {
+  display: none;
+}
+
+#calls > section .fake-number {
+  position: absolute;
+  line-height: 0;
+  visibility: hidden;
+}
+
+#calls > section .duration > .direction {
+  display: none;
+}
+
+#calls[data-count="1"] > section .duration > .direction {
+  display: inline-block;
+  width: 3.5rem;
+  height: 3.5rem;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 3.5rem 3.5rem;
+}
+
+#calls[data-count="1"] > section .duration > .direction.incoming > div {
+  background-image: url('images/DialerIcon_35x35_calling.png');
+  padding: 4.825rem 0rem 0rem 0rem;
+}
+
+#calls[data-count="1"] > section .duration > .direction.outgoing > div {
+  background-image: url('images/DialerIcon_35x35_calling_out.png');
+  padding: 4.825rem 0rem 0rem 0rem;
+}
+
+#calls[data-count="1"] > section .duration > .direction.ongoing-in > div {
+  background-image: url('images/DialerIcon_35x35_incoming.png');
+  padding: 7.65rem 0rem 0rem 0rem;
+}
+
+#calls[data-count="1"] > section .duration > .direction.ongoing-out > div {
+  background-image: url('images/DialerIcon_35x35_outgoing.png');
+  padding: 7.65rem 0rem 0rem 0rem;
+}
+
+
+#incoming-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 16rem;
+
+  transform: translateY(16rem);
+  transition: transform 0.3s ease-in-out;
+
+  background: rgb(0, 0, 0);
+  z-index: 500;
+}
+
+#incoming-container.displayed {
+  transform: translateY(0);
+}
+
+#incoming-container span[role="button"] {
+  height: 4rem;
+  border:0;
+  border-radius:.3rem;
+  display: block;
+
+  text-align: center;
+  font-size: 1.8em;
+  line-height: 4rem;
+  font-weight: 700;
+}
+
+#incoming-answer,
+#incoming-end {
+  width: 50%;
+  float: left;
+
+  font-size: 0.9em;
+}
+
+#incoming-answer > span {
+  background: -moz-linear-gradient(top, #84C82C 1%, #5F9B0A 100%);
+  opacity: 1.0;
+  margin: 1.5rem;
+}
+
+#incoming-end > span {
+  background: -moz-linear-gradient(top, #ff0000 1%, #ce0000 100%);
+  opacity: 1.0;
+  margin: 1.5rem;
+}
+
+#incoming-info > span {
+  display: block;
+  font-size: 2em;
+  font-weight: 700;
+  margin: 0 1.5rem;
+}
+
+#incoming-ignore > span {
+  background: -moz-linear-gradient(top, #ff0000 1%, #ce0000 100%);
+  opacity: 1.0;
+  margin: 1.5rem;
+}
+
 /* == Screen turn off hack == */
 
 #screen-off {
@@ -363,4 +477,75 @@ button[disabled] .icon-keypad-visibility {
 
 #screen-off.displayed {
   display: block;
+}
+
+/* Handling the status bar mode */
+@media screen and (max-height: 40px) {
+  body {
+    background-color: rgb(4, 76, 41);
+    -moz-animation-duration: 1.5s;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-direction: alternate;
+    -moz-animation-timing-function: ease;
+    -moz-animation-name: pulse;
+  }
+
+  @-moz-keyframes pulse {
+    from {
+      background-color: rgb(4, 76, 41);
+    }
+
+    to {
+      background-color: rgb(22, 127, 57);
+    }
+  }
+
+  #call-screen {
+    background: transparent;
+  }
+
+  #main-container {
+    display: none;
+  }
+
+  #calls > section.held {
+    display: none;
+  }
+
+  #calls > section,
+  #calls[data-count="1"] > section {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    font-size: 1.8em;
+  }
+  #calls > section .number,
+  #calls[data-count="1"] > section .number {
+    width: -moz-calc(70% - 2rem);
+    height: -moz-calc(100% - 2rem);
+    padding: 1rem;
+
+    font-size: 1em;
+    line-height: 100%;
+    color: white;
+    background-color: transparent;
+  }
+  #calls > section .duration,
+  #calls[data-count="1"] > section .duration {
+    position: absolute;
+    top: 0;
+    left: auto;
+    right: 0;
+    width: -moz-calc(30% - 2rem);
+    height: -moz-calc(100% - 2rem);
+    padding: 1rem;
+    text-align: right;
+
+    font-size: 1em;
+    line-height: 100%;
+  }
+
+  #calls[data-count="1"] > section .duration .direction {
+    display: none;
+  }
 }

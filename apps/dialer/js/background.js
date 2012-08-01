@@ -32,8 +32,21 @@
     preferredBrightness = parseFloat(value);
   });
 
+  var callScreenDisplayed = false;
+  window.addEventListener('message', function messageListener(evt) {
+    if (evt.data == 'closing') {
+      callScreenDisplayed = false;
+    }
+  });
+
   /* === Incoming handling === */
   telephony.addEventListener('callschanged', function bs_incomingHandler(evt) {
+    // If the call screen is displayed we don't need
+    // to handle new incoming calls here
+    if (callScreenDisplayed) {
+      return;
+    }
+
     var call = null;
     telephony.calls.some(function(aCall) {
       if (aCall.state == 'incoming' || aCall.state == 'dialing') {
@@ -50,6 +63,8 @@
     var protocol = document.location.protocol;
     window.open(protocol + '//' + host + '/oncall.html#' + call.state,
                 'call_screen', 'attention');
+
+    callScreenDisplayed = true;
 
     if (call.state != 'incoming')
       return;
@@ -86,7 +101,7 @@
           };
 
           var title = 'Missed call';
-          var body = 'From ' + call.number;
+          var body = 'From ' + (call.number.length ? call.number : 'Anonymous');
 
           NotificationHelper.send(title, body, iconURL, notiClick);
         };

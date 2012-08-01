@@ -56,7 +56,8 @@ var AlarmsDB = {
 
     putreq.onsuccess = function(event) {
       item.id = event.target.result;
-      callback(item);
+      if (callback)
+        callback(item);
     };
 
     putreq.onerror = function(e) {

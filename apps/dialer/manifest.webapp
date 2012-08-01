@@ -1,18 +1,24 @@
 {
   "name": "Dialer",
   "description": "Gaia Dialer",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
     "telephony",
+    "voicemail",
+    "webcontacts-manage",
+    "contacts-read",
+    "contacts-write",
     "contacts",
     "power",
     "mozApps",
+    "webapps",
     "mobileconnection",
-    "background"
+    "background",
+    "offline-app"
   ],
   "locales": {
     "ar": {

@@ -1,11 +1,14 @@
 {
   "name": "Calculator",
   "description": "Calculator",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": [
+    "offline-app"
+  ],
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629",
@@ -33,7 +36,7 @@
     },
     "fr": {
       "name": "Calculatrice",
-      "description": "Calculatrice Gaia"
+      "description": "Calculatrice"
     },
     "it": {
       "name": "Calcolatrice",

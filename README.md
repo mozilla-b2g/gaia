@@ -6,18 +6,41 @@ Boot to Gecko aims to create a complete, standalone operating system for the ope
 
 You can read more about B2G here:
 
-  http://wiki.mozilla.org/B2G
+  http://mozilla.org/b2g
 
 follow us on twitter: @Boot2Gecko
 
   http://twitter.com/Boot2Gecko
 
-join the Mozilla Platform mailing list:
+join the Gaia mailing list:
 
-  http://groups.google.com/group/mozilla.dev.platform
+  http://groups.google.com/group/mozilla.dev.gaia
 
 and talk to us on IRC:
 
-  #B2G on irc.mozilla.org
+  #gaia on irc.mozilla.org
 
-See INSTALL file in B2G repository for instructions on building and running B2G.
+See INSTALL file in B2G repository for instructions on building and running B2G. To try out Gaia on desktop, see
+
+  https://wiki.mozilla.org/Gaia/Hacking
+
+## Tests
+
+### Unit Tests
+
+See: https://developer.mozilla.org/en/Mozilla/Boot_to_Gecko/Gaia_Unit_Tests
+
+### Integration
+
+Prerequisites:
+
+1. adb
+2. FirefoxOS Device / Emulator
+
+You need a device / emulator connected and marionette running
+on port 2828. For example on a device the steps would be:
+
+0. Make sure b2g desktop / firefox nightly are not running. Port 2828 must not
+   be occupied
+1. Forward 2828 from your device/emulator using: `adb forward tcp:2828 tcp:2828`
+2. Run: `make test-integration` 

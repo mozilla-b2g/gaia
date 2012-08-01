@@ -22,7 +22,7 @@ body {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -136,6 +136,14 @@ body {
   bottom: 50px;
 }
 
+/* thumbnails in pick view where there is a top bar and no bottom */
+#pick-view > #thumbnails {
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
 /*
  * In photo view mode, the thumbnail list becomes a "filmstrip"
  * and the thumbnail images become much smaller.
@@ -234,6 +242,11 @@ a.button {
   border-width: 0;
   background-position: center center;
   background-repeat: no-repeat;
+
+  /* for buttons that display text */
+  font-size: smaller;
+  text-align: center;
+  line-height: 50px;
 }
 
 a.button:active, a.button:focus {
@@ -292,7 +305,7 @@ a.button.disabled {
   width: 75%;
   height: 100%;
   left: 25%;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 #thumbnails-select-bottom {
@@ -389,4 +402,387 @@ a.button.disabled {
   height: 100%;
   left: 75%;
   background-image: url('images/delete.png');
+}
+
+#pick-top {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#pick-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#pick-header {
+  position: absolute;
+  width: 75%;
+  height: 100%;
+  left: 25%;
+  margin-top: 15px;
+}
+
+#edit-view {
+  background: #888;
+}
+
+#edit-header {
+  background: #ccc;
+  position: absolute;
+  height: 50px;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#edit-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#edit-title {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 25%;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  line-height: 50px;
+  vertical-align: 75%;
+  text-align: center;
+  font-variant: small-caps;
+}
+
+#edit-save-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  right: 0;
+}
+
+#edit-preview-area {
+  position: absolute;
+  top: 60px;     /* 10 pixel top margin */
+  bottom: 110px; /* 10 pixel bottom margin */
+  left: 10px;    /* 10 pixel left margin */
+  right: 10px;   /* 10 pixel right margin */
+}
+
+#edit-preview-image {
+  position: absolute;
+  /* size and position is set by js */
+}
+
+#edit-options {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  bottom: 50px;
+  background: #ccc;
+}
+
+/* All the crop and effect options radio buttons share these styles */
+#edit-crop-options a.radio.button,
+#edit-effect-options a.radio.button {
+  position: absolute;
+  display: block;
+  top: 0;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-right: solid black 1px;
+  overflow: hidden;
+}
+
+#edit-crop-options a.selected.radio.button,
+#edit-effect-options a.selected.radio.button {
+  outline: solid orange 3px;
+  outline-offset: -3px;
+}
+
+#edit-crop-options a.radio.button {
+  width: 25%;
+}
+
+#edit-crop-none {
+  position: absolute;
+  display: block;
+  left: 0;
+  width: 20%;
+  top: 0;
+  bottom: 0;
+}
+
+#edit-crop-aspect {
+  position: absolute;
+  display: block;
+  left: 20%;
+  width: 60%;
+  top: 0;
+  bottom: 0;
+}
+
+#edit-crop-crop {
+  position: absolute;
+  display: block;
+  left: 80%;
+  width: 20%;
+  top: 0;
+  bottom: 0;
+}
+
+#edit-crop-aspect-free {
+  left: 0;
+}
+#edit-crop-aspect-portrait {
+  left: 25%;
+}
+#edit-crop-aspect-landscape {
+  left: 50%;
+}
+#edit-crop-aspect-square {
+  left: 75%;
+}
+
+/* instead of using images inside the buttons above, just draw boxes */
+#edit-free-frame {
+  margin-left: 5px;
+  margin-top: 5px;
+  width: 30px;
+  height: 25px;
+  border: dotted white 1px;
+}
+
+#edit-portrait-frame {
+  margin-left: 11px;
+  margin-top: 6px;
+  width: 26px;
+  height: 39px;
+  border: solid white 1px;
+}
+
+#edit-landscape-frame {
+  margin-left: 5px;
+  margin-top: 12px;
+  width: 39px;
+  height: 26px;
+  border: solid white 1px;
+}
+
+#edit-square-frame {
+  margin-left: 8px;
+  margin-top: 9px;
+  width: 32px;
+  height: 32px;
+  border: solid white 1px;
+}
+
+/* All the effects radio buttons share these styles */
+#edit-effect-options > a.radio.button {
+  width: 33.3%;
+  padding-top: 15px;
+}
+
+#edit-effect-none {
+  left:0;
+}
+#edit-effect-bw {
+  left:33.3%
+}
+#edit-effect-sepia {
+  left:66.6%
+}
+a.filter-bw {
+  filter: url(../index.html#filter-bw);
+}
+a.filter-sepia {
+  filter: url(../index.html#filter-sepia);
+}
+
+/* All the border buttons share these styles */
+#edit-border-options a.radio.button {
+  position: absolute;
+  width: -moz-calc(20% - 6px);
+  height: -moz-calc(100% - 6px);
+  top: 3px;
+  padding: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+#edit-border-options a.selected.radio.button {
+  outline: solid orange 3px;
+}
+
+#edit-border-none {
+  left: -moz-calc(0% + 3px);
+  border: 2px solid white;  
+}
+#edit-border-thin-white {
+  left: -moz-calc(20% + 3px);
+  border: 2px solid white;  
+}
+#edit-border-thick-white {
+  left: -moz-calc(40% + 3px);
+  border: 4px solid white;
+}
+#edit-border-thin-black {
+  left: -moz-calc(60% + 3px);
+  border: 2px solid black;  
+}
+#edit-border-thick-black {
+  left: -moz-calc(80% + 3px);
+  border: 4px solid black;  
+}
+
+
+#edit-toolbar {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* all buttons in the toolbar share these styles */
+#edit-toolbar > .button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  border-right: 1px solid #000;
+  background: #666;
+}
+
+/* If the button is selected, it has a different background */
+#edit-toolbar > .button.selected {
+  background: #999;
+}
+
+#edit-exposure-button {
+  left: 0;
+}
+
+#edit-crop-button {
+  left: 25%;
+}
+
+#edit-effect-button {
+  left: 50%
+}
+
+#edit-border-button {
+  left: 75%
+}
+
+/*
+ * All of these slider styles are for the exposure compensation slider
+ * If this app ever needs another slider, we'll have lots of name
+ * collisions.  Ideally, this slider stuff should all be packaged up
+ * into a reusable component. But this is one-off for now
+ */
+#exposure-slider {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-color: #444;
+  font-size: smaller;
+}
+
+#sliderbar {
+  position: relative;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+#sliderline {
+  position: absolute;
+  height: 2px;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  margin: 0;
+}
+
+#sliderthumb {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  top: -10px;
+  left: -moz-calc(10% - 20px);
+  border-radius: 50%;
+  background-color: #eee;
+  text-align: center;
+  padding-top: 12px;
+  font-size: smaller;
+  color: black;
+}
+
+#sliderlabels {
+  position: relative;
+  height: 30px;
+  padding: 0;
+  margin: 0;
+  background-color: #222;
+  color: white;
+  border-top: solid #eee 1px;
+}
+
+.sliderlabel {
+  position: absolute;
+  top: 0;
+  height: 5px;
+  border-left: solid #eee 1px;
+}
+
+.sliderlabel:after {
+  content: attr(data-label);
+  position: relative;
+  display: block;
+  text-align: center;
+  top: 5px;
+  width: 100px;
+  left: -50px;
+}
+
+#slider-3 {
+  left: -moz-calc(10% + 0 * 80%/6);
+}
+#slider-2 {
+  left: -moz-calc(10% + 1 * 80%/6);
+}
+#slider-1 {
+  left: -moz-calc(10% + 2 * 80%/6);
+}
+#slider0 {
+  left: -moz-calc(10% + 3 * 80%/6);
+}
+#slider1 {
+  left: -moz-calc(10% + 4 * 80%/6);
+}
+#slider2 {
+  left: -moz-calc(10% + 5 * 80%/6);
+}
+#slider3 {
+  left: -moz-calc(10% + 6 * 80%/6);
 }

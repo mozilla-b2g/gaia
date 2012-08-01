@@ -1,13 +1,13 @@
 {
   "name": "Template",
   "description": "Web app template",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-
+    "offline-app"
   ],
   "locales": {
     "ar": {

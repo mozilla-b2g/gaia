@@ -1,4 +1,5 @@
-#screen.fullscreen:not(.locked) > #utility-tray {
+#screen.fullscreen:not(.locked) > #utility-tray,
+#screen.lockscreen-camera > #utility-tray {
   display: none;
 }
 

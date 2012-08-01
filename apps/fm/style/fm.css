@@ -4,6 +4,7 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
+  font-size: 62.5%;
 }
 
 body {
@@ -24,105 +25,133 @@ a:active {
   color: #000;
 }
 
-div#containter {
-  height: 100%;
-  width: 100%;
+.hidden-block {
+  visibility: hidden;
 }
 
-div#title-bar {
-  height: 20px;
+#container {
+  height: 100%;
+  width: 100%;
+  display: -moz-box;
+  -moz-box-orient: vertical;
 }
 
 /****** styles for frequency view *******/
-div#freq-view {
-  height: 100px;
+#frequency-view {
+  padding-top: 3rem;
+  height: 10rem;
   width: 100%;
+  text-align: center;
+  -moz-box-flex: 0;
 }
 
-div#freq-view a {
-  outline: 0 none;
-  text-decoration: none;
-  color: #555;
+#frequency {
+  font-size: 7rem;
 }
 
-a#bookmark-button {
-  position: relative;
-  top: -24px;
-  font-size: 50px;
-  cursor: pointer;
-}
-
-a#bookmark-button:after {
-  content: "♡";
-}
-
-div#freq-view a.in-fav-list:after {
-  content: "♥" !important;
-}
-
-label#frequency {
-  font-size: 80px;
-}
-
-label#frequency:after {
+#frequency::after {
   content: "MHz";
-  font-size: 40px;
-  padding-left: 10px;
+  font-size: 2rem;
+  padding-left: 0.3rem;
+}
+
+#audio-routing-switch {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  line-height: 4rem;
+  width: 4rem;
+  font-size: 3rem;
+  border: 2px solid #aaa;
+  border-radius: 50%;
+  background: #eee;
+}
+
+#audio-routing-switch:focus {
+  border-color: #888;
+}
+
+#audio-routing-switch[data-current-state="speaker"]::after {
+  content: "S";
+}
+
+#audio-routing-switch[data-current-state="headset"]::after {
+  content: "H";
+}
+
+#bookmark-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 4rem;
+}
+
+#bookmark-button::after {
+  content: "☆";
+}
+
+#bookmark-button[data-bookmarked="true"]::after {
+  content: "★";
 }
 /*****  end  *****/
 
-/*** styles for the operations of frequency ***/
-div#freq-ops {
-  height: 80px;
-  text-align: center;
+/**** styles for frequency dialer *****/
+#dialer-bar {
+  font-size: 1rem;
 }
 
-div#freq-ops > a {
-  font-size: 80px;
-  padding-right: 30px;
-  position: relative;
-  top: -25px;
+#dialer-container {
+  padding-left: 50%;
+  width: 100%;
 }
 
-div#freq-ops > a:last-child {
-  padding-right: 0;
+#frequency-indicator::after {
+  content: "|";
 }
 
-a#freq-op-seekdown:after {
-  content: "«";
+div.animation-on {
+  -moz-transition-duration: 0.5s;
+  -moz-transition-property: top, left;
 }
 
-a#freq-op-100khz-down:after {
-  content: "<";
+#frequency-dialer {
+  display: inline-block;
+  display: -moz-inline-box;
+  -moz-user-select: none;
+  width: 100%;
 }
 
-a#freq-op-seekup:after {
-  content: "»";
+#frequency-dialer .dialer-unit-mark-box {
+  overflow: hidden;
 }
 
-a#freq-op-100khz-up:after {
-  content: ">";
+#frequency-dialer .dialer-unit {
+  text-align: left;
+  float: left;
+}
+
+#frequency-dialer .dialer-mark {
+  height: 3rem;
+  width: 5rem;
+  float: left;
+  font-size: 1rem;
+}
+
+#frequency-dialer .dialer-mark::after {
+  content: "|";
+  position: absolute;
+  bottom: 0;
+}
+
+#frequency-dialer .dialer-mark-long {
+  font-size: 2rem;
 }
 /**** end *******/
 
 /***** styles for favorites list ******/
-div.auto {
-  height: -moz-calc(100% - 200px);
-  overflow: hidden;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
-  margin: 0 0 -60px 0;
-  padding: 0 0 60px 0;
-  clear: both;
-}
-
 div#fav-list {
-  float: left;
   overflow: auto;
-  height: 100%;
-  width: 100%;
+  -moz-box-flex: 1;
 }
 
 div#fav-list-container {
@@ -133,8 +162,8 @@ div#fav-list-container {
 }
 
 div#fav-list-container > div {
-  font-size: 45px;
-  height: 65px;
+  font-size: 4.5rem;
+  height: 6.5rem;
   text-align: right;
   width: 100%;
   clear: both;
@@ -142,77 +171,111 @@ div#fav-list-container > div {
   -webkit-box-sizing: border-box;
   -ms-box-sizing: border-box;
   box-sizing: border-box;
-  padding-right: -moz-calc(50% - 110px);
+  padding-right: -moz-calc(50% - 11rem);
 }
 
-div#fav-list-container > div.selected,
 div#fav-list-container > div:active {
   background-color: lightGray;
 }
 
-div#fav-list-container > div:after {
+div#fav-list-container > div::after {
   content: "MHz";
-  font-size: 28px;
-  padding-left: 10px;
+  font-size: 2.8rem;
+  padding-left: 1rem;
 }
 
-div#fav-list-container > div:before {
-  content: "♥";
-  font-size: 30px;
-  left: 0;
+div#fav-list-container div.fav-list-remove-button {
+  height: 5rem;
+  width: 5rem;
+  margin-left: 2rem;
+  float: left;
+  cursor: pointer;
+}
+
+div#fav-list-container div.fav-list-remove-button::before {
+  content: "★";
+  font-size: 4rem;
+  left: -2rem;
   position: absolute;
-  padding: 10px 0 0 40px;
+  padding: 0 0 0 3rem;
+}
+
+div#fav-list-container div.fav-list-remove-button:active::before {
+  content: "☆" !important;
 }
 /***** end *****/
 
-/***** styles for status bar *****/
-div#status-bar {
-  height: 60px;
+/***** styles for status bars *****/
+#action-bar {
+  -moz-box-flex: 0;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
 }
 
-div#status-bar > div {
-  height: 100%;
-  overflow: hidden;
+/* Styles for action bar */
+/* FIX: it doesn't hide itself */
+#action-bar[hidden] {
+  display: none;
 }
 
-div#status-bar > div > div {
-  float: left;
-  height: 100%;
-  width: 33%;
-  font-size: 32px;
+#action-bar>div {
   text-align: center;
+  padding: 1.5rem 0;
+  -moz-box-flex: 1;
+  background: #fff;
+  border-top: 2px solid #888;
 }
 
-div#switch-bar a.poweron label.poweron {
-  display: block;
+#action-bar a {
+  display: inline-block;
+  width: 6rem;
+  height: 6rem;
+  font-size: 5rem;
+  background: #fff;
+  border: 2px solid #aaa;
+  border-radius: 50%;
 }
 
-div#switch-bar a.poweron label.poweroff {
-  display: none;
+#action-bar a:focus {
+  border-color: #888;
 }
 
-div#switch-bar a.poweroff label.poweron {
-  display: none;
+#power-switch::after {
+  content: "▶";
+  position: relative;
+  left: 0.3rem;
+  top: -0.3rem;
+  font-size: 5rem;
 }
 
-div#switch-bar a.poweroff label.poweroff {
-  display: block;
+#power-switch[data-enabled="true"]::after {
+  content: "▪";
+  top: -0.3rem;
+  left: 0;
 }
 
-div#switch-bar a.speaker label.speaker {
-  display: block;
+#frequency-op-seekdown::after {
+  content: "‹";
+  position: relative;
+  top: -0.5rem;
+  left: 0rem;
 }
 
-div#switch-bar a.speaker label.headset {
-  display: none;
+#frequency-op-seekdown[data-status="seeking"]::after {
+  content: "...";
+  top: -1.7rem;
 }
 
-div#switch-bar a.headset label.speaker {
-  display: none;
+#frequency-op-seekup::after {
+  content: "›";
+  position: relative;
+  top: -0.5rem;
+  left: 0rem;
 }
 
-div#switch-bar a.headset label.headset {
-  display: block;
+#frequency-op-seekup[data-status="seeking"]::after {
+  content: "...";
+  top: -1.7rem;
 }
 /**** end ****/
 
@@ -241,22 +304,6 @@ div#antenna-warning > div > div {
   display: table-cell;
   height: 100%;
   width: 100%;
-}
-/******* end *******/
-
-/***** styles for popup delete box ****/
-div#popup-delete-box {
-  position: absolute;
-  height: 40px;
-  width: 150px;
-  top: 0;
-  left: 0;
-  border: 1px solid #555;
-  border-radius: 10px;
-  text-align: center;
-  background-color: #F4F4F4;
-  z-index: 1000;
-  font-size: 30px;
 }
 /******* end *******/
 

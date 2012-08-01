@@ -2,9 +2,10 @@
   "name": "Test Agent",
   "default_locale": "en-US",
   "description": "Gaia Test Agent",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "permissions": [
-    "power"
+    "power",
+    "offline-app"
   ],
   "locales": {
     "en-US": {

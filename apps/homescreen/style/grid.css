@@ -3,6 +3,35 @@
   height: 100%;
 }
 
+/* Page have movement feedback */ 
+@-moz-keyframes bounceRight {
+  0% { -moz-transform: translateX(0px); }
+	50% { -moz-transform: translateX(10px); }
+	100% { -moz-transform: translateX(0px); }
+}
+
+@-moz-keyframes bounceLeft {
+  0% { -moz-transform: translateX(0px); }
+  50% { -moz-transform: translateX(-10px); }
+  100% { -moz-transform: translateX(0px); }
+}
+
+.apps > div[data-bouncing = 'right'] {
+  -moz-animation-name: bounceRight;
+  -moz-animation-duration: .2s;
+  -moz-animation-iteration-count: 1;
+  -moz-animation-timing-function: ease-out;
+  -moz-transform-origin:50% 50%;
+}
+
+.apps > div[data-bouncing = 'left'] {
+  -moz-animation-name: bounceLeft;
+  -moz-animation-duration: .2s;
+  -moz-animation-iteration-count: 1;
+  -moz-animation-timing-function: ease-out;
+  -moz-transform-origin:50% 50%;
+}
+
 /* pages */
 .apps > div {
   position: absolute;
@@ -10,6 +39,10 @@
   height: 100%;
   text-align: center;
   margin: 0 auto;
+}
+
+.apps > div:first-child {
+  text-align: left;
 }
 
 .apps ol {
@@ -61,6 +94,14 @@
 	margin-top: .8rem;
 	margin-bottom: .8rem;
   pointer-events: none; /* NO touchable area */
+}
+
+/* Handling the case where the status bar is double size */
+/* XXX remove when the homescreen layout gets more dynamic */
+@media screen and (max-height: 440px) {
+  .apps ol > li > div {
+    margin-top: .2rem;
+  }
 }
 
 /* icon */

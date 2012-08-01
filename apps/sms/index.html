@@ -4,25 +4,15 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Messages</title>
+    <link rel="stylesheet" type="text/css" href="style/root.css">
+    <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script type="text/javascript">
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/system/js/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/desktop.js"></script>
+    <!-- Specific code -->
     <script type="text/javascript" src="js/contacts.js"></script>
     <script type="text/javascript" src="js/pendingDBUtils.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
@@ -35,60 +25,115 @@
   </head>
 
   <body>
-    <!-- Single conversation view -->
-    <section id="view" class="panel">
-      <header id="view-toolbar" class="toolbar toolbar-top">
-        <a role="menuitem" href="#" id="view-back" class="edit-hide">
-          <div class="back-wrapper">
-            <div class="icon-back"></div>
-          </div>
-        </a>
-        <a role="button" id="view-add-button" class="contact-show">
-          <div class="icon-contact"></div>
-        </a>
-        <h1 id="view-name"></h1>
-        <input type="tel" id="view-num" />
-      </header>
-      <article id="view-list" class="list">
-      </article>
-      <footer id="view-bottom-toolbar" class="toolbar toolbar-bottom">
-        <div id="view-bottom-toolbar-panel" class="toolbar-panel">
-          <div id="view-msg-text-container" class="edit-hide view-bottom-toolbar-element">
-            <textarea type="text" id="view-msg-text"></textarea>
-          </div>
-          <div role="button" id="view-msg-send" class="edit-hide view-bottom-toolbar-element" data-l10n-id="send">
-              Send
+    <article id="main-wrapper" class="wrapper">
+      <section id="thread-list" class="panel">
+        <div class="header-group">
+          <div class="header-wrapper">
+            <header class="view-header regular-header">
+              <menu type="toolbar">
+                 <a href="#new" id="icon-add">
+                  <span class="icon icon-add"></span>
+                 </a>
+                 <a href="#edit" id="icon-edit-threads">
+                  <span class="icon icon-edit"></span>
+                 </a>
+              </menu>
+              <h1>Messages</h1>
+            </header>
+            <header class="view-header dark-header">
+              <a href="#thread-list" id="icon-close" role="link">
+                <span class="icon icon-close">close</span>
+              </a>
+              <menu type="toolbar">
+                 <button id="thread-done-button">done</button>
+              </menu>
+              <h1 id="list-edit-title">Edit mode</h1>
+            </header>
           </div>
         </div>
-      </footer>
-    </section>
+        <article id="thread-list-container" class="view-body">
+        </article>
+        <footer class="options">
+          <section class="option">
+            <button id="delete-all-threads" class="edit-button">
+              Delete all
+            </button>
+          </section>
+          <section class="option">
+            <button id="delete-selected-threads" class="edit-button">
+              Delete selected
+            </button>
+          </section>
+        </footer>
+      </section>
 
-    <!-- Conversations List view -->
-    <section id="msg-conversations" class="panel">
-      <header id="msg-toolbar" class="toolbar toolbar-top">
-        <menu role="menu">
-          <a role="menuitem" href="#" id="msg-conversations-back" class="edit-show">
-            <div class="back-wrapper">
-              <div class="icon-back"></div>
-            </div>
-          </a>
-          <a role="menuitem" href="#num=*" id="msg-new-message" class="edit-hide">
-            <span data-icon="add" class="icon-add"></span>
-          </a>
-        </menu>
-        <h1 id="msg-title-container" data-l10n-id="messages">Messages</h1>
-      </header>
-
-      <article id="msg-conversations-list" class="list">
-      </article>
-
-      <footer id="msg-bottom-toolbar" class="toolbar toolbar-bottom edit-show">
-        <menu id="msg-edit-options-bar">
-          <div role="button" id="msg-delete-all-button" onclick="ThreadListUI.showConfirmationDialog();" class="button-bottom-bar" data-l10n-id="delete-all">Delete all</div>
-          <div role="button" id="msg-delete-button" onclick="ThreadListUI.executeMessageDelete();" class="button-bottom-bar " data-l10n-id="delete">Delete</div>
-        </menu>
-      </footer>
-    </section>
-
+      <section id="thread-messages" class="panel">
+        <div class="header-group">
+          <div class="header-wrapper">
+            <header class="view-header regular-header">
+              <a href="#thread-list" role="link">
+                <span class="icon icon-back"></span>
+              </a>
+              <menu type="toolbar">
+                <a id="icon-contact">
+                  <span class="icon icon-user"></span>
+                </a>
+                <a href="#edit" id="icon-edit">
+                  <span class="icon icon-edit"></span>
+                </a>
+              </menu>
+              <h1 id="header-text">Messages</h1>
+              <input id="receiver-input" type="text" name="tel" class="tel" />
+              <span id="clear-search" role="button" class="icon icon-clear"></span>
+            </header>
+            <header class="view-header dark-header">
+              <a href="javascript:history.go(-1)" role="link">
+                <span class="icon icon-close"></span>
+              </a>
+              <menu type="toolbar">
+                 <button id="messages-done-button">done</button>
+              </menu>
+              <h1 id="messages-edit-title">Edit mode</h1>
+            </header>
+          </div>
+        </div>
+        <article id="messages-container" class="view-body">
+        </article>
+        <footer class="options">
+          <section class="option">
+            <button id="delete-all-messages" class="edit-button">
+              Delete all
+            </button>
+          </section>
+          <section class="option">
+            <button id="delete-selected-messages" class="edit-button">
+              Delete selected
+            </button>
+          </section>
+        </footer>
+        <footer class="new-sms-form">
+          <textarea type="text" id="message-to-send" name="message-to-send"></textarea>
+          <div id="send-message-container">
+            <button id="send-message">SEND</button>
+          </div>
+        </footer>
+      </section>
+    </article>
+    <article id="snapshot" class="wrapper">
+      <section id="thread-list-snapshot">
+      </section>
+      <section id="thread-messages-snapshot" >
+      </section>
+    </article>
+    <article id="loading">
+      <section class="loading-container">
+        <header class="loading-header">
+          Deleting messages...
+        </header>
+        <article class="loading-icon">
+          <img src="style/images/spinner.gif">
+        </article>
+      </section>
+    </article>
   </body>
 </html>

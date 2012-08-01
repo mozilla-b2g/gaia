@@ -1,12 +1,18 @@
 {
   "name": "Contacts",
   "description": "Default Contacts application",
+  "launch_path": "/index.html",
   "developer": {
     "name": "Telefonica PDI - OWD Team",
     "url": "http://openwebdevice.com"
   },
   "permissions": [
-    "contacts"
+    "contacts",
+    "webcontacts-manage",
+    "contacts-read",
+    "contacts-write",
+    "indexedDB-unlimited",
+    "offline-app"
   ],
   "locales": {
     "ar": {
@@ -69,6 +75,12 @@
       "filters": {
         "type": "webcontacts/contact"
        },
+      "disposition": "window"
+    },
+    "new": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
       "disposition": "window"
     }
   }

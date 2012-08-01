@@ -1,11 +1,16 @@
 {
   "name": "Clock",
   "description": "Gaia Clock",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": [
+    "alarm",
+    "alarms",
+    "offline-app"
+  ],
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u0633\u0627\u0639\u0629",
@@ -61,5 +66,6 @@
     "120": "/style/icons/Clock.png",
     "60": "/style/icons/60/Clock.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "messages": ["alarm"]
 }

@@ -1,7 +1,7 @@
 {
   "name": "System",
   "description": "Main System",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -10,8 +10,19 @@
     "mozbrowser",
     "power",
     "mozApps",
+    "webapps",
     "mobileconnection",
-    "mozBluetooth"
+    "mozBluetooth",
+    "telephony",
+    "voicemail",
+    "device-storage",
+    "devicestorage",
+    "indexedDB-unlimited",
+    "websettings-readwrite",
+    "settings-read",
+    "settings-write",
+    "pin-app",
+    "offline-app"
   ],
   "locales": {
     "ar": {

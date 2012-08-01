@@ -19,7 +19,7 @@ var ModalDialog = {
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message'];
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message', 'buttons'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -34,6 +34,7 @@ var ModalDialog = {
     }, this);
 
     this.screen = document.getElementById('screen');
+    this.overlay = document.getElementById('dialog-overlay');
   },
 
   // Save the events returned by mozbrowsershowmodalprompt for later use.
@@ -50,6 +51,7 @@ var ModalDialog = {
     window.addEventListener('mozbrowsershowmodalprompt', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
+    window.addEventListener('resize', this);
 
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
@@ -97,7 +99,17 @@ var ModalDialog = {
         // Reset currentOrigin
         this.hide();
         break;
+
+      case 'resize':
+        if (!this.currentOrigin)
+          return;
+
+        this.setHeight();
     }
+  },
+
+  setHeight: function md_setHeight() {
+    this.overlay.style.height = window.innerHeight + 'px';
   },
 
   // Show relative dialog and set message/input value well
@@ -136,9 +148,15 @@ var ModalDialog = {
         elements.confirmMessage.innerHTML = message;
         break;
     }
+
+    this.elements.buttons.dataset.type = evt.detail.promptType;
+    this.setHeight();
   },
 
   hide: function md_hide() {
+    if (this.currentEvents[this.currentOrigin].detail.promptType == 'prompt') {
+      this.elements.promptInput.blur();
+    }
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
   },

@@ -1,13 +1,15 @@
 {
   "name": "FM Radio",
   "description": "Gaia FM Radio",
-  "launch_path": "/",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "mozFM"
+    "mozFM",
+    "fmradio",
+    "offline-app"
   ],
   "locales": {
     "ar": {

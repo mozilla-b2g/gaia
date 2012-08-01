@@ -1,14 +1,20 @@
 {
   "name": "Settings",
   "description": "Gaia Settings",
-  "launch_path": "/#root",
+  "launch_path": "/index.html#root",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
     "mobileconnection",
-    "mozBluetooth"
+    "mozBluetooth",
+    "device-storage",
+    "devicestorage",
+    "websettings-readwrite",
+    "settings-read",
+    "settings-write",
+    "offline-app"
   ],
   "locales": {
     "ar": {
@@ -38,6 +44,10 @@
     "fr": {
       "name": "Param\u00e8tres",
       "description": "Param\u00e8tres Gaia"
+    },
+    "nb-NO": {
+      "name": "Innstillinger",
+      "description": "Innstillinger for Gaia"
     },
     "it": {
       "name": "Impostazioni",
