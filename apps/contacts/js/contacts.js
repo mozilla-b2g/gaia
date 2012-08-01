@@ -718,7 +718,7 @@ var Contacts = (function() {
     for (var i in paramsMapping) {
       paramsMapping[i].call(this, params[i] || 0);
     }
-
+    checkDisableButton();
     edit();
   };
 
