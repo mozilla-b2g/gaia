@@ -175,12 +175,15 @@ iframe.backgroundWindow {
 }
 
 #keyboard-frame.visible {
+  visibility: visible;
   z-index: 9000;
   pointer-events: auto;
 }
 
 #keyboard-frame.hide {
   transform: translateY(100%);
+  visibility: hidden;
+  -moz-transition: visibility 0s linear 0.2s, -moz-transform 0.2s ease;
 }
 
 #keyboard-overlay {
