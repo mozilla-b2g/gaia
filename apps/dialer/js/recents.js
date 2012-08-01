@@ -315,16 +315,13 @@ var Recents = {
   },
 
   deleteSelected: function re_deleteSelected() {
-    console.log('DELETING SELECTED');
     var selected = this.recentsContainer.querySelectorAll('.log-item.selected');
     for (var i = 0; i < selected.length; i++) {
-      console.log('Ocultando el item ' + selected[i].classList);
       selected[i].classList.add('hide');
     }
   },
 
   executeDeletion: function re_executeDeletion() {
-    console.log('EXECUTING DELETION');
     var self = this;
 
     this.getDatabase(function(database) {
