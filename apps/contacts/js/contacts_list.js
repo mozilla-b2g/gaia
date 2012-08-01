@@ -414,6 +414,7 @@ contacts.List = (function() {
     'remove': remove,
     'search': search,
     'enterSearchMode': enterSearchMode,
-    'exitSearchMode': exitSearchMode
+    'exitSearchMode': exitSearchMode,
+    'loaded': loaded
   };
 })();

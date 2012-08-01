@@ -191,7 +191,7 @@ var Contacts = (function() {
 
     }
 
-    if (!contactsList.load) {
+    if (!contactsList.loaded) {
       loadList();
     }
 
