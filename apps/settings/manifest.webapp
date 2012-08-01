@@ -12,9 +12,7 @@
     "device-storage",
     "devicestorage",
     "websettings-readwrite",
-    "settings-read",
-    "settings-write",
-    "offline-app"
+    "settings"
   ],
   "activities": {
     "configure": {

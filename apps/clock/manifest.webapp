@@ -8,8 +8,7 @@
   },
   "permissions": [
     "alarm",
-    "alarms",
-    "offline-app"
+    "alarms"
   ],
   "locales": {
     "ar": {
