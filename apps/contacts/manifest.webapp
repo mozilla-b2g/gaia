@@ -8,7 +8,8 @@
   },
   "permissions": [
     "contacts",
-    "webcontacts-manage"
+    "webcontacts-manage",
+    "settings"
   ],
   "locales": {
     "ar": {
