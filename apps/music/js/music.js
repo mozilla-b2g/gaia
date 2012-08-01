@@ -39,7 +39,7 @@ function buildUI() {
   var option = 'artist';
 
   musicdb.enumerate('metadata.' + option, null, 'nextunique',
-    TilesView.update.bind(TilesView));
+                    TilesView.update.bind(TilesView));
 }
 
 //
@@ -201,9 +201,7 @@ var TilesView = {
     var tile = document.createElement('div');
 
     var defaultImage = document.createElement('div');
-    defaultImage.textContent = (result.metadata.title) ?
-      result.metadata.title :
-      navigator.mozL10n.get('unknownTitle');
+    defaultImage.textContent = result.metadata.title || navigator.mozL10n.get('unknownTitle');
 
     var img = document.createElement('img');
     img.className = 'tile-image';
