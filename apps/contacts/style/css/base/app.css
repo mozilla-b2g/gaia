@@ -9,10 +9,10 @@
 }
 
 .view[data-state="active"], .cache[data-state="active"], .views[data-state="active"] {
-  z-index: 100; 
+  z-index: 100;
 }
 
-.cache { 
+.cache {
   pointer-events: none;
 }
 
@@ -22,7 +22,7 @@
   -moz-transition: all 0.5s ease;
   position: fixed;
 }
-  
+
 .view-right {
   -moz-transform: translateX(100%);
 }
@@ -188,20 +188,20 @@ overflow: visible;
   padding: 0;
   margin: 0;
 }
-  
+
 .view-header button {
   border: none;
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 1.4rem/1.1em Open Sans, Sans-serif; 
+  font: 1.4rem/1.1em Open Sans, Sans-serif;
   font-weight: 600;
   color: #fff;
 }
 
 .view-header button:first-letter {
   text-transform: uppercase;
-} 
+}
 
 /* Icon definitions */
 .view-header [data-icon] {
