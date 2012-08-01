@@ -297,37 +297,40 @@ ImageEditor.prototype.drawCropControls = function(handle) {
   context.moveTo(centerX - 23, top - 1);
   context.lineTo(centerX + 23, top - 1);
 
-  // NE
-  context.moveTo(right - 23, top - 1);
-  context.lineTo(right + 1, top - 1);
-  context.lineTo(right + 1, top + 23);
-
   // E
   context.moveTo(right + 1, centerY - 23);
   context.lineTo(right + 1, centerY + 23);
-
-  // SE
-  context.moveTo(right + 1, bottom - 23);
-  context.lineTo(right + 1, bottom + 1);
-  context.lineTo(right - 23, bottom + 1);
 
   // S
   context.moveTo(centerX - 23, bottom + 1);
   context.lineTo(centerX + 23, bottom + 1);
 
-  // SW
-  context.moveTo(left + 23, bottom + 1);
-  context.lineTo(left - 1, bottom + 1);
-  context.lineTo(left - 1, bottom - 23);
-
   // W
   context.moveTo(left - 1, centerY - 23);
   context.lineTo(left - 1, centerY + 23);
 
-  // NW
-  context.moveTo(left - 1, top + 23);
-  context.lineTo(left - 1, top - 1);
-  context.lineTo(left + 23, top - 1);
+  // Don't draw the corner handles if there is an aspect ratio we're maintaining
+  if (!this.cropAspectWidth) {
+    // NE
+    context.moveTo(right - 23, top - 1);
+    context.lineTo(right + 1, top - 1);
+    context.lineTo(right + 1, top + 23);
+
+    // SE
+    context.moveTo(right + 1, bottom - 23);
+    context.lineTo(right + 1, bottom + 1);
+    context.lineTo(right - 23, bottom + 1);
+
+    // SW
+    context.moveTo(left + 23, bottom + 1);
+    context.lineTo(left - 1, bottom + 1);
+    context.lineTo(left - 1, bottom - 23);
+
+    // NW
+    context.moveTo(left - 1, top + 23);
+    context.lineTo(left - 1, top - 1);
+    context.lineTo(left + 23, top - 1);
+  }
 
   // Draw all the handles at once
   context.stroke();
@@ -390,6 +393,11 @@ ImageEditor.prototype.cropStart = function(startEvent) {
   var top = region.top;
   var right = region.right;
   var bottom = region.bottom;
+  var aspectRatio = this.cropAspectWidth ?
+    this.cropAspectWidth / this.cropAspectHeight :
+    0;
+  var centerX = (region.left + region.right) / 2;
+  var centerY = (region.top + region.bottom) / 2;
 
   // Return true if (x0,y0) is within 25 pixels of (x,y)
   function hit(x, y) {
@@ -399,22 +407,26 @@ ImageEditor.prototype.cropStart = function(startEvent) {
 
   if (hit((left + right) / 2, top))
     drag('n');
-  else if (hit(right, top))
-    drag('ne');
   else if (hit(right, (top + bottom) / 2))
     drag('e');
-  else if (hit(right, bottom))
-    drag('se');
   else if (hit((left + right) / 2, bottom))
     drag('s');
-  else if (hit(left, bottom))
-    drag('sw');
   else if (hit(left, (top + bottom) / 2))
     drag('w');
-  else if (hit(left, top))
-    drag('nw');
+  else if (!aspectRatio) {
+    if (hit(right, top))
+      drag('ne');
+    else if (hit(right, bottom))
+      drag('se');
+    else if (hit(left, bottom))
+      drag('sw');
+    else if (hit(left, top))
+      drag('nw');
+    else
+      drag(); // with no argument, do a pan instead of a drag
+  }
   else
-    drag(); // with no argument, do a pan instead of a drag
+    drag(); // pan
 
   function drag(handle) {
     window.addEventListener('mousemove', move, true);
@@ -425,6 +437,10 @@ ImageEditor.prototype.cropStart = function(startEvent) {
     function move(e) {
       var dx = e.clientX - startEvent.clientX;
       var dy = e.clientY - startEvent.clientY;
+      var newleft = region.left;
+      var newright = region.right;
+      var newtop = region.top;
+      var newbottom = region.bottom;
 
       if (!handle) {
         pan(dx, dy);
@@ -433,75 +449,85 @@ ImageEditor.prototype.cropStart = function(startEvent) {
 
       switch (handle) {
       case 'n':
-        region.top = top + dy;
+        newtop = top + dy;
         break;
       case 'ne':
-        region.right = right + dx;
-        region.top = top + dy;
+        newright = right + dx;
+        newtop = top + dy;
         break;
       case 'e':
-        region.right = right + dx;
+        newright = right + dx;
         break;
       case 'se':
-        region.right = right + dx;
-        region.bottom = bottom + dy;
+        newright = right + dx;
+        newbottom = bottom + dy;
         break;
       case 's':
-        region.bottom = bottom + dy;
+        newbottom = bottom + dy;
         break;
       case 'sw':
-        region.left = left + dx;
-        region.bottom = bottom + dy;
+        newleft = left + dx;
+        newbottom = bottom + dy;
         break;
       case 'w':
-        region.left = left + dx;
+        newleft = left + dx;
         break;
       case 'nw':
-        region.left = left + dx;
-        region.top = top + dy;
+        newleft = left + dx;
+        newtop = top + dy;
         break;
       }
 
-      // Don't go out of bounds
-      if (region.left < 0)
-        region.left = 0;
-      if (region.right > previewCanvas.width)
-        region.right = previewCanvas.width;
-      if (region.top < 0)
-        region.top = 0;
-      if (region.bottom > previewCanvas.height)
-        region.bottom = previewCanvas.height;
-
-      // Don't let the crop region become smaller than 100x100. If it does
-      // then the sensitive regions of the crop handles start to intersect
-      if (region.bottom - region.top < 100) {
+      // If there is an aspect ratio, make sure we maintain it.
+      // Note that if there is an aspect ratio we won't display
+      // the corner drag handles, so we don't have to handle those.
+      if (aspectRatio) {
+        var width, height;
         switch (handle) {
         case 'n':
-        case 'ne':
-        case 'nw':
-          region.top = region.bottom - 100;
-          break;
         case 's':
-        case 'se':
-        case 'sw':
-          region.bottom = region.top + 100;
+          // change width to match the new height, keeping the center still
+          height = newbottom - newtop;
+          width = height * aspectRatio;
+          newleft = Math.floor(centerX - Math.floor(width / 2));
+          newright = Math.ceil(centerX + Math.ceil(width / 2));
           break;
-        }
-      }
-      if (region.right - region.left < 100) {
-        switch (handle) {
         case 'e':
-        case 'ne':
-        case 'se':
-          region.right = region.left + 100;
-          break;
         case 'w':
-        case 'nw':
-        case 'sw':
-          region.left = region.right - 100;
+          // Change height to match new width, keeping center still
+          width = newright - newleft;
+          height = width / aspectRatio;
+          newtop = Math.floor(centerY - Math.floor(height / 2));
+          newbottom = Math.ceil(centerY + Math.ceil(height / 2));
           break;
         }
       }
+
+      // Now if the new region is out of bounds then bail out without
+      // changing the region at all and ignore this move event
+      if (newtop < 0 || newleft < 0 ||
+          newright > previewCanvas.width || newbottom > previewCanvas.height)
+        return;
+
+      // Don't let the crop region become smaller than 100x100. If it does
+      // then the sensitive regions of the crop handles start to intersect.
+      // If there is a cropping aspect ratio, then the minimum size in
+      // one dimension will be 100 and will be larger in the other.
+      var minWidth = 100, minHeight = 100;
+      if (aspectRatio) {
+        if (aspectRatio > 1)
+          minWidth = Math.round(minWidth * aspectRatio);
+        else if (aspectRatio < 1)
+          minHeight = Math.round(minHeight / aspectRatio);
+      }
+      if (newright - newleft < minWidth || newbottom - newtop < minHeight)
+        return;
+
+      // Otherwise, all is well, so update the crop region and redraw
+      region.left = newleft;
+      region.right = newright;
+      region.top = newtop;
+      region.bottom = newbottom;
 
       self.drawCropControls(handle);
     }
@@ -556,6 +582,10 @@ ImageEditor.prototype.cropImage = function() {
   top = Math.floor(top * this.crop.h);
   bottom = Math.floor(bottom * this.crop.h);
 
+  // XXX: tweak these to make sure we still have the right aspect ratio
+  // after rounding to pixels
+  console.error('Maintain aspect ratio precisely!!!');
+
   // And update the real crop region
   this.crop.x += left;
   this.crop.y += top;
@@ -576,4 +606,41 @@ ImageEditor.prototype.undoCrop = function() {
   this.edit();
   this.hideCropOverlay();
   this.showCropOverlay();
+};
+
+// Pass no arguments for freeform 1,1 for square,
+// 2,3 for portrait, 3,2 for landscape.
+ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
+  var region = this.cropRegion;
+  var preview = this.previewCanvas;
+  var width = preview.width;
+  var height = preview.height;
+
+  this.cropAspectWidth = ratioWidth || 0;
+  this.cropAspectHeight = ratioHeight || 0;
+
+  if (ratioWidth && ratioHeight) {
+    // Constrained cropping, centered on image
+    var centerX = width / 2, centerY = height / 2;
+
+    var scaleX = Math.floor(width / ratioWidth);
+    var scaleY = Math.floor(height / ratioHeight);
+    var scale = Math.min(scaleX, scaleY);
+
+    width = scale * ratioWidth;
+    height = scale * ratioHeight;
+
+    region.left = centerX - width / 2;
+    region.right = centerX + width / 2;
+    region.top = centerY - height / 2;
+    region.bottom = centerY + height / 2;
+  }
+  else {
+    // Freeform cropping
+    region.left = region.top = 0;
+    region.right = width;
+    region.bottom = height;
+  }
+
+  this.drawCropControls();
 };
