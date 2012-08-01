@@ -511,7 +511,7 @@ Dock.prototype.animate = function dk_anim(oIndex, tIndex, children,
 
 var SearchPage = function createSearchPage() {
   Page.call(this);
-  this.maxWidth = window.innerWidth;;
+  this.maxWidth = window.innerWidth;
 };
 
 extend(SearchPage, Page);
@@ -523,16 +523,16 @@ SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration, deltaX) {
   if (scrollX < 0 && scrollX > -maxWidth) {
     var forward = GridManager.dirCtrl.goesForward(deltaX);
     if (forward) {
-      if (scrollX > -maxWidth/2) {
+      if (scrollX > -maxWidth / 2) {
         scrollX = 0;
       } else {
-        scrollX += maxWidth/2;
+        scrollX += maxWidth / 2;
       }
     } else {
-      if (scrollX < -maxWidth/2) {
+      if (scrollX < -maxWidth / 2) {
         scrollX = -maxWidth;
       } else {
-        scrollX += maxWidth/4;
+        scrollX += maxWidth / 4;
       }
     }
   }
