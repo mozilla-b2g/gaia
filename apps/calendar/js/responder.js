@@ -1,7 +1,6 @@
 //this code is from test-agent might use native dom events
 //or something else in the future to replace this.
 (function(exports) {
-  'use strict';
 
   if (typeof(exports.Calendar) === 'undefined') {
     exports.Calendar = {};
@@ -73,7 +72,10 @@
       var event = Responder.parse(json),
           args = Array.prototype.slice.call(arguments).slice(1);
 
-      args.unshift(event.data);
+      if (event.data) {
+        args.unshift(event.data);
+      }
+
       args.unshift(event.event);
 
       this.emit.apply(this, args);
@@ -204,7 +206,7 @@
 
   Responder.prototype.on = Responder.prototype.addEventListener;
 }(
-  (typeof(window) === 'undefined') ? module.exports : window
+  (typeof(module) === 'undefined') ? this : module.exports
 ));
 
 
