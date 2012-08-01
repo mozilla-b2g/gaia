@@ -38,7 +38,7 @@ var CostControl = (function() {
   ];
 
   var _widget, _widgetCredit, _widgetTime;
-  var _sms, _telephony;
+  var _sms = window.navigator.mozSms;
   var _onSMSReceived = null;
   var _isUpdating = false;
   var _state = STATE_IDLE;
@@ -144,19 +144,6 @@ var CostControl = (function() {
     // Listen to utilitytray show
     window.addEventListener('utilitytrayshow', _automaticCheck);
 
-    // Listen for SMS
-    if (window.navigator.mozSms) {
-      _sms = window.navigator.mozSms;
-      _sms.addEventListener('sent', function(evt) { console.log('MESSAGE SENT!'); });
-//      _sms.onsent = function(evt) { console.log('MESSAGE SENT!'); };
-    }
-
-    // Listen to ending calls
-    if (window.navigator.mozTelephony) {
-      _telephony = window.navigator.mozTelephony;
-      _telephony.addEventListener('callschanged', _automaticCheck);
-    }
-
     // Periodically update
     var periodicallyUpdateEvent =
       new CustomEvent('costcontrolPeriodicallyUpdate');
@@ -221,15 +208,6 @@ var CostControl = (function() {
 
       // Periodically updates
       case 'costcontrolPeriodicallyUpdate':
-      // After sending a message
-      case 'sent':
-        // Ignore messages to cost control numbers
-        if (evt.type === 'sent') {
-          var receiver = evt.message.receiver;
-          if (reciever === '+34620970334' /* _settings.CHECK_BALANCE_DESTINATION */ || receiver === '+34620970334' /* _settings.TOP_UP_DESTINATION*/ )
-            return;
-        }
-
         _mockup_updateBalance();
         break;
 
@@ -246,16 +224,6 @@ var CostControl = (function() {
 
         break;
 
-      // After ending a call
-      case 'callschanged':
-        // Some call has ended
-        var currentConnectedCalls = _telephony.calls.length;
-        if (_connectedCalls && currentConnectedCalls < _connectedCalls)
-          _mockup_updateBalance();
-
-        // Update calls
-        _connectedCalls = currentConnectedCalls;
-        break;
     }
   }
 
