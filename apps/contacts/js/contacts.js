@@ -169,9 +169,6 @@ var Contacts = (function() {
         }, function onError() {
           console.error('Error retrieving contact');
         });
-        if(!contactsList.loaded) {
-          loadList();
-        }
         break;
 
       case 'view-contact-form':
@@ -190,13 +187,12 @@ var Contacts = (function() {
             });
           }
         }
-        if(!contactsList.loaded) {
-          loadList();
-        }
         break;
 
-      default:
-        loadList();
+    }
+
+    if (!contactsList.load) {
+      loadList();
     }
 
   }
