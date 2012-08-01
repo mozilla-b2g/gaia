@@ -98,6 +98,9 @@ SHELL := /bin/bash
 # what OS are we on?
 SYS=$(shell uname -s)
 ARCH?=$(shell uname -m)
+ifeq (${SYS}/${ARCH},Darwin/i386)
+ARCH=x86_64
+endif
 SEP=/
 ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
