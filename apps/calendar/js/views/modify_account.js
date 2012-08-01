@@ -97,27 +97,18 @@
      */
     _persistForm: function(callback) {
       var self = this;
+      var store = self.app.store('Account');
 
       this._clearErrors();
       this.updateModel();
-      this.model.refresh(function(err, success) {
+
+      store.verifyAndPersist(this.model, function(err, id, model) {
         if (err) {
           self._displayError(err);
           callback(err);
           return;
         }
-
-        // XXX: Handle Errors
-        var store = self.app.store('Account');
-        store.persist(self.model, function(err, success) {
-          // unblock user
-          if (err) {
-            self._displayError(err);
-            callback(err);
-            return;
-          }
-          callback(null, success);
-        });
+        callback(null, model);
       });
     },
 
@@ -198,8 +189,8 @@
         this.completeUrl = '/settings/';
       }
 
-      if (this.model && this.model.provider) {
-        provider = this.model.provider;
+      if (this.model && this.model.providerType) {
+        provider = this.app.provider(this.model.providerType);
         autoSubmit = !provider.useCredentials && !provider.useUrl;
       }
 
