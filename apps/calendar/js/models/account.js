@@ -11,20 +11,15 @@
         this[key] = options[key];
       }
     }
-
-    if (this.providerType) {
-      this._updateProvider();
-    }
   }
 
   Account.prototype = {
 
-    providerType: null,
-
     /**
-     * Provider object
+     * Type of provider this
+     * account requires.
      */
-    _provider: null,
+    providerType: null,
 
     /**
      * ID for this model always set
@@ -61,14 +56,6 @@
       return this.domain + this.url;
     },
 
-    get provider() {
-      if (!this._provider) {
-        this._updateProvider();
-      }
-
-      return this._provider;
-    },
-
     set fullUrl(value) {
       var protocolIdx = value.indexOf('://');
 
@@ -90,57 +77,6 @@
         }
 
       }
-    },
-
-    _updateProvider: function() {
-      var provider = this._provider;
-      var type = this.providerType;
-
-      if (!provider) {
-        this._provider = provider = new Calendar.Provider[type]();
-      }
-
-      if (provider.useUrl) {
-        provider.url = this.url;
-        provider.domain = this.domain;
-      }
-
-      if (provider.useCredentials) {
-        provider.user = this.user;
-        provider.password = this.password;
-      }
-    },
-
-    /**
-     * Connects to server with new credentials
-     * this operation will possibly update
-     *
-     * @param {Function} callback node style callback.
-     */
-    refresh: function(callback) {
-      var self = this;
-
-      self._updateProvider();
-
-      this.provider.setupConnection(function(err, data) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        if ('url' in data) {
-          self.url = data.url;
-        }
-
-        if ('domain' in data) {
-          self.domain = data.domain;
-        }
-
-        // update provider
-        self._updateProvider();
-
-        callback(null, self);
-      });
     },
 
     /**

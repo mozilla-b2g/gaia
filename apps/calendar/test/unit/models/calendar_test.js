@@ -6,24 +6,22 @@ requireApp('calendar/test/unit/helper.js', function() {
 suite('models/calendar', function() {
 
   var subject;
-  var provider;
-  var CalendarProvider;
+  var remoteCalendar;
   var CalendarModel;
 
   suiteSetup(function() {
-    CalendarProvider = Calendar.Provider.Calendar.Abstract;
     CalendarModel = Calendar.Models.Calendar;
   });
 
   setup(function() {
-    provider = new CalendarProvider({
+    remoteCalendar = {
       id: 'one',
       syncToken: 'xxx'
-    });
+    };
 
     subject = new Calendar.Models.Calendar({
       name: 'foo',
-      provider: provider
+      provider: remoteCalendar
     });
   });
 
@@ -33,14 +31,14 @@ suite('models/calendar', function() {
       var date = new Date();
 
       subject = new CalendarModel({
-        provider: provider,
+        provider: remoteCalendar,
         lastEventSyncToken: '0',
         lastEventSyncDate: date
       });
 
       assert.deepEqual(
         subject.remote,
-        provider.toJSON()
+        remoteCalendar
       );
 
       assert.equal(subject.lastEventSyncDate, date);
@@ -48,16 +46,16 @@ suite('models/calendar', function() {
 
     test('when given remote', function() {
       subject = new CalendarModel({
-        remote: provider.toJSON()
+        remote: remoteCalendar
       });
 
-      assert.deepEqual(subject.remote, provider.toJSON());
+      assert.deepEqual(subject.remote, remoteCalendar);
     });
   });
 
   test('#updateRemote', function() {
-    provider.id = 'foo';
-    subject.updateRemote(provider);
+    remoteCalendar.id = 'foo';
+    subject.updateRemote(remoteCalendar);
     assert.equal(subject.remote.id, 'foo');
   });
 

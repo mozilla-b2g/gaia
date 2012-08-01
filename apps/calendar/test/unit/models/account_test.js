@@ -21,67 +21,6 @@ suite('account', function() {
     assert.equal(subject.user, 'foo');
   });
 
-  suite('#_updateProvider', function() {
-    function update() {
-      subject._updateProvider();
-      provider = subject._provider;
-    }
-
-    setup(function() {
-      update();
-    });
-
-    test('new provider', function() {
-      assert.instanceOf(provider, Calendar.Provider.Local);
-    });
-
-    test('useUrl', function() {
-      provider.useUrl = true;
-      subject.url = '/foo';
-      subject.domain = 'google.com';
-      update();
-
-      assert.equal(provider.url, subject.url);
-      assert.equal(provider.domain, subject.domain);
-    });
-
-    test('useCredentials', function() {
-      provider.useCredentials = true;
-      subject.user = 'foo';
-      subject.password = 'bar';
-      subject.url = 'missing';
-
-      update();
-
-      assert.ok(!provider.url);
-      assert.equal(provider.user, subject.user);
-      assert.equal(provider.passsword, subject.passsword);
-    });
-
-  });
-
-
-  suite('#_updateProvider', function() {
-    setup(function() {
-      subject._updateProvider();
-      provider = subject._provider;
-    });
-
-    test('with url changes', function(done) {
-      provider.setupConnection = function(callback) {
-        callback(null, { url: '/foo/bar' });
-      };
-
-      subject.refresh(function(err, success) {
-        done(function() {
-          assert.ok(!err);
-
-          assert.equal(subject.url, '/foo/bar');
-        });
-      });
-    });
-  });
-
   suite('fullUrl', function() {
     test('get', function() {
       subject.domain = 'http://google.com';
