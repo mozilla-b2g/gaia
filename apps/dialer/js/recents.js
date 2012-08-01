@@ -548,6 +548,11 @@ var Recents = {
     this._updateCounter = 0;
     for (var i = 0; i < length; i++) {
       phoneNumber = callLogItems[i].dataset.num.trim();
+      if (!phoneNumber.length) {
+        var primaryInfo = callLogItems[i].querySelector('.primary-info');
+        primaryInfo.textContent = 'Anonymous';
+        return;
+      }
       var cachedContact = this._cachedContacts[phoneNumber];
       if (cachedContact) {
         this.contactCallBack(callLogItems[i], length, cachedContact);
