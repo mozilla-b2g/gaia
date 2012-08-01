@@ -747,18 +747,25 @@ var Contacts = (function() {
     saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
-      additionalName: ''
+      additionalName: '',
+      name: ''
     };
 
-    if (givenName.value && givenName.value.length > 0) {
-      myContact.givenName = [givenName.value];
+    var inputs = {
+      'givenName': givenName,
+      'familyName': familyName,
+      'org': company
+    };
+
+    for (field in inputs) {
+      var value = inputs[field].value;
+      if (value && value.length > 0) {
+        myContact[field] = [value];
+      } else {
+        myContact[field] = null;
+      }
     }
-    if (familyName.value && familyName.value.length > 0) {
-      myContact.familyName = [familyName.value];
-    }
-    if (company.value && company.value.length > 0) {
-      myContact.org = [company.value];
-    }
+
     if (currentContact.category) {
       myContact.category = currentContact.category;
     }
@@ -798,7 +805,6 @@ var Contacts = (function() {
     } else {
       contact = new mozContact();
       contact.init(myContact);
-
     }
 
     var request = navigator.mozContacts.save(contact);

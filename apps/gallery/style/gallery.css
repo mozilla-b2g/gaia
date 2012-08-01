@@ -492,12 +492,12 @@ a.button.disabled {
   background: #ccc;
 }
 
-/* All the effects buttons share these styles */
-#edit-effect-options > a.button {
+/* All the crop and effect options radio buttons share these styles */
+#edit-crop-options a.radio.button,
+#edit-effect-options a.radio.button {
   position: absolute;
   display: block;
   top: 0;
-  width: 33.3%;
   height: 100%;
   background-size: cover;
   background-position: center;
@@ -506,13 +506,96 @@ a.button.disabled {
   padding: 0;
   border-width: 0;
   border-right: solid black 1px;
-  padding-top: 15px;
   overflow: hidden;
 }
 
-#edit-effect-options > a.button.selected {
+#edit-crop-options a.selected.radio.button,
+#edit-effect-options a.selected.radio.button {
   outline: solid orange 3px;
   outline-offset: -3px;
+}
+
+#edit-crop-options a.radio.button {
+  width: 25%;
+}
+
+#edit-crop-none {
+  position: absolute;
+  display: block;
+  left: 0;
+  width: 20%;
+  top: 0;
+  bottom: 0;
+}
+
+#edit-crop-aspect {
+  position: absolute;
+  display: block;
+  left: 20%;
+  width: 60%;
+  top: 0;
+  bottom: 0;
+}
+
+#edit-crop-crop {
+  position: absolute;
+  display: block;
+  left: 80%;
+  width: 20%;
+  top: 0;
+  bottom: 0;
+}
+
+#edit-crop-aspect-free {
+  left: 0;
+}
+#edit-crop-aspect-portrait {
+  left: 25%;
+}
+#edit-crop-aspect-landscape {
+  left: 50%;
+}
+#edit-crop-aspect-square {
+  left: 75%;
+}
+
+/* instead of using images inside the buttons above, just draw boxes */
+#edit-free-frame {
+  margin-left: 5px;
+  margin-top: 5px;
+  width: 30px;
+  height: 25px;
+  border: dotted white 1px;
+}
+
+#edit-portrait-frame {
+  margin-left: 11px;
+  margin-top: 6px;
+  width: 26px;
+  height: 39px;
+  border: solid white 1px;
+}
+
+#edit-landscape-frame {
+  margin-left: 5px;
+  margin-top: 12px;
+  width: 39px;
+  height: 26px;
+  border: solid white 1px;
+}
+
+#edit-square-frame {
+  margin-left: 8px;
+  margin-top: 9px;
+  width: 32px;
+  height: 32px;
+  border: solid white 1px;
+}
+
+/* All the effects radio buttons share these styles */
+#edit-effect-options > a.radio.button {
+  width: 33.3%;
+  padding-top: 15px;
 }
 
 #edit-effect-none {
@@ -524,32 +607,6 @@ a.button.disabled {
 #edit-effect-sepia {
   left:66.6%
 }
-
-/* All the border buttons share these styles */
-#edit-border-options > a.button {
-  display: inline-block;
-  width: 45px;
-  height: 45px;
-  margin-left: 5px;
-  margin-right: 5px;
-  margin-top: 2px;
-  margin-bottom: 3px;
-
-  background-size: cover;        /* allow some cropping */
-  background-position: center;   /* keep the cropping at the edges */
-  background-repeat: no-repeat;
-}
-
-#edit-border-options > a.button.selected {
-  outline: solid orange 3px;
-}
-
-#edit-effect-options {
-}
-
-#edit-border-options {
-}
-
 a.filter-bw {
   filter: url(../index.html#filter-bw);
 }
@@ -557,16 +614,41 @@ a.filter-sepia {
   filter: url(../index.html#filter-sepia);
 }
 
-a.border-thin-white {
+/* All the border buttons share these styles */
+#edit-border-options a.radio.button {
+  position: absolute;
+  width: -moz-calc(20% - 6px);
+  height: -moz-calc(100% - 6px);
+  top: 3px;
+  padding: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+#edit-border-options a.selected.radio.button {
+  outline: solid orange 3px;
+}
+
+#edit-border-none {
+  left: -moz-calc(0% + 3px);
   border: 2px solid white;  
 }
-a.border-thick-white {
-  border: 4px solid white;  
+#edit-border-thin-white {
+  left: -moz-calc(20% + 3px);
+  border: 2px solid white;  
 }
-a.border-thin-black {
+#edit-border-thick-white {
+  left: -moz-calc(40% + 3px);
+  border: 4px solid white;
+}
+#edit-border-thin-black {
+  left: -moz-calc(60% + 3px);
   border: 2px solid black;  
 }
-a.border-thick-black {
+#edit-border-thick-black {
+  left: -moz-calc(80% + 3px);
   border: 4px solid black;  
 }
 
@@ -583,7 +665,7 @@ a.border-thick-black {
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > .button {
   position: absolute;
-  width: 33.3%;
+  width: 25%;
   height: 100%;
   border-right: 1px solid #000;
   background: #666;
@@ -598,12 +680,16 @@ a.border-thick-black {
   left: 0;
 }
 
+#edit-crop-button {
+  left: 25%;
+}
+
 #edit-effect-button {
-  left: 33.3%
+  left: 50%
 }
 
 #edit-border-button {
-  left: 66.6%
+  left: 75%
 }
 
 /*
