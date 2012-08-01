@@ -61,7 +61,10 @@ function getJSON(root, dir, name) {
 let permissionList = ["power", "sms", "contacts", "telephony",
                       "mozBluetooth", "mozbrowser", "mozApps",
                       "mobileconnection", "mozFM", "systemXHR",
-                      "background"];
+                      "background", "settings", "offline-app",
+                      "indexedDB-unlimited", "alarm", "camera",
+                      "fmradio", "devicestorage", "voicemail",
+                      "pin-app"];
 
 let commonPermissionList = ['offline-app', 'indexedDB-unlimited'];
 
