@@ -1,4 +1,4 @@
-Calendar.ns('Worker').Manager = (function() {
+Calendar.ns('Worker').Manager = (function(global) {
 
   /**
    * Worker manager. Each worker/thread
@@ -55,13 +55,38 @@ Calendar.ns('Worker').Manager = (function() {
       }, this);
     },
 
+    _formatData: function(data) {
+      if (data[1] && data[1].stack && data[1].constructorName) {
+        var err = data[1];
+        var builtErr;
+
+        if (global[err.constructorName]) {
+          builtErr = Object.create(global[err.constructorName].prototype);
+        } else {
+          builtErr = Object.create(Error.prototype);
+        }
+
+        var key;
+
+        for (key in err) {
+          if (err.hasOwnProperty(key)) {
+            builtErr[key] = err[key];
+          }
+        }
+
+        data[1] = builtErr;
+      }
+
+      return data;
+    },
+
     handleEvent: function(e) {
       switch (e.type) {
         case 'error':
           // worker error
           break;
         case 'message':
-          this.respond(e.data);
+          this.respond(this._formatData(e.data));
           break;
       }
     },
@@ -84,13 +109,18 @@ Calendar.ns('Worker').Manager = (function() {
      *
      *
      * @param {String|Array} role one or more roles.
-     * @param {String} url worker url.
+     * @param {String} worker url.
      */
-    add: function(role, url) {
+    add: function(role, worker) {
       var id = this._lastWorkerId++;
-      var worker = this.workers[id] = new this.Worker(
-        url + '?time=' + Date.now()
-      );
+
+      if (typeof(worker) === 'string') {
+        worker = new this.Worker(
+          worker + '?time=' + Date.now()
+        );
+      }
+
+      this.workers[id] = worker;
 
       var roles = [].concat(role);
 
@@ -115,7 +145,6 @@ Calendar.ns('Worker').Manager = (function() {
       var domain = document.location.protocol + '//';
       domain += document.location.host;
 
-      console.log('WORKER IS HERE!: ' + url);
       worker.postMessage({ url: domain });
 
       roles.forEach(function(role) {

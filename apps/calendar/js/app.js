@@ -117,7 +117,7 @@ Calendar.App = (function(window) {
       }
 
       // start the workers
-      this.serviceController.start();
+      this.serviceController.start(false);
 
       // localize && pre-initialize the database
       if (navigator.mozL10n && navigator.mozL10n.readyState == 'complete') {

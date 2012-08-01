@@ -153,7 +153,7 @@ suite('worker/manager', function() {
 
   });
 
-  suite('acceptance', function() {
+  suite('worker acceptance', function() {
     var obj = { magic: true };
     var events;
 
@@ -174,11 +174,21 @@ suite('worker/manager', function() {
     });
 
     test('#request', function(done) {
-      return done();
-
+      this.timeout(4000);
       subject.request('test', 'relay', obj, function(data) {
         done(function() {
           assert.deepEqual(obj, data);
+        });
+      });
+    });
+
+    test('#request /w error object', function(done) {
+      this.timeout(4000);
+      subject.request('test', 'error', function(err) {
+        done(function() {
+          assert.equal(err.message, 'message');
+          assert.ok(err.stack);
+          assert.instanceOf(err, Error);
         });
       });
     });

@@ -9,23 +9,11 @@
   Local.prototype = {
     __proto__: Calendar.Provider.Abstract.prototype,
 
-    /**
-     * Verify credentials with backend service.
-     */
     getAccount: function(account, callback) {
       callback(null, {});
     },
 
-    /**
-     * Attempts to find calendars for
-     * provider.
-     *
-     * @param {Function} callback node style callback
-     *                            where second argument
-     *                            returns an array of
-     *                            Calendar.Provider.CalendarModel(s).
-     */
-    findCalendars: function(callback) {
+    findCalendars: function(account, callback) {
       //XXX: Make async
       var l10nId = 'calendar-local';
       var list = {};

@@ -45,7 +45,7 @@
       throw new Error("Could not parse json: '" + json + '"');
     }
 
-    return {event: data[0], data: data[1]};
+    return data;
   };
 
   Responder.prototype = {
@@ -69,16 +69,9 @@
      * @return {Object} result of WebSocketCommon.parse.
      */
     respond: function respond(json) {
-      var event = Responder.parse(json),
-          args = Array.prototype.slice.call(arguments).slice(1);
-
-      if (event.data) {
-        args.unshift(event.data);
-      }
-
-      args.unshift(event.event);
-
-      this.emit.apply(this, args);
+      var event = Responder.parse(json);
+      var args = Array.prototype.slice.call(arguments).slice(1);
+      this.emit.apply(this, event.concat(args));
 
       return event;
     },

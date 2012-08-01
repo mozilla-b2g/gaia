@@ -1,6 +1,8 @@
 ((typeof(Calendar) === 'undefined') ? Calendar = {} : '');
 
-window = this;
+if (typeof(window) === 'undefined') {
+  window = this;
+}
 
 Calendar.Thread = function Thread(worker) {
   Calendar.Responder.call(this);
@@ -78,9 +80,24 @@ Calendar.Thread.prototype = {
     });
   },
 
+  _wrapError: function(err) {
+    var errorObject = {};
+
+    errorObject.stack = err.stack || '';
+    errorObject.message = err.message || err.toString();
+    errorObject.type = err.type || 'Error';
+    errorObject.constructorName = err.constructor.name || 'Error';
+
+    return errorObject;
+  },
+
   _requestCallback: function(id) {
     var args = Array.prototype.slice.call(arguments, 1);
     args.unshift(id + ' end');
+
+    if (args[1] instanceof Error) {
+      args[1] = this._wrapError(args[1]);
+    }
 
     this.worker.postMessage(args);
   },

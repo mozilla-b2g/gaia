@@ -13,6 +13,17 @@ suite('responder', function() {
     subject = new Calendar.Responder();
   });
 
+  test('multi arg responder', function() {
+    var calledWith;
+
+    subject.on('test', function() {
+      calledWith = arguments;
+    });
+
+    subject.respond(['test', 'one', 'two', 'three']);
+    assert.deepEqual(calledWith, ['one', 'two', 'three']);
+  });
+
   suite('handleEvent', function() {
 
     test('object', function() {

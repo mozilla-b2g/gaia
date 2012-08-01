@@ -27,7 +27,7 @@ suite('provider/local', function() {
     // local will always return the same
     // calendar id
 
-    subject.findCalendars(function(err, list) {
+    subject.findCalendars({}, function(err, list) {
       done(function() {
         var first = list['local-first'];
         assert.equal(first.id, 'local-first');

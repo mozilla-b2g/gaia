@@ -13,7 +13,12 @@ Calendar.ns('Provider').Caldav = (function() {
     useCredentials: true,
 
     getAccount: function(account, callback) {
-      this.service.request('caldav', 'getAccount', account, callback);
+      this.service.request(
+        'caldav',
+        'getAccount',
+        account,
+        callback
+      );
     },
 
     findCalendars: function(account, callback) {

@@ -26,6 +26,16 @@ addEventListener('message', function prepare(e) {
     callback.apply(this, args);
   });
 
+  thread.roles.test.on('error', function(callback) {
+    var err;
+    try {
+      throw new Error('message');
+    } catch (e) {
+      err = e;
+    }
+    callback(err);
+  });
+
   thread.roles.test.on('stream', function(data, stream, callback) {
     var args = Array.prototype.slice.call(arguments);
     args.pop();
