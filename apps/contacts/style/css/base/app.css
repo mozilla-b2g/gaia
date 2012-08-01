@@ -172,7 +172,7 @@ overflow: visible;
 }
 
 .view-header [role="menuitem"]:disabled {
-  color: rgba(255, 255, 255, 0.5);
+  opacity: 0.5;
 }
 
 .view-header [role="menuitem"]:first-child {
