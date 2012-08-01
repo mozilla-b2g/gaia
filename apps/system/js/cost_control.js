@@ -9,6 +9,8 @@ var CostControl = (function() {
     return r || '!!' + keystring;
   }
 
+  var _firstTimeExperience = true;
+
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
   var REQUEST_BALANCE_MAX_DELAY = 1 * 60 * 1000; // 1 minute
@@ -38,6 +40,7 @@ var CostControl = (function() {
   ];
 
   var _widget, _widgetCredit, _widgetTime;
+  var _fteExplanation, _defaultContainer;
   var _sms = window.navigator.mozSms;
   var _onSMSReceived = null;
   var _isUpdating = false;
@@ -90,6 +93,19 @@ var CostControl = (function() {
         _updateUI();
       }
     }
+    // First time experience
+    SettingsListener.observe('costcontrol.fte', true,
+      function cc_setFTE(value) {
+        if (value) {
+          _fteExplanation.style.display = 'block';
+          _defaultContainer.style.display = 'none';
+        } else {
+          _fteExplanation.style.display = 'none';
+          _defaultContainer.style.display = 'block';
+        }
+        _firstTimeExperience = value;
+      }
+    );
 
     // Credit stuff
     SettingsListener.observe('costcontrol.credit.format', 'R$ &i,&d',
@@ -159,6 +175,8 @@ var CostControl = (function() {
     _widget.style.display = 'none';
     _widgetCredit = document.getElementById('cost-control-credit');
     _widgetTime = document.getElementById('cost-control-time');
+    _fteExplanation = document.getElementById('cost-control-fte-expl');
+    _defaultContainer = document.getElementById('cost-control-default');
 
     // Listener for check now button
     var checkNowBalanceButton = document.getElementById('cost-control-credit-area');
@@ -197,6 +215,10 @@ var CostControl = (function() {
   function _automaticCheck(evt) {
     console.log('Evento escuchado: ' + evt.type);
     _isManualRequest = false;
+
+    // Ignore if FTE
+    if (_firstTimeExperience)
+      return;
 
     // Ignore if the device is in roaming
     if (_inRoaming()) {

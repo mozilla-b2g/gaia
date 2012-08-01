@@ -19,6 +19,12 @@
   background-repeat: no-repeat, repeat;
 }
 
+#cost-control-fte-expl {
+  height: 100%;
+  display: table-cell;
+  vertical-align: middle;
+}
+
 /* Widget states */
 
 /* Low credit warning */

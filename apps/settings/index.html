@@ -274,6 +274,71 @@
             data-l10n-id="mmsSettings">MMS Settings</button>
         </li>
       </ul>
+
+      <h2 data-l10n-id="telephonyAndDataAccount"> Telephony & Data Account </h2>
+      <h3> Plan Type </h3>
+      <ul>
+        <li>
+          <label>
+            <input type="radio" name="costcontrol.plantype" value="prepaid" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="prepaid">Prepaid</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="costcontrol.plantype" value="postpaid" />
+            <span></span>
+          </label>
+          <a data-l10n-id="postpaid">Postpaid</a>
+        </li>
+      </ul>
+
+      <h3> Billing Cycle </h3>
+      <ul>
+        <li>
+          <label>
+            <input type="radio" name="costcontrol.billingcycle" value="monthly" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="monthly">Monthly</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="costcontrol.billingcycle" value="weekly" />
+            <span></span>
+          </label>
+          <a data-l10n-id="weekly">Weekly</a>
+        </li>
+      </ul>
+
+      <ul>
+        <li>
+          <label>
+            <input type="date" name="costcontrol.startdate"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="startDate">Start Date</a>
+        </li>
+      </ul>
+
+<!--
+      <ul>
+        <li>
+          <button onclick="Settings.openDialog('apnSettings');"
+            data-l10n-id="planType">Plan type</button>
+        </li>
+        <li>
+          <button onclick="Settings.openDialog('mmsSettings');"
+            data-l10n-id="billingCycle">Billing cycle</button>
+        </li>
+      </ul>
+-->
+      <p data-l10n-id="telephonyAndDataAccountExplanation">Set-up your Phone
+      Account details to view your credit and data plan information and get
+      the most from telephony and data plans.</p>
+      <img id="telephonyAndDataAccountSampleImage" src="#" />
+
     </section>
 
     <!-- Connectivity :: 3G/data :: APN Settings Dialog -->
