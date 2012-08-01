@@ -93,6 +93,52 @@ contacts.List = (function() {
     return contactContainer;
   }
 
+  var getSimContacts = function getSimContacts() {
+    var button = document.createElement('button');
+    var li = document.createElement('li');
+    li.appendChild(button);
+    groupsList.appendChild(li);
+
+    button.textContent = 'Import SIM Contacts';
+    button.onclick = function readFromSIM() {
+      groupsList.removeChild(li);
+
+      var type = 'ADN'; // valid values: 'ADN', 'FDN'
+      var request = navigator.mozContacts.getSimContacts(type);
+      var throbber = document.createElement('li');
+      throbber.textContent = 'Importing SIM contacts (' + type + ')...';
+      groupsList.appendChild(throbber);
+
+      request.onsuccess = function onsuccess() {
+        groupsList.removeChild(throbber);
+        var simContacts = request.result;
+        for (var i = 0; i < simContacts.length; i++) {
+          //var name = simContacts[i].familyName || simContacts[i].name;
+          var name = simContacts[i].name;
+          var number = simContacts[i].tel.toString();
+          var contact = new mozContact();
+          contact.init({
+            'id': [name],
+            'name': [name],
+            'familyName': [name],
+            'additionalName': [''],
+            'tel': [{ 'number': number, 'type': 'personal' }],
+            'note': [simContacts[i].note]
+          });
+          var req = navigator.mozContacts.save(contact);
+          //req.onsuccess = function() { console.log('  ' + contact.id); }
+          //req.onerror = function() {
+          //console.log('  ' + contact.id + ' - error'); }
+        }
+        getContactsByGroup();
+      };
+
+      request.onerror = function onerror() {
+        groupsList.removeChild(throbber);
+        console.log('Error reading SIM contacts');
+      };
+    };
+  }
 
   var buildContacts = function buildContacts(contacts) {
     for (var i = 0; i < contacts.length; i++) {
@@ -140,7 +186,11 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      buildContacts(request.result);
+      if (request.result.length === 0) {
+        getSimContacts();
+      } else {
+        buildContacts(request.result);
+      }
     };
 
     request.onerror = errorCb;
@@ -373,8 +423,7 @@ contacts.List = (function() {
       var text = contact.querySelector('.item-body').dataset['search'];
       if (!pattern.test(text)) {
         contact.classList.add('hide');
-      }
-       else {
+      } else {
         contact.classList.remove('hide');
         count++;
       }
