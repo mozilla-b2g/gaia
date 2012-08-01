@@ -1068,6 +1068,20 @@ var Contacts = (function() {
     }
   };
 
+  var pickImage = function pickImage() {
+    var activity = new MozActivity({
+      name: 'pick',
+      data: {
+        type: 'image/jpeg',
+      }
+    });
+
+    activity.onsuccess = function() {
+      var image = this.result;
+      console.log("YAY! " + image);
+    }
+  }
+
   return {
     'showEdit' : showEdit,
     'doneTag': doneTag,
@@ -1082,6 +1096,7 @@ var Contacts = (function() {
     'saveContact': saveContact,
     'toggleFavorite': toggleFavorite,
     'callOrPick': callOrPick,
+    'pickImage': pickImage,
     'navigation': navigation
   };
 })();
