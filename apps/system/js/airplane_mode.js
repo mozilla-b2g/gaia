@@ -14,6 +14,16 @@ var AirplaneMode = {
       mobileDataEnabled = value;
     });
 
+    var bluetoothEnabled = false;
+    SettingsListener.observe('bluetooth.enabled', false, function(value) {
+      bluetoothEnabled = value;
+    });
+
+    var wifiEnabled = false;
+    SettingsListener.observe('wifi.enabled', false, function(value) {
+      wifiEnabled = value;
+    });
+
     var geolocationEnabled = false;
     SettingsListener.observe('geolocation.enabled', false, function(value) {
       geolocationEnabled = value;
@@ -49,8 +59,8 @@ var AirplaneMode = {
 
         // Turn off Bluetooth.
         if (bluetooth) {
-          restoreBluetooth = bluetooth.enabled;
-          if (bluetooth.enabled) {
+          restoreBluetooth = bluetoothEnabled;
+          if (bluetoothEnabled) {
             settings.getLock().set({
               'bluetooth.enabled': false
             });
@@ -59,8 +69,8 @@ var AirplaneMode = {
 
         // Turn off Wifi.
         if (wifiManager) {
-          restoreWifi = wifiManager.enabled;
-          if (wifiManager.enabled) {
+          restoreWifi = wifiEnabled;
+          if (wifiEnabled) {
             settings.getLock().set({
               'wifi.enabled': false
             });
