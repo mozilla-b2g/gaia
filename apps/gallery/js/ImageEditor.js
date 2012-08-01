@@ -393,9 +393,9 @@ ImageEditor.prototype.cropStart = function(startEvent) {
   var top = region.top;
   var right = region.right;
   var bottom = region.bottom;
-  var aspectRatio = this.cropAspectWidth
-    ? this.cropAspectWidth / this.cropAspectHeight
-    : 0;
+  var aspectRatio = this.cropAspectWidth ?
+    this.cropAspectWidth / this.cropAspectHeight :
+    0;
   var centerX = (region.left + region.right) / 2;
   var centerY = (region.top + region.bottom) / 2;
 
