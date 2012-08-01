@@ -194,6 +194,13 @@ var Recents = {
         querySelectorAll('.log-item:not(.hide)');
       if (visibleCalls.length > 0) {
         this.recentsIconEdit.classList.remove('disabled');
+      } else {
+        this.recentsContainer.innerHTML = '<div id="no-result-container">' +
+                                          '<div id="no-result-message">' +
+                                          '<p>no calls recorded</p>' +
+                                          '<p>start communicating now</p>' +
+                                          '</div>' +
+                                          '</div>';
       }
       if (this._recentsEditionMode) {
         var selectedCalls = this.recentsContainer.
@@ -503,7 +510,12 @@ var Recents = {
     var self = this;
     this.history(function showRecents(recents) {
       if (recents.length == 0) {
-        self.recentsContainer.innerHTML = '';
+        self.recentsContainer.innerHTML = '<div id="no-result-container">' +
+                                          '<div id="no-result-message">' +
+                                          '<p>no calls recorded</p>' +
+                                          '<p>start communicating now</p>' +
+                                          '</div>' +
+                                          '</div>';
         self.recentsIconEdit.classList.add('disabled');
         return;
       }
@@ -735,7 +747,6 @@ var Recents = {
       items[i].classList.remove('highlighted');
     }
   }
-
 };
 
 window.addEventListener('load', function recentsSetup(evt) {
