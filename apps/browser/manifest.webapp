@@ -8,9 +8,7 @@
   },
   "permissions": [
     "mozbrowser",
-    "systemXHR",
-    "indexedDB-unlimited",
-    "offline-app"
+    "systemXHR"
   ],
   "locales": {
     "ar": {
