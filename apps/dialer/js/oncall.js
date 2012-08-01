@@ -219,6 +219,11 @@ var OnCallHandler = {
   },
 
   end: function ch_end() {
+    if (!this._telephony.active) {
+      this.toggleScreen();
+      return;
+    }
+
     this._telephony.active.hangUp();
   },
 
@@ -248,18 +253,21 @@ var OnCallHandler = {
 
         CallScreen.screen.addEventListener('transitionend', function trWait() {
           CallScreen.screen.removeEventListener('transitionend', trWait);
-
           // We did animate the call screen off the viewport
           // now closing the window.
           if (displayed) {
-            var origin = document.location.protocol + '//' +
-              document.location.host;
-            window.opener.postMessage('closing', origin);
-            window.close();
+            self.closeWindow();
           }
         });
       });
     });
+  },
+
+  closeWindow: function och_closeWindow() {
+    var origin = document.location.protocol + '//' +
+      document.location.host;
+    window.opener.postMessage('closing', origin);
+    window.close();
   },
 
   _addCall: function och_addCall(call) {
