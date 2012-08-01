@@ -264,6 +264,34 @@ var Contacts = (function() {
     document.documentElement.dir = navigator.mozL10n.language.direction;
   };
 
+  document.addEventListener('input', function input(event) {
+    checkDisableButton();
+  });
+
+  // When the cancel button inside the input is clicked
+  document.addEventListener('cancelInput', function() {
+    checkDisableButton();
+  });
+
+  var checkDisableButton = function checkDisable() {
+    var saveButton = document.getElementById('save-button');
+    if(emptyForm('contact-form')) {
+      saveButton.setAttribute('disabled', 'disabled');
+    } else {
+      saveButton.removeAttribute('disabled');
+    }
+  };
+
+  var emptyForm = function emptyForm(id) {
+    var form = document.getElementById(id);
+    var inputs = form.querySelectorAll('input.textfield');
+    for (var i=0; i< inputs.length; i++) {
+      if(inputs[i].value != '')
+        return false;
+    }
+    return true;
+  }
+
   var loadList = function loadList() {
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -669,6 +697,7 @@ var Contacts = (function() {
       currentContact = {};
     }
     resetForm();
+    saveButton.setAttribute('disabled', 'disabled');
     deleteContactButton.classList.add('hide');
     formTitle.innerHTML = _('addContact');
 
@@ -744,7 +773,6 @@ var Contacts = (function() {
   };
 
   var saveContact = function saveContact() {
-    saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
       additionalName: '',
@@ -788,7 +816,6 @@ var Contacts = (function() {
     // and inspect address by it self.
     if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
       'email', 'note', 'adr'])) {
-      saveButton.removeAttribute('disabled');
       return;
     }
 
@@ -825,7 +852,6 @@ var Contacts = (function() {
           navigation.back();
         }
       }, function onError() {
-        saveButton.removeAttribute('disabled');
         console.error('Error reloading contact');
         if (ActivityHandler.currentlyHandling) {
           ActivityHandler.postCancel();
