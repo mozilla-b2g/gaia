@@ -99,10 +99,16 @@ var ListMenu = {
 
   show: function lm_show() {
     this.element.classList.add('visible');
+    this.element.classList.add('showmenu');
   },
 
   hide: function lm_hide() {
-    this.element.classList.remove('visible');
+    var self = this;
+    this.container.addEventListener('transitionend', function onSlideDown(){
+      self.container.removeEventListener('transitionend', onSlideDown);
+      self.element.classList.remove('visible');
+    });
+    this.element.classList.remove('showmenu');
   },
 
   handleEvent: function lm_handleEvent(evt) {
@@ -118,6 +124,7 @@ var ListMenu = {
 
         var action = evt.target.dataset.value;
         if (!action) {
+          this.hide();
           return;
         }
         this.hide();
