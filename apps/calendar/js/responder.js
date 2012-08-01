@@ -83,8 +83,6 @@
       return event;
     },
 
-    //TODO: Extract event emitter logic
-
     /**
      * Adds an event listener to this object.
      *
@@ -153,7 +151,11 @@
         eventList = this._$events[event];
 
         eventList.forEach(function(callback) {
-          callback.apply(self, args);
+          if (typeof(callback) === 'object' && callback.handleEvent) {
+            callback.handleEvent({ type: event, data: args });
+          } else {
+            callback.apply(self, args);
+          }
         });
       }
 
