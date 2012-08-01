@@ -49,7 +49,7 @@
 
 #statusbar-loading[hidden] {
   display: block;
-  opacity: 0;
+  visibility: hidden;
 
   -moz-transition: none;
 }
