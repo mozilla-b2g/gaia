@@ -109,13 +109,15 @@ var AirplaneMode = {
           settingsToSet['geolocation.enabled'] = true;
         }
 
-        self.setMozSettings(settings, settingsToSet);
+        self.setMozSettings(settingsToSet);
       }
     });
   },
-  // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=779381 
-  setMozSettings: function amp_setter(settings, keypairs) {
-    var setlock = settings.getLock();
+  // XXX Break down obj keys in a for each loop because mozSettings
+  // does not currently supports multiple keys in one set()
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=779381
+  setMozSettings: function amp_setter(keypairs) {
+    var setlock = window.navigator.mozSettings.getLock();
     for (var key in keypairs) {
       var obj = {};
       obj[key] = keypairs[key];
