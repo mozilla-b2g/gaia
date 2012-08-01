@@ -218,6 +218,15 @@ var KeypadManager = {
           }
         }
       });
+
+      activity.onsuccess = function success() {
+        console.log("success");
+      }
+
+      activity.onerror = function error() {
+        console.log("error");
+      }
+
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
