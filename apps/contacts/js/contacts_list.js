@@ -6,6 +6,7 @@ contacts.List = (function() {
   var groupsList,
       favoriteGroup,
       inSearchMode = false,
+      loaded = false,
       cancel = document.getElementById('cancel-search'),
       conctactsListView = document.getElementById('view-contacts-list'),
       searchBox = document.getElementById('search-contact'),
@@ -34,6 +35,7 @@ contacts.List = (function() {
 
     getContactsByGroup(onError, contacts);
     getFavorites();
+    this.loaded = true;
   };
 
   var renderGroupHeader = function renderGroupHeader(group, letter) {
@@ -412,6 +414,7 @@ contacts.List = (function() {
     'remove': remove,
     'search': search,
     'enterSearchMode': enterSearchMode,
-    'exitSearchMode': exitSearchMode
+    'exitSearchMode': exitSearchMode,
+    'loaded': loaded
   };
 })();
