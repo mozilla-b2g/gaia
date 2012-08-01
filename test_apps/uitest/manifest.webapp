@@ -11,10 +11,6 @@
   "permissions": [
     "background",
     "contacts",
-    "contacts-read",
-    "contacts-write",
-    "settings-read",
-    "settings-write",
-    "offline-app"
+    "settings"
   ]
 }

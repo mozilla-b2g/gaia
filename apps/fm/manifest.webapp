@@ -8,8 +8,7 @@
   },
   "permissions": [
     "mozFM",
-    "fmradio",
-    "offline-app"
+    "fmradio"
   ],
   "locales": {
     "ar": {
