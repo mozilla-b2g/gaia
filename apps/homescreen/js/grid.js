@@ -196,8 +196,11 @@ const GridManager = (function() {
     });
 
     pan(0, .3);
-    index === 0 ? applyEffectOverlay(0, .3) :
-                  applyEffectOverlay(opacityMax, .3);
+    if (index === 0) {
+      applyEffectOverlay(0, .3);
+    } else if (index === 1) {
+      applyEffectOverlay(opacityMax, .3);
+    }
 
     if (!isSamePage) {
       updatePaginationBar();
