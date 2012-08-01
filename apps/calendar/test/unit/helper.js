@@ -182,8 +182,7 @@
   requireLib('batch.js');
   requireLib('template.js');
   requireLib('responder.js');
-  requireLib('provider/calendar/abstract.js');
-  requireLib('provider/calendar/local.js');
+  requireLib('provider/abstract.js');
   requireLib('provider/local.js');
   requireLib('store/abstract.js');
   requireLib('store/account.js');
@@ -195,6 +194,8 @@
   requireLib('router.js');
   requireLib('controllers/time.js');
   requireLib('controllers/sync.js');
+  requireLib('worker/manager.js')
+  requireLib('controllers/service.js');
   requireLib('db.js');
   requireLib('app.js');
 

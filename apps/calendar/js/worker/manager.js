@@ -115,6 +115,7 @@ Calendar.ns('Worker').Manager = (function() {
       var domain = document.location.protocol + '//';
       domain += document.location.host;
 
+      console.log('WORKER IS HERE!: ' + url);
       worker.postMessage({ url: domain });
 
       roles.forEach(function(role) {

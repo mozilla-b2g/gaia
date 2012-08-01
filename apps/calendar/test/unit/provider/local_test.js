@@ -1,6 +1,5 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('provider/calendar/abstract.js');
-  requireLib('provider/calendar/local.js');
+  requireLib('provider/abstract.js');
   requireLib('provider/local.js');
 });
 
@@ -9,27 +8,19 @@ suite('provider/local', function() {
   var subject;
 
   setup(function() {
-    subject = new Calendar.Provider.Local({
-      user: 'foo'
-    });
+    subject = new Calendar.Provider.Local();
   });
 
   test('initialization', function() {
-    assert.equal(subject.user, 'foo');
+    assert.instanceOf(subject, Calendar.Provider.Abstract);
   });
 
-  test('#setupConnection', function(done) {
-    subject.setupConnection(function(err, success) {
+  test('#getAccount', function(done) {
+    subject.getAccount({}, function(err, success) {
       assert.ok(!err);
-      assert.ok(subject._connection);
       assert.deepEqual(success, {});
       done();
     });
-  });
-
-  test('#isConnected', function() {
-    subject._connection = true;
-    assert.isTrue(subject.isConnected());
   });
 
   test('#findCalendars', function(done) {
@@ -39,8 +30,6 @@ suite('provider/local', function() {
     subject.findCalendars(function(err, list) {
       done(function() {
         var first = list['local-first'];
-        assert.instanceOf(first, Calendar.Provider.Calendar.Local);
-        assert.equal(first.provider, subject);
         assert.equal(first.id, 'local-first');
         assert.equal(first.name, 'Offline Calendar');
       });

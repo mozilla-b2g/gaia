@@ -43,5 +43,17 @@ suite('controllers/service', function() {
     });
   });
 
+  teardown(function() {
+    var workers = subject.workers;
+    var keys = Object.keys(workers);
+
+    keys.forEach(function(key) {
+      var worker = workers[key];
+      if (worker instanceof Worker) {
+        worker.terminate();
+      }
+    });
+  });
+
 });
 

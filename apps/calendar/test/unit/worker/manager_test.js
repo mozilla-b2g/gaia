@@ -39,6 +39,18 @@ suite('worker/manager', function() {
     subject.Worker = MockWorker;
   });
 
+  teardown(function() {
+    var workers = subject.workers;
+    var keys = Object.keys(workers);
+
+    keys.forEach(function(key) {
+      var worker = workers[key];
+      if (worker instanceof Worker) {
+        worker.terminate();
+      }
+    });
+  });
+
   test('initializer', function() {
     assert.deepEqual(subject.roles, {});
     assert.equal(subject._lastId, 0);
@@ -172,6 +184,7 @@ suite('worker/manager', function() {
     });
 
     test('#stream', function(done) {
+      this.timeout(4000);
       var stream = subject.stream('test', 'stream', obj);
 
       stream.on('data', addEvent.bind(this, 'data'));

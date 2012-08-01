@@ -28,7 +28,6 @@ addEventListener('message', function prepare(e) {
 
   thread.roles.test.on('stream', function(data, stream, callback) {
     var args = Array.prototype.slice.call(arguments);
-    console.log(args);
     args.pop();
     args.pop();
 
