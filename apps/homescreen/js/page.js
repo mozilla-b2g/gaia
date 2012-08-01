@@ -536,5 +536,6 @@ SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration, deltaX) {
       }
     }
   }
-  this.oldMoveBy(scrollX, 0.1);
+
+  this.oldMoveBy(scrollX, duration ? duration - 0.2 : 0);
 };
