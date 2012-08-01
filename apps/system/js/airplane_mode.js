@@ -29,6 +29,7 @@ var AirplaneMode = {
     var restoreWifi = false;
     var restoreGeolocation = false;
 
+    var self = this;
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       if (value) {
         // Entering airplane mode.
@@ -76,36 +77,40 @@ var AirplaneMode = {
 
       } else {
         // Leaving airplane mode.
+        var settingsToSet = {};
 
         // Don't attempt to turn on mobile data if it's already on
         if (mobileData && !mobileDataEnabled && restoreMobileData) {
-          settings.getLock().set({
-            'ril.data.enabled': true
-          });
+          settingsToSet['ril.data.enabled'] = true;
         }
 
         // Don't attempt to turn on Bluetooth if it's already on
         if (bluetooth && !bluetooth.enabled && restoreBluetooth) {
-          settings.getLock().set({
-            'bluetooth.enabled': true
-          });
+          settingsToSet['bluetooth.enabled'] = true;
         }
 
         // Don't attempt to turn on Wifi if it's already on
         if (wifiManager && !wifiManager.enabled && restoreWifi) {
-          settings.getLock().set({
-            'wifi.enabled': true
-          });
+          settingsToSet['wifi.enabled'] = true;
         }
 
         // Don't attempt to turn on Geolocation if it's already on
         if (!geolocationEnabled && restoreGeolocation) {
-          settings.getLock().set({
-            'geolocation.enabled': true
-          });
+          settingsToSet['geolocation.enabled'] = true;
         }
+
+        self.mozSettingSetter(settings, settingsToSet);
       }
     });
+  },
+  // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=779381 
+  mozSettingSetter: function amp_setter(settings, keypairs) {
+    var setlock = settings.getLock();
+    for (var key in keypairs) {
+      var obj = {};
+      obj[key] = keypairs[key];
+      setlock.set(obj);
+    }
   }
 };
 
