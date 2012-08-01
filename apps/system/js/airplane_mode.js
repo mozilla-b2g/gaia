@@ -99,12 +99,12 @@ var AirplaneMode = {
           settingsToSet['geolocation.enabled'] = true;
         }
 
-        self.mozSettingSetter(settings, settingsToSet);
+        self.setMozSettings(settings, settingsToSet);
       }
     });
   },
   // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=779381 
-  mozSettingSetter: function amp_setter(settings, keypairs) {
+  setMozSettings: function amp_setter(settings, keypairs) {
     var setlock = settings.getLock();
     for (var key in keypairs) {
       var obj = {};
