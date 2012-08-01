@@ -40,6 +40,15 @@ var QuickSettings = {
             navigator.mozSettings.getLock().set({
               'wifi.enabled': !enabled
             });
+            if (!enabled) {
+              var activity = new MozActivity({
+                name: 'configure',
+                data: {
+                  section: 'wifi'
+                }
+              });
+              UtilityTray.hide();
+            }
             break;
 
           case this.data:
