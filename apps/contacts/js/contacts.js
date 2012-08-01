@@ -275,7 +275,7 @@ var Contacts = (function() {
 
   var checkDisableButton = function checkDisable() {
     var saveButton = document.getElementById('save-button');
-    if(emptyForm('contact-form')) {
+    if (emptyForm('contact-form')) {
       saveButton.setAttribute('disabled', 'disabled');
     } else {
       saveButton.removeAttribute('disabled');
@@ -285,8 +285,8 @@ var Contacts = (function() {
   var emptyForm = function emptyForm(id) {
     var form = document.getElementById(id);
     var inputs = form.querySelectorAll('input.textfield');
-    for (var i=0; i< inputs.length; i++) {
-      if(inputs[i].value != '')
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].value != '')
         return false;
     }
     return true;
