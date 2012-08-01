@@ -202,14 +202,6 @@ var NotificationScreen = {
       this.toasterIcon.src = detail.icon;
     }
 
-    function extraSpace(text) {
-      var space = '';
-      for (var i = 0, l = text.length / 2; i < l; i++) {
-        space += ' ';
-      }
-      return space;
-    }
-
     var title = document.createElement('div');
     title.textContent = detail.title;
     notificationNode.appendChild(title);
@@ -228,12 +220,23 @@ var NotificationScreen = {
 
     // Animate when too title long
     if (title.scrollWidth > title.clientWidth) {
-      var extra = extraSpace(detail.title);
-      title.textContent += extra;
-      window.setInterval((function nt_titleAnimation() {
-        title.textContent = this.animateText(title.textContent);
-      }).bind(this), this.MARQUEE_STEP);
-    }
+      var animationStep = 0;
+
+      // Animate the text after showing utility tray
+      window.addEventListener('utilitytrayshow', (function ns_onShowing() {
+        var animateText = this.buildTextAnimation(detail.title);
+        animationStep = window.setInterval(function nt_titleAnimation() {
+          title.textContent = animateText();
+        }, this.MARQUEE_STEP);
+      }).bind(this));
+
+      // Stop animation when hiding the utility tray
+      window.addEventListener('utilitytrayhide', function ns_onHiding() {
+        window.clearInterval(animationStep);
+        title.textContent = detail.title;
+      });
+
+    };
 
     // Notification toast
     this.toaster.dataset.notificationID = detail.id;
@@ -285,8 +288,35 @@ var NotificationScreen = {
       StatusBar.updateNotificationUnread(true);
   },
 
-  animateText: function ns_animateText(text) {
-    return text.slice(1) + text[0];
+  buildTextAnimation: function ns_buildTextAnimation(text) {
+
+    var space = '';
+    for (var i = 0, l = text.length / 2; i < l; i++) {
+      space += ' ';
+    }
+
+    var delayToResume = this.MARQUEE_DELAY;
+    var animationText = text + space;
+    var length = animationText.length;
+
+    var step = 0, paused = false;
+    return function ns_actualAnimation() {
+
+      if (step === 0 && !paused) {
+        paused = true;
+        window.setTimeout(function ns_Resume() {
+          step = length;
+          paused = false;
+        }, delayToResume);
+      }
+
+      if (paused)
+        return animationText;
+
+      step--;
+      animationText = animationText.slice(1) + animationText[0];
+      return animationText;
+    };
   }
 };
 
