@@ -184,7 +184,7 @@ var MessageManager = {
 
   /*
     TODO: If the messages could not be deleted completely,
-    conversation list page will also update withot notification currently.
+    conversation list page will also update without notification currently.
     May need more infomation for user that the messages were not
     removed completely.
   */
