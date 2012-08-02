@@ -131,13 +131,13 @@
 
 /* Negative action (back, cancel, etc) */
 .view-header .negative {
-position: absolute;
-left: 0;
-width: 4rem;
-height: 5rem;
-/*background: -moz-linear-gradient(bottom, #803220, #b5521f);*/
-background: url(../../gphx/bitmap/default/vw-header/ui/separator-large.png) no-repeat 2rem center;
-overflow: visible;
+  position: absolute;
+  left: 0;
+  width: 4rem;
+  height: 5rem;
+  /*background: -moz-linear-gradient(bottom, #803220, #b5521f);*/
+  background: url(../../gphx/bitmap/default/vw-header/ui/separator-large.png) no-repeat 2rem center;
+  overflow: visible;
 }
 .view-header .negative [data-icon] {
   overflow: visible;
@@ -156,17 +156,12 @@ overflow: visible;
   background: #9d3d26 url(../../gphx/bitmap/default/vw-header/ui/negative.png) repeat-x left top;
 }
 
-
 /* Icon redefinition in header */
 .view-header .negative [data-icon="menu"] {
   background-position: -0.6rem center;
 }
 
 /* Generic set of actions in toolbar */
-.view-header [role="menu"] {
-  height: 5rem; float: right;
-}
-
 .view-header [role="menuitem"] {
   height: 5rem; float: left;
 }
@@ -179,7 +174,8 @@ overflow: visible;
   background: none; padding: 0 1.5rem;
 }
 
-.view-header [role="menuitem"], .view-header [role="menuitem"]:last-child {
+.view-header [role="menuitem"],
+.view-header [role="menuitem"]:last-child {
   background: url(../../gphx/bitmap/default/vw-header/ui/separator.png) no-repeat left center;
   padding: 0 1.5rem;
 }
@@ -325,3 +321,4 @@ overflow: visible;
   width: 100%;
   text-indent: 1.5rem;
 }
+
