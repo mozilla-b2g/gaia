@@ -35,34 +35,8 @@ var Browser = {
   hasLoaded: false,
 
   init: function browser_init() {
-    // Assign UI elements to variables
-    this.toolbarStart = document.getElementById('toolbar-start');
-    this.urlBar = document.getElementById('url-bar');
-    this.tabHeaders = document.getElementById('tab-headers');
-    this.urlInput = document.getElementById('url-input');
-    this.urlButton = document.getElementById('url-button');
-    this.content = document.getElementById('browser-content');
-    this.awesomescreen = document.getElementById('awesomescreen');
-    this.topSites = document.getElementById('top-sites');
-    this.bookmarks = document.getElementById('bookmarks');
-    this.history = document.getElementById('history');
-    this.topSitesTab = document.getElementById('top-sites-tab');
-    this.bookmarksTab = document.getElementById('bookmarks-tab');
-    this.historyTab = document.getElementById('history-tab');
-    this.backButton = document.getElementById('back-button');
-    this.forwardButton = document.getElementById('forward-button');
-    this.bookmarkButton = document.getElementById('bookmark-button');
-    this.sslIndicator = document.getElementById('ssl-indicator');
 
-    this.tabsBadge = document.getElementById('tabs-badge');
-    this.throbber = document.getElementById('throbber');
-    this.frames = document.getElementById('frames');
-    this.tabsList = document.getElementById('tabs-list');
-    this.mainScreen = document.getElementById('main-screen');
-    this.settingsButton = document.getElementById('settings-button');
-    this.settingsDoneButton = document.getElementById('settings-done-button');
-    this.aboutFirefoxButton = document.getElementById('about-firefox-button');
-    this.clearHistoryButton = document.getElementById('clear-history-button');
+    this.getAllElements();
 
     // Add event listeners
     window.addEventListener('submit', this);
@@ -127,6 +101,27 @@ var Browser = {
     }).bind(this));
   },
 
+  getAllElements: function browser_getAllElements() {
+    var toCamelCase = function toCamelCase(str) {
+      return str.replace(/\-(.)/g, function replacer(str, p1) {
+        return p1.toUpperCase();
+      });
+    };
+
+    var elementIDs = [
+      'toolbar-start', 'url-bar', 'tab-headers', 'url-input', 'url-button',
+      'awesomescreen', 'top-sites', 'bookmarks', 'history', 'top-sites-tab',
+      'bookmarks-tab', 'history-tab', 'back-button', 'forward-button',
+      'bookmark-button', 'ssl-indicator', 'tabs-badge', 'throbber', 'frames',
+      'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
+      'about-firefox-button', 'clear-history-button'];
+
+    // Loop and add element with camel style name to Modal Dialog attribute.
+    elementIDs.forEach(function createElementRef(name) {
+      this[toCamelCase(name)] = document.getElementById(name);
+    }, this);
+  },
+
   // Clicking the page preview on the left gutter of the tab page opens
   // that page
   handlePageScreenClicked: function browser_handlePageScreenClicked(e) {
@@ -152,7 +147,7 @@ var Browser = {
     }
   },
 
-  // Tabs badge is the button at the top left, used to show the number of tabs
+  // Tabs badge is the button at the top right, used to show the number of tabs
   // and to create new ones
   handleTabsBadgeClicked: function browser_handleTabsBadgeClicked(e) {
     if (this.inTransition) {

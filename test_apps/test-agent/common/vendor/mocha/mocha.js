@@ -1168,6 +1168,7 @@ exports.list = function(failures){
       , actual = err.actual
       , expected = err.expected;
 
+
     // actual / expected diff
     if ('string' == typeof actual && 'string' == typeof expected) {
       var len = Math.max(actual.length, expected.length);

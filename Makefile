@@ -325,6 +325,11 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
+TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
+.PHONY: test-integration
+test-integration:
+	test_apps/test-agent/common/test/bin/test $(TESTS)
+
 .PHONY: tests
 tests: webapp-manifests offline
 	echo "Checking if the mozilla build has tests enabled..."
@@ -345,9 +350,11 @@ update-common: common-install
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
 	mkdir -p $(TEST_COMMON)/vendor/marionette-client/
 	mkdir -p $(TEST_COMMON)/vendor/chai/
+	rm -Rf tools/xpcwindow
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
 	rm -f $(TEST_COMMON)/vendor/marionette-client/*.js
 	rm -f $(TEST_COMMON)/vendor/chai/*.js
+	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js $(TEST_COMMON)/vendor/marionette-client/
