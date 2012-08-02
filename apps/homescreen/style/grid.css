@@ -4,35 +4,6 @@
 	z-index: 1;
 }
 
-/* Page have movement feedback */
-@-moz-keyframes bounceRight {
-  0% { -moz-transform: translateX(0px); }
-	50% { -moz-transform: translateX(10px); }
-	100% { -moz-transform: translateX(0px); }
-}
-
-@-moz-keyframes bounceLeft {
-  0% { -moz-transform: translateX(0px); }
-  50% { -moz-transform: translateX(-10px); }
-  100% { -moz-transform: translateX(0px); }
-}
-
-.apps > div[data-bouncing = 'right'] {
-  -moz-animation-name: bounceRight;
-  -moz-animation-duration: .2s;
-  -moz-animation-iteration-count: 1;
-  -moz-animation-timing-function: ease-out;
-  -moz-transform-origin:50% 50%;
-}
-
-.apps > div[data-bouncing = 'left'] {
-  -moz-animation-name: bounceLeft;
-  -moz-animation-duration: .2s;
-  -moz-animation-iteration-count: 1;
-  -moz-animation-timing-function: ease-out;
-  -moz-transform-origin:50% 50%;
-}
-
 /* pages */
 .apps > div {
   position: absolute;

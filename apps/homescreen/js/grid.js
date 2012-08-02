@@ -72,7 +72,7 @@ const GridManager = (function() {
         if (pages.current !== 0) {
           evt.stopPropagation();
           evt.preventDefault();
-          goToPage(pages.current);
+          goToPage({index: pages.current, noBounce: true});
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, startEvent);
@@ -87,7 +87,7 @@ const GridManager = (function() {
   }
 
   function onTouchMove(deltaX) {
-    pan(deltaX);
+    pan(deltaX, 0, false);
     setOverlayPanning(deltaX);
   }
 
@@ -129,16 +129,16 @@ const GridManager = (function() {
       } else if (!forward && currentPage > 0) {
         goToPreviousPage();
       } else {
-        goToPage(currentPage);
+        goToPage({index: currentPage});
       }
     } else if (Math.abs(deltaX) < thresholdForTapping) {
       pageHelper.getCurrent().tap(target);
 
       // Sometime poor devices fire touchmove events when users are only
       // tapping
-      goToPage(currentPage);
+      goToPage({index: currentPage, noBounce: true});
     } else {
-      goToPage(currentPage);
+      goToPage({index: currentPage});
     }
   }
 
@@ -164,39 +164,33 @@ const GridManager = (function() {
   /*
    * Page Navigation utils.
    */
-  function pan(deltaX, duration) {
+  function pan(deltaX, duration, bounce) {
     pages.forEach(function(page, index) {
       var scrollX = (-pages.current + index) * windowWidth + deltaX;
-      page.moveBy(scrollX, duration || 0, deltaX);
+      page.moveBy(scrollX, duration, bounce);
     });
   }
 
-  function goToPage(index, callback) {
-    var previousIndex = pages.current;
-    if (index === 0 && previousIndex === 1 && Homescreen.isInEditMode()) {
+  function goToPage(props) {
+    var index = props.index;
+    var callback = props.callback || function() {};
+
+    if (index === 0 && pages.current === 1 && Homescreen.isInEditMode()) {
       index = 1;
     }
 
     var isSamePage = pages.current === index;
     pages.current = index;
-    callback = callback || function() {};
 
-    var transitionEnd = function gtp_transitionEnd() {
+    container.addEventListener('transitionend', function transitionEnd(e) {
+      container.removeEventListener('transitionend', transitionEnd);
       if (!dragging) {
         delete document.body.dataset.transitioning;
       }
       callback();
-    }
-
-    var currentPage = pageHelper.getCurrent();
-    var currentPageContainer = currentPage.container;
-
-    currentPageContainer.addEventListener('transitionend', function end(e) {
-      currentPageContainer.removeEventListener('transitionend', end);
-      currentPage.bounce(previousIndex - index, transitionEnd);
     });
 
-    pan(0, .3);
+    pan(0, .3, !props.noBounce);
     if (index === 0) {
       applyEffectOverlay(0, .3);
     } else if (index === 1) {
@@ -209,11 +203,11 @@ const GridManager = (function() {
   }
 
   function goToNextPage(callback) {
-    goToPage(pages.current + 1, callback);
+    goToPage({index: pages.current + 1, callback: callback});
   }
 
   function goToPreviousPage(callback) {
-    goToPage(pages.current - 1, callback);
+    goToPage({index: pages.current - 1, callback: callback});
   }
 
   function updatePaginationBar() {
@@ -413,7 +407,7 @@ const GridManager = (function() {
      * @param {int} index of the page
      */
     remove: function gm_remove(index) {
-      goToPage(index - 1);
+      goToPage({index: index - 1});
 
       pages[index].destroy(); // Destroy page
       pages.splice(index, 1); // Removes page from the list
@@ -535,12 +529,13 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage(index, function() {
-          setTimeout(function() {
-            pageHelper.getCurrent().
-              applyInstallingEffect(Applications.getOrigin(app));
-          }, 200);
-        });
+        goToPage({index: index,
+                  callback: function() {
+                    setTimeout(function() {
+                      pageHelper.getCurrent().
+                        applyInstallingEffect(Applications.getOrigin(app));
+                    }, 200);
+                  }});
       }
 
       pageHelper.saveAll();
