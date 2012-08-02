@@ -175,6 +175,10 @@ iframe.backgroundWindow {
   pointer-events: auto;
 }
 
+#screen.fullscreen #keyboard-frame.visible {
+  z-index: 2147483647;
+}
+
 #keyboard-frame.hide {
   transform: translateY(100%);
 }
