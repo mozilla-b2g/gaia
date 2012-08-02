@@ -2,17 +2,8 @@
  * is gathered here to clearly specify all system-app hierarchy */
 
 /* Level 0: System Overlay */
-#volume,
-div[data-level="SYSTEM-OVERLAY"] {
-  z-index: 2147483647;
-}
-
-#battery {
-  z-index: 2147483647;
-}
-
-#usb {
-  z-index: 2147483647;
+#system-overlay {
+  z-index: 65536;
 }
 
 /* Level 1: Status Bar */
@@ -48,9 +39,8 @@ div[data-level="2"] {
 }
 
 /* Level 3: Lock Screen Module */
-#lockscreen,
-div[data-level="3"] {
-  z-index: 2147483647;
+#lockscreen{
+  z-index: ;
 }
 
 /* Level 4: List Menu Module */
@@ -93,20 +83,7 @@ div[data-level="5"] {
 
 /* Level 7: Dialog Module */
 #dialog-overlay,
-#value-selector, 
-#date-selector,
-#time-selector,
-div[data-level="6"] {
-  z-index: 10000;
-}
-
-/* Level 7: */
-#popup-container {
-  z-index: 10000;
-}
-
-/* Level 7: */
-#trustedDialog {
+#input-overlay {
   z-index: 10000;
 }
 
@@ -122,8 +99,14 @@ div[data-level="6"] {
   z-index: 9000;
 }
 
-/* Level 7 under fullscreen */
+/* Fullscreen */
+#screen.fullscreen #system-overlay,
+#screen.fullscreen #lockscreen,
+#screen.fullscreen #lockscreen-camera,
+#screen.fullscreen #input-overlay,
+#screen.fullscreen #dialog-overlay,
 #screen.fullscreen #keyboard-overlay,
+#screen.fullscreen #keyboard-frame,
 #screen.fullscreen #cardsView {
   z-index: 2147483647;
 }
