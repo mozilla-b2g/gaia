@@ -83,7 +83,8 @@ Calendar.ns('Worker').Manager = (function(global) {
     handleEvent: function(e) {
       switch (e.type) {
         case 'error':
-          // worker error
+          //TODO: handle worker error better
+          console.error('[WORKER ERROR]:', e.data);
           break;
         case 'message':
           this.respond(this._formatData(e.data));
