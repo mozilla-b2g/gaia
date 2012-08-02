@@ -3,50 +3,14 @@ requireCommon('/test/marionette.js');
 suite('hardware keys', function() {
 
   var device;
+  var chromeEvent;
 
   testSupport.startMarionette(function(driver) {
     device = driver;
+    chromeEvent = testSupport.system.chromeEvent.bind(
+      this, device
+    );
   });
-
-  function chromeEvent(name) {
-    var details = {};
-
-    if (typeof(name) === 'object') {
-      details = name;
-    } else {
-      details = { type: name };
-    }
-
-    args.push(details);
-
-    // remember this is toString'ed
-    // and sent over the wire at some point
-    // to the device so we can't use
-    // static scope magic to help us here.
-    device.executeScript(function(test, details) {
-      var browser = Services.wm.getMostRecentWindow('navigator:browser');
-      var content = browser.getContentWindow();
-      var events = [];
-
-      if (!content) {
-        return;
-      }
-
-      if (!Array.isArray(details)) {
-        details = [details];
-      }
-
-      var i = 0;
-      var len = details.length;
-
-      for (; i < len; i++) {
-        let event = content.document.createEvent('CustomEvent');
-        event.initCustomEvent('mozChromeEvent', true, true, details[i]);
-        content.dispatchEvent(event);
-        console.log('MARIONETTE CHROME EVENT: ', JSON.stringify(details[i]));
-      }
-    }, args, MochaTask.nextNodeStyle);
-  }
 
   function isScreenEnabled() {
     device.executeScript(function() {
@@ -54,14 +18,16 @@ suite('hardware keys', function() {
     }, MochaTask.nextNodeStyle);
   }
 
+  setup(function() {
+    this.timeout(4000);
+    yield device.setScriptTimeout(5000);
+    yield device.goUrl('app://system.gaiamobile.org');
+  });
+
   test('power button', function() {
     var isEnabled;
 
     this.timeout(10000);
-    yield device.setScriptTimeout(5000);
-
-    yield device.goUrl('app://system.gaiamobile.org');
-
     yield device.setContext('chrome');
 
     isEnabled = yield isScreenEnabled();
