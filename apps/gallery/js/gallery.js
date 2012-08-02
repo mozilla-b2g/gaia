@@ -484,8 +484,8 @@ window.addEventListener('localized', function showBody() {
   // Start off in thumbnail list view, unless there is a pending activity
   // request message. In that case, the message handler will set the
   // initial view
-  if (!navigator.mozHasPendingMessage('activity'))
-    setView(thumbnailListView);
+  // if (!navigator.mozHasPendingMessage('activity'))
+  //   setView(thumbnailListView);
 });
 
 // Each of the photoFrame <div> elements may be subject to animated
