@@ -434,7 +434,7 @@ function webActivityHandler(activityRequest) {
     startPick(activityRequest);
     break;
   }
-});
+}
 
 var pendingPick;
 
