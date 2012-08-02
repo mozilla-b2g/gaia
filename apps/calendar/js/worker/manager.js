@@ -117,6 +117,9 @@ Calendar.ns('Worker').Manager = (function(global) {
 
       if (typeof(worker) === 'string') {
         worker = new this.Worker(
+          // ?time= is for cache busting in development...
+          // there have been cases where nightly would not
+          // clear the cache of the worker.
           worker + '?time=' + Date.now()
         );
       }

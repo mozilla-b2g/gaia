@@ -8,6 +8,9 @@ addEventListener('message', function prepare(e) {
     var args = Array.prototype.slice.call(arguments);
 
     args.forEach(function(script) {
+      // ?time= is for cache busting in development...
+      // there have been cases where nightly would not
+      // clear the cache of the worker.
       importScripts(url + '/js/' + script + '.js?time=' + Date.now());
     });
   }
