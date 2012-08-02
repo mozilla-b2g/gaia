@@ -96,71 +96,37 @@ contacts.List = (function() {
   var getSimContacts = function getSimContacts() {
     var container = groupsList.parentNode; // #groups-container
     var button = document.createElement('button');
-    button.setAttribute('class', 'simImport action action-add');
-    button.textContent = 'Import SIM Contacts';
+    button.setAttribute('class', 'simContacts action action-add');
+    button.textContent = _('simContacts-import');
     container.appendChild(button);
 
     button.onclick = function readFromSIM() {
       // replace the button with a throbber
       container.removeChild(button);
       var span = document.createElement('span');
-      span.textContent = _('simImport-import');
+      span.textContent = _('simContacts-importing');
       var small = document.createElement('small');
-      small.textContent = _('simImport-read');
+      small.textContent = _('simContacts-reading');
       var throbber = document.createElement('p');
-      throbber.className = 'simImport';
+      throbber.className = 'simContacts';
       throbber.appendChild(span);
       throbber.appendChild(small);
       container.appendChild(throbber);
 
-      // request contacts with getSimContacts() -- valid types are:
-      //   'ADN': Abbreviated Dialing Numbers
-      //   'FDN': Fixed Dialing Numbers
-      var request = navigator.mozContacts.getSimContacts('ADN');
-      request.onsuccess = function onsuccess() {
-        small.textContent = _('simImport-store');
-
-        var simContacts = request.result;
-        var nContacts = request.result.length;
-        var nStored = 0;
-
-        for (var i = 0; i < nContacts; i++) {
-          // https://bugzilla.mozilla.org/show_bug.cgi?id=779794
-          // in a perfect world, request.result should be a mozContact array;
-          // until then, let's build mozContact elements manually...
-          var contact = new mozContact();
-          var name = simContacts[i].name ? [simContacts[i].name] : [];
-          var note = simContacts[i].note ? [simContacts[i].note] : [];
-          var tel = simContacts[i].tel ? [{
-            'number': simContacts[i].tel.toString(),
-            'type': 'personal'
-          }] : [];
-          contact.init({
-            'name': name,
-            'givenName': name,
-            'tel': tel,
-            'note': note
-          });
-
-          // store each mozContact
-          var req = navigator.mozContacts.save(contact);
-          req.onsuccess = function count() {
-            nStored++;
-            if (nStored >= nContacts) {
-              container.removeChild(throbber);
-              getContactsByGroup();
-            }
-          };
-          req.onerror = function ignore() {
-            nStored++;
-          };
-        }
-      };
-
-      request.onerror = function onerror() {
-        container.removeChild(throbber);
-        console.log('Error reading SIM contacts.');
-      };
+      // import SIM contacts
+      importSIMContacts(
+          function onread() {
+            small.textContent = _('simContacts-storing');
+          },
+          function onimport() {
+            container.removeChild(throbber);
+            getContactsByGroup();
+          },
+          function onerror() {
+            container.removeChild(throbber);
+            console.log('Error reading SIM contacts.');
+          }
+      );
     };
   }
 
