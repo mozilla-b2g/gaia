@@ -29,40 +29,45 @@ var KeyboardManager = (function() {
       return;
 
     var app = WindowManager.getDisplayedApp();
-    if (!app && !TrustedDialog.trustedDialogIsShown())
-      return;
 
-    var currentApp;
-    if (TrustedDialog.trustedDialogIsShown()) {
+    var currentApp, appHeight;
+    if (TrustedDialog.isVisible()) {
       currentApp = TrustedDialog.getFrame();
-    } else {
+      appHeight = currentApp.getBoundingClientRect().height;
+
+    } else if (ModalDialog.isVisible()) {
+      // XXX: As system has no iframe, we calc the height separately
+      currentApp = document.getElementById('dialog-overlay');
+      appHeight = window.innerHeight;
+
+    } else if (app) {
       WindowManager.setAppSize(app);
       currentApp = WindowManager.getAppFrame(app);
+      appHeight = currentApp.getBoundingClientRect().height;
+
+    } else {
+      console.error('There is no current application, nor trusted dialog ' +
+                    'nor modal dialog. The resize event is acting on nothing.');
+      return;
     }
 
-    var dialogOverlay = document.getElementById('dialog-overlay');
-
-    var height = currentApp.getBoundingClientRect().height -
-                  message.keyboardHeight;
+    var height = appHeight - message.keyboardHeight;
     keyboardOverlay.hidden = true;
 
     if (message.hidden) {
       keyboardFrame.classList.add('hide');
       keyboardFrame.classList.remove('visible');
-      dialogOverlay.style.height = (height + StatusBar.height) + 'px';
       return;
     }
 
     if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
-      dialogOverlay.style.height = (height + StatusBar.height) + 'px';
       keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
       keyboardOverlay.hidden = false;
     } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
         keyboardFrame.removeEventListener('transitionend', keyboardShown);
-        dialogOverlay.style.height = (height + StatusBar.height) + 'px';
         currentApp.style.height = height + 'px';
         keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
         keyboardOverlay.hidden = false;
