@@ -23,7 +23,8 @@
       "filters": {
         "type": "image/jpeg"
        },
-      "disposition": "window"
+      "disposition": "window",
+      "returnValue": true
     }
   },
   "locales": {
