@@ -27,8 +27,8 @@ const GridManager = (function() {
         evt.stopPropagation();
         document.body.dataset.transitioning = 'true';
 
-        startEvent = currentEvent = cloneEvent(evt);
-        onTouchStart(currentEvent.x - startEvent.x);
+        startEvent = currentEvent = evt;
+        onTouchStart(currentEvent.clientX - startEvent.clientX);
         break;
 
       case 'mousemove':
@@ -37,16 +37,15 @@ const GridManager = (function() {
         // Starts dragging only when tapping does not make sense
         // anymore. The drag will then start from this point to avoid
         // a jump effect.
-        currentEvent = cloneEvent(evt);
-        var tap = Math.abs(currentEvent.x - startEvent.x) < thresholdForTapping;
-        if (!isPanning && tap) {
+        if (!isPanning &&
+          Math.abs(evt.clientX - startEvent.clientX) < thresholdForTapping) {
           return;
         } else if (!isPanning) {
           isPanning = true;
-          startEvent = currentEvent;
+          startEvent = evt;
         }
 
-        onTouchMove(currentEvent.x - startEvent.x);
+        onTouchMove(evt.clientX - startEvent.clientX);
         break;
 
       case 'mouseup':
@@ -56,8 +55,7 @@ const GridManager = (function() {
         }
         isPanning = false;
 
-        currentEvent = cloneEvent(evt);
-        onTouchEnd(currentEvent.x - startEvent.x, evt.target);
+        onTouchEnd(evt.clientX - startEvent.clientX, evt.target);
         break;
 
       case 'resize':
@@ -72,7 +70,10 @@ const GridManager = (function() {
           goToPage(pages.current);
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
-            DragDropManager.start(evt, startEvent);
+            DragDropManager.start(evt, {
+              'x': startEvent.clientX,
+              'y': startEvent.clientY
+            });
           }
         }
         break;
@@ -83,8 +84,13 @@ const GridManager = (function() {
     attachEvents();
   }
 
-  function onTouchMove(deltaX) {
-    pan(deltaX);
+  function onTouchMove(deltaX, duration) {
+    for (var i = 0; i < pages.length; i++) {
+      pages[i].container.style.MozTransform =
+        'translateX(' + ((-pages.current + i) * windowWidth + deltaX) + 'px)';
+      pages[i].container.style.MozTransition =
+        '-moz-transform ' + (duration || 0) + 's ease';
+    }
   }
 
   function onTouchEnd(deltaX, target) {
@@ -124,23 +130,9 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
-  function cloneEvent(evt) {
-    if ('touches' in evt) {
-      evt = evt.touches[0];
-    }
-    return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
-  }
-
   /*
    * Page Navigation utils.
    */
-  function pan(deltaX, duration) {
-    pages.forEach(function(page, index) {
-      var scrollX = (-pages.current + index) * windowWidth + deltaX;
-      page.moveBy(scrollX, duration);
-    });
-  }
-
   function goToPage(index, callback) {
 
     var previousIndex = pages.current;
@@ -166,7 +158,7 @@ const GridManager = (function() {
         });
     });
 
-    pan(0, .3);
+    onTouchMove(0, .3);
 
     if (!isSamePage) {
       updatePaginationBar();
