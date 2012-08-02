@@ -18,7 +18,7 @@ const Homescreen = (function() {
 
     setLocale();
     GridManager.init('.apps', function gm_init() {
-      GridManager.goToPage({index: 1});
+      GridManager.goToPage(1);
       PaginationBar.show();
       DragDropManager.init();
 
@@ -45,10 +45,10 @@ const Homescreen = (function() {
           var num = GridManager.pageHelper.getCurrentPageNumber();
           switch (num) {
             case 1:
-              GridManager.goToPage({index: 0});
+              GridManager.goToPage(0);
               break;
             default:
-              GridManager.goToPage({index: 1});
+              GridManager.goToPage(1);
               break;
           }
         }

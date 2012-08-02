@@ -72,7 +72,7 @@ const GridManager = (function() {
         if (pages.current !== 0) {
           evt.stopPropagation();
           evt.preventDefault();
-          goToPage({index: pages.current, noBounce: true});
+          goToPage(pages.current, {noBounce: true});
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, startEvent);
@@ -129,16 +129,16 @@ const GridManager = (function() {
       } else if (!forward && currentPage > 0) {
         goToPreviousPage();
       } else {
-        goToPage({index: currentPage});
+        goToPage(currentPage);
       }
     } else if (Math.abs(deltaX) < thresholdForTapping) {
       pageHelper.getCurrent().tap(target);
 
       // Sometime poor devices fire touchmove events when users are only
       // tapping
-      goToPage({index: currentPage, noBounce: true});
+      goToPage(currentPage, {noBounce: true});
     } else {
-      goToPage({index: currentPage});
+      goToPage(currentPage);
     }
   }
 
@@ -171,8 +171,8 @@ const GridManager = (function() {
     });
   }
 
-  function goToPage(props) {
-    var index = props.index;
+  function goToPage(index, props) {
+    props = props || {};
     var callback = props.callback || function() {};
 
     if (index === 0 && pages.current === 1 && Homescreen.isInEditMode()) {
@@ -203,11 +203,11 @@ const GridManager = (function() {
   }
 
   function goToNextPage(callback) {
-    goToPage({index: pages.current + 1, callback: callback});
+    goToPage(pages.current + 1, {callback: callback});
   }
 
   function goToPreviousPage(callback) {
-    goToPage({index: pages.current - 1, callback: callback});
+    goToPage(pages.current - 1, {callback: callback});
   }
 
   function updatePaginationBar() {
@@ -407,7 +407,7 @@ const GridManager = (function() {
      * @param {int} index of the page
      */
     remove: function gm_remove(index) {
-      goToPage({index: index - 1});
+      goToPage(index - 1);
 
       pages[index].destroy(); // Destroy page
       pages.splice(index, 1); // Removes page from the list
@@ -529,13 +529,12 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage({index: index,
-                  callback: function() {
+        goToPage(index,{callback: function() {
                     setTimeout(function() {
                       pageHelper.getCurrent().
                         applyInstallingEffect(Applications.getOrigin(app));
                     }, 200);
-                  }});
+        }});
       }
 
       pageHelper.saveAll();
