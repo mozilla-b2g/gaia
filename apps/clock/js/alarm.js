@@ -486,14 +486,14 @@ var AlarmEditView = {
     return this.colorMenu = document.getElementById('color-menu');
   },
 
-  get deleteElement() {
-    delete this.deleteElement;
-    return this.deleteElement = document.querySelector('li.delete');
-  },
+  // get deleteElement() {
+    // delete this.deleteElement;
+    // return this.deleteElement = document.querySelector('li.delete');
+  // },
 
   init: function aev_init() {
     document.getElementById('alarm-done').addEventListener('click', this);
-    document.getElementById('alarm-del').addEventListener('click', this);
+    // document.getElementById('alarm-del').addEventListener('click', this);
     document.getElementById('repeat-menu').addEventListener('click', this);
     document.getElementById('sound-menu').addEventListener('click', this);
     document.getElementById('snooze-menu').addEventListener('click', this);
@@ -524,9 +524,9 @@ var AlarmEditView = {
       case 'color-menu':
         ColorPickerView.load(this.alarm.color);
         break;
-      case 'alarm-del':
-        this.delete();
-        break;
+      // case 'alarm-del':
+        // this.delete();
+        // break;
     }
   },
 
@@ -558,13 +558,13 @@ var AlarmEditView = {
     this.minuteInput.value = alarm.minute;
     this.enableInput.checked = alarm.enabled;
 
-    if (alarm.id) {
-      this.alarmTitle.innerHTML = _('editAlarm');
-      this.deleteElement.hidden = false;
-    } else {
-      this.alarmTitle.innerHTML = _('newAlarm');
-      this.deleteElement.hidden = true;
-    }
+    // if (alarm.id) {
+      // this.alarmTitle.innerHTML = _('editAlarm');
+      // this.deleteElement.hidden = false;
+    // } else {
+      // this.alarmTitle.innerHTML = _('newAlarm');
+      // this.deleteElement.hidden = true;
+    // }
     this.refreshRepeatMenu();
     this.refreshSoundMenu();
     this.refreshSnoozeMenu();
