@@ -200,7 +200,7 @@ suite('worker/manager', function() {
       stream.on('data', addEvent.bind(this, 'data'));
       stream.on('error', addEvent.bind(this, 'error'));
 
-      stream.send(function(data) {
+      stream.open(function(data) {
         done(function() {
           assert.deepEqual(
             events.data,
@@ -223,6 +223,11 @@ suite('worker/manager', function() {
           assert.deepEqual(subject._$events['0 stream'], []);
           assert.deepEqual(subject._$events['0 end'], []);
         });
+      });
+
+      // can only open stream once
+      assert.throws(function() {
+        stream.open();
       });
     });
   });
