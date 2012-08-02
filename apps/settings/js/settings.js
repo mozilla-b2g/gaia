@@ -108,26 +108,20 @@ var Settings = {
             var section = activityRequest.source.data.section || 'root';
 
             // Validate if the section exists
-            var actualSection = 
-              document.querySelector('section[id="' + section + '"]');
-            if (!actualSection) {
+            var actualSection = document.getElementById(section);
+            if (!actualSection || actualSection.tagName !== 'SECTION') {
               var msg = 'Trying to open an unexistent section: ' + section;
               console.warn(msg);
               activityRequest.postError(msg);
               return;
             }
 
-            // Emulate a click over a link to the specified section
-            var linkToSection = document.createElement('a');
-            linkToSection.href = '#' + section;
-            linkToSection.style.display = 'none';
-            document.body.appendChild(linkToSection);
-            var event = document.createEvent('MouseEvents');
-            event.initMouseEvent('click', true, true, window,
-                                 0, 0, 0, 0, 0,
-                                 false, false, false, false, 0, null);
-            linkToSection.dispatchEvent(event);
-            document.body.removeChild(linkToSection);
+            // Go to that section
+            setTimeout(
+              function settings_goToSection() {
+                document.location.hash = section;
+              }, 0
+            );
             break;
         }
       }
