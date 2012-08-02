@@ -18,7 +18,6 @@ var Payment = (function() {
   };
 
   window.addEventListener('mozChromeEvent', function onMozChromeEvent(e) {
-    console.log("MozChromeEvent received " + e.detail.type);
     chromeEventId = e.detail.id;
     if (!chromeEventId)
       return;
