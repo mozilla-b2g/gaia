@@ -30,6 +30,33 @@ suite('service/caldav', function() {
     });
   });
 
+  function icalFactory() {
+    return ICAL.parse(fixtures.singleEvent);
+  }
+
+  function accountFactory(results) {
+    if (typeof(results) === 'undefined') {
+      results = {};
+    }
+
+    var defaults = {
+      url: url,
+      domain: domain,
+      password: password,
+      user: user
+    };
+
+    var key;
+
+    for (key in defaults) {
+      if (!(key in results)) {
+        results[key] = defaults[key];
+      }
+    }
+
+    return new Resource(con, results);
+  }
+
   function calendarFactory(results) {
     if (typeof(results) === 'undefined') {
       results = {};
@@ -53,6 +80,17 @@ suite('service/caldav', function() {
 
     return new Resource(con, results);
   }
+
+  function caldavEventFactory() {
+    var ical = icalFactory();
+
+    return {
+      'calendar-data': {
+        status: 200,
+        value: ical
+      }
+    };
+  };
 
   suiteSetup(function() {
     Resource = Caldav.Resources.Calendar;
@@ -105,6 +143,16 @@ suite('service/caldav', function() {
         'should route event to: ' + event
       );
     });
+  });
+
+  test('#_requestEvents', function() {
+    var cal = calendarFactory();
+    var result = subject._requestEvents(
+      con, cal
+    );
+
+    assert.instanceOf(result, Caldav.Request.CalendarQuery);
+    assert.equal(result.connection, con);
   });
 
   test('#_requestCalendars', function() {
@@ -170,6 +218,11 @@ suite('service/caldav', function() {
     assert.equal(result.description, 'ICAL Description');
     assert.equal(result.location, 'My Loc');
 
+    assert.deepEqual(
+      result._rawData.value[0],
+      ICAL.parse(fixtures['singleEvent']).value[0]
+    );
+
     var start = result.startDate.valueOf();
     var end = result.endDate.valueOf();
 
@@ -218,6 +271,85 @@ suite('service/caldav', function() {
         assert.equal(calledWith[1], given.url);
       });
     });
+  });
+
+  suite('#streamEvents', function() {
+    var query;
+    var givenAcc;
+    var givenCal;
+    var calledWith;
+
+    setup(function() {
+      var realRequest = subject._requestEvents;
+      var givenCal = calendarFactory();
+      var givenAcc = accountFactory();
+
+      // spy on request events
+      subject._requestEvents = function() {
+        calledWith = arguments;
+
+        // get real query
+        query = realRequest.apply(this, arguments);
+
+        // when query is 'sent' firecallback
+        // but don't actually send it
+        query.send = function() {
+          var cb = arguments[arguments.length - 1];
+          setTimeout(function() {
+            cb(null);
+          }, 0);
+        };
+
+        // return real query
+        return query;
+      };
+    });
+
+    test('#streamEvents', function(done) {
+      var stream = new Calendar.Responder();
+      var events = [];
+      var cals = {
+        'one': caldavEventFactory(),
+        'two': caldavEventFactory()
+      };
+
+      stream.on('data', function(data) {
+        events.push(data);
+      });
+
+      function formatCalendar(id) {
+        var data = cals[id]['calendar-data'];
+        return subject._formatEvent(
+          data.value
+        );
+      }
+
+      // cb fires in next turn of event loop.
+      subject.streamEvents(givenAcc, givenCal, stream, function(err, data) {
+        done(function() {
+          assert.ok(!err);
+          assert.ok(!data);
+
+          assert.equal(events.length, 2);
+
+          assert.deepEqual(
+            events[0],
+            formatCalendar('one'),
+            'should emit first cal'
+          );
+
+          assert.deepEqual(
+            events[1],
+            formatCalendar('two'),
+            'should emit second cal'
+          );
+        });
+      });
+
+      query.sax.emit('DAV:/response', caldavEventFactory());
+      query.sax.emit('DAV:/response', caldavEventFactory());
+    });
+
   });
 
   suite('#findCalendars', function() {
@@ -272,7 +404,6 @@ suite('service/caldav', function() {
             'should format and include /two calendar'
           );
         });
-
       });
     });
 

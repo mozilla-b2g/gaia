@@ -70,6 +70,8 @@ Calendar.ns('Provider').Abstract = (function() {
      * @param {Object} account user credentials.
      * @param {Object} calendar calendar location and last sync state.
      * @param {Function} callback node style (err, result).
+     * @return {Calendar.Responder} stream that will emit
+     *                              'data' events for each event.
      */
     streamEvents: function(account, calendar, callback) {}
   };
