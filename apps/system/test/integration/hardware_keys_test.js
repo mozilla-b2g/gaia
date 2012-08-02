@@ -1,4 +1,5 @@
 requireCommon('/test/marionette.js');
+require('apps/system/test/integration/helper.js');
 
 suite('hardware keys', function() {
 
