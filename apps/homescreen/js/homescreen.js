@@ -43,8 +43,13 @@ const Homescreen = (function() {
           Permissions.hide();
         } else {
           var num = GridManager.pageHelper.getCurrentPageNumber();
-          if (num !== 0) {
-            GridManager.goToPage(0);
+          switch (num) {
+            case 1:
+              GridManager.goToPage(0);
+              break;
+            default:
+              GridManager.goToPage(1);
+              break;
           }
         }
         break;
