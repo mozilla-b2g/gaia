@@ -516,12 +516,13 @@ var SearchPage = function createSearchPage() {
 
 extend(SearchPage, Page);
 
-SearchPage.prototype.oldMoveBy = Page.prototype.moveBy;
+SearchPage.prototype.baseMoveBy = Page.prototype.moveBy;
 
-SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration, deltaX) {
+SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration,
+                                                  direction) {
   var maxWidth = this.maxWidth;
   if (scrollX < 0 && scrollX > -maxWidth) {
-    var forward = GridManager.dirCtrl.goesForward(deltaX);
+    var forward = GridManager.dirCtrl.goesForward(direction);
     if (forward) {
       if (scrollX > -maxWidth / 2) {
         scrollX = 0;
@@ -537,5 +538,5 @@ SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration, deltaX) {
     }
   }
 
-  this.oldMoveBy(scrollX, duration ? duration - 0.2 : 0);
+  this.baseMoveBy(scrollX, duration ? duration - 0.2 : 0);
 };

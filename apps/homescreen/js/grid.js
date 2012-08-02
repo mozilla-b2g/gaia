@@ -92,14 +92,15 @@ const GridManager = (function() {
   }
 
   function setOverlayPanning(deltaX) {
-    if (!Homescreen.isInEditMode()) {
-      var forward = dirCtrl.goesForward(deltaX);
-      var current = pages.current;
-      if (current === 0 && forward) {
-        applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
-      } else if (current === 1 && !forward) {
-        applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
-      }
+    if (Homescreen.isInEditMode()) {
+      return;
+    }
+    var forward = dirCtrl.goesForward(deltaX);
+    var current = pages.current;
+    if (current === 0 && forward) {
+      applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
+    } else if (current === 1 && !forward) {
+      applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
     }
   }
 
