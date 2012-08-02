@@ -86,7 +86,7 @@
      * in indexeddb.
      */
     toJSON: function() {
-      var output = Object.create(null);
+      var output = {};
       var fields = [
         'url',
         'domain',
