@@ -10,11 +10,7 @@
     "sms",
     "contacts",
     "webcontacts-manage",
-    "contacts-read",
-    "contacts-write",
-    "background",
-    "indexedDB-unlimited",
-    "offline-app"
+    "background"
   ],
   "locales": {
     "ar": {

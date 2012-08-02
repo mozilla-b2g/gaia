@@ -10,15 +10,12 @@
     "telephony",
     "voicemail",
     "webcontacts-manage",
-    "contacts-read",
-    "contacts-write",
     "contacts",
     "power",
     "mozApps",
     "webapps",
     "mobileconnection",
-    "background",
-    "offline-app"
+    "background"
   ],
   "locales": {
     "ar": {

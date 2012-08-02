@@ -12,10 +12,16 @@
     "device-storage",
     "devicestorage",
     "websettings-readwrite",
-    "settings-read",
-    "settings-write",
-    "offline-app"
+    "settings"
   ],
+  "activities": {
+    "configure": {
+      "filters": {
+        "target": "device"
+       },
+      "disposition": "window"
+    }
+  },
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u0636\u0628\u0637",
