@@ -104,28 +104,28 @@ contacts.List = (function() {
       // replace the button with a throbber
       container.removeChild(button);
       var span = document.createElement('span');
-      span.textContent = 'Importing SIM contacts...';
+      span.textContent = _('simImport-import');
       var small = document.createElement('small');
-      small.textContent = 'reading from SIM card...';
+      small.textContent = _('simImport-read');
       var throbber = document.createElement('p');
       throbber.className = 'simImport';
       throbber.appendChild(span);
       throbber.appendChild(small);
       container.appendChild(throbber);
 
-      console.log('click');
-      var type = 'ADN'; // valid values: 'ADN', 'FDN'
-      var request = navigator.mozContacts.getSimContacts(type);
-      console.log('request started');
+      // request contacts with getSimContacts() -- valid types are:
+      //   'ADN': Abbreviated Dialing Numbers
+      //   'FDN': Fixed Dialing Numbers
+      var request = navigator.mozContacts.getSimContacts('ADN');
       request.onsuccess = function onsuccess() {
-        console.log('success!');
-        small.textContent = 'storing SIM contacts...';
+        small.textContent = _('simImport-store');
 
         var simContacts = request.result;
         var nContacts = request.result.length;
         var nStored = 0;
 
         for (var i = 0; i < nContacts; i++) {
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=779794
           // in a perfect world, request.result should be a mozContact array;
           // until then, let's build mozContact elements manually...
           var contact = new mozContact();
@@ -188,8 +188,9 @@ contacts.List = (function() {
     var container = document.getElementById(group);
     request.onsuccess = function favoritesCallback() {
       //request.result is an object, transform to an array
-      if (request.result.length > 0)
-          showGroup('favorites');
+      if (request.result.length > 0) {
+        showGroup('favorites');
+      }
       for (var i in request.result) {
         var newContact = renderContact(request.result[i]);
         container.appendChild(newContact);
