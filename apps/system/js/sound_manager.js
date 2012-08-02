@@ -19,7 +19,7 @@
   }
 
   SettingsListener.observe('audio.volume.master', 5, function(volume) {
-    currentVolume = volume*10;
+    currentVolume = volume * 10;
   });
 
   var activeTimeout = 0;
