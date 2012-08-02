@@ -1143,6 +1143,6 @@ window.navigator.mozSetMessageHandler('activity', actHandler);
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (document.mozHidden) {
     if (ActivityHandler.currentlyHandling)
-      ActivityHandler.postCancel();      
-  }      
+      ActivityHandler.postCancel();
+  }
 });
