@@ -1,7 +1,6 @@
 //this code is from test-agent might use native dom events
 //or something else in the future to replace this.
 (function(exports) {
-  'use strict';
 
   if (typeof(exports.Calendar) === 'undefined') {
     exports.Calendar = {};
@@ -46,7 +45,7 @@
       throw new Error("Could not parse json: '" + json + '"');
     }
 
-    return {event: data[0], data: data[1]};
+    return data;
   };
 
   Responder.prototype = {
@@ -70,18 +69,12 @@
      * @return {Object} result of WebSocketCommon.parse.
      */
     respond: function respond(json) {
-      var event = Responder.parse(json),
-          args = Array.prototype.slice.call(arguments).slice(1);
-
-      args.unshift(event.data);
-      args.unshift(event.event);
-
-      this.emit.apply(this, args);
+      var event = Responder.parse(json);
+      var args = Array.prototype.slice.call(arguments).slice(1);
+      this.emit.apply(this, event.concat(args));
 
       return event;
     },
-
-    //TODO: Extract event emitter logic
 
     /**
      * Adds an event listener to this object.
@@ -151,7 +144,11 @@
         eventList = this._$events[event];
 
         eventList.forEach(function(callback) {
-          callback.apply(self, args);
+          if (typeof(callback) === 'object' && callback.handleEvent) {
+            callback.handleEvent({ type: event, data: args });
+          } else {
+            callback.apply(self, args);
+          }
         });
       }
 
@@ -204,7 +201,7 @@
 
   Responder.prototype.on = Responder.prototype.addEventListener;
 }(
-  (typeof(window) === 'undefined') ? module.exports : window
+  (typeof(module) === 'undefined') ? this : module.exports
 ));
 
 
