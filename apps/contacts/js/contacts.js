@@ -141,7 +141,8 @@ var Contacts = (function() {
       saveButton,
       deleteContactButton,
       favoriteMessage,
-      cover;
+      cover,
+      thumb;
 
   var currentContact = {};
 
@@ -231,6 +232,7 @@ var Contacts = (function() {
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
+    thumb = document.getElementById('thumbnail-photo');
     TAG_OPTIONS = {
       'phone-type' : [
         {value: _('mobile')},
@@ -481,6 +483,7 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
+    thumb.style.backgroundImage = 'url(' + currentContact.photo + ')';
     var default_type = TAG_OPTIONS['phone-type'][0].value;
     for (var tel in currentContact.tel) {
       var currentTel = currentContact.tel[tel];
@@ -802,8 +805,14 @@ var Contacts = (function() {
       }
     }
 
-    if (currentContact.category) {
-      myContact.category = currentContact.category;
+    var fields = ['photo', 'category'];
+
+    for (var i = 0; i < fields.length; i++) {
+      var currentField = fields[i];
+      if (currentContact[currentField]) {
+        console.log("myContact " + currentField + " " + currentContact[currentField]);
+        myContact[currentField] = currentContact[currentField];
+      }
     }
 
     if (myContact.givenName || myContact.familyName) {
@@ -833,6 +842,7 @@ var Contacts = (function() {
       currentContact.email = [];
       currentContact.adr = [];
       currentContact.note = [];
+      currentContact.photo = [];
       for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
@@ -1028,6 +1038,7 @@ var Contacts = (function() {
     givenName.value = '';
     familyName.value = '';
     company.value = '';
+    thumb.style.backgroundImage = '';
     var phones = document.getElementById('contacts-form-phones');
     var emails = document.getElementById('contacts-form-emails');
     var addresses = document.getElementById('contacts-form-addresses');
@@ -1072,14 +1083,63 @@ var Contacts = (function() {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg',
+        type: 'image/jpeg'
       }
     });
 
-    activity.onsuccess = function() {
-      var image = this.result;
-      console.log("YAY! " + image);
+    var reopenApp = function reopen() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+    activity.onsuccess = function success() {
+      reopenApp();
+      var currentImg = this.result.filename;
+      updateContactPhoto(currentImg);
     }
+
+    activity.onerror = function error() {
+      reopenApp();
+    }
+  }
+
+  var updateContactPhoto = function updateContactPhoto(image) {
+    if (!navigator.getDeviceStorage) {
+      console.log('Device storage unavailable');
+      return;
+    }
+    var storageAreas = navigator.getDeviceStorage('pictures');
+    var storage = storageAreas[0];
+    var request = storage.get(image);
+    request.onsuccess = function() {
+      var img = document.createElement('img');
+      var imgSrc = URL.createObjectURL(request.result);
+      img.src = imgSrc;
+      this.img = img;
+      img.onload = function() {
+        var dataImg = getPhoto(this.img);
+        thumb.style.backgroundImage = 'url(' + dataImg + ')';
+        currentContact.photo = currentContact.photo || [];
+        currentContact.photo[0] = dataImg;
+      }.bind(this);
+    };
+    request.onerror = function() {
+      console.log('Error loading img');
+    };
+  }
+
+  var getPhoto = function getContactImg(contactImg) {
+    // Checking whether the image was actually loaded or not
+    var canvas = document.createElement('canvas');
+    canvas.width = contactImg.width;
+    canvas.height = contactImg.height;
+    canvas.getContext('2d').drawImage(contactImg, 0, 0);
+    var ret = canvas.toDataURL();
+    contactImg = null;
+    canvas = null;
+    return ret;
   }
 
   return {

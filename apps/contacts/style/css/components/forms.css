@@ -134,6 +134,8 @@ textarea.textfield {
   width: 8.8rem;
   height: 8.3rem;
   position: relative;
+  background-color: #fff;
+  z-index: 0;
 }
 .fillflow-media p {
   position: absolute;
@@ -141,6 +143,7 @@ textarea.textfield {
   right: 0;
   bottom: 0;
   text-align: center;
+  z-index: -1;
 }
 
 .fillflow-media p em {
