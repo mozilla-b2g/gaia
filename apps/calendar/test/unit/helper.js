@@ -194,7 +194,7 @@
   requireLib('router.js');
   requireLib('controllers/time.js');
   requireLib('controllers/sync.js');
-  requireLib('worker/manager.js')
+  requireLib('worker/manager.js');
   requireLib('controllers/service.js');
   requireLib('db.js');
   requireLib('app.js');
