@@ -94,48 +94,72 @@ contacts.List = (function() {
   }
 
   var getSimContacts = function getSimContacts() {
+    var container = groupsList.parentNode; // #groups-container
     var button = document.createElement('button');
-    var li = document.createElement('li');
-    li.appendChild(button);
-    groupsList.appendChild(li);
-
+    button.setAttribute('class', 'simImport action action-add');
     button.textContent = 'Import SIM Contacts';
-    button.onclick = function readFromSIM() {
-      groupsList.removeChild(li);
+    container.appendChild(button);
 
+    button.onclick = function readFromSIM() {
+      // replace the button with a throbber
+      container.removeChild(button);
+      var span = document.createElement('span');
+      span.textContent = 'Importing SIM contacts...';
+      var small = document.createElement('small');
+      small.textContent = 'reading from SIM card...';
+      var throbber = document.createElement('p');
+      throbber.className = 'simImport';
+      throbber.appendChild(span);
+      throbber.appendChild(small);
+      container.appendChild(throbber);
+
+      console.log('click');
       var type = 'ADN'; // valid values: 'ADN', 'FDN'
       var request = navigator.mozContacts.getSimContacts(type);
-      var throbber = document.createElement('li');
-      throbber.textContent = 'Importing SIM contacts (' + type + ')...';
-      groupsList.appendChild(throbber);
-
+      console.log('request started');
       request.onsuccess = function onsuccess() {
-        groupsList.removeChild(throbber);
+        console.log('success!');
+        small.textContent = 'storing SIM contacts...';
+
         var simContacts = request.result;
-        for (var i = 0; i < simContacts.length; i++) {
-          //var name = simContacts[i].familyName || simContacts[i].name;
-          var name = simContacts[i].name;
-          var number = simContacts[i].tel.toString();
+        var nContacts = request.result.length;
+        var nStored = 0;
+
+        for (var i = 0; i < nContacts; i++) {
+          // in a perfect world, request.result should be a mozContact array;
+          // until then, let's build mozContact elements manually...
           var contact = new mozContact();
+          var name = simContacts[i].name ? [simContacts[i].name] : [];
+          var note = simContacts[i].note ? [simContacts[i].note] : [];
+          var tel = simContacts[i].tel ? [{
+            'number': simContacts[i].tel.toString(),
+            'type': 'personal'
+          }] : [];
           contact.init({
-            'id': [name],
-            'name': [name],
-            'familyName': [name],
-            'additionalName': [''],
-            'tel': [{ 'number': number, 'type': 'personal' }],
-            'note': [simContacts[i].note]
+            'name': name,
+            'givenName': name,
+            'tel': tel,
+            'note': note
           });
+
+          // store each mozContact
           var req = navigator.mozContacts.save(contact);
-          //req.onsuccess = function() { console.log('  ' + contact.id); }
-          //req.onerror = function() {
-          //console.log('  ' + contact.id + ' - error'); }
+          req.onsuccess = function count() {
+            nStored++;
+            if (nStored >= nContacts) {
+              container.removeChild(throbber);
+              getContactsByGroup();
+            }
+          };
+          req.onerror = function ignore() {
+            nStored++;
+          };
         }
-        getContactsByGroup();
       };
 
       request.onerror = function onerror() {
-        groupsList.removeChild(throbber);
-        console.log('Error reading SIM contacts');
+        container.removeChild(throbber);
+        console.log('Error reading SIM contacts.');
       };
     };
   }
@@ -467,3 +491,4 @@ contacts.List = (function() {
     'loaded': loaded
   };
 })();
+
