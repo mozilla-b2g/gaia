@@ -357,6 +357,7 @@ ul li > small {
   position: absolute;
   top: 1.3rem;
   left: 6rem;
+  content: attr(data-unchecked);
 }
 
 .view label > input[type=checkbox]:checked + span.setEnabledBtn {
@@ -370,6 +371,7 @@ ul li > small {
   position: absolute;
   top: 1.3rem;
   left: 3.3rem;
+  content: attr(data-checked);
 }
 
 /* ----------- Inputs ------------- */

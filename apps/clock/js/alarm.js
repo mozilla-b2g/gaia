@@ -244,17 +244,7 @@ var AlarmList = {
     this.alarms.addEventListener('click', this);
     this.alarms.addEventListener('mousedown', this);
     this.alarms.addEventListener('mouseup', this);
-    this.setEnabledButtonText();
     this.refresh();
-  },
-
-  setEnabledButtonText: function al_setEnabledButtonText() {
-    document.styleSheets[0].insertRule(
-      'input[type=checkbox]:checked + span.setEnabledBtn:after { content: "' +
-      _('on') + '";}', 0);
-    document.styleSheets[0].insertRule(
-      'input[type=checkbox] + span.setEnabledBtn:after { content: "' +
-      _('off') + '";}', 0);
   },
 
   refresh: function al_refresh() {
@@ -280,7 +270,9 @@ var AlarmList = {
                  '  <label class="alarmList">' +
                  '    <input id="input-enable" data-id="' + alarm.id +
                         '" type="checkbox"' + isChecked + '>' +
-                 '    <span class="setEnabledBtn"></span>' +
+                 '    <span class="setEnabledBtn"' +
+                        ' data-checked="' + _('on') +
+                        '" data-unchecked="' + _('off') + '"></span>' +
                  '  </label>' +
                  '  <a href="#alarm" id="alarm-item" data-id="' +
                       alarm.id + '">' +
