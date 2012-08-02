@@ -117,11 +117,9 @@ var Settings = {
             }
 
             // Go to that section
-            setTimeout(
-              function settings_goToSection() {
-                document.location.hash = section;
-              }, 0
-            );
+            setTimeout(function settings_goToSection() {
+              document.location.hash = section;
+            });
             break;
         }
       }
