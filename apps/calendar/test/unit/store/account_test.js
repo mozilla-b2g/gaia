@@ -10,7 +10,9 @@ requireApp('calendar/test/unit/helper.js', function() {
 
 suite('store/account', function() {
 
-  var subject, db;
+  var subject;
+  var db;
+  var app;
 
   function add(object) {
     setup(function(done) {
@@ -23,14 +25,9 @@ suite('store/account', function() {
     });
   }
 
-  function createCal(object) {
-    return new Calendar.Provider.Calendar.Abstract(
-      subject.provider, object
-    );
-  }
-
   setup(function(done) {
     this.timeout(5000);
+    app = testSupport.calendar.app();
     db = testSupport.calendar.db();
     subject = db.getStore('Account');
 
@@ -65,6 +62,78 @@ suite('store/account', function() {
     assert.isTrue(subject.presetActive('A'));
     assert.isFalse(subject.presetActive('B'));
   });
+
+  suite('#verifyAndPersist', function() {
+    var error;
+    var result;
+    var model;
+    var calledWith;
+    var modelParams = {
+      providerType: 'Caldav',
+      user: 'foo',
+      password: 'bar',
+      domain: 'domain',
+      url: 'url'
+    };
+
+    setup(function() {
+      error = null;
+      result = null;
+
+      model = new Calendar.Models.Account(modelParams);
+
+      app._providers['Caldav'] = {
+        getAccount: function(details, callback) {
+          calledWith = details;
+          setTimeout(function() {
+            callback(error, result);
+          }, 0);
+        }
+      };
+    });
+
+    // mock out the provider
+    test('when verify fails', function(done) {
+      error = new Error('bad stuff');
+      subject.verifyAndPersist(model, function(err, data) {
+        done(function() {
+          assert.ok(!data);
+          assert.equal(err, error);
+          assert.deepEqual(calledWith, model.toJSON());
+        });
+      });
+    });
+
+    test('persist + url change', function(done) {
+      result = {
+        domain: 'new domain',
+        url: 'new url'
+      };
+
+      subject.verifyAndPersist(model, function(err, id, data) {
+        done(function() {
+          assert.instanceOf(data, Calendar.Models.Account);
+          assert.equal(data.domain, result.domain);
+          assert.equal(data.url, result.url);
+          assert.equal(subject.cached[id], data);
+        });
+      });
+    });
+
+    test('persist no change', function(done) {
+      result = {};
+
+      subject.verifyAndPersist(model, function(err, id, data) {
+        done(function() {
+          assert.instanceOf(data, Calendar.Models.Account);
+          assert.equal(data.domain, modelParams.domain);
+          assert.equal(data.url, modelParams.url);
+          assert.equal(subject.cached[id], data);
+        });
+      });
+    });
+  });
+
 
   suite('#remove', function() {
     var calStore;
@@ -155,11 +224,13 @@ suite('store/account', function() {
     var model;
     var results;
     var store;
+    var remoteCalledWith;
 
     add({ accountId: 6, remote: { id: 1, name: 'remove' } });
     add({ accountId: 6, remote: { id: 2, name: 'update' } });
 
     setup(function() {
+      remoteCalledWith = null;
       model = new Calendar.Models.Account({
         providerType: 'Local',
         _id: 6
@@ -167,19 +238,24 @@ suite('store/account', function() {
 
       remote = {};
 
-      remote[2] = createCal({
+      remote[2] = {
         id: 2,
         name: 'update!',
         description: 'new desc'
-      });
+      };
 
-      remote[3] = createCal({
+      remote[3] = {
         id: 3,
         name: 'new item'
-      });
+      };
 
-      model.provider.findCalendars = function(cb) {
-        cb(null, remote);
+      app._providers['Local'] = {
+        findCalendars: function(account, cb) {
+          remoteCalledWith = arguments;
+          setTimeout(function() {
+            cb(null, remote);
+          }, 0);
+        }
       };
     });
 
@@ -219,6 +295,7 @@ suite('store/account', function() {
     test('after sync', function() {
       var byRemote = {};
       assert.equal(Object.keys(results).length, 2);
+      assert.deepEqual(remoteCalledWith[0], model.toJSON());
 
       // re-index all records by remote
       Object.keys(results).forEach(function(key) {

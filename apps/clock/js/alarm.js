@@ -270,7 +270,9 @@ var AlarmList = {
                  '  <label class="alarmList">' +
                  '    <input id="input-enable" data-id="' + alarm.id +
                         '" type="checkbox"' + isChecked + '>' +
-                 '    <span class="setEnabledBtn"></span>' +
+                 '    <span class="setEnabledBtn"' +
+                        ' data-checked="' + _('on') +
+                        '" data-unchecked="' + _('off') + '"></span>' +
                  '  </label>' +
                  '  <a href="#alarm" id="alarm-item" data-id="' +
                       alarm.id + '">' +

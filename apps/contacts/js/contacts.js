@@ -675,14 +675,12 @@ var Contacts = (function() {
     this.goBack();
   };
 
-  var sendSms = function sendSms() {
+  var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling)
-      SmsIntegration.sendSms(currentContact.tel[0].number);
+      SmsIntegration.sendSms(number);
   }
 
-  var callOrPick = function callOrPick() {
-    // FIXME: only handling 1 number
-    var number = currentContact.tel[0].number;
+  var callOrPick = function callOrPick(number) {
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postPickSuccess(number);
     } else {

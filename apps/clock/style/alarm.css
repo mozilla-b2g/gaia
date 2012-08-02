@@ -353,12 +353,30 @@ ul li > small {
   background-size: 100% 100%;
 }
 
+.view label > input[type=checkbox] + span.setEnabledBtn:after {
+  font: 2.15rem 'Open Sans',sans-serif;
+  color: #7a7a7a;
+  position: absolute;
+  top: 1.3rem;
+  left: 6rem;
+  content: attr(data-unchecked);
+}
+
 .view label > input[type=checkbox]:checked + span.setEnabledBtn {
   background: url(images/set_enabled_btn_on.png) no-repeat scroll center center;
   background-size: 100% 100%;
 }
-/* ----------- Inputs ------------- */
 
+.view label > input[type=checkbox]:checked + span.setEnabledBtn:after {
+  font: 2.25rem 'Open Sans',sans-serif;
+  color: #0088a3;
+  position: absolute;
+  top: 1.3rem;
+  left: 3.3rem;
+  content: attr(data-checked);
+}
+
+/* ----------- Inputs ------------- */
 select, input, textarea {
   clear: both;
   background:none;

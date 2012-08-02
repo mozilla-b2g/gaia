@@ -17,12 +17,9 @@
     "voicemail",
     "device-storage",
     "devicestorage",
-    "indexedDB-unlimited",
     "websettings-readwrite",
-    "settings-read",
-    "settings-write",
-    "pin-app",
-    "offline-app"
+    "settings",
+    "pin-app"
   ],
   "locales": {
     "ar": {
