@@ -467,7 +467,7 @@ Page.prototype = {
   */
   bounce: function pg_bounce(direction, callback) {
     var container = this.container;
-    var dataset = this.container.dataset;
+    var dataset = container.dataset;
     container.addEventListener('animationend', function animationEnd(e) {
       container.removeEventListener('animationend', animationEnd);
       dataset.bouncing = '';
@@ -507,4 +507,36 @@ Dock.prototype.animate = function dk_anim(oIndex, tIndex, children,
       this.jumpNode(children[i], 'jumpNextCell', originNode, targetNode, true);
     }
   }
+};
+
+var SearchPage = function createSearchPage() {
+  Page.call(this);
+  this.maxWidth = window.innerWidth;
+};
+
+extend(SearchPage, Page);
+
+SearchPage.prototype.baseMoveBy = Page.prototype.moveBy;
+
+SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration,
+                                                  direction) {
+  var maxWidth = this.maxWidth;
+  if (scrollX < 0 && scrollX > -maxWidth) {
+    var forward = GridManager.dirCtrl.goesForward(direction);
+    if (forward) {
+      if (scrollX > -maxWidth / 2) {
+        scrollX = 0;
+      } else {
+        scrollX += maxWidth / 2;
+      }
+    } else {
+      if (scrollX < -maxWidth / 2) {
+        scrollX = -maxWidth;
+      } else {
+        scrollX += maxWidth / 4;
+      }
+    }
+  }
+
+  this.baseMoveBy(scrollX, duration ? duration - 0.2 : 0);
 };
