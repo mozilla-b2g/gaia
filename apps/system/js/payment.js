@@ -18,6 +18,7 @@ var Payment = (function() {
   };
 
   window.addEventListener('mozChromeEvent', function onMozChromeEvent(e) {
+    console.log("MozChromeEvent received " + e.detail.type);
     chromeEventId = e.detail.id;
     if (!chromeEventId)
       return;
@@ -31,7 +32,7 @@ var Payment = (function() {
         var items = providers.map(function(provider) {
           return {
             label: provider.name,
-            value: provider.typ
+            value: provider.type
           };
         });
         ListMenu.request(items, selectProvider);
