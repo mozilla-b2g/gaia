@@ -191,7 +191,8 @@ function MediaDB(mediaType, metadataParser, options) {
 
   // Set up DeviceStorage
   try {
-    this.storage = navigator.getDeviceStorage(mediaType)[0];
+    this.storage = navigator.getDeviceStorage(mediaType);
+    this.storage = this.storage[0] || this.storage; // avoid API version skew
   }
   catch (e) {
     console.error("MediaDB(): can't get DeviceStorage object", e);
