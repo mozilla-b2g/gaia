@@ -75,7 +75,7 @@ body.tiles-mode #views-tiles {
   
   /* XXX hack */
   -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
-  width: -moz-calc(100% + 13px);
+  width: 100%;
   z-index: 10;
 }
 body.tiles-mode #views-list {
@@ -305,7 +305,7 @@ body.player-mode #views-player {
 }
 
 #views-tiles {
-  width: -moz-calc(100% + 13px);
+  width: 100%;
   height: 90%;
   overflow-x: hidden;
   overflow-y: auto;
@@ -480,7 +480,6 @@ body.player-mode #views-player {
 .float-right {
   position: relative;
   float: right;
-  right: 7px;
 }
 
 .color-0 {
@@ -519,13 +518,13 @@ body.player-mode #views-player {
        (orientation: landscape) and (width: 480px) {
 
   .main-tile {
-    width: 210px;
-    height: 210px;
+    width: 206px;
+    height: 206px;
   }
 
   .sub-tile {
-    width: 104px;
-    height: 104px;
+    width: 102px;
+    height: 102px;
   }
 }
 
@@ -534,13 +533,13 @@ body.player-mode #views-player {
        (orientation: landscape) and (width: 800px) {
 
   .main-tile {
-    width: 318px;
-    height: 318px;
+    width: 312px;
+    height: 312px;
   }
 
   .sub-tile {
-    width: 158px;
-    height: 158px;
+    width: 155px;
+    height: 155px;
   }
 }
 
