@@ -197,14 +197,14 @@ var NotificationScreen = {
       icon.src = detail.icon;
       notificationNode.appendChild(icon);
 
-      this.toasterIcon.src = detail.icon;
+      this.toasterIcon.src = detail.appIcon || detail.icon;
     }
 
     var title = document.createElement('div');
     title.textContent = detail.title;
     notificationNode.appendChild(title);
 
-    this.toasterTitle.textContent = detail.title;
+    this.toasterTitle.textContent = detail.appName || detail.title;
 
     var message = document.createElement('div');
     message.classList.add('detail');
