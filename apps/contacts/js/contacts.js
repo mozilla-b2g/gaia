@@ -808,7 +808,6 @@ var Contacts = (function() {
     for (var i = 0; i < fields.length; i++) {
       var currentField = fields[i];
       if (currentContact[currentField]) {
-        console.log("myContact " + currentField + " " + currentContact[currentField]);
         myContact[currentField] = currentContact[currentField];
       }
     }
