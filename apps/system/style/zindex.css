@@ -9,21 +9,22 @@
 /* Level 1: Status Bar */
 #statusbar,
 div[data-level="STATUSBAR"] {
-  z-index: 2147483647;
+  z-index: 32768;
 }
 
-#notification-toaster {
-  z-index: 2147483647;
+#notification-toaster,
+div[data-level="TOASTER"]{
+  z-index: 16384;
 }
 
 /* Level 2: Attention Screen Module */
 #attention-screen,
-div[data-level="2"] {
-  z-index: 2147483647;
+div[data-level="ATTENTION"] {
+  z-index: 8192;
 }
 
 #attention-screen > #attention-bar {
-  z-index: 1000;
+  z-index: 2;
 }
 
 #windows > iframe.appWindow {
@@ -31,45 +32,47 @@ div[data-level="2"] {
 }
 
 #windows > iframe.appWindow.active {
-  z-index: 9995;
+  z-index: 2;
 }
 
-#lockscreen-camera {
-  z-index: 2147483647;
+#lockscreen-camera,
+div[data-level="LOCKSCREEN_CAMERA"]{
+  z-index: 4096;
 }
 
 /* Level 3: Lock Screen Module */
-#lockscreen{
-  z-index: ;
+#lockscreen,
+div[data-level="LOCKSCREEN"]{
+  z-index: 2048;
 }
 
 /* Level 4: List Menu Module */
 #listmenu,
-div[data-level="4"] {
-  z-index: 2147483647;
+div[data-level="LISTMENU"][data-menu="sleepmenu"] {
+  z-index: 1024;
 }
 
 #debug-grid {
-  z-index: 30000;
+  z-index: 512;
 }
 
 #permission-screen {
-  z-index: 20001;
+  z-index: 256;
 }
 
 /* Level 7: */
 #pinkeypadscreen {
-  z-index: 10003;
+  z-index: 128;
 }
 
 #keyboard-overlay {
-  z-index: 10002;
+  z-index: 64;
 }
 
 /* Level 5: Card View Module */
 #cardsView,
-div[data-level="5"] {
-  z-index: 10001;
+div[data-level="CARDVIEW"] {
+  z-index: 32;
 }
 
 #cardsView .card[data-edit = 'true'] {
@@ -78,25 +81,25 @@ div[data-level="5"] {
 
 /* Level 6: keyboard */ 
 #keyboard-frame {
-  z-index: 10001;
+  z-index: 65536;
 }
 
 /* Level 7: Dialog Module */
 #dialog-overlay,
 #input-overlay {
-  z-index: 10000;
+  z-index: 65536;
 }
 
 #windowSprite {
-  z-index: 9999;
+  z-index: 1;
 }
 
 #utility-tray {
-  z-index: 9996;
+  z-index: 32767;
 }
 
 #keyboard-frame.visible {
-  z-index: 9000;
+  z-index: 16;
 }
 
 /* Fullscreen */
