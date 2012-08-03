@@ -14,6 +14,16 @@ var AirplaneMode = {
       mobileDataEnabled = value;
     });
 
+    var bluetoothEnabled = false;
+    SettingsListener.observe('bluetooth.enabled', false, function(value) {
+      bluetoothEnabled = value;
+    });
+
+    var wifiEnabled = false;
+    SettingsListener.observe('wifi.enabled', false, function(value) {
+      wifiEnabled = value;
+    });
+
     var geolocationEnabled = false;
     SettingsListener.observe('geolocation.enabled', false, function(value) {
       geolocationEnabled = value;
@@ -29,6 +39,7 @@ var AirplaneMode = {
     var restoreWifi = false;
     var restoreGeolocation = false;
 
+    var self = this;
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       if (value) {
         // Entering airplane mode.
@@ -48,8 +59,8 @@ var AirplaneMode = {
 
         // Turn off Bluetooth.
         if (bluetooth) {
-          restoreBluetooth = bluetooth.enabled;
-          if (bluetooth.enabled) {
+          restoreBluetooth = bluetoothEnabled;
+          if (bluetoothEnabled) {
             settings.getLock().set({
               'bluetooth.enabled': false
             });
@@ -58,8 +69,8 @@ var AirplaneMode = {
 
         // Turn off Wifi.
         if (wifiManager) {
-          restoreWifi = wifiManager.enabled;
-          if (wifiManager.enabled) {
+          restoreWifi = wifiEnabled;
+          if (wifiEnabled) {
             settings.getLock().set({
               'wifi.enabled': false
             });
@@ -76,36 +87,42 @@ var AirplaneMode = {
 
       } else {
         // Leaving airplane mode.
+        var settingsToSet = {};
 
         // Don't attempt to turn on mobile data if it's already on
         if (mobileData && !mobileDataEnabled && restoreMobileData) {
-          settings.getLock().set({
-            'ril.data.enabled': true
-          });
+          settingsToSet['ril.data.enabled'] = true;
         }
 
         // Don't attempt to turn on Bluetooth if it's already on
         if (bluetooth && !bluetooth.enabled && restoreBluetooth) {
-          settings.getLock().set({
-            'bluetooth.enabled': true
-          });
+          settingsToSet['bluetooth.enabled'] = true;
         }
 
         // Don't attempt to turn on Wifi if it's already on
         if (wifiManager && !wifiManager.enabled && restoreWifi) {
-          settings.getLock().set({
-            'wifi.enabled': true
-          });
+          settingsToSet['wifi.enabled'] = true;
         }
 
         // Don't attempt to turn on Geolocation if it's already on
         if (!geolocationEnabled && restoreGeolocation) {
-          settings.getLock().set({
-            'geolocation.enabled': true
-          });
+          settingsToSet['geolocation.enabled'] = true;
         }
+
+        self.setMozSettings(settingsToSet);
       }
     });
+  },
+  // XXX Break down obj keys in a for each loop because mozSettings
+  // does not currently supports multiple keys in one set()
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=779381
+  setMozSettings: function amp_setter(keypairs) {
+    var setlock = window.navigator.mozSettings.getLock();
+    for (var key in keypairs) {
+      var obj = {};
+      obj[key] = keypairs[key];
+      setlock.set(obj);
+    }
   }
 };
 
