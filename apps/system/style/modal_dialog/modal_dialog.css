@@ -54,7 +54,7 @@
   width: 100%;
   color: white;
   padding: 1em 0;
-  min-height: 20px;
+  min-height: 30px;
   font-size: 15px;
   -moz-box-sizing: border-box;
 }
@@ -118,6 +118,9 @@
   border: 0;
 }
 
+#screen.modal-dialog #keyboard-frame.visible {
+  z-index: 9999; /* Keep it just behind the modal dialog */
+}
 
 #screen.modal-dialog #modal-dialog,
 #modal-dialog-alert.visible,

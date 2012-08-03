@@ -16,9 +16,13 @@ var CallHandler = {
       if (telephony) {
         var call = telephony.dial(sanitizedNumber);
 
-        call.onconnected = function clearPhoneView() {
-          KeypadManager.updatePhoneNumber('');
-        };
+        if (call) {
+          var cb = function clearPhoneView() {
+            KeypadManager.updatePhoneNumber('');
+          };
+          call.onconnected = cb;
+          call.ondisconnected = cb;
+        }
       }
     }
   },

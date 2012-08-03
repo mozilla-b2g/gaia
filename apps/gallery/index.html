@@ -66,6 +66,13 @@
         </div>
       </div>
     </div>
+
+    <div id="pick-view" class="hidden">
+      <div id="pick-top">
+        <a id="pick-cancel-button" class="button"></a>
+        <div id="pick-header" data-l10n-id="pickoneimage"></div>
+      </div>
+    </div>
     
     <div id="edit-view" class="hidden">
       <div id="edit-header">
@@ -95,25 +102,39 @@
             <div id="slider3" class="sliderlabel" data-label="+3"></div>
           </div>
         </div>
+
+        <div id="edit-crop-options" class="edit-options-bar hidden"> 
+          <a id="edit-crop-none" class="button"
+             data-l10n-id="original"></a>
+          <a id="edit-crop-aspect-free" class="selected radio button"
+             data-l10n-id="freeform"></a>
+          <a id="edit-crop-aspect-portrait" class="radio button"
+             data-l10n-id="portrait"></a>
+          <a id="edit-crop-aspect-landscape" class="radio button"
+             data-l10n-id="landscape"></a>
+          <a id="edit-crop-aspect-square" class="radio button"
+             data-l10n-id="square"></a>
+        </div>
+
         <div id="edit-effect-options" class="edit-options-bar hidden"> 
-          <a id="edit-effect-none" class="button"
+          <a id="edit-effect-none" class="selected radio button bgimage"
              data-effect="none" data-l10n-id="original"></a>
-          <a id="edit-effect-bw" class="button filter-bw"
+          <a id="edit-effect-bw" class="radio button filter-bw bgimage"
              data-effect="bw" data-l10n-id="blackandwhite"></a>
-          <a id="edit-effect-sepia" class="button filter-sepia"
+          <a id="edit-effect-sepia" class="radio button filter-sepia bgimage"
              data-effect="sepia" data-l10n-id="sepia"></a>
         </div>
 
         <div id="edit-border-options" class="edit-options-bar hidden"> 
-          <a id="edit-border-none" class="button"
+          <a id="edit-border-none" class="selected radio button bgimage"
              data-border-width="0"></a>
-          <a id="edit-border-thin-white" class="button border-thin-white"
+          <a id="edit-border-thin-white" class="radio button bgimage"
              data-border-width=".015" data-border-color="#fff"></a>
-          <a id="edit-border-thick-white" class="button border-thick-white"
+          <a id="edit-border-thick-white" class="radio button bgimage"
              data-border-width=".03" data-border-color="#fff"></a>
-          <a id="edit-border-thin-black" class="button border-thin-black"
+          <a id="edit-border-thin-black" class="radio button bgimage"
              data-border-width=".015" data-border-color="#000"></a>
-          <a id="edit-border-thick-black" class="button border-thick-black"
+          <a id="edit-border-thick-black" class="radio button bgimage"
              data-border-width=".03" data-border-color="#000"></a>
         </div>
       </div>
@@ -121,6 +142,7 @@
       <!-- buttons for selecting the type of edit to perform -->
       <div id="edit-toolbar">
         <a id="edit-exposure-button" class="button" data-l10n-id="exposure"></a>
+        <a id="edit-crop-button" class="button" data-l10n-id="crop"></a>
         <a id="edit-effect-button" class="button" data-l10n-id="effects"></a>
         <a id="edit-border-button" class="button" data-l10n-id="borders"></a>
       </div>

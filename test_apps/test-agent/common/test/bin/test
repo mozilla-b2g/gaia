@@ -1,0 +1,15 @@
+#!/bin/bash
+
+DIR=`cd $(dirname ${BASH_SOURCE[0]}); pwd;`
+GAIA_DIR=$DIR/../../../../..
+XPCWINDOW=$GAIA_DIR/tools/xpcwindow/bin/xpcwindow
+
+XPCSHELL=`which xpcshell`
+
+if [ ! -x "$XPCSHELL" ]
+then
+  PATH=$GAIA_DIR/xulrunner-sdk/bin/:$PATH;
+  echo "xpcshell is not found adding xulrunner-sdk using $GAIA_DIR/xulrunner-sdk/bin/xpcshell."
+fi
+
+$XPCWINDOW $DIR/../xpc.js $@

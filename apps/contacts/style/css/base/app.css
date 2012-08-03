@@ -171,6 +171,10 @@ overflow: visible;
   height: 5rem; float: left;
 }
 
+.view-header [role="menuitem"]:disabled {
+  opacity: 0.5;
+}
+
 .view-header [role="menuitem"]:first-child {
   background: none; padding: 0 1.5rem;
 }

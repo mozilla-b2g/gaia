@@ -5,6 +5,7 @@ body, html {
   margin: 0;
   padding: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -25,6 +26,7 @@ input {
   display: -moz-box;
   height: 100%;
   width: 100%;
+  overflow: hidden;
   padding: 0 0 5px 5px;
 }
 
@@ -71,18 +73,19 @@ input {
 
 #tip-window {
   position: absolute;
-  top: -60%;
+  top: 0;
+  -moz-transform: translateY(-100%);
   width: 90%;
   left: 5%;
   padding: 5%;
   border-radius: 5%;
   background: url("images/home-texture.png") #444;
   border: 3px solid #333;
-  -moz-transition: .5s top;
+  -moz-transition: .5s -moz-transform;
   box-shadow: 0 5px 5px rgba(0,0,0,.5);
 }
 #tip-window.show {
-  top: 20%;
+  -moz-transform: translateY(20%);
 }
 #tip-window table {
   -moz-box-sizing: border-box;

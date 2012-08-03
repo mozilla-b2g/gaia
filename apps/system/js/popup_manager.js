@@ -5,6 +5,8 @@
 var PopupManager = {
   _currentPopup: null,
 
+  overlay: document.getElementById('dialog-overlay'),
+
   container: document.getElementById('popup-container'),
 
   screen: document.getElementById('screen'),

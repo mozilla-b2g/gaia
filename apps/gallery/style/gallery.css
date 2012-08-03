@@ -22,7 +22,7 @@ body {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view, #edit-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -134,6 +134,14 @@ body {
   left: 0;
   right: 0;
   bottom: 50px;
+}
+
+/* thumbnails in pick view where there is a top bar and no bottom */
+#pick-view > #thumbnails {
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 /*
@@ -297,7 +305,7 @@ a.button.disabled {
   width: 75%;
   height: 100%;
   left: 25%;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 #thumbnails-select-bottom {
@@ -396,6 +404,31 @@ a.button.disabled {
   background-image: url('images/delete.png');
 }
 
+#pick-top {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#pick-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#pick-header {
+  position: absolute;
+  width: 75%;
+  height: 100%;
+  left: 25%;
+  margin-top: 15px;
+}
+
 #edit-view {
   background: #888;
 }
@@ -459,12 +492,11 @@ a.button.disabled {
   background: #ccc;
 }
 
-/* All the effects buttons share these styles */
-#edit-effect-options > a.button {
+/* All the effect options radio buttons share these styles */
+#edit-effect-options a.radio.button {
   position: absolute;
   display: block;
   top: 0;
-  width: 33.3%;
   height: 100%;
   background-size: cover;
   background-position: center;
@@ -473,13 +505,93 @@ a.button.disabled {
   padding: 0;
   border-width: 0;
   border-right: solid black 1px;
-  padding-top: 15px;
   overflow: hidden;
 }
 
-#edit-effect-options > a.button.selected {
+#edit-effect-options a.selected.radio.button {
   outline: solid orange 3px;
   outline-offset: -3px;
+}
+
+#edit-crop-options a.button {
+  position: absolute;
+  display: block;
+  top: 0;
+  bottom: 0;
+  width: 20%;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-right: solid black 1px;
+  overflow: hidden;
+  padding-top: 16px;
+  font-size: 12px;
+  background-position: center 5px;
+}
+
+#edit-crop-options a.selected.radio.button {
+  outline: solid orange 2px;
+  outline-offset: -2px;
+}
+
+#edit-crop-none {
+  left: 0;
+  background-image: url('images/crop_original.png');
+}
+#edit-crop-aspect-free {
+  left: 20%;
+  background-image: url('images/crop_freeform.png');
+}
+#edit-crop-aspect-portrait {
+  left: 40%;
+  background-image: url('images/crop_portrait.png');
+}
+#edit-crop-aspect-landscape {
+  left: 60%;
+  background-image: url('images/crop_landscape.png');
+}
+#edit-crop-aspect-square {
+  left: 80%;
+  background-image: url('images/crop_square.png');
+}
+
+/* instead of using images inside the buttons above, just draw boxes */
+#edit-free-frame {
+  margin-left: 5px;
+  margin-top: 5px;
+  width: 30px;
+  height: 25px;
+  border: dotted white 1px;
+}
+
+#edit-portrait-frame {
+  margin-left: 11px;
+  margin-top: 6px;
+  width: 26px;
+  height: 39px;
+  border: solid white 1px;
+}
+
+#edit-landscape-frame {
+  margin-left: 5px;
+  margin-top: 12px;
+  width: 39px;
+  height: 26px;
+  border: solid white 1px;
+}
+
+#edit-square-frame {
+  margin-left: 8px;
+  margin-top: 9px;
+  width: 32px;
+  height: 32px;
+  border: solid white 1px;
+}
+
+/* All the effects radio buttons share these styles */
+#edit-effect-options > a.radio.button {
+  width: 33.3%;
+  padding-top: 15px;
 }
 
 #edit-effect-none {
@@ -491,32 +603,6 @@ a.button.disabled {
 #edit-effect-sepia {
   left:66.6%
 }
-
-/* All the border buttons share these styles */
-#edit-border-options > a.button {
-  display: inline-block;
-  width: 45px;
-  height: 45px;
-  margin-left: 5px;
-  margin-right: 5px;
-  margin-top: 2px;
-  margin-bottom: 3px;
-
-  background-size: cover;        /* allow some cropping */
-  background-position: center;   /* keep the cropping at the edges */
-  background-repeat: no-repeat;
-}
-
-#edit-border-options > a.button.selected {
-  outline: solid orange 3px;
-}
-
-#edit-effect-options {
-}
-
-#edit-border-options {
-}
-
 a.filter-bw {
   filter: url(../index.html#filter-bw);
 }
@@ -524,16 +610,41 @@ a.filter-sepia {
   filter: url(../index.html#filter-sepia);
 }
 
-a.border-thin-white {
+/* All the border buttons share these styles */
+#edit-border-options a.radio.button {
+  position: absolute;
+  width: -moz-calc(20% - 6px);
+  height: -moz-calc(100% - 6px);
+  top: 3px;
+  padding: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+#edit-border-options a.selected.radio.button {
+  outline: solid orange 3px;
+}
+
+#edit-border-none {
+  left: -moz-calc(0% + 3px);
   border: 2px solid white;  
 }
-a.border-thick-white {
-  border: 4px solid white;  
+#edit-border-thin-white {
+  left: -moz-calc(20% + 3px);
+  border: 2px solid white;  
 }
-a.border-thin-black {
+#edit-border-thick-white {
+  left: -moz-calc(40% + 3px);
+  border: 4px solid white;
+}
+#edit-border-thin-black {
+  left: -moz-calc(60% + 3px);
   border: 2px solid black;  
 }
-a.border-thick-black {
+#edit-border-thick-black {
+  left: -moz-calc(80% + 3px);
   border: 4px solid black;  
 }
 
@@ -550,7 +661,7 @@ a.border-thick-black {
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > .button {
   position: absolute;
-  width: 33.3%;
+  width: 25%;
   height: 100%;
   border-right: 1px solid #000;
   background: #666;
@@ -565,12 +676,16 @@ a.border-thick-black {
   left: 0;
 }
 
+#edit-crop-button {
+  left: 25%;
+}
+
 #edit-effect-button {
-  left: 33.3%
+  left: 50%
 }
 
 #edit-border-button {
-  left: 66.6%
+  left: 75%
 }
 
 /*

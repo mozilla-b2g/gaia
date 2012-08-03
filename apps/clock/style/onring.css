@@ -3,7 +3,7 @@ html, body {
   padding: 0;
   font-family: "Open Sans", sans-serif;
   overflow: hidden !important;
-  background-image: url(images/attentionBG.png);
+  background-image: url(images/attention_bg.png);
   background-size: 100%;
 }
 
@@ -20,7 +20,7 @@ html, body {
   left: 20%;
   top: 20%;
   height: 36%;
-  background-image: url(images/onRing.png);
+  background-image: url(images/onring.png);
   background-size: 100%;
   background-repeat: no-repeat;
   position: absolute;
@@ -70,7 +70,7 @@ html, body {
   height: 10rem;
   left: 0;
   bottom: 0;
-  background: url("images/attentionButtonContainer.png");
+  background: url(images/attention_btn_container.png);
   background-size: 100% 100%;
   position: absolute;
 }
@@ -94,7 +94,7 @@ html, body {
   font: normal 3rem/9rem 'Open Sans', sans-serif;
   text-align: center;
   -moz-box-sizing: border-box;
-  background: url("images/attentionButtonSeparator.png") no-repeat scroll right center transparent;
+  background: url(images/attention_btn_separator.png) no-repeat scroll right center transparent;
   background-size: auto 85%;
 }
 

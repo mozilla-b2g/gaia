@@ -108,10 +108,17 @@
     <link rel="stylesheet" type="text/css" href="style/trusted_dialog/trusted_dialog.css">
     <script defer src="js/trusted_dialog.js"></script>
 
+    <!-- Payment -->
+    <script defer src="js/payment.js"></script>
+
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <script defer src="js/window_manager.js"></script>
+
+    <!-- Value selector -->
+    <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
+    <script defer src="js/value_selector.js"></script>
   </head>
 
   <body onload="startup()">
@@ -121,8 +128,6 @@
 
       <div id="windows">
         <!-- application windows are added here -->
-        <div id="popup-container">
-        </div>
       </div>
 
       <!-- keyboard -->
@@ -135,39 +140,44 @@
         https://bugzilla.mozilla.org/show_bug.cgi?id=761933
       -->
 
-      <div id="modal-dialog">
-        <div id="modal-dialog-table">
-          <div id="modal-dialog-tablecell">
-            <div id="modal-dialog-alert">
-              <div class="modal-dialog-message-container">
-                <span id="modal-dialog-alert-message"></span>
+      <div id="dialog-overlay">
+        <div id="popup-container">
+        </div>
+        <div id="modal-dialog">
+          <div id="modal-dialog-table">
+            <div id="modal-dialog-tablecell">
+              <div id="modal-dialog-alert">
+                <div class="modal-dialog-message-container">
+                  <span id="modal-dialog-alert-message"></span>
+                </div>
               </div>
-            </div>
 
-            <div id="modal-dialog-confirm">
-              <div class="modal-dialog-message-container">
-                <span id="modal-dialog-confirm-message"></span>
+              <div id="modal-dialog-confirm">
+                <div class="modal-dialog-message-container">
+                  <span id="modal-dialog-confirm-message"></span>
+                </div>
               </div>
-            </div>
 
-            <div id="modal-dialog-prompt">
-              <div class="modal-dialog-message-container">
-                <span id="modal-dialog-prompt-message"></span>
-                <input id="modal-dialog-prompt-input" />
+              <div id="modal-dialog-prompt">
+                <div class="modal-dialog-message-container">
+                  <span id="modal-dialog-prompt-message"></span>
+                  <input id="modal-dialog-prompt-input" />
+                </div>
               </div>
             </div>
           </div>
+          <div id="modal-dialog-buttons">
+            <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
+            <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
+            <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
+            <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
+            <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
+          </div>
         </div>
-        <div id="modal-dialog-buttons">
-          <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
-          <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
-          <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
-          <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
-          <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
-        </div>
+
+        <!-- utility tray -->
       </div>
 
-      <!-- utility tray -->
       <div id="utility-tray">
         <!-- quick settings -->
         <div id="quick-settings">
@@ -306,6 +316,15 @@
         <div id="attention-bar"></div>
       </div>
 
+      <!-- value selector -->
+      <div id="value-selector" hidden>
+         <div id="value-selector-container" onmousedown="return false;"> </div>
+         <div id="value-selector-buttons">
+           <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
+           <button id="value-selector-confirm" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+         </div>
+      </div>
+
     </div>
 
     <div id="cardsView">
@@ -331,7 +350,7 @@
       <div></div>
       <div></div>
     </div>
-
+    
     <div id="trustedDialog">
     </div>
 

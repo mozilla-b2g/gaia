@@ -63,6 +63,8 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "mobileconnection", "mozFM", "systemXHR",
                       "background"];
 
+let commonPermissionList = ['offline-app', 'indexedDB-unlimited'];
+
 let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 
 (function registerProfileDirectory() {
@@ -106,14 +108,15 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
 
     let rootURL = GAIA_SCHEME + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
 
-    let perms = manifest.permissions;
+    let perms = commonPermissionList.concat(manifest.permissions);
+
     if (perms) {
       for each(let name in perms) {
         if (permissionList.indexOf(name) == -1) {
           dump("WARNING: permission unknown:" + name + "\n");
           continue;
         }
-        dump("name: " + name + "\n");
+        debug("name: " + name + "\n");
         let uri = ioservice.newURI(rootURL, null, null);
         debug("add permission: " + rootURL + ", " + name);
         permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);

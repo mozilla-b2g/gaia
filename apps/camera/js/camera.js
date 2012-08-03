@@ -117,11 +117,13 @@ var Camera = {
   },
 
   galleryBtnPressed: function camera_galleryBtnPressed() {
-    if (this._filmStripTimer) {
-      window.clearTimeout(this._filmStripTimer);
-    }
-
-    !this._filmStripShown ? this.showFilmStrip() : this.hideFilmStrip();
+    // Launch the gallery with an activity
+    var a = new MozActivity({
+      name: 'browse',
+      data: {
+        type: 'photos'
+      }
+    });
   },
 
   orientChange: function camera_orientChange(e) {
@@ -268,8 +270,8 @@ var Camera = {
     this.hideFocusRing();
     this.restartPreview();
 
-    var storageAreas = navigator.getDeviceStorage('pictures');
-    var storage = storageAreas[0];
+    var storage = navigator.getDeviceStorage('pictures');
+    storage = storage[0] || storage; // Avoid API version skew
     var rightnow = new Date();
     var filename = 'img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
 
