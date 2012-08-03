@@ -1130,9 +1130,12 @@ var Contacts = (function() {
   var getPhoto = function getContactImg(contactImg) {
     // Checking whether the image was actually loaded or not
     var canvas = document.createElement('canvas');
-    canvas.width = contactImg.width;
-    canvas.height = contactImg.height;
-    canvas.getContext('2d').drawImage(contactImg, 0, 0);
+    var width = 83 * 2;
+    var height 80 * 2:
+    canvas.width = width;
+    canvas.height = height;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(contactImg, 0, 0, width, height);
     var ret = canvas.toDataURL();
     contactImg = null;
     canvas = null;
