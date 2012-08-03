@@ -10,11 +10,17 @@
     "mozbrowser",
     "power",
     "mozApps",
+    "webapps",
     "mobileconnection",
     "mozBluetooth",
     "telephony",
     "voicemail",
-    "sms"
+    "sms",
+    "device-storage",
+    "devicestorage",
+    "websettings-readwrite",
+    "settings",
+    "pin-app"
   ],
   "locales": {
     "ar": {

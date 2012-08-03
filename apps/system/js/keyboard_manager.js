@@ -29,46 +29,66 @@ var KeyboardManager = (function() {
       return;
 
     var app = WindowManager.getDisplayedApp();
-    if (!app && !TrustedDialog.trustedDialogIsShown())
-      return;
 
-    var currentApp;
-    if (TrustedDialog.trustedDialogIsShown()) {
+    var currentApp, appHeight;
+    if (TrustedDialog.isVisible()) {
       currentApp = TrustedDialog.getFrame();
-    } else {
+      appHeight = currentApp.getBoundingClientRect().height;
+
+    } else if (ModalDialog.isVisible()) {
+      // XXX: As system has no iframe, we calc the height separately
+      currentApp = document.getElementById('dialog-overlay');
+      appHeight = window.innerHeight;
+
+    } else if (app) {
       WindowManager.setAppSize(app);
       currentApp = WindowManager.getAppFrame(app);
+      appHeight = currentApp.getBoundingClientRect().height;
+
+    } else {
+      console.error('There is no current application, nor trusted dialog ' +
+                    'nor modal dialog. The resize event is acting on nothing.');
+      return;
     }
 
-    var dialogOverlay = document.getElementById('dialog-overlay');
-
-    var height = currentApp.getBoundingClientRect().height -
-                  message.keyboardHeight;
+    var height = appHeight - message.keyboardHeight;
     keyboardOverlay.hidden = true;
 
     if (message.hidden) {
       keyboardFrame.classList.add('hide');
       keyboardFrame.classList.remove('visible');
-      dialogOverlay.style.height = (height + 20) + 'px';
       return;
     }
 
     if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
-      dialogOverlay.style.height = (height + 20) + 'px';
-      keyboardOverlay.style.height = (height + 20) + 'px';
+      keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
       keyboardOverlay.hidden = false;
     } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
         keyboardFrame.removeEventListener('transitionend', keyboardShown);
-        dialogOverlay.style.height = (height + 20) + 'px';
         currentApp.style.height = height + 'px';
-        keyboardOverlay.style.height = (height + 20) + 'px';
+        keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
         keyboardOverlay.hidden = false;
         keyboardFrame.classList.add('visible');
       });
     }
   });
+
+  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+    var currentType = evt.detail.type;
+    if (currentType.indexOf('select') == -1)
+      return;
+
+    switch (currentType) {
+      case 'select-one':
+      case 'select-multiple':
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('select', true, true, evt.detail);
+        window.dispatchEvent(event);
+        break;
+    }
+  };
 })();
 

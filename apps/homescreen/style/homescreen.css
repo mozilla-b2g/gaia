@@ -9,8 +9,14 @@ html, body {
   overflow: hidden;
 }
 
-body {
-  background-color: rgba(52,64,82,.3);
+#overlay {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #182026;
+  opacity: .7;
 }
 
 * {
@@ -37,7 +43,7 @@ section,footer,nav,a,img {
   width: 100%;
   height: 100%;
   background-color: #ff7f02;
-  -moz-transition: -moz-transform .2s ease;
+  -moz-transition: -moz-transform .5s ease;
   visibility: hidden;
 }
 

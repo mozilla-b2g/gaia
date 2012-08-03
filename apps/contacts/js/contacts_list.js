@@ -6,6 +6,7 @@ contacts.List = (function() {
   var groupsList,
       favoriteGroup,
       inSearchMode = false,
+      loaded = false,
       cancel = document.getElementById('cancel-search'),
       conctactsListView = document.getElementById('view-contacts-list'),
       searchBox = document.getElementById('search-contact'),
@@ -34,6 +35,7 @@ contacts.List = (function() {
 
     getContactsByGroup(onError, contacts);
     getFavorites();
+    this.loaded = true;
   };
 
   var renderGroupHeader = function renderGroupHeader(group, letter) {
@@ -73,6 +75,14 @@ contacts.List = (function() {
     name.className = 'block-name';
     name.innerHTML = contact.givenName;
     name.innerHTML += ' <b>' + contact.familyName + '</b>';
+    var searchInfo = [];
+    var searchable = ['givenName', 'familyName', 'org'];
+    searchable.forEach(function(field) {
+      if (contact[field] && contact[field][0]) {
+        searchInfo.push(contact[field][0]);
+      }
+    });
+    body.dataset['search'] = normalizeText(searchInfo.join(' '));
     body.appendChild(name);
     var small = document.createElement('small');
     small.className = 'block-company';
@@ -181,9 +191,9 @@ contacts.List = (function() {
   // Fills the contact data to display if no givenName and familyName
   var refillContactData = function refillContactData(contact) {
     if (!contact.givenName && !contact.familyName) {
-      if (contact.tel) {
+      if (contact.tel && contact.tel.length > 0) {
         contact.givenName = contact.tel[0].number;
-      } else if (contact.email) {
+      } else if (contact.email && contact.email.length > 0) {
         contact.givenName = contact.email[0].address;
       } else {
         contact.givenName = _('noName');
@@ -353,14 +363,14 @@ contacts.List = (function() {
 
   var search = function performSearch() {
 
-    var pattern = new RegExp(searchBox.value, 'i');
+    var pattern = new RegExp(normalizeText(searchBox.value), 'i');
     var count = 0;
 
     var allContacts = getContactsDom();
     for (var i = 0; i < allContacts.length; i++) {
       var contact = allContacts[i];
       contact.classList.add('search');
-      var text = contact.querySelector('.item-body').textContent;
+      var text = contact.querySelector('.item-body').dataset['search'];
       if (!pattern.test(text)) {
         contact.classList.add('hide');
       }
@@ -404,6 +414,7 @@ contacts.List = (function() {
     'remove': remove,
     'search': search,
     'enterSearchMode': enterSearchMode,
-    'exitSearchMode': exitSearchMode
+    'exitSearchMode': exitSearchMode,
+    'loaded': loaded
   };
 })();

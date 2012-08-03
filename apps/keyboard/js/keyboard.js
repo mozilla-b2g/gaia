@@ -15,9 +15,14 @@ if (!window.navigator.mozKeyboard) {
   var focusChangeTimeout = 0;
   var focusChangeDelay = 20;
   window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+
+    var type = evt.detail.type;
+    // skip the <select> element, handled in system app for now
+    if (type.indexOf('select') != -1)
+      return;
+
     clearTimeout(focusChangeTimeout);
     focusChangeTimeout = setTimeout(function switchKeyboard() {
-      var type = evt.detail.type;
       if (type === 'blur') {
         IMEController.hideIME();
       } else {

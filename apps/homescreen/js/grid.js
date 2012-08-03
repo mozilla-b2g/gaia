@@ -8,6 +8,11 @@ const GridManager = (function() {
   var thresholdForPanning = window.innerWidth / 4;
   var thresholdForTapping = 10;
 
+  var dragging = false;
+
+  var overlay = document.querySelector('#overlay');
+  var opacityMax = .7;
+
   var pages = [];
   pages.current = 0;
 
@@ -67,8 +72,8 @@ const GridManager = (function() {
         if (pages.current !== 0) {
           evt.stopPropagation();
           evt.preventDefault();
-
-          document.body.dataset.mode = 'edit';
+          goToPage(pages.current);
+          Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, startEvent);
           }
@@ -83,6 +88,33 @@ const GridManager = (function() {
 
   function onTouchMove(deltaX) {
     pan(deltaX);
+    setOverlayPanning(deltaX);
+  }
+
+  function setOverlayPanning(deltaX) {
+    if (Homescreen.isInEditMode()) {
+      return;
+    }
+    var forward = dirCtrl.goesForward(deltaX);
+    var current = pages.current;
+    if (current === 0 && forward) {
+      applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
+    } else if (current === 1 && !forward) {
+      applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
+    }
+  }
+
+  function applyEffectOverlay(value, duration) {
+    var style = overlay.style;
+    if (duration) {
+      style.MozTransition = 'opacity ' + duration + 's ease';
+      overlay.addEventListener('transitionend', function end(e) {
+        overlay.removeEventListener('transitionend', end);
+        style.MozTransition = '';
+      });
+    }
+    style.opacity = value;
+
   }
 
   function onTouchEnd(deltaX, target) {
@@ -135,33 +167,45 @@ const GridManager = (function() {
   function pan(deltaX, duration) {
     pages.forEach(function(page, index) {
       var scrollX = (-pages.current + index) * windowWidth + deltaX;
-      page.moveBy(scrollX, duration);
+      page.moveBy(scrollX, duration || 0, deltaX);
     });
   }
 
   function goToPage(index, callback) {
     var previousIndex = pages.current;
+    if (index === 0 && previousIndex === 1 && Homescreen.isInEditMode()) {
+      index = 1;
+    }
+
     var isSamePage = pages.current === index;
     pages.current = index;
     callback = callback || function() {};
 
-    if (isSamePage) {
-      delete document.body.dataset.transitioning;
-      callback();
-    } else {
-      var currentPageContainer = pageHelper.getCurrent().container;
-
-      currentPageContainer.addEventListener('transitionend', function end(e) {
-        currentPageContainer.removeEventListener('transitionend', end);
+    var transitionEnd = function gtp_transitionEnd() {
+      if (!dragging) {
         delete document.body.dataset.transitioning;
-        callback();
-        Search.resetIcon();
-        pageHelper.getCurrent().bounce(previousIndex - index);
-      });
+      }
+      callback();
     }
 
-    pan(0, .2);
-    updatePaginationBar();
+    var currentPage = pageHelper.getCurrent();
+    var currentPageContainer = currentPage.container;
+
+    currentPageContainer.addEventListener('transitionend', function end(e) {
+      currentPageContainer.removeEventListener('transitionend', end);
+      currentPage.bounce(previousIndex - index, transitionEnd);
+    });
+
+    pan(0, .3);
+    if (index === 0) {
+      applyEffectOverlay(0, .3);
+    } else if (index === 1) {
+      applyEffectOverlay(opacityMax, .3);
+    }
+
+    if (!isSamePage) {
+      updatePaginationBar();
+    }
   }
 
   function goToNextPage(callback) {
@@ -369,7 +413,7 @@ const GridManager = (function() {
      * @param {int} index of the page
      */
     remove: function gm_remove(index) {
-      goToPage(index);
+      goToPage(index - 1);
 
       pages[index].destroy(); // Destroy page
       pages.splice(index, 1); // Removes page from the list
@@ -443,7 +487,7 @@ const GridManager = (function() {
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
       for (var i = 0; i < container.children.length; i++) {
-        var page = new Page(i);
+        var page = i === 0 ? new SearchPage(i) : new Page(i);
         page.render([], container.children[i]);
         pages.push(page);
       }
@@ -460,11 +504,12 @@ const GridManager = (function() {
 
     onDragStart: function gm_onDragSart() {
       releaseEvents();
-      document.body.dataset.dragging = true;
+      dragging = document.body.dataset.dragging = true;
     },
 
     onDragStop: function gm_onDragStop() {
       delete document.body.dataset.dragging;
+      dragging = false;
       delete document.body.dataset.transitioning;
       ensurePagesOverflow();
       removeEmptyPages();
@@ -545,4 +590,3 @@ const GridManager = (function() {
     }
   };
 })();
-

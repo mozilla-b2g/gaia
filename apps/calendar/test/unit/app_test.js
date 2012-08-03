@@ -2,6 +2,9 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireSupport('fake_page.js');
   requireSupport('mock_view.js');
 
+  requireLib('provider/abstract.js');
+  requireLib('worker/manager.js');
+  requireLib('controllers/service.js');
   requireLib('router.js');
   requireLib('app.js');
 });
@@ -38,6 +41,11 @@ suite('app', function() {
     );
 
     assert.instanceOf(
+      subject.serviceController,
+      Calendar.Controllers.Service
+    );
+
+    assert.instanceOf(
       subject.timeController,
       Calendar.Controllers.Time
     );
@@ -68,6 +76,12 @@ suite('app', function() {
     assert.equal(first.app, subject);
 
     assert.equal(first, second);
+  });
+
+  test('#provider', function() {
+    var result = subject.provider('Abstract');
+    assert.instanceOf(result, Calendar.Provider.Abstract);
+    assert.equal(result.app, subject);
   });
 
   test('#store', function() {

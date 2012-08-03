@@ -310,7 +310,7 @@ html * {
   height: 100%;
   color: black;
   background-image: url(images/clock_bg.png);
-  background-size: 100%;
+  background-size: 100% 100%;
   background-repeat: no-repeat;
   border-bottom: 0.2rem solid #ACACAC;
   text-align: center;
