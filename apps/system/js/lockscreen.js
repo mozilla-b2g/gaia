@@ -376,11 +376,18 @@ var LockScreen = {
 
           self.unlock();
 
-          // XXX: This should be replaced probably by Web Activities *safely*
-          var host = document.location.host;
-          var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-          var protocol = document.location.protocol + '//';
-          Applications.getByOrigin(protocol + 'camera.' + domain).launch();
+          var a = new MozActivity({
+            name: 'record',
+            data: {
+              type: 'photos'
+            }
+          });
+          a.onsuccess = function ls_activitySuccess() {
+            console.log('camera launch success:', JSON.stringify(a));
+          }
+          a.onerror = function ls_activityError() {
+            console.log('camera launch error:', JSON.stringify(a));
+          }
         };
 
 
