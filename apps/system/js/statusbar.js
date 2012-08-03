@@ -268,7 +268,7 @@ var StatusBar = {
     },
 
 
-    wifi: function sb_updateWifi(evt) {
+    wifi: function sb_updateWifi() {
       var wifiManager = window.navigator.mozWifiManager;
       if (!wifiManager)
         return;
@@ -299,17 +299,8 @@ var StatusBar = {
       }
 
       icon.hidden = false;
-      var relSignalStrength = 0;
-      if (evt && evt.relSignalStrength) {
-        relSignalStrength = evt.relSignalStrength;
-      } else if (wifiManager.connectionInformation &&
-                 wifiManager.connectionInformation.relSignalStrength) {
-        relSignalStrength =
-          wifiManager.connectionInformation.relSignalStrength;
-      } else {
-        console.error(
-          'Status Bar: WIFI is connected but signal strength is unknown.');
-      }
+      var relSignalStrength =
+        wifiManager.connectionInformation.relSignalStrength;
 
       icon.dataset.level = Math.floor(relSignalStrength / 25);
     },
