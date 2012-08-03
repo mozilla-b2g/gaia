@@ -264,7 +264,7 @@ var LockScreen = {
 
         if (this.overlay.dataset.panel == 'camera') {
           this.overlay.hidden = true;
-        } else {
+        } else if (!this.camera.hidden) {
           this.camera.hidden = true;
           this.camera.removeChild(this.camera.firstElementChild);
         }
