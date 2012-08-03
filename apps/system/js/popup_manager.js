@@ -34,8 +34,6 @@ var PopupManager = {
   _hideWait: function pm_hideWait() {
     this.container.removeChild(this._wait);
     this._wait = null;
-
-    window.console.log('POPUP: Hide executed');
   },
 
   open: function pm_open(evt) {
@@ -49,7 +47,6 @@ var PopupManager = {
     popup.dataset.frameName = evt.detail.name;
     popup.dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
-    // this._showWait();
     this.container.appendChild(popup);
 
     this.screen.classList.add('popup');
@@ -59,7 +56,6 @@ var PopupManager = {
   },
 
   handleLoadStart: function pm_handleLoadStart(evt) {
-     window.console.log('POPUP: the popup start loading');
      this._startTimes++;
      if(this._startTimes > 1) {
       this._showWait();
@@ -67,10 +63,8 @@ var PopupManager = {
   },
 
   handleLoadEnd: function pm_handleLoadEnd(evt) {
-     window.console.log('POPUP: the popup finished loading');
       this._endTimes++;
       if(this._endTimes > 1) {
-        window.console.log('POPUP: hiding!!');
         this._hideWait();
       }
   },
