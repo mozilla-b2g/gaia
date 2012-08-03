@@ -135,7 +135,6 @@
   left: 0;
   width: 4rem;
   height: 5rem;
-  /*background: -moz-linear-gradient(bottom, #803220, #b5521f);*/
   background: url(../../gphx/bitmap/default/vw-header/ui/separator-large.png) no-repeat 2rem center;
   overflow: visible;
 }
@@ -162,6 +161,10 @@
 }
 
 /* Generic set of actions in toolbar */
+.view-header [role="menu"] {
+  height: 5rem; float: right;
+}
+
 .view-header [role="menuitem"] {
   height: 5rem; float: left;
 }
