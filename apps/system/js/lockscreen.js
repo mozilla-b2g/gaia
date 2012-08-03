@@ -90,7 +90,7 @@ var LockScreen = {
     this.areaCamera.addEventListener('mousedown', this);
     this.areaUnlock.addEventListener('mousedown', this);
 
-    /* Unlock clean up */
+    /* Unlock & camera panel clean up */
     this.overlay.addEventListener('transitionend', this);
 
     /* Passcode input pad*/
@@ -262,8 +262,12 @@ var LockScreen = {
         if (evt.target !== this.overlay)
           return;
 
-        if (this.overlay.dataset.panel == 'camera')
+        if (this.overlay.dataset.panel == 'camera') {
           this.overlay.hidden = true;
+        } else {
+          this.camera.hidden = true;
+          this.camera.removeChild(this.camera.firstElementChild);
+        }
 
         if (!this.locked) {
           this.switchPanel();
@@ -562,19 +566,6 @@ var LockScreen = {
         setTimeout(function ls_hideCameraPanel() {
           self.mainScreen.classList.remove('lockscreen-camera');
         }, 20);
-
-        this.overlay.addEventListener('transitionend',
-          function ls_unloadCamera(evt) {
-            if (evt.target !== this)
-              return;
-
-            self.overlay.removeEventListener('transitionend',
-                                             ls_unloadCamera);
-
-            // Remove the iframe element
-            self.camera.hidden = true;
-            self.camera.removeChild(this.camera.firstElementChild);
-          });
         break;
 
       case 'emergency':
