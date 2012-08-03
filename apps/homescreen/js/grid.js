@@ -63,11 +63,6 @@ const GridManager = (function() {
         onTouchEnd(evt.clientX - startEvent.clientX, evt.target);
         break;
 
-      case 'resize':
-        limits.left = container.offsetWidth * 0.05;
-        limits.right = container.offsetWidth * 0.95;
-        break;
-
       case 'contextmenu':
         if (pages.current !== 0) {
           evt.stopPropagation();
