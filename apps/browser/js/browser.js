@@ -912,13 +912,14 @@ var Browser = {
   showAwesomeScreen: function browser_showAwesomeScreen() {
     this.tabsBadge.innerHTML = '';
     // Ensure the user cannot interact with the browser until the
-    // transition has ended
+    // transition has ended, this will not be triggered unless the
+    // use is navigating from the tab screen.
     var pageShown = (function() {
       this.inTransition = false;
-      this.setUrlButtonMode(this.GO);
     }).bind(this);
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
+    this.setUrlButtonMode(this.GO);
     this.showTopSitesTab();
   },
 
