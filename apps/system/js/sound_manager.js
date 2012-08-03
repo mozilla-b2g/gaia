@@ -12,11 +12,10 @@
   });
 
   var currentVolume = 5;
-  if ('mozSettings' in navigator) {
-    var req = navigator.mozSettings.getLock().set({
-      'audio.volume.master': currentVolume / 10
-    });
-  }
+
+  SettingsListener.observe('audio.volume.master', 5, function(volume) {
+    currentVolume = volume * 10;
+  });
 
   var activeTimeout = 0;
   function changeVolume(delta) {

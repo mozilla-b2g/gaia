@@ -4,15 +4,15 @@
  * The icons are sorted by component type
  * ------------------------------------------------------*/
 
- 
+
 span[role="button"] {
   display: inline-block;
-	vertical-align: middle;
-	width: 2.8rem;
-	height: 2.8rem;
-	font: 0/0 a;
-	background: transparent no-repeat center center;
-	background-size: 100% auto;
+  vertical-align: middle;
+  width: 2.8rem;
+  height: 2.8rem;
+  font: 0/0 a;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
 }
 
 
@@ -97,6 +97,12 @@ span[role="button"].icon-delete {
   height: 2.2rem;
 }
 
+span[role="button"].icon-addimage {
+  background-image: url(../../gphx/bitmap/default/forms/add.png);
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
 span[role="button"].icon-call {
   background-image: url(../../gphx/bitmap/default/buttons/call.png);
 }
@@ -116,9 +122,9 @@ span[role="button"].icon-address {
 
 /* arrows */
 span[role="button"].icon-arrow {
-	border: solid 0.4rem transparent;
-	width: 0;
-	height: 0;
+  border: solid 0.4rem transparent;
+  width: 0;
+  height: 0;
 }
 
 span[role="button"].icon-arrow.icon-arrow-top {

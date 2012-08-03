@@ -270,8 +270,8 @@ var Camera = {
     this.hideFocusRing();
     this.restartPreview();
 
-    var storageAreas = navigator.getDeviceStorage('pictures');
-    var storage = storageAreas[0];
+    var storage = navigator.getDeviceStorage('pictures');
+    storage = storage[0] || storage; // Avoid API version skew
     var rightnow = new Date();
     var filename = 'img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
 
