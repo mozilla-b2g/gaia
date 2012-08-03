@@ -1142,7 +1142,7 @@ var Contacts = (function() {
     ctx.scale(scaleValue, scaleValue);
     var margin = ((contactImg[toCut] / scaled) - canvas[toCut]) / 2;
 
-    if(widthBigger) {
+    if (widthBigger) {
       ctx.drawImage(contactImg, -margin, 0);
     } else {
       ctx.drawImage(contactImg, 0, -margin);
