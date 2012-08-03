@@ -187,6 +187,7 @@ Icon.prototype = {
  */
 var Page = function(index) {
   this.icons = {};
+  this.posLeft = 0;
 };
 
 Page.prototype = {
@@ -224,11 +225,33 @@ Page.prototype = {
    *
    * @param{String} the app origin
    */
-  moveBy: function pg_moveBy(scrollX, duration) {
-    var style = this.container.style;
-    style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition =
-      duration ? ('-moz-transform ' + duration + 's ease') : '';
+  moveBy: function pg_moveBy(scrollX, duration, bounce) {
+    var container = this.container;
+    var style = container.style;
+
+    if (duration) {
+      var forward = 0;
+      if (bounce) {
+        container.addEventListener('transitionend', function transitionEnd(e) {
+          e.stopPropagation();
+          container.removeEventListener('transitionend', transitionEnd);
+          style.MozTransform = 'translateX(' + scrollX + 'px)';
+          style.MozTransition = '-moz-transform .05s ease';
+        });
+        forward = 0.001;
+        if (scrollX === 0) {
+          // Current page has a bounce effect
+          forward = this.posLeft <= scrollX ? 10 : -10;
+        }
+      }
+      style.MozTransform = 'translateX(' + (scrollX + forward) + 'px)';
+      style.MozTransition = '-moz-transform ' + duration + 's ease';
+    } else {
+      style.MozTransform = 'translateX(' + scrollX + 'px)';
+      style.MozTransition = '';
+    }
+
+    this.posLeft = scrollX;
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
@@ -460,25 +483,6 @@ Page.prototype = {
     return Array.prototype.map.call(nodes, function extractOrigin(node) {
       return node.dataset.origin;
     });
-  },
-
-  /*
-   * Movement feedback
-  */
-  bounce: function pg_bounce(direction, callback) {
-    var container = this.container;
-    var dataset = container.dataset;
-    container.addEventListener('animationend', function animationEnd(e) {
-      container.removeEventListener('animationend', animationEnd);
-      dataset.bouncing = '';
-      callback();
-    });
-
-    if (direction > 0) {
-      dataset.bouncing = 'right';
-    } else {
-      dataset.bouncing = 'left';
-    }
   }
 };
 
@@ -518,25 +522,19 @@ extend(SearchPage, Page);
 
 SearchPage.prototype.baseMoveBy = Page.prototype.moveBy;
 
-SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration,
-                                                  direction) {
+SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration, bounce) {
   var maxWidth = this.maxWidth;
   if (scrollX < 0 && scrollX > -maxWidth) {
-    var forward = GridManager.dirCtrl.goesForward(direction);
-    if (forward) {
+    if (this.posLeft > scrollX) {
       if (scrollX > -maxWidth / 2) {
         scrollX = 0;
       } else {
         scrollX += maxWidth / 2;
       }
     } else {
-      if (scrollX < -maxWidth / 2) {
-        scrollX = -maxWidth;
-      } else {
-        scrollX += maxWidth / 4;
-      }
+      scrollX = -maxWidth / 4;
     }
   }
 
-  this.baseMoveBy(scrollX, duration ? duration - 0.2 : 0);
+  this.baseMoveBy(scrollX, duration, bounce);
 };
