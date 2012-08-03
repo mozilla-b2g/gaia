@@ -40,6 +40,9 @@
 
     /**
      * Last date of event synchronization.
+     * This is not going to be used
+     * for any kind of serious operation
+     * right now this is just for the UI.
      *
      * @type {Date}
      */

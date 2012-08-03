@@ -1,6 +1,4 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  testSupport.calendar.requireProvider();
-
   requireLib('db.js');
   requireLib('models/account.js');
   requireLib('models/calendar.js');
@@ -68,17 +66,15 @@ suite('store/account', function() {
     var result;
     var model;
     var calledWith;
-    var modelParams = {
-      providerType: 'Caldav',
-      user: 'foo',
-      password: 'bar',
-      domain: 'domain',
-      url: 'url'
-    };
+    var modelParams;
 
     setup(function() {
       error = null;
       result = null;
+
+      modelParams = Factory.build('account', {
+        providerType: 'Caldav'
+      });
 
       model = new Calendar.Models.Account(modelParams);
 

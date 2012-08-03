@@ -83,22 +83,7 @@ suite('store/calendar', function() {
 
   suite('#persist', function() {
     test('error case', function(done) {
-      var sample = {
-        remote: {
-          id: 'local-first',
-          url: '',
-          name: 'your_device',
-          color: '',
-          description: '',
-          syncToken: '',
-          updatedAt: '',
-          createdAt: '',
-          calendarType: 'Local'
-        },
-        localDisplayed: true,
-        lastEventSyncDate: '',
-        lastEventSyncToken: ''
-      };
+      var sample = Factory.create('calendar');
 
       subject.persist(sample, function(err, data) {
         done();

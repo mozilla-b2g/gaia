@@ -55,10 +55,7 @@ suite('views/modify_account', function() {
 
     app = testSupport.calendar.app();
 
-    account = new Calendar.Models.Account({
-      providerType: 'Local',
-      preset: 'local'
-    });
+    account = Factory('account');
 
     subject = new Calendar.Views.ModifyAccount({
       app: app,

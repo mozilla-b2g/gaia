@@ -33,12 +33,6 @@
       xhr.send(null);
     },
 
-    requireProvider: function() {
-      requireLib('provider/calendar/abstract.js');
-      requireLib('provider/calendar/local.js');
-      requireLib('provider/local.js');
-    },
-
     db: function() {
       var db = new Calendar.Db('b2g-test-calendar');
       this._lastDb = db;
@@ -202,6 +196,8 @@
   /* test helpers */
 
   requireSupport('fake_page.js');
+  requireSupport('factory.js');
+  requireSupport('factories/all.js');
 
 }(this));
 

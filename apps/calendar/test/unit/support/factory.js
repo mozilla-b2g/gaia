@@ -1,4 +1,50 @@
+/**
+ * Test factory builder. Inspired by FactoryGirl (of ruby/rails fame).
+ * Tries very hard to respect getters in js objects
+ * as a result there is a performance hit so factories
+ * should not be used when building thousands of objects
+ * but should be fine for the 10-100 objects in small-large
+ * tests.
+ */
 var Factory = (function() {
+
+  function propIsFactory(object, key) {
+    var descriptor = Object.getOwnPropertyDescriptor(
+      object, key
+    );
+
+    if (!descriptor) {
+      return false;
+    }
+
+    return (
+      descriptor.value &&
+      (descriptor.value instanceof Factory)
+    );
+  }
+
+  /**
+   * Copy a set of property descriptors from
+   * one object to another
+   */
+  function copyProp(from, keys, to) {
+    var list = [].concat(keys);
+    list.forEach(function(key) {
+      if (!from.hasOwnProperty(key)) {
+        return;
+      }
+      Object.defineProperty(
+        to,
+        key,
+        Object.getOwnPropertyDescriptor(
+          from,
+          key
+        )
+      );
+    });
+
+    return to;
+  }
 
   /**
    * Copies all properties
@@ -40,6 +86,12 @@ var Factory = (function() {
   }
 
   Factory.define = function(name, options) {
+    if (options.extend) {
+      var factory = Factory.get(options.extend);
+      return Factory._defined[name] = factory.extend(
+        options
+      );
+    }
     return Factory._defined[name] = new Factory(
       options
     );
@@ -61,6 +113,8 @@ var Factory = (function() {
     }
 
     copy(options, this);
+
+    return this;
   }
 
   Factory.prototype = {
@@ -69,12 +123,12 @@ var Factory = (function() {
     properties: {},
 
     extend: function(options) {
-      var newFactory = {
-        // when we add new props
-        // we also need to add them here
-        object: this.object
-      };
+      var newFactory = {};
 
+      // we need to copy the prop
+      // rather then do an assignment for lazy-est
+      // possible evaluation of properties.
+      copyProp(this, ['object'], newFactory);
       copy(options, newFactory);
 
       newFactory.properties = copy(
@@ -104,11 +158,13 @@ var Factory = (function() {
 
       // expand factories
       var factoryOverrides;
+      var descriptor;
+
       for (key in defaults) {
         // when default property is a factory
-        if (props[key] instanceof Factory) {
+        if (propIsFactory(props, key)) {
           factoryOverrides = undefined;
-          if (!(defaults[key] instanceof Factory)) {
+          if (!propIsFactory(defaults, key)) {
             // user overrides defaults
             factoryOverrides = defaults[key];
           }

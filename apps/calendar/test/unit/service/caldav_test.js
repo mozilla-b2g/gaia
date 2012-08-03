@@ -9,11 +9,6 @@ suite('service/caldav', function() {
   var con;
   var service;
 
-  var user = 'jlal';
-  var domain = 'google.com';
-  var url = '/';
-  var password = 'foo';
-
   var Resource;
   var Finder;
 
@@ -32,53 +27,6 @@ suite('service/caldav', function() {
 
   function icalFactory() {
     return ICAL.parse(fixtures.singleEvent);
-  }
-
-  function accountFactory(results) {
-    if (typeof(results) === 'undefined') {
-      results = {};
-    }
-
-    var defaults = {
-      url: url,
-      domain: domain,
-      password: password,
-      user: user
-    };
-
-    var key;
-
-    for (key in defaults) {
-      if (!(key in results)) {
-        results[key] = defaults[key];
-      }
-    }
-
-    return new Resource(con, results);
-  }
-
-  function calendarFactory(results) {
-    if (typeof(results) === 'undefined') {
-      results = {};
-    }
-
-    var defaults = {
-      url: 'url',
-      name: 'name',
-      color: 'color',
-      ctag: 'token',
-      description: 'foo'
-    };
-
-    var key;
-
-    for (key in defaults) {
-      if (!(key in results)) {
-        results[key] = defaults[key];
-      }
-    }
-
-    return new Resource(con, results);
   }
 
   function caldavEventFactory() {
@@ -100,11 +48,7 @@ suite('service/caldav', function() {
   setup(function() {
     service = new Calendar.Responder();
     subject = new Calendar.Service.Caldav(service);
-    con = new Caldav.Connection({
-      user: user,
-      password: password,
-      domain: domain
-    });
+    con = Factory('caldav.connection');
   });
 
   test('initalizer', function() {
@@ -146,7 +90,7 @@ suite('service/caldav', function() {
   });
 
   test('#_requestEvents', function() {
-    var cal = calendarFactory();
+    var cal = Factory('caldav.calendar');
     var result = subject._requestEvents(
       con, cal
     );
@@ -157,11 +101,11 @@ suite('service/caldav', function() {
 
   test('#_requestCalendars', function() {
     var result = subject._requestCalendars(
-      con, url
+      con, con.url
     );
 
     assert.equal(result.connection, con);
-    assert.equal(result.url, url);
+    assert.equal(result.url, con.url);
 
     assert.instanceOf(
       result,
@@ -184,11 +128,11 @@ suite('service/caldav', function() {
 
   test('#_requestHome', function() {
     var result = subject._requestHome(
-      con, url
+      con, con.url
     );
 
     assert.equal(result.connection, con);
-    assert.equal(result.url, url);
+    assert.equal(result.url, con.url);
 
     assert.instanceOf(
       result,
@@ -197,7 +141,7 @@ suite('service/caldav', function() {
   });
 
   test('#_formatCalendar', function() {
-    var cal = calendarFactory();
+    var cal = Factory('caldav.calendar');
     var result = subject._formatCalendar(cal);
 
     assert.equal(result.id, cal.url);
@@ -249,7 +193,7 @@ suite('service/caldav', function() {
 
   test('#getAccount', function(done) {
     var calledWith;
-    var given = { url: 'foo', domain: 'google' };
+    var given = Factory('caldav.account');
     var result = {};
 
     subject._requestHome = function() {
@@ -281,8 +225,8 @@ suite('service/caldav', function() {
 
     setup(function() {
       var realRequest = subject._requestEvents;
-      var givenCal = calendarFactory();
-      var givenAcc = accountFactory();
+      var givenCal = Factory('caldav.calendar');
+      var givenAcc = Factory('caldav.account');
 
       // spy on request events
       subject._requestEvents = function() {
@@ -373,8 +317,13 @@ suite('service/caldav', function() {
 
     test('success', function(done) {
       results = {
-        '/one': calendarFactory({ name: 'one' }),
-        '/two': calendarFactory({ name: 'two' })
+        '/one': Factory(
+          'caldav.calendar', { name: 'one' }
+        ),
+
+        '/two': Factory(
+          'caldav.calendar', { name: 'one' }
+        )
       };
 
       subject.findCalendars(given, function(err, data) {

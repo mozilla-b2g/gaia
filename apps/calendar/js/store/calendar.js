@@ -57,6 +57,35 @@
         return this._remoteByAccount[accountId];
       }
       return Object.create(null);
+    },
+
+    /**
+     * Sync remote and local events for a calendar.
+     */
+    sync: function(account, calendar, callback) {
+      // for now lets just do a very dumb
+      // sync of the entire collection
+      // we can assume everything is cached.
+
+
+      // 1. Open an event stream
+      //    as we read the stream events
+      //    determine if the event was added/deleted.
+      //    Emit events as we go to update the UI
+      //    but do *not* actually hit the db until
+      //    entire sync is done.
+
+
+      // 2. After the entire stream is finished
+      //    and the records are sorted into
+      //    add/remove/update open a transaction
+      //    and actually persist the collection.
+
+
+      // 3. In the same transaction
+      //    move the remotes syncToken
+      //    to the calendars lastEventSyncToken
+      //    and set the lastEventSyncDate
     }
 
   };

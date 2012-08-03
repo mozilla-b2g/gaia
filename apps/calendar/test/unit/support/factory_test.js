@@ -66,6 +66,39 @@ suite('factory', function() {
     });
   });
 
+  suite('with getters', function() {
+    var increment;
+
+    setup(function() {
+      increment = 0;
+      subject = new Factory({
+        properties: {
+          get increment() {
+            return increment++;
+          }
+        }
+      });
+    });
+
+    test('increment getter', function() {
+      subject.create();
+      subject.create();
+      subject.create();
+
+      var result = subject.create();
+
+      // This is probably something
+      // you would not want to do in real
+      // life but it provides that
+      // increments are clean.
+      assert.equal(result.increment, 0);
+      assert.equal(result.increment, 1);
+      assert.equal(result.increment, 2);
+      assert.equal(result.increment, 3);
+    });
+
+  });
+
   suite('with constructors', function() {
     setup(function() {
       subject = new Factory({
@@ -214,6 +247,25 @@ suite('factory', function() {
         { one: true }
       );
       assert.equal(Factory.get('one'), defined);
+    });
+
+    test('#define - /w extend', function() {
+      Factory.define('one.ext', {
+        extend: 'one',
+        properties: {
+          two: false
+        }
+      });
+
+      assert.instanceOf(
+        Factory.get('one.ext'),
+        Factory
+      );
+
+      var created = Factory.create('one.ext');
+
+      assert.equal(created.one, true);
+      assert.equal(created.two, false);
     });
 
     test('#create', function() {
