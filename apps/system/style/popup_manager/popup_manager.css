@@ -17,7 +17,7 @@
   -moz-transform: translateY(0);
 }
 
-#popup-container > iframe {
+#popup-container > iframe, #popup-container > div.curtain {
   position: absolute;
   top: 5%;
   left: 5%;
@@ -27,4 +27,13 @@
   border-radius: 8px;
   background-color: #fff;
   border: none;
+}
+
+#popup-container > div.curtain {
+  z-index:11000;
+  background:transparent;
+}
+
+div.curtain img {
+  width:100%;
 }
