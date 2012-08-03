@@ -8,11 +8,7 @@
   },
   "permissions": [
     "contacts",
-    "webcontacts-manage",
-    "contacts-read",
-    "contacts-write",
-    "indexedDB-unlimited",
-    "offline-app"
+    "webcontacts-manage"
   ],
   "locales": {
     "ar": {
@@ -81,7 +77,8 @@
       "filters": {
         "type": "webcontacts/contact"
       },
-      "disposition": "window"
+      "disposition": "window",
+      "returnValue": true
     }
   }
 }

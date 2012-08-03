@@ -59,7 +59,7 @@ button::-moz-focus-inner {
   white-space: nowrap;
 }
 
-.keyboard-row:first-child {
+.keyboard-row.first-row {
   padding-top: 0.5rem;
   border-top: solid 1px #a6a9ab;
 }

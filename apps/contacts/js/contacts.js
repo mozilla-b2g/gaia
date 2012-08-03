@@ -152,7 +152,8 @@ var Contacts = (function() {
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
-    var params = extractParams(hasParams[1]);
+    var params = hasParams.length > 1 ?
+      extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
@@ -188,9 +189,12 @@ var Contacts = (function() {
         }
         break;
 
-      default:
-        loadList();
     }
+
+    if (!contactsList.loaded) {
+      loadList();
+    }
+
   }
 
   var extractParams = function extractParams(url) {
@@ -254,19 +258,51 @@ var Contacts = (function() {
     initLanguages();
     initContainers();
     initPullEffect(cover);
+    initContactsList();
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
     document.body.classList.remove('hide');
   });
+
+  var initContactsList = function initContactsList() {
+    var list = document.getElementById('groups-list');
+    contactsList.init(list);
+  }
 
   var initLanguages = function initLanguages() {
     document.documentElement.lang = navigator.mozL10n.language.code;
     document.documentElement.dir = navigator.mozL10n.language.direction;
   };
 
+  document.addEventListener('input', function input(event) {
+    checkDisableButton();
+  });
+
+  // When the cancel button inside the input is clicked
+  document.addEventListener('cancelInput', function() {
+    checkDisableButton();
+  });
+
+  var checkDisableButton = function checkDisable() {
+    var saveButton = document.getElementById('save-button');
+    if (emptyForm('contact-form')) {
+      saveButton.setAttribute('disabled', 'disabled');
+    } else {
+      saveButton.removeAttribute('disabled');
+    }
+  };
+
+  var emptyForm = function emptyForm(id) {
+    var form = document.getElementById(id);
+    var inputs = form.querySelectorAll('input.textfield');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].value != '')
+        return false;
+    }
+    return true;
+  }
+
   var loadList = function loadList() {
-    var list = document.getElementById('groups-list');
-    contactsList.init(list);
     contactsList.load();
 
     contactsList.handleClick(function handleClick(id) {
@@ -639,14 +675,12 @@ var Contacts = (function() {
     this.goBack();
   };
 
-  var sendSms = function sendSms() {
+  var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling)
-      SmsIntegration.sendSms(currentContact.tel[0].number);
+      SmsIntegration.sendSms(number);
   }
 
-  var callOrPick = function callOrPick() {
-    // FIXME: only handling 1 number
-    var number = currentContact.tel[0].number;
+  var callOrPick = function callOrPick(number) {
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postPickSuccess(number);
     } else {
@@ -669,6 +703,7 @@ var Contacts = (function() {
       currentContact = {};
     }
     resetForm();
+    saveButton.setAttribute('disabled', 'disabled');
     deleteContactButton.classList.add('hide');
     formTitle.innerHTML = _('addContact');
 
@@ -689,7 +724,7 @@ var Contacts = (function() {
     for (var i in paramsMapping) {
       paramsMapping[i].call(this, params[i] || 0);
     }
-
+    checkDisableButton();
     edit();
   };
 
@@ -744,7 +779,6 @@ var Contacts = (function() {
   };
 
   var saveContact = function saveContact() {
-    saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
       additionalName: '',
@@ -788,7 +822,6 @@ var Contacts = (function() {
     // and inspect address by it self.
     if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
       'email', 'note', 'adr'])) {
-      saveButton.removeAttribute('disabled');
       return;
     }
 
@@ -817,15 +850,14 @@ var Contacts = (function() {
         myContact.id = savedContact.id;
         myContact.photo = savedContact.photo;
         myContact.category = savedContact.category;
+        contactsList.refresh(myContact);
         if (ActivityHandler.currentlyHandling) {
           ActivityHandler.postNewSuccess(myContact);
         } else {
-          contactsList.refresh(myContact);
           reloadContactDetails();
-          navigation.back();
         }
+        navigation.back();
       }, function onError() {
-        saveButton.removeAttribute('disabled');
         console.error('Error reloading contact');
         if (ActivityHandler.currentlyHandling) {
           ActivityHandler.postCancel();

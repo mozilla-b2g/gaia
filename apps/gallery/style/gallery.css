@@ -492,8 +492,7 @@ a.button.disabled {
   background: #ccc;
 }
 
-/* All the crop and effect options radio buttons share these styles */
-#edit-crop-options a.radio.button,
+/* All the effect options radio buttons share these styles */
 #edit-effect-options a.radio.button {
   position: absolute;
   display: block;
@@ -509,54 +508,51 @@ a.button.disabled {
   overflow: hidden;
 }
 
-#edit-crop-options a.selected.radio.button,
 #edit-effect-options a.selected.radio.button {
   outline: solid orange 3px;
   outline-offset: -3px;
 }
 
-#edit-crop-options a.radio.button {
-  width: 25%;
+#edit-crop-options a.button {
+  position: absolute;
+  display: block;
+  top: 0;
+  bottom: 0;
+  width: 20%;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-right: solid black 1px;
+  overflow: hidden;
+  padding-top: 16px;
+  font-size: 12px;
+  background-position: center 5px;
+}
+
+#edit-crop-options a.selected.radio.button {
+  outline: solid orange 2px;
+  outline-offset: -2px;
 }
 
 #edit-crop-none {
-  position: absolute;
-  display: block;
   left: 0;
-  width: 20%;
-  top: 0;
-  bottom: 0;
+  background-image: url('images/crop_original.png');
 }
-
-#edit-crop-aspect {
-  position: absolute;
-  display: block;
-  left: 20%;
-  width: 60%;
-  top: 0;
-  bottom: 0;
-}
-
-#edit-crop-crop {
-  position: absolute;
-  display: block;
-  left: 80%;
-  width: 20%;
-  top: 0;
-  bottom: 0;
-}
-
 #edit-crop-aspect-free {
-  left: 0;
+  left: 20%;
+  background-image: url('images/crop_freeform.png');
 }
 #edit-crop-aspect-portrait {
-  left: 25%;
+  left: 40%;
+  background-image: url('images/crop_portrait.png');
 }
 #edit-crop-aspect-landscape {
-  left: 50%;
+  left: 60%;
+  background-image: url('images/crop_landscape.png');
 }
 #edit-crop-aspect-square {
-  left: 75%;
+  left: 80%;
+  background-image: url('images/crop_square.png');
 }
 
 /* instead of using images inside the buttons above, just draw boxes */
