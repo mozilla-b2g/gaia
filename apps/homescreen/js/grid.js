@@ -22,7 +22,7 @@ const GridManager = (function() {
     right: 0
   };
 
-  var startEvent, currentEvent, isPanning = false;
+  var startEvent, isPanning = false;
 
   function handleEvent(evt) {
     switch (evt.type) {
@@ -30,8 +30,8 @@ const GridManager = (function() {
         evt.stopPropagation();
         document.body.dataset.transitioning = 'true';
 
-        startEvent = currentEvent = cloneEvent(evt);
-        onTouchStart(currentEvent.x - startEvent.x);
+        startEvent = evt;
+        attachEvents();
         break;
 
       case 'mousemove':
@@ -40,16 +40,17 @@ const GridManager = (function() {
         // Starts dragging only when tapping does not make sense
         // anymore. The drag will then start from this point to avoid
         // a jump effect.
-        currentEvent = cloneEvent(evt);
-        var tap = Math.abs(currentEvent.x - startEvent.x) < thresholdForTapping;
-        if (!isPanning && tap) {
+        if (!isPanning &&
+            Math.abs(evt.clientX - startEvent.clientX) < thresholdForTapping) {
           return;
         } else if (!isPanning) {
           isPanning = true;
-          startEvent = currentEvent;
+          startEvent = evt;
         }
 
-        onTouchMove(currentEvent.x - startEvent.x);
+        var deltaX = evt.clientX - startEvent.clientX;
+        pan(deltaX, 0, false);
+        setOverlayPanning(deltaX);
         break;
 
       case 'mouseup':
@@ -59,8 +60,7 @@ const GridManager = (function() {
         }
         isPanning = false;
 
-        currentEvent = cloneEvent(evt);
-        onTouchEnd(currentEvent.x - startEvent.x, evt.target);
+        onTouchEnd(evt.clientX - startEvent.clientX, evt.target);
         break;
 
       case 'resize':
@@ -74,20 +74,14 @@ const GridManager = (function() {
           evt.preventDefault();
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
-            DragDropManager.start(evt, startEvent);
+            DragDropManager.start(evt, {
+              'x': startEvent.clientX,
+              'y': startEvent.clientY
+            });
           }
         }
         break;
     }
-  }
-
-  function onTouchStart(deltaX) {
-    attachEvents();
-  }
-
-  function onTouchMove(deltaX) {
-    pan(deltaX, 0, false);
-    setOverlayPanning(deltaX);
   }
 
   function setOverlayPanning(deltaX) {
@@ -153,21 +147,15 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
-  function cloneEvent(evt) {
-    if ('touches' in evt) {
-      evt = evt.touches[0];
-    }
-    return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
-  }
-
   /*
    * Page Navigation utils.
    */
   function pan(deltaX, duration, bounce) {
-    pages.forEach(function(page, index) {
-      var scrollX = (-pages.current + index) * windowWidth + deltaX;
-      page.moveBy(scrollX, duration, bounce);
-    });
+    var currentPage = pages.current;
+    for (var i = 0; i < pages.length; i++) {
+      var scrollX = (-currentPage + i) * windowWidth + deltaX;
+      pages[i].moveBy(scrollX, duration, bounce);
+    }
   }
 
   function goToPage(index, props) {
