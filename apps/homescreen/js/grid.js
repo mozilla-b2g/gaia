@@ -72,7 +72,6 @@ const GridManager = (function() {
         if (pages.current !== 0) {
           evt.stopPropagation();
           evt.preventDefault();
-          goToPage(pages.current, {noBounce: true});
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, startEvent);
@@ -529,11 +528,10 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage(index,{callback: function() {
-                    setTimeout(function() {
-                      pageHelper.getCurrent().
-                        applyInstallingEffect(Applications.getOrigin(app));
-                    }, 200);
+        goToPage(index,{callback: function ins_goToPage() {
+          pageHelper.getCurrent().
+                    applyInstallingEffect(Applications.getOrigin(app));
+
         }});
       }
 
