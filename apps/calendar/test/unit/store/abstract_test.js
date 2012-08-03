@@ -17,11 +17,6 @@ suite('store/abstract', function() {
     // persist stuff.
     subject._store = 'accounts';
 
-    subject._createModel = function(object, id) {
-      object._id = id;
-      return object;
-    };
-
     db.open(function(err) {
       assert.ok(!err);
       done();
@@ -153,6 +148,7 @@ suite('store/abstract', function() {
 
     suite('update', function() {
       var id = 'uniq';
+
       suiteSetup(function() {
         this.persist = true;
         this.object = { providerType: 'local', _id: 'uniq' };

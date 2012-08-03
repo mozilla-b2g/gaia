@@ -212,7 +212,7 @@ Calendar.ns('Service').Caldav = (function() {
         var event = data['calendar-data'];
         //XXX: Handle events
         if (event.status === 200) {
-          var data = self._formatEvent(event.value);
+          data = self._formatEvent(event.value);
           stream.emit('data', data);
         }
       }

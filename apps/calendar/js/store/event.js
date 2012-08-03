@@ -1,83 +1,74 @@
 (function(window) {
   function Events() {
-    Calendar.Responder.call(this);
-
-    this.ids = {};
-    this.times = {};
+    Calendar.Store.Abstract.apply(this, arguments);
   }
 
-  var proto = Events.prototype = Object.create(
-    Calendar.Responder.prototype
-  );
+  Events.prototype = {
+    __proto__: Calendar.Store.Abstract.prototype,
+    _store: 'events',
+    _dependentStores: ['events'],
 
-  /**
-   * Adds an event object by date and id.
-   *
-   * @param {String} id unique identifier for busy time.
-   * @param {Date} date time to add.
-   * @param {Object} object to store.
-   */
-  proto.add = function(date, id, object) {
-    //don't check for uniqueness
-    var dateId = Calendar.Calc.getDayId(date);
+    /**
+     * Removes all events by their calendarId and removes
+     * them from the cache. 'remove' events are *not* emitted
+     * when removing in this manner for performance reasons.
+     * The frontend should listen to a calendar remove event
+     * as this method should really only be used in conjunction
+     * with that event.
+     *
+     * This method is automatically called downstream of a calendar
+     * removal as part of the _removeDependents step.
+     *
+     * @param {Numeric} calendarId should match index.
+     * @param {IDBTransation} [trans] optional transaction to reuse.
+     * @param {Function} [callback] optional callback to use.
+     *                   When called without a transaction chances
+     *                   are you should pass a callback.
+     */
+    removeByCalendarId: function(calendarId, trans, callback) {
+      var self = this;
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = undefined;
+      }
 
-    if (!(dateId in this.times)) {
-      this.times[dateId] = {};
+      if (typeof(trans) === 'undefined') {
+        trans = this.db.transaction(
+          this._dependentStores || this._store,
+          'readwrite'
+        );
+      }
+      if (callback) {
+        trans.addEventListener('complete', function() {
+          callback(null);
+        }, false);
+
+        trans.addEventListener('error', function(event) {
+          callback(event);
+        });
+      }
+
+      var index = trans.objectStore('events').index('calendarId');
+      var req = index.openCursor(
+        IDBKeyRange.only(calendarId)
+      );
+
+      req.onsuccess = function(event) {
+        var cursor = event.target.result;
+        if (cursor) {
+          //XXX: We need to trigger a remove dependants
+          //     action here? Events are not tied
+          //     directly to anything else right now but they
+          //     will be in the future...
+          self._removeFromCache(cursor.primaryKey);
+          cursor.delete();
+          cursor.continue();
+        }
+      };
     }
 
-    this.times[dateId][id] = true;
-    this.ids[id] = { event: object, date: date };
-
-    this.emit('add', id, this.get(id));
-  };
-
-  /**
-   * Finds busy time based on its id
-   *
-   * @param {String} id busy time id.
-   */
-  proto.get = function(id) {
-    return this.ids[id];
-  };
-
-  /**
-   * Returns an array of events for date.
-   *
-   * @param {Date} date date.
-   */
-  proto.eventsForDay = function(date) {
-    var id = Calendar.Calc.getDayId(date),
-        events = Object.keys(this.times[id] || {}),
-        self = this;
-
-    return events.map(function(id) {
-      return self.get(id);
-    });
-  };
-
-  /**
-   * Removes a specific event based
-   * on its id.
-   *
-   * @param {String} id busy time id.
-   */
-  proto.remove = function(id) {
-    var dateId, event;
-    if (id in this.ids) {
-      event = this.ids[id];
-      dateId = Calendar.Calc.getDayId(event.date);
-      delete this.times[dateId][id];
-      delete this.ids[id];
-
-      this.emit('remove', id, event);
-
-      return true;
-    }
-
-    return false;
   };
 
   Calendar.ns('Store').Event = Events;
 
 }(this));
-

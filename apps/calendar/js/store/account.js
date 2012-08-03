@@ -111,7 +111,10 @@
 
         // update / remove
         if (persist.length || originalIds.length) {
-          var trans = self.db.transaction('calendars', 'readwrite');
+          var trans = self.db.transaction(
+            self._dependentStores,
+            'readwrite'
+          );
 
           originalIds.forEach(function(id) {
             store.remove(calendars[id]._id, trans);

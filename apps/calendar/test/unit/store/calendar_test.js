@@ -141,4 +141,57 @@ suite('store/calendar', function() {
     });
   });
 
+  suite('#remove', function() {
+    var eventStore;
+    var model;
+    var events;
+
+    setup(function(done) {
+      events = {};
+      model = subject._createModel({
+        accountId: 1
+      });
+
+      subject.persist(model, done);
+      eventStore = subject.db.getStore('Event');
+    });
+
+    setup(function(done) {
+      assert.ok(model._id);
+      // we will eventually remove this
+      events[1] = {
+        calendarId: model._id,
+        name: 'foo'
+      };
+      eventStore.persist(events[1], done);
+    });
+
+    setup(function(done) {
+      events[2] = {
+        calendarId: 'some-other'
+      };
+
+      // this is our control to ensure
+      // we are not removing extra stuff
+      eventStore.persist(events[2], done);
+    });
+
+    test('removal', function(done) {
+      var id = model._id;
+      var keys = Object.keys(eventStore.cached);
+      // make sure records are still here
+      assert.equal(keys.length, 2);
+
+      subject.remove(model._id, function() {
+        done(function() {
+          assert.ok(!subject.cached[id]);
+
+          var keys = Object.keys(eventStore.cached);
+          assert.equal(keys.length, 1);
+        });
+      });
+    });
+  });
+
+
 });

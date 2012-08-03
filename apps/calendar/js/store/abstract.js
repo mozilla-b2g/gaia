@@ -28,13 +28,21 @@
       return this._cached;
     },
 
+    _createModel: function(object, id) {
+      if (typeof(id) !== 'undefined') {
+        object._id = id;
+      }
+
+      return object;
+    },
+
     _addToCache: function(object) {
       this._cached[object._id] = object;
     },
 
     _removeFromCache: function(id) {
-      if (id in this.cached) {
-        delete this.cached[id];
+      if (id in this._cached) {
+        delete this._cached[id];
       }
     },
 
@@ -66,12 +74,13 @@
       var putReq;
       var reqType;
 
+      // determine type of event
       if (object._id) {
-        putReq = store.put(data, object._id);
         reqType = 'update';
+        putReq = store.put(data);
       } else {
         reqType = 'add';
-        putReq = store.put(data);
+        putReq = store.add(data);
       }
 
       trans.addEventListener('error', function() {
@@ -111,16 +120,17 @@
       var self = this;
       var trans = this.db.transaction(this._store);
       var store = trans.objectStore(this._store);
-      var results = {};
 
-      store.openCursor().onsuccess = function(event) {
-        var cursor = event.target.result;
+      store.mozGetAll().onsuccess = function(event) {
+        var data = event.target.result;
+        var i = 0;
+        var len = data.length;
+        var cached = self._cached;
+        var item;
 
-        if (cursor) {
-          var object = self._createModel(cursor.value, cursor.key);
-          results[cursor.key] = object;
-          self._addToCache(object);
-          cursor.continue();
+        for (; i < len; i++) {
+          item = data[i];
+          cached[item._id] = self._createModel(item);
         }
       };
 
@@ -129,9 +139,9 @@
       }
 
       trans.oncomplete = function() {
-        callback(null, results);
+        callback(null, self._cached);
         self.emit('load', self._cached);
-      };
+      }
     },
 
     _removeDependents: function(trans) {},

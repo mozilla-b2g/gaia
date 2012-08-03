@@ -1,7 +1,7 @@
 (function(window) {
   var idb = window.indexedDB || window.mozIndexedDB;
 
-  const VERSION = 2;
+  const VERSION = 3;
 
   var store = {
     events: 'events',
@@ -147,7 +147,7 @@
       }
 
       // events -> belongs to calendar
-      var events = db.createObjectStore(store.events);
+      var events = db.createObjectStore(store.events, { keyPath: '_id', autoIncrement: true });
 
       events.createIndex(
         'calendarId',
@@ -156,10 +156,10 @@
       );
 
       // accounts -> has many calendars
-      db.createObjectStore(store.accounts, { autoIncrement: true });
+      db.createObjectStore(store.accounts, { keyPath: '_id', autoIncrement: true });
 
       // calendars -> has many events
-      db.createObjectStore(store.calendars, { autoIncrement: true });
+      db.createObjectStore(store.calendars, { keyPath: '_id', autoIncrement: true });
     },
 
     get version() {

@@ -103,13 +103,19 @@
     },
 
     toJSON: function() {
-      return {
+      var result = {
         remote: this.remote,
         accountId: this.accountId,
         localDisplayed: this.localDisplayed,
         lastEventSyncDate: this.lastEventSyncDate,
         lastEventSyncToken: this.lastEventSyncToken
       };
+
+      if (this._id || this._id === 0) {
+        result._id = this._id;
+      }
+
+      return result;
     }
 
   };

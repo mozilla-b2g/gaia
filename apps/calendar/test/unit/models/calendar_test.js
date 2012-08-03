@@ -77,11 +77,13 @@ suite('models/calendar', function() {
   });
 
   test('#toJSON', function() {
+    subject._id = '1';
     var expected = {
       lastEventSyncToken: subject.lastEventSyncToken,
       lastEventSyncDate: subject.lastEventSyncDate,
       localDisplayed: subject.localDisplayed,
       accountId: subject.accountId,
+      _id: subject._id,
       remote: subject.remote
     };
 

@@ -11,6 +11,10 @@
 
     _store: 'calendars',
 
+    _dependentStores: [
+      'calendars', 'events'
+    ],
+
     _addToCache: function(object) {
       var remote = object.remote.id;
 
@@ -41,6 +45,11 @@
       }
 
       return obj;
+    },
+
+    _removeDependents: function(id, trans) {
+      var store = this.db.getStore('Event');
+      store.removeByCalendarId(id, trans);
     },
 
     remotesByAccount: function(accountId) {

@@ -5,123 +5,105 @@ requireApp('calendar/test/unit/helper.js', function() {
 });
 
 suite('store/event', function() {
-  var subject,
-      obj = {
-        name: '1'
-      };
+  var subject;
+  var db;
 
-  setup(function() {
-    subject = new Calendar.Store.Event();
+  setup(function(done) {
+    this.timeout(5000);
+    db = testSupport.calendar.db();
+    subject = db.getStore('Event');
+
+    db.open(function(err) {
+      assert.ok(!err);
+      done();
+    });
   });
 
-  test('initialize', function() {
-    assert.instanceOf(subject, Calendar.Responder);
-    assert.isObject(subject.times);
-    assert.isObject(subject.ids);
+  teardown(function(done) {
+    var trans = db.transaction('events', 'readwrite');
+    var accounts = trans.objectStore('events');
+    var res = accounts.clear();
+
+    res.onerror = function() {
+      done(new Error('could not wipe events db'));
+    }
+
+    res.onsuccess = function() {
+      done();
+    }
   });
 
-  suite('#add', function() {
-    var date, dateId, eventCalled = [];
+  teardown(function() {
+    db.close();
+  });
+
+  test('initialization', function() {
+    assert.instanceOf(subject, Calendar.Store.Abstract);
+    assert.equal(subject._store, 'events');
+    assert.equal(subject.db, db);
+  });
+
+  test('#_createModel', function() {
+    var input = { name: 'foo'};
+    var output = subject._createModel(input, 1);
+    assert.equal(output._id, 1);
+    assert.equal(output.name, output.name);
+  });
+
+  suite('#removeByCalendarId', function() {
 
     setup(function(done) {
-      eventCalled.length = 0;
-      date = new Date(2012, 0, 1);
-      dateId = Calendar.Calc.getDayId(date);
-
-      subject.on('add', function() {
-        eventCalled.push(Array.prototype.slice.call(arguments));
-        done();
-      });
-
-      subject.add(date, 'uniq1', obj);
+      subject.persist({
+        calendarId: 1
+      }, done);
     });
-
-    test('storage', function() {
-      assert.deepEqual(subject.ids['uniq1'], { event: obj, date: date });
-      assert.deepEqual(subject.times[dateId], {'uniq1': true});
-    });
-
-    test('event', function() {
-      assert.deepEqual(eventCalled, [
-        ['uniq1', subject.get('uniq1')]
-      ]);
-    });
-
-  });
-
-  test('#get', function() {
-    var date = new Date();
-    subject.add(date, '1', obj);
-
-    assert.deepEqual(subject.get('1'), { event: obj, date: date });
-  });
-
-  suite('#remove', function() {
-    var date, dateId, expectedTimes, result,
-        eventCalled = [], getObj;
 
     setup(function(done) {
-      eventCalled.length = 0;
-      date = new Date();
-      dateId = Calendar.Calc.getDayId(date);
-      expectedTimes = {};
-      expectedTimes[dateId] = {};
-
-      subject.on('remove', function() {
-        eventCalled.push(Array.prototype.slice.call(arguments));
-        done();
-      });
-
-      subject.add(date, '2', obj);
-      getObj = subject.get('2');
-      result = subject.remove('2');
+      subject.persist({
+        calendarId: 1
+      }, done);
     });
 
-    test('event', function() {
-      assert.deepEqual(eventCalled, [
-        ['2', getObj]
-      ]);
+    setup(function(done) {
+      subject.persist({
+        calendarId: 2
+      }, done);
     });
-
-    test('removal', function() {
-      assert.ok(!subject.get('2'),
-                'should not have object for removed element');
-
-      assert.deepEqual(subject.times, expectedTimes);
-      assert.deepEqual(subject.ids, {});
-      assert.isTrue(result);
-    });
-
-  });
-
-  suite('#eventsForDay', function() {
-    var day = new Date(2012, 1, 1),
-        obj1 = {foo: true},
-        obj2 = {bar: true},
-        expected = [];
 
     setup(function() {
-      expected.push({
-        event: obj2,
-        date: day
-      });
-
-      expected.push({
-        event: obj1,
-        date: day
-      });
-
-      subject.add(day, '1', obj2);
-      subject.add(day, '2', obj1);
+      assert.equal(
+        Object.keys(subject.cached).length, 3,
+        'should have some controls'
+      );
     });
 
-    test('when day has events', function() {
-      var result = subject.eventsForDay(day);
+    test('removed all events for 1', function(done) {
+      subject.removeByCalendarId(1, function() {
+        var keys = Object.keys(subject.cached);
+        assert.equal(
+          keys.length, 1,
+          'should have removed all but control'
+        );
 
-      assert.deepEqual(result, expected);
+
+        assert.equal(
+          subject.cached[keys[0]].calendarId,
+          2,
+          'should not have removed control calendar'
+        );
+
+        subject._cached = {};
+        subject.load(function(err, result) {
+          done(function() {
+            var loadKeys = Object.keys(result);
+            assert.equal(loadKeys.length, 1);
+            var obj = result[loadKeys[0]];
+            assert.equal(obj.calendarId, 2);
+          });
+        });
+      });
     });
-
   });
 
-});
 
+});
