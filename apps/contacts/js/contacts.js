@@ -1130,12 +1130,24 @@ var Contacts = (function() {
   var getPhoto = function getContactImg(contactImg) {
     // Checking whether the image was actually loaded or not
     var canvas = document.createElement('canvas');
-    var width = 83 * 2;
-    var height = 80 * 2;
-    canvas.width = width;
-    canvas.height = height;
+    var ratio = 2.5;
+    canvas.width = thumb.width * ratio;
+    canvas.height = thumb.height * ratio;
     var ctx = canvas.getContext('2d');
-    ctx.drawImage(contactImg, 0, 0, width, height);
+    var widthBigger = contactImg.width > contactImg.height;
+    var toCut = widthBigger ? 'width' : 'height';
+    var toScale = widthBigger ? 'height' : 'width';
+    var scaled = contactImg[toScale] / canvas[toScale];
+    var scaleValue = 1 / scaled;
+    ctx.scale(scaleValue, scaleValue);
+    var margin = ((contactImg[toCut] / scaled) - canvas[toCut]) / 2;
+
+    if(widthBigger) {
+      ctx.drawImage(contactImg, -margin, 0);
+    } else {
+      ctx.drawImage(contactImg, 0, -margin);
+    }
+
     var ret = canvas.toDataURL();
     contactImg = null;
     canvas = null;
