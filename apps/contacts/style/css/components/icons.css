@@ -4,15 +4,15 @@
  * The icons are sorted by component type
  * ------------------------------------------------------*/
 
- 
+
 span[role="button"] {
   display: inline-block;
-	vertical-align: middle;
-	width: 2.8rem;
-	height: 2.8rem;
-	font: 0/0 a;
-	background: transparent no-repeat center center;
-	background-size: 100% auto;
+  vertical-align: middle;
+  width: 2.8rem;
+  height: 2.8rem;
+  font: 0/0 a;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
 }
 
 
@@ -116,9 +116,9 @@ span[role="button"].icon-address {
 
 /* arrows */
 span[role="button"].icon-arrow {
-	border: solid 0.4rem transparent;
-	width: 0;
-	height: 0;
+  border: solid 0.4rem transparent;
+  width: 0;
+  height: 0;
 }
 
 span[role="button"].icon-arrow.icon-arrow-top {

@@ -2,12 +2,12 @@
 /* ITEM: The smallest complete structure; */
 .item {
   display: block;
-} 
+}
 
 .item:before, .item:after {
   content: "";
   display: table;
-} 
+}
 
 .item:after {
   clear: both;

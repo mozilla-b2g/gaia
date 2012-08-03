@@ -6,16 +6,17 @@ span[role="button"].icon-clear {
 }
 
 /* DOMNodeInserted more efficient workaround */
-@keyframes nodeInserted {  
-  from {  
-    clip: rect(1px, auto, auto, auto);  
+@keyframes nodeInserted {
+  from {
+    clip: rect(1px, auto, auto, auto);
   }
-  to {  
+  to {
     clip: rect(0px, auto, auto, auto);
-  }  
+  }
 }
 
 input[data-cancelable] {
   animation-duration: 0.001s;
   animation-name: nodeInserted;
 }
+
