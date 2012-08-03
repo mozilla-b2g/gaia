@@ -97,6 +97,12 @@ span[role="button"].icon-delete {
   height: 2.2rem;
 }
 
+span[role="button"].icon-addimage {
+  background-image: url(../../gphx/bitmap/default/forms/add.png);
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
 span[role="button"].icon-call {
   background-image: url(../../gphx/bitmap/default/buttons/call.png);
 }
