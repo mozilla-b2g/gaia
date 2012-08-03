@@ -13,10 +13,6 @@ const Search = (function() {
     }
   );
 
-  function resetIcon() {
-    searchIcon.style.MozTransform = '';
-  }
-
   return {
     /*
      * Initializes the search module
@@ -25,7 +21,6 @@ const Search = (function() {
      */
     init: function s_init(domain) {
       URI_BROWSER = document.location.protocol + '//browser.' + domain;
-    },
-    resetIcon: resetIcon
+    }
   };
 }());

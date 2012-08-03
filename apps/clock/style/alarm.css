@@ -119,26 +119,29 @@ a.abstract-menu {
   top: 0;
   left: 0;
   border: 0;
-  width: -moz-calc(100% + 0.8rem); /* scrollbar bug */
+  width: 100%;
   height: 100%;
+  /* XXX: The below overflow property is being ignored by B2G Phone
+    https://bugzilla.mozilla.org/show_bug.cgi?id=777672
+    It is a workaround to set overflow-y: scroll.
+    It should be refined to overflow: hidden when the bug fixed.
+  */
+  overflow-y: scroll;
 }
 
 /* View - Slide Horizontal Transition */
 .view {
-  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0.5s;
+  -moz-transition: -moz-transform 0.5s ease;
   -moz-transform: translateX(100%);
-  width: 0;
 }
 
 #alarm-view {
   -moz-transform: translateX(-100%);
 }
 
-#alarm-view:target,
-.view:target {
-  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0s;
+#alarm-view:target, .view:target {
+  -moz-transition: -moz-transform 0.5s ease;
   -moz-transform: none;
-  width: 100%;
 }
 
 body.hidden #alarm-view {
@@ -149,7 +152,6 @@ body.hidden #alarm-view {
 #alarm-view.active {
   -moz-transform: none;
   -moz-transition: none;
-  width: 100%;
 }
 
 #alarm {
@@ -351,12 +353,30 @@ ul li > small {
   background-size: 100% 100%;
 }
 
+.view label > input[type=checkbox] + span.setEnabledBtn:after {
+  font: 2.15rem 'Open Sans',sans-serif;
+  color: #7a7a7a;
+  position: absolute;
+  top: 1.3rem;
+  left: 6rem;
+  content: attr(data-unchecked);
+}
+
 .view label > input[type=checkbox]:checked + span.setEnabledBtn {
   background: url(images/set_enabled_btn_on.png) no-repeat scroll center center;
   background-size: 100% 100%;
 }
-/* ----------- Inputs ------------- */
 
+.view label > input[type=checkbox]:checked + span.setEnabledBtn:after {
+  font: 2.25rem 'Open Sans',sans-serif;
+  color: #0088a3;
+  position: absolute;
+  top: 1.3rem;
+  left: 3.3rem;
+  content: attr(data-checked);
+}
+
+/* ----------- Inputs ------------- */
 select, input, textarea {
   clear: both;
   background:none;

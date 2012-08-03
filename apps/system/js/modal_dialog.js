@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -188,7 +188,8 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    evt.detail.unblock();
+    if (!evt.isPseudo)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
@@ -222,7 +223,8 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    evt.detail.unblock();
+    if (!evt.isPseudo)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
@@ -273,6 +275,10 @@ var ModalDialog = {
     // since system-app uses the different way to call ModalDialog.
     this.currentEvents['system'] = pseudoEvt;
     this.show('system');
+  },
+
+  isVisible: function md_isVisible() {
+    return this.screen.classList.contains('modal-dialog');
   }
 };
 

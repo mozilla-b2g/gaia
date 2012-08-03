@@ -11,16 +11,15 @@
         this[key] = options[key];
       }
     }
-
-    if (this.providerType) {
-      this._setupProvider();
-    }
   }
 
   Account.prototype = {
 
+    /**
+     * Type of provider this
+     * account requires.
+     */
     providerType: null,
-    provider: null,
 
     /**
      * ID for this model always set
@@ -80,61 +79,6 @@
       }
     },
 
-    _setupProvider: function() {
-      var provider = this.provider;
-      var type = this.providerType;
-
-      if (!provider) {
-        this.provider = provider = new Calendar.Provider[type]();
-      }
-
-      if (provider.useUrl) {
-        provider.url = this.url;
-        provider.domain = this.domain;
-      }
-
-      if (provider.useCredentials) {
-        provider.user = this.user;
-        provider.password = this.password;
-      }
-    },
-
-    /**
-     * Connects to server with new credentials
-     * this operation will possibly update
-     *
-     * @param {Function} callback node style callback.
-     */
-    setup: function(callback) {
-      var self = this;
-
-      self._setupProvider();
-
-      this.provider.setupConnection(function(err, data) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        if ('url' in data) {
-          self.url = data.url;
-        }
-
-        if ('domain' in data) {
-          self.domain = data.domain;
-        }
-
-        // update provider
-        self._setupProvider();
-
-        callback(null, self);
-      });
-    },
-
-    connect: function() {
-      this._setupProvider();
-    },
-
     /**
      * Data only version of this object.
      * Used for both passing data between
@@ -142,7 +86,7 @@
      * in indexeddb.
      */
     toJSON: function() {
-      var output = Object.create(null);
+      var output = {};
       var fields = [
         'url',
         'domain',

@@ -9,6 +9,8 @@
     "120": "/style/icons/Uitest.png"
   },
   "permissions": [
-    "background"
+    "background",
+    "contacts",
+    "settings"
   ]
 }

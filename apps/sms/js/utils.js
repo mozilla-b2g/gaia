@@ -31,10 +31,10 @@ var Utils = {
   },
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
     var stringHTML = str;
+    stringHTML = stringHTML.replace(/\</g, '&#60;');
     stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
     stringHTML = stringHTML.replace(/\s/g, '&nbsp;');
-    stringHTML = stringHTML.replace(/\</g, '&#60;');
-    
+
     if (escapeQuotes)
       return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
     return stringHTML;

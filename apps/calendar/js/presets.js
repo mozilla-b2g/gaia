@@ -1,6 +1,5 @@
 (function(window) {
   var Presets = {
-    /*
     'google': {
       providerType: 'Caldav',
       group: 'remote',
@@ -10,7 +9,6 @@
         url: '/calendar/dav/'
       }
     },
-   */
     'yahoo': {
       providerType: 'Caldav',
       group: 'remote',

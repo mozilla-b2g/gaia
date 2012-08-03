@@ -152,7 +152,8 @@ var Contacts = (function() {
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
-    var params = extractParams(hasParams[1]);
+    var params = hasParams.length > 1 ?
+      extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
@@ -172,8 +173,6 @@ var Contacts = (function() {
 
       case 'view-contact-form':
         if (params == -1 || !('id' in params)) {
-          // Adding new Contact
-          currentContact = {};
           showAdd(params);
         } else {
           // Editing existing contact
@@ -184,16 +183,18 @@ var Contacts = (function() {
               showEdit();
             }, function onError() {
               console.log('Error retrieving contact to be edited');
-              currentContact = {};
               showAdd();
             });
           }
         }
         break;
 
-      default:
-        loadList();
     }
+
+    if (!contactsList.loaded) {
+      loadList();
+    }
+
   }
 
   var extractParams = function extractParams(url) {
@@ -230,18 +231,78 @@ var Contacts = (function() {
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
+    TAG_OPTIONS = {
+      'phone-type' : [
+        {value: _('mobile')},
+        {value: _('home')},
+        {value: _('work')},
+        {value: _('personal')},
+        {value: _('faxHome')},
+        {value: _('faxOffice')},
+        {value: _('faxOther')},
+        {value: _('another')}
+      ],
+      'email-type' : [
+        {value: _('personal')},
+        {value: _('home')},
+        {value: _('work')}
+      ],
+      'address-type' : [
+        {value: _('home')},
+        {value: _('work')}
+      ]
+    };
   };
 
-  window.addEventListener('load', function initContacts(evt) {
+  window.addEventListener('localized', function initContacts(evt) {
+    initLanguages();
     initContainers();
     initPullEffect(cover);
+    initContactsList();
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
+    document.body.classList.remove('hide');
   });
 
-  var loadList = function loadList() {
+  var initContactsList = function initContactsList() {
     var list = document.getElementById('groups-list');
     contactsList.init(list);
+  }
+
+  var initLanguages = function initLanguages() {
+    document.documentElement.lang = navigator.mozL10n.language.code;
+    document.documentElement.dir = navigator.mozL10n.language.direction;
+  };
+
+  document.addEventListener('input', function input(event) {
+    checkDisableButton();
+  });
+
+  // When the cancel button inside the input is clicked
+  document.addEventListener('cancelInput', function() {
+    checkDisableButton();
+  });
+
+  var checkDisableButton = function checkDisable() {
+    var saveButton = document.getElementById('save-button');
+    if (emptyForm('contact-form')) {
+      saveButton.setAttribute('disabled', 'disabled');
+    } else {
+      saveButton.removeAttribute('disabled');
+    }
+  };
+
+  var emptyForm = function emptyForm(id) {
+    var form = document.getElementById(id);
+    var inputs = form.querySelectorAll('input.textfield');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].value != '')
+        return false;
+    }
+    return true;
+  }
+
+  var loadList = function loadList() {
     contactsList.load();
 
     contactsList.handleClick(function handleClick(id) {
@@ -614,14 +675,12 @@ var Contacts = (function() {
     this.goBack();
   };
 
-  var sendSms = function sendSms() {
+  var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling)
-      SmsIntegration.sendSms(currentContact.tel[0].number);
+      SmsIntegration.sendSms(number);
   }
 
-  var callOrPick = function callOrPick() {
-    // FIXME: only handling 1 number
-    var number = currentContact.tel[0].number;
+  var callOrPick = function callOrPick(number) {
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postPickSuccess(number);
     } else {
@@ -640,7 +699,11 @@ var Contacts = (function() {
   }
 
   var showAdd = function showAdd(params) {
+    if (!params || params == -1 || !('id' in params)) {
+      currentContact = {};
+    }
     resetForm();
+    saveButton.setAttribute('disabled', 'disabled');
     deleteContactButton.classList.add('hide');
     formTitle.innerHTML = _('addContact');
 
@@ -661,7 +724,7 @@ var Contacts = (function() {
     for (var i in paramsMapping) {
       paramsMapping[i].call(this, params[i] || 0);
     }
-
+    checkDisableButton();
     edit();
   };
 
@@ -716,21 +779,27 @@ var Contacts = (function() {
   };
 
   var saveContact = function saveContact() {
-    saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
-      additionalName: ''
+      additionalName: '',
+      name: ''
     };
 
-    if (givenName.value && givenName.value.length > 0) {
-      myContact.givenName = [givenName.value];
+    var inputs = {
+      'givenName': givenName,
+      'familyName': familyName,
+      'org': company
+    };
+
+    for (field in inputs) {
+      var value = inputs[field].value;
+      if (value && value.length > 0) {
+        myContact[field] = [value];
+      } else {
+        myContact[field] = null;
+      }
     }
-    if (familyName.value && familyName.value.length > 0) {
-      myContact.familyName = [familyName.value];
-    }
-    if (company.value && company.value.length > 0) {
-      myContact.org = [company.value];
-    }
+
     if (currentContact.category) {
       myContact.category = currentContact.category;
     }
@@ -741,7 +810,7 @@ var Contacts = (function() {
       if (myContact.familyName) {
         name += myContact.familyName;
       }
-      myContact.name = name;
+      myContact.name = [name];
     }
 
     getPhones(myContact);
@@ -753,7 +822,6 @@ var Contacts = (function() {
     // and inspect address by it self.
     if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
       'email', 'note', 'adr'])) {
-      saveButton.removeAttribute('disabled');
       return;
     }
 
@@ -770,7 +838,6 @@ var Contacts = (function() {
     } else {
       contact = new mozContact();
       contact.init(myContact);
-
     }
 
     var request = navigator.mozContacts.save(contact);
@@ -783,15 +850,14 @@ var Contacts = (function() {
         myContact.id = savedContact.id;
         myContact.photo = savedContact.photo;
         myContact.category = savedContact.category;
+        contactsList.refresh(myContact);
         if (ActivityHandler.currentlyHandling) {
           ActivityHandler.postNewSuccess(myContact);
         } else {
-          contactsList.refresh(myContact);
           reloadContactDetails();
-          navigation.back();
         }
+        navigation.back();
       }, function onError() {
-        saveButton.removeAttribute('disabled');
         console.error('Error reloading contact');
         if (ActivityHandler.currentlyHandling) {
           ActivityHandler.postCancel();
@@ -1070,34 +1136,6 @@ var ActivityHandler = {
   }
 };
 
-// set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showPanel() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-  document.body.classList.remove('hide');
-
-  TAG_OPTIONS = {
-    'phone-type' : [
-      {value: _('mobile')},
-      {value: _('home')},
-      {value: _('work')},
-      {value: _('personal')},
-      {value: _('faxHome')},
-      {value: _('faxOffice')},
-      {value: _('faxOther')},
-      {value: _('another')}
-    ],
-    'email-type' : [
-      {value: _('personal')},
-      {value: _('home')},
-      {value: _('work')}
-    ],
-    'address-type' : [
-      {value: _('home')},
-      {value: _('work')}
-    ]
-  };
-});
 
 var actHandler = ActivityHandler.handle.bind(ActivityHandler);
 window.navigator.mozSetMessageHandler('activity', actHandler);

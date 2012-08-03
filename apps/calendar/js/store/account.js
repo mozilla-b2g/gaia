@@ -1,8 +1,6 @@
 (function(window) {
 
   function Account() {
-    var self = this;
-
     Calendar.Store.Abstract.apply(this, arguments);
   }
 
@@ -10,6 +8,29 @@
     __proto__: Calendar.Store.Abstract.prototype,
 
     _store: 'accounts',
+
+    verifyAndPersist: function(model, callback) {
+      var self = this;
+      var provider = Calendar.App.provider(
+        model.providerType
+      );
+      provider.getAccount(model.toJSON(), function(err, data) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        if ('url' in data) {
+          model.url = data.url;
+        }
+
+        if ('domain' in data) {
+          model.domain = data.domain;
+        }
+
+        self.persist(model, callback);
+      });
+    },
 
     /**
      * Because this is a top-level store
@@ -42,7 +63,7 @@
       //is purged.
 
       var self = this;
-      var provider = account.provider;
+      var provider = Calendar.App.provider(account.providerType);
       var store = this.db.getStore('Calendar');
 
       var persist = [];
@@ -53,7 +74,7 @@
       // these are remote ids not local ones
       var originalIds = Object.keys(calendars);
 
-      provider.findCalendars(function(err, remoteCals) {
+      provider.findCalendars(account.toJSON(), function(err, remoteCals) {
         var key;
 
         if (err) {
@@ -120,7 +141,6 @@
     _createModel: function(obj, id) {
       if (!(obj instanceof Calendar.Models.Account)) {
         obj = new Calendar.Models.Account(obj);
-        obj.connect();
       }
 
       if (typeof(id) !== 'undefined') {

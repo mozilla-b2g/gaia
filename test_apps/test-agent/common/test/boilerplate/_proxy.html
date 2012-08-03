@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Serve the tests</title>
+
+  <script type="text/javascript" charset="utf-8">
+  (function(window){
+    var Loader = window.CommonResourceLoader = {},
+        host = document.location.host,
+        domain = host.replace(/(^[\w\d-]+\.)?([\w\d]+\.[a-z]+)/, 'test-agent.$2');
+
+    Loader.domain = document.location.protocol + '//' + domain;
+    Loader.url = function(url){
+      return this.domain + url;
+    }
+
+    Loader.script = function(url, doc){
+      doc = doc || document;
+      doc.write('<script type="application/javascript;version=1.8" src="' + this.url(url) + '"><\/script>');
+      return this;
+    };
+  }(this));
+  </script>
+
+  <style type="text/css" media="all">
+    html,body,iframe {
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+</head>
+<body>
+
+<!-- Test Agent UI will be loaded in here -->
+<div id="test-agent-ui">
+</div>
+
+<script type="text/javascript" charset="utf-8">
+CommonResourceLoader.
+  script('/common/test/test_url_resolver.js').
+  script('/common/vendor/test-agent/test-agent.js').
+  script('/common/test/agent_proxy.js');
+</script>
+</body>
+</html>
+
+

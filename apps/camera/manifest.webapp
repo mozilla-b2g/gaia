@@ -8,6 +8,10 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": [
+    "content-camera",
+    "camera"
+  ],
   "activities": {
     "record": {
       "filters": {
