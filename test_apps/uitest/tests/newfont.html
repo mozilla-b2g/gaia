@@ -4,16 +4,42 @@
     <meta charset="utf-8">
     <title>Embedded fonts test</title>
     <style>
-    button {
-      font-size: 40px;
+    button, select {
+      font-size: 25px;
+    }
+    @font-face {
+      font-family: 'TelMoz';
+      src: url('../style/fonts/TelMoz.otf');
+    }
+    p {
+        font-family: 'TelMoz';
+    }
+    body[data-weight="regular"] p {
+    }
+    body[data-weight="medium"] p {
+      /* XXX: wait new font file */
+    }
+    body[data-weight="bold"] p {
+      /* XXX: wait new font file */
+    }
+    body.swap {
+      color: white;
+      background: black;
     }
     </style>
+    <script type="text/javascript">
+      function changeFontWeight(value) {
+        body.dataset.weight = value;
+      }
+      function swapColor() {
+        document.body.classList.toggle('swap');
+      }
+    </script>
   </head>
   <body>
     <h1>New Font Test</h1>
-    <h2>Utility</h2>
-    <button>Swap color</button>
-    <select onchange="changeFontWeight">
+    <button onclick="swapColor()">Swap color</button>
+    <select onchange="changeFontWeight()">
       <option value="regular">Regular</option>
       <option value="medium">Medium</option>
       <option value="bold">Bold</option>
