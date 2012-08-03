@@ -4,6 +4,9 @@
 
 var PopupManager = {
   _currentPopup: null,
+  _wait: null,
+  _endTimes: 0,
+  _startTimes: 0,
 
   overlay: document.getElementById('dialog-overlay'),
 
@@ -18,6 +21,23 @@ var PopupManager = {
     window.addEventListener('home', this.backHandling.bind(this));
   },
 
+  _showWait: function pm_showWait() {
+     var div = this._wait = document.createElement('div');
+     var img = document.createElement('img');
+     img.src = 'style/images/progress.gif';
+     div.appendChild(img);
+     div.classList.add('curtain');
+
+    this.container.appendChild(div);
+  },
+
+  _hideWait: function pm_hideWait() {
+    this.container.removeChild(this._wait);
+    this._wait = null;
+
+    window.console.log('POPUP: Hide executed');
+  },
+
   open: function pm_open(evt) {
     // only one popup at a time
     if (this._currentPopup)
@@ -29,8 +49,41 @@ var PopupManager = {
     popup.dataset.frameName = evt.detail.name;
     popup.dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
+    // this._showWait();
     this.container.appendChild(popup);
+
     this.screen.classList.add('popup');
+
+    popup.addEventListener('mozbrowserloadend',this);
+    popup.addEventListener('mozbrowserloadstart',this);
+  },
+
+  handleLoadStart: function pm_handleLoadStart(evt) {
+     window.console.log('POPUP: the popup start loading');
+     this._startTimes++;
+     if(this._startTimes > 1) {
+      this._showWait();
+     }
+  },
+
+  handleLoadEnd: function pm_handleLoadEnd(evt) {
+     window.console.log('POPUP: the popup finished loading');
+      this._endTimes++;
+      if(this._endTimes > 1) {
+        window.console.log('POPUP: hiding!!');
+        this._hideWait();
+      }
+  },
+
+  handleEvent: function pm_handleEvent(evt) {
+    switch (evt.type) {
+      case 'mozbrowserloadstart':
+        this.handleLoadStart(evt);
+        break;
+      case 'mozbrowserloadend':
+        this.handleLoadEnd(evt);
+        break;
+    }
   },
 
   close: function pm_close(evt) {
