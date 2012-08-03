@@ -209,6 +209,7 @@ iframe.backgroundWindow {
 
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
+#screen.popup #popup-container,
 #screen.popup #dialog-overlay {
   visibility: visible;
   pointer-events: auto;
