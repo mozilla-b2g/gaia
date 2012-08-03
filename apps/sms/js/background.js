@@ -53,7 +53,16 @@
         app.launch();
       };
 
-      NotificationHelper.send(message.sender, message.body, iconURL, notiClick);
+      ContactDataManager.getContactData(message.sender, function gotContact(contact) {
+        var sender;
+        if (contact && contact.length > 0) {
+          sender = contact[0].name;
+        } else {
+          sender = message.sender;
+        }
+
+        NotificationHelper.send(sender, message.body, iconURL, notiClick);
+      });
     };
   });
 }());

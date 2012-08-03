@@ -20,7 +20,7 @@ var ContactDataManager = {
 
     var options = {
       filterBy: ['tel'],
-      filterOp: 'contains',
+      filterOp: 'equals',
       filterValue: number
     };
 
