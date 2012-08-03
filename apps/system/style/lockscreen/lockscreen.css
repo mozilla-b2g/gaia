@@ -18,7 +18,7 @@
 }
 
 #screen:not(.locked) > #lockscreen,
-#lockscreen[data-panel="camera"] {
+#screen.lockscreen-camera > #lockscreen {
   -moz-transform: scale(2);
   opacity: 0;
 }

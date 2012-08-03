@@ -262,6 +262,9 @@ var LockScreen = {
         if (evt.target !== this.overlay)
           return;
 
+        if (this.overlay.dataset.panel == 'camera')
+          this.overlay.hidden = true;
+
         if (!this.locked) {
           this.switchPanel();
           this.overlay.hidden = true;
@@ -528,12 +531,13 @@ var LockScreen = {
         var mainScreen = this.mainScreen;
         frame.onload = function cameraLoaded() {
           mainScreen.classList.add('lockscreen-camera');
-          callback();
         };
         this.overlay.classList.remove('no-transition');
         this.camera.hidden = false;
         this.camera.appendChild(frame);
 
+        if (callback)
+          callback();
         break;
     }
   },
@@ -551,14 +555,23 @@ var LockScreen = {
         break;
 
       case 'camera':
+        this.overlay.hidden = false;
+
         var self = this;
+        /// XXX: 0ms does not force transition to show. Platform bug to come.
+        setTimeout(function ls_hideCameraPanel() {
+          self.mainScreen.classList.remove('lockscreen-camera');
+        }, 20);
+
         this.overlay.addEventListener('transitionend',
-          function ls_unloadCamera() {
+          function ls_unloadCamera(evt) {
+            if (evt.target !== this)
+              return;
+
             self.overlay.removeEventListener('transitionend',
                                              ls_unloadCamera);
 
             // Remove the iframe element
-            self.mainScreen.classList.remove('lockscreen-camera');
             self.camera.hidden = true;
             self.camera.removeChild(this.camera.firstElementChild);
           });
@@ -588,7 +601,10 @@ var LockScreen = {
         }
 
         this.overlay.addEventListener('transitionend',
-          function ls_unloadDefaultPanel() {
+          function ls_unloadDefaultPanel(evt) {
+            if (evt.target !== this)
+              return;
+
             self.overlay.removeEventListener('transitionend',
                                              ls_unloadDefaultPanel);
             unload();
