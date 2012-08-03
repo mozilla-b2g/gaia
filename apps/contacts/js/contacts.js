@@ -1131,7 +1131,7 @@ var Contacts = (function() {
     // Checking whether the image was actually loaded or not
     var canvas = document.createElement('canvas');
     var width = 83 * 2;
-    var height 80 * 2:
+    var height = 80 * 2:
     canvas.width = width;
     canvas.height = height;
     var ctx = canvas.getContext('2d');
