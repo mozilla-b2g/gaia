@@ -11,9 +11,14 @@
 
   -moz-user-select: none;
 
+  /*
+  * This transition will be async when this bug is fixed
+  * https://bugzilla.mozilla.org/show_bug.cgi?id=780340
+  */
   -moz-transition:
     -moz-transform 0.5s ease 0.3s,
-    opacity 0.5s ease 0.3s;
+    opacity 0.5s ease 0.3s,
+    visibility 0.5s ease 0.3s;
   opacity: 1;
 }
 
@@ -21,6 +26,7 @@
 #screen.lockscreen-camera > #lockscreen {
   -moz-transform: scale(2);
   opacity: 0;
+  visibility: hidden;
 }
 
 #lockscreen.uninit > * {

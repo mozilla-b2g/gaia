@@ -262,17 +262,13 @@ var LockScreen = {
         if (evt.target !== this.overlay)
           return;
 
-        if (this.overlay.dataset.panel == 'camera') {
-          this.overlay.hidden = true;
-        } else if (!this.camera.hidden) {
+        if (this.overlay.dataset.panel !== 'camera' && !this.camera.hidden) {
           this.camera.hidden = true;
           this.camera.removeChild(this.camera.firstElementChild);
         }
 
-        if (!this.locked) {
+        if (!this.locked)
           this.switchPanel();
-          this.overlay.hidden = true;
-        }
         break;
 
       case 'home':
@@ -477,7 +473,6 @@ var LockScreen = {
     if (instant) {
       this.overlay.classList.add('no-transition');
       this.switchPanel();
-      this.overlay.hidden = true;
     } else {
       this.overlay.classList.remove('no-transition');
     }
@@ -496,7 +491,6 @@ var LockScreen = {
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
-    this.overlay.hidden = false;
 
     this.switchPanel();
 
@@ -559,13 +553,7 @@ var LockScreen = {
         break;
 
       case 'camera':
-        this.overlay.hidden = false;
-
-        var self = this;
-        /// XXX: 0ms does not force transition to show. Platform bug to come.
-        setTimeout(function ls_hideCameraPanel() {
-          self.mainScreen.classList.remove('lockscreen-camera');
-        }, 20);
+        this.mainScreen.classList.remove('lockscreen-camera');
         break;
 
       case 'emergency':
