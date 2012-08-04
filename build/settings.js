@@ -108,8 +108,6 @@ function Setting(aName, aValue) {
   Setting.counter++;
 }
 
-const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils' : Cu } = Components;
-
 (function registerProfileDirectory() {
 
   let directoryProvider = {
