@@ -29,6 +29,35 @@
   visibility: hidden;
 }
 
+#screen.lockscreen-camera > #lockscreen-camera {
+  visibility: visible;
+  -moz-transition: none;
+}
+
+#lockscreen-camera {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
+
+  /*
+  * This transition will be async when this bug is fixed
+  * https://bugzilla.mozilla.org/show_bug.cgi?id=780340
+  */
+  -moz-transition: visibility 0.5s ease 0.3s;
+  visibility: hidden;
+}
+
+#lockscreen-camera > iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
 #lockscreen.uninit > * {
   display: none;
 }
@@ -657,21 +686,4 @@
 
 [data-panel="emergency-call"] #lockscreen-emergency-pad {
   -moz-transform: translateY(0);
-}
-
-#lockscreen-camera {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
-}
-
-#lockscreen-camera > iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
 }

@@ -262,8 +262,8 @@ var LockScreen = {
         if (evt.target !== this.overlay)
           return;
 
-        if (this.overlay.dataset.panel !== 'camera' && !this.camera.hidden) {
-          this.camera.hidden = true;
+        if (this.overlay.dataset.panel !== 'camera' &&
+            this.camera.firstElementChild) {
           this.camera.removeChild(this.camera.firstElementChild);
         }
 
@@ -531,7 +531,6 @@ var LockScreen = {
           mainScreen.classList.add('lockscreen-camera');
         };
         this.overlay.classList.remove('no-transition');
-        this.camera.hidden = false;
         this.camera.appendChild(frame);
 
         if (callback)
