@@ -67,6 +67,25 @@ Calendar.ns('Provider').Abstract = (function() {
      *  - syncToken: (String)
      *  - ...: additional options based on provider
      *
+     * Each event will be emitted in the following format:
+     *
+     * event:
+     *  recurring:
+     *    expandedUntil: (Date) date expanded until
+     *    fullyExpanded: (Boolean)
+     *    expandedUntil (Date)
+     *  title: (String)
+     *  description: (String)
+     *  location: (String)
+     *  occurs: (Array[Date]) list of dates events occur
+     *  startDate: (Date)
+     *  endDate: (Date)
+     *  uid: (String) unique id for event
+     *  [_rawData]: (String) optional raw data
+     *              for cases where we can do field
+     *              based updates we don't
+     *              need to store this...
+     *
      * @param {Object} account user credentials.
      * @param {Object} calendar calendar location and last sync state.
      * @param {Function} callback node style (err, result).
