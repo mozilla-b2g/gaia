@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = navigator.mozL10n.get;
+
 var Recents = {
   DBNAME: 'dialerRecents',
   STORENAME: 'dialerRecents',
@@ -129,7 +131,7 @@ var Recents = {
           this._selectedEntries = new Object();
           this._selectedEntriesCounter = 0;
           // Updating header
-          this.headerEditModeText.textContent = 'Edit';
+          this.headerEditModeText.textContent = _('edit');
           // Disable 'delete selected' button
           this.deleteSelectedThreads.classList.add('disabled');
           break;
@@ -199,11 +201,11 @@ var Recents = {
         var selectedCallsLength = selectedCalls.length;
         this._selectedEntriesCounter = selectedCallsLength;
         if (selectedCallsLength == 0) {
-          this.headerEditModeText.textContent = 'Edit';
+          this.headerEditModeText.textContent = _('edit');
           this.deleteSelectedThreads.classList.add('disabled');
         } else {
-          this.headerEditModeText.textContent =
-            selectedCallsLength + ' Selected';
+          this.headerEditModeText.textContent = _('edit-selected',
+                                                  {n: selectedCallsLength});
           this.deleteSelectedThreads.classList.remove('disabled');
         }
       }
@@ -233,11 +235,11 @@ var Recents = {
           var selectedCallsLength = selectedCalls.length;
           this._selectedEntriesCounter = selectedCallsLength;
           if (selectedCallsLength == 0) {
-            this.headerEditModeText.textContent = 'Edit';
+            this.headerEditModeText.textContent = _('edit');
             this.deleteSelectedThreads.classList.add('disabled');
           } else {
-            this.headerEditModeText.textContent =
-              selectedCallsLength + ' Selected';
+            this.headerEditModeText.textContent = _('edit-selected',
+                                                    {n: selectedCallsLength});
             this.deleteSelectedThreads.classList.remove('disabled');
           }
         }
@@ -436,13 +438,14 @@ var Recents = {
         delete this._selectedEntries[target.dataset.date.trim()];
       }
       if (this._selectedEntriesCounter == 0) {
-        this.headerEditModeText.textContent = 'Edit';
+        this.headerEditModeText.textContent = _('edit');
         this.deleteSelectedThreads.classList.add('disabled');
 
       } else {
-        this.headerEditModeText.textContent =
-          this._selectedEntriesCounter + ' Selected';
-          this.deleteSelectedThreads.classList.remove('disabled');
+        var count = this._selectedEntriesCounter;
+        this.headerEditModeText.textContent = _('edit-selected',
+                                                {n: count});
+        this.deleteSelectedThreads.classList.remove('disabled');
       }
     }
   },
@@ -548,11 +551,6 @@ var Recents = {
     this._updateCounter = 0;
     for (var i = 0; i < length; i++) {
       phoneNumber = callLogItems[i].dataset.num.trim();
-      if (!phoneNumber.length) {
-        var primaryInfo = callLogItems[i].querySelector('.primary-info');
-        primaryInfo.textContent = 'Anonymous';
-        return;
-      }
       var cachedContact = this._cachedContacts[phoneNumber];
       if (cachedContact) {
         this.contactCallBack(callLogItems[i], length, cachedContact);
@@ -592,6 +590,7 @@ var Recents = {
       this._cachedContacts[phoneNumber] = contact;
     } else {
       contactPhoto.classList.add('unknownContact');
+      primaryInfo.textContent = _('unknown');
     }
     this._updateCounter++;
     if (this._updateCounter == max) {
