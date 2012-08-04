@@ -11,6 +11,24 @@
 
   -moz-user-select: none;
 
+  opacity: 1;
+
+  /*
+  * This transition will be async when this bug is fixed
+  * https://bugzilla.mozilla.org/show_bug.cgi?id=780340
+  */
+  -moz-transition:
+    -moz-transform 0.5s ease,
+    opacity 0.5s ease,
+    visibility 0.5s ease;
+}
+
+#screen:not(.locked) > #lockscreen,
+#screen.lockscreen-camera > #lockscreen {
+  -moz-transform: scale(2);
+  opacity: 0;
+  visibility: hidden;
+
   /*
   * This transition will be async when this bug is fixed
   * https://bugzilla.mozilla.org/show_bug.cgi?id=780340
@@ -19,14 +37,6 @@
     -moz-transform 0.5s ease 0.3s,
     opacity 0.5s ease 0.3s,
     visibility 0.5s ease 0.3s;
-  opacity: 1;
-}
-
-#screen:not(.locked) > #lockscreen,
-#screen.lockscreen-camera > #lockscreen {
-  -moz-transform: scale(2);
-  opacity: 0;
-  visibility: hidden;
 }
 
 #screen.lockscreen-camera > #lockscreen-camera {
