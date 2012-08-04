@@ -23,6 +23,36 @@ suite('factory', function() {
     }
   }
 
+  suite('hooks', function() {
+    setup(function() {
+      subject = new Factory({
+        onbuild: function(obj) {
+          obj.hitBuild = true;
+        },
+
+        oncreate: function(obj) {
+          obj.hitCreate = true;
+        },
+
+        properties: {
+          one: true
+        }
+      });
+    });
+
+    test('create', function() {
+      var out = subject.create();
+      assert.isTrue(out.hitBuild);
+      assert.isTrue(out.hitCreate);
+    });
+
+    test('build', function() {
+      var out = subject.build();
+      assert.isTrue(out.hitBuild);
+      assert.ok(!out.hitCreate);
+    });
+  });
+
   suite('simple property factory', function() {
     setup(function() {
       subject = new Factory({

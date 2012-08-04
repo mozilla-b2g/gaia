@@ -128,7 +128,12 @@ var Factory = (function() {
       // we need to copy the prop
       // rather then do an assignment for lazy-est
       // possible evaluation of properties.
-      copyProp(this, ['object'], newFactory);
+      copyProp(
+        this,
+        ['object', 'onbuild', 'oncreate'],
+        newFactory
+      );
+
       copy(options, newFactory);
 
       newFactory.properties = copy(
@@ -173,18 +178,30 @@ var Factory = (function() {
           );
         }
       }
+
+      if (typeof(this.onbuild) === 'function') {
+        this.onbuild(defaults);
+      }
+
       return defaults;
     },
 
     create: function(overrides) {
+      var result;
       var constructor = this.object;
       var attrs = this.build(overrides, 'create');
 
       if (constructor) {
-        return new constructor(attrs);
+        result = new constructor(attrs);
       } else {
-        return attrs;
+        result = attrs;
       }
+
+      if (typeof(this.oncreate) === 'function') {
+        this.oncreate(result);
+      }
+
+      return result;
     }
   };
 

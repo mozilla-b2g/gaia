@@ -1,69 +1,88 @@
-Factory.define('remoteCalendar', {
-  properties: {
-    id: '',
-    url: '/',
-    name: 'my calendar',
-    color: '#333',
-    description: 'description',
-    syncToken: '1'
-  }
-});
+(function(window) {
+  Factory.define('remote.calendar', {
+    properties: {
+      id: '',
+      url: '/',
+      name: 'my calendar',
+      color: '#333',
+      description: 'description',
+      syncToken: '1'
+    }
+  });
 
-Factory.define('caldav.calendar', {
+  var eventId = 0;
+  Factory.define('remote.event', {
+    properties: {
+      location: 'location'
+      //XXX: raw data
+    },
 
-  get object() {
-    return Caldav.Resources.Calendar;
-  },
+    onbuild: function(obj) {
+      var id = obj.id = eventId++;
 
-  properties: {
-    url: '/cal',
-    name: 'name',
-    color: '#333',
-    ctag: 'token',
-    description: '1'
-  }
+      obj.title = 'title ' + id;
+      obj.description = 'description ' + id;
+      obj.startDate = new Date();
+      obj.endDate = new Date();
+    }
+  });
 
-});
+  Factory.define('caldav.calendar', {
 
-Factory.define('caldav.account', {
-  properties: {
-    user: 'user',
-    password: 'password',
-    domain: 'http://google.com',
-    url: '/'
-  }
-});
+    get object() {
+      return Caldav.Resources.Calendar;
+    },
 
-Factory.define('caldav.connection', {
-  extend: 'caldav.account',
+    properties: {
+      url: '/cal',
+      name: 'name',
+      color: '#333',
+      ctag: 'token',
+      description: '1'
+    }
 
-  get object() {
-    return Caldav.Connection;
-  }
-});
+  });
 
-Factory.define('calendar', {
-  get object() {
-    return Calendar.Models.Calendar;
-  },
+  Factory.define('caldav.account', {
+    properties: {
+      user: 'user',
+      password: 'password',
+      domain: 'http://google.com',
+      url: '/'
+    }
+  });
 
-  properties: {
-    remote: Factory.get('remoteCalendar')
-  }
-});
+  Factory.define('caldav.connection', {
+    extend: 'caldav.account',
 
-Factory.define('account', {
+    get object() {
+      return Caldav.Connection;
+    }
+  });
 
-  get object() {
-    return Calendar.Models.Account;
-  },
+  Factory.define('calendar', {
+    get object() {
+      return Calendar.Models.Calendar;
+    },
 
-  properties: {
-    providerType: 'Local',
-    user: 'user',
-    password: 'password',
-    domain: 'http://google.com',
-    url: '/',
-    preset: 'local'
-  }
-});
+    properties: {
+      remote: Factory.get('remote.calendar')
+    }
+  });
+
+  Factory.define('account', {
+
+    get object() {
+      return Calendar.Models.Account;
+    },
+
+    properties: {
+      providerType: 'Local',
+      user: 'user',
+      password: 'password',
+      domain: 'http://google.com',
+      url: '/',
+      preset: 'local'
+    }
+  });
+}(this));
