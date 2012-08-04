@@ -18,44 +18,30 @@ if (!webappsTargetDir.exists())
 let manifests = {};
 let id = 1;
 
-// Process webapps from GAIA_APP_SRCDIRS folders
-let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
-appSrcDirs.forEach(function parseDirectory(srcDir) {
-  getSubDirectories(srcDir).forEach(function readManifests(webappSrcDirName) {
-    let webappSrcDir = getFile(GAIA_DIR, srcDir, webappSrcDirName);
-    let manifest = webappSrcDir.clone();
-    manifest.append('manifest.webapp');
+Gaia.webapps.forEach(function (webapp) {
+  // If BUILD_APP_NAME isn't `*`, we only accept one webapp
+  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
+    return;
 
-    // Ignore directories without manifest
-    if (!manifest.exists())
-      return;
+  // Compute webapp folder name in profile
+  let webappTargetDirName = webapp.domain;
 
-    // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-    if (BUILD_APP_NAME != '*' && webappSrcDirName != BUILD_APP_NAME)
-      return;
+  // Copy webapp's manifest to the profile
+  let webappTargetDir = webappsTargetDir.clone();
+  webappTargetDir.append(webappTargetDirName);
+  webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
 
-    // Compute webapp folder name in profile
-    let webappTargetDirName = webappSrcDirName + '.' + GAIA_DOMAIN;
+  // Add webapp's entry to the webapps global manifest
+  let url = webapp.url;
+  manifests[webappTargetDirName] = {
+    origin:        url,
+    installOrigin: url,
+    receipt:       null,
+    installTime:   132333986000,
+    manifestURL:   url + '/manifest.webapp',
+    localId:       id++
+  };
 
-    // Copy webapp's manifest to the profile
-    let webappTargetDir = webappsTargetDir.clone();
-    webappTargetDir.append(webappTargetDirName);
-    manifest.copyTo(webappTargetDir, 'manifest.webapp');
-
-    // Compute its URL
-    let url = GAIA_SCHEME + webappTargetDirName + GAIA_PORT;
-
-    // Add webapp's entry to the webapps global manifest
-    manifests[webappTargetDirName] = {
-      origin:        url,
-      installOrigin: url,
-      receipt:       null,
-      installTime:   132333986000,
-      manifestURL:   url + '/manifest.webapp',
-      localId:       id++
-    };
-
-  });
 });
 
 // Process external webapps from /gaia/external-app/ folder

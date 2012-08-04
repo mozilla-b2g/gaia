@@ -45,43 +45,36 @@ let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 let permissionManager = Components.classes["@mozilla.org/permissionmanager;1"].getService(Ci.nsIPermissionManager);
 let ioservice = Components.classes["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
 
-appSrcDirs.forEach(function parseDirectory(directoryName) {
-  let directories = getSubDirectories(directoryName);
-  directories.forEach(function readManifests(dir) {
-    let manifestFile = getFile(GAIA_DIR, directoryName, dir, "manifest.webapp");
-    if (!manifestFile.exists())
-      return;
-    let manifest = getJSON(manifestFile);
+Gaia.webapps.forEach(function (webapp) {
+  let manifest = webapp.manifest;
+  let rootURL = webapp.url;
 
-    let rootURL = GAIA_SCHEME + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
+  let perms = commonPermissionList.concat(manifest.permissions);
 
-    let perms = commonPermissionList.concat(manifest.permissions);
+  if (perms) {
+    for each(let name in perms) {
+      if (permissionList.indexOf(name) == -1) {
+        dump("WARNING: permission unknown:" + name + "\n");
+        continue;
+      }
+      debug("name: " + name + "\n");
+      let uri = ioservice.newURI(rootURL, null, null);
+      debug("add permission: " + rootURL + ", " + name);
+      permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
 
-    if (perms) {
-      for each(let name in perms) {
-        if (permissionList.indexOf(name) == -1) {
-          dump("WARNING: permission unknown:" + name + "\n");
-          continue;
-        }
-        debug("name: " + name + "\n");
-        let uri = ioservice.newURI(rootURL, null, null);
-        debug("add permission: " + rootURL + ", " + name);
-        permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-
-        // special case for the telephony API which needs full URLs
-        if (name == 'telephony') {
-          if (manifest.background_page) {
-            let uri = ioservice.newURI(rootURL + manifest.background_page, null, null);
-            debug("add permission: " + rootURL + manifest.background_page + ", " + name);
-            permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-          }
-        }
-        if (manifest.attention_page) {
-          let uri = ioservice.newURI(rootURL + manifest.attention_page, null, null);
-          debug("add permission: " + rootURL + manifest.attention_page+ ", " + name);
+      // special case for the telephony API which needs full URLs
+      if (name == 'telephony') {
+        if (manifest.background_page) {
+          let uri = ioservice.newURI(rootURL + manifest.background_page, null, null);
+          debug("add permission: " + rootURL + manifest.background_page + ", " + name);
           permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
         }
       }
+      if (manifest.attention_page) {
+        let uri = ioservice.newURI(rootURL + manifest.attention_page, null, null);
+        debug("add permission: " + rootURL + manifest.attention_page+ ", " + name);
+        permissionManager.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
+      }
     }
-  });
+  }
 });

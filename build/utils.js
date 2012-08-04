@@ -63,3 +63,30 @@ function getJSON(file) {
   let content = getFileContent(file);
   return JSON.parse(content);
 }
+
+const Gaia = {
+  webapps: {
+    forEach: function (fun) {
+      let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
+      appSrcDirs.forEach(function parseDirectory(directoryName) {
+        let directories = getSubDirectories(directoryName);
+        directories.forEach(function readManifests(dir) {
+          let manifestFile = getFile(GAIA_DIR, directoryName, dir, "manifest.webapp");
+          // Ignore directories without manifest
+          if (!manifestFile.exists())
+            return;
+          let domain = dir + "." + GAIA_DOMAIN;
+
+          let webapp = {
+            manifest: getJSON(manifestFile),
+            manifestFile: manifestFile,
+            url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
+            domain: domain,
+            sourceDirectoryName: dir
+          };
+          fun(webapp);
+        });
+      });
+    }
+  }
+};

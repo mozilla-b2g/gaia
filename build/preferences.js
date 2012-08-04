@@ -61,42 +61,34 @@ let privileges = [];
 let domains = [];
 domains.push(GAIA_DOMAIN);
 
-let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
+Gaia.webapps.forEach(function (webapp) {
+  let manifest = webapp.manifest;
+  let rootURL = webapp.url;
 
-appSrcDirs.forEach(function parseDirectory(directoryName) {
-  let directories = getSubDirectories(directoryName);
-  directories.forEach(function readManifests(dir) {
-    let manifestFile = getFile(GAIA_DIR, directoryName, dir, "manifest.webapp");
-    if (!manifestFile.exists())
-      return;
-    let manifest = getJSON(manifestFile);
+  privileges.push(rootURL);
+  domains.push(webapp.domain);
 
-    let rootURL = GAIA_SCHEME + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
-    let domain = dir + "." + GAIA_DOMAIN;
-    privileges.push(rootURL);
-    domains.push(domain);
+  let perms = manifest.permissions;
+  if (perms) {
+    for each(let name in perms) {
+      if (!permissions[name])
+        continue;
 
-    let perms = manifest.permissions;
-    if (perms) {
-      for each(let name in perms) {
-        if (!permissions[name])
-          continue;
+      permissions[name].urls.push(rootURL);
 
-        permissions[name].urls.push(rootURL);
+      // special case for the telephony API which needs full URLs
+      if (name == 'telephony') {
+        permissions[name].urls.push(rootURL + '/index.html');
 
-        // special case for the telephony API which needs full URLs
-        if (name == 'telephony') {
-          permissions[name].urls.push(rootURL + '/index.html');
-
-          if (manifest.background_page)
-            permissions[name].urls.push(rootURL + manifest.background_page);
-          if (manifest.attention_page)
-            permissions[name].urls.push(rootURL + manifest.attention_page);
-        }
+        if (manifest.background_page)
+          permissions[name].urls.push(rootURL + manifest.background_page);
+        if (manifest.attention_page)
+          permissions[name].urls.push(rootURL + manifest.attention_page);
       }
     }
-  });
+  }
 });
+
 
 //XXX: only here while waiting for https://bugzilla.mozilla.org/show_bug.cgi?id=764718 to be fixed
 content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
