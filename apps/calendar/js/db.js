@@ -1,7 +1,7 @@
 (function(window) {
   var idb = window.indexedDB || window.mozIndexedDB;
 
-  const VERSION = 3;
+  const VERSION = 4;
 
   var store = {
     events: 'events',
@@ -152,7 +152,13 @@
       events.createIndex(
         'calendarId',
         'calendarId',
-        { unique: false, multientry: false }
+        { unique: false, multiEntry: false }
+      );
+
+      events.createIndex(
+        'occurs',
+        'remote.occurs',
+        { unique: false, multiEntry: true }
       );
 
       // accounts -> has many calendars
