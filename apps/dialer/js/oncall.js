@@ -275,6 +275,10 @@ var OnCallHandler = {
   },
 
   _addCall: function och_addCall(call) {
+    // Once we already have 1 call, we only care about incomings
+    if (this.handledCalls.length && (call.state != 'incoming'))
+      return;
+
     // No more room
     if (this.handledCalls.length >= this.CALLS_LIMIT) {
       call.hangUp();
