@@ -557,7 +557,8 @@ var Recents = {
       } else {
         Contacts.findByNumber(
           phoneNumber,
-          this.contactCallBack.bind(this, callLogItems[i], length, phoneNumber));
+          this.contactCallBack.bind(this, callLogItems[i],
+            length, phoneNumber));
       }
     }
   },
