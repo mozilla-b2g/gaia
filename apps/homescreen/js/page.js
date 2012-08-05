@@ -240,7 +240,7 @@ Page.prototype = {
 
     if (scrollX === 0) {
       style.MozTransform = 'translateX(' + (scrollX +
-                           (this.posLeft <= scrollX ? 10 : -10) ) + 'px)';
+                           (this.posLeft <= scrollX ? 5 : -5) ) + 'px)';
     } else {
       style.MozTransform = 'translateX(' + (scrollX + 0.001) + 'px)';
     }
