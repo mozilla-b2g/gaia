@@ -49,7 +49,10 @@ const GridManager = (function() {
         }
 
         var deltaX = evt.clientX - startEvent.clientX;
-        pan(deltaX);
+        var len = pages.length;
+        for (var i = 0; i < len; i++) {
+          pages[i].moveBy((-currentPage + i) * windowWidth + deltaX);
+        }
         setOverlayPanning(deltaX);
         break;
 
@@ -136,22 +139,6 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
-  /*
-   * Page Navigation utils.
-   */
-  function pan(deltaX) {
-    for (var i = 0; i < pages.length; i++) {
-      pages[i].moveBy((-currentPage + i) * windowWidth + deltaX);
-    }
-  }
-
-  function panWithEffect(deltaX, duration) {
-    for (var i = 0; i < pages.length; i++) {
-      pages[i].moveByWithEffect((-currentPage + i) * windowWidth + deltaX,
-                                 duration);
-    }
-  }
-
   function goToPage(index, callback) {
     if (index === 0 && currentPage === 1 && Homescreen.isInEditMode()) {
       index = 1;
@@ -170,7 +157,10 @@ const GridManager = (function() {
       }
     });
 
-    panWithEffect(0, .3);
+    var len = pages.length;
+    for (var i = 0; i < len; i++) {
+      pages[i].moveByWithEffect((-currentPage + i) * windowWidth, .3);
+    }
     if (index === 0) {
       applyEffectOverlay(0, .3);
     } else if (index === 1) {
