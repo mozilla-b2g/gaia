@@ -181,7 +181,7 @@ const GridManager = (function() {
   }
 
   function updatePaginationBar() {
-    PaginationBar.update(currentPage, pageHelper.total());
+    PaginationBar.update(currentPage, pages.length);
   }
 
   /*
