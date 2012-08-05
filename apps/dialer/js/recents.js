@@ -557,12 +557,12 @@ var Recents = {
       } else {
         Contacts.findByNumber(
           phoneNumber,
-          this.contactCallBack.bind(this, callLogItems[i], length));
+          this.contactCallBack.bind(this, callLogItems[i], length, phoneNumber));
       }
     }
   },
 
-  contactCallBack: function re_contactCallBack(logItem, max, contact) {
+  contactCallBack: function re_contactCallBack(logItem, max, number, contact) {
     var primaryInfo = logItem.querySelector('.primary-info'),
       contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact) {
@@ -590,7 +590,10 @@ var Recents = {
       this._cachedContacts[phoneNumber] = contact;
     } else {
       contactPhoto.classList.add('unknownContact');
-      primaryInfo.textContent = _('unknown');
+
+      if (!number.length) {
+        primaryInfo.textContent = _('unknown');
+      }
     }
     this._updateCounter++;
     if (this._updateCounter == max) {
