@@ -228,3 +228,26 @@ hr {
   display: block;
 }
 
+/* Social network markers */
+.icon-social {
+  background-size: cover;
+  display: inline-block;
+  vertical-align: middle;
+  text-indent: 100%;
+  overflow: hidden;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 1rem;
+}
+
+.icon-social.icon-fb {
+  background-image: url(images/f_logo.png) !important;
+}
+
+.icon-social.icon-tw {
+  background-image: url(images/tw_logo2.png) !important;
+}
+
+.icon-social.notorg {
+  margin-left: 0 !important;
+}

@@ -88,9 +88,55 @@ contacts.List = (function() {
     small.className = 'block-company';
     small.textContent = contact.org;
     body.appendChild(small);
+
+    // Label the contact concerning social networks
+    if (contact.category) {
+      var marks = buildSocialMarks(contact.category);
+      if (marks.length > 0) {
+        if (!contact.org) {
+          marks[0].classList.add('notorg');
+        }
+        marks.forEach(function(mark) {
+          body.appendChild(mark);
+        });
+      }
+    }
+
     link.appendChild(body);
     contactContainer.appendChild(link);
     return contactContainer;
+  }
+
+  function buildSocialMarks(category) {
+    var marks = [];
+    if (category.indexOf('facebook') !== -1) {
+      marks.push(markAsFb(createSocialMark()));
+    }
+
+    if (category.indexOf('twitter') !== -1) {
+      marks.push(markAsTw(createSocialMark()));
+    }
+
+    return marks;
+  }
+
+  function createSocialMark() {
+    var span = document.createElement('span');
+    span.classList.add('icon-social');
+
+    return span;
+  }
+
+  function markAsFb(ele) {
+    ele.classList.add('icon-fb');
+
+    return ele;
+  }
+
+  function markAsTw(ele) {
+    ele.classList.add('icon-tw');
+
+    return ele;
   }
 
   var getSimContacts = function getSimContacts() {
@@ -458,4 +504,3 @@ contacts.List = (function() {
     'loaded': loaded
   };
 })();
-
