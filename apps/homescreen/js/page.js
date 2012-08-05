@@ -221,33 +221,43 @@ Page.prototype = {
   },
 
   /*
-   * Applies a translation to the page
+   * Applies a translation effect to the page
    *
-   * @param{String} the app origin
+   * @param{String} scroll X
+   *
+   * @param{int} duration
    */
-  moveBy: function pg_moveBy(scrollX, duration) {
+  moveByWithEffect: function pg_moveByWithEffect(scrollX, duration) {
     var container = this.container;
     var style = container.style;
 
-    if (duration) {
-      var forward = 0.001;
-      container.addEventListener('transitionend', function transitionEnd(e) {
-        e.stopPropagation();
-        container.removeEventListener('transitionend', transitionEnd);
-        style.MozTransform = 'translateX(' + scrollX + 'px)';
-        style.MozTransition = '-moz-transform .05s ease';
-      });
-      if (scrollX === 0) {
-        // Current page has a bounce effect
-        forward = this.posLeft <= scrollX ? 10 : -10;
-      }
-      style.MozTransform = 'translateX(' + (scrollX + forward) + 'px)';
-      style.MozTransition = '-moz-transform ' + duration + 's ease';
-    } else {
+    container.addEventListener('transitionend', function transitionEnd(e) {
+      e.stopPropagation();
+      container.removeEventListener('transitionend', transitionEnd);
       style.MozTransform = 'translateX(' + scrollX + 'px)';
-      style.MozTransition = '';
-    }
+      style.MozTransition = '-moz-transform .05s ease';
+    });
 
+    if (scrollX === 0) {
+      style.MozTransform = 'translateX(' + (scrollX +
+                           (this.posLeft <= scrollX ? 10 : -10) ) + 'px)';
+    } else {
+      style.MozTransform = 'translateX(' + (scrollX + 0.001) + 'px)';
+    }
+    style.MozTransition = '-moz-transform ' + duration + 's ease';
+
+    this.posLeft = scrollX;
+  },
+
+  /*
+   * Applies a translation to the page
+   *
+   * @param{String} scroll X
+   */
+  moveBy: function pg_moveBy(scrollX) {
+    var style = this.container.style;
+    style.MozTransform = 'translateX(' + scrollX + 'px)';
+    style.MozTransition = '';
     this.posLeft = scrollX;
   },
 
@@ -517,9 +527,13 @@ var SearchPage = function createSearchPage() {
 
 extend(SearchPage, Page);
 
-SearchPage.prototype.baseMoveBy = Page.prototype.moveBy;
+var searchProto = SearchPage.prototype;
 
-SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration) {
+searchProto.baseMoveBy = Page.prototype.moveBy;
+
+searchProto.baseMoveByWithEffect = Page.prototype.moveByWithEffect;
+
+searchProto.decorateScrollX = function spg_getDeltaX(scrollX) {
   var maxWidth = this.maxWidth;
   if (scrollX < 0 && scrollX > -maxWidth) {
     if (this.posLeft > scrollX) {
@@ -533,5 +547,14 @@ SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration) {
     }
   }
 
-  this.baseMoveBy(scrollX, duration);
+  return scrollX;
+}
+
+searchProto.moveBy = function spg_moveBy(scrollX) {
+  this.baseMoveBy(this.decorateScrollX(scrollX));
+};
+
+searchProto.moveByWithEffect = function spg_moveByWithEffect(
+                                          scrollX, duration) {
+  this.baseMoveByWithEffect(this.decorateScrollX(scrollX), duration);
 };

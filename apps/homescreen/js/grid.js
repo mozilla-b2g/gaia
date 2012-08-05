@@ -14,7 +14,7 @@ const GridManager = (function() {
   var opacityMax = .7;
 
   var pages = [];
-  pages.current = 0;
+  var currentPage = 0;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -64,7 +64,7 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
-        if (pages.current !== 0) {
+        if (currentPage !== 0) {
           evt.stopPropagation();
           evt.preventDefault();
           Homescreen.setMode('edit');
@@ -84,10 +84,9 @@ const GridManager = (function() {
       return;
     }
     var forward = dirCtrl.goesForward(deltaX);
-    var current = pages.current;
-    if (current === 0 && forward) {
+    if (currentPage === 0 && forward) {
       applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
-    } else if (current === 1 && !forward) {
+    } else if (currentPage === 1 && !forward) {
       applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
     }
   }
@@ -107,8 +106,6 @@ const GridManager = (function() {
 
   function onTouchEnd(deltaX, target) {
     releaseEvents();
-
-    var currentPage = pages.current;
 
     if (Math.abs(deltaX) > thresholdForPanning) {
       var forward = dirCtrl.goesForward(deltaX);
@@ -141,21 +138,26 @@ const GridManager = (function() {
   /*
    * Page Navigation utils.
    */
-  function pan(deltaX, duration) {
-    var currentPage = pages.current;
+  function pan(deltaX) {
     for (var i = 0; i < pages.length; i++) {
-      var scrollX = (-currentPage + i) * windowWidth + deltaX;
-      pages[i].moveBy(scrollX, duration);
+      pages[i].moveBy((-currentPage + i) * windowWidth + deltaX);
+    }
+  }
+
+  function panWithEffect(deltaX, duration) {
+    for (var i = 0; i < pages.length; i++) {
+      pages[i].moveByWithEffect((-currentPage + i) * windowWidth + deltaX,
+                                 duration);
     }
   }
 
   function goToPage(index, callback) {
-    if (index === 0 && pages.current === 1 && Homescreen.isInEditMode()) {
+    if (index === 0 && currentPage === 1 && Homescreen.isInEditMode()) {
       index = 1;
     }
 
-    var isSamePage = pages.current === index;
-    pages.current = index;
+    var isSamePage = currentPage === index;
+    currentPage = index;
 
     container.addEventListener('transitionend', function transitionEnd(e) {
       container.removeEventListener('transitionend', transitionEnd);
@@ -167,7 +169,7 @@ const GridManager = (function() {
       }
     });
 
-    pan(0, .3);
+    panWithEffect(0, .3);
     if (index === 0) {
       applyEffectOverlay(0, .3);
     } else if (index === 1) {
@@ -180,15 +182,15 @@ const GridManager = (function() {
   }
 
   function goToNextPage(callback) {
-    goToPage(pages.current + 1, callback);
+    goToPage(currentPage + 1, callback);
   }
 
   function goToPreviousPage(callback) {
-    goToPage(pages.current - 1, callback);
+    goToPage(currentPage - 1, callback);
   }
 
   function updatePaginationBar() {
-    PaginationBar.update(pages.current, pageHelper.total());
+    PaginationBar.update(currentPage, pageHelper.total());
   }
 
   /*
@@ -424,15 +426,15 @@ const GridManager = (function() {
     },
 
     getNext: function() {
-      return pages[pages.current + 1];
+      return pages[currentPage + 1];
     },
 
     getPrevious: function() {
-      return pages[pages.current - 1];
+      return pages[currentPage - 1];
     },
 
     getCurrent: function() {
-      return pages[pages.current];
+      return pages[currentPage];
     },
 
     getLast: function() {
@@ -440,7 +442,7 @@ const GridManager = (function() {
     },
 
     getCurrentPageNumber: function() {
-      return pages.current;
+      return currentPage;
     },
 
     getTotalPagesNumber: function() {
