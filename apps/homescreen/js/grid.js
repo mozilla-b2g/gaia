@@ -14,7 +14,7 @@ const GridManager = (function() {
   var opacityMax = .7;
 
   var pages = [];
-  pages.current = 0;
+  var currentPage = 0;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -49,7 +49,10 @@ const GridManager = (function() {
         }
 
         var deltaX = evt.clientX - startEvent.clientX;
-        pan(deltaX, 0, false);
+        var len = pages.length;
+        for (var i = 0; i < len; i++) {
+          pages[i].moveBy((-currentPage + i) * windowWidth + deltaX);
+        }
         setOverlayPanning(deltaX);
         break;
 
@@ -57,14 +60,15 @@ const GridManager = (function() {
         evt.stopPropagation();
         if (!isPanning) {
           delete document.body.dataset.transitioning;
+        } else {
+          isPanning = false;
         }
-        isPanning = false;
 
         onTouchEnd(evt.clientX - startEvent.clientX, evt.target);
         break;
 
       case 'contextmenu':
-        if (pages.current !== 0) {
+        if (currentPage !== 0) {
           evt.stopPropagation();
           evt.preventDefault();
           Homescreen.setMode('edit');
@@ -84,10 +88,9 @@ const GridManager = (function() {
       return;
     }
     var forward = dirCtrl.goesForward(deltaX);
-    var current = pages.current;
-    if (current === 0 && forward) {
+    if (currentPage === 0 && forward) {
       applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
-    } else if (current === 1 && !forward) {
+    } else if (currentPage === 1 && !forward) {
       applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
     }
   }
@@ -108,23 +111,17 @@ const GridManager = (function() {
   function onTouchEnd(deltaX, target) {
     releaseEvents();
 
-    var currentPage = pages.current;
-
     if (Math.abs(deltaX) > thresholdForPanning) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pageHelper.total() - 1) {
-        goToNextPage();
+        goToPage(currentPage + 1);
       } else if (!forward && currentPage > 0) {
-        goToPreviousPage();
+        goToPage(currentPage - 1);
       } else {
         goToPage(currentPage);
       }
     } else if (Math.abs(deltaX) < thresholdForTapping) {
       pageHelper.getCurrent().tap(target);
-
-      // Sometime poor devices fire touchmove events when users are only
-      // tapping
-      goToPage(currentPage, {noBounce: true});
     } else {
       goToPage(currentPage);
     }
@@ -142,37 +139,28 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
-  /*
-   * Page Navigation utils.
-   */
-  function pan(deltaX, duration, bounce) {
-    var currentPage = pages.current;
-    for (var i = 0; i < pages.length; i++) {
-      var scrollX = (-currentPage + i) * windowWidth + deltaX;
-      pages[i].moveBy(scrollX, duration, bounce);
-    }
-  }
-
-  function goToPage(index, props) {
-    props = props || {};
-    var callback = props.callback || function() {};
-
-    if (index === 0 && pages.current === 1 && Homescreen.isInEditMode()) {
+  function goToPage(index, callback) {
+    if (index === 0 && currentPage === 1 && Homescreen.isInEditMode()) {
       index = 1;
     }
 
-    var isSamePage = pages.current === index;
-    pages.current = index;
+    var isSamePage = currentPage === index;
+    currentPage = index;
 
     container.addEventListener('transitionend', function transitionEnd(e) {
       container.removeEventListener('transitionend', transitionEnd);
       if (!dragging) {
         delete document.body.dataset.transitioning;
       }
-      callback();
+      if (callback) {
+        callback();
+      }
     });
 
-    pan(0, .3, !props.noBounce);
+    var len = pages.length;
+    for (var i = 0; i < len; i++) {
+      pages[i].moveByWithEffect((-currentPage + i) * windowWidth, .3);
+    }
     if (index === 0) {
       applyEffectOverlay(0, .3);
     } else if (index === 1) {
@@ -185,15 +173,15 @@ const GridManager = (function() {
   }
 
   function goToNextPage(callback) {
-    goToPage(pages.current + 1, {callback: callback});
+    goToPage(currentPage + 1, callback);
   }
 
   function goToPreviousPage(callback) {
-    goToPage(pages.current - 1, {callback: callback});
+    goToPage(currentPage - 1, callback);
   }
 
   function updatePaginationBar() {
-    PaginationBar.update(pages.current, pageHelper.total());
+    PaginationBar.update(currentPage, pages.length);
   }
 
   /*
@@ -429,15 +417,15 @@ const GridManager = (function() {
     },
 
     getNext: function() {
-      return pages[pages.current + 1];
+      return pages[currentPage + 1];
     },
 
     getPrevious: function() {
-      return pages[pages.current - 1];
+      return pages[currentPage - 1];
     },
 
     getCurrent: function() {
-      return pages[pages.current];
+      return pages[currentPage];
     },
 
     getLast: function() {
@@ -445,7 +433,7 @@ const GridManager = (function() {
     },
 
     getCurrentPageNumber: function() {
-      return pages.current;
+      return currentPage;
     },
 
     getTotalPagesNumber: function() {
@@ -469,7 +457,6 @@ const GridManager = (function() {
       }
 
       container.addEventListener('mousedown', handleEvent, true);
-      container.addEventListener('resize', handleEvent, true);
 
       limits.left = container.offsetWidth * 0.05;
       limits.right = container.offsetWidth * 0.95;
@@ -511,11 +498,10 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage(index, {callback: function ins_goToPage() {
+        goToPage(index,function ins_goToPage() {
           pageHelper.getCurrent().
                     applyInstallingEffect(Applications.getOrigin(app));
-
-        }});
+        });
       }
 
       pageHelper.saveAll();
