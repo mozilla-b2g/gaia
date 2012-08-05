@@ -511,7 +511,7 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage(index,{callback: function ins_goToPage() {
+        goToPage(index, {callback: function ins_goToPage() {
           pageHelper.getCurrent().
                     applyInstallingEffect(Applications.getOrigin(app));
 
