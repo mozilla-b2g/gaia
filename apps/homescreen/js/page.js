@@ -225,24 +225,21 @@ Page.prototype = {
    *
    * @param{String} the app origin
    */
-  moveBy: function pg_moveBy(scrollX, duration, bounce) {
+  moveBy: function pg_moveBy(scrollX, duration) {
     var container = this.container;
     var style = container.style;
 
     if (duration) {
-      var forward = 0;
-      if (bounce) {
-        container.addEventListener('transitionend', function transitionEnd(e) {
-          e.stopPropagation();
-          container.removeEventListener('transitionend', transitionEnd);
-          style.MozTransform = 'translateX(' + scrollX + 'px)';
-          style.MozTransition = '-moz-transform .05s ease';
-        });
-        forward = 0.001;
-        if (scrollX === 0) {
-          // Current page has a bounce effect
-          forward = this.posLeft <= scrollX ? 10 : -10;
-        }
+      var forward = 0.001;
+      container.addEventListener('transitionend', function transitionEnd(e) {
+        e.stopPropagation();
+        container.removeEventListener('transitionend', transitionEnd);
+        style.MozTransform = 'translateX(' + scrollX + 'px)';
+        style.MozTransition = '-moz-transform .05s ease';
+      });
+      if (scrollX === 0) {
+        // Current page has a bounce effect
+        forward = this.posLeft <= scrollX ? 10 : -10;
       }
       style.MozTransform = 'translateX(' + (scrollX + forward) + 'px)';
       style.MozTransition = '-moz-transform ' + duration + 's ease';
@@ -522,7 +519,7 @@ extend(SearchPage, Page);
 
 SearchPage.prototype.baseMoveBy = Page.prototype.moveBy;
 
-SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration, bounce) {
+SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration) {
   var maxWidth = this.maxWidth;
   if (scrollX < 0 && scrollX > -maxWidth) {
     if (this.posLeft > scrollX) {
@@ -536,5 +533,5 @@ SearchPage.prototype.moveBy = function spg_moveBy(scrollX, duration, bounce) {
     }
   }
 
-  this.baseMoveBy(scrollX, duration, bounce);
+  this.baseMoveBy(scrollX, duration);
 };

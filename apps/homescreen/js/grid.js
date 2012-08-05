@@ -49,7 +49,7 @@ const GridManager = (function() {
         }
 
         var deltaX = evt.clientX - startEvent.clientX;
-        pan(deltaX, 0, false);
+        pan(deltaX);
         setOverlayPanning(deltaX);
         break;
 
@@ -113,18 +113,14 @@ const GridManager = (function() {
     if (Math.abs(deltaX) > thresholdForPanning) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pageHelper.total() - 1) {
-        goToNextPage();
+        goToPage(currentPage + 1);
       } else if (!forward && currentPage > 0) {
-        goToPreviousPage();
+        goToPage(currentPage - 1);
       } else {
         goToPage(currentPage);
       }
     } else if (Math.abs(deltaX) < thresholdForTapping) {
       pageHelper.getCurrent().tap(target);
-
-      // Sometime poor devices fire touchmove events when users are only
-      // tapping
-      goToPage(currentPage, {noBounce: true});
     } else {
       goToPage(currentPage);
     }
@@ -145,18 +141,15 @@ const GridManager = (function() {
   /*
    * Page Navigation utils.
    */
-  function pan(deltaX, duration, bounce) {
+  function pan(deltaX, duration) {
     var currentPage = pages.current;
     for (var i = 0; i < pages.length; i++) {
       var scrollX = (-currentPage + i) * windowWidth + deltaX;
-      pages[i].moveBy(scrollX, duration, bounce);
+      pages[i].moveBy(scrollX, duration);
     }
   }
 
-  function goToPage(index, props) {
-    props = props || {};
-    var callback = props.callback || function() {};
-
+  function goToPage(index, callback) {
     if (index === 0 && pages.current === 1 && Homescreen.isInEditMode()) {
       index = 1;
     }
@@ -169,10 +162,12 @@ const GridManager = (function() {
       if (!dragging) {
         delete document.body.dataset.transitioning;
       }
-      callback();
+      if (callback) {
+        callback();
+      }
     });
 
-    pan(0, .3, !props.noBounce);
+    pan(0, .3);
     if (index === 0) {
       applyEffectOverlay(0, .3);
     } else if (index === 1) {
@@ -185,11 +180,11 @@ const GridManager = (function() {
   }
 
   function goToNextPage(callback) {
-    goToPage(pages.current + 1, {callback: callback});
+    goToPage(pages.current + 1, callback);
   }
 
   function goToPreviousPage(callback) {
-    goToPage(pages.current - 1, {callback: callback});
+    goToPage(pages.current - 1, callback);
   }
 
   function updatePaginationBar() {
@@ -469,7 +464,6 @@ const GridManager = (function() {
       }
 
       container.addEventListener('mousedown', handleEvent, true);
-      container.addEventListener('resize', handleEvent, true);
 
       limits.left = container.offsetWidth * 0.05;
       limits.right = container.offsetWidth * 0.95;
@@ -511,11 +505,10 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage(index, {callback: function ins_goToPage() {
+        goToPage(index,function ins_goToPage() {
           pageHelper.getCurrent().
                     applyInstallingEffect(Applications.getOrigin(app));
-
-        }});
+        });
       }
 
       pageHelper.saveAll();
