@@ -57,8 +57,9 @@ const GridManager = (function() {
         evt.stopPropagation();
         if (!isPanning) {
           delete document.body.dataset.transitioning;
+        } else {
+          isPanning = false;
         }
-        isPanning = false;
 
         onTouchEnd(evt.clientX - startEvent.clientX, evt.target);
         break;
