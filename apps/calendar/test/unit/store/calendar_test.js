@@ -144,17 +144,18 @@ suite('store/calendar', function() {
     setup(function(done) {
       assert.ok(model._id);
       // we will eventually remove this
-      events[1] = {
+      events[1] = Factory('event', {
         calendarId: model._id,
-        name: 'foo'
-      };
+        remote: { title: 'foo' }
+      });
+
       eventStore.persist(events[1], done);
     });
 
     setup(function(done) {
-      events[2] = {
+      events[2] = Factory('event', {
         calendarId: 'some-other'
-      };
+      });
 
       // this is our control to ensure
       // we are not removing extra stuff

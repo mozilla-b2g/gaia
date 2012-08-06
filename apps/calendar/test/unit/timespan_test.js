@@ -77,43 +77,43 @@ suite('timespan', function() {
       );
     });
 
-    test('numeric (contains)', function() {
+    function testWith(method, useNumeric) {
       var key;
+      var prefix = '';
+
+      if (useNumeric) {
+        prefix += '[numeric] ';
+      }
+
+      prefix += method;
+
       for (key in dates) {
         if (dates.hasOwnProperty(key)) {
+          var value = dates[key].value.valueOf();
+
+          if (useNumeric) {
+            value = value.valueOf();
+          }
+
           assert.equal(
-            subject.contains(dates[key].value.valueOf()),
+            subject.contains(value),
             dates[key].assert,
-            '(numeric) ' + key
+            prefix + key
           );
         }
       }
+    }
+
+    test('numeric (contains)', function() {
+      testWith('contains', true);
     });
 
     test('numeric (containsNumeric)', function() {
-      var key;
-      for (key in dates) {
-        if (dates.hasOwnProperty(key)) {
-          assert.equal(
-            subject.containsNumeric(dates[key].value.valueOf()),
-            dates[key].assert,
-            '(numeric) ' + key
-          );
-        }
-      }
+      testWith('containsNumeric', true);
     });
 
     test('date', function() {
-      var key;
-      for (key in dates) {
-        if (dates.hasOwnProperty(key)) {
-          assert.equal(
-            subject.contains(dates[key].value),
-            dates[key].assert,
-            '(date) ' + key
-          );
-        }
-      }
+      testWith('contains', false);
     });
   });
 
