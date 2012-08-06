@@ -240,7 +240,7 @@ Page.prototype = {
 
     if (scrollX === 0) {
       style.MozTransform = 'translateX(' + (scrollX +
-                           (this.posLeft <= scrollX ? 5 : -5) ) + 'px)';
+                           (this.posLeft <= scrollX ? 5 : -5)) + 'px)';
     } else {
       style.MozTransform = 'translateX(' + (scrollX + 0.001) + 'px)';
     }
@@ -548,7 +548,7 @@ searchProto.decorateScrollX = function spg_getDeltaX(scrollX) {
   }
 
   return scrollX;
-}
+};
 
 searchProto.moveBy = function spg_moveBy(scrollX) {
   this.baseMoveBy(this.decorateScrollX(scrollX));
