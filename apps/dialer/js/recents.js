@@ -146,6 +146,7 @@ var Recents = {
         case 'done-button': // Commit deletions and exit edit mode
           // Execute deletion of the lists
           this.executeDeletion();
+          this.render();
           break;
       }
     }
@@ -309,8 +310,7 @@ var Recents = {
 
         var delAllReq = store.clear();
         delAllReq.onsuccess = function da_onsuccess() {
-          self.recentsContainer.innerHTML = '';
-          self.recentsIconEdit.classList.add('disabled');
+          self.render();
           self.recentsHeaderAction(null);
           this._selectedEntries = new Object();
         };
