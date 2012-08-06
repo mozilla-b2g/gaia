@@ -93,7 +93,7 @@ var QuickSettings = {
                 wifi: (this.wifi.dataset.enabled == 'true'),
                 data: (this.data.dataset.enabled == 'true'),
                 bluetooth: (this.bluetooth.dataset.enabled == 'true'),
-                geolocation: (this.geolocationEnabled == 'true')
+                geolocation: this.geolocationEnabled
               };
 
               var settingsToSet = {};
