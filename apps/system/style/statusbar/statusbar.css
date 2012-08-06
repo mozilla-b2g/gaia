@@ -160,24 +160,28 @@
   background-position: -84px -60px;
 }
 
-.sb-icon-data[data-type="LTE"] {
+.sb-icon-data[data-type="H+"] {
   background-position: 0 -80px;
 }
 
-.sb-icon-data[data-type="4G"] {
+.sb-icon-data[data-type="H"] {
   background-position: -21px -80px;
 }
 
-.sb-icon-data[data-type="3G"] {
+.sb-icon-data[data-type="4G"] {
   background-position: -42px -80px;
 }
 
-.sb-icon-data[data-type="EDGE"] {
+.sb-icon-data[data-type="3G"] {
   background-position: -63px -80px;
 }
 
-.sb-icon-data[data-type="2G"] {
+.sb-icon-data[data-type="E"] {
   background-position: -84px -80px;
+}
+
+.sb-icon-data[data-type="2G"] {
+  background-position: -105px -80px;
 }
 
 .sb-icon-flight-mode {

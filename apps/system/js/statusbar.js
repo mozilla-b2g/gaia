@@ -226,18 +226,25 @@ var StatusBar = {
       var type = '';
 
       switch (data.type) {
+        // 4G LTE
         case 'lte':
-          type = 'LTE';
+
+        // CDMA 4G
+        case 'ehrpd':
+          type = '4G';
           break;
 
-        // This icon is not used
-        // type = '4G';
-        //  break;
+        // 3.5G HSPA+
+        case 'hspa+':
+          type = 'H+';
+          break;
 
-        // 3.5G, show them as 3G
+        // 3.5G
         case 'hsdpa':
         case 'hsupa':
-        case 'hspa+':
+        case 'hspa':
+          type = 'H';
+          break;
 
         // CDMA 3G
         case 'evdo0':
@@ -250,8 +257,9 @@ var StatusBar = {
           type = '3G';
           break;
 
+        // EDGE
         case 'edge':
-          type = 'EDGE';
+          type = 'E';
           break;
 
         // CDMA 2G
