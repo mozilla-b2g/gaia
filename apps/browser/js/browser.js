@@ -990,6 +990,7 @@ var Browser = {
     // transition has ended, this will not be triggered unless the
     // use is navigating from the tab screen.
     var pageShown = (function() {
+      this.mainScreen.removeEventListener('transitionend', pageShown, true);
       this.inTransition = false;
     }).bind(this);
     this.mainScreen.addEventListener('transitionend', pageShown, true);
