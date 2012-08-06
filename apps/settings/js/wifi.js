@@ -157,6 +157,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
   var gWifiCheckBox =
     document.querySelector('#wifi-enabled input[type=checkbox]');
   var gWifiInfoBlock = document.querySelector('#wifi-desc');
+  var gWpsInfoBlock = document.querySelector('#wifi-wps-desc');
+  var wpsInProgress = false;
 
   if (!settings)
     return;
@@ -200,6 +202,16 @@ window.addEventListener('localized', function wifiSettings(evt) {
     gWifiInfoBlock.textContent = _('disabled');
     gNetworkList.clear(false);
     gNetworkList.autoscan = false;
+  };
+
+  // Wi-Fi Protected Setup
+  var wpsPbcButton = document.getElementById('wps-pbc-button');
+  wpsPbcButton.onclick = function() {
+    wpsInProgress = true;
+    gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
+    gWifiManager.wps({
+      method: 'pbc'
+    });
   };
 
   // network list
@@ -524,6 +536,13 @@ window.addEventListener('localized', function wifiSettings(evt) {
       gWifiInfoBlock.textContent =
           _('fullStatus-' + networkStatus, currentNetwork);
     }
+    if (wpsInProgress) {
+      if (networkStatus !== 'disconnected')
+        gWpsInfoBlock.textContent = gWifiInfoBlock.textContent;
+      if (networkStatus === 'connected' || networkStatus === 'wps-timedout' ||
+          networkStatus === 'wps-failed' || networkStatus === 'wps-overlapped')
+        wpsInProgress = false;
+    }
   }
 
   function setMozSettingsEnabled(value) {
@@ -536,6 +555,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
       gNetworkList.clear(true);
     } else {
       gWifiInfoBlock.textContent = _('disabled');
+      if (wpsInProgress)
+        gWpsInfoBlock.textContent = gWifiInfoBlock.textContent;
       gNetworkList.clear(false);
       gNetworkList.autoscan = false;
     }
