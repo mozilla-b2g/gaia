@@ -19,7 +19,9 @@
     "devicestorage",
     "websettings-readwrite",
     "settings",
-    "pin-app"
+    "pin-app",
+    "content-camera",
+    "camera"
   ],
   "locales": {
     "ar": {
