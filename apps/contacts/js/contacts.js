@@ -1121,7 +1121,7 @@ var Contacts = (function() {
       return;
     }
     var storageAreas = navigator.getDeviceStorage('pictures');
-    var storage = storageAreas[0];
+    var storage = storageAreas[0] || storageAreas;
     var request = storage.get(image);
     request.onsuccess = function() {
       var img = document.createElement('img');
