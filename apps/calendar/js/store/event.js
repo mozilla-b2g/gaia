@@ -5,6 +5,7 @@
     this._timeObservers = [];
     this._eventsByTime = Object.create(null);
     this._times = [];
+    this._cachedSpan = null;
   }
 
   Events.prototype = {
@@ -12,9 +13,8 @@
     _store: 'events',
     _dependentStores: ['events'],
 
-    freeCachedRange: function(range) {
+    _freeCachedRange: function(range) {
       // also need to optimize here...
-
       var i = 0;
       var len = this._times.length;
       var matchStart = null;
@@ -59,7 +59,6 @@
           // we are done since time is always
           // in order.
           if (matchStart !== null) {
-            console.log('no match break!');
             break;
           }
         }
@@ -70,9 +69,8 @@
           matchStart,
           i - matchStart
         );
+        this.fireTimeEvent(range, 'free cache');
       }
-
-      this.fireTimeEvent(range, 'free cache');
     },
 
     _addToCache: function(event) {
@@ -152,6 +150,110 @@
           1
         );
       }
+    },
+
+    /**
+     * Returns new spans and drops
+     * old caches of the old ones.
+     */
+    _handleSpanChange: function(newSpan) {
+      if (this._cachedSpan) {
+
+        var oldSpan = this._cachedSpan;
+
+        if (oldSpan.contains(newSpan)) {
+          return false;
+        }
+
+        if (newSpan.start > oldSpan.start) {
+          // clear cache
+          this._freeCachedRange(
+            new Calendar.Timespan(
+              oldSpan.start,
+              newSpan.start - 1
+            )
+          );
+        }
+
+        var start = (newSpan.start > oldSpan.end) ?
+                      newSpan.start :
+                      oldSpan.end + 1;
+
+        return new Calendar.Timespan(
+          start,
+          newSpan.end
+        );
+      } else {
+        return new Calendar.Timespan(
+          newSpan.start,
+          newSpan.end
+        );
+      }
+    },
+
+    /**
+     * Loads a range of events.
+     *
+     * @param {Calendar.Timespan} span timespan.
+     * @param {Function} callback node style.
+     */
+    loadSpan: function(span, trans, callback) {
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = undefined;
+      }
+
+      if (typeof(trans) === 'undefined') {
+        trans = this.db.transaction(
+          this._store
+        );
+      }
+
+      span = this._handleSpanChange(span);
+
+      if (!span) {
+        return callback(null);
+      }
+
+      var store = trans.objectStore(this._store);
+      var self = this;
+
+      var keyRange = IDBKeyRange.bound(
+        new Date(span.start),
+        new Date(span.end)
+      );
+
+      var cursor = store.index('occurs').openCursor(
+        keyRange
+      );
+
+      cursor.onsuccess = function(e) {
+        var cursor = e.target.result;
+
+        if (cursor) {
+          var id = cursor.value._id;
+          var time = cursor.key.valueOf();
+
+          if (!(id in self._cached)) {
+            self._cached[id] = cursor.value;
+          }
+
+          self._addCachedTime(
+            time,
+            self._cached[id]
+          );
+
+          cursor.continue();
+        }
+      };
+
+      trans.addEventListener('error', function(e) {
+        callback(e);
+      });
+
+      trans.addEventListener('complete', function() {
+        callback(null);
+      });
     },
 
     /**

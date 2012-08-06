@@ -8,9 +8,35 @@ requireApp('calendar/test/unit/helper.js', function() {
 suite('store/event', function() {
   var subject;
   var db;
+  var id = 0;
+
+  function event(date) {
+    return Factory('event', {
+      remote: { startDate: date, _id: ++id }
+    });
+  }
+
+  function eventRecuring(date) {
+    return Factory('event.recurring', {
+      remote: {
+        startDate: date,
+        _id: ++id,
+        _recurres: 1
+      }
+    });
+  }
+
+  function time(event, idx) {
+    if (typeof(idx) === 'undefined') {
+      idx = 0;
+    }
+
+    return event.remote.occurs[idx].valueOf();
+  }
 
   setup(function(done) {
     this.timeout(5000);
+    id = 0;
     db = testSupport.calendar.db();
     subject = db.getStore('Event');
 
@@ -180,38 +206,8 @@ suite('store/event', function() {
   });
 
   suite('event caching', function() {
-    var id = 0;
-    var event;
     var single;
     var recurring;
-
-    function event(date) {
-      return Factory('event', {
-        remote: { startDate: date, _id: ++id }
-      });
-    }
-
-    function eventRecuring(date) {
-      return Factory('event.recurring', {
-        remote: {
-          startDate: date,
-          _id: ++id,
-          _recurres: 1
-        }
-      });
-    }
-
-    function time(event, idx) {
-      if (typeof(idx) === 'undefined') {
-        idx = 0;
-      }
-
-      return event.remote.occurs[idx].valueOf();
-    }
-
-    setup(function() {
-      id = 0;
-    });
 
     suite('#_addToCache', function() {
 
@@ -270,7 +266,9 @@ suite('store/event', function() {
 
     });
 
-    suite('#freeCachedRange', function() {
+    suite('#_freeCachedRange', function(done) {
+
+      var calledWith;
       var beforeSingle;
       var recurring;
       var afterSingle;
@@ -298,15 +296,17 @@ suite('store/event', function() {
         subject._addToCache(afterSingle);
         subject._addToCache(beforeSingle);
 
-        var start = window.performance.now();
-        subject.freeCachedRange(span);
-        subject.freeCachedRange(span);
-        subject.freeCachedRange(span);
-        subject.freeCachedRange(span);
-        subject.freeCachedRange(span);
-        var end = window.performance.now();
+        subject.observeTime(span, function(e) {
+          done(function() {
+            assert.equal(e.time, span);
+          });
+        });
 
-        console.log(end - start, '<--- BENCH');
+        var start = window.performance.now();
+        // twice intentionally to show it has no effect.
+        subject._freeCachedRange(span);
+        subject._freeCachedRange(span);
+        var end = window.performance.now();
 
       });
 
@@ -408,8 +408,184 @@ suite('store/event', function() {
 
   });
 
+  suite('#_handleSpanChange', function() {
+    var oldSpan;
+    var newSpan;
+    var calledWith;
+    var result;
+
+    setup(function() {
+      calledWith = null;
+      oldSpan = new Calendar.Timespan(
+        new Date(2012, 1, 1),
+        new Date(2012, 1, 10)
+      );
+
+      subject._cachedSpan = oldSpan;
+
+      newSpan = new Calendar.Timespan(
+        new Date(2012, 1, 5),
+        new Date(2012, 1, 15)
+      );
+
+      subject._freeCachedRange = function() {
+        calledWith = arguments[0];
+      }
+    });
+
+    test('when new is in range of old', function() {
+      result = subject._handleSpanChange(
+        oldSpan
+      );
+
+      assert.equal(calledWith, null);
+      assert.isFalse(result);
+    });
+
+    test('when no existing span', function() {
+      subject._cachedSpan = null;
+      result = subject._handleSpanChange(
+        newSpan
+      );
+
+      assert.equal(calledWith, null);
+      assert.notEqual(newSpan, result);
+
+      // no cache load whole request
+      assert.equal(
+        newSpan.start,
+        result.start,
+        'should start at same time as request'
+      );
+
+      assert.equal(
+        newSpan.end,
+        result.end,
+        'should end at same time as request'
+      );
+    });
+
+    test('drop and skip', function() {
+      result = subject._handleSpanChange(
+        newSpan
+      );
+
+      assert.instanceOf(result, Calendar.Timespan);
+      assert.instanceOf(calledWith, Calendar.Timespan);
+
+      assert.notEqual(
+        oldSpan,
+        calledWith,
+        'should not pass/mutate old span'
+      );
+
+      assert.notEqual(
+        newSpan,
+        oldSpan,
+        'should not pass/mutate new span'
+      );
+
+      assert.equal(
+        calledWith.start,
+        oldSpan.start,
+        'should call free with same start'
+      );
+
+      assert.equal(
+        calledWith.end,
+        newSpan.start - 1,
+        'should free just before start new new span'
+      );
+
+      assert.equal(
+        result.start,
+        oldSpan.end + 1,
+        'should request load of everything just after cache'
+      );
+
+      assert.equal(
+        result.end,
+        newSpan.end
+      );
+    });
+
+  });
+
+  suite('#loadSpan', function() {
+
+    var events;
+    var span;
+
+    setup(function() {
+      events = {};
+    });
+
+    function persistEvent(date) {
+      setup(function(done) {
+        subject.persist(event(date), function(err, id, model) {
+          events[date.valueOf()] = model;
+          done();
+        });
+      });
+    }
+
+    persistEvent(new Date(2012, 1, 1));
+    persistEvent(new Date(2012, 1, 2));
+    persistEvent(new Date(2012, 1, 3));
+    persistEvent(new Date(2012, 1, 4));
+
+    setup(function(done) {
+      span = new Calendar.Timespan(
+        new Date(2012, 1, 1),
+        new Date(2012, 1, 2)
+      );
+
+      subject._cached = Object.create(null);
+      subject._times = [];
+      subject._eventsByTime = Object.create(null);
+
+      subject.loadSpan(span, function(err) {
+        done();
+      });
+    });
+
+    test('initial load', function() {
+      function byDate(idx) {
+        return events[dates[idx]];
+      }
+
+      var dates = [
+        new Date(2012, 1, 1).valueOf(),
+        new Date(2012, 1, 2).valueOf()
+      ];
+
+      var cached = Object.create(null);
+
+      cached[byDate(0)._id] = byDate(0);
+      cached[byDate(1)._id] = byDate(1);
+
+      assert.deepEqual(subject.cached, cached);
+
+      assert.deepEqual(
+        subject._times,
+        dates,
+        'should load events in range'
+      );
+
+      assert.deepEqual(
+        subject._eventsByTime[dates[0]][0],
+        byDate(0)
+      );
+
+      assert.deepEqual(
+        subject._eventsByTime[dates[1]][0],
+        byDate(1)
+      );
+    });
+
+  });
+
   suite('find', function() {
-    return;
     var events;
     var lastEvent;
 
@@ -498,7 +674,6 @@ suite('store/event', function() {
       };
 
       trans.oncomplete = function() {
-        console.log(times.join('\n'));
         done();
       };
     });
