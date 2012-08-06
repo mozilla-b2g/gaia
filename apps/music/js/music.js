@@ -39,7 +39,7 @@ function buildUI() {
   var option = 'artist';
 
   musicdb.enumerate('metadata.' + option, null, 'nextunique',
-    ListView.update.bind(ListView, option));
+                    TilesView.update.bind(TilesView));
 }
 
 //
@@ -70,9 +70,17 @@ var MODE_TILES = 1;
 var MODE_LIST = 2;
 var MODE_SUBLIST = 3;
 var MODE_PLAYER = 4;
-var currentMode;
+var currentMode, fromMode;
 
 function changeMode(mode) {
+  if (mode === currentMode)
+    return;
+
+  if (fromMode >= mode) {
+    fromMode = mode - 1;
+  } else {
+    fromMode = currentMode;
+  }
   currentMode = mode;
 
   document.body.classList.remove('tiles-mode');
@@ -95,6 +103,11 @@ function changeMode(mode) {
       break;
   }
 }
+
+// We have two types of the playing sources
+// These are for player to know which source type is playing
+var TYPE_MIX = 'mix';
+var TYPE_LIST = 'list';
 
 // Title Bar
 var TitleBar = {
@@ -125,11 +138,7 @@ var TitleBar = {
 
         switch (target.id) {
           case 'title-back':
-            if (currentMode === MODE_SUBLIST) {
-              changeMode(MODE_LIST);
-            } else if (currentMode === MODE_PLAYER) {
-              changeMode(MODE_SUBLIST);
-            }
+            changeMode(fromMode);
 
             break;
           case 'title-text':
@@ -153,8 +162,84 @@ var TilesView = {
     return this._view = document.getElementById('views-tiles');
   },
 
+  get dataSource() {
+    return this._dataSource;
+  },
+
+  set dataSource(source) {
+    this._dataSource = source;
+  },
+
   init: function tv_init() {
+    this.dataSource = [];
+    this.index = 0;
+
     this.view.addEventListener('click', this);
+  },
+
+  setItemImage: function tv_setItemImage(item, image) {
+    // Set source to image and crop it to be fitted when it's onloded
+    if (!image)
+      return;
+
+    item.addEventListener('load', cropImage);
+    item.src = createBase64URL(image);
+  },
+
+  update: function tv_update(result) {
+    if (result === null)
+      return;
+
+    if (this.dataSource.length === 0)
+      document.getElementById('nosongs').classList.add('invisible');
+
+    this.dataSource.push(result);
+
+    var container = document.createElement('div');
+    container.className = 'tile-container';
+
+    var tile = document.createElement('div');
+
+    var defaultImage = document.createElement('div');
+    defaultImage.textContent = result.metadata.title ||
+      navigator.mozL10n.get('unknownTitle');
+
+    var img = document.createElement('img');
+    img.className = 'tile-image';
+
+    var image = result.metadata.picture;
+    this.setItemImage(img, image);
+
+    // There are 6 tiles in one group
+    // and the first tile is the main-tile
+    // so we mod 6 to find out who is the main-tile
+    if (this.index % 6 === 0) {
+      tile.classList.add('main-tile');
+      defaultImage.classList.add('main-tile-default-image');
+    } else {
+      tile.classList.add('sub-tile');
+      defaultImage.classList.add('sub-tile-default-image');
+    }
+
+    // Since 6 tiles are in one group
+    // the even group will be floated to left
+    // the odd group will be floated to right
+    if (Math.floor(this.index / 6) % 2 === 0) {
+      tile.classList.add('float-left');
+    } else {
+      tile.classList.add('float-right');
+    }
+
+    tile.classList.add('color-' + this.index % 7);
+
+    container.dataset.index = this.index;
+
+    container.appendChild(defaultImage);
+    container.appendChild(img);
+    tile.appendChild(container);
+    this.view.appendChild(tile);
+
+    this.index++;
   },
 
   handleEvent: function tv_handleEvent(evt) {
@@ -164,12 +249,25 @@ var TilesView = {
         if (!target)
           return;
 
-        changeMode(MODE_LIST);
+        if (target.dataset.index) {
+          var handler = tv_playSong.bind(this);
+
+          target.addEventListener('transitionend', handler);
+        }
 
         break;
 
       default:
         return;
+    }
+
+    function tv_playSong() {
+      PlayerView.setSourceType(TYPE_MIX);
+      PlayerView.dataSource = this.dataSource;
+      PlayerView.play(target);
+
+      changeMode(MODE_PLAYER);
+      target.removeEventListener('transitionend', handler);
     }
   }
 };
@@ -214,9 +312,6 @@ var ListView = {
   update: function lv_update(option, result) {
     if (result === null)
       return;
-
-    if (this.dataSource.length === 0)
-      document.getElementById('nosongs').style.display = 'none';
 
     this.dataSource.push(result);
 
@@ -422,6 +517,7 @@ var SubListView = {
           return;
 
         if (target.dataset.index) {
+          PlayerView.setSourceType(TYPE_LIST);
           PlayerView.dataSource = this.dataSource;
           PlayerView.play(target);
 
@@ -492,6 +588,10 @@ var PlayerView = {
 
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
+  },
+
+  setSourceType: function pv_setSourceType(type) {
+    this.sourceType = type;
   },
 
   // This function is for the animation on the album art (cover).
@@ -592,7 +692,8 @@ var PlayerView = {
   },
 
   next: function pv_next() {
-    var songElements = SubListView.anchor.children;
+    var songElements = (this.sourceType === TYPE_MIX) ?
+      TilesView.view.children : SubListView.anchor.children;
 
     if (this.currentIndex >= this.dataSource.length - 1)
       return;
@@ -603,7 +704,8 @@ var PlayerView = {
   },
 
   previous: function pv_previous() {
-    var songElements = SubListView.anchor.children;
+    var songElements = (this.sourceType === TYPE_MIX) ?
+      TilesView.view.children : SubListView.anchor.children;
 
     if (this.currentIndex <= 0)
       return;
@@ -798,7 +900,7 @@ window.addEventListener('DOMContentLoaded', function() {
           evt.preventDefault();
           break;
         case MODE_PLAYER:
-          changeMode(MODE_LIST);
+          changeMode(MODE_SUBLIST);
           evt.preventDefault();
           break;
       }

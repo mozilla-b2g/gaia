@@ -93,6 +93,42 @@ contacts.List = (function() {
     return contactContainer;
   }
 
+  var getSimContacts = function getSimContacts() {
+    var container = groupsList.parentNode; // #groups-container
+    var button = document.createElement('button');
+    button.setAttribute('class', 'simContacts action action-add');
+    button.textContent = _('simContacts-import');
+    container.appendChild(button);
+
+    button.onclick = function readFromSIM() {
+      // replace the button with a throbber
+      container.removeChild(button);
+      var span = document.createElement('span');
+      span.textContent = _('simContacts-importing');
+      var small = document.createElement('small');
+      small.textContent = _('simContacts-reading');
+      var throbber = document.createElement('p');
+      throbber.className = 'simContacts';
+      throbber.appendChild(span);
+      throbber.appendChild(small);
+      container.appendChild(throbber);
+
+      // import SIM contacts
+      importSIMContacts(
+          function onread() {
+            small.textContent = _('simContacts-storing');
+          },
+          function onimport() {
+            container.removeChild(throbber);
+            getContactsByGroup();
+          },
+          function onerror() {
+            container.removeChild(throbber);
+            console.log('Error reading SIM contacts.');
+          }
+      );
+    };
+  }
 
   var buildContacts = function buildContacts(contacts) {
     for (var i = 0; i < contacts.length; i++) {
@@ -118,8 +154,9 @@ contacts.List = (function() {
     var container = document.getElementById(group);
     request.onsuccess = function favoritesCallback() {
       //request.result is an object, transform to an array
-      if (request.result.length > 0)
-          showGroup('favorites');
+      if (request.result.length > 0) {
+        showGroup('favorites');
+      }
       for (var i in request.result) {
         var newContact = renderContact(request.result[i]);
         container.appendChild(newContact);
@@ -140,7 +177,11 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      buildContacts(request.result);
+      if (request.result.length === 0) {
+        getSimContacts();
+      } else {
+        buildContacts(request.result);
+      }
     };
 
     request.onerror = errorCb;
@@ -373,8 +414,7 @@ contacts.List = (function() {
       var text = contact.querySelector('.item-body').dataset['search'];
       if (!pattern.test(text)) {
         contact.classList.add('hide');
-      }
-       else {
+      } else {
         contact.classList.remove('hide');
         count++;
       }
@@ -418,3 +458,4 @@ contacts.List = (function() {
     'loaded': loaded
   };
 })();
+
