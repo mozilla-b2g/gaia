@@ -196,12 +196,7 @@ var Recents = {
       if (visibleCalls.length > 0) {
         this.recentsIconEdit.classList.remove('disabled');
       } else {
-        this.recentsContainer.innerHTML = '<div id="no-result-container">' +
-                                          '<div id="no-result-message">' +
-                                          '<p>no calls recorded</p>' +
-                                          '<p>start communicating now</p>' +
-                                          '</div>' +
-                                          '</div>';
+        this.recentsIconEdit.classList.add('disabled');
       }
       if (this._recentsEditionMode) {
         var selectedCalls = this.recentsContainer.
@@ -236,6 +231,8 @@ var Recents = {
           querySelectorAll('.log-item:not(.hide)');
         if (visibleCalls.length == 0) {
           this.recentsIconEdit.classList.add('disabled');
+        } else {
+          this.recentsIconEdit.classList.remove('disabled');
         }
         if (this._recentsEditionMode) {
           var selectedCalls = this.recentsContainer.
