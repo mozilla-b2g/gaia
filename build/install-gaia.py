@@ -148,7 +148,7 @@ def install_gaia_slow():
 def install_gaia():
     try:
         # XXX Force slow method until we fix the fast one to support
-        # files in both /system/b2b and /data/local
+        # files in both /system/b2g and /data/local
         # install_gaia_fast()
         install_gaia_slow()
     except:
