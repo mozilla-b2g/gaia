@@ -13,10 +13,6 @@
 
   opacity: 1;
 
-  /*
-  * This transition will be async when this bug is fixed
-  * https://bugzilla.mozilla.org/show_bug.cgi?id=780340
-  */
   -moz-transition:
     -moz-transform 0.5s ease,
     opacity 0.5s ease,
@@ -29,10 +25,6 @@
   opacity: 0;
   visibility: hidden;
 
-  /*
-  * This transition will be async when this bug is fixed
-  * https://bugzilla.mozilla.org/show_bug.cgi?id=780340
-  */
   -moz-transition:
     -moz-transform 0.5s ease 0.3s,
     opacity 0.5s ease 0.3s,
