@@ -238,9 +238,17 @@
             self._cached[id] = cursor.value;
           }
 
+          var model = self._cached[id];
+
           self._addCachedTime(
             time,
-            self._cached[id]
+            model
+          );
+
+          self.fireTimeEvent(
+            'load',
+            time,
+            model
           );
 
           cursor.continue();

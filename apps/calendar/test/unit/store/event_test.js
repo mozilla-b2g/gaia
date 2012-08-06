@@ -515,9 +515,11 @@ suite('store/event', function() {
 
     var events;
     var span;
+    var timeEvents;
 
     setup(function() {
       events = {};
+      timeEvents = [];
     });
 
     function persistEvent(date) {
@@ -543,6 +545,10 @@ suite('store/event', function() {
       subject._cached = Object.create(null);
       subject._times = [];
       subject._eventsByTime = Object.create(null);
+
+      subject.observeTime(span, function(e) {
+        timeEvents.push(e);
+      });
 
       subject.loadSpan(span, function(err) {
         done();
@@ -581,6 +587,31 @@ suite('store/event', function() {
         subject._eventsByTime[dates[1]][0],
         byDate(1)
       );
+
+      assert.equal(
+        timeEvents.length,
+        2,
+        'should fire time events'
+      );
+
+      assert.deepEqual(
+        timeEvents[1],
+        {
+          data: byDate(1),
+          time: dates[1],
+          type: 'load'
+        }
+      );
+
+      assert.deepEqual(
+        timeEvents[0],
+        {
+          data: byDate(0),
+          time: dates[0],
+          type: 'load'
+        }
+      );
+
     });
 
   });

@@ -77,7 +77,20 @@ suite('timespan', function() {
       );
     });
 
-    test('numeric', function() {
+    test('numeric (contains)', function() {
+      var key;
+      for (key in dates) {
+        if (dates.hasOwnProperty(key)) {
+          assert.equal(
+            subject.contains(dates[key].value.valueOf()),
+            dates[key].assert,
+            '(numeric) ' + key
+          );
+        }
+      }
+    });
+
+    test('numeric (containsNumeric)', function() {
       var key;
       for (key in dates) {
         if (dates.hasOwnProperty(key)) {

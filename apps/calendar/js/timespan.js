@@ -22,6 +22,8 @@ Calendar.Timespan = (function() {
       } else if (date instanceof Timespan) {
         return start <= date.start &&
                end >= date.end;
+      } else {
+        return this.containsNumeric(date);
       }
     },
 
