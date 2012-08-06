@@ -47,7 +47,9 @@
     evt.preventDefault();
     evt.stopPropagation();
 
-    if (!isScrolling) return;
+    if (!isScrolling) {
+      return;
+    }
 
     var current = evt.target.dataset.letter;
     overlayContent.textContent = current;
