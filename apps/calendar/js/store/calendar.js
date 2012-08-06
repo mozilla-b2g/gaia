@@ -67,6 +67,15 @@
       // sync of the entire collection
       // we can assume everything is cached.
 
+      var self = this;
+      var persist = [];
+      var store = this.db.getStore('Event');
+      var originalIds = Object.keys(store.cached);
+      var syncTime = new Date();
+
+      if (!calendar._id) {
+        throw new Error('calendar must be assigned an _id');
+      }
 
       // 1. Open an event stream
       //    as we read the stream events
@@ -81,8 +90,36 @@
 
       var stream = provider.eventStream(
         account.toJSON(),
-        calendar.toJSON
+        calendar.toJSON()
       );
+
+      stream.on('data', function(event) {
+        var id = calendar._id + '-' + event.id;
+        var localEvent = store.cached[id];
+
+        if (localEvent) {
+          var localToken = localEvent.remote.syncToken;
+          var remoteToken = event.syncToken;
+
+          if (localToken !== remoteToken) {
+            localEvent.remote = event;
+            persist.push(localEvent);
+          }
+
+          var idx = originalIds.indexOf(id);
+          originalIds.splice(idx, 1);
+        } else {
+          localEvent = {
+            calendarId: calendar._id,
+            remote: event
+          };
+
+          persist.push(localEvent);
+        }
+      });
+
+      stream.send(commitSync);
+
 
       // 2. After the entire stream is finished
       //    and the records are sorted into
@@ -90,10 +127,37 @@
       //    and actually persist the collection.
 
 
-      // 3. In the same transaction
-      //    move the remotes syncToken
-      //    to the calendars lastEventSyncToken
-      //    and set the lastEventSyncDate
+      function commitSync() {
+        // 3. In the same transaction
+        //    move the remotes syncToken
+        //    to the calendars lastEventSyncToken
+        //    and set the lastEventSyncDate
+
+        var trans = self.db.transaction(
+          ['calendars', 'events'], 'readwrite'
+        );
+
+        persist.forEach(function(event) {
+          store.persist(event, trans);
+        });
+
+        originalIds.forEach(function(id) {
+          store.remove(id, trans);
+        });
+
+        calendar.lastEventSyncToken = calendar.remote.syncToken;
+        calendar.lastEventSyncDate = syncTime;
+
+        self.persist(calendar, trans);
+
+        trans.addEventListener('error', function(e) {
+          callback(e);
+        });
+
+        trans.addEventListener('complete', function() {
+          callback(null);
+        });
+      }
     }
 
   };

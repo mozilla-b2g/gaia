@@ -80,6 +80,7 @@
         putReq = store.put(data);
       } else {
         reqType = 'add';
+        this._assignId(data);
         putReq = store.add(data);
       }
 
@@ -95,7 +96,7 @@
         var id = putReq.result;
         var result = self._createModel(object, id);
 
-        self._addToCache(object);
+        self._addToCache(result);
 
         if (callback) {
           callback(null, id, result);
@@ -129,8 +130,7 @@
         var item;
 
         for (; i < len; i++) {
-          item = data[i];
-          cached[item._id] = self._createModel(item);
+          self._addToCache(self._createModel(data[i]));
         }
       };
 
@@ -145,6 +145,13 @@
     },
 
     _removeDependents: function(trans) {},
+
+    _parseId: function(id) {
+      return parseInt(id);
+    },
+
+    _assignId: function(obj) {
+    },
 
     /**
      * Removes a object from the store.
@@ -168,8 +175,9 @@
 
       var self = this;
       var store = trans.objectStore(this._store);
+      id = this._parseId(id);
 
-      var req = store.delete(parseInt(id));
+      var req = store.delete(id);
 
       this._removeDependents(id, trans);
 

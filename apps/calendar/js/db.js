@@ -42,7 +42,7 @@
      * @param {Function} callback node style.
      */
     load: function(callback) {
-      var pending = 2;
+      var pending = 3;
       var self = this;
 
       function next() {
@@ -60,6 +60,13 @@
       // fatal.
       function loadRecords() {
         self.getStore('Account').load(function(err) {
+          if (err) {
+            throw err;
+          }
+          next();
+        });
+
+        self.getStore('Event').load(function(err) {
           if (err) {
             throw err;
           }

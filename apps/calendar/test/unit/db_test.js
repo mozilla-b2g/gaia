@@ -93,6 +93,7 @@ suite('db', function() {
 
     var account = subject.getStore('Account');
     var calendar = subject.getStore('Calendar');
+    var event = subject.getStore('Event');
 
     account.load = function(callback) {
       callback(null, {});
@@ -103,6 +104,11 @@ suite('db', function() {
       callback(null, {});
       loaded.calendar = true;
     }
+
+    event.load = function(callback) {
+      callback(null, {});
+      loaded.event = true;
+    };
 
     assert.ok(!subject.isOpen);
 
@@ -115,6 +121,7 @@ suite('db', function() {
       done(function() {
         assert.ok(loaded.account, 'should load account');
         assert.ok(loaded.calendar, 'should load calendar');
+        assert.ok(loaded.event), 'should load event';
       });
     });
   });

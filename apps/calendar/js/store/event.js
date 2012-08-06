@@ -3,6 +3,8 @@
     Calendar.Store.Abstract.apply(this, arguments);
 
     this._timeObservers = [];
+
+    //XXX: Experiment with tree data-types
     this._eventsByTime = Object.create(null);
     this._times = [];
     this._cachedSpan = null;
@@ -12,6 +14,11 @@
     __proto__: Calendar.Store.Abstract.prototype,
     _store: 'events',
     _dependentStores: ['events'],
+
+    _assignId: function(obj) {
+      var id = obj.calendarId + '-' + obj.remote.id;
+      return obj._id = id;
+    },
 
     _freeCachedRange: function(range) {
       // also need to optimize here...
@@ -77,9 +84,7 @@
       var remote = event.remote;
       var id = event._id;
 
-      if (!(id in this._cached)) {
-        this._cached[id] = event;
-      }
+      this._cached[id] = event;
 
       remote.occurs.forEach(function(time) {
         this._addCachedTime(time.valueOf(), event);
@@ -112,12 +117,8 @@
       }
     },
 
-    _updateCachedEvent: function(event) {
-      this._removeCachedEvent(event);
-      this._addToCache(event);
-    },
-
     _removeFromCache: function(id) {
+
       // remove from cache
       var event = this._cached[id];
       var occurs = event.remote.occurs;
@@ -138,7 +139,6 @@
     },
 
     _removeCachedTime: function(time, event) {
-
       var byTime = this._eventsByTime[time];
 
       var intimeIdx = byTime.indexOf(event);
@@ -189,6 +189,51 @@
           newSpan.end
         );
       }
+    },
+
+    _parseId: function(id) {
+      return id;
+    },
+
+    /**
+     * Gets all events in timespan that
+     * are currently cached in order
+     * of when they occur.
+     *
+     * Events that occur multiple times
+     * in the span will be included.
+     */
+    cachedSpan: function(span) {
+      var results = [];
+
+      //XXX: We can *greatly* optimize this
+      var i = 0;
+      var len = this._times.length;
+      var time;
+      var hasMatched;
+      var events;
+
+      function pushToResults(event) {
+        results.push(event);
+      }
+
+      for (; i < len; i++) {
+        time = this._times[i];
+
+        if (span.contains(time)) {
+          hasMatched = true;
+
+          this._eventsByTime[time].forEach(
+            pushToResults
+          );
+
+        } else if (hasMatched) {
+          // we have completed the search.
+          break;
+        }
+      }
+
+      return results;
     },
 
     /**

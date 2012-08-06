@@ -209,6 +209,49 @@ suite('store/event', function() {
     var single;
     var recurring;
 
+    suite('cachedSpan', function() {
+      var dates;
+
+      function date(date) {
+        return dates[date.valueOf()];
+      }
+
+      function addEvent(date) {
+        var value = date.valueOf();
+        dates[value] = event(date);
+        subject._addToCache(dates[value]);
+      }
+
+      setup(function() {
+        dates = {};
+
+        addEvent(new Date(2012, 1, 1));
+        addEvent(new Date(2012, 1, 2));
+        addEvent(new Date(2012, 1, 3));
+        addEvent(new Date(2012, 1, 4));
+        addEvent(new Date(2012, 1, 5));
+      });
+
+      test('find lower half', function() {
+        var result = subject.cachedSpan(
+          new Calendar.Timespan(
+            new Date(2012, 1, 3),
+            new Date(2012, 1, 5)
+          )
+        );
+
+        assert.deepEqual(
+          result,
+          [
+            date(new Date(2012, 1, 3)),
+            date(new Date(2012, 1, 4)),
+            date(new Date(2012, 1, 5))
+          ]
+        );
+      });
+
+    });
+
     suite('#_addToCache', function() {
 
       setup(function() {
@@ -263,7 +306,6 @@ suite('store/event', function() {
           recurring
         );
       });
-
     });
 
     suite('#_freeCachedRange', function(done) {
