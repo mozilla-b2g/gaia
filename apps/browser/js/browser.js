@@ -68,6 +68,10 @@ var Browser = {
       this.showAboutPage.bind(this));
     this.clearHistoryButton.addEventListener('click',
       this.handleClearHistory.bind(this));
+    this.closeTab.addEventListener('click',
+      this.handleCloseTab.bind(this));
+    this.tryReloading.addEventListener('click',
+      this.handleTryReloading.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -114,7 +118,8 @@ var Browser = {
       'bookmarks-tab', 'history-tab', 'back-button', 'forward-button',
       'bookmark-button', 'ssl-indicator', 'tabs-badge', 'throbber', 'frames',
       'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
-      'about-firefox-button', 'clear-history-button'];
+      'about-firefox-button', 'clear-history-button', 'crashscreen',
+      'close-tab', 'try-reloading'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -131,6 +136,17 @@ var Browser = {
     if (this.currentScreen === this.TABS_SCREEN) {
       this.showPageScreen();
     }
+  },
+
+  handleTryReloading: function browser_handleTryReloading() {
+    this.navigate(this.currentTab.url);
+  },
+
+  handleCloseTab: function browser_handleCloseTab() {
+    this.hideCrashScreen();
+    this.deleteTab(this.currentTab.id);
+    this.setTabVisibility(this.currentTab, true);
+    this.updateTabsCount();
   },
 
   // We want to ensure the current page preview on the tabs screen is in
@@ -182,7 +198,7 @@ var Browser = {
 
       case 'mozbrowserloadstart':
         // iframe will call loadstart on creation, ignore
-        if (!tab.url) {
+        if (!tab.url || tab.crashed) {
           return;
         }
         tab.loading = true;
@@ -300,6 +316,12 @@ var Browser = {
         }
         ModalDialog.handleEvent(evt, tab.id);
         break;
+
+      case 'mozbrowsererror':
+        if (evt.detail.type === 'fatal') {
+          this.handleCrashedTab(tab);
+        }
+        break;
       }
     }).bind(this);
   },
@@ -320,6 +342,42 @@ var Browser = {
           this.updateAwesomeScreen(this.urlInput.value);
         }
     }
+  },
+
+  showCrashScreen: function browser_showCrashScreen() {
+    if (Object.keys(this.tabs).length > 1) {
+      this.closeTab.removeAttribute('disabled');
+    } else {
+      this.closeTab.setAttribute('disabled', 'disabled');
+    }
+    this.crashscreen.style.display = 'block';
+  },
+
+  hideCrashScreen: function browser_hideCrashScreen() {
+    this.crashscreen.style.display = 'none';
+  },
+
+  handleCrashedTab: function browser_handleCrashedTab(tab) {
+    if (tab.id === this.currentTab.id) {
+      this.showCrashScreen();
+    }
+
+    tab.loading = false;
+    tab.crashed = true;
+    this.frames.removeChild(tab.dom);
+    delete tab.dom;
+    delete tab.screenshot;
+    tab.loading = false;
+
+    var newIframe = document.createElement('iframe');
+    newIframe.mozbrowser = true;
+    // FIXME: content shouldn't control this directly
+    newIframe.setAttribute('remote', 'true');
+
+    tab.dom = newIframe;
+    this.bindBrowserEvents(tab.dom, tab);
+    this.frames.appendChild(tab.dom);
+    this.refreshButtons();
   },
 
   handleWindowOpen: function browser_handleWindowOpen(evt) {
@@ -357,6 +415,10 @@ var Browser = {
   },
 
   navigate: function browser_navigate(url) {
+    if (this.currentTab.crashed) {
+      this.currentTab.crashed = false;
+      this.hideCrashScreen();
+    }
     this.showPageScreen();
     this.currentTab.title = null;
     this.currentTab.url = url;
@@ -386,6 +448,12 @@ var Browser = {
       e.preventDefault();
     }
 
+    if (this.currentTab.crashed && this.urlButtonMode == this.REFRESH) {
+      this.setUrlBar(this.currentTab.url);
+      this.navigate(this.currentTab.url);
+      return;
+    }
+
     if (this.urlButtonMode == this.REFRESH) {
       this.currentTab.dom.reload(true);
       return;
@@ -398,7 +466,7 @@ var Browser = {
 
     var url = this.getUrlFromInput(this.urlInput.value);
 
-    if (url != this.currentTab.url) {
+    if (url !== this.currentTab.url && !this.currentTab.crashed) {
       this.setUrlBar(url);
       this.currentTab.url = url;
     }
@@ -803,8 +871,23 @@ var Browser = {
     if (tab.dom.setActive) {
       tab.dom.setActive(visible);
     }
+    if (tab.crashed) {
+      this.showCrashScreen();
+    }
     tab.dom.style.display = visible ? 'block' : 'none';
     tab.dom.style.top = '0px';
+  },
+
+  bindBrowserEvents: function browser_bindBrowserEvents(iframe, tab) {
+    var browserEvents = ['loadstart', 'loadend', 'locationchange',
+                         'titlechange', 'iconchange', 'contextmenu',
+                         'securitychange', 'openwindow', 'close',
+
+                         'showmodalprompt', 'error'];
+    browserEvents.forEach(function attachBrowserEvent(type) {
+      iframe.addEventListener('mozbrowser' + type,
+                              this.handleBrowserEvent(tab));
+    }, this);
   },
 
   createTab: function browser_createTab(url, iframe) {
@@ -817,10 +900,6 @@ var Browser = {
       }
     }
 
-    var browserEvents = ['loadstart', 'loadend', 'locationchange',
-                         'titlechange', 'iconchange', 'contextmenu',
-                         'securitychange', 'openwindow', 'close',
-                         'showmodalprompt'];
     iframe.style.top = '-999px';
 
     // FIXME: content shouldn't control this directly
@@ -835,11 +914,7 @@ var Browser = {
       screenshot: null,
       security: null
     };
-
-    browserEvents.forEach(function attachBrowserEvent(type) {
-      iframe.addEventListener('mozbrowser' +
-        type, this.handleBrowserEvent(tab));
-    }, this);
+    this.bindBrowserEvents(iframe, tab);
 
     this.tabs[tab.id] = tab;
     this.frames.appendChild(iframe);
@@ -912,13 +987,15 @@ var Browser = {
   showAwesomeScreen: function browser_showAwesomeScreen() {
     this.tabsBadge.innerHTML = '';
     // Ensure the user cannot interact with the browser until the
-    // transition has ended
+    // transition has ended, this will not be triggered unless the
+    // use is navigating from the tab screen.
     var pageShown = (function() {
+      this.mainScreen.removeEventListener('transitionend', pageShown, true);
       this.inTransition = false;
-      this.setUrlButtonMode(this.GO);
     }).bind(this);
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
+    this.setUrlButtonMode(this.GO);
     this.showTopSitesTab();
   },
 
@@ -944,6 +1021,11 @@ var Browser = {
 
     this.switchScreen(this.PAGE_SCREEN);
     this.setUrlBar(this.currentTab.title || this.currentTab.url);
+    if (this.currentTab.crashed) {
+      this.showCrashScreen();
+    } else {
+      this.hideCrashScreen();
+    }
     this.updateTabsCount();
     this.inTransition = false;
   },
@@ -1223,11 +1305,16 @@ window.addEventListener('load', function browserOnLoad(evt) {
   Browser.init();
 });
 
-window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+
+function actHandle(activity) {
   if (Browser.hasLoaded) {
     Browser.handleActivity(activity);
   } else {
     Browser.waitingActivities.push(activity);
   }
   activity.postResult({ status: 'accepted' });
-});
+}
+
+if (window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler('activity', actHandle);
+}
