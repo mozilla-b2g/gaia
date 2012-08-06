@@ -128,7 +128,7 @@
 #modal-dialog-alert.visible,
 #modal-dialog-confirm.visible,
 #modal-dialog-prompt.visible,
-#modal-dialog-authentication {
+#modal-dialog-authentication.visible {
   display: block;
 }
 
