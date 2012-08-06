@@ -496,7 +496,6 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
-    console.log('*********currentContact.photo:'+currentContact.photo);
     thumb.style.backgroundImage = 'url(' + currentContact.photo + ')';
     var default_type = TAG_OPTIONS['phone-type'][0].value;
     for (var tel in currentContact.tel) {
@@ -1091,7 +1090,6 @@ var Contacts = (function() {
   };
 
   var pickImage = function pickImage() {
-    console.log('************hehe');
     var activity = new MozActivity({
       name: 'pick',
       data: {
@@ -1107,14 +1105,12 @@ var Contacts = (function() {
     };
 
     activity.onsuccess = function success() {
-      console.log('************haha');
       reopenApp();
       var currentImg = this.result.filename;
       updateContactPhoto(currentImg);
     }
 
     activity.onerror = function error() {
-      console.log('************hihi');
       reopenApp();
     }
   }
