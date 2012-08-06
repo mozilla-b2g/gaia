@@ -470,7 +470,7 @@ var Contacts = (function() {
 
 
     var existsPhoto = 'photo' in contact && contact.photo;
-    if (existsPhoto) {
+    if (existsPhoto && 0 < contact.photo.length) {
       var detailsInner = document.getElementById('contact-detail-inner');
       contactDetails.classList.add('up');
       var photoOffset = (photoPos + 1) * 10;
