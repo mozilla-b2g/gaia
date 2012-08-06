@@ -192,16 +192,26 @@ var StatusBar = {
       }
 
       flightModeIcon.hidden = true;
+      icon.hidden = false;
 
       icon.dataset.roaming = voice.roaming;
       if (!voice.connected && !voice.emergencyCallsOnly) {
         // "No Network" / "Searching"
+        icon.dataset.level = -1;
+
         // XXX: need differentiate the two
         // https://github.com/mozilla-b2g/gaia/issues/2763
-        icon.hidden = true;
+
+        // This will work when the following bug lands
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
+        icon.dataset.searching = (voice.state == 'searching');
+
+        // show searching animation for no network before the bug lands
+        if (!voice.state)
+          icon.dataset.searching = true;
+
       } else {
         // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
-        icon.hidden = false;
         icon.dataset.level = Math.floor(voice.relSignalStrength / 20); // 0-5
       }
     },

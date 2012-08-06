@@ -188,6 +188,11 @@
   background-position: 0 -40px;
 }
 
+.sb-icon-signal[data-level="-1"][data-searching="true"] {
+  background: url('images/signal-searching.gif') no-repeat;
+  background-position: 0 0;
+}
+
 .sb-icon-signal[data-level="-1"] {
   background-position: -21px -40px;
 }
