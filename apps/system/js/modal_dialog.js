@@ -117,7 +117,7 @@ var ModalDialog = {
     this.currentOrigin = origin;
     var evt = this.currentEvents[origin];
 
-    var message = evt.detail.message;
+    var message = evt.detail.message || '';
     var elements = this.elements;
     this.screen.classList.add('modal-dialog');
 
@@ -147,6 +147,15 @@ var ModalDialog = {
         elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
         break;
+
+      // HTTP Authentication
+      case 'usernameandpassword':
+        elements.authentication.classList.add('visible');
+        var l10nArgs = { realm: evt.detail.realm, host: evt.detail.host };
+        var _ = navigator.mozL10n.get;
+        message = _('http-authentication-message', l10nArgs);
+        elements.authenticationMessage.innerHTML = message;
+      break;
     }
 
     this.elements.buttons.dataset.type = evt.detail.promptType;
