@@ -228,3 +228,6 @@ hr {
   display: block;
 }
 
+#contact-detail p > strong {
+  font-size: 1.4rem;
+}
