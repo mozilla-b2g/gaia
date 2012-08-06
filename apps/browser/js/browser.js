@@ -885,7 +885,8 @@ var Browser = {
 
                          'showmodalprompt', 'error'];
     browserEvents.forEach(function attachBrowserEvent(type) {
-      iframe.addEventListener('mozbrowser' + type, this.handleBrowserEvent(tab));
+      iframe.addEventListener('mozbrowser' + type,
+                              this.handleBrowserEvent(tab));
     }, this);
   },
 
@@ -1303,13 +1304,16 @@ window.addEventListener('load', function browserOnLoad(evt) {
   Browser.init();
 });
 
+
+function actHandle(activity) {
+  if (Browser.hasLoaded) {
+    Browser.handleActivity(activity);
+  } else {
+    Browser.waitingActivities.push(activity);
+  }
+  activity.postResult({ status: 'accepted' });
+}
+
 if (window.navigator.mozSetMessageHandler) {
-  window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-    if (Browser.hasLoaded) {
-      Browser.handleActivity(activity);
-    } else {
-      Browser.waitingActivities.push(activity);
-    }
-    activity.postResult({ status: 'accepted' });
-  });
+  window.navigator.mozSetMessageHandler('activity', actHandle);
 }
