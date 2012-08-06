@@ -382,11 +382,8 @@ var LockScreen = {
               type: 'photos'
             }
           });
-          a.onsuccess = function ls_activitySuccess() {
-            console.log('camera launch success:', JSON.stringify(a));
-          }
           a.onerror = function ls_activityError() {
-            console.log('camera launch error:', JSON.stringify(a));
+            console.log('MozActivity: camera launch error.');
           }
         };
 
