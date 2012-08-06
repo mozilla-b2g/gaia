@@ -4,7 +4,14 @@
 'use strict';
 
 var QuickSettings = {
+  // Indicate setting status of geolocation.enabled
+  geolocationEnabled: false,
+
   init: function qs_init() {
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
+
     this.getAllElements();
 
     this.overlay.addEventListener('click', this);
@@ -27,6 +34,10 @@ var QuickSettings = {
       self.wifi.dataset.enabled = value;
     });
 
+    // monitor geolocation status
+    SettingsListener.observe('geolocation.enabled', true, function(value) {
+      self.geolocationEnabled = value;
+    });
   },
 
   handleEvent: function qs_handleEvent(evt) {
@@ -81,47 +92,45 @@ var QuickSettings = {
               this._powerSaveResume = {
                 wifi: (this.wifi.dataset.enabled == 'true'),
                 data: (this.data.dataset.enabled == 'true'),
-                bluetooth: (this.bluetooth.dataset.enabled == 'true')
+                bluetooth: (this.bluetooth.dataset.enabled == 'true'),
+                geolocation: this.geolocationEnabled
               };
 
+              var settingsToSet = {};
               // Turn off Wifi
-              navigator.mozSettings.getLock().set({
-                'wifi.enabled': false
-              });
-
+              settingsToSet['wifi.enabled'] = false;
               // Turn off Data
-              navigator.mozSettings.getLock().set({
-                'ril.data.enabled': false
-              });
-
+              settingsToSet['ril.data.enabled'] = false;
               // Turn off Bluetooth
-              navigator.mozSettings.getLock().set({
-                'bluetooth.enabled': false
-              });
+              settingsToSet['bluetooth.enabled'] = false;
+              // Turn off Geolocation
+              settingsToSet['geolocation.enabled'] = false;
 
-              // XXX: How do I turn off GPS?
+              this.setMozSettings(settingsToSet);
 
             } else if (this._powerSaveResume) {
+              var settingsToSet = {};
               if (this._powerSaveResume.wifi) {
                 // Turn on Wifi
-                navigator.mozSettings.getLock().set({
-                  'wifi.enabled': true
-                });
+                settingsToSet['wifi.enabled'] = true;
               }
 
               if (this._powerSaveResume.data) {
                 // Turn on Data
-                navigator.mozSettings.getLock().set({
-                  'ril.data.enabled': true
-                });
+                settingsToSet['ril.data.enabled'] = true;
               }
 
               if (this._powerSaveResume.bluetooth) {
                 // Turn on Bluetooth
-                navigator.mozSettings.getLock().set({
-                  'bluetooth.enabled': true
-                });
+                settingsToSet['bluetooth.enabled'] = true;
               }
+
+              if (this._powerSaveResume.geolocation) {
+                // Turn on Bluetooth
+                settingsToSet['geolocation.enabled'] = true;
+              }
+
+              this.setMozSettings(settingsToSet);
 
               delete this._powerSaveResume;
             }
@@ -165,6 +174,18 @@ var QuickSettings = {
     }, this);
 
     this.overlay = document.getElementById('quick-settings');
+  },
+
+  // XXX Break down obj keys in a for each loop because mozSettings
+  // does not currently supports multiple keys in one set()
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=779381
+  setMozSettings: function qs_setter(keypairs) {
+    var setlock = window.navigator.mozSettings.getLock();
+    for (var key in keypairs) {
+      var obj = {};
+      obj[key] = keypairs[key];
+      setlock.set(obj);
+    }
   }
 };
 
