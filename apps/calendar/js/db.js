@@ -147,7 +147,7 @@
       }
 
       // events -> belongs to calendar
-      var events = db.createObjectStore(store.events, { keyPath: '_id', autoIncrement: true });
+      var events = db.createObjectStore(store.events, { keyPath: '_id' });
 
       events.createIndex(
         'calendarId',

@@ -75,6 +75,14 @@
       //    but do *not* actually hit the db until
       //    entire sync is done.
 
+      var provider = Calendar.App.provider(
+        account.providerType
+      );
+
+      var stream = provider.eventStream(
+        account.toJSON(),
+        calendar.toJSON
+      );
 
       // 2. After the entire stream is finished
       //    and the records are sorted into

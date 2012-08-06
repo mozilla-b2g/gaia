@@ -1,6 +1,7 @@
 (function(window) {
 
   window.Calendar = {
+
     /**
      * Creates a calendar namespace.
      *

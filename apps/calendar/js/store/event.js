@@ -1,13 +1,158 @@
 (function(window) {
   function Events() {
     Calendar.Store.Abstract.apply(this, arguments);
+
     this._timeObservers = [];
+    this._eventsByTime = Object.create(null);
+    this._times = [];
   }
 
   Events.prototype = {
     __proto__: Calendar.Store.Abstract.prototype,
     _store: 'events',
     _dependentStores: ['events'],
+
+    freeCachedRange: function(range) {
+      // also need to optimize here...
+
+      var i = 0;
+      var len = this._times.length;
+      var matchStart = null;
+      var time;
+      var timeEvents;
+
+      function checkEventSpan(e) {
+        if (e._id in this._cached) {
+          var occurs = e.remote.occurs;
+          var start = occurs[0];
+          var end = occurs[occurs.length - 1];
+
+          if (range.start <= start &&
+              range.end >= end) {
+
+            delete this._cached[e._id];
+          }
+        }
+      }
+
+      for (; i < this._times.length; i++) {
+        time = this._times[i];
+
+        // check for a match
+        if (range.containsNumeric(time)) {
+
+          if (matchStart === null) {
+            matchStart = i;
+          }
+
+          timeEvents = this._eventsByTime[time];
+          timeEvents.forEach(checkEventSpan, this);
+
+          delete this._eventsByTime[time];
+        } else if (time > range.end) {
+          break;
+        } else {
+          // everything after the first
+          // match should be in range
+          // when we have hit a point
+          // where there are no more matches
+          // we are done since time is always
+          // in order.
+          if (matchStart !== null) {
+            console.log('no match break!');
+            break;
+          }
+        }
+      }
+
+      if (matchStart !== null) {
+        this._times.splice(
+          matchStart,
+          i - matchStart
+        );
+      }
+
+      this.fireTimeEvent(range, 'free cache');
+    },
+
+    _addToCache: function(event) {
+      var remote = event.remote;
+      var id = event._id;
+
+      if (!(id in this._cached)) {
+        this._cached[id] = event;
+      }
+
+      remote.occurs.forEach(function(time) {
+        this._addCachedTime(time.valueOf(), event);
+      }, this);
+    },
+
+    _addCachedTime: function(time, event) {
+      if (!(time in this._eventsByTime)) {
+        var i = 0;
+        var len = this._times.length;
+        var current;
+        var added = false;
+
+        //TODO: make this faster
+        for (; i < len; i++) {
+          current = this._times[i];
+          if (current > time) {
+            added = true;
+            this._times.splice(i, 0, time);
+            break;
+          }
+        }
+
+        if (!added)
+          this._times.push(time);
+
+        this._eventsByTime[time] = [event];
+      } else {
+        this._eventsByTime[time].push(event);
+      }
+    },
+
+    _updateCachedEvent: function(event) {
+      this._removeCachedEvent(event);
+      this._addToCache(event);
+    },
+
+    _removeFromCache: function(id) {
+      // remove from cache
+      var event = this._cached[id];
+      var occurs = event.remote.occurs;
+
+      delete this._cached[id];
+
+      // now remove associated times
+
+      var i = 0;
+      var len = occurs.length;
+
+      for (; i < len; i++) {
+        this._removeCachedTime(
+          occurs[i].valueOf(),
+          event
+        );
+      }
+    },
+
+    _removeCachedTime: function(time, event) {
+
+      var byTime = this._eventsByTime[time];
+
+      var intimeIdx = byTime.indexOf(event);
+      byTime.splice(intimeIdx, 1);
+
+      if (byTime.length === 0) {
+        this._times.splice(
+          this._times.indexOf(time),
+          1
+        );
+      }
+    },
 
     /**
      * Adds observer for timespan.
@@ -159,14 +304,13 @@
           //XXX: We need to trigger a remove dependants
           //     action here? Events are not tied
           //     directly to anything else right now but they
-          //     will be in the future...
+          //     may be in the future...
           self._removeFromCache(cursor.primaryKey);
           cursor.delete();
           cursor.continue();
         }
       };
     }
-
   };
 
   Calendar.ns('Store').Event = Events;

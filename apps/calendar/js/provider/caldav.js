@@ -23,8 +23,13 @@ Calendar.ns('Provider').Caldav = (function() {
 
     findCalendars: function(account, callback) {
       this.service.request('caldav', 'findCalendars', account, callback);
-    }
+    },
 
+    streamEvents: function(account, calendar) {
+      return this.service.stream(
+        account, calendar
+      );
+    }
   };
 
   return CaldavProvider;

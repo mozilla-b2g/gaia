@@ -25,7 +25,6 @@ Calendar.ns('Provider').Abstract = (function() {
      */
     canSync: false,
 
-
     /**
      * Attempt to get account accepts
      * a single object and callback.
@@ -72,8 +71,9 @@ Calendar.ns('Provider').Abstract = (function() {
      * event:
      *  recurring:
      *    expandedUntil: (Date) date expanded until
-     *    fullyExpanded: (Boolean)
-     *    expandedUntil (Date)
+     *    isExpaned: (Boolean) is fully expanded?
+     *    expandedUntil (Date) last occurrence expanded
+     *
      *  title: (String)
      *  description: (String)
      *  location: (String)
@@ -81,8 +81,8 @@ Calendar.ns('Provider').Abstract = (function() {
      *  startDate: (Date)
      *  endDate: (Date)
      *  uid: (String) unique id for event
-     *  [_rawData]: (String) optional raw data
-     *              for cases where we can do field
+     *  [_rawData]: (String) optional raw data.
+     *              In cases where we can do field
      *              based updates we don't
      *              need to store this...
      *

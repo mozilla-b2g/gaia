@@ -50,7 +50,6 @@
         recurres = obj._recurres;
         delete obj._recurres;
       }
-
       for (var i = 0; i < recurres; i++) {
         obj.occurs.push(
           new Date(
@@ -133,7 +132,13 @@
 
   Factory.define('event', {
     properties: {
+      calendarId: 1,
       remote: Factory.get('remote.event')
+    },
+
+    oncreate: function(obj) {
+      if (!obj._id)
+        obj._id = obj.calendarId + '-' + obj.remote.id;
     }
   });
 

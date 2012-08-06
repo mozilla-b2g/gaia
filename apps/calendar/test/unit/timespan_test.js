@@ -62,6 +62,34 @@ suite('timespan', function() {
       };
     });
 
+    test('timespan in range', function() {
+      var span = new Calendar.Timespan(
+        new Date(2012, 1, 1),
+        new Date(2012, 1, 5)
+      );
+
+      assert.isTrue(
+        subject.contains(span)
+      );
+
+      assert.isFalse(
+        span.contains(subject)
+      );
+    });
+
+    test('numeric', function() {
+      var key;
+      for (key in dates) {
+        if (dates.hasOwnProperty(key)) {
+          assert.equal(
+            subject.containsNumeric(dates[key].value.valueOf()),
+            dates[key].assert,
+            '(numeric) ' + key
+          );
+        }
+      }
+    });
+
     test('date', function() {
       var key;
       for (key in dates) {
@@ -69,7 +97,7 @@ suite('timespan', function() {
           assert.equal(
             subject.contains(dates[key].value),
             dates[key].assert,
-            key
+            '(date) ' + key
           );
         }
       }
