@@ -1303,11 +1303,13 @@ window.addEventListener('load', function browserOnLoad(evt) {
   Browser.init();
 });
 
-window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  if (Browser.hasLoaded) {
-    Browser.handleActivity(activity);
-  } else {
-    Browser.waitingActivities.push(activity);
-  }
-  activity.postResult({ status: 'accepted' });
-});
+if (window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+    if (Browser.hasLoaded) {
+      Browser.handleActivity(activity);
+    } else {
+      Browser.waitingActivities.push(activity);
+    }
+    activity.postResult({ status: 'accepted' });
+  });
+}
