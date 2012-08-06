@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Template</title>
+
+    <style>
+      html, body{
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #monitor{
+        width:100%;
+        height: 100px;
+        background: #333;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    <p>Implement me</p>
+    <div id="monitor" style="overflow: auto;"></div>
+    <div id="list"></div>
+
+    <script>
+      window.onload = function(){
+        var util = {};
+        util.log = function(msg){
+          document.querySelectorAll('#monitor')[0].innerHTML += msg+'<br/>';
+        }
+
+        try{
+          var storageArea = navigator.getDeviceStorage('pictures');
+          util.log(typeof storageArea);
+
+          setTimeout(function(){
+            storageArea = navigator.getDeviceStorage('pictures');
+            var storage = storageArea[0];
+            util.log(typeof storag);
+
+            for(var key in storage){
+              util.log('>'+key+'>'+storage[key]);
+            }
+
+            var cursor = storage.enumerate('/');
+            cursor.onsuccess = function() {
+              var fileName = cursor.result.name;
+              util.log('cursor:'+fileName);
+                
+              var request = storage.get(fileName);
+              request.onsuccess = function() {
+                var imgSrc = URL.createObjectURL(request.result);
+                util.log('imgSrc:'+imgSrc);
+                var img = document.createElement('img');
+                img.src = imgSrc;
+                img.style.width = '100px';
+                document.querySelectorAll('body')[0].appendChild(img);
+              }
+
+              cursor.continue();
+            }
+
+          }, 0);
+
+        } catch(e){
+          util.log(e.message);  
+
+        }
+
+      }
+    </script>
+  </body>
+
+</html>

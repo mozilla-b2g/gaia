@@ -1,0 +1,31 @@
+{
+  "name": "Gallery",
+  "description": "Web app template",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+    "device-storage",
+    "devicestorage"
+  ],
+  "activities": {
+    "browse": {
+      "filters": {
+        "type": "photos"
+       },
+      "disposition": "window"
+    },
+    "pick": {
+      "filters": {
+        "type": "image/jpeg"
+       },
+      "disposition": "window"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}

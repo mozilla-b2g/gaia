@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Tst Console</title>
+
+    <style>
+      html, body{
+        height:100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      #input{
+        width: 100%;
+        height: 30%;
+        background: #333;
+        color: #FFF;
+      }
+
+      #monitor{
+        width: 100%;
+        height: 30%;
+        background: #CCC;
+        color: #000;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <h2>Tst Console</h2>
+    <input type="button" value="OK" id="btnOK"/>
+    <textarea id="input"></textarea>
+    <textarea id="monitor"></textarea>
+
+    <script>
+      util = {
+        ctr: 0,
+        log: function(msg){
+          document.querySelectorAll('#monitor')[0].value = this.ctr +': '+msg + '\n' + document.querySelectorAll('#monitor')[0].value;
+          this.ctr++;
+        }
+      }
+      window.onload = function(){
+        document.querySelectorAll('#btnOK')[0].addEventListener('mousedown', function(){
+          eval('try{'+document.querySelectorAll('#input')[0].value+'} catch(e){util.log(e.message)}');
+        });
+      }
+    </script>
+  </body>
+
+</html>

@@ -1,0 +1,784 @@
+* { -moz-box-sizing: border-box; }
+
+html {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: "Open Sans", sans-serif;
+  font-size: 20px;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  padding-bottom: 50px;
+}
+
+/* All of the main views fill the screen */
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+}
+
+#nophotos {
+  margin: 0;
+  margin-top: 40%;
+  padding: 0;
+  width: 100%;
+  text-align: center;
+  font-family: "Open Sans", sans-serif;
+  font-weight: bold;
+  font-size: 26px;
+  color: #fff;
+  -moz-user-select: none;
+}
+
+
+/*
+ * Thumbnails are implemented as <li> elements in a <ul> with background-image
+ * set to display the image. We use background-size: cover to automatically
+ * resize the image as needed.
+ * 
+ * The thumbnail list appears in regular browsing mode, in selection mode, 
+ * and also in "filmstrip" form in single-photo mode. So the thumbnail list
+ * and the individual thumbnails are styled differently depending on 
+ * what element they are contained within, and also depending on the phone
+ * resolution and orientation (and also language direction).
+ */
+
+#thumbnails {
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  /* If we want to scroll up and down, then apparently we have to add */
+  /* some extra width to keep the scrollbar offscreen */
+  width: -moz-calc(100% + 10px);
+  background-color: #000;
+}
+
+.thumbnail {
+  margin: 0;
+  padding: 0;
+  /* borders only on right and bottom */
+  border-right: solid black 1px;
+  border-bottom: solid black 1px;
+  overflow: hidden;
+  /* default to left-to-right, but overridden for rtl languages below */
+  float: left;
+  /* no list item bullets */
+  list-style-type: none;
+  /* don't let the user select the items */
+  -moz-user-select: none;
+  /* thumbnail images will be displayed with background-image */
+  /* these properties scale and position the images correctly */
+  background-size: cover;        /* allow some cropping */
+  background-position: center;   /* keep the cropping at the edges */
+  background-repeat: no-repeat;
+}
+
+.thumbnail.selected {
+  outline: solid orange 5px;
+  outline-offset: -5px;
+}
+
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px) {
+  .thumbnail {
+    width: 107px;
+    height: 107px;
+  }
+}
+
+@media (orientation: landscape) and (width: 480px) {
+  .thumbnail {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* 480x800 phones portrait */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+    .thumbnail {
+        width: 160px;
+        height: 160px;
+    }
+}
+
+/* thumbnails in regular thumbnail list view */
+#thumbnail-list-view > #thumbnails {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 50px;
+}
+
+/* thumbnails in thumbnail select view where there is a top bar */
+#thumbnail-select-view > #thumbnails {
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 50px;
+}
+
+/* thumbnails in pick view where there is a top bar and no bottom */
+#pick-view > #thumbnails {
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/*
+ * In photo view mode, the thumbnail list becomes a "filmstrip"
+ * and the thumbnail images become much smaller.
+ * JavaScript will set the width of the thumbnails container so that 
+ * we get working scrollbars
+ */
+#photos-filmstrip #thumbnails {
+  left:0;
+  top:0;
+  height:50px;
+  overflow-y: hidden;
+  overflow-x: scroll;
+}
+
+#photos-filmstrip li.thumbnail {
+    border-left: solid black 2px;
+    border-right: none;
+    border-top: solid black 2px;
+    border-bottom: solid black 2px;
+    width: 50px;
+    height: 50px;
+}
+
+#photo-frames {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+}
+
+.photoFrame {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+div.currentPhoto {
+  left: 0px;
+}
+
+/* the next photo is waiting in the wings just off to the right */
+/* We use 102% instead of 100% to give a small black border between photos */
+div.nextPhoto {
+  left: 102%;
+}
+
+/* In RTL languages, the next photo is off to the left */
+*[dir=rtl] div.nextPhoto {
+  left: -102%;
+}
+
+div.previousPhoto {
+  left: -102%;
+}
+
+*[dir=rtl] div.previousPhoto {
+  left: 102%;
+}
+
+.photoFrame > img {
+  position: relative;
+  border-width: 0px;
+  padding: 0px;
+  margin: 0px;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+.hidden {
+  display: none;
+}
+
+/* localization */
+body.hidden *[data-l10n-id] {
+  visibility: hidden;
+}
+
+*[dir=rtl] .thumbnail {
+  float: right;
+}
+
+/* buttons */
+a.button {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  /* for buttons that display text */
+  font-size: smaller;
+  text-align: center;
+  line-height: 50px;
+}
+
+a.button:active, a.button:focus {
+  outline: none;
+}
+
+a.button.disabled {
+  opacity: 0.4;
+}
+
+#thumbnails-bottom {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#thumbnails-camera-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/camera.png');
+  border-right: 1px solid #000;
+}
+
+#thumbnails-select-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/select.png');
+}
+
+#thumbnails-select-top {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#thumbnails-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#thumbnails-number-selected {
+  position: absolute;
+  width: 75%;
+  height: 100%;
+  left: 25%;
+  margin-top: 15px;
+}
+
+#thumbnails-select-bottom {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#thumbnails-delete-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/delete.png');
+  border-right: 1px solid #000;
+}
+
+#thumbnails-share-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/share.png');
+}
+
+#photos-overlay-top {
+  position: absolute;
+  height: 50px;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.4);
+  /* the filmstrip is taller than 50px so we can hide its scrollbar */
+  overflow: hidden; 
+}
+
+#photos-filmstrip {
+  position: absolute;
+  height: 100%;
+  left: 0;
+  right: 60px; /* 50px plus extra for the scrollbar we don't want to see */
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+#photos-back-button {
+  position: absolute;
+  width: 50px;
+  height: 100%;
+  right: 0;
+  background-image: url('images/gallery.png');
+}
+
+
+#photos-overlay-bottom {
+  background: rgba(0, 0, 0, 0.4);
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#photos-camera-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/camera.png');
+}
+
+#photos-edit-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 25%;
+  background-image: url('images/edit.png');
+}
+
+#photos-share-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/share.png');
+}
+
+#photos-delete-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 75%;
+  background-image: url('images/delete.png');
+}
+
+#pick-top {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#pick-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#pick-header {
+  position: absolute;
+  width: 75%;
+  height: 100%;
+  left: 25%;
+  margin-top: 15px;
+}
+
+#edit-view {
+  background: #888;
+}
+
+#edit-header {
+  background: #ccc;
+  position: absolute;
+  height: 50px;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#edit-cancel-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/cancel.png');
+}
+
+#edit-title {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 25%;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  line-height: 50px;
+  vertical-align: 75%;
+  text-align: center;
+  font-variant: small-caps;
+}
+
+#edit-save-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  right: 0;
+}
+
+#edit-preview-area {
+  position: absolute;
+  top: 60px;     /* 10 pixel top margin */
+  bottom: 110px; /* 10 pixel bottom margin */
+  left: 10px;    /* 10 pixel left margin */
+  right: 10px;   /* 10 pixel right margin */
+}
+
+#edit-preview-image {
+  position: absolute;
+  /* size and position is set by js */
+}
+
+#edit-options {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  bottom: 50px;
+  background: #ccc;
+}
+
+/* All the effect options radio buttons share these styles */
+#edit-effect-options a.radio.button {
+  position: absolute;
+  display: block;
+  top: 0;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-right: solid black 1px;
+  overflow: hidden;
+}
+
+#edit-effect-options a.selected.radio.button {
+  outline: solid orange 3px;
+  outline-offset: -3px;
+}
+
+#edit-crop-options a.button {
+  position: absolute;
+  display: block;
+  top: 0;
+  bottom: 0;
+  width: 20%;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-right: solid black 1px;
+  overflow: hidden;
+  padding-top: 16px;
+  font-size: 12px;
+  background-position: center 5px;
+}
+
+#edit-crop-options a.selected.radio.button {
+  outline: solid orange 2px;
+  outline-offset: -2px;
+}
+
+#edit-crop-none {
+  left: 0;
+  background-image: url('images/crop_original.png');
+}
+#edit-crop-aspect-free {
+  left: 20%;
+  background-image: url('images/crop_freeform.png');
+}
+#edit-crop-aspect-portrait {
+  left: 40%;
+  background-image: url('images/crop_portrait.png');
+}
+#edit-crop-aspect-landscape {
+  left: 60%;
+  background-image: url('images/crop_landscape.png');
+}
+#edit-crop-aspect-square {
+  left: 80%;
+  background-image: url('images/crop_square.png');
+}
+
+/* instead of using images inside the buttons above, just draw boxes */
+#edit-free-frame {
+  margin-left: 5px;
+  margin-top: 5px;
+  width: 30px;
+  height: 25px;
+  border: dotted white 1px;
+}
+
+#edit-portrait-frame {
+  margin-left: 11px;
+  margin-top: 6px;
+  width: 26px;
+  height: 39px;
+  border: solid white 1px;
+}
+
+#edit-landscape-frame {
+  margin-left: 5px;
+  margin-top: 12px;
+  width: 39px;
+  height: 26px;
+  border: solid white 1px;
+}
+
+#edit-square-frame {
+  margin-left: 8px;
+  margin-top: 9px;
+  width: 32px;
+  height: 32px;
+  border: solid white 1px;
+}
+
+/* All the effects radio buttons share these styles */
+#edit-effect-options > a.radio.button {
+  width: 33.3%;
+  padding-top: 15px;
+}
+
+#edit-effect-none {
+  left:0;
+}
+#edit-effect-bw {
+  left:33.3%
+}
+#edit-effect-sepia {
+  left:66.6%
+}
+a.filter-bw {
+  filter: url(../index.html#filter-bw);
+}
+a.filter-sepia {
+  filter: url(../index.html#filter-sepia);
+}
+
+/* All the border buttons share these styles */
+#edit-border-options a.radio.button {
+  position: absolute;
+  width: -moz-calc(20% - 6px);
+  height: -moz-calc(100% - 6px);
+  top: 3px;
+  padding: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+#edit-border-options a.selected.radio.button {
+  outline: solid orange 3px;
+}
+
+#edit-border-none {
+  left: -moz-calc(0% + 3px);
+  border: 2px solid white;  
+}
+#edit-border-thin-white {
+  left: -moz-calc(20% + 3px);
+  border: 2px solid white;  
+}
+#edit-border-thick-white {
+  left: -moz-calc(40% + 3px);
+  border: 4px solid white;
+}
+#edit-border-thin-black {
+  left: -moz-calc(60% + 3px);
+  border: 2px solid black;  
+}
+#edit-border-thick-black {
+  left: -moz-calc(80% + 3px);
+  border: 4px solid black;  
+}
+
+
+#edit-toolbar {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* all buttons in the toolbar share these styles */
+#edit-toolbar > .button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  border-right: 1px solid #000;
+  background: #666;
+}
+
+/* If the button is selected, it has a different background */
+#edit-toolbar > .button.selected {
+  background: #999;
+}
+
+#edit-exposure-button {
+  left: 0;
+}
+
+#edit-crop-button {
+  left: 25%;
+}
+
+#edit-effect-button {
+  left: 50%
+}
+
+#edit-border-button {
+  left: 75%
+}
+
+/*
+ * All of these slider styles are for the exposure compensation slider
+ * If this app ever needs another slider, we'll have lots of name
+ * collisions.  Ideally, this slider stuff should all be packaged up
+ * into a reusable component. But this is one-off for now
+ */
+#exposure-slider {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-color: #444;
+  font-size: smaller;
+}
+
+#sliderbar {
+  position: relative;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+#sliderline {
+  position: absolute;
+  height: 2px;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  margin: 0;
+}
+
+#sliderthumb {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  top: -10px;
+  left: -moz-calc(10% - 20px);
+  border-radius: 50%;
+  background-color: #eee;
+  text-align: center;
+  padding-top: 12px;
+  font-size: smaller;
+  color: black;
+}
+
+#sliderlabels {
+  position: relative;
+  height: 30px;
+  padding: 0;
+  margin: 0;
+  background-color: #222;
+  color: white;
+  border-top: solid #eee 1px;
+}
+
+.sliderlabel {
+  position: absolute;
+  top: 0;
+  height: 5px;
+  border-left: solid #eee 1px;
+}
+
+.sliderlabel:after {
+  content: attr(data-label);
+  position: relative;
+  display: block;
+  text-align: center;
+  top: 5px;
+  width: 100px;
+  left: -50px;
+}
+
+#slider-3 {
+  left: -moz-calc(10% + 0 * 80%/6);
+}
+#slider-2 {
+  left: -moz-calc(10% + 1 * 80%/6);
+}
+#slider-1 {
+  left: -moz-calc(10% + 2 * 80%/6);
+}
+#slider0 {
+  left: -moz-calc(10% + 3 * 80%/6);
+}
+#slider1 {
+  left: -moz-calc(10% + 4 * 80%/6);
+}
+#slider2 {
+  left: -moz-calc(10% + 5 * 80%/6);
+}
+#slider3 {
+  left: -moz-calc(10% + 6 * 80%/6);
+}
