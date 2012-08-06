@@ -172,7 +172,7 @@
       db.createObjectStore(store.accounts, { keyPath: '_id', autoIncrement: true });
 
       // calendars -> has many events
-      db.createObjectStore(store.calendars, { keyPath: '_id', autoIncrement: true });
+      db.createObjectStore(store.calendars, { keyPath: '_id' });
     },
 
     get version() {

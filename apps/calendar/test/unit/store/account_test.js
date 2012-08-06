@@ -12,17 +12,6 @@ suite('store/account', function() {
   var db;
   var app;
 
-  function add(object) {
-    setup(function(done) {
-      var store = subject.db.getStore('Calendar');
-      var model = store._createModel(object);
-      store.once('persist', function() {
-        done();
-      });
-      store.persist(model);
-    });
-  }
-
   setup(function(done) {
     this.timeout(5000);
     app = testSupport.calendar.app();
@@ -217,31 +206,79 @@ suite('store/account', function() {
   suite('#sync: add, remove, update', function() {
     var remote;
     var events;
-    var model;
+    var account;
     var results;
     var store;
+    var cals;
     var remoteCalledWith;
 
-    add({ accountId: 6, remote: { id: 1, name: 'remove' } });
-    add({ accountId: 6, remote: { id: 2, name: 'update' } });
+    function watchEvent(eventName) {
+      store.on(eventName, function() {
+        if (!(eventName in events)) {
+          events[eventName] = [];
+        }
+        events[eventName].push(arguments);
+      });
+    }
 
     setup(function() {
-      remoteCalledWith = null;
-      model = new Calendar.Models.Account({
-        providerType: 'Local',
-        _id: 6
+      store = subject.db.getStore('Calendar');
+      account = Factory.create('account', {
+        _id: 1
       });
 
-      remote = {};
+      cals = {};
 
-      remote[2] = {
-        id: 2,
+      cals.add = Factory('calendar', {
+        accountId: account._id,
+        remote: { name: 'add' }
+      });
+
+      cals.remove = Factory('calendar', {
+        accountId: account._id,
+        remote: { name: 'remove' }
+      });
+
+      cals.update = Factory('calendar', {
+        accountId: account._id,
+        remote: { name: 'update' }
+      });
+    });
+
+    setup(function(done) {
+      store.persist(cals.update, done);
+    });
+
+    setup(function(done) {
+      store.persist(cals.remove, done);
+    });
+
+    setup(function(done) {
+      // clear cache
+      store._remoteByAccount = Object.create(null);
+      store._cached = Object.create(null);
+
+      // reload from db
+      store.load(done);
+    });
+
+    setup(function(done) {
+      events = {};
+      remoteCalledWith = null;
+
+      watchEvent('add');
+      watchEvent('update');
+      watchEvent('remove');
+
+      remote = {};
+      remote[cals.update.remote.id] = {
+        id: cals.update.remote.id,
         name: 'update!',
         description: 'new desc'
       };
 
-      remote[3] = {
-        id: 3,
+      remote[cals.add.remote.id] = {
+        id: cals.add.remote.id,
         name: 'new item'
       };
 
@@ -253,45 +290,25 @@ suite('store/account', function() {
           }, 0);
         }
       };
-    });
 
-    setup(function(done) {
-      store = subject.db.getStore('Calendar');
-      events = {
-        add: [],
-        remove: [],
-        update: []
-      };
-
-      store.on('add', function() {
-        events.add.push(arguments);
-      });
-
-      store.on('update', function() {
-        events.update.push(arguments);
-      });
-
-      store.on('remove', function() {
-        events.remove.push(arguments);
-      });
-
-      subject.sync(model, function() {
-        done();
-      });
-    });
-
-    setup(function(done) {
-      var store = subject.db.getStore('Calendar');
-      store.load(function(err, data) {
-        results = data;
+      subject.sync(account, function() {
         done();
       });
     });
 
     test('after sync', function() {
       var byRemote = {};
-      assert.equal(Object.keys(results).length, 2);
-      assert.deepEqual(remoteCalledWith[0], model.toJSON());
+      var results = store.cached;
+
+      assert.equal(
+        Object.keys(results).length, 2,
+        'should only have two records'
+      );
+
+      assert.deepEqual(
+        remoteCalledWith[0], account.toJSON(),
+        'should send jsonified account'
+      );
 
       // re-index all records by remote
       Object.keys(results).forEach(function(key) {
@@ -303,19 +320,53 @@ suite('store/account', function() {
       assert.ok(events.remove[0][0]);
 
       var updateObj = events.update[0][1].remote;
-      assert.equal(updateObj.id, '2');
+
+      assert.equal(
+        updateObj.id,
+        cals.update.remote.id
+      );
 
       var addObj = events.add[0][1].remote;
-      assert.equal(addObj.id, '3');
+
+      assert.equal(
+        addObj.id,
+        cals.add.remote.id
+      );
+
+      var remoteUpdate = byRemote[cals.update.remote.id];
+      var remoteAdd = byRemote[cals.add.remote.id];
 
       // update
-      assert.instanceOf(byRemote[2], Calendar.Models.Calendar);
-      assert.equal(byRemote[2].remote.description, 'new desc');
-      assert.equal(byRemote[2].name, 'update!');
+      assert.instanceOf(
+        remoteUpdate,
+        Calendar.Models.Calendar,
+        'should update cache'
+      );
+
+      assert.equal(
+        remoteUpdate.remote.description,
+        'new desc',
+        'should update changed descripton'
+      );
+
+      assert.equal(
+        remoteUpdate.name,
+        'update!',
+        'should update changed name'
+      );
 
       // add
-      assert.instanceOf(byRemote[3], Calendar.Models.Calendar);
-      assert.equal(byRemote[3].name, 'new item');
+      assert.instanceOf(
+        remoteAdd,
+        Calendar.Models.Calendar,
+        'should add new calendar'
+      );
+
+      assert.equal(
+        remoteAdd.name,
+        'new item',
+        'should use remote data when creating new calendar'
+      );
     });
 
   });

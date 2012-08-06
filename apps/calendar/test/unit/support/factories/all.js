@@ -1,4 +1,7 @@
 (function(window) {
+
+  var calendarId = 0;
+
   Factory.define('remote.calendar', {
     properties: {
       id: '',
@@ -7,6 +10,13 @@
       color: '#333',
       description: 'description',
       syncToken: '1'
+    },
+
+    onbuild: function(obj) {
+      var id = obj.id;
+      if (!id) {
+        id = obj.id = 'cuuid/' + calendarId++;
+      }
     }
   });
 
@@ -20,7 +30,10 @@
     },
 
     onbuild: function(obj) {
-      var id = obj.id = eventId++;
+      var id = obj.id;
+      if (!id) {
+        id = obj.id = 'euuid/' + eventId++;
+      }
 
       obj.title = 'title ' + id;
       obj.description = 'description ' + id;
@@ -126,8 +139,16 @@
     },
 
     properties: {
+      accountId: 1,
       remote: Factory.get('remote.calendar')
+    },
+
+    oncreate: function(obj) {
+      if (!obj._id) {
+        obj._id = obj.accountId + '-' + obj.remote.id;
+      }
     }
+
   });
 
   Factory.define('event', {

@@ -78,6 +78,28 @@ suite('store/calendar', function() {
     assert.ok(subject._remoteByAccount);
   });
 
+  test('#_assignId', function(done) {
+    var cal = Factory.build('calendar', {
+      accountId: 1,
+      remote: { id: 'uuid' }
+    });
+
+    subject.persist(cal, function(err, id, obj) {
+      done(function() {
+        assert.equal(
+          id,
+          '1-uuid',
+          'should assign id'
+        );
+
+        assert.equal(
+          obj._id,
+          id
+        );
+      });
+    });
+  });
+
   suite('cache handling', function() {
     setup(function() {
       subject._addToCache(model);

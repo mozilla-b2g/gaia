@@ -15,6 +15,17 @@
       'calendars', 'events'
     ],
 
+    _parseId: function(id) {
+      return id;
+    },
+
+    _assignId: function(obj) {
+      if (!obj._id) {
+        var id = obj.accountId + '-' + obj.remote.id;
+        obj._id = id;
+      }
+    },
+
     _addToCache: function(object) {
       var remote = object.remote.id;
 

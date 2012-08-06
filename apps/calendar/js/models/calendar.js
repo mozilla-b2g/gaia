@@ -13,11 +13,6 @@
         this[key] = options[key];
       }
     }
-
-    if (this.provider && !options.hasOwnProperty('remote')) {
-      this.updateRemote(this.provider);
-      delete this.provider;
-    }
   }
 
   Cal.prototype = {

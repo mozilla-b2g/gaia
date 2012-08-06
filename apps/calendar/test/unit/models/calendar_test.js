@@ -1,5 +1,4 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('provider/calendar/abstract.js');
   requireLib('models/calendar.js');
 });
 
@@ -21,17 +20,17 @@ suite('models/calendar', function() {
 
     subject = new Calendar.Models.Calendar({
       name: 'foo',
-      provider: remoteCalendar
+      remote: remoteCalendar
     });
   });
 
   suite('initialization', function() {
 
-    test('when given a provider', function() {
+    test('when given a remote', function() {
       var date = new Date();
 
       subject = new CalendarModel({
-        provider: remoteCalendar,
+        remote: remoteCalendar,
         lastEventSyncToken: '0',
         lastEventSyncDate: date
       });

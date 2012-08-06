@@ -14,6 +14,7 @@
       var provider = Calendar.App.provider(
         model.providerType
       );
+
       provider.getAccount(model.toJSON(), function(err, data) {
         if (err) {
           callback(err);
@@ -92,13 +93,13 @@
               originalIds.splice(idx, 1);
 
               var original = calendars[key];
-              original.updateRemote(cal);
+              original.remote = cal;
               persist.push(original);
             } else {
               // create a new calendar
               persist.push(
                 store._createModel({
-                  provider: cal,
+                  remote: cal,
                   accountId: account._id
                 })
               );
