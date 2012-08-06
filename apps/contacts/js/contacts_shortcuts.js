@@ -14,6 +14,8 @@
   overlayContent.textContent = '';
   var overlayStyle = overlay.style;
 
+  var isScrolling = false;
+
   var alphabet = [];
   for (var i = 65; i <= 90; i++) {
     alphabet.push({ letter: String.fromCharCode(i) });
@@ -27,6 +29,7 @@
     overlayStyle.MozTransitionDelay = '0s';
     overlayStyle.MozTransitionDuration = '0s';
     overlayStyle.opacity = '1';
+    isScrolling = true;
     scrollTo(evt);
   }
 
@@ -36,11 +39,15 @@
     overlayStyle.MozTransitionDelay = '0.3s';
     overlayStyle.MozTransitionDuration = '0.2s';
     overlayStyle.opacity = '0';
+    overlayContent.textContent = previous = null;
+    isScrolling = false;
   }
 
   function scrollTo(evt) {
     evt.preventDefault();
     evt.stopPropagation();
+
+    if (!isScrolling) return;
 
     var current = evt.target.dataset.letter;
     overlayContent.textContent = current;

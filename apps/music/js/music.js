@@ -201,7 +201,8 @@ var TilesView = {
     var tile = document.createElement('div');
 
     var defaultImage = document.createElement('div');
-    defaultImage.textContent = result.metadata.title || navigator.mozL10n.get('unknownTitle');
+    defaultImage.textContent = result.metadata.title ||
+      navigator.mozL10n.get('unknownTitle');
 
     var img = document.createElement('img');
     img.className = 'tile-image';
