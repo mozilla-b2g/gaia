@@ -295,9 +295,8 @@ var Recents = {
   },
 
   deleteAll: function re_deleteAll() {
-    var response = window.confirm('Clear all calls?\n' +
-                                  'Are you sure you want to clear all calls\n' +
-                                  'from your call log?');
+    var response = window.confirm(_('confirm-title') + '\n' +
+                                  _('confirm-text'));
     if (response) {
       var self = this;
 
@@ -507,12 +506,13 @@ var Recents = {
     var self = this;
     this.history(function showRecents(recents) {
       if (recents.length == 0) {
-        self.recentsContainer.innerHTML = '<div id="no-result-container">' +
-                                          '<div id="no-result-message">' +
-                                          '<p>no calls recorded</p>' +
-                                          '<p>start communicating now</p>' +
-                                          '</div>' +
-                                          '</div>';
+        self.recentsContainer.innerHTML =
+          '<div id="no-result-container">' +
+          ' <div id="no-result-message">' +
+          '   <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
+          '   <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
+          ' </div>' +
+          '</div>';
         self.recentsIconEdit.classList.add('disabled');
         return;
       }
