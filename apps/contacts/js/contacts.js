@@ -414,6 +414,19 @@ var Contacts = (function() {
       listContainer.appendChild(template);
     }
 
+    if (contact.bday) {
+      var bdayTemplate = document.getElementById('birthday-template-#i#');
+
+      // TODO: Fix this with a locale function for dates!!!!
+      var months = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November',
+                    'December'];
+      var bdayString = contact.bday.getDate() + ', ' +
+                                            months[contact.bday.getMonth()];
+      var e = utils.templates.render(bdayTemplate, {bday: bdayString});
+      listContainer.appendChild(e);
+    }
+
     var selector = document.getElementById('address-details-template-#i#');
     var addressesTemplate = selector;
     if (contact.adr) {
@@ -1108,7 +1121,7 @@ var Contacts = (function() {
       return;
     }
     var storageAreas = navigator.getDeviceStorage('pictures');
-    var storage = storageAreas[0];
+    var storage = storageAreas[0] || storageAreas;
     var request = storage.get(image);
     request.onsuccess = function() {
       var img = document.createElement('img');
@@ -1142,7 +1155,7 @@ var Contacts = (function() {
     ctx.scale(scaleValue, scaleValue);
     var margin = ((contactImg[toCut] / scaled) - canvas[toCut]) / 2;
 
-    if(widthBigger) {
+    if (widthBigger) {
       ctx.drawImage(contactImg, -margin, 0);
     } else {
       ctx.drawImage(contactImg, 0, -margin);
@@ -1172,58 +1185,6 @@ var Contacts = (function() {
     'navigation': navigation
   };
 })();
-
-var ActivityHandler = {
-  _currentActivity: null,
-
-  get currentlyHandling() {
-    return !!this._currentActivity;
-  },
-
-  get activityName() {
-    if (!this._currentActivity) {
-      return null;
-    }
-
-    return this._currentActivity.source.name;
-  },
-
-  handle: function ah_handle(activity) {
-    this._currentActivity = activity;
-
-    switch (this.activityName) {
-      case 'new':
-        document.location.hash = 'view-contact-form';
-        if (this._currentActivity.source.data.params) {
-          var param, params = [];
-          for (var i in this._currentActivity.source.data.params) {
-            param = this._currentActivity.source.data.params[i];
-            params.push(i + '=' + param);
-          }
-          document.location.hash += '?' + params.join('&');
-        }
-        break;
-      case 'pick':
-        Contacts.navigation.home();
-        break;
-    }
-  },
-
-  postNewSuccess: function ah_postNewSuccess(contact) {
-    this._currentActivity.postResult({contact: contact});
-    this._currentActivity = null;
-  },
-
-  postPickSuccess: function ah_postPickSuccess(number) {
-    this._currentActivity.postResult({ number: number });
-    this._currentActivity = null;
-  },
-
-  postCancel: function ah_postCancel() {
-    this._currentActivity.postError('canceled');
-    this._currentActivity = null;
-  }
-};
 
 
 var actHandler = ActivityHandler.handle.bind(ActivityHandler);

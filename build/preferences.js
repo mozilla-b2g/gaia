@@ -1,73 +1,4 @@
 
-const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
-
-function getSubDirectories(directory) {
-  let appsDir = Cc["@mozilla.org/file/local;1"]
-               .createInstance(Ci.nsILocalFile);
-  appsDir.initWithPath(GAIA_DIR);
-  appsDir.append(directory);
-
-  let dirs = [];
-  let files = appsDir.directoryEntries;
-  while (files.hasMoreElements()) {
-    let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-    if (file.isDirectory()) {
-      dirs.push(file.leafName);
-    }
-  }
-  return dirs;
-}
-
-function getFileContent(file) {
-  let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
-                   .createInstance(Ci.nsIFileInputStream);
-  fileStream.init(file, 1, 0, false);
-
-  let converterStream = Cc["@mozilla.org/intl/converter-input-stream;1"]
-                          .createInstance(Ci.nsIConverterInputStream);
-  converterStream.init(fileStream, "utf-8", fileStream.available(),
-                       Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
-
-  let out = {};
-  let count = fileStream.available();
-  converterStream.readString(count, out);
-
-  let content = out.value;
-  converterStream.close();
-  fileStream.close();
-
-  return [content, count];
-}
-
-function getJSON(root, dir, name) {
-  let file = Cc["@mozilla.org/file/local;1"]
-               .createInstance(Ci.nsILocalFile);
-  file.initWithPath(GAIA_DIR);
-  file.append(root);
-  file.append(dir);
-  file.append(name);
-
-  if (!file.exists())
-    return null;
-
-  let [content, length] = getFileContent(file);
-  return JSON.parse(content);
-}
-
-function writeContent(content) {
-  let file = Cc["@mozilla.org/file/local;1"]
-               .createInstance(Ci.nsILocalFile);
-  file.initWithPath(GAIA_DIR);
-  file.append('profile');
-  file.append('user.js');
-
-  let stream = Cc["@mozilla.org/network/file-output-stream;1"]
-                   .createInstance(Ci.nsIFileOutputStream);
-  stream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
-  stream.write(content, content.length);
-  stream.close();
-}
-
 // XXX Remove all the permission parts here once bug 774716 is resolved
 
 let permissions = {
@@ -130,41 +61,34 @@ let privileges = [];
 let domains = [];
 domains.push(GAIA_DOMAIN);
 
-let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
+Gaia.webapps.forEach(function (webapp) {
+  let manifest = webapp.manifest;
+  let rootURL = webapp.url;
 
-appSrcDirs.forEach(function parseDirectory(directoryName) {
-  let directories = getSubDirectories(directoryName);
-  directories.forEach(function readManifests(dir) {
-    let manifest = getJSON(directoryName, dir, "manifest.webapp");
-    if (!manifest)
-      return;
+  privileges.push(rootURL);
+  domains.push(webapp.domain);
 
-    let rootURL = GAIA_SCHEME + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
-    let domain = dir + "." + GAIA_DOMAIN;
-    privileges.push(rootURL);
-    domains.push(domain);
+  let perms = manifest.permissions;
+  if (perms) {
+    for each(let name in perms) {
+      if (!permissions[name])
+        continue;
 
-    let perms = manifest.permissions;
-    if (perms) {
-      for each(let name in perms) {
-        if (!permissions[name])
-          continue;
+      permissions[name].urls.push(rootURL);
 
-        permissions[name].urls.push(rootURL);
+      // special case for the telephony API which needs full URLs
+      if (name == 'telephony') {
+        permissions[name].urls.push(rootURL + '/index.html');
 
-        // special case for the telephony API which needs full URLs
-        if (name == 'telephony') {
-          permissions[name].urls.push(rootURL + '/index.html');
-
-          if (manifest.background_page)
-            permissions[name].urls.push(rootURL + manifest.background_page);
-          if (manifest.attention_page)
-            permissions[name].urls.push(rootURL + manifest.attention_page);
-        }
+        if (manifest.background_page)
+          permissions[name].urls.push(rootURL + manifest.background_page);
+        if (manifest.attention_page)
+          permissions[name].urls.push(rootURL + manifest.attention_page);
       }
     }
-  });
+  }
 });
+
 
 //XXX: only here while waiting for https://bugzilla.mozilla.org/show_bug.cgi?id=764718 to be fixed
 content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
@@ -216,6 +140,7 @@ if (DEBUG) {
   content += "\n";
 }
 
-writeContent(content);
+let userJs = getFile(GAIA_DIR, 'profile', 'user.js');
+writeContent(userJs, content);
 dump("\n" + content);
 

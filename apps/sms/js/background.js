@@ -53,7 +53,8 @@
         app.launch();
       };
 
-      ContactDataManager.getContactData(message.sender, function gotContact(contact) {
+      ContactDataManager.getContactData(message.sender,
+      function gotContact(contact) {
         var sender;
         if (contact && contact.length > 0) {
           sender = contact[0].name;

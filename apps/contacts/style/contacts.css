@@ -228,6 +228,7 @@ hr {
   display: block;
 }
 
+
 /* Social network markers */
 .icon-social {
   background-size: cover;
@@ -250,4 +251,8 @@ hr {
 
 .icon-social.notorg {
   margin-left: 0 !important;
+}
+
+#contact-detail p > strong {
+  font-size: 1.4rem;
 }
