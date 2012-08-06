@@ -375,7 +375,7 @@ var Browser = {
     newIframe.setAttribute('remote', 'true');
 
     tab.dom = newIframe;
-    this.bindMozbrowserEvents(tab.dom, tab);
+    this.bindBrowserEvents(tab.dom, tab);
     this.frames.appendChild(tab.dom);
     this.refreshButtons();
   },
@@ -878,7 +878,7 @@ var Browser = {
     tab.dom.style.top = '0px';
   },
 
-  bindMozbrowserEvents: function browser_bindMozbrowserEvents(iframe, tab) {
+  bindBrowserEvents: function browser_bindBrowserEvents(iframe, tab) {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close',
@@ -914,7 +914,7 @@ var Browser = {
       screenshot: null,
       security: null
     };
-    this.bindMozbrowserEvents(iframe, tab);
+    this.bindBrowserEvents(iframe, tab);
 
     this.tabs[tab.id] = tab;
     this.frames.appendChild(iframe);
