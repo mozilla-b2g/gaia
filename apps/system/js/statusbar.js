@@ -16,8 +16,6 @@ var StatusBar = {
   /* Keep the DOM element references here */
   icons: {},
 
-  wifiConnected: false,
-
   geolocationActive: false,
   geolocationTimer: null,
 
@@ -226,7 +224,7 @@ var StatusBar = {
 
       if (this.settingValues['ril.radio.disabled'] ||
           !this.settingValues['ril.data.enabled'] ||
-          this.wifiConnected || !data.connected) {
+          !this.icons.wifi.hidden || !data.connected) {
         icon.hidden = true;
 
         return;
@@ -292,35 +290,42 @@ var StatusBar = {
         return;
 
       var icon = this.icons.wifi;
+      var wasHidden = icon.hidden;
 
       if (!this.settingValues['wifi.enabled']) {
         icon.hidden = true;
-
-        var updateData = this.wifiConnected;
-        this.wifiConnected = false;
-        if (updateData)
+        if (!wasHidden)
           this.update.data.call(this);
 
         return;
       }
 
-      var connected = !!wifiManager.connection.network;
-      var updateData = (this.wifiConnected !== connected);
+      switch (wifiManager.connection.status) {
+        case 'disconnected':
+          icon.hidden = true;
 
-      this.wifiConnected = connected;
-      if (updateData)
-        this.update.data.call(this);
+          break;
 
-      if (!this.wifiConnected) {
-        icon.hidden = true;
-        return;
+        case 'connecting':
+        case 'associated':
+          icon.hidden = false;
+          icon.dataset.connecting = true;
+          icon.dataset.level = 0;
+
+          break;
+
+        case 'connected':
+          icon.hidden = false;
+
+          var relSignalStrength =
+            wifiManager.connectionInformation.relSignalStrength;
+          icon.dataset.level = Math.floor(relSignalStrength / 25);
+
+          break;
       }
 
-      icon.hidden = false;
-      var relSignalStrength =
-        wifiManager.connectionInformation.relSignalStrength;
-
-      icon.dataset.level = Math.floor(relSignalStrength / 25);
+      if (icon.hidden !== wasHidden)
+        this.update.data.call(this);
     },
 
     tethering: function sb_updateTethering() {

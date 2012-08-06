@@ -143,6 +143,11 @@
   background-position: -260px -20px;
 }
 
+.sb-icon-wifi[data-level="0"][data-connecting="true"] {
+  background: url('images/wifi-connecting.gif') no-repeat;
+  background-position: 0 0;
+}
+
 .sb-icon-wifi:not([data-level]),
 .sb-icon-wifi[data-level="0"] {
   background-position: 0 -60px;
