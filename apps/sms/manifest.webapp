@@ -9,6 +9,7 @@
   "permissions": [
     "sms",
     "contacts",
+    "webcontacts-manage",
     "background"
   ],
   "locales": {

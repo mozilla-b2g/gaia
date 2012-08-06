@@ -8,8 +8,13 @@ const GridManager = (function() {
   var thresholdForPanning = window.innerWidth / 4;
   var thresholdForTapping = 10;
 
+  var dragging = false;
+
+  var overlay = document.querySelector('#overlay');
+  var opacityMax = .7;
+
   var pages = [];
-  pages.current = 0;
+  var currentPage = 0;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -17,7 +22,7 @@ const GridManager = (function() {
     right: 0
   };
 
-  var startEvent, currentEvent, isPanning = false;
+  var startEvent, isPanning = false;
 
   function handleEvent(evt) {
     switch (evt.type) {
@@ -25,8 +30,8 @@ const GridManager = (function() {
         evt.stopPropagation();
         document.body.dataset.transitioning = 'true';
 
-        startEvent = currentEvent = cloneEvent(evt);
-        onTouchStart(currentEvent.x - startEvent.x);
+        startEvent = evt;
+        attachEvents();
         break;
 
       case 'mousemove':
@@ -35,76 +40,88 @@ const GridManager = (function() {
         // Starts dragging only when tapping does not make sense
         // anymore. The drag will then start from this point to avoid
         // a jump effect.
-        currentEvent = cloneEvent(evt);
-        var tap = Math.abs(currentEvent.x - startEvent.x) < thresholdForTapping;
-        if (!isPanning && tap) {
+        if (!isPanning &&
+            Math.abs(evt.clientX - startEvent.clientX) < thresholdForTapping) {
           return;
         } else if (!isPanning) {
           isPanning = true;
-          startEvent = currentEvent;
+          startEvent = evt;
         }
 
-        onTouchMove(currentEvent.x - startEvent.x);
+        var deltaX = evt.clientX - startEvent.clientX;
+        var len = pages.length;
+        for (var i = 0; i < len; i++) {
+          pages[i].moveBy((-currentPage + i) * windowWidth + deltaX);
+        }
+        setOverlayPanning(deltaX);
         break;
 
       case 'mouseup':
         evt.stopPropagation();
         if (!isPanning) {
           delete document.body.dataset.transitioning;
+        } else {
+          isPanning = false;
         }
-        isPanning = false;
 
-        currentEvent = cloneEvent(evt);
-        onTouchEnd(currentEvent.x - startEvent.x, evt.target);
-        break;
-
-      case 'resize':
-        limits.left = container.offsetWidth * 0.05;
-        limits.right = container.offsetWidth * 0.95;
+        onTouchEnd(evt.clientX - startEvent.clientX, evt.target);
         break;
 
       case 'contextmenu':
-        if (pages.current !== 0) {
+        if (currentPage !== 0) {
           evt.stopPropagation();
           evt.preventDefault();
-
-          document.body.dataset.mode = 'edit';
+          Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
-            DragDropManager.start(evt, startEvent);
+            DragDropManager.start(evt, {
+              'x': startEvent.clientX,
+              'y': startEvent.clientY
+            });
           }
         }
         break;
     }
   }
 
-  function onTouchStart(deltaX) {
-    attachEvents();
+  function setOverlayPanning(deltaX) {
+    if (Homescreen.isInEditMode()) {
+      return;
+    }
+    var forward = dirCtrl.goesForward(deltaX);
+    if (currentPage === 0 && forward) {
+      applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
+    } else if (currentPage === 1 && !forward) {
+      applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
+    }
   }
 
-  function onTouchMove(deltaX) {
-    pan(deltaX);
+  function applyEffectOverlay(value, duration) {
+    var style = overlay.style;
+    if (duration) {
+      style.MozTransition = 'opacity ' + duration + 's ease';
+      overlay.addEventListener('transitionend', function end(e) {
+        overlay.removeEventListener('transitionend', end);
+        style.MozTransition = '';
+      });
+    }
+    style.opacity = value;
+
   }
 
   function onTouchEnd(deltaX, target) {
     releaseEvents();
 
-    var currentPage = pages.current;
-
     if (Math.abs(deltaX) > thresholdForPanning) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pageHelper.total() - 1) {
-        goToNextPage();
+        goToPage(currentPage + 1);
       } else if (!forward && currentPage > 0) {
-        goToPreviousPage();
+        goToPage(currentPage - 1);
       } else {
         goToPage(currentPage);
       }
     } else if (Math.abs(deltaX) < thresholdForTapping) {
       pageHelper.getCurrent().tap(target);
-
-      // Sometime poor devices fire touchmove events when users are only
-      // tapping
-      goToPage(currentPage);
     } else {
       goToPage(currentPage);
     }
@@ -122,58 +139,49 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
-  function cloneEvent(evt) {
-    if ('touches' in evt) {
-      evt = evt.touches[0];
-    }
-    return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
-  }
-
-  /*
-   * Page Navigation utils.
-   */
-  function pan(deltaX, duration) {
-    pages.forEach(function(page, index) {
-      var scrollX = (-pages.current + index) * windowWidth + deltaX;
-      page.moveBy(scrollX, duration);
-    });
-  }
-
   function goToPage(index, callback) {
-    var previousIndex = pages.current;
-    var isSamePage = pages.current === index;
-    pages.current = index;
-    callback = callback || function() {};
-
-    if (isSamePage) {
-      delete document.body.dataset.transitioning;
-      callback();
-    } else {
-      var currentPageContainer = pageHelper.getCurrent().container;
-
-      currentPageContainer.addEventListener('transitionend', function end(e) {
-        currentPageContainer.removeEventListener('transitionend', end);
-        delete document.body.dataset.transitioning;
-        callback();
-        Search.resetIcon();
-        pageHelper.getCurrent().bounce(previousIndex - index);
-      });
+    if (index === 0 && currentPage === 1 && Homescreen.isInEditMode()) {
+      index = 1;
     }
 
-    pan(0, .2);
-    updatePaginationBar();
+    var isSamePage = currentPage === index;
+    currentPage = index;
+
+    container.addEventListener('transitionend', function transitionEnd(e) {
+      container.removeEventListener('transitionend', transitionEnd);
+      if (!dragging) {
+        delete document.body.dataset.transitioning;
+      }
+      if (callback) {
+        callback();
+      }
+    });
+
+    var len = pages.length;
+    for (var i = 0; i < len; i++) {
+      pages[i].moveByWithEffect((-currentPage + i) * windowWidth, .3);
+    }
+    if (index === 0) {
+      applyEffectOverlay(0, .3);
+    } else if (index === 1) {
+      applyEffectOverlay(opacityMax, .3);
+    }
+
+    if (!isSamePage) {
+      updatePaginationBar();
+    }
   }
 
   function goToNextPage(callback) {
-    goToPage(pages.current + 1, callback);
+    goToPage(currentPage + 1, callback);
   }
 
   function goToPreviousPage(callback) {
-    goToPage(pages.current - 1, callback);
+    goToPage(currentPage - 1, callback);
   }
 
   function updatePaginationBar() {
-    PaginationBar.update(pages.current, pageHelper.total());
+    PaginationBar.update(currentPage, pages.length);
   }
 
   /*
@@ -369,7 +377,7 @@ const GridManager = (function() {
      * @param {int} index of the page
      */
     remove: function gm_remove(index) {
-      goToPage(index);
+      goToPage(index - 1);
 
       pages[index].destroy(); // Destroy page
       pages.splice(index, 1); // Removes page from the list
@@ -409,15 +417,15 @@ const GridManager = (function() {
     },
 
     getNext: function() {
-      return pages[pages.current + 1];
+      return pages[currentPage + 1];
     },
 
     getPrevious: function() {
-      return pages[pages.current - 1];
+      return pages[currentPage - 1];
     },
 
     getCurrent: function() {
-      return pages[pages.current];
+      return pages[currentPage];
     },
 
     getLast: function() {
@@ -425,7 +433,7 @@ const GridManager = (function() {
     },
 
     getCurrentPageNumber: function() {
-      return pages.current;
+      return currentPage;
     },
 
     getTotalPagesNumber: function() {
@@ -443,13 +451,12 @@ const GridManager = (function() {
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
       for (var i = 0; i < container.children.length; i++) {
-        var page = new Page(i);
+        var page = i === 0 ? new SearchPage(i) : new Page(i);
         page.render([], container.children[i]);
         pages.push(page);
       }
 
       container.addEventListener('mousedown', handleEvent, true);
-      container.addEventListener('resize', handleEvent, true);
 
       limits.left = container.offsetWidth * 0.05;
       limits.right = container.offsetWidth * 0.95;
@@ -460,11 +467,12 @@ const GridManager = (function() {
 
     onDragStart: function gm_onDragSart() {
       releaseEvents();
-      document.body.dataset.dragging = true;
+      dragging = document.body.dataset.dragging = true;
     },
 
     onDragStop: function gm_onDragStop() {
       delete document.body.dataset.dragging;
+      dragging = false;
       delete document.body.dataset.transitioning;
       ensurePagesOverflow();
       removeEmptyPages();
@@ -490,11 +498,9 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage(index, function() {
-          setTimeout(function() {
-            pageHelper.getCurrent().
-              applyInstallingEffect(Applications.getOrigin(app));
-          }, 200);
+        goToPage(index, function ins_goToPage() {
+          pageHelper.getCurrent().
+                    applyInstallingEffect(Applications.getOrigin(app));
         });
       }
 
@@ -545,4 +551,3 @@ const GridManager = (function() {
     }
   };
 })();
-

@@ -63,5 +63,10 @@
   "icons": {
     "60": "/style/icons/60/Email.png",
     "79": "/style/icons/Email.png"
+  },
+  "activities": {
+    "new": {
+      "filters": "mail"
+    }
   }
 }

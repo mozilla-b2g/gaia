@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = navigator.mozL10n.get;
+
 var Recents = {
   DBNAME: 'dialerRecents',
   STORENAME: 'dialerRecents',
@@ -13,23 +15,22 @@ var Recents = {
   get headerEditModeText() {
     delete this.headerEditModeText;
     return this.headerEditModeText = document.
-      getElementById('header-edit-mode-text');
+                                    getElementById('header-edit-mode-text');
   },
 
   get recentsIconEdit() {
     delete this.recentsIconEdit;
-    return this.recentsIconEdit = document.getElementById('recents-icon-edit');
+    return this.recentsIconEdit = document.getElementById('edit-button');
   },
 
   get recentsIconClose() {
     delete this.recentsIconClose;
-    return this.recentsIconClose = document.
-      getElementById('recents-icon-close');
+    return this.recentsIconClose = document.getElementById('cancel-button');
   },
 
   get recentsIconDone() {
     delete this.recentsIconDone;
-    return this.recentsIconDone = document.getElementById('thread-done-button');
+    return this.recentsIconDone = document.getElementById('done-button');
   },
 
   get recentsContainer() {
@@ -123,14 +124,39 @@ var Recents = {
   },
 
   recentsHeaderAction: function re_recentsIconEditAction(event) {
+    if (event) {
+      switch (event.target ? event.target.id : event) {
+        case 'edit-button': // Entering edit mode
+          // Clean selected lists
+          this._selectedEntries = new Object();
+          this._selectedEntriesCounter = 0;
+          // Updating header
+          this.headerEditModeText.textContent = _('edit');
+          // Disable 'delete selected' button
+          this.deleteSelectedThreads.classList.add('disabled');
+          break;
+        case 'cancel-button': // Exit edit mode with no deletions
+          var query = '.log-item.hide.selected';
+          var elements = this.recentsContainer.querySelectorAll(query);
+          // Show hidden messages
+          for (var i = 0; i < elements.length; i++) {
+            elements[i].classList.remove('hide');
+          }
+          break;
+        case 'done-button': // Commit deletions and exit edit mode
+          // Execute deletion of the lists
+          this.executeDeletion();
+          break;
+      }
+    }
     this.recentsView.classList.toggle('recents-edit');
-    this._selectedEntriesCounter = 0;
-    this.headerEditModeText.textContent = 'Edit';
-    var logItems = this.recentsContainer.
-      querySelectorAll('.log-item:not(.collapsed)'),
-      logItemsLenght = logItems.length,
-      contactPhoto, contactSelection, logItem;
-    for (var i = 0; i < logItemsLenght; i++) {
+    var logItems = this.recentsContainer.querySelectorAll(
+                                                  '.log-item:not(.collapsed)'),
+        contactPhoto,
+        contactSelection,
+        logItem;
+
+    for (var i = 0; i < logItems.length; i++) {
       logItem = logItems[i];
       contactPhoto = logItem.querySelector('.call-log-contact-photo');
       contactSelection = logItem.querySelector('.call-log-selection');
@@ -142,10 +168,10 @@ var Recents = {
       }
     }
     this._recentsEditionMode = !this._recentsEditionMode;
-    this._selectedEntries = new Object();
   },
 
   filter: function re_filter(event) {
+    // do nothing if selected tab is same that current
     if (event.target.classList.contains('selected')) {
       return;
     }
@@ -175,10 +201,12 @@ var Recents = {
         var selectedCallsLength = selectedCalls.length;
         this._selectedEntriesCounter = selectedCallsLength;
         if (selectedCallsLength == 0) {
-          this.headerEditModeText.textContent = 'Edit';
+          this.headerEditModeText.textContent = _('edit');
+          this.deleteSelectedThreads.classList.add('disabled');
         } else {
-          this.headerEditModeText.textContent =
-            selectedCallsLength + ' Selected';
+          this.headerEditModeText.textContent = _('edit-selected',
+                                                  {n: selectedCallsLength});
+          this.deleteSelectedThreads.classList.remove('disabled');
         }
       }
       if (this._allViewGroupingPending) {
@@ -207,16 +235,20 @@ var Recents = {
           var selectedCallsLength = selectedCalls.length;
           this._selectedEntriesCounter = selectedCallsLength;
           if (selectedCallsLength == 0) {
-            this.headerEditModeText.textContent = 'Edit';
+            this.headerEditModeText.textContent = _('edit');
+            this.deleteSelectedThreads.classList.add('disabled');
           } else {
-            this.headerEditModeText.textContent =
-              selectedCallsLength + ' Selected';
+            this.headerEditModeText.textContent = _('edit-selected',
+                                                    {n: selectedCallsLength});
+            this.deleteSelectedThreads.classList.remove('disabled');
           }
         }
       }
     }
     this.allFilter.classList.toggle('selected');
     this.missedFilter.classList.toggle('selected');
+    if (this._recentsEditionMode)
+      this.recentsHeaderAction('cancel-button');
   },
 
   cleanup: function re_cleanup() {
@@ -258,35 +290,47 @@ var Recents = {
   },
 
   deleteAll: function re_deleteAll() {
-    var self = this;
+    var response = window.confirm('Clear all calls?\n' +
+                                  'Are you sure you want to clear all calls\n' +
+                                  'from your call log?');
+    if (response) {
+      var self = this;
 
-    this.getDatabase(function(database) {
-      var txn = database.transaction(self.STORENAME, 'readwrite');
-      var store = txn.objectStore(self.STORENAME);
+      this.getDatabase(function(database) {
+        var txn = database.transaction(self.STORENAME, 'readwrite');
+        var store = txn.objectStore(self.STORENAME);
 
-      var delAllReq = store.clear();
-      delAllReq.onsuccess = function da_onsuccess() {
-        self.recentsContainer.innerHTML = '';
-        self.recentsIconEdit.classList.add('disabled');
-        self.recentsHeaderAction(null);
-        this._selectedEntries = new Object();
-      };
+        var delAllReq = store.clear();
+        delAllReq.onsuccess = function da_onsuccess() {
+          self.recentsContainer.innerHTML = '';
+          self.recentsIconEdit.classList.add('disabled');
+          self.recentsHeaderAction(null);
+          this._selectedEntries = new Object();
+        };
 
-      delAllReq.onerror = function da_onerror(e) {
-        console.log('dialerRecents delete all failure: ',
-          e.message, setreq.errorCode);
-      };
-    });
+        delAllReq.onerror = function da_onerror(e) {
+          console.log('dialerRecents delete all failure: ',
+            e.message, setreq.errorCode);
+        };
+      });
+    }
   },
 
   deleteSelected: function re_deleteSelected() {
+    var selected = this.recentsContainer.querySelectorAll('.log-item.selected');
+    for (var i = 0; i < selected.length; i++) {
+      selected[i].classList.add('hide');
+    }
+  },
+
+  executeDeletion: function re_executeDeletion() {
     var self = this;
 
     this.getDatabase(function(database) {
       var txn = database.transaction(self.STORENAME, 'readwrite'),
         store = txn.objectStore(self.STORENAME),
         selectedLogItems = self.recentsContainer.
-          querySelectorAll('.log-item:not(.hide).selected'),
+          querySelectorAll('.log-item.hide.selected'),
         selectedLogItemsLength = selectedLogItems.length,
         callType, phoneNumber, phoneNumberType, groupItemLogs, groupItemLogsAux,
         sameDaySection;
@@ -326,7 +370,6 @@ var Recents = {
         }
       }
     });
-    self.recentsHeaderAction(null);
   },
 
   getSameTypeCallsOnSameDayForDeletion: function re_getSameTypeCallsOnSameDay(
@@ -395,10 +438,14 @@ var Recents = {
         delete this._selectedEntries[target.dataset.date.trim()];
       }
       if (this._selectedEntriesCounter == 0) {
-        this.headerEditModeText.textContent = 'Edit';
+        this.headerEditModeText.textContent = _('edit');
+        this.deleteSelectedThreads.classList.add('disabled');
+
       } else {
-        this.headerEditModeText.textContent =
-          this._selectedEntriesCounter + ' Selected';
+        var count = this._selectedEntriesCounter;
+        this.headerEditModeText.textContent = _('edit-selected',
+                                                {n: count});
+        this.deleteSelectedThreads.classList.remove('disabled');
       }
     }
   },
@@ -510,12 +557,13 @@ var Recents = {
       } else {
         Contacts.findByNumber(
           phoneNumber,
-          this.contactCallBack.bind(this, callLogItems[i], length));
+          this.contactCallBack.bind(this, callLogItems[i],
+            length, phoneNumber));
       }
     }
   },
 
-  contactCallBack: function re_contactCallBack(logItem, max, contact) {
+  contactCallBack: function re_contactCallBack(logItem, max, number, contact) {
     var primaryInfo = logItem.querySelector('.primary-info'),
       contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact) {
@@ -543,6 +591,10 @@ var Recents = {
       this._cachedContacts[phoneNumber] = contact;
     } else {
       contactPhoto.classList.add('unknownContact');
+
+      if (!number.length) {
+        primaryInfo.textContent = _('unknown');
+      }
     }
     this._updateCounter++;
     if (this._updateCounter == max) {

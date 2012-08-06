@@ -187,6 +187,7 @@ Icon.prototype = {
  */
 var Page = function(index) {
   this.icons = {};
+  this.posLeft = 0;
 };
 
 Page.prototype = {
@@ -220,15 +221,44 @@ Page.prototype = {
   },
 
   /*
+   * Applies a translation effect to the page
+   *
+   * @param{String} scroll X
+   *
+   * @param{int} duration
+   */
+  moveByWithEffect: function pg_moveByWithEffect(scrollX, duration) {
+    var container = this.container;
+    var style = container.style;
+
+    container.addEventListener('transitionend', function transitionEnd(e) {
+      e.stopPropagation();
+      container.removeEventListener('transitionend', transitionEnd);
+      style.MozTransform = 'translateX(' + scrollX + 'px)';
+      style.MozTransition = '-moz-transform .05s ease';
+    });
+
+    if (scrollX === 0) {
+      style.MozTransform = 'translateX(' + (scrollX +
+                           (this.posLeft <= scrollX ? 5 : -5)) + 'px)';
+    } else {
+      style.MozTransform = 'translateX(' + (scrollX + 0.001) + 'px)';
+    }
+    style.MozTransition = '-moz-transform ' + duration + 's ease';
+
+    this.posLeft = scrollX;
+  },
+
+  /*
    * Applies a translation to the page
    *
-   * @param{String} the app origin
+   * @param{String} scroll X
    */
-  moveBy: function pg_moveBy(scrollX, duration) {
+  moveBy: function pg_moveBy(scrollX) {
     var style = this.container.style;
     style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition =
-      duration ? ('-moz-transform ' + duration + 's ease') : '';
+    style.MozTransition = '';
+    this.posLeft = scrollX;
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
@@ -327,7 +357,7 @@ Page.prototype = {
    * @param{Object} DOM element
    */
   tap: function pg_tap(elem) {
-    if (document.body.dataset.mode === 'edit') {
+    if (Homescreen.isInEditMode()) {
       if (elem.className === 'options') {
         Homescreen.showAppDialog(elem.dataset.origin);
       }
@@ -460,24 +490,6 @@ Page.prototype = {
     return Array.prototype.map.call(nodes, function extractOrigin(node) {
       return node.dataset.origin;
     });
-  },
-
-  /*
-   * Movement feedback
-  */
-  bounce: function pg_bounce(direction) {
-    var container = this.container;
-    var dataset = this.container.dataset;
-    container.addEventListener('animationend', function animationEnd(e) {
-      container.removeEventListener('animationend', animationEnd);
-      dataset.bouncing = '';
-    });
-
-    if (direction > 0) {
-      dataset.bouncing = 'right';
-    } else {
-      dataset.bouncing = 'left';
-    }
   }
 };
 
@@ -506,4 +518,43 @@ Dock.prototype.animate = function dk_anim(oIndex, tIndex, children,
       this.jumpNode(children[i], 'jumpNextCell', originNode, targetNode, true);
     }
   }
+};
+
+var SearchPage = function createSearchPage() {
+  Page.call(this);
+  this.maxWidth = window.innerWidth;
+};
+
+extend(SearchPage, Page);
+
+var searchProto = SearchPage.prototype;
+
+searchProto.baseMoveBy = Page.prototype.moveBy;
+
+searchProto.baseMoveByWithEffect = Page.prototype.moveByWithEffect;
+
+searchProto.decorateScrollX = function spg_getDeltaX(scrollX) {
+  var maxWidth = this.maxWidth;
+  if (scrollX < 0 && scrollX > -maxWidth) {
+    if (this.posLeft > scrollX) {
+      if (scrollX > -maxWidth / 2) {
+        scrollX = 0;
+      } else {
+        scrollX += maxWidth / 2;
+      }
+    } else {
+      scrollX = -maxWidth / 4;
+    }
+  }
+
+  return scrollX;
+};
+
+searchProto.moveBy = function spg_moveBy(scrollX) {
+  this.baseMoveBy(this.decorateScrollX(scrollX));
+};
+
+searchProto.moveByWithEffect = function spg_moveByWithEffect(
+                                          scrollX, duration) {
+  this.baseMoveByWithEffect(this.decorateScrollX(scrollX), duration);
 };

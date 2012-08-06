@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -21,7 +21,7 @@ var Settings = {
       var value = event.settingValue;
 
       var checkbox =
-          document.querySelector('input[name="' + key + '"]');
+          document.querySelector('input[type="checkbox"][name="' + key + '"]');
       if (checkbox) {
         if (checkbox.checked == value)
           return;
@@ -110,6 +110,32 @@ var Settings = {
         };
       })(progresses[i]);
     }
+
+    // handle web activity
+    navigator.mozSetMessageHandler('activity',
+      function settings_handleActivity(activityRequest) {
+        var name = activityRequest.source.name;
+        switch (name) {
+          case 'configure':
+            var section = activityRequest.source.data.section || 'root';
+
+            // Validate if the section exists
+            var actualSection = document.getElementById(section);
+            if (!actualSection || actualSection.tagName !== 'SECTION') {
+              var msg = 'Trying to open an unexistent section: ' + section;
+              console.warn(msg);
+              activityRequest.postError(msg);
+              return;
+            }
+
+            // Go to that section
+            setTimeout(function settings_goToSection() {
+              document.location.hash = section;
+            });
+            break;
+        }
+      }
+    );
   },
 
   handleEvent: function settings_handleEvent(evt) {

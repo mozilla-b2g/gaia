@@ -165,46 +165,50 @@
             <header class="view-header regular-header">
               <menu type="toolbar">
                  <a id="recents-icon-edit">
-                  <span class="recents-icon icon-edit"></span>
+                  <span id="edit-button" class="recents-icon icon-edit"></span>
                  </a>
               </menu>
-              <h1>Call log</h1>
+              <h1 data-l10n-id="callLog">Call log</h1>
             </header>
             <header class="view-header dark-header">
               <a id="recents-icon-close" role="link">
-                <span class="recents-icon icon-close">close</span>
+                <span id="cancel-button" class="recents-icon icon-close">close</span>
               </a>
               <menu type="toolbar">
-                 <button id="thread-done-button">done</button>
+                 <button id="done-button" data-l10n-id="done">done</button>
               </menu>
-              <h1 id="header-edit-mode-text">Edit mode</h1>
+              <h1 id="header-edit-mode-text">Edit</h1>
             </header>
           </div>
         </div>
-          <nav id="recents-filter-container">
-            <ul>
-              <li class="recents-filter-entry">
-                <button id="allFilter" type="button" data-action="all" class="selected"> All </button>
-              </li>
-              <li class="recents-filter-entry">
-                <button id="missedFilter" type="button" data-action="missed"> Missed </button>
-              </li>
-            </ul>
-          </nav>
-          <article id="recents-container" onclick="Recents.click(event.target)" class="view-body">
-          </article>
-          <footer class="options">
-            <section class="option">
-              <button id="delete-all-threads" class="edit-button">
-                Delete all
+        <nav id="recents-filter-container">
+          <ul>
+            <li class="recents-filter-entry">
+              <button id="allFilter" type="button" data-action="all" data-l10n-id="all" class="selected">
+                All
               </button>
-            </section>
-            <section class="option">
-              <button id="delete-selected-threads" class="edit-button">
-                Delete selected
+            </li>
+            <li class="recents-filter-entry">
+              <button id="missedFilter" type="button" data-action="missed" data-l10n-id="missed">
+                Missed
               </button>
-            </section>
-          </footer>
+            </li>
+          </ul>
+        </nav>
+        <article id="recents-container" onclick="Recents.click(event.target)" class="view-body">
+        </article>
+        <footer class="options">
+          <section class="option">
+            <button id="delete-all-threads" class="edit-button" data-l10n-id="deleteAll">
+              Delete all
+            </button>
+          </section>
+          <section class="option">
+            <button id="delete-selected-threads" class="edit-button" data-l10n-id="deleteSelected">
+              Delete selected
+            </button>
+          </section>
+        </footer>
       </section>
     </article>
     <nav id="main-toolbar" class="toolbar grid center">

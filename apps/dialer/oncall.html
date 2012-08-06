@@ -6,59 +6,51 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/oncall.css">
     <link rel="stylesheet" type="text/css" href="style/keypad.css">
-    <script type="application/javascript" src="js/contacts.js"></script>
-    <script type="application/javascript" src="js/settings_listener.js"></script>
-    <script type="application/javascript" src="js/notification_helper.js"></script>
-    <script type="application/javascript" src="js/keypad.js"></script>
-    <script type="application/javascript" src="js/oncall.js"></script>
-    <script type="application/javascript" src="js/recents.js"></script>
-    <script type="application/javascript" src="js/proximity.js"></script>
-    <link rel="resource" type="application/l10n" href="locale/dialer.properties">
-    <script>
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        paths.pop();
-        var src = protocol + '//' + paths.join('/') + '/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+
+    <script defer type="application/javascript" src="js/contacts.js"></script>
+    <script defer type="application/javascript" src="js/settings_listener.js"></script>
+    <script defer type="application/javascript" src="js/notification_helper.js"></script>
+    <script defer type="application/javascript" src="js/keypad.js"></script>
+    <script defer type="application/javascript" src="js/oncall.js"></script>
+    <script defer type="application/javascript" src="js/handled_call.js"></script>
+    <script defer type="application/javascript" src="js/recents.js"></script>
+    <script defer type="application/javascript" src="js/proximity.js"></script>
   </head>
   <body class="hidden">
     <article id="call-screen" class="grid">
-      <header id="cs-header" class="grid-row">
-        <div class="grid-wrapper grid">
-          <article id="contact-info" class="grid-cell grid-v-align">
-            <section class="contact-info">
-              <input id="contact-primary-info" type="text" readonly="readonly" class="contact-primary-info font-regular">
-              <div id="fake-contact-primary-info" class="font-regular"></div>
-            </section>
-            <section id="contact-secondary-info" class="contact-secondary-info font-light contact-info">
-              Unknown carrier
-            </section>
-          </article>
-        </div>
-      </header>
-      <article id="call-container" class="grid-row">
-        <div class="grid-wrapper grid">
-          <section id="call-info" class="grid-row">
-             <div class="grid-wrapper ">
-                <div id="call-duration" class="call-duration-style font-light">
-                </div>
-                <span id="call-direction">
-                  <div id="icon-call-direction"></div>
-                </span>
-             </div>
-          </section>
+      <article id="calls" data-count="0">
+        <section>
+          <div class="number">
+          </div>
+          <div class="fake-number">
+          </div>
+          <div class="duration">
+            <span></span>
+            <div class="direction">
+              <div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section hidden>
+          <div class="number">
+          </div>
+          <div class="fake-number">
+          </div>
+          <div class="duration">
+            <span></span>
+            <div class="direction">
+              <div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </article>
+      <article id="main-container" class="grid-row">
+        <div id="actions-container" class="grid-wrapper grid">
           <footer id="call-options" class="grid-row">
             <div class="grid-wrapper grid">
               <section id="co-advanced" class="grid-row">
@@ -100,6 +92,28 @@
           </footer>
         </div>
       </article>
+    </article>
+    <article id="incoming-container">
+      <header>
+        <div id="incoming-end">
+          <span role="button" data-l10n-id="endAnswer">
+            End+Answer
+          </span>
+        </div>
+        <div id="incoming-answer">
+          <span role="button" data-l10n-id="holdAnswer">
+            Hold+Answer
+          </span>
+        </div>
+      </header>
+      <section id="incoming-info">
+        <span id="incoming-number"></span>
+        <div id="incoming-ignore">
+          <span role="button" data-l10n-id="ignore">
+            Ignore
+          </span>
+        </div>
+      </section>
     </article>
     <div id="screen-off"></div>
     <article id="views">

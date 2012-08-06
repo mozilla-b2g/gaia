@@ -82,11 +82,7 @@ body {
   left: 0;
   top: 20px;
   z-index: 1;
-  opacity: 0;
-  -moz-transform: scale(0.5);
-  -moz-transition-property: -moz-transform, opacity;
-  -moz-transition-duration: 0.5s;
-  -moz-transition-timing-function: ease;
+
 /*
  * Do not specify height/width here! They should go to
  * Window.prototype.resize() in window_manager.js
@@ -109,12 +105,44 @@ body {
 #windows > iframe.appWindow.active {
   z-index: 9995;
   background-color: #fff;
-  -moz-transform: scale(1);
-  opacity: 1;
 }
 
 #windows > iframe.appWindow:not(.active) {
   visibility: hidden;
+}
+
+#windowSprite {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 20px);
+  z-index: 9999;
+  opacity: 0;
+  background-color: #373a3d;
+  pointer-events: none;
+  -moz-transform: scale(0.5);
+  -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
+}
+
+#windowSprite.open {
+  -moz-transform: scale(1);
+  opacity: 1;
+}
+
+#windowSprite.faded {
+  opacity: 0;
+}
+
+#windowSprite.close {
+  /* The transition on color is not really useful but it is used to fire
+     a transitionend event on the sprite after a certain amount of time.
+     This amount of time is when the 'transform' animation should start.
+  */
+  -moz-transition: color 0.1s ease, opacity 0.3s ease, -moz-transform 0.3s 0.1s ease;
+  -moz-transform: scale(0.5);
+  opacity: 0.3;
+  color: black;
 }
 
 .accessibility-invert {
@@ -174,12 +202,15 @@ iframe.backgroundWindow {
   width: 100%;
   height: 100%;
   z-index: 10000;
-  display: none;
+
+  visibility: hidden;
+  pointer-events: none;
 }
 
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
-#screen.popup #dialog-overlay,
-#screen.popup #popup-container {
-  display: block;
+#screen.popup #popup-container,
+#screen.popup #dialog-overlay {
+  visibility: visible;
+  pointer-events: auto;
 }

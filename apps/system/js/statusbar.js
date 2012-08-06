@@ -21,6 +21,14 @@ var StatusBar = {
   geolocationActive: false,
   geolocationTimer: null,
 
+  /* For other app to acquire */
+  get height() {
+    if (this.screen.classList.contains('active-statusbar'))
+      return this.attentionBar.offsetHeight;
+    else
+      return this.element.offsetHeight;
+  },
+
   init: function sb_init() {
     this.getAllElements();
 
@@ -260,7 +268,7 @@ var StatusBar = {
     },
 
 
-    wifi: function sb_updateWifi(evt) {
+    wifi: function sb_updateWifi() {
       var wifiManager = window.navigator.mozWifiManager;
       if (!wifiManager)
         return;
@@ -291,17 +299,8 @@ var StatusBar = {
       }
 
       icon.hidden = false;
-      var relSignalStrength = 0;
-      if (evt && evt.relSignalStrength) {
-        relSignalStrength = evt.relSignalStrength;
-      } else if (wifiManager.connectionInformation &&
-                 wifiManager.connectionInformation.relSignalStrength) {
-        relSignalStrength =
-          wifiManager.connectionInformation.relSignalStrength;
-      } else {
-        console.error(
-          'Status Bar: WIFI is connected but signal strength is unknown.');
-      }
+      var relSignalStrength =
+        wifiManager.connectionInformation.relSignalStrength;
 
       icon.dataset.level = Math.floor(relSignalStrength / 25);
     },
@@ -404,6 +403,10 @@ var StatusBar = {
       this.icons[toCamelCase(name)] =
         document.getElementById('statusbar-' + name);
     }).bind(this));
+
+    this.element = document.getElementById('statusbar');
+    this.screen = document.getElementById('screen');
+    this.attentionBar = document.getElementById('attention-bar');
   }
 };
 
