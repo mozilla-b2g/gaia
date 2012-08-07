@@ -141,7 +141,8 @@ var Contacts = (function() {
       saveButton,
       deleteContactButton,
       favoriteMessage,
-      cover;
+      cover,
+      thumb;
 
   var currentContact = {};
 
@@ -231,6 +232,7 @@ var Contacts = (function() {
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
+    thumb = document.getElementById('thumbnail-photo');
     TAG_OPTIONS = {
       'phone-type' : [
         {value: _('mobile')},
@@ -412,6 +414,19 @@ var Contacts = (function() {
       listContainer.appendChild(template);
     }
 
+    if (contact.bday) {
+      var bdayTemplate = document.getElementById('birthday-template-#i#');
+
+      // TODO: Fix this with a locale function for dates!!!!
+      var months = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November',
+                    'December'];
+      var bdayString = contact.bday.getDate() + ', ' +
+                                            months[contact.bday.getMonth()];
+      var e = utils.templates.render(bdayTemplate, {bday: bdayString});
+      listContainer.appendChild(e);
+    }
+
     var selector = document.getElementById('address-details-template-#i#');
     var addressesTemplate = selector;
     if (contact.adr) {
@@ -455,7 +470,7 @@ var Contacts = (function() {
 
 
     var existsPhoto = 'photo' in contact && contact.photo;
-    if (existsPhoto) {
+    if (existsPhoto && 0 < contact.photo.length) {
       var detailsInner = document.getElementById('contact-detail-inner');
       contactDetails.classList.add('up');
       var photoOffset = (photoPos + 1) * 10;
@@ -481,6 +496,7 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
+    thumb.style.backgroundImage = 'url(' + currentContact.photo + ')';
     var default_type = TAG_OPTIONS['phone-type'][0].value;
     for (var tel in currentContact.tel) {
       var currentTel = currentContact.tel[tel];
@@ -779,6 +795,7 @@ var Contacts = (function() {
   };
 
   var saveContact = function saveContact() {
+    saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
       additionalName: '',
@@ -800,8 +817,13 @@ var Contacts = (function() {
       }
     }
 
-    if (currentContact.category) {
-      myContact.category = currentContact.category;
+    var fields = ['photo', 'category'];
+
+    for (var i = 0; i < fields.length; i++) {
+      var currentField = fields[i];
+      if (currentContact[currentField]) {
+        myContact[currentField] = currentContact[currentField];
+      }
     }
 
     if (myContact.givenName || myContact.familyName) {
@@ -831,6 +853,7 @@ var Contacts = (function() {
       currentContact.email = [];
       currentContact.adr = [];
       currentContact.note = [];
+      currentContact.photo = [];
       for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
@@ -1026,6 +1049,7 @@ var Contacts = (function() {
     givenName.value = '';
     familyName.value = '';
     company.value = '';
+    thumb.style.backgroundImage = '';
     var phones = document.getElementById('contacts-form-phones');
     var emails = document.getElementById('contacts-form-emails');
     var addresses = document.getElementById('contacts-form-addresses');
@@ -1066,6 +1090,84 @@ var Contacts = (function() {
     }
   };
 
+  var pickImage = function pickImage() {
+    var activity = new MozActivity({
+      name: 'pick',
+      data: {
+        type: 'image/jpeg'
+      }
+    });
+
+    var reopenApp = function reopen() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        var app = evt.target.result;
+        app.launch();
+      };
+    };
+
+    activity.onsuccess = function success() {
+      reopenApp();
+      var currentImg = this.result.filename;
+      updateContactPhoto(currentImg);
+    }
+
+    activity.onerror = function error() {
+      reopenApp();
+    }
+  }
+
+  var updateContactPhoto = function updateContactPhoto(image) {
+    if (!navigator.getDeviceStorage) {
+      console.log('Device storage unavailable');
+      return;
+    }
+    var storageAreas = navigator.getDeviceStorage('pictures');
+    var storage = storageAreas[0] || storageAreas;
+    var request = storage.get(image);
+    request.onsuccess = function() {
+      var img = document.createElement('img');
+      var imgSrc = URL.createObjectURL(request.result);
+      img.src = imgSrc;
+      this.img = img;
+      img.onload = function() {
+        var dataImg = getPhoto(this.img);
+        thumb.style.backgroundImage = 'url(' + dataImg + ')';
+        currentContact.photo = currentContact.photo || [];
+        currentContact.photo[0] = dataImg;
+      }.bind(this);
+    };
+    request.onerror = function() {
+      console.log('Error loading img');
+    };
+  }
+
+  var getPhoto = function getContactImg(contactImg) {
+    // Checking whether the image was actually loaded or not
+    var canvas = document.createElement('canvas');
+    var ratio = 2.5;
+    canvas.width = thumb.width * ratio;
+    canvas.height = thumb.height * ratio;
+    var ctx = canvas.getContext('2d');
+    var widthBigger = contactImg.width > contactImg.height;
+    var toCut = widthBigger ? 'width' : 'height';
+    var toScale = widthBigger ? 'height' : 'width';
+    var scaled = contactImg[toScale] / canvas[toScale];
+    var scaleValue = 1 / scaled;
+    ctx.scale(scaleValue, scaleValue);
+    var margin = ((contactImg[toCut] / scaled) - canvas[toCut]) / 2;
+
+    if (widthBigger) {
+      ctx.drawImage(contactImg, -margin, 0);
+    } else {
+      ctx.drawImage(contactImg, 0, -margin);
+    }
+
+    var ret = canvas.toDataURL();
+    contactImg = null;
+    canvas = null;
+    return ret;
+  }
+
   return {
     'showEdit' : showEdit,
     'doneTag': doneTag,
@@ -1080,61 +1182,10 @@ var Contacts = (function() {
     'saveContact': saveContact,
     'toggleFavorite': toggleFavorite,
     'callOrPick': callOrPick,
+    'pickImage': pickImage,
     'navigation': navigation
   };
 })();
-
-var ActivityHandler = {
-  _currentActivity: null,
-
-  get currentlyHandling() {
-    return !!this._currentActivity;
-  },
-
-  get activityName() {
-    if (!this._currentActivity) {
-      return null;
-    }
-
-    return this._currentActivity.source.name;
-  },
-
-  handle: function ah_handle(activity) {
-    this._currentActivity = activity;
-
-    switch (this.activityName) {
-      case 'new':
-        document.location.hash = 'view-contact-form';
-        if (this._currentActivity.source.data.params) {
-          var param, params = [];
-          for (var i in this._currentActivity.source.data.params) {
-            param = this._currentActivity.source.data.params[i];
-            params.push(i + '=' + param);
-          }
-          document.location.hash += '?' + params.join('&');
-        }
-        break;
-      case 'pick':
-        Contacts.navigation.home();
-        break;
-    }
-  },
-
-  postNewSuccess: function ah_postNewSuccess(contact) {
-    this._currentActivity.postResult({contact: contact});
-    this._currentActivity = null;
-  },
-
-  postPickSuccess: function ah_postPickSuccess(number) {
-    this._currentActivity.postResult({ number: number });
-    this._currentActivity = null;
-  },
-
-  postCancel: function ah_postCancel() {
-    this._currentActivity.postError('canceled');
-    this._currentActivity = null;
-  }
-};
 
 
 var actHandler = ActivityHandler.handle.bind(ActivityHandler);

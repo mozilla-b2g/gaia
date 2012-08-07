@@ -97,6 +97,9 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var fillNumber = function actHandleDisplay() {
     if (number) {
       KeypadManager.updatePhoneNumber(number);
+      if (window.location.hash != '#keyboard-view') {
+        window.location.hash = '#keyboard-view';
+      }
     }
   }
 

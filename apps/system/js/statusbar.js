@@ -16,7 +16,19 @@ var StatusBar = {
   /* Keep the DOM element references here */
   icons: {},
 
-  wifiConnected: false,
+  /* A mapping table between technology names
+     we would get from API v.s. the icon we want to show. */
+  mobileDataIconTypes: {
+    'lte': '4G', // 4G LTE
+    'ehrpd': '4G', // 4G CDMA
+    'hspa+': 'H+', // 3.5G HSPA+
+    'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H', // 3.5G HSDPA
+    'evdo0': '3G', 'evdoa': '3G', 'evdob': '3G', '1xrtt': '3G', // 3G CDMA
+    'umts': '3G', // 3G
+    'edge': 'E', // EDGE
+    'is95a': '2G', 'is95b': '2G', // 2G CDMA
+    'gprs': '2G'
+  },
 
   geolocationActive: false,
   geolocationTimer: null,
@@ -192,16 +204,22 @@ var StatusBar = {
       }
 
       flightModeIcon.hidden = true;
+      icon.hidden = false;
 
       icon.dataset.roaming = voice.roaming;
       if (!voice.connected && !voice.emergencyCallsOnly) {
         // "No Network" / "Searching"
-        // XXX: need differentiate the two
-        // https://github.com/mozilla-b2g/gaia/issues/2763
-        icon.hidden = true;
+        icon.dataset.level = -1;
+
+        // Possible value of voice.state are
+        // 'notSearching', 'searching', 'denied', 'registered',
+        // where the later three means the phone is trying to grabbing
+        // the network. See
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
+        icon.dataset.searching = (voice.state !== 'notSearching');
+
       } else {
         // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
-        icon.hidden = false;
         icon.dataset.level = Math.floor(voice.relSignalStrength / 20); // 0-5
       }
     },
@@ -216,102 +234,60 @@ var StatusBar = {
 
       if (this.settingValues['ril.radio.disabled'] ||
           !this.settingValues['ril.data.enabled'] ||
-          this.wifiConnected || !data.connected) {
+          !this.icons.wifi.hidden || !data.connected) {
         icon.hidden = true;
 
         return;
       }
 
       icon.hidden = false;
-      var type = '';
-
-      switch (data.type) {
-        case 'lte':
-          type = 'LTE';
-          break;
-
-        // This icon is not used
-        // type = '4G';
-        //  break;
-
-        // 3.5G, show them as 3G
-        case 'hsdpa':
-        case 'hsupa':
-        case 'hspa+':
-
-        // CDMA 3G
-        case 'evdo0':
-        case 'evdoa':
-        case 'evdob':
-        case '1xrtt':
-
-        // 3G
-        case 'umts':
-          type = '3G';
-          break;
-
-        case 'edge':
-          type = 'EDGE';
-          break;
-
-        // CDMA 2G
-        case 'is95a':
-        case 'is95b':
-
-        // 2G
-        case 'gprs':
-        default:
-          type = '2G';
-      }
-
-      icon.dataset.type = type;
+      icon.dataset.type =
+        this.mobileDataIconTypes[data.type] || 'circle';
     },
 
 
-    wifi: function sb_updateWifi(evt) {
+    wifi: function sb_updateWifi() {
       var wifiManager = window.navigator.mozWifiManager;
       if (!wifiManager)
         return;
 
       var icon = this.icons.wifi;
+      var wasHidden = icon.hidden;
 
       if (!this.settingValues['wifi.enabled']) {
         icon.hidden = true;
-
-        var updateData = this.wifiConnected;
-        this.wifiConnected = false;
-        if (updateData)
+        if (!wasHidden)
           this.update.data.call(this);
 
         return;
       }
 
-      var connected = !!wifiManager.connection.network;
-      var updateData = (this.wifiConnected !== connected);
+      switch (wifiManager.connection.status) {
+        case 'disconnected':
+          icon.hidden = true;
 
-      this.wifiConnected = connected;
-      if (updateData)
+          break;
+
+        case 'connecting':
+        case 'associated':
+          icon.hidden = false;
+          icon.dataset.connecting = true;
+          icon.dataset.level = 0;
+
+          break;
+
+        case 'connected':
+          icon.hidden = false;
+
+          var relSignalStrength =
+            wifiManager.connectionInformation.relSignalStrength;
+          icon.dataset.level = Math.floor(relSignalStrength / 25);
+
+          break;
+      }
+
+      if (icon.hidden !== wasHidden)
         this.update.data.call(this);
-
-      if (!this.wifiConnected) {
-        icon.hidden = true;
-        return;
-      }
-
-      icon.hidden = false;
-      var relSignalStrength = 0;
-      if (evt && evt.relSignalStrength) {
-        relSignalStrength = evt.relSignalStrength;
-      } else if (wifiManager.connectionInformation &&
-                 wifiManager.connectionInformation.relSignalStrength) {
-        relSignalStrength =
-          wifiManager.connectionInformation.relSignalStrength;
-      } else {
-        console.error(
-          'Status Bar: WIFI is connected but signal strength is unknown.');
-      }
-
-      icon.dataset.level = Math.floor(relSignalStrength / 25);
     },
 
     tethering: function sb_updateTethering() {

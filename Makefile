@@ -98,6 +98,9 @@ SHELL := /bin/bash
 # what OS are we on?
 SYS=$(shell uname -s)
 ARCH?=$(shell uname -m)
+ifeq (${SYS}/${ARCH},Darwin/i386)
+ARCH=x86_64
+endif
 SEP=/
 ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
@@ -265,8 +268,9 @@ define run-js-command
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_APP_RELATIVEPATH = "$(GAIA_APP_RELATIVEPATH)";                   \
-	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";';                               \
-	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" "build/$(strip $1).js"
+	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
+	';                                                                          \
+	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
 
 settingsdb: install-xulrunner-sdk

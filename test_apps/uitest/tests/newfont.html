@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>New fonts test</title>
+    <style>
+    button, select {
+      font-size: 25px;
+    }
+    @font-face {
+      font-family: 'TelMoz';
+      src: url('../style/fonts/TelMoz.otf');
+    }
+    p {
+        font-family: 'TelMoz';
+    }
+    body[data-weight="regular"] p {
+    }
+    body[data-weight="medium"] p {
+      /* XXX: wait new font file */
+    }
+    body[data-weight="bold"] p {
+      /* XXX: wait new font file */
+    }
+    body.swap {
+      color: white;
+      background: black;
+    }
+    </style>
+    <script type="text/javascript">
+      function swapColor() {
+        document.body.classList.toggle('swap');
+      }
+      function changeFontWeight() {
+        // XXX: wait for new font file
+        var value = selector.options[selector.selectedIndex].value;
+        document.body.dataset.weight = value;
+      }
+    </script>
+  </head>
+  <body>
+    <h1>New Font Test</h1>
+    <button onclick="swapColor()">Swap color</button>
+    <select onchange="changeFontWeight()" name="selector" disabled>
+      <option value="regular">Regular</option>
+      <option value="medium">Medium</option>
+      <option value="bold">Bold</option>
+    </select>
+    <h2>6px</h2>
+    <p style="font-size: 6px;">
+    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+    </p>
+    <h2>8px</h2>
+    <p style="font-size: 8px;">
+    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+    </p>
+    <h2>10px</h2>
+    <p style="font-size: 10px;">
+    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+    </p>
+    <h2>12px</h2>
+    <p style="font-size: 12px;">
+    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+    </p>
+  </body>
+</html>
