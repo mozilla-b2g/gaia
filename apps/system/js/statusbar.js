@@ -211,16 +211,12 @@ var StatusBar = {
         // "No Network" / "Searching"
         icon.dataset.level = -1;
 
-        // XXX: need differentiate the two
-        // https://github.com/mozilla-b2g/gaia/issues/2763
-
-        // This will work when the following bug lands
+        // Possible value of voice.state are
+        // 'notSearching', 'searching', 'denied', 'registered',
+        // where the later three means the phone is trying to grabbing
+        // the network. See
         // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
-        icon.dataset.searching = (voice.state == 'searching');
-
-        // show searching animation for no network before the bug lands
-        if (!voice.state)
-          icon.dataset.searching = true;
+        icon.dataset.searching = (voice.state !== 'notSearching');
 
       } else {
         // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
