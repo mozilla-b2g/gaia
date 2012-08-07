@@ -280,7 +280,9 @@ contacts.List = (function() {
   // Fills the contact data to display if no givenName and familyName
   var refillContactData = function refillContactData(contact) {
     if (!contact.givenName && !contact.familyName) {
-      if (contact.tel && contact.tel.length > 0) {
+      if (contact.name && contact.name.length > 0) {
+        contact.givenName = contact.name;
+      } else if (contact.tel && contact.tel.length > 0) {
         contact.givenName = contact.tel[0].number;
       } else if (contact.email && contact.email.length > 0) {
         contact.givenName = contact.email[0].address;
@@ -353,6 +355,8 @@ contacts.List = (function() {
       contact.familyName[0] : '');
     ret.push(contact.givenName && contact.givenName.length > 0 ?
       contact.givenName[0] : '');
+    ret.push(contact.name && contact.name.length > 0 ?
+      contact.name[0] : '');
     ret.push(contact.tel && contact.tel.length > 0 ?
       contact.tel[0].number : '');
     ret.push(contact.email && contact.email.length > 0 ?
@@ -364,13 +368,7 @@ contacts.List = (function() {
 
   var getGroupName = function getGroupName(contact) {
     var ret = getStringToBeOrdered(contact);
-
-    ret = ret.charAt(0).toUpperCase();
-    ret = ret.replace(/[ÁÀ]/ig, 'A');
-    ret = ret.replace(/[ÉÈ]/ig, 'E');
-    ret = ret.replace(/[ÍÌ]/ig, 'I');
-    ret = ret.replace(/[ÓÒ]/ig, 'O');
-    ret = ret.replace(/[ÚÙ]/ig, 'U');
+    ret = normalizeText(ret.charAt(0).toUpperCase());
 
     var code = ret.charCodeAt(0);
     if (code < 65 || code > 90) {
