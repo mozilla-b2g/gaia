@@ -94,7 +94,7 @@ div[data-level="CARDVIEW"] {
 /* Level 7: Dialog Module */
 #dialog-overlay,
 #input-overlay {
-  z-index: 65536;
+  z-index: 511;
 }
 
 #windowSprite {
