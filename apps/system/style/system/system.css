@@ -51,6 +51,19 @@ body {
   overflow: hidden;
 }
 
+#system-overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+}
+
+#system-overlay.volume {
+  display: block;
+}
+
 #screen.active-statusbar #homescreen {
   top: 40px;
   height: -moz-calc(100% - 40px);

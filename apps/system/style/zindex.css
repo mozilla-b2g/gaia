@@ -3,7 +3,7 @@
 
 /* Level 0: System overlay */
 #system-overlay {
-  z-index: 65536;
+  z-index: 2147483647;
 }
 
 /* Level 1: List menu module */
