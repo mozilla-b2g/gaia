@@ -31,6 +31,10 @@
   float: left;
 }
 
+*[dir=rtl] #statusbar > * {
+  float: left;
+}
+
 *[dir=rtl] #statusbar > .sb-start {
   float: right;
 }
@@ -306,6 +310,11 @@
   background-position: -189px -60px;
 }
 
+*[dir=rtl] .sb-icon-notification::before {
+  right: 0;
+  left: auto;
+}
+
 .sb-icon-notification[data-unread="true"]::before {
   background-position: -168px -60px;
 }
@@ -322,6 +331,10 @@
   font-weight: 600;
 }
 
+*[dir=rtl] .sb-icon-notification::after {
+  right: auto;
+  left: 0;
+}
 .sb-icon-notification[data-unread="true"]::after {
   color: #27b9cf;
 }
