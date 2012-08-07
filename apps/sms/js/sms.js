@@ -428,6 +428,9 @@ var ThreadListUI = {
       for (var i = 0; i < unreadThreads.length; i++) {
         document.getElementById(unreadThreads[i]).classList.add('unread');
       }
+      // Boot update of headers
+      Utils.updateHeaderScheduler();
+
     } else {
       var noResultHTML = '<div id="no-result-container">' +
                           '<div id="no-result-message">' +
@@ -500,12 +503,12 @@ var ThreadListUI = {
     // Append 'time-update' state
     headerHTML.setAttribute('data-time-update', true);
     headerHTML.setAttribute('data-time', timestamp);
-    // Boot update of headers
-    Utils.updateHeaders();
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
     ThreadListUI.view.appendChild(headerHTML);
+    // // Boot update of headers
+    // Utils.updateHeaderScheduler();
   }
 };
 
@@ -647,10 +650,6 @@ var ThreadUI = {
     // Append 'time-update' state
     headerHTML.setAttribute('data-time-update', true);
     headerHTML.setAttribute('data-time', timestamp);
-    // Boot update of headers
-    Utils.updateHeaders();
-    // Add text
-    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Append to DOM
@@ -687,6 +686,8 @@ var ThreadUI = {
         MessageManager.getMessages(ThreadListUI.renderThreads);
       });
     }
+    // Boot update of headers
+    Utils.updateHeaderScheduler();
     // Callback when every message is appended
     if (callback) {
       callback();
@@ -1125,21 +1126,21 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
-window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  var number = activity.source.data.number;
-  var displayThread = function actHandleDisplay() {
-    if (number)
-      window.location.hash = '#num=' + number;
-  }
+// window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+//   var number = activity.source.data.number;
+//   var displayThread = function actHandleDisplay() {
+//     if (number)
+//       window.location.hash = '#num=' + number;
+//   }
 
-  if (document.readyState == 'complete') {
-    displayThread();
-  } else {
-    window.addEventListener('localized', function loadWait() {
-      window.removeEventListener('localized', loadWait);
-      displayThread();
-    });
-  }
+//   if (document.readyState == 'complete') {
+//     displayThread();
+//   } else {
+//     window.addEventListener('localized', function loadWait() {
+//       window.removeEventListener('localized', loadWait);
+//       displayThread();
+//     });
+//   }
 
-  activity.postResult({ status: 'accepted' });
-});
+//   activity.postResult({ status: 'accepted' });
+// });
