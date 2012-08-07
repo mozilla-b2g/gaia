@@ -511,8 +511,6 @@ var ThreadListUI = {
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
     ThreadListUI.view.appendChild(headerHTML);
-    // // Boot update of headers
-    // Utils.updateHeaderScheduler();
   }
 };
 
