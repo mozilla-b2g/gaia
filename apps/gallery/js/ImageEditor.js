@@ -1,11 +1,6 @@
 /*
  * ImageEditor.js: simple image editing and previews in a <canvas> element.
  *
- * This code expects the document to contain two canvas elements with
- * ids edit-preview-canvas and edit-crop-canvas. It also expect WebGL
- * GLSL shader programs in scripts with ids edit-vertex-shader and
- * edit-fragment-shader
- *
  * Display an edited version of the specified image in a <canvas> element
  * inside the specified container element. The image (or cropped region of
  * the image) will be displayed as large as possible within the container's
@@ -13,9 +8,10 @@
  * The edits object may include these properties:
  *
  *  gamma: a float specifying gamma correction
- *  effects: "bw" and "sepia" or "none"
- *  borderColor: a CSS color string for the border
+ *  matrix: a 4x4 matrix that represents a transformation of each rgba pixel.
+ *    this can be used to convert to bw or sepia, for example.
  *  borderWidth: the size of the border as a fraction of the image width
+ *  borderColor: a [r, g, b, a] array specifying border color
  *
  * In addition to previewing the image, this class also defines a
  * getFullSizeBlob() function that creates a full-size version of the
@@ -27,6 +23,11 @@
  *   hideCropOverlay()
  *   cropImage()
  *   undoCrop()
+ * 
+ * This code expects WebGL GLSL shader programs in scripts with ids
+ * edit-vertex-shader and edit-fragment-shader. It dynamically creates
+ * canvas elements with ids edit-preview-canvas and edit-crop-canvas. 
+ * The stylesheet includes static styles to position those dyanamic elements.
  */
 'use strict';
 
