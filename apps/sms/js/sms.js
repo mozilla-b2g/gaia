@@ -3,6 +3,9 @@
 
 'use strict';
 
+/* Localization */
+var _ = navigator.mozL10n.get;
+
 var MessageManager = {
   init: function mm_init() {
     // Init Pending DB. Once it will be loaded will render threads
@@ -270,8 +273,7 @@ var ThreadListUI = {
     var element =
       this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
-      element.innerHTML = contact[0].name || 'Unknown';
-      //TODO Use l10n to Unknown string
+      element.innerHTML = contact[0].name || _('unknown-contact');
     }
   },
 
@@ -312,8 +314,9 @@ var ThreadListUI = {
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
-    var response = window.confirm('Delete all conversations\n' +
-                                  'Are you sure you want to do this?');
+    var response = window.confirm(_('deleteAll-title') +
+                                  '\n' +
+                                  _('deleteAll-text'));
     if (response) {
       this.delNumList = [];
       this.pendingDelList = [];
@@ -356,7 +359,7 @@ var ThreadListUI = {
     }
     // Cleaning
     ThreadListUI.selectedInputList = [];
-    this.editHeader.innerHTML = 'Edit mode';
+    this.editHeader.innerHTML = _('editMode');
     this.deleteSelectedButton.classList.add('disabled');
   },
 
@@ -437,11 +440,11 @@ var ThreadListUI = {
 
     } else {
       var noResultHTML = '<div id="no-result-container">' +
-                          '<div id="no-result-message">' +
-                          '<p>no messages recorded</p>' +
-                          '<p>start communicating now</p>' +
-                          '</div>' +
-                          '</div>';
+            ' <div id="no-result-message">' +
+            '   <p data-l10n-id="noMessage-title">no messages recorded</p>' +
+            '   <p data-l10n-id="noMessage-text">start communicating now</p>' +
+            ' </div>' +
+            '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
       ThreadListUI.iconEdit.classList.add('disabled');
     }
@@ -661,8 +664,7 @@ var ThreadUI = {
     ThreadUI.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
       if (contact && contact.length > 0) {
-        //TODO l10n to 'Unknown' string
-        ThreadUI.title.innerHTML = contact[0].name || 'Unknown';
+        ThreadUI.title.innerHTML = contact[0].name || _('unknown-contact');
       }
     });
   },
@@ -763,7 +765,7 @@ var ThreadUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
-    this.editHeader.innerHTML = 'Edit mode';
+    this.editHeader.innerHTML = _('editMode');
     this.deleteSelectedButton.classList.add('disabled');
   },
 
@@ -773,8 +775,9 @@ var ThreadUI = {
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
-    var response = window.confirm('Delete all messages\n' +
-                                  'Are you sure you want to do this?');
+    var response = window.confirm(_('deleteAll-title') +
+                                  '\n' +
+                                  _('deleteAll-text'));
     if (response) {
       this.delNumList = [];
       this.pendingDelList = [];
@@ -833,7 +836,7 @@ var ThreadUI = {
       }
     });
     // Cleaning
-    this.editHeader.innerHTML = 'Edit mode';
+    this.editHeader.innerHTML = _('editMode');
     this.deleteSelectedButton.classList.add('disabled');
   },
 
@@ -918,10 +921,10 @@ var ThreadUI = {
             ThreadUI.deleteSelectedButton.classList.remove('disabled');
             var total = selected - ThreadUI.delNumList.length -
               ThreadUI.pendingDelList.length;
-            this.editHeader.innerHTML = total + ' Selected';
+            this.editHeader.innerHTML = _('selected', {n: total});
           } else {
             ThreadUI.deleteSelectedButton.classList.add('disabled');
-            this.editHeader.innerHTML = 'Edit mode';
+            this.editHeader.innerHTML = _('editMode');
           }
         }
           break;
@@ -1012,7 +1015,7 @@ var ThreadUI = {
     if (window.location.hash == '#edit') {
       return;
     }
-    var resendConfirmStr = _('resendConfirmDialogMsg');
+    var resendConfirmStr = _('resend-confirmation');
     var result = confirm(resendConfirmStr);
     if (result) {
       // Remove the message from pending message DB before resend.
