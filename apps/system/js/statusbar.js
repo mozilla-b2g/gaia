@@ -93,6 +93,7 @@ var StatusBar = {
 
       case 'voicechange':
         this.update.signal.call(this);
+        this.update.label.call(this);
         break;
 
       case 'datachange':
@@ -162,16 +163,47 @@ var StatusBar = {
   },
 
   update: {
+    label: function sb_updateLabel() {
+      var conn = window.navigator.mozMobileConnection;
+      var label = this.icons.label;
+      var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
+
+      if (!conn.voice || !conn.voice.connected ||
+          conn.voice.emergencyCallsOnly) {
+        delete l10nArgs.operator;
+        label.dataset.l10nArgs = JSON.stringify(l10nArgs);
+
+        label.dataset.l10nId = '';
+        label.textContent = l10nArgs.date;
+
+        return;
+      }
+
+      l10nArgs.operator = conn.voice.network.shortName;
+      label.dataset.l10nArgs = JSON.stringify(l10nArgs);
+
+      label.dataset.l10nId = 'statusbarLabel';
+      label.textContent = navigator.mozL10n.get('statusbarLabel', l10nArgs);
+    },
+
     time: function sb_updateTime() {
       // Schedule another clock update when a new minute rolls around
       var now = new Date();
       var sec = now.getSeconds();
+      window.clearTimeout(this._clockTimer);
       this._clockTimer =
         window.setTimeout((this.update.time).bind(this), (59 - sec) * 1000);
 
       // XXX: respect clock format in Settings,
       // but drop the AM/PM part according to spec
       this.icons.time.textContent = now.toLocaleFormat('%R');
+
+      var label = this.icons.label;
+      var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
+      // XXX: respect date format in Settings
+      l10nArgs.date = now.toLocaleFormat('%e %B');
+      label.dataset.l10nArgs = JSON.stringify(l10nArgs);
+      this.update.label.call(this);
     },
 
     battery: function sb_updateBattery() {
@@ -376,7 +408,7 @@ var StatusBar = {
     var elements = ['notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'signal',
     'tethering', 'alarm', 'bluetooth', 'mute',
-    'recording', 'sms', 'geolocation', 'usb'];
+    'recording', 'sms', 'geolocation', 'usb', 'label'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
