@@ -1126,21 +1126,21 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
-// window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-//   var number = activity.source.data.number;
-//   var displayThread = function actHandleDisplay() {
-//     if (number)
-//       window.location.hash = '#num=' + number;
-//   }
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  var number = activity.source.data.number;
+  var displayThread = function actHandleDisplay() {
+    if (number)
+      window.location.hash = '#num=' + number;
+  }
 
-//   if (document.readyState == 'complete') {
-//     displayThread();
-//   } else {
-//     window.addEventListener('localized', function loadWait() {
-//       window.removeEventListener('localized', loadWait);
-//       displayThread();
-//     });
-//   }
+  if (document.readyState == 'complete') {
+    displayThread();
+  } else {
+    window.addEventListener('localized', function loadWait() {
+      window.removeEventListener('localized', loadWait);
+      displayThread();
+    });
+  }
 
-//   activity.postResult({ status: 'accepted' });
-// });
+  activity.postResult({ status: 'accepted' });
+});

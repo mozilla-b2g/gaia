@@ -97,22 +97,3 @@ var Utils = {
     return this.rootFontSize;
   }
 };
-
-// (function() {
-//   var updateHeadersDate = function updateHeadersDate() {
-//     var labels = document.querySelectorAll('div.groupHeader');
-//     var i = labels.length;
-//     while (i--) {
-//       labels[i].textContent = giveHeaderDate(labels[i].dataset.time);
-//     }
-//   };
-//   var timer = setInterval(updateHeadersDate, 60 * 1000);
-
-//   document.addEventListener('mozvisibilitychange', function visibility(e) {
-//     clearTimeout(timer);
-//     if (!document.mozHidden) {
-//       updateHeadersDate();
-//       timer = setInterval(updateHeadersDate, 60 * 1000);
-//     }
-//   });
-// })();
