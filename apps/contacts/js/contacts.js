@@ -795,6 +795,7 @@ var Contacts = (function() {
   };
 
   var saveContact = function saveContact() {
+    saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
       additionalName: '',
