@@ -416,18 +416,20 @@ var KeypadManager = {
   _callVoicemail: function kh_callVoicemail() {
       var voicemail = navigator.mozVoicemail;
 
-      // The following has to bermoved when the mozVoicemail impementation is done.
-      // Note: in theory voicemail.number is never equal to null.
+      // The following fix has to bermoved when the
+      // mozVoicemail impementation is done.
+      // Note: in theory voicemail.number
+      // is never equal to null, unless its broken.
       if (voicemail.number == null) {
         var voicemail = {
-          number: '+15552175049',
-          displayName: 'Voicemail'
-        }
+          'number': '+15552175049',
+          'displayName': 'Voicemail'
+        };
 
       }
 
       if (voicemail && voicemail.number) {
-        CallHandler.call(voicemail.number);l
+        CallHandler.call(voicemail.number);
       }
   }
 };
