@@ -1,0 +1,70 @@
+{
+  "name": "Cost Control",
+  "description": "Cost Control application to see credit and data usage statistics",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+    "sms",
+    "telephony",
+    "mobileconnection"
+  ],
+  "locales": {
+    "ar": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "ca": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "de": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "el": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "en-US": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "es": {
+      "name": "Control de coste",
+      "description": "Aplicación de control de coste vara visualizar estadísticas de crédito y consumo de datos"
+    },
+    "fr": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "it": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "pt-BR": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "ru": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "tr": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    },
+    "zh-TW": {
+      "name": "Cost Control",
+      "description": "Cost Control application to see credit and data usage statistics"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Clock.png",
+    "60": "/style/icons/60/Clock.png"
+  },
+  "orientation": "portrait-primary"
+}

@@ -1,0 +1,93 @@
+/* Resetting */
+
+html {
+  font-size: 10px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  color: white;
+}
+
+#cost-control button::-moz-focus-inner {
+  border: 0;
+}
+
+/* Widget body */
+#cost-control {
+  height: 4.5rem;
+  width: 50%;
+  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0)),
+                url('./images/gray-noise.png');
+  background-repeat: no-repeat, repeat;
+}
+
+/* Widget states */
+
+/* Low credit warning */
+#cost-control.low-credit {
+  background: url('./images/BG-cost-red-tile.png');
+  background-repeat: repeat-x;
+}
+
+/* Updating animation */
+#cost-control.updating #cost-control-update-icon {
+  opacity:1.0;
+  -moz-animation: cost-control-spin 1.75s infinite linear;
+}
+
+@-moz-keyframes cost-control-spin {
+  0% { -moz-transform:rotate(0deg); }
+  100% { -moz-transform:rotate(360deg); }
+}
+
+/* Credit area with remaining credit and timestamp */
+#cost-control-credit-area {
+  display: table;
+  height: 100%;
+  margin-right: 4.5rem;
+  padding-left: 1rem;
+  border:none;
+  background-color: transparent;
+}
+
+#cost-control-credit-area > div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+#cost-control-credit {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: white;
+}
+
+#cost-control-time {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #AAA;
+  margin-top: 0.2rem;
+}
+
+#cost-control-update-icon {
+  opacity: 0.2;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
+/* Top-up button */
+#cost-control-topup {
+  float: right;
+  width: 4.5rem;
+  height:100%;
+  border:none;
+  background-color: transparent;
+  background-image: url('./images/ico-plus.png');
+  background-position: center;
+  background-repeat:no-repeat;
+}
