@@ -29,6 +29,8 @@
 
 #statusbar > .sb-start {
   float: left;
+
+  -moz-transition: -moz-transform 0.5s ease;
 }
 
 *[dir=rtl] #statusbar > * {
@@ -37,6 +39,24 @@
 
 *[dir=rtl] #statusbar > .sb-start {
   float: right;
+}
+
+#statusbar > .sb-start-upper {
+  position: absolute;
+  top: -20px;
+  left: 0;
+
+  -moz-transition: -moz-transform 0.5s ease;
+}
+
+*[dir=rtl] #statusbar > .sb-start-upper {
+  left: auto;
+  right: 0;
+}
+
+.utility-tray #statusbar > .sb-start-upper,
+.utility-tray #statusbar > .sb-start {
+  -moz-transform: translateY(20px);
 }
 
 #statusbar-loading {
@@ -55,6 +75,13 @@
   visibility: hidden;
 
   -moz-transition: none;
+}
+
+#statusbar-label {
+  padding: 0;
+  color: #999;
+  font: 14px/14px 'Open Sans', sans-serif;
+  font-weight: bold;
 }
 
 #statusbar-time {
