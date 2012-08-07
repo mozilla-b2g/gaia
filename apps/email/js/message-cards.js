@@ -607,6 +607,11 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-reply-btn')[0]
     .addEventListener('click', this.onReply.bind(this, false));
 
+  domNode.getElementsByClassName('msg-star-btn')[0]
+    .addEventListener('click', this.onStar.bind(this), false);
+  domNode.getElementsByClassName('msg-unread-btn')[0]
+    .addEventListener('click', this.onMarkUnread.bind(this), false);
+
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
     .addEventListener('click', this.onEnvelopeClick.bind(this), false);
@@ -646,6 +651,16 @@ MessageReaderCard.prototype = {
       Cards.pushCard('compose', 'default', 'animate',
                      { composer: composer });
     });
+  },
+
+  onStar: function() {
+    var op = MailAPI.markMessagesStarred([this.header], !this.header.isStarred);
+    Toaster.logMutation(op);
+  },
+
+  onMarkUnread: function() {
+    var op = MailAPI.markMessagesRead([this.header], false);
+    Toaster.logMutation(op);
   },
 
   /**
