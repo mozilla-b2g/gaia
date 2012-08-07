@@ -9,6 +9,7 @@ var PopupManager = {
   _startTimes: 0,
   _loadingIconEle: null,
 
+
   overlay: document.getElementById('dialog-overlay'),
 
   container: document.getElementById('popup-container'),
@@ -57,7 +58,6 @@ var PopupManager = {
     popup.addEventListener('mozbrowserloadstart',this);
   },
 
-  // The event is checked two times because about:blank also fires it
   handleLoadStart: function pm_handleLoadStart(evt) {
      this._startTimes++;
      if(this._startTimes > 1) {
@@ -65,7 +65,7 @@ var PopupManager = {
      }
   },
 
-  // The event is checked two times because about:blank also fires it
+
   handleLoadEnd: function pm_handleLoadEnd(evt) {
       this._endTimes++;
       if(this._endTimes > 1) {
