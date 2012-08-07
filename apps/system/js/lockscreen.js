@@ -644,8 +644,17 @@ var LockScreen = {
 
     if (!voice.connected && !voice.emergencyCallsOnly) {
       // "No Network" / "Searching"
-      // XXX: need differentiate the two
-      // https://github.com/mozilla-b2g/gaia/issues/2763
+
+      // Possible value of voice.state are
+      // 'notSearching', 'searching', 'denied', 'registered',
+      // where the later three means the phone is trying to grabbing
+      // the network. See
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
+      if (voice.state == 'notSearching') {
+        connstate.dataset.l10nId = 'noNetwork';
+        connstate.textContent = _('noNetwork') || '';
+      }
+
       connstate.dataset.l10nId = 'searching';
       connstate.textContent = _('searching') || '';
 
