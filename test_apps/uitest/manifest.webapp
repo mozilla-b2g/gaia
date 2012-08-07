@@ -2,7 +2,6 @@
   "name": "UI tests",
   "launch_path": "/index.html",
   "orientation": "landscape",
-  "fullscreen": true,
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"

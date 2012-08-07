@@ -1,23 +1,35 @@
 /* zIndex of important system app parts 
  * is gathered here to clearly specify all system-app hierarchy */
 
-/* Level 0: System Overlay */
+/* Level 0: System overlay */
 #system-overlay {
   z-index: 65536;
 }
 
-/* Level 1: Status Bar */
-#statusbar,
-div[data-level="STATUSBAR"] {
+/* Level 1: List menu module */
+#listmenu,
+div[data-level="LISTMENU"][data-menu="sleepmenu"] {
+  z-index: 32767;
+}
+
+/* Level 2: Notification toaster */
+#notification-toaster,
+div[data-level="TOASTER"] {
   z-index: 32768;
 }
 
-#notification-toaster,
-div[data-level="TOASTER"]{
+/* Level 3: Statusbar */
+#statusbar,
+div[data-level="STATUSBAR"] {
   z-index: 16384;
 }
 
-/* Level 2: Attention Screen Module */
+/* Level 4: Utility tray */
+#utility-tray {
+  z-index: 16383;
+}
+
+/* Level 4: Attention screen */
 #attention-screen,
 div[data-level="ATTENTION"] {
   z-index: 8192;
@@ -35,20 +47,15 @@ div[data-level="ATTENTION"] {
   z-index: 2;
 }
 
+/* Level 5: */
 #lockscreen-camera,
 div[data-level="LOCKSCREEN_CAMERA"]{
-  z-index: 4096;
-}
-
-/* Level 3: Lock Screen Module */
-#lockscreen,
-div[data-level="LOCKSCREEN"]{
   z-index: 2048;
 }
 
-/* Level 4: List Menu Module */
-#listmenu,
-div[data-level="LISTMENU"][data-menu="sleepmenu"] {
+/* Level 6: Lock Screen Module */
+#lockscreen,
+div[data-level="LOCKSCREEN"]{
   z-index: 1024;
 }
 
@@ -66,7 +73,7 @@ div[data-level="LISTMENU"][data-menu="sleepmenu"] {
 }
 
 #keyboard-overlay {
-  z-index: 64;
+  z-index: 65536;
 }
 
 /* Level 5: Card View Module */
@@ -94,12 +101,9 @@ div[data-level="CARDVIEW"] {
   z-index: 1;
 }
 
-#utility-tray {
-  z-index: 32767;
-}
 
 #keyboard-frame.visible {
-  z-index: 16;
+  z-index: 65536;
 }
 
 /* Fullscreen */
