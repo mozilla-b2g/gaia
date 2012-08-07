@@ -207,6 +207,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
   // Wi-Fi Protected Setup
   var wpsPbcButton = document.getElementById('wps-pbc-button');
   wpsPbcButton.onclick = function() {
+    if (!gWifiManager.wps)
+      return;
     wpsInProgress = true;
     gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
     gWifiManager.wps({
