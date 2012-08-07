@@ -7,12 +7,21 @@ var PopupManager = {
   _wait: null,
   _endTimes: 0,
   _startTimes: 0,
+  _loadingIconEle: null,
 
   overlay: document.getElementById('dialog-overlay'),
 
   container: document.getElementById('popup-container'),
 
   screen: document.getElementById('screen'),
+
+  _loadingIcon: function() {
+    if(!this._loadingIconEle) {
+      this._loadingIconEle = document.getElementById('statusbar-loading');
+    }
+
+    return this._loadingIconEle;
+  },
 
   init: function pm_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this));
@@ -22,18 +31,11 @@ var PopupManager = {
   },
 
   _showWait: function pm_showWait() {
-     var div = this._wait = document.createElement('div');
-     var img = document.createElement('img');
-     img.src = 'style/images/progress.gif';
-     div.appendChild(img);
-     div.classList.add('curtain');
-
-    this.container.appendChild(div);
+    this._loadingIcon().hidden = false;
   },
 
   _hideWait: function pm_hideWait() {
-    this.container.removeChild(this._wait);
-    this._wait = null;
+    this._loadingIcon().hidden = true;
   },
 
   open: function pm_open(evt) {
@@ -55,6 +57,7 @@ var PopupManager = {
     popup.addEventListener('mozbrowserloadstart',this);
   },
 
+  // The event is checked two times because about:blank also fires it
   handleLoadStart: function pm_handleLoadStart(evt) {
      this._startTimes++;
      if(this._startTimes > 1) {
@@ -62,6 +65,7 @@ var PopupManager = {
      }
   },
 
+  // The event is checked two times because about:blank also fires it
   handleLoadEnd: function pm_handleLoadEnd(evt) {
       this._endTimes++;
       if(this._endTimes > 1) {
