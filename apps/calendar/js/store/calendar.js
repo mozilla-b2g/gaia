@@ -12,7 +12,7 @@
     _store: 'calendars',
 
     _dependentStores: [
-      'calendars', 'events'
+      'calendars', 'events', 'busytimes'
     ],
 
     _parseId: function(id) {
@@ -145,7 +145,7 @@
         //    and set the lastEventSyncDate
 
         var trans = self.db.transaction(
-          ['calendars', 'events'], 'readwrite'
+          ['calendars', 'events', 'busytimes'], 'readwrite'
         );
 
         persist.forEach(function(event) {

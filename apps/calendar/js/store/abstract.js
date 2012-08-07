@@ -46,6 +46,18 @@
       }
     },
 
+    _transactionCallback: function(trans, callback) {
+      if (callback) {
+        trans.addEventListener('error', function(e) {
+          callback(e);
+        });
+
+        trans.addEventListener('complete', function() {
+          callback(null);
+        });
+      }
+    },
+
     /**
      * Adds an account to the database.
      *
@@ -61,7 +73,7 @@
 
       if (typeof(trans) === 'undefined') {
         trans = this.db.transaction(
-          this._store,
+          this._dependentStores || this._store,
           'readwrite'
         );
       }
@@ -90,7 +102,7 @@
         }
       });
 
-      var fired = false;
+      this._addDependents(object, trans);
 
       trans.addEventListener('complete', function(data) {
         var id = putReq.result;
@@ -144,6 +156,7 @@
       }
     },
 
+    _addDependents: function() {},
     _removeDependents: function(trans) {},
 
     _parseId: function(id) {

@@ -6,7 +6,8 @@
   var store = {
     events: 'events',
     accounts: 'accounts',
-    calendars: 'calendars'
+    calendars: 'calendars',
+    busytimes: 'busytimes'
   };
 
   Object.freeze(store);
@@ -153,8 +154,23 @@
         db.deleteObjectStore(existingNames[i]);
       }
 
+      // busytimes has one event, has one calendar
+      var busytimes = db.createObjectStore(
+        store.busytimes,
+        { keyPath: '_id', autoIncrement: true }
+      );
+
+      busytimes.createIndex(
+        'eventId',
+        'eventId',
+        { unique: false, multiEntry: false }
+      );
+
       // events -> belongs to calendar
-      var events = db.createObjectStore(store.events, { keyPath: '_id' });
+      var events = db.createObjectStore(
+        store.events,
+        { keyPath: '_id' }
+      );
 
       events.createIndex(
         'calendarId',

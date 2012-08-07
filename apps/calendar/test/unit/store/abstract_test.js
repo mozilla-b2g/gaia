@@ -52,6 +52,7 @@ suite('store/abstract', function() {
     var events;
     var id;
     var object;
+    var addDepsCalled;
 
     function watchEvent(event, done) {
       subject.once(event, function() {
@@ -70,8 +71,13 @@ suite('store/abstract', function() {
     }
 
     setup(function(done) {
+      addDepsCalled = null;
       object = this.object;
       events = {};
+
+      subject._addDependents = function() {
+        addDepsCalled = arguments;
+      }
 
       if (this.persist !== false) {
         subject.persist(object, function(err, key) {
@@ -193,6 +199,8 @@ suite('store/abstract', function() {
       });
 
       test('db persistance', function(done) {
+        assert.equal(addDepsCalled[0], object);
+
         get(id, function(err, result) {
           if (err) {
             done(err);
@@ -232,7 +240,7 @@ suite('store/abstract', function() {
       removeDepsCalled = false;
 
       subject._removeDependents = function() {
-        removeDepsCalled = true;
+        removeDepsCalled = arguments;
       };
 
       subject.remove(id, function() {
@@ -251,7 +259,9 @@ suite('store/abstract', function() {
 
     test('remove', function() {
       assert.ok(callbackCalled);
-      assert.ok(removeDepsCalled);
+      assert.equal(removeDepsCalled[0], id);
+      assert.instanceOf(removeDepsCalled[1], IDBTransaction);
+
       assert.ok(!subject._cached[id], 'should remove cached account');
     });
 

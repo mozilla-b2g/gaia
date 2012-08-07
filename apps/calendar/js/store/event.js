@@ -13,7 +13,17 @@
   Events.prototype = {
     __proto__: Calendar.Store.Abstract.prototype,
     _store: 'events',
-    _dependentStores: ['events'],
+    _dependentStores: ['events', 'busytimes'],
+
+    _removeDependents: function(id, trans) {
+      var busy = this.db.getStore('Busytime');
+      busy.removeEvent(id, trans);
+    },
+
+    _addDependents: function(obj, trans) {
+      var busy = this.db.getStore('Busytime');
+      busy.addEvent(obj, trans);
+    },
 
     _assignId: function(obj) {
       var id = obj.calendarId + '-' + obj.remote.id;

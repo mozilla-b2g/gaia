@@ -60,6 +60,20 @@ suite('store/event', function() {
     }
   });
 
+  teardown(function(done) {
+    var trans = db.transaction('busytimes', 'readwrite');
+    var accounts = trans.objectStore('busytimes');
+    var res = accounts.clear();
+
+    res.onerror = function() {
+      done(new Error('could not wipe busytimes db'));
+    }
+
+    res.onsuccess = function() {
+      done();
+    }
+  });
+
   teardown(function() {
     db.close();
   });
@@ -688,7 +702,6 @@ suite('store/event', function() {
           keys.length, 1,
           'should have removed all but control'
         );
-
 
         assert.equal(
           subject.cached[keys[0]].calendarId,
