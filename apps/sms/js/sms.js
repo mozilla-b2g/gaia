@@ -314,9 +314,7 @@ var ThreadListUI = {
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
-    var response = window.confirm(_('deleteAll-title') +
-                                  '\n' +
-                                  _('deleteAll-text'));
+    var response = window.confirm(_('deleteAll-confirmation'));
     if (response) {
       this.delNumList = [];
       this.pendingDelList = [];
@@ -775,9 +773,7 @@ var ThreadUI = {
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
-    var response = window.confirm(_('deleteAll-title') +
-                                  '\n' +
-                                  _('deleteAll-text'));
+    var response = window.confirm(_('deleteAll-confirmation'));
     if (response) {
       this.delNumList = [];
       this.pendingDelList = [];
