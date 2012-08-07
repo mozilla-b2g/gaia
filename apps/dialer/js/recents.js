@@ -553,7 +553,8 @@ var Recents = {
       phoneNumber = callLogItems[i].dataset.num.trim();
       var cachedContact = this._cachedContacts[phoneNumber];
       if (cachedContact) {
-        this.contactCallBack(callLogItems[i], length, cachedContact);
+        this.contactCallBack(callLogItems[i], length, phoneNumber,
+          cachedContact);
       } else {
         Contacts.findByNumber(
           phoneNumber,

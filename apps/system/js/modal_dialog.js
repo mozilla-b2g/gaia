@@ -19,7 +19,9 @@ var ModalDialog = {
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message', 'buttons'];
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
+      'authentication', 'username-input', 'password-input',
+      'authentication-message', 'buttons'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -117,7 +119,7 @@ var ModalDialog = {
     this.currentOrigin = origin;
     var evt = this.currentEvents[origin];
 
-    var message = evt.detail.message;
+    var message = evt.detail.message || '';
     var elements = this.elements;
     this.screen.classList.add('modal-dialog');
 
@@ -147,6 +149,15 @@ var ModalDialog = {
         elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
         break;
+
+      // HTTP Authentication
+      case 'usernameandpassword':
+        elements.authentication.classList.add('visible');
+        var l10nArgs = { realm: evt.detail.realm, host: evt.detail.host };
+        var _ = navigator.mozL10n.get;
+        message = _('http-authentication-message', l10nArgs);
+        elements.authenticationMessage.innerHTML = message;
+      break;
     }
 
     this.elements.buttons.dataset.type = evt.detail.promptType;
@@ -154,8 +165,12 @@ var ModalDialog = {
   },
 
   hide: function md_hide() {
-    if (this.currentEvents[this.currentOrigin].detail.promptType == 'prompt') {
+    var type = this.currentEvents[this.currentOrigin].detail.promptType;
+    if (type == 'prompt') {
       this.elements.promptInput.blur();
+    } else if (type == 'usernameandpassword') {
+      this.elements.usernameInput.blur();
+      this.elements.passwordInput.blur();
     }
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
@@ -181,6 +196,14 @@ var ModalDialog = {
       case 'confirm':
         evt.detail.returnValue = true;
         elements.confirm.classList.remove('visible');
+        break;
+
+      case 'usernameandpassword':
+        evt.detail.returnValue = {
+          username: elements.usernameInput.value,
+          password: elements.password.value
+        };
+        elements.authentication.classList.remove('visible');
         break;
     }
 
@@ -216,6 +239,11 @@ var ModalDialog = {
         /* return false when click cancel */
         evt.detail.returnValue = false;
         elements.confirm.classList.remove('visible');
+        break;
+
+      case 'usernameandpassword':
+        evt.detail.returnValue = { ok: false };
+        elements.authentication.classList.remove('visible');
         break;
     }
 
