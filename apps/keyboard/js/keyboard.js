@@ -16,11 +16,12 @@ if (!window.navigator.mozKeyboard) {
   var focusChangeDelay = 20;
   window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
 
-    var typeToHandle = ['select-one', 'select-multiple', 'date',
+    var typeToSkip = ['select-one', 'select-multiple', 'date',
                         'time', 'datetime', 'datetime-local'];
     var type = evt.detail.type;
-    // skip the <select> element, handled in system app for now
-    if (typeToHandle.indexOf(type) != -1)
+    // Skip the <select> element and inputs with type of date/time,
+    // handled in system app for now
+    if (typeToSkip.indexOf(type) != -1)
       return;
 
     clearTimeout(focusChangeTimeout);

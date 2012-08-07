@@ -75,19 +75,5 @@ var KeyboardManager = (function() {
       });
     }
   });
-
-  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-    var typeToHandle = ['select-one', 'select-multiple', 'date',
-                        'time', 'datetime', 'datetime-local'];
-
-    var type = evt.detail.type;
-    // skip the <select> element, handled in system app for now
-    if (typeToHandle.indexOf(type) == -1)
-      return;
-
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('select', true, true, evt.detail);
-    window.dispatchEvent(event);
-  };
 })();
 

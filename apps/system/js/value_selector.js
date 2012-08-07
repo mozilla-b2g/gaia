@@ -12,35 +12,78 @@ var ValueSelector = {
   },
 
   init: function vs_init() {
+
+    var self = this;
+
+    window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+      var typeToHandle = ['select-one', 'select-multiple', 'date',
+        'time', 'datetime', 'datetime-local'];
+
+      var type = evt.detail.type;
+      // handle the <select> element and inputs with type of date/time
+      // in system app for now
+      if (typeToHandle.indexOf(type) == -1)
+        return;
+
+      switch (evt.detail.type) {
+        case 'select-one':
+        case 'select-multiple':
+          self.debug('select triggered' + JSON.stringify(evt.detail));
+          self._currentPickerType = evt.detail.type;
+          self.showOptions(evt.detail);
+          break;
+
+        case 'date':
+          self.showDatePicker();
+          break;
+
+        case 'time':
+          self.showTimePicker();
+          break;
+
+        case 'datetime':
+        case 'datetime-local':
+          // TODO
+          break;
+      }
+    };
+
     this._element = document.getElementById('value-selector');
     this._container = document.getElementById('value-selector-container');
-    this._container.addEventListener('click', this.handleSelect.bind(this));
+    this._container.addEventListener('click', this);
 
     this._cancelButton = document.getElementById('value-selector-cancel');
     this._cancelButton.addEventListener('click', this);
 
     this._confirmButton = document.getElementById('value-selector-confirm');
-    this._confirmButton.addEventListener('click', this.confirm.bind(this));
+    this._confirmButton.addEventListener('click', this);
 
-    window.addEventListener('select', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
   },
 
   handleEvent: function vs_handleEvent(evt) {
     switch (evt.type) {
-      case 'select':
-        this.dispatchEvent(evt);
-        break;
-
       case 'appopen':
       case 'appwillclose':
         this.hide();
         break;
 
       case 'click':
-        if (evt.currentTarget === this._cancelButton)
-          this.cancel();
+        var currentTarget = evt.currentTarget;
+        switch (currentTarget) {
+          case this._cancelButton:
+            this.cancel();
+            break;
+
+          case this._confirmButton:
+            this.confirm();
+            break;
+
+          case this._container:
+            this.handleSelect(evt.target);
+            break;
+        }
         break;
 
       default:
@@ -49,47 +92,14 @@ var ValueSelector = {
     }
   },
 
-  dispatchEvent: function vs_dispatchEvent(evt) {
-
-    this._singleSelect = false;
-    this._isDatePicker = false;
-    this._isTimePicker = false;
-
-    switch (evt.detail.type) {
-
-      case 'select-one':
-      case 'select-multiple':
-        this.debug('select triggered' + JSON.stringify(evt.detail));
-        this._singleSelect = !evt.detail.choices.multiple;
-        this.showOptions(evt.detail);
-        break;
-
-      case 'date':
-        this._isDatePicker = true;
-        this.showDatePicker();
-        break;
-
-      case 'time':
-        this._isTimePicker = true;
-        this.showTimePicker();
-        break;
-
-      case 'datetime':
-      case 'datetime-local':
-        // TODO
-        break;
-    }
-  },
-
-  handleSelect: function vs_handleSelect(evt) {
-    var target = evt.target;
+  handleSelect: function vs_handleSelect(target) {
 
     if (target.dataset === undefined ||
         (target.dataset.optionIndex === undefined &&
          target.dataset.optionValue === undefined))
       return;
 
-    if (this._singleSelect) {
+    if (this._currentPickerType === 'select-one') {
       var selectee = this._container.querySelectorAll('.selected');
       for (var i = 0; i < selectee.length; i++) {
         selectee[i].classList.remove('selected');
@@ -114,21 +124,22 @@ var ValueSelector = {
     this.hide();
   },
 
-  confirm: function vs_select() {
+  confirm: function vs_confirm() {
 
     var singleOptionIndex;
     var optionIndices = [];
 
     var selectee = this._container.querySelectorAll('.selected');
 
-    if (this._singleSelect) {
+    if (this._currentPickerType === 'select-one') {
 
       if (selectee.length > 0)
         singleOptionIndex = selectee[0].dataset.optionIndex;
 
       window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
 
-    } else if (this._isDatePicker === true || this._isTimePicker === true) {
+    } else if (this._currentPickerType === 'date' ||
+               this._currentPickerType === 'time') {
       var optionValue;
 
       if (selectee.length > 0)
@@ -182,7 +193,7 @@ var ValueSelector = {
   },
 
   showTimePicker: function vs_showTimePicker() {
-
+    this._currentPickerType = 'time';
     this.buildTimePicker();
     this.show();
   },
@@ -212,6 +223,7 @@ var ValueSelector = {
   },
 
   showDatePicker: function vs_showDatePicker() {
+    this._currentPickerType = 'date';
     this.buildDatePicker();
     this.show();
   },
