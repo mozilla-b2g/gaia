@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -42,6 +42,8 @@ var NotificationScreen = {
   TOASTER_TIMEOUT: 1200,
   TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
+  MARQUEE_STEP: 150,
+  MARQUEE_DELAY: 2000,
 
   _notification: null,
   _containerWidth: null,
@@ -216,6 +218,26 @@ var NotificationScreen = {
     this.container.appendChild(notificationNode);
     new GestureDetector(notificationNode).startDetecting();
 
+    // Animate when too title long
+    if (title.scrollWidth > title.clientWidth) {
+      var animationStep = 0;
+
+      // Animate the text after showing utility tray
+      window.addEventListener('utilitytrayshow', (function ns_onShowing() {
+        var animateText = this.buildTextAnimation(detail.title);
+        animationStep = window.setInterval(function nt_titleAnimation() {
+          title.textContent = animateText();
+        }, this.MARQUEE_STEP);
+      }).bind(this));
+
+      // Stop animation when hiding the utility tray
+      window.addEventListener('utilitytrayhide', function ns_onHiding() {
+        window.clearInterval(animationStep);
+        title.textContent = detail.title;
+      });
+
+    };
+
     // Notification toast
     this.toaster.dataset.notificationID = detail.id;
 
@@ -264,6 +286,37 @@ var NotificationScreen = {
 
     if (unread)
       StatusBar.updateNotificationUnread(true);
+  },
+
+  buildTextAnimation: function ns_buildTextAnimation(text) {
+
+    var space = '';
+    for (var i = 0, l = text.length / 2; i < l; i++) {
+      space += ' ';
+    }
+
+    var delayToResume = this.MARQUEE_DELAY;
+    var animationText = text + space;
+    var length = animationText.length;
+
+    var step = 0, paused = false;
+    return function ns_actualAnimation() {
+
+      if (step === 0 && !paused) {
+        paused = true;
+        window.setTimeout(function ns_Resume() {
+          step = length;
+          paused = false;
+        }, delayToResume);
+      }
+
+      if (paused)
+        return animationText;
+
+      step--;
+      animationText = animationText.slice(1) + animationText[0];
+      return animationText;
+    };
   }
 };
 

@@ -59,7 +59,7 @@
   color: #666;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre;
 }
 
 .notification > a.close {
