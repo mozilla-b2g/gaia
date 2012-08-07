@@ -750,6 +750,67 @@ var Toaster = {
   }
 };
 
+/**
+ * Logic to help with creating, populating, and handling events involving our
+ * HTML message-disply iframes.
+ *
+ * All HTML content is passed through a white-list-based sanitization process,
+ * but we still want the iframe so that:
+ *
+ * - We can guarantee the content can't escape out into the rest of the page.
+ * - We can both avoid the content being influenced by our stylesheets as well
+ *   as to allow the content to use inline "style" tags without any risk to our
+ *   styling.
+ * - We get the security benefits of an iframe "sandbox".  We do not specify
+ *   any allow values, this nets us a different origin (!allow-same-origin),
+ *   guarantees no scripts (!allow-scripts), prevents navigation
+ *   (!allow-top-navigation), and forbids form submission (!allow-forms).
+ *
+ * The only wrinkle right now is that gecko does not support the "seamless"
+ * attribute.  This is not a problem since our content insertion is synchronous
+ * and we can force a size calculation, but it would be nice if we didn't
+ * have to do it.
+ *
+ * @args[
+ *   @param[htmlStr]
+ *   @param[parentNode]{
+ *     The (future) parent node of the iframe.
+ *   }
+ *   @param[adjacentNode @oneof[null HTMLNode]]{
+ *     insertBefore semantics.
+ *   }
+ *   @param[linkClickHandler @func[
+ *     @args[
+ *       @param[event]{
+ *       }
+ *       @param[linkNode HTMLElement]{
+ *         The actual link HTML element
+ *       }
+ *       @param[linkUrl String]{
+ *         The URL that would be navigated to.
+ *       }
+ *       @param[linkText String]{
+ *         The text associated with the link.
+ *       }
+ *     ]
+ *   ]]{
+ *     The function to invoke when (sanitized) hyperlinks are clicked on.
+ *     Currently, the links are always 'a' tags, but we might support image
+ *     maps in the future.  (Or permanently rule them out.)
+ *   }
+ * ]
+ */
+function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
+                                         clickHandler) {
+  var iframe = document.createElement('iframe');
+  iframe.setAttribute('sandbox', '');
+  iframe.setAttribute('srcdoc', htmlStr);
+
+  parentNode.insertBefore(iframe, beforeNode);
+
+  return iframe;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pretty date logic; copied from the SMS app.
 // Based on Resig's pretty date

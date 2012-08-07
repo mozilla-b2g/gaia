@@ -657,6 +657,9 @@ MessageReaderCard.prototype = {
   onAttachmentClick: function(event) {
   },
 
+  onHyperlinkClick: function() {
+  },
+
   buildBodyDom: function(domNode) {
     var header = this.header, body = this.body;
 
@@ -696,28 +699,49 @@ MessageReaderCard.prototype = {
     domNode.getElementsByClassName('msg-envelope-subject')[0]
       .textContent = header.subject;
 
-    // -- Body (Plaintext)
-    var bodyNode = domNode.getElementsByClassName('msg-body-container')[0];
-    var rep = body.bodyRep;
-    for (var i = 0; i < rep.length; i += 2) {
-      var node = document.createElement('div'), cname;
-
-      var etype = rep[i] & 0xf, rtype = null;
-      if (etype === 0x4) {
-        var qdepth = (((rep[i] >> 8) & 0xff) + 1);
-        if (qdepth > 8)
-          cname = MAX_QUOTE_CLASS_NAME;
-        else
-          cname = CONTENT_QUOTE_CLASS_NAMES[qdepth];
+    // -- Bodies
+    var reps = body.bodyReps;
+    for (var iRep = 0; iRep < reps.length; iRep += 2) {
+      var repType = reps[iRep], rep = reps[iRep];
+      if (repType === 'plain') {
       }
-      else {
-        cname = CONTENT_TYPES_TO_CLASS_NAMES[etype];
+      else if (repType === 'html') {
       }
-      if (cname)
-        node.setAttribute('class', cname);
-      node.textContent = rep[i + 1];
-      bodyNode.appendChild(node);
     }
+    // -- Body (Plaintext)
+    if (body.bodyType === 'plain') {
+      var bodyNode = domNode.getElementsByClassName('msg-body-container')[0];
+      var rep = body.bodyRep;
+      for (var i = 0; i < rep.length; i += 2) {
+        var node = document.createElement('div'), cname;
+
+        var etype = rep[i] & 0xf, rtype = null;
+        if (etype === 0x4) {
+          var qdepth = (((rep[i] >> 8) & 0xff) + 1);
+          if (qdepth > 8)
+            cname = MAX_QUOTE_CLASS_NAME;
+          else
+            cname = CONTENT_QUOTE_CLASS_NAMES[qdepth];
+        }
+        else {
+          cname = CONTENT_TYPES_TO_CLASS_NAMES[etype];
+        }
+        if (cname)
+          node.setAttribute('class', cname);
+        node.textContent = rep[i + 1];
+        bodyNode.appendChild(node);
+      }
+    }
+    // -- Body (HTML)
+    else {
+    }
+
+    // -- HTML-referenced Images
+    var loadBar = domNode.getElementsByClassName('msg-reader-load-infobar')[0];
+    if (body.hasUndownloadedImages) {
+    }
+    else if (body.has
+
 
     // -- Attachments (footer)
     var attachmentsContainer =
