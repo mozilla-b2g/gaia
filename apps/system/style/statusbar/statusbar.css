@@ -43,8 +43,7 @@
   height: 1px;
   background: url('images/loading.gif') center center repeat-x;
 
-  opacity: 0.5;
-  -moz-transition: opacity 0.3s ease 0.2s;
+  -moz-transition: opacity 0.1s ease 0.2s;
 }
 
 #statusbar-loading[hidden] {
