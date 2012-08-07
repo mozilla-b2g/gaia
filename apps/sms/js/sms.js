@@ -184,7 +184,7 @@ var MessageManager = {
 
   /*
     TODO: If the messages could not be deleted completely,
-    conversation list page will also update withot notification currently.
+    conversation list page will also update without notification currently.
     May need more infomation for user that the messages were not
     removed completely.
   */
@@ -576,6 +576,11 @@ var ThreadUI = {
     this.delNumList = [];
     this.pendingDelList = [];
     this.selectedInputList = [];
+    // TODO: Please replace the pending icon with exclamation mark.
+    this.sendIcons = {
+      sending: 'style/images/spinningwheel_small_animation.gif',
+      pending: 'style/images/icons/clear.png'
+    };
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.deleteAllButton.addEventListener('click',
@@ -701,20 +706,19 @@ var ThreadUI = {
       message.delivery == 'sending');
     var className = (outgoing ? 'sent' : 'received');
     var timestamp = message.timestamp.getTime();
-    var bodyText = message.body.split('\n')[0];
+    var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
     var htmlStructure = '<span class="bubble-container ' + className + '">' +
                         '<div class="bubble">' + bodyHTML + '</div>' +
                         '</span>';
     // Add 'gif' if necessary
-    //TODO: We may need to have additional delivery status or parameter for
-    //      appendMessage to add sending/pending icon.
     if (message.delivery == 'sending') {
       messageDOM.addEventListener('click',
         ThreadUI.resendMessage.bind(ThreadUI, message));
       htmlStructure += '<span class="message-option">' +
-      '<img src="style/images/spinningwheel_small_animation.gif" class="gif">' +
+      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
+        ThreadUI.sendIcons.pending) + '" class="gif">' +
                         '</span>';
       //Add edit options for pending
       htmlStructure += '<span class="message-option msg-checkbox">' +
@@ -960,6 +964,7 @@ var ThreadUI = {
             window.location.hash = '#num=' + num;
           } else {
             // Append to DOM
+            message.showAnimation = true;
             ThreadUI.appendMessage(message);
           }
           MessageManager.getMessages(ThreadListUI.renderThreads);
@@ -1009,8 +1014,13 @@ var ThreadUI = {
         }, filter, true);
       });
       window.setTimeout(ThreadUI.sendMessage.bind(ThreadUI, message.body), 500);
-    } else {
-      //TODO: Replace the gif icon with exclamation mark icon.
+    } else if (message.showAnimation) {
+      // TODO: We need to replace the timestamp with ID when message deletion
+      //       refine in the future.
+      var queryStr = 'div[id="' + message.timestamp.valueOf() + '"] img.gif';
+      var emt = ThreadUI.view.querySelector(queryStr);
+      emt.src = ThreadUI.sendIcons.pending;
+      message.showAnimation = false;
     }
   },
 

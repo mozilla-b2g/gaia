@@ -416,7 +416,9 @@ function createThumbnail(imagenum) {
 //
 // Web Activities
 //
-navigator.mozSetMessageHandler('activity', function(activityRequest) {
+
+// Register this with navigator.mozSetMessageHandler
+function webActivityHandler(activityRequest) {
   if (pendingPick)
     cancelPick();
 
@@ -432,7 +434,7 @@ navigator.mozSetMessageHandler('activity', function(activityRequest) {
     startPick(activityRequest);
     break;
   }
-});
+}
 
 var pendingPick;
 
@@ -486,6 +488,9 @@ window.addEventListener('localized', function showBody() {
   // initial view
   if (!navigator.mozHasPendingMessage('activity'))
     setView(thumbnailListView);
+
+  // Register a handler for activities
+  navigator.mozSetMessageHandler('activity', webActivityHandler);
 });
 
 // Each of the photoFrame <div> elements may be subject to animated

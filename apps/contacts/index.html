@@ -2,6 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <title> Contacts </title>
+
     <link href="style/css/base/fonts.css" rel="stylesheet">
     <link href="style/css/base/root.css" rel="stylesheet">
     <link href="style/css/base/app.css" rel="stylesheet">
@@ -16,13 +18,15 @@
     <link href="style/request.css" rel="stylesheet">
     <link href="style/input_cancel_button.css" rel="stylesheet">
 
+    <script src="js/activities.js"></script>
+
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
-    <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
 
     <script defer type="text/javascript" src="js/utilities/normalizer.js"></script>
     <script defer type="text/javascript" src="js/utilities/responsive.js"></script>
     <script defer type="text/javascript" src="js/utilities/templates.js"></script>
+    <script defer type="text/javascript" src="js/utilities/import_sim_contacts.js"></script>
 
     <script defer type="text/javascript" src="js/contacts_list.js"></script>
     <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
@@ -35,15 +39,15 @@
   <body class="hide app-contacts">
 
     <div id="app" class="views" data-state="active">
-        <!-- Contacts List Section -->
+      <!-- Contacts List Section -->
       <section id='view-contacts-list' data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
         <div class="view-inner">
 
           <header role="toolbar" class="view-header">
             <menu role="menu">
-              <button role="menuitem"  id='add-contact-button' onclick="Contacts.showAdd();"><span data-icon="add" data-l10n-id="add">add</span></button>
+              <button role="menuitem" id="add-contact-button" onclick="Contacts.showAdd();"><span data-icon="add" data-l10n-id="add">add</span></button>
             </menu>
-           <h1 data-l10n-id="contacts">Contacts</h1>
+            <h1 data-l10n-id="contacts">Contacts</h1>
           </header>
 
 
@@ -83,7 +87,7 @@
           <header role="toolbar" id='details-view-header' class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
             <menu role="menu">
-              <button role="menuitem"  id='edit-contact-button' onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
+              <button role="menuitem" id="edit-contact-button" onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
             </menu>
             <h1 id='contact-name-title'></h1>
             <sup id='favorite-star' class='hide'></sup>
@@ -109,6 +113,11 @@
                   </div>
                 </li>
 
+                <li id="birthday-template-#i#" data-template>
+                  <h2 data-l10n-id="birthday">Birthday</h2>
+                  <p><strong>#bday#</strong></p>
+                </li>
+
                 <!-- Email Template -->
                 <li id='email-details-template-#i#' data-template>
                   <h2>#type#</h2>
@@ -121,6 +130,7 @@
                     </div>
                   </div>
                 </li>
+
 
                 <!-- Address Template -->
                 <li id='address-details-template-#i#' data-template>
@@ -175,8 +185,8 @@
           <div id='add-phone-#i#' data-template class='phone-template' data-index="#i#">
             <dl class="setbox fillflow-row">
               <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">
-                  <a class='with-arrow' data-taglist='phone-type' name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</a>
-                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+                <a class='with-arrow' data-taglist='phone-type' name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</a>
+                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
               </dt>
               <dd class="setbox-body">
                 <p class="setbox-item">
@@ -197,7 +207,7 @@
               <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">
                 <a data-taglist='email-type' name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>
                 <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-                </dt>
+              </dt>
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="email_#i#" data-l10n-id="labelEmail">e-mail:</label>
@@ -211,8 +221,8 @@
           <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
             <dl class="setbox fillflow-row">
               <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">
-                  <a data-taglist='address-type' name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>
-                  <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+                <a data-taglist="address-type" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>
+                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
               </dt>
               <dd class="setbox-body">
                 <p class="setbox-item">
@@ -250,11 +260,15 @@
           <article class="view-body">
             <div class="view-body-inner">
               <form id="contact-form" action="#" class="fill-flow">
-                <input name="id" id="contact-form-id" type="hidden" value=""\>
+                <input name="id" id="contact-form-id" type="hidden" value="">
                 <fieldset class="item first">
                   <legend class="hide" data-l10n-id="legendTitleMain">Main information</legend>
-                  <a href="#" class="item-media fillflow-media">
-                    <img alt="" style="background-image: url(#photo#);">
+                  <a onclick="Contacts.pickImage(); return false;" href="#" class="item-media fillflow-media">
+                    <p>
+                      <span role="button" class="icon-addimage"></span>
+                      <em> Add photo</em>
+                    </p>
+                    <img id="thumbnail-photo" alt="" style="background-image: url(#photo#); background-color: transparent;">
                   </a>
                   <div class="item-body-exp">
                     <p class="fillflow-row">
@@ -273,9 +287,9 @@
 
                 <fieldset>
                   <legend data-l10n-id="legendPhones">Phone numbers</legend>
-                    <div id='contacts-form-phones'>
-                      <!-- Iterating over phone template here -->
-                    </div>
+                  <div id="contacts-form-phones">
+                    <!-- Iterating over phone template here -->
+                  </div>
                 </fieldset>
 
                 <button onclick='Contacts.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
@@ -285,9 +299,9 @@
 
                 <fieldset>
                   <legend data-l10n-id="legendEmail">E-mail address</legend>
-                    <div id='contacts-form-emails'>
-                      <!-- Iterating over email template here -->
-                    </div>
+                  <div id="contacts-form-emails">
+                    <!-- Iterating over email template here -->
+                  </div>
                 </fieldset>
 
                 <button onclick='Contacts.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
@@ -297,9 +311,9 @@
 
                 <fieldset>
                   <legend data-l10n-id="legendAddress">Address</legend>
-                    <div id='contacts-form-addresses'>
-                      <!-- Iterating over address template here -->
-                    </div>
+                  <div id="contacts-form-addresses">
+                    <!-- Iterating over address template here -->
+                  </div>
                 </fieldset>
 
                 <button onclick='Contacts.addNewAddress(); return false;' id='add-new-address' class="fillflow-row action action-add">
@@ -309,9 +323,9 @@
 
                 <fieldset>
                   <legend data-l10n-id="comments">Comments</legend>
-                    <div id='contacts-form-notes'>
-                      <!-- Iterating over comment template here -->
-                    </div>
+                  <div id="contacts-form-notes">
+                    <!-- Iterating over comment template here -->
+                  </div>
                 </fieldset>
 
                 <button onclick='Contacts.addNewNote(); return false;' id='add-new-note' class="fillflow-row action action-add">
@@ -333,10 +347,10 @@
       <section id="view-select-tag" data-mirror="mirror-contact-tags" class="view view-select-tag">
         <div class="view-inner">
 
-           <header role="toolbar" class="view-header">
+          <header role="toolbar" class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
-            <menu role="menu" id='contact-form-actions' >
-                <button role="menuitem" onclick="Contacts.doneTag();" data-l10n-id="done">Done</button>
+            <menu role="menu" id="contact-form-actions">
+              <button role="menuitem" onclick="Contacts.doneTag();" data-l10n-id="done">Done</button>
             </menu>
             <h1 data-l10n-id="label">Label</h1>
           </header>
@@ -362,4 +376,3 @@
 
   </body>
 </html>
-

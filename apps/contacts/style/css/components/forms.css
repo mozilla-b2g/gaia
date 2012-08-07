@@ -133,12 +133,32 @@ textarea.textfield {
   margin: 0 0.5rem 0.5rem 0;
   width: 8.8rem;
   height: 8.3rem;
+  position: relative;
+  background-color: #fff;
+  z-index: 0;
+}
+.fillflow-media p {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  text-align: center;
+  z-index: -1;
+}
+
+.fillflow-media p em {
+  display: block;
+  color: #777;
+  font-size: 1.3rem;
+  font-weight: bold;
+  font-style: normal;
+  margin-top: 1rem;
 }
 
 .fillflow-media img {
   width: 100%;
   height: 100%;
   background: #fff no-repeat center center;
-  background-size: 100% auto; 
+  background-size: 100% auto;
 }
 

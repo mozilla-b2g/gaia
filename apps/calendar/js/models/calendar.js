@@ -65,7 +65,12 @@
      * @param {Calendar.Provider.Calendar.Abstract} provider remote.
      */
     updateRemote: function(provider) {
-      this.remote = provider.toJSON();
+      var data = provider;
+      if ('toJSON' in provider) {
+          data = provider.toJSON();
+      }
+
+      this.remote = data;
     },
 
     /**
