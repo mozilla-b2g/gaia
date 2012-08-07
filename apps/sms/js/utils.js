@@ -25,7 +25,7 @@ var Utils = {
       Utils.updating = false;
     }
   },
-  updateHeaderScheduler: function ut_updateHeaders() {
+  updateHeaderScheduler: function ut_updateHeaderScheduler() {
     if (!Utils.updating) {
       Utils.updating = true;
       Utils.updateHeaders();
