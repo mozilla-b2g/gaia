@@ -26,7 +26,14 @@ function importSIMContacts(onread, onimport, onerror) {
     }
 
     var simContacts = request.result;
-    var nContacts = request.result.length;
+    var nContacts = simContacts.length;
+    if (nContacts === 0) {
+      if (onerror) {
+        onerror();
+      }
+      return;
+    }
+
     var nStored = 0;
     var count = function count() {
       nStored++;
@@ -36,28 +43,35 @@ function importSIMContacts(onread, onimport, onerror) {
     };
 
     for (var i = 0; i < nContacts; i++) {
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=779794
-      // in a perfect world, request.result should be a mozContact array;
-      // until then, let's build mozContact elements manually...
-      var contact = new mozContact();
-      var name = simContacts[i].name ? [simContacts[i].name] : [];
-      var note = simContacts[i].note ? [simContacts[i].note] : [];
-      var tel = simContacts[i].tel ? [{
-        'number': simContacts[i].tel.toString(),
-        'type': 'personal'
-      }] : [];
+      // trying to debug https://github.com/mozilla-b2g/gaia/issues/3196
+      console.log('SIM card contact #' + i + '/' + nContacts + ': ' +
+          simContacts[i].tel + ' - ' + simContacts[i].name);
 
-      contact.init({
-        'name': name,
-        'givenName': name,
-        'tel': tel,
-        'note': note
-      });
+      try {
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=779794
+        // in a perfect world, request.result should be a mozContact array;
+        // until then, let's build mozContact elements manually...
+        var contact = new mozContact();
+        var name = simContacts[i].name ? [simContacts[i].name] : [];
+        var tel = simContacts[i].tel ? [{
+          'number': simContacts[i].tel.toString(),
+          'type': 'personal'
+        }] : [];
 
-      // store each mozContact
-      var req = window.navigator.mozContacts.save(contact);
-      req.onsuccess = count;
-      req.onerror = count;
+        contact.init({
+          'name': name,
+          'givenName': name,
+          'tel': tel
+        });
+
+        // store each mozContact
+        var req = window.navigator.mozContacts.save(contact);
+        req.onsuccess = count;
+        req.onerror = count;
+      } catch (e) {
+        console.log('error importing a SIM card contact: ' + e);
+        count();
+      }
     }
   };
 

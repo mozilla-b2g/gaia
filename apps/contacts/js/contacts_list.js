@@ -146,6 +146,8 @@ contacts.List = (function() {
     button.textContent = _('simContacts-import');
     container.appendChild(button);
 
+    // TODO: don't show this button if no SIM card is found...
+
     button.onclick = function readFromSIM() {
       // replace the button with a throbber
       container.removeChild(button);
