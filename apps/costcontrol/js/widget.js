@@ -38,7 +38,6 @@ var CostControl = (function() {
   ];
 
   var _widget, _widgetCredit, _widgetTime;
-  var _fteExplanation, _defaultContainer;
   var _sms = window.navigator.mozSms;
   var _onSMSReceived = null;
   var _isUpdating = false;
@@ -160,8 +159,6 @@ var CostControl = (function() {
     _widget.style.display = 'none';
     _widgetCredit = document.getElementById('cost-control-credit');
     _widgetTime = document.getElementById('cost-control-time');
-    _fteExplanation = document.getElementById('cost-control-fte-expl');
-    _defaultContainer = document.getElementById('cost-control-default');
 
     // Listener for check now button
     var checkNowBalanceButton = document.getElementById('cost-control-credit-area');

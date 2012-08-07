@@ -77,8 +77,6 @@ var CostControl = (function() {
       return function cc_configure_assignTo(value) {
         _settings[name] = value;
         console.log(name + ': ' + _settings[name]);
-        if(_checkConfiguration())
-          _widget.style.display = '';
       }
     }
 
@@ -133,9 +131,9 @@ var CostControl = (function() {
     // Periodically update
     var periodicallyUpdateEvent =
       new CustomEvent('costcontrolPeriodicallyUpdate');
-    _widget.addEventListener('costcontrolPeriodicallyUpdate', _automaticCheck);
+    window.addEventListener('costcontrolPeriodicallyUpdate', _automaticCheck);
     window.setInterval(function cc_periodicUpdateBalance() {
-      _widget.dispatchEvent(periodicallyUpdateEvent);
+      window.dispatchEvent(periodicallyUpdateEvent);
     }, REQUEST_BALANCE_UPDATE_INTERVAL);
   }
 
@@ -265,7 +263,7 @@ var CostControl = (function() {
     // TODO: If no parsing, notificate error and return
 
     // XXX: Remove when removing mock ups
-    var currentBalance = parseFloat(_widgetCredit.textContent.slice(2));
+    var currentBalance = 100;
     var newBalance = currentBalance + parseInt(message.body, 10);
     newBalance = Math.round(newBalance * 100)/100;
 
@@ -314,7 +312,7 @@ var CostControl = (function() {
       _settings.CHECK_BALANCE_DESTINATION,
       _settings.CHECK_BALANCE_TEXT
     );*/
-    var currentCredit = parseFloat(_widgetCredit.textContent.slice(2));
+    var currentCredit = 100;
     var newCredit = Math.max(0, currentCredit - 2);
     newCredit = Math.round(newCredit * 100)/100;
     var request = _sms.send(
@@ -374,4 +372,3 @@ var CostControl = (function() {
 })();
 
 CostControl.init();
-

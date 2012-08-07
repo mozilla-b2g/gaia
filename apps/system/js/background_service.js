@@ -151,7 +151,7 @@ var BackgroundServiceManager = (function bsm() {
   /* Return the public APIs */
   return {
     'open': open,
-    'close': close
+    'close': close,
   };
 }());
 
