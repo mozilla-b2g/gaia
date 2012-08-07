@@ -1,0 +1,82 @@
+{
+  "name": "Gallery",
+  "description": "Gaia Gallery",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+    "device-storage",
+    "devicestorage"
+  ],
+  "activities": {
+    "browse": {
+      "filters": {
+        "type": "photos"
+       },
+      "disposition": "window"
+    },
+    "pick": {
+      "filters": {
+        "type": "image/jpeg"
+       },
+      "disposition": "window"
+    }
+  },
+  "locales": {
+    "ar": {
+      "name": "\u0625\u0633\u062a\u062f\u064a\u0648",
+      "description": "Gaia \u0625\u0633\u062a\u062f\u064a\u0648"
+    },
+    "ca": {
+      "name": "Galeria",
+      "description": "Galeria del Gaia"
+    },
+    "de": {
+      "name": "Galerie",
+      "description": "Gaia Galerie"
+    },
+    "el": {
+      "name": "\u0393\u03ba\u03b1\u03bb\u03b5\u03c1\u03af",
+      "description": "\u0393\u03ba\u03b1\u03bb\u03b5\u03c1\u03af Gaia"
+    },
+    "en-US": {
+      "name": "Gallery",
+      "description": "Gaia Gallery"
+    },
+    "es": {
+      "name": "Galer\u00eda",
+      "description": "Galer\u00eda de Gaia"
+    },
+    "fr": {
+      "name": "Galerie",
+      "description": "Galerie Gaia"
+    },
+    "it": {
+      "name": "Galleria",
+      "description": "Galleria di Gaia"
+    },
+    "pt-BR": {
+      "name": "Galeria",
+      "description": "Galeria do Gaia"
+    },
+    "ru": {
+      "name": "\u0413\u0430\u043b\u0435\u0440\u0435\u044f",
+      "description": "\u0413\u0430\u043b\u0435\u0440\u0435\u044f Gaia"
+    },
+    "tr": {
+      "name": "Galeri",
+      "description": "Gaia Galeri"
+    },
+    "zh-TW": {
+      "name": "\u76f8\u7c3f",
+      "description": "Gaia \u76f8\u7c3f"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Gallery.png",
+    "60": "/style/icons/60/Gallery.png"
+  }
+}

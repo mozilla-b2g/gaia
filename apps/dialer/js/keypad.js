@@ -366,7 +366,7 @@ var KeypadManager = {
         this._holdTimer = setTimeout(function vm_call(self) {
           self._longPress = true;
           self._callVoicemail();
-        }, 3000, this);
+        }, 1500, this);
       }
     } else if (event.type == 'mouseup') {
       // If it was a long press our work is already done
@@ -414,9 +414,22 @@ var KeypadManager = {
   },
 
   _callVoicemail: function kh_callVoicemail() {
-     var voicemail = navigator.mozVoicemail;
-     if (voicemail && voicemail.number) {
-       CallHandler.call(voicemail.number);
-     }
+      var voicemail = navigator.mozVoicemail;
+
+      // The following fix has to bermoved when the
+      // mozVoicemail impementation is done.
+      // Note: in theory voicemail.number
+      // is never equal to null, unless its broken.
+      if (voicemail.number == null) {
+        var voicemail = {
+          'number': '+15552175049',
+          'displayName': 'Voicemail'
+        };
+
+      }
+
+      if (voicemail && voicemail.number) {
+        CallHandler.call(voicemail.number);
+      }
   }
 };
