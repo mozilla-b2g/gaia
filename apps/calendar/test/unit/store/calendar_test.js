@@ -241,14 +241,14 @@ suite('store/calendar', function() {
       eventStore.persist(events.update[0], done);
     });
 
-    setup(function(done) {
+    setup(function() {
       // clear the event cache
+      // this is to ensure sync is done
+      // by pulling everything into memory...
       eventStore._cached = Object.create(null);
       eventStore._eventsByTime = Object.create(null);
       eventStore._times = [];
       eventStore._cachedSpan = null;
-
-      eventStore.load(done);
     });
 
     var providerCall;
@@ -281,7 +281,26 @@ suite('store/calendar', function() {
 
       stream = new Calendar.Responder();
       stream.send = function(cb) {
-        stream.sendCb = cb;
+        stream.emit(
+          'data',
+          events.add[0].remote
+        );
+
+        events.update[0].remote.syncToken = 'newsync';
+
+        stream.emit(
+          'data',
+          events.update[0].remote
+        );
+
+        stream.emit(
+          'data',
+          events.same[0].remote
+        );
+
+        setTimeout(function() {
+          cb(null);
+        }, 0);
       }
 
       provider = app.provider(
@@ -300,6 +319,18 @@ suite('store/calendar', function() {
     });
 
     setup(function(done) {
+      // we are monitoring events
+      // there is a bug? in mocha
+      // where calling 'done' immediately
+      // moves to the next test rather then
+      // in the next event loop. Manually
+      // wait for the next loop so the events fire.
+      setTimeout(function() {
+        done();
+      }, 0);
+    });
+
+    setup(function(done) {
       firedEvent = {};
       watchEvent('remove');
       watchEvent('add');
@@ -308,25 +339,6 @@ suite('store/calendar', function() {
       subject.sync(account, calendar, function() {
         done();
       });
-
-      stream.emit(
-        'data',
-        events.add[0].remote
-      );
-
-      events.update[0].remote.syncToken = 'newsync';
-
-      stream.emit(
-        'data',
-        events.update[0].remote
-      );
-
-      stream.emit(
-        'data',
-        events.same[0].remote
-      );
-
-      stream.sendCb(null);
     });
 
     test('called remote', function() {
@@ -367,7 +379,6 @@ suite('store/calendar', function() {
       assert.ok(!eventStore.cached[removeId]);
       assert.ok(eventStore.cached[addId]);
       assert.ok(eventStore.cached[updateId]);
-      assert.ok(eventStore.cached[sameId]);
 
       assert.equal(
         eventStore.cached[updateId].remote.syncToken,

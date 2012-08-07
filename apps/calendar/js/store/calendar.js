@@ -70,23 +70,12 @@
       return Object.create(null);
     },
 
-    /**
-     * Sync remote and local events for a calendar.
-     */
-    sync: function(account, calendar, callback) {
-      // for now lets just do a very dumb
-      // sync of the entire collection
-      // we can assume everything is cached.
-
+    _syncEvents: function(account, calendar, cached, callback) {
       var self = this;
-      var persist = [];
       var store = this.db.getStore('Event');
-      var originalIds = Object.keys(store.cached);
+      var persist = [];
+      var originalIds = Object.keys(cached);
       var syncTime = new Date();
-
-      if (!calendar._id) {
-        throw new Error('calendar must be assigned an _id');
-      }
 
       // 1. Open an event stream
       //    as we read the stream events
@@ -106,7 +95,7 @@
 
       stream.on('data', function(event) {
         var id = calendar._id + '-' + event.id;
-        var localEvent = store.cached[id];
+        var localEvent = cached[id];
 
         if (localEvent) {
           var localToken = localEvent.remote.syncToken;
@@ -169,6 +158,41 @@
           callback(null);
         });
       }
+
+    },
+
+    /**
+     * Sync remote and local events for a calendar.
+     */
+    sync: function(account, calendar, callback) {
+      // for now lets just do a very dumb
+      // sync of the entire collection
+      // we can assume everything is cached.
+
+      var self = this;
+      var store = this.db.getStore('Event');
+
+      if (!calendar._id) {
+        throw new Error('calendar must be assigned an _id');
+      }
+
+      store.eventsForCalendar(calendar._id, function(err, results) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        var cached = {};
+        var i = 0;
+        var len = results.length;
+
+        for (i; i < results.length; i++) {
+          cached[results[i]._id] = results[i];
+        }
+
+        self._syncEvents(account, calendar, cached, callback);
+      });
+
     }
 
   };

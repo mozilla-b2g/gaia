@@ -39,18 +39,23 @@
       return this._lastDb;
     },
 
-    clearStore: function(name, done) {
-      var trans = this._lastDb.transaction(name, 'readwrite');
-      var store = trans.objectStore(name);
-      var res = store.clear();
+    clearStore: function(db, name, done) {
+      var trans = db.transaction(name, 'readwrite');
 
-      res.onerror = function() {
-        done(new Error('could not wipe accounts db'));
-      }
-
-      res.onsuccess = function() {
+      trans.oncomplete = function() {
         done(null);
-      }
+      };
+
+      trans.onerror = function() {
+        done(new Error('could not wipe accounts db'));
+      };
+
+      name = [].concat(name);
+
+      name.forEach(function(storeName) {
+        var store = trans.objectStore(storeName);
+        var res = store.clear();
+      });
     },
 
     app: function() {

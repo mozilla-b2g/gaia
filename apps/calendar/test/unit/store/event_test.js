@@ -92,6 +92,40 @@ suite('store/event', function() {
     assert.equal(output.name, output.name);
   });
 
+  suite('#eventsForCalendar', function() {
+    var inCal;
+    var outCal;
+
+    setup(function(done) {
+      inCal = Factory('event', {
+        calendarId: 1
+      });
+
+      subject.persist(inCal, done);
+    });
+
+    setup(function(done) {
+      outCal = Factory('event', {
+        calendarId: 2
+      });
+
+      subject.persist(outCal, done);
+    });
+
+    test('result', function(done) {
+      subject.eventsForCalendar(1, function(err, result) {
+        done(function() {
+          assert.ok(!err);
+          assert.deepEqual(
+            result,
+            [inCal]
+          );
+        });
+      });
+    });
+
+  });
+
   suite('#observeTime', function() {
 
     test('when given non-timespan', function() {
@@ -673,6 +707,12 @@ suite('store/event', function() {
   });
 
   suite('#removeByCalendarId', function() {
+    var busytime;
+    var byCalendar = {};
+
+    setup(function() {
+      byCalendar = {};
+    });
 
     function persistEvent(calendarId) {
       setup(function(done) {
@@ -680,6 +720,11 @@ suite('store/event', function() {
           calendarId: calendarId
         });
 
+        if (!(calendarId in byCalendar)) {
+          byCalendar[calendarId] = [];
+        }
+
+        byCalendar[calendarId].push(event._id);
         subject.persist(event, done);
       });
     }
@@ -689,6 +734,7 @@ suite('store/event', function() {
     persistEvent(2);
 
     setup(function() {
+      busytime = subject.db.getStore('Busytime');
       assert.equal(
         Object.keys(subject.cached).length, 3,
         'should have some controls'
@@ -707,6 +753,16 @@ suite('store/event', function() {
           subject.cached[keys[0]].calendarId,
           2,
           'should not have removed control calendar'
+        );
+
+        assert.ok(
+          !busytime._eventTimes[byCalendar[1][0]],
+          'should remove events from busytime'
+        );
+
+        assert.ok(
+          !busytime._eventTimes[byCalendar[1][1]],
+          'should remove events from busytime'
         );
 
         subject._cached = {};

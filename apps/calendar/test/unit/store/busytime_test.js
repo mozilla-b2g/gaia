@@ -501,19 +501,136 @@ suite('store/busytime', function() {
         cached
       );
     });
+  });
+
+  suite('#cachedSpan', function() {
+    var list;
+
+    setup(function() {
+      list = {};
+    });
+
+    function atTime(date) {
+      return list[date.valueOf()];
+    }
+
+    function add(time) {
+      setup(function(done) {
+        var item = event(time);
+
+        list[time.valueOf()] = subject._eventToRecord(
+          time, item
+        );
+
+        var store = subject.db.getStore('Event');
+        store.persist(item, done);
+      });
+    }
+
+    add(new Date(2012, 1, 1));
+    add(new Date(2012, 1, 2));
+    add(new Date(2012, 1, 3));
+    add(new Date(2012, 1, 4));
+    add(new Date(2012, 1, 5));
+
+    test('no matches start', function() {
+      var range = new Calendar.Timespan(
+        new Date(2011, 1, 5),
+        new Date(2011, 12, 10)
+      );
+
+      var result = subject.cachedStartsIn(range);
+      assert.equal(result.length, 0);
+    });
+
+
+    test('no matches end', function() {
+      var range = new Calendar.Timespan(
+        new Date(2013, 1, 5),
+        new Date(2015, 1, 10)
+      );
+
+      var result = subject.cachedStartsIn(range);
+      assert.equal(result.length, 0);
+    });
+
+    test('one match - end', function() {
+      var range = new Calendar.Timespan(
+        new Date(2011, 1, 1),
+        new Date(2012, 1, 1)
+      );
+
+      var result = subject.cachedStartsIn(range);
+      assert.equal(result.length, 1);
+
+      assert.equal(
+        result[0].eventId,
+        atTime(new Date(2012, 1, 1)).eventId
+      );
+
+    });
+
+
+    test('one match - start', function() {
+      var range = new Calendar.Timespan(
+        new Date(2012, 1, 5),
+        new Date(2013, 1, 10)
+      );
+
+      var result = subject.cachedStartsIn(range);
+      assert.equal(result.length, 1);
+
+      assert.equal(
+        result[0].eventId,
+        atTime(new Date(2012, 1, 5)).eventId
+      );
+
+    });
+
+    test('middle slice', function() {
+      var range = new Calendar.Timespan(
+        new Date(2012, 1, 2),
+        new Date(2012, 1, 4)
+      );
+
+      var result = subject.cachedStartsIn(range);
+      assert.equal(result.length, 3);
+
+      assert.equal(
+        result[0].eventId,
+        atTime(new Date(2012, 1, 2)).eventId
+      );
+
+      assert.equal(
+        result[1].eventId,
+        atTime(new Date(2012, 1, 3)).eventId
+      );
+
+      assert.equal(
+        result[2].eventId,
+        atTime(new Date(2012, 1, 4)).eventId
+      );
+
+    });
 
   });
 
   test('#_eventToRecord', function() {
     var item = event(new Date(2012, 1, 1));
+
     var result = subject._eventToRecord(
       item.remote.occurs[0],
       item
     );
 
     assert.equal(
-      result.time,
+      result.startDate,
       item.remote.occurs[0]
+    );
+
+    assert.equal(
+      result.endDate,
+      item.remote.endDate
     );
 
     assert.equal(

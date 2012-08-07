@@ -90,6 +90,30 @@
       }
     },
 
+    /**
+     * Loads all events for given calendarId
+     * and returns results. Does not cache.
+     *
+     * @param {String} calendarId calendar to find.
+     * @param {Function} callback node style err, array of events.
+     */
+    eventsForCalendar: function(calendarId, callback) {
+      var trans = this.db.transaction('events');
+      var store = trans.objectStore('events');
+      var index = store.index('calendarId');
+      var key = IDBKeyRange.only(calendarId);
+
+      var req = index.mozGetAll(key);
+
+      req.onsuccess = function(e) {
+        callback(null, e.target.result);
+      };
+
+      req.onerror = function(e) {
+        callback(e);
+      };
+    },
+
     _addToCache: function(event) {
       var remote = event.remote;
       var id = event._id;
@@ -131,6 +155,10 @@
 
       // remove from cache
       var event = this._cached[id];
+
+      if (!event)
+        return;
+
       var occurs = event.remote.occurs;
 
       delete this._cached[id];
@@ -471,6 +499,7 @@
           //     directly to anything else right now but they
           //     may be in the future...
           self._removeFromCache(cursor.primaryKey);
+          self._removeDependents(cursor.primaryKey, trans)
           cursor.delete();
           cursor.continue();
         }

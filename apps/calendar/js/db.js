@@ -67,7 +67,9 @@
           next();
         });
 
-        self.getStore('Event').load(function(err) {
+        ///XXX: Taking a shortcut to load
+        // all this will change to just a slice (1-3 month period soon)
+        self.getStore('Busytime').load(function(err) {
           if (err) {
             throw err;
           }

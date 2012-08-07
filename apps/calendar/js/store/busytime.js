@@ -19,6 +19,34 @@ Calendar.ns('Store').Busytime = (function() {
     return null;
   }
 
+  function bsearchForRange(list, seekVal, cmpfunc) {
+    if (!list.length)
+      return 0;
+
+    var low = 0, high = list.length - 1,
+        mid, cmpval;
+
+    while (low <= high) {
+      mid = low + Math.floor((high - low) / 2);
+      cmpval = cmpfunc(seekVal, list[mid]);
+
+      if (cmpval < 0)
+        high = mid - 1;
+      else if (cmpval > 0)
+        low = mid + 1;
+      else
+        break;
+    }
+
+    if (cmpval < 0)
+      return mid; // insertion is displacing, so use mid outright.
+    else if (cmpval > 0)
+      return mid + 1;
+    else
+      return mid;
+  };
+
+
   function bsearchForInsert(list, seekVal, cmpfunc) {
     if (!list.length)
       return 0;
@@ -91,6 +119,14 @@ Calendar.ns('Store').Busytime = (function() {
       } else {
         return 0;
       }
+    },
+
+    _findClosest: function(time) {
+      return bsearchForRange(
+        this._times,
+        time,
+        this._compareTimeIndex
+      );
     },
 
     _findTime: function(time) {
@@ -275,7 +311,9 @@ Calendar.ns('Store').Busytime = (function() {
      */
     _eventToRecord: function(time, event) {
       return {
-        time: time,
+        startDate: time,
+        //XXX Quick hack - we need to do a recurring lookup
+        endDate: event.remote.endDate,
         eventId: event._id,
         calendarId: event.calendarId
       };
@@ -293,7 +331,42 @@ Calendar.ns('Store').Busytime = (function() {
       }
 
       this.fireTimeEvent('add', time, record);
+    },
 
+    /**
+     * Gets all records in span.
+     */
+    cachedStartsIn: function(span) {
+
+      // XXX we can do a significant
+      // amount of optimization here I think
+
+      var start = span.start;
+      var end = span.end;
+
+      var totalLen = this._times.length - 1;
+      var startIdx = this._findClosest(start);
+      var endIdx = this._findClosest(end);
+
+      endIdx = (endIdx > totalLen) ? totalLen : endIdx;
+
+      if (!span.contains(this._times[startIdx]))
+        return [];
+
+      var i = startIdx;
+      var results = [];
+      var time;
+
+      function addResult(val) {
+        results.push(val);
+      }
+
+      for (; i <= endIdx; i++) {
+        time = this._times[i];
+        this._timeRecords[time].forEach(addResult);
+      }
+
+      return results;
     },
 
     _addEventTimes: function(event) {
@@ -342,7 +415,6 @@ Calendar.ns('Store').Busytime = (function() {
         }
       }, this);
     }
-
   };
 
   return Busytime;
