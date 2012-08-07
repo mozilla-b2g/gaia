@@ -189,6 +189,10 @@
   background-position: -105px -80px;
 }
 
+.sb-icon-data[data-type="circle"] {
+  background-position: -126px -80px;
+}
+
 .sb-icon-flight-mode {
   background-position: 0 -40px;
 }

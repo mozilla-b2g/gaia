@@ -16,6 +16,20 @@ var StatusBar = {
   /* Keep the DOM element references here */
   icons: {},
 
+  /* A mapping table between technology names
+     we would get from API v.s. the icon we want to show. */
+  mobileDataIconTypes: {
+    'lte': '4G', // 4G LTE
+    'ehrpd': '4G', // 4G CDMA
+    'hspa+': 'H+', // 3.5G HSPA+
+    'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H', // 3.5G HSDPA
+    'evdo0': '3G', 'evdoa': '3G', 'evdob': '3G', '1xrtt': '3G', // 3G CDMA
+    'umts': '3G', // 3G
+    'edge': 'E', // EDGE
+    'is95a': '2G', 'is95b': '2G', // 2G CDMA
+    'gprs': '2G'
+  },
+
   geolocationActive: false,
   geolocationTimer: null,
 
@@ -231,56 +245,8 @@ var StatusBar = {
       }
 
       icon.hidden = false;
-      var type = '';
-
-      switch (data.type) {
-        // 4G LTE
-        case 'lte':
-
-        // CDMA 4G
-        case 'ehrpd':
-          type = '4G';
-          break;
-
-        // 3.5G HSPA+
-        case 'hspa+':
-          type = 'H+';
-          break;
-
-        // 3.5G
-        case 'hsdpa':
-        case 'hsupa':
-        case 'hspa':
-          type = 'H';
-          break;
-
-        // CDMA 3G
-        case 'evdo0':
-        case 'evdoa':
-        case 'evdob':
-        case '1xrtt':
-
-        // 3G
-        case 'umts':
-          type = '3G';
-          break;
-
-        // EDGE
-        case 'edge':
-          type = 'E';
-          break;
-
-        // CDMA 2G
-        case 'is95a':
-        case 'is95b':
-
-        // 2G
-        case 'gprs':
-        default:
-          type = '2G';
-      }
-
-      icon.dataset.type = type;
+      icon.dataset.type =
+        this.mobileDataIconTypes[data.type] || 'circle';
     },
 
 
