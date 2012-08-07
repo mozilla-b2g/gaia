@@ -136,6 +136,7 @@ if (DEBUG) {
   content += "user_pref(\"extensions.gaia.port\", "+ GAIA_PORT.replace(/:/g, "") + ");\n";
   content += "user_pref(\"extensions.gaia.app_src_dirs\", " + JSON.stringify(GAIA_APP_SRCDIRS) + ");\n";
   content += "user_pref(\"extensions.gaia.app_relative_path\", " + JSON.stringify(GAIA_APP_RELATIVEPATH) + ");\n";
+  content += "user_pref(\"extensions.gaia.locales_path\", " + JSON.stringify(GAIA_LOCALES_PATH) + ");\n";
 
   content += "\n";
 }

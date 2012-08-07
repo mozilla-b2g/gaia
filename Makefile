@@ -54,6 +54,8 @@ GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
 GAIA_APP_RELATIVEPATH=$(foreach dir, $(GAIA_APP_SRCDIRS), $(wildcard $(dir)/*))
 
+GAIA_LOCALES_PATH?=locales
+
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
@@ -265,6 +267,7 @@ define run-js-command
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_APP_RELATIVEPATH = "$(GAIA_APP_RELATIVEPATH)";                   \
+	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                   \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
