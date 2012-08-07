@@ -18,6 +18,7 @@ var Utils = {
         if (tmpHeaderDate != currentHeader) {
           elementsToUpdate[i].innerHTML = tmpHeaderDate;
         }
+        console.log('Updating headers');
       }
     } else {
       clearInterval(Utils.updateTimer);

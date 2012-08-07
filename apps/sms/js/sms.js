@@ -46,7 +46,9 @@ var MessageManager = {
           MessageManager.markMessageRead(event.message.id, true, function() {
             MessageManager.getMessages(ThreadListUI.renderThreads);
           });
-          ThreadUI.appendMessage(event.message);
+          ThreadUI.appendMessage(event.message, function() {
+              Utils.updateHeaders();
+            });
         } else {
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
@@ -287,12 +289,13 @@ var ThreadListUI = {
           if (selected > 0) {
             ThreadListUI.deleteSelectedButton.classList.remove('disabled');
             this.editHeader.innerHTML = selected + ' Selected';
+
           } else {
             ThreadListUI.deleteSelectedButton.classList.add('disabled');
             this.editHeader.innerHTML = 'Edit mode';
           }
         }
-          break;
+        break;
     }
   },
 
@@ -352,6 +355,7 @@ var ThreadListUI = {
       }, filter);
     }
     // Cleaning
+    ThreadListUI.selectedInputList = [];
     this.editHeader.innerHTML = 'Edit mode';
     this.deleteSelectedButton.classList.add('disabled');
   },
@@ -693,7 +697,7 @@ var ThreadUI = {
       callback();
     }
   },
-  appendMessage: function thui_appendMessage(message) {
+  appendMessage: function thui_appendMessage(message, callback) {
     if (!message.read) {
       ThreadUI.readMessages.push(message.id);
     }
@@ -747,6 +751,9 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
+    if (callback) {
+      callback;
+    }
   },
 
   cleanForm: function thui_cleanForm() {
@@ -911,7 +918,9 @@ var ThreadUI = {
           var selected = ThreadUI.selectedInputList.length;
           if (selected > 0) {
             ThreadUI.deleteSelectedButton.classList.remove('disabled');
-            this.editHeader.innerHTML = selected + ' Selected';
+            var total = selected - ThreadUI.delNumList.length -
+              ThreadUI.pendingDelList.length;
+            this.editHeader.innerHTML = total + ' Selected';
           } else {
             ThreadUI.deleteSelectedButton.classList.add('disabled');
             this.editHeader.innerHTML = 'Edit mode';
@@ -964,9 +973,11 @@ var ThreadUI = {
           if (window.location.hash == '#new') {
             window.location.hash = '#num=' + num;
           } else {
-            // Append to DOM
+            // Append to DOMf
             message.showAnimation = true;
-            ThreadUI.appendMessage(message);
+            ThreadUI.appendMessage(message, function() {
+              Utils.updateHeaders();
+            });
           }
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
