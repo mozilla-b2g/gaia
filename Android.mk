@@ -16,12 +16,13 @@ include $(BUILD_PREBUILT)
 
 $(LOCAL_INSTALLED_MODULE):
 	@echo Install dir: $(TARGET_OUT_DATA)/local
-	rm -rf $(TARGET_OUT_DATA)/local/webapps
 	mkdir -p $(TARGET_OUT_DATA)/local
 	cd $(TARGET_OUT_DATA)/local && tar xfz $(abspath $<)
+	mkdir -p $(TARGET_OUT)/b2g
+	rm -rf $(TARGET_OUT)/b2g/webapps
+	mv $(TARGET_OUT_DATA)/local/webapps $(TARGET_OUT)/b2g
 
 .PHONY: $(LOCAL_PATH)/profile.tar.gz
 $(LOCAL_PATH)/profile.tar.gz:
 	$(MAKE) -C $(GAIA_PATH) profile
 	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) webapps user.js permissions.sqlite
-

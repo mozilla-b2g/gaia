@@ -16,6 +16,7 @@ if (!webappsTargetDir.exists())
   webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
 
 let manifests = {};
+let id = 1;
 
 Gaia.webapps.forEach(function (webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
@@ -37,7 +38,8 @@ Gaia.webapps.forEach(function (webapp) {
     installOrigin: url,
     receipt:       null,
     installTime:   132333986000,
-    manifestURL:   url + '/manifest.webapp'
+    manifestURL:   url + '/manifest.webapp',
+    localId:       id++
   };
 
 });
@@ -78,7 +80,8 @@ getSubDirectories(EXTERNAL_APPS_DIR).forEach(function readManifests(webappSrcDir
     installOrigin: url,
     receipt:       null,
     installTime:   132333986000,
-    manifestURL:   url + '/manifest.webapp'
+    manifestURL:   url + '/manifest.webapp',
+    localId:       id++
   };
 });
 
