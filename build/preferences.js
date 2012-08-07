@@ -128,6 +128,7 @@ if (DEBUG) {
   content += "user_pref(\"dom.mozContacts.enabled\", true);\n";
   content += "user_pref(\"dom.mozSettings.enabled\", true);\n";
   content += "user_pref(\"device.storage.enabled\", true);\n";
+  content += "user_pref(\"webgl.verbose\", true);\n";
 
   // Preferences for httpd
   // (Use JSON.stringify in order to avoid taking care of `\` escaping)
