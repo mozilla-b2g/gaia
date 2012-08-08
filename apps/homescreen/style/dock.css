@@ -8,7 +8,7 @@
 }
 
 #footer .dockWrapper {
-  width: -moz-calc(7 * 8rem);
+  width: -moz-calc(7 * 7.3rem);
   height: 100%;
 }
 
@@ -23,7 +23,7 @@
 #footer li {
   height: 100%;
   position: relative;
-  width: 8rem;
+  width: 7.3rem;
   display: inline-block;
   text-align: center;
 }

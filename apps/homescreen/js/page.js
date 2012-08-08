@@ -548,9 +548,21 @@ dockProto.render = function dk_render(apps, target) {
 };
 
 dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
-  var style = this.movableContainer.style;
-  style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 's';
+  var container = this.movableContainer;
+  var style = container.style;
+
+  container.addEventListener('transitionend', function transitionEnd(e) {
+    e.stopPropagation();
+    container.removeEventListener('transitionend', transitionEnd);
+    style.MozTransform = 'translateX(' + scrollX + 'px)';
+    style.MozTransition = '-moz-transform .05s ease';
+  });
+
+  style.MozTransform = 'translateX(' + (scrollX +
+                         (this.posLeft <= scrollX ? 5 : -5)) + 'px)';
+  style.MozTransition = '-moz-transform ' + duration + 's ease';
+
+  this.posLeft = scrollX;
 };
 
 dockProto.getLeft = function dk_getLeft() {

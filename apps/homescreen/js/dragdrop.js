@@ -57,11 +57,10 @@ const DragDropManager = (function() {
       DockManager.page.append(draggableIcon);
     }
 
-    var currentX = currentEvent.x;
-    if (dirCtrl.limitNext(currentX)) {
-      DockManager.goNextIcon();
-    } else if (dirCtrl.limitPrev(currentX)) {
-      DockManager.goPreviousIcon();
+    if (dirCtrl.limitNext(currentEvent.x)) {
+      DockManager.goNextSet();
+    } else if (dirCtrl.limitPrev(currentEvent.x)) {
+      DockManager.goPreviousSet();
     }
 
     overlapingDock = true;

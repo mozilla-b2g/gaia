@@ -7,6 +7,7 @@ const DockManager = (function() {
 
   var maxNumAppInDock = 7, maxNumAppInViewPort, numAppsBeforeDrag;
   var windowWidth = window.innerWidth;
+  var duration = .3;
 
   var initialOffsetLeft, cellWidth;
   var isPanning = false, startX, currentX;
@@ -28,9 +29,8 @@ const DockManager = (function() {
         if (!isPanning &&
             Math.abs(evt.clientX - startX) < thresholdForTapping) {
           return;
-        } else {
-          isPanning = true;
         }
+        isPanning = true;
 
         dock.moveBy(initialOffsetLeft + evt.clientX - startX);
         break;
@@ -49,11 +49,7 @@ const DockManager = (function() {
         if (Math.abs(scrollX) < thresholdForTapping) {
           dock.tap(evt.target);
         } else {
-          container.addEventListener('transitionend', function transEnd(e) {
-            container.removeEventListener('transitionend', transEnd);
-            delete document.body.dataset.transitioning;
-          });
-          onTouchEnd(initialOffsetLeft + scrollX);
+          onTouchEnd(scrollX);
         }
 
         break;
@@ -71,78 +67,38 @@ const DockManager = (function() {
     }
   }
 
-  function goNextIcon() {
-    var offsetLeft = dock.getLeft();
+  function goNextSet() {
     var maxOffsetLeft = windowWidth - dock.getNumApps() * cellWidth;
 
-    if (offsetLeft <= maxOffsetLeft) {
+    if (dock.getLeft() <= maxOffsetLeft) {
       return;
     }
 
-    var movement = offsetLeft - cellWidth;
-    if (movement < maxOffsetLeft) {
-      movement = maxOffsetLeft;
-    }
-
-    dock.moveByWithEffect(movement, .3);
+    dock.moveByWithEffect(maxOffsetLeft, duration);
   }
 
-  function goPreviousIcon() {
-    var offsetLeft = dock.getLeft();
-
-    if (offsetLeft >= 0) {
+  function goPreviousSet() {
+    if (dock.getLeft() >= 0) {
       return;
     }
 
-    var movement = offsetLeft + cellWidth;
-    if (movement > 0) {
-      movement = 0;
-    }
-
-    dock.moveByWithEffect(movement, .3);
+    dock.moveByWithEffect(0, duration);
   }
 
   function onTouchEnd(scrollX) {
     var numApps = dock.getNumApps();
 
     if (numApps > maxNumAppInViewPort) {
-      if (scrollX > 0) {
-        scrollX = 0;
-      } else {
-        var maxOffsetLeft = windowWidth - numApps * cellWidth;
-        if (scrollX < maxOffsetLeft) {
-          scrollX = maxOffsetLeft;
-        } else {
-          scrollX = applyMagnet(scrollX);
-        }
-      }
+      scrollX = scrollX > 0 ? 0 : windowWidth - numApps * cellWidth;
     } else {
-      // Centering dock when we have 4 apps of less
-      scrollX = (windowWidth - numApps * cellWidth) / 2;
+      scrollX = windowWidth - numApps * cellWidth / 2;
     }
 
-    dock.moveByWithEffect(scrollX, .3);
-  }
-
-  function applyMagnet(scrollX) {
-    var icons = dock.getChildren();
-    var physicalCenter = windowWidth / 2;
-    var previousCenter = icons[0].getBoundingClientRect().left + cellWidth / 2;
-
-    var len = icons.length;
-    for (var i = 1; i < len; i++) {
-      var center = icons[i].getBoundingClientRect().left + cellWidth / 2;
-      if (center < 0 || previousCenter < 0 ||
-          Math.abs(physicalCenter - previousCenter) >
-          Math.abs(physicalCenter - center)) {
-        previousCenter = center;
-      } else {
-        scrollX += physicalCenter - previousCenter;
-        break;
-      }
-    }
-
-    return scrollX;
+    dock.moveByWithEffect(scrollX, duration);
+    container.addEventListener('transitionend', function transEnd(e) {
+      container.removeEventListener('transitionend', transEnd);
+      delete document.body.dataset.transitioning;
+    });
   }
 
   /*
@@ -180,11 +136,10 @@ const DockManager = (function() {
   function placeAfterRemovingApp(numApps) {
     document.body.dataset.transitioning = 'true';
 
-    if (numApps <= maxNumAppInViewPort) {
-      dock.moveByWithEffect(Math.abs(numApps * cellWidth - windowWidth) / 2,
-                            .3);
+    if (numApps > maxNumAppInViewPort) {
+      dock.moveByWithEffect(dock.getLeft() + cellWidth, duration);
     } else {
-      dock.moveByWithEffect(dock.getLeft() + cellWidth, .3);
+      dock.moveByWithEffect(windowWidth - numApps * cellWidth / 2, duration);
     }
 
     container.addEventListener('transitionend', function transEnd(e) {
@@ -206,15 +161,8 @@ const DockManager = (function() {
         var numApps = dock.getNumApps();
         cellWidth = dock.getWidth() / numApps;
         maxNumAppInViewPort = Math.floor(windowWidth / cellWidth);
-        var offsetLeft = Math.abs(numApps * cellWidth - windowWidth) / 2;
-        if (numApps > maxNumAppInViewPort) {
-          dock.moveBy(-offsetLeft);
-          if (numApps % 2 === 0) {
-            // Only when the number of icons is even
-            dock.moveBy(applyMagnet(-offsetLeft));
-          }
-        } else {
-          dock.moveBy(offsetLeft);
+        if (numApps <= maxNumAppInViewPort) {
+          dock.moveBy(windowWidth - numApps * cellWidth / 2);
         }
       });
     },
@@ -296,8 +244,8 @@ const DockManager = (function() {
       HomeState.saveShortcuts(dock.getAppsList(), nop, nop);
     },
 
-    goNextIcon: goNextIcon,
+    goNextSet: goNextSet,
 
-    goPreviousIcon: goPreviousIcon
+    goPreviousSet: goPreviousSet
   };
 }());
