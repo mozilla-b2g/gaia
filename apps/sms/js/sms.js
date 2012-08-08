@@ -1036,8 +1036,8 @@ var ThreadUI = {
     threadHTML.classList.add('item');
 
     // Retrieve info from thread
-    var name = Utils.escapeHTML(contact.name);
-    var number = Utils.escapeHTML(contact.tel[0].number);
+    var name = Utils.escapeHTML(contact.name.toString());
+    var number = Utils.escapeHTML(contact.tel[0].number.toString());
     // Create HTML structure
     var structureHTML =
             '  <a href="#num=' + contact.tel[0].number + '">' +
