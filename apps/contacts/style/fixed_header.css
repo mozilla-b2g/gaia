@@ -1,10 +1,10 @@
 .fixed-title {
-  position: fixed;
-  top: 5rem;
-  width: 85%;
+  position: absolute;
+  top: 0;
+  width: 82%;
   height: 2.3rem;
-  margin: 0 1rem;
-  z-index: 100;
+  margin: 0 3rem;
+  z-index: 6;
   background-repeat: no-repeat;
   background-color: #f4f4f4;
   display: none;
