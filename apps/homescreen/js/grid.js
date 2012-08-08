@@ -145,7 +145,11 @@ const GridManager = (function() {
     }
 
     var isSamePage = currentPage === index;
-    currentPage = index;
+    if (!isSamePage) {
+      delete pages[currentPage].container.dataset.currentPage;
+      currentPage = index;
+      pages[currentPage].container.dataset.currentPage = 'true';
+    }
 
     container.addEventListener('transitionend', function transitionEnd(e) {
       container.removeEventListener('transitionend', transitionEnd);
