@@ -180,6 +180,10 @@ Icon.prototype = {
     return this.container.getBoundingClientRect().top;
   },
 
+  getLeft: function icon_getLeft() {
+    return this.container.getBoundingClientRect().left;
+  },
+
   getOrigin: function icon_getOrigin() {
     return this.descriptor.origin;
   }
@@ -203,7 +207,7 @@ Page.prototype = {
    * @param{Object} target DOM element container
    */
   render: function pg_render(apps, target) {
-    this.container = target;
+    this.container = this.movableContainer = target;
     var len = apps.length;
 
     this.olist = document.createElement('ol');
@@ -231,7 +235,7 @@ Page.prototype = {
    * @param{int} duration
    */
   moveByWithEffect: function pg_moveByWithEffect(scrollX, duration) {
-    var container = this.container;
+    var container = this.movableContainer;
     var style = container.style;
 
     container.addEventListener('transitionend', function transitionEnd(e) {
@@ -258,7 +262,7 @@ Page.prototype = {
    * @param{String} scroll X
    */
   moveBy: function pg_moveBy(scrollX) {
-    var style = this.container.style;
+    var style = this.movableContainer.style;
     style.MozTransform = 'translateX(' + scrollX + 'px)';
     style.MozTransition = '';
     this.posLeft = scrollX;
@@ -291,14 +295,14 @@ Page.prototype = {
     var self = this;
     node.style.MozAnimationName = animation;
     node.addEventListener('animationend', function animationEnd(e) {
-      node.removeEventListener('animationend', animationEnd);
-      node.style.MozAnimationName = '';
-
       if (node === targetNode) {
         self.olist.insertBefore(originNode, upward ? targetNode :
                                                      targetNode.nextSibling);
         self.setReady(true);
       }
+
+      node.removeEventListener('animationend', animationEnd);
+      node.style.MozAnimationName = '';
     });
   },
 
@@ -427,6 +431,17 @@ Page.prototype = {
   },
 
   /*
+   * Returns the first icon of the page
+   */
+  getFirstIcon: function pg_getFirstIcon() {
+    var firstIcon = this.olist.firstChild;
+    if (firstIcon) {
+      firstIcon = this.icons[firstIcon.dataset.origin];
+    }
+    return firstIcon;
+  },
+
+  /*
    * Appends an icon to the end of the page
    *
    * @param{Object} moz app or icon object
@@ -510,7 +525,9 @@ var Dock = function createDock() {
 
 extend(Dock, Page);
 
-Dock.prototype.animate = function dk_anim(oIndex, tIndex, children,
+var dockProto = Dock.prototype;
+
+dockProto.animate = function dk_anim(oIndex, tIndex, children,
                                           originNode, targetNode) {
   if (oIndex < tIndex) {
     for (var i = oIndex + 1; i <= tIndex; i++) {
@@ -521,6 +538,35 @@ Dock.prototype.animate = function dk_anim(oIndex, tIndex, children,
       this.jumpNode(children[i], 'jumpNextCell', originNode, targetNode, true);
     }
   }
+};
+
+dockProto.baseRender = Page.prototype.render;
+
+dockProto.render = function dk_render(apps, target) {
+  this.baseRender(apps, target);
+  this.movableContainer = this.olist;
+};
+
+dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
+  var style = this.movableContainer.style;
+  style.MozTransform = 'translateX(' + scrollX + 'px)';
+  style.MozTransition = '-moz-transform ' + duration + 's';
+};
+
+dockProto.getLeft = function dk_getLeft() {
+  return this.olist.getBoundingClientRect().left;
+};
+
+dockProto.getRight = function dk_getRight() {
+  return this.getLeft() + this.getWidth();
+};
+
+dockProto.getWidth = function dk_getWidth() {
+  return this.olist.clientWidth;
+};
+
+dockProto.getChildren = function dk_getChildren() {
+  return this.olist.children;
 };
 
 var SearchPage = function createSearchPage() {

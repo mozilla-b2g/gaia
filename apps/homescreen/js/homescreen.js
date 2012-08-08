@@ -14,7 +14,7 @@ const Homescreen = (function() {
 
   function initUI() {
     // Initialize the dock
-    DockManager.init(document.querySelector('#footer'));
+    DockManager.init(document.querySelector('#footer .dockWrapper'));
 
     setLocale();
     GridManager.init('.apps', function gm_init() {

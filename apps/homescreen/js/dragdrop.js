@@ -50,19 +50,21 @@ const DragDropManager = (function() {
   };
 
   function overDock() {
-    if (overlapingDock) {
-      return;
-    }
-
-    // I've just entered
-    if (DockManager.isFull()) {
-      isDisabledDrop = true;
-    } else {
+    if (!overlapingDock && !DockManager.isFull()) {
+      // I've just entered
       draggableIcon.addClassToDragElement('overDock');
       pageHelper.getCurrent().remove(draggableIcon);
       DockManager.page.append(draggableIcon);
-      overlapingDock = true;
     }
+
+    var currentX = currentEvent.x;
+    if (dirCtrl.limitNext(currentX)) {
+      DockManager.goNextIcon();
+    } else if (dirCtrl.limitPrev(currentX)) {
+      DockManager.goPreviousIcon();
+    }
+
+    overlapingDock = true;
   }
 
   function overIconGrid() {
@@ -204,9 +206,21 @@ const DragDropManager = (function() {
       page.drop(draggableIconOrigin, overlapElemOrigin);
     } else if (classList.contains('page')) {
       var lastIcon = page.getLastIcon();
-      if (lastIcon && currentEvent.y > lastIcon.getTop() &&
+      if (currentEvent.y > lastIcon.getTop() &&
           draggableIcon !== lastIcon) {
         page.drop(draggableIconOrigin, lastIcon.getOrigin());
+      }
+    } else if (classList.contains('dockWrapper')) {
+      var firstIcon = page.getFirstIcon();
+      if (currentEvent.x < firstIcon.getLeft()) {
+        if (draggableIcon !== firstIcon) {
+          page.drop(draggableIconOrigin, firstIcon.getOrigin());
+        }
+      } else {
+        var lastIcon = page.getLastIcon();
+        if (draggableIcon !== lastIcon) {
+          page.drop(draggableIconOrigin, lastIcon.getOrigin());
+        }
       }
     }
   }
