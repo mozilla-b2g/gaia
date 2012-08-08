@@ -57,6 +57,8 @@ var settings = [
  new Setting("ril.data.enabled", false),
  new Setting("ril.data.apn", ""),
  new Setting("ril.data.passwd", ""),
+ new Setting("ril.data.httpProxyHost", ""),
+ new Setting("ril.data.httpProxyPort", 0),
  new Setting("ril.data.mmsc", ""),
  new Setting("ril.data.mmsproxy", ""),
  new Setting("ril.data.mmsport", 0),
