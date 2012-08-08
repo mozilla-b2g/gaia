@@ -1,5 +1,6 @@
 /* Resetting */
-#cost-control-widget {
+#cost-control-widget, 
+#cost-control-widget iframe {
   width: 100%;
   height: 4.5rem;
   border: none;

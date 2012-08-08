@@ -3,18 +3,13 @@
 
 'use strict';
 
-// XXX: Remove when bug https://bugzilla.mozilla.org/show_bug.cgi?id=766873
-// is resolved
-var _w = window.open('/background.html#0', SERVICE_BACKGROUND_NAME, 'background');
-console.log('service started: ' + (_w !== null));
+function setupWidget() {
 
-(function() {
   var _ = function cc_fallbackTranslation(keystring) {
     var r = navigator.mozL10n.get.apply(this, arguments);
     return r || '!!' + keystring;
   }
 
-  console.log('too early: widget');
   var CostControl = getService();
   var _widget, _widgetCredit, _widgetTime;
   var _isUpdating = false;
@@ -26,7 +21,8 @@ console.log('service started: ' + (_w !== null));
   function _configureAutomaticUpdates() {
     // Listen to utilitytray show
     window.addEventListener('message', function cc_utilityTray(evt) {
-      _automaticCheck(evt.data);
+      if (evt.data.type === 'utilitytrayshow')
+        _automaticCheck(evt.data);
     });
   }
 
@@ -213,5 +209,20 @@ console.log('service started: ' + (_w !== null));
   }
 
   _init();
-}());
+};
 
+window.addEventListener('message', function cc_setupEverything(evt) {
+  if (evt.data.type === 'applicationready') {
+    // TODO: Remove when bug https://bugzilla.mozilla.org/show_bug.cgi?id=766873
+    // is resolved. Remove from this point until...
+    var _w = window.open(
+      '/background.html#0',
+      SERVICE_BACKGROUND_NAME,
+      'background'
+    );
+    // ...here
+
+    // Finish the setup when the service is ready
+    window.addEventListener('costcontrolserviceready', setupWidget);
+  }
+});

@@ -144,6 +144,9 @@ window[SERVICE_NAME] = (function() {
   function _init() {
     _configureSettings();
     _configureAutomaticUpdates();
+
+    window.opener.dispatchEvent(
+      new CustomEvent('costcontrolserviceready'));
   }
 
   // Return true if the device is in roaming
@@ -376,6 +379,6 @@ window[SERVICE_NAME] = (function() {
     requestBalance: _mockup_updateBalance,
     requestTopUp: _mockup_topUp,
   };
-})();
+}());
 
 window[SERVICE_NAME].init();
