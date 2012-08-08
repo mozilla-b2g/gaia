@@ -24,10 +24,23 @@ var FixedHeader = (function FixedHeader() {
       var offset = headingPosition - currentScroll;
       var currentHeight = currentHeader.offsetHeight;
       var differentHeaders = currentlyFixed != currentHeader;
+      // Effect
+      if(Math.abs(offset) < currentHeight && differentHeaders) {
+        var toMove = Math.abs(offset) - currentHeight;
+        var inEffect = Math.abs(offset) <= currentHeight;
+        var translateTop = 'translateY(' + toMove + 'px)';
+        var transform = inEffect ? translateTop : null;
+        fixedContainer.style.transform = transform;
+      }
 
       // Switching Header
       if (offset <= 0) {
         if (differentHeaders) {
+          var comingFromUp = previousOffset > offset;
+          var translateTop = 'translateY(0)';
+          var transform = comingFromUp ? translateTop : null;
+          fixedContainer.style.transform = transform;
+          previousOffset = offset;
           currentlyFixed = currentHeader;
           fixedContainer.style.display = 'block';
           var background = '-moz-element(#' + currentHeader.id + ')';
