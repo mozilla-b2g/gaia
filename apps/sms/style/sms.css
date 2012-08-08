@@ -118,6 +118,11 @@ html, body {
 .new .tel {
   display: block;
 }
+
+.new .carrier-wrapper {
+  display: none;
+}
+
 .new #icon-edit {
   display: none;
 }
