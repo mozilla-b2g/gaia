@@ -160,19 +160,23 @@ fb.Contact = function (deviceContact) {
   }
 
   this.merge = function(fbdata) {
-    var out = Object.create(devContact);
+    var out = devContact;
 
-    Object.keys(devContact).forEach(function(prop) {
-      out[prop] = devContact[prop];
-    });
+    if(fbdata) {
+      var out = Object.create(devContact);
 
-    var blackList = ['name','givenName','familyName','additionalName'];
+      Object.keys(devContact).forEach(function(prop) {
+        out[prop] = devContact[prop];
+      });
 
-    Object.keys(fbdata).forEach(function(field) {
-      if(blackList.indexOf(field) === -1) {
-        out[field] = fbdata[field];
-      }
-    });
+      var blackList = ['name','givenName','familyName','additionalName'];
+
+      Object.keys(fbdata).forEach(function(field) {
+        if(blackList.indexOf(field) === -1) {
+          out[field] = fbdata[field];
+        }
+      });
+    }
 
     return out;
   }
@@ -183,15 +187,22 @@ fb.Contact = function (deviceContact) {
     var outReq = new Request();
 
     window.setTimeout(function do_getdata() {
-      var fbreq = fb.contacts.get(doGetFacebookUid(devContact));
-      fbreq.onsuccess = function() {
-        var fbdata = fbreq.result;
-        out = this.merge(fbdata);
-        outReq.done(out);
-      }.bind(this);
+      var uid = doGetFacebookUid(devContact);
+      window.console.log('OWDError: ',uid);
+      if(uid) {
+        var fbreq = fb.contacts.get(uid);
+        fbreq.onsuccess = function() {
+          var fbdata = fbreq.result;
+          out = this.merge(fbdata);
+          outReq.done(out);
+        }.bind(this);
 
-      fbreq.onerror = function() {
-        outReq.failed(fbreq.error);
+        fbreq.onerror = function() {
+          outReq.failed(fbreq.error);
+        }
+      }
+      else {
+        outReq.done(devContact);
       }
     }.bind(this),0);
 
