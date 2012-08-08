@@ -3,7 +3,16 @@
 
 'use strict';
 
-var CostControl = (function() {
+window[SERVICE_NAME] = (function() {
+  var _fakeCredit = {
+    get credit() {
+      return JSON.parse(window.localStorage.getItem('fakeCredit'));
+    },
+    set credit(value) {
+      window.localStorage.setItem('fakeCredit', JSON.stringify(value));
+    }
+  };
+
   var _ = function cc_fallbackTranslation(keystring) {
     var r = navigator.mozL10n.get.apply(this, arguments);
     return r || '!!' + keystring;
@@ -19,7 +28,6 @@ var CostControl = (function() {
 
   var _settings = {};
   var _allSettings = [
-    'CREDIT_FORMAT',
     'CREDIT_LOW_LIMIT',
     'CHECK_BALANCE_DESTINATION',
     'CHECK_BALANCE_TEXT',
@@ -39,9 +47,7 @@ var CostControl = (function() {
 
   var _sms = window.navigator.mozSms;
   var _onSMSReceived = null;
-  var _onSuccess = null, _onError = null;
   var _state = STATE_IDLE;
-  var _isManualRequest;
   var _balanceTimeout = 0;
   var _connectedCalls = 0;
 
@@ -122,12 +128,8 @@ var CostControl = (function() {
   }
 
   // Attach event listeners for automatic updates:
-  //  * After showing the utility tray
   //  * Periodically
   function _configureAutomaticUpdates() {
-    // Listen to utilitytray show
-    window.addEventListener('utilitytrayshow', _automaticCheck);
-
     // Periodically update
     var periodicallyUpdateEvent =
       new CustomEvent('costcontrolPeriodicallyUpdate');
@@ -154,7 +156,6 @@ var CostControl = (function() {
   // Handle the events that triggers automatic balance updates
   function _automaticCheck(evt) {
     console.log('Evento escuchado: ' + evt.type);
-    _isManualRequest = false;
 
     // Ignore if the device is in roaming
     if (_inRoaming()) {
@@ -163,15 +164,10 @@ var CostControl = (function() {
     }
 
     switch (evt.type) {
-
       // Periodically updates
       case 'costcontrolPeriodicallyUpdate':
-        _mockup_updateBalance();
-        break;
 
-      // When utility tray shows and it has passed "enough" time since the last
-      // update.
-      case 'utilitytrayshow':
+        // Abort if it have not passed enough time since last update
         var lastUpdated = window.localStorage.getItem('costcontrolTime');
         if (lastUpdated !== null)
           lastUpdated = (new Date(lastUpdated)).getTime();
@@ -237,16 +233,19 @@ var CostControl = (function() {
 
     // Error when parsing and manual. If not manual, fail silently
     if (newBalance === null) {
-      if (_isManualRequest) {
-        navigator.mozNotification.createNotification(
-          _('checking-balance-parsing-error-title'),
-          _('checking-balance-parsing-error-description')
-        ).show();
-      }
+      var errorEvent = new CustomEvent(
+        'costcontrolbalanceupdateerror',
+        { detail: { reason: 'parse-error' } }
+      );
+      window.dispatchEvent(errorEvent);
       return;
     }
 
-    _onSuccess(newBalance);
+    var successEvent = new CustomEvent(
+      'costcontrolbalanceupdatesuccess',
+      { detail: { balance: newBalance } }
+    );
+    window.dispatchEvent(successEvent);
   }
 
   // What happend when the confirmation SMS is received
@@ -263,24 +262,25 @@ var CostControl = (function() {
     // TODO: If no parsing, notificate error and return
 
     // XXX: Remove when removing mock ups
-    var currentBalance = 100;
+    var currentBalance = _fakeCredit.credit;
     var newBalance = currentBalance + parseInt(message.body, 10);
     newBalance = Math.round(newBalance * 100)/100;
 
     // Notificate when parsing confirmation fails
     if (newBalance === null) {
-      navigator.mozNotification.createNotification(
-        _('topup-parsing-error-title'),
-        _('topup-parsing-error-description')
-      ).show();
+      var errorEvent = new CustomEvent(
+        'costcontroltopuperror',
+        { detail: { reason: 'parse-error' } }
+      );
+      window.dispatchEvent(errorEvent);
       return;
     }
 
-    var output = _updateUI(newBalance);
-    navigator.mozNotification.createNotification(
-      _('topup-confirmation-title'),
-      _('topup-confirmation-message', { credit: output.balance })
-    ).show(); 
+    var successEvent = new CustomEvent(
+      'costcontroltopupsuccess',
+      { detail: { newBalance: _fakeCredit.credit += 2.00 } }
+    );
+    window.dispatchEvent(successEvent);
   }
 
   // Start waiting for SMS
@@ -303,7 +303,8 @@ var CostControl = (function() {
   }
 
   function _mockup_updateBalance() {
-    if (state !== STATE_IDLE)
+    // Abort if other operation in progress
+    if (_state !== STATE_IDLE)
       return;
 
     // Send the request SMS
@@ -323,7 +324,13 @@ var CostControl = (function() {
       _startWaiting(STATE_CHECKING, _onBalanceSMSReceived);
     }
 
-    request.onerror = _onError;
+    request.onerror = function cc_onRequestError() {
+      var errorEvent = new CustomEvent(
+        'costcontrolbalanceupdateerror',
+        { detail: { reason: 'sending-error' } }
+      );
+      window.dispatchEvent(errorEvent);
+    };
   }
 
   function _mockup_topUp(code) {
@@ -338,37 +345,37 @@ var CostControl = (function() {
     }
 
     request.onerror = function cc_onErrorSendingTopup() {
-      ModalDialog.alert(_('cannot-topup'));
+      var errorEvent = new CustomEvent(
+        'costcontroltopuperror',
+        { detail: { reason: 'sending-error' } }
+      );
+      window.dispatchEvent(errorEvent);
     }
   }
 
-  // Request a balance update
-  function _requestBalanceUpdate(onsuccess, onerror) {
-    _onSuccess = onsuccess;
-    _onError = onerror;
-
-    if (_state === STATE_IDLE) {
-      _isManualRequest = true;
-      _mockup_updateBalance();
-    }
+  // Register callbacks to invoke while updating balance
+  function _setBalanceCallbacks(callbacks) {
+    var onsuccess = callbacks.onsuccess || null;
+    var onerror = callbacks.onerror || null;
+    window.addEventListener('costcontrolbalanceupdatesuccess', onsuccess);
+    window.addEventListener('costcontrolbalanceupdateerror', onerror);
   }
 
-  // Request a top up
-  function _requestTopUp(code, onsuccess, onerror) {
-    _onSuccess = onsuccess;
-    _onError = onerror;
-
-    if (_state === STATE_IDLE) {
-      _isManualRequest = true;
-      _mockup_topUp(code);
-    }
+  // Register callbacks to invoke while topping up
+  function _setTopUpCallbacks(callbacks) {
+    var onsuccess = callbacks.onsuccess || null;
+    var onerror = callbacks.onerror || null;
+    window.addEventListener('costcontroltopupsuccess', onsuccess);
+    window.addEventListener('costcontroltopuperror', onerror);
   }
 
   return {
     init: _init,
-    requestBalance: _requestBalanceUpdate,
-    requestTopUp: _requestTopUp
+    setBalanceCallbacks: _setBalanceCallbacks,
+    setTopUpCallbacks: _setTopUpCallbacks,
+    requestBalance: _mockup_updateBalance,
+    requestTopUp: _mockup_topUp,
   };
 })();
 
-CostControl.init();
+window[SERVICE_NAME].init();

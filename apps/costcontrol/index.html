@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Cost Control</title>
-    <link rel="stylesheet" type="text/css" href="style/costcontrol.css">
 
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/css/root.css">
@@ -16,20 +15,25 @@
 
     <!-- Shared code -->
     <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <script type="application/javascript" src="shared/js/settings_listener.js"></script>
 
     <!-- Specific code -->
-    <script type="application/javascript" src="js/costcontrol.js"></script>
+    <script type="text/javascript" src="js/service_utils.js"></script>
+    <script type="application/javascript" defer src="js/cost_control.js"></script>
   </head>
 
   <body role="application">
-    <section role="region">
+    <section role="region" id="topup">
     <header>
       <a href="#"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="settings">Settings</h1>
+      <h1 data-l10n-id="top-up">Top Up</h1>
     </header>
-
-
-    <button>Reset Data</button>
+    <p data-l10n-id="enter-top-up-code" >enter the top up code</p>
+    <p data-l10n-id="top-up-code-explanation">typically found in the scratch card or directly in your receipt</p>
+    <p data-l10n-id="wait-for-confirmation">you'll receive a confirmation message</p>
+    <img src="style/images/waiting.gif" alt="waiting"/>
+    <input id="topUpInput" type="number"></input>
+    <button id="topUpButton" data-l10n-id="top-up">Top Up</button>
   </section>
   </body>
 </html>

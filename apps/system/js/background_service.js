@@ -31,8 +31,10 @@ var BackgroundServiceManager = (function bsm() {
 
   /* mozbrowseropenwindow */
   window.addEventListener('mozbrowseropenwindow', function bsm_winopen(evt) {
+    console.log('event listened');
     if (evt.detail.features !== 'background')
       return;
+    console.log('opening');
 
     // stopPropagation means we are not allowing
     // Popup Manager to handle this event

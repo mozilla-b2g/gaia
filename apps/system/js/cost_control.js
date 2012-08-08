@@ -7,9 +7,12 @@
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
   var protocol = document.location.protocol + '//';
+  var url = protocol + 'costcontrol.' + domain;
 
   var widgetFrame = document.getElementById('cost-control-widget');
-  widgetFrame.src = protocol + 'costcontrol.' + domain + '/widget.html';  
+  widgetFrame.setAttribute('mozbrowser', 'mozbrowser');
+  widgetFrame.setAttribute('mozapp', url + '/manifest.webapp');
+  widgetFrame.src = url + '/widget.html';  
 
   function _redirectToWidget(evt) {
     widgetFrame.contentWindow.postMessage({

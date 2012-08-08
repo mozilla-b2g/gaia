@@ -2,7 +2,6 @@
   "name": "Cost Control",
   "description": "Cost Control application to see credit and data usage statistics",
   "launch_path": "/index.html",
-  "background_page": "/background.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -14,6 +13,13 @@
     "mozApps",
     "background"
   ],
+  "activities": {
+    "costcontrol/topup": {
+      "filters": {
+       },
+      "disposition": "window"
+    }
+  },
   "locales": {
     "ar": {
       "name": "Cost Control",
