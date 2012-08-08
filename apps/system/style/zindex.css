@@ -67,11 +67,6 @@ div[data-level="LOCKSCREEN"]{
   z-index: 256;
 }
 
-/* Level 7: */
-#pinkeypadscreen {
-  z-index: 128;
-}
-
 #keyboard-overlay {
   z-index: 65536;
 }
@@ -100,7 +95,6 @@ div[data-level="CARDVIEW"] {
 #windowSprite {
   z-index: 1;
 }
-
 
 #keyboard-frame.visible {
   z-index: 65536;
