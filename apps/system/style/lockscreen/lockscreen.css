@@ -60,6 +60,11 @@
   border: none;
 }
 
+#screen.locked > #homescreen {
+  -moz-transition: visibility 0s linear 0.8s;
+  visibility: hidden;
+}
+
 #lockscreen.uninit > * {
   display: none;
 }
