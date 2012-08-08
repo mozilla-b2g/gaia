@@ -33,13 +33,19 @@
       xhr.send(null);
     },
 
-    db: function() {
+    db: function(name) {
       var db = new Calendar.Db('b2g-test-calendar');
       this._lastDb = db;
       return this._lastDb;
     },
 
     clearStore: function(db, name, done) {
+
+      if (typeof(name) === 'function') {
+        done = name;
+        name = Object.keys(Calendar.Db.prototype.store);
+      }
+
       var trans = db.transaction(name, 'readwrite');
 
       trans.oncomplete = function() {

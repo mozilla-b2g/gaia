@@ -25,12 +25,11 @@ suite('store/account', function() {
   });
 
   teardown(function(done) {
-    testSupport.calendar.clearStore('accounts', done);
-    subject._cached = {};
-  });
-
-  teardown(function(done) {
-    testSupport.calendar.clearStore('calendars', done);
+    testSupport.calendar.clearStore(
+      subject.db,
+      ['accounts', 'calendars'],
+      done
+    );
   });
 
   teardown(function() {

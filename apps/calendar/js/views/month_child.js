@@ -4,18 +4,17 @@
   function Child() {
     Calendar.View.apply(this, arguments);
 
-    this.batch = new Calendar.Batch({
-      handler: this._handleBatch.bind(this),
-      verify: this._verifyBatchItem.bind(this)
-    });
-
-    this._busytimes = Object.create(null);
     this.monthId = Calendar.Calc.getMonthId(this.month);
-
-    this._onBusyAdd = this._onBusyAdd.bind(this);
-    this._onBusyRemove = this._onBusyRemove.bind(this);
-
     this.controller = this.app.timeController;
+
+    var end = new Date(this.month.valueOf());
+    end.setMonth(end.getMonth() + 1);
+    end.setMilliseconds(-1);
+
+    this._timespan = new Calendar.Timespan(
+      this.month,
+      end
+    );
   }
 
   Child.prototype = {
@@ -64,101 +63,25 @@
       return 'month-view-' + this.monthId + '-' + date;
     },
 
-    _busyClass: function(unit) {
-      return 'busy-' + unit;
-    },
-
-    /**
-     * Finds or create the set for a given dateId.
-     *
-     * @param {String} dateId id.
-     * @return {Calender.Set} set object.
-     */
-    _busySet: function(dateId) {
-      if (dateId in this._busytimes) {
-        return this._busytimes[dateId];
-      }
-
-      return this._busytimes[dateId] = new Calendar.Set();
-    },
-
-    /**
-     * Handles incoming batch for adds/removes.
-     */
-    _handleBatch: function(items) {
-      var dateId, actions;
-
-      for (dateId in items) {
-        actions = items[dateId];
-
-        if (actions.add) {
-          this._appendBusyUnits(dateId, actions.add);
-        }
-
-        if (actions.remove) {
-          this._removeBusyUnits(dateId, actions.remove);
-        }
-      }
-    },
-
-    /**
-     * Verifies that an item mutation should be
-     * added to the batch.
-     *
-     * @param {String} group usually a dateId.
-     * @param {String} action usually add/remove.
-     * @param {Object} value some data associated /w the action.
-     */
-    _verifyBatchItem: function(group, action, value) {
-      var set = this._busySet(group);
-
-      switch (action) {
-        case 'add':
-          if (set.has(value)) {
-            return false;
-          }
-          set.add(value);
-          break;
-      }
-
-      return true;
-    },
-
     _initEvents: function() {
       var busy = this.app.store('Busytime');
-
-      //TODO: Its a known issue that changes in days in different
-      //      months for this view will not be changed.
-      busy.on('add ' + this.monthId, this._onBusyAdd);
-      busy.on('remove ' + this.monthId, this._onBusyRemove);
+      busy.observeTime(this._timespan, this);
     },
 
     _destroyEvents: function() {
       var busy = this.app.store('Busytime');
-
-      busy.removeEventListener(
-        'add ' + this.monthId, this._onBusyAdd
-      );
-
-      busy.removeEventListener(
-        'remove ' + this.monthId, this._onBusyRemove
-      );
+      busy.removeTimeObserver(this._timespan, this);
     },
 
-    _onBusyAdd: function(id, date) {
-      this.batch.action(
-        Calendar.Calc.getDayId(date),
-        'add',
-        this._hourToBusyUnit(date.getHours())
-      );
-    },
-
-    _onBusyRemove: function(id, date) {
-      this.batch.action(
-        Calendar.Calc.getDayId(date),
-        'remove',
-        this._hourToBusyUnit(date.getHours())
-      );
+    handleEvent: function(event) {
+      switch (event.type) {
+        case 'add':
+          this._addBusyUnit(event.data);
+          break;
+        case 'remove':
+          this._removeBusyUnits([event.data]);
+          break;
+      }
     },
 
     /**
@@ -173,99 +96,90 @@
     },
 
     /**
-     * Returns a list of busy units based
-     * on an array of hours.
-     *
-     * @param {Array} hours list of hours.
-     * @return {Array} list of busy units.
+     * Renders multiple blocks
      */
-    _getBusyUnits: function _getBusyUnits(hours) {
-      var set = new Calendar.Set(),
-          result = [],
-          i = 0,
-          unit;
+    _renderBlocks: function(list) {
+      var i = 0;
+      var len = list.length;
+      var html = '';
 
-      for (; i < hours.length; i++) {
-        unit = this._hourToBusyUnit(hours[i]);
-        if (!set.has(unit)) {
-          result.push(unit);
-          set.add(unit);
-        }
+      for (; i < len; i++) {
+        html += this._busyBlockFromRecord(list[i]);
       }
 
-      return result;
+      return html;
     },
 
-    _appendBusyUnits: function(dateId, busyUnits) {
-      var id = this._dayId(dateId),
-          element = document.getElementById(id);
+    _busyBlockFromRecord: function(record) {
+      var start = this._hourToBusyUnit(
+        record.startDate.getHours()
+      );
+
+      var end = this._hourToBusyUnit(
+        record.endDate.getHours()
+      );
+
+      return template.busy.render({
+        _id: record._id,
+        calendarId: record.calendarId,
+        start: start,
+        length: ((end - start) || 1)
+      });
+    },
+
+    _addBusyUnit: function(busyUnit) {
+      var id = this._dayId(busyUnit.startDate);
+      var element = document.getElementById(id);
 
       element = element.querySelector('.busy-indicator');
 
       element.insertAdjacentHTML(
         'afterbegin',
-        this._renderBusyUnits(dateId, busyUnits)
+        this._busyBlockFromRecord(busyUnit)
       );
     },
 
     /**
-     * Remove busy units from the dom and registry.
+     * Remove busytimes from the dom.
      *
-     * TODO: Profile/Optimize
-     *
-     * @param {String} dateId string/date for dom id.
+     * @param {Array} busytime ids.
      */
-    _removeBusyUnits: function(dateId, busyUnits) {
-      var id = this._dayId(dateId),
-          element = document.getElementById(id),
-          list, classes = [], i = 0, len, busyEl,
-          set = this._busySet(dateId), unit;
+    _removeBusyUnits: function(ids) {
+      var el = this.element;
+      var i = 0;
+      var len = ids.length;
+      var instance;
+      var id;
 
-      len = busyUnits.length;
-
-      for (i; i < len; i++) {
-        unit = busyUnits[i];
-        classes.push('.' + this._busyClass(unit));
-
-        if (set) {
-          set.delete(unit);
-        }
-      }
-
-      if (element) {
-        list = element.querySelectorAll(classes);
-        len = list.length;
-
-        for (i = 0; i < len; i++) {
-          busyEl = list[i];
-          busyEl.parentNode.removeChild(busyEl);
+      for (; i < len; i++) {
+        id = 'busytime-' + ids[i];
+        instance = document.getElementById(id);
+        if (instance) {
+          instance.parentNode.removeChild(instance);
         }
       }
     },
 
     /**
      * Returns an html blob of busy units.
-     *
-     * @param {String} regId register id
-     *                       if given will register busy units.
-     * @param {Array} units list of units.
+     * Based on a date.
      */
-    _renderBusyUnits: function _renderBusyUnits(regId, units) {
-      var output = '',
-          set;
+    _renderBusyUnits: function _renderBusyUnits(date) {
+      var start = date;
+      var end = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate() + 1
+      );
 
-      if (regId) {
-        set = this._busySet(regId);
-      }
+      end.setMilliseconds(-1);
 
-      units.forEach(function(unit) {
-        output += template.busy.render(this._busyClass(unit));
-        if (set) {
-          set.add(unit);
-        }
-      }, this);
+      var range = new Calendar.Timespan(start, end);
+      var list = this.app.store('Busytime').cachedStartsIn(
+        range
+      );
 
-      return output;
+      return this._renderBlocks(list);
     },
 
     /**
@@ -274,15 +188,12 @@
      * @param {Date} date representing a date.
      */
     _renderDay: function _renderDay(date) {
-      var hours,
-          month = Calendar.Calc.today.getMonth(),
+      var month = Calendar.Calc.today.getMonth(),
           id = Calendar.Calc.getDayId(date),
           state,
           units,
           busytimes = this.app.store('Busytime');
 
-      hours = busytimes.getHours(date);
-      units = this._getBusyUnits(hours);
       state = Calendar.Calc.relativeState(
         date,
         this.controller.currentMonth
@@ -293,7 +204,7 @@
         dateString: id,
         state: state,
         date: date.getDate(),
-        busy: this._renderBusyUnits(id, units)
+        busy: this._renderBusyUnits(date)
       });
     },
 

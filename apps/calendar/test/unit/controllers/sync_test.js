@@ -43,6 +43,10 @@ suite('controllers/sync', function() {
     );
   });
 
+  teardown(function() {
+    event.db.close();
+  });
+
   test('#observe', function(done) {
     var model;
 

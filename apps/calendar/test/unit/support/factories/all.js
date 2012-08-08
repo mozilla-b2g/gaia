@@ -163,6 +163,27 @@
     }
   });
 
+  var busytimeId = 0;
+
+  Factory.define('busytime', {
+    properties: {
+      calendarId: 'calendar-1',
+      eventId: 'event-1'
+    },
+
+    oncreate: function(obj) {
+      if (!obj._id) {
+        obj._id = ++busytimeId;
+      }
+
+      if (obj.startDate && !obj.endDate) {
+        var endDate = new Date(obj.startDate.valueOf());
+        endDate.setHours(obj.startDate.getHours() + 2);
+        obj.endDate = endDate;
+      }
+    }
+  });
+
   Factory.define('event.recurring', {
     extend: 'event',
     properties: {

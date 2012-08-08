@@ -318,7 +318,6 @@ section.month li .busy-indicator:before {
 
 section.month li .busy-indicator > span {
   top: 0px;
-  width: 8.33%;
   background-color: #FCA900;
   position: absolute;
   text-indent: -1000em;
@@ -327,6 +326,19 @@ section.month li .busy-indicator > span {
 /**
 Indicators are in units of 12
 */
+.busy-length-1 { width: 8.33%; }
+.busy-length-2 { width: 16.66%; }
+.busy-length-3 { width: 24.990000000000002%; }
+.busy-length-4 { width: 33.32%; }
+.busy-length-5 { width: 41.65%; }
+.busy-length-6 { width: 49.980000000000004%; }
+.busy-length-7 { width: 58.31%; }
+.busy-length-8 { width: 66.64%; }
+.busy-length-9 { width: 74.97%; }
+.busy-length-10 { width: 83.3%; }
+.busy-length-11 { width: 91.63%; }
+.busy-length-12 { width: 100%; }
+
 /* ltr busy units */
 .ltr .busy-indicator .busy-1 { left: 0%; }
 .ltr .busy-indicator .busy-2 { left: 8.33%; }
