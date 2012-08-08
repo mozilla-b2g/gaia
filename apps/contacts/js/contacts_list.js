@@ -176,11 +176,11 @@ contacts.List = (function() {
     };
   }
 
-  var buildContacts = function buildContacts(contacts,fbContacts) {
+  var buildContacts = function buildContacts(contacts, fbContacts) {
     for (var i = 0; i < contacts.length; i++) {
       var contact = contacts[i];
 
-      if(fbContacts && fb.isFbContact(contact)) {
+      if (fbContacts && fb.isFbContact(contact)) {
         var fbContact = new fb.Contact(contact);
         contact = fbContact.merge(fbContacts[fbContact.uid]);
       }
@@ -235,7 +235,7 @@ contacts.List = (function() {
       } else {
         var fbReq = fb.contacts.getAll();
         fbReq.onsuccess = function() {
-          buildContacts(request.result,fbReq.result);
+          buildContacts(request.result, fbReq.result);
         }
         fbReq.onerror = function() {
            buildContacts(request.result);

@@ -368,7 +368,7 @@ var Contacts = (function() {
   var reloadContactDetails = function reloadContactDetails() {
     var contact = currentContact;
 
-    if(fb.isFbContact(contact)) {
+    if (fb.isFbContact(contact)) {
       var fbContact = new fb.Contact(contact);
       var req = fbContact.getData();
       req.onsuccess = function() { doReloadContactDetails(req.result); }
