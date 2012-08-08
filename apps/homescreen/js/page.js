@@ -290,22 +290,6 @@ Page.prototype = {
     }
   },
 
-  jumpNode: function pg_jumpNode(node, animation, originNode,
-                                 targetNode, upward) {
-    var self = this;
-    node.style.MozAnimationName = animation;
-    node.addEventListener('animationend', function animationEnd(e) {
-      if (node === targetNode) {
-        self.olist.insertBefore(originNode, upward ? targetNode :
-                                                     targetNode.nextSibling);
-        self.setReady(true);
-      }
-
-      node.removeEventListener('animationend', animationEnd);
-      node.style.MozAnimationName = '';
-    });
-  },
-
   /*
    * Changes position between two icons
    *
@@ -325,36 +309,46 @@ Page.prototype = {
     var targetIcon = icons[target];
 
     if (originIcon && targetIcon) {
-      var originNode = originIcon.container;
-      var targetNode = targetIcon.container;
-      var children = this.olist.children;
-      var indexOf = Array.prototype.indexOf;
-      var oIndex = indexOf.call(children, originNode);
-      var tIndex = indexOf.call(children, targetNode);
-
-      this.animate(oIndex, tIndex, children, originNode, targetNode);
+      this.animate(this.olist.children, originIcon.container,
+                   targetIcon.container);
     } else {
       this.setReady(true);
     }
   },
 
-  animate: function pg_anim(oIndex, tIndex, children, originNode, targetNode) {
-    if (oIndex < tIndex) {
-      for (var i = oIndex + 1; i <= tIndex; i++) {
-        var animation = 'jumpPrevCell';
-        if (i % 4 === 0) {
-          animation = 'jumpPrevRow';
-        }
-        this.jumpNode(children[i], animation, originNode, targetNode, false);
-      }
+  animate: function pg_anim(children, originNode, targetNode) {
+    var beforeNode = targetNode;
+    var initialIndex = children.indexOf(originNode);
+    var endIndex = children.indexOf(targetNode);
+    var upward = initialIndex < endIndex;
+    if (upward) {
+      beforeNode = targetNode.nextSibling;
+      initialIndex++;
     } else {
-      for (var i = oIndex - 1; i >= tIndex; i--) {
-        var animation = 'jumpNextCell';
-        if (i % 4 === 3) {
-          animation = 'jumpNextRow';
-        }
-        this.jumpNode(children[i], animation, originNode, targetNode, true);
+      initialIndex = initialIndex + endIndex;
+      endIndex = initialIndex - endIndex;
+      initialIndex = initialIndex - endIndex;
+      endIndex--;
+    }
+
+    var self = this;
+    var lastNode = children[endIndex];
+    this.setAnimation(children, initialIndex, endIndex, upward);
+    lastNode.addEventListener('animationend', function animationEnd(e) {
+      for (var i = initialIndex; i <= endIndex; i++) {
+        children[i].style.MozAnimationName = '';
       }
+      self.olist.insertBefore(originNode, beforeNode);
+      lastNode.removeEventListener('animationend', animationEnd);
+      self.setReady(true);
+    });
+  },
+
+  setAnimation: function pg_setAnimation(children, init, end, upward) {
+    for (var i = init; i <= end; i++) {
+      children[i].style.MozAnimationName = upward ?
+        (i % 4 === 0 ? 'jumpPrevRow' : 'jumpPrevCell') :
+        (i % 4 === 3 ? 'jumpNextRow' : 'jumpNextCell');
     }
   },
 
@@ -527,19 +521,6 @@ extend(Dock, Page);
 
 var dockProto = Dock.prototype;
 
-dockProto.animate = function dk_anim(oIndex, tIndex, children,
-                                          originNode, targetNode) {
-  if (oIndex < tIndex) {
-    for (var i = oIndex + 1; i <= tIndex; i++) {
-      this.jumpNode(children[i], 'jumpPrevCell', originNode, targetNode, false);
-    }
-  } else {
-    for (var i = oIndex - 1; i >= tIndex; i--) {
-      this.jumpNode(children[i], 'jumpNextCell', originNode, targetNode, true);
-    }
-  }
-};
-
 dockProto.baseRender = Page.prototype.render;
 
 dockProto.render = function dk_render(apps, target) {
@@ -551,7 +532,14 @@ dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
   var style = this.movableContainer.style;
   style.MozTransform = 'translateX(' + scrollX + 'px)';
   style.MozTransition = '-moz-transform ' + duration +
-                        's cubic-bezier(.16,1.28,1,.33)';
+                        's cubic-bezier(0.33,0.66,0.66,1)';
+};
+
+dockProto.setAnimation = function dk_setAnimation(children, init, end, upward) {
+  var animation = upward ? 'jumpPrevCell' : 'jumpNextCell';
+  for (var i = init; i <= end; i++) {
+    children[i].style.MozAnimationName = animation;
+  }
 };
 
 dockProto.getLeft = function dk_getLeft() {
@@ -608,3 +596,5 @@ searchProto.moveByWithEffect = function spg_moveByWithEffect(
                                           scrollX, duration) {
   this.baseMoveByWithEffect(this.decorateScrollX(scrollX), duration);
 };
+
+HTMLCollection.prototype.indexOf = Array.prototype.indexOf;
