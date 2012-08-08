@@ -10,10 +10,6 @@ let permissions = {
     "urls": [],
     "pref": "dom.sms.whitelist"
   },
-  "telephony": {
-    "urls": [],
-    "pref": "dom.telephony.app.phone.url"
-  },
   "mozBluetooth": {
     "urls": [],
     "pref": "dom.mozBluetooth.whitelist"
@@ -71,16 +67,6 @@ Gaia.webapps.forEach(function (webapp) {
         continue;
 
       permissions[name].urls.push(rootURL);
-
-      // special case for the telephony API which needs full URLs
-      if (name == 'telephony') {
-        permissions[name].urls.push(rootURL + '/index.html');
-
-        if (manifest.background_page)
-          permissions[name].urls.push(rootURL + manifest.background_page);
-        if (manifest.attention_page)
-          permissions[name].urls.push(rootURL + manifest.attention_page);
-      }
     }
   }
 });
