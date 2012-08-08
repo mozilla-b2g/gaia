@@ -339,6 +339,7 @@ var StatusBar = {
 
       // XXX no way to active state of BlueTooth for now,
       // make it always active
+      // https://github.com/mozilla-b2g/gaia/issues/2664
       icon.dataset.active = 'true';
     },
 
@@ -353,12 +354,15 @@ var StatusBar = {
 
     recording: function sb_updateRecording() {
       // XXX no way to probe active state of microphone and camera
+      // https://github.com/mozilla-b2g/gaia/issues/2336
+
       // this.icon.recording.hidden = ?
       // this.icon.recording.dataset.active = ?;
     },
 
     sms: function sb_updateSms() {
-      // TBD
+      // We are not going to show this for v1
+
       // this.icon.sms.hidden = ?
       // this.icon.sms.dataset.num = ?;
     },
@@ -384,6 +388,8 @@ var StatusBar = {
 
     usb: function sb_updateUsb() {
       // XXX no way to probe active state of USB mess storage right now
+      // https://github.com/mozilla-b2g/gaia/issues/2333
+
       // this.icon.usb.hidden = ?
     }
   },
