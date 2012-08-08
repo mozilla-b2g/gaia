@@ -22,6 +22,7 @@ var Browser = {
   previousScreen: null,
   currentScreen: this.PAGE_SCREEN,
 
+  DEFAULT_SEARCH_PROVIDER: 'm.bing.com',
   DEFAULT_FAVICON: 'style/images/favicon.png',
   START_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/start.html',
@@ -435,7 +436,7 @@ var Browser = {
     var protocol = protocolRegexp.exec(url);
 
     if (isSearch) {
-      return 'http://www.bing.com/search?q=' + url;
+      return 'http://' + this.DEFAULT_SEARCH_PROVIDER + '/search?q=' + url;
     }
     if (!protocol) {
       return 'http://' + url;
