@@ -1234,9 +1234,8 @@ function editPhoto(n) {
       x: 0, y: 0, w: images[n].metadata.width, h: images[n].metadata.height
     },
     gamma: 1,
-    effect: 'none',
     borderWidth: 0,
-    borderColor: '#fff'
+    borderColor: [0, 0, 0, 0]
   };
 
   // Start looking up the image file
@@ -1245,25 +1244,28 @@ function editPhoto(n) {
     // preview image and all the buttons that need it.
     editedPhotoURL = URL.createObjectURL(file);
 
+    // Create the image editor object
+    // This has to come after setView or the canvas size is wrong.
     imageEditor = new ImageEditor(editedPhotoURL,
                                   $('edit-preview-area'),
                                   editSettings);
+
+    // Configure the exposure tool as the first one shown
+    setEditTool('exposure');
+
+    // Set the exposure slider to its default value
+    exposureSlider.setExposure(0);
 
     // Set the background for all of the image buttons
     var backgroundImage = 'url(' + editedPhotoURL + ')';
     editBgImageButtons.forEach(function(b) {
       b.style.backgroundImage = backgroundImage;
     });
-
-    // Display the edit screen
-    setView(editView);
-
-    // Configure the exposure tool as the first one shown
-    setEditTool('exposure');
   });
 
-  // Set the exposure slider to its default value
-  exposureSlider.setExposure(0);
+  // Display the edit screen
+  setView(editView);
+
 
   // Set the default option buttons to correspond to those edits
   editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
@@ -1291,15 +1293,18 @@ function editOptionsHandler() {
   else if (this === $('edit-crop-aspect-square'))
     imageEditor.setCropAspectRatio(1, 1);
   else if (this.dataset.effect) {
-    editSettings.effect = this.dataset.effect;
+    editSettings.matrix = ImageProcessor[this.dataset.effect + '_matrix'];
     imageEditor.edit();
   }
   else {
     if (this.dataset.borderWidth) {
       editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
     }
-    if (this.dataset.borderColor) {
-      editSettings.borderColor = this.dataset.borderColor;
+    if (this.dataset.borderColor === 'white') {
+      editSettings.borderColor = [1, 1, 1, 1];
+    }
+    else if (this.dataset.borderColor === 'black') {
+      editSettings.borderColor = [0, 0, 0, 1];
     }
     imageEditor.edit();
   }
@@ -1454,7 +1459,7 @@ function exitEditMode(saved) {
   editedPhotoURL = null;
 
   // close the editor object
-  imageEditor.close();
+  imageEditor.destroy();
   imageEditor = null;
 
   // We came in to edit mode from photoView.  If the user cancels the edit
