@@ -17,6 +17,7 @@
     <link href="style/contacts.css" rel="stylesheet">
     <link href="style/request.css" rel="stylesheet">
     <link href="style/input_cancel_button.css" rel="stylesheet">
+    <link href="style/fixed_header.css" rel="stylesheet">
 
     <script src="js/activities.js"></script>
 
@@ -34,6 +35,7 @@
     <script defer type="text/javascript" src="js/request.js"></script>
     <script defer type="text/javascript" src="js/sms_integration.js"></script>
     <script defer type="text/javascript" src="js/input_cancel_button.js"></script>
+    <script defer type="text/javascript" src="js/fixed_header.js"></script>
   </head>
 
   <body class="hide app-contacts">
@@ -72,6 +74,7 @@
                 <button id='cancel-search' class="hide" onclick='return contacts.List.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
               </div>
               <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
+              <div id='fixed-container' class='fixed-title'></div>
               <ol class="block-list" id="groups-list">
                 <!-- Group template here -->
               </ol>

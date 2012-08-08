@@ -306,7 +306,7 @@ var Contacts = (function() {
 
   var loadList = function loadList() {
     contactsList.load();
-
+    FixedHeader.init('#groups-container', '#fixed-container', 'h2.block-title:not(.hide)');
     contactsList.handleClick(function handleClick(id) {
       var options = {
         filterBy: ['id'],
