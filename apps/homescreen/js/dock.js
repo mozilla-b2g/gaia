@@ -91,7 +91,7 @@ const DockManager = (function() {
     if (numApps > maxNumAppInViewPort) {
       scrollX = scrollX > 0 ? 0 : windowWidth - numApps * cellWidth;
     } else {
-      scrollX = windowWidth - numApps * cellWidth / 2;
+      scrollX = (windowWidth - numApps * cellWidth) / 2;
     }
 
     dock.moveByWithEffect(scrollX, duration);
@@ -139,7 +139,7 @@ const DockManager = (function() {
     if (numApps > maxNumAppInViewPort) {
       dock.moveByWithEffect(dock.getLeft() + cellWidth, duration);
     } else {
-      dock.moveByWithEffect(windowWidth - numApps * cellWidth / 2, duration);
+      dock.moveByWithEffect((windowWidth - numApps * cellWidth) / 2, duration);
     }
 
     container.addEventListener('transitionend', function transEnd(e) {
@@ -162,7 +162,7 @@ const DockManager = (function() {
         cellWidth = dock.getWidth() / numApps;
         maxNumAppInViewPort = Math.floor(windowWidth / cellWidth);
         if (numApps <= maxNumAppInViewPort) {
-          dock.moveBy(windowWidth - numApps * cellWidth / 2);
+          dock.moveBy((windowWidth - numApps * cellWidth) / 2);
         }
       });
     },
