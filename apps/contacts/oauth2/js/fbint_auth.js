@@ -3,9 +3,6 @@
  *
  *  Product: Open Web Device
  *
- *  Copyright(c) 2012 Telefónica I+D S.A.U.
- *
- *  LICENSE: TBD
  *
  *  @author José M. Cantera (jmcf@tid.es)
  *
