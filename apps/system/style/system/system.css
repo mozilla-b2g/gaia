@@ -56,6 +56,10 @@ body {
   height: -moz-calc(100% - 40px);
 }
 
+#screen.active-application > #homescreen {
+  visibility: hidden;
+}
+
 #windows {
   position: absolute;
   left: 0px;
