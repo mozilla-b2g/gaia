@@ -47,9 +47,13 @@
     evt.preventDefault();
     evt.stopPropagation();
 
-    if (!isScrolling) return;
+    if (!isScrolling) {
+      return;
+    }
 
     var current = evt.target.dataset.letter;
+    overlayContent.textContent = current || null;
+
     if (previous === current) {
       return;
     }
@@ -57,8 +61,6 @@
     var groupContainer = doc.querySelector('#group-' + current);
     if (!groupContainer || groupContainer.clientHeight <= 0)
       return;
-
-    overlayContent.textContent = current;
 
     previous = current;
 

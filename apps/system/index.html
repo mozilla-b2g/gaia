@@ -164,6 +164,16 @@
                   <input id="modal-dialog-prompt-input" />
                 </div>
               </div>
+
+              <div id="modal-dialog-authentication">
+                <div class="modal-dialog-message-container">
+                  <span id="modal-dialog-authentication-message"></span>
+                  <span data-l10n-id="username">Username</span>
+                  <input id="modal-dialog-username-input" />
+                  <span data-l10n-id="password">Password</span>
+                  <input id="modal-dialog-password-input" type="password" />
+                </div>
+              </div>
             </div>
           </div>
           <div id="modal-dialog-buttons">
@@ -276,6 +286,8 @@
       <div id="statusbar">
         <!-- Loading -->
         <div id="statusbar-loading" hidden></div>
+        <!-- Carrier & date label -->
+        <div id="statusbar-label" class="sb-start-upper"></div>
         <!-- Notification -->
         <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
           data-num="" hidden></div>
