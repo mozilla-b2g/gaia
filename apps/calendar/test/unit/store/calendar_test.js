@@ -78,28 +78,6 @@ suite('store/calendar', function() {
     assert.ok(subject._remoteByAccount);
   });
 
-  test('#_assignId', function(done) {
-    var cal = Factory.build('calendar', {
-      accountId: 1,
-      remote: { id: 'uuid' }
-    });
-
-    subject.persist(cal, function(err, id, obj) {
-      done(function() {
-        assert.equal(
-          id,
-          '1-uuid',
-          'should assign id'
-        );
-
-        assert.equal(
-          obj._id,
-          id
-        );
-      });
-    });
-  });
-
   suite('cache handling', function() {
     setup(function() {
       subject._addToCache(model);
@@ -280,7 +258,7 @@ suite('store/calendar', function() {
     setup(function() {
 
       stream = new Calendar.Responder();
-      stream.send = function(cb) {
+      stream.open = function(cb) {
         stream.emit(
           'data',
           events.add[0].remote
@@ -307,15 +285,15 @@ suite('store/calendar', function() {
         account.providerType
       );
 
-      realProviderStream = provider.eventStream;
-      provider.eventStream = function() {
+      realProviderStream = provider.streamEvents;
+      provider.streamEvents = function() {
         providerCall = arguments;
         return stream;
       };
     });
 
     teardown(function() {
-      provider.eventStream = realProviderStream;
+      provider.streamEvents = realProviderStream;
     });
 
     setup(function(done) {
@@ -348,8 +326,8 @@ suite('store/calendar', function() {
       );
 
       assert.deepEqual(
-        providerCall[1]._id,
-        calendar._id
+        providerCall[1].id,
+        calendar.remote.id
       );
 
       assert.equal(firedEvent.remove.length, 1);

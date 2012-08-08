@@ -173,7 +173,7 @@
 
     oncreate: function(obj) {
       if (!obj._id) {
-        obj._id = ++busytimeId;
+        obj._id = obj._eventId + '-' + (++busytimeId);
       }
 
       if (obj.startDate && !obj.endDate) {

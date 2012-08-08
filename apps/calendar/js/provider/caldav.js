@@ -27,7 +27,7 @@ Calendar.ns('Provider').Caldav = (function() {
 
     streamEvents: function(account, calendar) {
       return this.service.stream(
-        account, calendar
+        'caldav', 'streamEvents', account, calendar
       );
     }
   };

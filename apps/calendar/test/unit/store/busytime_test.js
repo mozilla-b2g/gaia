@@ -286,7 +286,6 @@ suite('store/busytime', function() {
       subject.load(function(err, results) {
         done(function() {
           results = Object.keys(results).map(function(key) {
-            delete results[key]._id;
             return results[key];
           });
           assert.deepEqual(results, expected);

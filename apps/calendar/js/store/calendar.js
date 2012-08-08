@@ -19,13 +19,6 @@
       return id;
     },
 
-    _assignId: function(obj) {
-      if (!obj._id) {
-        var id = obj.accountId + '-' + obj.remote.id;
-        obj._id = id;
-      }
-    },
-
     _addToCache: function(object) {
       var remote = object.remote.id;
 
@@ -88,9 +81,9 @@
         account.providerType
       );
 
-      var stream = provider.eventStream(
+      var stream = provider.streamEvents(
         account.toJSON(),
-        calendar.toJSON()
+        calendar.remote
       );
 
       stream.on('data', function(event) {
@@ -118,7 +111,7 @@
         }
       });
 
-      stream.send(commitSync);
+      stream.open(commitSync);
 
 
       // 2. After the entire stream is finished

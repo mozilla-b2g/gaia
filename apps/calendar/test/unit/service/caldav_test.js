@@ -29,12 +29,17 @@ suite('service/caldav', function() {
     return ICAL.parse(fixtures.singleEvent);
   }
 
-  function caldavEventFactory() {
+  function caldavEventFactory(syncToken) {
     var ical = icalFactory();
 
     return {
+      'getetag': {
+        status: '200',
+        value: syncToken
+      },
+
       'calendar-data': {
-        status: 200,
+        status: '200',
         value: ical
       }
     };
@@ -158,6 +163,7 @@ suite('service/caldav', function() {
 
     // look at single_event.ics for
     // the correct values.
+    assert.equal(result.id, 'dn4vrfmfn5p05roahsopg57h48@google.com');
     assert.equal(result.title, 'Summary Name');
     assert.equal(result.description, 'ICAL Description');
     assert.equal(result.location, 'My Loc');
@@ -189,6 +195,7 @@ suite('service/caldav', function() {
 
     assert.equal(start, expectedStart, 'start date');
     assert.equal(end, expectedEnd, 'end date');
+    assert.deepEqual(result.occurs, [result.startDate]);
   });
 
   test('#getAccount', function(done) {
@@ -253,8 +260,8 @@ suite('service/caldav', function() {
       var stream = new Calendar.Responder();
       var events = [];
       var cals = {
-        'one': caldavEventFactory(),
-        'two': caldavEventFactory()
+        'one': caldavEventFactory('one'),
+        'two': caldavEventFactory('two')
       };
 
       stream.on('data', function(data) {
@@ -262,10 +269,15 @@ suite('service/caldav', function() {
       });
 
       function formatCalendar(id) {
-        var data = cals[id]['calendar-data'];
-        return subject._formatEvent(
-          data.value
+        var data = cals[id];
+
+        var result = subject._formatEvent(
+          data['calendar-data'].value
         );
+
+        result.syncToken = data['getetag'].value;
+
+        return result;
       }
 
       // cb fires in next turn of event loop.
@@ -290,8 +302,8 @@ suite('service/caldav', function() {
         });
       });
 
-      query.sax.emit('DAV:/response', caldavEventFactory());
-      query.sax.emit('DAV:/response', caldavEventFactory());
+      query.sax.emit('DAV:/response', 'one/', caldavEventFactory('one'));
+      query.sax.emit('DAV:/response', 'two/', caldavEventFactory('two'));
     });
 
   });

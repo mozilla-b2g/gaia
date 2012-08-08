@@ -25,7 +25,8 @@ Calendar.ns('Service').Caldav = (function() {
         'getAccount',
         'findCalendars',
         'getCalendar',
-        'getEvents'
+        'getEvents',
+        'streamEvents'
       ];
 
       events.forEach(function(e) {
@@ -64,6 +65,8 @@ Calendar.ns('Service').Caldav = (function() {
       var Resource = Caldav.Resources.Calendar;
       var remoteCal = new Resource(connection, cal);
       var query = remoteCal.createQuery();
+
+      query.prop('getetag');
 
       // include only the VEVENT
       query.filters.add('VEVENT', true);
@@ -139,6 +142,10 @@ Calendar.ns('Service').Caldav = (function() {
 
       // simple strings...
 
+      result.id = this._remoteString(
+        vevent, 'UID'
+      );
+
       result.title = this._remoteString(
         vevent, 'SUMMARY'
       );
@@ -158,6 +165,13 @@ Calendar.ns('Service').Caldav = (function() {
       result.endDate = this._remoteDate(
         vevent, 'DTEND'
       );
+
+      //XXX: quick hack for now
+      //we need to expand recurring in
+      //the future.
+      result.occurs = [
+        result.startDate
+      ];
 
       result._rawData = rawData;
 
@@ -208,22 +222,25 @@ Calendar.ns('Service').Caldav = (function() {
 
       var request = this._requestEvents(connection, calendar);
 
-      function emitData(data) {
+      function emitData(url, data) {
         var event = data['calendar-data'];
+        var token = data['getetag'];
+
         //XXX: Handle events
-        if (event.status === 200) {
+        if (event.status == 200) {
           data = self._formatEvent(event.value);
+          if (token.status == 200) {
+            data.syncToken = token.value;
+          }
           stream.emit('data', data);
         }
       }
-
       request.sax.on('DAV:/response', emitData);
 
       request.send(function(err) {
         request.sax.removeEventListener(
           'DAV:/response', emitData
         );
-
         callback(err);
       });
     }

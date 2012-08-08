@@ -192,7 +192,9 @@
       );
 
       // calendars -> has many events
-      db.createObjectStore(store.calendars, { keyPath: '_id' });
+      db.createObjectStore(
+        store.calendars, { keyPath: '_id', autoIncrement: true }
+      );
     },
 
     get version() {

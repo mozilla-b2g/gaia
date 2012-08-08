@@ -99,7 +99,7 @@
               // create a new calendar
               persist.push(
                 store._createModel({
-                  remote: cal,
+                  remote: new Object(cal),
                   accountId: account._id
                 })
               );

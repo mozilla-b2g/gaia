@@ -99,7 +99,7 @@ Calendar.ns('Store').Busytime = (function() {
       20122: [result]
     }
     */
-   this._setupCache();
+    this._setupCache();
   }
 
   Busytime.prototype = {
@@ -314,13 +314,25 @@ Calendar.ns('Store').Busytime = (function() {
      * @param {Object} event associated event.
      */
     _eventToRecord: function(time, event) {
-      return {
+      var result = {
         startDate: time,
         //XXX Quick hack - we need to do a recurring lookup
         endDate: event.remote.endDate,
         eventId: event._id,
         calendarId: event.calendarId
       };
+
+      // Knowing the ID ahead of time
+      // lets us flush it to the UI before
+      // it actually hits the database ( then later
+      // if its removed we can find it by id )
+      // That said I don't like this method of
+      // assigning the id. Maybe use UUID?
+      result._id = result.startDate.valueOf() + '-' +
+                   result.endDate.valueOf() + '-' +
+                   result.eventId;
+
+      return result;
     },
 
     _onLoadCache: function(object) {

@@ -1,7 +1,8 @@
 (function(window) {
 
   var Month = Calendar.Template.create({
-    busy: '<span id="busytime-{_id}" class="' +
+    busy: '<span class="' +
+              'busytime-{_id} ' +
               'busy-length-{length} ' +
               'busy-{start} ' +
               'calendar-id-{calendarId}' +
