@@ -9,6 +9,7 @@
   "permissions": [
     "mozbrowser",
     "systemXHR",
+    "geolocation",
     "settings"
   ],
   "locales": {
