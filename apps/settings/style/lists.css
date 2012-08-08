@@ -1,9 +1,9 @@
 /**
  * Setting panels
- * = full-size blocks, identified by a 'region' role
+ * = full-size blocks, identified by a 'document' role
  */
 
-[role=region] {
+[role=document] {
   position: absolute;
   top: 0;
   left: 0;
@@ -11,43 +11,43 @@
   width: 100%;
   height: 100%;
   overflow-y: scroll;
+  background: url(images/document-bg.png);
 }
 
 /* list separators */
-[role=region] > h2 {
+[role=document] > h2 {
   margin: 0;
   padding: 0 0 0 30px;
-  height: 40px;
-  line-height: 40px;
+  height: 34px;
+  line-height: 34px;
   font-size: 0.85em;
   color: white;
-  background-color: #666;
-  border-bottom: 1px inset #bbf;
+  background: url(images/title-bg.png) repeat-x;
 }
 
-[role=region] {
-  -moz-transition: -moz-transform 0.5s ease;
-  -moz-transform: translateX(100%);
+[role=document] {
+  transition: transform 0.5s ease;
+  transform: translateX(100%);
 }
 
 #root {
-  -moz-transform: translateX(-100%);
+  transform: translateX(-100%);
 }
 
-#root:target, [role=region]:target {
-  -moz-transition: -moz-transform 0.5s ease;
-  -moz-transform: none;
+#root:target, [role=document]:target {
+  transition: transform 0.5s ease;
+  transform: none;
 }
 
 body.hidden #root {
-  -moz-transform: none;
-  -moz-transition: none;
+  transform: none;
+  transition: none;
 }
 
 
 /******************************************************************************
  * Table View
- * line height = 64px, border included
+ * line height = 60px, border included
  */
 
 ul {
@@ -59,11 +59,10 @@ ul {
 
 ul li {
   position: relative;
-  border-bottom: 1px solid #c3c9cb;
-  background-color: #f5f5f5;
+  border-bottom: 1px solid #e6e6e3;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 64px;
+  height: 60px;
 }
 
 ul li.active,
@@ -78,8 +77,8 @@ ul li > a {
   outline: 0;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 64px;
-  line-height: 64px;
+  height: 60px;
+  line-height: 60px;
   padding: 0 30px;
 }
 
@@ -121,7 +120,7 @@ ul li button {
  * fake input boxes for checkboxes & radio buttons
  */
 
-[role=region] label {
+[role=document] label {
   position: absolute;
   top: 0;
   left: 0;
@@ -129,31 +128,28 @@ ul li button {
   height: 100%;
 }
 
-[role=region] label > input {
+[role=document] label > input {
   display: none;
 }
 
-[role=region] label > span {
+[role=document] label > span {
   position: absolute;
-  top: -moz-calc(50% - 22px);
-  top: calc(50% - 22px);
-  right: 15px;
-  -moz-box-sizing: border-box;
+  top: 10px;
+  right: 10px;
   display: block;
-  width: 42px;
-  height: 42px;
-  border: none;
+  width: 40px;
+  height: 40px;
 }
 
-[role=region] label > input[type=radio] + span {
-  background: url(images/radio-off.png) no-repeat scroll center center;
+[role=document] label > input[type=radio] + span {
+  background: url(images/radio_off.png) no-repeat scroll center center;
 }
 
-[role=region] label > input[type=radio]:checked + span {
-  background: url(images/radio-on.png) no-repeat scroll center center;
+[role=document] label > input[type=radio]:checked + span {
+  background: url(images/radio_on.png) no-repeat scroll center center;
 }
 
-[role=region] label > input[type=checkbox] + span {
+[role=document] label > input[type=checkbox] + span {
   border: 2px solid;
   border-radius: 5px;
   -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
@@ -163,7 +159,7 @@ ul li button {
   background-color: #eaeae4;
 }
 
-[role=region] label > input[type=checkbox]:checked + span {
+[role=document] label > input[type=checkbox]:checked + span {
   background: url(images/checked.png) no-repeat scroll center center;
 }
 
@@ -172,7 +168,7 @@ ul li button {
  * brightness level
  */
 
-[role=region] label > progress {
+[role=document] label > progress {
   float: right;
   width: 150px;
   margin: 22px 20px 0 0;
@@ -189,12 +185,53 @@ ul li button {
   max-width: calc(60% - 50px);
 }
 
-[role=region] progress {
+[role=document] progress {
   width: 40%;
   height: 40%;
   position: absolute;
   right: 20px;
   top: 30%;
+}
+
+
+/******************************************************************************
+ * Settings icons
+ */
+
+#root li [data-l10n-id] {
+  background-repeat: no-repeat;
+  background-position: 14px center;
+}
+
+#root li [data-l10n-id="airplaneMode"]      { background-image: url(images/settings_airplanemode.png); }
+#root li [data-l10n-id="wifi"]              { background-image: url(images/settings_wifi.png); }
+#root li [data-l10n-id="cellularAndData"]   { background-image: url(images/settings_network.png); }
+#root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings_bluetooth.png); }
+#root li [data-l10n-id="sound"]             { background-image: url(images/settings_sound.png); }
+#root li [data-l10n-id="brightness"]        { background-image: url(images/settings_brightness.png); }
+#root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings_wallpaper.png); }
+#root li [data-l10n-id="timeAndDate"]       { background-image: url(images/settings_datetime.png); }
+#root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings_languages.png); }
+#root li [data-l10n-id="keyboard"]          { background-image: url(images/settings_keyboard.png); }
+#root li [data-l10n-id="accessibility"]     { background-image: url(images/settings_accessibility.png); }
+#root li [data-l10n-id="persona"]           { background-image: url(images/settings_persona.png); }
+#root li [data-l10n-id="mail"]              { background-image: url(images/settings_email.png); }
+#root li [data-l10n-id="phoneLock"]         { background-image: url(images/settings_phonelock.png); }
+#root li [data-l10n-id="simCardLock"]       { background-image: url(images/settings_simcardlock.png); }
+#root li [data-l10n-id="appPermissions"]    { background-image: url(images/settings_apppermissions.png); }
+#root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings_donottrack.png); }
+#root li [data-l10n-id="aboutPhone"]        { background-image: url(images/settings_help.png); }
+#root li [data-l10n-id="helpAndFeedback"]   { background-image: url(images/settings_help.png); }
+#root li [data-l10n-id="storage"]           { background-image: url(images/settings_storage.png); }
+#root li [data-l10n-id="battery"]           { background-image: url(images/settings_battery.png); }
+#root li [data-l10n-id="gps"]               { background-image: url(images/settings_gps); }
+
+#root li a {
+  padding-left: 55px;
+}
+
+#root li small {
+  left: 55px;
 }
 
 
@@ -212,19 +249,19 @@ ul li button {
 }
 
 /* signal levels */
-#wifi-networks .wifi-signal0 { background-image: url(images/wifi-0.png); }
-#wifi-networks .wifi-signal1 { background-image: url(images/wifi-1.png); }
-#wifi-networks .wifi-signal2 { background-image: url(images/wifi-2.png); }
-#wifi-networks .wifi-signal3 { background-image: url(images/wifi-3.png); }
-#wifi-networks .wifi-signal4 { background-image: url(images/wifi-4.png); }
+#wifi-networks .wifi-signal0 { background-image: url(images/wifi_signal_0.png); }
+#wifi-networks .wifi-signal1 { background-image: url(images/wifi_signal_1.png); }
+#wifi-networks .wifi-signal2 { background-image: url(images/wifi_signal_2.png); }
+#wifi-networks .wifi-signal3 { background-image: url(images/wifi_signal_3.png); }
+#wifi-networks .wifi-signal4 { background-image: url(images/wifi_signal_4.png); }
 
 /* secured networks */
 #wifi-networks .wifi-secure {
-  background-image: url(images/wifi-lock.png);
+  background-image: url(images/wifi_lock.png);
 }
 
 /* searching... */
 #wifi-networks .wifi-search {
-  background-image: url(images/wifi-scan.png);
+  background-image: url(images/wifi_scan.png);
 }
 

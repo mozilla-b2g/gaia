@@ -21,21 +21,19 @@ body.hidden * {
  */
 
 header {
-  height: 63px;
-  border-bottom: 1px solid #111;
+  height: 50px;
 }
 
 header h1, header h2 {
   margin: 0;
   padding: 0;
-  height: 62px;
-  line-height: 62px;
+  height: 50px;
+  line-height: 50px;
   text-align: center;
   font-weight: bold;
   font-size: 1em;
   color: white;
-  background-color: #333;
-  border-bottom: 1px solid #222;
+  background: url(images/header-bg.png) repeat-x;
 }
 
 header h1 a {
@@ -64,15 +62,15 @@ header h1 a:active {
 }
 
 [dir=rtl] [role=region] {
-  -moz-transform: translateX(-100%);
+  transform: translateX(-100%);
 }
 [dir=rtl] #root {
-  -moz-transform: translateX(+100%);
+  transform: translateX(+100%);
 }
 
 [dir=rtl] #root:target,
 [dir=rtl] [role=region]:target {
-  -moz-transform: none;
+  transform: none;
 }
 
 [dir=rtl] ul li > span,
