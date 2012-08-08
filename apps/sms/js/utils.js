@@ -8,25 +8,30 @@ var _ = navigator.mozL10n.get;
 
 var Utils = {
   updateHeaders: function ut_updateHeaders() {
+    var elementsToUpdate =
+        document.querySelectorAll('h2[data-time-update]');
+    if (elementsToUpdate.length > 0) {
+      for (var i = 0; i < elementsToUpdate.length; i++) {
+        var ts = elementsToUpdate[i].getAttribute('data-time');
+        var tmpHeaderDate = Utils.getHeaderDate(ts);
+        var currentHeader = elementsToUpdate[i].innerHTML;
+        if (tmpHeaderDate != currentHeader) {
+          elementsToUpdate[i].innerHTML = tmpHeaderDate;
+        }
+        console.log('Updating headers');
+      }
+    } else {
+      clearInterval(Utils.updateTimer);
+      Utils.updating = false;
+    }
+  },
+  updateHeaderScheduler: function ut_updateHeaderScheduler() {
     if (!Utils.updating) {
       Utils.updating = true;
+      Utils.updateHeaders();
       Utils.updateTimer = setInterval(function() {
-        var elementsToUpdate =
-        document.querySelectorAll('h2[data-time-update]');
-        if (elementsToUpdate.length > 0) {
-          for (var i = 0; i < elementsToUpdate.length; i++) {
-            var ts = elementsToUpdate[i].getAttribute('data-time');
-            var tmpHeaderDate = Utils.getHeaderDate(ts);
-            var currentHeader = elementsToUpdate[i].innerHTML;
-            if (tmpHeaderDate != currentHeader) {
-              elementsToUpdate[i].innerHTML = tmpHeaderDate;
-            }
-          }
-        } else {
-          clearInterval(Utils.updateTimer);
-          Utils.updating = false;
-        }
-      },60000);
+        Utils.updateHeaders();
+      },5000);
     }
   },
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
@@ -93,22 +98,3 @@ var Utils = {
     return this.rootFontSize;
   }
 };
-
-// (function() {
-//   var updateHeadersDate = function updateHeadersDate() {
-//     var labels = document.querySelectorAll('div.groupHeader');
-//     var i = labels.length;
-//     while (i--) {
-//       labels[i].textContent = giveHeaderDate(labels[i].dataset.time);
-//     }
-//   };
-//   var timer = setInterval(updateHeadersDate, 60 * 1000);
-
-//   document.addEventListener('mozvisibilitychange', function visibility(e) {
-//     clearTimeout(timer);
-//     if (!document.mozHidden) {
-//       updateHeadersDate();
-//       timer = setInterval(updateHeadersDate, 60 * 1000);
-//     }
-//   });
-// })();

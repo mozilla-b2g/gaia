@@ -1,0 +1,33 @@
+{
+  "data": [
+    {
+      "name": ["DJ Trasto"],
+      "givenName": ["DJ"],
+      "familyName": ["Trasto"],
+      "category": ["twitter"],
+      "bday": "1979-11-02"
+    },
+    {
+      "name": ["Armin van Beer"],
+      "givenName": ["Armin"],
+      "familyName": ["van Beer"],
+      "category": ["facebook","twitter"],
+      "org": ["State of Web"],
+      "bday": "1974-03-15"
+    },
+    {
+      "name": ["Spaniard Web Mafia"],
+      "givenName": ["Spaniard"],
+      "familyName": ["Web Mafia"],
+      "category": ["twitter"],
+      "org": ["Libraries.JS"]
+    },
+    {
+      "name": ["David Siestta"],
+      "givenName": ["David"],
+      "familyName": ["Siestta"],
+      "category": ["facebook"],
+      "bday": "1980-04-20"
+    }
+  ]
+}

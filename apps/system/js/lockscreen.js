@@ -90,7 +90,7 @@ var LockScreen = {
     this.areaCamera.addEventListener('mousedown', this);
     this.areaUnlock.addEventListener('mousedown', this);
 
-    /* Unlock clean up */
+    /* Unlock & camera panel clean up */
     this.overlay.addEventListener('transitionend', this);
 
     /* Passcode input pad*/
@@ -262,10 +262,13 @@ var LockScreen = {
         if (evt.target !== this.overlay)
           return;
 
-        if (!this.locked) {
-          this.switchPanel();
-          this.overlay.hidden = true;
+        if (this.overlay.dataset.panel !== 'camera' &&
+            this.camera.firstElementChild) {
+          this.camera.removeChild(this.camera.firstElementChild);
         }
+
+        if (!this.locked)
+          this.switchPanel();
         break;
 
       case 'home':
@@ -474,7 +477,6 @@ var LockScreen = {
     if (instant) {
       this.overlay.classList.add('no-transition');
       this.switchPanel();
-      this.overlay.hidden = true;
     } else {
       this.overlay.classList.remove('no-transition');
     }
@@ -493,7 +495,6 @@ var LockScreen = {
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
-    this.overlay.hidden = false;
 
     this.switchPanel();
 
@@ -532,12 +533,12 @@ var LockScreen = {
         var mainScreen = this.mainScreen;
         frame.onload = function cameraLoaded() {
           mainScreen.classList.add('lockscreen-camera');
-          callback();
         };
         this.overlay.classList.remove('no-transition');
-        this.camera.hidden = false;
         this.camera.appendChild(frame);
 
+        if (callback)
+          callback();
         break;
     }
   },
@@ -555,17 +556,7 @@ var LockScreen = {
         break;
 
       case 'camera':
-        var self = this;
-        this.overlay.addEventListener('transitionend',
-          function ls_unloadCamera() {
-            self.overlay.removeEventListener('transitionend',
-                                             ls_unloadCamera);
-
-            // Remove the iframe element
-            self.mainScreen.classList.remove('lockscreen-camera');
-            self.camera.hidden = true;
-            self.camera.removeChild(this.camera.firstElementChild);
-          });
+        this.mainScreen.classList.remove('lockscreen-camera');
         break;
 
       case 'emergency':
@@ -592,7 +583,10 @@ var LockScreen = {
         }
 
         this.overlay.addEventListener('transitionend',
-          function ls_unloadDefaultPanel() {
+          function ls_unloadDefaultPanel(evt) {
+            if (evt.target !== this)
+              return;
+
             self.overlay.removeEventListener('transitionend',
                                              ls_unloadDefaultPanel);
             unload();

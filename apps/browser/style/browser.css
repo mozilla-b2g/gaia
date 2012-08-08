@@ -365,15 +365,28 @@ input::-moz-focus-inner {
   z-index: 100;
 }
 
-#awesomescreen {
+#awesomescreen, #crashscreen {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 60;
   background-color: #fff;
   display: none;
+}
+
+#awesomescreen {
+  z-index: 60;
+}
+
+#crashscreen {
+  z-index: 59;
+  text-align: center;
+}
+
+#sad-face {
+  font-size: 72px;
+  line-height: 150px;
 }
 
 nav[data-role="tabs"] {
