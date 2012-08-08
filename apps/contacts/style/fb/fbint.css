@@ -1,0 +1,208 @@
+*[data-template] {
+    display: none !important;
+}
+
+html, body {
+   overflow:hidden;
+}
+
+#curtain {
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:none;
+}
+
+#curtain > div {
+  position: absolute;
+  top: 50%;
+  height: 32px;
+  margin-top: -16px;
+  left: 50%;
+  margin-left: -16px;
+}
+
+#curtain > p.message {
+  width: 90%;
+  font-size: 2.2rem;
+  margin: 2.5rem auto 1.5rem;
+}
+
+p#mfriends {
+  font-size: 1.5rem;
+  margin-left: 3rem;
+  height: 2rem !important;
+}
+
+#curtain > p.submessage {
+  width: 90%;
+  font-size: 1.5rem;
+  margin: 0 auto;
+  font-weight: bold;
+}
+
+#curtain > hr {
+  width: 90%;
+  margin: 1rem auto;
+}
+
+#curtain > div > img {
+  margin-top: 1rem;
+}
+
+
+
+body[data-state='waiting'] #curtain {
+  display:block;
+}
+
+body[data-state='waiting'] #content {
+  display:none;
+}
+
+
+h2.block-title {
+  border-bottom: 1px solid #4D77CF; color: #4D77CF;
+  margin:0;
+}
+
+#main {
+  height: -moz-calc(100% - 5.3rem);
+}
+
+#mainContent {
+  width: -moz-calc(100% + 0.8rem);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  -moz-box-sizing: border-box;
+
+  background: #f4f4f4;
+  color: #333;
+  text-align: left;
+
+  height:-moz-calc(100% - 8.5rem);
+}
+
+#groups-list {
+  width: -moz-calc(100% - 5rem) !important;
+  padding: 0 2.5rem;
+}
+
+#shortcuts {
+  position: fixed;
+  right: 0;
+  top:5rem;
+  bottom: 1rem;
+  height:-moz-calc(100% - 6.6rem - 6.5rem);
+  width: 4.5rem;
+
+  background:transparent !important;
+
+   z-index:100;
+}
+
+
+#shortcuts ol li[data-letter] {
+  display:block;
+}
+
+#shortcuts ol {
+  height: 100%;
+  padding: 0.3rem 0;
+  padding-left:1rem;
+  opacity: 0.6;
+  width:100%;
+}
+
+#shortcuts li {
+  font-size: 1.0rem;
+  line-height: 1.4em;
+  text-align: center;
+  text-transform: uppercase;
+
+   width:100%;
+}
+
+#shortcuts  a, #shortcuts  abbr {
+  display: block;
+  color: #333;
+  width: 100%;
+}
+
+
+abbr, acronym {
+  cursor: default;
+  border: none;
+}
+
+
+#shortcuts #current {
+  position: fixed;
+  right: 4rem;
+  top: 30%;
+  width: 10.5rem;
+  height: 10.5rem;
+
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.7);
+  font: 6rem/10.5rem System Sans Light, Sans-serif;
+  color: #fff;
+  text-align: center;
+  -moz-transition: opacity;
+  opacity: 0;
+
+  display: block;
+  text-indent: 1.5rem;
+
+  z-index:20;
+}
+
+#shortcuts li * {
+  pointer-events: none;
+}
+
+#mainContent li[data-uuid] *:not(input) {
+  pointer-events:none;
+}
+
+menu.bottom {
+    margin: 0;
+    padding: 1.5rem;
+    display: block;
+    overflow: hidden;
+    background: rgba(0,0,0,0.83);
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+
+menu.bottom > button {
+	background: url(images/ui/button_standard.png) repeat-x;
+	height: 4rem;
+	line-height: 4rem;
+	border: 0;
+	border-radius: 0.3rem;
+	width: 100%;
+	text-align: center;
+	color: #333;
+	font-size: -moz-calc(7 * 0.226rem);
+	font-family: 'System Sans Semibold';
+	text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+	text-decoration: none;
+	float: left;
+	margin-left: 1rem;
+	font-weight: normal;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+div#options {
+  height: 6.5rem;
+}

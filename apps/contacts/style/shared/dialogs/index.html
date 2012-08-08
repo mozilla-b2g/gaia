@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <!--
+      This <style> is only used for the demostration of the toolbars, is no needed for the real case use
+    -->
+    <style type="text/css">
+      body[role="application"] > h2 {
+        font-family: 'System Sans Semibold';
+        font-size: 1.6rem;
+        margin: 3rem 1.5rem 1.5rem 1.5rem;
+      }
+      body[role="application"] > h2:first-child {
+        margin: 1.5rem;
+      }
+      body[role="application"] [role="dialog"] {
+        height: 48rem;
+        overflow: hidden;
+        position: relative;
+      }
+    </style>
+
+    <!--
+      This <style> assumes
+      that you have loaded the fonts and some basic styles,
+      thus it is only aimed at making the examples work
+    -->
+    <style type="text/css">
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-size: 10px;
+        background-color: #fff;
+      }
+      @font-face {
+        font-family: 'System Sans';
+        font-style: normal;
+        font-weight: normal;
+        src: local('Open Sans'), local('OpenSans'), url('style/fonts/opensans-regular-webfont.woff') format('woff');
+      }
+
+      @font-face {
+        font-family: 'System Sans Light';
+        font-style: normal;
+        font-weight: normal;
+        src: local('Open Sans Light'), local('OpenSans-light'), url('style/fonts/opensans-light-webfont.woff') format('woff');
+      }
+
+      @font-face {
+        font-family: 'System Sans Semibold';
+        font-style: normal;
+        font-weight: normal;
+        src: local('Open Sans Semibold'), local('OpenSans-semibold'), url('style/fonts/opensans-semibold-webfont.woff') format('woff');
+      }
+
+      @font-face {
+        font-family: 'System Sans Bold';
+        font-style: normal;
+        font-weight: normal;
+        src: local('Open Sans Bold'), local('OpenSans-bold'), url('style/fonts/opensans-bold-webfont.woff') format('woff');
+      }
+    </style>
+  <title>Dialogs</title>
+</head>
+
+<body role="application">
+
+  <h2>1. Single Select Dialog</h2>
+  <div role="dialog">
+    <div class="center">
+      <h3>Choose social network</h3>
+      <ul>
+        <li><a href="#">Facebook</a></li>
+        <li><a href="#">Twitter</a></li>
+      </ul>
+    </div>
+
+    <menu>
+      <button>Cancel</button>
+    </menu>
+  </div>
+
+  <h2>2. Multiple Select Dialog</h2>
+  <div role="dialog">
+    <div class="center">
+      <h3>Choose your option(s)</h3>
+      <ul>
+        <li role="checkbox" aria-checked="false">Oprion 1</li>
+        <li role="checkbox" aria-checked="true">Oprion 2</li>
+        <li role="checkbox" aria-checked="true">Oprion 3</li>
+        <li role="checkbox" aria-checked="false">Oprion 4</li>
+        <li role="checkbox" aria-checked="true">Oprion 5</li>
+        <li role="checkbox" aria-checked="true">Oprion 6</li>
+        <li role="checkbox" aria-checked="false">Oprion 7</li>
+        <li role="checkbox" aria-checked="true">Oprion 8</li>
+        <li role="checkbox" aria-checked="true">Oprion 9</li>
+      </ul>
+    </div>
+
+    <menu data-items="2">
+      <button>Cancel</button>
+      <button class="affirmative">Action</button>
+    </menu>
+  </div>
+
+  <h2>3. Confirmation Dialog</h2>
+  <div role="dialog">
+    <div class="center">
+      <h3>Confirmation</h3>
+      <p>Are you sure you want to delete this contact?</p>
+    </div>
+
+    <menu data-items="2">
+      <button>Cancel</button>
+      <button class="negative">Delete</button>
+    </menu>
+  </div>
+
+  <h2>4. Confirmation w/o Title</h2>
+  <div role="dialog">
+    <div class="center">
+      <h3></h3>
+      <p>Are you sure you want to delete this contact?</p>
+    </div>
+
+    <menu data-items="2">
+      <button>Cancel</button>
+      <button class="negative">Delete</button>
+    </menu>
+  </div>
+
+  <h2>5. Dialog with Content</h2>
+  <div role="dialog">
+    <div class="center">
+      <h3>Confirmation</h3>
+      <div class="content">
+        <img src="images/demo_icon.png">
+        <strong>Lightbox</strong>
+        <small>Lightbox Enterprises LLC.</small>
+      </div>
+      <p>Do you want to download and install this application?</p>
+    </div>
+
+    <menu data-items="2">
+      <button>Cancel</button>
+      <button class="affirmative">Yes</button>
+    </menu>
+  </div>
+
+</body>
+</html>
