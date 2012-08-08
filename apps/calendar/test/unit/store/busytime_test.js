@@ -66,6 +66,7 @@ suite('store/busytime', function() {
     });
 
   });
+
   var subject;
   var db;
   var id = 0;
@@ -122,17 +123,14 @@ suite('store/busytime', function() {
   });
 
   teardown(function(done) {
-    var trans = db.transaction('busytimes', 'readwrite');
-    var accounts = trans.objectStore('busytimes');
-    var res = accounts.clear();
+    testSupport.calendar.clearStore(
+      subject.db,
+      done
+    );
+  });
 
-    res.onerror = function() {
-      done(new Error('could not wipe busytimes db'));
-    }
-
-    res.onsuccess = function() {
-      done();
-    }
+  teardown(function() {
+    subject.db.close();
   });
 
   suite('#observeTime', function() {
@@ -325,14 +323,12 @@ suite('store/busytime', function() {
     test('removal', function(done) {
       // quick sanity check to make sure
       // we removed in memory stuff
-      console.log(subject._times.length);
       assert.equal(subject._times.length, 1);
       assert.equal(subject._times[0], time(keepModel));
 
       subject._cached = Object.create(null);
       subject.load(function(err, results) {
         done(function() {
-          //console.log(results);
           var keys = Object.keys(results);
           assert.equal(keys.length, 1);
           var result = results[keys[0]];
@@ -642,6 +638,33 @@ suite('store/busytime', function() {
       result.calendarId,
       item.calendarId
     );
+  });
+
+  suite('#load', function() {
+    function add(date) {
+      setup(function(done) {
+        var item = Factory('event', {
+          remote: { startDate: date }
+        });
+
+        var store = subject.db.getStore('Event');
+        store.persist(item, done);
+      });
+    }
+
+    add(new Date(2012, 1, 1));
+    add(new Date(2012, 1, 5));
+    add(new Date(2012, 1, 10));
+
+    setup(function(done) {
+      subject._setupCache();
+      subject.load(done);
+    });
+
+    test('load cache', function() {
+      assert.equal(subject._times.length, 3);
+    });
+
   });
 
 });

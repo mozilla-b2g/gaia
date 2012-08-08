@@ -99,17 +99,21 @@ Calendar.ns('Store').Busytime = (function() {
       20122: [result]
     }
     */
-
-    this._eventTimes = Object.create(null);
-    this._timeRecords = Object.create(null);
-    this._timeObservers = [];
-    this._times = [];
+   this._setupCache();
   }
 
   Busytime.prototype = {
     __proto__: Calendar.Store.Abstract.prototype,
 
     _store: 'busytimes',
+
+    _setupCache: function() {
+      this._eventTimes = Object.create(null);
+      this._timeRecords = Object.create(null);
+      this._cached = Object.create(null);
+      this._timeObservers = [];
+      this._times = [];
+    },
 
     _compareTimeIndex: function(value, target) {
       if (value < target) {
@@ -319,7 +323,19 @@ Calendar.ns('Store').Busytime = (function() {
       };
     },
 
+    _onLoadCache: function(object) {
+      this._addToCache(object);
+      this._addTime(
+        object.startDate.valueOf(),
+        object
+      );
+    },
+
     _addTime: function(time, record) {
+      if (!(record.eventId in this._eventTimes)) {
+        this._eventTimes[record.eventId] = [];
+      }
+
       this._eventTimes[record.eventId].push(time);
 
       if (!(time in this._timeRecords)) {

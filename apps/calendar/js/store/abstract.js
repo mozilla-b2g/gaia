@@ -133,6 +133,14 @@
       var self = this;
       var trans = this.db.transaction(this._store);
       var store = trans.objectStore(this._store);
+      var loadFn;
+
+      if (this._onLoadCache) {
+        loadFn = '_onLoadCache';
+      } else {
+        loadFn = '_addToCache';
+      }
+
 
       store.mozGetAll().onsuccess = function(event) {
         var data = event.target.result;
@@ -142,7 +150,7 @@
         var item;
 
         for (; i < len; i++) {
-          self._addToCache(self._createModel(data[i]));
+          self[loadFn](self._createModel(data[i]));
         }
       };
 
