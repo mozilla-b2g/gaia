@@ -177,6 +177,22 @@ const DockManager = (function() {
     localize();
   }
 
+  function placeAfterRemovingApp(numApps) {
+    document.body.dataset.transitioning = 'true';
+
+    if (numApps <= maxNumAppInViewPort) {
+      dock.moveByWithEffect(Math.abs(numApps * cellWidth - windowWidth) / 2,
+                            .3);
+    } else {
+      dock.moveByWithEffect(dock.getLeft() + cellWidth, .3);
+    }
+
+    container.addEventListener('transitionend', function transEnd(e) {
+      container.removeEventListener('transitionend', transEnd);
+      delete document.body.dataset.transitioning;
+    });
+  }
+
   return {
     /*
      * Initializes the dock
@@ -219,24 +235,12 @@ const DockManager = (function() {
     onDragStop: function dm_onDragStop() {
       var numApps = dock.getNumApps();
       if (numApps === numAppsBeforeDrag ||
-          numApps > maxNumAppInViewPort &&
+          numApps >= maxNumAppInViewPort &&
           (numApps > numAppsBeforeDrag || dock.getRight() >= windowWidth)) {
         return;
       }
 
-      document.body.dataset.transitioning = 'true';
-
-      if (numApps <= maxNumAppInViewPort) {
-        dock.moveByWithEffect(Math.abs(numApps * cellWidth - windowWidth) / 2,
-                              .3);
-      } else {
-        dock.moveByWithEffect(dock.getLeft() + cellWidth, .3);
-      }
-
-      container.addEventListener('transitionend', function transEnd(e) {
-        container.removeEventListener('transitionend', transEnd);
-        delete document.body.dataset.transitioning;
-      });
+      placeAfterRemovingApp(numApps);
     },
 
     onDragStart: function dm_onDragStart() {
@@ -267,6 +271,13 @@ const DockManager = (function() {
 
       dock.remove(app);
       this.saveState();
+
+      var numApps = dock.getNumApps();
+      if (numApps >= maxNumAppInViewPort && dock.getRight() >= windowWidth) {
+        return;
+      }
+
+      placeAfterRemovingApp(numApps);
     },
 
     isFull: function dm_isFull() {
