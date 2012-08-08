@@ -46,7 +46,9 @@ var MessageManager = {
           MessageManager.markMessageRead(event.message.id, true, function() {
             MessageManager.getMessages(ThreadListUI.renderThreads);
           });
-          ThreadUI.appendMessage(event.message);
+          ThreadUI.appendMessage(event.message, function() {
+              Utils.updateHeaders();
+            });
         } else {
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
@@ -268,8 +270,7 @@ var ThreadListUI = {
     var element =
       this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
-      element.innerHTML = contact[0].name || 'Unknown';
-      //TODO Use l10n to Unknown string
+      element.innerHTML = contact[0].name || _('unknown-contact');
     }
   },
 
@@ -287,12 +288,13 @@ var ThreadListUI = {
           if (selected > 0) {
             ThreadListUI.deleteSelectedButton.classList.remove('disabled');
             this.editHeader.innerHTML = selected + ' Selected';
+
           } else {
             ThreadListUI.deleteSelectedButton.classList.add('disabled');
             this.editHeader.innerHTML = 'Edit mode';
           }
         }
-          break;
+        break;
     }
   },
 
@@ -309,8 +311,7 @@ var ThreadListUI = {
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
-    var response = window.confirm('Delete all conversations\n' +
-                                  'Are you sure you want to do this?');
+    var response = window.confirm(_('deleteAll-confirmation'));
     if (response) {
       this.delNumList = [];
       this.pendingDelList = [];
@@ -352,7 +353,8 @@ var ThreadListUI = {
       }, filter);
     }
     // Cleaning
-    this.editHeader.innerHTML = 'Edit mode';
+    ThreadListUI.selectedInputList = [];
+    this.editHeader.innerHTML = _('editMode');
     this.deleteSelectedButton.classList.add('disabled');
   },
 
@@ -428,13 +430,16 @@ var ThreadListUI = {
       for (var i = 0; i < unreadThreads.length; i++) {
         document.getElementById(unreadThreads[i]).classList.add('unread');
       }
+      // Boot update of headers
+      Utils.updateHeaderScheduler();
+
     } else {
       var noResultHTML = '<div id="no-result-container">' +
-                          '<div id="no-result-message">' +
-                          '<p>no messages recorded</p>' +
-                          '<p>start communicating now</p>' +
-                          '</div>' +
-                          '</div>';
+            ' <div id="no-result-message">' +
+            '   <p data-l10n-id="noMessage-title">no messages recorded</p>' +
+            '   <p data-l10n-id="noMessage-text">start communicating now</p>' +
+            ' </div>' +
+            '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
       ThreadListUI.iconEdit.classList.add('disabled');
     }
@@ -500,8 +505,6 @@ var ThreadListUI = {
     // Append 'time-update' state
     headerHTML.setAttribute('data-time-update', true);
     headerHTML.setAttribute('data-time', timestamp);
-    // Boot update of headers
-    Utils.updateHeaders();
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
@@ -647,10 +650,6 @@ var ThreadUI = {
     // Append 'time-update' state
     headerHTML.setAttribute('data-time-update', true);
     headerHTML.setAttribute('data-time', timestamp);
-    // Boot update of headers
-    Utils.updateHeaders();
-    // Add text
-    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Append to DOM
@@ -660,8 +659,7 @@ var ThreadUI = {
     ThreadUI.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
       if (contact && contact.length > 0) {
-        //TODO l10n to 'Unknown' string
-        ThreadUI.title.innerHTML = contact[0].name || 'Unknown';
+        ThreadUI.title.innerHTML = contact[0].name || _('unknown-contact');
       }
     });
   },
@@ -687,12 +685,14 @@ var ThreadUI = {
         MessageManager.getMessages(ThreadListUI.renderThreads);
       });
     }
+    // Boot update of headers
+    Utils.updateHeaderScheduler();
     // Callback when every message is appended
     if (callback) {
       callback();
     }
   },
-  appendMessage: function thui_appendMessage(message) {
+  appendMessage: function thui_appendMessage(message, callback) {
     if (!message.read) {
       ThreadUI.readMessages.push(message.id);
     }
@@ -746,6 +746,9 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
+    if (callback) {
+      callback;
+    }
   },
 
   cleanForm: function thui_cleanForm() {
@@ -757,7 +760,7 @@ var ThreadUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
-    this.editHeader.innerHTML = 'Edit mode';
+    this.editHeader.innerHTML = _('editMode');
     this.deleteSelectedButton.classList.add('disabled');
   },
 
@@ -767,8 +770,7 @@ var ThreadUI = {
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
-    var response = window.confirm('Delete all messages\n' +
-                                  'Are you sure you want to do this?');
+    var response = window.confirm(_('deleteAll-confirmation'));
     if (response) {
       this.delNumList = [];
       this.pendingDelList = [];
@@ -827,7 +829,7 @@ var ThreadUI = {
       }
     });
     // Cleaning
-    this.editHeader.innerHTML = 'Edit mode';
+    this.editHeader.innerHTML = _('editMode');
     this.deleteSelectedButton.classList.add('disabled');
   },
 
@@ -910,10 +912,12 @@ var ThreadUI = {
           var selected = ThreadUI.selectedInputList.length;
           if (selected > 0) {
             ThreadUI.deleteSelectedButton.classList.remove('disabled');
-            this.editHeader.innerHTML = selected + ' Selected';
+            var total = selected - ThreadUI.delNumList.length -
+              ThreadUI.pendingDelList.length;
+            this.editHeader.innerHTML = _('selected', {n: total});
           } else {
             ThreadUI.deleteSelectedButton.classList.add('disabled');
-            this.editHeader.innerHTML = 'Edit mode';
+            this.editHeader.innerHTML = _('editMode');
           }
         }
           break;
@@ -963,9 +967,11 @@ var ThreadUI = {
           if (window.location.hash == '#new') {
             window.location.hash = '#num=' + num;
           } else {
-            // Append to DOM
+            // Append to DOMf
             message.showAnimation = true;
-            ThreadUI.appendMessage(message);
+            ThreadUI.appendMessage(message, function() {
+              Utils.updateHeaders();
+            });
           }
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
@@ -1002,7 +1008,7 @@ var ThreadUI = {
     if (window.location.hash == '#edit') {
       return;
     }
-    var resendConfirmStr = _('resendConfirmDialogMsg');
+    var resendConfirmStr = _('resend-confirmation');
     var result = confirm(resendConfirmStr);
     if (result) {
       // Remove the message from pending message DB before resend.
@@ -1030,8 +1036,8 @@ var ThreadUI = {
     threadHTML.classList.add('item');
 
     // Retrieve info from thread
-    var name = Utils.escapeHTML(contact.name);
-    var number = Utils.escapeHTML(contact.tel[0].number);
+    var name = Utils.escapeHTML(contact.name.toString());
+    var number = Utils.escapeHTML(contact.tel[0].number.toString());
     // Create HTML structure
     var structureHTML =
             '  <a href="#num=' + contact.tel[0].number + '">' +
