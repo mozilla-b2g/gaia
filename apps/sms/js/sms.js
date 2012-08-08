@@ -3,9 +3,6 @@
 
 'use strict';
 
-/* Localization */
-var _ = navigator.mozL10n.get;
-
 var MessageManager = {
   init: function mm_init() {
     // Init Pending DB. Once it will be loaded will render threads
