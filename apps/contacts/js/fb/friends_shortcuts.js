@@ -9,7 +9,7 @@
   jumper.addEventListener('mouseup', scrollEnd);
 
   var scrollable = doc.querySelector('#mainContent');
-  var overlayContent,overlay;
+  var overlayContent, overlay;
   overlayContent = overlay = doc.querySelector('#shortcuts #current');
   overlayContent.innerHTML = '&nbsp;';
   var overlayStyle = overlay.style;
@@ -55,9 +55,9 @@
 
     previous = current;
 
-    scrollable.scrollTop = groupContainer.offsetTop
-                          - document.querySelector('header').clientHeight
-                          - document.querySelector('p#mfriends').clientHeight;
+    scrollable.scrollTop = groupContainer.offsetTop -
+                          document.querySelector('header').clientHeight -
+                          document.querySelector('p#mfriends').clientHeight;
 
   }
 

@@ -14,7 +14,7 @@
  *
  *
  */
-if(!window.fb) {
+if (!window.fb) {
   (function(document) {
     'use strict';
     var fb = window.fb = {};
@@ -33,14 +33,14 @@ if(!window.fb) {
     var Request = function() {
       this.done = function(result) {
         this.result = result;
-        if(typeof this.onsuccess === 'function') {
+        if (typeof this.onsuccess === 'function') {
           this.onsuccess();
         }
       }
 
       this.failed = function(error) {
         this.error = error;
-        if(typeof this.onerror === 'function') {
+        if (typeof this.onerror === 'function') {
           this.onerror();
         }
       }
@@ -52,13 +52,7 @@ if(!window.fb) {
      */
     function createStore(e) {
       database = e.target.result;
-
-      window.console.log('OWD: Creating store in response to upgrade, version: ',
-                         database.version);
-
-      database.createObjectStore(STORE_NAME, { keyPath: "uid" });
-
-      window.console.log('OWD: Store has been created');
+      database.createObjectStore(STORE_NAME, { keyPath: 'uid' });
     }
 
     /**
@@ -66,12 +60,15 @@ if(!window.fb) {
      *
      */
     function init() {
-      var req = indexedDB.open('FBContactsDB3',4.0);
+      var req = indexedDB.open('FBContactsDB3', 4.0);
 
       req.onsuccess = function(e) {
-        database = e.target.result; window.console.log('OWD: Database opened',database); };
+        database = e.target.result;
+      };
 
-      req.onerror = function(e) { window.console.error('OWDError: ', e.target.error.name); };
+      req.onerror = function(e) {
+        window.console.error('OWDError: ', e.target.error.name);
+      };
 
       req.onupgradeneeded = createStore;
     }
@@ -85,7 +82,7 @@ if(!window.fb) {
       var retRequest = new Request();
 
       window.setTimeout(function() {
-        var transaction = database.transaction([STORE_NAME],"readonly");
+        var transaction = database.transaction([STORE_NAME], 'readonly');
         var objectStore = transaction.objectStore(STORE_NAME);
         var areq = objectStore.get(uid);
 
@@ -111,8 +108,7 @@ if(!window.fb) {
       var retRequest = new Request();
 
       window.setTimeout(function() {
-        window.console.log('OWD: Going to add the record');
-        var transaction = database.transaction([STORE_NAME],"readwrite");
+        var transaction = database.transaction([STORE_NAME], 'readwrite');
 
         transaction.onerror = function(e) {
           retRequest.failed(e.target.error);
@@ -120,10 +116,8 @@ if(!window.fb) {
 
         var objectStore = transaction.objectStore(STORE_NAME);
 
-        window.console.log('OWD: Object Store is obtained',objectStore);
-
         var req = objectStore.put(obj);
-        req.onsuccess = function(e) { retRequest.done(e.target.result); } ;
+        req.onsuccess = function(e) { retRequest.done(e.target.result); };
         req.onerror = function(e) { retRequest.failed(e.target.error); }
       },0);
 
@@ -133,7 +127,7 @@ if(!window.fb) {
       contacts.getAll = function() {
         var retRequest = new Request();
         window.setTimeout(function() {
-          var transaction = database.transaction([STORE_NAME],'readonly');
+          var transaction = database.transaction([STORE_NAME], 'readonly');
           var objectStore = transaction.objectStore(STORE_NAME);
 
           var req = objectStore.mozGetAll();
@@ -164,7 +158,7 @@ if(!window.fb) {
       var retRequest = new Request();
 
       window.setTimeout(function() {
-        var transaction = database.transaction([STORE_NAME],'readwrite');
+        var transaction = database.transaction([STORE_NAME], 'readwrite');
         transaction.oncomplete = function(e) {
           retRequest.done(e.target.result);
         }

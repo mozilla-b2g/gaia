@@ -16,16 +16,14 @@ contacts.List = (function() {
       }
   }
 
-  var load = function load(contacts,cb) {
-     window.console.log('Going to load friends');
-
+  var load = function load(contacts, cb) {
     // Hash containing each group
     var groups = {};
 
     contacts.forEach(function(contact) {
       // Contacts are ordered so it is pretty easy to group them
       var groupName = getGroupName(contact);
-      if(!groups[groupName]) {
+      if (!groups[groupName]) {
         groups[groupName] = [];
       }
       // An array per group
@@ -37,20 +35,20 @@ contacts.List = (function() {
     // For each group
     agroups.forEach(function(group) {
       // New element appended
-      var ele = utils.templates.append(groupsList,{group:group});
-      ele.addEventListener('click',owdFbInt.ui.selection);
+      var ele = utils.templates.append(groupsList, {group: group});
+      ele.addEventListener('click', owdFbInt.ui.selection);
 
       // Array of friends
       var friends = groups[group];
       // For each friend in the group
       friends.forEach(function(friend) {
         // New friend appended
-        utils.templates.append(ele,friend);
+        utils.templates.append(ele, friend);
         // We check wether this friend was in the AB or not before
       });
     });
 
-    if(typeof cb === 'function') {
+    if (typeof cb === 'function') {
       window.setTimeout(function() { cb(); }, 0);
     }
 

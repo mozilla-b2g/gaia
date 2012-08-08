@@ -40,12 +40,8 @@ if (typeof window.owdFbAuth === 'undefined') {
     owdFbAuth.init = function() {
       var hash = document.location.hash.substring(1);
 
-      if(hash.indexOf('access_token') !== -1 || hash.indexOf('state') !== -1) {
-        window.console.log('Access Token Ready!!!');
-
+      if (hash.indexOf('access_token') !== -1 || hash.indexOf('state') !== -1) {
         var elements = hash.split('&');
-
-        window.console.log(elements);
 
         var parameters = {};
 
@@ -55,9 +51,7 @@ if (typeof window.owdFbAuth === 'undefined') {
           parameters[values[0]] = values[1];
         });
 
-        window.console.log('Hash Parameters', parameters);
-
-        window.opener.postMessage(JSON.stringify(parameters),'*');
+        window.opener.postMessage(JSON.stringify(parameters), '*');
 
         // Finally the window is closed
         window.close();
@@ -80,8 +74,6 @@ if (typeof window.owdFbAuth === 'undefined') {
      *
      */
     owdFbAuth.logout = function(accessToken) {
-      window.console.log('Logout');
-
       window.open('https://www.facebook.com/logout.php?next=' +
                   encodeURIComponent(getLocation() + '#state=logout') +
                   '&access_token=' + accessToken);
@@ -118,12 +110,8 @@ if (typeof window.owdFbAuth === 'undefined') {
       var query = queryParams.join('&');
       var url = oauthDialogUri + query;
 
-      window.console.log('URL: ', url);
-
       window.open(url);
     }
-
-    window.console.log('OWD FB!!!!');
 
     owdFbAuth.init();
   }
