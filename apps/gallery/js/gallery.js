@@ -168,36 +168,99 @@ var languageDirection;
 // Each array element is an object that includes a filename and metadata
 var images = [];
 
-var photodb = new MediaDB('pictures', metadataParser, {
-  indexes: ['metadata.date'],
-  mimeTypes: ['image/jpeg', 'image/png']
+// The MediaDB object that manages the filesystem and the database of metadata
+// See initPhotoDB()
+var photodb;
+
+
+// The localized event is the main entry point for the app.
+// We don't do anything until we receive it.
+window.addEventListener('localized', function showBody() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+
+  try {
+    photodb = initPhotoDB();
+
+    // Start off in thumbnail list view, unless there is a pending activity
+    // request message. In that case, the message handler will set the
+    // initial view
+    if (!navigator.mozHasPendingMessage('activity'))
+      setView(thumbnailListView);
+
+    // Register a handler for activities
+    navigator.mozSetMessageHandler('activity', webActivityHandler);
+  }
+  catch (e) {
+    if (e.message == 'nosdcard') {
+      // XXX eventually we want to distinguish the nocard case
+      // from the cardinuse case.
+      showOverlay('nocard');
+    }
+    else // something else went wrong
+      throw e;
+  }
 });
 
-photodb.onready = function() {
-  createThumbnailList();  // Display thumbnails for the images we know about
-  photodb.scan();         // Go look for more.
 
-  // Since DeviceStorage doesn't send notifications yet, we're going
-  // to rescan the files every time our app becomes visible again.
-  // This means that if we switch to camera and take a photo, then when
-  // we come back to gallery we should be able to find the new photo.
-  // Eventually DeviceStorage will do notifications and MediaDB will
-  // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function visibilityChange() {
-    if (!document.mozHidden) {
-      photodb.scan();
+
+function initPhotoDB() {
+
+  // If there is no SD card installed, this will throw an error.
+  var db = new MediaDB('pictures', metadataParser, {
+      indexes: ['metadata.date'],
+      mimeTypes: ['image/jpeg', 'image/png']
+    });
+
+  db.onready = function() {
+    createThumbnailList();  // Display thumbnails for the images we know about
+    scan();
+
+    // Since DeviceStorage doesn't send notifications yet, we're going
+    // to rescan the files every time our app becomes visible again.
+    // This means that if we switch to camera and take a photo, then when
+    // we come back to gallery we should be able to find the new photo.
+    // Eventually DeviceStorage will do notifications and MediaDB will
+    // report them so we don't need to do this.
+    document.addEventListener('mozvisibilitychange', function vc() {
+        if (!document.mozHidden) {
+          scan();
+        }
+      });
+  };
+
+  db.onchange = function(type, files) {
+    if (type === 'deleted') {
+      files.forEach(imageDeleted);
     }
-  });
-};
+    else if (type === 'created') {
+      files.forEach(imageCreated);
+    }
+  };
 
-photodb.onchange = function(type, files) {
-  if (type === 'deleted') {
-    files.forEach(function(f) { imageDeleted(f); });
-  }
-  else if (type === 'created') {
-    files.forEach(function(f) { imageCreated(f); });
-  }
-};
+  return db;
+}
+
+function scan() {
+  //
+  // XXX: is it too intrusive to display the scan overlay every time?
+  //
+  // Can I do it on first launch only and after that
+  // display some smaller scanning indicator that does not prevent
+  // the user from using the app right away?
+  //
+  showOverlay('scanning');   // Tell the user we're scanning
+  photodb.scan(function() {  // Run this function when scan is complete
+    if (images.length === 0)
+      showOverlay('nopix');
+    else
+      showOverlay(null);     // Hide the overlay
+  });
+}
 
 function imageDeleted(fileinfo) {
   // Find the deleted file in our images array
@@ -233,8 +296,14 @@ function imageDeleted(fileinfo) {
   // If we're in single photo display mode, then the only way this function,
   // gets called is when we delete the currently displayed photo.  This means
   // that we need to redisplay.
-  if (currentView === photoView) {
+  if (currentView === photoView && images.length > 0) {
     showPhoto(currentPhotoIndex);
+  }
+
+  // If there are no more photos show the "no pix" overlay
+  if (images.length === 0) {
+    setView(thumbnailListView);
+    showOverlay('nopix');
   }
 }
 
@@ -250,6 +319,10 @@ function deleteImage(n) {
 
 function imageCreated(fileinfo) {
   var insertPosition;
+
+  // If we were showing the 'no pictures' overlay, hide it
+  if (currentOverlay === 'nopix')
+    showOverlay(null);
 
   // If this new image is newer than the first one, it goes first
   // This is the most common case for photos, screenshots, and edits
@@ -386,11 +459,6 @@ function createThumbnailList() {
     if (imagedata === null) // No more images
       return;
 
-    // If this is the first image we've found,
-    // remove the 'no images' message
-    if (images.length === 0)
-      $('nophotos').classList.add('hidden');
-
     images.push(imagedata);                             // remember the image
     var thumbnail = createThumbnail(images.length - 1); // create its thumbnail
     thumbnails.appendChild(thumbnail); // display the thumbnail
@@ -473,25 +541,6 @@ window.addEventListener('mozvisiblitychange', function() {
 //
 // Event handlers
 //
-
-// Wait for the "localized" event before displaying the document content
-window.addEventListener('localized', function showBody() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
-
-  // Start off in thumbnail list view, unless there is a pending activity
-  // request message. In that case, the message handler will set the
-  // initial view
-  if (!navigator.mozHasPendingMessage('activity'))
-    setView(thumbnailListView);
-
-  // Register a handler for activities
-  navigator.mozSetMessageHandler('activity', webActivityHandler);
-});
 
 // Each of the photoFrame <div> elements may be subject to animated
 // transitions. So give them transitionend event handlers that
@@ -1234,9 +1283,8 @@ function editPhoto(n) {
       x: 0, y: 0, w: images[n].metadata.width, h: images[n].metadata.height
     },
     gamma: 1,
-    effect: 'none',
     borderWidth: 0,
-    borderColor: '#fff'
+    borderColor: [0, 0, 0, 0]
   };
 
   // Start looking up the image file
@@ -1245,25 +1293,28 @@ function editPhoto(n) {
     // preview image and all the buttons that need it.
     editedPhotoURL = URL.createObjectURL(file);
 
+    // Create the image editor object
+    // This has to come after setView or the canvas size is wrong.
     imageEditor = new ImageEditor(editedPhotoURL,
                                   $('edit-preview-area'),
                                   editSettings);
+
+    // Configure the exposure tool as the first one shown
+    setEditTool('exposure');
+
+    // Set the exposure slider to its default value
+    exposureSlider.setExposure(0);
 
     // Set the background for all of the image buttons
     var backgroundImage = 'url(' + editedPhotoURL + ')';
     editBgImageButtons.forEach(function(b) {
       b.style.backgroundImage = backgroundImage;
     });
-
-    // Display the edit screen
-    setView(editView);
-
-    // Configure the exposure tool as the first one shown
-    setEditTool('exposure');
   });
 
-  // Set the exposure slider to its default value
-  exposureSlider.setExposure(0);
+  // Display the edit screen
+  setView(editView);
+
 
   // Set the default option buttons to correspond to those edits
   editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
@@ -1291,15 +1342,18 @@ function editOptionsHandler() {
   else if (this === $('edit-crop-aspect-square'))
     imageEditor.setCropAspectRatio(1, 1);
   else if (this.dataset.effect) {
-    editSettings.effect = this.dataset.effect;
+    editSettings.matrix = ImageProcessor[this.dataset.effect + '_matrix'];
     imageEditor.edit();
   }
   else {
     if (this.dataset.borderWidth) {
       editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
     }
-    if (this.dataset.borderColor) {
-      editSettings.borderColor = this.dataset.borderColor;
+    if (this.dataset.borderColor === 'white') {
+      editSettings.borderColor = [1, 1, 1, 1];
+    }
+    else if (this.dataset.borderColor === 'black') {
+      editSettings.borderColor = [0, 0, 0, 1];
     }
     imageEditor.edit();
   }
@@ -1454,7 +1508,7 @@ function exitEditMode(saved) {
   editedPhotoURL = null;
 
   // close the editor object
-  imageEditor.close();
+  imageEditor.destroy();
   imageEditor = null;
 
   // We came in to edit mode from photoView.  If the user cancels the edit
@@ -1518,3 +1572,34 @@ $('edit-save-button').onclick = function() {
     exitEditMode(true);
   });
 };
+
+//
+// Overlay messages
+//
+var currentOverlay;  // The id of the current overlay or null if none.
+
+//
+// If id is null then hide the overlay. Otherwise, look up the localized
+// text for the specified id and display the overlay with that text.
+// Supported ids include:
+//
+//   nocard: no sdcard is installed in the phone
+//   cardinuse: the sdcard is being used by USB mass storage
+//   nopix: no pictures found
+//   scanning: the app is scanning for new photos
+//
+// Localization is done using the specified id with "-title" and "-text"
+// suffixes.
+//
+function showOverlay(id) {
+  currentOverlay = id;
+
+  if (id === null) {
+    $('overlay').classList.add('hidden');
+    return;
+  }
+
+  $('overlay-title').textContent = navigator.mozL10n.get(id + '-title');
+  $('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
+  $('overlay').classList.remove('hidden');
+}

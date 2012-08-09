@@ -115,6 +115,9 @@
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <script defer src="js/window_manager.js"></script>
+    
+    <!-- z-indexes of all the overlays in the system -->
+    <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
@@ -123,24 +126,20 @@
 
   <body onload="startup()">
     <div id="screen" class="screenoff locked">
-
-      <div id="keyboard-overlay"></div>
-
-      <div id="windows">
-        <!-- application windows are added here -->
-      </div>
-
-      <!-- keyboard -->
-      <iframe id="keyboard-frame" class="hide"></iframe>
-
       <!-- homescreen -->
-      <iframe id="homescreen" mozbrowser mozapp></iframe>
+      <iframe id="homescreen" mozbrowser mozapp data-z-index-level="homescreen"></iframe>
       <!-- <iframe id="homescreen" mozbrowser mozapp remote="true"></iframe>
       Crashing on load
         https://bugzilla.mozilla.org/show_bug.cgi?id=761933
       -->
 
-      <div id="dialog-overlay">
+      <div id="windows" data-z-index-level="app">
+        <!-- application windows are added here -->
+      </div>
+      
+      <div id="dialog-overlay" data-z-index-level="dialog-overlay">
+        <div id="trustedDialog">
+        </div> 
         <div id="popup-container">
         </div>
         <div id="modal-dialog">
@@ -184,11 +183,18 @@
             <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
           </div>
         </div>
-
-        <!-- utility tray -->
+      </div> 
+      
+      <!-- value selector -->
+      <div id="value-selector" hidden data-z-index-level="value-selector">
+         <div id="value-selector-container" onmousedown="return false;"> </div>
+         <div id="value-selector-buttons">
+           <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
+           <button id="value-selector-confirm" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+         </div>
       </div>
 
-      <div id="utility-tray">
+      <div id="utility-tray" data-z-index-level="utility-tray">
         <!-- quick settings -->
         <div id="quick-settings">
           <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
@@ -207,9 +213,10 @@
         <div id="utility-tray-grippy">
         </div>
       </div>
+      
+      <div id="lockscreen-camera" hidden data-z-index-level="lockscreen-camera"></div>
 
-      <div id="lockscreen-camera"></div>
-      <div id="lockscreen" class="uninit" data-panel="">
+      <div id="lockscreen" class="uninit" data-panel="" data-z-index-level="lockscreen">
         <div id="lockscreen-container">
           <div id="lockscreen-main-panel" class="lockscreen-panel">
             <div id="lockscreen-notification" hidden>
@@ -258,8 +265,8 @@
           <div id="lockscreen-emergency-pad">TBD</div>
         </div>
       </div>
-
-      <div id="pinkeypadscreen">
+      
+      <div id="pinkeypadscreen" data-z-index-level="pinkeypadscreen">
         <div id="pinkeypadscreen-container">
           <p id="pinkeypadscreen-desc"><span>Enter PIN</span></p>
           <p id="pinkeypadscreen-code">
@@ -282,10 +289,12 @@
           </div>
         </div>
       </div>
-
-      <div id="statusbar">
+      
+      <div id="statusbar" data-z-index-level="statusbar">
         <!-- Loading -->
         <div id="statusbar-loading" hidden></div>
+        <!-- Carrier & date label -->
+        <div id="statusbar-label" class="sb-start-upper"></div>
         <!-- Notification -->
         <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
           data-num="" hidden></div>
@@ -314,55 +323,57 @@
         <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
         <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
       </div>
-
-      <div id="notification-toaster" class="notification">
+      
+      <div id="notification-toaster" class="notification" data-z-index-level="notification-toaster">
         <img id="toaster-icon" />
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
       </div>
-
-      <!-- attention screen -->
-      <div id="attention-screen">
+      
+      <div id="attention-screen" data-z-index-level="attention-screen">
         <div id="attention-bar"></div>
       </div>
 
-      <!-- value selector -->
-      <div id="value-selector" hidden>
-         <div id="value-selector-container" onmousedown="return false;"> </div>
-         <div id="value-selector-buttons">
-           <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
-           <button id="value-selector-confirm" data-l10n-id="ok" onmousedown="return false;">Ok</button>
-         </div>
+      <div id="listmenu" data-z-index-level="list-menu">
+        <div class="list-menu" id="listmenu-container">
+        </div>
+      </div>
+      
+      <div id="keyboard-overlay" data-z-index-level="keyboard-overlay"></div>
+
+      <!-- keyboard -->
+      <iframe id="keyboard-frame" class="hide" data-z-index-level="keyboard-frame"></iframe>
+
+      <div id="cardsView" data-z-index-level="cardsview">
+        <ul>
+        </ul>
+      </div>
+      
+      <div id="sleep-menu" data-z-index-level="sleep-menu">
+        <div class="sleepmenu" id="sleepmenu-container">
+        </div>
       </div>
 
-    </div>
+      <div id="system-overlay" data-z-index-level="system-overlay">
+        <div id="battery">
+        </div>
 
-    <div id="cardsView">
-      <ul>
+        <div id="usb">
+        </div>
 
-      </ul>
-    </div>
-
-    <div id="listmenu">
-      <div class="list-menu" id="listmenu-container">
+        <div id="volume" class="vibration">
+          <div class="active"></div>
+          <div class="active"></div>
+          <div class="active"></div>
+          <div class="active"></div>
+          <div class="active"></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
       </div>
     </div>
-
-    <div id="volume" class="vibration">
-      <div class="active"></div>
-      <div class="active"></div>
-      <div class="active"></div>
-      <div class="active"></div>
-      <div class="active"></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-    </div>
-
-    <div id="trustedDialog">
-    </div>
-
   </body>
 </html>

@@ -100,6 +100,7 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
       if (window.location.hash != '#keyboard-view') {
         window.location.hash = '#keyboard-view';
       }
+      CallHandler.call(number);
     }
   }
 
