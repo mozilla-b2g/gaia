@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>FB API Test</title>
+    <meta charset="UTF-8">
+  <head>
+
+  <body>
+
+    <button onclick="save()">Save</button>
+     <button onclick="get()">Get</button>
+
+    <script>
+        function save() {
+          var myFbContact = {uid: '6789',works_at: 'Telefónica I+D',
+                              studied_at: 'UVA'};
+
+          var req = fb.contacts.save(myFbContact);
+
+          req.onsuccess = function() {
+            window.console.log('Done');
+          }
+
+          req.onerror = function() {
+            window.console.error(req.error.name);
+          }
+        }
+
+      function get() {
+        var req = fb.contacts.get('6789');
+
+        req.onsuccess = function() {
+          window.console.log(req.result.uid,req.result.works_at);
+        }
+
+        req.onerror = function() {
+          window.console.error(req.error.name);
+        }
+      }
+    </script>
+
+     <script src="../js/fb/fb_api.js"></script>
+      <script>
+        fb.contacts.init();
+      </script>
+  </body>
+</html>

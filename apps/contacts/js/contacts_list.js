@@ -93,7 +93,7 @@ contacts.List = (function() {
     if (contact.category) {
       var marks = buildSocialMarks(contact.category);
       if (marks.length > 0) {
-        if (!contact.org) {
+        if (!contact.org || contact.org.toString().trim().length === 0) {
           marks[0].classList.add('notorg');
         }
         marks.forEach(function(mark) {
@@ -176,11 +176,18 @@ contacts.List = (function() {
     };
   }
 
-  var buildContacts = function buildContacts(contacts) {
+  var buildContacts = function buildContacts(contacts, fbContacts) {
     for (var i = 0; i < contacts.length; i++) {
-      var group = getGroupName(contacts[i]);
+      var contact = contacts[i];
+
+      if (fbContacts && fb.isFbContact(contact)) {
+        var fbContact = new fb.Contact(contact);
+        contact = fbContact.merge(fbContacts[fbContact.uid]);
+      }
+
+      var group = getGroupName(contact);
       var listContainer = document.getElementById('contacts-list-' + group);
-      var newContact = renderContact(refillContactData(contacts[i]));
+      var newContact = renderContact(refillContactData(contact));
       listContainer.appendChild(newContact);
       showGroup(group);
     }
@@ -226,7 +233,13 @@ contacts.List = (function() {
       if (request.result.length === 0) {
         getSimContacts();
       } else {
-        buildContacts(request.result);
+        var fbReq = fb.contacts.getAll();
+        fbReq.onsuccess = function() {
+          buildContacts(request.result, fbReq.result);
+        }
+        fbReq.onerror = function() {
+           buildContacts(request.result);
+        }
       }
     };
 

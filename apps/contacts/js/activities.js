@@ -31,6 +31,9 @@ var ActivityHandler = {
       case 'pick':
         Contacts.navigation.home();
         break;
+      case 'importFB':
+        document.location = 'fb_import.html';
+        break;
     }
   },
 
