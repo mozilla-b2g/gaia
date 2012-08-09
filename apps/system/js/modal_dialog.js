@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -19,7 +19,9 @@ var ModalDialog = {
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message', 'buttons'];
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
+      'authentication', 'username-input', 'password-input',
+      'authentication-message', 'buttons'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -34,6 +36,7 @@ var ModalDialog = {
     }, this);
 
     this.screen = document.getElementById('screen');
+    this.overlay = document.getElementById('dialog-overlay');
   },
 
   // Save the events returned by mozbrowsershowmodalprompt for later use.
@@ -50,6 +53,7 @@ var ModalDialog = {
     window.addEventListener('mozbrowsershowmodalprompt', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
+    window.addEventListener('resize', this);
 
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
@@ -97,7 +101,17 @@ var ModalDialog = {
         // Reset currentOrigin
         this.hide();
         break;
+
+      case 'resize':
+        if (!this.currentOrigin)
+          return;
+
+        this.setHeight();
     }
+  },
+
+  setHeight: function md_setHeight() {
+    this.overlay.style.height = window.innerHeight + 'px';
   },
 
   // Show relative dialog and set message/input value well
@@ -105,7 +119,7 @@ var ModalDialog = {
     this.currentOrigin = origin;
     var evt = this.currentEvents[origin];
 
-    var message = evt.detail.message;
+    var message = evt.detail.message || '';
     var elements = this.elements;
     this.screen.classList.add('modal-dialog');
 
@@ -135,14 +149,28 @@ var ModalDialog = {
         elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
         break;
+
+      // HTTP Authentication
+      case 'usernameandpassword':
+        elements.authentication.classList.add('visible');
+        var l10nArgs = { realm: evt.detail.realm, host: evt.detail.host };
+        var _ = navigator.mozL10n.get;
+        message = _('http-authentication-message', l10nArgs);
+        elements.authenticationMessage.innerHTML = message;
+      break;
     }
 
     this.elements.buttons.dataset.type = evt.detail.promptType;
+    this.setHeight();
   },
 
   hide: function md_hide() {
-    if (this.currentEvents[this.currentOrigin].detail.promptType == 'prompt') {
+    var type = this.currentEvents[this.currentOrigin].detail.promptType;
+    if (type == 'prompt') {
       this.elements.promptInput.blur();
+    } else if (type == 'usernameandpassword') {
+      this.elements.usernameInput.blur();
+      this.elements.passwordInput.blur();
     }
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
@@ -169,13 +197,22 @@ var ModalDialog = {
         evt.detail.returnValue = true;
         elements.confirm.classList.remove('visible');
         break;
+
+      case 'usernameandpassword':
+        evt.detail.returnValue = {
+          username: elements.usernameInput.value,
+          password: elements.password.value
+        };
+        elements.authentication.classList.remove('visible');
+        break;
     }
 
     if (evt.isPseudo && evt.callback) {
       evt.callback(evt.detail.returnValue);
     }
 
-    evt.detail.unblock();
+    if (!evt.isPseudo)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
@@ -203,13 +240,19 @@ var ModalDialog = {
         evt.detail.returnValue = false;
         elements.confirm.classList.remove('visible');
         break;
+
+      case 'usernameandpassword':
+        evt.detail.returnValue = { ok: false };
+        elements.authentication.classList.remove('visible');
+        break;
     }
 
     if (evt.isPseudo && evt.callback) {
       evt.callback(evt.detail.returnValue);
     }
 
-    evt.detail.unblock();
+    if (!evt.isPseudo)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
@@ -260,6 +303,10 @@ var ModalDialog = {
     // since system-app uses the different way to call ModalDialog.
     this.currentEvents['system'] = pseudoEvt;
     this.show('system');
+  },
+
+  isVisible: function md_isVisible() {
+    return this.screen.classList.contains('modal-dialog');
   }
 };
 

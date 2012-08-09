@@ -18,6 +18,21 @@
 
   testSupport.calendar = {
 
+    loadSample: function(file, cb) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/test/unit/fixtures/' + file, true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status !== 200) {
+            cb(new Error('file not found or other error', xhr));
+          } else {
+            cb(null, xhr.responseText);
+          }
+        }
+      }
+      xhr.send(null);
+    },
+
     requireProvider: function() {
       requireLib('provider/calendar/abstract.js');
       requireLib('provider/calendar/local.js');
@@ -167,8 +182,7 @@
   requireLib('batch.js');
   requireLib('template.js');
   requireLib('responder.js');
-  requireLib('provider/calendar/abstract.js');
-  requireLib('provider/calendar/local.js');
+  requireLib('provider/abstract.js');
   requireLib('provider/local.js');
   requireLib('store/abstract.js');
   requireLib('store/account.js');
@@ -180,6 +194,8 @@
   requireLib('router.js');
   requireLib('controllers/time.js');
   requireLib('controllers/sync.js');
+  requireLib('worker/manager.js');
+  requireLib('controllers/service.js');
   requireLib('db.js');
   requireLib('app.js');
 

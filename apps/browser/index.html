@@ -13,7 +13,7 @@
     <script type="application/javascript" defer src="shared/js/gesture_detector.js"></script>
   </head>
 
-  <body>
+  <body class="page-screen">
 
     <div id="main-screen">
 
@@ -27,7 +27,6 @@
       </menu>
 
       <div id="frames">
-        <img id="tab-cover" />
         <div id="awesomescreen">
           <nav data-role="tabs" id="tab-headers">
             <ul role="tablist">
@@ -53,6 +52,14 @@
           </section>
         </div>
 
+        <div id="crashscreen">
+          <span id="sad-face">:(</span><br />
+          <button data-l10n-id="close-tab" id="close-tab">Close Tab</button>
+          <button data-l10n-id="try-reloading" id="try-reloading">
+            Try Reloading
+          </button>
+        </div>
+
         <div id="screen">
           <div id="modal-dialog">
             <div id="modal-dialog-table">
@@ -61,15 +68,15 @@
                   <div class="modal-dialog-message-container">
                     <span id="modal-dialog-alert-message"></span>
                   </div>
-                  <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
+                  <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
                 </div>
 
                 <div id="modal-dialog-confirm">
                   <div class="modal-dialog-message-container">
                     <span id="modal-dialog-confirm-message"></span>
                   </div>
-                  <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
-                  <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">
+                  <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">
                     Cancel
                   </button>
                 </div>
@@ -79,8 +86,8 @@
                     <span id="modal-dialog-prompt-message"></span>
                     <input id="modal-dialog-prompt-input" />
                   </div>
-                  <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
-                  <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">
+                  <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
                     Cancel
                   </button>
                 </div>
@@ -114,20 +121,33 @@
     <div id="settings">
       <header id="settings-header">
         <menu type="toolbar">
-          <button id="settings-done-button" data-i10n-id="done">Done</button>
+          <button id="settings-done-button"></button>
         </menu>
-        <h1 data-i10n-id="firefox-settings">Firefox Settings</h1>
+        <h1 data-l10n-id="firefox-settings">Firefox Settings</h1>
       </header>
       <ul>
         <li>
-          <button id="about-firefox-button" data-i10n-id="about-firefox">About Firefox</button>
+          <button id="about-firefox-button"
+                  data-l10n-id="about-firefox">About Firefox</button>
         </li>
       </ul>
-      <h3 data-i10n-id="privacy-and-security">Privacy & Security</h3>
+      <h3 data-l10n-id="privacy-and-security">Privacy & Security</h3>
       <ul>
-        <li>
-          <button id="clear-history-button" data-i10n-id="clear-history">Clear History</button>
+        <li id="enable-cookies">
+          <label>
+            <input type="checkbox" name="enable-cookies" disabled="disabled" />
+            <span data-l10n-id="enable-cookies" disabled="disabled">Enable Cookies</span>
+          </label>
         </li>
+        <li>
+          <button id="clear-history-button"
+                  data-l10n-id="clear-history">Clear History</button>
+        </li>
+        <li>
+          <button id="clear-private-data-button" disabled="disabled"
+                  data-l10n-id="clear-private-data">Clear Private Data</button>
+        </li>
+
       </ul>
     </div>
 

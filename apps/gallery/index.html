@@ -66,6 +66,13 @@
         </div>
       </div>
     </div>
+
+    <div id="pick-view" class="hidden">
+      <div id="pick-top">
+        <a id="pick-cancel-button" class="button"></a>
+        <div id="pick-header" data-l10n-id="pickoneimage"></div>
+      </div>
+    </div>
     
     <div id="edit-view" class="hidden">
       <div id="edit-header">
@@ -75,7 +82,9 @@
       </div>
 
       <!-- preview of edited photo goes here -->
-      <div id="edit-preview-area"></div>
+      <!-- canvas elements are dynamically inserted here -->
+      <div id="edit-preview-area">
+      </div>
 
       <!-- this holds different options for different editing modes -->
       <!-- only one set of options will be visible at a time -->
@@ -95,32 +104,47 @@
             <div id="slider3" class="sliderlabel" data-label="+3"></div>
           </div>
         </div>
+
+        <div id="edit-crop-options" class="edit-options-bar hidden"> 
+          <a id="edit-crop-none" class="button"
+             data-l10n-id="original"></a>
+          <a id="edit-crop-aspect-free" class="selected radio button"
+             data-l10n-id="freeform"></a>
+          <a id="edit-crop-aspect-portrait" class="radio button"
+             data-l10n-id="portrait"></a>
+          <a id="edit-crop-aspect-landscape" class="radio button"
+             data-l10n-id="landscape"></a>
+          <a id="edit-crop-aspect-square" class="radio button"
+             data-l10n-id="square"></a>
+        </div>
+
         <div id="edit-effect-options" class="edit-options-bar hidden"> 
-          <a id="edit-effect-none" class="button"
+          <a id="edit-effect-none" class="selected radio button bgimage"
              data-effect="none" data-l10n-id="original"></a>
-          <a id="edit-effect-bw" class="button filter-bw"
+          <a id="edit-effect-bw" class="radio button filter-bw bgimage"
              data-effect="bw" data-l10n-id="blackandwhite"></a>
-          <a id="edit-effect-sepia" class="button filter-sepia"
+          <a id="edit-effect-sepia" class="radio button filter-sepia bgimage"
              data-effect="sepia" data-l10n-id="sepia"></a>
         </div>
 
         <div id="edit-border-options" class="edit-options-bar hidden"> 
-          <a id="edit-border-none" class="button"
+          <a id="edit-border-none" class="selected radio button bgimage"
              data-border-width="0"></a>
-          <a id="edit-border-thin-white" class="button border-thin-white"
-             data-border-width=".015" data-border-color="#fff"></a>
-          <a id="edit-border-thick-white" class="button border-thick-white"
-             data-border-width=".03" data-border-color="#fff"></a>
-          <a id="edit-border-thin-black" class="button border-thin-black"
-             data-border-width=".015" data-border-color="#000"></a>
-          <a id="edit-border-thick-black" class="button border-thick-black"
-             data-border-width=".03" data-border-color="#000"></a>
+          <a id="edit-border-thin-white" class="radio button bgimage"
+             data-border-width=".015" data-border-color="white"></a>
+          <a id="edit-border-thick-white" class="radio button bgimage"
+             data-border-width=".03" data-border-color="white"></a>
+          <a id="edit-border-thin-black" class="radio button bgimage"
+             data-border-width=".015" data-border-color="black"></a>
+          <a id="edit-border-thick-black" class="radio button bgimage"
+             data-border-width=".03" data-border-color="black"></a>
         </div>
       </div>
 
       <!-- buttons for selecting the type of edit to perform -->
       <div id="edit-toolbar">
         <a id="edit-exposure-button" class="button" data-l10n-id="exposure"></a>
+        <a id="edit-crop-button" class="button" data-l10n-id="crop"></a>
         <a id="edit-effect-button" class="button" data-l10n-id="effects"></a>
         <a id="edit-border-button" class="button" data-l10n-id="borders"></a>
       </div>
@@ -143,6 +167,51 @@
                                0     0     0     1 0"/>
       </filter>
     </svg>
+
+    <!-- A WebGL vertex shader program. Required by js/ImageEditor.js -->
+    <script id="edit-vertex-shader" type="x-glsl/vertex-shader">
+      attribute vec2 src_pixel;   // pixel position in the image  
+      attribute vec2 dest_pixel;  // pixel position on the canvas
+      uniform vec2 canvas_size;   // size of destination canvas in pixels
+      uniform vec2 image_size;    // size of source image in pixels
+      varying vec2 src_position;  // pass image position to the fragment shader
+
+      void main() {
+        gl_Position = vec4(((dest_pixel/canvas_size)*2.0 - 1.0) * vec2(1, -1),
+                           0, 1);
+        src_position = src_pixel / image_size;
+      }
+    </script>
+
+    <!-- A WebGL fragment shader program. Required by js/ImageEditor.js -->
+    <script id="edit-fragment-shader" type="x-glsl/fragment-shader">
+      precision mediump float;
+      uniform sampler2D image;
+      uniform float border_width;
+      uniform vec4 border_color;
+      uniform vec2 dest_size;     // size of the destination rectangle 
+      uniform vec2 dest_origin;   // upper-left corner of destination rectangle
+      uniform vec4 gamma;
+      uniform mat4 matrix;
+      varying vec2 src_position;  // from the vertex shader
+
+      void main() {
+        // Use border color if we're over the border 
+        if (gl_FragCoord.x < dest_origin.x + border_width || 
+            gl_FragCoord.y < dest_origin.y + border_width ||
+            gl_FragCoord.x > dest_origin.x + dest_size.x - border_width ||
+            gl_FragCoord.y > dest_origin.y + dest_size.y - border_width)
+        {
+          gl_FragColor = border_color;
+          return;
+        }
+  
+        // Otherwise take the image clor, apply gamma correction and 
+        // the color manipulation matrix.
+        vec4 color = texture2D(image, src_position);
+        gl_FragColor = pow(color, gamma) * matrix;
+      }
+    </script>
   </body>
 </html>
 

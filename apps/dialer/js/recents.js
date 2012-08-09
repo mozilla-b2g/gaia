@@ -1,12 +1,46 @@
 'use strict';
 
+var _ = navigator.mozL10n.get;
+
 var Recents = {
   DBNAME: 'dialerRecents',
   STORENAME: 'dialerRecents',
 
-  get view() {
-    delete this.view;
-    return this.view = document.getElementById('recents-container');
+  _recentsEditionMode: false,
+
+  _selectedEntriesCounter: 0,
+
+  _selectedEntries: new Object(),
+
+  get headerEditModeText() {
+    delete this.headerEditModeText;
+    return this.headerEditModeText = document.
+                                    getElementById('header-edit-mode-text');
+  },
+
+  get recentsIconEdit() {
+    delete this.recentsIconEdit;
+    return this.recentsIconEdit = document.getElementById('edit-button');
+  },
+
+  get recentsIconClose() {
+    delete this.recentsIconClose;
+    return this.recentsIconClose = document.getElementById('cancel-button');
+  },
+
+  get recentsIconDone() {
+    delete this.recentsIconDone;
+    return this.recentsIconDone = document.getElementById('done-button');
+  },
+
+  get recentsContainer() {
+    delete this.recentsContainer;
+    return this.recentsContainer = document.getElementById('recents-container');
+  },
+
+  get recentsView() {
+    delete this.recentsView;
+    return this.recentsView = document.getElementById('recents-view');
   },
 
   get recentsFilterContainer() {
@@ -25,10 +59,42 @@ var Recents = {
     return this.missedFilter = document.getElementById('missedFilter');
   },
 
+  get deleteAllThreads() {
+    delete this.deleteAllThreads;
+    return this.deleteAllThreads = document.
+      getElementById('delete-all-threads');
+  },
+
+  get deleteSelectedThreads() {
+    delete this.deleteSelectedThreads;
+    return this.deleteSelectedThreads = document.
+      getElementById('delete-selected-threads');
+  },
+
   init: function re_init() {
     if (this.recentsFilterContainer) {
       this.recentsFilterContainer.addEventListener('click',
         this.filter.bind(this));
+    }
+    if (this.recentsIconEdit) {
+      this.recentsIconEdit.addEventListener('click',
+        this.recentsHeaderAction.bind(this));
+    }
+    if (this.recentsIconClose) {
+      this.recentsIconClose.addEventListener('click',
+        this.recentsHeaderAction.bind(this));
+    }
+    if (this.recentsIconDone) {
+      this.recentsIconDone.addEventListener('click',
+        this.recentsHeaderAction.bind(this));
+    }
+    if (this.deleteAllThreads) {
+      this.deleteAllThreads.addEventListener('click',
+        this.deleteAll.bind(this));
+    }
+    if (this.deleteSelectedThreads) {
+      this.deleteSelectedThreads.addEventListener('click',
+        this.deleteSelected.bind(this));
     }
 
     var indexedDB = window.indexedDB || window.webkitIndexedDB ||
@@ -53,10 +119,60 @@ var Recents = {
       db.createObjectStore(self.STORENAME, { keyPath: 'date' });
     };
 
+    this._cachedContacts = new Object();
     this.render();
   },
 
+  recentsHeaderAction: function re_recentsIconEditAction(event) {
+    if (event) {
+      switch (event.target ? event.target.id : event) {
+        case 'edit-button': // Entering edit mode
+          // Clean selected lists
+          this._selectedEntries = new Object();
+          this._selectedEntriesCounter = 0;
+          // Updating header
+          this.headerEditModeText.textContent = _('edit');
+          // Disable 'delete selected' button
+          this.deleteSelectedThreads.classList.add('disabled');
+          break;
+        case 'cancel-button': // Exit edit mode with no deletions
+          var query = '.log-item.hide.selected';
+          var elements = this.recentsContainer.querySelectorAll(query);
+          // Show hidden messages
+          for (var i = 0; i < elements.length; i++) {
+            elements[i].classList.remove('hide');
+          }
+          break;
+        case 'done-button': // Commit deletions and exit edit mode
+          // Execute deletion of the lists
+          this.executeDeletion();
+          this.render();
+          break;
+      }
+    }
+    this.recentsView.classList.toggle('recents-edit');
+    var logItems = this.recentsContainer.querySelectorAll(
+                                                  '.log-item:not(.collapsed)'),
+        contactPhoto,
+        contactSelection,
+        logItem;
+
+    for (var i = 0; i < logItems.length; i++) {
+      logItem = logItems[i];
+      contactPhoto = logItem.querySelector('.call-log-contact-photo');
+      contactSelection = logItem.querySelector('.call-log-selection');
+      contactPhoto.classList.toggle('hide');
+      contactSelection.classList.toggle('show');
+      if (this._recentsEditionMode) {
+        contactSelection.classList.remove('selected');
+        logItem.classList.remove('selected');
+      }
+    }
+    this._recentsEditionMode = !this._recentsEditionMode;
+  },
+
   filter: function re_filter(event) {
+    // do nothing if selected tab is same that current
     if (event.target.classList.contains('selected')) {
       return;
     }
@@ -70,15 +186,74 @@ var Recents = {
     var allCalls = (action == 'all');
     if (allCalls) {
       for (i = 0; i < noMissedCallsLength; i++) {
-        noMissedCallsItems[i].classList.remove('hide');
+        var noMissedCallsItem = noMissedCallsItems[i];
+        var noMissedCallsDay = noMissedCallsItem.parentNode.parentNode;
+        noMissedCallsDay.classList.remove('hide');
+        noMissedCallsItem.classList.remove('hide');
+      }
+      var visibleCalls = this.recentsContainer.
+        querySelectorAll('.log-item:not(.hide)');
+      if (visibleCalls.length > 0) {
+        this.recentsIconEdit.classList.remove('disabled');
+      } else {
+        this.recentsIconEdit.classList.add('disabled');
+      }
+      if (this._recentsEditionMode) {
+        var selectedCalls = this.recentsContainer.
+          querySelectorAll('.log-item:not(.hide).selected');
+        var selectedCallsLength = selectedCalls.length;
+        this._selectedEntriesCounter = selectedCallsLength;
+        if (selectedCallsLength == 0) {
+          this.headerEditModeText.textContent = _('edit');
+          this.deleteSelectedThreads.classList.add('disabled');
+        } else {
+          this.headerEditModeText.textContent = _('edit-selected',
+                                                  {n: selectedCallsLength});
+          this.deleteSelectedThreads.classList.remove('disabled');
+        }
+      }
+      if (this._allViewGroupingPending) {
+        this.groupCallsInCallLog();
+        this._allViewGroupingPending = false;
       }
     } else {
       for (i = 0; i < noMissedCallsLength; i++) {
-        noMissedCallsItems[i].classList.add('hide');
+        var noMissedCallsItem = noMissedCallsItems[i];
+        noMissedCallsItem.classList.add('hide');
+        var noMissedCallsItemParent = noMissedCallsItem.parentNode;
+        var notHiddenCalls = noMissedCallsItemParent.
+          querySelectorAll('.log-item:not(.hide)');
+        if (notHiddenCalls.length == 0) {
+          var notHiddenCallsDay = noMissedCallsItemParent.parentNode;
+          notHiddenCallsDay.classList.add('hide');
+        }
+        var visibleCalls = this.recentsContainer.
+          querySelectorAll('.log-item:not(.hide)');
+        if (visibleCalls.length == 0) {
+          this.recentsIconEdit.classList.add('disabled');
+        } else {
+          this.recentsIconEdit.classList.remove('disabled');
+        }
+        if (this._recentsEditionMode) {
+          var selectedCalls = this.recentsContainer.
+            querySelectorAll('.log-item:not(.hide).selected');
+          var selectedCallsLength = selectedCalls.length;
+          this._selectedEntriesCounter = selectedCallsLength;
+          if (selectedCallsLength == 0) {
+            this.headerEditModeText.textContent = _('edit');
+            this.deleteSelectedThreads.classList.add('disabled');
+          } else {
+            this.headerEditModeText.textContent = _('edit-selected',
+                                                    {n: selectedCallsLength});
+            this.deleteSelectedThreads.classList.remove('disabled');
+          }
+        }
       }
     }
     this.allFilter.classList.toggle('selected');
     this.missedFilter.classList.toggle('selected');
+    if (this._recentsEditionMode)
+      this.recentsHeaderAction('cancel-button');
   },
 
   cleanup: function re_cleanup() {
@@ -119,31 +294,181 @@ var Recents = {
     });
   },
 
+  deleteAll: function re_deleteAll() {
+    var response = window.confirm(_('confirm-title') + '\n' +
+                                  _('confirm-text'));
+    if (response) {
+      var self = this;
+
+      this.getDatabase(function(database) {
+        var txn = database.transaction(self.STORENAME, 'readwrite');
+        var store = txn.objectStore(self.STORENAME);
+
+        var delAllReq = store.clear();
+        delAllReq.onsuccess = function da_onsuccess() {
+          self.render();
+          self.recentsHeaderAction(null);
+          this._selectedEntries = new Object();
+        };
+
+        delAllReq.onerror = function da_onerror(e) {
+          console.log('dialerRecents delete all failure: ',
+            e.message, setreq.errorCode);
+        };
+      });
+    }
+  },
+
+  deleteSelected: function re_deleteSelected() {
+    var selected = this.recentsContainer.querySelectorAll('.log-item.selected');
+    for (var i = 0; i < selected.length; i++) {
+      selected[i].classList.add('hide');
+    }
+  },
+
+  executeDeletion: function re_executeDeletion() {
+    var self = this;
+
+    this.getDatabase(function(database) {
+      var txn = database.transaction(self.STORENAME, 'readwrite'),
+        store = txn.objectStore(self.STORENAME),
+        selectedLogItems = self.recentsContainer.
+          querySelectorAll('.log-item.hide.selected'),
+        selectedLogItemsLength = selectedLogItems.length,
+        callType, phoneNumber, phoneNumberType, groupItemLogs, groupItemLogsAux,
+        sameDaySection;
+      for (var i = 0; i < selectedLogItemsLength; i++) {
+        if (selectedLogItems[i].dataset.count > 1) {
+          callType = selectedLogItems[i].dataset.type;
+          phoneNumber = selectedLogItems[i].dataset.num.trim();
+          phoneNumberType = selectedLogItems[i].dataset.phoneType;
+          sameDaySection = selectedLogItems[i].parentNode;
+          if (callType.indexOf('dialing') != -1) {
+            groupItemLogs = self.getSameTypeCallsOnSameDayForDeletion(
+              sameDaySection, phoneNumber, phoneNumberType, 'dialing', true);
+          } else if (callType.indexOf('incoming-connected') != -1) {
+            groupItemLogs = self.getSameTypeCallsOnSameDayForDeletion(
+              sameDaySection, phoneNumber, phoneNumberType,
+              'incoming-connected', false);
+          } else {
+            groupItemLogs = self.getSameTypeCallsOnSameDayForDeletion(
+              sameDaySection, phoneNumber, phoneNumberType, 'incoming', false);
+            groupItemLogsAux = self.getSameTypeCallsOnSameDayForDeletion(
+              sameDaySection, phoneNumber, phoneNumberType, 'incoming-refused',
+              false);
+          }
+          var groupItemLogsLength = groupItemLogs.length;
+          for (var j = 0; j < groupItemLogsLength; j++) {
+            self.deleteEntry(store, groupItemLogs[j]);
+          }
+          if (groupItemLogsAux) {
+            var groupItemLogsAuxLength = groupItemLogsAux.length;
+            for (var k = 0; k < groupItemLogsAuxLength; k++) {
+              self.deleteEntry(store, groupItemLogsAux[k]);
+            }
+          }
+          self.deleteEntry(store, selectedLogItems[i]);
+        } else {
+          self.deleteEntry(store, selectedLogItems[i]);
+        }
+      }
+    });
+  },
+
+  getSameTypeCallsOnSameDayForDeletion: function re_getSameTypeCallsOnSameDay(
+    day, phoneNumber, phoneNumberType, callType, startingWith) {
+    var groupSelector = '[data-num^="' + phoneNumber +
+      '"]' + (phoneNumberType ? ('[data-phone-type="' +
+      phoneNumberType + '"]') : '') +
+      '[data-type' + (startingWith ? '^' : '') + '="' + callType +
+      '"].collapsed';
+    return day.querySelectorAll(groupSelector);
+  },
+
+  deleteEntry: function re_deleteEntry(store, logItem) {
+    var delSelReq = store.delete(parseInt(logItem.dataset.date));
+
+    delSelReq.onsuccess = function ds_onsuccess(deletedLogItem, e) {
+      var deletedLogItemParent = deletedLogItem.parentNode;
+      deletedLogItemParent.removeChild(deletedLogItem);
+      delete this._selectedEntries[deletedLogItem.dataset.date];
+      if (deletedLogItemParent.childNodes.length == 0) {
+        var deletedLogItemDay = deletedLogItemParent.parentNode;
+        var deletedLogItemDayParent = deletedLogItemDay.parentNode;
+        deletedLogItemDayParent.removeChild(deletedLogItemDay);
+        if (this.recentsContainer.innerHTML == '') {
+          this.recentsIconEdit.classList.add('disabled');
+        }
+      } else if (this.missedFilter.classList.contains('selected')) {
+        var notHiddenCalls = deletedLogItemParent.
+          querySelectorAll('.log-item:not(.hide)');
+        if (notHiddenCalls.length == 0) {
+          var notHiddenCallsDay = deletedLogItemParent.parentNode;
+          notHiddenCallsDay.classList.add('hide');
+        }
+        var visibleCalls = this.recentsContainer.
+          querySelectorAll('.log-item:not(.hide)');
+        if (visibleCalls.length == 0) {
+          this.recentsIconEdit.classList.add('disabled');
+        }
+      }
+    }.bind(this, logItem);
+
+    delSelReq.onerror = function ds_onerror(e) {
+      console.log('dialerRecents delete selected failure: ',
+        e.message, setreq.errorCode);
+    }
+  },
+
   click: function re_click(target) {
-    var number = target.dataset.num;
-    if (number) {
-      CallHandler.call(number);
+    if (!target.classList.contains('log-item')) {
+      return;
+    }
+    if (!this._recentsEditionMode) {
+      var number = target.dataset.num.trim();
+      if (number) {
+        this.updateLatestVisit();
+        CallHandler.call(number);
+      }
+    } else {
+      target.classList.toggle('selected');
+      target.querySelector('.call-log-selection').classList.toggle('selected');
+      if (target.classList.contains('selected')) {
+        this._selectedEntriesCounter++;
+        this._selectedEntries[target.dataset.date.trim()] = 1;
+      } else {
+        this._selectedEntriesCounter--;
+        delete this._selectedEntries[target.dataset.date.trim()];
+      }
+      if (this._selectedEntriesCounter == 0) {
+        this.headerEditModeText.textContent = _('edit');
+        this.deleteSelectedThreads.classList.add('disabled');
+
+      } else {
+        var count = this._selectedEntriesCounter;
+        this.headerEditModeText.textContent = _('edit-selected',
+                                                {n: count});
+        this.deleteSelectedThreads.classList.remove('disabled');
+      }
     }
   },
 
   createRecentEntry: function re_createRecentEntry(recent) {
     var classes = 'icon ';
-    var fontDateClasses = '';
     if (recent.type.indexOf('dialing') != -1) {
       classes += 'icon-outgoing';
     } else if (recent.type.indexOf('incoming') != -1) {
       if (recent.type.indexOf('connected') == -1) {
         classes += 'icon-missed';
-        fontDateClasses = 'missed-call-font';
       } else {
         classes += 'icon-incoming';
       }
     }
-
     var entry =
       '<li class="log-item ' +
-      ((localStorage.getItem('latestCallLogVisit') < recent.date) ?
-        'highlighted' : '') +
+        (this._selectedEntries[recent.date] ? 'selected' : '') +
+        ((localStorage.getItem('latestCallLogVisit') < recent.date) ?
+          'highlighted' : '') +
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
@@ -155,32 +480,46 @@ var Recents = {
       '  <section class="log-item-info grid">' +
       '    <div class="grid-cell grid-v-align">' +
       '      <section class="primary-info ellipsis">' +
-      recent.number +
+               recent.number +
       '      </section>' +
-      '      <section class="' + fontDateClasses +
-      '        secondary-info ellipsis">' + prettyDate(recent.date) +
+      '      <section class="secondary-info ellipsis">' +
+               prettyDate(recent.date) +
       '      </section>' +
       '    </div>' +
       '  </section>' +
-      '  <section class="call-log-contact-photo">' +
+      '  <section class="call-log-contact-photo ' +
+           (this._recentsEditionMode ? 'hide' : '') + '">' +
+      '  </section>' +
+      '  <section class="call-log-selection ' +
+           (this._recentsEditionMode ? 'show ' : '') +
+           (this._selectedEntries[recent.date] ? 'selected' : '') +
+           '">' +
       '  </section>' +
       '</li>';
     return entry;
   },
 
   render: function re_render() {
-    if (!this.view)
+    if (!this.recentsContainer)
       return;
 
     var self = this;
     this.history(function showRecents(recents) {
       if (recents.length == 0) {
-        self.view.innerHTML = '';
+        self.recentsContainer.innerHTML =
+          '<div id="no-result-container">' +
+          ' <div id="no-result-message">' +
+          '   <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
+          '   <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
+          ' </div>' +
+          '</div>';
+        self.recentsIconEdit.classList.add('disabled');
         return;
       }
 
-      var content = '';
-      var currentDay = '';
+      self.recentsIconEdit.classList.remove('disabled');
+      var content = '',
+        currentDay = '';
       for (var i = 0; i < recents.length; i++) {
         var day = self.getDayDate(recents[i].date);
         if (day != currentDay) {
@@ -196,45 +535,94 @@ var Recents = {
         }
         content += self.createRecentEntry(recents[i]);
       }
-      self.view.innerHTML = content;
+      self.recentsContainer.innerHTML = content;
 
       self.updateContactDetails();
 
-      self.groupCallsByContactDayType();
+      if (self.missedFilter.classList.contains('selected')) {
+        self.missedFilter.classList.remove('selected');
+        var theEvent = new Object();
+        theEvent.target = self.missedFilter;
+        self.filter(theEvent);
+        self.missedFilter.classList.add('selected');
+        self.allFilter.classList.remove('selected');
+        self._allViewGroupingPending = true;
+      }
+
     });
   },
 
   updateContactDetails: function re_updateContactDetails() {
-    var itemSelector = '.log-item';
-    var callLogItems = document.querySelectorAll(itemSelector);
-    var length = callLogItems.length;
+    var itemSelector = '.log-item',
+      callLogItems = document.querySelectorAll(itemSelector),
+      length = callLogItems.length,
+      phoneNumber;
+    this._updateCounter = 0;
     for (var i = 0; i < length; i++) {
-      Contacts.findByNumber(
-        callLogItems[i].querySelector('.primary-info').textContent.trim(),
-        function re_contactCallBack(itemLogEl, contact) {
-          if (contact) {
-            if (contact.name) {
-              itemLogEl.querySelector('.primary-info').textContent =
-                contact.name;
-            }
-            if (contact.photo) {
-              itemLogEl.querySelector('.call-log-contact-photo').
-                style.backgroundImage = 'url(' + contact.photo + ')';
-            }
-          }
-        }.bind(this, callLogItems[i]));
+      phoneNumber = callLogItems[i].dataset.num.trim();
+      var cachedContact = this._cachedContacts[phoneNumber];
+      if (cachedContact) {
+        this.contactCallBack(callLogItems[i], length, phoneNumber,
+          cachedContact);
+      } else {
+        Contacts.findByNumber(
+          phoneNumber,
+          this.contactCallBack.bind(this, callLogItems[i],
+            length, phoneNumber));
+      }
     }
   },
 
-  groupCallsByContactDayType: function re_groupCallsByContactDayType() {
-    var daySelector = '.log-group';
-    var daysElements = document.querySelectorAll(daySelector);
-    var daysElementsLength = daysElements.length;
-    var itemSelector = '.log-item';
-    var callLogItems, length, phoneNumber, callType, callCount, callDate,
-      sameTypeCallSelector, sameTypeCall, sameTypeCallSelectorAux,
-      sameTypeCallAux,
-      sameTypeCallCount;
+  contactCallBack: function re_contactCallBack(logItem, max, number, contact) {
+    var primaryInfo = logItem.querySelector('.primary-info'),
+      contactPhoto = logItem.querySelector('.call-log-contact-photo');
+    if (contact) {
+      if (contact.name) {
+        primaryInfo.textContent =
+          contact.name;
+      }
+      if (contact.photo) {
+        contactPhoto.classList.add('knownContact');
+        contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
+      }
+      var phoneNumber = logItem.dataset.num.trim(),
+        secondaryInfo = logItem.querySelector('.secondary-info'),
+        contactPhoneNumber, phoneEntry,
+        length = contact.tel.length;
+      for (var i = 0; i < length; i++) {
+        phoneEntry = contact.tel[i];
+        contactPhoneNumber = phoneEntry.number.replace(' ', '', 'g');
+        if ((phoneNumber == contactPhoneNumber) && (phoneEntry.type)) {
+          secondaryInfo.textContent = secondaryInfo.textContent.trim() +
+            '   ' + phoneEntry.type;
+          logItem.dataset.phoneType = phoneEntry.type;
+        }
+      }
+      this._cachedContacts[phoneNumber] = contact;
+    } else {
+      contactPhoto.classList.add('unknownContact');
+
+      if (!number.length) {
+        primaryInfo.textContent = _('unknown');
+      }
+    }
+    this._updateCounter++;
+    if (this._updateCounter == max) {
+      this.groupCallsInCallLog();
+    }
+  },
+
+  groupCallsInCallLog: function re_groupCallsInCallLog() {
+    // The grouping of the calls is per day, per contact, per contact
+    //  phone number type (Home, Work, Mobile, etc.) and per type of call
+    //  (outgoing, incoming, missed).
+    var daySelector = '.log-group',
+      daysElements = document.querySelectorAll(daySelector),
+      daysElementsLength = daysElements.length,
+      itemSelector = '.log-item:not(.hide)',
+      callLogItems, length, phoneNumber, phoneNumberType, callType,
+      callCount, callDate, sameTypeCall,
+      sameTypeCallAux, sameTypeCallCount;
     for (var dayElementsCounter = 0; dayElementsCounter < daysElementsLength;
       dayElementsCounter++) {
       callLogItems = daysElements[dayElementsCounter].
@@ -242,29 +630,26 @@ var Recents = {
       length = callLogItems.length;
       for (var i = 0; i < length; i++) {
         phoneNumber = callLogItems[i].dataset.num.trim();
+        phoneNumberType = callLogItems[i].dataset.phoneType;
         callType = callLogItems[i].dataset.type;
         callCount = (callLogItems[i].dataset.count ?
           parseInt(callLogItems[i].dataset.count) : 1);
         callDate = callLogItems[i].dataset.date;
         if (callType.indexOf('dialing') != -1) {
-          sameTypeCallSelector = '[data-num^="' + phoneNumber +
-            '"][data-type="dialing-refused"][data-count]:not(.hide)';
-          sameTypeCall = daysElements[dayElementsCounter].
-            querySelector(sameTypeCallSelector);
+          sameTypeCall = this.getSameTypeCallsOnSameDayForGrouping(
+            daysElements[dayElementsCounter], phoneNumber, phoneNumberType,
+            'dialing', true);
         } else if (callType.indexOf('incoming-connected') != -1) {
-          sameTypeCallSelector = '[data-num^="' + phoneNumber +
-            '"][data-type="incoming-connected"][data-count]:not(.hide)';
-          sameTypeCall = daysElements[dayElementsCounter].
-            querySelector(sameTypeCallSelector);
+          sameTypeCall = this.getSameTypeCallsOnSameDayForGrouping(
+            daysElements[dayElementsCounter], phoneNumber, phoneNumberType,
+            'incoming-connected', false);
         } else {
-          sameTypeCallSelector = '[data-num^="' + phoneNumber +
-            '"][data-type="incoming"][data-count]:not(.hide)';
-          sameTypeCall = daysElements[dayElementsCounter].
-            querySelector(sameTypeCallSelector);
-          sameTypeCallSelectorAux = '[data-num^="' + phoneNumber +
-            '"][data-type="incoming-refused"][data-count]:not(.hide)';
-          sameTypeCallAux = daysElements[dayElementsCounter].
-            querySelector(sameTypeCallSelectorAux);
+          sameTypeCall = this.getSameTypeCallsOnSameDayForGrouping(
+            daysElements[dayElementsCounter], phoneNumber, phoneNumberType,
+            'incoming', false);
+          sameTypeCallAux = this.getSameTypeCallsOnSameDayForGrouping(
+            daysElements[dayElementsCounter], phoneNumber, phoneNumberType,
+            'incoming-refused', false);
           if (sameTypeCallAux) {
             if (sameTypeCall) {
               if (sameTypeCall.dataset.date < sameTypeCallAux.dataset.date) {
@@ -275,8 +660,9 @@ var Recents = {
             }
           }
         }
+
         callLogItems[i].dataset.count = callCount;
-        if (sameTypeCall) {
+        if (sameTypeCall && (sameTypeCall != callLogItems[i])) {
           sameTypeCallCount = parseInt(sameTypeCall.dataset.count);
           if (sameTypeCall.dataset.date > callDate) {
             this.groupCalls(callLogItems[i], sameTypeCall,
@@ -290,12 +676,23 @@ var Recents = {
     }
   },
 
+  getSameTypeCallsOnSameDayForGrouping:
+    function re_getSameTypeCallsOnSameDayForGrouping(
+      day, phoneNumber, phoneNumberType, callType, startingWith) {
+    var sameTypeCallSelector = '[data-num^="' + phoneNumber +
+      '"]' + (phoneNumberType ? ('[data-phone-type="' +
+      phoneNumberType + '"]') : '') +
+      '[data-type' + (startingWith ? '^' : '') + '="' + callType +
+      '"][data-count]:not(.hide)';
+    return day.querySelector(sameTypeCallSelector);
+  },
+
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
     olderCallEl.classList.add('hide');
     olderCallEl.classList.add('collapsed');
-    var primaryInfo = newerCallEl.querySelector('.primary-info');
-    var callDetails = primaryInfo.textContent.trim();
-    var countIndex = callDetails.indexOf('(' + count + ')');
+    var primaryInfo = newerCallEl.querySelector('.primary-info'),
+      callDetails = primaryInfo.textContent.trim(),
+      countIndex = callDetails.indexOf('(' + count + ')');
     count += inc;
     if (countIndex != -1) {
       primaryInfo.textContent = callDetails.substr(0, countIndex) +
@@ -307,18 +704,17 @@ var Recents = {
   },
 
   getDayDate: function re_getDayDate(timestamp) {
-    var date = new Date(timestamp);
-    var startDate = new Date(date.getFullYear(),
+    var date = new Date(timestamp),
+      startDate = new Date(date.getFullYear(),
                              date.getMonth(), date.getDate());
     return startDate.getTime();
   },
 
   history: function re_history(callback) {
     this.getDatabase((function(database) {
-      var recents = [];
-
-      var txn = database.transaction(this.STORENAME, 'readonly');
-      var store = txn.objectStore(this.STORENAME);
+      var recents = [],
+        txn = database.transaction(this.STORENAME, 'readonly'),
+        store = txn.objectStore(this.STORENAME);
 
       var cursor = store.openCursor(null, 'prev');
       cursor.onsuccess = function(event) {
@@ -342,14 +738,13 @@ var Recents = {
   },
 
   updateHighlighted: function re_updateHighlighted() {
-    var itemSelector = '.log-item.highlighted';
-    var items = document.querySelectorAll(itemSelector);
-    var itemsLength = items.length;
+    var itemSelector = '.log-item.highlighted',
+      items = document.querySelectorAll(itemSelector),
+      itemsLength = items.length;
     for (var i = 0; i < itemsLength; i++) {
       items[i].classList.remove('highlighted');
     }
   }
-
 };
 
 window.addEventListener('load', function recentsSetup(evt) {

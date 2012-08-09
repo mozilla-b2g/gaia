@@ -64,6 +64,11 @@ var LockScreen = {
   */
   kPassCodeTriesTimeout: 10000,
 
+  /*
+  * Airplane mode
+  */
+  airplaneMode: false,
+
   /* init */
   init: function ls_init() {
     this.getAllElements();
@@ -85,7 +90,7 @@ var LockScreen = {
     this.areaCamera.addEventListener('mousedown', this);
     this.areaUnlock.addEventListener('mousedown', this);
 
-    /* Unlock clean up */
+    /* Unlock & camera panel clean up */
     this.overlay.addEventListener('transitionend', this);
 
     /* Passcode input pad*/
@@ -98,7 +103,9 @@ var LockScreen = {
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
       conn.addEventListener('voicechange', this);
+      conn.addEventListener('cardstatechange', this);
       this.updateConnState();
+      this.connstate.hidden = false;
     }
 
     var self = this;
@@ -108,6 +115,12 @@ var LockScreen = {
 
     SettingsListener.observe('audio.volume.master', 5, function(volume) {
       self.mute.hidden = !!volume;
+    });
+
+    SettingsListener.observe(
+      'ril.radio.disabled', false, function(value) {
+      self.airplaneMode = value;
+      self.updateConnState();
     });
 
     SettingsListener.observe(
@@ -161,6 +174,7 @@ var LockScreen = {
         this.lockIfEnabled(true);
         break;
       case 'voicechange':
+      case 'cardstatechange':
         this.updateConnState();
 
       case 'mozChromeEvent':
@@ -248,10 +262,13 @@ var LockScreen = {
         if (evt.target !== this.overlay)
           return;
 
-        if (!this.locked) {
-          this.switchPanel();
-          this.overlay.hidden = true;
+        if (this.overlay.dataset.panel !== 'camera' &&
+            this.camera.firstElementChild) {
+          this.camera.removeChild(this.camera.firstElementChild);
         }
+
+        if (!this.locked)
+          this.switchPanel();
         break;
 
       case 'home':
@@ -362,11 +379,15 @@ var LockScreen = {
 
           self.unlock();
 
-          // XXX: This should be replaced probably by Web Activities *safely*
-          var host = document.location.host;
-          var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-          var protocol = document.location.protocol + '//';
-          Applications.getByOrigin(protocol + 'camera.' + domain).launch();
+          var a = new MozActivity({
+            name: 'record',
+            data: {
+              type: 'photos'
+            }
+          });
+          a.onerror = function ls_activityError() {
+            console.log('MozActivity: camera launch error.');
+          }
         };
 
 
@@ -456,7 +477,6 @@ var LockScreen = {
     if (instant) {
       this.overlay.classList.add('no-transition');
       this.switchPanel();
-      this.overlay.hidden = true;
     } else {
       this.overlay.classList.remove('no-transition');
     }
@@ -475,7 +495,6 @@ var LockScreen = {
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
-    this.overlay.hidden = false;
 
     this.switchPanel();
 
@@ -507,36 +526,19 @@ var LockScreen = {
         break;
 
       case 'camera':
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var protocol = document.location.protocol + '//';
-
-        var origin = protocol + 'camera.' + domain;
-
-        var app = Applications.getByOrigin(protocol + 'camera.' + domain);
-
-        // create the <iframe mozbrowser mozapp> and load the camera app
+        // create the <iframe> and load the camera
         var frame = document.createElement('iframe');
-        frame.setAttribute('mozbrowser', 'true');
-        frame.setAttribute('mozapp', app.manifestURL);
-        frame.dataset.frameType = 'lockscreen-camera';
-        frame.dataset.frameOrigin = origin;
 
-        frame.src = origin + app.manifest.launch_path;
+        frame.src = './camera/';
         var mainScreen = this.mainScreen;
-        frame.addEventListener('mozbrowserloadend', function cameraLoaded() {
+        frame.onload = function cameraLoaded() {
           mainScreen.classList.add('lockscreen-camera');
-          callback();
-        });
+        };
         this.overlay.classList.remove('no-transition');
-        this.camera.hidden = false;
         this.camera.appendChild(frame);
 
-        if (app.manifest.orientation) {
-          screen.mozLockOrientation(app.manifest.orientation);
-        } else {
-          screen.mozUnlockOrientation();
-        }
+        if (callback)
+          callback();
         break;
     }
   },
@@ -554,18 +556,7 @@ var LockScreen = {
         break;
 
       case 'camera':
-        var self = this;
-        screen.mozLockOrientation('portrait-primary');
-        this.overlay.addEventListener('transitionend',
-          function ls_unloadCamera() {
-            self.overlay.removeEventListener('transitionend',
-                                             ls_unloadCamera);
-
-            // Remove the iframe element
-            self.mainScreen.classList.remove('lockscreen-camera');
-            self.camera.hidden = true;
-            self.camera.removeChild(this.camera.firstElementChild);
-          });
+        this.mainScreen.classList.remove('lockscreen-camera');
         break;
 
       case 'emergency':
@@ -592,7 +583,10 @@ var LockScreen = {
         }
 
         this.overlay.addEventListener('transitionend',
-          function ls_unloadDefaultPanel() {
+          function ls_unloadDefaultPanel(evt) {
+            if (evt.target !== this)
+              return;
+
             self.overlay.removeEventListener('transitionend',
                                              ls_unloadDefaultPanel);
             unload();
@@ -636,26 +630,89 @@ var LockScreen = {
   },
 
   updateConnState: function ls_updateConnState() {
-    var voice = window.navigator.mozMobileConnection.voice;
+    var conn = window.navigator.mozMobileConnection;
+    var voice = conn.voice;
+    var connstate = this.connstate;
     var _ = navigator.mozL10n.get;
 
+    if (this.airplaneMode) {
+      connstate.dataset.l10nId = 'airplaneMode';
+      connstate.textContent = _('airplaneMode') || '';
+
+      return;
+    }
+
+    // Possible value of voice.state are
+    // 'notSearching', 'searching', 'denied', 'registered',
+    // where the later three means the phone is trying to grabbing
+    // the network. See
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
+    if (voice.state == 'notSearching') {
+      // "No Network"
+      connstate.dataset.l10nId = 'noNetwork';
+      connstate.textContent = _('noNetwork') || '';
+
+      return;
+    }
+
+    if (!voice.connected && !voice.emergencyCallsOnly) {
+      // "Searching"
+      // voice.state can be any of the later three value.
+      // (it's possible, briefly that the phone is 'registered'
+      // but not yet connected.)
+      connstate.dataset.l10nId = 'searching';
+      connstate.textContent = _('searching') || '';
+
+      return;
+    }
+
     if (voice.emergencyCallsOnly) {
-      this.connstate.hidden = false;
-      this.connstate.dataset.l10nId = 'emergencyCallsOnly';
-      this.connstate.textContent = _('emergencyCallsOnly') || '';
+      switch (conn.cardState) {
+        case 'absent':
+          connstate.dataset.l10nId = 'emergencyCallsOnlyNoSIM';
+          connstate.textContent = _('emergencyCallsOnlyNoSIM') || '';
+
+          break;
+
+        case 'pinRequired':
+          connstate.dataset.l10nId = 'emergencyCallsOnlyPinRequired';
+          connstate.textContent = _('emergencyCallsOnlyPinRequired') || '';
+
+          break;
+
+        case 'pukRequired':
+          connstate.dataset.l10nId = 'emergencyCallsOnlyPukRequired';
+          connstate.textContent = _('emergencyCallsOnlyPukRequired') || '';
+
+          break;
+
+        case 'networkLocked':
+          connstate.dataset.l10nId = 'emergencyCallsOnlyNetworkLocked';
+          connstate.textContent = _('emergencyCallsOnlyNetworkLocked') || '';
+
+          break;
+
+        default:
+          connstate.dataset.l10nId = 'emergencyCallsOnly';
+          connstate.textContent = _('emergencyCallsOnly') || '';
+
+          break;
+      }
 
       return;
     }
 
-    if (!voice.connected) {
-      this.connstate.hidden = true;
+    if (voice.roaming) {
+      var l10nArgs = { operator: voice.network.shortName };
+      connstate.dataset.l10nId = 'roaming';
+      connstate.dataset.l10nArgs = JSON.stringify(l10nArgs);
+      connstate.textContent = _('roaming', l10nArgs);
 
       return;
     }
 
-    this.connstate.hidden = false;
-    delete this.connstate.dataset.l10nId;
-    this.connstate.textContent = voice.network.shortName;
+    delete connstate.dataset.l10nId;
+    connstate.textContent = voice.network.shortName;
   },
 
   showNotification: function lockscreen_showNotification(detail) {

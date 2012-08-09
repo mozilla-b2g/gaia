@@ -18,6 +18,7 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 var settings = [
  new Setting("alarm.enabled", false),
  new Setting("accessibility.invert", false),
+ new Setting("audio.volume.master", 0.5),
  new Setting("bluetooth.enabled", false),
  new Setting("debug.grid.enabled", false),
  new Setting("debug.fps.enabled", false),
@@ -56,15 +57,16 @@ var settings = [
  new Setting("ril.data.enabled", false),
  new Setting("ril.data.apn", ""),
  new Setting("ril.data.passwd", ""),
+ new Setting("ril.data.httpProxyHost", ""),
+ new Setting("ril.data.httpProxyPort", 0),
  new Setting("ril.data.mmsc", ""),
  new Setting("ril.data.mmsproxy", ""),
  new Setting("ril.data.mmsport", 0),
- new Setting("ril.data.roaming.enabled", false),
+ new Setting("ril.data.roaming_enabled", false),
  new Setting("ril.data.user", ""),
  new Setting("ril.radio.disabled", false),
  new Setting("screen.automatic-brightness", true),
  new Setting("screen.brightness", 1),
- new Setting("screen.timeout", 60),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
  new Setting("tethering.usb.enabled", false),
@@ -76,6 +78,14 @@ var settings = [
  new Setting("wifi.enabled", true),
  new Setting("wifi.notification", false)
 ];
+
+// Disable the screen timeout in DEBUG mode
+if (DEBUG) {
+  dump("Note: screen.timeout has been set to 0 because of the debug mode.\n");
+  settings[settings.length] = new Setting("screen.timeout", 0);
+} else {
+  settings[settings.length] = new Setting("screen.timeout", 60);
+}
 
 // Ensure there is no duplicate
 for (let i in settings) {
@@ -99,8 +109,6 @@ function Setting(aName, aValue) {
 
   Setting.counter++;
 }
-
-const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils' : Cu } = Components;
 
 (function registerProfileDirectory() {
 

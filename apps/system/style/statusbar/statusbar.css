@@ -29,10 +29,34 @@
 
 #statusbar > .sb-start {
   float: left;
+
+  -moz-transition: -moz-transform 0.5s ease;
+}
+
+*[dir=rtl] #statusbar > * {
+  float: left;
 }
 
 *[dir=rtl] #statusbar > .sb-start {
   float: right;
+}
+
+#statusbar > .sb-start-upper {
+  position: absolute;
+  top: -20px;
+  left: 0;
+
+  -moz-transition: -moz-transform 0.5s ease;
+}
+
+*[dir=rtl] #statusbar > .sb-start-upper {
+  left: auto;
+  right: 0;
+}
+
+.utility-tray #statusbar > .sb-start-upper,
+.utility-tray #statusbar > .sb-start {
+  -moz-transform: translateY(20px);
 }
 
 #statusbar-loading {
@@ -43,15 +67,21 @@
   height: 1px;
   background: url('images/loading.gif') center center repeat-x;
 
-  opacity: 0.5;
-  -moz-transition: opacity 0.3s ease 0.2s;
+  -moz-transition: opacity 0.1s ease 0.2s;
 }
 
 #statusbar-loading[hidden] {
   display: block;
-  opacity: 0;
+  visibility: hidden;
 
   -moz-transition: none;
+}
+
+#statusbar-label {
+  padding: 0;
+  color: #999;
+  font: 14px/14px 'Open Sans', sans-serif;
+  font-weight: bold;
 }
 
 #statusbar-time {
@@ -59,16 +89,6 @@
   color: #fff;
   font: 14px/14px 'Open Sans', sans-serif;
   font-weight: 600;
-}
-
-#statusbar-conn {
-  padding: 0;
-  color: #fff;
-  font: 12px/14px 'Open Sans', sans-serif;
-}
-
-#statusbar-conn:empty {
-  display: none;
 }
 
 .sb-icon {
@@ -153,6 +173,11 @@
   background-position: -260px -20px;
 }
 
+.sb-icon-wifi[data-level="0"][data-connecting="true"] {
+  background: url('images/wifi-connecting.gif') no-repeat;
+  background-position: 0 0;
+}
+
 .sb-icon-wifi:not([data-level]),
 .sb-icon-wifi[data-level="0"] {
   background-position: 0 -60px;
@@ -170,28 +195,41 @@
   background-position: -84px -60px;
 }
 
-.sb-icon-data[data-type="LTE"] {
+.sb-icon-data[data-type="H+"] {
   background-position: 0 -80px;
 }
 
-.sb-icon-data[data-type="4G"] {
+.sb-icon-data[data-type="H"] {
   background-position: -21px -80px;
 }
 
-.sb-icon-data[data-type="3G"] {
+.sb-icon-data[data-type="4G"] {
   background-position: -42px -80px;
 }
 
-.sb-icon-data[data-type="EDGE"] {
+.sb-icon-data[data-type="3G"] {
   background-position: -63px -80px;
 }
 
-.sb-icon-data[data-type="2G"] {
+.sb-icon-data[data-type="E"] {
   background-position: -84px -80px;
+}
+
+.sb-icon-data[data-type="2G"] {
+  background-position: -105px -80px;
+}
+
+.sb-icon-data[data-type="circle"] {
+  background-position: -126px -80px;
 }
 
 .sb-icon-flight-mode {
   background-position: 0 -40px;
+}
+
+.sb-icon-signal[data-level="-1"][data-searching="true"] {
+  background: url('images/signal-searching.gif') no-repeat;
+  background-position: 0 0;
 }
 
 .sb-icon-signal[data-level="-1"] {
@@ -299,6 +337,11 @@
   background-position: -189px -60px;
 }
 
+*[dir=rtl] .sb-icon-notification::before {
+  right: 0;
+  left: auto;
+}
+
 .sb-icon-notification[data-unread="true"]::before {
   background-position: -168px -60px;
 }
@@ -315,6 +358,10 @@
   font-weight: 600;
 }
 
+*[dir=rtl] .sb-icon-notification::after {
+  right: auto;
+  left: 0;
+}
 .sb-icon-notification[data-unread="true"]::after {
   color: #27b9cf;
 }

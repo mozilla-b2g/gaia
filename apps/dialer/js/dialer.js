@@ -16,9 +16,13 @@ var CallHandler = {
       if (telephony) {
         var call = telephony.dial(sanitizedNumber);
 
-        call.onconnected = function clearPhoneView() {
-          KeypadManager.updatePhoneNumber('');
-        };
+        if (call) {
+          var cb = function clearPhoneView() {
+            KeypadManager.updatePhoneNumber('');
+          };
+          call.onconnected = cb;
+          call.ondisconnected = cb;
+        }
       }
     }
   },
@@ -93,6 +97,9 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var fillNumber = function actHandleDisplay() {
     if (number) {
       KeypadManager.updatePhoneNumber(number);
+      if (window.location.hash != '#keyboard-view') {
+        window.location.hash = '#keyboard-view';
+      }
     }
   }
 

@@ -7,7 +7,8 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "systemXHR"
+    "systemXHR",
+    "settings"
   ],
   "locales": {
     "ar": {
@@ -43,8 +44,8 @@
       "description": "Gaia Calendar"
     },
     "pt-BR": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
+      "name": "Calendário",
+      "description": "Calendário do Gaia"
     },
     "ru": {
       "name": "Calendar",

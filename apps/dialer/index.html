@@ -160,33 +160,55 @@
         <!-- <iframe id="iframe-contacts" src="" frameBorder="no" class="grid-wrapper"></iframe> -->
       </section>
       <section class="view" role="tabpanel" id="recents-view">
-        <div class="grid-wrapper">
-          <header class="view-header">
-            <div class="grid-wrapper grid">
-              <h1 class="grid-cell grid-v-align">Call log</h1>
-              <section class="grid-cell grid-v-align view-header-options">
-                <div class="grid-wrapper grid">
-                  <span class="grid-cell grid-v-align">
-                    <div class="icon icon-edit">
-                    </div>
-                  </span>
-                </div>
-              </section>
-            </div>
-          </header>
-          <nav id="recents-filter-container">
-            <ul>
-              <li class="recents-filter-entry">
-                <button id="allFilter" type="button" data-action="all" class="selected"> All </button>
-              </li>
-              <li class="recents-filter-entry">
-                <button id="missedFilter" type="button" data-action="missed"> Missed </button>
-              </li>
-            </ul>
-          </nav>
-          <article id="recents-container" onclick="Recents.click(event.target)" class="view-body">
-          </article>
+        <div class="header-group">
+          <div class="header-wrapper">
+            <header class="view-header regular-header">
+              <menu type="toolbar">
+                 <a id="recents-icon-edit">
+                  <span id="edit-button" class="recents-icon icon-edit"></span>
+                 </a>
+              </menu>
+              <h1 data-l10n-id="callLog">Call log</h1>
+            </header>
+            <header class="view-header dark-header">
+              <a id="recents-icon-close" role="link">
+                <span id="cancel-button" class="recents-icon icon-close">close</span>
+              </a>
+              <menu type="toolbar">
+                 <button id="done-button" data-l10n-id="done">done</button>
+              </menu>
+              <h1 id="header-edit-mode-text" data-l10n-id="edit">Edit</h1>
+            </header>
+          </div>
         </div>
+        <nav id="recents-filter-container">
+          <ul>
+            <li class="recents-filter-entry">
+              <button id="allFilter" type="button" data-action="all" data-l10n-id="all" class="selected">
+                All
+              </button>
+            </li>
+            <li class="recents-filter-entry">
+              <button id="missedFilter" type="button" data-action="missed" data-l10n-id="missed">
+                Missed
+              </button>
+            </li>
+          </ul>
+        </nav>
+        <article id="recents-container" onclick="Recents.click(event.target)" class="view-body">
+        </article>
+        <footer class="options">
+          <section class="option">
+            <button id="delete-all-threads" class="edit-button" data-l10n-id="deleteAll">
+              Delete all
+            </button>
+          </section>
+          <section class="option">
+            <button id="delete-selected-threads" class="edit-button" data-l10n-id="deleteSelected">
+              Delete selected
+            </button>
+          </section>
+        </footer>
       </section>
     </article>
     <nav id="main-toolbar" class="toolbar grid center">

@@ -7,7 +7,9 @@
     "url": "http://openwebdevice.com"
   },
   "permissions": [
-    "contacts"
+    "contacts",
+    "webcontacts-manage",
+    "settings"
   ],
   "locales": {
     "ar": {
@@ -76,7 +78,8 @@
       "filters": {
         "type": "webcontacts/contact"
       },
-      "disposition": "window"
+      "disposition": "window",
+      "returnValue": true
     }
   }
 }

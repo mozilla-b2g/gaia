@@ -6,6 +6,11 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": [
+    "alarm",
+    "alarms",
+    "settings"
+  ],
   "locales": {
     "ar": {
       "name": "\u0627\u0644\u0633\u0627\u0639\u0629",

@@ -155,6 +155,14 @@
         </li>
       </ul>
 
+      <h2 data-l10n-id="wifi-wps">Wi-Fi Protected Setup</h2>
+      <ul>
+        <li id="wps-pbc-button">
+          <a data-l10n-id="wpsPbcMessage">Touch here for WPS PBC</a>
+          <small id="wifi-wps-desc"></small>
+        </li>
+      </ul>
+
       <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
       <ul id="wifi-networks">
         <!-- filled by wifi.js -->
@@ -255,7 +263,7 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" name="ril.data.roaming.enabled"/>
+            <input type="checkbox" name="ril.data.roaming_enabled"/>
             <span></span>
           </label>
           <small data-l10n-id="dataRoaming-expl"></small>
@@ -296,6 +304,14 @@
       <label>
         <span data-l10n-id="password">password</span>
         <input type="text" data-setting="ril.data.passwd" />
+      </label>
+      <label>
+        <span data-l10n-id="httpProxyHost">httpProxyHost</span>
+        <input type="text" data-setting="ril.data.httpProxyHost" />
+      </label>
+      <label>
+        <span data-l10n-id="httpProxyPort">httpProxyPort</span>
+        <input type="text" data-setting="ril.data.httpProxyPort" />
       </label>
 
       <!-- APN database lookup -->
@@ -585,6 +601,13 @@
             <span></span>
           </label>
           <a dir="ltr">Français</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="language.current" value="nb-NO"/>
+            <span></span>
+          </label>
+          <a dir="ltr">Norsk</a>
         </li>
         <li>
           <label>

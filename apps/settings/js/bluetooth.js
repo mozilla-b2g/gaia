@@ -44,10 +44,16 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     }
   };
 
+  var lastMozSettingValue = true;
+
   // enable Bluetooth if the related settings says so
   if (settings) {
     // register an observer to monitor bluetooth.enabled changes
     settings.addObserver('bluetooth.enabled', function(event) {
+      if (lastMozSettingValue == event.settingValue)
+        return;
+
+      lastMozSettingValue = event.settingValue;
       updatePowerState(event.settingValue);
     });
 
@@ -55,8 +61,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var req = settings.getLock().get('bluetooth.enabled');
 
     req.onsuccess = function bt_EnabledSuccess() {
-      var enabled = req.result['bluetooth.enabled'];
-      updatePowerState(enabled);
+      lastMozSettingValue = req.result['bluetooth.enabled'];
+      updatePowerState(lastMozSettingValue);
     };
   }
 
