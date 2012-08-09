@@ -468,7 +468,7 @@ var Contacts = (function() {
       }
     }
 
-    if (contact.photo && contact.photo.length  > 0) {
+    if (contact.photo && contact.photo.length > 0) {
       var detailsInner = document.getElementById('contact-detail-inner');
       contactDetails.classList.add('up');
       var photoOffset = (photoPos + 1) * 10;
@@ -495,7 +495,7 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
-    if (currentContact.photo and currentContact.photo.length > 0) {
+    if (currentContact.photo && currentContact.photo.length > 0) {
       var photoURL = URL.createObjectURL(currentContact.photo[0]);
       thumb.style.backgroundImage = 'url(' + photoURL + ')';
     }
@@ -1133,7 +1133,8 @@ var Contacts = (function() {
       this.img = img;
       img.onload = function() {
         var dataImg = getPhoto(this.img);
-        thumb.style.backgroundImage = 'url(' + dataImg + ')';
+        var photoURL = URL.createObjectURL(dataImg);
+        thumb.style.backgroundImage = 'url(' + photoURL + ')';
         currentContact.photo = currentContact.photo || [];
         currentContact.photo[0] = dataImg;
       }.bind(this);
@@ -1163,8 +1164,8 @@ var Contacts = (function() {
     } else {
       ctx.drawImage(contactImg, 0, -margin);
     }
-
-    var ret = canvas.toBlob();
+    var filename = 'contact_' + new Date().getTime();
+    var ret = canvas.mozGetAsFile(filename);
     contactImg = null;
     canvas = null;
     return ret;
