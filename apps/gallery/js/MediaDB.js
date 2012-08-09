@@ -470,7 +470,7 @@ MediaDB.prototype = {
   // that, a full scan will be compared with a full dump of the DB
   // to see if any files have been deleted.
   //
-  scan: function scan() {
+  scan: function scan(scanCompleteCallback) {
     if (!this.db)
       throw Error('MediaDB is not ready yet. Use the onready callback');
 
@@ -746,14 +746,23 @@ MediaDB.prototype = {
             if (media.onchange)
               media.onchange('deleted', deletedFiles);
 
+            // If there were created files, handle them.
             if (createdFiles.length > 0)
               handleCreatedFiles();
+            // Otherwise, we're done scanning
+            else if (scanCompleteCallback)
+              scanCompleteCallback();
           };
         }
         else if (createdFiles.length > 0) {
           // If there were no deleted files, we still need to
           // handle the created ones.  Especially for first-run
           handleCreatedFiles();
+        }
+        else {
+          // If the full scan didn't find any changes at all, we're done
+          if (scanCompleteCallback)
+            scanCompleteCallback();
         }
 
         function handleCreatedFiles() {
@@ -800,6 +809,10 @@ MediaDB.prototype = {
           // Now once we're done storing the files deliver a notification
           if (media.onchange)
             media.onchange('created', createdFiles);
+
+          // And finally, call the scanCompleteCallback
+          if (scanCompleteCallback)
+            scanCompleteCallback();
         }
       }
     }
