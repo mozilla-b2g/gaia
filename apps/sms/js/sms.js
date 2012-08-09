@@ -1031,22 +1031,30 @@ var ThreadUI = {
   },
 
   renderContactData: function thui_renderContactData(contact) {
-    // Create DOM element
-    var threadHTML = document.createElement('div');
-    threadHTML.classList.add('item');
-
     // Retrieve info from thread
-    var name = Utils.escapeHTML(contact.name.toString());
-    var number = Utils.escapeHTML(contact.tel[0].number.toString());
-    // Create HTML structure
-    var structureHTML =
-            '  <a href="#num=' + contact.tel[0].number + '">' +
-            '    <div class="name">' + name + '</div>' +
-            '    <div class="number">' + number + '</div>' +
-            '  </a>';
-    // Update HTML and append
-    threadHTML.innerHTML = structureHTML;
-    ThreadUI.view.appendChild(threadHTML);
+    var phoneType = ContactDataManager.phoneType;
+    var name = contact.name.toString();
+    var tels = contact.tel;
+    for (var i = 0; i < contact.tel.length; i++) {
+      var input = this.contactInput.value;
+      var reg = new RegExp(input, 'ig');
+      if (!(name.match(reg) || (tels[i].number.match(reg)))) {
+        continue;
+      }
+      name = Utils.escapeHTML(name.toString());
+      // Create DOM element
+      var threadHTML = document.createElement('div');
+      threadHTML.classList.add('item');
+      // Create HTML structure
+      var structureHTML =
+              '  <a href="#num=' + contact.tel[i].number + '">' +
+              '    <div class="name">' + name + '</div>' +
+              '    <div class="type">' + _(phoneType[i]) + '</div>' +
+              '  </a>';
+      // Update HTML and append
+      threadHTML.innerHTML = structureHTML;
+      ThreadUI.view.appendChild(threadHTML);
+    }
   },
 
   searchContact: function thui_searchContact() {
@@ -1061,7 +1069,7 @@ var ThreadUI = {
       if (!contacts || contacts.length == 0) {
         return;
       }
-      contacts.forEach(self.renderContactData);
+      contacts.forEach(self.renderContactData.bind(self));
     });
   },
 
