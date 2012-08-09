@@ -586,6 +586,7 @@ var WindowManager = (function() {
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
+        UtilityTray.hide();
         setDisplayedApp(origin);
         break;
     }
