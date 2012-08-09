@@ -108,6 +108,7 @@ div[data-level="CARDVIEW"] {
 #screen.fullscreen #dialog-overlay,
 #screen.fullscreen #keyboard-overlay,
 #screen.fullscreen #keyboard-frame,
+#screen.fullscreen #keyboard-frame.visible,
 #screen.fullscreen #cardsView {
   z-index: 2147483647;
 }
