@@ -204,3 +204,9 @@
   width: 2rem;
 }
 
+/*
+  Style of hightlight text.
+*/
+.highlight {
+  background-color: #D3D3D3;
+}
