@@ -530,26 +530,28 @@ dockProto.render = function dk_render(apps, target) {
   this.movableContainer = this.olist;
 };
 
-dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration,
-                                                          bounce) {
+dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
   var container = this.movableContainer;
   var style = container.style;
 
-  if (bounce) {
-    container.addEventListener('transitionend', function transitionEnd(e) {
-      container.removeEventListener('transitionend', transitionEnd);
-      style.MozTransform = 'translateX(' + scrollX + 'px)';
-      style.MozTransition = '-moz-transform .05s ease';
-    });
-
-    style.MozTransform = 'translateX(' + (scrollX +
-                           (this.posLeft <= scrollX ? 7 : -7)) + 'px)';
-  } else {
+  container.addEventListener('transitionend', function transitionEnd(e) {
+    container.removeEventListener('transitionend', transitionEnd);
     style.MozTransform = 'translateX(' + scrollX + 'px)';
-  }
+    style.MozTransition = '-moz-transform .05s ease';
+  });
 
+  style.MozTransform = 'translateX(' + (scrollX +
+                         (this.posLeft <= scrollX ? 7 : -7)) + 'px)';
   style.MozTransition = '-moz-transform ' + duration + 's ease';
 };
+
+dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
+                                                              duration) {
+  var style = this.movableContainer.style;
+  style.MozTransform = 'translateX(' + scrollX + 'px)';
+  style.MozTransition = '-moz-transform ' + duration + 's ease';
+};
+
 
 dockProto.setAnimation = function dk_setAnimation(children, init, end, upward) {
   var animation = upward ? 'jumpPrevCell' : 'jumpNextCell';

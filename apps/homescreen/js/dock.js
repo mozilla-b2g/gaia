@@ -5,7 +5,9 @@ const DockManager = (function() {
 
   var container, dock;
 
-  var maxNumAppInDock = 7, maxNumAppInViewPort, numAppsBeforeDrag;
+  var maxNumAppInDock = 7, maxNumAppInViewPort, numAppsBeforeDrag,
+      maxOffsetLeft;
+
   var windowWidth = window.innerWidth;
   var duration = .3;
 
@@ -26,11 +28,13 @@ const DockManager = (function() {
       case 'mousemove':
         evt.stopPropagation();
 
-        if (!isPanning &&
-            Math.abs(evt.clientX - startX) < thresholdForTapping) {
-          return;
+        if (!isPanning) {
+          if (Math.abs(evt.clientX - startX) < thresholdForTapping) {
+            return;
+          } else {
+            isPanning = true;
+          }
         }
-        isPanning = true;
 
         dock.moveBy(initialOffsetLeft + evt.clientX - startX);
         break;
@@ -41,15 +45,10 @@ const DockManager = (function() {
 
         if (!isPanning) {
           delete document.body.dataset.transitioning;
-        } else {
-          isPanning = false;
-        }
-
-        var scrollX = evt.clientX - startX;
-        if (Math.abs(scrollX) < thresholdForTapping) {
           dock.tap(evt.target);
         } else {
-          onTouchEnd(scrollX);
+          isPanning = false;
+          onTouchEnd(evt.clientX - startX);
         }
 
         break;
@@ -68,13 +67,11 @@ const DockManager = (function() {
   }
 
   function goNextSet() {
-    var maxOffsetLeft = windowWidth - dock.getNumApps() * cellWidth;
-
     if (dock.getLeft() <= maxOffsetLeft) {
       return;
     }
 
-    dock.moveByWithEffect(maxOffsetLeft, duration);
+    dock.moveByWithDuration(maxOffsetLeft, duration);
   }
 
   function goPreviousSet() {
@@ -82,19 +79,19 @@ const DockManager = (function() {
       return;
     }
 
-    dock.moveByWithEffect(0, duration);
+    dock.moveByWithDuration(0, duration);
   }
 
   function onTouchEnd(scrollX) {
     var numApps = dock.getNumApps();
 
     if (numApps > maxNumAppInViewPort) {
-      scrollX = scrollX > 0 ? 0 : windowWidth - numApps * cellWidth;
+      scrollX = scrollX > 0 ? 0 : maxOffsetLeft;
     } else {
-      scrollX = (windowWidth - numApps * cellWidth) / 2;
+      scrollX = maxOffsetLeft / 2;
     }
 
-    dock.moveByWithEffect(scrollX, duration, true);
+    dock.moveByWithEffect(scrollX, duration);
     container.addEventListener('transitionend', function transEnd(e) {
       container.removeEventListener('transitionend', transEnd);
       delete document.body.dataset.transitioning;
@@ -137,9 +134,9 @@ const DockManager = (function() {
     document.body.dataset.transitioning = 'true';
 
     if (centering || numApps <= maxNumAppInViewPort) {
-      dock.moveByWithEffect((windowWidth - numApps * cellWidth) / 2, .5);
+      dock.moveByWithDuration(maxOffsetLeft / 2, .5);
     } else {
-      dock.moveByWithEffect(dock.getLeft() + cellWidth, .5);
+      dock.moveByWithDuration(dock.getLeft() + cellWidth, .5);
     }
 
     container.addEventListener('transitionend', function transEnd(e) {
@@ -161,8 +158,9 @@ const DockManager = (function() {
         var numApps = dock.getNumApps();
         cellWidth = dock.getWidth() / numApps;
         maxNumAppInViewPort = Math.floor(windowWidth / cellWidth);
+        maxOffsetLeft = windowWidth - numApps * cellWidth;
         if (numApps <= maxNumAppInViewPort) {
-          dock.moveBy((windowWidth - numApps * cellWidth) / 2);
+          dock.moveBy(maxOffsetLeft / 2);
         }
       });
     },
@@ -182,6 +180,7 @@ const DockManager = (function() {
 
     onDragStop: function dm_onDragStop() {
       var numApps = dock.getNumApps();
+      maxOffsetLeft = windowWidth - numApps * cellWidth;
       if (numApps === numAppsBeforeDrag ||
           numApps > maxNumAppInViewPort &&
           (numApps < numAppsBeforeDrag && dock.getRight() >= windowWidth ||
@@ -222,6 +221,7 @@ const DockManager = (function() {
       dock.remove(app);
       this.saveState();
 
+      maxOffsetLeft = windowWidth - dock.getNumApps() * cellWidth;
       var numApps = dock.getNumApps();
       if (numApps > maxNumAppInViewPort && dock.getRight() >= windowWidth) {
         return;
