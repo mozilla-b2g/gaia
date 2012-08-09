@@ -6,7 +6,6 @@ var FixedHeader = (function FixedHeader() {
   var view;
   var fixedContainer;
   var currentlyFixed;
-  var previousOffset = 0;
 
   var init = function init(scrollView, container, select) {
     selector = select;
@@ -25,7 +24,7 @@ var FixedHeader = (function FixedHeader() {
       var currentHeight = currentHeader.offsetHeight;
       var differentHeaders = currentlyFixed != currentHeader;
       // Effect
-      if(Math.abs(offset) < currentHeight && differentHeaders) {
+      if (Math.abs(offset) < currentHeight && differentHeaders) {
         var toMove = Math.abs(offset) - currentHeight;
         var inEffect = Math.abs(offset) <= currentHeight;
         var translateTop = 'translateY(' + toMove + 'px)';
@@ -36,11 +35,7 @@ var FixedHeader = (function FixedHeader() {
       // Switching Header
       if (offset <= 0) {
         if (differentHeaders) {
-          var comingFromUp = previousOffset > offset;
-          var translateTop = 'translateY(0)';
-          var transform = comingFromUp ? translateTop : null;
-          fixedContainer.style.transform = transform;
-          previousOffset = offset;
+          fixedContainer.style.transform = 'translateY(0)';
           currentlyFixed = currentHeader;
           fixedContainer.style.display = 'block';
           var background = '-moz-element(#' + currentHeader.id + ')';
