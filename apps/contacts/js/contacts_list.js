@@ -66,7 +66,10 @@ contacts.List = (function() {
     var figure = document.createElement('figure');
     figure.className = 'item-media pull-right block-media';
     var img = document.createElement('img');
-    img.style.backgroundImage = 'url(' + contact.photo + ')';
+    if (contact.photo && contact.photo.length > 0) {
+      var photoURL = URL.createObjectURL(contact.photo[0]);
+      img.style.backgroundImage = 'url(' + photoURL + ')';
+    }
     figure.appendChild(img);
     link.appendChild(figure);
     var body = document.createElement('p');

@@ -468,9 +468,7 @@ var Contacts = (function() {
       }
     }
 
-
-    var existsPhoto = 'photo' in contact && contact.photo;
-    if (existsPhoto && 0 < contact.photo.length) {
+    if (contact.photo && contact.photo.length  > 0) {
       var detailsInner = document.getElementById('contact-detail-inner');
       contactDetails.classList.add('up');
       var photoOffset = (photoPos + 1) * 10;
@@ -479,7 +477,8 @@ var Contacts = (function() {
       } else {
         cover.style.overflow = null;
       }
-      cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
+      var photoURL = URL.createObjectURL(contact.photo[0]);
+      cover.style.backgroundImage = 'url(' + photoURL + ')';
     } else {
       cover.style.overflow = null;
       cover.style.backgroundImage = null;
@@ -496,7 +495,10 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
-    thumb.style.backgroundImage = 'url(' + currentContact.photo + ')';
+    if (currentContact.photo and currentContact.photo.length > 0) {
+      var photoURL = URL.createObjectURL(currentContact.photo[0]);
+      thumb.style.backgroundImage = 'url(' + photoURL + ')';
+    }
     var default_type = TAG_OPTIONS['phone-type'][0].value;
     for (var tel in currentContact.tel) {
       var currentTel = currentContact.tel[tel];
@@ -1162,7 +1164,7 @@ var Contacts = (function() {
       ctx.drawImage(contactImg, 0, -margin);
     }
 
-    var ret = canvas.toDataURL();
+    var ret = canvas.toBlob();
     contactImg = null;
     canvas = null;
     return ret;
