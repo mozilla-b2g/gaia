@@ -747,9 +747,9 @@ MediaDB.prototype = {
               media.onchange('deleted', deletedFiles);
 
             // If there were created files, handle them.
+            // Otherwise, we're done scanning.
             if (createdFiles.length > 0)
               handleCreatedFiles();
-            // Otherwise, we're done scanning
             else if (scanCompleteCallback)
               scanCompleteCallback();
           };

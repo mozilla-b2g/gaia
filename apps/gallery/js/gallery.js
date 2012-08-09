@@ -191,13 +191,13 @@ window.addEventListener('localized', function showBody() {
     // initial view
     if (!navigator.mozHasPendingMessage('activity'))
       setView(thumbnailListView);
-    
+
     // Register a handler for activities
     navigator.mozSetMessageHandler('activity', webActivityHandler);
   }
   catch (e) {
     if (e.message == 'nosdcard') {
-      // XXX eventually we want to distinguish the nocard case 
+      // XXX eventually we want to distinguish the nocard case
       // from the cardinuse case.
       showOverlay('nocard');
     }
@@ -235,10 +235,10 @@ function initPhotoDB() {
 
   db.onchange = function(type, files) {
     if (type === 'deleted') {
-      files.forEach(function(f) { imageDeleted(f); });
+      files.forEach(imageDeleted);
     }
     else if (type === 'created') {
-      files.forEach(function(f) { imageCreated(f); });
+      files.forEach(imageCreated);
     }
   };
 
@@ -246,20 +246,20 @@ function initPhotoDB() {
 }
 
 function scan() {
-  // 
+  //
   // XXX: is it too intrusive to display the scan overlay every time?
-  // 
-  // Can I do it on first launch only and after that 
+  //
+  // Can I do it on first launch only and after that
   // display some smaller scanning indicator that does not prevent
   // the user from using the app right away?
-  // 
+  //
   showOverlay('scanning');   // Tell the user we're scanning
   photodb.scan(function() {  // Run this function when scan is complete
     if (images.length === 0)
       showOverlay('nopix');
     else
       showOverlay(null);     // Hide the overlay
-  });              
+  });
 }
 
 function imageDeleted(fileinfo) {
@@ -1579,7 +1579,7 @@ $('edit-save-button').onclick = function() {
 var currentOverlay;  // The id of the current overlay or null if none.
 
 //
-// If id is null then hide the overlay. Otherwise, look up the localized 
+// If id is null then hide the overlay. Otherwise, look up the localized
 // text for the specified id and display the overlay with that text.
 // Supported ids include:
 //
@@ -1598,8 +1598,8 @@ function showOverlay(id) {
     $('overlay').classList.add('hidden');
     return;
   }
-  
-  $('overlay-title').textContent = navigator.mozL10n.get(id + "-title");
-  $('overlay-text').textContent = navigator.mozL10n.get(id + "-text");
+
+  $('overlay-title').textContent = navigator.mozL10n.get(id + '-title');
+  $('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
   $('overlay').classList.remove('hidden');
 }
