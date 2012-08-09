@@ -18,6 +18,11 @@ div[data-level="TOASTER"] {
   z-index: 32768;
 }
 
+/* Level 3: keybaord */
+#keyboard-frame.visible {
+  z-index: 16384;
+}
+
 /* Level 3: Statusbar */
 #statusbar,
 div[data-level="STATUSBAR"] {
@@ -96,9 +101,6 @@ div[data-level="CARDVIEW"] {
   z-index: 1;
 }
 
-#keyboard-frame.visible {
-  z-index: 65536;
-}
 
 /* Fullscreen */
 #screen.fullscreen #system-overlay,
@@ -109,6 +111,7 @@ div[data-level="CARDVIEW"] {
 #screen.fullscreen #keyboard-overlay,
 #screen.fullscreen #keyboard-frame,
 #screen.fullscreen #keyboard-frame.visible,
+#screen.fullscreen #notification-toaster,
 #screen.fullscreen #cardsView {
   z-index: 2147483647;
 }
