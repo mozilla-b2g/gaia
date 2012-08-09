@@ -198,6 +198,7 @@ const DragDropManager = (function() {
         }
       }
     }
+    previousOverlapIcon = undefined;
   }
 
   /*
