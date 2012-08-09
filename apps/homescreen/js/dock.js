@@ -94,7 +94,7 @@ const DockManager = (function() {
       scrollX = (windowWidth - numApps * cellWidth) / 2;
     }
 
-    dock.moveByWithEffect(scrollX, duration);
+    dock.moveByWithEffect(scrollX, duration, true);
     container.addEventListener('transitionend', function transEnd(e) {
       container.removeEventListener('transitionend', transEnd);
       delete document.body.dataset.transitioning;
@@ -137,9 +137,9 @@ const DockManager = (function() {
     document.body.dataset.transitioning = 'true';
 
     if (centering || numApps <= maxNumAppInViewPort) {
-      dock.moveByWithEffect((windowWidth - numApps * cellWidth) / 2, duration);
+      dock.moveByWithEffect((windowWidth - numApps * cellWidth) / 2, .5);
     } else {
-      dock.moveByWithEffect(dock.getLeft() + cellWidth, duration);
+      dock.moveByWithEffect(dock.getLeft() + cellWidth, .5);
     }
 
     container.addEventListener('transitionend', function transEnd(e) {

@@ -530,21 +530,25 @@ dockProto.render = function dk_render(apps, target) {
   this.movableContainer = this.olist;
 };
 
-dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
+dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration,
+                                                          bounce) {
   var container = this.movableContainer;
   var style = container.style;
 
-  container.addEventListener('transitionend', function transitionEnd(e) {
-    container.removeEventListener('transitionend', transitionEnd);
+  if (bounce) {
+    container.addEventListener('transitionend', function transitionEnd(e) {
+      container.removeEventListener('transitionend', transitionEnd);
+      style.MozTransform = 'translateX(' + scrollX + 'px)';
+      style.MozTransition = '-moz-transform .05s ease';
+    });
+
+    style.MozTransform = 'translateX(' + (scrollX +
+                           (this.posLeft <= scrollX ? 7 : -7)) + 'px)';
+  } else {
     style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '-moz-transform .05s ease';
-  });
+  }
 
-  style.MozTransform = 'translateX(' + (scrollX +
-                         (this.posLeft <= scrollX ? 5 : -5)) + 'px)';
   style.MozTransition = '-moz-transform ' + duration + 's ease';
-
-  this.posLeft = scrollX;
 };
 
 dockProto.setAnimation = function dk_setAnimation(children, init, end, upward) {
