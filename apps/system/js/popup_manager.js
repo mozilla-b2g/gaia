@@ -58,6 +58,9 @@ var PopupManager = {
     popup.addEventListener('mozbrowserloadstart', this);
   },
 
+  // Workaround for Bug: 781452
+  // - when window.open is called mozbrowserloadstart and mozbrowserloadend
+  // are fired two times
   handleLoadStart: function pm_handleLoadStart(evt) {
      this._startTimes++;
      if (this._startTimes > 1) {
@@ -65,7 +68,9 @@ var PopupManager = {
      }
   },
 
-
+  // Workaround for Bug: 781452
+  // - when window.open is called mozbrowserloadstart and mozbrowserloadend
+  // are fired two times
   handleLoadEnd: function pm_handleLoadEnd(evt) {
       this._endTimes++;
       if (this._endTimes > 1) {
