@@ -428,8 +428,7 @@ var Recents = {
       var number = target.dataset.num.trim();
       if (number) {
         this.updateLatestVisit();
-        KeypadManager.updatePhoneNumber(number);
-        window.location.hash = '#keyboard-view';
+        CallHandler.call(number);
       }
     } else {
       target.classList.toggle('selected');
