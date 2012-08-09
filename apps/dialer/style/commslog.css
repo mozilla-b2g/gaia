@@ -410,3 +410,29 @@ button::-moz-focus-inner {
 .recents-edit .view-body {
   height: -moz-calc(100% - 14.5rem);
 }
+
+/*
+  No result container
+*/
+#no-result-container {
+  background-image: url('images/SMS_200x200_bubble.png');
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  background-position:center;
+  height: 100%;
+  width: 100%;
+}
+
+#no-result-message {
+  text-align: left;
+  line-height: 3rem;
+  position: relative;
+  top: 50%;
+  border-top: .1rem solid rgba(96,96,96,.5);
+  padding: 2rem 0.5rem;
+  width: 270px;
+  margin: -80px auto;
+  color: #606060;
+  font-weight: 300;
+  font-size: -moz-calc(10 * 0.226rem);
+}

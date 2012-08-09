@@ -118,6 +118,11 @@ html, body {
 .new .tel {
   display: block;
 }
+
+.new .carrier-wrapper {
+  display: none;
+}
+
 .new #icon-edit {
   display: none;
 }
@@ -360,6 +365,10 @@ a.unread .unread-mark .icon-unread-mark {
 
 #messages-container {
   text-align: left;
+  padding-top: 2rem;
+  
+  -moz-box-sizing: border-box;
+  background: #f4f4f4;
 }
 
 #messages-container > div:last-child {

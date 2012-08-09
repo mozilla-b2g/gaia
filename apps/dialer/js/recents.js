@@ -146,6 +146,7 @@ var Recents = {
         case 'done-button': // Commit deletions and exit edit mode
           // Execute deletion of the lists
           this.executeDeletion();
+          this.render();
           break;
       }
     }
@@ -194,6 +195,8 @@ var Recents = {
         querySelectorAll('.log-item:not(.hide)');
       if (visibleCalls.length > 0) {
         this.recentsIconEdit.classList.remove('disabled');
+      } else {
+        this.recentsIconEdit.classList.add('disabled');
       }
       if (this._recentsEditionMode) {
         var selectedCalls = this.recentsContainer.
@@ -228,6 +231,8 @@ var Recents = {
           querySelectorAll('.log-item:not(.hide)');
         if (visibleCalls.length == 0) {
           this.recentsIconEdit.classList.add('disabled');
+        } else {
+          this.recentsIconEdit.classList.remove('disabled');
         }
         if (this._recentsEditionMode) {
           var selectedCalls = this.recentsContainer.
@@ -290,9 +295,8 @@ var Recents = {
   },
 
   deleteAll: function re_deleteAll() {
-    var response = window.confirm('Clear all calls?\n' +
-                                  'Are you sure you want to clear all calls\n' +
-                                  'from your call log?');
+    var response = window.confirm(_('confirm-title') + '\n' +
+                                  _('confirm-text'));
     if (response) {
       var self = this;
 
@@ -302,8 +306,7 @@ var Recents = {
 
         var delAllReq = store.clear();
         delAllReq.onsuccess = function da_onsuccess() {
-          self.recentsContainer.innerHTML = '';
-          self.recentsIconEdit.classList.add('disabled');
+          self.render();
           self.recentsHeaderAction(null);
           this._selectedEntries = new Object();
         };
@@ -503,7 +506,13 @@ var Recents = {
     var self = this;
     this.history(function showRecents(recents) {
       if (recents.length == 0) {
-        self.recentsContainer.innerHTML = '';
+        self.recentsContainer.innerHTML =
+          '<div id="no-result-container">' +
+          ' <div id="no-result-message">' +
+          '   <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
+          '   <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
+          ' </div>' +
+          '</div>';
         self.recentsIconEdit.classList.add('disabled');
         return;
       }
@@ -736,7 +745,6 @@ var Recents = {
       items[i].classList.remove('highlighted');
     }
   }
-
 };
 
 window.addEventListener('load', function recentsSetup(evt) {
