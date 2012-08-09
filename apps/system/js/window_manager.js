@@ -468,9 +468,6 @@ var WindowManager = (function() {
     }
 
     // Add the iframe to the document
-    // Note that we have not yet set its src property.
-    // In order for the open animation to be smooth, we don't
-    // actually set src until the open has finished.
     windows.appendChild(frame);
 
     // And map the app origin to the info we need for the app
@@ -489,11 +486,9 @@ var WindowManager = (function() {
       return;
     }
 
-    // Now animate the window opening and actually set the iframe src
-    // when that is done.
+    // Now animate the window opening.
+    frame.src = url;
     setDisplayedApp(origin, function() {
-      frame.src = url;
-
       if (manifest.fullscreen) {
         frame.mozRequestFullScreen();
       }
