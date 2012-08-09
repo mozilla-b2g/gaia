@@ -157,7 +157,7 @@ MessageListCard.prototype = {
     var headerNode =
       this.domNode.getElementsByClassName('msg-listedit-header-label')[0];
     headerNode.textContent =
-      document.mozL10n.get('message-multiedit-header',
+      navigator.mozL10n.get('message-multiedit-header',
                            { n: this.selectedMessages.length });
 
     var starBtn =
@@ -599,6 +599,9 @@ function MessageReaderCard(domNode, mode, args) {
   this.domNode = domNode;
   this.header = args.header;
   this.body = args.body;
+  // The body elements for the (potentially multiple) iframes we created to hold
+  // HTML email content.
+  this.htmlBodyNodes = [];
 
   this.buildBodyDom(domNode);
 
@@ -613,6 +616,9 @@ function MessageReaderCard(domNode, mode, args) {
 
   this.envelopeDetailsNode =
     domNode.getElementsByClassName('msg-envelope-details')[0];
+
+  domNode.getElementsByClassName('msg-reader-load-infobar')[0]
+    .addEventListener('click', this.onLoadBarClick.bind(this), false);
 
   bindContainerHandler(
     domNode.getElementsByClassName('msg-attachments-container')[0],
@@ -654,10 +660,43 @@ MessageReaderCard.prototype = {
     }
   },
 
+  onLoadBarClick: function(event) {
+    if (!this.body.embeddedImagesDownloaded) {
+      this.body.downloadEmbeddedImages();
+    }
+    else {
+      for (var i = 0; i < this.htmlBodyNodes.length; i++) {
+        this.body.showExternalImages(this.htmlBodyNodes[i]);
+      }
+    }
+  },
+
   onAttachmentClick: function(event) {
   },
 
   onHyperlinkClick: function() {
+  },
+
+  _populatePlaintextBodyNode: function(bodyNode, rep) {
+    for (var i = 0; i < rep.length; i += 2) {
+      var node = document.createElement('div'), cname;
+
+      var etype = rep[i] & 0xf, rtype = null;
+      if (etype === 0x4) {
+        var qdepth = (((rep[i] >> 8) & 0xff) + 1);
+        if (qdepth > 8)
+          cname = MAX_QUOTE_CLASS_NAME;
+        else
+          cname = CONTENT_QUOTE_CLASS_NAMES[qdepth];
+      }
+      else {
+        cname = CONTENT_TYPES_TO_CLASS_NAMES[etype];
+      }
+      if (cname)
+        node.setAttribute('class', cname);
+      node.textContent = rep[i + 1];
+      bodyNode.appendChild(node);
+    }
   },
 
   buildBodyDom: function(domNode) {
@@ -700,47 +739,40 @@ MessageReaderCard.prototype = {
       .textContent = header.subject;
 
     // -- Bodies
-    var reps = body.bodyReps;
+    var rootBodyNode = domNode.getElementsByClassName('msg-body-container')[0],
+        reps = body.bodyReps,
+        hasExternalImages = false;
     for (var iRep = 0; iRep < reps.length; iRep += 2) {
       var repType = reps[iRep], rep = reps[iRep];
       if (repType === 'plain') {
+        this._populatePlaintextBodyNode(rootBodyNode, rep);
       }
       else if (repType === 'html') {
+        var iframe = createAndInsertIframeForContent(
+          rep, rootBodyNode, null, this.onHyperlinkClick.bind(this));
+        var bodyNode = iframe.contentDocument.body;
+        this.htmlBodyNodes.push(bodyNode);
+        if (body.checkForExternalImages(bodyNode))
+          hasExternalImages = true;
       }
-    }
-    // -- Body (Plaintext)
-    if (body.bodyType === 'plain') {
-      var bodyNode = domNode.getElementsByClassName('msg-body-container')[0];
-      var rep = body.bodyRep;
-      for (var i = 0; i < rep.length; i += 2) {
-        var node = document.createElement('div'), cname;
-
-        var etype = rep[i] & 0xf, rtype = null;
-        if (etype === 0x4) {
-          var qdepth = (((rep[i] >> 8) & 0xff) + 1);
-          if (qdepth > 8)
-            cname = MAX_QUOTE_CLASS_NAME;
-          else
-            cname = CONTENT_QUOTE_CLASS_NAMES[qdepth];
-        }
-        else {
-          cname = CONTENT_TYPES_TO_CLASS_NAMES[etype];
-        }
-        if (cname)
-          node.setAttribute('class', cname);
-        node.textContent = rep[i + 1];
-        bodyNode.appendChild(node);
-      }
-    }
-    // -- Body (HTML)
-    else {
     }
 
     // -- HTML-referenced Images
     var loadBar = domNode.getElementsByClassName('msg-reader-load-infobar')[0];
-    if (body.hasUndownloadedImages) {
+    if (body.embeddedImageCount && !body.embeddedImagesDownloaded) {
+      loadBar.classList.remove('collapsed');
+      loadBar.textContent =
+        navigator.mozL10n.get('message-download-images',
+                             { n: body.embeddedImageCount });
     }
-    else if (body.has
+    else if (hasExternalImages) {
+      loadBar.classList.remove('collapsed');
+      loadBar.textContent =
+        navigator.mozL10n.get('message-show-external-images');
+    }
+    else {
+      loadBar.classList.add('collapsed');
+    }
 
 
     // -- Attachments (footer)
