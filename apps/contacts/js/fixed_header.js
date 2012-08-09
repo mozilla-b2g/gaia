@@ -44,7 +44,6 @@ var FixedHeader = (function FixedHeader() {
         if (differentHeaders) {
           fixedContainer.style.transform = 'translateY(0)';
           currentlyFixed = currentHeader;
-          fixedContainer.style.display = 'block';
           var background = '-moz-element(#' + currentHeader.id + ')';
           fixedContainer.style.backgroundImage = background;
         }
