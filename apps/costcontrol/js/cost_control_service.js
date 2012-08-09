@@ -23,7 +23,6 @@ setService(function() {
 
   var _settings = {};
   var _allSettings = [
-    'CREDIT_LOW_LIMIT',
     'CHECK_BALANCE_DESTINATION',
     'CHECK_BALANCE_TEXT',
     'CHECK_BALANCE_SENDERS',
@@ -237,7 +236,7 @@ setService(function() {
   function _onBalanceSMSReceived(evt) {
     // Ignore messages from other senders
     var message = evt.message;
-    if (message.sender !== '800378'/*_settings.CHECK_BALANCE_SENDERS*/)
+    if (message.sender !== _settings.CHECK_BALANCE_SENDERS)
       return;
 
     _stopWaiting();
@@ -328,11 +327,11 @@ setService(function() {
       return;
 
     // Send the request SMS
-    // XXX: Uncomment after removing mockups
-    /*var request = _sms.send(
+    var request = _sms.send(
       _settings.CHECK_BALANCE_DESTINATION,
       _settings.CHECK_BALANCE_TEXT
-    );*/
+    );
+    /*
     var currentCredit = _fakeCredit;
     var newCredit = Math.max(0, currentCredit - 2);
     newCredit = Math.round(newCredit * 100)/100;
@@ -341,6 +340,7 @@ setService(function() {
       '+34620970334',
       'R$ ' + newCredit
     );
+    */
     request.onsuccess = function cc_onSuccessSendingBalanceRequest() {
       _startWaiting(STATE_CHECKING, _onBalanceSMSReceived);
     }
