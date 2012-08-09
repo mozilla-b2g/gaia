@@ -13,22 +13,22 @@
 .msg-list-scrollinner {
   /* force the card to be tall enough so we can scroll the search bit out of the
      way by default*/
-  min-height: 536px;
+  min-height: 53.6rem;
 }
 
 /* Have enough scroll space to have the search bit pull out. */
 .msg-list-scroll-padding-top {
-  height: 56px;
+  height: 5.6rem;
 }
 /* Have enough space at the bottom for the last message to not be under the
    action bar. */
 .msg-list-scroll-padding-bottom {
-  height: 80px;
+  height: 8rem;
 }
 
 .msg-messages-sync-container {
-  min-height: 48px;
-  height: 48px;
+  min-height: 4.8rem;
+  height: 4.8rem;
 }
 .msg-messages-sync-more {
   vertical-align: 50%;
@@ -37,13 +37,13 @@
   vertical-align: 50%;
 }
 .msg-messages-syncing-spinner {
-  width: 16px;
-  height: 16px;
+  width: 1.6rem;
+  height: 1.6rem;
   background-image: url('style/images/spinner-from-statusbar.gif');
 }
 
 .msg-search-tease-bar {
-  height: 24px;
+  height: 2.4rem;
   background-color: #eee;
   border-radius: 4px;
   text-align: center;
@@ -55,7 +55,7 @@
 .msg-header-item {
   display: block;
   position: relative;
-  height: 80px;
+  height: 8rem;
   overflow: hidden;
   border-bottom: 1px solid gray;
   vertical-align: 0%;
@@ -69,7 +69,7 @@
   top: 0px;
   display: inline-block;
   height: 100%;
-  width: 12px;
+  width: 1.2rem;
 }
 .msg-header-unread-section-unread {
   background-color: orange;
@@ -78,24 +78,26 @@
   display: block;
   position: absolute;
   top: 0px;
-  left: 12px;
-  width: 248px;
+  left: 1.2rem;
+  width: -moz-calc(100% - 5.6rem);
   height: 100%;
+  font-size: 1.6rem;
+  line-height: 2.5rem;
 }
 .msg-header-icons-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 260px;
-  width: 32px;
+  left: 26rem;
+  width: 3.2rem;
   height: 100%;
 }
 .msg-header-avatar-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 292px;
-  width: 28px;
+  left: 29.2rem;
+  width: 2.8rem;
   height: 100%;
 }
 
@@ -107,18 +109,22 @@
   color: gray;
 }
 .msg-header-date-unread {
-  color: orange;
+  color: #1D8399;
 }
 .msg-header-subject {
   display: block;
   color: black;
   font-weight: bold;
-  text-overflow: ellipsis;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 .msg-header-snippet {
   display: block;
   color: gray;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .msg-header-star {
@@ -244,4 +250,29 @@
 .msg-body-disclaimer, .msg-body-list, .msg-body-product, .msg-body-ads {
   color: gray;
   margin: 4px 0px;
+}
+
+.msg-edit-btn {
+  position: absolute;
+  right: 6rem;
+}
+
+.msg-refresh-btn {
+  border: none;
+  width: 6rem;
+  background: url("images/icons/refresh.png") no-repeat scroll center transparent;
+}
+
+.msg-search-btn {
+  border: none;
+  width: 6rem;
+  background: url("images/icons/search.png") no-repeat scroll center transparent;
+  position: absolute;
+  right: 0px;
+}
+
+.msg-reply-btn {
+  font-size: 1.5rem;
+  width: auto;
+  padding: 0px 1rem;
 }
