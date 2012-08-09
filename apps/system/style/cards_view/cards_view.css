@@ -10,7 +10,6 @@
   -moz-user-select: none;
   overflow: scroll;
   background-color: rgba(0, 0, 0, 0.8);
-  z-index: 10001;
 }
 
 #cardsView.active {
@@ -43,7 +42,6 @@
 #cardsView .card[data-edit = 'true'] {
   opacity: 0.8;
   position:relative;
-  z-index: 99999;
 }
 
 #cardsView .card:first-child {
