@@ -97,8 +97,6 @@ function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
     });
 }
 
-const UI_WIDTH = 320, UI_HEIGHT = 480;
-
 /**
  * Fairly simple card abstraction with support for simple horizontal animated
  * transitions.  We are cribbing from deuxdrop's mobile UI's cards.js
@@ -209,10 +207,6 @@ var Cards = {
   _init: function() {
     this._rootNode = document.body;
     this._containerNode = document.getElementById('cardContainer');
-    if (window.innerWidth > UI_WIDTH)
-      this._containerNode.style.width = UI_WIDTH + 'px';
-    if (window.innerHeight > UI_HEIGHT)
-      this._containerNode.style.height = UI_HEIGHT + 'px';
     this._cardsNode = document.getElementById('cards');
     this._templateNodes = processTemplNodes('card');
 
@@ -262,11 +256,9 @@ var Cards = {
     }
   },
 
-  _adjustCardSizes: function() {
-    var cardWidth = Math.min(UI_WIDTH, window.innerWidth),
-                    //this._containerNode.offsetWidth,
-        cardHeight = Math.min(UI_HEIGHT, window.innerHeight),
-                     //this._containerNode.offsetHeight,
+  _adjustCardSizes: function(evt) {
+    var cardWidth = this._containerNode.offsetWidth,
+        cardHeight = this._containerNode.offsetHeight,
         totalWidth = 0;
 
     for (var i = 0; i < this._cardStack.length; i++) {
@@ -282,6 +274,11 @@ var Cards = {
     }
     this._cardsNode.style.width = totalWidth + 'px';
     this._cardsNode.style.height = cardHeight + 'px';
+
+    // Reset cards' position when container resized.
+    if (evt && evt.type == 'resize') {
+      this._showCard(this.activeCardIndex, 'immediate');
+    }
   },
 
   defineCard: function(cardDef) {
@@ -445,8 +442,8 @@ var Cards = {
    */
   _createMaskForNode: function(domNode, bounds) {
     var anchorIn = this._rootNode, cleanupDivs = [];
-    // TODO: use the sizing values from the cards container rather than our
-    // constants.
+    var uiWidth = this._containerNode.offsetWidth,
+        uiHeight = this._containerNode.offsetHeight;
 
     // inclusive pixel coverage
     function addMask(left, top, right, bottom) {
@@ -462,11 +459,11 @@ var Cards = {
     if (bounds.left > 1)
       addMask(0, bounds.top, bounds.left - 1, bounds.bottom);
     if (bounds.top > 0)
-      addMask(0, 0, UI_WIDTH - 1, bounds.top - 1);
-    if (bounds.right < UI_WIDTH - 1)
-      addMask(bounds.right + 1, bounds.top, UI_WIDTH - 1, bounds.bottom);
-    if (bounds.bottom < UI_HEIGHT - 1)
-      addMask(0, bounds.bottom + 1, UI_WIDTH - 1, UI_HEIGHT - 1);
+      addMask(0, 0, uiWidth - 1, bounds.top - 1);
+    if (bounds.right < uiWidth - 1)
+      addMask(bounds.right + 1, bounds.top, uiWidth - 1, bounds.bottom);
+    if (bounds.bottom < uiHeight - 1)
+      addMask(0, bounds.bottom + 1, uiWidth - 1, uiHeight - 1);
     return function() {
       for (var i = 0; i < cleanupDivs.length; i++) {
         anchorIn.removeChild(cleanupDivs[i]);
@@ -496,6 +493,10 @@ var Cards = {
         callback(result);
       }
     };
+
+    var uiWidth = this._containerNode.offsetWidth,
+        uiHeight = this._containerNode.offsetHeight;
+
     popupInfo.popupNode.classList.add('popup');
     this._rootNode.appendChild(popupInfo.popupNode);
     // now we need to position the popup...
@@ -507,10 +508,10 @@ var Cards = {
     const MARGIN = 4;
 
     // - Menu goes below item
-    if (nodeCenter < UI_HEIGHT / 2) {
+    if (nodeCenter < uiHeight / 2) {
       menuTop = bounds.bottom + MARGIN;
-      if (menuTop + menuHeight >= UI_HEIGHT)
-        menuTop = UI_HEIGHT - menuHeight - MARGIN;
+      if (menuTop + menuHeight >= uiHeight)
+        menuTop = uiHeight - menuHeight - MARGIN;
     }
     // - Menu goes above item
     else {
@@ -520,7 +521,7 @@ var Cards = {
         menuTop = MARGIN;
     }
 
-    menuLeft = (UI_WIDTH - menuWidth) / 2;
+    menuLeft = (uiWidth - menuWidth) / 2;
 
     popupInfo.popupNode.style.top = menuTop + 'px';
     popupInfo.popupNode.style.left = menuLeft + 'px';
