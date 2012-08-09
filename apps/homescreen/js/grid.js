@@ -69,8 +69,6 @@ const GridManager = (function() {
 
       case 'contextmenu':
         if (currentPage !== 0) {
-          evt.stopPropagation();
-          evt.preventDefault();
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, {
