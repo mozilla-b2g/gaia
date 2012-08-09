@@ -116,7 +116,7 @@
     <!-- homescreen from being displayed must come before this script. -->
     <script defer src="js/window_manager.js"></script>
     
-    <!-- Module Hierarchy collection -->
+    <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
     <!-- Value selector -->
@@ -127,17 +127,17 @@
   <body onload="startup()">
     <div id="screen" class="screenoff locked">
       <!-- homescreen -->
-      <iframe id="homescreen" mozbrowser mozapp data-type="HOMESCREEN"></iframe>
+      <iframe id="homescreen" mozbrowser mozapp data-z-index-level="homescreen"></iframe>
       <!-- <iframe id="homescreen" mozbrowser mozapp remote="true"></iframe>
       Crashing on load
         https://bugzilla.mozilla.org/show_bug.cgi?id=761933
       -->
 
-      <div id="windows" data-type="APP">
+      <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
       </div>
       
-      <div id="dialog-overlay" data-type="DIALOG_OVERLAY">
+      <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <div id="trustedDialog">
         </div> 
         <div id="popup-container">
@@ -186,7 +186,7 @@
       </div> 
       
       <!-- value selector -->
-      <div id="value-selector" hidden data-type="VALUE_SELECTOR">
+      <div id="value-selector" hidden data-z-index-level="value-selector">
          <div id="value-selector-container" onmousedown="return false;"> </div>
          <div id="value-selector-buttons">
            <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
@@ -194,7 +194,7 @@
          </div>
       </div>
 
-      <div id="utility-tray" data-type="UTILITY_TRAY">
+      <div id="utility-tray" data-z-index-level="utility-tray">
         <!-- quick settings -->
         <div id="quick-settings">
           <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
@@ -213,8 +213,10 @@
         <div id="utility-tray-grippy">
         </div>
       </div>
+      
+      <div id="lockscreen-camera" hidden data-z-index-level="lockscreen-camera"></div>
 
-      <div id="lockscreen" class="uninit" data-panel="" data-type="LOCKSCREEN">
+      <div id="lockscreen" class="uninit" data-panel="" data-z-index-level="lockscreen">
         <div id="lockscreen-container">
           <div id="lockscreen-main-panel" class="lockscreen-panel">
             <div id="lockscreen-notification" hidden>
@@ -264,9 +266,7 @@
         </div>
       </div>
       
-      <div id="lockscreen-camera" hidden data-type="LOCKSCREEN_CAMERA"></div>
-      
-      <div id="pinkeypadscreen" data-type="PINKEYPADSCREEN">
+      <div id="pinkeypadscreen" data-z-index-level="pinkeypadscreen">
         <div id="pinkeypadscreen-container">
           <p id="pinkeypadscreen-desc"><span>Enter PIN</span></p>
           <p id="pinkeypadscreen-code">
@@ -290,7 +290,7 @@
         </div>
       </div>
       
-      <div id="statusbar" data-type="STATUSBAR">
+      <div id="statusbar" data-z-index-level="statusbar">
         <!-- Loading -->
         <div id="statusbar-loading" hidden></div>
         <!-- Carrier & date label -->
@@ -324,37 +324,37 @@
         <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
       </div>
       
-      <div id="notification-toaster" class="notification" data-type="NOTIFICATION_TOASTER">
+      <div id="notification-toaster" class="notification" data-z-index-level="notification-toaster">
         <img id="toaster-icon" />
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
       </div>
       
-      <div id="attention-screen" data-type="ATTENTION_SCREEN">
+      <div id="attention-screen" data-z-index-level="attention-screen">
         <div id="attention-bar"></div>
       </div>
 
-      <div id="listmenu" data-type="LIST_MENU">
+      <div id="listmenu" data-z-index-level="list-menu">
         <div class="list-menu" id="listmenu-container">
         </div>
       </div>
       
-      <div id="keyboard-overlay" data-type="KEYBOARD_OVERLAY"></div>
+      <div id="keyboard-overlay" data-z-index-level="keyboard-overlay"></div>
 
       <!-- keyboard -->
-      <iframe id="keyboard-frame" class="hide" data-type="KEYBOARD_FRAME"></iframe>
+      <iframe id="keyboard-frame" class="hide" data-z-index-level="keyboard-frame"></iframe>
 
-      <div id="cardsView" data-type="CARDVIEW">
+      <div id="cardsView" data-z-index-level="cardsview">
         <ul>
         </ul>
       </div>
       
-      <div id="sleep-menu" data-type="SLEEP_MENU">
+      <div id="sleep-menu" data-z-index-level="sleep-menu">
         <div class="sleepmenu" id="sleepmenu-container">
         </div>
       </div>
 
-      <div id="system-overlay" data-type="SYSTEM_OVERLAY">
+      <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">
         </div>
 
