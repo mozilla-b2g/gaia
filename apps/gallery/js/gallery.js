@@ -233,8 +233,14 @@ function imageDeleted(fileinfo) {
   // If we're in single photo display mode, then the only way this function,
   // gets called is when we delete the currently displayed photo.  This means
   // that we need to redisplay.
-  if (currentView === photoView) {
+  if (currentView === photoView && images.length > 0) {
     showPhoto(currentPhotoIndex);
+  }
+
+  // If there are no more photos show the "no photos" element
+  if (images.length === 0) {
+    setView(thumbnailListView);
+    $('nophotos').classList.remove('hidden');
   }
 }
 
@@ -250,6 +256,9 @@ function deleteImage(n) {
 
 function imageCreated(fileinfo) {
   var insertPosition;
+
+  // If there were no photos before this one, hide the "no photos" element
+  $('nophotos').classList.add('hidden');
 
   // If this new image is newer than the first one, it goes first
   // This is the most common case for photos, screenshots, and edits
