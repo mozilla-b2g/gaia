@@ -148,6 +148,7 @@ var WindowManager = (function() {
   // animations.
   var sprite = document.createElement('div');
   sprite.id = 'windowSprite';
+  sprite.dataset.zindexLevel = 'window-sprite';
   document.body.appendChild(sprite);
 
   // This event handler is triggered when the transition ends.

@@ -20,6 +20,7 @@ var GridView = {
     if (!grid) {
       grid = document.createElement('div');
       grid.id = 'debug-grid';
+      grid.dataset.zindexLevel = 'debug-grid';
 
       this.grid = grid;
       document.body.appendChild(grid);
