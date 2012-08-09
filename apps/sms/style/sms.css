@@ -366,9 +366,12 @@ a.unread .unread-mark .icon-unread-mark {
 #messages-container {
   text-align: left;
   padding-top: 2rem;
-  
   -moz-box-sizing: border-box;
   background: #f4f4f4;
+}
+
+.new #messages-container {
+  padding-top: 0;
 }
 
 #messages-container > div:last-child {
@@ -610,6 +613,7 @@ a.unread .unread-mark .icon-unread-mark {
   color: gray;
   font-size: 1.6rem;
   line-height: 2rem;
+  white-space: pre;
 }
 
 #messages-container .item:active {

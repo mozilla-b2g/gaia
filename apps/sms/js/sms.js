@@ -1035,21 +1035,24 @@ var ThreadUI = {
     var phoneType = ContactDataManager.phoneType;
     var name = contact.name.toString();
     var tels = contact.tel;
-    for (var i = 0; i < contact.tel.length; i++) {
+    for (var i = 0; i < tels.length; i++) {
       var input = this.contactInput.value;
+      var number = tels[i].number.toString();
       var reg = new RegExp(input, 'ig');
-      if (!(name.match(reg) || (tels[i].number.match(reg)))) {
+      if (!(name.match(reg) || (number.match(reg)))) {
         continue;
       }
-      name = Utils.escapeHTML(name.toString());
+      var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
+      var numHTML = SearchUtils.createHighlightHTML(number, reg, 'highlight');
       // Create DOM element
       var threadHTML = document.createElement('div');
       threadHTML.classList.add('item');
       // Create HTML structure
       var structureHTML =
               '  <a href="#num=' + contact.tel[i].number + '">' +
-              '    <div class="name">' + name + '</div>' +
-              '    <div class="type">' + _(phoneType[i]) + '</div>' +
+              '    <div class="name">' + nameHTML + '</div>' +
+              '    <div class="type">' + _(phoneType[i]) + '   ' + numHTML +
+              '    </div>' +
               '  </a>';
       // Update HTML and append
       threadHTML.innerHTML = structureHTML;
