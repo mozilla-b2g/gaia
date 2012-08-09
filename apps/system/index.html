@@ -126,6 +126,60 @@
 
   <body onload="startup()">
     <div id="screen" class="screenoff locked">
+      <div id="statusbar" data-z-index-level="statusbar">
+        <!-- Loading -->
+        <div id="statusbar-loading" hidden></div>
+        <!-- Carrier & date label -->
+        <div id="statusbar-label" class="sb-start-upper"></div>
+        <!-- Notification -->
+        <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
+          data-num="" hidden></div>
+
+        <!-- Time -->
+        <div id="statusbar-time"></div>
+
+        <!-- Status -->
+        <div id="statusbar-battery" class="sb-icon sb-icon-battery"
+          data-level="100" charging hidden></div>
+        <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
+          data-level="4" hidden></div>
+        <div id="statusbar-data" class="sb-icon sb-icon-data"
+          data-type="" hidden></div>
+        <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
+        <div id="statusbar-signal" class="sb-icon sb-icon-signal"
+          data-level="5" hidden></div>
+
+        <!-- Permissions -->
+        <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
+        <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden></div>
+        <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden></div>
+        <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
+        <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
+        <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
+        <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
+        <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
+      </div>
+
+      <div id="utility-tray" data-z-index-level="utility-tray">
+        <!-- quick settings -->
+        <div id="quick-settings">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
+          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluetooth">Bluetooth</a>
+          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
+          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
+        </div>
+
+        <!-- TBD: credit module -->
+
+        <!-- notifications -->
+        <div id="notifications-container">
+        </div>
+
+        <div id="utility-tray-grippy">
+        </div>
+      </div>
+
       <!-- homescreen -->
       <iframe id="homescreen" mozbrowser mozapp data-z-index-level="homescreen"></iframe>
       <!-- <iframe id="homescreen" mozbrowser mozapp remote="true"></iframe>
@@ -192,26 +246,6 @@
            <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
            <button id="value-selector-confirm" data-l10n-id="ok" onmousedown="return false;">Ok</button>
          </div>
-      </div>
-
-      <div id="utility-tray" data-z-index-level="utility-tray">
-        <!-- quick settings -->
-        <div id="quick-settings">
-          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
-          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluetooth">Bluetooth</a>
-          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
-          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
-        </div>
-
-        <!-- TBD: credit module -->
-
-        <!-- notifications -->
-        <div id="notifications-container">
-        </div>
-
-        <div id="utility-tray-grippy">
-        </div>
       </div>
       
       <div id="lockscreen-camera" hidden data-z-index-level="lockscreen-camera"></div>
@@ -293,41 +327,7 @@
           </div>
         </div>
       </div>
-      
-      <div id="statusbar" data-z-index-level="statusbar">
-        <!-- Loading -->
-        <div id="statusbar-loading" hidden></div>
-        <!-- Carrier & date label -->
-        <div id="statusbar-label" class="sb-start-upper"></div>
-        <!-- Notification -->
-        <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
-          data-num="" hidden></div>
 
-        <!-- Time -->
-        <div id="statusbar-time"></div>
-
-        <!-- Status -->
-        <div id="statusbar-battery" class="sb-icon sb-icon-battery"
-          data-level="100" charging hidden></div>
-        <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
-          data-level="4" hidden></div>
-        <div id="statusbar-data" class="sb-icon sb-icon-data"
-          data-type="" hidden></div>
-        <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
-        <div id="statusbar-signal" class="sb-icon sb-icon-signal"
-          data-level="5" hidden></div>
-
-        <!-- Permissions -->
-        <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
-        <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden></div>
-        <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden></div>
-        <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
-        <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
-        <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
-        <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
-        <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
-      </div>
-      
       <div id="notification-toaster" class="notification" data-z-index-level="notification-toaster">
         <img id="toaster-icon" />
         <div id="toaster-title"></div>
