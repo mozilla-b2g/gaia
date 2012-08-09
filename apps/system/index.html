@@ -115,7 +115,7 @@
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <script defer src="js/window_manager.js"></script>
-    
+
     <!-- Module Hierarchy collection -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
@@ -136,10 +136,10 @@
       <div id="windows" data-type="APP">
         <!-- application windows are added here -->
       </div>
-      
+
       <div id="dialog-overlay" data-type="DIALOG_OVERLAY">
         <div id="trustedDialog">
-        </div> 
+        </div>
         <div id="popup-container">
         </div>
         <div id="modal-dialog">
@@ -183,8 +183,8 @@
             <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
           </div>
         </div>
-      </div> 
-      
+      </div>
+
       <!-- value selector -->
       <div id="value-selector" hidden data-type="VALUE_SELECTOR">
          <div id="value-selector-container" onmousedown="return false;"> </div>
@@ -263,9 +263,9 @@
           <div id="lockscreen-emergency-pad">TBD</div>
         </div>
       </div>
-      
+
       <div id="lockscreen-camera" hidden data-type="LOCKSCREEN_CAMERA"></div>
-      
+
       <div id="pinkeypadscreen" data-type="PINKEYPADSCREEN">
         <div id="pinkeypadscreen-container">
           <p id="pinkeypadscreen-desc"><span>Enter PIN</span></p>
@@ -289,10 +289,10 @@
           </div>
         </div>
       </div>
-      
+
       <div id="statusbar" data-type="STATUSBAR">
         <!-- Loading -->
-        <div id="statusbar-loading" hidden></div>
+        <div id="statusbar-loading"></div>
         <!-- Carrier & date label -->
         <div id="statusbar-label" class="sb-start-upper"></div>
         <!-- Notification -->
@@ -323,13 +323,13 @@
         <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
         <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
       </div>
-      
+
       <div id="notification-toaster" class="notification" data-type="NOTIFICATION_TOASTER">
         <img id="toaster-icon" />
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
       </div>
-      
+
       <div id="attention-screen" data-type="ATTENTION_SCREEN">
         <div id="attention-bar"></div>
       </div>
@@ -338,7 +338,7 @@
         <div class="list-menu" id="listmenu-container">
         </div>
       </div>
-      
+
       <div id="keyboard-overlay" data-type="KEYBOARD_OVERLAY"></div>
 
       <!-- keyboard -->
@@ -348,7 +348,7 @@
         <ul>
         </ul>
       </div>
-      
+
       <div id="sleep-menu" data-type="SLEEP_MENU">
         <div class="sleepmenu" id="sleepmenu-container">
         </div>
