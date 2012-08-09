@@ -9,7 +9,7 @@ html {
 }
 
 body {
-  background-color: #000;
+  background-color: #444;
   color: #fff;
   font-family: "Open Sans", sans-serif;
   font-size: 20px;
@@ -33,17 +33,50 @@ body {
   overflow: hidden;
 }
 
-#nophotos {
-  margin: 0;
-  margin-top: 40%;
-  padding: 0;
+/*
+ * The overlay is where we display messages like Scanning, No Photos,
+ * No SD card and SD Card in Use along with instructions for resolving
+ * the issue.  The user can't interact with the app while the overlay
+ * is displayed.
+ */
+#overlay {
+  /* it takes up the whole screen */
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  text-align: center;
+  height: 100%;
+
+  /* almost transparent gray */
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/*
+ * The overlay content area holds the text of the overlay.
+ * It has borders and a less transparent background so that
+ * the overlay text shows up more clearly
+ */
+#overlay-content {
+  margin-top: 30%;
+  margin-left: 10%;
+  margin-right: 10%;
+  padding: 10%;
+  border: solid black 4px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
   font-family: "Open Sans", sans-serif;
-  font-weight: bold;
-  font-size: 26px;
   color: #fff;
   -moz-user-select: none;
+}
+
+#overlay-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 26px;
+}
+
+#overlay-text {
+  font-size: 18px;
 }
 
 
@@ -68,7 +101,6 @@ body {
   /* If we want to scroll up and down, then apparently we have to add */
   /* some extra width to keep the scrollbar offscreen */
   width: -moz-calc(100% + 10px);
-  background-color: #000;
 }
 
 .thumbnail {
