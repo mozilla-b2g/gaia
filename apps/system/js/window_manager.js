@@ -55,6 +55,7 @@ var WindowManager = (function() {
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
+  var dialogOverlay = document.getElementById('dialog-overlay');
 
   //
   // The set of running apps.
@@ -133,6 +134,9 @@ var WindowManager = (function() {
 
     frame.style.width = window.innerWidth + 'px';
     frame.style.height = window.innerHeight - StatusBar.height + 'px';
+
+    dialogOverlay.style.width = window.innerWidth + 'px';
+    dialogOverlay.style.height = window.innerHeight - StatusBar.height + 'px';
   }
 
   var openFrame = null;
@@ -144,6 +148,7 @@ var WindowManager = (function() {
   // animations.
   var sprite = document.createElement('div');
   sprite.id = 'windowSprite';
+  sprite.dataset.zIndexLevel = 'window-sprite';
   document.body.appendChild(sprite);
 
   // This event handler is triggered when the transition ends.
@@ -582,6 +587,7 @@ var WindowManager = (function() {
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
+        UtilityTray.hide();
         setDisplayedApp(origin);
         break;
     }

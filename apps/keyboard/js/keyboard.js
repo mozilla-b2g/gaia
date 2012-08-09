@@ -16,9 +16,12 @@ if (!window.navigator.mozKeyboard) {
   var focusChangeDelay = 20;
   window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
 
+    var typeToSkip = ['select-one', 'select-multiple', 'date',
+                        'time', 'datetime', 'datetime-local'];
     var type = evt.detail.type;
-    // skip the <select> element, handled in system app for now
-    if (type.indexOf('select') != -1)
+    // Skip the <select> element and inputs with type of date/time,
+    // handled in system app for now
+    if (typeToSkip.indexOf(type) != -1)
       return;
 
     clearTimeout(focusChangeTimeout);
@@ -203,20 +206,6 @@ function getWindowLeft(obj) {
 }
 
 var SettingsListener = {
-  _callbacks: {},
-
-  init: function sl_init() {
-    if ('mozSettings' in navigator && navigator.mozSettings)
-      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
-  },
-
-  onchange: function sl_onchange(evt) {
-    var callback = this._callbacks[evt.settingName];
-    if (callback) {
-      callback(evt.settingValue);
-    }
-  },
-
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
@@ -230,11 +219,11 @@ var SettingsListener = {
         req.result[name] : defaultValue);
     }));
 
-    this._callbacks[name] = callback;
+    settings.addObserver(name, function settingChanged(evt) {
+      callback(evt.settingValue);
+    });
   }
 };
-
-SettingsListener.init();
 
 window.addEventListener('load', function initIMEManager(evt) {
   window.removeEventListener('load', initIMEManager);

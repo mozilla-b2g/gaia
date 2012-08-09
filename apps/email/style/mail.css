@@ -10,7 +10,15 @@
 html {
   width: 100%;
   height: 100%;
+  font-size: 10px;
 }
+
+@media screen and (min-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+}
+
 body {
   width: 100%;
   height: 100%;
@@ -25,14 +33,20 @@ button {
   border-style: solid;
   border-color: #323232;
   color: #FFFFFF;
-  font-size: 16px;
+  font-size: 1.6rem;
   font-weight: bold;
-  min-height: 32px;
+  min-height: 3.2rem;
 
   -webkit-border-radius: 3px;
      -moz-border-radius: 3px;
        -o-border-radius: 3px;
           border-radius: 3px;
+}
+
+/* Remove button dotted outline */
+button::-moz-focus-inner {
+  padding: 0;
+  border: none;
 }
 
 #cardContainer {
@@ -76,38 +90,47 @@ button {
 .top-header {
   background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #992f21 5px, #992f21 6px, #bb492d 6px, #cc6523 100%);
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cc6523), color-stop(100%, #bb492d));
-  height: 52px;
+  height: 5.2rem;
   width: 100%;
   padding: 0;
-  padding-bottom: 6px;
+  padding-bottom: 0.6rem;
   z-index: 999;
 }
 .top-header.top-edit-header {
-  background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #888888 5px, #999999 6px, #bbbbbb 6px, #cccccc 100%);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cccccc), color-stop(100%, #bbbbbb));
+  background: url("images/ui/dark_header.png") repeat-x scroll left top transparent;
+  background-size: auto 5.2rem;
+  /*background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #888888 5px, #999999 6px, #bbbbbb 6px, #cccccc 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cccccc), color-stop(100%, #bbbbbb));*/
 }
 
 .header-label {
   color: white;
-  line-height: 52px;
-  margin: 0;
-  text-align: center;
+  line-height: 5.2rem;
+  margin: 0 0 0 4rem;
+  font-size: 2.2rem;
 }
-.header-left-btn, .header-right-btn {
+
+.header-btn, .header-left-btn, .header-right-btn {
   position: absolute;
   top: 0px;
-  height: 48px; 
-
+  height: 5.2rem; 
+  width: 3.2rem;
   border: none;
   background: none;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 2.4rem;
 }
+
 .header-left-btn {
   left: 0px;
+  background: url("images/ui/separator-large.png") no-repeat scroll 3rem center transparent;
+  background-size: auto 100%;
 }
+
 .header-right-btn {
   right: 0px;
+  background: url("images/ui/separator.png") no-repeat scroll 0px center transparent;
+  background-size: auto 100%;
+  width: 5rem;
 }
 
 .scrollregion {
@@ -127,19 +150,19 @@ button {
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 48px;
-  background-color: rgba(0, 0, 0, 0.4);
+  height: 4.8rem;
+  background-color: rgba(0, 0, 0, 0.6);
 }
 .bottom-toolbar.bottom-edit-toolbar {
   background-color: rgba(0, 0, 64, 0.4);
 }
 .bottom-btn {
-  height: 48px;
+  height: 4.8rem;
 }
 /* create a space the size of the toolbar since it is absolute...*/
 .bottom-toolbar-spacer {
   display: block;
-  height: 48px;
+  height: 4.8rem;
 }
 
 .popup {
@@ -153,8 +176,8 @@ button {
 }
 
 .menu {
-  width: 260px;
-  padding: 8px;
+  width: 26rem;
+  padding: 0.8rem;
   border: 1px solid black;
   border-radius: 6px;
   background-color: white;
@@ -166,7 +189,44 @@ button {
   border-bottom: 1px solid gray;
   display: block;
 }
+
 .menu-item:last-child {
   border-bottom: none;
 }
 
+.icon {
+  width: 3rem;
+  height: 3rem;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+  display: inline-block;
+  margin: -0.8rem;
+}
+
+.icon-menu {
+  background-image: url("images/icons/menu.png");
+}
+
+.icon-add {
+  background-image: url("images/icons/add.png");
+}
+
+.icon-back {
+  background-image: url("images/icons/back.png");
+}
+
+.icon-close {
+  background-image: url("images/icons/close.png");
+}
+
+.icon-edit {
+  background-image: url("images/icons/edit.png");
+}
+
+.icon-send {
+  background-image: url("images/icons/send.png");
+}
+
+.icon-account {
+  background-image: url("images/icons/user.png");
+}

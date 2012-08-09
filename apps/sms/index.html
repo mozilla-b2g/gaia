@@ -17,6 +17,7 @@
     <script type="text/javascript" src="js/pendingDBUtils.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/searchUtils.js"></script>
     <script type="text/javascript">
       if (!navigator.mozSms) {
         document.write('<script type="text/javascript" src="js/desktopTesting.js"><\/script>');
@@ -42,12 +43,12 @@
             </header>
             <header class="view-header dark-header">
               <a href="#thread-list" id="icon-close" role="link">
-                <span class="icon icon-close">close</span>
+                <span data-l10n-id="cancel" class="icon icon-close">close</span>
               </a>
               <menu type="toolbar">
-                 <button id="thread-done-button">done</button>
+                 <button id="thread-done-button" data-l10n-id="done">done</button>
               </menu>
-              <h1 id="list-edit-title">Edit mode</h1>
+              <h1 id="list-edit-title" data-l10n-id="editMode">Edit mode</h1>
             </header>
           </div>
         </div>
@@ -55,12 +56,12 @@
         </article>
         <footer class="options">
           <section class="option">
-            <button id="delete-all-threads" class="edit-button">
+            <button id="delete-all-threads" class="edit-button" data-l10n-id="delete-all">
               Delete all
             </button>
           </section>
           <section class="option">
-            <button id="delete-selected-threads" class="edit-button">
+            <button id="delete-selected-threads" class="edit-button" data-l10n-id="delete-selected">
               Delete selected
             </button>
           </section>
@@ -82,7 +83,7 @@
                   <span class="icon icon-edit"></span>
                 </a>
               </menu>
-              <h1 id="header-text">Messages</h1>
+              <h1 id="header-text" data-l10n-id="messages">Messages</h1>
               <input id="receiver-input" type="text" name="tel" class="tel" />
               <span id="clear-search" role="button" class="icon icon-clear"></span>
             </header>
@@ -91,9 +92,9 @@
                 <span class="icon icon-close"></span>
               </a>
               <menu type="toolbar">
-                 <button id="messages-done-button">done</button>
+                 <button id="messages-done-button" data-l10n-id="done">done</button>
               </menu>
-              <h1 id="messages-edit-title">Edit mode</h1>
+              <h1 id="messages-edit-title" data-l10n-id="editMode">Edit mode</h1>
             </header>
           </div>
           <div class="carrier-wrapper">
@@ -104,12 +105,12 @@
         </article>
         <footer class="options">
           <section class="option">
-            <button id="delete-all-messages" class="edit-button">
+            <button id="delete-all-messages" class="edit-button" data-l10n-id="delete-all">
               Delete all
             </button>
           </section>
           <section class="option">
-            <button id="delete-selected-messages" class="edit-button">
+            <button id="delete-selected-messages" class="edit-button" data-l10n-id="delete-selected">
               Delete selected
             </button>
           </section>
@@ -117,7 +118,7 @@
         <footer class="new-sms-form">
           <textarea type="text" id="message-to-send" name="message-to-send"></textarea>
           <div id="send-message-container">
-            <button id="send-message">SEND</button>
+            <button id="send-message" data-l10n-id="send">SEND</button>
           </div>
         </footer>
       </section>
@@ -130,7 +131,7 @@
     </article>
     <article id="loading">
       <section class="loading-container">
-        <header class="loading-header">
+        <header class="loading-header" data-l10n-id="deleting-messages">
           Deleting messages...
         </header>
         <article class="loading-icon">
