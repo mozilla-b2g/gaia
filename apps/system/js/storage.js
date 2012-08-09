@@ -8,8 +8,9 @@ var Storage = {
   umsMode: 'ums.mode',
 
   init: function storageInit() {
-    window.addEventListener('unlocked', this);
-    window.addEventListener('locked', this);
+    this.setMode(this.automounterDisable, 'init');
+    window.addEventListener('lock', this);
+    window.addEventListener('unlock', this);
 
     SettingsListener.observe(this.umsEnabled, false, function umsChanged(val) {
       if (LockScreen.locked) {
@@ -38,10 +39,10 @@ var Storage = {
 
   handleEvent: function storageHandleEvent(e) {
     switch (e.type) {
-      case 'locked':
+      case 'lock':
         this.setMode(this.automounterDisableWhenUnplugged, 'screen locked');
         break;
-      case 'unlocked':
+      case 'unlock':
         var settings = window.navigator.mozSettings;
         if (!settings) {
           return;
