@@ -1,42 +1,71 @@
 /* zIndex of important system app parts 
  * is gathered here to clearly specify all system-app hierarchy */
 
-/* Level 0: System overlay */
-#system-overlay {
-  z-index: 2147483647;
+/* Reset zIndex */
+#screen > * {
+  z-index: 0;
 }
 
-/* Level 1: List menu module */
+/* Level 0: System overlay */
+#system-overlay,
+[data-type="SYSTEM_OVERLAY"] {
+  z-index: 65536;
+}
+
+/* Level 1: Sleep menu */
+#sleep-menu,
+[data-type="SLEEP_MENU"] {
+  z-index: 65536;
+}
+
+/* Level 1: Card view */
+#cardsView,
+[data-type="CARDVIEW"] {
+  z-index: 65536;
+}
+
+#keyboard-overlay,
+[data-type="KEYBOARD_OVERLAY"] {
+  z-index: 65536;
+}
+
+#keyboard-frame,
+[data-type="KEYBOARD_FRAME"] {
+  z-index: 65536;
+}
+
+/* Level 2: Activity menu, context menu */
 #listmenu,
-div[data-level="LISTMENU"][data-menu="sleepmenu"] {
+[data-type="LIST_MENU"] {
   z-index: 32767;
 }
 
-/* Level 2: Notification toaster */
+/* Level 3: Notification toaster */
 #notification-toaster,
-div[data-level="TOASTER"] {
+[data-type="TOASTER"] {
   z-index: 32768;
 }
 
-/* Level 3: keybaord */
+/* Level 4: keybaord */
 #keyboard-frame.visible {
   z-index: 16384;
 }
 
 /* Level 3: Statusbar */
 #statusbar,
-div[data-level="STATUSBAR"] {
+[data-type="STATUSBAR"] {
   z-index: 16384;
 }
 
 /* Level 4: Utility tray */
-#utility-tray {
+#utility-tray,
+[data-type="UTILITY_TRAY"] {
   z-index: 16383;
 }
 
-/* Level 4: Attention screen */
+/* Level 5: Attention screen */
 #attention-screen,
-div[data-level="ATTENTION"] {
+[data-type="ATTENTION"] {
   z-index: 8192;
 }
 
@@ -52,61 +81,45 @@ div[data-level="ATTENTION"] {
   z-index: 2;
 }
 
-/* Level 5: */
+/* Level 6: Lock Screen Camera */
 #lockscreen-camera,
-div[data-level="LOCKSCREEN_CAMERA"]{
+[data-type="LOCKSCREEN_CAMERA"]{
   z-index: 2048;
 }
 
-/* Level 6: Lock Screen Module */
+/* Level 7: Lock Screen */
 #lockscreen,
-div[data-level="LOCKSCREEN"]{
+[data-type="LOCKSCREEN"]{
   z-index: 1024;
 }
 
-#debug-grid {
+/* Level 8: Debug grid */
+#debug-grid,
+[data-type="DEBUG_GRID"] {
   z-index: 512;
 }
 
+/* Level 9: Dialog Module */
+#dialog-overlay,
+#value-selector,
 #permission-screen {
-  z-index: 256;
-}
-
-#keyboard-overlay {
-  z-index: 65536;
-}
-
-/* Level 5: Card View Module */
-#cardsView,
-div[data-level="CARDVIEW"] {
-  z-index: 32;
+  z-index: 511;
 }
 
 #cardsView .card[data-edit = 'true'] {
   z-index: 99999;
 }
 
-/* Level 6: keyboard */ 
-#keyboard-frame {
-  z-index: 65536;
-}
-
-/* Level 7: Dialog Module */
-#dialog-overlay,
-#input-overlay {
-  z-index: 511;
-}
-
+/* Level 12 */
 #windowSprite {
   z-index: 1;
 }
-
 
 /* Fullscreen */
 #screen.fullscreen #system-overlay,
 #screen.fullscreen #lockscreen,
 #screen.fullscreen #lockscreen-camera,
-#screen.fullscreen #input-overlay,
+#screen.fullscreen #value-selector,
 #screen.fullscreen #dialog-overlay,
 #screen.fullscreen #keyboard-overlay,
 #screen.fullscreen #keyboard-frame,
