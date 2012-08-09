@@ -56,7 +56,8 @@ body[data-mode = 'edit'] ol > li > div > img {
   -moz-animation-timing-function: ease-out;
 }
 
-body[data-transitioning] ol > li > div > img {
+body[data-transitioning] ol > li > div > img,
+body[data-dragging] ol > li > div > img {
   -moz-animation-name: none;
 }
 

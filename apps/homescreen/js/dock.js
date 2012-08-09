@@ -19,7 +19,6 @@ const DockManager = (function() {
     switch (evt.type) {
       case 'mousedown':
         evt.stopPropagation();
-        document.body.dataset.transitioning = 'true';
         initialOffsetLeft = dock.getLeft();
         startX = evt.clientX;
         attachEvents();
@@ -33,6 +32,7 @@ const DockManager = (function() {
             return;
           } else {
             isPanning = true;
+            document.body.dataset.transitioning = 'true';
           }
         }
 
@@ -44,7 +44,6 @@ const DockManager = (function() {
         releaseEvents();
 
         if (!isPanning) {
-          delete document.body.dataset.transitioning;
           dock.tap(evt.target);
         } else {
           isPanning = false;
@@ -58,7 +57,6 @@ const DockManager = (function() {
           Homescreen.setMode('edit');
 
           if ('origin' in evt.target.dataset) {
-            document.body.dataset.transitioning = true;
             DragDropManager.start(evt, {x: evt.clientX, y: evt.clientY});
           }
         }
