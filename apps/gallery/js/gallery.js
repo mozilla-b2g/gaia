@@ -168,36 +168,54 @@ var languageDirection;
 // Each array element is an object that includes a filename and metadata
 var images = [];
 
-var photodb = new MediaDB('pictures', metadataParser, {
-  indexes: ['metadata.date'],
-  mimeTypes: ['image/jpeg', 'image/png']
-});
+function initPhotoDB() {
 
-photodb.onready = function() {
-  createThumbnailList();  // Display thumbnails for the images we know about
-  photodb.scan();         // Go look for more.
+  // If there is no SD card installed, this will throw an error.
+  var db = new MediaDB('pictures', metadataParser, {
+      indexes: ['metadata.date'],
+      mimeTypes: ['image/jpeg', 'image/png']
+    });
 
-  // Since DeviceStorage doesn't send notifications yet, we're going
-  // to rescan the files every time our app becomes visible again.
-  // This means that if we switch to camera and take a photo, then when
-  // we come back to gallery we should be able to find the new photo.
-  // Eventually DeviceStorage will do notifications and MediaDB will
-  // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function visibilityChange() {
-    if (!document.mozHidden) {
-      photodb.scan();
+  db.onready = function() {
+    createThumbnailList();  // Display thumbnails for the images we know about
+    db.scan();              // Go look for more.
+
+    // Since DeviceStorage doesn't send notifications yet, we're going
+    // to rescan the files every time our app becomes visible again.
+    // This means that if we switch to camera and take a photo, then when
+    // we come back to gallery we should be able to find the new photo.
+    // Eventually DeviceStorage will do notifications and MediaDB will
+    // report them so we don't need to do this.
+    document.addEventListener('mozvisibilitychange', function vc() {
+        if (!document.mozHidden) {
+          db.scan();
+        }
+      });
+  };
+
+  db.onchange = function(type, files) {
+    if (type === 'deleted') {
+      files.forEach(function(f) { imageDeleted(f); });
     }
-  });
-};
+    else if (type === 'created') {
+      files.forEach(function(f) { imageCreated(f); });
+    }
+  };
 
-photodb.onchange = function(type, files) {
-  if (type === 'deleted') {
-    files.forEach(function(f) { imageDeleted(f); });
-  }
-  else if (type === 'created') {
-    files.forEach(function(f) { imageCreated(f); });
-  }
-};
+  return db;
+}
+
+var photodb;
+try {
+  photodb = initPhotoDB();
+}
+catch (e) {
+  if (e.message = 'nosdcard')
+    console.log('No SD card');
+  else // something else went wrong
+    throw e;
+}
+
 
 function imageDeleted(fileinfo) {
   // Find the deleted file in our images array

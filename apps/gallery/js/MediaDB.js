@@ -190,14 +190,15 @@ function MediaDB(mediaType, metadataParser, options) {
   var mediadb = this;  // for the nested functions below
 
   // Set up DeviceStorage
-  try {
-    this.storage = navigator.getDeviceStorage(mediaType);
-    this.storage = this.storage[0] || this.storage; // avoid API version skew
-  }
-  catch (e) {
-    console.error("MediaDB(): can't get DeviceStorage object", e);
-    return;
-  }
+  // If storage is null, then there is no sdcard installed and
+  // we have to abort.
+  this.storage = navigator.getDeviceStorage(mediaType);
+
+  // XXX: the API will probably change to always return a DeviceStorage
+  // object, and I'll have to stat() it to find out if there is
+  // anything there.
+  if (this.storage === null)
+    throw Error('nosdcard');
 
   //
   // XXX
