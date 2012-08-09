@@ -184,6 +184,8 @@ contacts.List = (function() {
       listContainer.appendChild(newContact);
       showGroup(group);
     }
+    var selector = 'h2.block-title:not(.hide)';
+    FixedHeader.init('#groups-container', '#fixed-container', selector);
   };
 
   var getFavorites = function getFavorites() {
@@ -273,6 +275,7 @@ contacts.List = (function() {
         showGroup('favorites');
       }
     }
+    FixedHeader.refresh();
   }
 
   // Fills the contact data to display if no givenName and familyName
