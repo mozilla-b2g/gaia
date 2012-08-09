@@ -45,7 +45,7 @@ var FixedHeader = (function FixedHeader() {
       }
     }
     currentlyFixed = null;
-    fixedContainer.style.display = 'none';
+    fixedContainer.style.transform = 'translateY(-100%)';
   };
 
   var stop = function stop() {
