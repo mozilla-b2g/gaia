@@ -50,12 +50,14 @@ const DragDropManager = (function() {
     transitioning = false;
   };
 
-  function overDock() {
+  function overDock(overlapElem) {
     if (!overlapingDock && !DockManager.isFull()) {
       // I've just entered
       draggableIcon.addClassToDragElement('overDock');
       pageHelper.getCurrent().remove(draggableIcon);
       DockManager.page.append(draggableIcon);
+      drop(overlapElem, DockManager.page);
+      previousOverlapIcon = overlapElem;
     }
 
     if (dirCtrl.limitNext(currentEvent.x)) {
@@ -133,9 +135,9 @@ const DragDropManager = (function() {
    * Furthermore, this method is in charge of creating a new page when
    * it's needed
    */
-  function checkLimits() {
+  function checkLimits(overlapElem) {
     if (currentEvent.y >= limitY) {
-      overDock();
+      overDock(overlapElem);
     } else {
       overIconGrid();
     }
@@ -178,8 +180,7 @@ const DragDropManager = (function() {
     }
   };
 
-  function drop(overlapElem) {
-    var page = getPage();
+  function drop(overlapElem, page) {
     var classList = overlapElem.classList;
     if (classList.contains('icon') || classList.contains('options')) {
       var overlapElemOrigin = overlapElem.dataset.origin;
@@ -212,7 +213,7 @@ const DragDropManager = (function() {
       return;
     }
 
-    checkLimits();
+    checkLimits(overlapElem);
     if (isDisabledDrop) {
       clearTimeout(overlapingTimeout);
       return;
@@ -231,7 +232,7 @@ const DragDropManager = (function() {
           page.drop(draggableIconOrigin, lastIcon.getOrigin());
         }
       } else {
-        overlapingTimeout = setTimeout(drop, 500, overlapElem);
+        overlapingTimeout = setTimeout(drop, 500, overlapElem, page);
       }
     }
 
