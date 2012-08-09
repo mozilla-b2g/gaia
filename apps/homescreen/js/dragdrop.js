@@ -178,6 +178,27 @@ const DragDropManager = (function() {
     }
   };
 
+  function drop(overlapElem) {
+    var page = getPage();
+    var classList = overlapElem.classList;
+    if (classList.contains('icon') || classList.contains('options')) {
+      var overlapElemOrigin = overlapElem.dataset.origin;
+      page.drop(draggableIconOrigin, overlapElemOrigin);
+    } else if (classList.contains('dockWrapper')) {
+      var firstIcon = page.getFirstIcon();
+      if (currentEvent.x < firstIcon.getLeft()) {
+        if (draggableIcon !== firstIcon) {
+          page.drop(draggableIconOrigin, firstIcon.getOrigin());
+        }
+      } else {
+        var lastIcon = page.getLastIcon();
+        if (draggableIcon !== lastIcon) {
+          page.drop(draggableIconOrigin, lastIcon.getOrigin());
+        }
+      }
+    }
+  }
+
   /*
    * It's performed when the draggable element is moving
    *
@@ -186,7 +207,8 @@ const DragDropManager = (function() {
   function move(overlapElem) {
     draggableIcon.onDragMove(currentEvent.x, currentEvent.y);
 
-    if (!getPage().ready) {
+    var page = getPage();
+    if (!page.ready) {
       return;
     }
 
@@ -203,31 +225,14 @@ const DragDropManager = (function() {
 
     if (previousOverlapIcon !== overlapElem) {
       clearTimeout(overlapingTimeout);
-      overlapingTimeout = setTimeout(function move_overlapingTimeout() {
-        var page = getPage();
-        if (classList.contains('icon') || classList.contains('options')) {
-          var overlapElemOrigin = overlapElem.dataset.origin;
-          page.drop(draggableIconOrigin, overlapElemOrigin);
-        } else if (classList.contains('page')) {
-          var lastIcon = page.getLastIcon();
-          if (currentEvent.y > lastIcon.getTop() &&
-              draggableIcon !== lastIcon) {
-            page.drop(draggableIconOrigin, lastIcon.getOrigin());
-          }
-        } else if (classList.contains('dockWrapper')) {
-          var firstIcon = page.getFirstIcon();
-          if (currentEvent.x < firstIcon.getLeft()) {
-            if (draggableIcon !== firstIcon) {
-              page.drop(draggableIconOrigin, firstIcon.getOrigin());
-            }
-          } else {
-            var lastIcon = page.getLastIcon();
-            if (draggableIcon !== lastIcon) {
-              page.drop(draggableIconOrigin, lastIcon.getOrigin());
-            }
-          }
+      if (classList.contains('page')) {
+        var lastIcon = page.getLastIcon();
+        if (currentEvent.y > lastIcon.getTop() && draggableIcon !== lastIcon) {
+          page.drop(draggableIconOrigin, lastIcon.getOrigin());
         }
-      }, 500);
+      } else {
+        overlapingTimeout = setTimeout(drop, 500, overlapElem);
+      }
     }
 
     previousOverlapIcon = overlapElem;
