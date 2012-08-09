@@ -18,7 +18,8 @@ const DragDropManager = (function() {
    */
   var disabledCheckingLimitsTimeout = null;
 
-  var draggableIcon, draggableIconOrigin;
+  var draggableIcon, draggableIconOrigin, previousOverlapIcon,
+      overlapingTimeout;
 
   var pageHelper = GridManager.pageHelper;
 
@@ -192,6 +193,7 @@ const DragDropManager = (function() {
 
     checkLimits();
     if (isDisabledDrop) {
+      clearTimeout(overlapingTimeout);
       return;
     }
 
@@ -200,28 +202,35 @@ const DragDropManager = (function() {
       return;
     }
 
-    if (classList.contains('icon') || classList.contains('options')) {
-      var overlapElemOrigin = overlapElem.dataset.origin;
-      page.drop(draggableIconOrigin, overlapElemOrigin);
-    } else if (classList.contains('page')) {
-      var lastIcon = page.getLastIcon();
-      if (currentEvent.y > lastIcon.getTop() &&
-          draggableIcon !== lastIcon) {
-        page.drop(draggableIconOrigin, lastIcon.getOrigin());
-      }
-    } else if (classList.contains('dockWrapper')) {
-      var firstIcon = page.getFirstIcon();
-      if (currentEvent.x < firstIcon.getLeft()) {
-        if (draggableIcon !== firstIcon) {
-          page.drop(draggableIconOrigin, firstIcon.getOrigin());
+    if (previousOverlapIcon !== overlapElem) {
+      clearTimeout(overlapingTimeout);
+      overlapingTimeout = setTimeout(function move_overlapingTimeout() {
+        if (classList.contains('icon') || classList.contains('options')) {
+          var overlapElemOrigin = overlapElem.dataset.origin;
+          page.drop(draggableIconOrigin, overlapElemOrigin);
+        } else if (classList.contains('page')) {
+          var lastIcon = page.getLastIcon();
+          if (currentEvent.y > lastIcon.getTop() &&
+              draggableIcon !== lastIcon) {
+            page.drop(draggableIconOrigin, lastIcon.getOrigin());
+          }
+        } else if (classList.contains('dockWrapper')) {
+          var firstIcon = page.getFirstIcon();
+          if (currentEvent.x < firstIcon.getLeft()) {
+            if (draggableIcon !== firstIcon) {
+              page.drop(draggableIconOrigin, firstIcon.getOrigin());
+            }
+          } else {
+            var lastIcon = page.getLastIcon();
+            if (draggableIcon !== lastIcon) {
+              page.drop(draggableIconOrigin, lastIcon.getOrigin());
+            }
+          }
         }
-      } else {
-        var lastIcon = page.getLastIcon();
-        if (draggableIcon !== lastIcon) {
-          page.drop(draggableIconOrigin, lastIcon.getOrigin());
-        }
-      }
+      }, 500);
     }
+
+    previousOverlapIcon = overlapElem;
   }
 
   function onMove(evt) {
@@ -235,6 +244,7 @@ const DragDropManager = (function() {
   function onEnd(evt) {
     evt.stopPropagation();
     evt.preventDefault();
+    clearTimeout(overlapingTimeout);
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup', onEnd);
     stop(function dg_stop() {

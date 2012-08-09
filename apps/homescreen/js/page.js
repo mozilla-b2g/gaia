@@ -465,8 +465,10 @@ Page.prototype = {
       // This is a moz app
       icon = this.icons[Applications.getOrigin(app)];
     }
-    this.olist.removeChild(icon.container);
-    delete this.icons[icon.descriptor.origin];
+    if (icon && this.icons[icon]) {
+      this.olist.removeChild(icon.container);
+      delete this.icons[icon.descriptor.origin];
+    }
   },
 
   /*
