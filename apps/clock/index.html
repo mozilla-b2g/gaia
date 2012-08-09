@@ -145,8 +145,20 @@
           <input type="text" class="right" name="alarm.label" placeholder="Alarm" />
           <p></p>
         </li>
-        
-        
+        <li class="multiline">
+          <div id="picker-bar">
+            <div id="picker-container">
+              <div id="value-indicator-bottom"></div>
+              <div id="value-picker-hours" class="animation-on"></div>
+              <div class="left-picker-separator"></div>
+              <div id="value-picker-minutes" class="animation-on"></div>
+              <div class="right-picker-separator"></div>
+              <div id="value-picker-hour24-state" class="animation-on"></div>
+              <div id="value-indicator-hover"></div>
+            </div>
+            <div id="picker-bar-gradient"></div>
+          </div>
+        </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat<sapn>:</sapn></span>
           <a id="repeat-menu" href="#repeat" class="abstract-menu">Never</a>
@@ -167,26 +179,6 @@
           <a id="color-menu" href="#color" class="abstract-menu">Darkorange</a>
           <p></p>
         </li>
-        <li class="singleline">
-        <span class="view-alarm-lbl" data-l10n-id="enable">Enable</span>
-          <label>
-            <input type="checkbox" name="alarm.enable"/>
-            <span class="editSetEnabledBtn"></span> </label>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="hour">Hour</span>
-          <input type="number" class="right" name="alarm.hour" maxlength="2" placeholder="08" required pattern="[0-2][0-9]"/>
-
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="minute">Minute</span>
-          <input type="number" class="right" name="alarm.minute" maxlength="2" placeholder="30" required pattern="[0-5][0-9]"/>
-          <p></p>
-        </li>
-        <!-- <li class="delete">
-          <a id="alarm-del" href="#root" data-l10n-id="delete">Delete</a>
-        </li> -->
       </ul>
     </div>
 
