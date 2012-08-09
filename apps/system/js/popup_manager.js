@@ -25,10 +25,10 @@ var PopupManager = {
   },
 
   init: function pm_init() {
-    window.addEventListener('mozbrowseropenwindow', this.open.bind(this));
-    window.addEventListener('mozbrowserclose', this.close.bind(this));
+    window.addEventListener('mozbrowseropenwindow', this);
+    window.addEventListener('mozbrowserclose', this);
 
-    window.addEventListener('home', this.backHandling.bind(this));
+    window.addEventListener('home', this);
   },
 
   _showWait: function pm_showWait() {
@@ -80,6 +80,15 @@ var PopupManager = {
         break;
       case 'mozbrowserloadend':
         this.handleLoadEnd(evt);
+        break;
+      case 'mozbrowseropenwindow':
+        this.open(evt);
+        break;
+      case 'mozbrowserclose':
+        this.close(evt);
+        break;
+      case 'home':
+        this.backHandling(evt);
         break;
     }
   },
