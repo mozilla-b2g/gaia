@@ -186,8 +186,7 @@ const DragDropManager = (function() {
   function move(overlapElem) {
     draggableIcon.onDragMove(currentEvent.x, currentEvent.y);
 
-    var page = getPage();
-    if (!page.ready) {
+    if (!getPage().ready) {
       return;
     }
 
@@ -205,6 +204,7 @@ const DragDropManager = (function() {
     if (previousOverlapIcon !== overlapElem) {
       clearTimeout(overlapingTimeout);
       overlapingTimeout = setTimeout(function move_overlapingTimeout() {
+        var page = getPage();
         if (classList.contains('icon') || classList.contains('options')) {
           var overlapElemOrigin = overlapElem.dataset.origin;
           page.drop(draggableIconOrigin, overlapElemOrigin);
