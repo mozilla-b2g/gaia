@@ -126,15 +126,6 @@
 
   <body onload="startup()">
     <div id="screen" class="screenoff locked">
-      <div id="windows" data-type="APP">
-        <!-- application windows are added here -->
-      </div>
-      
-      <div id="keyboard-overlay" data-type="KEYBOARD_OVERLAY"></div>
-
-      <!-- keyboard -->
-      <iframe id="keyboard-frame" class="hide" data-type="KEYBOARD_FRAME"></iframe>
-
       <!-- homescreen -->
       <iframe id="homescreen" mozbrowser mozapp data-type="HOMESCREEN"></iframe>
       <!-- <iframe id="homescreen" mozbrowser mozapp remote="true"></iframe>
@@ -142,6 +133,10 @@
         https://bugzilla.mozilla.org/show_bug.cgi?id=761933
       -->
 
+      <div id="windows" data-type="APP">
+        <!-- application windows are added here -->
+      </div>
+      
       <div id="dialog-overlay" data-type="DIALOG_OVERLAY">
         <div id="trustedDialog">
         </div> 
@@ -344,6 +339,11 @@
         </div>
       </div>
       
+      <div id="keyboard-overlay" data-type="KEYBOARD_OVERLAY"></div>
+
+      <!-- keyboard -->
+      <iframe id="keyboard-frame" class="hide" data-type="KEYBOARD_FRAME"></iframe>
+
       <div id="cardsView" data-type="CARDVIEW">
         <ul>
         </ul>
