@@ -11,14 +11,14 @@
 
   var widgetContainer = document.getElementById('cost-control-widget');
   var widgetFrame = document.createElement('iframe');
-  widgetFrame.setAttribute('mozbrowser', 'mozbrowser');
+  widgetFrame.setAttribute('mozbrowser', true);
   widgetFrame.setAttribute('mozapp', origin + '/manifest.webapp');
-  widgetFrame.src = origin + '/widget.html';  
-  widgetFrame.dataset.frameType = 'widget';
+  widgetFrame.src = origin + '/widget.html';
   widgetFrame.dataset.frameOrigin = origin;
   widgetContainer.appendChild(widgetFrame);
 
   function _redirectToWidget(evt) {
+    console.log('redirecting ' + evt.type);
     widgetFrame.contentWindow.postMessage({
       type: evt.type
     }, '*');

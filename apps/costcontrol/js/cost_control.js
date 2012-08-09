@@ -3,13 +3,23 @@
 
 'use strict';
 
-(function() {
+var CostControl = getService(function cc_onServiceReady(evt) {
+  // If the service is not ready, when ready it re-set the CostControl object
+  // and setup the widget.
+  CostControl = evt.detail.service;
+  setupApp();
+});
+
+// If the service is already initialized, just setup the widget
+if (CostControl)
+  setupApp();
+
+function setupApp() {
   var _ = function cc_fallbackTranslation(keystring) {
     var r = navigator.mozL10n.get.apply(this, arguments);
     return r || '!!' + keystring;
   }
 
-  var CostControl = getService();
   var _topUpButton, _topUpInput;
   var _isUpdating = false;
   var _activityRequest = null;
@@ -154,4 +164,4 @@
   }
 
   _init();
-}());
+}

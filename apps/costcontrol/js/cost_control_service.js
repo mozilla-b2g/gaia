@@ -3,15 +3,10 @@
 
 'use strict';
 
-window[SERVICE_NAME] = (function() {
-  var _fakeCredit = {
-    get credit() {
-      return JSON.parse(window.localStorage.getItem('fakeCredit'));
-    },
-    set credit(value) {
-      window.localStorage.setItem('fakeCredit', JSON.stringify(value));
-    }
-  };
+setService(function() {
+  var _fakeLastBalance = _getLastBalance();
+  var _fakeCredit = _fakeLastBalance ? _fakeLastBalance.balance : 12.34;
+  console.log('fake creadit: ' + _fakeCredit);
 
   var _ = function cc_fallbackTranslation(keystring) {
     var r = navigator.mozL10n.get.apply(this, arguments);
@@ -50,6 +45,20 @@ window[SERVICE_NAME] = (function() {
   var _state = STATE_IDLE;
   var _balanceTimeout = 0;
   var _connectedCalls = 0;
+
+  function Balance(balance, timestamp) {
+    this.balance = balance;
+    this.timestamp = timestamp || new Date();
+  }
+  Balance.reviver = function cc_BalanceReviver(key, value) {
+    switch(key) {
+      case 'timestamp':
+        return new Date(value);
+
+      default:
+        return value;
+    }
+  };
 
   // Return true if the widget has all the information required to
   // work. Return false elsewhere.
@@ -244,11 +253,18 @@ window[SERVICE_NAME] = (function() {
       return;
     }
 
+    var now = new Date();
+    var timestring = now.toISOString();
+    var balance = new Balance(newBalance, now);
+
     var successEvent = new CustomEvent(
       'costcontrolbalanceupdatesuccess',
-      { detail: { balance: newBalance } }
+      { detail: balance }
     );
     window.dispatchEvent(successEvent);
+
+    // Store values
+    window.localStorage.setItem('lastBalance', JSON.stringify(balance));
   }
 
   // What happend when the confirmation SMS is received
@@ -265,7 +281,7 @@ window[SERVICE_NAME] = (function() {
     // TODO: If no parsing, notificate error and return
 
     // XXX: Remove when removing mock ups
-    var currentBalance = _fakeCredit.credit;
+    var currentBalance = _fakeCredit;
     var newBalance = currentBalance + parseInt(message.body, 10);
     newBalance = Math.round(newBalance * 100)/100;
 
@@ -279,9 +295,10 @@ window[SERVICE_NAME] = (function() {
       return;
     }
 
+    _fakeCredit = newBalance;
     var successEvent = new CustomEvent(
       'costcontroltopupsuccess',
-      { detail: { newBalance: _fakeCredit.credit += 2.00 } }
+      { detail: { newBalance: _fakeCredit } }
     );
     window.dispatchEvent(successEvent);
   }
@@ -316,9 +333,10 @@ window[SERVICE_NAME] = (function() {
       _settings.CHECK_BALANCE_DESTINATION,
       _settings.CHECK_BALANCE_TEXT
     );*/
-    var currentCredit = 100;
+    var currentCredit = _fakeCredit;
     var newCredit = Math.max(0, currentCredit - 2);
     newCredit = Math.round(newCredit * 100)/100;
+    _fakeCredit = newCredit;
     var request = _sms.send(
       '+34620970334',
       'R$ ' + newCredit
@@ -372,13 +390,24 @@ window[SERVICE_NAME] = (function() {
     window.addEventListener('costcontroltopuperror', onerror);
   }
 
+  // Returns stored balance
+  function _getLastBalance() {
+    console.log('getting last balance');
+    var balance = window.localStorage.getItem('lastBalance');
+    console.log('has balance? ' + (balance !== null) + ' (' + balance + ')');
+    balance = (balance !== null) ? JSON.parse(balance, Balance.reviver) : null;
+    return balance;
+  }
+
   return {
     init: _init,
     setBalanceCallbacks: _setBalanceCallbacks,
     setTopUpCallbacks: _setTopUpCallbacks,
     requestBalance: _mockup_updateBalance,
     requestTopUp: _mockup_topUp,
+    getLastBalance: _getLastBalance,
   };
 }());
 
 window[SERVICE_NAME].init();
+nowIAmReady();

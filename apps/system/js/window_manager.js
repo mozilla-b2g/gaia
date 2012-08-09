@@ -447,11 +447,13 @@ var WindowManager = (function() {
       // UI Test App - Notifications don't work properly when running OOP
       //   - bug 776134
 
-      'Video'
+      'Video',
       // - When running OOP, VolumeService dies - bug 775833
       //   OOP - Assertion failure: w->mApp,
       //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
       //   Stop audio when app dies
+
+      'Cost Control'
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {

@@ -3,6 +3,23 @@
 
 'use strict';
 
+var CostControl;
+window.addEventListener('message', function cc_onApplicationReady(evt) {
+  
+  if (evt.data.type === 'applicationready') {
+    CostControl = getService(function cc_onServiceReady(evt) {
+      // If the service is not ready, when ready it re-set the CostControl object
+      // and setup the widget.
+      CostControl = evt.detail.service;
+      setupWidget();
+    });
+
+    // If the service is already initialized, just setup the widget
+    if (CostControl)
+      setupWidget();
+  }
+});
+
 function setupWidget() {
 
   var _ = function cc_fallbackTranslation(keystring) {
@@ -10,7 +27,6 @@ function setupWidget() {
     return r || '!!' + keystring;
   }
 
-  var CostControl = getService();
   var _widget, _widgetCredit, _widgetTime;
   var _isUpdating = false;
 
@@ -28,7 +44,7 @@ function setupWidget() {
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
-    _updateUI(evt.detail.balance);
+    _updateUI(evt.detail.balance, evt.detail.timestamp);
     _setUpdatingMode(false);
   }
 
@@ -100,7 +116,7 @@ function setupWidget() {
 
   // Handle the events that triggers automatic balance updates
   function _automaticCheck(evt) {
-    console.log('Evento escuchado: ' + evt.type);
+    console.log('Event listened: ' + evt.type);
 
     // Ignore if the device is in roaming
     if (_inRoaming()) {
@@ -163,38 +179,38 @@ function setupWidget() {
   }
 
   // Updates the UI with the new balance and return both balance and timestamp
-  function _updateUI(balance) {
-    var now = new Date();
-    if (balance !== undefined) {
-      var timestring = now.toISOString();
-      window.localStorage.setItem('costcontrolTime', timestring);
-      window.localStorage.setItem('costcontrolBalance', balance);
+  function _updateUI(balance, timestamp) {
+    if (!arguments.length) {
+      var lastBalance = CostControl.getLastBalance();
+      balance = lastBalance ? lastBalance.balance : null;
+      timestamp = lastBalance ? lastBalance.timestamp : null;
     }
-
-    // Get data
-    var rawTime = window.localStorage.getItem('costcontrolTime');
-    rawTime = rawTime !== null ? new Date(rawTime) : new Date();
-    var rawBalance = window.localStorage.getItem('costcontrolBalance');
-    rawBalance = rawBalance !== null ? parseFloat(rawBalance) : 0.00;
+    timestamp = timestamp || new Date();
 
     // Format and set
     // Check for low credit
-    if (rawBalance <  100/* TODO: Replace by some value not harcocded */)
+    if (balance < 5/* TODO: Replace by some value not harcocded */)
       _widget.classList.add('low-credit');
     else
       _widget.classList.remove('low-credit');
 
     // Format credit
-    var splitBalance = (rawBalance.toFixed(2)).split('.');
-    var formattedBalance = 'R$ &i,&d' /* TODO: Replace by some value not hardcoded*/
-      .replace('&i', splitBalance[0])
-      .replace('&d', splitBalance[1]);
+    var formattedBalance;
+    if (balance !== null) {
+      var splitBalance = (balance.toFixed(2)).split('.');
+      formattedBalance = 'R$ &i,&d' /* TODO: Replace by some value not hardcoded*/
+        .replace('&i', splitBalance[0])
+        .replace('&d', splitBalance[1]);
+    } else {
+      formattedBalance = '--';
+    }
     _widgetCredit.textContent = formattedBalance;
 
     // Format time
-    var time = rawTime.toLocaleFormat('%H:%M');
-    var date = rawTime.toLocaleFormat('%a');
-    var dateDay = parseInt(rawTime.toLocaleFormat('%u'), 10);
+    var now = new Date();
+    var time = timestamp.toLocaleFormat('%H:%M');
+    var date = timestamp.toLocaleFormat('%a');
+    var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
     var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
     if (nowDateDay === dateDay)
       date = _('today');
@@ -210,19 +226,3 @@ function setupWidget() {
 
   _init();
 };
-
-window.addEventListener('message', function cc_setupEverything(evt) {
-  if (evt.data.type === 'applicationready') {
-    // TODO: Remove when bug https://bugzilla.mozilla.org/show_bug.cgi?id=766873
-    // is resolved. Remove from this point until...
-    var _w = window.open(
-      '/background.html#0',
-      SERVICE_BACKGROUND_NAME,
-      'background'
-    );
-    // ...here
-
-    // Finish the setup when the service is ready
-    window.addEventListener('costcontrolserviceready', setupWidget);
-  }
-});
