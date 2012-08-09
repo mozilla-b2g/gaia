@@ -133,13 +133,13 @@ const DockManager = (function() {
     localize();
   }
 
-  function placeAfterRemovingApp(numApps) {
+  function placeAfterRemovingApp(numApps, centering) {
     document.body.dataset.transitioning = 'true';
 
-    if (numApps > maxNumAppInViewPort) {
-      dock.moveByWithEffect(dock.getLeft() + cellWidth, duration);
-    } else {
+    if (centering || numApps <= maxNumAppInViewPort) {
       dock.moveByWithEffect((windowWidth - numApps * cellWidth) / 2, duration);
+    } else {
+      dock.moveByWithEffect(dock.getLeft() + cellWidth, duration);
     }
 
     container.addEventListener('transitionend', function transEnd(e) {
@@ -183,12 +183,14 @@ const DockManager = (function() {
     onDragStop: function dm_onDragStop() {
       var numApps = dock.getNumApps();
       if (numApps === numAppsBeforeDrag ||
-          numApps >= maxNumAppInViewPort &&
-          (numApps > numAppsBeforeDrag || dock.getRight() >= windowWidth)) {
+          numApps > maxNumAppInViewPort &&
+          (numApps < numAppsBeforeDrag && dock.getRight() >= windowWidth ||
+           numApps > numAppsBeforeDrag && dock.getLeft() < 0)
+         ) {
         return;
       }
 
-      placeAfterRemovingApp(numApps);
+      placeAfterRemovingApp(numApps, numApps > numAppsBeforeDrag);
     },
 
     onDragStart: function dm_onDragStart() {
@@ -221,7 +223,7 @@ const DockManager = (function() {
       this.saveState();
 
       var numApps = dock.getNumApps();
-      if (numApps >= maxNumAppInViewPort && dock.getRight() >= windowWidth) {
+      if (numApps > maxNumAppInViewPort && dock.getRight() >= windowWidth) {
         return;
       }
 
