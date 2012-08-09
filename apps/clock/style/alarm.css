@@ -211,7 +211,8 @@ li.multiline:active {
   font: 2.4rem/2.4rem 'Open Sans',sans-serif;
   top: 2.2rem;
   height: auto;
-  width: 34rem;
+  width: 100%;
+  pointer-events: none;
 }
 
 /* Table View */

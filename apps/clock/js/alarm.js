@@ -625,6 +625,7 @@ var AlarmEditView = {
     var error = false;
 
     this.alarm.label = this.labelInput.value;
+    this.alarm.enabled = true;
     var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
     var hour = this.timePicker.hour.getSelectedDisplayedText();
     hour = (hour == 12) ? 0 : hour;
