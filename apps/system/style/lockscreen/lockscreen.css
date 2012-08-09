@@ -114,7 +114,7 @@
   text-shadow: 0 0 3px #333;
   visibility: hidden;
   -moz-transform: translateY(-10rem);
-  -moz-transition: visibility 0s linear 0.2s, -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 #lockscreen-header {
@@ -129,14 +129,13 @@
   text-shadow: 0 0 3px #333;
   visibility: hidden;
   -moz-transform: translateY(-10rem);
-  -moz-transition: visibility 0s linear 0.2s, -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 [data-panel=""] #lockscreen-header,
 [data-panel="camera"] #lockscreen-header {
   visibility: inherit;
   -moz-transform: translateY(0);
-  -moz-transition-delay: 0s;
 }
 
 #lockscreen-connstate {
@@ -516,13 +515,12 @@
   border-top: 1px solid #525050;
   visibility: hidden;
   -moz-transform: translateY(-moz-calc(21.4rem + 7.2rem));
-  -moz-transition: visibility 0s linear 0.2s, -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-code {
   visibility: visible;
   -moz-transform: translateY(0);
-  -moz-transition-delay: 0s;
 }
 
 #lockscreen-passcode-code > span {
@@ -580,13 +578,12 @@
   background-color: rgba(0, 0, 0, 0.8);
   visibility: hidden;
   -moz-transform: translateY(21.4rem);
-  -moz-transition: visibility 0s linear 0.2s, -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-pad {
   visibility: visible;
   -moz-transform: translateY(0);
-  -moz-transition-delay: 0s;
 }
 
 #lockscreen-passcode-pad > a {
@@ -687,7 +684,7 @@
   border-top: 2px solid #525050;
   visibility: hidden;
   -moz-transform: translateY(32rem);
-  -moz-transition: visibility 0s linear 0.2s, -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 
   /* TBD */
   font-size: 11.5rem;
@@ -698,5 +695,4 @@
 [data-panel="emergency-call"] #lockscreen-emergency-pad {
   visibility: visible;
   -moz-transform: translateY(0);
-  -moz-transition-delay: 0s;
 }
