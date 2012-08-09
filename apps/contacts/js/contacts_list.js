@@ -67,8 +67,7 @@ contacts.List = (function() {
     figure.className = 'item-media pull-right block-media';
     var img = document.createElement('img');
     if (contact.photo && contact.photo.length > 0) {
-      var photoURL = URL.createObjectURL(contact.photo[0]);
-      img.style.backgroundImage = 'url(' + photoURL + ')';
+      Contacts.updatePhoto(contact.photo[0], img);
     }
     figure.appendChild(img);
     link.appendChild(figure);

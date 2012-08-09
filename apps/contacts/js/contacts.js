@@ -477,8 +477,7 @@ var Contacts = (function() {
       } else {
         cover.style.overflow = null;
       }
-      var photoURL = URL.createObjectURL(contact.photo[0]);
-      cover.style.backgroundImage = 'url(' + photoURL + ')';
+      updatePhoto(contact.photo[0], cover);
     } else {
       cover.style.overflow = null;
       cover.style.backgroundImage = null;
@@ -496,8 +495,7 @@ var Contacts = (function() {
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
     if (currentContact.photo && currentContact.photo.length > 0) {
-      var photoURL = URL.createObjectURL(currentContact.photo[0]);
-      thumb.style.backgroundImage = 'url(' + photoURL + ')';
+      updatePhoto(currentContact.photo[0], thumb);
     }
     var default_type = TAG_OPTIONS['phone-type'][0].value;
     for (var tel in currentContact.tel) {
@@ -576,6 +574,11 @@ var Contacts = (function() {
     };
 
     edit();
+  };
+
+  var updatePhoto = function updatePhoto(photo, dest) {
+    var photoURL = URL.createObjectURL(photo);
+    dest.style.backgroundImage = 'url(' + photoURL + ')';
   };
 
   // Checks if an object fields are empty, by empty means
@@ -1133,8 +1136,7 @@ var Contacts = (function() {
       this.img = img;
       img.onload = function() {
         var dataImg = getPhoto(this.img);
-        var photoURL = URL.createObjectURL(dataImg);
-        thumb.style.backgroundImage = 'url(' + photoURL + ')';
+        updatePhoto(dataImg, thumb);
         currentContact.photo = currentContact.photo || [];
         currentContact.photo[0] = dataImg;
       }.bind(this);
@@ -1186,7 +1188,8 @@ var Contacts = (function() {
     'toggleFavorite': toggleFavorite,
     'callOrPick': callOrPick,
     'pickImage': pickImage,
-    'navigation': navigation
+    'navigation': navigation,
+    'updatePhoto': updatePhoto
   };
 })();
 
