@@ -17,7 +17,7 @@ var PopupManager = {
   screen: document.getElementById('screen'),
 
   _loadingIcon: function() {
-    if(!this._loadingIconEle) {
+    if (!this._loadingIconEle) {
       this._loadingIconEle = document.getElementById('statusbar-loading');
     }
 
@@ -54,13 +54,13 @@ var PopupManager = {
 
     this.screen.classList.add('popup');
 
-    popup.addEventListener('mozbrowserloadend',this);
-    popup.addEventListener('mozbrowserloadstart',this);
+    popup.addEventListener('mozbrowserloadend', this);
+    popup.addEventListener('mozbrowserloadstart', this);
   },
 
   handleLoadStart: function pm_handleLoadStart(evt) {
      this._startTimes++;
-     if(this._startTimes > 1) {
+     if (this._startTimes > 1) {
       this._showWait();
      }
   },
@@ -68,7 +68,7 @@ var PopupManager = {
 
   handleLoadEnd: function pm_handleLoadEnd(evt) {
       this._endTimes++;
-      if(this._endTimes > 1) {
+      if (this._endTimes > 1) {
         this._hideWait();
       }
   },
