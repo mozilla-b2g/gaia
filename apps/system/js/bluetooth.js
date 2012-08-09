@@ -103,9 +103,18 @@ var Bluetooth = {
   },
 
   updateConnected: function bt_updateConnected() {
+    var wasConnected = this.connected;
     this.connected = this.pairedDevices.some(function(device) {
       return device.connected;
     });
+
+    if (wasConnected !== this.connected) {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('bluetoothconnectionchange',
+        /* canBubble */ true, /* cancelable */ false,
+        {deviceConnected: this.connected});
+      window.dispatchEvent(evt);
+    }
   }
 };
 
