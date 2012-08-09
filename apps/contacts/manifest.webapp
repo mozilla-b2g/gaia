@@ -9,7 +9,8 @@
   "permissions": [
     "contacts",
     "webcontacts-manage",
-    "settings"
+    "settings",
+    "systemXHR"
   ],
   "locales": {
     "ar": {
