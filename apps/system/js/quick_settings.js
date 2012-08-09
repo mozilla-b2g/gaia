@@ -59,7 +59,6 @@ var QuickSettings = {
                   section: 'wifi'
                 }
               });
-              UtilityTray.hide();
             }
             break;
 
