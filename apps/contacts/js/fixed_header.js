@@ -26,7 +26,7 @@ var FixedHeader = (function FixedHeader() {
       // Effect
       if (Math.abs(offset) < currentHeight && differentHeaders) {
         var toMove = Math.abs(offset) - currentHeight;
-        var inEffect = Math.abs(offset) <= currentHeight;
+        var inEffect = toMove <= 0;
         var translateTop = 'translateY(' + toMove + 'px)';
         var transform = inEffect ? translateTop : null;
         fixedContainer.style.transform = transform;
