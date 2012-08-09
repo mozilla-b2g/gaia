@@ -3,6 +3,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('db.js');
 
   requireLib('provider/local.js');
+  requireLib('provider/caldav.js');
 
   requireLib('models/calendar.js');
   requireLib('models/account.js');
@@ -144,7 +145,81 @@ suite('store/calendar', function() {
     });
   });
 
-  suite('#sync', function() {
+  suite('#sync - syncToken skip', function() {
+    var account, calendar;
+
+    setup(function() {
+      account = Factory('account', {
+        providerType: 'Caldav'
+      });
+
+      calendar = Factory('calendar', {
+        _id: 1,
+        lastEventSyncToken: 'synced',
+        remote: { syncToken: 'synced' }
+      });
+
+    });
+
+    setup(function(done) {
+      subject.db.getStore('Account').persist(account, done);
+    });
+
+    setup(function(done) {
+      subject.persist(calendar, done);
+    });
+
+    test('result', function(done) {
+      subject._syncEvents = function() {
+        done(new Error('should not sync!'));
+      }
+
+      // tokens match should not sync!
+      subject.sync(account, calendar, function() {
+        done();
+      });
+    });
+
+  });
+
+  suite('#sync - provider skip', function() {
+   var account, calendar;
+
+    setup(function() {
+      account = Factory('account', {
+        providerType: 'Local'
+      });
+
+      calendar = Factory('calendar', {
+        _id: 1,
+        lastEventSyncToken: null,
+        remote: { syncToken: 'synced' }
+      });
+
+    });
+
+    setup(function(done) {
+      subject.db.getStore('Account').persist(account, done);
+    });
+
+    setup(function(done) {
+      subject.persist(calendar, done);
+    });
+
+    test('result', function(done) {
+      subject._syncEvents = function() {
+        done(new Error('should not sync!'));
+      }
+
+      // should not sync because local cannot sync
+      subject.sync(account, calendar, function() {
+        done();
+      });
+    });
+
+  });
+
+  suite('#sync - real', function() {
 
     var events;
     var account;
@@ -153,7 +228,7 @@ suite('store/calendar', function() {
 
     setup(function() {
       account = Factory('account', {
-        providerType: 'Local'
+        providerType: 'Caldav'
       });
 
       eventStore = subject.db.getStore('Event');

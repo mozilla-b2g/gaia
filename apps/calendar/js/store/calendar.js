@@ -164,9 +164,23 @@
 
       var self = this;
       var store = this.db.getStore('Event');
+      var provider = Calendar.App.provider(
+        account.providerType
+      );
 
       if (!calendar._id) {
         throw new Error('calendar must be assigned an _id');
+      }
+
+      // Don't attempt to sync when provider cannot
+      // or we have matching tokens
+      if (!provider.canSync ||
+          (calendar.lastEventSyncToken &&
+           calendar.lastEventSyncToken === calendar.remote.syncToken)) {
+
+        callback(null);
+
+        return;
       }
 
       store.eventsForCalendar(calendar._id, function(err, results) {
