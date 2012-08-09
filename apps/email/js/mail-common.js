@@ -762,15 +762,45 @@ var Toaster = {
  * - We can both avoid the content being influenced by our stylesheets as well
  *   as to allow the content to use inline "style" tags without any risk to our
  *   styling.
- * - We get the security benefits of an iframe "sandbox".  We do not specify
- *   any allow values, this nets us a different origin (!allow-same-origin),
- *   guarantees no scripts (!allow-scripts), prevents navigation
- *   (!allow-top-navigation), and forbids form submission (!allow-forms).
+ * - We MAYBE SOMEDAY get the security benefits of an iframe "sandbox".
+ *
+ * Our iframe sandbox attributes (not) specified and rationale are:
+ * - "allow-same-origin": YES.  We do this because in order to touch the
+ *   contentDocument we need to live in the same origin.  Because scripts are
+ *   not enabled in the iframe this is not believed to have any meaningful
+ *   impact.
+ * - "allow-scripts": NO.  We never ever want to let scripts from an email
+ *   run.  And since we are setting "allow-same-origin", even if we did want
+ *   to allow scripts we *must not* while that setting is on.  Our CSP should
+ *   limit the use of scripts if the iframe has the same origin as us since
+ *   everything in the iframe should qualify as
+ * - "allow-top-navigation": NO.  The iframe should not navigate if the user
+ *   clicks on a link.  Note that the current plan is to just capture the
+ *   click event and trigger the browse event ourselves so we can show them the
+ *   URL, so this is just extra protection.
+ * - "allow-forms": NO.  We already sanitize forms out, so this is just extra
+ *   protection.
+ * - "allow-popups": NO.  We would never want this, but it also shouldn't be
+ *   possible to even try to trigger this (scripts are disabled and sanitized,
+ *   links are sanitized to forbid link targets as well as being nerfed), so
+ *   this is also just extra protection.
+ *
+ * The spec makes a big deal that flag changes only take effect when navigation
+ * occurs.  Accordingly, we may need to actually trigger navigation by using
+ * a data URI (currently, and which should be able to inherit our origin)
+ * rather than relying on about:blank.  On the other hand, sandbox flags have
+ * been added to CSP, so we might also be able to rely on our CSP having set
+ * things so that even the instantaneously created about:blank gets locked down.
  *
  * The only wrinkle right now is that gecko does not support the "seamless"
  * attribute.  This is not a problem since our content insertion is synchronous
  * and we can force a size calculation, but it would be nice if we didn't
  * have to do it.
+ *
+ * BUGS BLOCKING US FROM DOING WHAT WE REALLY WANT, MAYBE:
+ *
+ * - HTML5 iframe sandbox attribute which is landing soon.
+ *   https://bugzilla.mozilla.org/show_bug.cgi?id=341604
  *
  * @args[
  *   @param[htmlStr]
@@ -804,10 +834,11 @@ var Toaster = {
 function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
                                          clickHandler) {
   var iframe = document.createElement('iframe');
-  iframe.setAttribute('sandbox', '');
-  iframe.setAttribute('srcdoc', htmlStr);
-
+  iframe.setAttribute('sandbox', 'allow-same-origin');
+  //iframe.setAttribute('srcdoc', htmlStr);
   parentNode.insertBefore(iframe, beforeNode);
+
+  iframe.contentDocument.body.innerHTML = htmlStr;
 
   return iframe;
 }
