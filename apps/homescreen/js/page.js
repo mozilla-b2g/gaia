@@ -531,10 +531,20 @@ dockProto.render = function dk_render(apps, target) {
 };
 
 dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
-  var style = this.movableContainer.style;
-  style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration +
-                        's cubic-bezier(0.33,0.66,0.66,1)';
+  var container = this.movableContainer;
+  var style = container.style;
+
+  container.addEventListener('transitionend', function transitionEnd(e) {
+    container.removeEventListener('transitionend', transitionEnd);
+    style.MozTransform = 'translateX(' + scrollX + 'px)';
+    style.MozTransition = '-moz-transform .05s ease';
+  });
+
+  style.MozTransform = 'translateX(' + (scrollX +
+                         (this.posLeft <= scrollX ? 5 : -5)) + 'px)';
+  style.MozTransition = '-moz-transform ' + duration + 's ease';
+
+  this.posLeft = scrollX;
 };
 
 dockProto.setAnimation = function dk_setAnimation(children, init, end, upward) {
