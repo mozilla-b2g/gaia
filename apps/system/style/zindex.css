@@ -2,95 +2,98 @@
  * is gathered here to clearly specify all system-app hierarchy */
 
 /* Reset zIndex */
-#screen > *, 
-[data-zindex-level="homescreen"] {
+#screen > *:not([data-z-index-level]), 
+#screen > [data-z-index-level="homescreen"] {
   z-index: 0;
 }
 
 /* Level 0: System overlay */
-[data-zindex-level="system-overlay"] {
+#screen > [data-z-index-level="system-overlay"] {
   z-index: 65536;
 }
 
 /* Level 1: Sleep menu/Card View/Keyboard */
-[data-zindex-level="sleep-menu"] {
+#screen > [data-z-index-level="sleep-menu"] {
   z-index: 65536;
 }
 
-[data-zindex-level="cardsview"] {
+#screen > [data-z-index-level="cardsview"] {
   z-index: 65536;
 }
 
-[data-zindex-level="keyboard-overlay"] {
+#screen > [data-z-index-level="keyboard-overlay"] {
   z-index: 65536;
 }
 
-[data-zindex-level="keyboard-frame"] {
+#screen > [data-z-index-level="keyboard-frame"] {
   z-index: 65536;
 }
 
 /* Level 2: Notification toaster */
-[data-zindex-level="notification-toaster"] {
+#screen > [data-z-index-level="notification-toaster"] {
   z-index: 32768;
 }
 
 /* Level 3: Activity menu, context menu */
-[data-zindex-level="list-menu"] {
+#screen > [data-z-index-level="list-menu"] {
   z-index: 16384;
 }
 
 /* Level 4: Statusbar, Utility-Tray */
-[data-zindex-level="statusbar"] {
+#screen > [data-z-index-level="statusbar"] {
   z-index: 16384;
 }
 
-[data-zindex-level="utility-tray"] {
+#screen > [data-z-index-level="utility-tray"] {
   z-index: 16383;
 }
 
 /* Level 5: Attention screen */
-[data-zindex-level="attention-screen"] {
+#screen > [data-z-index-level="attention-screen"] {
   z-index: 8192;
 }
 
 
-/* Level 6: Lock Screen Camera */
-[data-zindex-level="lockscreen-camera"]{
-  z-index: 2048;
-}
-
-/* Level 7: Lock Screen */
-[data-zindex-level="lockscreen"]{
+/* Level 6: Lock Screen */
+#screen > [data-z-index-level="lockscreen"] {
   z-index: 1024;
 }
 
-/* Level 8: Debug grid */
-[data-zindex-level="debug-grid"] {
+#screen > [data-z-index-level="lockscreen-camera"] {
+  z-index: 1023;
+}
+
+/* Level 7: Debug grid */
+#screen > [data-z-index-level="debug-grid"] {
   z-index: 512;
 }
 
-/* Level 9: Dialog Module */
-[data-zindex-level="dialog-overlay"],
-[data-zindex-level="value-selector"],
-[data-zindex-level="permission-screen"] {
+/* Level 8: Dialog Module */
+#screen > [data-z-index-level="dialog-overlay"],
+#screen > [data-z-index-level="value-selector"],
+#screen > [data-z-index-level="permission-screen"] {
   z-index: 511;
 }
 
-/* Level 10 */
-[data-zindex-level="window-sprite"] {
+/* Level 9 */
+#screen > [data-z-index-level="window-sprite"] {
+  z-index: 2;
+}
+
+#screen > [data-z-index-level="app"] {
   z-index: 1;
 }
 
 /* Fullscreen */
-#screen.fullscreen [data-zindex-level="system-overlay"],
-#screen.fullscreen [data-zindex-level="lockscreen"],
-#screen.fullscreen [data-zindex-level="lockscreen-camera"],
-#screen.fullscreen [data-zindex-level="value-selector"],
-#screen.fullscreen [data-zindex-level="dialog-overlay"],
-#screen.fullscreen [data-zindex-level="keyboard-overlay"],
-#screen.fullscreen [data-zindex-level="keyboard-frame"],
-#screen.fullscreen [data-zindex-level="keyboard-frame"].visible,
-#screen.fullscreen [data-zindex-level="notification-toaster"],
-#screen.fullscreen [data-zindex-level="cardsview"] {
+#screen.fullscreen > [data-z-index-level="system-overlay"],
+#screen.fullscreen > [data-z-index-level="lockscreen"],
+#screen.fullscreen > [data-z-index-level="lockscreen-camera"],
+#screen.fullscreen > [data-z-index-level="value-selector"],
+#screen.fullscreen > [data-z-index-level="dialog-overlay"],
+#screen.fullscreen > [data-z-index-level="keyboard-overlay"],
+#screen.fullscreen > [data-z-index-level="keyboard-frame"],
+#screen.fullscreen > [data-z-index-level="keyboard-frame"].visible,
+#screen.fullscreen > [data-z-index-level="notification-toaster"],
+#screen.fullscreen > [data-z-index-level="cardsview"] {
   z-index: 2147483647;
 }
