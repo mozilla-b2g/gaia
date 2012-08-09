@@ -1172,6 +1172,28 @@ var Contacts = (function() {
     return ret;
   }
 
+  var sendEmailOrPick = function sendEmailOrPick(address) {
+    if (ActivityHandler.currentlyHandling) {
+      // Placeholder for the email app if we want to
+      // launch contacts to select an email address.
+      // So far we do nothing
+    } else {
+      try {
+        // We don't check the email format, lets the email
+        // app do that
+        var activity = new MozActivity({
+          name: 'new',
+          data: {
+            type: 'mail',
+            URI: 'mailto:' + address
+          }
+        });
+      } catch (e) {
+        console.log('WebActivities unavailable? : ' + e);
+      }
+    }
+  };
+
   return {
     'showEdit' : showEdit,
     'doneTag': doneTag,
@@ -1188,6 +1210,7 @@ var Contacts = (function() {
     'callOrPick': callOrPick,
     'pickImage': pickImage,
     'navigation': navigation,
+    'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto
   };
 })();
