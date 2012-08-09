@@ -465,7 +465,7 @@ Page.prototype = {
       // This is a moz app
       icon = this.icons[Applications.getOrigin(app)];
     }
-    if (icon && this.icons[icon]) {
+    if (icon && this.icons[icon.getOrigin()]) {
       this.olist.removeChild(icon.container);
       delete this.icons[icon.descriptor.origin];
     }
