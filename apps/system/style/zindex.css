@@ -12,13 +12,12 @@
   z-index: 65536;
 }
 
-/* Level 1: Sleep menu */
+/* Level 1: Sleep menu/Card View/Keyboard */
 #sleep-menu,
 [data-type="SLEEP_MENU"] {
   z-index: 65536;
 }
 
-/* Level 1: Card view */
 #cardsView,
 [data-type="CARDVIEW"] {
   z-index: 65536;
@@ -34,30 +33,24 @@
   z-index: 65536;
 }
 
-/* Level 2: Activity menu, context menu */
-#listmenu,
-[data-type="LIST_MENU"] {
-  z-index: 32767;
-}
-
-/* Level 3: Notification toaster */
+/* Level 2: Notification toaster */
 #notification-toaster,
 [data-type="TOASTER"] {
   z-index: 32768;
 }
 
-/* Level 4: keybaord */
-#keyboard-frame.visible {
+/* Level 3: Activity menu, context menu */
+#listmenu,
+[data-type="LIST_MENU"] {
   z-index: 16384;
 }
 
-/* Level 3: Statusbar */
+/* Level 4: Statusbar, Utility-Tray */
 #statusbar,
 [data-type="STATUSBAR"] {
   z-index: 16384;
 }
 
-/* Level 4: Utility tray */
 #utility-tray,
 [data-type="UTILITY_TRAY"] {
   z-index: 16383;
@@ -110,7 +103,7 @@
   z-index: 99999;
 }
 
-/* Level 12 */
+/* Level 10 */
 #windowSprite {
   z-index: 1;
 }

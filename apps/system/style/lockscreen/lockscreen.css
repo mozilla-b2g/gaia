@@ -687,18 +687,3 @@
 [data-panel="emergency-call"] #lockscreen-emergency-pad {
   -moz-transform: translateY(0);
 }
-
-#lockscreen-camera {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000;
-}
-
-#lockscreen-camera > iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
