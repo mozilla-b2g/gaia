@@ -10,11 +10,13 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "background", "settings", "offline-app",
                       "indexedDB-unlimited", "alarm", "camera",
                       "fmradio", "devicestorage", "voicemail",
-                      "pin-app"];
+                      "pin-app", "wifi-manage", "geolocation",
+                      "webapps-manage", "desktop-notification"];
 
 let commonPermissionList = ['offline-app', 'indexedDB-unlimited',
                             'webapps-manage', 'pin-app',
                             'desktop-notification'];
+
 
 let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 
