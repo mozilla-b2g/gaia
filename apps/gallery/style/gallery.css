@@ -329,7 +329,7 @@ a.button.disabled {
   width: 25%;
   height: 100%;
   left: 0;
-  background-image: url('images/cancel.png');
+  background-image: url('images/actionitem_cancel.png');
 }
 
 #thumbnails-number-selected {
@@ -450,7 +450,7 @@ a.button.disabled {
   width: 25%;
   height: 100%;
   left: 0;
-  background-image: url('images/cancel.png');
+  background-image: url('images/actionitem_cancel.png');
 }
 
 #pick-header {
