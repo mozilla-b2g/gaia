@@ -495,7 +495,7 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
-    if (currentContact.photo and currentContact.photo.length > 0) {
+    if (currentContact.photo && currentContact.photo.length > 0) {
       var photoURL = URL.createObjectURL(currentContact.photo[0]);
       thumb.style.backgroundImage = 'url(' + photoURL + ')';
     }
@@ -1132,10 +1132,14 @@ var Contacts = (function() {
       img.src = imgSrc;
       this.img = img;
       img.onload = function() {
-        var dataImg = getPhoto(this.img);
-        thumb.style.backgroundImage = 'url(' + dataImg + ')';
-        currentContact.photo = currentContact.photo || [];
-        currentContact.photo[0] = dataImg;
+  
+        getPhoto(this.img, function savePhoto(blob) {
+          var photoURL = URL.createObjectURL(blob);
+          thumb.style.backgroundImage = 'url(' + photoURL + ')';
+          currentContact.photo = currentContact.photo || [];
+          currentContact.photo[0] = blob;
+        });
+  
       }.bind(this);
     };
     request.onerror = function() {
@@ -1143,7 +1147,7 @@ var Contacts = (function() {
     };
   }
 
-  var getPhoto = function getContactImg(contactImg) {
+  var getPhoto = function getContactImg(contactImg, callback) {
     // Checking whether the image was actually loaded or not
     var canvas = document.createElement('canvas');
     var ratio = 2.5;
@@ -1163,11 +1167,7 @@ var Contacts = (function() {
     } else {
       ctx.drawImage(contactImg, 0, -margin);
     }
-
-    var ret = canvas.toBlob();
-    contactImg = null;
-    canvas = null;
-    return ret;
+    canvas.toBlob(callback);
   }
 
   return {
