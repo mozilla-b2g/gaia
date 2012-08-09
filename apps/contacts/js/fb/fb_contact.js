@@ -182,7 +182,7 @@ fb.Contact = function(deviceContact) {
 
     window.setTimeout(function do_getdata() {
       var uid = doGetFacebookUid(devContact);
-     
+
       if (uid) {
         var fbreq = fb.contacts.get(uid);
         fbreq.onsuccess = function() {
