@@ -167,6 +167,7 @@ var WindowManager = (function() {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
       openFrame.dispatchEvent(evt);
+      document.getElementById('screen').classList.add('active-application');
 
     } else if (classes.contains('close') && prop === 'color') {
       closeFrame.classList.remove('active');
@@ -174,6 +175,7 @@ var WindowManager = (function() {
     } else if (classes.contains('close') && prop.indexOf('transform') != -1) {
       classes.remove('open');
       classes.remove('close');
+      document.getElementById('screen').classList.remove('active-application');
 
       setTimeout(closeCallback);
     }
@@ -245,6 +247,7 @@ var WindowManager = (function() {
       // XXX Until the HOME button works as an activity, just
       // send a message to the homescreen so he nows about the
       // home key.
+      document.getElementById('screen').classList.remove('active-application');
       var home = document.getElementById('homescreen');
       home.contentWindow.postMessage('home', home.src);
     }
