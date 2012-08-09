@@ -479,7 +479,7 @@ a.button.disabled {
   width: 25%;
   height: 100%;
   left: 0;
-  background-image: url('images/cancel.png');
+  background-image: url('images/actionicon_cancel.png');
 }
 
 #edit-title {
@@ -500,6 +500,7 @@ a.button.disabled {
   width: 25%;
   height: 100%;
   right: 0;
+  background-image: url('images/actionicon_done.png');
 }
 
 #edit-preview-area {
@@ -532,7 +533,7 @@ a.button.disabled {
   width: 100%;
   height: 50px;
   bottom: 50px;
-  background: #ccc;
+  background: #999;
 }
 
 /* All the effect options radio buttons share these styles */
@@ -579,23 +580,23 @@ a.button.disabled {
 
 #edit-crop-none {
   left: 0;
-  background-image: url('images/crop_original.png');
+  background-image: url('images/actionicon_undo.png');
 }
 #edit-crop-aspect-free {
   left: 20%;
-  background-image: url('images/crop_freeform.png');
+  background-image: url('images/actionicon_cropfree.png');
 }
 #edit-crop-aspect-portrait {
   left: 40%;
-  background-image: url('images/crop_portrait.png');
+  background-image: url('images/actionicon_crop23.png');
 }
 #edit-crop-aspect-landscape {
   left: 60%;
-  background-image: url('images/crop_landscape.png');
+  background-image: url('images/actionicon_crop32.png');
 }
 #edit-crop-aspect-square {
   left: 80%;
-  background-image: url('images/crop_square.png');
+  background-image: url('images/actionicon_crop11.png');
 }
 
 /* instead of using images inside the buttons above, just draw boxes */
