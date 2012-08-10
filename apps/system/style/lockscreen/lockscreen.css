@@ -1,7 +1,5 @@
 #lockscreen {
   position: absolute;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
   /* 20px = height of status bar */
   top: 20px;
   width: -moz-calc(100%);
@@ -118,6 +116,7 @@
 }
 
 #lockscreen-header {
+  z-index: 9999;
   position: absolute;
   top: 0;
   left: 0;
@@ -351,6 +350,21 @@
   -moz-box-sizing: border-box;
   border: 2px solid rgba(255, 255, 255, 0.8);
   -moz-transition: opacity 0.1s linear;
+}
+
+.lockscreen-icon-a11y-button {
+  width: 100%;
+  height: 100%;
+  border-width: inherit;
+  border-radius: inherit;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+.lockscreen-icon-a11y-button * {
+  display: none;
 }
 
 .lockscreen-icon.triggered {

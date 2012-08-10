@@ -55,6 +55,7 @@ var WindowManager = (function() {
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
+  var dialogOverlay = document.getElementById('dialog-overlay');
 
   //
   // The set of running apps.
@@ -133,6 +134,9 @@ var WindowManager = (function() {
 
     frame.style.width = window.innerWidth + 'px';
     frame.style.height = window.innerHeight - StatusBar.height + 'px';
+
+    dialogOverlay.style.width = window.innerWidth + 'px';
+    dialogOverlay.style.height = window.innerHeight - StatusBar.height + 'px';
   }
 
   var openFrame = null;
@@ -144,6 +148,7 @@ var WindowManager = (function() {
   // animations.
   var sprite = document.createElement('div');
   sprite.id = 'windowSprite';
+  sprite.dataset.zIndexLevel = 'window-sprite';
   document.body.appendChild(sprite);
 
   // This event handler is triggered when the transition ends.
@@ -159,6 +164,7 @@ var WindowManager = (function() {
       classes.add('faded');
       setTimeout(openCallback);
     } else if (classes.contains('faded') && prop === 'opacity') {
+
       openFrame.setVisible(true);
       openFrame.focus();
 
@@ -185,7 +191,13 @@ var WindowManager = (function() {
   function openWindow(origin, callback) {
     var app = runningApps[origin];
     openFrame = app.frame;
-    openCallback = callback || function() {};
+    openCallback = function() {
+      if (app.manifest.fullscreen)
+        openFrame.mozRequestFullScreen();
+
+      if (callback)
+        callback();
+    };
 
     sprite.className = 'open';
   }
@@ -207,8 +219,24 @@ var WindowManager = (function() {
     closeFrame.setVisible(false);
 
     // And begin the transition
-    sprite.classList.remove('faded');
-    sprite.classList.add('close');
+    // Wait for we leave full screen before starting the transition
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=781014
+    if (document.mozFullScreen) {
+      document.addEventListener('mozfullscreenchange',
+        function fullscreenListener(event) {
+          document.removeEventListener('mozfullscreenchange',
+                                       fullscreenListener, false);
+          setTimeout(function() {
+            sprite.classList.remove('faded');
+            sprite.classList.add('close');
+          }, 20);
+        }, false);
+
+      document.mozCancelFullScreen();
+    } else {
+      sprite.classList.remove('faded');
+      sprite.classList.add('close');
+    }
   }
 
   //last time app was launched,
@@ -273,11 +301,7 @@ var WindowManager = (function() {
       setOrientationForApp(newApp);
     }
 
-    // Exit fullscreen mode if we're going to the homescreen
-    if (newApp === null && document.mozFullScreen) {
-      document.mozCancelFullScreen();
-    }
-
+    // Set displayedApp to the new value
     displayedApp = origin;
 
     // Update the loading icon since the displayedApp is changed
@@ -316,18 +340,7 @@ var WindowManager = (function() {
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.dataset.frameType = 'window';
     frame.dataset.frameOrigin = origin;
-
-    if (manifest.hackNetworkBound) {
-      var style = 'font-family: OpenSans,sans-serif;' +
-                  'text-align: center;' +
-                  'color: white;' +
-                  'margin-top: 100px;';
-
-      frame.src = 'data:text/html,' +
-        '<body style="background-color: black">' +
-        '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
-        '</body>';
-    }
+    frame.src = url;
 
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
@@ -466,9 +479,6 @@ var WindowManager = (function() {
     }
 
     // Add the iframe to the document
-    // Note that we have not yet set its src property.
-    // In order for the open animation to be smooth, we don't
-    // actually set src until the open has finished.
     windows.appendChild(frame);
 
     // And map the app origin to the info we need for the app
@@ -482,20 +492,11 @@ var WindowManager = (function() {
     numRunningApps++;
 
     // Launching this application without bring it to the foreground
-    if (background) {
-      frame.src = url;
+    if (background)
       return;
-    }
 
-    // Now animate the window opening and actually set the iframe src
-    // when that is done.
-    setDisplayedApp(origin, function() {
-      frame.src = url;
-
-      if (manifest.fullscreen) {
-        frame.mozRequestFullScreen();
-      }
-    });
+    // Now animate the window opening.
+    setDisplayedApp(origin);
   }
 
 
@@ -585,6 +586,7 @@ var WindowManager = (function() {
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
+        UtilityTray.hide();
         setDisplayedApp(origin);
         break;
     }
@@ -628,14 +630,19 @@ var WindowManager = (function() {
     // If there aren't any origin, that means we are moving to
     // the homescreen. Let's hide the icon.
     if (!origin) {
-      loadingIcon.hidden = true;
+      loadingIcon.classList.remove('app-loading');
       return;
     }
 
     // Actually update the icon.
     // Hide it if the loading property is not true.
     var app = runningApps[origin];
-    loadingIcon.hidden = !app.frame.dataset.loading;
+
+    if (app.frame.dataset.loading) {
+      loadingIcon.classList.add('app-loading');
+    } else {
+      loadingIcon.classList.remove('app-loading');
+    }
   };
 
   // Listen for mozbrowserloadstart to update the loading status
@@ -716,4 +723,3 @@ var WindowManager = (function() {
     setDisplayedApp: setDisplayedApp
   };
 }());
-

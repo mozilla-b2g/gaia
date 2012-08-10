@@ -9,7 +9,6 @@
 
 #utility-tray {
   position: absolute;
-  z-index: 9996;
   top: -moz-calc(-100% + 40px);
   width: -moz-calc(100%);
   height: -moz-calc(100% - 20px);

@@ -56,6 +56,19 @@ body {
   visibility: hidden;
 }
 
+#system-overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+}
+
+#system-overlay.volume {
+  display: block;
+}
+
 #screen.active-statusbar #homescreen {
   top: 40px;
   height: -moz-calc(100% - 40px);
@@ -112,8 +125,8 @@ body {
 }
 
 #windows > iframe.appWindow.active {
-  z-index: 9995;
   background-color: #fff;
+  z-index: 2;
 }
 
 #windows > iframe.appWindow:not(.active) {
@@ -126,7 +139,6 @@ body {
   left: 0;
   width: 100%;
   height: -moz-calc(100% - 20px);
-  z-index: 9999;
   opacity: 0;
   background-color: #373a3d;
   pointer-events: none;
@@ -172,7 +184,6 @@ iframe.backgroundWindow {
   bottom: 0;
   width: 100%;
   height: 100%;
-  z-index: 10001;
   border: 0;
   transform: translateY(0);
   -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
@@ -181,7 +192,6 @@ iframe.backgroundWindow {
 
 #keyboard-frame.visible {
   visibility: visible;
-  z-index: 9000;
   pointer-events: auto;
 }
 
@@ -195,15 +205,9 @@ iframe.backgroundWindow {
   top: 0px;
   width: 100%;
   border: 0;
-  z-index: 10002;
   background: -moz-element(#keyboard-frame);
   background-position: top center;
   pointer-events: none;
-}
-
-#screen.fullscreen #keyboard-overlay {
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
 }
 
 #dialog-overlay {
@@ -212,8 +216,6 @@ iframe.backgroundWindow {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 10000;
-
   visibility: hidden;
   pointer-events: none;
 }

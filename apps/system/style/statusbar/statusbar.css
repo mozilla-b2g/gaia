@@ -8,8 +8,6 @@
 #statusbar {
   overflow: hidden;
   position: absolute;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
 
   width: 100%;
   height: 20px;
@@ -61,7 +59,7 @@
   -moz-transform: translateY(20px);
 }
 
-#statusbar-loading {
+#statusbar-loading.popup-loading, #statusbar-loading.app-loading {
   position: absolute;
   top: 0;
   left: 0;
@@ -70,9 +68,10 @@
   background: url('images/loading.gif') center center repeat-x;
 
   -moz-transition: opacity 0.1s ease 0.2s;
+  visibility: visible;
 }
 
-#statusbar-loading[hidden] {
+#statusbar-loading {
   display: block;
   visibility: hidden;
 

@@ -1,0 +1,107 @@
+/* zIndex of important system app parts 
+ * is gathered here to clearly specify all system-app hierarchy */
+
+/* Reset zIndex */
+#screen > *:not([data-z-index-level]), 
+#screen > [data-z-index-level="homescreen"] {
+  z-index: 0;
+}
+
+/* Level 1 */
+/* Topest layer, cover all of the screen no matter what's the height of the status bar. */
+/* System overlay > Sleep menu > Card view */
+/* */
+#screen > [data-z-index-level="system-overlay"] {
+  z-index: 65536;
+}
+
+#screen > [data-z-index-level="sleep-menu"] {
+  z-index: 65536;
+}
+
+#screen > [data-z-index-level="cardsview"] {
+  z-index: 65536;
+}
+
+#screen > [data-z-index-level="keyboard-overlay"] {
+  z-index: 65536;
+}
+
+#screen > [data-z-index-level="keyboard-frame"] {
+  z-index: 65536;
+}
+
+/* Level 2: Notification toaster */
+#screen > [data-z-index-level="notification-toaster"] {
+  z-index: 32768;
+}
+
+/* Level 3: Attention screen */
+#screen > [data-z-index-level="attention-screen"] {
+  z-index: 16384;
+}
+
+/* Level 4: Activity menu, context menu */
+#screen > [data-z-index-level="list-menu"] {
+  z-index: 8192;
+}
+
+/* Level 5: Statusbar, Utility-Tray */
+#screen > [data-z-index-level="statusbar"] {
+  z-index: 4096;
+}
+
+#screen > [data-z-index-level="utility-tray"] {
+  z-index: 4095;
+}
+
+/* Level 6: Lock Screen */
+#screen > [data-z-index-level="lockscreen"] {
+  z-index: 2048;
+}
+
+#screen > [data-z-index-level="lockscreen-camera"] {
+  z-index: 2047;
+}
+
+/* Level 7: Debug grid */
+#screen > [data-z-index-level="debug-grid"] {
+  z-index: 1024;
+}
+
+/* Level 8: Dialog Module */
+#screen > [data-z-index-level="dialog-overlay"],
+#screen > [data-z-index-level="value-selector"],
+#screen > [data-z-index-level="permission-screen"] {
+  z-index: 512;
+}
+
+/* Level 9 */
+#screen > [data-z-index-level="window-sprite"] {
+  z-index: 2;
+}
+
+#screen > [data-z-index-level="app"] {
+  z-index: 1;
+}
+
+/* When keyboard is visible, set frame under app window */
+/*
+#screen > [data-z-index-level="keyboard-frame"].visible {
+  z-index: 0;
+}
+*/
+
+/* Fullscreen */
+#screen.fullscreen > [data-z-index-level="system-overlay"],
+#screen.fullscreen > [data-z-index-level="lockscreen"],
+#screen.fullscreen > [data-z-index-level="lockscreen-camera"],
+#screen.fullscreen > [data-z-index-level="value-selector"],
+#screen.fullscreen > [data-z-index-level="dialog-overlay"],
+#screen.fullscreen > [data-z-index-level="keyboard-overlay"],
+#screen.fullscreen > [data-z-index-level="keyboard-frame"],
+#screen.fullscreen > [data-z-index-level="keyboard-frame"].visible,
+#screen.fullscreen > [data-z-index-level="notification-toaster"],
+#screen.fullscreen > [data-z-index-level="cardsview"] {
+  z-index: 2147483647;
+}

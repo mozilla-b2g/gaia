@@ -4,7 +4,6 @@
   "launch_path": "/index.html",
   "orientation": "landscape-primary",
   "fullscreen": true,
-  "hackNetworkBound": "true",
   "developer": {
     "name": "CutTheRope",
     "url": "http://cuttherope.ie"
