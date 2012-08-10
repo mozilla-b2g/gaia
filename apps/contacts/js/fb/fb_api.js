@@ -53,6 +53,8 @@ if (!window.fb) {
     function createStore(e) {
       database = e.target.result;
       database.createObjectStore(STORE_NAME, { keyPath: 'uid' });
+
+      window.console.log('OWDError: Store created!!!');
     }
 
     /**
@@ -60,7 +62,7 @@ if (!window.fb) {
      *
      */
     function init() {
-      var req = indexedDB.open('FBContactsDB3', 4.0);
+      var req = indexedDB.open('FBContactsDBx', 1.0);
 
       req.onsuccess = function(e) {
         database = e.target.result;
