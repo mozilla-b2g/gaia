@@ -709,17 +709,9 @@ var ThreadUI = {
     var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
-    var htmlStructure = '<span class="bubble-container ' + className + '">' +
-                        '<div class="bubble">' + bodyHTML + '</div>' +
-                        '</span>';
-    // Add 'gif' if necessary
+    var htmlStructure = '';
+    // Adding edit options to the left side
     if (message.delivery == 'sending') {
-      messageDOM.addEventListener('click',
-        ThreadUI.resendMessage.bind(ThreadUI, message));
-      htmlStructure += '<span class="message-option">' +
-      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
-        ThreadUI.sendIcons.pending) + '" class="gif">' +
-                        '</span>';
       //Add edit options for pending
       htmlStructure += '<span class="message-option msg-checkbox">' +
                         '  <input value="ts_' + timestamp +
@@ -733,6 +725,19 @@ var ThreadUI = {
                         '" type="checkbox">' +
                         '  <span></span>' +
                       '</span>';
+    }
+    htmlStructure += '<span class="bubble-container ' + className + '">' +
+                        '<div class="bubble">' + bodyHTML + '</div>' +
+                        '</span>';
+
+    // Add 'gif' if necessary
+    if (message.delivery == 'sending') {
+      messageDOM.addEventListener('click',
+        ThreadUI.resendMessage.bind(ThreadUI, message));
+      htmlStructure += '<span class="message-option">' +
+      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
+        ThreadUI.sendIcons.pending) + '" class="gif">' +
+                        '</span>';
     }
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
@@ -985,7 +990,7 @@ var ThreadUI = {
           var root = document.getElementById(message.timestamp.getTime());
           if (root) {
 
-            root.removeChild(root.childNodes[1]);
+            root.removeChild(root.childNodes[2]);
             var inputs = root.querySelectorAll('input[type="checkbox"]');
             if (inputs) {
               inputs[0].value = 'id_' + msg.id;
