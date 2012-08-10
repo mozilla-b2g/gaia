@@ -490,7 +490,7 @@ var Contacts = (function() {
     deleteContactButton.classList.remove('hide');
     formTitle.innerHTML = _('editContact');
     currentContactId.value = currentContact.id;
-    givenName.value = currentContact.givenName;
+    givenName.value = currentContact.givenName || currentContact.name;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
     if (currentContact.photo && currentContact.photo.length > 0) {
