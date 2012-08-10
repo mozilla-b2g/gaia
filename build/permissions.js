@@ -7,9 +7,17 @@ function debug(msg) {
 let permissionList = ["power", "sms", "contacts", "telephony",
                       "mozBluetooth", "mozbrowser", "mozApps",
                       "mobileconnection", "mozFM", "systemXHR",
-                      "background"];
+                      "background", "settings", "offline-app",
+                      "indexedDB-unlimited", "alarm", "camera",
+                      "fmradio", "devicestorage", "voicemail",
+                      "pin-app", "wifi-manage", "geolocation",
+                      "webapps-manage", "desktop-notification",
+                      "device-storage", "alarms", 
+                      "content-camera"];
 
-let commonPermissionList = ['offline-app', 'indexedDB-unlimited'];
+let commonPermissionList = ['offline-app', 'indexedDB-unlimited',
+                            'webapps-manage', 'pin-app',
+                            'desktop-notification'];
 
 let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
 

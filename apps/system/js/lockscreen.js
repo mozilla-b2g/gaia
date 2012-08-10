@@ -236,6 +236,22 @@ var LockScreen = {
 
             overlay.classList.add('touched');
             break;
+
+          case this.accessibilityUnlock:
+            overlay.classList.add('touched');
+            this.areaUnlock.classList.add('triggered');
+            this.areaHandle.classList.add('triggered');
+            this._touch.target = this.areaUnlock;
+            this.handleGesture();
+            break;
+
+          case this.accessibilityCamera:
+            overlay.classList.add('touched');
+            this.areaUnlock.classList.add('triggered');
+            this.areaHandle.classList.add('triggered');
+            this._touch.target = this.areaCamera;
+            this.handleGesture();
+            break;
         }
         break;
 
@@ -486,6 +502,8 @@ var LockScreen = {
     WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
 
     if (!wasAlreadyUnlocked) {
+      // Any changes made to this,
+      // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('unlock');
       this.writeSetting(false);
       this.hideNotification();
@@ -511,6 +529,8 @@ var LockScreen = {
     this.updateTime();
 
     if (!wasAlreadyLocked) {
+      // Any changes made to this,
+      // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('lock');
       this.writeSetting(true);
     }
@@ -642,10 +662,24 @@ var LockScreen = {
       return;
     }
 
+    // Possible value of voice.state are
+    // 'notSearching', 'searching', 'denied', 'registered',
+    // where the later three means the phone is trying to grabbing
+    // the network. See
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
+    if (voice.state == 'notSearching') {
+      // "No Network"
+      connstate.dataset.l10nId = 'noNetwork';
+      connstate.textContent = _('noNetwork') || '';
+
+      return;
+    }
+
     if (!voice.connected && !voice.emergencyCallsOnly) {
-      // "No Network" / "Searching"
-      // XXX: need differentiate the two
-      // https://github.com/mozilla-b2g/gaia/issues/2763
+      // "Searching"
+      // voice.state can be any of the later three value.
+      // (it's possible, briefly that the phone is 'registered'
+      // but not yet connected.)
       connstate.dataset.l10nId = 'searching';
       connstate.textContent = _('searching') || '';
 
@@ -783,7 +817,7 @@ var LockScreen = {
         'area', 'area-unlock', 'area-camera', 'area-handle',
         'rail-left', 'rail-right',
         'passcode-code', 'passcode-pad',
-        'camera'];
+        'camera', 'accessibility-camera', 'accessibility-unlock'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

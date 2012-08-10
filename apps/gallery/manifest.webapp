@@ -8,7 +8,8 @@
   },
   "permissions": [
     "device-storage",
-    "devicestorage"
+    "devicestorage",
+    "settings"
   ],
   "activities": {
     "browse": {

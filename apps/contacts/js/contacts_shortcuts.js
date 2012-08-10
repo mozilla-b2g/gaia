@@ -52,7 +52,7 @@
     }
 
     var current = evt.target.dataset.letter;
-    overlayContent.textContent = current;
+    overlayContent.textContent = current || null;
 
     if (previous === current) {
       return;

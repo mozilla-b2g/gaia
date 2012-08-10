@@ -565,9 +565,8 @@ var PlayerView = {
     this.album = document.getElementById('player-cover-album');
 
     this.timeoutID;
-    this.caption = document.getElementById('player-cover-caption');
+    this.cover = document.getElementById('player-cover');
     this.coverImage = document.getElementById('player-cover-image');
-    this.coverControl = document.getElementById('player-cover-buttons');
 
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekElapsed = document.getElementById('player-seek-elapsed');
@@ -601,22 +600,14 @@ var PlayerView = {
   // however, if a user taps before 5 seconds ends,
   // then the timeout will be cleared to keep the info on screen.
   showInfo: function pv_showInfo() {
-    this.caption.classList.remove('resetSilde');
-    this.caption.classList.add('slideDown');
-
-    this.coverControl.classList.remove('resetSilde');
-    this.coverControl.classList.add('slideUp');
+    this.cover.classList.add('slideOut');
 
     if (this.timeoutID)
       window.clearTimeout(this.timeoutID);
 
     this.timeoutID = window.setTimeout(
       function pv_hideInfo() {
-        this.caption.classList.remove('slideDown');
-        this.caption.classList.add('resetSilde');
-
-        this.coverControl.classList.remove('slideUp');
-        this.coverControl.classList.add('resetSilde');
+        this.cover.classList.remove('slideOut');
       }.bind(this),
       5000
     );

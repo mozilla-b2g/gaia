@@ -43,179 +43,31 @@ body.list-mode #title-back {
   display: none;
 }
 
-body.tiles-mode #tabs {
-  -moz-transition: opacity 800ms ease;
-  opacity: 1;
-  z-index: 20;
-}
-body.list-mode #tabs {
-  -moz-transition: opacity 800ms ease;
-  opacity: 1;
-  z-index: 20;
-}
-body.sublist-mode #tabs {
-  -moz-transition: opacity 800ms ease;
-  opacity: 1;
-  z-index: 20;
-}
 body.player-mode #tabs {
   -moz-transition: opacity 400ms ease;
   opacity: 0;
   z-index: 1;
 }
 
-/* View - Slide Horizontal Transition */
-/* XXX hack: the width is adjusted (0-100%) with a delayed transition in order
- *           to hide the horizontal scrollbar on the device (at least, when the
- *           transition is over).
- * This is just a workaround: the platform bug should be fixed later.  */
-
-body.tiles-mode #views-tiles {
+body.tiles-mode #views {
   -moz-transform: translateX(0%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
-  width: 100%;
-  z-index: 10;
-}
-body.tiles-mode #views-list {
-  -moz-transform: translateX(100%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
-}
-body.tiles-mode #views-sublist {
-  -moz-transform: translateX(200%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
-}
-body.tiles-mode #views-player {
-  -moz-transform: translateX(300%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
 }
 
-body.list-mode #views-tiles {
-  -moz-transform: translateX(-100%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
-}
-body.list-mode #views-list {
-  -moz-transform: translateX(0%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
-  width: 100%;
-  z-index: 10;
-}
-body.list-mode #views-sublist {
-  -moz-transform: translateX(100%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
-}
-body.list-mode #views-player {
-  -moz-transform: translateX(200%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
+body.list-mode #views {
+  -moz-transform: translateX(-25%);
 }
 
-body.sublist-mode #views-tiles {
-  -moz-transform: translateX(-200%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
-}
-body.sublist-mode #views-list {
-  -moz-transform: translateX(-100%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
-}
-body.sublist-mode #views-sublist {
-  -moz-transform: translateX(0%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
-  width: 100%;
-  z-index: 10;
-}
-body.sublist-mode #views-player {
-  -moz-transform: translateX(100%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
+body.sublist-mode #views {
+  -moz-transform: translateX(-50%);
 }
 
-body.player-mode #views-tiles {
-  -moz-transform: translateX(-300%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
-}
-body.player-mode #views-list {
-  -moz-transform: translateX(-200%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
-}
-body.player-mode #views-sublist {
-  -moz-transform: translateX(-100%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
-  width: 0%;
-  overflow: hidden;
-  z-index: 1;
-}
-body.player-mode #views-player {
-  -moz-transform: translateX(0%);
-  
-  /* XXX hack */
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
-  width: 100%;
-  z-index: 10;
+body.player-mode #views {
+  -moz-transform: translateX(-75%);
+  z-index: 30;
 }
 
 #title {  
-  position: absolute;
+  position: relative;
   width: 100%;
   height: 10%;
   overflow: hidden;
@@ -285,14 +137,16 @@ body.player-mode #views-player {
 }
 
 #views {
-  width: 100%;
+  position: relative;
+  width: 400%;
   height: 90%;
   overflow-x: hidden;
   background-color: rgba(255, 255, 255, 0.2);
+  -moz-transition: -moz-transform 400ms ease-in-out;
 }
 
 .view {
-  width: 100%;
+  width: 25%;
   height: auto;
 }
 
@@ -300,29 +154,27 @@ body.player-mode #views-player {
 #views-list,
 #views-sublist,
 #views-player {
-  position: absolute;
-  display: block;
+  position: relative;
+  float: left;
 }
 
 #views-tiles {
-  width: 100%;
-  height: 90%;
+  height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
 #views-list,
 #views-sublist {
-  width: 100%;
-  height: 90%;
+  height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
 }
 
 #views-player {
-  width: 100%;
-  height: 90%;
+  height: 100%;
+  overflow: hidden;
 }
 
 #views-sublist-header,
@@ -518,13 +370,13 @@ body.player-mode #views-player {
        (orientation: landscape) and (width: 480px) {
 
   .main-tile {
-    width: 206px;
-    height: 206px;
+    width: 210px;
+    height: 210px;
   }
 
   .sub-tile {
-    width: 102px;
-    height: 102px;
+    width: 104px;
+    height: 104px;
   }
 }
 
@@ -533,13 +385,13 @@ body.player-mode #views-player {
        (orientation: landscape) and (width: 800px) {
 
   .main-tile {
-    width: 312px;
-    height: 312px;
+    width: 318px;
+    height: 318px;
   }
 
   .sub-tile {
-    width: 155px;
-    height: 155px;
+    width: 158px;
+    height: 158px;
   }
 }
 
@@ -586,24 +438,17 @@ body.player-mode #views-player {
   opacity: 0;
 }
 
-.slideDown {
+#player-cover.slideOut #player-cover-caption {
   -moz-transform: translateY(100%);
-  -moz-transition: -moz-transform 700ms ease-in-out;
 }
 
-.slideUp {
+#player-cover.slideOut #player-cover-buttons {
   -moz-transform: translateY(-100%);
-  -moz-transition: -moz-transform 700ms ease-in-out;
-}
-
-.resetSilde {
-  -moz-transform: translateY(0%);
-  -moz-transition: -moz-transform 700ms ease-in-out;
 }
 
 #player-cover-caption,
 #player-cover-buttons {
-  position: absolute;
+  position: relative;
   width: 100%;
   height: 16%;
   background-color: rgba(0, 0, 0, 0.3);
@@ -611,6 +456,7 @@ body.player-mode #views-player {
 
 #player-cover-caption {
   top: -16%;
+  -moz-transition: -moz-transform 700ms ease-in-out;
 }
 
 #player-cover-artist,
@@ -641,7 +487,8 @@ body.player-mode #views-player {
 }
 
 #player-cover-buttons {
-  bottom: -16%;
+  bottom: -84%;
+  -moz-transition: -moz-transform 700ms ease-in-out;
 }
 
 #player-album-shuffle, 
@@ -676,6 +523,7 @@ body.player-mode #views-player {
 }
 
 #player-seek {
+  position: relative;
   width: 100%;
   height: 13%;
   background-color: rgba(0, 0, 0, 0.3);
@@ -720,6 +568,7 @@ body.player-mode #views-player {
 }
 
 #player-controls {
+  position: relative;
   width: 100%;
   height: 13%;
   overflow: hidden;
@@ -762,11 +611,12 @@ body.player-mode #views-player {
 }
 
 #tabs {
-  position: absolute;
-  bottom: 0px;
-  left: 0px;
+  position: relative;
+  bottom: 9%;
   width: 100%;
   height: 9%;
+  z-index: 20;
+  -moz-transition: opacity 800ms ease;
 }
 
 #tabs-mix,

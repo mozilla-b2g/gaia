@@ -8,7 +8,8 @@
   },
   "permissions": [
     "alarm",
-    "alarms"
+    "alarms",
+    "settings"
   ],
   "locales": {
     "ar": {

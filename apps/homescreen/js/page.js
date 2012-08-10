@@ -28,9 +28,9 @@ Icon.prototype = {
    */
   render: function icon_render(target, page) {
     /*
-     * <li class="icon" dataset-origin="zzz">
+     * <li role="button" aria-label="label" class="icon" dataset-origin="zzz">
      *   <div>
-     *     <img src="the icon image path"></img>
+     *     <img role="presentation" src="the icon image path"></img>
      *     <span class="label">label</span>
      *   </div>
      *   <span class="options"></span>
@@ -43,6 +43,8 @@ Icon.prototype = {
     }
 
     container.dataset.origin = this.descriptor.origin;
+    container.setAttribute('role', 'button');
+    container.setAttribute('aria-label', this.descriptor.name);
 
     // Icon container
     var icon = this.icon = document.createElement('div');
@@ -50,11 +52,12 @@ Icon.prototype = {
     // Image
     var img = document.createElement('img');
     img.src = this.descriptor.icon;
+    img.setAttribute('role', 'presentation');
     icon.appendChild(img);
 
     img.onerror = function imgError() {
       img.src = '//' + window.location.host + '/resources/images/Unknown.png';
-    }
+    };
 
     // Label
 
@@ -177,6 +180,10 @@ Icon.prototype = {
     return this.container.getBoundingClientRect().top;
   },
 
+  getLeft: function icon_getLeft() {
+    return this.container.getBoundingClientRect().left;
+  },
+
   getOrigin: function icon_getOrigin() {
     return this.descriptor.origin;
   }
@@ -200,7 +207,7 @@ Page.prototype = {
    * @param{Object} target DOM element container
    */
   render: function pg_render(apps, target) {
-    this.container = target;
+    this.container = this.movableContainer = target;
     var len = apps.length;
 
     this.olist = document.createElement('ol');
@@ -228,19 +235,19 @@ Page.prototype = {
    * @param{int} duration
    */
   moveByWithEffect: function pg_moveByWithEffect(scrollX, duration) {
-    var container = this.container;
+    var container = this.movableContainer;
     var style = container.style;
 
     container.addEventListener('transitionend', function transitionEnd(e) {
       e.stopPropagation();
       container.removeEventListener('transitionend', transitionEnd);
       style.MozTransform = 'translateX(' + scrollX + 'px)';
-      style.MozTransition = '-moz-transform .05s ease';
+      style.MozTransition = '-moz-transform .3s ease';
     });
 
     if (scrollX === 0) {
       style.MozTransform = 'translateX(' + (scrollX +
-                           (this.posLeft <= scrollX ? 5 : -5)) + 'px)';
+                           (this.posLeft <= scrollX ? 10 : -10)) + 'px)';
     } else {
       style.MozTransform = 'translateX(' + (scrollX + 0.001) + 'px)';
     }
@@ -255,7 +262,7 @@ Page.prototype = {
    * @param{String} scroll X
    */
   moveBy: function pg_moveBy(scrollX) {
-    var style = this.container.style;
+    var style = this.movableContainer.style;
     style.MozTransform = 'translateX(' + scrollX + 'px)';
     style.MozTransition = '';
     this.posLeft = scrollX;
@@ -283,22 +290,6 @@ Page.prototype = {
     }
   },
 
-  jumpNode: function pg_jumpNode(node, animation, originNode,
-                                 targetNode, upward) {
-    var self = this;
-    node.style.MozAnimationName = animation;
-    node.addEventListener('animationend', function animationEnd(e) {
-      node.removeEventListener('animationend', animationEnd);
-      node.style.MozAnimationName = '';
-
-      if (node === targetNode) {
-        self.olist.insertBefore(originNode, upward ? targetNode :
-                                                     targetNode.nextSibling);
-        self.setReady(true);
-      }
-    });
-  },
-
   /*
    * Changes position between two icons
    *
@@ -318,36 +309,46 @@ Page.prototype = {
     var targetIcon = icons[target];
 
     if (originIcon && targetIcon) {
-      var originNode = originIcon.container;
-      var targetNode = targetIcon.container;
-      var children = this.olist.children;
-      var indexOf = Array.prototype.indexOf;
-      var oIndex = indexOf.call(children, originNode);
-      var tIndex = indexOf.call(children, targetNode);
-
-      this.animate(oIndex, tIndex, children, originNode, targetNode);
+      this.animate(this.olist.children, originIcon.container,
+                   targetIcon.container);
     } else {
       this.setReady(true);
     }
   },
 
-  animate: function pg_anim(oIndex, tIndex, children, originNode, targetNode) {
-    if (oIndex < tIndex) {
-      for (var i = oIndex + 1; i <= tIndex; i++) {
-        var animation = 'jumpPrevCell';
-        if (i % 4 === 0) {
-          animation = 'jumpPrevRow';
-        }
-        this.jumpNode(children[i], animation, originNode, targetNode, false);
-      }
+  animate: function pg_anim(children, originNode, targetNode) {
+    var beforeNode = targetNode;
+    var initialIndex = children.indexOf(originNode);
+    var endIndex = children.indexOf(targetNode);
+    var upward = initialIndex < endIndex;
+    if (upward) {
+      beforeNode = targetNode.nextSibling;
+      initialIndex++;
     } else {
-      for (var i = oIndex - 1; i >= tIndex; i--) {
-        var animation = 'jumpNextCell';
-        if (i % 4 === 3) {
-          animation = 'jumpNextRow';
-        }
-        this.jumpNode(children[i], animation, originNode, targetNode, true);
+      initialIndex = initialIndex + endIndex;
+      endIndex = initialIndex - endIndex;
+      initialIndex = initialIndex - endIndex;
+      endIndex--;
+    }
+
+    var self = this;
+    var lastNode = children[endIndex];
+    this.setAnimation(children, initialIndex, endIndex, upward);
+    lastNode.addEventListener('animationend', function animationEnd(e) {
+      for (var i = initialIndex; i <= endIndex; i++) {
+        children[i].style.MozAnimationName = '';
       }
+      self.olist.insertBefore(originNode, beforeNode);
+      lastNode.removeEventListener('animationend', animationEnd);
+      self.setReady(true);
+    });
+  },
+
+  setAnimation: function pg_setAnimation(children, init, end, upward) {
+    for (var i = init; i <= end; i++) {
+      children[i].style.MozAnimationName = upward ?
+        (i % 4 === 0 ? 'jumpPrevRow' : 'jumpPrevCell') :
+        (i % 4 === 3 ? 'jumpNextRow' : 'jumpNextCell');
     }
   },
 
@@ -424,6 +425,17 @@ Page.prototype = {
   },
 
   /*
+   * Returns the first icon of the page
+   */
+  getFirstIcon: function pg_getFirstIcon() {
+    var firstIcon = this.olist.firstChild;
+    if (firstIcon) {
+      firstIcon = this.icons[firstIcon.dataset.origin];
+    }
+    return firstIcon;
+  },
+
+  /*
    * Appends an icon to the end of the page
    *
    * @param{Object} moz app or icon object
@@ -453,8 +465,10 @@ Page.prototype = {
       // This is a moz app
       icon = this.icons[Applications.getOrigin(app)];
     }
-    this.olist.removeChild(icon.container);
-    delete this.icons[icon.descriptor.origin];
+    if (icon && this.icons[icon.getOrigin()]) {
+      this.olist.removeChild(icon.container);
+      delete this.icons[icon.descriptor.origin];
+    }
   },
 
   /*
@@ -507,17 +521,59 @@ var Dock = function createDock() {
 
 extend(Dock, Page);
 
-Dock.prototype.animate = function dk_anim(oIndex, tIndex, children,
-                                          originNode, targetNode) {
-  if (oIndex < tIndex) {
-    for (var i = oIndex + 1; i <= tIndex; i++) {
-      this.jumpNode(children[i], 'jumpPrevCell', originNode, targetNode, false);
-    }
-  } else {
-    for (var i = oIndex - 1; i >= tIndex; i--) {
-      this.jumpNode(children[i], 'jumpNextCell', originNode, targetNode, true);
-    }
+var dockProto = Dock.prototype;
+
+dockProto.baseRender = Page.prototype.render;
+
+dockProto.render = function dk_render(apps, target) {
+  this.baseRender(apps, target);
+  this.movableContainer = this.olist;
+};
+
+dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
+  var container = this.movableContainer;
+  var style = container.style;
+
+  container.addEventListener('transitionend', function transitionEnd(e) {
+    container.removeEventListener('transitionend', transitionEnd);
+    style.MozTransform = 'translateX(' + scrollX + 'px)';
+    style.MozTransition = '-moz-transform .3s ease';
+  });
+
+  style.MozTransform = 'translateX(' + (scrollX +
+                         (this.posLeft <= scrollX ? 10 : -10)) + 'px)';
+  style.MozTransition = '-moz-transform ' + duration + 's ease';
+};
+
+dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
+                                                              duration) {
+  var style = this.movableContainer.style;
+  style.MozTransform = 'translateX(' + scrollX + 'px)';
+  style.MozTransition = '-moz-transform ' + duration + 's ease';
+};
+
+
+dockProto.setAnimation = function dk_setAnimation(children, init, end, upward) {
+  var animation = upward ? 'jumpPrevCell' : 'jumpNextCell';
+  for (var i = init; i <= end; i++) {
+    children[i].style.MozAnimationName = animation;
   }
+};
+
+dockProto.getLeft = function dk_getLeft() {
+  return this.olist.getBoundingClientRect().left;
+};
+
+dockProto.getRight = function dk_getRight() {
+  return this.getLeft() + this.getWidth();
+};
+
+dockProto.getWidth = function dk_getWidth() {
+  return this.olist.clientWidth;
+};
+
+dockProto.getChildren = function dk_getChildren() {
+  return this.olist.children;
 };
 
 var SearchPage = function createSearchPage() {
@@ -558,3 +614,5 @@ searchProto.moveByWithEffect = function spg_moveByWithEffect(
                                           scrollX, duration) {
   this.baseMoveByWithEffect(this.decorateScrollX(scrollX), duration);
 };
+
+HTMLCollection.prototype.indexOf = Array.prototype.indexOf;
