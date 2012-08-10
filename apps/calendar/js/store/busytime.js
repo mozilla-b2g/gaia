@@ -225,8 +225,8 @@ Calendar.ns('Store').Busytime = (function() {
      * Fires a time based event.
      *
      * @param {String} type name of event.
-     * @param {Date|Numeric} start start position of time event
-     * @param {Date|Numeric} end end position of time event
+     * @param {Date|Numeric} start start position of time event.
+     * @param {Date|Numeric} end end position of time event.
      * @param {Object} data data related to event.
      */
     fireTimeEvent: function(type, start, end, data) {
