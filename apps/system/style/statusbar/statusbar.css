@@ -57,7 +57,7 @@
   -moz-transform: translateY(20px);
 }
 
-#statusbar-loading {
+#statusbar-loading.popup-loading, #statusbar-loading.app-loading {
   position: absolute;
   top: 0;
   left: 0;
@@ -66,9 +66,10 @@
   background: url('images/loading.gif') center center repeat-x;
 
   -moz-transition: opacity 0.1s ease 0.2s;
+  visibility: visible;
 }
 
-#statusbar-loading[hidden] {
+#statusbar-loading {
   display: block;
   visibility: hidden;
 
