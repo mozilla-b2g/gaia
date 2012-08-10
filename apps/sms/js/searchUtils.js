@@ -16,7 +16,7 @@ var SearchUtils = {
     var str = '';
     for (var i = 0; i < patterns.length; i++) {
       str = str +
-          Utils.escapeHTML(sliceStrs[i]) + '<span class="'+ style + '">' +
+          Utils.escapeHTML(sliceStrs[i]) + '<span class="' + style + '">' +
           Utils.escapeHTML(patterns[i]) + '</span>';
     }
     str += Utils.escapeHTML(sliceStrs.pop());
