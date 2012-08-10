@@ -82,15 +82,25 @@
 }
 
 #screen > [data-z-index-level="app"] {
+    /*
+     * Should not specify z-index here */
+    /* Keyboard should be kept upon #windows
+     * and beneath #windows > iframe.appWindow
+     */
+}
+
+#screen > [data-z-index-level="app"] > iframe.appWindow {
   z-index: 1;
 }
 
+#screen > [data-z-index-level="app"] > iframe.appWindow.active {
+  z-index: 2;
+}
+
 /* When keyboard is visible, set frame under app window */
-/*
 #screen > [data-z-index-level="keyboard-frame"].visible {
   z-index: 0;
 }
-*/
 
 /* Fullscreen */
 #screen.fullscreen > [data-z-index-level="system-overlay"],
