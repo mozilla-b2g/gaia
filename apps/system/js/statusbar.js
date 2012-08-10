@@ -74,8 +74,15 @@ var StatusBar = {
       })(settingKey);
     }
 
+    // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
+
+    // Listen to 'geolocation-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
+
+    // Listen to 'bluetoothconnectionchange' from bluetooth.js
+    window.addEventListener('bluetoothconnectionchange', this);
+
     this.setActive(true);
   },
 
@@ -140,13 +147,6 @@ var StatusBar = {
           wifiManager.connectionInfoUpdate = (this.update.wifi).bind(this);
         this.update.wifi.call(this);
       }
-
-      var bluetooth = window.navigator.mozBluetooth;
-      if (bluetooth) {
-        // Listen to 'bluetoothconnectionchange' from bluetooth.js
-        window.addEventListener('bluetoothconnectionchange', this);
-        this.update.bluetooth.call(this);
-      }
     } else {
       clearTimeout(this._clockTimer);
 
@@ -161,11 +161,6 @@ var StatusBar = {
       if (conn) {
         conn.removeEventListener('voicechange', this);
         conn.removeEventListener('datachange', this);
-      }
-
-      var bluetooth = window.navigator.mozBluetooth;
-      if (bluetooth) {
-        window.removeEventListener('bluetoothconnectionchange', this);
       }
     }
   },
