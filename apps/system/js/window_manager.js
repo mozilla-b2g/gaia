@@ -691,9 +691,11 @@ var WindowManager = (function() {
     // Note that for this to work, the lockscreen and other overlays must
     // be included in index.html before this one, so they can register their
     // event handlers before we do.
-    setDisplayedApp(null);
-    if (CardsView.cardSwitcherIsShown())
+    if (CardsView.cardSwitcherIsShown()) {
       CardsView.hideCardSwitcher();
+    } else {
+      setDisplayedApp(null);
+    }
   });
 
   window.addEventListener('holdhome', function(e) {
