@@ -366,9 +366,12 @@ a.unread .unread-mark .icon-unread-mark {
 #messages-container {
   text-align: left;
   padding-top: 2rem;
-  
   -moz-box-sizing: border-box;
   background: #f4f4f4;
+}
+
+.new #messages-container {
+  padding-top: 0;
 }
 
 #messages-container > div:last-child {
@@ -578,7 +581,8 @@ a.unread .unread-mark .icon-unread-mark {
   text-align: left;
   position: relative;
   overflow: hidden;
-  border-bottom: 0.1rem solid hsla(207,22%,92%,1);
+  height: 6rem;
+  padding: 1rem 4rem 0;
 }
 
 #messages-container .item:last-child {
@@ -590,24 +594,29 @@ a.unread .unread-mark .icon-unread-mark {
   display: block;
   text-decoration: none;
   outline: none;
-  height: 6rem;
   position: relative;
-  padding: 1rem 1.6rem 1rem 3rem;
   width: 100%;
+  height: 100%;
   -moz-transition: padding 0.3s ease-out;
   overflow: hidden;
   text-overflow: ellipsis;
+  border-bottom: 0.1rem solid hsla(207,22%,92%,1);
 }
 
 #messages-container .item > a > .name {
   color: black;
+  font-size: 2.5rem;
+  line-height: 3rem;
 }
 
-#messages-container .item > a > .number {
-  color: #1D8399;
+#messages-container .item > a > .type {
+  color: gray;
+  font-size: 1.6rem;
+  line-height: 2rem;
+  white-space: pre;
 }
 
-#messages-container .item > a:active {
+#messages-container .item:active {
   background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
 }
 

@@ -28,9 +28,9 @@ Icon.prototype = {
    */
   render: function icon_render(target, page) {
     /*
-     * <li class="icon" dataset-origin="zzz">
+     * <li role="button" aria-label="label" class="icon" dataset-origin="zzz">
      *   <div>
-     *     <img src="the icon image path"></img>
+     *     <img role="presentation" src="the icon image path"></img>
      *     <span class="label">label</span>
      *   </div>
      *   <span class="options"></span>
@@ -43,6 +43,8 @@ Icon.prototype = {
     }
 
     container.dataset.origin = this.descriptor.origin;
+    container.setAttribute('role', 'button');
+    container.setAttribute('aria-label', this.descriptor.name);
 
     // Icon container
     var icon = this.icon = document.createElement('div');
@@ -50,11 +52,12 @@ Icon.prototype = {
     // Image
     var img = document.createElement('img');
     img.src = this.descriptor.icon;
+    img.setAttribute('role', 'presentation');
     icon.appendChild(img);
 
     img.onerror = function imgError() {
       img.src = '//' + window.location.host + '/resources/images/Unknown.png';
-    }
+    };
 
     // Label
 

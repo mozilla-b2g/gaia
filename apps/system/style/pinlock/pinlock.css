@@ -1,6 +1,5 @@
 #pinkeypadscreen {
   position: absolute;
-  z-index: 19998;
   top: 0;
   width: -moz-calc(100%);
   height: -moz-calc(100%);

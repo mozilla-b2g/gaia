@@ -1,5 +1,5 @@
 /*
- * ImageEditor.js: simple image editing and previews in a <canvas> element
+ * ImageEditor.js: simple image editing and previews in a <canvas> element.
  *
  * Display an edited version of the specified image in a <canvas> element
  * inside the specified container element. The image (or cropped region of
@@ -8,9 +8,10 @@
  * The edits object may include these properties:
  *
  *  gamma: a float specifying gamma correction
- *  effects: "bw" and "sepia" or "none"
- *  borderColor: a CSS color string for the border
+ *  matrix: a 4x4 matrix that represents a transformation of each rgba pixel.
+ *    this can be used to convert to bw or sepia, for example.
  *  borderWidth: the size of the border as a fraction of the image width
+ *  borderColor: a [r, g, b, a] array specifying border color
  *
  * In addition to previewing the image, this class also defines a
  * getFullSizeBlob() function that creates a full-size version of the
@@ -22,6 +23,11 @@
  *   hideCropOverlay()
  *   cropImage()
  *   undoCrop()
+ *
+ * This code expects WebGL GLSL shader programs in scripts with ids
+ * edit-vertex-shader and edit-fragment-shader. It dynamically creates
+ * canvas elements with ids edit-preview-canvas and edit-crop-canvas.
+ * The stylesheet includes static styles to position those dyanamic elements.
  */
 'use strict';
 
@@ -29,25 +35,16 @@ function ImageEditor(imageURL, container, edits) {
   this.imageURL = imageURL;
   this.container = container;
   this.edits = edits || {};
-  this.crop = {};              // How much the image is cropped
-  this.cropRegion = {};        // Crop rectangle while being dragged
+  this.source = {};     // The source rectangle (crop region) of the image
+  this.dest = {};       // The destination (preview) rectangle of canvas
+  this.cropRegion = {}; // Region displayed in crop overlay during drags
 
-
-  // The canvas that displays the preview
-  this.previewCanvas = document.createElement('canvas');
-  this.previewCanvas.style.position = 'absolute';
-  this.previewContext = this.previewCanvas.getContext('2d');
-  this.container.appendChild(this.previewCanvas);
-
-  // An offscreen canvas for resizing and extracting pixels
-  this.offscreenCanvas = document.createElement('canvas');
-  this.offscreenContext = this.offscreenCanvas.getContext('2d');
-
-  // A full-size offscreen image
+  // Start loading the image into a full-size offscreen image
   this.original = new Image();
   this.original.src = imageURL;
   var self = this;
-  // When the image loads....
+
+  // When the image loads display it
   this.original.onload = function() {
     // Initialize the crop region to the full size of the original image
     self.resetCropRegion();
@@ -56,180 +53,95 @@ function ImageEditor(imageURL, container, edits) {
     self.edit();
   }
 
-  this.worker = new Worker('js/ImageEditorWorker.js');
-  this.worker.onmessage = function(e) {
-    if (e.data.type === 'preview') {
-      // Whenever the worker sends us some image data, we copy it into the
-      // middle of the preview canvas
-      var imagedata = e.data.imagedata;
-      var x = (self.previewCanvas.width - imagedata.width) / 2;
-      var y = (self.previewCanvas.height - imagedata.height) / 2;
-      self.previewContext.putImageData(imagedata, x, y);
-    }
-  }
+  // The canvas that displays the preview
+  this.previewCanvas = document.createElement('canvas');
+  this.previewCanvas.id = 'edit-preview-canvas'; // for stylesheet
+  this.container.appendChild(this.previewCanvas);
+  this.previewCanvas.width = this.previewCanvas.clientWidth;
+  this.previewCanvas.height = this.previewCanvas.clientHeight;
+  this.processor = new ImageProcessor(this.previewCanvas);
 }
+
+ImageEditor.prototype.destroy = function() {
+  this.processor.destroy();
+  this.original.src = '';
+  this.original = null;
+  this.container.removeChild(this.previewCanvas);
+  this.previewCanvas = null;
+  if (this.cropCanvas) {
+    this.container.removeChild(this.cropCanvas);
+    this.hideCropOverlay();
+  }
+};
 
 // Preview the image with the specified edits applyed. If edits is omitted,
 // displays the original image. Clients should call this function when the
 // desired edits change or when the size of the container changes (on
 // orientation change events, for example)
 ImageEditor.prototype.edit = function() {
-  var containerWidth = this.container.clientWidth;
-  var containerHeight = this.container.clientHeight;
+  var canvas = this.previewCanvas;
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
 
-  // Use crop size
-  var imageWidth = this.crop.w;
-  var imageHeight = this.crop.h;
+  // Source image dimensions
+  var source = this.source;
 
-  // Add in the borders, if there are any
-  var borderWidth = this.edits.borderWidth || 0;
-  if (borderWidth > 0) {
-    borderWidth = Math.round(borderWidth * imageWidth);
-    imageWidth += 2 * borderWidth;
-    imageHeight += 2 * borderWidth;
-  }
-
-  // Now figure out the size and position of the canvas within the container
-  // based on the size of the image and the size of the container.
-  // See also fitImageToScreen() in gallery.js
-  var scalex = containerWidth / imageWidth;
-  var scaley = containerHeight / imageHeight;
+  // Compute the destination rectangle in the preview canvas
+  var dest = this.dest;
+  var scalex = canvas.width / source.w;
+  var scaley = canvas.height / source.h;
   var scale = Math.min(Math.min(scalex, scaley), 1);
 
-  // Set the image size and position
-  var scaledBorderWidth = Math.ceil(borderWidth * scale);
-  var width = Math.floor((imageWidth - 2 * borderWidth) * scale);
-  var height = Math.floor((imageHeight - 2 * borderWidth) * scale);
-  var left = Math.floor((containerWidth - width - 2 * scaledBorderWidth) / 2);
-  var top = Math.floor((containerHeight - height - 2 * scaledBorderWidth) / 2);
+  dest.w = Math.floor(source.w * scale);
+  dest.h = Math.floor(source.h * scale);
+  dest.x = Math.floor((canvas.width - dest.w) / 2);
+  dest.y = Math.floor((canvas.height - dest.h) / 2);
 
-  // Set the on-screen position of the preview canvas.
-  this.previewCanvas.width = width + 2 * scaledBorderWidth;
-  this.previewCanvas.height = height + 2 * scaledBorderWidth;
-  this.previewCanvas.style.left = left + 'px';
-  this.previewCanvas.style.top = top + 'px';
-
-  // Use the offscreen canvas to get image pixels that we want to edit
-  this.offscreenCanvas.width = width;
-  this.offscreenCanvas.height = height;
-  this.offscreenContext.drawImage(this.original,
-                                  this.crop.x, this.crop.y,
-                                  imageWidth - 2 * borderWidth,
-                                  imageHeight - 2 * borderWidth,
-                                  0, 0, width, height);
-  var imagedata = this.offscreenContext.getImageData(0, 0, width, height);
-
-  // Ask our worker thread to process the pixels.
-  // They'll get drawn to the preview canvas when the editing is done
-  this.worker.postMessage({
-    type: 'preview',
-    imagedata: imagedata,
-    edits: this.edits
-  });
-
-  // Meanwhile, draw the border, if there is one
-  if (borderWidth > 0) {
-    this.previewContext.lineWidth = scaledBorderWidth;
-    this.previewContext.strokeStyle = this.edits.borderColor || '#fff';
-    this.previewContext.strokeRect(scaledBorderWidth / 2,
-                                   scaledBorderWidth / 2,
-                                   width + scaledBorderWidth,
-                                   height + scaledBorderWidth);
-  }
+  this.processor.draw(this.original,
+                      source.x, source.y, source.w, source.h,
+                      dest.x, dest.y, dest.w, dest.h,
+                      this.edits);
 };
 
 // Apply the edits offscreen and pass the full-size edited image as a blob
 // to the specified callback function. The code here is much like the
 // code above in edit().
 ImageEditor.prototype.getFullSizeBlob = function(type, callback) {
-  // "full size" is the cropped size
-  var imageWidth = this.crop.w;
-  var imageHeight = this.crop.h;
+  // Create an offscreen canvas of the same size
+  var canvas = document.createElement('canvas');
+  canvas.width = this.source.w; // "full size" is cropped image size
+  canvas.height = this.source.h;
 
-  // Add in the borders, if there are any
-  var borderWidth = this.edits.borderWidth || 0;
-  if (borderWidth > 0) {
-    borderWidth = Math.round(borderWidth * imageWidth);
-  }
+  // Create an ImageProcessor object and use it to draw the edited
+  // image to the full-size offscreen canvas
+  var processor = new ImageProcessor(canvas);
+  processor.draw(this.original,
+                 this.source.x, this.source.y, this.source.w, this.source.h,
+                 0, 0, this.source.w, this.source.h,
+                 this.edits);
 
-  // Use the offscreen canvas to get image pixels that we want to edit
-  this.offscreenCanvas.width = imageWidth + 2 * borderWidth;
-  this.offscreenCanvas.height = imageHeight + 2 * borderWidth;
-  this.offscreenContext.drawImage(this.original,
-                                  this.crop.x, this.crop.y,
-                                  imageWidth, imageHeight,
-                                  borderWidth, borderWidth,
-                                  imageWidth, imageHeight);
-  var imagedata = this.offscreenContext.getImageData(borderWidth, borderWidth,
-                                                     imageWidth, imageHeight);
+  // Now get the canvas contents as a file and pass to the callback
+  callback(canvas.mozGetAsFile('', type));
 
-
-  // Ask our worker thread to process the pixels.
-  this.worker.postMessage({
-    type: 'fullsize',
-    imagedata: imagedata,
-    edits: this.edits
-  });
-
-  // Meanwhile, draw the border, if there is one
-  if (borderWidth > 0) {
-    this.offscreenContext.lineWidth = borderWidth;
-    this.offscreenContext.strokeStyle = this.edits.borderColor || '#fff';
-    this.offscreenContext.strokeRect(borderWidth / 2,
-                                     borderWidth / 2,
-                                     imageWidth + borderWidth,
-                                     imageHeight + borderWidth);
-  }
-
-  // Handle a response from the worker
-  var oldhandler = this.worker.onmessage; // Remember preview handler
-  var self = this;
-  this.worker.onmessage = function(e) {
-    // restore the preview handler
-    self.worker.onmessage = oldhandler;
-
-    // Copy the edited imagedata into the offscreen canvas
-    var imagedata = e.data.imagedata;
-    self.offscreenContext.putImageData(imagedata, borderWidth, borderWidth);
-
-    // Now get it as a blob and pass it to the callback
-    callback(self.offscreenCanvas.mozGetAsFile('', type));
-  };
+  // Deallocate stuff
+  processor.destroy();
+  canvas.width = 0;
 };
 
-// Stop the worker thread and remove the preview canvas.
-ImageEditor.prototype.close = function() {
-  // Stop the thread
-  this.worker.terminate();
-  // Remove the canvas from the container
-  this.container.removeChild(this.previewCanvas);
-  // Forget the URL of the offscreen image
-  this.original.src = '';
-  // Set canvas sizes to zero
-  this.offscreenCanvas.width = 0;
-  this.previewCanvas.width = 0;
-  if (this.cropCanvas)
-    this.hideCropOverlay();
-};
 
 // Display cropping controls
 // XXX: have to handle rotate/resize
 ImageEditor.prototype.showCropOverlay = function showCropOverlay() {
   var canvas = this.cropCanvas = document.createElement('canvas');
   var context = this.cropContext = canvas.getContext('2d');
-
-  // Give the overlay 10px margins all around, so crop handles can
-  canvas.width = this.previewCanvas.width + 20;
-  canvas.height = this.previewCanvas.height + 20;
-
-  canvas.style.position = 'absolute';
-  canvas.style.left = (this.previewCanvas.offsetLeft - 10) + 'px';
-  canvas.style.top = (this.previewCanvas.offsetTop - 10) + 'px';
+  canvas.id = 'edit-crop-canvas'; // for stylesheet
   this.container.appendChild(canvas);
 
-  // Adjust for the margins
-  context.translate(10, 10);
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+
   // Crop handle styles
+  context.translate(10, 10);
   context.lineCap = 'round';
   context.lineJoin = 'round';
   context.strokeStyle = 'rgba(255,255,255,.75)';
@@ -238,8 +150,8 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay() {
   var region = this.cropRegion;
   region.left = 0;
   region.top = 0;
-  region.right = this.previewCanvas.width;
-  region.bottom = this.previewCanvas.height;
+  region.right = this.dest.w;
+  region.bottom = this.dest.h;
 
   this.drawCropControls();
 
@@ -256,20 +168,21 @@ ImageEditor.prototype.hideCropOverlay = function hideCropOverlay() {
 
 // Reset image to full original size
 ImageEditor.prototype.resetCropRegion = function resetCropRegion() {
-  this.crop.x = 0;
-  this.crop.y = 0;
-  this.crop.w = this.original.width;
-  this.crop.h = this.original.height;
+  this.source.x = 0;
+  this.source.y = 0;
+  this.source.w = this.original.width;
+  this.source.h = this.original.height;
 };
 
 ImageEditor.prototype.drawCropControls = function(handle) {
   var canvas = this.cropCanvas;
   var context = this.cropContext;
   var region = this.cropRegion;
-  var left = region.left;
-  var top = region.top;
-  var right = region.right;
-  var bottom = region.bottom;
+  var dest = this.dest;
+  var left = region.left + dest.x;
+  var top = region.top + dest.y;
+  var right = region.right + dest.x;
+  var bottom = region.bottom + dest.y;
   var centerX = (left + right) / 2;
   var centerY = (top + bottom) / 2;
   var width = right - left;
@@ -280,7 +193,7 @@ ImageEditor.prototype.drawCropControls = function(handle) {
 
   // Overlay the preview canvas with translucent gray
   context.fillStyle = 'rgba(0, 0, 0, .5)';
-  context.fillRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
+  context.fillRect(dest.x, dest.y, dest.w, dest.h);
 
   // Clear a rectangle so interior of the crop region shows through
   context.clearRect(left, top, width, height);
@@ -384,11 +297,11 @@ ImageEditor.prototype.drawCropControls = function(handle) {
 // Called on mousedown in the crop overlay canvas
 ImageEditor.prototype.cropStart = function(startEvent) {
   var self = this;
-  var previewCanvas = this.previewCanvas;
   var region = this.cropRegion;
-  var rect = previewCanvas.getBoundingClientRect();
-  var x0 = startEvent.clientX - rect.left;
-  var y0 = startEvent.clientY - rect.top;
+  var dest = this.dest;
+  var rect = this.previewCanvas.getBoundingClientRect();
+  var x0 = startEvent.clientX - rect.left - dest.x;
+  var y0 = startEvent.clientY - rect.top - dest.y;
   var left = region.left;
   var top = region.top;
   var right = region.right;
@@ -437,6 +350,7 @@ ImageEditor.prototype.cropStart = function(startEvent) {
     function move(e) {
       var dx = e.clientX - startEvent.clientX;
       var dy = e.clientY - startEvent.clientY;
+
       var newleft = region.left;
       var newright = region.right;
       var newtop = region.top;
@@ -506,7 +420,7 @@ ImageEditor.prototype.cropStart = function(startEvent) {
       // Now if the new region is out of bounds then bail out without
       // changing the region at all and ignore this move event
       if (newtop < 0 || newleft < 0 ||
-          newright > previewCanvas.width || newbottom > previewCanvas.height)
+          newright > dest.w || newbottom > dest.h)
         return;
 
       // Don't let the crop region become smaller than 100x100. If it does
@@ -534,11 +448,11 @@ ImageEditor.prototype.cropStart = function(startEvent) {
 
     function pan(dx, dy) {
       if (dx > 0)
-        dx = Math.min(dx, previewCanvas.width - right);
+        dx = Math.min(dx, dest.w - right);
       if (dx < 0)
         dx = Math.max(dx, -left);
       if (dy > 0)
-        dy = Math.min(dy, previewCanvas.height - bottom);
+        dy = Math.min(dy, dest.h - bottom);
       if (dy < 0)
         dy = Math.max(dy, -top);
 
@@ -566,31 +480,31 @@ ImageEditor.prototype.cropImage = function() {
     return;
 
   var region = this.cropRegion;
-  var preview = this.previewCanvas;
+  var dest = this.dest;
 
   // Convert the preview crop region to fractions
-  var left = region.left / preview.width;
-  var right = region.right / preview.width;
-  var top = region.top / preview.height;
-  var bottom = region.bottom / preview.height;
+  var left = region.left / dest.w;
+  var right = region.right / dest.w;
+  var top = region.top / dest.h;
+  var bottom = region.bottom / dest.h;
 
   // Now convert those fractions to pixels in the original image
   // Note that the original image may have already been cropped, so we
   // multiply by the size of the crop region, not the full size
-  left = Math.floor(left * this.crop.w);
-  right = Math.ceil(right * this.crop.w);
-  top = Math.floor(top * this.crop.h);
-  bottom = Math.floor(bottom * this.crop.h);
+  left = Math.floor(left * this.source.w);
+  right = Math.ceil(right * this.source.w);
+  top = Math.floor(top * this.source.h);
+  bottom = Math.floor(bottom * this.source.h);
 
   // XXX: tweak these to make sure we still have the right aspect ratio
   // after rounding to pixels
   console.error('Maintain aspect ratio precisely!!!');
 
   // And update the real crop region
-  this.crop.x += left;
-  this.crop.y += top;
-  this.crop.w = right - left;
-  this.crop.h = bottom - top;
+  this.source.x += left;
+  this.source.y += top;
+  this.source.w = right - left;
+  this.source.h = bottom - top;
 
   // Adjust the image
   this.edit();
@@ -612,23 +526,22 @@ ImageEditor.prototype.undoCrop = function() {
 // 2,3 for portrait, 3,2 for landscape.
 ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
   var region = this.cropRegion;
-  var preview = this.previewCanvas;
-  var width = preview.width;
-  var height = preview.height;
+  var dest = this.dest;
 
   this.cropAspectWidth = ratioWidth || 0;
   this.cropAspectHeight = ratioHeight || 0;
 
   if (ratioWidth && ratioHeight) {
     // Constrained cropping, centered on image
-    var centerX = width / 2, centerY = height / 2;
+    var centerX = dest.w / 2;
+    var centerY = dest.h / 2;
 
-    var scaleX = Math.floor(width / ratioWidth);
-    var scaleY = Math.floor(height / ratioHeight);
+    var scaleX = Math.floor(dest.w / ratioWidth);
+    var scaleY = Math.floor(dest.h / ratioHeight);
     var scale = Math.min(scaleX, scaleY);
 
-    width = scale * ratioWidth;
-    height = scale * ratioHeight;
+    var width = scale * ratioWidth;
+    var height = scale * ratioHeight;
 
     region.left = centerX - width / 2;
     region.right = centerX + width / 2;
@@ -637,10 +550,178 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
   }
   else {
     // Freeform cropping
-    region.left = region.top = 0;
-    region.right = width;
-    region.bottom = height;
+    region.left = 0;
+    region.top = 0;
+    region.right = dest.w;
+    region.bottom = dest.h;
   }
 
   this.drawCropControls();
 };
+
+
+//
+// Create a new ImageProcessor object for the specified canvas to do
+// webgl transformations on an image.  Expects its shader programs to be in
+// <script> elements with ids 'edit-vertex-shader' and 'edit-fragment-shader'.
+//
+function ImageProcessor(canvas) {
+  // WebGL context for the canvas
+  this.canvas = canvas;
+  var gl = this.context = canvas.getContext('webgl') ||
+    canvas.getContext('experimental-webgl');
+
+  // Define our shader programs
+  var vshader = this.vshader = gl.createShader(gl.VERTEX_SHADER);
+  var vshadersrc = document.getElementById('edit-vertex-shader').text;
+  gl.shaderSource(vshader, vshadersrc);
+  gl.compileShader(vshader);
+  if (!gl.getShaderParameter(vshader, gl.COMPILE_STATUS)) {
+    var error = new Error('Error compiling vertex shader:' +
+                          gl.getShaderInfoLog(vshader));
+    gl.deleteShader(vshader);
+    throw error;
+  }
+
+  var fshader = this.fshader = gl.createShader(gl.FRAGMENT_SHADER);
+  var fshadersrc = document.getElementById('edit-fragment-shader').text;
+  gl.shaderSource(fshader, fshadersrc);
+  gl.compileShader(fshader);
+  if (!gl.getShaderParameter(fshader, gl.COMPILE_STATUS)) {
+    var error = new Error('Error compiling fragment shader:' +
+                          gl.getShaderInfoLog(fshader));
+    gl.deleteShader(fshader);
+    throw error;
+  }
+
+  var program = this.program = gl.createProgram();
+  gl.attachShader(program, vshader);
+  gl.attachShader(program, fshader);
+  gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    var error = new Error('Error linking GLSL program:' +
+                          gl.getProgramInfoLog(program));
+    gl.deleteProgram(program);
+    throw error;
+  }
+  gl.useProgram(program);
+
+  // Create a texture to hold the source image once we have one
+  this.sourceTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+  // Create buffers to hold the input and output rectangles
+  this.sourceRectangle = gl.createBuffer();
+  this.destinationRectangle = gl.createBuffer();
+
+
+  // Look up the addresses of the program's input variables
+  this.srcPixelAddress = gl.getAttribLocation(program, 'src_pixel');
+  this.destPixelAddress = gl.getAttribLocation(program, 'dest_pixel');
+  this.canvasSizeAddress = gl.getUniformLocation(program, 'canvas_size');
+  this.imageSizeAddress = gl.getUniformLocation(program, 'image_size');
+  this.destSizeAddress = gl.getUniformLocation(program, 'dest_size');
+  this.destOriginAddress = gl.getUniformLocation(program, 'dest_origin');
+  this.matrixAddress = gl.getUniformLocation(program, 'matrix');
+  this.gammaAddress = gl.getUniformLocation(program, 'gamma');
+  this.borderWidthAddress = gl.getUniformLocation(program, 'border_width');
+  this.borderColorAddress = gl.getUniformLocation(program, 'border_color');
+
+}
+
+// Destroy all the stuff we allocated
+ImageProcessor.prototype.destroy = function() {
+  var gl = this.context;
+  gl.deleteShader(this.vshader);
+  gl.deleteShader(this.fshader);
+  gl.deleteProgram(this.program);
+  gl.deleteTexture(this.sourceTexture);
+  gl.deleteBuffer(this.sourceRectangle);
+  gl.deleteBuffer(this.destinationRectangle);
+};
+
+ImageProcessor.prototype.draw = function(image,
+                                         sx, sy, sw, sh,
+                                         dx, dy, dw, dh,
+                                         options)
+{
+  var gl = this.context;
+
+  // Set the canvas size and image size
+  gl.uniform2f(this.canvasSizeAddress, this.canvas.width, this.canvas.height);
+  gl.uniform2f(this.imageSizeAddress, image.width, image.height);
+  gl.uniform2f(this.destOriginAddress, dx, dy);
+  gl.uniform2f(this.destSizeAddress, dw, dh);
+
+  // Set the gamma correction
+  var gammaArray;
+  if (options.gamma)
+    gl.uniform4f(this.gammaAddress,
+                 options.gamma, options.gamma, options.gamma, options.gamma);
+  else
+    gl.uniform4f(this.gammaAddress, 1, 1, 1, 1);
+
+  // Set the color transformation
+  gl.uniformMatrix4fv(this.matrixAddress, false,
+                      options.matrix || ImageProcessor.IDENTITY_MATRIX);
+
+  // Set border size and color
+  if (options.borderWidth)
+    gl.uniform1f(this.borderWidthAddress, Math.ceil(dw * options.borderWidth));
+  else
+    gl.uniform1f(this.borderWidthAddress, 0);
+
+  gl.uniform4fv(this.borderColorAddress, options.borderColor || [0, 0, 0, 0]);
+
+  // Define the source rectangle
+  makeRectangle(this.sourceRectangle, sx, sy, sw, sh);
+  gl.enableVertexAttribArray(this.srcPixelAddress);
+  gl.vertexAttribPointer(this.srcPixelAddress, 2, gl.FLOAT, false, 0, 0);
+
+  // Load the image into the texture
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+  // Define the destination rectangle we're copying the image into
+  makeRectangle(this.destinationRectangle, dx, dy, dw, dh);
+  gl.enableVertexAttribArray(this.destPixelAddress);
+  gl.vertexAttribPointer(this.destPixelAddress, 2, gl.FLOAT, false, 0, 0);
+
+  // And draw it all
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+  // Define a rectangle as two triangles
+  function makeRectangle(b, x, y, w, h) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, b);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      x, y, x + w, y, x, y + h,         // one triangle
+      x, y + h, x + w, y, x + w, y + h  // another triangle
+    ]), gl.STATIC_DRAW);
+  }
+};
+
+ImageProcessor.IDENTITY_MATRIX = [
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, 0, 1
+];
+
+ImageProcessor.none_matrix = ImageProcessor.IDENTITY_MATRIX;
+
+ImageProcessor.sepia_matrix = [
+  0.393, 0.769, 0.189, 0,
+  0.349, 0.686, 0.168, 0,
+  0.272, 0.534, 0.131, 0,
+  0, 0, 0, 1
+];
+
+ImageProcessor.bw_matrix = [
+  1 / 3, 1 / 3, 1 / 3, 0,
+  1 / 3, 1 / 3, 1 / 3, 0,
+  1 / 3, 1 / 3, 1 / 3, 0,
+  0, 0, 0, 1
+];

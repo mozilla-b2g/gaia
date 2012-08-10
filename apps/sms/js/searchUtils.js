@@ -7,16 +7,19 @@
 // and it will replace the view with search result list.
 
 var SearchUtils = {
-  createHighlightHTML: function su_createHighlightHTML(text, searchRegExp) {
-    var sliceStrs = text.split(searchRegExp);
-    var patterns = text.match(searchRegExp);
+  createHighlightHTML: function su_createHighlightHTML(text, regExp, style) {
+    var sliceStrs = text.split(regExp);
+    var patterns = text.match(regExp);
+    if (!patterns) {
+      return Utils.escapeHTML(text);
+    }
     var str = '';
     for (var i = 0; i < patterns.length; i++) {
       str = str +
-          escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
-          escapeHTML(patterns[i]) + '</span>';
+          Utils.escapeHTML(sliceStrs[i]) + '<span class="'+ style + '">' +
+          Utils.escapeHTML(patterns[i]) + '</span>';
     }
-    str += escapeHTML(sliceStrs.pop());
+    str += Utils.escapeHTML(sliceStrs.pop());
     return str;
   },
 
