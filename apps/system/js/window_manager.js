@@ -181,7 +181,6 @@ var WindowManager = (function() {
     } else if (classes.contains('close') && prop.indexOf('transform') != -1) {
       classes.remove('open');
       classes.remove('close');
-      document.getElementById('screen').classList.remove('active-application');
 
       setTimeout(closeCallback);
     }
@@ -213,6 +212,8 @@ var WindowManager = (function() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
+
+    document.getElementById('screen').classList.remove('active-application');
 
     // Take keyboard focus away from the closing window
     closeFrame.blur();
