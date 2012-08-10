@@ -164,6 +164,7 @@ var WindowManager = (function() {
       classes.add('faded');
       setTimeout(openCallback);
     } else if (classes.contains('faded') && prop === 'opacity') {
+
       openFrame.setVisible(true);
       openFrame.focus();
 
@@ -188,7 +189,13 @@ var WindowManager = (function() {
   function openWindow(origin, callback) {
     var app = runningApps[origin];
     openFrame = app.frame;
-    openCallback = callback || function() {};
+    openCallback = function() {
+      if (app.manifest.fullscreen)
+        openFrame.mozRequestFullScreen();
+
+      if (callback)
+        callback();
+    };
 
     sprite.className = 'open';
   }
@@ -208,6 +215,10 @@ var WindowManager = (function() {
     // Take keyboard focus away from the closing window
     closeFrame.blur();
     closeFrame.setVisible(false);
+
+    // Leave full screen
+    if (document.mozFullScreen)
+      document.mozCancelFullScreen();
 
     // And begin the transition
     sprite.classList.remove('faded');
@@ -275,11 +286,7 @@ var WindowManager = (function() {
       setOrientationForApp(newApp);
     }
 
-    // Exit fullscreen mode if we're going to the homescreen
-    if (newApp === null && document.mozFullScreen) {
-      document.mozCancelFullScreen();
-    }
-
+    // Set displayedApp to the new value
     displayedApp = origin;
 
     // Update the loading icon since the displayedApp is changed
@@ -493,10 +500,6 @@ var WindowManager = (function() {
     // when that is done.
     setDisplayedApp(origin, function() {
       frame.src = url;
-
-      if (manifest.fullscreen) {
-        frame.mozRequestFullScreen();
-      }
     });
   }
 
