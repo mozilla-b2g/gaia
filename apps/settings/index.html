@@ -364,8 +364,28 @@
             <input type="checkbox"/>
             <span></span>
           </label>
-          <small data-l10n-id="enabled"></small>
-          <a data-l10n-id="bluetooth-power">Bluetooth Power</a>
+          <a data-l10n-id="bluetooth">Bluetooth</a>
+        </li>
+        <li hidden id="bluetooth-visible-device">
+          <label>
+            <input type="checkbox" checked/>
+            <span></span>
+          </label>
+          <a data-l10n-id="bluetooth-visible">Visible to other devices</a>
+        </li>
+      </ul>
+      <h2 data-l10n-id="bluetoothDevices">Devices</h2>
+      <ul id="bluetooth-devices">
+        <!-- filled by bluetooth.js -->
+      </ul>
+      <ul>
+        <li hidden id="bluetooth-searching">
+          <a data-l10n-id="scanning">Searching…</a>
+        </li>
+      </ul>
+      <ul hidden id="bluetooth-advanced">
+        <li>
+          <button data-l10n-id="renameDevice">Rename Device</button>
         </li>
       </ul>
     </section>
