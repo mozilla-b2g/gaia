@@ -433,6 +433,11 @@ var AlarmManager = {
 var AlarmEditView = {
 
   alarm: {},
+  timePicker: {
+    hour: null,
+    minute: null,
+    hour24State: null
+  },
 
   get element() {
     delete this.element;
@@ -445,22 +450,22 @@ var AlarmEditView = {
       document.querySelector('input[name="alarm.label"]');
   },
 
-  get hourInput() {
-    delete this.hourInput;
-    return this.hourInput =
-      document.querySelector('input[name="alarm.hour"]');
+  get hourSelector() {
+    delete this.hourSelector;
+    return this.hourSelector =
+      document.getElementById('value-picker-hours');
   },
 
-  get minuteInput() {
-    delete this.minuteInput;
-    return this.minuteInput =
-      document.querySelector('input[name="alarm.minute"]');
+  get minuteSelector() {
+    delete this.minuteSelector;
+    return this.minuteSelector =
+      document.getElementById('value-picker-minutes');
   },
 
-  get enableInput() {
-    delete this.enableInput;
-    return this.enableInput =
-      document.querySelector('input[name="alarm.enable"]');
+  get hour24StateSelector() {
+    delete this.hour24StateSelector;
+    return this.hour24StateSelector =
+      document.getElementById('value-picker-hour24-state');
   },
 
   get alarmTitle() {
@@ -488,18 +493,46 @@ var AlarmEditView = {
     return this.colorMenu = document.getElementById('color-menu');
   },
 
-  get deleteElement() {
-    delete this.deleteElement;
-    return this.deleteElement = document.querySelector('li.delete');
-  },
-
   init: function aev_init() {
     document.getElementById('alarm-done').addEventListener('click', this);
-    document.getElementById('alarm-del').addEventListener('click', this);
     document.getElementById('repeat-menu').addEventListener('click', this);
     document.getElementById('sound-menu').addEventListener('click', this);
     document.getElementById('snooze-menu').addEventListener('click', this);
     document.getElementById('color-menu').addEventListener('click', this);
+    this.initTimePicker();
+  },
+
+  initTimePicker: function aev_initTimePicker() {
+    var unitClassName = 'picker-unit';
+    var hourDisplayedText = [];
+    for (var i = 1; i < 13; i++) {
+      var value = i;
+      hourDisplayedText.push(value);
+    }
+    var hourUnitStyle = {
+      valueDisplayedText: hourDisplayedText,
+      className: unitClassName
+    };
+    this.timePicker.hour = new ValuePicker(this.hourSelector, hourUnitStyle);
+
+    var minuteDisplayedText = [];
+    for (var i = 0; i < 60; i++) {
+      var value = (i < 10) ? '0' + i : i;
+      minuteDisplayedText.push(value);
+    }
+    var minuteUnitStyle = {
+      valueDisplayedText: minuteDisplayedText,
+      className: unitClassName
+    };
+    this.timePicker.minute =
+      new ValuePicker(this.minuteSelector, minuteUnitStyle);
+
+    var hour24StateUnitStyle = {
+      valueDisplayedText: ['AM', 'PM'],
+      className: unitClassName
+    };
+    this.timePicker.hour24State =
+      new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
   },
 
   handleEvent: function aev_handleEvent(evt) {
@@ -525,9 +558,6 @@ var AlarmEditView = {
         break;
       case 'color-menu':
         ColorPickerView.load(this.alarm.color);
-        break;
-      case 'alarm-del':
-        this.delete();
         break;
     }
   },
@@ -556,17 +586,13 @@ var AlarmEditView = {
 
     this.element.dataset.id = alarm.id;
     this.labelInput.value = alarm.label;
-    this.hourInput.value = alarm.hour;
-    this.minuteInput.value = alarm.minute;
-    this.enableInput.checked = alarm.enabled;
-
-    if (alarm.id) {
-      this.alarmTitle.innerHTML = _('editAlarm');
-      this.deleteElement.hidden = false;
-    } else {
-      this.alarmTitle.innerHTML = _('newAlarm');
-      this.deleteElement.hidden = true;
-    }
+    var hour = (alarm.hour % 12);
+    hour = (hour == 0) ? 12 : hour;
+    // 24-hour state value selector: AM = 0, PM = 1
+    var hour24State = (alarm.hour >= 12) ? 1 : 0;
+    this.timePicker.hour.setSelectedIndexByDisplayedText(hour);
+    this.timePicker.minute.setSelectedIndex(alarm.minute);
+    this.timePicker.hour24State.setSelectedIndex(hour24State);
     this.refreshRepeatMenu();
     this.refreshSoundMenu();
     this.refreshSnoozeMenu();
@@ -601,18 +627,16 @@ var AlarmEditView = {
     var error = false;
 
     this.alarm.label = this.labelInput.value;
-    this.alarm.hour = this.hourInput.value;
-    this.alarm.minute = this.minuteInput.value;
-    this.alarm.enabled = this.enableInput.checked;
+    this.alarm.enabled = true;
+    var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
+    var hour = this.timePicker.hour.getSelectedDisplayedText();
+    hour = (hour == 12) ? 0 : hour;
+    hour = hour + hour24Offset;
+    this.alarm.hour = hour;
+    this.alarm.minute = this.timePicker.minute.getSelectedDisplayedText();
 
     if (!this.alarm.label) {
       this.labelInput.nextElementSibling.textContent = _('required');
-      error = true;
-    }
-
-    if (this.alarm.hour > 24 ||
-      (this.alarm.hour == 24 && this.alarm.minute != 0)) {
-      this.hourInput.nextElementSibling.textContent = _('invalid');
       error = true;
     }
 
