@@ -36,6 +36,12 @@ const DockManager = (function() {
           }
         }
 
+        if (dock.getNumApps() <= maxNumAppInViewPort &&
+            (dock.getLeft() < -cellWidth ||
+             dock.getRight() > windowWidth + cellWidth)) {
+          return;
+        }
+
         dock.moveBy(initialOffsetLeft + evt.clientX - startX);
         break;
 
