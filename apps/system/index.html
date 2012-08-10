@@ -122,10 +122,36 @@
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
     <script defer src="js/value_selector.js"></script>
+
+    <style>
+    /* initlogo style is here to prevent flashing */
+
+    #initlogo {
+      position: absolute;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+
+      background-color: #000;
+
+      z-index: 65536;
+    }
+
+    #initlogo > img {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
+    </style>
   </head>
 
   <body onload="startup()">
-    <div id="screen" class="screenoff locked">
+    <div id="screen" class="locked">
+      <div id="initlogo" data-z-index-level="initlogo">
+        <img src="./resources/images/initlogo.png" />
+      </div>
+
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Loading -->
         <div id="statusbar-loading" hidden></div>

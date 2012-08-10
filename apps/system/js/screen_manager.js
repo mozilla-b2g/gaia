@@ -114,6 +114,9 @@ var ScreenManager = {
       self._idleTimeout = value;
 
       if (!self._firstOn) {
+        var initlogo = document.getElementById('initlogo');
+        initlogo.parentNode.removeChild(initlogo);
+
         self._firstOn = true;
         self.turnScreenOn();
       }
@@ -295,5 +298,7 @@ var ScreenManager = {
   }
 };
 
-ScreenManager.init();
-
+window.addEventListener('load', function loadScreenManager() {
+  window.removeEventListener('load', loadScreenManager);
+  ScreenManager.init();
+});
