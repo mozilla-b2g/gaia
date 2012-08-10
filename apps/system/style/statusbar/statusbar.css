@@ -27,8 +27,8 @@
 
 #statusbar > .sb-start {
   float: left;
-
-  -moz-transition: -moz-transform 0.5s ease;
+  visibility: hidden;
+  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
 *[dir=rtl] #statusbar > * {
@@ -40,11 +40,12 @@
 }
 
 #statusbar > .sb-start-upper {
+  visibility: hidden;
   position: absolute;
   top: -20px;
   left: 0;
 
-  -moz-transition: -moz-transform 0.5s ease;
+  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
 *[dir=rtl] #statusbar > .sb-start-upper {
@@ -54,10 +55,11 @@
 
 .utility-tray #statusbar > .sb-start-upper,
 .utility-tray #statusbar > .sb-start {
+  visibility: visible;
   -moz-transform: translateY(20px);
 }
 
-#statusbar-loading {
+#statusbar-loading.popup-loading, #statusbar-loading.app-loading {
   position: absolute;
   top: 0;
   left: 0;
@@ -66,9 +68,10 @@
   background: url('images/loading.gif') center center repeat-x;
 
   -moz-transition: opacity 0.1s ease 0.2s;
+  visibility: visible;
 }
 
-#statusbar-loading[hidden] {
+#statusbar-loading {
   display: block;
   visibility: hidden;
 

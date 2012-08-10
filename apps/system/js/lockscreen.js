@@ -502,7 +502,8 @@ var LockScreen = {
     WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
 
     if (!wasAlreadyUnlocked) {
-      // Any changes made to this, also need to be reflected in apps/system/js/storage.js
+      // Any changes made to this,
+      // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('unlock');
       this.writeSetting(false);
       this.hideNotification();
@@ -528,7 +529,8 @@ var LockScreen = {
     this.updateTime();
 
     if (!wasAlreadyLocked) {
-      // Any changes made to this, also need to be reflected in apps/system/js/storage.js
+      // Any changes made to this,
+      // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('lock');
       this.writeSetting(true);
     }

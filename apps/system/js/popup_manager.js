@@ -4,11 +4,8 @@
 
 var PopupManager = {
   _currentPopup: null,
-  _wait: null,
   _endTimes: 0,
   _startTimes: 0,
-  _loadingIconEle: null,
-
 
   overlay: document.getElementById('dialog-overlay'),
 
@@ -16,13 +13,7 @@ var PopupManager = {
 
   screen: document.getElementById('screen'),
 
-  _loadingIcon: function() {
-    if (!this._loadingIconEle) {
-      this._loadingIconEle = document.getElementById('statusbar-loading');
-    }
-
-    return this._loadingIconEle;
-  },
+  loadingIcon: document.getElementById('statusbar-loading'),
 
   init: function pm_init() {
     window.addEventListener('mozbrowseropenwindow', this);
@@ -32,11 +23,11 @@ var PopupManager = {
   },
 
   _showWait: function pm_showWait() {
-    this._loadingIcon().hidden = false;
+    this.loadingIcon.classList.add('popup-loading');
   },
 
   _hideWait: function pm_hideWait() {
-    this._loadingIcon().hidden = true;
+    this.loadingIcon.classList.remove('popup-loading');
   },
 
   open: function pm_open(evt) {

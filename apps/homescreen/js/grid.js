@@ -28,8 +28,6 @@ const GridManager = (function() {
     switch (evt.type) {
       case 'mousedown':
         evt.stopPropagation();
-        document.body.dataset.transitioning = 'true';
-
         startEvent = evt;
         attachEvents();
         break;
@@ -40,15 +38,16 @@ const GridManager = (function() {
         // Starts dragging only when tapping does not make sense
         // anymore. The drag will then start from this point to avoid
         // a jump effect.
-        if (!isPanning &&
-            Math.abs(evt.clientX - startEvent.clientX) < thresholdForTapping) {
-          return;
-        } else if (!isPanning) {
-          isPanning = true;
-          startEvent = evt;
+        var deltaX = evt.clientX - startEvent.clientX;
+        if (!isPanning) {
+          if (Math.abs(deltaX) < thresholdForTapping) {
+            return;
+          } else {
+            isPanning = true;
+            document.body.dataset.transitioning = 'true';
+          }
         }
 
-        var deltaX = evt.clientX - startEvent.clientX;
         var len = pages.length;
         for (var i = 0; i < len; i++) {
           pages[i].moveBy((-currentPage + i) * windowWidth + deltaX);
@@ -58,19 +57,18 @@ const GridManager = (function() {
 
       case 'mouseup':
         evt.stopPropagation();
+        releaseEvents();
         if (!isPanning) {
-          delete document.body.dataset.transitioning;
+          pageHelper.getCurrent().tap(evt.target);
         } else {
           isPanning = false;
+          onTouchEnd(evt.clientX - startEvent.clientX);
         }
 
-        onTouchEnd(evt.clientX - startEvent.clientX, evt.target);
         break;
 
       case 'contextmenu':
         if (currentPage !== 0) {
-          evt.stopPropagation();
-          evt.preventDefault();
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, {
@@ -108,23 +106,17 @@ const GridManager = (function() {
 
   }
 
-  function onTouchEnd(deltaX, target) {
-    releaseEvents();
-
+  function onTouchEnd(deltaX) {
+    var page = currentPage;
     if (Math.abs(deltaX) > thresholdForPanning) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pageHelper.total() - 1) {
-        goToPage(currentPage + 1);
+        page = page + 1;
       } else if (!forward && currentPage > 0) {
-        goToPage(currentPage - 1);
-      } else {
-        goToPage(currentPage);
+        page = page - 1;
       }
-    } else if (Math.abs(deltaX) < thresholdForTapping) {
-      pageHelper.getCurrent().tap(target);
-    } else {
-      goToPage(currentPage);
     }
+    goToPage(page);
   }
 
   function attachEvents() {
@@ -177,10 +169,12 @@ const GridManager = (function() {
   }
 
   function goToNextPage(callback) {
+    document.body.dataset.transitioning = 'true';
     goToPage(currentPage + 1, callback);
   }
 
   function goToPreviousPage(callback) {
+    document.body.dataset.transitioning = 'true';
     goToPage(currentPage - 1, callback);
   }
 
