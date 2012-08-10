@@ -56,7 +56,7 @@ var Bluetooth = {
       var req = bluetooth.getDefaultAdapter();
       req.onsuccess = function bt_gotDefaultAdapter(evt) {
         var adapter =
-          self.defaultAdapter = evt.result;
+          self.defaultAdapter = req.result;
 
         /* If we get adapter.ondeviceconnected and
         adapter.ondevicedisconnected, we can end here. But we don't...
@@ -101,7 +101,7 @@ var Bluetooth = {
     var req = adapter.getPairedDevices();
     req.onsuccess = function bt_gotPairedDevices(evt) {
       var devices =
-        self.pairedDevices = evt.result;
+        self.pairedDevices = req.result;
 
       self.updateConnected.call(self);
 
