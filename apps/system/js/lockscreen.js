@@ -236,6 +236,22 @@ var LockScreen = {
 
             overlay.classList.add('touched');
             break;
+
+          case this.accessibilityUnlock:
+            overlay.classList.add('touched');
+            this.areaUnlock.classList.add('triggered');
+            this.areaHandle.classList.add('triggered');
+            this._touch.target = this.areaUnlock;
+            this.handleGesture();
+            break;
+
+          case this.accessibilityCamera:
+            overlay.classList.add('touched');
+            this.areaUnlock.classList.add('triggered');
+            this.areaHandle.classList.add('triggered');
+            this._touch.target = this.areaCamera;
+            this.handleGesture();
+            break;
         }
         break;
 
@@ -799,7 +815,7 @@ var LockScreen = {
         'area', 'area-unlock', 'area-camera', 'area-handle',
         'rail-left', 'rail-right',
         'passcode-code', 'passcode-pad',
-        'camera'];
+        'camera', 'accessibility-camera', 'accessibility-unlock'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

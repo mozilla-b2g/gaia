@@ -7,12 +7,14 @@
   z-index: 0;
 }
 
-/* Level 0: System overlay */
+/* Level 1 */
+/* Topest layer, cover all of the screen no matter what's the height of the status bar. */
+/* System overlay > Sleep menu > Card view */
+/* */
 #screen > [data-z-index-level="system-overlay"] {
   z-index: 65536;
 }
 
-/* Level 1: Sleep menu/Card View/Keyboard */
 #screen > [data-z-index-level="sleep-menu"] {
   z-index: 65536;
 }
@@ -34,45 +36,44 @@
   z-index: 32768;
 }
 
-/* Level 3: Activity menu, context menu */
-#screen > [data-z-index-level="list-menu"] {
-  z-index: 16384;
-}
-
-/* Level 4: Statusbar, Utility-Tray */
-#screen > [data-z-index-level="statusbar"] {
-  z-index: 16384;
-}
-
-#screen > [data-z-index-level="utility-tray"] {
-  z-index: 16383;
-}
-
-/* Level 5: Attention screen */
+/* Level 3: Attention screen */
 #screen > [data-z-index-level="attention-screen"] {
+  z-index: 16384;
+}
+
+/* Level 4: Activity menu, context menu */
+#screen > [data-z-index-level="list-menu"] {
   z-index: 8192;
 }
 
+/* Level 5: Statusbar, Utility-Tray */
+#screen > [data-z-index-level="statusbar"] {
+  z-index: 4096;
+}
+
+#screen > [data-z-index-level="utility-tray"] {
+  z-index: 4095;
+}
 
 /* Level 6: Lock Screen */
 #screen > [data-z-index-level="lockscreen"] {
-  z-index: 1024;
+  z-index: 2048;
 }
 
 #screen > [data-z-index-level="lockscreen-camera"] {
-  z-index: 1023;
+  z-index: 2047;
 }
 
 /* Level 7: Debug grid */
 #screen > [data-z-index-level="debug-grid"] {
-  z-index: 512;
+  z-index: 1024;
 }
 
 /* Level 8: Dialog Module */
 #screen > [data-z-index-level="dialog-overlay"],
 #screen > [data-z-index-level="value-selector"],
 #screen > [data-z-index-level="permission-screen"] {
-  z-index: 511;
+  z-index: 512;
 }
 
 /* Level 9 */
@@ -83,6 +84,13 @@
 #screen > [data-z-index-level="app"] {
   z-index: 1;
 }
+
+/* When keyboard is visible, set frame under app window */
+/*
+#screen > [data-z-index-level="keyboard-frame"].visible {
+  z-index: 0;
+}
+*/
 
 /* Fullscreen */
 #screen.fullscreen > [data-z-index-level="system-overlay"],
