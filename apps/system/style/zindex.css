@@ -89,12 +89,12 @@
      */
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow {
-  z-index: 1;
-}
-
 #screen > [data-z-index-level="app"] > iframe.appWindow.active {
   z-index: 2;
+}
+
+#screen > [data-z-index-level="app"] > iframe.appWindow {
+  z-index: 1;
 }
 
 /* When keyboard is visible, set frame under app window */
