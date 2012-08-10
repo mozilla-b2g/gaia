@@ -646,14 +646,19 @@ var WindowManager = (function() {
     // If there aren't any origin, that means we are moving to
     // the homescreen. Let's hide the icon.
     if (!origin) {
-      loadingIcon.hidden = true;
+      loadingIcon.classList.remove('app-loading');
       return;
     }
 
     // Actually update the icon.
     // Hide it if the loading property is not true.
     var app = runningApps[origin];
-    loadingIcon.hidden = !app.frame.dataset.loading;
+
+    if (app.frame.dataset.loading) {
+      loadingIcon.classList.add('app-loading');
+    } else {
+      loadingIcon.classList.remove('app-loading');
+    }
   };
 
   // Listen for mozbrowserloadstart to update the loading status
@@ -734,4 +739,3 @@ var WindowManager = (function() {
     setDisplayedApp: setDisplayedApp
   };
 }());
-

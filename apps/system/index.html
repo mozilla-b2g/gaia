@@ -115,7 +115,7 @@
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <script defer src="js/window_manager.js"></script>
-    
+
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
@@ -190,10 +190,10 @@
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
       </div>
-      
+
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <div id="trustedDialog">
-        </div> 
+        </div>
         <div id="popup-container">
         </div>
         <div id="modal-dialog">
@@ -237,8 +237,8 @@
             <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
           </div>
         </div>
-      </div> 
-      
+      </div>
+
       <!-- value selector -->
       <div id="value-selector" hidden data-z-index-level="value-selector">
          <div id="value-selector-container" onmousedown="return false;"> </div>
@@ -247,7 +247,7 @@
            <button id="value-selector-confirm" data-l10n-id="ok" onmousedown="return false;">Ok</button>
          </div>
       </div>
-      
+
       <div id="lockscreen-camera" hidden data-z-index-level="lockscreen-camera"></div>
 
       <div id="lockscreen" class="uninit" data-panel="" data-z-index-level="lockscreen">
@@ -303,7 +303,7 @@
           <div id="lockscreen-emergency-pad">TBD</div>
         </div>
       </div>
-      
+
       <div id="pinkeypadscreen" data-z-index-level="pinkeypadscreen">
         <div id="pinkeypadscreen-container">
           <p id="pinkeypadscreen-desc"><span>Enter PIN</span></p>
@@ -331,18 +331,18 @@
       <div id="attention-screen" data-z-index-level="attention-screen">
         <div id="attention-bar"></div>
       </div>
-      
+
       <div id="notification-toaster" class="notification" data-z-index-level="notification-toaster">
         <img id="toaster-icon" />
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
       </div>
-      
+
       <div id="listmenu" data-z-index-level="list-menu">
         <div class="list-menu" id="listmenu-container">
         </div>
       </div>
-      
+
       <div id="keyboard-overlay" data-z-index-level="keyboard-overlay"></div>
 
       <!-- keyboard -->
@@ -352,7 +352,7 @@
         <ul>
         </ul>
       </div>
-      
+
       <div id="sleep-menu" data-z-index-level="sleep-menu">
         <div class="sleepmenu" id="sleepmenu-container">
         </div>
