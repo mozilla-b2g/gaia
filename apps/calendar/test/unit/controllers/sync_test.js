@@ -17,6 +17,8 @@ suite('controllers/sync', function() {
   var accModel;
 
   setup(function(done) {
+    this.timeout(10000);
+
     app = testSupport.calendar.app();
     subject = new Calendar.Controllers.Sync(app);
 
