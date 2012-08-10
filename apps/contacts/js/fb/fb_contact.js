@@ -131,8 +131,6 @@ fb.Contact = function(deviceContact) {
 
     dcontact.category = updatedCategory;
 
-    window.console.log('OWDError: Updated category',updatedCategory);
-
     return dcontact;
   }
 
@@ -150,23 +148,21 @@ fb.Contact = function(deviceContact) {
 
   // For saving an imported FB contact
   this.save = function() {
-    var outReq = null;
+    var outReq = new Request();
 
     if (contactData && navigator.mozContacts) {
-      var contactObj = new mozContact();
-      // Info tbe saved on mozContacts
-      var contactInfo = {};
-
-      // Copying names to the mozContact
-      copyNames(contactData, contactInfo);
-
-      doSetFacebookUid(contactInfo, contactData.uid);
-
-      contactObj.init(contactInfo);
-
-      outReq = new Request();
-
       window.setTimeout(function save_do() {
+        var contactObj = new mozContact();
+        // Info tbe saved on mozContacts
+        var contactInfo = {};
+
+        // Copying names to the mozContact
+        copyNames(contactData, contactInfo);
+
+        doSetFacebookUid(contactInfo, contactData.uid);
+
+        contactObj.init(contactInfo);
+
         var mozContactsReq = navigator.mozContacts.save(contactObj);
 
         mozContactsReq.onsuccess = function(e) {
@@ -191,16 +187,20 @@ fb.Contact = function(deviceContact) {
             outReq.done(fbReq.result);
           }
           fbReq.onerror = function() {
-            window.console.error('OWDError: Saving on indexedDB');
+            window.console.error('FB: Error while saving on indexedDB');
             outReq.failed(fbReq.error);
           }
         } // mozContactsReq.onsuccess
 
         mozContactsReq.onerror = function(e) {
-          window.console.error('OWDError: mozContacts', e.target.error);
-          outReq.failed(mozContactsReq.e.target.error);
+          window.console.error('FB: Error while saving on mozContacts',
+                                                            e.target.error);
+          outReq.failed(e.target.error);
         }
       },0);
+    }
+    else {
+      throw 'Data or mozContacts not available';
     }
 
      return outReq;
