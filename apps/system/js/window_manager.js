@@ -654,10 +654,9 @@ var WindowManager = (function() {
     // Hide it if the loading property is not true.
     var app = runningApps[origin];
 
-    if(app.frame.dataset.loading) {
-       loadingIcon.classList.add('app-loading');
-    }
-    else {
+    if (app.frame.dataset.loading) {
+      loadingIcon.classList.add('app-loading');
+    } else {
       loadingIcon.classList.remove('app-loading');
     }
   };
