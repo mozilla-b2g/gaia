@@ -539,11 +539,15 @@ window.addEventListener('localized', function wifiSettings(evt) {
           _('fullStatus-' + networkStatus, currentNetwork);
     }
     if (gWpsInProgress) {
-      if (networkStatus !== 'disconnected')
+      if (networkStatus !== 'disconnected') {
         gWpsInfoBlock.textContent = gWifiInfoBlock.textContent;
-      if (networkStatus === 'connected' || networkStatus === 'wps-timedout' ||
-          networkStatus === 'wps-failed' || networkStatus === 'wps-overlapped')
+      }
+      if (networkStatus === 'connected' ||
+          networkStatus === 'wps-timedout' ||
+          networkStatus === 'wps-failed' ||
+          networkStatus === 'wps-overlapped') {
         gWpsInProgress = false;
+      }
     }
   }
 
