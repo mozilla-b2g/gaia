@@ -103,7 +103,6 @@ body {
   overflow: auto;
   left: 0;
   top: 20px;
-  z-index: 1;
 
 /*
  * Do not specify height/width here! They should go to
@@ -126,7 +125,6 @@ body {
 
 #windows > iframe.appWindow.active {
   background-color: #fff;
-  z-index: 2;
 }
 
 #windows > iframe.appWindow:not(.active) {
