@@ -30,6 +30,106 @@ suite('timespan', function() {
     );
   });
 
+ suite('#overlaps', function() {
+    var dates;
+
+    suiteSetup(function() {
+      dates = {
+        'range: inside': {
+          assert: true,
+          value: new Calendar.Timespan(
+            startDate,
+            endDate
+          )
+        },
+
+        'range: starts on end date': {
+          assert: false,
+          value: new Calendar.Timespan(
+            endDate,
+            new Date(2015, 1, 1)
+          )
+        },
+
+        'range: outside before': {
+          assert: false,
+          value: new Calendar.Timespan(
+            new Date(1991, 1, 1),
+            new Date(2000, 1, 1)
+          )
+        },
+
+        'range: outside after': {
+          assert: false,
+          value: new Calendar.Timespan(
+            new Date(2015, 1, 1),
+            new Date(2016, 1, 1)
+          )
+        },
+
+        'range: greater': {
+          assert: true,
+          value: new Calendar.Timespan(
+            new Date(2011, 12, 31),
+            new Date(2012, 12, 2)
+          )
+        },
+
+        'range overlap: start before': {
+          assert: true,
+          value: new Calendar.Timespan(
+            new Date(2011, 1, 1),
+            new Date(2012, 1, 15)
+          )
+        },
+
+        'range overlap: end before': {
+          assert: true,
+          value: new Calendar.Timespan(
+            new Date(2012, 1, 2),
+            new Date(2012, 11, 12)
+          )
+        }
+      };
+    });
+
+    test('overlaping times', function() {
+      var key;
+      var prefix = '';
+
+      for (key in dates) {
+        if (dates.hasOwnProperty(key)) {
+          var value = dates[key].value;
+
+          assert.equal(
+            subject.overlaps(value),
+            dates[key].assert,
+            key
+          );
+        }
+      }
+    });
+
+    test('overlaping times as dates', function() {
+      var key;
+      var prefix = '';
+
+      for (key in dates) {
+        if (dates.hasOwnProperty(key)) {
+          var value = dates[key].value;
+          var start = new Date(value.start);
+          var end = new Date(value.end);
+
+          assert.equal(
+            subject.overlaps(start, end),
+            dates[key].assert,
+            key
+          );
+        }
+      }
+    });
+  });
+
   suite('#contains', function() {
     var dates;
 
