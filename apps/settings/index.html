@@ -153,13 +153,9 @@
           <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
           <a data-l10n-id="networkNotification">Network notification</a>
         </li>
-      </ul>
-
-      <h2 data-l10n-id="wifi-wps">Wi-Fi Protected Setup</h2>
-      <ul>
-        <li id="wps-pbc-button">
-          <a data-l10n-id="wpsPbcMessage">Touch here for WPS PBC</a>
-          <small id="wifi-wps-desc"></small>
+        <li hidden id="wps-pbc-button">
+          <small id="wifi-wps-desc">Automatic wireless network configuration</small>
+          <a data-l10n-id="wpsPbcMessage">WPS button connection</a>
         </li>
       </ul>
 
@@ -223,14 +219,14 @@
       <!-- identity/password input -->
       <label for="identity">
         <span data-l10n-id="identity">identity</span>
-        <input data-identity data-ignore name="identity" type="text" />
+        <input data-identity data-ignore id="identity" type="text" />
       </label>
       <label for="password">
         <span data-l10n-id="password">password</span>
-        <input data-password data-ignore name="password" type="password" />
+        <input data-password data-ignore id="password" type="password" />
       </label>
       <label for="show-pwd">
-        <input data-ignore name="show-pwd" type="checkbox" />
+        <input data-ignore id="show-pwd" type="checkbox" />
         <span data-l10n-id="showPassword">show password</span>
       </label>
 
@@ -258,7 +254,6 @@
             <input type="checkbox" name="ril.data.enabled"/>
             <span></span>
           </label>
-          <small data-l10n-id="dataConnection-expl"></small>
           <a data-l10n-id="dataConnection">Data Connection</a>
         </li>
         <li>
@@ -266,7 +261,6 @@
             <input type="checkbox" name="ril.data.roaming_enabled"/>
             <span></span>
           </label>
-          <small data-l10n-id="dataRoaming-expl"></small>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
         </li>
       </ul>

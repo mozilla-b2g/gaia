@@ -89,7 +89,6 @@ ul li > label + * + * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: -moz-calc(100% - 66px);
   max-width: calc(100% - 66px);
 }
 
@@ -98,13 +97,13 @@ ul li > small {
   position: absolute;
   left: 30px;
   top: 50%;
-  padding-top: 8px;
+  padding-top: 4px;
   font-size: 0.65em;
-  color: #4f5859;
+  color: #505859;
 }
 
 ul li > small + a {
-  line-height: 58px;
+  line-height: 44px;
 }
 
 /* action buttons */
