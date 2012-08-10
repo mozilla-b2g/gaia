@@ -11,27 +11,13 @@ suite('store/event', function() {
   var id = 0;
 
   function event(date) {
+    if (typeof(date) === 'undefined') {
+      date = new Date();
+    }
+
     return Factory('event', {
       remote: { startDate: date, _id: ++id }
     });
-  }
-
-  function eventRecuring(date) {
-    return Factory('event.recurring', {
-      remote: {
-        startDate: date,
-        _id: ++id,
-        _recurres: 1
-      }
-    });
-  }
-
-  function time(event, idx) {
-    if (typeof(idx) === 'undefined') {
-      idx = 0;
-    }
-
-    return event.remote.occurs[idx].valueOf();
   }
 
   setup(function(done) {
@@ -119,6 +105,88 @@ suite('store/event', function() {
             result,
             [inCal]
           );
+        });
+      });
+    });
+
+  });
+
+  suite('#findByIds', function() {
+    var events = {};
+    var expectedDbIds;
+    var expectedCachedIds;
+
+    function persist() {
+      setup(function(done) {
+        var item = event();
+        events[item._id] = item;
+        subject.persist(item, done);
+      });
+
+    }
+
+    persist();
+    persist();
+
+    setup(function() {
+      expectedDbIds = Object.keys(subject._cached);
+      // clear cache so we can
+      // see that events can come from
+      // both the db and the cache.
+      subject._cached = Object.create(null);
+    });
+
+    persist();
+    persist();
+
+    test('find from both db and cache', function(done) {
+      assert.equal(
+        Object.keys(subject.cached).length,
+        2,
+        'should only have cached items'
+      );
+
+      var ids = Object.keys(events);
+      var expectedCachedIds = Object.keys(
+        subject.cached
+      );
+
+      assert.equal(expectedDbIds.length, 2);
+      assert.equal(expectedCachedIds.length, 2);
+
+      ids.push('random-not-here');
+
+      subject.findByIds(ids, function(err, items) {
+        done(function() {
+          assert.equal(
+            Object.keys(items).length,
+            4,
+            'should find all items'
+          );
+
+          // check db backed items
+          expectedDbIds.forEach(function(id) {
+            assert.notEqual(
+              items[id],
+              events[id],
+              'should *not* be cached: ' + id
+            );
+
+            assert.deepEqual(
+              items[id],
+              events[id],
+              'should be the same data as cached: ' + id
+            );
+          });
+
+          // check cache backed items
+          expectedCachedIds.forEach(function(id) {
+            assert.equal(
+              items[id],
+              events[id],
+              'should be cached! ' + id
+            );
+          });
         });
       });
     });

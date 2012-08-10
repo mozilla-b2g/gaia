@@ -598,7 +598,7 @@ suite('views/month_child', function() {
         1, 2, 3
       ];
 
-      busytimes.cachedStartsIn = function() {
+      busytimes.busytimesInCachedSpan = function() {
         calledCachedWith = arguments;
         return slice;
       };

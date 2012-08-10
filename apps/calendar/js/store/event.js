@@ -39,6 +39,57 @@
     },
 
     /**
+     * Finds a list of events by id.
+     *
+     * @param {Array} ids list of ids.
+     * @param {Function} callback node style second argument
+     *                            is an object of _id/event.
+     */
+    findByIds: function(ids, callback) {
+      var results = {};
+      var pending = ids.length;
+
+      function next() {
+        if (!(--pending)) {
+          // fatal errors should break
+          // and so we are not handling them
+          // here...
+          callback(null, results);
+        }
+      }
+
+      function success(e) {
+        var item = e.target.result;
+
+        if (item) {
+          results[item._id] = item;
+        }
+
+        next();
+      }
+
+      function error() {
+        // can't find it or something
+        // skip!
+        next();
+      }
+
+      ids.forEach(function(id) {
+        if (id in this.cached) {
+          results[id] = this.cached[id];
+          next();
+        } else {
+          var trans = this.db.transaction('events');
+          var store = trans.objectStore('events');
+          var req = store.get(id);
+
+          req.onsuccess = success;
+          req.onerror = error;
+        }
+      }, this);
+    },
+
+    /**
      * Loads all events for given calendarId
      * and returns results. Does not cache.
      *

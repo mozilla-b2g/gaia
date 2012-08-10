@@ -498,7 +498,84 @@ suite('store/busytime', function() {
     });
   });
 
-  suite('#cachedSpan', function() {
+  suite('#eventsInCachedSpan', function() {
+
+    var eventStore;
+    var events = {};
+
+    setup(function() {
+      // two events in three instances
+      // we only want two back
+      eventStore = subject.db.getStore('Event');
+
+      events.oneIn = Factory('event', {
+        remote: {
+          endDate: new Date(2012, 1, 10),
+          occurs: [
+            new Date(2012, 1, 1),
+            new Date(2012, 1, 5)
+          ]
+        }
+      });
+
+      events.twoIn = Factory('event', {
+        remote: {
+          endDate: new Date(2012, 1, 9),
+          occurs: [
+            new Date(2012, 1, 7),
+            new Date(2012, 1, 8)
+          ]
+        }
+      });
+    });
+
+    setup(function(done) {
+      eventStore.persist(events.oneIn, done);
+    });
+
+    setup(function(done) {
+      eventStore.persist(events.twoIn, done);
+    });
+
+    test('result', function(done) {
+      // sanity check
+      assert.equal(subject._times.length, 4);
+
+      var span = new Calendar.Timespan(
+        new Date(2012, 1, 5),
+        new Date(2012, 1, 11)
+      );
+
+
+      subject.eventsInCachedSpan(span, function(err, list) {
+
+        function hasEvent(idx, event, occuranceIdx, msg) {
+          assert.deepEqual(
+            list[idx][0].startDate,
+            events[event].remote.occurs[occuranceIdx],
+            idx + ' - ' + event + ': ' + msg
+          );
+
+          assert.deepEqual(
+            list[idx][1],
+            events[event],
+            idx + ' - ' + event + ': ' + msg
+          );
+        }
+
+        done(function() {
+          assert.equal(list.length, 3);
+
+          hasEvent(0, 'oneIn', 1, 'first date in range');
+          hasEvent(1, 'twoIn', 0, 'second date in range');
+          hasEvent(2, 'twoIn', 1, 'third date in range');
+        });
+      });
+    });
+
+  });
+
+  suite('#busytimesInCachedSpan', function() {
     var list;
 
     setup(function() {
@@ -534,7 +611,7 @@ suite('store/busytime', function() {
         new Date(2011, 12, 10)
       );
 
-      var result = subject.cachedStartsIn(range);
+      var result = subject.busytimesInCachedSpan(range);
       assert.equal(result.length, 0);
     });
 
@@ -545,7 +622,7 @@ suite('store/busytime', function() {
         new Date(2015, 1, 10)
       );
 
-      var result = subject.cachedStartsIn(range);
+      var result = subject.busytimesInCachedSpan(range);
       assert.equal(result.length, 0);
     });
 
@@ -555,7 +632,7 @@ suite('store/busytime', function() {
         new Date(2012, 1, 1)
       );
 
-      var result = subject.cachedStartsIn(range);
+      var result = subject.busytimesInCachedSpan(range);
       assert.equal(result.length, 1);
 
       assert.equal(
@@ -572,7 +649,7 @@ suite('store/busytime', function() {
         new Date(2013, 1, 10)
       );
 
-      var result = subject.cachedStartsIn(range);
+      var result = subject.busytimesInCachedSpan(range);
       assert.equal(result.length, 1);
 
       assert.equal(
@@ -588,7 +665,7 @@ suite('store/busytime', function() {
         new Date(2012, 1, 4)
       );
 
-      var result = subject.cachedStartsIn(range);
+      var result = subject.busytimesInCachedSpan(range);
       assert.equal(result.length, 3);
 
       assert.equal(

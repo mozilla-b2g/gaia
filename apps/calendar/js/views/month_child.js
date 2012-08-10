@@ -416,7 +416,7 @@
       element.insertAdjacentHTML('beforeend', html);
       this.element = element.children[element.children.length - 1];
 
-      busytimes.cachedStartsIn(this._timespan).forEach(
+      busytimes.busytimesInCachedSpan(this._timespan).forEach(
         this._renderBusytime,
         this
       );

@@ -362,9 +362,63 @@ Calendar.ns('Store').Busytime = (function() {
     },
 
     /**
+     * Span returns an array of busytime / event pairs.
+     *
+     *    busytime.eventsInSpan(function(err, list) {
+     *      list.forEach(function(item) {
+     *        // item => [busytime, event]
+     *      });
+     *    });
+     *
+     * @param {Calendar.Timespan} timespan desired range.
+     * @param {Function} callback node style.
+     */
+    eventsInCachedSpan: function(timespan, callback) {
+      // XXX: speed this up we can probably
+      // avoid the double array scan.
+
+      var results = [];
+      var eventStore = this.db.getStore('Event');
+      var idTable = Object.create(null);
+
+      // 1. build list of event ids & load them
+      var times = this.busytimesInCachedSpan(timespan);
+
+      times.forEach(function(item) {
+        idTable[item.eventId] = true;
+      });
+
+      // create unique list of event ids...
+      var ids = Object.keys(idTable);
+      idTable = undefined;
+
+      eventStore.findByIds(ids, function(err, list) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        var i = 0;
+        var len = times.length;
+        var record;
+        var event;
+
+        for (; i < len; i++) {
+          record = times[i];
+          event = list[record.eventId];
+          if (event) {
+            results.push([record, event]);
+          }
+        }
+
+        callback(null, results);
+      });
+    },
+
+    /**
      * Gets all records in span.
      */
-    cachedStartsIn: function(span) {
+    busytimesInCachedSpan: function(span) {
 
       // XXX we can do a significant
       // amount of optimization here I think
