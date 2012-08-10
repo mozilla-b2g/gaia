@@ -242,12 +242,12 @@ Page.prototype = {
       e.stopPropagation();
       container.removeEventListener('transitionend', transitionEnd);
       style.MozTransform = 'translateX(' + scrollX + 'px)';
-      style.MozTransition = '-moz-transform .05s ease';
+      style.MozTransition = '-moz-transform .3s ease';
     });
 
     if (scrollX === 0) {
       style.MozTransform = 'translateX(' + (scrollX +
-                           (this.posLeft <= scrollX ? 5 : -5)) + 'px)';
+                           (this.posLeft <= scrollX ? 10 : -10)) + 'px)';
     } else {
       style.MozTransform = 'translateX(' + (scrollX + 0.001) + 'px)';
     }
@@ -537,11 +537,11 @@ dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
   container.addEventListener('transitionend', function transitionEnd(e) {
     container.removeEventListener('transitionend', transitionEnd);
     style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '-moz-transform .05s ease';
+    style.MozTransition = '-moz-transform .3s ease';
   });
 
   style.MozTransform = 'translateX(' + (scrollX +
-                         (this.posLeft <= scrollX ? 7 : -7)) + 'px)';
+                         (this.posLeft <= scrollX ? 10 : -10)) + 'px)';
   style.MozTransition = '-moz-transform ' + duration + 's ease';
 };
 
