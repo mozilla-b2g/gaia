@@ -337,18 +337,7 @@ var WindowManager = (function() {
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.dataset.frameType = 'window';
     frame.dataset.frameOrigin = origin;
-
-    if (manifest.hackNetworkBound) {
-      var style = 'font-family: OpenSans,sans-serif;' +
-                  'text-align: center;' +
-                  'color: white;' +
-                  'margin-top: 100px;';
-
-      frame.src = 'data:text/html,' +
-        '<body style="background-color: black">' +
-        '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
-        '</body>';
-    }
+    frame.src = url;
 
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
@@ -500,15 +489,11 @@ var WindowManager = (function() {
     numRunningApps++;
 
     // Launching this application without bring it to the foreground
-    if (background) {
-      frame.src = url;
+    if (background)
       return;
-    }
 
     // Now animate the window opening.
-    frame.src = url;
-    setDisplayedApp(origin, function() {
-    });
+    setDisplayedApp(origin);
   }
 
 
