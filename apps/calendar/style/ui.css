@@ -376,7 +376,7 @@ Indicators are in units of 12
 }
 
 #months-day-view .day-events {
-  height: -moz-calc(100% - 6.5rem);
+  height: -moz-calc(100% - 7.7rem);
   overflow-y: auto;
 }
 
