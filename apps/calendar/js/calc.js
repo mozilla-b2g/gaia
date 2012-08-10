@@ -23,9 +23,22 @@
      * @return {Boolean} true when today.
      */
     isToday: function(date) {
-      return date.getMonth() == this.today.getMonth() &&
-             date.getDate() == this.today.getDate() &&
-             date.getFullYear() == this.today.getFullYear();
+      return this.isSameDate(date, this.today);
+    },
+
+    /**
+     * Checks if two date objects occur
+     * on the same date (in the same month, year, day).
+     * Disregards time.
+     *
+     * @param {Date} first date.
+     * @param {Date} second date.
+     * @return {Boolean} true when they are the same date.
+     */
+    isSameDate: function(first, second) {
+      return first.getMonth() == second.getMonth() &&
+             first.getDate() == second.getDate() &&
+             first.getFullYear() == second.getFullYear();
     },
 
     /**
@@ -94,6 +107,74 @@
     },
 
     /**
+     * Finds localized week start date of given date.
+     *
+     * @param {Date} date any day the week.
+     * @return {Date} first date in the week of given date.
+     */
+    getWeekStartDate: function(date) {
+      var currentDay = date.getDay();
+      var startDay = date.getDate() - currentDay;
+
+      return this.createDay(date, startDay);
+    },
+
+    getWeekEndDate: function(date) {
+      // TODO: There are localization problems
+      // with this approach as we assume a 7 day week.
+      var start = this.getWeekStartDate(date);
+      start.setDate(start.getDate() + 7);
+      start.setMilliseconds(-1);
+
+      return start;
+    },
+
+    /**
+     * Returns an array of dates objects.
+     * Inclusive. First and last are
+     * the given instances.
+     *
+     * @param {Date} start starting day.
+     * @param {Date} end ending day.
+     */
+    daysBetween: function(start, end) {
+      if (start > end) {
+        var tmp = end;
+        end = start;
+        start = tmp;
+        tmp = null;
+      }
+
+      var list = [start];
+      var last = start.getDate();
+      var cur;
+
+      while (true) {
+        var next = new Date(
+          start.getFullYear(),
+          start.getMonth(),
+          ++last
+        );
+
+        if (next > end) {
+          throw new Error(
+            'sanity fails next is greater then end'
+          );
+        }
+
+        if (!this.isSameDate(next, end)) {
+          list.push(next);
+          continue;
+        }
+
+        break;
+      }
+
+      list.push(end);
+      return list;
+    },
+
+    /**
      * Returns an array of weekdays
      * based on the start date.
      * Will always return the 7 days
@@ -106,10 +187,8 @@
      */
     getWeeksDays: function(startDate) {
       //local day position
-      var currentDay = startDate.getDay(),
-          startDay = startDate.getDate() - currentDay,
-          weeksDayStart = this.createDay(startDate, startDay),
-          result = [weeksDayStart];
+      var weeksDayStart = this.getWeekStartDate(startDate);
+      var result = [weeksDayStart];
 
       for (var i = 1; i < 7; i++) {
         result.push(new Date(
@@ -142,7 +221,7 @@
       return !this.isPast(date);
     },
 
-    /**
+    /*
      * Based on the input date
      * will return one of the following states
      *

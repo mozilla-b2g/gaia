@@ -27,12 +27,10 @@ Calendar.Thread.prototype = {
   _remoteEmitter: function(id) {
     var self = this;
     return {
-
       emit: function emitRemote() {
         var args = Array.prototype.slice.call(arguments);
         self.worker.postMessage([id + ' stream', args]);
       }
-
     };
   },
 
