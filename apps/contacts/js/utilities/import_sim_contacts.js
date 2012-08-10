@@ -21,12 +21,10 @@ function importSIMContacts(onread, onimport, onerror) {
   var request = navigator.mozContacts.getSimContacts('ADN');
 
   request.onsuccess = function onsuccess() {
-    if (onread) {
-      onread();
-    }
-
-    var simContacts = request.result;
+    var simContacts = request.result; // array of mozContact elements
     var nContacts = simContacts.length;
+
+    // 'onerror' is triggered if no SIM contacts have been read
     if (nContacts === 0) {
       if (onerror) {
         onerror();
@@ -34,6 +32,12 @@ function importSIMContacts(onread, onimport, onerror) {
       return;
     }
 
+    // 'onread' is triggered when all SIM contacts have been read
+    if (onread) {
+      onread();
+    }
+
+    // 'onimport' is triggered when all SIM contacts have been saved
     var nStored = 0;
     var count = function count() {
       nStored++;
@@ -42,35 +46,27 @@ function importSIMContacts(onread, onimport, onerror) {
       }
     };
 
+    /* store each mozContact
     for (var i = 0; i < nContacts; i++) {
-      try { // trying to debug https://github.com/mozilla-b2g/gaia/issues/3196
-        var name = simContacts[i].name;
-        var tel = simContacts[i].tel;
-        console.log('SIM card contact #' + i + '/' + nContacts + ': ' +
-            tel + ' - ' + name);
+      var req = window.navigator.mozContacts.save(simContacts[i]);
+      req.onsuccess = count;
+      req.onerror = count;
+    } */
 
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=779794
-        // in a perfect world, request.result should be a mozContact array;
-        // until then, let's build mozContact elements manually...
-        var contact = new mozContact();
-        contact.init({
-          'name': name ? [unescapeGSMText(name.toString())] : [],
-          'tel': tel ? [{
-            'number': tel.toString(),
-            'type': 'personal'
-          }] : []
-        });
-
-        // store each mozContact
-        var req = window.navigator.mozContacts.save(contact);
+    // trying to debug https://github.com/mozilla-b2g/gaia/issues/3196
+    for (var i = 0; i < nContacts; i++) {
+      console.log('importing SIM card contact #' + i + '/' + nContacts);
+      try {
+        console.log('SIM card contact info: ' +
+            simContacts[i].tel[0].number + ' - ' + simContacts[i].name[0]);
+        var req = window.navigator.mozContacts.save(simContacts[i]);
         req.onsuccess = count;
-        //req.onerror = count;
         req.onerror = function() {
-          console.warn('this SIM card contact could not be saved: ' + name);
+          console.warn('SIM card contact could not be saved.');
           count();
         }
       } catch (e) {
-        console.warn('this SIM card contact could not be imported: ' + name);
+        console.warn('SIM card contact could not be imported.');
         count();
       }
     }
@@ -118,8 +114,7 @@ function unescapeGSMText(str) {
       if (code <= 0x7F) {
         out += gsm7bitCharMap.charAt(code);
       } else {
-        //out += charAt(code);
-        out += String.fromCharCode(code);
+        out += String.fromCharCode(code); // str.charAt(i)
       }
       nUCS2--;
       continue;
@@ -143,6 +138,7 @@ function unescapeGSMText(str) {
      * There are national variants of this 'standard' table,
      * but they aren't supported by this library yet.
      */
+
     if (code <= 0x7F) {
       if (code === 0x1B && str.charCodeAt(i + 1) <= 0x7F) {
         // extended character table: read next byte
@@ -199,6 +195,7 @@ function unescapeGSMText(str) {
      * A script like this one might help:
      * http://www.onicos.com/staff/iz/amuse/javascript/expert/utf.txt
      */
+
     else {
       if (code == 0x80) {
         nUCS2 = Infinity; // the rest of the string should be in UTF16-LE
@@ -215,8 +212,7 @@ function unescapeGSMText(str) {
         console.log('untested UCS2/0x82 mode - pUCS2 = ' + pUCS2);
       } else {
         console.log('unexpected UCS2 char code found on SIM card: ' + code);
-        //out += charAt(code);
-        out += String.fromCharCode(code);
+        out += String.fromCharCode(code); // str.charAt(i)
       }
     }
   }
