@@ -1,80 +1,7 @@
 Calendar.ns('Store').Busytime = (function() {
 
-  function binsearch(list, seekVal, cmpfunc, aLow, aHigh) {
-    var low = ((aLow === undefined) ? 0 : aLow),
-        high = ((aHigh === undefined) ? (list.length - 1) : aHigh),
-        mid, cmpval;
-
-    while (low <= high) {
-      mid = low + Math.floor((high - low) / 2);
-      cmpval = cmpfunc(seekVal, list[mid]);
-      if (cmpval < 0)
-        high = mid - 1;
-      else if (cmpval > 0)
-        low = mid + 1;
-      else
-        return mid;
-    }
-
-    return null;
-  }
-
-  function bsearchForRange(list, seekVal, cmpfunc) {
-    if (!list.length)
-      return 0;
-
-    var low = 0, high = list.length - 1,
-        mid, cmpval;
-
-    while (low <= high) {
-      mid = low + Math.floor((high - low) / 2);
-      cmpval = cmpfunc(seekVal, list[mid]);
-
-      if (cmpval < 0)
-        high = mid - 1;
-      else if (cmpval > 0)
-        low = mid + 1;
-      else
-        break;
-    }
-
-    if (cmpval < 0)
-      return mid; // insertion is displacing, so use mid outright.
-    else if (cmpval > 0)
-      return mid + 1;
-    else
-      return mid;
-  };
-
-
-  function bsearchForInsert(list, seekVal, cmpfunc) {
-    if (!list.length)
-      return 0;
-
-    var low = 0, high = list.length - 1,
-        mid, cmpval;
-
-    while (low <= high) {
-      mid = low + Math.floor((high - low) / 2);
-      cmpval = cmpfunc(seekVal, list[mid]);
-
-      if (cmpval < 0)
-        high = mid - 1;
-      else if (cmpval > 0)
-        low = mid + 1;
-      else
-        break;
-    }
-
-    if (cmpval < 0)
-      return mid; // insertion is displacing, so use mid outright.
-    else if (cmpval > 0)
-      return mid + 1;
-    else
-      return mid;
-  };
-
-  Busytime.bsearchForInsert = bsearchForInsert;
+  var binsearch = Calendar.binsearch.find;
+  var bsearchForInsert = Calendar.binsearch.insert;
 
   function Busytime() {
     Calendar.Store.Abstract.apply(this, arguments);
@@ -126,7 +53,7 @@ Calendar.ns('Store').Busytime = (function() {
     },
 
     _findClosest: function(time) {
-      return bsearchForRange(
+      return bsearchForInsert(
         this._times,
         time,
         this._compareTimeIndex
@@ -245,6 +172,35 @@ Calendar.ns('Store').Busytime = (function() {
     },
 
     /**
+     * Finds index of timespan/object|callback pair.
+     *
+     * Used internally and in tests has little practical use
+     * unless you have the original timespan object.
+     *
+     * @param {Calendar.Timespan} timespan original (===) timespan used.
+     * @param {Function|Object} callback original callback/object.
+     * @return {Numeric} -1 when not found otherwise index.
+     */
+    findTimeObserver: function(timespan, callback) {
+      var len = this._timeObservers.length;
+      var idx = null;
+      var field;
+      var i = 0;
+
+      for (; i < len; i++) {
+        field = this._timeObservers[i];
+
+        if (field[0] === timespan &&
+            field[1] === callback) {
+
+          return i;
+        }
+      }
+
+      return -1;
+    },
+
+    /**
      * Removes a time observer you
      * must pass the same instance of both
      * the timespan and the callback/object
@@ -255,22 +211,9 @@ Calendar.ns('Store').Busytime = (function() {
      * @return {Boolean} true when found & removed callback.
      */
     removeTimeObserver: function(timespan, callback) {
-      var i = 0;
-      var len = this._timeObservers.length;
-      var idx = null;
-      var field;
+      var idx = this.findTimeObserver(timespan, callback);
 
-      for (; i < len; i++) {
-        field = this._timeObservers[i];
-        if (field[0] === timespan &&
-            field[1] === callback) {
-
-          idx = i;
-          break;
-        }
-      }
-
-      if (idx !== null) {
+      if (idx !== -1) {
         this._timeObservers.splice(idx, 1);
         return true;
       } else {
@@ -282,22 +225,23 @@ Calendar.ns('Store').Busytime = (function() {
      * Fires a time based event.
      *
      * @param {String} type name of event.
-     * @param {Date} time time the event is related to.
+     * @param {Date|Numeric} start start position of time event
+     * @param {Date|Numeric} end end position of time event
      * @param {Object} data data related to event.
      */
-    fireTimeEvent: function(type, time, data) {
+    fireTimeEvent: function(type, start, end, data) {
       var i = 0;
       var len = this._timeObservers.length;
       var observer;
       var event = {
-        time: time,
+        time: true,
         data: data,
         type: type
       };
 
       for (; i < len; i++) {
         observer = this._timeObservers[i];
-        if (observer[0].contains(time)) {
+        if (observer[0].overlaps(start, end)) {
           if (typeof(observer[1]) === 'object') {
             observer[1].handleEvent(event);
           } else {
@@ -358,7 +302,12 @@ Calendar.ns('Store').Busytime = (function() {
         this._timeRecords[time].push(record);
       }
 
-      this.fireTimeEvent('add', time, record);
+      this.fireTimeEvent(
+        'add',
+        record.startDate,
+        record.endDate,
+        record
+      );
     },
 
     /**
@@ -487,7 +436,12 @@ Calendar.ns('Store').Busytime = (function() {
         timeset.forEach(function(record, idx) {
           if (record.eventId === id) {
             timeset.splice(idx, 1);
-            this.fireTimeEvent('remove', time, record);
+            this.fireTimeEvent(
+              'remove',
+              record.startDate,
+              record.endDate,
+              record
+            );
           }
         }, this);
 

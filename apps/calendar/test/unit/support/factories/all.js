@@ -35,8 +35,11 @@
         id = obj.id = 'euuid/' + eventId++;
       }
 
-      obj.title = 'title ' + id;
-      obj.description = 'description ' + id;
+      if (!obj.title)
+        obj.title = 'title ' + id;
+
+      if (!obj.description)
+        obj.description = 'description ' + id;
 
       if (!obj.startDate)
         obj.startDate = new Date();

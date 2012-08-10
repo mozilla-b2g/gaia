@@ -66,7 +66,7 @@ Calendar.App = (function(window) {
 
       /* routes */
 
-      this.state('/month/', setPath, 'Month');
+      this.state('/month/', setPath, 'Month', 'MonthsDay');
       this.modifier('/settings/', setPath, 'Settings', { clear: false });
       this.modifier(
         '/advanced-settings/', setPath, 'AdvancedSettings'

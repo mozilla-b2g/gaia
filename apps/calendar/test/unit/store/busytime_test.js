@@ -9,64 +9,6 @@ requireApp('calendar/test/unit/helper.js', function() {
 
 suite('store/busytime', function() {
 
-  suite('#binsearchForInsert', function() {
-    var fn;
-
-    suiteSetup(function() {
-      fn = Calendar.Store.Busytime.bsearchForInsert;
-    });
-
-    function compare(a, b) {
-      if (a === b)
-        return 0;
-
-      if (a < b) {
-        return -1;
-      } else {
-        return 1;
-      }
-    }
-
-    test('0', function() {
-      assert.equal(
-        fn([], 1, compare),
-        0
-      );
-    });
-
-    test('8', function() {
-      var list = [1, 3, 7, 9, 10];
-      var result = fn(list, 4, compare);
-
-      assert.equal(result, 2);
-
-      list.splice(result, 0, 4);
-    });
-
-    test('array inner search', function() {
-      var list = [
-        [1, null],
-        [2, null],
-        [4, null]
-      ];
-
-      var result = fn(list, 3, function(seek, inList) {
-        var target = inList[0];
-
-        if (seek === target)
-          return 0;
-
-        if (seek < target) {
-          return -1;
-        }
-
-        return 1;
-      });
-      assert.equal(result, 2);
-    });
-
-  });
-
   var subject;
   var db;
   var id = 0;
@@ -133,6 +75,26 @@ suite('store/busytime', function() {
     subject.db.close();
   });
 
+  test('#findTimeObserver', function() {
+    var cb = {};
+    var range = new Calendar.Timespan(
+      new Date(),
+      new Date()
+    );
+
+    assert.equal(
+      subject.findTimeObserver(range, cb),
+      -1
+    );
+
+    subject.observeTime(range, cb);
+
+    assert.equal(
+      subject.findTimeObserver(range, cb),
+      0
+    );
+  });
+
   suite('#observeTime', function() {
     test('when given non-timespan', function() {
       assert.throws(function() {
@@ -158,6 +120,7 @@ suite('store/busytime', function() {
 
       assert.equal(observe[0], span);
       assert.equal(observe[1], cb);
+
     });
 
   });
@@ -197,12 +160,17 @@ suite('store/busytime', function() {
 
   suite('#fireTimeEvent', function() {
     var span;
-    var date;
+
+    var startDate;
+    var endDate;
+
     var obj;
 
     setup(function() {
       obj = {};
-      date = new Date(2012, 1, 1);
+      startDate = new Date(2011, 12, 31);
+      endDate = new Date(2012, 1, 15);
+
       span = new Calendar.Timespan(
         new Date(2012, 1, 1),
         new Date(2012, 12, 1)
@@ -212,16 +180,19 @@ suite('store/busytime', function() {
     function fireSuccess() {
       subject.fireTimeEvent(
         'add',
-        date,
+        startDate,
+        endDate,
         obj
       );
     }
 
     test('object', function(done) {
+      this.timeout(250);
+
       var observer = {
         handleEvent: function(e) {
           done(function() {
-            assert.equal(e.time, date);
+            assert.equal(e.time, true);
             assert.equal(e.type, 'add');
             assert.equal(e.data, obj);
           });
@@ -232,10 +203,11 @@ suite('store/busytime', function() {
     });
 
     test('function', function(done) {
+      this.timeout(250);
 
       subject.observeTime(span, function(e) {
         done(function() {
-          assert.equal(e.time, date);
+          assert.equal(e.time, true);
           assert.equal(e.type, 'add');
           assert.equal(e.data, obj);
         });
@@ -254,6 +226,7 @@ suite('store/busytime', function() {
 
       subject.fireTimeEvent(
         'remove',
+        new Date(2010, 1, 1),
         new Date(2011, 1, 1),
         obj
       );

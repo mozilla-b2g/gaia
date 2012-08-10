@@ -235,6 +235,7 @@ suite('views/month_child', function() {
       busytimes.fireTimeEvent(
         'add',
         createHour(23).valueOf(),
+        createHour(23).valueOf(),
         record
       );
 
@@ -253,6 +254,7 @@ suite('views/month_child', function() {
 
       busytimes.fireTimeEvent(
         'remove',
+        createHour(23).valueOf(),
         createHour(23).valueOf(),
         record
       );
