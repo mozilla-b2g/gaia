@@ -116,7 +116,7 @@
     <!-- homescreen from being displayed must come before this script. -->
     <script defer src="js/window_manager.js"></script>
 
-    <!-- Module Hierarchy collection -->
+    <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
     <!-- Value selector -->
@@ -126,18 +126,72 @@
 
   <body onload="startup()">
     <div id="screen" class="screenoff locked">
+      <div id="statusbar" data-z-index-level="statusbar">
+        <!-- Loading -->
+        <div id="statusbar-loading" hidden></div>
+        <!-- Carrier & date label -->
+        <div id="statusbar-label" class="sb-start-upper"></div>
+        <!-- Notification -->
+        <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
+          data-num="" hidden></div>
+
+        <!-- Time -->
+        <div id="statusbar-time"></div>
+
+        <!-- Status -->
+        <div id="statusbar-battery" class="sb-icon sb-icon-battery"
+          data-level="100" charging hidden></div>
+        <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
+          data-level="4" hidden></div>
+        <div id="statusbar-data" class="sb-icon sb-icon-data"
+          data-type="" hidden></div>
+        <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
+        <div id="statusbar-signal" class="sb-icon sb-icon-signal"
+          data-level="5" hidden></div>
+
+        <!-- Permissions -->
+        <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
+        <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden></div>
+        <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden></div>
+        <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
+        <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
+        <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
+        <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
+        <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
+      </div>
+
+      <div id="utility-tray" data-z-index-level="utility-tray">
+        <!-- quick settings -->
+        <div id="quick-settings">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
+          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluetooth">Bluetooth</a>
+          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
+          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
+        </div>
+
+        <!-- TBD: credit module -->
+
+        <!-- notifications -->
+        <div id="notifications-container">
+        </div>
+
+        <div id="utility-tray-grippy">
+        </div>
+      </div>
+
       <!-- homescreen -->
-      <iframe id="homescreen" mozbrowser mozapp data-type="HOMESCREEN"></iframe>
+      <iframe id="homescreen" mozbrowser mozapp data-z-index-level="homescreen"></iframe>
       <!-- <iframe id="homescreen" mozbrowser mozapp remote="true"></iframe>
       Crashing on load
         https://bugzilla.mozilla.org/show_bug.cgi?id=761933
       -->
 
-      <div id="windows" data-type="APP">
+      <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
       </div>
 
-      <div id="dialog-overlay" data-type="DIALOG_OVERLAY">
+      <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <div id="trustedDialog">
         </div>
         <div id="popup-container">
@@ -186,7 +240,7 @@
       </div>
 
       <!-- value selector -->
-      <div id="value-selector" hidden data-type="VALUE_SELECTOR">
+      <div id="value-selector" hidden data-z-index-level="value-selector">
          <div id="value-selector-container" onmousedown="return false;"> </div>
          <div id="value-selector-buttons">
            <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
@@ -194,28 +248,16 @@
          </div>
       </div>
 
-      <div id="utility-tray" data-type="UTILITY_TRAY">
-        <!-- quick settings -->
-        <div id="quick-settings">
-          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
-          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluetooth">Bluetooth</a>
-          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
-          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
-        </div>
+      <div id="lockscreen-camera" hidden data-z-index-level="lockscreen-camera"></div>
 
-        <!-- TBD: credit module -->
-
-        <!-- notifications -->
-        <div id="notifications-container">
-        </div>
-
-        <div id="utility-tray-grippy">
-        </div>
-      </div>
-
-      <div id="lockscreen" class="uninit" data-panel="" data-type="LOCKSCREEN">
+      <div id="lockscreen" class="uninit" data-panel="" data-z-index-level="lockscreen">
         <div id="lockscreen-container">
+          <div id="lockscreen-header">
+            <div id="lockscreen-connstate" hidden></div>
+            <div id="lockscreen-mute" hidden></div>
+            <div id="lockscreen-clock"></div>
+            <div id="lockscreen-date"></div>
+          </div>
           <div id="lockscreen-main-panel" class="lockscreen-panel">
             <div id="lockscreen-notification" hidden>
               <div id="lockscreen-notification-time"></div>
@@ -224,17 +266,15 @@
               <div id="lockscreen-notification-detail"></div>
             </div>
             <div id="lockscreen-area"></div>
-            <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right"></div>
-            <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left"></div>
+            <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
+              <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+            </div>
+            <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
+              <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
+            </div>
             <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
             <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
             <div id="lockscreen-area-handle"></div>
-          </div>
-          <div id="lockscreen-header">
-            <div id="lockscreen-connstate" hidden></div>
-            <div id="lockscreen-mute" hidden></div>
-            <div id="lockscreen-clock"></div>
-            <div id="lockscreen-date"></div>
           </div>
 
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
@@ -242,19 +282,19 @@
           <h2 id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</h2>
           <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
           <div id="lockscreen-passcode-pad">
-            <a href="#" data-key="1">1<span>.<span></a>
-            <a href="#" data-key="2">2<span>ABC<span></a>
-            <a href="#" data-key="3">3<span>DEF<span></a>
-            <a href="#" data-key="4">4<span>GHI<span></a>
-            <a href="#" data-key="5">5<span>JKL<span></a>
-            <a href="#" data-key="6">6<span>MNO<span></a>
-            <a href="#" data-key="7">7<span>PQRS<span></a>
-            <a href="#" data-key="8">8<span>TUV<span></a>
-            <a href="#" data-key="9">9<span>WXYZ<span></a>
-            <a href="#" data-key="e" data-l10n-id="emergency-call-button" class="lockscreen-passcode-pad-func last-row">Emergency Call</a>
-            <a href="#" data-key="0" class="last-row">0</a>
-            <a href="#" data-key="c" data-l10n-id="cancel-button" class="lockscreen-passcode-pad-func last-row">Cancel</a>
-            <a href="#" data-key="b" class="last-row">⌫</a>
+            <a role="button" href="#" data-key="1">1<span>.<span></a>
+            <a role="button" href="#" data-key="2">2<span>ABC<span></a>
+            <a role="button" href="#" data-key="3">3<span>DEF<span></a>
+            <a role="button" href="#" data-key="4">4<span>GHI<span></a>
+            <a role="button" href="#" data-key="5">5<span>JKL<span></a>
+            <a role="button" href="#" data-key="6">6<span>MNO<span></a>
+            <a role="button" href="#" data-key="7">7<span>PQRS<span></a>
+            <a role="button" href="#" data-key="8">8<span>TUV<span></a>
+            <a role="button" href="#" data-key="9">9<span>WXYZ<span></a>
+            <a role="button" href="#" data-key="e" data-l10n-id="emergency-call-button" class="lockscreen-passcode-pad-func last-row">Emergency Call</a>
+            <a role="button" href="#" data-key="0" class="last-row">0</a>
+            <a role="button" href="#" data-key="c" data-l10n-id="cancel-button" class="lockscreen-passcode-pad-func last-row">Cancel</a>
+            <a role="button" href="#" data-key="b" class="last-row">⌫</a>
           </div>
 
           <div id="lockscreen-panel-emergency-call" class="lockscreen-panel">
@@ -264,9 +304,7 @@
         </div>
       </div>
 
-      <div id="lockscreen-camera" hidden data-type="LOCKSCREEN_CAMERA"></div>
-
-      <div id="pinkeypadscreen" data-type="PINKEYPADSCREEN">
+      <div id="pinkeypadscreen" data-z-index-level="pinkeypadscreen">
         <div id="pinkeypadscreen-container">
           <p id="pinkeypadscreen-desc"><span>Enter PIN</span></p>
           <p id="pinkeypadscreen-code">
@@ -290,71 +328,37 @@
         </div>
       </div>
 
-      <div id="statusbar" data-type="STATUSBAR">
-        <!-- Loading -->
-        <div id="statusbar-loading"></div>
-        <!-- Carrier & date label -->
-        <div id="statusbar-label" class="sb-start-upper"></div>
-        <!-- Notification -->
-        <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
-          data-num="" hidden></div>
-
-        <!-- Time -->
-        <div id="statusbar-time"></div>
-
-        <!-- Status -->
-        <div id="statusbar-battery" class="sb-icon sb-icon-battery"
-          data-level="100" charging hidden></div>
-        <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
-          data-level="4" hidden></div>
-        <div id="statusbar-data" class="sb-icon sb-icon-data"
-          data-type="" hidden></div>
-        <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
-        <div id="statusbar-signal" class="sb-icon sb-icon-signal"
-          data-level="5" hidden></div>
-
-        <!-- Permissions -->
-        <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
-        <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden></div>
-        <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden></div>
-        <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
-        <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
-        <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
-        <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
-        <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
+      <div id="attention-screen" data-z-index-level="attention-screen">
+        <div id="attention-bar"></div>
       </div>
 
-      <div id="notification-toaster" class="notification" data-type="NOTIFICATION_TOASTER">
+      <div id="notification-toaster" class="notification" data-z-index-level="notification-toaster">
         <img id="toaster-icon" />
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
       </div>
 
-      <div id="attention-screen" data-type="ATTENTION_SCREEN">
-        <div id="attention-bar"></div>
-      </div>
-
-      <div id="listmenu" data-type="LIST_MENU">
+      <div id="listmenu" data-z-index-level="list-menu">
         <div class="list-menu" id="listmenu-container">
         </div>
       </div>
 
-      <div id="keyboard-overlay" data-type="KEYBOARD_OVERLAY"></div>
+      <div id="keyboard-overlay" data-z-index-level="keyboard-overlay"></div>
 
       <!-- keyboard -->
-      <iframe id="keyboard-frame" class="hide" data-type="KEYBOARD_FRAME"></iframe>
+      <iframe id="keyboard-frame" class="hide" data-z-index-level="keyboard-frame"></iframe>
 
-      <div id="cardsView" data-type="CARDVIEW">
+      <div id="cardsView" data-z-index-level="cardsview">
         <ul>
         </ul>
       </div>
 
-      <div id="sleep-menu" data-type="SLEEP_MENU">
+      <div id="sleep-menu" data-z-index-level="sleep-menu">
         <div class="sleepmenu" id="sleepmenu-container">
         </div>
       </div>
 
-      <div id="system-overlay" data-type="SYSTEM_OVERLAY">
+      <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">
         </div>
 

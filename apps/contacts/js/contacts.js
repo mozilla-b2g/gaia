@@ -306,7 +306,6 @@ var Contacts = (function() {
 
   var loadList = function loadList() {
     contactsList.load();
-
     contactsList.handleClick(function handleClick(id) {
       var options = {
         filterBy: ['id'],
@@ -468,9 +467,7 @@ var Contacts = (function() {
       }
     }
 
-
-    var existsPhoto = 'photo' in contact && contact.photo;
-    if (existsPhoto && 0 < contact.photo.length) {
+    if (contact.photo && contact.photo.length > 0) {
       var detailsInner = document.getElementById('contact-detail-inner');
       contactDetails.classList.add('up');
       var photoOffset = (photoPos + 1) * 10;
@@ -479,7 +476,7 @@ var Contacts = (function() {
       } else {
         cover.style.overflow = null;
       }
-      cover.style.backgroundImage = 'url(' + (contact.photo || '') + ')';
+      updatePhoto(contact.photo[0], cover);
     } else {
       cover.style.overflow = null;
       cover.style.backgroundImage = null;
@@ -496,7 +493,9 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
-    thumb.style.backgroundImage = 'url(' + currentContact.photo + ')';
+    if (currentContact.photo && currentContact.photo.length > 0) {
+      updatePhoto(currentContact.photo[0], thumb);
+    }
     var default_type = TAG_OPTIONS['phone-type'][0].value;
     for (var tel in currentContact.tel) {
       var currentTel = currentContact.tel[tel];
@@ -574,6 +573,11 @@ var Contacts = (function() {
     };
 
     edit();
+  };
+
+  var updatePhoto = function updatePhoto(photo, dest) {
+    var photoURL = URL.createObjectURL(photo);
+    dest.style.backgroundImage = 'url(' + photoURL + ')';
   };
 
   // Checks if an object fields are empty, by empty means
@@ -1131,7 +1135,7 @@ var Contacts = (function() {
       this.img = img;
       img.onload = function() {
         var dataImg = getPhoto(this.img);
-        thumb.style.backgroundImage = 'url(' + dataImg + ')';
+        updatePhoto(dataImg, thumb);
         currentContact.photo = currentContact.photo || [];
         currentContact.photo[0] = dataImg;
       }.bind(this);
@@ -1161,12 +1165,34 @@ var Contacts = (function() {
     } else {
       ctx.drawImage(contactImg, 0, -margin);
     }
-
-    var ret = canvas.toDataURL();
+    var filename = 'contact_' + new Date().getTime();
+    var ret = canvas.mozGetAsFile(filename);
     contactImg = null;
     canvas = null;
     return ret;
   }
+
+  var sendEmailOrPick = function sendEmailOrPick(address) {
+    if (ActivityHandler.currentlyHandling) {
+      // Placeholder for the email app if we want to
+      // launch contacts to select an email address.
+      // So far we do nothing
+    } else {
+      try {
+        // We don't check the email format, lets the email
+        // app do that
+        var activity = new MozActivity({
+          name: 'new',
+          data: {
+            type: 'mail',
+            URI: 'mailto:' + address
+          }
+        });
+      } catch (e) {
+        console.log('WebActivities unavailable? : ' + e);
+      }
+    }
+  };
 
   return {
     'showEdit' : showEdit,
@@ -1183,13 +1209,16 @@ var Contacts = (function() {
     'toggleFavorite': toggleFavorite,
     'callOrPick': callOrPick,
     'pickImage': pickImage,
-    'navigation': navigation
+    'navigation': navigation,
+    'sendEmailOrPick': sendEmailOrPick,
+    'updatePhoto': updatePhoto
   };
 })();
 
-
-var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-window.navigator.mozSetMessageHandler('activity', actHandler);
+if (window.navigator.mozSetMessageHandler) {
+  var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+  window.navigator.mozSetMessageHandler('activity', actHandler);
+}
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (document.mozHidden) {

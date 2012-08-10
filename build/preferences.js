@@ -10,14 +10,6 @@ let permissions = {
     "urls": [],
     "pref": "dom.sms.whitelist"
   },
-  "contacts": {
-    "urls": [],
-    "pref": "dom.mozContacts.whitelist"
-  },
-  "telephony": {
-    "urls": [],
-    "pref": "dom.telephony.app.phone.url"
-  },
   "mozBluetooth": {
     "urls": [],
     "pref": "dom.mozBluetooth.whitelist"
@@ -57,7 +49,6 @@ if (homescreen.substring(0,6) == "app://") { // B2G bug 773884
 }
 content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
 
-let privileges = [];
 let domains = [];
 domains.push(GAIA_DOMAIN);
 
@@ -65,7 +56,6 @@ Gaia.webapps.forEach(function (webapp) {
   let manifest = webapp.manifest;
   let rootURL = webapp.url;
 
-  privileges.push(rootURL);
   domains.push(webapp.domain);
 
   let perms = manifest.permissions;
@@ -75,16 +65,6 @@ Gaia.webapps.forEach(function (webapp) {
         continue;
 
       permissions[name].urls.push(rootURL);
-
-      // special case for the telephony API which needs full URLs
-      if (name == 'telephony') {
-        permissions[name].urls.push(rootURL + '/index.html');
-
-        if (manifest.background_page)
-          permissions[name].urls.push(rootURL + manifest.background_page);
-        if (manifest.attention_page)
-          permissions[name].urls.push(rootURL + manifest.attention_page);
-      }
     }
   }
 });
@@ -96,7 +76,6 @@ content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
 // Probably wont be needed when https://bugzilla.mozilla.org/show_bug.cgi?id=768440 lands
 content += "user_pref(\"dom.send_after_paint_to_content\", true);\n\n";
 
-content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
 content += "user_pref(\"network.http.max-connections-per-server\", 15);\n\n";
 
 if (LOCAL_DOMAINS) {

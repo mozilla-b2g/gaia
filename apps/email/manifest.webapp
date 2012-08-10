@@ -67,7 +67,10 @@
   },
   "activities": {
     "new": {
-      "filters": "mail"
+      "filters": {
+        "type": "mail"
+      },
+      "disposition": "window"
     }
   }
 }

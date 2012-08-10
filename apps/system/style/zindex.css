@@ -2,122 +2,106 @@
  * is gathered here to clearly specify all system-app hierarchy */
 
 /* Reset zIndex */
-#screen > * {
+#screen > *:not([data-z-index-level]), 
+#screen > [data-z-index-level="homescreen"] {
   z-index: 0;
 }
 
-/* Level 0: System overlay */
-#system-overlay,
-[data-type="SYSTEM_OVERLAY"] {
+/* Level 1 */
+/* Topest layer, cover all of the screen no matter what's the height of the status bar. */
+/* System overlay > Sleep menu > Card view */
+/* */
+#screen > [data-z-index-level="system-overlay"] {
   z-index: 65536;
 }
 
-/* Level 1: Sleep menu/Card View/Keyboard */
-#sleep-menu,
-[data-type="SLEEP_MENU"] {
+#screen > [data-z-index-level="sleep-menu"] {
   z-index: 65536;
 }
 
-#cardsView,
-[data-type="CARDVIEW"] {
+#screen > [data-z-index-level="cardsview"] {
   z-index: 65536;
 }
 
-#keyboard-overlay,
-[data-type="KEYBOARD_OVERLAY"] {
+#screen > [data-z-index-level="keyboard-overlay"] {
   z-index: 65536;
 }
 
-#keyboard-frame,
-[data-type="KEYBOARD_FRAME"] {
+#screen > [data-z-index-level="keyboard-frame"] {
   z-index: 65536;
 }
 
 /* Level 2: Notification toaster */
-#notification-toaster,
-[data-type="TOASTER"] {
+#screen > [data-z-index-level="notification-toaster"] {
   z-index: 32768;
 }
 
-/* Level 3: Activity menu, context menu */
-#listmenu,
-[data-type="LIST_MENU"] {
+/* Level 3: Attention screen */
+#screen > [data-z-index-level="attention-screen"] {
   z-index: 16384;
 }
 
-/* Level 4: Statusbar, Utility-Tray */
-#statusbar,
-[data-type="STATUSBAR"] {
-  z-index: 16384;
-}
-
-#utility-tray,
-[data-type="UTILITY_TRAY"] {
-  z-index: 16383;
-}
-
-/* Level 5: Attention screen */
-#attention-screen,
-[data-type="ATTENTION"] {
+/* Level 4: Activity menu, context menu */
+#screen > [data-z-index-level="list-menu"] {
   z-index: 8192;
 }
 
-#attention-screen > #attention-bar {
-  z-index: 2;
+/* Level 5: Statusbar, Utility-Tray */
+#screen > [data-z-index-level="statusbar"] {
+  z-index: 4096;
 }
 
-#windows > iframe.appWindow {
-  z-index: 1;
+#screen > [data-z-index-level="utility-tray"] {
+  z-index: 4095;
 }
 
-#windows > iframe.appWindow.active {
-  z-index: 2;
-}
-
-/* Level 6: Lock Screen Camera */
-#lockscreen-camera,
-[data-type="LOCKSCREEN_CAMERA"]{
+/* Level 6: Lock Screen */
+#screen > [data-z-index-level="lockscreen"] {
   z-index: 2048;
 }
 
-/* Level 7: Lock Screen */
-#lockscreen,
-[data-type="LOCKSCREEN"]{
+#screen > [data-z-index-level="lockscreen-camera"] {
+  z-index: 2047;
+}
+
+/* Level 7: Debug grid */
+#screen > [data-z-index-level="debug-grid"] {
   z-index: 1024;
 }
 
-/* Level 8: Debug grid */
-#debug-grid,
-[data-type="DEBUG_GRID"] {
+/* Level 8: Dialog Module */
+#screen > [data-z-index-level="dialog-overlay"],
+#screen > [data-z-index-level="value-selector"],
+#screen > [data-z-index-level="permission-screen"] {
   z-index: 512;
 }
 
-/* Level 9: Dialog Module */
-#dialog-overlay,
-#value-selector,
-#permission-screen {
-  z-index: 511;
+/* Level 9 */
+#screen > [data-z-index-level="window-sprite"] {
+  z-index: 2;
 }
 
-#cardsView .card[data-edit = 'true'] {
-  z-index: 99999;
-}
-
-/* Level 10 */
-#windowSprite {
+#screen > [data-z-index-level="app"] {
   z-index: 1;
 }
 
+/* When keyboard is visible, set frame under app window */
+/*
+#screen > [data-z-index-level="keyboard-frame"].visible {
+  z-index: 0;
+}
+*/
+
 /* Fullscreen */
-#screen.fullscreen #system-overlay,
-#screen.fullscreen #lockscreen,
-#screen.fullscreen #lockscreen-camera,
-#screen.fullscreen #value-selector,
-#screen.fullscreen #dialog-overlay,
-#screen.fullscreen #keyboard-overlay,
-#screen.fullscreen #keyboard-frame,
-#screen.fullscreen #keyboard-frame.visible,
-#screen.fullscreen #notification-toaster,
-#screen.fullscreen #cardsView {
+#screen.fullscreen > [data-z-index-level="system-overlay"],
+#screen.fullscreen > [data-z-index-level="lockscreen"],
+#screen.fullscreen > [data-z-index-level="lockscreen-camera"],
+#screen.fullscreen > [data-z-index-level="value-selector"],
+#screen.fullscreen > [data-z-index-level="dialog-overlay"],
+#screen.fullscreen > [data-z-index-level="keyboard-overlay"],
+#screen.fullscreen > [data-z-index-level="keyboard-frame"],
+#screen.fullscreen > [data-z-index-level="keyboard-frame"].visible,
+#screen.fullscreen > [data-z-index-level="notification-toaster"],
+#screen.fullscreen > [data-z-index-level="cardsview"] {
   z-index: 2147483647;
 }

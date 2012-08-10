@@ -148,6 +148,7 @@ var WindowManager = (function() {
   // animations.
   var sprite = document.createElement('div');
   sprite.id = 'windowSprite';
+  sprite.dataset.zIndexLevel = 'window-sprite';
   document.body.appendChild(sprite);
 
   // This event handler is triggered when the transition ends.
@@ -163,6 +164,7 @@ var WindowManager = (function() {
       classes.add('faded');
       setTimeout(openCallback);
     } else if (classes.contains('faded') && prop === 'opacity') {
+
       openFrame.setVisible(true);
       openFrame.focus();
 
@@ -187,7 +189,13 @@ var WindowManager = (function() {
   function openWindow(origin, callback) {
     var app = runningApps[origin];
     openFrame = app.frame;
-    openCallback = callback || function() {};
+    openCallback = function() {
+      if (app.manifest.fullscreen)
+        openFrame.mozRequestFullScreen();
+
+      if (callback)
+        callback();
+    };
 
     sprite.className = 'open';
   }
@@ -209,8 +217,24 @@ var WindowManager = (function() {
     closeFrame.setVisible(false);
 
     // And begin the transition
-    sprite.classList.remove('faded');
-    sprite.classList.add('close');
+    // Wait for we leave full screen before starting the transition
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=781014
+    if (document.mozFullScreen) {
+      document.addEventListener('mozfullscreenchange',
+        function fullscreenListener(event) {
+          document.removeEventListener('mozfullscreenchange',
+                                       fullscreenListener, false);
+          setTimeout(function() {
+            sprite.classList.remove('faded');
+            sprite.classList.add('close');
+          }, 20);
+        }, false);
+
+      document.mozCancelFullScreen();
+    } else {
+      sprite.classList.remove('faded');
+      sprite.classList.add('close');
+    }
   }
 
   //last time app was launched,
@@ -274,11 +298,7 @@ var WindowManager = (function() {
       setOrientationForApp(newApp);
     }
 
-    // Exit fullscreen mode if we're going to the homescreen
-    if (newApp === null && document.mozFullScreen) {
-      document.mozCancelFullScreen();
-    }
-
+    // Set displayedApp to the new value
     displayedApp = origin;
 
     // Update the loading icon since the displayedApp is changed
@@ -492,10 +512,6 @@ var WindowManager = (function() {
     // when that is done.
     setDisplayedApp(origin, function() {
       frame.src = url;
-
-      if (manifest.fullscreen) {
-        frame.mozRequestFullScreen();
-      }
     });
   }
 
@@ -586,6 +602,7 @@ var WindowManager = (function() {
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
+        UtilityTray.hide();
         setDisplayedApp(origin);
         break;
     }

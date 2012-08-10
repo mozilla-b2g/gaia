@@ -31,7 +31,8 @@ Gaia.webapps.forEach(function (webapp) {
   webappTargetDir.append(webappTargetDirName);
   webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
 
-  // Add webapp's entry to the webapps global manifest
+  // Add webapp's entry to the webapps global manifest.
+  // appStatus == 3 means this is a certified app.
   let url = webapp.url;
   manifests[webappTargetDirName] = {
     origin:        url,
@@ -39,6 +40,7 @@ Gaia.webapps.forEach(function (webapp) {
     receipt:       null,
     installTime:   132333986000,
     manifestURL:   url + '/manifest.webapp',
+    appStatus:     3,
     localId:       id++
   };
 
