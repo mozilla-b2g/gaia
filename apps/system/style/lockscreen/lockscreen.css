@@ -110,9 +110,9 @@
   font-weight: normal;
   line-height: 3.2rem;
   text-shadow: 0 0 3px #333;
-
+  visibility: hidden;
   -moz-transform: translateY(-10rem);
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 #lockscreen-header {
@@ -126,13 +126,14 @@
   padding: 1.5rem 2.4rem 1.2rem 1.6rem;
   color: #fff;
   text-shadow: 0 0 3px #333;
-
+  visibility: hidden;
   -moz-transform: translateY(-10rem);
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 [data-panel=""] #lockscreen-header,
 [data-panel="camera"] #lockscreen-header {
+  visibility: inherit;
   -moz-transform: translateY(0);
 }
 
@@ -484,6 +485,7 @@
 }
 
 [data-panel="passcode"] h2#lockscreen-passcode-status {
+  visibility: visible;
   -moz-transform: none;
 }
 
@@ -525,11 +527,13 @@
   padding: 0 1rem;
   -moz-box-sizing: border-box;
   border-top: 1px solid #525050;
+  visibility: hidden;
   -moz-transform: translateY(-moz-calc(21.4rem + 7.2rem));
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-code {
+  visibility: visible;
   -moz-transform: translateY(0);
 }
 
@@ -586,12 +590,13 @@
   height: 21.4rem;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
-
+  visibility: hidden;
   -moz-transform: translateY(21.4rem);
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-pad {
+  visibility: visible;
   -moz-transform: translateY(0);
 }
 
@@ -678,6 +683,7 @@
 }
 
 [data-panel="emergency-call"] h2#lockscreen-emergency-title {
+  visibility: visible;
   -moz-transform: none;
 }
 
@@ -690,9 +696,9 @@
   background-color: rgba(0, 0, 0, 0.8);
   padding-top: 10rem;
   border-top: 2px solid #525050;
-
+  visibility: hidden;
   -moz-transform: translateY(32rem);
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 
   /* TBD */
   font-size: 11.5rem;
@@ -701,5 +707,6 @@
 }
 
 [data-panel="emergency-call"] #lockscreen-emergency-pad {
+  visibility: visible;
   -moz-transform: translateY(0);
 }

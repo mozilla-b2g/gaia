@@ -25,11 +25,11 @@ var PinLock = {
   },
 
   hideKeypad: function hideKeypad() {
-    this.pinlockOverlay.style.display = 'none';
+    this.pinlockOverlay.hidden = true;
   },
 
   showKeypad: function showKeypad() {
-    this.pinlockOverlay.style.display = 'block';
+    this.pinlockOverlay.hidden = false;
     this.updateCodeUI();
   },
 

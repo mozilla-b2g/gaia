@@ -27,8 +27,8 @@
 
 #statusbar > .sb-start {
   float: left;
-
-  -moz-transition: -moz-transform 0.5s ease;
+  visibility: hidden;
+  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
 *[dir=rtl] #statusbar > * {
@@ -40,11 +40,12 @@
 }
 
 #statusbar > .sb-start-upper {
+  visibility: hidden;
   position: absolute;
   top: -20px;
   left: 0;
 
-  -moz-transition: -moz-transform 0.5s ease;
+  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
 *[dir=rtl] #statusbar > .sb-start-upper {
@@ -54,6 +55,7 @@
 
 .utility-tray #statusbar > .sb-start-upper,
 .utility-tray #statusbar > .sb-start {
+  visibility: visible;
   -moz-transform: translateY(20px);
 }
 
