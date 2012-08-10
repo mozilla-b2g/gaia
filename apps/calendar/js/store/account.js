@@ -14,6 +14,7 @@
       var provider = Calendar.App.provider(
         model.providerType
       );
+
       provider.getAccount(model.toJSON(), function(err, data) {
         if (err) {
           callback(err);
@@ -38,7 +39,7 @@
      * related to it must be removed.
      */
     _dependentStores: [
-      'accounts', 'calendars', 'events'
+      'accounts', 'calendars', 'events', 'busytimes'
     ],
 
     _removeDependents: function(id, trans) {
@@ -92,13 +93,13 @@
               originalIds.splice(idx, 1);
 
               var original = calendars[key];
-              original.updateRemote(cal);
+              original.remote = cal;
               persist.push(original);
             } else {
               // create a new calendar
               persist.push(
                 store._createModel({
-                  provider: cal,
+                  remote: new Object(cal),
                   accountId: account._id
                 })
               );
@@ -111,7 +112,10 @@
 
         // update / remove
         if (persist.length || originalIds.length) {
-          var trans = self.db.transaction('calendars', 'readwrite');
+          var trans = self.db.transaction(
+            self._dependentStores,
+            'readwrite'
+          );
 
           originalIds.forEach(function(id) {
             store.remove(calendars[id]._id, trans);

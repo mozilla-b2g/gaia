@@ -1,8 +1,8 @@
 (function(window) {
   var Day = Calendar.Template.create({
     hour: [
-      '<section>',
-        '<h4>{hour}</h4>',
+      '<section class="hour-{hour}">',
+        '<h4>{displayHour}</h4>',
         '<ol class="events">',
           '{items|s}',
         '</ol>',
@@ -18,7 +18,6 @@
           '<span class="location">',
             '{location}',
           '</span>',
-          '\n-\n',
           '{attendees|s}',
         '</span>',
       '</li>'
