@@ -147,6 +147,7 @@ var queryURI = function _queryURI(uri) {
 
 };
 
+if ('mozSetMessageHandler' in window.navigator) {
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
   var sendMail = function actHandleMail() {
@@ -187,4 +188,4 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 
   activity.postResult({ status: 'accepted' });
 });
-
+}

@@ -157,8 +157,8 @@ MessageListCard.prototype = {
     var headerNode =
       this.domNode.getElementsByClassName('msg-listedit-header-label')[0];
     headerNode.textContent =
-      navigator.mozL10n.get('message-multiedit-header',
-                           { n: this.selectedMessages.length });
+      mozL10n.get('message-multiedit-header',
+                  { n: this.selectedMessages.length });
 
     var starBtn =
           this.domNode.getElementsByClassName('msg-star-btn')[0],
@@ -603,8 +603,6 @@ function MessageReaderCard(domNode, mode, args) {
   // HTML email content.
   this.htmlBodyNodes = [];
 
-  this.buildBodyDom(domNode);
-
   domNode.getElementsByClassName('msg-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this, false));
   domNode.getElementsByClassName('msg-reply-btn')[0]
@@ -629,6 +627,12 @@ function MessageReaderCard(domNode, mode, args) {
     this.header.setRead(true);
 }
 MessageReaderCard.prototype = {
+  postInsert: function() {
+    // iframes need to be linked into the DOM tree before their contentDocument
+    // can be instantiated.
+    this.buildBodyDom(this.domNode);
+  },
+
   onBack: function(event) {
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
@@ -743,7 +747,7 @@ MessageReaderCard.prototype = {
         reps = body.bodyReps,
         hasExternalImages = false;
     for (var iRep = 0; iRep < reps.length; iRep += 2) {
-      var repType = reps[iRep], rep = reps[iRep];
+      var repType = reps[iRep], rep = reps[iRep + 1];
       if (repType === 'plain') {
         this._populatePlaintextBodyNode(rootBodyNode, rep);
       }
@@ -762,13 +766,13 @@ MessageReaderCard.prototype = {
     if (body.embeddedImageCount && !body.embeddedImagesDownloaded) {
       loadBar.classList.remove('collapsed');
       loadBar.textContent =
-        navigator.mozL10n.get('message-download-images',
-                             { n: body.embeddedImageCount });
+        mozL10n.get('message-download-images',
+                    { n: body.embeddedImageCount });
     }
     else if (hasExternalImages) {
       loadBar.classList.remove('collapsed');
       loadBar.textContent =
-        navigator.mozL10n.get('message-show-external-images');
+        mozL10n.get('message-show-external-images');
     }
     else {
       loadBar.classList.add('collapsed');
