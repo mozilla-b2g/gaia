@@ -15,7 +15,7 @@
 }
 
 .dark-header {
-  -moz-transition: -moz-transform .15s ease;
+  -moz-transition: -moz-transform .2s ease-in;
 }
 
 .header-group {

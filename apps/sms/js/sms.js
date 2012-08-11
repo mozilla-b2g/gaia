@@ -59,11 +59,15 @@ var MessageManager = {
         var threadMessages = document.getElementById('thread-messages');
         switch (window.location.hash) {
           case '#new':
+            var messageInput = document.getElementById('message-to-send');
+            var receiverInput = document.getElementById('receiver-input');
             document.getElementById('messages-container').innerHTML = '';
-            document.getElementById('message-to-send').innerHTML = '';
-            document.getElementById('receiver-input').value = '';
+            messageInput.innerHTML = '';
+            receiverInput.value = '';
             threadMessages.classList.add('new');
-            MessageManager.slide();
+            MessageManager.slide(function() {
+              messageInput.focus();
+            });
             break;
           case '#thread-list':
             if (mainWrapper.classList.contains('edit')) {
@@ -94,7 +98,11 @@ var MessageManager = {
               } else {
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages,
-                  filter, null, MessageManager.slide);
+                  filter, null, function() {
+                   MessageManager.slide(function() {
+                      document.getElementById('message-to-send').focus();
+                    });
+                  });
               }
             }
           break;

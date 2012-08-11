@@ -516,7 +516,7 @@ a.unread .unread-mark .icon-unread-mark {
   bottom: -6.5rem;
   width: 100%;
   position: absolute;
-  -moz-transition: -moz-transform .15s ease-in;
+  -moz-transition: -moz-transform .2s ease-in;
 }
 
 .option {
