@@ -952,11 +952,8 @@ var Browser = {
       setTimeout(showTabCompleteFun, 100);
     });
 
-    // TODO: remove setTimeout
-    //   https://bugzilla.mozilla.org/show_bug.cgi?id=774642)
-    setTimeout(function() {
-      li.style.height = '';
-    }, 50);
+    li.clientTop;
+    li.style.height = '';
   },
 
   hideCurrentTab: function browser_hideCurrentTab() {
@@ -1281,10 +1278,9 @@ var Browser = {
         li.style.height = '0px';
       }, true);
 
-      self.tab.style.MozTransition = 'left ' + time + 'ms linear';
-      setTimeout(function() {
-        self.tab.style.left = offset + 'px';
-      }, 25);
+      this.tab.style.MozTransition = 'left ' + time + 'ms linear';
+      this.tab.clientTop;
+      this.tab.style.left = offset + 'px';
     }
   },
 
