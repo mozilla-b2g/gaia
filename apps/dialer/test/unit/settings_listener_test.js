@@ -32,6 +32,7 @@ suite('SettingsListener', function() {
      * So we will wait for at most 150ms for each call, and run done()
      * if we didn't hear from the callback for more than that.
      */
+    var timer;
     var callback = function(value) {
       answers.push(value);
       count++;
@@ -41,7 +42,7 @@ suite('SettingsListener', function() {
         setter(correctAnswers[count]);
 
       clearTimeout(timer);
-      var timer = setTimeout(function() {
+      timer = setTimeout(function() {
         done(function() {
           assert.deepEqual(answers, correctAnswers,
                            'We did not receive exact numbers of callback.');
