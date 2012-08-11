@@ -1043,7 +1043,7 @@ var Browser = {
     var ul = document.createElement('ul');
 
     for each(var tab in this.tabs) {
-      var li = this.generateTabLi(tab);
+      var li = this.generateTabLi(tab, multipleTabs);
       ul.appendChild(li);
     }
 
@@ -1055,13 +1055,21 @@ var Browser = {
     this.inTransition = false;
   },
 
-  generateTabLi: function browser_generateTabLi(tab) {
+  generateTabLi: function browser_generateTabLi(tab, multipleTabs) {
     var title = tab.title || tab.url || _('new-tab');
     var a = document.createElement('a');
     var li = document.createElement('li');
     var span = document.createElement('span');
     var preview = document.createElement('div');
     var text = document.createTextNode(title);
+
+    if (multipleTabs) {
+      var close = document.createElement('button');
+      close.appendChild(document.createTextNode('✕'));
+      close.classList.add('close');
+      close.setAttribute('data-id', tab.id);
+      a.appendChild(close);
+    }
 
     a.setAttribute('data-id', tab.id);
     preview.classList.add('preview');
@@ -1167,14 +1175,23 @@ var Browser = {
 
     mousedown: function tabSwipe_mousedown(e) {
       e.preventDefault();
-      this.tab = e.target;
+
+      this.isCloseButton = e.target.nodeName === 'BUTTON';
+      this.tab = this.isCloseButton ? e.target.parentNode : e.target;
       this.id = this.tab.getAttribute('data-id');
       this.containerWidth = this.tab.parentNode.clientWidth;
+
+      if (this.isCloseButton) {
+        e.stopPropagation();
+        return;
+      }
+
       // We cant delete the last tab
       this.deleteable = Object.keys(this.browser.tabs).length > 1;
       if (!this.deleteable || this.browser.inTransition) {
         return;
       }
+
       this.tab.classList.add('active');
       this.tab.style.MozTransition = '';
       this.tab.style.position = 'absolute';
@@ -1197,6 +1214,14 @@ var Browser = {
       if (this.browser.inTransition) {
         return;
       }
+      if (this.isCloseButton) {
+        this.tab.style.position = 'absolute';
+        this.tab.style.left = '0px';
+        this.tab.style.width = this.containerWidth + 'px';
+        this.deleteTab(100, this.containerWidth);
+        return;
+      }
+
       this.browser.selectTab(this.id);
       this.browser.showPageScreen();
     },
@@ -1234,6 +1259,8 @@ var Browser = {
       var browser = this.browser;
       var id = this.id;
       var li = this.tab.parentNode;
+      var self = this;
+
       // First animate the tab offscreen
       this.tab.addEventListener('transitionend', function() {
         // Then animate the space dissapearing
@@ -1241,12 +1268,23 @@ var Browser = {
           // Then delete everything
           browser.deleteTab(id);
           li.parentNode.removeChild(li);
+
+          if (Object.keys(self.browser.tabs).length === 1) {
+            var closeButtons = document.getElementsByClassName('close');
+            Array.forEach(closeButtons, function(el) {
+              el.parentNode.removeChild(el);
+            });
+          }
+
         }, true);
         li.style.MozTransition = 'height ' + 100 + 'ms linear';
         li.style.height = '0px';
       }, true);
-      this.tab.style.MozTransition = 'left ' + time + 'ms linear';
-      this.tab.style.left = offset + 'px';
+
+      self.tab.style.MozTransition = 'left ' + time + 'ms linear';
+      setTimeout(function() {
+        self.tab.style.left = offset + 'px';
+      }, 25);
     }
   },
 
