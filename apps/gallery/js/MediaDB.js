@@ -189,23 +189,6 @@ function MediaDB(mediaType, metadataParser, options) {
 
   var mediadb = this;  // for the nested functions below
 
-  // Set up DeviceStorage
-  // If storage is null, then there is no sdcard installed and
-  // we have to abort.
-  this.storage = navigator.getDeviceStorage(mediaType);
-
-  // XXX: the API will probably change to always return a DeviceStorage
-  // object, and I'll have to stat() it to find out if there is
-  // anything there.
-  if (this.storage === null)
-    throw Error('nosdcard');
-
-  //
-  // XXX
-  // Register change notification event handlers on the DeviceStorage object.
-  // When we get a change, modify the DB, and then call the onchange callback
-  // And don't forget to update and persist the lastchangetime, too.
-  //
 
   // Set up IndexedDB
   var indexedDB = window.indexedDB || window.mozIndexedDB;
@@ -258,11 +241,51 @@ function MediaDB(mediaType, metadataParser, options) {
       console.error('MediaDB: ', event.target.error && event.target.error.name);
     }
 
-    // We're ready now. Call the onready callback function
-    mediadb.ready = true;
-    if (mediadb.onready)
-      mediadb.onready();
+    // DB is initialized, now initialize device storage
+    initDeviceStorage();
   };
+
+  function initDeviceStorage() {
+    // Set up DeviceStorage
+    // If storage is null, then there is no sdcard installed and
+    // we have to abort.
+    mediadb.storage = navigator.getDeviceStorage(mediaType);
+
+    // Handle change notifications from device storage
+    mediadb.storage.onchange = function(e) {
+      if (e.reason === 'available') {
+        mediadb.ready = true;
+        if (mediadb.onready)
+          mediadb.onready();
+      }
+      else if (e.reason === 'unavailable') {
+        mediadb.ready = false;
+        if (mediadb.onunavailable)
+          mediadb.onunavailable(/*XXX: pass nocard or cardinuse */);
+      }
+
+      //
+      // XXX When other change event types are implemented, handle
+      // them here. When we get a change, modify the DB, and then call
+      // the onchange callback And don't forget to update and persist
+      // the lastchangetime, too.
+      //
+    };
+
+    // Use stat() to figure out if there is actually an sdcard there
+    // and call onready or onunavailable based on the result
+    var statreq = mediadb.storage.stat();
+    statreq.onsuccess = function() {
+      mediadb.ready = true;
+      if (mediadb.onready)
+        mediadb.onready();
+    };
+    statreq.onerror = function() {
+      mediadb.ready = false;
+      if (mediadb.onunavailable)
+        mediadb.onunavailable();
+    };
+  }
 }
 
 MediaDB.prototype = {

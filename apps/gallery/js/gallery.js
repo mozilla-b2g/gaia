@@ -169,7 +169,7 @@ var languageDirection;
 var images = [];
 
 // The MediaDB object that manages the filesystem and the database of metadata
-// See initPhotoDB()
+// See init()
 var photodb;
 
 
@@ -183,57 +183,54 @@ window.addEventListener('localized', function showBody() {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 
-  try {
-    photodb = initPhotoDB();
-
-    // Start off in thumbnail list view, unless there is a pending activity
-    // request message. In that case, the message handler will set the
-    // initial view
-    if (!navigator.mozHasPendingMessage('activity'))
-      setView(thumbnailListView);
-
-    // Register a handler for activities
-    navigator.mozSetMessageHandler('activity', webActivityHandler);
-  }
-  catch (e) {
-    if (e.message == 'nosdcard') {
-      // XXX eventually we want to distinguish the nocard case
-      // from the cardinuse case.
-      showOverlay('nocard');
-    }
-    else // something else went wrong
-      throw e;
-  }
+  // Now initialize the rest of the app
+  init();
 });
 
+function init() {
+  photodb = new MediaDB('pictures', metadataParser, {
+    indexes: ['metadata.date'],
+    mimeTypes: ['image/jpeg', 'image/png']
+  });
 
+  // This is called when DeviceStorage becomes unavailable because the
+  // sd card is removed or because it is mounted for USB mass storage
+  // This may be called before onready if it is unavailable to begin with
+  photodb.onunavailable = function() {
+    // XXX eventually we want to distinguish the nocard case
+    // from the cardinuse case.
+    showOverlay('nocard');
+  }
 
-function initPhotoDB() {
+  photodb.onready = function() {
+    // Hide the nocard overlay if it is displayed
+    if (currentOverlay === 'nocard')
+      showOverlay(null);
 
-  // If there is no SD card installed, this will throw an error.
-  var db = new MediaDB('pictures', metadataParser, {
-      indexes: ['metadata.date'],
-      mimeTypes: ['image/jpeg', 'image/png']
-    });
-
-  db.onready = function() {
     createThumbnailList();  // Display thumbnails for the images we know about
-    scan();
 
-    // Since DeviceStorage doesn't send notifications yet, we're going
-    // to rescan the files every time our app becomes visible again.
-    // This means that if we switch to camera and take a photo, then when
-    // we come back to gallery we should be able to find the new photo.
-    // Eventually DeviceStorage will do notifications and MediaDB will
-    // report them so we don't need to do this.
-    document.addEventListener('mozvisibilitychange', function vc() {
-        if (!document.mozHidden) {
-          scan();
-        }
-      });
+    // Each time we become ready there may be an entirely new set of
+    // photos in device storage (new SD card, or USB mass storage transfer)
+    // so we have to rescan each time.
+    scan();
   };
 
-  db.onchange = function(type, files) {
+  // Since DeviceStorage doesn't send notifications yet, we're going
+  // to rescan the files every time our app becomes visible again.
+  // This means that if we switch to camera and take a photo, then when
+  // we come back to gallery we should be able to find the new photo.
+  // Eventually DeviceStorage will do notifications and MediaDB will
+  // report them so we don't need to do this.
+  document.addEventListener('mozvisibilitychange', function vc() {
+    if (!document.mozHidden && photodb.ready) {
+      scan();
+    }
+  });
+
+  // Notification of files that are added or deleted.
+  // Eventually device storage will let us know about these.
+  // For now we have to call scan(), which will trigger this function.
+  photodb.onchange = function(type, files) {
     if (type === 'deleted') {
       files.forEach(imageDeleted);
     }
@@ -242,7 +239,14 @@ function initPhotoDB() {
     }
   };
 
-  return db;
+  // Start off in thumbnail list view, unless there is a pending activity
+  // request message. In that case, the message handler will set the
+  // initial view
+  if (!navigator.mozHasPendingMessage('activity'))
+    setView(thumbnailListView);
+
+  // Register a handler for activities
+  navigator.mozSetMessageHandler('activity', webActivityHandler);
 }
 
 function scan() {
@@ -453,8 +457,14 @@ function setView(view) {
 }
 
 function createThumbnailList() {
+  // If thumbnails already exist, erase everything and start over
+  if (thumbnails.firstChild !== null) {
+    thumbnails.textContent = '';
+    images = [];
+  }
+
   // Enumerate existing image entries in the database and add thumbnails
-  // List the all, and sort them in descending order by date.
+  // List them all, and sort them in descending order by date.
   photodb.enumerate('metadata.date', null, 'prev', function(imagedata) {
     if (imagedata === null) // No more images
       return;
