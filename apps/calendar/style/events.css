@@ -21,7 +21,7 @@
 
 .day-events section > ol,
 .day-events section {
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .day-events section {

@@ -11,6 +11,7 @@ Calendar.ns('Provider').Caldav = (function() {
     role: 'caldav',
     useUrl: true,
     useCredentials: true,
+    canSync: true,
 
     getAccount: function(account, callback) {
       this.service.request(
@@ -23,8 +24,13 @@ Calendar.ns('Provider').Caldav = (function() {
 
     findCalendars: function(account, callback) {
       this.service.request('caldav', 'findCalendars', account, callback);
-    }
+    },
 
+    streamEvents: function(account, calendar) {
+      return this.service.stream(
+        'caldav', 'streamEvents', account, calendar
+      );
+    }
   };
 
   return CaldavProvider;
