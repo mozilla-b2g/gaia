@@ -6,6 +6,10 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/oncall.css">
     <link rel="stylesheet" type="text/css" href="style/keypad.css">
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+
     <script defer type="application/javascript" src="js/contacts.js"></script>
     <script defer type="application/javascript" src="js/settings_listener.js"></script>
     <script defer type="application/javascript" src="js/notification_helper.js"></script>
@@ -14,25 +18,6 @@
     <script defer type="application/javascript" src="js/handled_call.js"></script>
     <script defer type="application/javascript" src="js/recents.js"></script>
     <script defer type="application/javascript" src="js/proximity.js"></script>
-    <link rel="resource" type="application/l10n" href="locale/dialer.properties">
-    <script>
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        paths.pop();
-        var src = protocol + '//' + paths.join('/') + '/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
   </head>
   <body class="hidden">
     <article id="call-screen" class="grid">
@@ -111,12 +96,12 @@
     <article id="incoming-container">
       <header>
         <div id="incoming-end">
-          <span role="button">
+          <span role="button" data-l10n-id="endAnswer">
             End+Answer
           </span>
         </div>
         <div id="incoming-answer">
-          <span role="button">
+          <span role="button" data-l10n-id="holdAnswer">
             Hold+Answer
           </span>
         </div>
@@ -124,7 +109,7 @@
       <section id="incoming-info">
         <span id="incoming-number"></span>
         <div id="incoming-ignore">
-          <span role="button">
+          <span role="button" data-l10n-id="ignore">
             Ignore
           </span>
         </div>

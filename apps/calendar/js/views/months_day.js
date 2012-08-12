@@ -5,6 +5,7 @@
     Calendar.View.apply(this, arguments);
 
     this.controller = this.app.timeController;
+    this.busytime = this.app.store('Busytime');
 
     this._initEvents();
   }
@@ -20,11 +21,26 @@
 
   Day.prototype = {
 
+
     __proto__: Calendar.View.prototype,
 
     selectors: {
-      element: '#months-day-view'
+      element: '#months-day-view',
+      events: '#months-day-view .day-events',
+      header: '#months-day-view .day-title'
     },
+
+    /**
+     * Signifies the state of view.
+     * We increment the change token
+     * each time we switch days.
+     *
+     * This can be used to avoid race conditions
+     * by storing a reference to the token locally
+     * then comparing it with the global state of
+     * the view.
+     */
+    _changeToken: 0,
 
     /**
      * Hack this should be localized.
@@ -57,84 +73,178 @@
       'December'
     ],
 
-    headerSelector: '#selected-day-title',
-    eventsSelector: '#event-list',
-
     _initEvents: function() {
       var self = this;
+      this.controller.on('selectedDayChange', this);
+    },
 
-      this.controller.on('selectedDayChange', function() {
-        self._updateEvents();
-        self._updateHeader();
+    handleEvent: function(e) {
+      switch (e.type) {
+        case 'selectedDayChange':
+          this.changeDate(e.data[0]);
+          break;
+      }
+    },
+
+    get header() {
+      return this._findElement('header');
+    },
+
+    get events() {
+      return this._findElement('events');
+    },
+
+    /**
+     * Changes the date the view cares about
+     * in reality we only manage one view at
+     * a time.
+     *
+     * @param {Date} date used to calculate events & range.
+     */
+    changeDate: function(date) {
+      ++this._changeToken;
+
+      var endDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate() + 1
+      );
+
+      var busytime = this.busytime;
+
+      endDate.setMilliseconds(-1);
+
+      if (this._timespan) {
+        busytime.removeTimeObserver(
+          this._timespan,
+          this
+        );
+      }
+
+      this.currentDate = date;
+      this._timespan = new Calendar.Timespan(
+        date,
+        endDate
+      );
+
+      busytime.observeTime(this._timespan, this);
+
+      // clear out all children
+      this.events.innerHTML = '';
+
+      this._updateHeader();
+      this._loadRecords();
+    },
+
+    _loadRecords: function() {
+      // find all records for range.
+      // if change state is the same
+      // then run _renderDay(list)
+
+      var store = this.busytime;
+
+      // keep local record of original
+      // token if this changes we know
+      // we have switched dates.
+      var token = this._changeToken;
+      var self = this;
+
+      store.eventsInCachedSpan(this._timespan, function(err, list) {
+        if (self._changeToken !== token) {
+          // tokens don't match we don't
+          // care about these results anymore...
+          return;
+        }
+
+        self._renderList(list);
       });
     },
 
-    eventsElement: function() {
-      return getEl.call(this, 'eventsSelector', '_eventsEl');
-    },
-
-    headerElement: function() {
-      return getEl.call(this, 'headerSelector', '_headerEl');
-    },
-
-    _updateHeader: function(date) {
-      date = date || this.controller.selectedDay;
+    _updateHeader: function() {
+      var date = this.currentDate;
       var header = [
         this.dayNames[date.getDay()],
         this.monthNames[date.getMonth()],
         date.getDate()
       ].join(' ');
 
-      this.headerElement().textContent = header;
+      this.header.textContent = header;
     },
 
-    _renderDay: function(date) {
-      var events = this.app.store('Event'),
-          eventItems = events.eventsForDay(date),
-          self = this,
-          eventHtml = [],
-          groupsByHour = [];
+    _renderList: function(records) {
+      // zero based 24 hours in a day;
+      var hourStart = new Date(this.currentDate.valueOf());
+      var hourEnd = new Date(this.currentDate.valueOf());
+      var hourSpan;
 
-      if (eventItems.length === 0) {
-        return '';
+      var hour = 0;
+      var hours = 23;
+      var group;
+
+      // find matching items in the day
+      // array that fall within the bounds
+      // of the hour. Remove items from the list
+      // which end _before_ the current hour.
+      function reduce(item, idx) {
+        var start = item[0].startDate;
+        var end = item[0].endDate;
+
+        if (hourSpan.overlaps(start, end)) {
+          group.push(item);
+        } else if (end < hourStart) {
+          records.splice(idx, 1);
+        }
       }
 
-      var sorted = eventItems.sort(function(a, b) {
-        var aHour = a.date.getHours(),
-            bHour = b.date.getHours();
+      // iterate through all hours
+      for (; hour <= hours; hour++) {
+        group = [];
+        hourStart.setHours(hour);
+        hourEnd.setHours(hour + 1);
 
-        if (aHour === bHour) {
-          return 0;
+        hourSpan = new Calendar.Timespan(
+          hourStart,
+          hourEnd
+        );
+
+        // this will mutate the records
+        // for the next run
+        records.forEach(reduce, this);
+
+        // we can make this a pref
+        // later so we can use this in day
+        // view which always renders all hours
+        // even if there are no events on a given
+        // hour.
+        if (group.length) {
+          this._renderHour(hour, group);
         }
+      }
+    },
 
-        if (aHour < bHour) {
-          return -1;
-        } else {
-          return 1;
-        }
+    /**
+     * Renders an hour. Note it is assumed
+     * that this function is called in the correct
+     * order and does not attempt to order content.
+     */
+    _renderHour: function(hour, group) {
+      var eventHtml = [];
 
+      group.forEach(function(item) {
+        eventHtml.push(this._renderEvent(item[1]));
+      }, this);
+
+      var html = template.hour.render({
+        displayHour: this._formatHour(hour),
+        hour: String(hour),
+        items: eventHtml.join('')
       });
 
-      var lastHour,
-          batch = [];
+      this.events.insertAdjacentHTML(
+        'beforeend',
+        html
+      );
 
-      sorted.forEach(function(item) {
-        var hour = item.date.getHours();
-
-        if (hour != lastHour) {
-          lastHour = hour;
-          if (batch.length > 0) {
-            eventHtml.push(self._renderEventsForHour(batch));
-            batch = [];
-          }
-        }
-
-        batch.push(item);
-      });
-
-      eventHtml.push(self._renderEventsForHour(batch));
-
-      return eventHtml.join('');
     },
 
     _formatHour: function(hour) {
@@ -150,29 +260,20 @@
       }
     },
 
-    _renderEventsForHour: function(group) {
-      var eventHtml = [],
-          hour = group[0].date.getHours();
+    _renderEvent: function(object) {
+      var remote = object.remote;
+      var attendees;
 
-      group.forEach(function(item) {
-        eventHtml.push(this._renderEventDetails(item.event));
-      }.bind(this));
-
-      return template.hour.render({
-        hour: hour,
-        items: eventHtml.join('')
-      });
-    },
-
-    _renderEventDetails: function(object) {
-      var name = object.name,
-          location = object.location,
-          attendees = object.attendees;
+      if (object.remote.attendees) {
+        attendees = this._renderAttendees(
+          object.remote.attendees
+        );
+      }
 
       return template.event.render({
-        title: name,
-        location: location,
-        attendees: this._renderAttendees(attendees)
+        title: remote.title,
+        location: remote.location,
+        attendees: attendees
       });
     },
 
@@ -184,17 +285,8 @@
       return template.attendee.renderEach(list).join(',');
     },
 
-    _updateEvents: function(date) {
-      date = date || this.controller.selectedDay;
-      var html = this._renderDay(date);
-
-      this.eventsElement().innerHTML = html;
-    },
-
     render: function() {
-      var now = new Date();
-      this._updateHeader(now);
-      this._updateEvents(now);
+      this.changeDate(new Date());
     }
 
   };

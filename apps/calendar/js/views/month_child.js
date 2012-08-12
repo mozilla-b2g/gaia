@@ -4,21 +4,16 @@
   function Child() {
     Calendar.View.apply(this, arguments);
 
-    this.batch = new Calendar.Batch({
-      handler: this._handleBatch.bind(this),
-      verify: this._verifyBatchItem.bind(this)
-    });
-
-    this._busytimes = Object.create(null);
     this.monthId = Calendar.Calc.getMonthId(this.month);
-
-    this._onBusyAdd = this._onBusyAdd.bind(this);
-    this._onBusyRemove = this._onBusyRemove.bind(this);
-
     this.controller = this.app.timeController;
+
+    this._days = Object.create(null);
+    this._timespan = this._setupTimespan(this.month);
   }
 
   Child.prototype = {
+    __proto__: Calendar.View.prototype,
+
     INACTIVE: 'inactive',
 
     busyPrecision: (24 / 12),
@@ -56,6 +51,15 @@
       'December'
     ],
 
+    //Override parent view...
+    get element() {
+      return this._element;
+    },
+
+    set element(val) {
+      return this._element = val;
+    },
+
     _dayId: function(date) {
       if (date instanceof Date) {
         date = Calendar.Calc.getDayId(date);
@@ -64,101 +68,46 @@
       return 'month-view-' + this.monthId + '-' + date;
     },
 
-    _busyClass: function(unit) {
-      return 'busy-' + unit;
-    },
-
     /**
-     * Finds or create the set for a given dateId.
-     *
-     * @param {String} dateId id.
-     * @return {Calender.Set} set object.
+     * We care about 5 weeks (35 days)
      */
-    _busySet: function(dateId) {
-      if (dateId in this._busytimes) {
-        return this._busytimes[dateId];
-      }
+    _setupTimespan: function(approxStart) {
+      var approxEnd = new Date(approxStart.valueOf());
+      //TODO: Localization problems assuming
+      //length of week.
 
-      return this._busytimes[dateId] = new Calendar.Set();
-    },
+      var weeks = (4 * 7) + 1;
 
-    /**
-     * Handles incoming batch for adds/removes.
-     */
-    _handleBatch: function(items) {
-      var dateId, actions;
+      approxEnd.setDate(approxStart.getDate() * weeks);
 
-      for (dateId in items) {
-        actions = items[dateId];
+      var start = Calendar.Calc.getWeekStartDate(approxStart);
+      var end = Calendar.Calc.getWeekEndDate(approxEnd);
 
-        if (actions.add) {
-          this._appendBusyUnits(dateId, actions.add);
-        }
-
-        if (actions.remove) {
-          this._removeBusyUnits(dateId, actions.remove);
-        }
-      }
-    },
-
-    /**
-     * Verifies that an item mutation should be
-     * added to the batch.
-     *
-     * @param {String} group usually a dateId.
-     * @param {String} action usually add/remove.
-     * @param {Object} value some data associated /w the action.
-     */
-    _verifyBatchItem: function(group, action, value) {
-      var set = this._busySet(group);
-
-      switch (action) {
-        case 'add':
-          if (set.has(value)) {
-            return false;
-          }
-          set.add(value);
-          break;
-      }
-
-      return true;
+      return new Calendar.Timespan(
+        start,
+        end
+      );
     },
 
     _initEvents: function() {
       var busy = this.app.store('Busytime');
-
-      //TODO: Its a known issue that changes in days in different
-      //      months for this view will not be changed.
-      busy.on('add ' + this.monthId, this._onBusyAdd);
-      busy.on('remove ' + this.monthId, this._onBusyRemove);
+      busy.observeTime(this._timespan, this);
     },
 
     _destroyEvents: function() {
       var busy = this.app.store('Busytime');
-
-      busy.removeEventListener(
-        'add ' + this.monthId, this._onBusyAdd
-      );
-
-      busy.removeEventListener(
-        'remove ' + this.monthId, this._onBusyRemove
-      );
+      busy.removeTimeObserver(this._timespan, this);
     },
 
-    _onBusyAdd: function(id, date) {
-      this.batch.action(
-        Calendar.Calc.getDayId(date),
-        'add',
-        this._hourToBusyUnit(date.getHours())
-      );
-    },
-
-    _onBusyRemove: function(id, date) {
-      this.batch.action(
-        Calendar.Calc.getDayId(date),
-        'remove',
-        this._hourToBusyUnit(date.getHours())
-      );
+    handleEvent: function(event) {
+      switch (event.type) {
+        case 'add':
+          this._renderBusytime(event.data);
+          break;
+        case 'remove':
+          this._removeBusytimes([event.data]);
+          break;
+      }
     },
 
     /**
@@ -172,100 +121,71 @@
       return Math.ceil(hour / this.busyPrecision) || 1;
     },
 
-    /**
-     * Returns a list of busy units based
-     * on an array of hours.
-     *
-     * @param {Array} hours list of hours.
-     * @return {Array} list of busy units.
-     */
-    _getBusyUnits: function _getBusyUnits(hours) {
-      var set = new Calendar.Set(),
-          result = [],
-          i = 0,
-          unit;
+    _busyBlockFromRecord: function(record) {
 
-      for (; i < hours.length; i++) {
-        unit = this._hourToBusyUnit(hours[i]);
-        if (!set.has(unit)) {
-          result.push(unit);
-          set.add(unit);
+      var startDate = record.startDate;
+      var endDate = record.endDate;
+      var start;
+      var end;
+
+      var startDateDay = startDate.getDate();
+      var endDateDay = endDate.getDate();
+
+      // this function is always called
+      // with one day in mind if there
+      // is more then a day gap between
+      // dates its a multi-day event outside
+      // of the ending scope of this busyblock.
+      var distance = endDateDay - startDateDay;
+
+      if (distance > 1) {
+        start = 1;
+        end = 12;
+      } else {
+        start = this._hourToBusyUnit(
+          startDate.getHours()
+        );
+
+        // ends outside of current day
+        if (distance === 1) {
+          end = 12;
+        } else {
+
         }
       }
 
-      return result;
-    },
+      var out = template.busy.render({
+        _id: this.cssClean(record._id),
+        calendarId: record.calendarId,
+        start: start,
+        length: ((end - start) || 0) + 1
+      });
 
-    _appendBusyUnits: function(dateId, busyUnits) {
-      var id = this._dayId(dateId),
-          element = document.getElementById(id);
+      return out;
 
-      element = element.querySelector('.busy-indicator');
-
-      element.insertAdjacentHTML(
-        'afterbegin',
-        this._renderBusyUnits(dateId, busyUnits)
-      );
     },
 
     /**
-     * Remove busy units from the dom and registry.
+     * Remove busytimes from the dom.
      *
-     * TODO: Profile/Optimize
-     *
-     * @param {String} dateId string/date for dom id.
+     * @param {Array} objects list of busytime objects.
      */
-    _removeBusyUnits: function(dateId, busyUnits) {
-      var id = this._dayId(dateId),
-          element = document.getElementById(id),
-          list, classes = [], i = 0, len, busyEl,
-          set = this._busySet(dateId), unit;
+    _removeBusytimes: function(objects) {
+      var el = this.element;
 
-      len = busyUnits.length;
+      objects.forEach(function(item) {
+        var className = '.busytime-' + this.cssClean(item._id);
+        var elements = el.querySelectorAll(className);
 
-      for (i; i < len; i++) {
-        unit = busyUnits[i];
-        classes.push('.' + this._busyClass(unit));
+        var i = 0;
+        var len = elements.length;
+        var instance;
 
-        if (set) {
-          set.delete(unit);
-        }
-      }
-
-      if (element) {
-        list = element.querySelectorAll(classes);
-        len = list.length;
-
-        for (i = 0; i < len; i++) {
-          busyEl = list[i];
-          busyEl.parentNode.removeChild(busyEl);
-        }
-      }
-    },
-
-    /**
-     * Returns an html blob of busy units.
-     *
-     * @param {String} regId register id
-     *                       if given will register busy units.
-     * @param {Array} units list of units.
-     */
-    _renderBusyUnits: function _renderBusyUnits(regId, units) {
-      var output = '',
-          set;
-
-      if (regId) {
-        set = this._busySet(regId);
-      }
-
-      units.forEach(function(unit) {
-        output += template.busy.render(this._busyClass(unit));
-        if (set) {
-          set.add(unit);
+        for (; i < len; i++) {
+          instance = elements[i];
+          instance.parentNode.removeChild(instance);
         }
       }, this);
-
-      return output;
     },
 
     /**
@@ -274,26 +194,25 @@
      * @param {Date} date representing a date.
      */
     _renderDay: function _renderDay(date) {
-      var hours,
-          month = Calendar.Calc.today.getMonth(),
+      var month = Calendar.Calc.today.getMonth(),
           id = Calendar.Calc.getDayId(date),
           state,
           units,
           busytimes = this.app.store('Busytime');
 
-      hours = busytimes.getHours(date);
-      units = this._getBusyUnits(hours);
       state = Calendar.Calc.relativeState(
         date,
         this.controller.currentMonth
       );
 
+      // register instance in map
+      this._days[id] = null;
+
       return template.day.render({
         id: this._dayId(id),
         dateString: id,
         state: state,
-        date: date.getDate(),
-        busy: this._renderBusyUnits(id, units)
+        date: date.getDate()
       });
     },
 
@@ -335,6 +254,29 @@
     },
 
     /**
+     * Finds day element busytime container.
+     * Caches over time.
+     *
+     * @param {String|Date} date date id or date.
+     */
+    _busyElement: function(stringId) {
+      var id;
+      var found;
+
+      if (typeof(stringId) !== 'string') {
+        stringId = Calendar.Calc.getDayId(stringId);
+      }
+
+      id = this._dayId(stringId);
+
+      found = this.element.querySelector(
+        '#' + id + ' .busy-indicator'
+      );
+
+      return this._days[stringId] = found;
+    },
+
+    /**
      * Renders out an entire month.
      *
      * @param {Date} date date which month resides in.
@@ -364,6 +306,87 @@
       });
     },
 
+    _calculateBusytime: function(day, busytime) {
+      var record = {
+        _id: this.cssClean(busytime._id),
+        eventId: busytime.eventId,
+        calendarId: busytime.calendarId
+      };
+
+      var startDateDay = busytime.startDate.getDate();
+      var endDateDay = busytime.endDate.getDate();
+      var targetDay = day.getDate();
+
+      if (targetDay == startDateDay) {
+        record.start = this._hourToBusyUnit(
+          busytime.startDate.getHours()
+        );
+      } else {
+        record.start = 1;
+      }
+
+      if (targetDay == endDateDay) {
+        var end = this._hourToBusyUnit(
+          busytime.endDate.getHours()
+        );
+
+        record.length = ((end - record.start) || 0) + 1;
+
+      } else {
+        record.length = 12;
+      }
+
+      return record;
+    },
+
+    _addBusytime: function(date, busytime) {
+      var element = this._busyElement(date);
+
+      var html = template.busy.render(
+        this._calculateBusytime(date, busytime)
+      );
+
+      element.insertAdjacentHTML(
+        'afterbegin',
+        html
+      );
+    },
+
+    _renderBusytime: function(busytime) {
+      // render out a busytime span
+      var span = this._timespan;
+
+      // 1: busytime start/end occurs all on same month/day
+      var start = busytime.startDate;
+      var end = busytime.endDate;
+
+      if (Calendar.Calc.isSameDate(start, end)) {
+        return this._addBusytime(start, busytime);
+      }
+
+      // 2: busytime start/end occurs on different days
+      if (!span.contains(start) && !span.contains(end)) {
+        // 2a: if its outside our range entirely
+        // we know its going to occur during every day
+        Object.keys(this._days).forEach(function(date) {
+          this._addBusytime(date, busytime);
+        }, this);
+      } else {
+        // 2b: if inside range
+        // get all dates (inclusive) that need to be
+        // updated.
+        var days = Calendar.Calc.daysBetween(
+          start,
+          end
+        );
+
+        days.forEach(function(date) {
+          this._addBusytime(date, busytime);
+        }, this);
+      }
+
+    },
+
     /**
      * Activate this child view visually.
      */
@@ -388,8 +411,15 @@
      */
     attach: function(element) {
       var html = this._renderMonth();
+      var busytimes = this.app.store('Busytime');
+
       element.insertAdjacentHTML('beforeend', html);
       this.element = element.children[element.children.length - 1];
+
+      busytimes.busytimesInCachedSpan(this._timespan).forEach(
+        this._renderBusytime,
+        this
+      );
 
       this._initEvents();
 
@@ -398,6 +428,7 @@
 
     destroy: function() {
       this._destroyEvents();
+      this._days = Object.create(null);
 
       if (this.element) {
         this.element.parentNode.removeChild(this.element);

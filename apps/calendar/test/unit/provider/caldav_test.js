@@ -82,8 +82,6 @@ suite('provider/caldav', function() {
         });
       });
     });
-
   });
-
 });
 

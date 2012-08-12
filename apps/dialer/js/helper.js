@@ -23,6 +23,15 @@ function prettyDate(time) {
 }
 
 function headerDate(time) {
+  var today = 'Today';
+  var yesterday = 'Yesterday';
+  if (navigator.mozL10n) {
+    var _ = navigator.mozL10n.get;
+
+    today = _('today');
+    yesterday = _('yesterday');
+  }
+
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
   if (isNaN(day_diff))
@@ -31,8 +40,8 @@ function headerDate(time) {
   if (day_diff < 0 || diff < 0) {
     return (new Date(time)).toLocaleFormat('%x %R');
   }
-  return day_diff == 0 && 'Today' ||
-    day_diff == 1 && 'Yesterday' ||
+  return day_diff == 0 && today ||
+    day_diff == 1 && yesterday ||
     day_diff < 4 && (new Date(time)).toLocaleFormat('%A') ||
     (new Date(time)).toLocaleFormat('%x');
 }

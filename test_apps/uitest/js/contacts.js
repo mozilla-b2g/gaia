@@ -30,8 +30,16 @@ var ContactsTest = {
 
   get newWithDataActivityButton() {
     delete this.newWithDataActivityButton;
-    return this.newWithDataActivityButton = document.getElementById('activities-new-data');
+    return this.newWithDataActivityButton =
+                          document.getElementById('activities-new-data');
   },
+
+  get insertSocialContacts() {
+    delete this.insertSocialContacts;
+    return this.insertSocialContacts =
+                        document.getElementById('insert-social-contacts');
+  },
+
 
   init: function ct_init() {
     this.loadButton.addEventListener('click', this.loadContacts.bind(this));
@@ -42,7 +50,10 @@ var ContactsTest = {
                                             this.newActivity.bind(this));
 
     this.newWithDataActivityButton.addEventListener('click',
-                                            this.newWithDataActivity.bind(this));
+                                        this.newWithDataActivity.bind(this));
+
+    this.insertSocialContacts.addEventListener('click',
+                                        this.finsertSocialContacts.bind(this));
   },
 
   uninit: function ct_uninit() {
@@ -88,7 +99,8 @@ var ContactsTest = {
     activity.onsuccess = function() {
       var number = this.result.number;
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML = 'Picked contact with number: ' + number;
+        document.getElementById('activities-result').innerHTML =
+                                    'Picked contact with number: ' + number;
         var app = evt.target.result;
         app.launch();
       };
@@ -96,7 +108,8 @@ var ContactsTest = {
 
     activity.onerror = function() {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML = 'Activity canceled';
+        document.getElementById('activities-result').innerHTML =
+                                                        'Activity canceled';
         var app = evt.target.result;
         app.launch();
       };
@@ -116,7 +129,8 @@ var ContactsTest = {
     activity.onsuccess = function() {
       var contact = this.result.contact;
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML = 'New contact' + ' create with id: ' + contact.id;
+        document.getElementById('activities-result').innerHTML =
+                            'New contact' + ' create with id: ' + contact.id;
         self.setContactId(contact.id);
         var app = evt.target.result;
         app.launch();
@@ -125,7 +139,8 @@ var ContactsTest = {
 
     activity.onerror = function() {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML = 'Activity canceled';
+        document.getElementById('activities-result').innerHTML =
+                                                          'Activity canceled';
         var app = evt.target.result;
         app.launch();
       };
@@ -154,7 +169,8 @@ var ContactsTest = {
     activity.onsuccess = function() {
       var contact = this.result.contact;
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML = 'New contact' + ' create with id: ' + contact.id;
+        document.getElementById('activities-result').innerHTML =
+                          'New contact' + ' create with id: ' + contact.id;
         self.setContactId(contact.id);
         var app = evt.target.result;
         app.launch();
@@ -163,7 +179,8 @@ var ContactsTest = {
 
     activity.onerror = function() {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML = 'Activity canceled';
+        document.getElementById('activities-result').innerHTML =
+                                                        'Activity canceled';
         var app = evt.target.result;
         app.launch();
       };
@@ -188,39 +205,60 @@ var ContactsTest = {
     req.send(null);
   },
 
-  _insertContacts: function ct_insertContacts(aContacts, aCurrent) {
-    if (!aCurrent)
-      aCurrent = 0;
+  _insertContacts: function ct_insertContacts(aContacts) {
+    var self = this;
 
-    this._setInsertionCount(aCurrent, aContacts.length);
+    var cs = new ContactsSaver(aContacts);
+    cs.start();
 
-    // Base case - we've reached the end of the contacts list.
-    if (aCurrent >= aContacts.length) {
-      this.loadButton.disabled = false;
-      return;
+    cs.onsuccess = function() {
+      self.loadButton.disabled = false;
     }
-
-    var contact = new mozContact();
-    var contactData = aContacts[aCurrent];
-    contact.init(contactData);
-
-    var req = navigator.mozContacts.save(contact);
-
-    // Use some recursion here to add the next contact when this one
-    // is done being inserted.
-    req.onsuccess = function() {
-      this._insertContacts(aContacts, aCurrent + 1);
-    }.bind(this);
-
-    req.onerror = function() {
+    cs.onsaved = function(n) {
+      self._setInsertionCount(n, aContacts.length);
+    }
+    cs.onerror = function(c, e) {
       Components.utils.reportError('Could not add contact with name: ' +
-                                   contactData.familyName[0]);
+                                   c.familyName[0]);
     }
   },
 
   _setInsertionCount: function ct__setInsertionCount(aSoFar, aTotal) {
     var insertionEl = document.getElementById('insertion-count');
     insertionEl.textContent = aSoFar + ' / ' + aTotal;
+  },
+
+  _error: function ct__error(c) {
+    Components.utils.reportError('Could not add contact with name: ' +
+                                   c.familyName[0]);
+  },
+
+  finsertSocialContacts: function ct_finsertSocialContacts() {
+    var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('application/json');
+    xhr.open('GET', '../data/fakesocialcontacts/contacts_social.json', true);
+    xhr.onload = function(e) {
+      // We will get a 0 status if the app is in app://
+      if (xhr.status === 200 || xhr.status === 0) {
+        var cdata = JSON.parse(xhr.responseText);
+        this._insertSocialContacts(cdata.data);
+      }
+    }.bind(this);
+
+    xhr.send(null);
+  },
+
+  _insertSocialContacts: function ct__insertSocialContacts(contacts) {
+    var cs = new ContactsSaver(contacts);
+
+    cs.start();
+
+    var self = this;
+
+    cs.onsuccess = function() { window.alert('Added!'); }
+    cs.onerror = function(e, c) {
+      self._error(c);
+    }
   }
 };
 

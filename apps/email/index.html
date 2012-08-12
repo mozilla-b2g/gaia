@@ -82,8 +82,9 @@
            messages display to its right.  -->
       <div class="card-folder-picker card">
         <div class="fld-folders-header top-header">
-          <button class="fld-accounts-btn header-left-btn"
-                  data-l10n-id="accounts-button">AccountS</button>
+          <button class="fld-accounts-btn header-left-btn">
+            <span class="icon icon-account"></span>
+          </button>
           <h2 class="fld-folders-header-account-label header-label"></h2>
         </div>
         <div class="scrollregion-below-header">
@@ -92,19 +93,27 @@
           <div class="bottom-toolbar-spacer"></div>
         </div>
         <div class="fld-nav-toolbar bottom-toolbar">
-          <button class="fld-nav-settings-btn bottom-btn">GEAR</button>
+          <button class="fld-nav-settings-btn bottom-btn"></button>
         </div>
       </div>
       <!-- Lists the messages in a folder -->
       <div class="card-message-list card">
         <div class="msg-list-header top-header">
-          <button class="msg-folder-list-btn header-left-btn">|||</button>
+          <button class="msg-folder-list-btn header-left-btn">
+            <span class="icon icon-menu"></span>
+          </button>
           <h2 class="msg-list-header-folder-label header-label"></h2>
-          <button class="msg-compose-btn header-right-btn">+</button>
+          <button class="msg-edit-btn header-btn">
+            <span class="icon icon-edit"></span>
+          </button>
+          <button class="msg-compose-btn header-right-btn">
+            <span class="icon icon-add"></span>
+          </button>
         </div>
         <div class="msg-listedit-header top-edit-header top-header collapsed">
-          <button class="msg-listedit-cancel-btn header-left-btn"
-                  data-l10n-id="message-multiedit-cancel">CanceL</button>
+          <button class="msg-listedit-cancel-btn header-left-btn">
+            <span class="icon icon-close"></span>
+          </button>
           <h3 class="msg-listedit-header-label header-label"></h3>
         </div>
         <div class="msg-list-scrollouter">
@@ -141,9 +150,8 @@
         <div class="msg-activity-infobar hidden">
         </div>
         <div class="msg-list-action-toolbar bottom-toolbar">
-          <button class="msg-search-btn bottom-btn">SearcH</button>
-          <button class="msg-edit-btn bottom-btn">EdiT</button>
-          <button class="msg-refresh-btn bottom-btn">RefresH</button>
+          <button class="msg-refresh-btn bottom-btn"></button>
+          <button class="msg-search-btn bottom-btn"></button>
         </div>
         <div class="msg-listedit-action-toolbar bottom-edit-toolbar bottom-toolbar collapsed">
           <button class="msg-star-btn bottom-btn">StaR</button>
@@ -186,7 +194,9 @@
       <!-- Message Reader -->
       <div class="card-message-reader card">
         <div class="msg-reader-header top-header">
-          <button class="msg-back-btn back-btn header-left-btn">&lt;</button>
+          <button class="msg-back-btn back-btn header-left-btn">
+            <span class="icon icon-back"></span>
+          </button>
           <h2 class="msg-reader-header-label header-label"
               data-l10n-id="reader-header">ReaD</h2>
           <button class="msg-reply-btn header-right-btn">ReplY</button>
@@ -234,11 +244,14 @@
 
       <div class="card-compose card">
         <div class="cmp-compose-header top-header">
-          <button class="cmp-back-btn back-btn header-left-btn">&lt;</button>
+          <button class="cmp-back-btn back-btn header-left-btn">
+            <span class="icon icon-back"></span>
+          </button>
           <h2 class="cmp-compose-header-label header-label"
               data-l10n-id="compose-header">ComposE MessagE</h2>
-          <button class="cmp-send-btn header-right-btn"
-                  data-l10n-id="compose-send">SenD</button>
+          <button class="cmp-send-btn header-right-btn">
+            <span class="icon icon-send"></span>
+          </button>
         </div>
         <div class="scrollregion-below-header">
           <div class="cmp-envelope-bar">
@@ -292,7 +305,9 @@
       <!-- Enter your e-mail address, password, name -->
       <div class="card-setup-account-info form-card card">
         <div class="sup-account-header top-header">
-          <button class="sup-back-btn header-left-btn back-btn">&lt;</button>
+          <button class="sup-back-btn header-left-btn back-btn">
+            <span class="icon icon-back"></span>
+          </button>
           <h2 class="sup-account-header-label header-label"
               data-l10n-id="setup-account-header">NeW MaiL AccounT SetuP</h2>
         </div>
@@ -314,7 +329,9 @@
       <!-- I am setting up your account, please wait or read errors! -->
       <div class="card-setup-progress card">
         <div class="sup-account-header top-header">
-          <button class="sup-back-btn header-left-btn back-btn">&lt;</button>
+          <button class="sup-back-btn header-left-btn back-btn">
+            <span class="icon icon-back"></span>
+          </button>
           <h2 class="sup-account-header-label header-label"
               data-l10n-id="setup-account-header">NeW MaiL AccounT SetuP</h2>
         </div>
@@ -368,7 +385,9 @@
       <div class="card-settings-main card">
         <div class="tng-main-header top-header">
           <button class="tng-close-btn header-left-btn"
-                  data-l10n-id="settings-close">ClosE</button>
+                  data-l10n-id="settings-close">
+            <span class="icon icon-close"></span>
+          </button>
           <h2 class="tng-main-header-label header-label"
               data-l10n-id="settings-main-header">MaiL SettingS</h2>
         </div>
@@ -387,7 +406,9 @@
       <!-- Per-account settings menu; largely read-only for now -->
       <div class="card-settings-account card">
         <div class="tng-account-header top-header">
-          <button class="tng-back-btn back-btn header-left-btn">&lt;</button>
+          <button class="tng-back-btn back-btn header-left-btn">
+            <span class="icon icon-back"></span>
+          </button>
           <h2 class="tng-account-header-label header-label"></h2>
         </div>
       </div>

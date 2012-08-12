@@ -1,7 +1,5 @@
 #lockscreen {
   position: absolute;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
   /* 20px = height of status bar */
   top: 20px;
   width: -moz-calc(100%);
@@ -11,16 +9,53 @@
 
   -moz-user-select: none;
 
-  -moz-transition:
-    -moz-transform 0.5s ease 0.3s,
-    opacity 0.5s ease 0.3s;
   opacity: 1;
+
+  -moz-transition:
+    -moz-transform 0.5s ease,
+    opacity 0.5s ease,
+    visibility 0.5s ease;
 }
 
 #screen:not(.locked) > #lockscreen,
-#lockscreen[data-panel="camera"] {
+#screen.lockscreen-camera > #lockscreen {
   -moz-transform: scale(2);
   opacity: 0;
+  visibility: hidden;
+
+  -moz-transition:
+    -moz-transform 0.5s ease 0.3s,
+    opacity 0.5s ease 0.3s,
+    visibility 0.5s ease 0.3s;
+}
+
+#screen.lockscreen-camera > #lockscreen-camera {
+  visibility: visible;
+  -moz-transition: none;
+}
+
+#lockscreen-camera {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
+
+  /*
+  * This transition will be async when this bug is fixed
+  * https://bugzilla.mozilla.org/show_bug.cgi?id=780340
+  */
+  -moz-transition: visibility 0.5s ease 0.3s;
+  visibility: hidden;
+}
+
+#lockscreen-camera > iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 #lockscreen.uninit > * {
@@ -75,12 +110,13 @@
   font-weight: normal;
   line-height: 3.2rem;
   text-shadow: 0 0 3px #333;
-
+  visibility: hidden;
   -moz-transform: translateY(-10rem);
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 #lockscreen-header {
+  z-index: 9999;
   position: absolute;
   top: 0;
   left: 0;
@@ -90,13 +126,14 @@
   padding: 1.5rem 2.4rem 1.2rem 1.6rem;
   color: #fff;
   text-shadow: 0 0 3px #333;
-
+  visibility: hidden;
   -moz-transform: translateY(-10rem);
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 [data-panel=""] #lockscreen-header,
 [data-panel="camera"] #lockscreen-header {
+  visibility: inherit;
   -moz-transform: translateY(0);
 }
 
@@ -315,6 +352,21 @@
   -moz-transition: opacity 0.1s linear;
 }
 
+.lockscreen-icon-a11y-button {
+  width: 100%;
+  height: 100%;
+  border-width: inherit;
+  border-radius: inherit;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+.lockscreen-icon-a11y-button * {
+  display: none;
+}
+
 .lockscreen-icon.triggered {
   background-color: #52b6cc !important;
   border-color: #52b6cc;
@@ -433,6 +485,7 @@
 }
 
 [data-panel="passcode"] h2#lockscreen-passcode-status {
+  visibility: visible;
   -moz-transform: none;
 }
 
@@ -474,11 +527,13 @@
   padding: 0 1rem;
   -moz-box-sizing: border-box;
   border-top: 1px solid #525050;
+  visibility: hidden;
   -moz-transform: translateY(-moz-calc(21.4rem + 7.2rem));
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-code {
+  visibility: visible;
   -moz-transform: translateY(0);
 }
 
@@ -535,12 +590,13 @@
   height: 21.4rem;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
-
+  visibility: hidden;
   -moz-transform: translateY(21.4rem);
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-pad {
+  visibility: visible;
   -moz-transform: translateY(0);
 }
 
@@ -627,6 +683,7 @@
 }
 
 [data-panel="emergency-call"] h2#lockscreen-emergency-title {
+  visibility: visible;
   -moz-transform: none;
 }
 
@@ -639,9 +696,9 @@
   background-color: rgba(0, 0, 0, 0.8);
   padding-top: 10rem;
   border-top: 2px solid #525050;
-
+  visibility: hidden;
   -moz-transform: translateY(32rem);
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 
   /* TBD */
   font-size: 11.5rem;
@@ -650,22 +707,6 @@
 }
 
 [data-panel="emergency-call"] #lockscreen-emergency-pad {
+  visibility: visible;
   -moz-transform: translateY(0);
-}
-
-#lockscreen-camera {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
-}
-
-#lockscreen-camera > iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
 }

@@ -10,7 +10,8 @@
     "sms",
     "contacts",
     "webcontacts-manage",
-    "background"
+    "background",
+    "settings"
   ],
   "locales": {
     "ar": {

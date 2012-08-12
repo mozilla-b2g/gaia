@@ -25,7 +25,8 @@ Calendar.ns('Service').Caldav = (function() {
         'getAccount',
         'findCalendars',
         'getCalendar',
-        'getEvents'
+        'getEvents',
+        'streamEvents'
       ];
 
       events.forEach(function(e) {
@@ -58,6 +59,20 @@ Calendar.ns('Service').Caldav = (function() {
       req.prop(['calserver', 'getctag']);
 
       return req;
+    },
+
+    _requestEvents: function(connection, cal) {
+      var Resource = Caldav.Resources.Calendar;
+      var remoteCal = new Resource(connection, cal);
+      var query = remoteCal.createQuery();
+
+      query.prop('getetag');
+
+      // include only the VEVENT
+      query.filters.add('VEVENT', true);
+      query.fields.select('VCALENDAR', [{'VEVENT': true}]);
+
+      return query;
     },
 
     noop: function(callback) {
@@ -97,35 +112,39 @@ Calendar.ns('Service').Caldav = (function() {
 
       if (vevent.hasProperty(prop)) {
         var data = vevent.getFirstProperty(prop).data;
-        //FIXME: This should always start
-        //       as a UTC time and then
-        //       translated into the current
-        //       global timezone.
-        return new Date(
-          data.year,
-          // ICAL.js is 1 based
-          (data.month - 1),
-          data.day,
-          data.hour,
-          data.minute,
-          data.second
-        );
+        return data.value[0].toJSDate();
       }
 
       return null;
     },
 
-    _formatEvent: function(event) {
-      // map to a component
-      if (!(event instanceof ICAL.icalcomponent)) {
-        event = new ICAL.icalcomponent(event);
+    _formatEvent: function(rawData) {
+      var event;
+      // TODO: We do a round trip through ICAL.js
+      // right now to parse and then get back
+      // the raw upstream in ICAL.js the
+      // component modifies its input so we need
+      // to restore it to a clean state after.
+      // We should probably avoid this in ICAL.js
+      // so we don't need to do the roundtrip.
+      if (!(rawData instanceof ICAL.icalcomponent)) {
+        event = new ICAL.icalcomponent(rawData);
+        rawData = event.toJSON();
+      } else {
+        event = rawData;
+        rawData = event.toJSON();
       }
 
       var result = {};
       var vevent = event.getFirstSubcomponent(
         'VEVENT'
       );
+
       // simple strings...
+
+      result.id = this._remoteString(
+        vevent, 'UID'
+      );
 
       result.title = this._remoteString(
         vevent, 'SUMMARY'
@@ -146,6 +165,15 @@ Calendar.ns('Service').Caldav = (function() {
       result.endDate = this._remoteDate(
         vevent, 'DTEND'
       );
+
+      //XXX: quick hack for now
+      //we need to expand recurring in
+      //the future.
+      result.occurs = [
+        result.startDate
+      ];
+
+      result._rawData = rawData;
 
       return result;
     },
@@ -186,8 +214,37 @@ Calendar.ns('Service').Caldav = (function() {
       });
     },
 
-    getEvents: function(account, calendar) {
+    streamEvents: function(account, calendar, stream, callback) {
+      var self = this;
+      var connection = new Caldav.Connection(
+        account
+      );
+
+      var request = this._requestEvents(connection, calendar);
+
+      function emitData(url, data) {
+        var event = data['calendar-data'];
+        var token = data['getetag'];
+
+        //XXX: Handle events
+        if (event.status == 200) {
+          data = self._formatEvent(event.value);
+          if (token.status == 200) {
+            data.syncToken = token.value;
+          }
+          stream.emit('data', data);
+        }
+      }
+      request.sax.on('DAV:/response', emitData);
+
+      request.send(function(err) {
+        request.sax.removeEventListener(
+          'DAV:/response', emitData
+        );
+        callback(err);
+      });
     }
+
   };
 
   return Service;

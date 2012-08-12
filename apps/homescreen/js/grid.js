@@ -14,7 +14,7 @@ const GridManager = (function() {
   var opacityMax = .7;
 
   var pages = [];
-  pages.current = 0;
+  var currentPage = 0;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -22,16 +22,14 @@ const GridManager = (function() {
     right: 0
   };
 
-  var startEvent, currentEvent, isPanning = false;
+  var startEvent, isPanning = false;
 
   function handleEvent(evt) {
     switch (evt.type) {
       case 'mousedown':
         evt.stopPropagation();
-        document.body.dataset.transitioning = 'true';
-
-        startEvent = currentEvent = cloneEvent(evt);
-        onTouchStart(currentEvent.x - startEvent.x);
+        startEvent = evt;
+        attachEvents();
         break;
 
       case 'mousemove':
@@ -40,55 +38,47 @@ const GridManager = (function() {
         // Starts dragging only when tapping does not make sense
         // anymore. The drag will then start from this point to avoid
         // a jump effect.
-        currentEvent = cloneEvent(evt);
-        var tap = Math.abs(currentEvent.x - startEvent.x) < thresholdForTapping;
-        if (!isPanning && tap) {
-          return;
-        } else if (!isPanning) {
-          isPanning = true;
-          startEvent = currentEvent;
+        var deltaX = evt.clientX - startEvent.clientX;
+        if (!isPanning) {
+          if (Math.abs(deltaX) < thresholdForTapping) {
+            return;
+          } else {
+            isPanning = true;
+            document.body.dataset.transitioning = 'true';
+          }
         }
 
-        onTouchMove(currentEvent.x - startEvent.x);
+        var len = pages.length;
+        for (var i = 0; i < len; i++) {
+          pages[i].moveBy((-currentPage + i) * windowWidth + deltaX);
+        }
+        setOverlayPanning(deltaX);
         break;
 
       case 'mouseup':
         evt.stopPropagation();
+        releaseEvents();
         if (!isPanning) {
-          delete document.body.dataset.transitioning;
+          pageHelper.getCurrent().tap(evt.target);
+        } else {
+          isPanning = false;
+          onTouchEnd(evt.clientX - startEvent.clientX);
         }
-        isPanning = false;
 
-        currentEvent = cloneEvent(evt);
-        onTouchEnd(currentEvent.x - startEvent.x, evt.target);
-        break;
-
-      case 'resize':
-        limits.left = container.offsetWidth * 0.05;
-        limits.right = container.offsetWidth * 0.95;
         break;
 
       case 'contextmenu':
-        if (pages.current !== 0) {
-          evt.stopPropagation();
-          evt.preventDefault();
-          goToPage(pages.current);
+        if (currentPage !== 0) {
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
-            DragDropManager.start(evt, startEvent);
+            DragDropManager.start(evt, {
+              'x': startEvent.clientX,
+              'y': startEvent.clientY
+            });
           }
         }
         break;
     }
-  }
-
-  function onTouchStart(deltaX) {
-    attachEvents();
-  }
-
-  function onTouchMove(deltaX) {
-    pan(deltaX);
-    setOverlayPanning(deltaX);
   }
 
   function setOverlayPanning(deltaX) {
@@ -96,10 +86,9 @@ const GridManager = (function() {
       return;
     }
     var forward = dirCtrl.goesForward(deltaX);
-    var current = pages.current;
-    if (current === 0 && forward) {
+    if (currentPage === 0 && forward) {
       applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
-    } else if (current === 1 && !forward) {
+    } else if (currentPage === 1 && !forward) {
       applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
     }
   }
@@ -117,29 +106,17 @@ const GridManager = (function() {
 
   }
 
-  function onTouchEnd(deltaX, target) {
-    releaseEvents();
-
-    var currentPage = pages.current;
-
+  function onTouchEnd(deltaX) {
+    var page = currentPage;
     if (Math.abs(deltaX) > thresholdForPanning) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pageHelper.total() - 1) {
-        goToNextPage();
+        page = page + 1;
       } else if (!forward && currentPage > 0) {
-        goToPreviousPage();
-      } else {
-        goToPage(currentPage);
+        page = page - 1;
       }
-    } else if (Math.abs(deltaX) < thresholdForTapping) {
-      pageHelper.getCurrent().tap(target);
-
-      // Sometime poor devices fire touchmove events when users are only
-      // tapping
-      goToPage(currentPage);
-    } else {
-      goToPage(currentPage);
     }
+    goToPage(page);
   }
 
   function attachEvents() {
@@ -154,49 +131,32 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
-  function cloneEvent(evt) {
-    if ('touches' in evt) {
-      evt = evt.touches[0];
-    }
-    return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
-  }
-
-  /*
-   * Page Navigation utils.
-   */
-  function pan(deltaX, duration) {
-    pages.forEach(function(page, index) {
-      var scrollX = (-pages.current + index) * windowWidth + deltaX;
-      page.moveBy(scrollX, duration || 0, deltaX);
-    });
-  }
-
   function goToPage(index, callback) {
-    var previousIndex = pages.current;
-    if (index === 0 && previousIndex === 1 && Homescreen.isInEditMode()) {
+    if (index === 0 && currentPage === 1 && Homescreen.isInEditMode()) {
       index = 1;
     }
 
-    var isSamePage = pages.current === index;
-    pages.current = index;
-    callback = callback || function() {};
+    var isSamePage = currentPage === index;
+    if (!isSamePage) {
+      delete pages[currentPage].container.dataset.currentPage;
+      currentPage = index;
+      pages[currentPage].container.dataset.currentPage = 'true';
+    }
 
-    var transitionEnd = function gtp_transitionEnd() {
+    container.addEventListener('transitionend', function transitionEnd(e) {
+      container.removeEventListener('transitionend', transitionEnd);
       if (!dragging) {
         delete document.body.dataset.transitioning;
       }
-      callback();
-    }
-
-    var currentPage = pageHelper.getCurrent();
-    var currentPageContainer = currentPage.container;
-
-    currentPageContainer.addEventListener('transitionend', function end(e) {
-      currentPageContainer.removeEventListener('transitionend', end);
-      currentPage.bounce(previousIndex - index, transitionEnd);
+      if (callback) {
+        callback();
+      }
     });
 
-    pan(0, .3);
+    var len = pages.length;
+    for (var i = 0; i < len; i++) {
+      pages[i].moveByWithEffect((-currentPage + i) * windowWidth, .3);
+    }
     if (index === 0) {
       applyEffectOverlay(0, .3);
     } else if (index === 1) {
@@ -209,15 +169,17 @@ const GridManager = (function() {
   }
 
   function goToNextPage(callback) {
-    goToPage(pages.current + 1, callback);
+    document.body.dataset.transitioning = 'true';
+    goToPage(currentPage + 1, callback);
   }
 
   function goToPreviousPage(callback) {
-    goToPage(pages.current - 1, callback);
+    document.body.dataset.transitioning = 'true';
+    goToPage(currentPage - 1, callback);
   }
 
   function updatePaginationBar() {
-    PaginationBar.update(pages.current, pageHelper.total());
+    PaginationBar.update(currentPage, pages.length);
   }
 
   /*
@@ -453,15 +415,15 @@ const GridManager = (function() {
     },
 
     getNext: function() {
-      return pages[pages.current + 1];
+      return pages[currentPage + 1];
     },
 
     getPrevious: function() {
-      return pages[pages.current - 1];
+      return pages[currentPage - 1];
     },
 
     getCurrent: function() {
-      return pages[pages.current];
+      return pages[currentPage];
     },
 
     getLast: function() {
@@ -469,7 +431,7 @@ const GridManager = (function() {
     },
 
     getCurrentPageNumber: function() {
-      return pages.current;
+      return currentPage;
     },
 
     getTotalPagesNumber: function() {
@@ -493,7 +455,6 @@ const GridManager = (function() {
       }
 
       container.addEventListener('mousedown', handleEvent, true);
-      container.addEventListener('resize', handleEvent, true);
 
       limits.left = container.offsetWidth * 0.05;
       limits.right = container.offsetWidth * 0.95;
@@ -535,11 +496,9 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage(index, function() {
-          setTimeout(function() {
-            pageHelper.getCurrent().
-              applyInstallingEffect(Applications.getOrigin(app));
-          }, 200);
+        goToPage(index, function ins_goToPage() {
+          pageHelper.getCurrent().
+                    applyInstallingEffect(Applications.getOrigin(app));
         });
       }
 

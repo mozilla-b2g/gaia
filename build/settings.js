@@ -57,10 +57,12 @@ var settings = [
  new Setting("ril.data.enabled", false),
  new Setting("ril.data.apn", ""),
  new Setting("ril.data.passwd", ""),
+ new Setting("ril.data.httpProxyHost", ""),
+ new Setting("ril.data.httpProxyPort", 0),
  new Setting("ril.data.mmsc", ""),
  new Setting("ril.data.mmsproxy", ""),
  new Setting("ril.data.mmsport", 0),
- new Setting("ril.data.roaming.enabled", false),
+ new Setting("ril.data.roaming_enabled", false),
  new Setting("ril.data.user", ""),
  new Setting("ril.radio.disabled", false),
  new Setting("screen.automatic-brightness", true),
@@ -72,7 +74,7 @@ var settings = [
  new Setting("tethering.wifi.connectedClients", 0),
  new Setting("tethering.usb.connectedClients", 0),
  new Setting("ums.enabled", false),
- new Setting("ums.mode", ""),
+ new Setting("ums.mode", 0),
  new Setting("wifi.enabled", true),
  new Setting("wifi.notification", false)
 ];
@@ -107,8 +109,6 @@ function Setting(aName, aValue) {
 
   Setting.counter++;
 }
-
-const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils' : Cu } = Components;
 
 (function registerProfileDirectory() {
 

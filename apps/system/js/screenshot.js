@@ -34,7 +34,7 @@
     try {
       if (e.detail.type === 'take-screenshot-success') {
         var storage = navigator.getDeviceStorage('pictures');
-        storage = storage[0] || storage;  // avoid API version skew 
+        storage = storage[0] || storage;  // avoid API version skew
         if (!storage) { // If we don't have an SD card to save to, send an error
           navigator.mozNotification
             .createNotification(_('screenshotFailed'), _('screenshotNoSDCard'))

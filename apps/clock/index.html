@@ -133,6 +133,7 @@
     <div id="alarm" class="view" data-title="Alarm">
       <header>
         <a href="#alarm-view" class="left button close">
+          <div class="background-close"></div>
           <div class="icon-close"></div>
         </a>
         <h1 id="alarm-title" class="label" data-l10n-id="edit_alarm">Edit Alarm</h1>
@@ -140,49 +141,43 @@
       </header>
       <ul class="tableView">
         <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat</span>
-          <a id="repeat-menu" href="#repeat" class="abstract-menu">Never > </a>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="sound">Sound</span>
-          <a id="sound-menu" href="#sound" class="abstract-menu">Default > </a>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze</span>
-          <a id="snooze-menu" href="#snooze" class="abstract-menu">10 minutes > </a>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="color">Color</span>
-          <a id="color-menu" href="#color" class="abstract-menu">Darkorange > </a>
-          <p></p>
-        </li>
-        <li class="singleline">
-        <span class="view-alarm-lbl" data-l10n-id="enable">Enable</span>
-          <label>
-            <input type="checkbox" name="alarm.enable"/>
-            <span class="editSetEnabledBtn"></span> </label>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="label">Label</span>
+          <span class="view-alarm-lbl" data-l10n-id="label">Label<sapn>:</sapn></span>
           <input type="text" class="right" name="alarm.label" placeholder="Alarm" />
           <p></p>
         </li>
+        <li class="multiline">
+          <div id="picker-bar">
+            <div id="picker-container">
+              <div id="value-indicator-bottom"></div>
+              <div id="value-picker-hours" class="animation-on"></div>
+              <div class="left-picker-separator"></div>
+              <div id="value-picker-minutes" class="animation-on"></div>
+              <div class="right-picker-separator"></div>
+              <div id="value-picker-hour24-state" class="animation-on"></div>
+              <div id="value-indicator-hover"></div>
+            </div>
+            <div id="picker-bar-gradient"></div>
+          </div>
+        </li>
         <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="hour">Hour</span>
-          <input type="number" class="right" name="alarm.hour" maxlength="2" placeholder="08" required pattern="[0-2][0-9]"/>
-
+          <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat<sapn>:</sapn></span>
+          <a id="repeat-menu" href="#repeat" class="abstract-menu">Never</a>
           <p></p>
         </li>
         <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="minute">Minute</span>
-          <input type="number" class="right" name="alarm.minute" maxlength="2" placeholder="30" required pattern="[0-5][0-9]"/>
+          <span class="view-alarm-lbl" data-l10n-id="sound">Sound<sapn>:</sapn></span>
+          <a id="sound-menu" href="#sound" class="abstract-menu">Default</a>
           <p></p>
         </li>
-        <li class="delete">
-          <a id="alarm-del" href="#root" data-l10n-id="delete">Delete</a>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze<sapn>:</sapn></span>
+          <a id="snooze-menu" href="#snooze" class="abstract-menu">10 minutes</a>
+          <p></p>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="color">Color<sapn>:</sapn></span>
+          <a id="color-menu" href="#color" class="abstract-menu">Darkorange</a>
+          <p></p>
         </li>
       </ul>
     </div>

@@ -90,7 +90,7 @@ var LockScreen = {
     this.areaCamera.addEventListener('mousedown', this);
     this.areaUnlock.addEventListener('mousedown', this);
 
-    /* Unlock clean up */
+    /* Unlock & camera panel clean up */
     this.overlay.addEventListener('transitionend', this);
 
     /* Passcode input pad*/
@@ -236,6 +236,22 @@ var LockScreen = {
 
             overlay.classList.add('touched');
             break;
+
+          case this.accessibilityUnlock:
+            overlay.classList.add('touched');
+            this.areaUnlock.classList.add('triggered');
+            this.areaHandle.classList.add('triggered');
+            this._touch.target = this.areaUnlock;
+            this.handleGesture();
+            break;
+
+          case this.accessibilityCamera:
+            overlay.classList.add('touched');
+            this.areaUnlock.classList.add('triggered');
+            this.areaHandle.classList.add('triggered');
+            this._touch.target = this.areaCamera;
+            this.handleGesture();
+            break;
         }
         break;
 
@@ -262,10 +278,13 @@ var LockScreen = {
         if (evt.target !== this.overlay)
           return;
 
-        if (!this.locked) {
-          this.switchPanel();
-          this.overlay.hidden = true;
+        if (this.overlay.dataset.panel !== 'camera' &&
+            this.camera.firstElementChild) {
+          this.camera.removeChild(this.camera.firstElementChild);
         }
+
+        if (!this.locked)
+          this.switchPanel();
         break;
 
       case 'home':
@@ -376,11 +395,15 @@ var LockScreen = {
 
           self.unlock();
 
-          // XXX: This should be replaced probably by Web Activities *safely*
-          var host = document.location.host;
-          var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-          var protocol = document.location.protocol + '//';
-          Applications.getByOrigin(protocol + 'camera.' + domain).launch();
+          var a = new MozActivity({
+            name: 'record',
+            data: {
+              type: 'photos'
+            }
+          });
+          a.onerror = function ls_activityError() {
+            console.log('MozActivity: camera launch error.');
+          }
         };
 
 
@@ -470,7 +493,6 @@ var LockScreen = {
     if (instant) {
       this.overlay.classList.add('no-transition');
       this.switchPanel();
-      this.overlay.hidden = true;
     } else {
       this.overlay.classList.remove('no-transition');
     }
@@ -480,6 +502,8 @@ var LockScreen = {
     WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
 
     if (!wasAlreadyUnlocked) {
+      // Any changes made to this,
+      // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('unlock');
       this.writeSetting(false);
       this.hideNotification();
@@ -489,7 +513,6 @@ var LockScreen = {
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
-    this.overlay.hidden = false;
 
     this.switchPanel();
 
@@ -506,6 +529,8 @@ var LockScreen = {
     this.updateTime();
 
     if (!wasAlreadyLocked) {
+      // Any changes made to this,
+      // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('lock');
       this.writeSetting(true);
     }
@@ -528,12 +553,12 @@ var LockScreen = {
         var mainScreen = this.mainScreen;
         frame.onload = function cameraLoaded() {
           mainScreen.classList.add('lockscreen-camera');
-          callback();
         };
         this.overlay.classList.remove('no-transition');
-        this.camera.hidden = false;
         this.camera.appendChild(frame);
 
+        if (callback)
+          callback();
         break;
     }
   },
@@ -551,17 +576,7 @@ var LockScreen = {
         break;
 
       case 'camera':
-        var self = this;
-        this.overlay.addEventListener('transitionend',
-          function ls_unloadCamera() {
-            self.overlay.removeEventListener('transitionend',
-                                             ls_unloadCamera);
-
-            // Remove the iframe element
-            self.mainScreen.classList.remove('lockscreen-camera');
-            self.camera.hidden = true;
-            self.camera.removeChild(this.camera.firstElementChild);
-          });
+        this.mainScreen.classList.remove('lockscreen-camera');
         break;
 
       case 'emergency':
@@ -588,7 +603,10 @@ var LockScreen = {
         }
 
         this.overlay.addEventListener('transitionend',
-          function ls_unloadDefaultPanel() {
+          function ls_unloadDefaultPanel(evt) {
+            if (evt.target !== this)
+              return;
+
             self.overlay.removeEventListener('transitionend',
                                              ls_unloadDefaultPanel);
             unload();
@@ -644,10 +662,24 @@ var LockScreen = {
       return;
     }
 
+    // Possible value of voice.state are
+    // 'notSearching', 'searching', 'denied', 'registered',
+    // where the later three means the phone is trying to grabbing
+    // the network. See
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
+    if (voice.state == 'notSearching') {
+      // "No Network"
+      connstate.dataset.l10nId = 'noNetwork';
+      connstate.textContent = _('noNetwork') || '';
+
+      return;
+    }
+
     if (!voice.connected && !voice.emergencyCallsOnly) {
-      // "No Network" / "Searching"
-      // XXX: need differentiate the two
-      // https://github.com/mozilla-b2g/gaia/issues/2763
+      // "Searching"
+      // voice.state can be any of the later three value.
+      // (it's possible, briefly that the phone is 'registered'
+      // but not yet connected.)
       connstate.dataset.l10nId = 'searching';
       connstate.textContent = _('searching') || '';
 
@@ -785,7 +817,7 @@ var LockScreen = {
         'area', 'area-unlock', 'area-camera', 'area-handle',
         'rail-left', 'rail-right',
         'passcode-code', 'passcode-pad',
-        'camera'];
+        'camera', 'accessibility-camera', 'accessibility-unlock'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

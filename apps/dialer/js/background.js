@@ -39,6 +39,8 @@
     }
   });
 
+  var _ = navigator.mozL10n.get;
+
   /* === Incoming handling === */
   telephony.addEventListener('callschanged', function bs_incomingHandler(evt) {
     // If the call screen is displayed we don't need
@@ -100,8 +102,9 @@
             app.launch('#recents-view');
           };
 
-          var title = 'Missed call';
-          var body = 'From ' + (call.number.length ? call.number : 'Anonymous');
+          var title = _('missedCall');
+          var body = _('from') + ' ' +
+            (call.number.length ? call.number : _('unknown'));
 
           NotificationHelper.send(title, body, iconURL, notiClick);
         };
