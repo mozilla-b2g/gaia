@@ -150,7 +150,7 @@ var queryURI = function _queryURI(uri) {
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
   var sendMail = function actHandleMail() {
-    if (!to || !subject)
+    if (!to)
       return;
 
     var folderToUse = Cards._cardStack[Cards

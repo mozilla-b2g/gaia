@@ -3,12 +3,17 @@
   display: none;
 }
 
+#screen.utility-tray > #utility-tray {
+  visibility: visible;
+}
+
 #utility-tray {
   position: absolute;
   top: -moz-calc(-100% + 40px);
   width: -moz-calc(100%);
   height: -moz-calc(100% - 20px);
   background-color: #222;
+  visibility: hidden;
 }
 
 #utility-tray-grippy {

@@ -42,7 +42,7 @@
   width: 100%;
   /* Status bar height * 2 */
   height: 40px;
-
+  z-index: 2;
   display: none;
 }
 

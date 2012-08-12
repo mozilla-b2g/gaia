@@ -1031,22 +1031,33 @@ var ThreadUI = {
   },
 
   renderContactData: function thui_renderContactData(contact) {
-    // Create DOM element
-    var threadHTML = document.createElement('div');
-    threadHTML.classList.add('item');
-
     // Retrieve info from thread
-    var name = Utils.escapeHTML(contact.name.toString());
-    var number = Utils.escapeHTML(contact.tel[0].number.toString());
-    // Create HTML structure
-    var structureHTML =
-            '  <a href="#num=' + contact.tel[0].number + '">' +
-            '    <div class="name">' + name + '</div>' +
-            '    <div class="number">' + number + '</div>' +
-            '  </a>';
-    // Update HTML and append
-    threadHTML.innerHTML = structureHTML;
-    ThreadUI.view.appendChild(threadHTML);
+    var phoneType = ContactDataManager.phoneType;
+    var name = contact.name.toString();
+    var tels = contact.tel;
+    for (var i = 0; i < tels.length; i++) {
+      var input = this.contactInput.value;
+      var number = tels[i].number.toString();
+      var reg = new RegExp(input, 'ig');
+      if (!(name.match(reg) || (number.match(reg)))) {
+        continue;
+      }
+      var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
+      var numHTML = SearchUtils.createHighlightHTML(number, reg, 'highlight');
+      // Create DOM element
+      var threadHTML = document.createElement('div');
+      threadHTML.classList.add('item');
+      // Create HTML structure
+      var structureHTML =
+              '  <a href="#num=' + contact.tel[i].number + '">' +
+              '    <div class="name">' + nameHTML + '</div>' +
+              '    <div class="type">' + _(phoneType[i]) + '   ' + numHTML +
+              '    </div>' +
+              '  </a>';
+      // Update HTML and append
+      threadHTML.innerHTML = structureHTML;
+      ThreadUI.view.appendChild(threadHTML);
+    }
   },
 
   searchContact: function thui_searchContact() {
@@ -1061,7 +1072,7 @@ var ThreadUI = {
       if (!contacts || contacts.length == 0) {
         return;
       }
-      contacts.forEach(self.renderContactData);
+      contacts.forEach(self.renderContactData.bind(self));
     });
   },
 

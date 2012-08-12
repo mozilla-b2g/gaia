@@ -100,6 +100,10 @@
         output[key] = this[key];
       }, this);
 
+      if (this._id || this._id === 0) {
+        output._id = this._id;
+      }
+
       return output;
     }
 

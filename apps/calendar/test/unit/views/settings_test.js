@@ -31,6 +31,7 @@ suite('views/settings', function() {
     div.innerHTML = [
       '<div id="wrapper"></div>',
       '<div id="settings">',
+        '<button class="sync">sync</button>',
         '<ul class="calendars"></ul>',
       '</div>'
     ].join('');
@@ -57,6 +58,10 @@ suite('views/settings', function() {
 
   test('#calendars', function() {
     assert.ok(subject.calendars);
+  });
+
+  test('#syncButton', function() {
+    assert.ok(subject.syncButton);
   });
 
   suite('#_initEvents', function() {
@@ -113,6 +118,29 @@ suite('views/settings', function() {
       assert.equal(children.length, 0);
     });
 
+  });
+
+  test('sync', function() {
+    var controller = app.syncController;
+    var calledWith;
+    var el = subject.syncButton;
+
+    controller.sync = function() {
+      calledWith = arguments;
+    }
+
+    triggerEvent(subject.syncButton, 'click');
+
+    assert.isTrue(el.classList.contains(
+      subject.activeClass
+    ));
+
+    assert.ok(calledWith);
+    calledWith[0]();
+
+    assert.isFalse(el.classList.contains(
+      subject.activeClass
+    ));
   });
 
   suite('#render', function() {

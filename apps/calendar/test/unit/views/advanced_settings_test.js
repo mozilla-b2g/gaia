@@ -1,7 +1,8 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireApp('calendar/js/templates/account.js');
-  requireApp('calendar/js/presets.js');
-  requireApp('calendar/js/views/advanced_settings.js');
+  requireLib('models/account.js');
+  requireLib('templates/account.js');
+  requireLib('presets.js');
+  requireLib('views/advanced_settings.js');
 });
 
 suite('views/advanced_settings', function() {
@@ -10,19 +11,19 @@ suite('views/advanced_settings', function() {
   var template;
   var app;
   var store;
-  var fixtures = {
-    a: {
-      _id: 'a',
-      preset: 'foo',
-      user: 'a@yahoo.com'
-    },
+  var fixtures;
 
-    b: {
-      _id: 'b',
-      preset: 'foo',
-      user: 'b@yahoo.com'
-    }
-  };
+  suiteSetup(function() {
+    fixtures = {
+      a: Factory('account', {
+        _id: 'a'
+      }),
+
+      b: Factory('account', {
+        _id: 'b'
+      })
+    };
+  });
 
   function modelHtml(object) {
     return template.account.render(

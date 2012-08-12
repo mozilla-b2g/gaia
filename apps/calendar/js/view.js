@@ -34,12 +34,29 @@
     }
   }
 
+  const INVALID_CSS = /([^a-zA-Z\-\_0-9])/g;
+
   View.prototype = {
     seen: false,
     activeClass: 'active',
 
     get element() {
       return this._findElement('element');
+    },
+
+    /**
+     * Clean a string for use with css.
+     * Converts illegal chars to legal ones.
+     */
+    cssClean: function(string) {
+      if (typeof(string) !== 'string')
+        return string;
+
+      //TODO: I am worried about the performance
+      //of using this all over the place =/
+      //consider sanitizing all keys to ensure
+      //they don't blow up when used as a selector?
+      return string.replace(INVALID_CSS, '-');
     },
 
     /**

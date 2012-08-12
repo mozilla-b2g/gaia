@@ -18,7 +18,8 @@ const DragDropManager = (function() {
    */
   var disabledCheckingLimitsTimeout = null;
 
-  var draggableIcon, draggableIconOrigin;
+  var draggableIcon, draggableIconOrigin, previousOverlapIcon,
+      overlapingTimeout;
 
   var pageHelper = GridManager.pageHelper;
 
@@ -49,20 +50,23 @@ const DragDropManager = (function() {
     transitioning = false;
   };
 
-  function overDock() {
-    if (overlapingDock) {
-      return;
-    }
-
-    // I've just entered
-    if (DockManager.isFull()) {
-      isDisabledDrop = true;
-    } else {
+  function overDock(overlapElem) {
+    if (!overlapingDock && !DockManager.isFull()) {
+      // I've just entered
       draggableIcon.addClassToDragElement('overDock');
       pageHelper.getCurrent().remove(draggableIcon);
       DockManager.page.append(draggableIcon);
-      overlapingDock = true;
+      drop(overlapElem, DockManager.page);
+      previousOverlapIcon = overlapElem;
     }
+
+    if (dirCtrl.limitNext(currentEvent.x)) {
+      DockManager.goNextSet();
+    } else if (dirCtrl.limitPrev(currentEvent.x)) {
+      DockManager.goPreviousSet();
+    }
+
+    overlapingDock = true;
   }
 
   function overIconGrid() {
@@ -131,9 +135,9 @@ const DragDropManager = (function() {
    * Furthermore, this method is in charge of creating a new page when
    * it's needed
    */
-  function checkLimits() {
+  function checkLimits(overlapElem) {
     if (currentEvent.y >= limitY) {
-      overDock();
+      overDock(overlapElem);
     } else {
       overIconGrid();
     }
@@ -176,6 +180,27 @@ const DragDropManager = (function() {
     }
   };
 
+  function drop(overlapElem, page) {
+    var classList = overlapElem.classList;
+    if (classList.contains('icon') || classList.contains('options')) {
+      var overlapElemOrigin = overlapElem.dataset.origin;
+      page.drop(draggableIconOrigin, overlapElemOrigin);
+    } else if (classList.contains('dockWrapper')) {
+      var firstIcon = page.getFirstIcon();
+      if (currentEvent.x < firstIcon.getLeft()) {
+        if (draggableIcon !== firstIcon) {
+          page.drop(draggableIconOrigin, firstIcon.getOrigin());
+        }
+      } else {
+        var lastIcon = page.getLastIcon();
+        if (draggableIcon !== lastIcon) {
+          page.drop(draggableIconOrigin, lastIcon.getOrigin());
+        }
+      }
+    }
+    previousOverlapIcon = undefined;
+  }
+
   /*
    * It's performed when the draggable element is moving
    *
@@ -189,8 +214,9 @@ const DragDropManager = (function() {
       return;
     }
 
-    checkLimits();
+    checkLimits(overlapElem);
     if (isDisabledDrop) {
+      clearTimeout(overlapingTimeout);
       return;
     }
 
@@ -199,16 +225,19 @@ const DragDropManager = (function() {
       return;
     }
 
-    if (classList.contains('icon') || classList.contains('options')) {
-      var overlapElemOrigin = overlapElem.dataset.origin;
-      page.drop(draggableIconOrigin, overlapElemOrigin);
-    } else if (classList.contains('page')) {
-      var lastIcon = page.getLastIcon();
-      if (lastIcon && currentEvent.y > lastIcon.getTop() &&
-          draggableIcon !== lastIcon) {
-        page.drop(draggableIconOrigin, lastIcon.getOrigin());
+    if (previousOverlapIcon !== overlapElem) {
+      clearTimeout(overlapingTimeout);
+      if (classList.contains('page')) {
+        var lastIcon = page.getLastIcon();
+        if (currentEvent.y > lastIcon.getTop() && draggableIcon !== lastIcon) {
+          page.drop(draggableIconOrigin, lastIcon.getOrigin());
+        }
+      } else {
+        overlapingTimeout = setTimeout(drop, 500, overlapElem, page);
       }
     }
+
+    previousOverlapIcon = overlapElem;
   }
 
   function onMove(evt) {
@@ -222,6 +251,7 @@ const DragDropManager = (function() {
   function onEnd(evt) {
     evt.stopPropagation();
     evt.preventDefault();
+    clearTimeout(overlapingTimeout);
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup', onEnd);
     stop(function dg_stop() {
