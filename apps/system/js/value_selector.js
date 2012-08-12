@@ -12,37 +12,78 @@ var ValueSelector = {
   },
 
   init: function vs_init() {
+
+    var self = this;
+
+    window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+      var typeToHandle = ['select-one', 'select-multiple', 'date',
+        'time', 'datetime', 'datetime-local'];
+
+      var type = evt.detail.type;
+      // handle the <select> element and inputs with type of date/time
+      // in system app for now
+      if (typeToHandle.indexOf(type) == -1)
+        return;
+
+      switch (evt.detail.type) {
+        case 'select-one':
+        case 'select-multiple':
+          self.debug('select triggered' + JSON.stringify(evt.detail));
+          self._currentPickerType = evt.detail.type;
+          self.showOptions(evt.detail);
+          break;
+
+        case 'date':
+          self.showDatePicker();
+          break;
+
+        case 'time':
+          self.showTimePicker();
+          break;
+
+        case 'datetime':
+        case 'datetime-local':
+          // TODO
+          break;
+      }
+    };
+
     this._element = document.getElementById('value-selector');
     this._container = document.getElementById('value-selector-container');
-    this._container.addEventListener('click', this.handleSelect.bind(this));
+    this._container.addEventListener('click', this);
 
     this._cancelButton = document.getElementById('value-selector-cancel');
     this._cancelButton.addEventListener('click', this);
 
     this._confirmButton = document.getElementById('value-selector-confirm');
-    this._confirmButton.addEventListener('click', this.confirm.bind(this));
+    this._confirmButton.addEventListener('click', this);
 
-    window.addEventListener('select', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
   },
 
   handleEvent: function vs_handleEvent(evt) {
     switch (evt.type) {
-      case 'select':
-        this.debug('select triggered' + JSON.stringify(evt.detail));
-        this._singleSelect = !evt.detail.choices.multiple;
-        this.show(evt.detail);
-        break;
-
       case 'appopen':
       case 'appwillclose':
         this.hide();
         break;
 
       case 'click':
-        if (evt.currentTarget === this._cancelButton)
-          this.cancel();
+        var currentTarget = evt.currentTarget;
+        switch (currentTarget) {
+          case this._cancelButton:
+            this.cancel();
+            break;
+
+          case this._confirmButton:
+            this.confirm();
+            break;
+
+          case this._container:
+            this.handleSelect(evt.target);
+            break;
+        }
         break;
 
       default:
@@ -51,14 +92,14 @@ var ValueSelector = {
     }
   },
 
-  handleSelect: function vs_handleSelect(evt) {
-    var target = evt.target;
+  handleSelect: function vs_handleSelect(target) {
 
     if (target.dataset === undefined ||
-        target.dataset.optionIndex === undefined)
+        (target.dataset.optionIndex === undefined &&
+         target.dataset.optionValue === undefined))
       return;
 
-    if (this._singleSelect) {
+    if (this._currentPickerType === 'select-one') {
       var selectee = this._container.querySelectorAll('.selected');
       for (var i = 0; i < selectee.length; i++) {
         selectee[i].classList.remove('selected');
@@ -71,14 +112,6 @@ var ValueSelector = {
   },
 
   show: function vs_show(detail) {
-
-    var options = null;
-    if (detail.choices && detail.choices.choices)
-      options = detail.choices.choices;
-
-    if (options)
-      this.buildOptions(options);
-
     this._element.hidden = false;
   },
 
@@ -91,34 +124,52 @@ var ValueSelector = {
     this.hide();
   },
 
-  confirm: function vs_select() {
+  confirm: function vs_confirm() {
 
     var singleOptionIndex;
     var optionIndices = [];
 
     var selectee = this._container.querySelectorAll('.selected');
 
-    if (this._singleSelect) {
+    if (this._currentPickerType === 'select-one') {
 
       if (selectee.length > 0)
         singleOptionIndex = selectee[0].dataset.optionIndex;
 
-    } else {
+      window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
 
+    } else if (this._currentPickerType === 'date' ||
+               this._currentPickerType === 'time') {
+      var optionValue;
+
+      if (selectee.length > 0)
+        optionValue = selectee[0].dataset.optionValue;
+
+      window.navigator.mozKeyboard.setValue(optionValue);
+    } else {
+      // Multiple select case
       for (var i = 0; i < selectee.length; i++) {
 
-        var i = parseInt(selectee[i].dataset.optionIndex);
-        optionIndices.push(i);
+        var index = parseInt(selectee[i].dataset.optionIndex);
+        optionIndices.push(index);
       }
-    }
 
-    if (this._singleSelect) {
-      window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
-    } else {
       window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
     }
 
     this.hide();
+  },
+
+  showOptions: function vs_showOptions(detail) {
+
+    var options = null;
+    if (detail.choices && detail.choices.choices)
+      options = detail.choices.choices;
+
+    if (options)
+      this.buildOptions(options);
+
+    this.show();
   },
 
   buildOptions: function(options) {
@@ -132,6 +183,67 @@ var ValueSelector = {
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
                      options[i].text +
+                     '<span class="checkmark">&#10004;</span>' +
+                    '</li>';
+    }
+
+    optionHTML += '</ol>';
+
+    this._container.innerHTML = optionHTML;
+  },
+
+  showTimePicker: function vs_showTimePicker() {
+    this._currentPickerType = 'time';
+    this.buildTimePicker();
+    this.show();
+  },
+
+  buildTimePicker: function vs_buildTimePicker() {
+    //TODO: for test only
+    var options = [
+       '12:00',
+       '13:00'
+    ];
+
+    var optionHTML = '<ol>';
+    for (var i = 0, n = options.length; i < n; i++) {
+
+      var checked = options[i].selected ? ' class="selected"' : '';
+
+      optionHTML += '<li data-option-value="' + options[i] + '"' +
+                     checked + '>' +
+                     options[i] +
+                     '<span class="checkmark">&#10004;</span>' +
+                    '</li>';
+    }
+
+    optionHTML += '</ol>';
+
+    this._container.innerHTML = optionHTML;
+  },
+
+  showDatePicker: function vs_showDatePicker() {
+    this._currentPickerType = 'date';
+    this.buildDatePicker();
+    this.show();
+  },
+
+  buildDatePicker: function vs_buildDatePicker() {
+    var optionHTML = '<ol>';
+
+    //TODO: for test only
+    var options = [
+       '2012/08/01',
+       '2012/08/02'
+    ];
+
+    for (var i = 0, n = options.length; i < n; i++) {
+
+      var checked = options[i].selected ? ' class="selected"' : '';
+
+      optionHTML += '<li data-option-value="' + options[i] + '"' +
+                     checked + '>' +
+                     options[i] +
                      '<span class="checkmark">&#10004;</span>' +
                     '</li>';
     }

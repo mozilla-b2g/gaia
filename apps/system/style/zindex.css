@@ -1,0 +1,123 @@
+/* zIndex of important system app parts 
+ * is gathered here to clearly specify all system-app hierarchy */
+
+/* Reset zIndex */
+#screen > * {
+  z-index: 0;
+}
+
+/* Level 0: System overlay */
+#system-overlay,
+[data-type="SYSTEM_OVERLAY"] {
+  z-index: 65536;
+}
+
+/* Level 1: Sleep menu/Card View/Keyboard */
+#sleep-menu,
+[data-type="SLEEP_MENU"] {
+  z-index: 65536;
+}
+
+#cardsView,
+[data-type="CARDVIEW"] {
+  z-index: 65536;
+}
+
+#keyboard-overlay,
+[data-type="KEYBOARD_OVERLAY"] {
+  z-index: 65536;
+}
+
+#keyboard-frame,
+[data-type="KEYBOARD_FRAME"] {
+  z-index: 65536;
+}
+
+/* Level 2: Notification toaster */
+#notification-toaster,
+[data-type="TOASTER"] {
+  z-index: 32768;
+}
+
+/* Level 3: Activity menu, context menu */
+#listmenu,
+[data-type="LIST_MENU"] {
+  z-index: 16384;
+}
+
+/* Level 4: Statusbar, Utility-Tray */
+#statusbar,
+[data-type="STATUSBAR"] {
+  z-index: 16384;
+}
+
+#utility-tray,
+[data-type="UTILITY_TRAY"] {
+  z-index: 16383;
+}
+
+/* Level 5: Attention screen */
+#attention-screen,
+[data-type="ATTENTION"] {
+  z-index: 8192;
+}
+
+#attention-screen > #attention-bar {
+  z-index: 2;
+}
+
+#windows > iframe.appWindow {
+  z-index: 1;
+}
+
+#windows > iframe.appWindow.active {
+  z-index: 2;
+}
+
+/* Level 6: Lock Screen Camera */
+#lockscreen-camera,
+[data-type="LOCKSCREEN_CAMERA"]{
+  z-index: 2048;
+}
+
+/* Level 7: Lock Screen */
+#lockscreen,
+[data-type="LOCKSCREEN"]{
+  z-index: 1024;
+}
+
+/* Level 8: Debug grid */
+#debug-grid,
+[data-type="DEBUG_GRID"] {
+  z-index: 512;
+}
+
+/* Level 9: Dialog Module */
+#dialog-overlay,
+#value-selector,
+#permission-screen {
+  z-index: 511;
+}
+
+#cardsView .card[data-edit = 'true'] {
+  z-index: 99999;
+}
+
+/* Level 10 */
+#windowSprite {
+  z-index: 1;
+}
+
+/* Fullscreen */
+#screen.fullscreen #system-overlay,
+#screen.fullscreen #lockscreen,
+#screen.fullscreen #lockscreen-camera,
+#screen.fullscreen #value-selector,
+#screen.fullscreen #dialog-overlay,
+#screen.fullscreen #keyboard-overlay,
+#screen.fullscreen #keyboard-frame,
+#screen.fullscreen #keyboard-frame.visible,
+#screen.fullscreen #notification-toaster,
+#screen.fullscreen #cardsView {
+  z-index: 2147483647;
+}

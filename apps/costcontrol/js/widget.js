@@ -111,6 +111,7 @@ function setupWidget() {
   function _inRoaming() {
     var conn = window.navigator.mozMobileConnection;
     var voice = conn.voice;
+    console.log('Roaming: ' + voice.roaming);
     return voice.roaming;
   }
 

@@ -9,7 +9,7 @@ var BlackList = (function() {
   // so it is implemented like an object. This improve performance looking
   // for items but decrease speed when changing the blacklist. As changes in
   // the blacklist are unusual, I prefer the search improvement.
-  var _blackList = { '800378':true };
+  var _blackList = {};
 
   function _init() {
     SettingsListener.observe('sms.blacklist', "[]",
@@ -21,7 +21,7 @@ var BlackList = (function() {
           return;
         }
 
-        _blackList = { '800378':true };
+        _blackList = {};
         list.forEach(function sms_bl_addToBL(item) {
           _blackList[item] = true;
         });
@@ -39,7 +39,7 @@ var BlackList = (function() {
     has: _has
   };
 
-})();
+}());
 
 BlackList.init();
 

@@ -4,6 +4,11 @@
 
 var PopupManager = {
   _currentPopup: null,
+  _wait: null,
+  _endTimes: 0,
+  _startTimes: 0,
+  _loadingIconEle: null,
+
 
   overlay: document.getElementById('dialog-overlay'),
 
@@ -11,11 +16,27 @@ var PopupManager = {
 
   screen: document.getElementById('screen'),
 
-  init: function pm_init() {
-    window.addEventListener('mozbrowseropenwindow', this.open.bind(this));
-    window.addEventListener('mozbrowserclose', this.close.bind(this));
+  _loadingIcon: function() {
+    if (!this._loadingIconEle) {
+      this._loadingIconEle = document.getElementById('statusbar-loading');
+    }
 
-    window.addEventListener('home', this.backHandling.bind(this));
+    return this._loadingIconEle;
+  },
+
+  init: function pm_init() {
+    window.addEventListener('mozbrowseropenwindow', this);
+    window.addEventListener('mozbrowserclose', this);
+
+    window.addEventListener('home', this);
+  },
+
+  _showWait: function pm_showWait() {
+    this._loadingIcon().hidden = false;
+  },
+
+  _hideWait: function pm_hideWait() {
+    this._loadingIcon().hidden = true;
   },
 
   open: function pm_open(evt) {
@@ -30,7 +51,51 @@ var PopupManager = {
     popup.dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
     this.container.appendChild(popup);
+
     this.screen.classList.add('popup');
+
+    popup.addEventListener('mozbrowserloadend', this);
+    popup.addEventListener('mozbrowserloadstart', this);
+  },
+
+  // Workaround for Bug: 781452
+  // - when window.open is called mozbrowserloadstart and mozbrowserloadend
+  // are fired two times
+  handleLoadStart: function pm_handleLoadStart(evt) {
+     this._startTimes++;
+     if (this._startTimes > 1) {
+      this._showWait();
+     }
+  },
+
+  // Workaround for Bug: 781452
+  // - when window.open is called mozbrowserloadstart and mozbrowserloadend
+  // are fired two times
+  handleLoadEnd: function pm_handleLoadEnd(evt) {
+      this._endTimes++;
+      if (this._endTimes > 1) {
+        this._hideWait();
+      }
+  },
+
+  handleEvent: function pm_handleEvent(evt) {
+    switch (evt.type) {
+      case 'mozbrowserloadstart':
+        this.handleLoadStart(evt);
+        break;
+      case 'mozbrowserloadend':
+        this.handleLoadEnd(evt);
+        break;
+      case 'mozbrowseropenwindow':
+        this.open(evt);
+        break;
+      case 'mozbrowserclose':
+        this.close(evt);
+        break;
+      case 'home':
+        this.backHandling(evt);
+        break;
+    }
   },
 
   close: function pm_close(evt) {

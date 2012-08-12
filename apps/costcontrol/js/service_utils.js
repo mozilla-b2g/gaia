@@ -41,7 +41,6 @@ function setService(service) {
 // all windows trying to get the service.
 function nowIAmReady() {
   window.serviceReady = true;
-  console.log(window.waitingForService.length + '');
   if (Array.isArray(window.waitingForService)) {
     for (var i = 0, otherWindow;
       otherWindow = window.waitingForService[i]; i++) {

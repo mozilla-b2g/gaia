@@ -6,7 +6,6 @@
 setService(function() {
   var _fakeLastBalance = _getLastBalance();
   var _fakeCredit = _fakeLastBalance ? _fakeLastBalance.balance : 12.34;
-  console.log('fake creadit: ' + _fakeCredit);
 
   var _ = function cc_fallbackTranslation(keystring) {
     var r = navigator.mozL10n.get.apply(this, arguments);
@@ -42,7 +41,7 @@ setService(function() {
   var _sms = window.navigator.mozSms;
   var _onSMSReceived = null;
   var _state = STATE_IDLE;
-  var _balanceTimeout = 0;
+  var _smsTimeout = 0;
   var _connectedCalls = 0;
 
   function Balance(balance, timestamp) {
@@ -185,7 +184,7 @@ setService(function() {
 
         var now = (new Date()).getTime();
         if (now - lastUpdated > REQUEST_BALANCE_MAX_DELAY)
-          _mockup_updateBalance();
+          _updateBalance();
 
         break;
 
@@ -307,21 +306,31 @@ setService(function() {
     _state = mode;
     _onSMSReceived = onSMSReceived;
     _sms.addEventListener('received', _onSMSReceived);
-    _balanceTimeout = window.setTimeout(
-      _stopWaiting,
+    _smsTimeout = window.setTimeout(
+      function () {
+        var errorType = _state === STATE_CHECKING ?
+                        'costcontrolbalanceupdateerror' :
+                        'costcontroltopuperror';
+        var errorEvent = new CustomEvent(
+          errorType,
+          { detail: { reason: 'timeout' } }
+        );
+        window.dispatchEvent(errorEvent);
+        _stopWaiting();
+      },
       WAITING_TIMEOUT
     );
   }
 
   // Disable waiting for SMS
   function _stopWaiting() {
-    window.clearTimeout(_balanceTimeout);
+    window.clearTimeout(_smsTimeout);
 
     _state = STATE_IDLE;
     _sms.removeEventListener('received', _onSMSReceived);
   }
 
-  function _mockup_updateBalance() {
+  function _updateBalance() {
     // Abort if other operation in progress
     if (_state !== STATE_IDLE)
       return;
@@ -392,9 +401,7 @@ setService(function() {
 
   // Returns stored balance
   function _getLastBalance() {
-    console.log('getting last balance');
     var balance = window.localStorage.getItem('lastBalance');
-    console.log('has balance? ' + (balance !== null) + ' (' + balance + ')');
     balance = (balance !== null) ? JSON.parse(balance, Balance.reviver) : null;
     return balance;
   }
@@ -403,7 +410,7 @@ setService(function() {
     init: _init,
     setBalanceCallbacks: _setBalanceCallbacks,
     setTopUpCallbacks: _setTopUpCallbacks,
-    requestBalance: _mockup_updateBalance,
+    requestBalance: _updateBalance,
     requestTopUp: _mockup_topUp,
     getLastBalance: _getLastBalance,
   };

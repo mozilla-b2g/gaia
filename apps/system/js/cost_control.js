@@ -18,7 +18,6 @@
   widgetContainer.appendChild(widgetFrame);
 
   function _redirectToWidget(evt) {
-    console.log('redirecting ' + evt.type);
     widgetFrame.contentWindow.postMessage({
       type: evt.type
     }, '*');

@@ -472,15 +472,26 @@ a.button.disabled {
 
 #edit-preview-area {
   position: absolute;
-  top: 60px;     /* 10 pixel top margin */
-  bottom: 110px; /* 10 pixel bottom margin */
-  left: 10px;    /* 10 pixel left margin */
-  right: 10px;   /* 10 pixel right margin */
+  left: 0;
+  right: 0;
+  top: 50px;
+  bottom: 100px;
 }
 
-#edit-preview-image {
+#edit-preview-canvas {
   position: absolute;
-  /* size and position is set by js */
+  top: 10px;
+  left: 10px;
+  width: 300px;  /* I can't do right: 10px here. Bug? */
+  height: -moz-calc(100% - 20px)  /* can't just set bottom: 10px here */
+}
+
+#edit-crop-canvas { 
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
 }
 
 #edit-options {
