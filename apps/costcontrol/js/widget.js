@@ -166,8 +166,6 @@ function setupWidget() {
     if (_isUpdating)
       return;
 
-    _setUpdatingMode(true);
-
     // TODO: Use a web activity
     var activity = new MozActivity({ name: 'costcontrol/topup' });
     activity.onsuccess = function () {

@@ -1,0 +1,107 @@
+/* ----------------------------------
+ * TABS
+ * ---------------------------------- */
+
+body[role="application"] section[role="region"] > [role="tablist"] {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  font-family: "Open Sans", Sans-serif;
+}
+  body[role="application"] section[role="region"] > [role="tablist"] li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    float: left;
+  }
+
+  body[role="application"] section[role="region"] > [role="tablist"][data-tabs="2"] li {
+    width: -moz-calc(100% / 2);
+  }
+  body[role="application"] section[role="region"] > [role="tablist"][data-tabs="3"] li {
+    width: -moz-calc(100% / 3);
+  }
+  body[role="application"] section[role="region"] > [role="tablist"][data-tabs="4"] li {
+    width: -moz-calc(100% / 4);
+  }
+  body[role="application"] section[role="region"] > [role="tablist"][data-tabs="5"] li {
+    width: -moz-calc(100% / 5);
+  }
+    body[role="application"] section[role="region"] > [role="tablist"] [role="tab"] {
+      font-size: 1.3rem;
+      text-decoration: none;
+      line-height: 4rem;
+      text-align: center;
+      color: #FFF;
+      float: left;
+      width: 100%;
+      background: #000 no-repeat center top;
+      position: relative;
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] [role="tab"]:active {
+      background-image: url(images/ui/tab_active.png);
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] :target [role="tab"] {
+      background: #295b66;
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] [role="tab"].icon {
+      text-indent: -999rem;
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] [role="tab"].icon:after {
+      content: '';
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      background: none no-repeat center top;
+      left: 0;
+      z-index: 1;
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] [role="tab"].icon-comms:after {
+      background-image: url(images/icons/icon_comms.png);
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] [role="tab"].icon-contacts:after {
+      background-image: url(images/icons/icon_contacts.png);
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] [role="tab"].icon-dialer:after {
+      background-image: url(images/icons/icon_dialer.png);
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] [role="tab"]:active:after {
+      background-position: center -4rem;
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] li[aria-disabled="true"] [role="tab"]:after {
+      background-position: center -8rem;
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] li[aria-disabled="true"] [role="tab"] {
+      background: #000;
+      color: #999;
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] [role="tabpanel"] {
+      position: absolute;
+      top: 4rem;
+      left: 0;
+      visibility: hidden;
+      width: 100%;
+      height: -moz-calc(100% - 4rem);
+      z-index: 10;
+      display: block;
+      overflow: auto;
+    }
+    body[role="application"] section[role="region"] > [role="tablist"] :target [role="tabpanel"] {
+      z-index: 1;
+      visibility: visible;
+    }
+
+/* Position bottom */
+body[role="application"] section[role="region"] > [role="tablist"][data-position="bottom"] li {
+  height: 100%;
+}
+  body[role="application"] section[role="region"] > [role="tablist"][data-position="bottom"] [role="tab"] {
+    position: relative;
+    height: 4rem;
+    top: -moz-calc(100% - 4rem);
+  }
+  body[role="application"] section[role="region"] > [role="tablist"][data-position="bottom"] [role="tabpanel"] {
+    top: 0;
+  }
