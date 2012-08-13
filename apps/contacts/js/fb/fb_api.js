@@ -51,23 +51,33 @@ if (!window.fb) {
      *
      */
     function createStore(e) {
-      database = e.target.result;
-      database.createObjectStore(STORE_NAME, { keyPath: 'uid' });
+      e.target.result.createObjectStore(STORE_NAME, { keyPath: 'uid' });
+
+      window.console.log('OWDError: Store created!!!');
     }
 
     /**
      *  Initializes the DB
      *
      */
-    function init() {
-      var req = indexedDB.open('FBContactsDB3', 4.0);
+    function init(cb) {
+      window.console.log('OWDError: init invoked');
+
+      var req = indexedDB.open('GaiaFbFriendsxy', 1.0);
 
       req.onsuccess = function(e) {
+        window.console.log('OWDError: DB on success invoked');
         database = e.target.result;
+        if(typeof cb === 'function') {
+          cb();
+        }
       };
 
       req.onerror = function(e) {
         window.console.error('OWDError: ', e.target.error.name);
+        if(typeof cb === 'function') {
+          cb();
+        }
       };
 
       req.onupgradeneeded = createStore;
@@ -173,8 +183,8 @@ if (!window.fb) {
       return retRequest;
     }
 
-    contacts.init = function() {
-      init();
+    contacts.init = function(cb) {
+      init(cb);
     }
 
   }) (document);

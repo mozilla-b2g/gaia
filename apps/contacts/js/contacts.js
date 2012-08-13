@@ -1231,6 +1231,7 @@ var Contacts = (function() {
   };
 })();
 
+
 fb.contacts.init(function() {
   if (window.navigator.mozSetMessageHandler) {
     var actHandler = ActivityHandler.handle.bind(ActivityHandler);
