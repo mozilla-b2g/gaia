@@ -46,8 +46,15 @@ function importSIMContacts(onread, onimport, onerror) {
       }
     };
 
-    // store each mozContact
+    /**
+     * store mozContact elements -- each returned mozContact has two properties:
+     *   .name : [ string ]
+     *   .tel  : [{ number: string, type: string }]
+     * The 'name' property is only related to the mozContact element itself.
+     * Let's use it as the default // givenName.
+     */
     for (var i = 0; i < nContacts; i++) {
+      simContacts[i].givenName = simContacts[i].name;
       var req = window.navigator.mozContacts.save(simContacts[i]);
       req.onsuccess = count;
       req.onerror = count;

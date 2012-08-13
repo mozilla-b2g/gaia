@@ -75,7 +75,7 @@ contacts.List = (function() {
     body.className = 'item-body';
     var name = document.createElement('strong');
     name.className = 'block-name';
-    name.innerHTML = contact.givenName || contact.name;
+    name.innerHTML = contact.givenName;
     name.innerHTML += ' <b>' + contact.familyName + '</b>';
     var searchInfo = [];
     var searchable = ['givenName', 'familyName', 'org'];
@@ -285,9 +285,7 @@ contacts.List = (function() {
   // Fills the contact data to display if no givenName and familyName
   var refillContactData = function refillContactData(contact) {
     if (!contact.givenName && !contact.familyName) {
-      if (contact.name && contact.name.length > 0) {
-        contact.givenName = contact.name;
-      } else if (contact.tel && contact.tel.length > 0) {
+      if (contact.tel && contact.tel.length > 0) {
         contact.givenName = contact.tel[0].number;
       } else if (contact.email && contact.email.length > 0) {
         contact.givenName = contact.email[0].address;
@@ -360,8 +358,6 @@ contacts.List = (function() {
       contact.familyName[0] : '');
     ret.push(contact.givenName && contact.givenName.length > 0 ?
       contact.givenName[0] : '');
-    ret.push(contact.name && contact.name.length > 0 ?
-      contact.name[0] : '');
     ret.push(contact.tel && contact.tel.length > 0 ?
       contact.tel[0].number : '');
     ret.push(contact.email && contact.email.length > 0 ?
