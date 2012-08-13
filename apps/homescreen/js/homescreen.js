@@ -18,7 +18,7 @@ const Homescreen = (function() {
 
     setLocale();
     GridManager.init('.apps', function gm_init() {
-      GridManager.goToPage(0);
+      GridManager.goToPage(GridManager.landingPageIndex);
       PaginationBar.show();
       DragDropManager.init();
 
@@ -41,8 +41,9 @@ const Homescreen = (function() {
           GridManager.saveState();
           DockManager.saveState();
           Permissions.hide();
-        } else if (GridManager.pageHelper.getCurrentPageNumber() !== 0) {
-          GridManager.goToPage(0);
+        } else if (GridManager.pageHelper.getCurrentPageNumber() !==
+                   GridManager.landingPageIndex) {
+          GridManager.goToPage(GridManager.landingPageIndex);
         }
         break;
     }
