@@ -42,8 +42,8 @@
  * setting a CSS class, which sets the CSS left property to position them
  * offscreen (the classes are defined differently for RTL and LTR
  * languages).  When the user pans left or right (and when the current
- * image isn't zoomed in) the app uses tranform to translate all
- * three frames left or right so that the user sees one photo moving off
+ * image isn't zoomed in) the app sets the left property of the div that
+ * contains all three frames so that the user sees one photo moving off
  * screen and the other one moving on. When the user lifts their finger,
  * the app uses a CSS transition to slide the current photo back into
  * place (if the pan wasn't far enough) or to complete the transition to
@@ -97,12 +97,6 @@
  *   - Edit mode and its sub modes
  *   - Pick a photo mode (when invoked via web activities?)
  *
- * TODO:
- *   we need a way to get photos from the camera and to store them on the device
- *   the ability to download photos from the web might be nice, too.
- *   we should probably have a way to organize photos into albums
- *   Do we want users to be able to rotate photos to tell the
- *     gallery app how to display them?
  */
 
 //
@@ -115,7 +109,7 @@ const TRANSITION_FRACTION = 0.25;
 // This is the speed of our default transitions in pixels/ms.
 // Swipe faster than this to transition faster. But we'll
 // never go slower (except slide show transitions).
-const TRANSITION_SPEED = 1.8;
+const TRANSITION_SPEED = 0.75;
 
 var currentPhotoIndex = 0;       // What photo is currently displayed
 
@@ -557,8 +551,9 @@ window.addEventListener('mozvisiblitychange', function() {
 // remove the transition style property when the transition ends.
 // This helps prevent unexpected transitions.
 function removeTransition(event) {
-  event.target.style.transition = '';
+  event.target.style.transition = null;
 }
+photoFrames.addEventListener('transitionend', removeTransition);
 previousPhotoFrame.addEventListener('transitionend', removeTransition);
 currentPhotoFrame.addEventListener('transitionend', removeTransition);
 nextPhotoFrame.addEventListener('transitionend', removeTransition);
@@ -720,9 +715,7 @@ photoFrames.addEventListener('pan', function(event) {
 
   photoState.pan(event.detail.relative.dx,
                  event.detail.relative.dy);
-  photoState.setFrameStyles(currentPhotoFrame,
-                            previousPhotoFrame,
-                            nextPhotoFrame);
+  photoState.setFramesPosition();
 });
 
 // When the user lifts their finger after panning we get this event
@@ -780,15 +773,10 @@ photoFrames.addEventListener('swipe', function(event) {
     // Otherwise, just restore the current photo by undoing
     // the translations we added during panning
     var time = Math.abs(pastEdge) / TRANSITION_SPEED;
-    var transition = 'all ' + time + 'ms linear';
-    previousPhotoFrame.style.transition = transition;
-    currentPhotoFrame.style.transition = transition;
-    nextPhotoFrame.style.transition = transition;
 
+    photoFrames.style.transition = 'left ' + time + 'ms linear';
     photoState.swipe = 0;
-    photoState.setFrameStyles(currentPhotoFrame,
-                              previousPhotoFrame,
-                              nextPhotoFrame);
+    photoState.setFramesPosition();
 
     // Ignore  pan and zoom gestures while the transition happens
     transitioning = true;
@@ -806,7 +794,7 @@ photoFrames.addEventListener('dbltap', function(e) {
 
   currentPhoto.style.transition = 'all 100ms linear';
   currentPhoto.addEventListener('transitionend', function handler() {
-    currentPhoto.style.transition = '';
+    currentPhoto.style.transition = null;
     currentPhoto.removeEventListener('transitionend', handler);
   });
   photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
@@ -896,9 +884,7 @@ function showPhoto(n) {
   photoState = new PhotoState(currentPhoto,
                               images[n].metadata.width,
                               images[n].metadata.height);
-  photoState.setFrameStyles(currentPhotoFrame,
-                            previousPhotoFrame,
-                            nextPhotoFrame);
+  photoState.setFramesPosition();
 }
 
 // Transition to the next photo, animating it over the specified time (ms).
@@ -912,12 +898,14 @@ function nextPhoto(time) {
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
 
-  // Set transitions for the visible photos
-  var transition = 'left ' + time + 'ms linear, ' +
-    'transform ' + time + 'ms linear';
-  previousPhotoFrame.style.transition = '';  // Not visible
+  // Hide the previous photo
+  previousPhotoFrame.classList.add('hidden');
+
+  // Set transitions for the visible photo frames and the photoFrames element
+  var transition = 'left ' + time + 'ms linear';
   currentPhotoFrame.style.transition = transition;
   nextPhotoFrame.style.transition = transition;
+  photoFrames.style.transition = transition;
 
   // Remove the classes
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -948,26 +936,26 @@ function nextPhoto(time) {
   photoState = new PhotoState(currentPhoto,
                               images[currentPhotoIndex].metadata.width,
                               images[currentPhotoIndex].metadata.height);
-  photoState.setFrameStyles(currentPhotoFrame,
-                            previousPhotoFrame,
-                            nextPhotoFrame);
+  photoState.setFramesPosition();
 
   // Update the image for the new next photo
   displayImageInFrame(currentPhotoIndex + 1, nextPhotoFrame);
 
-  // When the transition is done, restore the previous photo state
-  previousPhotoFrame.addEventListener('transitionend', function done(e) {
+  // When the transition is done, cleanup
+  photoFrames.addEventListener('transitionend', function done(e) {
+    this.removeEventListener('transitionend', done);
+
     // Recompute and reposition the photo that just transitioned off the screen
     previousPhotoState.reset();
 
-    // FIXME: I want a jquery-style once() utility for auto removal
-    this.removeEventListener('transitionend', done);
+    // Make the new next photo visible again
+    nextPhotoFrame.classList.remove('hidden');
   });
 }
 
 // Just like nextPhoto() but in the other direction
 function previousPhoto(time) {
-  // If already displaying the first one, do nothing.
+  // if already displaying the first one, do nothing.
   if (currentPhotoIndex === 0)
     return;
 
@@ -975,12 +963,14 @@ function previousPhoto(time) {
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
 
-  // Transition the two visible photos
-  var transition = 'left ' + time + 'ms linear, ' +
-    'transform ' + time + 'ms linear';
+  // Hide the next photo
+  nextPhotoFrame.classList.add('hidden');
+
+  // Set transitions for the visible photo frames and the photoFrames element
+  var transition = 'left ' + time + 'ms linear';
   previousPhotoFrame.style.transition = transition;
   currentPhotoFrame.style.transition = transition;
-  nextPhotoFrame.style.transition = ''; // Not visible
+  photoFrames.style.transition = transition;
 
   // Remove the frame classes since we're about to cycle the frames
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -1010,20 +1000,20 @@ function previousPhoto(time) {
   photoState = new PhotoState(currentPhoto,
                               images[currentPhotoIndex].metadata.width,
                               images[currentPhotoIndex].metadata.height);
-  photoState.setFrameStyles(currentPhotoFrame,
-                            previousPhotoFrame,
-                            nextPhotoFrame);
+  photoState.setFramesPosition();
 
   // Preload the new previous photo
   displayImageInFrame(currentPhotoIndex - 1, previousPhotoFrame);
 
-  // When the transition is done, restore the previous photo state
-  nextPhotoFrame.addEventListener('transitionend', function done(e) {
+  // When the transition is done do some cleanup
+  photoFrames.addEventListener('transitionend', function done(e) {
+    this.removeEventListener('transitionend', done);
+
     // Recompute and reposition the photo that just transitioned off the screen
     nextPhotoState.reset();
 
-    // FIXME: I want a jquery-style once() utility for auto removal
-    this.removeEventListener('transitionend', done);
+    // Make the new previous photo visible again
+    previousPhotoFrame.classList.remove('hidden');
   });
 }
 
@@ -1266,10 +1256,8 @@ PhotoState.prototype.pan = function(dx, dy) {
   this._reposition();
 };
 
-PhotoState.prototype.setFrameStyles = function(/*frames...*/) {
-  var translate = 'translate(' + this.swipe + 'px)';
-  for (var i = 0; i < arguments.length; i++)
-    arguments[i].style.transform = translate;
+PhotoState.prototype.setFramesPosition = function() {
+  photoFrames.style.left = this.swipe + 'px';
 };
 
 
