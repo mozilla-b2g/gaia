@@ -539,10 +539,22 @@ var LockScreen = {
   loadPanel: function ls_loadPanel(panel, callback) {
     switch (panel) {
       case 'passcode':
-      case 'emergency':
-      default:
+      case 'main':
         if (callback)
           callback();
+        break;
+
+      case 'emergency-call':
+        // create the <iframe> and load the camera
+        var frame = document.createElement('iframe');
+
+        frame.src = './emergency-call/';
+        frame.onload = function emergencyCallLoaded() {
+          if (callback)
+            callback();
+        };
+        this.panelEmergencyCall.appendChild(frame);
+
         break;
 
       case 'camera':
@@ -579,9 +591,15 @@ var LockScreen = {
         this.mainScreen.classList.remove('lockscreen-camera');
         break;
 
-      case 'emergency':
+      case 'emergency-call':
+        var ecPanel = this.panelEmergencyCall;
+        ecPanel.addEventListener('transitionend', function unloadPanel() {
+          ecPanel.removeEventListener('transitionend', unloadPanel);
+          ecPanel.removeChild(ecPanel.firstElementChild);
+        });
         break;
 
+      case 'main':
       default:
         var self = this;
         var unload = function unload() {
@@ -623,7 +641,7 @@ var LockScreen = {
   switchPanel: function ls_switchPanel(panel) {
     var overlay = this.overlay;
     var self = this;
-    panel = panel || '';
+    panel = panel || 'main';
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
@@ -817,7 +835,8 @@ var LockScreen = {
         'area', 'area-unlock', 'area-camera', 'area-handle',
         'rail-left', 'rail-right',
         'passcode-code', 'passcode-pad',
-        'camera', 'accessibility-camera', 'accessibility-unlock'];
+        'camera', 'accessibility-camera', 'accessibility-unlock',
+        'panel-emergency-call'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
