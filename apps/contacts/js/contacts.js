@@ -366,6 +366,22 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails() {
     var contact = currentContact;
+
+    if (fb.isFbContact(contact)) {
+      var fbContact = new fb.Contact(contact);
+      var req = fbContact.getData();
+      req.onsuccess = function() { doReloadContactDetails(req.result); }
+      req.onerror = function() {
+        window.console.error('FB: Error while loading FB contact data');
+        doReloadContactDetails(contact);
+      }
+    }
+    else { doReloadContactDetails(contact); }
+  }
+
+  function doReloadContactDetails(c) {
+    var contact = c;
+
     toggleFavoriteMessage(isFavorite(currentContact));
     detailsName.textContent = contact.name;
     var star = document.getElementById('favorite-star');
@@ -1214,6 +1230,8 @@ var Contacts = (function() {
     'updatePhoto': updatePhoto
   };
 })();
+
+fb.contacts.init();
 
 if (window.navigator.mozSetMessageHandler) {
   var actHandler = ActivityHandler.handle.bind(ActivityHandler);
