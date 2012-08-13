@@ -12,7 +12,10 @@
   position: relative;
   left: 0;
   top:0;
-  -moz-transition: -moz-transform .15s ease;
+}
+
+.dark-header {
+  -moz-transition: -moz-transform .2s ease-in;
 }
 
 .header-group {
@@ -61,6 +64,8 @@
 }
 
 .dark-header {
+  position: absolute;
+  top: -100%;
   background: url(images/ui/dark/header.png) repeat-x left top;
 }
 
@@ -117,7 +122,6 @@
   z-index: -1;
   width: 2rem;
   height: 4.9rem;
-  background: #9d3d26 url(images/ui/negative.png) repeat-x left top;
 }
 
 .view-header [role="link"] .icon.icon-menu {

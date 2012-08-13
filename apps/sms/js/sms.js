@@ -59,11 +59,15 @@ var MessageManager = {
         var threadMessages = document.getElementById('thread-messages');
         switch (window.location.hash) {
           case '#new':
+            var messageInput = document.getElementById('message-to-send');
+            var receiverInput = document.getElementById('receiver-input');
             document.getElementById('messages-container').innerHTML = '';
-            document.getElementById('message-to-send').innerHTML = '';
-            document.getElementById('receiver-input').value = '';
+            messageInput.innerHTML = '';
+            receiverInput.value = '';
             threadMessages.classList.add('new');
-            MessageManager.slide();
+            MessageManager.slide(function() {
+              messageInput.focus();
+            });
             break;
           case '#thread-list':
             if (mainWrapper.classList.contains('edit')) {
@@ -94,7 +98,11 @@ var MessageManager = {
               } else {
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages,
-                  filter, null, MessageManager.slide);
+                  filter, null, function() {
+                   MessageManager.slide(function() {
+                      document.getElementById('message-to-send').focus();
+                    });
+                  });
               }
             }
           break;
@@ -709,17 +717,9 @@ var ThreadUI = {
     var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
-    var htmlStructure = '<span class="bubble-container ' + className + '">' +
-                        '<div class="bubble">' + bodyHTML + '</div>' +
-                        '</span>';
-    // Add 'gif' if necessary
+    var htmlStructure = '';
+    // Adding edit options to the left side
     if (message.delivery == 'sending') {
-      messageDOM.addEventListener('click',
-        ThreadUI.resendMessage.bind(ThreadUI, message));
-      htmlStructure += '<span class="message-option">' +
-      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
-        ThreadUI.sendIcons.pending) + '" class="gif">' +
-                        '</span>';
       //Add edit options for pending
       htmlStructure += '<span class="message-option msg-checkbox">' +
                         '  <input value="ts_' + timestamp +
@@ -733,6 +733,19 @@ var ThreadUI = {
                         '" type="checkbox">' +
                         '  <span></span>' +
                       '</span>';
+    }
+    htmlStructure += '<span class="bubble-container ' + className + '">' +
+                        '<div class="bubble">' + bodyHTML + '</div>' +
+                        '</span>';
+
+    // Add 'gif' if necessary
+    if (message.delivery == 'sending') {
+      messageDOM.addEventListener('click',
+        ThreadUI.resendMessage.bind(ThreadUI, message));
+      htmlStructure += '<span class="message-option">' +
+      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
+        ThreadUI.sendIcons.pending) + '" class="gif">' +
+                        '</span>';
     }
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
@@ -985,7 +998,7 @@ var ThreadUI = {
           var root = document.getElementById(message.timestamp.getTime());
           if (root) {
 
-            root.removeChild(root.childNodes[1]);
+            root.removeChild(root.childNodes[2]);
             var inputs = root.querySelectorAll('input[type="checkbox"]');
             if (inputs) {
               inputs[0].value = 'id_' + msg.id;
