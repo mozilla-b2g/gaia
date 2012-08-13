@@ -33,6 +33,8 @@ var StatusBar = {
   geolocationActive: false,
   geolocationTimer: null,
 
+  headphonesState: "unknown",
+
   /* For other app to acquire */
   get height() {
     if (this.screen.classList.contains('active-statusbar'))
@@ -101,11 +103,17 @@ var StatusBar = {
         break;
 
       case 'mozChromeEvent':
-        if (evt.detail.type !== 'geolocation-status')
-          return;
+        switch(evt.detail.type) {
+          case 'geolocation-status':
+            this.geolocationActive = evt.detail.active;
+            this.update.geolocation.call(this);
+            break;
 
-        this.geolocationActive = evt.detail.active;
-        this.update.geolocation.call(this);
+          case 'headphones-status-changed':
+            this.headphonesState = evt.detail.state;
+            this.update.headphones.call(this);
+            break;
+        }
         break;
     }
   },
@@ -391,6 +399,18 @@ var StatusBar = {
       // https://github.com/mozilla-b2g/gaia/issues/2333
 
       // this.icon.usb.hidden = ?
+    },
+
+    headphones: function sb_updateHeadphones() {
+      var icon = this.icons.headphones;
+
+      if (this.headphonesState == "off") {
+        icon.hidden = true;
+        return;
+      }
+
+      icon.hidden = false;
+      icon.dataset.state = this.headphonesState;
     }
   },
 
@@ -413,7 +433,7 @@ var StatusBar = {
     // ID of elements to create references
     var elements = ['notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'signal',
-    'tethering', 'alarm', 'bluetooth', 'mute',
+    'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
     'recording', 'sms', 'geolocation', 'usb', 'label'];
 
     var toCamelCase = function toCamelCase(str) {
