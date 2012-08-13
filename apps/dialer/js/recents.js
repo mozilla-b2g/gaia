@@ -574,13 +574,11 @@ var Recents = {
   },
 
   contactCallBack: function re_contactCallBack(logItem, max, number, contact) {
-    console.log("**CL** Checking contact info");
     var primaryInfo = logItem.querySelector('.primary-info'),
       contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact) {
-      console.log("**CL** Name returned = " + contact.name);
 
-      primaryInfo.textContent = (contact.name && contact.name != '')?
+      primaryInfo.textContent = (contact.name && contact.name != '') ?
                                                     contact.name : _('unknown');
 
       if (contact.photo) {
