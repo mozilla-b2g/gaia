@@ -107,10 +107,6 @@ html, body {
   -moz-transform: translateY(3.6rem);
 }
 
-/*.edit .header-wrapper{
-  -moz-transform: translateX(-50%);
-}*/
-
 .edit .dark-header{
   -moz-transform: translateY(100%);
   opacity: .9;
