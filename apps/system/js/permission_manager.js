@@ -19,35 +19,25 @@ var PermissionManager = (function() {
     }
   });
 
-  var fullscreenRequest = null;
-
-  // Add a listener to ensure that we cancel a fullscreen permission
-  // prompt if we exit fullscreen before the user has approved/denied
-  // fullscreen. This can happen if the user presses the HOME key,
-  // or script can call document.mozCancelFullScreen() directly.
-  document.addEventListener('mozfullscreenchange', function(e) {
-    if (document.mozFullScreenElement == null && fullscreenRequest)
-      cancelRequest(fullscreenRequest);
-  });
+  var fullscreenRequest = undefined;
 
   var handleFullscreenOriginChange = function(detail) {
     // If there's already a fullscreen request visible, cancel it,
     // we'll show the request for the new domain.
-    if (fullscreenRequest != null) {
+    if (fullscreenRequest != undefined) {
       cancelRequest(fullscreenRequest);
-      fullscreenRequest = null;
+      fullscreenRequest = undefined;
     }
     if (detail.fullscreenorigin != WindowManager.getDisplayedApp()) {
       // The message to be displayed on the approval UI.
       var message = detail.fullscreenorigin + ' is now fullscreen';
-      requestPermission(message,
-                        /* yesCallback */ null,
-                        /* noCallback */ function() {
-                          document.mozCancelFullScreen();
-                        },
-                        'OK',
-                        'Cancel');
-      fullscreenRequest = message;
+      fullscreenRequest = requestPermission(message,
+                                            /* yesCallback */ null,
+                                            /* noCallback */ function() {
+                                              document.mozCancelFullScreen();
+                                            },
+                                            'OK',
+                                            'Cancel');
     }
   };
 
@@ -106,36 +96,82 @@ var PermissionManager = (function() {
   var yes = null;
   var no = null;
 
-  // This is the event listener function for the yes/no buttons.
-  function clickHandler(evt) {
-    // Hide the permission UI.
+  // The ID of the next permission request. This is incremented by one
+  // on every request, modulo some large number to prevent overflow problems.
+  var nextRequestID = 0;
+
+  // The ID of the request currently visible on the screen. This has the value
+  // "undefined" when there is no request visible on the screen.
+  var currentRequestId = undefined;
+
+  var hidePermissionPrompt = function() {
     screen.classList.remove('visible');
+    currentRequestId = undefined;
+    // Cleanup the event handlers.
+    yes.removeEventListener('click', clickHandler);
+    yes.callback = null;
+    no.removeEventListener('click', clickHandler);
+    no.callback = null;
+  };
+
+  // Show the next request, if we have one.
+  var showNextPendingRequest = function() {
+    if (pending.length == 0)
+      return;
+    var request = pending.shift();
+    showPermissionPrompt(request.id,
+                         request.message,
+                         request.yescallback,
+                         request.nocallback,
+                         request.yesText,
+                         request.noText);
+  };
+
+  // This is the event listener function for the yes/no buttons.
+  var clickHandler = function(evt) {
+    var callback = null;
+    if (evt.target === yes && yes.callback) {
+      callback = yes.callback;
+    } else if (evt.target === no && no.callback) {
+      callback = no.callback;
+    }
+
+    hidePermissionPrompt();
 
     // Call the appropriate callback, if it is defined.
-    if (evt.target === yes && yes.callback) {
-      yes.callback();
-    } else if (evt.target === no && no.callback) {
-      no.callback();
-    }
+    if (callback)
+      window.setTimeout(callback, 0);
 
-    // Note, we must remove the click listeners after running the callback,
-    // as cleanupClickHandlers clears {yes,no}.callback.
-    cleanupClickHandlers();
+    showNextPendingRequest();
+  };
 
-    // Show the next request, if we have one.
-    if (pending.length > 0) {
-      request = pending.shift();
-      window.setTimeout(function() {
-        requestPermission(request.message,
-                          request.yescallback,
-                          request.nocallback,
-                          request.yesText,
-                          request.noText);
+  var requestPermission = function(msg,
+                                   yescallback, nocallback,
+                                   yesText, noText) {
+    var id = nextRequestID;
+    nextRequestID = (nextRequestID + 1) % 1000000;
+
+    if (currentRequestId != undefined) {
+      // There is already a permission request being shown, queue this one.
+      pending.push({
+        id: id,
+        message: msg,
+        yescallback: yescallback,
+        nocallback: nocallback,
+        yesText: yesText,
+        noText: noText
       });
+      return id;
     }
-  }
 
-  var requestPermission = function requestPermission(msg, yescallback, nocallback, yesText, noText) {
+    showPermissionPrompt(id, msg, yescallback, nocallback, yesText, noText);
+
+    return id;
+  };
+
+  var showPermissionPrompt = function(id, msg,
+                                      yescallback, nocallback,
+                                      yesText, noText) {
     if (screen === null) {
       screen = document.createElement('div');
       screen.id = 'permission-screen';
@@ -161,22 +197,12 @@ var PermissionManager = (function() {
       document.body.appendChild(screen);
     }
 
-    // If there is already a pending permission request, queue this one
-    if (screen.classList.contains('visible')) {
-      pending.push({
-        message: message,
-        yescallback: yescallback,
-        nocallback: nocallback,
-        yesText: yesText,
-        noText: noText
-      });
-      return;
-    }
-
     // Put the message in the dialog.
     // Note plain text since this may include text from
     // untrusted app manifests, for example.
     message.textContent = msg;
+
+    currentRequestId = id;
 
     // Make the screen visible
     screen.classList.add('visible');
@@ -189,42 +215,31 @@ var PermissionManager = (function() {
     no.callback = nocallback;
   };
 
-  var cleanupClickHandlers = function() {
-    // Cleanup the event handlers.
-    yes.removeEventListener('click', clickHandler);
-    yes.callback = null;
-    no.removeEventListener('click', clickHandler);
-    no.callback = null;
-  };
-
-  // Cancels a request with a specfied message. Request can either be
+  // Cancels a request with a specfied id. Request can either be
   // currently showing, or pending. If there are further pending requests,
-  // those are shown.
-  var cancelRequest = function(message) {
-    // Hide the permission UI.
-    screen.classList.remove('visible');
-    cleanupClickHandlers();
-    for (var i = 0; i < pending.length; i++) {
-      if (pending[i].message === message) {
-        pending.splice(i, 1);
-        if (pending.length > 0) {
-          // We still have a pending request, show that next.
-          var request = pending[0];
-          window.setTimeout(function() {
-            requestPermission(request.message,
-                              request.yescallback,
-                              request.nocallback,
-                              request.yesText,
-                              request.noText);
-          });
+  // the next is shown.
+  var cancelRequest = function(id) {
+    var callback = null;
+    if (currentRequestId == id) {
+      // Request is currently being displayed. Hide the permission prompt,
+      // and show the next request, if we have any.
+      callback = no.callback;
+      hidePermissionPrompt();
+      showNextPendingRequest();
+    } else {
+      // The request is currently not being displayed. Search through the
+      // list of pending requests, and remove it from the list if present.
+      for (var i = 0; i < pending.length; i++) {
+        if (pending[i].id === id) {
+          callback = pending[i].no;
+          pending.splice(i, 1);
+          break;
         }
-        break;
       }
     }
+    if (callback != null)
+      window.setTimeout(callback, 0);
   };
 
-  return {
-    requestPermission: requestPermission,
-  };
 }());
 
