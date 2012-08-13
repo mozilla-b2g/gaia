@@ -665,13 +665,32 @@ MessageReaderCard.prototype = {
   },
 
   onLoadBarClick: function(event) {
+    var self = this;
+    var loadBar =
+          this.domNode.getElementsByClassName('msg-reader-load-infobar')[0];
     if (!this.body.embeddedImagesDownloaded) {
-      this.body.downloadEmbeddedImages();
+      this.body.downloadEmbeddedImages(function() {
+        // this gets nulled out when we get killed, so use this to bail.
+        // XXX of course, this closure will cause us to potentially hold onto
+        // a lot of garbage, so it would be better to add an
+        // 'onimagesdownloaded' to body so that the closure would end up as
+        // part of a cycle that would get collected.
+        if (!self.domNode)
+          return;
+
+        for (var i = 0; i < self.htmlBodyNodes.length; i++) {
+          self.body.showEmbeddedImages(self.htmlBodyNodes[i]);
+        }
+      });
+      // XXX really we should check for external images to display that load
+      // bar, although it's a bit silly to have both in a single e-mail.
+      loadBar.classList.add('collapsed');
     }
     else {
       for (var i = 0; i < this.htmlBodyNodes.length; i++) {
         this.body.showExternalImages(this.htmlBodyNodes[i]);
       }
+      loadBar.classList.add('collapsed');
     }
   },
 
@@ -745,7 +764,9 @@ MessageReaderCard.prototype = {
     // -- Bodies
     var rootBodyNode = domNode.getElementsByClassName('msg-body-container')[0],
         reps = body.bodyReps,
-        hasExternalImages = false;
+        hasExternalImages = false,
+        showEmbeddedImages = body.embeddedImageCount &&
+                             body.embeddedImagesDownloaded;
     for (var iRep = 0; iRep < reps.length; iRep += 2) {
       var repType = reps[iRep], rep = reps[iRep + 1];
       if (repType === 'plain') {
@@ -758,6 +779,8 @@ MessageReaderCard.prototype = {
         this.htmlBodyNodes.push(bodyNode);
         if (body.checkForExternalImages(bodyNode))
           hasExternalImages = true;
+        if (showEmbeddedImages)
+          body.showEmbeddedImages(bodyNode);
       }
     }
 
@@ -777,7 +800,6 @@ MessageReaderCard.prototype = {
     else {
       loadBar.classList.add('collapsed');
     }
-
 
     // -- Attachments (footer)
     var attachmentsContainer =
@@ -802,6 +824,7 @@ MessageReaderCard.prototype = {
   },
 
   die: function() {
+    this.domNode = null;
   }
 };
 Cards.defineCardWithDefaultMode(

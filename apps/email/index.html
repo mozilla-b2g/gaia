@@ -17,7 +17,7 @@
   <!-- Specific code -->
   <script type="text/javascript">
     // when running in B2G, send output to the console, ANSI-style
-    if ('MozTCPSocket' in window) {
+    if ('MozTCPSocket' in window.navigator) {
       function consoleHelper() {
         var msg = arguments[0] + ":";
         for (var i = 1; i < arguments.length; i++) {
@@ -227,9 +227,9 @@
             </div>
             <h3 class="msg-envelope-subject"></h3>
           </div>
-          <div class="msg-body-container"></div>
           <ul class="msg-attachments-container">
           </ul>
+          <div class="msg-body-container"></div>
           <div class="bottom-toolbar-spacer"></div>
         </div>
         <!-- Tells us about remote/not downloaded images, asks to show -->

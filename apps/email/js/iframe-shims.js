@@ -1,6 +1,38 @@
 'use strict';
 
 /**
+ * Some default styles to override the canonical HTML5 styling defaults that
+ * make our display seem bad.  These are currently inline because we want to be
+ * able to synchronously (re)flow the document without needing styles to load.
+ * This does not need to be the case longterm; after our initial reflow to
+ * detect newsletters, we could only add in a link to a CSS file shipped with
+ * us for the non-newsletter case.  We could also internally load the CSS file
+ * and splice it in rather than hardcoding it.
+ */
+const DEFAULT_STYLE_TAG =
+  '<style type="text/css">\n' +
+  // ## blockquote
+  // blockquote per html5: before: 1em, after: 1em, start: 40px, end: 40px
+  'blockquote {' +
+  'margin: 0; ' +
+  // so, this is quoting styling, which makes less sense to have in here.
+  'border-left: 2px solid gray;' +
+  // padding-start isn't a thing yet, somehow.
+  'padding: 0; -moz-padding-start: 5px; ' +
+  '}\n' +
+  // ## p
+  // p per html5: before: 1em, after: 1m, start: 0, end: 0
+  // okay, it seems to be convention to put <style> tags in the body with
+  // p { margin: 0; } already, so we don't really need or want to clobber this.
+/*
+  'p {\n' +
+  'margin-before: 1rem; margin-after: 1rem; ' +
+  'background-color: blue; ' +
+  '}\n' +
+*/
+  '</style>';
+
+/**
  * Logic to help with creating, populating, and handling events involving our
  * HTML message-disply iframes.
  *
@@ -46,10 +78,53 @@
  * and we can force a size calculation, but it would be nice if we didn't
  * have to do it.
  *
+ * ## Document Width and Zooming ##
+ *
+ * There are two types of HTML e-mails:
+ *
+ * 1) E-mails written by humans which are basically unstructured prose plus
+ *    quoting.  The biggest problems these face are deep quoting causing
+ *    blockquote padding to cause text to have very little screen real estate.
+ *
+ * 2) Newsletter style e-mails which are structured and may have multiple
+ *    columns, grids of images and stuff like that.
+ *
+ * Newsletters tend to assume a screen width of around 600px.  They also help
+ * us out by usually explicitly sizing (parts) of themselves with that big
+ * number, but usually a few levels of DOM in.  We could try and look for
+ * explicit 'width' style directives (or attributes for tables), possibly
+ * during sanitization, or we can try and force the layout engine to figure out
+ * how wide the document really wants to be and then figure out if we need
+ * a zoom strategy.  The latter approach is more reliable but will result in
+ * layout having to perform 2 reflows (although one of them could probably be
+ * run during synchronization and persisted).
+ *
+ * We use the make-layout-figure-it-out strategy and declare any width that
+ * ended up being wider than the viewport's width is a newsletter.  We then
+ * deal with the cases like so:
+ *
+ * 1) We force the iframe to be the width of our screen and try and imitate a
+ *    seamless iframe by setting the height of the iframe to its scrollHeight.
+ *
+ * 2) We force the iframe to be the size it wants to be and use transform magic
+ *    and gallery interaction logic to let the user pan and zoom to their
+ *    heart's content.  We lack the ability to perform reflows-on-zoom like
+ *    browser frames can do right now, so this sucks, but not as bad as if we
+ *    tried to force the newsletter into a smaller width than it was designed
+ *    for.  We could implement some workarounds for this, but it seems useful
+ *    to try and drive this in platform.
+ *
+ * Here's an interesting blog post on font inflation for those that want to
+ * know more:
+ * http://jwir3.wordpress.com/2012/07/30/font-inflation-fennec-and-you/
+ *
  * BUGS BLOCKING US FROM DOING WHAT WE REALLY WANT, MAYBE:
  *
  * - HTML5 iframe sandbox attribute which is landing soon.
  *   https://bugzilla.mozilla.org/show_bug.cgi?id=341604
+ *
+ * - reflow on zoom doesn't exist yet?
+ *   https://bugzilla.mozilla.org/show_bug.cgi?id=710298
  *
  * BUGS MAKING US DO WORKAROUNDS:
  *
@@ -58,6 +133,7 @@
  *
  * - iframes can't get the web browser pan-and-zoom stuff for free, so we
  *   use logic from the gallery app.
+ *   https://bugzilla.mozilla.org/show_bug.cgi?id=775456
  *
  * ATTENTION: ALL KINDS OF CODE IS COPIED AND PASTED FROM THE GALLERY APP TO
  * GIVE US PINCH AND ZOOM.  IF YOU SEE CODE THAT SAYS PHOTO, THAT IS WHY.
@@ -106,7 +182,8 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
     // inside of us.
     'position: relative; ' +
     'width: ' + viewportWidth + 'px; ' +
-    'height: ' + viewportHeight + 'px;');
+    'height: ' + viewportHeight + 'px;'
+  );
   var interacter = document.createElement('div');
   interacter.setAttribute(
     'style',
@@ -122,90 +199,110 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
   //   things below.
   // - 600px wide; this is approximately the standard expected width for HTML
   //   emails.
-  var scrollWidth = 600;
   iframe.setAttribute(
     'style',
     'position: absolute; ' +
     'border-width: 0px; ' +
-    'overflow: hidden; ' +
+    'overflow: hidden; '
 //    'pointer-events: none; ' +
 //    '-moz-user-select: none; ' +
-    'width: ' + scrollWidth + 'px; ' +
-    'height: ' + viewportHeight + 'px;');
+//    'width: ' + scrollWidth + 'px; ' +
+//    'height: ' + viewportHeight + 'px;'
+  );
 
   //iframe.setAttribute('srcdoc', htmlStr);
   viewport.appendChild(iframe);
-  viewport.appendChild(interacter);
   parentNode.insertBefore(viewport, beforeNode);
 
   // we want this fully synchronous so we can know the size of the document
   iframe.contentDocument.open();
+  iframe.contentDocument.write('<html><head>');
+  iframe.contentDocument.write(DEFAULT_STYLE_TAG);
+  iframe.contentDocument.write('</head><body>');
+  // (currently our sanitization only generates a body payload...)
   iframe.contentDocument.write(htmlStr);
+  iframe.contentDocument.write('</body>');
   iframe.contentDocument.close();
   var iframeBody = iframe.contentDocument.body;
   var scrollHeight = iframeBody.scrollHeight;
-  // setting iframe.style.height is not sticky, so be heavy-handed:
-  iframe.setAttribute(
-    'style',
-    'border-width: 0px; overflow: hidden; ' +
-    'transform-origin: top left; ' +
-    'width: ' + scrollWidth + 'px; ' +
-    'height: ' + scrollHeight + 'px;');
+
+  var newsletterMode = iframeBody.scrollWidth > viewportWidth;
+
+  if (newsletterMode) {
+    var scrollWidth = iframeBody.scrollWidth;
+    viewport.appendChild(interacter);
+
+    // setting iframe.style.height is not sticky, so be heavy-handed:
+    iframe.setAttribute(
+      'style',
+      'border-width: 0px; overflow: hidden; ' +
+      'transform-origin: top left; ' +
+      'width: ' + scrollWidth + 'px; ' +
+      'height: ' + scrollHeight + 'px;');
 
 
-  var currentPhoto = iframe;
-  var photoState =
-    new PhotoState(iframe, scrollWidth, scrollHeight,
-                   viewportWidth, viewportHeight);
+    var currentPhoto = iframe;
+    var photoState =
+      new PhotoState(iframe, scrollWidth, scrollHeight,
+                     viewportWidth, viewportHeight);
 
-  var lastScale = photoState.scale, scaleMode = 0;
-  var detector = new GestureDetector(interacter);
-  // We don't need to ever stopDetecting since the closures that keep it alive
-  // are just the event listeners on the iframe.
-  detector.startDetecting();
-  viewport.addEventListener('pan', function(event) {
-    photoState.pan(event.detail.relative.dx,
-                   event.detail.relative.dy);
-  });
-  viewport.addEventListener('dbltap', function(e) {
-    var scale = photoState.scale;
-
-    currentPhoto.style.MozTransition = 'all 100ms linear';
-    currentPhoto.addEventListener('transitionend', function handler() {
-      currentPhoto.style.MozTransition = '';
-      currentPhoto.removeEventListener('transitionend', handler);
+    var lastScale = photoState.scale, scaleMode = 0;
+    var detector = new GestureDetector(interacter);
+    // We don't need to ever stopDetecting since the closures that keep it alive
+    // are just the event listeners on the iframe.
+    detector.startDetecting();
+    viewport.addEventListener('pan', function(event) {
+      photoState.pan(event.detail.relative.dx,
+                     event.detail.relative.dy);
     });
+    viewport.addEventListener('dbltap', function(e) {
+      var scale = photoState.scale;
 
-    if (lastScale === scale) {
-      scaleMode = (scaleMode + 1) % 3;
-      switch (scaleMode) {
-        case 0:
-          scale = photoState.baseScale;
-          break;
-        case 1:
-          scale = 1;
-          break;
-        case 2:
-          scale = 2;
-          break;
+      currentPhoto.style.MozTransition = 'all 100ms linear';
+      currentPhoto.addEventListener('transitionend', function handler() {
+        currentPhoto.style.MozTransition = '';
+        currentPhoto.removeEventListener('transitionend', handler);
+      });
+
+      if (lastScale === scale) {
+        scaleMode = (scaleMode + 1) % 3;
+        switch (scaleMode) {
+          case 0:
+            scale = photoState.baseScale;
+            break;
+          case 1:
+            scale = 1;
+            break;
+          case 2:
+            scale = 2;
+            break;
+        }
+        photoState.scale = lastScale = scale;
+        photoState._reposition();
       }
-//console.log('scaleMode', scaleMode, 'scale', scale, 'last', lastScale);
-      photoState.scale = lastScale = scale;
-      photoState._reposition();
-    }
-    else {
-      if (scale > 1)      // If already zoomed in,
-        scale = 1 / scale;  // zoom out to starting scale
-      else                           // Otherwise
-        scale = 2;                   // Zoom in by a factor of 2
-      photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
-    }
-  });
-  viewport.addEventListener('transform', function(e) {
-    photoState.zoom(e.detail.relative.scale,
-                    e.detail.midpoint.clientX,
-                    e.detail.midpoint.clientY);
-  });
+      else {
+        if (scale > 1)      // If already zoomed in,
+          scale = 1 / scale;  // zoom out to starting scale
+        else                           // Otherwise
+          scale = 2;                   // Zoom in by a factor of 2
+        photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
+      }
+    });
+    viewport.addEventListener('transform', function(e) {
+      photoState.zoom(e.detail.relative.scale,
+                      e.detail.midpoint.clientX,
+                      e.detail.midpoint.clientY);
+    });
+  }
+  else {
+    viewport.removeAttribute('style');
+    // setting iframe.style.height is not sticky, so be heavy-handed:
+    iframe.setAttribute(
+      'style',
+      'border-width: 0px; ' +
+      'width: ' + viewportWidth + 'px; ' +
+      'height: ' + scrollHeight + 'px;');
+  }
 
   return iframe;
 }
