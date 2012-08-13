@@ -131,9 +131,16 @@ var KeypadManager = {
     this.deleteButton.addEventListener('mousedown', keyHandler);
     this.deleteButton.addEventListener('mouseup', keyHandler);
 
+    // The keypad add contact bar is only included in the normal version of
+    // the keypad.
     if (this.callBarAddContact) {
       this.callBarAddContact.addEventListener('mouseup',
                                               this.addContact.bind(this));
+    }
+
+    // The keypad add contact bar is only included in the normal version and
+    // the emergency call version of the keypad.
+    if (this.callBarCallAction) {
       this.callBarCallAction.addEventListener('mouseup',
                                               this.makeCall.bind(this));
     }
