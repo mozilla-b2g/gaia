@@ -158,6 +158,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     document.querySelector('#wifi-enabled input[type=checkbox]');
   var gWifiInfoBlock = document.querySelector('#wifi-desc');
   var gWpsInfoBlock = document.querySelector('#wifi-wps-desc');
+  var gWpsPbcLabelBlock = document.querySelector('#wps-pbc-button').querySelector('a');
   var wpsInProgress = false;
 
   if (!settings)
@@ -205,16 +206,37 @@ window.addEventListener('localized', function wifiSettings(evt) {
   };
 
   // Wi-Fi Protected Setup
-  var wpsPbcButton = document.getElementById('wps-pbc-button');
-  wpsPbcButton.onclick = function() {
-    if (!gWifiManager.wps)
-      return;
-    wpsInProgress = true;
-    gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
-    gWifiManager.wps({
-      method: 'pbc'
-    });
-  };
+  if (gWifiManager.wps) {
+    document.getElementById('wps-pbc-button').onclick = function() {
+      if (wpsInProgress) {
+        var req = gWifiManager.wps({
+          method: 'cancel'
+        });
+        req.onsuccess = function () {
+          wpsInProgress = false;
+          gWpsPbcLabelBlock.textContent = _('wpsPbcMessage');
+          gWpsInfoBlock.textContent = _('fullStatus-wps-canceled');
+        };
+        req.onerror = function () {
+          gWpsInfoBlock.textContent = _('wpsCancelFailedMessage') +
+            ' [' + req.error.name + ']';
+        };
+      } else {
+        var req = gWifiManager.wps({
+          method: 'pbc'
+        });
+        req.onsuccess = function () {
+          wpsInProgress = true;
+          gWpsPbcLabelBlock.textContent = _('wpsCancelMessage');
+          gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
+        };
+        req.onerror = function () {
+          gWpsInfoBlock.textContent = _('fullStatus-wps-failed') +
+            ' [' + req.error.name + ']';
+        };
+      }
+    };
+  }
 
   // network list
   var gNetworkList = (function networkList(list) {
@@ -542,8 +564,11 @@ window.addEventListener('localized', function wifiSettings(evt) {
       if (networkStatus !== 'disconnected')
         gWpsInfoBlock.textContent = gWifiInfoBlock.textContent;
       if (networkStatus === 'connected' || networkStatus === 'wps-timedout' ||
-          networkStatus === 'wps-failed' || networkStatus === 'wps-overlapped')
+          networkStatus === 'wps-failed' ||
+          networkStatus === 'wps-overlapped') {
         wpsInProgress = false;
+        gWpsPbcLabelBlock.textContent = _('wpsPbcMessage');
+      }
     }
   }
 
