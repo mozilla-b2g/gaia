@@ -369,7 +369,7 @@ var KeypadManager = {
       }
 
       // Voicemail long press (needs to be longer since it actually dials)
-      if (key == '1') {
+      if (event.target.dataset.voicemail) {
         this._holdTimer = setTimeout(function vm_call(self) {
           self._longPress = true;
           self._callVoicemail();
