@@ -832,11 +832,14 @@ photoFrames.addEventListener('transform', function(e) {
 // now we use the same three <img> elements and just change their src
 // attributes.
 function displayImageInFrame(n, frame) {
-  // Make sure n is in range
-  if (n < 0 || n >= images.length)
-    return;
-
   var img = frame.firstChild;
+
+  // Make sure n is in range
+  if (n < 0 || n >= images.length) {
+    img.src = null;
+    img.style.width = img.style.height = 0;
+    return;
+  }
 
   // Asynchronously set the image url
   var imagedata = images[n];
