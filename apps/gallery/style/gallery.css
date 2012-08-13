@@ -391,7 +391,11 @@ a.button.disabled {
   width: 50px;
   height: 100%;
   right: 0;
-  background-image: url('images/gallery.png');
+  /*
+   * XXX
+   * The dialpad icon looks kind of like a  grid of thumbnail images
+   */
+  background-image: url('images/actionicon_dialpad.png');
 }
 
 
