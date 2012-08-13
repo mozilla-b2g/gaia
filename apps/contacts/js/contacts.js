@@ -139,6 +139,7 @@ var Contacts = (function() {
       contactTag,
       contactDetails,
       saveButton,
+      editContactButton,
       deleteContactButton,
       favoriteMessage,
       cover,
@@ -228,6 +229,7 @@ var Contacts = (function() {
     noteContainer = document.getElementById('contacts-form-notes');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
+    editContactButton = document.getElementById('edit-contact-button');
     deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
@@ -368,6 +370,8 @@ var Contacts = (function() {
     var contact = currentContact;
 
     if (fb.isFbContact(contact)) {
+      editContactButton.setAttribute('disabled','disabled');
+      
       var fbContact = new fb.Contact(contact);
       var req = fbContact.getData();
       req.onsuccess = function() { doReloadContactDetails(req.result); }
