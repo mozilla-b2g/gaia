@@ -10,6 +10,7 @@
       case 'webapps-ask-install':
         handleInstallationPrompt(detail);
         break;
+      case 'geolocation-status':
       case 'permission-prompt':
         handlePermissionPrompt(detail);
         break;
@@ -73,6 +74,7 @@
       if (screen === null) {
         screen = document.createElement('div');
         screen.id = 'permission-screen';
+        screen.dataset.zIndexLevel = 'permission-screen';
 
         dialog = document.createElement('div');
         dialog.id = 'permission-dialog';
@@ -92,7 +94,7 @@
         no.id = 'permission-no';
         dialog.appendChild(no);
 
-        document.body.appendChild(screen);
+        document.getElementById('screen').appendChild(screen);
       }
 
       // If there is already a pending permission request, queue this one
