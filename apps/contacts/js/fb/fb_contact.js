@@ -245,7 +245,7 @@ fb.Contact = function(deviceContact) {
       }
     });
 
-    var singleFields = ['birthday'];
+    var singleFields = ['bday'];
     singleFields.forEach(function(field) {
       dcontact[field] = fbdata[field];
     });
