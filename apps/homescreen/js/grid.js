@@ -14,7 +14,8 @@ const GridManager = (function() {
   var opacityMax = .7;
 
   var pages = [];
-  var currentPage = 0;
+  var landingPageIndex = 0;
+  var currentPage = landingPageIndex;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -68,7 +69,7 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
-        if (currentPage !== 0) {
+        if (currentPage > landingPageIndex) {
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, {
@@ -86,9 +87,9 @@ const GridManager = (function() {
       return;
     }
     var forward = dirCtrl.goesForward(deltaX);
-    if (currentPage === 0 && forward) {
+    if (currentPage === landingPageIndex && forward) {
       applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
-    } else if (currentPage === 1 && !forward) {
+    } else if (currentPage === landingPageIndex + 1 && !forward) {
       applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
     }
   }
@@ -157,9 +158,9 @@ const GridManager = (function() {
     for (var i = 0; i < len; i++) {
       pages[i].moveByWithEffect((-currentPage + i) * windowWidth, .3);
     }
-    if (index === 0) {
+    if (index === landingPageIndex) {
       applyEffectOverlay(0, .3);
-    } else if (index === 1) {
+    } else if (index === landingPageIndex + 1) {
       applyEffectOverlay(opacityMax, .3);
     }
 
@@ -310,7 +311,7 @@ const GridManager = (function() {
   function removeEmptyPages() {
     pages.forEach(function checkIsEmpty(page, index) {
       // ignore the search page
-      if (index === 0) {
+      if (index <= landingPageIndex) {
         return;
       }
 
@@ -331,7 +332,7 @@ const GridManager = (function() {
 
     pages.forEach(function checkIsOverflow(page, index) {
       // ignore the search page
-      if (index === 0) {
+      if (index <= landingPageIndex) {
         return;
       }
 
@@ -403,7 +404,7 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.slice(1));
+      HomeState.saveGrid(pages.slice(landingPageIndex + 1));
     },
 
     /*
@@ -449,7 +450,7 @@ const GridManager = (function() {
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
       for (var i = 0; i < container.children.length; i++) {
-        var page = i === 0 ? new SearchPage(i) : new Page(i);
+        var page = i === landingPageIndex ? new SearchPage(i) : new Page(i);
         page.render([], container.children[i]);
         pages.push(page);
       }
@@ -546,6 +547,10 @@ const GridManager = (function() {
 
     get pageHelper() {
       return pageHelper;
+    },
+
+    get landingPageIndex() {
+      return landingPageIndex;
     }
   };
 })();
