@@ -529,7 +529,7 @@
   border-top: 1px solid #525050;
   visibility: hidden;
   -moz-transform: translateY(-moz-calc(21.4rem + 7.2rem));
-  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.3s ease, -moz-transform 0.3s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-code {
@@ -591,8 +591,8 @@
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
   visibility: hidden;
-  -moz-transform: translateY(21.4rem);
-  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
+  -moz-transform: translateY(-moz-calc(21.4rem + 7em));
+  -moz-transition: visibility 0.3s ease, -moz-transform 0.3s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-pad {
