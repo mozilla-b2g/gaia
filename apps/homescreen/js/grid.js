@@ -133,8 +133,9 @@ const GridManager = (function() {
   }
 
   function goToPage(index, callback) {
-    if (index === 0 && currentPage === 1 && Homescreen.isInEditMode()) {
-      index = 1;
+    if (index === landingPageIndex && currentPage === landingPageIndex + 1 &&
+        Homescreen.isInEditMode()) {
+      index++;
     }
 
     var isSamePage = currentPage === index;
