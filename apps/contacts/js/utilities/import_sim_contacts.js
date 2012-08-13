@@ -51,7 +51,7 @@ function importSIMContacts(onread, onimport, onerror) {
      *   .name : [ string ]
      *   .tel  : [{ number: string, type: string }]
      * The 'name' property is only related to the mozContact element itself --
-     * let's use it as the default givenName value.
+     * let's use it as the default 'givenName' value.
      */
     for (var i = 0; i < nContacts; i++) {
       simContacts[i].givenName = simContacts[i].name;
