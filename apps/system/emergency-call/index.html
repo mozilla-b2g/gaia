@@ -3,13 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
-    <title>Dialer</title>
+    <title>Emergency Call Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="stylesheet" type="text/css" href="style/keypad.css">
-    <!-- Localization -->
-    <link rel="resource" type="application/l10n" href="../locales/locales.ini">
-    <!-- Shared code -->
-    <script type="application/javascript" src="../shared/js/l10n.js"></script>
     <!-- Specific code -->
     <script defer type="application/javascript" src="../js/settings_listener.js"></script>
     <script defer type="application/javascript" src="js/keypad.js"></script>
@@ -146,11 +142,4 @@
       </section>
     </article>
   </body>
-    <script>
-      // If no entry point, redirect to the keyboard-view
-      if(document.location.href.indexOf("#") == -1) {
-        document.location.href = "#keyboard-view";
-      }
-    </script>
 </html>
-

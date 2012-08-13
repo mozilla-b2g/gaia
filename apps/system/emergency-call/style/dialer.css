@@ -84,11 +84,3 @@ html * {
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
-
-*[role=tablist] *[role=tabpanel] {
-  -moz-transform: translateY(-10000px);
-}
-
-*[role=tablist] *:target {
-  -moz-transform: translateY(0px);
-}
