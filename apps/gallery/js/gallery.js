@@ -42,7 +42,7 @@
  * setting a CSS class, which sets the CSS left property to position them
  * offscreen (the classes are defined differently for RTL and LTR
  * languages).  When the user pans left or right (and when the current
- * image isn't zoomed in) the app uses -moz-tranform to translate all
+ * image isn't zoomed in) the app uses tranform to translate all
  * three frames left or right so that the user sees one photo moving off
  * screen and the other one moving on. When the user lifts their finger,
  * the app uses a CSS transition to slide the current photo back into
@@ -57,7 +57,7 @@
  * time, the css classes on these frames are changed to reposition them
  * and CSS handles the transition animation for us, animating both the
  * change in the left property caused by the class change, and the change
- * in the -moz-transform property which is set back to the empty string.
+ * in the transform property which is set back to the empty string.
  *
  * The trickiest code has to do with handling zooms and pans while the
  * photo is zoomed in.  If the photo isn't zoomed in, then any pan ends
@@ -554,10 +554,10 @@ window.addEventListener('mozvisiblitychange', function() {
 
 // Each of the photoFrame <div> elements may be subject to animated
 // transitions. So give them transitionend event handlers that
-// remove the -moz-transition style property when the transition ends.
+// remove the transition style property when the transition ends.
 // This helps prevent unexpected transitions.
 function removeTransition(event) {
-  event.target.style.MozTransition = '';
+  event.target.style.transition = '';
 }
 previousPhotoFrame.addEventListener('transitionend', removeTransition);
 currentPhotoFrame.addEventListener('transitionend', removeTransition);
@@ -781,9 +781,9 @@ photoFrames.addEventListener('swipe', function(event) {
     // the translations we added during panning
     var time = Math.abs(pastEdge) / TRANSITION_SPEED;
     var transition = 'all ' + time + 'ms linear';
-    previousPhotoFrame.style.MozTransition = transition;
-    currentPhotoFrame.style.MozTransition = transition;
-    nextPhotoFrame.style.MozTransition = transition;
+    previousPhotoFrame.style.transition = transition;
+    currentPhotoFrame.style.transition = transition;
+    nextPhotoFrame.style.transition = transition;
 
     photoState.swipe = 0;
     photoState.setFrameStyles(currentPhotoFrame,
@@ -804,9 +804,9 @@ photoFrames.addEventListener('dbltap', function(e) {
   else                           // Otherwise
     scale = 2;                   // Zoom in by a factor of 2
 
-  currentPhoto.style.MozTransition = 'all 100ms linear';
+  currentPhoto.style.transition = 'all 100ms linear';
   currentPhoto.addEventListener('transitionend', function handler() {
-    currentPhoto.style.MozTransition = '';
+    currentPhoto.style.transition = '';
     currentPhoto.removeEventListener('transitionend', handler);
   });
   photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
@@ -914,10 +914,10 @@ function nextPhoto(time) {
 
   // Set transitions for the visible photos
   var transition = 'left ' + time + 'ms linear, ' +
-    '-moz-transform ' + time + 'ms linear';
-  previousPhotoFrame.style.MozTransition = '';  // Not visible
-  currentPhotoFrame.style.MozTransition = transition;
-  nextPhotoFrame.style.MozTransition = transition;
+    'transform ' + time + 'ms linear';
+  previousPhotoFrame.style.transition = '';  // Not visible
+  currentPhotoFrame.style.transition = transition;
+  nextPhotoFrame.style.transition = transition;
 
   // Remove the classes
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -977,10 +977,10 @@ function previousPhoto(time) {
 
   // Transition the two visible photos
   var transition = 'left ' + time + 'ms linear, ' +
-    '-moz-transform ' + time + 'ms linear';
-  previousPhotoFrame.style.MozTransition = transition;
-  currentPhotoFrame.style.MozTransition = transition;
-  nextPhotoFrame.style.MozTransition = ''; // Not visible
+    'transform ' + time + 'ms linear';
+  previousPhotoFrame.style.transition = transition;
+  currentPhotoFrame.style.transition = transition;
+  nextPhotoFrame.style.transition = ''; // Not visible
 
   // Remove the frame classes since we're about to cycle the frames
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -1269,7 +1269,7 @@ PhotoState.prototype.pan = function(dx, dy) {
 PhotoState.prototype.setFrameStyles = function(/*frames...*/) {
   var translate = 'translate(' + this.swipe + 'px)';
   for (var i = 0; i < arguments.length; i++)
-    arguments[i].style.MozTransform = translate;
+    arguments[i].style.transform = translate;
 };
 
 

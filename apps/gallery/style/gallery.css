@@ -100,7 +100,7 @@ body {
   overflow-x: hidden;
   /* If we want to scroll up and down, then apparently we have to add */
   /* some extra width to keep the scrollbar offscreen */
-  width: -moz-calc(100% + 10px);
+  width: calc(100% + 10px);
 }
 
 .thumbnail {
@@ -520,7 +520,7 @@ a.button.disabled {
   top: 10px;
   left: 10px;
   width: 300px;  /* I can't do right: 10px here. Bug? */
-  height: -moz-calc(100% - 20px)  /* can't just set bottom: 10px here */
+  height: calc(100% - 20px)  /* can't just set bottom: 10px here */
 }
 
 #edit-crop-canvas { 
@@ -661,8 +661,8 @@ a.filter-sepia {
 /* All the border buttons share these styles */
 #edit-border-options a.radio.button {
   position: absolute;
-  width: -moz-calc(20% - 6px);
-  height: -moz-calc(100% - 6px);
+  width: calc(20% - 6px);
+  height: calc(100% - 6px);
   top: 3px;
   padding: 0;
   background-size: cover;
@@ -676,23 +676,23 @@ a.filter-sepia {
 }
 
 #edit-border-none {
-  left: -moz-calc(0% + 3px);
+  left: calc(0% + 3px);
   border: 2px solid white;  
 }
 #edit-border-thin-white {
-  left: -moz-calc(20% + 3px);
+  left: calc(20% + 3px);
   border: 2px solid white;  
 }
 #edit-border-thick-white {
-  left: -moz-calc(40% + 3px);
+  left: calc(40% + 3px);
   border: 4px solid white;
 }
 #edit-border-thin-black {
-  left: -moz-calc(60% + 3px);
+  left: calc(60% + 3px);
   border: 2px solid black;  
 }
 #edit-border-thick-black {
-  left: -moz-calc(80% + 3px);
+  left: calc(80% + 3px);
   border: 4px solid black;  
 }
 
@@ -773,7 +773,7 @@ a.filter-sepia {
   width: 40px;
   height: 40px;
   top: -10px;
-  left: -moz-calc(10% - 20px);
+  left: calc(10% - 20px);
   border-radius: 50%;
   background-color: #eee;
   text-align: center;
@@ -810,23 +810,23 @@ a.filter-sepia {
 }
 
 #slider-3 {
-  left: -moz-calc(10% + 0 * 80%/6);
+  left: calc(10% + 0 * 80%/6);
 }
 #slider-2 {
-  left: -moz-calc(10% + 1 * 80%/6);
+  left: calc(10% + 1 * 80%/6);
 }
 #slider-1 {
-  left: -moz-calc(10% + 2 * 80%/6);
+  left: calc(10% + 2 * 80%/6);
 }
 #slider0 {
-  left: -moz-calc(10% + 3 * 80%/6);
+  left: calc(10% + 3 * 80%/6);
 }
 #slider1 {
-  left: -moz-calc(10% + 4 * 80%/6);
+  left: calc(10% + 4 * 80%/6);
 }
 #slider2 {
-  left: -moz-calc(10% + 5 * 80%/6);
+  left: calc(10% + 5 * 80%/6);
 }
 #slider3 {
-  left: -moz-calc(10% + 6 * 80%/6);
+  left: calc(10% + 6 * 80%/6);
 }
