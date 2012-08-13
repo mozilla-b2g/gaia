@@ -59,7 +59,8 @@ const DockManager = (function() {
         break;
 
       case 'contextmenu':
-        if (GridManager.pageHelper.getCurrentPageNumber() >= 1) {
+        if (GridManager.pageHelper.getCurrentPageNumber() >
+            GridManager.landingPageIndex) {
           Homescreen.setMode('edit');
 
           if ('origin' in evt.target.dataset) {
