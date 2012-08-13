@@ -42,6 +42,6 @@ function headerDate(time) {
   }
   return day_diff == 0 && today ||
     day_diff == 1 && yesterday ||
-    day_diff < 4 && (new Date(time)).toLocaleFormat('%A') ||
+    day_diff < 6 && (new Date(time)).toLocaleFormat('%A') ||
     (new Date(time)).toLocaleFormat('%x');
 }
