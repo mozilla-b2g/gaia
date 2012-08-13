@@ -141,7 +141,7 @@ contacts.List = (function() {
     return ele;
   }
 
-  var getSimContacts = function getSimContacts() {
+  var addImportSimButton = function addImportSimButton() {
     var container = groupsList.parentNode; // #groups-container
     var button = document.createElement('button');
     button.setAttribute('class', 'simContacts action action-add');
@@ -178,6 +178,14 @@ contacts.List = (function() {
           }
       );
     };
+  }
+
+  var removeImportSimButton = function removeImportSimButton() {
+    var container = groupsList.parentNode; // #groups-container
+    var button = container.querySelector('button.simContacts');
+    if (button) {
+      container.removeChild(button);
+    }
   }
 
   var buildContacts = function buildContacts(contacts) {
@@ -230,7 +238,7 @@ contacts.List = (function() {
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
       if (request.result.length === 0) {
-        getSimContacts();
+        addImportSimButton();
       } else {
         buildContacts(request.result);
       }
@@ -263,6 +271,7 @@ contacts.List = (function() {
 
     var list = groupsList.querySelector('#contacts-list-' + group);
 
+    removeImportSimButton();
     addToGroup(contact, list);
 
     if (list.children.length === 1) {
