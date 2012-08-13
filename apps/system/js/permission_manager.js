@@ -4,16 +4,6 @@
 'use strict';
 
 (function PermissionManager() {
-  var screen = null;
-  
-  window.addEventListener('appwillclose', function pm_appSwitchEventHandler(e) {
-    var detail = e.detail;
-    
-    if (screen) {
-      // XXX: the behavior of app switch is to be defined.
-    }
-  });
-
   window.addEventListener('mozChromeEvent', function pm_chromeEventHandler(e) {
     var detail = e.detail;
     switch (detail.type) {
@@ -74,20 +64,21 @@
     // Callers must be careful not to create an infinite loop!
     var pending = [];
 
+    var overlay = null;
     var dialog = null;
     var message = null;
     var yes = null;
     var no = null;
 
     return function requestPermission(msg, yescallback, nocallback) {
-      if (screen === null) {
-        screen = document.createElement('div');
-        screen.id = 'permission-screen';
-        screen.dataset.zIndexLevel = 'permission-screen';
+      if (overlay === null) {
+        overlay = document.createElement('div');
+        overlay.id = 'permission-screen';
+        overlay.dataset.zIndexLevel = 'permission-screen';
 
         dialog = document.createElement('div');
         dialog.id = 'permission-dialog';
-        screen.appendChild(dialog);
+        overlay.appendChild(dialog);
 
         message = document.createElement('div');
         message.id = 'permission-message';
@@ -103,11 +94,11 @@
         no.id = 'permission-no';
         dialog.appendChild(no);
 
-        document.getElementById('screen').appendChild(screen);
+        document.getElementById('screen').appendChild(overlay);
       }
 
       // If there is already a pending permission request, queue this one
-      if (screen.classList.contains('visible')) {
+      if (overlay.classList.contains('visible')) {
         pending.push({
           message: message,
           yescallback: yescallback,
@@ -121,8 +112,8 @@
       // untrusted app manifests, for example.
       message.textContent = msg;
 
-      // Make the screen visible
-      screen.classList.add('visible');
+      // Make the overlay visible
+      overlay.classList.add('visible');
 
       // This is the event listener function for the buttons
       function clickHandler(evt) {
@@ -131,7 +122,7 @@
         no.removeEventListener('click', clickHandler);
 
         // Hide the dialog
-        screen.classList.remove('visible');
+        overlay.classList.remove('visible');
 
         // Call the appropriate callback, if it is defined
         if (evt.target === yes && yescallback) {
