@@ -295,8 +295,7 @@ var Recents = {
   },
 
   deleteAll: function re_deleteAll() {
-    var response = window.confirm(_('confirm-title') + '\n' +
-                                  _('confirm-text'));
+    var response = window.confirm(_('confirm-deletion'));
     if (response) {
       var self = this;
 
