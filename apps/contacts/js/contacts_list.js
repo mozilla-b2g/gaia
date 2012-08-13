@@ -188,6 +188,7 @@ contacts.List = (function() {
       listContainer.appendChild(newContact);
       showGroup(group);
     }
+    FixedHeader.refresh();
   };
 
   var getFavorites = function getFavorites() {
