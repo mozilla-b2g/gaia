@@ -574,13 +574,15 @@ var Recents = {
   },
 
   contactCallBack: function re_contactCallBack(logItem, max, number, contact) {
+    console.log("**CL** Checking contact info");
     var primaryInfo = logItem.querySelector('.primary-info'),
       contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact) {
-      if (contact.name) {
-        primaryInfo.textContent =
-          contact.name;
-      }
+      console.log("**CL** Name returned = " + contact.name);
+
+      primaryInfo.textContent = (contact.name && contact.name != '')?
+                                                    contact.name : _('unknown');
+
       if (contact.photo) {
         contactPhoto.classList.add('knownContact');
         contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
@@ -601,10 +603,6 @@ var Recents = {
       this._cachedContacts[phoneNumber] = contact;
     } else {
       contactPhoto.classList.add('unknownContact');
-
-      if (!number.length) {
-        primaryInfo.textContent = _('unknown');
-      }
     }
     this._updateCounter++;
     if (this._updateCounter == max) {
