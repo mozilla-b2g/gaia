@@ -4,6 +4,16 @@
 'use strict';
 
 (function PermissionManager() {
+  var screen = null;
+  
+  window.addEventListener('appwillclose', function pm_appSwitchEventHandler(e) {
+    var detail = e.detail;
+    
+    if (screen) {
+      // XXX: the behavior of app switch is to be defined.
+    }
+  });
+
   window.addEventListener('mozChromeEvent', function pm_chromeEventHandler(e) {
     var detail = e.detail;
     switch (detail.type) {
@@ -64,7 +74,6 @@
     // Callers must be careful not to create an infinite loop!
     var pending = [];
 
-    var screen = null;
     var dialog = null;
     var message = null;
     var yes = null;
