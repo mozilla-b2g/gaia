@@ -74,8 +74,6 @@ if (typeof window.owdFbInt === 'undefined') {
       var BLOCK_SIZE = 5;
       var nextBlock = BLOCK_SIZE + 3;
 
-      var totalPhotoBytes = 0;
-
 
     /**
      *  Initialization function it tries to find an access token
@@ -543,19 +541,7 @@ if (typeof window.owdFbInt === 'undefined') {
       xhr.onload = function(e) {
         if (xhr.status === 200 || xhr.status === 0) {
           var mblob = e.target.response;
-          var reader = new FileReader();
-          reader.onload = function(e) {
-            cb(e.target.result);
-
-            totalPhotoBytes += e.target.result.length;
-          }
-
-          reader.onerror = function(e) {
-            window.console.error('FB: File Reader Error', e.target.error.name);
-            cb('');
-          }
-
-          reader.readAsDataURL(mblob);
+          cb(mblob);
         }
       }
 
