@@ -296,7 +296,7 @@ if (typeof window.owdFbInt === 'undefined') {
         document.body.dataset.state = '';
       }
       else {
-        window.console.error('There has been an error, while retrieving friends',
+        window.console.error('FB: Error, while retrieving friends',
                                                     response.error.message);
         if (response.error.code === 190) {
           startOAuth();
@@ -546,7 +546,8 @@ if (typeof window.owdFbInt === 'undefined') {
       }
 
       xhr.ontimeout = function(e) {
-        window.console.error('FB: Timeout!!! while retrieving img for uid', uid);
+        window.console.error('FB: Timeout!!! while retrieving img for uid',
+                                                                          uid);
         cb('');
       }
 

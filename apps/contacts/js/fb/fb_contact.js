@@ -34,7 +34,7 @@ fb.Contact = function(deviceContact) {
   function doGetFacebookUid(data) {
     var out = data.uid;
     if (!out) {
-      if(fb.isFbLinked(data)) {
+      if (fb.isFbLinked(data)) {
         out = getLinkedTo(data);
       }
       else if (data.category) {
@@ -50,9 +50,9 @@ fb.Contact = function(deviceContact) {
   function getLinkedTo(c) {
     var out;
 
-    if(c.category) {
+    if (c.category) {
       var idx = c.category.indexOf(fb.LINKED);
-      if(idx !== -1) {
+      if (idx !== -1) {
         out = c.category[idx + 1];
       }
     }
@@ -96,12 +96,12 @@ fb.Contact = function(deviceContact) {
   }
 
   // Mark a mozContact (deviceContact) as linked to a FB contact (uid)
-  function markAsLinked(dcontact,uid) {
+  function markAsLinked(dcontact, uid) {
     if (!dcontact.category) {
       dcontact.category = [];
     }
 
-    if(dcontact.category.indexOf(fb.LINKED) === -1) {
+    if (dcontact.category.indexOf(fb.LINKED) === -1) {
       dcontact.category.push(fb.CATEGORY);
       dcontact.category.push(fb.LINKED);
       dcontact.category.push(uid);
@@ -116,14 +116,14 @@ fb.Contact = function(deviceContact) {
     var category = dcontact.category;
     var updatedCategory = [];
 
-    if(category) {
+    if (category) {
       var idx = category.indexOf(fb.CATEGORY);
-      if(idx !== -1) {
-        for(var c = 0; c < idx; c++) {
+      if (idx !== -1) {
+        for (var c = 0; c < idx; c++) {
           updatedCategory.push(category[c]);
         }
         // The facebook category, the linked mark and the UID are skipped
-        for(var c = idx + 3; c < category.length; c++) {
+        for (var c = idx + 3; c < category.length; c++) {
            updatedCategory.push(category[c]);
         }
       }
@@ -224,21 +224,21 @@ fb.Contact = function(deviceContact) {
         out[prop] = devContact[prop];
       });
 
-      mergeFbData(out,fbdata);
+      mergeFbData(out, fbdata);
     }
 
     return out;
   }
 
-  function mergeFbData(dcontact,fbdata) {
+  function mergeFbData(dcontact, fbdata) {
     var multipleFields = ['email', 'tel', 'photo', 'org'];
 
     multipleFields.forEach(function(field) {
-      if(!dcontact[field]) {
+      if (!dcontact[field]) {
         dcontact[field] = [];
       }
       var items = fbdata[field];
-      if(items) {
+      if (items) {
         items.forEach(function(item) {
           dcontact[field].push(item);
         });
@@ -288,12 +288,12 @@ fb.Contact = function(deviceContact) {
   this.linkTo = function(fbFriend) {
     var out = new Request();
 
-    window.setTimeout(function do_linkTo () {
-      if(fbFriend.uid) {
-         markAsLinked(devContact,fbFriend.uid);
+    window.setTimeout(function do_linkTo() {
+      if (fbFriend.uid) {
+         markAsLinked(devContact, fbFriend.uid);
       }
-      else if(fbFriend.mozContact) {
-        markAsLinked(devContact,doGetFacebookUid(fbFriend.mozContact));
+      else if (fbFriend.mozContact) {
+        markAsLinked(devContact, doGetFacebookUid(fbFriend.mozContact));
       }
 
       var mozContactsReq = navigator.mozContacts.save(devContact);
@@ -301,7 +301,7 @@ fb.Contact = function(deviceContact) {
       mozContactsReq.onsuccess = function(e) {
         // The FB contact on mozContacts needs to be removed
 
-        if(fbFriend.mozContact) {
+        if (fbFriend.mozContact) {
           var deleteReq = navigator.mozContacts.remove(fbFriend.mozContact);
 
           removeReq.onsuccess = function(e) {
@@ -344,8 +344,8 @@ fb.Contact = function(deviceContact) {
           var imported = fbDataReq.result;
 
           var data = {};
-          copyNames(imported,data);
-          doSetFacebookUid(data,uid);
+          copyNames(imported, data);
+          doSetFacebookUid(data, uid);
 
           var mcontact = new mozContact();
           mcontact.init(data);
@@ -414,4 +414,4 @@ fb.isFbContact = function(devContact) {
 fb.isFbLinked = function(devContact) {
   return (devContact.category &&
                         devContact.category.indexOf(fb.LINKED) !== -1);
-}
+};

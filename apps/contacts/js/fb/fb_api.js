@@ -177,8 +177,8 @@ if (!window.fb) {
           retRequest.failed(e.target.error);
         }
         var objectStore = transaction.objectStore(STORE_NAME);
-        objectStore.delete(uid); },
-      0);
+        objectStore.delete(uid);
+      },0);
 
       return retRequest;
     }
