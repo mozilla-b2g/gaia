@@ -607,6 +607,8 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-reply-btn')[0]
     .addEventListener('click', this.onReply.bind(this, false));
 
+  domNode.getElementsByClassName('msg-delete-btn')[0]
+    .addEventListener('click', this.onDelete.bind(this), false);
   domNode.getElementsByClassName('msg-star-btn')[0]
     .addEventListener('click', this.onStar.bind(this), false);
   domNode.getElementsByClassName('msg-unread-btn')[0]
@@ -653,13 +655,19 @@ MessageReaderCard.prototype = {
     });
   },
 
+  onDelete: function() {
+    var op = this.header.deleteMessage();
+    Toaster.logMutation(op);
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+  },
+
   onStar: function() {
-    var op = MailAPI.markMessagesStarred([this.header], !this.header.isStarred);
+    var op = this.header.setStarred(this.header.isStarred);
     Toaster.logMutation(op);
   },
 
   onMarkUnread: function() {
-    var op = MailAPI.markMessagesRead([this.header], false);
+    var op = this.header.setRead(false);
     Toaster.logMutation(op);
   },
 
