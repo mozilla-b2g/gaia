@@ -370,8 +370,6 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=775591
       // Electrolysize b2g-bluetooth
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=755943
-      // VolumeService doesn't work when called OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775833
       // Message App crashes when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=775997
       // Dialer doesn't seem to see touches when run OOP
@@ -392,22 +390,34 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776132
       // UI Test App - Notifications don't work properly when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776134
+      // Cannot take on-device screenshot for Apps running in OOP (calculator, browser, Calendar)
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=780920
+      // Clock App alarm doesn't sound when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=778300
+      // Music app doesn't work properly when launched OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782458
+      // Video shows black screen when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782460
+      // Camera app show black screen when launched OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782456
+      // AppsService is not e10s ready
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=777195
+      // Contacts app doesn't work when OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782472
 
       'Browser',
       // - Needs Nested Content Process (bug 761935) for OOP
 
       'Camera',
-      // - Camera app doesn't work yet on otoro - bug 740997
-      // - When run OOP, VolumeService dies - bug 775833
+      // - Get a black screen when camera launched OOP (782456)
       //   Cross-process camera control
       //   Cross-process preview stream
 
       'Clock',
-      //  - OOP - asserts on w->mApp (bug 775576)
+      //  - OOP - when alarm fires, analog clock stops advancing and alarm doesn sound (778300)
 
       'Contacts',
-      // System message handler (for WebActivities) doesn't get called
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=777195
+      // - Get a white screen when launched OOP (782472)
       // Keyboard always shows up alpha when app using keyboard is run OOP
       // - bug 776118
 
@@ -419,15 +429,13 @@ var WindowManager = (function() {
 
       'Dialer',
       // - Dialer doesn't seem to see touches when running OOP - bug 776069
+      // - After launching dialer and going back to the home screen, I get continuous messages:
+      //       Gecko - SYDNEY_AUDIO  I   0x172df28 - get position
 
       'E-Mail',
       // - SSL/TLS support can only happen in the main process although the TCP
       //   support without security will accidentally work OOP:
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=770778
-
-      'Gallery',
-      // - When running OOP, doesn't detect any photos or crashes - bug 775591
-      // - When running OOP, VolumeService dies - bug 775833
 
       'Marketplace',
       // - When running OOP - After trying to Login/Register, never get to
@@ -438,7 +446,7 @@ var WindowManager = (function() {
       // - crashes when launched OOP on otoro - bug 775997
 
       'Music',
-      // - When running OOP, VolumeService dies - bug 775833
+      // - When running OOP, displays white screen after selecting song (782458)
 
       'Settings',
       // Most of settings seems to work OOP.
@@ -461,14 +469,10 @@ var WindowManager = (function() {
       //   - bug 776129
       // UI Test app - window.close test causes seg fault when running OOP
       //   - bug 776132
-      // UI Test App - Notifications don't work properly when running OOP
-      //   - bug 776134
 
       'Video'
-      // - When running OOP, VolumeService dies - bug 775833
-      //   OOP - Assertion failure: w->mApp,
-      //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
-      //   Stop audio when app dies
+      // - When running OOP, displays black screen when launching (i.e. no video list) (782460)
+      // - Stop audio when app dies
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {

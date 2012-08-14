@@ -98,18 +98,18 @@ input[type="image"] {
 
 #tabs-list li a {
   display: block;
-  height: 100%;
+  height: 65px;
   -moz-user-select: none;
+  padding: 10px;
 }
 
 #tabs-list li {
   margin: 0;
-  height: 70px;
+  height: 85px;
   border-bottom: 1px solid #54575c;
   font-family: 'Open Sans', sans-serif;
   overflow: hidden;
   position: relative;
-  padding-left: 5px;
 }
 
 #tabs-list li a.active {
@@ -119,17 +119,23 @@ input[type="image"] {
 #tabs-list .preview {
   display: block;
   width: 90px;
-  height: 60px;
+  height: 65px;
   background-color: rgba(255, 255, 255, 0.3);
   background-size: cover;
   float:left;
   border-radius: 5px;
-  margin: 5px 10px 5px 5px;
   pointer-events: none;
+  margin-right: 10px;
 }
 
 #tabs-list span {
   pointer-events: none;
+  display: block;
+  position: absolute;
+  top: 0px;
+  margin: 0 50px 0 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #tabs-list .close:hover, #tabs-list .close:active {
@@ -276,7 +282,7 @@ input[type="image"] {
 }
 
 #url-input {
-  font-family: 'Open Sans';
+  font-family: 'Open Sans', sans-serif;
   font-size: 18px;
   height: 34px;
   margin: 0;
