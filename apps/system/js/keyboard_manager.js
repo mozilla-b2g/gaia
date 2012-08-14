@@ -55,6 +55,10 @@ var KeyboardManager = (function() {
     keyboardOverlay.hidden = true;
 
     if (message.hidden) {
+      // To reset dialog height
+      if (TrustedDialog.isVisible() || ModalDialog.isVisible())
+        currentApp.style.height = height + 'px';
+
       keyboardFrame.classList.add('hide');
       keyboardFrame.classList.remove('visible');
       return;
