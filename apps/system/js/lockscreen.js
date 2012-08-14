@@ -62,7 +62,7 @@ var LockScreen = {
   /*
   * Cool down period after kPassCodeTries
   */
-  kPassCodeTriesTimeout: 10000,
+  kPassCodeTriesTimeout: 5*60*1000,
 
   /*
   * Airplane mode
