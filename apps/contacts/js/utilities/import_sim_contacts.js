@@ -5,10 +5,10 @@
 
 /**
  * Imports contacts stored in the SIM card and saves them into
- * navigator.mozContacts. Three steps => three callbacks:
+ * navigator.mozContacts. Three steps => three callback as arguments:
  *   - onread: SIM card has been read properly;
  *   - onimport: contacts have been saved into navigator.mozContacts;
- *   - onerror: SIM card could not be read.
+ *   - onerror: SIM card us empty or could not be read.
  */
 
 function importSIMContacts(onread, onimport, onerror) {
@@ -21,12 +21,23 @@ function importSIMContacts(onread, onimport, onerror) {
   var request = navigator.mozContacts.getSimContacts('ADN');
 
   request.onsuccess = function onsuccess() {
+    var simContacts = request.result; // array of mozContact elements
+    var nContacts = simContacts.length;
+
+    // early way out if no contacts have been found
+    if (nContacts === 0) {
+      if (onerror) {
+        onerror();
+      }
+      return;
+    }
+
+    // if we're here, all SIM contacts have been read
     if (onread) {
       onread();
     }
 
-    var simContacts = request.result;
-    var nContacts = request.result.length;
+    // count saved contacts, trigger 'onimport' when done
     var nStored = 0;
     var count = function count() {
       nStored++;
@@ -35,27 +46,16 @@ function importSIMContacts(onread, onimport, onerror) {
       }
     };
 
+    /**
+     * store mozContact elements -- each returned mozContact has two properties:
+     *   .name : [ string ]
+     *   .tel  : [{ number: string, type: string }]
+     * The 'name' property is only related to the mozContact element itself --
+     * let's use it as the default 'givenName' value.
+     */
     for (var i = 0; i < nContacts; i++) {
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=779794
-      // in a perfect world, request.result should be a mozContact array;
-      // until then, let's build mozContact elements manually...
-      var contact = new mozContact();
-      var name = simContacts[i].name ? [simContacts[i].name] : [];
-      var note = simContacts[i].note ? [simContacts[i].note] : [];
-      var tel = simContacts[i].tel ? [{
-        'number': simContacts[i].tel.toString(),
-        'type': 'personal'
-      }] : [];
-
-      contact.init({
-        'name': name,
-        'givenName': name,
-        'tel': tel,
-        'note': note
-      });
-
-      // store each mozContact
-      var req = window.navigator.mozContacts.save(contact);
+      simContacts[i].givenName = simContacts[i].name;
+      var req = window.navigator.mozContacts.save(simContacts[i]);
       req.onsuccess = count;
       req.onerror = count;
     }
