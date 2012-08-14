@@ -10,6 +10,7 @@ var PermissionManager = (function() {
       case 'webapps-ask-install':
         handleInstallationPrompt(detail);
         break;
+      case 'geolocation-status':
       case 'permission-prompt':
         handlePermissionPrompt(detail);
         break;
@@ -88,7 +89,7 @@ var PermissionManager = (function() {
   var pending = [];
 
   // Div over in which the permission UI resides.
-  var screen = null;
+  var overlay = null;
   var dialog = null;
   var message = null;
 
@@ -105,7 +106,7 @@ var PermissionManager = (function() {
   var currentRequestId = undefined;
 
   var hidePermissionPrompt = function() {
-    screen.classList.remove('visible');
+    overlay.classList.remove('visible');
     currentRequestId = undefined;
     // Cleanup the event handlers.
     yes.removeEventListener('click', clickHandler);
@@ -135,7 +136,6 @@ var PermissionManager = (function() {
     } else if (evt.target === no && no.callback) {
       callback = no.callback;
     }
-
     hidePermissionPrompt();
 
     // Call the appropriate callback, if it is defined.
@@ -172,13 +172,14 @@ var PermissionManager = (function() {
   var showPermissionPrompt = function(id, msg,
                                       yescallback, nocallback,
                                       yesText, noText) {
-    if (screen === null) {
-      screen = document.createElement('div');
-      screen.id = 'permission-screen';
+    if (overlay === null) {
+      overlay = document.createElement('div');
+      overlay.id = 'permission-screen';
+      overlay.dataset.zIndexLevel = 'permission-screen';
 
       dialog = document.createElement('div');
       dialog.id = 'permission-dialog';
-      screen.appendChild(dialog);
+      overlay.appendChild(dialog);
 
       message = document.createElement('div');
       message.id = 'permission-message';
@@ -194,7 +195,7 @@ var PermissionManager = (function() {
       no.id = 'permission-no';
       dialog.appendChild(no);
 
-      document.body.appendChild(screen);
+      document.body.appendChild(overlay);
     }
 
     // Put the message in the dialog.
@@ -205,7 +206,7 @@ var PermissionManager = (function() {
     currentRequestId = id;
 
     // Make the screen visible
-    screen.classList.add('visible');
+    overlay.classList.add('visible');
 
     // Set event listeners for the yes and no buttons
     yes.addEventListener('click', clickHandler);
@@ -219,11 +220,9 @@ var PermissionManager = (function() {
   // currently showing, or pending. If there are further pending requests,
   // the next is shown.
   var cancelRequest = function(id) {
-    var callback = null;
-    if (currentRequestId == id) {
+    if (currentRequestId === id) {
       // Request is currently being displayed. Hide the permission prompt,
       // and show the next request, if we have any.
-      callback = no.callback;
       hidePermissionPrompt();
       showNextPendingRequest();
     } else {
@@ -231,14 +230,11 @@ var PermissionManager = (function() {
       // list of pending requests, and remove it from the list if present.
       for (var i = 0; i < pending.length; i++) {
         if (pending[i].id === id) {
-          callback = pending[i].no;
           pending.splice(i, 1);
           break;
         }
       }
     }
-    if (callback != null)
-      window.setTimeout(callback, 0);
   };
 
 }());
