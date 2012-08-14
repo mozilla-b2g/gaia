@@ -9,7 +9,8 @@
   "permissions": [
     "contacts",
     "webcontacts-manage",
-    "settings"
+    "settings",
+    "systemXHR"
   ],
   "locales": {
     "ar": {
@@ -80,6 +81,12 @@
       },
       "disposition": "window",
       "returnValue": true
+    },
+    "importFB": {
+      "filters": {
+        "type": "facebook/friend"
+      },
+      "disposition": "window"
     }
   }
 }

@@ -139,6 +139,7 @@ var Contacts = (function() {
       contactTag,
       contactDetails,
       saveButton,
+      editContactButton,
       deleteContactButton,
       favoriteMessage,
       cover,
@@ -228,6 +229,7 @@ var Contacts = (function() {
     noteContainer = document.getElementById('contacts-form-notes');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
+    editContactButton = document.getElementById('edit-contact-button');
     deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
@@ -366,6 +368,24 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails() {
     var contact = currentContact;
+
+    if (fb.isFbContact(contact)) {
+      editContactButton.setAttribute('disabled','disabled');
+      
+      var fbContact = new fb.Contact(contact);
+      var req = fbContact.getData();
+      req.onsuccess = function() { doReloadContactDetails(req.result); }
+      req.onerror = function() {
+        window.console.error('FB: Error while loading FB contact data');
+        doReloadContactDetails(contact);
+      }
+    }
+    else { doReloadContactDetails(contact); }
+  }
+
+  function doReloadContactDetails(c) {
+    var contact = c;
+
     toggleFavoriteMessage(isFavorite(currentContact));
     detailsName.textContent = contact.name;
     var star = document.getElementById('favorite-star');
@@ -1215,14 +1235,17 @@ var Contacts = (function() {
   };
 })();
 
-if (window.navigator.mozSetMessageHandler) {
-  var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-  window.navigator.mozSetMessageHandler('activity', actHandler);
-}
-
-document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (document.mozHidden) {
-    if (ActivityHandler.currentlyHandling)
-      ActivityHandler.postCancel();
+fb.contacts.init(function() {
+  if (window.navigator.mozSetMessageHandler) {
+    var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+    window.navigator.mozSetMessageHandler('activity', actHandler);
   }
+
+  document.addEventListener('mozvisibilitychange', function visibility(e) {
+    if (document.mozHidden) {
+      if (ActivityHandler.currentlyHandling)
+        ActivityHandler.postCancel();
+    }
+  });
+
 });
