@@ -10,17 +10,11 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   var bluetooth = window.navigator.mozBluetooth;
   var defaultAdapter = null;
 
-  if (!settings)
+  if (!settings || !bluetooth)
     return;
-
-  if (!bluetooth) {
-    dump("===== bluetooth not found!");
-    return;
-  }
 
   var gBluetoothInfoBlock = document.querySelector('#bluetooth-desc');
   var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
-  var gVisibleCheckBox = document.querySelector('#bluetooth-visible-device input');
 
   // display Bluetooth power state
   function updateBluetoothState(value) {
@@ -33,126 +27,209 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     settings.getLock().set({'bluetooth.enabled': this.checked});
   };
 
-  gVisibleCheckBox.onchange = function changeVisible() {
-    if (!defaultAdapter) {
+  function initailDefaultAdapter() {
+    if (!bluetooth.enabled)
       return;
+    var req = bluetooth.getDefaultAdapter();
+    req.onsuccess = function bt_getAdapterSuccess() {
+      defaultAdapter = req.result;
+      if (defaultAdapter == null) {
+        // we can do nothing without DefaultAdapter, so set bluetooth disabled
+        settings.getLock().set({'bluetooth.enabled': false});
+        return;
+      }
+      defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
+
+      // initial related components that need defaultAdapter.
+      gMyDeviceInfo.initWithAdapter();
+      gDeviceList.initWithAdapter();
+    };
+    req.onerror = function bt_getAdapterFailed() {
+      // we can do nothing without DefaultAdapter, so set bluetooth disabled
+      settings.getLock().set({'bluetooth.enabled': false});
     }
-    defaultAdapter.setDiscoverable(this.checked);
-  };
+  }
+
+  // device information
+  var gMyDeviceInfo = (function deviceInfo() {
+    var visibleItem = document.querySelector('#bluetooth-visible-device');
+    var visibleName = document.querySelector('#bluetooth-device-name');
+    var visibleCheckBox =
+      document.querySelector('#bluetooth-visible-device input');
+    var renameItem = document.querySelector('#bluetooth-advanced');
+    var renameButton = document.querySelector('#bluetooth-advanced button');
+    var myName = '';
+
+    visibleCheckBox.onchange = function changeDiscoverable() {
+      setDiscoverable(this.checked);
+    };
+
+    renameButton.onclick = function renameClicked() {
+      renameDialog.show();
+    };
+
+    // Wrapper rename dialog to be interactive.
+    var renameDialog = (function wrapperDialog() {
+      var dialog = document.querySelector('#bluetooth-rename');
+      var inputField = document.querySelector('#bluetooth-rename input');
+      if (!dialog)
+        return null;
+
+      // OK|Cancel buttons
+      dialog.onreset = close;
+      dialog.onsubmit = function() {
+        var nameEntered = inputField.value;
+        if (nameEntered === '')
+          return;
+
+        if (nameEntered === myName)
+          return close();
+
+        var req = defaultAdapter.setName(nameEntered);
+        req.onsuccess = function bt_renameSuccess() {
+          myName = visibleName.textContent = defaultAdapter.name;
+          return close();
+        }
+      };
+
+      function close() {
+        dialog.removeAttribute('class');
+        return false; // ignore <form> action
+      }
+
+      // The only exposed method.
+      function show() {
+        inputField.value = myName;
+        dialog.className = 'active';
+      }
+
+      return {
+        show: show
+      };
+    })();
+
+    // immediatly UI update, DOM element manipulation.
+    function updateDeviceInfo(show) {
+      if (show) {
+        renameItem.hidden = false;
+        visibleItem.hidden = false;
+      } else {
+        renameItem.hidden = true;
+        visibleItem.hidden = true;
+      }
+    }
+
+    // initial this device information and do default actions
+    // when DefaultAdapter is ready.
+    function initial() {
+      setDiscoverable(visibleCheckBox.checked);
+    }
+
+    function setDiscoverable(visible) {
+      if (!defaultAdapter) {
+        return;
+      }
+      defaultAdapter.setDiscoverable(visible);
+      myName = visibleName.textContent = defaultAdapter.name;
+    }
+
+    // API
+    return {
+      update: updateDeviceInfo,
+      initWithAdapter: initial,
+      setDiscoverable: setDiscoverable
+    };
+  })();
 
   // device list
   var gDeviceList = (function deviceList() {
     var list = document.querySelector('#bluetooth-devices');
     var searchingItem = document.querySelector('#bluetooth-searching');
+    var enableMsg = document.querySelector('#bluetooth-enable-msg');
     var index = [];
 
-    function initailDefaultAdapter() {
-      dump("===== [gDeviceList] bluetooth.enabled " + bluetooth.enabled);
-      if (!bluetooth.enabled)
-        return;
-      var req = bluetooth.getDefaultAdapter();
-      dump("===== [gDeviceList] req " + req);
-      req.onsuccess = function bt_gotDefaultAdapter() {
-        dump("===== [gDeviceList] get default adapter: "+ req.result);
-        defaultAdapter = req.result;
-        if(defaultAdapter == null) {
-          dump("===== [gDeviceList] No Adapter Available");
-          return;
-        }
-        defaultAdapter.ondevicefound = function bt_onDeviceFound(evt) {
-          // check duplicate device  
-          var i = length = index.length;
-          while(i >= 0) {
-            if (index[i] === evt.device.address) {
-              return;
-            }
-            i -= 1;
-          }
-          list.appendChild(newListItem(evt.device));
-          index.push(evt.device.address);
-        };
-        defaultAdapter.setDiscoverable(gVisibleCheckBox.checked);
-
-        //TODO should be a callback
-        startDiscovery();
-      };
-      req.onerror = function bt_getDefaultAdapterFailed() {
-        dump("===== Error: get default adapter - " + req.error.name);
-      };
-    }
-
-    // private DOM helper: create a network list item
+    // private DOM helper: create a device list item
     function newListItem(device) {
-      // ssid
       var deviceName = document.createElement('a');
       deviceName.textContent = device.name;
 
-      // supported authentication methods
       var deviceAddress = document.createElement('small');
       deviceAddress.textContent = device.address;
 
-      // create list item
       var li = document.createElement('li');
       li.appendChild(deviceAddress);
       li.appendChild(deviceName);
 
-      // bind connection callback
+      // bind paired callback
       li.onclick = function() {
-        //XXX toggleDevice(device);
+        //XXX should call pair() here
+        //but hasn't been implemented in the backend.
       };
       return li;
     }
 
-    function updateDeviceList(show) {
-      if (show) {
-        clear(true);
-        searchingItem.hidden = false;
-        gVisibleCheckBox.hidden = false;
-        //XXX: hack because there is no "bluetooth.onEnabled" callback hook.
-        if (!bluetooth.enabled) {
-          dump("==== [Observer] bluetooth not enabled, setTimeout");
-          setTimeout(initailDefaultAdapter, 5000);
-        } else {
-          initailDefaultAdapter();
-        }
-
-      } else {
-        clear(false);
-        searchingItem.hidden = true;
-        gVisibleCheckBox.hidden = true;
-      }
-    }
-
-    function startDiscovery() {
-      if (!defaultAdapter) {
-        dump("==== [startDiscovery] defaultAdapter is not ready")
-        return;
-      }
-      var req = defaultAdapter.startDiscovery(); 
-      req.onsuccess = function bt_discoverySuccess() {
-        dump("===== Start Discovery Success");
-      };
-      req.onerror = function bt_discoveryFailed() {
-        dump("===== Start Discovery Failed");
-      };
-    }
-
-    // clear the network list
-    function clear(showSearchingItem) {
+    // private helper: clear the device list
+    function clear() {
       while (list.hasChildNodes()) {
         list.removeChild(list.lastChild);
       }
       index = [];
     }
 
+
+    // immediatly UI update, DOM element manipulation.
+    function updateDeviceList(show) {
+      if (show) {
+        clear();
+        enableMsg.hidden = true;
+        searchingItem.hidden = false;
+
+      } else {
+        clear();
+        enableMsg.hidden = false;
+        searchingItem.hidden = true;
+      }
+    }
+
+    // do default actions (start discover avaliable devices)
+    // when DefaultAdapter is ready.
+    function initial() {
+      startDiscovery();
+    }
+
+    // callback function when an avaliable device found
+    function onDeviceFound(evt) {
+      // check duplicate
+      var i = length = index.length;
+      while (i >= 0) {
+        if (index[i] === evt.device.address) {
+          return;
+        }
+        i -= 1;
+      }
+      list.appendChild(newListItem(evt.device));
+      index.push(evt.device.address);
+    }
+
+    function startDiscovery() {
+      if (!defaultAdapter)
+        return;
+
+      var req = defaultAdapter.startDiscovery();
+      req.onerror = function bt_discoveryFailed() {
+        searchingItem.hidden = true;
+      };
+    }
+
     // API
     return {
-      init: initailDefaultAdapter,
-      update: updateDeviceList
+      update: updateDeviceList,
+      initWithAdapter: initial,
+      startDiscovery: startDiscovery,
+      onDeviceFound: onDeviceFound
     };
 
   })();
-
 
   var lastMozSettingValue = false;
 
@@ -165,9 +242,12 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
     lastMozSettingValue = enabled;
     updateBluetoothState(enabled);
-    //XXX hack for test
-    bluetooth.setEnabled(enabled);
+
+    //XXX should be removed
+    hackForTest(enabled);
+
     gDeviceList.update(enabled);
+    gMyDeviceInfo.update(enabled);
   });
 
   // startup, update status
@@ -176,10 +256,30 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   req.onsuccess = function bt_EnabledSuccess() {
     lastMozSettingValue = req.result['bluetooth.enabled'];
     updateBluetoothState(lastMozSettingValue);
-    //XXX hack for test
-    bluetooth.setEnabled(lastMozSettingValue);
+
+    //XXX should be removed
+    hackForTest(lastMozSettingValue);
+
     gDeviceList.update(lastMozSettingValue);
+    gMyDeviceInfo.update(lastMozSettingValue);
   };
+
+  //XXX hack due to the following bugs.
+  function hackForTest(enabled) {
+    //XXX mozBluetooth is not a singleton
+    //so the setting in System app won't take effect here
+    //https://bugzilla.mozilla.org/show_bug.cgi?id=782588
+    bluetooth.setEnabled(enabled);
+    if (enabled) {
+      //XXX there is no "bluetooth.onenabled" callback can be hooked.
+      //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
+      if (!bluetooth.enabled) {
+        setTimeout(initailDefaultAdapter, 5000);
+      } else {
+        initailDefaultAdapter();
+      }
+    }
+  }
 
 });
 

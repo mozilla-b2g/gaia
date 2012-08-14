@@ -365,10 +365,15 @@
             <input type="checkbox" checked/>
             <span></span>
           </label>
+          <small id="bluetooth-device-name"></small>
           <a data-l10n-id="bluetooth-visible">Visible to other devices</a>
         </li>
       </ul>
       <h2 data-l10n-id="bluetoothDevices">Devices</h2>
+      <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg">
+        Turn Bluetooth on to pair with devices that are
+        within range.
+      </div>
       <ul id="bluetooth-devices">
         <!-- filled by bluetooth.js -->
       </ul>
@@ -377,12 +382,27 @@
           <a data-l10n-id="scanning">Searching…</a>
         </li>
       </ul>
-      <ul hidden id="bluetooth-advanced">
+      <ul id="bluetooth-advanced">
         <li>
           <button data-l10n-id="renameDevice">Rename Device</button>
         </li>
       </ul>
     </section>
+
+    <!-- Connectivity :: Bluetooth :: Rename Device Dialog -->
+    <form role="dialog" action="#bluetooth" id="bluetooth-rename">
+      <header>
+        <button data-l10n-id="cancel" type="reset">Cancel</button>
+        <button data-l10n-id="ok" type="submit">OK</button>
+        <h2 data-l10n-id="bluetoothRename">Change Phone Name</h2>
+      </header>
+
+      <label>
+        <span data-l10n-id="bluetoothRenameMsg">New Name</span>
+        <input type="text"/>
+      </label>
+    </form>
+
 
     <!-- Personalization :: Sound -->
     <section role="document" id="sounds">
