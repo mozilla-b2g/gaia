@@ -143,12 +143,14 @@ contacts.List = (function() {
     return ele;
   }
 
-  var getSimContacts = function getSimContacts() {
+  var addImportSimButton = function addImportSimButton() {
     var container = groupsList.parentNode; // #groups-container
     var button = document.createElement('button');
     button.setAttribute('class', 'simContacts action action-add');
     button.textContent = _('simContacts-import');
     container.appendChild(button);
+
+    // TODO: don't show this button if no SIM card is found...
 
     button.onclick = function readFromSIM() {
       // replace the button with a throbber
@@ -178,6 +180,14 @@ contacts.List = (function() {
           }
       );
     };
+  }
+
+  var removeImportSimButton = function removeImportSimButton() {
+    var container = groupsList.parentNode; // #groups-container
+    var button = container.querySelector('button.simContacts');
+    if (button) {
+      container.removeChild(button);
+    }
   }
 
   var buildContacts = function buildContacts(contacts) {
@@ -229,7 +239,7 @@ contacts.List = (function() {
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
       if (request.result.length === 0) {
-        getSimContacts();
+        addImportSimButton();
       } else {
         buildContacts(request.result);
       }
@@ -262,6 +272,7 @@ contacts.List = (function() {
 
     var list = groupsList.querySelector('#contacts-list-' + group);
 
+    removeImportSimButton();
     addToGroup(contact, list);
 
     if (list.children.length === 1) {
@@ -368,13 +379,7 @@ contacts.List = (function() {
 
   var getGroupName = function getGroupName(contact) {
     var ret = getStringToBeOrdered(contact);
-
-    ret = ret.charAt(0).toUpperCase();
-    ret = ret.replace(/[ÁÀ]/ig, 'A');
-    ret = ret.replace(/[ÉÈ]/ig, 'E');
-    ret = ret.replace(/[ÍÌ]/ig, 'I');
-    ret = ret.replace(/[ÓÒ]/ig, 'O');
-    ret = ret.replace(/[ÚÙ]/ig, 'U');
+    ret = normalizeText(ret.charAt(0).toUpperCase());
 
     var code = ret.charCodeAt(0);
     if (code < 65 || code > 90) {
