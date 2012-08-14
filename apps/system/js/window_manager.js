@@ -566,6 +566,11 @@ var WindowManager = (function() {
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
+        if (origin.indexOf('/homescreen') !== -1) {
+          setDisplayedApp(null);
+          return;
+        }
+
         if (isRunning(origin)) {
           var frame = getAppFrame(origin);
           // If the app is in foreground, it's too risky to change it's

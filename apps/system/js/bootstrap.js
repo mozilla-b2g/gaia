@@ -46,7 +46,14 @@ function startup() {
       src += '/index.html';
     }
   }
-  document.getElementById('homescreen').src = src;
+  var home = document.createElement('iframe');
+  home.id = 'homescreen';
+  home.src = src;
+  home.setAttribute('mozapp', src.replace('index.html', 'manifest.webapp'));
+  home.setAttribute('mozbrowser', 'true');
+  home.dataset.zIndexLevel = 'homescreen';
+  var windows = document.getElementById('windows');
+  windows.parentNode.insertBefore(home, windows);
 }());
 
 /* === Shortcuts === */
@@ -81,4 +88,3 @@ SettingsListener.observe(
 window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
   WindowManager.setDisplayedApp(null);
 });
-
