@@ -545,7 +545,7 @@ var LockScreen = {
         break;
 
       case 'emergency-call':
-        // create the <iframe> and load the camera
+        // create the <iframe> and load the emergency call
         var frame = document.createElement('iframe');
 
         frame.src = './emergency-call/';
