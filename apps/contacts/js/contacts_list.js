@@ -25,6 +25,8 @@ contacts.List = (function() {
     }
     renderGroupHeader('und', '#');
     favoriteGroup = document.getElementById('group-favorites').parentNode;
+    var selector = 'h2.block-title:not(.hide)';
+    FixedHeader.init('#groups-container', '#fixed-container', selector);
   }
 
   var load = function load(contacts) {
@@ -66,7 +68,9 @@ contacts.List = (function() {
     var figure = document.createElement('figure');
     figure.className = 'item-media pull-right block-media';
     var img = document.createElement('img');
-    img.style.backgroundImage = 'url(' + contact.photo + ')';
+    if (contact.photo && contact.photo.length > 0) {
+      Contacts.updatePhoto(contact.photo[0], img);
+    }
     figure.appendChild(img);
     link.appendChild(figure);
     var body = document.createElement('p');
@@ -139,12 +143,14 @@ contacts.List = (function() {
     return ele;
   }
 
-  var getSimContacts = function getSimContacts() {
+  var addImportSimButton = function addImportSimButton() {
     var container = groupsList.parentNode; // #groups-container
     var button = document.createElement('button');
     button.setAttribute('class', 'simContacts action action-add');
     button.textContent = _('simContacts-import');
     container.appendChild(button);
+
+    // TODO: don't show this button if no SIM card is found...
 
     button.onclick = function readFromSIM() {
       // replace the button with a throbber
@@ -176,6 +182,14 @@ contacts.List = (function() {
     };
   }
 
+  var removeImportSimButton = function removeImportSimButton() {
+    var container = groupsList.parentNode; // #groups-container
+    var button = container.querySelector('button.simContacts');
+    if (button) {
+      container.removeChild(button);
+    }
+  }
+
   var buildContacts = function buildContacts(contacts) {
     for (var i = 0; i < contacts.length; i++) {
       var group = getGroupName(contacts[i]);
@@ -184,6 +198,7 @@ contacts.List = (function() {
       listContainer.appendChild(newContact);
       showGroup(group);
     }
+    FixedHeader.refresh();
   };
 
   var getFavorites = function getFavorites() {
@@ -224,7 +239,7 @@ contacts.List = (function() {
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
       if (request.result.length === 0) {
-        getSimContacts();
+        addImportSimButton();
       } else {
         buildContacts(request.result);
       }
@@ -257,6 +272,7 @@ contacts.List = (function() {
 
     var list = groupsList.querySelector('#contacts-list-' + group);
 
+    removeImportSimButton();
     addToGroup(contact, list);
 
     if (list.children.length === 1) {
@@ -273,6 +289,7 @@ contacts.List = (function() {
         showGroup('favorites');
       }
     }
+    FixedHeader.refresh();
   }
 
   // Fills the contact data to display if no givenName and familyName
@@ -362,13 +379,7 @@ contacts.List = (function() {
 
   var getGroupName = function getGroupName(contact) {
     var ret = getStringToBeOrdered(contact);
-
-    ret = ret.charAt(0).toUpperCase();
-    ret = ret.replace(/[ÁÀ]/ig, 'A');
-    ret = ret.replace(/[ÉÈ]/ig, 'E');
-    ret = ret.replace(/[ÍÌ]/ig, 'I');
-    ret = ret.replace(/[ÓÒ]/ig, 'O');
-    ret = ret.replace(/[ÚÙ]/ig, 'U');
+    ret = normalizeText(ret.charAt(0).toUpperCase());
 
     var code = ret.charCodeAt(0);
     if (code < 65 || code > 90) {

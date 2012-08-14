@@ -22,14 +22,84 @@ Calendar.ns('Controllers').Sync = (function() {
 
       // used instead of bind for testing reasons.
       account.on('add', function(id, data) {
-        self._syncAccount(id, data);
+        self._syncAccount(data);
       });
     },
 
-    _syncAccount: function(id, model) {
+    /**
+     * Sync all accounts, calendars, events.
+     */
+    sync: function(callback) {
+      var key;
       var account = this.app.store('Account');
-      account.sync(model, function() {
-        //TODO: Eventually trigger sync events.
+      var pending = 0;
+      var errorList = [];
+
+      function next(err) {
+        if (err) {
+          errorList.push(err);
+        }
+
+        if (!(--pending)) {
+          if (errorList.length) {
+            callback(errorList);
+          } else {
+            callback(null);
+          }
+        }
+      }
+
+      for (key in account.cached) {
+        pending++;
+        this._syncAccount(
+          account.cached[key], next
+        );
+      }
+    },
+
+    _syncAccount: function(model, callback) {
+      var self = this;
+      var account = this.app.store('Account');
+      var calendar = this.app.store('Calendar');
+
+      account.sync(model, function(err) {
+        if (err) {
+          //TODO: Implement error handling to show
+          //      UI to change user/password, etc..
+          callback(err);
+          return;
+        }
+
+        var pending = 0;
+        var cals = calendar.remotesByAccount(
+          model._id
+        );
+
+        var key;
+        var errorList = [];
+
+        function next(err) {
+          if (err) {
+            errorList.push(err);
+          }
+
+          if (!(--pending)) {
+            if (errorList.length) {
+              callback(errorList);
+            } else {
+              callback(null);
+            }
+          }
+        }
+
+        for (key in cals) {
+          pending++;
+          calendar.sync(
+            model,
+            cals[key],
+            next
+          );
+        }
       });
     }
 

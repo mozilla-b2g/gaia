@@ -23,10 +23,10 @@
  *   hideCropOverlay()
  *   cropImage()
  *   undoCrop()
- * 
+ *
  * This code expects WebGL GLSL shader programs in scripts with ids
  * edit-vertex-shader and edit-fragment-shader. It dynamically creates
- * canvas elements with ids edit-preview-canvas and edit-crop-canvas. 
+ * canvas elements with ids edit-preview-canvas and edit-crop-canvas.
  * The stylesheet includes static styles to position those dyanamic elements.
  */
 'use strict';

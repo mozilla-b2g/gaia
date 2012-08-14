@@ -114,6 +114,9 @@ var ScreenManager = {
       self._idleTimeout = value;
 
       if (!self._firstOn) {
+        var initlogo = document.getElementById('initlogo');
+        initlogo.parentNode.removeChild(initlogo);
+
         self._firstOn = true;
         self.turnScreenOn();
       }
@@ -282,8 +285,13 @@ var ScreenManager = {
     }
 
     this.idleObserver.time = time;
-    navigator.addIdleObserver(this.idleObserver);
-    this.isIdleObserverInitialized = true;
+    // XXX: wrap addIdleObserver in try catch to workaround
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=781076
+    try {
+      navigator.addIdleObserver(this.idleObserver);
+    } catch (e) {
+      console.log(e);
+    }
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
@@ -295,5 +303,7 @@ var ScreenManager = {
   }
 };
 
-ScreenManager.init();
-
+window.addEventListener('load', function loadScreenManager() {
+  window.removeEventListener('load', loadScreenManager);
+  ScreenManager.init();
+});

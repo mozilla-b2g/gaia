@@ -14,7 +14,8 @@ const GridManager = (function() {
   var opacityMax = .7;
 
   var pages = [];
-  var currentPage = 0;
+  var landingPageIndex = 0;
+  var currentPage = landingPageIndex;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -28,8 +29,6 @@ const GridManager = (function() {
     switch (evt.type) {
       case 'mousedown':
         evt.stopPropagation();
-        document.body.dataset.transitioning = 'true';
-
         startEvent = evt;
         attachEvents();
         break;
@@ -40,15 +39,16 @@ const GridManager = (function() {
         // Starts dragging only when tapping does not make sense
         // anymore. The drag will then start from this point to avoid
         // a jump effect.
-        if (!isPanning &&
-            Math.abs(evt.clientX - startEvent.clientX) < thresholdForTapping) {
-          return;
-        } else if (!isPanning) {
-          isPanning = true;
-          startEvent = evt;
+        var deltaX = evt.clientX - startEvent.clientX;
+        if (!isPanning) {
+          if (Math.abs(deltaX) < thresholdForTapping) {
+            return;
+          } else {
+            isPanning = true;
+            document.body.dataset.transitioning = 'true';
+          }
         }
 
-        var deltaX = evt.clientX - startEvent.clientX;
         var len = pages.length;
         for (var i = 0; i < len; i++) {
           pages[i].moveBy((-currentPage + i) * windowWidth + deltaX);
@@ -58,19 +58,18 @@ const GridManager = (function() {
 
       case 'mouseup':
         evt.stopPropagation();
+        releaseEvents();
         if (!isPanning) {
-          delete document.body.dataset.transitioning;
+          pageHelper.getCurrent().tap(evt.target);
         } else {
           isPanning = false;
+          onTouchEnd(evt.clientX - startEvent.clientX);
         }
 
-        onTouchEnd(evt.clientX - startEvent.clientX, evt.target);
         break;
 
       case 'contextmenu':
-        if (currentPage !== 0) {
-          evt.stopPropagation();
-          evt.preventDefault();
+        if (currentPage > landingPageIndex) {
           Homescreen.setMode('edit');
           if ('origin' in evt.target.dataset) {
             DragDropManager.start(evt, {
@@ -88,9 +87,9 @@ const GridManager = (function() {
       return;
     }
     var forward = dirCtrl.goesForward(deltaX);
-    if (currentPage === 0 && forward) {
+    if (currentPage === landingPageIndex && forward) {
       applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
-    } else if (currentPage === 1 && !forward) {
+    } else if (currentPage === landingPageIndex + 1 && !forward) {
       applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
     }
   }
@@ -108,23 +107,17 @@ const GridManager = (function() {
 
   }
 
-  function onTouchEnd(deltaX, target) {
-    releaseEvents();
-
+  function onTouchEnd(deltaX) {
+    var page = currentPage;
     if (Math.abs(deltaX) > thresholdForPanning) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pageHelper.total() - 1) {
-        goToPage(currentPage + 1);
+        page = page + 1;
       } else if (!forward && currentPage > 0) {
-        goToPage(currentPage - 1);
-      } else {
-        goToPage(currentPage);
+        page = page - 1;
       }
-    } else if (Math.abs(deltaX) < thresholdForTapping) {
-      pageHelper.getCurrent().tap(target);
-    } else {
-      goToPage(currentPage);
     }
+    goToPage(page);
   }
 
   function attachEvents() {
@@ -140,8 +133,9 @@ const GridManager = (function() {
   }
 
   function goToPage(index, callback) {
-    if (index === 0 && currentPage === 1 && Homescreen.isInEditMode()) {
-      index = 1;
+    if (index === landingPageIndex && currentPage === landingPageIndex + 1 &&
+        Homescreen.isInEditMode()) {
+      index++;
     }
 
     var isSamePage = currentPage === index;
@@ -165,9 +159,9 @@ const GridManager = (function() {
     for (var i = 0; i < len; i++) {
       pages[i].moveByWithEffect((-currentPage + i) * windowWidth, .3);
     }
-    if (index === 0) {
+    if (index === landingPageIndex) {
       applyEffectOverlay(0, .3);
-    } else if (index === 1) {
+    } else if (index === landingPageIndex + 1) {
       applyEffectOverlay(opacityMax, .3);
     }
 
@@ -177,10 +171,12 @@ const GridManager = (function() {
   }
 
   function goToNextPage(callback) {
+    document.body.dataset.transitioning = 'true';
     goToPage(currentPage + 1, callback);
   }
 
   function goToPreviousPage(callback) {
+    document.body.dataset.transitioning = 'true';
     goToPage(currentPage - 1, callback);
   }
 
@@ -304,7 +300,7 @@ const GridManager = (function() {
     var maxPerPage = pageHelper.getMaxPerPage();
 
     var pagesCount = pageHelper.total();
-    for (var i = 1; i < pagesCount; i++) {
+    for (var i = landingPageIndex + 1; i < pagesCount; i++) {
       if (pages[i].getNumApps() < maxPerPage) {
         return i;
       }
@@ -316,7 +312,7 @@ const GridManager = (function() {
   function removeEmptyPages() {
     pages.forEach(function checkIsEmpty(page, index) {
       // ignore the search page
-      if (index === 0) {
+      if (index <= landingPageIndex) {
         return;
       }
 
@@ -337,7 +333,7 @@ const GridManager = (function() {
 
     pages.forEach(function checkIsOverflow(page, index) {
       // ignore the search page
-      if (index === 0) {
+      if (index <= landingPageIndex) {
         return;
       }
 
@@ -409,7 +405,7 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.slice(1));
+      HomeState.saveGrid(pages.slice(landingPageIndex + 1));
     },
 
     /*
@@ -455,7 +451,7 @@ const GridManager = (function() {
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
       for (var i = 0; i < container.children.length; i++) {
-        var page = i === 0 ? new SearchPage(i) : new Page(i);
+        var page = i === landingPageIndex ? new SearchPage(i) : new Page(i);
         page.render([], container.children[i]);
         pages.push(page);
       }
@@ -552,6 +548,10 @@ const GridManager = (function() {
 
     get pageHelper() {
       return pageHelper;
+    },
+
+    get landingPageIndex() {
+      return landingPageIndex;
     }
   };
 })();

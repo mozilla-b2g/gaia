@@ -608,6 +608,13 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-reply-btn')[0]
     .addEventListener('click', this.onReply.bind(this, false));
 
+  domNode.getElementsByClassName('msg-delete-btn')[0]
+    .addEventListener('click', this.onDelete.bind(this), false);
+  domNode.getElementsByClassName('msg-star-btn')[0]
+    .addEventListener('click', this.onStar.bind(this), false);
+  domNode.getElementsByClassName('msg-unread-btn')[0]
+    .addEventListener('click', this.onMarkUnread.bind(this), false);
+
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
     .addEventListener('click', this.onEnvelopeClick.bind(this), false);
@@ -633,6 +640,20 @@ MessageReaderCard.prototype = {
     this.buildBodyDom(this.domNode);
   },
 
+  formatFileSize: function(size) {
+    // XXX: localize this!
+    const units = [ "bytes", "KB", "MB", "GB", "TB" ];
+    var unitSize = size;
+    var unitIndex = 0;
+
+    while ((unitSize >= 999.5) && (unitIndex < units.length)) {
+      unitSize /= 1024;
+      unitIndex++;
+    }
+    return (unitIndex == 0 ? unitSize.toFixed(0) : unitSize.toPrecision(3)) +
+           " " + units[unitIndex];
+  },
+
   onBack: function(event) {
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
@@ -642,6 +663,22 @@ MessageReaderCard.prototype = {
       Cards.pushCard('compose', 'default', 'animate',
                      { composer: composer });
     });
+  },
+
+  onDelete: function() {
+    var op = this.header.deleteMessage();
+    Toaster.logMutation(op);
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+  },
+
+  onStar: function() {
+    var op = this.header.setStarred(this.header.isStarred);
+    Toaster.logMutation(op);
+  },
+
+  onMarkUnread: function() {
+    var op = this.header.setRead(false);
+    Toaster.logMutation(op);
   },
 
   /**
@@ -808,13 +845,14 @@ MessageReaderCard.prototype = {
       var attTemplate = msgNodes['attachment-item'],
           filenameTemplate =
             attTemplate.getElementsByClassName('msg-attachment-filename')[0],
-          filetypeTemplate =
-            attTemplate.getElementsByClassName('msg-attachment-filetype')[0];
+          filesizeTemplate =
+            attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
       for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
         var attachment = body.attachments[iAttach];
         filenameTemplate.textContent = attachment.filename;
         // XXX perform localized mimetype translation stuff
-        filetypeTemplate.textContent = attachment.mimetype;
+        filesizeTemplate.textContent = this.formatFileSize(
+          attachment.sizeEstimateInBytes);
         attachmentsContainer.appendChild(attTemplate.cloneNode(true));
       }
     }

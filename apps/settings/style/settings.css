@@ -21,21 +21,19 @@ body.hidden * {
  */
 
 header {
-  height: 63px;
-  border-bottom: 1px solid #111;
+  height: 50px;
 }
 
 header h1, header h2 {
   margin: 0;
   padding: 0;
-  height: 62px;
-  line-height: 62px;
+  height: 50px;
+  line-height: 50px;
   text-align: center;
   font-weight: bold;
   font-size: 1em;
   color: white;
-  background-color: #333;
-  border-bottom: 1px solid #222;
+  background: url(images/header-bg.png) repeat-x;
 }
 
 header h1 a {
@@ -49,6 +47,17 @@ header h1 a:active {
   background-color: #444;
 }
 
+/* title bars don't scroll with the rest of the page, except for #root */
+section:not([id=root]) header h1, form:not([id=root]) header {
+  position: fixed;
+  width: 100%;
+  z-index: 2;
+}
+
+form:not([id=root]) header + * {
+  margin-top: 50px;
+}
+
 
 /******************************************************************************
  * Right-to-Left layout
@@ -59,32 +68,58 @@ header h1 a:active {
   background-position: right 20px top 50%;
 }
 
-[dir=rtl] [role=region] > h2 {
+[dir=rtl] [role=document] > h2 {
   padding: 0 30px 0 0;
 }
 
-[dir=rtl] [role=region] {
-  -moz-transform: translateX(-100%);
+/* transitions */
+
+[dir=rtl] [role=document] {
+  transform: translateX(-100%);
 }
 [dir=rtl] #root {
-  -moz-transform: translateX(+100%);
+  transform: translateX(+100%);
 }
 
 [dir=rtl] #root:target,
-[dir=rtl] [role=region]:target {
-  -moz-transform: none;
+[dir=rtl] [role=document]:target {
+  transform: none;
 }
 
-[dir=rtl] ul li > span,
+/* setting lists */
+
+[dir=rtl] ul li > a {
+  padding-left: auto;
+  padding-right: 30px;
+}
+
 [dir=rtl] ul li > small {
   left: auto;
   right: 30px;
 }
 
-[dir=rtl] [role=region] label > span {
-  left: 15px;
+[dir=rtl] [role=document] label > span {
+  left: 10px;
   right: auto;
 }
+
+/* root list and icons */
+
+[dir=rtl] #root li [data-l10n-id] {
+  background-position: right 14px top 50%;
+}
+
+[dir=rtl] #root ul li > a {
+  padding-left: auto;
+  padding-right: 55px;
+}
+
+[dir=rtl] #root ul li > small {
+  left: auto;
+  right: 55px;
+}
+
+/* bidi (e.g. language list) */
 
 [dir=ltr] a[dir=rtl] {
   text-align: left;
@@ -93,6 +128,8 @@ header h1 a:active {
 [dir=rtl] a[dir=ltr] {
   text-align: right;
 }
+
+/* dialogs */
 
 [dir=rtl] [role=dialog] header button {
   float: right;

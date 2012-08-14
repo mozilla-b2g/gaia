@@ -11,8 +11,8 @@
     "mozBluetooth",
     "device-storage",
     "devicestorage",
-    "websettings-readwrite",
-    "settings"
+    "settings",
+    "wifi-manage"
   ],
   "activities": {
     "configure": {

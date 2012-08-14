@@ -309,7 +309,8 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #calls > section div {
-  padding-left: 0.5rem;
+  padding-left: 2rem;
+  padding-right: 1.5rem;
 }
 
 #calls[data-count="1"] > section {
@@ -347,6 +348,7 @@ button[disabled] .icon-keypad-visibility {
 
 #calls > section .number {
   font-size: 1.5em;
+  text-overflow: ellipsis;
 }
 
 #calls > section .duration {

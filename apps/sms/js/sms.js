@@ -59,11 +59,15 @@ var MessageManager = {
         var threadMessages = document.getElementById('thread-messages');
         switch (window.location.hash) {
           case '#new':
+            var messageInput = document.getElementById('message-to-send');
+            var receiverInput = document.getElementById('receiver-input');
             document.getElementById('messages-container').innerHTML = '';
-            document.getElementById('message-to-send').innerHTML = '';
-            document.getElementById('receiver-input').value = '';
+            messageInput.innerHTML = '';
+            receiverInput.value = '';
             threadMessages.classList.add('new');
-            MessageManager.slide();
+            MessageManager.slide(function() {
+              messageInput.focus();
+            });
             break;
           case '#thread-list':
             if (mainWrapper.classList.contains('edit')) {
@@ -94,7 +98,11 @@ var MessageManager = {
               } else {
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages,
-                  filter, null, MessageManager.slide);
+                  filter, null, function() {
+                   MessageManager.slide(function() {
+                      document.getElementById('message-to-send').focus();
+                    });
+                  });
               }
             }
           break;
@@ -709,17 +717,9 @@ var ThreadUI = {
     var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
-    var htmlStructure = '<span class="bubble-container ' + className + '">' +
-                        '<div class="bubble">' + bodyHTML + '</div>' +
-                        '</span>';
-    // Add 'gif' if necessary
+    var htmlStructure = '';
+    // Adding edit options to the left side
     if (message.delivery == 'sending') {
-      messageDOM.addEventListener('click',
-        ThreadUI.resendMessage.bind(ThreadUI, message));
-      htmlStructure += '<span class="message-option">' +
-      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
-        ThreadUI.sendIcons.pending) + '" class="gif">' +
-                        '</span>';
       //Add edit options for pending
       htmlStructure += '<span class="message-option msg-checkbox">' +
                         '  <input value="ts_' + timestamp +
@@ -733,6 +733,19 @@ var ThreadUI = {
                         '" type="checkbox">' +
                         '  <span></span>' +
                       '</span>';
+    }
+    htmlStructure += '<span class="bubble-container ' + className + '">' +
+                        '<div class="bubble">' + bodyHTML + '</div>' +
+                        '</span>';
+
+    // Add 'gif' if necessary
+    if (message.delivery == 'sending') {
+      messageDOM.addEventListener('click',
+        ThreadUI.resendMessage.bind(ThreadUI, message));
+      htmlStructure += '<span class="message-option">' +
+      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
+        ThreadUI.sendIcons.pending) + '" class="gif">' +
+                        '</span>';
     }
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
@@ -985,7 +998,7 @@ var ThreadUI = {
           var root = document.getElementById(message.timestamp.getTime());
           if (root) {
 
-            root.removeChild(root.childNodes[1]);
+            root.removeChild(root.childNodes[2]);
             var inputs = root.querySelectorAll('input[type="checkbox"]');
             if (inputs) {
               inputs[0].value = 'id_' + msg.id;
@@ -1031,22 +1044,33 @@ var ThreadUI = {
   },
 
   renderContactData: function thui_renderContactData(contact) {
-    // Create DOM element
-    var threadHTML = document.createElement('div');
-    threadHTML.classList.add('item');
-
     // Retrieve info from thread
-    var name = Utils.escapeHTML(contact.name.toString());
-    var number = Utils.escapeHTML(contact.tel[0].number.toString());
-    // Create HTML structure
-    var structureHTML =
-            '  <a href="#num=' + contact.tel[0].number + '">' +
-            '    <div class="name">' + name + '</div>' +
-            '    <div class="number">' + number + '</div>' +
-            '  </a>';
-    // Update HTML and append
-    threadHTML.innerHTML = structureHTML;
-    ThreadUI.view.appendChild(threadHTML);
+    var phoneType = ContactDataManager.phoneType;
+    var name = contact.name.toString();
+    var tels = contact.tel;
+    for (var i = 0; i < tels.length; i++) {
+      var input = this.contactInput.value;
+      var number = tels[i].number.toString();
+      var reg = new RegExp(input, 'ig');
+      if (!(name.match(reg) || (number.match(reg)))) {
+        continue;
+      }
+      var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
+      var numHTML = SearchUtils.createHighlightHTML(number, reg, 'highlight');
+      // Create DOM element
+      var threadHTML = document.createElement('div');
+      threadHTML.classList.add('item');
+      // Create HTML structure
+      var structureHTML =
+              '  <a href="#num=' + contact.tel[i].number + '">' +
+              '    <div class="name">' + nameHTML + '</div>' +
+              '    <div class="type">' + _(phoneType[i]) + '   ' + numHTML +
+              '    </div>' +
+              '  </a>';
+      // Update HTML and append
+      threadHTML.innerHTML = structureHTML;
+      ThreadUI.view.appendChild(threadHTML);
+    }
   },
 
   searchContact: function thui_searchContact() {
@@ -1061,7 +1085,7 @@ var ThreadUI = {
       if (!contacts || contacts.length == 0) {
         return;
       }
-      contacts.forEach(self.renderContactData);
+      contacts.forEach(self.renderContactData.bind(self));
     });
   },
 

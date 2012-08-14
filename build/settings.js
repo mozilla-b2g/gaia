@@ -74,7 +74,7 @@ var settings = [
  new Setting("tethering.wifi.connectedClients", 0),
  new Setting("tethering.usb.connectedClients", 0),
  new Setting("ums.enabled", false),
- new Setting("ums.mode", ""),
+ new Setting("ums.mode", 0),
  new Setting("wifi.enabled", true),
  new Setting("wifi.notification", false)
 ];

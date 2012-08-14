@@ -6,8 +6,6 @@
     return;
 
   /* === Setup === */
-  SettingsListener.init();
-
   var ringtonePlayer = new Audio();
 
   /* === Settings === */

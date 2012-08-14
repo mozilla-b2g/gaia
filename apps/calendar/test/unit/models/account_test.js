@@ -39,6 +39,7 @@ suite('account', function() {
 
   suite('#toJSON', function() {
     setup(function() {
+      subject._id = '1';
       subject.url = 'url';
       subject.domain = 'domain';
       subject.password = 'pass';
@@ -49,6 +50,7 @@ suite('account', function() {
 
     test('output', function() {
       var expected = {
+        _id: subject._id,
         url: subject.url,
         domain: subject.domain,
         password: subject.password,
