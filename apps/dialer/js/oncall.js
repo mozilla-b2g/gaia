@@ -28,6 +28,8 @@ var CallScreen = {
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
 
+  swiper: document.getElementById('swiper'),
+
   init: function cs_init() {
     this.muteButton.addEventListener('mouseup', this.toggleMute.bind(this));
     this.keypadButton.addEventListener('mouseup', this.showKeypad.bind(this));
@@ -82,21 +84,33 @@ var CallScreen = {
     switch (layout_type) {
       case 'dialing':
         this.answerButton.classList.add('hide');
+        this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiper.classList.add('transparent');
         break;
       case 'incoming':
         this.answerButton.classList.remove('hide');
+        this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.remove('full-space');
         this.callToolbar.classList.add('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiper.classList.add('transparent');
+        break;
+      case 'locked':
+        this.answerButton.classList.add('hide');
+        this.rejectButton.classList.add('hide');
+        this.callToolbar.classList.add('transparent');
+        this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiper.classList.remove('transparent');
         break;
       case 'connected':
         this.answerButton.classList.add('hide');
+        this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
-
+        this.swiper.classList.add('transparent');
         break;
     }
   },
@@ -306,7 +320,9 @@ var OnCallHandler = {
 
       CallScreen.showIncoming();
     } else {
-      CallScreen.render(call.state);
+      if (window.location.hash === '#locked') {
+        CallScreen.render('locked');
+      } else CallScreen.render(call.state);
     }
   },
 
