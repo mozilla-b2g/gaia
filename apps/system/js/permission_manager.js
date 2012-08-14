@@ -10,7 +10,6 @@ var PermissionManager = (function() {
       case 'webapps-ask-install':
         handleInstallationPrompt(detail);
         break;
-      case 'geolocation-status':
       case 'permission-prompt':
         handlePermissionPrompt(detail);
         break;

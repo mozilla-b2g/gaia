@@ -9,7 +9,6 @@
   "permissions": [
     "sms",
     "contacts",
-    "webcontacts-manage",
     "background",
     "settings"
   ],
