@@ -101,12 +101,25 @@
   height: 100%;
 }
 
+.msg-header-author-and-date {
+  display: -moz-box;
+  -moz-box-align: baseline;
+}
 .msg-header-author {
   font-size: 110%;
   color: black;
+  display: -moz-box;
+  -moz-box-flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .msg-header-date {
   color: gray;
+  display: -moz-box;
+  /* Override the line-height in .msg-header-details-section so that aligning
+     to the baseline of the text works. */
+  line-height: normal;
+  margin-left: 1ch;
 }
 .msg-header-date-unread {
   color: #1D8399;
