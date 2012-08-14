@@ -1,3 +1,9 @@
+/*
+ *  The code is being shared between system/emergency-call/js/keypad.js
+ *  and dialer/js/keypad.js. Be sure to update both file when you commit!
+ *
+ */
+
 .keypad-text {
   font-size: -moz-calc(6*0.226rem);
   color: #96AAB4;

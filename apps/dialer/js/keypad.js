@@ -1,3 +1,9 @@
+/*
+ *  The code is being shared between system/emergency-call/js/keypad.js
+ *  and dialer/js/keypad.js. Be sure to update both file when you commit!
+ *
+ */
+
 'use strict';
 
 var kFontStep = 4;
