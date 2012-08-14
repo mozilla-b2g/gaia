@@ -21,11 +21,16 @@ function ComposeCard(domNode, mode, args) {
   this.ccNode = domNode.getElementsByClassName('cmp-cc-text')[0];
   this.bccNode = domNode.getElementsByClassName('cmp-bcc-text')[0];
   this.subjectNode = domNode.getElementsByClassName('cmp-subject-text')[0];
-  this.bodyNode = domNode.getElementsByClassName('cmp-body-text')[0];
-
-  this._loadStateFromComposer();
+  this.textBodyNode = domNode.getElementsByClassName('cmp-body-text')[0];
+  this.htmlBodyContainer = domNode.getElementsByClassName('cmp-body-html')[0];
+  this.htmlIframeNode = null;
 }
 ComposeCard.prototype = {
+  postInsert: function() {
+    // the HTML bit needs us linked into the DOM so the iframe can be linked in,
+    // hence this happens in postInsert.
+    this._loadStateFromComposer();
+  },
   _loadStateFromComposer: function() {
     function expandAddresses(addresses) {
       if (!addresses)
@@ -42,7 +47,17 @@ ComposeCard.prototype = {
     this.bccNode.value = expandAddresses(this.composer.bcc);
 
     this.subjectNode.value = this.composer.subject;
-    this.bodyNode.value = this.composer.body;
+    this.textBodyNode.value = this.composer.body.text;
+
+    if (this.composer.body.html) {
+      // Although (still) sanitized, this is still HTML we did not create and so
+      // it gets to live in an iframe.  Its read-only and the user needs to be
+      // able to see what they are sending, so reusing the viewing functionality
+      // is desirable.
+      this.htmlIframeNode = createAndInsertIframeForContent(
+        this.composer.body.html, this.htmlBodyContainer, /* append */ null,
+        /* no click handler because no navigation desired */ null);
+    }
   },
 
   _saveStateToComposer: function() {
@@ -55,7 +70,11 @@ ComposeCard.prototype = {
     this.composer.cc = frobAddressNode(this.ccNode);
     this.composer.bcc = frobAddressNode(this.bccNode);
     this.composer.subject = this.subjectNode.value;
-    this.composer.body = this.bodyNode.value;
+    this.composer.body.text = this.bodyNode.value;
+    // The HTML representation cannot currently change in our UI, so no
+    // need to save it.  However, what we send to the back-end is what gets
+    // sent, so if you want to implement editing UI and change this here,
+    // go crazy.
   },
 
   /**
