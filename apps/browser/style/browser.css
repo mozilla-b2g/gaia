@@ -130,6 +130,12 @@ input[type="image"] {
 
 #tabs-list span {
   pointer-events: none;
+  display: block;
+  position: absolute;
+  top: 0px;
+  margin: 0 50px 0 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #tabs-list .close:hover, #tabs-list .close:active {
@@ -276,7 +282,7 @@ input[type="image"] {
 }
 
 #url-input {
-  font-family: 'Open Sans';
+  font-family: 'Open Sans', sans-serif;
   font-size: 18px;
   height: 34px;
   margin: 0;
