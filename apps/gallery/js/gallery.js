@@ -694,6 +694,25 @@ $('thumbnails-share-button').onclick = function() {
   shareFiles(filenames);
 };
 
+/*
+ * Share one or more images using Web Activities.
+ *
+ * XXX
+ * This is a preliminary implementation with two bug workarounds:
+ *
+ * Until https://bugzilla.mozilla.org/show_bug.cgi?id=773383 is fixed,
+ * we just use a type of "image" since the activity handler app can't
+ * register an array of the image mime types it accepts
+ *
+ * Until https://bugzilla.mozilla.org/show_bug.cgi?id=782766 is fixed and
+ * we can share blobs directly, this function just shares filenames.
+ * This means that the app on the receiving end has to use device storage
+ * to get the actual file. Since that requires special permissions
+ * it might not be what we want.  We could change this code to use a
+ * data url and pass the whole image as a long, long string. Because this
+ * is sub-optimal and unstable, I'm using the activity name "share-filenames"
+ * instead of the more generic "share".
+ */
 function shareFiles(filenames) {
   console.log('Gallery sharing', filenames.length, 'files');
 
