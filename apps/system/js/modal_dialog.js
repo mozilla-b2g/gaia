@@ -133,7 +133,8 @@ var ModalDialog = {
 
     message = escapeHTML(message);
 
-    switch (evt.detail.promptType) {
+    var promptType = evt.detail.promptType;
+    switch (promptType) {
       case 'alert':
         elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
@@ -157,11 +158,30 @@ var ModalDialog = {
         var _ = navigator.mozL10n.get;
         message = _('http-authentication-message', l10nArgs);
         elements.authenticationMessage.innerHTML = message;
-      break;
+        break;
+
+      // Gecko updates
+      case 'updateprompt':
+        elements.confirm.classList.add('visible');
+        elements.confirmMessage.innerHTML = message;
+        var _ = navigator.mozL10n.get;
+        elements.confirmOk.innerHTML = evt.detail.okText;
+        elements.confirmOk.classList.add('small-font');
+        elements.confirmCancel.innerHTML = evt.detail.cancelText;
+        elements.confirmCancel.classList.add('small-font');
+        promptType = 'confirm';
+        break;
     }
 
-    this.elements.buttons.dataset.type = evt.detail.promptType;
+    this.elements.buttons.dataset.type = promptType;
     this.setHeight();
+  },
+
+  resetConfirmButtons: function md_resetConfirmButtons() {
+    this.elements.confirmOk.dataset.l10nId = 'ok';
+    this.elements.confirmOk.classList.remove('small-font');
+    this.elements.confirmCancel.dataset.l10nId = 'cancel';
+    this.elements.confirmCancel.classList.remove('small-font');
   },
 
   hide: function md_hide() {
@@ -205,6 +225,12 @@ var ModalDialog = {
         };
         elements.authentication.classList.remove('visible');
         break;
+
+      case 'updateprompt':
+        evt.detail.returnValue = true;
+        elements.confirm.classList.remove('visible');
+        this.resetConfirmButtons();
+        break;
     }
 
     if (evt.isPseudo && evt.callback) {
@@ -244,6 +270,12 @@ var ModalDialog = {
       case 'usernameandpassword':
         evt.detail.returnValue = { ok: false };
         elements.authentication.classList.remove('visible');
+        break;
+
+      case 'updateprompt':
+        evt.detail.returnValue = false;
+        elements.confirm.classList.remove('visible');
+        this.resetConfirmButtons();
         break;
     }
 
@@ -293,6 +325,8 @@ var ModalDialog = {
     };
 
     pseudoEvt.detail.message = config.text;
+    pseudoEvt.detail.okText = config.okText;
+    pseudoEvt.detail.cancelText = config.cancelText;
     pseudoEvt.callback = config.callback;
     pseudoEvt.detail.promptType = config.type;
     if (config.type == 'prompt') {
