@@ -95,6 +95,12 @@ var KeypadManager = {
       document.getElementById('keypad-callbar-call-action');
   },
 
+  get callBarCancelAction() {
+    delete this.callBarCancelAction;
+    return this.callBarCancelAction =
+      document.getElementById('keypad-callbar-cancel');
+  },
+
   get deleteButton() {
     delete this.deleteButton;
     return this.deleteButton = document.getElementById('keypad-delete');
@@ -143,6 +149,13 @@ var KeypadManager = {
     if (this.callBarCallAction) {
       this.callBarCallAction.addEventListener('mouseup',
                                               this.makeCall.bind(this));
+    }
+
+    // The keypad cancel bar is only the emergency call version of the keypad.
+    if (this.callBarCancelAction) {
+      this.callBarCancelAction.addEventListener('mouseup', function() {
+        window.parent.LockScreen.switchPanel();
+      });
     }
 
     // The keypad hide bar is only included in the on call version of the
