@@ -707,7 +707,7 @@ li[role="listitem"] small {
   background-color: rgba(0, 0, 0, 0.7);
 }
 
-#settings li button {
+#settings li button, #bookmark-menu li button {
   display: block;
   color: #333;
   width: 100%;
@@ -736,6 +736,46 @@ li[role="listitem"] small {
 #settings [disabled="disabled"] {
   opacity: 0.7;
 }
+
+#bookmark-menu {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  padding: 10px;
+  margin: 0 20px;
+  width: -moz-calc(100% - 60px);
+  background-color: #EEEFEA;
+}
+
+#bookmark-menu li {
+  list-style-type: none;
+  padding: 0;
+  border-bottom: solid 1px #999;
+}
+
+#bookmark-menu li.hidden {
+  display: none;
+}
+
+#bookmark-menu li:last-child {
+  border: none;
+}
+
+#bookmark-menu li a {
+  display: block;
+  text-decoration: none;
+  color: #000;
+  padding: 10px;
+}
+
+#bookmark-menu li button {
+  margin-top: 10px;
+}
+
+#bookmark-menu.hidden {
+  display: none;
+}
+
 
 /* This is a dirty hack to hide the bottom toolbar while
  * the keyboard is active, than device-height - 20px (for status bar),
