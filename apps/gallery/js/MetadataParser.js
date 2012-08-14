@@ -165,8 +165,7 @@ var metadataParser = (function() {
     function parseMetadata(data) {
       var metadata = {};
       if (data.getUint8(0) !== 0xFF || data.getUint8(1) !== 0xD8) {
-        errback('Not a JPEG file');
-        return;
+        throw Error('Not a JPEG file');
       }
 
       var offset = 2;
@@ -174,8 +173,7 @@ var metadataParser = (function() {
       // Loop through the segments of the JPEG file
       while (offset < data.byteLength) {
         if (data.getUint8(offset++) !== 0xFF) {
-          errback('malformed JPEG file: missing 0xFF delimiter');
-          return;
+          throw Error('malformed JPEG file: missing 0xFF delimiter');
         }
 
         var segtype = data.getUint8(offset++);
@@ -235,13 +233,11 @@ var metadataParser = (function() {
       } else if (byteorder === 0x49) {  // little endian
         byteorder = true;
       } else {
-        errback('invalid byteorder in EXIF segment');
-        return;
+        throw Error('invalid byteorder in EXIF segment');
       }
 
       if (data.getUint16(2, byteorder) !== 42) { // magic number
-        errback('bad magic number in EXIF segment');
-        return;
+        throw Error('bad magic number in EXIF segment');
       }
 
       var offset = data.getUint32(4, byteorder);
