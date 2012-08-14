@@ -18,5 +18,6 @@ span[role="button"].icon-clear {
 input[data-cancelable] {
   animation-duration: 0.001s;
   animation-name: nodeInserted;
+  padding-right: 3rem;
 }
 
