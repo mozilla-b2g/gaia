@@ -75,20 +75,5 @@ var KeyboardManager = (function() {
       });
     }
   });
-
-  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-    var currentType = evt.detail.type;
-    if (currentType.indexOf('select') == -1)
-      return;
-
-    switch (currentType) {
-      case 'select-one':
-      case 'select-multiple':
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('select', true, true, evt.detail);
-        window.dispatchEvent(event);
-        break;
-    }
-  };
 })();
 

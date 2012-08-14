@@ -19,10 +19,19 @@ suite('templates/month', function() {
   }
 
   test('#busy', function() {
-    var result = renderHTML('busy', 'busy-5');
+    var result = renderHTML('busy', {
+      start: 5,
+      length: 1,
+      calendarId: 'cal1',
+      _id: 'event1'
+    });
 
     assert.ok(result);
+
     assert.include(result, 'busy-5');
+    assert.include(result, 'busy-length-1');
+    assert.include(result, 'calendar-id-cal1');
+    assert.include(result, 'busytime-event1');
   });
 
   test('#currentMonth', function() {

@@ -36,6 +36,16 @@ suite('view', function() {
     assert.equal(subject.element.id, el.id);
   });
 
+
+  suite('clean css', function() {
+    test('#cssClean', function() {
+      var input = 'one/two/^three';
+      var output = subject.cssClean(input);
+
+      assert.equal(output, 'one-two--three');
+    });
+  });
+
   suite('#_findElement', function() {
 
     var expected;

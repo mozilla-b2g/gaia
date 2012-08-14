@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Geolocation test</title>
+    <style>
+    button, select {
+      font-size: 25px;
+    }
+    </style>
+    <script type="text/javascript">
+      function Location(position)//location function is defining with parameter
+      {
+        var latitude = position.coords.latitude; //Specifies the longitude estimate in decimal degrees. The value range is [-180.00, +180.00].
+        var longitude = position.coords.longitude;
+        document.getElementById("lati").innerHTML = latitude; //latitude value is defining in label element where id is lati
+        document.getElementById("longi").innerHTML = longitude;
+      }
+      function findLocation()
+      {
+        if (navigator.geolocation)//checking browser compatibility
+        {
+          navigator.geolocation.getCurrentPosition(Location);//getCurrentPosition method retrieve the current geographic location of the user 
+        }
+      }
+    </script>
+  </head>
+  <body>
+    Latitude:<label id="lati"></label><br /><br />
+    Longitude:<label id="longi"></label><br /><br />
+    <input type="submit" onclick="findLocation();" value="Find Location" />
+  </body>
+</html>

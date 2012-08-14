@@ -183,7 +183,7 @@ var Applications = (function() {
     return protocol + '//' + name + '.' + domain;
   });
 
-  coreApplications.push('https://marketplace.mozilla.org');
+  coreApplications.push('https://marketplace.mozilla.org/telefonica/');
 
   /*
    *  Returns true if it's a core application

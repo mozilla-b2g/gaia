@@ -21,7 +21,9 @@
     "settings",
     "pin-app",
     "content-camera",
-    "camera"
+    "camera",
+    "geolocation",
+    "wifi-manage"
   ],
   "locales": {
     "ar": {

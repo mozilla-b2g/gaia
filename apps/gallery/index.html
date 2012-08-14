@@ -17,16 +17,14 @@
     <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
-  <body>
+  <body class="hidden">
     <!-- This element gets inserted into the different view elements --> 
     <!-- It gets styled differently depending on what its parent is -->
     <ul id="thumbnails">
-      <!-- We'll hide this as soon as we find a photo -->
-      <h1 id="nophotos" data-l10n-id="nophotos">No Photos</h1>
       <!-- Thumbnails inserted here -->
     </ul>
 
-    <div id="thumbnail-list-view">
+    <div id="thumbnail-list-view" class="hidden">
       <div id="thumbnails-bottom">
         <a id="thumbnails-camera-button" class="button"></a>
         <a id="thumbnails-select-button" class="button"></a>
@@ -78,7 +76,7 @@
       <div id="edit-header">
         <a id="edit-cancel-button" class="button"></a>
         <div id="edit-title" data-l10n-id="edit"></div>
-        <a id="edit-save-button" class="button" data-l10n-id="save"></a>
+        <a id="edit-save-button" class="button"></a>
       </div>
 
       <!-- preview of edited photo goes here -->
@@ -147,6 +145,14 @@
         <a id="edit-crop-button" class="button" data-l10n-id="crop"></a>
         <a id="edit-effect-button" class="button" data-l10n-id="effects"></a>
         <a id="edit-border-button" class="button" data-l10n-id="borders"></a>
+      </div>
+    </div>
+
+    <!-- display messages like "Scanning", "No Photos" and "No SD Card" here -->
+    <div id="overlay" class="hidden">
+      <div id="overlay-content">
+        <h1 id="overlay-title"></h1>
+        <p id="overlay-text"><p>
       </div>
     </div>
 
