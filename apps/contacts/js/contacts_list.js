@@ -25,6 +25,8 @@ contacts.List = (function() {
     }
     renderGroupHeader('und', '#');
     favoriteGroup = document.getElementById('group-favorites').parentNode;
+    var selector = 'h2.block-title:not(.hide)';
+    FixedHeader.init('#groups-container', '#fixed-container', selector);
   }
 
   var load = function load(contacts) {
@@ -186,8 +188,7 @@ contacts.List = (function() {
       listContainer.appendChild(newContact);
       showGroup(group);
     }
-    var selector = 'h2.block-title:not(.hide)';
-    FixedHeader.init('#groups-container', '#fixed-container', selector);
+    FixedHeader.refresh();
   };
 
   var getFavorites = function getFavorites() {
