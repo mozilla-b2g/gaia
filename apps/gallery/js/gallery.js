@@ -673,11 +673,58 @@ $('photos-edit-button').onclick = function() {
   editPhoto(currentPhotoIndex);
 };
 
+// In single-photo mode, the share button shares the current photo
+$('photos-share-button').onclick = function() {
+  var image = images[currentPhotoIndex];
+  var filename = image.name;
+  shareFiles([filename]);
+};
+
+// Clicking on the share button in select mode shares all selected images
+$('thumbnails-share-button').onclick = function() {
+  var selected = thumbnails.querySelectorAll('.selected.thumbnail');
+  if (selected.length === 0)
+    return;
+  var filenames = [];
+  for (var i = 0; i < selected.length; i++) {
+    var index = parseInt(selected[i].dataset.index);
+    filenames.push(images[index].name);
+  }
+
+  shareFiles(filenames);
+};
+
+function shareFiles(filenames) {
+  console.log('Gallery sharing', filenames.length, 'files');
+
+  var a = new MozActivity({
+    name: 'share-filenames',
+    data: {
+      type: 'image',
+      filenames: filenames
+    }
+  });
+
+  a.onsuccess = function() {
+    console.log('share-filenames activity success', a.result);
+  };
+
+  a.onerror = function(e) {
+    if (a.error.name === 'NO_PROVIDER') {
+      var msg = navigator.mozL10n.get('share-noprovider');
+      alert(msg);
+    }
+    else {
+      console.log('share activity error:', a.error.name);
+    }
+  };
+}
+
+
 // In edit mode, clicking the Cancel button goes back to single photo mode
 $('edit-cancel-button').onclick = function() {
   exitEditMode();
 };
-
 
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
