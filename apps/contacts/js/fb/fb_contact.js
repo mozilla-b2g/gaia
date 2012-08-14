@@ -7,9 +7,10 @@ fb.LINKED = 'fb_linked';
 
 
 // Encapsulates all the logic to obtain the data for a FB contact
-fb.Contact = function(deviceContact) {
+fb.Contact = function(deviceContact,cid) {
   var contactData;
   var devContact = deviceContact;
+  var contactid = cid;
 
     /**
      *   Request auxiliary object to support asynchronous calls
@@ -254,20 +255,24 @@ fb.Contact = function(deviceContact) {
 
   // Gets the data
   this.getData = function() {
-    var out;
 
     var outReq = new Request();
 
     window.setTimeout(function do_getData() {
       var uid = doGetFacebookUid(devContact);
 
+      window.console.log('OWDError: GetData',uid);
+
       if (uid) {
         var fbreq = fb.contacts.get(uid);
 
         fbreq.onsuccess = function() {
           var fbdata = fbreq.result;
+          window.console.log('OWDError: getdata on success!!',fbdata);
 
-          out = this.merge(fbdata);
+          var out = this.merge(fbdata);
+          window.console.log('OWDError: getdata on success out!!',out);
+
           outReq.done(out);
 
         }.bind(this);
@@ -289,18 +294,40 @@ fb.Contact = function(deviceContact) {
     var out = new Request();
 
     window.setTimeout(function do_linkTo() {
+      if(!devContact) {
+        // We need to get the Contact data
+        var req = fb.utils.getContactData(contactid);
+
+        req.onsuccess = function() {
+          devContact = req.result;
+          doLink(devContact,fbFriend,out);
+        } // req.onsuccess
+
+        req.onerror = function() {
+          throw 'FB: Error while retrieving contact data';
+        }
+      } // devContact
+      else {
+        doLink(devContact,fbFriend,out);
+      }
+    },0);
+
+    return out;
+  }
+
+  function doLink(contactdata,fbFriend,out) {
+    if(contactdata) {
       if (fbFriend.uid) {
-         markAsLinked(devContact, fbFriend.uid);
+        markAsLinked(contactdata, fbFriend.uid);
       }
       else if (fbFriend.mozContact) {
-        markAsLinked(devContact, doGetFacebookUid(fbFriend.mozContact));
+        markAsLinked(contactdata, doGetFacebookUid(fbFriend.mozContact));
       }
 
-      var mozContactsReq = navigator.mozContacts.save(devContact);
+      var mozContactsReq = navigator.mozContacts.save(contactdata);
 
       mozContactsReq.onsuccess = function(e) {
         // The FB contact on mozContacts needs to be removed
-
         if (fbFriend.mozContact) {
           var deleteReq = navigator.mozContacts.remove(fbFriend.mozContact);
 
@@ -316,14 +343,15 @@ fb.Contact = function(deviceContact) {
         else {
           out.done(e.target.result);
         }
-      }
+      } // mozContactsReq.onsuccess
 
       mozContactsReq.onerror = function(e) {
         out.failed(e.target.error);
-      }
-    },0);
-
-    return out;
+      } // mozContactsReq.onerror
+    } // if(dev.contact)
+    else {
+      throw 'FB: Contact data not defined';
+    }
   }
 
   this.unlink = function() {

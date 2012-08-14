@@ -369,9 +369,9 @@ var Contacts = (function() {
   var reloadContactDetails = function reloadContactDetails() {
     var contact = currentContact;
 
-    if (fb.isFbContact(contact)) {
+    if (fb.isFbContact(contact) && !fb.isFbLinked(contact)) {
       editContactButton.setAttribute('disabled','disabled');
-      
+
       var fbContact = new fb.Contact(contact);
       var req = fbContact.getData();
       req.onsuccess = function() { doReloadContactDetails(req.result); }
@@ -380,7 +380,10 @@ var Contacts = (function() {
         doReloadContactDetails(contact);
       }
     }
-    else { doReloadContactDetails(contact); }
+    else {
+          editContactButton.removeAttribute('disabled');
+          doReloadContactDetails(contact);
+    }
   }
 
   function doReloadContactDetails(c) {
@@ -442,8 +445,15 @@ var Contacts = (function() {
                     'December'];
       var bdayString = contact.bday.getDate() + ', ' +
                                             months[contact.bday.getMonth()];
-      var e = utils.templates.render(bdayTemplate, {bday: bdayString});
+      var e = utils.templates.render(bdayTemplate, {i: contact.id,
+                                                        bday: bdayString});
       listContainer.appendChild(e);
+    }
+
+    if(!fb.isFbContact(contact)) {
+      var socialTemplate = document.getElementById('social-template-#i#');
+      var social = utils.templates.render(socialTemplate,{i:contact.id});
+      listContainer.appendChild(social)
     }
 
     var selector = document.getElementById('address-details-template-#i#');

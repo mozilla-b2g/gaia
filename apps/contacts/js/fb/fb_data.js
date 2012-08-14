@@ -14,10 +14,12 @@
  *
  *
  */
-if (!window.fb) {
+
+var fb = window.fb || {};
+
+if (!window.fb.contacts) {
   (function(document) {
     'use strict';
-    var fb = window.fb = {};
 
     var contacts = fb.contacts = {};
     var indexedDB = window.mozIndexedDB || window.webkitIndexedDB ||
@@ -52,8 +54,6 @@ if (!window.fb) {
      */
     function createStore(e) {
       e.target.result.createObjectStore(STORE_NAME, { keyPath: 'uid' });
-
-      window.console.log('OWDError: Store created!!!');
     }
 
     /**
@@ -61,12 +61,9 @@ if (!window.fb) {
      *
      */
     function init(cb) {
-      window.console.log('OWDError: init invoked');
-
       var req = indexedDB.open('GaiaFbFriendsxy', 1.0);
 
       req.onsuccess = function(e) {
-        window.console.log('OWDError: DB on success invoked');
         database = e.target.result;
         if(typeof cb === 'function') {
           cb();

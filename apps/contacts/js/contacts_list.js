@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 var contacts = window.contacts || {};
 
@@ -256,13 +256,29 @@ contacts.List = (function() {
       filterOp: 'equals',
       filterValue: contactID
     };
-
     var request = navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      successCb(request.result[0]);
-    };
 
-    if (errorCb) {
+    request.onsuccess = function findCallback(e) {
+      var result = e.target.result[0];
+
+      if(fb.isFbContact(result)) {
+        // Fb data for the contact has to be obtained
+        var fbContact = new fb.Contact(result);
+        var fbReq = fbContact.getData();
+        fbReq.onsuccess = function() {
+          successCb(fbReq.result);
+        }
+        fbReq.onerror = function() {
+          successCb(result);
+        }
+      }
+      else {
+            successCb(result);
+      }
+
+    }; // request.onsuccess
+
+    if (typeof errorCb === 'function') {
       request.onerror = errorCb;
     }
   }
@@ -398,7 +414,7 @@ contacts.List = (function() {
   var refresh = function reload(id) {
     if (typeof(id) == 'string') {
       remove(id);
-      getContactById(contact, addToList);
+      getContactById(id, addToList);
     } else {
       var contact = id;
       remove(contact.id);
