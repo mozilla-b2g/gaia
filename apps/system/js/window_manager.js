@@ -470,9 +470,14 @@ var WindowManager = (function() {
       // UI Test app - window.close test causes seg fault when running OOP
       //   - bug 776132
 
-      'Video'
+      'Video',
       // - When running OOP, displays black screen when launching (i.e. no video list) (782460)
       // - Stop audio when app dies
+
+      // This is a helper app for testing the Share activity in Gallery
+      // It needs to be blacklisted because when OOP it does not receive
+      // the system messages it needs to respond to the activity request.
+      'Share Receiver'
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {
