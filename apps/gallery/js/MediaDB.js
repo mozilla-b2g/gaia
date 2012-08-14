@@ -57,14 +57,28 @@
  *          parser function or alter any of the options above, you should
  *          update the version number.
  *
- * A MediaDB object must asynchronously open a connection to its database,
- * which means that it is not ready for use when first created.  After calling
+ * A MediaDB object must asynchronously open a connection to its database, 
+ * and asynchronously check on the availability of device storage, which
+ * means that it is not ready for use when first created.  After calling
  * the MediaDB() constructor, set the onready property of the returned object
  * to a callback function. When the database is ready for use, that function
  * will be invoked with the MediaDB object as its this value. (Note that
  * MediaDB does not define addEventListener: you can only set a single
  * onready property.)
  *
+ * The DeviceStorage API is not always available, and MediaDB is not
+ * usable if DeviceStorage is not usable. If the user removes the SD
+ * card from their phone, then DeviceStorage will not be able to read
+ * or write files, obviously. Also, when a USB Mass Storage session is
+ * in progress, DeviceStorage is not available either.  If
+ * DeviceStorage is not available when a MediaDB object is created,
+ * the onunavailable callback will be invoked instead of the onready
+ * callback. Subsequently, onready will be called whenever
+ * DeviceStorage becomes available, and onunavailble will be called
+ * whenver DeviceStorage becomes unavailable. Media apps can handle
+ * the unavailble case by displaying an informative message in an overlay
+ * that prevents all user interaction with the app.
+ * 
  * Typically, the first thing an app will do with a MediaDB object after the
  * onready callback is called is call its enumerate() method. This gets entries
  * from the database and passes them to the specified callback. Each entry
@@ -124,12 +138,8 @@
  *
  * If you set the onchange property of a MediaDB object to a function, it will
  * be called whenever files are added or removed from the DeviceStorage
- * directory or whenever the volume is unmounted or remounted. (This happens
- * during USB Mass Storage sessions, for example, and apps may need to be
- * prepared for it.)  The first argument passed to the onchange callback is a
- * string that specifies the type of change that has occurred. For file
- * creations or deletions, an array of database entries are passed as the
- * second argument.  The possible values of the first argument are:
+ * directory. The first argument passed to the onchange callback is a
+ * string that specifies the type of change that has occurred:
  *
  *   "created":
  *     Media files were added to the device. The second argument is an
@@ -147,15 +157,6 @@
  *     entries that describe the deleted files and their metadata. As with
  *     "created" changes, this array may have multiple entries when the callback
  *     is invoked as a result of a scan() call.
- *
- *   "mounted":
- *   "unmounted":
- *      When the DeviceStorage API supports notifications about mounting
- *      and unmounting, changes of these types will forward those notifications
- *      on to users of MediaDB. Media apps will generally be unusable when
- *      device storage is unmounted, and may want to indicate this in their UI.
- *      Also, when storage is mounted again, the files on it may have changed,
- *      so a call to scan() is probably necessary when this happens.
  *
  * The final MediaDB method is scan(). It takes no arguments and launches an
  * asynchronous scan of DeviceStorage for new, changed, and deleted file.
