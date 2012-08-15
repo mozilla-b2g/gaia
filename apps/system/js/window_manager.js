@@ -480,7 +480,7 @@ var WindowManager = (function() {
       // - When running OOP, displays black screen when launching (i.e. no video list) (782460)
       // - Stop audio when app dies
 
-      'Homescreen'
+      'Homescreen',
       // Bug 783076 - Panning is broken when running the homescreen OOP.
 
       // - When running OOP, displays black screen when launching
