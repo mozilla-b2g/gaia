@@ -235,16 +235,15 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
     var scrollWidth = iframeBody.scrollWidth;
     viewport.appendChild(interacter);
 
-    // setting iframe.style.height is not sticky, so be heavy-handed:
-    iframe.setAttribute(
-      'style',
-      'border-width: 0px; overflow: hidden; ' +
-      'transform-origin: top left; ' +
-      'width: ' + scrollWidth + 'px; ' +
-      'height: ' + scrollHeight + 'px;');
-
-
     if (interactiveMode === 'interactive') {
+      // setting iframe.style.height is not sticky, so be heavy-handed:
+      iframe.setAttribute(
+        'style',
+        'border-width: 0px; overflow: hidden; ' +
+        'transform-origin: top left; ' +
+        'width: ' + scrollWidth + 'px; ' +
+        'height: ' + scrollHeight + 'px;');
+
       var currentPhoto = iframe;
       var photoState =
         new PhotoState(iframe, scrollWidth, scrollHeight,
@@ -325,6 +324,8 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
     iframe.setAttribute(
       'style',
       'border-width: 0px; ' +
+      'pointer-events: none; ' +
+      '-moz-user-select: none; ' +
       'width: ' + viewportWidth + 'px; ' +
       'height: ' + scrollHeight + 'px;');
   }
