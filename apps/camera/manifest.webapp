@@ -10,8 +10,7 @@
   },
   "permissions": [
     "content-camera",
-    "camera",
-    "offline-app"
+    "camera"
   ],
   "activities": {
     "record": {

@@ -13,7 +13,7 @@ var TrustedDialog = (function() {
       return null;
 
     // If the trusted dialog is being shown we swap frames.
-    if (trustedDialogIsShown()) {
+    if (isVisible()) {
       trustedDialogElement.removeChild(currentFrame);
       currentFrame = null;
     } else {
@@ -35,7 +35,7 @@ var TrustedDialog = (function() {
     trustedDialogElement.appendChild(frame);
     currentFrame = frame;
 
-    if (!trustedDialogIsShown()) {
+    if (!isVisible()) {
       // Make the trusted dialog overlay active.
       trustedDialogElement.classList.add('active');
       // Make sure we're in portrait mode.
@@ -46,7 +46,7 @@ var TrustedDialog = (function() {
   };
 
   function close(callback) {
-    if (!trustedDialogIsShown())
+    if (!isVisible())
       return;
 
     // Make the trusted dialog overlay inactive and remove the frame from
@@ -63,7 +63,7 @@ var TrustedDialog = (function() {
     callback();
   };
 
-  function trustedDialogIsShown() {
+  function isVisible() {
     return trustedDialogElement.classList.contains('active');
   };
 
@@ -100,7 +100,7 @@ var TrustedDialog = (function() {
   });
 
   window.addEventListener('home', function(e) {
-    if (!trustedDialogIsShown())
+    if (!isVisible())
       return;
 
     close();
@@ -110,7 +110,7 @@ var TrustedDialog = (function() {
   return {
     open: open,
     close: close,
-    trustedDialogIsShown: trustedDialogIsShown,
+    isVisible: isVisible,
     getFrame: getFrame
   };
 })();

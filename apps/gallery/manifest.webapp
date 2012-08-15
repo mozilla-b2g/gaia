@@ -9,8 +9,7 @@
   "permissions": [
     "device-storage",
     "devicestorage",
-    "indexedDB-unlimited",
-    "offline-app"
+    "settings"
   ],
   "activities": {
     "browse": {
@@ -23,7 +22,8 @@
       "filters": {
         "type": "image/jpeg"
        },
-      "disposition": "window"
+      "disposition": "window",
+      "returnValue": true
     }
   },
   "locales": {

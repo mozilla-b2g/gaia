@@ -1,4 +1,5 @@
 requireApp('dialer/js/handled_call.js');
+requireApp('dialer/shared/js/l10n.js');
 
 requireApp('dialer/test/unit/mock_call.js');
 requireApp('dialer/test/unit/mock_contacts.js');
@@ -98,7 +99,7 @@ suite('dialer/handled_call', function() {
 
     test('duration', function() {
       assert.ok(subject.durationNode);
-      assert.equal(subject.durationNode.textContent, '…');
+      assert.include(subject.durationNode.textContent, '…');
     });
 
     test('direction', function() {

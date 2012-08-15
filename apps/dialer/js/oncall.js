@@ -147,7 +147,7 @@ var OnCallHandler = {
       telephony.muted = false;
 
       var self = this;
-      telephony.oncallschanged = function och_callsChanged(evt) {
+      var callsChanged = function och_callsChanged(evt) {
         // Adding any new calls to handledCalls
         telephony.calls.forEach(function callIterator(call) {
           if (call.state == 'incoming' || call.state == 'dialing') {
@@ -175,7 +175,11 @@ var OnCallHandler = {
 
         // Letting the layout know how many calls we're handling
         CallScreen.calls.dataset.count = self.handledCalls.length;
-      }
+      };
+
+      // Needs to be called at least once
+      callsChanged();
+      telephony.oncallschanged = callsChanged;
     }
   },
 
@@ -219,6 +223,11 @@ var OnCallHandler = {
   },
 
   end: function ch_end() {
+    if (!this._telephony.active) {
+      this.toggleScreen();
+      return;
+    }
+
     this._telephony.active.hangUp();
   },
 
@@ -248,21 +257,28 @@ var OnCallHandler = {
 
         CallScreen.screen.addEventListener('transitionend', function trWait() {
           CallScreen.screen.removeEventListener('transitionend', trWait);
-
           // We did animate the call screen off the viewport
           // now closing the window.
           if (displayed) {
-            var origin = document.location.protocol + '//' +
-              document.location.host;
-            window.opener.postMessage('closing', origin);
-            window.close();
+            self.closeWindow();
           }
         });
       });
     });
   },
 
+  closeWindow: function och_closeWindow() {
+    var origin = document.location.protocol + '//' +
+      document.location.host;
+    window.opener.postMessage('closing', origin);
+    window.close();
+  },
+
   _addCall: function och_addCall(call) {
+    // Once we already have 1 call, we only care about incomings
+    if (this.handledCalls.length && (call.state != 'incoming'))
+      return;
+
     // No more room
     if (this.handledCalls.length >= this.CALLS_LIMIT) {
       call.hangUp();
@@ -277,7 +293,8 @@ var OnCallHandler = {
       // signaling the user of the new call
       navigator.vibrate([100, 100, 100]);
 
-      var number = (call.number.length ? call.number : 'Anonymous');
+      var _ = navigator.mozL10n.get;
+      var number = (call.number.length ? call.number : _('unknown'));
       Contacts.findByNumber(number, function lookupContact(contact) {
         if (contact && contact.name) {
           CallScreen.incomingNumber.textContent = contact.name;
@@ -319,8 +336,16 @@ var OnCallHandler = {
   }
 };
 
-window.addEventListener('load', function callSetup(evt) {
-  window.removeEventListener('load', callSetup);
+window.addEventListener('localized', function callSetup(evt) {
+  window.removeEventListener('localized', callSetup);
+
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+
   KeypadManager.init();
   CallScreen.init();
   OnCallHandler.setup();

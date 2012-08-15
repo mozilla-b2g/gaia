@@ -222,7 +222,7 @@ img:-moz-broken {
 }
 
 /* HTML 5 */
-article, aside, details, figcaption, figure, footer, header, hgroup, 
+article, aside, details, figcaption, figure, footer, header, hgroup,
 menu, nav, section, video, audio, canvas, progress, meter, time {
   display: block;
   padding: 0;

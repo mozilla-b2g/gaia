@@ -46,7 +46,9 @@ var MessageManager = {
           MessageManager.markMessageRead(event.message.id, true, function() {
             MessageManager.getMessages(ThreadListUI.renderThreads);
           });
-          ThreadUI.appendMessage(event.message);
+          ThreadUI.appendMessage(event.message, function() {
+              Utils.updateHeaders();
+            });
         } else {
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
@@ -57,11 +59,15 @@ var MessageManager = {
         var threadMessages = document.getElementById('thread-messages');
         switch (window.location.hash) {
           case '#new':
+            var messageInput = document.getElementById('message-to-send');
+            var receiverInput = document.getElementById('receiver-input');
             document.getElementById('messages-container').innerHTML = '';
-            document.getElementById('message-to-send').innerHTML = '';
-            document.getElementById('receiver-input').value = '';
+            messageInput.innerHTML = '';
+            receiverInput.value = '';
             threadMessages.classList.add('new');
-            MessageManager.slide();
+            MessageManager.slide(function() {
+              messageInput.focus();
+            });
             break;
           case '#thread-list':
             if (mainWrapper.classList.contains('edit')) {
@@ -92,7 +98,11 @@ var MessageManager = {
               } else {
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages,
-                  filter, null, MessageManager.slide);
+                  filter, null, function() {
+                   MessageManager.slide(function() {
+                      document.getElementById('message-to-send').focus();
+                    });
+                  });
               }
             }
           break;
@@ -184,7 +194,7 @@ var MessageManager = {
 
   /*
     TODO: If the messages could not be deleted completely,
-    conversation list page will also update withot notification currently.
+    conversation list page will also update without notification currently.
     May need more infomation for user that the messages were not
     removed completely.
   */
@@ -268,8 +278,7 @@ var ThreadListUI = {
     var element =
       this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (element) {
-      element.innerHTML = contact[0].name || 'Unknown';
-      //TODO Use l10n to Unknown string
+      element.innerHTML = contact[0].name || _('unknown-contact');
     }
   },
 
@@ -287,12 +296,13 @@ var ThreadListUI = {
           if (selected > 0) {
             ThreadListUI.deleteSelectedButton.classList.remove('disabled');
             this.editHeader.innerHTML = selected + ' Selected';
+
           } else {
             ThreadListUI.deleteSelectedButton.classList.add('disabled');
             this.editHeader.innerHTML = 'Edit mode';
           }
         }
-          break;
+        break;
     }
   },
 
@@ -309,8 +319,7 @@ var ThreadListUI = {
   },
 
   deleteAllThreads: function thlui_deleteAllThreads() {
-    var response = window.confirm('Delete all conversations\n' +
-                                  'Are you sure you want to do this?');
+    var response = window.confirm(_('deleteAll-confirmation'));
     if (response) {
       this.delNumList = [];
       this.pendingDelList = [];
@@ -352,7 +361,8 @@ var ThreadListUI = {
       }, filter);
     }
     // Cleaning
-    this.editHeader.innerHTML = 'Edit mode';
+    ThreadListUI.selectedInputList = [];
+    this.editHeader.innerHTML = _('editMode');
     this.deleteSelectedButton.classList.add('disabled');
   },
 
@@ -428,13 +438,16 @@ var ThreadListUI = {
       for (var i = 0; i < unreadThreads.length; i++) {
         document.getElementById(unreadThreads[i]).classList.add('unread');
       }
+      // Boot update of headers
+      Utils.updateHeaderScheduler();
+
     } else {
       var noResultHTML = '<div id="no-result-container">' +
-                          '<div id="no-result-message">' +
-                          '<p>no messages recorded</p>' +
-                          '<p>start communicating now</p>' +
-                          '</div>' +
-                          '</div>';
+            ' <div id="no-result-message">' +
+            '   <p data-l10n-id="noMessage-title">no messages recorded</p>' +
+            '   <p data-l10n-id="noMessage-text">start communicating now</p>' +
+            ' </div>' +
+            '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
       ThreadListUI.iconEdit.classList.add('disabled');
     }
@@ -500,8 +513,6 @@ var ThreadListUI = {
     // Append 'time-update' state
     headerHTML.setAttribute('data-time-update', true);
     headerHTML.setAttribute('data-time', timestamp);
-    // Boot update of headers
-    Utils.updateHeaders();
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
@@ -576,6 +587,11 @@ var ThreadUI = {
     this.delNumList = [];
     this.pendingDelList = [];
     this.selectedInputList = [];
+    // TODO: Please replace the pending icon with exclamation mark.
+    this.sendIcons = {
+      sending: 'style/images/spinningwheel_small_animation.gif',
+      pending: 'style/images/icons/clear.png'
+    };
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.deleteAllButton.addEventListener('click',
@@ -642,10 +658,6 @@ var ThreadUI = {
     // Append 'time-update' state
     headerHTML.setAttribute('data-time-update', true);
     headerHTML.setAttribute('data-time', timestamp);
-    // Boot update of headers
-    Utils.updateHeaders();
-    // Add text
-    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Append to DOM
@@ -655,8 +667,7 @@ var ThreadUI = {
     ThreadUI.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
       if (contact && contact.length > 0) {
-        //TODO l10n to 'Unknown' string
-        ThreadUI.title.innerHTML = contact[0].name || 'Unknown';
+        ThreadUI.title.innerHTML = contact[0].name || _('unknown-contact');
       }
     });
   },
@@ -682,12 +693,14 @@ var ThreadUI = {
         MessageManager.getMessages(ThreadListUI.renderThreads);
       });
     }
+    // Boot update of headers
+    Utils.updateHeaderScheduler();
     // Callback when every message is appended
     if (callback) {
       callback();
     }
   },
-  appendMessage: function thui_appendMessage(message) {
+  appendMessage: function thui_appendMessage(message, callback) {
     if (!message.read) {
       ThreadUI.readMessages.push(message.id);
     }
@@ -701,21 +714,12 @@ var ThreadUI = {
       message.delivery == 'sending');
     var className = (outgoing ? 'sent' : 'received');
     var timestamp = message.timestamp.getTime();
-    var bodyText = message.body.split('\n')[0];
+    var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
-    var htmlStructure = '<span class="bubble-container ' + className + '">' +
-                        '<div class="bubble">' + bodyHTML + '</div>' +
-                        '</span>';
-    // Add 'gif' if necessary
-    //TODO: We may need to have additional delivery status or parameter for
-    //      appendMessage to add sending/pending icon.
+    var htmlStructure = '';
+    // Adding edit options to the left side
     if (message.delivery == 'sending') {
-      messageDOM.addEventListener('click',
-        ThreadUI.resendMessage.bind(ThreadUI, message));
-      htmlStructure += '<span class="message-option">' +
-      '<img src="style/images/spinningwheel_small_animation.gif" class="gif">' +
-                        '</span>';
       //Add edit options for pending
       htmlStructure += '<span class="message-option msg-checkbox">' +
                         '  <input value="ts_' + timestamp +
@@ -730,6 +734,19 @@ var ThreadUI = {
                         '  <span></span>' +
                       '</span>';
     }
+    htmlStructure += '<span class="bubble-container ' + className + '">' +
+                        '<div class="bubble">' + bodyHTML + '</div>' +
+                        '</span>';
+
+    // Add 'gif' if necessary
+    if (message.delivery == 'sending') {
+      messageDOM.addEventListener('click',
+        ThreadUI.resendMessage.bind(ThreadUI, message));
+      htmlStructure += '<span class="message-option">' +
+      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
+        ThreadUI.sendIcons.pending) + '" class="gif">' +
+                        '</span>';
+    }
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
     //Check if we need a new header
@@ -742,6 +759,9 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
+    if (callback) {
+      callback;
+    }
   },
 
   cleanForm: function thui_cleanForm() {
@@ -753,7 +773,7 @@ var ThreadUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
-    this.editHeader.innerHTML = 'Edit mode';
+    this.editHeader.innerHTML = _('editMode');
     this.deleteSelectedButton.classList.add('disabled');
   },
 
@@ -763,8 +783,7 @@ var ThreadUI = {
   },
 
   deleteAllMessages: function thui_deleteAllMessages() {
-    var response = window.confirm('Delete all messages\n' +
-                                  'Are you sure you want to do this?');
+    var response = window.confirm(_('deleteAll-confirmation'));
     if (response) {
       this.delNumList = [];
       this.pendingDelList = [];
@@ -823,7 +842,7 @@ var ThreadUI = {
       }
     });
     // Cleaning
-    this.editHeader.innerHTML = 'Edit mode';
+    this.editHeader.innerHTML = _('editMode');
     this.deleteSelectedButton.classList.add('disabled');
   },
 
@@ -906,10 +925,12 @@ var ThreadUI = {
           var selected = ThreadUI.selectedInputList.length;
           if (selected > 0) {
             ThreadUI.deleteSelectedButton.classList.remove('disabled');
-            this.editHeader.innerHTML = selected + ' Selected';
+            var total = selected - ThreadUI.delNumList.length -
+              ThreadUI.pendingDelList.length;
+            this.editHeader.innerHTML = _('selected', {n: total});
           } else {
             ThreadUI.deleteSelectedButton.classList.add('disabled');
-            this.editHeader.innerHTML = 'Edit mode';
+            this.editHeader.innerHTML = _('editMode');
           }
         }
           break;
@@ -959,8 +980,11 @@ var ThreadUI = {
           if (window.location.hash == '#new') {
             window.location.hash = '#num=' + num;
           } else {
-            // Append to DOM
-            ThreadUI.appendMessage(message);
+            // Append to DOMf
+            message.showAnimation = true;
+            ThreadUI.appendMessage(message, function() {
+              Utils.updateHeaders();
+            });
           }
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
@@ -974,7 +998,7 @@ var ThreadUI = {
           var root = document.getElementById(message.timestamp.getTime());
           if (root) {
 
-            root.removeChild(root.childNodes[1]);
+            root.removeChild(root.childNodes[2]);
             var inputs = root.querySelectorAll('input[type="checkbox"]');
             if (inputs) {
               inputs[0].value = 'id_' + msg.id;
@@ -997,7 +1021,7 @@ var ThreadUI = {
     if (window.location.hash == '#edit') {
       return;
     }
-    var resendConfirmStr = _('resendConfirmDialogMsg');
+    var resendConfirmStr = _('resend-confirmation');
     var result = confirm(resendConfirmStr);
     if (result) {
       // Remove the message from pending message DB before resend.
@@ -1009,28 +1033,44 @@ var ThreadUI = {
         }, filter, true);
       });
       window.setTimeout(ThreadUI.sendMessage.bind(ThreadUI, message.body), 500);
-    } else {
-      //TODO: Replace the gif icon with exclamation mark icon.
+    } else if (message.showAnimation) {
+      // TODO: We need to replace the timestamp with ID when message deletion
+      //       refine in the future.
+      var queryStr = 'div[id="' + message.timestamp.valueOf() + '"] img.gif';
+      var emt = ThreadUI.view.querySelector(queryStr);
+      emt.src = ThreadUI.sendIcons.pending;
+      message.showAnimation = false;
     }
   },
 
   renderContactData: function thui_renderContactData(contact) {
-    // Create DOM element
-    var threadHTML = document.createElement('div');
-    threadHTML.classList.add('item');
-
     // Retrieve info from thread
-    var name = Utils.escapeHTML(contact.name);
-    var number = Utils.escapeHTML(contact.tel[0].number);
-    // Create HTML structure
-    var structureHTML =
-            '  <a href="#num=' + contact.tel[0].number + '">' +
-            '    <div class="name">' + name + '</div>' +
-            '    <div class="number">' + number + '</div>' +
-            '  </a>';
-    // Update HTML and append
-    threadHTML.innerHTML = structureHTML;
-    ThreadUI.view.appendChild(threadHTML);
+    var phoneType = ContactDataManager.phoneType;
+    var name = contact.name.toString();
+    var tels = contact.tel;
+    for (var i = 0; i < tels.length; i++) {
+      var input = this.contactInput.value;
+      var number = tels[i].number.toString();
+      var reg = new RegExp(input, 'ig');
+      if (!(name.match(reg) || (number.match(reg)))) {
+        continue;
+      }
+      var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
+      var numHTML = SearchUtils.createHighlightHTML(number, reg, 'highlight');
+      // Create DOM element
+      var threadHTML = document.createElement('div');
+      threadHTML.classList.add('item');
+      // Create HTML structure
+      var structureHTML =
+              '  <a href="#num=' + contact.tel[i].number + '">' +
+              '    <div class="name">' + nameHTML + '</div>' +
+              '    <div class="type">' + _(phoneType[i]) + '   ' + numHTML +
+              '    </div>' +
+              '  </a>';
+      // Update HTML and append
+      threadHTML.innerHTML = structureHTML;
+      ThreadUI.view.appendChild(threadHTML);
+    }
   },
 
   searchContact: function thui_searchContact() {
@@ -1045,7 +1085,7 @@ var ThreadUI = {
       if (!contacts || contacts.length == 0) {
         return;
       }
-      contacts.forEach(self.renderContactData);
+      contacts.forEach(self.renderContactData.bind(self));
     });
   },
 

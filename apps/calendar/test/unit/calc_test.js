@@ -2,6 +2,8 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('calc.js');
 });
 
+//Worth noting that these tests will fail
+//in horrible ways outside of US timezone.
 suite('calendar/calc', function() {
   var subject, mocked = {};
 
@@ -26,6 +28,84 @@ suite('calendar/calc', function() {
       return value;
     };
   }
+
+  suite('#getWeekStartDate', function() {
+    // we are testing for first week of Aug 2012
+    var expected = new Date(2012, 6, 29);
+
+    function matches(given) {
+      assert.equal(
+        subject.getWeekStartDate(given).valueOf(),
+        expected.valueOf()
+      );
+    }
+
+    test('when given middle', function() {
+      matches(new Date(2012, 7, 2));
+    });
+
+    test('when given start', function() {
+      matches(new Date(2012, 6, 29));
+    });
+
+  });
+
+  test('#daysBetween', function() {
+    //Nov 29th 2012
+    var start = new Date(2012, 10, 29);
+
+    // Dec 2nd 2012
+    var end = new Date(2012, 11, 2);
+
+    var expected = [
+      start,
+      new Date(2012, 10, 30),
+      new Date(2012, 11, 1),
+      end
+    ];
+
+    assert.deepEqual(
+      subject.daysBetween(start, end),
+      expected
+    );
+  });
+
+  suite('#getWeekEndDate', function() {
+    // we are testing for first week of Aug 2012
+    var expected = new Date(2012, 7, 4, 23, 59, 59, 999);
+
+    function matches(given) {
+      assert.equal(
+        subject.getWeekEndDate(given).valueOf(),
+        expected.valueOf()
+      );
+    }
+
+    test('when given middle', function() {
+      matches(new Date(2012, 7, 2));
+    });
+
+    test('when given start', function() {
+      matches(new Date(2012, 6, 29));
+    });
+  });
+
+  suite('#isSameDate', function() {
+
+    test('same day', function() {
+      assert.isTrue(subject.isSameDate(
+        new Date(2012, 1, 1, 8),
+        new Date(2012, 1, 1, 23)
+      ));
+    });
+
+    test('same day different month', function() {
+      assert.isFalse(subject.isSameDate(
+        new Date(2012, 2, 1, 8),
+        new Date(2012, 1, 1, 8)
+      ));
+    });
+  });
 
   suite('#isToday', function() {
     test('when given is today', function() {

@@ -9,12 +9,8 @@
   "permissions": [
     "sms",
     "contacts",
-    "webcontacts-manage",
-    "contacts-read",
-    "contacts-write",
     "background",
-    "indexedDB-unlimited",
-    "offline-app"
+    "settings"
   ],
   "locales": {
     "ar": {

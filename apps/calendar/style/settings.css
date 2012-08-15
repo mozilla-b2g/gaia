@@ -56,14 +56,28 @@ body[role="app"] #wrapper {
   user-select: none;
 }
 
-#settings a.settings {
+#settings .settings,
+#settings .sync {
   position: absolute;
   bottom: 1rem;
-  left: 1rem;
   text-indent: -1000em;
-  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat;
   width: 30px;
   height: 30px;
+}
+
+
+#settings .sync.active {
+  display: none;
+}
+
+#settings .settings {
+  left: 1rem;
+  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat;
+}
+
+#settings .sync {
+  right: 1rem;
+  background: transparent url('/style/icons/ActionIcons_30x30_refresh.png') no-repeat;
 }
 
 #settings .calendars input[type="checkbox"] {

@@ -10,11 +10,8 @@
   },
   "permissions": [
     "background",
+    "attention",
     "contacts",
-    "contacts-read",
-    "contacts-write",
-    "settings-read",
-    "settings-write",
-    "offline-app"
+    "settings"
   ]
 }

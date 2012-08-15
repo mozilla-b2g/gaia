@@ -4,6 +4,8 @@
 const PaginationBar = (function() {
   var style, previousTotal;
 
+  var dir = document.documentElement.dir === 'rtl' ? -100 : 100;
+
   return {
     /*
      * Initializes the pagination bar
@@ -39,11 +41,7 @@ const PaginationBar = (function() {
         previousTotal = total;
       }
 
-      if (document.documentElement.dir == 'rtl') {
-        style.MozTransform = 'translateX(-' + current * 100 + '%)';
-      } else {
-        style.MozTransform = 'translateX(' + current * 100 + '%)';
-      }
+      style.MozTransform = 'translateX(' + current * dir + '%)';
     }
   };
 }());

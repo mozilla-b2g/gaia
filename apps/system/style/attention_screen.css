@@ -4,10 +4,6 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
-
   -moz-transition: -moz-transform 0.5s ease;
   display: none;
 }
@@ -46,8 +42,7 @@
   width: 100%;
   /* Status bar height * 2 */
   height: 40px;
-
-  z-index: 1000;
+  z-index: 2;
   display: none;
 }
 

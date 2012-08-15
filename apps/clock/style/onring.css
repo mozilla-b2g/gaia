@@ -3,8 +3,8 @@ html, body {
   padding: 0;
   font-family: "Open Sans", sans-serif;
   overflow: hidden !important;
-  background-image: url(images/attention_bg.png);
-  background-size: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  background-size: 100% 100%;
 }
 
 .ring-display {

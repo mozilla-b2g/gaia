@@ -14,11 +14,11 @@ const Homescreen = (function() {
 
   function initUI() {
     // Initialize the dock
-    DockManager.init(document.querySelector('#footer'));
+    DockManager.init(document.querySelector('#footer .dockWrapper'));
 
     setLocale();
     GridManager.init('.apps', function gm_init() {
-      GridManager.goToPage(1);
+      GridManager.goToPage(GridManager.landingPageIndex);
       PaginationBar.show();
       DragDropManager.init();
 
@@ -41,16 +41,9 @@ const Homescreen = (function() {
           GridManager.saveState();
           DockManager.saveState();
           Permissions.hide();
-        } else {
-          var num = GridManager.pageHelper.getCurrentPageNumber();
-          switch (num) {
-            case 1:
-              GridManager.goToPage(0);
-              break;
-            default:
-              GridManager.goToPage(1);
-              break;
-          }
+        } else if (GridManager.pageHelper.getCurrentPageNumber() !==
+                   GridManager.landingPageIndex) {
+          GridManager.goToPage(GridManager.landingPageIndex);
         }
         break;
     }
@@ -70,9 +63,18 @@ const Homescreen = (function() {
     Applications.addEventListener('ready', initUI);
   }
 
+  function loadBookmarks() {
+    HomeState.getBookmarks(function(bookmarks) {
+      bookmarks.forEach(function(bookmark) {
+        Applications.addBookmark(bookmark);
+      });
+      start();
+    }, start);
+  }
+
   HomeState.init(function success(onUpgradeNeeded) {
     if (!onUpgradeNeeded) {
-      start();
+      loadBookmarks();
       return;
     }
 
@@ -82,7 +84,7 @@ const Homescreen = (function() {
     appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
       return protocol + '//' + name + '.' + domain;
     });
-    HomeState.saveShortcuts(appsInDockByDef, start, start);
+    HomeState.saveShortcuts(appsInDockByDef, loadBookmarks, loadBookmarks);
   }, start);
 
   // Listening for installed apps
@@ -98,6 +100,25 @@ const Homescreen = (function() {
       GridManager.uninstall(app);
     }
   });
+
+  if (window.navigator.mozSetMessageHandler) {
+    window.navigator.mozSetMessageHandler('activity',
+      function handleActivity(activity) {
+        var data = activity.source.data;
+        // issue 3457: Implement a UI when saving bookmarks to the homescreen
+        switch (data.type) {
+          case 'url':
+            HomeState.saveBookmark(data,
+              function home_okInstallBookmark() {
+                Applications.installBookmark(new Bookmark(data));
+              },
+              function home_errorInstallBookmark(code) {
+                console.error('Error saving bookmark ' + code);
+            });
+            break;
+        }
+      });
+  }
 
   return {
     /*

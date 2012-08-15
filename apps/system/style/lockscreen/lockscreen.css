@@ -1,7 +1,5 @@
 #lockscreen {
   position: absolute;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
   /* 20px = height of status bar */
   top: 20px;
   width: -moz-calc(100%);
@@ -11,16 +9,47 @@
 
   -moz-user-select: none;
 
-  -moz-transition:
-    -moz-transform 0.5s ease 0.3s,
-    opacity 0.5s ease 0.3s;
   opacity: 1;
+
+  -moz-transition:
+    -moz-transform 0.5s ease,
+    opacity 0.5s ease,
+    visibility 0.5s ease;
 }
 
 #screen:not(.locked) > #lockscreen,
-#lockscreen[data-panel="camera"] {
+#screen.lockscreen-camera > #lockscreen {
   -moz-transform: scale(2);
   opacity: 0;
+  visibility: hidden;
+
+  -moz-transition-delay: 0.3s;
+}
+
+#screen.screenoff > #lockscreen,
+#screen.screenoff > #lockscreen * {
+  -moz-transition: none;
+}
+
+#screen.lockscreen-camera > #lockscreen-camera {
+  visibility: visible;
+}
+
+#lockscreen-camera {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+
+  visibility: hidden;
+}
+
+#lockscreen-camera > iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 #lockscreen.uninit > * {
@@ -45,6 +74,9 @@
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 50% 50%;
+
+  visibility: hidden;
+  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
 .lockscreen-panel::before {
@@ -56,10 +88,23 @@
   top: 0;
   left: 0;
   /* Replace this with radical gradient */
-  background-image: url('./images/mask.png');
+  background: transparent url('./images/mask.png') 50% 50% no-repeat;
   background-size: cover;
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
+}
+
+[data-panel="main"] #lockscreen-panel-main,
+[data-panel="passcode"] #lockscreen-panel-passcode,
+[data-panel="emergency-call"] #lockscreen-panel-emergency-call {
+  visibility: inherit;
+}
+
+[data-panel="main"] #lockscreen-panel-main,
+[data-panel="passcode"] #lockscreen-panel-main {
+  -moz-transition: -moz-transform 0.5s ease;
+}
+
+[data-panel="emergency-call"] #lockscreen-panel-main {
+  -moz-transform: translateX(-100%);
 }
 
 #lockscreen h2 {
@@ -81,6 +126,7 @@
 }
 
 #lockscreen-header {
+  z-index: 9999;
   position: absolute;
   top: 0;
   left: 0;
@@ -90,14 +136,18 @@
   padding: 1.5rem 2.4rem 1.2rem 1.6rem;
   color: #fff;
   text-shadow: 0 0 3px #333;
-
   -moz-transform: translateY(-10rem);
   -moz-transition: -moz-transform 0.2s ease;
 }
 
-[data-panel=""] #lockscreen-header,
-[data-panel="camera"] #lockscreen-header {
+[data-panel="main"] #lockscreen-header {
   -moz-transform: translateY(0);
+}
+
+[data-panel="camera"] #lockscreen-header,
+[data-panel="emergency-call"] #lockscreen-header {
+  -moz-transform: translateY(0);
+  -moz-transition: none;
 }
 
 #lockscreen-connstate {
@@ -315,6 +365,21 @@
   -moz-transition: opacity 0.1s linear;
 }
 
+.lockscreen-icon-a11y-button {
+  width: 100%;
+  height: 100%;
+  border-width: inherit;
+  border-radius: inherit;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+.lockscreen-icon-a11y-button * {
+  display: none;
+}
+
 .lockscreen-icon.triggered {
   background-color: #52b6cc !important;
   border-color: #52b6cc;
@@ -403,7 +468,7 @@
 .touched-left .lockscreen-icon::after,
 .touched-right .lockscreen-icon::after,
 #screen:not(.locked) .lockscreen-icon::after,
-#lockscreen:not([data-panel=""]) .lockscreen-icon::after {
+#lockscreen:not([data-panel="main"]) .lockscreen-icon::after {
   display: none;
   -moz-animation: none;
 }
@@ -416,24 +481,17 @@
   background: rgba(0, 0, 0, 0.3) url('./images/icon-camera.png') center center no-repeat;
 }
 
-
-#lockscreen-panel-passcode {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: none;
-}
-
-[data-panel="passcode"] #lockscreen-panel-passcode {
-  display: block;
-}
-
-[data-panel="passcode"] .lockscreen-panel:not(#lockscreen-panel-passcode) {
-  display: none;
+[data-panel="emergency-call"] #lockscreen-panel-passcode {
+  -moz-transform: translateX(-100%);
 }
 
 [data-panel="passcode"] h2#lockscreen-passcode-status {
+  visibility: inherit;
   -moz-transform: none;
+}
+
+[data-panel="emergency-call"] h2#lockscreen-passcode-status {
+  -moz-transition-delay: 0.5s;
 }
 
 /* Smiley */
@@ -474,12 +532,18 @@
   padding: 0 1rem;
   -moz-box-sizing: border-box;
   border-top: 1px solid #525050;
+  visibility: hidden;
   -moz-transform: translateY(-moz-calc(21.4rem + 7.2rem));
-  -moz-transition: -moz-transform 0.2s ease;
+  -moz-transition: visibility 0.3s ease, -moz-transform 0.3s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-code {
+  visibility: inherit;
   -moz-transform: translateY(0);
+}
+
+[data-panel="emergency-call"] #lockscreen-passcode-code {
+  -moz-transition-delay: 0.5s;
 }
 
 #lockscreen-passcode-code > span {
@@ -535,13 +599,18 @@
   height: 21.4rem;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
-
-  -moz-transform: translateY(21.4rem);
-  -moz-transition: -moz-transform 0.2s ease;
+  visibility: hidden;
+  -moz-transform: translateY(-moz-calc(21.4rem + 7em));
+  -moz-transition: visibility 0.3s ease, -moz-transform 0.3s ease;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-pad {
+  visibility: inherit;
   -moz-transform: translateY(0);
+}
+
+[data-panel="emergency-call"] #lockscreen-passcode-pad {
+  -moz-transition-delay: 0.5s;
 }
 
 #lockscreen-passcode-pad > a {
@@ -612,60 +681,19 @@
 }
 
 #lockscreen-panel-emergency-call {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: none;
+  -moz-transform: translateX(100%);
 }
 
-[data-panel="emergency-call"] #lockscreen-panel-emergency-call {
-  display: block;
+#lockscreen-panel-emergency-call::before {
+  content: none;
 }
 
-[data-panel="emergency-call"] .lockscreen-panel:not(#lockscreen-panel-emergency-call) {
-  display: none;
-}
-
-[data-panel="emergency-call"] h2#lockscreen-emergency-title {
-  -moz-transform: none;
-}
-
-#lockscreen-emergency-pad {
-  -moz-box-sizing: border-box;
-  position: absolute;
-  bottom: 0;
-  height: 32rem;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  padding-top: 10rem;
-  border-top: 2px solid #525050;
-
-  -moz-transform: translateY(32rem);
-  -moz-transition: -moz-transform 0.2s ease;
-
-  /* TBD */
-  font-size: 11.5rem;
-  color: #e0e0e0;
-  text-align: center;
-}
-
-[data-panel="emergency-call"] #lockscreen-emergency-pad {
-  -moz-transform: translateY(0);
-}
-
-#lockscreen-camera {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
-}
-
-#lockscreen-camera > iframe {
+#lockscreen-panel-emergency-call > iframe {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+[data-panel="emergency-call"] #lockscreen-panel-emergency-call {
+  -moz-transform: translateX(0);
 }

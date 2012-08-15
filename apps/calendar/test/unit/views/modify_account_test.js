@@ -55,10 +55,7 @@ suite('views/modify_account', function() {
 
     app = testSupport.calendar.app();
 
-    account = new Calendar.Models.Account({
-      providerType: 'Local',
-      preset: 'local'
-    });
+    account = Factory('account');
 
     subject = new Calendar.Views.ModifyAccount({
       app: app,
@@ -110,7 +107,7 @@ suite('views/modify_account', function() {
       // mock out persist
       // we are not trying to
       // test db functionality here.
-      persist: function(obj, callback) {
+      verifyAndPersist: function(obj, callback) {
         calledPersist = arguments;
         setTimeout(function() {
           callback(null, obj);
@@ -119,37 +116,22 @@ suite('views/modify_account', function() {
     };
 
     setup(function() {
-      calledSetup = null;
       calledPersist = null;
-
       // mock out account store
       app.db._stores.Account = store;
-
-      // mock out setup
-      // and save arguments
-      account.setup = function() {
-        var callback = arguments[arguments.length - 1];
-        calledSetup = arguments;
-        setTimeout(function() {
-          callback(null);
-        }, 0);
-      }
     });
 
-    //XXX: Do a *a lot* more testing
     suite('success', function() {
 
       test('result', function(done) {
-        this.timeout(5000);
         getField('user').value = 'user';
         getField('password').value = 'pass';
 
         subject._persistForm(function() {
           done(function() {
-            assert.ok(calledPersist);
-            assert.ok(calledSetup);
+            assert.equal(calledPersist[0], subject.model);
 
-            var model = calledPersist[0];
+            var model = subject.model;
 
             assert.equal(model.user, 'user');
             assert.equal(model.password, 'pass');
@@ -301,9 +283,6 @@ suite('views/modify_account', function() {
       });
 
       test('result', function() {
-        assert.isFalse(model.provider.useCredentials);
-        assert.isFalse(model.provider.useUrl);
-
         subject.dispatch({ params: { preset: 'local'} });
         assert.isTrue(calledSave);
       });
