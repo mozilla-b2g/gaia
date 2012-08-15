@@ -139,25 +139,28 @@ const DEFAULT_STYLE_TAG =
  * GIVE US PINCH AND ZOOM.  IF YOU SEE CODE THAT SAYS PHOTO, THAT IS WHY.
  * ALSO, PHOTOS WILL REPLACE EMAIL AS THE MEANS OF COMMUNICATION.
  *
- * @args[
- *   @param[htmlStr]
- *   @param[parentNode]{
+ * Uh, the ^ stuff below should really be @, but it's my jstut syntax that
+ * gjslint simply hates, so...
+ *
+ * ^args[
+ *   ^param[htmlStr]
+ *   ^param[parentNode]{
  *     The (future) parent node of the iframe.
  *   }
- *   @param[adjacentNode @oneof[null HTMLNode]]{
+ *   ^param[adjacentNode ^oneof[null HTMLNode]]{
  *     insertBefore semantics.
  *   }
- *   @param[linkClickHandler @func[
- *     @args[
- *       @param[event]{
+ *   ^param[linkClickHandler ^func[
+ *     ^args[
+ *       ^param[event]{
  *       }
- *       @param[linkNode HTMLElement]{
+ *       ^param[linkNode HTMLElement]{
  *         The actual link HTML element
  *       }
- *       @param[linkUrl String]{
+ *       ^param[linkUrl String]{
  *         The URL that would be navigated to.
  *       }
- *       @param[linkText String]{
+ *       ^param[linkText String]{
  *         The text associated with the link.
  *       }
  *     ]
@@ -249,8 +252,8 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
 
       var lastScale = photoState.scale, scaleMode = 0;
       var detector = new GestureDetector(interacter);
-      // We don't need to ever stopDetecting since the closures that keep it alive
-      // are just the event listeners on the iframe.
+      // We don't need to ever stopDetecting since the closures that keep it
+      // alive are just the event listeners on the iframe.
       detector.startDetecting();
       viewport.addEventListener('pan', function(event) {
         photoState.pan(event.detail.relative.dx,
@@ -364,7 +367,6 @@ function PhotoState(img, width, height, viewportWidth, viewportHeight) {
   this.photoHeight = height;
   this.viewportWidth = viewportWidth;
   this.viewportHeight = viewportHeight;
-//console.log("photo!", "w", this.photoWidth, "h", this.photoHeight, "vw", this.viewportWidth, "vh", this.viewportHeight);
 
   // Do all the calculations
   this.reset();
@@ -373,12 +375,6 @@ function PhotoState(img, width, height, viewportWidth, viewportHeight) {
 // An internal method called by reset(), zoom() and pan() to
 // set the size and position of the image element.
 PhotoState.prototype._reposition = function() {
-//console.log("reposition", "s", this.scale, "w", this.width, "h", this.height, "t", this.top, "l", this.left);
-  //this.img.style.width = this.width + 'px';
-  //this.img.style.height = this.height + 'px';
-  //this.img.style.top = this.top + 'px';
-  //this.img.style.left = this.left + 'px';
-
   this.width = this.photoWidth * this.scale;
   this.height = this.photoHeight * this.scale;
 
@@ -389,7 +385,7 @@ PhotoState.prototype._reposition = function() {
 
   var transform = 'translate(' + this.left + 'px, ' +
                                   this.top + 'px) scale(' + this.scale + ')';
-  this.img.style.transform =  transform;
+  this.img.style.transform = transform;
 };
 
 // Compute the default size and position of the photo

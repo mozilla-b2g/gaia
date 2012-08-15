@@ -642,7 +642,7 @@ MessageReaderCard.prototype = {
 
   formatFileSize: function(size) {
     // XXX: localize this!
-    const units = [ "bytes", "KB", "MB", "GB", "TB" ];
+    const units = ['bytes', 'KB', 'MB', 'GB', 'TB'];
     var unitSize = size;
     var unitIndex = 0;
 
@@ -651,7 +651,7 @@ MessageReaderCard.prototype = {
       unitIndex++;
     }
     return (unitIndex == 0 ? unitSize.toFixed(0) : unitSize.toPrecision(3)) +
-           " " + units[unitIndex];
+           ' ' + units[unitIndex];
   },
 
   onBack: function(event) {
