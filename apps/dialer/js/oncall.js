@@ -322,7 +322,9 @@ var OnCallHandler = {
     } else {
       if (window.location.hash.split('?')[1] === 'locked') {
         CallScreen.render('locked');
-      } else CallScreen.render(call.state);
+      } else {
+        CallScreen.render(call.state);
+      }
     }
   },
 

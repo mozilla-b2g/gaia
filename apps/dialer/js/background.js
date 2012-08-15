@@ -70,7 +70,8 @@
 
     var host = document.location.host;
     var protocol = document.location.protocol;
-    window.open(protocol + '//' + host + '/oncall.html#' + call.state + '?' + screenState,
+    var urlBase = protocol + '//' + host + '/oncall.html';
+    window.open(urlBase + '#' + call.state + '?' + screenState,
                 'call_screen', 'attention');
 
     callScreenDisplayed = true;
