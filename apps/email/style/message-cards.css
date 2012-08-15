@@ -79,7 +79,8 @@
   position: absolute;
   top: 0px;
   left: 1.2rem;
-  width: -moz-calc(100% - 5.6rem);
+  /* 100% - (unread-section) - (icons-section) - (avatar-section) */
+  width: -moz-calc(100% - 1.2rem - 2rem - 2.8rem);
   height: 100%;
   font-size: 1.6rem;
   line-height: 2.5rem;
@@ -88,9 +89,10 @@
   display: block;
   position: absolute;
   top: 0px;
-  left: 26rem;
-  width: 3.2rem;
+  right: 2.8rem; /* The width of the avatar-section. */
+  width: 2rem;
   height: 100%;
+  padding-top: 2.5rem;
 }
 .msg-header-avatar-section {
   display: block;
@@ -101,12 +103,26 @@
   height: 100%;
 }
 
+.msg-header-author-and-date {
+  display: table;
+  table-layout: fixed;
+  width: -moz-available;
+}
 .msg-header-author {
   font-size: 110%;
   color: black;
+  display: table-cell;
+  width: -moz-available;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .msg-header-date {
   color: gray;
+  display: table-cell;
+  width: -moz-min-content;
+  white-space: nowrap;
+  margin-left: 1ch;
 }
 .msg-header-date-unread {
   color: #1D8399;
