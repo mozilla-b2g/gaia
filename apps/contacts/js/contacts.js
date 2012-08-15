@@ -1089,8 +1089,7 @@ var Contacts = (function() {
 
   var handleCancel = function handleCancel() {
     //If in an activity, cancel it
-    var inActivity = ActivityHandler.currentlyHandling;
-    if (inActivity) {
+    if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postCancel();
     } else {
       handleBack();
