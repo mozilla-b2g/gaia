@@ -276,10 +276,10 @@ function MediaDB(mediaType, metadataParser, options) {
         if (mediadb.onready)
           mediadb.onready();
       }
-      else if (e.reason === 'unavailable') {
+      else if (e.reason === 'unavailable' || e.reason === 'shared') {
         mediadb.ready = false;
         if (mediadb.onunavailable)
-          mediadb.onunavailable(/*XXX: pass nocard or cardinuse */);
+          mediadb.onunavailable(e.reason);
       }
 
       //
@@ -293,15 +293,28 @@ function MediaDB(mediaType, metadataParser, options) {
     // Use stat() to figure out if there is actually an sdcard there
     // and call onready or onunavailable based on the result
     var statreq = mediadb.storage.stat();
-    statreq.onsuccess = function() {
-      mediadb.ready = true;
-      if (mediadb.onready)
-        mediadb.onready();
+    statreq.onsuccess = function(e) {
+      var stats = e.target.result;
+      if (stats.state === 'available') {
+        mediadb.ready = true;
+        if (mediadb.onready)
+          mediadb.onready();
+      }
+      else {
+        // XXX: this is not working right now
+        // stat fails instead of returning us the card state
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=782351
+        if (mediadb.onunavailable)
+          mediadb.onunavailable(stats.state);
+      }
     };
-    statreq.onerror = function() {
-      mediadb.ready = false;
+    statreq.onerror = function(e) {
+      // XXX stat fails for unavailable and shared,
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=782351
+      // No way to distinguish these cases so just guess
       if (mediadb.onunavailable)
-        mediadb.onunavailable();
+        mediadb.onunavailable('unavailable');
+      console.error('stat() failed', statreq.error && statreq.error.name);
     };
   }
 }
