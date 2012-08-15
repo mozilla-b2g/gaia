@@ -65,5 +65,12 @@
     }
   },
   "default_locale": "en-US",
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "activities": {
+    "save-bookmark": {
+      "filters": {
+        "type": "url"
+      }
+    }
+  }
 }

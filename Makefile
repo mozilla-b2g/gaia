@@ -566,3 +566,7 @@ purge:
 	$(ADB) shell mkdir -p /data/local/tmp
 	$(ADB) shell rm -r /cache/*
 	$(ADB) shell rm -r /data/b2g/*
+
+# clean out build products
+clean:
+	rm -rf profile xulrunner-sdk
