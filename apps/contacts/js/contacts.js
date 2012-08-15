@@ -1084,12 +1084,16 @@ var Contacts = (function() {
   };
 
   var handleBack = function handleBack() {
+    navigation.back();
+  };
+
+  var handleCancel = function handleCancel() {
     //If in an activity, cancel it
     var inActivity = ActivityHandler.currentlyHandling;
-    if (inActivity && ActivityHandler.activityName == 'new') {
+    if (inActivity) {
       ActivityHandler.postCancel();
     } else {
-      navigation.back();
+      handleBack();
     }
   };
 
@@ -1201,6 +1205,7 @@ var Contacts = (function() {
     'addNewEmail' : insertEmail,
     'addNewAddress' : insertAddress,
     'addNewNote' : insertNote,
+    'cancel' : handleCancel,
     'goBack' : handleBack,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
@@ -1220,8 +1225,12 @@ if (window.navigator.mozSetMessageHandler) {
 }
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (document.mozHidden) {
-    if (ActivityHandler.currentlyHandling)
-      ActivityHandler.postCancel();
+  var cancelButton = document.getElementById('cancel_activty');
+  if (ActivityHandler.currentlyHandling) {
+    if (document.mozHidden)
+        ActivityHandler.postCancel();
+    cancelButton.classList.remove('hide');
+  } else {
+    cancelButton.classList.add('hide');
   }
 });
