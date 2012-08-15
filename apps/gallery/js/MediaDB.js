@@ -428,14 +428,17 @@ MediaDB.prototype = {
   //    metadata: // whatever object the metadata parser returns
   // }
   //
-  // This method returns an opaque id that you can pass to cancelEnumeration()
-  // to cancel an enumeration in progress.
+  // This method returns an object that you can pass to cancelEnumeration()
+  // to cancel an enumeration in progress. You can use the state property
+  // of the returned object to find out the state of the enumeration. It 
+  // should be one of the strings 'enumerating', 'complete', 'cancelling'
+  // or 'cancelled'.
   //
   enumerate: function enumerate(key, range, direction, callback) {
     if (!this.db)
       throw Error('MediaDB is not ready yet. Use the onready callback');
 
-    var id = this._nextId++;
+    var handle = { state: 'enumerating' };
 
     // The first three arguments are optional, but the callback
     // is required, and we don't want to have to pass three nulls
@@ -465,8 +468,8 @@ MediaDB.prototype = {
     cursorRequest.onsuccess = function() {
       // If the enumeration has been cancelled, return without
       // calling the callback and without calling cursor.continue();
-      if (this._cancelledEnumerations.hasOwnProperty(id) {
-        delete this._cancelledEnumerations[id];
+      if (handle.state === 'cancelling') {
+        handle.state = 'cancelled';
         return;
       }
 
@@ -477,23 +480,18 @@ MediaDB.prototype = {
       }
       else {
         // Final time, tell the callback that there are no more.
-        callback(null);
+        handle.state = 'complete';
+        callback(null);  // XXX: is this actually useful?
       }
     };
 
-    return id;
+    return handle;
   },
-
-  // A counter for the ids returned by enumerate
-  _nextId: 0,
-
-  // The set of ids for enumerations that have been cancelled
-  _cancelledEnumerations: {},
 
   // Cancel a pending enumeration. After calling this the callback for
   // the specified enumeration will not be invoked again.
-  cancelEnumeration: function(id) {
-    this._cancelledEnumerations[id] = true;
+  cancelEnumeration: function(handle) {
+    handle.state = 'cancelling';
   },
 
   // Tell the db to start a manual scan. I think we don't do
