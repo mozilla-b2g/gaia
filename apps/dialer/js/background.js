@@ -43,7 +43,9 @@
   SettingsListener.observe('lockscreen.locked', false, function(value) {
     if (value) {
       screenState = 'locked';
-    } else screenState = 'unlocked';
+    } else {
+      screenState = 'unlocked';
+    }
   });
 
   var _ = navigator.mozL10n.get;
