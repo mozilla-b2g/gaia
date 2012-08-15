@@ -132,7 +132,11 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
+
   function goToPage(index, callback) {
+    if (index < 0 || index >= pages.length)
+      return;
+
     if (index === landingPageIndex && currentPage === landingPageIndex + 1 &&
         Homescreen.isInEditMode()) {
       index++;
