@@ -26,7 +26,7 @@ function startup() {
   }, 2000);
 }
 
-// XXX: homescreen should be an app launched and managed by window manager,
+// 3459: homescreen should be an app launched and managed by window manager,
 // instead of living in it's own frame.
 (function homescreenLauncher() {
   if (document.location.protocol === 'file:') {

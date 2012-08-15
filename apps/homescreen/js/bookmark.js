@@ -34,8 +34,10 @@ Bookmark.prototype = {
           GridManager.uninstall(self);
         }
         Applications.deleteBookmark(self);
-      }, function(er) {
-      console.error('Error deleting bookmark ' + er);
-    });
+      },
+      function(er) {
+        console.error('Error deleting bookmark ' + er);
+      }
+    );
   }
 };

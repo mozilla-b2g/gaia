@@ -78,11 +78,11 @@ const HomeState = (function() {
   }
 
   return {
-    init: function(success, error) {
+    init: function st_init(success, error) {
       openDB(success, error);
     },
 
-    saveGrid: function(pages, success, error) {
+    saveGrid: function st_saveGrid(pages, success, error) {
       if (!database) {
         if (error) {
           error('Database is not available');
@@ -108,7 +108,7 @@ const HomeState = (function() {
       }, success, error);
     },
 
-    getAppsByPage: function(iteratee, success, error) {
+    getAppsByPage: function st_getAppsByPage(iteratee, success, error) {
       if (!database) {
         if (error) {
           error('Database is not available');
@@ -131,7 +131,7 @@ const HomeState = (function() {
       }, function() { success(results) }, error);
     },
 
-    saveShortcuts: function(list, success, error) {
+    saveShortcuts: function st_saveShortcuts(list, success, error) {
       if (!database) {
         if (error) {
           error('Database is not available');
@@ -147,7 +147,7 @@ const HomeState = (function() {
       }, success, error, DOCK_STORE_NAME);
     },
 
-    getShortcuts: function(success, error) {
+    getShortcuts: function st_getShortcuts(success, error) {
       if (!database) {
         if (error) {
           error('Database is not available');
@@ -167,7 +167,7 @@ const HomeState = (function() {
       }, function() { success(result) }, error, DOCK_STORE_NAME);
     },
 
-    getBookmarks: function(success, error) {
+    getBookmarks: function st_getBookmarks(success, error) {
       if (!database) {
         if (error) {
           error('Database is not available');
@@ -189,7 +189,7 @@ const HomeState = (function() {
       }, function() { success(results) }, error, BOOKMARKS_STORE_NAME);
     },
 
-    saveBookmark: function(bookmark, success, error) {
+    saveBookmark: function st_saveBookmark(bookmark, success, error) {
       if (!database) {
         if (error) {
           error('Database is not available');
@@ -209,7 +209,7 @@ const HomeState = (function() {
       }, success, error, BOOKMARKS_STORE_NAME);
     },
 
-    deleteBookmark: function(origin, success, error) {
+    deleteBookmark: function st_deleteBookmark(origin, success, error) {
       if (!database) {
         if (error) {
           error('Database is not available');

@@ -105,6 +105,7 @@ const Homescreen = (function() {
     window.navigator.mozSetMessageHandler('activity',
       function handleActivity(activity) {
         var data = activity.source.data;
+        // issue 3457: Implement a UI when saving bookmarks to the homescreen
         switch (data.type) {
           case 'url':
             HomeState.saveBookmark(data,

@@ -566,6 +566,8 @@ var WindowManager = (function() {
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
+        // 3459: Homescreen should be an app launched and managed by
+        // window manager
         if (origin.indexOf('/homescreen') !== -1) {
           setDisplayedApp(null);
           return;
