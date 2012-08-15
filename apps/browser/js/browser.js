@@ -981,6 +981,8 @@ var Browser = {
       setTimeout(showTabCompleteFun, 100);
     });
 
+    // Hack to force transition to apply synchronously
+    // http://lists.w3.org/Archives/Public/www-style/2011Mar/0729.html
     li.clientTop;
     li.style.height = '';
   },
