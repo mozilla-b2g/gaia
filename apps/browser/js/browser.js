@@ -40,13 +40,14 @@ var Browser = {
     this.getAllElements();
 
     // Add event listeners
-    window.addEventListener('submit', this);
     window.addEventListener('keyup', this, true);
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
-    this.bookmarkButton.addEventListener('click', this.showBookmarkMenu.bind(this));
+    this.bookmarkButton.addEventListener('click',
+      this.showBookmarkMenu.bind(this));
+    this.urlBar.addEventListener('submit', this);
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.topSites.addEventListener('click', this.followLink.bind(this));
@@ -79,6 +80,12 @@ var Browser = {
       this.removeBookmark.bind(this));
     this.bookmarkMenuCancel.addEventListener('click',
       this.hideBookmarkMenu.bind(this));
+    this.bookmarkMenuEdit.addEventListener('click',
+      this.showBookmarkEntrySheet.bind(this));
+    this.bookmarkEntrySheetCancel.addEventListener('click',
+      this.hideBookmarkEntrySheet.bind(this));
+    this.bookmarkEntrySheetDone.addEventListener('click',
+      this.saveBookmark.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -127,7 +134,10 @@ var Browser = {
       'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
       'about-firefox-button', 'clear-history-button', 'crashscreen',
       'close-tab', 'try-reloading', 'bookmark-menu', 'bookmark-menu-add',
-      'bookmark-menu-remove', 'bookmark-menu-cancel'];
+      'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
+      'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
+      'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
+      'bookmark-previous-url'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -516,9 +526,11 @@ var Browser = {
       if (bookmark) {
         this.bookmarkMenuAdd.parentNode.classList.add('hidden');
         this.bookmarkMenuRemove.parentNode.classList.remove('hidden');
+        this.bookmarkMenuEdit.parentNode.classList.remove('hidden');
       } else {
         this.bookmarkMenuAdd.parentNode.classList.remove('hidden');
         this.bookmarkMenuRemove.parentNode.classList.add('hidden');
+        this.bookmarkMenuEdit.parentNode.classList.add('hidden');
       }
     }).bind(this));
   },
@@ -537,6 +549,42 @@ var Browser = {
         this.bookmarkButton.classList.remove('bookmarked');
       }
     }).bind(this));
+  },
+
+  showBookmarkEntrySheet: function browser_showBookmarkEntrySheet() {
+    if (!this.currentTab.url)
+      return;
+    this.hideBookmarkMenu();
+    this.bookmarkEntrySheet.classList.remove('hidden');
+    Places.getBookmark(this.currentTab.url, (function(bookmark) {
+      if (!bookmark) {
+        this.hideBookmarkEntrySheet();
+        return;
+      }
+      this.bookmarkTitle.value = bookmark.title;
+      this.bookmarkUrl.value = bookmark.uri;
+      this.bookmarkPreviousUrl.value = bookmark.uri;
+    }).bind(this));
+  },
+
+  hideBookmarkEntrySheet: function browser_hideBookmarkEntrySheet() {
+    this.bookmarkEntrySheet.classList.add('hidden');
+    this.bookmarkTitle.value = '';
+    this.bookmarkUrl.value = '';
+    this.bookmarkPreviousUrl.value = '';
+  },
+
+  saveBookmark: function browser_saveBookmark() {
+    var url = this.bookmarkUrl.value;
+    var title = this.bookmarkTitle.value;
+    var previousUrl = this.bookmarkPreviousUrl.value;
+    if (url != previousUrl) {
+      Places.removeBookmark(previousUrl, this.refreshBookmarkButton.bind(this));
+      Places.updateBookmark(url, title);
+    } else {
+      Places.updateBookmark(url, title);
+    }
+    this.hideBookmarkEntrySheet();
   },
 
   refreshButtons: function browser_refreshButtons() {

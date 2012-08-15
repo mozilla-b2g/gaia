@@ -743,6 +743,7 @@ li[role="listitem"] small {
   opacity: 0.7;
 }
 
+/** Bookmark Menu **/
 #bookmark-menu {
   display: block;
   position: absolute;
@@ -782,6 +783,68 @@ li[role="listitem"] small {
   display: none;
 }
 
+/* Edit bookmark entry sheet */
+
+form[role="dialog"] {
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #EEEEEE;
+}
+
+form[role="dialog"].hidden {
+  display: none;
+}
+
+#bookmark-entry-sheet {
+  z-index: 101;
+}
+
+form[role="dialog"] header {
+  width: 100%;
+}
+
+form[role="dialog"] header h2 {
+  background-color: #303b3d;
+  color: #fff;
+  font-size: 1em;
+  font-weight: bold;
+  height: 50px;
+  line-height: 50px;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+form[role="dialog"] header button {
+  background-color: #DDDDDD;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  height: 30px;
+  margin: 10px; 
+}
+
+form[role="dialog"] header button[type="reset"] {
+  float: left;
+}
+
+form[role="dialog"] header button[type="submit"] {
+  float: right;
+}
+
+form[role="dialog"] label {
+  display: block;
+  margin-top: 15px;
+  padding: 0 12px;
+}
+
+form[role="dialog"] input {
+  margin: 0 10px;
+  width: -moz-calc(100% - 25px);
+}
 
 /* This is a dirty hack to hide the bottom toolbar while
  * the keyboard is active, than device-height - 20px (for status bar),
