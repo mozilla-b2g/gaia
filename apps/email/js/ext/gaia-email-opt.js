@@ -4346,7 +4346,7 @@ MailAPI.prototype = {
       type: 'downloadAttachments',
       body: body,
       relParts: relPartIndices.length > 0,
-      attachments: attachmentIndices.length >0,
+      attachments: attachmentIndices.length > 0,
       callback: callback,
     };
     this.__bridgeSend({

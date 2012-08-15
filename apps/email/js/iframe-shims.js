@@ -20,16 +20,6 @@ const DEFAULT_STYLE_TAG =
   // padding-start isn't a thing yet, somehow.
   'padding: 0; -moz-padding-start: 5px; ' +
   '}\n' +
-  // ## p
-  // p per html5: before: 1em, after: 1m, start: 0, end: 0
-  // okay, it seems to be convention to put <style> tags in the body with
-  // p { margin: 0; } already, so we don't really need or want to clobber this.
-/*
-  'p {\n' +
-  'margin-before: 1rem; margin-after: 1rem; ' +
-  'background-color: blue; ' +
-  '}\n' +
-*/
   '</style>';
 
 /**
