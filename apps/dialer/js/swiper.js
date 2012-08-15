@@ -7,23 +7,16 @@ var swiper = {
 
     this.area.addEventListener('mousedown', this);
     this.areaHandle.addEventListener('mousedown', this);
-    this.areaCamera.addEventListener('mousedown', this);
-    this.areaUnlock.addEventListener('mousedown', this);
+    this.areaHangup.addEventListener('mousedown', this);
+    this.areaPickup.addEventListener('mousedown', this);
 
-    /* Unlock & camera panel clean up */
-    this.overlay.addEventListener('transitionend', this);
-
-    /* switching panels */
-    window.addEventListener('home', this);
-
-    var self = this;
   },
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
       case 'mousedown':
-        var leftTarget = this.areaCamera;
-        var rightTarget = this.areaUnlock;
+        var leftTarget = this.areaHangup;
+        var rightTarget = this.areaPickup;
         var handle = this.areaHandle;
         var overlay = this.overlay;
         var target = evt.target;
@@ -57,19 +50,19 @@ var swiper = {
             overlay.classList.add('touched');
             break;
 
-          case this.accessibilityUnlock:
+          case this.accessibilityPickup:
             overlay.classList.add('touched');
-            this.areaUnlock.classList.add('triggered');
+            this.areaPickup.classList.add('triggered');
             this.areaHandle.classList.add('triggered');
-            this._touch.target = this.areaUnlock;
+            this._touch.target = this.areaPickup;
             this.handleGesture();
             break;
 
-          case this.accessibilityCamera:
+          case this.accessibilityHangup:
             overlay.classList.add('touched');
-            this.areaUnlock.classList.add('triggered');
+            this.areaPickup.classList.add('triggered');
             this.areaHandle.classList.add('triggered');
-            this._touch.target = this.areaCamera;
+            this._touch.target = this.areaHangup;
             this.handleGesture();
             break;
         }
@@ -93,16 +86,6 @@ var swiper = {
         this.overlay.classList.remove('touched');
 
         break;
-
-      case 'transitionend':
-        if (evt.target !== this.overlay)
-          return;
-
-        if (this.overlay.dataset.panel !== 'camera' &&
-            this.camera.firstElementChild) {
-          this.camera.removeChild(this.camera.firstElementChild);
-        }
-
     }
   },
 
@@ -172,12 +155,22 @@ var swiper = {
   },
 
   handleGesture: function ls_handleGesture() {
+    var self = this;
     var touch = this._touch;
     var target = touch.target;
     this.areaHandle.style.MozTransition = null;
 
     if (!target) {
-      this.unloadPanel();
+      self.areaHandle.style.MozTransform =
+        self.areaPickup.style.opacity =
+        self.railRight.style.opacity =
+        self.areaHangup.style.opacity =
+        self.railLeft.style.opacity =
+        self.railRight.style.width =
+        self.railLeft.style.width = '';
+      self.areaHandle.classList.remove('triggered');
+      self.areaHangup.classList.remove('triggered');
+      self.areaPickup.classList.remove('triggered');
       return;
     }
 
@@ -190,15 +183,14 @@ var swiper = {
       touch.leftTarget.offsetLeft -
       (this.areaHandle.offsetWidth + target.offsetWidth) / 2;
 
-    var self = this;
     switch (target) {
-      case this.areaCamera:
+      case this.areaHangup:
         this.railRight.style.width = railLength + 'px';
         this.railLeft.style.width = '0';
         OnCallHandler.end();
         break;
 
-      case this.areaUnlock:
+      case this.areaPickup:
         this.railLeft.style.width = railLength + 'px';
         this.railRight.style.width = '0';
         OnCallHandler.answer();
@@ -206,35 +198,11 @@ var swiper = {
     }
   },
 
-  unloadPanel: function ls_loadPanel(panel, toPanel, callback) {
-    var self = this;
-    var unload = function unload() {
-      self.areaHandle.style.MozTransform =
-        self.areaUnlock.style.opacity =
-        self.railRight.style.opacity =
-        self.areaCamera.style.opacity =
-        self.railLeft.style.opacity =
-        self.railRight.style.width =
-        self.railLeft.style.width = '';
-      self.areaHandle.classList.remove('triggered');
-      self.areaCamera.classList.remove('triggered');
-      self.areaUnlock.classList.remove('triggered');
-    };
-
-    if (toPanel !== 'camera') {
-      unload();
-    }
-  },
-
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['connstate', 'mute', 'clock', 'date',
-        'notification', 'notification-icon', 'notification-title',
-        'notification-detail', 'notification-time',
-        'area', 'area-unlock', 'area-camera', 'area-handle',
+    var elements = ['area', 'area-pickup', 'area-hangup', 'area-handle',
         'rail-left', 'rail-right',
-        'passcode-code', 'passcode-pad',
-        'camera', 'accessibility-camera', 'accessibility-unlock'];
+        'accessibility-hangup', 'accessibility-pickup'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -243,7 +211,7 @@ var swiper = {
     }
 
     elements.forEach((function createElementRef(name) {
-      this[toCamelCase(name)] = document.getElementById('lockscreen-' + name);
+      this[toCamelCase(name)] = document.getElementById('swiper-' + name);
     }).bind(this));
 
     this.overlay = document.getElementById('main-container');

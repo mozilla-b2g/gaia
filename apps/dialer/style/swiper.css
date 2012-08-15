@@ -1,5 +1,5 @@
-/* lockscreen-area */
-#lockscreen-area {
+/* swiper-area */
+#swiper-area {
   bottom: 0;
   height: 6rem;
   left: 0;
@@ -8,8 +8,8 @@
   background-color: rgba(0, 0, 0, 0.8);
 }
 
-/* lockscreen-area-camera */
-.lockscreen-icon:after {
+/* swiper-area-hangup */
+.swiper-icon:after {
   content: "";
   display: block;
   height: 2.2rem;
@@ -18,18 +18,18 @@
   top: 1.9rem;
   width: 1.2rem;
 }
-.lockscreen-icon-left:after {
-  animation: 2s ease 0s normal none infinite lockscreen-arrow-left;
+.swiper-icon-left:after {
+  animation: 2s ease 0s normal none infinite swiper-arrow-left;
   background: url("./images/arrow-left.png") no-repeat scroll center center transparent;
   right: -7.5rem;
 }
-#lockscreen-area-camera {
+#swiper-area-hangup {
   background: url("./images/hangup_icon.png") no-repeat scroll center center rgba(0, 0, 0, 0.3);
 }
-.lockscreen-icon-left {
+.swiper-icon-left {
   left: 1.5rem;
 }
-.lockscreen-icon {
+.swiper-icon {
   -moz-box-sizing: border-box;
   border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 2.7rem 2.7rem 2.7rem 2.7rem;
@@ -41,24 +41,24 @@
   width: 4.2rem;
 }
 
-/* lockscreen-area-unlock */
-.lockscreen-icon-right:after {
-  animation: 2s ease 0s normal none infinite lockscreen-arrow-right;
+/* swiper-area-pickup */
+.swiper-icon-right:after {
+  animation: 2s ease 0s normal none infinite swiper-arrow-right;
   background: url("./images/arrow-right.png") no-repeat scroll center center transparent;
   left: -7.5rem;
 }
-#lockscreen-area-unlock {
+#swiper-area-pickup {
   background: url("./images/pickup_icon.png") no-repeat scroll center center rgba(0, 0, 0, 0.3);
 }
-.lockscreen-icon-right {
+.swiper-icon-right {
   right: 1.5rem;
 }
 
-/* lockscreen-rail-left */ 
-#lockscreen-rail-left {
+/* swiper-rail-left */ 
+#swiper-rail-left {
   left: 5.8rem;
 }
-.lockscreen-rail {
+.swiper-rail {
   background-color: rgba(255, 255, 255, 0.8);
   bottom: 5rem;
   height: 0.2rem;
@@ -69,13 +69,13 @@
   width: calc(50% - 5rem - 0.7rem);
 }
 
-/* lockscreen-rail-right */
-#lockscreen-rail-right {
+/* swiper-rail-right */
+#swiper-rail-right {
   right: 5.8rem;
 }
 
-/* lockscreen-area-handle */
-#lockscreen-area-handle:after {
+/* swiper-area-handle */
+#swiper-area-handle:after {
   background-image: url("./images/handle.png");
   background-position: 50% 50%;
   background-repeat: no-repeat;
@@ -88,7 +88,7 @@
   transition: opacity 0.1s linear 0s;
   width: 100%;
 }
-#lockscreen-area-handle:before {
+#swiper-area-handle:before {
   background-image: url("./images/handle-grow.png");
   background-position: 50% 50%;
   background-repeat: no-repeat;
@@ -101,7 +101,7 @@
   top: -0.9rem;
   width: 6.8rem;
 }
-#lockscreen-area-handle {
+#swiper-area-handle {
   bottom: 5rem;
   height: 5rem;
   left: 50%;
@@ -113,17 +113,17 @@
 }
 
 /* swiper */
-#swiper{
+#swiper-wrapper{
   background: #c80000;
   widht: 100%;
-  height: 100px;
+  height: 100rem;
   display: inline-block;
   positon: absolute;
   top: 0;
   left: 0;
 }
 
-#swiper.transparent{
+#swiper-wrapper.transparent{
   visibility: hidden;
   display: none;
 }
