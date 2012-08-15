@@ -393,7 +393,8 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776132
       // UI Test App - Notifications don't work properly when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776134
-      // Cannot take on-device screenshot for Apps running in OOP (calculator, browser, Calendar)
+      // Cannot take on-device screenshot for Apps running in OOP
+      //   (calculator, browser, Calendar)
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=780920
       // Clock App alarm doesn't sound when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=778300
@@ -417,7 +418,8 @@ var WindowManager = (function() {
       //   Cross-process preview stream
 
       'Clock',
-      //  - OOP - when alarm fires, analog clock stops advancing and alarm doesn sound (778300)
+      //  - OOP - when alarm fires,
+      //    analog clock stops advancing and alarm doesn sound (778300)
 
       'Contacts',
       // - Get a white screen when launched OOP (782472)
@@ -432,7 +434,8 @@ var WindowManager = (function() {
 
       'Dialer',
       // - Dialer doesn't seem to see touches when running OOP - bug 776069
-      // - After launching dialer and going back to the home screen, I get continuous messages:
+      // - After launching dialer and going back to the home screen,
+      //   I get continuous messages:
       //       Gecko - SYDNEY_AUDIO  I   0x172df28 - get position
 
       'E-Mail',
@@ -478,7 +481,17 @@ var WindowManager = (function() {
       // - Stop audio when app dies
 
       'Homescreen'
-      // - XXX Panning is broken
+      // Bug 783076 - Panning is broken when running the homescreen OOP.
+
+      // - When running OOP, displays black screen when launching
+      //   (i.e. no video list) (782460)
+      // - Stop audio when app dies
+
+      'Share Receiver'
+      // This is a helper app for testing the Share activity in Gallery
+      // It needs to be blacklisted because when OOP it does not receive
+      // the system messages it needs to respond to the activity request.
+      // See https://bugzilla.mozilla.org/show_bug.cgi?id=782835
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {

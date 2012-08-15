@@ -58,12 +58,26 @@
  *          update the version number.
  *
  * A MediaDB object must asynchronously open a connection to its database,
- * which means that it is not ready for use when first created.  After calling
+ * and asynchronously check on the availability of device storage, which
+ * means that it is not ready for use when first created.  After calling
  * the MediaDB() constructor, set the onready property of the returned object
  * to a callback function. When the database is ready for use, that function
  * will be invoked with the MediaDB object as its this value. (Note that
  * MediaDB does not define addEventListener: you can only set a single
  * onready property.)
+ *
+ * The DeviceStorage API is not always available, and MediaDB is not
+ * usable if DeviceStorage is not usable. If the user removes the SD
+ * card from their phone, then DeviceStorage will not be able to read
+ * or write files, obviously. Also, when a USB Mass Storage session is
+ * in progress, DeviceStorage is not available either.  If
+ * DeviceStorage is not available when a MediaDB object is created,
+ * the onunavailable callback will be invoked instead of the onready
+ * callback. Subsequently, onready will be called whenever
+ * DeviceStorage becomes available, and onunavailble will be called
+ * whenver DeviceStorage becomes unavailable. Media apps can handle
+ * the unavailble case by displaying an informative message in an overlay
+ * that prevents all user interaction with the app.
  *
  * Typically, the first thing an app will do with a MediaDB object after the
  * onready callback is called is call its enumerate() method. This gets entries
@@ -122,14 +136,18 @@
  * by DeviceStorage will be passed to this argument. If the named file does
  * not exist, the error callback will be invoked.
  *
+ * enumerate() returns an object with a 'state' property that starts out
+ * as 'enumerating' and switches to 'complete' when the enumeration is done.
+ * You can cancel a pending enumeration by passing this object to the
+ * cancelEnumeration() method. This switches the state to 'cancelling' and
+ * then it switches to 'cancelled' when the cancellation is complete. If you
+ * call cancelEnumeration(), the callback function you passed to enumerate()
+ * is guaranteed not to be called again.
+ *
  * If you set the onchange property of a MediaDB object to a function, it will
  * be called whenever files are added or removed from the DeviceStorage
- * directory or whenever the volume is unmounted or remounted. (This happens
- * during USB Mass Storage sessions, for example, and apps may need to be
- * prepared for it.)  The first argument passed to the onchange callback is a
- * string that specifies the type of change that has occurred. For file
- * creations or deletions, an array of database entries are passed as the
- * second argument.  The possible values of the first argument are:
+ * directory. The first argument passed to the onchange callback is a
+ * string that specifies the type of change that has occurred:
  *
  *   "created":
  *     Media files were added to the device. The second argument is an
@@ -148,16 +166,7 @@
  *     "created" changes, this array may have multiple entries when the callback
  *     is invoked as a result of a scan() call.
  *
- *   "mounted":
- *   "unmounted":
- *      When the DeviceStorage API supports notifications about mounting
- *      and unmounting, changes of these types will forward those notifications
- *      on to users of MediaDB. Media apps will generally be unusable when
- *      device storage is unmounted, and may want to indicate this in their UI.
- *      Also, when storage is mounted again, the files on it may have changed,
- *      so a call to scan() is probably necessary when this happens.
- *
- * The final MediaDB method is scan(). It takes no arguments and launches an
+ * Another MediaDB method is scan(). It takes no arguments and launches an
  * asynchronous scan of DeviceStorage for new, changed, and deleted file.
  * File creations and deletions are batched and reported through the onchange
  * handler.  Changes are treated as deletions followed by creations. As an
@@ -168,6 +177,15 @@
  * calls to onchange to report new files, deleted files and changed files.
  * This is an implementation detail, however, and apps should be prepared to
  * handle any number of calls to onchange.
+ *
+ * Other MediaDB methods include:
+ *
+ *  - updateMetadata(): updates the metadata for a named file
+ *
+ *  - addFile(): takes a filename and a blob, saves the blob as a file to
+ *      device storage, parses its metadata, and updates the database.
+ *
+ *  - deleteFile(): deletes the named file from device storage and the database
  */
 function MediaDB(mediaType, metadataParser, options) {
   this.mediaType = mediaType;
@@ -410,6 +428,47 @@ MediaDB.prototype = {
     };
   },
 
+  // Look up the database record for the named file, and copy the properties
+  // of the metadata object into the file's metadata, and then write the
+  // updated record back to the database. The third argument is optional. If
+  // you pass a function, it will be called when the metadata is written.
+  updateMetadata: function(filename, metadata, callback) {
+    // First, look up the fileinfo record in the db
+    var read = media.db.transaction('files', 'readonly')
+      .objectStore('files')
+      .get(filename);
+
+    read.onerror = function() {
+      console.error('MediaDB.updateMetadata called with unknown filename');
+    };
+
+    read.onsuccess = function() {
+      var fileinfo = read.result;
+
+      // Update the fileinfo metadata
+      metadata.keys.forEach(function(key) {
+        fileinfo.metadata[key] = metadata[key];
+      });
+
+      // And write it back into the database.
+      var write = media.db.transaction('files', 'readwrite')
+        .objectStore('files')
+        .put(fileinfo);
+
+      write.onerror = function() {
+        console.error('MediaDB.updateMetadata: database write failed',
+                      write.error && write.error.name);
+      };
+
+      if (callback) {
+        write.onsuccess = function() {
+          callback();
+        }
+      }
+    }
+
+  },
+
 
   // Enumerate all files in the filesystem, sorting by the specified
   // property (which must be one of the indexes, or null for the filename).
@@ -427,10 +486,17 @@ MediaDB.prototype = {
   //    metadata: // whatever object the metadata parser returns
   // }
   //
+  // This method returns an object that you can pass to cancelEnumeration()
+  // to cancel an enumeration in progress. You can use the state property
+  // of the returned object to find out the state of the enumeration. It
+  // should be one of the strings 'enumerating', 'complete', 'cancelling'
+  // or 'cancelled'.
   //
   enumerate: function enumerate(key, range, direction, callback) {
     if (!this.db)
       throw Error('MediaDB is not ready yet. Use the onready callback');
+
+    var handle = { state: 'enumerating' };
 
     // The first three arguments are optional, but the callback
     // is required, and we don't want to have to pass three nulls
@@ -458,6 +524,13 @@ MediaDB.prototype = {
     var cursorRequest = store.openCursor(range || null, direction || 'next');
 
     cursorRequest.onsuccess = function() {
+      // If the enumeration has been cancelled, return without
+      // calling the callback and without calling cursor.continue();
+      if (handle.state === 'cancelling') {
+        handle.state = 'cancelled';
+        return;
+      }
+
       var cursor = cursorRequest.result;
       if (cursor) {
         callback(cursor.value);
@@ -465,9 +538,19 @@ MediaDB.prototype = {
       }
       else {
         // Final time, tell the callback that there are no more.
-        callback(null);
+        handle.state = 'complete';
+        callback(null);  // XXX: is this actually useful?
       }
     };
+
+    return handle;
+  },
+
+  // Cancel a pending enumeration. After calling this the callback for
+  // the specified enumeration will not be invoked again.
+  cancelEnumeration: function(handle) {
+    if (handle.state === 'enumerating')
+      handle.state = 'cancelling';
   },
 
   // Tell the db to start a manual scan. I think we don't do
