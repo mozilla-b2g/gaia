@@ -491,7 +491,8 @@ MediaDB.prototype = {
   // Cancel a pending enumeration. After calling this the callback for
   // the specified enumeration will not be invoked again.
   cancelEnumeration: function(handle) {
-    handle.state = 'cancelling';
+    if (handle.state === 'enumerating')
+      handle.state = 'cancelling';
   },
 
   // Tell the db to start a manual scan. I think we don't do
