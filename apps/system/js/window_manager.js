@@ -730,6 +730,8 @@ var WindowManager = (function() {
     // event handlers before we do.
     if (CardsView.cardSwitcherIsShown()) {
       CardsView.hideCardSwitcher();
+    } else if (displayedApp !== homescreen) {
+      setDisplayedApp(homescreen);
     } else {
       new MozActivity({
         name: 'view',
