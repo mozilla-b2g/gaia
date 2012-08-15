@@ -5,7 +5,7 @@ function debug(msg) {
 }
 
 let permissionList = ["power", "sms", "contacts", "telephony",
-                      "mozBluetooth", "mozbrowser", "mozApps",
+                      "mozBluetooth", "browser", "mozApps",
                       "mobileconnection", "mozFM", "systemXHR",
                       "background", "settings", "offline-app",
                       "indexedDB-unlimited", "alarm", "camera",
