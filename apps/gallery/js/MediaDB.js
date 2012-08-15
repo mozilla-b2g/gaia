@@ -428,10 +428,14 @@ MediaDB.prototype = {
   //    metadata: // whatever object the metadata parser returns
   // }
   //
+  // This method returns an opaque id that you can pass to cancelEnumeration()
+  // to cancel an enumeration in progress.
   //
   enumerate: function enumerate(key, range, direction, callback) {
     if (!this.db)
       throw Error('MediaDB is not ready yet. Use the onready callback');
+
+    var id = this._nextId++;
 
     // The first three arguments are optional, but the callback
     // is required, and we don't want to have to pass three nulls
@@ -459,6 +463,13 @@ MediaDB.prototype = {
     var cursorRequest = store.openCursor(range || null, direction || 'next');
 
     cursorRequest.onsuccess = function() {
+      // If the enumeration has been cancelled, return without
+      // calling the callback and without calling cursor.continue();
+      if (this._cancelledEnumerations.hasOwnProperty(id) {
+        delete this._cancelledEnumerations[id];
+        return;
+      }
+
       var cursor = cursorRequest.result;
       if (cursor) {
         callback(cursor.value);
@@ -469,6 +480,20 @@ MediaDB.prototype = {
         callback(null);
       }
     };
+
+    return id;
+  },
+
+  // A counter for the ids returned by enumerate
+  _nextId: 0,
+
+  // The set of ids for enumerations that have been cancelled
+  _cancelledEnumerations: {},
+
+  // Cancel a pending enumeration. After calling this the callback for
+  // the specified enumeration will not be invoked again.
+  cancelEnumeration: function(id) {
+    this._cancelledEnumerations[id] = true;
   },
 
   // Tell the db to start a manual scan. I think we don't do
