@@ -65,22 +65,24 @@
 }
 .msg-header-unread-section {
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: .5rem;
+  top: 50%;
   display: inline-block;
-  height: 100%;
-  width: 1.2rem;
+  height: .9rem;
+  width: .9rem;
+  margin-top: -.45rem;
+  border-radius: 50%;
 }
 .msg-header-unread-section-unread {
-  background-color: orange;
+  background-color: #52B6CC;
 }
 .msg-header-details-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 1.2rem;
+  left: 1.9rem;
   /* 100% - (unread-section) - (icons-section) - (avatar-section) */
-  width: -moz-calc(100% - 1.2rem - 2rem - 2.8rem);
+  width: -moz-calc(100% - 1.9rem - 2rem - 2.8rem);
   height: 100%;
   font-size: 1.6rem;
   line-height: 2.5rem;
