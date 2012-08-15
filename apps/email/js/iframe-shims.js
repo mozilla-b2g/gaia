@@ -169,6 +169,7 @@ const DEFAULT_STYLE_TAG =
  * ]
  */
 function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
+                                         interactiveMode,
                                          clickHandler) {
   var viewportWidth = Cards._containerNode.offsetWidth,
       viewportHeight = Cards._containerNode.offsetHeight - 140;
@@ -176,7 +177,6 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
   var viewport = document.createElement('div');
   viewport.setAttribute(
     'style',
-    'border-width: 0px; ' +
     'overflow: hidden; ' +
     // we want to be able to move the iframe in its own coordinate space
     // inside of us.
@@ -241,58 +241,80 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
       'height: ' + scrollHeight + 'px;');
 
 
-    var currentPhoto = iframe;
-    var photoState =
-      new PhotoState(iframe, scrollWidth, scrollHeight,
-                     viewportWidth, viewportHeight);
+    if (interactiveMode === 'interactive') {
+      var currentPhoto = iframe;
+      var photoState =
+        new PhotoState(iframe, scrollWidth, scrollHeight,
+                       viewportWidth, viewportHeight);
 
-    var lastScale = photoState.scale, scaleMode = 0;
-    var detector = new GestureDetector(interacter);
-    // We don't need to ever stopDetecting since the closures that keep it alive
-    // are just the event listeners on the iframe.
-    detector.startDetecting();
-    viewport.addEventListener('pan', function(event) {
-      photoState.pan(event.detail.relative.dx,
-                     event.detail.relative.dy);
-    });
-    viewport.addEventListener('dbltap', function(e) {
-      var scale = photoState.scale;
-
-      currentPhoto.style.MozTransition = 'all 100ms linear';
-      currentPhoto.addEventListener('transitionend', function handler() {
-        currentPhoto.style.MozTransition = '';
-        currentPhoto.removeEventListener('transitionend', handler);
+      var lastScale = photoState.scale, scaleMode = 0;
+      var detector = new GestureDetector(interacter);
+      // We don't need to ever stopDetecting since the closures that keep it alive
+      // are just the event listeners on the iframe.
+      detector.startDetecting();
+      viewport.addEventListener('pan', function(event) {
+        photoState.pan(event.detail.relative.dx,
+                       event.detail.relative.dy);
       });
+      viewport.addEventListener('dbltap', function(e) {
+        var scale = photoState.scale;
 
-      if (lastScale === scale) {
-        scaleMode = (scaleMode + 1) % 3;
-        switch (scaleMode) {
-          case 0:
-            scale = photoState.baseScale;
-            break;
-          case 1:
-            scale = 1;
-            break;
-          case 2:
-            scale = 2;
-            break;
+        currentPhoto.style.MozTransition = 'all 100ms linear';
+        currentPhoto.addEventListener('transitionend', function handler() {
+          currentPhoto.style.MozTransition = '';
+          currentPhoto.removeEventListener('transitionend', handler);
+        });
+
+        if (lastScale === scale) {
+          scaleMode = (scaleMode + 1) % 3;
+          switch (scaleMode) {
+            case 0:
+              scale = photoState.baseScale;
+              break;
+            case 1:
+              scale = 1;
+              break;
+            case 2:
+              scale = 2;
+              break;
+          }
+          photoState.scale = lastScale = scale;
+          photoState._reposition();
         }
-        photoState.scale = lastScale = scale;
-        photoState._reposition();
-      }
-      else {
-        if (scale > 1)      // If already zoomed in,
-          scale = 1 / scale;  // zoom out to starting scale
-        else                           // Otherwise
-          scale = 2;                   // Zoom in by a factor of 2
-        photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
-      }
-    });
-    viewport.addEventListener('transform', function(e) {
-      photoState.zoom(e.detail.relative.scale,
-                      e.detail.midpoint.clientX,
-                      e.detail.midpoint.clientY);
-    });
+        else {
+          if (scale > 1)      // If already zoomed in,
+            scale = 1 / scale;  // zoom out to starting scale
+          else                           // Otherwise
+            scale = 2;                   // Zoom in by a factor of 2
+          photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
+        }
+      });
+      viewport.addEventListener('transform', function(e) {
+        photoState.zoom(e.detail.relative.scale,
+                        e.detail.midpoint.clientX,
+                        e.detail.midpoint.clientY);
+      });
+    }
+    else {
+      var scale = Math.min(1, viewportWidth / scrollWidth);
+      iframe.setAttribute(
+        'style',
+        'border-width: 0px; ' +
+        ((scale < 1) ?
+          ('transform-origin: top left; transform: scale(' + scale + '); ') :
+          '') +
+        // these dimensions are pre-scaling and affect what gets transformed,
+        // but we will still impact the page layout so...
+        'width: ' + scrollWidth + 'px; ' +
+        'height: ' + scrollHeight + 'px;');
+      // ...so we want the viewport to clip appropriately
+      viewport.setAttribute(
+        'style',
+        'position: relative; ' +
+        'overflow: hidden; ' +
+        'width: ' + viewportWidth + 'px; ' +
+        'height: ' + Math.ceil(scrollHeight * scale) + 'px;');
+    }
   }
   else {
     viewport.removeAttribute('style');
@@ -367,8 +389,7 @@ PhotoState.prototype._reposition = function() {
 
   var transform = 'translate(' + this.left + 'px, ' +
                                   this.top + 'px) scale(' + this.scale + ')';
-  this.img.style.MozTransform =  transform;
-//console.log("TRANSFORM:", transform);
+  this.img.style.transform =  transform;
 };
 
 // Compute the default size and position of the photo

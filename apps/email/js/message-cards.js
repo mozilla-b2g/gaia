@@ -811,7 +811,8 @@ MessageReaderCard.prototype = {
       }
       else if (repType === 'html') {
         var iframe = createAndInsertIframeForContent(
-          rep, rootBodyNode, null, this.onHyperlinkClick.bind(this));
+          rep, rootBodyNode, null,
+          'interactive', this.onHyperlinkClick.bind(this));
         var bodyNode = iframe.contentDocument.body;
         this.htmlBodyNodes.push(bodyNode);
         if (body.checkForExternalImages(bodyNode))
