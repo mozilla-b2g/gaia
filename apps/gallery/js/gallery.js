@@ -190,10 +190,11 @@ function init() {
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
-  photodb.onunavailable = function() {
-    // XXX eventually we want to distinguish the nocard case
-    // from the cardinuse case.
-    showOverlay('nocard');
+  photodb.onunavailable = function(why) {
+    if (why === 'unavailable')
+      showOverlay('nocard');
+    else if (why === 'shared')
+      showOverlay('cardinuse');
   }
 
   photodb.onready = function() {
