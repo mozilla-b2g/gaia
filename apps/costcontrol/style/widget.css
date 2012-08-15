@@ -36,7 +36,7 @@ html {
 /* Updating animation */
 #cost-control.updating #cost-control-update-icon {
   opacity:1.0;
-  -moz-animation: cost-control-spin 1.75s infinite linear;
+/*  -moz-animation: cost-control-spin 1.75s infinite linear;*/
 }
 
 @-moz-keyframes cost-control-spin {

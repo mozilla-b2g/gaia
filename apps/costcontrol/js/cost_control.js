@@ -20,9 +20,35 @@ function setupApp() {
     return r || '!!' + keystring;
   }
 
-  var _topUpButton, _topUpInput;
   var _isUpdating = false;
   var _activityRequest = null;
+
+  // On balance updating success, update UI with the new balance
+  function _onUpdateBalanceSuccess(evt) {
+    _updateUI(evt.detail.balance, evt.detail.timestamp);
+    _setUpdatingMode(false);
+  }
+
+  // On balance updating error, if manual request, notificate
+  function _onUpdateBalanceError(evt) {
+    _setUpdatingMode(false);
+
+    if (!isManualRequest)
+      return;
+
+    switch(evt.detail.reason) {
+      case 'parse-error':
+        navigator.mozNotification.createNotification(
+          _('checking-balance-parsing-error-title'),
+          _('checking-balance-parsing-error-description')
+        ).show();
+        break;
+
+      case 'sending-error':
+        alert(_('cannot-check-balance'));
+        break;
+    }
+  }
 
   // On top up success, update UI with the new balance, notificate and post
   // result if there was an activity request. TODO: let a list of activity
@@ -62,31 +88,64 @@ function setupApp() {
     }
   }
 
-  // Attach event listeners for manual updates
-  function _configureUI() {
+  var _buttonRequestTopUp, _creditArea, _credit, _time;
+  function _configureBalanceTab() {
+    _credit = document.getElementById('cost-control-credit');
+    _time = document.getElementById('cost-control-time');
 
-    // callbacks for topping up
-    CostControl.setTopUpCallbacks({
-      onsuccess: _onTopUpSuccess,
-      onerror: _onTopUpError
+    _buttonRequestTopUp = document.getElementById('buttonRequestTopUp');
+    _buttonRequestTopUp.addEventListener('click', function cc_requestTopUp() {
+      location.hash = 'topup';
     });
 
-    // program top up
-    _topUpButton = document.getElementById('topUpButton');
-    _topUpInput = document.getElementById('topUpInput');
-    _topUpButton.addEventListener('click', function cc_onTopUp() {
+    _creditArea = document.getElementById('cost-control-credit-area');
+    _creditArea.addEventListener('click', function cc_requestUpdate() {
       if (_isUpdating)
         return;
-//      _setUpdatingMode(true);
 
-      var code = _topUpInput.value.replace(/^\s+/, '').replace(/\s+$/, '');
+      _setUpdatingMode(true);
+      CostControl.requestBalance();
+    });
+  }
+
+  var _inputTopUpCode, _buttonTopUp;
+  function _configureTopUpScreen() {
+    _inputTopUpCode = document.getElementById('inputTopUpCode');
+    _buttonTopUp = document.getElementById('buttonTopUp');
+    _buttonTopUp.addEventListener('click', function cc_onTopUp() {
+      if (_isUpdating)
+        return;
+
+      // Strip
+      var code = _inputTopUpCode.value
+        .replace(/^\s+/, '').replace(/\s+$/, '');
+
       if (!code)
         return;
 
       CostControl.requestTopUp(code);
     });
+  }
 
-    // handle web activity
+  // Attach event listeners for manual updates
+  function _configureUI() {
+
+    _configureBalanceTab();
+    _configureTopUpScreen();
+
+    // Callbacks for topping up
+    CostControl.setTopUpCallbacks({
+      onsuccess: _onTopUpSuccess,
+      onerror: _onTopUpError
+    });
+
+    // Callbacks for update balance
+    CostControl.setBalanceCallbacks({
+      onsuccess: _onUpdateBalanceSuccess,
+      onerror: _onUpdateBalanceError
+    });
+
+    // Handle web activity
     navigator.mozSetMessageHandler('activity',
       function settings_handleActivity(activityRequest) {
         var name = activityRequest.source.name;
@@ -107,58 +166,61 @@ function setupApp() {
   // updates.
   function _init() {
     _configureUI();
+    _updateUI();
   }
 
   // Enable / disable waiting mode for the UI
   function _setUpdatingMode(updating) {
     _isUpdating = updating;
     if (updating)
-      _widget.classList.add('updating');
+      _creditArea.classList.add('updating');
     else
-      _widget.classList.remove('updating');
+      _creditArea.classList.remove('updating');
   }
 
-  function _updateUI(balance) {
-    var now = new Date();
-    if (balance !== undefined) {
-      var timestring = now.toISOString();
-      window.localStorage.setItem('costcontrolTime', timestring);
-      window.localStorage.setItem('costcontrolBalance', balance);
+  function _updateUI(balance, timestamp) {
+    if (!arguments.length) {
+      var lastBalance = CostControl.getLastBalance();
+      balance = lastBalance ? lastBalance.balance : null;
+      timestamp = lastBalance ? lastBalance.timestamp : null;
     }
-
-    // Get data
-    var rawTime = window.localStorage.getItem('costcontrolTime');
-    rawTime = rawTime !== null ? new Date(rawTime) : new Date();
-    var rawBalance = window.localStorage.getItem('costcontrolBalance');
-    rawBalance = rawBalance !== null ? parseFloat(rawBalance) : 0.00;
+    timestamp = timestamp || new Date();
 
     // Format and set
     // Check for low credit
-    if (rawBalance <  100/* TODO: Replace by some value not harcocded */)
+    /* XXX: Does this apply to the cost control app?
+    if (balance < 5) //TODO: Replace by some value not harcocded
       _widget.classList.add('low-credit');
     else
       _widget.classList.remove('low-credit');
+    */
 
     // Format credit
-    var splitBalance = (rawBalance.toFixed(2)).split('.');
-    var formattedBalance = 'R$ &i,&d' /* TODO: Replace by some value not hardcoded*/
-      .replace('&i', splitBalance[0])
-      .replace('&d', splitBalance[1]);
-    _widgetCredit.textContent = formattedBalance;
+    var formattedBalance;
+    if (balance !== null) {
+      var splitBalance = (balance.toFixed(2)).split('.');
+      formattedBalance = 'R$ &i,&d' //TODO: Replace by some value not hardcoded
+        .replace('&i', splitBalance[0])
+        .replace('&d', splitBalance[1]);
+    } else {
+      formattedBalance = '--';
+    }
+    _credit.textContent = formattedBalance;
 
     // Format time
-    var time = rawTime.toLocaleFormat('%H:%M');
-    var date = rawTime.toLocaleFormat('%a');
-    var dateDay = parseInt(rawTime.toLocaleFormat('%u'), 10);
+    var now = new Date();
+    var time = timestamp.toLocaleFormat('%H:%M');
+    var date = timestamp.toLocaleFormat('%a');
+    var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
     var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
     if (nowDateDay === dateDay)
       date = _('today');
     else if ((nowDateDay === dateDay + 1) ||
-              (nowDateDay === 7 && dateDay === 1))
+              (nowDateDay === 1 && dateDay === 7))
       date = _('yesterday');
 
     var formattedTime = date + ', ' + time;
-    _widgetTime.textContent = formattedTime;
+    _time.textContent = formattedTime;
 
     return { balance: formattedBalance, time: formattedTime };
   }

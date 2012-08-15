@@ -214,7 +214,7 @@ function setupWidget() {
     if (nowDateDay === dateDay)
       date = _('today');
     else if ((nowDateDay === dateDay + 1) ||
-              (nowDateDay === 7 && dateDay === 1))
+              (nowDateDay === 1 && dateDay === 7))
       date = _('yesterday');
 
     var formattedTime = date + ', ' + time;
