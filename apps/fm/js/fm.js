@@ -330,7 +330,7 @@ var frequencyDialer = {
     if (true !== ignoreDialer) {
       this._translateX = (this._minFrequency - frequency) * this._space;
       $('frequency-dialer').style.MozTransform =
-                              'translate(' + this._translateX + 'px, 0)';
+        'translate(' + this._translateX + 'px, 0)';
     }
   },
 
