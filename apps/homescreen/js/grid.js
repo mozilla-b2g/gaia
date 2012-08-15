@@ -161,7 +161,7 @@ const GridManager = (function() {
     }
     if (index === landingPageIndex) {
       applyEffectOverlay(0, .3);
-    } else if (index === landingPageIndex + 1) {
+    } else if (index > landingPageIndex) {
       applyEffectOverlay(opacityMax, .3);
     }
 
