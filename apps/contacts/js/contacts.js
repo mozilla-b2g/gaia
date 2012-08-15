@@ -315,6 +315,13 @@ var Contacts = (function() {
 
       var request = navigator.mozContacts.find(options);
       request.onsuccess = function findCallback() {
+        var contact = request.result[0];
+        var onlyOneTel = contact.tel && contact.tel.length == 1;
+        if (ActivityHandler.currentlyHandling && onlyOneTel) {
+          var number = contact.tel[0].number;
+          ActivityHandler.postPickSuccess(number);
+          return;
+        }
         currentContact = request.result[0];
         reloadContactDetails();
         navigation.go('view-contact-details', 'right-left');
