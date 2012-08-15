@@ -34,6 +34,13 @@ var AttentionScreen = {
     // Popup Manager to handle this event
     evt.stopPropagation();
 
+    // Check if the app has the permission to open attention screens
+    var origin = evt.target.dataset.frameOrigin;
+    var app = Applications.getByOrigin(origin);
+
+    if (!app || !this._hasAttentionPermission(app))
+      return;
+
     var attentionFrame = evt.detail.frameElement;
     attentionFrame.dataset.frameType = 'attention';
     attentionFrame.dataset.frameName = evt.detail.name;
@@ -135,6 +142,18 @@ var AttentionScreen = {
         break;
       }
     }
+  },
+
+  _hasAttentionPermission: function as_hasAttentionPermission(app) {
+    if (!app || !app.manifest.permissions)
+      return false;
+
+    var keys = Object.keys(app.manifest.permissions);
+    var permissions = keys.map(function map_perm(key) {
+      return app.manifest.permissions[key];
+    });
+
+    return (permissions.indexOf('attention') != -1);
   }
 };
 

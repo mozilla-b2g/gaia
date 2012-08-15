@@ -25,7 +25,7 @@ var metadataParser = (function() {
 
         metadata.album = tags.album;
         metadata.artist = tags.artist;
-        metadata.title = tags.title;
+        metadata.title = tags.title || file.name;
         metadata.picture = tags.picture;
 
         callback(metadata);

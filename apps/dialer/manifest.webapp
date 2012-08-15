@@ -9,13 +9,13 @@
   "permissions": [
     "telephony",
     "voicemail",
-    "webcontacts-manage",
     "contacts",
     "power",
     "mozApps",
     "webapps",
     "mobileconnection",
     "background",
+    "attention",
     "settings"
   ],
   "locales": {
@@ -69,7 +69,6 @@
     }
   },
   "default_locale": "en-US",
-  "attention_page": "/oncall.html",
   "background_page": "/background.html",
   "icons": {
     "120": "/style/icons/Dialer.png",
