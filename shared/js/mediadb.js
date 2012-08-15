@@ -677,8 +677,8 @@ MediaDB.prototype = {
             // handle it when we do a full scan.
             errors.push(i);
 
-            // don't let it bubble up to the DB error handler
-            e.stopPropagation();
+            // don't let the higher-level DB error handler report the error
+            e.preventDefault();
 
             if (++numSaved === newfiles.length)
               report();
