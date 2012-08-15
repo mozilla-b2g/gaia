@@ -57,7 +57,7 @@
  *          parser function or alter any of the options above, you should
  *          update the version number.
  *
- * A MediaDB object must asynchronously open a connection to its database, 
+ * A MediaDB object must asynchronously open a connection to its database,
  * and asynchronously check on the availability of device storage, which
  * means that it is not ready for use when first created.  After calling
  * the MediaDB() constructor, set the onready property of the returned object
@@ -78,7 +78,7 @@
  * whenver DeviceStorage becomes unavailable. Media apps can handle
  * the unavailble case by displaying an informative message in an overlay
  * that prevents all user interaction with the app.
- * 
+ *
  * Typically, the first thing an app will do with a MediaDB object after the
  * onready callback is called is call its enumerate() method. This gets entries
  * from the database and passes them to the specified callback. Each entry
@@ -136,6 +136,14 @@
  * by DeviceStorage will be passed to this argument. If the named file does
  * not exist, the error callback will be invoked.
  *
+ * enumerate() returns an object with a 'state' property that starts out
+ * as 'enumerating' and switches to 'complete' when the enumeration is done.
+ * You can cancel a pending enumeration by passing this object to the
+ * cancelEnumeration() method. This switches the state to 'cancelling' and
+ * then it switches to 'cancelled' when the cancellation is complete. If you
+ * call cancelEnumeration(), the callback function you passed to enumerate()
+ * is guaranteed not to be called again.
+ *
  * If you set the onchange property of a MediaDB object to a function, it will
  * be called whenever files are added or removed from the DeviceStorage
  * directory. The first argument passed to the onchange callback is a
@@ -158,7 +166,7 @@
  *     "created" changes, this array may have multiple entries when the callback
  *     is invoked as a result of a scan() call.
  *
- * The final MediaDB method is scan(). It takes no arguments and launches an
+ * Another MediaDB method is scan(). It takes no arguments and launches an
  * asynchronous scan of DeviceStorage for new, changed, and deleted file.
  * File creations and deletions are batched and reported through the onchange
  * handler.  Changes are treated as deletions followed by creations. As an
@@ -169,6 +177,15 @@
  * calls to onchange to report new files, deleted files and changed files.
  * This is an implementation detail, however, and apps should be prepared to
  * handle any number of calls to onchange.
+ *
+ * Other MediaDB methods include:
+ *
+ *  - updateMetadata(): updates the metadata for a named file
+ *
+ *  - addFile(): takes a filename and a blob, saves the blob as a file to
+ *      device storage, parses its metadata, and updates the database.
+ *
+ *  - deleteFile(): deletes the named file from device storage and the database
  */
 function MediaDB(mediaType, metadataParser, options) {
   this.mediaType = mediaType;
@@ -411,6 +428,47 @@ MediaDB.prototype = {
     };
   },
 
+  // Look up the database record for the named file, and copy the properties
+  // of the metadata object into the file's metadata, and then write the
+  // updated record back to the database. The third argument is optional. If
+  // you pass a function, it will be called when the metadata is written.
+  updateMetadata: function(filename, metadata, callback) {
+    // First, look up the fileinfo record in the db
+    var read = media.db.transaction('files', 'readonly')
+      .objectStore('files')
+      .get(filename);
+
+    read.onerror = function() {
+      console.error('MediaDB.updateMetadata called with unknown filename');
+    };
+
+    read.onsuccess = function() {
+      var fileinfo = read.result;
+
+      // Update the fileinfo metadata
+      metadata.keys.forEach(function(key) {
+        fileinfo.metadata[key] = metadata[key];
+      });
+
+      // And write it back into the database.
+      var write = media.db.transaction('files', 'readwrite')
+        .objectStore('files')
+        .put(fileinfo);
+
+      write.onerror = function() {
+        console.error('MediaDB.updateMetadata: database write failed',
+                      write.error && write.error.name);
+      };
+
+      if (callback) {
+        write.onsuccess = function() {
+          callback();
+        }
+      }
+    }
+
+  },
+
 
   // Enumerate all files in the filesystem, sorting by the specified
   // property (which must be one of the indexes, or null for the filename).
@@ -430,7 +488,7 @@ MediaDB.prototype = {
   //
   // This method returns an object that you can pass to cancelEnumeration()
   // to cancel an enumeration in progress. You can use the state property
-  // of the returned object to find out the state of the enumeration. It 
+  // of the returned object to find out the state of the enumeration. It
   // should be one of the strings 'enumerating', 'complete', 'cancelling'
   // or 'cancelled'.
   //
