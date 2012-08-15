@@ -161,7 +161,7 @@ const GridManager = (function() {
     }
     if (index === landingPageIndex) {
       applyEffectOverlay(0, .3);
-    } else if (index === landingPageIndex + 1) {
+    } else if (index > landingPageIndex) {
       applyEffectOverlay(opacityMax, .3);
     }
 
@@ -300,7 +300,7 @@ const GridManager = (function() {
     var maxPerPage = pageHelper.getMaxPerPage();
 
     var pagesCount = pageHelper.total();
-    for (var i = 1; i < pagesCount; i++) {
+    for (var i = landingPageIndex + 1; i < pagesCount; i++) {
       if (pages[i].getNumApps() < maxPerPage) {
         return i;
       }
