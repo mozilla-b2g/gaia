@@ -176,6 +176,11 @@ var swiper = {
     var target = touch.target;
     this.areaHandle.style.MozTransition = null;
 
+    if (!target) {
+      this.unloadPanel();
+      return;
+    }
+
     var distance = target.offsetLeft - this.areaHandle.offsetLeft -
       (this.areaHandle.offsetWidth - target.offsetWidth) / 2;
     this.areaHandle.classList.add('triggered');
@@ -198,6 +203,26 @@ var swiper = {
         this.railRight.style.width = '0';
         OnCallHandler.answer();
         break;
+    }
+  },
+
+  unloadPanel: function ls_loadPanel(panel, toPanel, callback) {
+    var self = this;
+    var unload = function unload() {
+      self.areaHandle.style.MozTransform =
+        self.areaUnlock.style.opacity =
+        self.railRight.style.opacity =
+        self.areaCamera.style.opacity =
+        self.railLeft.style.opacity =
+        self.railRight.style.width =
+        self.railLeft.style.width = '';
+      self.areaHandle.classList.remove('triggered');
+      self.areaCamera.classList.remove('triggered');
+      self.areaUnlock.classList.remove('triggered');
+    };
+
+    if (toPanel !== 'camera') {
+      unload();
     }
   },
 
