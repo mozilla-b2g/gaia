@@ -12992,14 +12992,16 @@ exports.generateSnippet = function generateSnippet(sanitizedHtmlNode,
       }
     }
     else if (node.nodeType === TEXT_NODE) {
-      // these text nodes can be ridiculously full of whitespace.  Trim and
-      // then normalize internal whitespace too.
+      // these text nodes can be ridiculously full of whitespace.  Normalize
+      // the whitespace down to one whitespace character.
       var normalizedText =
-            node.data.trim().replace(RE_NORMALIZE_WHITESPACE, ' ');
-      if (snippet.length)
-        snippet += ' ' + normalizedText;
-      else
-        snippet += normalizedText;
+            node.data.replace(RE_NORMALIZE_WHITESPACE, ' ');
+      // If the join would create two adjacents spaces, then skip the one
+      // on the thing we are concatenating.
+      if (snippet.length && normalizedText[0] === ' ' &&
+          snippet[snippet.length - 1] === ' ')
+        normalizedText = normalizedText.substring(1);
+      snippet += normalizedText;
       if (snippet.length >= desiredLength)
         break; // (exits the loop)
     }
