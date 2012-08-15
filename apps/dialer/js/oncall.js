@@ -88,7 +88,7 @@ var CallScreen = {
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
-        this.swiperWrapper.classList.add('transparent');
+        this.swiperWrapper.classList.add('hide');
         break;
       case 'incoming':
         this.answerButton.classList.remove('hide');
@@ -96,21 +96,21 @@ var CallScreen = {
         this.rejectButton.classList.remove('full-space');
         this.callToolbar.classList.add('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
-        this.swiperWrapper.classList.add('transparent');
+        this.swiperWrapper.classList.add('hide');
         break;
       case 'locked':
         this.answerButton.classList.add('hide');
         this.rejectButton.classList.add('hide');
         this.callToolbar.classList.add('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
-        this.swiperWrapper.classList.remove('transparent');
+        this.swiperWrapper.classList.remove('hide');
         break;
       case 'connected':
         this.answerButton.classList.add('hide');
         this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
-        this.swiperWrapper.classList.add('transparent');
+        this.swiperWrapper.classList.add('hide');
         break;
     }
   },
@@ -320,7 +320,7 @@ var OnCallHandler = {
 
       CallScreen.showIncoming();
     } else {
-      if (window.location.hash === '#locked') {
+      if (window.location.hash.split('?')[1] === 'locked') {
         CallScreen.render('locked');
       } else CallScreen.render(call.state);
     }

@@ -123,7 +123,6 @@
   left: 0;
 }
 
-#swiper-wrapper.transparent{
-  visibility: hidden;
+#swiper-wrapper.hide{
   display: none;
 }
