@@ -364,25 +364,41 @@
         return this._addBusytime(start, busytime);
       }
 
-      // 2: busytime start/end occurs on different days
-      if (!span.contains(start) && !span.contains(end)) {
-        // 2a: if its outside our range entirely
-        // we know its going to occur during every day
-        Object.keys(this._days).forEach(function(date) {
-          this._addBusytime(date, busytime);
-        }, this);
-      } else {
-        // 2b: if inside range
-        // get all dates (inclusive) that need to be
-        // updated.
-        var days = Calendar.Calc.daysBetween(
-          start,
-          end
-        );
+      var begin = window.performance.now();
 
-        days.forEach(function(date) {
-          this._addBusytime(date, busytime);
-        }, this);
+      if (busytime.start < span.start) {
+        start = new Date(span.start);
+      }
+
+      if (busytime.end > span.end) {
+        end = new Date(span.end);
+      }
+
+      var days = Calendar.Calc.daysBetween(
+        start,
+        end
+      );
+
+      var i = 0;
+      var len = days.length;
+      var day;
+      var dayValue;
+
+      for (; i < len; i++) {
+        day = days[i];
+        dayValue = day.valueOf();
+
+        if (dayValue < this._timespan.start) {
+          continue;
+        }
+
+        if (dayValue > this._timespan.end) {
+          break;
+        }
+
+        // Verify that each add is only inside
+        // the current timespan.
+        this._addBusytime(day, busytime);
       }
 
     },
