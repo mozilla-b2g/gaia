@@ -41,6 +41,10 @@
   width: 4.2rem;
 }
 
+.touched .swiper-rail {
+  opacity: 1;
+}
+
 /* swiper-area-pickup */
 .swiper-icon-right:after {
   animation: 2s ease 0s normal none infinite swiper-arrow-right;
@@ -54,9 +58,9 @@
   right: 1.5rem;
 }
 
-/* swiper-rail-left */ 
+/* swiper-rail-left */
 #swiper-rail-left {
-  left: 5.8rem;
+  left: 7.8rem;
 }
 .swiper-rail {
   background-color: rgba(255, 255, 255, 0.8);
@@ -71,7 +75,7 @@
 
 /* swiper-rail-right */
 #swiper-rail-right {
-  right: 5.8rem;
+  right: 7.8rem;
 }
 
 /* swiper-area-handle */
@@ -114,13 +118,7 @@
 
 /* swiper */
 #swiper-wrapper{
-  background: #c80000;
-  widht: 100%;
-  height: 100rem;
   display: inline-block;
-  positon: absolute;
-  top: 0;
-  left: 0;
 }
 
 #swiper-wrapper.hide{

@@ -98,7 +98,7 @@ var CallScreen = {
         this.keypadButton.setAttribute('disabled', 'disabled');
         this.swiperWrapper.classList.add('hide');
         break;
-      case 'locked':
+      case 'incoming-locked':
         this.answerButton.classList.add('hide');
         this.rejectButton.classList.add('hide');
         this.callToolbar.classList.add('transparent');
@@ -321,7 +321,7 @@ var OnCallHandler = {
       CallScreen.showIncoming();
     } else {
       if (window.location.hash.split('?')[1] === 'locked') {
-        CallScreen.render('locked');
+        CallScreen.render('incoming-locked');
       } else {
         CallScreen.render(call.state);
       }

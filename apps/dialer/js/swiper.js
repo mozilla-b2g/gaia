@@ -1,6 +1,6 @@
 'use strict';
 
-var swiper = {
+var Swiper = {
   /* init */
   init: function ls_init() {
     this.getAllElements();
@@ -219,4 +219,4 @@ var swiper = {
   }
 };
 
-swiper.init();
+Swiper.init();
