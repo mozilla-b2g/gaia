@@ -43,13 +43,19 @@ body[data-transitioning] .apps > div {
   text-align: center;
 }
 
-.apps ol > li[data-hidden] {
-  -moz-transform: scale(0);
+.apps ol > li[data-visible = 'false'] {
+  visibility: hidden;
 }
 
-.apps ol > li[data-visible] {
-  -moz-transform: scale(1);
-  -moz-transition: -moz-transform 1.2s ease;
+.apps ol > li[data-visible = 'true'] {
+	visibility: visible;
+  -moz-animation-name: scaling;
+  -moz-animation-duration: 1.2s;
+}
+
+@-moz-keyframes scaling {
+  0% { -moz-transform: scale(0); }
+	100% { -moz-transform: scale(1); }
 }
 
 /* Maximum 16 icons for page */
