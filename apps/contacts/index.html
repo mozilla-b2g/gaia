@@ -47,6 +47,7 @@
 
           <header role="toolbar" class="view-header">
             <menu role="menu">
+              <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
               <button role="menuitem" id="add-contact-button" onclick="Contacts.showAdd();"><span data-icon="add" data-l10n-id="add">add</span></button>
             </menu>
             <h1 data-l10n-id="contacts">Contacts</h1>
@@ -177,7 +178,7 @@
         <div class="view-inner">
 
           <header role="toolbar" class="view-header">
-            <button class="negative" onclick="Contacts.goBack();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
+            <button class="negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
             <menu role="menu" id='contact-form-actions'>
               <button id="save-button" onclick="Contacts.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
             </menu>

@@ -269,6 +269,19 @@ var Contacts = (function() {
   var initContactsList = function initContactsList() {
     var list = document.getElementById('groups-list');
     contactsList.init(list);
+    checkCancelableActivity();
+  };
+
+  var checkCancelableActivity = function cancelableActivity() {
+    var cancelButton = document.getElementById('cancel_activty');
+    var addButton = document.getElementById('add-contact-button');
+    if (ActivityHandler.currentlyHandling) {
+      cancelButton.classList.remove('hide');
+      addButton.classList.add('hide');
+    } else {
+      cancelButton.classList.add('hide');
+      addButton.classList.remove('hide');
+    }
   }
 
   var initLanguages = function initLanguages() {
@@ -1084,12 +1097,15 @@ var Contacts = (function() {
   };
 
   var handleBack = function handleBack() {
+    navigation.back();
+  };
+
+  var handleCancel = function handleCancel() {
     //If in an activity, cancel it
-    var inActivity = ActivityHandler.currentlyHandling;
-    if (inActivity && ActivityHandler.activityName == 'new') {
+    if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postCancel();
     } else {
-      navigation.back();
+      handleBack();
     }
   };
 
@@ -1201,6 +1217,7 @@ var Contacts = (function() {
     'addNewEmail' : insertEmail,
     'addNewAddress' : insertAddress,
     'addNewNote' : insertNote,
+    'cancel' : handleCancel,
     'goBack' : handleBack,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
@@ -1210,7 +1227,8 @@ var Contacts = (function() {
     'pickImage': pickImage,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
-    'updatePhoto': updatePhoto
+    'updatePhoto': updatePhoto,
+    'checkCancelableActivity': checkCancelableActivity
   };
 })();
 
@@ -1220,8 +1238,9 @@ if (window.navigator.mozSetMessageHandler) {
 }
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (document.mozHidden) {
-    if (ActivityHandler.currentlyHandling)
-      ActivityHandler.postCancel();
+  if (ActivityHandler.currentlyHandling && document.mozHidden) {
+    ActivityHandler.postCancel();
+    return;
   }
+  Contacts.checkCancelableActivity();
 });
