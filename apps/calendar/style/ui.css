@@ -248,6 +248,9 @@ section.month ol {
   height: 20%;
 }
 
+section.six-weeks ol {
+  height: 16.7% !important; 
+}
 
 section.month li:first-child {
   border-left: none;

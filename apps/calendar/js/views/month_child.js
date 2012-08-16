@@ -217,16 +217,13 @@
     },
 
     /**
-     * Renders a week based on a start date.
+     * Renders a week from weekdays Array
      *
-     * @param {Object} object config options.
      */
-    _renderWeek: function _renderWeek(start) {
-      var days = Calendar.Calc.getWeeksDays(start),
-          output = [],
-          i = 0;
+    _renderWeek: function _renderWeek(days) {
+      var output = [];
 
-      for (i; i < days.length; i++) {
+      for (var i = 0; i < days.length; i++) {
         output.push(this._renderDay(days[i]));
       }
 
@@ -286,15 +283,43 @@
       var date = this.month,
           id = Calendar.Calc.getDayId(this.month),
           weekList = [],
-          i;
+          numberOfWeeks = 0,
+          lastWeek;
 
-      for (i = 0; i < 5; i++) {
-        var week = weekList.push(
+      for (; numberOfWeeks < 5; numberOfWeeks++) {
+        lastWeek = Calendar.Calc.getWeeksDays(
+          new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate() + (numberOfWeeks * 7)
+          )
+        );
+
+        weekList.push(
+          this._renderWeek(lastWeek)
+        );
+      }
+
+     var lastMonthDay = 32 - new Date(
+       date.getFullYear(),
+       date.getMonth(),
+       32).getDate();
+
+     var lastRendered = lastWeek.pop().getDate();
+     var additionalClass = '';
+
+      // if the last rendered days is lower that the last day of the month,
+      // like on September or December 2012, we need to render one more week
+      if (lastRendered < lastMonthDay && lastRendered > 27) {
+        additionalClass = 'six-weeks';
+        weekList.push(
           this._renderWeek(
-            new Date(
-              date.getFullYear(),
-              date.getMonth(),
-              date.getDate() + (i * 7)
+            Calendar.Calc.getWeeksDays(
+              new Date(
+                date.getFullYear(),
+                date.getMonth(),
+                date.getDate() + (5 * 7)
+              )
             )
           )
         );
@@ -302,7 +327,8 @@
 
       return template.month.render({
         id: id,
-        content: weekList.join('\n')
+        content: weekList.join('\n'),
+        additionalClass: additionalClass
       });
     },
 
