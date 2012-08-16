@@ -313,11 +313,7 @@
         calendarId: busytime.calendarId
       };
 
-      var startDateDay = busytime.startDate.getDate();
-      var endDateDay = busytime.endDate.getDate();
-      var targetDay = day.getDate();
-
-      if (targetDay == startDateDay) {
+      if (Calendar.Calc.isSameDate(day, busytime.startDate)) {
         record.start = this._hourToBusyUnit(
           busytime.startDate.getHours()
         );
@@ -325,7 +321,7 @@
         record.start = 1;
       }
 
-      if (targetDay == endDateDay) {
+      if (Calendar.Calc.isSameDate(day, busytime.endDate)) {
         var end = this._hourToBusyUnit(
           busytime.endDate.getHours()
         );
