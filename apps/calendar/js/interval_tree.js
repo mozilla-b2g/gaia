@@ -184,7 +184,11 @@ Calendar.IntervalTree = (function() {
    * The next time the object is queried the tree is rebuilt.
    */
   function IntervalTree(list) {
-    this.items = list.concat([]);
+    if (typeof(list) === 'undefined') {
+      this.items = [];
+    } else {
+      this.items = list.concat([]);
+    }
     this.synced = false;
   };
 
@@ -211,12 +215,7 @@ Calendar.IntervalTree = (function() {
       this.synced = false;
     },
 
-    /**
-     * Removes an item to the list.
-     * Must be same === item as as the
-     * one you are trying to remove.
-     */
-    remove: function(item) {
+    indexOf: function(item) {
       var idx = Calendar.binsearch.find(
         this.items,
         item.start,
@@ -242,8 +241,7 @@ Calendar.IntervalTree = (function() {
             current = this.items[prevIdx];
             if (current && current.start === item.start) {
               if (current === item) {
-                this.items.splice((prevIdx), 1);
-                this.synced = false;
+                return prevIdx;
               }
             } else {
               break;
@@ -255,17 +253,33 @@ Calendar.IntervalTree = (function() {
         current = this.items[idx];
         while (current) {
           if (current === item) {
-            this.items.splice(idx, 1);
-            this.synced = false;
-            return true;
+            return idx;
           }
 
           current = this.items[++idx];
 
           if (!current || current.start !== item.start) {
-            return false;
+            return null;
           }
         }
+      }
+
+      return null;
+    },
+
+    /**
+     * Removes an item to the list.
+     * Must be same === item as as the
+     * one you are trying to remove.
+     */
+    remove: function(item) {
+
+      var idx = this.indexOf(item);
+
+      if (idx !== null) {
+        this.items.splice(idx, 1);
+        this.synced = false;
+        return true;
       }
 
       return false;

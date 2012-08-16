@@ -109,6 +109,11 @@ suite('interval_tree', function() {
     assert.ok(!subject.rootNode);
   });
 
+  test('init without list', function() {
+    var subject = new Calendar.IntervalTree();
+    assert.deepEqual(subject.items, []);
+  });
+
   test('#build', function() {
     subject.build();
     var node = subject.rootNode;

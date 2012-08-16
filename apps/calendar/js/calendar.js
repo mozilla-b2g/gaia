@@ -84,7 +84,6 @@
             break;
         }
 
-        console.log('RANGE:', cmpval, mid);
         if (cmpval < 0) {
           return mid - 1;
         } else {
