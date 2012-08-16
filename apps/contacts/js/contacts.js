@@ -1227,8 +1227,9 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
   var cancelButton = document.getElementById('cancel_activty');
   var addButton = document.getElementById('add-contact-button');
   if (ActivityHandler.currentlyHandling) {
-    if (document.mozHidden)
-        ActivityHandler.postCancel();
+    if (document.mozHidden) {
+      ActivityHandler.postCancel();
+    }
     cancelButton.classList.remove('hide');
     addButton.classList.add('hide');
   } else {
