@@ -638,7 +638,8 @@ var ThreadUI = {
     // offset height to keep original height, otherwise we use scroll height
     // with additional margin for preventing scroll bar.
     input.style.height = input.offsetHeight > input.scrollHeight ?
-      input.offsetHeight + 'px' : input.scrollHeight + 8 + 'px';
+      input.offsetHeight / Utils.getFontSize() + 'rem' :
+      input.scrollHeight / Utils.getFontSize() + 0.8 + 'rem';
 
     var newHeight = input.getBoundingClientRect().height;
     // Add 1 rem to fit the margin top and bottom space.

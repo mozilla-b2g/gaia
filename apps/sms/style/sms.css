@@ -358,7 +358,7 @@ a.unread .unread-mark .icon-unread-mark {
 
 #thread-list-container h2 {
   text-align: left;
-  border-bottom: solid 1px #ff4e00;
+  border-bottom: solid 0.1rem #ff4e00;
   padding-left: 3rem;
   padding-top: 1rem;
   font-size: -moz-calc(6 * 0.226rem);
@@ -572,7 +572,7 @@ a.unread .unread-mark .icon-unread-mark {
   width: -moz-calc(100% - 9.5rem);
   -moz-box-sizing: border-box;
   border-radius: 0.3rem;
-  border: 1px solid rgba(0,0,0,.3);
+  border: 0.1rem solid rgba(0,0,0,.3);
   box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
   font-size: -moz-calc(7 * 0.226rem);
   font-family: 'Open Sans';
@@ -694,8 +694,8 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 .loading-icon img{
-  width: 28px;
-  height: 28px;  
+  width: 2.8rem;
+  height: 2.8rem;
   margin: 0 auto;
 }
 
@@ -718,8 +718,8 @@ a.unread .unread-mark .icon-unread-mark {
   top: 50%;
   border-top: .1rem solid rgba(96,96,96,.5);
   padding: 2rem 0.5rem;
-  width: 270px;
-  margin: -80px auto;
+  width: 27rem;
+  margin: -8rem auto;
   color: #606060;
   font-weight: 300;
   font-size: -moz-calc(10 * 0.226rem);
