@@ -411,7 +411,7 @@ var Contacts = (function() {
     for (var tel in contact.tel) {
       var currentTel = contact.tel[tel];
       var telField = {
-        number: currentTel.value || '',
+        value: currentTel.value || '',
         type: currentTel.type || TAG_OPTIONS['phone-type'][0].value,
         notes: '',
         i: tel
@@ -519,7 +519,7 @@ var Contacts = (function() {
     for (var tel in currentContact.tel) {
       var currentTel = currentContact.tel[tel];
       var telField = {
-        number: currentTel.value,
+        value: currentTel.value,
         type: currentTel.type || default_type,
         notes: '',
         i: tel
@@ -932,7 +932,7 @@ var Contacts = (function() {
       contact['tel'] = contact['tel'] || [];
       // TODO: Save notes
       contact['tel'][i] = {
-        number: numberValue,
+        value: numberValue,
         type: typeField
       };
     }
@@ -1013,7 +1013,7 @@ var Contacts = (function() {
 
   var insertPhone = function insertPhone(phone) {
     var telField = {
-      number: phone || '',
+      value: phone || '',
       type: TAG_OPTIONS['phone-type'][0].value,
       notes: '',
       i: numberPhones || 0
