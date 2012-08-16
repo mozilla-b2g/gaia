@@ -339,10 +339,14 @@ html * {
 #digital-clock-display {
   position: absolute;
   margin-left: 13%;
-  background-image: url(images/alarm_indicator.png);
+  background-image: none;
   background-repeat: no-repeat;  
   background-position: 103% -4%;
   background-size: 13% auto;
+}
+
+#digital-clock-display.alarm-set-indicator {
+  background-image: url(images/alarm_indicator.png);
 }
 
 #clock-time {

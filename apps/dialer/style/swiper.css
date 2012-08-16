@@ -1,0 +1,126 @@
+/* swiper-area */
+#swiper-area {
+  bottom: 0;
+  height: 6rem;
+  left: 0;
+  position: absolute;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* swiper-area-hangup */
+.swiper-icon:after {
+  content: "";
+  display: block;
+  height: 2.2rem;
+  margin: -1.1rem;
+  position: absolute;
+  top: 1.9rem;
+  width: 1.2rem;
+}
+.swiper-icon-left:after {
+  animation: 2s ease 0s normal none infinite swiper-arrow-left;
+  background: url("./images/arrow-left.png") no-repeat scroll center center transparent;
+  right: -7.5rem;
+}
+#swiper-area-hangup {
+  background: url("./images/hangup_icon.png") no-repeat scroll center center rgba(0, 0, 0, 0.3);
+}
+.swiper-icon-left {
+  left: 1.5rem;
+}
+.swiper-icon {
+  -moz-box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 2.7rem 2.7rem 2.7rem 2.7rem;
+  bottom: 5rem;
+  height: 4.2rem;
+  margin-bottom: -4.1rem;
+  position: absolute;
+  transition: opacity 0.1s linear 0s;
+  width: 4.2rem;
+}
+
+.touched .swiper-rail {
+  opacity: 1;
+}
+
+/* swiper-area-pickup */
+.swiper-icon-right:after {
+  animation: 2s ease 0s normal none infinite swiper-arrow-right;
+  background: url("./images/arrow-right.png") no-repeat scroll center center transparent;
+  left: -7.5rem;
+}
+#swiper-area-pickup {
+  background: url("./images/pickup_icon.png") no-repeat scroll center center rgba(0, 0, 0, 0.3);
+}
+.swiper-icon-right {
+  right: 1.5rem;
+}
+
+/* swiper-rail-left */
+#swiper-rail-left {
+  left: 7.8rem;
+}
+.swiper-rail {
+  background-color: rgba(255, 255, 255, 0.8);
+  bottom: 5rem;
+  height: 0.2rem;
+  margin: -21px;
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.1s linear 0s;
+  width: calc(50% - 5rem - 0.7rem);
+}
+
+/* swiper-rail-right */
+#swiper-rail-right {
+  right: 7.8rem;
+}
+
+/* swiper-area-handle */
+#swiper-area-handle:after {
+  background-image: url("./images/handle.png");
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: "";
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  transition: opacity 0.1s linear 0s;
+  width: 100%;
+}
+#swiper-area-handle:before {
+  background-image: url("./images/handle-grow.png");
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: "";
+  height: 6.8rem;
+  left: -0.9rem;
+  opacity: 0;
+  position: absolute;
+  top: -0.9rem;
+  width: 6.8rem;
+}
+#swiper-area-handle {
+  bottom: 5rem;
+  height: 5rem;
+  left: 50%;
+  margin-bottom: -4.5rem;
+  margin-left: -2.5rem;
+  position: absolute;
+  transition: -moz-transform 0.1s linear 0s;
+  width: 5rem;
+}
+
+/* swiper */
+#swiper-wrapper{
+  display: inline-block;
+}
+
+#swiper-wrapper.hide{
+  display: none;
+}

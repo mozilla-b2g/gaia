@@ -12,15 +12,18 @@
 
   <body class="hidden">
     <div id="container">
-      <div id="frequency-view">
+      <div id="frequency-bar">
           <a id="audio-routing-switch" href="#audio-routing-switch" data-current-state="speaker"></a>
           <a id="bookmark-button" href="#bookmark" data-bookmarked="false"></a>
-          <label id="frequency">0</label>
+          <div id="frequency">0</div>
       </div>
       <div id="dialer-bar">
         <div id="dialer-container">
-          <div id="frequency-indicator"></div>
+          <div id="frequency-indicator">
+            <div></div><div></div>
+          </div>
           <div id="frequency-dialer" class="animation-on"></div>
+          <div></div>
         </div>
       </div>
       <div id="fav-list">
@@ -33,7 +36,9 @@
       </div>
     </div>
     <div id="antenna-warning" hidden="hidden">
-      <div><div data-l10n-id="noAntenna">Please plugin your headset to use the FM Radio.</div></div>
+      <div></div>
+      <div id="antenna-warning-header" data-l10n-id="noAntenna">Please plugin your headset</div>
+      <div id="antenna-warning-body" data-l10n-id="noAntennaMsg">The FM Radio requires a headset to use as an antenna.</div>
     </div>
   </body>
 </html>
