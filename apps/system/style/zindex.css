@@ -3,8 +3,8 @@
 
 /* Reset zIndex */
 #screen > *:not([data-z-index-level]),
-#screen > [data-z-index-level="homescreen"] {
-  z-index: 0;
+#screen > [data-z-index-level="app"] > [data-z-index-level="homescreen"] {
+  z-index: 0 !important;
 }
 
 /* Level 1 */
