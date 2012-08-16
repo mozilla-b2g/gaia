@@ -160,6 +160,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
   var gWifiCheckBox = document.querySelector('#wifi-enabled input');
   var gWifiInfoBlock = document.querySelector('#wifi-desc');
   var gWpsInfoBlock = document.querySelector('#wifi-wps-desc');
+  var gWpsPbcLabelBlock = document.querySelector('#wps-pbc-button').querySelector('a');
 
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
@@ -208,11 +209,33 @@ window.addEventListener('localized', function wifiSettings(evt) {
     var wpsPbcButton = document.getElementById('wps-pbc-button');
     wpsPbcButton.hidden = false;
     wpsPbcButton.onclick = function() {
-      gWpsInProgress = true;
-      gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
-      gWifiManager.wps({
-        method: 'pbc'
-      });
+      if (gWpsInProgress) {
+        var req = gWifiManager.wps({
+          method: 'cancel'
+        });
+        req.onsuccess = function () {
+          gWpsInProgress = false;
+          gWpsPbcLabelBlock.textContent = _('wpsPbcMessage');
+          gWpsInfoBlock.textContent = _('fullStatus-wps-canceled');
+        };
+        req.onerror = function () {
+          gWpsInfoBlock.textContent = _('wpsCancelFailedMessage') +
+            ' [' + req.error.name + ']';
+        };
+      } else {
+        var req = gWifiManager.wps({
+          method: 'pbc'
+        });
+        req.onsuccess = function () {
+          gWpsInProgress = true;
+          gWpsPbcLabelBlock.textContent = _('wpsCancelMessage');
+          gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
+        };
+        req.onerror = function () {
+          gWpsInfoBlock.textContent = _('fullStatus-wps-failed') +
+            ' [' + req.error.name + ']';
+        };
+      }
     };
   }
 
@@ -547,6 +570,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
           networkStatus === 'wps-failed' ||
           networkStatus === 'wps-overlapped') {
         gWpsInProgress = false;
+        gWpsPbcLabelBlock.textContent = _('wpsPbcMessage');
       }
     }
   }
