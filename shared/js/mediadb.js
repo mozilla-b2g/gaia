@@ -598,8 +598,9 @@ MediaDB.prototype = {
     // First, scan for new files since the last scan, if there was one
     // When the quickScan is done it will begin a full scan.  If we don't
     // have a last scan date, then we just begin a full scan immediately
-    if (media.lastScanTime)
+    if (media.lastScanTime) {
       quickScan(media.lastScanTime);
+    }
     else {
       fullScan();
     }
@@ -647,10 +648,12 @@ MediaDB.prototype = {
             size: file.size,
             date: file.lastModifiedDate.getTime()
           };
-          newfiles.push(fileinfo);
 
           media.metadataParser(file, function(metadata) {
             fileinfo.metadata = metadata;
+            // Only remember this file if we got valid metadata for it
+            if (metadata != null)
+              newfiles.push(fileinfo);
             cursor.continue();
           }, function(error) {
             console.error(error);
@@ -917,10 +920,16 @@ MediaDB.prototype = {
         }
 
         function storeCreatedFiles() {
+          // Only store files that have metadata. If the parser couldn't
+          // return valid metadata, then the file is probably of the wrong type
+          var validFiles = createdFiles.filter(function(f) {
+            return f.metadata;
+          });
+
           var transaction = media.db.transaction('files', 'readwrite');
           var store = transaction.objectStore('files');
-          for (var i = 0; i < createdFiles.length; i++) {
-            store.add(createdFiles[i]).onerror = function(e) {
+          for (var i = 0; i < validFiles.length; i++) {
+            store.add(validFiles[i]).onerror = function(e) {
               // XXX: 6/22: this is failing AbortError on otoro
               console.error(e.target.error.name + ' while storing fileinfo');
               e.stopPropagation();
@@ -929,7 +938,7 @@ MediaDB.prototype = {
 
           // Now once we're done storing the files deliver a notification
           if (media.onchange)
-            media.onchange('created', createdFiles);
+            media.onchange('created', validFiles);
 
           // And finally, call the scanCompleteCallback
           if (scanCompleteCallback)
