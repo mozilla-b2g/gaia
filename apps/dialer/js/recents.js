@@ -590,7 +590,7 @@ var Recents = {
         length = contact.tel.length;
       for (var i = 0; i < length; i++) {
         phoneEntry = contact.tel[i];
-        contactPhoneNumber = phoneEntry.number.replace(' ', '', 'g');
+        contactPhoneNumber = phoneEntry.value.replace(' ', '', 'g');
         if ((phoneNumber == contactPhoneNumber) && (phoneEntry.type)) {
           secondaryInfo.textContent = secondaryInfo.textContent.trim() +
             '   ' + phoneEntry.type;
