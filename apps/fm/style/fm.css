@@ -301,13 +301,13 @@ div#fav-list-container div.fav-list-frequency::after {
   font-size: 5rem;
   border-radius: 50%;
   text-align: center;
-  box-shadow: 0 1px 1px #A8A8A8 inset, 0 2px 0 #232323;
+  box-shadow: 0 1px 1px #A8A8A8 inset, 0 2px 0 #1e2226;
 }
 
 #action-bar a:active {
   color: #FFF;
   background-color: #00ABCD;
-  box-shadow: 0 1px 1px #3F6978 inset, 0 2px 0 #232323;
+  box-shadow: 0 1px 1px #3F6978 inset, 0 2px 0 #1e2226;
 }
 
 #power-switch {
