@@ -295,7 +295,11 @@ function MediaDB(mediaType, metadataParser, options) {
     var statreq = mediadb.storage.stat();
     statreq.onsuccess = function(e) {
       var stats = e.target.result;
-      if (stats.state === 'available') {
+      // XXX
+      // If we don't get any state, then assume that means 'available'
+      // This avoids version skew and make this code work with older
+      // versions of gecko that have stat() but don't have the state property
+      if (!stats.state || stats.state === 'available') {
         mediadb.ready = true;
         if (mediadb.onready)
           mediadb.onready();
