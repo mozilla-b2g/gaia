@@ -1,5 +1,12 @@
 
-@media screen and (min-resolution: 200dpi) {
+@media screen and (min-resolution: 230dpi) {
+
+  html {
+    font-size: 14.7px;
+  }
+}
+
+@media screen and (max-resolution: 220dpi) {
 
   html {
     font-size: 13.5px;
