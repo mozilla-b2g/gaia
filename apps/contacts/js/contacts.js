@@ -869,8 +869,7 @@ var Contacts = (function() {
 
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
-      // Reloading contact, as it only allows to be
-      // updated once
+      // Reloading contact, as it only allows to be updated once
       var cList = contacts.List;
       cList.getContactById(contact.id, function onSuccess(savedContact) {
         currentContact = savedContact;

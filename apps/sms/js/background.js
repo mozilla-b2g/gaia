@@ -5,6 +5,7 @@
   if (!mozSms)
     return;
 
+  /* === Setup === */
   var ringtonePlayer = new Audio();
 
   /* === Settings === */

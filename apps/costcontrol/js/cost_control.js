@@ -72,7 +72,7 @@ function setupApp() {
 
   // On top up error, if manual request, notificate
   function _onTopUpError(evt) {
-//    _setUpdatingMode(false);
+    _setUpdatingMode(false);
 
     switch(evt.detail.reason) {
       case 'parse-error':
@@ -88,8 +88,9 @@ function setupApp() {
     }
   }
 
-  var _buttonRequestTopUp, _creditArea, _credit, _time;
+  var _buttonRequestTopUp, _creditArea, _credit, _time, _updateIcon;
   function _configureBalanceTab() {
+    _creditArea = document.getElementById('cost-control-credit-area');
     _credit = document.getElementById('cost-control-credit');
     _time = document.getElementById('cost-control-time');
 
@@ -98,8 +99,8 @@ function setupApp() {
       location.hash = 'topup';
     });
 
-    _creditArea = document.getElementById('cost-control-credit-area');
-    _creditArea.addEventListener('click', function cc_requestUpdate() {
+    _updateIcon = document.getElementById('cost-control-update-icon');
+    _updateIcon.addEventListener('click', function cc_requestUpdate() {
       if (_isUpdating)
         return;
 

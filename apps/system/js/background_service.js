@@ -92,8 +92,9 @@ var BackgroundServiceManager = (function bsm() {
       return false;
 
     if (frames[origin] && frames[origin][name]) {
-      // XXX: the window with the same name is opened but we cannot
-      // return the window reference back to mozbrowseropenwindow request
+      console.error('Window with the same name is there but Gecko ' +
+        ' failed to use it. See bug 766873. origin: "' + origin +
+        '", name: "' + name + '".');
       return false;
     }
 
@@ -104,6 +105,7 @@ var BackgroundServiceManager = (function bsm() {
       // it has the mozbrowser, mozapp, and src attributes set already.
       frame.setAttribute('mozbrowser', 'mozbrowser');
       frame.setAttribute('mozapp', app.manifestURL);
+      frame.setAttribute('name', name);
       frame.src = url;
     }
     frame.className = 'backgroundWindow';

@@ -37,8 +37,8 @@ body {
   background: #000 !important;
 }
 
-#screen.screenoff > * {
-  visibility: hidden;
+#screen.screenoff * {
+  visibility: hidden !important;
 }
 
 #homescreen {

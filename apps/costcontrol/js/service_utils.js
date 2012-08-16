@@ -40,6 +40,7 @@ function setService(service) {
 // Indicates the service is ready dispatching a custom event 'serviceready' to
 // all windows trying to get the service.
 function nowIAmReady() {
+  console.log('Ready!');
   window.serviceReady = true;
   if (Array.isArray(window.waitingForService)) {
     for (var i = 0, otherWindow;

@@ -25507,6 +25507,7 @@ FakeFolderStorage.prototype = {
     this._buffer = new Uint8Array(this._rawbuf);
     this._pos = 0;
     this._codepage = 0;
+    this._tagStack = [];
 
     let [major, minor] = version.split('.').map(function(x) parseInt(x));
     let v = ((major - 1) << 4) + minor;
@@ -25713,10 +25714,17 @@ FakeFolderStorage.prototype = {
     stag: function(tag) {
       let rest = Array.prototype.slice.call(arguments, 1);
       this._writeTag(tag, true, rest);
+      this._tagStack.push(tag);
       return this;
     },
 
     etag: function(tag) {
+      if (this._tagStack.length === 0)
+        throw new Error('Spurious etag() call!');
+      let expectedTag = this._tagStack.pop();
+      if (tag !== undefined && tag !== expectedTag)
+        throw new Error('Closed the wrong tag');
+
       this._write(Tokens.END);
       return this;
     },
@@ -25878,6 +25886,7 @@ FakeFolderStorage.prototype = {
         Status:            0x000E,
         Collection:        0x000F,
         Class:             0x0010,
+        Version:           0x0011,
         CollectionId:      0x0012,
         GetChanges:        0x0013,
         MoreAvailable:     0x0014,
@@ -25885,10 +25894,13 @@ FakeFolderStorage.prototype = {
         Commands:          0x0016,
         Options:           0x0017,
         FilterType:        0x0018,
+        Truncation:        0x0019,
+        RtfTruncation:     0x001A,
         Conflict:          0x001B,
         Collections:       0x001C,
         ApplicationData:   0x001D,
         DeletesAsMoves:    0x001E,
+        NotifyGUID:        0x001F,
         Supported:         0x0020,
         SoftDelete:        0x0021,
         MIMESupport:       0x0022,
@@ -25908,6 +25920,9 @@ FakeFolderStorage.prototype = {
         AssistantName:             0x0106,
         AssistantPhoneNumber:      0x0107,
         Birthday:                  0x0108,
+        Body:                      0x0109,
+        BodySize:                  0x010A,
+        BodyTruncated:             0x010B,
         Business2PhoneNumber:      0x010C,
         BusinessAddressCity:       0x010D,
         BusinessAddressCountry:    0x010E,
@@ -25955,6 +25970,7 @@ FakeFolderStorage.prototype = {
         YomiCompanyName:           0x0138,
         YomiFirstName:             0x0139,
         YomiLastName:              0x013A,
+        CompressedRTF:             0x013B,
         Picture:                   0x013C,
         Alias:                     0x013D,
         WeightedRank:              0x013E,
@@ -25963,7 +25979,18 @@ FakeFolderStorage.prototype = {
 
     Email: {
       Tags: {
+        Attachment:              0x0205,
+        Attachments:             0x0206,
+        AttName:                 0x0207,
+        AttSize:                 0x0208,
+        Att0Id:                  0x0209,
+        AttMethod:               0x020A,
+        AttRemoved:              0x020B,
+        Body:                    0x020C,
+        BodySize:                0x020D,
+        BodyTruncated:           0x020E,
         DateReceived:            0x020F,
+        DisplayName:             0x0210,
         DisplayTo:               0x0211,
         Importance:              0x0212,
         MessageClass:            0x0213,
@@ -26001,6 +26028,9 @@ FakeFolderStorage.prototype = {
         TimeZone:                0x0233,
         GlobalObjId:             0x0234,
         ThreadTopic:             0x0235,
+        MIMEData:                0x0236,
+        MIMETruncated:           0x0237,
+        MIMESize:                0x0238,
         InternetCPID:            0x0239,
         Flag:                    0x023A,
         Status:                  0x023B,
@@ -26019,9 +26049,12 @@ FakeFolderStorage.prototype = {
         Attendee:                  0x0408,
         Email:                     0x0409,
         Name:                      0x040A,
+        Body:                      0x040B,
+        BodyTruncated:             0x040C,
         BusyStatus:                0x040D,
         Categories:                0x040E,
         Category:                  0x040F,
+        CompressedRTF:             0x0410,
         DtStamp:                   0x0411,
         EndTime:                   0x0412,
         Exception:                 0x0413,
@@ -26048,6 +26081,14 @@ FakeFolderStorage.prototype = {
         UID:                       0x0428,
         AttendeeStatus:            0x0429,
         AttendeeType:              0x042A,
+        Attachment:                0x042B,
+        Attachments:               0x042C,
+        AttName:                   0x042D,
+        AttSize:                   0x042E,
+        AttOid:                    0x042F,
+        AttMethod:                 0x0430,
+        AttRemoved:                0x0431,
+        DisplayName:               0x0432,
         DisallowNewTimeProposal:   0x0433,
         ResponseRequested:         0x0434,
         AppointmentReplyTime:      0x0435,
@@ -26090,11 +26131,15 @@ FakeFolderStorage.prototype = {
 
     FolderHierarchy: {
       Tags: {
+        Folders:      0x0705,
+        Folder:       0x0706,
         DisplayName:  0x0707,
         ServerId:     0x0708,
         ParentId:     0x0709,
         Type:         0x070A,
+        Response:     0x070B,
         Status:       0x070C,
+        ContentClass: 0x070D,
         Changes:      0x070E,
         Add:          0x070F,
         Delete:       0x0710,
@@ -26124,6 +26169,9 @@ FakeFolderStorage.prototype = {
 
     Tasks: {
       Tags: {
+        Body:                   0x0905,
+        BodySize:               0x0906,
+        BodyTruncated:          0x0907,
         Categories:             0x0908,
         Category:               0x0909,
         Complete:               0x090A,
@@ -26149,6 +26197,7 @@ FakeFolderStorage.prototype = {
         StartDate:              0x091E,
         UtcStartDate:           0x091F,
         Subject:                0x0920,
+        CompressedRTF:          0x0921,
         OrdinalDate:            0x0922,
         SubOrdinalDate:         0x0923,
         CalendarType:           0x0924,
@@ -26289,6 +26338,7 @@ FakeFolderStorage.prototype = {
     Search: {
       Tags: {
         Search:         0x0F05,
+        Stores:         0x0F06,
         Store:          0x0F07,
         Name:           0x0F08,
         Query:          0x0F09,
@@ -26309,6 +26359,8 @@ FakeFolderStorage.prototype = {
         RebuildResults: 0x0F19,
         LessThan:       0x0F1A,
         GreaterThan:    0x0F1B,
+        Schema:         0x0F1C,
+        Supported:      0x0F1D,
         UserName:       0x0F1E,
         Password:       0x0F1F,
         ConversationId: 0x0F20,
@@ -26343,6 +26395,7 @@ FakeFolderStorage.prototype = {
         Type:               0x1106,
         TruncationSize:     0x1107,
         AllOrNone:          0x1108,
+        Reserved:           0x1109,
         Body:               0x110A,
         Data:               0x110B,
         EstimatedDataSize:  0x110C,
@@ -26403,6 +26456,7 @@ FakeFolderStorage.prototype = {
         AccountName:                 0x1227,
         UserDisplayName:             0x1228,
         SendDisabled:                0x1229,
+        /* Missing tag value 0x122A */
         RightsManagementInformation: 0x122B,
       },
     },
@@ -26453,6 +26507,7 @@ FakeFolderStorage.prototype = {
         SmartReply:      0x1507,
         SaveInSentItems: 0x1508,
         ReplaceMime:     0x1509,
+        /* Missing tag value 0x150A */
         Source:          0x150B,
         FolderId:        0x150C,
         ItemId:          0x150D,
@@ -26550,24 +26605,34 @@ FakeFolderStorage.prototype = {
 }(this, function(WBXML, ASCP) {
   
 
-  const __exports__ = ['Connection'];
+  const __exports__ = ['VersionInt', 'Connection'];
 
   function nsResolver(prefix) {
     const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
     const ns = {
-      'ad': baseUrl + 'responseschema/2006',
-      'ms': baseUrl + 'mobilesync/responseschema/2006',
+      rq: baseUrl + 'mobilesync/requestschema/2006',
+      ad: baseUrl + 'responseschema/2006',
+      ms: baseUrl + 'mobilesync/responseschema/2006',
     };
     return ns[prefix] || null;
   }
 
-  function Connection(aEmail, aPassword) {
+  function VersionInt(str) {
+    let [major, minor] = str.split('.').map(function(x) parseInt(x));
+    return (major << 16) + minor;
+  }
+
+  function Connection(aEmail, aPassword, aDeviceId, aDeviceType) {
     this._email = aEmail;
     this._password = aPassword;
+    this._deviceId = aDeviceId || 'v140Device';
+    this._deviceType = aDeviceType || 'SmartPhone';
     this.connected = false;
   }
 
   Connection.prototype = {
+    get currentVersionInt() VersionInt(this.currentVersion),
+
     _getAuth: function() {
       return 'Basic ' + btoa(this._email + ':' + this._password);
     },
@@ -26585,9 +26650,6 @@ FakeFolderStorage.prototype = {
       xhr.setRequestHeader('Authorization', this._getAuth());
 
       xhr.onload = function() {
-        if (typeof logXhr == 'function') // TODO: remove this debug code
-          logXhr(xhr);
-
         let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
         let getString = function(xpath, rel) {
           return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
@@ -26613,7 +26675,7 @@ FakeFolderStorage.prototype = {
             nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
             .singleNodeValue;
 
-          let result = {
+          conn.config = {
             'user': {
               'name':  getString('ms:DisplayName/text()',  user),
               'email': getString('ms:EMailAddress/text()', user),
@@ -26625,12 +26687,15 @@ FakeFolderStorage.prototype = {
             }
           };
 
-          conn.baseURL = result.server.url + '/Microsoft-Server-ActiveSync';
+          conn.baseURL = conn.config.server.url +
+            '/Microsoft-Server-ActiveSync';
           conn.options(conn.baseURL, function(aSubResult) {
             conn.connected = true;
-            result.options = aSubResult;
+            conn.currentVersion = aSubResult.versions.slice(-1)[0];
+            conn.config.options = aSubResult;
+
             if (aCallback)
-              aCallback.call(conn, result);
+              aCallback(conn.config);
           });
         }
       };
@@ -26639,10 +26704,11 @@ FakeFolderStorage.prototype = {
       // http://ejohn.org/blog/javascript-micro-templating/ here?
       let postdata =
       '<?xml version="1.0" encoding="utf-8"?>\n' +
-      '<Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/mobilesync/requestschema/2006">\n' +
+      '<Autodiscover xmlns="' + nsResolver('rq') + '">\n' +
       '  <Request>\n' +
       '    <EMailAddress>' + this._email + '</EMailAddress>\n' +
-      '      <AcceptableResponseSchema>http://schemas.microsoft.com/exchange/autodiscover/mobilesync/responseschema/2006</AcceptableResponseSchema>\n' +
+      '    <AcceptableResponseSchema>' + nsResolver('ms') +
+           '</AcceptableResponseSchema>\n' +
       '  </Request>\n' +
       '</Autodiscover>';
 
@@ -26653,9 +26719,6 @@ FakeFolderStorage.prototype = {
       let xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('OPTIONS', aURL, true);
       xhr.onload = function() {
-        if (typeof logXhr == 'function') // TODO: remove this debug code
-          logXhr(xhr);
-
         let result = {
           'versions': xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
           'commands': xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
@@ -26667,52 +26730,69 @@ FakeFolderStorage.prototype = {
     },
 
     doCommand: function(aXml, aCallback) {
-      if (!this.connected)
-        this.autodiscover(this._doCommandReal.bind(this, aXml, aCallback));
-      else
+      if (this.connected) {
         this._doCommandReal(aXml, aCallback);
+      }
+      else {
+        this.autodiscover((function (aConfig) {
+          if ('error' in aConfig) {
+            // TODO: do something here!
+            let error = new Error('Error during autodiscover: ' +
+                                  aConfig.error.message);
+            console.log(error);
+            aCallback(error);
+          }
+          else {
+            this._doCommandReal(aXml, aCallback);
+          }
+        }).bind(this));
+      }
     },
 
     _doCommandReal: function(aXml, aCallback) {
       let r = new WBXML.Reader(aXml, ASCP);
-      let command = r.document.next().localTagName;
+      let commandName = r.document.next().localTagName;
+      if (this.config.options.commands.indexOf(commandName) === -1) {
+        // TODO: do something here!
+        let error = new Error("This server doesn't support the command " +
+                              commandName);
+        console.log(error);
+        aCallback(error);
+        return;
+      }
+
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('POST', this.baseURL + '?Cmd=' + command + '&User=' +
-               this._email + '&DeviceId=v140Device&DeviceType=SmartPhone',
+      xhr.open('POST', this.baseURL +
+               '?Cmd='        + encodeURIComponent(commandName) +
+               '&User='       + encodeURIComponent(this._email) +
+               '&DeviceId='   + encodeURIComponent(this._deviceId) +
+               '&DeviceType=' + encodeURIComponent(this._deviceType),
                true);
-      xhr.setRequestHeader('MS-ASProtocolVersion', '14.0');
+      xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
       xhr.setRequestHeader('Content-Type', 'application/vnd.ms-sync.wbxml');
-      xhr.setRequestHeader('User-Agent', 'B2G');
       xhr.setRequestHeader('Authorization', this._getAuth());
 
       let conn = this;
       xhr.onload = function() {
-        if (typeof logXhr == 'function') // TODO: remove this debug code
-          logXhr(xhr);
-
         if (xhr.status == 451) {
           conn.baseURL = xhr.getResponseHeader('X-MS-Location');
           conn.doCommand(aXml, aCallback);
           return;
         }
+
         if (xhr.status != 200) {
-          if (typeof print == 'function') // TODO: remove this debug code
-            print('Error!\n');
+          // TODO: do something here!
+          let error = new Error('ActiveSync command returned failure ' +
+                                'response ' + xhr.status);
+          console.log(error);
+          aCallback(error);
           return;
         }
 
-        if (xhr.response.byteLength == 0) {
-          aCallback(null);
-        }
-        else {
-          let r = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
-          if (typeof log == 'function') { // TODO: remove this debug code
-            log(r.dump());
-            r.rewind();
-          }
-
-          aCallback(r);
-        }
+        let response = null;
+        if (xhr.response.byteLength > 0)
+          response = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
+        aCallback(null, response);
       };
 
       xhr.responseType = 'arraybuffer';
@@ -26732,6 +26812,8 @@ define('rdimap/imapclient/asfolder',
     'activesync/codepages',
     'activesync/protocol',
     'mimelib',
+    './quotechew',
+    './util',
     'exports'
   ],
   function(
@@ -26739,177 +26821,741 @@ define('rdimap/imapclient/asfolder',
     $ascp,
     $activesync,
     $mimelib,
+    $quotechew,
+    $util,
     exports
   ) {
 
 
-function ActiveSyncFolderStorage(account, serverId) {
+function ActiveSyncFolderStorage(account, folderInfo, dbConn) {
   this.account = account;
-  this.serverId = serverId;
+  this._db = dbConn;
+
+  this.folderId = folderInfo.$meta.id;
+  this.serverId = folderInfo.$meta.serverId;
+  this.folderMeta = folderInfo.$meta;
+  if (!this.folderMeta.syncKey)
+    this.folderMeta.syncKey = '0';
+
+  this._headers = [];
   this._bodiesBySuid = {};
+
+  this._onLoadHeaderListeners = [];
+  this._onLoadBodyListeners = [];
+
+  let self = this;
+
+  this._db.loadHeaderBlock(this.folderId, 0, function(block) {
+    self._loadedHeaders = true;
+    if (block)
+      self._headers = block;
+
+    for (let [,listener] in Iterator(self._onLoadHeaderListeners))
+      listener();
+    self._onLoadHeaderListeners = [];
+  });
+
+  this._db.loadBodyBlock(this.folderId, 0, function(block) {
+    self._loadedBodies = true;
+    if (block)
+      self._bodiesBySuid = block;
+
+    for (let [,listener] in Iterator(self._onLoadBodyListeners))
+      listener();
+    self._onLoadBodyListeners = [];
+  });
 }
 exports.ActiveSyncFolderStorage = ActiveSyncFolderStorage;
 ActiveSyncFolderStorage.prototype = {
-  _loadMessages: function(serverId, callback) {
-    var account = this.account;
-    var as = $ascp.AirSync.Tags;
-    let asb = $ascp.AirSyncBase.Tags;
-    var em = $ascp.Email.Tags;
+  generatePersistenceInfo: function asfs_generatePersistenceInfo() {
+    return {
+      id: this.folderId,
+      headerBlocks: [ this._headers ],
+      bodyBlocks:   [ this._bodiesBySuid ],
+    };
+  },
 
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+  get syncKey() {
+    return this.folderMeta.syncKey;
+  },
+
+  set syncKey(value) {
+    return this.folderMeta.syncKey = value;
+  },
+
+  updateMessageHeader: function asfs_updateMessageHeader(suid, mutatorFunc) {
+    // XXX: this could be a lot faster
+    for (let [i, header] in Iterator(this._headers)) {
+      if (header.suid === suid) {
+        if (mutatorFunc(header))
+          this._bridgeHandle.sendUpdate([i, header]);
+        return;
+      }
+    }
+  },
+
+  deleteMessage: function asfs_deleteMessage(suid) {
+    // XXX: this could be a lot faster
+    for (let [i, header] in Iterator(this._headers)) {
+      if (header.suid === suid) {
+        delete this._bodiesBySuid[header.suid];
+        this._headers.splice(i, 1);
+        this._bridgeHandle.sendSplice(i, 1, [], false, false);
+        return;
+      }
+    }
+  },
+
+  /**
+   * Get the initial sync key for the folder so we can start getting data
+   *
+   * @param {function} callback A callback to be run when the operation finishes
+   */
+  _getSyncKey: function asfs__getSyncKey(callback) {
+    let folderStorage = this;
+    let account = this.account;
+    const as = $ascp.AirSync.Tags;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection)
-           .tag(as.SyncKey, '0')
-           .tag(as.CollectionId, serverId)
+
+    if (account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+          w.tag(as.Class, 'Email');
+
+          w.tag(as.SyncKey, '0')
+           .tag(as.CollectionId, this.serverId)
          .etag()
        .etag()
      .etag();
 
-    account.conn.doCommand(w, function(aResponse) {
-      var syncKey;
-      var e = new $wbxml.EventParser();
+    account.conn.doCommand(w, function(aError, aResponse) {
+      if (aError)
+        return;
+
+      let e = new $wbxml.EventParser();
       e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
                          function(node) {
-        syncKey = node.children[0].textContent;
+        folderStorage.folderMeta.syncKey = node.children[0].textContent;
       });
       e.run(aResponse);
 
-      var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
-      w.stag(as.Sync)
-         .stag(as.Collections)
-           .stag(as.Collection)
-             .tag(as.SyncKey, syncKey)
-             .tag(as.CollectionId, serverId)
-             .tag(as.GetChanges)
-             .stag(as.Options)
-               .stag(asb.BodyPreference)
-                 .tag(asb.Type, '1')
-               .etag()
-               .tag(as.MIMESupport, '2')
-               .tag(as.MIMETruncation, '7')
-             .etag()
+      callback();
+    });
+  },
+
+  /**
+   * Sync the folder with the server and enumerate all the changes since the
+   * last sync.
+   *
+   * @param {function} callback A function to be called when the operation has
+   *   completed, taking three arguments: |added|, |changed|, and |deleted|
+   * @param {boolean} deferred True if this operation was already deferred once
+   *   to get the initial sync key
+   */
+  _syncFolder: function asfs__syncFolder(callback, deferred) {
+    let folderStorage = this;
+    let account = this.account;
+
+    if (!account.conn.connected) {
+      account.conn.autodiscover(function(config) {
+        // TODO: handle errors
+        folderStorage._syncFolder(callback, deferred);
+      });
+      return;
+    }
+    if (this.folderMeta.syncKey === '0' && !deferred) {
+      this._getSyncKey(this._syncFolder.bind(this, callback, true));
+      return;
+    }
+
+    const as = $ascp.AirSync.Tags;
+    const asb = $ascp.AirSyncBase.Tags;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(as.Sync)
+       .stag(as.Collections)
+         .stag(as.Collection);
+
+    if (account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+          w.tag(as.Class, 'Email');
+
+          w.tag(as.SyncKey, this.folderMeta.syncKey)
+           .tag(as.CollectionId, this.serverId)
+           .tag(as.GetChanges)
+           .stag(as.Options)
+
+    if (account.conn.currentVersionInt >= $activesync.VersionInt('12.0'))
+            w.stag(asb.BodyPreference)
+               .tag(asb.Type, '1')
+             .etag();
+
+            w.tag(as.MIMESupport, '2')
+             .tag(as.MIMETruncation, '7')
            .etag()
          .etag()
-       .etag();
+       .etag()
+     .etag();
 
-      var folderId = account.id + '/' + serverId;
-      account.conn.doCommand(w, function(aResponse) {
-        var e = new $wbxml.EventParser();
-        var headers = [];
-        var bodies = {};
-        e.addEventListener([as.Sync, as.Collections, as.Collection, as.Commands,
-                            as.Add, as.ApplicationData],
-                           function(node) {
-          var guid = Date.now() + Math.random().toString(16).substr(1) +
-            '@mozgaia';
-          var header = {
-            subject: null,
-            author: null,
-            date: null,
-            flags: [],
-            id: null,
-            suid: folderId + '/' + guid,
-            guid: guid,
-            hasAttachments: false,
-            snippet: null,
-          };
-          var body = {
-            to: null,
-            cc: null,
-            bcc: null,
-            replyTo: null,
-            attachments: null,
-            references: null,
-            bodyRep: null,
-          };
+    account.conn.doCommand(w, function(aError, aResponse) {
+      let added   = { headers: [], bodies: {} };
+      let changed = { headers: [], bodies: {} };
+      let deleted = [];
+      let status;
 
-          for (let [,child] in Iterator(node.children)) {
-            let childText = child.children.length &&
-                            child.children[0].textContent;
+      if (aError)
+        return;
+      if (!aResponse) {
+        callback(added, changed, deleted);
+        return;
+      }
 
-            switch (child.tag) {
-            case em.Subject:
-              header.subject = childText;
-              break;
-            case em.From:
-              header.author = $mimelib.parseAddresses(childText)[0];
-              break;
-            case em.To:
-              body.to = $mimelib.parseAddresses(childText);
-              break;
-            case em.Cc:
-              nody.cc = $mimelib.parseAddresses(childText);
-              break;
-            case em.ReplyTo:
-              body.replyTo = $mimelib.parseAddresses(childText);
-              break;
-            case em.DateReceived:
-              header.date = new Date(childText).valueOf();
-              break;
-            case em.Read:
-              if (childText == '1')
-                header.flags.push('\\Seen');
-              break;
-            case em.Flag:
-              for (let [,grandchild] in Iterator(child.children)) {
-                if (grandchild.tag === em.Status &&
-                    grandchild.children[0].textContent !== '0')
-                  header.flags.push('\\Flagged');
-              }
-              break;
-            case asb.Body:
-              for (let [,grandchild] in Iterator(child.children)) {
-                if (grandchild.tag === asb.Data)
-                  body.bodyRep = [0x1, grandchild.children[0].textContent];
-              }
-              break;
-            case asb.Attachments:
-              header.hasAttachments = true;
-              body.attachments = [];
-              for (let [,attachmentNode] in Iterator(child.children)) {
-                if (attachmentNode.tag !== asb.Attachment)
-                  continue; // XXX: throw an error here??
-                let attachment = { type: 'text/plain' }; // XXX: this is lies
-                for (let [,attachData] in Iterator(attachmentNode.children)) {
-                  switch (attachData.tag) {
-                  case asb.DisplayName:
-                    attachment.name = attachData.children[0].textContent;
-                    break;
-                  case asb.EstimatedDataSize:
-                    attachment.sizeEstimate = attachData.children[0]
-                                                        .textContent;
-                    break;
-                  }
-                }
-                body.attachments.push(attachment);
-              }
-              break;
+      let e = new $wbxml.EventParser();
+      const base = [as.Sync, as.Collections, as.Collection];
+
+      e.addEventListener(base.concat(as.Status), function(node) {
+        status = node.children[0].textContent;
+      });
+
+      e.addEventListener(base.concat(as.SyncKey), function(node) {
+        folderStorage.folderMeta.syncKey = node.children[0].textContent;
+      });
+
+      e.addEventListener(base.concat(as.Commands, [[as.Add, as.Change]]),
+                         function(node) {
+        let guid;
+        let msg;
+
+        for (let [,child] in Iterator(node.children)) {
+          switch (child.tag) {
+          case as.ServerId:
+            guid = child.children[0].textContent;
+            break;
+          case as.ApplicationData:
+            msg = folderStorage._parseMessage(child, node.tag === as.Add);
+            break;
+          }
+        }
+
+        msg.header.guid = guid;
+        msg.header.suid = folderStorage.folderId + '/' + guid;
+
+        let collection = node.tag === as.Add ? added : changed;
+        collection.headers.push(msg.header);
+        collection.bodies[msg.header.suid] = msg.body;
+      });
+
+      e.addEventListener(base.concat(as.Commands, as.Delete), function(node) {
+        let guid;
+
+        for (let [,child] in Iterator(node.children)) {
+          switch (child.tag) {
+          case as.ServerId:
+            guid = child.children[0].textContent;
+            break;
+          }
+        }
+
+        deleted.push(guid);
+      });
+
+      e.run(aResponse);
+
+      if (status === '1') { // Success
+        callback(added, changed, deleted);
+      }
+      else if (status === '3') { // Bad sync key
+        console.log('ActiveSync had a bad sync key');
+        // This should already be set to 0, but let's just be safe.
+        folderStorage.folderMeta.syncKey = '0';
+        folderStorage._needsPurge = true;
+        folderStorage._syncFolder(callback);
+      }
+      else {
+        console.error('Something went wrong during ActiveSync syncing and we ' +
+                      'got a status of ' + status);
+      }
+    });
+  },
+
+  /**
+   * Parse the DOM of an individual message to build header and body objects for
+   * it.
+   *
+   * @param {WBXML.Element} node The fully-parsed node describing the message
+   * @param {boolean} isAdded True if this is a new message, false if it's a
+   *   changed one
+   * @return {object} An object containing the header and body for the message
+   */
+  _parseMessage: function asfs__parseMessage(node, isAdded) {
+    const asb = $ascp.AirSyncBase.Tags;
+    const em = $ascp.Email.Tags;
+    let header, body, flagHeader;
+
+    if (isAdded) {
+      header = {
+        id: null,
+        suid: null,
+        guid: null,
+        author: null,
+        date: null,
+        flags: [],
+        hasAttachments: false,
+        subject: null,
+        snippet: null,
+      };
+
+      body = {
+        date: null,
+        size: null,
+        to: null,
+        cc: null,
+        bcc: null,
+        replyTo: null,
+        attachments: [],
+        references: null,
+        bodyRep: null,
+      };
+
+      flagHeader = function(flag, state) {
+        if (state)
+          header.flags.push(flag);
+      }
+    }
+    else {
+      header = {
+        flags: [],
+        mergeInto: function(o) {
+          // Merge flags
+          for (let [,flagstate] in Iterator(this.flags)) {
+            if (flagstate[1]) {
+              o.flags.push(flagstate[0]);
+            }
+            else {
+              let index = o.flags.indexOf(flagstate[0]);
+              if (index !== -1)
+                o.flags.splice(index, 1);
             }
           }
 
-          headers.push(header);
-          bodies[header.suid] = body;
-        });
+          // Merge everything else
+          for (let [key, value] in Iterator(this)) {
+            if (['mergeInto', 'suid', 'guid', 'flags'].indexOf(key) !== -1)
+              continue;
 
-        e.run(aResponse);
+            o[key] = value;
+          }
+        },
+      };
 
-        headers.sort(function(a, b) a.date < b.date);
-        callback(headers, bodies);
-      });
-    });
+      body = {
+        mergeInto: function(o) {
+          for (let [key, value] in Iterator(this)) {
+            if (key === 'mergeInto') continue;
+            o[key] = value;
+          }
+        },
+      };
+
+      flagHeader = function(flag, state) {
+        header.flags.push([flag, state]);
+      }
+    }
+
+    for (let [,child] in Iterator(node.children)) {
+      let childText = child.children.length &&
+                      child.children[0].textContent;
+
+      switch (child.tag) {
+      case em.Subject:
+        header.subject = childText;
+        break;
+      case em.From:
+        header.author = $mimelib.parseAddresses(childText)[0] || null;
+        break;
+      case em.To:
+        body.to = $mimelib.parseAddresses(childText);
+        break;
+      case em.Cc:
+        body.cc = $mimelib.parseAddresses(childText);
+        break;
+      case em.ReplyTo:
+        body.replyTo = $mimelib.parseAddresses(childText);
+        break;
+      case em.DateReceived:
+        body.date = header.date = new Date(childText).valueOf();
+        break;
+      case em.Read:
+        flagHeader('\\Seen', childText === '1');
+        break;
+      case em.Flag:
+        for (let [,grandchild] in Iterator(child.children)) {
+          if (grandchild.tag === em.Status)
+            flagHeader('\\Flagged', grandchild.children[0].textContent !== '0');
+        }
+        break;
+      case asb.Body: // ActiveSync 12.0+
+        for (let [,grandchild] in Iterator(child.children)) {
+          if (grandchild.tag === asb.Data) {
+            body.bodyRep = $quotechew.quoteProcessTextBody(
+              grandchild.children[0].textContent);
+            header.snippet = $quotechew.generateSnippet(body.bodyRep);
+          }
+        }
+        break;
+      case em.Body: // pre-ActiveSync 12.0
+        body.bodyRep = $quotechew.quoteProcessTextBody(childText);
+        header.snippet = $quotechew.generateSnippet(body.bodyRep);
+        break;
+      case asb.Attachments: // ActiveSync 12.0+
+      case em.Attachments:  // pre-ActiveSync 12.0
+        header.hasAttachments = true;
+        body.attachments = [];
+        for (let [,attachmentNode] in Iterator(child.children)) {
+          if (attachmentNode.tag !== asb.Attachment &&
+              attachmentNode.tag !== em.Attachment)
+            continue; // XXX: throw an error here??
+
+          let attachment = { name: null, type: null, part: null,
+                             sizeEstimate: null };
+
+          for (let [,attachData] in Iterator(attachmentNode.children)) {
+            let dot, ext;
+
+            switch (attachData.tag) {
+            case asb.DisplayName:
+            case em.DisplayName:
+              attachment.name = attachData.children[0].textContent;
+
+              // Get the file's extension to look up a mimetype, but ignore it
+              // if the filename is of the form '.bashrc'.
+              dot = attachment.name.lastIndexOf('.');
+              ext = dot > 0 ? attachment.name.substring(dot + 1) : '';
+              attachment.type = $mimelib.contentTypes[ext] ||
+                                'application/octet-stream';
+              break;
+            case asb.EstimatedDataSize:
+            case em.AttSize:
+              attachment.sizeEstimate = attachData.children[0].textContent;
+              break;
+            }
+          }
+          body.attachments.push(attachment);
+        }
+        break;
+      }
+    }
+
+    return { header: header, body: body };
   },
 
-  _sliceFolderMessages: function ffs__sliceFolderMessages(bridgeHandle) {
+  _sliceFolderMessages: function asfs__sliceFolderMessages(bridgeHandle) {
+    if (!this._loadedHeaders) {
+      this._onLoadHeaderListeners.push(this._sliceFolderMessages
+                                           .bind(this, bridgeHandle));
+      return;
+    }
+
+    this._bridgeHandle = bridgeHandle;
+    bridgeHandle.sendSplice(0, 0, this._headers, true, true);
+
     var folderStorage = this;
-    this._loadMessages(this.serverId, function(headers, bodies) {
-      folderStorage._bodiesBySuid = bodies;
-      bridgeHandle.sendSplice(0, 0, headers, true, false);
+    this._syncFolder(function(added, changed, deleted) {
+      if (folderStorage._needsPurge) {
+        bridgeHandle.sendSplice(0, folderStorage._headers.length, [], false,
+                                true);
+        folderStorage._headers = [];
+        folderStorage._bodiesBySuid = {};
+        folderStorage._needsPurge = false;
+      }
+
+      // XXX: pretty much all of the sync code here needs to be rewritten to
+      // divide headers/bodies into blocks so as not to be a performance
+      // nightmare.
+
+      // Handle messages that have been deleted
+      for (let [,guid] in Iterator(deleted)) {
+        // This looks dangerous (iterating and splicing at the same time), but
+        // we break out of the loop immediately after the splice, so it's ok.
+        for (let [i, header] in Iterator(folderStorage._headers)) {
+          if (header.guid === guid) {
+            delete folderStorage._bodiesBySuid[header.suid];
+            folderStorage._headers.splice(i, 1);
+            bridgeHandle.sendSplice(i, 1, [], true, true);
+            break;
+          }
+        }
+      }
+
+      // Handle messages that have been changed
+      for (let [,newHeader] in Iterator(changed.headers)) {
+        for (let [i, oldHeader] in Iterator(folderStorage._headers)) {
+          if (oldHeader.guid === newHeader.guid) {
+            let oldBody = folderStorage._bodiesBySuid[oldHeader.suid];
+            let newBody = changed.bodies[oldHeader.suid];
+
+            newHeader.mergeInto(oldHeader);
+            newBody.mergeInto(oldBody);
+            bridgeHandle.sendUpdate([i, oldHeader]);
+
+            break;
+          }
+        }
+      }
+
+      // Handle messages that have been added
+      if (added.headers.length) {
+        added.headers.sort(function(a, b) b.date - a.date);
+        let addedBlocks = {};
+        for (let [,header] in Iterator(added.headers)) {
+          let idx = $util.bsearchForInsert(folderStorage._headers, header,
+                                           function(a, b) b.date - a.date);
+          if (!(idx in addedBlocks))
+            addedBlocks[idx] = [];
+          addedBlocks[idx].push(header);
+        }
+
+        let keys = Object.keys(addedBlocks).sort(function(a, b) b - a);
+        let hdrs = folderStorage._headers;
+        for (let [,key] in Iterator(keys)) {
+          // XXX: I feel like this is probably slower than it needs to be...
+          hdrs.splice.apply(hdrs, [key, 0].concat(addedBlocks[key]));
+          bridgeHandle.sendSplice(key, 0, addedBlocks[key], true, true);
+        }
+
+        for (let [k, v] in Iterator(added.bodies))
+          folderStorage._bodiesBySuid[k] = v;
+      }
+
+      bridgeHandle.sendStatus(true, false);
+      folderStorage.account.saveAccountState();
     });
   },
 
-  getMessageBody: function ffs_getMessageBody(suid, date, callback) {
+  getMessageBody: function asfs_getMessageBody(suid, date, callback) {
+    if (!this._loadedBodies) {
+      this._onLoadBodyListeners.push(this.getMessageBody.bind(this, suid, date,
+                                                              callback));
+      return;
+    }
+
     callback(this._bodiesBySuid[suid]);
+  },
+};
+
+}); // end define
+;
+define('rdimap/imapclient/asjobs',
+  [
+    'wbxml',
+    'activesync/codepages',
+    'activesync/protocol',
+    './util',
+    'exports'
+  ],
+  function(
+    $wbxml,
+    $ascp,
+    $activesync,
+    $util,
+    exports
+  ) {
+
+
+function ActiveSyncJobDriver(account) {
+  this.account = account;
+}
+exports.ActiveSyncJobDriver = ActiveSyncJobDriver;
+ActiveSyncJobDriver.prototype = {
+  local_do_modtags: function(op, callback) {
+    // XXX: we'll probably remove this once deleting stops being a modtag op
+    if (op.addTags && op.addTags.indexOf('\\Deleted') !== -1)
+      return this.local_do_delete(op, callback);
+
+    for (let [,message] in Iterator(op.messages)) {
+      let folderId = message.suid.substring(0, message.suid.lastIndexOf('/'));
+      let folderStorage = this.account.getFolderStorageForFolderId(folderId);
+
+      folderStorage.updateMessageHeader(message.suid, function(header) {
+        let modified = false;
+
+        for (let [,tag] in Iterator(op.addTags || [])) {
+          if (header.flags.indexOf(tag) !== -1)
+            continue;
+          header.flags.push(tag);
+          header.flags.sort();
+          modified = true;
+        }
+        for (let [,remove] in Iterator(op.removeTags || [])) {
+          let index = header.flags.indexOf(remove);
+          if (index === -1)
+            continue;
+          header.flags.splice(index, 1);
+          modified = true;
+        }
+        return modified;
+      });
+    }
+
+    this.account.saveAccountState();
+    if (callback)
+      setZeroTimeout(callback);
+  },
+
+  do_modtags: function(op, callback) {
+    function getMark(tag) {
+      if (op.addTags && op.addTags.indexOf(tag) !== -1)
+        return true;
+      if (op.removeTags && op.removeTags.indexOf(tag) !== -1)
+        return false;
+      return undefined;
+    }
+
+    // XXX: we'll probably remove this once deleting stops being a modtag op
+    if (getMark('\\Deleted'))
+      return this.do_delete(op, callback);
+
+    let markRead = getMark('\\Seen');
+    let markFlagged = getMark('\\Flagged');
+
+    this._do_crossFolderOp(op, callback, function(w, messageGuid) {
+      const as = $ascp.AirSync.Tags;
+      const em = $ascp.Email.Tags;
+
+      w.stag(as.Change)
+         .tag(as.ServerId, messageGuid)
+         .stag(as.ApplicationData);
+
+      if (markRead !== undefined)
+        w.tag(em.Read, markRead ? '1' : '0');
+
+      if (markFlagged !== undefined)
+        w.stag(em.Flag)
+           .tag(em.Status, markFlagged ? '2' : '0')
+         .etag();
+
+        w.etag()
+       .etag();
+    });
+  },
+
+  local_do_delete: function(op, callback) {
+    for (let [,message] in Iterator(op.messages)) {
+      let folderId = message.suid.substring(0, message.suid.lastIndexOf('/'));
+      let folderStorage = this.account.getFolderStorageForFolderId(folderId);
+
+      folderStorage.deleteMessage(message.suid);
+    }
+
+    this.account.saveAccountState();
+    if (callback)
+      setZeroTimeout(callback);
+  },
+
+  do_delete: function(op, callback) {
+    this._do_crossFolderOp(op, callback, function(w, messageGuid) {
+      const as = $ascp.AirSync.Tags;
+
+      w.stag(as.Delete)
+         .tag(as.ServerId, messageGuid)
+       .etag();
+    });
+  },
+
+  _do_crossFolderOp: function(op, callback, command) {
+    let jobDriver = this;
+
+    if (!this.account.conn.connected) {
+      let self = this;
+      this.account.conn.autodiscover(function(config) {
+        // TODO: handle errors
+        jobDriver.do_modtags(op, callback);
+      });
+      return;
+    }
+
+    // XXX: we really only want the message ID, but this method tries to parse
+    // it as an int (it's a GUID).
+    let partitions = $util.partitionMessagesByFolderId(op.messages, false);
+
+    const as = $ascp.AirSync.Tags;
+    const em = $ascp.Email.Tags;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(as.Sync)
+       .stag(as.Collections);
+
+    for (let [,part] in Iterator(partitions)) {
+      let folderStorage = this.account.getFolderStorageForFolderId(
+        part.folderId);
+
+      w.stag(as.Collection);
+
+      if (this.account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+        w.tag(as.Class, 'Email');
+
+        w.tag(as.SyncKey, folderStorage.syncKey)
+         .tag(as.CollectionId, folderStorage.serverId)
+         .stag(as.Commands);
+
+      for (let [,message] in Iterator(part.messages)) {
+        let slash = message.lastIndexOf('/');
+        let messageGuid = message.substring(slash+1);
+
+        command(w, messageGuid);
+      }
+
+        w.etag(as.Commands)
+       .etag(as.Collection);
+    }
+
+      w.etag(as.Collections)
+     .etag(as.Sync);
+
+    this.account.conn.doCommand(w, function(aError, aResponse) {
+      if (aError)
+        return;
+
+      let e = new $wbxml.EventParser();
+
+      let statuses = [];
+      let syncKeys = [];
+      let collectionIds = [];
+
+      const base = [as.Sync, as.Collections, as.Collection];
+      e.addEventListener(base.concat(as.SyncKey), function(node) {
+        syncKeys.push(node.children[0].textContent);
+      });
+      e.addEventListener(base.concat(as.CollectionId), function(node) {
+        collectionIds.push(node.children[0].textContent);
+      });
+      e.addEventListener(base.concat(as.Status), function(node) {
+        statuses.push(node.children[0].textContent);
+      });
+
+      e.run(aResponse);
+
+      let allGood = statuses.reduce(function(good, status) {
+        return good && status === '1';
+      });
+
+      if (allGood) {
+        for (let i = 0; i < collectionIds.length; i++) {
+          let folderStorage = jobDriver.account.getFolderStorageForServerId(
+            collectionIds[i]);
+          folderStorage.syncKey = syncKeys[i];
+        }
+
+        if (callback)
+          callback();
+        jobDriver.account.saveAccountState();
+      }
+      else {
+        console.error('Something went wrong during ActiveSync syncing and we ' +
+                      'got a status of ' + status);
+      }
+    });
   },
 };
 
@@ -26925,7 +27571,9 @@ define('rdimap/imapclient/activesync',
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
+    './a64',
     './asfolder',
+    './asjobs',
     './util',
     'exports'
   ],
@@ -26934,13 +27582,15 @@ define('rdimap/imapclient/activesync',
     $wbxml,
     $ascp,
     $activesync,
+    $a64,
     $asfolder,
-    $imaputil,
+    $asjobs,
+    $util,
     exports
   ) {
 
 
-const bsearchForInsert = $imaputil.bsearchForInsert;
+const bsearchForInsert = $util.bsearchForInsert;
 
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
                            receiveProtoConn, _LOG) {
@@ -26951,6 +27601,8 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.conn = new $activesync.Connection(accountDef.credentials.username,
                                          accountDef.credentials.password);
   this._db = dbConn;
+
+  this._jobDriver = new $asjobs.ActiveSyncJobDriver(this);
 
   this.enabled = true;
   this.problems = [];
@@ -26966,6 +27618,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.folders = [];
   this._folderStorages = {};
   this._folderInfos = folderInfos;
+  this._serverIdToFolderId = {};
   this._deadFolderIds = null;
 
   this.meta = folderInfos.$meta;
@@ -26978,7 +27631,8 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
     var folderInfo = folderInfos[folderId];
 
     this._folderStorages[folderId] =
-      new $asfolder.ActiveSyncFolderStorage(this, folderId.split('/')[1]);
+      new $asfolder.ActiveSyncFolderStorage(this, folderInfo, this._db);
+    this._serverIdToFolderId[folderInfo.$meta.serverId] = folderId;
     this.folders.push(folderInfo.$meta);
   }
   // TODO: we should probably be smarter about sorting.
@@ -26993,10 +27647,11 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 }
 exports.ActiveSyncAccount = ActiveSyncAccount;
 ActiveSyncAccount.prototype = {
-  toString: function fa_toString() {
+  toString: function asa_toString() {
     return '[ActiveSyncAccount: ' + this.id + ']';
   },
-  toBridgeWire: function fa_toBridgeWire() {
+
+  toBridgeWire: function asa_toBridgeWire() {
     return {
       id: this.accountDef.id,
       name: this.accountDef.name,
@@ -27020,7 +27675,8 @@ ActiveSyncAccount.prototype = {
       ]
     };
   },
-  toBridgeFolder: function() {
+
+  toBridgeFolder: function asa_toBridgeFolder() {
     return {
       id: this.accountDef.id,
       name: this.accountDef.name,
@@ -27033,63 +27689,88 @@ ActiveSyncAccount.prototype = {
     return 0;
   },
 
-  saveAccountState: function(reuseTrans) {
-    var trans = this._db.saveAccountFolderStates(
-      this.id, this._folderInfos, [], this._deadFolderIds,
-      function stateSaved() {
-      },
+  saveAccountState: function asa_saveAccountState(reuseTrans) {
+    let perFolderStuff = [];
+    for (let [,folder] in Iterator(this.folders)) {
+      let folderStuff = this._folderStorages[folder.id]
+                           .generatePersistenceInfo();
+      if (folderStuff)
+        perFolderStuff.push(folderStuff);
+    }
+
+    let trans = this._db.saveAccountFolderStates(
+      this.id, this._folderInfos, perFolderStuff, this._deadFolderIds,
+      function stateSaved() {},
       reuseTrans);
     this._deadFolderIds = null;
     return trans;
   },
 
-  shutdown: function() {
+  shutdown: function asa_shutdown() {
   },
 
-  createFolder: function() {
+  createFolder: function asa_createFolder() {
     throw new Error('XXX not implemented');
   },
 
-  deleteFolder: function() {
+  deleteFolder: function asa_deleteFolder() {
     throw new Error('XXX not implemented');
   },
 
-  sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {
-    return this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
+  sliceFolderMessages: function asa_sliceFolderMessages(folderId,
+                                                        bridgeHandle) {
+    this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
   },
 
-  syncFolderList: function fa_syncFolderList(callback) {
-    var account = this;
+  syncFolderList: function asa_syncFolderList(callback) {
+    let account = this;
 
-    var fh = $ascp.FolderHierarchy.Tags;
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    const fh = $ascp.FolderHierarchy.Tags;
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderSync)
        .tag(fh.SyncKey, account.meta.syncKey)
      .etag();
 
-    this.conn.doCommand(w, function(aResponse) {
-      var e = new $wbxml.EventParser();
+    this.conn.doCommand(w, function(aError, aResponse) {
+      let e = new $wbxml.EventParser();
+      let deferredAddedFolders = [];
 
       e.addEventListener([fh.FolderSync, fh.SyncKey], function(node) {
         account.meta.syncKey = node.children[0].textContent;
       });
 
-      e.addEventListener([fh.FolderSync, fh.Changes, [fh.Add, fh.Remove]],
+      e.addEventListener([fh.FolderSync, fh.Changes, [fh.Add, fh.Delete]],
                          function(node) {
-        var folder = {};
-        for (var i = 0; i < node.children.length; i++) {
-          folder[node.children[i].localTagName] =
-            node.children[i].children[0].textContent;
-        }
+        let folder = {};
+        for (let [,child] in Iterator(node.children))
+          folder[child.localTagName] = child.children[0].textContent;
 
-        if (node.tag == fh.Add)
-          account._addedFolder(folder.ServerId, folder.DisplayName,
-                               folder.Type);
-        else
+        if (node.tag === fh.Add) {
+          if (!account._addedFolder(folder.ServerId, folder.ParentId,
+                                    folder.DisplayName, folder.Type))
+            deferredAddedFolders.push(folder);
+        }
+        else {
           account._deletedFolder(folder.ServerId);
+        }
       });
 
       e.run(aResponse);
+
+      // It's possible we got some folders in an inconvenient order (i.e. child
+      // folders before their parents). Keep trying to add folders until we're
+      // done.
+      while (deferredAddedFolders.length) {
+        let moreDeferredAddedFolders = [];
+        for (let [,folder] in Iterator(deferredAddedFolders)) {
+          if (!account._addedFolder(folder.ServerId, folder.ParentId,
+                                    folder.DisplayName, folder.Type))
+            moreDeferredAddedFolders.push(folder);
+        }
+        if (moreDeferredAddedFolders.length === deferredAddedFolders.length)
+          throw new Error('got some orphaned folders');
+        deferredAddedFolders = moreDeferredAddedFolders;
+      }
 
       account.saveAccountState();
       callback();
@@ -27107,32 +27788,54 @@ ActiveSyncAccount.prototype = {
     12: 'normal', // User-created mail folder
   },
 
-  _addedFolder: function as__addFolder(serverId, displayName, typeNum) {
+  /**
+   * Update the internal database and notify the appropriate listeners when we
+   * discover a new folder.
+   *
+   * @param {string} serverId A GUID representing the new folder
+   * @param {string} parentId A GUID representing the parent folder, or '0' if
+   *   this is a root-level folder
+   * @param {string} displayName The display name for the new folder
+   * @param {string} typeNum A numeric value representing the new folder's type,
+   *   corresponding to the mapping in _folderTypes above
+   * @return {boolean} true if we added the folder, false if we need to wait
+   *   until later (e.g. if we haven't added the folder's parent yet)
+   */
+  _addedFolder: function asa__addedFolder(serverId, parentId, displayName,
+                                          typeNum) {
     if (!(typeNum in this._folderTypes))
-      return; // Not a folder type we care about.
+      return true; // Not a folder type we care about.
 
-    var folderId = this.id + '/' + serverId;
-    var folderInfo = {
+    let path = displayName;
+    let depth = 0;
+    if (parentId !== '0') {
+      let parentFolderId = this._serverIdToFolderId[parentId];
+      if (parentFolderId === undefined)
+        return false;
+      let parent = this._folderInfos[parentFolderId];
+      path = parent.$meta.path + '/' + path;
+      depth = parent.$meta.depth + 1;
+    }
+
+    let folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
+    let folderInfo = this._folderInfos[folderId] = {
       $meta: {
         id: folderId,
+        serverId: serverId,
         name: displayName,
-        path: displayName,
+        path: path,
         type: this._folderTypes[typeNum],
-        delim: '/',
-        depth: 0,
+        depth: depth,
       },
       $impl: {
         nextHeaderBlock: 0,
         nextBodyBlock: 0,
       },
-      accuracy: [],
-      headerBlocks: [],
-      bodyBlocks: [],
     };
 
-    this._folderInfos[folderId] = folderInfo;
     this._folderStorages[folderId] = new $asfolder.ActiveSyncFolderStorage(
-      this, serverId);
+      this, folderInfo, this._db);
+    this._serverIdToFolderId[serverId] = folderId;
 
     var account = this;
     var idx = bsearchForInsert(this.folders, folderInfo.$meta, function(a, b) {
@@ -27141,12 +27844,21 @@ ActiveSyncAccount.prototype = {
     this.folders.splice(idx, 0, folderInfo.$meta);
 
     this.universe.__notifyAddedFolder(this.id, folderInfo.$meta);
+
+    return true;
   },
 
-  _deletedFolder: function as__removeFolder(serverId) {
-    var folderId = this.id + '/' + serverId;
-    var folderInfo = this._folderInfos[folderId],
+  /**
+   * Update the internal database and notify the appropriate listeners when we
+   * find out a folder has been removed.
+   *
+   * @param {string} serverId A GUID representing the deleted folder
+   */
+  _deletedFolder: function asa__deletedFolder(serverId) {
+    let folderId = this._serverIdToFolderId[serverId],
+        folderInfo = this._folderInfos[folderId],
         folderMeta = folderInfo.$meta;
+    delete this._serverIdToFolderId[serverId];
     delete this._folderInfos[folderId];
     delete this._folderStorages[folderId];
 
@@ -27160,13 +27872,13 @@ ActiveSyncAccount.prototype = {
     this.universe.__notifyRemovedFolder(this.id, folderMeta);
   },
 
-  sendMessage: function fa_sendMessage(composedMessage, callback) {
+  sendMessage: function asa_sendMessage(composedMessage, callback) {
     // XXX: This is very hacky and gross. Fix it to use pipes later.
     composedMessage._cacheOutput = true;
     composedMessage._composeMessage();
 
-    var cm = $ascp.ComposeMail.Tags;
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    const cm = $ascp.ComposeMail.Tags;
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(cm.SendMail)
        .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
        .tag(cm.SaveInSentItems)
@@ -27175,7 +27887,7 @@ ActiveSyncAccount.prototype = {
        .etag()
      .etag();
 
-    this.conn.doCommand(w, function(aResponse) {
+    this.conn.doCommand(w, function(aError, aResponse) {
       if (aResponse === null)
         callback(null);
       else {
@@ -27185,14 +27897,40 @@ ActiveSyncAccount.prototype = {
     });
   },
 
-  getFolderStorageForFolderId: function fa_getFolderStorageForFolderId(folderId){
+  getFolderStorageForFolderId: function asa_getFolderStorageForFolderId(
+                               folderId) {
     return this._folderStorages[folderId];
   },
 
-  runOp: function(op, mode, callback) {
-    // Just pretend we performed the op so no errors trigger.
-    if (callback)
-      setZeroTimeout(callback);
+  getFolderStorageForServerId: function asa_getFolderStorageForServerId(
+                               serverId) {
+    return this._folderStorages[this._serverIdToFolderId[serverId]];
+  },
+
+  runOp: function asa_runOp(op, mode, callback) {
+    dump('runOp('+JSON.stringify(op)+', '+mode+', '+callback+')\n');
+
+    let methodName = mode + '_' + op.type;
+    let isLocal = /^local_/.test(mode);
+
+    if (!isLocal)
+      op.status = mode + 'ing';
+
+    if (!(methodName in this._jobDriver))
+      throw new Error("Unsupported op: '" + op.type + "' (mode: " + mode + ")");
+
+    if (callback) {
+      this._jobDriver[methodName](op, function(error) {
+        if (!isLocal)
+          op.status = mode + 'ne';
+        callback(error);
+      });
+    }
+    else {
+      this._jobDriver[methodName](op);
+      if (!isLocal)
+        op.status = mode + 'ne';
+    }
   },
 };
 
@@ -27643,7 +28381,7 @@ Configurators['activesync'] = {
         {
           id: accountId + '/' +
                 $a64.encodeInt(universe.config.nextIdentityNum++),
-          name: userDetails.displayName,
+          name: null,
           address: userDetails.emailAddress,
           replyTo: null,
           signature: DEFAULT_SIGNATURE
@@ -27653,14 +28391,16 @@ Configurators['activesync'] = {
 
     var folderInfo = {
       $meta: {
+        nextFolderNum: 0,
         nextMutationNum: 0,
-        syncKey: "0",
+        syncKey: '0',
       },
       $mutations: [],
     };
-    universe.saveAccountDef(accountDef, folderInfo);
     var account = universe._loadAccount(accountDef, folderInfo, null);
     account.syncFolderList(function() {
+      accountDef.identities[0].name = account.conn.config.user.name;
+      universe.saveAccountDef(accountDef, folderInfo);
       callback(true, account);
     });
   },

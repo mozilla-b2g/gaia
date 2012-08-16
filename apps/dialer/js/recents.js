@@ -295,8 +295,7 @@ var Recents = {
   },
 
   deleteAll: function re_deleteAll() {
-    var response = window.confirm(_('confirm-title') + '\n' +
-                                  _('confirm-text'));
+    var response = window.confirm(_('confirm-deletion'));
     if (response) {
       var self = this;
 
@@ -577,10 +576,10 @@ var Recents = {
     var primaryInfo = logItem.querySelector('.primary-info'),
       contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact) {
-      if (contact.name) {
-        primaryInfo.textContent =
-          contact.name;
-      }
+
+      primaryInfo.textContent = (contact.name && contact.name != '') ?
+                                                    contact.name : _('unknown');
+
       if (contact.photo) {
         contactPhoto.classList.add('knownContact');
         contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
@@ -601,10 +600,6 @@ var Recents = {
       this._cachedContacts[phoneNumber] = contact;
     } else {
       contactPhoto.classList.add('unknownContact');
-
-      if (!number.length) {
-        primaryInfo.textContent = _('unknown');
-      }
     }
     this._updateCounter++;
     if (this._updateCounter == max) {

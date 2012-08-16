@@ -18,7 +18,6 @@
     "sms",
     "device-storage",
     "devicestorage",
-    "websettings-readwrite",
     "settings",
     "pin-app",
     "content-camera",

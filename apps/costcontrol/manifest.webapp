@@ -11,7 +11,8 @@
     "telephony",
     "mobileconnection",
     "mozApps",
-    "background"
+    "background",
+    "settings"
   ],
   "activities": {
     "costcontrol/topup": {

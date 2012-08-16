@@ -12,7 +12,7 @@ setService(function() {
     return r || '!!' + keystring;
   }
 
-  var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+  var WAITING_TIMEOUT = 5000;// * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
   var REQUEST_BALANCE_MAX_DELAY = 1 * 60 * 1000; // 1 minute
 
