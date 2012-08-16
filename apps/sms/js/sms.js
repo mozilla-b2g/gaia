@@ -1050,7 +1050,7 @@ var ThreadUI = {
     var tels = contact.tel;
     for (var i = 0; i < tels.length; i++) {
       var input = this.contactInput.value;
-      var number = tels[i].number.toString();
+      var number = tels[i].value.toString();
       var reg = new RegExp(input, 'ig');
       if (!(name.match(reg) || (number.match(reg)))) {
         continue;
