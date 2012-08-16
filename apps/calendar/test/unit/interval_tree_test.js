@@ -6,6 +6,7 @@ requireApp('calendar/test/unit/helper.js', function() {
 suite('interval_tree', function() {
 
   suite('playground - augmented tree search', function() {
+    return;
     var id = 0;
     var ops;
 
@@ -217,6 +218,7 @@ suite('interval_tree', function() {
 
   var subject;
   var items;
+  var list;
   var expectedRange;
 
   setup(function() {
@@ -232,8 +234,8 @@ suite('interval_tree', function() {
 
     items.before = {
       _id: 1,
-      start: 1000,
-      end: 1100
+      start: 100,
+      end: 800
     }
 
     items.after = {
@@ -255,17 +257,64 @@ suite('interval_tree', function() {
     };
 
     // should be in order of start times
-    items = [
+    list = [
       items.before,
       items.overlapBefore,
       items.middle,
       items.after
     ];
 
-    subject = new Calendar.IntervalTree(items);
+    subject = new Calendar.IntervalTree(list);
   });
 
   suite('node alignment', function() {
+    test('base alignment', function() {
+    });
+  });
+
+  suite('#query', function() {
+
+    test('basic start range query', function() {
+      var range = new Calendar.Timespan(
+        80,
+        900
+      );
+
+      assert.deepEqual(
+        subject.query(range),
+        [items.before]
+      );
+    });
+
+    test('basic end range query', function() {
+      var range = new Calendar.Timespan(
+        1600,
+        1800
+      );
+
+      assert.deepEqual(
+        subject.query(range),
+        [items.after]
+      );
+    });
+
+    test('basic middle query', function() {
+      var range = new Calendar.Timespan(
+        expectedRange.start,
+        expectedRange.end
+      );
+
+      var results = subject.query(range);
+
+      assert.deepEqual(
+        results,
+        [
+          items.overlapBefore,
+          items.middle
+        ]
+      );
+    });
+
 
   });
 
