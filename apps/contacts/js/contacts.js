@@ -452,9 +452,18 @@ var Contacts = (function() {
       listContainer.appendChild(e);
     }
 
-    if(!fb.isFbContact(contact)) {
+    if(!fb.isFbContact(contact) || fb.isFbLinked(contact)) {
+      var action = _('social-link');
+      var linked = 'true';
+
+      if(fb.isFbLinked(contact)) {
+        action = _('social-unlink');
+        linked = 'false';
+      }
       var socialTemplate = document.getElementById('social-template-#i#');
-      var social = utils.templates.render(socialTemplate,{i:contact.id});
+      var social = utils.templates.render(socialTemplate,{i:contact.id,
+                                                            action: action,
+                                                            linked: linked});
       listContainer.appendChild(social)
     }
 

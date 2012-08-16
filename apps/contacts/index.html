@@ -4,6 +4,13 @@
     <meta charset="utf-8">
     <title> Contacts </title>
 
+    <script>
+     window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+        window.console.error('OWDError:', errorMsg, url, lineNumber);
+      }
+</script>
+
+
     <link href="style/css/base/fonts.css" rel="stylesheet">
     <link href="style/css/base/root.css" rel="stylesheet">
     <link href="style/css/base/app.css" rel="stylesheet">
@@ -152,12 +159,12 @@
 
 
                 <li id="social-template-#i#" data-template>
-                  <h2 data-l10n-id="social_net">Social Network</h2>
+                  <h2 data-l10n-id="social-network">Social Network</h2>
                     <div class="item">
                       <div class="item-body-exp">
                         <button class="action"
-                                onclick="Contacts.extFb.startLink('#i#')">
-                          Link Contact
+                                onclick="Contacts.extFb.startLink('#i#','#linked#')">
+                          #action#
                         </button>
                       </div>
                     </div>

@@ -331,11 +331,11 @@ fb.Contact = function(deviceContact,cid) {
         if (fbFriend.mozContact) {
           var deleteReq = navigator.mozContacts.remove(fbFriend.mozContact);
 
-          removeReq.onsuccess = function(e) {
+          deleteReq.onsuccess = function(e) {
             out.done(e.target.result);
           }
 
-          removeReq.onerror = function(e) {
+          deleteReq.onerror = function(e) {
             window.console.error('FB: Error while linking');
             out.failed(e.target.error);
           }
@@ -361,6 +361,8 @@ fb.Contact = function(deviceContact,cid) {
     window.setTimeout(function do_unlink() {
       var uid = doGetFacebookUid(devContact);
 
+      window.console.log('OWDError: ', 'UID to unlink', uid);
+
       markAsUnlinked(devContact);
       var req = navigator.mozContacts.save(devContact);
 
@@ -381,7 +383,7 @@ fb.Contact = function(deviceContact,cid) {
           var reqRestore = navigator.mozContacts.save(mcontact);
 
           reqRestore.onsuccess = function(e) {
-            out.done();
+            out.done(mcontact.id);
           }
 
           reqRestore.onerror = function(e) {
