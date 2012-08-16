@@ -69,16 +69,17 @@
   top: 0px;
   display: inline-block;
   height: 100%;
-  width: 1.2rem;
+  width: 2rem;
 }
 .msg-header-unread-section-unread {
-  background-color: orange;
+  background: url("images/unread.png") no-repeat center transparent;
+  background-size: 60%;
 }
 .msg-header-details-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 1.2rem;
+  left: 2rem;
   width: -moz-calc(100% - 5.6rem);
   height: 100%;
   font-size: 1.6rem;

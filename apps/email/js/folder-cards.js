@@ -2,10 +2,25 @@
  * Card definitions/logic for the folder navigation / picker for move targets.
  **/
 
-function AccountPickerCard(domNode, mode, args) {
+const FOLDER_DEPTH_CLASSES = [
+    'fld-folder-depth0',
+    'fld-folder-depth1',
+    'fld-folder-depth2',
+    'fld-folder-depth3',
+    'fld-folder-depth4',
+    'fld-folder-depth5',
+    'fld-folder-depthmax'
+  ];
+
+function FolderPickerCard(domNode, mode, args) {
   this.domNode = domNode;
 
+  this.foldersSlice = args.foldersSlice;
+  this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
+
   this.curAccount = args.curAccount;
+  this.curFolder = args.curFolder;
+
   this.acctsSlice = args.acctsSlice;
   this.acctsSlice.onsplice = this.onAccountsSplice.bind(this);
 
@@ -14,10 +29,23 @@ function AccountPickerCard(domNode, mode, args) {
   bindContainerHandler(this.accountsContainer, 'click',
                        this.onClickAccount.bind(this));
 
+  this.foldersContainer =
+    domNode.getElementsByClassName('fld-folders-container')[0];
+  bindContainerHandler(this.foldersContainer, 'click',
+                       this.onClickFolder.bind(this));
+
+  domNode.getElementsByClassName('fld-accounts-btn')[0]
+    .addEventListener('click', this.onShowHideAccounts.bind(this), false);
+  domNode.getElementsByClassName('fld-nav-settings-btn')[0]
+    .addEventListener('click', this.onShowSettings.bind(this), false);
+
+  // - DOM!
+  this.updateSelfDom();
   // since the slice is already populated, generate a fake notification
   this.onAccountsSplice(0, 0, this.acctsSlice.items, true, false);
+  this.onFoldersSplice(0, 0, this.foldersSlice.items, true, false);
 }
-AccountPickerCard.prototype = {
+FolderPickerCard.prototype = {
   onAccountsSplice: function(index, howMany, addedItems,
                              requested, moreExpected) {
     var accountsContainer = this.accountsContainer;
@@ -71,53 +99,34 @@ AccountPickerCard.prototype = {
       // change selection status
       this.updateAccountDom(oldAccount);
       this.updateAccountDom(account);
+      
+      this.updateSelfDom();
+  
+      // kill the old slice and its related DOM
+      this.foldersSlice.die();
+      this.foldersContainer.innerHTML = '';
+  
+      // stop the user from doing anything until we load the folders for the
+      // account and then transition to our card.
+      Cards.eatEventsUntilNextCard();
+  
+      // load the folders for the account
+      this.foldersSlice = MailAPI.viewFolders('account', account);
+      this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
+      // T will cause the splice handler to select the inbox for us; we do
+      // this in the splice handler rather than in oncomplete because the splice
+      // handler happens first and creates the DOM, and so this way it will set
+      // the selection to be reflected in the DOM from the get-go.
+      this.curFolder = null;
     }
 
-    Cards.tellCard(['folder-picker', 'navigation'], { account: account });
+    this.accountsContainer.classList.remove('show');
+    this.foldersContainer.classList.remove('show');
+    //Cards.tellCard(['folder-picker', 'navigation'], { account: account });
   },
 
-  die: function() {
-  }
-};
-Cards.defineCardWithDefaultMode('account-picker', {}, AccountPickerCard);
-
-const FOLDER_DEPTH_CLASSES = [
-    'fld-folder-depth0',
-    'fld-folder-depth1',
-    'fld-folder-depth2',
-    'fld-folder-depth3',
-    'fld-folder-depth4',
-    'fld-folder-depth5',
-    'fld-folder-depthmax'
-  ];
-
-function FolderPickerCard(domNode, mode, args) {
-  this.domNode = domNode;
-
-  this.foldersSlice = args.foldersSlice;
-  this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
-
-  this.curAccount = args.curAccount;
-  this.curFolder = args.curFolder;
-
-  this.foldersContainer =
-    domNode.getElementsByClassName('fld-folders-container')[0];
-  bindContainerHandler(this.foldersContainer, 'click',
-                       this.onClickFolder.bind(this));
-
-  domNode.getElementsByClassName('fld-accounts-btn')[0]
-    .addEventListener('click', this.onShowAccounts.bind(this), false);
-  domNode.getElementsByClassName('fld-nav-settings-btn')[0]
-    .addEventListener('click', this.onShowSettings.bind(this), false);
-
-  // - DOM!
-  this.updateSelfDom();
-  // since the slice is already populated, generate a fake notification
-  this.onFoldersSplice(0, 0, this.foldersSlice.items, true, false);
-}
-FolderPickerCard.prototype = {
-  onShowAccounts: function() {
-    Cards.moveToCard(['account-picker', 'default']);
+  onShowHideAccounts: function() {
+    this.accountsContainer.classList.toggle('show');
   },
 
   onShowSettings: function() {
@@ -198,6 +207,7 @@ FolderPickerCard.prototype = {
     this.updateFolderDom(folder);
 
     this._showFolder(folder);
+    this.accountsContainer.classList.remove('show');
     Cards.moveToCard(['message-list', 'default']);
   },
 
@@ -206,37 +216,6 @@ FolderPickerCard.prototype = {
    */
   _showFolder: function(folder) {
     Cards.tellCard(['message-list', 'default'], { folder: folder });
-  },
-
-  /**
-   * The account picker is telling us to change the account we are showing and
-   * then switch to ourselves.
-   */
-  told: function(args) {
-    var account = args.account;
-    if (this.curAccount === account) {
-      Cards.moveToCard(this);
-      return;
-    }
-    this.curAccount = account;
-    this.updateSelfDom();
-
-    // kill the old slice and its related DOM
-    this.foldersSlice.die();
-    this.foldersContainer.innerHTML = '';
-
-    // stop the user from doing anything until we load the folders for the
-    // account and then transition to our card.
-    Cards.eatEventsUntilNextCard();
-
-    // load the folders for the account
-    this.foldersSlice = MailAPI.viewFolders('account', account);
-    this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
-    // T will cause the splice handler to select the inbox for us; we do
-    // this in the splice handler rather than in oncomplete because the splice
-    // handler happens first and creates the DOM, and so this way it will set
-    // the selection to be reflected in the DOM from the get-go.
-    this.curFolder = null;
   },
 
   /**
