@@ -262,8 +262,9 @@ var WindowManager = (function() {
   }
 
   // Switch to a different app
-  function setDisplayedApp(origin, callback, url) {
+  function setDisplayedApp(origin, callback, disposition) {
     var currentApp = displayedApp, newApp = origin;
+    disposition = disposition || 'window';
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -285,12 +286,6 @@ var WindowManager = (function() {
     }
     // Case 4: app-to-app transition
     else {
-      // XXX Note: Hack for demo when current app want to set specific hash
-      //           url in newApp(e.g. contact trigger SMS message list page).
-      var frame = runningApps[newApp].frame;
-      if (url && frame.src != url) {
-        frame.src = url;
-      }
       setAppSize(newApp);
       updateLaunchTime(newApp);
       closeWindow(currentApp, function closeWindow() {
@@ -337,7 +332,7 @@ var WindowManager = (function() {
     }
   }
 
-  function appendFrame(origin, url, name, manifest, manifestURL, background) {
+  function appendFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
     frame.id = 'appframe' + nextAppId++;
     frame.className = 'appWindow';
@@ -507,13 +502,6 @@ var WindowManager = (function() {
     };
 
     numRunningApps++;
-
-    // Launching this application without bring it to the foreground
-    if (background)
-      return;
-
-    // Now animate the window opening.
-    setDisplayedApp(origin);
   }
 
 
@@ -542,8 +530,10 @@ var WindowManager = (function() {
       return;
 
     var app = Applications.getByOrigin(origin);
-    var name = app.manifest.name;
+    if (!app)
+      return;
 
+    var name = app.manifest.name;
 
     // Check if it's a virtual app from a entry point.
     // If so, change the app name and origin to the
@@ -565,28 +555,25 @@ var WindowManager = (function() {
       // mozApps API is asking us to launch the app
       // We will launch it in foreground
       case 'webapps-launch':
-        if (isRunning(origin)) {
-          setDisplayedApp(origin, null, e.detail.url);
-          return;
+        if (!isRunning(origin)) {
+          appendFrame(origin, e.detail.url,
+                      name, app.manifest, app.manifestURL);
         }
 
-        appendFrame(origin, e.detail.url,
-                    name, app.manifest, app.manifestURL);
+        setDisplayedApp(origin, null, 'window');
         break;
 
       // System Message Handler API is asking us to open the specific URL
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
-
-        UtilityTray.hide();
-
         if (isRunning(origin)) {
-          var frame = getAppFrame(origin);
           // If the app is in foreground, it's too risky to change it's
           // URL. We'll ignore this request.
           if (displayedApp === origin)
             return;
+
+          var frame = getAppFrame(origin);
 
           // If the app is opened and it is loaded to the correct page,
           // then there is nothing to do.
@@ -597,13 +584,10 @@ var WindowManager = (function() {
             frame.src = e.detail.url;
           }
         } else {
-          if (!app)
-            return;
-
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
           appendFrame(origin, e.detail.url,
-                      app.manifest.name, app.manifest, app.manifestURL, true);
+                      name, app.manifest, app.manifestURL);
         }
 
         // If nothing is opened yet, consider the first application opened
@@ -615,7 +599,17 @@ var WindowManager = (function() {
           return;
         }
 
-        setDisplayedApp(origin);
+        // We will only bring web activity handling apps to the foreground
+        // (either disposition: inline or disposition: window)
+        if (!e.detail.isActivity)
+          return;
+
+        var disposition = e.detail.target.disposition || 'window';
+        if (disposition == 'window')
+          UtilityTray.hide();
+
+        setDisplayedApp(origin, null, disposition);
+
         break;
     }
   });
