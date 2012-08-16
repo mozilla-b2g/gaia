@@ -194,6 +194,12 @@ var OnCallHandler = {
       // Needs to be called at least once
       callsChanged();
       telephony.oncallschanged = callsChanged;
+
+      // If the call was ended before we got here we can close
+      // right away.
+      if (this.handledCalls.length === 0) {
+        this._close(false);
+      }
     }
   },
 
@@ -320,7 +326,8 @@ var OnCallHandler = {
 
       CallScreen.showIncoming();
     } else {
-      if (window.location.hash.split('?')[1] === 'locked') {
+      if (window.location.hash.split('?')[1] === 'locked' &&
+          (call.state == 'incoming')) {
         CallScreen.render('incoming-locked');
       } else {
         CallScreen.render(call.state);
@@ -338,6 +345,10 @@ var OnCallHandler = {
       return;
     }
 
+    this._close(true);
+  },
+
+  _close: function och_close(animate) {
     if (this._closing)
       return;
 
@@ -349,8 +360,12 @@ var OnCallHandler = {
     ProximityHandler.disable();
 
     this._closing = true;
-    // Out animation before closing the window
-    this.toggleScreen();
+
+    if (animate) {
+      this.toggleScreen();
+    } else {
+      this.closeWindow();
+    }
   }
 };
 
