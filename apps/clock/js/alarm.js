@@ -51,6 +51,12 @@ var ClockView = {
     return this.digitalClockBG = document.getElementById('digital-clock-bg');
   },
 
+  get digitalClockDisplay() {
+    delete this.digitalClockDisplay;
+    return this.digitalClockDisplay =
+      document.getElementById('digital-clock-display');
+  },
+
   init: function cv_init() {
     this.updateDaydate();
     this.updateDigitalClock();
@@ -181,13 +187,21 @@ var ClockView = {
                  this.alarmNewBtn.offsetHeight -
                  AlarmList.alarms.offsetHeight;
     this.analogClock.style.height = height + 'px';
-  }
+  },
 
+  showHideAlarmSetIndicator: function cv_showHideAlarmSetIndicator(enabled) {
+    if (enabled) {
+      this.digitalClockDisplay.classList.add('alarm-set-indicator');
+    } else {
+      this.digitalClockDisplay.classList.remove('alarm-set-indicator');
+    }
+   }
 };
 
 var AlarmList = {
 
   alarmList: [],
+  refreshing: false,
 
   get alarms() {
     delete this.alarms;
@@ -265,7 +279,6 @@ var AlarmList = {
       var isChecked = alarm.enabled ? ' checked="true"' : '';
       var hour = (alarm.hour > 12) ? alarm.hour - 12 : alarm.hour;
       var hour12state = (alarm.hour > 12) ? 'PM' : 'AM';
-
       content += '<li>' +
                  '  <label class="alarmList">' +
                  '    <input id="input-enable" data-id="' + alarm.id +
@@ -296,6 +309,7 @@ var AlarmList = {
 
     this.alarms.innerHTML = content;
     ClockView.resizeAnalogClock();
+    this.refreshing = false;
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
@@ -307,15 +321,22 @@ var AlarmList = {
   },
 
   updateAlarmEnableState: function al_updateAlarmEnableState(enabled, alarm) {
+    if (this.refreshing)
+      return;
+
     if (alarm.enabled == enabled)
       return;
 
     alarm.enabled = enabled;
-
+    this.refreshing = true;
     var self = this;
     AlarmsDB.putAlarm(alarm, function al_putAlarmList(alarm) {
-      AlarmManager.setEnabled(alarm, alarm.enabled);
-      self.refresh();
+      if (!alarm.enabled && !alarm.alarmId) {
+        // No need to unset the alarm, just update state button only
+        self.refresh();
+      } else {
+        AlarmManager.setEnabled(alarm, alarm.enabled);
+      }
     });
   },
 
@@ -341,6 +362,7 @@ var AlarmManager = {
     navigator.mozSetMessageHandler('alarm', function gotMessage(message) {
       self.onAlarmFiredHandler(message);
     });
+    this.updateAlarmStatusBar();
   },
 
   setEnabled: function am_setEnabled(alarm, enabled) {
@@ -352,6 +374,9 @@ var AlarmManager = {
   },
 
   set: function am_set(alarm, bSnooze) {
+    // Unset the requested alarm which does not goes off
+    this.unset(alarm);
+
     var nextAlarmFireTime = null;
     if (bSnooze) {
       nextAlarmFireTime = new Date();
@@ -380,6 +405,11 @@ var AlarmManager = {
   unset: function am_unset(alarm) {
     if (alarm.alarmId) {
       navigator.mozAlarms.remove(alarm.alarmId);
+      alarm.alarmId = '';
+      // clear the AlarmAPI's request id to DB
+      AlarmsDB.putAlarm(alarm, function am_putAlarm(alarm) {
+        AlarmList.refresh();
+      });
       this.updateAlarmStatusBar();
     }
   },
@@ -391,6 +421,11 @@ var AlarmManager = {
     // find out which alarm is being fired.
     var self = this;
     AlarmsDB.getAlarm(id, function am_gotAlarm(alarm) {
+      // clear the requested id of went off alarm to DB
+      alarm.alarmId = '';
+      AlarmsDB.putAlarm(alarm, function am_putAlarm(alarm) {
+        AlarmList.refresh();
+      });
       // prepare to pop out attention screen, ring the ringtone, vibrate
       self._onFireAlarm = alarm;
       var protocol = window.location.protocol;
@@ -422,6 +457,7 @@ var AlarmManager = {
     request.onsuccess = function(e) {
       var hasAlarmEnabled = !!e.target.result.length;
       navigator.mozSettings.getLock().set({'alarm.enabled': hasAlarmEnabled});
+      ClockView.showHideAlarmSetIndicator(hasAlarmEnabled);
     };
     request.onerror = function(e) {
       console.log('get all alarm fail');
