@@ -269,6 +269,19 @@ var Contacts = (function() {
   var initContactsList = function initContactsList() {
     var list = document.getElementById('groups-list');
     contactsList.init(list);
+    checkCancelableActivity();
+  };
+
+  var checkCancelableActivity = function cancelableActivity() {
+    var cancelButton = document.getElementById('cancel_activty');
+    var addButton = document.getElementById('add-contact-button');
+    if (ActivityHandler.currentlyHandling) {
+      cancelButton.classList.remove('hide');
+      addButton.classList.add('hide');
+    } else {
+      cancelButton.classList.add('hide');
+      addButton.classList.remove('hide');
+    }
   }
 
   var initLanguages = function initLanguages() {
@@ -1214,7 +1227,8 @@ var Contacts = (function() {
     'pickImage': pickImage,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
-    'updatePhoto': updatePhoto
+    'updatePhoto': updatePhoto,
+    'checkCancelableActivity': checkCancelableActivity
   };
 })();
 
@@ -1224,16 +1238,9 @@ if (window.navigator.mozSetMessageHandler) {
 }
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {
-  var cancelButton = document.getElementById('cancel_activty');
-  var addButton = document.getElementById('add-contact-button');
-  if (ActivityHandler.currentlyHandling) {
-    if (document.mozHidden) {
-      ActivityHandler.postCancel();
-    }
-    cancelButton.classList.remove('hide');
-    addButton.classList.add('hide');
-  } else {
-    cancelButton.classList.add('hide');
-    addButton.classList.remove('hide');
+  if (ActivityHandler.currentlyHandling && document.mozHidden) {
+    ActivityHandler.postCancel();
+    return;
   }
+  Contacts.checkCancelableActivity();
 });
