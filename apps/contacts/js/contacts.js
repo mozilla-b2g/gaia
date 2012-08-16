@@ -371,7 +371,9 @@ var Contacts = (function() {
 
     if (fb.isFbContact(contact) && !fb.isFbLinked(contact)) {
       editContactButton.setAttribute('disabled','disabled');
+    }
 
+    if(fb.isFbContact(contact)) {
       var fbContact = new fb.Contact(contact);
       var req = fbContact.getData();
       req.onsuccess = function() { doReloadContactDetails(req.result); }

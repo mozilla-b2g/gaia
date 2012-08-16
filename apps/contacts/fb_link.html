@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
+    <script>
+     window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+        window.console.error('OWDError:', errorMsg, url, lineNumber);
+      }
+</script>
+
     <title>Facebook Link</title>
 
     <link rel="stylesheet" href="style/shared/core/css/root.css">
@@ -40,7 +46,7 @@
         <section id='mainContent' data-state="selection">
           <ol id="friends-list" onclick="fb.link.ui.selected(event)">
             <li data-template data-uuid="#uid#">
-              <img src="#pic_square_with_logo#">
+              <img src="https://graph.facebook.com/#uid#/picture?type=square">
                 <dl>
                   <dt>#name#</dt>
                   <dd>#email#</dd>
