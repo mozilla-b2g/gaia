@@ -76,6 +76,10 @@
   border: solid 2px white;
 }
 
+#modal-dialog button.small-font {
+  font-size: 14px;
+}
+
 #modal-dialog button:active {
   background: white;
   color: black;
@@ -92,6 +96,10 @@
     font-size: 30px;
     border-radius: 6px 6px 6px 6px;
     margin: 3px;
+  }
+
+  #modal-dialog button.small-font {
+    font-size: 21px;
   }
 
   #modal-dialog input {
@@ -168,4 +176,3 @@
 #modal-dialog-buttons[data-type="confirm"] #modal-dialog-confirm-cancel {
   display: inline-block;
 }
-
