@@ -548,7 +548,7 @@ var LockScreen = {
         // create the <iframe> and load the emergency call
         var frame = document.createElement('iframe');
 
-        frame.src = './emergency-call/';
+        frame.src = './emergency-call/index.htm';
         frame.onload = function emergencyCallLoaded() {
           if (callback)
             callback();
@@ -561,7 +561,7 @@ var LockScreen = {
         // create the <iframe> and load the camera
         var frame = document.createElement('iframe');
 
-        frame.src = './camera/';
+        frame.src = './camera/index.htm';
         var mainScreen = this.mainScreen;
         frame.onload = function cameraLoaded() {
           mainScreen.classList.add('lockscreen-camera');
