@@ -617,7 +617,7 @@ var WindowManager = (function() {
         if (!homescreen) {
           homescreen = origin;
           var frame = runningApps[homescreen].frame;
-          frame.dataset.zIndexLevel = 'homescreen'; 
+          frame.dataset.zIndexLevel = 'homescreen';
           return;
         }
 

@@ -31,7 +31,7 @@
     ].join(''),
 
     month: [
-      '<section id="{id}" class="month">',
+      '<section id="{id}" class="month {additionalClass}">',
         '{content|s}',
       '</section>'
     ].join(''),
