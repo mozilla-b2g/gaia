@@ -638,7 +638,8 @@ var ThreadUI = {
     // offset height to keep original height, otherwise we use scroll height
     // with additional margin for preventing scroll bar.
     input.style.height = input.offsetHeight > input.scrollHeight ?
-      input.offsetHeight + 'px' : input.scrollHeight + 8 + 'px';
+      input.offsetHeight / Utils.getFontSize() + 'rem' :
+      input.scrollHeight / Utils.getFontSize() + 0.8 + 'rem';
 
     var newHeight = input.getBoundingClientRect().height;
     // Add 1 rem to fit the margin top and bottom space.
@@ -1050,7 +1051,7 @@ var ThreadUI = {
     var tels = contact.tel;
     for (var i = 0; i < tels.length; i++) {
       var input = this.contactInput.value;
-      var number = tels[i].number.toString();
+      var number = tels[i].value.toString();
       var reg = new RegExp(input, 'ig');
       if (!(name.match(reg) || (number.match(reg)))) {
         continue;
@@ -1091,22 +1092,29 @@ var ThreadUI = {
 
   pickContact: function thui_pickContact() {
     try {
+      var reopenSelf = function reopenSelf(number) {
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          var app = evt.target.result;
+          app.launch();
+          if (number) {
+            window.location.hash = '#num=' + number;
+          }
+        };
+      };
       var activity = new MozActivity({
         name: 'pick',
         data: {
           type: 'webcontacts/contact'
         }
       });
-      activity.onsuccess = function() {
+      activity.onsuccess = function success() {
         var number = this.result.number;
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          if (number) {
-            var app = evt.target.result;
-            app.launch();
-            window.location.hash = '#num=' + number;
-          }
-        };
+        reopenSelf(number);
       }
+      activity.onerror = function error() {
+        reopenSelf();
+      }
+
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }

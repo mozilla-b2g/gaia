@@ -477,7 +477,8 @@ var WindowManager = (function() {
       //   - bug 776132
 
       'Video',
-      // - When running OOP, displays black screen when launching (i.e. no video list) (782460)
+      // - When running OOP, displays black screen when launching
+      //   (i.e. no video list) (782460)
       // - Stop audio when app dies
 
       'Homescreen',
