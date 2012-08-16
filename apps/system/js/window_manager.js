@@ -251,16 +251,6 @@ var WindowManager = (function() {
     }
   }
 
-  //last time app was launched,
-  //needed to display them in proper
-  //order on CardsView
-  function updateLaunchTime(origin) {
-    if (!runningApps[origin])
-      return;
-
-    runningApps[origin].launchTime = Date.now();
-  }
-
   // Switch to a different app
   function setDisplayedApp(origin, callback, disposition) {
     var currentApp = displayedApp, newApp = origin;
@@ -276,7 +266,6 @@ var WindowManager = (function() {
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
       setAppSize(newApp);
-      updateLaunchTime(newApp);
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
@@ -287,7 +276,6 @@ var WindowManager = (function() {
     // Case 4: app-to-app transition
     else {
       setAppSize(newApp);
-      updateLaunchTime(newApp);
       closeWindow(currentApp, function closeWindow() {
         openWindow(newApp, callback);
       });
@@ -299,6 +287,11 @@ var WindowManager = (function() {
     } else {
       setOrientationForApp(newApp);
     }
+
+    // Record the time when app was launched,
+    // need this to display apps in proper order on CardsView.
+    if (newApp)
+      runningApps[newApp].launchTime = Date.now();
 
     // Set displayedApp to the new value
     displayedApp = origin;
@@ -498,7 +491,7 @@ var WindowManager = (function() {
       name: name,
       manifest: manifest,
       frame: frame,
-      launchTime: Date.now()
+      launchTime: 0
     };
 
     numRunningApps++;
