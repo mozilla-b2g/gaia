@@ -1091,22 +1091,29 @@ var ThreadUI = {
 
   pickContact: function thui_pickContact() {
     try {
+      var reopenSelf = function reopenSelf(number) {
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          var app = evt.target.result;
+          app.launch();
+          if (number) {
+            window.location.hash = '#num=' + number;
+          }
+        };
+      };
       var activity = new MozActivity({
         name: 'pick',
         data: {
           type: 'webcontacts/contact'
         }
       });
-      activity.onsuccess = function() {
+      activity.onsuccess = function success() {
         var number = this.result.number;
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          if (number) {
-            var app = evt.target.result;
-            app.launch();
-            window.location.hash = '#num=' + number;
-          }
-        };
+        reopenSelf(number);
       }
+      activity.onerror = function error() {
+        reopenSelf();
+      }
+
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
