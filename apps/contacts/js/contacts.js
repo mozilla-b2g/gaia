@@ -331,7 +331,7 @@ var Contacts = (function() {
         currentContact = request.result[0];
         var onlyOneTel = currentContact.tel && currentContact.tel.length === 1;
         if (ActivityHandler.currentlyHandling && onlyOneTel) {
-          var number = currentContact.tel[0].number;
+          var number = currentContact.tel[0].value;
           ActivityHandler.postPickSuccess(number);
           return;
         }
@@ -411,7 +411,7 @@ var Contacts = (function() {
     for (var tel in contact.tel) {
       var currentTel = contact.tel[tel];
       var telField = {
-        number: currentTel.number || '',
+        number: currentTel.value || '',
         type: currentTel.type || TAG_OPTIONS['phone-type'][0].value,
         notes: '',
         i: tel
@@ -424,7 +424,7 @@ var Contacts = (function() {
     for (var email in contact.email) {
       var currentEmail = contact.email[email];
       var emailField = {
-        address: currentEmail['address'] || '',
+        value: currentEmail['value'] || '',
         type: currentEmail['type'] || TAG_OPTIONS['email-type'][0].value,
         i: email
       };
@@ -519,7 +519,7 @@ var Contacts = (function() {
     for (var tel in currentContact.tel) {
       var currentTel = currentContact.tel[tel];
       var telField = {
-        number: currentTel.number,
+        number: currentTel.value,
         type: currentTel.type || default_type,
         notes: '',
         i: tel
@@ -535,7 +535,7 @@ var Contacts = (function() {
       var currentEmail = currentContact.email[email];
       var default_type = TAG_OPTIONS['email-type'][0].value;
       var emailField = {
-        address: currentEmail['address'] || '',
+        value: currentEmail['value'] || '',
         type: currentEmail['type'] || default_type,
         i: email
       };
@@ -953,7 +953,7 @@ var Contacts = (function() {
 
       contact['email'] = contact['email'] || [];
       contact['email'][i] = {
-        address: emailValue,
+        value: emailValue,
         type: typeField
       };
     }
@@ -1026,7 +1026,7 @@ var Contacts = (function() {
 
   var insertEmail = function insertEmail(email) {
     var emailField = {
-      address: email || '',
+      value: email || '',
       type: TAG_OPTIONS['email-type'][0].value,
       i: numberEmails || 0
     };
