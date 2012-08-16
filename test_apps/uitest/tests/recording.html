@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Recording test</title>
+    <style>
+      #main {
+        display: block;
+        margin: 0px auto;
+        text-align: center
+      }
+
+      #content {
+        display: block;
+      }
+
+      #startbuttons {
+        display: block;
+      }
+
+      #stopbuttons {
+        display: none;
+      }
+
+      #message {
+        font-size: 24px;
+      }
+
+      h1 {
+        font-size: 40px;
+      }
+
+      input {
+        font-size: 28px;
+      }
+
+      p {
+        color: green;
+      }
+
+      p.error {
+        color: red;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="main">
+      <div id="startbuttons">
+        <input type="button" value="Video" onClick="startVideo();"/>
+        <input type="button" value="Audio" onClick="startAudio();"/>
+        <input type="button" value="Picture" onClick="startPicture();"/>
+      </div>
+
+      <div id="content"></div>
+      <div id="message"></div>
+      <div id="stopbuttons">
+        <input type="button" value="Stop" onClick="stopMedia();"/>
+      </div>
+    </div>
+  </body>
+
+  <script type="application/javascript">
+    var videoStatus = false;
+    var video = document.createElement("video");
+    video.setAttribute("width", 800);
+    video.setAttribute("height", 600);
+
+    var audioStatus = false;
+    var audio = document.createElement("audio");
+    audio.setAttribute("controls", true);
+
+    var pictureStatus = false;
+    var picture = document.createElement("img");
+
+    var start = document.getElementById("startbuttons");
+    var stop = document.getElementById("stopbuttons");
+
+    var message = document.getElementById("message");
+    var content = document.getElementById("content");
+
+    var reader = new FileReader();
+
+    function startVideo() {
+      videoStatus = true;
+      content.appendChild(video);
+      startMedia({video:true});
+    }
+
+    function startAudio() {
+      audioStatus = true;
+      content.appendChild(audio);
+      startMedia({audio:true});
+    }
+
+    function startPicture() {
+      pictureStatus = true;
+      content.appendChild(picture);
+      startMedia({picture:true});
+    }
+
+    function stopMedia() {
+      if (videoStatus) {
+        video.pause();
+        video.src = null;
+        content.removeChild(video);
+        videoStatus = false;
+      }
+
+      if (audioStatus) {
+        audio.pause();
+        audio.src = null;
+        content.removeChild(audio);
+        audioStatus = false;
+      }
+
+      if (pictureStatus) {
+        picture.src = null;
+        content.removeChild(picture);
+        pictureStatus = false;
+      }
+      stop.style.display = "none";
+      start.style.display = "block";
+    }
+
+    function startMedia(param) {
+      stop.style.display = "block";
+      start.style.display = "none";
+      try {
+        window.navigator.mozGetUserMedia(param, function(stream) {
+          message.innerHTML = "<p>Success!</p>";
+          if (videoStatus) {
+            video.src = stream;
+            video.play();
+          }
+
+          if (audioStatus) {
+            audio.src = stream;
+            audio.play();
+          }
+
+          if (pictureStatus) {
+            picture.src = window.URL.createObjectURL(stream);
+            picture.onload = function(e) {
+              window.URL.revokeObjectURL(this.src);
+            }
+          }
+        }, function(err) {
+          message.innerHTML = "<p class='error'>" + err + "</p>";
+          stopMedia();
+        });
+      } catch(e) {
+        message.innerHTML = "<p class='error'>" + e + "</p>";
+        stopMedia();
+      }
+    }
+  </script>
+</html>
+
