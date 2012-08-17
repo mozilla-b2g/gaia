@@ -59,6 +59,13 @@ html {
   vertical-align: middle;
 }
 
+#cost-control-currency {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: white;
+}
+
 #cost-control-credit {
   font-family: 'Open Sans', sans-serif;
   font-size: 1.8rem;

@@ -4,8 +4,8 @@
 'use strict';
 
 var CostControl = getService(function cc_onServiceReady(evt) {
-  // If the service is not ready, when ready it re-set the CostControl object
-  // and setup the widget.
+  // If the service is not ready, when ready it sets the CostControl object
+  // again and setup the application.
   CostControl = evt.detail.service;
   setupApp();
 });
@@ -21,71 +21,71 @@ function setupApp() {
   }
 
   var _isUpdating = false;
-  var _activityRequest = null;
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
     _updateUI(evt.detail.balance, evt.detail.timestamp);
-    _setUpdatingMode(false);
   }
 
   // On balance updating error, if manual request, notificate
   function _onUpdateBalanceError(evt) {
-    _setUpdatingMode(false);
-
     if (!isManualRequest)
       return;
 
     switch(evt.detail.reason) {
-      case 'parse-error':
-        navigator.mozNotification.createNotification(
-          _('checking-balance-parsing-error-title'),
-          _('checking-balance-parsing-error-description')
-        ).show();
-        break;
-
       case 'sending-error':
         alert(_('cannot-check-balance'));
         break;
     }
   }
 
+  // On starting an update, enter into update mode
+  function _onUpdateStart(evt) {
+    _setUpdatingMode(true);
+  }
+
+  // On ending an update, exit from update mode
+  function _onUpdateFinish(evt) {
+    _setUpdatingMode(false);
+  }
+
   // On top up success, update UI with the new balance, notificate and post
   // result if there was an activity request. TODO: let a list of activity
   // request
   function _onTopUpSuccess(evt) {
-//  var output = _updateUI(evt.detail.newBalance);
-//    _setUpdatingMode(false);
+    _requestUpdate();
+  }
 
-    navigator.mozNotification.createNotification(
-      _('topup-confirmation-title'),
-      // TODO: Replace evt.detail.newB by output.b
-      _('topup-confirmation-message', { credit: evt.detail.newBalance })
-    ).show();
+  // When starting a top up, change to the waiting screen
+  function _onTopUpStart() {
+    console.log('TODO: Change screen to waiting screen, wait 10s and return to the balance.');
+  }
 
-    // If there was an activity request, send the new balance as result
-    if (_activityRequest) {
-      _activityRequest.postResult({ newBalance: evt.detail.newBalance });
-      _activityRequest = null;
-    }
+  function _onTopUpFinish() {
+    _setUpdatingMode(false);
   }
 
   // On top up error, if manual request, notificate
   function _onTopUpError(evt) {
-    _setUpdatingMode(false);
-
     switch(evt.detail.reason) {
-      case 'parse-error':
-        navigator.mozNotification.createNotification(
-          _('topup-parsing-error-title'),
-          _('topup-parsing-error-description')
-        ).show();
+      case 'sending-error':
+        console.log('TODO: Error message, we cannot top up at the moment.');
         break;
 
-      case 'sending-error':
-//        alert(_('cannot-check-balance'));
+      case 'incorrect-code':
+        console.log('TODO: Change the top up screen and notificate!');
         break;
     }
+  }
+
+  function _requestUpdate() {
+    if (_isUpdating)
+      return;
+
+    _setUpdatingMode(true);
+    console.log('Update balance!');
+
+    CostControl.requestBalance();
   }
 
   var _buttonRequestTopUp, _creditArea, _credit, _time, _updateIcon;
@@ -96,17 +96,16 @@ function setupApp() {
 
     _buttonRequestTopUp = document.getElementById('buttonRequestTopUp');
     _buttonRequestTopUp.addEventListener('click', function cc_requestTopUp() {
+      if (!CostControl.inCoverage()) {
+        console.log('TODO: No coverage, open an alert and avoid to continue');
+        return;
+      }
+
       location.hash = 'topup';
     });
 
     _updateIcon = document.getElementById('cost-control-update-icon');
-    _updateIcon.addEventListener('click', function cc_requestUpdate() {
-      if (_isUpdating)
-        return;
-
-      _setUpdatingMode(true);
-      CostControl.requestBalance();
-    });
+    _updateIcon.addEventListener('click', _requestUpdate);
   }
 
   var _inputTopUpCode, _buttonTopUp;
@@ -114,9 +113,8 @@ function setupApp() {
     _inputTopUpCode = document.getElementById('inputTopUpCode');
     _buttonTopUp = document.getElementById('buttonTopUp');
     _buttonTopUp.addEventListener('click', function cc_onTopUp() {
-      if (_isUpdating)
-        return;
 
+      console.log('TopUp!');
       // Strip
       var code = _inputTopUpCode.value
         .replace(/^\s+/, '').replace(/\s+$/, '');
@@ -124,6 +122,7 @@ function setupApp() {
       if (!code)
         return;
 
+      console.log('topping up with code: ' + code);
       CostControl.requestTopUp(code);
     });
   }
@@ -137,13 +136,17 @@ function setupApp() {
     // Callbacks for topping up
     CostControl.setTopUpCallbacks({
       onsuccess: _onTopUpSuccess,
-      onerror: _onTopUpError
+      onerror: _onTopUpError,
+      onstart: _onTopUpStart,
+      onfinish: _onTopUpFinish
     });
 
     // Callbacks for update balance
     CostControl.setBalanceCallbacks({
       onsuccess: _onUpdateBalanceSuccess,
-      onerror: _onUpdateBalanceError
+      onerror: _onUpdateBalanceError,
+      onstart: _onUpdateStart,
+      onfinish: _onUpdateFinish
     });
 
     // Handle web activity
@@ -151,11 +154,10 @@ function setupApp() {
       function settings_handleActivity(activityRequest) {
         var name = activityRequest.source.name;
         switch (name) {
-          case 'costcontrol/topup':
+          case 'costcontrol/open':
             // Go to that section and enable activity mode
             setTimeout(function cc_goToTopUp() {
-              _activityRequest = activityRequest;
-              document.location.hash = 'topup';
+              document.location.hash = 'left-panel';
             });
             break;
         }

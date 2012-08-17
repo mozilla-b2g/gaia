@@ -27,10 +27,12 @@ function setupWidget() {
     return r || '!!' + keystring;
   }
 
-  var _widget, _widgetCredit, _widgetTime;
+  var _widget, _widgetCredit, _widgetCurrency, _widgetTime;
   var _isUpdating = false;
 
-  var REQUEST_BALANCE_MAX_DELAY = 1 * 60 * 1000; // 1 minute
+  function _automaticUpdatesAllowed() {
+    return CostControl.inRoaming() === false;
+  }
 
   // Attach event listeners for automatic updates:
   //  * After showing the utility tray
@@ -44,57 +46,53 @@ function setupWidget() {
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
-    _updateUI(evt.detail.balance, evt.detail.timestamp);
-    _setUpdatingMode(false);
+    _updateUI(evt.detail.balance, evt.detail.timestamp, evt.detail.currency);
   }
 
   // On balance updating error, if manual request, notificate
   function _onUpdateBalanceError(evt) {
-    _setUpdatingMode(false);
-
     if (!isManualRequest)
       return;
 
     switch(evt.detail.reason) {
-      case 'parse-error':
-        navigator.mozNotification.createNotification(
-          _('checking-balance-parsing-error-title'),
-          _('checking-balance-parsing-error-description')
-        ).show();
-        break;
-
       case 'sending-error':
-        alert(_('cannot-check-balance'));
+        console.log('TODO: Change widget state to indicate the fail.');
         break;
     }
+  }
+
+  // On starting an update, enter into update mode
+  function _onUpdateStart(evt) {
+    _setUpdatingMode(true);
+  }
+
+  // On ending an update, exit from update mode
+  function _onUpdateFinish(evt) {
+    _setUpdatingMode(false);
   }
 
   // Attach event listeners for manual updates
   function _configureWidget() {
     _widget = document.getElementById('cost-control');
     _widgetCredit = document.getElementById('cost-control-credit');
+    _widgetCurrency = document.getElementById('cost-control-currency')
     _widgetTime = document.getElementById('cost-control-time');
 
     // Listener for check now button
     var checkNowBalanceButton = document.getElementById('cost-control-credit-area');
     checkNowBalanceButton.addEventListener(
       'click',
-      function cc_manualCheck() {
-        _updateBalance(true);
+      function cc_openApp() {
+        _openApp(true);
       }
-    );
-
-    // Listener for top up button
-    var topUpButton = document.getElementById('cost-control-topup');
-    topUpButton.addEventListener(
-      'click',
-      _topUp
     );
 
     // Suscribe callbacks for balance updating success and error to the service
     CostControl.setBalanceCallbacks({
       onsuccess: _onUpdateBalanceSuccess,
-      onerror: _onUpdateBalanceError
+      onerror: _onUpdateBalanceError,
+      onstart: _onUpdateStart,
+      onfinish: _onUpdateFinish
     });
 
     _updateUI();
@@ -107,20 +105,12 @@ function setupWidget() {
     _configureAutomaticUpdates();
   }
 
-  // Return true if the device is in roaming
-  function _inRoaming() {
-    var conn = window.navigator.mozMobileConnection;
-    var voice = conn.voice;
-    console.log('Roaming: ' + voice.roaming);
-    return voice.roaming;
-  }
-
   // Handle the events that triggers automatic balance updates
   function _automaticCheck(evt) {
     console.log('Event listened: ' + evt.type);
 
     // Ignore if the device is in roaming
-    if (_inRoaming()) {
+    if (!_automaticUpdatesAllowed()) {
       console.warn('Device in roaming, no automatic updates allowed');
       return;
     }
@@ -136,7 +126,7 @@ function setupWidget() {
           lastUpdated = (new Date(lastUpdated)).getTime();
 
         var now = (new Date()).getTime();
-        if (now - lastUpdated > REQUEST_BALANCE_MAX_DELAY)
+        if (now - lastUpdated > CostControl.getRequestBalanceMaxDelay())
           _updateBalance();
 
         break;
@@ -153,38 +143,28 @@ function setupWidget() {
   }
 
   // Request a balance update from the service
-  function _updateBalance(isManualRequest) {
+  function _updateBalance() {
     if (_isUpdating)
       return;
 
-    _setUpdatingMode(true);
     CostControl.requestBalance();
   }
 
-  // Request a top up to the cost control application via web activity
-  function _topUp() {
-    if (_isUpdating)
-      return;
-
-    // TODO: Use a web activity
-    var activity = new MozActivity({ name: 'costcontrol/topup' });
-    activity.onsuccess = function () {
-      _updateUI(activity.result.newBalance);
-      _setUpdatingMode(false);
-    };
-    activity.onerror = function () {
-      console.log('ERROR');
-    };
+  // Open the cost control & data usage application
+  function _openApp() {
+    var activity = new MozActivity({ name: 'costcontrol/open' });
   }
 
   // Updates the UI with the new balance and return both balance and timestamp
-  function _updateUI(balance, timestamp) {
+  function _updateUI(balance, timestamp, currency) {
     if (!arguments.length) {
       var lastBalance = CostControl.getLastBalance();
       balance = lastBalance ? lastBalance.balance : null;
       timestamp = lastBalance ? lastBalance.timestamp : null;
+      currency = lastBalance ? lastBalance.currency : null;
     }
     timestamp = timestamp || new Date();
+    currency = currency || '';
 
     // Format and set
     // Check for low credit
@@ -197,12 +177,13 @@ function setupWidget() {
     var formattedBalance;
     if (balance !== null) {
       var splitBalance = (balance.toFixed(2)).split('.');
-      formattedBalance = 'R$ &i,&d' /* TODO: Replace by some value not hardcoded*/
+      formattedBalance = '&i,&d'
         .replace('&i', splitBalance[0])
         .replace('&d', splitBalance[1]);
     } else {
       formattedBalance = '--';
     }
+    _widgetCurrency.textContent = currency;
     _widgetCredit.textContent = formattedBalance;
 
     // Format time

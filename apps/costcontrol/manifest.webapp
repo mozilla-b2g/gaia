@@ -15,7 +15,7 @@
     "settings"
   ],
   "activities": {
-    "costcontrol/topup": {
+    "costcontrol/open": {
       "filters": {
        },
       "disposition": "window"
