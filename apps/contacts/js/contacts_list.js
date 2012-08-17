@@ -296,9 +296,9 @@ contacts.List = (function() {
   var refillContactData = function refillContactData(contact) {
     if (!contact.givenName && !contact.familyName) {
       if (contact.tel && contact.tel.length > 0) {
-        contact.givenName = contact.tel[0].number;
+        contact.givenName = contact.tel[0].value;
       } else if (contact.email && contact.email.length > 0) {
-        contact.givenName = contact.email[0].address;
+        contact.givenName = contact.email[0].value;
       } else {
         contact.givenName = _('noName');
       }
@@ -369,9 +369,9 @@ contacts.List = (function() {
     ret.push(contact.givenName && contact.givenName.length > 0 ?
       contact.givenName[0] : '');
     ret.push(contact.tel && contact.tel.length > 0 ?
-      contact.tel[0].number : '');
+      contact.tel[0].value : '');
     ret.push(contact.email && contact.email.length > 0 ?
-      contact.email[0].address : '');
+      contact.email[0].value : '');
     ret.push('#');
 
     return ret.join('');

@@ -53,6 +53,9 @@ var CardsView = (function() {
    */
   function getIconURI(origin) {
     var icons = runningApps[origin].manifest.icons;
+    if (!icons) {
+      return null;
+    }
 
     var sizes = Object.keys(icons).map(function parse(str) {
       return parseInt(str, 10);
@@ -102,8 +105,9 @@ var CardsView = (function() {
       });
 
       // First add an item to the cardsList for each running app
-      for (var origin in runningApps)
+      for (var origin in runningApps) {
         addCard(origin, runningApps[origin]);
+      }
 
     } else { // user ordering
 
@@ -165,15 +169,20 @@ var CardsView = (function() {
         }
       }.bind(card);
 
+      if (app.frame.dataset.zIndexLevel === 'homescreen') {
+        card.dataset['homescreen'] = true;
+      }
       card.dataset['origin'] = origin;
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
-        var appIcon = document.createElement('img');
-
-        appIcon.classList.add('appIcon');
-        appIcon.src = getIconURI(origin);
-        card.appendChild(appIcon);
+        var iconURI = getIconURI(origin);
+        if (iconURI) {
+          var appIcon = document.createElement('img');
+          appIcon.classList.add('appIcon');
+          appIcon.src = iconURI;
+          card.appendChild(appIcon);
+        }
       }
 
       var title = document.createElement('h1');
@@ -243,7 +252,8 @@ var CardsView = (function() {
         y: evt.touches ? evt.touches[0].pageY : evt.pageY
     };
 
-    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
+    if (evt.target.classList.contains('card') && MANUAL_CLOSING &&
+        !evt.target.dataset['homescreen']) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
       if (differenceY > moveCardThreshold) {
         // We don't want user to scroll the CardsView when one of the card is
@@ -339,6 +349,7 @@ var CardsView = (function() {
     if (
       evt.target.classList.contains('card') &&
       MANUAL_CLOSING &&
+      !evt.target.dataset['homescreen'] &&
       reorderedCard === null
     ) {
 
