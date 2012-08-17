@@ -21,6 +21,21 @@ var PermissionManager = (function() {
 
   var fullscreenRequest = undefined;
 
+  var systemAppOrigin = function() {
+    var protocol = document.location.protocol;
+    if (protocol === 'file:') {
+      var paths = document.location.pathname.split('/');
+      paths.pop();
+      paths.pop();
+      paths.pop();
+      return protocol + '//' + paths.join('/') + '/webapi.js';
+    } else {
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      return protocol + '//system.' + domain;
+    }
+  };
+
   var handleFullscreenOriginChange = function(detail) {
     // If there's already a fullscreen request visible, cancel it,
     // we'll show the request for the new domain.
@@ -28,7 +43,9 @@ var PermissionManager = (function() {
       cancelRequest(fullscreenRequest);
       fullscreenRequest = undefined;
     }
-    if (detail.fullscreenorigin != WindowManager.getDisplayedApp()) {
+
+    if (detail.fullscreenorigin != WindowManager.getDisplayedApp() &&
+        detail.fullscreenorigin != systemAppOrigin()) {
       // The message to be displayed on the approval UI.
       var message = detail.fullscreenorigin + ' is now fullscreen';
       fullscreenRequest = requestPermission(message,
