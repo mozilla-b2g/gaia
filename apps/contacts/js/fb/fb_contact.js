@@ -147,6 +147,14 @@ fb.Contact = function(deviceContact,cid) {
     configurable: false
   });
 
+  Object.defineProperty(this,'mozContact', {
+    get: getDevContact
+  });
+
+  function getDevContact() {
+    return devContact;
+  }
+
   // For saving an imported FB contact
   this.save = function() {
     var outReq = new Request();
@@ -219,10 +227,16 @@ fb.Contact = function(deviceContact,cid) {
     var out = devContact;
 
     if (fbdata) {
-      var out = Object.create(devContact);
+      out = Object.create(devContact);
 
       Object.keys(devContact).forEach(function(prop) {
-        out[prop] = devContact[prop];
+        if(devContact[prop] && typeof devContact[prop].forEach === 'function') {
+          out[prop] = [];
+          out[prop] = out[prop].concat(devContact[prop]);
+        }
+        else if(devContact[prop]) {
+          out[prop] = devContact[prop];
+        }
       });
 
       mergeFbData(out, fbdata);
@@ -261,18 +275,12 @@ fb.Contact = function(deviceContact,cid) {
     window.setTimeout(function do_getData() {
       var uid = doGetFacebookUid(devContact);
 
-      window.console.log('OWDError: GetData',uid);
-
       if (uid) {
         var fbreq = fb.contacts.get(uid);
 
         fbreq.onsuccess = function() {
           var fbdata = fbreq.result;
-          window.console.log('OWDError: getdata on success!!',fbdata);
-
           var out = this.merge(fbdata);
-          window.console.log('OWDError: getdata on success out!!',out);
-
           outReq.done(out);
 
         }.bind(this);
@@ -381,8 +389,6 @@ fb.Contact = function(deviceContact,cid) {
 
   function doUnlink(devContact,out) {
     var uid = doGetFacebookUid(devContact);
-
-    window.console.log('OWDError: ', 'UID to unlink', uid);
 
     markAsUnlinked(devContact);
     var req = navigator.mozContacts.save(devContact);

@@ -266,7 +266,7 @@ contacts.List = (function() {
         var fbContact = new fb.Contact(result);
         var fbReq = fbContact.getData();
         fbReq.onsuccess = function() {
-          successCb(fbReq.result);
+          successCb(result, fbReq.result);
         }
         fbReq.onerror = function() {
           successCb(result);
@@ -284,13 +284,20 @@ contacts.List = (function() {
   }
 
 
-  var addToList = function addToList(contact) {
+  var addToList = function addToList(contact,enrichedContact) {
     var newLi;
-    var group = getGroupName(contact);
+
+    var theContact = contact;
+
+    if(enrichedContact) {
+      theContact = enrichedContact;
+    }
+
+    var group = getGroupName(theContact);
 
     var list = groupsList.querySelector('#contacts-list-' + group);
 
-    addToGroup(contact, list);
+    addToGroup(theContact, list);
 
     if (list.children.length === 1) {
       // template + new record
@@ -298,9 +305,9 @@ contacts.List = (function() {
     }
 
     // If is favorite add as well to the favorite group
-    if (contact.category && contact.category.indexOf('favorite') != -1) {
+    if (theContact.category && theContact.category.indexOf('favorite') != -1) {
       list = document.getElementById('contacts-list-favorites');
-      addToGroup(contact, list);
+      addToGroup(theContact, list);
 
       if (list.children.length === 1) {
         showGroup('favorites');

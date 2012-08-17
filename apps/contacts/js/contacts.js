@@ -372,10 +372,14 @@ var Contacts = (function() {
     if (fb.isFbContact(contact) && !fb.isFbLinked(contact)) {
       editContactButton.setAttribute('disabled','disabled');
     }
+    else {
+      editContactButton.removeAttribute('disabled');
+    }
 
     if(fb.isFbContact(contact)) {
       var fbContact = new fb.Contact(contact);
       var req = fbContact.getData();
+
       req.onsuccess = function() { doReloadContactDetails(req.result); }
       req.onerror = function() {
         window.console.error('FB: Error while loading FB contact data');
@@ -391,7 +395,7 @@ var Contacts = (function() {
   function doReloadContactDetails(c) {
     var contact = c;
 
-    toggleFavoriteMessage(isFavorite(currentContact));
+    toggleFavoriteMessage(isFavorite(contact));
     detailsName.textContent = contact.name;
     var star = document.getElementById('favorite-star');
     if (contact.category && contact.category.indexOf('favorite') != -1) {
@@ -808,9 +812,17 @@ var Contacts = (function() {
     var request = navigator.mozContacts.save(currentContact);
     request.onsuccess = function onsuccess() {
       var cList = contacts.List;
-      cList.getContactById(currentContact.id, function onSuccess(savedContact) {
+      cList.getContactById(currentContact.id,
+                           function onSuccess(savedContact, enrichedContact) {
         currentContact = savedContact;
-        contactsList.refresh(currentContact);
+
+        if(enrichedContact) {
+          contactsList.refresh(enrichedContact);
+        }
+        else {
+          contactsList.refresh(currentContact);
+        }
+
         reloadContactDetails();
       }, function onError() {
         console.error('Error reloading contact');
