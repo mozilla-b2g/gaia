@@ -19,6 +19,10 @@ var Places = {
     this.db.createPlace(uri, callback);
   },
 
+  getPlace: function places_getPlace(uri, callback) {
+    this.db.getPlace(uri, callback);
+  },
+
   addVisit: function places_addVisit(uri, callback) {
     var visit = {
       uri: uri,

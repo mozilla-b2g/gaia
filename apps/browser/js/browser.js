@@ -82,6 +82,8 @@ var Browser = {
       this.hideBookmarkMenu.bind(this));
     this.bookmarkMenuEdit.addEventListener('click',
       this.showBookmarkEntrySheet.bind(this));
+    this.bookmarkMenuAddHome.addEventListener('click',
+      this.addLinkToHome.bind(this));
     this.bookmarkEntrySheetCancel.addEventListener('click',
       this.hideBookmarkEntrySheet.bind(this));
     this.bookmarkEntrySheetDone.addEventListener('click',
@@ -137,7 +139,7 @@ var Browser = {
       'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
-      'bookmark-previous-url'];
+      'bookmark-previous-url', 'bookmark-menu-add-home'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -585,6 +587,24 @@ var Browser = {
       Places.updateBookmark(url, title);
     }
     this.hideBookmarkEntrySheet();
+  },
+
+  addLinkToHome: function browser_addLinkToHome() {
+    if (!this.currentTab.url)
+      return;
+
+    Places.getPlace(this.currentTab.url, (function(place) {
+      new MozActivity({
+        name: 'save-bookmark',
+        data: {
+          type: 'url',
+          url: this.currentTab.url,
+          name: this.currentTab.title,
+          icon: place.iconUri
+        }
+      });
+    }).bind(this));
+    this.hideBookmarkMenu();
   },
 
   refreshButtons: function browser_refreshButtons() {
