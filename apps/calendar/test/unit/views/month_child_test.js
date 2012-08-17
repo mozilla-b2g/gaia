@@ -321,11 +321,7 @@ suite('views/month_child', function() {
       subject._renderBusytime(record);
 
       assert.equal(calls.length, 35);
-      console.log(JSON.stringify(calls));
-      console.log(JSON.stringify(dates));
-      //assert.deepEqual(calls.slice(1, 33), dates.slice(1, 33));
-      console.log(record.startDate);
-      console.log(calls[0][0]);
+      assert.deepEqual(calls.slice(1, 33), dates.slice(1, 33));
 
       assert.isTrue(
         Calendar.Calc.isSameDate(
