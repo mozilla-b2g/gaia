@@ -71,6 +71,17 @@ var Places = {
     this.db.deleteBookmark(uri, callback);
   },
 
+  updateBookmark: function places_updateBookmark(uri, title, callback) {
+    this.db.getBookmark(uri, (function(bookmark) {
+      if (bookmark) {
+        bookmark.title = title;
+        this.db.saveBookmark(bookmark, callback);
+      } else {
+        this.addBookmark(uri, title, callback);
+      }
+    }).bind(this));
+  },
+
   setPageTitle: function places_setPageTitle(uri, title, callback) {
     this.db.updatePlaceTitle(uri, title, callback);
   },
@@ -514,7 +525,8 @@ Places.db = {
     var request = objectStore.delete(uri);
 
     request.onsuccess = function onSuccess(event) {
-      callback();
+      if (callback)
+        callback();
     };
 
     request.onerror = function onError(e) {
@@ -529,7 +541,6 @@ Places.db = {
     function makeBookmarkProcessor(bookmark) {
       return function(e) {
         var place = e.target.result;
-        bookmark.title = place.title;
         bookmark.iconUri = place.iconUri;
         bookmarks.push(bookmark);
       };
@@ -537,8 +548,9 @@ Places.db = {
 
     var transaction = db.transaction(['bookmarks', 'places']);
     var bookmarksStore = transaction.objectStore('bookmarks');
+    var bookmarksIndex = bookmarksStore.index('timestamp');
     var placesStore = transaction.objectStore('places');
-    bookmarksStore.openCursor(null, IDBCursor.PREV).onsuccess =
+    bookmarksIndex.openCursor(null, IDBCursor.PREV).onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
