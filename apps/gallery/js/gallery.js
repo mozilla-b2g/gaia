@@ -190,10 +190,11 @@ function init() {
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
-  photodb.onunavailable = function() {
-    // XXX eventually we want to distinguish the nocard case
-    // from the cardinuse case.
-    showOverlay('nocard');
+  photodb.onunavailable = function(why) {
+    if (why === 'unavailable')
+      showOverlay('nocard');
+    else if (why === 'shared')
+      showOverlay('cardinuse');
   }
 
   photodb.onready = function() {
@@ -324,8 +325,9 @@ function imageCreated(fileinfo) {
 
   // If this new image is newer than the first one, it goes first
   // This is the most common case for photos, screenshots, and edits
-  if (images.length === 0 || fileinfo.date > images[0].date)
+  if (images.length === 0 || fileinfo.date > images[0].date) {
     insertPosition = 0;
+  }
   else {
     // Otherwise we have to search for the right insertion spot
     insertPosition = binarysearch(images, fileinfo, function(a, b) {
@@ -343,7 +345,10 @@ function imageCreated(fileinfo) {
   // Create a thumbnail for this image and insert it at the right spot
   var thumbnail = createThumbnail(insertPosition);
   var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
-  thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
+  if (thumbnailElts.length === 0)
+    thumbnails.appendChild(thumbnail);
+  else
+    thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
 
   // increment the index of each of the thumbnails after the new one
   for (var i = insertPosition; i < thumbnailElts.length; i++) {
@@ -631,12 +636,6 @@ $('photos-camera-button').onclick =
         type: 'photos'
       }
     });
-    a.onsuccess = function() {
-      console.log('camera launch success:', JSON.stringify(a));
-    }
-    a.onerror = function() {
-      console.log('camera launch error:', JSON.stringify(a));
-    }
   };
 
 
@@ -673,11 +672,71 @@ $('photos-edit-button').onclick = function() {
   editPhoto(currentPhotoIndex);
 };
 
+// In single-photo mode, the share button shares the current photo
+$('photos-share-button').onclick = function() {
+  var image = images[currentPhotoIndex];
+  var filename = image.name;
+  shareFiles([filename]);
+};
+
+// Clicking on the share button in select mode shares all selected images
+$('thumbnails-share-button').onclick = function() {
+  var selected = thumbnails.querySelectorAll('.selected.thumbnail');
+  if (selected.length === 0)
+    return;
+  var filenames = [];
+  for (var i = 0; i < selected.length; i++) {
+    var index = parseInt(selected[i].dataset.index);
+    filenames.push(images[index].name);
+  }
+
+  shareFiles(filenames);
+};
+
+/*
+ * Share one or more images using Web Activities.
+ *
+ * XXX
+ * This is a preliminary implementation with two bug workarounds:
+ *
+ * Until https://bugzilla.mozilla.org/show_bug.cgi?id=773383 is fixed,
+ * we just use a type of "image" since the activity handler app can't
+ * register an array of the image mime types it accepts
+ *
+ * Until https://bugzilla.mozilla.org/show_bug.cgi?id=782766 is fixed and
+ * we can share blobs directly, this function just shares filenames.
+ * This means that the app on the receiving end has to use device storage
+ * to get the actual file. Since that requires special permissions
+ * it might not be what we want.  We could change this code to use a
+ * data url and pass the whole image as a long, long string. Because this
+ * is sub-optimal and unstable, I'm using the activity name "share-filenames"
+ * instead of the more generic "share".
+ */
+function shareFiles(filenames) {
+  var a = new MozActivity({
+    name: 'share-filenames',
+    data: {
+      type: 'image',
+      filenames: filenames
+    }
+  });
+
+  a.onerror = function(e) {
+    if (a.error.name === 'NO_PROVIDER') {
+      var msg = navigator.mozL10n.get('share-noprovider');
+      alert(msg);
+    }
+    else {
+      console.log('share activity error:', a.error.name);
+    }
+  };
+}
+
+
 // In edit mode, clicking the Cancel button goes back to single photo mode
 $('edit-cancel-button').onclick = function() {
   exitEditMode();
 };
-
 
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {

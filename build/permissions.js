@@ -5,14 +5,14 @@ function debug(msg) {
 }
 
 let permissionList = ["power", "sms", "contacts", "telephony",
-                      "mozBluetooth", "mozbrowser", "mozApps",
+                      "mozBluetooth", "browser", "mozApps",
                       "mobileconnection", "mozFM", "systemXHR",
                       "background", "settings", "offline-app",
                       "indexedDB-unlimited", "alarm", "camera",
                       "fmradio", "devicestorage", "voicemail",
                       "pin-app", "wifi-manage", "geolocation",
                       "webapps-manage", "desktop-notification",
-                      "device-storage", "alarms", 
+                      "device-storage", "alarms", "attention",
                       "content-camera"];
 
 let commonPermissionList = ['offline-app', 'indexedDB-unlimited',

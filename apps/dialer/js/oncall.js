@@ -28,6 +28,8 @@ var CallScreen = {
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
 
+  swiperWrapper: document.getElementById('swiper-wrapper'),
+
   init: function cs_init() {
     this.muteButton.addEventListener('mouseup', this.toggleMute.bind(this));
     this.keypadButton.addEventListener('mouseup', this.showKeypad.bind(this));
@@ -82,21 +84,33 @@ var CallScreen = {
     switch (layout_type) {
       case 'dialing':
         this.answerButton.classList.add('hide');
+        this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiperWrapper.classList.add('hide');
         break;
       case 'incoming':
         this.answerButton.classList.remove('hide');
+        this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.remove('full-space');
         this.callToolbar.classList.add('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiperWrapper.classList.add('hide');
+        break;
+      case 'incoming-locked':
+        this.answerButton.classList.add('hide');
+        this.rejectButton.classList.add('hide');
+        this.callToolbar.classList.add('transparent');
+        this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiperWrapper.classList.remove('hide');
         break;
       case 'connected':
         this.answerButton.classList.add('hide');
+        this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
-
+        this.swiperWrapper.classList.add('hide');
         break;
     }
   },
@@ -180,6 +194,12 @@ var OnCallHandler = {
       // Needs to be called at least once
       callsChanged();
       telephony.oncallschanged = callsChanged;
+
+      // If the call was ended before we got here we can close
+      // right away.
+      if (this.handledCalls.length === 0) {
+        this._close(false);
+      }
     }
   },
 
@@ -306,7 +326,12 @@ var OnCallHandler = {
 
       CallScreen.showIncoming();
     } else {
-      CallScreen.render(call.state);
+      if (window.location.hash.split('?')[1] === 'locked' &&
+          (call.state == 'incoming')) {
+        CallScreen.render('incoming-locked');
+      } else {
+        CallScreen.render(call.state);
+      }
     }
   },
 
@@ -320,6 +345,10 @@ var OnCallHandler = {
       return;
     }
 
+    this._close(true);
+  },
+
+  _close: function och_close(animate) {
     if (this._closing)
       return;
 
@@ -331,8 +360,12 @@ var OnCallHandler = {
     ProximityHandler.disable();
 
     this._closing = true;
-    // Out animation before closing the window
-    this.toggleScreen();
+
+    if (animate) {
+      this.toggleScreen();
+    } else {
+      this.closeWindow();
+    }
   }
 };
 

@@ -30,21 +30,22 @@ const Homescreen = (function() {
     });
   }
 
-  // XXX Currently the home button communicate only with the
-  // system application. It should be an activity that will
-  // use the system message API.
+  function onHomescreenActivity() {
+    if (Homescreen.isInEditMode()) {
+      Homescreen.setMode('normal');
+      GridManager.saveState();
+      DockManager.saveState();
+      Permissions.hide();
+    } else if (GridManager.pageHelper.getCurrentPageNumber() !==
+                 GridManager.landingPageIndex) {
+      GridManager.goToPage(GridManager.landingPageIndex);
+    }
+  }
+
   window.addEventListener('message', function onMessage(e) {
     switch (e.data) {
       case 'home':
-        if (Homescreen.isInEditMode()) {
-          Homescreen.setMode('normal');
-          GridManager.saveState();
-          DockManager.saveState();
-          Permissions.hide();
-        } else if (GridManager.pageHelper.getCurrentPageNumber() !==
-                   GridManager.landingPageIndex) {
-          GridManager.goToPage(GridManager.landingPageIndex);
-        }
+        onHomescreenActivity();
         break;
     }
   });
@@ -105,6 +106,7 @@ const Homescreen = (function() {
     window.navigator.mozSetMessageHandler('activity',
       function handleActivity(activity) {
         var data = activity.source.data;
+
         // issue 3457: Implement a UI when saving bookmarks to the homescreen
         switch (data.type) {
           case 'url':
@@ -115,6 +117,9 @@ const Homescreen = (function() {
               function home_errorInstallBookmark(code) {
                 console.error('Error saving bookmark ' + code);
             });
+            break;
+          case 'application/x-application-list':
+            onHomescreenActivity();
             break;
         }
       });

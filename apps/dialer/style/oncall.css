@@ -60,7 +60,8 @@ html * {
 
 #keypad-callbar.hide,
 #keypad-hide-bar.hide,
-#callbar-answer.hide {
+#callbar-answer.hide,
+#callbar-hang-up.hide {
   display: none;
 }
 
