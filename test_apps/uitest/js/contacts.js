@@ -95,7 +95,7 @@ var ContactsTest = {
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function() {
       var duration = new Date() - start;
-      alert('Contacts received: ' + duration + "msec");
+      alert('Contacts received: ' + duration + 'msec');
     };
     req.onerror = function() {
       alert('Problem receiving contacts');
