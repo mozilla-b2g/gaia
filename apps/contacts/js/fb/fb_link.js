@@ -152,26 +152,18 @@ if(!fb.link) {
     function doGetRemoteProposal(access_token,contactData,query) {
       document.body.dataset.state = 'waiting';
 
-      /* var searchService = 'https://api.facebook.com/method/phonebook.lookup' +
+      /*
+        Phone.lookup was analysed but we were not happy about how it worked
+
+        var searchService = 'https://api.facebook.com/method/phonebook.lookup' +
                                                       '?include_non_fb=false';
       var entries = [];
       entries.push(getEntry(contactData));
       var sentries = JSON.stringify(entries);
+
       */
 
-      var searchService = 'https://graph.facebook.com/fql?q=';
-      searchService += encodeURIComponent(query);
-
-      var params = [fb.ACC_T + '=' + access_token,
-                    'format=json','callback=fb.link.proposalReady'];
-
-      var queryParams = params.join('&');
-
-      var jsonp = document.createElement('script');
-      jsonp.src = searchService + '&' + queryParams;
-      window.console.log('OWDError:',jsonp.src);
-
-      document.body.appendChild(jsonp);
+      fb.utils.runQuery(query,'fb.link.proposalReady',access_token);
     }
 
     // Obtains a proposal from the already imported contact list
@@ -191,19 +183,8 @@ if(!fb.link) {
     function getRemoteAll() {
       document.body.dataset.state = 'waiting';
 
-      var friendsService = 'https://graph.facebook.com/fql?q=';
-      friendsService += encodeURIComponent(ALL_QUERY.join(''));
-
-      var params = [fb.ACC_T + '=' + access_token,
-                    'format=json','callback=fb.link.friendsReady'];
-
-      var queryParams = params.join('&');
-
-      var jsonp = document.createElement('script');
-      jsonp.src = friendsService + '&' + queryParams;
-      window.console.log('OWDError:',jsonp.src);
-
-      document.body.appendChild(jsonp);
+      fb.utils.runQuery(ALL_QUERY.join(''),'fb.link.friendsReady',
+                                                            access_token);
     }
 
     // When the access_token is available it is executed
@@ -214,6 +195,7 @@ if(!fb.link) {
 
     // Obtains a linking proposal to be shown to the user
     link.getProposal = function (cid) {
+      clearList();
       contactid = cid;
       window.console.log('OWDError: Get Proposal called!!');
       fb.oauth.getAccessToken(tokenReady,'proposal');

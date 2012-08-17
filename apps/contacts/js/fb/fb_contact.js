@@ -355,54 +355,73 @@ fb.Contact = function(deviceContact,cid) {
   }
 
   this.unlink = function() {
-    // Then we restore the original FB contact
     var out = new Request();
 
     window.setTimeout(function do_unlink() {
-      var uid = doGetFacebookUid(devContact);
+      if(!devContact) {
+        // We need to get the Contact data
+        var req = fb.utils.getContactData(contactid);
 
-      window.console.log('OWDError: ', 'UID to unlink', uid);
+        req.onsuccess = function() {
+          devContact = req.result;
+          doUnlink(devContact,out);
+        } // req.onsuccess
 
-      markAsUnlinked(devContact);
-      var req = navigator.mozContacts.save(devContact);
-
-      req.onsuccess = function(e) {
-        // Then the original FB imported contact is restored
-        var fbDataReq = fb.contacts.get(uid);
-
-        fbDataReq.onsuccess = function() {
-          var imported = fbDataReq.result;
-
-          var data = {};
-          copyNames(imported, data);
-          doSetFacebookUid(data, uid);
-
-          var mcontact = new mozContact();
-          mcontact.init(data);
-
-          var reqRestore = navigator.mozContacts.save(mcontact);
-
-          reqRestore.onsuccess = function(e) {
-            out.done(mcontact.id);
-          }
-
-          reqRestore.onerror = function(e) {
-            out.failed(e.target.error);
-          }
+        req.onerror = function() {
+          throw 'FB: Error while retrieving contact data';
         }
-
-        fbDataReq.onerror = function() {
-          window.console.error('FB: Error while unlinking contact data');
-          out.failed(fbDataReq.error);
-        }
-      }
-
-      req.onerror = function(e) {
-        out.failed(e.target.error);
+      } // devContact
+      else {
+        doUnlink(devContact,out);
       }
     },0);
 
     return out;
+  }
+
+  function doUnlink(devContact,out) {
+    var uid = doGetFacebookUid(devContact);
+
+    window.console.log('OWDError: ', 'UID to unlink', uid);
+
+    markAsUnlinked(devContact);
+    var req = navigator.mozContacts.save(devContact);
+
+    req.onsuccess = function(e) {
+      // Then the original FB imported contact is restored
+      var fbDataReq = fb.contacts.get(uid);
+
+      fbDataReq.onsuccess = function() {
+        var imported = fbDataReq.result;
+
+        var data = {};
+        copyNames(imported, data);
+        doSetFacebookUid(data, uid);
+
+        var mcontact = new mozContact();
+        mcontact.init(data);
+
+        // The FB contact is restored
+        var reqRestore = navigator.mozContacts.save(mcontact);
+
+        reqRestore.onsuccess = function(e) {
+          out.done(mcontact.id);
+        }
+
+        reqRestore.onerror = function(e) {
+          out.failed(e.target.error);
+        }
+      }
+
+      fbDataReq.onerror = function() {
+        window.console.error('FB: Error while unlinking contact data');
+        out.failed(fbDataReq.error);
+      }
+    }
+
+    req.onerror = function(e) {
+      out.failed(e.target.error);
+    }
   }
 
   this.remove = function() {

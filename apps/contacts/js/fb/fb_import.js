@@ -145,26 +145,16 @@ if (typeof fb.importt === 'undefined') {
      *  Gets the Facebook friends by invoking Graph API using JSONP mechanism
      *
      */
-    owdFbInt.getFriends = function(accessToken) {
-      var friendsService = 'https://graph.facebook.com/fql?';
-  // var friendsService = 'https://api.facebook.com/method/facebook.fql.query?'
-
-      var params = [fb.ACC_T + '=' + accessToken,
-                    'q' + '=' + encodeURIComponent(multiQStr),
-                        'callback=fb.importt.friendsReady'];
-
-      var q = params.join('&');
-
-      var jsonp = document.createElement('script');
-      jsonp.src = friendsService + q;
-      document.body.appendChild(jsonp);
-
+    owdFbInt.getFriends = function(access_token) {
       document.body.dataset.state = 'waiting';
+
+      fb.utils.runQuery(multiQStr,'fb.importt.friendsReady', access_token);
 
       // In the meantime we obtain the FB friends already on the Address Book
       if (navigator.mozContacts) {
-        var filter = { filterValue: 'facebook', filterOp: 'equals',
+        var filter = { filterValue: fb.CATEGORY, filterOp: 'equals',
                           filterBy: ['category']};
+
         var req = navigator.mozContacts.find(filter);
 
         req.onsuccess = contactsReady;

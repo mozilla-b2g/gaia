@@ -57,29 +57,21 @@ if(typeof Contacts.extFb === 'undefined') {
     }
 
     function doUnlink(cid) {
-      var mozReq = fb.utils.getContactData(cid);
+      var fbContact = new fb.Contact(null,cid);
 
-      mozReq.onsuccess = function() {
-        var fbContact = new fb.Contact(mozReq.result);
+      var freq = fbContact.unlink();
 
-        var freq = fbContact.unlink();
+      freq.onsuccess = function() {
+        window.console.log('Unlinked!!! successfully');
 
-        freq.onsuccess = function() {
-          window.console.log('Unlinked!!! successfully');
-
-          contacts.List.refresh(cid);
-          window.console.log('OWDError: Contact Restored: ', freq.result);
-          contacts.List.refresh(freq.result);
-          Contacts.navigation.home();
-        }
-
-        freq.onerror = function() {
-          window.console.error('FB: Error while unlinking',freq.error);
-        }
+        contacts.List.refresh(cid);
+        window.console.log('OWDError: Contact Restored: ', freq.result);
+        contacts.List.refresh(freq.result);
+        Contacts.navigation.home();
       }
 
-      mozReq.onerror = function() {
-        window.console.error('FB: Error while retrieving the contact data');
+      freq.onerror = function() {
+        window.console.error('FB: Error while unlinking',freq.error);
       }
     }
 

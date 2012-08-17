@@ -54,10 +54,24 @@ if(!fb.utils) {
     return outReq;
   }
 
-  // Runs a query against Facebook FQL
-  fb.utils.runQuery = function(query,callback) {
 
+  // Runs a query against Facebook FQL. Callback is a string!!
+  fb.utils.runQuery = function(query, callback ,access_token) {
+    var queryService = 'https://graph.facebook.com/fql?q=';
+    queryService += encodeURIComponent(query);
+
+    var params = [fb.ACC_T + '=' + access_token,
+                    'format=json','callback' + '=' + callback];
+
+    var queryParams = params.join('&');
+
+    var jsonp = document.createElement('script');
+    jsonp.src = queryService + '&' + queryParams;
+    window.console.log('OWDError:',jsonp.src);
+
+    document.body.appendChild(jsonp);
   }
+
 
    /**
      *   Request auxiliary object to support asynchronous calls
