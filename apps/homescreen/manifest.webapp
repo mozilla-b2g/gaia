@@ -72,6 +72,11 @@
       "filters": {
         "type": "url"
       }
+    },
+    "view": {
+      "filters": {
+        "type": "application/x-application-list"
+      }
     }
   }
 }

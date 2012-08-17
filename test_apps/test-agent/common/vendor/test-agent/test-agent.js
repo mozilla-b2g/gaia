@@ -277,7 +277,15 @@
 
   function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
     var name, str, desc;
+
     desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+
+    if (array) {
+      desc = { value: value[key] };
+    } else {
+      desc = Object.getOwnPropertyDescriptor(value, key);
+    }
+
     if (desc.get) {
       if (desc.set) {
         str = ctx.stylize('[Getter/Setter]', 'special');
@@ -289,6 +297,7 @@
         str = ctx.stylize('[Setter]', 'special');
       }
     }
+
     if (visibleKeys.indexOf(key) < 0) {
       name = '[' + key + ']';
     }
@@ -899,98 +908,112 @@
     this.url = url;
   };
 
-  var proto = Sandbox.prototype = Object.create(
-    TestAgent.Responder.prototype
-  );
+  Sandbox.prototype = {
+    __proto__: TestAgent.Responder.prototype,
 
-  proto._element = null;
+    _element: null,
 
-  /**
-   * @type Boolean
-   *
-   * True when sandbox is ready
-   */
-  proto.ready = false;
+    /**
+     * @type Boolean
+     *
+     * True when sandbox is ready
+     */
+    ready: false,
 
-  /**
-   * URL for the iframe sandbox.
-   *
-   * @type String
-   */
-  proto.url = null;
+    /**
+     * URL for the iframe sandbox.
+     *
+     * @type String
+     */
+    url: null,
 
-  /**
-   * Returns iframe element.
-   *
-   *
-   * @type DOMElement
-   */
-  proto.getElement = function getElement() {
-    var iframe;
-    if (!this._element) {
-      iframe = this._element = window.document.createElement('iframe');
-      iframe.src = this.url + '?time=' + String(Date.now());
-    }
-    return this._element;
-  };
+    /**
+     * Returns iframe element.
+     *
+     *
+     * @type DOMElement
+     */
+    getElement: function getElement() {
+      var iframe;
+      if (!this._element) {
+        iframe = this._element = window.document.createElement('iframe');
+        iframe.src = this.url + '?time=' + String(Date.now());
+      }
+      return this._element;
+    },
 
-  proto.run = function run(callback) {
-    //cleanup old sandboxes
-    this.destroy();
+    _insertIframe: function() {
 
-    var element = this.getElement(),
-        iframeWindow,
-        self = this;
+      var element = this.getElement();
+      var iframeWindow;
+      var self = this;
+      var src = element.src;
 
-    //this must come before the listener
-    window.document.body.appendChild(element);
-    iframeWindow = element.contentWindow;
+      window.document.body.appendChild(element);
+      iframeWindow = element.contentWindow;
 
-    iframeWindow.onerror = function(message, file, line) {
-      self.emit('error', {
-        message: message,
-        //remove cache busting string
-        filename: file.split('?time=')[0],
-        lineno: line
+      // GECKO (Firefox, B2G) has a problem
+      // with the caching of iframes this sometimes
+      // causes the onerror event not to fire
+      // when we boot up the iframe setting
+      // the source here ensures the cached
+      // version is never used.
+      iframeWindow.location.href = src;
+
+      return iframeWindow;
+    },
+
+    run: function(callback) {
+      this.destroy();
+
+      var iframeWindow = this._insertIframe();
+      var self = this;
+
+      iframeWindow.onerror = function(message, file, line) {
+        self.emit('error', {
+          message: message,
+          //remove cache busting string
+          filename: file.split('?time=')[0],
+          lineno: line
+        });
+      };
+
+      iframeWindow.addEventListener('DOMContentLoaded', function() {
+        self.ready = true;
+        self.emit('ready', this);
+        callback.call(this);
       });
-    };
 
-    iframeWindow.addEventListener('DOMContentLoaded', function() {
-      self.ready = true;
-      self.emit('ready', this);
-      callback.call(this);
-    });
+      return iframeWindow;
+    },
 
-    return iframeWindow;
-  };
+    destroy: function destroy() {
+      var el;
 
-  proto.destroy = function destroy() {
-    var el;
+      if (!this.ready) {
+        return false;
+      }
 
-    if (!this.ready) {
-      return false;
+      this.ready = false;
+
+      el = this.getElement();
+      el.parentNode.removeChild(el);
+
+
+      return true;
+    },
+
+    getWindow: function getWindow() {
+      if (!this.ready) {
+        return false;
+      }
+
+      return this.getElement().contentWindow;
     }
 
-    this.ready = false;
-
-    el = this.getElement();
-    el.parentNode.removeChild(el);
-
-
-    return true;
   };
-
-  proto.getWindow = function getWindow() {
-    if (!this.ready) {
-      return false;
-    }
-
-    return this.getElement().contentWindow;
-  };
-
 
 }(this));
-
 (function(window) {
 
   'use strict';
