@@ -90,14 +90,6 @@ var CallScreen = {
         this.keypadButton.setAttribute('disabled', 'disabled');
         this.swiperWrapper.classList.add('hide');
         break;
-      case 'incoming':
-        this.answerButton.classList.remove('hide');
-        this.rejectButton.classList.remove('hide');
-        this.rejectButton.classList.remove('full-space');
-        this.callToolbar.classList.add('transparent');
-        this.keypadButton.setAttribute('disabled', 'disabled');
-        this.swiperWrapper.classList.add('hide');
-        break;
       case 'incoming-locked':
         this.answerButton.classList.add('hide');
         this.rejectButton.classList.add('hide');
@@ -117,10 +109,12 @@ var CallScreen = {
 
   showIncoming: function cs_showIncoming() {
     this.hideKeypad();
+    this.callToolbar.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
   },
 
   hideIncoming: function cs_hideIncoming() {
+    this.callToolbar.classList.remove('transparent');
     this.incomingContainer.classList.remove('displayed');
   },
 
@@ -237,7 +231,7 @@ var OnCallHandler = {
 
   ignore: function ch_ignore() {
     var ignoreIndex = this.handledCalls.length - 1;
-    this.handledCalls[ignoreIndex].hangUp();
+    this.handledCalls[ignoreIndex].call.hangUp();
 
     CallScreen.hideIncoming();
   },
