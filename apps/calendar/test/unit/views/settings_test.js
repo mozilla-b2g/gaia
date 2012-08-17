@@ -1,6 +1,7 @@
 requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('models/calendar.js');
   requireLib('templates/calendar.js');
   requireLib('views/settings.js');
 });
@@ -83,20 +84,38 @@ suite('views/settings', function() {
       children = subject.calendars.children;
     });
 
-    test('update', function() {
-      var check = children[0].querySelector(
-        '*[type="checkbox"]'
-      );
+    suite('update', function() {
 
-      models[1].name = 'foo';
-      models[1].localDisplayed = false;
+      test('when flagged as _inUpdate', function() {
+        subject._localUpdate = true;
 
-      store.emit('update', 'one', models[1]);
+        models[1].name = 'foobar';
 
-      assert.equal(children[0].textContent, 'foo');
-      assert.isFalse(
-        check.checked
-      );
+        store.emit('update', 'one', models[1]);
+
+        assert.notEqual(
+          children[0].textContent,
+          models[1].name,
+          'should not update when marked as _localUpdate'
+        );
+      });
+
+      test('when not flagged', function() {
+        var check = children[0].querySelector(
+          '*[type="checkbox"]'
+        );
+
+        models[1].name = 'foo';
+        models[1].localDisplayed = false;
+
+        store.emit('update', 'one', models[1]);
+
+        assert.equal(children[0].textContent, 'foo');
+        assert.isFalse(
+          check.checked
+        );
+      });
+
     });
 
     test('add', function() {
@@ -141,6 +160,55 @@ suite('views/settings', function() {
     assert.isFalse(el.classList.contains(
       subject.activeClass
     ));
+  });
+
+  suite('#_onCalendarDisplayToggle', function() {
+    var model;
+    var checkbox;
+    var calledWith;
+
+    setup(function() {
+      model = Factory('calendar', {
+        localDisplayed: true,
+        _id: 'my-calendar'
+      });
+
+      store._cached = {
+        'my-calendar': model
+      };
+
+      subject.render();
+      checkbox = subject.calendars.querySelector(
+        'input[type="checkbox"]'
+      );
+    });
+
+    setup(function() {
+      store.persist = function() {
+        calledWith = arguments;
+      };
+    });
+
+    test('initial toggle', function() {
+      assert.isTrue(checkbox.checked, 'should be checked initially');
+
+      checkbox.checked = false;
+      triggerEvent(checkbox, 'change');
+
+      assert.equal(calledWith[0], model);
+      assert.equal(model.localDisplayed, !!checkbox.checked);
+
+      var cb = calledWith[1];
+      cb();
+      assert.isTrue(subject._localUpdate);
+      store.emit('persist');
+      assert.isFalse(subject._localUpdate);
+      // verify the handler was removed;
+      subject._localUpdate = true;
+      store.emit('persist');
+      assert.isTrue(subject._localUpdate);
+    });
+
   });
 
   suite('#render', function() {

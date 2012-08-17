@@ -318,7 +318,6 @@ section.month li .busy-indicator:before {
 
 section.month li .busy-indicator > span {
   top: 0px;
-  background-color: #FCA900;
   position: absolute;
   text-indent: -1000em;
 }
@@ -377,6 +376,8 @@ Indicators are in units of 12
 
 #months-day-view .day-events {
   height: -moz-calc(100% - 7.7rem);
+  display: -moz-box;
+  -moz-box-orient: vertical;
   overflow-y: auto;
 }
 
