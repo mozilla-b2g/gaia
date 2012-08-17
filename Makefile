@@ -38,7 +38,7 @@ HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
 
-REPORTER=Spec
+REPORTER?=Spec
 
 GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 
