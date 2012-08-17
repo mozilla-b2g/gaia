@@ -18,17 +18,9 @@ let permissions = {
     "urls": [],
     "pref": "dom.voicemail.whitelist"
   },
-  "mozbrowser": {
-    "urls": [],
-    "pref": "dom.mozBrowserFramesWhitelist"
-  },
   "mozApps": {
     "urls": [],
     "pref": "dom.mozApps.whitelist"
-  },
-  "mobileconnection": {
-    "urls": [],
-    "pref": "dom.mobileconnection.whitelist"
   },
   "mozFM": {
     "urls": [],
