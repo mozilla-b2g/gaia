@@ -332,7 +332,7 @@ TEST_PATH=gaia/tests/${TEST_FILE}
 TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
 .PHONY: test-integration
 test-integration:
-	test_apps/test-agent/common/test/bin/test $(TESTS)
+	@test_apps/test-agent/common/test/bin/test $(TESTS)
 
 .PHONY: tests
 tests: webapp-manifests offline
