@@ -91,9 +91,11 @@ var ContactsTest = {
       sortBy: 'familyName',
       sortOrder: 'ascending'
     };
+    var start = new Date();
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function() {
-      alert('Contacts received.');
+      var duration = new Date() - start;
+      alert('Contacts received: ' + duration + "msec");
     };
     req.onerror = function() {
       alert('Problem receiving contacts');

@@ -421,7 +421,7 @@ var WindowManager = (function() {
       //  - OOP - when alarm fires,
       //    analog clock stops advancing and alarm doesn sound (778300)
 
-      'Contacts',
+      //'Contacts',
       // - Get a white screen when launched OOP (782472)
       // Keyboard always shows up alpha when app using keyboard is run OOP
       // - bug 776118
@@ -466,7 +466,7 @@ var WindowManager = (function() {
 
       'Test Agent',
 
-      'UI tests',
+      //'UI tests',
       // Keyboard always shows up alpha when app using keyboard is running OOP
       //   - bug 776118
       // Insert Fake Contacts hangs when running OOP (or not OOP)
