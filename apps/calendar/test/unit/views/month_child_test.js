@@ -313,7 +313,7 @@ suite('views/month_child', function() {
             start.getFullYear(),
             start.getMonth(),
             start.getDate() + i
-        )
+        );
 
         dates.push([day, record]);
       }
