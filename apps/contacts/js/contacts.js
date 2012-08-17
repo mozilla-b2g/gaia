@@ -269,6 +269,19 @@ var Contacts = (function() {
   var initContactsList = function initContactsList() {
     var list = document.getElementById('groups-list');
     contactsList.init(list);
+    checkCancelableActivity();
+  };
+
+  var checkCancelableActivity = function cancelableActivity() {
+    var cancelButton = document.getElementById('cancel_activty');
+    var addButton = document.getElementById('add-contact-button');
+    if (ActivityHandler.currentlyHandling) {
+      cancelButton.classList.remove('hide');
+      addButton.classList.add('hide');
+    } else {
+      cancelButton.classList.add('hide');
+      addButton.classList.remove('hide');
+    }
   }
 
   var initLanguages = function initLanguages() {
@@ -316,6 +329,12 @@ var Contacts = (function() {
       var request = navigator.mozContacts.find(options);
       request.onsuccess = function findCallback() {
         currentContact = request.result[0];
+        var onlyOneTel = currentContact.tel && currentContact.tel.length === 1;
+        if (ActivityHandler.currentlyHandling && onlyOneTel) {
+          var number = currentContact.tel[0].value;
+          ActivityHandler.postPickSuccess(number);
+          return;
+        }
         reloadContactDetails();
         navigation.go('view-contact-details', 'right-left');
       };
@@ -392,7 +411,7 @@ var Contacts = (function() {
     for (var tel in contact.tel) {
       var currentTel = contact.tel[tel];
       var telField = {
-        number: currentTel.number || '',
+        value: currentTel.value || '',
         type: currentTel.type || TAG_OPTIONS['phone-type'][0].value,
         notes: '',
         i: tel
@@ -405,7 +424,7 @@ var Contacts = (function() {
     for (var email in contact.email) {
       var currentEmail = contact.email[email];
       var emailField = {
-        address: currentEmail['address'] || '',
+        value: currentEmail['value'] || '',
         type: currentEmail['type'] || TAG_OPTIONS['email-type'][0].value,
         i: email
       };
@@ -500,7 +519,7 @@ var Contacts = (function() {
     for (var tel in currentContact.tel) {
       var currentTel = currentContact.tel[tel];
       var telField = {
-        number: currentTel.number,
+        value: currentTel.value,
         type: currentTel.type || default_type,
         notes: '',
         i: tel
@@ -516,7 +535,7 @@ var Contacts = (function() {
       var currentEmail = currentContact.email[email];
       var default_type = TAG_OPTIONS['email-type'][0].value;
       var emailField = {
-        address: currentEmail['address'] || '',
+        value: currentEmail['value'] || '',
         type: currentEmail['type'] || default_type,
         i: email
       };
@@ -913,7 +932,7 @@ var Contacts = (function() {
       contact['tel'] = contact['tel'] || [];
       // TODO: Save notes
       contact['tel'][i] = {
-        number: numberValue,
+        value: numberValue,
         type: typeField
       };
     }
@@ -934,7 +953,7 @@ var Contacts = (function() {
 
       contact['email'] = contact['email'] || [];
       contact['email'][i] = {
-        address: emailValue,
+        value: emailValue,
         type: typeField
       };
     }
@@ -994,7 +1013,7 @@ var Contacts = (function() {
 
   var insertPhone = function insertPhone(phone) {
     var telField = {
-      number: phone || '',
+      value: phone || '',
       type: TAG_OPTIONS['phone-type'][0].value,
       notes: '',
       i: numberPhones || 0
@@ -1007,7 +1026,7 @@ var Contacts = (function() {
 
   var insertEmail = function insertEmail(email) {
     var emailField = {
-      address: email || '',
+      value: email || '',
       type: TAG_OPTIONS['email-type'][0].value,
       i: numberEmails || 0
     };
@@ -1084,12 +1103,15 @@ var Contacts = (function() {
   };
 
   var handleBack = function handleBack() {
+    navigation.back();
+  };
+
+  var handleCancel = function handleCancel() {
     //If in an activity, cancel it
-    var inActivity = ActivityHandler.currentlyHandling;
-    if (inActivity && ActivityHandler.activityName == 'new') {
+    if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postCancel();
     } else {
-      navigation.back();
+      handleBack();
     }
   };
 
@@ -1201,6 +1223,7 @@ var Contacts = (function() {
     'addNewEmail' : insertEmail,
     'addNewAddress' : insertAddress,
     'addNewNote' : insertNote,
+    'cancel' : handleCancel,
     'goBack' : handleBack,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
@@ -1210,7 +1233,8 @@ var Contacts = (function() {
     'pickImage': pickImage,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
-    'updatePhoto': updatePhoto
+    'updatePhoto': updatePhoto,
+    'checkCancelableActivity': checkCancelableActivity
   };
 })();
 
@@ -1220,8 +1244,9 @@ if (window.navigator.mozSetMessageHandler) {
 }
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (document.mozHidden) {
-    if (ActivityHandler.currentlyHandling)
-      ActivityHandler.postCancel();
+  if (ActivityHandler.currentlyHandling && document.mozHidden) {
+    ActivityHandler.postCancel();
+    return;
   }
+  Contacts.checkCancelableActivity();
 });

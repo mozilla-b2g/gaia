@@ -11,6 +11,7 @@ html {
   width: 100%;
   height: 100%;
   font-size: 10px;
+  font-family: 'Open Sans', sans-serif;
 }
 
 @media screen and (min-width: 480px) {
@@ -129,7 +130,6 @@ button::-moz-focus-inner {
 .header-right-btn {
   right: 0px;
   background: url("images/ui/separator.png") no-repeat scroll 0px center transparent;
-  background-size: auto 100%;
   width: 5rem;
 }
 

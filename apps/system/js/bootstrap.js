@@ -24,37 +24,16 @@ function startup() {
   window.setTimeout(function() {
     window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
-}
 
-// 3459: homescreen should be an app launched and managed by window manager,
-// instead of living in it's own frame.
-(function homescreenLauncher() {
-  if (document.location.protocol === 'file:') {
-    var paths = document.location.pathname.split('/');
-    paths.pop();
-    paths.pop();
-    var src = 'file://' + paths.join('/') + '/homescreen/index.html';
-  } else {
-    var host = document.location.host;
-    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var src = document.location.protocol + '//homescreen.' + domain;
-    // To fix the 'no index.html added anymore' bug 773884
-    // This isn't very pretty but beats reading all the apps to find
-    // if the launch_path is different. Not much worse than having
-    // '//homescreen' as a literal here
-    if (document.location.protocol === 'app:') {
-      src += '/index.html';
-    }
+  navigator.mozApps.mgmt.getAll().onsuccess = function() {
+    new MozActivity({
+      name: 'view',
+      data: {
+        type: 'application/x-application-list'
+      }
+    });
   }
-  var home = document.createElement('iframe');
-  home.id = 'homescreen';
-  home.src = src;
-  home.setAttribute('mozapp', src.replace('index.html', 'manifest.webapp'));
-  home.setAttribute('mozbrowser', 'true');
-  home.dataset.zIndexLevel = 'homescreen';
-  var windows = document.getElementById('windows');
-  windows.parentNode.insertBefore(home, windows);
-}());
+}
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */

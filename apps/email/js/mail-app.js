@@ -142,44 +142,46 @@ var queryURI = function _queryURI(uri) {
 
 };
 
-window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
-  var sendMail = function actHandleMail() {
-    if (!to)
-      return;
+if ('mozSetMessageHandler' in window.navigator) {
+  window.navigator.mozSetMessageHandler('activity',
+                                        function actHandle(activity) {
+    var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
+    var sendMail = function actHandleMail() {
+      if (!to)
+        return;
 
-    var folderToUse = Cards._cardStack[Cards
-      ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
-    var composer = MailAPI.(
-      null, folderToUse, null,
-      function() {
-        /* to/cc/bcc/subject/body all have default values that shouldn't be
-        clobbered if they are not specified in the URI*/
-        if (to)
-          composer.to = to;
-        if (subject)
-          composer.subject = subject;
-        if (body)
-          composer.body = body;
-        if (cc)
-          composer.cc = cc;
-        if (bcc)
-          composer.bcc = bcc;
-        Cards.pushCard('compose',
-          'default', 'immediate', {composer: composer });
-      });
+      var folderToUse = Cards._cardStack[Cards
+        ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
+      var composer = MailAPI.(
+        null, folderToUse, null,
+        function() {
+          /* to/cc/bcc/subject/body all have default values that shouldn't be
+          clobbered if they are not specified in the URI*/
+          if (to)
+            composer.to = to;
+          if (subject)
+            composer.subject = subject;
+          if (body)
+            composer.body = body;
+          if (cc)
+            composer.cc = cc;
+          if (bcc)
+            composer.bcc = bcc;
+          Cards.pushCard('compose',
+            'default', 'immediate', { composer: composer });
+        });
 
-  }
+    };
 
-  if (document.readyState == 'complete') {
-    sendMail();
-  } else {
-    window.addEventListener('localized', function loadWait() {
-      window.removeEventListener('localized', loadWait);
+    if (document.readyState == 'complete') {
       sendMail();
-    });
-  }
+    } else {
+      window.addEventListener('localized', function loadWait() {
+        window.removeEventListener('localized', loadWait);
+        sendMail();
+      });
+    }
 
-  activity.postResult({ status: 'accepted' });
-});
-
+    activity.postResult({ status: 'accepted' });
+  });
+}

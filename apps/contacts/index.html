@@ -47,6 +47,7 @@
 
           <header role="toolbar" class="view-header">
             <menu role="menu">
+              <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
               <button role="menuitem" id="add-contact-button" onclick="Contacts.showAdd();"><span data-icon="add" data-l10n-id="add">add</span></button>
             </menu>
             <h1 data-l10n-id="contacts">Contacts</h1>
@@ -104,12 +105,12 @@
                   <h2>#type#</h2>
                   <div class="item">
                     <div class="item-media pull-right">
-                      <button class="action" onclick="Contacts.sendSms('#number#')"><span role="button" class="icon-message">Message</span></button>
+                      <button class="action" onclick="Contacts.sendSms('#value#')"><span role="button" class="icon-message">Message</span></button>
                     </div>
                     <div class="item-body-exp">
-                      <button class="action" onclick="Contacts.callOrPick('#number#')">
+                      <button class="action" onclick="Contacts.callOrPick('#value#')">
                         <span role="button" class="icon-call" data-l10n-id="call">Call</span>
-                        <b>#number#</b>
+                        <b>#value#</b>
                         <em>#notes#</em>
                       </button>
                     </div>
@@ -126,9 +127,9 @@
                   <h2>#type#</h2>
                   <div class="item">
                     <div class="item-body-exp">
-                      <button class="action" onclick="Contacts.sendEmailOrPick('#address#'); return false">
+                      <button class="action" onclick="Contacts.sendEmailOrPick('#value#'); return false">
                         <span role="button" class="icon-email">E-mail</span>
-                        <b>#address#</b>
+                        <b>#value#</b>
                       </button>
                     </div>
                   </div>
@@ -177,7 +178,7 @@
         <div class="view-inner">
 
           <header role="toolbar" class="view-header">
-            <button class="negative" onclick="Contacts.goBack();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
+            <button class="negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
             <menu role="menu" id='contact-form-actions'>
               <button id="save-button" onclick="Contacts.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
             </menu>
@@ -194,7 +195,7 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="tel_#i#" data-l10n-id="labelPhoneNumber">Phone number:</label>
-                  <input data-cancelable placeholder="Phone" data-field="number" name="tel" class="textfield" type="tel" value="#number#" id="number_#i#">
+                  <input data-cancelable placeholder="Phone" data-field="value" name="tel" class="textfield" type="tel" value="#value#" id="number_#i#">
                 </p>
                 <p class="setbox-item">
                   <label class="hide" for="notes_#i#" data-l10n-id="labelName">Name:</label>
@@ -214,7 +215,7 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="email_#i#" data-l10n-id="labelEmail">e-mail:</label>
-                  <input data-cancelable placeholder="Email" name="email" class="textfield" type="email" value="#address#" id="email_#i#">
+                  <input data-cancelable placeholder="Email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">
                 </p>
               </dd>
             </dl>

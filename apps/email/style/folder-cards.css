@@ -6,7 +6,7 @@
 .fld-accounts-header-label {
 }
 
-.fld-account-item, .fld-folder-item, .fld-folder-title {
+.fld-account-item, .fld-folder-item, .fld-folder-list-header {
   display: block;
   line-height: 2.5rem;
   padding: 0.6rem 2rem;
@@ -21,7 +21,6 @@
 .fld-account-unread {
   display: none;
 }
-
 
 .card-folder-picker {
   box-shadow: inset 0 0 1rem black;
@@ -63,7 +62,7 @@
   font-size: 1rem;
 }
 
-.fld-folder-title {
+.fld-folder-list-header {
   font-size: 2rem;
   background-color: rgba(30, 30, 30, 0.6);
 }

@@ -65,22 +65,24 @@
 }
 .msg-header-unread-section {
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: .5rem;
+  top: 50%;
   display: inline-block;
-  height: 100%;
-  width: 2rem;
+  height: .9rem;
+  width: .9rem;
+  margin-top: -.45rem;
+  border-radius: 50%;
 }
 .msg-header-unread-section-unread {
-  background: url("images/unread.png") no-repeat center transparent;
-  background-size: 60%;
+  background-color: #52B6CC;
 }
 .msg-header-details-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 2rem;
-  width: -moz-calc(100% - 5.6rem);
+  left: 1.9rem;
+  /* 100% - (unread-section) - (icons-section) - (avatar-section) */
+  width: -moz-calc(100% - 1.9rem - 2rem - 2.8rem);
   height: 100%;
   font-size: 1.6rem;
   line-height: 2.5rem;
@@ -89,9 +91,10 @@
   display: block;
   position: absolute;
   top: 0px;
-  left: 26rem;
-  width: 3.2rem;
+  right: 2.8rem; /* The width of the avatar-section. */
+  width: 2rem;
   height: 100%;
+  padding-top: 2.5rem;
 }
 .msg-header-avatar-section {
   display: block;
@@ -102,12 +105,26 @@
   height: 100%;
 }
 
+.msg-header-author-and-date {
+  display: table;
+  table-layout: fixed;
+  width: -moz-available;
+}
 .msg-header-author {
   font-size: 110%;
   color: black;
+  display: table-cell;
+  width: -moz-available;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .msg-header-date {
   color: gray;
+  display: table-cell;
+  width: -moz-min-content;
+  white-space: nowrap;
+  margin-left: 1ch;
 }
 .msg-header-date-unread {
   color: #1D8399;
@@ -251,6 +268,18 @@
 .msg-body-disclaimer, .msg-body-list, .msg-body-product, .msg-body-ads {
   color: gray;
   margin: 4px 0px;
+}
+
+.msg-reader-load-infobar {
+  position: absolute;
+  color: white;
+  font-size: 1.2rem;
+  left: 0;
+  bottom: 4.9rem;
+  width: 100%;
+  height: 2.2rem;
+  padding: 0.5rem;
+  background-color: rgba(16, 16, 16, 0.8);
 }
 
 .msg-edit-btn {

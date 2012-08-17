@@ -27,7 +27,6 @@
 
 #statusbar > .sb-start {
   float: left;
-  visibility: hidden;
   -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
@@ -53,9 +52,13 @@
   right: 0;
 }
 
-.utility-tray #statusbar > .sb-start-upper,
-.utility-tray #statusbar > .sb-start {
+.utility-tray #statusbar > .sb-start-upper {
   visibility: visible;
+  -moz-transform: translateY(20px);
+}
+
+.utility-tray #statusbar > .sb-start {
+  visibility: hidden;
   -moz-transform: translateY(20px);
 }
 

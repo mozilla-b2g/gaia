@@ -33,6 +33,9 @@ var StatusBar = {
   geolocationActive: false,
   geolocationTimer: null,
 
+  recordingActive: false,
+  recordingTimer: null,
+
   /* For other app to acquire */
   get height() {
     if (this.screen.classList.contains('active-statusbar'))
@@ -101,11 +104,18 @@ var StatusBar = {
         break;
 
       case 'mozChromeEvent':
-        if (evt.detail.type !== 'geolocation-status')
-          return;
+        switch (evt.detail.type) {
+          case 'geolocation-status':
+            this.geolocationActive = evt.detail.active;
+            this.update.geolocation.call(this);
+            break;
 
-        this.geolocationActive = evt.detail.active;
-        this.update.geolocation.call(this);
+          case 'recording-status':
+            this.recordingActive = evt.detail.active;
+            this.update.recording.call(this);
+            break;
+        }
+
         break;
     }
   },
@@ -353,11 +363,22 @@ var StatusBar = {
     },
 
     recording: function sb_updateRecording() {
-      // XXX no way to probe active state of microphone and camera
-      // https://github.com/mozilla-b2g/gaia/issues/2336
+      window.clearTimeout(this.recordingTimer);
 
-      // this.icon.recording.hidden = ?
-      // this.icon.recording.dataset.active = ?;
+      var icon = this.icons.recording;
+      icon.dataset.active = this.recordingActive;
+
+      if (this.recordingActive) {
+        // Geolocation is currently active, show the active icon.
+        icon.hidden = false;
+        return;
+      }
+
+      // Geolocation is currently inactive.
+      // Show the inactive icon and hide it after kActiveIndicatorTimeout
+      this.recordingTimer = window.setTimeout(function hideGeoIcon() {
+        icon.hidden = true;
+      }, this.kActiveIndicatorTimeout);
     },
 
     sms: function sb_updateSms() {
