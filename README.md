@@ -44,3 +44,6 @@ on port 2828. For example on a device the steps would be:
    be occupied
 1. Forward 2828 from your device/emulator using: `adb forward tcp:2828 tcp:2828`
 2. Run: `make test-integration` 
+
+You may also optionally specify the reporter to use when running
+integration tests like this: `make test-integration REPORTER=XUnit`
