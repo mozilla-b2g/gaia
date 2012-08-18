@@ -375,8 +375,6 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=755943
       // Message App crashes when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=775997
-      // Dialer doesn't seem to see touches when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776069
       // ICS camera support
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=740997
       // Marketplace app doesn't seem to work when run OOP
@@ -431,12 +429,6 @@ var WindowManager = (function() {
       // - couldn't test OOP - since wifi wasn't working
       //   Mouse click not delivered
       //   Stop audio when app dies
-
-      'Dialer',
-      // - Dialer doesn't seem to see touches when running OOP - bug 776069
-      // - After launching dialer and going back to the home screen,
-      //   I get continuous messages:
-      //       Gecko - SYDNEY_AUDIO  I   0x172df28 - get position
 
       'E-Mail',
       // - SSL/TLS support can only happen in the main process although the TCP
