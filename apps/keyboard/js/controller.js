@@ -1018,6 +1018,17 @@ const IMEController = (function() {
 
         // After all: treat as a normal key
         _sendNormalKey(keyCode);
+
+        if (_currentWordComposer.lastKeyCode == 46) {
+          // Then set the keyboard uppercase for the next char
+          if (_currentInputType == 'text') {
+            _isUpperCase = true;
+            _draw(
+              _baseLayoutName, _currentInputType,
+              _currentLayoutMode, _isUpperCase
+            );
+          }
+        }
         break;
 
       // Normal key
