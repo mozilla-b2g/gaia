@@ -995,6 +995,15 @@ const IMEController = (function() {
 
           // A flag to prevent continous replacement of space with "."
           _isContinousSpacePressed = true;
+
+          // Then set the keyboard uppercase for the next char
+          if (_currentInputType == 'text') {
+            _isUpperCase = true;
+            _draw(
+              _baseLayoutName, _currentInputType,
+              _currentLayoutMode, _isUpperCase
+            );
+          }
           break;
         }
 
@@ -1054,6 +1063,9 @@ const IMEController = (function() {
   function _reset() {
     _currentLayoutMode = LAYOUT_MODE_DEFAULT;
     _isUpperCase = false;
+    if (_currentInputType == 'text') {
+      _isUpperCase = true;
+    }
     _currentWordComposer.reset();
   }
 
