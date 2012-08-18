@@ -325,8 +325,9 @@ function imageCreated(fileinfo) {
 
   // If this new image is newer than the first one, it goes first
   // This is the most common case for photos, screenshots, and edits
-  if (images.length === 0 || fileinfo.date > images[0].date)
+  if (images.length === 0 || fileinfo.date > images[0].date) {
     insertPosition = 0;
+  }
   else {
     // Otherwise we have to search for the right insertion spot
     insertPosition = binarysearch(images, fileinfo, function(a, b) {
@@ -344,7 +345,10 @@ function imageCreated(fileinfo) {
   // Create a thumbnail for this image and insert it at the right spot
   var thumbnail = createThumbnail(insertPosition);
   var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
-  thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
+  if (thumbnailElts.length === 0)
+    thumbnails.appendChild(thumbnail);
+  else
+    thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
 
   // increment the index of each of the thumbnails after the new one
   for (var i = insertPosition; i < thumbnailElts.length; i++) {
@@ -632,12 +636,6 @@ $('photos-camera-button').onclick =
         type: 'photos'
       }
     });
-    a.onsuccess = function() {
-      console.log('camera launch success:', JSON.stringify(a));
-    }
-    a.onerror = function() {
-      console.log('camera launch error:', JSON.stringify(a));
-    }
   };
 
 
@@ -715,8 +713,6 @@ $('thumbnails-share-button').onclick = function() {
  * instead of the more generic "share".
  */
 function shareFiles(filenames) {
-  console.log('Gallery sharing', filenames.length, 'files');
-
   var a = new MozActivity({
     name: 'share-filenames',
     data: {
@@ -724,10 +720,6 @@ function shareFiles(filenames) {
       filenames: filenames
     }
   });
-
-  a.onsuccess = function() {
-    console.log('share-filenames activity success', a.result);
-  };
 
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
