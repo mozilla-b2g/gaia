@@ -1110,6 +1110,10 @@ const IMEController = (function() {
     _dimensionsObserver.observe(IMERender.ime, _dimensionsObserverConfig);
 
     _currentWordComposer = new WordComposer();
+
+    if (_currentInputType == 'text') {
+      _isUpperCase = true;
+    }
   }
 
   // Finalizes the keyboard (exposed, controlled by IMEManager)
