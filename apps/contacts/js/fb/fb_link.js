@@ -18,7 +18,7 @@ if(!fb.link) {
 
     // Base query to search for contacts
     var SEARCH_QUERY = ['SELECT uid, name, email from user ',
-    ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me()) ',
+    ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me() ORDER BY rank) ',
     ' AND (', null, ')',' ORDER BY name'
     ];
 
@@ -202,25 +202,36 @@ if(!fb.link) {
     }
 
     // Executed when the jsonp response is available
-    link.proposalReady = function (data) {
-      window.console.log('OWDError: Data',JSON.stringify(data),numQueries,data.data.length);
+    link.proposalReady = function (response) {
+      var inError = false;
 
-      if(data.data.length === 0 && numQueries <= 1) {
-        window.console.log('OWDError: ', 'No data');
+      if(typeof response.error !== 'undefined') {
+        inError = true;
+        window.console.log('FB: Error while retrieving link data',
+                                  response.error.code, response.error.message);
+      }
 
+      if( (inError || response.data.length === 0) && numQueries <= 1) {
         getRemoteProposalByNames(access_token,cdata);
       }
       else {
-        data.data.forEach(function(item) {
+        var data = response.data;
+
+        data.forEach(function(item) {
           if(!item.email) {
             item.email = '';
           }
         });
 
-        utils.templates.append('#friends-list',data.data);
+        utils.templates.append('#friends-list',data);
+
+        document.body.dataset.state = 'selection';
       }
 
-      document.body.dataset.state = 'selection';
+      // Guarantee that the user always return to a known state
+      if(numQueries > 1) {
+        document.body.dataset.state = 'selection';
+      }
     }
 
     /**
@@ -235,16 +246,22 @@ if(!fb.link) {
     }
 
 
-    link.friendsReady = function (data) {
-      data.data.forEach(function(item) {
-          if(!item.email) {
-            item.email = '';
-          }
-      });
+    link.friendsReady = function (response) {
+      if(typeof response.error === 'undefined') {
+        response.data.forEach(function(item) {
+            if(!item.email) {
+              item.email = '';
+            }
+        });
 
-      clearList();
+        clearList();
 
-      utils.templates.append(friendsList,data.data);
+        utils.templates.append(friendsList,response.data);
+      }
+      else {
+        window.console.error('FB: Error while retrieving friends',
+                              response.error.code,response.error.message);
+      }
 
       document.body.dataset.state = 'selection';
     }
