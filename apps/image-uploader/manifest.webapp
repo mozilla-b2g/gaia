@@ -1,0 +1,23 @@
+{
+  "name": "Image Uploader",
+  "description": "Uploading an image to some website",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+    "device-storage"
+  ],
+  "activities": {
+    "share-filenames": {
+      "filters": {
+        "type": "image"
+       },
+      "disposition": "window"
+    }
+  },
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}
