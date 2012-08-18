@@ -79,6 +79,7 @@ if(typeof Contacts.extFb === 'undefined') {
       var data = e.data;
 
       if(data === 'window_close') {
+        linkProposal.src = null;
         linkProposal.hidden = true;
       }
       else if(data.type && data.type === 'item_selected') {

@@ -71,7 +71,6 @@ if (typeof fb.importt === 'undefined') {
       var contactList = document.querySelector('#groups-list');
 
       var BLOCK_SIZE = 5;
-      var nextBlock = BLOCK_SIZE + 3;
 
 
    UI.getFriends = function() {
@@ -152,7 +151,7 @@ if (typeof fb.importt === 'undefined') {
 
       // In the meantime we obtain the FB friends already on the Address Book
       if (navigator.mozContacts) {
-        var filter = { filterValue: fb.CATEGORY, filterOp: 'equals',
+        var filter = { filterValue: fb.CATEGORY, filterOp: 'contains',
                           filterBy: ['category']};
 
         var req = navigator.mozContacts.find(filter);
