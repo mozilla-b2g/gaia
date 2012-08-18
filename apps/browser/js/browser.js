@@ -22,6 +22,7 @@ var Browser = {
   previousScreen: null,
   currentScreen: this.PAGE_SCREEN,
 
+  DEFAULT_SEARCH_PROVIDER: 'm.bing.com',
   DEFAULT_FAVICON: 'style/images/favicon.png',
   START_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/start.html',
@@ -68,6 +69,10 @@ var Browser = {
       this.showAboutPage.bind(this));
     this.clearHistoryButton.addEventListener('click',
       this.handleClearHistory.bind(this));
+    this.closeTab.addEventListener('click',
+      this.handleCloseTab.bind(this));
+    this.tryReloading.addEventListener('click',
+      this.handleTryReloading.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -114,7 +119,8 @@ var Browser = {
       'bookmarks-tab', 'history-tab', 'back-button', 'forward-button',
       'bookmark-button', 'ssl-indicator', 'tabs-badge', 'throbber', 'frames',
       'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
-      'about-firefox-button', 'clear-history-button'];
+      'about-firefox-button', 'clear-history-button', 'crashscreen',
+      'close-tab', 'try-reloading'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -131,6 +137,17 @@ var Browser = {
     if (this.currentScreen === this.TABS_SCREEN) {
       this.showPageScreen();
     }
+  },
+
+  handleTryReloading: function browser_handleTryReloading() {
+    this.navigate(this.currentTab.url);
+  },
+
+  handleCloseTab: function browser_handleCloseTab() {
+    this.hideCrashScreen();
+    this.deleteTab(this.currentTab.id);
+    this.setTabVisibility(this.currentTab, true);
+    this.updateTabsCount();
   },
 
   // We want to ensure the current page preview on the tabs screen is in
@@ -182,7 +199,7 @@ var Browser = {
 
       case 'mozbrowserloadstart':
         // iframe will call loadstart on creation, ignore
-        if (!tab.url) {
+        if (!tab.url || tab.crashed) {
           return;
         }
         tab.loading = true;
@@ -300,6 +317,12 @@ var Browser = {
         }
         ModalDialog.handleEvent(evt, tab.id);
         break;
+
+      case 'mozbrowsererror':
+        if (evt.detail.type === 'fatal') {
+          this.handleCrashedTab(tab);
+        }
+        break;
       }
     }).bind(this);
   },
@@ -320,6 +343,42 @@ var Browser = {
           this.updateAwesomeScreen(this.urlInput.value);
         }
     }
+  },
+
+  showCrashScreen: function browser_showCrashScreen() {
+    if (Object.keys(this.tabs).length > 1) {
+      this.closeTab.removeAttribute('disabled');
+    } else {
+      this.closeTab.setAttribute('disabled', 'disabled');
+    }
+    this.crashscreen.style.display = 'block';
+  },
+
+  hideCrashScreen: function browser_hideCrashScreen() {
+    this.crashscreen.style.display = 'none';
+  },
+
+  handleCrashedTab: function browser_handleCrashedTab(tab) {
+    if (tab.id === this.currentTab.id) {
+      this.showCrashScreen();
+    }
+
+    tab.loading = false;
+    tab.crashed = true;
+    this.frames.removeChild(tab.dom);
+    delete tab.dom;
+    delete tab.screenshot;
+    tab.loading = false;
+
+    var newIframe = document.createElement('iframe');
+    newIframe.mozbrowser = true;
+    // FIXME: content shouldn't control this directly
+    newIframe.setAttribute('remote', 'true');
+
+    tab.dom = newIframe;
+    this.bindBrowserEvents(tab.dom, tab);
+    this.frames.appendChild(tab.dom);
+    this.refreshButtons();
   },
 
   handleWindowOpen: function browser_handleWindowOpen(evt) {
@@ -357,6 +416,10 @@ var Browser = {
   },
 
   navigate: function browser_navigate(url) {
+    if (this.currentTab.crashed) {
+      this.currentTab.crashed = false;
+      this.hideCrashScreen();
+    }
     this.showPageScreen();
     this.currentTab.title = null;
     this.currentTab.url = url;
@@ -373,7 +436,7 @@ var Browser = {
     var protocol = protocolRegexp.exec(url);
 
     if (isSearch) {
-      return 'http://www.bing.com/search?q=' + url;
+      return 'http://' + this.DEFAULT_SEARCH_PROVIDER + '/search?q=' + url;
     }
     if (!protocol) {
       return 'http://' + url;
@@ -384,6 +447,12 @@ var Browser = {
   handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
     if (e) {
       e.preventDefault();
+    }
+
+    if (this.currentTab.crashed && this.urlButtonMode == this.REFRESH) {
+      this.setUrlBar(this.currentTab.url);
+      this.navigate(this.currentTab.url);
+      return;
     }
 
     if (this.urlButtonMode == this.REFRESH) {
@@ -398,7 +467,7 @@ var Browser = {
 
     var url = this.getUrlFromInput(this.urlInput.value);
 
-    if (url != this.currentTab.url) {
+    if (url !== this.currentTab.url && !this.currentTab.crashed) {
       this.setUrlBar(url);
       this.currentTab.url = url;
     }
@@ -803,8 +872,23 @@ var Browser = {
     if (tab.dom.setActive) {
       tab.dom.setActive(visible);
     }
+    if (tab.crashed) {
+      this.showCrashScreen();
+    }
     tab.dom.style.display = visible ? 'block' : 'none';
     tab.dom.style.top = '0px';
+  },
+
+  bindBrowserEvents: function browser_bindBrowserEvents(iframe, tab) {
+    var browserEvents = ['loadstart', 'loadend', 'locationchange',
+                         'titlechange', 'iconchange', 'contextmenu',
+                         'securitychange', 'openwindow', 'close',
+
+                         'showmodalprompt', 'error'];
+    browserEvents.forEach(function attachBrowserEvent(type) {
+      iframe.addEventListener('mozbrowser' + type,
+                              this.handleBrowserEvent(tab));
+    }, this);
   },
 
   createTab: function browser_createTab(url, iframe) {
@@ -817,10 +901,6 @@ var Browser = {
       }
     }
 
-    var browserEvents = ['loadstart', 'loadend', 'locationchange',
-                         'titlechange', 'iconchange', 'contextmenu',
-                         'securitychange', 'openwindow', 'close',
-                         'showmodalprompt'];
     iframe.style.top = '-999px';
 
     // FIXME: content shouldn't control this directly
@@ -835,11 +915,7 @@ var Browser = {
       screenshot: null,
       security: null
     };
-
-    browserEvents.forEach(function attachBrowserEvent(type) {
-      iframe.addEventListener('mozbrowser' +
-        type, this.handleBrowserEvent(tab));
-    }, this);
+    this.bindBrowserEvents(iframe, tab);
 
     this.tabs[tab.id] = tab;
     this.frames.appendChild(iframe);
@@ -876,11 +952,10 @@ var Browser = {
       setTimeout(showTabCompleteFun, 100);
     });
 
-    // TODO: remove setTimeout
-    //   https://bugzilla.mozilla.org/show_bug.cgi?id=774642)
-    setTimeout(function() {
-      li.style.height = '';
-    }, 50);
+    // Hack to force transition to apply synchronously
+    // http://lists.w3.org/Archives/Public/www-style/2011Mar/0729.html
+    li.clientTop;
+    li.style.height = '';
   },
 
   hideCurrentTab: function browser_hideCurrentTab() {
@@ -912,13 +987,15 @@ var Browser = {
   showAwesomeScreen: function browser_showAwesomeScreen() {
     this.tabsBadge.innerHTML = '';
     // Ensure the user cannot interact with the browser until the
-    // transition has ended
+    // transition has ended, this will not be triggered unless the
+    // use is navigating from the tab screen.
     var pageShown = (function() {
+      this.mainScreen.removeEventListener('transitionend', pageShown, true);
       this.inTransition = false;
-      this.setUrlButtonMode(this.GO);
     }).bind(this);
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
+    this.setUrlButtonMode(this.GO);
     this.showTopSitesTab();
   },
 
@@ -944,6 +1021,11 @@ var Browser = {
 
     this.switchScreen(this.PAGE_SCREEN);
     this.setUrlBar(this.currentTab.title || this.currentTab.url);
+    if (this.currentTab.crashed) {
+      this.showCrashScreen();
+    } else {
+      this.hideCrashScreen();
+    }
     this.updateTabsCount();
     this.inTransition = false;
   },
@@ -960,7 +1042,7 @@ var Browser = {
     var ul = document.createElement('ul');
 
     for each(var tab in this.tabs) {
-      var li = this.generateTabLi(tab);
+      var li = this.generateTabLi(tab, multipleTabs);
       ul.appendChild(li);
     }
 
@@ -972,13 +1054,21 @@ var Browser = {
     this.inTransition = false;
   },
 
-  generateTabLi: function browser_generateTabLi(tab) {
+  generateTabLi: function browser_generateTabLi(tab, multipleTabs) {
     var title = tab.title || tab.url || _('new-tab');
     var a = document.createElement('a');
     var li = document.createElement('li');
     var span = document.createElement('span');
     var preview = document.createElement('div');
     var text = document.createTextNode(title);
+
+    if (multipleTabs) {
+      var close = document.createElement('button');
+      close.appendChild(document.createTextNode('✕'));
+      close.classList.add('close');
+      close.setAttribute('data-id', tab.id);
+      a.appendChild(close);
+    }
 
     a.setAttribute('data-id', tab.id);
     preview.classList.add('preview');
@@ -1084,14 +1174,23 @@ var Browser = {
 
     mousedown: function tabSwipe_mousedown(e) {
       e.preventDefault();
-      this.tab = e.target;
+
+      this.isCloseButton = e.target.nodeName === 'BUTTON';
+      this.tab = this.isCloseButton ? e.target.parentNode : e.target;
       this.id = this.tab.getAttribute('data-id');
       this.containerWidth = this.tab.parentNode.clientWidth;
+
+      if (this.isCloseButton) {
+        e.stopPropagation();
+        return;
+      }
+
       // We cant delete the last tab
       this.deleteable = Object.keys(this.browser.tabs).length > 1;
       if (!this.deleteable || this.browser.inTransition) {
         return;
       }
+
       this.tab.classList.add('active');
       this.tab.style.MozTransition = '';
       this.tab.style.position = 'absolute';
@@ -1114,6 +1213,14 @@ var Browser = {
       if (this.browser.inTransition) {
         return;
       }
+      if (this.isCloseButton) {
+        this.tab.style.position = 'absolute';
+        this.tab.style.left = '0px';
+        this.tab.style.width = this.containerWidth + 'px';
+        this.deleteTab(100, this.containerWidth);
+        return;
+      }
+
       this.browser.selectTab(this.id);
       this.browser.showPageScreen();
     },
@@ -1151,6 +1258,8 @@ var Browser = {
       var browser = this.browser;
       var id = this.id;
       var li = this.tab.parentNode;
+      var self = this;
+
       // First animate the tab offscreen
       this.tab.addEventListener('transitionend', function() {
         // Then animate the space dissapearing
@@ -1158,11 +1267,21 @@ var Browser = {
           // Then delete everything
           browser.deleteTab(id);
           li.parentNode.removeChild(li);
+
+          if (Object.keys(self.browser.tabs).length === 1) {
+            var closeButtons = document.getElementsByClassName('close');
+            Array.forEach(closeButtons, function(el) {
+              el.parentNode.removeChild(el);
+            });
+          }
+
         }, true);
         li.style.MozTransition = 'height ' + 100 + 'ms linear';
         li.style.height = '0px';
       }, true);
+
       this.tab.style.MozTransition = 'left ' + time + 'ms linear';
+      this.tab.clientTop;
       this.tab.style.left = offset + 'px';
     }
   },
@@ -1223,11 +1342,16 @@ window.addEventListener('load', function browserOnLoad(evt) {
   Browser.init();
 });
 
-window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+
+function actHandle(activity) {
   if (Browser.hasLoaded) {
     Browser.handleActivity(activity);
   } else {
     Browser.waitingActivities.push(activity);
   }
   activity.postResult({ status: 'accepted' });
-});
+}
+
+if (window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler('activity', actHandle);
+}

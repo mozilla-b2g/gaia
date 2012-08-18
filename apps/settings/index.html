@@ -20,7 +20,7 @@
   <body class="hidden">
 
     <!-- Main List -->
-    <section role="region" id="root">
+    <section role="document" id="root">
       <header>
         <h1 data-l10n-id="settings">Settings</h1>
       </header>
@@ -130,7 +130,7 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
-    <section role="region" id="wifi">
+    <section role="document" id="wifi">
       <header>
         <h1>
           <a href="#root" data-l10n-id="wifi">Wi-Fi</a>
@@ -152,6 +152,10 @@
           </label>
           <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
           <a data-l10n-id="networkNotification">Network notification</a>
+        </li>
+        <li hidden id="wps-pbc-button">
+          <small id="wifi-wps-desc">Automatic wireless network configuration</small>
+          <a data-l10n-id="wpsPbcMessage">WPS button connection</a>
         </li>
       </ul>
 
@@ -233,7 +237,7 @@
     </form>
 
     <!-- Connectivity :: 3G/data -->
-    <section role="region" id="data">
+    <section role="document" id="data">
       <header>
         <h1>
           <a href="#root" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
@@ -250,15 +254,13 @@
             <input type="checkbox" name="ril.data.enabled"/>
             <span></span>
           </label>
-          <small data-l10n-id="dataConnection-expl"></small>
           <a data-l10n-id="dataConnection">Data Connection</a>
         </li>
         <li>
           <label>
-            <input type="checkbox" name="ril.data.roaming.enabled"/>
+            <input type="checkbox" name="ril.data.roaming_enabled"/>
             <span></span>
           </label>
-          <small data-l10n-id="dataRoaming-expl"></small>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
         </li>
       </ul>
@@ -296,6 +298,14 @@
       <label>
         <span data-l10n-id="password">password</span>
         <input type="text" data-setting="ril.data.passwd" />
+      </label>
+      <label>
+        <span data-l10n-id="httpProxyHost">httpProxyHost</span>
+        <input type="text" data-setting="ril.data.httpProxyHost" />
+      </label>
+      <label>
+        <span data-l10n-id="httpProxyPort">httpProxyPort</span>
+        <input type="text" data-setting="ril.data.httpProxyPort" />
       </label>
 
       <!-- APN database lookup -->
@@ -335,7 +345,7 @@
     </form>
 
     <!-- Connectivity :: Bluetooth -->
-    <section role="region" id="bluetooth">
+    <section role="document" id="bluetooth">
       <header>
         <h1>
           <a href="#root" data-l10n-id="bluetooth">Bluetooth</a>
@@ -355,7 +365,7 @@
     </section>
 
     <!-- Personalization :: Sound -->
-    <section role="region" id="sounds">
+    <section role="document" id="sounds">
       <header>
         <h1>
           <a href="#root" data-l10n-id="sound">Sound</a>
@@ -436,7 +446,7 @@
     </section>
 
     <!-- Personalization :: Brightness -->
-    <section role="region" id="brightness">
+    <section role="document" id="brightness">
       <header>
         <h1>
           <a href="#root" data-l10n-id="brightness">Brightness</a>
@@ -461,7 +471,7 @@
     </section>
 
     <!-- Personalization :: Wallpaper -->
-    <section role="region" id="wallpaper">
+    <section role="document" id="wallpaper">
       <header>
         <h1>
           <a href="#root" data-l10n-id="wallpaper">Wallpaper</a>
@@ -536,7 +546,7 @@
     <!-- [TODO] Personalization :: Time & Date -->
 
     <!-- Personalization :: Language & Region -->
-    <section role="region" id="languages">
+    <section role="document" id="languages">
       <header>
         <h1>
           <a href="#root" data-l10n-id="languageAndRegion">Language &amp; Region</a>
@@ -632,7 +642,7 @@
     </section>
 
     <!-- Personalization :: Keyboard -->
-    <section role="region" id="keyboard">
+    <section role="document" id="keyboard">
       <header>
         <h1>
           <a href="#root" data-l10n-id="keyboard">Keyboard</a>
@@ -761,7 +771,7 @@
     <!-- [TODO] Accounts :: Mail -->
 
     <!-- Security :: Phone Lock -->
-    <section role="region" id="phoneLock">
+    <section role="document" id="phoneLock">
       <header>
         <h1>
           <a href="#root" data-l10n-id="phoneLock">Phone Lock</a>
@@ -793,7 +803,7 @@
     <!-- [TODO] Security :: Do Not Track -->
 
     <!-- Device :: About -->
-    <section role="region" id="about">
+    <section role="document" id="about">
       <header>
         <h1>
           <a href="#root" data-l10n-id="aboutPhone">About Phone</a>
@@ -835,7 +845,7 @@
     </section>
 
     <!-- Device :: Storage -->
-    <section role="region" id="storage">
+    <section role="document" id="storage">
       <header>
         <h1>
           <a href="#root" data-l10n-id="storage">Storage</a>
@@ -854,7 +864,7 @@
     </section>
 
     <!-- Device :: Accessibility -->
-    <section role="region" id="accessibility">
+    <section role="document" id="accessibility">
       <header>
         <h1>
           <a href="#root" data-l10n-id="accessibility">Accessibility</a>

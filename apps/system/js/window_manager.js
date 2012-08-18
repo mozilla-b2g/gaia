@@ -48,6 +48,8 @@
 'use strict';
 
 var WindowManager = (function() {
+  var homescreen = null;
+
   // Hold Home key for 1 second to bring up the app switcher.
   // Should this be a setting?
   var kLongPressInterval = 1000;
@@ -55,6 +57,7 @@ var WindowManager = (function() {
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
+  var dialogOverlay = document.getElementById('dialog-overlay');
 
   //
   // The set of running apps.
@@ -133,6 +136,9 @@ var WindowManager = (function() {
 
     frame.style.width = window.innerWidth + 'px';
     frame.style.height = window.innerHeight - StatusBar.height + 'px';
+
+    dialogOverlay.style.width = window.innerWidth + 'px';
+    dialogOverlay.style.height = window.innerHeight - StatusBar.height + 'px';
   }
 
   var openFrame = null;
@@ -144,7 +150,8 @@ var WindowManager = (function() {
   // animations.
   var sprite = document.createElement('div');
   sprite.id = 'windowSprite';
-  document.body.appendChild(sprite);
+  sprite.dataset.zIndexLevel = 'window-sprite';
+  document.getElementById('screen').appendChild(sprite);
 
   // This event handler is triggered when the transition ends.
   // We're going to do two transitions, so it gets called twice.
@@ -159,6 +166,7 @@ var WindowManager = (function() {
       classes.add('faded');
       setTimeout(openCallback);
     } else if (classes.contains('faded') && prop === 'opacity') {
+
       openFrame.setVisible(true);
       openFrame.focus();
 
@@ -167,6 +175,7 @@ var WindowManager = (function() {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
       openFrame.dispatchEvent(evt);
+      document.getElementById('screen').classList.add('active-application');
 
     } else if (classes.contains('close') && prop === 'color') {
       closeFrame.classList.remove('active');
@@ -183,9 +192,24 @@ var WindowManager = (function() {
   function openWindow(origin, callback) {
     var app = runningApps[origin];
     openFrame = app.frame;
-    openCallback = callback || function() {};
 
-    sprite.className = 'open';
+    openCallback = function() {
+      if (app.manifest.fullscreen)
+        openFrame.mozRequestFullScreen();
+
+      if (callback)
+        callback();
+    };
+
+    if (origin === homescreen) {
+      openCallback();
+      windows.classList.add('active');
+      openFrame.classList.add('active');
+      openFrame.setVisible(true);
+      openFrame.focus();
+    } else {
+      sprite.className = 'open';
+    }
   }
 
   function closeWindow(origin, callback) {
@@ -200,13 +224,31 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
+    document.getElementById('screen').classList.remove('active-application');
+
     // Take keyboard focus away from the closing window
     closeFrame.blur();
     closeFrame.setVisible(false);
 
     // And begin the transition
-    sprite.classList.remove('faded');
-    sprite.classList.add('close');
+    // Wait for we leave full screen before starting the transition
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=781014
+    if (document.mozFullScreen) {
+      document.addEventListener('mozfullscreenchange',
+        function fullscreenListener(event) {
+          document.removeEventListener('mozfullscreenchange',
+                                       fullscreenListener, false);
+          setTimeout(function() {
+            sprite.classList.remove('faded');
+            sprite.classList.add('close');
+          }, 20);
+        }, false);
+
+      document.mozCancelFullScreen();
+    } else {
+      sprite.classList.remove('faded');
+      sprite.classList.add('close');
+    }
   }
 
   //last time app was launched,
@@ -229,26 +271,19 @@ var WindowManager = (function() {
       if (callback)
         callback();
     }
-    // Case 2: homescreen->app
-    else if (currentApp == null && newApp) {
+    // Case 2: null->homescreen || homescreen->app
+    else if ((!currentApp && newApp == homescreen) ||
+             (currentApp == homescreen && newApp)) {
       setAppSize(newApp);
       updateLaunchTime(newApp);
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
-    else if (currentApp && newApp == null) {
+    else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       // Animate the window close
       closeWindow(currentApp, callback);
     }
-    // Case 4: homescreen-to-homescreen transition
-    else if (currentApp == null && newApp == null) {
-      // XXX Until the HOME button works as an activity, just
-      // send a message to the homescreen so he nows about the
-      // home key.
-      var home = document.getElementById('homescreen');
-      home.contentWindow.postMessage('home', home.src);
-    }
-    // Case 5: app-to-app transition
+    // Case 4: app-to-app transition
     else {
       // XXX Note: Hack for demo when current app want to set specific hash
       //           url in newApp(e.g. contact trigger SMS message list page).
@@ -270,11 +305,7 @@ var WindowManager = (function() {
       setOrientationForApp(newApp);
     }
 
-    // Exit fullscreen mode if we're going to the homescreen
-    if (newApp === null && document.mozFullScreen) {
-      document.mozCancelFullScreen();
-    }
-
+    // Set displayedApp to the new value
     displayedApp = origin;
 
     // Update the loading icon since the displayedApp is changed
@@ -313,18 +344,7 @@ var WindowManager = (function() {
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.dataset.frameType = 'window';
     frame.dataset.frameOrigin = origin;
-
-    if (manifest.hackNetworkBound) {
-      var style = 'font-family: OpenSans,sans-serif;' +
-                  'text-align: center;' +
-                  'color: white;' +
-                  'margin-top: 100px;';
-
-      frame.src = 'data:text/html,' +
-        '<body style="background-color: black">' +
-        '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
-        '</body>';
-    }
+    frame.src = url;
 
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
@@ -353,8 +373,6 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=775591
       // Electrolysize b2g-bluetooth
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=755943
-      // VolumeService doesn't work when called OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775833
       // Message App crashes when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=775997
       // Dialer doesn't seem to see touches when run OOP
@@ -375,22 +393,36 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776132
       // UI Test App - Notifications don't work properly when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776134
+      // Cannot take on-device screenshot for Apps running in OOP
+      //   (calculator, browser, Calendar)
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=780920
+      // Clock App alarm doesn't sound when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=778300
+      // Music app doesn't work properly when launched OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782458
+      // Video shows black screen when run OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782460
+      // Camera app show black screen when launched OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782456
+      // AppsService is not e10s ready
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=777195
+      // Contacts app doesn't work when OOP
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782472
 
       'Browser',
       // - Needs Nested Content Process (bug 761935) for OOP
 
       'Camera',
-      // - Camera app doesn't work yet on otoro - bug 740997
-      // - When run OOP, VolumeService dies - bug 775833
+      // - Get a black screen when camera launched OOP (782456)
       //   Cross-process camera control
       //   Cross-process preview stream
 
       'Clock',
-      //  - OOP - asserts on w->mApp (bug 775576)
+      //  - OOP - when alarm fires,
+      //    analog clock stops advancing and alarm doesn sound (778300)
 
       'Contacts',
-      // System message handler (for WebActivities) doesn't get called
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=777195
+      // - Get a white screen when launched OOP (782472)
       // Keyboard always shows up alpha when app using keyboard is run OOP
       // - bug 776118
 
@@ -402,15 +434,14 @@ var WindowManager = (function() {
 
       'Dialer',
       // - Dialer doesn't seem to see touches when running OOP - bug 776069
+      // - After launching dialer and going back to the home screen,
+      //   I get continuous messages:
+      //       Gecko - SYDNEY_AUDIO  I   0x172df28 - get position
 
       'E-Mail',
       // - SSL/TLS support can only happen in the main process although the TCP
       //   support without security will accidentally work OOP:
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=770778
-
-      'Gallery',
-      // - When running OOP, doesn't detect any photos or crashes - bug 775591
-      // - When running OOP, VolumeService dies - bug 775833
 
       'Marketplace',
       // - When running OOP - After trying to Login/Register, never get to
@@ -421,7 +452,7 @@ var WindowManager = (function() {
       // - crashes when launched OOP on otoro - bug 775997
 
       'Music',
-      // - When running OOP, VolumeService dies - bug 775833
+      // - When running OOP, displays white screen after selecting song (782458)
 
       'Settings',
       // Most of settings seems to work OOP.
@@ -444,14 +475,24 @@ var WindowManager = (function() {
       //   - bug 776129
       // UI Test app - window.close test causes seg fault when running OOP
       //   - bug 776132
-      // UI Test App - Notifications don't work properly when running OOP
-      //   - bug 776134
 
-      'Video'
-      // - When running OOP, VolumeService dies - bug 775833
-      //   OOP - Assertion failure: w->mApp,
-      //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
-      //   Stop audio when app dies
+      'Video',
+      // - When running OOP, displays black screen when launching
+      //   (i.e. no video list) (782460)
+      // - Stop audio when app dies
+
+      'Homescreen',
+      // Bug 783076 - Panning is broken when running the homescreen OOP.
+
+      // - When running OOP, displays black screen when launching
+      //   (i.e. no video list) (782460)
+      // - Stop audio when app dies
+
+      'Share Receiver'
+      // This is a helper app for testing the Share activity in Gallery
+      // It needs to be blacklisted because when OOP it does not receive
+      // the system messages it needs to respond to the activity request.
+      // See https://bugzilla.mozilla.org/show_bug.cgi?id=782835
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {
@@ -463,9 +504,6 @@ var WindowManager = (function() {
     }
 
     // Add the iframe to the document
-    // Note that we have not yet set its src property.
-    // In order for the open animation to be smooth, we don't
-    // actually set src until the open has finished.
     windows.appendChild(frame);
 
     // And map the app origin to the info we need for the app
@@ -479,20 +517,11 @@ var WindowManager = (function() {
     numRunningApps++;
 
     // Launching this application without bring it to the foreground
-    if (background) {
-      frame.src = url;
+    if (background)
       return;
-    }
 
-    // Now animate the window opening and actually set the iframe src
-    // when that is done.
-    setDisplayedApp(origin, function() {
-      frame.src = url;
-
-      if (manifest.fullscreen) {
-        frame.mozRequestFullScreen();
-      }
-    });
+    // Now animate the window opening.
+    setDisplayedApp(origin);
   }
 
 
@@ -582,6 +611,17 @@ var WindowManager = (function() {
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
+        UtilityTray.hide();
+
+        // If nothing is opened yet, consider the first application opened
+        // as the homescreen.
+        if (!homescreen) {
+          homescreen = origin;
+          var frame = runningApps[homescreen].frame;
+          frame.dataset.zIndexLevel = 'homescreen';
+          return;
+        }
+
         setDisplayedApp(origin);
         break;
     }
@@ -610,7 +650,7 @@ var WindowManager = (function() {
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp)
-      setDisplayedApp(null);
+      setDisplayedApp(homescreen);
 
     var app = runningApps[origin];
     windows.removeChild(app.frame);
@@ -625,14 +665,19 @@ var WindowManager = (function() {
     // If there aren't any origin, that means we are moving to
     // the homescreen. Let's hide the icon.
     if (!origin) {
-      loadingIcon.hidden = true;
+      loadingIcon.classList.remove('app-loading');
       return;
     }
 
     // Actually update the icon.
     // Hide it if the loading property is not true.
     var app = runningApps[origin];
-    loadingIcon.hidden = !app.frame.dataset.loading;
+
+    if (app.frame.dataset.loading) {
+      loadingIcon.classList.add('app-loading');
+    } else {
+      loadingIcon.classList.remove('app-loading');
+    }
   };
 
   // Listen for mozbrowserloadstart to update the loading status
@@ -684,9 +729,18 @@ var WindowManager = (function() {
     // Note that for this to work, the lockscreen and other overlays must
     // be included in index.html before this one, so they can register their
     // event handlers before we do.
-    setDisplayedApp(null);
-    if (CardsView.cardSwitcherIsShown())
+    if (CardsView.cardSwitcherIsShown()) {
       CardsView.hideCardSwitcher();
+    } else if (displayedApp !== homescreen) {
+      setDisplayedApp(homescreen);
+    } else {
+      new MozActivity({
+        name: 'view',
+        data: {
+          type: 'application/x-application-list'
+        }
+      });
+    }
   });
 
   window.addEventListener('holdhome', function(e) {
@@ -713,4 +767,3 @@ var WindowManager = (function() {
     setDisplayedApp: setDisplayedApp
   };
 }());
-

@@ -9,7 +9,8 @@
   "permissions": [
     "alarm",
     "alarms",
-    "offline-app"
+    "settings",
+    "attention"
   ],
   "locales": {
     "ar": {

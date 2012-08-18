@@ -13,11 +13,6 @@
         this[key] = options[key];
       }
     }
-
-    if (this.provider && !options.hasOwnProperty('remote')) {
-      this.updateRemote(this.provider);
-      delete this.provider;
-    }
   }
 
   Cal.prototype = {
@@ -40,6 +35,9 @@
 
     /**
      * Last date of event synchronization.
+     * This is not going to be used
+     * for any kind of serious operation
+     * right now this is just for the UI.
      *
      * @type {Date}
      */
@@ -65,7 +63,12 @@
      * @param {Calendar.Provider.Calendar.Abstract} provider remote.
      */
     updateRemote: function(provider) {
-      this.remote = provider.toJSON();
+      var data = provider;
+      if ('toJSON' in provider) {
+          data = provider.toJSON();
+      }
+
+      this.remote = data;
     },
 
     /**
@@ -98,13 +101,19 @@
     },
 
     toJSON: function() {
-      return {
+      var result = {
         remote: this.remote,
         accountId: this.accountId,
         localDisplayed: this.localDisplayed,
         lastEventSyncDate: this.lastEventSyncDate,
         lastEventSyncToken: this.lastEventSyncToken
       };
+
+      if (this._id || this._id === 0) {
+        result._id = this._id;
+      }
+
+      return result;
     }
 
   };

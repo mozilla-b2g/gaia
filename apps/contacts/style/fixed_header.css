@@ -1,0 +1,11 @@
+.fixed-title {
+  position: absolute;
+  top: 0;
+  width: 85%;
+  height: 2.3rem;
+  margin: 0 3rem;
+  z-index: 6;
+  background-repeat: no-repeat;
+  background-color: #f4f4f4;
+  transform: translateY(-100%);
+}

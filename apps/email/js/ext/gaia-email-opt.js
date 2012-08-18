@@ -3116,7 +3116,6 @@ define('rdimap/imapclient/mailapi',
     'exports'
   ],
   function(
-
     exports
   ) {
 
@@ -3496,6 +3495,7 @@ MailHeader.prototype = {
 function MailBody(api, suid, wireRep) {
   this._api = api;
   this.id = suid;
+  this._date = wireRep.date;
 
   this.to = wireRep.to;
   this.cc = wireRep.cc;
@@ -3505,22 +3505,145 @@ function MailBody(api, suid, wireRep) {
   if (wireRep.attachments) {
     this.attachments = [];
     for (var iAtt = 0; iAtt < wireRep.attachments.length; iAtt++) {
-      this.attachments.push(new MailAttachment(wireRep.attachments[iAtt]));
+      this.attachments.push(
+        new MailAttachment(this, wireRep.attachments[iAtt]));
     }
   }
-  // for the time being, we only provide text/plain contents, and we provide
-  // those flattened.
-  this.bodyRep = wireRep.bodyRep;
+  this._relatedParts = wireRep.relatedParts;
+  this.bodyReps = wireRep.bodyReps;
+  this._cleanup = null;
 }
 MailBody.prototype = {
   toString: function() {
-    return '[MailBody: ' + id + ']';
+    return '[MailBody: ' + this.id + ']';
   },
   toJSON: function() {
     return {
       type: 'MailBody',
       id: this.id
     };
+  },
+
+  /**
+   * true if this is an HTML document with inline images sent as part of the
+   * messages.
+   */
+  get embeddedImageCount() {
+    if (!this._relatedParts)
+      return 0;
+    return this._relatedParts.length;
+  },
+
+  /**
+   * true if all of the images are already downloaded.
+   */
+  get embeddedImagesDownloaded() {
+    for (var i = 0; i < this._relatedParts.length; i++) {
+      var relatedPart = this._relatedParts[i];
+      if (!relatedPart.file)
+        return false;
+    }
+    return true;
+  },
+
+  /**
+   * Trigger the download of any inline images sent as part of the message.
+   * Once the images have been downloaded
+   */
+  downloadEmbeddedImages: function(callback) {
+    var relPartIndices = [];
+    for (var i = 0; i < this._relatedParts.length; i++) {
+      var relatedPart = this._relatedParts[i];
+      if (relatedPart.file)
+        continue;
+      relPartIndices.push(i);
+    }
+    if (!relPartIndices.length) {
+      callback();
+      return;
+    }
+    this._api._downloadAttachments(this, relPartIndices, [], callback);
+  },
+
+  /**
+   * Synchronously trigger the display of embedded images.
+   */
+  showEmbeddedImages: function(htmlNode) {
+    var i, cidToObjectUrl = {},
+        // the "|| window" is for our shimmed testing environment and should
+        // not happen in production.
+        useWin = htmlNode.ownerDocument.defaultView || window;
+    // - Generate object URLs for the attachments
+    for (i = 0; i < this._relatedParts.length; i++) {
+      var relPart = this._relatedParts[i];
+      // Related parts should all be stored as Blobs-in-IndexedDB
+      if (relPart.file && !Array.isArray(relPart.file)) {
+        cidToObjectUrl[relPart.name] = useWin.URL.createObjectURL(relPart.file);
+      }
+    }
+    this._cleanup = function revokeURLs() {
+      for (var cid in cidToObjectUrl) {
+        useWin.URL.revokeObjectURL(cidToObjectUrl[cid]);
+      }
+    };
+
+    // - Transform the links
+    var nodes = htmlNode.querySelectorAll('.moz-embedded-image');
+    for (i = 0; i < nodes.length; i++) {
+      var node = nodes[i],
+          cid = node.getAttribute('cid-src');
+
+      if (!cidToObjectUrl.hasOwnProperty(cid))
+        continue;
+      // XXX according to an MDN tutorial we can use onload to destroy the
+      // URL once the image has been loaded.
+      node.src = cidToObjectUrl[cid];
+
+      node.removeAttribute('cid-src');
+      node.classList.remove('moz-embedded-image');
+    }
+  },
+
+  /**
+   * @return[Boolean]{
+   *   True if the given HTML node sub-tree contains references to externally
+   *   hosted images.  These are detected by looking for markup left in the
+   *   image by the sanitization process.  The markup is not guaranteed to be
+   *   stable, so don't do this yourself.
+   * }
+   */
+  checkForExternalImages: function(htmlNode) {
+    var someNode = htmlNode.querySelector('.moz-external-image');
+    return someNode !== null;
+  },
+
+  /**
+   * Transform previously sanitized references to external images into live
+   * references to images.  This un-does the operations of the sanitization step
+   * using implementation-specific details subject to change, so don't do this
+   * yourself.
+   */
+  showExternalImages: function(htmlNode) {
+    // querySelectorAll is not live, whereas getElementsByClassName is; we
+    // don't need/want live, especially with our manipulations.
+    var nodes = htmlNode.querySelectorAll('.moz-external-image');
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      node.setAttribute('src', node.getAttribute('ext-src'));
+      node.removeAttribute('ext-src');
+      node.classList.remove('moz-external-image');
+    }
+  },
+
+  /**
+   * Call this method when you are done with a message body.  This is required
+   * so that any File/Blob URL's can be revoked.
+   */
+  die: function() {
+    if (this._cleanup) {
+      this._cleanup();
+      this._cleanup = null;
+    }
   },
 };
 
@@ -3529,11 +3652,13 @@ MailBody.prototype = {
  * In the future this will also be the means for requesting the download of
  * an attachment or for attachment-forwarding semantics.
  */
-function MailAttachment(wireRep) {
+function MailAttachment(_body, wireRep) {
+  this._body = _body;
   this.partId = wireRep.part;
   this.filename = wireRep.name;
   this.mimetype = wireRep.type;
   this.sizeEstimateInBytes = wireRep.sizeEstimate;
+  this._file = wireRep.file;
 
   // build a place for the DOM element and arbitrary data into our shape
   this.element = null;
@@ -3548,6 +3673,10 @@ MailAttachment.prototype = {
       type: 'MailAttachment',
       filename: this.filename
     };
+  },
+
+  get isDownloaded() {
+    return !!this._file;
   },
 };
 
@@ -4210,6 +4339,51 @@ MailAPI.prototype = {
     req.callback.call(null, body);
   },
 
+  _downloadAttachments: function(body, relPartIndices, attachmentIndices,
+                                 callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'downloadAttachments',
+      body: body,
+      relParts: relPartIndices.length > 0,
+      attachments: attachmentIndices.length > 0,
+      callback: callback,
+    };
+    this.__bridgeSend({
+      type: 'downloadAttachments',
+      handle: handle,
+      suid: body.id,
+      date: body._date,
+      relPartIndices: relPartIndices,
+      attachmentIndices: attachmentIndices
+    });
+  },
+
+  _recv_downloadedAttachments: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    if (!req) {
+      unexpectedBridgeDataError('Bad handle for got body:', msg.handle);
+      return;
+    }
+    delete this._pendingRequests[msg.handle];
+
+    // What will have changed are the attachment lists, so update them.
+    if (msg.body) {
+      if (req.relParts)
+        req.body._relatedParts = msg.body.relatedParts;
+      if (req.attachments) {
+        var wireAtts = msg.body.attachments;
+        for (var i = 0; i < wireAtts.length; i++) {
+          var wireAtt = wireAtts[i], bodyAtt = req.body.attachments[i];
+          bodyAtt.sizeEstimateInBytes = wireAtt.sizeEstimate;
+          bodyAtt._file = wireAtt.file;
+        }
+      }
+    }
+    if (req.callback)
+      req.callback.call(null, req.body);
+  },
+
   /**
    * Try to create an account.  There is currently no way to abort the process
    * of creating an account.
@@ -4630,7 +4804,7 @@ MailAPI.prototype = {
 
     req.composer.senderIdentity = new MailSenderIdentity(this, msg.identity);
     req.composer.subject = msg.subject;
-    req.composer.body = msg.body;
+    req.composer.body = msg.body; // rich obj of {text, html}
     req.composer.to = msg.to;
     req.composer.cc = msg.cc;
     req.composer.bcc = msg.bcc;
@@ -7143,7 +7317,8 @@ function boundedCmpObjs(a, b, depthLeft) {
  * }
  */
 function smartCompareEquiv(a, b, depthLeft) {
-  if (typeof(a) !== 'object' || (a == null) || (b == null))
+  var ta = typeof(a), tb = typeof(b);
+  if (ta !== 'object' || (tb !== ta) || (a == null) || (b == null))
     return a === b;
   // fast-path for identical objects
   if (a === b)
@@ -7446,6 +7621,10 @@ LoggestClassMaker.prototype = {
         }
         // -- end new bit
         this._entries.push(entry);
+        // ++ firing bit...
+        var testActor = this._actor;
+        if (testActor)
+          testActor.__loggerFired();
       };
       this.testLogProto[name_end] = function() {
         this._eventMap[name_end] = (this._eventMap[name_end] || 0) + 1;
@@ -7467,6 +7646,10 @@ LoggestClassMaker.prototype = {
         }
         // -- end new bit
         this._entries.push(entry);
+        // ++ firing bit...
+        var testActor = this._actor;
+        if (testActor)
+          testActor.__loggerFired();
       };
     }
 
@@ -11329,7 +11512,7 @@ define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
 /**
- * Process message bodies for quoting / signatures.
+ * Process text/plain message bodies for quoting / signatures.
  *
  * We have two main goals in our processing:
  *
@@ -11941,8 +12124,8 @@ function expandQuotedPrefix(s, depth) {
 
 /**
  * Expand a quoted block so that it has the right number of greater than signs
- * and inserted whitespace where appropriate.  (Blank lines don't want whitespace
- * injected.)
+ * and inserted whitespace where appropriate.  (Blank lines don't want
+ * whitespace injected.)
  */
 function expandQuoted(s, depth) {
   var ws = replyQuoteNewlineReplaceStrings[depth],
@@ -11955,72 +12138,12 @@ function expandQuoted(s, depth) {
   });
 }
 
-var l10n_wroteString = '{{name}} wrote',
-    l10n_originalMessageString = 'Original Message';
-
-/*
- * L10n strings for forward headers.  In Thunderbird, these come from
- * mime.properties:
- * http://mxr.mozilla.org/comm-central/source/mail/locales/en-US/chrome/messenger/mime.properties
- *
- * The libmime logic that injects them is mime_insert_normal_headers:
- * http://mxr.mozilla.org/comm-central/source/mailnews/mime/src/mimedrft.cpp#791
- *
- * Our dictionary maps from the lowercased header name to the human-readable
- * string.
- *
- * XXX actually do the l10n hookup for this
- */
-var l10n_forward_header_labels = {
-  subject: 'Subject',
-  date: 'Date',
-  from: 'From',
-  replyTo: 'Reply-To',
-  to: 'To',
-  cc: 'CC',
-};
-
-exports.setLocalizedStrings = function(strings) {
-  l10n_wroteString = strings.wrote;
-  l10n_originalMessageString = strings.originalMessage;
-};
-
-const RE_RE = /^[Rr][Ee]: /;
-
 /**
- * Generate the reply subject for a message given the prior subject.  This is
- * simply prepending "Re: " to the message if it does not already have an
- * "Re:" equivalent.
- *
- * Note, some clients/gateways (ex: I think the google groups web client? at
- * least whatever has a user-agent of G2/1.0) will structure mailing list
- * replies so they look like "[list] Re: blah" rather than the "Re: [list] blah"
- * that Thunderbird would produce.  Thunderbird (and other clients) pretend like
- * that inner "Re:" does not exist, and so do we.
- *
- * We _always_ use the exact string "Re: " when prepending and do not localize.
- * This is done primarily for consistency with Thunderbird, but it also is
- * friendly to other e-mail applications out there.
- *
- * Thunderbird does support recognizing a
- * mail/chrome/messenger-region/region.properties property,
- * "mailnews.localizedRe" for letting locales specify other strings used by
- * clients that do attempt to localize "Re:".  Thunderbird also supports a
- * weird "Re(###):" or "Re[###]:" idiom; see
- * http://mxr.mozilla.org/comm-central/ident?i=NS_MsgStripRE for more details.
- */
-exports.generateReplySubject = function generateReplySubject(origSubject) {
-  if (RE_RE.test(origSubject))
-      return origSubject;
-  return 'Re: ' + origSubject;
-};
-
-/**
- * Generate a text message reply given an already quote-processed body.  We do not
- * simply '>'-prefix everything because 1) we don't store the raw message text
- * because it's faster for us to not quote-process everything every time we display
- * a message, 2) we want to strip some stuff out, 3) we don't care about providing
- * a verbatim quote.
+ * Generate a text message reply given an already quote-processed body.  We do
+ * not simply '>'-prefix everything because 1) we don't store the raw message
+ * text because it's faster for us to not quote-process everything every time we
+ * display a message, 2) we want to strip some stuff out, 3) we don't care about
+ * providing a verbatim quote.
  */
 exports.generateReplyText = function generateReplyText(rep) {
   var strBits = [];
@@ -12053,27 +12176,6 @@ exports.generateReplyText = function generateReplyText(rep) {
   }
 
   return strBits.join('');
-};
-
-/**
- *
- */
-exports.generateReplyMessage = function generateReplyMessage(rep, authorPair,
-                                                             msgDate,
-                                                             identity) {
-  var useName = authorPair.name || authorPair.address;
-
-  var msg = '\n\n';
-
-  msg += l10n_wroteString.replace('{{name}}', useName) + ':\n' +
-    exports.generateReplyText(rep);
-
-  // Thunderbird's default is to put the signature after the quote, so us too.
-  // (It also has complete control over all of this, but not us too.)
-  if (identity.signature)
-    msg += '\n\n-- \n' + identity.signature + '\n';
-
-  return msg;
 };
 
 /**
@@ -12142,18 +12244,1001 @@ exports.generateForwardBodyText = function generateForwardBodyText(rep) {
   return strBits.join('');
 };
 
+}); // end define
+;
+// UMD boilerplate to work across node/AMD/naked browser:
+// https://github.com/umdjs/umd
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like enviroments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define('bleach',[],factory);
+    } else {
+        // Browser globals
+        root.Bleach = factory();
+    }
+}(this, function () {
+
+var ALLOWED_TAGS = [
+    'a',
+    'abbr',
+    'acronym',
+    'b',
+    'blockquote',
+    'code',
+    'em',
+    'i',
+    'li',
+    'ol',
+    'strong',
+    'ul'
+];
+var ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title'],
+    'abbr': ['title'],
+    'acronym': ['title']
+};
+var ALLOWED_STYLES = [];
+
+var Node = {
+  ELEMENT_NODE                :  1,
+  ATTRIBUTE_NODE              :  2,
+  TEXT_NODE                   :  3,
+  CDATA_SECTION_NODE          :  4,
+  ENTITY_REFERENCE_NODE       :  5,
+  ENTITY_NODE                 :  6,
+  PROCESSING_INSTRUCTION_NODE :  7,
+  COMMENT_NODE                :  8,
+  DOCUMENT_NODE               :  9,
+  DOCUMENT_TYPE_NODE          : 10,
+  DOCUMENT_FRAGMENT_NODE      : 11,
+  NOTATION_NODE               : 12
+};
+
+var DEFAULTS = {
+  tags: ALLOWED_TAGS,
+  prune: [],
+  attributes: ALLOWED_ATTRIBUTES,
+  styles: ALLOWED_STYLES,
+  strip: false,
+  stripComments: true
+};
+
+var bleach = {};
+
+bleach._preCleanNodeHack = null;
+
+// This is for web purposes; node will clobber this with 'jsdom'.
+bleach.documentConstructor = function() {
+  // Per hsivonen, this creates a document flagged as "loaded as data" which is
+  // desirable for safety reasons as it avoids pre-fetches, etc.
+  return document.implementation.createHTMLDocument('');
+};
+
+/**
+ * Clean a string.
+ */
+bleach.clean = function (html, opts) {
+  if (!html) return '';
+
+  var document = bleach.documentConstructor(),
+      dirty = document.createElement('dirty');
+
+  // To get stylesheets parsed by Gecko, we need to put the node in a document.
+  document.body.appendChild(dirty);
+  dirty.innerHTML = html;
+
+  if (bleach._preCleanNodeHack)
+    bleach._preCleanNodeHack(dirty, html);
+  bleach.cleanNode(dirty, opts);
+
+  var asNode = opts && opts.hasOwnProperty("asNode") && opts.asNode;
+  if (asNode)
+    return dirty;
+  return dirty.innerHTML;
+};
+
+/**
+ * Clean the children of a node, but not the node itself.  Maybe this is
+ * a bad idea.
+ */
+bleach.cleanNode = function(dirtyNode, opts) {
+  var document = dirtyNode.ownerDocument;
+  opts = opts || DEFAULTS;
+  var doStrip = opts.hasOwnProperty('strip') ? opts.strip : DEFAULTS.strip,
+      doStripComments = opts.hasOwnProperty('stripComments') ?
+                          opts.stripComments : DEFAULTS.stripComments,
+      allowedTags = opts.hasOwnProperty('tags') ? opts.tags : DEFAULTS.tags,
+      pruneTags = opts.hasOwnProperty('prune') ? opts.prune : DEFAULTS.prune,
+      attrsByTag = opts.hasOwnProperty('attributes') ? opts.attributes
+                                                     : DEFAULTS.attributes,
+      allowedStyles = opts.hasOwnProperty('styles') ? opts.styles
+                                                    : DEFAULTS.styles,
+      reCallbackOnTag = opts.hasOwnProperty('callbackRegexp') ? opts.callbackRegexp
+                                                              : null,
+      reCallback = reCallbackOnTag && opts.callback,
+      wildAttrs;
+  if (Array.isArray(attrsByTag)) {
+    wildAttrs = attrsByTag;
+    attrsByTag = {};
+  }
+  else if (attrsByTag.hasOwnProperty('*')) {
+    wildAttrs = attrsByTag['*'];
+  }
+  else {
+    wildAttrs = [];
+  }
+
+  function slashAndBurn(root, callback) {
+    var child, i = 0;
+    // console.log('slashing');
+    // console.log('type ', root.nodeType);
+    // console.log('value', root.nodeValue||['<',root.tagName,'>'].join(''));
+    // console.log('innerHTML', root.innerHTML);
+    // console.log('--------');
+
+    // TODO: investigate whether .nextSibling is faster/more GC friendly
+    while ((child = root.childNodes[i++])) {
+      if (child.nodeType === 8 && doStripComments) {
+        root.removeChild(child);
+        continue;
+      }
+      if (child.nodeType === 1) {
+        var tag = child.tagName.toLowerCase();
+        if (allowedTags.indexOf(tag) === -1) {
+          // The tag is not in the whitelist.
+
+          // Strip?
+          if (doStrip) {
+            // Should this tag and its children be pruned?
+            // (This is not the default because new HTML tags with semantic
+            // meaning can be added and should not cause content to disappear.)
+            if (pruneTags.indexOf(tag) !== -1) {
+              root.removeChild(child);
+              // This will have shifted the sibling down, so decrement so we hit
+              // it next.
+              i--;
+            }
+            // Not pruning, so move the children up.
+            else {
+              while (child.firstChild) {
+                root.insertBefore(child.firstChild, child);
+              }
+              root.removeChild(child);
+              // We want to make sure we process all of the children, so
+              // decrement.  Alternately, we could have called slashAndBurn
+              // on 'child' before splicing in the contents.
+              i--;
+            }
+          }
+          // Otherwise, quote the child.
+          // Unit tests do not indicate if this should be recursive or not,
+          // so it's not.
+          else {
+            var textNode = document.createTextNode(child.outerHTML);
+            // jsdom bug? creating a text node always adds a linebreak;
+            textNode.nodeValue = textNode.nodeValue.replace(/\n$/, '');
+            root.replaceChild(textNode, child);
+          }
+          continue;
+        }
+
+        // If a callback was specified and it matches the tag name, then invoke
+        // the callback.  This happens before the attribute filtering so that
+        // the function can observe dangerous attributes, but in the event of
+        // the (silent) failure of this function, they will still be safely
+        // removed.
+        if (reCallbackOnTag && reCallbackOnTag.test(tag)) {
+          reCallback(child, tag);
+        }
+
+        var styles, iStyle, decl;
+        // Style tags are special.  Their parsed state gets represented on
+        // "sheet" iff the node is linked into a document (on gecko).  We can
+        // manipulate the representation but it does *not* automatically
+        // reflect into the textContent of the style tag.  Accordingly, we
+        //
+        if (tag === 'style') {
+          var sheet = child.sheet,
+              rules = sheet.cssRules,
+              keepRulesCssTexts = [];
+
+          for (var iRule = 0; iRule < rules.length; iRule++) {
+            var rule = rules[iRule];
+            if (rule.type !== 1) { // STYLE_RULE
+              // we could do "sheet.deleteRule(iRule);" but there is no benefit
+              // since we will just clobber the textContent without this skipped
+              // rule.
+              continue;
+            }
+            styles = rule.style;
+            for (iStyle = styles.length - 1; iStyle >= 0; iStyle--) {
+              decl = styles[iStyle];
+              if (allowedStyles.indexOf(decl) === -1) {
+                styles.removeProperty(decl);
+              }
+            }
+            keepRulesCssTexts.push(rule.cssText);
+          }
+          child.textContent = keepRulesCssTexts.join('\n');
+        }
+
+        if (child.style.length) {
+          styles = child.style;
+          for (iStyle = styles.length - 1; iStyle >= 0; iStyle--) {
+            decl = styles[iStyle];
+            if (allowedStyles.indexOf(decl) === -1) {
+              styles.removeProperty(decl);
+            }
+          }
+        }
+
+        if (child.attributes.length) {
+          var attrs = child.attributes;
+          for (var iAttr = attrs.length - 1; iAttr >= 0; iAttr--) {
+            var attr = attrs[iAttr];
+            var whitelist = attrsByTag[tag];
+            attr = attr.nodeName;
+            if (wildAttrs.indexOf(attr) === -1 &&
+                (!whitelist || whitelist.indexOf(attr) === -1)) {
+              attrs.removeNamedItem(attr);
+            }
+          }
+        }
+      }
+      slashAndBurn(child, callback);
+    }
+  }
+  slashAndBurn(dirtyNode);
+};
+
+return bleach;
+
+})); // close out UMD boilerplate
+;
+/**
+ * Process text/html for message body purposes.  Specifically:
+ *
+ * - sanitize HTML (using bleach.js): discard illegal markup entirely, render
+ *   legal but 'regulated' markup inert (ex: links to external content).
+ * - TODO: perform normalization of quote markup from different clients into
+ *   blockquotes, like how Thunderbird conversations does it.
+ * - snippet generation: Try and generate a usable snippet string from something
+ *   that is not a quote.
+ *
+ * We may eventually try and perform more detailed analysis like `quotechew.js`
+ * does with structured markup, potentially by calling out to quotechew, but
+ * that's a tall order to get right, so it's mightily postponed.
+ **/
+
+define('rdimap/imapclient/htmlchew',
+  [
+    'exports',
+    'bleach'
+  ],
+  function(
+    exports,
+    $bleach
+  ) {
+
+/**
+ * Whitelisted HTML tags list. Currently from nsTreeSanitizer.cpp which credits
+ * Mark Pilgrim and Sam Ruby for its own initial whitelist.
+ *
+ * IMPORTANT THUNDERBIRD NOTE: Thunderbird only engages its sanitization logic
+ * when processing mailto URIs, when the non-default
+ * "view | message body as | simple html" setting is selected, or when
+ * displaying spam messages.  Accordingly, the settings are pretty strict
+ * and not particularly thought-out.  Non-CSS presentation is stripped, which
+ * is pretty much the lingua franca of e-mail.  (Thunderbird itself generates
+ * font tags, for example.)
+ *
+ * Some things are just not in the list at all:
+ * - SVG: Thunderbird nukes these itself because it forces
+ *   SanitizerCidEmbedsOnly which causes flattening of everything in the SVG
+ *   namespace.
+ *
+ * Tags that we are opting not to include will be commented with a reason tag:
+ * - annoying: This thing is ruled out currently because it only allows annoying
+ *   things to happen *given our current capabilities*.
+ * - scripty: This thing requires scripting to make anything happen, and we do
+ *   not allow scripting.
+ * - forms: We have no UI to expose the target of a form right now, so it's
+ *   not safe.  Thunderbird displays a scam warning, which isn't realy a big
+ *   help, but it's something.  Because forms are largely unsupported or just
+ *   broken in many places, they are rarely used, so we are turning them off
+ *   entirely.
+ * - implicitly-nuked: killed as part of the parse process because we assign
+ *   to innerHTML rather than creating a document with the string in it.
+ * - inline-style-only: Styles have to be included in the document itself,
+ *   and for now, on the elements themselves.  We now support <style> tags
+ *   (although src will be sanitized off), but not <link> tags because they want
+ *   to reference external stuff.
+ * - dangerous: The semantics of the tag are intentionally at odds with our
+ *   goals and/or are extensible.  (ex: link tag.)
+ * - interactive-ui: A cross between scripty and forms, things like (HTML5)
+ *   menu and command imply some type of mutation that requires scripting.
+ *   They also are frequently very attribute-heavy.
+ * - svg: it's SVG, we don't support it yet!
+ */
+var LEGAL_TAGS = [
+  'a', 'abbr', 'acronym', 'area', 'article', 'aside',
+  // annoying: 'audio',
+  'b',
+  'bdi', 'bdo', // (bidirectional markup stuff)
+  'big', 'blockquote',
+  // implicitly-nuked: 'body'
+  'br',
+  // forms: 'button',
+  // scripty: canvas
+  'caption',
+  'center',
+  'cite', 'code', 'col', 'colgroup',
+  // interactive-ui: 'command',
+  // forms: 'datalist',
+  'dd', 'del', 'details', 'dfn', 'dir', 'div', 'dl', 'dt',
+  'em',
+  // forms: 'fieldset' (but allowed by nsTreeSanitizer)
+  'figcaption', 'figure',
+  'font',
+  'footer',
+  // forms: 'form',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  // implicitly-nuked: head
+  'header', 'hgroup', 'hr',
+  // implicitly-nuked: html
+  'i', 'img',
+  // forms: 'input',
+  'ins', // ("represents a range of text that has been inserted to a document")
+  'kbd', // ("The kbd element represents user input")
+  'label', 'legend', 'li',
+  // dangerous, inline-style-only: link
+  /* link supports many types, none of which we want, some of which are
+   * risky: http://dev.w3.org/html5/spec/links.html#linkTypes. Specifics:
+   * - "stylesheet": This would be okay for cid links, but there's no clear
+   *   advantage over inline styles, so we forbid it, especially as supporting
+   *   it might encourage other implementations to dangerously support link.
+   * - "prefetch": Its whole point is de facto information leakage.
+   */
+  'listing', // (deprecated, like "pre")
+  'map', 'mark',
+  // interactive-ui: 'menu', 'meta', 'meter',
+  'nav',
+  'nobr', // (deprecated "white-space:nowrap" equivalent)
+  'noscript',
+  'ol',
+  // forms: 'optgroup',
+  // forms: 'option',
+  'output', // (HTML5 draft: "result of a calculation in a form")
+  'p', 'pre',
+  // interactive-ui: 'progress',
+  'q',
+  /* http://www.w3.org/TR/ruby/ is a pronounciation markup that is not directly
+   * supported by gecko at this time (although there is a Firefox extension).
+   * All of 'rp', 'rt', and 'ruby' are ruby tags.  The spec also defines 'rb'
+   * and 'rbc' tags that nsTreeSanitizer does not whitelist, however.
+   */
+  'rp', 'rt', 'ruby',
+  's', 'samp', 'section',
+  // forms: 'select',
+  'small',
+  // annoying?: 'source',
+  'span', 'strike', 'strong',
+  'style',
+  'sub', 'summary', 'sup',
+  // svg: 'svg', NB: this lives in its own namespace
+  'table', 'tbody', 'td',
+  // forms: 'textarea',
+  'tfoot', 'th', 'thead', 'time',
+  'title', // XXX does this mean anything outside head?
+  'tr',
+  // annoying?: 'track'
+  'tt',
+  'u', 'ul', 'var',
+  // annoying: 'video',
+  'wbr' // (HTML5 draft: line break opportunity)
+];
+
+/**
+ * Tags whose children should be removed along with the tag itself, rather than
+ * splicing the children into the position originally occupied by the parent.
+ *
+ * We do this for:
+ * - forms; see `LEGAL_TAGS` for the rationale.  Note that we don't bother
+ *   including children that should already be nuked by PRUNE_TAGS.  For
+ *   example, 'option' and 'optgroup' only make sense under 'select' or
+ *   'datalist', so we need not include them.  This means that if the tags
+ *   are used in nonsensical positions, they will have their contents
+ *   merged into the document text, but that's not a major concern.
+ * - 'script': no one wants to read the ignored JS code!
+ * - 'style': no one wants to read the CSS we are (currently) ignoring
+ */
+var PRUNE_TAGS = [
+  'button', // (forms)
+  'datalist', // (forms)
+  'script', // (script)
+  'select', // (forms)
+  'style', // (style)
+  'svg', // (svg)
+];
+
+/**
+ * What attributes to allow globally and on specific tags.
+ *
+ * Forbidden marker names:
+ * - URL-like: The attribute can contain URL's and we don't care enough to
+ *   sanitize the contents right now.
+ * - sanitized: We manually do something with the attribute in our processing
+ *   logic.
+ * - specific: The attribute is explicitly named on the relevant element types.
+ * - unsupported: Gecko ignores the attribute and there is no chance of
+ *   standardization, so just strip it.
+ * - microformat: we can't do anything with microformats right now, save some
+ *   space.
+ * - awkward: It's not dangerous, but it's not clear how it could have useful
+ *   semantics.
+ */
+var LEGAL_ATTR_MAP = {
+  '*': [
+    'abbr', // (tables: removed from HTML5)
+    // forms: 'accept', 'accept-charset',
+    // interactive-ui: 'accesskey',
+    // forms: 'action',
+    'align', // (pres)
+    'alt', // (fallback content)
+    // forms: 'autocomplete', 'autofocus',
+    // annoying: 'autoplay',
+    'axis', // (tables: removed from HTML5)
+    // URL-like: 'background',
+    'bgcolor', 'border', // (pres)
+    'cellpadding', 'cellspacing', // (pres)
+    // unsupported: 'char',
+    'charoff', // (tables)
+    // specific: 'charset'
+    // forms, interactive-ui: 'checked',
+    // URL-like: 'cite'
+    'class', 'clear', 'color', // (pres)
+    'cols', 'colspan', // (tables)
+    'compact', // (pres)
+    // dangerous: 'content', (meta content refresh is bad.)
+    // interactive-ui: 'contenteditable', (we already use this ourselves!)
+    // interactive-ui: 'contextmenu',
+    // annoying: 'controls', (media)
+    'coords', // (area image map)
+    'datetime', // (ins, del, time semantic markups)
+    // forms: 'disabled',
+    'dir', // (rtl)
+    // interactive-ui: 'draggable',
+    // forms: 'enctype',
+    'face', // (pres)
+    // forms: 'for',
+    'frame', // (tables)
+    'headers', // (tables)
+    'height', // (layout)
+    // interactive-ui: 'hidden', 'high',
+    // sanitized: 'href',
+    // specific: 'hreflang',
+    'hspace', // (pres)
+    // dangerous: 'http-equiv' (meta refresh, maybe other trickiness)
+    // interactive-ui: 'icon',
+    // inline-style-only: 'id',
+    // specific: 'ismap', (area image map)
+    // microformat: 'itemid', 'itemprop', 'itemref', 'itemscope', 'itemtype',
+    // annoying: 'kind', (media)
+    // annoying, forms, interactive-ui: 'label',
+    'lang', // (language support)
+    // forms: 'list',
+    // dangerous: 'longdesc', (link to a long description, html5 removed)
+    // annoying: 'loop',
+    // interactive-ui: 'low',
+    // forms, interactive-ui: 'max',
+    // forms: 'maxlength',
+    'media', // (media-query for linky things; safe if links are safe)
+    // forms: 'method',
+    // forms, interactive-ui: 'min',
+    // unsupported: 'moz-do-not-send', (thunderbird internal composition)
+    // forms: 'multiple',
+    // annoying: 'muted',
+    // forms, interactive-ui: 'name', (although pretty safe)
+    'nohref', // (image maps)
+    // forms: 'novalidate',
+    'noshade', // (pres)
+    'nowrap', // (tables)
+    'open', // (for "details" element)
+    // interactive-ui: 'optimum',
+    // forms: 'pattern', 'placeholder',
+    // annoying: 'playbackrate',
+    'pointsize', // (pres)
+    // annoying:  'poster', 'preload',
+    // forms: 'prompt',
+    'pubdate', // ("time" element)
+    // forms: 'radiogroup', 'readonly',
+    // dangerous: 'rel', (link rel, a rel, area rel)
+    // forms: 'required',
+    // awkward: 'rev' (reverse link; you can't really link to emails)
+    'reversed', // (pres? "ol" reverse numbering)
+    // interactive-ui: 'role', We don't want a screen reader making the user
+    //   think that part of the e-mail is part of the UI.  (WAI-ARIA defines
+    //   "accessible rich internet applications", not content markup.)
+    'rows', 'rowspan', 'rules', // (tables)
+    // sanitized: 'src',
+    'size', // (pres)
+    'scope', // (tables)
+    // inline-style-only: 'scoped', (on "style" elem)
+    // forms: 'selected',
+    'shape', // (image maps)
+    'span', // (tables)
+    // interactive-ui: 'spellcheck',
+    // sanitized, dangerous: 'src'
+    // annoying: 'srclang',
+    'start', // (pres? "ol" numbering)
+    'summary', // (tables accessibility)
+    'style', // (pres)
+    // interactive-ui: 'tabindex',
+    // dangerous: 'target', (specifies a browsing context, but our semantics
+    //   are extremely clear and don't need help.)
+    'title', // (advisory)
+    // specific, dangerous: type (various, but mime-type for links is not the
+    //   type of thing we would ever want to propagate or potentially deceive
+    //   the user with.)
+    'valign', // (pres)
+    'value', // (pres? "li" override for "ol"; various form uses)
+    'vspace', // (pres)
+    'width', // (layout)
+    // forms: 'wrap',
+  ],
+  'a': ['ext-href', 'hreflang'],
+  'area': ['ext-href', 'hreflang'],
+  // these are used by our quoting and Thunderbird's quoting
+  'blockquote': ['cite', 'type'],
+  'img': ['cid-src', 'ext-src', 'ismap', 'usemap'],
+  // This may only end up being used as a debugging thing, but let's let charset
+  // through for now.
+  'meta': ['charset'],
+  'ol': ['type'], // (pres)
+  'style': ['type'],
+};
+
+/**
+ * CSS Style rules to support.
+ *
+ * nsTreeSanitizer is super lazy about style binding and does not help us out.
+ * What it does is nuke all rule types except NAMESPACE (@namespace), FONT_FACE
+ * (@font-face), and STYLE rules (actual styling).  This means nuking CHARSET
+ * (@charset to specify the encoding of the stylesheet if the server did not
+ * provide it), IMPORT (@import to reference other stylesheet files), MEDIA
+ * (@media media queries), PAGE (@page page box info for paged media),
+ * MOZ_KEYFRAMES, MOZ_KEYFRAME, SUPPORTS (@supports provides support for rules
+ * conditioned on browser support, but is at risk.)  The only style directive it
+ * nukes is "-moz-binding" which is the XBL magic and considered dangerous.
+ *
+ * Risks: Anything that takes a url() is dangerous insofar as we need to
+ * sanitize the url.  XXX for now we just avoid any style that could potentially
+ * hold a URI.
+ *
+ * Good news: We always cram things into an iframe, so we don't need to worry
+ * about clever styling escaping out into our UI.
+ *
+ * New reasons not to allow:
+ * - animation: We don't want or need animated wackiness.
+ * - slow: Doing the thing is slow!
+ */
+var LEGAL_STYLES = [
+  // animation: animation*
+  // URI-like: background, background-image
+  'background-color',
+  // NB: border-image is not set by the 'border' aliases
+  'border',
+  'border-bottom', 'border-bottom-color', 'border-bottom-left-radius',
+  'border-bottom-right-radius', 'border-bottom-style', 'border-bottom-width',
+  'border-color',
+  // URI-like: border-image*
+  'border-left', 'border-left-color', 'border-left-style', 'border-left-width',
+  'border-radius',
+  'border-right', 'border-right-color', 'border-right-style',
+  'border-right-width',
+  'border-style',
+  'border-top', 'border-top-color', 'border-top-left-radius',
+  'border-top-right-radius', 'border-top-style', 'border-top-width',
+  'border-width',
+  // slow: box-shadow
+  'clear',
+  'color',
+  'display',
+  'float',
+  'font-family',
+  'font-size',
+  'font-style',
+  'font-weight',
+  'height',
+  'line-height',
+  // URI-like: list-style, list-style-image
+  'list-style-position',
+  'list-style-type',
+  'margin', 'margin-bottom', 'margin-left', 'margin-right', 'margin-top',
+  'padding', 'padding-bottom', 'padding-left', 'padding-right', 'padding-top',
+  'text-align', 'text-align-last',
+  'text-decoration', 'text-decoration-color', 'text-decoration-line',
+  'text-decoration-style', 'text-indent',
+  'vertical-align',
+  'white-space',
+  'width',
+  'word-break', 'word-spacing', 'word-wrap',
+];
+
+/**
+ * The regular expression to detect nodes that should be passed to stashLinks.
+ *
+ * ignore-case is not required; the value is checked against the lower-cased tag.
+ */
+const RE_NODE_NEEDS_TRANSFORM = /^(?:a|area|img)$/;
+
+const RE_CID_URL = /^cid:/i;
+const RE_HTTP_URL = /^http(?:s)?/i;
+
+const RE_IMG_TAG = /^img$/;
+
+/**
+ * Transforms src tags, ensure that links are http and transform them too so
+ * that they don't actually navigate when clicked on but we can hook them.  (The
+ * HTML display iframe is not intended to navigate; we just want to trigger the
+ * browser.
+ */
+function stashLinks(node, lowerTag) {
+  // - img: src
+  if (RE_IMG_TAG.test(lowerTag)) {
+    var src = node.getAttribute('src');
+    if (RE_CID_URL.test(src)) {
+      node.classList.add('moz-embedded-image');
+      // strip the cid: bit, it is necessarily there and therefore redundant.
+      node.setAttribute('cid-src', src.substring(4));
+      // 'src' attribute will be removed by whitelist
+    }
+    else if (RE_HTTP_URL.test(src)) {
+      node.classList.add('moz-external-image');
+      node.setAttribute('ext-src', src);
+      // 'src' attribute will be removed by whitelist
+    }
+    else {
+      // paranoia; no known benefit if this got through
+      node.removeAttribute('cid-src');
+      node.removeAttribute('ext-src');
+    }
+  }
+  // - a, area: href
+  else {
+    var link = node.getAttribute('href');
+    if (RE_HTTP_URL.test(link)) {
+      node.classList.add('moz-external-link');
+      node.setAttribute('ext-href', link);
+      // 'href' attribute will be removed by whitelist
+    }
+    else {
+      // paranoia; no known benefit if this got through
+      node.removeAttribute('ext-href');
+    }
+  }
+}
+
+var BLEACH_SETTINGS = {
+  tags: LEGAL_TAGS,
+  strip: true,
+  prune: PRUNE_TAGS,
+  attributes: LEGAL_ATTR_MAP,
+  styles: LEGAL_STYLES,
+  asNode: true,
+  callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
+  callback: stashLinks
+};
+
+/**
+ * @args[
+ *   @param[htmlString String]{
+ *     An unsanitized HTML string.  The HTML content can be a fully valid HTML
+ *     document with 'html' and 'body' tags and such, but most of that extra
+ *     structure will currently be discarded.
+ *
+ *     In the future we may try and process the body and such correctly, but for
+ *     now we don't.  This is consistent with many webmail clients who ignore
+ *     style tags in the head, etc.
+ *   }
+ * ]
+ * @return[HtmlElement]{
+ *   The sanitized HTML content wrapped in a div container.
+ * }
+ */
+exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString) {
+  var sanitizedNode = $bleach.clean(htmlString, BLEACH_SETTINGS);
+  return sanitizedNode;
+};
+
+const ELEMENT_NODE = 1, TEXT_NODE = 3;
+
+const RE_NORMALIZE_WHITESPACE = /\s+/g;
+
+/**
+ * Derive snippet text from the already-sanitized HTML representation.
+ */
+exports.generateSnippet = function generateSnippet(sanitizedHtmlNode,
+                                                   desiredLength) {
+  var snippet = '';
+
+  // Perform a traversal of the DOM tree skipping over things we don't care
+  // about.  Whenever we see an element we can descend into, we do so.
+  // Whenever we finish processing a node, we move to our next sibling.
+  // If there is no next sibling, we move up the tree until there is a next
+  // sibling or we hit the top.
+  var node = sanitizedHtmlNode.firstChild, done = false;
+  while (!done) {
+    if (node.nodeType === ELEMENT_NODE) {
+      switch (node.tagName.toLowerCase()) {
+        // - Things that can't contain useful text.
+        // Avoid including block-quotes in the snippet.
+        case 'blockquote':
+        // The style does not belong in the snippet!
+        case 'style':
+          break;
+
+        default:
+          if (node.firstChild) {
+            node = node.firstChild;
+            continue;
+          }
+          break;
+      }
+    }
+    else if (node.nodeType === TEXT_NODE) {
+      // these text nodes can be ridiculously full of whitespace.  Normalize
+      // the whitespace down to one whitespace character.
+      var normalizedText =
+            node.data.replace(RE_NORMALIZE_WHITESPACE, ' ');
+      // If the join would create two adjacents spaces, then skip the one
+      // on the thing we are concatenating.
+      if (snippet.length && normalizedText[0] === ' ' &&
+          snippet[snippet.length - 1] === ' ')
+        normalizedText = normalizedText.substring(1);
+      snippet += normalizedText;
+      if (snippet.length >= desiredLength)
+        break; // (exits the loop)
+    }
+
+    while (!node.nextSibling) {
+      node = node.parentNode;
+      if (node === sanitizedHtmlNode) {
+        // yeah, a goto or embedding this in a function might have been cleaner
+        done = true;
+        break;
+      }
+    }
+    if (!done)
+      node = node.nextSibling;
+  }
+
+  return snippet.substring(0, desiredLength);
+};
+
+/**
+ * Wrap text/plain content into a serialized HTML string safe for insertion
+ * via innerHTML.
+ *
+ * By default we wrap everything in a 'div' tag with 'br' indicating newlines.
+ * Alternately, we could use 'white-space: pre-wrap' if we were more confident
+ * about recipients having sufficient CSS support and our own desire to have
+ * things resemble text/plain.
+ *
+ * NB: simple escaping should also be fine, but this is unlikely to be a
+ * performance hotspot.
+ */
+exports.wrapTextIntoSafeHTMLString = function(text, wrapTag,
+                                              transformNewlines, attrs) {
+  if (transformNewlines === undefined)
+    transformNewlines = true;
+
+  var doc = document.implementation.createHTMLDocument(''),
+      wrapNode = doc.createElement(wrapTag || 'div');
+
+  if (transformNewlines) {
+    var lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+      var lineText = lines[i];
+      if (i)
+        wrapNode.appendChild(doc.createElement('br'));
+      if (lineText.length)
+        wrapNode.appendChild(doc.createTextNode(lineText));
+    }
+  }
+  else {
+    wrapNode.textContent = text;
+  }
+
+  if (attrs) {
+    for (var iAttr = 0; iAttr < attrs.length; iAttr += 2) {
+      wrapNode.setAttribute(attrs[iAttr], attrs[iAttr + 1]);
+    }
+  }
+
+  return wrapNode.outerHTML;
+};
+
+const RE_QUOTE_CHAR = /"/g;
+
+/**
+ * Make an HTML attribute value safe.
+ */
+exports.escapeAttrValue = function(s) {
+  return s.replace(RE_QUOTE_CHAR, '&quot;');
+};
+
+}); // end define
+;
+/**
+ * Message processing logic that deals with message representations at a higher
+ * level than just text/plain processing (`quotechew.js`) or text/html
+ * (`htmlchew.js`) parsing.  We are particularly concerned with replying to
+ * messages and forwarding messages, and use the aforementioned libs to do the
+ * gruntwork.
+ *
+ * For replying and forwarding, we synthesize messages so that there is always
+ * a text part that is the area where the user can enter text which may be
+ * followed by a read-only editable HTML block.  If replying to a text/plain
+ * message, the quoted text is placed in the text area.  If replying to a
+ * message with any text/html parts, we generate an HTML block for all parts.
+ **/
+
+define('rdimap/imapclient/mailchew',
+  [
+    'exports',
+    './quotechew',
+    './htmlchew'
+  ],
+  function(
+    exports,
+    $quotechew,
+    $htmlchew
+  ) {
+
+const RE_RE = /^[Rr][Ee]: /;
+
+/**
+ * Generate the reply subject for a message given the prior subject.  This is
+ * simply prepending "Re: " to the message if it does not already have an
+ * "Re:" equivalent.
+ *
+ * Note, some clients/gateways (ex: I think the google groups web client? at
+ * least whatever has a user-agent of G2/1.0) will structure mailing list
+ * replies so they look like "[list] Re: blah" rather than the "Re: [list] blah"
+ * that Thunderbird would produce.  Thunderbird (and other clients) pretend like
+ * that inner "Re:" does not exist, and so do we.
+ *
+ * We _always_ use the exact string "Re: " when prepending and do not localize.
+ * This is done primarily for consistency with Thunderbird, but it also is
+ * friendly to other e-mail applications out there.
+ *
+ * Thunderbird does support recognizing a
+ * mail/chrome/messenger-region/region.properties property,
+ * "mailnews.localizedRe" for letting locales specify other strings used by
+ * clients that do attempt to localize "Re:".  Thunderbird also supports a
+ * weird "Re(###):" or "Re[###]:" idiom; see
+ * http://mxr.mozilla.org/comm-central/ident?i=NS_MsgStripRE for more details.
+ */
+exports.generateReplySubject = function generateReplySubject(origSubject) {
+  if (RE_RE.test(origSubject))
+      return origSubject;
+  return 'Re: ' + origSubject;
+};
+
+var l10n_wroteString = '{{name}} wrote',
+    l10n_originalMessageString = 'Original Message';
+
+/*
+ * L10n strings for forward headers.  In Thunderbird, these come from
+ * mime.properties:
+ * http://mxr.mozilla.org/comm-central/source/mail/locales/en-US/chrome/messenger/mime.properties
+ *
+ * The libmime logic that injects them is mime_insert_normal_headers:
+ * http://mxr.mozilla.org/comm-central/source/mailnews/mime/src/mimedrft.cpp#791
+ *
+ * Our dictionary maps from the lowercased header name to the human-readable
+ * string.
+ *
+ * XXX actually do the l10n hookup for this
+ */
+var l10n_forward_header_labels = {
+  subject: 'Subject',
+  date: 'Date',
+  from: 'From',
+  replyTo: 'Reply-To',
+  to: 'To',
+  cc: 'CC',
+};
+
+exports.setLocalizedStrings = function(strings) {
+  l10n_wroteString = strings.wrote;
+  l10n_originalMessageString = strings.originalMessage;
+};
+
+/**
+ * Generate the reply body representation given info about the message we are
+ * replying to.
+ *
+ * This does not include potentially required work such as propagating embedded
+ * attachments or de-sanitizing links/embedded images/external images.
+ */
+exports.generateReplyBody = function generateReplyMessage(reps, authorPair,
+                                                          msgDate,
+                                                          identity, refGuid) {
+  var useName = authorPair.name || authorPair.address;
+
+  var textMsg = '\n\n' +
+                l10n_wroteString.replace('{{name}}', useName) + ':\n',
+      htmlMsg = null;
+
+  for (var i = 0; i < reps.length; i += 2) {
+    var repType = reps[i], rep = reps[i + 1];
+
+    if (repType === 'plain') {
+      var replyText = $quotechew.generateReplyText(rep);
+      // If we've gone HTML, this needs to get concatenated onto the HTML.
+      if (htmlMsg) {
+        htmlMsg += $htmlchew.wrapTextIntoSafeHTMLString(replyText) + '\n';
+      }
+      // We haven't gone HTML yet, so this can all still be text.
+      else {
+        textMsg += replyText;
+      }
+    }
+    else {
+      if (!htmlMsg) {
+        htmlMsg = '';
+        // slice off the trailing newline of textMsg
+        textMsg = textMsg.slice(0, -1);
+      }
+      // rep has already been sanitized and therefore all HTML tags are balanced
+      // and so there should be no rude surprises from this simplistic looking
+      // HTML creation.  The message-id of the message never got sanitized,
+      // however, so it needs to be escaped.
+      htmlMsg += '<blockquote cite="mid:' + $htmlchew.escapeAttrValue(refGuid) +
+                 '" type="cite">' +
+                 rep +
+                 '</blockquote>';
+    }
+  }
+
+  // Thunderbird's default is to put the signature after the quote, so us too.
+  // (It also has complete control over all of this, but not us too.)
+  if (identity.signature) {
+    // Thunderbird wraps its signature in a:
+    // <pre class="moz-signature" cols="72"> construct and so we do too.
+    if (htmlMsg)
+      htmlMsg += $htmlchew.wrapTextIntoSafeHTMLString(
+                   identity.signature, 'pre', false,
+                   ['class', 'moz-signature', 'cols', '72']);
+    else
+      textMsg += '\n\n-- \n' + identity.signature + '\n';
+  }
+
+  return {
+    text: textMsg,
+    html: htmlMsg
+  };
+};
+
 /**
  * Generate the body of an inline forward message.  XXX we need to generate
  * the header summary which needs some localized strings.
  */
 exports.generateForwardMessage = function generateForwardMessage(
                                    author, date, subject, bodyInfo, identity) {
-  var text = '\n\n';
+  var textMsg = '\n\n', htmlMsg = null;
 
   if (identity.signature)
-    text += '-- \n' + identity.signature + '\n\n';
+    textMsg += '-- \n' + identity.signature + '\n\n';
 
-  text += '-------- ' + l10n_originalMessageString + ' --------\n';
+  textMsg += '-------- ' + l10n_originalMessageString + ' --------\n';
   // XXX l10n! l10n! l10n!
 
   // Add the headers in the same order libmime adds them in
@@ -12180,9 +13265,48 @@ exports.generateForwardMessage = function generateForwardMessage(
   // : followup-to
   // : references (only for newsgroups)
 
-  text += exports.generateForwardBodyText(bodyInfo.bodyRep);
+  var reps = bodyInfo.bodyReps;
+  for (var i = 0; i < reps.length; i += 2) {
+    var repType = reps[i], rep = reps[i + 1];
 
-  return text;
+    if (repType === 'plain') {
+      var forwardText = $quotechew.generateForwardBodyText(rep);
+      // If we've gone HTML, this needs to get concatenated onto the HTML.
+      if (htmlMsg) {
+        htmlMsg += $htmlchew.wrapTextIntoSafeHTMLString(forwardText) + '\n';
+      }
+      // We haven't gone HTML yet, so this can all still be text.
+      else {
+        textMsg += forwardText;
+      }
+    }
+    else {
+      if (!htmlMsg)
+        htmlMsg = '';
+      htmlMsg += rep;
+    }
+  }
+
+  return {
+    text: textMsg,
+    html: htmlMsg
+  };
+};
+
+const HTML_WRAP_TOP =
+  '<html><body><body bgcolor="#FFFFFF" text="#000000">';
+const HTML_WRAP_BOTTOM =
+  '</body></html>';
+
+/**
+ * Combine the user's plaintext composition with the read-only HTML we provided
+ * them into a final HTML representation.
+ */
+exports.mergeUserTextWithHTML = function mergeReplyTextWithHTML(text, html) {
+  return HTML_WRAP_TOP +
+         $htmlchew.wrapTextIntoSafeHTMLString(text, 'div') +
+         html +
+         HTML_WRAP_BOTTOM;
 };
 
 }); // end define
@@ -12287,7 +13411,7 @@ define('rdimap/imapclient/mailbridge',
   [
     'rdcommon/log',
     'mailcomposer',
-    './quotechew',
+    './mailchew',
     './util',
     'module',
     'exports'
@@ -12295,7 +13419,7 @@ define('rdimap/imapclient/mailbridge',
   function(
     $log,
     $mailcomposer,
-    $quotechew,
+    $mailchew,
     $imaputil,
     $module,
     exports
@@ -12711,8 +13835,7 @@ MailBridge.prototype = {
   _cmd_getBody: function mb__cmd_getBody(msg) {
     var self = this;
     // map the message id to the folder storage
-    var folderId = msg.suid.substring(0, msg.suid.lastIndexOf('/'));
-    var folderStorage = this.universe.getFolderStorageForFolderId(folderId);
+    var folderStorage = this.universe.getFolderStorageForMessageSuid(msg.suid);
     folderStorage.getMessageBody(msg.suid, msg.date, function(bodyInfo) {
       self.__sendMessage({
         type: 'gotBody',
@@ -12720,6 +13843,19 @@ MailBridge.prototype = {
         bodyInfo: bodyInfo,
       });
     });
+  },
+
+  _cmd_downloadAttachments: function mb__cmd__downloadAttachments(msg) {
+    var self = this;
+    this.universe.downloadMessageAttachments(
+      msg.suid, msg.date, msg.relPartIndices, msg.attachmentIndices,
+      function(err, bodyInfo) {
+        self.__sendMessage({
+          type: 'downloadedAttachments',
+          handle: msg.handle,
+          bodyInfo: err ? null : bodyInfo
+        });
+      });
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -12782,7 +13918,8 @@ MailBridge.prototype = {
             // clobber the sender's e-mail with the reply-to
             var effectiveAuthor = {
               name: msg.refAuthor.name,
-              address: bodyInfo.replyTo || msg.refAuthor.address,
+              address: (bodyInfo.replyTo && bodyInfo.replyTo.address) ||
+                       msg.refAuthor.address,
             };
             switch (msg.submode) {
               case 'list':
@@ -12829,11 +13966,11 @@ MailBridge.prototype = {
               type: 'composeBegun',
               handle: msg.handle,
               identity: identity,
-              subject: $quotechew.generateReplySubject(msg.refSubject),
+              subject: $mailchew.generateReplySubject(msg.refSubject),
               // blank lines at the top are baked in
-              body: $quotechew.generateReplyMessage(
-                      bodyInfo.bodyRep, effectiveAuthor, msg.refDate,
-                      identity),
+              body: $mailchew.generateReplyBody(
+                      bodyInfo.bodyReps, effectiveAuthor, msg.refDate,
+                      identity, msg.refGuid),
               to: rTo,
               cc: rCc,
               bcc: rBcc,
@@ -12847,7 +13984,7 @@ MailBridge.prototype = {
               identity: identity,
               subject: 'Fwd: ' + msg.refSubject,
               // blank lines at the top are baked in by the func
-              body: $quotechew.generateForwardMessage(
+              body: $mailchew.generateForwardMessage(
                       msg.refAuthor, msg.refDate, msg.refSubject,
                       bodyInfo, identity),
               // forwards have no assumed envelope information
@@ -12870,7 +14007,7 @@ MailBridge.prototype = {
       handle: msg.handle,
       identity: identity,
       subject: '',
-      body: '',
+      body: { text: '', html: null },
       to: [],
       cc: [],
       bcc: [],
@@ -12923,8 +14060,14 @@ MailBridge.prototype = {
     var messageOpts = {
       from: this._formatAddresses([identity]),
       subject: wireRep.subject,
-      body: body,
     };
+    if (body.html) {
+      messageOpts.html = $mailchew.mergeUserTextWithHTML(body.text, body.html);
+    }
+    else {
+      messageOpts.body = body.text;
+    }
+
     if (identity.replyTo)
       messageOpts.replyTo = identity.replyTo;
     if (wireRep.to && wireRep.to.length)
@@ -13495,7 +14638,24 @@ else {
   throw new Error("I need IndexedDB; load me in a content page universe!");
 }
 
-const CUR_VERSION = 5;
+/**
+ * The current database version.
+ *
+ * Explanation of most recent bump:
+ *
+ * Bumping to 8 because our attachment representation has changed from v7.
+ */
+const CUR_VERSION = 8;
+
+/**
+ * What is the lowest database version that we are capable of performing a
+ * friendly-but-lazy upgrade where we nuke the database but re-create the user's
+ * accounts?  Set this to the CUR_VERSION if we can't.
+ *
+ * Note that this type of upgrade can still be EXTREMELY DANGEROUS because it
+ * may blow away user actions that haven't hit a server yet.
+ */
+const FRIENDLY_LAZY_DB_UPGRADE_VERSION = 5;
 
 /**
  * The configuration table contains configuration data that should persist
@@ -13588,6 +14748,8 @@ function ImapDB() {
   this._db = null;
   this._onDB = [];
 
+  this._lazyConfigCarryover = null;
+
   /**
    * Fatal error handler.  This gets to be the error handler for all unexpected
    * error cases.
@@ -13610,7 +14772,8 @@ function ImapDB() {
       explainedSource = 'transaction (' + target.mode + ')';
     }
     else if (target instanceof IDBRequest) {
-      explainedSource = 'request as part of ' + target.transaction.mode +
+      explainedSource = 'request as part of ' +
+        (target.transaction ? target.transaction.mode : 'NO') +
         ' transaction on ' + explainSource(target.source);
     }
     else { // dunno, ask it to stringify itself.
@@ -13631,7 +14794,35 @@ function ImapDB() {
   openRequest.onupgradeneeded = function(event) {
     var db = openRequest.result;
 
-    // cost/benefit right now is total nuke.
+    // friendly, lazy upgrade:
+    if (event.oldVersion >= FRIENDLY_LAZY_DB_UPGRADE_VERSION) {
+      var trans = openRequest.transaction;
+      // Load the current config, save it off so getConfig can use it, then nuke
+      // like usual.  This is obviously a potentially data-lossy approach to
+      // things; but this is a 'lazy' / best-effort approach to make us more
+      // willing to bump revs during development, not the holy grail.
+      self.getConfig(function(configObj, accountInfos) {
+        if (configObj)
+          self._lazyConfigCarryover = {
+            config: configObj,
+            accountInfos: accountInfos
+          };
+        self._nukeDB(db);
+      }, trans);
+    }
+    // - reset to clean slate
+    else {
+      self._nukeDB(db);
+    }
+  };
+  openRequest.onerror = this._fatalError;
+}
+exports.ImapDB = ImapDB;
+ImapDB.prototype = {
+  /**
+   * Reset the contents of the database.
+   */
+  _nukeDB: function(db) {
     var existingNames = db.objectStoreNames;
     for (var i = 0; i < existingNames.length; i++) {
       db.deleteObjectStore(existingNames[i]);
@@ -13641,11 +14832,8 @@ function ImapDB() {
     db.createObjectStore(TBL_FOLDER_INFO);
     db.createObjectStore(TBL_HEADER_BLOCKS);
     db.createObjectStore(TBL_BODY_BLOCKS);
-  };
-  openRequest.onerror = this._fatalError;
-}
-exports.ImapDB = ImapDB;
-ImapDB.prototype = {
+  },
+
   close: function() {
     if (this._db) {
       this._db.close();
@@ -13653,13 +14841,14 @@ ImapDB.prototype = {
     }
   },
 
-  getConfig: function(configCallback) {
-    if (!this._db) {
+  getConfig: function(configCallback, trans) {
+    if (!this._db && !trans) {
       this._onDB.push(this.getConfig.bind(this, configCallback));
       return;
     }
 
-    var transaction = this._db.transaction([TBL_CONFIG, TBL_FOLDER_INFO],
+    var transaction = trans ||
+                      this._db.transaction([TBL_CONFIG, TBL_FOLDER_INFO],
                                            'readonly');
     var configStore = transaction.objectStore(TBL_CONFIG),
         folderInfoStore = transaction.objectStore(TBL_FOLDER_INFO);
@@ -13671,8 +14860,22 @@ ImapDB.prototype = {
     configReq.onerror = this._fatalError;
     // no need to track success, we can read it off folderInfoReq
     folderInfoReq.onerror = this._fatalError;
+    var self = this;
     folderInfoReq.onsuccess = function(event) {
       var configObj = null, accounts = [], i, obj;
+
+      // - Check for lazy carryover.
+      // IndexedDB provides us with a strong ordering guarantee that this is
+      // happening after any upgrade check.  Doing it outside this closure would
+      // be race-prone/reliably fail.
+      if (self._lazyConfigCarryover) {
+        var lazyCarryover = self._lazyConfigCarryover;
+        self._lazyConfigCarryover = null;
+        configCallback(configObj, accounts, lazyCarryover);
+        return;
+      }
+
+      // - Process the results
       for (i = 0; i < configReq.result.length; i++) {
         obj = configReq.result[i];
         if (obj.id === 'config')
@@ -15730,27 +16933,25 @@ ImapConnection.prototype.connect = function(loginCb) {
         // mechanisms
         self._send('CAPABILITY', null, function() {
           // Next, attempt to login
-          self._login(function(err, reentry) {
+          var checkedNS = false;
+          var redo = function(err, reentry) {
             if (err) {
               loginCb(err);
               return;
             }
             // Next, get the list of available namespaces if supported
-            if (!reentry && self.capabilities.indexOf('NAMESPACE') > -1) {
-              var fnMe = arguments.callee;
+            if (!checkedNS && self.capabilities.indexOf('NAMESPACE') > -1) {
               // Re-enter this function after we've obtained the available
               // namespaces
-              self._send('NAMESPACE', null,
-                         function(e) { fnMe.call(this, e, true); });
+              checkedNS = true;
+              self._send('NAMESPACE', null, redo);
               return;
             }
             // Lastly, get the top-level mailbox hierarchy delimiter used by the
             // server
-            self._send(
-              (self.capabilities.indexOf('XLIST') === -1 ? 'LIST' : 'XLIST'),
-              ' "" ""',
-              loginCb);
-          });
+            self._send('LIST "" ""', null, loginCb);
+          };
+          self._login(redo);
         });
       };
   loginCb = loginCb || emptyFn;
@@ -15764,7 +16965,7 @@ ImapConnection.prototype.connect = function(loginCb) {
   if (this._options.crypto === 'starttls')
     socketOptions.useSSL = 'starttls';
 
-  this._state.conn = MozTCPSocket.open(
+  this._state.conn = navigator.MozTCPSocket.open(
     this._options.host, this._options.port, socketOptions);
 
   // XXX rely on MozTCPSocket for this?
@@ -16030,10 +17231,11 @@ ImapConnection.prototype.connect = function(loginCb) {
         case 'LIST':
         case 'XLIST':
           var result;
-          if (self.delim === null
-              && (result = /^\(\\No[sS]elect\) (.+?) .*$/.exec(data[2])))
+          if (self.delim === null &&
+              (result = /^\(\\No[sS]elect(?:[^)]*)\) (.+?) .*$/.exec(data[2])))
             self.delim = (result[1] === 'NIL'
-                          ? false : result[1].substring(1, result[1].length-1));
+                          ? false
+                          : result[1].substring(1, result[1].length - 1));
           else if (self.delim !== null) {
             if (self._state.requests[0].args.length === 0)
               self._state.requests[0].args.push({});
@@ -17236,7 +18438,7 @@ function parseBodyStructure(cur, prefix, partID) {
                                                + (prefix !== '' ? '.' : '')
                                                + (partID++).toString(), 1));
       }
-      part = { type: cur[next++].toLowerCase() };
+      part = { type: 'multipart', subtype: cur[next++].toLowerCase() };
       if (partLen > next) {
         if (Array.isArray(cur[next])) {
           part.params = {};
@@ -17361,19 +18563,25 @@ function parseStructExtra(part, partLen, cur, next) {
   if (partLen > next) {
     // disposition
     // null or a special k/v list with these kinds of values:
-    // e.g.: ['inline', null]
-    //       ['attachment', null]
-    //       ['inline', ['filename', 'foo.pdf']]
-    //       ['inline', ['Bar', 'Baz', 'Bam', 'Pow']]
+    // e.g.: ['Foo', null]
+    //       ['Foo', ['Bar', 'Baz']]
+    //       ['Foo', ['Bar', 'Baz', 'Bam', 'Pow']]
+    var disposition = { type: null, params: null };
     if (Array.isArray(cur[next])) {
-      part.disposition = {type: cur[next][0], params: null};
+      disposition.type = cur[next][0];
       if (Array.isArray(cur[next][1])) {
-        var params = part.disposition.params = {};
+        disposition.params = {};
         for (var i=0,len=cur[next][1].length; i<len; i+=2)
-          params[cur[next][1][i].toLowerCase()] = cur[next][1][i+1];
+          disposition.params[cur[next][1][i].toLowerCase()] = cur[next][1][i+1];
       }
-    } else
-      part.disposition = cur[next];
+    } else if (cur[next] !== null)
+      disposition.type = cur[next];
+
+    if (disposition.type === null)
+      part.disposition = null;
+    else
+      part.disposition = disposition;
+
     ++next;
   }
   if (partLen > next) {
@@ -17742,10 +18950,12 @@ ImapProber.prototype = {
 define('rdimap/imapclient/imapchew',
   [
     './quotechew',
+    './htmlchew',
     'exports'
   ],
   function(
     $quotechew,
+    $htmlchew,
     exports
   ) {
 
@@ -17801,7 +19011,8 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
   //     [{alternative} [{text/plain}] [{text/html}]]
   //   multipart/mixed text w/attachment =>
   //     [{mixed} [{text/plain}] [{application/pdf}]]
-  var attachments = [], bodyParts = [], unnamedPartCounter = 0;
+  var attachments = [], bodyParts = [], unnamedPartCounter = 0,
+      relatedParts = [];
 
   /**
    * Sizes are the size of the encoded string, not the decoded value.
@@ -17866,7 +19077,13 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
     if ((partInfo.type === 'application') &&
         (partInfo.subtype === 'pgp-signature' ||
          partInfo.subtype === 'pkcs7-signature'))
-      return;
+      return true;
+
+    function stripArrows(s) {
+      if (s[0] === '<')
+        return s.slice(1, -1);
+      return s;
+    }
 
     // - Attachments have names and don't have id's for multipart/related
     if (disposition === 'attachment') {
@@ -17875,55 +19092,107 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
         filename = 'unnamed-' + (++unnamedPartCounter);
       attachments.push({
         name: filename,
-        type: partInfo.type + '/' + partInfo.subtype,
+        type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
         part: partInfo.partID,
+        encoding: partInfo.encoding && partInfo.encoding.toLowerCase(),
         sizeEstimate: estimatePartSizeInBytes(partInfo),
+        file: null,
+        /*
+        charset: (partInfo.params && partInfo.params.charset &&
+                  partInfo.params.charset.toLowerCase()) || undefined,
+        textFormat: (partInfo.params && partInfo.params.format &&
+                     partInfo.params.format.toLowerCase()) || undefined
+         */
       });
-      return;
+      return true;
     }
-    // XXX once we support html we need to save off the related bits.
+    // (must be inline)
+
+    //
+    if (partInfo.type === 'image') {
+      relatedParts.push({
+        name: stripArrows(partInfo.id), // this is the cid
+        type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
+        part: partInfo.partID,
+        encoding: partInfo.encoding && partInfo.encoding.toLowerCase(),
+        sizeEstimate: estimatePartSizeInBytes(partInfo),
+        file: null,
+        /*
+        charset: (partInfo.params && partInfo.params.charset &&
+                  partInfo.params.charset.toLowerCase()) || undefined,
+        textFormat: (partInfo.params && partInfo.params.format &&
+                     partInfo.params.format.toLowerCase()) || undefined
+         */
+      });
+      return true;
+    }
 
     // - We must be an inline part or structure
     switch (partInfo.type) {
       // - content
       case 'text':
-        if (partInfo.subtype === 'plain') {
+        if (partInfo.subtype === 'plain' ||
+            partInfo.subtype === 'html') {
           bodyParts.push(partInfo);
-        }
-        // (ignore html)
-        break;
-
-      // - multipart that we should recurse into
-      case 'alternative':
-      case 'mixed':
-      case 'signed':
-        for (i = 1; i < branch.length; i++) {
-          chewStruct(branch[i]);
+          return true;
         }
         break;
     }
+    return false;
   }
 
   function chewMultipart(branch) {
-    var partInfo = branch[0];
+    var partInfo = branch[0], i;
 
     // - We must be an inline part or structure
-    switch (partInfo.type) {
-      // - multipart that we should recurse into
+    // I have no idea why the multipart is the 'type' rather than the subtype?
+    switch (partInfo.subtype) {
+      // - for alternative, scan from the back to find the first part we like
+      // XXX I believe in Thunderbird we observed some ridiculous misuse of
+      // alternative that we'll probably want to handle.
       case 'alternative':
+        for (i = branch.length - 1; i >= 1; i--) {
+          var subPartInfo = branch[i][0];
+
+          switch(subPartInfo.type) {
+            case 'text':
+              // fall out for subtype checking
+              break;
+            case 'multipart':
+              // this is probably HTML with attachments, let's give it a try
+              if (chewMultipart(branch[i]))
+                return true;
+              break;
+            default:
+              // no good, keep going
+              continue;
+          }
+
+          switch (subPartInfo.subtype) {
+            case 'html':
+            case 'plain':
+              // (returns true if successfully handled)
+              if (chewLeaf(branch[i]))
+                return true;
+          }
+        }
+        // (If we are here, we failed to find a valid choice.)
+        return false;
+      // - multipart that we should recurse into
       case 'mixed':
       case 'signed':
-        for (var i = 1; i < branch.length; i++) {
+      case 'related':
+        for (i = 1; i < branch.length; i++) {
           if (branch[i].length > 1)
             chewMultipart(branch[i]);
           else
             chewLeaf(branch[i]);
         }
-        break;
+        return true;
 
       default:
-        console.warn('Ignoring multipart type:', partInfo.type);
-        break;
+        console.warn('Ignoring multipart type:', partInfo.subtype);
+        return false;
     }
   }
 
@@ -17932,13 +19201,11 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
   else
     chewLeaf(msg.structure);
 
-  if (!bodyParts.length)
-    console.log("no body parts?", msg.structure);
-
   return {
     msg: msg,
     bodyParts: bodyParts,
     attachments: attachments,
+    relatedParts: relatedParts,
     header: null,
     bodyInfo: null,
   };
@@ -17955,10 +19222,17 @@ const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
       NULL_ATTR_OVERHEAD_EST = 2, LIST_OVERHEAD_EST = 4,
       NUM_OVERHEAD_EST = 8, STR_OVERHEAD_EST = 4;
 
+const DESIRED_SNIPPET_LENGTH = 100;
+
 /**
  * Call once the body parts requested by `chewHeaderAndBodyStructure` have been
  * fetched in order to finish processing of the message to produce the header
  * and body data-structures for the message.
+ *
+ * This method is currently synchronous because quote-chewing and HTML
+ * sanitization can be performed synchronously.  This may need to become
+ * asynchronous if we still end up with this happening on the same thread as the
+ * UI so we can time slice of something like that.
  *
  * @args[
  *   @param[rep ChewRep]
@@ -17974,9 +19248,34 @@ const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
  */
 exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
                                                folderId) {
+  var snippet = null, bodyReps = [];
 
-  var bodyRep = $quotechew.quoteProcessTextBody(bodyPartContents.join('\n')),
-      snippet = $quotechew.generateSnippet(bodyRep);
+  // Mailing lists can result in a text/html body part followed by a text/plain
+  // body part.  Can't rule out multiple HTML parts at this point either, so we
+  // just process everything independently and have the UI do likewise.
+  for (var i = 0; i < rep.bodyParts.length; i++) {
+    var partInfo = rep.bodyParts[i],
+        contents = bodyPartContents[i];
+
+    // HTML parts currently can be synchronously sanitized...
+    switch (partInfo.subtype) {
+      case 'plain':
+        var bodyRep = $quotechew.quoteProcessTextBody(contents);
+        if (!snippet)
+          snippet = $quotechew.generateSnippet(bodyRep,
+                                               DESIRED_SNIPPET_LENGTH);
+        bodyReps.push('plain', bodyRep);
+        break;
+
+      case 'html':
+        var htmlNode = $htmlchew.sanitizeAndNormalizeHtml(contents);
+        if (!snippet)
+          snippet = $htmlchew.generateSnippet(htmlNode, DESIRED_SNIPPET_LENGTH);
+        bodyReps.push('html', htmlNode.innerHTML);
+        break;
+    }
+  }
+
 
   rep.header = {
     // the UID (as an integer)
@@ -18034,6 +19333,17 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     }
     return rep;
   };
+  function sizifyBodyReps(reps) {
+    sizeEst += STR_OVERHEAD_EST * (reps.length / 2);
+    for (var i = 0; i < reps.length; i += 2) {
+      var type = reps[i], rep = reps[i + 1];
+      if (type === 'html')
+        sizeEst += STR_OVERHEAD_EST + rep.length;
+      else
+        sizeEst += sizifyBodyRep(rep);
+    }
+    return reps;
+  };
 
   rep.bodyInfo = {
     date: rep.msg.date,
@@ -18044,8 +19354,9 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     replyTo: ('reply-to' in rep.msg.msg.parsedHeaders) ?
                sizifyStr(rep.msg.msg.parsedHeaders['reply-to']) : null,
     attachments: sizifyAttachments(rep.attachments),
+    relatedParts: sizifyAttachments(rep.relatedParts),
     references: rep.msg.msg.meta.references,
-    bodyRep: sizifyBodyRep(bodyRep),
+    bodyReps: sizifyBodyReps(bodyReps),
   };
 
   return true;
@@ -18418,6 +19729,7 @@ ImapSlice.prototype = {
 
     var idx = bsearchForInsert(this.headers, header,
                                cmpHeaderYoungToOld);
+
     var hlen = this.headers.length;
     // Don't append the header if it would expand us beyond our requested amount
     // and there is no subsequent step, like accumulate flushing, that would get
@@ -19334,6 +20646,70 @@ console.log('  pending fetches', pendingFetches);
     }
   },
 
+  downloadMessageAttachments: function(uid, partInfos, callback) {
+    var conn = this._conn;
+    var mparser = new $mailparser.MailParser();
+
+    // I actually implemented a usable shim for the checksum purposes, but we
+    // don't actually care about the checksum, so why bother doing the work?
+    var dummyChecksummer = {
+      update: function() {},
+      digest: function() { return null; },
+    };
+
+    function setupBodyParser(partInfo) {
+      mparser._state = 0x2; // body
+      mparser._remainder = '';
+      mparser._currentNode = null;
+      mparser._currentNode = mparser._createMimeNode(null);
+      mparser._currentNode.attachment = true;
+      mparser._currentNode.checksum = dummyChecksummer;
+      mparser._currentNode.content = undefined;
+      // nb: mparser._multipartTree is an empty list (always)
+      mparser._currentNode.meta.contentType = partInfo.type;
+      mparser._currentNode.meta.transferEncoding = partInfo.encoding;
+      mparser._currentNode.meta.charset = null; //partInfo.charset;
+      mparser._currentNode.meta.textFormat = null; //partInfo.textFormat;
+    }
+    function bodyParseBuffer(buffer) {
+      process.immediate = true;
+      mparser.write(buffer);
+      process.immediate = false;
+    }
+    function finishBodyParsing() {
+      process.immediate = true;
+      mparser._process(true);
+      process.immediate = false;
+      // this is a Buffer!
+      return mparser._currentNode.content;
+    }
+
+    var anyError = null, pendingFetches = 0, bodies = [];
+    partInfos.forEach(function(partInfo) {
+      var opts = { request: { body: partInfo.part } };
+      pendingFetches++;
+      var fetcher = conn.fetch(uid, opts);
+
+      setupBodyParser(partInfo);
+      fetcher.on('error', function(err) {
+        if (!anyError)
+          anyError = err;
+        if (--pendingFetches === 0)
+          callback(anyError, bodies);
+      });
+      fetcher.on('message', function(msg) {
+        setupBodyParser(partInfo);
+        msg.on('data', bodyParseBuffer);
+        msg.on('end', function() {
+          bodies.push(finishBodyParsing());
+
+          if (--pendingFetches === 0)
+            callback(anyError, bodies);
+        });
+      });
+    });
+  },
+
   shutdown: function() {
     this._LOG.__die();
   },
@@ -19481,7 +20857,7 @@ console.log('  pending fetches', pendingFetches);
  * @typedef[AttachmentInfo @dict[
  *   @key[name String]{
  *     The filename of the attachment if this is an attachment, the content-id
- *     of the attachemtn if this is a related part for inline display.
+ *     of the attachment if this is a related part for inline display.
  *   }
  *   @key[type String]{
  *     The (full) mime-type of the attachment.
@@ -19493,7 +20869,33 @@ console.log('  pending fetches', pendingFetches);
  *     The encoding of the attachment so we know how to decode it.
  *   }
  *   @key[sizeEstimate Number]{
- *     Estimated file size in bytes.
+ *     Estimated file size in bytes.  Gets updated to be the correct size on
+ *     attachment download.
+ *   }
+ *   @key[file @oneof[
+ *     @case[null]{
+ *       The attachment has not been downloaded, the file size is an estimate.
+ *     }
+ *     @case[@list["device storage type" "file path"]{
+ *       The DeviceStorage type (ex: pictures) and the path to the file within
+ *       device storage.
+ *     }
+ *     @case[HTMLBlob]{
+ *       The Blob that contains the attachment.  It can be thought of as a
+ *       handle/name to access the attachment.  IndexedDB in Gecko stores the
+ *       blobs as (quota-tracked) files on the file-system rather than inline
+ *       with the record, to the attachments don't need to count against our
+ *       block size since they are not part of the direct I/O burden for the
+ *       block.
+ *     }
+ *   ]]
+ *   @key[charset @oneof[undefined String]]{
+ *     The character set, for example "ISO-8859-1".  If not specified, as is
+ *     likely for binary attachments, this should be null.
+ *   }
+ *   @key[textFormat @oneof[undefined String]]{
+ *     The text format, for example, "flowed" for format=flowed.  If not
+ *     specified, as is likely for binary attachments, this should be null.
  *   }
  * ]]
  * @typedef[BodyInfo @dict[
@@ -19507,7 +20909,7 @@ console.log('  pending fetches', pendingFetches);
  *   @key[to @listof[NameAddressPair]]
  *   @key[cc @listof[NameAddressPair]]
  *   @key[bcc @listof[NameAddressPair]]
- *   @key[replyTo EmailAddress]
+ *   @key[replyTo NameAddressPair]
  *   @key[attachments @listof[AttachmentInfo]]{
  *     Proper attachments for explicit downloading.
  *   }
@@ -19519,17 +20921,20 @@ console.log('  pending fetches', pendingFetches);
  *     The contents of the references header as a list of de-quoted ('<' and
  *     '>' removed) message-id's.  If there was no header, this is null.
  *   }
- *   @key[bodyRep @oneof[String Array]]{
- *     If it's an array, then it's the `quotechew.js` processed body
- *     representation.  If it's a string, then this is an HTML message and the
- *     contents are already sanitized and already quote-normalized.
- *   }
- *   @key[htmlFixups Array]{
- *     The list of fixups that can be performed.  Elements that are strings are
- *     external image URLs.  Elements that are integers are indexes into
- *     `relatedParts`.  All things that need to be fixed up are marked with a
- *     attribute so that we can get the nodes and then in one pass perform the
- *     appropriate fixups.  Or maybe we just need a flag?
+ *   @key[bodyReps @listof[@oneof[String Array]]]{
+ *     This is a list where each two consecutive elements describe a body
+ *     representation.  The even indices are the body rep types which are
+ *     either 'plain' or 'html'.  The odd indices are the actual
+ *     representations.
+ *
+ *     The representation for 'plain' values is a `quotechew.js` processed
+ *     body representation (which is itself a similar pair-wise list except
+ *     that the identifiers are packed integers).
+ *
+ *     The body representation for 'html' values is an already sanitized and
+ *     already quote-normalized String representation that could be directly
+ *     fed into innerHTML safely if you were so inclined.  See `htmlchew.js`
+ *     for more on that process.
  *   }
  * ]]{
  *   Information on the message body that is only for full message display.
@@ -19731,6 +21136,10 @@ ImapFolderStorage.prototype = {
     block.headers.splice(idx, 1);
     info.estSize -= HEADER_EST_SIZE_IN_BYTES;
     info.count--;
+
+    this._dirty = true;
+    this._dirtyHeaderBlocks[info.blockId] = block;
+
     // - update endTS/endUID if necessary
     if (idx === 0 && info.count) {
       header = block.headers[0];
@@ -19776,6 +21185,9 @@ ImapFolderStorage.prototype = {
     splinfo.estSize = numHeaders * HEADER_EST_SIZE_IN_BYTES;
     splinfo.startTS = newerStartHeader.date;
     splinfo.startUID = newerStartHeader.id;
+    // this._dirty is already touched by makeHeaderBlock when it dirties the
+    // block it creates.
+    this._dirtyHeaderBlocks[splinfo.blockId] = splock;
 
     return olderInfo;
   },
@@ -19830,11 +21242,18 @@ ImapFolderStorage.prototype = {
   _deleteBodyFromBlock: function ifs__deleteBodyFromBlock(uid, info, block) {
     // - delete
     var idx = block.uids.indexOf(uid);
-    block.uids.splice(idx, 1);
     var body = block.bodies[uid];
+    if (idx === -1 || !body) {
+      this._LOG.bodyBlockMissing(uid, idx, !!body);
+      return;
+    }
+    block.uids.splice(idx, 1);
     delete block.bodies[uid];
     info.estSize -= body.size;
     info.count--;
+
+    this._dirty = true;
+    this._dirtyBodyBlocks[info.blockId] = block;
 
     // - update endTS/endUID if necessary
     if (idx === 0 && info.count) {
@@ -19884,6 +21303,8 @@ ImapFolderStorage.prototype = {
       oldDict);
     splinfo.estSize = newerBytes;
     splock.bodies = newDict;
+    // _makeBodyBlock dirties the block it creates and touches _dirty
+    this._dirtyBodyBlocks[splinfo.blockId] = splock;
 
     return olderInfo;
   },
@@ -20322,6 +21743,7 @@ ImapFolderStorage.prototype = {
 
   _deleteFromBlock: function ifs__deleteFromBlock(type, date, uid, callback) {
     var blockInfoList, blockMap, deleteFromBlock;
+    this._LOG.deleteFromBlock(type, date, uid);
     if (type === 'header') {
       blockInfoList = this._headerBlockInfos;
       blockMap = this._headerBlocks;
@@ -20359,7 +21781,6 @@ ImapFolderStorage.prototype = {
         else
           this._dirtyBodyBlocks[info.blockId] = null;
       }
-
       if (callback)
         callback();
     }
@@ -20589,6 +22010,19 @@ console.log("ACCUMULATE MODE ON");
           }
           // Perform the sync if there is a range.
           else if (syncStartTS) {
+            // We intentionally quantized syncEndTS to avoid re-synchronizing
+            // messages that got us to our last sync.  So we want to send those
+            // excluded headers in a batch since the sync will not report them
+            // for us.
+            var iFirstNotToSend = 0;
+            for (; iFirstNotToSend < batchHeaders.length; iFirstNotToSend++) {
+              if (BEFORE(batchHeaders[iFirstNotToSend].date, syncEndTS))
+                break;
+            }
+            if (iFirstNotToSend)
+              slice.batchAppendHeaders(batchHeaders.slice(0, iFirstNotToSend),
+                                       -1, true);
+
             slice.desiredHeaders += desiredCount;
             // Perform a limited synchronization; do not issue additional
             // syncs!
@@ -20641,7 +22075,6 @@ console.log("ACCUMULATE MODE ON");
     // then remove the timestamp constraint so it goes all the way to now.
     // OR if we just have no known messages
     if (this.headerIsYoungestKnown(endTS, slice.endUID)) {
-console.log("growing endTS from", endTS, "to nowish");
       endTS = FUTURE_TIME_WARPED_NOW || null;
     }
     else {
@@ -20656,10 +22089,11 @@ console.log("growing endTS from", endTS, "to nowish");
     // coverage date.
     if (this.headerIsOldestKnown(startTS, slice.startUID)) {
       var syncStartTS = this.getOldestFullSyncDate(startTS);
-if (syncStartTS !== startTS)
-console.log("growing startTS to", syncStartTS, "from", startTS);
       startTS = syncStartTS;
     }
+    // quantize the start date
+    if (startTS)
+      startTS = quantizeDate(startTS);
 
     // XXX use mutex scheduling to avoid this possibly happening...
     if (this._curSyncSlice)
@@ -21520,7 +22954,8 @@ console.log("folder message count", folderMessageCount,
   },
 
   /**
-   *
+   * Add a message body to the system; you must provide the header associated
+   * with the body.
    */
   addMessageBody: function ifs_addMessageBody(header, bodyInfo) {
     if (this._pendingLoads.length) {
@@ -21557,6 +22992,25 @@ console.log("folder message count", folderMessageCount,
     if (!bodyInfo)
       this._LOG.bodyNotFound();
     callback(bodyInfo);
+  },
+
+  /**
+   * Update a message body; this should only happen because of attachments /
+   * related parts being downloaded or purged from the system.
+   *
+   * Right now it is assumed/required that this body was retrieved via
+   * getMessageBody while holding a mutex so that the body block must still
+   * be around in memory.
+   */
+  updateMessageBody: function(suid, date, bodyInfo) {
+    var uid = suid.substring(suid.lastIndexOf('/') + 1),
+        posInfo = this._findRangeObjIndexForDateAndUID(this._bodyBlockInfos,
+                                                       date, uid);
+    var bodyBlockInfo = posInfo[1],
+        block = this._bodyBlocks[bodyBlockInfo.blockId];
+    block.bodies[uid] = bodyInfo;
+    this._dirty = true;
+    this._dirtyBodyBlocks[bodyBlockInfo.blockId] = block;
   },
 
   shutdown: function() {
@@ -21630,6 +23084,14 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
   ImapFolderStorage: {
     type: $log.DATABASE,
     events: {
+      // For now, logging date and uid is useful because the general logging
+      // level will show us if we are trying to redundantly delete things.
+      // Also, date and uid are opaque identifiers with very little entropy
+      // on their own.  (The danger is in correlation with known messages,
+      // but that is likely to be useful in the debugging situations where logs
+      // will be sufaced.)
+      deleteFromBlock: { type: false, date: false, uid: false },
+
       // This was an error but the test results viewer UI is not quite smart
       // enough to understand the difference between expected errors and
       // unexpected errors, so this is getting downgraded for now.
@@ -21645,8 +23107,12 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     },
     errors: {
       badBlockLoad: { type: false, blockId: false },
+      // Exposing date/uid at a general level is deemed okay because they are
+      // opaque identifiers and the most likely failure models involve the
+      // values being ridiculous (and therefore not legal).
       badIterationStart: { date: false, uid: false },
       badDeletionRequest: { type: false, date: false, uid: false },
+      bodyBlockMissing: { uid: false, idx: false, dict: false },
     }
   },
 }); // end LOGFAB
@@ -21705,7 +23171,8 @@ define('rdimap/imapclient/imapjobs',
  */
 const CHECKED_NOTYET = 1;
 /**
- * The operation is idempotent and atomic; no checking was performed.
+ * The operation is idempotent and atomic, just perform the operation again.
+ * No checking performed.
  */
 const UNCHECKED_IDEMPOTENT = 2;
 /**
@@ -21723,6 +23190,13 @@ const CHECKED_MOOT = 4;
  * check.
  */
 const UNCHECKED_BAILED = 5;
+/**
+ * The job has not yet been performed, and the evidence is that the job was
+ * not marked finished because our database commits are coherent.  This is
+ * appropriate for retrieval of information, like the downloading of
+ * attachments.
+ */
+const UNCHECKED_COHERENT_NOTYET = 6;
 
 function ImapJobDriver(account) {
   this.account = account;
@@ -21750,7 +23224,7 @@ ImapJobDriver.prototype = {
       storage.folderConn.acquireConn(callback);
     }
     else {
-      callback(storage.folderConn);
+      callback(storage.folderConn, storage);
     }
   },
 
@@ -21761,6 +23235,90 @@ ImapJobDriver.prototype = {
     if (!storage._slices.length && !storage._pendingMutationCount)
       storage.folderConn.relinquishConn();
   },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // download: Download one or more attachments from a single message
+
+  local_do_download: function(op, ignoredCallback) {
+    // Downloads are inherently online operations.
+    return null;
+  },
+
+  do_download: function(op, callback) {
+    var self = this;
+    var idxLastSlash = op.messageSuid.lastIndexOf('/'),
+        folderId = op.messageSuid.substring(0, idxLastSlash),
+        uid = op.messageSuid.substring(idxLastSlash + 1);
+
+    var folderConn, folderStorage;
+    // Once we have the connection, get the current state of the body rep.
+    var gotConn = function gotConn(_folderConn, _folderStorage) {
+      folderConn = _folderConn;
+      folderStorage = _folderStorage;
+
+      folderStorage.getMessageBody(op.messageSuid, op.messageDate, gotBody);
+    };
+    // Now that we have the body, we can know the part numbers and eliminate /
+    // filter out any redundant download requests.  Issue all the fetches at
+    // once.
+    var partsToDownload = [], bodyInfo;
+    var gotBody = function gotBody(_bodyInfo) {
+      bodyInfo = _bodyInfo;
+      var i, partInfo;
+      for (i = 0; i < op.relPartIndices.length; i++) {
+        partInfo = bodyInfo.relatedParts[op.relPartIndices[i]];
+        if (partInfo.file)
+          continue;
+        partsToDownload.push(partInfo);
+      }
+      for (i = 0; i < op.attachmentIndices.length; i++) {
+        partInfo = bodyInfo.attachments[op.attachmentIndices[i]];
+        if (partInfo.file)
+          continue;
+        partsToDownload.push(partInfo);
+      }
+
+      folderConn.downloadMessageAttachments(uid, partsToDownload, gotParts);
+    };
+    var gotParts = function gotParts(err, bodyBuffers) {
+      if (bodyBuffers.length !== partsToDownload.length) {
+        callback(err, null, false);
+        return;
+      }
+      for (var i = 0; i < partsToDownload.length; i++) {
+        // Because we should be under a mutex, this part should still be the
+        // live representation and we can mutate it.
+        var partInfo = partsToDownload[i],
+            buffer = bodyBuffers[i];
+
+        partInfo.sizeEstimate = buffer.length;
+        partInfo.file = new Blob([buffer],
+                                 { contentType: partInfo.type });
+      }
+      folderStorage.updateMessageBody(op.messageSuid, op.messageDate, bodyInfo);
+      callback(err, bodyInfo, true);
+    };
+
+    self._accessFolderForMutation(folderId, gotConn);
+  },
+
+  check_download: function(op, callback) {
+    // If we had download the file and persisted it successfully, this job would
+    // be marked done because of the atomicity guarantee on our commits.
+    return UNCHECKED_COHERENT_NOTYET;
+  },
+
+  local_undo_download: function(op, ignoredCallback) {
+    return null;
+  },
+
+  undo_download: function(op, callback) {
+    callback();
+  },
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  // modtags: Modify tags on messages
 
   local_do_modtags: function(op, ignoredCallback, undo) {
     var addTags = undo ? op.removeTags : op.addTags,
@@ -21893,6 +23451,9 @@ ImapJobDriver.prototype = {
     return this.do_modtags(op, callback, true);
   },
 
+  //////////////////////////////////////////////////////////////////////////////
+  // delete: Delete messages
+
   /**
    * Move the message to the trash folder.  In Gmail, there is no move target,
    * we just delete it and gmail will (by default) expunge it immediately.
@@ -21908,6 +23469,9 @@ ImapJobDriver.prototype = {
 
   undo_delete: function() {
   },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // move: Move messages between folders (in a single account)
 
   do_move: function() {
     // get a connection in the source folder, uid validity is asserted
@@ -21933,6 +23497,9 @@ ImapJobDriver.prototype = {
   undo_move: function() {
   },
 
+  //////////////////////////////////////////////////////////////////////////////
+  // copy: Copy messages between folders (in a single account)
+
   do_copy: function() {
   },
 
@@ -21946,6 +23513,9 @@ ImapJobDriver.prototype = {
    */
   undo_copy: function() {
   },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // append: Add a message to a folder
 
   /**
    * Append a message to a folder.
@@ -22010,6 +23580,8 @@ ImapJobDriver.prototype = {
 
   undo_append: function() {
   },
+
+  //////////////////////////////////////////////////////////////////////////////
 };
 
 function HighLevelJobDriver() {
@@ -22849,11 +24421,12 @@ ImapAccount.prototype = {
 
     if (callback) {
       this._LOG.runOp_begin(mode, op.type, null);
-      this._jobDriver[methodName](op, function(error) {
+      this._jobDriver[methodName](op, function(error, resultIfAny,
+                                               accountSaveSuggested) {
         self._LOG.runOp_end(mode, op.type, error);
         if (!isLocal)
           op.status = mode + 'ne';
-        callback(error);
+        callback(error, resultIfAny, accountSaveSuggested);
       });
     }
     else {
@@ -22910,6 +24483,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       runOp: { mode: true, type: true, error: false, op: false },
       saveAccountState: {},
     },
+    TEST_ONLY_asyncJobs: {
+    },
   },
 });
 
@@ -22944,7 +24519,7 @@ var util = require('util'),
 function NetSocket(port, host, crypto) {
   this._host = host;
   this._port = port;
-  this._actualSock = MozTCPSocket.open(
+  this._actualSock = navigator.MozTCPSocket.open(
     host, port, { useSSL: crypto, binaryType: 'arraybuffer' });
   EventEmitter.call(this);
 
@@ -24458,7 +26033,7 @@ MessageGenerator.prototype = {
       replyTo: null,
       attachments: null,
       references: null,
-      bodyRep: null,
+      bodyReps: null,
     };
 
     if (aArgs.inReplyTo) {
@@ -24532,7 +26107,7 @@ MessageGenerator.prototype = {
         '3: ...\n' +
         '\nIt is a tiny screen we target, thank goodness!';
     }
-    bodyInfo.bodyRep = [0x1, bodyText];
+    bodyInfo.bodyReps = ['plain', [0x1, bodyText]];
 
     if (this._mode === 'info') {
       return {
@@ -25507,6 +27082,7 @@ FakeFolderStorage.prototype = {
     this._buffer = new Uint8Array(this._rawbuf);
     this._pos = 0;
     this._codepage = 0;
+    this._tagStack = [];
 
     let [major, minor] = version.split('.').map(function(x) parseInt(x));
     let v = ((major - 1) << 4) + minor;
@@ -25713,10 +27289,17 @@ FakeFolderStorage.prototype = {
     stag: function(tag) {
       let rest = Array.prototype.slice.call(arguments, 1);
       this._writeTag(tag, true, rest);
+      this._tagStack.push(tag);
       return this;
     },
 
     etag: function(tag) {
+      if (this._tagStack.length === 0)
+        throw new Error('Spurious etag() call!');
+      let expectedTag = this._tagStack.pop();
+      if (tag !== undefined && tag !== expectedTag)
+        throw new Error('Closed the wrong tag');
+
       this._write(Tokens.END);
       return this;
     },
@@ -25878,6 +27461,7 @@ FakeFolderStorage.prototype = {
         Status:            0x000E,
         Collection:        0x000F,
         Class:             0x0010,
+        Version:           0x0011,
         CollectionId:      0x0012,
         GetChanges:        0x0013,
         MoreAvailable:     0x0014,
@@ -25885,10 +27469,13 @@ FakeFolderStorage.prototype = {
         Commands:          0x0016,
         Options:           0x0017,
         FilterType:        0x0018,
+        Truncation:        0x0019,
+        RtfTruncation:     0x001A,
         Conflict:          0x001B,
         Collections:       0x001C,
         ApplicationData:   0x001D,
         DeletesAsMoves:    0x001E,
+        NotifyGUID:        0x001F,
         Supported:         0x0020,
         SoftDelete:        0x0021,
         MIMESupport:       0x0022,
@@ -25908,6 +27495,9 @@ FakeFolderStorage.prototype = {
         AssistantName:             0x0106,
         AssistantPhoneNumber:      0x0107,
         Birthday:                  0x0108,
+        Body:                      0x0109,
+        BodySize:                  0x010A,
+        BodyTruncated:             0x010B,
         Business2PhoneNumber:      0x010C,
         BusinessAddressCity:       0x010D,
         BusinessAddressCountry:    0x010E,
@@ -25955,6 +27545,7 @@ FakeFolderStorage.prototype = {
         YomiCompanyName:           0x0138,
         YomiFirstName:             0x0139,
         YomiLastName:              0x013A,
+        CompressedRTF:             0x013B,
         Picture:                   0x013C,
         Alias:                     0x013D,
         WeightedRank:              0x013E,
@@ -25963,7 +27554,18 @@ FakeFolderStorage.prototype = {
 
     Email: {
       Tags: {
+        Attachment:              0x0205,
+        Attachments:             0x0206,
+        AttName:                 0x0207,
+        AttSize:                 0x0208,
+        Att0Id:                  0x0209,
+        AttMethod:               0x020A,
+        AttRemoved:              0x020B,
+        Body:                    0x020C,
+        BodySize:                0x020D,
+        BodyTruncated:           0x020E,
         DateReceived:            0x020F,
+        DisplayName:             0x0210,
         DisplayTo:               0x0211,
         Importance:              0x0212,
         MessageClass:            0x0213,
@@ -26001,6 +27603,9 @@ FakeFolderStorage.prototype = {
         TimeZone:                0x0233,
         GlobalObjId:             0x0234,
         ThreadTopic:             0x0235,
+        MIMEData:                0x0236,
+        MIMETruncated:           0x0237,
+        MIMESize:                0x0238,
         InternetCPID:            0x0239,
         Flag:                    0x023A,
         Status:                  0x023B,
@@ -26019,9 +27624,12 @@ FakeFolderStorage.prototype = {
         Attendee:                  0x0408,
         Email:                     0x0409,
         Name:                      0x040A,
+        Body:                      0x040B,
+        BodyTruncated:             0x040C,
         BusyStatus:                0x040D,
         Categories:                0x040E,
         Category:                  0x040F,
+        CompressedRTF:             0x0410,
         DtStamp:                   0x0411,
         EndTime:                   0x0412,
         Exception:                 0x0413,
@@ -26048,6 +27656,14 @@ FakeFolderStorage.prototype = {
         UID:                       0x0428,
         AttendeeStatus:            0x0429,
         AttendeeType:              0x042A,
+        Attachment:                0x042B,
+        Attachments:               0x042C,
+        AttName:                   0x042D,
+        AttSize:                   0x042E,
+        AttOid:                    0x042F,
+        AttMethod:                 0x0430,
+        AttRemoved:                0x0431,
+        DisplayName:               0x0432,
         DisallowNewTimeProposal:   0x0433,
         ResponseRequested:         0x0434,
         AppointmentReplyTime:      0x0435,
@@ -26090,11 +27706,15 @@ FakeFolderStorage.prototype = {
 
     FolderHierarchy: {
       Tags: {
+        Folders:      0x0705,
+        Folder:       0x0706,
         DisplayName:  0x0707,
         ServerId:     0x0708,
         ParentId:     0x0709,
         Type:         0x070A,
+        Response:     0x070B,
         Status:       0x070C,
+        ContentClass: 0x070D,
         Changes:      0x070E,
         Add:          0x070F,
         Delete:       0x0710,
@@ -26124,6 +27744,9 @@ FakeFolderStorage.prototype = {
 
     Tasks: {
       Tags: {
+        Body:                   0x0905,
+        BodySize:               0x0906,
+        BodyTruncated:          0x0907,
         Categories:             0x0908,
         Category:               0x0909,
         Complete:               0x090A,
@@ -26149,6 +27772,7 @@ FakeFolderStorage.prototype = {
         StartDate:              0x091E,
         UtcStartDate:           0x091F,
         Subject:                0x0920,
+        CompressedRTF:          0x0921,
         OrdinalDate:            0x0922,
         SubOrdinalDate:         0x0923,
         CalendarType:           0x0924,
@@ -26289,6 +27913,7 @@ FakeFolderStorage.prototype = {
     Search: {
       Tags: {
         Search:         0x0F05,
+        Stores:         0x0F06,
         Store:          0x0F07,
         Name:           0x0F08,
         Query:          0x0F09,
@@ -26309,6 +27934,8 @@ FakeFolderStorage.prototype = {
         RebuildResults: 0x0F19,
         LessThan:       0x0F1A,
         GreaterThan:    0x0F1B,
+        Schema:         0x0F1C,
+        Supported:      0x0F1D,
         UserName:       0x0F1E,
         Password:       0x0F1F,
         ConversationId: 0x0F20,
@@ -26343,6 +27970,7 @@ FakeFolderStorage.prototype = {
         Type:               0x1106,
         TruncationSize:     0x1107,
         AllOrNone:          0x1108,
+        Reserved:           0x1109,
         Body:               0x110A,
         Data:               0x110B,
         EstimatedDataSize:  0x110C,
@@ -26403,6 +28031,7 @@ FakeFolderStorage.prototype = {
         AccountName:                 0x1227,
         UserDisplayName:             0x1228,
         SendDisabled:                0x1229,
+        /* Missing tag value 0x122A */
         RightsManagementInformation: 0x122B,
       },
     },
@@ -26453,6 +28082,7 @@ FakeFolderStorage.prototype = {
         SmartReply:      0x1507,
         SaveInSentItems: 0x1508,
         ReplaceMime:     0x1509,
+        /* Missing tag value 0x150A */
         Source:          0x150B,
         FolderId:        0x150C,
         ItemId:          0x150D,
@@ -26550,24 +28180,34 @@ FakeFolderStorage.prototype = {
 }(this, function(WBXML, ASCP) {
   
 
-  const __exports__ = ['Connection'];
+  const __exports__ = ['VersionInt', 'Connection'];
 
   function nsResolver(prefix) {
     const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
     const ns = {
-      'ad': baseUrl + 'responseschema/2006',
-      'ms': baseUrl + 'mobilesync/responseschema/2006',
+      rq: baseUrl + 'mobilesync/requestschema/2006',
+      ad: baseUrl + 'responseschema/2006',
+      ms: baseUrl + 'mobilesync/responseschema/2006',
     };
     return ns[prefix] || null;
   }
 
-  function Connection(aEmail, aPassword) {
+  function VersionInt(str) {
+    let [major, minor] = str.split('.').map(function(x) parseInt(x));
+    return (major << 16) + minor;
+  }
+
+  function Connection(aEmail, aPassword, aDeviceId, aDeviceType) {
     this._email = aEmail;
     this._password = aPassword;
+    this._deviceId = aDeviceId || 'v140Device';
+    this._deviceType = aDeviceType || 'SmartPhone';
     this.connected = false;
   }
 
   Connection.prototype = {
+    get currentVersionInt() VersionInt(this.currentVersion),
+
     _getAuth: function() {
       return 'Basic ' + btoa(this._email + ':' + this._password);
     },
@@ -26585,9 +28225,6 @@ FakeFolderStorage.prototype = {
       xhr.setRequestHeader('Authorization', this._getAuth());
 
       xhr.onload = function() {
-        if (typeof logXhr == 'function') // TODO: remove this debug code
-          logXhr(xhr);
-
         let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
         let getString = function(xpath, rel) {
           return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
@@ -26613,7 +28250,7 @@ FakeFolderStorage.prototype = {
             nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
             .singleNodeValue;
 
-          let result = {
+          conn.config = {
             'user': {
               'name':  getString('ms:DisplayName/text()',  user),
               'email': getString('ms:EMailAddress/text()', user),
@@ -26625,12 +28262,15 @@ FakeFolderStorage.prototype = {
             }
           };
 
-          conn.baseURL = result.server.url + '/Microsoft-Server-ActiveSync';
+          conn.baseURL = conn.config.server.url +
+            '/Microsoft-Server-ActiveSync';
           conn.options(conn.baseURL, function(aSubResult) {
             conn.connected = true;
-            result.options = aSubResult;
+            conn.currentVersion = aSubResult.versions.slice(-1)[0];
+            conn.config.options = aSubResult;
+
             if (aCallback)
-              aCallback.call(conn, result);
+              aCallback(conn.config);
           });
         }
       };
@@ -26639,10 +28279,11 @@ FakeFolderStorage.prototype = {
       // http://ejohn.org/blog/javascript-micro-templating/ here?
       let postdata =
       '<?xml version="1.0" encoding="utf-8"?>\n' +
-      '<Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/mobilesync/requestschema/2006">\n' +
+      '<Autodiscover xmlns="' + nsResolver('rq') + '">\n' +
       '  <Request>\n' +
       '    <EMailAddress>' + this._email + '</EMailAddress>\n' +
-      '      <AcceptableResponseSchema>http://schemas.microsoft.com/exchange/autodiscover/mobilesync/responseschema/2006</AcceptableResponseSchema>\n' +
+      '    <AcceptableResponseSchema>' + nsResolver('ms') +
+           '</AcceptableResponseSchema>\n' +
       '  </Request>\n' +
       '</Autodiscover>';
 
@@ -26653,9 +28294,6 @@ FakeFolderStorage.prototype = {
       let xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('OPTIONS', aURL, true);
       xhr.onload = function() {
-        if (typeof logXhr == 'function') // TODO: remove this debug code
-          logXhr(xhr);
-
         let result = {
           'versions': xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
           'commands': xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
@@ -26667,52 +28305,69 @@ FakeFolderStorage.prototype = {
     },
 
     doCommand: function(aXml, aCallback) {
-      if (!this.connected)
-        this.autodiscover(this._doCommandReal.bind(this, aXml, aCallback));
-      else
+      if (this.connected) {
         this._doCommandReal(aXml, aCallback);
+      }
+      else {
+        this.autodiscover((function (aConfig) {
+          if ('error' in aConfig) {
+            // TODO: do something here!
+            let error = new Error('Error during autodiscover: ' +
+                                  aConfig.error.message);
+            console.log(error);
+            aCallback(error);
+          }
+          else {
+            this._doCommandReal(aXml, aCallback);
+          }
+        }).bind(this));
+      }
     },
 
     _doCommandReal: function(aXml, aCallback) {
       let r = new WBXML.Reader(aXml, ASCP);
-      let command = r.document.next().localTagName;
+      let commandName = r.document.next().localTagName;
+      if (this.config.options.commands.indexOf(commandName) === -1) {
+        // TODO: do something here!
+        let error = new Error("This server doesn't support the command " +
+                              commandName);
+        console.log(error);
+        aCallback(error);
+        return;
+      }
+
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('POST', this.baseURL + '?Cmd=' + command + '&User=' +
-               this._email + '&DeviceId=v140Device&DeviceType=SmartPhone',
+      xhr.open('POST', this.baseURL +
+               '?Cmd='        + encodeURIComponent(commandName) +
+               '&User='       + encodeURIComponent(this._email) +
+               '&DeviceId='   + encodeURIComponent(this._deviceId) +
+               '&DeviceType=' + encodeURIComponent(this._deviceType),
                true);
-      xhr.setRequestHeader('MS-ASProtocolVersion', '14.0');
+      xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
       xhr.setRequestHeader('Content-Type', 'application/vnd.ms-sync.wbxml');
-      xhr.setRequestHeader('User-Agent', 'B2G');
       xhr.setRequestHeader('Authorization', this._getAuth());
 
       let conn = this;
       xhr.onload = function() {
-        if (typeof logXhr == 'function') // TODO: remove this debug code
-          logXhr(xhr);
-
         if (xhr.status == 451) {
           conn.baseURL = xhr.getResponseHeader('X-MS-Location');
           conn.doCommand(aXml, aCallback);
           return;
         }
+
         if (xhr.status != 200) {
-          if (typeof print == 'function') // TODO: remove this debug code
-            print('Error!\n');
+          // TODO: do something here!
+          let error = new Error('ActiveSync command returned failure ' +
+                                'response ' + xhr.status);
+          console.log(error);
+          aCallback(error);
           return;
         }
 
-        if (xhr.response.byteLength == 0) {
-          aCallback(null);
-        }
-        else {
-          let r = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
-          if (typeof log == 'function') { // TODO: remove this debug code
-            log(r.dump());
-            r.rewind();
-          }
-
-          aCallback(r);
-        }
+        let response = null;
+        if (xhr.response.byteLength > 0)
+          response = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
+        aCallback(null, response);
       };
 
       xhr.responseType = 'arraybuffer';
@@ -26732,6 +28387,8 @@ define('rdimap/imapclient/asfolder',
     'activesync/codepages',
     'activesync/protocol',
     'mimelib',
+    './quotechew',
+    './util',
     'exports'
   ],
   function(
@@ -26739,177 +28396,747 @@ define('rdimap/imapclient/asfolder',
     $ascp,
     $activesync,
     $mimelib,
+    $quotechew,
+    $util,
     exports
   ) {
 
 
-function ActiveSyncFolderStorage(account, serverId) {
+function ActiveSyncFolderStorage(account, folderInfo, dbConn) {
   this.account = account;
-  this.serverId = serverId;
+  this._db = dbConn;
+
+  this.folderId = folderInfo.$meta.id;
+  this.serverId = folderInfo.$meta.serverId;
+  this.folderMeta = folderInfo.$meta;
+  if (!this.folderMeta.syncKey)
+    this.folderMeta.syncKey = '0';
+
+  this._headers = [];
   this._bodiesBySuid = {};
+
+  this._onLoadHeaderListeners = [];
+  this._onLoadBodyListeners = [];
+
+  let self = this;
+
+  this._db.loadHeaderBlock(this.folderId, 0, function(block) {
+    self._loadedHeaders = true;
+    if (block)
+      self._headers = block;
+
+    for (let [,listener] in Iterator(self._onLoadHeaderListeners))
+      listener();
+    self._onLoadHeaderListeners = [];
+  });
+
+  this._db.loadBodyBlock(this.folderId, 0, function(block) {
+    self._loadedBodies = true;
+    if (block)
+      self._bodiesBySuid = block;
+
+    for (let [,listener] in Iterator(self._onLoadBodyListeners))
+      listener();
+    self._onLoadBodyListeners = [];
+  });
 }
 exports.ActiveSyncFolderStorage = ActiveSyncFolderStorage;
 ActiveSyncFolderStorage.prototype = {
-  _loadMessages: function(serverId, callback) {
-    var account = this.account;
-    var as = $ascp.AirSync.Tags;
-    let asb = $ascp.AirSyncBase.Tags;
-    var em = $ascp.Email.Tags;
+  generatePersistenceInfo: function asfs_generatePersistenceInfo() {
+    return {
+      id: this.folderId,
+      headerBlocks: [ this._headers ],
+      bodyBlocks:   [ this._bodiesBySuid ],
+    };
+  },
 
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+  get syncKey() {
+    return this.folderMeta.syncKey;
+  },
+
+  set syncKey(value) {
+    return this.folderMeta.syncKey = value;
+  },
+
+  updateMessageHeader: function asfs_updateMessageHeader(suid, mutatorFunc) {
+    // XXX: this could be a lot faster
+    for (let [i, header] in Iterator(this._headers)) {
+      if (header.suid === suid) {
+        if (mutatorFunc(header))
+          this._bridgeHandle.sendUpdate([i, header]);
+        return;
+      }
+    }
+  },
+
+  deleteMessage: function asfs_deleteMessage(suid) {
+    // XXX: this could be a lot faster
+    for (let [i, header] in Iterator(this._headers)) {
+      if (header.suid === suid) {
+        delete this._bodiesBySuid[header.suid];
+        this._headers.splice(i, 1);
+        this._bridgeHandle.sendSplice(i, 1, [], false, false);
+        return;
+      }
+    }
+  },
+
+  /**
+   * Get the initial sync key for the folder so we can start getting data
+   *
+   * @param {function} callback A callback to be run when the operation finishes
+   */
+  _getSyncKey: function asfs__getSyncKey(callback) {
+    let folderStorage = this;
+    let account = this.account;
+    const as = $ascp.AirSync.Tags;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection)
-           .tag(as.SyncKey, '0')
-           .tag(as.CollectionId, serverId)
+
+    if (account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+          w.tag(as.Class, 'Email');
+
+          w.tag(as.SyncKey, '0')
+           .tag(as.CollectionId, this.serverId)
          .etag()
        .etag()
      .etag();
 
-    account.conn.doCommand(w, function(aResponse) {
-      var syncKey;
-      var e = new $wbxml.EventParser();
+    account.conn.doCommand(w, function(aError, aResponse) {
+      if (aError)
+        return;
+
+      let e = new $wbxml.EventParser();
       e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
                          function(node) {
-        syncKey = node.children[0].textContent;
+        folderStorage.folderMeta.syncKey = node.children[0].textContent;
       });
       e.run(aResponse);
 
-      var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
-      w.stag(as.Sync)
-         .stag(as.Collections)
-           .stag(as.Collection)
-             .tag(as.SyncKey, syncKey)
-             .tag(as.CollectionId, serverId)
-             .tag(as.GetChanges)
-             .stag(as.Options)
-               .stag(asb.BodyPreference)
-                 .tag(asb.Type, '1')
-               .etag()
-               .tag(as.MIMESupport, '2')
-               .tag(as.MIMETruncation, '7')
-             .etag()
+      callback();
+    });
+  },
+
+  /**
+   * Sync the folder with the server and enumerate all the changes since the
+   * last sync.
+   *
+   * @param {function} callback A function to be called when the operation has
+   *   completed, taking three arguments: |added|, |changed|, and |deleted|
+   * @param {boolean} deferred True if this operation was already deferred once
+   *   to get the initial sync key
+   */
+  _syncFolder: function asfs__syncFolder(callback, deferred) {
+    let folderStorage = this;
+    let account = this.account;
+
+    if (!account.conn.connected) {
+      account.conn.autodiscover(function(config) {
+        // TODO: handle errors
+        folderStorage._syncFolder(callback, deferred);
+      });
+      return;
+    }
+    if (this.folderMeta.syncKey === '0' && !deferred) {
+      this._getSyncKey(this._syncFolder.bind(this, callback, true));
+      return;
+    }
+
+    const as = $ascp.AirSync.Tags;
+    const asb = $ascp.AirSyncBase.Tags;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(as.Sync)
+       .stag(as.Collections)
+         .stag(as.Collection);
+
+    if (account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+          w.tag(as.Class, 'Email');
+
+          w.tag(as.SyncKey, this.folderMeta.syncKey)
+           .tag(as.CollectionId, this.serverId)
+           .tag(as.GetChanges)
+           .stag(as.Options)
+
+    if (account.conn.currentVersionInt >= $activesync.VersionInt('12.0'))
+            w.stag(asb.BodyPreference)
+               .tag(asb.Type, '1')
+             .etag();
+
+            w.tag(as.MIMESupport, '2')
+             .tag(as.MIMETruncation, '7')
            .etag()
          .etag()
-       .etag();
+       .etag()
+     .etag();
 
-      var folderId = account.id + '/' + serverId;
-      account.conn.doCommand(w, function(aResponse) {
-        var e = new $wbxml.EventParser();
-        var headers = [];
-        var bodies = {};
-        e.addEventListener([as.Sync, as.Collections, as.Collection, as.Commands,
-                            as.Add, as.ApplicationData],
-                           function(node) {
-          var guid = Date.now() + Math.random().toString(16).substr(1) +
-            '@mozgaia';
-          var header = {
-            subject: null,
-            author: null,
-            date: null,
-            flags: [],
-            id: null,
-            suid: folderId + '/' + guid,
-            guid: guid,
-            hasAttachments: false,
-            snippet: null,
-          };
-          var body = {
-            to: null,
-            cc: null,
-            bcc: null,
-            replyTo: null,
-            attachments: null,
-            references: null,
-            bodyRep: null,
-          };
+    account.conn.doCommand(w, function(aError, aResponse) {
+      let added   = { headers: [], bodies: {} };
+      let changed = { headers: [], bodies: {} };
+      let deleted = [];
+      let status;
 
-          for (let [,child] in Iterator(node.children)) {
-            let childText = child.children.length &&
-                            child.children[0].textContent;
+      if (aError)
+        return;
+      if (!aResponse) {
+        callback(added, changed, deleted);
+        return;
+      }
 
-            switch (child.tag) {
-            case em.Subject:
-              header.subject = childText;
-              break;
-            case em.From:
-              header.author = $mimelib.parseAddresses(childText)[0];
-              break;
-            case em.To:
-              body.to = $mimelib.parseAddresses(childText);
-              break;
-            case em.Cc:
-              nody.cc = $mimelib.parseAddresses(childText);
-              break;
-            case em.ReplyTo:
-              body.replyTo = $mimelib.parseAddresses(childText);
-              break;
-            case em.DateReceived:
-              header.date = new Date(childText).valueOf();
-              break;
-            case em.Read:
-              if (childText == '1')
-                header.flags.push('\\Seen');
-              break;
-            case em.Flag:
-              for (let [,grandchild] in Iterator(child.children)) {
-                if (grandchild.tag === em.Status &&
-                    grandchild.children[0].textContent !== '0')
-                  header.flags.push('\\Flagged');
-              }
-              break;
-            case asb.Body:
-              for (let [,grandchild] in Iterator(child.children)) {
-                if (grandchild.tag === asb.Data)
-                  body.bodyRep = [0x1, grandchild.children[0].textContent];
-              }
-              break;
-            case asb.Attachments:
-              header.hasAttachments = true;
-              body.attachments = [];
-              for (let [,attachmentNode] in Iterator(child.children)) {
-                if (attachmentNode.tag !== asb.Attachment)
-                  continue; // XXX: throw an error here??
-                let attachment = { type: 'text/plain' }; // XXX: this is lies
-                for (let [,attachData] in Iterator(attachmentNode.children)) {
-                  switch (attachData.tag) {
-                  case asb.DisplayName:
-                    attachment.name = attachData.children[0].textContent;
-                    break;
-                  case asb.EstimatedDataSize:
-                    attachment.sizeEstimate = attachData.children[0]
-                                                        .textContent;
-                    break;
-                  }
-                }
-                body.attachments.push(attachment);
-              }
-              break;
+      let e = new $wbxml.EventParser();
+      const base = [as.Sync, as.Collections, as.Collection];
+
+      e.addEventListener(base.concat(as.Status), function(node) {
+        status = node.children[0].textContent;
+      });
+
+      e.addEventListener(base.concat(as.SyncKey), function(node) {
+        folderStorage.folderMeta.syncKey = node.children[0].textContent;
+      });
+
+      e.addEventListener(base.concat(as.Commands, [[as.Add, as.Change]]),
+                         function(node) {
+        let guid;
+        let msg;
+
+        for (let [,child] in Iterator(node.children)) {
+          switch (child.tag) {
+          case as.ServerId:
+            guid = child.children[0].textContent;
+            break;
+          case as.ApplicationData:
+            msg = folderStorage._parseMessage(child, node.tag === as.Add);
+            break;
+          }
+        }
+
+        msg.header.guid = guid;
+        msg.header.suid = folderStorage.folderId + '/' + guid;
+
+        let collection = node.tag === as.Add ? added : changed;
+        collection.headers.push(msg.header);
+        collection.bodies[msg.header.suid] = msg.body;
+      });
+
+      e.addEventListener(base.concat(as.Commands, as.Delete), function(node) {
+        let guid;
+
+        for (let [,child] in Iterator(node.children)) {
+          switch (child.tag) {
+          case as.ServerId:
+            guid = child.children[0].textContent;
+            break;
+          }
+        }
+
+        deleted.push(guid);
+      });
+
+      e.run(aResponse);
+
+      if (status === '1') { // Success
+        callback(added, changed, deleted);
+      }
+      else if (status === '3') { // Bad sync key
+        console.log('ActiveSync had a bad sync key');
+        // This should already be set to 0, but let's just be safe.
+        folderStorage.folderMeta.syncKey = '0';
+        folderStorage._needsPurge = true;
+        folderStorage._syncFolder(callback);
+      }
+      else {
+        console.error('Something went wrong during ActiveSync syncing and we ' +
+                      'got a status of ' + status);
+      }
+    });
+  },
+
+  /**
+   * Parse the DOM of an individual message to build header and body objects for
+   * it.
+   *
+   * @param {WBXML.Element} node The fully-parsed node describing the message
+   * @param {boolean} isAdded True if this is a new message, false if it's a
+   *   changed one
+   * @return {object} An object containing the header and body for the message
+   */
+  _parseMessage: function asfs__parseMessage(node, isAdded) {
+    const asb = $ascp.AirSyncBase.Tags;
+    const em = $ascp.Email.Tags;
+    let header, body, flagHeader;
+
+    if (isAdded) {
+      header = {
+        id: null,
+        suid: null,
+        guid: null,
+        author: null,
+        date: null,
+        flags: [],
+        hasAttachments: false,
+        subject: null,
+        snippet: null,
+      };
+
+      body = {
+        date: null,
+        size: null,
+        to: null,
+        cc: null,
+        bcc: null,
+        replyTo: null,
+        attachments: [],
+        references: null,
+        bodyReps: null,
+      };
+
+      flagHeader = function(flag, state) {
+        if (state)
+          header.flags.push(flag);
+      }
+    }
+    else {
+      header = {
+        flags: [],
+        mergeInto: function(o) {
+          // Merge flags
+          for (let [,flagstate] in Iterator(this.flags)) {
+            if (flagstate[1]) {
+              o.flags.push(flagstate[0]);
+            }
+            else {
+              let index = o.flags.indexOf(flagstate[0]);
+              if (index !== -1)
+                o.flags.splice(index, 1);
             }
           }
 
-          headers.push(header);
-          bodies[header.suid] = body;
-        });
+          // Merge everything else
+          for (let [key, value] in Iterator(this)) {
+            if (['mergeInto', 'suid', 'guid', 'flags'].indexOf(key) !== -1)
+              continue;
 
-        e.run(aResponse);
+            o[key] = value;
+          }
+        },
+      };
 
-        headers.sort(function(a, b) a.date < b.date);
-        callback(headers, bodies);
-      });
-    });
+      body = {
+        mergeInto: function(o) {
+          for (let [key, value] in Iterator(this)) {
+            if (key === 'mergeInto') continue;
+            o[key] = value;
+          }
+        },
+      };
+
+      flagHeader = function(flag, state) {
+        header.flags.push([flag, state]);
+      }
+    }
+
+    for (let [,child] in Iterator(node.children)) {
+      let childText = child.children.length &&
+                      child.children[0].textContent;
+
+      switch (child.tag) {
+      case em.Subject:
+        header.subject = childText;
+        break;
+      case em.From:
+        header.author = $mimelib.parseAddresses(childText)[0] || null;
+        break;
+      case em.To:
+        body.to = $mimelib.parseAddresses(childText);
+        break;
+      case em.Cc:
+        body.cc = $mimelib.parseAddresses(childText);
+        break;
+      case em.ReplyTo:
+        body.replyTo = $mimelib.parseAddresses(childText);
+        break;
+      case em.DateReceived:
+        body.date = header.date = new Date(childText).valueOf();
+        break;
+      case em.Read:
+        flagHeader('\\Seen', childText === '1');
+        break;
+      case em.Flag:
+        for (let [,grandchild] in Iterator(child.children)) {
+          if (grandchild.tag === em.Status)
+            flagHeader('\\Flagged', grandchild.children[0].textContent !== '0');
+        }
+        break;
+      case asb.Body: // ActiveSync 12.0+
+        for (let [,grandchild] in Iterator(child.children)) {
+          if (grandchild.tag === asb.Data) {
+            body.bodyReps = [
+              'plain',
+              $quotechew.quoteProcessTextBody(
+                grandchild.children[0].textContent)
+            ];
+            header.snippet = $quotechew.generateSnippet(body.bodyReps[1]);
+          }
+        }
+        break;
+      case em.Body: // pre-ActiveSync 12.0
+        body.bodyReps = [
+          'plain',
+          $quotechew.quoteProcessTextBody(childText)
+        ];
+        header.snippet = $quotechew.generateSnippet(body.bodyReps[1]);
+        break;
+      case asb.Attachments: // ActiveSync 12.0+
+      case em.Attachments:  // pre-ActiveSync 12.0
+        header.hasAttachments = true;
+        body.attachments = [];
+        for (let [,attachmentNode] in Iterator(child.children)) {
+          if (attachmentNode.tag !== asb.Attachment &&
+              attachmentNode.tag !== em.Attachment)
+            continue; // XXX: throw an error here??
+
+          let attachment = { name: null, type: null, part: null,
+                             sizeEstimate: null };
+
+          for (let [,attachData] in Iterator(attachmentNode.children)) {
+            let dot, ext;
+
+            switch (attachData.tag) {
+            case asb.DisplayName:
+            case em.DisplayName:
+              attachment.name = attachData.children[0].textContent;
+
+              // Get the file's extension to look up a mimetype, but ignore it
+              // if the filename is of the form '.bashrc'.
+              dot = attachment.name.lastIndexOf('.');
+              ext = dot > 0 ? attachment.name.substring(dot + 1) : '';
+              attachment.type = $mimelib.contentTypes[ext] ||
+                                'application/octet-stream';
+              break;
+            case asb.EstimatedDataSize:
+            case em.AttSize:
+              attachment.sizeEstimate = attachData.children[0].textContent;
+              break;
+            }
+          }
+          body.attachments.push(attachment);
+        }
+        break;
+      }
+    }
+
+    return { header: header, body: body };
   },
 
-  _sliceFolderMessages: function ffs__sliceFolderMessages(bridgeHandle) {
+  _sliceFolderMessages: function asfs__sliceFolderMessages(bridgeHandle) {
+    if (!this._loadedHeaders) {
+      this._onLoadHeaderListeners.push(this._sliceFolderMessages
+                                           .bind(this, bridgeHandle));
+      return;
+    }
+
+    this._bridgeHandle = bridgeHandle;
+    bridgeHandle.sendSplice(0, 0, this._headers, true, true);
+
     var folderStorage = this;
-    this._loadMessages(this.serverId, function(headers, bodies) {
-      folderStorage._bodiesBySuid = bodies;
-      bridgeHandle.sendSplice(0, 0, headers, true, false);
+    this._syncFolder(function(added, changed, deleted) {
+      if (folderStorage._needsPurge) {
+        bridgeHandle.sendSplice(0, folderStorage._headers.length, [], false,
+                                true);
+        folderStorage._headers = [];
+        folderStorage._bodiesBySuid = {};
+        folderStorage._needsPurge = false;
+      }
+
+      // XXX: pretty much all of the sync code here needs to be rewritten to
+      // divide headers/bodies into blocks so as not to be a performance
+      // nightmare.
+
+      // Handle messages that have been deleted
+      for (let [,guid] in Iterator(deleted)) {
+        // This looks dangerous (iterating and splicing at the same time), but
+        // we break out of the loop immediately after the splice, so it's ok.
+        for (let [i, header] in Iterator(folderStorage._headers)) {
+          if (header.guid === guid) {
+            delete folderStorage._bodiesBySuid[header.suid];
+            folderStorage._headers.splice(i, 1);
+            bridgeHandle.sendSplice(i, 1, [], true, true);
+            break;
+          }
+        }
+      }
+
+      // Handle messages that have been changed
+      for (let [,newHeader] in Iterator(changed.headers)) {
+        for (let [i, oldHeader] in Iterator(folderStorage._headers)) {
+          if (oldHeader.guid === newHeader.guid) {
+            let oldBody = folderStorage._bodiesBySuid[oldHeader.suid];
+            let newBody = changed.bodies[oldHeader.suid];
+
+            newHeader.mergeInto(oldHeader);
+            newBody.mergeInto(oldBody);
+            bridgeHandle.sendUpdate([i, oldHeader]);
+
+            break;
+          }
+        }
+      }
+
+      // Handle messages that have been added
+      if (added.headers.length) {
+        added.headers.sort(function(a, b) b.date - a.date);
+        let addedBlocks = {};
+        for (let [,header] in Iterator(added.headers)) {
+          let idx = $util.bsearchForInsert(folderStorage._headers, header,
+                                           function(a, b) b.date - a.date);
+          if (!(idx in addedBlocks))
+            addedBlocks[idx] = [];
+          addedBlocks[idx].push(header);
+        }
+
+        let keys = Object.keys(addedBlocks).sort(function(a, b) b - a);
+        let hdrs = folderStorage._headers;
+        for (let [,key] in Iterator(keys)) {
+          // XXX: I feel like this is probably slower than it needs to be...
+          hdrs.splice.apply(hdrs, [key, 0].concat(addedBlocks[key]));
+          bridgeHandle.sendSplice(key, 0, addedBlocks[key], true, true);
+        }
+
+        for (let [k, v] in Iterator(added.bodies))
+          folderStorage._bodiesBySuid[k] = v;
+      }
+
+      bridgeHandle.sendStatus(true, false);
+      folderStorage.account.saveAccountState();
     });
   },
 
-  getMessageBody: function ffs_getMessageBody(suid, date, callback) {
+  getMessageBody: function asfs_getMessageBody(suid, date, callback) {
+    if (!this._loadedBodies) {
+      this._onLoadBodyListeners.push(this.getMessageBody.bind(this, suid, date,
+                                                              callback));
+      return;
+    }
+
     callback(this._bodiesBySuid[suid]);
+  },
+};
+
+}); // end define
+;
+define('rdimap/imapclient/asjobs',
+  [
+    'wbxml',
+    'activesync/codepages',
+    'activesync/protocol',
+    './util',
+    'exports'
+  ],
+  function(
+    $wbxml,
+    $ascp,
+    $activesync,
+    $util,
+    exports
+  ) {
+
+
+function ActiveSyncJobDriver(account) {
+  this.account = account;
+}
+exports.ActiveSyncJobDriver = ActiveSyncJobDriver;
+ActiveSyncJobDriver.prototype = {
+  local_do_modtags: function(op, callback) {
+    // XXX: we'll probably remove this once deleting stops being a modtag op
+    if (op.addTags && op.addTags.indexOf('\\Deleted') !== -1)
+      return this.local_do_delete(op, callback);
+
+    for (let [,message] in Iterator(op.messages)) {
+      let folderId = message.suid.substring(0, message.suid.lastIndexOf('/'));
+      let folderStorage = this.account.getFolderStorageForFolderId(folderId);
+
+      folderStorage.updateMessageHeader(message.suid, function(header) {
+        let modified = false;
+
+        for (let [,tag] in Iterator(op.addTags || [])) {
+          if (header.flags.indexOf(tag) !== -1)
+            continue;
+          header.flags.push(tag);
+          header.flags.sort();
+          modified = true;
+        }
+        for (let [,remove] in Iterator(op.removeTags || [])) {
+          let index = header.flags.indexOf(remove);
+          if (index === -1)
+            continue;
+          header.flags.splice(index, 1);
+          modified = true;
+        }
+        return modified;
+      });
+    }
+
+    this.account.saveAccountState();
+    if (callback)
+      setZeroTimeout(callback);
+  },
+
+  do_modtags: function(op, callback) {
+    function getMark(tag) {
+      if (op.addTags && op.addTags.indexOf(tag) !== -1)
+        return true;
+      if (op.removeTags && op.removeTags.indexOf(tag) !== -1)
+        return false;
+      return undefined;
+    }
+
+    // XXX: we'll probably remove this once deleting stops being a modtag op
+    if (getMark('\\Deleted'))
+      return this.do_delete(op, callback);
+
+    let markRead = getMark('\\Seen');
+    let markFlagged = getMark('\\Flagged');
+
+    this._do_crossFolderOp(op, callback, function(w, messageGuid) {
+      const as = $ascp.AirSync.Tags;
+      const em = $ascp.Email.Tags;
+
+      w.stag(as.Change)
+         .tag(as.ServerId, messageGuid)
+         .stag(as.ApplicationData);
+
+      if (markRead !== undefined)
+        w.tag(em.Read, markRead ? '1' : '0');
+
+      if (markFlagged !== undefined)
+        w.stag(em.Flag)
+           .tag(em.Status, markFlagged ? '2' : '0')
+         .etag();
+
+        w.etag()
+       .etag();
+    });
+  },
+
+  local_do_delete: function(op, callback) {
+    for (let [,message] in Iterator(op.messages)) {
+      let folderId = message.suid.substring(0, message.suid.lastIndexOf('/'));
+      let folderStorage = this.account.getFolderStorageForFolderId(folderId);
+
+      folderStorage.deleteMessage(message.suid);
+    }
+
+    this.account.saveAccountState();
+    if (callback)
+      setZeroTimeout(callback);
+  },
+
+  do_delete: function(op, callback) {
+    this._do_crossFolderOp(op, callback, function(w, messageGuid) {
+      const as = $ascp.AirSync.Tags;
+
+      w.stag(as.Delete)
+         .tag(as.ServerId, messageGuid)
+       .etag();
+    });
+  },
+
+  _do_crossFolderOp: function(op, callback, command) {
+    let jobDriver = this;
+
+    if (!this.account.conn.connected) {
+      let self = this;
+      this.account.conn.autodiscover(function(config) {
+        // TODO: handle errors
+        jobDriver.do_modtags(op, callback);
+      });
+      return;
+    }
+
+    // XXX: we really only want the message ID, but this method tries to parse
+    // it as an int (it's a GUID).
+    let partitions = $util.partitionMessagesByFolderId(op.messages, false);
+
+    const as = $ascp.AirSync.Tags;
+    const em = $ascp.Email.Tags;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(as.Sync)
+       .stag(as.Collections);
+
+    for (let [,part] in Iterator(partitions)) {
+      let folderStorage = this.account.getFolderStorageForFolderId(
+        part.folderId);
+
+      w.stag(as.Collection);
+
+      if (this.account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+        w.tag(as.Class, 'Email');
+
+        w.tag(as.SyncKey, folderStorage.syncKey)
+         .tag(as.CollectionId, folderStorage.serverId)
+         .stag(as.Commands);
+
+      for (let [,message] in Iterator(part.messages)) {
+        let slash = message.lastIndexOf('/');
+        let messageGuid = message.substring(slash+1);
+
+        command(w, messageGuid);
+      }
+
+        w.etag(as.Commands)
+       .etag(as.Collection);
+    }
+
+      w.etag(as.Collections)
+     .etag(as.Sync);
+
+    this.account.conn.doCommand(w, function(aError, aResponse) {
+      if (aError)
+        return;
+
+      let e = new $wbxml.EventParser();
+
+      let statuses = [];
+      let syncKeys = [];
+      let collectionIds = [];
+
+      const base = [as.Sync, as.Collections, as.Collection];
+      e.addEventListener(base.concat(as.SyncKey), function(node) {
+        syncKeys.push(node.children[0].textContent);
+      });
+      e.addEventListener(base.concat(as.CollectionId), function(node) {
+        collectionIds.push(node.children[0].textContent);
+      });
+      e.addEventListener(base.concat(as.Status), function(node) {
+        statuses.push(node.children[0].textContent);
+      });
+
+      e.run(aResponse);
+
+      let allGood = statuses.reduce(function(good, status) {
+        return good && status === '1';
+      });
+
+      if (allGood) {
+        for (let i = 0; i < collectionIds.length; i++) {
+          let folderStorage = jobDriver.account.getFolderStorageForServerId(
+            collectionIds[i]);
+          folderStorage.syncKey = syncKeys[i];
+        }
+
+        if (callback)
+          callback();
+        jobDriver.account.saveAccountState();
+      }
+      else {
+        console.error('Something went wrong during ActiveSync syncing and we ' +
+                      'got a status of ' + status);
+      }
+    });
   },
 };
 
@@ -26925,7 +29152,9 @@ define('rdimap/imapclient/activesync',
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
+    './a64',
     './asfolder',
+    './asjobs',
     './util',
     'exports'
   ],
@@ -26934,13 +29163,15 @@ define('rdimap/imapclient/activesync',
     $wbxml,
     $ascp,
     $activesync,
+    $a64,
     $asfolder,
-    $imaputil,
+    $asjobs,
+    $util,
     exports
   ) {
 
 
-const bsearchForInsert = $imaputil.bsearchForInsert;
+const bsearchForInsert = $util.bsearchForInsert;
 
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
                            receiveProtoConn, _LOG) {
@@ -26951,6 +29182,8 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.conn = new $activesync.Connection(accountDef.credentials.username,
                                          accountDef.credentials.password);
   this._db = dbConn;
+
+  this._jobDriver = new $asjobs.ActiveSyncJobDriver(this);
 
   this.enabled = true;
   this.problems = [];
@@ -26966,6 +29199,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.folders = [];
   this._folderStorages = {};
   this._folderInfos = folderInfos;
+  this._serverIdToFolderId = {};
   this._deadFolderIds = null;
 
   this.meta = folderInfos.$meta;
@@ -26978,7 +29212,8 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
     var folderInfo = folderInfos[folderId];
 
     this._folderStorages[folderId] =
-      new $asfolder.ActiveSyncFolderStorage(this, folderId.split('/')[1]);
+      new $asfolder.ActiveSyncFolderStorage(this, folderInfo, this._db);
+    this._serverIdToFolderId[folderInfo.$meta.serverId] = folderId;
     this.folders.push(folderInfo.$meta);
   }
   // TODO: we should probably be smarter about sorting.
@@ -26993,10 +29228,11 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 }
 exports.ActiveSyncAccount = ActiveSyncAccount;
 ActiveSyncAccount.prototype = {
-  toString: function fa_toString() {
+  toString: function asa_toString() {
     return '[ActiveSyncAccount: ' + this.id + ']';
   },
-  toBridgeWire: function fa_toBridgeWire() {
+
+  toBridgeWire: function asa_toBridgeWire() {
     return {
       id: this.accountDef.id,
       name: this.accountDef.name,
@@ -27020,7 +29256,8 @@ ActiveSyncAccount.prototype = {
       ]
     };
   },
-  toBridgeFolder: function() {
+
+  toBridgeFolder: function asa_toBridgeFolder() {
     return {
       id: this.accountDef.id,
       name: this.accountDef.name,
@@ -27033,63 +29270,88 @@ ActiveSyncAccount.prototype = {
     return 0;
   },
 
-  saveAccountState: function(reuseTrans) {
-    var trans = this._db.saveAccountFolderStates(
-      this.id, this._folderInfos, [], this._deadFolderIds,
-      function stateSaved() {
-      },
+  saveAccountState: function asa_saveAccountState(reuseTrans) {
+    let perFolderStuff = [];
+    for (let [,folder] in Iterator(this.folders)) {
+      let folderStuff = this._folderStorages[folder.id]
+                           .generatePersistenceInfo();
+      if (folderStuff)
+        perFolderStuff.push(folderStuff);
+    }
+
+    let trans = this._db.saveAccountFolderStates(
+      this.id, this._folderInfos, perFolderStuff, this._deadFolderIds,
+      function stateSaved() {},
       reuseTrans);
     this._deadFolderIds = null;
     return trans;
   },
 
-  shutdown: function() {
+  shutdown: function asa_shutdown() {
   },
 
-  createFolder: function() {
+  createFolder: function asa_createFolder() {
     throw new Error('XXX not implemented');
   },
 
-  deleteFolder: function() {
+  deleteFolder: function asa_deleteFolder() {
     throw new Error('XXX not implemented');
   },
 
-  sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {
-    return this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
+  sliceFolderMessages: function asa_sliceFolderMessages(folderId,
+                                                        bridgeHandle) {
+    this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
   },
 
-  syncFolderList: function fa_syncFolderList(callback) {
-    var account = this;
+  syncFolderList: function asa_syncFolderList(callback) {
+    let account = this;
 
-    var fh = $ascp.FolderHierarchy.Tags;
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    const fh = $ascp.FolderHierarchy.Tags;
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderSync)
        .tag(fh.SyncKey, account.meta.syncKey)
      .etag();
 
-    this.conn.doCommand(w, function(aResponse) {
-      var e = new $wbxml.EventParser();
+    this.conn.doCommand(w, function(aError, aResponse) {
+      let e = new $wbxml.EventParser();
+      let deferredAddedFolders = [];
 
       e.addEventListener([fh.FolderSync, fh.SyncKey], function(node) {
         account.meta.syncKey = node.children[0].textContent;
       });
 
-      e.addEventListener([fh.FolderSync, fh.Changes, [fh.Add, fh.Remove]],
+      e.addEventListener([fh.FolderSync, fh.Changes, [fh.Add, fh.Delete]],
                          function(node) {
-        var folder = {};
-        for (var i = 0; i < node.children.length; i++) {
-          folder[node.children[i].localTagName] =
-            node.children[i].children[0].textContent;
-        }
+        let folder = {};
+        for (let [,child] in Iterator(node.children))
+          folder[child.localTagName] = child.children[0].textContent;
 
-        if (node.tag == fh.Add)
-          account._addedFolder(folder.ServerId, folder.DisplayName,
-                               folder.Type);
-        else
+        if (node.tag === fh.Add) {
+          if (!account._addedFolder(folder.ServerId, folder.ParentId,
+                                    folder.DisplayName, folder.Type))
+            deferredAddedFolders.push(folder);
+        }
+        else {
           account._deletedFolder(folder.ServerId);
+        }
       });
 
       e.run(aResponse);
+
+      // It's possible we got some folders in an inconvenient order (i.e. child
+      // folders before their parents). Keep trying to add folders until we're
+      // done.
+      while (deferredAddedFolders.length) {
+        let moreDeferredAddedFolders = [];
+        for (let [,folder] in Iterator(deferredAddedFolders)) {
+          if (!account._addedFolder(folder.ServerId, folder.ParentId,
+                                    folder.DisplayName, folder.Type))
+            moreDeferredAddedFolders.push(folder);
+        }
+        if (moreDeferredAddedFolders.length === deferredAddedFolders.length)
+          throw new Error('got some orphaned folders');
+        deferredAddedFolders = moreDeferredAddedFolders;
+      }
 
       account.saveAccountState();
       callback();
@@ -27107,32 +29369,54 @@ ActiveSyncAccount.prototype = {
     12: 'normal', // User-created mail folder
   },
 
-  _addedFolder: function as__addFolder(serverId, displayName, typeNum) {
+  /**
+   * Update the internal database and notify the appropriate listeners when we
+   * discover a new folder.
+   *
+   * @param {string} serverId A GUID representing the new folder
+   * @param {string} parentId A GUID representing the parent folder, or '0' if
+   *   this is a root-level folder
+   * @param {string} displayName The display name for the new folder
+   * @param {string} typeNum A numeric value representing the new folder's type,
+   *   corresponding to the mapping in _folderTypes above
+   * @return {boolean} true if we added the folder, false if we need to wait
+   *   until later (e.g. if we haven't added the folder's parent yet)
+   */
+  _addedFolder: function asa__addedFolder(serverId, parentId, displayName,
+                                          typeNum) {
     if (!(typeNum in this._folderTypes))
-      return; // Not a folder type we care about.
+      return true; // Not a folder type we care about.
 
-    var folderId = this.id + '/' + serverId;
-    var folderInfo = {
+    let path = displayName;
+    let depth = 0;
+    if (parentId !== '0') {
+      let parentFolderId = this._serverIdToFolderId[parentId];
+      if (parentFolderId === undefined)
+        return false;
+      let parent = this._folderInfos[parentFolderId];
+      path = parent.$meta.path + '/' + path;
+      depth = parent.$meta.depth + 1;
+    }
+
+    let folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
+    let folderInfo = this._folderInfos[folderId] = {
       $meta: {
         id: folderId,
+        serverId: serverId,
         name: displayName,
-        path: displayName,
+        path: path,
         type: this._folderTypes[typeNum],
-        delim: '/',
-        depth: 0,
+        depth: depth,
       },
       $impl: {
         nextHeaderBlock: 0,
         nextBodyBlock: 0,
       },
-      accuracy: [],
-      headerBlocks: [],
-      bodyBlocks: [],
     };
 
-    this._folderInfos[folderId] = folderInfo;
     this._folderStorages[folderId] = new $asfolder.ActiveSyncFolderStorage(
-      this, serverId);
+      this, folderInfo, this._db);
+    this._serverIdToFolderId[serverId] = folderId;
 
     var account = this;
     var idx = bsearchForInsert(this.folders, folderInfo.$meta, function(a, b) {
@@ -27141,12 +29425,21 @@ ActiveSyncAccount.prototype = {
     this.folders.splice(idx, 0, folderInfo.$meta);
 
     this.universe.__notifyAddedFolder(this.id, folderInfo.$meta);
+
+    return true;
   },
 
-  _deletedFolder: function as__removeFolder(serverId) {
-    var folderId = this.id + '/' + serverId;
-    var folderInfo = this._folderInfos[folderId],
+  /**
+   * Update the internal database and notify the appropriate listeners when we
+   * find out a folder has been removed.
+   *
+   * @param {string} serverId A GUID representing the deleted folder
+   */
+  _deletedFolder: function asa__deletedFolder(serverId) {
+    let folderId = this._serverIdToFolderId[serverId],
+        folderInfo = this._folderInfos[folderId],
         folderMeta = folderInfo.$meta;
+    delete this._serverIdToFolderId[serverId];
     delete this._folderInfos[folderId];
     delete this._folderStorages[folderId];
 
@@ -27160,13 +29453,13 @@ ActiveSyncAccount.prototype = {
     this.universe.__notifyRemovedFolder(this.id, folderMeta);
   },
 
-  sendMessage: function fa_sendMessage(composedMessage, callback) {
+  sendMessage: function asa_sendMessage(composedMessage, callback) {
     // XXX: This is very hacky and gross. Fix it to use pipes later.
     composedMessage._cacheOutput = true;
     composedMessage._composeMessage();
 
-    var cm = $ascp.ComposeMail.Tags;
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    const cm = $ascp.ComposeMail.Tags;
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(cm.SendMail)
        .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
        .tag(cm.SaveInSentItems)
@@ -27175,7 +29468,7 @@ ActiveSyncAccount.prototype = {
        .etag()
      .etag();
 
-    this.conn.doCommand(w, function(aResponse) {
+    this.conn.doCommand(w, function(aError, aResponse) {
       if (aResponse === null)
         callback(null);
       else {
@@ -27185,14 +29478,40 @@ ActiveSyncAccount.prototype = {
     });
   },
 
-  getFolderStorageForFolderId: function fa_getFolderStorageForFolderId(folderId){
+  getFolderStorageForFolderId: function asa_getFolderStorageForFolderId(
+                               folderId) {
     return this._folderStorages[folderId];
   },
 
-  runOp: function(op, mode, callback) {
-    // Just pretend we performed the op so no errors trigger.
-    if (callback)
-      setZeroTimeout(callback);
+  getFolderStorageForServerId: function asa_getFolderStorageForServerId(
+                               serverId) {
+    return this._folderStorages[this._serverIdToFolderId[serverId]];
+  },
+
+  runOp: function asa_runOp(op, mode, callback) {
+    dump('runOp('+JSON.stringify(op)+', '+mode+', '+callback+')\n');
+
+    let methodName = mode + '_' + op.type;
+    let isLocal = /^local_/.test(mode);
+
+    if (!isLocal)
+      op.status = mode + 'ing';
+
+    if (!(methodName in this._jobDriver))
+      throw new Error("Unsupported op: '" + op.type + "' (mode: " + mode + ")");
+
+    if (callback) {
+      this._jobDriver[methodName](op, function(error) {
+        if (!isLocal)
+          op.status = mode + 'ne';
+        callback(error);
+      });
+    }
+    else {
+      this._jobDriver[methodName](op);
+      if (!isLocal)
+        op.status = mode + 'ne';
+    }
   },
 };
 
@@ -27643,7 +29962,7 @@ Configurators['activesync'] = {
         {
           id: accountId + '/' +
                 $a64.encodeInt(universe.config.nextIdentityNum++),
-          name: userDetails.displayName,
+          name: null,
           address: userDetails.emailAddress,
           replyTo: null,
           signature: DEFAULT_SIGNATURE
@@ -27653,14 +29972,16 @@ Configurators['activesync'] = {
 
     var folderInfo = {
       $meta: {
+        nextFolderNum: 0,
         nextMutationNum: 0,
-        syncKey: "0",
+        syncKey: '0',
       },
       $mutations: [],
     };
-    universe.saveAccountDef(accountDef, folderInfo);
     var account = universe._loadAccount(accountDef, folderInfo, null);
     account.syncFolderList(function() {
+      accountDef.identities[0].name = account.conn.config.user.name;
+      universe.saveAccountDef(accountDef, folderInfo);
       callback(true, account);
     });
   },
@@ -27809,7 +30130,10 @@ function MailUniverse(callAfterBigBang) {
   this._identitiesById = {};
 
   this._opsByAccount = {};
+  // populated by waitForAccountOps, invoked when all ops complete
   this._opCompletionListenersByAccount = {};
+  // maps longtermId to a callback that cares. non-persisted.
+  this._opCallbacks = {};
 
   this._bridges = [];
 
@@ -27840,9 +30164,8 @@ function MailUniverse(callAfterBigBang) {
   this._LOG = null;
   this._db = new $imapdb.ImapDB();
   var self = this;
-  this._db.getConfig(function(configObj, accountInfos) {
-    if (configObj) {
-      self.config = configObj;
+  this._db.getConfig(function(configObj, accountInfos, lazyCarryover) {
+    function setupLogging(config) {
       if (self.config.debugLogging) {
         if (self.config.debugLogging !== 'dangerous') {
           console.warn('GENERAL LOGGING ENABLED!');
@@ -27860,28 +30183,60 @@ function MailUniverse(callAfterBigBang) {
           $log.DEBUG_markAllFabsUnderTest();
         }
       }
-      self._LOG = LOGFAB.MailUniverse(this, null, null);
+    }
+
+    var accountInfo, i;
+    if (configObj) {
+      self.config = configObj;
+      setupLogging();
+      self._LOG = LOGFAB.MailUniverse(self, null, null);
       if (self.config.debugLogging)
         self._enableCircularLogging();
 
       self._LOG.configLoaded(self.config, accountInfos);
 
-      for (var i = 0; i < accountInfos.length; i++) {
-        var accountInfo = accountInfos[i];
+      for (i = 0; i < accountInfos.length; i++) {
+        accountInfo = accountInfos[i];
         self._loadAccount(accountInfo.def, accountInfo.folderInfo);
       }
     }
     else {
-      self._LOG = LOGFAB.MailUniverse(this, null, null);
       self.config = {
         // We need to put the id in here because our startup query can't
         // efficiently get both the key name and the value, just the values.
         id: 'config',
         nextAccountNum: 0,
         nextIdentityNum: 0,
-        debugLogging: false,
+        debugLogging: lazyCarryover ? lazyCarryover.config.debugLogging : false,
       };
+      setupLogging();
+      self._LOG = LOGFAB.MailUniverse(self, null, null);
+      if (self.config.debugLogging)
+        self._enableCircularLogging();
       self._db.saveConfig(self.config);
+
+      // - Try to re-create any accounts just using auth info.
+      if (lazyCarryover && self.online) {
+        var waitingCount = 0;
+        for (i = 0; i < lazyCarryover.accountInfos.length; i++){
+          waitingCount++;
+          var accountDef = lazyCarryover.accountInfos[i].def;
+          self.tryToCreateAccount(
+            {
+              displayName: accountDef.identities[0].name,
+              emailAddress: accountDef.name,
+              password: accountDef.credentials.password
+            },
+            // We don't care how they turn out, just that they get a chance
+            // to run to completion before we call our bootstrap complete.
+            function() {
+              if (--waitingCount === 0)
+                callAfterBigBang();
+            });
+          }
+        // do not let callAfterBigBang get called.
+        return;
+      }
     }
     callAfterBigBang();
   });
@@ -27921,7 +30276,7 @@ MailUniverse.prototype = {
     try {
       // 'default' does not work, but pictures does.  Hopefully gallery is
       // smart enough to stay away from my log files!
-      var storage = navigator.getDeviceStorage('pictures')[0];
+      var storage = navigator.getDeviceStorage('pictures');
       var blob = new Blob([JSON.stringify(this.createLogBacklogRep())],
                           {
                             type: 'application/json',
@@ -28289,7 +30644,7 @@ MailUniverse.prototype = {
     return results;
   },
 
-  _opCompleted: function(account, op, err) {
+  _opCompleted: function(account, op, err, resultIfAny, accountSaveSuggested) {
     // Clear the desire if it is satisfied.  It's possible the desire is now
     // to undo it, in which case we don't want to clobber the undo desire with
     // the completion of the do desire.
@@ -28300,6 +30655,22 @@ MailUniverse.prototype = {
     var queue = this._opsByAccount[account.id];
     // shift the running op off.
     queue.shift();
+
+    if (this._opCallbacks.hasOwnProperty(op.longtermId)) {
+      var callback = this._opCallbacks[op.longtermId];
+      delete this._opCallbacks[op.longtermId];
+      try {
+        callback(err, resultIfAny, account, op);
+      }
+      catch(ex) {
+        this._LOG.opCallbackErr(op.type);
+      }
+    }
+
+    // This is a suggestion; in the event of high-throughput on operations,
+    // we probably don't want to save the account every tick, etc.
+    if (accountSaveSuggested)
+      account.saveAccountState();
 
     if (queue.length && this.online && account.enabled) {
       op = queue[0];
@@ -28320,8 +30691,17 @@ MailUniverse.prototype = {
    * (nb: Header updates' execution may actually be deferred into the future if
    * block loads are required, but they will maintain their apparent ordering
    * on the folder in question.)
+   *
+   * @args[
+   *   @param[account]
+   *   @param[op]
+   *   @param[optionalCallback #:optional Function]{
+   *     A callback to invoke when the operation completes.  Callbacks are
+   *     obviously not capable of being persisted and are merely best effort.
+   *   }
+   * ]
    */
-  _queueAccountOp: function(account, op) {
+  _queueAccountOp: function(account, op, optionalCallback) {
     var queue = this._opsByAccount[account.id];
     queue.push(op);
 
@@ -28334,6 +30714,8 @@ MailUniverse.prototype = {
         account.mutations.shift();
       }
     }
+    if (optionalCallback)
+      this._opCallbacks[op.longtermId] = optionalCallback;
 
     // - run the local manipulation immediately
     if (!this._testModeDisablingLocalOps)
@@ -28352,6 +30734,35 @@ MailUniverse.prototype = {
       callback();
     else
       this._opCompletionListenersByAccount[account.id] = callback;
+  },
+
+  /**
+   * Download one or more related-part or attachments from a message.
+   * Attachments are named by their index because the indices are stable and
+   * flinging around non-authoritative copies of the structures might lead to
+   * some (minor) confusion.
+   *
+   * This request is persistent although the callback will obviously be
+   * discarded in the event the app is killed.
+   */
+  downloadMessageAttachments: function(messageSuid, messageDate,
+                                       relPartIndices, attachmentIndices,
+                                       callback) {
+    var account = this.getAccountForMessageSuid(messageSuid);
+    var longtermId = this._queueAccountOp(
+      account,
+      {
+        type: 'download',
+        longtermId: null,
+        status: null,
+        desire: 'do',
+        humanOp: 'download',
+        messageSuid: messageSuid,
+        messageDate: messageDate,
+        relPartIndices: relPartIndices,
+        attachmentIndices: attachmentIndices
+      },
+      callback);
   },
 
   modifyMessageTags: function(humanOp, messageSuids, addTags, removeTags) {
@@ -28456,6 +30867,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     },
     errors: {
       badAccountType: { type: true },
+      opCallbackErr: { type: false },
     },
   },
 });

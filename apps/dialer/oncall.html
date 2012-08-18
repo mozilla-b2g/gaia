@@ -6,6 +6,10 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/oncall.css">
     <link rel="stylesheet" type="text/css" href="style/keypad.css">
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+
     <script defer type="application/javascript" src="js/contacts.js"></script>
     <script defer type="application/javascript" src="js/settings_listener.js"></script>
     <script defer type="application/javascript" src="js/notification_helper.js"></script>
@@ -14,25 +18,11 @@
     <script defer type="application/javascript" src="js/handled_call.js"></script>
     <script defer type="application/javascript" src="js/recents.js"></script>
     <script defer type="application/javascript" src="js/proximity.js"></script>
-    <link rel="resource" type="application/l10n" href="locale/dialer.properties">
-    <script>
-    // The following code loads a shared WebAPI shim from webapi.js
-    (function webapiJSLoader() {
-      var protocol = document.location.protocol;
-      if (protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        paths.pop();
-        var src = protocol + '//' + paths.join('/') + '/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = protocol + '//system.' + domain + '/js/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
-    })();
-    </script>
+
+    <!-- incoming call / swiper on locked screen-->
+    <link rel="stylesheet" type="text/css" href="style/swiper.css">
+    <script defer src="js/swiper.js"></script>
+
   </head>
   <body class="hidden">
     <article id="call-screen" class="grid">
@@ -66,6 +56,18 @@
       </article>
       <article id="main-container" class="grid-row">
         <div id="actions-container" class="grid-wrapper grid">
+          <div id="swiper-wrapper">
+            <div id="swiper-area"></div>
+            <div id="swiper-area-hangup" class="swiper-icon swiper-icon-left">
+              <div id="swiper-accessibility-hangup" role="button" class="swiper-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Hangup"></div>
+            </div>
+            <div id="swiper-area-pickup" class="swiper-icon swiper-icon-right">
+              <div id="swiper-accessibility-pickup" role="button" class="swiper-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Pickup"></div>
+            </div>
+            <div id="swiper-rail-left" class="swiper-rail"></div>
+            <div id="swiper-rail-right" class="swiper-rail"></div>
+            <div id="swiper-area-handle"></div>
+          </div>
           <footer id="call-options" class="grid-row">
             <div class="grid-wrapper grid">
               <section id="co-advanced" class="grid-row">
@@ -111,12 +113,12 @@
     <article id="incoming-container">
       <header>
         <div id="incoming-end">
-          <span role="button">
+          <span role="button" data-l10n-id="endAnswer">
             End+Answer
           </span>
         </div>
         <div id="incoming-answer">
-          <span role="button">
+          <span role="button" data-l10n-id="holdAnswer">
             Hold+Answer
           </span>
         </div>
@@ -124,7 +126,7 @@
       <section id="incoming-info">
         <span id="incoming-number"></span>
         <div id="incoming-ignore">
-          <span role="button">
+          <span role="button" data-l10n-id="ignore">
             Ignore
           </span>
         </div>

@@ -9,8 +9,7 @@
   "permissions": [
     "device-storage",
     "devicestorage",
-    "indexedDB-unlimited",
-    "offline-app"
+    "settings"
   ],
   "locales": {
     "ar": {

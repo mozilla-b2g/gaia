@@ -8,6 +8,7 @@
   },
   "permissions": [
     "mozbrowser",
+    "browser",
     "power",
     "mozApps",
     "webapps",
@@ -17,12 +18,12 @@
     "voicemail",
     "device-storage",
     "devicestorage",
-    "indexedDB-unlimited",
-    "websettings-readwrite",
-    "settings-read",
-    "settings-write",
+    "settings",
     "pin-app",
-    "offline-app"
+    "content-camera",
+    "camera",
+    "geolocation",
+    "wifi-manage"
   ],
   "locales": {
     "ar": {

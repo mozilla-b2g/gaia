@@ -28,6 +28,8 @@ var CallScreen = {
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
 
+  swiperWrapper: document.getElementById('swiper-wrapper'),
+
   init: function cs_init() {
     this.muteButton.addEventListener('mouseup', this.toggleMute.bind(this));
     this.keypadButton.addEventListener('mouseup', this.showKeypad.bind(this));
@@ -82,21 +84,33 @@ var CallScreen = {
     switch (layout_type) {
       case 'dialing':
         this.answerButton.classList.add('hide');
+        this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiperWrapper.classList.add('hide');
         break;
       case 'incoming':
         this.answerButton.classList.remove('hide');
+        this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.remove('full-space');
         this.callToolbar.classList.add('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiperWrapper.classList.add('hide');
+        break;
+      case 'incoming-locked':
+        this.answerButton.classList.add('hide');
+        this.rejectButton.classList.add('hide');
+        this.callToolbar.classList.add('transparent');
+        this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiperWrapper.classList.remove('hide');
         break;
       case 'connected':
         this.answerButton.classList.add('hide');
+        this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
-
+        this.swiperWrapper.classList.add('hide');
         break;
     }
   },
@@ -147,7 +161,7 @@ var OnCallHandler = {
       telephony.muted = false;
 
       var self = this;
-      telephony.oncallschanged = function och_callsChanged(evt) {
+      var callsChanged = function och_callsChanged(evt) {
         // Adding any new calls to handledCalls
         telephony.calls.forEach(function callIterator(call) {
           if (call.state == 'incoming' || call.state == 'dialing') {
@@ -175,6 +189,16 @@ var OnCallHandler = {
 
         // Letting the layout know how many calls we're handling
         CallScreen.calls.dataset.count = self.handledCalls.length;
+      };
+
+      // Needs to be called at least once
+      callsChanged();
+      telephony.oncallschanged = callsChanged;
+
+      // If the call was ended before we got here we can close
+      // right away.
+      if (this.handledCalls.length === 0) {
+        this._close(false);
       }
     }
   },
@@ -219,6 +243,11 @@ var OnCallHandler = {
   },
 
   end: function ch_end() {
+    if (!this._telephony.active) {
+      this.toggleScreen();
+      return;
+    }
+
     this._telephony.active.hangUp();
   },
 
@@ -248,21 +277,28 @@ var OnCallHandler = {
 
         CallScreen.screen.addEventListener('transitionend', function trWait() {
           CallScreen.screen.removeEventListener('transitionend', trWait);
-
           // We did animate the call screen off the viewport
           // now closing the window.
           if (displayed) {
-            var origin = document.location.protocol + '//' +
-              document.location.host;
-            window.opener.postMessage('closing', origin);
-            window.close();
+            self.closeWindow();
           }
         });
       });
     });
   },
 
+  closeWindow: function och_closeWindow() {
+    var origin = document.location.protocol + '//' +
+      document.location.host;
+    window.opener.postMessage('closing', origin);
+    window.close();
+  },
+
   _addCall: function och_addCall(call) {
+    // Once we already have 1 call, we only care about incomings
+    if (this.handledCalls.length && (call.state != 'incoming'))
+      return;
+
     // No more room
     if (this.handledCalls.length >= this.CALLS_LIMIT) {
       call.hangUp();
@@ -277,7 +313,8 @@ var OnCallHandler = {
       // signaling the user of the new call
       navigator.vibrate([100, 100, 100]);
 
-      var number = (call.number.length ? call.number : 'Anonymous');
+      var _ = navigator.mozL10n.get;
+      var number = (call.number.length ? call.number : _('unknown'));
       Contacts.findByNumber(number, function lookupContact(contact) {
         if (contact && contact.name) {
           CallScreen.incomingNumber.textContent = contact.name;
@@ -289,7 +326,12 @@ var OnCallHandler = {
 
       CallScreen.showIncoming();
     } else {
-      CallScreen.render(call.state);
+      if (window.location.hash.split('?')[1] === 'locked' &&
+          (call.state == 'incoming')) {
+        CallScreen.render('incoming-locked');
+      } else {
+        CallScreen.render(call.state);
+      }
     }
   },
 
@@ -303,6 +345,10 @@ var OnCallHandler = {
       return;
     }
 
+    this._close(true);
+  },
+
+  _close: function och_close(animate) {
     if (this._closing)
       return;
 
@@ -314,13 +360,25 @@ var OnCallHandler = {
     ProximityHandler.disable();
 
     this._closing = true;
-    // Out animation before closing the window
-    this.toggleScreen();
+
+    if (animate) {
+      this.toggleScreen();
+    } else {
+      this.closeWindow();
+    }
   }
 };
 
-window.addEventListener('load', function callSetup(evt) {
-  window.removeEventListener('load', callSetup);
+window.addEventListener('localized', function callSetup(evt) {
+  window.removeEventListener('localized', callSetup);
+
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+
   KeypadManager.init();
   CallScreen.init();
   OnCallHandler.setup();

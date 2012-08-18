@@ -8,7 +8,7 @@
   },
   "permissions": [
     "systemXHR",
-    "offline-app"
+    "settings"
   ],
   "locales": {
     "ar": {
@@ -44,8 +44,8 @@
       "description": "Gaia Calendar"
     },
     "pt-BR": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
+      "name": "Calendário",
+      "description": "Calendário do Gaia"
     },
     "ru": {
       "name": "Calendar",

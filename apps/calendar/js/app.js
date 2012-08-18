@@ -18,11 +18,13 @@ Calendar.App = (function(window) {
       this.db = db;
       this.router = router;
 
+      this._providers = Object.create(null);
       this._views = Object.create(null);
       this._routeViewFn = Object.create(null);
 
       this.timeController = new Calendar.Controllers.Time(this);
       this.syncController = new Calendar.Controllers.Sync(this);
+      this.serviceController = new Calendar.Controllers.Service(this);
     },
 
     /**
@@ -103,12 +105,8 @@ Calendar.App = (function(window) {
       function next() {
         pending--;
         if (!pending) {
-          complete();
+          self._init();
         }
-      }
-
-      function complete() {
-        self._init();
       }
 
       if (!this.db) {
@@ -118,6 +116,10 @@ Calendar.App = (function(window) {
         );
       }
 
+      // start the workers
+      this.serviceController.start(false);
+
+      // localize && pre-initialize the database
       if (navigator.mozL10n && navigator.mozL10n.readyState == 'complete') {
         // document is already localized
         next();
@@ -131,6 +133,19 @@ Calendar.App = (function(window) {
       this.db.load(function() {
         next();
       });
+    },
+
+    /**
+     * Initializes a provider.
+     */
+    provider: function(name) {
+      if (!(name in this._providers)) {
+        this._providers[name] = new Calendar.Provider[name]({
+          app: this
+        });
+      }
+
+      return this._providers[name];
     },
 
     /**

@@ -39,6 +39,17 @@
     }
   });
 
+  var screenState = 'locked';
+  SettingsListener.observe('lockscreen.locked', false, function(value) {
+    if (value) {
+      screenState = 'locked';
+    } else {
+      screenState = 'unlocked';
+    }
+  });
+
+  var _ = navigator.mozL10n.get;
+
   /* === Incoming handling === */
   telephony.addEventListener('callschanged', function bs_incomingHandler(evt) {
     // If the call screen is displayed we don't need
@@ -61,7 +72,8 @@
 
     var host = document.location.host;
     var protocol = document.location.protocol;
-    window.open(protocol + '//' + host + '/oncall.html#' + call.state,
+    var urlBase = protocol + '//' + host + '/oncall.html';
+    window.open(urlBase + '#' + call.state + '?' + screenState,
                 'call_screen', 'attention');
 
     callScreenDisplayed = true;
@@ -100,8 +112,9 @@
             app.launch('#recents-view');
           };
 
-          var title = 'Missed call';
-          var body = 'From ' + (call.number.length ? call.number : 'Anonymous');
+          var title = _('missedCall');
+          var body = _('from') + ' ' +
+            (call.number.length ? call.number : _('unknown'));
 
           NotificationHelper.send(title, body, iconURL, notiClick);
         };

@@ -7,10 +7,10 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
+    "browser",
     "mozbrowser",
     "systemXHR",
-    "indexedDB-unlimited",
-    "offline-app"
+    "settings"
   ],
   "locales": {
     "ar": {

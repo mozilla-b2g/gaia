@@ -157,8 +157,8 @@ MessageListCard.prototype = {
     var headerNode =
       this.domNode.getElementsByClassName('msg-listedit-header-label')[0];
     headerNode.textContent =
-      document.mozL10n.get('message-multiedit-header',
-                           { n: this.selectedMessages.length });
+      mozL10n.get('message-multiedit-header',
+                  { n: this.selectedMessages.length });
 
     var starBtn =
           this.domNode.getElementsByClassName('msg-star-btn')[0],
@@ -599,13 +599,21 @@ function MessageReaderCard(domNode, mode, args) {
   this.domNode = domNode;
   this.header = args.header;
   this.body = args.body;
-
-  this.buildBodyDom(domNode);
+  // The body elements for the (potentially multiple) iframes we created to hold
+  // HTML email content.
+  this.htmlBodyNodes = [];
 
   domNode.getElementsByClassName('msg-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this, false));
   domNode.getElementsByClassName('msg-reply-btn')[0]
     .addEventListener('click', this.onReply.bind(this, false));
+
+  domNode.getElementsByClassName('msg-delete-btn')[0]
+    .addEventListener('click', this.onDelete.bind(this), false);
+  domNode.getElementsByClassName('msg-star-btn')[0]
+    .addEventListener('click', this.onStar.bind(this), false);
+  domNode.getElementsByClassName('msg-unread-btn')[0]
+    .addEventListener('click', this.onMarkUnread.bind(this), false);
 
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
@@ -613,6 +621,9 @@ function MessageReaderCard(domNode, mode, args) {
 
   this.envelopeDetailsNode =
     domNode.getElementsByClassName('msg-envelope-details')[0];
+
+  domNode.getElementsByClassName('msg-reader-load-infobar')[0]
+    .addEventListener('click', this.onLoadBarClick.bind(this), false);
 
   bindContainerHandler(
     domNode.getElementsByClassName('msg-attachments-container')[0],
@@ -623,6 +634,26 @@ function MessageReaderCard(domNode, mode, args) {
     this.header.setRead(true);
 }
 MessageReaderCard.prototype = {
+  postInsert: function() {
+    // iframes need to be linked into the DOM tree before their contentDocument
+    // can be instantiated.
+    this.buildBodyDom(this.domNode);
+  },
+
+  formatFileSize: function(size) {
+    // XXX: localize this!
+    const units = ['bytes', 'KB', 'MB', 'GB', 'TB'];
+    var unitSize = size;
+    var unitIndex = 0;
+
+    while ((unitSize >= 999.5) && (unitIndex < units.length)) {
+      unitSize /= 1024;
+      unitIndex++;
+    }
+    return (unitIndex == 0 ? unitSize.toFixed(0) : unitSize.toPrecision(3)) +
+           ' ' + units[unitIndex];
+  },
+
   onBack: function(event) {
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
@@ -632,6 +663,22 @@ MessageReaderCard.prototype = {
       Cards.pushCard('compose', 'default', 'animate',
                      { composer: composer });
     });
+  },
+
+  onDelete: function() {
+    var op = this.header.deleteMessage();
+    Toaster.logMutation(op);
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+  },
+
+  onStar: function() {
+    var op = this.header.setStarred(this.header.isStarred);
+    Toaster.logMutation(op);
+  },
+
+  onMarkUnread: function() {
+    var op = this.header.setRead(false);
+    Toaster.logMutation(op);
   },
 
   /**
@@ -654,7 +701,62 @@ MessageReaderCard.prototype = {
     }
   },
 
+  onLoadBarClick: function(event) {
+    var self = this;
+    var loadBar =
+          this.domNode.getElementsByClassName('msg-reader-load-infobar')[0];
+    if (!this.body.embeddedImagesDownloaded) {
+      this.body.downloadEmbeddedImages(function() {
+        // this gets nulled out when we get killed, so use this to bail.
+        // XXX of course, this closure will cause us to potentially hold onto
+        // a lot of garbage, so it would be better to add an
+        // 'onimagesdownloaded' to body so that the closure would end up as
+        // part of a cycle that would get collected.
+        if (!self.domNode)
+          return;
+
+        for (var i = 0; i < self.htmlBodyNodes.length; i++) {
+          self.body.showEmbeddedImages(self.htmlBodyNodes[i]);
+        }
+      });
+      // XXX really we should check for external images to display that load
+      // bar, although it's a bit silly to have both in a single e-mail.
+      loadBar.classList.add('collapsed');
+    }
+    else {
+      for (var i = 0; i < this.htmlBodyNodes.length; i++) {
+        this.body.showExternalImages(this.htmlBodyNodes[i]);
+      }
+      loadBar.classList.add('collapsed');
+    }
+  },
+
   onAttachmentClick: function(event) {
+  },
+
+  onHyperlinkClick: function() {
+  },
+
+  _populatePlaintextBodyNode: function(bodyNode, rep) {
+    for (var i = 0; i < rep.length; i += 2) {
+      var node = document.createElement('div'), cname;
+
+      var etype = rep[i] & 0xf, rtype = null;
+      if (etype === 0x4) {
+        var qdepth = (((rep[i] >> 8) & 0xff) + 1);
+        if (qdepth > 8)
+          cname = MAX_QUOTE_CLASS_NAME;
+        else
+          cname = CONTENT_QUOTE_CLASS_NAMES[qdepth];
+      }
+      else {
+        cname = CONTENT_TYPES_TO_CLASS_NAMES[etype];
+      }
+      if (cname)
+        node.setAttribute('class', cname);
+      node.textContent = rep[i + 1];
+      bodyNode.appendChild(node);
+    }
   },
 
   buildBodyDom: function(domNode) {
@@ -696,27 +798,45 @@ MessageReaderCard.prototype = {
     domNode.getElementsByClassName('msg-envelope-subject')[0]
       .textContent = header.subject;
 
-    // -- Body (Plaintext)
-    var bodyNode = domNode.getElementsByClassName('msg-body-container')[0];
-    var rep = body.bodyRep;
-    for (var i = 0; i < rep.length; i += 2) {
-      var node = document.createElement('div'), cname;
+    // -- Bodies
+    var rootBodyNode = domNode.getElementsByClassName('msg-body-container')[0],
+        reps = body.bodyReps,
+        hasExternalImages = false,
+        showEmbeddedImages = body.embeddedImageCount &&
+                             body.embeddedImagesDownloaded;
+    for (var iRep = 0; iRep < reps.length; iRep += 2) {
+      var repType = reps[iRep], rep = reps[iRep + 1];
+      if (repType === 'plain') {
+        this._populatePlaintextBodyNode(rootBodyNode, rep);
+      }
+      else if (repType === 'html') {
+        var iframe = createAndInsertIframeForContent(
+          rep, rootBodyNode, null,
+          'interactive', this.onHyperlinkClick.bind(this));
+        var bodyNode = iframe.contentDocument.body;
+        this.htmlBodyNodes.push(bodyNode);
+        if (body.checkForExternalImages(bodyNode))
+          hasExternalImages = true;
+        if (showEmbeddedImages)
+          body.showEmbeddedImages(bodyNode);
+      }
+    }
 
-      var etype = rep[i] & 0xf, rtype = null;
-      if (etype === 0x4) {
-        var qdepth = (((rep[i] >> 8) & 0xff) + 1);
-        if (qdepth > 8)
-          cname = MAX_QUOTE_CLASS_NAME;
-        else
-          cname = CONTENT_QUOTE_CLASS_NAMES[qdepth];
-      }
-      else {
-        cname = CONTENT_TYPES_TO_CLASS_NAMES[etype];
-      }
-      if (cname)
-        node.setAttribute('class', cname);
-      node.textContent = rep[i + 1];
-      bodyNode.appendChild(node);
+    // -- HTML-referenced Images
+    var loadBar = domNode.getElementsByClassName('msg-reader-load-infobar')[0];
+    if (body.embeddedImageCount && !body.embeddedImagesDownloaded) {
+      loadBar.classList.remove('collapsed');
+      loadBar.textContent =
+        mozL10n.get('message-download-images',
+                    { n: body.embeddedImageCount });
+    }
+    else if (hasExternalImages) {
+      loadBar.classList.remove('collapsed');
+      loadBar.textContent =
+        mozL10n.get('message-show-external-images');
+    }
+    else {
+      loadBar.classList.add('collapsed');
     }
 
     // -- Attachments (footer)
@@ -726,13 +846,14 @@ MessageReaderCard.prototype = {
       var attTemplate = msgNodes['attachment-item'],
           filenameTemplate =
             attTemplate.getElementsByClassName('msg-attachment-filename')[0],
-          filetypeTemplate =
-            attTemplate.getElementsByClassName('msg-attachment-filetype')[0];
+          filesizeTemplate =
+            attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
       for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
         var attachment = body.attachments[iAttach];
         filenameTemplate.textContent = attachment.filename;
         // XXX perform localized mimetype translation stuff
-        filetypeTemplate.textContent = attachment.mimetype;
+        filesizeTemplate.textContent = this.formatFileSize(
+          attachment.sizeEstimateInBytes);
         attachmentsContainer.appendChild(attTemplate.cloneNode(true));
       }
     }
@@ -742,6 +863,7 @@ MessageReaderCard.prototype = {
   },
 
   die: function() {
+    this.domNode = null;
   }
 };
 Cards.defineCardWithDefaultMode(

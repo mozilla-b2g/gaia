@@ -8,8 +8,7 @@
   },
   "permissions": [
     "systemXHR",
-    "indexedDB-unlimited",
-    "offline-app"
+    "settings"
   ],
   "locales": {
     "ar": {
@@ -65,5 +64,13 @@
   "icons": {
     "60": "/style/icons/60/Email.png",
     "79": "/style/icons/Email.png"
+  },
+  "activities": {
+    "new": {
+      "filters": {
+        "type": "mail"
+      },
+      "disposition": "window"
+    }
   }
 }

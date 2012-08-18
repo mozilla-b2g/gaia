@@ -1,14 +1,15 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  require('/shared/js/gesture_detector.js');
-  requireApp('calendar/js/templates/day.js');
-  requireApp('calendar/js/views/months_day.js');
+  requireLib('timespan.js');
+  requireLib('templates/day.js');
+  requireLib('views/months_day.js');
 });
 
 suite('views/months_day', function() {
   var subject,
       app,
       controller,
-      events;
+      events,
+      busytimes;
 
   teardown(function() {
     var el = document.getElementById('test');
@@ -19,8 +20,10 @@ suite('views/months_day', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="months-day-view"> <div class="dayHeader"></div>',
-      '<div class="eventList"></div></div>'
+      '<div id="months-day-view">',
+        '<div class="day-title"></div>',
+        '<div class="day-events"></div>',
+      '</div>'
     ].join(' ');
 
     document.body.appendChild(div);
@@ -28,58 +31,330 @@ suite('views/months_day', function() {
     app = testSupport.calendar.app();
     controller = app.timeController;
     events = app.store('Event');
+    busytimes = app.store('Busytime');
 
 
     subject = new Calendar.Views.MonthsDay({
-      app: app,
-      headerSelector: '#test .dayHeader',
-      eventsSelector: '#test .eventList'
+      app: app
     });
   });
 
   test('initialization', function() {
-    assert.equal(subject.headerSelector, '#test .dayHeader');
     assert.equal(subject.controller, controller);
     assert.instanceOf(subject, Calendar.View);
     assert.equal(subject.element, document.querySelector('#months-day-view'));
+    assert.equal(subject._changeToken, 0);
   });
 
-  test('#_renderDay', function() {
-    var date1 = new Date(2012, 1, 1, 1);
-    var date2 = new Date(2012, 1, 1, 4);
+  test('#header', function() {
+    assert.ok(subject.header);
+  });
 
-    events.add(date1, '1', {
-      name: 'UX1',
-      location: 'Paris'
+  test('#events', function() {
+    assert.ok(subject.events);
+  });
+
+  suite('#handleEvent', function() {
+
+    test('selectedDayChange', function() {
+      var date = new Date(2012, 1, 1);
+      var calledWith;
+
+      subject.changeDate = function() {
+        calledWith = arguments;
+      }
+
+      subject.controller.setSelectedDay(date);
+      assert.equal(
+        calledWith[0],
+        date,
+        'should change date in view when controller changes'
+      );
     });
 
-    events.add(date1, '2', {
-      name: 'UX2',
-      location: 'Paris'
+  });
+
+  suite('#changeDate', function() {
+    var startTime = new Date(2012, 1, 1);
+    var endTime = new Date(2012, 1, 2);
+    var calledLoadWith;
+    var updateCalledWith;
+
+    endTime.setMilliseconds(-1);
+
+    setup(function() {
+      calledLoadWith = false;
+      updateCalledWith = false;
+
+      subject._loadRecords = function() {
+        calledLoadWith = arguments;
+      }
+
+      subject._updateHeader = function() {
+        updateCalledWith = arguments;
+      }
+
+      subject.events.innerHTML = 'foobar';
     });
 
-    events.add(date2, '3', {
-      name: 'UX3',
-      location: 'Paris'
+    test('from clean state', function() {
+      assert.equal(subject._changeToken, 0);
+
+      subject.changeDate(startTime);
+      assert.equal(subject.events.innerHTML, '');
+
+      assert.equal(subject.currentDate, startTime);
+      assert.ok(calledLoadWith, 'loads records');
+      assert.ok(updateCalledWith);
+
+      assert.equal(
+        subject._changeToken, 1, 'should increment token'
+      );
+
+      assert.deepEqual(
+        subject._timespan,
+        new Calendar.Timespan(startTime, endTime)
+      );
+
+      var eventIdx = busytimes.findTimeObserver(subject._timespan, subject);
+
+      assert.ok(
+        eventIdx !== -1,
+        'should have busytime observer'
+      );
     });
 
-    var result = subject._renderDay(new Date(2012, 1, 1));
+    test('from second change', function() {
+      subject.changeDate(new Date());
+      var oldRange = subject._timespan;
 
-    assert.include(
-      result,
-      'UX1'
-    );
+      subject.changeDate(startTime);
 
-    assert.include(
-      result,
-      'UX2'
-    );
+      assert.equal(subject._changeToken, 2);
 
-    assert.include(
-      result,
-      'UX3'
-    );
+      var eventIdx = busytimes.findTimeObserver(
+        oldRange, subject
+      );
 
+      assert.ok(
+        eventIdx === -1,
+        'should remove old observers'
+      );
+    });
+
+  });
+
+  suite('#_renderList', function() {
+    var list;
+    var groups;
+
+    function hour(hours, min) {
+      return new Date(2012, 1, 2, hours, min);
+    }
+
+    setup(function() {
+      list = [];
+      groups = {
+        0: [],
+        5: [],
+        6: [],
+        7: [],
+        21: [],
+        22: [],
+        23: []
+      };
+
+      // starts on a different day
+      // occurs in first hour (midnight)
+      list.push([
+        Factory('busytime', {
+          startDate: new Date(2012, 1, 1, 15),
+          endDate: hour(0, 40)
+        })
+      ]);
+
+      groups[0].push(list[0]);
+
+      // same day skip some hours
+      // this should not render into
+      // the 6th hour only 5th
+      list.push([
+        Factory('busytime', {
+          startDate: hour(5, 00),
+          endDate: hour(6, 00)
+        })
+      ]);
+
+      groups[5].push(list[1]);
+
+
+      // Also on fifth hour
+      // but occurs a little later
+      // should come after the above
+      list.push([
+        Factory('busytime', {
+          startDate: hour(5, 15),
+          endDate: hour(6, 00)
+        })
+      ]);
+
+      groups[5].push(list[2]);
+
+
+      // multi hour
+      // occurs in 5th & 6th & 7th hour.
+      list.push([
+        Factory('busytime', {
+          startDate: hour(5, 30),
+          endDate: hour(8, 00)
+        })
+      ]);
+
+      groups[5].push(list[3]);
+      groups[6].push(list[3]);
+      groups[7].push(list[3]);
+
+
+      // ends on a different day
+      // but not an all day event.
+      // starts on 21st hour
+      // ends on 23rd
+      list.push([
+        Factory('busytime', {
+          startDate: hour(21, 00),
+          endDate: new Date(2012, 1, 3, 1)
+        })
+      ]);
+
+      groups[21].push(list[4]);
+      groups[22].push(list[4]);
+      groups[23].push(list[4]);
+    });
+
+    var calledHours;
+
+    setup(function() {
+      calledHours = {};
+      subject._renderHour = function(hour, group) {
+        calledHours[hour] = group;
+      };
+    });
+
+    test('#_renderList', function() {
+      subject.currentDate = new Date(2012, 1, 2);
+
+      subject._renderList(list);
+
+      assert.deepEqual(
+        calledHours,
+        groups,
+        'should render hours in order, see setup block'
+      );
+    });
+
+  });
+
+  suite('#_loadRecords', function() {
+    var storeCalledWith;
+    var renderCalledWith;
+    var list = [];
+
+    setup(function() {
+      storeCalledWith = [];
+      renderCalledWith = [];
+
+      subject._renderList = function() {
+        renderCalledWith.push(arguments);
+      },
+
+      busytimes.eventsInCachedSpan = function() {
+        storeCalledWith.push(arguments);
+      }
+    });
+
+    test('when token changes midway', function() {
+      subject.changeDate(new Date());
+      subject.changeDate(new Date());
+
+      assert.equal(storeCalledWith.length, 2);
+      assert.equal(renderCalledWith.length, 0);
+
+      // now that token has changed
+      // we don't care about this and so
+      // it should do nothing...
+      storeCalledWith[0][1](null, list);
+      assert.equal(renderCalledWith.length, 0);
+
+      // should fire when the correct set of
+      // changes is loaded...
+      storeCalledWith[1][1](null, list);
+      assert.deepEqual(renderCalledWith[0], [list]);
+    });
+
+    test('when change token is same', function() {
+      // this fires _load
+      subject.changeDate(new Date());
+
+      assert.ok(storeCalledWith.length);
+      assert.ok(!renderCalledWith.length);
+
+      assert.equal(
+        storeCalledWith[0][0],
+        subject._timespan
+      );
+
+      storeCalledWith[0][1](null, list);
+      assert.deepEqual(renderCalledWith[0], [list]);
+    });
+
+  });
+
+  suite('#_renderHour', function() {
+    var group;
+
+    setup(function() {
+      group = [];
+      group.push([
+        Factory.create('busytime', {
+          startDate: new Date(2012, 1, 1, 5),
+          endDate: new Date(2012, 1, 1, 6)
+        }),
+        Factory.create('event')
+      ]);
+
+      group.push([
+        Factory.create('busytime', {
+          startDate: new Date(2012, 1, 1, 5, 30),
+          endDate: new Date(2012, 1, 1, 8)
+        }),
+        Factory.create('event')
+      ]);
+    });
+
+    test('output', function() {
+      subject._renderHour(5, group);
+      var children = subject.events.children;
+      assert.equal(children.length, 1);
+
+      var el = children[0];
+      assert.ok(el.outerHTML);
+      var html = el.outerHTML;
+
+      assert.include(
+        html,
+        subject._formatHour(5)
+      );
+
+      assert.include(
+        html,
+        subject._renderEvent(group[0][1])
+      );
+
+      assert.include(
+        html,
+        subject._renderEvent(group[1][1])
+      );
+    });
   });
 
   test('#_renderAttendees', function() {
@@ -90,15 +365,16 @@ suite('views/months_day', function() {
     assert.include(result, '>y<');
   });
 
-  test('#_renderEventDetails', function() {
-    var data = {
-      name: 'UX',
-      location: 'Paris',
-      attendees: ['zoo', 'barr']
-    };
+  test('#_renderEvent', function() {
+    var data = Factory('event', {
+      remote: {
+        title: 'UX',
+        location: 'Paris',
+        attendees: ['zoo', 'barr']
+      }
+    });
 
-    var result = subject._renderEventDetails(data);
-
+    var result = subject._renderEvent(data);
     assert.ok(result);
 
     assert.include(result, 'UX');
@@ -109,9 +385,9 @@ suite('views/months_day', function() {
 
   test('#_updateHeader', function() {
     var date = new Date(2012, 4, 11);
-    var el = subject.headerElement();
-
-    controller.setSelectedDay(date);
+    var el = subject.header;
+    subject.currentDate = date;
+    subject._updateHeader();
 
     assert.include(el.innerHTML, '11');
     assert.include(el.innerHTML, 'May');
@@ -119,21 +395,12 @@ suite('views/months_day', function() {
   });
 
   test('#render', function() {
-    var date, day, month,
-        currentTime,
-        el = subject.headerElement();
-
-    currentTime = new Date();
-
-    date = currentTime.getDate();
-    day = subject.dayNames[currentTime.getDay()];
-    month = subject.monthNames[currentTime.getMonth()];
-
+    var calledWith;
+    subject.changeDate = function() {
+      calledWith = arguments;
+    }
     subject.render();
-
-    assert.include(el.innerHTML, date);
-    assert.include(el.innerHTML, day);
-    assert.include(el.innerHTML, month);
+    assert.ok(calledWith);
   });
 
   test('#onfirstseen', function() {

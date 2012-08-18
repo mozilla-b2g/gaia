@@ -27,15 +27,8 @@ window.addEventListener('DOMContentLoaded', function() {
   var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
   var THUMBNAIL_HEIGHT = 160;
 
-  //
-  // XXX
-  // We want /sdcard storage. Right now, that will be the last
-  // element in the array returned by getDeviceStorage().  But that is
-  // fragile and may change, so this code needs to evolve with the
-  // device storage API
-  //
-  var storages = navigator.getDeviceStorage('videos');
-  var storage = storages[storages.length - 1];
+  var storage = navigator.getDeviceStorage('videos');
+  storage = storage[0] || storage; // Avoid API version skew
 
   try {
     var cursor = storage.enumerate();

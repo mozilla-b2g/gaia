@@ -13,6 +13,15 @@
 */
 var ContactDataManager = {
   contactData: {},
+  phoneType: [
+    'mobile',
+    'home',
+    'work',
+    'personal',
+    'faxHome',
+    'faxOffice',
+    'faxOther',
+    'another'],
   getContactData: function cm_getContactData(number, callback) {
     // so desktop keeps working
     if (!navigator.mozSms)
@@ -20,7 +29,7 @@ var ContactDataManager = {
 
     var options = {
       filterBy: ['tel'],
-      filterOp: 'contains',
+      filterOp: 'equals',
       filterValue: number
     };
 
