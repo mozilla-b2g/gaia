@@ -64,3 +64,8 @@ function cropImage(evt) {
 function createBase64URL(image) {
   return 'data:' + image.format + ';base64,' + Base64.encodeBytes(image.data);
 }
+
+function splitFileName(path) {
+  var stringArray = path.split('/');
+  return stringArray[stringArray.length - 1];
+}

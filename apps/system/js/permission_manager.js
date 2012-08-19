@@ -194,7 +194,11 @@ var PermissionManager = (function() {
       no.id = 'permission-no';
       dialog.appendChild(no);
 
-      document.body.appendChild(overlay);
+      // Note that 'overlay' needs to be the last child in 'screen' otherwise
+      // its zIndex value won't override the zIndex value of the element
+      // before it in the DOM, i.e. the permission prompt won't appear over
+      // top of the fullscreen window!
+      document.getElementById('screen').appendChild(overlay);
     }
 
     // Put the message in the dialog.

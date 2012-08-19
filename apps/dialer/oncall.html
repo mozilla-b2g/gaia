@@ -18,6 +18,11 @@
     <script defer type="application/javascript" src="js/handled_call.js"></script>
     <script defer type="application/javascript" src="js/recents.js"></script>
     <script defer type="application/javascript" src="js/proximity.js"></script>
+
+    <!-- incoming call / swiper on locked screen-->
+    <link rel="stylesheet" type="text/css" href="style/swiper.css">
+    <script defer src="js/swiper.js"></script>
+
   </head>
   <body class="hidden">
     <article id="call-screen" class="grid">
@@ -51,6 +56,18 @@
       </article>
       <article id="main-container" class="grid-row">
         <div id="actions-container" class="grid-wrapper grid">
+          <div id="swiper-wrapper">
+            <div id="swiper-area"></div>
+            <div id="swiper-area-hangup" class="swiper-icon swiper-icon-left">
+              <div id="swiper-accessibility-hangup" role="button" class="swiper-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Hangup"></div>
+            </div>
+            <div id="swiper-area-pickup" class="swiper-icon swiper-icon-right">
+              <div id="swiper-accessibility-pickup" role="button" class="swiper-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Pickup"></div>
+            </div>
+            <div id="swiper-rail-left" class="swiper-rail"></div>
+            <div id="swiper-rail-right" class="swiper-rail"></div>
+            <div id="swiper-area-handle"></div>
+          </div>
           <footer id="call-options" class="grid-row">
             <div class="grid-wrapper grid">
               <section id="co-advanced" class="grid-row">

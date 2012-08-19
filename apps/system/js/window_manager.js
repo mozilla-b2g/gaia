@@ -48,6 +48,8 @@
 'use strict';
 
 var WindowManager = (function() {
+  var homescreen = null;
+
   // Hold Home key for 1 second to bring up the app switcher.
   // Should this be a setting?
   var kLongPressInterval = 1000;
@@ -149,7 +151,7 @@ var WindowManager = (function() {
   var sprite = document.createElement('div');
   sprite.id = 'windowSprite';
   sprite.dataset.zIndexLevel = 'window-sprite';
-  document.body.appendChild(sprite);
+  document.getElementById('screen').appendChild(sprite);
 
   // This event handler is triggered when the transition ends.
   // We're going to do two transitions, so it gets called twice.
@@ -190,6 +192,7 @@ var WindowManager = (function() {
   function openWindow(origin, callback) {
     var app = runningApps[origin];
     openFrame = app.frame;
+
     openCallback = function() {
       if (app.manifest.fullscreen)
         openFrame.mozRequestFullScreen();
@@ -198,7 +201,15 @@ var WindowManager = (function() {
         callback();
     };
 
-    sprite.className = 'open';
+    if (origin === homescreen) {
+      openCallback();
+      windows.classList.add('active');
+      openFrame.classList.add('active');
+      openFrame.setVisible(true);
+      openFrame.focus();
+    } else {
+      sprite.className = 'open';
+    }
   }
 
   function closeWindow(origin, callback) {
@@ -260,27 +271,19 @@ var WindowManager = (function() {
       if (callback)
         callback();
     }
-    // Case 2: homescreen->app
-    else if (currentApp == null && newApp) {
+    // Case 2: null->homescreen || homescreen->app
+    else if ((!currentApp && newApp == homescreen) ||
+             (currentApp == homescreen && newApp)) {
       setAppSize(newApp);
       updateLaunchTime(newApp);
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
-    else if (currentApp && newApp == null) {
+    else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       // Animate the window close
       closeWindow(currentApp, callback);
     }
-    // Case 4: homescreen-to-homescreen transition
-    else if (currentApp == null && newApp == null) {
-      // XXX Until the HOME button works as an activity, just
-      // send a message to the homescreen so he nows about the
-      // home key.
-      document.getElementById('screen').classList.remove('active-application');
-      var home = document.getElementById('homescreen');
-      home.contentWindow.postMessage('home', home.src);
-    }
-    // Case 5: app-to-app transition
+    // Case 4: app-to-app transition
     else {
       // XXX Note: Hack for demo when current app want to set specific hash
       //           url in newApp(e.g. contact trigger SMS message list page).
@@ -390,7 +393,8 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776132
       // UI Test App - Notifications don't work properly when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776134
-      // Cannot take on-device screenshot for Apps running in OOP (calculator, browser, Calendar)
+      // Cannot take on-device screenshot for Apps running in OOP
+      //   (calculator, browser, Calendar)
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=780920
       // Clock App alarm doesn't sound when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=778300
@@ -414,7 +418,8 @@ var WindowManager = (function() {
       //   Cross-process preview stream
 
       'Clock',
-      //  - OOP - when alarm fires, analog clock stops advancing and alarm doesn sound (778300)
+      //  - OOP - when alarm fires,
+      //    analog clock stops advancing and alarm doesn sound (778300)
 
       'Contacts',
       // - Get a white screen when launched OOP (782472)
@@ -429,7 +434,8 @@ var WindowManager = (function() {
 
       'Dialer',
       // - Dialer doesn't seem to see touches when running OOP - bug 776069
-      // - After launching dialer and going back to the home screen, I get continuous messages:
+      // - After launching dialer and going back to the home screen,
+      //   I get continuous messages:
       //       Gecko - SYDNEY_AUDIO  I   0x172df28 - get position
 
       'E-Mail',
@@ -471,8 +477,22 @@ var WindowManager = (function() {
       //   - bug 776132
 
       'Video',
-      // - When running OOP, displays black screen when launching (i.e. no video list) (782460)
+      // - When running OOP, displays black screen when launching
+      //   (i.e. no video list) (782460)
       // - Stop audio when app dies
+
+      'Homescreen',
+      // Bug 783076 - Panning is broken when running the homescreen OOP.
+
+      // - When running OOP, displays black screen when launching
+      //   (i.e. no video list) (782460)
+      // - Stop audio when app dies
+
+      'Share Receiver',
+      // This is a helper app for testing the Share activity in Gallery
+      // It needs to be blacklisted because when OOP it does not receive
+      // the system messages it needs to respond to the activity request.
+      // See https://bugzilla.mozilla.org/show_bug.cgi?id=782835
 
       'Cost Control'
     ];
@@ -568,13 +588,6 @@ var WindowManager = (function() {
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
-        // 3459: Homescreen should be an app launched and managed by
-        // window manager
-        if (origin.indexOf('/homescreen') !== -1) {
-          setDisplayedApp(null);
-          return;
-        }
-
         if (isRunning(origin)) {
           var frame = getAppFrame(origin);
           // If the app is in foreground, it's too risky to change it's
@@ -601,6 +614,16 @@ var WindowManager = (function() {
         }
 
         UtilityTray.hide();
+
+        // If nothing is opened yet, consider the first application opened
+        // as the homescreen.
+        if (!homescreen) {
+          homescreen = origin;
+          var frame = runningApps[homescreen].frame;
+          frame.dataset.zIndexLevel = 'homescreen';
+          return;
+        }
+
         setDisplayedApp(origin);
         break;
     }
@@ -629,7 +652,7 @@ var WindowManager = (function() {
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp)
-      setDisplayedApp(null);
+      setDisplayedApp(homescreen);
 
     var app = runningApps[origin];
     windows.removeChild(app.frame);
@@ -710,8 +733,15 @@ var WindowManager = (function() {
     // event handlers before we do.
     if (CardsView.cardSwitcherIsShown()) {
       CardsView.hideCardSwitcher();
+    } else if (displayedApp !== homescreen) {
+      setDisplayedApp(homescreen);
     } else {
-      setDisplayedApp(null);
+      new MozActivity({
+        name: 'view',
+        data: {
+          type: 'application/x-application-list'
+        }
+      });
     }
   });
 
