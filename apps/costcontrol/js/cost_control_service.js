@@ -12,7 +12,7 @@ setService(function() {
     return r || '!!' + keystring;
   }
 
-  var WAITING_TIMEOUT = 1 * 30 * 1000; // 5 minutes
+  var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
   var REQUEST_BALANCE_MAX_DELAY = 2 * 60 * 1000; // 2 minutes
 
@@ -186,7 +186,7 @@ setService(function() {
 
   // Handle the events that triggers automatic balance updates
   function _automaticCheck(evt) {
-    console.log('Evento escuchado: ' + evt.type);
+    console.log('Event listened: ' + evt.type);
 
     // Ignore if the device is in roaming
     if (_inRoaming()) {
