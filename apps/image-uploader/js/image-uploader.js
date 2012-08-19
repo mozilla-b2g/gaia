@@ -82,6 +82,14 @@ function finalize(url) {
     link.textContent = "Link to uploaded";
     zoneResults.appendChild(link);
   }
+
+  new MozActivity({
+    name: 'view',
+    data: {
+      type: 'url',
+      url: url
+    }
+  });
 }
 
 function share() {
