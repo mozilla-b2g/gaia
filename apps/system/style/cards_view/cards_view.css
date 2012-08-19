@@ -59,7 +59,7 @@
 }
 
 #cardsView .card h1,
-#cardsView .card img, {
+#cardsView .card img {
   pointer-events: none;
 }
 
