@@ -16,11 +16,20 @@
     <p>
         <ul>
             <li>
-	        <input type="checkbox" name="canardpc" id="upload-canardpc" />
+	        <input type="checkbox" name="canardpc" id="upload-canardpc" checked="checked" />
 	        <label id="label-upload-canardpc" for="upload-canardpc">CanardPC</label>
             </li>
         </ul>
 	<input type="button" id="share" data-l10n-id="share" value="Share" onclick="share();" />
     </p>
+    <h2>Results</h2>
+    <p id="results">
+        <label id="label-upload-progress" for="progress">Upload progress:</label>
+	  <input class="status" type="text" id="progress" disabled="disabled" size="64" /><br />
+        <label id="label-uploaded-status" for="uploaded">Upload result:</label>
+        <input class="status" type="text" id="uploaded" disabled="disabled" size="64" />
+    </p>
+    <h2>Link</h2>
+    <p id="link"></p>
   </body>
 </html>

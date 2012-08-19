@@ -1,20 +1,51 @@
+var files = undefined;
+
 window.onload = function() {
-  console.log("Loading image-uploader");
   navigator.mozSetMessageHandler('activity', function(activityRequest) {
-    console.log("image-uploader activityRequest");
     if (activityRequest.source.name === 'share-filenames') {
+      clean();
       addImages(activityRequest.source.data.filenames);
     }
   });
 };
 
-function uploadCanardPc(source) {
+function uploadCanardPc(source, callback) {
   var url = "http://tof.canardpc.com/";
-  console.log("Uploading", source);
+
+  var picture = new FormData();
+  picture.append('email', "");
+  picture.append('envoyer', "envoyer");
+  picture.append('fichier', source);
+
+  var xhr = new XMLHttpRequest({mozSystem: true});
+  xhr.open("POST", url, true);
+  xhr.upload.addEventListener("progress", function(e) {
+    if (e.lengthComputable) {
+      setProgress(e.loaded, e.total);
+    }
+  }, false);
+  xhr.upload.addEventListener("load", function(e) {
+      setProgress(e.loaded, e.total);
+  }, false);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == XMLHttpRequest.DONE) {
+        if (xhr.responseText.match(url + "show/")) {
+          var re = new RegExp(url + "show/(.*).html");
+          var ar = re.exec(xhr.responseText);
+          var pid = ar[1];
+	  var up = ar[0];
+          setStatus("Uploaded successfully: " + pid);
+          callback(up);
+        } else {
+          setStatus("Error while uploading!");
+        }
+      unlock();
+    }
+  };
+  xhr.send(picture);
 }
 
 function addImages(filenames) {
-  console.log('Receiving', filenames.length, 'files');
   var storage = navigator.getDeviceStorage('pictures');
   filenames.forEach(function(filename) {
     storage.get(filename).onsuccess = function(e) {
@@ -24,6 +55,7 @@ function addImages(filenames) {
       var img = document.createElement('img');
       img.style.width = '85%';
       img.src = url;
+      files[url] = blob;
       img.onload = function() { URL.revokeObjectURL(this.src); };
       holder.appendChild(img);
     };
@@ -42,25 +74,68 @@ function getSelectedServices() {
   return selectedServices;
 }
 
+function finalize(url) {
+  var zoneResults = document.getElementById("link");
+  if (zoneResults) {
+    var link = document.createElement('a');
+    link.href = url;
+    link.textContent = "Link to uploaded";
+    zoneResults.appendChild(link);
+  }
+}
+
 function share() {
   var services = getSelectedServices();
   if (services.length > 0) {
-    document.getElementById("share").disabled = true;
     for (var sn in services) {
+      lock();
       var serv = services[sn];
-      console.log("Service to use", serv);
       var imgs = document.getElementById("previews").getElementsByTagName("img");
       for (var i in imgs) {
-      	var img = imgs[i];
-	if (img.src != "") {
-	  console.log("Preparing activity for", img.src);
+      	var img_url = imgs[i].src;
+	if (img_url != undefined) {
+	  var img = files[img_url];
 	  switch (serv) {
             case "upload-canardpc":
-	      uploadCanardPc(img.src);
+	      uploadCanardPc(img, finalize);
 	      break;
 	  }
 	}
       }
     }
   }
+}
+
+function purge(id) {
+  var prevs = document.getElementById(id);
+  if (prevs) {
+    while (prevs.hasChildNodes()) {
+      prevs.removeChild(prevs.lastChild);
+    }
+  }
+}
+
+function clean() {
+  files = {};
+  setStatus("");
+  setProgress(0.0, 0.0);
+  purge('previews');
+  purge('link');
+  unlock();
+}
+
+function lock() {
+  document.getElementById("share").disabled = true;
+}
+
+function unlock() {
+  document.getElementById("share").disabled = false;
+}
+
+function setStatus(msg) {
+  document.getElementById("uploaded").value = msg;
+}
+
+function setProgress(level, max) {
+  document.getElementById("progress").value = level + "/" + max;
 }
