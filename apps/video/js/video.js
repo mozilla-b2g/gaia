@@ -28,7 +28,6 @@ window.addEventListener('DOMContentLoaded', function() {
   var THUMBNAIL_HEIGHT = 160;
 
   var storage = navigator.getDeviceStorage('videos');
-  storage = storage[0] || storage; // Avoid API version skew
 
   try {
     var cursor = storage.enumerate();
