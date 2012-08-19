@@ -12,7 +12,7 @@ setService(function() {
     return r || '!!' + keystring;
   }
 
-  var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+  var WAITING_TIMEOUT = 1 * 30 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
   var REQUEST_BALANCE_MAX_DELAY = 2 * 60 * 1000; // 2 minutes
 
@@ -40,10 +40,9 @@ setService(function() {
   ];
 
   var _sms = window.navigator.mozSms;
-  var _onSMSReceived = null;
-  var _state = STATE_IDLE;
-  var _smsTimeout = 0;
-  var _connectedCalls = 0;
+  var _onSMSReceived = {};
+  var _state = {};
+  var _smsTimeout = {};
 
   // Balance constructor
   function Balance(balance, timestamp) {
@@ -164,6 +163,13 @@ setService(function() {
   function _init() {
     _configureSettings();
     _configureAutomaticUpdates();
+
+    _state[STATE_CHECKING] = false;
+    _state[STATE_TOPPING_UP] = false;
+    _smsTimeout[STATE_CHECKING] = 0;
+    _smsTimeout[STATE_TOPPING_UP] = 0;
+    _onSMSReceived[STATE_CHECKING] = _onBalanceSMSReceived;
+    _onSMSReceived[STATE_TOPPING_UP] = _onConfirmationSMSReceived;
   }
 
   function _dispatchEvent(type, detail) {
@@ -288,61 +294,56 @@ setService(function() {
       _dispatchEvent('costcontroltopuperror', { reason: 'incorrect-code'});
   }
 
+  function _getEventName(mode, suffix) {
+    suffix = suffix || '';
+    var root;
+    if (mode === STATE_CHECKING)
+      root = 'costcontrolbalanceupdate';
+    else
+      root = 'costcontroltopup';
+
+    return root + suffix;
+  }
+
   // Start waiting for SMS
-  function _startWaiting(mode, onSMSReceived) {
-    _state = mode;
-    var eventRoot = _state === STATE_CHECKING ?
-                    'costcontrolbalanceupdate' :
-                    'costcontroltopup';
-    _onSMSReceived = onSMSReceived;
-    _sms.addEventListener('received', _onSMSReceived);
-    _smsTimeout = window.setTimeout(
-      function () {
-        var errorType = eventRoot + 'error';
-        _dispatchEvent(errorType, { reason: 'timeout' });
-        _stopWaiting();
+  function _startWaiting(mode) {
+    _state[mode] = true;
+    _sms.addEventListener('received', _onSMSReceived[mode]);
+    _smsTimeout[mode] = window.setTimeout(
+      function cc_onTimeout() {
+        console.log('Timing out for ' + mode);
+        _dispatchEvent(_getEventName(mode, 'error'), { reason: 'timeout' });
+        _stopWaiting(mode);
       },
       WAITING_TIMEOUT
     );
-    var startType = eventRoot + 'start';
-    _dispatchEvent(startType);
+    _dispatchEvent(_getEventName(mode, 'start'));
   }
 
   // Disable waiting for SMS
-  function _stopWaiting() {
-    var eventRoot = _state === STATE_CHECKING ?
-                    'costcontrolbalanceupdate' :
-                    'costcontroltopup';
-    var finishType = eventRoot + 'finish';
-    _dispatchEvent(finishType);
-    window.clearTimeout(_smsTimeout);
+  function _stopWaiting(mode) {
+    _dispatchEvent(_getEventName(mode, 'finish'));
+    window.clearTimeout(_smsTimeout[mode]);
 
-    _state = STATE_IDLE;
-    _sms.removeEventListener('received', _onSMSReceived);
+    _state[mode] = false;
+    _sms.removeEventListener('received', _onSMSReceived[mode]);
   }
 
   function _updateBalance() {
     // Abort if other operation in progress
-    if (_state !== STATE_IDLE)
+    if (_state[STATE_CHECKING]) {
+      console.log('Already updating, ignoring...');
       return;
+    }
 
     // Send the request SMS
     var request = _sms.send(
       _settings.CHECK_BALANCE_DESTINATION,
       _settings.CHECK_BALANCE_TEXT
     );
-    /*
-    var currentCredit = _fakeCredit;
-    var newCredit = Math.max(0, currentCredit - 2);
-    newCredit = Math.round(newCredit * 100)/100;
-    _fakeCredit = newCredit;
-    var request = _sms.send(
-      '+34620970334',
-      'R$ ' + newCredit
-    );
-    */
+
     request.onsuccess = function cc_onSuccessSendingBalanceRequest() {
-      _startWaiting(STATE_CHECKING, _onBalanceSMSReceived);
+      _startWaiting(STATE_CHECKING);
     }
 
     request.onerror = function cc_onRequestError() {
@@ -352,14 +353,16 @@ setService(function() {
   }
 
   function _toUp(code) {
-    if (!code || _state !== STATE_IDLE)
+    if (!code || _state[STATE_TOPPING_UP]) {
+      console.log('Already topping up, ignoring...');
       return;
+    }
 
     // Compose topup message and send
     var messageBody = _settings.TOP_UP_TEXT.replace('&code', code);
     var request = _sms.send(_settings.TOP_UP_DESTINATION, messageBody);
     request.onsuccess = function cc_onSuccessSendingTopup() {
-      _startWaiting(STATE_TOPPING_UP, _onConfirmationSMSReceived);
+      _startWaiting(STATE_TOPPING_UP);
     }
 
     request.onerror = function cc_onErrorSendingTopup() {
