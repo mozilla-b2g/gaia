@@ -52,41 +52,42 @@ var Bluetooth = {
       };
     });
 
-    if (bluetooth && bluetooth.getDefaultAdapter) {
-      var req = bluetooth.getDefaultAdapter();
-      req.onsuccess = function bt_gotDefaultAdapter(evt) {
-        var adapter =
-          self.defaultAdapter = req.result;
+    if (!bluetooth || !('getDefaultAdapter' in bluetooth))
+      return;
 
-        /* If we get adapter.ondeviceconnected and
-        adapter.ondevicedisconnected, we can end here. But we don't...
-        https://bugzilla.mozilla.org/show_bug.cgi?id=778640
-        */
+    var req = bluetooth.getDefaultAdapter();
+    req.onsuccess = function bt_gotDefaultAdapter(evt) {
+      var adapter =
+        self.defaultAdapter = req.result;
 
-        self.updateDeviceList.call(self);
+      /* If we get adapter.ondeviceconnected and
+      adapter.ondevicedisconnected, we can end here. But we don't...
+      https://bugzilla.mozilla.org/show_bug.cgi?id=778640
+      */
 
-        /* We neither have adapter.ondevicepaired nor
-        adapter.ondeviceunpaired, that leaves us with only
-        adapter.ondevicefound to tackle */
+      self.updateDeviceList.call(self);
 
-        // New device is being found. Update the paired device list only
-        // if it is being paired.
-        adapter.ondevicefound = function bt_deviceFound(evt) {
-          var device = evt.device;
-          device.onpropertychanged = function bt_devicePropertychanged() {
-            if (device.paired)
-              self.updateDeviceList.bind(self);
-          };
-        };
+      /* We neither have adapter.ondevicepaired nor
+      adapter.ondeviceunpaired, that leaves us with only
+      adapter.ondevicefound to tackle */
 
-        // We might have this callback or |device.ondisappeared|
-        // put it here anyway.
-        adapter.ondevicedisappeared = function bt_deviceDisappeared(evt) {
-          var device = evt.device;
-          device.onpropertychanged = null;
+      // New device is being found. Update the paired device list only
+      // if it is being paired.
+      adapter.ondevicefound = function bt_deviceFound(evt) {
+        var device = evt.device;
+        device.onpropertychanged = function bt_devicePropertychanged() {
+          if (device.paired)
+            self.updateDeviceList.bind(self);
         };
       };
-    }
+
+      // We might have this callback or |device.ondisappeared|
+      // put it here anyway.
+      adapter.ondevicedisappeared = function bt_deviceDisappeared(evt) {
+        var device = evt.device;
+        device.onpropertychanged = null;
+      };
+    };
   },
 
   updateDeviceList: function bt_updateDeviceList() {
@@ -105,7 +106,7 @@ var Bluetooth = {
 
       self.updateConnected.call(self);
 
-      devices.forEach(function(device) {
+      devices.forEach(function devices_forEach(device) {
         device.onpropertychanged = function bt_devicePropertychanged() {
           // Device is connected, update connected status
           if (device.connected)

@@ -77,7 +77,7 @@ var StatusBar = {
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
-    // Listen to 'geolocation-status' mozChromeEvent
+    // Listen to 'geolocation-status' and 'recording-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
 
     // Listen to 'bluetoothconnectionchange' from bluetooth.js
