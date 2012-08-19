@@ -29,7 +29,7 @@ suite('SettingsListener', function() {
 
     /*
      * We have to know the exact number of times the callback gets called.
-     * So we will wait for at most 150ms for each call, and run done()
+     * So we will wait for at most 500ms for each call, and run done()
      * if we didn't hear from the callback for more than that.
      */
     var timer;
@@ -47,7 +47,7 @@ suite('SettingsListener', function() {
           assert.deepEqual(answers, correctAnswers,
                            'We did not receive exact numbers of callback.');
         });
-      }, 150);
+      }, 500);
     };
 
     /* Start the test */
