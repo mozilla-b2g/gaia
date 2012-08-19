@@ -10,77 +10,22 @@
     @font-face {
       font-family: 'TelMoz';
       font-weight: normal;
-      src: url('../style/fonts/TelMoz.otf');
-    }
-    @font-face {
-      font-family: 'TelMoz';
-      font-weight: 150;
-      src: url('../style/fonts/TelMozTEST-wt150.otf');
-    }
-    @font-face {
-      font-family: 'TelMoz';
-      font-weight: 400;
       src: url('../style/fonts/TelMozTEST-wt400.otf');
     }
     @font-face {
       font-family: 'TelMoz';
-      font-weight: 550;
-      src: url('../style/fonts/TelMozTEST-wt550.otf');
-    }
-    @font-face {
-      font-family: 'TelMoz';
-      font-weight: 750;
-      src: url('../style/fonts/TelMozTEST-wt750.otf');
-    }
-    @font-face {
-      font-family: 'TelMoz';
-      font-weight: 900;
-      src: url('../style/fonts/TelMozTEST-wt900.otf');
-    }
-    @font-face {
-      font-family: 'TelMoz';
-      font-weight: 1250;
-      src: url('../style/fonts/TelMozTEST-wt1250.otf');
-    }
-    @font-face {
-      font-family: 'TelMoz';
       font-weight: bold;
-      src: url('../style/fonts/TelMozTEST-wt1500.otf');
-    }
-    @font-face {
-      font-family: 'TelMoz';
-      font-weight: 2000;
-      src: url('../style/fonts/TelMozTEST-wt2000.otf');
+      /* XXX: should be 700 but we only have 750 now */
+      src: url('../style/fonts/TelMozTEST-wt750.otf');
     }
     p {
         font-family: 'TelMoz';
     }
-    body[data-weight="ultralight"] p {
-      font-weight: 150;
-    }
-    body[data-weight="thin"] p {
-      font-weight: thin;
-    }
-    body[data-weight="light"] p {
-      font-weight: 550;
-    }
-    body[data-weight="semilight"] p {
-      font-weight: 750;
-    }
-    body[data-weight="lessregular"] p {
-      font-weight: 900;
-    }
     body[data-weight="regular"] p {
       font-weight: normal;
     }
-    body[data-weight="medium"] p {
-      font-weight: medium;
-    }
     body[data-weight="bold"] p {
       font-weight: bold;
-    }
-    body[data-weight="black"] p {
-      font-weight: 2000;
     }
     body.swap {
       color: white;
@@ -92,7 +37,6 @@
         document.body.classList.toggle('swap');
       };
       window.onload = function load() {
-        console.warn('load..======');
         document.getElementById('selector').onchange = function change() {
           var selector = document.getElementById('selector');
           var value = selector.options[selector.selectedIndex].value;
@@ -105,15 +49,8 @@
     <h1>New Font Test</h1>
     <button onclick="swapColor()">Swap color</button>
     <select name="selector" id="selector">
-      <option value="ultralight">Ultralight</option>
-      <option value="thin">Thin</option>
-      <option value="light">Light</option>
-      <option value="semilight">Semilight</option>
-      <option value="lessregular">Lessregular</option>
       <option value="regular" seleted=true>Regular</option>
-      <option value="medium">Medium</option>
       <option value="bold">Bold</option>
-      <option value="black">Black</option>
     </select>
     <h2>5pt</h2>
     <p style="font-size: 1.77mozmm;">
