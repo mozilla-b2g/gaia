@@ -2,6 +2,9 @@ var fb = window.fb || {};
 
 if(!fb.link) {
   (function(document) {
+    // parameter id for the linking contact
+    var CID_PARAM = 'contactid';
+
     var link = fb.link = {};
     var UI = link.ui = {};
 
@@ -43,9 +46,6 @@ if(!fb.link) {
 
     var currentRecommendation = null;
     var allFriends = null;
-
-    // Module fb.contacts is initialized just in case we need it
-    fb.contacts.init();
 
     // Builds the first query for finding a contact to be linked to
     function buildQuery(contact) {
@@ -128,7 +128,11 @@ if(!fb.link) {
 
 
     // entry point for obtaining a remote proposal
-    link.getRemoteProposal = function (access_token,cid) {
+    link.getRemoteProposal = function (acc_t, contid) {
+      access_token = acc_t;
+
+      var cid = contid || contactid;
+
       var req = fb.utils.getContactData(cid);
 
       req.onsuccess = function() {
@@ -138,7 +142,7 @@ if(!fb.link) {
           window.console.log('OWDError: Contact data', cdata.id);
           numQueries = 1;
           currentRecommendation = null;
-          doGetRemoteProposal(access_token, cdata,buildQuery(cdata));
+          doGetRemoteProposal(access_token, cdata, buildQuery(cdata));
         }
         else {
           throw('FB: Contact to be linked not found' + contactId);
@@ -203,8 +207,8 @@ if(!fb.link) {
 
     // Obtains a linking proposal to be shown to the user
     link.getProposal = function (cid) {
-      clearList();
       contactid = cid;
+      clearList();
       window.console.log('OWDError: Get Proposal called!!');
       fb.oauth.getAccessToken(tokenReady,'proposal');
     }
@@ -336,6 +340,13 @@ if(!fb.link) {
       clearList();
       utils.templates.append(friendsList,currentRecommendation);
     }
+
+    var cid = window.location.search.substring(CID_PARAM.length + 2);
+
+     // Module fb.contacts is initialized just in case we need it
+    fb.contacts.init(function() {
+       fb.link.getProposal(cid);
+    });
 
   })(document);
 }

@@ -49,7 +49,9 @@ if (typeof fb.oauth === 'undefined') {
                         function() { window.location = getLocation(); },2000);
         }
         else if(queryString.indexOf('proposal') !== -1) {
-          fb.link.getRemoteProposal(token);
+          fboauth.getAccessToken(function(token) {
+             fb.link.getRemoteProposal(token);
+          });
         }
       }
     }
@@ -120,7 +122,7 @@ if (typeof fb.oauth === 'undefined') {
 
         window.localStorage.access_token = ret;
         window.localStorage.expires = end * 1000;
-        window.localStorage.token_ts = Date.now();
+        window.localStorage.token_ts = Date.now(); 
       }
 
       afterRedirect(parameters.state);
