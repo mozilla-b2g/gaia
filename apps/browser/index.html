@@ -107,6 +107,13 @@
                 title=""></button>
       </menu>
 
+      <menu id="bookmark-menu" type="list" class="hidden">
+        <li><a id="bookmark-menu-add" href="#" data-l10n-id="bookmark">Bookmark</a></li>
+        <li><a id="bookmark-menu-remove" href="#" data-l10n-id="unbookmark">Unbookmark</a></li>
+        <li><a id="bookmark-menu-edit" href="#" data-l10n-id="edit-bookmark">Edit Bookmark</a></li>
+        <li><a id="bookmark-menu-add-home" href="#" data-l10n-id="add-link-to-home">Add Link to Home</a></li>
+        <li><button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button></li>
+      </menu>    
     </div>
 
     <div id="tray">
@@ -117,6 +124,19 @@
     </div>
     <div id="throbber"></div>
     <div id="tabs-badge"></div>
+
+    <form id="bookmark-entry-sheet" role="dialog" class="hidden">
+      <header>
+        <button type="reset" id="bookmark-entry-sheet-cancel" data-l10n-id="cancel">Cancel</button>
+        <button type="submit" id="bookmark-entry-sheet-done" data-l10n-id="done">Done</button>
+        <h2 data-l10n-id="edit-bookmark">Edit Bookmark</h2>
+      </header>
+      <label for="bookmark-title" data-l10n-id="page-title"></label>
+      <input type="text" id="bookmark-title"></input>
+      <label for="bookmark-url" data-l10n-id="address">Address</label>
+      <input type="url" id="bookmark-url"></input>
+      <input type="hidden" id="bookmark-previous-url"></input>
+    </form>  
 
     <div id="settings">
       <header id="settings-header">
