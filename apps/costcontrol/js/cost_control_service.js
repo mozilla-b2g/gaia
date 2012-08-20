@@ -3,23 +3,20 @@
 
 'use strict';
 
-setService(function() {
-  var _fakeLastBalance = _getLastBalance();
-  var _fakeCredit = _fakeLastBalance ? _fakeLastBalance.balance : 12.34;
+//  The CostControl service is in charge of keep the credit up to date with
+//  periodic request to the credit service and to answers requests from different
+//  points of the Cost Control application.
+//
+//  See service_utils.js for information about setService.
+setService(function cc_setupCostControlService() {
 
-  var _ = function cc_fallbackTranslation(keystring) {
-    var r = navigator.mozL10n.get.apply(this, arguments);
-    return r || '!!' + keystring;
-  }
-
+  // Times and time-outs
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
   var REQUEST_BALANCE_MAX_DELAY = 2 * 60 * 1000; // 2 minutes
 
-  var STATE_IDLE = 'idle';
-  var STATE_TOPPING_UP = 'toppingup';
-  var STATE_CHECKING = 'checking';
-
+  // Critical settings (if no present or bad configured,
+  // the service is unavailable)
   var _settings = {};
   var _allSettings = [
     'CHECK_BALANCE_DESTINATION',
@@ -39,18 +36,26 @@ setService(function() {
     'TOP_UP_SENDERS'
   ];
 
+  // SMS API
   var _sms = window.navigator.mozSms;
-  var _onSMSReceived = {};
+
+  // CostControl application state
+  var STATE_TOPPING_UP = 'toppingup';
+  var STATE_UPDATING_BALANCE = 'updatingbalance';
   var _state = {};
+  var _onSMSReceived = {};
   var _smsTimeout = {};
 
-  // Balance constructor
+  // Inner class: Balance.
+  // Balance keeps an amount, a timestamp and a currency accesible by
+  // properties with same names.
   function Balance(balance, timestamp) {
     this.balance = balance;
     this.timestamp = timestamp || new Date();
     this.currency = _settings.CREDIT_CURRENCY;
   }
 
+  // The reviver to deserialize a Balance object in JSON.
   Balance.reviver = function cc_BalanceReviver(key, value) {
     switch(key) {
       case 'timestamp':
@@ -61,8 +66,15 @@ setService(function() {
     }
   };
 
+  // Returns stored balance
+  function _getLastBalance() {
+    var balance = window.localStorage.getItem('lastBalance');
+    balance = (balance !== null) ? JSON.parse(balance, Balance.reviver) : null;
+    return balance;
+  }
+
   // Return true if the widget has all the information required to
-  // work. Return false elsewhere.
+  // work.
   function _checkConfiguration() {
     // Check for all parameters
     var isAllSet = _allSettings.every(function cc_mandatory(name) {
@@ -89,17 +101,19 @@ setService(function() {
   // Enable observers for the basic parameters of the cost control
   function _configureSettings() {
 
+    // Use when simple data type property
     function assignTo(name) {
       return function cc_configure_assignTo(value) {
         _settings[name] = value;
-        console.log(name + ': ' + _settings[name]);
+        debug(name + ': ' + _settings[name]);
       }
     }
 
+    // Use when JSON property
     function parseAndAssignTo(name) {
       return function cc_configure_parseAndAssignTo(value) {
         _settings[name] = JSON.parse(value);
-        console.log(name + ': ' + _settings[name]);
+        debug(name + ': ' + _settings[name]);
       }
     }
 
@@ -158,248 +172,19 @@ setService(function() {
     }, REQUEST_BALANCE_UPDATE_INTERVAL);
   }
 
-  // Initializes the cost control module: basic parameters, automatic and manual
-  // updates.
+  // Initializes the cost control module:
+  // critical parameters, automatic updates and state.dependant settings
   function _init() {
     _configureSettings();
     _configureAutomaticUpdates();
 
-    _state[STATE_CHECKING] = false;
+    // State dependant settings allow simultaneous updates and topping up tasks
+    _state[STATE_UPDATING_BALANCE] = false;
     _state[STATE_TOPPING_UP] = false;
-    _smsTimeout[STATE_CHECKING] = 0;
+    _smsTimeout[STATE_UPDATING_BALANCE] = 0;
     _smsTimeout[STATE_TOPPING_UP] = 0;
-    _onSMSReceived[STATE_CHECKING] = _onBalanceSMSReceived;
+    _onSMSReceived[STATE_UPDATING_BALANCE] = _onBalanceSMSReceived;
     _onSMSReceived[STATE_TOPPING_UP] = _onConfirmationSMSReceived;
-  }
-
-  function _dispatchEvent(type, detail) {
-    var event = new CustomEvent(type, {detail: detail || null});
-    window.dispatchEvent(event);
-  }
-
-  // Handle the events that triggers automatic balance updates
-  function _automaticCheck(evt) {
-    console.log('Event listened: ' + evt.type);
-
-    // Ignore if the device is in roaming
-    var service = _getServiceStatus();
-    if (service.roaming) {
-      console.warn('Device in roaming, no automatic updates allowed');
-      return;
-    }
-
-    switch (evt.type) {
-      // Periodically updates
-      case 'costcontrolperiodicallyupdate':
-
-        // Abort if it have not passed enough time since last update
-        var lastUpdated = window.localStorage.getItem('costcontrolTime');
-        if (lastUpdated !== null)
-          lastUpdated = (new Date(lastUpdated)).getTime();
-
-        var now = (new Date()).getTime();
-        if (now - lastUpdated > REQUEST_BALANCE_MAX_DELAY)
-          _updateBalance();
-
-        break;
-    }
-  }
-
-  // Return the balance from the message or null if impossible to parse
-  function _parseBalanceSMS(message) {
-    var newBalance = null;
-    var found = message.body.match(
-      new RegExp(_settings.CHECK_BALANCE_REGEXP));
-
-    // Impossible parse
-    if (!found || found.length < 2) {
-      console.warn('Impossible to parse balance message.')
-
-    // Parsing succsess
-    } else {
-      var integer = found[1];
-      var decimal = found[2] || '0';
-      newBalance = parseFloat(integer + '.' + decimal);
-    }
-
-    return newBalance;
-  }
-
-  // Return a string indicating the type of SMS identified:
-  // 'confirmation' or 'incorrect-code'.
-  // It returns 'unknown' if it can not recognize it.
-  function _recognizeReceivedSMS(message) {
-    var found = message.body.match(
-      new RegExp(_settings.TOP_UP_CONFIRMATION_REGEXP, "i"));
-    if (found)
-      return 'confirmation';
-
-    found = message.body.match(
-      new RegExp(_settings.TOP_UP_INCORRECT_CODE_REGEXP, "i"));
-    if (found)
-      return 'incorrect-code';
-
-    return 'unknown';
-  }
-
-  // What happend when the balance SMS is received
-  function _onBalanceSMSReceived(evt) {
-    // Ignore messages from other senders
-    var message = evt.message;
-    if (_settings.CHECK_BALANCE_SENDERS.indexOf(message.sender) === -1)
-      return;
-
-    var newBalance = _parseBalanceSMS(message);
-
-    // As we dont know how many messages we receive, we can just ignore this
-    // and continue waiting for the right one.
-    if (newBalance === null)
-      return;
-
-    _stopWaiting();
-    var now = new Date();
-    var balance = new Balance(newBalance, now);
-    _dispatchEvent('costcontrolbalanceupdatesuccess', balance);
-
-    // Store values
-    window.localStorage.setItem('lastBalance', JSON.stringify(balance));
-  }
-
-  // What happend when the confirmation SMS is received
-  function _onConfirmationSMSReceived(evt) {
-    // Ignore messages from other senders
-    var message = evt.message;
-    if (_settings.TOP_UP_SENDERS.indexOf(message.sender) === -1)
-      return;
-
-    var messageType = _recognizeReceivedSMS(message);
-
-    // As we dont know how many messages we receive, we can just ignore this
-    // and continue waiting for the right one.
-    if (messageType === 'unknown')
-      return;
-
-    _stopWaiting();
-    if (messageType === 'confirmation')
-      _dispatchEvent('costcontroltopupsuccess');
-
-    else
-      _dispatchEvent('costcontroltopuperror', { reason: 'incorrect-code'});
-  }
-
-  function _getEventName(mode, suffix) {
-    suffix = suffix || '';
-    var root;
-    if (mode === STATE_CHECKING)
-      root = 'costcontrolbalanceupdate';
-    else
-      root = 'costcontroltopup';
-
-    return root + suffix;
-  }
-
-  // Start waiting for SMS
-  function _startWaiting(mode) {
-    _state[mode] = true;
-    _sms.addEventListener('received', _onSMSReceived[mode]);
-    _smsTimeout[mode] = window.setTimeout(
-      function cc_onTimeout() {
-        console.log('Timing out for ' + mode);
-        _dispatchEvent(_getEventName(mode, 'error'), { reason: 'timeout' });
-        _stopWaiting(mode);
-      },
-      WAITING_TIMEOUT
-    );
-    _dispatchEvent(_getEventName(mode, 'start'));
-  }
-
-  // Disable waiting for SMS
-  function _stopWaiting(mode) {
-    _dispatchEvent(_getEventName(mode, 'finish'));
-    window.clearTimeout(_smsTimeout[mode]);
-
-    _state[mode] = false;
-    _sms.removeEventListener('received', _onSMSReceived[mode]);
-  }
-
-  function _updateBalance() {
-    // Abort if other operation in progress
-    if (_state[STATE_CHECKING]) {
-      console.log('Already updating, ignoring...');
-      return;
-    }
-
-    // Error if system is not available
-    var status = _getServiceStatus();
-    if (!status.availability) {
-      _dispatchEvent(_getEventName(STATE_CHECKING, 'error'),
-        { reason: 'service-unavailable-' +  status.detail });
-      return;
-    }
-
-    // Send the request SMS
-    var request = _sms.send(
-      _settings.CHECK_BALANCE_DESTINATION,
-      _settings.CHECK_BALANCE_TEXT
-    );
-
-    request.onsuccess = function cc_onSuccessSendingBalanceRequest() {
-      _startWaiting(STATE_CHECKING);
-    }
-
-    request.onerror = function cc_onRequestError() {
-      _dispatchEvent(_getEventName(STATE_CHECKING, 'error'),
-        { reason: 'sending-error' });
-    };
-  }
-
-  function _toUp(code) {
-    if (!code || _state[STATE_TOPPING_UP]) {
-      console.log('Already topping up, ignoring...');
-      return;
-    }
-
-    // Compose topup message and send
-    var messageBody = _settings.TOP_UP_TEXT.replace('&code', code);
-    var request = _sms.send(_settings.TOP_UP_DESTINATION, messageBody);
-
-    request.onsuccess = function cc_onSuccessSendingTopup() {
-      _startWaiting(STATE_TOPPING_UP);
-    }
-
-    request.onerror = function cc_onErrorSendingTopup() {
-      _dispatchEvent(_getEventName(STATE_TOPPING_UP, 'error'),
-        { reason: 'sending-error' });
-    }
-  }
-
-  function _bindCallbacks(state, callbacks) {
-    var onsuccess = callbacks.onsuccess || null;
-    var onerror = callbacks.onerror || null;
-    var onstart = callbacks.onstart || null;
-    var onfinish = callbacks.onfinish || null;
-
-    window.addEventListener(_getEventName(state, 'succsess'), onsuccess);
-    window.addEventListener(_getEventName(state, 'error'), onerror);
-    window.addEventListener(_getEventName(state, 'start'), onstart);
-    window.addEventListener(_getEventName(state, 'finish'), onfinish);
-  }
-
-  // Register callbacks to invoke while updating balance
-  function _setBalanceCallbacks(callbacks) {
-    _bindCallbacks(STATE_CHECKING, callbacks);
-  }
-
-  // Register callbacks to invoke while topping up
-  function _setTopUpCallbacks(callbacks) {
-    _bindCallbacks(STATE_TOPPING_UP, callbacks);
-  }
-
-  // Returns stored balance
-  function _getLastBalance() {
-    var balance = window.localStorage.getItem('lastBalance');
-    balance = (balance !== null) ? JSON.parse(balance, Balance.reviver) : null;
-    return balance;
   }
 
   // Return a status object with three fields:
@@ -452,12 +237,245 @@ setService(function() {
     return status;
   }
 
+  // Handle the events that triggers automatic balance updates
+  function _automaticCheck(evt) {
+    debug('Event listened: ' + evt.type);
+
+    // Ignore if the device is in roaming
+    var service = _getServiceStatus();
+    if (service.roaming) {
+      console.warn('Device in roaming, no automatic updates allowed');
+      return;
+    }
+
+    switch (evt.type) {
+      // Periodically updates
+      case 'costcontrolperiodicallyupdate':
+
+        // Abort if it have not passed enough time since last update
+        var lastUpdated = window.localStorage.getItem('costcontrolTime');
+        if (lastUpdated !== null)
+          lastUpdated = (new Date(lastUpdated)).getTime();
+
+        var now = (new Date()).getTime();
+        if (now - lastUpdated > REQUEST_BALANCE_MAX_DELAY)
+          _updateBalance();
+
+        break;
+    }
+  }
+
+  // Return the balance from the message or null if impossible to parse
+  function _parseBalanceSMS(message) {
+    var newBalance = null;
+    var found = message.body.match(
+      new RegExp(_settings.CHECK_BALANCE_REGEXP));
+
+    // Impossible to parse
+    if (!found || found.length < 2) {
+      console.warn('Impossible to parse balance message.')
+
+    // Parsing succsess
+    } else {
+      var integer = found[1];
+      var decimal = found[2] || '0';
+      newBalance = parseFloat(integer + '.' + decimal);
+    }
+
+    return newBalance;
+  }
+
+  // Return a string indicating the type of SMS identified:
+  // 'confirmation' or 'incorrect-code'.
+  //
+  // It returns 'unknown' if it can not recognize it at all.
+  function _recognizeReceivedSMS(message) {
+    var found = message.body.match(
+      new RegExp(_settings.TOP_UP_CONFIRMATION_REGEXP, "i"));
+    if (found)
+      return 'confirmation';
+
+    found = message.body.match(
+      new RegExp(_settings.TOP_UP_INCORRECT_CODE_REGEXP, "i"));
+    if (found)
+      return 'incorrect-code';
+
+    return 'unknown';
+  }
+
+  // When a message is received, the function tries to parse the credit
+  // from the message. If not possible, the message is ignored.
+  function _onBalanceSMSReceived(evt) {
+    // Ignore messages from other senders
+    var message = evt.message;
+    if (_settings.CHECK_BALANCE_SENDERS.indexOf(message.sender) === -1)
+      return;
+
+    var newBalance = _parseBalanceSMS(message);
+
+    // As we dont know how many messages we receive, we can just ignore this
+    // and continue waiting for the right one.
+    if (newBalance === null)
+      return;
+
+    _stopWaiting(STATE_UPDATING_BALANCE);
+    var now = new Date();
+    var balance = new Balance(newBalance, now);
+    _dispatchEvent(_getEventName(STATE_UPDATING_BALANCE, 'success'), balance);
+
+    // Store values
+    window.localStorage.setItem('lastBalance', JSON.stringify(balance));
+  }
+
+  // When a message is received, the function tries to recognize
+  // if the message is a confirmation or error message. Depending on the
+  // nature of the message, the function will dispatch success or error
+  // events.
+  function _onConfirmationSMSReceived(evt) {
+    // Ignore messages from other senders
+    var message = evt.message;
+    if (_settings.TOP_UP_SENDERS.indexOf(message.sender) === -1)
+      return;
+
+    var messageType = _recognizeReceivedSMS(message);
+
+    // As we dont know how many messages we receive, we can just ignore this
+    // and continue waiting for the right one.
+    if (messageType === 'unknown')
+      return;
+
+    _stopWaiting(STATE_TOPPING_UP);
+    if (messageType === 'confirmation')
+      _dispatchEvent(_getEventName(STATE_TOPPING_UP, 'success'));
+
+    else
+      _dispatchEvent(_getEventName(STATE_TOPPING_UP, 'error'), { reason: 'incorrect-code'});
+  }
+
+  // Start waiting for SMS
+  function _startWaiting(mode) {
+    _state[mode] = true;
+    _sms.addEventListener('received', _onSMSReceived[mode]);
+    _smsTimeout[mode] = window.setTimeout(
+      function cc_onTimeout() {
+        debug('Timing out for ' + mode);
+        _dispatchEvent(_getEventName(mode, 'error'), { reason: 'timeout' });
+        _stopWaiting(mode);
+      },
+      WAITING_TIMEOUT
+    );
+    _dispatchEvent(_getEventName(mode, 'start'));
+    debug('Start waiting for ' + mode);
+  }
+
+  // Disable waiting for SMS
+  function _stopWaiting(mode) {
+    _dispatchEvent(_getEventName(mode, 'finish'));
+    window.clearTimeout(_smsTimeout[mode]);
+
+    _state[mode] = false;
+    _sms.removeEventListener('received', _onSMSReceived[mode]);
+    debug('Stop waiting for ' + mode);
+  }
+
+  // Start an update balance request. In case of error or success, the proper
+  // events will be dispatched to the listeners set by setBalanceCallbacks()
+  // method.
+  function _updateBalance() {
+    // Abort if other operation in progress
+    if (_state[STATE_UPDATING_BALANCE]) {
+      debug('Already updating, ignoring...');
+      return;
+    }
+
+    // Error if system is not available
+    var status = _getServiceStatus();
+    if (!status.availability) {
+      _dispatchEvent(_getEventName(STATE_UPDATING_BALANCE, 'error'),
+        { reason: 'service-unavailable-' +  status.detail });
+      return;
+    }
+
+    // Send the request SMS
+    var request = _sms.send(
+      _settings.CHECK_BALANCE_DESTINATION,
+      _settings.CHECK_BALANCE_TEXT
+    );
+    request.onsuccess = function cc_onSuccessSendingBalanceRequest() {
+      _startWaiting(STATE_UPDATING_BALANCE);
+    }
+    request.onerror = function cc_onRequestError() {
+      _dispatchEvent(_getEventName(STATE_UPDATING_BALANCE, 'error'),
+        { reason: 'sending-error' });
+    };
+  }
+
+  // Start a top up request. In case of error or success, the proper
+  // events will be dispatched to the listeners set by setTopUpCallbacks()
+  // method.
+  function _topUp(code) {
+    if (!code || _state[STATE_TOPPING_UP]) {
+      debug('Already topping up, ignoring...');
+      return;
+    }
+
+    // Compose topup message and send
+    var messageBody = _settings.TOP_UP_TEXT.replace('&code', code);
+    var request = _sms.send(_settings.TOP_UP_DESTINATION, messageBody);
+    request.onsuccess = function cc_onSuccessSendingTopup() {
+      _startWaiting(STATE_TOPPING_UP);
+    }
+    request.onerror = function cc_onErrorSendingTopup() {
+      _dispatchEvent(_getEventName(STATE_TOPPING_UP, 'error'),
+        { reason: 'sending-error' });
+    }
+  }
+
+  // Helper to dispatch custome events, provide type and the detail object
+  function _dispatchEvent(type, detail) {
+    var event = new CustomEvent(type, {detail: detail || null});
+    window.dispatchEvent(event);
+    debug('CostControl Event: ' + type + ': ' + JSON.stringify(detail));
+  }
+
+  // Get the event name as concatenation between a root determined by mode
+  // (STATE_UPDATING_BALANCE, STATE_TOPPING_UP) and a provided suffix.
+  function _getEventName(mode, suffix) {
+    suffix = suffix || '';
+    var root;
+    if (mode === STATE_UPDATING_BALANCE)
+      root = 'costcontrolbalanceupdate';
+    else
+      root = 'costcontroltopup';
+
+    return root + suffix;
+  }
+
+  // Assign callbacks to the proper events
+  function _bindCallbacks(state, callbacks) {
+    var eventTypes = ['success', 'error', 'start', 'finish'];
+    eventTypes.forEach(function cc_bindEventType(type) {
+      window.addEventListener(_getEventName(state, type),
+        (callbacks['on'+type] || null))
+    });
+  }
+
+  // Register callbacks to invoke when updating balance
+  function _setBalanceCallbacks(callbacks) {
+    _bindCallbacks(STATE_UPDATING_BALANCE, callbacks);
+  }
+
+  // Register callbacks to invoke whent topping up
+  function _setTopUpCallbacks(callbacks) {
+    _bindCallbacks(STATE_TOPPING_UP, callbacks);
+  }
+
   return {
     init: _init,
     setBalanceCallbacks: _setBalanceCallbacks,
     setTopUpCallbacks: _setTopUpCallbacks,
     requestBalance: _updateBalance,
-    requestTopUp: _toUp,
+    requestTopUp: _topUp,
     getLastBalance: _getLastBalance,
     getServiceStatus: _getServiceStatus,
     getRequestBalanceMaxDelay: function cc_getRequestBalanceMaxDelay() {
@@ -465,6 +483,7 @@ setService(function() {
     }
   };
 }());
-
 window[SERVICE_NAME].init();
+
+// See service_utils.js for information
 nowIAmReady();
