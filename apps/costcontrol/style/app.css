@@ -1,5 +1,4 @@
-/* Resetting */
-
+/* GENERAL */
 * {
   margin: 0;
   padding: 0;
@@ -19,6 +18,12 @@ body {
   background: url(images/app/ui/pattern.png) repeat left top;
 }
 
+form {
+  padding: 1.5rem;
+  background: #49525c;
+}
+[aria-hidden="true"] { visibility: hidden; }
+
 /* WINDOW & VIEWS */
 .window, .view{
   position: absolute;
@@ -31,7 +36,8 @@ body {
 
 .view {
   bottom: 4.1rem;
-  overflow-x: auto;  
+  overflow-x: auto;
+  background: url(images/app/ui/pattern.png) repeat left top;
   -moz-transition: -moz-transform 0.3s ease;
 }
 
@@ -52,6 +58,13 @@ body[role="application"] ul.filter[role="tablist"][data-position=bottom] {
 body[role="application"] section[role="region"] > header .icon.config {
   background-image: url(images/app/icons/config.png);
 }
+
+body[role="application"] section[role="region"] > header button {
+  text-shadow: none;
+  font-weight: normal;
+}
+
+
 
 /* BB BUTTONS ICONS */
 body[role="application"] button span.reload {
@@ -89,6 +102,34 @@ section.content .overview .end {
 section.content .overview time {
   font-weight: normal;
 }
+
+
+
+/* TOPUP VIEW */
+.view.topup .content .info {
+  text-align: center;
+}
+
+.view.topup .content .info h2 {
+  font-size: 1.8rem;
+  line-height: 1em;
+  font-weight: normal;
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.view.topup .content .info p {
+  font-size: 1.4rem;
+  line-height: 1.3em;
+  color: #505859;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+
+.view.topup .content .info progress {
+  margin-top: 1rem;
+}
+
 
 
 
