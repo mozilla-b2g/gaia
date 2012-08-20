@@ -276,9 +276,9 @@ var ThreadListUI = {
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
     var element =
-      this.view.querySelector('a[data-num="' + number + '"] div.name');
-    if (element) {
-      element.innerHTML = contact[0].name || _('unknown-contact');
+            this.view.querySelector('a[data-num="' + number + '"] div.name');
+    if (element && contact[0].name && contact[0].name != '') {
+      element.innerHTML = contact[0].name;
     }
   },
 
@@ -667,8 +667,12 @@ var ThreadUI = {
   updateHeaderData: function thui_updateHeaderData(number) {
     ThreadUI.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
-      if (contact && contact.length > 0) {
-        ThreadUI.title.innerHTML = contact[0].name || _('unknown-contact');
+console.log("contact?" + contact?"YES":"NO");
+console.log("contact size: " + contact.length);
+console.log("contact name - " + contact[0].name);
+      if (contact && contact[0].name && contact[0].name != '') {
+console.log("GETTING IN");
+        ThreadUI.title.innerHTML = contact[0].name;
       }
     });
   },
