@@ -11,6 +11,9 @@ var Wifi = {
   init: function wf_init() {
     window.addEventListener('screenchange', this);
 
+    var battery = window.navigator.battery;
+    battery.addEventListener('chargingchange', this);
+
     var self = this;
     var settings = window.navigator.mozSettings;
     if (!settings)
@@ -59,8 +62,9 @@ var Wifi = {
                                state == 'locked-background');
 
       // Let's quietly turn off wifi if there is no wake lock and
-      // the screen is off.
-      if (!ScreenManager.screenEnabled && !self.wifiWakeLocked)
+      // the screen is off and we are not on a power source.
+      if (!ScreenManager.screenEnabled &&
+          !self.wifiWakeLocked && !battery.charging)
         wifiManager.setEnabled(false);
     });
   },
@@ -70,13 +74,17 @@ var Wifi = {
     if (!wifiManager)
       return;
 
+    var battery = window.navigator.battery;
+    if (!battery)
+      return;
+
     switch (evt.type) {
       case 'screenchange':
         var screenEnabled = evt.detial.screenEnabled;
 
         // Let's quietly turn off wifi if there is no wake lock and
-        // the screen is off.
-        if (!screenEnabled && !this.wifiWakeLocked)
+        // the screen is off and we are not on a power source.
+        if (!screenEnabled && !this.wifiWakeLocked && !battery.charging)
           wifiManager.setEnabled(false);
 
         // ... and quietly turn it back on when the screen is on
@@ -84,6 +92,17 @@ var Wifi = {
           wifiManager.setEnabled(true);
 
         break;
+
+      case 'chargingchange':
+        // Let's quietly turn off wifi if there is no wake lock and
+        // the screen is off and we are not on a power source.
+        if (!ScreenManager.screenEnabled &&
+            !this.wifiWakeLocked && !battery.charging)
+          wifiManager.setEnabled(false);
+
+        // ... and quietly turn it back on when we are on a power source
+        if (battery.charging && this.wifiEnabled)
+          wifiManager.setEnabled(true);
     }
   }
 };
