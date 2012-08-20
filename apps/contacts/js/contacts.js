@@ -928,7 +928,8 @@ var Contacts = (function() {
 
       var selector = 'tel_type_' + arrayIndex;
       var typeField = document.getElementById(selector).textContent || '';
-      var carrierField = document.getElementById('carrier_' + arrayIndex).value || '';
+      var carrierSelector = 'carrier_' + arrayIndex;
+      var carrierField = document.getElementById(carrierSelector).value || '';
       contact['tel'] = contact['tel'] || [];
       contact['tel'][i] = {
         value: numberValue,
