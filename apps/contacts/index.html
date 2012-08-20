@@ -38,7 +38,7 @@
     <script defer type="text/javascript" src="js/fixed_header.js"></script>
   </head>
 
-  <body class="hide app-contacts">
+  <body role="application" class="hide app-contacts">
 
     <div id="app" class="views" data-state="active">
       <!-- Contacts List Section -->
@@ -46,7 +46,7 @@
         <div class="view-inner">
 
           <header role="toolbar" class="view-header">
-            <menu role="menu">
+            <menu type="toolbar" role="menu">
               <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
               <button role="menuitem" id="add-contact-button" onclick="Contacts.showAdd();"><span data-icon="add" data-l10n-id="add">add</span></button>
             </menu>
@@ -90,7 +90,7 @@
 
           <header role="toolbar" id='details-view-header' class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
-            <menu role="menu">
+            <menu type="toolbar" role="menu">
               <button role="menuitem" id="edit-contact-button" onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
             </menu>
             <h1 id='contact-name-title'></h1>
@@ -179,7 +179,7 @@
 
           <header role="toolbar" class="view-header">
             <button class="negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
-            <menu role="menu" id='contact-form-actions'>
+            <menu type="toolbar" role="menu" id='contact-form-actions'>
               <button id="save-button" onclick="Contacts.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
             </menu>
             <h1 id='contact-form-title'></h1>
@@ -353,7 +353,7 @@
 
           <header role="toolbar" class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
-            <menu role="menu" id="contact-form-actions">
+            <menu type="toolbar" role="menu" id="contact-form-actions">
               <button role="menuitem" onclick="Contacts.doneTag();" data-l10n-id="done">Done</button>
             </menu>
             <h1 data-l10n-id="label">Label</h1>
