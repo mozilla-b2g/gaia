@@ -2,7 +2,7 @@
 
 function HandledCall(aCall, aNode) {
   this._ticker = null;
-  this.picture = null;
+  this.photo = null;
 
   this.call = aCall;
 
