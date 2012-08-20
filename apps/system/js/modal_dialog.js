@@ -22,7 +22,7 @@ var ModalDialog = {
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'authentication', 'username-input', 'password-input',
       'authentication-message', 'buttons',
-      'error', 'error-close', 'error-reload'];
+      'error', 'error-back', 'error-reload'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -69,6 +69,7 @@ var ModalDialog = {
     var elements = this.elements;
     switch (evt.type) {
       case 'mozbrowsererror':
+        evt.detail.promptType = 'error';
       case 'mozbrowsershowmodalprompt':
         if (evt.target.dataset.frameType != 'window')
           return;
@@ -84,7 +85,7 @@ var ModalDialog = {
         break;
 
       case 'click':
-        if (evt.currentTarget === elements.errorClose) {
+        if (evt.currentTarget === elements.errorBack) {
           this.cancelHandler();
           WindowManager.kill(this.currentOrigin);
         } else if (evt.currentTarget === elements.errorReload) {
@@ -174,7 +175,7 @@ var ModalDialog = {
       break;
     }
 
-    this.elements.buttons.dataset.type = evt.detail.promptType || 'error';
+    this.elements.buttons.dataset.type = evt.detail.promptType;
     this.setHeight();
   },
 
@@ -188,6 +189,7 @@ var ModalDialog = {
     }
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
+    this.elements[type].classList.remove('visible');
   },
 
   // When user clicks OK button on alert/confirm/prompt
