@@ -131,9 +131,9 @@ input[type="image"] {
 #tabs-list span {
   pointer-events: none;
   display: block;
-  position: absolute;
+  height: 65px;
   top: 0px;
-  margin: 0 50px 0 100px;
+  margin: 0 50px 0 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }

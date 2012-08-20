@@ -375,8 +375,6 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=755943
       // Message App crashes when run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=775997
-      // Dialer doesn't seem to see touches when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776069
       // ICS camera support
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=740997
       // Marketplace app doesn't seem to work when run OOP
@@ -432,12 +430,6 @@ var WindowManager = (function() {
       //   Mouse click not delivered
       //   Stop audio when app dies
 
-      'Dialer',
-      // - Dialer doesn't seem to see touches when running OOP - bug 776069
-      // - After launching dialer and going back to the home screen,
-      //   I get continuous messages:
-      //       Gecko - SYDNEY_AUDIO  I   0x172df28 - get position
-
       'E-Mail',
       // - SSL/TLS support can only happen in the main process although the TCP
       //   support without security will accidentally work OOP:
@@ -477,7 +469,8 @@ var WindowManager = (function() {
       //   - bug 776132
 
       'Video',
-      // - When running OOP, displays black screen when launching (i.e. no video list) (782460)
+      // - When running OOP, displays black screen when launching
+      //   (i.e. no video list) (782460)
       // - Stop audio when app dies
 
       'Homescreen',
@@ -585,6 +578,9 @@ var WindowManager = (function() {
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
+
+        UtilityTray.hide();
+
         if (isRunning(origin)) {
           var frame = getAppFrame(origin);
           // If the app is in foreground, it's too risky to change it's
@@ -610,14 +606,12 @@ var WindowManager = (function() {
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
 
-        UtilityTray.hide();
-
         // If nothing is opened yet, consider the first application opened
         // as the homescreen.
         if (!homescreen) {
           homescreen = origin;
           var frame = runningApps[homescreen].frame;
-          frame.dataset.zIndexLevel = 'homescreen'; 
+          frame.dataset.zIndexLevel = 'homescreen';
           return;
         }
 

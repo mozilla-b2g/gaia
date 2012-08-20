@@ -331,7 +331,7 @@ var Contacts = (function() {
         currentContact = request.result[0];
         var onlyOneTel = currentContact.tel && currentContact.tel.length === 1;
         if (ActivityHandler.currentlyHandling && onlyOneTel) {
-          var number = currentContact.tel[0].number;
+          var number = currentContact.tel[0].value;
           ActivityHandler.postPickSuccess(number);
           return;
         }
@@ -411,9 +411,9 @@ var Contacts = (function() {
     for (var tel in contact.tel) {
       var currentTel = contact.tel[tel];
       var telField = {
-        number: currentTel.number || '',
+        value: currentTel.value || '',
         type: currentTel.type || TAG_OPTIONS['phone-type'][0].value,
-        notes: '',
+        carrier: currentTel.carrier || '',
         i: tel
       };
       var template = utils.templates.render(phonesTemplate, telField);
@@ -424,7 +424,7 @@ var Contacts = (function() {
     for (var email in contact.email) {
       var currentEmail = contact.email[email];
       var emailField = {
-        address: currentEmail['address'] || '',
+        value: currentEmail['value'] || '',
         type: currentEmail['type'] || TAG_OPTIONS['email-type'][0].value,
         i: email
       };
@@ -519,9 +519,9 @@ var Contacts = (function() {
     for (var tel in currentContact.tel) {
       var currentTel = currentContact.tel[tel];
       var telField = {
-        number: currentTel.number,
+        value: currentTel.value,
         type: currentTel.type || default_type,
-        notes: '',
+        carrier: currentTel.carrier || '',
         i: tel
       };
 
@@ -535,7 +535,7 @@ var Contacts = (function() {
       var currentEmail = currentContact.email[email];
       var default_type = TAG_OPTIONS['email-type'][0].value;
       var emailField = {
-        address: currentEmail['address'] || '',
+        value: currentEmail['value'] || '',
         type: currentEmail['type'] || default_type,
         i: email
       };
@@ -584,11 +584,22 @@ var Contacts = (function() {
 
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = _('deleteConfirmMsg');
-      Permissions.show('', msg, function onAccept() {
-        deleteContact(currentContact);
-      },function onCancel() {
-        Permissions.hide();
-      });
+      var yesObject = {
+        title: _('remove'),
+        callback: function onAccept() {
+          deleteContact(currentContact);
+          Permissions.hide();
+        }
+      };
+
+      var noObject = {
+        title: _('cancel'),
+        callback: function onCancel() {
+          Permissions.hide();
+        }
+      };
+
+      Permissions.show(null, msg, yesObject, noObject);
     };
 
     edit();
@@ -928,12 +939,13 @@ var Contacts = (function() {
 
       var selector = 'tel_type_' + arrayIndex;
       var typeField = document.getElementById(selector).textContent || '';
-      var notes = document.getElementById('notes_' + arrayIndex).value || '';
+      var carrierSelector = 'carrier_' + arrayIndex;
+      var carrierField = document.getElementById(carrierSelector).value || '';
       contact['tel'] = contact['tel'] || [];
-      // TODO: Save notes
       contact['tel'][i] = {
-        number: numberValue,
-        type: typeField
+        value: numberValue,
+        type: typeField,
+        carrier: carrierField
       };
     }
   };
@@ -953,7 +965,7 @@ var Contacts = (function() {
 
       contact['email'] = contact['email'] || [];
       contact['email'][i] = {
-        address: emailValue,
+        value: emailValue,
         type: typeField
       };
     }
@@ -1013,9 +1025,9 @@ var Contacts = (function() {
 
   var insertPhone = function insertPhone(phone) {
     var telField = {
-      number: phone || '',
+      value: phone || '',
       type: TAG_OPTIONS['phone-type'][0].value,
-      notes: '',
+      carrier: '',
       i: numberPhones || 0
     };
     var template = utils.templates.render(phoneTemplate, telField);
@@ -1026,7 +1038,7 @@ var Contacts = (function() {
 
   var insertEmail = function insertEmail(email) {
     var emailField = {
-      address: email || '',
+      value: email || '',
       type: TAG_OPTIONS['email-type'][0].value,
       i: numberEmails || 0
     };

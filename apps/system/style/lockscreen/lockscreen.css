@@ -155,7 +155,6 @@
   max-width: -moz-calc(100% - 4rem - 1.6rem);
   display: inline-block;
   border-radius: 0.4rem;
-  padding: 0.4rem;
   margin-bottom: 0.5rem;
   font-size: 1.2rem;
   line-height: 1.2rem;
@@ -165,7 +164,12 @@
   text-overflow: ellipsis;
 }
 
-#lockscreen-connstate:empty {
+#lockscreen-connstate > span {
+  display: block;
+  margin: 0.4rem;
+}
+
+#lockscreen-connstate > span:empty {
   display: none;
 }
 
