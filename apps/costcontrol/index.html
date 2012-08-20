@@ -6,11 +6,17 @@
   <title>Cost Control</title>
 
   <!-- Building blocks -->
-  <link rel="stylesheet" type="text/css" href="style/bb/headers/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/buttons/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/tabs/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/headers/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/time/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/progress-activity/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/switches/style.css">
 
-  <link rel="stylesheet" type="text/css" href="style/style.css">
+  <link rel="stylesheet" type="text/css" href="style/app.css">
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -18,7 +24,7 @@
 
   <!-- Specific code -->
   <script type="text/javascript" src="js/settings_listener.js"></script>
-  <script type="text/javascript" src="js/debug.js"></script>
+<script type="text/javascript" src="js/debug.js"></script>
   <script type="text/javascript" src="js/service_utils.js"></script>
   <script type="text/javascript" defer src="js/cost_control.js"></script>
 </head>
@@ -32,7 +38,7 @@
         <div role="tabpanel">
 
           <section role="region" id="balance">
-            <header>
+            <header data-theme="organic">
               <menu type="toolbar">
                  <button><span class="icon icon-config">configuration</span></button>
               </menu>
@@ -69,7 +75,7 @@
   </section>
 
   <section role="region" id="topup">
-    <header>
+    <header data-theme="organic">
       <menu type="toolbar">
          <button id="buttonTopUp"><span class="icon icon-send">send</span></button>
       </menu>
@@ -84,7 +90,7 @@
   </section>
 
 <!--    <section role="region" id="settings">
-    <header>
+    <header data-theme="organic">
       <a href="#left-panel"><span class="icon icon-back">back</span></a>
       <h1 data-l10n-id="settings">Settings</h1>
     </header>
