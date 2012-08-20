@@ -19,7 +19,8 @@ html {
 /* Widget body */
 #cost-control {
   height: 4.5rem;
-  background: url('./images/widget/ui/glossy-gradient.png'),
+  width: 100%;
+  background-image: url('./images/widget/ui/glossy-gradient.png'),
                 url('./images/widget/ui/gray-noise-pattern.png');
   background-repeat: repeat-x, repeat;
 }
@@ -28,14 +29,14 @@ html {
 
 /* Low credit warning */
 #cost-control.low-credit {
-  background: url('./images/widget/ui/no-credit-pattern.png');
+  background-image: url('./images/widget/ui/no-credit-pattern.png');
   background-repeat: repeat-x;
 }
 
 /* Updating animation */
-#cost-control.updating #cost-control-update-icon {
-  opacity:1.0;
-/*  -moz-animation: cost-control-spin 1.75s infinite linear;*/
+#cost-control.updating #cost-control-icon {
+  opacity: 1.0;
+  -moz-animation: cost-control-spin 1.75s infinite linear;
 }
 
 @-moz-keyframes cost-control-spin {
@@ -43,18 +44,8 @@ html {
   100% { -moz-transform:rotate(360deg); }
 }
 
-/* Credit area with remaining credit and timestamp */
-#cost-control-credit-area {
-  display: table;
-  height: 100%;
-  margin-right: 4.5rem;
-  padding-left: 1rem;
-  border:none;
-  background-color: transparent;
-}
-
-#cost-control-credit-area > div {
-  display: table-cell;
+#cost-control div {
+  display: inline-block;
   vertical-align: middle;
 }
 
@@ -72,11 +63,14 @@ html {
   font-weight: 600;
   font-size: 1rem;
   color: #AAA;
-  margin-top: 0.2rem;
 }
 
-#cost-control-update-icon {
-  opacity: 0.2;
+#cost-control-icon {
+  width: 20px;
+  height: 19px;
   vertical-align: middle;
-  margin-left: 0.5rem;
+  background-image: url('./images/widget/icons/reload.png');
+  background-position: center;
+  background-repeat: no-repeat;
 }
+
