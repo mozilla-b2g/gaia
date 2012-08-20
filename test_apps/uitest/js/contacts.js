@@ -18,6 +18,11 @@ var ContactsTest = {
     return this.clearButton = document.getElementById('clear-contacts');
   },
 
+  get getButton() {
+    delete this.getButton;
+    return this.getButton = document.getElementById('get-contacts');
+  },
+
   get pickActivityButton() {
     delete this.pickActivityButton;
     return this.pickActivityButton = document.getElementById('activities-pick');
@@ -44,6 +49,7 @@ var ContactsTest = {
   init: function ct_init() {
     this.loadButton.addEventListener('click', this.loadContacts.bind(this));
     this.clearButton.addEventListener('click', this.clearContacts.bind(this));
+    this.getButton.addEventListener('click', this.getContacts.bind(this));
     this.pickActivityButton.addEventListener('click',
                                             this.pickActivity.bind(this));
     this.newActivityButton.addEventListener('click',
@@ -60,6 +66,7 @@ var ContactsTest = {
     this.loadButton.removeEventListener('click', this.loadContacts.bind(this));
     this.clearButton.removeEventListener('click',
                                          this.clearContacts.bind(this));
+    this.getButton.removeEventListener('click', this.getContacts.bind(this));
     this.newActivityButton.removeEventListener('click',
                                             this.newActivity.bind(this));
   },
@@ -76,6 +83,22 @@ var ContactsTest = {
     };
     req.onerror = function() {
       alert('Problem deleting contacts');
+    };
+  },
+
+  getContacts: function ct_getContacts() {
+    var options = {
+      sortBy: 'familyName',
+      sortOrder: 'ascending'
+    };
+    var start = new Date();
+    var req = window.navigator.mozContacts.find(options);
+    req.onsuccess = function() {
+      var duration = new Date() - start;
+      alert('Contacts received: ' + duration + 'msec');
+    };
+    req.onerror = function() {
+      alert('Problem receiving contacts');
     };
   },
 
