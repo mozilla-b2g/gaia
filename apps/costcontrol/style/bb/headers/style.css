@@ -8,8 +8,6 @@ body[role="application"] section[role="region"] > header {
   height: 5rem;
   color: #fff;
   background: url(images/ui/header.png) repeat-x left top;
-  /*background-image: -moz-linear-gradient(top, #cd6723, #bb492d);*/
-  /*box-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.25), 0 2px 4px -4px rgba(0, 0, 0, 0.99);*/
 }
 
 body[role="application"] section[role="region"] > header:after {
@@ -64,8 +62,7 @@ body[role="application"] section[role="region"] > header form {
         border: solid 1px #9d4123;
         border-top-color: #a6501e;
         border-radius: 0.3rem;
-        background: #fff url(images/ui/shadow-header.png) repeat-x left -1px;
-        /*box-shadow: inset 0 2px 1px -1px rgba(0, 0, 0, 0.3);*/
+        background: #fff url(images/ui/shadow.png) repeat-x left -1px;
         font: 1.35rem/1em "Open Sans", Sans-serif;
       }
      body[role="application"] section[role="region"] > header form .clear {
@@ -113,14 +110,15 @@ body[role="application"] section[role="region"] > header form {
       font: 600 1.4rem/1.1em "Open Sans", Sans-serif;
       color: #fff;
     }
+
      body[role="application"] section[role="region"] > header a:first-letter,
      body[role="application"] section[role="region"] > header button:first-letter {
       text-transform: uppercase;
      }
-
       /* Icon definitions */
      body[role="application"] section[role="region"] > header .icon {
         display: inline-block;
+        float: none;
         width: 3rem;
         height: 3rem;
         margin: 0 -1rem;
@@ -156,7 +154,6 @@ body[role="application"] section[role="region"] > header form {
     left: 0;
     width: 4rem;
     height: 4.9rem;
-    /*background: -moz-linear-gradient(bottom, #803220, #b5521f);*/
     background: url(images/ui/separator-large.png) no-repeat 2rem center;
     overflow: hidden;
     text-align: center;
@@ -188,13 +185,13 @@ body[role="application"] section[role="region"] > header form {
 /* ----------------------------------
  * HEADERS: subheader
  * ---------------------------------- */
-
 body[role="application"] section[role="region"] > header[aria-level="2"] {
   background: url(images/ui/subheader.png) repeat left bottom;
   border-bottom: solid 1px #e6e6e6;
   z-index: 0;
   padding: 0.4rem 0;
   height: auto;
+  color: #424242;
 }
 body[role="application"] section[role="region"] > header[aria-level="2"]:after {
   display: none;
@@ -203,7 +200,6 @@ body[role="application"] section[role="region"] > header[aria-level="2"]:after {
     body[role="application"] section[role="region"] > header[aria-level="2"] h3 {
       font-family: "Open Sans", Sans-serif;
       font-weight: lighter;
-      color: rgba(255, 255, 255, 0.6);
       margin: 0 0 0 3rem;
     }
     body[role="application"] section[role="region"] > header[aria-level="2"] h2 { font-size: 1.8rem; }
@@ -211,16 +207,15 @@ body[role="application"] section[role="region"] > header[aria-level="2"]:after {
     body[role="application"] section[role="region"] > header[aria-level="2"] p { 
       font-family: "Open Sans", Sans-serif;
       font-weight: 600;
-      color: rgba(41, 41, 41, 0.9);
       margin: 0 3rem;
       font-size: 1.3rem;
       line-height: 1.8rem;
     }
 
+
 /* ----------------------------------
  * HEADERS: search
  * ---------------------------------- */
-
 body[role="application"] section[role="region"] > header + form.search {
   height: 3rem;
   background: url(images/ui/search.png) repeat-x left bottom;
@@ -247,27 +242,29 @@ body[role="application"] section[role="region"] > header + form.search {
 /* ----------------------------------
  * HEADERS: dark
  * ---------------------------------- */
-
-body[role="application"] section[role="region"].dark-theme > header {
+body[role="application"] section[role="region"][data-theme="dark"] > header,
+body[role="application"] section[role="region"] > header[data-theme="dark"] {
   background: url(images/ui/dark/header.png) repeat-x left top;
-  /*background-image: -moz-linear-gradient(top, #3e3e46, #29292f);*/
-  /*box-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 2px 4px -4px rgba(0, 0, 0, 0.99);*/
 }
   /* Navigation links (back, cancel, etc) */
-  body[role="application"] section[role="region"].dark-theme > header > a .icon:after,
-  body[role="application"] section[role="region"].dark-theme > header > button .icon:after {
-    /*background: -moz-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.25));*/
+  body[role="application"] section[role="region"][data-theme="dark"] > header > a .icon:after,
+  body[role="application"] section[role="region"] > header[data-theme="dark"] > a .icon:after,
+  body[role="application"] section[role="region"][data-theme="dark"] > header > button .icon:after,
+  body[role="application"] section[role="region"]> header[data-theme="dark"]  > button .icon:after {
     background: #26272c url(images/ui/dark/negative.png) repeat-x left top;
   }
-body[role="application"] section[role="region"].dark-theme > header[aria-level="2"] {
+body[role="application"] section[role="region"][data-theme="dark"] > header[aria-level="2"],
+body[role="application"] section[role="region"] > header[aria-level="2"][data-theme="dark"] {
   background: #7f7f7f url(images/ui/dark/subheader.png) repeat-x left bottom;
+  color: #c5c5c5;
 }
 
 
 /* ----------------------------------
  * HEADERS: overlay
  * ---------------------------------- */
-body[role="application"] section[role="region"] > header.overlay {
+body[role="application"] section[role="region"] > header[data-theme="overlay"],
+body[role="application"] section[role="region"][data-theme="overlay"] > header {
   background: url(images/ui/overlay/header.png) repeat left top;
   position: absolute;
   left: 0;
@@ -276,12 +273,53 @@ body[role="application"] section[role="region"] > header.overlay {
   width: 100%;
 }
 
-body[role="application"] section[role="region"] > header.overlay > button .icon:after,
-body[role="application"] section[role="region"] > header.overlay > a .icon:after {
+body[role="application"] section[role="region"] > header[data-theme="overlay"] > button .icon:after,
+body[role="application"] section[role="region"][data-theme="overlay"]  > header> button .icon:after,
+body[role="application"] section[role="region"] > header[data-theme="overlay"] > a .icon:after,
+body[role="application"] section[role="region"][data-theme="overlay"]  > header > a .icon:after {
   background: none;
 }
 
-body[role="application"] section[role="region"] > header.overlay menu[type="toolbar"] a:last-child,
-body[role="application"] section[role="region"] > header.overlay menu[type="toolbar"] button:last-child {
+body[role="application"] section[role="region"] > header[data-theme="overlay"] menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"][data-theme="overlay"]  > header menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"] > header[data-theme="overlay"] menu[type="toolbar"] button:last-child,
+body[role="application"] section[role="region"][data-theme="overlay"]  > header menu[type="toolbar"] button:last-child {
   background-image: url(images/ui/overlay/separator.png);
 }
+
+
+/* ----------------------------------
+ * HEADERS: organic
+ * ---------------------------------- */
+body[role="application"] section[role="region"][data-theme="organic"] > header,
+body[role="application"] section[role="region"] > header[data-theme="organic"] {
+  background: url(images/ui/organic/header.png) repeat-x left top,  url(images/ui/organic/pattern.png) repeat left top;
+}
+
+body[role="application"] section[role="region"][data-theme="organic"] > header:after,
+body[role="application"] section[role="region"] > header[data-theme="organic"]:after {
+  margin-top: -1px;
+}
+
+  /* Navigation links (back, cancel, etc) */
+  body[role="application"] section[role="region"][data-theme="organic"] > header > a .icon:after,
+  body[role="application"] section[role="region"] > header[data-theme="organic"] > a .icon:after,
+  body[role="application"] section[role="region"][data-theme="organic"] > header > button .icon:after,
+  body[role="application"] section[role="region"]> header[data-theme="organic"]  > button .icon:after {
+    /*background: -moz-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.25));*/
+    background: url(images/ui/organic/negative.png) repeat-x left top;
+  }
+
+body[role="application"] section[role="region"][data-theme="organic"] > header menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"] > header[data-theme="organic"] menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"][data-theme="organic"] > header menu[type="toolbar"] button:last-child,
+body[role="application"] section[role="region"]> header[data-theme="organic"] menu[type="toolbar"] button:last-child {
+  background-image: url(images/ui/organic/separator.png);
+}
+
+body[role="application"] section[role="region"][data-theme="organic"] > header[aria-level="2"],
+body[role="application"] section[role="region"] > header[aria-level="2"][data-theme="organic"] {
+  background: #7f7f7f url(images/ui/organic/subheader.png) repeat-x left bottom;
+  color: #fff;
+}
+

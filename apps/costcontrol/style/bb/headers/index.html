@@ -9,18 +9,20 @@
     -->
     <link rel="stylesheet" type="text/css" href="../../fonts.css">
     <style type="text/css">
-      html, body {
+ html, body {
           margin: 0;
           padding: 0;
           font-size: 10px;
           background-color: #fff;
         }
+        body { background: none; }
         section[role="region"] { margin-bottom: 15px; position: relative; }
     </style>
 
   <title>Headers</title>
   <meta type="description" content="Providing top-level navigation and inputs for the active view">
   <meta type="requires" content="None">
+  <meta type="target" content="html">  
 </head>
 
 <body role="application">
@@ -97,7 +99,7 @@
     <header aria-level="2">
         <p>Subheader text</p>
       </header>
-    <header aria-level="1" class="overlay">
+    <header aria-level="1" data-theme="overlay">
       <button><span class="icon icon-close">close</span></button>
       <menu type="toolbar">
          <button>done</button>
@@ -106,7 +108,7 @@
     </header>
   </section>
 
-    <section  role="region" class="dark-theme">
+    <section  role="region" data-theme="dark">
       <header aria-level="1">
         <a href="#"><span class="icon icon-back">back</span></a>
         <h1>Song title</h1>
@@ -117,9 +119,19 @@
       </header>
   </section>
 
-  <section  role="region" class="dark-theme">
-      <header>
+  <section  role="region">
+      <header data-theme="dark">
         <h1>Song title</h1>
+      </header>
+  </section>
+
+   <section  role="region" data-theme="organic">
+      <header aria-level="1">
+        <a href="#"><span class="icon icon-back">back</span></a>
+        <h1>Settings</h1>
+      </header>
+      <header aria-level="2">
+        <p>Subheader</p>
       </header>
   </section>
 

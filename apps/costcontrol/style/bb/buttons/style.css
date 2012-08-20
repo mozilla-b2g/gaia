@@ -1,4 +1,5 @@
 /* ----------------------------------
+
  * BUTTONS: DEFAULT
  * ---------------------------------- */
 body[role="application"] button::-moz-focus-inner {
@@ -77,6 +78,18 @@ body[role="application"] a[role="button"][aria-disabled="true"].affirmative {
 	color: #bcbcbc;
 }
 
+/* Disabled dark (default & affirmative) */
+body[role="application"] menu button[disabled="disabled"],
+body[role="application"] menu a[role="button"][aria-disabled="true"],
+body[role="application"] menu button[disabled="disabled"].affirmative,
+body[role="application"] menu a[role="button"][aria-disabled="true"].affirmative {
+	background-image: url(images/ui/disabled-dark.png);
+	background-color: transparent;
+	border: none;
+	color: #4a4a4a;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
 /* Negative disabled */
 body[role="application"] button[disabled="disabled"].negative,
 body[role="application"] a[role="button"][aria-disabled="true"].negative {
@@ -91,14 +104,14 @@ body[role="application"] a[role="button"] span {
 	float: left;
 	width: 2.5rem;
 	height: 2.5rem;
-	margin: 0.5rem 0.5rem 0 -1rem;
+	margin: 0 0.5rem 0 -1rem;
 	background: transparent no-repeat center center;
 }
 
 body[role="application"] button span.end,
 body[role="application"] a[role="button"] span.end {
 	float: right;
-	margin: 0.5rem -1.5rem 0 1rem;
+	margin: 0.3rem -1.5rem 0 1rem;
 }
 
 /* Icon base types */
@@ -154,6 +167,7 @@ body[role="application"] .buttons-list a[role="button"] {
 	border-color: #b6b6b6;
 	text-align: left;
 	font-size: 1.4rem;
+	line-height: 2.9rem;
 	position: relative;
 	overflow: visible;
 }
