@@ -19,9 +19,7 @@ let commonPermissionList = ['offline-app', 'indexedDB-unlimited',
                             'webapps-manage', 'pin-app',
                             'desktop-notification'];
 
-let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
-
-(function registerProfileDirectory() {
+function registerProfileDirectory() {
 
   let directoryProvider = {
     getFile: function provider_getFile(prop, persistent) {
@@ -48,7 +46,9 @@ let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
     .getService(Ci.nsIProperties)
     .QueryInterface(Ci.nsIDirectoryService)
     .registerProvider(directoryProvider);
-})();
+}
+if (Gaia.engine === "xpcshell")
+  registerProfileDirectory();
 
 let permissionManager = Components.classes["@mozilla.org/permissionmanager;1"].getService(Ci.nsIPermissionManager);
 let ioservice = Components.classes["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);

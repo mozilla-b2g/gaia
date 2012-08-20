@@ -1,4 +1,4 @@
-const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
+const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils': Cu } = Components;
 
 function getSubDirectories(directory) {
   let appsDir = Cc['@mozilla.org/file/local;1']
@@ -65,6 +65,7 @@ function getJSON(file) {
 }
 
 const Gaia = {
+  engine: GAIA_ENGINE,
   webapps: {
     forEach: function (fun) {
       let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
@@ -82,7 +83,8 @@ const Gaia = {
             manifestFile: manifestFile,
             url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
             domain: domain,
-            sourceDirectoryName: dir
+            sourceDirectoryName: dir,
+            sourceAppDirectoryName: directoryName
           };
           fun(webapp);
         });
