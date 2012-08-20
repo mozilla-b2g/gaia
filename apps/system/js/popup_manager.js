@@ -132,6 +132,10 @@ var PopupManager = {
 
     this.close();
     evt.stopImmediatePropagation();
+  },
+
+  isVisible: function pm_isVisible() {
+    return (this._currentPopup != null);
   }
 };
 
