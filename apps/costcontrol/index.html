@@ -17,6 +17,7 @@
     <link rel="stylesheet" type="text/css" href="style/bb/switches/style.css">
 
     <link rel="stylesheet" type="text/css" href="style/app.css">
+    <link rel="stylesheet" type="text/css" href="style/views/topup.css">
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -60,19 +61,25 @@
 
       </section>
 
-      <section role="region" id="topup" class="view" data-viewport="bottom">
+      <section role="region" id="topup" class="view topup" data-viewport="bottom">
         <header data-theme="organic">
           <menu type="toolbar">
-             <button id="buttonTopUp"><span class="icon icon-send">send</span></button>
+             <button id="buttonTopUp">Done</button>
           </menu>
           <a href="#left-panel"><span class="icon icon-close">close</span></a>
           <h1 data-l10n-id="top-up">Top Up</h1>
         </header>
-        <p data-l10n-id="enter-top-up-code" >enter the top up code</p>
-        <p data-l10n-id="top-up-code-explanation">typically found in the scratch card or directly in your receipt</p>
-        <p data-l10n-id="wait-for-confirmation">you'll receive a confirmation message</p>
-        <img src="style/images/waiting.gif" alt="waiting"/>
-        <input id="inputTopUpCode" type="number"></input>
+        <section class="content">
+          <div class="info">
+            <h2 data-l10n-id="enter-top-up-code" >Enter the top up code</h2>
+            <p data-l10n-id="top-up-code-explanation">Typically found in the scratch card or directly in your receipt</p>
+            <p data-l10n-id="wait-for-confirmation">You'll receive a confirmation message</p>
+            <progress aria-hidden="true"></progress>
+          </div>
+        </section>
+        <form>
+          <input id="inputTopUpCode" type="number"></input>
+        </form>
       </section>
 
       <ul role="tablist" class="filter" data-items="2" data-position="bottom">

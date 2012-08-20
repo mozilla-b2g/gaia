@@ -1,5 +1,4 @@
-/* Resetting */
-
+/* GENERAL */
 * {
   margin: 0;
   padding: 0;
@@ -19,6 +18,13 @@ body {
   background: url(images/app/ui/pattern.png) repeat left top;
 }
 
+form {
+  padding: 1.5rem;
+  background: #49525c;
+}
+
+[aria-hidden="true"] { visibility: hidden; }
+
 /* WINDOW & VIEWS */
 .window, .view{
   position: absolute;
@@ -31,7 +37,10 @@ body {
 
 .view {
   bottom: 4.1rem;
-  overflow-x: auto;  
+  z-index: 1;
+
+  overflow-x: auto;
+  background: url(images/app/ui/pattern.png) repeat left top;
   -moz-transition: -moz-transform 0.3s ease;
 }
 
@@ -52,6 +61,12 @@ body[role="application"] ul.filter[role="tablist"][data-position=bottom] {
 body[role="application"] section[role="region"] > header .icon.config {
   background-image: url(images/app/icons/config.png);
 }
+
+body[role="application"] section[role="region"] > header button {
+  text-shadow: none;
+  font-weight: normal;
+}
+
 
 /* BB BUTTONS ICONS */
 body[role="application"] button span.reload {
@@ -90,35 +105,3 @@ section.content .overview time {
   font-weight: normal;
 }
 
-
-
-/*#topup {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  transform: translateY(+100%);
-  -moz-transition: transform 0.5s ease;
-}
-
-#topup:target {
-  z-index: 10;
-  transform: none;
-}
-
-#cost-control-update-icon {
-  opacity: 0.2;
-  vertical-align: middle;
-  margin-left: 0.5rem;
-}
-
-.updating #cost-control-update-icon {
-  opacity:1.0;
-  -moz-animation: cost-control-spin 1.75s infinite linear;
-}
-
-@-moz-keyframes cost-control-spin {
-  0% { -moz-transform:rotate(0deg); }
-  100% { -moz-transform:rotate(360deg); }
-}*/
