@@ -204,7 +204,11 @@ var OnCallHandler = {
   },
 
   answer: function ch_answer() {
-    this._telephony.active.answer();
+    // We should always have only 1 call here
+    if (!this.handledCalls.length)
+      return;
+
+    this.handledCalls[0].call.answer();
     CallScreen.render('connected');
   },
 
