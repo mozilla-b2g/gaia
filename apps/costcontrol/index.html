@@ -30,62 +30,52 @@
 
   <body role="application">
 
-    <section role="region">
-      <ul role="tablist" data-tabs="2" data-position="bottom">
-        <li id="left-panel">
-          <a role="tab" href="#left-panel">Balance</a>
-          <div role="tabpanel">
+    <section role="region" class="window">
+      <section role="region" id="balance" class="view">
+        <header data-theme="organic">
+          <menu type="toolbar">
+             <button><span class="icon icon-config">configuration</span></button>
+          </menu>
+          <h1 data-l10n-id="balance">Balance</h1>
+        </header>
 
-            <section role="region" id="balance">
-              <header data-theme="organic">
-                <menu type="toolbar">
-                   <button><span class="icon icon-config">configuration</span></button>
-                </menu>
-                <h1 data-l10n-id="balance">Balance</h1>
-              </header>
+        <section class="content">
+          <div id="cost-control-info-area">
+            <p data-l10n-id="balance">Balance</p>
+            <p><time id="cost-control-time"></time></p>
+          <div>
 
-              <div class="horizontal-box">
-                <div id="cost-control-info-area">
-                  <p data-l10n-id="balance">Balance</p>
-                  <p><time id="cost-control-time"></time></p>
-                <div>
-
-                <div id="cost-control-credit-area">
-                  <p id="cost-control-credit"></p>
-                  <button id="cost-control-update-icon">Update</button>
-                </div>
-              </div>
-
-              <button id="buttonRequestTopUp">
-                <span class="end icon-add"></span>
-                Top Up
-              </button>
-            </section>
-
+          <div id="cost-control-credit-area" class="buttons-list">
+            <p id="cost-control-credit"></p>
+            <button id="cost-control-update-icon">Update</button>
+            <button id="buttonRequestTopUp">
+              <span class="end icon-add"></span>
+              Top Up
+            </button>
           </div>
-        </li>
-        <li id="right-panel">
-          <a role="tab" href="#right-panel">Data usage</a>
-          <div role="tabpanel">
-            <p>Contacts tab panel.</p>
-          </div>
-        </li>
+        </section>
+
+      </section>
+
+      <section role="region" id="topup" class="view" data-viewport="bottom">
+        <header data-theme="organic">
+          <menu type="toolbar">
+             <button id="buttonTopUp"><span class="icon icon-send">send</span></button>
+          </menu>
+          <a href="#left-panel"><span class="icon icon-close">close</span></a>
+          <h1 data-l10n-id="top-up">Top Up</h1>
+        </header>
+        <p data-l10n-id="enter-top-up-code" >enter the top up code</p>
+        <p data-l10n-id="top-up-code-explanation">typically found in the scratch card or directly in your receipt</p>
+        <p data-l10n-id="wait-for-confirmation">you'll receive a confirmation message</p>
+        <img src="style/images/waiting.gif" alt="waiting"/>
+        <input id="inputTopUpCode" type="number"></input>
+      </section>
+
+      <ul role="tablist" class="filter" data-items="2" data-position="bottom">
+        <li id="left-panel" aria-selected="true"><a role="tab" href="#left-panel">Balance</a></li>
+        <li id="right-panel"><a role="tab" href="#right-panel">Data usage</a></li>
       </ul>
-    </section>
-
-    <section role="region" id="topup">
-      <header data-theme="organic">
-        <menu type="toolbar">
-           <button id="buttonTopUp"><span class="icon icon-send">send</span></button>
-        </menu>
-        <a href="#left-panel"><span class="icon icon-close">close</span></a>
-        <h1 data-l10n-id="top-up">Top Up</h1>
-      </header>
-      <p data-l10n-id="enter-top-up-code" >enter the top up code</p>
-      <p data-l10n-id="top-up-code-explanation">typically found in the scratch card or directly in your receipt</p>
-      <p data-l10n-id="wait-for-confirmation">you'll receive a confirmation message</p>
-      <img src="style/images/waiting.gif" alt="waiting"/>
-      <input id="inputTopUpCode" type="number"></input>
     </section>
 
 <!--    <section role="region" id="settings">

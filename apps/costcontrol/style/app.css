@@ -15,9 +15,44 @@ body {
   background: url(images/app/ui/pattern.png) repeat left top;
 }
 
+/* WINDOW & VIEWS */
+.window, .view{
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.view {
+  bottom: 4.1rem;
+  overflow-x: auto;  
+  -moz-transition: -moz-transform 0.3s ease;
+}
 
 
-#topup {
+/* VIEWPORTS */
+.view[data-viewport="bottom"] {
+  -moz-transform: translateY(100%);
+}
+
+
+/* BB FILTER */
+body[role="application"] ul.filter[role="tablist"][data-position=bottom] {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+
+/* CONTENT */
+section.content {
+  padding: 2.5rem 2rem;
+}
+
+
+/*#topup {
   position: absolute;
   top: 0;
   left: 0;
@@ -38,7 +73,6 @@ body {
   margin-left: 0.5rem;
 }
 
-/* Updating animation */
 .updating #cost-control-update-icon {
   opacity:1.0;
   -moz-animation: cost-control-spin 1.75s infinite linear;
@@ -47,4 +81,4 @@ body {
 @-moz-keyframes cost-control-spin {
   0% { -moz-transform:rotate(0deg); }
   100% { -moz-transform:rotate(360deg); }
-}
+}*/
