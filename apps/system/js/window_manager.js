@@ -586,6 +586,9 @@ var WindowManager = (function() {
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
+
+        UtilityTray.hide();
+
         if (isRunning(origin)) {
           var frame = getAppFrame(origin);
           // If the app is in foreground, it's too risky to change it's
@@ -610,8 +613,6 @@ var WindowManager = (function() {
           appendFrame(origin, e.detail.url,
                       app.manifest.name, app.manifest, app.manifestURL, true);
         }
-
-        UtilityTray.hide();
 
         // If nothing is opened yet, consider the first application opened
         // as the homescreen.
