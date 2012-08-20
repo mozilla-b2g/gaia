@@ -61,49 +61,32 @@ var Wifi = {
       self.wifiWakeLocked = (state == 'locked-foreground' ||
                                state == 'locked-background');
 
-      // Let's quietly turn off wifi if there is no wake lock and
-      // the screen is off and we are not on a power source.
-      if (!ScreenManager.screenEnabled &&
-          !self.wifiWakeLocked && !battery.charging)
-        wifiManager.setEnabled(false);
+      self.maybeToggleWifi();
     });
   },
 
   handleEvent: function wifi_handleEvent(evt) {
-    var wifiManager = window.navigator.mozWifiManager;
-    if (!wifiManager)
-      return;
+    this.maybeToggleWifi();
+  },
 
+  // Check the status of screen, wifi wake lock and power source
+  // and turn on/off wifi accordingly
+  maybeToggleWifi: function wifi_maybeToggleWifi() {
     var battery = window.navigator.battery;
-    if (!battery)
+    var wifiManager = window.navigator.mozWifiManager;
+    if (!battery || !wifiManager || !this.wifiEnabled)
       return;
 
-    switch (evt.type) {
-      case 'screenchange':
-        var screenEnabled = evt.detial.screenEnabled;
+    // Let's quietly turn off wifi if there is no wake lock and
+    // the screen is off and we are not on a power source.
+    if (!ScreenManager.screenEnabled &&
+        !this.wifiWakeLocked && !battery.charging)
+      wifiManager.setEnabled(false);
 
-        // Let's quietly turn off wifi if there is no wake lock and
-        // the screen is off and we are not on a power source.
-        if (!screenEnabled && !this.wifiWakeLocked && !battery.charging)
-          wifiManager.setEnabled(false);
-
-        // ... and quietly turn it back on when the screen is on
-        if (screenEnabled && this.wifiEnabled)
-          wifiManager.setEnabled(true);
-
-        break;
-
-      case 'chargingchange':
-        // Let's quietly turn off wifi if there is no wake lock and
-        // the screen is off and we are not on a power source.
-        if (!ScreenManager.screenEnabled &&
-            !this.wifiWakeLocked && !battery.charging)
-          wifiManager.setEnabled(false);
-
-        // ... and quietly turn it back on when we are on a power source
-        if (battery.charging && this.wifiEnabled)
-          wifiManager.setEnabled(true);
-    }
+    // ... and quietly turn it back on otherwise
+    if (ScreenManager.screenEnabled ||
+        this.wifiWakeLocked || battery.charging)
+      wifiManager.setEnabled(true);
   }
 };
 
