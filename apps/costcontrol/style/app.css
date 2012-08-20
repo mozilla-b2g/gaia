@@ -11,6 +11,12 @@ html {
   color: #fff;
 }
 
+body {
+  background: url(images/app/ui/pattern.png) repeat left top;
+}
+
+
+
 #topup {
   position: absolute;
   top: 0;
