@@ -72,7 +72,7 @@ var ModalDialog = {
         // XXX: another issue #3047
         if (evt.detail.type == 'fatal')
           return;
-        evt.detail.promptType = event.detail.type;
+        evt.detail.promptType = 'error';
       case 'mozbrowsershowmodalprompt':
         if (evt.target.dataset.frameType != 'window')
           return;
