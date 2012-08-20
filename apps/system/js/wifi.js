@@ -8,6 +8,12 @@ var Wifi = {
 
   wifiEnabled: true,
 
+  // Without wake lock, wait for kOffTime ms and turn wifi off
+  // after the conditions are met.
+  kOffTime: 60 * 1000,
+
+  _offTimer: null,
+
   init: function wf_init() {
     window.addEventListener('screenchange', this);
 
@@ -80,13 +86,18 @@ var Wifi = {
     // Let's quietly turn off wifi if there is no wake lock and
     // the screen is off and we are not on a power source.
     if (!ScreenManager.screenEnabled &&
-        !this.wifiWakeLocked && !battery.charging)
-      wifiManager.setEnabled(false);
+        !this.wifiWakeLocked && !battery.charging) {
+      this._offTimer = setTimeout(function wifiOffTimeout() {
+        wifiManager.setEnabled(false);
+      }, this.kOffTime);
+    }
 
     // ... and quietly turn it back on otherwise
     if (ScreenManager.screenEnabled ||
-        this.wifiWakeLocked || battery.charging)
+        this.wifiWakeLocked || battery.charging) {
+      clearTimeout(this._offTimer);
       wifiManager.setEnabled(true);
+    }
   }
 };
 
