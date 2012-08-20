@@ -52,12 +52,9 @@ function setupWidget() {
 
   // On balance updating error, if manual request, notificate
   function _onUpdateBalanceError(evt) {
-    if (!isManualRequest)
-      return;
-
     switch(evt.detail.reason) {
       case 'sending-error':
-        console.log('TODO: Change widget state to indicate the fail.');
+        debug('TODO: Change widget state to indicate the fail.');
         break;
     }
   }
@@ -79,14 +76,8 @@ function setupWidget() {
     _widgetCurrency = document.getElementById('cost-control-currency')
     _widgetTime = document.getElementById('cost-control-time');
 
-    // Listener for check now button
-    var checkNowBalanceButton = document.getElementById('cost-control-credit-area');
-    checkNowBalanceButton.addEventListener(
-      'click',
-      function cc_openApp() {
-        _openApp(true);
-      }
-    );
+    // Listener to open application
+    _widget.addEventListener('click', _openApp);
 
     // Suscribe callbacks for balance updating success and error to the service
     CostControl.setBalanceCallbacks({
@@ -108,7 +99,7 @@ function setupWidget() {
 
   // Handle the events that triggers automatic balance updates
   function _automaticCheck(evt) {
-    console.log('Event listened: ' + evt.type);
+    debug('Event listened: ' + evt.type);
 
     // Ignore if the device is in roaming
     if (!_automaticUpdatesAllowed()) {

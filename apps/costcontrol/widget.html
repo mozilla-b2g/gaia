@@ -11,22 +11,18 @@
 
   <!-- Specific code -->
   <script type="text/javascript" src="shared/js/settings_listener.js"></script>
+  <script type="text/javascript" src="js/debug.js"></script>
   <script type="text/javascript" src="js/service_utils.js"></script>
   <script type="text/javascript" defer src="js/widget.js"></script>
 </head>
 <body>
-  <div id="cost-control">
-<!--    <button id="cost-control-topup"></button> -->
-    <button id="cost-control-credit-area">
-      <div>
-        <p><span id="cost-control-currency"></span><span id="cost-control-credit"></span></p>
-        <p id="cost-control-time"><time></time></p>
-      </div>
-      <div>
-        <img id="cost-control-update-icon" src="/style/images/ico-reload.png"/>
-      </div>
-    </button>
-  </div>
+  <section id="cost-control" class="updating">
+    <div id="cost-control-icon"></div>
+    <div>
+      <p><span id="cost-control-currency"></span><span id="cost-control-credit"></span></p>
+      <p><time id="cost-control-time"></time></p>
+    </div>
+  </section>
 </body>
 </html>
 

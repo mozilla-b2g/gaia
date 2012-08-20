@@ -3,18 +3,22 @@
 
 'use strict';
 
+// Retrieve CostControl service
 var CostControl = getService(function cc_onServiceReady(evt) {
   // If the service is not ready, when ready it sets the CostControl object
   // again and setup the application.
   CostControl = evt.detail.service;
   setupApp();
 });
-
-// If the service is already initialized, just setup the widget
 if (CostControl)
   setupApp();
 
+// Cost Control application is in charge of offer detailed information
+// about cost control and data ussage. At the same time it allows the user
+// to configure some aspects about consumption limits and monitoring.
 function setupApp() {
+
+  // To highlight missed translations
   var _ = function cc_fallbackTranslation(keystring) {
     var r = navigator.mozL10n.get.apply(this, arguments);
     return r || '!!' + keystring;
@@ -29,9 +33,7 @@ function setupApp() {
 
   // On balance updating error, if manual request, notificate
   function _onUpdateBalanceError(evt) {
-    if (!isManualRequest)
-      return;
-
+    _setUpdatingMode(false);
     switch(evt.detail.reason) {
       case 'sending-error':
         alert(_('cannot-check-balance'));
@@ -58,7 +60,7 @@ function setupApp() {
 
   // When starting a top up, change to the waiting screen
   function _onTopUpStart() {
-    console.log('TODO: Change screen to waiting screen, wait 10s and return to the balance.');
+    debug('TODO: Change screen to waiting screen, wait 10s and return to the balance.');
   }
 
   function _onTopUpFinish() {
@@ -69,11 +71,11 @@ function setupApp() {
   function _onTopUpError(evt) {
     switch(evt.detail.reason) {
       case 'sending-error':
-        console.log('TODO: Error message, we cannot top up at the moment.');
+        debug('TODO: Error message, we cannot top up at the moment.');
         break;
 
       case 'incorrect-code':
-        console.log('TODO: Change the top up screen and notificate!');
+        debug('TODO: Change the top up screen and notificate!');
         break;
     }
   }
@@ -84,12 +86,12 @@ function setupApp() {
 
     var status = CostControl.getServiceStatus();
     if (status.detail === 'no-coverage') {
-      console.log('TODO: No coverage, open an alert and avoid to continue');
+      debug('TODO: No coverage, open an alert and avoid to continue');
       return;
     }
 
     _setUpdatingMode(true);
-    console.log('Update balance!');
+    debug('Update balance!');
 
     CostControl.requestBalance();
   }
@@ -104,7 +106,7 @@ function setupApp() {
     _buttonRequestTopUp.addEventListener('click', function cc_requestTopUp() {
       var status = CostControl.getServiceStatus();
       if (status.detail === 'no-coverage') {
-        console.log('TODO: No coverage, open an alert and avoid to continue');
+        debug('TODO: No coverage, open an alert and avoid to continue');
         return;
       }
 
@@ -121,7 +123,7 @@ function setupApp() {
     _buttonTopUp = document.getElementById('buttonTopUp');
     _buttonTopUp.addEventListener('click', function cc_onTopUp() {
 
-      console.log('TopUp!');
+      debug('TopUp!');
       // Strip
       var code = _inputTopUpCode.value
         .replace(/^\s+/, '').replace(/\s+$/, '');
@@ -129,7 +131,7 @@ function setupApp() {
       if (!code)
         return;
 
-      console.log('topping up with code: ' + code);
+      debug('topping up with code: ' + code);
       CostControl.requestTopUp(code);
     });
   }
