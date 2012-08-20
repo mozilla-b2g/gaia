@@ -758,7 +758,7 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
-    if (callback instanceof Function) {
+    if (callback && callback instanceof Function) {
       callback();
     }
   },
@@ -980,7 +980,7 @@ var ThreadUI = {
           } else {
             // Append to DOM
             message.showAnimation = true;
-            ThreadUI.appendMessage(message, function rd_asd() {
+            ThreadUI.appendMessage(message, function() {
               // Retrieve the last message added to DOM
               var root = document.getElementById(message.timestamp.getTime());
               // Create function for resending
