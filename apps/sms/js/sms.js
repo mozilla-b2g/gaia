@@ -759,7 +759,6 @@ var ThreadUI = {
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
     if (callback instanceof Function) {
-      // alert(callback);
       callback();
     }
   },
