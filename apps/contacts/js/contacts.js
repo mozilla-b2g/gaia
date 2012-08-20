@@ -588,6 +588,7 @@ var Contacts = (function() {
         title: _('remove'),
         callback: function onAccept() {
           deleteContact(currentContact);
+          Permissions.hide();
         }
       };
 
