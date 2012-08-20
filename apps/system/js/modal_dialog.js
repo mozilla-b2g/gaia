@@ -21,7 +21,8 @@ var ModalDialog = {
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'authentication', 'username-input', 'password-input',
-      'authentication-message', 'buttons'];
+      'authentication-message', 'buttons',
+      'error', 'error-close', 'error-reload'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -51,6 +52,7 @@ var ModalDialog = {
 
     // Bind events
     window.addEventListener('mozbrowsershowmodalprompt', this);
+    window.addEventListener('mozbrowsererror', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('resize', this);
@@ -66,6 +68,7 @@ var ModalDialog = {
   handleEvent: function md_handleEvent(evt) {
     var elements = this.elements;
     switch (evt.type) {
+      case 'mozbrowsererror':
       case 'mozbrowsershowmodalprompt':
         if (evt.target.dataset.frameType != 'window')
           return;
@@ -81,7 +84,14 @@ var ModalDialog = {
         break;
 
       case 'click':
-        if (evt.currentTarget === elements.confirmCancel ||
+        if (evt.currentTarget === elements.errorClose) {
+          this.cancelHandler();
+          WindowManager.kill(this.currentOrigin);
+        } else if (evt.currentTarget === elements.errorReload) {
+          this.cancelHandler();
+          WindowManager.kill(this.currentOrigin);
+          WindowManager.launch(this.currentOrigin);
+        } else if (evt.currentTarget === elements.confirmCancel ||
             evt.currentTarget === elements.promptCancel) {
           this.cancelHandler();
         } else {
@@ -157,10 +167,14 @@ var ModalDialog = {
         var _ = navigator.mozL10n.get;
         message = _('http-authentication-message', l10nArgs);
         elements.authenticationMessage.innerHTML = message;
+
+      // Error
+      case 'error':
+        elements.error.classList.add('visible');
       break;
     }
 
-    this.elements.buttons.dataset.type = evt.detail.promptType;
+    this.elements.buttons.dataset.type = evt.detail.promptType || 'error';
     this.setHeight();
   },
 
@@ -205,13 +219,17 @@ var ModalDialog = {
         };
         elements.authentication.classList.remove('visible');
         break;
+
+      case 'error':
+        elements.error.classList.remove('visible');
+        break;
     }
 
     if (evt.isPseudo && evt.callback) {
       evt.callback(evt.detail.returnValue);
     }
 
-    if (!evt.isPseudo)
+    if (!evt.isPseudo && evt.detail.unblock)
       evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
@@ -245,13 +263,17 @@ var ModalDialog = {
         evt.detail.returnValue = { ok: false };
         elements.authentication.classList.remove('visible');
         break;
+
+      case 'error':
+        elements.error.classList.remove('visible');
+        break;
     }
 
     if (evt.isPseudo && evt.callback) {
       evt.callback(evt.detail.returnValue);
     }
 
-    if (!evt.isPseudo)
+    if (!evt.isPseudo && evt.detail.unblock)
       evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
