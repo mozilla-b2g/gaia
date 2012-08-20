@@ -413,7 +413,7 @@ var Contacts = (function() {
       var telField = {
         value: currentTel.value || '',
         type: currentTel.type || TAG_OPTIONS['phone-type'][0].value,
-        notes: '',
+        carrier: currentTel.carrier || '',
         i: tel
       };
       var template = utils.templates.render(phonesTemplate, telField);
@@ -521,7 +521,7 @@ var Contacts = (function() {
       var telField = {
         value: currentTel.value,
         type: currentTel.type || default_type,
-        notes: '',
+        carrier: currentTel.carrier || '',
         i: tel
       };
 
@@ -928,12 +928,12 @@ var Contacts = (function() {
 
       var selector = 'tel_type_' + arrayIndex;
       var typeField = document.getElementById(selector).textContent || '';
-      var notes = document.getElementById('notes_' + arrayIndex).value || '';
+      var carrierField = document.getElementById('carrier_' + arrayIndex).value || '';
       contact['tel'] = contact['tel'] || [];
-      // TODO: Save notes
       contact['tel'][i] = {
         value: numberValue,
-        type: typeField
+        type: typeField,
+        carrier: carrierField
       };
     }
   };
@@ -1015,7 +1015,7 @@ var Contacts = (function() {
     var telField = {
       value: phone || '',
       type: TAG_OPTIONS['phone-type'][0].value,
-      notes: '',
+      carrier: '',
       i: numberPhones || 0
     };
     var template = utils.templates.render(phoneTemplate, telField);
