@@ -584,11 +584,22 @@ var Contacts = (function() {
 
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = _('deleteConfirmMsg');
-      Permissions.show('', msg, function onAccept() {
-        deleteContact(currentContact);
-      },function onCancel() {
-        Permissions.hide();
-      });
+      var yesObject = {
+        title: _('remove'),
+        callback: function onAccept() {
+          deleteContact(currentContact);
+          Permissions.hide();
+        }
+      };
+
+      var noObject = {
+        title: _('cancel'),
+        callback: function onCancel() {
+          Permissions.hide();
+        }
+      };
+
+      Permissions.show(null, msg, yesObject, noObject);
     };
 
     edit();
