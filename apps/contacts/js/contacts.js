@@ -329,14 +329,35 @@ var Contacts = (function() {
       var request = navigator.mozContacts.find(options);
       request.onsuccess = function findCallback() {
         currentContact = request.result[0];
-        var onlyOneTel = currentContact.tel && currentContact.tel.length === 1;
-        if (ActivityHandler.currentlyHandling && onlyOneTel) {
+        var numOfPhoneNums = currentContact.tel.length;
+        var onlyOneTel = currentContact.tel && numOfPhoneNums === 1;
+
+        // If no phone number
+        if (ActivityHandler.currentlyHandling && !numOfPhoneNums) {
+          alert('No phone number saved!');
+        } else if (ActivityHandler.currentlyHandling && onlyOneTel) {
+          // if One phone number
           var number = currentContact.tel[0].value;
           ActivityHandler.postPickSuccess(number);
           return;
+        } else if (ActivityHandler.currentlyHandling && 1 < numOfPhoneNums) {
+          // if more than one phone number
+          var prompt1 = new ValueSelector(_('select_mobile'));
+          var numbers = currentContact.tel;
+          for (var key in numbers) {
+            var number = numbers[key].value;
+            prompt1.addToList(number + '', function() {
+                prompt1.hide();
+                ActivityHandler.postPickSuccess(number);
+                return;
+            });
+
+          }
+          prompt1.show();
+        } else {
+          reloadContactDetails();
+          navigation.go('view-contact-details', 'right-left');
         }
-        reloadContactDetails();
-        navigation.go('view-contact-details', 'right-left');
       };
     });
   }
