@@ -79,14 +79,22 @@
         </div>
      </section>
 
-  <script  src="js/utilities/templates.js"></script>
-  <script  src="js/fb/fb_utils.js"></script>
-  <script  src="js/fb/fb_oauth.js"></script>
-  <script  src="oauth2/js/fbint_auth.js"></script>
-  <script  src="js/fb/fb_data.js"></script>
-  <script  src="js/fb/fb_contact.js"></script>
-  <script  src="js/fb/fb_import.js"></script>
-  <script  defer src="js/fb/fb_link.js"></script>
+    <script  src="js/utilities/templates.js"></script>
+    <script  src="js/fb/fb_utils.js"></script>
+    <script  src="oauth2/js/fbint_auth.js"></script>
+    <script  src="js/fb/fb_oauth.js"></script>
+    <script  src="js/fb/fb_data.js"></script>
+    <script  src="js/fb/fb_contact.js"></script>
+    <script  src="js/fb/fb_import.js"></script>
+    <script  src="js/fb/fb_link.js"></script>
 
+    <script>
+      var cid = window.location.search.substring(fb.link.CID_PARAM.length + 2);
+
+       // Module fb.contacts is initialized just in case we need it
+      fb.contacts.init(function() {
+         fb.link.getProposal(cid);
+      });
+    </script>
   </body>
 </html>

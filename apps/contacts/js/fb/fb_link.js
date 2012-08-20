@@ -3,10 +3,10 @@ var fb = window.fb || {};
 if(!fb.link) {
   (function(document) {
     // parameter id for the linking contact
-    var CID_PARAM = 'contactid';
-
     var link = fb.link = {};
     var UI = link.ui = {};
+
+    link.CID_PARAM = 'contactid';
 
     // Contact id that the user wants to be linked to
     var contactid;
@@ -41,7 +41,7 @@ if(!fb.link) {
     ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me()) ',
     ' ORDER BY name'];
 
-    var friendsList = document.querySelector('#friends-list');
+    var friendsList;
     var viewButton = document.querySelector('#view-all');
 
     var currentRecommendation = null;
@@ -208,7 +208,7 @@ if(!fb.link) {
     // Obtains a linking proposal to be shown to the user
     link.getProposal = function (cid) {
       contactid = cid;
-      clearList();
+
       window.console.log('OWDError: Get Proposal called!!');
       fb.oauth.getAccessToken(tokenReady,'proposal');
     }
@@ -252,6 +252,9 @@ if(!fb.link) {
      *
      */
     function clearList() {
+      if(!friendsList) {
+        friendsList = document.querySelector('#friends-list');
+      }
       var template = friendsList.querySelector('[data-template]');
 
       friendsList.innerHTML = '';
@@ -340,13 +343,6 @@ if(!fb.link) {
       clearList();
       utils.templates.append(friendsList,currentRecommendation);
     }
-
-    var cid = window.location.search.substring(CID_PARAM.length + 2);
-
-     // Module fb.contacts is initialized just in case we need it
-    fb.contacts.init(function() {
-       fb.link.getProposal(cid);
-    });
 
   })(document);
 }
