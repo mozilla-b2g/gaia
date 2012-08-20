@@ -177,19 +177,13 @@ setService(function() {
     window.dispatchEvent(event);
   }
 
-  // Return true if the device is in roaming
-  function _inRoaming() {
-    var conn = window.navigator.mozMobileConnection;
-    var voice = conn.voice;
-    return voice.roaming;
-  }
-
   // Handle the events that triggers automatic balance updates
   function _automaticCheck(evt) {
     console.log('Event listened: ' + evt.type);
 
     // Ignore if the device is in roaming
-    if (_inRoaming()) {
+    var service = _getServiceStatus();
+    if (service.roaming) {
       console.warn('Device in roaming, no automatic updates allowed');
       return;
     }
@@ -208,7 +202,6 @@ setService(function() {
           _updateBalance();
 
         break;
-
     }
   }
 
@@ -336,6 +329,14 @@ setService(function() {
       return;
     }
 
+    // Error if system is not available
+    var status = _getServiceStatus();
+    if (!status.availability) {
+      _dispatchEvent(_getEventName(STATE_CHECKING, 'error'),
+        { reason: 'service-unavailable-' +  status.detail });
+      return;
+    }
+
     // Send the request SMS
     var request = _sms.send(
       _settings.CHECK_BALANCE_DESTINATION,
@@ -347,7 +348,7 @@ setService(function() {
     }
 
     request.onerror = function cc_onRequestError() {
-      _dispatchEvent('costcontrolbalanceupdateerror', 
+      _dispatchEvent(_getEventName(STATE_CHECKING, 'error'),
         { reason: 'sending-error' });
     };
   }
@@ -361,38 +362,37 @@ setService(function() {
     // Compose topup message and send
     var messageBody = _settings.TOP_UP_TEXT.replace('&code', code);
     var request = _sms.send(_settings.TOP_UP_DESTINATION, messageBody);
+
     request.onsuccess = function cc_onSuccessSendingTopup() {
       _startWaiting(STATE_TOPPING_UP);
     }
 
     request.onerror = function cc_onErrorSendingTopup() {
-      _dispatchEvent('costcontroltopuperror', 
+      _dispatchEvent(_getEventName(STATE_TOPPING_UP, 'error'),
         { reason: 'sending-error' });
     }
   }
 
-  // Register callbacks to invoke while updating balance
-  function _setBalanceCallbacks(callbacks) {
+  function _bindCallbacks(state, callbacks) {
     var onsuccess = callbacks.onsuccess || null;
     var onerror = callbacks.onerror || null;
     var onstart = callbacks.onstart || null;
     var onfinish = callbacks.onfinish || null;
-    window.addEventListener('costcontrolbalanceupdatesuccess', onsuccess);
-    window.addEventListener('costcontrolbalanceupdateerror', onerror);
-    window.addEventListener('costcontrolbalanceupdatestart', onstart);
-    window.addEventListener('costcontrolbalanceupdatefinish', onfinish);
+
+    window.addEventListener(_getEventName(state, 'succsess'), onsuccess);
+    window.addEventListener(_getEventName(state, 'error'), onerror);
+    window.addEventListener(_getEventName(state, 'start'), onstart);
+    window.addEventListener(_getEventName(state, 'finish'), onfinish);
+  }
+
+  // Register callbacks to invoke while updating balance
+  function _setBalanceCallbacks(callbacks) {
+    _bindCallbacks(STATE_CHECKING, callbacks);
   }
 
   // Register callbacks to invoke while topping up
   function _setTopUpCallbacks(callbacks) {
-    var onsuccess = callbacks.onsuccess || null;
-    var onerror = callbacks.onerror || null;
-    var onstart = callbacks.onstart || null;
-    var onfinish = callbacks.onfinish || null;
-    window.addEventListener('costcontroltopupsuccess', onsuccess);
-    window.addEventListener('costcontroltopuperror', onerror);
-    window.addEventListener('costcontroltopupstart', onstart);
-    window.addEventListener('costcontroltopupfinish', onfinish);
+    _bindCallbacks(STATE_TOPPING_UP, callbacks);
   }
 
   // Returns stored balance
@@ -402,33 +402,54 @@ setService(function() {
     return balance;
   }
 
-  // Return true or false if we can ensure we are in roaming or not.
-  // If we cannot guarantee (i.e. carrier has not been detected yet)
-  // it returns null
-  function _inRoaming() {
+  // Return a status object with three fields:
+  //  - 'availability': true or false if the Cost Control module can
+  //    properly work.
+  //  - 'roaming': if availability is true, roaming can be true or false
+  //  - 'detail': if availability is false, this value try to explain why
+  //     and can be:
+  //      'no-mobile-connection-api' -> if MobileConnection API is not available
+  //      'missed-apis-voice-or-data' -> voice or data interfaces are not
+  //      available
+  //      'no-coverage' -> if there is no coverage
+  //      'missconfigured' -> if some essential configuration parameter is
+  //      missed or unproperly set
+  //      'carrier-unknown' -> if we cannot detect the carrier
+  function _getServiceStatus() {
+    var status = { availability: false, roaming: null, detail: null };
+
     var conn = navigator.mozMobileConnection;
-    if (!conn)
-      return null;
+    if (!conn) {
+      status.detail = 'no-mobile-connection-api';
+      return status;
+    }
 
     var voice = conn.voice;
     var data = conn.data;
-    if (!voice || !data)
-      return null;
+    if (!voice || !data) {
+      status.detail = 'missed-apis-voice-or-data';
+      return status;
+    }
 
-    return data.network.shortName ? voice.roaming : null;
-  }
+    if (voice.signalStrength === null) {
+      status.detail = 'no-coverage';
+      return status;
+    }
 
-  // Return true if we have coverage
-  function _inCoverage() {
-    var conn = navigator.mozMobileConnection;
-    if (!conn)
-      return false;
+    if (!_checkConfiguration()) {
+      status.detail = 'missconfigured';
+      return status;
+    }
 
-    var voice = conn.voice;
-    if (!voice)
-      return false;
+    if (!data.network.shortName) {
+      status.detail = 'carrier-unknown';
+      return status;
+    }
 
-    return voice.signalStrength !== null;
+    // All Ok
+    status.availability = true;
+    status.roaming = voice.roaming;
+    return status;
   }
 
   return {
@@ -438,8 +459,7 @@ setService(function() {
     requestBalance: _updateBalance,
     requestTopUp: _toUp,
     getLastBalance: _getLastBalance,
-    inRoaming: _inRoaming,
-    inCoverage: _inCoverage,
+    getServiceStatus: _getServiceStatus,
     getRequestBalanceMaxDelay: function cc_getRequestBalanceMaxDelay() {
       return REQUEST_BALANCE_MAX_DELAY;
     }

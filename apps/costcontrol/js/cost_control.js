@@ -82,6 +82,12 @@ function setupApp() {
     if (_isUpdating)
       return;
 
+    var status = CostControl.getServiceStatus();
+    if (status.detail === 'no-coverage') {
+      console.log('TODO: No coverage, open an alert and avoid to continue');
+      return;
+    }
+
     _setUpdatingMode(true);
     console.log('Update balance!');
 
@@ -96,7 +102,8 @@ function setupApp() {
 
     _buttonRequestTopUp = document.getElementById('buttonRequestTopUp');
     _buttonRequestTopUp.addEventListener('click', function cc_requestTopUp() {
-      if (!CostControl.inCoverage()) {
+      var status = CostControl.getServiceStatus();
+      if (status.detail === 'no-coverage') {
         console.log('TODO: No coverage, open an alert and avoid to continue');
         return;
       }

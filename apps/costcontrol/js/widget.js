@@ -31,7 +31,8 @@ function setupWidget() {
   var _isUpdating = false;
 
   function _automaticUpdatesAllowed() {
-    return CostControl.inRoaming() === false;
+    var status = CostControl.getServiceStatus();
+    return status.availability && !status.roaming;
   }
 
   // Attach event listeners for automatic updates:
