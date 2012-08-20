@@ -234,7 +234,7 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    if (!evt.isPseudo && evt.detail.unblock)
+    if (evt.detail.unblock)
       evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
@@ -278,7 +278,7 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    if (!evt.isPseudo && evt.detail.unblock)
+    if (evt.detail.unblock)
       evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
