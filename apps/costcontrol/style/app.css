@@ -49,6 +49,18 @@ form {
   -moz-transform: translateY(100%);
 }
 
+.view[data-viewport="top"] {
+  -moz-transform: translateY(-100%);
+}
+
+.view[data-viewport="left"] {
+  -moz-transform: translateX(-100%);
+}
+
+.view[data-viewport="right"] {
+  -moz-transform: translateX(100%);
+}
+
 
 /* BB FILTER */
 body[role="application"] ul.filter[role="tablist"][data-position=bottom] {
