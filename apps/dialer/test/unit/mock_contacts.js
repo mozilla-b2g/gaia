@@ -4,11 +4,11 @@ var MockContacts = {
     this.mPhoto = 'test';
     this.mName = 'test name';
     callback({
-    	name: [this.mName],
-    	tel: [{
-    		value: this.mCalledWith
-    	}],
-    	photo: [this.mPhoto]
+      name: [this.mName],
+      tel: [{
+        value: this.mCalledWith
+      }],
+      photo: [this.mPhoto]
     });
   },
   mPhoto: null,
