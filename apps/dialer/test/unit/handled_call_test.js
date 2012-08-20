@@ -81,8 +81,8 @@ suite('dialer/handled_call', function() {
       assert.equal(subject._ticker, null);
     });
 
-    test('picture', function() {
-      assert.equal(subject.picture, null);
+    test('photo', function() {
+      assert.equal(subject.photo, MockContacts.mPhoto);
     });
 
     test('call', function() {
@@ -135,6 +135,10 @@ suite('dialer/handled_call', function() {
 
     test('sync speaker', function() {
       assert.isTrue(MockCallScreen.mSyncSpeakerCalled);
+    });
+
+    test('photo displaying', function() {
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
   });
 
