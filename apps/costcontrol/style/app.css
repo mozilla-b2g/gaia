@@ -5,6 +5,10 @@
   padding: 0;
 }
 
+a:active {
+  outline: none;
+}
+
 html {
   font-size: 10px;
   font-family: 'Open Sans', sans-serif;
@@ -30,7 +34,6 @@ body {
   overflow-x: auto;  
   -moz-transition: -moz-transform 0.3s ease;
 }
-
 
 /* VIEWPORTS */
 .view[data-viewport="bottom"] {
