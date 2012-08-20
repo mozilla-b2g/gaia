@@ -50,7 +50,7 @@ var Permissions = (function() {
         var info = document.createElement('div');
         info.className = 'center';
 
-        if (!title || title != '') {
+        if (title && title != '') {
           header = document.createElement('h3');
           header.id = 'permission-title';
           header.textContent = title;
