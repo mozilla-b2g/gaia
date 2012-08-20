@@ -25,7 +25,8 @@
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt,
-#modal-dialog-authentication {
+#modal-dialog-authentication,
+#modal-dialog-error {
   width: 100%;
   color: white;
   border-radius: 6px 6px 6px 6px;
@@ -127,7 +128,8 @@
 #modal-dialog-alert.visible,
 #modal-dialog-confirm.visible,
 #modal-dialog-prompt.visible,
-#modal-dialog-authentication.visible {
+#modal-dialog-authentication.visible,
+#modal-dialog-error.visible {
   display: block;
 }
 
@@ -141,31 +143,15 @@
   padding: 0 1em;
 }
 
-#modal-dialog-buttons[data-type="alert"] #modal-dialog-alert-ok {
-  display: inline-block;
-}
-
-#modal-dialog-buttons[data-type="prompt"] #modal-dialog-prompt-ok {
-  display: inline-block;
-}
-
-#modal-dialog-buttons[data-type="prompt"] #modal-dialog-prompt-cancel {
-  display: inline-block;
-}
-
-#modal-dialog-buttons[data-type="usernameandpassword"] #modal-dialog-authentication-ok {
-  display: inline-block;
-}
-
-#modal-dialog-buttons[data-type="usernameandpassword"] #modal-dialog-authentication-cancel {
-  display: inline-block;
-}
-
-#modal-dialog-buttons[data-type="confirm"] #modal-dialog-confirm-ok {
-  display: inline-block;
-}
-
-#modal-dialog-buttons[data-type="confirm"] #modal-dialog-confirm-cancel {
+#modal-dialog-buttons[data-type="alert"] #modal-dialog-alert-ok,
+#modal-dialog-buttons[data-type="prompt"] #modal-dialog-prompt-ok,
+#modal-dialog-buttons[data-type="prompt"] #modal-dialog-prompt-cancel,
+#modal-dialog-buttons[data-type="usernameandpassword"] #modal-dialog-authentication-ok,
+#modal-dialog-buttons[data-type="usernameandpassword"] #modal-dialog-authentication-cancel,
+#modal-dialog-buttons[data-type="confirm"] #modal-dialog-confirm-ok,
+#modal-dialog-buttons[data-type="confirm"] #modal-dialog-confirm-cancel,
+#modal-dialog-buttons[data-type="error"] #modal-dialog-error-back,
+#modal-dialog-buttons[data-type="error"] #modal-dialog-error-reload {
   display: inline-block;
 }
 
