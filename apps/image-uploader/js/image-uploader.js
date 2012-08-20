@@ -45,6 +45,96 @@ function uploadCanardPc(source, callback) {
   xhr.send(picture);
 }
 
+function uploadTwitter(source, callback) {
+  var twmsg = document.getElementById("twitter-message");
+  var url = "https://upload.twitter.com/1/statuses/update_with_media.json";
+
+  if (twmsg == undefined) {
+    alert("No Twitter message");
+    unlock();
+    return;
+  }
+
+  var twstatus = twmsg.value;
+  if (twstatus == undefined || twstatus == "") {
+    alert("No status, cannot send tweet.");
+    unlock();
+    return;
+  }
+
+  if (twstatus.length > 140) {
+    alert("Tweet is too long (" + twstatus.length + "), maximum is 140.");
+    unlock();
+    return;
+  }
+
+  var accessor = {
+    token: "",
+    tokenSecret: "",
+    consumerKey : "wNJ9YztlCeboNx8cyfHliA",
+    consumerSecret: "LH9tN8IbhRINsCRJlAQqNM479fGp6SDtNfxoKZKLBFA"
+  };
+
+  var message = {
+    action: url,
+    method: "POST",
+    parameters: {
+      include_entities: true,
+      status: twstatus
+    }
+  };
+
+  OAuth.completeRequest(message, accessor);
+  OAuth.SignatureMethod.sign(message, accessor);
+  url = url + '?' + OAuth.formEncode(message.parameters);
+
+  console.log("Twitter API URL:", url);
+
+  var picture = new FormData();
+  picture.append('media', source);
+
+  var xhr = new XMLHttpRequest({mozSystem: true});
+  xhr.open("POST", url, true);
+  xhr.upload.addEventListener("progress", function(e) {
+    if (e.lengthComputable) {
+      setProgress(e.loaded, e.total);
+    }
+  }, false);
+  xhr.upload.addEventListener("load", function(e) {
+      setProgress(e.loaded, e.total);
+  }, false);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == XMLHttpRequest.DONE) {
+      console.log("Got reply from Twitter");
+      var json = JSON.parse(xhr.responseText);
+      var id_str = json.entities.media[0].id_str;
+      var ex_url = json.entities.media[0].expanded_url;
+      setStatus("Uploaded successfully: " + id_str);
+      callback(ex_url);
+      unlock();
+    }
+  };
+  xhr.send(picture);
+}
+
+function finalize(url) {
+  var zoneResults = document.getElementById("link");
+  if (zoneResults) {
+    var link = document.createElement('a');
+    link.href = url;
+    link.textContent = "Link to uploaded";
+    zoneResults.appendChild(link);
+  }
+
+  new MozActivity({
+    name: 'view',
+    data: {
+      type: 'url',
+      url: url
+    }
+  });
+}
+
 function addImages(filenames) {
   var storage = navigator.getDeviceStorage('pictures');
   filenames.forEach(function(filename) {
@@ -74,24 +164,6 @@ function getSelectedServices() {
   return selectedServices;
 }
 
-function finalize(url) {
-  var zoneResults = document.getElementById("link");
-  if (zoneResults) {
-    var link = document.createElement('a');
-    link.href = url;
-    link.textContent = "Link to uploaded";
-    zoneResults.appendChild(link);
-  }
-
-  new MozActivity({
-    name: 'view',
-    data: {
-      type: 'url',
-      url: url
-    }
-  });
-}
-
 function share() {
   var services = getSelectedServices();
   if (services.length > 0) {
@@ -106,6 +178,9 @@ function share() {
 	  switch (serv) {
             case "upload-canardpc":
 	      uploadCanardPc(img, finalize);
+	      break;
+            case "upload-twitter":
+	      uploadTwitter(img, finalize);
 	      break;
 	  }
 	}
