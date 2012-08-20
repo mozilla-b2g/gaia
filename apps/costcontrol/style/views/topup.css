@@ -3,6 +3,14 @@
   bottom: 0;
 }
 
+.view.topup form {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+
 .view.topup .content .info {
   text-align: center;
 }
