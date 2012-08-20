@@ -84,8 +84,9 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     if (contact && contact.name) {
       node.textContent = contact.name;
 
-      if (contact.photo) {
-        self.photo = contact.photo;
+      if (contact.photo && contact.photo.length > 0) {
+        var photoURL = URL.createObjectURL(contact.photo[0]);
+        self.photo = photoURL;
         CallScreen.setCallerContactImage(self.photo);
       }
       return;
