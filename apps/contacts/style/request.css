@@ -5,6 +5,7 @@ body[role="application"] [role="dialog"]:before {
   vertical-align: middle;
   width: 1px;
 }
+
 body[role="application"] [role="dialog"] {
   background-attachment: scroll, scroll;
   background-clip: border-box, border-box;
