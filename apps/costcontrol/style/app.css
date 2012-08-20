@@ -22,6 +22,7 @@ form {
   padding: 1.5rem;
   background: #49525c;
 }
+
 [aria-hidden="true"] { visibility: hidden; }
 
 /* WINDOW & VIEWS */
@@ -106,6 +107,11 @@ section.content .overview time {
 
 
 /* TOPUP VIEW */
+.view.topup {
+  bottom: 0;
+  z-index: 1;
+}
+
 .view.topup .content .info {
   text-align: center;
 }
