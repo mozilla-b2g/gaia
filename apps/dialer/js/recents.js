@@ -215,6 +215,7 @@ var Recents = {
       if (this._allViewGroupingPending) {
         this.groupCallsInCallLog();
         this._allViewGroupingPending = false;
+        this._missedViewGroupingPending = false;
       }
     } else {
       for (i = 0; i < noMissedCallsLength; i++) {
@@ -248,6 +249,10 @@ var Recents = {
             this.deleteSelectedThreads.classList.remove('disabled');
           }
         }
+      }
+      if (this._missedViewGroupingPending) {
+        this.groupCallsInCallLog();
+        this._missedViewGroupingPending = false;
       }
     }
     this.allFilter.classList.toggle('selected');
@@ -319,8 +324,10 @@ var Recents = {
   },
 
   deleteSelected: function re_deleteSelected() {
-    var selected = this.recentsContainer.querySelectorAll('.log-item.selected');
-    for (var i = 0; i < selected.length; i++) {
+    var itemSelector = '.log-item.selected';
+    var selected = this.recentsContainer.querySelectorAll(itemSelector);
+    var length = selected.length;
+    for (var i = 0; i < length; i++) {
       selected[i].classList.add('hide');
     }
   },
@@ -442,7 +449,6 @@ var Recents = {
       if (this._selectedEntriesCounter == 0) {
         this.headerEditModeText.textContent = _('edit');
         this.deleteSelectedThreads.classList.add('disabled');
-
       } else {
         var count = this._selectedEntriesCounter;
         this.headerEditModeText.textContent = _('edit-selected',
@@ -538,6 +544,9 @@ var Recents = {
 
       self.updateContactDetails();
 
+      var theEvent = new Object();
+      self._allViewGroupingPending = true;
+      self._missedViewGroupingPending = true;
       if (self.missedFilter.classList.contains('selected')) {
         self.missedFilter.classList.remove('selected');
         var theEvent = new Object();
@@ -545,7 +554,12 @@ var Recents = {
         self.filter(theEvent);
         self.missedFilter.classList.add('selected');
         self.allFilter.classList.remove('selected');
-        self._allViewGroupingPending = true;
+      } else {
+        self.allFilter.classList.remove('selected');
+        theEvent.target = self.allFilter;
+        self.filter(theEvent);
+        self.allFilter.classList.add('selected');
+        self.missedFilter.classList.remove('selected');
       }
 
     });
