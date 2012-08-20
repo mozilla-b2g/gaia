@@ -204,7 +204,10 @@ var OnCallHandler = {
   },
 
   answer: function ch_answer() {
-    // We always have only 1 call here
+    // We should always have only 1 call here
+    if (!this.handledCalls.length)
+      return;
+
     this.handledCalls[0].call.answer();
     CallScreen.render('connected');
   },
