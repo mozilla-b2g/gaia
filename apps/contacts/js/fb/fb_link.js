@@ -39,6 +39,13 @@ if(!fb.link) {
     ' ORDER BY name'];
 
     var friendsList = document.querySelector('#friends-list');
+    var viewButton = document.querySelector('#view-all');
+
+    var currentRecommendation = null;
+    var allFriends = null;
+
+    // Module fb.contacts is initialized just in case we need it
+    fb.contacts.init();
 
     // Builds the first query for finding a contact to be linked to
     function buildQuery(contact) {
@@ -130,6 +137,7 @@ if(!fb.link) {
           cdata = req.result;
           window.console.log('OWDError: Contact data', cdata.id);
           numQueries = 1;
+          currentRecommendation = null;
           doGetRemoteProposal(access_token, cdata,buildQuery(cdata));
         }
         else {
@@ -168,7 +176,7 @@ if(!fb.link) {
 
     // Obtains a proposal from the already imported contact list
     function getLocalProposal(contact) {
-      var fields = ['givenName','familyName','email','tel'];
+
 
       var filterCandidates = {
         filterBy: ['category'],
@@ -216,6 +224,7 @@ if(!fb.link) {
       }
       else {
         var data = response.data;
+        currentRecommendation = data;
 
         data.forEach(function(item) {
           if(!item.email) {
@@ -248,6 +257,11 @@ if(!fb.link) {
 
     link.friendsReady = function (response) {
       if(typeof response.error === 'undefined') {
+        viewButton.textContent = 'View Only Recommended';
+        viewButton.onclick = UI.viewRecommended;
+
+        allFriends = response;
+
         response.data.forEach(function(item) {
             if(!item.email) {
               item.email = '';
@@ -269,16 +283,58 @@ if(!fb.link) {
 
     UI.selected = function(event) {
       var element = event.target;
-      window.console.log('OWDError: ',element.dataset.uuid);
+      var friendUid = element.dataset.uuid;
+
+      // First it is needed to check whether is an already imported friend
+      var req = fb.contacts.get(friendUid);
+      req.onsuccess = function() {
+        if(req.result) {
+          notifyParent(friendUid);
+        }
+        else {
+          var importReq = fb.importt.importFriend(friendUid,access_token);
+          document.body.dataset.state = 'waiting';
+
+          importReq.onsuccess = function() {
+            document.body.dataset.state = 'selection';
+            notifyParent(friendUid);
+          }
+
+          importReq.onerror = function() {
+            window.console.error('FB: Error while importing friend data');
+            document.body.dataset.state = 'selection';
+          }
+        }
+      }
+      req.onerror = function() {
+        window.console.error('FB: Error while importing friend data');
+      }
+    }
+
+    function notifyParent(uid) {
       var msg = {};
       msg.type = 'item_selected';
-      msg.data = element.dataset.uuid;
+      msg.data = uid;
 
       parent.postMessage(msg,'*');
     }
 
     UI.viewAllFriends = function(event) {
-      getRemoteAll();
+      if(!allFriends) {
+        getRemoteAll();
+      }
+      else {
+        link.friendsReady(allFriends);
+      }
+    }
+
+    UI.viewRecommended = function(event) {
+      // event.target === viewButton
+      event.target.onclick = UI.viewAllFriends;
+      event.target.textContent = 'View All Facebook Friends';
+
+      clearList();
+      utils.templates.append(friendsList,currentRecommendation);
     }
 
   })(document);

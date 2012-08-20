@@ -308,7 +308,7 @@ fb.Contact = function(deviceContact,cid) {
 
         req.onsuccess = function() {
           devContact = req.result;
-          doLink(devContact,fbFriend,out);
+          doLink(devContact, fbFriend, out);
         } // req.onsuccess
 
         req.onerror = function() {
@@ -323,7 +323,7 @@ fb.Contact = function(deviceContact,cid) {
     return out;
   }
 
-  function doLink(contactdata,fbFriend,out) {
+  function doLink(contactdata, fbFriend, out) {
     if(contactdata) {
       if (fbFriend.uid) {
         markAsLinked(contactdata, fbFriend.uid);

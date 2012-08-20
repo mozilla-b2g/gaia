@@ -37,12 +37,14 @@ if(typeof Contacts.extFb === 'undefined') {
         var req = fbContact.linkTo(
                             {uid: uid, mozContact: originalFbContact});
 
-         req.onsuccess = function() {
-           linkProposal.hidden = true;
+        req.onsuccess = function() {
+          linkProposal.hidden = true;
 
-           contacts.List.refresh(contactid);
-           contacts.List.remove(originalFbContact.id);
-           Contacts.navigation.home();
+          contacts.List.refresh(contactid);
+          if(originalFbContact) {
+            contacts.List.remove(originalFbContact.id);
+          }
+          Contacts.navigation.home();
          }
 
          req.onerror = function() {

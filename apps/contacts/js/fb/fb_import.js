@@ -35,6 +35,8 @@ if (typeof fb.importt === 'undefined') {
 
     var contactsLoaded = false, friendsLoaded = false;
 
+    var currentRequest;
+
     // Query that retrieves the information about friends
     var FRIENDS_QUERY = [
       'SELECT uid, name, first_name, last_name,' ,
@@ -42,13 +44,16 @@ if (typeof fb.importt === 'undefined') {
       'relationship_status, significant_other_id, work,' ,
       'education, cell, other_phone, current_location' ,
       ' FROM user' ,
-      ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me())' ,
+      ' WHERE uid ',
+      'IN (SELECT uid1 FROM friend WHERE uid2=me())' ,
       ' ORDER BY last_name'
-    ].join('');
+    ];
+
+    var UID_FILTER_IDX = 6;
 
     // Query that retrieves information about the person in relationship with
     var RELATIONSHIP_QUERY = [
-      'SELECT uid,name from user WHERE uid IN' ,
+      'SELECT uid, name from user WHERE uid IN' ,
       '(select significant_other_id FROM user  WHERE uid in' ,
       '(SELECT uid1 FROM friend WHERE uid2=me()) ' ,
       'AND significant_other_id <> "")'
@@ -62,7 +67,7 @@ if (typeof fb.importt === 'undefined') {
     ].join('');
 
       // Multiquery Object
-      var multiqObj = {query1: FRIENDS_QUERY, query2: REL_MULTIQ};
+      var multiqObj = {query1: FRIENDS_QUERY.join(''), query2: REL_MULTIQ};
 
       // Multiquery String
       var multiQStr = JSON.stringify(multiqObj);
@@ -164,6 +169,55 @@ if (typeof fb.importt === 'undefined') {
       }
     }
 
+    owdFbInt.importFriend = function(uid, access_token) {
+      currentRequest = new fb.utils.Request();
+
+      window.setTimeout(function do_importFriend() {
+        var oneFriendQuery = buildFriendQuery(uid);
+
+        fb.utils.runQuery(oneFriendQuery,
+                                'fb.importt.importDataReady', access_token);
+      },0);
+
+      return currentRequest;
+    }
+
+    owdFbInt.importDataReady = function(response) {
+      if (typeof response.error === 'undefined') {
+        var friend = response.data[0].fql_result_set[0];
+        if(friend) {
+          fillData(friend);
+
+          friendsPartners =
+                      parseFriendsPartners(response.data[1].fql_result_set);
+
+          var cimp = new ContactsImporter([friend]);
+          cimp.start();
+          cimp.onsuccess = function() {
+            currentRequest.done();
+          }
+        }
+        else {
+          window.console.error('FB: No Friend data found');
+          currentRequest.failed('No friend data found');
+        }
+      }
+      else {
+        currentRequest.failed(response.error);
+      }
+    }
+
+    function buildFriendQuery(uid) {
+      var aquery1 = [];
+      aquery1 = aquery1.concat(FRIENDS_QUERY);
+      aquery1[UID_FILTER_IDX] = '= ' + uid;
+      var query1 = aquery1.join('');
+
+      var queries = {query1: query1, query2: REL_MULTIQ};
+
+      return JSON.stringify(queries);
+    }
+
     /**
      *  Creates the friends partners array for fast access to information
      *
@@ -190,31 +244,7 @@ if (typeof fb.importt === 'undefined') {
         myFriends = [];
 
         lmyFriends.forEach(function(f) {
-            // givenName is put as name but it should be f.first_name
-          f.familyName = [f.last_name];
-          f.additionalName = [f.middle_name];
-          f.givenName = [f.first_name + ' ' + f.middle_name];
-
-
-          if (f.email) {
-            f.email1 = f.email;
-            f.email = [{type: ['facebook'], address: f.email}];
-          }
-          else { f.email1 = ''; }
-
-          var nextidx = 0;
-          if (f.cell) {
-            f.cell1 = f.cell;
-            f.tel = [{type: ['facebook'], number: f.cell}];
-            nextidx = 1;
-          }
-          else { f.cell1 = ''; }
-
-          if (f.other_phone) {
-            f.tel[nextidx] = {type: ['facebook'], number: f.other_phone};
-          }
-
-          f.uid = f.uid.toString();
+          fillData(f);
 
           myFriendsByUid[f.uid] = f;
           selectableFriends[f.uid] = f;
@@ -237,6 +267,35 @@ if (typeof fb.importt === 'undefined') {
           startOAuth();
         }
       }
+    }
+
+
+    function fillData(f) {
+      // givenName is put as name but it should be f.first_name
+      f.familyName = [f.last_name];
+      f.additionalName = [f.middle_name];
+      f.givenName = [f.first_name + ' ' + f.middle_name];
+
+
+      if (f.email) {
+        f.email1 = f.email;
+        f.email = [{type: ['facebook'], address: f.email}];
+      }
+      else { f.email1 = ''; }
+
+      var nextidx = 0;
+      if (f.cell) {
+        f.cell1 = f.cell;
+        f.tel = [{type: ['facebook'], number: f.cell}];
+        nextidx = 1;
+      }
+      else { f.cell1 = ''; }
+
+      if (f.other_phone) {
+        f.tel[nextidx] = {type: ['facebook'], number: f.other_phone};
+      }
+
+      f.uid = f.uid.toString();
     }
 
 
@@ -410,7 +469,7 @@ if (typeof fb.importt === 'undefined') {
 
       var chunkSize = 10;
       var pointer = 0;
-      this.pending = contacts.length;
+      this.pending = mcontacts.length;
 
       /**
        *  Imports a slice
