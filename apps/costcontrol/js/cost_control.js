@@ -34,12 +34,14 @@ function setupApp() {
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
+    _infoArea.classList.remove('warning');
     _updateUI(evt.detail.balance, evt.detail.timestamp);
   }
 
   // On balance updating error, if manual request, notificate
   function _onUpdateBalanceError(evt) {
     _setUpdatingMode(false);
+    _infoArea.classList.add('warning');
     switch(evt.detail.reason) {
       case 'sending-error':
         alert(_('cannot-check-balance'));

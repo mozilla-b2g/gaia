@@ -146,14 +146,15 @@ section.content .overview time {
 }
 
 #cost-control-info-area.updating #cost-control-icon {
-  background-image: url('./images/app/icons/reload.png');
-  -moz-animation: cost-control-spin 1.75s infinite linear;
-  -moz-animation-delay: 0.5s;
+  background-image: url('./images/app/icons/reload.png') !important;
+  -moz-animation: cost-control-spin 1.75s infinite linear !important;
+  -moz-animation-delay: 0.5s !important;
 }
 
 /* No automatic updates allowed */
 #cost-control-info-area.warning #cost-control-icon {
   background-image: url('./images/app/icons/warning.png');
+  -moz-animation: none;
 }
 
 @-moz-keyframes cost-control-spin {
