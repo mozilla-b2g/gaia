@@ -491,10 +491,10 @@ var ThreadListUI = {
             '    <img src="">' +
             '    </div>' +
             '  </a>' +
-            '  <div class="checkbox-container">' +
+            '  <label class="checkbox-container">' +
             '   <input type="checkbox" value="' + thread.num + '">' +
             '   <span></span>' +
-            '  </div>';
+            '  </label>';
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
@@ -736,18 +736,18 @@ var ThreadUI = {
     // Adding edit options to the left side
     if (message.delivery == 'sending') {
       //Add edit options for pending
-      htmlStructure += '<span class="message-option msg-checkbox">' +
+      htmlStructure += '<label class="message-option msg-checkbox">' +
                         '  <input value="ts_' + timestamp +
                         '" type="checkbox">' +
                         '  <span></span>' +
-                      '</span>';
+                      '</label>';
     } else {
       //Add edit options
-      htmlStructure += '<span class="message-option msg-checkbox">' +
+      htmlStructure += '<label class="message-option msg-checkbox">' +
                         '  <input value="id_' + message.id +
                         '" type="checkbox">' +
                         '  <span></span>' +
-                      '</span>';
+                      '</label>';
     }
     htmlStructure += '<span class="bubble-container ' + className + '">' +
                         '<div class="bubble">' + bodyHTML + '</div>' +
