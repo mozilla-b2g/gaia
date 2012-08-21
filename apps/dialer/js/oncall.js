@@ -91,6 +91,13 @@ var CallScreen = {
         this.keypadButton.setAttribute('disabled', 'disabled');
         this.swiperWrapper.classList.add('hide');
         break;
+      case 'incoming':
+        this.answerButton.classList.remove('hide');
+        this.rejectButton.classList.remove('hide');
+        this.callToolbar.classList.remove('transparent');
+        this.keypadButton.setAttribute('disabled', 'disabled');
+        this.swiperWrapper.classList.add('hide');
+        break;
       case 'incoming-locked':
         this.answerButton.classList.add('hide');
         this.rejectButton.classList.add('hide');
