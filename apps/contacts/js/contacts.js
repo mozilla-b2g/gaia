@@ -329,8 +329,7 @@ var Contacts = (function() {
       var request = navigator.mozContacts.find(options);
       request.onsuccess = function findCallback() {
         currentContact = request.result[0];
-        var numOfPhoneNums = currentContact.tel.length;
-        var onlyOneTel = currentContact.tel && numOfPhoneNums === 1;
+        var numOfPhoneNums = currentContact.tel ? currentContact.tel.length : 0;
 
         if (!ActivityHandler.currentlyHandling) {
           reloadContactDetails();
@@ -338,30 +337,30 @@ var Contacts = (function() {
           return;
         }
 
-        // If no phone number
-        if (!numOfPhoneNums) {
-          alert('No phone number saved!');
-        }
+        switch (numOfPhoneNums) {
+          case 0:
+            // If no phone number
+            alert('No phone number saved!');
+            // TODO: replace alert with given visual | #3643
+            break;
+          case 1:
+            // if One phone number
+            var number = currentContact.tel[0].value;
+            ActivityHandler.postPickSuccess(number);
+            break;
+          default:
+            // if more than one phone number
+            var prompt1 = new ValueSelector(_('select_mobile'));
+            var numbers = currentContact.tel;
+            for (var key in numbers) {
+              var number = numbers[key].value;
+              prompt1.addToList(number + '', function() {
+                  prompt1.hide();
+                  ActivityHandler.postPickSuccess(number);
+              });
 
-        // if One phone number
-        if (onlyOneTel) {
-          var number = currentContact.tel[0].value;
-          ActivityHandler.postPickSuccess(number);
-        }
-
-        // if more than one phone number
-        if (1 < numOfPhoneNums) {
-          var prompt1 = new ValueSelector(_('select_mobile'));
-          var numbers = currentContact.tel;
-          for (var key in numbers) {
-            var number = numbers[key].value;
-            prompt1.addToList(number + '', function() {
-                prompt1.hide();
-                ActivityHandler.postPickSuccess(number);
-            });
-
-          }
-          prompt1.show();
+            }
+            prompt1.show();
         }
       };
     });

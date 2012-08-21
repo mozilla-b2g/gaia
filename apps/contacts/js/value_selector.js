@@ -1,8 +1,10 @@
 /*
 How to:
-  var prompt1 = new Valueselector('Dummy title 1', [
-    {'Dummy element1': function() {
-        alert('Define an action here!1');
+  var prompt1 = new ValueSelector('Dummy title 1', [
+    {
+      label: 'Dummy element',
+      callback: function() {
+        alert('Define an action here!');
       }
     }
   ]);
@@ -23,14 +25,16 @@ function ValueSelector(title, list) {
     data = {
       title: 'No Title',
       list: [
-        {'Dummy element': function() {
+        {
+          label: 'Dummy element',
+          callback: function() {
             alert('Define an action here!');
           }
         }
       ]
     };
 
-    body = document.querySelector('body');
+    body = document.body;
 
     el = document.createElement('section');
     el.setAttribute('class', 'valueselector');
@@ -65,7 +69,7 @@ function ValueSelector(title, list) {
     emptyList();
 
     // Apply optional actions while initializing
-    if (Object.prototype.toString.call(title) == '[object String]') {
+    if (typeof title === 'string') {
       setTitle(title);
     }
 
@@ -91,37 +95,36 @@ function ValueSelector(title, list) {
 
     list.innerHTML = '';
     for (var i = 0; i < data.list.length; i++) {
-      for (var key in data.list[i]) {
-        var li = document.createElement('li'),
-            label = document.createElement('label'),
-            input = document.createElement('input'),
-            span = document.createElement('span'),
-            text = document.createTextNode(key);
+      var li = document.createElement('li'),
+          label = document.createElement('label'),
+          input = document.createElement('input'),
+          span = document.createElement('span'),
+          text = document.createTextNode(data.list[i].label);
 
-        span.appendChild(text);
-        span.addEventListener('click', data.list[i][key], false);
-        input.setAttribute('type', 'radio');
-        input.setAttribute('name', 'option');
-        label.appendChild(input);
-        label.appendChild(span);
-        li.appendChild(label);
-        list.appendChild(li);
-      }
+      span.appendChild(text);
+      span.addEventListener('click', data.list[i].callback, false);
+      input.setAttribute('type', 'radio');
+      input.setAttribute('name', 'option');
+      label.appendChild(input);
+      label.appendChild(span);
+      li.appendChild(label);
+      list.appendChild(li);
     }
   }
 
   setTitle = function(str) {
     data.title = str;
-  },
+  }
 
   emptyList = function() {
     data.list = [];
   }
 
-  addToList = function(label, fnc) {
-    var item = {};
-    item[label] = fnc;
-    data.list.push(item);
+  addToList = function(label, callback) {
+    data.list.push({
+      label: label,
+      callback: callback
+    });
   }
 
   init();
@@ -131,6 +134,7 @@ function ValueSelector(title, list) {
     show: show,
     hide: hide,
     setTitle: setTitle,
-    addToList: addToList
+    addToList: addToList,
+    List: list
   };
 }
