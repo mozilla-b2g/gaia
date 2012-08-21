@@ -1072,7 +1072,7 @@ var ThreadUI = {
     var tels = contact.tel;
     for (var i = 0; i < tels.length; i++) {
       var input = this.contactInput.value;
-      var number = tels[i].number.toString();
+      var number = tels[i].value.toString();
       var reg = new RegExp(input, 'ig');
       if (!(name.match(reg) || (number.match(reg)))) {
         continue;
@@ -1085,11 +1085,13 @@ var ThreadUI = {
       if (name == '') {
         nameHTML = 'Unknown';
       }
+      var carrier = tels[i].carrier;
+      //TODO Implement algorithm for this part following Wireframes
       // Create HTML structure
       var structureHTML =
               '  <a href="#num=' + contact.tel[i].number + '">' +
               '    <div class="name">' + nameHTML + '</div>' +
-              '    <div class="type">' + tels[i].type + '   ' + numHTML +
+              '    <div class="type">' + tels[i].type + ' ' + numHTML +
               '    </div>' +
               '  </a>';
       // Update HTML and append
