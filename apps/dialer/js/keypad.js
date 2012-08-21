@@ -26,13 +26,15 @@ var TonePlayer = {
   _sampleRate: 4000,
 
   init: function tp_init() {
-    document.addEventListener('mozvisibilitychange', this.visibilityChange.bind(this));
+    document.addEventListener('mozvisibilitychange',
+                              this.visibilityChange.bind(this));
     this.ensureAudio();
   },
 
   ensureAudio: function tp_ensureAudio() {
    if (this._audio)
      return;
+
    this._audio = new Audio();
    this._audio.mozSetup(2, this._sampleRate);
   },
@@ -52,7 +54,6 @@ var TonePlayer = {
   },
 
   play: function tp_play(frequencies) {
-    this.ensureAudio();
     var soundDataSize = this._sampleRate / 4;
     var soundData = new Float32Array(soundDataSize);
     this.generateFrames(soundData, frequencies[0], frequencies[1]);
@@ -62,10 +63,11 @@ var TonePlayer = {
   // If the app loses focus, close the audio stream. This works around an
   // issue in Gecko where the Audio Data API causes gfx performance problems,
   // in particular when scrolling the homescreen.
+  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=779914
   visibilityChange: function tp_visibilityChange(e) {
-    if (!document.mozHidden)
+    if (!document.mozHidden) {
       this.ensureAudio();
-    else {
+    } else {
       // Reset the audio stream. This ensures that the stream is shutdown
       // *immediately*.
       this._audio.src = '';
