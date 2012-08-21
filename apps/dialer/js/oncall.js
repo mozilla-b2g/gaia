@@ -242,12 +242,20 @@ var OnCallHandler = {
   },
 
   end: function ch_end() {
-    if (!this._telephony.active) {
+    // If there is an active call we end this one
+    if (this._telephony.active) {
+      this._telephony.active.hangUp();
+      return;
+    }
+
+    // If not we're rejecting the last incoming call
+    if (!this.handledCalls.length) {
       this.toggleScreen();
       return;
     }
 
-    this._telephony.active.hangUp();
+    var lastCallIndex = this.handledCalls.length - 1;
+    this.handledCalls[lastCallIndex].call.hangUp();
   },
 
   toggleMute: function ch_toggleMute() {
