@@ -3,6 +3,15 @@
 function $(id) {
   return document.getElementById(id);
 }
+
+// XXX if we don't have metadata about the video name
+// do the best we can with the file name
+function fileNameToVideoName(filename) {
+  return filename
+    .replace(/\.(webm|ogv|mp4)$/, '')
+    .replace(/[_\.]/g, ' ');
+}
+
 var player = $('player');
 var playing = false;
 
@@ -17,107 +26,134 @@ var screenLock;
 var controlShowing = false;
 
 // An array of data about each of the videos we know about.
-// XXX: for now we rebuild this array each time the app starts,
-// but ideally we'll store most of it in indexedDB.
 var videos = [];
+var videodb;
 
 var currentVideo;  // The data for the current video
 
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
 
-var storage = navigator.getDeviceStorage('videos');
+function init() {
 
-try {
-  var cursor = storage.enumerate();
-  cursor.onerror = function() {
-    console.error('Error in DeviceStorage.enumerate()', cursor.error.name);
+  videodb = new MediaDB('videos');
+
+  videodb.onunavailable = function(why) {
+    if (why === 'unavailable') {
+      showOverlay('nocard');
+    } else if (why === 'shared') {
+      showOverlay('cardinuse');
+    }
+  }
+
+  videodb.onready = function() {
+    if (currentOverlay === 'nocard')
+      showOverlay(null);
+    createThumbnailList();
+    scan();
   };
 
-  cursor.onsuccess = function() {
-    if (!cursor.result)
-      return;
-    var file = cursor.result;
-
-    // If this isn't a video, skip it
-    if (file.type.substring(0, 6) !== 'video/') {
-      cursor.continue();
-      return;
+  document.addEventListener('mozvisibilitychange', function vc() {
+    if (!document.mozHidden && videodb.ready) {
+      scan();
     }
+  });
 
-    // If it isn't playable, skip it
-    var testplayer = document.createElement('video');
-    if (!testplayer.canPlayType(file.type)) {
-      cursor.continue();
-      return;
-    }
-
-    // XXX if we don't have metadata about the video name
-    // do the best we can with the file name
-    function fileNameToVideoName(filename) {
-      return filename
-        .replace(/\.(webm|ogv|mp4)$/, '')
-        .replace(/[_\.]/g, ' ');
-    }
-
-    // Otherwise, collect data about the video.
-    // There are the things we know about it already
-    var videodata = {
-      name: file.name,
-      title: fileNameToVideoName(file.name),
-      type: file.type,
-      size: file.size
-    };
-
-    // We get metadata asynchronously
-    testplayer.preload = 'metadata';
-    var url = URL.createObjectURL(file);
-    testplayer.style.width = THUMBNAIL_WIDTH + 'px';
-    testplayer.style.height = THUMBNAIL_HEIGHT + 'px';
-    testplayer.src = url;
-    testplayer.onloadedmetadata = function() {
-      videodata.duration = testplayer.duration;
-      videodata.width = testplayer.videoWidth;
-      videodata.height = testplayer.videoHeight;
-
-      testplayer.currentTime = 20;  // Skip ahead 20 seconds
-      if (testplayer.seeking) {
-        testplayer.onseeked = doneSeeking;
-      }
-      else
-        doneSeeking();
-
-      // After we've skiped ahead, try go get a poster image for the movie
-      // XXX Because of https://bugzilla.mozilla.org/show_bug.cgi?id=730765
-      // Its not clear whether this is working right. But it does
-      // end up producing an image for each video.
-      function doneSeeking() {
-        try {
-          var canvas = document.createElement('canvas');
-          canvas.width = THUMBNAIL_WIDTH;
-          canvas.height = THUMBNAIL_HEIGHT;
-          var ctx = canvas.getContext('2d');
-          ctx.drawImage(testplayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-          videodata.poster = canvas.mozGetAsFile('poster', 'image/jpeg');
-        }
-        catch (e) {
-          console.error('Failed to create a poster image:', e);
-        }
-
-        testplayer.src = '';
-        testplayer = null;
-        addVideo(videodata);
-      }
-
-      URL.revokeObjectURL(url);
-
-      // And move on to the next video
-      cursor.continue();
-    };
+  videodb.onchange = function(type, files) {
+    // TODO: Dynamically update the UI, for now doing a full
+    // repaint
+    createThumbnailList();
   };
 }
-catch (e) {
-  console.error('Exception while enumerating files:', e);
+
+function scan() {
+  showOverlay('scanning');
+  videodb.scan(function() {
+    showOverlay(null);
+  });
+}
+
+function createThumbnailList() {
+  if (videos.length) {
+    videos = [];
+  }
+
+  videodb.enumerate(function(videodata) {
+    if (videodata === null)
+      return;
+    processVideo(videodata);
+  });
+}
+
+function processVideo(videodata) {
+  // If this isn't a video, skip it
+  if (videodata.type.substring(0, 6) !== 'video/') {
+    return;
+  }
+
+  // If it isn't playable, skip it
+  var testplayer = document.createElement('video');
+  if (!testplayer.canPlayType(videodata.type)) {
+    return;
+  }
+
+  if (!videodata.metadata.poster) {
+    videodb.getFile(videodata.name, function(videofile) {
+      generateMetaData(testplayer, videodata, videofile);
+    });
+  } else {
+    addVideo(videodata);
+  }
+}
+
+function generateMetaData(testplayer, videodata, videofile) {
+
+  // We get metadata asynchronously
+  testplayer.preload = 'metadata';
+  var url = URL.createObjectURL(videofile);
+  testplayer.style.width = THUMBNAIL_WIDTH + 'px';
+  testplayer.style.height = THUMBNAIL_HEIGHT + 'px';
+  testplayer.src = url;
+  testplayer.onloadedmetadata = function() {
+    videodata.metadata.duration = testplayer.duration;
+    videodata.metadata.width = testplayer.videoWidth;
+    videodata.metadata.height = testplayer.videoHeight;
+
+    testplayer.currentTime = 20;  // Skip ahead 20 seconds
+    if (testplayer.seeking) {
+      testplayer.onseeked = doneSeeking;
+    } else {
+      doneSeeking();
+    }
+
+    // After we've skiped ahead, try go get a poster image for the movie
+    // XXX Because of https://bugzilla.mozilla.org/show_bug.cgi?id=730765
+    // Its not clear whether this is working right. But it does
+    // end up producing an image for each video.
+    function doneSeeking() {
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = THUMBNAIL_WIDTH;
+        canvas.height = THUMBNAIL_HEIGHT;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(testplayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+        videodata.metadata.poster = canvas.mozGetAsFile('poster', 'image/jpeg');
+      }
+      catch (e) {
+        console.error('Failed to create a poster image:', e);
+      }
+
+      testplayer.src = '';
+      testplayer = null;
+
+      videodata.metadata.title = fileNameToVideoName(videodata.name);
+      // TODO: Bug in MediaDB, this next call fails
+      //videodb.updateMetadata(videodata.name, videodata);
+      addVideo(videodata);
+    }
+
+    URL.revokeObjectURL(url);
+  };
 }
 
 function addVideo(videodata) {
@@ -130,9 +166,9 @@ function addVideo(videodata) {
   var index = videos.length;
   videos.push(videodata);
 
-  if (videodata.poster) {
+  if (videodata.metadata.poster) {
     var poster = document.createElement('img');
-    poster.src = URL.createObjectURL(videodata.poster);
+    poster.src = URL.createObjectURL(videodata.metadata.poster);
     poster.onload = function() {
       URL.revokeObjectURL(poster.src);
     };
@@ -140,12 +176,12 @@ function addVideo(videodata) {
 
   var title = document.createElement('p');
   title.className = 'name';
-  title.textContent = videodata.title;
+  title.textContent = videodata.metadata.title;
 
   var duration = document.createElement('p');
   duration.className = 'time';
-  if (isFinite(videodata.duration)) {
-    var d = Math.round(videodata.duration);
+  if (isFinite(videodata.metadata.duration)) {
+    var d = Math.round(videodata.metadata.duration);
     var mins = Math.floor(d / 60);
     var secs = d % 60;
     if (secs < 10) secs = '0' + secs;
@@ -163,6 +199,21 @@ function addVideo(videodata) {
   });
 
   $('thumbnails').appendChild(thumbnail);
+}
+
+var currentOverlay;
+
+function showOverlay(id) {
+  currentOverlay = id;
+
+  if (id === null) {
+    $('overlay').classList.add('hidden');
+    return;
+  }
+
+  $('overlay-title').textContent = navigator.mozL10n.get(id + '-title');
+  $('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
+  $('overlay').classList.remove('hidden');
 }
 
 // When we exit fullscreen mode, stop playing the video.
@@ -222,11 +273,11 @@ $('videoControls').addEventListener('click', function(event) {
 
 // Make the video fit the screen
 function setPlayerSize() {
-  var xscale = window.innerWidth / currentVideo.width;
-  var yscale = window.innerHeight / currentVideo.height;
+  var xscale = window.innerWidth / currentVideo.metadata.width;
+  var yscale = window.innerHeight / currentVideo.metadata.height;
   var scale = Math.min(xscale, yscale);
-  var width = currentVideo.width * scale;
-  var height = currentVideo.height * scale;
+  var width = currentVideo.metadata.width * scale;
+  var height = currentVideo.metadata.height * scale;
   var left = (window.innerWidth - width) / 2;
   var top = (window.innerHeight - height) / 2;
   player.style.width = width + 'px';
@@ -254,13 +305,12 @@ function showPlayer(data) {
   $('videoFrame').mozRequestFullScreen();
 
   // Get the video file and start the player
-  storage.get(data.name).onsuccess = function(event) {
-    var file = event.target.result;
+  videodb.getFile(data.name, function(file) {
     var url = URL.createObjectURL(file);
     player.src = url;
     setPlayerSize();
     play();
-  }
+  });
 }
 
 function hidePlayer() {
@@ -422,4 +472,5 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
+  init();
 });
