@@ -27,6 +27,7 @@ function setupApp() {
   var DELAY_TO_RETURN = 10 * 1000; // 10 seconds
 
   var _isUpdating = false;
+  var _isWaitingTopUp = false;
   var _lastCodeIncorrect = false;
   var _confirmationReceived = true;
   var _returnTimeout = 0;
@@ -127,8 +128,9 @@ function setupApp() {
     CostControl.requestBalance();
   }
 
-  var _buttonRequestTopUp, _creditArea, _credit, _time, _updateIcon, _balanceTab;
+  var _buttonRequestTopUp, _creditArea, _credit, _time, _updateIcon, _balanceTab, _infoArea;
   function _configureBalanceTab() {
+    _infoArea = document.getElementById('cost-control-info-area');
     _balanceTab = document.getElementById('balance-tab');
     _creditArea = document.getElementById('cost-control-credit-area');
     _credit = document.getElementById('cost-control-credit');
@@ -142,7 +144,7 @@ function setupApp() {
         return;
       }
 
-      if (!_lastCodeIncorrect)
+      if (!_isWaitingTopUp && !_lastCodeIncorrect)
         _setTopUpScreenMode(MODE_DEFAULT);
 
       _changeViewTo(VIEW_TOPUP);
@@ -197,6 +199,9 @@ function setupApp() {
   var MODE_INCORRECT_CODE = 'mode-incorrect-code';
   var MODE_ERROR = 'mode-error';
   function _setTopUpScreenMode(mode) {
+    clearTimeout(_returnTimeout);
+    _isWaitingTopUp = false;
+
     var _explanation = document.getElementById('topup-code-explanation');
     var _confirmation =
       document.getElementById('topup-confirmation-explanation');
@@ -224,6 +229,7 @@ function setupApp() {
         _error.setAttribute('aria-hidden', 'true');
         _progress.setAttribute('aria-hidden', 'false');
         _input.setAttribute('disabled', 'disabled');
+        _isWaitingTopUp = true;
         break;
 
       case MODE_INCORRECT_CODE:
@@ -321,10 +327,10 @@ function setupApp() {
   function _setUpdatingMode(updating) {
     _isUpdating = updating;
     if (updating) {
-      _balanceTab.classList.add('updating');
+      _infoArea.classList.add('updating');
       _time.textContent = _('updating...');
     } else {
-      _balanceTab.classList.remove('updating');
+      _infoArea.classList.remove('updating');
     }
   }
 

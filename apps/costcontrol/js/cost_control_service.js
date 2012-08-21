@@ -36,8 +36,9 @@ setService(function cc_setupCostControlService() {
     'TOP_UP_SENDERS'
   ];
 
-  // SMS API
+  // APIs
   var _sms = window.navigator.mozSms;
+  var _conn = window.navigator.mozMobileConnection;
 
   // CostControl application state
   var STATE_TOPPING_UP = 'toppingup';
@@ -203,14 +204,13 @@ setService(function cc_setupCostControlService() {
   function _getServiceStatus() {
     var status = { availability: false, roaming: null, detail: null };
 
-    var conn = navigator.mozMobileConnection;
-    if (!conn) {
+    if (!_conn) {
       status.detail = 'no-mobile-connection-api';
       return status;
     }
 
-    var voice = conn.voice;
-    var data = conn.data;
+    var voice = _conn.voice;
+    var data = _conn.data;
     if (!voice || !data) {
       status.detail = 'missed-apis-voice-or-data';
       return status;

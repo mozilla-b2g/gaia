@@ -44,8 +44,13 @@
 
       <section class="content">
         <div id="cost-control-info-area" class="overview">
-          <p class="start"><time id="cost-control-time"></time></p>
-          <p class="end" id="cost-control-credit"></p>
+          <div class="start">
+            <div id="cost-control-icon"></div>
+            <time id="cost-control-time"></time>
+          </div>
+          <div class="end">
+            <p id="cost-control-credit"></p>
+          </div>
         </div>
 
         <div class="buttons-list">
@@ -75,7 +80,7 @@
           <h2 data-l10n-id="enter-top-up-code" >Enter the top up code</h2>
           <p id="topup-code-explanation" data-l10n-id="top-up-code-explanation">Typically found in the scratch card or directly in your receipt</p>
           <p id="topup-confirmation-explanation" aria-hidden="true" data-l10n-id="wait-for-confirmation">You'll receive a confirmation message</p>
-          <p id="topup-incorrect-code" aria-hidden="true" data-l10n-id="incorrect-code">Incorrect code entered. Please, try again.</p>
+          <p id="topup-incorrect-code" aria-hidden="true" data-l10n-id="incorrect-code">Last entered code was incorrect. Please, try again.</p>
           <p id="topup-error" aria-hidden="true" data-l10n-id="error">Sorry, we couldn't top up at this moment.</p>
           <progress data-theme='dark' id="topup-in-progress" aria-hidden="true"></progress>
         </div>

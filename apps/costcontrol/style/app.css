@@ -125,3 +125,44 @@ section.content .overview .end {
 section.content .overview time {
   font-weight: normal;
 }
+
+/* Updating animation */
+#cost-control-info-area {
+  overflow: hidden;
+}
+
+#cost-control-info-area > .start {
+  -moz-transform: translateX(-4.0rem);
+  -moz-transition: -moz-transform 0.5s;
+}
+
+#cost-control-info-area.updating > .start,
+#cost-control-info-area.warning > .start{
+  -moz-transform: none;
+}
+
+#cost-control-info-area.updating #cost-control-icon {
+  background-image: url('./images/app/icons/reload.png');
+  -moz-animation: cost-control-spin 1.75s infinite linear;
+  -moz-animation-delay: 0.5s;
+}
+
+/* No automatic updates allowed */
+#cost-control-info-area.warning #cost-control-icon {
+  background-image: url('./images/app/icons/warning.png');
+}
+
+@-moz-keyframes cost-control-spin {
+  0% { -moz-transform:rotate(0deg); }
+  100% { -moz-transform:rotate(360deg); }
+}
+
+#cost-control-icon {
+  width: 2.1rem;
+  height: 2.1rem;
+  vertical-align: middle;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 0 0.4rem;
+  display: inline-block;
+}
