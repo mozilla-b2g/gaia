@@ -5,11 +5,6 @@
   display: none;
 }
 
-#screen.fullscreen-app:not(.locked) > #statusbar {
-  visibility: hidden;
-  -moz-transition: visibility 0.5s ease;
-}
-
 #statusbar {
   overflow: hidden;
   position: absolute;
