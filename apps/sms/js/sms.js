@@ -501,8 +501,9 @@ var ThreadListUI = {
 
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
-      if (contact && contact.length > 0)
+      if (contact && contact.length > 0) {
         ThreadListUI.updateMsgWithContact(thread.num, contact);
+      }
     });
   },
 
@@ -665,10 +666,23 @@ var ThreadUI = {
     ThreadUI.view.appendChild(headerHTML);
   },
   updateHeaderData: function thui_updateHeaderData(number) {
-    ThreadUI.title.innerHTML = number;
+    var self = this;
+    self.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
-      if (contact && contact[0].name && contact[0].name != '') {
-        ThreadUI.title.innerHTML = contact[0].name;
+      var carrier = document.getElementById('contact-carrier');
+      if (contact.length > 0) { // we have a contact
+        if (contact[0].name && contact[0].name != '') { // contact with name
+          self.title.innerHTML = contact[0].name;
+          carrier.innerHTML =
+                  contact[0].tel[0].type + ' | ' +
+                  (contact[0].tel[0].carrier || _('carrier-unknown'));
+    // TODO check if contact has different numbers with same type and carrier
+        } else { // no name of contact
+          carrier.innerHTML =
+                  contact[0].tel[0].type;
+        }
+      } else { // we don't have a contact
+        carrier.style.display = 'none';
       }
     });
   },
