@@ -112,11 +112,18 @@
             app.launch('#recents-view');
           };
 
-          var title = _('missedCall');
-          var body = _('from') + ' ' +
-            (call.number.length ? call.number : _('unknown'));
+          Contacts.findByNumber(call.number, function lookupContact(contact) {
+            var title = _('missedCall');
+            var sender = call.number.length ? call.number : _('unknown');
 
-          NotificationHelper.send(title, body, iconURL, notiClick);
+            if (contact && contact.name) {
+              sender = contact.name;
+            }
+
+            var body = _('from') + ' ' + sender;
+
+            NotificationHelper.send(title, body, iconURL, notiClick);
+          });
         };
       }
     };
