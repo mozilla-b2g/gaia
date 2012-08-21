@@ -289,6 +289,7 @@ input[type="image"] {
   -moz-box-flex: 1;
   border: none;
   background-color: transparent;
+  background: none;
   text-overflow: ellipsis;
 }
 
@@ -824,7 +825,7 @@ form[role="dialog"] header button {
   border-radius: 5px;
   font-size: 1em;
   height: 30px;
-  margin: 10px; 
+  margin: 10px;
 }
 
 form[role="dialog"] header button[type="reset"] {
