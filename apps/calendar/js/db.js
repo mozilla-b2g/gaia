@@ -1,7 +1,7 @@
 (function(window) {
   var idb = window.indexedDB || window.mozIndexedDB;
 
-  const VERSION = 4;
+  const VERSION = 5;
 
   var store = {
     events: 'events',
@@ -160,6 +160,12 @@
       var busytimes = db.createObjectStore(
         store.busytimes,
         { keyPath: '_id', autoIncrement: true }
+      );
+
+      busytimes.createIndex(
+        'end',
+        'end',
+        { unique: false, multiEntry: false }
       );
 
       busytimes.createIndex(

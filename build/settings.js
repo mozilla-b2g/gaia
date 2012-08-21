@@ -18,6 +18,7 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 var settings = [
  new Setting("alarm.enabled", false),
  new Setting("accessibility.invert", false),
+ new Setting("accessibility.screenreader", false),
  new Setting("audio.volume.master", 0.5),
  new Setting("bluetooth.enabled", false),
  new Setting("debug.grid.enabled", false),
@@ -110,7 +111,7 @@ function Setting(aName, aValue) {
   Setting.counter++;
 }
 
-(function registerProfileDirectory() {
+function registerProfileDirectory() {
 
   let directoryProvider = {
     getFile: function provider_getFile(prop, persistent) {
@@ -138,7 +139,9 @@ function Setting(aName, aValue) {
     .getService(Ci.nsIProperties)
     .QueryInterface(Ci.nsIDirectoryService)
     .registerProvider(directoryProvider);
-})();
+}
+if (Gaia.engine === "xpcshell")
+  registerProfileDirectory();
 
 let settingsDBService = Cc["@mozilla.org/settingsService;1"].getService(Ci.nsISettingsService);
 
@@ -162,12 +165,14 @@ for (let i in settings) {
   lock.set(settings[i].name, settings[i].value, callback);
 }
 
-var thread = Components.classes["@mozilla.org/thread-manager;1"]
-                       .getService(Components.interfaces.nsIThreadManager)
-                       .currentThread;
+if (Gaia.engine === "xpcshell") {
+  var thread = Components.classes["@mozilla.org/thread-manager;1"]
+                         .getService(Components.interfaces.nsIThreadManager)
+                         .currentThread;
 
-while ((Setting.counter > 0) || thread.hasPendingEvents()) {
-  thread.processNextEvent(true);
+  while ((Setting.counter > 0) || thread.hasPendingEvents()) {
+    thread.processNextEvent(true);
+  }
 }
 
 dump("SettingsDB filled.\n");

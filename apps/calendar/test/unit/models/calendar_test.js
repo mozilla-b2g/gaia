@@ -94,9 +94,18 @@ suite('models/calendar', function() {
     assert.equal(subject.name, 'foo');
   });
 
-  test('#color', function() {
-    subject.remote.color = '#ccc';
-    assert.equal(subject.color, '#ccc');
+  suite('#color', function() {
+
+    test('basic getter', function() {
+      subject.remote.color = '#ccc';
+      assert.equal(subject.color, '#ccc');
+    });
+
+    test('filter hex value', function() {
+      subject.remote.color = '#7BD148FF';
+      assert.equal(subject.color, '#7BD148');
+    });
+
   });
 
   test('#description', function() {
