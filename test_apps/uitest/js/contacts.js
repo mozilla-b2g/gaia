@@ -268,7 +268,6 @@ var ContactsTest = {
   },
 
   flaunchFB: function ct_flaunchFB() {
-    window.alert('Here');
     var activity = new MozActivity({
           name: 'importFB',
           data: {
