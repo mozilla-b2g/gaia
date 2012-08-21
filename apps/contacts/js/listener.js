@@ -3,12 +3,17 @@
 var ContactsListener = (function() {
 
   var init = function _init() {
+    this.oldCallback = navigator.mozContacts.oncontactchange;
     navigator.mozContacts.oncontactchange = (function(evt) {
       if (this[evt.reason]) {
         this[evt.reason].call(this, evt);
       }
     }).bind(this);
   };
+
+  var clean = function _clean() {
+    navigator.mozContacts.oncontactchange = this.oldCallback; 
+  }
 
   var setOnUpdate = function _setOnUpdate(cb) {
     this.update = cb;
@@ -31,6 +36,7 @@ var ContactsListener = (function() {
 
   return {
     'init': init,
+    'clean': clean,
     'setOnUpdate': setOnUpdate,
     'setOnRemove': setOnRemove,
     'setOnCreate': setOnCreate
