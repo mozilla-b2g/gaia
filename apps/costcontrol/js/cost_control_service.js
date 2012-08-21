@@ -14,6 +14,7 @@ setService(function cc_setupCostControlService() {
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
   var REQUEST_BALANCE_MAX_DELAY = 2 * 60 * 1000; // 2 minutes
+  var LOW_LIMIT_THRESHOLD = 40;
 
   // Critical settings (if no present or bad configured,
   // the service is unavailable)
@@ -479,6 +480,9 @@ setService(function cc_setupCostControlService() {
     getServiceStatus: _getServiceStatus,
     getRequestBalanceMaxDelay: function cc_getRequestBalanceMaxDelay() {
       return REQUEST_BALANCE_MAX_DELAY;
+    },
+    getLowLimitThreshold: function cc_getLowLimitThreshold() {
+      return LOW_LIMIT_THRESHOLD;
     }
   };
 }());

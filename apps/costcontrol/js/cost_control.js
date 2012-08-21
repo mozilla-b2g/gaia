@@ -342,6 +342,12 @@ function setupApp() {
     }
     timestamp = timestamp || new Date();
 
+    // Check for low credit
+    if (balance < CostControl.getLowLimitThreshold())
+      _infoArea.classList.add('low-credit');
+    else
+      _infoArea.classList.remove('low-credit');
+
     // Format and set
     // Check for low credit
     /* XXX: Does this apply to the cost control app?

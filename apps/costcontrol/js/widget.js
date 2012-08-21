@@ -167,7 +167,7 @@ function setupWidget() {
 
     // Format and set
     // Check for low credit
-    if (balance < 40/* TODO: Replace by some value not harcocded */)
+    if (balance < CostControl.getLowLimitThreshold())
       _widget.classList.add('low-credit');
     else
       _widget.classList.remove('low-credit');

@@ -141,6 +141,10 @@ section.content .overview time {
   -moz-transform: none;
 }
 
+#cost-control-info-area.low-credit #cost-control-credit {
+  color: red;
+}
+
 #cost-control-info-area.updating #cost-control-icon {
   background-image: url('./images/app/icons/reload.png');
   -moz-animation: cost-control-spin 1.75s infinite linear;
