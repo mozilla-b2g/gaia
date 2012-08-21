@@ -308,8 +308,12 @@
      var lastRendered = lastWeek.pop().getDate();
      var additionalClass = '';
 
-      // if the last rendered days is lower that the last day of the month,
-      // like on September or December 2012, we need to render one more week
+      // If the last rendered day number is lower that the last day of the
+      // month, like on September or December 2012, we need to render
+      // one more week.
+      // We check if the number is bigger than the lowest possible number
+      // of the last day in a month (February) to avoid adding additional
+      // month when the last rendered day belong to the next month
       if (lastRendered < lastMonthDay && lastRendered > 27) {
         additionalClass = 'six-weeks';
         weekList.push(
