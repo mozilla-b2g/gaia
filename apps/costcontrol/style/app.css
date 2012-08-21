@@ -23,7 +23,7 @@ form {
   background: #49525c;
 }
 
-[aria-hidden="true"] { visibility: hidden; }
+[aria-hidden="true"] { display: none !important; }
 
 /* WINDOW & VIEWS */
 .window, .view{
@@ -111,6 +111,7 @@ section.content .overview {
   margin-bottom: 1rem;
   padding: 0 1rem 1.5rem;
   overflow: hidden;
+  height: 2.8rem;
 }
 
 section.content .overview .start {
@@ -124,4 +125,3 @@ section.content .overview .end {
 section.content .overview time {
   font-weight: normal;
 }
-

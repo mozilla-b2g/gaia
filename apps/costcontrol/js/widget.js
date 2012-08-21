@@ -27,12 +27,17 @@ function setupWidget() {
     return r || '!!' + keystring;
   }
 
+  var STATE_ERROR = 'error';
+  var STATE_NO_AUTOMATIC = 'no-automatic';
+  var STATE_DEFAULT = 'default';
+
   var _widget, _widgetCredit, _widgetCurrency, _widgetTime;
   var _isUpdating = false;
+  var _state = STATE_DEFAULT;
 
   function _automaticUpdatesAllowed() {
     var status = CostControl.getServiceStatus();
-    return status.availability && !status.roaming;
+    return status.availability && status.roaming;
   }
 
   // Attach event listeners for automatic updates:
@@ -113,12 +118,11 @@ function setupWidget() {
       // update.
       case 'utilitytrayshow':
         // Abort if it have not passed enough time since last update
-        var lastUpdated = window.localStorage.getItem('costcontrolTime');
-        if (lastUpdated !== null)
-          lastUpdated = (new Date(lastUpdated)).getTime();
-
+        var balance = CostControl.getLastBalance();
+        var lastUpdate =  balance ? balance.timestamp : null;
         var now = (new Date()).getTime();
-        if (now - lastUpdated > CostControl.getRequestBalanceMaxDelay())
+        if (lastUpdate === null ||
+            (now - lastUpdate > CostControl.getRequestBalanceMaxDelay()))
           _updateBalance();
 
         break;
@@ -128,10 +132,13 @@ function setupWidget() {
   // Enable / disable waiting mode for the UI
   function _setUpdatingMode(updating) {
     _isUpdating = updating;
-    if (updating)
+
+    if (updating) {
       _widget.classList.add('updating');
-    else
+      _widgetTime.textContent = _('updating...');
+    } else {
       _widget.classList.remove('updating');
+    }
   }
 
   // Request a balance update from the service
@@ -160,7 +167,7 @@ function setupWidget() {
 
     // Format and set
     // Check for low credit
-    if (balance < 5/* TODO: Replace by some value not harcocded */)
+    if (balance < 40/* TODO: Replace by some value not harcocded */)
       _widget.classList.add('low-credit');
     else
       _widget.classList.remove('low-credit');

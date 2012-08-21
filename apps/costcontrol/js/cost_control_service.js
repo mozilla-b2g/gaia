@@ -253,12 +253,11 @@ setService(function cc_setupCostControlService() {
       case 'costcontrolperiodicallyupdate':
 
         // Abort if it have not passed enough time since last update
-        var lastUpdated = window.localStorage.getItem('costcontrolTime');
-        if (lastUpdated !== null)
-          lastUpdated = (new Date(lastUpdated)).getTime();
-
+        var balance = _getLastBalance();
+        var lastUpdate =  balance ? balance.timestamp : null;
         var now = (new Date()).getTime();
-        if (now - lastUpdated > REQUEST_BALANCE_MAX_DELAY)
+        if (lastUpdate === null ||
+            (now - lastUpdate > REQUEST_BALANCE_MAX_DELAY))
           _updateBalance();
 
         break;

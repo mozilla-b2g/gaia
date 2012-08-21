@@ -23,6 +23,8 @@ html {
   background-image: url('./images/widget/ui/glossy-gradient.png'),
                 url('./images/widget/ui/gray-noise-pattern.png');
   background-repeat: repeat-x, repeat;
+  background-color: black;
+  position: relative;
 }
 
 /* Widget states */
@@ -35,8 +37,14 @@ html {
 
 /* Updating animation */
 #cost-control.updating #cost-control-icon {
-  opacity: 1.0;
+  background-image: url('./images/widget/icons/reload.png');
   -moz-animation: cost-control-spin 1.75s infinite linear;
+  -moz-animation-delay: 0.5s;
+}
+
+/* No automatic updates allowed */
+#cost-control.error #cost-control-icon {
+  background-image: url('./images/widget/icons/warning.png');
 }
 
 @-moz-keyframes cost-control-spin {
@@ -44,9 +52,16 @@ html {
   100% { -moz-transform:rotate(360deg); }
 }
 
-#cost-control div {
+#cost-control > div {
   display: inline-block;
   vertical-align: middle;
+  -moz-transform: translateX(-2.5rem);
+  -moz-transition: -moz-transform 0.5s;
+}
+
+#cost-control.updating > div,
+#cost-control.error > div {
+  -moz-transform: none;
 }
 
 #cost-control-currency {
@@ -66,11 +81,11 @@ html {
 }
 
 #cost-control-icon {
-  width: 20px;
-  height: 19px;
+  width: 2.1rem;
+  height: 2.1rem;
   vertical-align: middle;
-  background-image: url('./images/widget/icons/reload.png');
   background-position: center;
   background-repeat: no-repeat;
+  padding: 0 0.4rem;
 }
 

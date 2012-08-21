@@ -24,7 +24,12 @@ function setupApp() {
     return r || '!!' + keystring;
   }
 
+  var DELAY_TO_RETURN = 10 * 1000; // 10 seconds
+
   var _isUpdating = false;
+  var _lastCodeIncorrect = false;
+  var _confirmationReceived = true;
+  var _returnTimeout = 0;
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
@@ -52,9 +57,17 @@ function setupApp() {
   }
 
   // On top up success, update UI with the new balance, notificate and post
-  // result if there was an activity request. TODO: let a list of activity
+  // result if there was an activity request.
   // request
   function _onTopUpSuccess(evt) {
+    var notification = navigator.mozNotification.createNotification(
+      'Cost Control',
+      'Top Up completed.',
+      '/icons/Clock.png'
+    );
+    _confirmationReceived = true;
+    _lastCodeIncorrect = false;
+    _setTopUpScreenMode(MODE_DEFAULT);
     _requestUpdate();
   }
 
@@ -69,12 +82,30 @@ function setupApp() {
 
   // On top up error, if manual request, notificate
   function _onTopUpError(evt) {
+    clearTimeout(_returnTimeout);
+
     switch(evt.detail.reason) {
       case 'sending-error':
+        _setTopUpScreenMode(MODE_ERROR);
         debug('TODO: Error message, we cannot top up at the moment.');
         break;
 
+      case 'timeout':
+        _confirmationReceived = false;
+        break;
+
       case 'incorrect-code':
+        _lastCodeIncorrect = true;
+        _setTopUpScreenMode(MODE_INCORRECT_CODE);
+        var notification = navigator.mozNotification.createNotification(
+          'Cost Control',
+          'Incorrect top up code entered. Please, try again.',
+          '/icons/Clock.png'
+        );
+        notification.onclick = function () {
+          var activity = new MozActivity({ name: 'costcontrol/topup' });
+        };
+        notification.show();
         debug('TODO: Change the top up screen and notificate!');
         break;
     }
@@ -86,7 +117,7 @@ function setupApp() {
 
     var status = CostControl.getServiceStatus();
     if (status.detail === 'no-coverage') {
-      debug('TODO: No coverage, open an alert and avoid to continue');
+      _changeViewTo(VIEW_NO_COVERAGE_INFO);
       return;
     }
 
@@ -96,8 +127,9 @@ function setupApp() {
     CostControl.requestBalance();
   }
 
-  var _buttonRequestTopUp, _creditArea, _credit, _time, _updateIcon;
+  var _buttonRequestTopUp, _creditArea, _credit, _time, _updateIcon, _balanceTab;
   function _configureBalanceTab() {
+    _balanceTab = document.getElementById('balance-tab');
     _creditArea = document.getElementById('cost-control-credit-area');
     _credit = document.getElementById('cost-control-credit');
     _time = document.getElementById('cost-control-time');
@@ -106,20 +138,37 @@ function setupApp() {
     _buttonRequestTopUp.addEventListener('click', function cc_requestTopUp() {
       var status = CostControl.getServiceStatus();
       if (status.detail === 'no-coverage') {
-        debug('TODO: No coverage, open an alert and avoid to continue');
+        _changeViewTo(VIEW_NO_COVERAGE_INFO);
         return;
       }
 
-      location.hash = 'topup';
+      if (!_lastCodeIncorrect)
+        _setTopUpScreenMode(MODE_DEFAULT);
+
+      _changeViewTo(VIEW_TOPUP);
     });
 
-    _updateIcon = document.getElementById('cost-control-update-icon');
+    _updateIcon = document.getElementById('cost-control-update-button');
     _updateIcon.addEventListener('click', _requestUpdate);
   }
 
-  var _inputTopUpCode, _buttonTopUp;
+  var _noCoverageInfo, _noCoverageInfoButton;
+  function _configureNoCoverageInfo() {
+    _noCoverageInfo = document.getElementById('no-coverage-info');
+    _noCoverageInfoButton = document.getElementById('no-coverage-info-button');
+    _noCoverageInfoButton.addEventListener('click', function cc_onOK() {
+      _closeCurrentView();
+    });
+  }
+
+  var _inputTopUpCode, _buttonTopUp, _topUpArea, _closeButton;
   function _configureTopUpScreen() {
-    _inputTopUpCode = document.getElementById('inputTopUpCode');
+    _topUpArea = document.getElementById('topup');
+    _inputTopUpCode = document.getElementById('topup-code-input');
+    _closeButton = document.getElementById('topup-close-button');
+    _closeButton.addEventListener('click', function() {
+      _closeCurrentView();
+    });
     _buttonTopUp = document.getElementById('buttonTopUp');
     _buttonTopUp.addEventListener('click', function cc_onTopUp() {
 
@@ -133,12 +182,74 @@ function setupApp() {
 
       debug('topping up with code: ' + code);
       CostControl.requestTopUp(code);
+
+      _setTopUpScreenMode(MODE_WAITING);
+      _returnTimeout = setTimeout(function ccapp_toLeftPanel() {
+        if (_currentView && _currentView.id === VIEW_TOPUP)
+          _closeCurrentView();
+      }, DELAY_TO_RETURN);
+
     });
+  }
+
+  var MODE_DEFAULT = 'mode-default';
+  var MODE_WAITING = 'mode-waiting';
+  var MODE_INCORRECT_CODE = 'mode-incorrect-code';
+  var MODE_ERROR = 'mode-error';
+  function _setTopUpScreenMode(mode) {
+    var _explanation = document.getElementById('topup-code-explanation');
+    var _confirmation =
+      document.getElementById('topup-confirmation-explanation');
+    var _incorrectCode = document.getElementById('topup-incorrect-code');
+    var _error = document.getElementById('topup-error');
+    var _progress = document.getElementById('topup-in-progress');
+    var _input = document.getElementById('topup-code-input');
+
+    switch(mode) {
+      case MODE_DEFAULT:
+        _explanation.setAttribute('aria-hidden', 'false');
+        _confirmation.setAttribute('aria-hidden', 'true');
+        _incorrectCode.setAttribute('aria-hidden', 'true');
+        _error.setAttribute('aria-hidden', 'true');
+        _progress.setAttribute('aria-hidden', 'true');
+        _input.removeAttribute('disabled');
+        if (_confirmationReceived)
+          _input.value = '';
+        break;
+
+      case MODE_WAITING:
+        _explanation.setAttribute('aria-hidden', 'true');
+        _confirmation.setAttribute('aria-hidden', 'false');
+        _incorrectCode.setAttribute('aria-hidden', 'true');
+        _error.setAttribute('aria-hidden', 'true');
+        _progress.setAttribute('aria-hidden', 'false');
+        _input.setAttribute('disabled', 'disabled');
+        break;
+
+      case MODE_INCORRECT_CODE:
+        _explanation.setAttribute('aria-hidden', 'true');
+        _confirmation.setAttribute('aria-hidden', 'true');
+        _incorrectCode.setAttribute('aria-hidden', 'false');
+        _error.setAttribute('aria-hidden', 'true');
+        _progress.setAttribute('aria-hidden', 'true');
+        _input.removeAttribute('disabled');
+        break;
+
+      case MODE_ERROR:
+        _explanation.setAttribute('aria-hidden', 'true');
+        _confirmation.setAttribute('aria-hidden', 'true');
+        _incorrectCode.setAttribute('aria-hidden', 'true');
+        _error.setAttribute('aria-hidden', 'false');
+        _progress.setAttribute('aria-hidden', 'true');
+        _input.removeAttribute('disabled');
+        break;
+    }
   }
 
   // Attach event listeners for manual updates
   function _configureUI() {
 
+    _configureNoCoverageInfo();
     _configureBalanceTab();
     _configureTopUpScreen();
 
@@ -165,13 +276,38 @@ function setupApp() {
         switch (name) {
           case 'costcontrol/open':
             // Go to that section and enable activity mode
-            setTimeout(function cc_goToTopUp() {
-              document.location.hash = 'left-panel';
-            });
+            _closeCurrentView();
+            break;
+          case 'costcontrol/topup':
+            // Go directly to 
+            _changeViewTo(VIEW_TOPUP);
             break;
         }
       }
     );
+  }
+
+  var VIEW_TOPUP = 'topup';
+  var VIEW_NO_COVERAGE_INFO = 'no-coverage-info';
+  var _currentView = null;
+  function _changeViewTo(viewId) {
+    _closeCurrentView();
+
+    var view = document.getElementById(viewId);
+    _currentView = {
+      id: viewId,
+      defaultViewport: view.dataset.viewport
+    };
+    view.dataset.viewport = '';
+  }
+
+  function _closeCurrentView() {
+    if (!_currentView)
+      return;
+
+    var view = document.getElementById(_currentView.id);
+    view.dataset.viewport = _currentView.defaultViewport;
+    _currentView = null;
   }
 
   // Initializes the cost control module: basic parameters, autmatic and manual
@@ -184,10 +320,12 @@ function setupApp() {
   // Enable / disable waiting mode for the UI
   function _setUpdatingMode(updating) {
     _isUpdating = updating;
-    if (updating)
-      _creditArea.classList.add('updating');
-    else
-      _creditArea.classList.remove('updating');
+    if (updating) {
+      _balanceTab.classList.add('updating');
+      _time.textContent = _('updating...');
+    } else {
+      _balanceTab.classList.remove('updating');
+    }
   }
 
   function _updateUI(balance, timestamp) {
