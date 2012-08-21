@@ -53,22 +53,6 @@
   top: -moz-calc(100% - 112px);
 }
 
-/* rwd/fwd buttons */
-#rwd {
-  left: 0px;
-  background-image: url("images/btn_rwd_off.png");
-}
-#rwd:active {
-  background-image: url("images/btn_rwd_press.png");
-}
-#fwd {
-  left: 200px;
-  background-image: url("images/btn_fwd_off.png");
-}
-#fwd:active {
-  background-image: url("images/btn_fwd_press.png");
-}
-
 /* play/pause button */
 #play {
   left: 100px;

@@ -4,8 +4,7 @@ var dom = {};
 
 var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
-           'close', 'play', 'rwd', 'fwd', 'playHead', 'timeSlider',
-           'elapsedTime'];
+           'close', 'play', 'playHead', 'timeSlider', 'elapsedTime'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -381,17 +380,6 @@ dom.play.addEventListener('click', function() {
 });
 
 // XXX: the back and forward buttons aren't working for my webm videos
-
-// Back 15s
-dom.rwd.addEventListener('click', function() {
-  dom.player.currentTime -= 15;
-});
-
-// Forward 15s
-dom.fwd.addEventListener('click', function() {
-  dom.player.currentTime += 15;
-});
-
 var dragging = false;
 
 // XXX The progress bar doesn't update for my ogv video because
