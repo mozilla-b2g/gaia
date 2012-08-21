@@ -671,8 +671,10 @@
       window.webkitIDBIndex ||
       window.msIDBIndex;
 
-    if (IDBObjectStore && IDBObjectStore.prototype.mozGetAll) {
-      IDBObjectStore.prototype.getAll = IDBObjectStore.prototype.mozGetAll;
+    if (window.IDBObjectStore &&
+        window.IDBObjectStore.prototype.mozGetAll) {
+      window.IDBObjectStore.prototype.getAll =
+        window.IDBObjectStore.prototype.mozGetAll;
     }
 
     /* ==== init functions ==== */
