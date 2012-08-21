@@ -107,6 +107,10 @@ body {
   visibility: hidden;
 }
 
+#screen.fullscreen-app > #windows > iframe.appWindow.active {
+  top: 0;
+}
+
 #windowSprite {
   position: absolute;
   top: 20px;
@@ -118,6 +122,11 @@ body {
   pointer-events: none;
   -moz-transform: scale(0.5);
   -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
+}
+
+#screen.fullscreen-app > #windowSprite {
+  height: 100%;
+  top: 0;
 }
 
 #windowSprite.open {

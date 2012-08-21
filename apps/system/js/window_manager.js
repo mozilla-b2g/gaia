@@ -135,11 +135,17 @@ var WindowManager = (function() {
     var frame = app.frame;
     var manifest = app.manifest;
 
-    frame.style.width = window.innerWidth + 'px';
-    frame.style.height = window.innerHeight - StatusBar.height + 'px';
+    var cssWidth = window.innerWidth + 'px';
+    var cssHeight = window.innerHeight - StatusBar.height + 'px';
 
-    dialogOverlay.style.width = window.innerWidth + 'px';
-    dialogOverlay.style.height = window.innerHeight - StatusBar.height + 'px';
+    if (app.manifest.fullscreen)
+      cssHeight = window.innerHeight + 'px';
+
+    frame.style.width =
+      dialogOverlay.style.width = cssWidth;
+
+    frame.style.height =
+      dialogOverlay.style.height = cssHeight;
   }
 
   var openFrame = null;
@@ -185,6 +191,7 @@ var WindowManager = (function() {
       classes.remove('open');
       classes.remove('close');
 
+      screenElement.classList.remove('fullscreen-app');
       setTimeout(closeCallback);
     }
   });
@@ -194,13 +201,7 @@ var WindowManager = (function() {
     var app = runningApps[origin];
     openFrame = app.frame;
 
-    openCallback = function() {
-      if (app.manifest.fullscreen)
-        openFrame.mozRequestFullScreen();
-
-      if (callback)
-        callback();
-    };
+    openCallback = callback || function() {};
 
     if (origin === homescreen) {
       openCallback();
@@ -209,6 +210,9 @@ var WindowManager = (function() {
       openFrame.setVisible(true);
       openFrame.focus();
     } else {
+      if (app.manifest.fullscreen)
+        screenElement.classList.add('fullscreen-app');
+
       sprite.className = 'open';
     }
   }
@@ -230,10 +234,6 @@ var WindowManager = (function() {
     // Take keyboard focus away from the closing window
     closeFrame.blur();
     closeFrame.setVisible(false);
-
-    // Leave full screen
-    if (document.mozFullScreen)
-      document.mozCancelFullScreen();
 
     // And begin the transition
     sprite.classList.remove('faded');
