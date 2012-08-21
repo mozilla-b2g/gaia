@@ -1,18 +1,16 @@
 'use strict';
 
-function $(id) {
-  return document.getElementById(id);
-}
+var dom = {};
 
-// XXX if we don't have metadata about the video name
-// do the best we can with the file name
-function fileNameToVideoName(filename) {
-  return filename
-    .replace(/\.(webm|ogv|mp4)$/, '')
-    .replace(/[_\.]/g, ' ');
-}
+var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
+           'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
+           'close', 'play', 'rwd', 'fwd', 'playHead', 'timeSlider',
+           'elapsedTime'];
 
-var player = $('player');
+ids.forEach(function createElementRef(name) {
+  dom[toCamelCase(name)] = document.getElementById(name);
+});
+
 var playing = false;
 
 // if this is true then the video tag is showing
@@ -198,7 +196,7 @@ function addVideo(videodata) {
     showPlayer(videodata);
   });
 
-  $('thumbnails').appendChild(thumbnail);
+  dom.thumbnails.appendChild(thumbnail);
 }
 
 var currentOverlay;
@@ -207,13 +205,13 @@ function showOverlay(id) {
   currentOverlay = id;
 
   if (id === null) {
-    $('overlay').classList.add('hidden');
+    dom.overlay.classList.add('hidden');
     return;
   }
 
-  $('overlay-title').textContent = navigator.mozL10n.get(id + '-title');
-  $('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
-  $('overlay').classList.remove('hidden');
+  dom.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
+  dom.overlayText.textContent = navigator.mozL10n.get(id + '-text');
+  dom.overlay.classList.remove('hidden');
 }
 
 // When we exit fullscreen mode, stop playing the video.
@@ -260,7 +258,7 @@ document.addEventListener('mozfullscreenchange', function() {
 */
 
 // show|hide controls over the player
-$('videoControls').addEventListener('click', function(event) {
+dom.videoControls.addEventListener('click', function(event) {
   if (!controlShowing) {
     this.classList.remove('hidden');
     controlShowing = true;
@@ -280,10 +278,10 @@ function setPlayerSize() {
   var height = currentVideo.metadata.height * scale;
   var left = (window.innerWidth - width) / 2;
   var top = (window.innerHeight - height) / 2;
-  player.style.width = width + 'px';
-  player.style.height = height + 'px';
-  player.style.left = left + 'px';
-  player.style.top = top + 'px';
+  dom.player.style.width = width + 'px';
+  dom.player.style.height = height + 'px';
+  dom.player.style.left = left + 'px';
+  dom.player.style.top = top + 'px';
 }
 
 // Rescale when window size changes. This should get called when
@@ -295,19 +293,19 @@ function showPlayer(data) {
   currentVideo = data;
 
   // switch to the video player view
-  $('videoFrame').classList.remove('hidden');
-  $('videoControls').classList.add('hidden');
-  $('videoBar').classList.remove('paused');
+  dom.videoFrame.classList.remove('hidden');
+  dom.videoControls.classList.add('hidden');
+  dom.videoBar.classList.remove('paused');
   playerShowing = true;
   controlShowing = false;
 
   // Go into full screen mode
-  $('videoFrame').mozRequestFullScreen();
+  dom.videoFrame.mozRequestFullScreen();
 
   // Get the video file and start the player
   videodb.getFile(data.name, function(file) {
     var url = URL.createObjectURL(file);
-    player.src = url;
+    dom.player.src = url;
     setPlayerSize();
     play();
   });
@@ -324,13 +322,13 @@ function hidePlayer() {
     document.mozCancelFullScreen();
 
   // switch to the video gallery view
-  $('videoFrame').classList.add('hidden');
-  $('videoBar').classList.remove('paused');
+  dom.videoFrame.classList.add('hidden');
+  dom.videoBar.classList.remove('paused');
   playerShowing = false;
 
   // stop player
-  player.pause();
-  player.currentTime = 0;
+  dom.player.pause();
+  dom.player.currentTime = 0;
 
   // Allow the screen to blank now.
   screenLock.unlock();
@@ -338,20 +336,20 @@ function hidePlayer() {
 }
 
 // If the user clicks the close button, exit the playing movie
-$('close').addEventListener('click', hidePlayer);
+dom.close.addEventListener('click', hidePlayer);
 
 // If the movie ends, and no controls are showing, go back to movie list
-player.addEventListener('ended', function() {
+dom.player.addEventListener('ended', function() {
   if (!controlShowing)
     hidePlayer();
 });
 
 function play() {
   // Switch the button icon
-  $('play').classList.remove('paused');
+  dom.play.classList.remove('paused');
 
   // Start playing
-  player.play();
+  dom.player.play();
   playing = true;
 
   // Don't let the screen go to sleep
@@ -361,10 +359,10 @@ function play() {
 
 function pause() {
   // Switch the button icon
-  $('play').classList.add('paused');
+  dom.play.classList.add('paused');
 
   // Stop playing the video
-  player.pause();
+  dom.player.pause();
   playing = false;
 
   // Let the screen go to sleep
@@ -375,8 +373,8 @@ function pause() {
 }
 
 // Handle clicks on the play/pause button
-$('play').addEventListener('click', function() {
-  if (player.paused)
+dom.play.addEventListener('click', function() {
+  if (dom.player.paused)
     play();
   else
     pause();
@@ -385,49 +383,46 @@ $('play').addEventListener('click', function() {
 // XXX: the back and forward buttons aren't working for my webm videos
 
 // Back 15s
-$('rwd').addEventListener('click', function() {
-  player.currentTime -= 15;
+dom.rwd.addEventListener('click', function() {
+  dom.player.currentTime -= 15;
 });
 
 // Forward 15s
-$('fwd').addEventListener('click', function() {
-  player.currentTime += 15;
+dom.fwd.addEventListener('click', function() {
+  dom.player.currentTime += 15;
 });
 
-var playHead = $('playHead');
-var timeSlider = $('timeSlider');
-var elapsedTime = $('elapsedTime');
 var dragging = false;
 
 // XXX The progress bar doesn't update for my ogv video because
 // the <video> elememt can't figure out its duration.
 
 // Update the progress bar and play head as the video plays
-player.addEventListener('timeupdate', function() {
+dom.player.addEventListener('timeupdate', function() {
   if (!controlShowing)
     return;
 
   // We can't update a progress bar if we don't know how long
   // the video is. It is kind of a bug that the <video> element
   // can't figure this out for ogv videos.
-  if (player.duration === Infinity)
+  if (dom.player.duration === Infinity)
     return;
 
-  if (player.duration === 0)
+  if (dom.player.duration === 0)
     return;
 
-  var percent = (player.currentTime / player.duration) * 100 + '%';
+  var percent = (dom.player.currentTime / dom.player.duration) * 100 + '%';
 
-  elapsedTime.style.width = percent;
+  dom.elapsedTime.style.width = percent;
   // Don't move the play head if the user is dragging it.
   if (!dragging)
-    playHead.style.left = percent;
+    dom.playHead.style.left = percent;
 });
 
 // handle drags on the time slider
-playHead.addEventListener('mousedown', function() {
+dom.playHead.addEventListener('mousedown', function() {
   // We can't do anything if we don't know our duration
-  if (player.duration === Infinity)
+  if (dom.player.duration === Infinity)
     return;
 
   dragging = true;
@@ -437,7 +432,7 @@ playHead.addEventListener('mousedown', function() {
   document.addEventListener('mouseup', mouseupHandler, true);
 
   function position(event) {
-    var rect = timeSlider.getBoundingClientRect();
+    var rect = dom.timeSlider.getBoundingClientRect();
     var position = (event.clientX - rect.left) / rect.width;
     position = Math.max(position, 0);
     position = Math.min(position, 1);
@@ -450,10 +445,10 @@ playHead.addEventListener('mousedown', function() {
 
     var pos = position(event);
     var percent = pos * 100 + '%';
-    playHead.style.left = percent;
-    elapsedTime.style.width = percent;
+    dom.playHead.style.left = percent;
+    dom.elapsedTime.style.width = percent;
 
-    player.currentTime = player.duration * pos;
+    dom.player.currentTime = dom.player.duration * pos;
 
     dragging = false;
   }
@@ -461,10 +456,24 @@ playHead.addEventListener('mousedown', function() {
   function mousemoveHandler(event) {
     var pos = position(event);
     var percent = pos * 100 + '%';
-    playHead.style.left = percent;
-    elapsedTime.style.width = percent;
+    dom.playHead.style.left = percent;
+    dom.elapsedTime.style.width = percent;
   }
 });
+
+// XXX if we don't have metadata about the video name
+// do the best we can with the file name
+function fileNameToVideoName(filename) {
+  return filename
+    .replace(/\.(webm|ogv|mp4)$/, '')
+    .replace(/[_\.]/g, ' ');
+}
+
+function toCamelCase(str) {
+  return str.replace(/\-(.)/g, function replacer(str, p1) {
+    return p1.toUpperCase();
+  });
+}
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showBody() {
