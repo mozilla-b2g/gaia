@@ -45,6 +45,7 @@ function setupApp() {
         alert(_('cannot-check-balance'));
         break;
     }
+    _updateUI();
   }
 
   // On starting an update, enter into update mode
@@ -110,6 +111,7 @@ function setupApp() {
         debug('TODO: Change the top up screen and notificate!');
         break;
     }
+    _updateUI();
   }
 
   function _requestUpdate() {
