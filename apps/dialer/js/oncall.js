@@ -53,7 +53,8 @@ var CallScreen = {
   },
 
   setCallerContactImage: function cs_setCallerContactImage(image_url) {
-    this.mainContainer.style.backgroundImage = 'url(' + image_url + ')';
+    var photoURL = URL.createObjectURL(image_url);
+    this.mainContainer.style.backgroundImage = 'url(' + photoURL + ')';
   },
 
   toggleMute: function cs_toggleMute() {
