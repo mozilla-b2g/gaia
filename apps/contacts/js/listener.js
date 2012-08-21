@@ -22,6 +22,13 @@ var ContactsListener = (function() {
     this.create = cb;
   };
 
+  // Convenience method to have a single cb per change type
+  var setOnChange = function _setOnChange(cb) {
+    this.update = cb;
+    this.remove = cb;
+    this.create = cb;
+  }
+
   return {
     'init': init,
     'setOnUpdate': setOnUpdate,
