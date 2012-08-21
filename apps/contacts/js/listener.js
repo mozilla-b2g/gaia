@@ -3,7 +3,6 @@
 var ContactsListener = (function() {
 
   var init = function _init() {
-    this.oldCallback = navigator.mozContacts.oncontactchange;
     navigator.mozContacts.oncontactchange = (function(evt) {
       if (this[evt.reason]) {
         this[evt.reason].call(this, evt);
@@ -12,7 +11,7 @@ var ContactsListener = (function() {
   };
 
   var clean = function _clean() {
-    navigator.mozContacts.oncontactchange = this.oldCallback; 
+    navigator.mozContacts.oncontactchange = null;
   }
 
   var setOnUpdate = function _setOnUpdate(cb) {
@@ -39,7 +38,8 @@ var ContactsListener = (function() {
     'clean': clean,
     'setOnUpdate': setOnUpdate,
     'setOnRemove': setOnRemove,
-    'setOnCreate': setOnCreate
+    'setOnCreate': setOnCreate,
+    'setOnChange': setOnChange
   };
 
 })();
