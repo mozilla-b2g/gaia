@@ -14,25 +14,13 @@ let permissions = {
     "urls": [],
     "pref": "dom.sms.whitelist"
   },
-  "mozBluetooth": {
-    "urls": [],
-    "pref": "dom.mozBluetooth.whitelist"
-  },
   "voicemail": {
     "urls": [],
     "pref": "dom.voicemail.whitelist"
   },
-  "mozbrowser": {
-    "urls": [],
-    "pref": "dom.mozBrowserFramesWhitelist"
-  },
   "mozApps": {
     "urls": [],
     "pref": "dom.mozApps.whitelist"
-  },
-  "mobileconnection": {
-    "urls": [],
-    "pref": "dom.mobileconnection.whitelist"
   },
   "mozFM": {
     "urls": [],
