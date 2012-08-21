@@ -120,7 +120,7 @@
               sender = contact.name;
             }
 
-            var body = _('from') + ' ' + sender;
+            var body = _('from', {sender: sender});
 
             NotificationHelper.send(title, body, iconURL, notiClick);
           });
