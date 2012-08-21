@@ -230,25 +230,13 @@ var WindowManager = (function() {
     closeFrame.blur();
     closeFrame.setVisible(false);
 
-    // And begin the transition
-    // Wait for we leave full screen before starting the transition
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=781014
-    if (document.mozFullScreen) {
-      document.addEventListener('mozfullscreenchange',
-        function fullscreenListener(event) {
-          document.removeEventListener('mozfullscreenchange',
-                                       fullscreenListener, false);
-          setTimeout(function() {
-            sprite.classList.remove('faded');
-            sprite.classList.add('close');
-          }, 20);
-        }, false);
-
+    // Leave full screen
+    if (document.mozFullScreen)
       document.mozCancelFullScreen();
-    } else {
-      sprite.classList.remove('faded');
-      sprite.classList.add('close');
-    }
+
+    // And begin the transition
+    sprite.classList.remove('faded');
+    sprite.classList.add('close');
   }
 
   // Switch to a different app
