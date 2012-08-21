@@ -120,6 +120,7 @@
 #screen.fullscreen > [data-z-index-level="keyboard-frame"].visible,
 #screen.fullscreen > [data-z-index-level="notification-toaster"],
 #screen.fullscreen > [data-z-index-level="cardsview"],
+#screen.fullscreen > [data-z-index-level="attention-screen"],
 #screen.fullscreen > [data-z-index-level="permission-screen"] {
   z-index: 2147483647;
 }

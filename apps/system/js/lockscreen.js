@@ -74,6 +74,7 @@ var LockScreen = {
     this.getAllElements();
 
     this.lockIfEnabled(true);
+    this.writeSetting(this.enabled);
 
     /* Status changes */
     window.addEventListener('volumechange', this);
@@ -670,13 +671,20 @@ var LockScreen = {
   updateConnState: function ls_updateConnState() {
     var conn = window.navigator.mozMobileConnection;
     var voice = conn.voice;
-    var connstate = this.connstate;
+    var connstateLine1 = this.connstate.firstElementChild;
+    var connstateLine2 = this.connstate.lastElementChild;
     var _ = navigator.mozL10n.get;
 
-    if (this.airplaneMode) {
-      connstate.dataset.l10nId = 'airplaneMode';
-      connstate.textContent = _('airplaneMode') || '';
+    // Reset line 2
+    connstateLine2.textContent = '';
 
+    var updateConnstateLine1 = function updateConnstateLine1(l10nId) {
+      connstateLine1.dataset.l10nId = l10nId;
+      connstateLine1.textContent = _(l10nId) || '';
+    };
+
+    if (this.airplaneMode) {
+      updateConnstateLine1('airplaneMode');
       return;
     }
 
@@ -687,8 +695,7 @@ var LockScreen = {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
     if (voice.state == 'notSearching') {
       // "No Network"
-      connstate.dataset.l10nId = 'noNetwork';
-      connstate.textContent = _('noNetwork') || '';
+      updateConnstateLine1('noNetwork');
 
       return;
     }
@@ -698,8 +705,7 @@ var LockScreen = {
       // voice.state can be any of the later three value.
       // (it's possible, briefly that the phone is 'registered'
       // but not yet connected.)
-      connstate.dataset.l10nId = 'searching';
-      connstate.textContent = _('searching') || '';
+      updateConnstateLine1('searching');
 
       return;
     }
@@ -707,32 +713,27 @@ var LockScreen = {
     if (voice.emergencyCallsOnly) {
       switch (conn.cardState) {
         case 'absent':
-          connstate.dataset.l10nId = 'emergencyCallsOnlyNoSIM';
-          connstate.textContent = _('emergencyCallsOnlyNoSIM') || '';
+          updateConnstateLine1('emergencyCallsOnlyNoSIM');
 
           break;
 
         case 'pinRequired':
-          connstate.dataset.l10nId = 'emergencyCallsOnlyPinRequired';
-          connstate.textContent = _('emergencyCallsOnlyPinRequired') || '';
+          updateConnstateLine1('emergencyCallsOnlyPinRequired');
 
           break;
 
         case 'pukRequired':
-          connstate.dataset.l10nId = 'emergencyCallsOnlyPukRequired';
-          connstate.textContent = _('emergencyCallsOnlyPukRequired') || '';
+          updateConnstateLine1('emergencyCallsOnlyPukRequired');
 
           break;
 
         case 'networkLocked':
-          connstate.dataset.l10nId = 'emergencyCallsOnlyNetworkLocked';
-          connstate.textContent = _('emergencyCallsOnlyNetworkLocked') || '';
+          updateConnstateLine1('emergencyCallsOnlyNetworkLocked');
 
           break;
 
         default:
-          connstate.dataset.l10nId = 'emergencyCallsOnly';
-          connstate.textContent = _('emergencyCallsOnly') || '';
+          updateConnstateLine1('emergencyCallsOnly');
 
           break;
       }
@@ -740,17 +741,31 @@ var LockScreen = {
       return;
     }
 
+    if (voice.network.mcc == 724 &&
+        voice.cell && voice.cell.gsmLocationAreaCode) {
+      // We are in Brazil, It is legally required to show local info
+      // about current registered GSM network in a legally specified way.
+      var lac = voice.cell.gsmLocationAreaCode;
+      var carriers = MobileInfo.brazil.carriers;
+      var regions = MobileInfo.brazil.regions;
+
+      connstateLine2.textContent =
+        (carriers[voice.network.mnc] || ('724' + voice.network.mnc)) +
+        ' ' +
+        (regions[lac] ? regions[lac] + ' ' + lac : '');
+    }
+
     if (voice.roaming) {
       var l10nArgs = { operator: voice.network.shortName };
-      connstate.dataset.l10nId = 'roaming';
-      connstate.dataset.l10nArgs = JSON.stringify(l10nArgs);
-      connstate.textContent = _('roaming', l10nArgs);
+      connstateLine1.dataset.l10nId = 'roaming';
+      connstateLine1.dataset.l10nArgs = JSON.stringify(l10nArgs);
+      connstateLine1.textContent = _('roaming', l10nArgs);
 
       return;
     }
 
-    delete connstate.dataset.l10nId;
-    connstate.textContent = voice.network.shortName;
+    delete connstateLine1.dataset.l10nId;
+    connstateLine1.textContent = voice.network.shortName;
   },
 
   showNotification: function lockscreen_showNotification(detail) {

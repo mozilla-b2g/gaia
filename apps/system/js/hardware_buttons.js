@@ -284,9 +284,9 @@
       else
         this.delegateState = sleepState;
       this.timer = setTimeout(function() {
-        if (t === 'home-button-press') {
+        if (type === 'home-button-press') {
           fire('holdhome');
-        } else if (t === 'sleep-button-press') {
+        } else if (type === 'sleep-button-press') {
           fire('holdsleep');
         }
         setState(baseState, type);

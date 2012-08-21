@@ -28,32 +28,56 @@ var Permissions = (function() {
       pending = [];
     },
 
-    show: function permissions_show(title, msg, yescallback, nocallback) {
+    /**
+    * Method that shows the dialog
+    * @param  {String} title the title of the dialog. null or empty for
+    *                        no title.
+    * @param  {String} msg message for the dialog.
+    * @param  {Object} yesObject {title, callback} object when confirm.
+    * @param  {Object} noObject {title, callback} object when cancel.
+    */
+    show: function permissions_show(title, msg, yesObject, noObject) {
       if (screen === null) {
-        screen = document.createElement('div');
+        screen = document.createElement('section');
+        screen.setAttribute('role', 'region');
         screen.id = 'permission-screen';
 
         dialog = document.createElement('div');
         dialog.id = 'permission-dialog';
+        dialog.setAttribute('role', 'dialog');
         screen.appendChild(dialog);
 
-        header = document.createElement('p');
-        header.id = 'permission-title';
-        dialog.appendChild(header);
+        var info = document.createElement('div');
+        info.className = 'center';
+
+        if (title && title != '') {
+          header = document.createElement('h3');
+          header.id = 'permission-title';
+          header.textContent = title;
+          info.appendChild(header);
+        }
 
         message = document.createElement('p');
         message.id = 'permission-message';
-        dialog.appendChild(message);
+        info.appendChild(message);
+        dialog.appendChild(info);
 
-        no = document.createElement('button');
-        no.appendChild(document.createTextNode('Cancel'));
-        no.id = 'permission-no';
-        dialog.appendChild(no);
+        var menu = document.createElement('menu');
+        menu.dataset['items'] = 2;
 
         yes = document.createElement('button');
-        yes.appendChild(document.createTextNode('Remove'));
+        var yesText = document.createTextNode(yesObject.title);
+        yes.appendChild(yesText);
         yes.id = 'permission-yes';
-        dialog.appendChild(yes);
+        yes.className = 'negative';
+
+        no = document.createElement('button');
+        var noText = document.createTextNode(noObject.title);
+        no.appendChild(noText);
+        no.id = 'permission-no';
+        menu.appendChild(no);
+        menu.appendChild(yes);
+        dialog.appendChild(menu);
 
         document.body.appendChild(screen);
       }
@@ -63,8 +87,8 @@ var Permissions = (function() {
         pending.push({
           header: title,
           message: msg,
-          yescallback: yescallback,
-          nocallback: nocallback
+          yesObject: yesObject,
+          noObject: noObject
         });
         return;
       }
@@ -72,13 +96,10 @@ var Permissions = (function() {
       // Put the message in the dialog.
       // Note plain text since this may include text from
       // untrusted app manifests, for example.
-      header.textContent = title;
       message.textContent = msg;
 
       // Make the screen visible
       screen.classList.add('visible');
-      // Put the dialog in the middle of the screen
-      dialog.style.marginTop = -dialog.offsetHeight / 2 + 'px';
 
       // This is the event listener function for the buttons
       function clickHandler(evt) {
@@ -90,6 +111,8 @@ var Permissions = (function() {
         screen.classList.remove('visible');
 
         // Call the appropriate callback, if it is defined
+        var yescallback = yesObject.callback;
+        var nocallback = noObject.callback;
         if (evt.target === yes && yescallback) {
           yescallback();
         } else if (evt.target === no && nocallback) {
@@ -102,8 +125,8 @@ var Permissions = (function() {
           window.setTimeout(function() {
             Permissions.show(request.header,
                              request.message,
-                             request.yescallback,
-                             request.nocallback);
+                             request.yesObject,
+                             request.noObject);
           });
         }
       }

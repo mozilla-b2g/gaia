@@ -35,45 +35,11 @@ Calendar.ns('Store').Busytime = (function() {
     _store: 'busytimes',
 
     _setupCache: function() {
-      this._eventTimes = Object.create(null);
-      this._timeRecords = Object.create(null);
       this._cached = Object.create(null);
       this._timeObservers = [];
-      this._times = [];
-    },
 
-    _compareTimeIndex: function(value, target) {
-      if (value < target) {
-        return -1;
-      } else if (value > target) {
-        return 1;
-      } else {
-        return 0;
-      }
-    },
-
-    _findClosest: function(time) {
-      return bsearchForInsert(
-        this._times,
-        time,
-        this._compareTimeIndex
-      );
-    },
-
-    _findTime: function(time) {
-      return binsearch(
-        this._times,
-        time,
-        this._compareTimeIndex
-      );
-    },
-
-    _timeIndex: function(time) {
-      return bsearchForInsert(
-        this._times,
-        time,
-        this._compareTimeIndex
-      );
+      this._byEventId = Object.create(null);
+      this._tree = new Calendar.IntervalTree();
     },
 
     addEvent: function(event, trans, callback) {
@@ -266,6 +232,9 @@ Calendar.ns('Store').Busytime = (function() {
         calendarId: event.calendarId
       };
 
+      result.start = result.startDate.valueOf();
+      result.end = result.endDate.valueOf();
+
       // Knowing the ID ahead of time
       // lets us flush it to the UI before
       // it actually hits the database ( then later
@@ -282,25 +251,17 @@ Calendar.ns('Store').Busytime = (function() {
     _onLoadCache: function(object) {
       this._addToCache(object);
       this._addTime(
-        object.startDate.valueOf(),
         object
       );
     },
 
-    _addTime: function(time, record) {
-      if (!(record.eventId in this._eventTimes)) {
-        this._eventTimes[record.eventId] = [];
+    _addTime: function(record) {
+      if (!(record.eventId in this._byEventId)) {
+        this._byEventId[record.eventId] = [];
       }
 
-      this._eventTimes[record.eventId].push(time);
-
-      if (!(time in this._timeRecords)) {
-        var idx = this._timeIndex(time);
-        this._times.splice(idx, 0, time);
-        this._timeRecords[time] = [record];
-      } else {
-        this._timeRecords[time].push(record);
-      }
+      this._byEventId[record.eventId].push(record);
+      this._tree.add(record);
 
       this.fireTimeEvent(
         'add',
@@ -368,36 +329,7 @@ Calendar.ns('Store').Busytime = (function() {
      * Gets all records in span.
      */
     busytimesInCachedSpan: function(span) {
-
-      // XXX we can do a significant
-      // amount of optimization here I think
-
-      var start = span.start;
-      var end = span.end;
-
-      var totalLen = this._times.length - 1;
-      var startIdx = this._findClosest(start);
-      var endIdx = this._findClosest(end);
-
-      endIdx = (endIdx > totalLen) ? totalLen : endIdx;
-
-      if (!span.contains(this._times[startIdx]))
-        return [];
-
-      var i = startIdx;
-      var results = [];
-      var time;
-
-      function addResult(val) {
-        results.push(val);
-      }
-
-      for (; i <= endIdx; i++) {
-        time = this._times[i];
-        this._timeRecords[time].forEach(addResult);
-      }
-
-      return results;
+      return this._tree.query(span);
     },
 
     _addEventTimes: function(event) {
@@ -407,14 +339,14 @@ Calendar.ns('Store').Busytime = (function() {
       var record;
       var results = [];
 
-      if (!(event._id in this._eventTimes)) {
-        this._eventTimes[event._id] = [];
+      if (!(event._id in this._byEventId)) {
+        this._byEventId[event._id] = [];
       }
 
       for (; i < len; i++) {
         time = event.remote.occurs[i];
         record = this._eventToRecord(time, event);
-        this._addTime(time.valueOf(), record);
+        this._addTime(record);
         results.push(record);
       }
 
@@ -422,33 +354,23 @@ Calendar.ns('Store').Busytime = (function() {
     },
 
     _removeEventTimes: function(id) {
-      var times = this._eventTimes[id];
-      delete this._eventTimes[id];
+      var records = this._byEventId[id];
+      delete this._byEventId[id];
 
       // if its not in memory we are fine.
       // by contract its in memory if you
       // care about it and events will be fired.
-      if (!times)
+      if (!records)
         return;
 
-      times.forEach(function(time) {
-        var timeset = this._timeRecords[time];
-        timeset.forEach(function(record, idx) {
-          if (record.eventId === id) {
-            timeset.splice(idx, 1);
-            this.fireTimeEvent(
-              'remove',
-              record.startDate,
-              record.endDate,
-              record
-            );
-          }
-        }, this);
-
-        if (timeset.length === 0) {
-          this._times.splice(this._findTime(time), 1);
-          delete this._timeRecords[time];
-        }
+      records.forEach(function(record) {
+        this._tree.remove(record);
+        this.fireTimeEvent(
+          'remove',
+          record.startDate,
+          record.endDate,
+          record
+        );
       }, this);
     }
   };
