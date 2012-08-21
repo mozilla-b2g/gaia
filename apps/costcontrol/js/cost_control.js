@@ -34,14 +34,16 @@ function setupApp() {
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
-    _infoArea.classList.remove('warning');
+    _balanceTab.classList.remove('warning');
+    _setBalanceScreenMode(MODE_DEFAULT);
     _updateUI(evt.detail.balance, evt.detail.timestamp);
   }
 
   // On balance updating error, if manual request, notificate
   function _onUpdateBalanceError(evt) {
     _setUpdatingMode(false);
-    _infoArea.classList.add('warning');
+    _balanceTab.classList.add('warning');
+    _setBalanceScreenMode(MODE_ERROR);
     switch(evt.detail.reason) {
       case 'sending-error':
         alert(_('cannot-check-balance'));
@@ -69,6 +71,7 @@ function setupApp() {
       'Top Up completed.',
       '/icons/Clock.png'
     );
+    notification.show();
     _confirmationReceived = true;
     _lastCodeIncorrect = false;
     _setTopUpScreenMode(MODE_DEFAULT);
@@ -132,9 +135,8 @@ function setupApp() {
     CostControl.requestBalance();
   }
 
-  var _buttonRequestTopUp, _creditArea, _credit, _time, _updateIcon, _balanceTab, _infoArea;
+  var _buttonRequestTopUp, _creditArea, _credit, _time, _updateIcon, _balanceTab;
   function _configureBalanceTab() {
-    _infoArea = document.getElementById('cost-control-info-area');
     _balanceTab = document.getElementById('balance-tab');
     _creditArea = document.getElementById('cost-control-credit-area');
     _credit = document.getElementById('cost-control-credit');
@@ -202,6 +204,7 @@ function setupApp() {
   var MODE_WAITING = 'mode-waiting';
   var MODE_INCORRECT_CODE = 'mode-incorrect-code';
   var MODE_ERROR = 'mode-error';
+  var MODE_ROAMING = 'mode-roaming';
   function _setTopUpScreenMode(mode) {
     clearTimeout(_returnTimeout);
     _isWaitingTopUp = false;
@@ -252,6 +255,24 @@ function setupApp() {
         _error.setAttribute('aria-hidden', 'false');
         _progress.setAttribute('aria-hidden', 'true');
         _input.removeAttribute('disabled');
+        break;
+    }
+  }
+
+  function _setBalanceScreenMode(mode) {
+    var _roaming = document.getElementById('in-roaming-message');
+    var _error = document.getElementById('balance-error-message');
+    
+    switch(mode) {
+      case MODE_DEFAULT:
+        _roaming.setAttribute('aria-hidden', 'true');
+        _error.setAttribute('aria-hidden', 'true');
+        break;
+      case MODE_ERROR:
+        _error.setAttribute('aria-hidden', 'false');
+        break;
+      case MODE_ROAMING:
+        _roaming.setAttribute('aria-hidden', 'false');
         break;
     }
   }
@@ -331,10 +352,10 @@ function setupApp() {
   function _setUpdatingMode(updating) {
     _isUpdating = updating;
     if (updating) {
-      _infoArea.classList.add('updating');
+      _balanceTab.classList.add('updating');
       _time.textContent = _('updating...');
     } else {
-      _infoArea.classList.remove('updating');
+      _balanceTab.classList.remove('updating');
     }
   }
 
@@ -346,20 +367,19 @@ function setupApp() {
     }
     timestamp = timestamp || new Date();
 
+    var status = CostControl.getServiceStatus();
+    if (!status.availability || status.roaming) {
+      _balanceTab.classList.add('warning');
+      _setBalanceScreenMode(MODE_ROAMING);
+    } else {
+      _balanceTab.classList.remove('warning');
+    }
+
     // Check for low credit
     if (balance < CostControl.getLowLimitThreshold())
-      _infoArea.classList.add('low-credit');
+      _balanceTab.classList.add('low-credit');
     else
-      _infoArea.classList.remove('low-credit');
-
-    // Format and set
-    // Check for low credit
-    /* XXX: Does this apply to the cost control app?
-    if (balance < 5) //TODO: Replace by some value not harcocded
-      _widget.classList.add('low-credit');
-    else
-      _widget.classList.remove('low-credit');
-    */
+      _balanceTab.classList.remove('low-credit');
 
     // Format credit
     var formattedBalance;

@@ -37,7 +37,7 @@ function setupWidget() {
 
   function _automaticUpdatesAllowed() {
     var status = CostControl.getServiceStatus();
-    return status.availability && status.roaming;
+    return status.availability && !status.roaming;
   }
 
   // Attach event listeners for automatic updates:
@@ -166,6 +166,12 @@ function setupWidget() {
     }
     timestamp = timestamp || new Date();
     currency = currency || '';
+
+    var status = CostControl.getServiceStatus();
+    if (!status.availability || status.roaming)
+      _widget.classList.add('error');
+    else
+      _widget.classList.remove('error');
 
     // Format and set
     // Check for low credit
