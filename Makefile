@@ -38,7 +38,7 @@ HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
 
-REPORTER=Spec
+REPORTER?=Spec
 
 GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 
@@ -330,7 +330,7 @@ TEST_PATH=gaia/tests/${TEST_FILE}
 TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
 .PHONY: test-integration
 test-integration:
-	test_apps/test-agent/common/test/bin/test $(TESTS)
+	@test_apps/test-agent/common/test/bin/test $(TESTS)
 
 .PHONY: tests
 tests: webapp-manifests offline
