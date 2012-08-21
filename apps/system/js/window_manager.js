@@ -182,7 +182,6 @@ var WindowManager = (function() {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
       openFrame.dispatchEvent(evt);
-      screenElement.classList.add('active-application');
 
     } else if (classes.contains('close') && prop === 'color') {
       closeFrame.classList.remove('active');
@@ -228,8 +227,6 @@ var WindowManager = (function() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
-
-    screenElement.classList.remove('active-application');
 
     // Take keyboard focus away from the closing window
     closeFrame.blur();
