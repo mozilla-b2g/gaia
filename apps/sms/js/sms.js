@@ -1072,7 +1072,7 @@ var ThreadUI = {
     var tels = contact.tel;
     for (var i = 0; i < tels.length; i++) {
       var input = this.contactInput.value;
-      var number = tels[i].value.toString();
+      var number = tels[i].number.toString();
       var reg = new RegExp(input, 'ig');
       if (!(name.match(reg) || (number.match(reg)))) {
         continue;
@@ -1082,11 +1082,14 @@ var ThreadUI = {
       // Create DOM element
       var threadHTML = document.createElement('div');
       threadHTML.classList.add('item');
+      if (name == '') {
+        nameHTML = 'Unknown';
+      }
       // Create HTML structure
       var structureHTML =
               '  <a href="#num=' + contact.tel[i].number + '">' +
               '    <div class="name">' + nameHTML + '</div>' +
-              '    <div class="type">' + _(phoneType[i]) + '   ' + numHTML +
+              '    <div class="type">' + tels[i].type + '   ' + numHTML +
               '    </div>' +
               '  </a>';
       // Update HTML and append
