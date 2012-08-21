@@ -426,7 +426,7 @@
       if (code < 0) {
         // This is a select function operation
         var i = code * -1;
-        dump('Removing ' + (code * -1) + ' syllables from buffer.');
+        debug('Removing ' + (code * -1) + ' syllables from buffer.');
 
         while (i--) {
           syllablesInBuffer.shift();
