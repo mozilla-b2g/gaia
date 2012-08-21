@@ -4,65 +4,127 @@
  * This is Music Application of Gaia
  */
 
-// Here we use the MediaDB.js which gallery is using
-// to index our music contents with metadata parsed.
-// So the behaviors of musicdb are the same as the MediaDB in gallery
-var musicdb = new MediaDB('music', metadataParser, {
-  indexes: ['metadata.album', 'metadata.artist', 'metadata.title'],
-  // mp3 mediaType: 'audio/mpeg'
-  // ogg mediaType: 'video/ogg'
-  // empty mediaType: no mp3 mediaType on B2G device
-  // desktop build does not has this issue
-  mimeTypes: ['audio/mpeg', 'video/ogg', '']
-});
-musicdb.onready = function() {
-  buildUI();  // List files we already know about
-  musicdb.scan();  // Go look for more.
+function $(id) { return document.getElementById(id); }
+// The MediaDB object that manages the filesystem and the database of metadata
+// See init()
+var musicdb;
+
+function init() {
+  // Here we use the mediadb.js which gallery is using (in shared/js/)
+  // to index our music contents with metadata parsed.
+  // So the behaviors of musicdb are the same as the MediaDB in gallery
+  musicdb = new MediaDB('music', metadataParser, {
+    indexes: ['metadata.album', 'metadata.artist', 'metadata.title'],
+    // mp3 mediaType: 'audio/mpeg'
+    // ogg mediaType: 'video/ogg'
+    // empty mediaType: no mp3 mediaType on B2G device
+    // desktop build does not have this issue
+    mimeTypes: ['audio/mpeg', 'video/ogg', '']
+  });
+
+  // This is called when DeviceStorage becomes unavailable because the
+  // sd card is removed or because it is mounted for USB mass storage
+  // This may be called before onready if it is unavailable to begin with
+  musicdb.onunavailable = function(why) {
+    if (why === 'unavailable')
+      showOverlay('nocard');
+    else if (why === 'shared')
+      showOverlay('cardinuse');
+  }
+
+  musicdb.onready = function() {
+    // Hide the nocard overlay if it is displayed
+    if (currentOverlay === 'nocard')
+      showOverlay(null);
+
+    showDefaultView();  // Display song covers we know about
+
+    // Each time we become ready there may be an entirely new set of
+    // music in device storage (new SD card, or USB mass storage transfer)
+    // so we have to rescan each time.
+    scan();
+  };
 
   // Since DeviceStorage doesn't send notifications yet, we're going
   // to rescan the files every time our app becomes visible again.
   // Eventually DeviceStorage will do notifications and MediaDB will
   // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function visibilityChange() {
-    if (!document.mozHidden) {
-      musicdb.scan();
+  document.addEventListener('mozvisibilitychange', function vc() {
+    if (!document.mozHidden && musicdb.ready) {
+      scan();
     }
   });
-};
-musicdb.onchange = function(type, files) {
-  rebuildUI();
-};
 
-function buildUI() {
+  // Notification of files that are added or deleted.
+  // Eventually device storage will let us know about these.
+  // For now we have to call scan(), which will trigger this function.
+  musicdb.onchange = function(type, files) {
+    if (type === 'deleted') {
+      //TODO need to handle deleted songs
+    }
+    else if (type === 'created') {
+      showDefaultView();
+    }
+  };
+}
+
+function scan() {
+  //
+  // XXX: is it too intrusive to display the scan overlay every time?
+  //
+  // Can I do it on first launch only and after that
+  // display some smaller scanning indicator that does not prevent
+  // the user from using the app right away?
+  //
+  showOverlay('scanning');   // Tell the user we're scanning
+  musicdb.scan(function() {  // Run this function when scan is complete
+    if (TilesView.dataSource.length === 0)
+      showOverlay('nosongs');
+    else
+      showOverlay(null);     // Hide the overlay
+  });
+}
+
+//
+// Overlay messages
+//
+var currentOverlay;  // The id of the current overlay or null if none.
+
+//
+// If id is null then hide the overlay. Otherwise, look up the localized
+// text for the specified id and display the overlay with that text.
+// Supported ids include:
+//
+//   nocard: no sdcard is installed in the phone
+//   cardinuse: the sdcard is being used by USB mass storage
+//   nosongs: no songs found
+//   scanning: the app is scanning for new photos
+//
+// Localization is done using the specified id with "-title" and "-text"
+// suffixes.
+//
+function showOverlay(id) {
+  currentOverlay = id;
+
+  if (id === null) {
+    $('overlay').classList.add('hidden');
+    return;
+  }
+
+  // $('overlay-title').textContent = navigator.mozL10n.get(id + '-title');
+  // $('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
+  $('overlay-title').textContent = id;
+  $('overlay-text').textContent = id;
+  $('overlay').classList.remove('hidden');
+}
+
+function showDefaultView() {
   // Enumerate existing song entries in the database
   // List the all, and sort them in ascending order by artist.
   var option = 'artist';
 
   musicdb.enumerate('metadata.' + option, null, 'nextunique',
                     TilesView.update.bind(TilesView));
-}
-
-//
-// XXX
-// This is kind of a hack. Our onchange handler is dumb and just
-// tears down and rebuilds the UI on every change. But rebuilding
-// does an async enumerate, and sometimes we get two changes in
-// a row, so these flags prevent two enumerations from happening in parallel.
-// Ideally, we'd just handle the changes individually.
-//
-var buildingUI = false;
-var needsRebuild = false;
-function rebuildUI() {
-  if (buildingUI) {
-    needsRebuild = true;
-    return;
-  }
-
-  buildingUI = true;
-  ListView.clean();
-  // This is asynchronous, but will set buildingUI to false when done
-  buildUI();
-
 }
 
 // This Application has four modes, TILES, LIST, SUBLIST and PLAYER
@@ -190,8 +252,9 @@ var TilesView = {
     if (result === null)
       return;
 
-    if (this.dataSource.length === 0)
-      document.getElementById('nosongs').classList.add('invisible');
+    // If we were showing the 'no songs' overlay, hide it
+    if (currentOverlay === 'nosongs')
+      showOverlay(null);
 
     this.dataSource.push(result);
 
@@ -906,4 +969,6 @@ window.addEventListener('localized', function showBody() {
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('invisible');
+  
+  init();
 });
