@@ -58,6 +58,7 @@ var WindowManager = (function() {
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
   var dialogOverlay = document.getElementById('dialog-overlay');
+  var screenElement = document.getElementById('screen');
 
   //
   // The set of running apps.
@@ -151,7 +152,7 @@ var WindowManager = (function() {
   var sprite = document.createElement('div');
   sprite.id = 'windowSprite';
   sprite.dataset.zIndexLevel = 'window-sprite';
-  document.getElementById('screen').appendChild(sprite);
+  screenElement.appendChild(sprite);
 
   // This event handler is triggered when the transition ends.
   // We're going to do two transitions, so it gets called twice.
@@ -175,7 +176,7 @@ var WindowManager = (function() {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
       openFrame.dispatchEvent(evt);
-      document.getElementById('screen').classList.add('active-application');
+      screenElement.classList.add('active-application');
 
     } else if (classes.contains('close') && prop === 'color') {
       closeFrame.classList.remove('active');
@@ -224,7 +225,7 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
-    document.getElementById('screen').classList.remove('active-application');
+    screenElement.classList.remove('active-application');
 
     // Take keyboard focus away from the closing window
     closeFrame.blur();
