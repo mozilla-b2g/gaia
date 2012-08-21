@@ -90,6 +90,23 @@ function getNextAlarmFireTime(alarm) { // get the next alarm fire time
   return nextAlarmFireTime;
 }
 
+function ChangeSelectByValue(selectElement, value) {
+  var e = selectElement;
+  for (var i = 0; i < e.options.length; i++) {
+    if (e.options[i].value == value) {
+      if (e.selectedIndex != i) {
+        e.selectedIndex = i;
+      }
+      break;
+    }
+  }
+}
+
+function GetSelectedValue(selectElement) {
+  var e = selectElement;
+  return e.options[e.selectedIndex].value;
+}
+
 var ValuePicker = (function() {
 
   //
