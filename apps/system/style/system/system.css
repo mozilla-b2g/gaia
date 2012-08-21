@@ -99,11 +99,11 @@ body {
   top: 40px;
 }
 
-#windows > iframe.appWindow.active:not([data-z-index-level="homescreen"]) {
+#windows > iframe.appWindow.active:not(.homescreen) {
   background-color: #fff;
 }
 
-#windows > iframe.appWindow:not(.active) {
+#windows > iframe.appWindow:not(.active):not(.homescreen) {
   visibility: hidden;
 }
 

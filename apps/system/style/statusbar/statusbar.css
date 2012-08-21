@@ -1,9 +1,13 @@
 /* The status bar disregard the rem rule because we have only 16px icons for now */
 
 #screen.fullscreen:not(.locked) > #statusbar,
-#screen.fullscreen-app:not(.locked) > #statusbar,
 #screen.lockscreen-camera > #statusbar {
   display: none;
+}
+
+#screen.fullscreen-app:not(.locked) > #statusbar {
+  visibility: hidden;
+  -moz-transition: visibility 0.5s ease;
 }
 
 #statusbar {

@@ -206,7 +206,7 @@ var WindowManager = (function() {
     if (origin === homescreen) {
       openCallback();
       windows.classList.add('active');
-      openFrame.classList.add('active');
+      openFrame.classList.add('homescreen');
       openFrame.setVisible(true);
       openFrame.focus();
     } else {
@@ -577,7 +577,6 @@ var WindowManager = (function() {
         if (!homescreen) {
           homescreen = origin;
           var frame = runningApps[homescreen].frame;
-          frame.dataset.zIndexLevel = 'homescreen';
           return;
         }
 

@@ -2,9 +2,8 @@
  * is gathered here to clearly specify all system-app hierarchy */
 
 /* Reset zIndex */
-#screen > *:not([data-z-index-level]),
-#screen > [data-z-index-level="app"] > [data-z-index-level="homescreen"] {
-  z-index: 0 !important;
+#screen > *:not([data-z-index-level]) {
+  z-index: 0;
 }
 
 /* Level 1 */
@@ -102,6 +101,10 @@
 
 #screen > [data-z-index-level="app"] > iframe.appWindow {
   z-index: 1;
+}
+
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen {
+  z-index: 0;
 }
 
 /* When keyboard is visible, set frame under app window */
