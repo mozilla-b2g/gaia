@@ -1,15 +1,9 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
 'use strict';
 
-const SETTINGS_DEBUG = false;
 function debug(msg) {
-  if (SETTINGS_DEBUG)
-    dump("-*- Populate SettingsDB: " + msg + "\n");
+  //dump("-*- Populate SettingsDB: " + msg + "\n");
 }
 
 dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
@@ -80,14 +74,9 @@ var settings = [
 ];
 
 // Disable the screen timeout in DEBUG mode
-if (DEBUG) {
-  dump("Note: screen.timeout has been set to 0 because of the debug mode.\n");
-  settings[settings.length] = new Setting("screen.timeout", 0);
-} else {
-  settings[settings.length] = new Setting("screen.timeout", 60);
-}
+settings.push(new Setting("screen.timeout", DEBUG ? 0 : 60));
 
-// Ensure there is no duplicate
+// Sanity check: Ensure there is no duplicate
 for (let i in settings) {
   var settingName = settings[i].name;
   for (let j in settings) {
@@ -110,68 +99,37 @@ function Setting(aName, aValue) {
   Setting.counter++;
 }
 
-function registerProfileDirectory() {
 
-  let directoryProvider = {
-    getFile: function provider_getFile(prop, persistent) {
-      persistent.value = true;
-      debug("prop: " + prop);
-      if (prop != "ProfD" && prop != "ProfLDS") {
-        throw Cr.NS_ERROR_FAILURE;
-      }
-
-      let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile)
-      file.initWithPath(PROFILE_DIR);
-      return file;
+(function writeSettingsToDatabase() {
+  let callback = {
+    handle : function handle(name, result) {
+      Setting.counter--;
     },
 
-    QueryInterface: function provider_queryInterface(iid) {
-      if (iid.equals(Ci.nsIDirectoryServiceProvider) ||
-          iid.equals(Ci.nsISupports)) {
-        return this;
-      }
-      throw Cr.NS_ERROR_NO_INTERFACE;
+    handleError : function handleError(name) {
+      dump("SettingsDB Error: " + name);
+      Setting.counter--;
     }
-  };
-
-  Cc["@mozilla.org/file/directory_service;1"]
-    .getService(Ci.nsIProperties)
-    .QueryInterface(Ci.nsIDirectoryService)
-    .registerProvider(directoryProvider);
-}
-if (Gaia.engine === "xpcshell")
-  registerProfileDirectory();
-
-let settingsDBService = Cc["@mozilla.org/settingsService;1"].getService(Ci.nsISettingsService);
-
-let callback = {
-  handle : function handle(name, result)
-  {
-    Setting.counter--;
-  },
-
-  handleError : function handleError(name)
-  {
-    dump("SettingsDB Error: " + name);
-    Setting.counter--;
   }
-}
 
-let lock = settingsDBService.getLock();
+  let settingsDBService = Cc["@mozilla.org/settingsService;1"]
+                            .getService(Ci.nsISettingsService);
+  let lock = settingsDBService.getLock();
 
-for (let i in settings) {
-  debug("add seting: " + settings[i].name + ", " + settings[i].value);
-  lock.set(settings[i].name, settings[i].value, callback);
-}
-
-if (Gaia.engine === "xpcshell") {
-  var thread = Components.classes["@mozilla.org/thread-manager;1"]
-                         .getService(Components.interfaces.nsIThreadManager)
-                         .currentThread;
-
-  while ((Setting.counter > 0) || thread.hasPendingEvents()) {
-    thread.processNextEvent(true);
+  for (let i in settings) {
+    debug("add seting: " + settings[i].name + ", " + settings[i].value);
+    lock.set(settings[i].name, settings[i].value, callback);
   }
-}
+
+  if (Gaia.engine === "xpcshell") {
+    var thread = Cc["@mozilla.org/thread-manager;1"]
+                   .getService(Ci.nsIThreadManager)
+                   .currentThread;
+
+    while ((Setting.counter > 0) || thread.hasPendingEvents()) {
+      thread.processNextEvent(true);
+    }
+  }
+})();
 
 dump("SettingsDB filled.\n");
