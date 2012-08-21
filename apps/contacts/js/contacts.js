@@ -270,6 +270,11 @@ var Contacts = (function() {
     var list = document.getElementById('groups-list');
     contactsList.init(list);
     checkCancelableActivity();
+    ContactsListener.setOnChange(function onContactsChange(evt) {
+      if (document.mozHidden) {
+        loadList();
+      }
+    });
   };
 
   var checkCancelableActivity = function cancelableActivity() {
