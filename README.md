@@ -47,3 +47,4 @@ on port 2828. For example on a device the steps would be:
 
 You may also optionally specify the reporter to use when running
 integration tests like this: `make test-integration REPORTER=XUnit`
+head check
