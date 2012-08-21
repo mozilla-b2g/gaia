@@ -1089,7 +1089,7 @@ var ThreadUI = {
       //TODO Implement algorithm for this part following Wireframes
       // Create HTML structure
       var structureHTML =
-              '  <a href="#num=' + contact.tel[i].number + '">' +
+              '  <a href="#num=' + tels[i].value + '">' +
               '    <div class="name">' + nameHTML + '</div>' +
               '    <div class="type">' + tels[i].type + ' ' + numHTML +
               '    </div>' +
