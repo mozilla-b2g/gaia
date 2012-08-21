@@ -187,6 +187,10 @@ setService(function cc_setupCostControlService() {
     _smsTimeout[STATE_TOPPING_UP] = 0;
     _onSMSReceived[STATE_UPDATING_BALANCE] = _onBalanceSMSReceived;
     _onSMSReceived[STATE_TOPPING_UP] = _onConfirmationSMSReceived;
+
+    // If data or voice change
+    _conn.onvoicechange = _dispatchServiceStatusChangeEvent;
+    _conn.ondatachange = _dispatchServiceStatusChangeEvent;
   }
 
   // Return a status object with three fields:
@@ -431,7 +435,17 @@ setService(function cc_setupCostControlService() {
     }
   }
 
-  // Helper to dispatch custome events, provide type and the detail object
+  // Helper to dispatch a custom event with the new status of the service
+  function _dispatchServiceStatusChangeEvent() {
+    var event = new CustomEvent(
+      'costcontrolservicestatuschange',
+      {detail: _getServiceStatus() }
+    );
+    window.dispatchEvent(event);
+    debug('CostControl Event: ' + type + ': ' + JSON.stringify(event.detail));
+  }
+
+  // Helper to dispatch custom events, provide type and the detail object
   function _dispatchEvent(type, detail) {
     var event = new CustomEvent(type, {detail: detail || null});
     window.dispatchEvent(event);
@@ -470,10 +484,15 @@ setService(function cc_setupCostControlService() {
     _bindCallbacks(STATE_TOPPING_UP, callbacks);
   }
 
+  function _setServiceStateChangeCallback(callback) {
+    window.addEventListener('costcontrolservicestatuschange', callback);
+  }
+
   return {
     init: _init,
     setBalanceCallbacks: _setBalanceCallbacks,
     setTopUpCallbacks: _setTopUpCallbacks,
+    onservicestatechange: _setServiceStateChangeCallback,
     requestBalance: _updateBalance,
     requestTopUp: _topUp,
     getLastBalance: _getLastBalance,

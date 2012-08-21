@@ -52,11 +52,13 @@ function setupWidget() {
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
+    _widget.classList.remove('error');
     _updateUI(evt.detail.balance, evt.detail.timestamp, evt.detail.currency);
   }
 
   // On balance updating error, if manual request, notificate
   function _onUpdateBalanceError(evt) {
+    _widget.classList.add('error');
     switch(evt.detail.reason) {
       case 'sending-error':
         debug('TODO: Change widget state to indicate the fail.');
