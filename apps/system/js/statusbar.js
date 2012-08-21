@@ -77,8 +77,15 @@ var StatusBar = {
       })(settingKey);
     }
 
+    // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
+
+    // Listen to 'geolocation-status' and 'recording-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
+
+    // Listen to 'bluetoothconnectionchange' from bluetooth.js
+    window.addEventListener('bluetoothconnectionchange', this);
+
     this.setActive(true);
   },
 
@@ -102,6 +109,9 @@ var StatusBar = {
       case 'datachange':
         this.update.data.call(this);
         break;
+
+      case 'bluetoothconnectionchange':
+        this.update.bluetooth.call(this);
 
       case 'mozChromeEvent':
         switch (evt.detail.type) {
@@ -146,13 +156,6 @@ var StatusBar = {
         wifiManager.onstatuschange =
           wifiManager.connectionInfoUpdate = (this.update.wifi).bind(this);
         this.update.wifi.call(this);
-      }
-
-      var bluetooth = window.navigator.mozBluetooth;
-      if (bluetooth) {
-        // XXX need a reliable way to see if bluetooth is currently
-        // connected or not here.
-        this.update.bluetooth.call(this);
       }
     } else {
       clearTimeout(this._clockTimer);
@@ -346,11 +349,7 @@ var StatusBar = {
       var icon = this.icons.bluetooth;
 
       icon.hidden = !this.settingValues['bluetooth.enabled'];
-
-      // XXX no way to active state of BlueTooth for now,
-      // make it always active
-      // https://github.com/mozilla-b2g/gaia/issues/2664
-      icon.dataset.active = 'true';
+      icon.dataset.active = Bluetooth.connected;
     },
 
     alarm: function sb_updateAlarm() {
