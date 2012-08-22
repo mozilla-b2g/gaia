@@ -35,6 +35,7 @@ var StatusBar = {
 
   recordingActive: false,
   recordingTimer: null,
+  headphonesState: 'unknown',
 
   /* For other app to acquire */
   get height() {
@@ -124,9 +125,12 @@ var StatusBar = {
             this.recordingActive = evt.detail.active;
             this.update.recording.call(this);
             break;
-        }
 
-        break;
+          case 'headphones-status-changed':
+            this.headphonesState = evt.detail.state;
+            this.update.headphones.call(this);
+            break;
+        }
     }
   },
 
@@ -411,6 +415,18 @@ var StatusBar = {
       // https://github.com/mozilla-b2g/gaia/issues/2333
 
       // this.icon.usb.hidden = ?
+    },
+
+    headphones: function sb_updateHeadphones() {
+      var icon = this.icons.headphones;
+
+      if (this.headphonesState == 'off') {
+        icon.hidden = true;
+        return;
+      }
+
+      icon.hidden = false;
+      icon.dataset.state = this.headphonesState;
     }
   },
 
@@ -433,7 +449,7 @@ var StatusBar = {
     // ID of elements to create references
     var elements = ['notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'signal',
-    'tethering', 'alarm', 'bluetooth', 'mute',
+    'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
     'recording', 'sms', 'geolocation', 'usb', 'label'];
 
     var toCamelCase = function toCamelCase(str) {
