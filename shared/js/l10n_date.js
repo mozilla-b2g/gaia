@@ -92,7 +92,6 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
     if (secDiff < 0) { // future
       secDiff = -secDiff;
       dayDiff = Math.floor(secDiff / 86400);
-      console.log(dayDiff);
       if (secDiff < 3600) {
         return _('inMinutes', { m : Math.floor(secDiff / 60) });
       } else if (dayDiff === 0) {
