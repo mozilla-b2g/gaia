@@ -239,19 +239,19 @@ var ThreadListUI = {
     delete this.view;
     return this.view = document.getElementById('thread-list-container');
   },
-  get deleteAllButton() {
-    delete this.deleteAllButton;
-    return this.deleteAllButton =
-    document.getElementById('delete-all-threads');
+  get selectAllButton() {
+    delete this.selectAllButton;
+    return this.selectAllButton =
+    document.getElementById('select-all-threads');
   },
-  get deleteSelectedButton() {
+  get deselectAllButton() {
     delete this.deleteSelectedButton;
     return this.deleteSelectedButton =
-    document.getElementById('delete-selected-threads');
+    document.getElementById('deselect-all-threads');
   },
-  get doneButton() {
-    delete this.doneButton;
-    return this.doneButton = document.getElementById('thread-done-button');
+  get deleteButton() {
+    delete this.deleteButton;
+    return this.deleteButton = document.getElementById('threads-delete-button');
   },
   get iconEdit() {
     delete this.iconEdit;
@@ -266,11 +266,12 @@ var ThreadListUI = {
     this.delNumList = [];
     this.pendingDelList = [];
     this.selectedInputList = [];
-    this.deleteAllButton.addEventListener('click',
-      this.deleteAllThreads.bind(this));
-    this.deleteSelectedButton.addEventListener('click',
-      this.deleteThreads.bind(this));
-    this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
+    this.selectAllButton.addEventListener('click',
+                                          this.selectAllThreads.bind(this));
+    this.deselectAllButton.addEventListener('click',
+                                            this.deselectAllThreads.bind(this));
+    this.deleteButton.addEventListener('click',
+                                       this.executeDeletion.bind(this));
     this.view.addEventListener('click', this);
    },
 
@@ -293,13 +294,21 @@ var ThreadListUI = {
                       ThreadListUI.selectedInputList.indexOf(evt.target), 1);
           }
           var selected = ThreadListUI.selectedInputList.length;
-          if (selected > 0) {
-            ThreadListUI.deleteSelectedButton.classList.remove('disabled');
-            this.editHeader.innerHTML = selected + ' Selected';
-
+          var allInputs =
+                  ThreadListUI.view.querySelectorAll('input[type="checkbox"]');
+          if (selected == allInputs.length) {
+            ThreadListUI.selectAllButton.classList.add('disabled');
           } else {
-            ThreadListUI.deleteSelectedButton.classList.add('disabled');
-            this.editHeader.innerHTML = 'Edit mode';
+            ThreadListUI.selectAllButton.classList.remove('disabled');
+          }
+          if (selected > 0) {
+            ThreadListUI.deselectAllButton.classList.remove('disabled');
+            ThreadListUI.deleteButton.classList.remove('disabled');
+            this.editHeader.innerHTML = _('selected', {n: selected});
+          } else {
+            ThreadListUI.deselectAllButton.classList.add('disabled');
+            ThreadListUI.deleteButton.classList.add('disabled');
+            this.editHeader.innerHTML = _('editMode');
           }
         }
         break;
@@ -314,59 +323,40 @@ var ThreadListUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
-    this.editHeader.innerHTML = 'Edit mode';
-    this.deleteSelectedButton.classList.add('disabled');
-  },
-
-  deleteAllThreads: function thlui_deleteAllThreads() {
-    var response = window.confirm(_('deleteAll-confirmation'));
-    if (response) {
-      this.delNumList = [];
-      this.pendingDelList = [];
-      var inputs = this.view.querySelectorAll('input[type="checkbox"]');
-      for (var i = 0; i < inputs.length; i++) {
-        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-      }
-      // We get ALL the messages
-      MessageManager.getMessages(function deleteAll(messages) {
-        for (var i = 0; i < messages.length; i++) {
-          if (messages[i].delivery == 'sent' ||
-           messages[i].delivery == 'received') {
-            ThreadListUI.delNumList.push(messages[i].id);
-          } else { //pending
-            ThreadListUI.pendingDelList.push(messages[i]);
-          }
-        }
-        ThreadListUI.executeDeletion();
-      });
-    }
-  },
-
-  deleteThreads: function thlui_deleteThreads() {
-    this.delNumList = []; //clean the lists before adding stuff
-    this.pendingDelList = [];
-    var inputs = ThreadListUI.selectedInputList;
-    for (var i = 0; i < inputs.length; i++) {
-      inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-      var filter = MessageManager.createFilter(inputs[i].value);
-      MessageManager.getMessages(function gotMessages(messages) {
-        for (var j = 0; j < messages.length; j++) {
-          if (messages[j].delivery == 'sent' ||
-              messages[j].delivery == 'received') {
-            ThreadListUI.delNumList.push(parseFloat(messages[j].id));
-          } else {
-            ThreadListUI.pendingDelList.push(messages[j]);
-          }
-        }
-      }, filter);
-    }
-    // Cleaning
-    ThreadListUI.selectedInputList = [];
     this.editHeader.innerHTML = _('editMode');
-    this.deleteSelectedButton.classList.add('disabled');
+    this.deselectAllButton.classList.add('disabled');
+    this.deleteButton.classList.add('disabled');
+  },
+
+  selectAllThreads: function thlui_selectAllThreads() {
+    var inputs =
+            this.view.querySelectorAll('input[type="checkbox"]:not(:checked)');
+    for (var i = 0; i < inputs.length; i++) {
+        inputs[i].click();
+    }
+  },
+
+  deselectAllThreads: function thlui_deleteThreads() {
+    var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
+    for (var i = 0; i < inputs.length; i++) {
+        inputs[i].click();
+    }
   },
 
   executeDeletion: function thlui_executeDeletion() {
+    //  if some selected
+    //    confirmation window
+    //      if confirmation
+    //        delete all
+    //      else
+    //        cancel and out
+    //  else
+    //    cancel and out
+
+    var response = window.confirm(_('deleteAll-confirmation'));
+    if (response) {
+    }
+
     WaitingScreen.show();
     MessageManager.deleteMessages(ThreadListUI.delNumList, function repaint() {
       //TODO Change this functionality with Steve code
@@ -560,18 +550,18 @@ var ThreadUI = {
   get deleteAllButton() {
     delete this.deleteAllButton;
     return this.deleteAllButton =
-    document.getElementById('delete-all-messages');
+    document.getElementById('select-all-messages');
   },
 
   get deleteSelectedButton() {
     delete this.deleteSelecteButton;
     return this.deleteSelecteButton =
-    document.getElementById('delete-selected-messages');
+    document.getElementById('deselect-all-messages');
   },
 
   get doneButton() {
     delete this.doneButton;
-    return this.doneButton = document.getElementById('messages-done-button');
+    return this.doneButton = document.getElementById('messages-delete-button');
   },
 
   get headerTitle() {
@@ -938,9 +928,7 @@ var ThreadUI = {
           var selected = ThreadUI.selectedInputList.length;
           if (selected > 0) {
             ThreadUI.deleteSelectedButton.classList.remove('disabled');
-            var total = selected - ThreadUI.delNumList.length -
-              ThreadUI.pendingDelList.length;
-            this.editHeader.innerHTML = _('selected', {n: total});
+            this.editHeader.innerHTML = _('selected', {n: selected});
           } else {
             ThreadUI.deleteSelectedButton.classList.add('disabled');
             this.editHeader.innerHTML = _('editMode');
