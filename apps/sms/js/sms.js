@@ -349,7 +349,6 @@ var ThreadListUI = {
       this.delNumList = [];
       this.pendingDelList = [];
       var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
-      alert("Borrando " + inputs.length + " conversations");
       for (var i = 0; i < inputs.length; i++) {
         var filter = MessageManager.createFilter(inputs[i].value);
         MessageManager.getMessages(function gotMessages(messages) {
@@ -362,18 +361,13 @@ var ThreadListUI = {
             }
           }
         }, filter);
-        alert("Numero " + inputs[i].value);
-        alert(ThreadListUI.delNumList.length + " msgs reales");
-        alert(ThreadListUI.pendingDelList.length + " msgs pending");
       }
-      alert("Total de " + ThreadListUI.delNumList.length + ThreadListUI.pendingDelList.length + " mensajes");
       // Now we have all the messages from the conversations on the lists
-      alert("Borrando reales");
-      MessageManager.deleteMessages(ThreadListUI.delNumList, function repaint() {
+      MessageManager.deleteMessages(ThreadListUI.delNumList,
+                                    function repaint() {
         //TODO Change this functionality with Steve code
         //TODO Steve will add delete pending in deleteMessages!
         if (ThreadListUI.pendingDelList.length > 0) {
-          alert("Borrando pending");
           for (var i = 0; i < ThreadListUI.pendingDelList.length; i++) {
             if (i == ThreadListUI.pendingDelList.length - 1) {
               PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i],
@@ -606,7 +600,8 @@ var ThreadUI = {
       this.deselectAllMessages.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.contactInput.addEventListener('input', this.searchContact.bind(this));
-    this.deleteButton.addEventListener('click', this.executeDeletion.bind(this));
+    this.deleteButton.addEventListener('click',
+                                       this.executeDeletion.bind(this));
     this.headerTitle.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
     this.view.addEventListener('click', this);
@@ -825,7 +820,6 @@ var ThreadUI = {
       this.pendingDelList = [];
       var tempTSList = [];
       var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
-      alert("Borrando " + inputs.length + " mensajes");
       for (var i = 0; i < inputs.length; i++) {
         var inputValue = inputs[i].value;
         if (inputValue.indexOf('ts_') != -1) {
@@ -846,8 +840,6 @@ var ThreadUI = {
           }
         }
       });
-      alert("Mensajes reales: " + ThreadUI.delNumList.length);
-      alert("Mensajes pendientes: " + ThreadUI.pendingDelList.length);
       // Now we have our lists filled, we start the deletion
       MessageManager.deleteMessages(ThreadUI.delNumList, function() {
         //TODO Change this functionality with Steve code
