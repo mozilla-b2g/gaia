@@ -436,7 +436,6 @@ var Contacts = (function() {
 
     var phonesTemplate = document.getElementById('phone-details-template-#i#');
     var telLength = getLength(contact.tel)
-
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
       var telField = {
@@ -935,6 +934,7 @@ var Contacts = (function() {
       contact = new mozContact();
       contact.init(myContact);
     }
+
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
       // Reloading contact, as it only allows to be updated once
