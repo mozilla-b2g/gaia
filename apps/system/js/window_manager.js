@@ -359,132 +359,57 @@ var WindowManager = (function() {
     // run out of process. All other apps will be run OOP.
     //
     var outOfProcessBlackList = [
-      // Crash when placing call
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=761925
-      // Cross-process fullscreen
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=684620
-      // Nested content processes
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=761935
-      // Stop audio when app dies
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=761936
-      // w->mApp Assertion
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775576
-      // Gallery App crash (in IndexedDB)
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775591
-      // Electrolysize b2g-bluetooth
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=755943
-      // Message App crashes when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775997
-      // ICS camera support
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=740997
-      // Marketplace app doesn't seem to work when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776086
+      // Bugs that are shared among multiple apps are listed here.
+      // Bugs that affect only specific apps should be listed under
+      // the apps themselves.
+      //
       // Keyboard always shows up alpha when app using keyboard is run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776118
       // Keyboard doesn't show up correctly when app run OOP
       //   https://github.com/mozilla-b2g/gaia/issues/2656
-      // UI Test app - Insert Fake Contacts hangs when run OOP (or not OOP)
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776128
-      // UI Test - window.open doesn't work properly when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776129
-      // UI Test app - window.close test causes seg fault when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776132
-      // UI Test App - Notifications don't work properly when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776134
-      // Cannot take on-device screenshot for Apps running in OOP
-      //   (calculator, browser, Calendar)
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=780920
-      // Clock App alarm doesn't sound when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=778300
-      // Music app doesn't work properly when launched OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782458
-      // Video shows black screen when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782460
-      // Camera app show black screen when launched OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782456
-      // AppsService is not e10s ready
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=777195
-      // Contacts app doesn't work when OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=782472
+      // Layers masking across processes doesn't work
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=783106
 
       'Browser',
-      // - Needs Nested Content Process (bug 761935) for OOP
+      // Requires nested content processes (bug 761935)
 
       'Camera',
-      // - Get a black screen when camera launched OOP (782456)
-      //   Cross-process camera control
-      //   Cross-process preview stream
+      // Can't open camera HAL from content processes (bug 782456)
 
       'Clock',
-      //  - OOP - when alarm fires,
-      //    analog clock stops advancing and alarm doesn sound (778300)
+      // - Alarm notification audio doesn't play (bug 778300)
+      // - Time display is different OOP.  Not a hard blocker of
+      //   OOP. (#3625)
+      // - Layers masking breaks alarm enabled/disabled display (bug
+      //   783106)
 
       'Contacts',
-      // - Get a white screen when launched OOP (782472)
-      // Keyboard always shows up alpha when app using keyboard is run OOP
-      // - bug 776118
-
-      'Cut The Rope',
-      // - Doesn't seem to work when non-OOP so didn't test OOP
-      // - couldn't test OOP - since wifi wasn't working
-      //   Mouse click not delivered
-      //   Stop audio when app dies
+      // - Keyboard always shows up alpha when app using keyboard is
+      //   run OOP.  Not a hard blocker of OOP. (bug 776118)
+      // - Layers masking breaks input fields (bug 783106, tracked
+      //   #3630)
 
       'E-Mail',
-      // - SSL/TLS support can only happen in the main process although the TCP
-      //   support without security will accidentally work OOP:
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=770778
-
-      'Marketplace',
-      // - When running OOP - After trying to Login/Register, never get to
-      //   persona scren - bug 776086
-      // - When running OOP - Sometimes get w->mApp assert (bug 775576)
-
-      'Messages',
-      // - crashes when launched OOP on otoro - bug 775997
-
-      'Music',
-      // - When running OOP, displays white screen after selecting song (782458)
-
-      'Settings',
-      // Most of settings seems to work OOP.
-      // However, apprarently bluetooth doesn't - bug 755943
-
-      'Staging Marketplace',
-      // - When running OOP - After trying to Login/Register, never get to
-      //   persona scren - bug 776086
-      // - When running OOP - After trying to Login/Register, got white screen
-      // - Works ok when running non-OOP
-
-      'Test Agent',
-
-      'UI tests',
-      // Keyboard always shows up alpha when app using keyboard is running OOP
-      //   - bug 776118
-      // Insert Fake Contacts hangs when running OOP (or not OOP)
-      //   - bug 776128
-      // UI Test - window.open doesn't work properly when running OOP
-      //   - bug 776129
-      // UI Test app - window.close test causes seg fault when running OOP
-      //   - bug 776132
-
-      'Video',
-      // - When running OOP, displays black screen when launching
-      //   (i.e. no video list) (782460)
-      // - Stop audio when app dies
+      // SSL/TLS support can only happen in the main process although
+      // the TCP support without security will accidentally work OOP
+      // (bug 770778)
 
       'Homescreen',
-      // Bug 783076 - Panning is broken when running the homescreen OOP.
+      // - Repaints are being starved during panning (bug 761933)
+      // - Homescreen needs to draw the system wallpaper itself (#3639)
 
-      // - When running OOP, displays black screen when launching
-      //   (i.e. no video list) (782460)
-      // - Stop audio when app dies
+      'Messages',
+      // Crashes when launched OOP (bug 775997)
 
-      'Share Receiver'
-      // This is a helper app for testing the Share activity in Gallery
-      // It needs to be blacklisted because when OOP it does not receive
-      // the system messages it needs to respond to the activity request.
-      // See https://bugzilla.mozilla.org/show_bug.cgi?id=782835
+      'Music',
+      // No audio playback when OOP (bug 784274)
+
+      'Settings',
+      // Layers masking breaks input fields (bug 783106)
+
+      'Video'
+      // No videos seem to be found when running OOP (i.e. no video
+      // list) (bug 782460)
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {
