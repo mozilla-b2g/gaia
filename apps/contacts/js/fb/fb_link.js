@@ -170,19 +170,6 @@ if (!fb.link) {
       fb.utils.runQuery(query, 'fb.link.proposalReady', access_token);
     }
 
-    // Obtains a proposal from the already imported contact list
-    function getLocalProposal(contact) {
-
-
-      var filterCandidates = {
-        filterBy: ['category'],
-        filterValue: [fb.NOT_LINKED],
-        filterOp: 'contains'
-      };
-
-      // fields.forEach()
-    }
-
 
     function getRemoteAll() {
       document.body.dataset.state = 'waiting';
