@@ -91,11 +91,11 @@ function getNextAlarmFireTime(alarm) { // get the next alarm fire time
 }
 
 function ChangeSelectByValue(selectElement, value) {
-  var e = selectElement;
-  for (var i = 0; i < e.options.length; i++) {
-    if (e.options[i].value == value) {
-      if (e.selectedIndex != i) {
-        e.selectedIndex = i;
+  var options = selectElement.options;
+  for (var i = 0; i < options.length; i++) {
+    if (options[i].value == value) {
+      if (selectElement.selectedIndex != i) {
+        selectElement.selectedIndex = i;
       }
       break;
     }
@@ -103,8 +103,7 @@ function ChangeSelectByValue(selectElement, value) {
 }
 
 function GetSelectedValue(selectElement) {
-  var e = selectElement;
-  return e.options[e.selectedIndex].value;
+  return selectElement.options[selectElement.selectedIndex].value;
 }
 
 var ValuePicker = (function() {

@@ -524,11 +524,6 @@ var AlarmEditView = {
     return this.snoozeSelect = document.getElementById('snooze-select');
   },
 
-  get colorMenu() {
-    delete this.colorMenu;
-    return this.colorMenu = document.getElementById('color-menu');
-  },
-
   get deleteElement() {
     delete this.deleteElement;
     return this.deleteElement = document.getElementById('alarm-delete');
@@ -548,13 +543,13 @@ var AlarmEditView = {
     // XXX: Due to no onchange event after seleted options by value selector.
     // So, handle 'onblur' event to refresh select tag.
     // It's should be removed after the issue fixed.
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=784590
     this.soundSelect.addEventListener('blur', this);
     this.soundSelect.addEventListener('change', this);
     this.snoozeMenu.addEventListener('click', this);
     this.snoozeSelect.addEventListener('blur', this);
     this.snoozeSelect.addEventListener('change', this);
     this.deleteButton.addEventListener('click', this);
-    // document.getElementById('color-menu').addEventListener('click', this);
     this.initTimePicker();
   },
 
@@ -642,9 +637,6 @@ var AlarmEditView = {
             break;
         }
         break;
-      case 'color-menu':
-        ColorPickerView.load(this.alarm.color);
-        break;
       case 'alarm-delete':
         this.delete();
         break;
@@ -688,23 +680,22 @@ var AlarmEditView = {
     this.refreshSoundMenu();
     this.initSnoozeSelect();
     this.refreshSnoozeMenu();
-    // this.refreshColorMenu();
     this.deleteButton.hidden = (alarm.id) ? false : true;
   },
 
   initRepeatSelect: function aev_initRepeatSelect() {
     var daysOfWeek = this.alarm.repeat;
-    var e = this.repeatSelect;
-    for (var i = 0; i < e.options.length; i++) {
-      e.options[i].selected = (daysOfWeek.substr(i, 1) == '1') ? true : false;
+    var options = this.repeatSelect.options;
+    for (var i = 0; i < options.length; i++) {
+      options[i].selected = (daysOfWeek.substr(i, 1) == '1') ? true : false;
     }
   },
 
   getRepeatSelect: function aev_getRepeatSelect() {
     var daysOfWeek = '';
-    var e = this.repeatSelect;
-    for (var i = 0; i < e.options.length; i++) {
-      daysOfWeek += (e.options[i].selected) ? '1' : '0';
+    var options = this.repeatSelect.options;
+    for (var i = 0; i < options.length; i++) {
+      daysOfWeek += (options[i].selected) ? '1' : '0';
     }
     return daysOfWeek;
   },
@@ -739,11 +730,6 @@ var AlarmEditView = {
   refreshSnoozeMenu: function aev_refreshSnoozeMenu(snooze) {
     var snooze = (snooze) ? this.getSnoozeSelect() : this.alarm.snooze;
     this.snoozeMenu.innerHTML = _('nMinutes', {n: snooze});
-  },
-
-  refreshColorMenu: function aev_refreshColorMenu() {
-    // XXX: Exposing a CSS color name to the UI.
-    this.colorMenu.innerHTML = this.alarm.color;
   },
 
   save: function aev_save() {
@@ -797,51 +783,6 @@ var AlarmEditView = {
 
 };
 
-var ColorPickerView = {
-
-  get element() {
-    delete this.element;
-    return this.element = document.getElementById('color');
-  },
-
-  init: function cpv_init() {
-    document.getElementById('color-back').addEventListener('click', this);
-  },
-
-  handleEvent: function cpv_handleEvent(evt) {
-    var input = evt.target;
-    if (!input)
-      return;
-
-    switch (evt.type) {
-      case 'click':
-        if (input.id == 'color-back') {
-          this.save();
-        }
-        break;
-    }
-  },
-
-  load: function cpv_load(color) {
-    var radios = document.querySelectorAll('input[name="color"]');
-    for (var i = 0; i < radios.length; i++) {
-      radios[i].checked = (color == radios[i].value);
-    }
-  },
-
-  save: function cpv_save() {
-    var radios = document.querySelectorAll('input[name="color"]');
-    for (var i = 0; i < radios.length; i++) {
-      if (radios[i].checked) {
-        AlarmEditView.alarm.color = radios[i].value;
-        AlarmEditView.refreshColorMenu();
-        return;
-      }
-    }
-  }
-
-};
-
 window.addEventListener('keyup', function goBack(evt) {
   if (document.location.hash != '#root' &&
       evt.keyCode === evt.DOM_VK_ESCAPE) {
@@ -861,6 +802,5 @@ window.addEventListener('localized', function showBody() {
   ClockView.init();
   AlarmList.init();
   AlarmEditView.init();
-  // ColorPickerView.init(); // Disable set alarm color
   AlarmManager.init();
 });
