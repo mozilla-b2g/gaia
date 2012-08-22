@@ -192,18 +192,43 @@ const GridManager = (function() {
    * Renders the homescreen from moz applications
    */
   function renderFromMozApps(finish) {
-    DockManager.getShortcuts(function getShortcuts(shortcuts) {
+    var apps = Applications.getAll();
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'js/init.json', true);
+    xhr.send(null);
+
+    xhr.onreadystatechange = function renderFromMozApps_init(evt) {
+      if (xhr.readyState != 4)
+        return;
+
+      if (xhr.status == 0 || xhr.status == 200) {
+        var init = JSON.parse(xhr.responseText);
+        init.grid.forEach(function(page) {
+          pageHelper.push(page);
+
+          for (var i = apps.length - 1; i >= 0; i--) {
+            if (page.indexOf(apps[i]['origin']) != -1) {
+              apps.splice(i, 1);
+            }
+          }
+        });
+
+        for (var i = apps.length - 1; i >= 0; i--) {
+          if (init.dock.indexOf(apps[i]['origin']) != -1) {
+            apps.splice(i, 1);
+          }
+        }
+        HomeState.saveShortcuts(init.dock);
+      }
+
       var max = pageHelper.getMaxPerPage();
       var list = [];
-
-      var apps = Applications.getAll();
-      for (var origin in apps) {
-        if (shortcuts.indexOf(origin) === -1) {
-          list.push(apps[origin]);
-          if (list.length === max) {
-            pageHelper.push(list);
-            list = [];
-          }
+      for (var i = 0; i < apps.length; i++) {
+        list.push(apps[i]);
+        if (list.length === max) {
+          pageHelper.push(list);
+          list = [];
         }
       }
 
@@ -217,7 +242,7 @@ const GridManager = (function() {
 
       // Saving initial state
       pageHelper.saveAll();
-    });
+    }
   }
 
   /*
