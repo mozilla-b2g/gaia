@@ -134,9 +134,9 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
 
   if (this.recentsEntry) {
     var recentToAdd = this.recentsEntry;
-    RecentsDBManager._init(function() {
-      RecentsDBManager._add(recentToAdd, function() {
-        RecentsDBManager._close();
+    RecentsDBManager.init(function() {
+      RecentsDBManager.add(recentToAdd, function() {
+        RecentsDBManager.close();
       });
     });
   }

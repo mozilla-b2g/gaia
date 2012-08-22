@@ -4,7 +4,7 @@ var RecentsDBManager = {
   _dbName: 'dialerRecents',
   _dbStore: 'dialerRecents',
   _dbVersion: 1,
-  _init: function rdbm_init(callback) {
+  init: function rdbm_init(callback) {
     try {
       var indexedDB = window.indexedDB || window.webkitIndexedDB ||
                         window.mozIndexedDB || window.msIndexedDB;
@@ -38,22 +38,20 @@ var RecentsDBManager = {
           { keyPath: 'date' });
         objStore.createIndex('number', 'number');
       };
-    }catch (ex) {
-      // TODO Do we have to implement any custom error handler?
-      console.log(ex.message);
+    } catch (ex) {
+      console.log('Dialer recents IndexedDB exception:' + ex.message);
     }
   },
-  _close: function rbdm_close() {
+  close: function rbdm_close() {
     this.db.close();
     console.log('DB Closed');
   },
-  // Method which check if DB is ready
-  _checkDB: function rdbm_checkDB(callback) {
+  _checkDBReady: function rdbm_checkDBReady(callback) {
     var self = this;
     if (!this.db) {
       this.request.addEventListener('success', function rdbm_DBReady() {
         self.request.removeEventListener('success', rdbm_DBReady);
-        self._checkDB.call(self, callback);
+        self._checkDBReady.call(self, callback);
       });
       return;
     }
@@ -61,11 +59,10 @@ var RecentsDBManager = {
       callback.call(this);
     }
   },
-  // Metod for adding an item to recents of DB
-  _add: function rdbm_add(recentCall, callback) {
-    this._checkDB.call(this, function() {
-      var txn = this.db.transaction('dialerRecents', 'readwrite');
-      var store = txn.objectStore('dialerRecents');
+  add: function rdbm_add(recentCall, callback) {
+    this._checkDBReady.call(this, function() {
+      var txn = this.db.transaction(RecentsDBManager._dbStore, 'readwrite');
+      var store = txn.objectStore(RecentsDBManager._dbStore);
       var self = this;
       var request = store.put(recentCall);
       request.onsuccess = function sr_onsuccess() {
@@ -91,11 +88,9 @@ var RecentsDBManager = {
       this._add.call(this, recent);
     }
   },
-  // Method for deleting an item from DB
   _delete: function rdbm_delete(callLogEntry, callback) {
-    //TODO Implement
-    var txn = database.transaction('dialerRecents', 'readwrite');
-    var store = txn.objectStore('dialerRecents');
+    var txn = database.transaction(RecentsDBManager._dbStore, 'readwrite');
+    var store = txn.objectStore(RecentsDBManager._dbStore);
     var delRequest = store.delete(new Number(callLogEntry.date));
 
     delRequest.onsuccess = function de_onsuccess() {
@@ -122,11 +117,10 @@ var RecentsDBManager = {
       }
     }
   },
-  // Method for deleting all items in store
   _deleteAll: function rdbm_deleteAll(callback) {
-    this._checkDB.call(this, function() {
-      var txn = this.db.transaction('dialerRecents', 'readwrite');
-      var store = txn.objectStore('dialerRecents');
+    this._checkDBReady.call(this, function() {
+      var txn = this.db.transaction(RecentsDBManager._dbStore, 'readwrite');
+      var store = txn.objectStore(RecentsDBManager._dbStore);
 
       var delAllRequest = store.clear();
       delAllRequest.onsuccess = function da_onsuccess() {
@@ -143,8 +137,8 @@ var RecentsDBManager = {
   },
   // Method for retrieving all recents from DB
   _get: function rdbm_get(callback) {
-    var objectStore = this.db.transaction('dialerRecents').
-      objectStore('dialerRecents');
+    var objectStore = this.db.transaction(RecentsDBManager._dbStore).
+      objectStore(RecentsDBManager._dbStore);
     var recents = [];
     objectStore.openCursor().onsuccess = function(event) {
       var cursor = event.target.result;
