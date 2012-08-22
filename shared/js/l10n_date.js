@@ -81,11 +81,11 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
     if (secDiff >= 0) { // past
       var dayDiff = Math.floor(secDiff / 86400);
       if (secDiff < 3600) {
-        return _('minutesAgo', { m : Math.floor(secDiff / 60) });
+        return _('minutesAgo', { m: Math.floor(secDiff / 60) });
       } else if (dayDiff === 0) {
-        return _('hoursAgo', { h : Math.floor(secDiff / 3600) });
+        return _('hoursAgo', { h: Math.floor(secDiff / 3600) });
       } else if (dayDiff < 10) {
-        return _('daysAgo', { d : dayDiff });
+        return _('daysAgo', { d: dayDiff });
       }
     }
 
@@ -93,11 +93,11 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
       secDiff = -secDiff;
       dayDiff = Math.floor(secDiff / 86400);
       if (secDiff < 3600) {
-        return _('inMinutes', { m : Math.floor(secDiff / 60) });
+        return _('inMinutes', { m: Math.floor(secDiff / 60) });
       } else if (dayDiff === 0) {
-        return _('inHours', { h : Math.floor(secDiff / 3600) });
+        return _('inHours', { h: Math.floor(secDiff / 3600) });
       } else if (dayDiff < 10) {
-        return _('inDays', { d : dayDiff });
+        return _('inDays', { d: dayDiff });
       }
     }
 
@@ -113,7 +113,7 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
     localeTimeString: function localeTimeString(d) {
       return localeFormat(d, '%X');
     },
-    localeString:  function localeString(d) {
+    localeString: function localeString(d) {
       return localeFormat(d, '%c');
     },
     localeFormat: localeFormat,

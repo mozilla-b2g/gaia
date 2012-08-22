@@ -909,7 +909,7 @@
           // Arabic, Hebrew, Farsi, Pashto, Urdu
           var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
           return (rtlList.indexOf(gLanguage) >= 0) ? 'rtl' : 'ltr';
-        },
+        }
       };
     },
 
