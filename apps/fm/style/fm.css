@@ -65,11 +65,6 @@ a:active {
   box-shadow: 0 -1px 1px #111;
 }
 
-#audio-routing-switch {
-  top: 0;
-  left: 2rem;
-}
-
 #bookmark-button {
   top: 0;
   right: 2rem;
@@ -95,19 +90,6 @@ a:active {
 
 #frequency[data-seek-dir="down"] {
   background: url("images/spinner-left.png") no-repeat center bottom transparent;
-}
-
-#audio-routing-switch[data-current-state="speaker"]:active,
-#audio-routing-switch[data-current-state="headset"]:active {
-  background: url("images/toggle-speaker-pressed.png") no-repeat scroll center center #00ABCD;
-}
-
-#audio-routing-switch[data-current-state="speaker"] {
-  background: url("images/toggle-speaker-on.png") no-repeat scroll center center transparent;
-}
-
-#audio-routing-switch[data-current-state="headset"] {
-  background: url("images/toggle-speaker-off.png") no-repeat scroll center center transparent;
 }
 
 #bookmark-button {

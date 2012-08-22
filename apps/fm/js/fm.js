@@ -143,11 +143,6 @@ function updatePowerUI() {
   $('power-switch').setAttribute('data-enabled', mozFMRadio.enabled);
 }
 
-function updateAudioUI() {
-  $('audio-routing-switch').setAttribute('data-current-state',
-                   mozFMRadio.speakerEnabled ? 'speaker' : 'headset');
-}
-
 function updateAntennaUI() {
   $('antenna-warning').hidden = mozFMRadio.antennaAvailable;
 }
@@ -564,13 +559,6 @@ function init() {
     }
   }, false);
 
-  $('audio-routing-switch').addEventListener('click',
-      function toggle_speaker() {
-        mozFMRadio.speakerEnabled = !mozFMRadio.speakerEnabled;
-        updateAudioUI();
-      }
-  , false);
-
   $('bookmark-button').addEventListener('click', function toggle_bookmark() {
     var frequency = frequencyDialer.getFrequency();
     if (favoritesList.contains(frequency)) {
@@ -594,10 +582,13 @@ function init() {
   };
 
   updateFreqUI();
-  // Enable FM immediately
-  mozFMRadio.enable(mozFMRadio.frequencyLowerBound);
+  if (mozFMRadio.antennaAvailable) {
+    // Enable FM immediately
+    mozFMRadio.enable(mozFMRadio.frequencyLowerBound);
+  } else {
+    updateAntennaUI();
+  }
   updatePowerUI();
-  updateAudioUI();
 }
 
 window.addEventListener('load', function(e) {
