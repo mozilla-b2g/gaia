@@ -570,7 +570,7 @@ var Contacts = (function() {
     }
 
     var emailLength = getLength(currentContact.email);
-    for (var email = 0; email < emailLength; emaill++) {
+    for (var email = 0; email < emailLength; email++) {
       var currentEmail = currentContact.email[email];
       var default_type = TAG_OPTIONS['email-type'][0].value;
       var emailField = {
