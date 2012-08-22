@@ -65,7 +65,7 @@ var Wifi = {
         return;
 
       self.wifiWakeLocked = (state == 'locked-foreground' ||
-                               state == 'locked-background');
+                             state == 'locked-background');
 
       self.maybeToggleWifi();
     });
@@ -91,10 +91,8 @@ var Wifi = {
         wifiManager.setEnabled(false);
       }, this.kOffTime);
     }
-
     // ... and quietly turn it back on otherwise
-    if (ScreenManager.screenEnabled ||
-        this.wifiWakeLocked || battery.charging) {
+    else {
       clearTimeout(this._offTimer);
       wifiManager.setEnabled(true);
     }
