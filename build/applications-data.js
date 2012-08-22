@@ -23,8 +23,6 @@ let content = {
       makeURL("fm"),
       makeURL("pdfjs"),
       "https://marketplace.mozilla.org/telefonica/"
-    ],
-    [ // page 2
     ]
   ],
   dock: [
