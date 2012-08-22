@@ -594,16 +594,47 @@ var Recents = {
         contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
       }
       var phoneNumber = logItem.dataset.num.trim(),
+        phoneType, phoneCarrier,
         secondaryInfo = logItem.querySelector('.secondary-info'),
-        contactPhoneNumber, phoneEntry,
+        contactPhoneEntry, contactPhoneNumber, contactPhoneType,
+        multipleNumbersSameCarrier,
         length = contact.tel.length;
       for (var i = 0; i < length; i++) {
-        phoneEntry = contact.tel[i];
-        contactPhoneNumber = phoneEntry.value.replace(' ', '', 'g');
-        if ((phoneNumber == contactPhoneNumber) && (phoneEntry.type)) {
-          secondaryInfo.textContent = secondaryInfo.textContent.trim() +
-            '   ' + phoneEntry.type;
-          logItem.dataset.phoneType = phoneEntry.type;
+        contactPhoneEntry = contact.tel[i];
+        contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
+        contactPhoneType = contactPhoneEntry.type;
+        contactPhoneCarrier = contactPhoneEntry.carrier;
+        if (phoneNumber == contactPhoneNumber) {
+          if (contactPhoneType) {
+            secondaryInfo.textContent = secondaryInfo.textContent.trim() +
+              '   ' + contactPhoneType;
+            logItem.dataset.phoneType = contactPhoneType;
+            phoneType = contactPhoneType;
+          }
+          if (!contactPhoneCarrier) {
+            secondaryInfo.textContent = secondaryInfo.textContent + ", " + phoneNumber;
+          } else {
+            logItem.dataset.carrier= contactPhoneCarrier;
+            phoneCarrier = contactPhoneCarrier;
+          }
+        }
+      }
+      if (phoneType && phoneCarrier) {
+        var multipleNumbersSameCarrier = false;
+        for (var j = 0; j < length; j++) {
+          contactPhoneEntry = contact.tel[j];
+          contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
+          contactPhoneType = contactPhoneEntry.type;
+          contactPhoneCarrier = contactPhoneEntry.carrier;
+          if ((phoneNumber != contactPhoneNumber) && (phoneType == contactPhoneType)
+            && (phoneCarrier == contacePhoneCarrier)) {
+            multipleNumbersSameCarrier = true;
+          }
+        }
+        if (multipleNumbersSameCarrier) {
+          secondaryInfo.textContent = secondaryInfo.textContent + ", " + phoneNumber;
+        } else {
+          secondaryInfo.textContent = secondaryInfo.textContent + ", " + contactPhoneCarrier;
         }
       }
       this._cachedContacts[phoneNumber] = contact;
