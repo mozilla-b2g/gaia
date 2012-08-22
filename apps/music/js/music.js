@@ -3,8 +3,8 @@
 /*
  * This is Music Application of Gaia
  */
+var isEmpty = false;
 
-function $(id) { return document.getElementById(id); }
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
 var musicdb;
@@ -37,7 +37,7 @@ function init() {
     if (currentOverlay === 'nocard')
       showOverlay(null);
 
-    showDefaultView();  // Display song covers we know about
+    showCurrentView();  // Display song covers we know about
 
     // Each time we become ready there may be an entirely new set of
     // music in device storage (new SD card, or USB mass storage transfer)
@@ -63,7 +63,9 @@ function init() {
       //TODO need to handle deleted songs
     }
     else if (type === 'created') {
-      showDefaultView();
+      isEmpty = (files.length > 0) ? false : true;
+
+      showCurrentView();
     }
   };
 }
@@ -78,7 +80,7 @@ function scan() {
   //
   showOverlay('scanning');   // Tell the user we're scanning
   musicdb.scan(function() {  // Run this function when scan is complete
-    if (TilesView.dataSource.length === 0)
+    if (isEmpty)
       showOverlay('nosongs');
     else
       showOverlay(null);     // Hide the overlay
@@ -107,18 +109,16 @@ function showOverlay(id) {
   currentOverlay = id;
 
   if (id === null) {
-    $('overlay').classList.add('hidden');
+    document.getElementById('overlay').classList.add('hidden');
     return;
   }
 
-  // $('overlay-title').textContent = navigator.mozL10n.get(id + '-title');
-  // $('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
-  $('overlay-title').textContent = id;
-  $('overlay-text').textContent = id;
-  $('overlay').classList.remove('hidden');
+  document.getElementById('overlay-title').textContent = navigator.mozL10n.get(id + '-title');
+  document.getElementById('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
+  document.getElementById('overlay').classList.remove('hidden');
 }
 
-function showDefaultView() {
+function showCurrentView() {
   // Enumerate existing song entries in the database
   // List the all, and sort them in ascending order by artist.
   var option = 'artist';
