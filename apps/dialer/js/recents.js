@@ -556,7 +556,7 @@ var Recents = {
       } else {
         self.allFilter.classList.remove('selected');
         event.target = self.allFilter;
-        self.filter(theEvent);
+        self.filter(event);
         self.missedFilter.classList.remove('selected');
         self.allFilter.classList.add('selected');
       }
