@@ -18,12 +18,6 @@ if (CostControl)
 // to configure some aspects about consumption limits and monitoring.
 function setupApp() {
 
-  // To highlight missed translations
-  var _ = function cc_fallbackTranslation(keystring) {
-    var r = navigator.mozL10n.get.apply(this, arguments);
-    return r || '!!' + keystring;
-  }
-
   var DELAY_TO_RETURN = 10 * 1000; // 10 seconds
 
   var _isUpdating = false;
@@ -36,7 +30,7 @@ function setupApp() {
   function _onUpdateBalanceSuccess(evt) {
     _balanceTab.classList.remove('warning');
     _setBalanceScreenMode(MODE_DEFAULT);
-    _updateUI(evt.detail.balance, evt.detail.timestamp);
+    _updateUIBalance(evt.detail.balance, evt.detail.timestamp);
   }
 
   // On balance updating error, if manual request, notificate
@@ -49,7 +43,7 @@ function setupApp() {
         alert(_('cannot-check-balance'));
         break;
     }
-    _updateUI();
+    _updateUIBalance();
   }
 
   // On starting an update, enter into update mode
@@ -116,7 +110,7 @@ function setupApp() {
         debug('TODO: Change the top up screen and notificate!');
         break;
     }
-    _updateUI();
+    _updateUIBalance();
   }
 
   function _requestUpdate() {
@@ -345,7 +339,7 @@ function setupApp() {
   // updates.
   function _init() {
     _configureUI();
-    _updateUI();
+    _updateUIBalance();
   }
 
   // Enable / disable waiting mode for the UI
@@ -359,7 +353,7 @@ function setupApp() {
     }
   }
 
-  function _updateUI(balance, timestamp) {
+  function _updateUIBalance(balance, timestamp) {
     if (!arguments.length) {
       var lastBalance = CostControl.getLastBalance();
       balance = lastBalance ? lastBalance.balance : null;

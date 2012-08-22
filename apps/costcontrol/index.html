@@ -34,6 +34,8 @@
 <body role="application">
 
   <section role="region" class="window">
+
+    <!-- The balance tab -->
     <section role="region" id="balance-tab" class="view">
       <header data-theme="organic">
         <menu type="toolbar">
@@ -43,6 +45,8 @@
       </header>
 
       <section class="content">
+
+        <!-- Error messages -->
         <div id="cost-control-error-area" class="error-messages" aria-hidden="true">
           <section id="in-roaming-message" aria-hidden="true">
             <p>Roaming - automatic balance update OFF.</p>
@@ -51,6 +55,7 @@
           <p id="balance-error-message" aria-hidden="true">Balance updating error, try again manually.</p>
         </div>
 
+        <!-- Show balance zone -->
         <div id="cost-control-info-area" class="overview">
           <div class="start">
             <div id="cost-control-icon" class="icons">
@@ -65,6 +70,7 @@
           </div>
         </div>
 
+        <!-- Update and top up buttons -->
         <div class="buttons-list">
           <button id="cost-control-update-button">
             <span class="end reload"></span>
@@ -79,6 +85,7 @@
 
     </section>
 
+    <!-- The top up input -->
     <section role="region" id="topup" class="view topup" data-viewport="bottom">
       <header data-theme="organic">
         <menu type="toolbar">
@@ -102,6 +109,7 @@
       </form>
     </section>
 
+    <!-- Dialog for service unavailable -->
     <section role="dialog" class="view" data-viewport="inside" id="no-coverage-info">
       <div class="center">
         <h3>No coverage</h3>
@@ -112,6 +120,7 @@
       </menu>
     </section>
 
+    <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
     <ul role="tablist" class="filter" data-items="2" data-position="bottom">
       <li aria-selected="true"><a role="tab" href="#balance">Balance</a></li>
       <li><a role="tab" href="#datausage">Data usage</a></li>
