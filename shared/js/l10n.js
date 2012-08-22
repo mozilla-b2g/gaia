@@ -16,6 +16,7 @@
   var gMacros = {};
   var gReadyState = 'loading';
 
+
   /**
    * Synchronously loading l10n resources significantly minimizes flickering
    * from displaying the app with non-localized strings and then updating the
@@ -29,6 +30,7 @@
    */
 
   var gAsyncResourceLoading = true; // read-only
+
 
   /**
    * Debug helpers
@@ -47,6 +49,7 @@
       console.warn('[l10n] ' + message);
     }
   };
+
 
   /**
    * DOM helpers for the so-called "HTML API".
@@ -175,8 +178,9 @@
 
           // key-value pair
           var tmp = line.match(reSplit);
-          if (tmp && tmp.length == 3)
+          if (tmp && tmp.length == 3) {
             dictionary[tmp[1]] = evalString(tmp[2]);
+          }
         }
       }
 
@@ -202,11 +206,13 @@
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
           if (xhr.status == 200 || xhr.status === 0) {
-            if (onSuccess)
+            if (onSuccess) {
               onSuccess(xhr.responseText);
+            }
           } else {
-            if (onFailure)
+            if (onFailure) {
               onFailure();
+            }
           }
         }
       };
@@ -237,8 +243,9 @@
       }
 
       // trigger callback
-      if (successCallback)
+      if (successCallback) {
         successCallback();
+      }
     }, failureCallback, gAsyncResourceLoading);
   };
 
@@ -264,8 +271,9 @@
     onResourceLoaded = function() {
       gResourceCount++;
       if (gResourceCount >= langCount) {
-        if (callback) // execute the [optional] callback
+        if (callback) { // execute the [optional] callback
           callback();
+        }
         fireL10nReadyEvent(lang);
         gReadyState = 'complete';
       }
@@ -727,8 +735,9 @@
       return str;
 
     // initialize _pluralRules
-    if (!gMacros._pluralRules)
+    if (!gMacros._pluralRules) {
       gMacros._pluralRules = getPluralRules(gLanguage);
+    }
     var index = '[' + gMacros._pluralRules(n) + ']';
 
     // try to find a [zero|one|two] key if it's defined
