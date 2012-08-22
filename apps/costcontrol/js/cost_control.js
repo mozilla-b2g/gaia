@@ -4,7 +4,7 @@
 'use strict';
 
 // Retrieve CostControl service
-var CostControl = getService(function cc_onServiceReady(evt) {
+var CostControl = getService(function ccapp_onServiceReady(evt) {
   // If the service is not ready, when ready it sets the CostControl object
   // again and setup the application.
   CostControl = evt.detail.service;
@@ -20,33 +20,41 @@ function setupApp() {
 
   var DELAY_TO_RETURN = 10 * 1000; // 10 seconds
 
+  var _no_service_errors = {'no-coverage': true, 'carrier-unknown': true};
+
+  // Update balance control
   var _isUpdating = false;
+  var _onRoaming = false;
+  var _onWarning = false; // warning state is true when roaming, or some
+                          // inconvenient during updating process.
+
+  // Top up control
   var _isWaitingTopUp = false;
-  var _lastCodeIncorrect = false;
-  var _confirmationReceived = true;
+  var _lastTopUpIncorrect = false;
+  var _lastTopUpConfirmed = true;
   var _returnTimeout = 0;
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
-    _balanceTab.classList.remove('warning');
-    _setBalanceScreenMode(MODE_DEFAULT);
-    _updateUIBalance(evt.detail.balance, evt.detail.timestamp);
+    var balance = evt.detail;
+    _setWarningMode(false);
+    _updateBalanceUI(balance);
   }
 
   // On balance updating error, if manual request, notificate
+  // Note we exit the updating mode because no finish event is raised when
+  // error.
   function _onUpdateBalanceError(evt) {
     _setUpdatingMode(false);
-    _balanceTab.classList.add('warning');
-    _setBalanceScreenMode(MODE_ERROR);
-    switch(evt.detail.reason) {
-      case 'sending-error':
-        alert(_('cannot-check-balance'));
-        break;
-    }
-    _updateUIBalance();
+    _setWarningMode(true);
+    _updateBalanceUI();
+    _setBalanceScreenMode(MODE_ERROR); // order is important here, it needs to
+                                       // be after _updateBalanceUI()
   }
 
   // On starting an update, enter into update mode
+  // As in widget.js this let us enter into updating mode when starting the
+  // updating process from other places.
   function _onUpdateStart(evt) {
     _setUpdatingMode(true);
   }
@@ -56,110 +64,85 @@ function setupApp() {
     _setUpdatingMode(false);
   }
 
-  // On top up success, update UI with the new balance, notificate and post
-  // result if there was an activity request.
-  // request
+  // On top up success, notificate and request update balance
   function _onTopUpSuccess(evt) {
     var notification = navigator.mozNotification.createNotification(
       'Cost Control',
-      'Top Up completed.',
+      'Top Up completed. Updating balance.',
       '/icons/Clock.png'
     );
     notification.show();
-    _confirmationReceived = true;
-    _lastCodeIncorrect = false;
+
+    _lastTopUpConfirmed = true;
+    _lastTopUpIncorrect = false;
     _setTopUpScreenMode(MODE_DEFAULT);
-    _requestUpdate();
+
+    _requestUpdateBalance();
   }
 
-  // When starting a top up, change to the waiting screen
-  function _onTopUpStart() {
-    debug('TODO: Change screen to waiting screen, wait 10s and return to the balance.');
-  }
-
-  function _onTopUpFinish() {
-    _setUpdatingMode(false);
-  }
-
-  // On top up error, if manual request, notificate
+  // On top up error, several cases, see comments inline:
   function _onTopUpError(evt) {
     clearTimeout(_returnTimeout);
 
     switch(evt.detail.reason) {
       case 'sending-error':
+        // Display error in the top up screen
         _setTopUpScreenMode(MODE_ERROR);
-        debug('TODO: Error message, we cannot top up at the moment.');
         break;
 
       case 'timeout':
-        _confirmationReceived = false;
+        // Inform in the balance screen about the timeout
+        _lastTopUpConfirmed = false;
+        _setBalanceScreenMode(MODE_TOP_UP_TIMEOUT);
         break;
 
       case 'incorrect-code':
-        _lastCodeIncorrect = true;
+        // Inform in the top up screen and notificate
+        _lastTopUpIncorrect = true;
         _setTopUpScreenMode(MODE_INCORRECT_CODE);
         var notification = navigator.mozNotification.createNotification(
           'Cost Control',
           'Incorrect top up code entered. Please, try again.',
           '/icons/Clock.png'
         );
-        notification.onclick = function () {
+        notification.onclick = function ccapp_onNotificationClick() {
           var activity = new MozActivity({ name: 'costcontrol/topup' });
         };
         notification.show();
-        debug('TODO: Change the top up screen and notificate!');
         break;
     }
-    _updateUIBalance();
+    _updateBalanceUI();
   }
 
-  function _requestUpdate() {
-    if (_isUpdating)
-      return;
+  var _balanceTab;
+  var _btCredit; // bt stands for Balance Tab
+  var _btTime;
+  var _btCurrency;
 
-    var status = CostControl.getServiceStatus();
-    if (status.detail === 'no-coverage') {
-      _changeViewTo(VIEW_NO_COVERAGE_INFO);
-      return;
-    }
-
-    _setUpdatingMode(true);
-    debug('Update balance!');
-
-    CostControl.requestBalance();
-  }
-
-  var _buttonRequestTopUp, _creditArea, _credit, _time, _updateIcon, _balanceTab;
+  // Configures the balance tab: get interactive elements and set callbacks
   function _configureBalanceTab() {
     _balanceTab = document.getElementById('balance-tab');
-    _creditArea = document.getElementById('cost-control-credit-area');
-    _credit = document.getElementById('cost-control-credit');
-    _time = document.getElementById('cost-control-time');
+    _btCurrency = document.getElementById('balance-tab-currency');
+    _btCredit = document.getElementById('balance-tab-credit');
+    _btTime = document.getElementById('balance-tab-time');
 
-    _buttonRequestTopUp = document.getElementById('buttonRequestTopUp');
-    _buttonRequestTopUp.addEventListener('click', function cc_requestTopUp() {
-      var status = CostControl.getServiceStatus();
-      if (status.detail === 'no-coverage') {
-        _changeViewTo(VIEW_NO_COVERAGE_INFO);
-        return;
-      }
+    var btRequestUpdateButton =
+      document.getElementById('balance-tab-update-button');
+    btRequestUpdateButton.addEventListener('click', _requestUpdateBalance);
 
-      if (!_isWaitingTopUp && !_lastCodeIncorrect)
-        _setTopUpScreenMode(MODE_DEFAULT);
-
-      _changeViewTo(VIEW_TOPUP);
-    });
-
-    _updateIcon = document.getElementById('cost-control-update-button');
-    _updateIcon.addEventListener('click', _requestUpdate);
+    var btRequestTopUpButton =
+      document.getElementById('balance-tab-topup-button');
+    btRequestTopUpButton.addEventListener('click', _requestTopUp);
   }
 
-  var _noCoverageInfo, _noCoverageInfoButton;
-  function _configureNoCoverageInfo() {
-    _noCoverageInfo = document.getElementById('no-coverage-info');
-    _noCoverageInfoButton = document.getElementById('no-coverage-info-button');
-    _noCoverageInfoButton.addEventListener('click', function cc_onOK() {
-      _closeCurrentView();
+  // Configure close info buttons to close the current view
+  // (i.e the info itself)
+  function _configureCloseInfoButtons() {
+    var okButtons = document.querySelectorAll('.close-info-button');
+    [].forEach.call(okButtons, function ccapp_eachCloseButton(button) {
+      button.addEventListener('click', function ccapp_onOK() {
+        ViewManager.closeCurrentView();
+      });
     });
   }
 
@@ -169,13 +152,12 @@ function setupApp() {
     _inputTopUpCode = document.getElementById('topup-code-input');
     _closeButton = document.getElementById('topup-close-button');
     _closeButton.addEventListener('click', function() {
-      _closeCurrentView();
+      ViewManager.closeCurrentView();
     });
     _buttonTopUp = document.getElementById('buttonTopUp');
-    _buttonTopUp.addEventListener('click', function cc_onTopUp() {
+    _buttonTopUp.addEventListener('click', function ccapp_onTopUp() {
 
-      debug('TopUp!');
-      // Strip
+      // Get and clean the code
       var code = _inputTopUpCode.value
         .replace(/^\s+/, '').replace(/\s+$/, '');
 
@@ -185,106 +167,24 @@ function setupApp() {
       debug('topping up with code: ' + code);
       CostControl.requestTopUp(code);
 
+      // Change the top up screen to enter waiting mode and add a timeout to
+      // return in a while.
+      _isWaitingTopUp = true;
       _setTopUpScreenMode(MODE_WAITING);
       _returnTimeout = setTimeout(function ccapp_toLeftPanel() {
         if (_currentView && _currentView.id === VIEW_TOPUP)
-          _closeCurrentView();
+          ViewManager.closeCurrentView();
       }, DELAY_TO_RETURN);
 
     });
   }
 
-  var MODE_DEFAULT = 'mode-default';
-  var MODE_WAITING = 'mode-waiting';
-  var MODE_INCORRECT_CODE = 'mode-incorrect-code';
-  var MODE_ERROR = 'mode-error';
-  var MODE_ROAMING = 'mode-roaming';
-  function _setTopUpScreenMode(mode) {
-    clearTimeout(_returnTimeout);
-    _isWaitingTopUp = false;
-
-    var _explanation = document.getElementById('topup-code-explanation');
-    var _confirmation =
-      document.getElementById('topup-confirmation-explanation');
-    var _incorrectCode = document.getElementById('topup-incorrect-code');
-    var _error = document.getElementById('topup-error');
-    var _progress = document.getElementById('topup-in-progress');
-    var _input = document.getElementById('topup-code-input');
-
-    switch(mode) {
-      case MODE_DEFAULT:
-        _explanation.setAttribute('aria-hidden', 'false');
-        _confirmation.setAttribute('aria-hidden', 'true');
-        _incorrectCode.setAttribute('aria-hidden', 'true');
-        _error.setAttribute('aria-hidden', 'true');
-        _progress.setAttribute('aria-hidden', 'true');
-        _input.removeAttribute('disabled');
-        if (_confirmationReceived)
-          _input.value = '';
-        break;
-
-      case MODE_WAITING:
-        _explanation.setAttribute('aria-hidden', 'true');
-        _confirmation.setAttribute('aria-hidden', 'false');
-        _incorrectCode.setAttribute('aria-hidden', 'true');
-        _error.setAttribute('aria-hidden', 'true');
-        _progress.setAttribute('aria-hidden', 'false');
-        _input.setAttribute('disabled', 'disabled');
-        _isWaitingTopUp = true;
-        break;
-
-      case MODE_INCORRECT_CODE:
-        _explanation.setAttribute('aria-hidden', 'true');
-        _confirmation.setAttribute('aria-hidden', 'true');
-        _incorrectCode.setAttribute('aria-hidden', 'false');
-        _error.setAttribute('aria-hidden', 'true');
-        _progress.setAttribute('aria-hidden', 'true');
-        _input.removeAttribute('disabled');
-        break;
-
-      case MODE_ERROR:
-        _explanation.setAttribute('aria-hidden', 'true');
-        _confirmation.setAttribute('aria-hidden', 'true');
-        _incorrectCode.setAttribute('aria-hidden', 'true');
-        _error.setAttribute('aria-hidden', 'false');
-        _progress.setAttribute('aria-hidden', 'true');
-        _input.removeAttribute('disabled');
-        break;
-    }
-  }
-
-  function _setBalanceScreenMode(mode) {
-    var _roaming = document.getElementById('in-roaming-message');
-    var _error = document.getElementById('balance-error-message');
-    
-    switch(mode) {
-      case MODE_DEFAULT:
-        _roaming.setAttribute('aria-hidden', 'true');
-        _error.setAttribute('aria-hidden', 'true');
-        break;
-      case MODE_ERROR:
-        _error.setAttribute('aria-hidden', 'false');
-        break;
-      case MODE_ROAMING:
-        _roaming.setAttribute('aria-hidden', 'false');
-        break;
-    }
-  }
-
   // Attach event listeners for manual updates
   function _configureUI() {
 
-    _configureNoCoverageInfo();
+    _configureCloseInfoButtons();
     _configureBalanceTab();
     _configureTopUpScreen();
-
-    // Callbacks for topping up
-    CostControl.setTopUpCallbacks({
-      onsuccess: _onTopUpSuccess,
-      onerror: _onTopUpError,
-      onstart: _onTopUpStart,
-      onfinish: _onTopUpFinish
-    });
 
     // Callbacks for update balance
     CostControl.setBalanceCallbacks({
@@ -294,52 +194,168 @@ function setupApp() {
       onfinish: _onUpdateFinish
     });
 
+    // Callbacks for topping up
+    CostControl.setTopUpCallbacks({
+      onsuccess: _onTopUpSuccess,
+      onerror: _onTopUpError
+    });
+
+    // Callback fot service state changed
+    CostControl.onservicestatuschange = function ccapp_onStateChange(evt) {
+      var status = evt.detail;
+      if (status.availability && status.roaming) {
+        _setWarningMode(true);
+        _setBalanceScreenMode(MODE_ROAMING);
+      }
+    };
+
     // Handle web activity
     navigator.mozSetMessageHandler('activity',
       function settings_handleActivity(activityRequest) {
         var name = activityRequest.source.name;
         switch (name) {
           case 'costcontrol/open':
-            // Go to that section and enable activity mode
-            _closeCurrentView();
+            ViewManager.closeCurrentView();
             break;
+
           case 'costcontrol/topup':
-            // Go directly to 
-            _changeViewTo(VIEW_TOPUP);
+            ViewManager.changeViewTo(VIEW_TOPUP);
             break;
         }
       }
     );
   }
 
-  var VIEW_TOPUP = 'topup';
-  var VIEW_NO_COVERAGE_INFO = 'no-coverage-info';
-  var _currentView = null;
-  function _changeViewTo(viewId) {
-    _closeCurrentView();
+  var MODE_DEFAULT = 'mode-default';
+  var MODE_WAITING = 'mode-waiting';
+  var MODE_INCORRECT_CODE = 'mode-incorrect-code';
+  var MODE_ERROR = 'mode-error';
 
-    var view = document.getElementById(viewId);
-    _currentView = {
-      id: viewId,
-      defaultViewport: view.dataset.viewport
-    };
-    view.dataset.viewport = '';
+  // Set the topscreen mode:
+  //  DEFAULT: invites the user to enter the top up code
+  //  WAITING: displays the spinner and tell the user we are topping up
+  //  INCORRECT_CODE: remember the user last code was incorrect and invites him
+  //                  to retype the code
+  //  ERROR: tell the user we could not top up at the moment
+  function _setTopUpScreenMode(mode) {
+    clearTimeout(_returnTimeout);
+
+    var _explanation = document.getElementById('topup-code-explanation');
+    var _confirmation =
+      document.getElementById('topup-confirmation-explanation');
+    var _incorrectCode = document.getElementById('topup-incorrect-code');
+    var _error = document.getElementById('topup-error');
+    var _progress = document.getElementById('topup-in-progress');
+    var _input = document.getElementById('topup-code-input');
+
+    // Reset the screen (hide everything)
+    _explanation.setAttribute('aria-hidden', 'true');
+    _confirmation.setAttribute('aria-hidden', 'true');
+    _incorrectCode.setAttribute('aria-hidden', 'true');
+    _error.setAttribute('aria-hidden', 'true');
+    _progress.setAttribute('aria-hidden', 'true');
+    _input.removeAttribute('disabled');
+
+    switch(mode) {
+      case MODE_DEFAULT:
+        _explanation.setAttribute('aria-hidden', 'false');
+        if (_lastTopUpConfirmed)
+          _input.value = '';
+
+        break;
+
+      case MODE_WAITING:
+        _confirmation.setAttribute('aria-hidden', 'false');
+        _progress.setAttribute('aria-hidden', 'false');
+        _input.setAttribute('disabled', 'disabled');
+        break;
+
+      case MODE_INCORRECT_CODE:
+        _incorrectCode.setAttribute('aria-hidden', 'false');
+        break;
+
+      case MODE_ERROR:
+        _error.setAttribute('aria-hidden', 'false');
+        break;
+    }
   }
 
-  function _closeCurrentView() {
-    if (!_currentView)
-      return;
+  var MODE_ROAMING = 'mode-roaming';
 
-    var view = document.getElementById(_currentView.id);
-    view.dataset.viewport = _currentView.defaultViewport;
-    _currentView = null;
+  // Set the balance screen mode:
+  //  DEFAULT: the error area keeps hidden
+  //  ERROR: inform the user about an error in the service
+  //  ROAMING: inform the user that he is on roaming
+  //
+  // TODO: Avoid the following situation:
+  // Please note if you need to call _setBalanceScreenMode() in addition with
+  // _updateBalanceUI(), please call the latter first because it calls this
+  // function too and the effect will be override.
+  function _setBalanceScreenMode(mode) {
+    var _messageArea = document.getElementById('cost-control-message-area');
+    var _roaming = document.getElementById('on-roaming-message');
+    var _error = document.getElementById('balance-error-message');
+
+    // By default hide both errors but show the message area.
+    // This force us to explicitely add a case for MODE_DEFAULT
+    _roaming.setAttribute('aria-hidden', 'true');
+    _error.setAttribute('aria-hidden', 'true');
+    _messageArea.setAttribute('aria-hidden', 'false');
+
+    switch(mode) {
+      case MODE_DEFAULT:
+        _messageArea.setAttribute('aria-hidden', 'true');
+        break;
+
+      case MODE_ERROR:
+        _error.setAttribute('aria-hidden', 'false');
+        break;
+
+      case MODE_ROAMING:
+        _roaming.setAttribute('aria-hidden', 'false');
+        break;
+    }
   }
 
   // Initializes the cost control module: basic parameters, autmatic and manual
   // updates.
   function _init() {
     _configureUI();
-    _updateUIBalance();
+    _updateBalanceUI();
+  }
+
+  // Request a balance update to the service
+  function _requestUpdateBalance() {
+    if (_isUpdating)
+      return;
+
+    // Check for service availability and inform and abort if not present
+    var status = CostControl.getServiceStatus();
+    if (status.detail in _no_service_errors) {
+      ViewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      return;
+    }
+
+    _setUpdatingMode(true); // this is cosmetic, as in the widget.js, this is
+                            // only to produce the illusion that updating starts
+                            // as soon as the button is pressed.
+    CostControl.requestBalance();
+  }
+
+
+  // Actually it does not request anything, just sends the user to the top up
+  // screen.
+  function _requestTopUp() {
+    var status = CostControl.getServiceStatus();
+    if (status.detail in _no_service_errors) {
+      ViewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      return;
+    }
+
+    if (!_isWaitingTopUp && !_lastTopUpIncorrect)
+      _setTopUpScreenMode(MODE_DEFAULT);
+
+    ViewManager.changeViewTo(VIEW_TOPUP);
   }
 
   // Enable / disable waiting mode for the UI
@@ -347,30 +363,37 @@ function setupApp() {
     _isUpdating = updating;
     if (updating) {
       _balanceTab.classList.add('updating');
-      _time.textContent = _('updating...');
+      _btTime.textContent = _('updating') + '...';
     } else {
       _balanceTab.classList.remove('updating');
     }
   }
 
-  function _updateUIBalance(balance, timestamp) {
-    if (!arguments.length) {
-      var lastBalance = CostControl.getLastBalance();
-      balance = lastBalance ? lastBalance.balance : null;
-      timestamp = lastBalance ? lastBalance.timestamp : null;
-    }
-    timestamp = timestamp || new Date();
-
-    var status = CostControl.getServiceStatus();
-    if (!status.availability || status.roaming) {
+  // Enables / disables warning mode
+  function _setWarningMode(warning) {
+    _onWarning = warning;
+    if (warning)
       _balanceTab.classList.add('warning');
-      _setBalanceScreenMode(MODE_ROAMING);
-    } else {
+    else
       _balanceTab.classList.remove('warning');
-    }
+  }
+
+  // Updates the UI with the new balance if provided, else just update the
+  // balance screen with the last updated value.
+  function _updateBalanceUI(balanceObject) {
+    balanceObject = balanceObject || CostControl.getLastBalance();
+    var balance = balanceObject ? balanceObject.balance : null;
+    var timestamp = balanceObject ? balanceObject.timestamp : new Date();
+
+    // Warning if roaming
+    var status = CostControl.getServiceStatus();
+    var onRoaming = status.availability && status.roaming;
+    _setWarningMode(onRoaming);
+    if (onRoaming)
+      _setBalanceScreenMode(MODE_ROAMING);
 
     // Check for low credit
-    if (balance < CostControl.getLowLimitThreshold())
+    if (balance && balance < CostControl.getLowLimitThreshold())
       _balanceTab.classList.add('low-credit');
     else
       _balanceTab.classList.remove('low-credit');
@@ -379,13 +402,14 @@ function setupApp() {
     var formattedBalance;
     if (balance !== null) {
       var splitBalance = (balance.toFixed(2)).split('.');
-      formattedBalance = 'R$ &i,&d' //TODO: Replace by some value not hardcoded
+      formattedBalance = '&i.&d'
         .replace('&i', splitBalance[0])
         .replace('&d', splitBalance[1]);
     } else {
       formattedBalance = '--';
     }
-    _credit.textContent = formattedBalance;
+    _btCurrency.textContent = balanceObject ? balanceObject.currency : '';
+    _btCredit.textContent = formattedBalance;
 
     // Format time
     var now = new Date();
@@ -400,9 +424,7 @@ function setupApp() {
       date = _('yesterday');
 
     var formattedTime = date + ', ' + time;
-    _time.textContent = formattedTime;
-
-    return { balance: formattedBalance, time: formattedTime };
+    _btTime.textContent = formattedTime;
   }
 
   _init();

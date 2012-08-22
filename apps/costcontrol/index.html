@@ -28,11 +28,11 @@
   <script type="text/javascript" src="js/settings_listener.js"></script>
   <script type="text/javascript" src="js/debug.js"></script>
   <script type="text/javascript" src="js/service_utils.js"></script>
+  <script type="text/javascript" defer src="js/view_manager.js"></script>
   <script type="text/javascript" defer src="js/cost_control.js"></script>
 </head>
 
 <body role="application">
-
   <section role="region" class="window">
 
     <!-- The balance tab -->
@@ -47,10 +47,9 @@
       <section class="content">
 
         <!-- Error messages -->
-        <div id="cost-control-error-area" class="error-messages" aria-hidden="true">
-          <section id="in-roaming-message" aria-hidden="true">
-            <p>Roaming - automatic balance update OFF.</p>
-            <p>Additional charges may apply for update.</p>
+        <div id="cost-control-message-area" class="error-messages" aria-hidden="true">
+          <section id="on-roaming-message" aria-hidden="true">
+            <p data-l10n-id="on-roaming-message">Roaming - automatic balance update OFF. Additional charges may apply for update.</p>
           </section>
           <p id="balance-error-message" aria-hidden="true">Balance updating error, try again manually.</p>
         </div>
@@ -63,20 +62,20 @@
                 <progress class="spinner"></progress>
             </div>
 
-            <time id="cost-control-time"></time>
+            <time id="balance-tab-time"></time>
           </div>
           <div class="end">
-            <p id="cost-control-credit"></p>
+            <p><span id="balance-tab-currency"></span><span id="balance-tab-credit"></span></p>
           </div>
         </div>
 
         <!-- Update and top up buttons -->
         <div class="buttons-list">
-          <button id="cost-control-update-button">
+          <button id="balance-tab-update-button">
             <span class="end reload"></span>
             Update
           </button>
-          <button id="buttonRequestTopUp">
+          <button id="balance-tab-topup-button">
             <span class="end topup"></span>
             Top Up
           </button>
@@ -86,7 +85,7 @@
     </section>
 
     <!-- The top up input -->
-    <section role="region" id="topup" class="view topup" data-viewport="bottom">
+    <section role="region" id="topup-view" class="view topup" data-viewport="bottom">
       <header data-theme="organic">
         <menu type="toolbar">
            <button id="buttonTopUp">Done</button>
@@ -96,11 +95,11 @@
       </header>
       <section class="content">
         <div class="info">
-          <h2 data-l10n-id="enter-top-up-code" >Enter the top up code</h2>
+          <h2 data-l10n-id="enter-top-up-code">Enter the top up code</h2>
           <p id="topup-code-explanation" data-l10n-id="top-up-code-explanation">Typically found in the scratch card or directly in your receipt</p>
           <p id="topup-confirmation-explanation" aria-hidden="true" data-l10n-id="wait-for-confirmation">You'll receive a confirmation message</p>
           <p id="topup-incorrect-code" aria-hidden="true" data-l10n-id="incorrect-code">Last entered code was incorrect. Please, try again.</p>
-          <p id="topup-error" aria-hidden="true" data-l10n-id="error">Sorry, we couldn't top up at this moment.</p>
+          <p id="topup-error" aria-hidden="true" data-l10n-id="topup-error">Sorry, we couldn't top up at this moment.</p>
           <progress data-theme='dark' id="topup-in-progress" aria-hidden="true"></progress>
         </div>
       </section>
@@ -110,13 +109,24 @@
     </section>
 
     <!-- Dialog for service unavailable -->
-    <section role="dialog" class="view" data-viewport="inside" id="no-coverage-info">
+    <section role="dialog" class="view" data-viewport="inside" id="application-error-info-dialog">
       <div class="center">
-        <h3>No coverage</h3>
-        <p>Neither update nor top up is possible at the moment. Try later.</p>
+        <h3 data-l10n-id="application-error-title">Service unavailable</h3>
+        <p data-l10n-id="application-error-message">Contact your company representative.</p>
       </div>
       <menu data-items="1">
-        <button id="no-coverage-info-button">Ok</button>
+        <button data-l10n-id="ok" class="close-info-button">Ok</button>
+      </menu>
+    </section>
+
+    <!-- Dialog for application error -->
+    <section role="dialog" class="view" data-viewport="inside" id="service-unavailable-info-dialog">
+      <div class="center">
+        <h3 data-l10n-id="service-unavailable-title">Service unavailable</h3>
+        <p data-l10n-id="service-unavailable-message">Neither update nor top up is possible at the moment. Please try later.</p>
+      </div>
+      <menu data-items="1">
+        <button data-l10n-id="ok" class="close-info-button">Ok</button>
       </menu>
     </section>
 
@@ -126,47 +136,6 @@
       <li><a role="tab" href="#datausage">Data usage</a></li>
     </ul>
   </section>
-
-<!--    <section role="region" id="settings">
-    <header data-theme="organic">
-      <a href="#left-panel"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="settings">Settings</h1>
-    </header>
-    <section id="settings-plan-type">
-      <ul>
-        <li>
-          <p data-l10n-id="plan-type" >Plan type</p>
-          <p class="tip" data-l10n-id="telephony-and-data-plan" >telephony and data plan</p>
-          <select>
-            <option data-l10n-id="prepaid">Prepaid</option>
-            <option data-l10n-id="postpaid">Postpaid</option>
-          </select>
-        </li>
-      </ul>
-    </section>
-
-    <section id="settings-prepaid">
-      <ul>
-        <li>
-          <p data-l10n-id="balance" >Balance</p>
-          <p class="tip"><time></time></p>
-          <div id="credit-area"></div>
-        </li>
-        <li>
-          <p data-l10n-id="low-balance-alert" >Low balance alert</p>
-          <p class="tip" data-l10n-id="telephony-and-data-plan" ><time></time></p>
-          <div id="credit-area"></div>
-        </li>
-      </ul>
-    </section>
-    <p data-l10n-id="enter-top-up-code" >enter the top up code</p>
-    <p data-l10n-id="top-up-code-explanation">typically found in the scratch card or directly in your receipt</p>
-    <p data-l10n-id="wait-for-confirmation">you'll receive a confirmation message</p>
-    <img src="style/images/waiting.gif" alt="waiting"/>
-    <input id="inputTopUpCode" type="number"></input>
-  </section>
--->
-
 </body>
 </html>
 

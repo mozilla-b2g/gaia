@@ -186,6 +186,10 @@ section.content .overview .icons .warning {
   display: block;
 }
 
+#balance-tab.updating .overview .icons .warning {
+  display: none !important;
+}
+
 /* WARNING STATE */
 #balance-tab.warning .overview .icons .warning{
   display: block;

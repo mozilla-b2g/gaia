@@ -435,14 +435,30 @@ setService(function cc_setupCostControlService() {
     }
   }
 
+  var _lastServiceStatusHash = '';
+
   // Helper to dispatch a custom event with the new status of the service
+  //
+  // This helper is actually the callback for changing voice or telephony,
+  // part of the mozMobileConnection API. Note not all changes in these
+  // objects result in a state change so we keep a unique hash for every
+  // status in order to compare if the service status has really changed.
   function _dispatchServiceStatusChangeEvent() {
+    var newServiceStatus = _getServiceStatus();
+    var newServiceStatusHash = JSON.stringify(newServiceStatus);
+
+    // Abort if the status has not really change
+    if (_lastServiceStatusHash === newServiceStatusHash)
+      return;
+
+    _lastServiceStatusHash = newServiceStatusHash;
     var event = new CustomEvent(
       'costcontrolservicestatuschange',
       {detail: _getServiceStatus() }
     );
     window.dispatchEvent(event);
-    debug('CostControl Event: ' + type + ': ' + JSON.stringify(event.detail));
+    debug('CostControl Event: costcontrolservicestatuschange: ' +
+          newServiceStatusHash);
   }
 
   // Helper to dispatch custom events, provide type and the detail object
@@ -484,7 +500,7 @@ setService(function cc_setupCostControlService() {
     _bindCallbacks(STATE_TOPPING_UP, callbacks);
   }
 
-  function _setServiceStateChangeCallback(callback) {
+  function _setServiceStatusChangeCallback(callback) {
     window.addEventListener('costcontrolservicestatuschange', callback);
   }
 
@@ -492,7 +508,9 @@ setService(function cc_setupCostControlService() {
     init: _init,
     setBalanceCallbacks: _setBalanceCallbacks,
     setTopUpCallbacks: _setTopUpCallbacks,
-    onservicestatechange: _setServiceStateChangeCallback,
+    set onservicestatuschange(callback) {
+      _setServiceStatusChangeCallback(callback)
+    },
     requestBalance: _updateBalance,
     requestTopUp: _topUp,
     getLastBalance: _getLastBalance,

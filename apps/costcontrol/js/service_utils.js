@@ -26,7 +26,7 @@
 // Adjust depending on your needs
 var SERVICE_NAME = 'CostControl';
 var SERVICE_BACKGROUND_NAME = 'BGW';
-var ENTRY_POINT = '/background.html#0';
+var ENTRY_POINT = '/service.html#0';
 
 // Call only from the client!
 //

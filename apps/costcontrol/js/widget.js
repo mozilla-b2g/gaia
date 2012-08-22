@@ -4,10 +4,10 @@
 'use strict';
 
 var CostControl;
-window.addEventListener('message', function cc_onApplicationReady(evt) {
+window.addEventListener('message', function ccwidget_onApplicationReady(evt) {
   // Retrieve CostControl service once application is ready
   if (evt.data.type === 'applicationready') {
-    CostControl = getService(function cc_onServiceReady(evt) {
+    CostControl = getService(function ccwidget_onServiceReady(evt) {
       // If the service is not ready, when ready it re-set the CostControl object
       // and setup the widget.
       CostControl = evt.detail.service;
@@ -32,7 +32,7 @@ function setupWidget() {
   function _onUpdateBalanceSuccess(evt) {
     var balance = evt.detail;
     _setWarningMode(false);
-    _updateUIBalance(balance);
+    _updateBalanceUI(balance);
   }
 
   // On balance updating error, set warning mode and interrumpt updating mode
@@ -41,7 +41,7 @@ function setupWidget() {
   function _onUpdateBalanceError(evt) {
     _setWarningMode(true);
     _setUpdatingMode(false);
-    _updateUIBalance();
+    _updateBalanceUI();
   }
 
   // On starting an update, enter into update mode
@@ -79,7 +79,15 @@ function setupWidget() {
       onfinish: _onUpdateFinish
     });
 
-    _updateUIBalance();
+    // Callback fot service state changed
+    CostControl.onservicestatuschange = function ccwidget_onStateChange(evt) {
+      var status = evt.detail;
+      if (status.availability && status.roaming) {
+        _setWarningMode(true);
+      }
+    };
+
+    _updateBalanceUI();
   }
 
   // Return True when automatic updates are allow:
@@ -92,7 +100,7 @@ function setupWidget() {
   // Attach event listeners for automatic updates
   //  * After showing the utility tray
   function _configureAutomaticUpdates() {
-    window.addEventListener('message', function cc_utilityTray(evt) {
+    window.addEventListener('message', function ccwidget_utilityTray(evt) {
       if (evt.data.type === 'utilitytrayshow')
         _automaticCheck(evt.data);
     });
@@ -103,6 +111,14 @@ function setupWidget() {
   function _init() {
     _configureWidget();
     _configureAutomaticUpdates();
+  }
+
+  // Request a balance update from the service
+  function _requestUpdateBalance() {
+    if (_isUpdating)
+      return;
+
+    CostControl.requestBalance();
   }
 
   // Handle the events that triggers automatic balance updates
@@ -150,31 +166,24 @@ function setupWidget() {
     _isUpdating = updating;
     if (updating) {
       _widget.classList.add('updating');
-      _widgetTime.textContent = _('updating...');
+      _widgetTime.textContent = _('updating') + '...';
     } else {
       _widget.classList.remove('updating');
     }
   }
 
-  // Request a balance update from the service
-  function _requestUpdateBalance() {
-    if (_isUpdating)
-      return;
-
-    CostControl.requestBalance();
-  }
-
-  // Updates the UI with the new balance and return both balance and timestamp
-  function _updateUIBalance(balanceObject) {
+  // Updates the UI with the new balance if provided, else just update the
+  // widget with the last updated balance.
+  function _updateBalanceUI(balanceObject) {
     balanceObject = balanceObject || CostControl.getLastBalance();
 
-    // Warning mode if no service or roaming
+    // Warning mode if roaming
     var status = CostControl.getServiceStatus();
-    _setWarningMode(!status.availability || status.roaming);
+    _setWarningMode(status.availability && status.roaming);
 
     // Low credit state
     var balance = balanceObject ? balanceObject.balance : null;
-    if (balance < CostControl.getLowLimitThreshold())
+    if (balance && balance < CostControl.getLowLimitThreshold())
       _widget.classList.add('low-credit');
     else
       _widget.classList.remove('low-credit');
@@ -183,7 +192,7 @@ function setupWidget() {
     var formattedBalance;
     if (balance !== null) {
       var splitBalance = (balance.toFixed(2)).split('.');
-      formattedBalance = '&i,&d'
+      formattedBalance = '&i.&d'
         .replace('&i', splitBalance[0])
         .replace('&d', splitBalance[1]);
     } else {
@@ -209,8 +218,6 @@ function setupWidget() {
 
     var formattedTime = date + ', ' + time;
     _widgetTime.textContent = formattedTime;
-
-    return { balance: formattedBalance, time: formattedTime };
   }
 
   _init();
