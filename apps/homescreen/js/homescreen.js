@@ -13,12 +13,10 @@ const Homescreen = (function() {
   PaginationBar.init('.paginationScroller');
 
   function initUI() {
-    // Initialize the dock
-    DockManager.init(document.querySelector('#footer .dockWrapper'));
-
     setLocale();
     GridManager.init('.apps', function gm_init() {
       GridManager.goToPage(GridManager.landingPageIndex);
+      DockManager.init(document.querySelector('#footer .dockWrapper'));
       PaginationBar.show();
       DragDropManager.init();
 
@@ -74,18 +72,7 @@ const Homescreen = (function() {
   }
 
   HomeState.init(function success(onUpgradeNeeded) {
-    if (!onUpgradeNeeded) {
-      loadBookmarks();
-      return;
-    }
-
-    // First time the database is empty -> Dock by default
-    var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
-    var protocol = window.location.protocol;
-    appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
-      return protocol + '//' + name + '.' + domain;
-    });
-    HomeState.saveShortcuts(appsInDockByDef, loadBookmarks, loadBookmarks);
+    loadBookmarks();
   }, start);
 
   // Listening for installed apps
