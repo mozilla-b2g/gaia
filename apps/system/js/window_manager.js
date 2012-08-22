@@ -281,6 +281,7 @@ var WindowManager = (function() {
     // Case 3: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       // Animate the window close
+      setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
     // Case 4: app-to-app transition
