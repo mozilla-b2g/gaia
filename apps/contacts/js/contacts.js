@@ -435,7 +435,7 @@ var Contacts = (function() {
     listContainer.innerHTML = '';
 
     var phonesTemplate = document.getElementById('phone-details-template-#i#');
-    var telLength = getLength(contact.tel.length)
+    var telLength = getLength(contact.tel)
 
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
