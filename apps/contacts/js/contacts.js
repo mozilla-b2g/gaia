@@ -329,13 +329,15 @@ var Contacts = (function() {
       var request = navigator.mozContacts.find(options);
       request.onsuccess = function findCallback() {
         currentContact = request.result[0];
-        var numOfPhoneNums = currentContact.tel ? currentContact.tel.length : 0;
 
         if (!ActivityHandler.currentlyHandling) {
           reloadContactDetails();
           navigation.go('view-contact-details', 'right-left');
           return;
         }
+
+        var hasTel = currentContact.tel && currentContact.tel.length
+        var numOfPhoneNums = hasTel ? currentContact.tel.length : 0;
 
         switch (numOfPhoneNums) {
           case 0:
