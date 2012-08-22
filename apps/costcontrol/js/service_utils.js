@@ -11,13 +11,13 @@
 // 2- Configure SERVICE_NAME, SERVICE_BACKGROUND_NAME and ENTRY_POINT.
 // 3- Create your service object and pass it to setService() function
 // 4- Set up / initialize the service object, the call nowIAmReady() function
-// 
+//
 // CLIENT PART:
 // 1- Include service_utils.js in the SERVICE
 // 2- Call getService() function when you need the service.
 //
-// NOTE: If service is not available when calling getService(), null wil be 
-// returned. You can provide a callback to the getService() function. This 
+// NOTE: If service is not available when calling getService(), null wil be
+// returned. You can provide a callback to the getService() function. This
 // callback will be called when the service is set up.
 //
 // [1] https://developers.google.com/chrome/apps/docs/background

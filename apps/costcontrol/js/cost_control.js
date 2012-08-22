@@ -84,7 +84,7 @@ function setupApp() {
   function _onTopUpError(evt) {
     clearTimeout(_returnTimeout);
 
-    switch(evt.detail.reason) {
+    switch (evt.detail.reason) {
       case 'sending-error':
         // Display error in the top up screen
         _setTopUpScreenMode(MODE_ERROR);
@@ -256,7 +256,7 @@ function setupApp() {
     _progress.setAttribute('aria-hidden', 'true');
     _input.removeAttribute('disabled');
 
-    switch(mode) {
+    switch (mode) {
       case MODE_DEFAULT:
         _explanation.setAttribute('aria-hidden', 'false');
         if (_lastTopUpConfirmed)
@@ -302,7 +302,7 @@ function setupApp() {
     _error.setAttribute('aria-hidden', 'true');
     _messageArea.setAttribute('aria-hidden', 'false');
 
-    switch(mode) {
+    switch (mode) {
       case MODE_DEFAULT:
         _messageArea.setAttribute('aria-hidden', 'true');
         break;

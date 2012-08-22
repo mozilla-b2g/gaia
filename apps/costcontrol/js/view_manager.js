@@ -10,7 +10,7 @@ var DIALOG_APPLICATION_ERROR = 'application-error-info-dialog';
 // The ViewManager is in charge of simply manage the different views of the
 // applications. VeewManager,changeViewTo() valid values are lister above
 // these lines.
-var ViewManager = (function cc_setUpViewManager(){
+var ViewManager = (function cc_setUpViewManager() {
 
   var _currentView = null;
 
@@ -44,5 +44,5 @@ var ViewManager = (function cc_setUpViewManager(){
   return {
     changeViewTo: _changeViewTo,
     closeCurrentView: _closeCurrentView
-  }
+  };
 }());

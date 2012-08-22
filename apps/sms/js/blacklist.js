@@ -12,7 +12,7 @@ var BlackList = (function() {
   var _blackList = {};
 
   function _init() {
-    SettingsListener.observe('sms.blacklist', "[]",
+    SettingsListener.observe('sms.blacklist', '[]',
       function sms_bl_updateBL(list) {
         try {
           list = JSON.parse(list);

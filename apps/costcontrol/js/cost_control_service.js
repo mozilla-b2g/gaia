@@ -59,7 +59,7 @@ setService(function cc_setupCostControlService() {
 
   // The reviver to deserialize a Balance object in JSON.
   Balance.reviver = function cc_BalanceReviver(key, value) {
-    switch(key) {
+    switch (key) {
       case 'timestamp':
         return new Date(value);
 
@@ -259,7 +259,7 @@ setService(function cc_setupCostControlService() {
 
         // Abort if it have not passed enough time since last update
         var balance = _getLastBalance();
-        var lastUpdate =  balance ? balance.timestamp : null;
+        var lastUpdate = balance ? balance.timestamp : null;
         var now = (new Date()).getTime();
         if (lastUpdate === null ||
             (now - lastUpdate > REQUEST_BALANCE_MAX_DELAY))
@@ -277,7 +277,7 @@ setService(function cc_setupCostControlService() {
 
     // Impossible to parse
     if (!found || found.length < 2) {
-      console.warn('Impossible to parse balance message.')
+      console.warn('Impossible to parse balance message.');
 
     // Parsing succsess
     } else {
@@ -295,12 +295,12 @@ setService(function cc_setupCostControlService() {
   // It returns 'unknown' if it can not recognize it at all.
   function _recognizeReceivedSMS(message) {
     var found = message.body.match(
-      new RegExp(_settings.TOP_UP_CONFIRMATION_REGEXP, "i"));
+      new RegExp(_settings.TOP_UP_CONFIRMATION_REGEXP, 'i'));
     if (found)
       return 'confirmation';
 
     found = message.body.match(
-      new RegExp(_settings.TOP_UP_INCORRECT_CODE_REGEXP, "i"));
+      new RegExp(_settings.TOP_UP_INCORRECT_CODE_REGEXP, 'i'));
     if (found)
       return 'incorrect-code';
 
@@ -399,7 +399,7 @@ setService(function cc_setupCostControlService() {
     var status = _getServiceStatus();
     if (!status.availability) {
       _dispatchEvent(_getEventName(STATE_UPDATING_BALANCE, 'error'),
-        { reason: 'service-unavailable-' +  status.detail });
+        { reason: 'service-unavailable-' + status.detail });
       return;
     }
 
@@ -489,7 +489,7 @@ setService(function cc_setupCostControlService() {
     var eventTypes = ['success', 'error', 'start', 'finish'];
     eventTypes.forEach(function cc_bindEventType(type) {
       window.addEventListener(_getEventName(state, type),
-        (callbacks['on'+type] || null))
+        (callbacks['on' + type] || null));
     });
   }
 
@@ -512,7 +512,7 @@ setService(function cc_setupCostControlService() {
     setBalanceCallbacks: _setBalanceCallbacks,
     setTopUpCallbacks: _setTopUpCallbacks,
     set onservicestatuschange(callback) {
-      _setServiceStatusChangeCallback(callback)
+      _setServiceStatusChangeCallback(callback);
     },
     requestBalance: _updateBalance,
     requestTopUp: _topUp,

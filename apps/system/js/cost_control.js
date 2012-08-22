@@ -3,7 +3,7 @@
 
 'use strict';
 
-(function () {
+(function() {
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
   var protocol = document.location.protocol + '//';
@@ -27,10 +27,10 @@
   window.addEventListener('utilitytrayshow', _redirectToWidget);
 
   // TODO: Remove when bug https://bugzilla.mozilla.org/show_bug.cgi?id=766873
-  // is resolved. The problem is we cannot get the background service from 
-  // an application via window.open when it is launch from background_page in 
+  // is resolved. The problem is we cannot get the background service from
+  // an application via window.open when it is launch from background_page in
   // manifest so we need to launch the service from the widget but only when the
-  // system is aware about the application is installed. 
+  // system is aware about the application is installed.
   //
   // So we need to redirect the event applicationready to the widget in order
   // to setup everything else.

@@ -65,7 +65,7 @@ function setupWidget() {
   function _configureWidget() {
     _widget = document.getElementById('cost-control');
     _widgetCredit = document.getElementById('cost-control-credit');
-    _widgetCurrency = document.getElementById('cost-control-currency')
+    _widgetCurrency = document.getElementById('cost-control-currency');
     _widgetTime = document.getElementById('cost-control-time');
 
     // Listener to open application
@@ -137,7 +137,7 @@ function setupWidget() {
       case 'utilitytrayshow':
         // Just if it have passed enough time since last update
         var balance = CostControl.getLastBalance();
-        var lastUpdate =  balance ? balance.timestamp : null;
+        var lastUpdate = balance ? balance.timestamp : null;
         var now = (new Date()).getTime();
         if (lastUpdate === null ||
             (now - lastUpdate > CostControl.getRequestBalanceMaxDelay())) {
@@ -151,7 +151,7 @@ function setupWidget() {
         break;
     }
   }
-  
+
   // Enable / disable warning mode for the UI
   function _setWarningMode(warning) {
     _onWarning = warning;
@@ -221,4 +221,4 @@ function setupWidget() {
   }
 
   _init();
-};
+}
