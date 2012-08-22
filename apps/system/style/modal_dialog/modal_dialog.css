@@ -120,10 +120,6 @@
   border: 0;
 }
 
-#screen.modal-dialog #keyboard-frame.visible {
-  z-index: 9999; /* Keep it just behind the modal dialog */
-}
-
 #screen.modal-dialog #modal-dialog,
 #modal-dialog-alert.visible,
 #modal-dialog-confirm.visible,
