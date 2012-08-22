@@ -329,14 +329,41 @@ var Contacts = (function() {
       var request = navigator.mozContacts.find(options);
       request.onsuccess = function findCallback() {
         currentContact = request.result[0];
-        var onlyOneTel = currentContact.tel && currentContact.tel.length === 1;
-        if (ActivityHandler.currentlyHandling && onlyOneTel) {
-          var number = currentContact.tel[0].value;
-          ActivityHandler.postPickSuccess(number);
+
+        if (!ActivityHandler.currentlyHandling) {
+          reloadContactDetails();
+          navigation.go('view-contact-details', 'right-left');
           return;
         }
-        reloadContactDetails();
-        navigation.go('view-contact-details', 'right-left');
+
+        var hasTel = currentContact.tel && currentContact.tel.length;
+        var numOfPhoneNums = hasTel ? currentContact.tel.length : 0;
+
+        switch (numOfPhoneNums) {
+          case 0:
+            // If no phone number
+            alert('No phone number saved!');
+            // TODO: replace alert with given visual | #3643
+            break;
+          case 1:
+            // if One phone number
+            var number = currentContact.tel[0].value;
+            ActivityHandler.postPickSuccess(number);
+            break;
+          default:
+            // if more than one phone number
+            var prompt1 = new ValueSelector(_('select_mobile'));
+            var numbers = currentContact.tel;
+            for (var key in numbers) {
+              var number = numbers[key].value;
+              prompt1.addToList(number + '', function() {
+                  prompt1.hide();
+                  ActivityHandler.postPickSuccess(number);
+              });
+
+            }
+            prompt1.show();
+        }
       };
     });
   }
