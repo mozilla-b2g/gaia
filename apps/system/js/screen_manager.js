@@ -153,14 +153,6 @@ var ScreenManager = {
 
         break;
 
-      case 'mozfullscreenchange':
-        if (document.mozFullScreen) {
-          this.screen.classList.add('fullscreen');
-        } else {
-          this.screen.classList.remove('fullscreen');
-        }
-        break;
-
       case 'sleep':
         if (!this._screenWakeLocked)
           this.turnScreenOff(true);
@@ -185,7 +177,6 @@ var ScreenManager = {
       return false;
 
     window.removeEventListener('devicelight', this);
-    window.removeEventListener('mozfullscreenchange', this);
 
     var self = this;
     var screenBrightness = navigator.mozPower.screenBrightness;
@@ -239,7 +230,6 @@ var ScreenManager = {
       return false;
 
     window.addEventListener('devicelight', this);
-    window.addEventListener('mozfullscreenchange', this);
 
     navigator.mozPower.screenEnabled = this.screenEnabled = true;
     navigator.mozPower.screenBrightness = this._brightness;
