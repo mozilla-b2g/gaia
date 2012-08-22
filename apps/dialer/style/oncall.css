@@ -541,7 +541,7 @@ button[disabled] .icon-keypad-visibility {
   }
   #calls > section .number,
   #calls[data-count="1"] > section .number {
-    width: -moz-calc(100% - 5rem);
+    width: -moz-calc(100% - 10rem);
     height: -moz-calc(100% - 2rem);
     padding: 1rem;
     margin-left: 3rem;
@@ -550,6 +550,10 @@ button[disabled] .icon-keypad-visibility {
     line-height: 100%;
     color: white;
     background-color: transparent;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   #calls > section .duration,
   #calls[data-count="1"] > section .duration {
