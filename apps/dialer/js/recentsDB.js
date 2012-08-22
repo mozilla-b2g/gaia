@@ -1,5 +1,5 @@
 'use strict';
-alert("HOLA!");
+
 var RecentsDBManager = {
   _dbName: 'dialerRecents',
   _dbStore: 'dialerRecents',
@@ -17,21 +17,15 @@ var RecentsDBManager = {
       this.request = indexedDB.open(this._dbName, this._dbVersion);
       //Once DB is opened
       this.request.onsuccess = function(event) {
-        console.log("DB Opened");
+        console.log('DB Opened');
         //Store DB object in RecentsDBManager
         self.db = event.target.result;
-        // If we are in browser we are going to prepopulate for testing
-        // if (!navigator.mozSms) {
-        //   // We mockup the App for Dev-Team
-        //   self._prepopulateDB.call(self);
-        // }else {
-          console.log("Call to CALLBCK");
-        
+        // TODO Call to 'prepopulate' once we have requirements for it
+        if (callback) {
           //Callback if needed
-          if (callback) {
-            callback.call(self);
-          }
-        // }
+          console.log('Callback');
+          callback.call(self);
+        }
       };
       this.request.onerror = function(event) {
         // TODO Do we have to implement any custom error handler?
@@ -49,9 +43,9 @@ var RecentsDBManager = {
       console.log(ex.message);
     }
   },
-  _close: function rbdm_close(callback){
+  _close: function rbdm_close() {
     this.db.close();
-    console.log("DB Closed");
+    console.log('DB Closed');
   },
   // Method which check if DB is ready
   _checkDB: function rdbm_checkDB(callback) {
