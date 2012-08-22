@@ -612,9 +612,10 @@ var Recents = {
             phoneType = contactPhoneType;
           }
           if (!contactPhoneCarrier) {
-            secondaryInfo.textContent = secondaryInfo.textContent + ", " + phoneNumber;
+            secondaryInfo.textContent = secondaryInfo.textContent +
+              ', ' + phoneNumber;
           } else {
-            logItem.dataset.carrier= contactPhoneCarrier;
+            logItem.dataset.carrier = contactPhoneCarrier;
             phoneCarrier = contactPhoneCarrier;
           }
         }
@@ -626,15 +627,18 @@ var Recents = {
           contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
           contactPhoneType = contactPhoneEntry.type;
           contactPhoneCarrier = contactPhoneEntry.carrier;
-          if ((phoneNumber != contactPhoneNumber) && (phoneType == contactPhoneType)
-            && (phoneCarrier == contacePhoneCarrier)) {
+          if ((phoneNumber != contactPhoneNumber) &&
+            (phoneType == contactPhoneType) &&
+            (phoneCarrier == contacePhoneCarrier)) {
             multipleNumbersSameCarrier = true;
           }
         }
         if (multipleNumbersSameCarrier) {
-          secondaryInfo.textContent = secondaryInfo.textContent + ", " + phoneNumber;
+          secondaryInfo.textContent = secondaryInfo.textContent +
+            ', ' + phoneNumber;
         } else {
-          secondaryInfo.textContent = secondaryInfo.textContent + ", " + contactPhoneCarrier;
+          secondaryInfo.textContent = secondaryInfo.textContent +
+            ', ' + contactPhoneCarrier;
         }
       }
       this._cachedContacts[phoneNumber] = contact;
