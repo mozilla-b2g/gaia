@@ -122,7 +122,9 @@
 
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
-    <script defer src="js/value_selector.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/value_selector/time_picker.css">
+    <script defer src="js/value_selector/value_picker.js"></script>
+    <script defer src="js/value_selector/value_selector.js"></script>
 
     <style>
     /* initlogo style is here to prevent flashing */
@@ -270,11 +272,29 @@
 
       <!-- value selector -->
       <div id="value-selector" hidden data-z-index-level="value-selector">
-         <div id="value-selector-container" onmousedown="return false;"> </div>
-         <div id="value-selector-buttons">
-           <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
-           <button id="value-selector-confirm" data-l10n-id="ok" onmousedown="return false;">Ok</button>
-         </div>
+
+	  <!-- overlay for select element -->
+	  <div id="value-selector-container" onmousedown="return false;">
+	  </div>
+
+	  <!-- Time Picker -->
+          <div id="picker-bar" onmousedown="return false;">
+            <div id="picker-container">
+              <div id="value-indicator-bottom"></div>
+              <div id="value-picker-hours" class="animation-on" onmousedown="return false;"></div>
+              <div class="left-picker-separator"></div>
+              <div id="value-picker-minutes" class="animation-on" onmousedown="return false;"></div>
+              <div class="right-picker-separator"></div>
+              <div id="value-picker-hour24-state" class="animation-on" onmousedown="return false;"></div>
+              <div id="value-indicator-hover"></div>
+            </div>
+            <div id="picker-bar-gradient"></div>
+          </div>
+
+          <div id="value-selector-buttons">
+            <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
+            <button id="value-selector-confirm" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+          </div>
       </div>
 
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>

@@ -3,9 +3,16 @@
 
 'use strict';
 
+if (!window.navigator.mozKeyboard) {
+   window.navigator.mozKeyboard = {};
+}
+
 var ValueSelector = {
+
+  _containers: {},
+
   debug: function(msg) {
-    var debugFlag = false;
+    var debugFlag = true;
     if (debugFlag) {
       console.log('[ValueSelector] ', msg);
     }
@@ -48,15 +55,19 @@ var ValueSelector = {
       }
     };
 
+
     this._element = document.getElementById('value-selector');
-    this._container = document.getElementById('value-selector-container');
-    this._container.addEventListener('click', this);
+    this._containers['select'] =
+      document.getElementById('value-selector-container');
+    this._containers['select'].addEventListener('click', this);
 
     this._cancelButton = document.getElementById('value-selector-cancel');
     this._cancelButton.addEventListener('click', this);
 
     this._confirmButton = document.getElementById('value-selector-confirm');
     this._confirmButton.addEventListener('click', this);
+
+    this._containers['time'] = document.getElementById('picker-bar');
 
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
@@ -80,7 +91,7 @@ var ValueSelector = {
             this.confirm();
             break;
 
-          case this._container:
+          case this._containers['select']:
             this.handleSelect(evt.target);
             break;
         }
@@ -100,7 +111,7 @@ var ValueSelector = {
       return;
 
     if (this._currentPickerType === 'select-one') {
-      var selectee = this._container.querySelectorAll('.selected');
+      var selectee = this._containers['select'].querySelectorAll('.selected');
       for (var i = 0; i < selectee.length; i++) {
         selectee[i].classList.remove('selected');
       }
@@ -113,6 +124,16 @@ var ValueSelector = {
 
   show: function vs_show(detail) {
     this._element.hidden = false;
+  },
+
+  showPanel: function vs_showPanel(type) {
+    for (var p in this._containers) {
+      if (p === type) {
+        this._containers[p].hidden = false;
+      } else {
+        this._containers[p].hidden = true;
+      }
+    }
   },
 
   hide: function vs_hide() {
@@ -129,7 +150,7 @@ var ValueSelector = {
     var singleOptionIndex;
     var optionIndices = [];
 
-    var selectee = this._container.querySelectorAll('.selected');
+    var selectee = this._containers['select'].querySelectorAll('.selected');
 
     if (this._currentPickerType === 'select-one') {
 
@@ -140,12 +161,11 @@ var ValueSelector = {
 
     } else if (this._currentPickerType === 'date' ||
                this._currentPickerType === 'time') {
-      var optionValue;
 
-      if (selectee.length > 0)
-        optionValue = selectee[0].dataset.optionValue;
+      var timeValue = TimePicker.getTimeValue();
+      this.debug('output value: ' + timeValue);
 
-      window.navigator.mozKeyboard.setValue(optionValue);
+      window.navigator.mozKeyboard.setValue(timeValue);
     } else {
       // Multiple select case
       for (var i = 0; i < selectee.length; i++) {
@@ -170,6 +190,7 @@ var ValueSelector = {
       this.buildOptions(options);
 
     this.show();
+    this.showPanel('select');
   },
 
   buildOptions: function(options) {
@@ -189,37 +210,25 @@ var ValueSelector = {
 
     optionHTML += '</ol>';
 
-    this._container.innerHTML = optionHTML;
+    this._containers['select'].innerHTML = optionHTML;
   },
 
   showTimePicker: function vs_showTimePicker() {
     this._currentPickerType = 'time';
-    this.buildTimePicker();
+    //this.buildTimePicker();
+    
     this.show();
+    this.showPanel('time');
+
+    if (!this._timePickerInitialized) {
+      TimePicker.initTimePicker();
+      this._timePickerInitialized = true;
+    }
   },
 
   buildTimePicker: function vs_buildTimePicker() {
     //TODO: for test only
-    var options = [
-       '12:00',
-       '13:00'
-    ];
-
-    var optionHTML = '<ol>';
-    for (var i = 0, n = options.length; i < n; i++) {
-
-      var checked = options[i].selected ? ' class="selected"' : '';
-
-      optionHTML += '<li data-option-value="' + options[i] + '"' +
-                     checked + '>' +
-                     options[i] +
-                     '<span class="checkmark">&#10004;</span>' +
-                    '</li>';
-    }
-
-    optionHTML += '</ol>';
-
-    this._container.innerHTML = optionHTML;
+    //
   },
 
   showDatePicker: function vs_showDatePicker() {
@@ -251,6 +260,76 @@ var ValueSelector = {
     optionHTML += '</ol>';
 
     this._container.innerHTML = optionHTML;
+  }
+};
+
+var TimePicker = {
+  timePicker: {
+    hour: null,
+    minute: null,
+    hour24State: null
+  },
+
+  get hourSelector() {
+    delete this.hourSelector;
+    return this.hourSelector =
+      document.getElementById('value-picker-hours');
+  },
+
+  get minuteSelector() {
+    delete this.minuteSelector;
+    return this.minuteSelector =
+      document.getElementById('value-picker-minutes');
+  },
+
+  get hour24StateSelector() {
+    delete this.hour24StateSelector;
+    return this.hour24StateSelector =
+      document.getElementById('value-picker-hour24-state');
+  },
+
+  initTimePicker: function aev_initTimePicker() {
+    var unitClassName = 'picker-unit';
+    var hourDisplayedText = [];
+    for (var i = 1; i < 13; i++) {
+      var value = i;
+      hourDisplayedText.push(value);
+    }
+    var hourUnitStyle = {
+      valueDisplayedText: hourDisplayedText,
+      className: unitClassName
+    };
+    this.timePicker.hour = new ValuePicker(this.hourSelector, hourUnitStyle);
+
+    var minuteDisplayedText = [];
+    for (var i = 0; i < 60; i++) {
+      var value = (i < 10) ? '0' + i : i;
+      minuteDisplayedText.push(value);
+    }
+    var minuteUnitStyle = {
+      valueDisplayedText: minuteDisplayedText,
+      className: unitClassName
+    };
+    this.timePicker.minute =
+      new ValuePicker(this.minuteSelector, minuteUnitStyle);
+
+    var hour24StateUnitStyle = {
+      valueDisplayedText: ['AM', 'PM'],
+      className: unitClassName
+    };
+    this.timePicker.hour24State =
+      new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+  },
+
+  // return a string for the time value, format: "16:37"
+  getTimeValue: function aev_getTimeValue() {
+    var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
+    var hour = this.timePicker.hour.getSelectedDisplayedText();
+    hour = (hour == 12) ? 0 : hour;
+    hour = hour + hour24Offset;
+    var minute = this.timePicker.minute.getSelectedDisplayedText();
+
+    return hour + ':' + minute;
   }
 };
 
