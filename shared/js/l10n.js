@@ -3,10 +3,12 @@
 
 'use strict';
 
-// navigator.mozL10n
-(function(window) {
-  // see https://github.com/fabi1cazenave/webL10n
+/**
+ * This library exposes a `navigator.mozL10n' object to handle client-side
+ * application localization. See: https://github.com/fabi1cazenave/webL10n
+ */
 
+(function(window) {
   var gL10nData = {};
   var gTextData = '';
   var gTextProp = 'textContent';
@@ -25,17 +27,25 @@
    * just in case... and applications using this library should hide their
    * content until the `localized' event happens.
    */
+
   var gAsyncResourceLoading = true; // read-only
 
-  // debug helpers
+  /**
+   * Debug helpers
+   */
+
   var gDEBUG = false;
+
   function consoleLog(message) {
-    if (gDEBUG)
+    if (gDEBUG) {
       console.log('[l10n] ' + message);
+    }
   };
+
   function consoleWarn(message) {
-    if (gDEBUG)
+    if (gDEBUG) {
       console.warn('[l10n] ' + message);
+    }
   };
 
   /**
