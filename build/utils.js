@@ -1,5 +1,7 @@
 const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils': Cu } = Components;
 
+Cu.import('resource://gre/modules/Services.jsm');
+
 function getSubDirectories(directory) {
   let appsDir = Cc['@mozilla.org/file/local;1']
                .createInstance(Ci.nsILocalFile);
@@ -92,3 +94,37 @@ const Gaia = {
     }
   }
 };
+
+function registerProfileDirectory() {
+  let directoryProvider = {
+    getFile: function provider_getFile(prop, persistent) {
+      persistent.value = true;
+      if (prop != "ProfD" && prop != "ProfLDS") {
+        throw Cr.NS_ERROR_FAILURE;
+      }
+
+      let file = Cc["@mozilla.org/file/local;1"]
+                   .createInstance(Ci.nsILocalFile)
+      file.initWithPath(PROFILE_DIR);
+      return file;
+    },
+
+    QueryInterface: function provider_queryInterface(iid) {
+      if (iid.equals(Ci.nsIDirectoryServiceProvider) ||
+          iid.equals(Ci.nsISupports)) {
+        return this;
+      }
+      throw Cr.NS_ERROR_NO_INTERFACE;
+    }
+  };
+
+  Cc["@mozilla.org/file/directory_service;1"]
+    .getService(Ci.nsIProperties)
+    .QueryInterface(Ci.nsIDirectoryService)
+    .registerProvider(directoryProvider);
+}
+
+if (Gaia.engine === "xpcshell") {
+  registerProfileDirectory();
+}
+
