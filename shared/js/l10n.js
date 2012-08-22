@@ -14,8 +14,18 @@
   var gMacros = {};
   var gReadyState = 'loading';
 
-  // read-only setting -- we recommend to load l10n resources synchronously
-  var gAsyncResourceLoading = false;
+  /**
+   * Synchronously loading l10n resources significantly minimizes flickering
+   * from displaying the app with non-localized strings and then updating the
+   * strings. Although this will block all script execution on this page, we
+   * expect that the l10n resources are available locally on flash-storage.
+   *
+   * As synchronous XHR is generally considered as a bad idea, we're still
+   * loading l10n resources asynchronously -- but we keep this in a setting,
+   * just in case... and applications using this library should hide their
+   * content until the `localized' event happens.
+   */
+  var gAsyncResourceLoading = true; // read-only
 
   // debug helpers
   var gDEBUG = false;
