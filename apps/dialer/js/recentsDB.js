@@ -1,5 +1,5 @@
 'use strict';
-
+alert("HOLA!");
 var RecentsDBManager = {
   _dbName: 'dialerRecents',
   _dbStore: 'dialerRecents',
@@ -17,18 +17,21 @@ var RecentsDBManager = {
       this.request = indexedDB.open(this._dbName, this._dbVersion);
       //Once DB is opened
       this.request.onsuccess = function(event) {
+        console.log("DB Opened");
         //Store DB object in RecentsDBManager
         self.db = event.target.result;
         // If we are in browser we are going to prepopulate for testing
-        if (!navigator.mozSms) {
-          // We mockup the App for Dev-Team
-          self._prepopulateDB.call(self);
-        }else {
+        // if (!navigator.mozSms) {
+        //   // We mockup the App for Dev-Team
+        //   self._prepopulateDB.call(self);
+        // }else {
+          console.log("Call to CALLBCK");
+        
           //Callback if needed
           if (callback) {
             callback.call(self);
           }
-        }
+        // }
       };
       this.request.onerror = function(event) {
         // TODO Do we have to implement any custom error handler?
@@ -46,6 +49,10 @@ var RecentsDBManager = {
       console.log(ex.message);
     }
   },
+  _close: function rbdm_close(callback){
+    this.db.close();
+    console.log("DB Closed");
+  },
   // Method which check if DB is ready
   _checkDB: function rdbm_checkDB(callback) {
     var self = this;
@@ -61,14 +68,17 @@ var RecentsDBManager = {
     }
   },
   // Metod for adding an item to recents of DB
-  _add: function rdbm_add(recentCall) {
+  _add: function rdbm_add(recentCall, callback) {
     this._checkDB.call(this, function() {
       var txn = this.db.transaction('dialerRecents', 'readwrite');
       var store = txn.objectStore('dialerRecents');
       var self = this;
       var request = store.put(recentCall);
       request.onsuccess = function sr_onsuccess() {
-        self._get.call(self);
+        // self._get.call(self);
+        if (callback) {
+          callback();
+        }
       };
       request.onerror = function(e) {
         console.log('dialerRecents add failure: ',
