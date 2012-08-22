@@ -17,8 +17,10 @@
   <link rel="stylesheet" type="text/css" href="style/bb/progress-activity/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/switches/style.css">
 
+  <!-- App and Views -->
   <link rel="stylesheet" type="text/css" href="style/app.css">
   <link rel="stylesheet" type="text/css" href="style/views/topup.css">
+  <link rel="stylesheet" type="text/css" href="style/views/settings.css">
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -34,7 +36,9 @@
 <body role="application">
 
   <section role="region" class="window">
-    <section role="region" id="balance-tab" class="view">
+
+    <!-- BALANCE VIEW -->
+    <section role="region" id="balance-tab" class="view" data-viewname="balance" data-viewport="left">
       <header data-theme="organic">
         <menu type="toolbar">
            <button><span class="icon config">configuration</span></button>
@@ -76,10 +80,10 @@
           </button>
         </div>
       </section>
-
     </section>
 
-    <section role="region" id="topup" class="view topup" data-viewport="bottom">
+    <!-- TOP UP VIEW -->
+    <section role="region" id="topup" class="view" data-viewname="topup" data-viewport="bottom">
       <header data-theme="organic">
         <menu type="toolbar">
            <button id="buttonTopUp">Done</button>
@@ -102,7 +106,8 @@
       </form>
     </section>
 
-    <section role="dialog" class="view" data-viewport="inside" id="no-coverage-info">
+    <!-- DIALOG NO COVERAGE -->
+    <section role="dialog" class="view" data-viewname="nocoverage" data-viewport="inside" id="no-coverage-info">
       <div class="center">
         <h3>No coverage</h3>
         <p>Neither update nor top up is possible at the moment. Try later.</p>
@@ -110,6 +115,72 @@
       <menu data-items="1">
         <button id="no-coverage-info-button">Ok</button>
       </menu>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section role="region" class="view" data-viewname="settings">
+      <header data-theme="organic">
+        <a href="#left-panel"><span id="topup-close-button" class="icon icon-back">close</span></a>
+        <h1 data-l10n-id="settings">Settings</h1>
+      </header>
+
+      <section role="region" class="buttons-list">
+         <button>
+              <span class="end launch"></span>
+              Prepaid
+          </button>
+      </section>
+
+      <section role="region" data-theme="organic">
+         <header aria-level="2">
+          <p>Balance</p>
+        </header>
+        <ul>
+          <li>
+              <p>R$ 23.65</p>
+              <time>Today, 15:32</time>
+          </li>
+          <li>
+            <label class="end toggle">
+              <input type="checkbox" checked="checked">
+              <span></span>
+            </label>
+            <p>Low Balance alert</p>
+          </li>
+          <li>
+            <label class="end">
+              R$
+              <input type="number">
+            </label>
+            <p>Alert me when I’m under</p>
+          </li>
+        </ul>
+      </section>
+
+      <section role="region" data-theme="organic">
+         <header aria-level="2">
+          <p>Data usage</p>
+        </header>
+        <ul>
+          <li>
+              <div class="end buttons-list">
+                <button>Reset</button>
+              </div>
+              <p>50MB</p>
+              <time>27 Nov - Today, 15:32</time>
+          </li>
+          <li>
+            <div class="end buttons-list">
+              <button>
+                <span class="end launch"></span>
+                Monthly
+              </button>
+            </div>
+            <p>Reset tracking</p>
+          </li>
+        </ul>
+      </section>
+
     </section>
 
     <ul role="tablist" class="filter" data-items="2" data-position="bottom">
