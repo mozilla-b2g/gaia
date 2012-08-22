@@ -557,7 +557,7 @@ var Contacts = (function() {
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = currentContact.tel[tel];
       var telField = {
-        value: currentTel.value,
+        value: currentTel.value || '',
         type: currentTel.type || default_type,
         carrier: currentTel.carrier || '',
         i: tel
