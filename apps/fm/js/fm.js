@@ -570,14 +570,21 @@ function init() {
   }, false);
 
   mozFMRadio.onfrequencychange = updateFreqUI;
-  mozFMRadio.onenabled = function() {
-    updatePowerUI();
-  };
+  mozFMRadio.onenabled = updatePowerUI;
   mozFMRadio.ondisabled = updatePowerUI;
+
   mozFMRadio.onantennaavailablechange = function onAntennaChange() {
     updateAntennaUI();
     if (mozFMRadio.antennaAvailable) {
-      mozFMRadio.enable(frequencyDialer.getFrequency());
+      // If the FM radio is enabled when the antenna is unplugged, turn the FM
+      // radio on again.
+      if (!!window._previousFMRadioState) {
+        mozFMRadio.enable(frequencyDialer.getFrequency());
+      }
+    } else {
+      // Remember the current state of the FM radio
+      window._previousFMRadioState = mozFMRadio.enabled;
+      mozFMRadio.disable();
     }
   };
 
@@ -586,6 +593,9 @@ function init() {
     // Enable FM immediately
     mozFMRadio.enable(mozFMRadio.frequencyLowerBound);
   } else {
+    // Mark the previous state as True, so the FM radio be enabled automatically
+    // when the headset is plugged.
+    window._previousFMRadioState = true;
     updateAntennaUI();
   }
   updatePowerUI();
