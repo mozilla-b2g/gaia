@@ -74,21 +74,36 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
     }
 
     var secDiff = (Date.now() - time) / 1000;
-    var dayDiff = Math.floor(secDiff / 86400);
-
-    if (isNaN(dayDiff)) {
+    if (isNaN(secDiff)) {
       return _('incorrectDate');
-    } else if (secDiff < 0) { // TODO: support future time
-      return localeFormat(new Date(time), '%x %R');
-    } else if (secDiff < 3600) {
-      return _('minutesAgo', { m : Math.floor(secDiff / 60) });
-    } else if (dayDiff === 0) {
-      return _('hoursAgo', { h : Math.floor(secDiff / 3600) });
-    } else if (dayDiff < 10) {
-      return _('daysAgo', { d : dayDiff });
-    } else {
-      return localeFormat(new Date(time), '%x');
     }
+
+    if (secDiff >= 0) { // past
+      var dayDiff = Math.floor(secDiff / 86400);
+      if (secDiff < 3600) {
+        return _('minutesAgo', { m : Math.floor(secDiff / 60) });
+      } else if (dayDiff === 0) {
+        return _('hoursAgo', { h : Math.floor(secDiff / 3600) });
+      } else if (dayDiff < 10) {
+        return _('daysAgo', { d : dayDiff });
+      }
+    }
+
+    if (secDiff < 0) { // future
+      secDiff = -secDiff;
+      dayDiff = Math.floor(secDiff / 86400);
+      console.log(dayDiff);
+      if (secDiff < 3600) {
+        return _('inMinutes', { m : Math.floor(secDiff / 60) });
+      } else if (dayDiff === 0) {
+        return _('inHours', { h : Math.floor(secDiff / 3600) });
+      } else if (dayDiff < 10) {
+        return _('inDays', { d : dayDiff });
+      }
+    }
+
+    // too far: return an absolute date
+    return localeFormat(new Date(time), '%x');
   }
 
   // API
