@@ -145,7 +145,7 @@ DB_TARGET_PATH = /data/local/indexedDB
 DB_SOURCE_PATH = profile/indexedDB/chrome
 
 # Generate profile/
-profile: applications-data preferences permissions test-agent-config offline extensions install-xulrunner-sdk
+profile: applications-data preferences permissions app-makefiles test-agent-config offline extensions install-xulrunner-sdk
 	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
 	then \
 	  echo "Settings DB does not exists, creating an initial one:"; \
@@ -155,6 +155,15 @@ profile: applications-data preferences permissions test-agent-config offline ext
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
+
+app-makefiles:
+	for d in ${GAIA_APP_SRCDIRS}; \
+	do \
+		for mfile in `find $$d -mindepth 2 -maxdepth 2 -name "Makefile"` ;\
+		do \
+			make -C `dirname $$mfile`; \
+		done; \
+	done;
 
 # Generate profile/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
