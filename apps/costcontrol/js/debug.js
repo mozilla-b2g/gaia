@@ -12,3 +12,8 @@ var debug = function(str) {
       console.log.apply(this, arguments);
   }
 };
+
+var _ = function cc_fallbackTranslation(keystring) {
+  var r = navigator.mozL10n.get.apply(this, arguments);
+  return r || (DEBUGGING ? '!!' : '') + keystring;
+}

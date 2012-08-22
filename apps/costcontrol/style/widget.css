@@ -3,7 +3,10 @@
 html {
   font-size: 10px;
   font-family: 'Open Sans', sans-serif;
-  color: white;
+}
+
+body {
+  background: black;
 }
 
 * {
@@ -43,7 +46,7 @@ html {
 }
 
 /* No automatic updates allowed */
-#cost-control.error #cost-control-icon {
+#cost-control.warning #cost-control-icon {
   background-image: url('./images/widget/icons/warning.png');
   -moz-animation: none;
 }
@@ -60,19 +63,32 @@ html {
   -moz-transition: -moz-transform 0.5s;
 }
 
+#cost-control.warning {
+  background: none;
+  background-color: #737577;
+}
+
 #cost-control.updating > div,
-#cost-control.error > div {
+#cost-control.warning > div {
   -moz-transform: none;
+}
+
+#cost-control.warning #cost-control-credit, 
+#cost-control.warning #cost-control-currency,
+#cost-control.warning #cost-control-time {
+  color: #2d2e2f;
 }
 
 #cost-control-currency {
   font-size: 1.4rem;
   font-weight: 600;
+  color: white;
 }
 
 #cost-control-credit {
   font-size: 1.8rem;
   font-weight: 600;
+  color: white;
 }
 
 #cost-control-time {

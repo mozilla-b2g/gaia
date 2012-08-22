@@ -5,7 +5,7 @@
 
 var CostControl;
 window.addEventListener('message', function cc_onApplicationReady(evt) {
-  
+  // Retrieve CostControl service once application is ready
   if (evt.data.type === 'applicationready') {
     CostControl = getService(function cc_onServiceReady(evt) {
       // If the service is not ready, when ready it re-set the CostControl object
@@ -13,60 +13,40 @@ window.addEventListener('message', function cc_onApplicationReady(evt) {
       CostControl = evt.detail.service;
       setupWidget();
     });
-
-    // If the service is already initialized, just setup the widget
     if (CostControl)
       setupWidget();
   }
 });
 
+// Cost Control widget is placed in the bottom of the utility tray, over the
+// quick settings buttons and is in charge of displaying current balance at the
+// same time it provides a quick access to the Cost Control application.
 function setupWidget() {
-
-  var _ = function cc_fallbackTranslation(keystring) {
-    var r = navigator.mozL10n.get.apply(this, arguments);
-    return r || '!!' + keystring;
-  }
-
-  var STATE_ERROR = 'error';
-  var STATE_NO_AUTOMATIC = 'no-automatic';
-  var STATE_DEFAULT = 'default';
 
   var _widget, _widgetCredit, _widgetCurrency, _widgetTime;
   var _isUpdating = false;
-  var _state = STATE_DEFAULT;
-
-  function _automaticUpdatesAllowed() {
-    var status = CostControl.getServiceStatus();
-    return status.availability && !status.roaming;
-  }
-
-  // Attach event listeners for automatic updates:
-  //  * After showing the utility tray
-  function _configureAutomaticUpdates() {
-    // Listen to utilitytray show
-    window.addEventListener('message', function cc_utilityTray(evt) {
-      if (evt.data.type === 'utilitytrayshow')
-        _automaticCheck(evt.data);
-    });
-  }
+  var _onWarning = false; // warning state is true when automatic udpates are
+                          // disabled or some update error occurs.
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
-    _widget.classList.remove('error');
-    _updateUI(evt.detail.balance, evt.detail.timestamp, evt.detail.currency);
+    var balance = evt.detail;
+    _setWarningMode(false);
+    _updateUIBalance(balance);
   }
 
-  // On balance updating error, if manual request, notificate
+  // On balance updating error, set warning mode and interrumpt updating mode
+  // Note we need to interrupt updating mode because no finish event is launched
+  // when error.
   function _onUpdateBalanceError(evt) {
-    _widget.classList.add('error');
-    switch(evt.detail.reason) {
-      case 'sending-error':
-        debug('TODO: Change widget state to indicate the fail.');
-        break;
-    }
+    _setWarningMode(true);
+    _setUpdatingMode(false);
+    _updateUIBalance();
   }
 
   // On starting an update, enter into update mode
+  // This shows the updating icon even when updating has been triggered from
+  // another view such as the Cost Control application.
   function _onUpdateStart(evt) {
     _setUpdatingMode(true);
   }
@@ -74,6 +54,11 @@ function setupWidget() {
   // On ending an update, exit from update mode
   function _onUpdateFinish(evt) {
     _setUpdatingMode(false);
+  }
+
+  // Open the cost control & data usage application
+  function _openApp() {
+    var activity = new MozActivity({ name: 'costcontrol/open' });
   }
 
   // Attach event listeners for manual updates
@@ -94,7 +79,23 @@ function setupWidget() {
       onfinish: _onUpdateFinish
     });
 
-    _updateUI();
+    _updateUIBalance();
+  }
+
+  // Return True when automatic updates are allow:
+  // service ready and not roaming
+  function _automaticUpdatesAllowed() {
+    var status = CostControl.getServiceStatus();
+    return status.availability && !status.roaming;
+  }
+
+  // Attach event listeners for automatic updates
+  //  * After showing the utility tray
+  function _configureAutomaticUpdates() {
+    window.addEventListener('message', function cc_utilityTray(evt) {
+      if (evt.data.type === 'utilitytrayshow')
+        _automaticCheck(evt.data);
+    });
   }
 
   // Initializes the cost control module: basic parameters, autmatic and manual
@@ -110,31 +111,43 @@ function setupWidget() {
 
     // Ignore if the device is in roaming
     if (!_automaticUpdatesAllowed()) {
-      console.warn('Device in roaming, no automatic updates allowed');
+      console.warn('No automatic updates allowed');
       return;
     }
 
     switch (evt.type) {
 
-      // When utility tray shows and it has passed "enough" time since the last
-      // update.
+      // When utility tray shows
       case 'utilitytrayshow':
-        // Abort if it have not passed enough time since last update
+        // Just if it have passed enough time since last update
         var balance = CostControl.getLastBalance();
         var lastUpdate =  balance ? balance.timestamp : null;
         var now = (new Date()).getTime();
         if (lastUpdate === null ||
-            (now - lastUpdate > CostControl.getRequestBalanceMaxDelay()))
-          _updateBalance();
+            (now - lastUpdate > CostControl.getRequestBalanceMaxDelay())) {
+
+          _setUpdatingMode(true); // This is purely cosmetic to show the user
+                                  // the updating starts as soon as he display
+                                  // the utility tray.
+          _requestUpdateBalance();
+        }
 
         break;
     }
+  }
+  
+  // Enable / disable warning mode for the UI
+  function _setWarningMode(warning) {
+    _onWarning = warning;
+    if (warning)
+      _widget.classList.add('warning');
+    else
+      _widget.classList.remove('warning');
   }
 
   // Enable / disable waiting mode for the UI
   function _setUpdatingMode(updating) {
     _isUpdating = updating;
-
     if (updating) {
       _widget.classList.add('updating');
       _widgetTime.textContent = _('updating...');
@@ -144,37 +157,23 @@ function setupWidget() {
   }
 
   // Request a balance update from the service
-  function _updateBalance() {
+  function _requestUpdateBalance() {
     if (_isUpdating)
       return;
 
     CostControl.requestBalance();
   }
 
-  // Open the cost control & data usage application
-  function _openApp() {
-    var activity = new MozActivity({ name: 'costcontrol/open' });
-  }
-
   // Updates the UI with the new balance and return both balance and timestamp
-  function _updateUI(balance, timestamp, currency) {
-    if (!arguments.length) {
-      var lastBalance = CostControl.getLastBalance();
-      balance = lastBalance ? lastBalance.balance : null;
-      timestamp = lastBalance ? lastBalance.timestamp : null;
-      currency = lastBalance ? lastBalance.currency : null;
-    }
-    timestamp = timestamp || new Date();
-    currency = currency || '';
+  function _updateUIBalance(balanceObject) {
+    balanceObject = balanceObject || CostControl.getLastBalance();
 
+    // Warning mode if no service or roaming
     var status = CostControl.getServiceStatus();
-    if (!status.availability || status.roaming)
-      _widget.classList.add('error');
-    else
-      _widget.classList.remove('error');
+    _setWarningMode(!status.availability || status.roaming);
 
-    // Format and set
-    // Check for low credit
+    // Low credit state
+    var balance = balanceObject ? balanceObject.balance : null;
     if (balance < CostControl.getLowLimitThreshold())
       _widget.classList.add('low-credit');
     else
@@ -190,15 +189,18 @@ function setupWidget() {
     } else {
       formattedBalance = '--';
     }
-    _widgetCurrency.textContent = currency;
+    _widgetCurrency.textContent = balanceObject.currency || '';
     _widgetCredit.textContent = formattedBalance;
 
     // Format time
+    var timestamp = balanceObject ? balanceObject.timestamp : new Date();
     var now = new Date();
+
     var time = timestamp.toLocaleFormat('%H:%M');
     var date = timestamp.toLocaleFormat('%a');
     var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
     var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
+
     if (nowDateDay === dateDay)
       date = _('today');
     else if ((nowDateDay === dateDay + 1) ||
