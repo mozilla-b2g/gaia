@@ -348,7 +348,7 @@ var ThreadListUI = {
       WaitingScreen.show();
       this.delNumList = [];
       this.pendingDelList = [];
-      var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
+      var inputs = ThreadListUI.selectedInputList;
       for (var i = 0; i < inputs.length; i++) {
         var filter = MessageManager.createFilter(inputs[i].value);
         MessageManager.getMessages(function gotMessages(messages) {
@@ -819,7 +819,7 @@ var ThreadUI = {
       this.delNumList = [];
       this.pendingDelList = [];
       var tempTSList = [];
-      var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
+      var inputs = ThreadUI.selectedInputList;
       for (var i = 0; i < inputs.length; i++) {
         var inputValue = inputs[i].value;
         if (inputValue.indexOf('ts_') != -1) {
