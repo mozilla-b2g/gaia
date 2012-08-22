@@ -544,22 +544,21 @@ var Recents = {
 
       self.updateContactDetails();
 
-      var theEvent = new Object();
+      var event = new Object();
       self._allViewGroupingPending = true;
       self._missedViewGroupingPending = true;
       if (self.missedFilter.classList.contains('selected')) {
         self.missedFilter.classList.remove('selected');
-        var theEvent = new Object();
-        theEvent.target = self.missedFilter;
-        self.filter(theEvent);
+        event.target = self.missedFilter;
+        self.filter(event);
         self.missedFilter.classList.add('selected');
         self.allFilter.classList.remove('selected');
       } else {
         self.allFilter.classList.remove('selected');
-        theEvent.target = self.allFilter;
+        event.target = self.allFilter;
         self.filter(theEvent);
-        self.allFilter.classList.add('selected');
         self.missedFilter.classList.remove('selected');
+        self.allFilter.classList.add('selected');
       }
 
     });
