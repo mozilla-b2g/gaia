@@ -408,7 +408,9 @@ var Contacts = (function() {
     listContainer.innerHTML = '';
 
     var phonesTemplate = document.getElementById('phone-details-template-#i#');
-    for (var tel in contact.tel) {
+    var telLength = getLength(contact.tel.length)
+
+    for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
       var telField = {
         value: currentTel.value || '',
@@ -421,7 +423,8 @@ var Contacts = (function() {
     }
 
     var emailsTemplate = document.getElementById('email-details-template-#i#');
-    for (var email in contact.email) {
+    var emailLength = getLength(contact.email);
+    for (var email = 0; email < emailLength; email++) {
       var currentEmail = contact.email[email];
       var emailField = {
         value: currentEmail['value'] || '',
@@ -474,7 +477,7 @@ var Contacts = (function() {
       title.textContent = _('comments');
       container.appendChild(title);
       var notesTemplate = document.getElementById('note-details-template-#i#');
-      for (var i in contact.note) {
+      for (var i = 0; i < contact.note.length; i++) {
         var currentNote = contact.note[i];
         var noteField = {
           note: currentNote || '',
@@ -504,6 +507,13 @@ var Contacts = (function() {
     }
   };
 
+  var getLength = function getLength(prop) {
+    if(!prop || !prop.length) {
+      return 0;
+    }
+    return prop.length;
+  }
+
   var showEdit = function showEdit() {
     resetForm();
     deleteContactButton.classList.remove('hide');
@@ -516,7 +526,8 @@ var Contacts = (function() {
       updatePhoto(currentContact.photo[0], thumb);
     }
     var default_type = TAG_OPTIONS['phone-type'][0].value;
-    for (var tel in currentContact.tel) {
+    var telLength = getLength(currentContact.tel);
+    for (var tel = 0; tel < telLength; tel++) {
       var currentTel = currentContact.tel[tel];
       var telField = {
         value: currentTel.value,
@@ -531,7 +542,8 @@ var Contacts = (function() {
       numberPhones++;
     }
 
-    for (var email in currentContact.email) {
+    var emailLength = getLength(currentContact.email);
+    for (var email = 0; email < emailLength; emaill++) {
       var currentEmail = currentContact.email[email];
       var default_type = TAG_OPTIONS['email-type'][0].value;
       var emailField = {
@@ -569,12 +581,12 @@ var Contacts = (function() {
         numberAddresses++;
       }
     }
-
-    for (var index in currentContact.note) {
-      var currentNote = currentContact.note[index];
+    var noteLength = getLength(currentContact.note);
+    for (var i = 0; i < noteLength; i++) {
+      var currentNote = currentContact.note[i];
       var noteField = {
         note: currentNote || '',
-        i: index
+        i: i
       };
       var template = utils.templates.render(noteTemplate, noteField);
       template.appendChild(removeFieldIcon(template.id));
@@ -896,7 +908,6 @@ var Contacts = (function() {
       contact = new mozContact();
       contact.init(myContact);
     }
-
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
       // Reloading contact, as it only allows to be updated once
