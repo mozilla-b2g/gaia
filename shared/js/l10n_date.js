@@ -3,6 +3,21 @@
 
 'use strict';
 
+/**
+ * This lib relies on `l10n.js' to implement localizable date/time strings.
+ *
+ * The proposed `DateTimeFormat' object should provide all the features that are
+ * planned for the `Intl.DateTimeFormat' constructor, but the API does not match
+ * exactly the ES-i18n draft.
+ *   - https://bugzilla.mozilla.org/show_bug.cgi?id=769872
+ *   - http://wiki.ecmascript.org/doku.php?id=globalization:specification_drafts
+ *
+ * Besides, this `DateTimeFormat' object provides two features that aren't
+ * planned in the ES-i18n spec:
+ *   - a `toLocaleFormat()' that really works (i.e. fully translated);
+ *   - a `fromNow()' method to handle relative dates ("pretty dates").
+ */
+
 navigator.mozL10n.DateTimeFormat = function(locales, options) {
   var _ = navigator.mozL10n.get;
 
