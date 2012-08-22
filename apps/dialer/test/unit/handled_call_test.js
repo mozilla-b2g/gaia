@@ -4,7 +4,7 @@ requireApp('dialer/shared/js/l10n.js');
 requireApp('dialer/test/unit/mock_call.js');
 requireApp('dialer/test/unit/mock_contacts.js');
 requireApp('dialer/test/unit/mock_call_screen.js');
-requireApp('dialer/test/unit/mock_recents.js');
+requireApp('dialer/test/unit/mock_recents_db_manager.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -32,7 +32,7 @@ suite('dialer/handled_call', function() {
     window.Contacts = MockContacts;
 
     realRecents = window.RecentsDBManager;
-    window.RecentsDBManager = MockRecents;
+    window.RecentsDBManager = MockRecentsDBManager;
 
     realCallScreen = window.CallScreen;
     window.CallScreen = MockCallScreen;
@@ -71,7 +71,7 @@ suite('dialer/handled_call', function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
 
-    MockRecents.mTearDown();
+    MockRecentsDBManager.mTearDown();
     MockContacts.mTearDown();
     MockCallScreen.mTearDown();
   });
@@ -149,9 +149,9 @@ suite('dialer/handled_call', function() {
     });
 
     test('save recents entry', function() {
-      assert.isTrue(MockRecents.mCalledInit);
-      assert.equal(MockRecents.mCalledAdd, subject.recentsEntry);
-      assert.isTrue(MockRecents.mCalledClose);
+      assert.isTrue(MockRecentsDBManager.mCalledInit);
+      assert.equal(MockRecentsDBManager.mCalledAdd, subject.recentsEntry);
+      assert.isTrue(MockRecentsDBManager.mCalledClose);
     });
 
     test('remove listener', function() {

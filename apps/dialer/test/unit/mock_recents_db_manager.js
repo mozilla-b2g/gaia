@@ -1,4 +1,4 @@
-var MockRecents = {
+var MockRecentsDBManager = {
   _add: function(entry, cb) {
     this.mCalledAdd = entry;
     cb.call(this);
