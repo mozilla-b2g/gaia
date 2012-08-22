@@ -569,30 +569,26 @@ var Recents = {
       callLogItems = document.querySelectorAll(itemSelector),
       length = callLogItems.length,
       phoneNumber;
-    this._updateCounter = 0;
     for (var i = 0; i < length; i++) {
       phoneNumber = callLogItems[i].dataset.num.trim();
       var cachedContact = this._cachedContacts[phoneNumber];
       if (cachedContact) {
-        this.contactCallBack(callLogItems[i], length, phoneNumber,
-          cachedContact);
+        this.contactCallBack(callLogItems[i], cachedContact);
       } else {
         Contacts.findByNumber(
           phoneNumber,
-          this.contactCallBack.bind(this, callLogItems[i],
-            length, phoneNumber));
+          this.contactCallBack.bind(this, callLogItems[i]));
       }
     }
   },
 
-  contactCallBack: function re_contactCallBack(logItem, max, number, contact) {
-    var primaryInfo = logItem.querySelector('.primary-info'),
-      contactPhoto = logItem.querySelector('.call-log-contact-photo');
+  contactCallBack: function re_contactCallBack(logItem, contact) {
+    var contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact) {
-
-      primaryInfo.textContent = (contact.name && contact.name != '') ?
-                                                    contact.name : _('unknown');
-
+      var primaryInfo = logItem.querySelector('.primary-info'),
+        count = logItem.dataset.count;
+      primaryInfo.textContent = ((contact.name && contact.name != '') ?
+        contact.name : _('unknown')) + ((count > 1) ? ' (' + count + ')' : '');
       if (contact.photo) {
         contactPhoto.classList.add('knownContact');
         contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
@@ -613,10 +609,6 @@ var Recents = {
       this._cachedContacts[phoneNumber] = contact;
     } else {
       contactPhoto.classList.add('unknownContact');
-    }
-    this._updateCounter++;
-    if (this._updateCounter == max) {
-      this.groupCallsInCallLog();
     }
   },
 
