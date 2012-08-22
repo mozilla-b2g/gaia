@@ -11,8 +11,8 @@ requireApp('dialer/test/unit/mock_recents.js');
 if (!this.Contacts) {
   this.Contacts = null;
 }
-if (!this.Recents) {
-  this.Recents = null;
+if (!this.RecentsDBManager) {
+  this.RecentsDBManager = null;
 }
 if (!this.CallScreen) {
   this.CallScreen = null;
@@ -31,8 +31,8 @@ suite('dialer/handled_call', function() {
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
 
-    realRecents = window.Recents;
-    window.Recents = MockRecents;
+    realRecents = window.RecentsDBManager;
+    window.RecentsDBManager = MockRecents;
 
     realCallScreen = window.CallScreen;
     window.CallScreen = MockCallScreen;
@@ -40,7 +40,7 @@ suite('dialer/handled_call', function() {
 
   suiteTeardown(function() {
     window.Contacts = realContacts;
-    window.Recents = realRecents;
+    window.RecentsDBManager = realRecents;
     window.CallScreen = realCallScreen;
   });
 
@@ -149,7 +149,9 @@ suite('dialer/handled_call', function() {
     });
 
     test('save recents entry', function() {
-      assert.equal(MockRecents.mCalledWith, subject.recentsEntry);
+      assert.isTrue(MockRecents.mCalledInit);
+      assert.equal(MockRecents.mCalledAdd, subject.recentsEntry);
+      assert.isTrue(MockRecents.mCalledClose);
     });
 
     test('remove listener', function() {
