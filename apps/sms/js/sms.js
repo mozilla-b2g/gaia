@@ -343,7 +343,62 @@ var ThreadListUI = {
   },
 
   executeDeletion: function thlui_executeDeletion() {
-
+    var response = window.confirm(_('deleteThreads-confirmation'));
+    if (response) {
+      WaitingScreen.show();
+      this.delNumList = [];
+      this.pendingDelList = [];
+      var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
+      alert("Borrando " + inputs.length + " conversations");
+      for (var i = 0; i < inputs.length; i++) {
+        var filter = MessageManager.createFilter(inputs[i].value);
+        MessageManager.getMessages(function gotMessages(messages) {
+          for (var j = 0; j < messages.length; j++) {
+            if (messages[j].delivery == 'sent' ||
+                messages[j].delivery == 'received') {
+              ThreadListUI.delNumList.push(parseFloat(messages[j].id));
+            } else {
+              ThreadListUI.pendingDelList.push(messages[j]);
+            }
+          }
+        }, filter);
+        alert("Numero " + inputs[i].value);
+        alert(ThreadListUI.delNumList.length + " msgs reales");
+        alert(ThreadListUI.pendingDelList.length + " msgs pending");
+      }
+      alert("Total de " + ThreadListUI.delNumList.length + ThreadListUI.pendingDelList.length + " mensajes");
+      // Now we have all the messages from the conversations on the lists
+      alert("Borrando reales");
+      MessageManager.deleteMessages(ThreadListUI.delNumList, function repaint() {
+        //TODO Change this functionality with Steve code
+        //TODO Steve will add delete pending in deleteMessages!
+        if (ThreadListUI.pendingDelList.length > 0) {
+          alert("Borrando pending");
+          for (var i = 0; i < ThreadListUI.pendingDelList.length; i++) {
+            if (i == ThreadListUI.pendingDelList.length - 1) {
+              PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i],
+                function() {
+                MessageManager.getMessages(function recoverMessages(messages) {
+                  ThreadListUI.renderThreads(messages);
+                  WaitingScreen.hide();
+                  window.location.hash = '#thread-list';
+                });
+              });
+            } else {
+              PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i]);
+            }
+          }
+        } else {
+          MessageManager.getMessages(function recoverMessages(messages) {
+            ThreadListUI.renderThreads(messages);
+            WaitingScreen.hide();
+            window.location.hash = '#thread-list';
+          });
+        }
+      });
+    } else {
+      window.location.hash = '#thread-list';
+    }
   },
 
   renderThreads: function thlui_renderThreads(messages, callback) {
@@ -763,13 +818,13 @@ var ThreadUI = {
   },
 
   executeDeletion: function thui_executeDeletion() {
-    this.delNumList = [];
-    this.pendingDelList = [];
-    var tempTSList = [];
-    var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     var response = window.confirm(_('deleteMessages-confirmation'));
     if (response) {
       WaitingScreen.show();
+      this.delNumList = [];
+      this.pendingDelList = [];
+      var tempTSList = [];
+      var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
       alert("Borrando " + inputs.length + " mensajes");
       for (var i = 0; i < inputs.length; i++) {
         var inputValue = inputs[i].value;
