@@ -39,7 +39,7 @@ Icon.prototype = {
     var container = this.container = document.createElement('li');
     container.className = 'icon';
     if (this.descriptor.isHidden) {
-      container.dataset.hidden = true;
+      container.dataset.visible = false;
     }
 
     container.dataset.origin = this.descriptor.origin;
@@ -86,8 +86,11 @@ Icon.prototype = {
 
   show: function icon_show() {
     var container = this.container;
-    delete container.dataset.hidden;
     container.dataset.visible = true;
+    container.addEventListener('animationend', function animationEnd(e) {
+      container.removeEventListener('animationend', animationEnd);
+      delete container.dataset.visible;
+    });
   },
 
   /*

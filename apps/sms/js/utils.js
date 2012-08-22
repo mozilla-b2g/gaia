@@ -18,7 +18,6 @@ var Utils = {
         if (tmpHeaderDate != currentHeader) {
           elementsToUpdate[i].innerHTML = tmpHeaderDate;
         }
-        console.log('Updating headers');
       }
     } else {
       clearInterval(Utils.updateTimer);
@@ -38,7 +37,7 @@ var Utils = {
     var stringHTML = str;
     stringHTML = stringHTML.replace(/\</g, '&#60;');
     stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
-    stringHTML = stringHTML.replace(/\s/g, '&nbsp;');
+    stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
 
     if (escapeQuotes)
       return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');

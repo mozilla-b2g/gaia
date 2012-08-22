@@ -38,7 +38,7 @@ HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
 
-REPORTER=Spec
+REPORTER?=Spec
 
 GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 
@@ -51,8 +51,6 @@ ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
 endif
 
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
-
-GAIA_APP_RELATIVEPATH=$(foreach dir, $(GAIA_APP_SRCDIRS), $(wildcard $(dir)/*))
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -260,15 +258,15 @@ else
 endif
 
 define run-js-command
-	echo "run-js-command $1";                                                  \
+	echo "run-js-command $1";                                                   \
 	JS_CONSTS='                                                                 \
 	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
-	const GAIA_APP_RELATIVEPATH = "$(GAIA_APP_RELATIVEPATH)";                   \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
+	const GAIA_ENGINE = "xpcshell";                                             \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -332,7 +330,7 @@ TEST_PATH=gaia/tests/${TEST_FILE}
 TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
 .PHONY: test-integration
 test-integration:
-	test_apps/test-agent/common/test/bin/test $(TESTS)
+	@test_apps/test-agent/common/test/bin/test $(TESTS)
 
 .PHONY: tests
 tests: webapp-manifests offline

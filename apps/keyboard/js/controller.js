@@ -995,6 +995,15 @@ const IMEController = (function() {
 
           // A flag to prevent continous replacement of space with "."
           _isContinousSpacePressed = true;
+
+          // Then set the keyboard uppercase for the next char
+          if (_currentInputType == 'text') {
+            _isUpperCase = true;
+            _draw(
+              _baseLayoutName, _currentInputType,
+              _currentLayoutMode, _isUpperCase
+            );
+          }
           break;
         }
 
@@ -1009,6 +1018,17 @@ const IMEController = (function() {
 
         // After all: treat as a normal key
         _sendNormalKey(keyCode);
+
+        if (_currentWordComposer.lastKeyCode == 46) {
+          // Then set the keyboard uppercase for the next char
+          if (_currentInputType == 'text') {
+            _isUpperCase = true;
+            _draw(
+              _baseLayoutName, _currentInputType,
+              _currentLayoutMode, _isUpperCase
+            );
+          }
+        }
         break;
 
       // Normal key
@@ -1054,6 +1074,9 @@ const IMEController = (function() {
   function _reset() {
     _currentLayoutMode = LAYOUT_MODE_DEFAULT;
     _isUpperCase = false;
+    if (_currentInputType == 'text') {
+      _isUpperCase = true;
+    }
     _currentWordComposer.reset();
   }
 
@@ -1087,6 +1110,10 @@ const IMEController = (function() {
     _dimensionsObserver.observe(IMERender.ime, _dimensionsObserverConfig);
 
     _currentWordComposer = new WordComposer();
+
+    if (_currentInputType == 'text') {
+      _isUpperCase = true;
+    }
   }
 
   // Finalizes the keyboard (exposed, controlled by IMEManager)

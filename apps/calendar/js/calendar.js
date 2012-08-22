@@ -29,6 +29,19 @@
     },
 
     /**
+     * Base compare function.
+     */
+    compare: function(a, b) {
+      if (a > b) {
+        return 1;
+      } else if (a < b) {
+        return -1;
+      }
+
+      return 0;
+    },
+
+    /**
      * Binary search utilities taken /w permission
      * from :asuth
      */
