@@ -67,8 +67,8 @@ function setupApp() {
   // On top up success, notificate and request update balance
   function _onTopUpSuccess(evt) {
     var notification = navigator.mozNotification.createNotification(
-      'Cost Control',
-      'Top Up completed. Updating balance.',
+      _('Cost Control'),
+      _('Top Up completed. Updating balance.'),
       '/icons/Clock.png'
     );
     notification.show();
@@ -146,16 +146,16 @@ function setupApp() {
     });
   }
 
-  var _inputTopUpCode, _buttonTopUp, _topUpArea, _closeButton;
+  // Configure the top up screen, the close button and the send button
   function _configureTopUpScreen() {
-    _topUpArea = document.getElementById('topup');
-    _inputTopUpCode = document.getElementById('topup-code-input');
-    _closeButton = document.getElementById('topup-close-button');
-    _closeButton.addEventListener('click', function() {
+    var closeButton = document.getElementById('topup-close-button');
+    closeButton.addEventListener('click', function() {
       ViewManager.closeCurrentView();
     });
-    _buttonTopUp = document.getElementById('buttonTopUp');
-    _buttonTopUp.addEventListener('click', function ccapp_onTopUp() {
+
+    var inputTopUpCode = document.getElementById('topup-code-input');
+    var buttonTopUp = document.getElementById('topup-send-button');
+    buttonTopUp.addEventListener('click', function ccapp_onSend() {
 
       // Get and clean the code
       var code = _inputTopUpCode.value

@@ -8,8 +8,8 @@ window.addEventListener('message', function ccwidget_onApplicationReady(evt) {
   // Retrieve CostControl service once application is ready
   if (evt.data.type === 'applicationready') {
     CostControl = getService(function ccwidget_onServiceReady(evt) {
-      // If the service is not ready, when ready it re-set the CostControl object
-      // and setup the widget.
+      // If the service is not ready, when ready it re-set the CostControl
+      // object and setup the widget.
       CostControl = evt.detail.service;
       setupWidget();
     });

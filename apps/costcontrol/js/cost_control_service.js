@@ -4,8 +4,8 @@
 'use strict';
 
 //  The CostControl service is in charge of keep the credit up to date with
-//  periodic request to the credit service and to answers requests from different
-//  points of the Cost Control application.
+//  periodic request to the credit service and to answers requests from
+//  different points of the Cost Control application.
 //
 //  See service_utils.js for information about setService.
 setService(function cc_setupCostControlService() {
@@ -353,7 +353,10 @@ setService(function cc_setupCostControlService() {
       _dispatchEvent(_getEventName(STATE_TOPPING_UP, 'success'));
 
     else
-      _dispatchEvent(_getEventName(STATE_TOPPING_UP, 'error'), { reason: 'incorrect-code'});
+      _dispatchEvent(
+        _getEventName(STATE_TOPPING_UP, 'error'),
+        { reason: 'incorrect-code'}
+      );
   }
 
   // Start waiting for SMS
