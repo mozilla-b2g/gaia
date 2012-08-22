@@ -126,12 +126,25 @@ section.content .overview time {
   font-weight: normal;
 }
 
-section.content .error-messages {
-  display: auto !important;
-  color: red;
-  font-size: 1.2rem;
-  height: 5rem;
+
+/* Error messages */
+section.content .error-messages[aria-hidden="true"] {
+  -moz-transform: translateY(-10rem);
+  display: block!important;
+  height: 0;
+  padding: 0;
 }
+
+section.content .error-messages {
+  color: #b20000;
+  font-size: 1.4rem;
+  line-height: 1.4em;
+  padding: 0 0.8rem 0.5rem;
+  overflow: hidden;
+  border-bottom: solid 1px #b20000;
+  -moz-transition: all 0.2s ease;
+}
+
 
 /* Updating animation */
 #cost-control-info-area {
