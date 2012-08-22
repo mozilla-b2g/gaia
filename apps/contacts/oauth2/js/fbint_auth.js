@@ -27,7 +27,6 @@ if (typeof window.owdFbAuth === 'undefined') {
       var ACC_T = 'access_token';
 
       // Oauth dialog URI
-      // var oauthDialogUri = 'https://m.facebook.com/dialog/oauth?';
       var oauthDialogUri = 'https://m.facebook.com/dialog/oauth/?';
 
     /**

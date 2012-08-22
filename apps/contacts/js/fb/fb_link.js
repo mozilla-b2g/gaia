@@ -83,8 +83,6 @@ if (!fb.link) {
 
       var out = SEARCH_QUERY.join('');
 
-      window.console.log('OWDError: Query', out);
-
       return out;
     }
 
@@ -121,8 +119,6 @@ if (!fb.link) {
 
       var out = SEARCH_QUERY.join('');
 
-      window.console.log('OWDError: Query2', out);
-
       return out;
     }
 
@@ -136,10 +132,8 @@ if (!fb.link) {
       var req = fb.utils.getContactData(cid);
 
       req.onsuccess = function() {
-        window.console.log('OWDError: onsuccess called');
         if (req.result) {
           cdata = req.result;
-          window.console.log('OWDError: Contact data', cdata.id);
           numQueries = 1;
           currentRecommendation = null;
           doGetRemoteProposal(access_token, cdata, buildQuery(cdata));
@@ -154,8 +148,6 @@ if (!fb.link) {
     }
 
     function getRemoteProposalByNames(access_token, contact) {
-      window.console.log('OWDError: Get Remote proposal by names');
-
       numQueries++;
       doGetRemoteProposal(access_token, cdata, buildQueryNames(contact));
     }
@@ -209,7 +201,6 @@ if (!fb.link) {
     link.getProposal = function(cid) {
       contactid = cid;
 
-      window.console.log('OWDError: Get Proposal called!!');
       fb.oauth.getAccessToken(tokenReady, 'proposal');
     }
 

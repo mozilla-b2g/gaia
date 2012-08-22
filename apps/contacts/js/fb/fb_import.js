@@ -155,18 +155,20 @@ if (typeof fb.importt === 'undefined') {
       fb.utils.runQuery(multiQStr, 'fb.importt.friendsReady', access_token);
 
       // In the meantime we obtain the FB friends already on the Address Book
-      if (navigator.mozContacts) {
-        var filter = { filterValue: fb.CATEGORY, filterOp: 'contains',
-                          filterBy: ['category']};
-
-        var req = navigator.mozContacts.find(filter);
-
-        req.onsuccess = contactsReady;
-
-        req.onerror = function(e) {
-          window.console.error('Error while retrieving FB Contacts' ,
-                                    e.target.error.name); }
+      if (!navigator.mozContacts) {
+        return;
       }
+
+      var filter = { filterValue: fb.CATEGORY, filterOp: 'contains',
+                        filterBy: ['category']};
+
+      var req = navigator.mozContacts.find(filter);
+
+      req.onsuccess = contactsReady;
+
+      req.onerror = function(e) {
+        window.console.error('Error while retrieving FB Contacts' ,
+                                  e.target.error.name); }
     }
 
     owdFbInt.importFriend = function(uid, access_token) {
@@ -624,43 +626,41 @@ if (typeof fb.importt === 'undefined') {
             birthDate = getBirthDate(cfdata.birthday_date);
           }
 
-          if (navigator.mozContacts) {
-            var fbInfo = {
-                            marriedTo: marriedTo,
-                            studiedAt: studiedAt,
-                            bday: birthDate,
-                            org: [worksAt],
-                            photo: [photo]
-            };
+          var fbInfo = {
+                          marriedTo: marriedTo,
+                          studiedAt: studiedAt,
+                          bday: birthDate,
+                          org: [worksAt],
+                          photo: [photo]
+          };
 
-            cfdata.fbInfo = fbInfo;
+          cfdata.fbInfo = fbInfo;
 
-            var fbContact = new fb.Contact();
-            fbContact.setData(cfdata);
-            var request = fbContact.save();
+          var fbContact = new fb.Contact();
+          fbContact.setData(cfdata);
+          var request = fbContact.save();
 
-            request.onsuccess = function() {
-              numResponses++;
+          request.onsuccess = function() {
+            numResponses++;
 
-              if (numResponses === totalContacts) {
-                if (typeof doneCB === 'function') {
-                  doneCB();
-                }
+            if (numResponses === totalContacts) {
+              if (typeof doneCB === 'function') {
+                doneCB();
               }
-            }; /// onsuccess
+            }
+          }; /// onsuccess
 
-            request.onerror = function() {
-              numResponses++;
-              window.console.error('FB: Contact Add error: ', request.error,
-                                                              cfdata.uid);
+          request.onerror = function() {
+            numResponses++;
+            window.console.error('FB: Contact Add error: ', request.error,
+                                                            cfdata.uid);
 
-              if (numResponses === totalContacts) {
-                if (typeof doneCB === 'function') {
-                  doneCB();
-                }
+            if (numResponses === totalContacts) {
+              if (typeof doneCB === 'function') {
+                doneCB();
               }
-            };
-          }
+            }
+          };
         });  // getContactPhoto
       }); //forEach
     } // persistContactGroup

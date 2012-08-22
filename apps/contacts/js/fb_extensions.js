@@ -19,15 +19,10 @@ if (typeof Contacts.extFb === 'undefined') {
     }
 
     function doLink(uid) {
-      window.console.log('OWDError: ', 'doLink');
-
       // We need to obtain the mozContact id for the UID
       var mozContReq = fb.utils.getMozContact(uid);
 
-      window.console.log('OWDError: ', 'doLink2');
-
       mozContReq.onsuccess = function() {
-        window.console.log('OWDError: ', 'Success');
         // contactid is the device contact about to be linked
         var fbContact = new fb.Contact(null, contactid);
 
@@ -64,10 +59,7 @@ if (typeof Contacts.extFb === 'undefined') {
       var freq = fbContact.unlink();
 
       freq.onsuccess = function() {
-        window.console.log('Unlinked!!! successfully');
-
         contacts.List.refresh(cid);
-        window.console.log('OWDError: Contact Restored: ', freq.result);
         contacts.List.refresh(freq.result);
         Contacts.navigation.home();
       }

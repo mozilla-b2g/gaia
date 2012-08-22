@@ -403,8 +403,8 @@ var Contacts = (function() {
       }
     }
     else {
-          editContactButton.removeAttribute('disabled');
-          doReloadContactDetails(contact);
+            editContactButton.removeAttribute('disabled');
+            doReloadContactDetails(contact);
     }
   }
 

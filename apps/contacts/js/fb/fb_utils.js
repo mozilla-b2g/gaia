@@ -67,7 +67,6 @@ if (!fb.utils) {
 
     var jsonp = document.createElement('script');
     jsonp.src = queryService + '&' + queryParams;
-    window.console.log('OWDError:', jsonp.src);
 
     document.body.appendChild(jsonp);
   };
