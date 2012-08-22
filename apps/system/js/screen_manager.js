@@ -67,7 +67,6 @@ var ScreenManager = {
     var power = navigator.mozPower;
 
     power.addWakeLockListener(function scm_handleWakeLock(topic, state) {
-        console.log(topic,state,'=====');
       switch (topic) {
         case 'screen':
           self._screenWakeLocked = (state == 'locked-foreground');
