@@ -153,7 +153,6 @@ var RecentsDBManager = {
         cursor.continue();
       }
       else {
-        alert(recents.length);
         if (callback && callback instanceof Function) {
           callback(recents);
         }
