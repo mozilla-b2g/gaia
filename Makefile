@@ -198,6 +198,21 @@ ifneq ($(DEBUG),1)
 						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
 					fi \
 				done; \
+				for f in `grep -r shared/locales $$d` ;\
+				do \
+					if [[ "$$f" == *shared/locales* ]] ;\
+					then \
+						if [[ "$$f" == */shared/locales* ]] ;\
+						then \
+							locale_name=`echo "$$f" | cut -d'/' -f 4 | cut -d'.' -f1`; \
+						else \
+							locale_name=`echo "$$f" | cut -d'/' -f 3 | cut -d'.' -f1`; \
+						fi; \
+						mkdir -p $$d/shared/locales/$$locale_name ;\
+						cp shared/locales/$$locale_name.ini $$d/shared/locales/ ;\
+						cp shared/locales/$$locale_name/* $$d/shared/locales/$$locale_name ;\
+					fi \
+				done; \
 				cd $$d; \
 				zip -r application.zip *; \
 				cd $$cdir; \

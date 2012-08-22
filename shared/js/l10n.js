@@ -15,7 +15,7 @@
   var gReadyState = 'loading';
 
   // read-only setting -- we recommend to load l10n resources synchronously
-  var gAsyncResourceLoading = true;
+  var gAsyncResourceLoading = false;
 
   // debug helpers
   var gDEBUG = false;
@@ -874,7 +874,7 @@
   window.addEventListener('DOMContentLoaded', function l10nStartup() {
     gReadyState = 'interactive';
     consoleLog('loading [' + navigator.language + '] resources, ' +
-        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously'));
+        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
     loadLocale(navigator.language, translateFragment);
   });
 
@@ -910,11 +910,11 @@
           var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
           return (rtlList.indexOf(gLanguage) >= 0) ? 'rtl' : 'ltr';
         },
-
-        // translate an element or document fragment
-        translate: translateFragment
       };
     },
+
+    // translate an element or document fragment
+    translate: translateFragment,
 
     // this can be used to avoid race conditions
     get readyState() { return gReadyState; }
