@@ -54,6 +54,7 @@
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
+    <script defer src="js/mobile_info.js"></script>
     <script defer src="js/lockscreen.js"></script>
 
     <!-- Attention Screen -->
@@ -252,6 +253,13 @@
                   <input id="modal-dialog-password-input" type="password" />
                 </div>
               </div>
+              
+              <div id="modal-dialog-error">
+                <div class="modal-dialog-title" data-l10n-id="error-title">Hmm, the app is having problems.</div>
+                <div class="modal-dialog-message-container">
+                  <span data-l10n-id="error-message">The app has encountered an error and is not loading properly.</span>
+                </div>
+              </div>  
             </div>
           </div>
           <div id="modal-dialog-buttons">
@@ -260,6 +268,8 @@
             <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
             <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
             <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
+            <button id="modal-dialog-error-back" data-l10n-id="back">Back</button>
+            <button id="modal-dialog-error-reload" data-l10n-id="reload">Try Reloading</button>
           </div>
         </div>
       </div>
@@ -279,7 +289,7 @@
         <div id="lockscreen-container">
           <div id="lockscreen-panel-main" class="lockscreen-panel">
             <div id="lockscreen-header">
-              <div id="lockscreen-connstate" hidden></div>
+              <div id="lockscreen-connstate" hidden><span></span><span></span></div>
               <div id="lockscreen-mute" hidden></div>
               <div id="lockscreen-clock"></div>
               <div id="lockscreen-date"></div>

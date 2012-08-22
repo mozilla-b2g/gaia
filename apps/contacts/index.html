@@ -36,9 +36,12 @@
     <script defer type="text/javascript" src="js/sms_integration.js"></script>
     <script defer type="text/javascript" src="js/input_cancel_button.js"></script>
     <script defer type="text/javascript" src="js/fixed_header.js"></script>
+
+    <script defer type="text/javascript" src="js/value_selector.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/value_selector.css">
   </head>
 
-  <body class="hide app-contacts">
+  <body role="application" class="hide app-contacts">
 
     <div id="app" class="views" data-state="active">
       <!-- Contacts List Section -->
@@ -46,7 +49,7 @@
         <div class="view-inner">
 
           <header role="toolbar" class="view-header">
-            <menu role="menu">
+            <menu type="toolbar" role="menu">
               <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
               <button role="menuitem" id="add-contact-button" onclick="Contacts.showAdd();"><span data-icon="add" data-l10n-id="add">add</span></button>
             </menu>
@@ -90,7 +93,7 @@
 
           <header role="toolbar" id='details-view-header' class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
-            <menu role="menu">
+            <menu type="toolbar" role="menu">
               <button role="menuitem" id="edit-contact-button" onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
             </menu>
             <h1 id='contact-name-title'></h1>
@@ -111,7 +114,7 @@
                       <button class="action" onclick="Contacts.callOrPick('#value#')">
                         <span role="button" class="icon-call" data-l10n-id="call">Call</span>
                         <b>#value#</b>
-                        <em>#notes#</em>
+                        <em>#carrier#</em>
                       </button>
                     </div>
                   </div>
@@ -179,7 +182,7 @@
 
           <header role="toolbar" class="view-header">
             <button class="negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
-            <menu role="menu" id='contact-form-actions'>
+            <menu type="toolbar" role="menu" id='contact-form-actions'>
               <button id="save-button" onclick="Contacts.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
             </menu>
             <h1 id='contact-form-title'></h1>
@@ -198,8 +201,8 @@
                   <input data-cancelable placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel" class="textfield" type="tel" value="#value#" id="number_#i#">
                 </p>
                 <p class="setbox-item">
-                  <label class="hide" for="notes_#i#" data-l10n-id="labelNotes">Notes:</label>
-                  <input data-cancelable placeholder="Notes" data-field="notes" data-l10n-id="notes" name="notes" class="textfield" type="text" value="#notes#" id="notes_#i#">
+                  <label class="hide" for="carrier_#i#" data-l10n-id="labelCarrier">Carrier:</label>
+                  <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel" class="textfield" type="text" value="#carrier#" id="carrier_#i#">
                 </p>
               </dd>
             </dl>
@@ -353,7 +356,7 @@
 
           <header role="toolbar" class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
-            <menu role="menu" id="contact-form-actions">
+            <menu type="toolbar" role="menu" id="contact-form-actions">
               <button role="menuitem" onclick="Contacts.doneTag();" data-l10n-id="done">Done</button>
             </menu>
             <h1 data-l10n-id="label">Label</h1>

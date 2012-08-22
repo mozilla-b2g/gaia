@@ -152,16 +152,22 @@ suite('views/months_day', function() {
       return new Date(2012, 1, 2, hours, min);
     }
 
+    function groupAdd(group, idx) {
+      var item = list[idx];
+      groups[group][0].push(item);
+      groups[group][1].push(item[0].calendarId);
+    }
+
     setup(function() {
       list = [];
       groups = {
-        0: [],
-        5: [],
-        6: [],
-        7: [],
-        21: [],
-        22: [],
-        23: []
+        0: [[], []],
+        5: [[], []],
+        6: [[], []],
+        7: [[], []],
+        21: [[], []],
+        22: [[], []],
+        23: [[], []]
       };
 
       // starts on a different day
@@ -173,7 +179,7 @@ suite('views/months_day', function() {
         })
       ]);
 
-      groups[0].push(list[0]);
+      groupAdd(0, 0);
 
       // same day skip some hours
       // this should not render into
@@ -185,7 +191,7 @@ suite('views/months_day', function() {
         })
       ]);
 
-      groups[5].push(list[1]);
+      groupAdd(5, 1);
 
 
       // Also on fifth hour
@@ -198,7 +204,7 @@ suite('views/months_day', function() {
         })
       ]);
 
-      groups[5].push(list[2]);
+      groupAdd(5, 2);
 
 
       // multi hour
@@ -210,10 +216,9 @@ suite('views/months_day', function() {
         })
       ]);
 
-      groups[5].push(list[3]);
-      groups[6].push(list[3]);
-      groups[7].push(list[3]);
-
+      groupAdd(5, 3);
+      groupAdd(6, 3);
+      groupAdd(7, 3);
 
       // ends on a different day
       // but not an all day event.
@@ -226,17 +231,17 @@ suite('views/months_day', function() {
         })
       ]);
 
-      groups[21].push(list[4]);
-      groups[22].push(list[4]);
-      groups[23].push(list[4]);
+      groupAdd(21, 4);
+      groupAdd(22, 4);
+      groupAdd(23, 4);
     });
 
     var calledHours;
 
     setup(function() {
       calledHours = {};
-      subject._renderHour = function(hour, group) {
-        calledHours[hour] = group;
+      subject._renderHour = function(hour, group, ids) {
+        calledHours[hour] = [group, ids];
       };
     });
 
@@ -332,13 +337,16 @@ suite('views/months_day', function() {
     });
 
     test('output', function() {
-      subject._renderHour(5, group);
+      subject._renderHour(5, group, ['1', '2']);
       var children = subject.events.children;
       assert.equal(children.length, 1);
 
       var el = children[0];
       assert.ok(el.outerHTML);
       var html = el.outerHTML;
+
+      assert.include(html, 'calendar-id-1');
+      assert.include(html, 'calendar-id-2');
 
       assert.include(
         html,
