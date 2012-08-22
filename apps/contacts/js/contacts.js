@@ -336,7 +336,7 @@ var Contacts = (function() {
           return;
         }
 
-        var hasTel = currentContact.tel && currentContact.tel.length
+        var hasTel = currentContact.tel && currentContact.tel.length;
         var numOfPhoneNums = hasTel ? currentContact.tel.length : 0;
 
         switch (numOfPhoneNums) {
