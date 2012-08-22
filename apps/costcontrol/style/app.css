@@ -102,32 +102,7 @@ section.content {
   padding: 2.5rem 2rem;
 }
 
-/* OVERVIEW */
-section.content .overview {
-  font-size: 1.6rem;
-  line-height: 1em;
-  font-weight: 600;
-  border-bottom: solid 1px #e5e5e1;
-  margin-bottom: 1rem;
-  padding: 1.5rem 1rem 1.5rem;
-  overflow: hidden;
-  height: 2.8rem;
-}
-
-section.content .overview .start {
-  float: left;  
-}
-
-section.content .overview .end {
-  float: right;
-}
-
-section.content .overview time {
-  font-weight: normal;
-}
-
-
-/* Error messages */
+/* ERROR MESSAGES */
 section.content .error-messages[aria-hidden="true"] {
   -moz-transform: translateY(-10rem);
   display: block!important;
@@ -145,44 +120,34 @@ section.content .error-messages {
   -moz-transition: all 0.2s ease;
 }
 
-
-/* Updating animation */
-#cost-control-info-area {
+/* OVERVIEW */
+section.content .overview {
+  font-size: 1.6rem;
+  line-height: 1em;
+  font-weight: 600;
+  border-bottom: solid 1px #e5e5e1;
+  margin-bottom: 1rem;
+  padding: 1.5rem 1rem 1.5rem;
   overflow: hidden;
+  height: 2.8rem;
 }
 
-#cost-control-info-area > .start {
+section.content .overview .start {
+  float: left; 
   -moz-transform: translateX(-4.0rem);
   -moz-transition: -moz-transform 0.5s;
 }
 
-#balance-tab.updating #cost-control-info-area > .start,
-#balance-tab.warning #cost-control-info-area > .start {
-  -moz-transform: none;
+section.content .overview .end {
+  float: right;
 }
 
-#balance-tab.low-credit #cost-control-credit {
-  color: red;
+section.content .overview time {
+  font-weight: normal;
 }
 
-#balance-tab.updating #cost-control-icon {
-  background-image: url('./images/app/icons/reload.png') !important;
-  -moz-animation: cost-control-spin 1.75s infinite linear !important;
-  -moz-animation-delay: 0.5s !important;
-}
-
-/* No automatic updates allowed */
-#balance-tab.warning #cost-control-icon {
-  background-image: url('./images/app/icons/warning.png');
-  -moz-animation: none;
-}
-
-@-moz-keyframes cost-control-spin {
-  0% { -moz-transform:rotate(0deg); }
-  100% { -moz-transform:rotate(360deg); }
-}
-
-#cost-control-icon {
+/* ICONS CONTAINER */
+section.content .overview .icons {
   width: 2.1rem;
   height: 2.1rem;
   vertical-align: middle;
@@ -191,3 +156,43 @@ section.content .error-messages {
   padding: 0 0.4rem;
   display: inline-block;
 }
+
+/* ICONS*/
+section.content .overview .icons .spinner,
+section.content .overview .icons .warning {
+  display: none;
+}
+
+/* SPINNER */
+section.content .overview .icons .spinner{
+  margin: 0.2rem;
+}
+
+/* WARNING*/
+section.content .overview .icons .warning {
+  background: url('./images/app/icons/warning.png') no-repeat center center;
+  width: 100%;
+  height: 100%;
+}
+
+/* ALL STATES */
+#balance-tab.updating section.content .overview > .start,
+#balance-tab.warning section.content .overview > .start {
+  -moz-transform: none;
+}
+
+/* UPDATING STATE */
+#balance-tab.updating .overview .icons .spinner {
+  display: block;
+}
+
+/* WARNING STATE */
+#balance-tab.warning .overview .icons .warning{
+  display: block;
+}
+
+/* LOW CREDIT STATE */
+#balance-tab.low-credit #cost-control-credit {
+  color: #b20000;
+}
+
