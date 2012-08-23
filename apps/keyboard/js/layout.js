@@ -83,7 +83,6 @@ const Keyboards = {
     type: 'keyboard',
     label: 'English',
     menuLabel: 'English',
-    suggestionEngine: 'predictive_text',
     alt: {
       a: 'áàâäåãāæ',
       c: 'çćč',
