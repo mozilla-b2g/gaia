@@ -3,11 +3,11 @@
 /*
  * This is Music Application of Gaia
  */
-var isEmpty = false;
 
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
 var musicdb;
+var isEmpty = true;
 
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
@@ -60,11 +60,11 @@ function init() {
   // For now we have to call scan(), which will trigger this function.
   musicdb.onchange = function(type, files) {
     if (type === 'deleted') {
-      //TODO need to handle deleted songs
+      // TODO handle deleted files
+      showCurrentView();
     }
     else if (type === 'created') {
-      isEmpty = (files.length > 0) ? false : true;
-
+      // TODO handle new files
       showCurrentView();
     }
   };
@@ -108,23 +108,42 @@ var currentOverlay;  // The id of the current overlay or null if none.
 function showOverlay(id) {
   currentOverlay = id;
 
+  var title = navigator.mozL10n.get(id + '-title');
+  var text = navigator.mozL10n.get(id + '-text');
+
   if (id === null) {
     document.getElementById('overlay').classList.add('hidden');
     return;
   }
 
-  document.getElementById('overlay-title').textContent = navigator.mozL10n.get(id + '-title');
-  document.getElementById('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
+  document.getElementById('overlay-title').textContent = title;
+  document.getElementById('overlay-text').textContent = text;
   document.getElementById('overlay').classList.remove('hidden');
 }
 
 function showCurrentView() {
+  TilesView.clean();
   // Enumerate existing song entries in the database
   // List the all, and sort them in ascending order by artist.
   var option = 'artist';
 
   musicdb.enumerate('metadata.' + option, null, 'nextunique',
                     TilesView.update.bind(TilesView));
+
+  switch (TabBar.option) {
+    case 'playlist':
+      // TODO update the predefined playlists
+      break;
+    case 'artist':
+    case 'album':
+      changeMode(MODE_LIST);
+      ListView.clean();
+
+      musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
+                        ListView.update.bind(ListView, TabBar.option));
+      break;
+  }
+
 }
 
 // This Application has four modes, TILES, LIST, SUBLIST and PLAYER
@@ -239,6 +258,16 @@ var TilesView = {
     this.view.addEventListener('click', this);
   },
 
+  clean: function tv_clean() {
+    this.dataSource = [];
+    this.index = 0;
+    this.view.innerHTML = '';
+    this.view.scrollTop = 0;
+
+    isEmpty = true;
+    showOverlay('nosongs');
+  },
+
   setItemImage: function tv_setItemImage(item, image) {
     // Set source to image and crop it to be fitted when it's onloded
     if (!image)
@@ -255,6 +284,8 @@ var TilesView = {
     // If we were showing the 'no songs' overlay, hide it
     if (currentOverlay === 'nosongs')
       showOverlay(null);
+
+    isEmpty = false;
 
     this.dataSource.push(result);
 
@@ -878,6 +909,7 @@ var TabBar = {
   },
 
   init: function tab_init() {
+    this.option = '';
     this.view.addEventListener('click', this);
   },
 
@@ -885,7 +917,7 @@ var TabBar = {
     switch (evt.type) {
       case 'click':
         var target = evt.target;
-        var option = target.dataset.option;
+        this.option = target.dataset.option;
         if (!target)
           return;
 
@@ -904,15 +936,15 @@ var TabBar = {
               }
             };
 
-            ListView.update(option, data);
+            ListView.update(this.option, data);
             break;
           case 'tabs-artists':
           case 'tabs-albums':
             changeMode(MODE_LIST);
             ListView.clean();
 
-            musicdb.enumerate('metadata.' + option, null, 'nextunique',
-              ListView.update.bind(ListView, option));
+            musicdb.enumerate('metadata.' + this.option, null, 'nextunique',
+              ListView.update.bind(ListView, this.option));
 
             break;
           case 'tabs-more':
@@ -969,6 +1001,6 @@ window.addEventListener('localized', function showBody() {
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('invisible');
-  
+
   init();
 });

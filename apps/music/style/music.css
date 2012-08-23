@@ -646,15 +646,16 @@ body.player-mode #views {
 
 .player-controls-button {
   color: #FFFFFF;
-  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 0px;
+  background: rgba(0, 0, 0, 0.5);
 }
 .player-controls-button:hover {
   color: #000000;
-  background-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 .player-controls-button:active {
   color: #000000;
-  background-color: #F88E11;
+  background: #F88E11;
 }
 
 #tabs {
@@ -682,15 +683,16 @@ body.player-mode #views {
 .tabs-button {
   color: #FFFFFF;
   border-width: 0px;
-  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 0px;
+  background: rgba(0, 0, 0, 0.5);
 }
 .tabs-button:hover {
   color: #000000;
-  background-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15);
 }
 .tabs-button:active {
   color: #000000;
-  background-color: #F88E11;
+  background: #F88E11;
 }
 .tabs-button:disabled {
   
