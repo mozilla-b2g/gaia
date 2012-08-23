@@ -329,14 +329,41 @@ var Contacts = (function() {
       var request = navigator.mozContacts.find(options);
       request.onsuccess = function findCallback() {
         currentContact = request.result[0];
-        var onlyOneTel = currentContact.tel && currentContact.tel.length === 1;
-        if (ActivityHandler.currentlyHandling && onlyOneTel) {
-          var number = currentContact.tel[0].value;
-          ActivityHandler.postPickSuccess(number);
+
+        if (!ActivityHandler.currentlyHandling) {
+          reloadContactDetails();
+          navigation.go('view-contact-details', 'right-left');
           return;
         }
-        reloadContactDetails();
-        navigation.go('view-contact-details', 'right-left');
+
+        var hasTel = currentContact.tel && currentContact.tel.length;
+        var numOfPhoneNums = hasTel ? currentContact.tel.length : 0;
+
+        switch (numOfPhoneNums) {
+          case 0:
+            // If no phone number
+            alert('No phone number saved!');
+            // TODO: replace alert with given visual | #3643
+            break;
+          case 1:
+            // if One phone number
+            var number = currentContact.tel[0].value;
+            ActivityHandler.postPickSuccess(number);
+            break;
+          default:
+            // if more than one phone number
+            var prompt1 = new ValueSelector(_('select_mobile'));
+            var numbers = currentContact.tel;
+            for (var key in numbers) {
+              var number = numbers[key].value;
+              prompt1.addToList(number + '', function() {
+                  prompt1.hide();
+                  ActivityHandler.postPickSuccess(number);
+              });
+
+            }
+            prompt1.show();
+        }
       };
     });
   }
@@ -408,12 +435,13 @@ var Contacts = (function() {
     listContainer.innerHTML = '';
 
     var phonesTemplate = document.getElementById('phone-details-template-#i#');
-    for (var tel in contact.tel) {
+    var telLength = getLength(contact.tel);
+    for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
       var telField = {
         value: currentTel.value || '',
         type: currentTel.type || TAG_OPTIONS['phone-type'][0].value,
-        notes: '',
+        carrier: currentTel.carrier || '',
         i: tel
       };
       var template = utils.templates.render(phonesTemplate, telField);
@@ -421,7 +449,8 @@ var Contacts = (function() {
     }
 
     var emailsTemplate = document.getElementById('email-details-template-#i#');
-    for (var email in contact.email) {
+    var emailLength = getLength(contact.email);
+    for (var email = 0; email < emailLength; email++) {
       var currentEmail = contact.email[email];
       var emailField = {
         value: currentEmail['value'] || '',
@@ -474,7 +503,7 @@ var Contacts = (function() {
       title.textContent = _('comments');
       container.appendChild(title);
       var notesTemplate = document.getElementById('note-details-template-#i#');
-      for (var i in contact.note) {
+      for (var i = 0; i < contact.note.length; i++) {
         var currentNote = contact.note[i];
         var noteField = {
           note: currentNote || '',
@@ -504,6 +533,13 @@ var Contacts = (function() {
     }
   };
 
+  var getLength = function getLength(prop) {
+    if (!prop || !prop.length) {
+      return 0;
+    }
+    return prop.length;
+  }
+
   var showEdit = function showEdit() {
     resetForm();
     deleteContactButton.classList.remove('hide');
@@ -516,12 +552,13 @@ var Contacts = (function() {
       updatePhoto(currentContact.photo[0], thumb);
     }
     var default_type = TAG_OPTIONS['phone-type'][0].value;
-    for (var tel in currentContact.tel) {
+    var telLength = getLength(currentContact.tel);
+    for (var tel = 0; tel < telLength; tel++) {
       var currentTel = currentContact.tel[tel];
       var telField = {
-        value: currentTel.value,
+        value: currentTel.value || '',
         type: currentTel.type || default_type,
-        notes: '',
+        carrier: currentTel.carrier || '',
         i: tel
       };
 
@@ -531,7 +568,8 @@ var Contacts = (function() {
       numberPhones++;
     }
 
-    for (var email in currentContact.email) {
+    var emailLength = getLength(currentContact.email);
+    for (var email = 0; email < emailLength; email++) {
       var currentEmail = currentContact.email[email];
       var default_type = TAG_OPTIONS['email-type'][0].value;
       var emailField = {
@@ -569,12 +607,12 @@ var Contacts = (function() {
         numberAddresses++;
       }
     }
-
-    for (var index in currentContact.note) {
-      var currentNote = currentContact.note[index];
+    var noteLength = getLength(currentContact.note);
+    for (var i = 0; i < noteLength; i++) {
+      var currentNote = currentContact.note[i];
       var noteField = {
         note: currentNote || '',
-        i: index
+        i: i
       };
       var template = utils.templates.render(noteTemplate, noteField);
       template.appendChild(removeFieldIcon(template.id));
@@ -584,11 +622,22 @@ var Contacts = (function() {
 
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = _('deleteConfirmMsg');
-      Permissions.show('', msg, function onAccept() {
-        deleteContact(currentContact);
-      },function onCancel() {
-        Permissions.hide();
-      });
+      var yesObject = {
+        title: _('remove'),
+        callback: function onAccept() {
+          deleteContact(currentContact);
+          Permissions.hide();
+        }
+      };
+
+      var noObject = {
+        title: _('cancel'),
+        callback: function onCancel() {
+          Permissions.hide();
+        }
+      };
+
+      Permissions.show(null, msg, yesObject, noObject);
     };
 
     edit();
@@ -928,12 +977,13 @@ var Contacts = (function() {
 
       var selector = 'tel_type_' + arrayIndex;
       var typeField = document.getElementById(selector).textContent || '';
-      var notes = document.getElementById('notes_' + arrayIndex).value || '';
+      var carrierSelector = 'carrier_' + arrayIndex;
+      var carrierField = document.getElementById(carrierSelector).value || '';
       contact['tel'] = contact['tel'] || [];
-      // TODO: Save notes
       contact['tel'][i] = {
         value: numberValue,
-        type: typeField
+        type: typeField,
+        carrier: carrierField
       };
     }
   };
@@ -1015,7 +1065,7 @@ var Contacts = (function() {
     var telField = {
       value: phone || '',
       type: TAG_OPTIONS['phone-type'][0].value,
-      notes: '',
+      carrier: '',
       i: numberPhones || 0
     };
     var template = utils.templates.render(phoneTemplate, telField);

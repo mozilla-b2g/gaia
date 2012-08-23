@@ -11,6 +11,14 @@
   Settings.prototype = {
     __proto__: Object.create(Calendar.View.prototype),
 
+    /**
+     * Local update is a flag
+     * used to indicate that the incoming
+     * update was made by this view and
+     * should not fire the _update method.
+     */
+    _localUpdate: false,
+
     selectors: {
       element: '#settings',
       calendars: '#settings .calendars',
@@ -34,6 +42,31 @@
       store.on('remove', this._remove.bind(this));
 
       this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
+      this.calendars.addEventListener(
+        'change', this._onCalendarDisplayToggle.bind(this)
+      );
+    },
+
+    _onCalendarDisplayToggle: function(e) {
+      // Possible race conditions on save
+      // 1. get calendar
+      var input = e.target;
+      var store = Calendar.App.store('Calendar');
+      var model = store.cached[input.value];
+      var self = this;
+
+      model.localDisplayed = !!input.checked;
+      store.persist(model, function() {
+        // OK to avoid race conditions
+        // and unnecessary update calls we mark
+        // the view as _localUpdate and make our changes.
+        // we also add a once event for 'persist' to later
+        // turn this back off after all events have triggered.
+        self._localUpdate = true;
+        store.once('persist', function() {
+          self._localUpdate = false;
+        });
+      });
     },
 
     _onSyncClick: function() {
@@ -49,6 +82,9 @@
     },
 
     _update: function(id, model) {
+      if (this._localUpdate)
+        return;
+
       var htmlId = 'calendar-' + id;
       var el = document.getElementById(htmlId);
       var check = el.querySelector('input[type="checkbox"]');

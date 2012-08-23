@@ -179,6 +179,7 @@
 
       var hour = 0;
       var hours = 23;
+      var calendarIds = [];
       var group;
 
       // find matching items in the day
@@ -190,6 +191,7 @@
         var end = item[0].endDate;
 
         if (hourSpan.overlaps(start, end)) {
+          calendarIds.push(item[0].calendarId);
           group.push(item);
         } else if (end < hourStart) {
           records.splice(idx, 1);
@@ -199,6 +201,7 @@
       // iterate through all hours
       for (; hour <= hours; hour++) {
         group = [];
+        calendarIds = [];
         hourStart.setHours(hour);
         hourEnd.setHours(hour + 1);
 
@@ -217,7 +220,7 @@
         // even if there are no events on a given
         // hour.
         if (group.length) {
-          this._renderHour(hour, group);
+          this._renderHour(hour, group, calendarIds);
         }
       }
     },
@@ -226,15 +229,28 @@
      * Renders an hour. Note it is assumed
      * that this function is called in the correct
      * order and does not attempt to order content.
+     *
+     * @param {String} hour display hour.
+     * @param {Array} group list of events.
+     * @param {Array} ids calendar ids associated with this hour.
+     *                    duplicates allowed.
      */
-    _renderHour: function(hour, group) {
+    _renderHour: function(hour, group, ids) {
       var eventHtml = [];
+      var classFlags = '';
+
+      if (ids) {
+        ids.forEach(function(id) {
+          classFlags += ' calendar-id-' + id;
+        });
+      }
 
       group.forEach(function(item) {
         eventHtml.push(this._renderEvent(item[1]));
       }, this);
 
       var html = template.hour.render({
+        classes: classFlags,
         displayHour: this._formatHour(hour),
         hour: String(hour),
         items: eventHtml.join('')
@@ -271,6 +287,7 @@
       }
 
       return template.event.render({
+        calendarId: object.calendarId,
         title: remote.title,
         location: remote.location,
         attendees: attendees

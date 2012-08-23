@@ -151,7 +151,6 @@ html, body {
 }
 
 .edit .message-block {
-  padding: 1rem 0;
   border-top: .1rem solid #DBDBDB;
   margin-bottom: 0;
 }
@@ -414,6 +413,7 @@ a.unread .unread-mark .icon-unread-mark {
 
 .message-block .bubble-container {
   display: table-cell;
+  padding: 1rem 0rem;
 }
 
 .message-block .bubble-container .bubble{
@@ -429,6 +429,10 @@ a.unread .unread-mark .icon-unread-mark {
   width: 3.5rem;
   vertical-align: middle;
   display: table-cell;
+}
+
+.message-option:active {
+  background: transparent !important;
 }
 
 .message-option .gif{
@@ -447,7 +451,7 @@ a.unread .unread-mark .icon-unread-mark {
   position: relative;
   opacity: 0;
   margin-top: -2rem;
-
+  pointer-events: none;
 }
 .message-option span {
   display: block;

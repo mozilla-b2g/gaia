@@ -1,3 +1,17 @@
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cu = Components.utils;
+
+var Services = {};
+
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+
+XPCOMUtils.defineLazyServiceGetter(Services, 'env',
+                                   '@mozilla.org/process/environment;1',
+                                   'nsIEnvironment');
+
+var reporter = Services.env.get('REPORTER') || 'Spec';
+
 window.parent = window;
 window.location.host = 'localhost';
 
@@ -83,21 +97,38 @@ mocha.reporters.Base.list = function(failures) {
 
 };
 
+if (!(reporter in mocha.reporters)) {
+  var reporters = Object.keys(mocha.reporters);
+  var idx = reporters.indexOf('Base');
+
+  if (idx !== -1) {
+    reporters.splice(idx, 1);
+  }
+
+  var allowed = reporters.join(',\t\n');
+  console.log('Error running integration tests:\n');
+
+  console.log(
+    'Invalid REPORTER "' + reporter + '" set use one of:\n' +
+    allowed
+  );
+
+} else {
+  mocha.setup({
+    ui: 'tdd',
+    reporter: mocha.reporters[reporter]
+  });
+
+  require('helper.js');
+
+  window.xpcArgv.forEach(function(test) {
+    require(test);
+  });
 
 
-mocha.setup({
-  ui: 'tdd',
-  reporter: mocha.reporters.Spec
-});
+  mocha.run(function() {
+    window.xpcEventLoop.stop();
+  });
 
-require('helper.js');
-
-window.xpcArgv.forEach(function(test) {
-  require(test);
-});
-
-mocha.run(function() {
-  window.xpcEventLoop.stop();
-});
-
-window.xpcEventLoop.start();
+  window.xpcEventLoop.start();
+}
