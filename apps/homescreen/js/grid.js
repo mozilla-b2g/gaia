@@ -221,7 +221,7 @@ const GridManager = (function() {
             }
           }
           HomeState.saveShortcuts(init.dock);
-        } catch(e) {
+        } catch (e) {
           dump('Failed parsing homescreen configuration file: ' + e + '\n');
         }
 
