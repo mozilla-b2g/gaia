@@ -36,6 +36,7 @@ var StatusBar = {
   recordingActive: false,
   recordingTimer: null,
   headphonesState: 'unknown',
+  umsShared: false,
 
   /* For other app to acquire */
   get height() {
@@ -124,6 +125,11 @@ var StatusBar = {
           case 'recording-status':
             this.recordingActive = evt.detail.active;
             this.update.recording.call(this);
+            break;
+
+          case 'volume-state-changed':
+            this.umsShared = evt.detail.active;
+            this.update.usb.call(this);
             break;
 
           case 'headphones-status-changed':
@@ -411,10 +417,8 @@ var StatusBar = {
     },
 
     usb: function sb_updateUsb() {
-      // XXX no way to probe active state of USB mess storage right now
-      // https://github.com/mozilla-b2g/gaia/issues/2333
-
-      // this.icon.usb.hidden = ?
+      var icon = this.icons.usb;
+      icon.hidden = !this.umsShared;
     },
 
     headphones: function sb_updateHeadphones() {
