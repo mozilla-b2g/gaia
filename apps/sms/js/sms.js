@@ -286,31 +286,35 @@ var ThreadListUI = {
     switch (evt.type) {
       case 'click':
         if (evt.target.type == 'checkbox') {
-          if (evt.target.checked) {
-            ThreadListUI.selectedInputList.push(evt.target);
-          } else {
-            ThreadListUI.selectedInputList.splice(
-                      ThreadListUI.selectedInputList.indexOf(evt.target), 1);
-          }
-          var selected = ThreadListUI.selectedInputList.length;
-          var allInputs =
-                  ThreadListUI.view.querySelectorAll('input[type="checkbox"]');
-          if (selected == allInputs.length) {
-            ThreadListUI.selectAllButton.classList.add('disabled');
-          } else {
-            ThreadListUI.selectAllButton.classList.remove('disabled');
-          }
-          if (selected > 0) {
-            ThreadListUI.deselectAllButton.classList.remove('disabled');
-            ThreadListUI.deleteButton.classList.remove('disabled');
-            this.editHeader.innerHTML = _('selected', {n: selected});
-          } else {
-            ThreadListUI.deselectAllButton.classList.add('disabled');
-            ThreadListUI.deleteButton.classList.add('disabled');
-            this.editHeader.innerHTML = _('editMode');
-          }
+          ThreadListUI.checkInputs(evt.target);
         }
         break;
+    }
+  },
+
+  checkInputs: function thlui_checkInputs(target) {
+    if (target.checked) {
+      ThreadListUI.selectedInputList.push(target);
+    } else {
+      ThreadListUI.selectedInputList.splice(
+                ThreadListUI.selectedInputList.indexOf(target), 1);
+    }
+    var selected = ThreadListUI.selectedInputList.length;
+    var allInputs =
+            ThreadListUI.view.querySelectorAll('input[type="checkbox"]');
+    if (selected == allInputs.length) {
+      ThreadListUI.selectAllButton.classList.add('disabled');
+    } else {
+      ThreadListUI.selectAllButton.classList.remove('disabled');
+    }
+    if (selected > 0) {
+      ThreadListUI.deselectAllButton.classList.remove('disabled');
+      ThreadListUI.deleteButton.classList.remove('disabled');
+      this.editHeader.innerHTML = _('selected', {n: selected});
+    } else {
+      ThreadListUI.deselectAllButton.classList.add('disabled');
+      ThreadListUI.deleteButton.classList.add('disabled');
+      this.editHeader.innerHTML = _('editMode');
     }
   },
 
@@ -331,14 +335,16 @@ var ThreadListUI = {
     var inputs =
             this.view.querySelectorAll('input[type="checkbox"]:not(:checked)');
     for (var i = 0; i < inputs.length; i++) {
-        inputs[i].click();
+      inputs[i].checked = true;
+      ThreadListUI.checkInputs(inputs[i]);
     }
   },
 
   deselectAllThreads: function thlui_deselectAllThreads() {
     var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
-        inputs[i].click();
+      inputs[i].checked = false;
+      ThreadListUI.checkInputs(inputs[i]);
     }
   },
 
@@ -800,7 +806,8 @@ var ThreadUI = {
     var inputs =
             this.view.querySelectorAll('input[type="checkbox"]:not(:checked)');
     for (var i = 0; i < inputs.length; i++) {
-        inputs[i].click();
+      inputs[i].checked = true;
+      ThreadUI.checkInputs(inputs[i]);
     }
   },
 
@@ -808,7 +815,8 @@ var ThreadUI = {
     var inputs =
             this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
-        inputs[i].click();
+      inputs[i].checked = false;
+      ThreadUI.checkInputs(inputs[i]);
     }
   },
 
@@ -903,34 +911,38 @@ var ThreadUI = {
     }
   },
 
+  checkInputs: function thui_checkInputs(target) {
+    if (target.checked) {
+      ThreadUI.selectedInputList.push(target);
+    } else {
+      ThreadUI.selectedInputList.splice(
+                      ThreadUI.selectedInputList.indexOf(target), 1);
+    }
+    var selected = ThreadUI.selectedInputList.length;
+    var allInputs = this.view.querySelectorAll('input[type="checkbox"]');
+    if (selected == allInputs.length) {
+      ThreadUI.selectAllButton.classList.add('disabled');
+    } else {
+      ThreadUI.selectAllButton.classList.remove('disabled');
+    }
+    if (selected > 0) {
+      ThreadUI.deselectAllButton.classList.remove('disabled');
+      ThreadUI.deleteButton.classList.remove('disabled');
+      this.editHeader.innerHTML = _('selected', {n: selected});
+    } else {
+      ThreadUI.deselectAllButton.classList.add('disabled');
+      ThreadUI.deleteButton.classList.add('disabled');
+      this.editHeader.innerHTML = _('editMode');
+    }
+  },
+
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
         if (evt.target.type == 'checkbox') {
-          if (evt.target.checked) {
-            ThreadUI.selectedInputList.push(evt.target);
-          } else {
-            ThreadUI.selectedInputList.splice(
-                            ThreadUI.selectedInputList.indexOf(evt.target), 1);
-          }
-          var selected = ThreadUI.selectedInputList.length;
-          var allInputs = this.view.querySelectorAll('input[type="checkbox"]');
-          if (selected == allInputs.length) {
-            ThreadUI.selectAllButton.classList.add('disabled');
-          } else {
-            ThreadUI.selectAllButton.classList.remove('disabled');
-          }
-          if (selected > 0) {
-            ThreadUI.deselectAllButton.classList.remove('disabled');
-            ThreadUI.deleteButton.classList.remove('disabled');
-            this.editHeader.innerHTML = _('selected', {n: selected});
-          } else {
-            ThreadUI.deselectAllButton.classList.add('disabled');
-            ThreadUI.deleteButton.classList.add('disabled');
-            this.editHeader.innerHTML = _('editMode');
-          }
+          ThreadUI.checkInputs(evt.target);
         }
-          break;
+      break;
     }
   },
   cleanFields: function thui_cleanFields() {
