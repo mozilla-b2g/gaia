@@ -37,6 +37,13 @@
   display: none;
 }
 
+#modal-dialog-authentication {
+  display: none;
+  width: 100%;
+  background: white;
+  color: black;
+}
+
 #modal-dialog-prompt input {
   border-radius: 2px 2px 2px 2px;
   height: 40px;
@@ -57,6 +64,7 @@
   -moz-box-sizing: border-box;
 }
 
+#modal-dialog-authentication-message,
 #modal-dialog-prompt-message {
   display: block;
 }
@@ -115,6 +123,7 @@
 
 #screen.modal-dialog #modal-dialog,
 #modal-dialog-alert.visible,
+#modal-dialog-authentication.visible,
 #modal-dialog-confirm.visible,
 #modal-dialog-prompt.visible {
   display: block;

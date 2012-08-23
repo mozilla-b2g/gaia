@@ -21,7 +21,9 @@ var ModalDialog = {
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message'];
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
+      'authentication', 'username-input', 'password-input',
+      'authentication-message'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -138,6 +140,14 @@ var ModalDialog = {
         elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
         break;
+
+      case 'usernameandpassword':
+        elements.authentication.classList.add('visible');
+        var l10nArgs = { realm: evt.detail.realm, host: evt.detail.host };
+        var _ = navigator.mozL10n.get;
+        message = _('http-authentication-message', l10nArgs);
+        elements.authenticationMessage.innerHTML = message;
+        break;
     }
   },
 
@@ -169,10 +179,14 @@ var ModalDialog = {
         evt.detail.returnValue = true;
         elements.confirm.classList.remove('visible');
         break;
-    }
 
-    if (evt.isPseudo && evt.callback) {
-      evt.callback(evt.detail.returnValue);
+      case 'usernameandpassword':
+        evt.detail.returnValue = {
+          username: elements.usernameInput.value,
+          password: elements.passwordInput.value
+        };
+        elements.authentication.classList.remove('visible');
+        break;
     }
 
     evt.detail.unblock();
@@ -205,10 +219,6 @@ var ModalDialog = {
         break;
     }
 
-    if (evt.isPseudo && evt.callback) {
-      evt.callback(evt.detail.returnValue);
-    }
-
     evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
@@ -216,53 +226,5 @@ var ModalDialog = {
 
   originHasEvent: function(origin) {
     return origin in this.currentEvents;
-  },
-
-  // The below is for system apps to use.
-  alert: function md_alert(text, callback) {
-    this.showWithPseudoEvent({
-      type: 'alert',
-      text: text,
-      callback: callback
-    });
-  },
-
-  confirm: function md_confirm(text, callback, cancel) {
-    this.showWithPseudoEvent({
-      type: 'confirm',
-      text: text,
-      callback: callback,
-      cancel: cancel
-    });
-  },
-
-  prompt: function md_prompt(text, default_value, callback) {
-    this.showWithPseudoEvent({
-      type: 'prompt',
-      text: text,
-      initialValue: default_value,
-      callback: callback
-    });
-  },
-
-  showWithPseudoEvent: function md_showWithPseudoEvent(config) {
-    var pseudoEvt = {
-      isPseudo: true,
-      detail: {
-        unblock: null
-      }
-    };
-
-    pseudoEvt.detail.message = config.text;
-    pseudoEvt.callback = config.callback;
-    pseudoEvt.detail.promptType = config.type;
-    if (config.type == 'prompt') {
-        pseudoEvt.detail.initialValue = config.initialValue;
-    }
-
-    // Create a virtual mapping in this.currentEvents,
-    // since system-app uses the different way to call ModalDialog.
-    this.currentEvents['system'] = pseudoEvt;
-    this.show('system');
   }
 };

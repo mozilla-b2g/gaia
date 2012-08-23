@@ -640,6 +640,9 @@ var Browser = {
 
   urlFocus: function browser_urlFocus(e) {
     if (this.currentScreen === this.PAGE_SCREEN) {
+      // Hide modal dialog
+      ModelDialog.hide();
+      
       this.urlInput.value = this.currentTab.url;
       this.setUrlBar(this.currentTab.url);
       this.showAwesomeScreen();
