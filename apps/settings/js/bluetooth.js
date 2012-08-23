@@ -157,7 +157,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // private DOM helper: create a device list item
     function newListItem(device) {
       var deviceName = document.createElement('a');
-      deviceName.textContent = device.name;
+      var aName = (device.name === '') ? 'unnamed' : device.name;
+      deviceName.textContent = aName;
 
       var deviceAddress = document.createElement('small');
       deviceAddress.textContent = device.address;
