@@ -144,9 +144,15 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   // device list
   var gDeviceList = (function deviceList() {
     var list = document.querySelector('#bluetooth-devices');
+    var searchAgainBtn = document.querySelector('#bluetooth-search-again');
     var searchingItem = document.querySelector('#bluetooth-searching');
     var enableMsg = document.querySelector('#bluetooth-enable-msg');
     var index = [];
+
+    searchAgainBtn.onclick = function searchAgainClicked() {
+      updateDeviceList(true); // reset network list
+      startDiscovery();
+    };
 
     // private DOM helper: create a device list item
     function newListItem(device) {
@@ -183,11 +189,13 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         clear();
         enableMsg.hidden = true;
         searchingItem.hidden = false;
+        searchAgainBtn.hidden = true;
 
       } else {
         clear();
         enableMsg.hidden = false;
         searchingItem.hidden = true;
+        searchAgainBtn.hidden = false;
       }
     }
 
@@ -216,8 +224,27 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         return;
 
       var req = defaultAdapter.startDiscovery();
+      req.onsuccess = function bt_discoveryStart() {
+        setTimeout(stopDiscovery, 60000);
+      };
       req.onerror = function bt_discoveryFailed() {
         searchingItem.hidden = true;
+        searchAgainBtn.hidden = false;
+      };
+    }
+
+    function stopDiscovery() {
+      if (!defaultAdapter)
+        return;
+
+      var req = defaultAdapter.stopDiscovery();
+      req.onsuccess = function bt_discoveryStopped() {
+        searchAgainBtn.hidden = false;
+        searchingItem.hidden = true;
+      };
+      req.onerror = function bt_discoveryStopFailed() {
+        searchAgainBtn.hidden = true;
+        searchingItem.hidden = false;
       };
     }
 
