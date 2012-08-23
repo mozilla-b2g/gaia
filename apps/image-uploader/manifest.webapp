@@ -20,5 +20,6 @@
   },
   "icons": {
     "128": "/style/icons/share.png"
-  }
+  },
+  "hidden": "hidden"
 }
