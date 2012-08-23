@@ -10,10 +10,6 @@ let permissions = {
     "urls": [],
     "pref": "dom.power.whitelist"
   },
-  "sms": {
-    "urls": [],
-    "pref": "dom.sms.whitelist"
-  },
   "voicemail": {
     "urls": [],
     "pref": "dom.voicemail.whitelist"
