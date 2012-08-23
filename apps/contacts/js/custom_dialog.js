@@ -1,10 +1,7 @@
 
 'use strict';
 
-var Permissions = (function() {
-  // A queue of pending requests.
-  // Callers must be careful not to create an infinite loop!
-  var pending = [];
+var CustomDialog = (function() {
 
   var screen = null;
   var dialog = null;
@@ -14,7 +11,7 @@ var Permissions = (function() {
   var no = null;
 
   return {
-    hide: function permissions_hide() {
+    hide: function dialog_hide() {
       if (screen === null)
         return;
 
@@ -25,7 +22,6 @@ var Permissions = (function() {
       message = null;
       yes = null;
       no = null;
-      pending = [];
     },
 
     /**
@@ -36,14 +32,14 @@ var Permissions = (function() {
     * @param  {Object} cancel {title, callback} object when confirm.
     * @param  {Object} confirm {title, callback} object when cancel.
     */
-    show: function permissions_show(title, msg, cancel, confirm) {
+    show: function dialog_show(title, msg, cancel, confirm) {
       if (screen === null) {
         screen = document.createElement('section');
         screen.setAttribute('role', 'region');
-        screen.id = 'permission-screen';
+        screen.id = 'dialog-screen';
 
         dialog = document.createElement('div');
-        dialog.id = 'permission-dialog';
+        dialog.id = 'dialog-dialog';
         dialog.setAttribute('role', 'dialog');
         screen.appendChild(dialog);
 
@@ -52,13 +48,13 @@ var Permissions = (function() {
 
         if (title && title != '') {
           header = document.createElement('h3');
-          header.id = 'permission-title';
+          header.id = 'dialog-title';
           header.textContent = title;
           info.appendChild(header);
         }
 
         message = document.createElement('p');
-        message.id = 'permission-message';
+        message.id = 'dialog-message';
         info.appendChild(message);
         dialog.appendChild(info);
 
@@ -68,7 +64,7 @@ var Permissions = (function() {
         no = document.createElement('button');
         var noText = document.createTextNode(cancel.title);
         no.appendChild(noText);
-        no.id = 'permission-no';
+        no.id = 'dialog-no';
         no.addEventListener('click', clickHandler);
         menu.appendChild(no);
 
@@ -77,7 +73,7 @@ var Permissions = (function() {
           yes = document.createElement('button');
           var yesText = document.createTextNode(confirm.title);
           yes.appendChild(yesText);
-          yes.id = 'permission-yes';
+          yes.id = 'dialog-yes';
           yes.className = 'negative';
           yes.addEventListener('click', clickHandler);
           menu.appendChild(yes);
@@ -86,17 +82,6 @@ var Permissions = (function() {
         dialog.appendChild(menu);
 
         document.body.appendChild(screen);
-      }
-
-      // If there is already a pending permission request, queue this one
-      if (screen.classList.contains('visible')) {
-        pending.push({
-          header: title,
-          message: msg,
-          confirm: confirm,
-          cancel: cancel
-        });
-        return;
       }
 
       // Put the message in the dialog.
@@ -118,17 +103,6 @@ var Permissions = (function() {
           confirm.callback();
         } else if (evt.target === no && cancel.callback) {
           cancel.callback();
-        }
-
-        // And if there are pending permission requests, trigger the next one
-        if (pending.length > 0) {
-          var request = pending.shift();
-          window.setTimeout(function() {
-            Permissions.show(request.header,
-                             request.message,
-                             request.confirm,
-                             request.cancel);
-          });
         }
       }
     }
