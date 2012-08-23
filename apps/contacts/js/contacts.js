@@ -637,7 +637,7 @@ var Contacts = (function() {
         }
       };
 
-      Permissions.show(null, msg, yesObject, noObject);
+      Permissions.show(null, msg, noObject, yesObject);
     };
 
     edit();

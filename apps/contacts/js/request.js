@@ -33,10 +33,10 @@ var Permissions = (function() {
     * @param  {String} title the title of the dialog. null or empty for
     *                        no title.
     * @param  {String} msg message for the dialog.
-    * @param  {Object} yesObject {title, callback} object when confirm.
-    * @param  {Object} noObject {title, callback} object when cancel.
+    * @param  {Object} cancel {title, callback} object when confirm.
+    * @param  {Object} confirm {title, callback} object when cancel.
     */
-    show: function permissions_show(title, msg, yesObject, noObject) {
+    show: function permissions_show(title, msg, cancel, confirm) {
       if (screen === null) {
         screen = document.createElement('section');
         screen.setAttribute('role', 'region');
@@ -63,20 +63,24 @@ var Permissions = (function() {
         dialog.appendChild(info);
 
         var menu = document.createElement('menu');
-        menu.dataset['items'] = 2;
-
-        yes = document.createElement('button');
-        var yesText = document.createTextNode(yesObject.title);
-        yes.appendChild(yesText);
-        yes.id = 'permission-yes';
-        yes.className = 'negative';
+        menu.dataset['items'] = 1;
 
         no = document.createElement('button');
-        var noText = document.createTextNode(noObject.title);
+        var noText = document.createTextNode(cancel.title);
         no.appendChild(noText);
         no.id = 'permission-no';
         menu.appendChild(no);
-        menu.appendChild(yes);
+
+        if (confirm) {
+          menu.dataset['items'] = 2;
+          yes = document.createElement('button');
+          var yesText = document.createTextNode(confirm.title);
+          yes.appendChild(yesText);
+          yes.id = 'permission-yes';
+          yes.className = 'negative';
+          menu.appendChild(yes);
+        }
+
         dialog.appendChild(menu);
 
         document.body.appendChild(screen);
@@ -87,8 +91,8 @@ var Permissions = (function() {
         pending.push({
           header: title,
           message: msg,
-          yesObject: yesObject,
-          noObject: noObject
+          confirm: confirm,
+          cancel: cancel
         });
         return;
       }
@@ -111,8 +115,8 @@ var Permissions = (function() {
         screen.classList.remove('visible');
 
         // Call the appropriate callback, if it is defined
-        var yescallback = yesObject.callback;
-        var nocallback = noObject.callback;
+        var yescallback = confirm.callback;
+        var nocallback = cancel.callback;
         if (evt.target === yes && yescallback) {
           yescallback();
         } else if (evt.target === no && nocallback) {
@@ -125,8 +129,8 @@ var Permissions = (function() {
           window.setTimeout(function() {
             Permissions.show(request.header,
                              request.message,
-                             request.yesObject,
-                             request.noObject);
+                             request.confirm,
+                             request.cancel);
           });
         }
       }
