@@ -85,10 +85,6 @@ var ScreenManager = {
           power.cpuSleepAllowed = (state != 'locked-foreground' &&
                                    state != 'locked-background');
           break;
-
-        case 'wifi':
-          // Do we need to do anything in Gaia?
-          break;
       }
     });
 
