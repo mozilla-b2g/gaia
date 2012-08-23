@@ -342,8 +342,11 @@ var Contacts = (function() {
         switch (numOfPhoneNums) {
           case 0:
             // If no phone number
-            alert('No phone number saved!');
-            // TODO: replace alert with given visual | #3643
+            var okObject = {
+              title: _('ok'),
+              callback: Permissions.hide
+            }
+            Permissions.show('', _('no_phones'), okObject);
             break;
           case 1:
             // if One phone number
