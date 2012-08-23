@@ -89,20 +89,22 @@ var RecentsDBManager = {
     }
   },
   _delete: function rdbm_delete(callLogEntry, callback) {
-    var txn = database.transaction(RecentsDBManager._dbStore, 'readwrite');
-    var store = txn.objectStore(RecentsDBManager._dbStore);
-    var delRequest = store.delete(new Number(callLogEntry.date));
+    this._checkDBReady.call(this, function() {
+      var txn = this.db.transaction(RecentsDBManager._dbStore, 'readwrite');
+      var store = txn.objectStore(RecentsDBManager._dbStore);
+      var delRequest = store.delete(callLogEntry.date);
 
-    delRequest.onsuccess = function de_onsuccess() {
-      if (callback && callback instanceof Function) {
-        callback();
+      delRequest.onsuccess = function de_onsuccess() {
+        if (callback && callback instanceof Function) {
+          callback();
+        }
       }
-    }
 
-    delRequest.onerror = function de_onsuccess(e) {
-      console.log('dialerRecents delete item failure: ',
-          e.message, delRequest.errorCode);
-    }
+      delRequest.onerror = function de_onsuccess(e) {
+        console.log('dialerRecents delete item failure: ',
+            e.message, delRequest.errorCode);
+      }
+    });
   },
   _deleteList: function rdbm_deleteList(list, callback) {
     if (list.length > 0) {
