@@ -15,7 +15,6 @@
     "mozBluetooth",
     "telephony",
     "voicemail",
-    "sms",
     "device-storage",
     "devicestorage",
     "settings",

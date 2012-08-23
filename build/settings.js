@@ -47,7 +47,7 @@ var settings = [
  new Setting("keyboard.layouts.greek", false),
  new Setting("keyboard.layouts.japanese", false),
  new Setting("keyboard.layouts.portuguese", false),
- new Setting("keyboard.layouts.spanish", true),
+ new Setting("keyboard.layouts.spanish", false),
  new Setting("keyboard.vibration", false),
  new Setting("keyboard.clicksound", false),
  new Setting("keyboard.wordsuggestion", false),
