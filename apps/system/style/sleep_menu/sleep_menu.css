@@ -2,7 +2,7 @@
   background-attachment: scroll, scroll;
   background-clip: border-box, border-box;
   background-color: transparent;
-  background-image: url("images/pattern.png"), url("images/gradient.png");
+  background-image: url("../themes/default/images/images/ui/pattern.png"), url("../themes/default/images/ui/gradient.png");
   background-origin: padding-box, padding-box;
   background-position: left top, left top;
   background-repeat: repeat, no-repeat;
@@ -75,7 +75,7 @@
 }
 
 #sleep-menu menu {
-  background: url("images/pattern.png") repeat scroll left top #2D2D2D;
+  background: url("../themes/default/images/ui/pattern.png") repeat scroll left top #2D2D2D;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   bottom: 0;
   display: block;
@@ -95,7 +95,7 @@
 
 #sleep-menu menu button {
   -moz-box-sizing: border-box;
-  background: url("images/default.png") repeat-x scroll left bottom #FAFAFA;
+  background: url("../themes/default/images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
   border: 1px solid #9F9F9F;
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   color: #333333;
