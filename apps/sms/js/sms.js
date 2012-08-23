@@ -20,6 +20,7 @@ var MessageManager = {
     }
     window.addEventListener('hashchange', this);
     document.addEventListener('mozvisibilitychange', this);
+
   },
   slide: function mm_slide(callback) {
     var bodyClass = document.body.classList;
@@ -169,14 +170,33 @@ var MessageManager = {
   },
 
   send: function mm_send(number, text, callback) {
-    var req = navigator.mozSms.send(number, text);
-    req.onsuccess = function onsuccess() {
-      callback(req.result);
-    };
+    var settings = window.navigator.mozSettings;
+    var req = settings.getLock().get('ril.radio.disabled');
+    req.addEventListener('success', function onsuccess() {
+      var status = req.result['ril.radio.disabled'];
 
-    req.onerror = function onerror() {
-      callback(null);
-    };
+      if (!status) {
+        callbackSend();
+      } else {
+        Permissions.show('Flight Safe Mode Activated', 'In order to send a message, you must first disable Flight Safe Mode', {
+            title: 'Ok',
+            callback: function(){
+              Permissions.hide();
+            }
+        });
+      }
+    });
+
+    var callbackSend = function(){
+      var req = navigator.mozSms.send(number, text);
+      req.onsuccess = function onsuccess() {
+        callback(req.result);
+      };
+
+      req.onerror = function onerror() {
+        callback(null);
+      };
+    }
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
