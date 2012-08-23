@@ -342,11 +342,11 @@ var Contacts = (function() {
         switch (numOfPhoneNums) {
           case 0:
             // If no phone number
-            var okObject = {
+            var dismiss = {
               title: _('ok'),
               callback: Permissions.hide
             };
-            Permissions.show('', _('no_phones'), okObject);
+            Permissions.show('', _('no_phones'), dismiss);
             break;
           case 1:
             // if One phone number
