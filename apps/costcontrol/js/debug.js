@@ -1,4 +1,4 @@
-var DEBUGGING = true;
+var DEBUGGING = false;
 var DEBUG_PREFIX = 'CC: ';
 var debug = function(str) {
   if (!DEBUGGING)
