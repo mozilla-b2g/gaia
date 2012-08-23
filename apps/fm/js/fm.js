@@ -254,6 +254,11 @@ var frequencyDialer = {
       }
       tunedFrequency = self.setFrequency(toFixed(tunedFrequency));
       cancelSeekAndSetFreq(tunedFrequency);
+
+      // Reset vars
+      currentEvent = null;
+      startEvent = null;
+      currentSpeed = 0;
     }
 
     function fd_mousedown(event) {
