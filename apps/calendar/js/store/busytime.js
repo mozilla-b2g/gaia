@@ -101,6 +101,66 @@ Calendar.ns('Store').Busytime = (function() {
       this._transactionCallback(trans, callback);
     },
 
+    _startCompare: function(aObj, bObj) {
+      var a = aObj.start;
+      var b = bObj.start;
+
+      return Calendar.compare(a, b);
+    },
+
+    /**
+     * Loads all busytimes in given timespan.
+     *
+     * @param {Calendar.Timespan} span timespan.
+     * @param {Function} callback node style callback
+     *                            where first argument is
+     *                            an error (or null)
+     *                            and the second argument
+     *                            is a list of all loaded
+     *                            busytimes in the timespan.
+     */
+    loadSpan: function(span, callback) {
+      var trans = this.db.transaction(this._store);
+      var store = trans.objectStore(this._store);
+
+      // XXX: we need to implement busytime chunking
+      // to make this efficient.
+      var keyRange = IDBKeyRange.lowerBound(span.start);
+
+      var index = store.index('end');
+      var self = this;
+
+      index.mozGetAll(keyRange).onsuccess = function(e) {
+        var data = e.target.result;
+
+        // sort data
+        data = data.sort(self._startCompare);
+
+        // attempt to find a start time that occurs
+        // after the end time of the span
+        var idx = Calendar.binsearch.insert(
+          data,
+          { start: (span.end + 1) },
+          self._startCompare
+        );
+
+        // remove unrelated timespan...
+        data = data.slice(0, idx);
+
+        // add records to the cache
+        data.forEach(function(item) {
+          self._addTime(item, true);
+        });
+
+        // fire callback
+        if (callback)
+          callback(null, data);
+
+        // emit time event
+        self.fireTimeEvent('load', span.start, span.end, data);
+      };
+    },
+
    /**
      * Adds observer for timespan.
      *
@@ -255,13 +315,24 @@ Calendar.ns('Store').Busytime = (function() {
       );
     },
 
-    _addTime: function(record) {
+    /**
+     * Adds a busytime to the cache.
+     * By default this also emits an add
+     * event which can optionally be suppressed.
+     *
+     * @param {Object} record busytime record.
+     * @param {Boolan} surpressAddEvent defaults to false.
+     */
+    _addTime: function(record, surpressAddEvent) {
       if (!(record.eventId in this._byEventId)) {
         this._byEventId[record.eventId] = [];
       }
 
       this._byEventId[record.eventId].push(record);
       this._tree.add(record);
+
+      if (surpressAddEvent)
+        return;
 
       this.fireTimeEvent(
         'add',

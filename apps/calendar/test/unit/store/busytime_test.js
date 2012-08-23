@@ -15,9 +15,19 @@ suite('store/busytime', function() {
   var db;
   var id = 0;
 
-  function event(date) {
+  function event(start, end) {
+    var remote = {};
+
+    if (start)
+      remote.startDate = start;
+
+    if (end)
+      remote.endDate = end;
+
+    remote.id = ++id;
+
     return Factory('event', {
-      remote: { startDate: date, _id: ++id }
+      remote: remote
     });
   }
 
@@ -118,6 +128,118 @@ suite('store/busytime', function() {
       subject.findTimeObserver(range, cb),
       0
     );
+  });
+
+  suite('#loadSpan', function() {
+    var list;
+    var span;
+
+    setup(function() {
+      list = Object.create(null);
+      span = new Calendar.Timespan(
+        new Date(2012, 1, 5),
+        new Date(2012, 1, 10)
+      );
+    });
+
+    function add(name, start, end) {
+      setup(function(done) {
+        var store = subject.db.getStore('Event');
+        var item = list[name] = event(start, end);
+        store.persist(item, done);
+      });
+    }
+
+    add('before long', new Date(2011, 1, 1), new Date(2011, 3, 1));
+    add('overlap', new Date(2012, 1, 1), new Date(2013, 1, 1));
+    add('starts before', new Date(2012, 1, 3), new Date(2012, 1, 6));
+    add('during', new Date(2012, 1, 5), new Date(2012, 1, 9));
+    add('ends after', new Date(2012, 1, 9), new Date(2012, 1, 11));
+    add('after', new Date(2012, 1, 12), new Date(2012, 1, 15));
+
+    var eventFired;
+    var results;
+    var expectedEventIds;
+
+    function expected(name) {
+      expectedEventIds.push(
+        list[name]._id
+      );
+    }
+
+    setup(function(done) {
+      eventFired = [];
+
+      // because we just added events
+      // we need to remove them from the cache
+      subject._setupCache();
+
+      // add listener for event
+      subject.observeTime(span, function(event) {
+        eventFired.push(event);
+      });
+
+      // build the list of expected
+      // busytimes to be returned by their
+      // event id
+      expectedEventIds = [];
+
+      // order is important we expect them
+      // to be sorted by start date
+      expected('overlap');
+      expected('starts before');
+      expected('during');
+      expected('ends after');
+
+      // load
+      subject.loadSpan(span, function(err, data) {
+        if (err) {
+          return done(err);
+        }
+        results = data;
+
+        // wait until next tick for event
+        // to fire...
+        setTimeout(done, 0, null);
+      });
+    });
+
+    test('load results', function() {
+      // verify correct data is returned;
+      var idMap = Object.create(null);
+
+      results.forEach(function(item) {
+        var id = item.eventId;
+        if (!(id in idMap)) {
+          idMap[id] = true;
+        }
+      });
+
+      var actualIds = Object.keys(idMap);
+
+      assert.deepEqual(
+        actualIds,
+        expectedEventIds,
+        'load event ids'
+      );
+
+      // verify cache
+      assert.deepEqual(
+        subject._tree.items,
+        results,
+        'should add results to cache'
+      );
+
+      var firstEvent = eventFired[0];
+
+      assert.equal(firstEvent.type, 'load');
+      assert.deepEqual(
+        firstEvent.data,
+        results,
+        'should fire load event'
+      );
+    });
+
   });
 
   suite('#observeTime', function() {
