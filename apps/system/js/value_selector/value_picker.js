@@ -91,11 +91,6 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.updateUI = function(index, ignorePicker) {
-
-      var top = this.element.style.top;
-	    
-	    console.log("(top, lower, index, space): ",  top + " ", this._lower + " ", index + " ", this._space);
-
     if (true !== ignorePicker) {
       this.element.style.top =
             (this._lower - index) * this._space + 'px';

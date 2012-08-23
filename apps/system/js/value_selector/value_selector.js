@@ -3,16 +3,12 @@
 
 'use strict';
 
-if (!window.navigator.mozKeyboard) {
-   window.navigator.mozKeyboard = {};
-}
-
 var ValueSelector = {
 
   _containers: {},
 
   debug: function(msg) {
-    var debugFlag = true;
+    var debugFlag = false;
     if (debugFlag) {
       console.log('[ValueSelector] ', msg);
     }
@@ -215,8 +211,6 @@ var ValueSelector = {
 
   showTimePicker: function vs_showTimePicker() {
     this._currentPickerType = 'time';
-    //this.buildTimePicker();
-    
     this.show();
     this.showPanel('time');
 
@@ -224,11 +218,6 @@ var ValueSelector = {
       TimePicker.initTimePicker();
       this._timePickerInitialized = true;
     }
-  },
-
-  buildTimePicker: function vs_buildTimePicker() {
-    //TODO: for test only
-    //
   },
 
   showDatePicker: function vs_showDatePicker() {
