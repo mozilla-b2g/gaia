@@ -315,6 +315,10 @@ var WindowManager = (function() {
     AttentionScreen.showForOrigin(origin);
   }
 
+  function showHomescreen() {
+    setDisplayedApp(homescreen);
+  }
+
   function setOrientationForApp(origin) {
     if (origin == null) { // homescreen
       screen.mozLockOrientation('portrait-primary');
@@ -682,6 +686,7 @@ var WindowManager = (function() {
     getRunningApps: function() {
        return runningApps;
     },
-    setDisplayedApp: setDisplayedApp
+    setDisplayedApp: setDisplayedApp,
+    showHomescreen: showHomescreen
   };
 }());
