@@ -3,10 +3,54 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 80px;
+  height: 40px;
 
-  -moz-transform: translateY(-80px);
-  -moz-transition: -moz-transform 0.3s ease-in-out;
+  overflow: hidden;
+
+  background-image: url('images/grey-noise-bg.png');
+  background-repeat: repeat-x;
+  border-bottom: 1px #2c2c2c solid;
+
+  font-size: 1em;
+
+  -moz-transform: translateY(-40px);
+  -moz-transition: -moz-transform .3s ease-in-out;
+}
+
+#toaster-icon {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: 8px;
+  left: 6px;
+
+  pointer-events: none;
+}
+
+#notification-toaster > div {
+  left: 38px;
+  width: -moz-calc(100% - 38px);
+  height: 12px;
+
+  padding: 0;
+
+  line-height: 12px;
+}
+
+#toaster-title {
+  position: absolute;
+  top: 4px;
+  color: #52B6CC;
+}
+
+#toaster-detail {
+  position: absolute;
+  top: 22px;
+  color: white;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #notification-toaster.displayed {
