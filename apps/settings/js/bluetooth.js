@@ -27,7 +27,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     settings.getLock().set({'bluetooth.enabled': this.checked});
   };
 
-  function initailDefaultAdapter() {
+  function initialDefaultAdapter() {
     if (!bluetooth.enabled)
       return;
     var req = bluetooth.getDefaultAdapter();
@@ -274,9 +274,9 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       //XXX there is no "bluetooth.onenabled" callback can be hooked.
       //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
       if (!bluetooth.enabled) {
-        setTimeout(initailDefaultAdapter, 5000);
+        setTimeout(initialDefaultAdapter, 5000);
       } else {
-        initailDefaultAdapter();
+        initialDefaultAdapter();
       }
     }
   }
