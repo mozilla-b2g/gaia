@@ -1,7 +1,8 @@
 ((typeof(Calendar) === 'undefined') ? Calendar = {} : '');
 
+// expose window globally in this
+// context if not available.
 if (typeof(window) === 'undefined') {
-  var window = this;
   this.window = this;
 }
 
