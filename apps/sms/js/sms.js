@@ -332,6 +332,7 @@ var ThreadListUI = {
     this.selectedInputList = [];
     this.editHeader.innerHTML = _('editMode');
     this.deselectAllButton.classList.add('disabled');
+    this.selectAllButton.classList.remove('disabled');
     this.deleteButton.classList.add('disabled');
   },
 
@@ -799,6 +800,7 @@ var ThreadUI = {
     this.delNumList = [];
     this.selectedInputList = [];
     this.editHeader.innerHTML = _('editMode');
+    this.selectAllButton.classList.remove('disabled');
     this.deselectAllButton.classList.add('disabled');
     this.deleteButton.classList.add('disabled');
   },
