@@ -226,6 +226,41 @@ function uploadTwitter(source, callback) {
   xhr.send(picture);
 }
 
+function uploadImgur(source, callback) {
+  var apikey = "4fa922afa12ef6b38c0b5b5e6e548a4f";
+  var url = "http://api.imgur.com/2/upload.json";
+
+  var picture = new FormData();
+  picture.append('key', apikey);
+  picture.append('image', source);
+
+  var xhr = new XMLHttpRequest({mozSystem: true});
+  xhr.open("POST", url, true);
+  xhr.upload.addEventListener("progress", function(e) {
+    if (e.lengthComputable) {
+      setProgress(e.loaded, e.total);
+    }
+  }, false);
+  xhr.upload.addEventListener("load", function(e) {
+      setProgress(e.loaded, e.total);
+  }, false);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == XMLHttpRequest.DONE) {
+      var json = JSON.parse(xhr.responseText);
+      var link = json.upload.links.imgur_page;
+      var img  = json.upload.image.hash;
+      if (link == undefined) {
+        setStatus("Error while uploading!");
+      } else {
+        setStatus("Uploaded successfully: " + img);
+        callback(link);
+      }
+      unlock();
+    }
+  };
+  xhr.send(picture);
+}
+
 function finalize(url) {
   var zoneResults = document.getElementById("link");
   if (zoneResults) {
@@ -290,6 +325,9 @@ function share() {
 	      break;
             case "upload-twitter":
 	      uploadTwitter(img, finalize);
+	      break;
+            case "upload-imgur":
+	      uploadImgur(img, finalize);
 	      break;
 	  }
 	}
