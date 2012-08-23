@@ -21,6 +21,7 @@
   <link rel="stylesheet" type="text/css" href="style/app.css">
   <link rel="stylesheet" type="text/css" href="style/views/topup.css">
   <link rel="stylesheet" type="text/css" href="style/views/settings.css">
+  <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -31,6 +32,7 @@
   <script type="text/javascript" src="js/debug.js"></script>
   <script type="text/javascript" src="js/service_utils.js"></script>
   <script type="text/javascript" defer src="js/cost_control.js"></script>
+  <script type="text/javascript" defer src="js/data_usage.js"></script>
 </head>
 
 <body role="application">
@@ -118,7 +120,7 @@
     </section>
 
     <!-- SETTINGS VIEW -->
-    <section role="region" class="view" data-viewname="settings">
+    <section role="region" class="view" data-viewname="settings" data-viewport="right">
       <header data-theme="organic">
         <a href="#left-panel"><span id="topup-close-button" class="icon icon-back">close</span></a>
         <h1 data-l10n-id="settings">Settings</h1>
@@ -131,7 +133,7 @@
           </button>
       </section>
 
-      <section role="region" data-theme="organic">
+      <section role="region" data-theme="organic" class="settings">
          <header aria-level="2">
           <p>Balance</p>
         </header>
@@ -157,7 +159,7 @@
         </ul>
       </section>
 
-      <section role="region" data-theme="organic">
+      <section role="region" data-theme="organic" class="settings">
          <header aria-level="2">
           <p>Data usage</p>
         </header>
@@ -180,7 +182,62 @@
           </li>
         </ul>
       </section>
+    </section>
 
+      <!-- DATAUSAGE VIEW -->
+    <section role="region" class="view" data-viewname="datausage">
+      <header data-theme="organic">
+        <menu type="toolbar">
+           <button><span class="icon config">configuration</span></button>
+        </menu>
+        <h1 data-l10n-id="settings">Data usage</h1>
+      </header>
+
+      <div class="view-scroll">
+        <section class="content">
+          <ul class="toggle-data">
+            <li>
+              <label>
+                <input type="checkbox">
+                <span>3G <em id="mobileOverview">--</em></span>
+              </label>
+            </li>
+            <li>
+              <label>
+                <input type="checkbox">
+                <span>WIFI <em id="wifiOverview">--</em></span>
+              </label>
+            </li>
+          </ul>
+
+          <section class="graph">
+            <canvas id="wifiGraphCanvas"></canvas>
+            <canvas id="mobileGraphCanvas"></canvas>
+         </section>
+        </section>
+
+        <section class="settings">
+          <header>
+            <h1>Apps by Data use</h2>
+            <p>WIFI only</p>
+          </header>
+          <ul>
+            <li>
+              <label class="end toggle">
+                <input type="checkbox">
+                <span></span>
+              </label>
+              <p>
+                <img>
+                <div class="consumption">
+                  <progress max="100" value="100"></progress>
+                  <progress max="100" value="100"></progress>
+                </div>
+              </p>
+            </li>
+          </ul>
+        </section>
+      </div>
     </section>
 
     <ul role="tablist" class="filter" data-items="2" data-position="bottom">
