@@ -28,6 +28,7 @@ var Browser = {
     '/start.html',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
+  SCROLL_THRESHOLD: 50, // Number of pixels to scroll before hiding the address bar
 
   urlButtonMode: null,
   inTransition: false,
@@ -340,6 +341,16 @@ var Browser = {
       case 'mozbrowsererror':
         if (evt.detail.type === 'fatal') {
           this.handleCrashedTab(tab);
+        }
+        break;
+
+      case 'mozbrowserscroll':
+        if (evt.detail.top == 0) {
+          this.mainScreen.style.height = '100%';
+          this.mainScreen.style.transform = 'none';
+        } else if (evt.detail.top > this.SCROLL_THRESHOLD) {
+          this.mainScreen.style.height = '-moz-calc(100% + 50px)';
+          this.mainScreen.style.transform = 'translateY(-50px)';
         }
         break;
       }
@@ -980,8 +991,7 @@ var Browser = {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close',
-
-                         'showmodalprompt', 'error'];
+                         'showmodalprompt', 'error', 'scroll'];
     browserEvents.forEach(function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' + type,
                               this.handleBrowserEvent(tab));
