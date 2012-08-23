@@ -69,6 +69,7 @@ var Permissions = (function() {
         var noText = document.createTextNode(cancel.title);
         no.appendChild(noText);
         no.id = 'permission-no';
+        no.addEventListener('click', clickHandler);
         menu.appendChild(no);
 
         if (confirm) {
@@ -78,6 +79,7 @@ var Permissions = (function() {
           yes.appendChild(yesText);
           yes.id = 'permission-yes';
           yes.className = 'negative';
+          yes.addEventListener('click', clickHandler);
           menu.appendChild(yes);
         }
 
@@ -107,20 +109,15 @@ var Permissions = (function() {
 
       // This is the event listener function for the buttons
       function clickHandler(evt) {
-        // cleanup the event handlers
-        yes.removeEventListener('click', clickHandler);
-        no.removeEventListener('click', clickHandler);
 
         // Hide the dialog
         screen.classList.remove('visible');
 
         // Call the appropriate callback, if it is defined
-        var yescallback = confirm.callback;
-        var nocallback = cancel.callback;
-        if (evt.target === yes && yescallback) {
-          yescallback();
-        } else if (evt.target === no && nocallback) {
-          nocallback();
+        if (evt.target === yes && confirm.callback) {
+          confirm.callback();
+        } else if (evt.target === no && cancel.callback) {
+          cancel.callback();
         }
 
         // And if there are pending permission requests, trigger the next one
@@ -134,10 +131,6 @@ var Permissions = (function() {
           });
         }
       }
-
-      // Set event listeners for the yes and no buttons
-      yes.addEventListener('click', clickHandler);
-      no.addEventListener('click', clickHandler);
     }
   };
 }());
