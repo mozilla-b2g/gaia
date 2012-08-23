@@ -146,9 +146,9 @@ function loginTwitter() {
         var request_token_only = request_token_ar[1];
         var authorize =
           'https://api.twitter.com/oauth/authorize?' + request_token_full;
-        alert('We now need that you authorize our application. A browser window'
-          ' will get you to Twitter website, where you will be able to'
-          ' authenticate yourself and to authorize us. It will give you a PIN'
+        alert('We now need that you authorize our application. A browser' +
+          ' window will get you to Twitter website, where you will be able to' +
+          ' authenticate yourself and to authorize us. It will give you a PIN' +
           ' code. Please keep it, get back here and fill it in the prompt.');
         new MozActivity({name: 'view', data: {type: 'url', url: authorize}});
         var pin = prompt('Please enter PIN code given by Twitter:');
