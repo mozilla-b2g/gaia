@@ -18,7 +18,7 @@ body {
 }
 
 /*
- * The overlay is where we display messages like Scanning, No Photos,
+ * The overlay is where we display messages like Scanning, No Songs,
  * No SD card and SD Card in Use along with instructions for resolving
  * the issue.  The user can't interact with the app while the overlay
  * is displayed.
