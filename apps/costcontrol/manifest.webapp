@@ -48,8 +48,8 @@
       "description": "Cost Control application to see credit and data usage statistics"
     },
     "es": {
-      "name": "Control de coste",
-      "description": "Aplicación de control de coste vara visualizar estadísticas de crédito y consumo de datos"
+      "name": "Cost Control",
+      "description": "Aplicación de control de saldo vara visualizar estadísticas de crédito y consumo de datos"
     },
     "fr": {
       "name": "Cost Control",
@@ -78,8 +78,8 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Clock.png",
-    "60": "/style/icons/60/Clock.png"
+    "120": "/style/icons/cost-control.png",
+    "60": "/style/icons/60/cost-control.png"
   },
   "orientation": "portrait-primary"
 }

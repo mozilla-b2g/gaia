@@ -87,6 +87,11 @@ function setupWidget() {
       }
     };
 
+    // Update UI when localized
+    window.addEventListener('localized', function ccwidget_onLocalized() {
+      _updateBalanceUI();
+    });
+
     _updateBalanceUI();
   }
 

@@ -24,7 +24,6 @@ function setupApp() {
 
   // Update balance control
   var _isUpdating = false;
-  var _onRoaming = false;
   var _onWarning = false; // warning state is true when roaming, or some
                           // inconvenient during updating process.
 
@@ -67,8 +66,8 @@ function setupApp() {
   // On top up success, notificate and request update balance
   function _onTopUpSuccess(evt) {
     var notification = navigator.mozNotification.createNotification(
-      _('Cost Control'),
-      _('Top Up completed. Updating balance.'),
+      _('topup-confirmation-title'),
+      _('topup-confirmation-message'),
       '/icons/Clock.png'
     );
     notification.show();
@@ -77,7 +76,9 @@ function setupApp() {
     _lastTopUpIncorrect = false;
     _setTopUpScreenMode(MODE_DEFAULT);
 
-    _requestUpdateBalance();
+    var status = CostControl.getServiceStatus();
+    if (status.availability && !status.roaming)
+      _requestUpdateBalance();
   }
 
   // On top up error, several cases, see comments inline:
@@ -101,8 +102,8 @@ function setupApp() {
         _lastTopUpIncorrect = true;
         _setTopUpScreenMode(MODE_INCORRECT_CODE);
         var notification = navigator.mozNotification.createNotification(
-          'Cost Control',
-          'Incorrect top up code entered. Please, try again.',
+          'topup-incorrectcode-title',
+          'topup-incorrectcode-message',
           '/icons/Clock.png'
         );
         notification.onclick = function ccapp_onNotificationClick() {
@@ -158,7 +159,7 @@ function setupApp() {
     buttonTopUp.addEventListener('click', function ccapp_onSend() {
 
       // Get and clean the code
-      var code = _inputTopUpCode.value
+      var code = inputTopUpCode.value
         .replace(/^\s+/, '').replace(/\s+$/, '');
 
       if (!code)
@@ -224,6 +225,11 @@ function setupApp() {
         }
       }
     );
+
+    // Update UI when localized
+    window.addEventListener('localized', function ccapp_onLocalized() {
+      _updateBalanceUI();
+    });
   }
 
   var MODE_DEFAULT = 'mode-default';
