@@ -4,7 +4,7 @@
 'use strict';
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
-// Blocking the current app and then show cutom modal dialog
+// Blocking the current app and then show custom modal dialog
 // (alert/confirm/prompt)
 
 var ModalDialog = {

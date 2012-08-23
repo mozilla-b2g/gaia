@@ -133,7 +133,12 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
   }
 
   if (this.recentsEntry) {
-    Recents.add(this.recentsEntry);
+    var recentToAdd = this.recentsEntry;
+    RecentsDBManager.init(function() {
+      RecentsDBManager.add(recentToAdd, function() {
+        RecentsDBManager.close();
+      });
+    });
   }
   this.remove();
 };
