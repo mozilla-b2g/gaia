@@ -1,7 +1,4 @@
 #sleep-menu {
-  width: 100%;
-  height: 100%;
-  visibility: none;
   background-attachment: scroll, scroll;
   background-clip: border-box, border-box;
   background-color: transparent;
@@ -68,17 +65,13 @@
   margin: 0;
   padding-bottom: 1px;
   position: relative;
-}
-
-#sleep-menu-container li:active label span {
-  background: #00ABCC;
-  color: #fff!important;
-}
-
-#sleep-menu-container li label span {
-  color: #FFFFFF;
   display: block;
   text-decoration: none;
+}
+
+#sleep-menu-container li:active {
+  background: #00ABCC;
+  color: #fff!important;
 }
 
 #sleep-menu menu {

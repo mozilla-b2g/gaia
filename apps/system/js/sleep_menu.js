@@ -11,14 +11,14 @@ var SleepMenu = {
   isSilentModeEnabled: false,
 
   elements: {},
-  
+
   get visible() {
     return this.elements.overlay.classList.contains('visible');
   },
 
-  getAllElements: sm_getAllElements() {
+  getAllElements: function sm_getAllElements() {
     this.elements.overlay = document.getElementById('sleep-menu');
-    this.elements.container = document.querySelector('sleep-menu-container ul');
+    this.elements.container = document.querySelector('#sleep-menu-container ul');
     this.elements.cancel = document.querySelector('#sleep-menu button');
   },
 
@@ -91,7 +91,6 @@ var SleepMenu = {
   },
 
   show: function sm_show() {
-    var self = this;
     this.elements.container.innerHTML = '';
     this.buildMenu(this.generateItems());
     this.elements.overlay.classList.add('visible');
@@ -102,10 +101,6 @@ var SleepMenu = {
       var item_li = document.createElement('li');
       item_li.dataset.value = item.value;
       item_li.textContent = item.label;
-
-      if (item.icon) {
-        item_li.style.backgroundImage = 'url(' + item.icon + ')';
-      }
       this.elements.container.appendChild(item_li);
     }, this);
   },
@@ -113,7 +108,7 @@ var SleepMenu = {
   hide: function lm_hide() {
     this.elements.overlay.classList.remove('visible');
   },
-  
+
   handleEvent: function sm_handleEvent(evt) {
     switch (evt.type) {
       case 'screenchange':
@@ -147,7 +142,7 @@ var SleepMenu = {
         }
         break;
     }
-  }
+  },
 
   handler: function sm_handler(action) {
     switch (action) {
