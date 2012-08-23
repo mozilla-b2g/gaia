@@ -345,7 +345,7 @@ var Contacts = (function() {
             var okObject = {
               title: _('ok'),
               callback: Permissions.hide
-            }
+            };
             Permissions.show('', _('no_phones'), okObject);
             break;
           case 1:
