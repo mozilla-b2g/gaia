@@ -21,8 +21,8 @@ var ModalDialog = {
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'authentication', 'username-input', 'password-input',
-      'authentication-message', 'buttons',
-      'error', 'error-back', 'error-reload'];
+      'authentication-message', ,'authentication-ok', 'authentication-cancel',
+      'buttons', 'error', 'error-back', 'error-reload'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -96,7 +96,8 @@ var ModalDialog = {
           WindowManager.kill(this.currentOrigin);
           WindowManager.launch(this.currentOrigin);
         } else if (evt.currentTarget === elements.confirmCancel ||
-            evt.currentTarget === elements.promptCancel) {
+          evt.currentTarget === elements.promptCancel ||
+          evt.currentTarget === elements.authenticationCancel) {
           this.cancelHandler();
         } else {
           this.confirmHandler();
@@ -220,7 +221,7 @@ var ModalDialog = {
       case 'usernameandpassword':
         evt.detail.returnValue = {
           username: elements.usernameInput.value,
-          password: elements.password.value
+          password: elements.passwordInput.value
         };
         elements.authentication.classList.remove('visible');
         break;

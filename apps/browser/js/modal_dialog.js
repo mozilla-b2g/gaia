@@ -23,7 +23,7 @@ var ModalDialog = {
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'authentication', 'username-input', 'password-input',
-      'authentication-message'];
+      'authentication-message', 'authentication-ok', 'authentication-cancel'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -83,7 +83,8 @@ var ModalDialog = {
 
       case 'click':
         if (evt.currentTarget === elements.confirmCancel ||
-            evt.currentTarget === elements.promptCancel) {
+            evt.currentTarget === elements.promptCancel ||
+            evt.currentTarget === elements.authenticationCancel) {
           this.cancelHandler();
         } else {
           this.confirmHandler();
