@@ -36,7 +36,9 @@ function CredentialsDB(provider) {
     }
 
     // Now build the database
-    var filestore = db.createObjectStore('credentials', { keyPath: 'screen_name' });
+    var filestore = db.createObjectStore(
+      'credentials', { keyPath: 'screen_name' }
+    );
     credsdb.indexes.forEach(function(indexName)  {
       // the index name is also the keypath
       filestore.createIndex(indexName, indexName);
@@ -50,7 +52,8 @@ function CredentialsDB(provider) {
 
     // Log any errors that propagate up to here
     credsdb.db.onerror = function(event) {
-      console.error('CredentialsDB: ', event.target.error && event.target.error.name);
+      console.error('CredentialsDB: ',
+        event.target.error && event.target.error.name);
     }
 
     // We're ready now. Call the onready callback function
@@ -83,7 +86,8 @@ CredentialsDB.prototype = {
   },
 
   setcreds: function(creds, callback) {
-    var store = this.db.transaction('credentials', 'readwrite').objectStore('credentials');
+    var trans = this.db.transaction('credentials', 'readwrite');
+    var store = trans.objectStore('credentials');
     var addRequest = store.add(creds);
     addRequest.onerror = function(e) {
       e.stopPropagation();
@@ -95,7 +99,8 @@ CredentialsDB.prototype = {
   },
 
   delcreds: function(screenName, callback) {
-    var store = this.db.transaction('credentials', 'readwrite').objectStore('credentials');
+    var trans = this.db.transaction('credentials', 'readwrite');
+    var store = trans.objectStore('credentials');
     var delRequest = store.delete(screenName);
     delRequest.onerror = function(e) {
       callback(e);
@@ -125,5 +130,5 @@ CredentialsDB.prototype = {
         callback(null);
       }
     };
-  },
-}
+  }
+};
