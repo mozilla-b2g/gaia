@@ -10,15 +10,11 @@
 
 // WordComposer to store each key the user inputs
 var WordComposer = function WordComposer() {
-  var N = WordComposer.MAX_WORD_LENGTH;
   this._codes = [];
   this._typedWord = '';
-  this._xCoordinates = new Int32Array(N);
-  this._yCoordinates = new Int32Array(N);
+  this._xCoordinates = [];
+  this._yCoordinates = [];
 };
-
-/** @const The maximum word length allowed for predictive */
-WordComposer.MAX_WORD_LENGTH = 48;
 
 WordComposer.prototype = {
   //  add a key stroke
@@ -26,11 +22,8 @@ WordComposer.prototype = {
     this._codes.push(primaryCode);
     var newIndex = this.size();
     this._typedWord += String.fromCharCode(primaryCode);
-
-    if (newIndex < WordComposer.MAX_WORD_LENGTH) {
-      this._xCoordinates[newIndex] = x;
-      this._yCoordinates[newIndex] = y;
-    }
+    this._xCoordinates.push(x);
+    this._yCoordinates.push(y);
   },
 
   get lastKeyCode() {
