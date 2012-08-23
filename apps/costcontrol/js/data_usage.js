@@ -39,17 +39,17 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
   // Graphs colors
   var colorMobile = {
-      stroke: '#088e38', 
-      fill: '#19df5f', 
-      axis: "#000000", 
-      grid: "#DDDDDD"
+      stroke: '#046559', 
+      fill: '#009d89', 
+      axis: "transparent", 
+      grid: "transparent"
     };
 
   var colorWifi = {
-    stroke: '#3300AA', 
-    fill: '#00AAFF', 
-    axis: "#000000", 
-    grid: "#DDDDDD"
+    stroke: '#9ca81e', 
+    fill: '#cbd936', 
+    axis: "transparent", 
+    grid: "transparent"
   };
 
   for(var type in networkTypes){
@@ -222,8 +222,9 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
 });
 
+
 // Font size recalc
-// document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
 //     var regionNetStats = document.getElementById('dataUsage');
 //     if (window.innerWidth <= window.innerHeight) {
 //       var changeScale = window.innerWidth / 32;
@@ -236,6 +237,6 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 //       regionNetStats.classList.remove('portrait');
 //       regionNetStats.classList.add('landscape');
 //     }
-// })
+});
 
 

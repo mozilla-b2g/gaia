@@ -196,23 +196,23 @@
       <div class="view-scroll">
         <section class="content">
           <ul class="toggle-data">
-            <li>
+            <li id="toggleMobile">
               <label>
-                <input type="checkbox">
+                <input type="checkbox" checked="checked">
                 <span>3G <em id="mobileOverview">--</em></span>
               </label>
             </li>
-            <li>
+            <li id="toggleWifi">
               <label>
-                <input type="checkbox">
+                <input type="checkbox" checked="checked">
                 <span>WIFI <em id="wifiOverview">--</em></span>
               </label>
             </li>
           </ul>
 
           <section class="graph">
-            <canvas id="wifiGraphCanvas"></canvas>
-            <canvas id="mobileGraphCanvas"></canvas>
+            <canvas id="wifiGraphCanvas" aria-hidden="false"></canvas>
+            <canvas id="mobileGraphCanvas" aria-hidden="false"></canvas>
          </section>
         </section>
 

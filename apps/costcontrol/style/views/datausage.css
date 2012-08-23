@@ -5,6 +5,8 @@
   border-bottom: solid 1px #d7d8d6;
 }
 
+
+/* DATA TOGGLE */
 .view[data-viewname="datausage"]  .toggle-data {
   list-style: none;
   padding: 0;
@@ -86,7 +88,22 @@
   border-color: #aab71d;
 }
 
-/* Settings extended */
+/* GRAPHS */
+.view[data-viewname="datausage"] section.graph {
+  position: relative;
+  height: 16.5rem;
+}
+
+.view[data-viewname="datausage"] section.graph canvas {
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  width: 100%;
+}
+
+
+
+/* SETTINGS EXTENDED */
 .view[data-viewname="datausage"] section.settings header {
   border-bottom: solid 1px #d7d8d6;
   overflow: hidden;
@@ -97,7 +114,6 @@
   font-weight: 600;
   font-size: 1.4rem;
 }
-
 
 .view[data-viewname="datausage"] section.settings header h1 {
   float: left;
