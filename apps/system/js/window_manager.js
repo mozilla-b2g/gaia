@@ -279,7 +279,8 @@ var WindowManager = (function() {
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
-    else if (currentApp && currentApp != homescreen && newApp == homescreen) {
+    else if ((currentApp && currentApp != homescreen) &&
+             (newApp == homescreen || newApp == null)) {
       // Animate the window close
       setAppSize(newApp);
       closeWindow(currentApp, callback);
