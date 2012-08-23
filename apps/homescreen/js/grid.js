@@ -203,45 +203,49 @@ const GridManager = (function() {
         return;
 
       if (xhr.status == 0 || xhr.status == 200) {
-        var init = JSON.parse(xhr.responseText);
-        init.grid.forEach(function(page) {
-          pageHelper.push(page);
+        try {
+          var init = JSON.parse(xhr.responseText);
+          init.grid.forEach(function(page) {
+            pageHelper.push(page);
+
+            for (var i = apps.length - 1; i >= 0; i--) {
+              if (page.indexOf(apps[i]['origin']) != -1) {
+                apps.splice(i, 1);
+              }
+            }
+          });
 
           for (var i = apps.length - 1; i >= 0; i--) {
-            if (page.indexOf(apps[i]['origin']) != -1) {
+            if (init.dock.indexOf(apps[i]['origin']) != -1) {
               apps.splice(i, 1);
             }
           }
-        });
+          HomeState.saveShortcuts(init.dock);
+        } catch(e) {
+          dump('Failed parsing homescreen configuration file: ' + e + '\n');
+        }
 
-        for (var i = apps.length - 1; i >= 0; i--) {
-          if (init.dock.indexOf(apps[i]['origin']) != -1) {
-            apps.splice(i, 1);
+       var max = pageHelper.getMaxPerPage();
+        var list = [];
+        for (var i = 0; i < apps.length; i++) {
+          list.push(apps[i]);
+          if (list.length === max) {
+            pageHelper.push(list);
+            list = [];
           }
         }
-        HomeState.saveShortcuts(init.dock);
-      }
 
-      var max = pageHelper.getMaxPerPage();
-      var list = [];
-      for (var i = 0; i < apps.length; i++) {
-        list.push(apps[i]);
-        if (list.length === max) {
+        if (list.length > 0) {
           pageHelper.push(list);
-          list = [];
         }
+
+        // Renders pagination bar
+        updatePaginationBar();
+        finish();
+
+        // Saving initial state
+        pageHelper.saveAll();
       }
-
-      if (list.length > 0) {
-        pageHelper.push(list);
-      }
-
-      // Renders pagination bar
-      updatePaginationBar();
-      finish();
-
-      // Saving initial state
-      pageHelper.saveAll();
     }
   }
 
