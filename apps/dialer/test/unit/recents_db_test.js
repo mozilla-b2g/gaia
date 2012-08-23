@@ -27,8 +27,8 @@ suite('dialer/recents_db', function() {
     });
 
     test('#delete_all', function(done) {
-      subject._deleteAll(function() {
-        subject._get(function(entries) {
+      subject.deleteAll(function() {
+        subject.get(function(entries) {
           assert.length(entries, 0, 'All entries erased');
           done();
         });
@@ -36,7 +36,7 @@ suite('dialer/recents_db', function() {
     });
   });
 
-  suite('#ussage', function() {
+  suite('#usage', function() {
     test('#adding', function(done) {
       var numAdditions = 0;
       callList.forEach(function(call) {
@@ -58,8 +58,8 @@ suite('dialer/recents_db', function() {
     });
 
     test('#delete_single', function(done) {
-      subject._delete(singleCall, function() {
-        subject._get(function(entries) {
+      subject.delete(singleCall, function() {
+        subject.get(function(entries) {
           assert.length(entries, callList.length);
           entries.forEach(function(entry) {
             assert.notEqual(entry.number, singleCall.number);
@@ -70,8 +70,8 @@ suite('dialer/recents_db', function() {
     });
 
     test('#delete_list', function(done) {
-      subject._deleteList(callList, function() {
-        subject._get(function(entries) {
+      subject.deleteList(callList, function() {
+        subject.get(function(entries) {
           assert.length(entries, 0);
           done();
         });
