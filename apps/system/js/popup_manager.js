@@ -64,11 +64,14 @@ var PopupManager = {
     popup.addEventListener('mozbrowserloadstart', this);
   },
 
-  close: function pm_close(evt) {
+  _closeHelper: function pm_closeHelper(evt) {
     if (evt && (!'frameType' in evt.target.dataset ||
         evt.target.dataset.frameType !== 'popup'))
       return;
+    this.close();
+  },
 
+  close: function pm_close(callback) {
     this.screen.classList.remove('popup');
 
     var self = this;
@@ -79,10 +82,13 @@ var PopupManager = {
 
       // If the popup was opened as a trusted UI on top of the homescreen
       // we show the last displayed application.
-      if (this._lastDisplayedApp) {
+      if (self._lastDisplayedApp) {
         WindowManager.setDisplayedApp(self._lastDisplayedApp);
         self._lastDisplayedApp = null;
       }
+
+      if (callback)
+        callback();
     });
 
     // We just removed the focused window leaving the system
@@ -134,7 +140,7 @@ var PopupManager = {
         this._openHelper(evt);
         break;
       case 'mozbrowserclose':
-        this.close(evt);
+        this._closeHelper(evt);
         break;
       case 'home':
         this.backHandling(evt);
