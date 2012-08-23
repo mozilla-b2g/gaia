@@ -121,6 +121,7 @@ var Recents = {
 
   recentsHeaderAction: function re_recentsIconEditAction(event) {
     if (event) {
+      var toggleEditionMode = true;
       switch (event.target ? event.target.id : event) {
         case 'edit-button': // Entering edit mode
           // Updating header
@@ -138,13 +139,18 @@ var Recents = {
           break;
         case 'delete-button': // Commit deletions and exit edit mode
           // Execute deletion of the lists
-          this.executeDeletion();
-          this.render();
+          if (this.executeDeletion()) {
+            this.render();
+          } else {
+            toggleEditionMode = false;
+          }
           break;
       }
     }
-    this.recentsView.classList.toggle('recents-edit');
-    this._recentsEditionMode = !this._recentsEditionMode;
+    if (toggleEditionMode) {
+      this.recentsView.classList.toggle('recents-edit');
+      this._recentsEditionMode = !this._recentsEditionMode;
+    }
   },
 
   filter: function re_filter(event) {
@@ -299,6 +305,10 @@ var Recents = {
     for (var i = 0; i < length; i++) {
       items[i].classList.add('selected');
     }
+    var count = this.getSelectedEntries().length;
+    this.headerEditModeText.textContent = _('edit-selected',
+                                            {n: count});
+    this.recentsIconDelete.classList.remove('disabled');
   },
 
   deselectSelectedEntries: function re_deselectSelectedEntries() {
@@ -308,13 +318,11 @@ var Recents = {
     for (var i = 0; i < length; i++) {
       items[i].classList.remove('selected');
     }
+    this.headerEditModeText.textContent = _('edit');
+    this.recentsIconDelete.classList.add('disabled');
   },
 
   executeDeletion: function re_executeDeletion() {
-    var selectedEntries = this.getSelectedEntries();
-    if (selectedEntries.length == 0) {
-      return;
-    }
     var response = window.confirm(_('confirm-deletion'));
     if (response) {
       var self = this;
@@ -334,6 +342,7 @@ var Recents = {
         }
       });
     }
+    return response;
   },
 
   getSameTypeCallsOnSameDay: function re_getSameTypeCallsOnSameDay(
@@ -439,9 +448,11 @@ var Recents = {
       var count = this.getSelectedEntries().length;
       if (count == 0) {
         this.headerEditModeText.textContent = _('edit');
+        this.recentsIconDelete.classList.add('disabled');
       } else {
         this.headerEditModeText.textContent = _('edit-selected',
                                                 {n: count});
+        this.recentsIconDelete.classList.remove('disabled');
       }
     }
   },
@@ -488,8 +499,7 @@ var Recents = {
       '      </section>' +
       '    </div>' +
       '  </section>' +
-      '  <section class="call-log-contact-photo ' +
-           (this._recentsEditionMode ? 'hide' : '') + '">' +
+      '  <section class="call-log-contact-photo' + '">' +
       '  </section>' +
       '</li>';
     return entry;
