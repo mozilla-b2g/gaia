@@ -32,14 +32,12 @@ suite('dialer/recents_db', function() {
           assert.length(entries, 0, 'All entries erased');
           done();
         });
-      })
+      });
     });
   });
 
   suite('#ussage', function() {
-    
     test('#adding', function(done) {
-      
       var numAdditions = 0;
       callList.forEach(function(call) {
         subject.add(call, function() {
@@ -52,8 +50,9 @@ suite('dialer/recents_db', function() {
         self.timeout(1000);
         numAdditions++;
         done(function() {
-          assert.equal(numAdditions, callList.length + 1, 'Number of entries added ' + numAdditions);
-        })
+          assert.equal(numAdditions, callList.length + 1,
+            'Number of entries added ' + numAdditions);
+        });
       });
 
     });
@@ -76,7 +75,7 @@ suite('dialer/recents_db', function() {
           assert.length(entries, 0);
           done();
         });
-      })
+      });
     });
 
   });
