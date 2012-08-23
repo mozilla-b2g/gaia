@@ -109,7 +109,11 @@ body {
   visibility: hidden;
 }
 
-#windows > iframe.appWindow:not(.active):not(.homescreen) {
+#windows > iframe.appWindow:not(.active) {
+  visibility: hidden;
+}
+
+#screen.locked #windows {
   visibility: hidden;
 }
 
