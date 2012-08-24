@@ -1,7 +1,8 @@
-// MCC(Mobile Country Codes)
-// http://en.wikipedia.org/wiki/List_of_mobile_country_codes
+// MCC(Mobile Country Codes) and country name(ISO3166-1) mapping table.
+// Reference Data from:
+//           http://en.wikipedia.org/wiki/List_of_mobile_country_codes
 
-MCC_ISO3166_TABLE = {                                    
+MCC_ISO3166_TABLE = {
 412:'AF',
 276:'AL',
 603:'DZ',
