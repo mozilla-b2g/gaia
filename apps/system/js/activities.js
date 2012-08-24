@@ -23,7 +23,7 @@ var Activities = {
       this.choose('0');
     } else {
       ListMenu.request(this._listItems(choices),
-                       this.choose.bind(this));
+                       this.choose.bind(this), detail.name);
     }
   },
 

@@ -27,10 +27,11 @@ var ListMenu = {
 
   // Pass an array of list items and handler for clicking on the items
   // Modified to fit contextmenu use case, loop into the menu items
-  request: function lm_request(list_items, handler) {
+  request: function lm_request(list_items, handler, title) {
     this.container.innerHTML = '';
     this.currentLevel = 0;
     this.internalList = [];
+    this.setTitle(title);
     this.buildMenu(list_items);
     this.internalList.forEach(function render_item(item) {
       this.container.appendChild(item);
@@ -106,6 +107,15 @@ var ListMenu = {
 
     containerDiv.dataset.level = this.currentLevel;
     this.currentChild = containerDiv.id;
+  },
+
+  setTitle: function lm_setTitle(title) {
+    if (!title)
+      return;
+
+    var titleElement = document.createElement('h3');
+    titleElement.textContent = title;
+    this.container.appendChild(titleElement);
   },
 
   show: function lm_show() {
