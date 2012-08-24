@@ -287,11 +287,9 @@ if (typeof fb.importt === 'undefined') {
 
       var nextidx = 0;
       if (f.cell) {
-        f.cell1 = f.cell;
         f.tel = [{type: ['facebook'], value: f.cell}];
         nextidx = 1;
       }
-      else { f.cell1 = ''; }
 
       if (f.other_phone) {
         if(!f.tel) {
