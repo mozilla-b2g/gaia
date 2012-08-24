@@ -170,24 +170,37 @@ var MessageManager = {
   },
 
   send: function mm_send(number, text, callback) {
-    var settings = window.navigator.mozSettings;
-    var req = settings.getLock().get('ril.radio.disabled');
+    var settings = window.navigator.mozSettings,
+        req = settings.getLock().get('ril.radio.disabled');
+
     req.addEventListener('success', function onsuccess() {
       var status = req.result['ril.radio.disabled'];
 
       if (!status) {
         callbackSend();
       } else {
-        Permissions.show('Flight Safe Mode Activated', 'In order to send a message, you must first disable Flight Safe Mode', {
+        Permissions.show(
+          'Flight Safe Mode Activated',
+          'In order to send a message, you must first disable Flight Safe Mode',
+          {
             title: 'Ok',
-            callback: function(){
+            callback: function() {
               Permissions.hide();
             }
-        });
+          }
+        );
       }
     });
 
-    var callbackSend = function(){
+    req.addEventListener('error', function onerror() {
+      var errorMsg;
+
+      errorMsg = 'Service currently unable.';
+      errorMsg += ' It will be sent when service becomes available.';
+      alert(errorMsg);
+    });
+
+    var callbackSend = function() {
       var req = navigator.mozSms.send(number, text);
       req.onsuccess = function onsuccess() {
         callback(req.result);
