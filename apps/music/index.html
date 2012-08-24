@@ -9,12 +9,12 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" defer src="shared/js/mediadb.js"></script>
     <!-- Use external libraries of mp3 and ogg -->
     <script type="text/javascript" src="js/ext/id3-minimized.js"></script>
     <script type="text/javascript" src="js/ext/ogg.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" src="js/MetadataParser.js"></script>
-    <script type="text/javascript" src="js/MediaDB.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
     <script type="text/javascript" src="js/music.js"></script>
   </head>
@@ -80,8 +80,12 @@
       <button class="tabs-button" id="tabs-albums" data-l10n-id="albums" data-option="album">Albums</button>
       <button class="tabs-button" disabled id="tabs-more" data-l10n-id="more" data-option="more">More</button>
     </div>
-    <div id="nosongs">
-      <div id="nosongs-text" data-l10n-id="noSongs">No Songs</div>
+    <!-- display messages like "Scanning", "No Songs" and "No SD Card" here -->
+    <div id="overlay" class="hidden">
+      <div id="overlay-content">
+        <h1 id="overlay-title"></h1>
+        <p id="overlay-text"><p>
+      </div>
     </div>
   </body>
 </html>

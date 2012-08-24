@@ -15,6 +15,7 @@ suite('service/caldav', function() {
   var fixtures = {};
 
   suiteSetup(function(done) {
+    this.timeout(10000);
     testSupport.calendar.loadSample('single_event.ics', function(err, data) {
       if (err) {
         done(err);

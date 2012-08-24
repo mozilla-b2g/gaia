@@ -3,7 +3,7 @@ html, body {
   padding: 0;
   font-family: "Open Sans", sans-serif;
   overflow: hidden !important;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-image: url(images/attention_background.png);
   background-size: 100% 100%;
 }
 
@@ -15,11 +15,10 @@ html, body {
 }
 
 #ring-icon {
-  width: 60%;
-  height: 36%;
-  left: 20%;
-  top: 20%;
-  height: 36%;
+  width: 48%;
+  height: 34%;
+  left: 26%;
+  top: 8%;
   background-image: url(images/onring.png);
   background-size: 100%;
   background-repeat: no-repeat;
@@ -29,94 +28,106 @@ html, body {
 #ring-clock {
   width: 100%;
   height: 100%;
-  color: #e6e6e6;
+  color: #fbfbfb;
   text-align: center;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 #ring-clock-display {
-  width: 100%;
-  margin-top: 80%;
+  width: 86%;
+  margin-top: 44%;
+  border-bottom: 0.2rem solid rgba(122, 122, 122, 0.65);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #ring-clock-time {
-  font: lighter 13rem 'Open Sans', sans-serif;
-  line-height: 13rem;
-  height: 13rem;
+  font: lighter 5rem 'Open Sans', sans-serif;
+  line-height: 9rem;
   width: 100%;
 }
 
 #ring-clock-hour24-state {
-  font: lighter 4rem 'Open Sans', sans-serif;
-  line-height: 4rem;
-  text-transform:lowercase;
-  padding-left: 0.3rem;
+  font: lighter 5rem 'Open Sans', sans-serif;
+  line-height: 8rem;
+  padding-left: 1.5rem;
 }
 
-#ring-lunch-time {
-  font: lighter 5rem 'Open Sans',sans-serif;
-  line-height: 7rem;
-  height: 7rem;
-}
-
-#ring-lunch-time-mask {
-  display: block;
-  height: 7rem;
-  position: absolute;
-  width: 100%;
+#ring-alarm-label {
+  font: lighter 4rem 'Open Sans',sans-serif;
+  line-height: 10rem;
+  white-space: nowrap; 
+  text-overflow: ellipsis;
 }
 
 #footer-button-container {
   width: 100%;
-  height: 10rem;
+  height: 11.5rem;
   left: 0;
   bottom: 0;
-  background: url(images/attention_btn_container.png);
+  background: url(images/attention_button_container.png);
   background-size: 100% 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   position: absolute;
-}
-
-#footer-buttons {
-  background: -moz-linear-gradient(center top, #ccc 10%, #fcfcfc 30%);
-  height: 8rem;
-  width: 90%;
-  margin: auto;
-  border-left: 0.2rem solid gray;
-  border-right: 0.2rem solid gray;
-  overflow: visible;
-}
-
-#ring-button-snooze {
-  float: left;
-  width: 50%;
-  height: 100%;
-  background: -moz-linear-gradient(bottom, #ccc, #fafafa);
-  color: #737373;
-  font: normal 3rem/9rem 'Open Sans', sans-serif;
-  text-align: center;
-  -moz-box-sizing: border-box;
-  background: url(images/attention_btn_separator.png) no-repeat scroll right center transparent;
-  background-size: auto 85%;
-}
-
-#ring-button-snooze:active {
-  color: #00abcd;
-  -moz-border-bottom-colors: #00abcd #00abcd #00abcd #00abcd #00abcd #008daa #0086a2 #00778f #006f86;
-  border-bottom: solid 1rem;
 }
 
 #ring-button-close {
   float: left;
-  width: 50%;
-  height: 100%;
-  color: #737373;
-  font: normal 3rem/9rem 'Open Sans', sans-serif;
+  width: -moz-calc((100% - 6.5rem) / 2 );
+  -moz-box-sizing: border-box;
+  background: url("images/ring_button_snooze.png") repeat-x scroll left bottom #FAFAFA;
+  border: 1px solid #9F9F9F;
+  border-radius: 0.4rem 0.4rem 0.4rem 0.4rem;
+  color: #333333;
+  display: inline-block;
+  font: 600 2.6rem/6.5rem 'Open Sans', sans-serif;
+  height: 6.6rem;
+  margin: 2.4rem 0 0 2.5rem;
+  outline: medium none;
+  overflow: hidden;
+  padding: 0 1.5rem;
   text-align: center;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 #ring-button-close:active {
-  color: #00abcd;
-  -moz-border-bottom-colors: #00abcd #00abcd #00abcd #00abcd #00abcd #008daa #0086a2 #00778f #006f86;
-  border-bottom: solid 1rem;
+  background: none repeat scroll 0 0 #008AAA;
+  border-color: #008AAA;
+  color: #333333;
+}
+
+#ring-button-snooze {
+  float: left;
+  width: -moz-calc((100% - 6.5rem) / 2 );
+  -moz-box-sizing: border-box;
+  background: url("images/ring_button_close.png") repeat-x scroll left bottom #FAFAFA;
+  background-color: #00CAF2;
+  border: 1px solid #00ACCE;
+  border-radius: 0.4rem 0.4rem 0.4rem 0.4rem;
+  color: #333333;
+  display: inline-block;
+  font: 600 2.6rem/6.5rem 'Open Sans', sans-serif;
+  height: 6.6rem;
+  margin: 2.4rem 2.5rem 0 1.5rem;
+  outline: medium none;
+  overflow: hidden;
+  padding: 0 1.5rem;
+  text-align: center;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+#ring-button-snooze:active {
+  background: none repeat scroll 0 0 #008AAA;
+  border-color: #008AAA;
+  color: #333333;
 }
 
 /* 320x480 phones */

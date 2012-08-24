@@ -88,28 +88,30 @@ var RecentsDBManager = {
       this._add.call(this, recent);
     }
   },
-  _delete: function rdbm_delete(callLogEntry, callback) {
-    var txn = database.transaction(RecentsDBManager._dbStore, 'readwrite');
-    var store = txn.objectStore(RecentsDBManager._dbStore);
-    var delRequest = store.delete(new Number(callLogEntry.date));
+  delete: function rdbm_delete(callLogEntry, callback) {
+    this._checkDBReady.call(this, function _delete() {
+      var txn = this.db.transaction(RecentsDBManager._dbStore, 'readwrite');
+      var store = txn.objectStore(RecentsDBManager._dbStore);
+      var delRequest = store.delete(callLogEntry.date);
 
-    delRequest.onsuccess = function de_onsuccess() {
-      if (callback && callback instanceof Function) {
-        callback();
+      delRequest.onsuccess = function de_onsuccess() {
+        if (callback && callback instanceof Function) {
+          callback();
+        }
       }
-    }
 
-    delRequest.onerror = function de_onsuccess(e) {
-      console.log('dialerRecents delete item failure: ',
-          e.message, delRequest.errorCode);
-    }
+      delRequest.onerror = function de_onsuccess(e) {
+        console.log('dialerRecents delete item failure: ',
+            e.message, delRequest.errorCode);
+      }
+    });
   },
-  _deleteList: function rdbm_deleteList(list, callback) {
+  deleteList: function rdbm_deleteList(list, callback) {
     if (list.length > 0) {
       var itemToDelete = list.pop();
       var self = this;
-      this._delete(itemToDelete, function() {
-        self._deleteList(list, callback);
+      this.delete(itemToDelete, function() {
+        self.deleteList(list, callback);
       });
     } else {
       if (callback && callback instanceof Function) {
@@ -117,7 +119,7 @@ var RecentsDBManager = {
       }
     }
   },
-  _deleteAll: function rdbm_deleteAll(callback) {
+  deleteAll: function rdbm_deleteAll(callback) {
     this._checkDBReady.call(this, function() {
       var txn = this.db.transaction(RecentsDBManager._dbStore, 'readwrite');
       var store = txn.objectStore(RecentsDBManager._dbStore);
@@ -136,7 +138,7 @@ var RecentsDBManager = {
     });
   },
   // Method for retrieving all recents from DB
-  _get: function rdbm_get(callback) {
+  get: function rdbm_get(callback) {
     var objectStore = this.db.transaction(RecentsDBManager._dbStore).
       objectStore(RecentsDBManager._dbStore);
     var recents = [];

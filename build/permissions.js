@@ -46,7 +46,7 @@ Gaia.webapps.forEach(function (webapp) {
         }
       }
       if (manifest.attention_page) {
-        let uri = ioservice.newURI(rootURL + manifest.attention_page, null, null);
+        let uri = Services.io.newURI(rootURL + manifest.attention_page, null, null);
         log("add permission: " + rootURL + manifest.attention_page+ ", " + name);
         Services.perms.add(uri, name, Ci.nsIPermissionManager.ALLOW_ACTION);
       }
