@@ -71,6 +71,7 @@
   font-style: normal;
   font-weight: normal;
   font-size: 1.4rem;
+  opacity: 0;
 }
 
 /* Active state */
@@ -87,6 +88,11 @@
   background: #cbd936;
   border-color: #aab71d;
 }
+
+.view[data-viewname="datausage"]  .toggle-data li input:checked + span em {
+  opacity: 1;
+}
+
 
 /* GRAPHS */
 .view[data-viewname="datausage"] section.graph {
