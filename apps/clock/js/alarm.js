@@ -604,8 +604,6 @@ var AlarmEditView = {
       case 'repeat-select':
         switch (evt.type) {
           case 'blur':
-            this.refreshRepeatMenu(this.getRepeatSelect());
-            break;
           case 'change':
             this.refreshRepeatMenu(this.getRepeatSelect());
             break;
@@ -617,8 +615,6 @@ var AlarmEditView = {
       case 'sound-select':
         switch (evt.type) {
           case 'blur':
-            this.refreshSoundMenu(this.getSoundSelect());
-            break;
           case 'change':
             this.refreshSoundMenu(this.getSoundSelect());
             break;
@@ -630,8 +626,6 @@ var AlarmEditView = {
       case 'snooze-select':
         switch (evt.type) {
           case 'blur':
-            this.refreshSnoozeMenu(this.getSnoozeSelect());
-            break;
           case 'change':
             this.refreshSnoozeMenu(this.getSnoozeSelect());
             break;
@@ -706,11 +700,11 @@ var AlarmEditView = {
   },
 
   initSoundSelect: function aev_initSoundSelect() {
-    ChangeSelectByValue(this.soundSelect, this.alarm.sound);
+    changeSelectByValue(this.soundSelect, this.alarm.sound);
   },
 
   getSoundSelect: function aev_getSoundSelect() {
-    return GetSelectedValue(this.soundSelect);
+    return getSelectedValue(this.soundSelect);
   },
 
   refreshSoundMenu: function aev_refreshSoundMenu(sound) {
@@ -720,11 +714,11 @@ var AlarmEditView = {
   },
 
   initSnoozeSelect: function aev_initSnoozeSelect() {
-    ChangeSelectByValue(this.snoozeSelect, this.alarm.snooze);
+    changeSelectByValue(this.snoozeSelect, this.alarm.snooze);
   },
 
   getSnoozeSelect: function aev_getSnoozeSelect() {
-    return GetSelectedValue(this.snoozeSelect);
+    return getSelectedValue(this.snoozeSelect);
   },
 
   refreshSnoozeMenu: function aev_refreshSnoozeMenu(snooze) {
@@ -749,8 +743,8 @@ var AlarmEditView = {
     this.alarm.hour = hour;
     this.alarm.minute = this.timePicker.minute.getSelectedDisplayedText();
     this.alarm.repeat = this.getRepeatSelect();
-    this.alarm.sound = GetSelectedValue(this.soundSelect);
-    this.alarm.snooze = GetSelectedValue(this.snoozeSelect);
+    this.alarm.sound = this.getSoundSelect();
+    this.alarm.snooze = this.getSnoozeSelect();
 
     if (!this.alarm.label) {
       this.labelInput.nextElementSibling.textContent = _('required');
