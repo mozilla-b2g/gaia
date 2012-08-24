@@ -20,7 +20,6 @@ var MessageManager = {
     }
     window.addEventListener('hashchange', this);
     document.addEventListener('mozvisibilitychange', this);
-
   },
   slide: function mm_slide(callback) {
     var bodyClass = document.body.classList;
@@ -175,10 +174,10 @@ var MessageManager = {
 
     throwGeneralError = function() {
       CustomDialog.show(
-        'Service currently unable.',
-        'It will be sent when service becomes available.',
+        _('sendGeneralErrorTitle'),
+        _('sendGeneralErrorBody'),
         {
-          title: 'Ok',
+          title: _('sendGeneralErrorBtnOk'),
           callback: function() {
             CustomDialog.hide();
           }
@@ -190,22 +189,16 @@ var MessageManager = {
       var req = settings.getLock().get('ril.radio.disabled');
 
       req.addEventListener('success', function onsuccess() {
-        var status = req.result['ril.radio.disabled'],
-            errorMsgTitle,
-            errorMsgBodyP1,
-            errorMsgBodyP2;
+        var status = req.result['ril.radio.disabled'];
 
         if (!status) {
           callbackSend();
         } else {
-          errorMsgTitle = 'Flight Safe Mode Activated';
-          errorMsgBodyP1 = 'In order to send a message,';
-          errorMsgBodyP2 = ' you must first disable Flight Safe Mode';
           CustomDialog.show(
-            errorMsgTitle,
-            errorMsgBodyP1 + errorMsgBodyP2,
+            _('sendFlightModeTitle'),
+            _('sendFlightModeBody'),
             {
-              title: 'Ok',
+              title: _('sendFlightModeBtnOk'),
               callback: function() {
                 CustomDialog.hide();
               }
