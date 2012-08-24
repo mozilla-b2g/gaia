@@ -179,13 +179,13 @@ var MessageManager = {
       if (!status) {
         callbackSend();
       } else {
-        Permissions.show(
+        CustomDialog.show(
           'Flight Safe Mode Activated',
           'In order to send a message, you must first disable Flight Safe Mode',
           {
             title: 'Ok',
             callback: function() {
-              Permissions.hide();
+              CustomDialog.hide();
             }
           }
         );
@@ -193,11 +193,16 @@ var MessageManager = {
     });
 
     req.addEventListener('error', function onerror() {
-      var errorMsg;
-
-      errorMsg = 'Service currently unable.';
-      errorMsg += ' It will be sent when service becomes available.';
-      alert(errorMsg);
+      CustomDialog.show(
+        'Service currently unable.',
+        'It will be sent when service becomes available.',
+        {
+          title: 'Ok',
+          callback: function() {
+            CustomDialog.hide();
+          }
+        }
+      );
     });
 
     var callbackSend = function() {
