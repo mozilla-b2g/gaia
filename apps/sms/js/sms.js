@@ -682,7 +682,7 @@ var ThreadUI = {
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
     // XXX: Workaround for country code threading issue.
-    // We convert the header to national number(if convertable).
+    // We convert the header to national number(if convertible).
     var nationalNum = PhoneNumberManager.isValidNumber(number) ?
           PhoneNumberManager.getNumberSet(number).national : number;
     self.title.innerHTML = nationalNum;
