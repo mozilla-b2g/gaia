@@ -12,6 +12,7 @@ var ContextMenu = {
     if (evt.detail.contextmenu.items.length == 0)
       return;
 
+    console.log('=======',evt);
     ListMenu.request(evt.detail.contextmenu.items,
       function sm_clickHandler(action) {
         evt.detail.contextMenuItemSelected(action);
