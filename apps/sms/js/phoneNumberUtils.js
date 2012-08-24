@@ -16,7 +16,9 @@ var PhoneNumberManager = {
     this.phoneUtil = i18n.phonenumbers.PhoneNumberUtil.getInstance();
     this.format = i18n.phonenumbers.PhoneNumberFormat;
     var conn = window.navigator.mozMobileConnection;
-    this.region = conn ? MCC_ISO3166_TABLE[conn.data.network.mcc] : 'TW';
+    // TODO: Here we use Brazil for default mcc. We may need to record the mcc
+    //       and apply it if we could not get connection data in the future.
+    this.region = conn ? MCC_ISO3166_TABLE[conn.data.network.mcc] : 'BR';
   },
 
   getNumberSet: function pnm_getNumberSet(numInput) {
