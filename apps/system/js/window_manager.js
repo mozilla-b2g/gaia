@@ -263,6 +263,9 @@ var WindowManager = (function() {
 
   // Switch to a different app
   function setDisplayedApp(origin, callback, url) {
+    if (origin == null)
+      origin = homescreen;
+
     var currentApp = displayedApp, newApp = origin;
 
     // Case 1: the app is already displayed
@@ -279,8 +282,7 @@ var WindowManager = (function() {
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
-    else if ((currentApp && currentApp != homescreen) &&
-             (newApp == homescreen || newApp == null)) {
+    else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       // Animate the window close
       setAppSize(newApp);
       closeWindow(currentApp, callback);
