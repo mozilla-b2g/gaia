@@ -462,6 +462,10 @@ var AlarmManager = {
     request.onerror = function(e) {
       console.log('get all alarm fail');
     };
+  },
+
+  getAlarmLabel: function am_getAlarmLabel() {
+    return this._onFireAlarm.label;
   }
 
 };
@@ -662,7 +666,8 @@ var AlarmEditView = {
     }
     var error = false;
 
-    this.alarm.label = this.labelInput.value;
+    var label = this.labelInput.value;
+    this.alarm.label = (label) ? label : 'Alarm';
     this.alarm.enabled = true;
     var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
     var hour = this.timePicker.hour.getSelectedDisplayedText();
@@ -670,11 +675,6 @@ var AlarmEditView = {
     hour = hour + hour24Offset;
     this.alarm.hour = hour;
     this.alarm.minute = this.timePicker.minute.getSelectedDisplayedText();
-
-    if (!this.alarm.label) {
-      this.labelInput.nextElementSibling.textContent = _('required');
-      error = true;
-    }
 
     if (!error) {
       AlarmsDB.putAlarm(this.alarm, function al_putAlarmList(alarm) {
