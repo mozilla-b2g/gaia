@@ -1,0 +1,47 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install', 'js-test-agent' ]
+2 info using npm@1.1.45
+3 info using node@v0.8.4
+4 verbose config file /Users/michal/.npmrc
+5 verbose config file /usr/local/etc/npmrc
+6 verbose config file /usr/local/lib/node_modules/npm/npmrc
+7 verbose read json /Users/michal/Desktop/MOZ/gaia/package.json
+8 verbose read json /Users/michal/Desktop/MOZ/gaia/package.json
+9 verbose cache add [ 'js-test-agent', null ]
+10 silly cache add name=undefined spec="js-test-agent" args=["js-test-agent",null]
+11 verbose parsed url { pathname: 'js-test-agent',
+11 verbose parsed url   path: 'js-test-agent',
+11 verbose parsed url   href: 'js-test-agent' }
+12 silly lockFile 7c0c17c8-js-test-agent js-test-agent
+13 verbose lock js-test-agent /Users/michal/.npm/7c0c17c8-js-test-agent.lock
+14 silly lockFile 7c0c17c8-js-test-agent js-test-agent
+15 verbose addNamed [ 'js-test-agent', '' ]
+16 verbose addNamed [ null, '' ]
+17 silly lockFile 781f3fe5-js-test-agent js-test-agent@
+18 verbose lock js-test-agent@ /Users/michal/.npm/781f3fe5-js-test-agent.lock
+19 silly addNameRange { name: 'js-test-agent', range: '', hasData: false }
+20 verbose url raw js-test-agent
+21 verbose url resolving [ 'https://registry.npmjs.org/', './js-test-agent' ]
+22 verbose url resolved https://registry.npmjs.org/js-test-agent
+23 info retry registry request attempt 1 at 18:41:02
+24 http GET https://registry.npmjs.org/js-test-agent
+25 http 404 https://registry.npmjs.org/js-test-agent
+26 silly registry.get cb [ 404,
+26 silly registry.get   { server: 'CouchDB/1.2.0 (Erlang OTP/R15B)',
+26 silly registry.get     date: 'Thu, 23 Aug 2012 16:41:03 GMT',
+26 silly registry.get     'content-type': 'application/json',
+26 silly registry.get     'content-length': '52',
+26 silly registry.get     'cache-control': 'must-revalidate' } ]
+27 silly lockFile 781f3fe5-js-test-agent js-test-agent@
+28 error 404 'js-test-agent' is not in the npm registry.
+28 error 404 You should bug the author to publish it
+28 error 404
+28 error 404 Note that you can also install from a
+28 error 404 tarball, folder, or http url, or git url.
+29 error System Darwin 11.4.1
+30 error command "node" "/usr/local/bin/npm" "install" "js-test-agent"
+31 error cwd /Users/michal/Desktop/MOZ/gaia
+32 error node -v v0.8.4
+33 error npm -v 1.1.45
+34 error code E404
+35 verbose exit [ 1, true ]
