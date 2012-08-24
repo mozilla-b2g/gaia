@@ -404,7 +404,7 @@ var ThreadListUI = {
         }
       });
     } else {
-      window.location.hash = '#thread-list';
+      // do nothing
     }
   },
 
@@ -917,7 +917,7 @@ var ThreadUI = {
         }
       });
     } else {// response
-      window.history.back();
+      // do nothing
     }
   },
 
