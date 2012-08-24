@@ -21,7 +21,7 @@ var ModalDialog = {
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'authentication', 'username-input', 'password-input',
-      'authentication-message', 'buttons',
+      'authentication-message',
       'error', 'error-back', 'error-reload'];
 
     var toCamelCase = function toCamelCase(str) {
@@ -178,7 +178,6 @@ var ModalDialog = {
       break;
     }
 
-    this.elements.buttons.dataset.type = evt.detail.promptType;
     this.setHeight();
   },
 

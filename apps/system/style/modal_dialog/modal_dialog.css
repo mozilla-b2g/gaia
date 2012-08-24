@@ -19,16 +19,6 @@
 /* 480x800 phones */
 @media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
-  #modal-dialog button {
-    text-align: left;
-    width: 200px;
-    height: 60px;
-    color: white;
-    font-size: 30px;
-    border-radius: 6px 6px 6px 6px;
-    margin: 3px;
-  }
-
   #modal-dialog input {
     border-radius: 3px 3px 3px 3px;
     height: 60px;
