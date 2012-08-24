@@ -44,8 +44,12 @@
  */
 Calendar.IntervalTree = (function() {
 
-  function compareObject(a, b) {
+  function compareObjectStart(a, b) {
     return Calendar.compare(a.start, b.start);
+  }
+
+  function compareObjectEnd(a, b) {
+    return Calendar.compare(a.end, b.end);
   }
 
   /**
@@ -208,7 +212,7 @@ Calendar.IntervalTree = (function() {
       var idx = Calendar.binsearch.insert(
         this.items,
         item,
-        compareObject
+        compareObjectStart
       );
 
       this.items.splice(idx, 0, item);
@@ -219,7 +223,7 @@ Calendar.IntervalTree = (function() {
       var idx = Calendar.binsearch.find(
         this.items,
         item.start,
-        compareObject
+        compareObjectStart
       );
 
       var prevIdx;
@@ -283,6 +287,92 @@ Calendar.IntervalTree = (function() {
       }
 
       return false;
+    },
+
+
+    /**
+     * Remove all intervals that start
+     * after a particular time.
+     *
+     *    // assume we have a list of the
+     *    // following intervals
+     *    1-2 4-10 5-10 6-8 8-9
+     *
+     *    tree.removeFutureIntervals(5);
+     *
+     *    // now we have: 1-2, 4-10 5-10
+     *
+     * @param {Numeric} start last start point.
+     */
+    removeFutureIntervals: function(start) {
+      var idx = Calendar.binsearch.insert(
+        this.items,
+        { start: start },
+        compareObjectStart
+      );
+
+      var max = this.items.len - 1;
+
+      // for duplicate values we need
+      // to find the very last one
+      // before the split point.
+      while (this.items[idx].start <= start) {
+        idx++;
+        if (idx === max) {
+          break;
+        }
+      }
+
+      this.synced = false;
+      this.items.splice(
+        idx, this.items.length - idx
+      );
+    },
+
+    /**
+     * Remove all intervals that end
+     * before a particular time.
+     *
+     * For example is you have:
+     *
+     *    // assume we have a list of the
+     *    // following intervals
+     *    1-10, 2-3, 3-4, 4-5
+     *
+     *    tree.removePastIntervals(4);
+     *
+     *    // now we have: 1-10, 4-5
+     *
+     * @param {Numeric} end last end point.
+     */
+    removePastIntervals: function(end) {
+      // 1. first re-sort to end dates.
+      var items = this.items.sort(compareObjectEnd);
+
+      // 2. find index of the last date ending
+      // on or before end.
+      var idx = Calendar.binsearch.insert(
+        items,
+        { end: end },
+        compareObjectEnd
+      );
+
+      var max = items.len - 1;
+
+      // for duplicate values we need
+      // to find the very last one
+      // before the split point.
+      while (items[idx].end <= end) {
+        idx++;
+        if (idx === max) {
+          break;
+        }
+      }
+
+      this.synced = false;
+      this.items = items.slice(idx).sort(
+        compareObjectStart
+      );
     },
 
     /**
