@@ -71,6 +71,11 @@ var NotificationScreen = {
     return this.toasterDetail = document.getElementById('toaster-detail');
   },
 
+  get clearAllButton() {
+    delete this.clearAllButton;
+    return this.clearAllButton = document.getElementById('notification-clear');
+  },
+
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
 
@@ -79,6 +84,8 @@ var NotificationScreen = {
       this.container.addEventListener(evt, this);
       this.toaster.addEventListener(evt, this);
     }, this);
+
+    this.clearAllButton.addEventListener('click', this.clearAll.bind(this));
 
     window.addEventListener('utilitytrayshow', this);
   },
@@ -137,8 +144,8 @@ var NotificationScreen = {
     var offset = detail.direction === 'right' ?
       this._containerWidth : -this._containerWidth;
 
-    this._notification.style.MozTransition = '-moz-transform 0.3s linear';
-    this._notification.style.MozTransform = 'translateX(' + offset + 'px)';
+    this._notification.style.transition = 'transform 0.3s linear';
+    this._notification.style.transform = 'translateX(' + offset + 'px)';
 
     var notification = this._notification;
     this._notification = null;
@@ -148,7 +155,7 @@ var NotificationScreen = {
     notification.addEventListener('transitionend', function trListener() {
       notification.removeEventListener('transitionend', trListener);
 
-      self.removeNotification(notification.dataset.notificationID);
+      self.closeNotification(notification, true);
 
       if (notification != toaster)
         return;
@@ -177,7 +184,7 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    this.removeNotification(notificationNode.dataset.notificationID);
+    this.removeNotification(notificationNode.dataset.notificationID, false);
 
     if (notificationNode == this.toaster) {
       this.toaster.classList.remove('displayed');
@@ -235,27 +242,69 @@ var NotificationScreen = {
     return notificationNode;
   },
 
-  removeNotification: function ns_removeNotification(notificationID) {
+  closeNotification: function ns_closeNotification(notificationNode, animate) {
+    var notificationID = notificationNode.dataset.notificationID;
+
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, {
+      type: 'desktop-notification-close',
+      id: notificationID
+    });
+    window.dispatchEvent(event);
+
+    this.removeNotification(notificationNode.dataset.notificationID, animate);
+  },
+
+  removeNotification: function ns_removeNotification(notificationID, animate) {
     var notifSelector = '[data-notification-i-d="' + notificationID + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
-    // Animating the next notification up
-    var nextNotification = notificationNode.nextSibling;
-    if (nextNotification) {
-      nextNotification.style.MozTransition = '-moz-transform 0.2s linear';
-      nextNotification.style.MozTransform = 'translateY(-80px)';
+
+    if (!animate) {
+      notificationNode.parentNode.removeChild(notificationNode);
+      this.updateStatusBarIcon();
+      return;
+    }
+
+    // Animating the next notifications up
+    var nextNotifsSelector = notifSelector + '~ .notification';
+    var nextNotifications = this.container.querySelectorAll(nextNotifsSelector);
+
+    if (nextNotifications.length) {
+      var n, i;
+      for (i = 0; i < nextNotifications.length; i++) {
+        n = nextNotifications[i];
+
+        n.style.transition = 'transform 0.2s linear';
+        n.style.transform = 'translateY(-62px)';
+      }
 
       var self = this;
-      nextNotification.addEventListener('transitionend', function trWait() {
-        nextNotification.removeEventListener('transitionend', trWait);
-        nextNotification.style.MozTransition = '';
-        nextNotification.style.MozTransform = '';
+      n.addEventListener('transitionend', function trWait() {
+        n.removeEventListener('transitionend', trWait);
 
-        notificationNode.parentNode.removeChild(notificationNode);
-        self.updateStatusBarIcon();
+        for (i = 0; i < nextNotifications.length; i++) {
+          n = nextNotifications[i];
+
+          n.style.transition = '';
+          n.style.transform = '';
+        }
+
+        setTimeout(function nextTick() {
+          notificationNode.parentNode.removeChild(notificationNode);
+          self.updateStatusBarIcon();
+        });
       });
     } else {
       notificationNode.parentNode.removeChild(notificationNode);
       this.updateStatusBarIcon();
+    }
+  },
+
+  clearAll: function ns_clearAll() {
+    var notificationNodes = this.container.querySelectorAll('.notification');
+
+    for (var i = 0; i < notificationNodes.length; i++) {
+      this.closeNotification(notificationNodes[i], false);
     }
   },
 
