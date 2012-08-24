@@ -3,7 +3,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
-(typeof(ICAL) === 'undefined')? ICAL = {} : '';
+(typeof(ICAL) === 'undefined')? this.ICAL = {} : '';
 
 /**
  * Helper functions used in various places within ical.js
@@ -5571,7 +5571,7 @@ function write (chunk) {
   return parser
 }
 
-})(typeof exports === "undefined" ? sax = {} : exports)
+})(typeof exports === "undefined" ? this.sax = {} : exports)
 
 ;
 /* caldav.js - https://github.com/mozilla-b2g/caldav */

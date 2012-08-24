@@ -1,7 +1,9 @@
 ((typeof(Calendar) === 'undefined') ? Calendar = {} : '');
 
+// expose window globally in this
+// context if not available.
 if (typeof(window) === 'undefined') {
-  window = this;
+  this.window = this;
 }
 
 Calendar.Thread = function Thread(worker) {

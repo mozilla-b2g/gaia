@@ -1,15 +1,15 @@
 var MockRecentsDBManager = {
-  _add: function(entry, cb) {
+  add: function(entry, cb) {
     this.mCalledAdd = entry;
     cb.call(this);
   },
 
-  _init: function(cb) {
+  init: function(cb) {
     this.mCalledInit = true;
     cb.call(this);
   },
 
-  _close: function() {
+  close: function() {
     this.mCalledClose = true;
   },
 
