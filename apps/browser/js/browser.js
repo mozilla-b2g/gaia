@@ -303,7 +303,6 @@ var Browser = {
         break;
 
       case 'mozbrowsercontextmenu':
-        console.log('------====i am here!');
         this.showContextMenu(evt);
         break;
 
