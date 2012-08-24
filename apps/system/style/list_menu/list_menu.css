@@ -1,9 +1,22 @@
 #listmenu {
-  display: none;
+  visibility: hidden;
 }
 
 #listmenu.visible {
-  display: block;
+  visibility: visible;
+}
+
+#listmenu menu {
+  -moz-transition: -moz-transform 0.3s ease;
+  -moz-transform: translateY(100%);
+}
+
+#listmenu.visible menu {
+  -moz-transform: translateY(0);
+}
+
+#listmenu menu.slidedown {
+  -moz-transform: translateY(100%);
 }
 
 #listmenu menu button.icon,

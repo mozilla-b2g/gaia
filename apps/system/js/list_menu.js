@@ -109,11 +109,18 @@ var ListMenu = {
   },
 
   show: function lm_show() {
+    var style = this.container.style;
+    this.container.classList.remove('slidedown');
     this.element.classList.add('visible');
   },
 
   hide: function lm_hide() {
-    this.element.classList.remove('visible');
+    var self = this;
+    this.container.addEventListener('transitionend', function onTransitionEnd() {
+      self.element.classList.remove('visible');
+      self.container.removeEventListener('transitionend', onTransitionEnd);
+    });
+    this.container.classList.add('slidedown');
   },
 
   handleEvent: function lm_handleEvent(evt) {
