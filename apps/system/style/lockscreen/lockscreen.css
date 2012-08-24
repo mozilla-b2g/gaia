@@ -17,6 +17,11 @@
     visibility 0.5s ease;
 }
 
+#screen.active-statusbar > #lockscreen {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
+}
+
 #screen:not(.locked) > #lockscreen,
 #screen.lockscreen-camera > #lockscreen {
   -moz-transform: scale(2);

@@ -113,7 +113,11 @@ var Applications = (function() {
    * Returns all installed applications
    */
   function getAll() {
-    return installedApps;
+    var applications = [];
+    for (var app in installedApps) {
+      applications.push(installedApps[app]);
+    }
+    return applications;
   };
 
   function addEventListener(type, callback) {

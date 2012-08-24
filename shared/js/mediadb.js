@@ -450,6 +450,8 @@ MediaDB.prototype = {
   // updated record back to the database. The third argument is optional. If
   // you pass a function, it will be called when the metadata is written.
   updateMetadata: function(filename, metadata, callback) {
+    var media = this;
+
     // First, look up the fileinfo record in the db
     var read = media.db.transaction('files', 'readonly')
       .objectStore('files')
@@ -483,7 +485,6 @@ MediaDB.prototype = {
         }
       }
     }
-
   },
 
 
