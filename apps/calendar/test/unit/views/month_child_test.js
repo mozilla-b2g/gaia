@@ -509,11 +509,14 @@ suite('views/month_child', function() {
       testEl.innerHTML = subject._renderDay(month);
       subject.element = testEl;
 
-      var keys = Object.keys(busytimes.cached);
-
-      list = keys.map(function(key) {
-        subject._renderBusytime(busytimes.cached[key]);
-        return busytimes.cached[key];
+      //TODO: we should probably not be using
+      //a private variable from a store here...
+      //Maybe we should expose the tree directly
+      //on busytimes and make it part of the public
+      //api?
+      list = busytimes._tree.items.map(function(item) {
+        subject._renderBusytime(item);
+        return item;
       });
 
       assert.ok(testEl.querySelector('.busy-1'));

@@ -35,7 +35,6 @@ Calendar.ns('Store').Busytime = (function() {
     _store: 'busytimes',
 
     _setupCache: function() {
-      this._cached = Object.create(null);
       this._timeObservers = [];
 
       this._byEventId = Object.create(null);
@@ -106,6 +105,14 @@ Calendar.ns('Store').Busytime = (function() {
       var b = bObj.start;
 
       return Calendar.compare(a, b);
+    },
+
+    /**
+     * Removes all busytimes that end
+     * before given time in the cache.
+     */
+    purgeOlderFromCache: function() {
+
     },
 
     /**
@@ -308,8 +315,12 @@ Calendar.ns('Store').Busytime = (function() {
       return result;
     },
 
+    /* we don't use id based caching for busytimes */
+
+    _addToCache: function() {},
+    _removeFromCache: function() {},
+
     _onLoadCache: function(object) {
-      this._addToCache(object);
       this._addTime(
         object
       );

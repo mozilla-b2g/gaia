@@ -1,12 +1,9 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('responder.js');
-
-
   requireLib('interval_tree.js');
   requireLib('timespan.js');
   requireLib('store/event.js');
   requireLib('store/busytime.js');
-
 });
 
 suite('store/busytime', function() {
@@ -401,13 +398,11 @@ suite('store/busytime', function() {
     });
 
     test('result', function(done) {
-      subject._cached = Object.create(null);
+      subject._setupCache();
 
       subject.load(function(err, results) {
         done(function() {
-          results = Object.keys(results).map(function(key) {
-            return results[key];
-          });
+          results = subject._tree.items;
           assert.deepEqual(results, expected);
         });
       });
@@ -440,17 +435,22 @@ suite('store/busytime', function() {
     });
 
     test('removal', function(done) {
+      // just load everything...
+      var span = new Calendar.Timespan(
+        new Date(2012, 1, 1),
+        new Date(2015, 1, 1)
+      );
+
       // quick sanity check to make sure
       // we removed in memory stuff
       assert.equal(subject._tree.items.length, 1);
       assert.equal(subject._tree.items[0].eventId, keepModel._id);
 
-      subject._cached = Object.create(null);
-      subject.load(function(err, results) {
+      subject._setupCache();
+      subject.loadSpan(span, function(err, results) {
         done(function() {
-          var keys = Object.keys(results);
-          assert.equal(keys.length, 1);
-          var result = results[keys[0]];
+          assert.equal(results.length, 1);
+          var result = results[0];
           assert.equal(result.eventId, keepModel._id);
         });
       });
