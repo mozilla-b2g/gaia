@@ -612,7 +612,7 @@ suite('views/month_child', function() {
 
     setup(function() {
       controller.currentMonth = day;
-      result = subject._renderWeek(day);
+      result = subject._renderWeek(Calendar.Calc.getWeeksDays(day));
     });
 
     test('html output', function() {
@@ -653,12 +653,38 @@ suite('views/month_child', function() {
 
       days.forEach(function(date) {
         assert.include(
-          result, subject._renderWeek(date),
+          result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
           'should include week of ' + date.getDate()
         );
       });
-
     });
+
+    test('should compose header and six weeks', function() {
+    // We want to check if sixth week is rendered properly
+    // December 2012 has six weeks
+    var newMonth = new Date(2012, 11, 1);
+    var newDays = [
+      newMonth,
+      new Date(2012, 11, 8),
+      new Date(2012, 11, 15),
+      new Date(2012, 11, 22),
+      new Date(2012, 11, 29),
+      new Date(2012, 12, 6)
+    ];
+
+    controller.currentMonth = newDays[0];
+    var result = subject._renderMonth();
+
+    assert.ok(result);
+
+    days.forEach(function(date) {
+      assert.include(
+        result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
+        'should include week of ' + date.getDate()
+      );
+    });
+
+   });
   });
 
   suite('#_busyElement', function() {

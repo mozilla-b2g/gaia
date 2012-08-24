@@ -378,11 +378,7 @@ var WindowManager = (function() {
       // Can't open camera HAL from content processes (bug 782456)
 
       'Clock',
-      // - Alarm notification audio doesn't play (bug 778300)
-      // - Time display is different OOP.  Not a hard blocker of
-      //   OOP. (#3625)
-      // - Layers masking breaks alarm enabled/disabled display (bug
-      //   783106)
+      // Crashing when dismissing the alert window (bug 785166)
 
       'Contacts',
       // - Keyboard always shows up alpha when app using keyboard is
@@ -402,15 +398,16 @@ var WindowManager = (function() {
       'Messages',
       // Crashes when launched OOP (bug 775997)
 
-      'Music',
-      // No audio playback when OOP (bug 784274)
-
       'Settings',
       // Layers masking breaks input fields (bug 783106)
 
       'Video',
       // No videos seem to be found when running OOP (i.e. no video
       // list) (bug 782460)
+
+      'Image Uploader',
+      // Cannot upload files when OOP
+      // bug 783878
 
       'Cost Control'
     ];
