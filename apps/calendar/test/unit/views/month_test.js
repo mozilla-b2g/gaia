@@ -2,9 +2,10 @@ requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
   require('/shared/js/gesture_detector.js');
-  requireApp('calendar/js/templates/month.js');
-  requireApp('calendar/js/views/month_child.js');
-  requireApp('calendar/js/views/month.js');
+  requireLib('timespan.js');
+  requireLib('templates/month.js');
+  requireLib('views/month_child.js');
+  requireLib('views/month.js');
 });
 
 suite('views/month', function() {
@@ -31,8 +32,11 @@ suite('views/month', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="month-view"><div class="monthView"></div>',
-      '<div class="monthHeader"></div></div>'
+      '<div id="current-month-year">',
+      '</div>',
+      '<div id="month-view">',
+        '<div id="month-displays"></div>',
+      '</div>'
     ].join('');
 
     document.body.appendChild(div);
@@ -42,19 +46,23 @@ suite('views/month', function() {
     busytimes = app.store('Busytime');
 
     subject = new Calendar.Views.Month({
-      app: app,
-      monthSelector: '#test .monthView',
-      currentMonthSelector: '#test .monthHeader'
+      app: app
     });
 
   });
 
   test('initialization', function() {
-    assert.equal(subject.monthSelector, '#test .monthView');
-    assert.equal(subject.currentMonthSelector, '#test .monthHeader');
     assert.instanceOf(subject, Calendar.View);
     assert.equal(subject.controller, controller);
     assert.equal(subject.element, document.querySelector('#month-view'));
+  });
+
+  test('#container', function() {
+    assert.ok(subject.container);
+  });
+
+  test('#currentMonth', function() {
+    assert.ok(subject.currentMonth);
   });
 
   suite('events', function() {
@@ -82,24 +90,6 @@ suite('views/month', function() {
 
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
-  });
-
-  test('#monthsDisplayElement', function() {
-    var el = document.querySelector('#test .monthView');
-
-    assert.equal(
-      subject.monthsDisplayElement(),
-      el
-    );
-  });
-
-  test('#currentMonthElement', function() {
-    var el = document.querySelector('#test .monthHeader');
-
-    assert.equal(
-      subject.currentMonthElement(),
-      el
-    );
   });
 
   test('#_renderCurrentMonth', function() {
@@ -191,7 +181,7 @@ suite('views/month', function() {
     });
 
     test('should append new month into dom', function() {
-      var el = subject.monthsDisplayElement().children[0];
+      var el = subject.container.children[0];
 
       assert.ok(subject.children[id]);
 
@@ -203,7 +193,7 @@ suite('views/month', function() {
 
     test('when trying to re-render an existing calendar', function() {
       subject.activateMonth(date);
-      var els = container.querySelectorAll('.monthView > section');
+      var els = subject.container.children;
       assert.length(els, 1, 'should not re-render calendar');
     });
 
@@ -215,7 +205,7 @@ suite('views/month', function() {
       });
 
       test('hides old month and displays new one', function() {
-        var els = container.querySelectorAll('.monthView > section');
+        var els = subject.container.children;
         assert.length(els, 2);
 
         assert.ok(els[0].classList.contains('inactive'));
@@ -224,7 +214,7 @@ suite('views/month', function() {
 
       test('when going back', function() {
         subject.activateMonth(date);
-        var els = container.querySelectorAll('.monthView > section');
+        var els = subject.container.children;
         assert.length(els, 2);
 
         assert.ok(!els[0].classList.contains('inactive'));
@@ -239,7 +229,7 @@ suite('views/month', function() {
     subject.updateCurrentMonth();
 
     assert.include(
-      subject.currentMonthElement().innerHTML,
+      subject.currentMonth.innerHTML,
       subject._renderCurrentMonth()
     );
   });
@@ -252,7 +242,7 @@ suite('views/month', function() {
     });
 
     test('rendered elements', function() {
-      var container = subject.monthsDisplayElement(),
+      var container = subject.container,
           now = new Date();
 
       now.setDate(1);
