@@ -115,7 +115,7 @@
 }
 
 .notification:first-child {
-  border-top-color: transparent;
+  border-top-color: black;
 }
 
 .notification div {
@@ -151,4 +151,11 @@
   height: 32px;
   margin: 14px;
   pointer-events: none;
+}
+
+#lockscreen-notification {
+  position: absolute;
+  top: 13rem;
+  left: 0;
+  width: 100%;
 }
