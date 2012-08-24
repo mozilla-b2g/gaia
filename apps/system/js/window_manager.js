@@ -401,9 +401,13 @@ var WindowManager = (function() {
       'Settings',
       // Layers masking breaks input fields (bug 783106)
 
-      'Video'
+      'Video',
       // No videos seem to be found when running OOP (i.e. no video
       // list) (bug 782460)
+
+      'Image Uploader',
+      // Cannot upload files when OOP
+      // bug 783878
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {
