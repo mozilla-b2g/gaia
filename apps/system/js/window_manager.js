@@ -299,6 +299,15 @@ var WindowManager = (function() {
       });
     }
 
+    // Set homescreen as active,
+    // to control the z-index between homescreen & keyboard iframe
+    var homescreenFrame = runningApps[homescreen].frame;
+    if ((newApp == homescreen) && homescreenFrame) {
+      homescreenFrame.classList.add('active');
+    } else {
+      homescreenFrame.classList.remove('active');
+    }
+
     // Lock orientation as needed
     if (newApp == null) {  // going to the homescreen, so force portrait
       screen.mozLockOrientation('portrait-primary');
@@ -405,7 +414,7 @@ var WindowManager = (function() {
       // No videos seem to be found when running OOP (i.e. no video
       // list) (bug 782460)
 
-      'Image Uploader',
+      'Image Uploader'
       // Cannot upload files when OOP
       // bug 783878
     ];
