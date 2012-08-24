@@ -143,11 +143,13 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   // device list
   var gDeviceList = (function deviceList() {
-    var list = document.querySelector('#bluetooth-devices');
+    var pairList = document.querySelector('#bluetooth-paired-devices');
+    var openList = document.querySelector('#bluetooth-devices');
     var searchAgainBtn = document.querySelector('#bluetooth-search-again');
     var searchingItem = document.querySelector('#bluetooth-searching');
     var enableMsg = document.querySelector('#bluetooth-enable-msg');
-    var index = [];
+    var openIndex = [];
+    var pairIndex = [];
 
     searchAgainBtn.onclick = function searchAgainClicked() {
       updateDeviceList(true); // reset network list
@@ -177,10 +179,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
     // private helper: clear the device list
     function clear() {
-      while (list.hasChildNodes()) {
-        list.removeChild(list.lastChild);
+      while (openList.hasChildNodes()) {
+        openList.removeChild(openList.lastChild);
       }
-      index = [];
+      openIndex = [];
     }
 
 
@@ -204,20 +206,33 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // when DefaultAdapter is ready.
     function initial() {
       startDiscovery();
+      getPairedDevice();
     }
 
     // callback function when an avaliable device found
     function onDeviceFound(evt) {
       // check duplicate
-      var i = length = index.length;
+      var i = length = openIndex.length;
       while (i >= 0) {
-        if (index[i] === evt.device.address) {
+        if (openIndex[i] === evt.device.address) {
           return;
         }
         i -= 1;
       }
-      list.appendChild(newListItem(evt.device));
-      index.push(evt.device.address);
+      openList.appendChild(newListItem(evt.device));
+      openIndex.push(evt.device.address);
+    }
+
+    function getPairedDevice() {
+      var req = defaultAdapter.getPairedDevices();
+      req.onsuccess = function bt_getPairedSuccess() {
+        pairIndex = req.result;
+        //pairIndex[0] = {name: 'evelyn', address: '88:53:46:77:0F:53'};
+        var i = length = pairIndex.length;
+        for (var i = 0; i < length; i++) {
+          pairList.appendChild(newListItem(pairIndex[i]));
+        }
+      };
     }
 
     function startDiscovery() {
