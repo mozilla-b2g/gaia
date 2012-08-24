@@ -72,9 +72,15 @@ var UITest = {
         if (document.body.classList.contains('test')) {
           // openTest
           this.iframe.src = './tests/' + name + '.html';
+          if (name === 'contextmenu') {
+            this.iframe.mozbrowser = true;
+          } else {
+            this.iframe.removeAttribute('mozbrowser');
+          }
         } else {
           // closeTest
           this.iframe.src = 'about:blank';
+          this.iframe.removeAttribute('mozbrowser');
         }
         break;
     }
