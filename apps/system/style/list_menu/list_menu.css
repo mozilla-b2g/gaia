@@ -27,6 +27,16 @@
   background-size: 30px 30px; 
 }
 
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px),
+       (orientation: landscape) and (width: 480px) {
+  #listmenu menu button.icon,
+  #listmenu menu a[role="button"].icon {
+    background-position: 5px center;
+    padding-left: 40px;
+  }
+}
+
 #listmenu menu ul:first-child {
   /* root */
   -moz-transform: translateX('-100%');
