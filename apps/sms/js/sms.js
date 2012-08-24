@@ -171,28 +171,9 @@ var MessageManager = {
 
   send: function mm_send(number, text, callback) {
     var settings = window.navigator.mozSettings,
-        req = settings.getLock().get('ril.radio.disabled');
+        throwGeneralError;
 
-    req.addEventListener('success', function onsuccess() {
-      var status = req.result['ril.radio.disabled'];
-
-      if (!status) {
-        callbackSend();
-      } else {
-        CustomDialog.show(
-          'Flight Safe Mode Activated',
-          'In order to send a message, you must first disable Flight Safe Mode',
-          {
-            title: 'Ok',
-            callback: function() {
-              CustomDialog.hide();
-            }
-          }
-        );
-      }
-    });
-
-    req.addEventListener('error', function onerror() {
+    throwGeneralError = function() {
       CustomDialog.show(
         'Service currently unable.',
         'It will be sent when service becomes available.',
@@ -203,17 +184,52 @@ var MessageManager = {
           }
         }
       );
-    });
+    };
 
-    var callbackSend = function() {
-      var req = navigator.mozSms.send(number, text);
-      req.onsuccess = function onsuccess() {
-        callback(req.result);
-      };
+    if (settings) {
+      var req = settings.getLock().get('ril.radio.disabled');
 
-      req.onerror = function onerror() {
-        callback(null);
-      };
+      req.addEventListener('success', function onsuccess() {
+        var status = req.result['ril.radio.disabled'],
+            errorMsgTitle,
+            errorMsgBodyP1,
+            errorMsgBodyP2;
+
+        if (!status) {
+          callbackSend();
+        } else {
+          errorMsgTitle = 'Flight Safe Mode Activated';
+          errorMsgBodyP1 = 'In order to send a message,';
+          errorMsgBodyP2 = ' you must first disable Flight Safe Mode';
+          CustomDialog.show(
+            errorMsgTitle,
+            errorMsgBodyP1 + errorMsgBodyP2,
+            {
+              title: 'Ok',
+              callback: function() {
+                CustomDialog.hide();
+              }
+            }
+          );
+        }
+      });
+
+      req.addEventListener('error', function onerror() {
+        throwGeneralError();
+      });
+
+      var callbackSend = function() {
+        var req = navigator.mozSms.send(number, text);
+        req.onsuccess = function onsuccess() {
+          callback(req.result);
+        };
+
+        req.onerror = function onerror() {
+          callback(null);
+        };
+      }
+    } else {
+      throwGeneralError();
     }
   },
 

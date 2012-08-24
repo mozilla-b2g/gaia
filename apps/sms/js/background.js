@@ -18,16 +18,7 @@
   SettingsListener.observe('sms.vibration.received', true, function(value) {
     activateSMSVibration = !!value;
   });
-  /*
-  console.log('chris background:**** setting ril.radio.disabled listener');
-  SettingsListener.observe('ril.radio.disabled', false, function(value) {
-    if (value) {
-      console.log('chris background:***** Flight mode is ON');
-    } else {
-      console.log('chris background:***** Flight mode is OFF');
-    }
-  });
-  */
+
   mozSms.addEventListener('received', function received(evt) {
     var message = evt.message;
 
