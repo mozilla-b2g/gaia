@@ -1,4 +1,21 @@
 'use strict';
+// Supported AAC formats
+var aacExtensions = ['.m4a', '.m4b', '.m4p', '.m4v',
+                     '.m4r', '.3gp', '.mp4', '.aac'];
+
+function isSupportedAAC(extension) {
+  var isSupported = false;
+
+  for (var i in aacExtensions) {
+    if (extension === aacExtensions[i])
+      isSupported = true;
+
+      break;
+  }
+
+  return isSupported;
+}
+
 
 // Given an audio file, pass an object of metadata to the callback function
 // or pass an error message to the errback function.
@@ -18,7 +35,7 @@ var metadataParser = (function() {
     var extension = file.name.slice(-4);
     var metadata = {};
 
-    if (extension === '.mp3') {
+    if (extension === '.mp3' || isSupportedAAC(extension)) {
 
       ID3.loadTags(file.name, function() {
         var tags = ID3.getAllTags(file.name);
@@ -29,6 +46,7 @@ var metadataParser = (function() {
         metadata.picture = tags.picture;
 
         callback(metadata);
+        console.log('tags.title: ' + tags.title);
       }, {
         tags: ['album', 'artist', 'title', 'picture'],
         dataReader: FileAPIReader(file)
