@@ -56,7 +56,7 @@ html, body {
 #ring-alarm-label {
   font: lighter 4rem 'Open Sans',sans-serif;
   line-height: 10rem;
-  white-space:nowrap; 
+  white-space: nowrap; 
   text-overflow: ellipsis;
 }
 
