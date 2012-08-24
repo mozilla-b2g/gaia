@@ -77,7 +77,7 @@ var ListMenu = {
         button.dataset.value = item.value;
         button.textContent = item.label;
       }
-      
+
       item_div.appendChild(button);
       if (item.icon) {
         button.style.backgroundImage = 'url(' + item.icon + ')';
@@ -85,7 +85,7 @@ var ListMenu = {
       }
       containerDiv.appendChild(item_div);
     }, this);
-  
+
     if (this.currentLevel > 0) {
       var back = document.createElement('li');
       var button = document.createElement('a');

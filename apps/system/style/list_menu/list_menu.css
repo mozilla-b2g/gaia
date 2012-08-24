@@ -9,8 +9,8 @@
 #listmenu menu button.icon,
 #listmenu menu a[role="button"].icon {
   background-repeat: no-repeat;
-  background-position: 2px 2px;
-  padding-left: 35px;
+  background-position: 10px center;
+  padding-left: 45px;
   background-size: 30px 30px; 
 }
 
@@ -20,7 +20,6 @@
 }
 
 #listmenu menu ul {
-  border: solid 3px green;
   -moz-transform: translateX('100%');
 }
 
