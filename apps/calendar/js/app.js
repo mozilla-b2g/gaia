@@ -90,6 +90,9 @@ Calendar.App = (function(window) {
         this.go('/month/');
       }
 
+      var colors = this.view('CalendarColors');
+      colors.render();
+
       this.syncController.observe();
       this.router.start();
       document.body.classList.remove('loading');

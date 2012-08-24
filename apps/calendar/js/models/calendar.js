@@ -93,6 +93,12 @@
     },
 
     get color() {
+      var color = this.remote.color;
+      if (color) {
+        if (color.substr(0, 1) === '#') {
+          return color.substr(0, 7);
+        }
+      }
       return this.remote.color;
     },
 

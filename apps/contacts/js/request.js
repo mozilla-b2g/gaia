@@ -28,32 +28,62 @@ var Permissions = (function() {
       pending = [];
     },
 
-    show: function permissions_show(title, msg, yescallback, nocallback) {
+    /**
+    * Method that shows the dialog
+    * @param  {String} title the title of the dialog. null or empty for
+    *                        no title.
+    * @param  {String} msg message for the dialog.
+    * @param  {Object} cancel {title, callback} object when confirm.
+    * @param  {Object} confirm {title, callback} object when cancel.
+    */
+    show: function permissions_show(title, msg, cancel, confirm) {
       if (screen === null) {
-        screen = document.createElement('div');
+        screen = document.createElement('section');
+        screen.setAttribute('role', 'region');
         screen.id = 'permission-screen';
 
         dialog = document.createElement('div');
         dialog.id = 'permission-dialog';
+        dialog.setAttribute('role', 'dialog');
         screen.appendChild(dialog);
 
-        header = document.createElement('p');
-        header.id = 'permission-title';
-        dialog.appendChild(header);
+        var info = document.createElement('div');
+        info.className = 'center';
+
+        if (title && title != '') {
+          header = document.createElement('h3');
+          header.id = 'permission-title';
+          header.textContent = title;
+          info.appendChild(header);
+        }
 
         message = document.createElement('p');
         message.id = 'permission-message';
-        dialog.appendChild(message);
+        info.appendChild(message);
+        dialog.appendChild(info);
+
+        var menu = document.createElement('menu');
+        menu.dataset['items'] = 1;
 
         no = document.createElement('button');
-        no.appendChild(document.createTextNode('Cancel'));
+        var noText = document.createTextNode(cancel.title);
+        no.appendChild(noText);
         no.id = 'permission-no';
-        dialog.appendChild(no);
+        no.addEventListener('click', clickHandler);
+        menu.appendChild(no);
 
-        yes = document.createElement('button');
-        yes.appendChild(document.createTextNode('Remove'));
-        yes.id = 'permission-yes';
-        dialog.appendChild(yes);
+        if (confirm) {
+          menu.dataset['items'] = 2;
+          yes = document.createElement('button');
+          var yesText = document.createTextNode(confirm.title);
+          yes.appendChild(yesText);
+          yes.id = 'permission-yes';
+          yes.className = 'negative';
+          yes.addEventListener('click', clickHandler);
+          menu.appendChild(yes);
+        }
+
+        dialog.appendChild(menu);
 
         document.body.appendChild(screen);
       }
@@ -63,8 +93,8 @@ var Permissions = (function() {
         pending.push({
           header: title,
           message: msg,
-          yescallback: yescallback,
-          nocallback: nocallback
+          confirm: confirm,
+          cancel: cancel
         });
         return;
       }
@@ -72,28 +102,22 @@ var Permissions = (function() {
       // Put the message in the dialog.
       // Note plain text since this may include text from
       // untrusted app manifests, for example.
-      header.textContent = title;
       message.textContent = msg;
 
       // Make the screen visible
       screen.classList.add('visible');
-      // Put the dialog in the middle of the screen
-      dialog.style.marginTop = -dialog.offsetHeight / 2 + 'px';
 
       // This is the event listener function for the buttons
       function clickHandler(evt) {
-        // cleanup the event handlers
-        yes.removeEventListener('click', clickHandler);
-        no.removeEventListener('click', clickHandler);
 
         // Hide the dialog
         screen.classList.remove('visible');
 
         // Call the appropriate callback, if it is defined
-        if (evt.target === yes && yescallback) {
-          yescallback();
-        } else if (evt.target === no && nocallback) {
-          nocallback();
+        if (evt.target === yes && confirm.callback) {
+          confirm.callback();
+        } else if (evt.target === no && cancel.callback) {
+          cancel.callback();
         }
 
         // And if there are pending permission requests, trigger the next one
@@ -102,15 +126,11 @@ var Permissions = (function() {
           window.setTimeout(function() {
             Permissions.show(request.header,
                              request.message,
-                             request.yescallback,
-                             request.nocallback);
+                             request.confirm,
+                             request.cancel);
           });
         }
       }
-
-      // Set event listeners for the yes and no buttons
-      yes.addEventListener('click', clickHandler);
-      no.addEventListener('click', clickHandler);
     }
   };
 }());

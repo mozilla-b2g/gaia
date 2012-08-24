@@ -36,9 +36,12 @@
     <script defer type="text/javascript" src="js/sms_integration.js"></script>
     <script defer type="text/javascript" src="js/input_cancel_button.js"></script>
     <script defer type="text/javascript" src="js/fixed_header.js"></script>
+
+    <script defer type="text/javascript" src="js/value_selector.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/value_selector.css">
   </head>
 
-  <body class="hide app-contacts">
+  <body role="application" class="hide app-contacts">
 
     <div id="app" class="views" data-state="active">
       <!-- Contacts List Section -->
@@ -46,7 +49,7 @@
         <div class="view-inner">
 
           <header role="toolbar" class="view-header">
-            <menu role="menu">
+            <menu type="toolbar" role="menu">
               <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
               <button role="menuitem" id="add-contact-button" onclick="Contacts.showAdd();"><span data-icon="add" data-l10n-id="add">add</span></button>
             </menu>
@@ -72,7 +75,7 @@
 
             <div id="groups-container" class="view-body-inner">
               <div id="search-container">
-                <input data-cancelable type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()"/>
+                <input data-cancelable type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()" data-l10n-id="search-contact" />
                 <button id='cancel-search' class="hide" onclick='return contacts.List.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
               </div>
               <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
@@ -90,7 +93,7 @@
 
           <header role="toolbar" id='details-view-header' class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
-            <menu role="menu">
+            <menu type="toolbar" role="menu">
               <button role="menuitem" id="edit-contact-button" onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
             </menu>
             <h1 id='contact-name-title'></h1>
@@ -111,7 +114,7 @@
                       <button class="action" onclick="Contacts.callOrPick('#value#')">
                         <span role="button" class="icon-call" data-l10n-id="call">Call</span>
                         <b>#value#</b>
-                        <em>#notes#</em>
+                        <em>#carrier#</em>
                       </button>
                     </div>
                   </div>
@@ -179,7 +182,7 @@
 
           <header role="toolbar" class="view-header">
             <button class="negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
-            <menu role="menu" id='contact-form-actions'>
+            <menu type="toolbar" role="menu" id='contact-form-actions'>
               <button id="save-button" onclick="Contacts.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
             </menu>
             <h1 id='contact-form-title'></h1>
@@ -195,11 +198,11 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="tel_#i#" data-l10n-id="labelPhoneNumber">Phone number:</label>
-                  <input data-cancelable placeholder="Phone" data-field="value" name="tel" class="textfield" type="tel" value="#value#" id="number_#i#">
+                  <input data-cancelable placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel" class="textfield" type="tel" value="#value#" id="number_#i#">
                 </p>
                 <p class="setbox-item">
-                  <label class="hide" for="notes_#i#" data-l10n-id="labelName">Name:</label>
-                  <input data-cancelable placeholder="Notes" data-field="notes" name="tel" class="textfield" type="text" value="#notes#" id="notes_#i#">
+                  <label class="hide" for="carrier_#i#" data-l10n-id="labelCarrier">Carrier:</label>
+                  <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel" class="textfield" type="text" value="#carrier#" id="carrier_#i#">
                 </p>
               </dd>
             </dl>
@@ -215,7 +218,7 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="email_#i#" data-l10n-id="labelEmail">e-mail:</label>
-                  <input data-cancelable placeholder="Email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">
+                  <input data-cancelable placeholder="Email" data-l10n-id="email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">
                 </p>
               </dd>
             </dl>
@@ -231,19 +234,19 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="streetAddress_#i#" data-l10n-id="labelStreet">Street:</label>
-                  <input data-cancelable placeholder="Street" data-field="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
+                  <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
                 </p>
                 <p class="setbox-item">
                   <label class="hide" for="postalCode_#i#" data-l10n-id="labelZip">Zip Code:</label>
-                  <input data-cancelable placeholder="Zip Code" data-field="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+                  <input data-cancelable placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
                 </p>
                 <p class="setbox-item">
                   <label class="hide" for="locality_#i#" data-l10n-id="labelCity">City:</label>
-                  <input data-cancelable placeholder="City" data-field="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
+                  <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
                 </p>
                 <p class="setbox-item">
                   <label class="hide" for="countryName_#i#" data-l10n-id="labelCountry">Country:</label>
-                  <input data-cancelable placeholder="Country" data-field="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
+                  <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
                 </p>
               </dd>
             </dl>
@@ -255,7 +258,7 @@
               <dd class="setbox-body">
                 <p class="setbox-item">
                   <label class="hide" for="note_#i#" data-l10n-id="labelComment">comment:</label>
-                  <input data-cancelable placeholder="Comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
+                  <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
                 </p>
               </dd>
             </dl>
@@ -270,22 +273,22 @@
                   <a onclick="Contacts.pickImage(); return false;" href="#" class="item-media fillflow-media">
                     <p>
                       <span role="button" class="icon-addimage"></span>
-                      <em> Add photo</em>
+                      <em data-l10n-id="addPhoto"> Add photo</em>
                     </p>
                     <img id="thumbnail-photo" alt="" style="background-image: url(#photo#); background-color: transparent;">
                   </a>
                   <div class="item-body-exp">
                     <p class="fillflow-row">
                       <label class="hide" for="givenName" data-l10n-id="labelLastName">Name:</label>
-                      <input data-cancelable placeholder="Name" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
+                      <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
                     </p>
                     <p class="fillflow-row">
                       <label class="hide" for="user_lastname" data-l10n-id="labelLastName">Last name:</label>
-                      <input data-cancelable placeholder="Last name" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
+                      <input data-cancelable placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
                     </p>
                   </div>
                   <p class="fillflow-row">
-                    <input data-cancelable placeholder="Company Name" name="org" class="textfield" type="text" value="" id="org">
+                    <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" value="" id="org">
                   </p>
                 </fieldset>
 
@@ -353,7 +356,7 @@
 
           <header role="toolbar" class="view-header">
             <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
-            <menu role="menu" id="contact-form-actions">
+            <menu type="toolbar" role="menu" id="contact-form-actions">
               <button role="menuitem" onclick="Contacts.doneTag();" data-l10n-id="done">Done</button>
             </menu>
             <h1 data-l10n-id="label">Label</h1>
@@ -363,7 +366,7 @@
             <div class="view-body-inner">
               <ul id="tags-list" class="selection-list">
               </ul>
-              <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag'>
+              <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="custom">
             </div>
           </article>
         </div>

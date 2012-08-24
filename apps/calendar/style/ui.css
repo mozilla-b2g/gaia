@@ -21,7 +21,6 @@ EVENT TIME COLOR: #333
 /* Device Layouts */
 
 @media screen and (max-width: 480px) {
-
 }
 
 /* loading */
@@ -31,6 +30,10 @@ body.loading {
 }
 
 /* general elements */
+
+a:active {
+  border: none;
+}
 
 p {
   font-size: 1.5rem;
@@ -248,6 +251,9 @@ section.month ol {
   height: 20%;
 }
 
+section.six-weeks ol {
+  height: 16.7% !important; 
+}
 
 section.month li:first-child {
   border-left: none;
@@ -318,7 +324,6 @@ section.month li .busy-indicator:before {
 
 section.month li .busy-indicator > span {
   top: 0px;
-  background-color: #FCA900;
   position: absolute;
   text-indent: -1000em;
 }
@@ -377,6 +382,8 @@ Indicators are in units of 12
 
 #months-day-view .day-events {
   height: -moz-calc(100% - 7.7rem);
+  display: -moz-box;
+  -moz-box-orient: vertical;
   overflow-y: auto;
 }
 

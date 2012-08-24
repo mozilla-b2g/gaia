@@ -5,7 +5,7 @@
               'busytime-{_id} ' +
               'busy-length-{length} ' +
               'busy-{start} ' +
-              'calendar-id-{calendarId}' +
+              'calendar-id-{calendarId} calendar-color calendar-display' +
             '">' +
             '&nbsp;' +
           '</span>',
@@ -31,7 +31,7 @@
     ].join(''),
 
     month: [
-      '<section id="{id}" class="month">',
+      '<section id="{id}" class="month {additionalClass}">',
         '{content|s}',
       '</section>'
     ].join(''),

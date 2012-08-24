@@ -8,7 +8,7 @@
   height: 100%;
 }
 
-.view[data-state="active"], .cache[data-state="active"], .views[data-state="active"] {
+.view[data-state="active"], .cache[data-state="active"] {
   z-index: 100;
 }
 

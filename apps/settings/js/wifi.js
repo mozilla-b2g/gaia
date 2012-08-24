@@ -160,7 +160,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
   var gWifiCheckBox = document.querySelector('#wifi-enabled input');
   var gWifiInfoBlock = document.querySelector('#wifi-desc');
   var gWpsInfoBlock = document.querySelector('#wifi-wps-desc');
-  var gWpsPbcLabelBlock = document.querySelector('#wps-pbc-button').querySelector('a');
+  var gWpsPbcLabelBlock =
+   document.querySelector('#wps-pbc-button').querySelector('a');
 
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
@@ -213,12 +214,12 @@ window.addEventListener('localized', function wifiSettings(evt) {
         var req = gWifiManager.wps({
           method: 'cancel'
         });
-        req.onsuccess = function () {
+        req.onsuccess = function() {
           gWpsInProgress = false;
           gWpsPbcLabelBlock.textContent = _('wpsPbcMessage');
           gWpsInfoBlock.textContent = _('fullStatus-wps-canceled');
         };
-        req.onerror = function () {
+        req.onerror = function() {
           gWpsInfoBlock.textContent = _('wpsCancelFailedMessage') +
             ' [' + req.error.name + ']';
         };
@@ -226,12 +227,12 @@ window.addEventListener('localized', function wifiSettings(evt) {
         var req = gWifiManager.wps({
           method: 'pbc'
         });
-        req.onsuccess = function () {
+        req.onsuccess = function() {
           gWpsInProgress = true;
           gWpsPbcLabelBlock.textContent = _('wpsCancelMessage');
           gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
         };
-        req.onerror = function () {
+        req.onerror = function() {
           gWpsInfoBlock.textContent = _('fullStatus-wps-failed') +
             ' [' + req.error.name + ']';
         };
