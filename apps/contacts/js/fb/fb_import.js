@@ -294,6 +294,9 @@ if (typeof fb.importt === 'undefined') {
       else { f.cell1 = ''; }
 
       if (f.other_phone) {
+        if(!f.tel) {
+          f.tel = [];
+        }
         f.tel[nextidx] = {type: ['facebook'], value: f.other_phone};
       }
 
