@@ -163,7 +163,9 @@
   text-transform: uppercase;
 }
 
-
+.view[data-viewname="datausage"] section.settings li p strong {
+  font-weight: 600;
+}
 
 .view[data-viewname="datausage"] section.settings li p strong .mobile {
   color: #009D89;
