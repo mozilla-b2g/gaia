@@ -56,7 +56,6 @@ var ListMenu = {
       containerDiv.id = 'list-menu-' + this.internalList.length;
     }
     this.internalList.push(containerDiv);
-    console.log('=====',items);
 
     items.forEach(function traveseItems(item) {
       var item_div = document.createElement('li');
