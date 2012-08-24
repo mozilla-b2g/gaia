@@ -28,6 +28,7 @@
     <script defer src="js/gridview.js"></script>
 
     <!-- Modal Dialog -->
+    <link rel="stylesheet" type="text/css" href="style/modal_dialog/prompt.css">
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
     <script defer src="js/modal_dialog.js"></script>
 
@@ -103,6 +104,8 @@
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
+    <link rel="stylesheet" type="text/css" href="style/themes/default/core.css">
+    <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
 
     <!-- Trusted dialog -->
@@ -216,54 +219,74 @@
         </div>
         <div id="popup-container">
         </div>
-        <div id="modal-dialog">
-          <div id="modal-dialog-table">
-            <div id="modal-dialog-tablecell">
-              <div id="modal-dialog-alert">
-                <div class="modal-dialog-message-container">
-                  <span id="modal-dialog-alert-message"></span>
-                </div>
-              </div>
-
-              <div id="modal-dialog-confirm">
-                <div class="modal-dialog-message-container">
-                  <span id="modal-dialog-confirm-message"></span>
-                </div>
-              </div>
-
-              <div id="modal-dialog-prompt">
-                <div class="modal-dialog-message-container">
-                  <span id="modal-dialog-prompt-message"></span>
-                  <input id="modal-dialog-prompt-input" />
-                </div>
-              </div>
-
-              <div id="modal-dialog-authentication">
-                <div class="modal-dialog-message-container">
-                  <span id="modal-dialog-authentication-message"></span>
-                  <span data-l10n-id="username">Username</span>
-                  <input id="modal-dialog-username-input" />
-                  <span data-l10n-id="password">Password</span>
-                  <input id="modal-dialog-password-input" type="password" />
-                </div>
-              </div>
-              
-              <div id="modal-dialog-error">
-                <div class="modal-dialog-title" data-l10n-id="error-title">Hmm, the app is having problems.</div>
-                <div class="modal-dialog-message-container">
-                  <span data-l10n-id="error-message">The app has encountered an error and is not loading properly.</span>
-                </div>
-              </div>  
+        <div id="modal-dialog" role="dialog">
+          <div id="modal-dialog-alert">
+            <div class="modal-dialog-message-container inner">
+              <h3></h3>
+              <p>
+                <span id="modal-dialog-alert-message"></span>
+              </p>  
             </div>
+            <menu>
+              <button id="modal-dialog-alert-ok" data-l10n-id="ok"i class="affirmative">OK</button>
+            </menu>
           </div>
-          <div id="modal-dialog-buttons">
-            <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
-            <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
-            <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
-            <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
-            <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
-            <button id="modal-dialog-error-back" data-l10n-id="back">Back</button>
-            <button id="modal-dialog-error-reload" data-l10n-id="reload">Try Reloading</button>
+
+          <div id="modal-dialog-confirm">
+            <div class="modal-dialog-message-container inner">
+              <h3></h3>
+              <p>
+                <span id="modal-dialog-confirm-message"></span>
+              </p>  
+            </div>
+            <menu data-items="2">
+              <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="affirmative">OK</button>
+              <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
+            </menu>
+          </div>
+
+          <div id="modal-dialog-prompt">
+            <div class="modal-dialog-message-container inner">
+              <h3></h3>
+              <p>
+                <span id="modal-dialog-prompt-message"></span>
+                <input id="modal-dialog-prompt-input" />
+              </p>  
+            </div>
+            <menu data-items="2">
+              <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
+              <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
+            </menu>
+          </div>
+
+          <div id="modal-dialog-authentication">
+            <div class="modal-dialog-message-container inner">
+              <h3></h3>
+              <p>
+                <span id="modal-dialog-authentication-message"></span>
+                <span data-l10n-id="username">Username</span>
+                <input id="modal-dialog-username-input" />
+                <span data-l10n-id="password">Password</span>
+                <input id="modal-dialog-password-input" type="password" />
+              </p>  
+            </div>
+            <menu data-items="2">
+              <button id="modal-dialog-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
+              <button id="modal-dialog-authentication-cancel" data-l10n-id="cancel">Cancel</button>
+            </menu>
+          </div>
+
+          <div id="modal-dialog-error">
+            <h3 data-l10n-id="error-title">Hmm, the app is having problems.</div>
+            <div class="modal-dialog-message-container inner">
+              <p>
+                <span data-l10n-id="error-message">The app has encountered an error and is not loading properly.</span>
+              </p>  
+            </div>
+            <menu data-items="2">
+              <button id="modal-dialog-error-back" data-l10n-id="back">Back</button>
+              <button id="modal-dialog-error-reload" data-l10n-id="reload">Try Reloading</button>
+            </menu>
           </div>
         </div>
       </div>
@@ -364,7 +387,7 @@
         <div id="toaster-detail"></div>
       </div>
 
-      <div id="listmenu" data-z-index-level="list-menu">
+      <div id="listmenu" data-z-index-level="list-menu" role="dialog">
         <div class="list-menu" id="listmenu-container">
         </div>
       </div>
