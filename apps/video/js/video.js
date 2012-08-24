@@ -4,7 +4,8 @@ var dom = {};
 
 var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
-           'close', 'play', 'playHead', 'timeSlider', 'elapsedTime'];
+           'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
+           'video-title', 'duration-text', 'elapsed-text', 'bufferedTime'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -179,10 +180,7 @@ function addVideo(videodata) {
   duration.className = 'time';
   if (isFinite(videodata.metadata.duration)) {
     var d = Math.round(videodata.metadata.duration);
-    var mins = Math.floor(d / 60);
-    var secs = d % 60;
-    if (secs < 10) secs = '0' + secs;
-    duration.textContent = mins + ':' + secs;
+    duration.textContent = formatDuration(d);
   }
 
   var thumbnail = document.createElement('li');
@@ -298,6 +296,13 @@ function showPlayer(data) {
   playerShowing = true;
   controlShowing = false;
 
+  dom.videoTitle.textContent = currentVideo.metadata.title;
+  dom.durationText.textContent = formatDuration(currentVideo.metadata.duration);
+  dom.elapsedText.textContent = formatDuration(0);
+
+  dom.elapsedTime.style.width = '0%';
+  dom.bufferedTime.style.width = '100%';
+
   // Go into full screen mode
   dom.videoFrame.mozRequestFullScreen();
 
@@ -401,6 +406,7 @@ dom.player.addEventListener('timeupdate', function() {
 
   var percent = (dom.player.currentTime / dom.player.duration) * 100 + '%';
 
+  dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
   dom.elapsedTime.style.width = percent;
   // Don't move the play head if the user is dragging it.
   if (!dragging)
@@ -461,6 +467,23 @@ function toCamelCase(str) {
   return str.replace(/\-(.)/g, function replacer(str, p1) {
     return p1.toUpperCase();
   });
+}
+
+function padLeft(num, length) {
+  var r = "" + num;
+  while (r.length < length) {
+    r = "0" + r;
+  }
+  return r;
+}
+
+function formatDuration(duration) {
+  var minutes = Math.floor(duration / 60);
+  var seconds = Math.floor(duration % 60);
+  if (minutes < 60) {
+    return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
+  }
+  return '';
 }
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
