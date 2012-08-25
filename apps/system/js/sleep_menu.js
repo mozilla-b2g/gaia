@@ -46,12 +46,12 @@ var SleepMenu = {
       restart: {
         label: _('restart'),
         value: 'restart',
-        icon: '/style/sleep_menu/images/power-off.png'
+        icon: '/style/sleep_menu/images/restart.png'
       },
       power: {
         label: _('power'),
         value: 'power',
-        icon: '/style/sleep_menu/images/restart.png'
+        icon: '/style/sleep_menu/images/power-off.png'
       }
     };
 

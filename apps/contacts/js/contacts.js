@@ -344,9 +344,9 @@ var Contacts = (function() {
             // If no phone number
             var dismiss = {
               title: _('ok'),
-              callback: Permissions.hide
+              callback: CustomDialog.hide
             };
-            Permissions.show('', _('no_phones'), dismiss);
+            CustomDialog.show('', _('no_phones'), dismiss);
             break;
           case 1:
             // if One phone number
@@ -629,18 +629,18 @@ var Contacts = (function() {
         title: _('remove'),
         callback: function onAccept() {
           deleteContact(currentContact);
-          Permissions.hide();
+          CustomDialog.hide();
         }
       };
 
       var noObject = {
         title: _('cancel'),
         callback: function onCancel() {
-          Permissions.hide();
+          CustomDialog.hide();
         }
       };
 
-      Permissions.show(null, msg, noObject, yesObject);
+      CustomDialog.show(null, msg, noObject, yesObject);
     };
 
     edit();
