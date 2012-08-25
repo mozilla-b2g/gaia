@@ -82,6 +82,7 @@ const Keyboards = {
   en: {
     type: 'keyboard',
     label: 'English',
+    suggestionEngine: 'latin',
     menuLabel: 'English',
     alt: {
       a: 'áàâäåãāæ',

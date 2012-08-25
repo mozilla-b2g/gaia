@@ -129,7 +129,7 @@ const IMEManager = {
     }).bind(this));
 
     var self = this;
-    SettingsListener.observe('keyboard.wordsuggestion', false, function(value) {
+    SettingsListener.observe('keyboard.wordsuggestion', true, function(value) {
       var wordSuggestionEnabled = !!value;
       IMEController.enableWordSuggestion(wordSuggestionEnabled);
     });
