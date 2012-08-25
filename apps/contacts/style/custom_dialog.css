@@ -61,6 +61,7 @@ body[role="application"] [role="dialog"] p {
   font-size: 2.2rem;
   font-weight: lighter;
   margin: 0;
+  line-height: 1.4em;
 }
 
 body[role="application"] menu:not([type="toolbar"]) {
@@ -81,7 +82,7 @@ body[role="application"] menu[data-items="2"]:not([type="toolbar"]) button {
   width: -moz-calc((100% - 1rem) / 2);
 }
 
-body[role="application"] menu[data-items="2"] button {
+body[role="application"] menu:not([type="toolbar"]) button {
   -moz-box-sizing: border-box;
   background: url("images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
   border: 1px solid #9F9F9F;
@@ -93,7 +94,6 @@ body[role="application"] menu[data-items="2"] button {
   font-weight: 600;
   height: 3.8rem;
   line-height: 3.8rem;
-  margin: 0 0 1rem;
   outline: medium none;
   overflow: hidden;
   padding: 0 1.5rem;
@@ -106,7 +106,7 @@ body[role="application"] menu[data-items="2"] button {
   width: 100%;
 }
 
-body[role="application"] menu:not([type="toolbar"]) button:last-child {
+body[role="application"] menu:not([type="toolbar"]):not([data-items="1"]) button:last-child {
   margin-left: 1rem;
 }
 

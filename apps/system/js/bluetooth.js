@@ -43,6 +43,9 @@ var Bluetooth = {
         return;
 
       var req = bluetooth.setEnabled(value);
+      req.onsuccess = function bt_enabledSuccess() {
+        self.initDefaultAdapter();
+      };
       req.onerror = function bt_enabledError() {
         // roll back the setting value to notify the UIs
         // that bluetooth has failed to enable.
@@ -51,8 +54,14 @@ var Bluetooth = {
         });
       };
     });
+  },
 
-    if (!bluetooth || !('getDefaultAdapter' in bluetooth))
+  initDefaultAdapter: function bt_initDefaultAdapter() {
+    var bluetooth = window.navigator.mozBluetooth;
+    var self = this;
+
+    if (!bluetooth || this.defaultAdapter ||
+        !('getDefaultAdapter' in bluetooth))
       return;
 
     var req = bluetooth.getDefaultAdapter();

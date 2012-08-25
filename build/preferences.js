@@ -1,7 +1,7 @@
-Cu.import('resource://gre/modules/Services.jsm');
+
+'use strict';
 
 const prefs = [];
-
 
 // XXX Remove all the permission parts here once bug 774716 is resolved
 
@@ -10,29 +10,13 @@ let permissions = {
     "urls": [],
     "pref": "dom.power.whitelist"
   },
-  "sms": {
-    "urls": [],
-    "pref": "dom.sms.whitelist"
-  },
-  "mozBluetooth": {
-    "urls": [],
-    "pref": "dom.mozBluetooth.whitelist"
-  },
   "voicemail": {
     "urls": [],
     "pref": "dom.voicemail.whitelist"
   },
-  "mozbrowser": {
-    "urls": [],
-    "pref": "dom.mozBrowserFramesWhitelist"
-  },
   "mozApps": {
     "urls": [],
     "pref": "dom.mozApps.whitelist"
-  },
-  "mobileconnection": {
-    "urls": [],
-    "pref": "dom.mobileconnection.whitelist"
   },
   "mozFM": {
     "urls": [],
@@ -71,9 +55,6 @@ Gaia.webapps.forEach(function (webapp) {
   }
 });
 
-
-//XXX: only here while waiting for https://bugzilla.mozilla.org/show_bug.cgi?id=764718 to be fixed
-prefs.push(["dom.allow_scripts_to_close_windows", true]);
 
 // Probably wont be needed when https://bugzilla.mozilla.org/show_bug.cgi?id=768440 lands
 prefs.push(["dom.send_after_paint_to_content", true]);
@@ -134,19 +115,21 @@ function writePrefs() {
 }
 
 function setPrefs() {
-  prefs.forEach(function (entry) {
-    if (typeof entry[1] == "string")
+  prefs.forEach(function(entry) {
+    if (typeof entry[1] == "string") {
       Services.prefs.setCharPref(entry[0], entry[1]);
-    else if (typeof entry[1] == "boolean")
+    } else if (typeof entry[1] == "boolean") {
       Services.prefs.setBoolPref(entry[0], entry[1]);
-    else if (typeof entry[1] == "number")
+    } else if (typeof entry[1] == "number") {
       Services.prefs.setIntPref(entry[0], entry[1]);
-    else
+    } else {
       throw new Error("Unsupported pref type: " + typeof entry[1]);
+    }
   });
 }
 
-if (Gaia.engine === "xpcshell")
+if (Gaia.engine === "xpcshell") {
   writePrefs();
-else if (Gaia.engine === "b2g")
+} else if (Gaia.engine === "b2g") {
   setPrefs();
+}

@@ -52,14 +52,14 @@
     <link rel="stylesheet" type="text/css" href="style/pinlock/pinlock.css">
     <script defer src="js/pinlock/pinlock.js"></script>
 
+    <!-- Attention Screen -->
+    <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
+    <script defer src="js/attention_screen.js"></script>
+
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
     <script defer src="js/mobile_info.js"></script>
     <script defer src="js/lockscreen.js"></script>
-
-    <!-- Attention Screen -->
-    <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
-    <script defer src="js/attention_screen.js"></script>
 
     <!-- Popup Manager -->
     <link rel="stylesheet" type="text/css" href="style/popup_manager/popup_manager.css">
@@ -122,7 +122,9 @@
 
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
-    <script defer src="js/value_selector.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/value_selector/time_picker.css">
+    <script defer src="js/value_selector/value_picker.js"></script>
+    <script defer src="js/value_selector/value_selector.js"></script>
 
     <style>
     /* initlogo style is here to prevent flashing */
@@ -173,6 +175,7 @@
         <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
         <div id="statusbar-signal" class="sb-icon sb-icon-signal"
           data-level="5" hidden></div>
+        <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
 
         <!-- Permissions -->
         <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
@@ -245,21 +248,21 @@
                   <input id="modal-dialog-password-input" type="password" />
                 </div>
               </div>
-              
+
               <div id="modal-dialog-error">
                 <div class="modal-dialog-title" data-l10n-id="error-title">Hmm, the app is having problems.</div>
                 <div class="modal-dialog-message-container">
                   <span data-l10n-id="error-message">The app has encountered an error and is not loading properly.</span>
                 </div>
-              </div>  
+              </div>
             </div>
           </div>
           <div id="modal-dialog-buttons">
             <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
             <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
-            <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
+            <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel-button">Cancel</button>
             <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
-            <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
+            <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel-button">Cancel</button>
             <button id="modal-dialog-error-back" data-l10n-id="back">Back</button>
             <button id="modal-dialog-error-reload" data-l10n-id="reload">Try Reloading</button>
           </div>
@@ -268,11 +271,38 @@
 
       <!-- value selector -->
       <div id="value-selector" hidden data-z-index-level="value-selector">
-         <div id="value-selector-container" onmousedown="return false;"> </div>
-         <div id="value-selector-buttons">
-           <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
-           <button id="value-selector-confirm" data-l10n-id="ok" onmousedown="return false;">Ok</button>
-         </div>
+
+        <div class="table-wrapper">
+          <div class="table-cell">
+            <!-- overlay for select element -->
+            <div id="value-selector-container" onmousedown="return false;">
+            </div>
+
+            <!-- Time Picker -->
+            <div id="picker-bar" onmousedown="return false;">
+              <h3 data-l10n-id="select-time">Select time</h3>
+              <div id="picker-container">
+                <div id="value-indicator-bottom"></div>
+                <div id="picker-bar-background"></div>
+                <div class="left-picker-separator"></div>
+                <div id="value-indicator-wrapper">
+                  <div id="value-indicator-hover-time">:</div>
+                  <div id="value-indicator-hover"></div>
+                </div>
+                <div id="value-picker-hours" class="animation-on" onmousedown="return false;"></div>
+                <div id="value-picker-minutes" class="animation-on" onmousedown="return false;"></div>
+                <div class="right-picker-separator"></div>
+                <div id="value-picker-hour24-state" class="animation-on" onmousedown="return false;"></div>
+                <div id="picker-bar-gradient"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+          <div id="value-selector-buttons">
+            <button id="value-selector-cancel" data-l10n-id="cancel-button">Cancel</button>
+            <button id="value-selector-confirm" class="affirmative" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+          </div>
       </div>
 
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
@@ -294,9 +324,11 @@
             </div>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
+              <div id="lockscreen-camera-arrow" class="lockscreen-arrow"></div>
               <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
             </div>
             <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
+              <div id="lockscreen-unlock-arrow" class="lockscreen-arrow"></div>
               <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
             </div>
             <div id="lockscreen-rail-left" class="lockscreen-rail"></div>

@@ -74,6 +74,7 @@ var LockScreen = {
     this.getAllElements();
 
     this.lockIfEnabled(true);
+    this.writeSetting(this.enabled);
 
     /* Status changes */
     window.addEventListener('volumechange', this);
