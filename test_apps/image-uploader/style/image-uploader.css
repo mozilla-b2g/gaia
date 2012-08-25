@@ -1,0 +1,10 @@
+#services li {
+  list-style-type: none;
+}
+
+#twitter-message, #results input {
+  display: block;
+  width: 100%;
+  margin-bottom: 1em;
+}
+
