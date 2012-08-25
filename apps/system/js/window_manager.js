@@ -662,6 +662,7 @@ var WindowManager = (function() {
   window.addEventListener('holdhome', function(e) {
     if (!LockScreen.locked &&
         !CardsView.cardSwitcherIsShown()) {
+      SleepMenu.hide();
       CardsView.showCardSwitcher();
     }
   });
