@@ -54,6 +54,30 @@ var BackgroundServiceManager = (function bsm() {
     close(evt.target.dataset.frameOrigin, evt.target.dataset.frameName);
   }, true);
 
+  /* mozbrowsererror */
+  window.addEventListener('mozbrowsererror', function bsm_winclose(evt) {
+    if (!'frameType' in evt.target.dataset ||
+        evt.target.dataset.frameType !== 'background' ||
+        evt.detail.type !== 'fatal')
+      return;
+
+    var origin = evt.target.dataset.frameOrigin;
+    var name = evt.target.dataset.frameName;
+
+    // This bg service has just crashed, clean up the frame
+    close(origin, name);
+
+    // Attempt to relaunch if we could find the info to do so
+    var app = Applications.getByOrigin(origin);
+    if (name != AUTO_OPEN_BG_PAGE_NAME || !app)
+      return;
+
+    // XXX: this work as if background_page is always a path not a full URL.
+    var url = origin + app.manifest.background_page;
+    open(origin, AUTO_OPEN_BG_PAGE_NAME, url);
+
+  }, true);
+
   /* OnInstall */
   window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
     var app = evt.detail.application;
