@@ -16,7 +16,7 @@
       if (lang == "en")
         lang = "en_us";
 
-      _worker = new Worker(glue.path + 'latin-worker.js');
+      _worker = new Worker(path + 'latin-worker.js');
       _worker.onmessage = function(evt) {
         var data = evt.data;
         glue[data.cmd].apply(glue, data.args);
@@ -26,7 +26,7 @@
       }
 
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', path + lang + '.dict', true);
+      xhr.open('GET', path + '../../dictionaries/' + lang + '.dict', true);
       xhr.responseType = "arraybuffer"; 
       xhr.onload = function(evt) {
         _worker.postMessage({ cmd: 'init', args: [lang, xhr.response] });
