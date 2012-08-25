@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Image Uploader</title>
+    <script type="application/javascript" src="js/ext/sha1.js"></script>
+    <script type="application/javascript" src="js/ext/oauth.js"></script>
+    <script type="application/javascript" src="js/credentials_db.js"></script>
+    <script type="application/javascript" src="js/image-uploader.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/image-uploader.css" />
+  </head>
+  <body>
+    <h1>Image Uploader</h1>
+
+    <section>
+      <h3>Uploading your photos to some website</h3>
+      <label id="label-twitter-message" for="twitter-message">Your message:</label>
+      <textarea id="twitter-message" class="message" cols="50" rows="3" maxlength="140"></textarea>
+      <h3>Twitter status</h3>
+      <p id="credentials-status"></p>
+    </section>
+
+    <h2>Previews</h2>
+    <p id="previews"></p>
+
+    <section id="services">
+      <h2>Services</h2>
+      <ul>
+        <li>
+          <input type="checkbox" name="canardpc" id="upload-canardpc" />
+          <label id="label-upload-canardpc" for="upload-canardpc">CanardPC</label>
+        </li>
+        <li>
+          <input type="checkbox" name="twitter" id="upload-twitter" />
+          <label id="label-upload-twitter" for="upload-twitter">Twitter</label>
+        </li>
+        <li>
+          <input type="checkbox" name="imgur" id="upload-imgur" />
+          <label id="label-upload-imgur" for="upload-imgur">Imgur</label>
+        </li>
+      </ul>
+      <input type="button" id="share" value="Share" onclick="share();" />
+    </section>
+
+    <section id="results">
+      <h2>Results</h2>
+      <label id="label-upload-progress" for="progress">Upload progress:</label>
+      <input class="status" type="text" id="progress" disabled="disabled" size="64" />
+      <label id="label-uploaded-status" for="uploaded">Upload result:</label>
+      <input class="status" type="text" id="uploaded" disabled="disabled" size="64" />
+    </section>
+
+    <h2>Link</h2>
+    <p id="link"></p>
+  </body>
+</html>
+

@@ -264,3 +264,13 @@ ul li button {
   background-image: url(images/wifi_scan.png);
 }
 
+/******************************************************************************
+ * Bluetooth 
+ */
+
+#bluetooth-enable-msg {
+  padding: 5px 30px;
+  font-style: italic;
+  font-size: 0.65em;
+  color: #505859;
+}

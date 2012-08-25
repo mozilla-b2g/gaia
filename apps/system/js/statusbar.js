@@ -35,7 +35,10 @@ var StatusBar = {
 
   recordingActive: false,
   recordingTimer: null,
+
   umsShared: false,
+
+  headphonesState: 'unknown',
 
   /* For other app to acquire */
   get height() {
@@ -130,9 +133,12 @@ var StatusBar = {
             this.umsShared = evt.detail.active;
             this.update.usb.call(this);
             break;
-        }
 
-        break;
+          case 'headphones-status-changed':
+            this.headphonesState = evt.detail.state;
+            this.update.headphones.call(this);
+            break;
+        }
     }
   },
 
@@ -417,6 +423,17 @@ var StatusBar = {
       icon.hidden = !this.umsShared;
     },
 
+    headphones: function sb_updateHeadphones() {
+      var icon = this.icons.headphones;
+
+      if (this.headphonesState == 'off') {
+        icon.hidden = true;
+        return;
+      }
+
+      icon.hidden = false;
+      icon.dataset.state = this.headphonesState;
+    }
   },
 
   updateNotification: function sb_updateNotification(count) {
@@ -438,7 +455,7 @@ var StatusBar = {
     // ID of elements to create references
     var elements = ['notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'signal',
-    'tethering', 'alarm', 'bluetooth', 'mute',
+    'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
     'recording', 'sms', 'geolocation', 'usb', 'label'];
 
     var toCamelCase = function toCamelCase(str) {
