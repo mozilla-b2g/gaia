@@ -18,7 +18,8 @@ var SleepMenu = {
 
   getAllElements: function sm_getAllElements() {
     this.elements.overlay = document.getElementById('sleep-menu');
-    this.elements.container = document.querySelector('#sleep-menu-container ul');
+    this.elements.container =
+      document.querySelector('#sleep-menu-container ul');
     this.elements.cancel = document.querySelector('#sleep-menu button');
   },
 
@@ -136,8 +137,6 @@ var SleepMenu = {
       case 'home':
         if (this.visible) {
           this.hide();
-          if (this.onreturn)
-            this.onreturn(null);
           evt.stopImmediatePropagation();
         }
         break;
