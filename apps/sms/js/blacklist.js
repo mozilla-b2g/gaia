@@ -31,7 +31,7 @@ var BlackList = (function() {
 
   // Return true if value is in the black list
   function _has(value) {
-    return value in _blackList;
+    return _blackList.hasOwnProperty(value);
   }
 
   return {
