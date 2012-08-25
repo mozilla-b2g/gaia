@@ -33,7 +33,8 @@
       var cal = {
         // XXX localize this name somewhere
         name: name,
-        id: LOCAL_CALENDAR_ID
+        id: LOCAL_CALENDAR_ID,
+        color: '#D2642A'
       };
 
       list[LOCAL_CALENDAR_ID] = cal;

@@ -342,8 +342,11 @@ var Contacts = (function() {
         switch (numOfPhoneNums) {
           case 0:
             // If no phone number
-            alert('No phone number saved!');
-            // TODO: replace alert with given visual | #3643
+            var dismiss = {
+              title: _('ok'),
+              callback: CustomDialog.hide
+            };
+            CustomDialog.show('', _('no_phones'), dismiss);
             break;
           case 1:
             // if One phone number
@@ -626,18 +629,18 @@ var Contacts = (function() {
         title: _('remove'),
         callback: function onAccept() {
           deleteContact(currentContact);
-          Permissions.hide();
+          CustomDialog.hide();
         }
       };
 
       var noObject = {
         title: _('cancel'),
         callback: function onCancel() {
-          Permissions.hide();
+          CustomDialog.hide();
         }
       };
 
-      Permissions.show(null, msg, yesObject, noObject);
+      CustomDialog.show(null, msg, noObject, yesObject);
     };
 
     edit();
