@@ -35,8 +35,10 @@ var StatusBar = {
 
   recordingActive: false,
   recordingTimer: null,
-  headphonesState: 'unknown',
-  umsShared: false,
+
+  umsActive: false,
+
+  headphonesActive: false,
 
   /* For other app to acquire */
   get height() {
@@ -128,12 +130,12 @@ var StatusBar = {
             break;
 
           case 'volume-state-changed':
-            this.umsShared = evt.detail.active;
+            this.umsActive = evt.detail.active;
             this.update.usb.call(this);
             break;
 
           case 'headphones-status-changed':
-            this.headphonesState = evt.detail.state;
+            this.headphonesActive = (evt.detail.state != 'off');
             this.update.headphones.call(this);
             break;
         }
@@ -418,19 +420,12 @@ var StatusBar = {
 
     usb: function sb_updateUsb() {
       var icon = this.icons.usb;
-      icon.hidden = !this.umsShared;
+      icon.hidden = !this.umsActive;
     },
 
     headphones: function sb_updateHeadphones() {
       var icon = this.icons.headphones;
-
-      if (this.headphonesState == 'off') {
-        icon.hidden = true;
-        return;
-      }
-
-      icon.hidden = false;
-      icon.dataset.state = this.headphonesState;
+      icon.hidden = !this.headphonesActive;
     }
   },
 

@@ -183,7 +183,7 @@ window.addEventListener('localized', function showBody() {
 
 function init() {
   photodb = new MediaDB('pictures', metadataParser, {
-    indexes: ['metadata.date'],
+    indexes: ['date'],
     mimeTypes: ['image/jpeg', 'image/png']
   });
 
@@ -464,7 +464,7 @@ function createThumbnailList() {
 
   // Enumerate existing image entries in the database and add thumbnails
   // List them all, and sort them in descending order by date.
-  photodb.enumerate('metadata.date', null, 'prev', function(imagedata) {
+  photodb.enumerate('date', null, 'prev', function(imagedata) {
     if (imagedata === null) // No more images
       return;
 

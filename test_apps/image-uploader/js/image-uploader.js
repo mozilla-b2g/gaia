@@ -391,3 +391,4 @@ function setStatus(msg) {
 function setProgress(level, max) {
   document.getElementById('progress').value = level + '/' + max;
 }
+
