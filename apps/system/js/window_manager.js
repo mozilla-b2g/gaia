@@ -392,7 +392,7 @@ var WindowManager = (function() {
       // - Repaints are being starved during panning (bug 761933)
       // - Homescreen needs to draw the system wallpaper itself (#3639)
 
-      'Image Uploader'
+      'Image Uploader',
       // Cannot upload files when OOP
       // bug 783878
 
@@ -402,7 +402,7 @@ var WindowManager = (function() {
       'Settings',
       // Layers masking breaks input fields (bug 783106)
 
-      'Video',
+      'Video'
       // No videos seem to be found when running OOP (i.e. no video
       // list) (bug 782460)
     ];
