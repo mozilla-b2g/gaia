@@ -420,7 +420,7 @@ var StatusBar = {
 
     usb: function sb_updateUsb() {
       var icon = this.icons.usb;
-      icon.hidden = !this.umsShared;
+      icon.hidden = !this.umsActive;
     },
 
     headphones: function sb_updateHeadphones() {
