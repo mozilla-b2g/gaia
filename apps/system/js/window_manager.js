@@ -380,12 +380,6 @@ var WindowManager = (function() {
       'Clock',
       // Crashing when dismissing the alert window (bug 785166)
 
-      'Contacts',
-      // - Keyboard always shows up alpha when app using keyboard is
-      //   run OOP.  Not a hard blocker of OOP. (bug 776118)
-      // - Layers masking breaks input fields (bug 783106, tracked
-      //   #3630)
-
       'E-Mail',
       // SSL/TLS support can only happen in the main process although
       // the TCP support without security will accidentally work OOP
