@@ -1,4 +1,4 @@
-#screen.fullscreen:not(.locked) > #utility-tray,
+:root:-moz-full-screen-ancestor > body > #screen:not(.locked) > #utility-tray,
 #screen.lockscreen-camera > #utility-tray {
   display: none;
 }
