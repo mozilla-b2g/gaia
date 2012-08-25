@@ -374,9 +374,6 @@ var WindowManager = (function() {
       'Browser',
       // Requires nested content processes (bug 761935)
 
-      'Camera',
-      // Can't open camera HAL from content processes (bug 782456)
-
       'Clock',
       // Crashing when dismissing the alert window (bug 785166)
 
@@ -395,6 +392,10 @@ var WindowManager = (function() {
       // - Repaints are being starved during panning (bug 761933)
       // - Homescreen needs to draw the system wallpaper itself (#3639)
 
+      'Image Uploader'
+      // Cannot upload files when OOP
+      // bug 783878
+
       'Messages',
       // Crashes when launched OOP (bug 775997)
 
@@ -404,10 +405,6 @@ var WindowManager = (function() {
       'Video',
       // No videos seem to be found when running OOP (i.e. no video
       // list) (bug 782460)
-
-      'Image Uploader'
-      // Cannot upload files when OOP
-      // bug 783878
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {
