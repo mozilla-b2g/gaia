@@ -4,22 +4,46 @@ var creds_twitter = new CredentialsDB('twitter');
 creds_twitter.onready = updateTwitterCredentials;
 
 window.onload = function() {
+  clean();
+  setup();
   navigator.mozSetMessageHandler('activity', function(activityRequest) {
     if (activityRequest.source.name === 'share-filenames') {
-      clean();
       addImages(activityRequest.source.data.filenames);
     }
   });
 };
 
-function uploadCanardPc(source, callback) {
-  var url = 'http://tof.canardpc.com/';
+function setup() {
+  document.getElementById('share')
+    .addEventListener('click', share, false);
+  document.getElementById('upload-canardpc')
+    .addEventListener('click', enableOnly, false);
+  document.getElementById('upload-twitter')
+    .addEventListener('click', enableOnly, false);
+  document.getElementById('upload-imgur')
+    .addEventListener('click', enableOnly, false);
+  document.getElementById('twitter-message')
+    .addEventListener('focus', hideBannerStatus, false);
+}
 
-  var picture = new FormData();
-  picture.append('email', '');
-  picture.append('envoyer', 'envoyer');
-  picture.append('fichier', source);
+function enableOnly(evt) {
+  var toKeep = evt.target.id;
+  var services =
+    document.getElementById('services')
+    .getElementsByTagName('input');
+  for (var service in services) {
+    var s = services[service];
+    if (s.type === 'checkbox' && s.id != toKeep) {
+      s.checked = false;
+    }
+    if (s.id == 'upload-twitter') {
+      switchTwitter();
+    }
+  }
+}
 
+function XHRUpload(url, data, callback) {
+  setStatus('Ready to upload');
   var xhr = new XMLHttpRequest({mozSystem: true});
   xhr.open('POST', url, true);
   xhr.upload.addEventListener('progress', function(e) {
@@ -32,50 +56,73 @@ function uploadCanardPc(source, callback) {
   }, false);
   xhr.onreadystatechange = function() {
     if (xhr.readyState == XMLHttpRequest.DONE) {
-        if (xhr.responseText.match(url + 'show/')) {
-          var re = new RegExp(url + 'show/(.*).html');
-          var ar = re.exec(xhr.responseText);
-          var pid = ar[1];
-          var up = ar[0];
-          setStatus('Uploaded successfully: ' + pid);
-          callback(up);
-        } else {
-          setStatus('Error while uploading!');
-        }
       unlock();
+      setStatus('Uploaded, treating response.');
+      callback(xhr);
     }
   };
-  xhr.send(picture);
+  xhr.send(data);
+  setStatus('Uploading ...');
+}
+
+function uploadCanardPc(source, callback) {
+  var url = 'http://tof.canardpc.com/';
+
+  var picture = new FormData();
+  picture.append('email', '');
+  picture.append('envoyer', 'envoyer');
+  picture.append('fichier', source);
+
+  XHRUpload(url, picture, function(xhr) {
+    if (xhr.responseText.match(url + 'show/')) {
+      var re = new RegExp(url + 'show/(.*).html');
+      var ar = re.exec(xhr.responseText);
+      var pid = ar[1];
+      var up = ar[0];
+      setStatus('Uploaded successfully: ' + pid);
+      callback(up);
+    } else {
+      setStatus('Error while uploading!');
+    }
+  });
+}
+
+function switchTwitter() {
+  var twenabled = document.getElementById('upload-twitter');
+  var twcontent = document.getElementById('twitter-content');
+  if (twcontent) {
+    if (twenabled.checked) {
+      twcontent.style.display = 'block';
+    } else {
+      twcontent.style.display = 'none';
+    }
+  }
 }
 
 function updateTwitterCredentials() {
-  // console.log("Updating Twitter credentials");
+  // console.log('Updating Twitter credentials');
   purge('credentials-status');
   var container = document.getElementById('credentials-status');
   creds_twitter.getcreds(function(res) {
     creds = res;
     // console.log(
-    //  "Twitter credentials (" + creds.length + "):",
+    //  'Twitter credentials (' + creds.length + '):',
     //  JSON.stringify(creds));
     if (creds.length == 0) {
       // no credential, let user login on twitter
-      var loginButton = document.createElement('input');
-      loginButton.type = 'button';
+      var loginButton = document.createElement('button');
       loginButton.id = 'login-twitter';
-      loginButton.value = 'Login on Twitter';
+      loginButton.innerHTML = 'Login on Twitter';
       loginButton.onclick = loginTwitter;
       container.appendChild(loginButton);
     } else {
       // found some credentials, let's use them!
-      var screenName = document.createElement('span');
-      screenName.className = 'logged twitter';
-      screenName.innerHTML = 'Logged as ' + creds[0].screen_name;
-      var revokeButton = document.createElement('input');
-      revokeButton.type = 'button';
+      var revokeButton = document.createElement('button');
+      revokeButton.className = 'negative';
       revokeButton.id = 'revoke-twitter';
-      revokeButton.value = 'Revoke Twitter creds';
+      revokeButton.innerHTML =
+        'Revoke \'' + creds[0].screen_name + '\' credentials';
       revokeButton.onclick = revokeTwitter;
-      container.appendChild(screenName);
       container.appendChild(revokeButton);
     }
   });
@@ -108,7 +155,7 @@ function buildTwitterURL(url, method, parameters) {
 function processTwitterXHR(url, method, params, callback) {
   var target_url = buildTwitterURL(url, method, params);
   var xhr = new XMLHttpRequest({mozSystem: true});
-  // console.log("OAuth:", target_url);
+  // console.log('OAuth:', target_url);
   xhr.open(method, target_url, true);
   xhr.onreadystatechange = function() {
     if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -129,6 +176,7 @@ function extractTwitterAccessToken(string) {
 }
 
 function loginTwitter() {
+  setStatus('Starting Twitter authentication');
   processTwitterXHR(
     'https://api.twitter.com/oauth/request_token',
     'POST',
@@ -139,6 +187,7 @@ function loginTwitter() {
         return;
       }
       if (xhr.responseText.match('oauth_token=')) {
+        setStatus('Extracting Twitter temporary token');
         var request_token_regex =
           new RegExp('oauth_token=(.*)&oauth_token_secret=.*');
         var request_token_ar = request_token_regex.exec(xhr.responseText);
@@ -146,33 +195,62 @@ function loginTwitter() {
         var request_token_only = request_token_ar[1];
         var authorize =
           'https://api.twitter.com/oauth/authorize?' + request_token_full;
-        alert('We now need that you authorize our application. A browser' +
-          ' window will get you to Twitter website, where you will be able to' +
-          ' authenticate yourself and to authorize us. It will give you a PIN' +
-          ' code. Please keep it, get back here and fill it in the prompt.');
-        new MozActivity({name: 'view', data: {type: 'url', url: authorize}});
-        var pin = prompt('Please enter PIN code given by Twitter:');
-        processTwitterXHR(
-          'https://api.twitter.com/oauth/access_token',
-          'POST',
-          {oauth_verifier: pin, oauth_token: request_token_only},
-          function(xhr) {
-            if (xhr.status != 200) {
-              alert('Request refused:', xhr.status, '::', xhr.responseText);
-              return;
-            }
-            var twitter_account = extractTwitterAccessToken(xhr.responseText);
-            // console.log("Extracted twitter_account:",
-            //   JSON.stringify(twitter_account));
-            creds_twitter.setcreds(twitter_account, function(res) {
-              if (res == null) {
-                alert('Your Twitter account is now usable!');
-                updateTwitterCredentials();
-              } else {
-                alert('An error occured:', JSON.stringify(res));
+        var twauth = document.getElementById('confirm-twitter-auth');
+        twauth.style.display = 'block';
+        var cancel = document.getElementById('twitter-auth-cancel');
+        cancel.addEventListener(
+          'click',
+          function(evt) {
+            setStatus('Twitter authentication canceled');
+            twauth.style.display = 'none';
+          },
+          false);
+        var cont = document.getElementById('twitter-auth-continue');
+        cont.addEventListener(
+          'click',
+          function(evt) {
+            twauth.style.display = 'none';
+            new MozActivity(
+              {
+                name: 'view',
+                data: {type: 'url', url: authorize}
               }
-            });
-          });
+            );
+            var twpin = document.getElementById('twitter-pin');
+            twpin.style.display = 'block';
+            document.getElementById('twitter-pin-continue').addEventListener(
+              'click',
+              function(evt) {
+                var pin = document.getElementById('twitter-pincode').value;
+                twpin.style.display = 'none';
+                setStatus('Confirming Twitter PIN code');
+                processTwitterXHR(
+                  'https://api.twitter.com/oauth/access_token',
+                  'POST',
+                  {oauth_verifier: pin, oauth_token: request_token_only},
+                  function(xhr) {
+                    if (xhr.status != 200) {
+                      alert(
+                        'Request refused:',
+                        xhr.status, '::',
+                        xhr.responseText);
+                      return;
+                    }
+                    var twitter_account =
+                      extractTwitterAccessToken(xhr.responseText);
+                    creds_twitter.setcreds(twitter_account, function(res) {
+                      if (res == null) {
+                        setStatus('Twitter account configured.');
+                        updateTwitterCredentials();
+                      } else {
+                        alert('An error occured:', JSON.stringify(res));
+                      }
+                    });
+                  });
+              },
+              false);
+          },
+          false);
       } else {
         alert('Cannot request token.');
       }
@@ -180,14 +258,30 @@ function loginTwitter() {
 }
 
 function revokeTwitter() {
-  creds_twitter.delcreds(creds[0].screen_name, function(res) {
-    if (res == null) {
-      alert('Your Twitter account is now revoked!');
-      updateTwitterCredentials();
-    } else {
-      alert('An error occured:', JSON.stringify(res));
-    }
-  });
+  var conf = document.getElementById('confirm-twitter-revoke');
+  conf.style.display = 'block';
+  document.getElementById('twitter-revoke-cancel').addEventListener(
+    'click',
+    function(evt) {
+      conf.style.display = 'none';
+    },
+    false
+  );
+  document.getElementById('twitter-revoke-revoke').addEventListener(
+    'click',
+    function(evt) {
+      creds_twitter.delcreds(creds[0].screen_name, function(res) {
+        conf.style.display = 'none';
+        if (res == null) {
+          setStatus('Your Twitter account is now revoked!');
+          updateTwitterCredentials();
+        } else {
+          alert('An error occured:', JSON.stringify(res));
+        }
+      });
+    },
+    false
+  );
 }
 
 function uploadTwitter(source, callback) {
@@ -217,33 +311,18 @@ function uploadTwitter(source, callback) {
     'POST',
     {include_entities: true, status: twstatus}
   );
-  // console.log("Twitter API URL:", url);
+  // console.log('Twitter API URL:', url);
 
   var picture = new FormData();
   picture.append('media', source);
 
-  var xhr = new XMLHttpRequest({mozSystem: true});
-  xhr.open('POST', url, true);
-  xhr.upload.addEventListener('progress', function(e) {
-    if (e.lengthComputable) {
-      setProgress(e.loaded, e.total);
-    }
-  }, false);
-  xhr.upload.addEventListener('load', function(e) {
-      setProgress(e.loaded, e.total);
-  }, false);
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState == XMLHttpRequest.DONE) {
-      // console.log("Got reply from Twitter");
-      var json = JSON.parse(xhr.responseText);
-      var id_str = json.entities.media[0].id_str;
-      var ex_url = json.entities.media[0].expanded_url;
-      setStatus('Uploaded successfully: ' + id_str);
-      callback(ex_url);
-      unlock();
-    }
-  };
-  xhr.send(picture);
+  XHRUpload(url, picture, function(xhr) {
+    var json = JSON.parse(xhr.responseText);
+    var id_str = json.entities.media[0].id_str;
+    var ex_url = json.entities.media[0].expanded_url;
+    setStatus('Uploaded successfully: ' + id_str);
+    callback(ex_url);
+  });
 }
 
 function uploadImgur(source, callback) {
@@ -254,42 +333,20 @@ function uploadImgur(source, callback) {
   picture.append('key', apikey);
   picture.append('image', source);
 
-  var xhr = new XMLHttpRequest({mozSystem: true});
-  xhr.open('POST', url, true);
-  xhr.upload.addEventListener('progress', function(e) {
-    if (e.lengthComputable) {
-      setProgress(e.loaded, e.total);
+  XHRUpload(url, picture, function(xhr) {
+    var json = JSON.parse(xhr.responseText);
+    var link = json.upload.links.imgur_page;
+    var img = json.upload.image.hash;
+    if (link == undefined) {
+      setStatus('Error while uploading!');
+    } else {
+      setStatus('Uploaded successfully: ' + img);
+      callback(link);
     }
-  }, false);
-  xhr.upload.addEventListener('load', function(e) {
-      setProgress(e.loaded, e.total);
-  }, false);
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState == XMLHttpRequest.DONE) {
-      var json = JSON.parse(xhr.responseText);
-      var link = json.upload.links.imgur_page;
-      var img = json.upload.image.hash;
-      if (link == undefined) {
-        setStatus('Error while uploading!');
-      } else {
-        setStatus('Uploaded successfully: ' + img);
-        callback(link);
-      }
-      unlock();
-    }
-  };
-  xhr.send(picture);
+  });
 }
 
 function finalize(url) {
-  var zoneResults = document.getElementById('link');
-  if (zoneResults) {
-    var link = document.createElement('a');
-    link.href = url;
-    link.textContent = 'Link to uploaded';
-    zoneResults.appendChild(link);
-  }
-
   new MozActivity({
     name: 'view',
     data: {
@@ -317,7 +374,9 @@ function addImages(filenames) {
 }
 
 function getSelectedServices() {
-  var services = document.getElementsByTagName('input');
+  var services =
+    document.getElementById('services')
+    .getElementsByTagName('input');
   var selectedServices = [];
   for (var service in services) {
     var s = services[service];
@@ -329,6 +388,7 @@ function getSelectedServices() {
 }
 
 function share() {
+  setStatus('Starting to share');
   var services = getSelectedServices();
   if (services.length > 0) {
     for (var sn in services) {
@@ -337,9 +397,10 @@ function share() {
       var previews = document.getElementById('previews');
       var imgs = previews.getElementsByTagName('img');
       for (var i in imgs) {
-              var img_url = imgs[i].src;
+        var img_url = imgs[i].src;
         if (img_url != undefined) {
           var img = files[img_url];
+          setStatus('Preparing upload');
           switch (serv) {
             case 'upload-canardpc':
               uploadCanardPc(img, finalize);
@@ -368,7 +429,7 @@ function purge(id) {
 
 function clean() {
   files = {};
-  setStatus('');
+  hideBannerStatus();
   setProgress(0.0, 0.0);
   document.getElementById('twitter-message').value = '';
   purge('previews');
@@ -385,9 +446,31 @@ function unlock() {
 }
 
 function setStatus(msg) {
-  document.getElementById('uploaded').value = msg;
+  showBannerStatus();
+  document.getElementById('uploaded').innerHTML = msg;
+}
+
+function setBannerStatus(visible) {
+  var bs = document.getElementById('banner-status');
+  if (visible) {
+    bs.style.display = 'block';
+  } else {
+    bs.style.display = 'none';
+  }
+}
+
+function showBannerStatus() {
+  setBannerStatus(true);
+}
+
+function hideBannerStatus() {
+  setBannerStatus(false);
 }
 
 function setProgress(level, max) {
-  document.getElementById('progress').value = level + '/' + max;
+  var prcent = 0.0;
+  if (max > 0.0) {
+    prcent = ((level * 1.0) / (max)) * 100;
+  }
+  document.getElementById('upload-progress').value = prcent;
 }
