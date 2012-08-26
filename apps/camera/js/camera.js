@@ -15,6 +15,8 @@ var Camera = {
   _autoFocusSupported: 0,
   _manuallyFocused: false,
 
+  _autoFlashSupported: 0,
+
   _timeoutId: 0,
   _cameraObj: null,
 
@@ -202,6 +204,8 @@ var Camera = {
       this._config._rotation = rotation;
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
+      this._autoFlashSupported =
+        camera.capabilities.flashModes.indexOf('auto') !== -1;
       camera.effect = camera.capabilities.effects[this._effect];
       var config = {
         height: height,
@@ -306,6 +310,9 @@ var Camera = {
   takePicture: function camera_takePicture() {
     this.captureButton.setAttribute('disabled', 'disabled');
     this.focusRing.setAttribute('data-state', 'focusing');
+    if (this._autoFlashSupported) {
+      this._cameraObj.flashMode = 'auto';
+    }
     if (this._autoFocusSupported && !this._manuallyFocused) {
       this._cameraObj.autoFocus(this.takePictureAutoFocusDone.bind(this));
     } else {
