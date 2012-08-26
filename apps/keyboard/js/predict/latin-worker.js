@@ -13,10 +13,17 @@ var _start; // starting position of the trie in _dict
 var _nearbyKeys; // nearby keys for any given key
 var _currentWord = ""; // the word currently being edited
 
+// Send a log message to the main thread since we can't output to the console
+// directly.
 function log(msg) {
   self.postMessage({ cmd: "log", args: [msg] });
 }
 
+// Calculate the squared distance of a point (x, y) to the nearest edge of
+// a rectangle (left, top, width, height). This is used to calculate the
+// nearby keys for every key. We search the dictionary by looking for words
+// where each character corresponds to the key the user touched, or a key
+// near that key.
 function SquaredDistanceToEdge(left, top, width, height, x, y) {
   var right = left + width;
   var bottom = top + height;
@@ -27,6 +34,8 @@ function SquaredDistanceToEdge(left, top, width, height, x, y) {
   return dx * dx + dy * dy;
 }
 
+// Determine whether the key is a special character or a regular letter.
+// Special characters include backspace (8), return (13), and space (32).
 function SpecialKey(key) {
   var code = key.code;
   return code <= 32;
