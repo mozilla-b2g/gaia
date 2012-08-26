@@ -8,13 +8,10 @@ var _dict; // the dictionary for the current language
 var _prefixLimit; // the maximum length of prefixes (loaded from dictionary)
 var _bloomFilterSize; // the size of the bloom filter (loaded from dictionary)
 var _bloomFilterMask; // mask for offsets into the bloom filter
+var _charMap; // diacritics table (mapping diacritics to the base letter)
+var _start; // starting position of the trie in _dict
 var _nearbyKeys; // nearby keys for any given key
 var _currentWord = ""; // the word currently being edited
-
-// map special characters (umlaut, etc) to regular characters
-const _charMap = {
-  "é": "e"
-};
 
 function log(msg) {
   self.postMessage({ cmd: "log", args: [msg] });
@@ -38,7 +35,7 @@ function SpecialKey(key) {
 function Filter(hash) {
   var offset = hash >> 3;
   var bit = hash & 7;
-  return !!(_dict[2 + (offset & _bloomFilterMask)] & (1 << bit));
+  return !!(_dict[_start + (offset & _bloomFilterMask)] & (1 << bit));
 }
 
 const LookupPrefix = (function () {
@@ -137,8 +134,8 @@ const LookupPrefix = (function () {
     return (function (prefix) {
       var result = [];
 
-      // Skip over the header bytes and the bloom filter data.
-      pos = 2 + _bloomFilterSize;
+      // Skip over the header bytes, the diacritics table and the bloom filter data.
+      pos = _start + _bloomFilterSize;
 
       SearchPrefix(prefix, "", result);
 
@@ -149,9 +146,11 @@ const LookupPrefix = (function () {
 // Turn a character into a key: turn upper case into lower case
 // and convert all umlauts into the base character.
 function ToKey(ch) {
-  ch = ch.toLowerCase();
+  ch = ch.toLowerCase().charCodeAt(0);
   var ch2 = _charMap[ch];
-  return (ch2 ? ch2 : ch).charCodeAt(0);
+  if (ch2)
+    return ch2;
+  return ch;
 }
 
 // Generate an array of char codes from a word.
@@ -390,9 +389,38 @@ var PredictiveText = {
   setLanguage: function PTW_setLanguage(language, dict) {
     _language = language;
     _dict = Uint8Array(dict);
-    _prefixLimit = _dict[0];
-    _bloomFilterSize = _dict[1] * 65536;
+
+    var pos = 0;
+
+    // Read the header.
+    _prefixLimit = _dict[pos++];
+    _bloomFilterSize = _dict[pos++] * 65536;
     _bloomFilterMask = _bloomFilterSize - 1;
+
+    // Read the diacritics table.
+    _charMap = {};
+    //Object.create(null);
+    function getVLU() {
+        var u = 0
+        var shift = 0;
+        do {
+          var b = _dict[pos++];
+          u |= (b & 0x7f) << shift;
+          shift += 7;
+        } while (b & 0x80);
+        return u;
+    }
+    var baseLetter;
+    while ((baseLetter = getVLU()) != 0) {
+      var diacritic;
+      while ((diacritic = getVLU()) != 0)
+        _charMap[diacritic] = baseLetter;
+    }
+
+    // Remember the starting offset of the bloom filter.
+    _start = pos;
+
+    // Reset the predictor state.
     _currentWord = "";
   }
 };
