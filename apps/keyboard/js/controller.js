@@ -61,6 +61,8 @@ const IMEController = (function() {
     return null;
   };
 
+  var _language = "en-US";
+
   var _layoutParams = {};
 
   // Taps the space key twice within kSpaceDoubleTapTimeoout
@@ -1219,13 +1221,19 @@ const IMEController = (function() {
       if (this.suggestionEngines[engineName])
         return;
 
-      this.suggestionEngines[engineName] = {};
+      // We might get a setLanguage call as the engine is loading. Ignore it.
+      // We will set the language via init anyway.
+      this.suggestionEngines[engineName] = {
+        setLanguage: function load_suggestion_engine_ignore_setLanguage() {
+        }
+      };
 
       var script = document.createElement('script');
       script.src = sourceDir + engineName + '.js';
       var self = this;
       var glue = {
-        lang: moduleName,
+        keyboard: moduleName,
+        language: _language,
         path: sourceDir,
         sendCandidates: function kc_glue_sendCandidates(candidates) {
           IMERender.showCandidates(candidates);
@@ -1273,6 +1281,12 @@ const IMEController = (function() {
       var suggestionEngineName = Keyboards[_baseLayoutName].suggestionEngine;
       if (enabled && suggestionEngineName)
           this.loadSuggestionEngine(_baseLayoutName);
+    },
+
+    setLanguage: function kc_setLanguage(language) {
+      _language = language;
+      if (_requireSuggestion())
+        _getCurrentSuggestionEngine().setLanguage(language);
     }
   };
 })();

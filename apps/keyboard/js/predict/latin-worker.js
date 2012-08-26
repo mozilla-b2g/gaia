@@ -3,7 +3,7 @@
 
 'use strict';
 
-var _lang; // the current language (e.g. en_us)
+var _language; // the current language (e.g. en_US)
 var _dict; // the dictionary for the current language
 var _prefixLimit; // the maximum length of prefixes (loaded from dictionary)
 var _bloomFilterSize; // the size of the bloom filter (loaded from dictionary)
@@ -329,14 +329,6 @@ function Predict(word) {
 }
 
 var PredictiveText = {
-  init: function PTW_init(lang, dict) {
-    _lang = lang;
-    _dict = Uint8Array(dict);
-    _prefixLimit = _dict[0];
-    _bloomFilterSize = _dict[1] * 65536;
-    _bloomFilterMask = _bloomFilterSize - 1;
-    _currentWord = "";
-  },
   key: function PTW_key(keyCode, keyX, keyY) {
     if (keyCode == 32) {
       self.postMessage({ cmd: "sendCandidates", args: [[]] });
@@ -394,6 +386,14 @@ var PredictiveText = {
       }
       _nearbyKeys[String.fromCharCode(key1.code).toLowerCase()] = list;
     }
+  },
+  setLanguage: function PTW_setLanguage(language, dict) {
+    _language = language;
+    _dict = Uint8Array(dict);
+    _prefixLimit = _dict[0];
+    _bloomFilterSize = _dict[1] * 65536;
+    _bloomFilterMask = _bloomFilterSize - 1;
+    _currentWord = "";
   }
 };
 

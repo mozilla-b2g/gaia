@@ -4,19 +4,17 @@
 'use strict';
 
 (function (IMEController) {
-  var _worker;
-  var _dict;
+  var _path = null;
+  var _language = null;
+  var _worker = null;
 
   IMEController.suggestionEngines['latin'] = {
     init: function latin_init(glue) {
-      var lang = glue.lang;
-      var path = glue.path;
+      // remember the path, we will use this to load the dictionary
+      _path = glue.path;
 
-      // This needs a real fix.
-      if (lang == "en")
-        lang = "en_us";
-
-      _worker = new Worker(path + 'latin-worker.js');
+      // spin up the worker
+      _worker = new Worker(_path + 'latin-worker.js');
       _worker.onmessage = function(evt) {
         var data = evt.data;
         glue[data.cmd].apply(glue, data.args);
@@ -25,24 +23,39 @@
         throw new Error(evt.message + ' (' + evt.filename + ':' + evt.lineno + ')');
       }
 
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', path + '../../dictionaries/' + lang + '.dict', true);
-      xhr.responseType = "arraybuffer"; 
-      xhr.onload = function(evt) {
-        _worker.postMessage({ cmd: 'init', args: [lang, xhr.response] });
-      }
-      xhr.send();
+      this.setLanguage(glue.language);
     },
     click: function latin_click(keyCode, keyX, keyY) {
+      if (!_worker)
+        return;
       _worker.postMessage({ cmd: 'key', args: [keyCode, keyX, keyY] });
     },
     select: function latin_select(textContent, data) {
+      if (!_worker)
+        return;
       _worker.postMessage({ cmd: 'select', args: [textContent, data] });
     },
     setLayoutParams: function latin_setLayoutParams(params) {
-      if (!params.keyArray)
-        return; // keyArray not ready yet
+      if (!_worker || !params.keyArray)
+        return; // no worker or keyArray not ready yet
       _worker.postMessage({ cmd: 'setLayoutParams', args: [params] });
+    },
+    setLanguage: function latin_setLanguage(language) {
+      if (language == _language)
+        return;
+
+      // our dictionaries are named a bit differently
+      var dictname = language.replace('-', '_').toLowerCase();
+      console.log("loading " + dictname + " dictionary");
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', _path + '../../dictionaries/' + dictname + '.dict', true);
+      xhr.responseType = "arraybuffer";
+      xhr.onload = function(evt) {
+        _language = language;
+        _worker.postMessage({ cmd: 'setLanguage', args: [language, xhr.response] });
+      }
+      xhr.send();
     }
   };
 })(IMEController);
