@@ -177,6 +177,7 @@ for word in words:
     if ismarked(word[::-1]):
         collisions += 1
 assert collisions < total * 0.06
+print("collision ratio: {0}/{1}".format(collisions, total))
 
 # If verbose mode was requested, write the index to a human readable file.
 if options.verbose:
