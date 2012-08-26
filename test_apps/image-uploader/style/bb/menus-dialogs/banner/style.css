@@ -1,0 +1,36 @@
+/* ----------------------------------
+ * BANNER
+ * Requires:
+    menus-dialogs/core.css
+ * ---------------------------------- */
+
+body[role="application"] section[role="dialog"].banner {
+  top: auto;
+  height: 8rem;
+  padding: 0;
+  text-align: center;
+}
+
+body[role="application"] section[role="dialog"].banner:after {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 1px;
+  height: 100%;
+}
+
+body[role="application"] section[role="dialog"].banner p {
+  display: inline-block;
+  vertical-align: middle;
+  white-space: normal;
+  font-size: 1.6rem;
+  line-height: 1.4em;
+  max-width: 75%;
+  margin: 0;
+}
+
+body[role="application"] section[role="dialog"].banner p strong {
+  text-transform: uppercase;
+  color: #0995b0;
+  font-weight: normal;
+}
