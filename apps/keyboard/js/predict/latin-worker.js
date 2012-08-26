@@ -17,7 +17,7 @@ const _charMap = {
 };
 
 function log(msg) {
-  self.postMessage({ cmd: 'log', args: [msg] });
+  self.postMessage({ cmd: "log", args: [msg] });
 }
 
 function SquaredDistanceToEdge(left, top, width, height, x, y) {
@@ -45,8 +45,8 @@ const LookupPrefix = (function () {
     var pos;
 
     // Markers used to terminate prefix/offset tables.
-    const EndOfPrefixesSuffixesFollow = '#';
-    const EndOfPrefixesNoSuffixes = '&';
+    const EndOfPrefixesSuffixesFollow = "#";
+    const EndOfPrefixesNoSuffixes = "&";
 
     // Read an unsigned byte.
     function getByte() {
@@ -172,8 +172,7 @@ function Codes2String(codes) {
 
 // Check a candidate word given as an array of char codes against the bloom
 // filter and if there is a match, confirm it with the prefix trie.
-function Check(input, candidates) {
-  log("Check: " + Codes2String(input));
+function Check(input, prefixes, candidates) {
   var h1 = 0;
   var h2 = 0xdeadbeef;
   for (var n = 0; n < input.length; ++n) {
@@ -185,6 +184,9 @@ function Check(input, candidates) {
   }
   if (Filter(h1) && Filter(h2)) {
     var prefix = Codes2String(input);
+    if (prefixes.has(prefix))
+      return;
+    prefixes.add(prefix);
     var result = LookupPrefix(prefix);
     if (result) {
       for (var n = 0; n < result.length; ++n)
@@ -194,21 +196,21 @@ function Check(input, candidates) {
 }
 
 // Generate all candidates with an edit distance of 1.
-function EditDistance1(input, candidates) {
+function EditDistance1(input, prefixes, candidates) {
   var length = input.length;
   for (var n = 0; n < length; ++n) {
     var key = input[n];
     var nearby = _nearbyKeys[String.fromCharCode(key)];
     for (var i = 0; i < nearby.length; ++i) {
       input[n] = nearby[i].charCodeAt(0);
-      Check(input, candidates);
+      Check(input, prefixes, candidates);
     }
     input[n] = key;
   }
 }
 
 // Generate all candidates with an edit distance of 2.
-function EditDistance2(input, candidates) {
+function EditDistance2(input, prefixes, candidates) {
   var length = input.length;
   if (length < 4)
     return;
@@ -224,7 +226,7 @@ function EditDistance2(input, candidates) {
         for (var j = 0; j < nearby2.length; ++j) {
           input[n] = nearby1[i].charCodeAt(0);
           input[m] = nearby2[j].charCodeAt(0);
-          Check(input, candidates);
+          Check(input, prefixes, candidates);
         }
       }
       input[n] = key1;
@@ -234,7 +236,7 @@ function EditDistance2(input, candidates) {
 }
 
 // Generate all candidates with a missing character.
-function Omission1Candidates(input, candidates) {
+function Omission1Candidates(input, prefixes, candidates) {
   var length = Math.min(input.length, _prefixLimit - 1);
   var input2 = Uint8Array(length + 1);
   for (var n = 1; n <= length; ++n) {
@@ -244,13 +246,13 @@ function Omission1Candidates(input, candidates) {
       input2[i+1] = input[i++];
     for (var ch in _nearbyKeys) {
       input2[n] = ch.charCodeAt(0);
-      Check(input2, candidates);
+      Check(input2, prefixes, candidates);
     }
   }
 }
 
 // Generate all candidates with a single extra character.
-function Deletion1Candidates(input, candidates) {
+function Deletion1Candidates(input, prefixes, candidates) {
   var length = input.length;
   var input2 = Uint8Array(length - 1);
   for (var n = 1; n < length; ++n) {
@@ -259,7 +261,7 @@ function Deletion1Candidates(input, candidates) {
     ++i;
     while (i < length)
       input2[i-1] = input[i++];
-    Check(input2, candidates);
+    Check(input2, prefixes, candidates);
   }
 }
 
@@ -303,11 +305,12 @@ function Predict(word) {
   // Check for the current input, edit distance 1 and 2 and single letter
   // omission and deletion in the prefix.
   var input = String2Codes(prefix);
-  Check(input, candidates);
-  EditDistance1(input, candidates);
-  EditDistance2(input, candidates);
-  Omission1Candidates(input, candidates);
-  Deletion1Candidates(input, candidates);
+  var prefixes = new Set();
+  Check(input, prefixes, candidates);
+  EditDistance1(input, prefixes, candidates);
+  EditDistance2(input, prefixes, candidates);
+  Omission1Candidates(input, prefixes, candidates);
+  Deletion1Candidates(input, prefixes, candidates);
   // Sort the candidates by Levenshtein distance and frequency.
   for (var n = 0; n < candidates.length; ++n) {
     var candidate = candidates[n];
@@ -336,23 +339,35 @@ var PredictiveText = {
   },
   key: function PTW_key(keyCode, keyX, keyY) {
     if (keyCode == 32) {
-      self.postMessage({ cmd: 'sendCandidates', args: [] });
+      self.postMessage({ cmd: "sendCandidates", args: [[]] });
       _currentWord = "";
       return;
     }
-    _currentWord += String.fromCharCode(keyCode).toLowerCase();
-    log("currentWord: " + _currentWord);
-    var candidates = Predict(_currentWord);
-    log(candidates);
-    if (candidates.length > 0) {
-      var word = candidates[0].word;
-      var wordList = [[word, word]];
-      self.postMessage({ cmd: 'sendCandidates', args: [ wordList ] });
+    if (keyCode == 8) {
+      _currentWord = _currentWord.substr(0, _currentWord.length - 1);
+    } else {
+      _currentWord += String.fromCharCode(keyCode).toLowerCase();
     }
-    log("done");
+    var wordList = [];
+    if (_currentWord.length > 0) {
+      var candidates = Predict(_currentWord);
+      for (var n = 0; n < candidates.length; ++n) {
+        var word = candidates[n].word;
+        wordList.push([word, word]);
+      }
+    }
+    self.postMessage({ cmd: "sendCandidates", args: [ wordList ] });
   },
   select: function PTW_select(textContent, data) {
-    log("select");
+    if (_currentWord != data) {
+      // erase the current input
+      var str = _currentWord.replace(/./g, "\x08");
+      // send the selected word
+      str += data;
+      self.postMessage({ cmd: "sendString", args: [str] });
+    }
+    _currentWord = "";
+    self.postMessage({ cmd: "sendCandidates", args: [[]] });
   },
   setLayoutParams: function PTW_setLayoutParams(params) {
     // For each key, calculate the keys nearby.
@@ -366,7 +381,7 @@ var PredictiveText = {
       var key1 = keyArray[n];
       if (SpecialKey(key1))
         continue;
-      var list = '';
+      var list = "";
       for (var m = 0; m < keyArray.length; ++m) {
         var key2 = keyArray[m];
         if (SpecialKey(key2))
