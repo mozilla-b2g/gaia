@@ -393,7 +393,7 @@ var WindowManager = (function() {
       // Crashes when launched OOP (bug 775997)
 
       'Settings',
-      // Layers masking breaks input fields (bug 783106)
+      // Bluetooth is not remoted yet (bug 755943)
 
       'Video',
       // No videos seem to be found when running OOP (i.e. no video
