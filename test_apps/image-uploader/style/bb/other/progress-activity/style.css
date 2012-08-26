@@ -1,0 +1,88 @@
+/* ----------------------------------
+ * PROGRESS + ACTIVITIES
+ * ---------------------------------- */
+
+/* Activity indicator */
+ body[role="application"] progress:not([value]) {
+   width: 2.9rem;
+   height: 2.9rem;
+   background: url(images/ui/default.png) no-repeat left top;
+   border: none;
+   animation: 1s moveDefault infinite steps(10);
+   display: inline-block;
+   vertical-align: middle;
+ }
+
+ body[role="application"] progress:not([value])::-moz-progress-bar {
+   background: none;
+ }
+
+body[role="application"] progress:not([value])[data-theme="dark"],
+body[role="application"] p[role="status"][data-theme="dark"] progress:not([value]) {
+  background-image: url(images/ui/dark/default.png);
+}
+
+body[role="application"] progress:not([value]).spinner {
+  background-image: url(images/ui/spinner.png);
+   animation: 1s moveSpinner infinite steps(12);
+   width: 1.6rem;
+   height: 1.6rem;
+}
+
+/* Progress bar */
+body[role="application"] progress[value] {
+   width: 100%; 
+   background: #838990;
+   border: none;
+   height: 0.5rem;
+   display: block;
+ }
+
+body[role="application"] progress[value]::-moz-progress-bar {
+   background: #01c5ed;
+ }
+
+/* Labels */
+body[role="application"] p[role="status"] {
+  padding: 0.5rem;
+  font: 600 1.3rem/1em "Open Sans", Sans-serif;
+}
+
+body[role="application"] p[role="status"] progress:not([value]) {
+  margin-right: 0.5rem;
+}
+
+body[role="application"] p[role="status"] progress:not([value]) + span {
+  margin-bottom: 0;
+}
+
+body[role="application"] p[role="status"] span {
+  display: inline-block;
+  vertical-align: middle;
+  margin-bottom: 0.5rem;
+}
+
+body[role="application"] p[role="status"][data-theme="dark"] {
+  background: #555d65;
+  color: #fff;
+}
+
+@keyframes moveDefault {
+  from {
+    background-position: 0 top;
+  }
+  
+  to {
+    background-position: -390px top;
+  }
+} 
+
+@keyframes moveSpinner {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -300px top;
+  }
+} 

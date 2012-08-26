@@ -1,0 +1,70 @@
+/* ----------------------------------
+ * ACTION / OBJECT MENU
+ * Requires:
+    menu-dialoges/core.css
+ * ---------------------------------- */
+
+body[role="application"] menu.actions {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+body[role="application"] menu.actions h3 {
+  display: block;
+  margin: 0 1.5rem;
+}
+
+body[role="application"] menu.actions > ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+  display: block;
+  overflow: hidden;
+}
+
+body[role="application"] menu.actions > ul > li {
+  padding: 1rem 1.5rem 0 1.5rem;
+  margin: 0;
+  display: block;
+  overflow: hidden;
+  border: none;
+  height: auto;
+  line-height: auto;
+}
+
+body[role="application"] menu.actions > ul > li:last-child {
+  border-top: solid 1px rgba(255, 255, 255, 0.1);
+  background: #2d2d2d url(images/ui/pattern.png) repeat left top;
+  margin-top: 1.5rem;
+}
+
+body[role="application"] menu.actions > ul > li:not(:last-child) > button,
+body[role="application"] menu.actions > ul > li:not(:last-child) > a[role="button"] {
+  font-size: 1.4rem;
+  color: #fff;
+  text-shadow: none;
+  text-align: left;
+  padding: 0 1rem;
+  background: #4E4E4E padding-box;
+  border: solid 1px rgba(0, 0, 0, 0.25);
+}
+
+body[role="application"] menu.actions > ul > li:not(:last-child) > button:active,
+body[role="application"] menu.actions > ul > li:not(:last-child) > a[role="button"]:active {
+  background-color: #006f86;
+  color: #333;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+body[role="application"] menu.actions > ul > li:last-child > button,
+body[role="application"] menu.actions > ul > li:last-child > a[role="button"] {
+  margin: 0.5rem 0 1rem 0;
+}

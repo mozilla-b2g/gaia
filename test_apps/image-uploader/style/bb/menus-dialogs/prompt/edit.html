@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <link rel="stylesheet" href="../../other/buttons/style.css">
+  <link rel="stylesheet" href="../../other/headers/style.css">
+  <link rel="stylesheet" href="../core.css">
+  <link rel="stylesheet" href="style.css">
+
+  <!--
+  This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <link rel="stylesheet" href="../../fonts.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body { background: none; }
+    html { background: url(images/dummy/edit.png) no-repeat left top; }
+
+    body[role="application"] section[role="region"] > header[data-theme="overlay"] {
+      top: 2rem;
+    }
+  </style>
+  <title>Promt, edit</title>
+  <meta type="description" content="Prompts user to take action">
+  <meta type="requires" content="menu-dialoges/core.css, other/buttons/style.css, other/headers/style.css">
+  <meta type="target" content="html">  
+</head>
+
+<body role="application">
+
+  <section role="region">  
+    <header aria-level="1" data-theme="overlay">
+      <button><span class="icon icon-close">close</span></button>
+      <menu type="toolbar">
+        <button>done</button>
+      </menu>
+      <h1>Edit</h1>
+    </header>
+    <menu data-items="2">
+      <button>Cancel</button>
+      <button class="affirmative">Yes</button>
+    </menu>
+  </section>
+
+</body>
+</html>
