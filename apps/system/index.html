@@ -43,6 +43,7 @@
     <script defer src="js/airplane_mode.js"></script>
 
     <!-- Sleep Menu -->
+    <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
     <script defer src="js/sleep_menu.js"></script>
 
     <!-- Context Menu -->
@@ -175,8 +176,7 @@
         <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
         <div id="statusbar-signal" class="sb-icon sb-icon-signal"
           data-level="5" hidden></div>
-        <div id="statusbar-headphones" class="sb-icon sb-icon-headphones"
-          data-state="off" hidden></div>
+        <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
 
         <!-- Permissions -->
         <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
@@ -249,13 +249,13 @@
                   <input id="modal-dialog-password-input" type="password" />
                 </div>
               </div>
-              
+
               <div id="modal-dialog-error">
                 <div class="modal-dialog-title" data-l10n-id="error-title">Hmm, the app is having problems.</div>
                 <div class="modal-dialog-message-container">
                   <span data-l10n-id="error-message">The app has encountered an error and is not loading properly.</span>
                 </div>
-              </div>  
+              </div>
             </div>
           </div>
           <div id="modal-dialog-buttons">
@@ -325,9 +325,11 @@
             </div>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
+              <div id="lockscreen-camera-arrow" class="lockscreen-arrow"></div>
               <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
             </div>
             <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
+              <div id="lockscreen-unlock-arrow" class="lockscreen-arrow"></div>
               <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
             </div>
             <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
@@ -409,8 +411,14 @@
       </div>
 
       <div id="sleep-menu" data-z-index-level="sleep-menu">
-        <div class="sleepmenu" id="sleepmenu-container">
+        <div id="sleep-menu-container">
+          <h3 data-l10n-id="deviceMenu">Device menu</h3>
+          <ul>
+          </ul>
         </div>
+        <menu>
+          <button data-l10n-id="cancel">Cancel</button>
+        </menu>
       </div>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
