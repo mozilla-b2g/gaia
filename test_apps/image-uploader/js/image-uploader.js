@@ -347,6 +347,7 @@ function uploadImgur(source, callback) {
 }
 
 function finalize(url) {
+  clean();
   new MozActivity({
     name: 'view',
     data: {
