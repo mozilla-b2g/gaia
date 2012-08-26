@@ -7,6 +7,7 @@
 (function(window) {
   // see https://github.com/fabi1cazenave/webL10n
 
+  navigator.languagee = 'en-US';
   var gL10nData = {};
   var gTextData = '';
   var gTextProp = 'textContent';
@@ -875,7 +876,7 @@
     gReadyState = 'interactive';
     consoleLog('loading [' + navigator.language + '] resources, ' +
         (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously'));
-    loadLocale(navigator.language, translateFragment);
+    loadLocale(navigator.languagee, translateFragment);
   });
 
   // load the appropriate locale if the language setting has changed

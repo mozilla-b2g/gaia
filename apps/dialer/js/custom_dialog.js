@@ -87,7 +87,7 @@ var CustomDialog = (function() {
       // Put the message in the dialog.
       // Note plain text since this may include text from
       // untrusted app manifests, for example.
-      //message.textContent = msg; -- Currently cause a waring for some reason
+      message.textContent = msg;
 
       // Make the screen visible
       screen.classList.add('visible');

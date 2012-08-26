@@ -34,7 +34,6 @@ var CallHandler = {
         if (!status) {
           callbackCall();
         } else {
-          var _ = navigator.mozL10n.get;
           CustomDialog.show(
             _('callFlightModeTitle'),
             _('callFlightModeBody'),

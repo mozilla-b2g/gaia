@@ -52,7 +52,7 @@ body[role="application"] [role="dialog"] h3 {
 body[role="application"] [role="dialog"] p:last-child {
   -moz-box-flex: 1;
   -moz-box-orient: vertical;
-  display: -moz-box;
+  /*display: -moz-box;*/
 }
 
 body[role="application"] [role="dialog"] p {
