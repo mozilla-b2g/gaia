@@ -1,14 +1,4 @@
-/*
- *  Module: Facebook integration. Import Friends
- *
- *
- *  @author José M. Cantera (jmcf@tid.es)
- *
- *  The module allows to work with Facebook providing a deep integration
- *  between the Open Web Device and Facebook
- *
- *
- */
+
 var fb = window.fb || {};
 
 if (typeof fb.importt === 'undefined') {

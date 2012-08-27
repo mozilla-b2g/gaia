@@ -1,14 +1,4 @@
-/*
- *  Module: Facebook integration. OAuth 2.0 basic functions
- *
- *
- *  @author José M. Cantera (jmcf@tid.es)
- *
- *  The module allows to work with Facebook providing a deep integration
- *  between the Open Web Device and Facebook
- *
- *
- */
+
 var fb = window.fb || {};
 
 fb.ACC_T = 'access_token';

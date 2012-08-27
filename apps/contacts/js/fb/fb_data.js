@@ -1,19 +1,3 @@
-/*
- *  Module: Facebook integration wrapper
- *
- *  Product: Open Web Device
- *
- *  Copyright(c) 2012 Telefónica I+D S.A.U.
- *
- *  LICENSE: TBD
- *
- *  @author José M. Cantera (jmcf@tid.es)
- *
- *  The module allows to work with Facebook providing a deep integration
- *  between the Open Web Device and Facebook
- *
- *
- */
 
 var fb = window.fb || {};
 
