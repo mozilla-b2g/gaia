@@ -21,7 +21,6 @@ EVENT TIME COLOR: #333
 /* Device Layouts */
 
 @media screen and (max-width: 480px) {
-
 }
 
 /* loading */
@@ -31,6 +30,10 @@ body.loading {
 }
 
 /* general elements */
+
+a:active {
+  border: none;
+}
 
 p {
   font-size: 1.5rem;
@@ -248,6 +251,9 @@ section.month ol {
   height: 20%;
 }
 
+section.six-weeks ol {
+  height: 16.7% !important; 
+}
 
 section.month li:first-child {
   border-left: none;

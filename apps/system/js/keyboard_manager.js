@@ -35,7 +35,7 @@ var KeyboardManager = (function() {
       currentApp = TrustedDialog.getFrame();
       appHeight = currentApp.getBoundingClientRect().height;
 
-    } else if (ModalDialog.isVisible()) {
+    } else if (ModalDialog.isVisible() || PopupManager.isVisible()) {
       // XXX: As system has no iframe, we calc the height separately
       currentApp = document.getElementById('dialog-overlay');
       appHeight = window.innerHeight;
@@ -56,7 +56,8 @@ var KeyboardManager = (function() {
 
     if (message.hidden) {
       // To reset dialog height
-      if (TrustedDialog.isVisible() || ModalDialog.isVisible())
+      if (TrustedDialog.isVisible() || ModalDialog.isVisible() ||
+          PopupManager.isVisible())
         currentApp.style.height = height + 'px';
 
       keyboardFrame.classList.add('hide');
