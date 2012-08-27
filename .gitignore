@@ -2,11 +2,13 @@
 *.rej
 *.orig
 *.swp
+.svn
 *~
 manifest.appcache
 
 /apps/system/camera
 /apps/settings/gaia-commit.txt
+/apps/homescreen/js/init.json
 /test_apps/test-agent/test/config.json
 /apps/dialer/contacts
 

@@ -145,7 +145,7 @@ DB_TARGET_PATH = /data/local/indexedDB
 DB_SOURCE_PATH = profile/indexedDB/chrome
 
 # Generate profile/
-profile: preferences permissions test-agent-config offline extensions install-xulrunner-sdk
+profile: applications-data preferences permissions app-makefiles test-agent-config offline extensions install-xulrunner-sdk
 	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
 	then \
 	  echo "Settings DB does not exists, creating an initial one:"; \
@@ -155,6 +155,15 @@ profile: preferences permissions test-agent-config offline extensions install-xu
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
+
+app-makefiles:
+	for d in ${GAIA_APP_SRCDIRS}; \
+	do \
+		for mfile in `find $$d -mindepth 2 -maxdepth 2 -name "Makefile"` ;\
+		do \
+			make -C `dirname $$mfile`; \
+		done; \
+	done;
 
 # Generate profile/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
@@ -214,7 +223,7 @@ offline: webapp-manifests webapp-zip
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/07/2012-07-17-03-05-55-mozilla-central/xulrunner-17.0a1.en-US.
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/08/2012-08-07-03-05-18-mozilla-central/xulrunner-17.0a1.en-US.
 
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
@@ -299,10 +308,17 @@ preferences: install-xulrunner-sdk
 
 
 # Generate profile/permissions.sqlite
-permissions: install-xulrunner-sdk
+permissions: webapp-manifests install-xulrunner-sdk
 	@echo "Generating permissions.sqlite..."
 	test -d profile || mkdir -p profile
 	@$(call run-js-command, permissions)
+	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
+
+# Generate profile/
+applications-data: install-xulrunner-sdk
+	@echo "Generating application data..."
+	test -d profile || mkdir -p profile
+	@$(call run-js-command, applications-data)
 	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/extensions
