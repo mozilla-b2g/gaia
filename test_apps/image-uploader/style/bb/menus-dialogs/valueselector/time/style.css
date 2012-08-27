@@ -1,0 +1,100 @@
+/* ----------------------------------
+ * STYLES FOR VALUESELECTOR TIME
+ * Requires:
+    menu-dialoges/core.css
+    menu-dialoges/valueselector/style.css
+    other/buttons/style.css
+ * ---------------------------------- */
+
+body[role="application"] [role="dialog"] [role="spinbutton"] {
+  text-align: center;
+  white-space: nowrap;
+  word-spacing: -99rem;  
+  height: 22.5rem;
+  position: relative;
+  border: solid 1px rgba(0, 0, 0, 0.25);
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 200;
+  pointer-events: none;
+  background: url(images/ui/shadow.png) repeat-x left top padding-box, url(images/ui/shadow-invert.png) repeat-x left bottom;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] > p {
+  background: #00A5C5 no-repeat center center;
+  height: 4.6rem;
+  position: absolute;
+  overflow: hidden;
+  left: 0;
+  top: 50%;
+  right: 0;
+  z-index: 5;
+  margin: -2.3rem 0 0;
+  pointer-events: none;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] > p span {
+  width: -moz-calc(100% / 3);
+  background: transparent no-repeat 55% 47%;
+  background-size: 160% auto;
+  margin: -9rem 0;
+  padding: 9rem 0;
+  display: inline-block;
+  vertical-align: middle;
+  white-space: normal;
+  overflow: hidden;
+  height: 100%;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] > div {
+  width: -moz-calc((100% / 3) - 1px);
+  display: inline-block;
+  vertical-align: middle;
+  white-space: normal;
+  overflow: hidden;
+  height: 100%;
+  border-right: solid 1px #666;
+  border-left: solid 1px #000;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] ol,
+body[role="application"] [role="dialog"] [role="spinbutton"] ul {
+  margin: 0 -0.8rem 0 -1rem;
+  padding: 0;
+  max-height: 100%;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] #alpha {
+  border-left: none;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] #gamma {
+  border-right: none;
+  background: url(images/ui/pattern.png) repeat left top;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] li:first-child {
+  margin-top: 9rem;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] li:last-child {
+  margin-bottom: 9rem;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] li {
+  height: 4.6rem;
+  line-height: 4.6rem;
+}
+
+body[role="application"] [role="dialog"] [role="spinbutton"] li,
+body[role="application"] [role="dialog"] [role="spinbutton"] li a,
+body[role="application"] [role="dialog"] [role="spinbutton"] li label  {
+  border: none;
+}

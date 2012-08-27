@@ -17,6 +17,11 @@ var RingView = {
     return this.hourState = document.getElementById('ring-clock-hour24-state');
   },
 
+  get alarmLabel() {
+    delete this.alarmLabel;
+    return this.alarmLabel = document.getElementById('ring-alarm-label');
+  },
+
   get snoozeButton() {
     delete this.snoozeButton;
     return this.snoozeButton = document.getElementById('ring-button-snooze');
@@ -29,6 +34,7 @@ var RingView = {
 
   init: function rv_init() {
     this.updateTime();
+    this.setAlarmLabel();
     this.ring();
     this.vibrate();
     document.addEventListener('mozvisibilitychange', this);
@@ -50,6 +56,10 @@ var RingView = {
     this._timeout = window.setTimeout(function cv_clockTimeout() {
       self.updateTime();
     }, (59 - d.getSeconds()) * 1000);
+  },
+
+  setAlarmLabel: function rv_setAlarmLabel() {
+    this.alarmLabel.textContent = window.opener.AlarmManager.getAlarmLabel();
   },
 
   ring: function rv_ring() {

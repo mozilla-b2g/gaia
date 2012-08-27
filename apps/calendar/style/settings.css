@@ -18,14 +18,16 @@ body[role="app"] #wrapper {
   display: block;
 }
 
+
 #settings {
   height: 100%;
   width: 75%;
   position: absolute;
-  background-color: #303540;
+  background: transparent url('./ui/drawer.png');
   color: white;
   font-size: 1.6rem;
 }
+
 
 #settings header h1 {
   width: -moz-calc(100% - 30px);
@@ -40,26 +42,83 @@ body[role="app"] #wrapper {
 }
 
 #settings header {
-  background: #242931;
-  padding: 0.9rem 1rem;
+  background: transparent url(ui/header.png) repeat-x left top;
+  padding: 1.2rem 1rem;
   font-size: 2.1rem;
   font-weight: normal;
   box-shadow: none;
   border-bottom: 1px solid #454B53;
 }
 
+#settings header:after {
+  content: "";
+  height: 0.3rem;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: url(ui/shadow-header.png) repeat-x left top;
+  background-size: auto 100%;
+}
+
+#settings .calendars label > span {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: -moz-calc(100% - 20px);
+}
+
+#settings .calendars label > span {
+  line-height: 100%;
+  display: block;
+  float: left;
+}
+
 #settings .calendars label {
   display: block;
-  padding: 2rem 1.6rem;
-  border-bottom: 1px solid #454B53;
+  padding: 1.6rem;
+  border-bottom: 1px solid #7E8C91;
   -moz-user-select: none;
+  -moz-box-flex: 1;
   user-select: none;
+  width: 100%;
+}
+
+#settings .calendars li,
+#settings .calendars ol {
+  height: 100%;
+}
+
+#settings .calendars li {
+  width: 100%;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+}
+
+#settings .calendars .calendar-color {
+  height: 10px;
+  width: 0.5rem;
+  display: block;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.2) 0%,
+    rgba(255,255,255,0) 40%,
+    rgba(0, 0, 0, 0.3) 100%
+  )
+}
+
+#settings > menu {
+  position: absolute;
+  bottom: 0px;
+  height: 40px;
+  padding: 5px 0px;
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 #settings .settings,
 #settings .sync {
   position: absolute;
-  bottom: 1rem;
   text-indent: -1000em;
   width: 30px;
   height: 30px;
@@ -93,8 +152,8 @@ body[role="app"] #wrapper {
 
 #settings .calendars input[type="checkbox"]+span {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   float: right;
 }
 
