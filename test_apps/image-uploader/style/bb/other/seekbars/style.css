@@ -1,0 +1,90 @@
+/* ----------------------------------
+* SEEKBARS
+* ---------------------------------- */
+body[role="application"] div[role="slider"] {
+  position: relative;
+  height: 0.3rem;
+  margin: 2rem 0;
+}
+
+body[role="application"] div[role="slider"] progress {
+  width: 100%;
+  background: url(images/ui/background.png) repeat-x center center;
+  border: none;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+body[role="application"] div[role="slider"] progress::-moz-progress-bar {
+  background: #00b0d4;
+}
+
+body[role="application"] div[role="slider"] button {
+  width: 2.8rem;
+  height: 2.8rem;
+  padding: 0;
+  background: url(images/ui/handler.png) no-repeat center center;
+  font: 0/0 a;  
+  position: absolute;
+  top: 50%;
+  left: 0;
+  margin: -1.5rem 0 0 -0.5rem;
+  border-radius: 2.8rem;
+  border: solid 1px transparent;
+  transition: border 0.15s ease;
+}
+
+body[role="application"] div[role="slider"] button:active {
+  border: solid 0.4rem #01c5ed;
+}
+
+/* Choose action  */
+body[role="application"] div[role="slider"].actions {
+  height: 0.2rem;
+}
+
+body[role="application"] div[role="slider"].actions progress {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+body[role="application"] div[role="slider"].actions progress::-moz-progress-bar {
+  background: none;
+}
+
+body[role="application"] div[role="slider"].actions button {
+  width: 6rem;
+  height: 6rem;
+  margin: -3rem 0 0 -3rem;
+  background-image: url(images/ui/handler-L.png);
+  border-radius: 5rem;
+}
+
+body[role="application"] div[role="slider"].actions button.begin,
+body[role="application"] div[role="slider"].actions button.end {
+  width: 4.2rem;
+  height: 4.2rem;
+  margin: -2.1rem 0 0;
+  border: none;
+}
+
+body[role="application"] div[role="slider"].actions button.begin {
+  left: auto;
+  right: 100%;
+  background-image: url(images/icons/hang.png);
+}
+
+body[role="application"] div[role="slider"].actions button.begin.active {
+  background-image: url(images/icons/hang-active.png);
+}
+
+body[role="application"] div[role="slider"].actions button.end {
+  right: auto;
+  left: 100%;
+  background-image: url(images/icons/pick.png);
+}
+
+body[role="application"] div[role="slider"].actions button.end.active {
+  background-image: url(images/icons/pick-active.png);
+}
