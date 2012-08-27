@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title> Date/Time l10n </title>
+    <link rel="resource" type="application/l10n" href="locales/date.ini">
+    <script type="application/javascript" src="js/l10n.js"></script>
+    <script type="application/javascript" src="js/l10n_date.js"></script>
+    <script type="application/javascript" src="date.js"></script>
+  </head>
+  <body>
+    <dl>
+      <dt> Date: </dt>
+      <dd id="date"></dd>
+      <dt> Time: </dt>
+      <dd id="time"></dd>
+      <dt> DateTime: </dt>
+      <dd id="dateTime"></dd>
+      <dt> default: </dt>
+      <dd id="default"></dd>
+    </dl>
+    <input type="text" onchange="updatePrettyDate(this.value)">
+    <input type="text" onchange="updateCustomDate(this.value)">
+    <p id="prettyDate">now</p>
+    <p id="customDate">now</p>
+  </body>
+</html>
+
+
