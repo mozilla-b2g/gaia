@@ -141,11 +141,7 @@ var NotificationScreen = {
       return;
     }
 
-    var offset = detail.direction === 'right' ?
-      this._containerWidth : -this._containerWidth;
-
-    this._notification.style.transition = 'transform 0.3s linear';
-    this._notification.style.transform = 'translateX(' + offset + 'px)';
+    this._notification.classList.add('disappearing');
 
     var notification = this._notification;
     this._notification = null;
@@ -155,7 +151,7 @@ var NotificationScreen = {
     notification.addEventListener('transitionend', function trListener() {
       notification.removeEventListener('transitionend', trListener);
 
-      self.closeNotification(notification, true);
+      self.closeNotification(notification);
 
       if (notification != toaster)
         return;
@@ -242,7 +238,7 @@ var NotificationScreen = {
     return notificationNode;
   },
 
-  closeNotification: function ns_closeNotification(notificationNode, animate) {
+  closeNotification: function ns_closeNotification(notificationNode) {
     var notificationID = notificationNode.dataset.notificationID;
 
     var event = document.createEvent('CustomEvent');
@@ -252,57 +248,20 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    this.removeNotification(notificationNode.dataset.notificationID, animate);
+    this.removeNotification(notificationNode.dataset.notificationID);
   },
 
-  removeNotification: function ns_removeNotification(notificationID, animate) {
+  removeNotification: function ns_removeNotification(notificationID) {
     var notifSelector = '[data-notification-i-d="' + notificationID + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
 
-    if (!animate) {
-      notificationNode.parentNode.removeChild(notificationNode);
-      this.updateStatusBarIcon();
-      return;
-    }
-
-    // Animating the next notifications up
-    var nextNotifsSelector = notifSelector + '~ .notification';
-    var nextNotifications = this.container.querySelectorAll(nextNotifsSelector);
-
-    if (nextNotifications.length) {
-      var n, i;
-      for (i = 0; i < nextNotifications.length; i++) {
-        n = nextNotifications[i];
-
-        n.style.transition = 'transform 0.2s linear';
-        n.style.transform = 'translateY(-62px)';
-      }
-
-      var self = this;
-      n.addEventListener('transitionend', function trWait() {
-        n.removeEventListener('transitionend', trWait);
-
-        for (i = 0; i < nextNotifications.length; i++) {
-          n = nextNotifications[i];
-
-          n.style.transition = '';
-          n.style.transform = '';
-        }
-
-        setTimeout(function nextTick() {
-          notificationNode.parentNode.removeChild(notificationNode);
-          self.updateStatusBarIcon();
-        });
-      });
-    } else {
-      notificationNode.parentNode.removeChild(notificationNode);
-      this.updateStatusBarIcon();
-    }
+    notificationNode.parentNode.removeChild(notificationNode);
+    this.updateStatusBarIcon();
   },
 
   clearAll: function ns_clearAll() {
     while (this.container.firstElementChild) {
-      this.closeNotification(this.container.firstElementChild, false);
+      this.closeNotification(this.container.firstElementChild);
     }
   },
 

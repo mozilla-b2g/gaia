@@ -153,6 +153,16 @@
   pointer-events: none;
 }
 
+.notification.disappearing {
+  transition: transform 0.3s linear;
+  transform: translateX(100%);
+}
+
+.notification.disappearing ~ .notification {
+  transition: transform 0.3s linear;
+  transform: translateY(-62px);
+}
+
 #lockscreen-notification {
   position: absolute;
   top: 13rem;
