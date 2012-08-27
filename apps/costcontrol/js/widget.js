@@ -82,9 +82,8 @@ function setupWidget() {
     // Callback fot service state changed
     CostControl.onservicestatuschange = function ccwidget_onStateChange(evt) {
       var status = evt.detail;
-      if (status.availability && status.roaming) {
+      if (status.availability && status.roaming)
         _setWarningMode(true);
-      }
     };
 
     // Update UI when localized

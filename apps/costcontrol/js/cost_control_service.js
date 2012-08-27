@@ -349,14 +349,15 @@ setService(function cc_setupCostControlService() {
       return;
 
     _stopWaiting(STATE_TOPPING_UP);
-    if (messageType === 'confirmation')
+    if (messageType === 'confirmation') {
       _dispatchEvent(_getEventName(STATE_TOPPING_UP, 'success'));
 
-    else
+    } else {
       _dispatchEvent(
         _getEventName(STATE_TOPPING_UP, 'error'),
         { reason: 'incorrect-code'}
       );
+    }
   }
 
   // Start waiting for SMS
@@ -476,10 +477,11 @@ setService(function cc_setupCostControlService() {
   function _getEventName(mode, suffix) {
     suffix = suffix || '';
     var root;
-    if (mode === STATE_UPDATING_BALANCE)
+    if (mode === STATE_UPDATING_BALANCE) {
       root = 'costcontrolbalanceupdate';
-    else
+    } else {
       root = 'costcontroltopup';
+    }
 
     return root + suffix;
   }
