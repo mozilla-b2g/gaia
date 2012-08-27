@@ -389,6 +389,8 @@ var WindowManager = (function() {
       // - Repaints are being starved during panning (bug 761933)
       // - Homescreen needs to draw the system wallpaper itself (#3639)
 
+      // /!\ Also remove it from outOfProcessBlackList of background_service.js
+      // Once this app goes OOP. (can be done by reverting a commit)
       'Messages',
       // Crashes when launched OOP (bug 775997)
 
