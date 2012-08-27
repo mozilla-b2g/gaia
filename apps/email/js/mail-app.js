@@ -157,7 +157,7 @@ if ('mozSetMessageHandler' in window.navigator) {
 
       var folderToUse = Cards._cardStack[Cards
         ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
-      var composer = MailAPI.(
+      var composer = MailAPI.beginMessageComposition(
         null, folderToUse, null,
         function() {
           /* to/cc/bcc/subject/body all have default values that shouldn't be
