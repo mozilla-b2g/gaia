@@ -57,7 +57,7 @@ const IMEManager = {
     'dvorak': ['en-Dvorak'],
     'spanish' : ['es'],
     'portuguese' : ['pt_BR'],
-    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
+    'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuyin': ['zh-Hant-Zhuyin'],
