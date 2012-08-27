@@ -131,12 +131,12 @@ const IMEManager = {
 
     var self = this;
 
-    SettingsListener.observe('keyboard.wordsuggestion', true, function(value) {
+    SettingsListener.observe('keyboard.wordsuggestion', false, function(value) {
       var wordSuggestionEnabled = !!value;
       IMEController.enableWordSuggestion(wordSuggestionEnabled);
     });
 
-    SettingsListener.observe('language.current', "en-US", function(value) {
+    SettingsListener.observe('language.current', 'en-US', function(value) {
       var language = value;
       IMEController.setLanguage(language);
     });

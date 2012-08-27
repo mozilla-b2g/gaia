@@ -61,7 +61,7 @@ const IMEController = (function() {
     return null;
   };
 
-  var _language = "en-US";
+  var _language = 'en-US';
 
   var _layoutParams = {};
 
