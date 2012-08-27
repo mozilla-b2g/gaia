@@ -397,12 +397,7 @@ button::-moz-focus-inner {
 }
 
 .recents-edit .view-body {
-  height: -moz-calc(100% - 10.5rem);
-}
-
-.recents-edit .options {
-  position: absolute;
-  bottom: 0;
+  height: -moz-calc(100% - 14.5rem);
 }
 
 .recents-edit .call-log-selection {
