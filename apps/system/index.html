@@ -44,6 +44,7 @@
     <script defer src="js/airplane_mode.js"></script>
 
     <!-- Sleep Menu -->
+    <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
     <script defer src="js/sleep_menu.js"></script>
 
     <!-- Context Menu -->
@@ -434,8 +435,14 @@
       </div>
 
       <div id="sleep-menu" data-z-index-level="sleep-menu">
-        <div class="sleepmenu" id="sleepmenu-container">
+        <div id="sleep-menu-container">
+          <h3 data-l10n-id="deviceMenu">Device menu</h3>
+          <ul>
+          </ul>
         </div>
+        <menu>
+          <button data-l10n-id="cancel">Cancel</button>
+        </menu>
       </div>
 
       <div id="system-overlay" data-z-index-level="system-overlay">

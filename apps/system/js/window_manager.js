@@ -380,12 +380,6 @@ var WindowManager = (function() {
       'Clock',
       // Crashing when dismissing the alert window (bug 785166)
 
-      'Contacts',
-      // - Keyboard always shows up alpha when app using keyboard is
-      //   run OOP.  Not a hard blocker of OOP. (bug 776118)
-      // - Layers masking breaks input fields (bug 783106, tracked
-      //   #3630)
-
       'E-Mail',
       // SSL/TLS support can only happen in the main process although
       // the TCP support without security will accidentally work OOP
@@ -399,7 +393,7 @@ var WindowManager = (function() {
       // Crashes when launched OOP (bug 775997)
 
       'Settings',
-      // Layers masking breaks input fields (bug 783106)
+      // Bluetooth is not remoted yet (bug 755943)
 
       'Video',
       // No videos seem to be found when running OOP (i.e. no video
@@ -662,6 +656,7 @@ var WindowManager = (function() {
   window.addEventListener('holdhome', function(e) {
     if (!LockScreen.locked &&
         !CardsView.cardSwitcherIsShown()) {
+      SleepMenu.hide();
       CardsView.showCardSwitcher();
     }
   });
