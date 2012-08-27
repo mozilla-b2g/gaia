@@ -22,6 +22,7 @@ var screenLock;
 
 // same thing for the controls
 var controlShowing = false;
+var controlFadeTimeout = null;
 
 // An array of data about each of the videos we know about.
 var videos = [];
@@ -254,15 +255,37 @@ document.addEventListener('mozfullscreenchange', function() {
  });
 */
 
-// show|hide controls over the player
-dom.videoControls.addEventListener('click', function(event) {
-  if (!controlShowing) {
-    this.classList.remove('hidden');
-    controlShowing = true;
+function setControlsVisibility(visible) {
+  dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
+  controlShowing = visible;
+}
+
+function setVideoPlaying(playing) {
+  if (playing) {
+    play();
+  } else {
+    pause();
   }
-  else if (this == event.target) {
-    this.classList.add('hidden');
-    controlShowing = false;
+}
+
+// show|hide controls over the player
+dom.videoControls.addEventListener('mousedown', function(event) {
+  // If we interact with the controls before they fade away,
+  // cancel the fade
+  if (controlFadeTimeout) {
+    clearTimeout(controlFadeTimeout);
+    controlFadeTimeout = null;
+  }
+  if (!controlShowing) {
+    setControlsVisibility(true);
+    return;
+  }
+  if (event.target == dom.play) {
+    setVideoPlaying(dom.player.paused);
+  } else if (event.target == dom.close) {
+    hidePlayer();
+  } else {
+    setControlsVisibility(false);
   }
 });
 
@@ -291,10 +314,8 @@ function showPlayer(data) {
 
   // switch to the video player view
   dom.videoFrame.classList.remove('hidden');
-  dom.videoControls.classList.add('hidden');
   dom.videoBar.classList.remove('paused');
   playerShowing = true;
-  controlShowing = false;
 
   dom.videoTitle.textContent = currentVideo.metadata.title;
   dom.durationText.textContent = formatDuration(currentVideo.metadata.duration);
@@ -305,6 +326,12 @@ function showPlayer(data) {
 
   // Go into full screen mode
   dom.videoFrame.mozRequestFullScreen();
+
+  // Show the controls briefly then fade out
+  setControlsVisibility(true);
+  controlFadeTimeout = setTimeout(function() {
+    setControlsVisibility(false);
+  }, 1000);
 
   // Get the video file and start the player
   videodb.getFile(data.name, function(file) {
@@ -339,9 +366,6 @@ function hidePlayer() {
   screenLock = null;
 }
 
-// If the user clicks the close button, exit the playing movie
-dom.close.addEventListener('click', hidePlayer);
-
 // If the movie ends, and no controls are showing, go back to movie list
 dom.player.addEventListener('ended', function() {
   if (!controlShowing)
@@ -375,14 +399,6 @@ function pause() {
     screenLock = null;
   }
 }
-
-// Handle clicks on the play/pause button
-dom.play.addEventListener('click', function() {
-  if (dom.player.paused)
-    play();
-  else
-    pause();
-});
 
 // XXX: the back and forward buttons aren't working for my webm videos
 var dragging = false;

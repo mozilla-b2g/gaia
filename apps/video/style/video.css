@@ -153,6 +153,10 @@ body.hidden *[data-l10n-id] {
   background: none !important;
 }
 
+.icon-back {
+  pointer-events: none;
+}
+
 header {
   background: rgba(0, 0, 0, 0.3) !important;
 }
