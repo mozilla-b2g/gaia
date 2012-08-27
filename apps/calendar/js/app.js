@@ -49,7 +49,7 @@ Calendar.App = (function(window) {
 
       today.addEventListener('click', function() {
         self.view('Month').render();
-        self.timeController.setSelectedDay(new Date());
+        self.timeController.selectedDay = (new Date());
       });
 
 
