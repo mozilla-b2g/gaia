@@ -90,13 +90,11 @@
     },
 
     _initEvents: function() {
-      var busy = this.app.store('Busytime');
-      busy.observeTime(this._timespan, this);
+      this.controller.observeTime(this._timespan, this);
     },
 
     _destroyEvents: function() {
-      var busy = this.app.store('Busytime');
-      busy.removeTimeObserver(this._timespan, this);
+      this.controller.removeTimeObserver(this._timespan, this);
     },
 
     handleEvent: function(event) {
@@ -202,7 +200,7 @@
 
       state = Calendar.Calc.relativeState(
         date,
-        this.controller.currentMonth
+        this.controller.month
       );
 
       // register instance in map
@@ -453,12 +451,13 @@
      */
     attach: function(element) {
       var html = this._renderMonth();
-      var busytimes = this.app.store('Busytime');
+      var controller = this.controller;
+
 
       element.insertAdjacentHTML('beforeend', html);
       this.element = element.children[element.children.length - 1];
 
-      busytimes.busytimesInCachedSpan(this._timespan).forEach(
+      controller.queryCache(this._timespan).forEach(
         this._renderBusytime,
         this
       );

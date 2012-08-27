@@ -107,26 +107,6 @@ suite('store/busytime', function() {
     assert.instanceOf(subject._tree, Calendar.IntervalTree);
   });
 
-  test('#findTimeObserver', function() {
-    var cb = {};
-    var range = new Calendar.Timespan(
-      new Date(),
-      new Date()
-    );
-
-    assert.equal(
-      subject.findTimeObserver(range, cb),
-      -1
-    );
-
-    subject.observeTime(range, cb);
-
-    assert.equal(
-      subject.findTimeObserver(range, cb),
-      0
-    );
-  });
-
   suite('#loadSpan', function() {
     var list;
     var span;
@@ -154,7 +134,7 @@ suite('store/busytime', function() {
     add('ends after', new Date(2012, 1, 9), new Date(2012, 1, 11));
     add('after', new Date(2012, 1, 12), new Date(2012, 1, 15));
 
-    var eventFired;
+    var addEvents;
     var results;
     var expectedEventIds;
 
@@ -165,15 +145,15 @@ suite('store/busytime', function() {
     }
 
     setup(function(done) {
-      eventFired = [];
+      addEvents = [];
 
       // because we just added events
       // we need to remove them from the cache
       subject._setupCache();
 
       // add listener for event
-      subject.observeTime(span, function(event) {
-        eventFired.push(event);
+      subject.on('add time', function(data) {
+        addEvents.push(data);
       });
 
       // build the list of expected
@@ -227,154 +207,13 @@ suite('store/busytime', function() {
         'should add results to cache'
       );
 
-      var firstEvent = eventFired[0];
-
-      assert.equal(firstEvent.type, 'load');
       assert.deepEqual(
-        firstEvent.data,
+        addEvents,
         results,
         'should fire load event'
       );
     });
 
-  });
-
-  suite('#observeTime', function() {
-    test('when given non-timespan', function() {
-      assert.throws(function() {
-        subject.observeTime('foo', function() {});
-      }, /Calendar\.Timespan/);
-    });
-
-    test('success', function() {
-      var span = new Calendar.Timespan(
-        new Date(),
-        new Date()
-      );
-
-      var cb = function() {};
-
-      subject.observeTime(span, cb);
-
-      assert.equal(
-        subject._timeObservers.length, 1
-      );
-
-      var observe = subject._timeObservers[0];
-
-      assert.equal(observe[0], span);
-      assert.equal(observe[1], cb);
-
-    });
-
-  });
-
-  suite('#removeTimeObserver', function() {
-    var span, object;
-
-    setup(function() {
-      span = new Calendar.Timespan(
-        new Date(),
-        new Date()
-      );
-
-      object = {};
-      subject.observeTime(span, object);
-    });
-
-    test('found & removed', function() {
-      var result = subject.removeTimeObserver(
-        span, object
-      );
-
-      assert.isTrue(result);
-      assert.equal(subject._timeObservers.length, 0);
-    });
-
-    test('not removed', function() {
-      var result = subject.removeTimeObserver(
-        span,
-        {}
-      );
-
-      assert.isFalse(result);
-      assert.equal(subject._timeObservers.length, 1);
-    });
-  });
-
-  suite('#fireTimeEvent', function() {
-    var span;
-
-    var startDate;
-    var endDate;
-
-    var obj;
-
-    setup(function() {
-      obj = {};
-      startDate = new Date(2011, 12, 31);
-      endDate = new Date(2012, 1, 15);
-
-      span = new Calendar.Timespan(
-        new Date(2012, 1, 1),
-        new Date(2012, 12, 1)
-      );
-    });
-
-    function fireSuccess() {
-      subject.fireTimeEvent(
-        'add',
-        startDate,
-        endDate,
-        obj
-      );
-    }
-
-    test('object', function(done) {
-      this.timeout(250);
-
-      var observer = {
-        handleEvent: function(e) {
-          done(function() {
-            assert.equal(e.time, true);
-            assert.equal(e.type, 'add');
-            assert.equal(e.data, obj);
-          });
-        }
-      };
-      subject.observeTime(span, observer);
-      fireSuccess();
-    });
-
-    test('function', function(done) {
-      this.timeout(250);
-
-      subject.observeTime(span, function(e) {
-        done(function() {
-          assert.equal(e.time, true);
-          assert.equal(e.type, 'add');
-          assert.equal(e.data, obj);
-        });
-      });
-      fireSuccess();
-    });
-
-    test('outside of range', function(done) {
-      setTimeout(function() {
-        done();
-      }, 0);
-
-      subject.observeTime(span, function() {
-        done(new Error('should not fire observe'));
-      });
-
-      subject.fireTimeEvent(
-        'remove',
-        new Date(2010, 1, 1),
-        new Date(2011, 1, 1),
-        obj
-      );
-    });
   });
 
   suite('#addEvent', function(done) {
@@ -470,9 +309,21 @@ suite('store/busytime', function() {
         new Date(2015, 1, 1)
       );
 
-      subject.observeTime(span, function(e) {
-        events[e.type].push(e);
-      });
+      var handler = {
+        handleEvent: function(e) {
+          switch (e.type) {
+            case 'add time':
+              events.add.push(e);
+              break;
+            case 'remove time':
+              events.remove.push(e);
+              break;
+          }
+        }
+      };
+
+      subject.on('add time', handler);
+      subject.on('remove time', handler);
 
       single = event(new Date(2012, 1, 1));
       recurring = event(new Date(2011, 12, 3));
@@ -490,17 +341,17 @@ suite('store/busytime', function() {
       assert.equal(events.add.length, 3);
 
       assert.deepEqual(
-        events.add[0].data,
+        events.add[0].data[0],
         record(single)
       );
 
       assert.deepEqual(
-        events.add[1].data,
+        events.add[1].data[0],
         record(recurring)
       );
 
       assert.deepEqual(
-        events.add[2].data,
+        events.add[2].data[0],
         record(recurring, 1)
       );
 
@@ -535,7 +386,7 @@ suite('store/busytime', function() {
         assert.equal(events.remove.length, 1);
 
         assert.deepEqual(
-          events.remove[0].data,
+          events.remove[0].data[0],
           record(single)
         );
 
@@ -578,188 +429,6 @@ suite('store/busytime', function() {
       });
 
     });
-  });
-
-  suite('#eventsInCachedSpan', function() {
-
-    var eventStore;
-    var events = {};
-
-    setup(function() {
-      eventStore = subject.db.getStore('Event');
-
-      events.oneIn = Factory('event', {
-        remote: {
-          endDate: new Date(2012, 1, 10),
-          // end date is the same for all occurrences.
-          occurs: [
-            new Date(2012, 1, 1)
-          ]
-        }
-      });
-
-      events.twoIn = Factory('event', {
-        remote: {
-          endDate: new Date(2012, 1, 9),
-          occurs: [
-            new Date(2012, 1, 7)
-          ]
-        }
-      });
-    });
-
-    setup(function(done) {
-      eventStore.persist(events.oneIn, done);
-    });
-
-    setup(function(done) {
-      eventStore.persist(events.twoIn, done);
-    });
-
-    test('result', function(done) {
-      var span = new Calendar.Timespan(
-        new Date(2012, 1, 5),
-        new Date(2012, 1, 11)
-      );
-
-
-      subject.eventsInCachedSpan(span, function(err, list) {
-
-        function hasEvent(idx, event, occuranceIdx, msg) {
-          assert.deepEqual(
-            list[idx][0].startDate,
-            events[event].remote.occurs[occuranceIdx],
-            idx + ' - ' + event + ': ' + msg
-          );
-
-          assert.deepEqual(
-            list[idx][1],
-            events[event],
-            idx + ' - ' + event + ': ' + msg
-          );
-        }
-
-        done(function() {
-          assert.equal(list.length, 2);
-
-          hasEvent(0, 'oneIn', 0, 'first date in range');
-          hasEvent(1, 'twoIn', 0, 'second date in range');
-        });
-      });
-    });
-
-  });
-
-  suite('#busytimesInCachedSpan', function() {
-    var list;
-
-    setup(function() {
-      list = {};
-    });
-
-    function atTime(date) {
-      return list[date.valueOf()];
-    }
-
-    function add(start, end) {
-      setup(function(done) {
-        var item = event(start);
-        item.remote.startDate = start;
-        item.remote.endDate = end;
-
-        list[start.valueOf()] = subject._eventToRecord(
-          start, item
-        );
-
-        var store = subject.db.getStore('Event');
-        store.persist(item, done);
-      });
-    }
-
-    function d(day) {
-      return new Date(2012, 1, day);
-    }
-
-    add(d(5), d(7));
-    add(d(10), d(12));
-    add(d(14), d(16));
-    add(d(16), d(18));
-    add(d(20), d(22));
-
-    test('no matches start', function() {
-      var range = new Calendar.Timespan(
-        new Date(2011, 1, 5),
-        new Date(2011, 12, 10)
-      );
-
-      var result = subject.busytimesInCachedSpan(range);
-      assert.equal(result.length, 0);
-    });
-
-
-    test('no matches end', function() {
-      var range = new Calendar.Timespan(
-        new Date(2013, 1, 5),
-        new Date(2015, 1, 10)
-      );
-
-      var result = subject.busytimesInCachedSpan(range);
-      assert.equal(result.length, 0);
-    });
-
-    test('one match - top', function() {
-      var range = new Calendar.Timespan(
-        new Date(2011, 1, 1),
-        d(6)
-      );
-
-      var result = subject.busytimesInCachedSpan(range);
-      assert.equal(result.length, 1);
-
-      assert.equal(
-        result[0].eventId,
-        atTime(d(5)).eventId
-      );
-
-    });
-
-
-    test('one match - bottom', function() {
-      var range = new Calendar.Timespan(
-        d(21),
-        new Date(2013, 1, 10)
-      );
-
-      var result = subject.busytimesInCachedSpan(range);
-      assert.equal(result.length, 1);
-
-      assert.equal(
-        result[0].eventId,
-        atTime(d(20)).eventId
-      );
-
-    });
-
-    test('middle slice', function() {
-      var range = new Calendar.Timespan(
-        d(11), d(15)
-      );
-
-      var result = subject.busytimesInCachedSpan(range);
-      assert.equal(result.length, 2);
-
-      assert.equal(
-        result[0].eventId,
-        atTime(d(10)).eventId
-      );
-
-      assert.equal(
-        result[1].eventId,
-        atTime(d(14)).eventId
-      );
-
-    });
-
   });
 
   test('#_eventToRecord', function() {

@@ -67,7 +67,7 @@ suite('views/month', function() {
 
   suite('events', function() {
 
-    test('currentMonthChange', function() {
+    test('monthChange', function() {
       var calledUpdate = null,
           calledActivateMonth = null;
 
@@ -80,10 +80,10 @@ suite('views/month', function() {
       };
 
       var date = new Date(2012, 1, 1);
-      controller.setCurrentMonth(date);
+      controller.move(date);
 
       assert.isTrue(calledUpdate);
-      assert.equal(calledActivateMonth, date);
+      assert.deepEqual(calledActivateMonth, date);
     });
 
   });
@@ -94,7 +94,7 @@ suite('views/month', function() {
 
   test('#_renderCurrentMonth', function() {
     //September 2012
-    controller.setCurrentMonth(new Date(2012, 8, 1));
+    controller.move(new Date(2012, 8, 1));
     var result = subject._renderCurrentMonth();
 
     assert.ok(result);
@@ -121,7 +121,7 @@ suite('views/month', function() {
         calledWith = mo;
       };
       subject.render();
-      now = controller.currentMonth;
+      now = controller.month;
     });
 
     test('#next', function() {
@@ -174,7 +174,7 @@ suite('views/month', function() {
         id;
 
     setup(function() {
-      controller.currentMonth = date;
+      controller.move(date);
       id = Calendar.Calc.getMonthId(date);
       subject.activateMonth(date);
       container = document.getElementById('test');
@@ -225,7 +225,7 @@ suite('views/month', function() {
   });
 
   test('#updateCurrentMonth', function() {
-    controller.setCurrentMonth(new Date(2012, 8, 1));
+    controller.move(new Date(2012, 8, 1));
     subject.updateCurrentMonth();
 
     assert.include(
@@ -245,7 +245,11 @@ suite('views/month', function() {
       var container = subject.container,
           now = new Date();
 
-      now.setDate(1);
+      now = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1
+      );
 
       subject.render();
 
@@ -256,7 +260,7 @@ suite('views/month', function() {
         subject.currentChild.element.id
       );
 
-      assert.deepEqual(controller.currentMonth.valueOf(), now.valueOf());
+      assert.deepEqual(controller.month.valueOf(), now.valueOf());
     });
 
   });

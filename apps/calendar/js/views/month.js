@@ -68,7 +68,7 @@ Calendar.ns('Views').Month = (function() {
         }
       });
 
-      this.controller.on('currentMonthChange', function(value) {
+      this.controller.on('monthChange', function(value) {
         self.updateCurrentMonth();
         self.activateMonth(value);
         self._clearSelectedDay();
@@ -109,7 +109,7 @@ Calendar.ns('Views').Month = (function() {
 
       if (id) {
         date = Calendar.Calc.dateFromId(id);
-        this.controller.setSelectedDay(date, el);
+        this.controller.selectedDay = date;
       }
 
     },
@@ -129,8 +129,8 @@ Calendar.ns('Views').Month = (function() {
      * @return {String} html blob with current month.
      */
     _renderCurrentMonth: function() {
-      var month = this.controller.currentMonth.getMonth(),
-          year = this.controller.currentMonth.getFullYear();
+      var month = this.controller.month.getMonth(),
+          year = this.controller.month.getFullYear();
 
       return template.currentMonth.render({
         year: year,
@@ -150,28 +150,28 @@ Calendar.ns('Views').Month = (function() {
      * Moves calendar to the next month.
      */
     next: function() {
-      var now = this.controller.currentMonth;
+      var now = this.controller.month;
       var date = new Date(
         now.getFullYear(),
         now.getMonth() + 1,
         now.getDate()
       );
 
-      this.controller.setCurrentMonth(date);
+      this.controller.move(date);
     },
 
     /**
      * Moves calendar to the next month.
      */
     previous: function() {
-      var now = this.controller.currentMonth;
+      var now = this.controller.month;
       var date = new Date(
         now.getFullYear(),
         now.getMonth() - 1,
         now.getDate()
       );
 
-      this.controller.setCurrentMonth(date);
+      this.controller.move(date);
     },
 
     /**
@@ -217,9 +217,13 @@ Calendar.ns('Views').Month = (function() {
       var el = this.container,
           now = new Date();
 
-      now.setDate(1);
+      now = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1
+      );
 
-      this.controller.setCurrentMonth(now);
+      this.controller.move(now);
     }
 
   };

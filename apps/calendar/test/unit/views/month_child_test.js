@@ -202,7 +202,7 @@ suite('views/month_child', function() {
   test('#_initEvents', function() {
     subject._initEvents();
 
-    var observers = busytimes._timeObservers;
+    var observers = controller._timeObservers;
     var record = observers[observers.length - 1];
 
     assert.equal(record[0], subject._timespan);
@@ -211,7 +211,7 @@ suite('views/month_child', function() {
 
   test('#_destroyEvents', function() {
     subject._initEvents();
-    var observers = busytimes._timeObservers;
+    var observers = controller._timeObservers;
     var len = observers.length;
     subject._destroyEvents();
     assert.equal(observers.length, len - 1);
@@ -233,7 +233,7 @@ suite('views/month_child', function() {
         startDate: createHour(23)
       });
 
-      busytimes.fireTimeEvent(
+      controller.fireTimeEvent(
         'add',
         createHour(23).valueOf(),
         createHour(23).valueOf(),
@@ -253,7 +253,7 @@ suite('views/month_child', function() {
         startDate: createHour(23)
       });
 
-      busytimes.fireTimeEvent(
+      controller.fireTimeEvent(
         'remove',
         createHour(23).valueOf(),
         createHour(23).valueOf(),
@@ -271,7 +271,7 @@ suite('views/month_child', function() {
     setup(function() {
       calls = [];
 
-      subject.controller.currentMonth = month;
+      subject.controller.move(month);
 
       subject.attach(testEl);
       subject._addBusytime = function() {
@@ -460,7 +460,7 @@ suite('views/month_child', function() {
   });
 
   test('#_addBusytime', function() {
-    controller.currentMonth = month;
+    controller.move(month);
     subject.element = testEl;
     testEl.innerHTML = subject._renderDay(month);
 
@@ -505,7 +505,7 @@ suite('views/month_child', function() {
     });
 
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
       testEl.innerHTML = subject._renderDay(month);
       subject.element = testEl;
 
@@ -514,7 +514,7 @@ suite('views/month_child', function() {
       //Maybe we should expose the tree directly
       //on busytimes and make it part of the public
       //api?
-      list = busytimes._tree.items.map(function(item) {
+      list = controller._collection.items.map(function(item) {
         subject._renderBusytime(item);
         return item;
       });
@@ -555,7 +555,7 @@ suite('views/month_child', function() {
 
     suiteSetup(function() {
       id = Calendar.Calc.getDayId(day);
-      controller.currentMonth = day;
+      controller.move(day);
     });
 
     setup(function() {
@@ -584,7 +584,7 @@ suite('views/month_child', function() {
 
     test('result', function() {
       var id = Calendar.Calc.getDayId(day);
-      controller.currentMonth = day;
+      controller.move(day);
       result = subject._renderDay(day);
 
       rendersObject();
@@ -615,6 +615,7 @@ suite('views/month_child', function() {
 
     setup(function() {
       controller.currentMonth = day;
+      controller.move(day);
       result = subject._renderWeek(Calendar.Calc.getWeeksDays(day));
     });
 
@@ -649,7 +650,7 @@ suite('views/month_child', function() {
     ];
 
     test('should compose header and five weeks', function() {
-      controller.currentMonth = days[0];
+      controller.move(month);
       var result = subject._renderMonth();
 
       assert.ok(result);
@@ -663,36 +664,35 @@ suite('views/month_child', function() {
     });
 
     test('should compose header and six weeks', function() {
-    // We want to check if sixth week is rendered properly
-    // December 2012 has six weeks
-    var newMonth = new Date(2012, 11, 1);
-    var newDays = [
-      newMonth,
-      new Date(2012, 11, 8),
-      new Date(2012, 11, 15),
-      new Date(2012, 11, 22),
-      new Date(2012, 11, 29),
-      new Date(2012, 12, 6)
-    ];
+      // We want to check if sixth week is rendered properly
+      // December 2012 has six weeks
+      var newMonth = new Date(2012, 11, 1);
+      var newDays = [
+        newMonth,
+        new Date(2012, 11, 8),
+        new Date(2012, 11, 15),
+        new Date(2012, 11, 22),
+        new Date(2012, 11, 29),
+        new Date(2012, 12, 6)
+      ];
 
-    controller.currentMonth = newDays[0];
-    var result = subject._renderMonth();
+      controller.move(newDays[0]);
+      var result = subject._renderMonth();
 
-    assert.ok(result);
+      assert.ok(result);
 
-    days.forEach(function(date) {
-      assert.include(
-        result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
-        'should include week of ' + date.getDate()
-      );
+      days.forEach(function(date) {
+        assert.include(
+          result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
+          'should include week of ' + date.getDate()
+        );
+      });
     });
-
-   });
   });
 
   suite('#_busyElement', function() {
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
     });
 
     test('trying to access outside of range', function() {
@@ -722,7 +722,7 @@ suite('views/month_child', function() {
     var calledRenderWith;
 
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
     });
 
     setup(function() {
@@ -731,7 +731,7 @@ suite('views/month_child', function() {
         1, 2, 3
       ];
 
-      busytimes.busytimesInCachedSpan = function() {
+      controller.queryCache = function() {
         calledCachedWith = arguments;
         return slice;
       };
@@ -769,7 +769,7 @@ suite('views/month_child', function() {
     var list;
 
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
       subject.attach(testEl);
 
       list = subject.element.classList;
@@ -789,7 +789,7 @@ suite('views/month_child', function() {
 
   suite('#destroy', function() {
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
       subject._days = true;
     });
 
