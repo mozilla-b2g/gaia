@@ -139,6 +139,7 @@ var Contacts = (function() {
       contactTag,
       contactDetails,
       saveButton,
+      editContactButton,
       deleteContactButton,
       favoriteMessage,
       cover,
@@ -228,6 +229,7 @@ var Contacts = (function() {
     noteContainer = document.getElementById('contacts-form-notes');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
+    editContactButton = document.getElementById('edit-contact-button');
     deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
@@ -410,12 +412,39 @@ var Contacts = (function() {
     });
   };
 
+  var reloadContactDetails = function reloadContactDetails() {
+    var contact = currentContact;
+
+    if (fb.isFbContact(contact) && !fb.isFbLinked(contact)) {
+      editContactButton.setAttribute('disabled', 'disabled');
+    } else {
+      editContactButton.removeAttribute('disabled');
+    }
+
+    if (fb.isFbContact(contact)) {
+      var fbContact = new fb.Contact(contact);
+      var req = fbContact.getData();
+
+      req.onsuccess = function() { doReloadContactDetails(req.result); }
+      req.onerror = function() {
+        window.console.error('FB: Error while loading FB contact data');
+        doReloadContactDetails(contact);
+      }
+    } else {
+              editContactButton.removeAttribute('disabled');
+              doReloadContactDetails(contact);
+    }
+  }
+
+
   //
   // Method that generates HTML markup for the contact
   //
-  var reloadContactDetails = function reloadContactDetails() {
-    var contact = currentContact;
-    toggleFavoriteMessage(isFavorite(currentContact));
+  var doReloadContactDetails = function doReloadContactDetails(c) {
+    var contact = c;
+
+    toggleFavoriteMessage(isFavorite(contact));
+
     detailsName.textContent = contact.name;
     var star = document.getElementById('favorite-star');
     if (contact.category && contact.category.indexOf('favorite') != -1) {
@@ -473,8 +502,25 @@ var Contacts = (function() {
                     'December'];
       var bdayString = contact.bday.getDate() + ', ' +
                                             months[contact.bday.getMonth()];
-      var e = utils.templates.render(bdayTemplate, {bday: bdayString});
+      var e = utils.templates.render(bdayTemplate,
+                                     {i: contact.id, bday: bdayString});
       listContainer.appendChild(e);
+    }
+
+
+    if (!fb.isFbContact(contact) || fb.isFbLinked(contact)) {
+      var action = _('social-link');
+      var linked = 'true';
+
+      if (fb.isFbLinked(contact)) {
+        action = _('social-unlink');
+        linked = 'false';
+      }
+      var socialTemplate = document.getElementById('social-template-#i#');
+      var social = utils.templates.render(socialTemplate, {i: contact.id,
+                                                            action: action,
+                                                            linked: linked});
+      listContainer.appendChild(social);
     }
 
     var selector = document.getElementById('address-details-template-#i#');
@@ -838,9 +884,15 @@ var Contacts = (function() {
     var request = navigator.mozContacts.save(currentContact);
     request.onsuccess = function onsuccess() {
       var cList = contacts.List;
-      cList.getContactById(currentContact.id, function onSuccess(savedContact) {
+       cList.getContactById(currentContact.id,
+                           function onSuccess(savedContact, enrichedContact) {
         currentContact = savedContact;
-        contactsList.refresh(currentContact);
+
+        if (enrichedContact) {
+          contactsList.refresh(enrichedContact);
+        } else {
+          contactsList.refresh(currentContact);
+        }
         reloadContactDetails();
       }, function onError() {
         console.error('Error reloading contact');
@@ -1291,15 +1343,17 @@ var Contacts = (function() {
   };
 })();
 
-if (window.navigator.mozSetMessageHandler) {
-  var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-  window.navigator.mozSetMessageHandler('activity', actHandler);
-}
-
-document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (ActivityHandler.currentlyHandling && document.mozHidden) {
-    ActivityHandler.postCancel();
-    return;
+fb.contacts.init(function() {
+  if (window.navigator.mozSetMessageHandler) {
+    var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+    window.navigator.mozSetMessageHandler('activity', actHandler);
   }
-  Contacts.checkCancelableActivity();
+
+  document.addEventListener('mozvisibilitychange', function visibility(e) {
+    if (ActivityHandler.currentlyHandling && document.mozHidden) {
+      ActivityHandler.postCancel();
+      return;
+    }
+    Contacts.checkCancelableActivity();
+  });
 });
