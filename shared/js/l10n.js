@@ -3,10 +3,12 @@
 
 'use strict';
 
-// navigator.mozL10n
-(function(window) {
-  // see https://github.com/fabi1cazenave/webL10n
+/**
+ * This library exposes a `navigator.mozL10n' object to handle client-side
+ * application localization. See: https://github.com/fabi1cazenave/webL10n
+ */
 
+(function(window) {
   var gL10nData = {};
   var gTextData = '';
   var gTextProp = 'textContent';
@@ -14,19 +16,40 @@
   var gMacros = {};
   var gReadyState = 'loading';
 
-  // read-only setting -- we recommend to load l10n resources synchronously
-  var gAsyncResourceLoading = true;
 
-  // debug helpers
+  /**
+   * Synchronously loading l10n resources significantly minimizes flickering
+   * from displaying the app with non-localized strings and then updating the
+   * strings. Although this will block all script execution on this page, we
+   * expect that the l10n resources are available locally on flash-storage.
+   *
+   * As synchronous XHR is generally considered as a bad idea, we're still
+   * loading l10n resources asynchronously -- but we keep this in a setting,
+   * just in case... and applications using this library should hide their
+   * content until the `localized' event happens.
+   */
+
+  var gAsyncResourceLoading = true; // read-only
+
+
+  /**
+   * Debug helpers
+   */
+
   var gDEBUG = false;
+
   function consoleLog(message) {
-    if (gDEBUG)
+    if (gDEBUG) {
       console.log('[l10n] ' + message);
+    }
   };
+
   function consoleWarn(message) {
-    if (gDEBUG)
+    if (gDEBUG) {
       console.warn('[l10n] ' + message);
+    }
   };
+
 
   /**
    * DOM helpers for the so-called "HTML API".
@@ -155,8 +178,9 @@
 
           // key-value pair
           var tmp = line.match(reSplit);
-          if (tmp && tmp.length == 3)
+          if (tmp && tmp.length == 3) {
             dictionary[tmp[1]] = evalString(tmp[2]);
+          }
         }
       }
 
@@ -182,11 +206,13 @@
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
           if (xhr.status == 200 || xhr.status === 0) {
-            if (onSuccess)
+            if (onSuccess) {
               onSuccess(xhr.responseText);
+            }
           } else {
-            if (onFailure)
+            if (onFailure) {
               onFailure();
+            }
           }
         }
       };
@@ -217,8 +243,9 @@
       }
 
       // trigger callback
-      if (successCallback)
+      if (successCallback) {
         successCallback();
+      }
     }, failureCallback, gAsyncResourceLoading);
   };
 
@@ -244,8 +271,9 @@
     onResourceLoaded = function() {
       gResourceCount++;
       if (gResourceCount >= langCount) {
-        if (callback) // execute the [optional] callback
+        if (callback) { // execute the [optional] callback
           callback();
+        }
         fireL10nReadyEvent(lang);
         gReadyState = 'complete';
       }
@@ -707,8 +735,9 @@
       return str;
 
     // initialize _pluralRules
-    if (!gMacros._pluralRules)
+    if (!gMacros._pluralRules) {
       gMacros._pluralRules = getPluralRules(gLanguage);
+    }
     var index = '[' + gMacros._pluralRules(n) + ']';
 
     // try to find a [zero|one|two] key if it's defined
@@ -874,7 +903,7 @@
   window.addEventListener('DOMContentLoaded', function l10nStartup() {
     gReadyState = 'interactive';
     consoleLog('loading [' + navigator.language + '] resources, ' +
-        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously'));
+        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
     loadLocale(navigator.language, translateFragment);
   });
 
@@ -909,12 +938,12 @@
           // Arabic, Hebrew, Farsi, Pashto, Urdu
           var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
           return (rtlList.indexOf(gLanguage) >= 0) ? 'rtl' : 'ltr';
-        },
-
-        // translate an element or document fragment
-        translate: translateFragment
+        }
       };
     },
+
+    // translate an element or document fragment
+    translate: translateFragment,
 
     // this can be used to avoid race conditions
     get readyState() { return gReadyState; }

@@ -241,7 +241,18 @@ var ScreenManager = {
     navigator.mozPower.screenBrightness = this._brightness;
     this.screen.classList.remove('screenoff');
 
-    this.setIdleTimeout(this._idleTimeout);
+    // The screen should be turn off with shorter timeout if
+    // it was never unlocked
+    if (LockScreen.locked) {
+      this.setIdleTimeout(10 * 1000);
+      var self = this;
+      window.addEventListener('unlock', function scm_unlocked() {
+        window.removeEventListener('unlock', scm_unlocked);
+        self.setIdleTimeout(self._idleTimeout);
+      });
+    } else {
+      this.setIdleTimeout(this._idleTimeout);
+    }
 
     this.fireScreenChangeEvent();
     return true;
