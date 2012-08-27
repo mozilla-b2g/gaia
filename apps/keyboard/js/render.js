@@ -416,7 +416,7 @@ const IMERender = (function() {
           var visualKey = key.querySelector('.visual-wrapper');
 
           _keyArray.push({
-            code: key.dataset.keycode,
+            code: key.dataset.keycode | 0,
             x: visualKey.offsetLeft,
             y: visualKey.offsetTop,
             width: visualKey.clientWidth,
