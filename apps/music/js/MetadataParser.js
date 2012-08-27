@@ -4,11 +4,7 @@ var aacExtensions = ['.m4a', '.m4b', '.m4p', '.m4v',
                      '.m4r', '.3gp', '.mp4', '.aac'];
 
 function isSupportedAAC(extension) {
-  if (aacExtensions.indexOf(extension) != -1) {
-    return true;
-  } else {
-    return false;
-  }
+  return (aacExtensions.indexOf(extension) != -1);
 }
 
 
@@ -35,7 +31,8 @@ var metadataParser = (function() {
       ID3.loadTags(file.name, function() {
         var tags = ID3.getAllTags(file.name);
 
-        // Some ID3 tags does not return in string
+        // XXX Some ID3 tags does not return in string
+        // should be an issue of the external library (id3-minimized.js)
         // add empty string to convert them
         // or it can not be recorded into the mediadb
         metadata.album = tags.album + '';
