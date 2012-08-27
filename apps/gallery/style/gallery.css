@@ -222,6 +222,8 @@ body {
 }
 
 .photoFrame > img {
+  top: 0px;  /* javascript modifies this position with a transform */
+  left: 0px;
   position: relative;
   border-width: 0px;
   padding: 0px;

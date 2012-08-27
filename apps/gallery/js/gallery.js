@@ -754,11 +754,7 @@ window.addEventListener('resize', function resizeHandler(evt) {
     var imagedata = images[n];
     var fit = fitImage(imagedata.metadata.width, imagedata.metadata.height,
                        photoView.offsetWidth, photoView.offsetHeight);
-    var style = img.style;
-    style.width = fit.width + 'px';
-    style.height = fit.height + 'px';
-    style.left = fit.left + 'px';
-    style.top = fit.top + 'px';
+    positionImage(img, fit);
   }
 });
 
@@ -902,11 +898,16 @@ function displayImageInFrame(n, frame) {
   var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
                      photoView.offsetWidth, photoView.offsetHeight);
 
-  var style = img.style;
+  positionImage(img, fit);
+}
+
+function positionImage(image, fit) {
+  var style = image.style;
   style.width = fit.width + 'px';
   style.height = fit.height + 'px';
-  style.left = fit.left + 'px';
-  style.top = fit.top + 'px';
+  style.transform = 'translate(' + 
+    fit.left + 'px,' +
+    fit.top + 'px)';
 }
 
 // figure out the size and position of an image based on its size
@@ -959,9 +960,6 @@ function nextPhoto(time) {
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
 
-  // Hide the previous photo
-  previousPhotoFrame.classList.add('hidden');
-
   // Set transitions for the visible photo frames and the photoFrames element
   var transition = 'transform ' + time + 'ms linear';
   currentPhotoFrame.style.transition = transition;
@@ -1007,9 +1005,6 @@ function nextPhoto(time) {
 
     // Recompute and reposition the photo that just transitioned off the screen
     previousPhotoState.reset();
-
-    // Make the new next photo visible again
-    nextPhotoFrame.classList.remove('hidden');
   });
 }
 
@@ -1022,9 +1017,6 @@ function previousPhoto(time) {
   // Set a flag to ignore pan and zoom gestures during the transition.
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
-
-  // Hide the next photo
-  nextPhotoFrame.classList.add('hidden');
 
   // Set transitions for the visible photo frames and the photoFrames element
   var transition = 'transform ' + time + 'ms linear';
@@ -1070,9 +1062,6 @@ function previousPhoto(time) {
 
     // Recompute and reposition the photo that just transitioned off the screen
     nextPhotoState.reset();
-
-    // Make the new previous photo visible again
-    previousPhotoFrame.classList.remove('hidden');
   });
 }
 
@@ -1161,8 +1150,9 @@ PhotoState.BORDER_WIDTH = 3;  // Border between photos
 PhotoState.prototype._reposition = function() {
   this.img.style.width = this.width + 'px';
   this.img.style.height = this.height + 'px';
-  this.img.style.top = this.top + 'px';
-  this.img.style.left = this.left + 'px';
+  this.img.style.transform = 'translate(' +
+    this.left + 'px,' +
+    this.top + 'px)';
 };
 
 // Compute the default size and position of the photo
