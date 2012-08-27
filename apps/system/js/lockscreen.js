@@ -659,11 +659,12 @@ var LockScreen = {
       return;
 
     var d = new Date();
+    var f = new navigator.mozL10n.DateTimeFormat();
+    var _ = navigator.mozL10n.get;
 
     // XXX: respect clock format in Settings
-    this.clock.textContent = d.toLocaleFormat('%R');
-
-    this.date.textContent = d.toLocaleFormat('%A %e %B');
+    this.clock.textContent = f.localeFormat(d, '%R');
+    this.date.textContent = f.localeFormat(d, _('dateFormat') || '%A %e %B');
 
     var self = this;
     window.setTimeout(function ls_clockTimeout() {
