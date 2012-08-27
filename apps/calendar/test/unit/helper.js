@@ -186,6 +186,7 @@
   requireLib('set.js');
   requireLib('batch.js');
   requireLib('template.js');
+  requireLib('interval_tree.js');
   requireLib('responder.js');
   requireLib('provider/abstract.js');
   requireLib('provider/local.js');

@@ -386,3 +386,8 @@
   font: 8px/8px 'Open Sans', sans-serif;
   font-weight: 600;
 }
+
+.sb-icon-headphones[data-state="on"] {
+  background-position: -189px -40px;
+  position: relative;
+}

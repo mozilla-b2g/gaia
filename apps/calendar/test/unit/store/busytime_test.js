@@ -1,6 +1,8 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('responder.js');
 
+
+  requireLib('interval_tree.js');
   requireLib('timespan.js');
   requireLib('store/event.js');
   requireLib('store/busytime.js');
@@ -52,6 +54,25 @@ suite('store/busytime', function() {
     );
   }
 
+  function inTree() {
+    var item = record.apply(this, arguments);
+    var id = item._id;
+    var list = subject._byEventId[item.eventId];
+
+    var result = false;
+
+    list.forEach(function(cur) {
+      if (cur._id == id) {
+        result = cur;
+      }
+    });
+
+    if (result) {
+      return subject._tree.indexOf(result) !== null;
+    }
+    return false;
+  }
+
   setup(function(done) {
     this.timeout(5000);
     id = 0;
@@ -73,6 +94,10 @@ suite('store/busytime', function() {
 
   teardown(function() {
     subject.db.close();
+  });
+
+  test('initialize', function() {
+    assert.instanceOf(subject._tree, Calendar.IntervalTree);
   });
 
   test('#findTimeObserver', function() {
@@ -295,8 +320,8 @@ suite('store/busytime', function() {
     test('removal', function(done) {
       // quick sanity check to make sure
       // we removed in memory stuff
-      assert.equal(subject._times.length, 1);
-      assert.equal(subject._times[0], time(keepModel));
+      assert.equal(subject._tree.items.length, 1);
+      assert.equal(subject._tree.items[0].eventId, keepModel._id);
 
       subject._cached = Object.create(null);
       subject.load(function(err, results) {
@@ -337,85 +362,8 @@ suite('store/busytime', function() {
       subject._addEventTimes(recurring);
     });
 
-    suite('#_removeEventTimes', function() {
-
-      test('remove single', function() {
-        subject._removeEventTimes(single._id);
-
-        assert.equal(events.remove.length, 1);
-
-        assert.deepEqual(
-          events.remove[0].data,
-          record(single)
-        );
-
-        assert.deepEqual(
-          subject._times,
-          [time(recurring), time(recurring, 1)]
-        );
-
-        assert.ok(
-          subject._eventTimes[recurring._id]
-        );
-
-        assert.ok(
-          !subject._eventTimes[single._id]
-        );
-
-
-        var cached = {};
-        cached[time(recurring)] = [
-          record(recurring)
-        ];
-
-        cached[time(recurring, 1)] = [
-          record(recurring, 1)
-        ];
-
-        assert.deepEqual(
-          subject._timeRecords,
-          cached
-        );
-      });
-
-      test('remove recurring', function() {
-        subject._removeEventTimes(recurring._id);
-        assert.equal(events.remove.length, 2);
-
-        assert.deepEqual(
-          subject._times,
-          [time(single)]
-        );
-
-        assert.ok(
-          !subject._eventTimes[recurring._id]
-        );
-
-        assert.ok(
-          subject._eventTimes[single._id]
-        );
-
-        var cached = {};
-        cached[time(single)] = [record(single)];
-
-        assert.deepEqual(
-          subject._timeRecords,
-          cached
-        );
-      });
-
-    });
 
     test('#_addEventTimes', function() {
-
-      assert.deepEqual(
-        subject._times,
-        [
-          time(recurring),
-          time(single),
-          time(recurring, 1)
-        ]
-      );
 
       assert.equal(events.add.length, 3);
 
@@ -434,40 +382,79 @@ suite('store/busytime', function() {
         record(recurring, 1)
       );
 
-      var eventTimes = {};
+      var byEventId = {};
 
-      eventTimes[recurring._id] = [
-        time(recurring),
-        time(recurring, 1)
-      ];
-
-      eventTimes[single._id] = [
-        time(single)
-      ];
-
-      assert.deepEqual(
-        subject._eventTimes,
-        eventTimes
-      );
-
-      var cached = {};
-
-      cached[time(single)] = [
-        record(single)
-      ];
-
-      cached[time(recurring)] = [
-        record(recurring)
-      ];
-
-      cached[time(recurring, 1)] = [
+      byEventId[recurring._id] = [
+        record(recurring),
         record(recurring, 1)
       ];
 
+      byEventId[single._id] = [
+        record(single)
+      ];
+
       assert.deepEqual(
-        subject._timeRecords,
-        cached
+        subject._byEventId,
+        byEventId
       );
+
+      assert.isTrue(inTree(single));
+      assert.isTrue(inTree(recurring));
+      assert.isTrue(inTree(recurring, 1));
+    });
+
+    suite('#_removeEventTimes', function() {
+
+      test('remove single', function() {
+        var item = subject._byEventId[single._id][0];
+
+        subject._removeEventTimes(single._id);
+
+        assert.equal(events.remove.length, 1);
+
+        assert.deepEqual(
+          events.remove[0].data,
+          record(single)
+        );
+
+
+        assert.ok(
+          subject._byEventId[recurring._id]
+        );
+
+        assert.ok(
+          !subject._byEventId[single._id]
+        );
+
+        assert.isTrue(
+          subject._tree.indexOf(item) === null
+        );
+      });
+
+      test('remove recurring', function() {
+        var removedItems = subject._byEventId[recurring._id];
+
+        subject._removeEventTimes(recurring._id);
+        assert.equal(events.remove.length, 2);
+
+        assert.ok(
+          !subject._byEventId[recurring._id]
+        );
+
+        assert.ok(
+          subject._byEventId[single._id]
+        );
+
+        assert.isTrue(
+          subject._tree.indexOf(removedItems[0]) === null
+        );
+
+        assert.isTrue(
+          subject._tree.indexOf(removedItems[1]) === null
+        );
+
+      });
+
     });
   });
 
@@ -477,16 +464,14 @@ suite('store/busytime', function() {
     var events = {};
 
     setup(function() {
-      // two events in three instances
-      // we only want two back
       eventStore = subject.db.getStore('Event');
 
       events.oneIn = Factory('event', {
         remote: {
           endDate: new Date(2012, 1, 10),
+          // end date is the same for all occurrences.
           occurs: [
-            new Date(2012, 1, 1),
-            new Date(2012, 1, 5)
+            new Date(2012, 1, 1)
           ]
         }
       });
@@ -495,8 +480,7 @@ suite('store/busytime', function() {
         remote: {
           endDate: new Date(2012, 1, 9),
           occurs: [
-            new Date(2012, 1, 7),
-            new Date(2012, 1, 8)
+            new Date(2012, 1, 7)
           ]
         }
       });
@@ -511,9 +495,6 @@ suite('store/busytime', function() {
     });
 
     test('result', function(done) {
-      // sanity check
-      assert.equal(subject._times.length, 4);
-
       var span = new Calendar.Timespan(
         new Date(2012, 1, 5),
         new Date(2012, 1, 11)
@@ -537,11 +518,10 @@ suite('store/busytime', function() {
         }
 
         done(function() {
-          assert.equal(list.length, 3);
+          assert.equal(list.length, 2);
 
-          hasEvent(0, 'oneIn', 1, 'first date in range');
+          hasEvent(0, 'oneIn', 0, 'first date in range');
           hasEvent(1, 'twoIn', 0, 'second date in range');
-          hasEvent(2, 'twoIn', 1, 'third date in range');
         });
       });
     });
@@ -559,12 +539,14 @@ suite('store/busytime', function() {
       return list[date.valueOf()];
     }
 
-    function add(time) {
+    function add(start, end) {
       setup(function(done) {
-        var item = event(time);
+        var item = event(start);
+        item.remote.startDate = start;
+        item.remote.endDate = end;
 
-        list[time.valueOf()] = subject._eventToRecord(
-          time, item
+        list[start.valueOf()] = subject._eventToRecord(
+          start, item
         );
 
         var store = subject.db.getStore('Event');
@@ -572,11 +554,15 @@ suite('store/busytime', function() {
       });
     }
 
-    add(new Date(2012, 1, 1));
-    add(new Date(2012, 1, 2));
-    add(new Date(2012, 1, 3));
-    add(new Date(2012, 1, 4));
-    add(new Date(2012, 1, 5));
+    function d(day) {
+      return new Date(2012, 1, day);
+    }
+
+    add(d(5), d(7));
+    add(d(10), d(12));
+    add(d(14), d(16));
+    add(d(16), d(18));
+    add(d(20), d(22));
 
     test('no matches start', function() {
       var range = new Calendar.Timespan(
@@ -599,10 +585,10 @@ suite('store/busytime', function() {
       assert.equal(result.length, 0);
     });
 
-    test('one match - end', function() {
+    test('one match - top', function() {
       var range = new Calendar.Timespan(
         new Date(2011, 1, 1),
-        new Date(2012, 1, 1)
+        d(6)
       );
 
       var result = subject.busytimesInCachedSpan(range);
@@ -610,15 +596,15 @@ suite('store/busytime', function() {
 
       assert.equal(
         result[0].eventId,
-        atTime(new Date(2012, 1, 1)).eventId
+        atTime(d(5)).eventId
       );
 
     });
 
 
-    test('one match - start', function() {
+    test('one match - bottom', function() {
       var range = new Calendar.Timespan(
-        new Date(2012, 1, 5),
+        d(21),
         new Date(2013, 1, 10)
       );
 
@@ -627,33 +613,27 @@ suite('store/busytime', function() {
 
       assert.equal(
         result[0].eventId,
-        atTime(new Date(2012, 1, 5)).eventId
+        atTime(d(20)).eventId
       );
 
     });
 
     test('middle slice', function() {
       var range = new Calendar.Timespan(
-        new Date(2012, 1, 2),
-        new Date(2012, 1, 4)
+        d(11), d(15)
       );
 
       var result = subject.busytimesInCachedSpan(range);
-      assert.equal(result.length, 3);
+      assert.equal(result.length, 2);
 
       assert.equal(
         result[0].eventId,
-        atTime(new Date(2012, 1, 2)).eventId
+        atTime(d(10)).eventId
       );
 
       assert.equal(
         result[1].eventId,
-        atTime(new Date(2012, 1, 3)).eventId
-      );
-
-      assert.equal(
-        result[2].eventId,
-        atTime(new Date(2012, 1, 4)).eventId
+        atTime(d(14)).eventId
       );
 
     });
@@ -673,10 +653,14 @@ suite('store/busytime', function() {
       item.remote.occurs[0]
     );
 
+    assert.equal(result.start, result.startDate.valueOf());
+
     assert.equal(
       result.endDate,
       item.remote.endDate
     );
+
+    assert.equal(result.end, result.endDate.valueOf());
 
     assert.equal(
       result.eventId,
@@ -711,7 +695,7 @@ suite('store/busytime', function() {
     });
 
     test('load cache', function() {
-      assert.equal(subject._times.length, 3);
+      assert.equal(Object.keys(subject._byEventId).length, 3);
     });
 
   });

@@ -311,6 +311,31 @@ suite('Places', function() {
       });
     });
 
+    test('updateBookmark', function(done) {
+      Places.addBookmark('http://mozilla.org/test7', 'Test 7', function() {
+        Places.updateBookmark('http://mozilla.org/test7', 'Test 8', function() {
+          Places.getBookmark('http://mozilla.org/test7', function(bookmark) {
+            done(function() {
+              assert.equal(bookmark.title, 'Test 8');
+            });
+          });
+        });
+      });
+    });
+
+    test('updateBookmark - not found', function(done) {
+      Places.updateBookmark('http://mozilla.org/test7', 'Test 7', function() {
+        Places.getBookmark('http://mozilla.org/test7', function(bookmark) {
+          done(function() {
+            assert.equal(bookmark.title, 'Test 7');
+            assert.equal(true, bookmark.timestamp > 0);
+            var now = new Date().valueOf();
+            assert.equal(true, bookmark.timestamp <= now);
+          });
+        });
+      });
+    });
+
     test('updateFrecency', function(done) {
       Places.addPlace('http://mozilla.org/test8', function() {
         Places.updateFrecency('http://mozilla.org/test8', function() {

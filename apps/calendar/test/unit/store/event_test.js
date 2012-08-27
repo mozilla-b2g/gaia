@@ -1,5 +1,6 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('timespan.js');
+  requireLib('interval_tree.js');
   requireLib('responder.js');
   requireLib('calc.js');
   requireLib('store/event.js');
@@ -243,12 +244,12 @@ suite('store/event', function() {
         );
 
         assert.ok(
-          !busytime._eventTimes[byCalendar[1][0]],
+          !busytime._byEventId[byCalendar[1][0]],
           'should remove events from busytime'
         );
 
         assert.ok(
-          !busytime._eventTimes[byCalendar[1][1]],
+          !busytime._byEventId[byCalendar[1][1]],
           'should remove events from busytime'
         );
 
