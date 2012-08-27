@@ -29,7 +29,8 @@ function setup() {
 function enableOnly(evt) {
   var toKeep = evt.target.id;
   var services =
-    document.getElementById('services')
+    document
+    .getElementById('services')
     .getElementsByTagName('input');
   for (var service in services) {
     var s = services[service];
@@ -100,14 +101,10 @@ function switchTwitter() {
 }
 
 function updateTwitterCredentials() {
-  // console.log('Updating Twitter credentials');
   purge('credentials-status');
   var container = document.getElementById('credentials-status');
   creds_twitter.getcreds(function(res) {
     creds = res;
-    // console.log(
-    //  'Twitter credentials (' + creds.length + '):',
-    //  JSON.stringify(creds));
     if (creds.length == 0) {
       // no credential, let user login on twitter
       var loginButton = document.createElement('button');
@@ -155,7 +152,6 @@ function buildTwitterURL(url, method, parameters) {
 function processTwitterXHR(url, method, params, callback) {
   var target_url = buildTwitterURL(url, method, params);
   var xhr = new XMLHttpRequest({mozSystem: true});
-  // console.log('OAuth:', target_url);
   xhr.open(method, target_url, true);
   xhr.onreadystatechange = function() {
     if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -311,7 +307,6 @@ function uploadTwitter(source, callback) {
     'POST',
     {include_entities: true, status: twstatus}
   );
-  // console.log('Twitter API URL:', url);
 
   var picture = new FormData();
   picture.append('media', source);
@@ -376,7 +371,8 @@ function addImages(filenames) {
 
 function getSelectedServices() {
   var services =
-    document.getElementById('services')
+    document
+    .getElementById('services')
     .getElementsByTagName('input');
   var selectedServices = [];
   for (var service in services) {
