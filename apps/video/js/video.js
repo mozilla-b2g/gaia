@@ -45,8 +45,6 @@ function init() {
   }
 
   videodb.onready = function() {
-    if (currentOverlay === 'nocard')
-      showOverlay(null);
     createThumbnailList();
     scan();
   };
@@ -67,7 +65,11 @@ function init() {
 function scan() {
   showOverlay('scanning');
   videodb.scan(function() {
-    showOverlay(null);
+    if (videos.length === 0) {
+      showOverlay('novideos');
+    } else {
+      showOverlay(null);
+    }
   });
 }
 
@@ -157,9 +159,7 @@ function generateMetaData(testplayer, videodata, videofile) {
 function addVideo(videodata) {
   // If this is the first video we've found,
   // remove the "no videos" message
-  if (videos.length === 0)
-    document.getElementById('novideos')
-    .classList.add('hidden');
+  showOverlay(null);
 
   var index = videos.length;
   videos.push(videodata);

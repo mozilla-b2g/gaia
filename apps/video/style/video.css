@@ -145,6 +145,10 @@ body.hidden *[data-l10n-id] {
   right: 0;
 }
 
+#close {
+  outline: none;
+}
+
 #close, #h1 {
   background: none !important;
 }
