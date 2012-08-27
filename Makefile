@@ -214,6 +214,7 @@ ifneq ($(DEBUG),1)
 			fi \
 		fi \
 	done;
+	@zip -d profile/webapps/keyboard.gaiamobile.org/application.zip dictionaries/*.xml
 	@echo "Done"
 endif
 
