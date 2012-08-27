@@ -264,23 +264,13 @@ function EditDistance2(input, prefixes, candidates) {
   if (length < 4)
     return;
   for (var n = 0; n < length; ++n) {
-    for (var m = 1; m < length; ++m) {
-      if (n == m)
-        continue;
-      var original1 = input[n];
-      var original2 = input[m];
-      var nearby1 = _nearbyKeys[String.fromCharCode(original1)];
-      var nearby2 = _nearbyKeys[String.fromCharCode(original2)];
-      for (var i = 0; i < nearby1.length; ++i) {
-        for (var j = 0; j < nearby2.length; ++j) {
-          input[n] = nearby1[i].charCodeAt(0);
-          input[m] = nearby2[j].charCodeAt(0);
-          Check(input, prefixes, candidates);
-        }
-      }
-      input[n] = original1;
-      input[m] = original2;
+    var original = input[n];
+    var nearby = _nearbyKeys[String.fromCharCode(original)];
+    for (var i = 0; i < nearby.length; ++i) {
+      input[n] = nearby[i].charCodeAt(0);
+      EditDistance1(input, prefixes, candidates);
     }
+    input[n] = original;
   }
 }
 
