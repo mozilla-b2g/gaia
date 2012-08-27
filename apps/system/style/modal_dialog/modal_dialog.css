@@ -38,3 +38,8 @@
   display: block;
 }
 
+#modal-dialog-sad-face {
+  float: left;
+  font-size: 72px;
+  margin-right: 2px;
+}
