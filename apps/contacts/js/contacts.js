@@ -387,8 +387,7 @@ var Contacts = (function() {
 
     if (fb.isFbContact(contact) && !fb.isFbLinked(contact)) {
       editContactButton.setAttribute('disabled', 'disabled');
-    }
-    else {
+    } else {
       editContactButton.removeAttribute('disabled');
     }
 
@@ -401,10 +400,9 @@ var Contacts = (function() {
         window.console.error('FB: Error while loading FB contact data');
         doReloadContactDetails(contact);
       }
-    }
-    else {
-            editContactButton.removeAttribute('disabled');
-            doReloadContactDetails(contact);
+    } else {
+              editContactButton.removeAttribute('disabled');
+              doReloadContactDetails(contact);
     }
   }
 
@@ -840,8 +838,7 @@ var Contacts = (function() {
 
         if (enrichedContact) {
           contactsList.refresh(enrichedContact);
-        }
-        else {
+        } else {
           contactsList.refresh(currentContact);
         }
         reloadContactDetails();
