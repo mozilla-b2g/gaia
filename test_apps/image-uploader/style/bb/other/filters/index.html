@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <link rel="stylesheet" href="../../fonts.css">
+  <style>
+ html, body {
+          margin: 0;
+          padding: 0;
+          font-size: 10px;
+          background-color: #fff;
+        }
+        body { background: none; }
+       h2.bb-docs {
+          font-size: 1.8rem;
+          font-family: "Open Sans", Sans-serif;
+          font-weight: lighter;
+          color: #666;
+          margin: -1px 0 0;
+          background-color: #f5f5f5;
+          padding: 0.4rem 0.4rem 0.4rem 3rem;
+          border: solid 1px #e8e8e8;
+        }
+      body[role="application"] ul[role="tablist"].filter { margin: 10px 0; }
+  </style>
+
+  <title>Filters</title>
+  <meta type="description" content="Filters can be used to enable the user to view a single set of data in a different lens">
+  <meta type="requires" content="None">
+  <meta type="target" content="html">  
+</head>
+<body role="application">
+  <section role="region">
+
+    <h2 class="bb-docs">Default position</h2>
+    <ul role="tablist" class="filter" data-items="2">
+      <li role="tab" aria-selected="true"><a href="#">Action 01</a></li>
+      <li role="tab"><a href="#">Action 02</a></li>
+    </ul>
+
+    <ul role="tablist" class="filter" data-items="3">
+      <li role="tab" ><a href="#">Action 01</a></li>
+      <li role="tab" aria-selected="true"><a href="#">Action 02</a></li>
+      <li role="tab"><a href="#">Action 02</a></li>
+    </ul>
+
+    <ul role="tablist" class="filter" data-items="4">
+      <li role="tab"><a href="#">Action 01</a></li>
+      <li role="tab"><a href="#">Action 02</a></li>
+      <li role="tab"><a href="#">Action 02</a></li>
+      <li role="tab" aria-selected="true"><a href="#">Action 02</a></li>
+    </ul>
+
+    <h2 class="bb-docs">Bottom position</h2>
+
+     <ul role="tablist" class="filter" data-items="4" data-position="bottom">
+      <li role="tab"><a href="#">Action 01</a></li>
+      <li role="tab"><a href="#">Action 02</a></li>
+      <li role="tab" aria-selected="true"><a href="#">Action 02</a></li>
+      <li role="tab"><a href="#">Action 02</a></li>
+    </ul>
+
+  </section>
+</body>
+</html>

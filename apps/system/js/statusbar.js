@@ -35,7 +35,10 @@ var StatusBar = {
 
   recordingActive: false,
   recordingTimer: null,
-  headphonesState: 'unknown',
+
+  umsActive: false,
+
+  headphonesActive: false,
 
   /* For other app to acquire */
   get height() {
@@ -126,8 +129,13 @@ var StatusBar = {
             this.update.recording.call(this);
             break;
 
+          case 'volume-state-changed':
+            this.umsActive = evt.detail.active;
+            this.update.usb.call(this);
+            break;
+
           case 'headphones-status-changed':
-            this.headphonesState = evt.detail.state;
+            this.headphonesActive = (evt.detail.state != 'off');
             this.update.headphones.call(this);
             break;
         }
@@ -411,22 +419,13 @@ var StatusBar = {
     },
 
     usb: function sb_updateUsb() {
-      // XXX no way to probe active state of USB mess storage right now
-      // https://github.com/mozilla-b2g/gaia/issues/2333
-
-      // this.icon.usb.hidden = ?
+      var icon = this.icons.usb;
+      icon.hidden = !this.umsActive;
     },
 
     headphones: function sb_updateHeadphones() {
       var icon = this.icons.headphones;
-
-      if (this.headphonesState == 'off') {
-        icon.hidden = true;
-        return;
-      }
-
-      icon.hidden = false;
-      icon.dataset.state = this.headphonesState;
+      icon.hidden = !this.headphonesActive;
     }
   },
 

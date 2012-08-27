@@ -69,26 +69,6 @@ var PopupManager = {
       }
   },
 
-  handleEvent: function pm_handleEvent(evt) {
-    switch (evt.type) {
-      case 'mozbrowserloadstart':
-        this.handleLoadStart(evt);
-        break;
-      case 'mozbrowserloadend':
-        this.handleLoadEnd(evt);
-        break;
-      case 'mozbrowseropenwindow':
-        this.open(evt);
-        break;
-      case 'mozbrowserclose':
-        this.close(evt);
-        break;
-      case 'home':
-        this.backHandling(evt);
-        break;
-    }
-  },
-
   close: function pm_close(evt) {
     if (evt && (!'frameType' in evt.target.dataset ||
         evt.target.dataset.frameType !== 'popup'))
@@ -114,6 +94,30 @@ var PopupManager = {
 
     this.close();
     evt.stopImmediatePropagation();
+  },
+
+  isVisible: function pm_isVisible() {
+    return (this._currentPopup != null);
+  },
+
+  handleEvent: function pm_handleEvent(evt) {
+    switch (evt.type) {
+      case 'mozbrowserloadstart':
+        this.handleLoadStart(evt);
+        break;
+      case 'mozbrowserloadend':
+        this.handleLoadEnd(evt);
+        break;
+      case 'mozbrowseropenwindow':
+        this.open(evt);
+        break;
+      case 'mozbrowserclose':
+        this.close(evt);
+        break;
+      case 'home':
+        this.backHandling(evt);
+        break;
+    }
   }
 };
 

@@ -137,7 +137,6 @@
   proto._renderCurrentMonth = function() {
     var month = this.controller.currentMonth.getMonth(),
         year = this.controller.currentMonth.getFullYear();
-
     return template.currentMonth.render({
       year: year,
       month: this.monthNames[month]
@@ -194,7 +193,7 @@
   };
 
   /**
-   * Moves calendar to the next month.
+   * Moves calendar to the previous month.
    */
   proto.previous = function() {
     var now = this.controller.currentMonth;

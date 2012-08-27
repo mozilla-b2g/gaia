@@ -378,17 +378,7 @@ var WindowManager = (function() {
       // Can't open camera HAL from content processes (bug 782456)
 
       'Clock',
-      // - Alarm notification audio doesn't play (bug 778300)
-      // - Time display is different OOP.  Not a hard blocker of
-      //   OOP. (#3625)
-      // - Layers masking breaks alarm enabled/disabled display (bug
-      //   783106)
-
-      'Contacts',
-      // - Keyboard always shows up alpha when app using keyboard is
-      //   run OOP.  Not a hard blocker of OOP. (bug 776118)
-      // - Layers masking breaks input fields (bug 783106, tracked
-      //   #3630)
+      // Crashing when dismissing the alert window (bug 785166)
 
       'E-Mail',
       // SSL/TLS support can only happen in the main process although
@@ -402,15 +392,16 @@ var WindowManager = (function() {
       'Messages',
       // Crashes when launched OOP (bug 775997)
 
-      'Music',
-      // No audio playback when OOP (bug 784274)
-
       'Settings',
-      // Layers masking breaks input fields (bug 783106)
+      // Bluetooth is not remoted yet (bug 755943)
 
-      'Video'
+      'Video',
       // No videos seem to be found when running OOP (i.e. no video
       // list) (bug 782460)
+
+      'Image Uploader'
+      // Cannot upload files when OOP
+      // bug 783878
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {
@@ -665,6 +656,7 @@ var WindowManager = (function() {
   window.addEventListener('holdhome', function(e) {
     if (!LockScreen.locked &&
         !CardsView.cardSwitcherIsShown()) {
+      SleepMenu.hide();
       CardsView.showCardSwitcher();
     }
   });
