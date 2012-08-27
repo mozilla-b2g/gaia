@@ -9,44 +9,14 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
 var CallHandler = {
   call: function ch_call(number) {
     var settings = window.navigator.mozSettings,
-        throwGeneralError,
         req;
 
-    throwGeneralError = function() {
-      CustomDialog.show(
-        _('callGeneralErrorTitle'),
-        _('callGeneralErrorBody'),
-        {
-          title: _('callGeneralErrorBtnOk'),
-          callback: function() {
-            CustomDialog.hide();
-          }
-        }
-      );
-    };
-
-    req = settings.getLock().get('ril.radio.disabled');
-
     if (settings) {
+      req = settings.getLock().get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
 
         if (!status) {
-          callbackCall();
-        } else {
-          CustomDialog.show(
-            _('callFlightModeTitle'),
-            _('callFlightModeBody'),
-            {
-              title: _('callFlightModeBtnOk'),
-              callback: function() {
-                CustomDialog.hide();
-              }
-            }
-          );
-        }
-
-        var callbackCall = function() {
           if (this._isUSSD(number)) {
             UssdManager.send(number);
           } else {
@@ -64,10 +34,21 @@ var CallHandler = {
               }
             }
           }
+        } else {
+          CustomDialog.show(
+            _('callFlightModeTitle'),
+            _('callFlightModeBody'),
+            {
+              title: _('callFlightModeBtnOk'),
+              callback: function() {
+                CustomDialog.hide();
+              }
+            }
+          );
         }
-      });
+      }.bind(this));
     } else {
-      throwGeneralError();
+      this.throwGeneralError();
     }
   },
 
@@ -81,6 +62,19 @@ var CallHandler = {
     return relevantNumbers.every(function ussdTest(number) {
       return ussdChars.indexOf(number) !== -1;
     });
+  },
+
+  throwGeneralError: function() {
+    CustomDialog.show(
+      _('callGeneralErrorTitle'),
+      _('callGeneralErrorBody'),
+      {
+        title: _('callGeneralErrorBtnOk'),
+        callback: function() {
+          CustomDialog.hide();
+        }
+      }
+    );
   }
 };
 
