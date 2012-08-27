@@ -749,7 +749,7 @@ var LockScreen = {
         voice.cell && voice.cell.gsmLocationAreaCode) {
       // We are in Brazil, It is legally required to show local info
       // about current registered GSM network in a legally specified way.
-      var lac = voice.cell.gsmLocationAreaCode;
+      var lac = voice.cell.gsmLocationAreaCode % 100;
       var carriers = MobileInfo.brazil.carriers;
       var regions = MobileInfo.brazil.regions;
 
