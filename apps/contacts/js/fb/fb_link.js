@@ -81,9 +81,7 @@ if (!fb.link) {
 
       SEARCH_QUERY[3] = filter.join('');
 
-      var out = SEARCH_QUERY.join('');
-
-      return out;
+      return SEARCH_QUERY.join('');
     }
 
     // Builds the second query (name-based) for findinding a linking contact

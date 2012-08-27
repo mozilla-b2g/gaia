@@ -200,9 +200,9 @@ if (typeof fb.importt === 'undefined') {
     }
 
     function buildFriendQuery(uid) {
-      var aquery1 = [];
-      aquery1 = aquery1.concat(FRIENDS_QUERY);
+      var aquery1 = [].concat(FRIENDS_QUERY);
       aquery1[UID_FILTER_IDX] = '= ' + uid;
+
       var query1 = aquery1.join('');
 
       var queries = {query1: query1, query2: REL_MULTIQ};
