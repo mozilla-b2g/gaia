@@ -1,15 +1,20 @@
-/* Contact Manager for maintaining contact cache and access contact DB:
- * 1. Maintain used contacts in contactData object literal.
- * 2. getContactData: Callback with contact data from 1)cache 2)indexedDB.
- * If cache return "undefined". There will be no callback from cache.
- * Callback will be called twice if cached data turned out to be different than
- * the data from db.
- * Contact return data type:
- *   a) null : Request indexedDB error.
- *   b) Empty array : Request success with no matched result.
- *   c) Array with objects : Request success with matched contacts.
+/* Phone Number Manager for solving the country code format threadinf issue.
+ * This Phone Number Manager required:
+ * 1) google libphonenumber, and using this library requires:
+ *   1-1) google closure-library.
+ * 2) mcc(Mobile Country Codes) - iso3166 country code table
+ * These file were all placed in js ext folder. Please include these library/
+ * folder before using PhoneNumberManager.
+ * 
+ * Methods in the PhoneNumberManager:
+ * init - Setup up PhoneNumberUtil and mobile country code.
  *
- * XXX Note: We presume that contact.name has only one entry.
+ * getNumberSet - We set a number string no matter which types and it will
+ *   return both national format and international format number.
+ *
+ * isValidNumber - We set a number string and it will check if the phone number
+ *   is valid or not.
+ *
 */
 var PhoneNumberManager = {
   init: function pnm_init() {
