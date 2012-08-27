@@ -23,6 +23,7 @@ manifest.appcache
 /profile/
 /xulrunner/
 /xulrunner-sdk/
+/.xulrunner-sdk.cmd
 /tools/test-agent/node_modules
 /test-output.xml
 /mocha-test-results.html
