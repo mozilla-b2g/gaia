@@ -4,16 +4,11 @@ var aacExtensions = ['.m4a', '.m4b', '.m4p', '.m4v',
                      '.m4r', '.3gp', '.mp4', '.aac'];
 
 function isSupportedAAC(extension) {
-  var isSupported = false;
-
-  for (var i in aacExtensions) {
-    if (extension === aacExtensions[i])
-      isSupported = true;
-
-      break;
+  if (aacExtensions.indexOf(extension) != -1) {
+    return true;
+  } else {
+    return false;
   }
-
-  return isSupported;
 }
 
 
@@ -29,7 +24,7 @@ function isSupportedAAC(extension) {
 var metadataParser = (function() {
 
   function metadataParser(file, callback, errback) {
-    // Meta-data parsing of mp3 and ogg files
+    // Meta-data parsing of mp3, ogg and aac files
     // On B2G devices, file.type of mp3 format is missing
     // use file extension instead of file.type
     var extension = file.name.slice(-4);
@@ -40,13 +35,15 @@ var metadataParser = (function() {
       ID3.loadTags(file.name, function() {
         var tags = ID3.getAllTags(file.name);
 
-        metadata.album = tags.album;
-        metadata.artist = tags.artist;
-        metadata.title = tags.title || splitFileName(file.name);
+        // Some ID3 tags does not return in string
+        // add empty string to convert them
+        // or it can not be recorded into the mediadb
+        metadata.album = tags.album + '';
+        metadata.artist = tags.artist + '';
+        metadata.title = tags.title + '' || splitFileName(file.name);
         metadata.picture = tags.picture;
 
         callback(metadata);
-        console.log('tags.title: ' + tags.title);
       }, {
         tags: ['album', 'artist', 'title', 'picture'],
         dataReader: FileAPIReader(file)
