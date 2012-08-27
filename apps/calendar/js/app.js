@@ -94,6 +94,8 @@ Calendar.App = (function(window) {
       colors.render();
 
       this.syncController.observe();
+      this.timeController.observe();
+
       this.router.start();
       document.body.classList.remove('loading');
     },
