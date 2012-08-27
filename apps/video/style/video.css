@@ -26,23 +26,24 @@ ul {
   padding: 0;
   height: 100%;
   overflow-y: scroll;
+  background: -moz-linear-gradient(top, #222 0%,#000 100%);
+  background: linear-gradient(top, #222 0%,#000 100%);
 }
 ul li:first-child {
   border-top: none;
 }
 li {
   margin: 0;
-  height: -moz-calc(100% / 4);
+  height: 120px;
   width: 100%;
-  border-bottom: 1px solid black;
+  border-top: 1px solid #202020;
   position: relative;
   list-style-type: none;
   overflow: hidden;
-  background-color: #222;
 }
 li img {
-  width: -moz-calc(100% * 2 / 3);
-  height: 100%;
+  height: 120px;
+  width: 210px;
   overflow: hidden;
   position: absolute;
   left: 0;
@@ -50,19 +51,17 @@ li img {
   padding: 0;
 }
 li p {
-  width: -moz-calc((100% / 3) - 15px);
-  margin-top: 10px;
-  margin-left: -moz-calc((100% * 2 / 3) + 10px);
-  margin-right: 5px;
-  margin-bottom: 0px;
+  display: block;
+  width: auto;
+  margin: 20px 10px 0 220px;
   padding: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 li p.name {
   color: #fff;
-  font-weight: 600;
-  font-size: 18px;
+  font-weight: bold;
+  font-size: 16px;
 }
 li p.time {
   margin-top: 4px;
