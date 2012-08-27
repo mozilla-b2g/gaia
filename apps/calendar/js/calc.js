@@ -26,6 +26,72 @@
       return this.isSameDate(date, this.today);
     },
 
+    offsetMinutesToMs: function(offset) {
+      return offset * (60 * 1000);
+    },
+
+    /**
+     * Creates timespan for a given month.
+     * Starts at the first week that occurs
+     * in the given month. Ends at the
+     * last day, minute, second of given month.
+     */
+    spanOfMonth: function(month) {
+      month = new Date(
+        month.getFullYear(),
+        month.getMonth(),
+        1
+      );
+
+      var startDay = this.getWeekStartDate(month);
+
+      var endDay = new Date(
+        month.getFullYear(),
+        month.getMonth() + 1,
+        1
+      );
+
+      endDay.setMilliseconds(-1);
+      endDay = this.getWeekEndDate(endDay);
+
+      return new Calendar.Timespan(
+        startDay,
+        endDay
+      );
+    },
+
+    /**
+     * Take a date and convert it to UTC-0 time
+     * removing offset.
+     */
+    utcMs: function(date) {
+      var offset = this.offsetMinutesToMs(
+        date.getTimezoneOffset()
+      );
+
+      return date.valueOf() - offset;
+    },
+
+    fromUtcMs: function(ms, offset) {
+      if (typeof(offset) === 'undefined') {
+        // no offset relative position in time.
+        var utcDate = new Date(ms);
+        return new Date(
+          utcDate.getUTCFullYear(),
+          utcDate.getUTCMonth(),
+          utcDate.getUTCDate(),
+          utcDate.getUTCHours(),
+          utcDate.getUTCMinutes(),
+          utcDate.getUTCSeconds()
+        );
+      } else {
+        // when there is an offset it is an absolute
+        // position in time.
+        ms = ms + this.offsetMinutesToMs(offset);
+        return new Date(ms);
+      }
+    },
+
     /**
      * Checks if two date objects occur
      * on the same date (in the same month, year, day).
