@@ -119,7 +119,7 @@ var Recents = {
       }
     }
     if (toggleEditionMode) {
-      this.recentsView.classList.toggle('recents-edit');
+      document.body.classList.toggle('recents-edit');
       this._recentsEditionMode = !this._recentsEditionMode;
     }
   },
