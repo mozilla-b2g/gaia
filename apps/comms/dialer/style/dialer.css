@@ -108,10 +108,6 @@ body.hidden *[data-l10n-id] {
   opacity: 1;
 }
 
-#option-contacts {
-  pointer-events: none;
-}
-
 .toolbar-option:active {
   opacity: 1;
   border: 0;
@@ -144,4 +140,10 @@ body.hidden *[data-l10n-id] {
 
 .disabled-icon {
   opacity: 0.6;
+}
+
+#iframe-contacts {
+  position: fixed;
+  top: 0;
+  left: 0;
 }

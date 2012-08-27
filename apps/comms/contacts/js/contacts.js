@@ -1286,7 +1286,7 @@ var Contacts = (function() {
     var reopenApp = function reopen() {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
         var app = evt.target.result;
-        app.launch();
+        app.launch('contacts');
       };
     };
 
