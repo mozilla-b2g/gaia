@@ -90,6 +90,8 @@ bf = array('B')
 for i in range(BloomFilterSize):
     bf.append(0)
 
+# BIG FAT WARNING: The hash functions used here much match latin-worker.js. If
+# you change one without the other this will break very badly.
 def hash1(word):
     h = 0
     for ch in word:

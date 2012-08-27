@@ -171,6 +171,8 @@ function Codes2String(codes) {
 // Check a candidate word given as an array of char codes against the bloom
 // filter and if there is a match, confirm it with the prefix trie.
 function Check(input, prefixes, candidates) {
+  // BIG FAT WARNING: The hash functions used here much match xml2dict.py. If
+  // you change one without the other this will break very badly.
   var h1 = 0;
   var h2 = 0xdeadbeef;
   for (var n = 0; n < input.length; ++n) {
