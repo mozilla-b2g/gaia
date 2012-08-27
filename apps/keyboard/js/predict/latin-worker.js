@@ -86,7 +86,7 @@ const LookupPrefix = (function () {
     }
 
     // Seek to a byte position in the stream.
-    function seekTo(newpos) {
+    function seek(newpos) {
       pos = newpos;
     }
 
@@ -128,13 +128,13 @@ const LookupPrefix = (function () {
         var offset = getVLU() + last;
         if (_charMap[symbol] == p) { // Matching prefix, follow the branch in the trie.
           var saved = tell();
-          seekTo(offset);
+          seek(offset);
           var path2 = path + String.fromCharCode(symbol);
           if (path2.length == prefix.length)
             AddSuffixes(path2, result);
           else
             SearchPrefix(prefix, path2, result);
-          seekTo(saved);
+          seek(saved);
         }
         last = offset;
       }
