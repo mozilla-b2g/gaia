@@ -51,8 +51,8 @@ const LookupPrefix = (function () {
     var pos;
 
     // Markers used to terminate prefix/offset tables.
-    const EndOfPrefixesSuffixesFollow = "#";
-    const EndOfPrefixesNoSuffixes = "&";
+    const EndOfPrefixesSuffixesFollow = "#".charCodeAt(0);
+    const EndOfPrefixesNoSuffixes = "&".charCodeAt(0);
 
     // Read an unsigned byte.
     function getByte() {
@@ -94,10 +94,10 @@ const LookupPrefix = (function () {
     // them to the result set.
     function AddSuffixes(prefix, result) {
       while (true) {
-        var ch = String.fromCharCode(getVLU());
-        if (ch == EndOfPrefixesNoSuffixes)
+        var symbol = getVLU();
+        if (symbol == EndOfPrefixesNoSuffixes)
           return result; // No suffixes, done.
-        if (ch == EndOfPrefixesSuffixesFollow) {
+        if (symbol == EndOfPrefixesSuffixesFollow) {
           var freq;
           while ((freq = getByte()) != 0) {
             var word = prefix + getString();
@@ -116,20 +116,20 @@ const LookupPrefix = (function () {
     // if we have not reached the end of the prefix yet, otherwise add the
     // suffixes to the result set.
     function SearchPrefix(prefix, path, result) {
-      var p = prefix[path.length].toLowerCase();
+      var p = prefix.charCodeAt(path.length);
       var last = 0;
       while (true) {
-        var ch = String.fromCharCode(getVLU());
-        if (ch == EndOfPrefixesNoSuffixes ||
-            ch == EndOfPrefixesSuffixesFollow) {
+        var symbol = getVLU();
+        if (symbol == EndOfPrefixesNoSuffixes ||
+            symbol == EndOfPrefixesSuffixesFollow) {
           // No matching branch in the trie, done.
           return;
         }
         var offset = getVLU() + last;
-        if (ch.toLowerCase() == p) { // Matching prefix, follow the branch in the trie.
+        if (_charMap[symbol] == p) { // Matching prefix, follow the branch in the trie.
           var saved = tell();
           seekTo(offset);
-          var path2 = path + ch;
+          var path2 = path + String.fromCharCode(symbol);
           if (path2.length == prefix.length)
             AddSuffixes(path2, result);
           else
@@ -152,21 +152,11 @@ const LookupPrefix = (function () {
     });
 })();
 
-// Turn a character into a key: turn upper case into lower case
-// and convert all umlauts into the base character.
-function ToKey(ch) {
-  ch = ch.toLowerCase().charCodeAt(0);
-  var ch2 = _charMap[ch];
-  if (ch2)
-    return ch2;
-  return ch;
-}
-
 // Generate an array of char codes from a word.
 function String2Codes(word) {
   var codes = new Uint8Array(word.length);
   for (var n = 0; n < codes.length; ++n)
-    codes[n] = ToKey(word[n]);
+    codes[n] = word.charCodeAt(n);
   return codes;
 }
 
@@ -207,13 +197,13 @@ function Check(input, prefixes, candidates) {
 function EditDistance1(input, prefixes, candidates) {
   var length = input.length;
   for (var n = 0; n < length; ++n) {
-    var key = input[n];
-    var nearby = _nearbyKeys[String.fromCharCode(key)];
+    var original = input[n];
+    var nearby = _nearbyKeys[String.fromCharCode(original)];
     for (var i = 0; i < nearby.length; ++i) {
       input[n] = nearby[i].charCodeAt(0);
       Check(input, prefixes, candidates);
     }
-    input[n] = key;
+    input[n] = original;
   }
 }
 
@@ -226,10 +216,10 @@ function EditDistance2(input, prefixes, candidates) {
     for (var m = 1; m < length; ++m) {
       if (n == m)
         continue;
-      var key1 = input[n];
-      var key2 = input[m];
-      var nearby1 = _nearbyKeys[String.fromCharCode(key1)];
-      var nearby2 = _nearbyKeys[String.fromCharCode(key2)];
+      var original1 = input[n];
+      var original2 = input[m];
+      var nearby1 = _nearbyKeys[String.fromCharCode(original1)];
+      var nearby2 = _nearbyKeys[String.fromCharCode(original2)];
       for (var i = 0; i < nearby1.length; ++i) {
         for (var j = 0; j < nearby2.length; ++j) {
           input[n] = nearby1[i].charCodeAt(0);
@@ -237,8 +227,8 @@ function EditDistance2(input, prefixes, candidates) {
           Check(input, prefixes, candidates);
         }
       }
-      input[n] = key1;
-      input[m] = key2;
+      input[n] = original1;
+      input[m] = original2;
     }
   }
 }
@@ -305,11 +295,22 @@ const LevenshteinDistance = (function () {
   };
 })();
 
+// Get the prefix of a word, suitable to be looked up in the bloom filter. We
+// cut off any letters after the first _prefixLimit characters, and convert
+// upper case to lower case and diacritics to the corresponding base letter.
+function GetPrefix(word) {
+  var prefix = word.substr(0, _prefixLimit);
+  var result = "";
+  for (var n = 0; n < prefix.length; ++n)
+    result += String.fromCharCode(_charMap[prefix.charCodeAt(n)]);
+  return result;
+}
+
 function Predict(word) {
   // This is the list where we will collect all the candidate words.
   var candidates = [];
   // Limit search by prefix to avoid long lookup times.
-  var prefix = word.substr(0, _prefixLimit);
+  var prefix = GetPrefix(word);
   // Check for the current input, edit distance 1 and 2 and single letter
   // omission and deletion in the prefix.
   var input = String2Codes(prefix);
@@ -406,9 +407,16 @@ var PredictiveText = {
     _bloomFilterSize = _dict[pos++] * 65536;
     _bloomFilterMask = _bloomFilterSize - 1;
 
-    // Read the diacritics table.
+    // Create the character map that maps all valid characters to lower case
+    // and removes all diacritics along the way.
     _charMap = {};
-    //Object.create(null);
+    var set = "0123456789abcdefghijklmnopqrstuvwxyz'- ";
+    for (var n = 0; n < set.length; ++n) {
+      var ch = set[n];
+      _charMap[ch.charCodeAt(0)] =
+      _charMap[ch.toUpperCase().charCodeAt(0)] = ch.charCodeAt(0);
+    }
+    // Read the diacritics table.
     function getVLU() {
         var u = 0
         var shift = 0;
