@@ -17,6 +17,7 @@ Calendar.ns('Controllers').Time = (function() {
   Time.prototype = {
     __proto__: Calendar.Responder.prototype,
     _position: null,
+    _lastTimespan: null,
     _timeCache: null,
     _timespans: null,
 
@@ -87,6 +88,7 @@ Calendar.ns('Controllers').Time = (function() {
       // not loaded this span previously.
       if (span.start < first.start) {
         this._timespans.splice(0, 0, span);
+        this._lastTimespan = span;
 
         span = first.trimOverlap(span) || span;
         return this.busytime.loadSpan(span);
@@ -96,6 +98,8 @@ Calendar.ns('Controllers').Time = (function() {
 
       if (span.end > last.end) {
         this._timespans.push(span);
+        this._lastTimespan = span;
+
         span = last.trimOverlap(span) || span;
         return this.busytime.loadSpan(span);
       }

@@ -285,6 +285,11 @@ suite('controller', function() {
 
         subject.move(date);
 
+        assert.deepEqual(
+          subject._lastTimespan,
+          range
+        );
+
         assert.ok(
           hasRange(stored, range),
           'should record new range'
@@ -309,6 +314,11 @@ suite('controller', function() {
         );
 
         subject.move(date);
+
+        assert.deepEqual(
+          subject._lastTimespan,
+          range
+        );
 
         assert.ok(
           hasRange(stored, range),
