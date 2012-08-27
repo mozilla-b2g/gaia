@@ -192,6 +192,14 @@
       </div>
 
       <div id="utility-tray" data-z-index-level="utility-tray">
+        <!-- notifications -->
+        <div id="notification-bar">
+          <span data-l10n-id="notifications">Notifications</span>
+          <button id="notification-clear" data-l10n-id="clear-all">Clear all</button>
+        </div>
+        <div id="notifications-container">
+        </div>
+
         <!-- quick settings -->
         <div id="quick-settings">
           <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
@@ -202,11 +210,6 @@
         </div>
 
         <!-- TBD: credit module -->
-
-        <!-- notifications -->
-        <div id="notifications-container">
-        </div>
-
         <div id="utility-tray-grippy">
         </div>
       </div>
@@ -319,8 +322,7 @@
               <div id="lockscreen-clock"></div>
               <div id="lockscreen-date"></div>
             </div>
-            <div id="lockscreen-notification" hidden>
-              <div id="lockscreen-notification-time"></div>
+            <div id="lockscreen-notification" class="notification" hidden>
               <img id="lockscreen-notification-icon" />
               <div id="lockscreen-notification-title"></div>
               <div id="lockscreen-notification-detail"></div>
@@ -391,7 +393,7 @@
         <div id="attention-bar"></div>
       </div>
 
-      <div id="notification-toaster" class="notification" data-z-index-level="notification-toaster">
+      <div id="notification-toaster" data-z-index-level="notification-toaster">
         <img id="toaster-icon" />
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
