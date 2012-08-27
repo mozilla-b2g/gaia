@@ -61,23 +61,25 @@
   -moz-transform: translateY(20px);
 }
 
-#statusbar-loading.popup-loading, #statusbar-loading.app-loading {
+#statusbar-loading {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 1px;
   background: url('images/loading.gif') center center repeat-x;
-
-  -moz-transition: opacity 0.1s ease 0.2s;
-  visibility: visible;
-}
-
-#statusbar-loading {
   display: block;
   visibility: hidden;
 
   -moz-transition: none;
+  opacity: 0;
+}
+
+#statusbar-loading.popup-loading, #statusbar-loading.app-loading {
+  visibility: visible;
+
+  -moz-transition: opacity 0.1s ease 0.2s;
+  opacity: 1;
 }
 
 #statusbar-label {

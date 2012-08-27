@@ -38,12 +38,9 @@ var AttentionScreen = {
     if (document.mozFullScreen)
       document.mozCancelFullScreen();
 
-    // Hide list menu if it is shown now
-    // XXX: Hide new sleep menu if the implementation is done.
-    // (Seperate sleep menu from list menu)
-
+    // Hide sleep menu/list menu if it is shown now
     ListMenu.hide();
-    // SleepMenu.hide();
+    SleepMenu.hide();
 
     // Check if the app has the permission to open attention screens
     var origin = evt.target.dataset.frameOrigin;
