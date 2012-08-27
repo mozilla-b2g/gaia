@@ -36,6 +36,10 @@ var StatusBar = {
   recordingActive: false,
   recordingTimer: null,
 
+  umsActive: false,
+
+  headphonesActive: false,
+
   /* For other app to acquire */
   get height() {
     if (this.screen.classList.contains('active-statusbar'))
@@ -77,8 +81,15 @@ var StatusBar = {
       })(settingKey);
     }
 
+    // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
+
+    // Listen to 'geolocation-status' and 'recording-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
+
+    // Listen to 'bluetoothconnectionchange' from bluetooth.js
+    window.addEventListener('bluetoothconnectionchange', this);
+
     this.setActive(true);
   },
 
@@ -103,6 +114,9 @@ var StatusBar = {
         this.update.data.call(this);
         break;
 
+      case 'bluetoothconnectionchange':
+        this.update.bluetooth.call(this);
+
       case 'mozChromeEvent':
         switch (evt.detail.type) {
           case 'geolocation-status':
@@ -114,9 +128,17 @@ var StatusBar = {
             this.recordingActive = evt.detail.active;
             this.update.recording.call(this);
             break;
-        }
 
-        break;
+          case 'volume-state-changed':
+            this.umsActive = evt.detail.active;
+            this.update.usb.call(this);
+            break;
+
+          case 'headphones-status-changed':
+            this.headphonesActive = (evt.detail.state != 'off');
+            this.update.headphones.call(this);
+            break;
+        }
     }
   },
 
@@ -146,13 +168,6 @@ var StatusBar = {
         wifiManager.onstatuschange =
           wifiManager.connectionInfoUpdate = (this.update.wifi).bind(this);
         this.update.wifi.call(this);
-      }
-
-      var bluetooth = window.navigator.mozBluetooth;
-      if (bluetooth) {
-        // XXX need a reliable way to see if bluetooth is currently
-        // connected or not here.
-        this.update.bluetooth.call(this);
       }
     } else {
       clearTimeout(this._clockTimer);
@@ -346,11 +361,7 @@ var StatusBar = {
       var icon = this.icons.bluetooth;
 
       icon.hidden = !this.settingValues['bluetooth.enabled'];
-
-      // XXX no way to active state of BlueTooth for now,
-      // make it always active
-      // https://github.com/mozilla-b2g/gaia/issues/2664
-      icon.dataset.active = 'true';
+      icon.dataset.active = Bluetooth.connected;
     },
 
     alarm: function sb_updateAlarm() {
@@ -408,10 +419,13 @@ var StatusBar = {
     },
 
     usb: function sb_updateUsb() {
-      // XXX no way to probe active state of USB mess storage right now
-      // https://github.com/mozilla-b2g/gaia/issues/2333
+      var icon = this.icons.usb;
+      icon.hidden = !this.umsActive;
+    },
 
-      // this.icon.usb.hidden = ?
+    headphones: function sb_updateHeadphones() {
+      var icon = this.icons.headphones;
+      icon.hidden = !this.headphonesActive;
     }
   },
 
@@ -434,7 +448,7 @@ var StatusBar = {
     // ID of elements to create references
     var elements = ['notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'signal',
-    'tethering', 'alarm', 'bluetooth', 'mute',
+    'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
     'recording', 'sms', 'geolocation', 'usb', 'label'];
 
     var toCamelCase = function toCamelCase(str) {

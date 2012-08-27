@@ -7,16 +7,59 @@
 //    width:     /* image width */,
 //    height:    /* image height */,
 //    thumbnail: /* a thumbnail image jpeg blob */,
-//    date:      /* timestamp photo was taken or file was modified */
 //    exif:      /* for jpeg images an object of additional EXIF data */
 // }
 //
 var metadataParser = (function() {
   // If we generate our own thumbnails, aim for this size
-  var THUMBNAIL_WIDTH = 160;
-  var THUMBNAIL_HEIGHT = 160;
+  var THUMBNAIL_WIDTH = 120;
+  var THUMBNAIL_HEIGHT = 120;
+  // To save memory (because of gecko bugs) we want to create only one
+  // offscreen image and reuse it.
+  var offscreenImage = new Image();
 
+  // Parsing metadata is memory-intensive.  Make sure we only do
+  // one at a time
+  var queue = [];     // Store
+  var busy = false;
+
+  // This is the main entry point function that we return below
   function metadataParser(file, callback, errback) {
+    queue.push({file: file, callback: callback, errback: errback});
+    if (!busy)
+      processQueue();
+  }
+
+  // If we're not currently running, get the first entry in the queue
+  // and parse metadata for it
+  function processQueue() {
+    if (queue.length === 0) {
+      busy = false;
+      return;
+    }
+
+    busy = true;
+    var entry = queue.shift();  // get first element off queue
+    try {
+      parseMetadata(entry.file,
+                    function(m) {
+                      entry.callback(m);
+                      processQueue();
+                    },
+                    function(s) {
+                      if (entry.errback)
+                        entry.errback(s);
+                      processQueue();
+                    });
+    }
+    catch (e) {
+      // Don't allow unhandled exceptions to mess up our queue handling
+      entry.errback(e.toString());
+      processQueue();
+    }
+  }
+
+  function parseMetadata(file, callback, errback) {
     if (file.type === 'image/jpeg') {
       // For jpeg images, we can read metadata right out of the file
       parseJPEGMetadata(file, function(data) {
@@ -44,32 +87,29 @@ var metadataParser = (function() {
   // the metadata object if they are not already there, and then pass
   // the complete metadata object to the callback function
   function parseImageMetadata(file, metadata, callback, errback) {
+    console.log('fallback parsing metadata for', file.name);
     if (!errback) {
       errback = function(e) {
         console.error('ImageMetadata ', String(e));
       };
     }
 
-    if (!metadata.date)
-      metadata.date = file.lastModifiedDate;
-
-    var img = document.createElement('img');
     var url = URL.createObjectURL(file);
-    img.src = url;
+    offscreenImage.src = url;
 
-    img.onerror = function() {
+    offscreenImage.onerror = function() {
+      offscreenImage.src = null;
       errback('Image failed to load');
     };
 
-    img.onload = function() {
+    offscreenImage.onload = function() {
       URL.revokeObjectURL(url);
-      if (!metadata.width)
-        metadata.width = img.width;
-      if (!metadata.height)
-        metadata.height = img.height;
+      metadata.width = offscreenImage.width;
+      metadata.height = offscreenImage.height;
 
       // If we've already got a thumbnail, we're done
       if (metadata.thumbnail) {
+        offscreenImage.src = null;
         callback(metadata);
         return;
       }
@@ -79,14 +119,15 @@ var metadataParser = (function() {
       var context = canvas.getContext('2d');
       canvas.width = THUMBNAIL_WIDTH;
       canvas.height = THUMBNAIL_HEIGHT;
-      var scalex = canvas.width / img.width;
-      var scaley = canvas.height / img.height;
+      var scalex = canvas.width / offscreenImage.width;
+      var scaley = canvas.height / offscreenImage.height;
 
       // Take the larger of the two scales: we crop the image to the thumbnail
       var scale = Math.max(scalex, scaley);
 
       // If the image was already thumbnail size, it is its own thumbnail
       if (scale >= 1) {
+        offscreenImage.src = null;
         metadata.thumbnail = file;
         callback(metadata);
         return;
@@ -96,12 +137,15 @@ var metadataParser = (function() {
       // canvas to create the thumbnail
       var w = Math.round(THUMBNAIL_WIDTH / scale);
       var h = Math.round(THUMBNAIL_HEIGHT / scale);
-      var x = Math.round((img.width - w) / 2);
-      var y = Math.round((img.height - h) / 2);
+      var x = Math.round((offscreenImage.width - w) / 2);
+      var y = Math.round((offscreenImage.height - h) / 2);
 
       // Draw that region of the image into the canvas, scaling it down
-      context.drawImage(img, x, y, w, h,
+      context.drawImage(offscreenImage, x, y, w, h,
                         0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+
+      // We're done with the image now
+      offscreenImage.src = null;
 
       // Now extract the thumbnail from the canvas as a jpeg file
       metadata.thumbnail = canvas.mozGetAsFile(file.name + '.thumbnail.jpeg',
@@ -115,112 +159,138 @@ var metadataParser = (function() {
   // and pass an object containing selected portions of that metadata
   // to the specified callback function.
   function parseJPEGMetadata(file, callback, errback) {
-    if (!errback) {
-      errback = function(e) {
-        console.error('JPEGMetadata', String(e));
+    console.log('parsing jpeg metadata for', file.name);
+
+    var currentSegmentOffset = 0;
+    var currentSegmentLength = 0;
+    var nextSegmentOffset = 0; // First JPEG segment is SOI
+    var nextSegmentLength = 2; // First segment is just 2 bytes
+
+    var metadata = {};
+
+    // Read the next JPEG segment from the file and pass it as a DataView
+    // object to the specified callback. Return false there is no next
+    // segment to read.
+    function getNextSegment(nextSegmentCallback) {
+      if (nextSegmentOffset === -1) // No more segments to read
+        return false;
+
+      var hasNextSegment = (nextSegmentOffset + nextSegmentLength < file.size);
+
+      // If there is another segment after the one we're reading, read
+      // its header so we know how big it will be.
+      var extraBytes = hasNextSegment ? 4 : 0;
+      var slice = file.slice(nextSegmentOffset,
+                             nextSegmentOffset + nextSegmentLength + extraBytes,
+                             file.type);
+
+      var reader = new FileReader();
+      reader.readAsArrayBuffer(slice);
+      reader.onerror = function() {
+        errback(reader.error);
+        nextSegmentOffset = -1;
       };
+      reader.onload = function() {
+        try {
+          currentSegmentOffset = nextSegmentOffset;
+          currentSegmentLength = nextSegmentLength;
+          if (hasNextSegment) {
+            nextSegmentOffset = currentSegmentOffset + currentSegmentLength;
+            var next = new DataView(reader.result,
+                                    currentSegmentLength, extraBytes);
+            if (next.getUint8(0) !== 0xFF)
+              throw Error('Malformed JPEG file: bad delimiter in next');
+            // Add 2 for the delimiter + type bytes
+            nextSegmentLength = next.getUint16(2) + 2;
+          }
+          else {
+            nextSegmentOffset = -1;
+          }
+
+          var data = new DataView(reader.result, 0, currentSegmentLength);
+          var delimiter = data.getUint8(0);
+          var segtype = data.getUint8(1);
+
+          if (delimiter !== 0xFF)
+            throw Error('Malformed JPEG file: bad delimiter in this segment');
+          nextSegmentCallback(segtype, data);
+        } catch (e) {
+          errback(e.toString());
+        }
+      };
+
+      return true;
     }
 
-    var reader = new FileReader();
-    reader.readAsArrayBuffer(file);
-
-    reader.onerror = function onerror() {
-      errback(reader.error);
-    };
-
-    reader.onload = function onload() {
-      try {
-        var data = new DataView(reader.result);
-        var metadata = parseMetadata(data);
-      } catch (e) {
-        errback(e);
+    // This first call to getNextSegment reads the JPEG header
+    getNextSegment(function(type, data) {
+      if (type !== 0xD8) {
+        // Wrong magic number
+        errback('Not a JPEG file');
         return;
       }
 
-      if (metadata.exif &&
-          (metadata.exif.DateTimeOriginal ||
-           metadata.exif.DateTime)) {
-        metadata.date =
-          parseDate(metadata.exif.DateTimeOriginal ||
-                    metadata.exif.DateTime);
-      }
-      else
-        metadata.date = file.lastModifiedTime;
+      // Now start reading the segments that follow
+      getNextSegment(segmentHandler);
+    });
 
-      callback(metadata);
+    // This is a callback function for getNextSegment that handles the
+    // various types of segments we expect to see in a jpeg file
+    function segmentHandler(type, data) {
+      switch (type) {
+      case 0xC0:  // Some actual image data, including image dimensions
+      case 0xC1:
+      case 0xC2:
+      case 0xC3:
+        // Get image dimensions
+        metadata.height = data.getUint16(5);
+        metadata.width = data.getUint16(7);
 
-      // Utility function for converting EXIF date strings
-      // to ISO date strings to timestamps
-      function parseDate(s) {
-        if (!s)
-          return null;
-        // Replace the first two colons with dashes and
-        // replace the first space with a T
-        return Date.parse(s.replace(':', '-')
-                          .replace(':', '-')
-                          .replace(' ', 'T'));
-      }
-    };
+        // We're done. All the EXIF data will come before this segment
+        // So call the callback
+        callback(metadata);
+        break;
 
-    function parseMetadata(data) {
-      var metadata = {};
-      if (data.getUint8(0) !== 0xFF || data.getUint8(1) !== 0xD8) {
-        throw Error('Not a JPEG file');
-      }
-
-      var offset = 2;
-
-      // Loop through the segments of the JPEG file
-      while (offset < data.byteLength) {
-        if (data.getUint8(offset++) !== 0xFF) {
-          throw Error('malformed JPEG file: missing 0xFF delimiter');
+      case 0xE1:  // APP1 segment. Probably holds EXIF metadata
+        try {
+          parseAPP1(data, metadata);
         }
-
-        var segtype = data.getUint8(offset++);
-        var segstart = offset;
-        var seglen = data.getUint16(offset);
-
-        // Basic image segment specifying image size and compression type
-        if (segtype == 0xE0) {
-          // APP0: probably JFIF metadata, which we ignore for now
-        } else if (segtype == 0xE1) {
-          // APP1
-          if (data.getUint8(offset + 2) === 0x45 && // E
-              data.getUint8(offset + 3) === 0x78 && // x
-              data.getUint8(offset + 4) === 0x69 && // i
-              data.getUint8(offset + 5) === 0x66 && // f
-              data.getUint8(offset + 6) === 0) {    // NUL
-
-            var dataView = new DataView(data.buffer,
-                                        data.byteOffset + offset + 8,
-                                        seglen - 8);
-            metadata.exif = parseEXIFData(dataView);
-
-            if (metadata.exif.THUMBNAIL && metadata.exif.THUMBNAILLENGTH) {
-              var start = offset + 8 + metadata.exif.THUMBNAIL;
-              var end = start + metadata.exif.THUMBNAILLENGTH;
-              metadata.thumbnail = file.slice(start, end, 'image/jpeg');
-              delete metadata.exif.THUMBNAIL;
-              delete metadata.exif.THUMBNAILLENGTH;
-            }
-          }
-        } else if (segtype >= 0xC0 && segtype <= 0xC3) {
-          metadata.height = data.getUint16(offset + 3);
-          metadata.width = data.getUint16(offset + 5);
-
-          // Once we've gotten the images size we're done.
-          // the APP0 and APP1 metadata will always come first.
-          break;
+        catch (e) {
+          errback(e.toString());
+          return;
         }
+        // Intentional fallthrough here to read the next segment
 
-        // Regardless of segment type, skip to the next segment
-        offset += seglen;
+      default:
+        // A segment we don't care about, so just go on and read the next one
+        if (!getNextSegment(segmentHandler))
+          errback('unexpected end of JPEG file');
       }
-
-      // Once we've exited the loop, we've gathered all the metadata
-      return metadata;
     }
 
+    function parseAPP1(data, metadata) {
+      if (data.getUint8(4) === 0x45 && // E
+          data.getUint8(5) === 0x78 && // x
+          data.getUint8(6) === 0x69 && // i
+          data.getUint8(7) === 0x66 && // f
+          data.getUint8(8) === 0) {    // NUL
+
+        var dataView = new DataView(data.buffer,
+                                    data.byteOffset + 10,
+                                    data.byteLength - 10);
+        metadata.exif = parseEXIFData(dataView);
+
+        if (metadata.exif.THUMBNAIL && metadata.exif.THUMBNAILLENGTH) {
+          var start = currentSegmentOffset + 10 + metadata.exif.THUMBNAIL;
+          var end = start + metadata.exif.THUMBNAILLENGTH;
+          metadata.thumbnail = file.slice(start, end, 'image/jpeg');
+          console.log('Found thumbnail in metadata for', file.name,
+                      metadata.thumbnail.size);
+          delete metadata.exif.THUMBNAIL;
+          delete metadata.exif.THUMBNAILLENGTH;
+        }
+      }
+    }
 
     // Parse an EXIF segment from a JPEG file and return an object
     // of metadata attributes. The argument must be a DataView object
@@ -289,6 +359,10 @@ var metadataParser = (function() {
     // Only list the ones we want to bother parsing and returning.
     // All others will be ignored.
     var tagnames = {
+      /*
+       * We don't currently use any of these EXIF tags for anything.
+       *
+       *
       '256': 'ImageWidth',
       '257': 'ImageHeight',
       '40962': 'PixelXDimension',
@@ -316,9 +390,10 @@ var metadataParser = (function() {
       '41992': 'Contrast',
       '41993': 'Saturation',
       '41994': 'Sharpness',
+      */
       // These are special tags that we handle internally
       '34665': 'EXIFIFD',         // Offset of EXIF data
-      '34853': 'GPSIFD',          // Offset of GPS data
+      // '34853': 'GPSIFD',          // Offset of GPS data
       '513': 'THUMBNAIL',         // Offset of thumbnail
       '514': 'THUMBNAILLENGTH'   // Length of thumbnail
     };
@@ -326,11 +401,12 @@ var metadataParser = (function() {
     function parseEntry(data, offset, byteorder, exif) {
       var tag = data.getUint16(offset, byteorder);
       var tagname = tagnames[tag];
-      var type = data.getUint16(offset + 2, byteorder);
-      var count = data.getUint32(offset + 4, byteorder);
 
       if (!tagname) // If we don't know about this tag type, skip it
         return;
+
+      var type = data.getUint16(offset + 2, byteorder);
+      var count = data.getUint32(offset + 4, byteorder);
 
       var total = count * typesize[type];
       var valueOffset = total <= 4 ? offset + 8 :

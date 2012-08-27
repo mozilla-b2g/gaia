@@ -217,16 +217,13 @@
     },
 
     /**
-     * Renders a week based on a start date.
+     * Renders a week from weekdays Array
      *
-     * @param {Object} object config options.
      */
-    _renderWeek: function _renderWeek(start) {
-      var days = Calendar.Calc.getWeeksDays(start),
-          output = [],
-          i = 0;
+    _renderWeek: function _renderWeek(days) {
+      var output = [];
 
-      for (i; i < days.length; i++) {
+      for (var i = 0; i < days.length; i++) {
         output.push(this._renderDay(days[i]));
       }
 
@@ -286,15 +283,47 @@
       var date = this.month,
           id = Calendar.Calc.getDayId(this.month),
           weekList = [],
-          i;
+          numberOfWeeks = 0,
+          lastWeek;
 
-      for (i = 0; i < 5; i++) {
-        var week = weekList.push(
+      for (; numberOfWeeks < 5; numberOfWeeks++) {
+        lastWeek = Calendar.Calc.getWeeksDays(
+          new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate() + (numberOfWeeks * 7)
+          )
+        );
+
+        weekList.push(
+          this._renderWeek(lastWeek)
+        );
+      }
+
+     var lastMonthDay = 32 - new Date(
+       date.getFullYear(),
+       date.getMonth(),
+       32).getDate();
+
+     var lastRendered = lastWeek.pop().getDate();
+     var additionalClass = '';
+
+      // If the last rendered day number is lower that the last day of the
+      // month, like on September or December 2012, we need to render
+      // one more week.
+      // We check if the number is bigger than the lowest possible number
+      // of the last day in a month (February) to avoid adding additional
+      // month when the last rendered day belong to the next month
+      if (lastRendered < lastMonthDay && lastRendered > 27) {
+        additionalClass = 'six-weeks';
+        weekList.push(
           this._renderWeek(
-            new Date(
-              date.getFullYear(),
-              date.getMonth(),
-              date.getDate() + (i * 7)
+            Calendar.Calc.getWeeksDays(
+              new Date(
+                date.getFullYear(),
+                date.getMonth(),
+                date.getDate() + (5 * 7)
+              )
             )
           )
         );
@@ -302,7 +331,8 @@
 
       return template.month.render({
         id: id,
-        content: weekList.join('\n')
+        content: weekList.join('\n'),
+        additionalClass: additionalClass
       });
     },
 
@@ -313,11 +343,7 @@
         calendarId: busytime.calendarId
       };
 
-      var startDateDay = busytime.startDate.getDate();
-      var endDateDay = busytime.endDate.getDate();
-      var targetDay = day.getDate();
-
-      if (targetDay == startDateDay) {
+      if (Calendar.Calc.isSameDate(day, busytime.startDate)) {
         record.start = this._hourToBusyUnit(
           busytime.startDate.getHours()
         );
@@ -325,7 +351,7 @@
         record.start = 1;
       }
 
-      if (targetDay == endDateDay) {
+      if (Calendar.Calc.isSameDate(day, busytime.endDate)) {
         var end = this._hourToBusyUnit(
           busytime.endDate.getHours()
         );
@@ -364,25 +390,41 @@
         return this._addBusytime(start, busytime);
       }
 
-      // 2: busytime start/end occurs on different days
-      if (!span.contains(start) && !span.contains(end)) {
-        // 2a: if its outside our range entirely
-        // we know its going to occur during every day
-        Object.keys(this._days).forEach(function(date) {
-          this._addBusytime(date, busytime);
-        }, this);
-      } else {
-        // 2b: if inside range
-        // get all dates (inclusive) that need to be
-        // updated.
-        var days = Calendar.Calc.daysBetween(
-          start,
-          end
-        );
+      var begin = window.performance.now();
 
-        days.forEach(function(date) {
-          this._addBusytime(date, busytime);
-        }, this);
+      if (busytime.start < span.start) {
+        start = new Date(span.start);
+      }
+
+      if (busytime.end > span.end) {
+        end = new Date(span.end);
+      }
+
+      var days = Calendar.Calc.daysBetween(
+        start,
+        end
+      );
+
+      var i = 0;
+      var len = days.length;
+      var day;
+      var dayValue;
+
+      for (; i < len; i++) {
+        day = days[i];
+        dayValue = day.valueOf();
+
+        if (dayValue < this._timespan.start) {
+          continue;
+        }
+
+        if (dayValue > this._timespan.end) {
+          break;
+        }
+
+        // Verify that each add is only inside
+        // the current timespan.
+        this._addBusytime(day, busytime);
       }
 
     },

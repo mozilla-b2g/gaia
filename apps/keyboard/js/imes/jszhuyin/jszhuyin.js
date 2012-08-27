@@ -426,7 +426,7 @@
       if (code < 0) {
         // This is a select function operation
         var i = code * -1;
-        dump('Removing ' + (code * -1) + ' syllables from buffer.');
+        debug('Removing ' + (code * -1) + ' syllables from buffer.');
 
         while (i--) {
           syllablesInBuffer.shift();
@@ -671,8 +671,10 @@
       window.webkitIDBIndex ||
       window.msIDBIndex;
 
-    if (IDBObjectStore && IDBObjectStore.prototype.mozGetAll) {
-      IDBObjectStore.prototype.getAll = IDBObjectStore.prototype.mozGetAll;
+    if (window.IDBObjectStore &&
+        window.IDBObjectStore.prototype.mozGetAll) {
+      window.IDBObjectStore.prototype.getAll =
+        window.IDBObjectStore.prototype.mozGetAll;
     }
 
     /* ==== init functions ==== */

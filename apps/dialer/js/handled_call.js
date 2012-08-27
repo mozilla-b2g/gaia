@@ -2,7 +2,7 @@
 
 function HandledCall(aCall, aNode) {
   this._ticker = null;
-  this.picture = null;
+  this.photo = null;
 
   this.call = aCall;
 
@@ -84,8 +84,8 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     if (contact && contact.name) {
       node.textContent = contact.name;
 
-      if (contact.photo) {
-        self.photo = contact.photo;
+      if (contact.photo && contact.photo.length > 0) {
+        self.photo = contact.photo[0];
         CallScreen.setCallerContactImage(self.photo);
       }
       return;
@@ -133,7 +133,12 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
   }
 
   if (this.recentsEntry) {
-    Recents.add(this.recentsEntry);
+    var recentToAdd = this.recentsEntry;
+    RecentsDBManager.init(function() {
+      RecentsDBManager.add(recentToAdd, function() {
+        RecentsDBManager.close();
+      });
+    });
   }
   this.remove();
 };

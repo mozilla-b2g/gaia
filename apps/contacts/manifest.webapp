@@ -72,7 +72,8 @@
       "filters": {
         "type": "webcontacts/contact"
        },
-      "disposition": "window"
+      "disposition": "window",
+      "returnValue": true
     },
     "new": {
       "filters": {

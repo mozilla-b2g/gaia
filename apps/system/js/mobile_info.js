@@ -13,7 +13,7 @@ var MobileInfo = {
       '16': 'OI', '23': 'VIVO', '24': 'OI', '31': 'OI',
       '32': 'CTBC', '33': 'CTBC', '34': 'CTBC', '37': 'AEIOU'
     },
-    regionNames: {
+    regions: {
       '11': 'SP', '12': 'SP', '13': 'SP', '14': 'SP', '15': 'SP', '16': 'SP',
       '17': 'SP', '18': 'SP', '19': 'SP',
       '21': 'RJ', '22': 'RJ', '24': 'RJ',
