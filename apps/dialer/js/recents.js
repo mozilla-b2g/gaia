@@ -619,7 +619,6 @@ var Recents = {
 
 window.addEventListener('localized', function recentsSetup() {
   window.removeEventListener('localized', recentsSetup);
-  console.log("LOCALIZED");
     Recents.init();
 });
 
