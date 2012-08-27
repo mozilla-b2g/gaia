@@ -5,7 +5,7 @@
  * 2) mcc(Mobile Country Codes) - iso3166 country code table
  * These file were all placed in js ext folder. Please include these library/
  * folder before using PhoneNumberManager.
- * 
+ *
  * Methods in the PhoneNumberManager:
  * init - Setup up PhoneNumberUtil and mobile country code.
  *
