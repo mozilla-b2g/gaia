@@ -118,8 +118,11 @@ var BackgroundServiceManager = (function bsm() {
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
     //
-    var outOfProcessBlackList = [
-      'Messages'
+    var backgroundOutOfProcessBlackList = [
+      'Messages',
+
+      // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=783066
+      'Dialer'
     ];
 
     if (frames[origin] && frames[origin][name]) {
@@ -139,7 +142,7 @@ var BackgroundServiceManager = (function bsm() {
       frame.setAttribute('name', name);
 
       var appName = app.manifest.name;
-      if (outOfProcessBlackList.indexOf(appName) === -1) {
+      if (backgroundOutOfProcessBlackList.indexOf(appName) === -1) {
         // FIXME: content shouldn't control this directly
         frame.setAttribute('remote', 'true');
         console.info('%%%%% Launching', appName, 'bg service as remote (OOP)');
