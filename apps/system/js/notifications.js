@@ -301,10 +301,8 @@ var NotificationScreen = {
   },
 
   clearAll: function ns_clearAll() {
-    var notificationNodes = this.container.querySelectorAll('.notification');
-
-    for (var i = 0; i < notificationNodes.length; i++) {
-      this.closeNotification(notificationNodes[i], false);
+    while (this.container.firstElementChild) {
+      this.closeNotification(this.container.firstElementChild, false);
     }
   },
 
