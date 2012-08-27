@@ -2,7 +2,8 @@
 
   var Cal = Calendar.Template.create({
     item: [
-      '<li id="calendar-{_id}">',
+      '<li id="calendar-{_id}" class="calendar-id-{_id}">',
+        '<div class="calendar-color"></div>',
         '<label>',
           '<span class="name">{name}</span>',
           '<input ',

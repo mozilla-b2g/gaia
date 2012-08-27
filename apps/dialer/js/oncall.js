@@ -145,7 +145,6 @@ var OnCallHandler = {
   handledCalls: [],
   _telephony: window.navigator.mozTelephony,
 
-  _screenLock: null,
   _displayed: false,
   _closing: false,
 
@@ -153,7 +152,6 @@ var OnCallHandler = {
     // Animating the screen in the viewport.
     this.toggleScreen();
 
-    this._screenLock = navigator.requestWakeLock('screen');
     ProximityHandler.enable();
 
     var telephony = this._telephony;
@@ -365,11 +363,6 @@ var OnCallHandler = {
   _close: function och_close(animate) {
     if (this._closing)
       return;
-
-    if (this._screenLock) {
-      this._screenLock.unlock();
-      this._screenLock = null;
-    }
 
     ProximityHandler.disable();
 
