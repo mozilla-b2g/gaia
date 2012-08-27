@@ -60,12 +60,12 @@ var _bloomFilterMask; // mask for offsets into the bloom filter
 var _charMap; // diacritics table (mapping diacritics to the base letter)
 var _start; // starting position of the trie in _dict
 var _nearbyKeys; // nearby keys for any given key
-var _currentWord = ""; // the word currently being edited
+var _currentWord = ''; // the word currently being edited
 
 // Send a log message to the main thread since we can't output to the console
 // directly.
 function log(msg) {
-  self.postMessage({ cmd: "log", args: [msg] });
+  self.postMessage({ cmd: 'log', args: [msg] });
 }
 
 // Calculate the squared distance of a point (x, y) to the nearest edge of
@@ -100,8 +100,8 @@ const LookupPrefix = (function () {
     var pos;
 
     // Markers used to terminate prefix/offset tables.
-    const EndOfPrefixesSuffixesFollow = "#".charCodeAt(0);
-    const EndOfPrefixesNoSuffixes = "&".charCodeAt(0);
+    const EndOfPrefixesSuffixesFollow = '#'.charCodeAt(0);
+    const EndOfPrefixesNoSuffixes = '&'.charCodeAt(0);
 
     // Read an unsigned byte.
     function getByte() {
@@ -122,7 +122,7 @@ const LookupPrefix = (function () {
 
     // Read a 0-terminated string.
     function getString() {
-      var s = "";
+      var s = '';
       var u;
       while ((u = getVLU()) != 0)
         s += String.fromCharCode(u);
@@ -195,7 +195,7 @@ const LookupPrefix = (function () {
       // Skip over the header bytes, the diacritics table and the bloom filter data.
       pos = _start + _bloomFilterSize;
 
-      SearchPrefix(prefix, "", result);
+      SearchPrefix(prefix, '', result);
 
       return result;
     });
@@ -211,7 +211,7 @@ function String2Codes(word) {
 
 // Convert an array of char codes back into a string.
 function Codes2String(codes) {
-  var s = "";
+  var s = '';
   for (var n = 0; n < codes.length; ++n)
     s += String.fromCharCode(codes[n]);
   return s;
@@ -362,7 +362,7 @@ const LevenshteinDistance = (function () {
 function GetPrefix(word) {
   // Limit search by prefix to avoid long lookup times.
   var prefix = word.substr(0, _prefixLimit);
-  var result = "";
+  var result = '';
   for (var n = 0; n < prefix.length; ++n)
     result += String.fromCharCode(_charMap[prefix.charCodeAt(n)]);
   return result;
@@ -432,8 +432,8 @@ function Predict(word) {
 var PredictiveText = {
   key: function PTW_key(keyCode, keyX, keyY) {
     if (keyCode == 32) {
-      self.postMessage({ cmd: "sendCandidates", args: [[]] });
-      _currentWord = "";
+      self.postMessage({ cmd: 'sendCandidates', args: [[]] });
+      _currentWord = '';
       return;
     }
     if (keyCode == 8) {
@@ -449,18 +449,18 @@ var PredictiveText = {
         wordList.push([word, word]);
       }
     }
-    self.postMessage({ cmd: "sendCandidates", args: [ wordList ] });
+    self.postMessage({ cmd: 'sendCandidates', args: [ wordList ] });
   },
   select: function PTW_select(textContent, data) {
     if (_currentWord != data) {
       // erase the current input
-      var str = _currentWord.replace(/./g, "\x08");
+      var str = _currentWord.replace(/./g, '\x08');
       // send the selected word
       str += data;
-      self.postMessage({ cmd: "sendString", args: [str] });
+      self.postMessage({ cmd: 'sendString', args: [str] });
     }
-    _currentWord = "";
-    self.postMessage({ cmd: "sendCandidates", args: [[]] });
+    _currentWord = '';
+    self.postMessage({ cmd: 'sendCandidates', args: [[]] });
   },
   setLayoutParams: function PTW_setLayoutParams(params) {
     // For each key, calculate the keys nearby.
@@ -474,7 +474,7 @@ var PredictiveText = {
       var key1 = keyArray[n];
       if (SpecialKey(key1))
         continue;
-      var list = "";
+      var list = '';
       for (var m = 0; m < keyArray.length; ++m) {
         var key2 = keyArray[m];
         if (SpecialKey(key2))
@@ -502,7 +502,7 @@ var PredictiveText = {
     // Create the character map that maps all valid characters to lower case
     // and removes all diacritics along the way.
     _charMap = {};
-    var set = "0123456789abcdefghijklmnopqrstuvwxyz'- ";
+    var set = '0123456789abcdefghijklmnopqrstuvwxyz\'- ';
     for (var n = 0; n < set.length; ++n) {
       var ch = set[n];
       _charMap[ch.charCodeAt(0)] =
@@ -530,7 +530,7 @@ var PredictiveText = {
     _start = pos;
 
     // Reset the predictor state.
-    _currentWord = "";
+    _currentWord = '';
   }
 };
 

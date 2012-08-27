@@ -49,13 +49,13 @@
 
       // Our dictionaries are named a bit differently.
       var dictname = language.replace('-', '_').toLowerCase();
-      console.log("loading " + dictname + " dictionary");
+      console.log('loading ' + dictname + ' dictionary');
 
       // Loading the dictionary from within the worker doesn't seem to work, so
       // do it here.
       var xhr = new XMLHttpRequest();
       xhr.open('GET', _path + '../../dictionaries/' + dictname + '.dict', true);
-      xhr.responseType = "arraybuffer";
+      xhr.responseType = 'arraybuffer';
       xhr.onload = function(evt) {
         _language = language;
         _worker.postMessage({ cmd: 'setLanguage', args: [language, xhr.response] });
