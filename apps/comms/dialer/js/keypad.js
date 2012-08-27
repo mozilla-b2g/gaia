@@ -273,7 +273,7 @@ var KeypadManager = {
       var reopenApp = function reopenApp() {
         navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
           var app = evt.target.result;
-          app.launch();
+          app.launch('dialer');
         };
       }
 
