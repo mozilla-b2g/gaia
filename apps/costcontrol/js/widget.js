@@ -160,10 +160,11 @@ function setupWidget() {
   // Enable / disable warning mode for the UI
   function _setWarningMode(warning) {
     _onWarning = warning;
-    if (warning)
+    if (warning) {
       _widget.classList.add('warning');
-    else
+    } else {
       _widget.classList.remove('warning');
+    }
   }
 
   // Enable / disable waiting mode for the UI
@@ -177,6 +178,28 @@ function setupWidget() {
     }
   }
 
+  // Return a time string in format (Today|Yesterday|<WeekDay>), hh:mm
+  // if timestamp is a valid date. If not, it returns Never.
+  function _formatTime(timestamp) {
+    if (!timestamp)
+      return _('never');
+
+    var time = timestamp.toLocaleFormat('%H:%M');
+    var date = timestamp.toLocaleFormat('%a');
+    var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
+    var now = new Date();
+    var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
+
+    if (nowDateDay === dateDay) {
+      date = _('today');
+    } else if ((nowDateDay === dateDay + 1) ||
+              (nowDateDay === 1 && dateDay === 7)) {
+      date = _('yesterday');
+    }
+
+    return date + ', ' + time;
+  }
+
   // Updates the UI with the new balance if provided, else just update the
   // widget with the last updated balance.
   function _updateBalanceUI(balanceObject) {
@@ -188,41 +211,26 @@ function setupWidget() {
 
     // Low credit state
     var balance = balanceObject ? balanceObject.balance : null;
-    if (balance && balance < CostControl.getLowLimitThreshold())
+    if (balance && balance < CostControl.getLowLimitThreshold()) {
       _widget.classList.add('low-credit');
-    else
+    } else {
       _widget.classList.remove('low-credit');
+    }
 
     // Format credit
-    var formattedBalance;
+    var formattedBalance = '--';
     if (balance !== null) {
       var splitBalance = (balance.toFixed(2)).split('.');
       formattedBalance = '&i.&d'
         .replace('&i', splitBalance[0])
         .replace('&d', splitBalance[1]);
-    } else {
-      formattedBalance = '--';
     }
-    _widgetCurrency.textContent = balanceObject.currency || '';
+    _widgetCurrency.textContent = balanceObject ? balanceObject.currency : '';
     _widgetCredit.textContent = formattedBalance;
 
     // Format time
-    var timestamp = balanceObject ? balanceObject.timestamp : new Date();
-    var now = new Date();
-
-    var time = timestamp.toLocaleFormat('%H:%M');
-    var date = timestamp.toLocaleFormat('%a');
-    var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
-    var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
-
-    if (nowDateDay === dateDay)
-      date = _('today');
-    else if ((nowDateDay === dateDay + 1) ||
-              (nowDateDay === 1 && dateDay === 7))
-      date = _('yesterday');
-
-    var formattedTime = date + ', ' + time;
-    _widgetTime.textContent = formattedTime;
+    var timestamp = balanceObject ? balanceObject.timestamp : null;
+    _widgetTime.textContent = _formatTime(timestamp);
   }
 
   _init();

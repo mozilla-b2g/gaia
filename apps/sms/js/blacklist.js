@@ -3,6 +3,8 @@
 
 'use strict';
 
+// The Blacklist keeps a list of numbers whose notifications must no progress
+// to the user.
 var BlackList = (function() {
 
   // The blacklist is not actually a list, it is a set (order is unimportant),

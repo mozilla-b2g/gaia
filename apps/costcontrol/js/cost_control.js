@@ -19,8 +19,7 @@ if (CostControl)
 function setupApp() {
 
   var DELAY_TO_RETURN = 10 * 1000; // 10 seconds
-
-  var _no_service_errors = {'no-coverage': true, 'carrier-unknown': true};
+  var NO_SERVICE_ERRORS = {'no-coverage': true, 'carrier-unknown': true};
 
   // Update balance control
   var _isUpdating = false;
@@ -68,7 +67,7 @@ function setupApp() {
     var notification = navigator.mozNotification.createNotification(
       _('topup-confirmation-title'),
       _('topup-confirmation-message'),
-      '/icons/Clock.png'
+      '/icons/cost-control.png'
     );
     notification.show();
 
@@ -102,9 +101,9 @@ function setupApp() {
         _lastTopUpIncorrect = true;
         _setTopUpScreenMode(MODE_INCORRECT_CODE);
         var notification = navigator.mozNotification.createNotification(
-          'topup-incorrectcode-title',
-          'topup-incorrectcode-message',
-          '/icons/Clock.png'
+          _('topup-incorrectcode-title'),
+          _('topup-incorrectcode-message'),
+          '/icons/cost-control.png'
         );
         notification.onclick = function ccapp_onNotificationClick() {
           var activity = new MozActivity({ name: 'costcontrol/topup' });
@@ -303,7 +302,7 @@ function setupApp() {
     var _error = document.getElementById('balance-error-message');
 
     // By default hide both errors but show the message area.
-    // This force us to explicitely add a case for MODE_DEFAULT
+    // This force us to explicitly add a case for MODE_DEFAULT
     _roaming.setAttribute('aria-hidden', 'true');
     _error.setAttribute('aria-hidden', 'true');
     _messageArea.setAttribute('aria-hidden', 'false');
@@ -323,7 +322,7 @@ function setupApp() {
     }
   }
 
-  // Initializes the cost control module: basic parameters, autmatic and manual
+  // Initializes the cost control module: basic parameters, automatic and manual
   // updates.
   function _init() {
     _configureUI();
@@ -337,7 +336,7 @@ function setupApp() {
 
     // Check for service availability and inform and abort if not present
     var status = CostControl.getServiceStatus();
-    if (status.detail in _no_service_errors) {
+    if (status.detail in NO_SERVICE_ERRORS) {
       ViewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
     }
@@ -353,7 +352,7 @@ function setupApp() {
   // screen.
   function _requestTopUp() {
     var status = CostControl.getServiceStatus();
-    if (status.detail in _no_service_errors) {
+    if (status.detail in NO_SERVICE_ERRORS) {
       ViewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
     }
@@ -378,10 +377,33 @@ function setupApp() {
   // Enables / disables warning mode
   function _setWarningMode(warning) {
     _onWarning = warning;
-    if (warning)
+    if (warning) {
       _balanceTab.classList.add('warning');
-    else
+    } else {
       _balanceTab.classList.remove('warning');
+    }
+  }
+
+  // Return a time string in format (Today|Yesterday|<WeekDay>), hh:mm
+  // if timestamp is a valid date. If not, it returns Never.
+  function _formatTime(timestamp) {
+    if (!timestamp)
+      return _('never');
+
+    var time = timestamp.toLocaleFormat('%H:%M');
+    var date = timestamp.toLocaleFormat('%a');
+    var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
+    var now = new Date();
+    var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
+
+    if (nowDateDay === dateDay) {
+      date = _('today');
+    } else if ((nowDateDay === dateDay + 1) ||
+              (nowDateDay === 1 && dateDay === 7)) {
+      date = _('yesterday');
+    }
+
+    return date + ', ' + time;
   }
 
   // Updates the UI with the new balance if provided, else just update the
@@ -389,7 +411,6 @@ function setupApp() {
   function _updateBalanceUI(balanceObject) {
     balanceObject = balanceObject || CostControl.getLastBalance();
     var balance = balanceObject ? balanceObject.balance : null;
-    var timestamp = balanceObject ? balanceObject.timestamp : new Date();
 
     // Warning if roaming
     var status = CostControl.getServiceStatus();
@@ -399,10 +420,11 @@ function setupApp() {
       _setBalanceScreenMode(MODE_ROAMING);
 
     // Check for low credit
-    if (balance && balance < CostControl.getLowLimitThreshold())
+    if (balance && balance < CostControl.getLowLimitThreshold()) {
       _balanceTab.classList.add('low-credit');
-    else
+    } else {
       _balanceTab.classList.remove('low-credit');
+    }
 
     // Format credit
     var formattedBalance;
@@ -418,19 +440,8 @@ function setupApp() {
     _btCredit.textContent = formattedBalance;
 
     // Format time
-    var now = new Date();
-    var time = timestamp.toLocaleFormat('%H:%M');
-    var date = timestamp.toLocaleFormat('%a');
-    var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
-    var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
-    if (nowDateDay === dateDay)
-      date = _('today');
-    else if ((nowDateDay === dateDay + 1) ||
-              (nowDateDay === 1 && dateDay === 7))
-      date = _('yesterday');
-
-    var formattedTime = date + ', ' + time;
-    _btTime.textContent = formattedTime;
+    var timestamp = balanceObject ? balanceObject.timestamp : null;
+    _btTime.textContent = _formatTime(timestamp);
   }
 
   _init();
