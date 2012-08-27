@@ -530,6 +530,9 @@ var LockScreen = {
     this.updateTime();
 
     if (!wasAlreadyLocked) {
+      if (document.mozFullScreen)
+        document.mozCancelFullScreen();
+
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('lock');
