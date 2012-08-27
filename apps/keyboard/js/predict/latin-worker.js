@@ -267,21 +267,31 @@ const LevenshteinDistance = (function () {
   var matrix = [];
 
   return function(a, b) {
-    if (a.length == 0) return b.length;
-    if (b.length == 0) return a.length;
+    var a_length = a.length;
+    var b_length = b.length;
 
-    // increment along the first column of each row
-    for (var i = 0; i <= b.length; i++)
-      matrix[i] = [i];
+    if (!a_length)
+      return b_length;
+    if (!b_length)
+      return a_length;
+
+    // Ensure that the matrix is large enough. We keep the matrix around
+    // between computations to avoid excessive garbage collection.
+    while (matrix.length <= b_length)
+      matrix.push([]);
+
+    // Increment along the first column of each row.
+    for (var i = 0; i <= b_length; i++)
+      matrix[i][0] = i;
 
     // increment each column in the first row
-    for (var j = 0; j <= a.length; j++)
+    for (var j = 0; j <= a_length; j++)
       matrix[0][j] = j;
 
     // Fill in the rest of the matrix
-    for (i = 1; i <= b.length; i++){
-      for (j = 1; j <= a.length; j++){
-        if (b.charAt(i-1) == a.charAt(j-1)) {
+    for (i = 1; i <= b_length; i++) {
+      for (j = 1; j <= a_length; j++) {
+        if (_charMap[b.charCodeAt(i-1)] == _charMap[a.charCodeAt(j-1)]) {
           matrix[i][j] = matrix[i-1][j-1];
         } else {
           matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
@@ -291,7 +301,7 @@ const LevenshteinDistance = (function () {
       }
     }
 
-    return matrix[b.length][a.length];
+    return matrix[b_length][a_length];
   };
 })();
 
@@ -327,11 +337,11 @@ function Predict(word) {
     var candidate_freq = candidate.freq;
     // Calculate the distance of the word that was entered so far to the
     // same number of letters from the candidate.
-    candidate.distance = LevenshteinDistance(word, candidate_word.substr(0, word.length));
+    candidate.distance = LevenshteinDistance(word, candidate_word);
   }
   candidates.sort(function (a, b) {
     if (a.distance == b.distance)
-      return a.frequency - b.frequency;
+      return b.freq - a.freq;
     return a.distance - b.distance;
   });
   return candidates;
