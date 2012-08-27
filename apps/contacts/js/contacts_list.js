@@ -239,8 +239,7 @@ contacts.List = (function() {
           freq.onerror = function() {
             addToFavoriteList(fcontactToRender);
           }
-        }
-        else {
+        } else {
               addToFavoriteList(contactToRender);
         }
       }
@@ -305,8 +304,7 @@ contacts.List = (function() {
         fbReq.onerror = function() {
           successCb(result);
         }
-      }
-      else {
+      } else {
             successCb(result);
       }
 
