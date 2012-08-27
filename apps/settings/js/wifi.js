@@ -298,7 +298,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
         }
 
         function onWpsMethodChange() {
-          var method = dialog.querySelector("input[type='radio']:checked").value;
+          var method =
+            dialog.querySelector("input[type='radio']:checked").value;
           if (method === 'apPin') {
             submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
             pinDesc.hidden = false;

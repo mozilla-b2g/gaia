@@ -3,7 +3,7 @@
 
 'use strict';
 
-(function (IMEController) {
+(function(IMEController) {
   var _path = null;
   var _language = null;
   var _worker = null;
@@ -21,7 +21,8 @@
         glue[data.cmd].apply(glue, data.args);
       }
       _worker.onerror = function(evt) {
-        throw new Error(evt.message + ' (' + evt.filename + ':' + evt.lineno + ')');
+        throw new Error(evt.message +
+                        ' (' + evt.filename + ':' + evt.lineno + ')');
       }
 
       // Set the prediction language. This will also initialize the prediction
@@ -58,7 +59,8 @@
       xhr.responseType = 'arraybuffer';
       xhr.onload = function(evt) {
         _language = language;
-        _worker.postMessage({ cmd: 'setLanguage', args: [language, xhr.response] });
+        _worker.postMessage({ cmd: 'setLanguage',
+                              args: [language, xhr.response] });
       }
       xhr.send();
     }

@@ -720,7 +720,8 @@ const IMEController = (function() {
     window.navigator.mozKeyboard.sendKey(0, keyCode);
 
     if (_requireSuggestion())
-      _getCurrentSuggestionEngine().click(keyCode, offset.x, _getKeyCoordinateY(offset.y));
+      _getCurrentSuggestionEngine().click(keyCode, offset.x,
+                                          _getKeyCoordinateY(offset.y));
 
     // Return to default layout after pressinf an uppercase
     if (_isUpperCase &&

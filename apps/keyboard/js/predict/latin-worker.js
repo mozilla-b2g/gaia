@@ -96,7 +96,7 @@ function Filter(hash) {
   return !!(_dict[_start + (offset & _bloomFilterMask)] & (1 << bit));
 }
 
-const LookupPrefix = (function () {
+const LookupPrefix = (function() {
     var pos;
 
     // Markers used to terminate prefix/offset tables.
@@ -110,7 +110,7 @@ const LookupPrefix = (function () {
 
     // Read a variable length unsigned integer.
     function getVLU() {
-        var u = 0
+        var u = 0;
         var shift = 0;
         do {
           var b = _dict[pos++];
@@ -175,7 +175,8 @@ const LookupPrefix = (function () {
           return;
         }
         var offset = getVLU() + last;
-        if (_charMap[symbol] == p) { // Matching prefix, follow the branch in the trie.
+        // Matching prefix, follow the branch in the trie.
+        if (_charMap[symbol] == p) {
           var saved = tell();
           seek(offset);
           var path2 = path + String.fromCharCode(symbol);
@@ -189,10 +190,11 @@ const LookupPrefix = (function () {
       }
     }
 
-    return (function (prefix) {
+    return (function(prefix) {
       var result = [];
 
-      // Skip over the header bytes, the diacritics table and the bloom filter data.
+      // Skip over the header bytes, the diacritics table and the
+      // bloom filter data.
       pos = _start + _bloomFilterSize;
 
       SearchPrefix(prefix, '', result);
@@ -282,7 +284,7 @@ function Omission1Candidates(input, prefixes, candidates) {
     for (var i = 0; i < n; ++i)
       input2[i] = input[i];
     while (i < length)
-      input2[i+1] = input[i++];
+      input2[i + 1] = input[i++];
     for (var ch in _nearbyKeys) {
       input2[n] = ch.charCodeAt(0);
       Check(input2, prefixes, candidates);
@@ -299,12 +301,12 @@ function Deletion1Candidates(input, prefixes, candidates) {
       input2[i] = input[i];
     ++i;
     while (i < length)
-      input2[i-1] = input[i++];
+      input2[i - 1] = input[i++];
     Check(input2, prefixes, candidates);
   }
 }
 
-const LevenshteinDistance = (function () {
+const LevenshteinDistance = (function() {
   var matrix = [];
 
   return function(a, b) {
@@ -332,12 +334,12 @@ const LevenshteinDistance = (function () {
     // Fill in the rest of the matrix
     for (i = 1; i <= b_length; i++) {
       for (j = 1; j <= a_length; j++) {
-        if (_charMap[b.charCodeAt(i-1)] == _charMap[a.charCodeAt(j-1)]) {
-          matrix[i][j] = matrix[i-1][j-1];
+        if (_charMap[b.charCodeAt(i - 1)] == _charMap[a.charCodeAt(j - 1)]) {
+          matrix[i][j] = matrix[i - 1][j - 1];
         } else {
-          matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
-                                  Math.min(matrix[i][j-1] + 1, // insertion
-                                           matrix[i-1][j] + 1)); // deletion
+          matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, // substitution
+                                  Math.min(matrix[i][j - 1] + 1, // insertion
+                                           matrix[i - 1][j] + 1)); // deletion
         }
       }
     }
@@ -358,7 +360,8 @@ function GetPrefix(word) {
   return result;
 }
 
-// The entry point into the prediction engine. Prediction is a three step process:
+// The entry point into the prediction engine. Prediction is a three step
+// process:
 //
 // 1. First we generate a number of possible matches (candidates) by starting
 //    with the first few letters of the word (prefix). When doing so, we also
@@ -411,7 +414,7 @@ function Predict(word) {
     // same number of letters from the candidate.
     candidate.distance = LevenshteinDistance(word, candidate_word);
   }
-  candidates.sort(function (a, b) {
+  candidates.sort(function(a, b) {
     if (a.distance == b.distance)
       return b.freq - a.freq;
     return a.distance - b.distance;
@@ -439,7 +442,7 @@ var PredictiveText = {
         wordList.push([word, word]);
       }
     }
-    self.postMessage({ cmd: 'sendCandidates', args: [ wordList ] });
+    self.postMessage({ cmd: 'sendCandidates', args: [wordList] });
   },
   select: function PTW_select(textContent, data) {
     if (_currentWord != data) {
@@ -469,9 +472,13 @@ var PredictiveText = {
         var key2 = keyArray[m];
         if (SpecialKey(key2))
           continue;
-        if (SquaredDistanceToEdge(key1.x, key1.y, key1.width, key1.height, // key dimensions
-                                  key2.x + key2.width/2, key2.y + key2.height/2) // center of candidate key
-            < threshold) {
+        if (SquaredDistanceToEdge(/* key dimensions */
+                                  key1.x, key1.y,
+                                  key1.width, key1.height,
+                                  /* center of candidate key */
+                                  key2.x + key2.width / 2,
+                                  key2.y + key2.height / 2) <
+            threshold) {
           list += String.fromCharCode(key2.code).toLowerCase();
         }
       }
@@ -500,7 +507,7 @@ var PredictiveText = {
     }
     // Read the diacritics table.
     function getVLU() {
-        var u = 0
+        var u = 0;
         var shift = 0;
         do {
           var b = _dict[pos++];
@@ -527,4 +534,4 @@ var PredictiveText = {
 self.onmessage = function(evt) {
   var data = evt.data;
   PredictiveText[data.cmd].apply(PredictiveText, data.args);
-}
+};
