@@ -558,7 +558,7 @@ window.addEventListener('mozvisiblitychange', function() {
 function removeTransition(event) {
   event.target.style.transition = null;
 }
-photoFrames.addEventListener('transitionend', removeTransition);
+
 previousPhotoFrame.addEventListener('transitionend', removeTransition);
 currentPhotoFrame.addEventListener('transitionend', removeTransition);
 nextPhotoFrame.addEventListener('transitionend', removeTransition);
@@ -833,7 +833,9 @@ photoFrames.addEventListener('swipe', function(event) {
     // the translations we added during panning
     var time = Math.abs(pastEdge) / TRANSITION_SPEED;
 
-    photoFrames.style.transition = 'left ' + time + 'ms linear';
+    currentPhotoFrame.style.transition =
+      nextPhotoFrame.style.transition =
+      previousPhotoFrame.style.transition = 'translate ' + time + 'ms linear';
     photoState.swipe = 0;
     photoState.setFramesPosition();
 
@@ -961,10 +963,9 @@ function nextPhoto(time) {
   previousPhotoFrame.classList.add('hidden');
 
   // Set transitions for the visible photo frames and the photoFrames element
-  var transition = 'left ' + time + 'ms linear';
+  var transition = 'transform ' + time + 'ms linear';
   currentPhotoFrame.style.transition = transition;
   nextPhotoFrame.style.transition = transition;
-  photoFrames.style.transition = transition;
 
   // Remove the classes
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -1001,7 +1002,7 @@ function nextPhoto(time) {
   displayImageInFrame(currentPhotoIndex + 1, nextPhotoFrame);
 
   // When the transition is done, cleanup
-  photoFrames.addEventListener('transitionend', function done(e) {
+  currentPhotoFrame.addEventListener('transitionend', function done(e) {
     this.removeEventListener('transitionend', done);
 
     // Recompute and reposition the photo that just transitioned off the screen
@@ -1026,10 +1027,9 @@ function previousPhoto(time) {
   nextPhotoFrame.classList.add('hidden');
 
   // Set transitions for the visible photo frames and the photoFrames element
-  var transition = 'left ' + time + 'ms linear';
+  var transition = 'transform ' + time + 'ms linear';
   previousPhotoFrame.style.transition = transition;
   currentPhotoFrame.style.transition = transition;
-  photoFrames.style.transition = transition;
 
   // Remove the frame classes since we're about to cycle the frames
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -1065,7 +1065,7 @@ function previousPhoto(time) {
   displayImageInFrame(currentPhotoIndex - 1, previousPhotoFrame);
 
   // When the transition is done do some cleanup
-  photoFrames.addEventListener('transitionend', function done(e) {
+  currentPhotoFrame.addEventListener('transitionend', function done(e) {
     this.removeEventListener('transitionend', done);
 
     // Recompute and reposition the photo that just transitioned off the screen
@@ -1153,6 +1153,8 @@ function PhotoState(img, width, height) {
   // Do all the calculations
   this.reset();
 }
+
+PhotoState.BORDER_WIDTH = 3;  // Border between photos
 
 // An internal method called by reset(), zoom() and pan() to
 // set the size and position of the image element.
@@ -1316,9 +1318,13 @@ PhotoState.prototype.pan = function(dx, dy) {
 };
 
 PhotoState.prototype.setFramesPosition = function() {
-  photoFrames.style.left = this.swipe + 'px';
+  // XXX we ignore rtl languages for now.
+  currentPhotoFrame.style.transform = 'translateX(' + this.swipe + 'px)';
+  nextPhotoFrame.style.transform = 'translateX(' +
+    (this.viewportWidth + PhotoState.BORDER_WIDTH + this.swipe) + 'px)';
+  previousPhotoFrame.style.transform = 'translateX(' +
+    (-(this.viewportWidth + PhotoState.BORDER_WIDTH) + this.swipe) + 'px)';
 };
-
 
 var editedPhotoIndex;
 var editedPhotoURL; // The blob URL of the photo we're currently editing
