@@ -379,8 +379,8 @@ const LevenshteinDistance = (function() {
                                   Math.min(matrix[i][j - 1] + 1, // insertion
                                            matrix[i - 1][j] + 1)); // deletion
         }
-        // Damerau-Levenshtein extension to the base Levenshtein algorithm to support
-        // transposition.
+        // Damerau-Levenshtein extension to the base Levenshtein algorithm to
+        // support transposition.
         if (i > 1 &&
             j > 1 &&
             b[i - 1] == a[j - 2] &&
