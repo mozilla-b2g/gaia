@@ -76,6 +76,10 @@ suite('controller', function() {
     var spans;
     var max;
     var events;
+    var toBeRemoved;
+    var expected;
+    var spanLength;
+    var afterCallback;
 
     function loadSpans(start, inc, max) {
       var first = inc;
@@ -96,86 +100,153 @@ suite('controller', function() {
     }
 
     setup(function() {
-      // turn on observers
+      events = [];
+      toBeRemoved = null;
+      expected = null;
+      afterCallback = null;
+
       subject.observe();
       max = subject._maxTimespans;
-    });
 
-    test('going back', function(done) {
-      events = [];
-      // overlap whole time
-      var observeTime = new Calendar.Timespan(
-        new Date(2010, 11, 1),
-        new Date(2012, 11, 1)
+      var longSpan = new Calendar.Timespan(
+        new Date(2010, 0, 1),
+        new Date(2013, 0, 1)
       );
 
-      subject.observeTime(
-        observeTime,
-        function(event) {
-          if (event.type === 'purge') {
-            events.push(event.data);
-          }
+      subject.on(
+        'purge',
+        function(span) {
+          events.push(span);
         }
       );
 
-      loadSpans(
+     loadSpans(
         new Date(2012, 0, 1), -1,
-        max + 3
+        max * 2
       );
 
-      spans = subject._timespans;
-      assert.length(spans, max + 5);
-
-      var expected = spans.slice(6, 11);
-      subject.on('loadingComplete', function() {
-        // verify that we removed the last
-        // three ranges furthest from the
-        // current point.
-        done(function() {
-          assert.length(subject._timespans, max);
-          assert.deepEqual(events, expected);
-        });
-      });
-
+      spanLength = (max * 2) + 2;
     });
 
-    test('going forward', function(done) {
-      events = [];
-      // overlap whole time
-      var observeTime = new Calendar.Timespan(
-        new Date(2011, 11, 1),
-        new Date(2013, 11, 1)
-      );
+    function cacheTest(desc, cb) {
+      test(desc, function(done) {
+        spans = subject._timespans;
+        assert.length(spans, spanLength);
+        cb();
+        subject.on('loadingComplete', function() {
+          // verify that we removed the last
+          // three ranges furthest from the
+          // current point.
+          done(function() {
+            assert.length(subject._timespans, max);
 
-      subject.observeTime(
-        observeTime,
-        function(event) {
-          if (event.type === 'purge') {
-            events.push(event.data);
-          }
-        }
-      );
+            if (toBeRemoved) {
+              assert.deepEqual(events, toBeRemoved);
+            }
 
-      loadSpans(
-        new Date(2012, 0, 1), 1,
-        max + 3
-      );
+            if (expected) {
+              assert.deepEqual(subject._timespans, expected);
+            }
 
-      spans = subject._timespans;
-      assert.length(spans, max + 5);
-
-      var expected = spans.slice(0, 5);
-
-      subject.on('loadingComplete', function() {
-        // verify that we removed the last
-        // three ranges furthest from the
-        // current point.
-        done(function() {
-          assert.length(subject._timespans, max);
-          assert.deepEqual(events, expected);
+            if (afterCallback) {
+              afterCallback();
+            }
+          });
         });
       });
+    }
 
+    cacheTest('future - previous is missing', function() {
+      // XXX: this is a case where the current
+      // timespan exists but the one previous
+      // to is it missing. In theory this
+      // should not happen.
+
+      subject.direction = 'future';
+      subject._currentTimespan = spans[0];
+
+      expected = spans.slice(0, 6);
+    });
+
+    cacheTest('future - does not fit', function() {
+      subject.direction = 'future';
+      subject._currentTimespan = spans[12];
+
+      expected = spans.slice(8, 14);
+    });
+
+    cacheTest('future - fits', function() {
+      subject.direction = 'future';
+      subject._currentTimespan = spans[9];
+
+      toBeRemoved = spans.slice(0, 8);
+      expected = spans.slice(8, 14);
+    });
+
+    cacheTest('past - fits', function() {
+      var expectedItems = [];
+
+      // insert items into
+      // the interval tree for later
+      // removal.
+
+      subject.direction = 'past';
+      subject._currentTimespan = spans[8];
+
+      // to be removed...
+      toBeRemoved = spans.slice(0, 3);
+      toBeRemoved = toBeRemoved.concat(spans.slice(9));
+
+      expected = spans.slice(3, 9);
+
+      // overlapping
+      expectedItems.push(subject._collection.add(
+        Factory('busytime', {
+          startDate: new Date(1991, 1, 1),
+          endDate: new Date(2020, 1, 1)
+        })
+      ));
+
+      // before
+      subject._collection.add(Factory('busytime', {
+        start: (new Date(2000, 0, 1)).valueOf(),
+        end: expected[0].start
+      }));
+
+      // during
+
+      expectedItems.push(subject._collection.add(
+        Factory('busytime', {
+          start: expected[0].start + 1,
+          end: expected[expected.length - 1].end - 1
+        })
+      ));
+
+      // after
+      subject._collection.add(Factory('busytime', {
+        start: expected[expected.length - 1].end + 1,
+        end: (new Date(2020, 0, 1)).valueOf()
+      }));
+
+      afterCallback = function() {
+        assert.deepEqual(
+          subject._collection.items,
+          expectedItems,
+          'should interval tree items outside of total span'
+        );
+      }
+    });
+
+    cacheTest('past - does not fit', function() {
+      subject.direction = 'past';
+      subject._currentTimespan = spans[1];
+      expected = spans.slice(0, 6);
+    });
+
+    cacheTest('past - next is missing', function() {
+      subject.direction = 'past';
+      subject._currentTimespan = spans[13];
+      expected = spans.slice(8, 14);
     });
 
   });
@@ -465,6 +536,9 @@ suite('controller', function() {
 
           done(function() {
             assert.ok(!subject.pending, 'should not be pending');
+            // quick sanity check to verify we are cleaning up
+            // the spans that are not used.
+            assert.length(subject._timespans, subject._maxTimespans);
           });
         });
 

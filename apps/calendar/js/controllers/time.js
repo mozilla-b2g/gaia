@@ -116,67 +116,26 @@ Calendar.ns('Controllers').Time = (function() {
 
         var isFuture = (dir === 'future');
         var start = idx;
-        var end = idx;
 
         // _maxTimespans is the total number of
         // timespans we wish to keep in memory
         // when the limit is hit we want to discard
         // extra but have _maxTimespans in length
         if (isFuture) {
-          //NOTE: when moving to a future time
-          //values to the right are likely
-          //move valuable then the left.
-          //In this case we only attempt to keep
-          //one to the left and _maxTimespans to the right.
-
-          // when starts >= 0 we position
-          // the beginning of the span before
-          // the target so user can scroll back.
-          if ((start - 1) >= 0) {
-            start -= 1;
+          start = (idx - 1);
+          if ((start + max) > len) {
+            start = start - ((start + max) - len);
           }
-
-          // while there is an available
-          // span ahead (to the right) of
-          // the target increase the size
-          // of the end.
-          while (max-- && end < len) {
-            end += 1;
-          }
-
-          // If we ran out of spans to the right
-          // add the remaining slots to the left.
-          if (max) {
-            start -= max;
-          }
-
         } else {
-          // When direction is into the past (left)
-          // we attempt to keep _maxTimespans to the left
-          // and one extra to the right.
+          start = (idx - max) + 1;
+        }
 
-          // if possible keep an extra span
-          // to the right
-          if ((end + 1) < len) {
-            end += 1;
-          }
-
-          // increase the size of the slice by
-          // starting the slice earlier (to the left).
-          while (max-- && start > 0) {
-            start -= 1;
-          }
-
-          // any remaining slots will be
-          // allocated to the right side.
-          if (max) {
-            end += max;
-          }
-
+        if (start < 0) {
+          start = 0;
         }
 
         // reduce the current list to just what we need
-        this._timespans = spans.splice(start, end);
+        this._timespans = spans.splice(start, this._maxTimespans);
 
         // Once we have reduced the number of timespans
         // we also need purge unused busytimes from the cache.
@@ -199,8 +158,8 @@ Calendar.ns('Controllers').Time = (function() {
           // ranges. Other controllers could possibly
           // listen to this event and do other kinds
           // of cleanup as well.
-          this.fireTimeEvent(
-            'purge', range.start, range.end, range
+          this.emit(
+            'purge', range
           );
         }, this);
       }
