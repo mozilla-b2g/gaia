@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-    <link rel="stylesheet" href="style/shared/core/css/root.css">
-    <link rel="stylesheet" href="style/shared/lists/style.css">
-    <link rel="stylesheet" href="style/shared/dialogs/style.css">
+    <link rel="stylesheet" href="shared/style/core/css/root.css">
+    <link rel="stylesheet" href="shared/style/widgets/lists/style.css">
+
+    <link rel="stylesheet" href="shared/style/widgets/buttons/style.css">
+    <link rel="stylesheet" href="shared/style/menus_dialogs/core.css">
 
     <link rel="stylesheet" href="style/fb/headers/style.css">
     <link rel="stylesheet" href="style/fb/fbint.css">
@@ -72,12 +74,10 @@
           </ol>
         </section> <!-- mainContent -->
 
-      <div id="options">
-        <menu  class="bottom" type="toolbar">
-          <button id="selunsel"
-                  onclick="fb.importt.ui.selectAll(event)">Select All</button>
-        </menu>
-      </div>
+      <menu data-items="1">
+        <button id="selunsel"
+                onclick="fb.importt.ui.selectAll(event)">Select All</button>
+      </menu>
 
     </section> <!-- main -->
 
