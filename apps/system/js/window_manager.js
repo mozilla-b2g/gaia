@@ -268,6 +268,15 @@ var WindowManager = (function() {
       });
     }
 
+    // Set homescreen as active,
+    // to control the z-index between homescreen & keyboard iframe
+    var homescreenFrame = runningApps[homescreen].frame;
+    if ((newApp == homescreen) && homescreenFrame) {
+      homescreenFrame.classList.add('active');
+    } else {
+      homescreenFrame.classList.remove('active');
+    }
+
     // Lock orientation as needed
     if (newApp == null) {  // going to the homescreen, so force portrait
       screen.mozLockOrientation('portrait-primary');
