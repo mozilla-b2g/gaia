@@ -118,7 +118,7 @@ var RecentsDBManager = {
     }
   },
   deleteAll: function rdbm_deleteAll(callback) {
-    this._checkDBReady.call(this, function() {
+    this._checkDBReady(function() {
       var txn = this.db.transaction(RecentsDBManager._dbStore, 'readwrite');
       var store = txn.objectStore(RecentsDBManager._dbStore);
 
