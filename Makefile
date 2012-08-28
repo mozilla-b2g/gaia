@@ -242,7 +242,7 @@ ifneq ($(DEBUG),1)
 						fi; \
 						mkdir -p $$d/shared/style/$$bb_category ;\
 						cp -R shared/style/$$bb_category/$$bb_element $$d/shared/style/$$bb_category ;\
-						rm $$d/shared/style/$$bb_category/$$bb_element/*.html ;\
+						rm -f $$d/shared/style/$$bb_category/$$bb_element/*.html ;\
 					fi \
 				done; \
 				\
