@@ -191,6 +191,10 @@ function addVideo(videodata) {
   }
   thumbnail.appendChild(title);
   thumbnail.appendChild(duration);
+
+  var hr = document.createElement('hr');
+  thumbnail.appendChild(hr);
+
   thumbnail.addEventListener('click', function(e) {
     showPlayer(videodata);
   });

@@ -29,17 +29,14 @@ ul {
   background: -moz-linear-gradient(top, #222 0%,#000 100%);
   background: linear-gradient(top, #222 0%,#000 100%);
 }
-ul li:first-child {
-  border-top: none;
-}
 li {
   margin: 0;
   height: 120px;
   width: 100%;
-  border-top: 1px solid #202020;
+  overflow: hidden;
   position: relative;
   list-style-type: none;
-  overflow: hidden;
+  padding-bottom: 1px;
 }
 li img {
   height: 120px;
@@ -67,6 +64,18 @@ li p.time {
   margin-top: 4px;
   font-size: 16px;
   color: #bbb;
+}
+li:last-child hr {
+  display: none;
+}
+li hr {
+  position: absolute;
+  bottom: -5px;
+  left: 210px;
+  right: 20px;
+  height: 0px;
+  border: 0;
+  border-bottom: 1px solid rgba(150, 150, 150, 0.1);
 }
 
 /* fullscreen video player */
