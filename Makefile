@@ -274,12 +274,33 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
-install-xulrunner-sdk:
-ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && unzip xulrunner*.zip && rm xulrunner*.zip)
-else
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+# Whenever we download xulrunner-sdk, we write the command that was used into .xulrunner-sdk.cmd
+# If that file doesn't exist, or xulrunner-sdk doesn't exist, or the command changes, then we
+# redownload.
+PREV_XULRUNNER_SDK_DOWNLOAD=
+ifneq ($(wildcard xulrunner-sdk),)
+-include .xulrunner-sdk.cmd
 endif
+
+install-xulrunner-sdk:
+ifeq ($(PREV_XULRUNNER_SDK_DOWNLOAD),$(XULRUNNER_SDK_DOWNLOAD))
+	@echo "xulrunner-sdk is up to date"
+else
+	rm -rf xulrunner-sdk
+ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
+	($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && unzip xulrunner*.zip && rm xulrunner*.zip)
+else
+	($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+endif
+	@echo "PREV_XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_SDK_DOWNLOAD)" > .xulrunner-sdk.cmd
+endif
+
+# If you happen to have an up-to-date xulrunner-sdk you can make this target to create
+# the .xulrunner-sdk.cmd
+
+create-xulrunner-sdk.cmd:
+	@echo "PREV_XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_SDK_DOWNLOAD)" > .xulrunner-sdk.cmd
+	@echo ".xulrunner-sdk.cmd created"
 
 define run-js-command
 	echo "run-js-command $1";                                                   \
@@ -598,4 +619,4 @@ purge:
 
 # clean out build products
 clean:
-	rm -rf profile xulrunner-sdk
+	rm -rf profile xulrunner-sdk .xulrunner-sdk.cmd
