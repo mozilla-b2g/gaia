@@ -21,13 +21,6 @@ var PermissionManager = (function() {
 
   var fullscreenRequest = undefined;
 
-  var systemAppOrigin = null;
-  // Get the system app origin from Gecko. We use this to ensure we don't
-  // request approval when the system app enters fullscreen mode.
-  navigator.mozApps.getSelf().onsuccess = function(evt) {
-    systemAppOrigin = evt.target.result.origin;
-  };
-
   var handleFullscreenOriginChange = function(detail) {
     // If there's already a fullscreen request visible, cancel it,
     // we'll show the request for the new domain.
@@ -35,9 +28,7 @@ var PermissionManager = (function() {
       cancelRequest(fullscreenRequest);
       fullscreenRequest = undefined;
     }
-
-    if (detail.fullscreenorigin != WindowManager.getDisplayedApp() &&
-        detail.fullscreenorigin != systemAppOrigin) {
+    if (detail.fullscreenorigin != WindowManager.getDisplayedApp()) {
       // The message to be displayed on the approval UI.
       var message = detail.fullscreenorigin + ' is now fullscreen';
       fullscreenRequest = requestPermission(message,

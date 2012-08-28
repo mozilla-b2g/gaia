@@ -22,8 +22,9 @@ var Activities = {
     if (choices.length === 1) {
       this.choose('0');
     } else {
+      // XXX: i10n issue of activity name
       ListMenu.request(this._listItems(choices),
-                       this.choose.bind(this));
+                       this.choose.bind(this), detail.name);
     }
   },
 
