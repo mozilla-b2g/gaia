@@ -156,7 +156,9 @@ header {
   background: rgba(0, 0, 0, 0.3) !important;
 }
 
-/* From: https://raw.github.com/telefonicaid/Gaia-UI-Building-Blocks/master/other/headers/style.css */
+/* From: https://raw.github.com/telefonicaid/Gaia-UI-Building-Blocks/master/other/headers/style.css
+ * TODO: Replace this usage when the ability to share building blocks is implemented
+*/
 
 /* ----------------------------------
  * HEADERS: default
