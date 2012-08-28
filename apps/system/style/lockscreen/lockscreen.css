@@ -202,56 +202,6 @@
   font: 1.6rem 'Open Sans', sans-serif;
 }
 
-#lockscreen-notification {
-  position: absolute;
-  top: 9.6rem;
-  left: 0;
-  height: 6rem;
-  width: 100%;
-  border-top: 1px solid #333;
-  border-bottom: 1px solid #000;
-  -moz-box-sizing: border-box;
-  padding: 0.8rem 2.6rem;
-  overflow: hidden;
-  background-color: rgba(0, 0, 0, 0.8);
-}
-
-#lockscreen-notification-icon {
-  float: left;
-  display: block;
-  width: 3.2rem;
-  height: 3.2rem;
-  -moz-box-sizing: border-box;
-  margin-top: 0.2rem;
-  margin-right: 1.2rem;
-}
-
-#lockscreen-notification-title {
-  font: 1.6rem 'Open Sans', sans-serif;
-  line-height: 2rem;
-  color: #ccc;
-  font-weight: 600;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-#lockscreen-notification-detail {
-  font: 1.4rem 'Open Sans', sans-serif;
-  line-height: 2rem;
-  color: #ccc;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-#lockscreen-notification-time {
-  float: right;
-  font: 1.6rem 'Open Sans', sans-serif;
-  line-height: 2rem;
-  color: #52b6cc;
-}
-
 #lockscreen-area {
   position: absolute;
   height: 10rem;
