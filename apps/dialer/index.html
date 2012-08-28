@@ -198,7 +198,7 @@
         </nav>
         <article id="recents-container" onclick="Recents.click(event.target)" class="view-body">
         </article>
-        <footer class="options">
+        <!-- <footer class="options">
           <section class="option">
             <button id="deselect-all-threads" class="edit-button" data-l10n-id="deselectAll">
               Deselect all
@@ -209,7 +209,7 @@
               Select all
             </button>
           </section>
-        </footer>
+        </footer> -->
       </section>
     </article>
     <nav id="main-toolbar" class="toolbar grid center">
@@ -223,6 +223,18 @@
         <div class="icon icon-keypad"></div>
       </a>
     </nav>
+    <footer class="options">
+      <section class="option">
+        <button id="deselect-all-threads" class="edit-button" data-l10n-id="deselectAll">
+          Deselect all
+        </button>
+      </section>
+      <section class="option">
+        <button id="select-all-threads" class="edit-button" data-l10n-id="selectAll">
+          Select all
+        </button>
+      </section>
+    </footer>
   </body>
     <script>
       // If no entry point, redirect to the keyboard-view

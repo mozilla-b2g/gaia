@@ -64,7 +64,6 @@ var RecentsDBManager = {
       var self = this;
       var request = store.put(recentCall);
       request.onsuccess = function sr_onsuccess() {
-        // self._get.call(self);
         if (callback) {
           callback();
         }
