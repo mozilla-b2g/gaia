@@ -92,6 +92,7 @@ suite('interval_tree', function() {
     assert.deepEqual(subject.items, list);
     assert.ok(!subject.synced);
     assert.ok(!subject.rootNode);
+    assert.deepEqual(subject.byId, {});
   });
 
   test('init without list', function() {
@@ -124,12 +125,30 @@ suite('interval_tree', function() {
       subject.add(items.after);
     });
 
+    test('re-add item with same _id', function() {
+      var id = items.after._id;
+      var obj = { _id: id };
+
+      subject.add(obj);
+
+      assert.deepEqual(
+        subject.items,
+        [items.after]
+      );
+    });
+
     test('first add', function() {
       assert.deepEqual(
         subject.items,
         [items.after]
       );
+
       assert.isFalse(subject.synced);
+      assert.equal(
+        subject.byId[items.after._id],
+        items.after,
+        'should add to byId cache'
+      );
     });
 
     test('multiple adds', function() {
@@ -178,6 +197,9 @@ suite('interval_tree', function() {
         'before',
         'on'
       ];
+
+      assert.ok(!subject.byId['just after']);
+      assert.ok(!subject.byId['after']);
 
       var ids = subject.items.map(function(item) {
         return item._id;
@@ -240,7 +262,12 @@ suite('interval_tree', function() {
         'ends after'
       ];
 
+      assert.ok(!subject.byId['ends on 1']);
+      assert.ok(!subject.byId['ends on 2']);
+      assert.ok(!subject.byId['ends on 3']);
+
       var ids = subject.items.map(function(item) {
+        assert.ok(subject.byId[item._id], 'should have: ' + item._id);
         return item._id;
       });
 
@@ -274,6 +301,7 @@ suite('interval_tree', function() {
           items.after
         ]
       );
+
     });
 
     suite('items that share start time', function() {
@@ -286,8 +314,8 @@ suite('interval_tree', function() {
         subject.items = [];
         subject.synced = false;
 
-        addedBefore = factory(1, middle.start, middle.end);
-        addedAfter = factory(1, middle.start, middle.end);
+        addedBefore = factory(10, middle.start, middle.end);
+        addedAfter = factory(12, middle.start, middle.end);
 
         // its going to shuffle
         // each item is going to displace
@@ -316,6 +344,8 @@ suite('interval_tree', function() {
             addedBefore
           ]
         );
+
+        assert.ok(!subject.byId[addedAfter._id]);
       });
 
       test('remove first added item', function() {

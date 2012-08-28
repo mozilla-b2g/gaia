@@ -188,6 +188,8 @@ Calendar.IntervalTree = (function() {
     } else {
       this.items = list.concat([]);
     }
+
+    this.byId = Object.create(null);
     this.synced = false;
   };
 
@@ -200,10 +202,19 @@ Calendar.IntervalTree = (function() {
       }
     },
 
+    _getId: function(item) {
+      return item._id;
+    },
+
     /**
      * Adds an item to the tree
      */
     add: function(item) {
+      var id = this._getId(item);
+
+      if (id in this.byId)
+        return;
+
       var idx = Calendar.binsearch.insert(
         this.items,
         item,
@@ -211,6 +222,7 @@ Calendar.IntervalTree = (function() {
       );
 
       this.items.splice(idx, 0, item);
+      this.byId[id] = item;
       this.synced = false;
 
       return item;
@@ -278,6 +290,8 @@ Calendar.IntervalTree = (function() {
       var idx = this.indexOf(item);
 
       if (idx !== null) {
+        this._removeIds(this.items[idx]);
+
         this.items.splice(idx, 1);
         this.synced = false;
         return true;
@@ -286,6 +300,14 @@ Calendar.IntervalTree = (function() {
       return false;
     },
 
+    _removeIds: function(item) {
+      if (Array.isArray(item)) {
+        item.forEach(this._removeIds, this);
+      } else {
+        var id = this._getId(item);
+        delete this.byId[id];
+      }
+    },
 
     /**
      * Remove all intervals that start
@@ -325,9 +347,13 @@ Calendar.IntervalTree = (function() {
       }
 
       this.synced = false;
-      this.items.splice(
+      var remove = this.items.splice(
         idx, this.items.length - idx
       );
+
+      this._removeIds(remove);
+
+      return remove;
     },
 
     /**
@@ -374,9 +400,14 @@ Calendar.IntervalTree = (function() {
       }
 
       this.synced = false;
+      var remove = items.slice(0, idx);
       this.items = items.slice(idx).sort(
         compareObjectStart
       );
+
+      this._removeIds(remove);
+
+      return remove;
     },
 
     /**
