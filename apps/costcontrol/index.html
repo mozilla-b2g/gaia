@@ -23,6 +23,7 @@
   <link rel="stylesheet" type="text/css" href="style/views/settings.css">
   <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
   <link rel="stylesheet" type="text/css" href="style/views/balance.css">
+  <link rel="stylesheet" type="text/css" href="style/views/telephony.css">
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -97,8 +98,36 @@
           </button>
         </div>
       </section>
-
     </section>
+
+    <!-- TELEPHONY TAB -->
+    <section role="region" id="telephony-tab" class="view" data-viewport="behind">
+       <header data-theme="organic">
+        <menu type="toolbar">
+           <button class="settings-button"><span class="icon config">configuration</span></button>
+        </menu>
+        <h1 data-l10n-id="phoneactivity">Phone activity</h1>
+      </header>
+      <section class="settings">
+        <ul>
+          <li>
+            <p>27 Nov – Today, 14:38 pm</p>
+            <dl>
+              <dt>Call made</dt>
+              <dd>50 <sub>Min</sub></dd>
+              <dt>SMS Sent</dt>
+              <dd>30 <sub>Sms</sub></dd>
+            </dl>
+          </li>
+          <li>
+            <strong>26 <sub>Dec</sub></strong>
+            <p>Billing cycle ends</p>
+            <span class="meta">Tracking will reset on this date</span>
+          </li>
+        </ul>
+      </section>
+    </section>
+
 
     <!-- The top up input -->
     <section role="region" id="topup-view" class="view topup" data-viewport="bottom">

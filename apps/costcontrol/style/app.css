@@ -161,7 +161,8 @@ section.settings > ul > li:last-child {
   border-bottom: none;
 }
 
-section.settings > ul > li time {
+section.settings > ul > li time,
+section.settings > ul > li .meta {
   font-size: 1.4rem;
   color: #505859;
 }
