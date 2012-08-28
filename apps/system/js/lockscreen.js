@@ -652,6 +652,9 @@ var LockScreen = {
 
   updateConnState: function ls_updateConnState() {
     var conn = window.navigator.mozMobileConnection;
+    if (!conn)
+      return;
+
     var voice = conn.voice;
     var connstateLine1 = this.connstate.firstElementChild;
     var connstateLine2 = this.connstate.lastElementChild;

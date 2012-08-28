@@ -194,6 +194,87 @@ suite('store/event', function() {
 
   });
 
+  suite('#findByAssociated', function() {
+
+    var busyStore;
+    var events = {};
+
+    setup(function() {
+      busyStore = subject.db.getStore('Busytime');
+
+      events.oneIn = Factory('event', {
+        remote: {
+          endDate: new Date(2012, 1, 10),
+          // end date is the same for all occurrences.
+          occurs: [
+            new Date(2012, 1, 1)
+          ]
+        }
+      });
+
+      events.twoIn = Factory('event', {
+        remote: {
+          endDate: new Date(2012, 1, 9),
+          occurs: [
+            new Date(2012, 1, 7)
+          ]
+        }
+      });
+    });
+
+    setup(function(done) {
+      subject.persist(events.oneIn, done);
+    });
+
+    setup(function(done) {
+      subject.persist(events.twoIn, done);
+    });
+
+    var records;
+    var span;
+
+    setup(function(done) {
+      span = new Calendar.Timespan(
+        new Date(2012, 1, 5),
+        new Date(2012, 1, 11)
+      );
+
+      busyStore.loadSpan(span, function(err, list) {
+        records = list;
+        done();
+      });
+    });
+
+    test('result', function(done) {
+
+      subject.findByAssociated(records, function(err, list) {
+
+        function hasEvent(idx, event, occuranceIdx, msg) {
+          var record = list[idx];
+          assert.deepEqual(
+            record[0].startDate,
+            events[event].remote.occurs[occuranceIdx],
+            idx + ' - ' + event + ': ' + msg
+          );
+
+          assert.deepEqual(
+            record[1],
+            events[event],
+            idx + ' - ' + event + ': ' + msg
+          );
+        }
+
+        done(function() {
+          assert.equal(list.length, 2);
+
+          hasEvent(0, 'oneIn', 0, 'first date in range');
+          hasEvent(1, 'twoIn', 0, 'second date in range');
+        });
+      });
+    });
+
+  });
+
   suite('#removeByCalendarId', function() {
     var busytime;
     var byCalendar = {};
