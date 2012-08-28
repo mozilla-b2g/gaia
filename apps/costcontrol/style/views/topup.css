@@ -1,9 +1,9 @@
 /* TOPUP VIEW */
-.view.topup {
+.view[data-viewname="topup"] {
   bottom: 0;
 }
 
-.view.topup form {
+.view[data-viewname="topup"] form {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -11,11 +11,11 @@
 }
 
 
-.view.topup .content .info {
+.view[data-viewname="topup"] .content .info {
   text-align: center;
 }
 
-.view.topup .content .info h2 {
+.view[data-viewname="topup"] .content .info h2 {
   font-size: 1.8rem;
   line-height: 1em;
   font-weight: normal;
@@ -23,7 +23,7 @@
   margin-bottom: 1rem;
 }
 
-.view.topup .content .info p {
+.view[data-viewname="topup"] .content .info p {
   font-size: 1.4rem;
   line-height: 1.3em;
   color: #505859;
@@ -31,6 +31,6 @@
   margin-bottom: 0.5rem;
 }
 
-.view.topup .content .info progress {
+.view[data-viewname="topup"] .content .info progress {
   margin-top: 1rem;
 }

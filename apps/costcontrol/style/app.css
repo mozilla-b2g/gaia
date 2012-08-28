@@ -38,10 +38,20 @@ form {
 .view {
   bottom: 4.1rem;
   z-index: 1;
-  overflow-x: auto;
   background: url(images/app/ui/pattern.png) repeat left top;
   -moz-transition: -moz-transform 0.3s ease;
 }
+
+.view-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+  bottom: 0;
+  top: 5rem;
+  left: 0;
+  right: 0;
+}
+
 .view[role="dialog"] {
   bottom: 0;
 }
@@ -198,5 +208,70 @@ section.content .overview .icons .warning {
 /* LOW CREDIT STATE */
 #balance-tab.low-credit #cost-control-credit {
   color: #b20000;
+}
+
+/* SETTINGS LISTS */
+section.settings > ul > li {
+  border-bottom: solid 1px #e0e0dd;
+  font-size: 1.6rem;
+  line-height: 1.2em;
+  padding: 1.2rem 1.5rem 1.2rem 3rem;
+  position: relative;
+}
+
+section.settings > ul > li:last-child {
+  border-bottom: none;
+}
+
+section.settings > ul > li time {
+  font-size: 1.4rem;
+  color: #505859;
+}
+
+/* End elements */
+section.settings > ul > li > .end {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  height: 4.6rem;
+  margin-top: -2.3rem;
+}
+
+section.settings > ul > li > .end:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 1px;
+  height: 100%;
+  margin-left: -8px;
+}
+
+section.settings > ul > li > .end button {
+  display: inline-block;
+  vertical-align: middle;
+  width: 8.5rem;
+  margin: 0;
+  padding-left: 0.5rem;
+}
+
+section.settings > ul > li .toggle.end {
+  margin-top: -2.3rem;
+}
+
+section.settings > ul > li label {
+  font-size: 1.4rem;
+  color: #505859;
+}
+
+section.settings > ul > li .toggle input[type="checkbox"] {
+  pointer-events: none;
+}
+
+section.settings > ul > li input[type="number"] {
+  width: 5.5rem;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  display: inline-block;
+  text-align: right;
 }
 
