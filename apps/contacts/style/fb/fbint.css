@@ -158,7 +158,7 @@ abbr, acronym {
   display: block;
   text-indent: 1.5rem;
 
-  z-index:20;
+  z-index: 20;
 }
 
 #shortcuts li * {
@@ -166,7 +166,20 @@ abbr, acronym {
 }
 
 #mainContent li[data-uuid] *:not(input) {
-  pointer-events:none;
+  pointer-events: none;
+}
+
+
+ol.unbordered > li {
+  border: none !important;
+}
+
+li[data-uuid]{
+  border-top: none !important;
+}
+
+li[data-uuid]:last-child {
+  border-bottom: none !important;
 }
 
 menu.bottom {
