@@ -17,6 +17,10 @@
 }
 */
 
+#screen > [data-z-index-level="pinkeypadscreen"] {
+  z-index: 65536;
+}
+
 #screen > [data-z-index-level="system-overlay"] {
   z-index: 65536;
 }
