@@ -72,16 +72,16 @@ var Payment = (function() {
       // Chrome asks Gaia to show the payment flow according to the
       // payment request selected by the user.
       case 'open-payment-flow-dialog':
-        if (!e.detail.url)
+        if (!e.detail.uri)
           return;
         // TODO: For now, known payment providers (BlueVia and Mozilla Market)
-        //       only accepts the JWT by GET, so we just add it to the URL.
-        e.detail.url += e.detail.jwt;
+        //       only accepts the JWT by GET, so we just add it to the URI.
+        e.detail.uri += e.detail.jwt;
 
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
-        frame.src = e.detail.url;
+        frame.src = e.detail.uri;
         frame.addEventListener('mozbrowserloadstart', function(evt) {
           // After creating the new frame containing the payment provider buy
           // flow, we send it back to chrome so the payment callbacks can be
@@ -95,7 +95,7 @@ var Payment = (function() {
         })
 
         // The payment flow is shown within the trusted UI.
-        PopupManager.open("PaymentFlow", frame, e.detail.url, true);
+        PopupManager.open("PaymentFlow", frame, e.detail.uri, true);
         break;
 
       case 'close-payment-flow-dialog':
