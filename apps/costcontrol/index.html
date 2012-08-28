@@ -38,12 +38,14 @@
 
 <body role="application">
   <section role="region" class="window">
+    <!-- XXX: The order of sections is important (tabs should be place above
+    the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
 
-    <!-- BALANCE VIEW -->
-    <section role="region" id="balance-tab" class="view" data-viewname="balance">
+    <!-- BALANCE TAB -->
+    <section role="region" id="balance-tab" class="view" data-viewport="behind">
       <header data-theme="organic">
         <menu type="toolbar">
-           <button><span class="icon config">configuration</span></button>
+           <button class="settings-button"><span class="icon config">configuration</span></button>
         </menu>
         <h1 data-l10n-id="balance">Balance</h1>
       </header>
@@ -101,7 +103,7 @@
     <section role="region" id="topup-view" class="view topup" data-viewport="bottom">
       <header data-theme="organic">
         <menu type="toolbar">
-           <button id="topup-send-button">Done</button>
+           <button id="topup-send-button" data-l10n-id="send">Send</button>
         </menu>
         <a href="#left-panel"><span id="topup-close-button" class="icon icon-close">close</span></a>
         <h1 data-l10n-id="top-up">Top Up</h1>
@@ -117,102 +119,37 @@
         </div>
       </section>
       <form>
-        <input id="topup-code-input" type="number"></input>
+        <input id="topup-code-input" type="number" autofocus></input>
       </form>
     </section>
 
     <!-- Dialog for service unavailable -->
-    <section role="dialog" class="view" data-viewport="inside" id="application-error-info-dialog">
+    <section role="dialog" class="view" data-viewport="bottom" id="application-error-info-dialog">
       <div class="center">
         <h3 data-l10n-id="application-error-title">Service unavailable</h3>
         <p data-l10n-id="application-error-message">Contact your company representative.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="close-info-button">Ok</button>
+        <button data-l10n-id="ok" class="close-current-view">Ok</button>
       </menu>
     </section>
 
     <!-- Dialog for application error -->
-    <section role="dialog" class="view" data-viewport="inside" id="service-unavailable-info-dialog">
+    <section role="dialog" class="view" data-viewport="bottom" id="service-unavailable-info-dialog">
       <div class="center">
         <h3 data-l10n-id="service-unavailable-title">Service unavailable</h3>
         <p data-l10n-id="service-unavailable-message">Neither update nor top up is possible at the moment. Please try later.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="close-info-button">Ok</button>
+        <button data-l10n-id="ok" class="close-current-view">Ok</button>
       </menu>
     </section>
 
-    <!-- Settings view -->
-    <section role="region" class="view" data-viewname="settings" data-viewport="right">
-      <header data-theme="organic">
-        <a href="#left-panel"><span id="topup-close-button" class="icon icon-back">close</span></a>
-        <h1 data-l10n-id="settings">Settings</h1>
-      </header>
-
-      <section role="region" class="buttons-list">
-        <button>
-          <span class="end launch"></span>
-          Prepaid
-        </button>
-      </section>
-
-      <section role="region" data-theme="organic" class="settings">
-        <header aria-level="2">
-          <p>Balance</p>
-        </header>
-        <ul>
-          <li>
-              <p>R$ 23.65</p>
-              <time>Today, 15:32</time>
-          </li>
-          <li>
-            <label class="end toggle">
-              <input type="checkbox" checked="checked">
-              <span></span>
-            </label>
-            <p>Low Balance alert</p>
-          </li>
-          <li>
-            <label class="end">
-              R$
-              <input type="number">
-            </label>
-            <p>Alert me when I’m under</p>
-          </li>
-        </ul>
-      </section>
-
-      <section role="region" data-theme="organic" class="settings">
-        <header aria-level="2">
-          <p>Data usage</p>
-        </header>
-        <ul>
-          <li>
-              <div class="end buttons-list">
-                <button>Reset</button>
-              </div>
-              <p>50MB</p>
-              <time>27 Nov - Today, 15:32</time>
-          </li>
-          <li>
-            <div class="end buttons-list">
-              <button>
-                <span class="end launch"></span>
-                Monthly
-              </button>
-            </div>
-            <p>Reset tracking</p>
-          </li>
-        </ul>
-      </section>
-    </section>
-
-    <!-- DATAUSAGE VIEW -->
-    <section role="region" class="view" data-viewname="datausage" data-viewport="right">
+    <!-- DATA USAGE TAB -->
+    <section id="datausage-tab" role="region" class="view" data-viewport="behind">
       <header data-theme="organic">
         <menu type="toolbar">
-           <button><span class="icon config">configuration</span></button>
+           <button class="settings-button"><span class="icon config">configuration</span></button>
         </menu>
         <h1 data-l10n-id="settings">Data usage</h1>
       </header>
@@ -305,10 +242,77 @@
       </div>
     </section>
 
+    <!-- Settings view -->
+    <section id="settings-view" role="region" class="view" data-viewport="bottom">
+      <header data-theme="organic">
+        <a class="close-current-view"><span id="topup-close-button" class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="settings">Settings</h1>
+      </header>
+
+      <section role="region" class="buttons-list">
+        <button>
+          <span class="end launch"></span>
+          Prepaid
+        </button>
+      </section>
+
+      <section role="region" data-theme="organic" class="settings">
+        <header aria-level="2">
+          <p>Balance</p>
+        </header>
+        <ul>
+          <li>
+              <p>R$ 23.65</p>
+              <time>Today, 15:32</time>
+          </li>
+          <li>
+            <label class="end toggle">
+              <input type="checkbox" checked="checked">
+              <span></span>
+            </label>
+            <p>Low Balance alert</p>
+          </li>
+          <li>
+            <label class="end">
+              R$
+              <input type="number">
+            </label>
+            <p>Alert me when I’m under</p>
+          </li>
+        </ul>
+      </section>
+
+      <section role="region" data-theme="organic" class="settings">
+        <header aria-level="2">
+          <p>Data usage</p>
+        </header>
+        <ul>
+          <li>
+              <div class="end buttons-list">
+                <button>Reset</button>
+              </div>
+              <p>50MB</p>
+              <time>27 Nov - Today, 15:32</time>
+          </li>
+          <li>
+            <div class="end buttons-list">
+              <button>
+                <span class="end launch"></span>
+                Monthly
+              </button>
+            </div>
+            <p>Reset tracking</p>
+          </li>
+        </ul>
+      </section>
+    </section>
+
     <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
+    <!-- TODO: Recover the hover effect on filters -->
     <ul role="tablist" class="filter" data-items="2" data-position="bottom">
-      <li aria-selected="true"><a role="tab" href="#balance" data-l10n-id="balance">Balance</a></li>
-      <li><a role="tab" href="#datausage" data-l10n-id="data-usage">Data usage</a></li>
+      <li id="balance-tab-filter" aria-selected="true"><a role="tab" data-l10n-id="balance">Balance</a></li>
+      <li id="telephony-tab-filter" aria-hidden="true"><a role="tab" data-l10n-id="telephony">Telephony</a></li>
+      <li id="datausage-tab-filter"><a role="tab" data-l10n-id="data-usage">Data usage</a></li>
     </ul>
   </section>
 </body>

@@ -26,7 +26,7 @@ form {
 [aria-hidden="true"] { display: none !important; }
 
 /* WINDOW & VIEWS */
-.window, .view{
+.window, .view {
   position: absolute;
   left: 0;
   top: 0;
@@ -36,6 +36,7 @@ form {
 }
 
 .view {
+
   bottom: 4.1rem;
   z-index: 1;
   background: url(images/app/ui/pattern.png) repeat left top;
@@ -57,6 +58,10 @@ form {
 }
 
 /* VIEWPORTS */
+.view[data-viewport="behind"] {
+  visibility: hidden;
+}
+
 .view[data-viewport="bottom"] {
   -moz-transform: translateY(100%);
 }
@@ -121,7 +126,7 @@ section.content {
 }
 
 #top-up-countdown {
-  color: #555;
+  color: #C7C9C6;
 }
 
 /* ERROR MESSAGES */

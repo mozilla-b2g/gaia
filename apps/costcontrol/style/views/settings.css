@@ -1,12 +1,12 @@
 /* TOPUP VIEW */
-.view[data-viewname="settings"] {
+#settings-view {
   bottom: 0;
 }
 
-.view[data-viewname="settings"]  section[role="region"].buttons-list {
+#settings-view section[role="region"].buttons-list {
   padding: 1rem 1.3rem;
 }
 
-.view[data-viewname="settings"] section[role="region"].buttons-list button {
+#settings-view section[role="region"].buttons-list button {
   margin: 0;
 }

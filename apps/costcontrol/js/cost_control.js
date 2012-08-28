@@ -3,6 +3,9 @@
 
 'use strict';
 
+// TODO: It should be convenient to split the cost_control.js and to have a
+// tab_component.js by tab
+
 // Retrieve CostControl service
 var CostControl = getService(function ccapp_onServiceReady(evt) {
   // If the service is not ready, when ready it sets the CostControl object
@@ -142,6 +145,11 @@ function setupApp() {
     _btCredit = document.getElementById('balance-tab-credit');
     _btTime = document.getElementById('balance-tab-time');
 
+    var balanceFilter = document.getElementById('balance-tab-filter');
+    balanceFilter.addEventListener('click', function ccapp_onBalanceTab() {
+      ViewManager.changeViewTo(TAB_BALANCE);
+    });
+
     var btRequestUpdateButton =
       document.getElementById('balance-tab-update-button');
     btRequestUpdateButton.addEventListener('click', _requestUpdateBalance);
@@ -151,15 +159,39 @@ function setupApp() {
     btRequestTopUpButton.addEventListener('click', _requestTopUp);
   }
 
-  // Configure close info buttons to close the current view
+  // Configures the data usage tab: get interactive elements and set callbacks
+  function _configureDataUsageTab() {
+    var dataUsageTab = document.getElementById('datausage-tab-filter');
+    dataUsageTab.addEventListener('click', function ccapp_onDataUsageTab() {
+      ViewManager.changeViewTo(TAB_DATA_USAGE);
+    });
+  }
+
+  // Configure close current view buttons to close the current view
   // (i.e the info itself)
-  function _configureCloseInfoButtons() {
-    var okButtons = document.querySelectorAll('.close-info-button');
-    [].forEach.call(okButtons, function ccapp_eachCloseButton(button) {
-      button.addEventListener('click', function ccapp_onOK() {
+  function _configureCloseCurrentViewButtons() {
+    var closeButtons = document.querySelectorAll('.close-current-view');
+    [].forEach.call(closeButtons, function ccapp_eachCloseButton(button) {
+      button.addEventListener('click', function ccapp_onCloseView() {
         ViewManager.closeCurrentView();
       });
     });
+  }
+
+  // Configure configuration buttons to display the application's settings
+  function _configureSettingsButtons() {
+    var configButtons = document.querySelectorAll('.settings-button');
+    [].forEach.call(configButtons, function ccapp_eachConfigButton(button) {
+      button.addEventListener('click', function ccapp_onConfig() {
+        ViewManager.changeViewTo(VIEW_SETTINGS);
+      });
+    });
+  }
+
+  // TODO: remove when autofocus became available from B2G
+  // Give the focus to the top up code input
+  function _focusCodeInput() {
+    document.getElementById('topup-code-input').focus();
   }
 
   // Configure the top up screen, the close button and the send button
@@ -198,8 +230,10 @@ function setupApp() {
   // Attach event listeners for manual updates
   function _configureUI() {
 
-    _configureCloseInfoButtons();
+    _configureSettingsButtons();
+    _configureCloseCurrentViewButtons();
     _configureBalanceTab();
+    _configureDataUsageTab();
     _configureTopUpScreen();
 
     // Callbacks for update balance
@@ -237,7 +271,7 @@ function setupApp() {
             break;
 
           case 'costcontrol/topup':
-            ViewManager.changeViewTo(VIEW_TOPUP);
+            ViewManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
             break;
         }
       }
@@ -247,6 +281,9 @@ function setupApp() {
     window.addEventListener('localized', function ccapp_onLocalized() {
       _updateBalanceUI();
     });
+
+    // TODO: Add deccission depending on prepaid / postpaid
+    ViewManager.changeViewTo(TAB_BALANCE);
   }
 
   var MODE_DEFAULT = 'mode-default';
@@ -266,42 +303,42 @@ function setupApp() {
   function _setTopUpScreenMode(mode) {
     clearTimeout(_returnTimeout);
 
-    var _explanation = document.getElementById('topup-code-explanation');
-    var _confirmation =
+    var explanation = document.getElementById('topup-code-explanation');
+    var confirmation =
       document.getElementById('topup-confirmation-explanation');
-    var _incorrectCode = document.getElementById('topup-incorrect-code');
-    var _error = document.getElementById('topup-error');
-    var _progress = document.getElementById('topup-in-progress');
-    var _input = document.getElementById('topup-code-input');
+    var incorrectCode = document.getElementById('topup-incorrect-code');
+    var error = document.getElementById('topup-error');
+    var progress = document.getElementById('topup-in-progress');
+    var input = document.getElementById('topup-code-input');
 
     // Reset the screen (hide everything)
-    _explanation.setAttribute('aria-hidden', 'true');
-    _confirmation.setAttribute('aria-hidden', 'true');
-    _incorrectCode.setAttribute('aria-hidden', 'true');
-    _error.setAttribute('aria-hidden', 'true');
-    _progress.setAttribute('aria-hidden', 'true');
-    _input.removeAttribute('disabled');
+    explanation.setAttribute('aria-hidden', 'true');
+    confirmation.setAttribute('aria-hidden', 'true');
+    incorrectCode.setAttribute('aria-hidden', 'true');
+    error.setAttribute('aria-hidden', 'true');
+    progress.setAttribute('aria-hidden', 'true');
+    input.removeAttribute('disabled');
 
     switch (mode) {
       case MODE_DEFAULT:
-        _explanation.setAttribute('aria-hidden', 'false');
+        explanation.setAttribute('aria-hidden', 'false');
         if (_lastTopUpConfirmed)
-          _input.value = '';
+          input.value = '';
 
         break;
 
       case MODE_WAITING:
-        _confirmation.setAttribute('aria-hidden', 'false');
-        _progress.setAttribute('aria-hidden', 'false');
-        _input.setAttribute('disabled', 'disabled');
+        confirmation.setAttribute('aria-hidden', 'false');
+        progress.setAttribute('aria-hidden', 'false');
+        input.setAttribute('disabled', 'disabled');
         break;
 
       case MODE_INCORRECT_CODE:
-        _incorrectCode.setAttribute('aria-hidden', 'false');
+        incorrectCode.setAttribute('aria-hidden', 'false');
         break;
 
       case MODE_ERROR:
-        _error.setAttribute('aria-hidden', 'false');
+        error.setAttribute('aria-hidden', 'false');
         break;
     }
   }
@@ -342,6 +379,7 @@ function setupApp() {
     clearTimeout(_countdownInterval);
   }
 
+  // Enable / disable the countdown area for the top up
   function _setTopUpCountdown(enabled) {
     var _countdown = document.getElementById('cost-control-topup-countdown');
     _countdown.setAttribute('aria-hidden', enabled ? 'false' : 'true');
@@ -425,7 +463,7 @@ function setupApp() {
     if (!_isWaitingTopUp && !_lastTopUpIncorrect)
       _setTopUpScreenMode(MODE_DEFAULT);
 
-    ViewManager.changeViewTo(VIEW_TOPUP);
+    ViewManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
   }
 
   // Enable / disable waiting mode for the UI
