@@ -228,6 +228,7 @@ body {
   border-width: 0px;
   padding: 0px;
   margin: 0px;
+  transform-origin: 0px 0px;
   pointer-events: none;
   -moz-user-select: none;
 }

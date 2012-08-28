@@ -849,12 +849,7 @@ photoFrames.addEventListener('dbltap', function(e) {
   else                           // Otherwise
     scale = 2;                   // Zoom in by a factor of 2
 
-  currentPhoto.style.transition = 'all 100ms linear';
-  currentPhoto.addEventListener('transitionend', function handler() {
-    currentPhoto.style.transition = null;
-    currentPhoto.removeEventListener('transitionend', handler);
-  });
-  photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
+  photoState.zoom(scale, e.detail.clientX, e.detail.clientY, true, 200);
 });
 
 // We also support pinch-to-zoom
@@ -864,7 +859,8 @@ photoFrames.addEventListener('transform', function(e) {
 
   photoState.zoom(e.detail.relative.scale,
                   e.detail.midpoint.clientX,
-                  e.detail.midpoint.clientY);
+                  e.detail.midpoint.clientY,
+                  true);
 });
 
 // A utility function to set the src attribute of the <img> element inside
@@ -1184,7 +1180,11 @@ PhotoState.prototype.reset = function() {
 // the image pixels at (centerX, centerY) remain at that position.
 // Assume that zoom gestures can't be done in the middle of swipes, so
 // if we're calling zoom, then the swipe property will be 0.
-PhotoState.prototype.zoom = function(scale, centerX, centerY) {
+// If resize is true, then this method actually changes the width and
+// height of the image. Otherwise, it uses a CSS transform instead for
+// smoother animations.  If time is specified and non-zero, then it uses
+// a CSS transition to animate the CSS transform, and then resizes the image.
+PhotoState.prototype.zoom = function(scale, centerX, centerY, resize, time) {
   // Never zoom in farther than 2x the native resolution of the image
   if (this.baseScale * this.scale * scale > 2) {
     scale = 2 / (this.baseScale * this.scale);
@@ -1245,7 +1245,27 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY) {
     }
   }
 
-  this._reposition();
+  if (resize && !time) {
+    // If time was 0 or undefined, just resposition the image now
+    this._reposition();
+  }
+  else {
+    if (time) {
+      // If a time was specfied, animate the transformation
+      this.img.style.transition = 'transform ' + time + 'ms ease';
+      var self = this;
+      this.img.addEventListener('transitionend', function done(e) {
+        self.img.removeEventListener('transitionend', done);
+        self.img.style.transition = null;
+        if (resize) // Actually resize after the transition
+          self._reposition();
+      });
+    }
+
+    this.img.style.transform =
+      'translate(' + this.left + 'px,' + this.top + 'px) ' +
+      'scale(' + scale + ')';
+  }
 };
 
 PhotoState.prototype.pan = function(dx, dy) {
