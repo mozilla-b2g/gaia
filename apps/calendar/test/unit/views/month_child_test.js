@@ -76,7 +76,7 @@ suite('views/month_child', function() {
     assert.equal(subject.monthId, Calendar.Calc.getMonthId(month));
 
     assert.instanceOf(
-      subject._timespan,
+      subject.timespan,
       Calendar.Timespan,
       'should create timespan'
     );
@@ -84,28 +84,8 @@ suite('views/month_child', function() {
     assert.deepEqual(subject._days, {});
 
     assert.deepEqual(
-      subject._timespan,
-      subject._setupTimespan(subject.month)
-    );
-  });
-
-  test('#_setupTimespan', function() {
-    var month = new Date(2012, 7, 1);
-
-    var expectedStart = new Date(2012, 6, 29);
-    var expectedEnd = new Date(2012, 8, 2);
-    expectedEnd.setMilliseconds(-1);
-
-    var range = subject._setupTimespan(month);
-
-    assert.equal(
-      range.start,
-      expectedStart.valueOf()
-    );
-
-    assert.equal(
-      range.end,
-      expectedEnd.valueOf()
+      subject.timespan,
+      Calendar.Calc.spanOfMonth(subject.month)
     );
   });
 
@@ -202,16 +182,16 @@ suite('views/month_child', function() {
   test('#_initEvents', function() {
     subject._initEvents();
 
-    var observers = busytimes._timeObservers;
+    var observers = controller._timeObservers;
     var record = observers[observers.length - 1];
 
-    assert.equal(record[0], subject._timespan);
+    assert.equal(record[0], subject.timespan);
     assert.equal(record[1], subject);
   });
 
   test('#_destroyEvents', function() {
     subject._initEvents();
-    var observers = busytimes._timeObservers;
+    var observers = controller._timeObservers;
     var len = observers.length;
     subject._destroyEvents();
     assert.equal(observers.length, len - 1);
@@ -233,7 +213,7 @@ suite('views/month_child', function() {
         startDate: createHour(23)
       });
 
-      busytimes.fireTimeEvent(
+      controller.fireTimeEvent(
         'add',
         createHour(23).valueOf(),
         createHour(23).valueOf(),
@@ -253,7 +233,7 @@ suite('views/month_child', function() {
         startDate: createHour(23)
       });
 
-      busytimes.fireTimeEvent(
+      controller.fireTimeEvent(
         'remove',
         createHour(23).valueOf(),
         createHour(23).valueOf(),
@@ -271,7 +251,7 @@ suite('views/month_child', function() {
     setup(function() {
       calls = [];
 
-      subject.controller.currentMonth = month;
+      subject.controller.move(month);
 
       subject.attach(testEl);
       subject._addBusytime = function() {
@@ -297,7 +277,7 @@ suite('views/month_child', function() {
     });
 
     test('whole month', function() {
-      var span = subject._timespan;
+      var span = subject.timespan;
 
       var record = Factory('busytime', {
         startDate: new Date(span.start - 60),
@@ -326,14 +306,14 @@ suite('views/month_child', function() {
       assert.isTrue(
         Calendar.Calc.isSameDate(
           calls[0][0],
-          new Date(subject._timespan.start)
+          new Date(subject.timespan.start)
         )
       );
 
       assert.isTrue(
         Calendar.Calc.isSameDate(
           calls[34][0],
-          new Date(subject._timespan.end)
+          new Date(subject.timespan.end)
         )
       );
 
@@ -342,7 +322,7 @@ suite('views/month_child', function() {
     return;
 
     test('trailing before the timespan', function() {
-      subject._timespan = new Calendar.Timespan(
+      subject.timespan = new Calendar.Timespan(
         new Date(2012, 2, 1),
         new Date(2012, 2, 31)
       );
@@ -380,7 +360,7 @@ suite('views/month_child', function() {
       var end = new Date(2012, 2, 4);
       end.setMilliseconds(-1);
 
-      subject._timespan = new Calendar.Timespan(
+      subject.timespan = new Calendar.Timespan(
         new Date(2012, 1, 1),
         end
       );
@@ -428,7 +408,7 @@ suite('views/month_child', function() {
     });
 
     test('three days', function() {
-      subject._timespan = new Calendar.Timespan(
+      subject.timespan = new Calendar.Timespan(
         new Date(2011, 12, 1),
         new Date(2012, 4, 1)
       );
@@ -460,7 +440,7 @@ suite('views/month_child', function() {
   });
 
   test('#_addBusytime', function() {
-    controller.currentMonth = month;
+    controller.move(month);
     subject.element = testEl;
     testEl.innerHTML = subject._renderDay(month);
 
@@ -505,15 +485,18 @@ suite('views/month_child', function() {
     });
 
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
       testEl.innerHTML = subject._renderDay(month);
       subject.element = testEl;
 
-      var keys = Object.keys(busytimes.cached);
-
-      list = keys.map(function(key) {
-        subject._renderBusytime(busytimes.cached[key]);
-        return busytimes.cached[key];
+      //TODO: we should probably not be using
+      //a private variable from a store here...
+      //Maybe we should expose the tree directly
+      //on busytimes and make it part of the public
+      //api?
+      list = controller._collection.items.map(function(item) {
+        subject._renderBusytime(item);
+        return item;
       });
 
       assert.ok(testEl.querySelector('.busy-1'));
@@ -552,7 +535,7 @@ suite('views/month_child', function() {
 
     suiteSetup(function() {
       id = Calendar.Calc.getDayId(day);
-      controller.currentMonth = day;
+      controller.move(day);
     });
 
     setup(function() {
@@ -581,7 +564,7 @@ suite('views/month_child', function() {
 
     test('result', function() {
       var id = Calendar.Calc.getDayId(day);
-      controller.currentMonth = day;
+      controller.move(day);
       result = subject._renderDay(day);
 
       rendersObject();
@@ -612,6 +595,7 @@ suite('views/month_child', function() {
 
     setup(function() {
       controller.currentMonth = day;
+      controller.move(day);
       result = subject._renderWeek(Calendar.Calc.getWeeksDays(day));
     });
 
@@ -646,7 +630,7 @@ suite('views/month_child', function() {
     ];
 
     test('should compose header and five weeks', function() {
-      controller.currentMonth = days[0];
+      controller.move(month);
       var result = subject._renderMonth();
 
       assert.ok(result);
@@ -660,36 +644,35 @@ suite('views/month_child', function() {
     });
 
     test('should compose header and six weeks', function() {
-    // We want to check if sixth week is rendered properly
-    // December 2012 has six weeks
-    var newMonth = new Date(2012, 11, 1);
-    var newDays = [
-      newMonth,
-      new Date(2012, 11, 8),
-      new Date(2012, 11, 15),
-      new Date(2012, 11, 22),
-      new Date(2012, 11, 29),
-      new Date(2012, 12, 6)
-    ];
+      // We want to check if sixth week is rendered properly
+      // December 2012 has six weeks
+      var newMonth = new Date(2012, 11, 1);
+      var newDays = [
+        newMonth,
+        new Date(2012, 11, 8),
+        new Date(2012, 11, 15),
+        new Date(2012, 11, 22),
+        new Date(2012, 11, 29),
+        new Date(2012, 12, 6)
+      ];
 
-    controller.currentMonth = newDays[0];
-    var result = subject._renderMonth();
+      controller.move(newDays[0]);
+      var result = subject._renderMonth();
 
-    assert.ok(result);
+      assert.ok(result);
 
-    days.forEach(function(date) {
-      assert.include(
-        result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
-        'should include week of ' + date.getDate()
-      );
+      days.forEach(function(date) {
+        assert.include(
+          result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
+          'should include week of ' + date.getDate()
+        );
+      });
     });
-
-   });
   });
 
   suite('#_busyElement', function() {
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
     });
 
     test('trying to access outside of range', function() {
@@ -719,7 +702,7 @@ suite('views/month_child', function() {
     var calledRenderWith;
 
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
     });
 
     setup(function() {
@@ -728,7 +711,7 @@ suite('views/month_child', function() {
         1, 2, 3
       ];
 
-      busytimes.busytimesInCachedSpan = function() {
+      controller.queryCache = function() {
         calledCachedWith = arguments;
         return slice;
       };
@@ -746,7 +729,7 @@ suite('views/month_child', function() {
 
       result = subject.attach(testEl);
 
-      assert.equal(calledCachedWith[0], subject._timespan);
+      assert.equal(calledCachedWith[0], subject.timespan);
       assert.deepEqual(
         calledRenderWith,
         [1, 2, 3]
@@ -766,7 +749,7 @@ suite('views/month_child', function() {
     var list;
 
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
       subject.attach(testEl);
 
       list = subject.element.classList;
@@ -786,7 +769,7 @@ suite('views/month_child', function() {
 
   suite('#destroy', function() {
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
       subject._days = true;
     });
 
