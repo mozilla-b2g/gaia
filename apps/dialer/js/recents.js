@@ -105,7 +105,6 @@ var Recents = {
           // Updating header
           this.headerEditModeText.textContent = _('edit');
           this.deselectSelectedEntries();
-          // this.recentsView.classList.toggle('recents-edit');
           document.body.classList.toggle('recents-edit');
           this._recentsEditionMode = true;
           break;
@@ -117,9 +116,7 @@ var Recents = {
             elements[i].classList.remove('hide');
           }
           this.deselectSelectedEntries();
-          // this.recentsView.classList.toggle('recents-edit');
           document.body.classList.toggle('recents-edit');
-          
           this._recentsEditionMode = false;
           break;
       }
@@ -213,8 +210,7 @@ var Recents = {
   selectAllEntries: function re_selectAllEntries() {
     var itemSelector = '.log-item';
     var items = document.querySelectorAll(itemSelector);
-    var length = items.length;
-    for (var i = 0; i < length; i++) {
+    for (var i = 0; i < items.length; i++) {
       items[i].classList.add('selected');
     }
     var count = this.getSelectedEntries().length;
@@ -250,9 +246,7 @@ var Recents = {
       itemsToDelete, function() {
           RecentsDBManager.get(function(recents) {
             Recents.render(recents);
-            // Recents.recentsView.classList.toggle('recents-edit');
             document.body.classList.toggle('recents-edit');
-          
             Recents._recentsEditionMode = false;
           });
     });
