@@ -210,10 +210,10 @@ var Recents = {
   selectAllEntries: function re_selectAllEntries() {
     var itemSelector = '.log-item';
     var items = document.querySelectorAll(itemSelector);
-    for (var i = 0; i < items.length; i++) {
+    var count = items.length;
+    for (var i = 0; i < count; i++) {
       items[i].classList.add('selected');
     }
-    var count = this.getSelectedEntries().length;
     this.headerEditModeText.textContent = _('edit-selected',
                                             {n: count});
     this.recentsIconDelete.classList.remove('disabled');
@@ -243,12 +243,12 @@ var Recents = {
       }
     }
     RecentsDBManager.deleteList.call(RecentsDBManager,
-      itemsToDelete, function() {
-          RecentsDBManager.get(function(recents) {
-            Recents.render(recents);
-            document.body.classList.toggle('recents-edit');
-            Recents._recentsEditionMode = false;
-          });
+      itemsToDelete, function deleteCB() {
+        RecentsDBManager.get(function(recents) {
+          Recents.render(recents);
+          document.body.classList.toggle('recents-edit');
+          Recents._recentsEditionMode = false;
+        });
     });
   },
 
@@ -354,8 +354,7 @@ var Recents = {
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
-      '  <section class="call-log-selection ' +
-           '">' +
+      '  <section class="call-log-selection">' +
       '  </section>' +
       '  <section class="icon-container grid center">' +
       '    <div class="grid-cell grid-v-align">' +

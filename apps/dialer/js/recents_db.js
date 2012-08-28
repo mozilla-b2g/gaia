@@ -82,7 +82,7 @@ var RecentsDBManager = {
         type: 'incoming-connected',
         number: '123123123'
       };
-      this.add.call(this, recent);
+      this.add(recent);
     }
   },
   delete: function rdbm_delete(callLogEntry, callback) {
@@ -118,9 +118,10 @@ var RecentsDBManager = {
     }
   },
   deleteAll: function rdbm_deleteAll(callback) {
+    var self = this;
     this._checkDBReady(function() {
-      var txn = this.db.transaction(RecentsDBManager._dbStore, 'readwrite');
-      var store = txn.objectStore(RecentsDBManager._dbStore);
+      var txn = self.db.transaction(self._dbStore, 'readwrite');
+      var store = txn.objectStore(self._dbStore);
 
       var delAllRequest = store.clear();
       delAllRequest.onsuccess = function da_onsuccess() {
