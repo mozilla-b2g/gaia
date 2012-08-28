@@ -79,7 +79,7 @@ var RecentsDBManager = {
     for (var i = 0; i < 10; i++) {
       var recent = {
         date: (Date.now() - i * 86400000),
-        type: 'incoming-connected',
+        type: 'incoming',
         number: '123123123'
       };
       this.add(recent);

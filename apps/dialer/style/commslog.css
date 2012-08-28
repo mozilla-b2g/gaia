@@ -397,7 +397,7 @@ button::-moz-focus-inner {
 }
 
 .recents-edit .view-body {
-  height: -moz-calc(100% - 9.5rem);
+  height: -moz-calc(100% - 10.5rem);
 }
 
 .recents-edit .options {

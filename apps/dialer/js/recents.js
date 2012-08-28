@@ -65,9 +65,14 @@ var Recents = {
   },
 
   init: function re_init() {
+    var self = this;
     if (this.recentsFilterContainer) {
-      this.recentsFilterContainer.addEventListener('click',
-        this.filter.bind(this));
+      this.recentsFilterContainer.addEventListener('click', function(event) {
+        if (self._recentsEditionMode) {
+          self.recentsHeaderAction('cancel-button');
+        }
+        self.filter(event);
+      });
     }
     if (this.recentsIconEdit) {
       this.recentsIconEdit.addEventListener('click',
@@ -89,7 +94,19 @@ var Recents = {
       this.selectAllThreads.addEventListener('click',
         this.selectAllEntries.bind(this));
     }
-
+    this.scrollStarted = false;
+    document.getElementById('recents-container').onscroll = function(event) {
+      self.scrollStarted = true;
+    }
+    if (this.recentsContainer) {
+      this.recentsContainer.addEventListener('click', function(event) {
+        if (self.scrollStarted) {
+          self.scrollStarted = false;
+        } else {
+          self.click(event.target);
+        }
+      });
+    }
     RecentsDBManager.init(function() {
       RecentsDBManager.get(function(recents) {
         Recents.render(recents);
@@ -103,19 +120,13 @@ var Recents = {
       switch (event.target ? event.target.id : event) {
         case 'edit-button': // Entering edit mode
           // Updating header
+          this.itemsCounter = 0;
           this.headerEditModeText.textContent = _('edit');
           this.deselectSelectedEntries();
           document.body.classList.toggle('recents-edit');
           this._recentsEditionMode = true;
           break;
         case 'cancel-button': // Exit edit mode with no deletions
-          var query = '.log-item.hide.selected';
-          var elements = this.recentsContainer.querySelectorAll(query);
-          // Show hidden messages
-          for (var i = 0; i < elements.length; i++) {
-            elements[i].classList.remove('hide');
-          }
-          this.deselectSelectedEntries();
           document.body.classList.toggle('recents-edit');
           this._recentsEditionMode = false;
           break;
@@ -203,8 +214,7 @@ var Recents = {
     }
     this.allFilter.classList.toggle('selected');
     this.missedFilter.classList.toggle('selected');
-    if (this._recentsEditionMode)
-      this.recentsHeaderAction('cancel-button');
+
   },
 
   selectAllEntries: function re_selectAllEntries() {
@@ -214,8 +224,10 @@ var Recents = {
     for (var i = 0; i < count; i++) {
       items[i].classList.add('selected');
     }
+    var itemShown = document.querySelectorAll('.log-item:not(.hide)');
+    this.itemsCounter = itemShown.length;
     this.headerEditModeText.textContent = _('edit-selected',
-                                            {n: count});
+                                            {n: this.itemsCounter});
     this.recentsIconDelete.classList.remove('disabled');
   },
 
@@ -226,6 +238,7 @@ var Recents = {
     for (var i = 0; i < length; i++) {
       items[i].classList.remove('selected');
     }
+    this.itemsCounter = 0;
     this.headerEditModeText.textContent = _('edit');
     this.recentsIconDelete.classList.add('disabled');
   },
@@ -246,8 +259,14 @@ var Recents = {
       itemsToDelete, function deleteCB() {
         RecentsDBManager.get(function(recents) {
           Recents.render(recents);
-          document.body.classList.toggle('recents-edit');
-          Recents._recentsEditionMode = false;
+          var currentItems = document.querySelectorAll('.log-item');
+          if (currentItems.length == 0) {
+            document.body.classList.toggle('recents-edit');
+            Recents._recentsEditionMode = false;
+          } else {
+            this.headerEditModeText.textContent = _('edit');
+            this.itemsCounter = 0;
+          }
         });
     });
   },
@@ -317,16 +336,38 @@ var Recents = {
         CallHandler.call(number);
       }
     } else {
-      target.classList.toggle('selected');
-      var count = this.getSelectedEntries().length;
-      if (count == 0) {
-        this.headerEditModeText.textContent = _('edit');
-        this.recentsIconDelete.classList.add('disabled');
+      if (target.classList.contains('selected')) {
+        if (this.itemsCounter > 0) {
+          this.itemsCounter--;
+          if (this.itemsCounter == 0) {
+            this.headerEditModeText.textContent = _('edit');
+            this.recentsIconDelete.classList.add('disabled');
+          } else {
+            this.headerEditModeText.textContent = _('edit-selected',
+                                            {n: this.itemsCounter});
+            this.recentsIconDelete.classList.remove('disabled');
+          }
+        }
       } else {
+        this.itemsCounter++;
         this.headerEditModeText.textContent = _('edit-selected',
-                                                {n: count});
+                                            {n: this.itemsCounter});
         this.recentsIconDelete.classList.remove('disabled');
       }
+      target.classList.toggle('selected');
+
+
+      // this.itemsCounter
+      // target.classList.toggle('selected');
+      // var count = this.getSelectedEntries().length;
+      // if (count == 0) {
+      //   this.headerEditModeText.textContent = _('edit');
+      //   this.recentsIconDelete.classList.add('disabled');
+      // } else {
+      //   this.headerEditModeText.textContent = _('edit-selected',
+      //                                           {n: count});
+      //   this.recentsIconDelete.classList.remove('disabled');
+      // }
     }
   },
 
