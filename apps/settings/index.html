@@ -319,39 +319,44 @@
         <h2 data-l10n-id="apnSettings"> APN Settings </h2>
       </header>
 
-      <!-- APN settings -->
-      <label>
-        <span data-l10n-id="apn">APN</span>
-        <input type="text" data-setting="ril.data.apn" />
-      </label>
-      <label>
-        <span data-l10n-id="identity">identity</span>
-        <input type="text" data-setting="ril.data.user" />
-      </label>
-      <label>
-        <span data-l10n-id="password">password</span>
-        <input type="text" data-setting="ril.data.passwd" />
-      </label>
-      <label>
-        <span data-l10n-id="httpProxyHost">httpProxyHost</span>
-        <input type="text" data-setting="ril.data.httpProxyHost" />
-      </label>
-      <label>
-        <span data-l10n-id="httpProxyPort">httpProxyPort</span>
-        <input type="text" data-setting="ril.data.httpProxyPort" />
-      </label>
+      <!-- APN list -->
+      <ul id="apnSettings-list">
+        <li id="apnSettings-manual">
+          <label>
+            <input type="radio" name="APN.name" value="manual" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="manual">(manual settings)</a>
+        </li>
+      </ul>
 
-      <!-- APN database lookup -->
-      <p id="autoAPN" style="display: none;">
-        <input type="button"
-          data-l10n-id="autoConfigure" value="Auto-Configure" />
-      </p>
-      <p id="autoAPN-list">
-        <!-- list of compatible <apn> elements
-          <input type="button" value="Orange" />
-          <input type="button" value="Telefonica" />
-        -->
-      </p>
+      <!-- APN settings (manual) -->
+      <div id="apnSettings-manual" style="display: none;">
+        <label>
+          <span data-l10n-id="apn">APN</span>
+          <input type="text" data-setting="ril.data.apn" />
+        </label>
+        <label>
+          <span data-l10n-id="identity">identity</span>
+          <input type="text" data-setting="ril.data.user" />
+        </label>
+        <label>
+          <span data-l10n-id="password">password</span>
+          <input type="text" data-setting="ril.data.passwd" />
+        </label>
+      </div>
+
+      <!-- HTTP Proxy -->
+      <div id="apnSettings-proxy" style="display: none;">
+        <label>
+          <span data-l10n-id="httpProxyHost">http Proxy Host</span>
+          <input type="text" data-setting="ril.data.httpProxyHost" />
+        </label>
+        <label>
+          <span data-l10n-id="httpProxyPort">http Proxy Port</span>
+          <input type="text" data-setting="ril.data.httpProxyPort" />
+        </label>
+      </div>
     </form>
 
     <!-- Connectivity :: 3G/data :: MMS Settings Dialog -->

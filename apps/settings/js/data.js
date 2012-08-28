@@ -36,6 +36,8 @@ var gMobileConnection = (function(window) {
 
 // handle Data settings
 window.addEventListener('localized', function getCarrierSettings(evt) {
+  var APN_FILE = 'serviceproviders.xml';
+  var gAPNDocument;
   var gNetwork;
 
   // initialize data settings
@@ -43,7 +45,7 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
   updateConnection();
 
   // query <apn> elements matching the mcc/mnc arguments
-  function queryAPN(apnDocument, mcc, mnc) {
+  function queryAPN(apnDocument, mcc, mnc, usageFilter) {
     var query = '//gsm[network-id[@mcc=' + mcc + '][@mnc=' + mnc + ']]/apn';
     var xpe = new XPathEvaluator();
     var nsResolver = xpe.createNSResolver(apnDocument);
@@ -70,7 +72,9 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
         }
         node = node.nextElementSibling;
       }
-      found.push(apn);
+      if (!usageFilter || apn.usage === usageFilter) {
+        found.push(apn);
+      }
       res = result.iterateNext();
     }
 
@@ -78,59 +82,102 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
   }
 
   // create a button to apply <apn> data to the current fields
-  function createAPNButton(item) {
+  function createAPNItem(item) {
+    function getFieldValue(name) {
+      var selector = 'input[data-setting="ril.data.' + name + '"]';
+      return document.querySelector(selector).value;
+    }
     function setFieldValue(name, value) {
       var selector = 'input[data-setting="ril.data.' + name + '"]';
       document.querySelector(selector).value = value || '';
     }
 
-    var button = document.createElement('input');
-    button.type = 'button';
-    button.value = item.name || item.id;
-    button.onclick = function fillAPNData() {
+    var checked = (item.id == getFieldValue('apn') &&
+        item.username == getFieldValue('user') &&
+        item.password == getFieldValue('passwd'));
+
+    var input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'APN.name';
+    input.value = item.name || item.id;
+    input.checked = checked;
+    input.onclick = function fillAPNData() {
       setFieldValue('apn', item.id);
       setFieldValue('user', item.username);
       setFieldValue('passwd', item.password);
     };
 
-    return button;
+    var span = document.createElement('span');
+    var label = document.createElement('label');
+    label.appendChild(input);
+    label.appendChild(span);
+    var a = document.createElement('a');
+    a.textContent = item.name || item.id;
+    var li = document.createElement('li');
+    li.appendChild(label);
+    li.appendChild(a);
+
+    li.checked = checked;
+    return li;
   }
 
   // update APN fields
-  function autoAPN() {
-    var APN_FILE = 'serviceproviders.xml';
-    if (!gNetwork) // XXX should never happen
+  function refreshAPNList() {
+    if (!gNetwork)
       return;
 
-    var apnList = document.getElementById('autoAPN-list');
-    apnList.innerHTML = '';
-
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', APN_FILE, false); // synchronous (boo!)
-    xhr.send();
-
-    var results = queryAPN(xhr.responseXML, gNetwork.mcc, gNetwork.mnc);
-    for (var i = 0; i < results.length; i++) {
-      var button = createAPNButton(results[i]);
-      apnList.appendChild(button);
-      if (i == 0) // always apply the data in the first <apn> element
-        button.click();
+    // empty the APN list
+    var apnList = document.getElementById('apnSettings-list');
+    var lastItem = apnList.lastElementChild;
+    while (lastItem.previousElementSibling) {
+      apnList.removeChild(apnList.firstElementChild);
     }
+
+    // load the APN database
+    if (!gAPNDocument) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', APN_FILE, false); // synchronous (boo!)
+      xhr.send();
+      gAPNDocument = xhr.responseXML;
+    }
+
+    // fill the APN list
+    var checked = false; // is one item checked?
+    var results = queryAPN(gAPNDocument,
+        gNetwork.mcc, gNetwork.mnc, 'internet');
+    for (var i = 0; i < results.length; i++) {
+      var item = createAPNItem(results[i]);
+      checked = checked || item.checked;
+      apnList.insertBefore(item, lastItem);
+    }
+
+    // display the "Advanced Settings" section when necessary
+    var input = lastItem.querySelector('input');
+    function showManualSettings() {
+      document.getElementById('apnSettings-manual').style.display =
+          input.checked ? 'block' : 'none';
+    }
+    if (!checked) {
+      input.checked = true;
+      showManualSettings();
+    }
+    input.onchange = showManualSettings;
   };
 
   // update `gNetwork' when the data connection has changed
   function updateConnection() {
     gNetwork = gMobileConnection.data ? gMobileConnection.data.network : null;
+    if (gNetwork && !gNetwork.mcc) {
+      console.warn('GSM data network could not be found');
+    }
 
     // display data carrier name
     var shortName = gNetwork ? gNetwork.shortName : '';
     document.getElementById('data-desc').textContent = shortName;
     document.getElementById('dataNetwork-desc').textContent = shortName;
 
-    // enable the 'autoAPN' button
-    var item = document.getElementById('autoAPN');
-    item.querySelector('input').onclick = autoAPN;
-    item.style.display = gNetwork ? 'block' : 'none';
+    // fill the APN list
+    refreshAPNList();
   }
 });
 

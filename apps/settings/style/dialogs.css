@@ -144,21 +144,10 @@
 
 
 /******************************************************************************
- * Specific: APN links (created by the APN auto-configuration button)
+ * Specific APN Settings rules
  */
 
-#autoAPN-list input[type=button] {
-  display: block;
-  height: 1.4em;
-  margin: 5px;
-  border: none;
-  font-size: 1em;
-  text-decoration: underline;
-  color: navy;
-  background-color: transparent;
-}
-
-#autoAPN-list input[type=button]:active {
-  color: brown;
+#apnSettings-manual {
+  font-style: italic;
 }
 
