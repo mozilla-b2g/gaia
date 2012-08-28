@@ -28,7 +28,6 @@
 
 #play {
   position: absolute;
-  background-color: transparent;
   border: none;
   width: 100px;
   height: 100px;
@@ -84,35 +83,49 @@
 
 #slider-wrapper {
   position: absolute;
-  top: 50%;
+  top: 0px;
   left: 70px;
   right: 70px;
-  margin-top: -2px;
-  height: 4px;
+  height: 100%;
 }
 
-#elapsedTime {
+#slider-wrapper div {
   position: absolute;
-  background-color: #fff;
-  border-radius: 6px;
-  width: 0%;
+  pointer-events: none;
+}
+
+.progress {
   height: 4px;
+  width: 0%;
+  top: 50%;
+  margin-top: -2px;
+  border-radius: 6px;
 }
 
 #elapsedTime {
-  z-index: 20;
+  background-color: #fff;
+  z-index: 30;
 }
 
 #bufferedTime {
-  position: absolute;
-  width: 0%;
+  background-color: blue;
+  z-index: 20;
+}
+
+#timeBackground {
   background-color: #333;
-  border-radius: 6px;
   z-index: 10;
-  height: 4px;
+  width: 100%;
 }
 
-button#playHead {
+#playHead {
   display: none;
+  height: 20px;
+  width: 25px;
+  border-radius: 25px;
+  border: 0;
+  background-color: white;
+  z-index: 100;
+  top: 50%;
+  margin: -10px 0 0 -12px;
 }
-

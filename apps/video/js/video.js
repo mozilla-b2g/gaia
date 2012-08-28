@@ -5,7 +5,8 @@ var dom = {};
 var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
-           'video-title', 'duration-text', 'elapsed-text', 'bufferedTime'];
+           'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
+            'slider-wrapper'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -284,6 +285,8 @@ dom.videoControls.addEventListener('mousedown', function(event) {
     setVideoPlaying(dom.player.paused);
   } else if (event.target == dom.close) {
     hidePlayer();
+  } else if (event.target == dom.sliderWrapper) {
+    dragSlider(event);
   } else {
     setControlsVisibility(false);
   }
@@ -322,7 +325,6 @@ function showPlayer(data) {
   dom.elapsedText.textContent = formatDuration(0);
 
   dom.elapsedTime.style.width = '0%';
-  dom.bufferedTime.style.width = '100%';
 
   // Go into full screen mode
   dom.videoFrame.mozRequestFullScreen();
@@ -430,19 +432,25 @@ dom.player.addEventListener('timeupdate', function() {
 });
 
 // handle drags on the time slider
-dom.playHead.addEventListener('mousedown', function() {
+function dragSlider(e) {
+
+  var isPaused = dom.player.paused;
+  dragging = true;
+
   // We can't do anything if we don't know our duration
   if (dom.player.duration === Infinity)
     return;
 
-  dragging = true;
+  if (!isPaused) {
+    pause();
+  }
 
   // Capture all mouse moves and the mouse up
   document.addEventListener('mousemove', mousemoveHandler, true);
   document.addEventListener('mouseup', mouseupHandler, true);
 
   function position(event) {
-    var rect = dom.timeSlider.getBoundingClientRect();
+    var rect = dom.sliderWrapper.getBoundingClientRect();
     var position = (event.clientX - rect.left) / rect.width;
     position = Math.max(position, 0);
     position = Math.min(position, 1);
@@ -461,6 +469,9 @@ dom.playHead.addEventListener('mousedown', function() {
     dom.player.currentTime = dom.player.duration * pos;
 
     dragging = false;
+    if (!isPaused) {
+      play();
+    }
   }
 
   function mousemoveHandler(event) {
@@ -468,8 +479,9 @@ dom.playHead.addEventListener('mousedown', function() {
     var percent = pos * 100 + '%';
     dom.playHead.style.left = percent;
     dom.elapsedTime.style.width = percent;
+    dom.player.currentTime = dom.player.duration * pos;
   }
-});
+}
 
 // XXX if we don't have metadata about the video name
 // do the best we can with the file name
