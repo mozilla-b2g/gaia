@@ -322,10 +322,18 @@ var ThreadListUI = {
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    var element =
+    var choosenContact = contact[0];
+    var name =
             this.view.querySelector('a[data-num="' + number + '"] div.name');
-    if (element && contact[0].name && contact[0].name != '') {
-      element.innerHTML = contact[0].name;
+    var selector = 'a[data-num="' + number + '"] div.photo img';
+    var photo = this.view.querySelector(selector);
+    if (name && choosenContact.name && choosenContact.name != '') {
+      name.innerHTML = choosenContact.name;
+    }
+
+    if (photo && choosenContact.photo && choosenContact.photo[0]) {
+      var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+      photo.src = photoURL;
     }
   },
 
