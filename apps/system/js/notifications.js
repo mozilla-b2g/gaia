@@ -50,7 +50,9 @@ var NotificationScreen = {
 
   get container() {
     delete this.container;
-    return this.container = document.getElementById('notifications-container');
+
+    var id = 'desktop-notifications-container';
+    return this.container = document.getElementById(id);
   },
 
   get lockScreenContainer() {
