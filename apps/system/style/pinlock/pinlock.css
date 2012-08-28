@@ -88,8 +88,7 @@
 }
 
 #pinkeypadscreen-pad > a.pinkeypadscreen-pad-func-full {
-  width: 100%;
-  /*width: 302px;*/
+  width: 302px; /* should be 100%... */
   font-size: 20px;
 }
 
