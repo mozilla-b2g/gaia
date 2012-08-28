@@ -204,8 +204,7 @@ const LookupPrefix = (function() {
 })();
 
 // Generate an array of char codes from a word.
-function String2Codes(word) {
-  var codes = new Uint32Array(word.length);
+function String2Codes(codes, word) {
   for (var n = 0; n < codes.length; ++n)
     codes[n] = word.charCodeAt(n);
   return codes;
@@ -217,6 +216,13 @@ function Codes2String(codes) {
   for (var n = 0; n < codes.length; ++n)
     s += String.fromCharCode(codes[n]);
   return s;
+}
+
+// Map an array of codes to the base letters, eliminating any diacritics.
+function MapCodesToBaseLetters(codes) {
+  for (var n = 0; n < codes.length; ++n)
+    codes[n] = _charMap[codes[n]];
+  return codes;
 }
 
 // Check a candidate word given as an array of char codes against the bloom
@@ -323,7 +329,9 @@ function TranspositionCandidates(input, prefixes, candidates) {
 }
 
 const LevenshteinDistance = (function() {
-  var matrix = [];
+  var s_matrix = [];
+  var s_a = Uint32Array(64);
+  var s_b = Uint32Array(64);
 
   return function(a, b) {
     var a_length = a.length;
@@ -334,8 +342,22 @@ const LevenshteinDistance = (function() {
     if (!b_length)
       return a_length;
 
-    // Ensure that the matrix is large enough. We keep the matrix around
-    // between computations to avoid excessive garbage collection.
+    // Make sure the static typed arrays we use are long enough to hold the
+    // strings.
+    if (s_a.length < a_length)
+      s_a = Uint32Array(a_length);
+    if (s_b.length < b_length)
+      s_b = Uint32Array(b_length);
+
+    // Convert both strings to base letters, eliminating all diacritics.
+    a = MapCodesToBaseLetters(String2Codes(s_a, a));
+    b = MapCodesToBaseLetters(String2Codes(s_b, b));
+
+    // Re-use the same array between computations to avoid excessive garbage
+    // collections.
+    var matrix = s_matrix;
+
+    // Ensure that the matrix is large enough.
     while (matrix.length <= b_length)
       matrix.push([]);
 
@@ -350,12 +372,24 @@ const LevenshteinDistance = (function() {
     // Fill in the rest of the matrix
     for (i = 1; i <= b_length; i++) {
       for (j = 1; j <= a_length; j++) {
-        if (_charMap[b.charCodeAt(i - 1)] == _charMap[a.charCodeAt(j - 1)]) {
+        if (b[i - 1] == a[j - 1]) {
           matrix[i][j] = matrix[i - 1][j - 1];
         } else {
           matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, // substitution
                                   Math.min(matrix[i][j - 1] + 1, // insertion
                                            matrix[i - 1][j] + 1)); // deletion
+        }
+        // Damerau-Levenshtein extension to the base Levenshtein algorithm to support
+        // transposition.
+        if (i > 1 &&
+            j > 1 &&
+            b[i - 1] == a[j - 2] &&
+            b[i - 2] == a[j - 1]) {
+          matrix[i][j] = Math.min(matrix[i][j],
+                                  matrix[i - 2][j - 2] + (b[i - 1] == a[j - 1]
+                                                          ? 0 // match
+                                                          : 1 // transposition
+                                                          ));
         }
       }
     }
@@ -414,7 +448,7 @@ function Predict(word) {
   // Check for the current input, edit distance 1 and 2 and single letter
   // omission and deletion in the prefix.
   var prefix = GetPrefix(word);
-  var input = String2Codes(prefix);
+  var input = String2Codes(new Uint32Array(prefix.length), prefix);
   var prefixes = new Set();
   Check(input, prefixes, candidates);
   EditDistance1(input, prefixes, candidates);
