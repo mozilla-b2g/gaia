@@ -6,13 +6,6 @@
   z-index: 0;
 }
 
-/*
- * set homescreen z-index as 1 when it is active,
- * so that it will appear above the keyboard iframe (z-index 0) to allow clicking on the homescreen
- */
-#screen > [data-z-index-level="app"] > [data-z-index-level="homescreen"].active {
-    z-index: 1;
-}
 /* Level 1 */
 /* Topest layer, cover all of the screen no matter what's the height of the status bar. */
 /* System overlay > Sleep menu > Card view */
@@ -114,6 +107,10 @@
      */
 }
 
+/*
+ * set appWindow/homescreen z-index as 2 when it is active,
+ * so that it will appear above the keyboard iframe (z-index 0) to allow clicking on it
+ */
 #screen > [data-z-index-level="app"] > iframe.appWindow.active,
 #screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
   z-index: 2;
