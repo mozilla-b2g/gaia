@@ -103,7 +103,7 @@ var Recents = {
         if (self.scrollStarted) {
           self.scrollStarted = false;
         } else {
-          self.click(event.target);
+          self.click(event);
         }
       });
     }
@@ -112,7 +112,7 @@ var Recents = {
         Recents.render(recents);
       });
     });
-    this._cachedContacts = new Object();
+    // this._cachedContacts = new Object();
   },
 
   recentsHeaderAction: function re_recentsIconEditAction(event) {
@@ -326,36 +326,42 @@ var Recents = {
     return entriesInGroup;
   },
 
-  click: function re_click(target) {
-    if (!target.classList.contains('log-item')) {
-      return;
-    }
-    if (!this._recentsEditionMode) {
-      var number = target.dataset.num.trim();
-      if (number) {
-        this.updateLatestVisit();
-        CallHandler.call(number);
-      }
-    } else {
-      if (target.classList.contains('selected')) {
-        if (this.itemsCounter > 0) {
-          this.itemsCounter--;
-          if (this.itemsCounter == 0) {
-            this.headerEditModeText.textContent = _('edit');
-            this.recentsIconDelete.classList.add('disabled');
-          } else {
-            this.headerEditModeText.textContent = _('edit-selected',
-                                            {n: this.itemsCounter});
-            this.recentsIconDelete.classList.remove('disabled');
-          }
+  click: function re_click(event) {
+    var target = event.target;
+    if (target.classList.contains('log-item')) {
+      if (!this._recentsEditionMode) {
+        var number = target.dataset.num.trim();
+        if (number) {
+          this.updateLatestVisit();
+          CallHandler.call(number);
         }
       } else {
-        this.itemsCounter++;
-        this.headerEditModeText.textContent = _('edit-selected',
-                                            {n: this.itemsCounter});
-        this.recentsIconDelete.classList.remove('disabled');
+        if (target.classList.contains('selected')) {
+          if (this.itemsCounter > 0) {
+            this.itemsCounter--;
+            if (this.itemsCounter == 0) {
+              this.headerEditModeText.textContent = _('edit');
+              this.recentsIconDelete.classList.add('disabled');
+            } else {
+              this.headerEditModeText.textContent = _('edit-selected',
+                                              {n: this.itemsCounter});
+              this.recentsIconDelete.classList.remove('disabled');
+            }
+          }
+        } else {
+          this.itemsCounter++;
+          this.headerEditModeText.textContent = _('edit-selected',
+                                              {n: this.itemsCounter});
+          this.recentsIconDelete.classList.remove('disabled');
+        }
+        target.classList.toggle('selected');
       }
-      target.classList.toggle('selected');
+    } else if (target.classList.contains('call-log-contact-photo')) {
+      event.stopPropagation();
+      // TODO Include Alberto's code about linking 'Contacts APP'
+      var isContact = target.parentNode.getAttribute('data-isContact');
+      var phoneNumber = target.parentNode.getAttribute('data-num');
+      console.log('Num ' + phoneNumber + ' isContact ' + isContact);
     }
   },
 
@@ -462,85 +468,38 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
-    var itemSelector = '.log-item',
-      callLogItems = document.querySelectorAll(itemSelector),
-      length = callLogItems.length,
-      phoneNumber;
-    for (var i = 0; i < length; i++) {
-      phoneNumber = callLogItems[i].dataset.num.trim();
-      var cachedContact = this._cachedContacts[phoneNumber];
-      if (cachedContact) {
-        this.contactCallBack(callLogItems[i], cachedContact);
-      } else {
-        Contacts.findByNumber(
-          phoneNumber,
-          this.contactCallBack.bind(this, callLogItems[i]));
-      }
+    var itemSelector = '.log-item:not(.hide)',
+      callLogItems = document.querySelectorAll(itemSelector);
+    for (var i = 0; i < callLogItems.length; i++) {
+      var phoneNumber = callLogItems[i].dataset.num.trim();
+      Contacts.findByNumber(phoneNumber,
+        this.contactCallBack.bind(this, callLogItems[i]));
     }
   },
 
   contactCallBack: function re_contactCallBack(logItem, contact) {
     var contactPhoto = logItem.querySelector('.call-log-contact-photo');
-    if (contact) {
+    if (contact != null) {
+      // Update name
       var primaryInfo = logItem.querySelector('.primary-info'),
         count = logItem.dataset.count;
-      primaryInfo.textContent = ((contact.name && contact.name != '') ?
-        contact.name : _('unknown')) + ((count > 1) ? ' (' + count + ')' : '');
-      if (contact.photo) {
-        contactPhoto.classList.add('knownContact');
-        contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
+      primaryInfo.textContent = ((contact.name[0] && contact.name[0] != '') ?
+        contact.name[0] : _('unknown')) + ((count > 1) ?
+          ' (' + count + ')' : '');
+
+      var phoneNumber = logItem.dataset.num.trim();
+      var secondaryInfo = logItem.querySelector('.secondary-info');
+      secondaryInfo.innerHTML += ' | ' +
+        Contacts.getCarrierInfo(contact, phoneNumber);
+      // Update photo
+      if (contactPhoto && contact.photo && contact.photo[0]) {
+        var photoURL = URL.createObjectURL(contact.photo[0]);
+        contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
       }
-      var phoneNumber = logItem.dataset.num.trim(),
-        phoneType, phoneCarrier,
-        secondaryInfo = logItem.querySelector('.secondary-info'),
-        contactPhoneEntry, contactPhoneNumber, contactPhoneType,
-        multipleNumbersSameCarrier,
-        length = contact.tel.length;
-      for (var i = 0; i < length; i++) {
-        contactPhoneEntry = contact.tel[i];
-        contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
-        contactPhoneType = contactPhoneEntry.type;
-        contactPhoneCarrier = contactPhoneEntry.carrier;
-        if (phoneNumber == contactPhoneNumber) {
-          if (contactPhoneType) {
-            secondaryInfo.textContent = secondaryInfo.textContent.trim() +
-              '   ' + contactPhoneType;
-            logItem.dataset.phoneType = contactPhoneType;
-            phoneType = contactPhoneType;
-          }
-          if (!contactPhoneCarrier) {
-            secondaryInfo.textContent = secondaryInfo.textContent +
-              ', ' + phoneNumber;
-          } else {
-            logItem.dataset.carrier = contactPhoneCarrier;
-            phoneCarrier = contactPhoneCarrier;
-          }
-        }
-      }
-      if (phoneType && phoneCarrier) {
-        var multipleNumbersSameCarrier = false;
-        for (var j = 0; j < length; j++) {
-          contactPhoneEntry = contact.tel[j];
-          contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
-          contactPhoneType = contactPhoneEntry.type;
-          contactPhoneCarrier = contactPhoneEntry.carrier;
-          if ((phoneNumber != contactPhoneNumber) &&
-            (phoneType == contactPhoneType) &&
-            (phoneCarrier == contacePhoneCarrier)) {
-            multipleNumbersSameCarrier = true;
-          }
-        }
-        if (multipleNumbersSameCarrier) {
-          secondaryInfo.textContent = secondaryInfo.textContent +
-            ', ' + phoneNumber;
-        } else {
-          secondaryInfo.textContent = secondaryInfo.textContent +
-            ', ' + contactPhoneCarrier;
-        }
-      }
-      this._cachedContacts[phoneNumber] = contact;
+      logItem.setAttribute('data-isContact', true);
     } else {
       contactPhoto.classList.add('unknownContact');
+      logItem.setAttribute('data-isContact', false);
     }
   },
 
