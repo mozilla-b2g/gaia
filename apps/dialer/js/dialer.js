@@ -8,8 +8,7 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
 
 var CallHandler = {
   call: function ch_call(number) {
-    var settings = window.navigator.mozSettings,
-        req;
+    var settings = window.navigator.mozSettings, req;
 
     if (settings) {
       req = settings.getLock().get('ril.radio.disabled');
@@ -17,23 +16,7 @@ var CallHandler = {
         var status = req.result['ril.radio.disabled'];
 
         if (!status) {
-          if (this._isUSSD(number)) {
-            UssdManager.send(number);
-          } else {
-            var sanitizedNumber = number.replace(/-/g, '');
-            var telephony = window.navigator.mozTelephony;
-            if (telephony) {
-              var call = telephony.dial(sanitizedNumber);
-
-              if (call) {
-                var cb = function clearPhoneView() {
-                  KeypadManager.updatePhoneNumber('');
-                };
-                call.onconnected = cb;
-                call.ondisconnected = cb;
-              }
-            }
-          }
+          this.startDial(number);
         } else {
           CustomDialog.show(
             _('callFlightModeTitle'),
@@ -48,7 +31,7 @@ var CallHandler = {
         }
       }.bind(this));
     } else {
-      this.throwGeneralError();
+      this.startDial(number);
     }
   },
 
@@ -64,17 +47,24 @@ var CallHandler = {
     });
   },
 
-  throwGeneralError: function() {
-    CustomDialog.show(
-      _('callGeneralErrorTitle'),
-      _('callGeneralErrorBody'),
-      {
-        title: _('callGeneralErrorBtnOk'),
-        callback: function() {
-          CustomDialog.hide();
+  startDial: function ch_startDial(number){
+    if (this._isUSSD(number)) {
+      UssdManager.send(number);
+    } else {
+      var sanitizedNumber = number.replace(/-/g, '');
+      var telephony = window.navigator.mozTelephony;
+      if (telephony) {
+        var call = telephony.dial(sanitizedNumber);
+
+        if (call) {
+          var cb = function clearPhoneView() {
+            KeypadManager.updatePhoneNumber('');
+          };
+          call.onconnected = cb;
+          call.ondisconnected = cb;
         }
       }
-    );
+    }
   }
 };
 

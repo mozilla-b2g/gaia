@@ -49,12 +49,6 @@ body[role="application"] [role="dialog"] h3 {
   padding-bottom: 1rem;
 }
 
-body[role="application"] [role="dialog"] p:last-child {
-  -moz-box-flex: 1;
-  -moz-box-orient: vertical;
-  /*display: -moz-box;*/
-}
-
 body[role="application"] [role="dialog"] p {
   color: #FAFAFA;
   font-family: 'Open Sans',Sans-serif;
