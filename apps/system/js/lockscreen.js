@@ -298,9 +298,8 @@ var LockScreen = {
     var dx = pageX - touch.initX;
 
     var handleMax = touch.maxHandleOffset;
-    this.areaHandle.style.MozTransition = 'none';
-    this.areaHandle.style.MozTransform =
-      'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)';
+    this.areaHandle.style.setProperty('transform',
+      'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)');
 
     var railMax = touch.initRailLength;
     var railLeft = railMax + dx;
@@ -345,7 +344,7 @@ var LockScreen = {
   handleGesture: function ls_handleGesture() {
     var touch = this._touch;
     var target = touch.target;
-    this.areaHandle.style.MozTransition = null;
+    this.areaHandle.style.removeProperty('transition');
 
     if (!target) {
       this.unloadPanel();
