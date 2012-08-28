@@ -231,12 +231,12 @@ var Recents = {
   },
 
   executeDeletion: function re_executeDeletion() {
-    var selectedEntries = Recents.getSelectedEntries(),
+    var selectedEntries = this.getSelectedEntries(),
         selectedLength = selectedEntries.length,
         entriesInGroup, entriesInGroupLength;
     var itemsToDelete = [];
     for (var i = 0; i < selectedLength; i++) {
-      entriesInGroup = Recents.getEntriesInGroup(selectedEntries[i]);
+      entriesInGroup = this.getEntriesInGroup(selectedEntries[i]);
       entriesInGroupLength = entriesInGroup.length;
       for (var j = 0; j < entriesInGroupLength; j++) {
         itemsToDelete.push(parseInt(entriesInGroup[j].dataset.date));
