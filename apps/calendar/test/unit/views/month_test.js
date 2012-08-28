@@ -224,6 +224,32 @@ suite('views/month', function() {
 
   });
 
+  suite('controller: purge event', function() {
+
+    var date;
+    var childId;
+
+    setup(function() {
+      date = new Date(2012, 8, 1);
+      controller.move(date);
+      subject.activateMonth(date);
+
+      childId = Object.keys(subject.children)[0];
+    });
+
+    test('should remove after purge', function() {
+      var child = subject.children[childId];
+      assert.ok(child);
+      assert.ok(child.element);
+
+      controller.emit('purge', child.timespan);
+
+      assert.ok(!child.element);
+      assert.deepEqual(subject.children, {});
+    });
+
+  });
+
   test('#updateCurrentMonth', function() {
     controller.move(new Date(2012, 8, 1));
     subject.updateCurrentMonth();

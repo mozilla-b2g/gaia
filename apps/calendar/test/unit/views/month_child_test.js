@@ -76,7 +76,7 @@ suite('views/month_child', function() {
     assert.equal(subject.monthId, Calendar.Calc.getMonthId(month));
 
     assert.instanceOf(
-      subject._timespan,
+      subject.timespan,
       Calendar.Timespan,
       'should create timespan'
     );
@@ -84,28 +84,8 @@ suite('views/month_child', function() {
     assert.deepEqual(subject._days, {});
 
     assert.deepEqual(
-      subject._timespan,
-      subject._setupTimespan(subject.month)
-    );
-  });
-
-  test('#_setupTimespan', function() {
-    var month = new Date(2012, 7, 1);
-
-    var expectedStart = new Date(2012, 6, 29);
-    var expectedEnd = new Date(2012, 8, 2);
-    expectedEnd.setMilliseconds(-1);
-
-    var range = subject._setupTimespan(month);
-
-    assert.equal(
-      range.start,
-      expectedStart.valueOf()
-    );
-
-    assert.equal(
-      range.end,
-      expectedEnd.valueOf()
+      subject.timespan,
+      Calendar.Calc.spanOfMonth(subject.month)
     );
   });
 
@@ -205,7 +185,7 @@ suite('views/month_child', function() {
     var observers = controller._timeObservers;
     var record = observers[observers.length - 1];
 
-    assert.equal(record[0], subject._timespan);
+    assert.equal(record[0], subject.timespan);
     assert.equal(record[1], subject);
   });
 
@@ -297,7 +277,7 @@ suite('views/month_child', function() {
     });
 
     test('whole month', function() {
-      var span = subject._timespan;
+      var span = subject.timespan;
 
       var record = Factory('busytime', {
         startDate: new Date(span.start - 60),
@@ -326,14 +306,14 @@ suite('views/month_child', function() {
       assert.isTrue(
         Calendar.Calc.isSameDate(
           calls[0][0],
-          new Date(subject._timespan.start)
+          new Date(subject.timespan.start)
         )
       );
 
       assert.isTrue(
         Calendar.Calc.isSameDate(
           calls[34][0],
-          new Date(subject._timespan.end)
+          new Date(subject.timespan.end)
         )
       );
 
@@ -342,7 +322,7 @@ suite('views/month_child', function() {
     return;
 
     test('trailing before the timespan', function() {
-      subject._timespan = new Calendar.Timespan(
+      subject.timespan = new Calendar.Timespan(
         new Date(2012, 2, 1),
         new Date(2012, 2, 31)
       );
@@ -380,7 +360,7 @@ suite('views/month_child', function() {
       var end = new Date(2012, 2, 4);
       end.setMilliseconds(-1);
 
-      subject._timespan = new Calendar.Timespan(
+      subject.timespan = new Calendar.Timespan(
         new Date(2012, 1, 1),
         end
       );
@@ -428,7 +408,7 @@ suite('views/month_child', function() {
     });
 
     test('three days', function() {
-      subject._timespan = new Calendar.Timespan(
+      subject.timespan = new Calendar.Timespan(
         new Date(2011, 12, 1),
         new Date(2012, 4, 1)
       );
@@ -749,7 +729,7 @@ suite('views/month_child', function() {
 
       result = subject.attach(testEl);
 
-      assert.equal(calledCachedWith[0], subject._timespan);
+      assert.equal(calledCachedWith[0], subject.timespan);
       assert.deepEqual(
         calledRenderWith,
         [1, 2, 3]

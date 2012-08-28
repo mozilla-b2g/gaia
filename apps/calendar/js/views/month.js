@@ -55,6 +55,20 @@ Calendar.ns('Views').Month = (function() {
       var self = this,
           months = this.container;
 
+      this.controller.on('purge', function(span) {
+        var key;
+        var child;
+
+        for (key in self.children) {
+          var child = self.children[key];
+
+          if (child.timespan.isEqual(span)) {
+            child.destroy();
+            delete self.children[key];
+          }
+        }
+      });
+
       this.controller.on('selectedDayChange', function(newVal, oldVal) {
         var el, id;
         self._clearSelectedDay();
