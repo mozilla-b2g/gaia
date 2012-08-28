@@ -17,17 +17,55 @@ if (typeof window.owdFbAuth === 'undefined') {
 
     var owdFbAuth = window.owdFbAuth = {};
 
-      // The access token
-      var accessToken;
-      // Application Id
-      var appID = '323630664378726';
-      // hash to get the token
-      var hash = window.location.hash;
-      // Access Token parameter
-      var ACC_T = 'access_token';
+    var OAUTH_REDIRECT = 'facebook.oauth20.redirectURI';
+    var FB_ENDPOINT = 'facebook.oauth20.loginPage';
+    var APP_ID = 'facebook.oauth20.appid';
 
-      // Oauth dialog URI
-      var oauthDialogUri = 'https://m.facebook.com/dialog/oauth/?';
+    // The access token
+    var accessToken;
+    // hash to get the token
+    var hash = window.location.hash;
+    // Access Token parameter
+    var ACC_T = 'access_token';
+
+    function SettingsGetter(settings) {
+      var next = 0;
+      var result = {};
+      var msettings = settings;
+
+      this.get = function() {
+        (getSetting.bind(this))(msettings[0]);
+      }
+
+      function getSetting(setting) {
+        var req = navigator.mozSettings.getLock().get(setting);
+        req.onsuccess = gotSetting.bind(this);
+
+        req.onerror = failed.bind(this);
+      }
+
+      function gotSetting(e) {
+        var currentSetting = msettings[next];
+
+        result[currentSetting] = e.target.result[currentSetting];
+
+        next++;
+        if (next < msettings.length) {
+          (getSetting.bind(this))(msettings[next]);
+        }
+        else {
+          if(typeof this.onsuccess === 'function') {
+            this.onsuccess(result);
+          }
+        }
+      }
+
+      function failed(e) {
+        if(typeof this.onerror === 'function') {
+          this.onerror(e.target.error);
+        }
+      }
+    }
 
     /**
      *  Initialization function it tries to find an access token
@@ -59,20 +97,26 @@ if (typeof window.owdFbAuth === 'undefined') {
       getAccessToken(state);
     }
 
-    function getLocation() {
-      return 'http://' + 'intense-tundra-4122.herokuapp.com/fbowd' +
-                              '/fbint-auth.html';
-    }
+    function getOAuthParams(cb) {
+      var settings = [OAUTH_REDIRECT, FB_ENDPOINT, APP_ID];
 
-     /**
-     *  Performs Facebook logout
-     *
-     *
-     */
-    owdFbAuth.logout = function(accessToken) {
-      window.open('https://www.facebook.com/logout.php?next=' +
-                  encodeURIComponent(getLocation() + '#state=logout') +
-                  '&access_token=' + accessToken);
+      var getter = new SettingsGetter(settings);
+
+      getter.onsuccess = function(result) {
+        if (typeof cb === 'function') {
+          cb(result);
+        }
+      }
+
+      getter.onerror = function(e) {
+        window.console.error('FB: Error while getting redirectURI setting',
+                                                                        error);
+        if (typeof cb === 'function') {
+          cb({});
+        }
+      }
+
+      getter.get();
     }
 
     /**
@@ -90,9 +134,9 @@ if (typeof window.owdFbAuth === 'undefined') {
      *
      */
     function startOAuth(state) {
-      var queryParams = ['client_id=' + appID,
-                                'redirect_uri=' +
-                        encodeURIComponent(getLocation() + '#state=' + state),
+      getOAuthParams(function do_startAuth(params) {
+        var queryParams = ['client_id=' + params[APP_ID], 'redirect_uri=' +
+                        encodeURIComponent(params[OAUTH_REDIRECT] + '#state=' + state),
                                 'response_type=token',
                                 window.location.hash.substring(1),
                                 'scope=' +
@@ -104,12 +148,13 @@ if (typeof window.owdFbAuth === 'undefined') {
       )]; // Query params
 
       var query = queryParams.join('&');
-      var url = oauthDialogUri + query;
+      var url = params[FB_ENDPOINT] + query;
 
       window.open(url);
-    }
-
-    owdFbAuth.init();
+    });
   }
-  )(document);
+
+  owdFbAuth.init();
+
+  })(document);
 }
