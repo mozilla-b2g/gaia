@@ -44,13 +44,8 @@
  */
 Calendar.IntervalTree = (function() {
 
-  function compareObjectStart(a, b) {
-    return Calendar.compare(a.start, b.start);
-  }
-
-  function compareObjectEnd(a, b) {
-    return Calendar.compare(a.end, b.end);
-  }
+  var compareObjectStart = Calendar.compareByStart;
+  var compareObjectEnd = Calendar.compareByEnd;
 
   /**
    * Internal function to add an item
