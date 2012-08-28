@@ -126,10 +126,10 @@ var ListMenu = {
   hide: function lm_hide() {
     var self = this;
     this.container.addEventListener('transitionend',
-    function onTransitionEnd() {
-      self.element.classList.remove('visible');
-      self.container.removeEventListener('transitionend', onTransitionEnd);
-    });
+      function onTransitionEnd() {
+        self.element.classList.remove('visible');
+        self.container.removeEventListener('transitionend', onTransitionEnd);
+      });
     this.container.classList.add('slidedown');
   },
 
