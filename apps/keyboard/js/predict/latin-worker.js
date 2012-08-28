@@ -317,13 +317,13 @@ function TranspositionCandidates(input, prefixes, candidates) {
   var length = input.length;
   for (var n = 1; n < length; ++n) {
     // Swap the current letter with the previous letter.
-    var a = input[n-1];
+    var a = input[n - 1];
     var b = input[n];
-    input[n-1] = b;
+    input[n - 1] = b;
     input[n] = a;
     Check(input, prefixes, candidates);
     // Restore the original prefix.
-    input[n-1] = a;
+    input[n - 1] = a;
     input[n] = b;
   }
 }
@@ -386,9 +386,9 @@ const LevenshteinDistance = (function() {
             b[i - 1] == a[j - 2] &&
             b[i - 2] == a[j - 1]) {
           matrix[i][j] = Math.min(matrix[i][j],
-                                  matrix[i - 2][j - 2] + (b[i - 1] == a[j - 1]
-                                                          ? 0 // match
-                                                          : 1 // transposition
+                                  matrix[i - 2][j - 2] + (b[i - 1] == a[j - 1] ?
+                                                          0 : // match
+                                                          1 // transposition
                                                           ));
         }
       }
