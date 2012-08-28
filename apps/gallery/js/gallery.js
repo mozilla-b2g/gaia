@@ -857,10 +857,20 @@ photoFrames.addEventListener('transform', function(e) {
   if (transitioning)
     return;
 
+  // Transform events scale the photo with a CSS transform rather
+  // than actually resizing it.  We defer the resize until transformend
   photoState.zoom(e.detail.relative.scale,
                   e.detail.midpoint.clientX,
                   e.detail.midpoint.clientY,
-                  true);
+                  false);
+});
+
+photoFrames.addEventListener('transformend', function(e) {
+  if (transitioning)
+    return;
+
+  // Now that the series of transforms is done, we actually resize the image
+  photoState.zoom(1, 0, 0, true);
 });
 
 // A utility function to set the src attribute of the <img> element inside
@@ -1149,6 +1159,7 @@ PhotoState.prototype._reposition = function() {
   this.img.style.transform = 'translate(' +
     this.left + 'px,' +
     this.top + 'px)';
+  this.currentImageWidth = this.width; // used by zoom() animations
 };
 
 // Compute the default size and position of the photo
@@ -1185,9 +1196,9 @@ PhotoState.prototype.reset = function() {
 // smoother animations.  If time is specified and non-zero, then it uses
 // a CSS transition to animate the CSS transform, and then resizes the image.
 PhotoState.prototype.zoom = function(scale, centerX, centerY, resize, time) {
-  // Never zoom in farther than 2x the native resolution of the image
-  if (this.baseScale * this.scale * scale > 2) {
-    scale = 2 / (this.baseScale * this.scale);
+  // Never zoom in farther than the native resolution of the image
+  if (this.baseScale * this.scale * scale > 1) {
+    scale = 1 / (this.baseScale * this.scale);
   }
   // And never zoom out to make the image smaller than it would normally be
   else if (this.scale * scale < 1) {
@@ -1264,7 +1275,7 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY, resize, time) {
 
     this.img.style.transform =
       'translate(' + this.left + 'px,' + this.top + 'px) ' +
-      'scale(' + scale + ')';
+      'scale(' + (this.width / this.currentImageWidth) + ')';
   }
 };
 
