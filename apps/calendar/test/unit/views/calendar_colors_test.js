@@ -89,24 +89,41 @@ suite('views/calendar_colors', function() {
   });
 
   suite('#removeRule', function() {
-    return;
 
     test('when it does not exist', function() {
       subject.removeRule(model);
     });
 
     test('when it exists', function() {
-      var id = subject.getId(model);
+      var two = Factory.create('calendar', {
+        _id: '2xx',
+        localDisplayed: true
+      });
 
+      var three = Factory.create('calendar', {
+        _id: '3xx',
+        localDisplayed: true
+      });
+
+      var id = subject.getId(model);
+      var rules = subject._styles.cssRules;
+
+      subject.updateRule(three);
       subject.updateRule(model);
+      subject.updateRule(two);
+
+      subject.removeRule(two._id);
       subject.removeRule(model._id);
 
       assert.ok(!subject.colorMap[id], 'removed color map');
       assert.ok(!subject._ruleMap[id], 'removed rule map');
 
-      var rules = subject._styles.cssRules;
+      var msg = 'remaining rules should be for 3xx';
 
-      assert.equal(rules.length, 0, 'should remove css rules');
+      assert.match(rules[0].selectorText, /3xx/, msg);
+      assert.match(rules[1].selectorText, /3xx/, msg);
+
+      assert.equal(rules.length, 2, 'should remove css rules');
     });
 
   });
@@ -130,6 +147,8 @@ suite('views/calendar_colors', function() {
 
       assert.include(displayRule.selectorText, subject.getId(model._id));
       assert.include(displayRule.selectorText, 'calendar-display');
+
+      assert.equal(subject._lastRuleId, 1);
 
       // it may do the RGB conversion so its not strictly equal...
       assert.ok(
