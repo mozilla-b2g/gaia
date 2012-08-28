@@ -58,11 +58,13 @@ Calendar.App = (function(window) {
         return selector;
       }
 
+      this.syncController.observe();
+      this.timeController.observe();
+
       /* temp views */
       this.state('/day/', setPath, tempView('#day-view'));
       this.state('/week/', setPath, tempView('#week-view'));
       this.state('/add/', setPath, tempView('#add-event-view'));
-
 
       /* routes */
 
@@ -93,8 +95,6 @@ Calendar.App = (function(window) {
       var colors = this.view('CalendarColors');
       colors.render();
 
-      this.syncController.observe();
-      this.timeController.observe();
 
       this.router.start();
       document.body.classList.remove('loading');
