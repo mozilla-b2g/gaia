@@ -36,7 +36,7 @@ var THUMBNAIL_HEIGHT = 160;
 
 function init() {
 
-  videodb = new MediaDB('videos');
+  videodb = new MediaDB('videos', metaDataParser);
 
   videodb.onunavailable = function(why) {
     if (why === 'unavailable') {
@@ -99,63 +99,64 @@ function processVideo(videodata) {
     return;
   }
 
-  if (!videodata.metadata.poster) {
-    videodb.getFile(videodata.name, function(videofile) {
-      generateMetaData(testplayer, videodata, videofile);
-    });
-  } else {
-    addVideo(videodata);
-  }
+  addVideo(videodata);
 }
 
-function generateMetaData(testplayer, videodata, videofile) {
+function metaDataParser(videodata, callback) {
 
-  // We get metadata asynchronously
-  testplayer.preload = 'metadata';
-  var url = URL.createObjectURL(videofile);
-  testplayer.style.width = THUMBNAIL_WIDTH + 'px';
-  testplayer.style.height = THUMBNAIL_HEIGHT + 'px';
-  testplayer.src = url;
-  testplayer.onloadedmetadata = function() {
-    videodata.metadata.duration = testplayer.duration;
-    videodata.metadata.width = testplayer.videoWidth;
-    videodata.metadata.height = testplayer.videoHeight;
+  var testplayer = document.createElement('video');
+  if (!testplayer.canPlayType(videodata.type)) {
+    return callback({});
+  }
 
-    testplayer.currentTime = 20;  // Skip ahead 20 seconds
-    if (testplayer.seeking) {
-      testplayer.onseeked = doneSeeking;
-    } else {
-      doneSeeking();
-    }
+  videodb.getFile(videodata.name, function(videofile) {
 
-    // After we've skiped ahead, try go get a poster image for the movie
-    // XXX Because of https://bugzilla.mozilla.org/show_bug.cgi?id=730765
-    // Its not clear whether this is working right. But it does
-    // end up producing an image for each video.
-    function doneSeeking() {
-      try {
-        var canvas = document.createElement('canvas');
-        canvas.width = THUMBNAIL_WIDTH;
-        canvas.height = THUMBNAIL_HEIGHT;
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(testplayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-        videodata.metadata.poster = canvas.mozGetAsFile('poster', 'image/jpeg');
-      }
-      catch (e) {
-        console.error('Failed to create a poster image:', e);
+    var url = URL.createObjectURL(videofile);
+    var metadata = {
+      title: fileNameToVideoName(videodata.name)
+    };
+
+    testplayer.preload = 'metadata';
+    testplayer.style.width = THUMBNAIL_WIDTH + 'px';
+    testplayer.style.height = THUMBNAIL_HEIGHT + 'px';
+    testplayer.src = url;
+    testplayer.onloadedmetadata = function() {
+
+      metadata.duration = testplayer.duration;
+      metadata.width = testplayer.videoWidth;
+      metadata.height = testplayer.videoHeight;
+
+      testplayer.currentTime = 20;  // Skip ahead 20 seconds
+      if (testplayer.seeking) {
+        testplayer.onseeked = doneSeeking;
+      } else {
+        doneSeeking();
       }
 
-      testplayer.src = '';
-      testplayer = null;
+      // After we've skiped ahead, try go get a poster image for the movie
+      // XXX Because of https://bugzilla.mozilla.org/show_bug.cgi?id=730765
+      // Its not clear whether this is working right. But it does
+      // end up producing an image for each video.
+      function doneSeeking() {
+        try {
+          var canvas = document.createElement('canvas');
+          canvas.width = THUMBNAIL_WIDTH;
+          canvas.height = THUMBNAIL_HEIGHT;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(testplayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+          metadata.poster = canvas.mozGetAsFile('poster', 'image/jpeg');
+        }
+        catch (e) {
+          console.error('Failed to create a poster image:', e);
+        }
 
-      videodata.metadata.title = fileNameToVideoName(videodata.name);
-      // TODO: Bug in MediaDB, this next call fails
-      //videodb.updateMetadata(videodata.name, videodata);
-      addVideo(videodata);
+        testplayer.src = '';
+        testplayer = null;
+        callback(metadata);
+      }
+      URL.revokeObjectURL(url);
     }
-
-    URL.revokeObjectURL(url);
-  };
+  });
 }
 
 function addVideo(videodata) {
