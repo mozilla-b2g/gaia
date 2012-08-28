@@ -306,6 +306,22 @@ function Deletion1Candidates(input, prefixes, candidates) {
   }
 }
 
+// Generate all candidates with neighboring letters swaped.
+function TranspositionCandidates(input, prefixes, candidates) {
+  var length = input.length;
+  for (var n = 1; n < length; ++n) {
+    // Swap the current letter with the previous letter.
+    var a = input[n-1];
+    var b = input[n];
+    input[n-1] = b;
+    input[n] = a;
+    Check(input, prefixes, candidates);
+    // Restore the original prefix.
+    input[n-1] = a;
+    input[n] = b;
+  }
+}
+
 const LevenshteinDistance = (function() {
   var matrix = [];
 
@@ -405,6 +421,7 @@ function Predict(word) {
   EditDistance2(input, prefixes, candidates);
   Omission1Candidates(input, prefixes, candidates);
   Deletion1Candidates(input, prefixes, candidates);
+  TranspositionCandidates(input, prefixes, candidates);
   // Sort the candidates by Levenshtein distance and frequency.
   for (var n = 0; n < candidates.length; ++n) {
     var candidate = candidates[n];
