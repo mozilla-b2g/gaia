@@ -3,18 +3,59 @@
 
 .cmp-addr-label, .cmp-subject-label {
   display: inline-block;
-  width: 6rem;
-  text-align: right;
+  text-align: left;
+  line-height: 2.3rem;
+  margin: 0 0.5rem;
 }
+
+.cmp-addr-label::after, .cmp-subject-label::after {
+  content: ':';
+}
+
+.cmp-addr-container, .cmp-subject-text {
+  -moz-box-flex: 1;
+}
+
+.cmp-addr-text, .cmp-subject-text {
+  border: 0;
+  background: none;
+  font-size: 1.5rem;
+}
+
 .cmp-addr-text {
-  width: 20rem;
+  margin-top: 2px;
+  vertical-align: middle;
+  width: calc(100% - 3rem);
 }
+
 .cmp-subject-text {
-  width: 24rem;
+  text-overflow: ellipsis;
 }
 
 .cmp-envelope-bar {
-  border-bottom: 1px solid black;
+  margin: 0.3rem 0;
+}
+
+.cmp-contact-add {
+  background: url("images/add-contact.png") no-repeat scroll center transparent;
+  width: 2rem;
+  height: 2rem;
+  visibility: hidden;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.cmp-contact-add.show {
+  visibility: visible;
+}
+
+.cmp-envelope-line {
+  display: -moz-box;
+  width: calc(100% - 4rem);
+  border-bottom: 1px solid lightgray;
+  margin: 0 2rem;
+  padding: 0.4rem 0;
+  font-size: 1.5rem;
 }
 
 .cmp-body-text {
