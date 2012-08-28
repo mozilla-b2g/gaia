@@ -356,19 +356,6 @@ var Recents = {
         this.recentsIconDelete.classList.remove('disabled');
       }
       target.classList.toggle('selected');
-
-
-      // this.itemsCounter
-      // target.classList.toggle('selected');
-      // var count = this.getSelectedEntries().length;
-      // if (count == 0) {
-      //   this.headerEditModeText.textContent = _('edit');
-      //   this.recentsIconDelete.classList.add('disabled');
-      // } else {
-      //   this.headerEditModeText.textContent = _('edit-selected',
-      //                                           {n: count});
-      //   this.recentsIconDelete.classList.remove('disabled');
-      // }
     }
   },
 
