@@ -7,9 +7,11 @@
 }
 
 /* Level 1 */
-/* Topest layer, cover all of the screen no matter what's the height of the status bar. */
-/* System overlay > Sleep menu > Card view */
-/* */
+/**
+ * Topest layer, covers all of the screen no matter what's the height
+ * of the status bar.
+ * System overlay > Sleep menu > Card view
+ */
 
 /* Find the same code in system/index.html
 #screen > [data-z-index-level="initlogo"] {
@@ -77,6 +79,10 @@
   z-index: 2047;
 }
 
+#screen > [data-z-index-level="pinkeypadscreen"] {
+  z-index: 2046;
+}
+
 /* Level 7: Debug grid */
 #screen > [data-z-index-level="debug-grid"] {
   z-index: 1024;
@@ -100,16 +106,17 @@
 }
 
 #screen > [data-z-index-level="app"] {
-    /*
-     * Should not specify z-index here */
-    /* Keyboard should be kept upon #windows
-     * and beneath #windows > iframe.appWindow
-     */
+  /**
+   * Should not specify z-index here
+   * Keyboard should be kept upon #windows
+   * and beneath #windows > iframe.appWindow
+   */
 }
 
-/*
+/**
  * set appWindow/homescreen z-index as 2 when it is active,
- * so that it will appear above the keyboard iframe (z-index 0) to allow clicking on it
+ * so that it will appear above the keyboard iframe (z-index 0) to allow
+ * clicking on it
  */
 #screen > [data-z-index-level="app"] > iframe.appWindow.active,
 #screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
@@ -144,3 +151,4 @@
 #screen.fullscreen > [data-z-index-level="permission-screen"] {
   z-index: 2147483647;
 }
+
