@@ -43,14 +43,9 @@ var App = {
 
           // Push the navigation cards
           Cards.pushCard(
-            'account-picker', 'default', 'none',
-            {
-              acctsSlice: acctsSlice,
-              curAccount: account
-            });
-          Cards.pushCard(
             'folder-picker', 'navigation', 'none',
             {
+              acctsSlice: acctsSlice,
               curAccount: account,
               foldersSlice: foldersSlice,
               curFolder: inboxFolder

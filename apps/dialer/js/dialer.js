@@ -2,7 +2,9 @@
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (!document.mozHidden) {
-    Recents.render();
+    RecentsDBManager.get(function(recents) {
+      Recents.render(recents);
+    });
   }
 });
 
