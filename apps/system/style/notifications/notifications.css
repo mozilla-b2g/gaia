@@ -95,8 +95,8 @@
 #notifications-container {
   width: 100%;
 
-  /* minus quick settings, bar and grippy */
-  height: -moz-calc(100% - 60px - 30px - 20px);
+  /* minus cost control, quick settings, bar and grippy */
+  height: -moz-calc(100% - 4.5rem - 60px - 30px - 20px);
   overflow-y: scroll;
   overflow-x: hidden;
 }

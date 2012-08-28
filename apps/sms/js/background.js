@@ -21,6 +21,10 @@
 
   mozSms.addEventListener('received', function received(evt) {
     var message = evt.message;
+    // The black list includes numbers for which notifications should not
+    // progress to the user. Se blackllist.js for more information.
+    if (BlackList.has(message.sender))
+      return;
 
     if (activeSMSSound) {
       var ringtonePlayer = new Audio();
