@@ -1228,24 +1228,8 @@ var Contacts = (function() {
       title: _('ok'),
       callback: function() {
         currentContact.photo = [];
-        var request = navigator.mozContacts.save(currentContact);
-        request.onsuccess = function onsuccess() {
-          var cList = contacts.List;
-          cList.getContactById(currentContact.id, function onSuccess(savedContact) {
-            currentContact = savedContact;
-            contactsList.refresh(currentContact);
-            reloadContactDetails();
-            updatePhoto(null, thumb);
-            CustomDialog.hide()
-          }, function onError() {
-            console.error('Error reloading contact');
-            CustomDialog.hide()
-          });
-        };
-        request.onerror = function onerror() {
-          console.error('Error removing photo');
-          CustomDialog.hide();
-        };
+        updatePhoto(null, thumb);
+        CustomDialog.hide();
       }
     }
     CustomDialog.show('', 'Remove contact photo', dismiss, remove);
