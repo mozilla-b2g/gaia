@@ -154,7 +154,5 @@ if (typeof window.owdFbAuth === 'undefined') {
     });
   }
 
-  owdFbAuth.init();
-
   })(document);
 }

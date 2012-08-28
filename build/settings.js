@@ -74,7 +74,7 @@ var settings = [
  new Setting("wifi.enabled", true),
  new Setting("wifi.notification", false),
  new Setting("facebook.oauth20.redirectURI",
-             "http://intense-tundra-4122.herokuapp.com/fbowd/fbint-auth.html"),
+             "http://intense-tundra-4122.herokuapp.com/fbowd/fbint_auth.html"),
  new Setting("facebook.oauth20.loginPage",
              "https://m.facebook.com/dialog/oauth/?"),
  new Setting("facebook.oauth20.appid","323630664378726")

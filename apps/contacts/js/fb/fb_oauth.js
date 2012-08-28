@@ -9,54 +9,9 @@ if (typeof fb.oauth === 'undefined') {
 
     var fboauth = fb.oauth = {};
 
-
-    /**
-     *  Initialization function it tries to find an access token
-     *
-     */
-   function afterRedirect(state) {
-      var queryString = state;
-
-      // check if we come from a redirection
-      if ((queryString.indexOf('friends') !== -1 ||
-           queryString.indexOf('messages') !== -1) ||
-          queryString.indexOf('logout') !== -1 ||
-          queryString.indexOf('proposal') !== -1) {
-
-        if (queryString.indexOf('friends') !== -1) {
-          fboauth.getAccessToken(function(token) {
-            fb.importt.getFriends(token);
-          });
-        }
-        else if (queryString.indexOf('messages') !== -1) {
-          UI.sendWallMsg();
-        }
-        else if (queryString.indexOf('logout') !== -1) {
-          clearStorage();
-          document.querySelector('#msg').textContent = 'Logged Out!';
-          document.querySelector('#msg').style.display = 'block';
-          window.setTimeout(
-                        function() { window.location = getLocation(); },2000);
-        }
-        else if (queryString.indexOf('proposal') !== -1) {
-          fboauth.getAccessToken(function(token) {
-             fb.link.getRemoteProposal(token);
-          });
-        }
-      }
-    }
-
-
-    function getLocation() {
-      return (window.location.protocol + '//' + window.location.host +
-              window.location.port + window.location.pathname);
-    }
-
-
-    fboauth.logout = function() {
-      getAccessToken(function(token) { owdFbAuth.logout(token); },'');
-    };
-
+    // <callback> is invoked when an access token is ready
+    // and the hash state matches <state>
+    var accessTokenCbData;
 
     /**
      *  Clears credential data stored locally
@@ -77,6 +32,11 @@ if (typeof fb.oauth === 'undefined') {
      */
     fboauth.getAccessToken = function(ready, state) {
       var ret;
+
+      accessTokenCbData = {
+        callback: ready,
+        state: state
+      }
 
       if (!window.localStorage.access_token) {
           startOAuth(state);
@@ -108,14 +68,20 @@ if (typeof fb.oauth === 'undefined') {
 
       if (parameters.access_token) {
         var end = parameters.expires_in;
-        var ret = parameters.access_token;
+        var access_token = parameters.access_token;
 
-        window.localStorage.access_token = ret;
+        window.localStorage.access_token = access_token;
         window.localStorage.expires = end * 1000;
         window.localStorage.token_ts = Date.now();
       }
 
-      afterRedirect(parameters.state);
+      if(parameters.state === accessTokenCbData.state) {
+        accessTokenCbData.callback(access_token);
+      }
+      else {
+        window.console.error('FB: Error in state', parameters.state,
+                                  accessTokenCbData.state);
+      }
     }
 
     /**
