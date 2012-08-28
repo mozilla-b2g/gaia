@@ -102,6 +102,18 @@ section.content {
   padding: 2.5rem 2rem;
 }
 
+/* COUNTDOWN */
+.countdown {
+  font-size: 1.6rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #BBB;
+}
+
+#top-up-countdown {
+  color: #555;
+}
+
 /* ERROR MESSAGES */
 section.content .error-messages[aria-hidden="true"] {
   -moz-transform: translateY(-10rem);

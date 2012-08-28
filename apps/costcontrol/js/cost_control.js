@@ -18,6 +18,7 @@ if (CostControl)
 // to configure some aspects about consumption limits and monitoring.
 function setupApp() {
 
+  var ONE_SECOND = 1000;
   var DELAY_TO_RETURN = 10 * 1000; // 10 seconds
   var NO_SERVICE_ERRORS = {'no-coverage': true, 'carrier-unknown': true};
 
@@ -31,6 +32,7 @@ function setupApp() {
   var _lastTopUpIncorrect = false;
   var _lastTopUpConfirmed = true;
   var _returnTimeout = 0;
+  var _countdownInterval = 0;
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
@@ -83,6 +85,7 @@ function setupApp() {
   // On top up error, several cases, see comments inline:
   function _onTopUpError(evt) {
     clearTimeout(_returnTimeout);
+    _onTopUpFinish();
 
     switch (evt.detail.reason) {
       case 'sending-error':
@@ -112,6 +115,19 @@ function setupApp() {
         break;
     }
     _updateBalanceUI();
+  }
+
+  // When starting the top up, show and start the top up countdown
+  function _onTopUpStart() {
+    _setTopUpCountdown(true);
+    _startTopUpCountdown();
+  }
+
+  // When finished the top up, hide and clear the top up countdown
+  function _onTopUpFinish() {
+    _setTopUpScreenMode(MODE_DEFAULT);
+    _setTopUpCountdown(false);
+    _stopTopUpCountdown();
   }
 
   var _balanceTab;
@@ -172,7 +188,7 @@ function setupApp() {
       _isWaitingTopUp = true;
       _setTopUpScreenMode(MODE_WAITING);
       _returnTimeout = setTimeout(function ccapp_toLeftPanel() {
-        if (_currentView && _currentView.id === VIEW_TOPUP)
+        if (ViewManager.isCurrentView(VIEW_TOPUP))
           ViewManager.closeCurrentView();
       }, DELAY_TO_RETURN);
 
@@ -197,7 +213,9 @@ function setupApp() {
     // Callbacks for topping up
     CostControl.setTopUpCallbacks({
       onsuccess: _onTopUpSuccess,
-      onerror: _onTopUpError
+      onerror: _onTopUpError,
+      onstart: _onTopUpStart,
+      onfinish: _onTopUpFinish
     });
 
     // Callback fot service state changed
@@ -235,6 +253,9 @@ function setupApp() {
   var MODE_WAITING = 'mode-waiting';
   var MODE_INCORRECT_CODE = 'mode-incorrect-code';
   var MODE_ERROR = 'mode-error';
+  var MODE_ROAMING = 'mode-roaming';
+  var MODE_TOP_UP_WAITING = 'mode-top-up-waiting';
+  var MODE_TOP_UP_TIMEOUT = 'mode-top-up-timeout';
 
   // Set the topscreen mode:
   //  DEFAULT: invites the user to enter the top up code
@@ -285,7 +306,46 @@ function setupApp() {
     }
   }
 
-  var MODE_ROAMING = 'mode-roaming';
+  // Add zeros if length of the number is lower than 2
+  function _pad(number) {
+    number = number + '';
+    if (number.length < 2)
+      number = '0' + number;
+
+    return number;
+  }
+
+  // Using a closure, setup the countdown for the top up waiting.
+  function _startTopUpCountdown() {
+    var seconds = Math.floor(CostControl.getTopUpTimeout() / 1000);
+    var countdownHolder = document.getElementById('top-up-countdown');
+
+    _stopTopUpCountdown();
+    _countdownInterval = setInterval(function ccapp_renderCountdown() {
+      var remainingSeconds = seconds % 60;
+      var minutes = Math.floor(seconds / 60);
+      countdownHolder.textContent = _pad(minutes) + ':' +
+                                    _pad(remainingSeconds);
+      if (seconds === 0)
+        clearInterval(_countdownInterval);
+      seconds -= 1;
+    }, ONE_SECOND);
+  }
+
+  // Stops the countdown fot the top up waiting
+  function _stopTopUpCountdown() {
+    var seconds = Math.floor(CostControl.getTopUpTimeout() / 1000);
+    var remainingSeconds = seconds % 60;
+    var minutes = Math.floor(seconds / 60);
+    var countdownHolder = document.getElementById('top-up-countdown');
+    countdownHolder.textContent = _pad(minutes) + ':' + _pad(remainingSeconds);
+    clearTimeout(_countdownInterval);
+  }
+
+  function _setTopUpCountdown(enabled) {
+    var _countdown = document.getElementById('cost-control-topup-countdown');
+    _countdown.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+  }
 
   // Set the balance screen mode:
   //  DEFAULT: the error area keeps hidden
@@ -300,11 +360,13 @@ function setupApp() {
     var _messageArea = document.getElementById('cost-control-message-area');
     var _roaming = document.getElementById('on-roaming-message');
     var _error = document.getElementById('balance-error-message');
+    var _topupTimeout = document.getElementById('on-topup-not-confirmed');
 
     // By default hide both errors but show the message area.
     // This force us to explicitly add a case for MODE_DEFAULT
     _roaming.setAttribute('aria-hidden', 'true');
     _error.setAttribute('aria-hidden', 'true');
+    _topupTimeout.setAttribute('aria-hidden', 'true');
     _messageArea.setAttribute('aria-hidden', 'false');
 
     switch (mode) {
@@ -319,6 +381,9 @@ function setupApp() {
       case MODE_ROAMING:
         _roaming.setAttribute('aria-hidden', 'false');
         break;
+
+      case MODE_TOP_UP_TIMEOUT:
+        _topupTimeout.setAttribute('aria-hidden', 'false');
     }
   }
 

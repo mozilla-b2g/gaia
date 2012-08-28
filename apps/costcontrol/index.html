@@ -46,10 +46,19 @@
 
       <section class="content">
 
+        <!-- Top up countdown -->
+        <div id="cost-control-topup-countdown" class="countdown" aria-hidden="true">
+          <p><span id="top-up-countdown">00:00</span> <span data-l10n-id="top-up-in-progress">Top Up in progress</span></p>
+        </div>
+
         <!-- Error messages -->
         <div id="cost-control-message-area" class="error-messages" aria-hidden="true">
           <section id="on-roaming-message" aria-hidden="true">
-            <p data-l10n-id="on-roaming-message">Roaming - automatic balance update OFF. Additional charges may apply for update.</p>
+            <p data-l10n-id="on-roaming-message">Roaming: Automatic balance update OFF. Additional charges may apply for update.</p>
+          </section>
+          <section id="on-topup-not-confirmed" aria-hidden="true">
+            <p data-l10n-id="on-topup-not-confirmed-title">Top up not confirmed.</p>
+            <p data-l10n-id="on-topup-not-confirmed-message">Try updating your balance or retry Top up.</p>
           </section>
           <p id="balance-error-message" data-l10n-id="balance-error-message" aria-hidden="true">Balance updating error, try again manually.</p>
         </div>
@@ -65,7 +74,7 @@
             <time id="balance-tab-time"></time>
           </div>
           <div class="end">
-            <p><span id="balance-tab-currency"></span><span id="balance-tab-credit"></span></p>
+            <p><span id="balance-tab-currency"></span>&nbsp;<span id="balance-tab-credit"></span></p>
           </div>
         </div>
 

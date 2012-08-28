@@ -41,8 +41,13 @@ var ViewManager = (function cc_setUpViewManager() {
     _currentView = null;
   }
 
+  function _isCurrentView(view) {
+    return _currentView && _currentView.id === view;
+  }
+
   return {
     changeViewTo: _changeViewTo,
-    closeCurrentView: _closeCurrentView
+    closeCurrentView: _closeCurrentView,
+    isCurrentView: _isCurrentView
   };
 }());

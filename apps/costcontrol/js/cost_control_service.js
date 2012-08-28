@@ -525,6 +525,9 @@ setService(function cc_setupCostControlService() {
     },
     getLowLimitThreshold: function cc_getLowLimitThreshold() {
       return LOW_LIMIT_THRESHOLD;
+    },
+    getTopUpTimeout: function cc_getTopUpTimeout() {
+      return WAITING_TIMEOUT;
     }
   };
 }());
