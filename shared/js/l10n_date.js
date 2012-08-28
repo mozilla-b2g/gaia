@@ -27,11 +27,12 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
 
   // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date/toLocaleFormat
   function localeFormat(d, format) {
-    var tokens = format.match(/%./g);
+    var tokens = format.match(/(%E.|%O.|%.)/g);
 
     for (var i = 0; i < tokens.length; i++) {
       var value = '';
 
+      // http://pubs.opengroup.org/onlinepubs/007908799/xsh/strftime.html
       switch (tokens[i]) {
         // localized day/month names
         case '%a':
@@ -52,26 +53,17 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
         case '%c':
         case '%x':
         case '%X':
-          value = _('dateTimeFormat_' + tokens[i], {
-            yyyy: d.getFullYear(),
-            day: _('weekday-' + d.getDay() + '-short'),
-            month: _('month-' + d.getMonth() + '-short'),
-            mm: zeroPad(d.getMonth() + 1),
-            dd: zeroPad(d.getDate()),
-            h: zeroPad(d.getHours()),
-            m: zeroPad(d.getMinutes()),
-            s: zeroPad(d.getSeconds())
-          }) || d.toLocaleFormat(tokens[i]);
+          // ensure the localized format string doesn't contain any %c|%x|%X
+          var tmp = _('dateTimeFormat_' + tokens[i]);
+          if (tmp && !(/(%c|%x|%X)/).test(tmp)) {
+            value = localeFormat(d, tmp);
+          }
           break;
 
         // other tokens don't require any localization
-        // (note: %E* and %O* are ignored at the moment)
-        default:
-          value = d.toLocaleFormat(tokens[i]);
-          break;
       }
 
-      format = format.replace(tokens[i], value);
+      format = format.replace(tokens[i], value || d.toLocaleFormat(tokens[i]));
     }
 
     return format;
