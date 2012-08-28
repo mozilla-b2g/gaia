@@ -255,17 +255,18 @@ var Recents = {
         itemsToDelete.push(parseInt(entriesInGroup[j].dataset.date));
       }
     }
+    var self = this;
     RecentsDBManager.deleteList.call(RecentsDBManager,
       itemsToDelete, function deleteCB() {
         RecentsDBManager.get(function(recents) {
-          Recents.render(recents);
+          self.render(recents);
           var currentItems = document.querySelectorAll('.log-item');
           if (currentItems.length == 0) {
             document.body.classList.toggle('recents-edit');
-            Recents._recentsEditionMode = false;
+            self._recentsEditionMode = false;
           } else {
-            this.headerEditModeText.textContent = _('edit');
-            this.itemsCounter = 0;
+            self.headerEditModeText.textContent = _('edit');
+            self.itemsCounter = 0;
           }
         });
     });
