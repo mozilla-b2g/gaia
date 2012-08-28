@@ -502,9 +502,9 @@ function toCamelCase(str) {
 }
 
 function padLeft(num, length) {
-  var r = "" + num;
+  var r = '' + num;
   while (r.length < length) {
-    r = "0" + r;
+    r = '0' + r;
   }
   return r;
 }
