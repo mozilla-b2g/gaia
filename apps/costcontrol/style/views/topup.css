@@ -1,0 +1,36 @@
+/* TOPUP VIEW */
+.view.topup {
+  bottom: 0;
+}
+
+.view.topup form {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+
+.view.topup .content .info {
+  text-align: center;
+}
+
+.view.topup .content .info h2 {
+  font-size: 1.8rem;
+  line-height: 1em;
+  font-weight: normal;
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.view.topup .content .info p {
+  font-size: 1.4rem;
+  line-height: 1.3em;
+  color: #505859;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+
+.view.topup .content .info progress {
+  margin-top: 1rem;
+}
