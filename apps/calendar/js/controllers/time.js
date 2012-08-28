@@ -17,14 +17,55 @@ Calendar.ns('Controllers').Time = (function() {
 
   Time.prototype = {
     __proto__: Calendar.Responder.prototype,
+
+    /**
+     * Current position in time.
+     * Includes year, month and day.
+     *
+     * @type {Date}
+     */
     _position: null,
+
+    /**
+     * Current center point of cached
+     * time spans. This is not the last
+     * loaded timespan but the last
+     * requested timespan.
+     *
+     * @type {Calendar.Timespan}
+     */
     _currentTimespan: null,
+
+    /**
+     * Hash that contains
+     * the pieces of the current _position.
+     * (month, day, year)
+     */
     _timeCache: null,
+
+    /**
+     * Array of the currently cached
+     * timespans. Should never be directly
+     * referenced and it should be noted
+     * that this array will be replaced
+     * over time.
+     *
+     * @type {Array}
+     */
     _timespans: null,
+
+    /**
+     * Maximum number of timespans
+     * to keep cached over time.
+     *
+     * @type {Numeric}
+     */
     _maxTimespans: 6,
 
+    /**
+     * Number of pending load operations.
+     */
     pending: 0,
-    loading: false,
 
     get timespan() {
       return this._timespan;
@@ -60,7 +101,7 @@ Calendar.ns('Controllers').Time = (function() {
       }
     },
 
-    _checkCache: function() {
+    _updateBusytimeCache: function() {
       var dir = this.direction;
       var spans = this._timespans;
       var len = spans.length;
@@ -77,28 +118,57 @@ Calendar.ns('Controllers').Time = (function() {
         var start = idx;
         var end = idx;
 
+        // _maxTimespans is the total number of
+        // timespans we wish to keep in memory
+        // when the limit is hit we want to discard
+        // extra but have _maxTimespans in length
         if (isFuture) {
-          if ((idx - 1) >= 0) {
+          //NOTE: when moving to a future time
+          //values to the right are likely
+          //move valuable then the left.
+          //In this case we only attempt to keep
+          //one to the left and _maxTimespans to the right.
+
+          // when starts >= 0 we position
+          // the beginning of the span before
+          // the target so user can scroll back.
+          if ((start - 1) >= 0) {
             start -= 1;
           }
 
+          // while there is an available
+          // span ahead (to the right) of
+          // the target increase the size
+          // of the end.
           while (max-- && end < len) {
             end += 1;
           }
 
+          // If we ran out of spans to the right
+          // add the remaining slots to the left.
           if (max) {
             start -= max;
           }
 
         } else {
+          // When direction is into the past (left)
+          // we attempt to keep _maxTimespans to the left
+          // and one extra to the right.
+
+          // if possible keep an extra span
+          // to the right
           if ((end + 1) < len) {
             end += 1;
           }
 
+          // increase the size of the slice by
+          // starting the slice earlier (to the left).
           while (max-- && start > 0) {
             start -= 1;
           }
 
+          // any remaining slots will be
+          // allocated to the right side.
           if (max) {
             end += max;
           }
@@ -108,7 +178,27 @@ Calendar.ns('Controllers').Time = (function() {
         // reduce the current list to just what we need
         this._timespans = spans.splice(start, end);
 
+        // Once we have reduced the number of timespans
+        // we also need purge unused busytimes from the cache.
+        // Find the outer limits of the overal timespan
+        // and purge anything that occurs before or after.
+        //
+        // NOTE: this will _not_ negatively effect long running
+        // events we take care to only remove busytimes well before
+        // or after the overall timespan.
+        var startPoint = this._timespans[0].start;
+        var endPoint = this._timespans[this._timespans.length - 1].end;
+
+        this._collection.removePastIntervals(startPoint);
+        this._collection.removeFutureIntervals(endPoint);
+
         spans.forEach(function(range) {
+          // notify views that we have removed
+          // these timespans. Views should remove
+          // dom elements associated with these
+          // ranges. Other controllers could possibly
+          // listen to this event and do other kinds
+          // of cleanup as well.
           this.fireTimeEvent(
             'purge', range.start, range.end, range
           );
@@ -116,10 +206,25 @@ Calendar.ns('Controllers').Time = (function() {
       }
     },
 
-    _checkLoadingComplete: function() {
+    /**
+     * When we are finished loading
+     * emit the 'loadingComplete' event.
+     */
+    _onLoadingComplete: function() {
       if (!(--this.pending)) {
-        this.loading = false;
-        this._checkCache();
+        // Keep the busytime cache healthy
+        // and not too full or empty.
+        // To avoid race conditions and
+        // too frequent checking of the
+        // status of the cache we only
+        // do this when all loading is complete
+        // and the user is not actively paging
+        // through. This happens more often
+        // then you might think as the
+        // only reason we load a new span
+        // is when we completely change
+        // the month.
+        this._updateBusytimeCache();
         this.emit('loadingComplete');
       }
     },
@@ -127,22 +232,43 @@ Calendar.ns('Controllers').Time = (function() {
     _recordSpanChange: function(span) {
       var spans = this._timespans;
       var loadSpan = span;
+
+      // Check if timespan already exists
+      // every start time should be unique
+      // so if we find another span with the
+      // same start time it should cover
+      // the same span.
       var idx = Calendar.binsearch.find(
         spans,
         span,
         Calendar.compareByStart
       );
 
+      // if a perfect match is found stop,
+      // we probably have loaded this span.
       if (idx !== null)
         return;
 
+      // find best position for new span
       idx = Calendar.binsearch.insert(
         spans,
         span,
         Calendar.compareByStart
       );
 
+      // insert it keep all spans ordered
+      // by start time.
       spans.splice(idx, 0, span);
+
+      // While we want to keep all a record of all
+      // timespans in a uniform sorted manner we do
+      // not want to load the same set of busytimes.
+      // We trim the overlapping periods so to only
+      // load what we need now.
+
+      //NOTE: this trim logic will cause missed
+      //events unless this is the sole method
+      //of adding items to spans.
 
       // 1. lower bound trim
       if (spans[idx - 1]) {
@@ -154,14 +280,17 @@ Calendar.ns('Controllers').Time = (function() {
         loadSpan = spans[idx + 1].trimOverlap(loadSpan);
       }
 
+      // On the odd chance that one span
+      // completely contains the other play
+      // it safe and load it anyway.
       loadSpan = loadSpan || span;
 
       ++this.pending;
-      this.loading = true;
 
+      // Actually request spans.
       this.busytime.loadSpan(
         loadSpan,
-        this._checkLoadingComplete.bind(this)
+        this._onLoadingComplete.bind(this)
       );
     },
 
@@ -181,8 +310,11 @@ Calendar.ns('Controllers').Time = (function() {
      * @param {Date} date start point of busytimes to load.
      *                    Expected to be the first of a given
      *                    month.
+     *
+     * @param {Calendar.Timespan} presentSpan center point
+     *                                        of timespan.
      */
-    _loadAroundSpan: function(date) {
+    _loadAroundSpan: function(date, presentSpan) {
       var getSpan = Calendar.Calc.spanOfMonth;
 
       var pastSpan = getSpan(new Date(
@@ -191,7 +323,6 @@ Calendar.ns('Controllers').Time = (function() {
         1
       ));
 
-      var presentSpan = getSpan(date);
       var futureSpan = getSpan(
          new Date(
           date.getFullYear(),
@@ -202,9 +333,7 @@ Calendar.ns('Controllers').Time = (function() {
 
       // order is important
       // we want to load the busytimes
-      // in order of importance to the users
-      // initial view of the calendar app.
-      //
+      // in order of importance to the users:
       // 1. current span.
       // 2. next span
       // 3. previous span.
@@ -216,14 +345,13 @@ Calendar.ns('Controllers').Time = (function() {
     /**
      * Loads a span of a month.
      * Each time this method is called
-     * the same timespan should be generated.
+     * the same timespan will be generated.
      */
     _loadMonthSpan: function(date) {
       var len = this._timespans.length;
 
       var spanOfMonth = Calendar.Calc.spanOfMonth;
       this._currentTimespan = spanOfMonth(date);
-
 
       var currentIdx = Calendar.binsearch.find(
         this._timespans,
@@ -235,13 +363,15 @@ Calendar.ns('Controllers').Time = (function() {
       // trigger a load of that span and the ones
       // around it.
       if (currentIdx === null) {
-        return this._loadAroundSpan(date);
+        return this._loadAroundSpan(date, this._currentTimespan);
       }
 
       // determine which direction we need load.
       var month = date.getMonth();
       var isFuture = this.direction === 'future';
 
+      // Based on the direction we are
+      // going we want to preload additional spans
       if (isFuture) {
         month += 1;
       } else {

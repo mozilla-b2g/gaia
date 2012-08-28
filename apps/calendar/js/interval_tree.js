@@ -308,6 +308,9 @@ Calendar.IntervalTree = (function() {
 
       var max = this.items.len - 1;
 
+      if (!this.items[idx])
+        return;
+
       // for duplicate values we need
       // to find the very last one
       // before the split point.
@@ -353,6 +356,9 @@ Calendar.IntervalTree = (function() {
       );
 
       var max = items.len - 1;
+
+      if (!items[idx])
+        return;
 
       // for duplicate values we need
       // to find the very last one

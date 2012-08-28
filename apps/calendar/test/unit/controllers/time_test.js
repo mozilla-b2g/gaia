@@ -40,13 +40,9 @@ suite('controller', function() {
     assert.equal(subject.app, app);
     assert.instanceOf(subject, Calendar.Responder);
     assert.instanceOf(subject._collection, Calendar.IntervalTree);
-    assert.isFalse(subject.loading);
-    assert.equal(subject.pending, 0);
+    assert.ok(!subject.pending);
 
     assert.deepEqual(subject._timespans, []);
-  });
-
-  suite('#fitRange', function() {
   });
 
   test('#selectedDay', function() {
@@ -446,124 +442,80 @@ suite('controller', function() {
       ]);
     });
 
-    test('go backwards', function(done) {
+    var idx;
+    var tries;
+    var isComplete;
+    var startInc;
 
-      var tries = 24;
-      var idx = 1;
-      var isComplete = false;
-      var startInc = -1;
-
-      subject.on('loadingComplete', function() {
-        if (!isComplete) {
-          done(new Error('loading complete fired too early'));
-        }
-
-        done(function() {
-          assert.isFalse(subject.loading);
-        });
-      });
-
-      for (; idx < tries; idx++) {
-        var month = (initialMove.getMonth() + (startInc * idx));
-
-        var newDate = new Date(2012, month - 1, 1);
-        var currentDate = new Date(2012, month, 1);
-
-        var newSpan = spanOfMonth(newDate);
-        var currentSpan = spanOfMonth(currentDate);
-
-        assert.ok(
-          hasSpan(stored, currentSpan),
-          'should have span due to preloading'
-        );
-
-        var loadRange = stored[0].trimOverlap(
-          newSpan
-        );
-
-        subject.move(currentDate);
-        assert.equal(subject.direction, 'past');
-
-        assert.isTrue(subject.loading, 'should trigger load');
-
-        assert.deepEqual(
-          subject._currentTimespan,
-          currentSpan
-        );
-
-        assert.ok(
-          hasSpan(stored, newSpan),
-          'should record new range'
-        );
-
-        var lastLoad = loaded[loaded.length - 1];
-
-        assert.ok(
-          hasSpan(loaded, loadRange),
-          'should request trimmed load range'
-        );
-      }
-
-      isComplete = true;
+    setup(function() {
+      idx = 1;
+      tries = 24;
+      isComplete = false;
     });
 
-    test('go forward', function(done) {
+    function loadTest(desc, inc, direction, loadRangeCb) {
+      test(desc, function(done) {
+        isComplete = false;
+        startInc = inc;
 
-      var tries = 24;
-      var idx = 1;
-      var isComplete = false;
-      var startInc = 1;
+        subject.on('loadingComplete', function() {
+          if (!isComplete) {
+            done(new Error('loading complete fired too early'));
+          }
 
-      subject.on('loadingComplete', function() {
-        if (!isComplete) {
-          done(new Error('loading complete fired too early'));
-        }
-
-        done(function() {
-          assert.isFalse(subject.loading);
+          done(function() {
+            assert.ok(!subject.pending, 'should not be pending');
+          });
         });
+
+        var month;
+        var nextDate;
+        var currentDate;
+
+        for (; idx < tries; idx++) {
+          month = (initialMove.getMonth() + (startInc * idx));
+          nextDate = new Date(2012, month + startInc, 1);
+          currentDate = new Date(2012, month, 1);
+
+          var nextSpan = spanOfMonth(nextDate);
+          var currentSpan = spanOfMonth(currentDate);
+
+          assert.ok(
+            hasSpan(stored, currentSpan),
+            'should have span due to preloading'
+          );
+
+          var loadRange = loadRangeCb(nextSpan);
+
+          subject.move(currentDate);
+          assert.equal(subject.direction, direction);
+
+          assert.deepEqual(
+            subject._currentTimespan,
+            currentSpan
+          );
+
+          assert.ok(
+            hasSpan(stored, nextSpan),
+            'should record new range'
+          );
+
+          assert.ok(
+            hasSpan(loaded, loadRange),
+            'should request trimmed load range'
+          );
+          assert.ok(subject.pending, 'should trigger load');
+        }
+        isComplete = true;
       });
+    }
 
-      for (; idx < tries; idx++) {
-        var month = (initialMove.getMonth() + (startInc * idx));
+    loadTest('into the past', -1, 'past', function(nextSpan) {
+      return stored[0].trimOverlap(nextSpan);
+    });
 
-        var newDate = new Date(2012, month + 1, 1);
-        var currentDate = new Date(2012, month, 1);
-
-        var newSpan = spanOfMonth(newDate);
-        var currentSpan = spanOfMonth(currentDate);
-
-        assert.ok(
-          hasSpan(stored, currentSpan),
-          'should have span due to preloading'
-        );
-
-        var loadRange = stored[stored.length - 1].trimOverlap(
-          newSpan
-        );
-
-
-        subject.move(currentDate);
-        assert.equal(subject.direction, 'future');
-        assert.isTrue(subject.loading, 'should trigger load');
-
-        assert.deepEqual(
-          subject._currentTimespan,
-          currentSpan
-        );
-
-        assert.ok(
-          hasSpan(stored, newSpan),
-          'should record new range'
-        );
-
-        assert.ok(
-          hasSpan(loaded, loadRange),
-          'should request trimmed load range'
-        );
-      }
-
-      isComplete = true;
+    loadTest('into the future', 1, 'future', function(nextSpan) {
+      return stored[stored.length - 1].trimOverlap(nextSpan);
     });
 
     test('jump', function(done) {
