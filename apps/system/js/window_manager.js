@@ -586,6 +586,7 @@ var WindowManager = (function() {
   // There are two types of mozChromeEvent we need to handle
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
+    console.log("NEW EVENT " + e.detail.type + " " + e.detail.url);
     var origin = e.detail.origin;
     if (!origin)
       return;

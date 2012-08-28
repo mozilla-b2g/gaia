@@ -277,8 +277,14 @@ var KeypadManager = {
         };
       }
 
-      activity.onsuccess = reopenApp;
-      activity.onerror = reopenApp;
+      activity.onsuccess = function() {
+        console.log("SUCCESS");
+        reopenApp();
+      };
+      activity.onerror = function() {
+        console.log("ERROR");
+        reopenApp();
+      };
 
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
