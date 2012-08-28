@@ -10,7 +10,7 @@
     return;
 
   var TelephonyCalls = [];
-  if(RecentsDBManager){
+  if (RecentsDBManager) {
     RecentsDBManager.prepopulateDB();
   }
   navigator.mozTelephony = {
