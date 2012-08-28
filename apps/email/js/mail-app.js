@@ -43,14 +43,9 @@ var App = {
 
           // Push the navigation cards
           Cards.pushCard(
-            'account-picker', 'default', 'none',
-            {
-              acctsSlice: acctsSlice,
-              curAccount: account
-            });
-          Cards.pushCard(
             'folder-picker', 'navigation', 'none',
             {
+              acctsSlice: acctsSlice,
               curAccount: account,
               foldersSlice: foldersSlice,
               curFolder: inboxFolder
@@ -157,7 +152,7 @@ if ('mozSetMessageHandler' in window.navigator) {
 
       var folderToUse = Cards._cardStack[Cards
         ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
-      var composer = MailAPI.(
+      var composer = MailAPI.beginMessageComposition(
         null, folderToUse, null,
         function() {
           /* to/cc/bcc/subject/body all have default values that shouldn't be

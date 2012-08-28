@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"> 
+  <link rel="stylesheet" href="../toolbars/style.css">
+  <link rel="stylesheet" href="../headers/style.css">
+  <link rel="stylesheet" href="style.css">
+
+ <!--
+      This <style> and <link> is only used for the example code, is no needed for the real case use
+    -->
+  <link rel="stylesheet" href="../../fonts.css">
+    <style>
+      html, body {
+          margin: 0;
+          padding: 0;
+          font-size: 10px;
+          background-color: #fff;
+          height: 100%; 
+        }
+       h2.bb-docs {
+          font-size: 1.8rem;
+          font-family: "Open Sans", Sans-serif;
+          font-weight: lighter;
+          color: #666;
+          margin: -1px 0 0;
+          background-color: #f5f5f5;
+          padding: 0.4rem 0.4rem 0.4rem 3rem;
+          border: solid 1px #e8e8e8;
+        }
+        section[role="region"] {
+          height: 100%; 
+          font: 2.2rem/1em "Open Sans", Sans-serif;
+        }
+        div[role="main"] {
+          background: url(images/dummy.png) no-repeat left top;
+          height: -moz-calc(100% - 5rem); 
+          overflow: hidden;
+        }
+        div[role="main"] p {
+          margin: 2rem 2.5rem; 
+        }
+
+    </style>
+
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", function(){
+
+        document.querySelector("body > section > header > a").addEventListener("click", function(){
+          var region = document.querySelector("body > section");
+
+          if ( region.getAttribute("data-state") == "drawer" ) {
+              region.setAttribute("data-state", "none");
+
+          } else {
+              region.setAttribute("data-state", "drawer");
+          }
+
+        });
+
+      });
+    </script>
+    <title>Drawer</title>
+    <meta type="description" content="Without description">
+    <meta type="requires" content="None, optional other/toolbars/style.css">
+    <meta type="target" content="div[role='main']">
+</head>
+
+<body role="application">
+    <nav>
+      <header>
+        <menu type="toolbar">
+         <a href="#"><span class="icon icon-add">add</span></a>
+      </menu>
+        <h1>Title <em>(9)</em></h1>
+      </header>
+      <div class="inner">
+        <ul>
+          <li><a href="#">label</a></li>
+          <li><a href="#">label</a></li>
+          <li><a href="#">label</a></li>
+          <li><a href="#">label</a></li>
+        </ul>
+        <h2>Subtitle</h2>
+        <ul>
+          <li><a href="#">label</a></li>
+          <li><a href="#">label</a></li>
+          <li><a href="#">label larger label than the other</a></li>
+          <li><a href="#">label</a></li>
+        </ul>
+      </div>
+      <div role="toolbar">
+        <ul>
+          <li><button class="update">Update</button></li>
+        </ul>
+        <ul class="end">
+          <li><button class="search">Search</button></li>
+        </ul>
+      </div>
+  </nav>
+
+  <section role="region">
+    <header>
+      <a href="#"><span class="icon icon-menu">menu</span></a>
+      <h1>Inbox</h1>
+    </header>
+
+    <div role="main">
+    </div>
+  </section>
+
+
+</body>
+</html>

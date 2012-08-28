@@ -99,12 +99,16 @@ body {
   top: 40px;
 }
 
-#windows > iframe.appWindow.active:not([data-z-index-level="homescreen"]) {
+#windows > iframe.appWindow.active:not(.homescreen) {
   background-color: #fff;
 }
 
-#windows > iframe.appWindow:not(.active) {
+#windows > iframe.appWindow:not(.active):not(.homescreen) {
   visibility: hidden;
+}
+
+#screen.fullscreen-app > #windows > iframe.appWindow.active {
+  top: 0;
 }
 
 #windowSprite {
@@ -118,6 +122,11 @@ body {
   pointer-events: none;
   -moz-transform: scale(0.5);
   -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
+}
+
+#screen.fullscreen-app > #windowSprite {
+  height: 100%;
+  top: 0;
 }
 
 #windowSprite.open {

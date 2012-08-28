@@ -11,7 +11,7 @@ var ListMenu = {
 
   get container() {
     delete this.container;
-    return this.container = document.getElementById('listmenu-container');
+    return this.container = document.querySelector('#listmenu menu');
   },
 
   get visible() {
@@ -27,10 +27,11 @@ var ListMenu = {
 
   // Pass an array of list items and handler for clicking on the items
   // Modified to fit contextmenu use case, loop into the menu items
-  request: function lm_request(list_items, handler) {
+  request: function lm_request(list_items, handler, title) {
     this.container.innerHTML = '';
     this.currentLevel = 0;
     this.internalList = [];
+    this.setTitle(title);
     this.buildMenu(list_items);
     this.internalList.forEach(function render_item(item) {
       this.container.appendChild(item);
@@ -46,9 +47,9 @@ var ListMenu = {
   },
 
   buildMenu: function lm_buildMenu(items) {
-    var containerDiv = document.createElement('div');
+    var containerDiv = document.createElement('ul');
+    var _ = navigator.mozL10n.get;
 
-    containerDiv.classList.add('list-menu-container');
     if (this.currentLevel === 0) {
       containerDiv.classList.add('list-menu-root');
       containerDiv.id = 'list-menu-root';
@@ -57,17 +58,10 @@ var ListMenu = {
     }
     this.internalList.push(containerDiv);
 
-    if (this.currentLevel > 0) {
-      var back_div = document.createElement('div');
-      var link = document.createElement('a');
-      link.textContent = 'back';
-      link.href = '#' + this.currentParent;
-      back_div.classList.add('back');
-      back_div.appendChild(link);
-      containerDiv.appendChild(back_div);
-    }
     items.forEach(function traveseItems(item) {
-      var item_div = document.createElement('div');
+      var item_div = document.createElement('li');
+      var button = document.createElement('a');
+      button.setAttribute('role', 'button');
       if (item.type && item.type == 'menu') {
         this.currentLevel += 1;
         this.currentParent = containerDiv.id;
@@ -75,34 +69,68 @@ var ListMenu = {
         this.currentLevel -= 1;
         item_div.classList.add('submenu');
 
-        var link = document.createElement('a');
-        link.href = '#' + this.currentChild;
-        link.textContent = item.label;
-        item_div.appendChild(link);
+        button.href = '#' + this.currentChild;
+        button.textContent = item.label;
       } else if (item.type == 'menuitem') {
-        item_div.dataset.value = item.id;
-        item_div.textContent = item.label;
+        button.dataset.value = item.id;
+        button.textContent = item.label;
       } else {
-        item_div.dataset.value = item.value;
-        item_div.textContent = item.label;
+        button.dataset.value = item.value;
+        button.textContent = item.label;
       }
 
+      item_div.appendChild(button);
       if (item.icon) {
-        item_div.style.backgroundImage = 'url(' + item.icon + ')';
+        button.style.backgroundImage = 'url(' + item.icon + ')';
+        button.classList.add('icon');
       }
       containerDiv.appendChild(item_div);
     }, this);
+
+    if (this.currentLevel > 0) {
+      var back = document.createElement('li');
+      var button = document.createElement('a');
+      button.setAttribute('role', 'button');
+      button.textContent = _('back-button');
+      button.href = '#' + this.currentParent;
+      back.classList.add('back');
+      back.appendChild(button);
+      containerDiv.appendChild(back);
+    } else {
+      var cancel = document.createElement('li');
+      var button = document.createElement('button');
+      button.textContent = _('cancel-button');
+      button.dataset.action = 'cancel';
+      cancel.appendChild(button);
+      containerDiv.appendChild(cancel);
+    }
 
     containerDiv.dataset.level = this.currentLevel;
     this.currentChild = containerDiv.id;
   },
 
+  setTitle: function lm_setTitle(title) {
+    if (!title)
+      return;
+
+    var titleElement = document.createElement('h3');
+    titleElement.textContent = title;
+    this.container.appendChild(titleElement);
+  },
+
   show: function lm_show() {
+    this.container.classList.remove('slidedown');
     this.element.classList.add('visible');
   },
 
   hide: function lm_hide() {
-    this.element.classList.remove('visible');
+    var self = this;
+    this.container.addEventListener('transitionend',
+      function onTransitionEnd() {
+        self.element.classList.remove('visible');
+        self.container.removeEventListener('transitionend', onTransitionEnd);
+      });
+    this.container.classList.add('slidedown');
   },
 
   handleEvent: function lm_handleEvent(evt) {
@@ -115,6 +143,12 @@ var ListMenu = {
       case 'click':
         if (!this.visible)
           return;
+
+        var cancel = evt.target.dataset.action;
+        if (cancel && cancel == 'cancel') {
+          this.hide();
+          return;
+        }
 
         var action = evt.target.dataset.value;
         if (!action) {

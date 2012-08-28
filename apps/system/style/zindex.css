@@ -2,15 +2,16 @@
  * is gathered here to clearly specify all system-app hierarchy */
 
 /* Reset zIndex */
-#screen > *:not([data-z-index-level]),
-#screen > [data-z-index-level="app"] > [data-z-index-level="homescreen"] {
-  z-index: 0 !important;
+#screen > *:not([data-z-index-level]) {
+  z-index: 0;
 }
 
 /* Level 1 */
-/* Topest layer, cover all of the screen no matter what's the height of the status bar. */
-/* System overlay > Sleep menu > Card view */
-/* */
+/**
+ * Topest layer, covers all of the screen no matter what's the height
+ * of the status bar.
+ * System overlay > Sleep menu > Card view
+ */
 
 /* Find the same code in system/index.html
 #screen > [data-z-index-level="initlogo"] {
@@ -62,6 +63,13 @@
   z-index: 4095;
 }
 
+/* Demote level 5 elements to homescreen level if there is an active
+   full screen app frame */
+#screen.fullscreen-app:not(.locked) > [data-z-index-level="statusbar"],
+#screen.fullscreen-app:not(.locked) > [data-z-index-level="utility-tray"] {
+  z-index: 0;
+}
+
 /* Level 6: Lock Screen */
 #screen > [data-z-index-level="lockscreen"] {
   z-index: 2048;
@@ -69,6 +77,10 @@
 
 #screen > [data-z-index-level="lockscreen-camera"] {
   z-index: 2047;
+}
+
+#screen > [data-z-index-level="pinkeypadscreen"] {
+  z-index: 2046;
 }
 
 /* Level 7: Debug grid */
@@ -94,19 +106,29 @@
 }
 
 #screen > [data-z-index-level="app"] {
-    /*
-     * Should not specify z-index here */
-    /* Keyboard should be kept upon #windows
-     * and beneath #windows > iframe.appWindow
-     */
+  /**
+   * Should not specify z-index here
+   * Keyboard should be kept upon #windows
+   * and beneath #windows > iframe.appWindow
+   */
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow.active {
+/**
+ * set appWindow/homescreen z-index as 2 when it is active,
+ * so that it will appear above the keyboard iframe (z-index 0) to allow
+ * clicking on it
+ */
+#screen > [data-z-index-level="app"] > iframe.appWindow.active,
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
   z-index: 2;
 }
 
 #screen > [data-z-index-level="app"] > iframe.appWindow {
   z-index: 1;
+}
+
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen {
+  z-index: 0;
 }
 
 /* When keyboard is visible, set frame under app window */
@@ -129,3 +151,4 @@
 #screen.fullscreen > [data-z-index-level="permission-screen"] {
   z-index: 2147483647;
 }
+
