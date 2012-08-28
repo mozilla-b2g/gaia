@@ -100,12 +100,13 @@ var Recents = {
 
   recentsHeaderAction: function re_recentsIconEditAction(event) {
     if (event) {
-      var toggleEditionMode = true;
       switch (event.target ? event.target.id : event) {
         case 'edit-button': // Entering edit mode
           // Updating header
           this.headerEditModeText.textContent = _('edit');
           this.deselectSelectedEntries();
+          this.recentsView.classList.toggle('recents-edit');
+          this._recentsEditionMode = true;
           break;
         case 'cancel-button': // Exit edit mode with no deletions
           var query = '.log-item.hide.selected';
@@ -115,12 +116,10 @@ var Recents = {
             elements[i].classList.remove('hide');
           }
           this.deselectSelectedEntries();
+          this.recentsView.classList.toggle('recents-edit');
+          this._recentsEditionMode = false;
           break;
       }
-    }
-    if (toggleEditionMode) {
-      this.recentsView.classList.toggle('recents-edit');
-      this._recentsEditionMode = !this._recentsEditionMode;
     }
   },
 
@@ -248,6 +247,8 @@ var Recents = {
       itemsToDelete, function() {
           RecentsDBManager.get(function(recents) {
             Recents.render(recents);
+            Recents.recentsView.classList.toggle('recents-edit');
+            Recents._recentsEditionMode = false;
           });
     });
   },
