@@ -40,31 +40,29 @@
 }
 
 .fld-accounts-container, .fld-folders-container {
-  -moz-transition: opacity .2s ease-in;
+  -moz-transition: transform .2s ease-in;
+}
+
+.fld-folders-container {
+  -moz-transform: translateX(100%);
 }
 
 .fld-accounts-container {
-  height: 0;
-  visibility: hidden;
-  opacity: 0;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  -moz-transform: translateX(-100%);
 }
 
-.fld-accounts-container.show {
-  height: auto;
-  visibility: inherit;
-  opacity: 100;
+.fld-accounts-container.show, .fld-folders-container.show{
+  -moz-transform: translateX(0px);
 }
 
 .fld-accounts-btn {
   font-size: 1.2rem;
 }
 .fld-folders-header-account-label {
-  font-size: 1rem;
-}
-
-.fld-folder-list-header {
-  font-size: 2rem;
-  background-color: rgba(30, 30, 30, 0.6);
+  font-size: 1.5rem;
 }
 
 .fld-folder-item:last-child {

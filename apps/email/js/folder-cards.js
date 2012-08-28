@@ -34,7 +34,8 @@ function FolderPickerCard(domNode, mode, args) {
   bindContainerHandler(this.foldersContainer, 'click',
                        this.onClickFolder.bind(this));
 
-  domNode.getElementsByClassName('fld-accounts-btn')[0]
+  this.accountButton = domNode.getElementsByClassName('fld-accounts-btn')[0];
+  this.accountButton
     .addEventListener('click', this.onShowHideAccounts.bind(this), false);
   domNode.getElementsByClassName('fld-nav-settings-btn')[0]
     .addEventListener('click', this.onShowSettings.bind(this), false);
@@ -92,24 +93,23 @@ FolderPickerCard.prototype = {
    * things get permutationally complex.
    */
   onClickAccount: function(accountNode, event) {
-   var oldAccount = this.curAccount,
-       account = this.curAccount = accountNode.account;
+    var oldAccount = this.curAccount,
+        account = this.curAccount = accountNode.account;
 
+    this.updateSelfDom();
     if (oldAccount !== account) {
       // change selection status
       this.updateAccountDom(oldAccount);
       this.updateAccountDom(account);
-      
-      this.updateSelfDom();
-  
+
       // kill the old slice and its related DOM
       this.foldersSlice.die();
       this.foldersContainer.innerHTML = '';
-  
+
       // stop the user from doing anything until we load the folders for the
       // account and then transition to our card.
       Cards.eatEventsUntilNextCard();
-  
+
       // load the folders for the account
       this.foldersSlice = MailAPI.viewFolders('account', account);
       this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
@@ -121,12 +121,16 @@ FolderPickerCard.prototype = {
     }
 
     this.accountsContainer.classList.remove('show');
-    this.foldersContainer.classList.remove('show');
+    this.foldersContainer.classList.add('show');
     //Cards.tellCard(['folder-picker', 'navigation'], { account: account });
   },
 
   onShowHideAccounts: function() {
     this.accountsContainer.classList.toggle('show');
+    this.foldersContainer.classList.toggle('show');
+    var isAccount = this.accountsContainer.classList.contains('show');
+    // Update header title
+    this.updateSelfDom(isAccount);
   },
 
   onShowSettings: function() {
@@ -169,9 +173,21 @@ FolderPickerCard.prototype = {
     });
   },
 
-  updateSelfDom: function() {
+  updateSelfDom: function(isAccount) {
+    var str = isAccount ? navigator.mozL10n.get('settings-account-section') :
+      this.curAccount.name;
     this.domNode.getElementsByClassName('fld-folders-header-account-label')[0]
-      .textContent = this.curAccount.name;
+      .textContent = str;
+
+    // Update header button icon status with title name.
+    var icon = this.accountButton.firstElementChild;
+    if (isAccount) {
+      icon.classList.remove('icon-account');
+      icon.classList.add('icon-back');
+    } else {
+      icon.classList.remove('icon-back');
+      icon.classList.add('icon-account');
+    }
   },
 
   updateFolderDom: function(folder, firstTime) {
