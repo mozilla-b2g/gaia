@@ -293,6 +293,10 @@ button::-moz-focus-inner {
   pointer-events: auto;
 }
 
+.recents-edit .call-log-contact-photo {
+  pointer-events: none;
+}
+
 .log-item.highlighted .icon-missed {
   background-image: url('images/CallLog_30x30_missed.png');
 }

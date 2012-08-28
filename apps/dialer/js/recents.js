@@ -112,7 +112,6 @@ var Recents = {
         Recents.render(recents);
       });
     });
-    // this._cachedContacts = new Object();
   },
 
   recentsHeaderAction: function re_recentsIconEditAction(event) {
