@@ -130,9 +130,15 @@ const IMEManager = {
     }).bind(this));
 
     var self = this;
+
     SettingsListener.observe('keyboard.wordsuggestion', false, function(value) {
       var wordSuggestionEnabled = !!value;
       IMEController.enableWordSuggestion(wordSuggestionEnabled);
+    });
+
+    SettingsListener.observe('language.current', 'en-US', function(value) {
+      var language = value;
+      IMEController.setLanguage(language);
     });
 
     for (var key in this.keyboardSettingGroups) {

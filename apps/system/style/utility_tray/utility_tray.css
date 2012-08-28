@@ -12,7 +12,7 @@
   top: -moz-calc(-100% + 40px);
   width: -moz-calc(100%);
   height: -moz-calc(100% - 20px);
-  background-color: #222;
+  background-color: rgba(0, 0, 0, 0.7);
   visibility: hidden;
 }
 
@@ -27,10 +27,4 @@
   border-top: 1px solid #111;
 
   background: #111 url('images/grippy.png') no-repeat 50% 50%;
-}
-
-#utility-bottom-box {
-  width:100%;
-  position: absolute;
-  bottom: 20px;
 }

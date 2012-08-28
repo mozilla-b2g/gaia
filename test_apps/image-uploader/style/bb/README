@@ -1,0 +1,25 @@
+### Gaia UI Building Blocks (*BB*)
+
+#### What are the Building Blocks?
+HTML + CSS visual integrations packaged separatedly for using it in FirefoxOS applications and having visual consistency betwen them.
+The are a wiki page from the UX teams with detailed information about each Building Block: 
+https://wiki.mozilla.org/Gaia/Design/BuildingBlocks
+
+#### There is a preview?
+Yes, you can preview all of them visiting this page:
+http://mozilla-b2g.github.com/Gaia-UI-Building-Blocks/index.html
+
+#### Why to use it?
+ * Because we need visual consistency among all our applications, and what the hell, all the html&css is done, you don't have to code it twice!
+ * Speed up development.
+ * We have been using aria roles, so is updated with the latest W3C standards.
+ * You can choose to use the ones that you need, there is no dependencies
+ * It could be used in multiples contexts and is up to you to use it or not.
+
+#### How to use it?
+Download this repository and just copy & paste the desired *BB* that you need into a location inside your application styles folder called "bb".
+So the folder shema will look like this:
+
+**/apps/myapplication/styles/bb/mybbname**
+
+If you need to extend some *BB* apperance never ever edit the base files, you should extend this from your own application CSS.

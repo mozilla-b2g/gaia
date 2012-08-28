@@ -530,6 +530,9 @@ var LockScreen = {
     this.updateTime();
 
     if (!wasAlreadyLocked) {
+      if (document.mozFullScreen)
+        document.mozCancelFullScreen();
+
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('lock');
@@ -656,11 +659,12 @@ var LockScreen = {
       return;
 
     var d = new Date();
+    var f = new navigator.mozL10n.DateTimeFormat();
+    var _ = navigator.mozL10n.get;
 
     // XXX: respect clock format in Settings
-    this.clock.textContent = d.toLocaleFormat('%R');
-
-    this.date.textContent = d.toLocaleFormat('%A %e %B');
+    this.clock.textContent = f.localeFormat(d, '%R');
+    this.date.textContent = f.localeFormat(d, _('dateFormat') || '%A %e %B');
 
     var self = this;
     window.setTimeout(function ls_clockTimeout() {
@@ -745,7 +749,7 @@ var LockScreen = {
         voice.cell && voice.cell.gsmLocationAreaCode) {
       // We are in Brazil, It is legally required to show local info
       // about current registered GSM network in a legally specified way.
-      var lac = voice.cell.gsmLocationAreaCode;
+      var lac = voice.cell.gsmLocationAreaCode % 100;
       var carriers = MobileInfo.brazil.carriers;
       var regions = MobileInfo.brazil.regions;
 
@@ -772,7 +776,6 @@ var LockScreen = {
     this.notification.hidden = false;
 
     // XXX: pretty date, respect clock format in Settings
-    this.notificationTime.textContent = (new Date()).toLocaleFormat('%R');
     this.notificationIcon.src = detail.icon;
     this.notificationTitle.textContent = detail.title;
     this.notificationDetail.textContent = detail.text;
@@ -780,7 +783,6 @@ var LockScreen = {
 
   hideNotification: function lockscreen_hideNotification() {
     this.notification.hidden = true;
-    this.notificationTime.textContent = '';
     this.notificationTitle.textContent = '';
     this.notificationDetail.textContent = '';
   },
@@ -846,12 +848,10 @@ var LockScreen = {
     // ID of elements to create references
     var elements = ['connstate', 'mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
-        'notification-detail', 'notification-time',
-        'area', 'area-unlock', 'area-camera', 'area-handle',
-        'rail-left', 'rail-right',
-        'passcode-code', 'passcode-pad',
-        'camera', 'accessibility-camera', 'accessibility-unlock',
-        'panel-emergency-call'];
+        'notification-detail', 'area', 'area-unlock', 'area-camera',
+        'area-handle', 'rail-left', 'rail-right', 'passcode-code',
+        'passcode-pad', 'camera', 'accessibility-camera',
+        'accessibility-unlock', 'panel-emergency-call'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
