@@ -2,9 +2,8 @@
  * is gathered here to clearly specify all system-app hierarchy */
 
 /* Reset zIndex */
-#screen > *:not([data-z-index-level]),
-#screen > [data-z-index-level="app"] > [data-z-index-level="homescreen"] {
-  z-index: 0 !important;
+#screen > *:not([data-z-index-level]) {
+  z-index: 0;
 }
 
 /* Level 1 */
@@ -62,6 +61,13 @@
   z-index: 4095;
 }
 
+/* Demote level 5 elements to homescreen level if there is an active
+   full screen app frame */
+#screen.fullscreen-app:not(.locked) > [data-z-index-level="statusbar"],
+#screen.fullscreen-app:not(.locked) > [data-z-index-level="utility-tray"] {
+  z-index: 0;
+}
+
 /* Level 6: Lock Screen */
 #screen > [data-z-index-level="lockscreen"] {
   z-index: 2048;
@@ -101,12 +107,21 @@
      */
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow.active {
+/*
+ * set appWindow/homescreen z-index as 2 when it is active,
+ * so that it will appear above the keyboard iframe (z-index 0) to allow clicking on it
+ */
+#screen > [data-z-index-level="app"] > iframe.appWindow.active,
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
   z-index: 2;
 }
 
 #screen > [data-z-index-level="app"] > iframe.appWindow {
   z-index: 1;
+}
+
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen {
+  z-index: 0;
 }
 
 /* When keyboard is visible, set frame under app window */

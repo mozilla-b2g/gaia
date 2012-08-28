@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+
+    <!--
+      This <style> and <link> is only used for the example code, is no needed for the real case use
+    -->
+    <link rel="stylesheet" href="../../fonts.css">
+    <style>
+ html, body {
+          margin: 0;
+          padding: 0;
+          font-size: 10px;
+          background-color: #fff;
+        }
+        body { background: none;}
+        html { background: url(images/dummy.png) no-repeat left top; }
+       h2.bb-docs {
+          font-size: 1.8rem;
+          font-family: "Open Sans", Sans-serif;
+          font-weight: lighter;
+          color: #666;
+          margin: -1px 0 0;
+          background-color: #f5f5f5;
+          padding: 0.4rem 0.4rem 0.4rem 3rem;
+          border: solid 1px #e8e8e8;
+        }
+        body[role="application"] section[role="region"]:first-of-type {
+          background: #fff;
+          padding: 2rem 0;
+        }
+
+        body[role="application"] section[role="region"]:last-of-type {
+          position: absolute;
+          bottom: 8%;
+          left: 7.5rem;
+          right: 7.5rem;
+        }
+    </style>
+    <title>Seekbars</title>
+    <meta type="description" content="Scroll through content (i.e. a song or video) ">
+    <meta type="requires" content="None">
+    <meta type="target" content="html, section[role='region']:first-of-type ">  
+</head>
+
+<body role="application">
+
+  <h2 class="bb-docs">Default seeker</h2>
+   <section role="region">
+     <div role="slider">
+      <progress value="80" max="100"></progress>
+      <button style="left: 80%;"></button>
+    </div>
+   </section>
+
+  <h2 class="bb-docs">Side actions</h2>
+  <section role="region">
+      <div role="slider" class="actions">
+        <button class="begin">Call out</button>
+        <button class="end active">Pick up</button>
+        <progress></progress>
+        <button style="left: 80%;"></button>
+      </div>
+  </section>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+/* ----------------------------------
+ * STYLES FOR VALUESELECTOR DATE
+ * Requires:
+    menu-dialoges/core.css
+    other/buttons/style.css
+ * ---------------------------------- */
+
+body[role="application"] [role="dialog"] .calendar {
+  font-size: 2.2rem;
+  line-height: 1em;
+  margin: 0 -2.1rem 0 -2.5rem;
+  position: relative;
+}
+  
+body[role="application"] [role="dialog"] .calendar:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7.9rem;
+  bottom: 0;
+  background: url(images/ui/shadow.png) repeat-y left top, url(images/ui/shadow-invert.png) repeat-y right top;
+  pointer-events: none;
+}
+
+body[role="application"] [role="dialog"] .calendar > button,
+body[role="application"] [role="dialog"] .calendar > a[role="button"] {
+  float: none;
+  width: auto;
+  text-overflow: none;
+  font: 0/0 a;
+  position: absolute;
+  top: 0.5rem;
+  z-index: 100;
+  width: 7.5rem;
+  height: 4.5rem;
+  border: none;
+  background: transparent no-repeat center center;
+}
+
+body[role="application"] [role="dialog"] .calendar > button:first-of-type,
+body[role="application"] [role="dialog"] .calendar > a[role="button"]:first-of-type {
+  left: 0;
+  background-image: url(images/icons/prev.png);
+}
+
+body[role="application"] [role="dialog"] .calendar > button:last-of-type,
+body[role="application"] [role="dialog"] .calendar > a[role="button"]:last-of-type {
+  right: 0;
+  background-image: url(images/icons/next.png);
+}
+
+body[role="application"] [role="dialog"] .calendar table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+  
+body[role="application"] [role="dialog"] .calendar table caption {
+  font-weight: 200;
+  font-size: 2.2rem;
+  line-height: 1em;
+  text-align: center;
+  margin: 1.5rem 0 2rem;
+}
+
+body[role="application"] [role="dialog"] .calendar thead th {
+  font-size: 1.1rem;
+  line-height: 1em;
+  font-weight: normal;
+  text-transform: uppercase;
+  background: #333;
+  padding: 0.5rem 0.2rem;
+  border-top: solid 1px #000;
+}
+
+body[role="application"] [role="dialog"] .calendar td {
+  padding: 0;
+  border: solid 1px #000;
+}
+
+body[role="application"] [role="dialog"] .calendar table label {
+  display: block;
+  position: relative;
+  border: solid 1px #555;
+  border-left: none;
+  border-bottom: none;
+}
+
+body[role="application"] [role="dialog"] .calendar table label span {
+  display: block;
+  width: 100%;
+  height: 4.5rem;
+  line-height: 4.5rem;
+  font-weight: 200;
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+body[role="application"] [role="dialog"] .calendar td.past label span {
+  color: #717171;
+}
+
+body[role="application"] [role="dialog"] .calendar td.today label span {
+  background: url(images/ui/pattern.png) repeat left top;
+}
+
+body[role="application"] [role="dialog"] .calendar table label input:checked + span {
+  background: #00A5C5;
+}
+
+body[role="application"] [role="dialog"] .calendar table label input {
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+body[role="application"] [role="dialog"] .calendar td:last-child,
+body[role="application"] [role="dialog"] .calendar td:last-child label {
+  border-right: none;
+}
