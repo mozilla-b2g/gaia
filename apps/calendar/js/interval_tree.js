@@ -212,6 +212,8 @@ Calendar.IntervalTree = (function() {
 
       this.items.splice(idx, 0, item);
       this.synced = false;
+
+      return item;
     },
 
     indexOf: function(item) {
@@ -311,10 +313,11 @@ Calendar.IntervalTree = (function() {
       if (!this.items[idx])
         return;
 
+
       // for duplicate values we need
       // to find the very last one
       // before the split point.
-      while (this.items[idx].start <= start) {
+      while (this.items[idx] && this.items[idx].start <= start) {
         idx++;
         if (idx === max) {
           break;

@@ -187,6 +187,22 @@ suite('interval_tree', function() {
       assert.isFalse(subject.synced, 'should be synced');
     });
 
+    test('when last item needs to be removed', function() {
+      subject.removeFutureIntervals(59);
+
+      var expectedIds = [
+        'before',
+        'on',
+        'just after'
+      ];
+
+     var ids = subject.items.map(function(item) {
+        return item._id;
+      });
+
+      assert.deepEqual(ids, expectedIds);
+    });
+
   });
 
 
