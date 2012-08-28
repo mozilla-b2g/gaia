@@ -171,8 +171,3 @@ if (!window.fb.contacts) {
   }) (document);
 }
 
-/*
-fbContacts.get(uid);
-fbContacts.remove(uid);
-fbContacts.save(uid);
-*/
