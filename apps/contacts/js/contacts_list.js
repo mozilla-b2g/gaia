@@ -42,7 +42,7 @@ contacts.List = (function() {
       overlayContent: overlayContent,
       jumper: jumper,
       scrollToCb: scrollToCb
-    }
+    };
 
     utils.alphaScroll.init(params);
   }
