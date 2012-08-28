@@ -367,7 +367,7 @@ var Recents = {
                recent.number +
       '      </section>' +
       '      <section class="secondary-info ellipsis">' +
-               prettyDate(recent.date) +
+               Utils.prettyDate(recent.date) +
       '      </section>' +
       '    </div>' +
       '  </section>' +
@@ -384,8 +384,8 @@ var Recents = {
       this.recentsContainer.innerHTML =
         '<div id="no-result-container">' +
         ' <div id="no-result-message">' +
-        '   <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
-        '   <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
+        ' <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
+        ' <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
         ' </div>' +
         '</div>';
       this.recentsIconEdit.classList.add('disabled');
@@ -405,8 +405,8 @@ var Recents = {
 
         content +=
           '<section data-timestamp="' + day + '">' +
-          '  <h2>' + headerDate(day) + '</h2>' +
-          '  <ol id="' + day + '" class="log-group">';
+          ' <h2>' + Utils.headerDate(day) + '</h2>' +
+          ' <ol id="' + day + '" class="log-group">';
       }
       content += this.createRecentEntry(recents[i]);
     }
@@ -454,6 +454,7 @@ var Recents = {
     var contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact) {
       var primaryInfo = logItem.querySelector('.primary-info'),
+        phoneNumber = logItem.dataset.num.trim(),
         count = logItem.dataset.count;
       primaryInfo.textContent = ((contact.name && contact.name != '') ?
         contact.name : _('unknown')) + ((count > 1) ? ' (' + count + ')' : '');
@@ -461,54 +462,11 @@ var Recents = {
         contactPhoto.classList.add('knownContact');
         contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
       }
-      var phoneNumber = logItem.dataset.num.trim(),
-        phoneType, phoneCarrier,
-        secondaryInfo = logItem.querySelector('.secondary-info'),
-        contactPhoneEntry, contactPhoneNumber, contactPhoneType,
-        multipleNumbersSameCarrier,
-        length = contact.tel.length;
-      for (var i = 0; i < length; i++) {
-        contactPhoneEntry = contact.tel[i];
-        contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
-        contactPhoneType = contactPhoneEntry.type;
-        contactPhoneCarrier = contactPhoneEntry.carrier;
-        if (phoneNumber == contactPhoneNumber) {
-          if (contactPhoneType) {
-            secondaryInfo.textContent = secondaryInfo.textContent.trim() +
-              '   ' + contactPhoneType;
-            logItem.dataset.phoneType = contactPhoneType;
-            phoneType = contactPhoneType;
-          }
-          if (!contactPhoneCarrier) {
-            secondaryInfo.textContent = secondaryInfo.textContent +
-              ', ' + phoneNumber;
-          } else {
-            logItem.dataset.carrier = contactPhoneCarrier;
-            phoneCarrier = contactPhoneCarrier;
-          }
-        }
-      }
-      if (phoneType && phoneCarrier) {
-        var multipleNumbersSameCarrier = false;
-        for (var j = 0; j < length; j++) {
-          contactPhoneEntry = contact.tel[j];
-          contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
-          contactPhoneType = contactPhoneEntry.type;
-          contactPhoneCarrier = contactPhoneEntry.carrier;
-          if ((phoneNumber != contactPhoneNumber) &&
-            (phoneType == contactPhoneType) &&
-            (phoneCarrier == contacePhoneCarrier)) {
-            multipleNumbersSameCarrier = true;
-          }
-        }
-        if (multipleNumbersSameCarrier) {
-          secondaryInfo.textContent = secondaryInfo.textContent +
-            ', ' + phoneNumber;
-        } else {
-          secondaryInfo.textContent = secondaryInfo.textContent +
-            ', ' + contactPhoneCarrier;
-        }
-      }
+      var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
+        phoneNumber, contact);
+      var secondaryInfo = logItem.querySelector('.secondary-info');
+      secondaryInfo.textContent = secondaryInfo.textContent.trim() +
+        '   ' + phoneNumberAdditionalInfo;
       this._cachedContacts[phoneNumber] = contact;
     } else {
       contactPhoto.classList.add('unknownContact');
