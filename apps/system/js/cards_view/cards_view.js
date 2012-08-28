@@ -198,6 +198,10 @@ var CardsView = (function() {
 
   function runApp() {
     hideCardSwitcher();
+
+    // Close utility tray if it is opened.
+    UtilityTray.hide(true);
+
     WindowManager.launch(this.dataset['origin']);
   }
 
