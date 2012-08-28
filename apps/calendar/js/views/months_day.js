@@ -112,20 +112,20 @@
 
       endDate.setMilliseconds(-1);
 
-      if (this._timespan) {
+      if (this.timespan) {
         controller.removeTimeObserver(
-          this._timespan,
+          this.timespan,
           this
         );
       }
 
       this.currentDate = date;
-      this._timespan = new Calendar.Timespan(
+      this.timespan = new Calendar.Timespan(
         date,
         endDate
       );
 
-      controller.observeTime(this._timespan, this);
+      controller.observeTime(this.timespan, this);
 
       // clear out all children
       this.events.innerHTML = '';
@@ -147,7 +147,7 @@
       var self = this;
 
       var cached = this.controller.queryCache(
-        this._timespan
+        this.timespan
       );
 
       store.findByAssociated(cached, function(err, list) {

@@ -112,11 +112,11 @@ suite('views/months_day', function() {
       );
 
       assert.deepEqual(
-        subject._timespan,
+        subject.timespan,
         new Calendar.Timespan(startTime, endTime)
       );
 
-      var eventIdx = controller.findTimeObserver(subject._timespan, subject);
+      var eventIdx = controller.findTimeObserver(subject.timespan, subject);
 
       assert.ok(
         eventIdx !== -1,
@@ -126,7 +126,7 @@ suite('views/months_day', function() {
 
     test('from second change', function() {
       subject.changeDate(new Date());
-      var oldRange = subject._timespan;
+      var oldRange = subject.timespan;
 
       subject.changeDate(startTime);
 
@@ -311,7 +311,7 @@ suite('views/months_day', function() {
 
       assert.equal(
         queryCalledWith[0][0],
-        subject._timespan
+        subject.timespan
       );
 
       storeCalledWith[0][1](null, list);
