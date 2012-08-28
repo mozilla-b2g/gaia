@@ -17,8 +17,11 @@
   <link rel="stylesheet" type="text/css" href="style/bb/progress-activity/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/switches/style.css">
 
+  <!-- App and Views -->
   <link rel="stylesheet" type="text/css" href="style/app.css">
   <link rel="stylesheet" type="text/css" href="style/views/topup.css">
+  <link rel="stylesheet" type="text/css" href="style/views/settings.css">
+  <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -30,13 +33,14 @@
   <script type="text/javascript" src="js/service_utils.js"></script>
   <script type="text/javascript" defer src="js/view_manager.js"></script>
   <script type="text/javascript" defer src="js/cost_control.js"></script>
+  <script type="text/javascript" defer src="js/data_usage.js"></script>
 </head>
 
 <body role="application">
   <section role="region" class="window">
 
-    <!-- The balance tab -->
-    <section role="region" id="balance-tab" class="view">
+    <!-- BALANCE VIEW -->
+    <section role="region" id="balance-tab" class="view" data-viewname="balance">
       <header data-theme="organic">
         <menu type="toolbar">
            <button><span class="icon config">configuration</span></button>
@@ -137,6 +141,168 @@
       <menu data-items="1">
         <button data-l10n-id="ok" class="close-info-button">Ok</button>
       </menu>
+    </section>
+
+    <!-- Settings view -->
+    <section role="region" class="view" data-viewname="settings" data-viewport="right">
+      <header data-theme="organic">
+        <a href="#left-panel"><span id="topup-close-button" class="icon icon-back">close</span></a>
+        <h1 data-l10n-id="settings">Settings</h1>
+      </header>
+
+      <section role="region" class="buttons-list">
+        <button>
+          <span class="end launch"></span>
+          Prepaid
+        </button>
+      </section>
+
+      <section role="region" data-theme="organic" class="settings">
+        <header aria-level="2">
+          <p>Balance</p>
+        </header>
+        <ul>
+          <li>
+              <p>R$ 23.65</p>
+              <time>Today, 15:32</time>
+          </li>
+          <li>
+            <label class="end toggle">
+              <input type="checkbox" checked="checked">
+              <span></span>
+            </label>
+            <p>Low Balance alert</p>
+          </li>
+          <li>
+            <label class="end">
+              R$
+              <input type="number">
+            </label>
+            <p>Alert me when I’m under</p>
+          </li>
+        </ul>
+      </section>
+
+      <section role="region" data-theme="organic" class="settings">
+        <header aria-level="2">
+          <p>Data usage</p>
+        </header>
+        <ul>
+          <li>
+              <div class="end buttons-list">
+                <button>Reset</button>
+              </div>
+              <p>50MB</p>
+              <time>27 Nov - Today, 15:32</time>
+          </li>
+          <li>
+            <div class="end buttons-list">
+              <button>
+                <span class="end launch"></span>
+                Monthly
+              </button>
+            </div>
+            <p>Reset tracking</p>
+          </li>
+        </ul>
+      </section>
+    </section>
+
+    <!-- DATAUSAGE VIEW -->
+    <section role="region" class="view" data-viewname="datausage" data-viewport="right">
+      <header data-theme="organic">
+        <menu type="toolbar">
+           <button><span class="icon config">configuration</span></button>
+        </menu>
+        <h1 data-l10n-id="settings">Data usage</h1>
+      </header>
+
+      <div class="view-scroll">
+        <section class="content">
+          <ul class="toggle-data">
+            <li id="toggleMobile">
+              <label>
+                <input type="checkbox" checked="checked">
+                <span>3G <em id="mobileOverview">--</em></span>
+              </label>
+            </li>
+            <li id="toggleWifi">
+              <label>
+                <input type="checkbox" checked="checked">
+                <span>WIFI <em id="wifiOverview">--</em></span>
+              </label>
+            </li>
+          </ul>
+
+          <section class="graph">
+            <canvas id="wifiGraphCanvas" aria-hidden="false"></canvas>
+            <canvas id="mobileGraphCanvas" aria-hidden="false"></canvas>
+         </section>
+        </section>
+
+        <section class="settings">
+          <header>
+            <h1>Apps by Data use</h2>
+            <p>WIFI only</p>
+          </header>
+          <ul>
+            <li>
+              <label class="end toggle">
+                <input type="checkbox">
+                <span></span>
+              </label>
+              <img>
+              <p>
+                <strong>
+                  <span class="mobile">203MB</span>
+                  <span class="wifi">647MB</span>
+                </strong>
+                <em>0.8<sub>GB</sub></em>
+                <span class="consumption">
+                  <progress max="100" value="100" class="mobile" style="width: 45%"></progress>
+                  <progress max="100" value="100" class="wifi max"></progress>
+                </span>
+              </p>
+            </li>
+            <li>
+              <label class="end toggle">
+                <input type="checkbox">
+                <span></span>
+              </label>
+              <img>
+              <p>
+                <strong>
+                  <span class="mobile">103MB</span>
+                  <span class="wifi">647MB</span>
+                </strong>
+                <em>0.75<sub>GB</sub></em>
+                <span class="consumption" style="width: 90%">
+                  <progress max="100" value="100" class="mobile" style="width: 22%"></progress>
+                  <progress max="100" value="100" class="wifi max"></progress>
+                </span>
+              </p>
+            </li>
+            <li>
+              <label class="end toggle">
+                <input type="checkbox">
+                <span></span>
+              </label>
+              <img>
+              <p>
+                <strong>
+                  <span class="mobile">45MB</span>
+                  <span class="wifi">647MB</span>
+                </strong>
+                <em>0.7<sub>GB</sub></em>
+                <span class="consumption" style="width: 80%">
+                  <progress max="100" value="100" class="mobile" style="width: 8%"></progress>
+                  <progress max="100" value="100" class="wifi max"></progress>
+                </span>
+              </p>
+            </li>
+          </ul>
+        </section>
+      </div>
     </section>
 
     <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
