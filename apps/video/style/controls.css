@@ -26,31 +26,44 @@
   overflow: hidden;
 }
 
+#play, #play:after {
+  width: 100px;
+  height: 100px;
+}
+
 #play {
   position: absolute;
   border: none;
-  width: 100px;
-  height: 100px;
   padding: 0;
   margin: 0;
-  background-position: center center;
-  background-color: black;
+  background: -moz-linear-gradient(top, #000 0%,#222 100%);
   border-radius: 100px;
   top: -23px;
   left: 10px;
+  z-index: 20;
+}
+
+#play:after {
+  background-position: center center;
+  background-size: 75%;
+  background-repeat: no-repeat;
+  content: " ";
+  display: block;
+  position: relative;
+  z-index: 10;
 }
 
 /* play/pause button */
-#play {
+#play:after {
   background-image: url("images/btn_pause_off.png");
 }
-#play:active {
+#play:active:after {
   background-image: url("images/btn_pause_press.png");
 }
-.paused #play {
+#play.paused:after {
   background-image: url("images/btn_play_off.png");
 }
-.paused #play:active {
+#play.paused:active:after {
   background-image: url("images/btn_play_press.png");
 }
 

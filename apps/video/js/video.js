@@ -317,7 +317,7 @@ function showPlayer(data) {
 
   // switch to the video player view
   dom.videoFrame.classList.remove('hidden');
-  dom.videoBar.classList.remove('paused');
+  dom.play.classList.remove('paused');
   playerShowing = true;
 
   dom.videoTitle.textContent = currentVideo.metadata.title;
