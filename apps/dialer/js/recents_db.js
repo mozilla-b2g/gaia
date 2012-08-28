@@ -88,7 +88,7 @@ var RecentsDBManager = {
   },
   delete: function rdbm_delete(callLogEntry, callback) {
     var self = this;
-    this._checkDBReady.call(this, function() {
+    this._checkDBReady(function() {
       var txn = self.db.transaction(self._dbStore, 'readwrite');
       var store = txn.objectStore(self._dbStore);
       var delRequest = store.delete(callLogEntry);
@@ -109,7 +109,7 @@ var RecentsDBManager = {
     if (list.length > 0) {
       var itemToDelete = list.pop();
       var self = this;
-      this.delete.call(this, itemToDelete, function() {
+      this.delete(itemToDelete, function() {
         self.deleteList(list, callback);
       });
     } else {
