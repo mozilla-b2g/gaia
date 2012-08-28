@@ -905,7 +905,7 @@ function positionImage(image, fit) {
   var style = image.style;
   style.width = fit.width + 'px';
   style.height = fit.height + 'px';
-  style.transform = 'translate(' + 
+  style.transform = 'translate(' +
     fit.left + 'px,' +
     fit.top + 'px)';
 }
