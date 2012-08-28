@@ -507,8 +507,6 @@ suite('controller', function() {
       isComplete = true;
     });
 
-    //XXX: There is too much coping / pasting
-    //here....
     test('go forward', function(done) {
 
       var tries = 24;
@@ -566,6 +564,35 @@ suite('controller', function() {
       }
 
       isComplete = true;
+    });
+
+    test('jump', function(done) {
+      // reset timespans
+      subject._timespans.length = 0;
+
+      function month(year, month) {
+        return spanOfMonth(new Date(year, month));
+      }
+
+      subject.on('loadingComplete', function() {
+        done(function() {
+          var expected = [
+            month(2010, 11),
+            month(2011, 0),
+            month(2011, 1),
+
+            month(2011, 11),
+            month(2012, 0),
+            month(2012, 1)
+          ];
+
+          assert.length(subject._timespans, 6);
+          assert.deepEqual(subject._timespans, expected);
+        });
+      });
+
+      subject.move(new Date(2011, 0, 1));
+      subject.move(new Date(2012, 0, 1));
     });
 
   });

@@ -124,9 +124,25 @@ Calendar.ns('Controllers').Time = (function() {
       }
     },
 
-    _recordSpanChange: function(idx, span) {
+    _recordSpanChange: function(span) {
       var spans = this._timespans;
       var loadSpan = span;
+      var idx = Calendar.binsearch.find(
+        spans,
+        span,
+        Calendar.compareByStart
+      );
+
+      if (idx !== null)
+        return;
+
+      idx = Calendar.binsearch.insert(
+        spans,
+        span,
+        Calendar.compareByStart
+      );
+
+      spans.splice(idx, 0, span);
 
       // 1. lower bound trim
       if (spans[idx - 1]) {
@@ -166,7 +182,7 @@ Calendar.ns('Controllers').Time = (function() {
      *                    Expected to be the first of a given
      *                    month.
      */
-    _loadInitialSpans: function(date) {
+    _loadAroundSpan: function(date) {
       var getSpan = Calendar.Calc.spanOfMonth;
 
       var pastSpan = getSpan(new Date(
@@ -184,12 +200,6 @@ Calendar.ns('Controllers').Time = (function() {
         )
       );
 
-      this._timespans = [
-        pastSpan,
-        presentSpan,
-        futureSpan
-      ];
-
       // order is important
       // we want to load the busytimes
       // in order of importance to the users
@@ -198,9 +208,9 @@ Calendar.ns('Controllers').Time = (function() {
       // 1. current span.
       // 2. next span
       // 3. previous span.
-      this._recordSpanChange(null, presentSpan);
-      this._recordSpanChange(2, futureSpan);
-      this._recordSpanChange(0, pastSpan);
+      this._recordSpanChange(presentSpan);
+      this._recordSpanChange(futureSpan);
+      this._recordSpanChange(pastSpan);
     },
 
     /**
@@ -214,9 +224,18 @@ Calendar.ns('Controllers').Time = (function() {
       var spanOfMonth = Calendar.Calc.spanOfMonth;
       this._currentTimespan = spanOfMonth(date);
 
-      // 0. No spans just add it...
-      if (!len) {
-        return this._loadInitialSpans(date);
+
+      var currentIdx = Calendar.binsearch.find(
+        this._timespans,
+        this._currentTimespan,
+        Calendar.compareByStart
+      );
+
+      // When given date's month span is not found
+      // trigger a load of that span and the ones
+      // around it.
+      if (currentIdx === null) {
+        return this._loadAroundSpan(date);
       }
 
       // determine which direction we need load.
@@ -238,24 +257,7 @@ Calendar.ns('Controllers').Time = (function() {
         )
       );
 
-      // check if already in span
-      var find = Calendar.binsearch.find;
-      var insert = Calendar.binsearch.insert;
-
-      var idx = find(spans, monthSpan, Calendar.compareByStart);
-      if (idx !== null) {
-        // already loaded
-        return;
-      }
-
-      var idx = Calendar.binsearch.insert(
-        spans,
-        monthSpan,
-        Calendar.compareByStart
-      );
-
-      spans.splice(idx, 0, monthSpan);
-      return this._recordSpanChange(idx, monthSpan);
+      return this._recordSpanChange(monthSpan);
     },
 
     handleEvent: function(event) {
