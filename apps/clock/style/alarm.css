@@ -580,7 +580,7 @@ li img {
   background-color: #00A5C5;
   color: #FFF;
   position: absolute;
-  width: 66%;
+  width: 70%;
   height: 100%;
   font: 3rem/6rem 'Open Sans',sans-serif;
   text-align: center;
@@ -603,21 +603,21 @@ div.animation-on {
 #value-picker-hours {
   position: relative;
   -moz-user-select: none;
-  width: 33%;
+  width: 35%;
   float: left;
 }
 
 #value-picker-minutes {
   position: relative;
   -moz-user-select: none;
-  width: 34%;
+  width: 35%;
   float: left;
 }
 
 #value-picker-hour24-state {
   position: relative;
   -moz-user-select: none;
-  width: 33%;
+  width: 30%;
   float: left;
 }
 
@@ -635,7 +635,7 @@ div.animation-on {
 #picker-bar-background {
   background: url("images/time_pattern.png") repeat scroll left top transparent;
   position: absolute;
-  width: 33%;
+  width: 30%;
   height: 100%;
   right: 0;
   top: 0;
@@ -643,21 +643,21 @@ div.animation-on {
 
 .left-picker-separator {
   position: absolute;
-  width: 0.2rem;
+  width: 2px;
   height: 100%;
   top: 0;
-  left: 33%;
-  background: -moz-linear-gradient(center left, #999 50%, #666 50%);
+  left: 35%;
+  background: -moz-linear-gradient(center left, #EEE 50%, #AAA 50%);
   pointer-events: none;
 }
 
 .right-picker-separator {
   position: absolute;
-  width: 0.2rem;
+  width: 1px;
   height: 100%;
   top: 0;
-  left: 66%;
-  background: -moz-linear-gradient(center left, #999 50%, #666 50%);
+  left: 70%;
+  background-color: #999;
   pointer-events: none;
 }
 
