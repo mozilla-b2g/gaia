@@ -233,6 +233,9 @@ var Contacts = (function() {
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
     thumb = document.getElementById('thumbnail-photo');
+    var thumbAction = document.getElementById('thumbnail-action');
+    thumbAction.addEventListener('mousedown', thumbClickController);
+    thumbAction.addEventListener('mouseup', cleanImageTimeout);
     TAG_OPTIONS = {
       'phone-type' : [
         {value: _('mobile')},
@@ -647,8 +650,11 @@ var Contacts = (function() {
   };
 
   var updatePhoto = function updatePhoto(photo, dest) {
-    var photoURL = URL.createObjectURL(photo);
-    dest.style.backgroundImage = 'url(' + photoURL + ')';
+    var background = '';
+    if (photo != null) {
+      var background = 'url(' + URL.createObjectURL(photo) + ')';
+    }
+    dest.style.backgroundImage = background;
   };
 
   // Checks if an object fields are empty, by empty means
@@ -1192,6 +1198,58 @@ var Contacts = (function() {
     activity.onerror = function error() {
       reopenApp();
     }
+  };
+
+  var thumbClickController = function thumbClickController(evt) {
+    var self = this;
+    this.longPress = false;
+    this._pickImageTimer = setTimeout(function(self) {      
+      self.longPress = true;
+    }, 500, this);
+  };
+
+  var cleanImageTimeout = function cleanImageTimeout(evt) {
+    if (currentContact && currentContact.photo && currentContact.photo.length > 0) {
+      if (this.longPress) {
+        removePhoto();
+      }
+    } else {
+      pickImage();
+    }
+    clearTimeout(this._pickImageTimer);
+  }
+
+  var removePhoto = function() {
+    var dismiss = {
+      title: _('cancel'),
+      callback: CustomDialog.hide
+    };
+    var remove = {
+      title: _('ok'),
+      callback: function() {
+        currentContact.photo = [];
+        var request = navigator.mozContacts.save(currentContact);
+        request.onsuccess = function onsuccess() {
+          var cList = contacts.List;
+          cList.getContactById(currentContact.id, function onSuccess(savedContact) {
+            currentContact = savedContact;
+            contactsList.refresh(currentContact);
+            reloadContactDetails();
+            updatePhoto(null, thumb);
+            CustomDialog.hide()
+          }, function onError() {
+            console.error('Error reloading contact');
+            CustomDialog.hide()
+          });
+        };
+        request.onerror = function onerror() {
+          console.error('Error removing photo');
+          CustomDialog.hide();
+        };
+      }
+    }
+    CustomDialog.show('', 'Remove contact photo', dismiss, remove);
+    
   }
 
   var updateContactPhoto = function updateContactPhoto(image) {
