@@ -122,6 +122,7 @@ suite('calendar/calc', function() {
 
     setup(function() {
       start = new Date(2012, 0, 1, 2);
+      console.log(subject, '<--');
       ms = subject.utcMs(start);
     });
 

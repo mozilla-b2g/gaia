@@ -1,6 +1,6 @@
-(function(window) {
-  Calendar.Calc = {
+Calendar.Calc = (function() {
 
+  var Calc = {
     PAST: 'past',
 
     NEXT_MONTH: 'next-month',
@@ -23,7 +23,7 @@
      * @return {Boolean} true when today.
      */
     isToday: function(date) {
-      return this.isSameDate(date, this.today);
+      return Calc.isSameDate(date, Calc.today);
     },
 
     offsetMinutesToMs: function(offset) {
@@ -43,7 +43,7 @@
         1
       );
 
-      var startDay = this.getWeekStartDate(month);
+      var startDay = Calc.getWeekStartDate(month);
 
       var endDay = new Date(
         month.getFullYear(),
@@ -52,7 +52,7 @@
       );
 
       endDay.setMilliseconds(-1);
-      endDay = this.getWeekEndDate(endDay);
+      endDay = Calc.getWeekEndDate(endDay);
 
       return new Calendar.Timespan(
         startDay,
@@ -65,7 +65,7 @@
      * removing offset.
      */
     utcMs: function(date) {
-      var offset = this.offsetMinutesToMs(
+      var offset = Calc.offsetMinutesToMs(
         date.getTimezoneOffset()
       );
 
@@ -87,7 +87,7 @@
       } else {
         // when there is an offset it is an absolute
         // position in time.
-        ms = ms + this.offsetMinutesToMs(offset);
+        ms = ms + Calc.offsetMinutesToMs(offset);
         return new Date(ms);
       }
     },
@@ -182,13 +182,13 @@
       var currentDay = date.getDay();
       var startDay = date.getDate() - currentDay;
 
-      return this.createDay(date, startDay);
+      return Calc.createDay(date, startDay);
     },
 
     getWeekEndDate: function(date) {
       // TODO: There are localization problems
       // with this approach as we assume a 7 day week.
-      var start = this.getWeekStartDate(date);
+      var start = Calc.getWeekStartDate(date);
       start.setDate(start.getDate() + 7);
       start.setMilliseconds(-1);
 
@@ -228,7 +228,7 @@
           );
         }
 
-        if (!this.isSameDate(next, end)) {
+        if (!Calc.isSameDate(next, end)) {
           list.push(next);
           continue;
         }
@@ -253,7 +253,7 @@
      */
     getWeeksDays: function(startDate) {
       //local day position
-      var weeksDayStart = this.getWeekStartDate(startDate);
+      var weeksDayStart = Calc.getWeekStartDate(startDate);
       var result = [weeksDayStart];
 
       for (var i = 1; i < 7; i++) {
@@ -274,7 +274,7 @@
      * @return {Boolean} true when date is in the past.
      */
     isPast: function(date) {
-      return (date.valueOf() < this.today.valueOf());
+      return (date.valueOf() < Calc.today.valueOf());
     },
 
     /**
@@ -284,7 +284,7 @@
      * @return {Boolean} true when date is in the future.
      */
     isFuture: function(date) {
-      return !this.isPast(date);
+      return !Calc.isPast(date);
     },
 
     /*
@@ -301,21 +301,21 @@
       var states;
 
       // 1. the date is today (real time)
-      if (this.isToday(day)) {
-        return this.PRESENT;
+      if (Calc.isToday(day)) {
+        return Calc.PRESENT;
       }
 
       // 2. the date is in the past (real time)
-      if (this.isPast(day)) {
-        states = this.PAST;
+      if (Calc.isPast(day)) {
+        states = Calc.PAST;
       // 3. the date is in the future (real time)
       } else {
-        states = this.FUTURE;
+        states = Calc.FUTURE;
       }
 
       // 4. the date is not in the current month (relative time)
       if (day.getMonth() !== month.getMonth()) {
-        states += ' ' + this.OTHER_MONTH;
+        states += ' ' + Calc.OTHER_MONTH;
       }
 
       return states;
@@ -323,4 +323,6 @@
 
   };
 
-}(this));
+  return Calc;
+
+}());
