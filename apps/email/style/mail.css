@@ -140,9 +140,9 @@ button::-moz-focus-inner {
 .scrollregion-below-header {
   overflow-y: auto;
   overflow-x: hidden;
-  height: -moz-calc(100% - 58px);
-  height: -webkit-calc(100% - 58px);
-  height: calc(100% - 58px);
+  height: -moz-calc(100% - 5.8rem + 5px);
+  height: -webkit-calc(100% - 5.8rem + 5px);
+  height: calc(100% - 5.8rem + 5px);
 }
 
 .bottom-toolbar {

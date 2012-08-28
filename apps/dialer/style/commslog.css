@@ -21,13 +21,6 @@
   position: relative;
 }
 
-.view-body {
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: -moz-calc(100% - 5rem);
-  width: 100%;
-}
-
 /*
   Styles of header
 */
@@ -362,12 +355,8 @@ button::-moz-focus-inner {
   overflow: hidden;
 }
 
-.call-log-selection.selected {
+.log-item.selected .call-log-selection {
   background-image: url('images/timeline_checkbox_on.png');
-}
-
-.call-log-selection.show {
-  display: block;
 }
 
 /*
@@ -408,7 +397,21 @@ button::-moz-focus-inner {
 }
 
 .recents-edit .view-body {
-  height: -moz-calc(100% - 14.5rem);
+  height: -moz-calc(100% - 9.5rem);
+}
+
+.recents-edit .options {
+  position: absolute;
+  bottom: 0;
+}
+
+.recents-edit .call-log-selection {
+  display: block;
+  float: left;
+}
+
+.recents-edit .log-item-info {
+  width: -moz-calc(100% - 15rem);
 }
 
 /*

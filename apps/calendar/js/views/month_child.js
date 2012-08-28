@@ -8,7 +8,7 @@
     this.controller = this.app.timeController;
 
     this._days = Object.create(null);
-    this._timespan = this._setupTimespan(this.month);
+    this.timespan = Calendar.Calc.spanOfMonth(this.month);
   }
 
   Child.prototype = {
@@ -68,35 +68,12 @@
       return 'month-view-' + this.monthId + '-' + date;
     },
 
-    /**
-     * We care about 5 weeks (35 days)
-     */
-    _setupTimespan: function(approxStart) {
-      var approxEnd = new Date(approxStart.valueOf());
-      //TODO: Localization problems assuming
-      //length of week.
-
-      var weeks = (4 * 7) + 1;
-
-      approxEnd.setDate(approxStart.getDate() * weeks);
-
-      var start = Calendar.Calc.getWeekStartDate(approxStart);
-      var end = Calendar.Calc.getWeekEndDate(approxEnd);
-
-      return new Calendar.Timespan(
-        start,
-        end
-      );
-    },
-
     _initEvents: function() {
-      var busy = this.app.store('Busytime');
-      busy.observeTime(this._timespan, this);
+      this.controller.observeTime(this.timespan, this);
     },
 
     _destroyEvents: function() {
-      var busy = this.app.store('Busytime');
-      busy.removeTimeObserver(this._timespan, this);
+      this.controller.removeTimeObserver(this.timespan, this);
     },
 
     handleEvent: function(event) {
@@ -202,7 +179,7 @@
 
       state = Calendar.Calc.relativeState(
         date,
-        this.controller.currentMonth
+        this.controller.month
       );
 
       // register instance in map
@@ -380,7 +357,7 @@
 
     _renderBusytime: function(busytime) {
       // render out a busytime span
-      var span = this._timespan;
+      var span = this.timespan;
 
       // 1: busytime start/end occurs all on same month/day
       var start = busytime.startDate;
@@ -414,11 +391,11 @@
         day = days[i];
         dayValue = day.valueOf();
 
-        if (dayValue < this._timespan.start) {
+        if (dayValue < this.timespan.start) {
           continue;
         }
 
-        if (dayValue > this._timespan.end) {
+        if (dayValue > this.timespan.end) {
           break;
         }
 
@@ -453,12 +430,13 @@
      */
     attach: function(element) {
       var html = this._renderMonth();
-      var busytimes = this.app.store('Busytime');
+      var controller = this.controller;
+
 
       element.insertAdjacentHTML('beforeend', html);
       this.element = element.children[element.children.length - 1];
 
-      busytimes.busytimesInCachedSpan(this._timespan).forEach(
+      controller.queryCache(this.timespan).forEach(
         this._renderBusytime,
         this
       );

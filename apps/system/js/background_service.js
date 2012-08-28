@@ -54,6 +54,30 @@ var BackgroundServiceManager = (function bsm() {
     close(evt.target.dataset.frameOrigin, evt.target.dataset.frameName);
   }, true);
 
+  /* mozbrowsererror */
+  window.addEventListener('mozbrowsererror', function bsm_winclose(evt) {
+    if (!'frameType' in evt.target.dataset ||
+        evt.target.dataset.frameType !== 'background' ||
+        evt.detail.type !== 'fatal')
+      return;
+
+    var origin = evt.target.dataset.frameOrigin;
+    var name = evt.target.dataset.frameName;
+
+    // This bg service has just crashed, clean up the frame
+    close(origin, name);
+
+    // Attempt to relaunch if we could find the info to do so
+    var app = Applications.getByOrigin(origin);
+    if (name != AUTO_OPEN_BG_PAGE_NAME || !app)
+      return;
+
+    // XXX: this work as if background_page is always a path not a full URL.
+    var url = origin + app.manifest.background_page;
+    open(origin, AUTO_OPEN_BG_PAGE_NAME, url);
+
+  }, true);
+
   /* OnInstall */
   window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
     var app = evt.detail.application;
@@ -91,6 +115,16 @@ var BackgroundServiceManager = (function bsm() {
     if (!app || !hasBackgroundPermission(app))
       return false;
 
+    // These apps currently have bugs preventing them from being
+    // run out of process. All other apps will be run OOP.
+    //
+    var backgroundOutOfProcessBlackList = [
+      'Messages',
+
+      // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=783066
+      'Dialer'
+    ];
+
     if (frames[origin] && frames[origin][name]) {
       console.error('Window with the same name is there but Gecko ' +
         ' failed to use it. See bug 766873. origin: "' + origin +
@@ -106,6 +140,16 @@ var BackgroundServiceManager = (function bsm() {
       frame.setAttribute('mozbrowser', 'mozbrowser');
       frame.setAttribute('mozapp', app.manifestURL);
       frame.setAttribute('name', name);
+
+      var appName = app.manifest.name;
+      if (backgroundOutOfProcessBlackList.indexOf(appName) === -1) {
+        // FIXME: content shouldn't control this directly
+        frame.setAttribute('remote', 'true');
+        console.info('%%%%% Launching', appName, 'bg service as remote (OOP)');
+      } else {
+        console.info('%%%%% Launching', appName, 'bg service as local');
+      }
+
       frame.src = url;
     }
     frame.className = 'backgroundWindow';

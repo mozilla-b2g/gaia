@@ -183,7 +183,7 @@ window.addEventListener('localized', function showBody() {
 
 function init() {
   photodb = new MediaDB('pictures', metadataParser, {
-    indexes: ['metadata.date'],
+    indexes: ['date'],
     mimeTypes: ['image/jpeg', 'image/png']
   });
 
@@ -464,7 +464,7 @@ function createThumbnailList() {
 
   // Enumerate existing image entries in the database and add thumbnails
   // List them all, and sort them in descending order by date.
-  photodb.enumerate('metadata.date', null, 'prev', function(imagedata) {
+  photodb.enumerate('date', null, 'prev', function(imagedata) {
     if (imagedata === null) // No more images
       return;
 
@@ -558,7 +558,7 @@ window.addEventListener('mozvisiblitychange', function() {
 function removeTransition(event) {
   event.target.style.transition = null;
 }
-photoFrames.addEventListener('transitionend', removeTransition);
+
 previousPhotoFrame.addEventListener('transitionend', removeTransition);
 currentPhotoFrame.addEventListener('transitionend', removeTransition);
 nextPhotoFrame.addEventListener('transitionend', removeTransition);
@@ -754,11 +754,7 @@ window.addEventListener('resize', function resizeHandler(evt) {
     var imagedata = images[n];
     var fit = fitImage(imagedata.metadata.width, imagedata.metadata.height,
                        photoView.offsetWidth, photoView.offsetHeight);
-    var style = img.style;
-    style.width = fit.width + 'px';
-    style.height = fit.height + 'px';
-    style.left = fit.left + 'px';
-    style.top = fit.top + 'px';
+    positionImage(img, fit);
   }
 });
 
@@ -833,7 +829,9 @@ photoFrames.addEventListener('swipe', function(event) {
     // the translations we added during panning
     var time = Math.abs(pastEdge) / TRANSITION_SPEED;
 
-    photoFrames.style.transition = 'left ' + time + 'ms linear';
+    currentPhotoFrame.style.transition =
+      nextPhotoFrame.style.transition =
+      previousPhotoFrame.style.transition = 'translate ' + time + 'ms linear';
     photoState.swipe = 0;
     photoState.setFramesPosition();
 
@@ -851,12 +849,7 @@ photoFrames.addEventListener('dbltap', function(e) {
   else                           // Otherwise
     scale = 2;                   // Zoom in by a factor of 2
 
-  currentPhoto.style.transition = 'all 100ms linear';
-  currentPhoto.addEventListener('transitionend', function handler() {
-    currentPhoto.style.transition = null;
-    currentPhoto.removeEventListener('transitionend', handler);
-  });
-  photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
+  photoState.zoom(scale, e.detail.clientX, e.detail.clientY, true, 200);
 });
 
 // We also support pinch-to-zoom
@@ -866,7 +859,8 @@ photoFrames.addEventListener('transform', function(e) {
 
   photoState.zoom(e.detail.relative.scale,
                   e.detail.midpoint.clientX,
-                  e.detail.midpoint.clientY);
+                  e.detail.midpoint.clientY,
+                  true);
 });
 
 // A utility function to set the src attribute of the <img> element inside
@@ -900,11 +894,16 @@ function displayImageInFrame(n, frame) {
   var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
                      photoView.offsetWidth, photoView.offsetHeight);
 
-  var style = img.style;
+  positionImage(img, fit);
+}
+
+function positionImage(image, fit) {
+  var style = image.style;
   style.width = fit.width + 'px';
   style.height = fit.height + 'px';
-  style.left = fit.left + 'px';
-  style.top = fit.top + 'px';
+  style.transform = 'translate(' +
+    fit.left + 'px,' +
+    fit.top + 'px)';
 }
 
 // figure out the size and position of an image based on its size
@@ -957,14 +956,10 @@ function nextPhoto(time) {
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
 
-  // Hide the previous photo
-  previousPhotoFrame.classList.add('hidden');
-
   // Set transitions for the visible photo frames and the photoFrames element
-  var transition = 'left ' + time + 'ms linear';
+  var transition = 'transform ' + time + 'ms linear';
   currentPhotoFrame.style.transition = transition;
   nextPhotoFrame.style.transition = transition;
-  photoFrames.style.transition = transition;
 
   // Remove the classes
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -1001,14 +996,11 @@ function nextPhoto(time) {
   displayImageInFrame(currentPhotoIndex + 1, nextPhotoFrame);
 
   // When the transition is done, cleanup
-  photoFrames.addEventListener('transitionend', function done(e) {
+  currentPhotoFrame.addEventListener('transitionend', function done(e) {
     this.removeEventListener('transitionend', done);
 
     // Recompute and reposition the photo that just transitioned off the screen
     previousPhotoState.reset();
-
-    // Make the new next photo visible again
-    nextPhotoFrame.classList.remove('hidden');
   });
 }
 
@@ -1022,14 +1014,10 @@ function previousPhoto(time) {
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
 
-  // Hide the next photo
-  nextPhotoFrame.classList.add('hidden');
-
   // Set transitions for the visible photo frames and the photoFrames element
-  var transition = 'left ' + time + 'ms linear';
+  var transition = 'transform ' + time + 'ms linear';
   previousPhotoFrame.style.transition = transition;
   currentPhotoFrame.style.transition = transition;
-  photoFrames.style.transition = transition;
 
   // Remove the frame classes since we're about to cycle the frames
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -1065,14 +1053,11 @@ function previousPhoto(time) {
   displayImageInFrame(currentPhotoIndex - 1, previousPhotoFrame);
 
   // When the transition is done do some cleanup
-  photoFrames.addEventListener('transitionend', function done(e) {
+  currentPhotoFrame.addEventListener('transitionend', function done(e) {
     this.removeEventListener('transitionend', done);
 
     // Recompute and reposition the photo that just transitioned off the screen
     nextPhotoState.reset();
-
-    // Make the new previous photo visible again
-    previousPhotoFrame.classList.remove('hidden');
   });
 }
 
@@ -1154,13 +1139,16 @@ function PhotoState(img, width, height) {
   this.reset();
 }
 
+PhotoState.BORDER_WIDTH = 3;  // Border between photos
+
 // An internal method called by reset(), zoom() and pan() to
 // set the size and position of the image element.
 PhotoState.prototype._reposition = function() {
   this.img.style.width = this.width + 'px';
   this.img.style.height = this.height + 'px';
-  this.img.style.top = this.top + 'px';
-  this.img.style.left = this.left + 'px';
+  this.img.style.transform = 'translate(' +
+    this.left + 'px,' +
+    this.top + 'px)';
 };
 
 // Compute the default size and position of the photo
@@ -1192,7 +1180,11 @@ PhotoState.prototype.reset = function() {
 // the image pixels at (centerX, centerY) remain at that position.
 // Assume that zoom gestures can't be done in the middle of swipes, so
 // if we're calling zoom, then the swipe property will be 0.
-PhotoState.prototype.zoom = function(scale, centerX, centerY) {
+// If resize is true, then this method actually changes the width and
+// height of the image. Otherwise, it uses a CSS transform instead for
+// smoother animations.  If time is specified and non-zero, then it uses
+// a CSS transition to animate the CSS transform, and then resizes the image.
+PhotoState.prototype.zoom = function(scale, centerX, centerY, resize, time) {
   // Never zoom in farther than 2x the native resolution of the image
   if (this.baseScale * this.scale * scale > 2) {
     scale = 2 / (this.baseScale * this.scale);
@@ -1253,7 +1245,27 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY) {
     }
   }
 
-  this._reposition();
+  if (resize && !time) {
+    // If time was 0 or undefined, just resposition the image now
+    this._reposition();
+  }
+  else {
+    if (time) {
+      // If a time was specfied, animate the transformation
+      this.img.style.transition = 'transform ' + time + 'ms ease';
+      var self = this;
+      this.img.addEventListener('transitionend', function done(e) {
+        self.img.removeEventListener('transitionend', done);
+        self.img.style.transition = null;
+        if (resize) // Actually resize after the transition
+          self._reposition();
+      });
+    }
+
+    this.img.style.transform =
+      'translate(' + this.left + 'px,' + this.top + 'px) ' +
+      'scale(' + scale + ')';
+  }
 };
 
 PhotoState.prototype.pan = function(dx, dy) {
@@ -1316,9 +1328,13 @@ PhotoState.prototype.pan = function(dx, dy) {
 };
 
 PhotoState.prototype.setFramesPosition = function() {
-  photoFrames.style.left = this.swipe + 'px';
+  // XXX we ignore rtl languages for now.
+  currentPhotoFrame.style.transform = 'translateX(' + this.swipe + 'px)';
+  nextPhotoFrame.style.transform = 'translateX(' +
+    (this.viewportWidth + PhotoState.BORDER_WIDTH + this.swipe) + 'px)';
+  previousPhotoFrame.style.transform = 'translateX(' +
+    (-(this.viewportWidth + PhotoState.BORDER_WIDTH) + this.swipe) + 'px)';
 };
-
 
 var editedPhotoIndex;
 var editedPhotoURL; // The blob URL of the photo we're currently editing

@@ -34,6 +34,14 @@ var AttentionScreen = {
     // Popup Manager to handle this event
     evt.stopPropagation();
 
+    // Canceling any full screen web content
+    if (document.mozFullScreen)
+      document.mozCancelFullScreen();
+
+    // Hide sleep menu/list menu if it is shown now
+    ListMenu.hide();
+    SleepMenu.hide();
+
     // Check if the app has the permission to open attention screens
     var origin = evt.target.dataset.frameOrigin;
     var app = Applications.getByOrigin(origin);

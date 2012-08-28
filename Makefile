@@ -207,6 +207,21 @@ ifneq ($(DEBUG),1)
 						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
 					fi \
 				done; \
+				for f in `grep -r shared/locales $$d` ;\
+				do \
+					if [[ "$$f" == *shared/locales* ]] ;\
+					then \
+						if [[ "$$f" == */shared/locales* ]] ;\
+						then \
+							locale_name=`echo "$$f" | cut -d'/' -f 4 | cut -d'.' -f1`; \
+						else \
+							locale_name=`echo "$$f" | cut -d'/' -f 3 | cut -d'.' -f1`; \
+						fi; \
+						mkdir -p $$d/shared/locales/$$locale_name ;\
+						cp shared/locales/$$locale_name.ini $$d/shared/locales/ ;\
+						cp shared/locales/$$locale_name/* $$d/shared/locales/$$locale_name ;\
+					fi \
+				done; \
 				cd $$d; \
 				zip -r application.zip *; \
 				cd $$cdir; \
@@ -223,7 +238,7 @@ offline: webapp-manifests webapp-zip
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/07/2012-07-17-03-05-55-mozilla-central/xulrunner-17.0a1.en-US.
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/08/2012-08-07-03-05-18-mozilla-central/xulrunner-17.0a1.en-US.
 
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
@@ -308,7 +323,7 @@ preferences: install-xulrunner-sdk
 
 
 # Generate profile/permissions.sqlite
-permissions: install-xulrunner-sdk
+permissions: webapp-manifests install-xulrunner-sdk
 	@echo "Generating permissions.sqlite..."
 	test -d profile || mkdir -p profile
 	@$(call run-js-command, permissions)

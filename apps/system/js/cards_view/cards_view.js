@@ -169,7 +169,7 @@ var CardsView = (function() {
         }
       }.bind(card);
 
-      if (app.frame.dataset.zIndexLevel === 'homescreen') {
+      if (app.frame.classList.contains('homescreen')) {
         card.dataset['homescreen'] = true;
       }
       card.dataset['origin'] = origin;
@@ -198,6 +198,10 @@ var CardsView = (function() {
 
   function runApp() {
     hideCardSwitcher();
+
+    // Close utility tray if it is opened.
+    UtilityTray.hide(true);
+
     WindowManager.launch(this.dataset['origin']);
   }
 

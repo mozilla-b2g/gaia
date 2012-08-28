@@ -120,6 +120,30 @@ a.abstract-menu {
   font: 2.4rem/2.9rem 'Open Sans',sans-serif;
 }
 
+select.abstract-menu {
+  opacity: 0;
+  position: absolute;
+}
+
+#alarm-delete {
+  color: #F2F2F2;
+  font: 2.4rem/2.4rem 'Open Sans',sans-serif;
+  text-align: center;
+  text-decoration: none;
+  width: 100%;
+}
+
+#alarm-delete-button {
+  background: -moz-linear-gradient(bottom, #900010, #c90010);
+  border: none;
+  width: 100%;
+  height: 5.5rem;
+}
+
+#alarm-delete-button:active {
+  background: -moz-linear-gradient(bottom, #fafafa, #ccc);
+}
+
 .view label.text {
   text-align: right;
   padding: 2rem 0;
@@ -502,12 +526,27 @@ li img {
 }
 
 #picker-bar-gradient {
-  background: -moz-linear-gradient(center top, rgba(255, 255, 255, 0.9) 10%, rgba(255, 255, 255, 0.05) 57%, rgba(255, 255, 255, 0.9) 90%);
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.4)  rgba(0, 0, 0, 0.25)  rgba(0, 0, 0, 0.2)
+    rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.07)  rgba(0, 0, 0, 0.05)
+    rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.03)  rgba(0, 0, 0, 0.02);
+
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.4)  rgba(0, 0, 0, 0.25)  rgba(0, 0, 0, 0.2)
+    rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.07)  rgba(0, 0, 0, 0.05)
+    rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.03)  rgba(0, 0, 0, 0.02);
+
+  border-top: solid 1rem;
+  border-bottom: solid 1rem;
+  border-left:  1px solid #CCC;
+  border-right: 1px solid #CCC;
+
   position: absolute;
   top: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
+  -moz-box-sizing: border-box;
 }
 
 #picker-container {
@@ -517,30 +556,43 @@ li img {
   padding-top: 15rem;
 }
 
-#value-indicator-bottom::after {
-  -moz-border-bottom-colors: #00abcd #00abcd #00abcd #00abcd #00abcd;
-  border-bottom: solid 0.5rem;
-  height: 7rem;
+#value-indicator-wrapper {
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.25) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.35);
+
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.25) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.35);
+
+  border-top: solid 0.7rem;
+  border-bottom: solid 0.7rem;
   position: absolute;
+  height: 6rem;
   width: 100%;
-  content: "";
   pointer-events: none;
 }
 
-#value-indicator-hover {
-  -moz-border-top-colors: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.18) rgba(0, 0, 0, 0.16) 
-                          rgba(0, 0, 0, 0.14) rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.1) 
-                          rgba(0, 0, 0, 0.08) rgba(0, 0, 0, 0.06) rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.02);
-  -moz-border-left-colors: #c6c6c6 #c6c6c6;
-  -moz-border-right-colors: #c6c6c6 #c6c6c6;
-  border-top: solid 1rem;
-  border-left: solid 0.2rem;
-  border-right: solid 0.2rem;
-  height: 6rem;
-  position: absolute;
-  width: 99%;
-  content: "";
+#value-indicator-hover-time {
   pointer-events: none;
+  background-color: #00A5C5;
+  color: #FFF;
+  position: absolute;
+  width: 70%;
+  height: 100%;
+  font: 3rem/6rem 'Open Sans',sans-serif;
+  text-align: center;
+}
+
+#value-indicator-hover {
+  pointer-events: none;
+  background-color: #00A5C5;
+  position: absolute;
+  width: 34%;
+  height: 100%;
+  right:0;
 }
 
 div.animation-on {
@@ -551,25 +603,22 @@ div.animation-on {
 #value-picker-hours {
   position: relative;
   -moz-user-select: none;
-  width: 33%;
+  width: 35%;
   float: left;
-  text-indent: 5rem;
 }
 
 #value-picker-minutes {
   position: relative;
   -moz-user-select: none;
-  width: 34%;
+  width: 35%;
   float: left;
-  text-indent: -0.4rem;
 }
 
 #value-picker-hour24-state {
   position: relative;
   -moz-user-select: none;
-  width: 33%;
+  width: 30%;
   float: left;
-  text-indent: -3rem;
 }
 
 .picker-unit {
@@ -583,23 +632,32 @@ div.animation-on {
   pointer-events: none;
 }
 
+#picker-bar-background {
+  background: url("images/time_pattern.png") repeat scroll left top transparent;
+  position: absolute;
+  width: 30%;
+  height: 100%;
+  right: 0;
+  top: 0;
+}
+
 .left-picker-separator {
   position: absolute;
-  width: 1rem;
+  width: 2px;
   height: 100%;
   top: 0;
-  left: 31%;
-  background: -moz-linear-gradient(center left, #d7d7d7 10%, #fafafa 30%);
+  left: 35%;
+  background: -moz-linear-gradient(center left, #EEE 50%, #AAA 50%);
   pointer-events: none;
 }
 
 .right-picker-separator {
   position: absolute;
-  width: 1rem;
+  width: 1px;
   height: 100%;
   top: 0;
-  left: 66%;
-  background: -moz-linear-gradient(center left, #d7d7d7 10%, #fafafa 30%);
+  left: 70%;
+  background-color: #999;
   pointer-events: none;
 }
 
