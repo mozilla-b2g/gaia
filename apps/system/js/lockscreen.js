@@ -80,11 +80,6 @@ var LockScreen = {
     window.addEventListener('volumechange', this);
     window.addEventListener('screenchange', this);
 
-    /* Notification */
-    // XXX: Move to notifications.js
-    this.notification.addEventListener('click', this);
-    window.addEventListener('mozChromeEvent', this);
-
     /* Gesture */
     this.area.addEventListener('mousedown', this);
     this.areaHandle.addEventListener('mousedown', this);
@@ -178,28 +173,13 @@ var LockScreen = {
       case 'cardstatechange':
         this.updateConnState();
 
-      case 'mozChromeEvent':
-        if (!this.locked || evt.detail.type !== 'desktop-notification')
-          return;
-
-        this.showNotification(evt.detail);
-        break;
-
       case 'click':
-        switch (evt.currentTarget) {
-          case this.notification:
-            this.hideNotification();
-            break;
-          case this.passcodePad:
-            if (!evt.target.dataset.key)
-              break;
+        if (!evt.target.dataset.key)
+          break;
 
-            // Cancel the default action of <a>
-            evt.preventDefault();
-            this.handlePassCodeInput(evt.target.dataset.key);
-
-            break;
-        }
+        // Cancel the default action of <a>
+        evt.preventDefault();
+        this.handlePassCodeInput(evt.target.dataset.key);
         break;
 
       case 'mousedown':
@@ -507,7 +487,6 @@ var LockScreen = {
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('unlock');
       this.writeSetting(false);
-      this.hideNotification();
     }
   },
 
@@ -772,21 +751,6 @@ var LockScreen = {
     connstateLine1.textContent = voice.network.shortName;
   },
 
-  showNotification: function lockscreen_showNotification(detail) {
-    this.notification.hidden = false;
-
-    // XXX: pretty date, respect clock format in Settings
-    this.notificationIcon.src = detail.icon;
-    this.notificationTitle.textContent = detail.title;
-    this.notificationDetail.textContent = detail.text;
-  },
-
-  hideNotification: function lockscreen_hideNotification() {
-    this.notification.hidden = true;
-    this.notificationTitle.textContent = '';
-    this.notificationDetail.textContent = '';
-  },
-
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
     var overlay = this.overlay;
     if (overlay.dataset.passcodeStatus)
@@ -847,8 +811,7 @@ var LockScreen = {
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
     var elements = ['connstate', 'mute', 'clock', 'date',
-        'notification', 'notification-icon', 'notification-title',
-        'notification-detail', 'area', 'area-unlock', 'area-camera',
+        'area', 'area-unlock', 'area-camera',
         'area-handle', 'rail-left', 'rail-right', 'passcode-code',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];

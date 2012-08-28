@@ -53,6 +53,13 @@ var NotificationScreen = {
     return this.container = document.getElementById('notifications-container');
   },
 
+  get lockScreenContainer() {
+    delete this.lockScreenContainer;
+
+    var id = 'notifications-lockscreen-container';
+    return this.lockScreenContainer = document.getElementById(id);
+  },
+
   get toaster() {
     delete this.toaster;
     return this.toaster = document.getElementById('notification-toaster');
@@ -88,6 +95,7 @@ var NotificationScreen = {
     this.clearAllButton.addEventListener('click', this.clearAll.bind(this));
 
     window.addEventListener('utilitytrayshow', this);
+    window.addEventListener('unlock', this.clearLockScreen.bind(this));
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -235,6 +243,14 @@ var NotificationScreen = {
     }).bind(this), this.TOASTER_TIMEOUT);
 
     this.updateStatusBarIcon(true);
+
+    // Adding it to the lockscreen if locked
+    if (LockScreen.locked) {
+      var lockScreenNode = notificationNode.cloneNode(true);
+      this.lockScreenContainer.insertBefore(lockScreenNode,
+                               this.lockScreenContainer.firstElementChild);
+    }
+
     return notificationNode;
   },
 
@@ -262,6 +278,13 @@ var NotificationScreen = {
   clearAll: function ns_clearAll() {
     while (this.container.firstElementChild) {
       this.closeNotification(this.container.firstElementChild);
+    }
+  },
+
+  clearLockScreen: function ns_clearLockScreen() {
+    while (this.lockScreenContainer.firstElementChild) {
+      var element = this.lockScreenContainer.firstElementChild;
+      this.lockScreenContainer.removeChild(element);
     }
   },
 
