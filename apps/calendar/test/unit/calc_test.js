@@ -166,6 +166,16 @@ suite('calendar/calc', function() {
 
   });
 
+  test('#hourDiff', function() {
+    var start = new Date(2012, 0, 5);
+    var end = new Date(2012, 0, 7);
+
+    var expected = 48;
+    var out = subject.hourDiff(start, end);
+
+    assert.equal(out, expected);
+  });
+
   test('#daysBetween', function() {
     //Nov 29th 2012
     var start = new Date(2012, 10, 29);

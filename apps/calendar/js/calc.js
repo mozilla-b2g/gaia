@@ -1,6 +1,24 @@
 Calendar.Calc = (function() {
 
+  const SECOND = 1000;
+  const MINUTE = (SECOND * 60);
+  const HOUR = MINUTE * 60;
+
   var Calc = {
+    /**
+     * MS in a second
+     */
+    SECOND: SECOND,
+    /**
+     * MS in a minute
+     */
+    MINUTE: MINUTE,
+
+    /**
+     * MS in an hour
+     */
+    HOUR: HOUR,
+
     PAST: 'past',
 
     NEXT_MONTH: 'next-month',
@@ -28,6 +46,23 @@ Calendar.Calc = (function() {
 
     offsetMinutesToMs: function(offset) {
       return offset * (60 * 1000);
+    },
+
+    /**
+     * Calculates the difference between
+     * two points in hours.
+     *
+     * @param {Date|Numeric} start start hour.
+     * @param {Date|Numeric} end end hour.
+     */
+    hourDiff: function(start, end) {
+      start = (start instanceof Date) ? start.valueOf() : start;
+      end = (end instanceof Date) ? end.valueOf() : end;
+
+      start = start / HOUR;
+      end = end / HOUR;
+
+      return end - start;
     },
 
     /**
