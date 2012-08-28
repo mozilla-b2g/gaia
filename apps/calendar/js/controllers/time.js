@@ -10,6 +10,7 @@ Calendar.ns('Controllers').Time = (function() {
     this._collection = new Calendar.IntervalTree();
 
     var busytime = this.busytime = app.store('Busytime');
+
     busytime.on('add time', this);
     busytime.on('remove time', this);
   }
@@ -17,9 +18,13 @@ Calendar.ns('Controllers').Time = (function() {
   Time.prototype = {
     __proto__: Calendar.Responder.prototype,
     _position: null,
-    _lastTimespan: null,
+    _currentTimespan: null,
     _timeCache: null,
     _timespans: null,
+    _maxTimespans: 6,
+
+    pending: 0,
+    loading: false,
 
     get timespan() {
       return this._timespan;
@@ -55,54 +60,202 @@ Calendar.ns('Controllers').Time = (function() {
       }
     },
 
+    _checkCache: function() {
+      var dir = this.direction;
+      var spans = this._timespans;
+      var len = spans.length;
+      var max = this._maxTimespans;
+
+      if (len > max) {
+        var idx = Calendar.binsearch.find(
+          spans,
+          this._currentTimespan,
+          Calendar.compareByStart
+        );
+
+        var isFuture = (dir === 'future');
+        var start = idx;
+        var end = idx;
+
+        if (isFuture) {
+          if ((idx - 1) >= 0) {
+            start -= 1;
+          }
+
+          while (max-- && end < len) {
+            end += 1;
+          }
+
+          if (max) {
+            start -= max;
+          }
+
+        } else {
+          if ((end + 1) < len) {
+            end += 1;
+          }
+
+          while (max-- && start > 0) {
+            start -= 1;
+          }
+
+          if (max) {
+            end += max;
+          }
+
+        }
+
+        // reduce the current list to just what we need
+        this._timespans = spans.splice(start, end);
+
+        spans.forEach(function(range) {
+          this.fireTimeEvent(
+            'purge', range.start, range.end, range
+          );
+        }, this);
+      }
+    },
+
+    _checkLoadingComplete: function() {
+      if (!(--this.pending)) {
+        this.loading = false;
+        this._checkCache();
+        this.emit('loadingComplete');
+      }
+    },
+
+    _recordSpanChange: function(idx, span) {
+      var spans = this._timespans;
+      var loadSpan = span;
+
+      // 1. lower bound trim
+      if (spans[idx - 1]) {
+        loadSpan = spans[idx - 1].trimOverlap(loadSpan);
+      }
+
+      // 2. upper bound trim
+      if (spans[idx + 1]) {
+        loadSpan = spans[idx + 1].trimOverlap(loadSpan);
+      }
+
+      loadSpan = loadSpan || span;
+
+      ++this.pending;
+      this.loading = true;
+
+      this.busytime.loadSpan(
+        loadSpan,
+        this._checkLoadingComplete.bind(this)
+      );
+    },
+
+    /**
+     * Loads the initial timespans
+     * required for user to interact with
+     * the calendar based on a start
+     * date. This is called on the first
+     * move of the calendar.
+     *
+     * Loads spans in the follow order:
+     *
+     * 1. current month
+     * 2. next month
+     * 3. past month
+     *
+     * @param {Date} date start point of busytimes to load.
+     *                    Expected to be the first of a given
+     *                    month.
+     */
+    _loadInitialSpans: function(date) {
+      var getSpan = Calendar.Calc.spanOfMonth;
+
+      var pastSpan = getSpan(new Date(
+        date.getFullYear(),
+        date.getMonth() - 1,
+        1
+      ));
+
+      var presentSpan = getSpan(date);
+      var futureSpan = getSpan(
+         new Date(
+          date.getFullYear(),
+          date.getMonth() + 1,
+          1
+        )
+      );
+
+      this._timespans = [
+        pastSpan,
+        presentSpan,
+        futureSpan
+      ];
+
+      // order is important
+      // we want to load the busytimes
+      // in order of importance to the users
+      // initial view of the calendar app.
+      //
+      // 1. current span.
+      // 2. next span
+      // 3. previous span.
+      this._recordSpanChange(null, presentSpan);
+      this._recordSpanChange(2, futureSpan);
+      this._recordSpanChange(0, pastSpan);
+    },
+
     /**
      * Loads a span of a month.
      * Each time this method is called
      * the same timespan should be generated.
-     *
-     * XXX: This is going to assume for now
-     * that we can't "jump" in time from one
-     * month to a totally different one many
-     * months in the past/future. So each
-     * span is expected to be sequential.
      */
     _loadMonthSpan: function(date) {
-      var span = Calendar.Calc.spanOfMonth(date);
-
-      var i = 0;
       var len = this._timespans.length;
-      var existing;
+
+      var spanOfMonth = Calendar.Calc.spanOfMonth;
+      this._currentTimespan = spanOfMonth(date);
 
       // 0. No spans just add it...
-      if (len === 0) {
-        // just load the span
-        this._timespans.push(span);
-        return this.busytime.loadSpan(span);
+      if (!len) {
+        return this._loadInitialSpans(date);
       }
 
-      // 1. event happens before first event
-      var first = this._timespans[0];
+      // determine which direction we need load.
+      var month = date.getMonth();
+      var isFuture = this.direction === 'future';
 
-      // > rather then >= because we only
-      // wish to do this when we don't have
-      // not loaded this span previously.
-      if (span.start < first.start) {
-        this._timespans.splice(0, 0, span);
-        this._lastTimespan = span;
-
-        span = first.trimOverlap(span) || span;
-        return this.busytime.loadSpan(span);
+      if (isFuture) {
+        month += 1;
+      } else {
+        month -= 1;
       }
 
-      var last = this._timespans[len - 1];
+      var spans = this._timespans;
+      var monthSpan = spanOfMonth(
+        new Date(
+          date.getFullYear(),
+          month,
+          1
+        )
+      );
 
-      if (span.end > last.end) {
-        this._timespans.push(span);
-        this._lastTimespan = span;
+      // check if already in span
+      var find = Calendar.binsearch.find;
+      var insert = Calendar.binsearch.insert;
 
-        span = last.trimOverlap(span) || span;
-        return this.busytime.loadSpan(span);
+      var idx = find(spans, monthSpan, Calendar.compareByStart);
+      if (idx !== null) {
+        // already loaded
+        return;
       }
+
+      var idx = Calendar.binsearch.insert(
+        spans,
+        monthSpan,
+        Calendar.compareByStart
+      );
+
+      spans.splice(idx, 0, monthSpan);
+      return this._recordSpanChange(idx, monthSpan);
     },
 
     handleEvent: function(event) {
@@ -172,10 +325,6 @@ Calendar.ns('Controllers').Time = (function() {
       var oldPosition = this._position;
       this._position = date;
 
-      this._updateCache('year', yearDate);
-      this._updateCache('month', monthDate);
-      this._updateCache('day', date);
-
       if (oldPosition) {
         if (oldPosition < date) {
           this.direction = 'future';
@@ -185,6 +334,10 @@ Calendar.ns('Controllers').Time = (function() {
           this.direction = 'future';
         }
       }
+
+      this._updateCache('year', yearDate);
+      this._updateCache('month', monthDate);
+      this._updateCache('day', date);
 
     }
 

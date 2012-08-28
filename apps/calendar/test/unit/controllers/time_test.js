@@ -11,14 +11,28 @@ suite('controller', function() {
   var busytime;
   var loaded;
 
+  function logSpan(span) {
+    if (Array.isArray(span)) {
+      return span.forEach(logSpan);
+    }
+
+    console.log();
+    console.log('START:', new Date(span.start));
+    console.log('END:', new Date(span.end));
+    console.log();
+  }
+
   setup(function() {
     loaded = [];
     app = testSupport.calendar.app();
     subject = new Calendar.Controllers.Time(app);
 
     busytime = app.store('Busytime');
-    busytime.loadSpan = function(span) {
+    busytime.loadSpan = function(span, cb) {
       loaded.push(span);
+      if (typeof(cb) !== 'undefined') {
+        setTimeout(cb, 0);
+      }
     };
   });
 
@@ -26,7 +40,13 @@ suite('controller', function() {
     assert.equal(subject.app, app);
     assert.instanceOf(subject, Calendar.Responder);
     assert.instanceOf(subject._collection, Calendar.IntervalTree);
+    assert.isFalse(subject.loading);
+    assert.equal(subject.pending, 0);
+
     assert.deepEqual(subject._timespans, []);
+  });
+
+  suite('#fitRange', function() {
   });
 
   test('#selectedDay', function() {
@@ -54,6 +74,114 @@ suite('controller', function() {
     assert.equal(subject.selectedDay, newDate);
     assert.equal(calledWith[0], newDate);
     assert.equal(calledWith[1], date);
+  });
+
+  suite('#_checkCache', function() {
+    var spans;
+    var max;
+    var events;
+
+    function loadSpans(start, inc, max) {
+      var first = inc;
+      inc = 0;
+      var i = 0;
+      var date;
+
+      for (; i < max; i++) {
+        inc = inc + first;
+        date = new Date(
+          start.getFullYear(),
+          inc,
+          1
+        );
+
+        subject.move(date);
+      }
+    }
+
+    setup(function() {
+      // turn on observers
+      subject.observe();
+      max = subject._maxTimespans;
+    });
+
+    test('going back', function(done) {
+      events = [];
+      // overlap whole time
+      var observeTime = new Calendar.Timespan(
+        new Date(2010, 11, 1),
+        new Date(2012, 11, 1)
+      );
+
+      subject.observeTime(
+        observeTime,
+        function(event) {
+          if (event.type === 'purge') {
+            events.push(event.data);
+          }
+        }
+      );
+
+      loadSpans(
+        new Date(2012, 0, 1), -1,
+        max + 3
+      );
+
+      spans = subject._timespans;
+      assert.length(spans, max + 5);
+
+      var expected = spans.slice(6, 11);
+      subject.on('loadingComplete', function() {
+        // verify that we removed the last
+        // three ranges furthest from the
+        // current point.
+        done(function() {
+          assert.length(subject._timespans, max);
+          assert.deepEqual(events, expected);
+        });
+      });
+
+    });
+
+    test('going forward', function(done) {
+      events = [];
+      // overlap whole time
+      var observeTime = new Calendar.Timespan(
+        new Date(2011, 11, 1),
+        new Date(2013, 11, 1)
+      );
+
+      subject.observeTime(
+        observeTime,
+        function(event) {
+          if (event.type === 'purge') {
+            events.push(event.data);
+          }
+        }
+      );
+
+      loadSpans(
+        new Date(2012, 0, 1), 1,
+        max + 3
+      );
+
+      spans = subject._timespans;
+      assert.length(spans, max + 5);
+
+      var expected = spans.slice(0, 5);
+
+      subject.on('loadingComplete', function() {
+        // verify that we removed the last
+        // three ranges furthest from the
+        // current point.
+        done(function() {
+          assert.length(subject._timespans, max);
+          assert.deepEqual(events, expected);
+        });
+      });
+
+    });
+
   });
 
   suite('handle busytime events', function() {
@@ -248,8 +376,24 @@ suite('controller', function() {
   suite('#_loadMonthSpan', function() {
 
     var stored;
+    var spanOfMonth;
+    var initialMove;
 
-    function hasRange(store, range) {
+    suiteSetup(function() {
+      spanOfMonth = Calendar.Calc.spanOfMonth;
+    });
+
+    function monthSpan(date) {
+      var month = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        1
+      );
+
+      return spanOfMonth(month);
+    }
+
+    function hasSpan(store, range) {
       var i = 0;
       var len = store.length;
       var item;
@@ -264,89 +408,164 @@ suite('controller', function() {
       return false;
     }
 
-    setup(function() {
+    setup(function(done) {
+      initialMove = new Date(2012, 1, 5);
       subject.observe();
+      subject.move(initialMove);
+      subject.on('loadingComplete', done);
       stored = subject._timespans;
-      subject.move(new Date(2012, 1, 5));
     });
 
-    test('go backwards', function() {
+    test('initial move', function() {
+      var expected = [
+        monthSpan(new Date(2012, 0, 1)),
+        monthSpan(new Date(2012, 1, 1)),
+        monthSpan(new Date(2012, 2, 1))
+      ];
+
+      // while we expected three spans
+      // have been loaded we also must
+      // verify the order in which they where loaded.
+      // 1. current, 2. next, 3, past
+
+      var currentLoadSpan = expected[1];
+
+      var futureLoadSpan = currentLoadSpan.trimOverlap(
+        expected[2]
+      );
+
+      var pastLoadSpan = currentLoadSpan.trimOverlap(
+        expected[0]
+      );
+
+      assert.deepEqual(subject._timespans, expected);
+      assert.deepEqual(loaded, [
+        currentLoadSpan,
+        futureLoadSpan,
+        pastLoadSpan
+      ]);
+    });
+
+    test('go backwards', function(done) {
+
       var tries = 24;
-      var idx = 0;
+      var idx = 1;
+      var isComplete = false;
+      var startInc = -1;
+
+      subject.on('loadingComplete', function() {
+        if (!isComplete) {
+          done(new Error('loading complete fired too early'));
+        }
+
+        done(function() {
+          assert.isFalse(subject.loading);
+        });
+      });
 
       for (; idx < tries; idx++) {
-        var month = idx - (idx * 2);
-        var date = new Date(2012, month, 6);
+        var month = (initialMove.getMonth() + (startInc * idx));
 
-        var range = Calendar.Calc.spanOfMonth(date);
+        var newDate = new Date(2012, month - 1, 1);
+        var currentDate = new Date(2012, month, 1);
+
+        var newSpan = spanOfMonth(newDate);
+        var currentSpan = spanOfMonth(currentDate);
+
+        assert.ok(
+          hasSpan(stored, currentSpan),
+          'should have span due to preloading'
+        );
+
         var loadRange = stored[0].trimOverlap(
-          range
+          newSpan
         );
 
-        subject.move(date);
+        subject.move(currentDate);
+        assert.equal(subject.direction, 'past');
+
+        assert.isTrue(subject.loading, 'should trigger load');
 
         assert.deepEqual(
-          subject._lastTimespan,
-          range
+          subject._currentTimespan,
+          currentSpan
         );
 
         assert.ok(
-          hasRange(stored, range),
+          hasSpan(stored, newSpan),
           'should record new range'
         );
 
+        var lastLoad = loaded[loaded.length - 1];
+
         assert.ok(
-          hasRange(loaded, loadRange),
+          hasSpan(loaded, loadRange),
           'should request trimmed load range'
         );
       }
+
+      isComplete = true;
     });
 
-    test('going forward', function() {
+    //XXX: There is too much coping / pasting
+    //here....
+    test('go forward', function(done) {
+
       var tries = 24;
-      var idx = 0;
+      var idx = 1;
+      var isComplete = false;
+      var startInc = 1;
+
+      subject.on('loadingComplete', function() {
+        if (!isComplete) {
+          done(new Error('loading complete fired too early'));
+        }
+
+        done(function() {
+          assert.isFalse(subject.loading);
+        });
+      });
 
       for (; idx < tries; idx++) {
-        var date = new Date(2012, 2 + idx, 1);
-        var range = Calendar.Calc.spanOfMonth(date);
-        var loadRange = stored[idx].trimOverlap(
-          range
+        var month = (initialMove.getMonth() + (startInc * idx));
+
+        var newDate = new Date(2012, month + 1, 1);
+        var currentDate = new Date(2012, month, 1);
+
+        var newSpan = spanOfMonth(newDate);
+        var currentSpan = spanOfMonth(currentDate);
+
+        assert.ok(
+          hasSpan(stored, currentSpan),
+          'should have span due to preloading'
         );
 
-        subject.move(date);
+        var loadRange = stored[stored.length - 1].trimOverlap(
+          newSpan
+        );
+
+
+        subject.move(currentDate);
+        assert.equal(subject.direction, 'future');
+        assert.isTrue(subject.loading, 'should trigger load');
 
         assert.deepEqual(
-          subject._lastTimespan,
-          range
+          subject._currentTimespan,
+          currentSpan
         );
 
         assert.ok(
-          hasRange(stored, range),
+          hasSpan(stored, newSpan),
           'should record new range'
         );
 
         assert.ok(
-          hasRange(loaded, loadRange),
+          hasSpan(loaded, loadRange),
           'should request trimmed load range'
         );
       }
-    });
 
-    test('initial month load', function() {
-      // load events for jan 2012
-      var range = Calendar.Calc.spanOfMonth(
-        new Date(2012, 1, 1)
-      );
-
-      assert.ok(
-        hasRange(stored, range),
-        'should record range in controller'
-      );
-
-      assert.ok(
-        hasRange(loaded, range),
-        'should request load of range'
-      );
+      isComplete = true;
     });
 
   });
