@@ -337,7 +337,7 @@ function showPlayer(data) {
   setControlsVisibility(true);
   controlFadeTimeout = setTimeout(function() {
     setControlsVisibility(false);
-  }, 1000);
+  }, 250);
 
   // Get the video file and start the player
   videodb.getFile(data.name, function(file) {
