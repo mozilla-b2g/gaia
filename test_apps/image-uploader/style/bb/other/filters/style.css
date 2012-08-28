@@ -1,0 +1,86 @@
+/* ----------------------------------
+ * FILTERS
+ * ---------------------------------- */
+
+body[role="application"] ul[role="tablist"].filter {
+  background: #a5a5a5;
+  display: inline-block;
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+
+body[role="application"] ul[role="tablist"].filter:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 0.2rem;
+  background: url(images/ui/shadow.png) repeat-x left bottom;
+}
+
+body[role="application"] ul[role="tablist"].filter li {
+  float: left;
+  text-align: center;
+  -moz-box-sizing: border-box;
+  font: bold 1.4rem/1em "Open Sans", Sans-serif;
+  color: #404040;
+  border-bottom: solid 1px #7e7d7d;
+}
+
+body[role="application"] ul[role="tablist"].filter li a {
+  display: block;
+  padding: 0.8rem 0.5rem;
+  text-decoration: none;
+  color: #404040;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Selected state */
+body[role="application"] ul[role="tablist"].filter li[aria-selected="true"] {
+  background: #fff;
+  border-bottom-color: #c2c1c1;
+  color: #000;
+}
+
+body[role="application"] ul[role="tablist"].filter li[aria-selected="true"] a {
+  color: #000;
+}
+
+/* Bottom position */
+body[role="application"] ul[role="tablist"][data-position="bottom"].filter:before {
+  bottom: 100%;
+  top: auto;
+  background-image: url(images/ui/shadow-revert.png);
+}
+
+body[role="application"] ul[role="tablist"][data-position="bottom"].filter li {
+  border-bottom: none;
+  border-top: solid 1px #7e7d7d;
+}
+
+body[role="application"] ul[role="tablist"][data-position="bottom"].filter li a {
+  padding: 1.3rem 0;
+}
+
+body[role="application"] ul[role="tablist"][data-position="bottom"].filter li[aria-selected="true"] {
+  border-top-color: #c2c1c1;
+}
+
+/* Items calcs */
+body[role="application"] ul[role="tablist"][data-items="2"].filter li {
+  width: -moz-calc(100% / 2);
+}
+
+body[role="application"] ul[role="tablist"][data-items="3"].filter li {
+  width: -moz-calc(100% / 3);
+}
+
+body[role="application"] ul[role="tablist"][data-items="4"].filter li {
+  width: -moz-calc(100% / 4);
+}

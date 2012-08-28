@@ -71,6 +71,11 @@ var NotificationScreen = {
     return this.toasterDetail = document.getElementById('toaster-detail');
   },
 
+  get clearAllButton() {
+    delete this.clearAllButton;
+    return this.clearAllButton = document.getElementById('notification-clear');
+  },
+
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
 
@@ -79,6 +84,8 @@ var NotificationScreen = {
       this.container.addEventListener(evt, this);
       this.toaster.addEventListener(evt, this);
     }, this);
+
+    this.clearAllButton.addEventListener('click', this.clearAll.bind(this));
 
     window.addEventListener('utilitytrayshow', this);
   },
@@ -134,11 +141,7 @@ var NotificationScreen = {
       return;
     }
 
-    var offset = detail.direction === 'right' ?
-      this._containerWidth : -this._containerWidth;
-
-    this._notification.style.MozTransition = '-moz-transform 0.3s linear';
-    this._notification.style.MozTransform = 'translateX(' + offset + 'px)';
+    this._notification.classList.add('disappearing');
 
     var notification = this._notification;
     this._notification = null;
@@ -148,7 +151,7 @@ var NotificationScreen = {
     notification.addEventListener('transitionend', function trListener() {
       notification.removeEventListener('transitionend', trListener);
 
-      self.removeNotification(notification.dataset.notificationID);
+      self.closeNotification(notification);
 
       if (notification != toaster)
         return;
@@ -177,7 +180,7 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    this.removeNotification(notificationNode.dataset.notificationID);
+    this.removeNotification(notificationNode.dataset.notificationID, false);
 
     if (notificationNode == this.toaster) {
       this.toaster.classList.remove('displayed');
@@ -235,27 +238,30 @@ var NotificationScreen = {
     return notificationNode;
   },
 
+  closeNotification: function ns_closeNotification(notificationNode) {
+    var notificationID = notificationNode.dataset.notificationID;
+
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, {
+      type: 'desktop-notification-close',
+      id: notificationID
+    });
+    window.dispatchEvent(event);
+
+    this.removeNotification(notificationNode.dataset.notificationID);
+  },
+
   removeNotification: function ns_removeNotification(notificationID) {
     var notifSelector = '[data-notification-i-d="' + notificationID + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
-    // Animating the next notification up
-    var nextNotification = notificationNode.nextSibling;
-    if (nextNotification) {
-      nextNotification.style.MozTransition = '-moz-transform 0.2s linear';
-      nextNotification.style.MozTransform = 'translateY(-80px)';
 
-      var self = this;
-      nextNotification.addEventListener('transitionend', function trWait() {
-        nextNotification.removeEventListener('transitionend', trWait);
-        nextNotification.style.MozTransition = '';
-        nextNotification.style.MozTransform = '';
+    notificationNode.parentNode.removeChild(notificationNode);
+    this.updateStatusBarIcon();
+  },
 
-        notificationNode.parentNode.removeChild(notificationNode);
-        self.updateStatusBarIcon();
-      });
-    } else {
-      notificationNode.parentNode.removeChild(notificationNode);
-      this.updateStatusBarIcon();
+  clearAll: function ns_clearAll() {
+    while (this.container.firstElementChild) {
+      this.closeNotification(this.container.firstElementChild);
     }
   },
 
