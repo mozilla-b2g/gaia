@@ -44,9 +44,8 @@
  */
 Calendar.IntervalTree = (function() {
 
-  function compareObject(a, b) {
-    return Calendar.compare(a.start, b.start);
-  }
+  var compareObjectStart = Calendar.compareByStart;
+  var compareObjectEnd = Calendar.compareByEnd;
 
   /**
    * Internal function to add an item
@@ -189,6 +188,8 @@ Calendar.IntervalTree = (function() {
     } else {
       this.items = list.concat([]);
     }
+
+    this.byId = Object.create(null);
     this.synced = false;
   };
 
@@ -201,25 +202,37 @@ Calendar.IntervalTree = (function() {
       }
     },
 
+    _getId: function(item) {
+      return item._id;
+    },
+
     /**
      * Adds an item to the tree
      */
     add: function(item) {
+      var id = this._getId(item);
+
+      if (id in this.byId)
+        return;
+
       var idx = Calendar.binsearch.insert(
         this.items,
         item,
-        compareObject
+        compareObjectStart
       );
 
       this.items.splice(idx, 0, item);
+      this.byId[id] = item;
       this.synced = false;
+
+      return item;
     },
 
     indexOf: function(item) {
       var idx = Calendar.binsearch.find(
         this.items,
         item.start,
-        compareObject
+        compareObjectStart
       );
 
       var prevIdx;
@@ -277,12 +290,124 @@ Calendar.IntervalTree = (function() {
       var idx = this.indexOf(item);
 
       if (idx !== null) {
+        this._removeIds(this.items[idx]);
+
         this.items.splice(idx, 1);
         this.synced = false;
         return true;
       }
 
       return false;
+    },
+
+    _removeIds: function(item) {
+      if (Array.isArray(item)) {
+        item.forEach(this._removeIds, this);
+      } else {
+        var id = this._getId(item);
+        delete this.byId[id];
+      }
+    },
+
+    /**
+     * Remove all intervals that start
+     * after a particular time.
+     *
+     *    // assume we have a list of the
+     *    // following intervals
+     *    1-2 4-10 5-10 6-8 8-9
+     *
+     *    tree.removeFutureIntervals(5);
+     *
+     *    // now we have: 1-2, 4-10 5-10
+     *
+     * @param {Numeric} start last start point.
+     */
+    removeFutureIntervals: function(start) {
+      var idx = Calendar.binsearch.insert(
+        this.items,
+        { start: start },
+        compareObjectStart
+      );
+
+      var max = this.items.len - 1;
+
+      if (!this.items[idx])
+        return;
+
+
+      // for duplicate values we need
+      // to find the very last one
+      // before the split point.
+      while (this.items[idx] && this.items[idx].start <= start) {
+        idx++;
+        if (idx === max) {
+          break;
+        }
+      }
+
+      this.synced = false;
+      var remove = this.items.splice(
+        idx, this.items.length - idx
+      );
+
+      this._removeIds(remove);
+
+      return remove;
+    },
+
+    /**
+     * Remove all intervals that end
+     * before a particular time.
+     *
+     * For example is you have:
+     *
+     *    // assume we have a list of the
+     *    // following intervals
+     *    1-10, 2-3, 3-4, 4-5
+     *
+     *    tree.removePastIntervals(4);
+     *
+     *    // now we have: 1-10, 4-5
+     *
+     * @param {Numeric} end last end point.
+     */
+    removePastIntervals: function(end) {
+      // 1. first re-sort to end dates.
+      var items = this.items.sort(compareObjectEnd);
+
+      // 2. find index of the last date ending
+      // on or before end.
+      var idx = Calendar.binsearch.insert(
+        items,
+        { end: end },
+        compareObjectEnd
+      );
+
+      var max = items.len - 1;
+
+      if (!items[idx])
+        return;
+
+      // for duplicate values we need
+      // to find the very last one
+      // before the split point.
+      while (items[idx].end <= end) {
+        idx++;
+        if (idx === max) {
+          break;
+        }
+      }
+
+      this.synced = false;
+      var remove = items.slice(0, idx);
+      this.items = items.slice(idx).sort(
+        compareObjectStart
+      );
+
+      this._removeIds(remove);
+
+      return remove;
     },
 
     /**

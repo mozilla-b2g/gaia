@@ -5,8 +5,6 @@
     Calendar.View.apply(this, arguments);
 
     this.controller = this.app.timeController;
-    this.busytime = this.app.store('Busytime');
-
     this._initEvents();
   }
 
@@ -110,12 +108,12 @@
         date.getDate() + 1
       );
 
-      var busytime = this.busytime;
+      var controller = this.controller;
 
       endDate.setMilliseconds(-1);
 
       if (this._timespan) {
-        busytime.removeTimeObserver(
+        controller.removeTimeObserver(
           this._timespan,
           this
         );
@@ -127,7 +125,7 @@
         endDate
       );
 
-      busytime.observeTime(this._timespan, this);
+      controller.observeTime(this._timespan, this);
 
       // clear out all children
       this.events.innerHTML = '';
@@ -140,8 +138,7 @@
       // find all records for range.
       // if change state is the same
       // then run _renderDay(list)
-
-      var store = this.busytime;
+      var store = this.app.store('Event');
 
       // keep local record of original
       // token if this changes we know
@@ -149,7 +146,11 @@
       var token = this._changeToken;
       var self = this;
 
-      store.eventsInCachedSpan(this._timespan, function(err, list) {
+      var cached = this.controller.queryCache(
+        this._timespan
+      );
+
+      store.findByAssociated(cached, function(err, list) {
         if (self._changeToken !== token) {
           // tokens don't match we don't
           // care about these results anymore...
