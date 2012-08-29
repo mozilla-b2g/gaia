@@ -1,12 +1,12 @@
 
 var fb = window.fb || {};
 
-if (typeof fb.importt === 'undefined') {
+if (typeof fb.importer === 'undefined') {
   (function(document) {
     'use strict';
 
-    var owdFbInt = fb.importt = {};
-    var UI = owdFbInt.ui = {};
+    var Importer = fb.importer = {};
+    var UI = Importer.ui = {};
 
     // Friends selected to be sync to the address book
     var selectedContacts = {};
@@ -62,7 +62,7 @@ if (typeof fb.importt === 'undefined') {
       // Multiquery String
       var multiQStr = JSON.stringify(multiqObj);
 
-      var selButton = document.querySelector('#selunsel');
+      var selButton = document.querySelector('#select-all');
       var contactList = document.querySelector('#groups-list');
 
       var BLOCK_SIZE = 5;
@@ -79,7 +79,7 @@ if (typeof fb.importt === 'undefined') {
      *
      */
     function tokenReady(at) {
-      owdFbInt.getFriends(at);
+      Importer.getFriends(at);
     }
 
     /**
@@ -114,7 +114,7 @@ if (typeof fb.importt === 'undefined') {
     function disableExisting(friends) {
       var newValue = myFriends.length - friends.length;
 
-      var eleNumImport = document.querySelector('#nfriends');
+      var eleNumImport = document.querySelector('#num-friends');
       if (eleNumImport.value && eleNumImport.value.length > 0) {
         var newValue = parseInt(eleNumImport.value) - friends.length;
       }
@@ -139,10 +139,10 @@ if (typeof fb.importt === 'undefined') {
      *  Gets the Facebook friends by invoking Graph API using JSONP mechanism
      *
      */
-    owdFbInt.getFriends = function(access_token) {
+    Importer.getFriends = function(access_token) {
       document.body.dataset.state = 'waiting';
 
-      fb.utils.runQuery(multiQStr, 'fb.importt.friendsReady', access_token);
+      fb.utils.runQuery(multiQStr, 'fb.importer.friendsReady', access_token);
 
       // In the meantime we obtain the FB friends already on the Address Book
       if (!navigator.mozContacts) {
@@ -161,20 +161,20 @@ if (typeof fb.importt === 'undefined') {
                                   e.target.error.name); }
     }
 
-    owdFbInt.importFriend = function(uid, access_token) {
+    Importer.importFriend = function(uid, access_token) {
       currentRequest = new fb.utils.Request();
 
       window.setTimeout(function do_importFriend() {
         var oneFriendQuery = buildFriendQuery(uid);
 
         fb.utils.runQuery(oneFriendQuery,
-                                'fb.importt.importDataReady', access_token);
+                                'fb.importer.importDataReady', access_token);
       },0);
 
       return currentRequest;
     }
 
-    owdFbInt.importDataReady = function(response) {
+    Importer.importDataReady = function(response) {
       if (typeof response.error === 'undefined') {
         var friend = response.data[0].fql_result_set[0];
         if (friend) {
@@ -228,7 +228,7 @@ if (typeof fb.importt === 'undefined') {
      *
      *
      */
-    owdFbInt.friendsReady = function(response) {
+    Importer.friendsReady = function(response) {
       if (typeof response.error === 'undefined') {
         var lmyFriends = response.data[0].fql_result_set;
 
@@ -298,7 +298,7 @@ if (typeof fb.importt === 'undefined') {
      */
     UI.importAll = function(e) {
       if (Object.keys(selectedContacts).length > 0) {
-        owdFbInt.importAll(function() {
+        Importer.importAll(function() {
 
           document.body.dataset.state = '';
           var list = [];
@@ -662,7 +662,7 @@ if (typeof fb.importt === 'undefined') {
      *  Imports all the selected contacts on the address book
      *
      */
-    owdFbInt.importAll = function(importedCB) {
+    Importer.importAll = function(importedCB) {
       document.body.dataset.state = 'waiting';
 
       var cImporter = new ContactsImporter(selectedContacts);

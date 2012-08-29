@@ -36,7 +36,7 @@ contacts.List = (function() {
     agroups.forEach(function(group) {
       // New element appended
       var ele = utils.templates.append(groupsList, {group: group});
-      ele.addEventListener('click', fb.importt.ui.selection);
+      ele.addEventListener('click', fb.importer.ui.selection);
 
       // Array of friends
       var friends = groups[group];

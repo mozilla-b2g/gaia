@@ -92,7 +92,7 @@ if (typeof fb.oauth === 'undefined') {
       clearStorage();
 
       // This page will be in charge of handling authorization
-      owdFbAuth.start(state);
+      fb.oauthflow.start(state);
     }
 
     window.addEventListener('message', tokenDataReady, false);

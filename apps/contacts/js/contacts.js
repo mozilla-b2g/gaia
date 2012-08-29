@@ -414,22 +414,27 @@ var Contacts = (function() {
 
   var reloadContactDetails = function reloadContactDetails() {
     var contact = currentContact;
+    var isFbContact = fb.isFbContact(contact);
 
-    if (fb.isFbContact(contact) && !fb.isFbLinked(contact)) {
+    if (isFbContact && !fb.isFbLinked(contact)) {
       editContactButton.setAttribute('disabled', 'disabled');
     } else {
       editContactButton.removeAttribute('disabled');
     }
 
-    if (fb.isFbContact(contact)) {
+    if (isFbContact) {
       var fbContact = new fb.Contact(contact);
       var req = fbContact.getData();
 
-      req.onsuccess = function() { doReloadContactDetails(req.result); }
+      req.onsuccess = function do_reload() {
+        doReloadContactDetails(req.result);
+      }
+
       req.onerror = function() {
         window.console.error('FB: Error while loading FB contact data');
         doReloadContactDetails(contact);
       }
+
     } else {
               editContactButton.removeAttribute('disabled');
               doReloadContactDetails(contact);
@@ -440,9 +445,7 @@ var Contacts = (function() {
   //
   // Method that generates HTML markup for the contact
   //
-  var doReloadContactDetails = function doReloadContactDetails(c) {
-    var contact = c;
-
+  var doReloadContactDetails = function doReloadContactDetails(contact) {
     toggleFavoriteMessage(isFavorite(contact));
 
     detailsName.textContent = contact.name;
@@ -494,16 +497,20 @@ var Contacts = (function() {
     }
 
     if (contact.bday) {
-      var bdayTemplate = document.getElementById('birthday-template-#i#');
+      var birthdayTemplate = document.getElementById('birthday-template-#i#');
 
       // TODO: Fix this with a locale function for dates!!!!
       var months = ['January', 'February', 'March', 'April', 'May', 'June',
                     'July', 'August', 'September', 'October', 'November',
                     'December'];
-      var bdayString = contact.bday.getDate() + ', ' +
+      var birthdayString = contact.bday.getDate() + ', ' +
                                             months[contact.bday.getMonth()];
-      var e = utils.templates.render(bdayTemplate,
-                                     {i: contact.id, bday: bdayString});
+
+      var element = utils.templates.render(birthdayTemplate, {
+        i: contact.id,
+        bday: birthdayString
+      });
+
       listContainer.appendChild(e);
     }
 
@@ -516,10 +523,14 @@ var Contacts = (function() {
         action = _('social-unlink');
         linked = 'false';
       }
+
       var socialTemplate = document.getElementById('social-template-#i#');
-      var social = utils.templates.render(socialTemplate, {i: contact.id,
-                                                            action: action,
-                                                            linked: linked});
+      var social = utils.templates.render(socialTemplate, {
+        i: contact.id,
+        action: action,
+        linked: linked
+      });
+
       listContainer.appendChild(social);
     }
 

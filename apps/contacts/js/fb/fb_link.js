@@ -275,7 +275,7 @@ if (!fb.link) {
           notifyParent(friendUid);
         }
         else {
-          var importReq = fb.importt.importFriend(friendUid, access_token);
+          var importReq = fb.importer.importFriend(friendUid, access_token);
           document.body.dataset.state = 'waiting';
 
           importReq.onsuccess = function() {

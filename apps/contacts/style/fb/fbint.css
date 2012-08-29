@@ -3,16 +3,16 @@
 }
 
 html, body {
-   overflow:hidden;
+   overflow: hidden;
 }
 
 #curtain {
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  display:none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
 }
 
 #curtain > div {
@@ -30,7 +30,7 @@ html, body {
   margin: 2.5rem auto 1.5rem;
 }
 
-p#mfriends {
+p#friends-msg {
   font-size: 1.5rem;
   margin-left: 3rem;
   height: 2rem !important;
@@ -55,17 +55,17 @@ p#mfriends {
 
 
 body[data-state='waiting'] #curtain {
-  display:block;
+  display: block;
 }
 
 body[data-state='waiting'] #content {
-  display:none;
+  display: none;
 }
 
 
 h2.block-title {
   border-bottom: 1px solid #4D77CF; color: #4D77CF;
-  margin:0;
+  margin: 0;
 }
 
 #main {
@@ -84,7 +84,7 @@ h2.block-title {
   color: #333;
   text-align: left;
 
-  height:-moz-calc(100% - 8.5rem);
+  height: -moz-calc(100% - 8.5rem);
 }
 
 #groups-list {
@@ -95,12 +95,12 @@ h2.block-title {
 #shortcuts {
   position: fixed;
   right: 0;
-  top:5rem;
+  top: 5rem;
   bottom: 1rem;
-  height:-moz-calc(100% - 6.6rem - 6.5rem);
+  height: -moz-calc(100% - 6.6rem - 6.5rem);
   width: 4.5rem;
 
-  background:transparent !important;
+  background: transparent !important;
 
    z-index:100;
 }
@@ -113,9 +113,9 @@ h2.block-title {
 #shortcuts ol {
   height: 100%;
   padding: 0.3rem 0;
-  padding-left:1rem;
+  padding-left: 1rem;
   opacity: 0.6;
-  width:100%;
+  width: 100%;
 }
 
 #shortcuts li {
@@ -181,4 +181,3 @@ li[data-uuid]{
 li[data-uuid]:last-child {
   border-bottom: none !important;
 }
-

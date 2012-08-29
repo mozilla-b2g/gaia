@@ -1,21 +1,20 @@
 /*
  *  Module: Facebook integration
  *
- *  Product: Open Web Device
+ *  This script file contains all the logic that allows to obtain an access
+ *  token through an OAuth 2.0 implicit grant flow
  *
- *
- *  @author José M. Cantera (jmcf@tid.es)
- *
- *  The module allows to work with Facebook providing a deep integration
- *  between the Open Web Device and Facebook
  *
  *
  */
-if (typeof window.owdFbAuth === 'undefined') {
+
+var fb = window.fb || {};
+
+if (typeof fb.oauthflow === 'undefined') {
   (function(document) {
     'use strict';
 
-    var owdFbAuth = window.owdFbAuth = {};
+    var OAuthFlow = fb.oauthflow = {};
 
     var OAUTH_REDIRECT = 'facebook.oauth20.redirectURI';
     var FB_ENDPOINT = 'facebook.oauth20.loginPage';
@@ -71,7 +70,7 @@ if (typeof window.owdFbAuth === 'undefined') {
      *  Initialization function it tries to find an access token
      *
      */
-    owdFbAuth.init = function() {
+    OAuthFlow.init = function() {
       var hash = document.location.hash.substring(1);
 
       if (hash.indexOf('access_token') !== -1 || hash.indexOf('state') !== -1) {
@@ -93,7 +92,7 @@ if (typeof window.owdFbAuth === 'undefined') {
     } // init
 
 
-    owdFbAuth.start = function(state) {
+    OAuthFlow.start = function(state) {
       getAccessToken(state);
     }
 
