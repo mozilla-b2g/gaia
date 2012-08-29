@@ -650,7 +650,7 @@ var Contacts = (function() {
   var updatePhoto = function updatePhoto(photo, dest) {
     var background = '';
     if (photo != null) {
-      var background = 'url(' + URL.createObjectURL(photo) + ')';
+      background = 'url(' + URL.createObjectURL(photo) + ')';
     }
     dest.style.backgroundImage = background;
   };
