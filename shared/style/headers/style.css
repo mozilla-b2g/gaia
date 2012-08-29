@@ -270,21 +270,21 @@ section[role="region"] > header + form.search input[type="text"]:-moz-placeholde
 /* ----------------------------------
  * HEADERS: dark
  * ---------------------------------- */
-section[role="region"][data-theme="dark"] > header,
-section[role="region"] > header[data-theme="dark"] {
+section[role="region"].skin-dark > header,
+section[role="region"] > header.skin-dark {
   background: url(images/ui/dark/header.png) repeat-x 0 0;
 }
 
 /* Navigation links (back, cancel, etc) */
-section[role="region"][data-theme="dark"] > header > a .icon:after,
-section[role="region"] > header[data-theme="dark"] > a .icon:after,
-section[role="region"][data-theme="dark"] > header > button .icon:after,
-section[role="region"]> header[data-theme="dark"]  > button .icon:after {
+section[role="region"].skin-dark > header > a .icon:after,
+section[role="region"] > header.skin-dark > a .icon:after,
+section[role="region"].skin-dark > header > button .icon:after,
+section[role="region"]> header.skin-dark  > button .icon:after {
   background: #26272c url(images/ui/dark/negative.png) repeat-x 0 0;
 }
 
-section[role="region"][data-theme="dark"] > header[aria-level="2"],
-section[role="region"] > header[aria-level="2"][data-theme="dark"] {
+section[role="region"].skin-dark > header[aria-level="2"],
+section[role="region"] > header[aria-level="2"].skin-dark {
   background: #7f7f7f url(images/ui/dark/subheader.png) repeat-x left bottom;
   color: #c5c5c5;
 }
@@ -293,8 +293,8 @@ section[role="region"] > header[aria-level="2"][data-theme="dark"] {
  * HEADERS: overlay
  * ---------------------------------- */
 
-section[role="region"] > header[data-theme="overlay"],
-section[role="region"][data-theme="overlay"] > header {
+section[role="region"] > header.skin-overlay,
+section[role="region"].skin-overlay > header {
   background: url(images/ui/overlay/header.png) repeat 0 0;
   position: absolute;
   left: 0;
@@ -303,17 +303,17 @@ section[role="region"][data-theme="overlay"] > header {
   width: 100%;
 }
 
-section[role="region"] > header[data-theme="overlay"] > button .icon:after,
-section[role="region"][data-theme="overlay"]  > header> button .icon:after,
-section[role="region"] > header[data-theme="overlay"] > a .icon:after,
-section[role="region"][data-theme="overlay"]  > header > a .icon:after {
+section[role="region"] > header.skin-overlay > button .icon:after,
+section[role="region"].skin-overlay  > header> button .icon:after,
+section[role="region"] > header.skin-overlay > a .icon:after,
+section[role="region"].skin-overlay  > header > a .icon:after {
   background: none;
 }
 
-section[role="region"] > header[data-theme="overlay"] menu[type="toolbar"] a:last-child,
-section[role="region"][data-theme="overlay"]  > header menu[type="toolbar"] a:last-child,
-section[role="region"] > header[data-theme="overlay"] menu[type="toolbar"] button:last-child,
-section[role="region"][data-theme="overlay"]  > header menu[type="toolbar"] button:last-child {
+section[role="region"] > header.skin-overlay menu[type="toolbar"] a:last-child,
+section[role="region"].skin-overlay  > header menu[type="toolbar"] a:last-child,
+section[role="region"] > header.skin-overlay menu[type="toolbar"] button:last-child,
+section[role="region"].skin-overlay  > header menu[type="toolbar"] button:last-child {
   background-image: url(images/ui/overlay/separator.png);
 }
 
@@ -321,33 +321,33 @@ section[role="region"][data-theme="overlay"]  > header menu[type="toolbar"] butt
  * HEADERS: organic
  * ---------------------------------- */
 
-section[role="region"][data-theme="organic"] > header,
-section[role="region"] > header[data-theme="organic"] {
+section[role="region"].skin-organic > header,
+section[role="region"] > header.skin-organic {
   background: url(images/ui/organic/header.png) repeat-x 0 0,  url(images/ui/organic/pattern.png) repeat 0 0;
 }
 
-section[role="region"][data-theme="organic"] > header:after,
-section[role="region"] > header[data-theme="organic"]:after {
+section[role="region"].skin-organic > header:after,
+section[role="region"] > header.skin-organic:after {
   margin-top: -1px;
 }
 
 /* Navigation links (back, cancel, etc) */
-section[role="region"][data-theme="organic"] > header > a .icon:after,
-section[role="region"] > header[data-theme="organic"] > a .icon:after,
-section[role="region"][data-theme="organic"] > header > button .icon:after,
-section[role="region"]> header[data-theme="organic"]  > button .icon:after {
+section[role="region"].skin-organic > header > a .icon:after,
+section[role="region"] > header.skin-organic > a .icon:after,
+section[role="region"].skin-organic > header > button .icon:after,
+section[role="region"]> header.skin-organic  > button .icon:after {
   background: url(images/ui/organic/negative.png) repeat-x 0 0;
 }
 
-section[role="region"][data-theme="organic"] > header menu[type="toolbar"] a:last-child,
-section[role="region"] > header[data-theme="organic"] menu[type="toolbar"] a:last-child,
-section[role="region"][data-theme="organic"] > header menu[type="toolbar"] button:last-child,
-section[role="region"]> header[data-theme="organic"] menu[type="toolbar"] button:last-child {
+section[role="region"].skin-organic > header menu[type="toolbar"] a:last-child,
+section[role="region"] > header.skin-organic menu[type="toolbar"] a:last-child,
+section[role="region"].skin-organic > header menu[type="toolbar"] button:last-child,
+section[role="region"]> header.skin-organic menu[type="toolbar"] button:last-child {
   background-image: url(images/ui/organic/separator.png);
 }
 
-section[role="region"][data-theme="organic"] > header[aria-level="2"],
-section[role="region"] > header[aria-level="2"][data-theme="organic"] {
+section[role="region"].skin-organic > header[aria-level="2"],
+section[role="region"] > header[aria-level="2"].skin-organic {
   background: #7f7f7f url(images/ui/organic/subheader.png) repeat-x left bottom;
   color: #fff;
 }
