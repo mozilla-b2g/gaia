@@ -26,7 +26,6 @@ Common = window.CommonResourceLoader = {
 
 
 require('/common/vendor/mocha/mocha.js');
-require('/common/vendor/marionette-client/marionette.js');
 process.stdout.write = window.xpcDump;
 
 //Hack to format errors
@@ -109,7 +108,7 @@ if (!(reporter in mocha.reporters)) {
     reporter: mocha.reporters[reporter]
   });
 
-  require('helper.js');
+  require('integration_helper.js')
 
   window.xpcArgv.slice(2).forEach(function(test) {
     require(test);
