@@ -467,7 +467,6 @@ var Contacts = (function() {
     if (contact.bday) {
       var bdayTemplate = document.getElementById('birthday-template-#i#');
 
-      var _ = navigator.mozL10n.get;
       var f = new navigator.mozL10n.DateTimeFormat();
       var bdayFormat = _('birthdayDateFormat') || '%e %B';
       var bdayString = f.localeFormat(contact.bday, bdayFormat);
