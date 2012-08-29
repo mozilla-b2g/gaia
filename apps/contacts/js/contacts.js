@@ -885,8 +885,8 @@ var Contacts = (function() {
     request.onsuccess = function onsuccess() {
       var cList = contacts.List;
       /*
-         We are returning two contacts because the enrichedContact is readonly
-         and we don't want when a Contact is edited to save
+         Two contacts are returned because the enrichedContact is readonly
+         and if the Contact is edited we need to prevent saving
          FB data on the mozContacts DB.
       */
        cList.getContactById(currentContact.id,

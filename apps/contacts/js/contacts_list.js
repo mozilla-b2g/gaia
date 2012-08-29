@@ -315,7 +315,11 @@ contacts.List = (function() {
     }
   }
 
-
+  /*
+    Two contacts are returned because the enrichedContact is readonly
+    and if the Contact is edited we need to prevent saving
+    FB data on the mozContacts DB.
+  */
   var addToList = function addToList(contact, enrichedContact) {
     var newLi;
 
