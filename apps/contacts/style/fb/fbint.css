@@ -1,9 +1,9 @@
 *[data-template] {
-    display: none !important;
+  display: none !important;
 }
 
 html, body {
-   overflow: hidden;
+  overflow: hidden;
 }
 
 #curtain {
@@ -102,7 +102,7 @@ h2.block-title {
 
   background: transparent !important;
 
-   z-index:100;
+  z-index:100;
 }
 
 
@@ -124,7 +124,7 @@ h2.block-title {
   text-align: center;
   text-transform: uppercase;
 
-   width:100%;
+  width:100%;
 }
 
 #shortcuts  a, #shortcuts  abbr {
