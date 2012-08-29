@@ -123,6 +123,12 @@ window.addEventListener('localized', function startup(evt) {
 });
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  // Workaround here until the bug (to be filed) is fixed
+  // Gecko is sending an activity event in every multiple entry point
+  // instead only the one that the href match.
+  if (activity.source.name != 'dial')
+    return;
+
   var number = activity.source.data.number;
   var fillNumber = function actHandleDisplay() {
     if (number) {
