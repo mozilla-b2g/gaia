@@ -9,6 +9,8 @@
   <link rel="stylesheet" type="text/css" href="style/folder-cards.css">
   <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
   <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/headers/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/lists/style.css">
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <!-- Shared code -->
@@ -388,26 +390,37 @@
       </div>
 
       <!-- Main settings menu, root of all (mail) settings -->
-      <div class="card-settings-main card">
-        <div class="tng-main-header top-header">
+      <section class="card-settings-main card" role="region" data-theme="organic">
+        <header class="tng-main-header" aria-level="1">
           <button class="tng-close-btn header-left-btn"
                   data-l10n-id="settings-close">
             <span class="icon icon-close"></span>
           </button>
-          <h2 class="tng-main-header-label header-label"
-              data-l10n-id="settings-main-header">MaiL SettingS</h2>
-        </div>
-        <div class="scrollregion-below-header">
-          <h3 class="tng-main-accounts-label tng-header-item"
-              data-l10n-id="settings-account-section">AccountS</h3>
+          <menu type="toolbar">
+            <button>done</button>
+          </menu>
+          <h1 class="tng-main-header-label"
+              data-l10n-id="settings-main-header">MaiL SettingS</h1>
+        </header>
+        <section class="scrollregion-below-header" role="region" data-theme="organic">
+          <header class="tng-main-accounts-label" aria-level="2">
+            <p data-l10n-id="settings-account-section">AccountS</p>
+          </header>
           <div class="tng-accounts-container"></div>
           <a class="tng-account-add tng-item"
              data-l10n-id="settings-account-add">AdD AccounT</a>
-          <h3 class="tng-main-about-label tng-header-item"
-              data-l10n-id="settings-about-section">AbouT</h3>
+          <header class="tng-main-about-label" aria-level="2">
+            <p data-l10n-id="settings-about-section">AbouT</p>
+          </header>
+          <ul>
+            <li><dl><dt>Check mail</dt></dl></li>
+            <li><dl><dt>Always show images</dt></dl></li>
+            <li><dl><dt>Download attachments</dt></dl></li>
+            <li><dl><dt>Notify me of new mail</dt></dl></li>
+          </ul>
           <a class="tng-email-lib-version tng-inert-item tng-item">v1</a>
-        </div>
-      </div>
+        </section>
+      </section>
 
       <!-- Per-account settings menu; largely read-only for now -->
       <div class="card-settings-account card">
