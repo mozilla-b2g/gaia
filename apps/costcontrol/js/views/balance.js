@@ -478,8 +478,8 @@ Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   return {
     init: _init,
     updateUI: _updateUI,
-    showTopUp: function ccapp_showTopUp () {
+    showTopUp: function ccapp_showTopUp() {
       ViewManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
     }
-  }
+  };
 }());
