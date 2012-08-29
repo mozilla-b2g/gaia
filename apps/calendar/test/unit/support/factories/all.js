@@ -185,11 +185,18 @@
         obj.endDate = endDate;
       }
 
+      if (obj.start && !obj.startDate)
+        obj.startDate = new Date(obj.start);
+
+      if (obj.end && !obj.endDate)
+        obj.endDate = new Date(obj.end);
+
       if (!obj.start)
         obj.start = obj.startDate.valueOf();
 
       if (!obj.end)
         obj.end = obj.endDate.valueOf();
+
 
     }
   });
