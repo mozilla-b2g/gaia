@@ -30,7 +30,145 @@ suite('timespan', function() {
     );
   });
 
- suite('#overlaps', function() {
+  test('#isEqual', function() {
+    var span = new Calendar.Timespan(
+      new Date(2012, 1, 1),
+      new Date(2012, 1, 5)
+    );
+
+    var eqlSpan = new Calendar.Timespan(
+      new Date(2012, 1, 1),
+      new Date(2012, 1, 5)
+    );
+
+    var notEqualSpan = new Calendar.Timespan(
+      new Date(2012, 1, 1),
+      new Date(2012, 1, 6)
+    );
+
+    assert.isTrue(span.isEqual(eqlSpan));
+    assert.isFalse(span.isEqual(notEqualSpan));
+  });
+
+  test('#daysBetween', function() {
+    var range = new Calendar.Timespan(
+      new Date(2012, 1, 1),
+      new Date(2012, 1, 3)
+    );
+
+    var dates = range.daysBetween();
+    assert.deepEqual(
+      dates[0],
+      new Date(2012, 1, 1)
+    );
+
+    assert.deepEqual(
+      dates[1],
+      new Date(2012, 1, 2)
+    );
+
+    assert.deepEqual(
+      dates[2],
+      new Date(2012, 1, 3)
+    );
+  });
+
+  suite('#trimOverlap', function() {
+    var before;
+    var subject;
+    var none;
+
+    setup(function() {
+      none = new Calendar.Timespan(
+        new Date(2012, 5, 1),
+        new Date(2012, 5, 15)
+      );
+
+      before = new Calendar.Timespan(
+        // July 1
+        new Date(2012, 6, 1),
+        // Aug 4th
+        new Date(2012, 7, 4)
+      );
+
+      subject = new Calendar.Timespan(
+        // July 29th
+        new Date(2012, 6, 29),
+        // Aug 31
+        new Date(2012, 7, 31)
+      );
+    });
+
+    test('middle', function() {
+      var long = new Calendar.Timespan(
+        new Date(2012, 0, 1),
+        new Date(2012, 0, 31)
+      );
+
+      var short = new Calendar.Timespan(
+        new Date(2012, 0, 5),
+        new Date(2012, 0, 10)
+      );
+
+      assert.isNull(
+        long.trimOverlap(short),
+        'should return null subject contains given'
+      );
+
+      assert.isNull(
+        short.trimOverlap(long),
+        'should return null when given contains subject'
+      );
+    });
+
+    test('no overlap', function() {
+      var out = before.trimOverlap(none);
+      assert.deepEqual(out, none);
+    });
+
+    test('overlaps && input.end > subject.start', function() {
+      var output = subject.trimOverlap(
+        before
+      );
+
+      var start = new Date(2012, 6, 1);
+      var end = new Date(
+        2012, 6, 29
+      );
+
+      end.setMilliseconds(-1);
+
+      var expected = new Calendar.Timespan(
+        start, end
+      );
+
+      assert.deepEqual(output, expected);
+    });
+
+    test('overlaps && subject.end > input.start', function() {
+      var output = before.trimOverlap(
+        subject
+      );
+
+      var start = new Date(2012, 7, 4);
+      start.setMilliseconds(
+        start.getMilliseconds() + 1
+      );
+
+      var end = new Date(
+        2012, 7, 31
+      );
+
+      var expected = new Calendar.Timespan(
+        start, end
+      );
+
+      assert.deepEqual(output, expected);
+    });
+
+  });
+
+  suite('#overlaps', function() {
     var dates;
 
     suiteSetup(function() {

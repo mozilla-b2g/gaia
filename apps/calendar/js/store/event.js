@@ -39,6 +39,56 @@
     },
 
     /**
+     * Finds associated events with a given
+     * list of records that have a eventId property.
+     * Results are returned in the same order
+     * as the given records.
+     *
+     * Results are paired [associated, event].
+     * Commonly used for busytime to event lookups...
+     *
+     * @param {Array} records array of associated records.
+     * @param {Function} callback node style.
+     */
+    findByAssociated: function(records, callback) {
+      records = (Array.isArray(records)) ? records : [records];
+
+      var results = [];
+      var idTable = Object.create(null);
+
+      records.forEach(function(item) {
+        idTable[item.eventId] = true;
+      });
+
+      // create unique list of event ids...
+      var ids = Object.keys(idTable);
+      idTable = undefined;
+
+      this.findByIds(ids, function(err, list) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        var i = 0;
+        var len = records.length;
+        var record;
+        var event;
+
+        for (; i < len; i++) {
+          record = records[i];
+          event = list[record.eventId];
+          if (event) {
+            results.push([record, event]);
+          }
+        }
+
+        callback(null, results);
+      });
+
+    },
+
+    /**
      * Finds a list of events by id.
      *
      * @param {Array} ids list of ids.
