@@ -37,21 +37,14 @@ var gMobileConnection = (function(window) {
 // handle data settings
 window.addEventListener('load', function getCarrierSettings() {
   var APN_FILE = 'serviceproviders.xml';
-  var gAPNDocument;
-  var gNetwork;
+  var gUserChosenAPN = false;
+  var gAPNDocument = null;
+  var gNetworkID = { mcc: 0, mnc: 0 };
+  var gNetwork = null;
 
   // initialize data settings
   gMobileConnection.addEventListener('datachange', updateConnection);
   updateConnection();
-
-  // toggle advanced settings when requested
-  var gAdvancedSettings = document.getElementById('apnSettings-advanced');
-  function expandAdvancedSettings() {
-    gAdvancedSettings.classList.remove('collapsed');
-  }
-  function toggleAdvancedSettings() {
-    gAdvancedSettings.classList.toggle('collapsed');
-  }
 
   // query <apn> elements matching the mcc/mnc arguments
   function queryAPN(apnDocument, mcc, mnc, usageFilter) {
@@ -108,6 +101,7 @@ window.addEventListener('load', function getCarrierSettings() {
       rilData('user').value = item.username;
       rilData('passwd').value = item.password;
     };
+    input.setAttribute('data-ignore', '');
 
     // include the radio button element in a list item
     var span = document.createElement('span');
@@ -120,8 +114,6 @@ window.addEventListener('load', function getCarrierSettings() {
     li.appendChild(label);
     li.appendChild(a);
 
-    // mark the list item if it corresponds to the default APN
-    li.selected = selected;
     return li;
   }
 
@@ -151,6 +143,32 @@ window.addEventListener('load', function getCarrierSettings() {
     for (var i = 0; i < results.length; i++) {
       apnList.insertBefore(createAPNItem(results[i]), lastItem);
     }
+
+    // find the current APN
+    lastItem.querySelector('input').checked = true;
+    var settings = window.navigator.mozSettings;
+    if (settings && !gUserChosenAPN) {
+      var radios = apnList.querySelectorAll('input[type="radio"]');
+      var found = false;
+      var key = 'APN.name';
+      for (var i = 0; i < radios.length; i++) {
+        (function(radio) {
+          var request = settings.getLock().get(key);
+          request.onsuccess = function() {
+            if (request.result[key] != undefined) {
+              radio.checked = (request.result[key] === radio.value);
+              found = found || radio.checked;
+            }
+          };
+        })(radios[i]);
+      }
+    }
+    document.getElementById('apnSettings').onchange = function onChange(event) {
+      gUserChosenAPN = true;
+      if (event.target.type == 'text') {
+        lastItem.querySelector('input').checked = true;
+      }
+    };
   };
 
   // update data connection by toggling it off and on again
@@ -183,6 +201,15 @@ window.addEventListener('load', function getCarrierSettings() {
     if (gNetwork && !gNetwork.mcc) {
       console.warn('GSM data network could not be found');
     }
+
+    // new data network found?
+    if (gNetwork.mcc == gNetworkID.mcc && gNetwork.mnc == gNetworkID.mnc)
+      return;
+
+    gNetworkID = {
+      mcc: gNetwork.mcc,
+      mnc: gNetwork.mnc
+    };
 
     // display data carrier name
     var shortName = gNetwork ? gNetwork.shortName : '';

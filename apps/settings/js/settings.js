@@ -63,8 +63,9 @@ var Settings = {
     }
 
     // preset all radio buttons
-    var radios = document.querySelectorAll('input[type="radio"]');
-    for (var i = 0; i < radios.length; i++) {
+    rule = 'input[type="radio"]:not([data-ignore])';
+    var radios = document.querySelectorAll(rule);
+    for (i = 0; i < radios.length; i++) {
       (function(radio) {
         var key = radio.name;
         if (!key)
@@ -79,9 +80,9 @@ var Settings = {
     }
 
     // preset all text inputs
-    var rule = 'input[type="text"]:not([data-ignore])';
+    rule = 'input[type="text"]:not([data-ignore])';
     var texts = document.querySelectorAll(rule);
-    for (var i = 0; i < texts.length; i++) {
+    for (i = 0; i < texts.length; i++) {
       (function(text) {
         var key = text.name;
         if (!key)
@@ -97,7 +98,7 @@ var Settings = {
 
     // preset all progress indicators
     var progresses = document.querySelectorAll('progress');
-    for (var i = 0; i < progresses.length; i++) {
+    for (i = 0; i < progresses.length; i++) {
       (function(progress) {
         var key = progress.dataset.name;
         if (!key)
@@ -142,7 +143,7 @@ var Settings = {
     var input = evt.target;
     var key = input.name || input.dataset.name;
     var settings = window.navigator.mozSettings;
-    if (!key || !settings)
+    if (!key || !settings || input.dataset.ignore)
       return;
 
     switch (evt.type) {
