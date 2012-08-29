@@ -48,7 +48,7 @@
 
 /* WARNING*/
 #balance-tab .overview .icons .warning {
-  background: url('./images/app/icons/warning.png') no-repeat center center;
+  background: url('./../images/app/icons/warning.png') no-repeat center center;
   width: 100%;
   height: 100%;
 }
