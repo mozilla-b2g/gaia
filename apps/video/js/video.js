@@ -483,9 +483,10 @@ function dragSlider(e) {
 // XXX if we don't have metadata about the video name
 // do the best we can with the file name
 function fileNameToVideoName(filename) {
-  return filename
+  filename = filename
     .replace(/\.(webm|ogv|mp4)$/, '')
     .replace(/[_\.]/g, ' ');
+  return filename.charAt(0).toUpperCase() + filename.slice(1);
 }
 
 function toCamelCase(str) {
