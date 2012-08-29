@@ -31,6 +31,38 @@ var MAIL_SERVICES = [
 ];
 
 /**
+ * Detect to setup or not.
+ */
+function SetupNeededCard(domNode, mode, args) {
+  var noButton = domNode.getElementsByClassName('sup-no-btn')[0];
+  noButton.addEventListener('click', this.onBack.bind(this), false);
+  var yesButton = domNode.getElementsByClassName('sup-yes-btn')[0];
+  yesButton.addEventListener('click', this.onNext.bind(this), false);
+}
+SetupNeededCard.prototype = {
+  onBack: function(event) {
+    Cards.assertNoCards();
+    // TODO: back to application with status
+  },
+
+  onNext: function(event) {
+    // Nuke this card
+    Cards.removeCardAndSuccessors(null, 'none');
+    Cards.pushCard(
+      'setup-pick-service', 'default', 'immediate',
+      {});
+  },
+
+  die: function() {
+  }
+};
+Cards.defineCardWithDefaultMode(
+    'setup-needed',
+     { tray: false },
+    SetupNeededCard
+);
+
+/**
  * Pick which provider to use / other.
  */
 function SetupPickServiceCard(domNode, mode, args) {

@@ -1,3 +1,16 @@
+.sup-needed-container {
+  text-align: center;
+  border: 1px solid gray;
+  margin: 8rem 2rem;
+  padding: 2rem;
+}
+.sup-needed-header {
+  text-align: center;
+}
+.sup-needed-btns-container {
+  text-align: center;
+  margin-top: 2rem;
+}
 
 .sup-form {
   text-align: center;

@@ -63,7 +63,7 @@ var App = {
         acctsSlice.die();
         Cards.assertNoCards();
         Cards.pushCard(
-          'setup-pick-service', 'default', 'immediate',
+          'setup-needed', 'default', 'immediate',
           {});
       }
     };
