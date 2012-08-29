@@ -22,7 +22,10 @@ function HandledCall(aCall, aNode) {
   this.updateCallNumber();
 
   var _ = navigator.mozL10n.get;
-  this.durationNode.textContent = _('calling') + '…';
+
+  var durationMessage = (this.call.state == 'incoming') ?
+                         _('incoming') : _('calling');
+  this.durationNode.textContent = durationMessage + '…';
 
   this._initialState = this.call.state;
   this.updateDirection();
