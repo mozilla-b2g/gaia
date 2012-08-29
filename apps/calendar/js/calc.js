@@ -153,6 +153,30 @@ Calendar.Calc = (function() {
     },
 
     /**
+     * Creates timespan for given day.
+     *
+     * @param {Date} date date of span.
+     * @param {Boolean} includeTime uses given date
+     *                           as the start time of the timespan
+     *                           rather then the absolute start of
+     *                           the day of the given date.
+     */
+    spanOfDay: function(date, includeTime) {
+      if (typeof(includeTime) === 'undefined') {
+        date = Calc.createDay(date);
+      }
+
+      var end = Calc.createDay(date);
+      end.setDate(end.getDate() + 1);
+      end.setMilliseconds(-1);
+
+      return new Calendar.Timespan(
+        date,
+        end
+      );
+    },
+
+    /**
      * Creates timespan for a given month.
      * Starts at the first week that occurs
      * in the given month. Ends at the

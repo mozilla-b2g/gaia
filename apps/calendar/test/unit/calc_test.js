@@ -187,6 +187,47 @@ suite('calendar/calc', function() {
 
   });
 
+  suite('#spanOfDay', function() {
+
+    var date = new Date(2012, 1, 1, 10, 33);
+
+    test('include time', function() {
+      var end = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate() + 1
+      );
+
+      end.setMilliseconds(-1);
+      var out = subject.spanOfDay(date, true);
+
+      assert.deepEqual(out, new Calendar.Timespan(
+        date,
+        end
+      ));
+    });
+
+    test('ignore time', function() {
+      var start = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+      );
+
+      var end = new Date(start.valueOf());
+      end.setDate(end.getDate() + 1);
+      end.setMilliseconds(-1);
+
+      var out = subject.spanOfDay(date);
+
+      assert.deepEqual(out, new Calendar.Timespan(
+        start,
+        end
+      ));
+    });
+
+  });
+
   suite('#hoursOfOccurance', function() {
     var center;
 
