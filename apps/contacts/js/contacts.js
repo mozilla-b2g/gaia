@@ -511,7 +511,7 @@ var Contacts = (function() {
         bday: birthdayString
       });
 
-      listContainer.appendChild(e);
+      listContainer.appendChild(element);
     }
 
 
