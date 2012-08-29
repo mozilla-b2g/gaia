@@ -606,14 +606,16 @@ var WindowManager = (function() {
       // Workaround here until the bug (to be filed) is fixed
       // Basicly, gecko is sending the URL without launch_path sometimes
       for (var ep in entryPoints) {
+        var currentEp = entryPoints[ep];
         var path = givenPath;
         if (path.indexOf('html') == -1)
-          path += ep.launch_path;
+          path += currentEp.launch_path;
+
         //Remove the origin and / to find if if the url is the entry point
         if (path.indexOf(ep) == 0 &&
-            (ep + entryPoints[ep].launch_path) == path) {
+            (ep + currentEp.launch_path) == path) {
           origin = origin + '/' + ep;
-          name = entryPoints[ep].name;
+          name = currentEp.name;
         }
       }
     }
