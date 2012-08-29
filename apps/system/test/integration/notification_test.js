@@ -11,13 +11,15 @@ suite('notifications', function() {
   setup(function() {
     this.timeout(10000);
     yield device.setScriptTimeout(5000);
-    yield device.goUrl('app://system.gaiamobile.org');
+    yield device.goUrl(testSupport.gaiaUrl('system'));
   });
 
   test('text/description notification', function() {
 
     var title = 'uniq--integration--uniq';
     var description = 'q--desc--q';
+
+    yield device.setContext('chrome');
 
     yield device.executeAsyncScript(function(text, desc) {
       window.addEventListener('mozChromeEvent', function(e) {
@@ -31,8 +33,11 @@ suite('notifications', function() {
       var notification = notify.createNotification(
         text, desc
       );
+
       notification.show();
     }, [title, description]);
+
+    yield device.setContext('content');
 
     var container = yield device.findElement(
       '#notifications-container'
