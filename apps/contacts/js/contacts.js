@@ -884,6 +884,11 @@ var Contacts = (function() {
     var request = navigator.mozContacts.save(currentContact);
     request.onsuccess = function onsuccess() {
       var cList = contacts.List;
+      /*
+         We are returning two contacts because the enrichedContact is readonly
+         and we don't want when a Contact is edited to save
+         FB data on the mozContacts DB.
+      */
        cList.getContactById(currentContact.id,
                            function onSuccess(savedContact, enrichedContact) {
         currentContact = savedContact;
