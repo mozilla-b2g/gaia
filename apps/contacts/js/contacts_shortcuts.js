@@ -7,23 +7,38 @@ if (!utils.alphaScroll) {
   (function initScrollbar(doc) {
     var alphaScroll = utils.alphaScroll = {};
 
-    var scrollToCallback, jumper, overlay, overlayContent, overlayStyle;
+    var scrollToCallback, jumper, overlay,
+        overlayContent, overlayStyle, groupSelector;
 
     var isScrolling = false;
 
     var overlayTimeout = 0, scrollToTimeout = 0;
     var previous = null;
 
+    // Callback invoked when scrolling is neded
     var P_SCROLLTO_CB = 'scrollToCb';
+    // Element that represents the alpha scroll bar
     var P_JUMPER = 'jumper';
+    // Element that shows the current letter
     var P_OVERLAY = 'overlay';
+    // Element that has the content of the current letter
+    // (can point to the same as overlay content)
     var P_OVERLAY_CONTENT = 'overlayContent';
+    // Selector that will allow to get the group that should be scrolled to
+    // Group will be identified by this selector plus the corresponding letter
+    var P_GROUP_SELECTOR = 'groupSelector';
+
+    var TRANSITION_DELAY = '0.3s';
+    var TRANSITION_DURATION = '0.2s';
+
+    var RESET_TRANSITION = '0s';
 
     alphaScroll.init = function(params) {
       scrollToCallback = params[P_SCROLLTO_CB];
       jumper = params[P_JUMPER];
       overlay = params[P_OVERLAY];
       overlayContent = params[P_OVERLAY_CONTENT];
+      groupSelector = params[P_GROUP_SELECTOR];
 
       overlayContent.textContent = '';
       overlayStyle = overlay.style;
@@ -41,8 +56,8 @@ if (!utils.alphaScroll) {
     }
 
     function scrollStart(evt) {
-      overlayStyle.MozTransitionDelay = '0s';
-      overlayStyle.MozTransitionDuration = '0s';
+      overlayStyle.MozTransitionDelay = RESET_TRANSITION;
+      overlayStyle.MozTransitionDuration = RESET_TRANSITION;
       overlayStyle.opacity = '1';
       isScrolling = true;
       scrollTo(evt);
@@ -51,8 +66,8 @@ if (!utils.alphaScroll) {
     function scrollEnd(evt) {
       evt.preventDefault();
       evt.stopPropagation();
-      overlayStyle.MozTransitionDelay = '0.3s';
-      overlayStyle.MozTransitionDuration = '0.2s';
+      overlayStyle.MozTransitionDelay = TRANSITION_DELAY;
+      overlayStyle.MozTransitionDuration = TRANSITION_DURATION;
       overlayStyle.opacity = '0';
       overlayContent.textContent = previous = null;
       isScrolling = false;
@@ -73,7 +88,7 @@ if (!utils.alphaScroll) {
         return;
       }
 
-      var groupContainer = doc.querySelector('#group-' + current);
+      var groupContainer = doc.querySelector(groupSelector + current);
       if (!groupContainer || groupContainer.clientHeight <= 0)
         return;
 

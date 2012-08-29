@@ -41,6 +41,7 @@ contacts.List = (function() {
       overlay: overlay,
       overlayContent: overlayContent,
       jumper: jumper,
+      groupSelector: '#group-',
       scrollToCb: scrollToCb
     };
 
