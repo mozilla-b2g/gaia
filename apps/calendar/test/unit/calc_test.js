@@ -166,6 +166,76 @@ suite('calendar/calc', function() {
 
   });
 
+  suite('#hoursOfOccurance', function() {
+    var center;
+
+    setup(function() {
+      center = new Date(2012, 0, 1);
+    });
+
+    function hoursOfOccurance(start, end) {
+      return subject.hoursOfOccurance(center, start, end);
+    }
+
+    test('overlap before', function() {
+      var out = hoursOfOccurance(
+        new Date(2011, 1, 5),
+        new Date(2012, 0, 1, 3)
+      );
+
+      assert.deepEqual(out, [0, 1, 2]);
+    });
+
+    test('overlap after', function() {
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1, 20),
+        new Date(2012, 0, 2, 2)
+      );
+
+      assert.deepEqual(out, [20, 21, 22, 23]);
+    });
+
+    test('one hour', function() {
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1, 5),
+        new Date(2012, 0, 1, 6)
+      );
+
+      assert.deepEqual(out, [5]);
+    });
+
+    test('1 & 1/2 hours', function() {
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1, 5),
+        new Date(2012, 0, 1, 6, 30)
+      );
+
+      assert.deepEqual(out, [5, 6]);
+    });
+
+    test('2 hours', function() {
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1, 5),
+        new Date(2012, 0, 1, 7)
+      );
+
+      assert.deepEqual(out, [5, 6]);
+    });
+
+    test('all day', function() {
+      var end = new Date(2012, 0, 2);
+      end.setMilliseconds(end - 1);
+
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1),
+        end
+      );
+
+      assert.deepEqual(out, [subject.ALLDAY]);
+    });
+
+  });
+
   test('#hourDiff', function() {
     var start = new Date(2012, 0, 5);
     var end = new Date(2012, 0, 7);
