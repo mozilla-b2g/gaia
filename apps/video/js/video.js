@@ -467,13 +467,6 @@ function dragSlider(e) {
     document.removeEventListener('mousemove', mousemoveHandler, true);
     document.removeEventListener('mouseup', mouseupHandler, true);
 
-    var pos = position(event);
-    var percent = pos * 100 + '%';
-    dom.playHead.style.left = percent;
-    dom.elapsedTime.style.width = percent;
-
-    dom.player.currentTime = dom.player.duration * pos;
-
     dragging = false;
     if (!isPaused) {
       play();
@@ -486,6 +479,7 @@ function dragSlider(e) {
     dom.playHead.style.left = percent;
     dom.elapsedTime.style.width = percent;
     dom.player.currentTime = dom.player.duration * pos;
+    dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
   }
 }
 
