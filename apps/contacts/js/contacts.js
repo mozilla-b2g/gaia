@@ -929,8 +929,9 @@ var Contacts = (function() {
       currentContact.photo = [];
       var readOnly = ['id', 'updated', 'published'];
       for (var field in myContact) {
-        if (readOnly.indexOf(field) == -1)
+        if (readOnly.indexOf(field) == -1) {
           currentContact[field] = myContact[field];
+        }
       }
       contact = currentContact;
     } else {
