@@ -57,7 +57,7 @@ const IMEManager = {
     'dvorak': ['en-Dvorak'],
     'spanish' : ['es'],
     'portuguese' : ['pt_BR'],
-    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
+    'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuyin': ['zh-Hant-Zhuyin'],
@@ -130,9 +130,15 @@ const IMEManager = {
     }).bind(this));
 
     var self = this;
+
     SettingsListener.observe('keyboard.wordsuggestion', false, function(value) {
       var wordSuggestionEnabled = !!value;
       IMEController.enableWordSuggestion(wordSuggestionEnabled);
+    });
+
+    SettingsListener.observe('language.current', 'en-US', function(value) {
+      var language = value;
+      IMEController.setLanguage(language);
     });
 
     for (var key in this.keyboardSettingGroups) {

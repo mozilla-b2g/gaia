@@ -72,7 +72,6 @@ var ModalDialog = {
         // XXX: another issue #3047
         if (evt.detail.type == 'fatal')
           return;
-        evt.detail.promptType = 'error';
       case 'mozbrowsershowmodalprompt':
         if (evt.target.dataset.frameType != 'window')
           return;
@@ -148,7 +147,8 @@ var ModalDialog = {
 
     message = escapeHTML(message);
 
-    switch (evt.detail.promptType) {
+    var type = evt.detail.promptType || evt.detail.type;
+    switch (type) {
       case 'alert':
         elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
@@ -174,17 +174,17 @@ var ModalDialog = {
         elements.authenticationMessage.innerHTML = message;
 
       // Error
-      case 'error':
+      case 'other':
         elements.error.classList.add('visible');
       break;
     }
 
-    this.elements.buttons.dataset.type = evt.detail.promptType;
     this.setHeight();
   },
 
   hide: function md_hide() {
-    var type = this.currentEvents[this.currentOrigin].detail.promptType;
+    var evt = this.currentEvents[this.currentOrigin];
+    var type = evt.detail.promptType || evt.detail.type;
     if (type == 'prompt') {
       this.elements.promptInput.blur();
     } else if (type == 'usernameandpassword') {
@@ -203,7 +203,8 @@ var ModalDialog = {
 
     var evt = this.currentEvents[this.currentOrigin];
 
-    switch (evt.detail.promptType) {
+    var type = evt.detail.promptType || evt.detail.type;
+    switch (type) {
       case 'alert':
         elements.alert.classList.remove('visible');
         break;
@@ -226,7 +227,7 @@ var ModalDialog = {
         elements.authentication.classList.remove('visible');
         break;
 
-      case 'error':
+      case 'other':
         elements.error.classList.remove('visible');
         break;
     }
@@ -248,7 +249,8 @@ var ModalDialog = {
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
-    switch (evt.detail.promptType) {
+    var type = evt.detail.promptType || evt.detail.type;
+    switch (type) {
       case 'alert':
         elements.alert.classList.remove('visible');
         break;
@@ -270,7 +272,7 @@ var ModalDialog = {
         elements.authentication.classList.remove('visible');
         break;
 
-      case 'error':
+      case 'other':
         elements.error.classList.remove('visible');
         break;
     }

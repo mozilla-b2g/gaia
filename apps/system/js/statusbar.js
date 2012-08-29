@@ -193,7 +193,7 @@ var StatusBar = {
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
 
-      if (!conn.voice || !conn.voice.connected ||
+      if (!conn || !conn.voice || !conn.voice.connected ||
           conn.voice.emergencyCallsOnly) {
         delete l10nArgs.operator;
         label.dataset.l10nArgs = JSON.stringify(l10nArgs);

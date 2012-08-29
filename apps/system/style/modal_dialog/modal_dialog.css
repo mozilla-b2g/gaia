@@ -1,40 +1,8 @@
-#modal-dialog {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: none;
-  vertical-align: middle;
-  background: rgba(0, 0, 0, 0.8);
-}
-
-#modal-dialog-table {
-  display: table;
-  height: 100%;
-  width: 100%;
-}
-
-#modal-dialog-tablecell {
-  display: table-cell;
-  height: 100%;
-  width: 100%;
-  vertical-align: middle;
-}
-
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt,
 #modal-dialog-authentication,
 #modal-dialog-error {
-  width: 100%;
-  color: white;
-  border-radius: 6px 6px 6px 6px;
-  border-top: #aaa;
-  border-bottom: #ddd;
-  text-align: center;
-  padding: 1em;
-  -moz-box-sizing: border-box;
   display: none;
 }
 
@@ -48,53 +16,9 @@
   -moz-box-sizing: border-box;
 }
 
-.modal-dialog-message-container {
-  border-top: solid 4px white;
-  border-bottom: solid 4px white;
-  text-align: left;
-  width: 100%;
-  color: white;
-  padding: 1em 0;
-  min-height: 30px;
-  font-size: 15px;
-  -moz-box-sizing: border-box;
-}
-
-#modal-dialog-prompt-message,
-#modal-dialog-authentication-message {
-  display: block;
-}
-
-#modal-dialog button {
-  display: none;
-  background: none;
-  text-align: left;
-  width: -moz-calc(40% - 4px);
-  height: 40px;
-  color: white;
-  font-size: 20px;
-  border-radius: 4px 4px 4px 4px;
-  border: solid 2px white;
-}
-
-#modal-dialog button:active {
-  background: white;
-  color: black;
-}
-
 /* 480x800 phones */
 @media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
-  #modal-dialog button {
-    text-align: left;
-    width: 200px;
-    height: 60px;
-    color: white;
-    font-size: 30px;
-    border-radius: 6px 6px 6px 6px;
-    margin: 3px;
-  }
-
   #modal-dialog input {
     border-radius: 3px 3px 3px 3px;
     height: 60px;
@@ -103,21 +27,6 @@
     color: white;
     -moz-box-sizing: border-box;
   }
-
-  .modal-dialog-message-container {
-    text-align: left;
-    width: 100%;
-    color: white;
-    padding: 1em;
-    min-height: 30px;
-    font-size: 25px;
-    -moz-box-sizing: border-box;
-  }
-}
-
-/* remove ugly dotted outline when focus */
-#modal-dialog button::-moz-focus-inner {
-  border: 0;
 }
 
 #screen.modal-dialog #modal-dialog,
@@ -129,25 +38,8 @@
   display: block;
 }
 
-#modal-dialog-buttons {
-  position: absolute;
-  bottom: 1em;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  -moz-box-sizing: border-box;
-  padding: 0 1em;
+#modal-dialog-sad-face {
+  float: left;
+  font-size: 72px;
+  margin-right: 2px;
 }
-
-#modal-dialog-buttons[data-type="alert"] #modal-dialog-alert-ok,
-#modal-dialog-buttons[data-type="prompt"] #modal-dialog-prompt-ok,
-#modal-dialog-buttons[data-type="prompt"] #modal-dialog-prompt-cancel,
-#modal-dialog-buttons[data-type="usernameandpassword"] #modal-dialog-authentication-ok,
-#modal-dialog-buttons[data-type="usernameandpassword"] #modal-dialog-authentication-cancel,
-#modal-dialog-buttons[data-type="confirm"] #modal-dialog-confirm-ok,
-#modal-dialog-buttons[data-type="confirm"] #modal-dialog-confirm-cancel,
-#modal-dialog-buttons[data-type="error"] #modal-dialog-error-back,
-#modal-dialog-buttons[data-type="error"] #modal-dialog-error-reload {
-  display: inline-block;
-}
-

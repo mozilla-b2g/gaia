@@ -1,0 +1,232 @@
+/* ----------------------------------
+
+ * BUTTONS: DEFAULT
+ * ---------------------------------- */
+body[role="application"] button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+body[role="application"] button,
+body[role="application"] a[role="button"] {
+  width: 100%;
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #fafafa url(images/ui/default.png) repeat-x left bottom;
+  border: 1px solid #9f9f9f;
+  border-radius: 0.3rem;
+  font-size: 1.6rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: 600;
+  line-height: 3.8rem;
+  color: #333;
+  text-align: center;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+/* Press (default & affirmative) */
+body[role="application"] button:active,
+body[role="application"] a[role="button"]:active,
+body[role="application"] button.affirmative:active,
+body[role="application"] a.affirmative[role="button"]:active  {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+/* Affirmative */
+body[role="application"] button.affirmative,
+body[role="application"] a[role="button"].affirmative {
+  background-image: url(images/ui/affirmative.png);
+  background-color: #00caf2;
+  border-color: #00acce;
+}
+
+/* Negative */
+body[role="application"] button.negative,
+body[role="application"] a.negative[role="button"] {
+  background-image: url(images/ui/negative.png);
+  background-color: #b70404;
+  color: #fff;
+  text-shadow: -1px -1px 0 #830b0b;
+  border: none; 
+}
+
+/* Negative Press */
+body[role="application"] button.negative:active,
+body[role="application"] a[role="button"].negative:active {
+  background-image: url(images/ui/negative-press.png);
+  background-color: #890707;
+}
+
+/* Disabled (default & affirmative) */
+body[role="application"] button[disabled="disabled"],
+body[role="application"] a[role="button"][aria-disabled="true"],
+body[role="application"] button[disabled="disabled"].affirmative,
+body[role="application"] a[role="button"][aria-disabled="true"].affirmative {
+  background-image: url(images/ui/disabled-bright.png);
+  background-color: transparent;
+  border-color: #dadada;
+  color: #bcbcbc;
+}
+
+/* Disabled dark (default & affirmative) */
+body[role="application"] menu button[disabled="disabled"],
+body[role="application"] menu a[role="button"][aria-disabled="true"],
+body[role="application"] menu button[disabled="disabled"].affirmative,
+body[role="application"] menu a[role="button"][aria-disabled="true"].affirmative {
+  background-image: url(images/ui/disabled-dark.png);
+  background-color: transparent;
+  border: none;
+  color: #4a4a4a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Negative disabled */
+body[role="application"] button[disabled="disabled"].negative,
+body[role="application"] a[role="button"][aria-disabled="true"].negative {
+  background-image: url(images/ui/negative-disabled.png);
+  color: #fff;
+  text-shadow: none;
+}
+
+/* Icons in buttons */
+body[role="application"] button span,
+body[role="application"] a[role="button"] span {
+  float: left;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0 0.5rem 0 -1rem;
+  background: transparent no-repeat center center;
+}
+
+body[role="application"] button span.end,
+body[role="application"] a[role="button"] span.end {
+  float: right;
+  margin: 0.3rem -1.5rem 0 1rem;
+}
+
+/* Icon base types */
+body[role="application"] button span.goto,
+body[role="application"] a[role="button"] span.goto {
+  background-image: url(images/icons/goto.png);
+}
+
+body[role="application"] button span.launch,
+body[role="application"] a[role="button"] span.launch {
+  background-image: url(images/icons/launch.png);
+  background-position: 1rem bottom;
+}
+
+body[role="application"] button span.favorite,
+body[role="application"] a[role="button"] span.favorite {
+  background-image: url(images/icons/favorite.png);
+}
+
+body[role="application"] button span.call,
+body[role="application"] a[role="button"] span.call {
+  background-image: url(images/icons/call.png);
+  background-position: center bottom;
+}
+
+body[role="application"] button span.tick,
+body[role="application"] a[role="button"] span.tick {
+  background-image: url(images/icons/tick.png);
+}
+
+
+/* ----------------------------------
+ * BUTTONS: LIST
+ * ---------------------------------- */
+body[role="application"] .buttons-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+body[role="application"] .buttons-list label {
+  font: 1.4rem/1em "Open Sans", Sans-serif;
+  text-transform: uppercase;
+  display: block;
+  padding-left: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Default */
+body[role="application"] .buttons-list button,
+body[role="application"] .buttons-list a[role="button"] {
+  background: #e7e7e7;
+  border-color: #b6b6b6;
+  text-align: left;
+  font-size: 1.4rem;
+  line-height: 2.9rem;
+  position: relative;
+  overflow: visible;
+}
+
+body[role="application"] .buttons-list a[role="button"]:after,
+body[role="application"] .buttons-list button:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: url(images/ui/shadow.png) repeat-x left bottom;
+  height: 2px;
+  margin-top: 1px;
+  pointer-events: none;
+}
+
+/* Press */
+body[role="application"] .buttons-list button:active,
+body[role="application"] .buttons-list a[role="button"]:active {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+body[role="application"] .buttons-list a[role="button"]:active:after,
+body[role="application"] .buttons-list button:active:after {
+  opacity: 0;
+}
+
+/* Disabled */
+body[role="application"] .buttons-list button[disabled="disabled"],
+body[role="application"] .buttons-list a[role="button"][aria-disabled="true"] {
+  background: #ededed;
+  border-color: #d3d3d3;
+  color: #a6a6a6;
+}
+
+body[role="application"] .buttons-list button[disabled="disabled"]:after,
+body[role="application"] .buttons-list a[role="button"][aria-disabled="true"]:after {
+  opacity: 1;
+}
+
+
+/* Compact mode */
+body[role="application"] .buttons-list[data-mode="compact"] { margin-bottom: 1rem; }
+body[role="application"] .buttons-list[data-mode="compact"] button,
+body[role="application"] .buttons-list[data-mode="compact"] a[role="button"] {
+  margin: -1px 0;
+  border-radius: 0;
+}
+
+body[role="application"] .buttons-list[data-mode="compact"] li:first-child button,
+body[role="application"] .buttons-list[data-mode="compact"] li:first-child a[role="button"] {
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
+body[role="application"] .buttons-list[data-mode="compact"] li:last-child button,
+body[role="application"] .buttons-list[data-mode="compact"] li:last-child a[role="button"] {
+  border-radius:0 0 0.3rem 0.3rem;
+}

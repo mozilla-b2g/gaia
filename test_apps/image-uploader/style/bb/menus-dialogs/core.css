@@ -1,0 +1,101 @@
+/* ----------------------------------
+ * CORE STYLES FOR DIALOGS AND MENUS
+ * Is required for all the subcomponents (except banner)
+ * ---------------------------------- */
+
+body[role="application"] [role="dialog"] {
+  background: url(images/ui/pattern.png) repeat left top, url(images/ui/gradient.png) no-repeat left top;
+  background-size: auto auto, 100% 100%;
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  white-space: nowrap;
+  padding: 1.5rem 0 7rem;
+  font-family: "Open Sans", Sans-serif;
+  color: #fff;
+}
+
+body[role="application"] [role="dialog"]:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 1px;
+  height: 100%;
+}
+
+body[role="application"] [role="dialog"] > div {
+  padding: 0 2.5rem 0 2rem;
+  -moz-box-sizing: padding-box;
+  width: 100%;
+  display: inline-block;
+  vertical-align: middle;
+  white-space: normal;  
+}
+
+body[role="application"] [role="dialog"] h3 {
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 1em;
+  color: #fff;
+  border-bottom: 0.1rem solid #686868;
+  margin: 0 0 1rem;
+  padding-bottom: 1rem;
+}
+
+body[role="application"] menu:not([type="toolbar"]) {
+  white-space: nowrap;
+  margin: 0;
+  padding: 1.5rem;
+  border-top: solid 1px rgba(255, 255, 255, 0.1);
+  background: #2d2d2d url(images/ui/pattern.png) repeat left top;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+body[role="application"] menu:not([type="toolbar"]) button:last-child,
+body[role="application"] menu:not([type="toolbar"]) a[role="button"]:last-child {
+  margin-left: 1rem;
+}
+
+body[role="application"] menu:not([type="toolbar"]) button,
+body[role="application"] menu:not([type="toolbar"]) a[role="button"],
+body[role="application"] menu:not([type="toolbar"]) button:first-child,
+body[role="application"] menu:not([type="toolbar"]) a[role="button"]:first-child {
+  margin: 0;
+}
+
+body[role="application"] menu:not([type="toolbar"])[data-items="2"] button,
+body[role="application"] menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
+  width: -moz-calc((100% - 1rem) / 2);
+}
+
+
+/* ----------------------------------
+ * INLINE BANNER
+ * ---------------------------------- */
+
+body[role="application"] [role="dialog"].inline {
+  position: relative;
+  margin: -0.4rem 0 0 0;
+  padding: 1rem 0 0 0;
+  background: rgba(0,0,0,0.83);
+}
+
+body[role="application"] [role="dialog"].inline p {
+  border: 0;
+  padding: 1rem 1.5rem; 
+}
+
+body[role="application"] [role="dialog"].inline menu {
+  position: relative;
+  background: none;
+}

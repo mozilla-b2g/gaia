@@ -12,7 +12,7 @@ function $$(expr) {
 var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
   speakerEnabled: false,
 
-  frequency: 91.5,
+  frequency: null,
 
   enabled: false,
 
@@ -20,14 +20,13 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
 
   signalStrength: 1,
 
-  bandRanges: {
-    FM: {
-      lower: 87.5,
-      upper: 108
-    }
-  },
+  frequencyLowerBound: 87.5,
 
-  onsignalchange: function emptyFunction() { },
+  frequencyUpperBound: 108,
+
+  channelWidth: 0.1,
+
+  onsignalstrengthchange: function emptyFunction() { },
 
   onfrequencychange: function emptyFunction() { },
 
@@ -35,21 +34,34 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
 
   ondisabled: function emptyFunction() { },
 
-  onantennachange: function emptyFunction() { },
+  onantennaavailablechange: function emptyFunction() { },
 
-  setEnabled: function fm_setEnabled(enabled) {
-    var previousValue = this.enabled;
-    this.enabled = enabled;
-    if (previousValue != enabled) {
-      var self = this;
-      window.setTimeout(function() {
-        if (self.enabled) {
-          self.onenabled();
-        } else {
-          self.ondisabled();
-        }
-      }, 500);
+  disable: function fm_disable() {
+    if (!this.enabled) {
+      return;
     }
+
+    this.enabled = false;
+    var self = this;
+    window.setTimeout(function() {
+      self.ondisabled();
+    }, 500);
+
+    return {};
+  },
+
+  enable: function fm_enable(frequency) {
+    if (this.enabled) {
+      return;
+    }
+
+    this.enabled = true;
+    var self = this;
+    window.setTimeout(function() {
+      self.onenabled();
+      self.setFrequency(frequency);
+    }, 500);
+
     return {};
   },
 
@@ -97,6 +109,13 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
 
   cancelSeek: function fm_cancelSeek() {
     this._clearSeekRequest();
+    var request = {};
+    window.setTimeout(function() {
+      if (request.onsuccess) {
+        request.onsuccess();
+      }
+    }, 0);
+    return request;
   },
 
   _clearSeekRequest: function fm_clearSeek() {
@@ -111,24 +130,6 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
   }
 };
 
-function enableFM(enable) {
-  console.log('Antenna available: ' + mozFMRadio.antennaAvailable);
-  if (!mozFMRadio.antennaAvailable) {
-    updateAntennaUI();
-    return;
-  }
-
-  var request = mozFMRadio.setEnabled(enable);
-
-  request.onsuccess = function turnon_onsuccess() {
-    console.log('FM status is changed to ' + mozFMRadio.enabled);
-  };
-
-  request.onerror = function turnon_onerror() {
-    console.log('Failed to turn on FM!');
-  };
-}
-
 function updateFreqUI() {
   frequencyDialer.setFrequency(mozFMRadio.frequency);
   var frequency = frequencyDialer.getFrequency();
@@ -142,13 +143,26 @@ function updatePowerUI() {
   $('power-switch').setAttribute('data-enabled', mozFMRadio.enabled);
 }
 
-function updateAudioUI() {
-  $('audio-routing-switch').setAttribute('data-current-state',
-                   mozFMRadio.speakerEnabled ? 'speaker' : 'headset');
-}
-
 function updateAntennaUI() {
   $('antenna-warning').hidden = mozFMRadio.antennaAvailable;
+}
+
+/**
+ * If the FM radio is seeking currently, cancel it and then set frequency.
+ */
+function cancelSeekAndSetFreq(frequency) {
+  function setFreq() {
+    mozFMRadio.setFrequency(frequency);
+  }
+
+  var seeking = !!$('frequency').getAttribute('data-seek-dir');
+  if (!seeking) {
+    setFreq();
+  } else {
+    var request = mozFMRadio.cancelSeek();
+    request.onsuccess = setFreq;
+    request.onerror = setFreq;
+  }
 }
 
 var frequencyDialer = {
@@ -239,11 +253,12 @@ var frequencyDialer = {
         tunedFrequency += Math.min(Math.abs(currentSpeed) * 3, 3) * direction;
       }
       tunedFrequency = self.setFrequency(toFixed(tunedFrequency));
+      cancelSeekAndSetFreq(tunedFrequency);
 
-      var req = mozFMRadio.setFrequency(tunedFrequency);
-      req.onerror = function onerror_setFrequency() {
-        tunedFrequency = self.setFrequency(mozFMRadio.frequency);
-      };
+      // Reset vars
+      currentEvent = null;
+      startEvent = null;
+      currentSpeed = 0;
     }
 
     function fd_mousedown(event) {
@@ -265,8 +280,8 @@ var frequencyDialer = {
 
   _initUI: function() {
     $('frequency-dialer').innerHTML = '';
-    var lower = this._bandLowerBound = mozFMRadio.bandRanges.FM.lower;
-    var upper = this._bandUpperBound = mozFMRadio.bandRanges.FM.upper;
+    var lower = this._bandLowerBound = mozFMRadio.frequencyLowerBound;
+    var upper = this._bandUpperBound = mozFMRadio.frequencyUpperBound;
 
     var unit = this.unit;
     this._minFrequency = lower - lower % unit;
@@ -356,7 +371,6 @@ var frequencyDialer = {
 
 var favoritesList = {
   _favList: null,
-  _frequencyToBeSet: null,
 
   KEYNAME: 'favlist',
 
@@ -375,21 +389,13 @@ var favoritesList = {
         updateFreqUI();
       } else {
         if (mozFMRadio.enabled) {
-          mozFMRadio.setFrequency(self._getElemFreq(event.target));
+          cancelSeekAndSetFreq(self._getElemFreq(event.target));
         } else {
           // If fm is disabled, then turnon the radio first
-          self._frequencyToBeSet = self._getElemFreq(event.target);
-          mozFMRadio.setEnabled(true);
+          mozFMRadio.enable(self._getElemFreq(event.target));
         }
       }
     }, false);
-  },
-
-  onFMEnabled: function() {
-    if (this._frequencyToBeSet) {
-      mozFMRadio.setFrequency(this._frequencyToBeSet);
-      _frequencyToBeSet = null;
-    }
   },
 
   _save: function() {
@@ -518,26 +524,31 @@ function init() {
   var seeking = false;
   function onclick_seekbutton(event) {
     var seekButton = this;
+    var freqElement = $('frequency');
+    var seeking = !!freqElement.getAttribute('data-seek-dir');
+    var up = seekButton.id == 'frequency-op-seekup';
 
-    if (seeking) {
-      mozFMRadio.cancelSeek();
-      return;
+    function seek() {
+      freqElement.setAttribute('data-seek-dir', up ? 'up' : 'down');
+      var request = up ? mozFMRadio.seekUp() : mozFMRadio.seekDown();
+
+      request.onsuccess = function seek_onsuccess() {
+        freqElement.removeAttribute('data-seek-dir');
+      };
+
+      request.onerror = function seek_onerror() {
+        freqElement.removeAttribute('data-seek-dir');
+      };
     }
 
-    var up = seekButton.id == 'frequency-op-seekup';
-    seekButton.setAttribute('data-status', 'seeking');
-    seeking = true;
-    var request = up ? mozFMRadio.seekUp() : mozFMRadio.seekDown();
-    request.onsuccess = function sd_onsuccess() {
-      seeking = false;
-      seekButton.removeAttribute('data-status', 'seeking');
-    };
-
-    request.onerror = function sd_onerror() {
-      seeking = false;
-      seekButton.removeAttribute('data-status', 'seeking');
-      console.log('failed to ' + (up ? 'seek up' : 'seek down'));
-    };
+    // If the FM radio is seeking channel currently, cancel it and seek again.
+    if (seeking) {
+      var request = mozFMRadio.cancelSeek();
+      request.onsuccess = seek;
+      request.onerror = seek;
+    } else {
+      seek();
+    }
   }
 
   $('frequency-op-seekdown').addEventListener('click',
@@ -546,15 +557,12 @@ function init() {
                                    onclick_seekbutton, false);
 
   $('power-switch').addEventListener('click', function toggle_fm() {
-    enableFM(!mozFMRadio.enabled);
+    if (mozFMRadio.enabled) {
+      mozFMRadio.disable();
+    } else {
+      mozFMRadio.enable(frequencyDialer.getFrequency());
+    }
   }, false);
-
-  $('audio-routing-switch').addEventListener('click',
-      function toggle_speaker() {
-        mozFMRadio.speakerEnabled = !mozFMRadio.speakerEnabled;
-        updateAudioUI();
-      }
-  , false);
 
   $('bookmark-button').addEventListener('click', function toggle_bookmark() {
     var frequency = frequencyDialer.getFrequency();
@@ -567,23 +575,35 @@ function init() {
   }, false);
 
   mozFMRadio.onfrequencychange = updateFreqUI;
-  mozFMRadio.onenabled = function() {
-    updatePowerUI();
-    favoritesList.onFMEnabled();
-  };
+  mozFMRadio.onenabled = updatePowerUI;
   mozFMRadio.ondisabled = updatePowerUI;
-  mozFMRadio.onantennachange = function onAntennaChange() {
+
+  mozFMRadio.onantennaavailablechange = function onAntennaChange() {
     updateAntennaUI();
     if (mozFMRadio.antennaAvailable) {
-      enableFM(true);
+      // If the FM radio is enabled when the antenna is unplugged, turn the FM
+      // radio on again.
+      if (!!window._previousFMRadioState) {
+        mozFMRadio.enable(frequencyDialer.getFrequency());
+      }
+    } else {
+      // Remember the current state of the FM radio
+      window._previousFMRadioState = mozFMRadio.enabled;
+      mozFMRadio.disable();
     }
   };
 
   updateFreqUI();
-  // Enable FM immediately
-  enableFM(true);
+  if (mozFMRadio.antennaAvailable) {
+    // Enable FM immediately
+    mozFMRadio.enable(mozFMRadio.frequencyLowerBound);
+  } else {
+    // Mark the previous state as True, so the FM radio be enabled automatically
+    // when the headset is plugged.
+    window._previousFMRadioState = true;
+    updateAntennaUI();
+  }
   updatePowerUI();
-  updateAudioUI();
 }
 
 window.addEventListener('load', function(e) {
@@ -592,7 +612,7 @@ window.addEventListener('load', function(e) {
 
 // Turn off radio immediately when window is unloaded.
 window.addEventListener('unload', function(e) {
-  enableFM(false);
+  mozFMRadio.disable();
 }, false);
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
