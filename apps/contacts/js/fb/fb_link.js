@@ -298,15 +298,16 @@ if (!fb.link) {
       var msg = {
         type: 'window_close',
         data: ''
-      };
+      }
 
-      parent.postMessage(msg,'*')
+      parent.postMessage(msg, '*')
     }
 
     function notifyParent(uid) {
-      var msg = {};
-      msg.type = 'item_selected';
-      msg.data = uid;
+      var msg = {
+        type: 'item_selected',
+        data: uid
+      }
 
       parent.postMessage(msg, '*');
     }
