@@ -210,3 +210,15 @@ iframe.backgroundWindow {
   visibility: visible;
   pointer-events: auto;
 }
+
+#systemNotificationOverlay {
+  visibility: hidden;
+  -moz-transition: -moz-transform 0.3s ease;
+  -moz-transform: translateY(100%);
+}
+
+#systemNotificationOverlay.visible {
+  visibility: visible;
+  -moz-transform: translateY(0);
+}
+

@@ -536,6 +536,24 @@ var WindowManager = (function() {
     kill(e.detail.application.origin);
   });
 
+  var notificationOverlay =
+    document.getElementById('systemNotificationOverlay');
+  // Deal with crashed foreground app
+  window.addEventListener('mozbrowsererror', function(e) {
+    if (e.type == 'fatal' && displayedApp == e.target.dataset.frameOrigin) {
+      kill(e.detail.dataset.frameOrigin);
+      notificationOverlay.classList.add('visible');
+      notificationOverlay.addEventListener('transitionend',
+        function onTransitionEnd() {
+          window.setTimeout(function timeout() {
+            notificationOverlay.classList.remove('visible');
+            notificationOverlay.removeEventListener('transitionend',
+              onTransitionEnd);
+          }, 3000);
+        });
+    }
+  });
+
   // Stop running the app with the specified origin
   function kill(origin) {
     if (!isRunning(origin))

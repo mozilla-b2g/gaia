@@ -112,7 +112,8 @@
  * so that it will appear above the keyboard iframe (z-index 0) to allow clicking on it
  */
 #screen > [data-z-index-level="app"] > iframe.appWindow.active,
-#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active,
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active ~ section.banner {
   z-index: 2;
 }
 
@@ -120,7 +121,8 @@
   z-index: 1;
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen {
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen,
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen ~ section.banner {
   z-index: 0;
 }
 
