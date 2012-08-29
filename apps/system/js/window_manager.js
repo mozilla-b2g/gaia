@@ -360,9 +360,6 @@ var WindowManager = (function() {
       'Camera',
       // Can't open camera HAL from content processes (bug 782456)
 
-      'Clock',
-      // Crashing when dismissing the alert window (bug 785166)
-
       'E-Mail',
       // SSL/TLS support can only happen in the main process although
       // the TCP support without security will accidentally work OOP
