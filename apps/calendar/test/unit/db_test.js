@@ -7,7 +7,7 @@ suite('db', function() {
   var name;
 
   setup(function(done) {
-    this.timeout(5000);
+    this.timeout(10000);
     subject = testSupport.calendar.db();
     subject.open(function() {
       subject.close();
@@ -16,7 +16,7 @@ suite('db', function() {
   });
 
   setup(function(done) {
-    this.timeout(5000);
+    this.timeout(10000);
     name = subject.name;
 
     subject.deleteDatabase(function(err, success) {

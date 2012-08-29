@@ -31,6 +31,13 @@ var Contacts = {
     } else {
       callback(null);
     }
+  },
+  getCarrierInfo: function cn_getCarrierInfo(contact, phoneNumber) {
+    // TODO Implement algorithm described in Wireframe
+    var phoneType = contact.tel[0].type;
+    var carrier = (contact.tel[0].carrier != null) ?
+      contact.tel[0].carrier : 'Unknown carrier';
+    return phoneType + ' | ' + carrier + ' | ' + phoneNumber;
   }
 };
 
