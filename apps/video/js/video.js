@@ -96,7 +96,6 @@ function processVideo(videodata) {
     return;
   if (!previewPlayer.canPlayType(videodata.type))
     return;
-  }
   addVideo(videodata);
 }
 
