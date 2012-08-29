@@ -357,8 +357,8 @@ var Contacts = (function() {
             // if more than one phone number
             var prompt1 = new ValueSelector(_('select_mobile'));
             var numbers = currentContact.tel;
-            for (var key in numbers) {
-              var number = numbers[key].value;
+            for (var index=0; index<numbers.length; index++) {
+              var number = numbers[index].value;
               prompt1.addToList(number + '', function() {
                   prompt1.hide();
                   ActivityHandler.postPickSuccess(number);

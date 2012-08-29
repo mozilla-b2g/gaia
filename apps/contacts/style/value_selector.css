@@ -137,7 +137,6 @@ section.valueselector button {
   font-weight: 600;
   height: 3.8rem;
   line-height: 3.8rem;
-  margin: 0 0 1rem;
   outline: medium none;
   overflow: hidden;
   padding: 0 1.5rem;
@@ -148,5 +147,9 @@ section.valueselector button {
   vertical-align: middle;
   white-space: nowrap;
   width: 100%;
+  margin: 0;
+}
+
+body[role="application"] menu:not([type="toolbar"]):not([data-items="1"]) button:last-child {
   margin: 0;
 }
