@@ -49,7 +49,7 @@ Calendar.App = (function(window) {
 
       today.addEventListener('click', function() {
         self.view('Month').render();
-        self.timeController.setSelectedDay(new Date());
+        self.timeController.selectedDay = (new Date());
       });
 
 
@@ -58,11 +58,13 @@ Calendar.App = (function(window) {
         return selector;
       }
 
+      this.syncController.observe();
+      this.timeController.observe();
+
       /* temp views */
       this.state('/day/', setPath, tempView('#day-view'));
       this.state('/week/', setPath, tempView('#week-view'));
       this.state('/add/', setPath, tempView('#add-event-view'));
-
 
       /* routes */
 
@@ -93,7 +95,7 @@ Calendar.App = (function(window) {
       var colors = this.view('CalendarColors');
       colors.render();
 
-      this.syncController.observe();
+
       this.router.start();
       document.body.classList.remove('loading');
     },

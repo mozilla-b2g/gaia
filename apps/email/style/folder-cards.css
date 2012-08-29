@@ -6,13 +6,14 @@
 .fld-accounts-header-label {
 }
 
-.fld-account-item {
+.fld-account-item, .fld-folder-item, .fld-folder-list-header {
   display: block;
-  line-height: 2.4rem;
+  line-height: 2.5rem;
+  padding: 0.6rem 2rem;
+  border-bottom: 1px solid gray;
 }
 .fld-account-selected {
-  background-color: #ddf;
-  border: 2px solid #224;
+  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.5), rgba(50, 50, 50, 0.6));
 }
 .fld-account-name {
   font-size: 2rem;
@@ -21,27 +22,54 @@
   display: none;
 }
 
-
 .card-folder-picker {
   box-shadow: inset 0 0 1rem black;
 }
 
-.fld-folders-header {
+.card-folder-picker .scrollregion-below-header {
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    margin: -5px 0 0;
 }
+
+.fld-folders-header {
+  background: url("images/ui/dark_header.png") repeat-x scroll left top transparent;
+  background-size: auto 5.4rem;
+  /*background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #888888 5px, #999999 6px, #bbbbbb 6px, #cccccc 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cccccc), color-stop(100%, #bbbbbb));*/
+}
+
+.fld-accounts-container, .fld-folders-container {
+  -moz-transition: transform .2s ease-in;
+}
+
+.fld-folders-container {
+  -moz-transform: translateX(100%);
+}
+
+.fld-accounts-container {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  -moz-transform: translateX(-100%);
+}
+
+.fld-accounts-container.show, .fld-folders-container.show{
+  -moz-transform: translateX(0px);
+}
+
 .fld-accounts-btn {
   font-size: 1.2rem;
 }
 .fld-folders-header-account-label {
-  font-size: 1rem;
+  font-size: 1.5rem;
 }
 
-.fld-folder-item {
-  display: block;
-  line-height: 2rem;
-  padding: 0.6rem;
+.fld-folder-item:last-child {
+  border-bottom: none;
 }
 .fld-folder-item.fld-folder-selected {
-  background-color: rgba(200, 200, 255, 0.6);
+  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.5), rgba(50, 50, 50, 0.6));
 }
 .fld-folder-unselectable {
   color: #444;
@@ -58,34 +86,22 @@
 .fld-folder-depth0 {
 }
 .fld-folder-depth1 {
-  margin-left: 1.2rem;
-  border-left: 1px solid gray;
-  padding-left: 0.4rem;
+  padding-left: 3.5rem;
 }
 .fld-folder-depth2 {
-  margin-left: 2.4rem;
-  border-left: 1px solid gray;
-  padding-left: 0.4rem;
+  padding-left: 5rem;
 }
 .fld-folder-depth3 {
-  margin-left: 3.6rem;
-  border-left: 1px solid gray;
-  padding-left: 0.4rem;
+  padding-left: 6.5rem;
 }
 .fld-folder-depth4 {
-  margin-left: 4.8rem;
-  border-left: 1px solid gray;
-  padding-left: 0.4rem;
+  padding-left: 8rem;
 }
 .fld-folder-depth5 {
-  margin-left: 6rem;
-  border-left: 1px solid gray;
-  padding-left: 0.4rem;
+  padding-left: 9.5rem;
 }
 .fld-folder-depthmax {
-  margin-left: 7.2rem;
-  border-left: 1px solid gray;
-  padding-left: 0.4rem;
+  padding-left: 11rem;
 }
 
 .fld-nav-settings-btn {

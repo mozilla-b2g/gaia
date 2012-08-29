@@ -76,6 +76,10 @@
     <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
     <script defer src="js/utility_tray.js"></script>
 
+    <!-- Cost Control -->
+    <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
+    <script defer src="js/cost_control.js"></script>
+
     <!-- Quick Settings -->
     <link rel="stylesheet" type="text/css" href="style/quick_settings/quick_settings.css">
     <script defer src="js/quick_settings.js"></script>
@@ -204,6 +208,9 @@
         <div id="notifications-container">
         </div>
 
+        <!-- credit module -->
+        <div id="cost-control-widget"></div>
+
         <!-- quick settings -->
         <div id="quick-settings">
           <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
@@ -213,7 +220,6 @@
           <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
         </div>
 
-        <!-- TBD: credit module -->
         <div id="utility-tray-grippy">
         </div>
       </div>
@@ -245,7 +251,7 @@
               <h3></h3>
               <p>
                 <span id="modal-dialog-confirm-message"></span>
-              </p>  
+              </p>
             </div>
             <menu data-items="2">
               <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="affirmative">OK</button>
@@ -259,7 +265,7 @@
               <p>
                 <span id="modal-dialog-prompt-message"></span>
                 <input id="modal-dialog-prompt-input" />
-              </p>  
+              </p>
             </div>
             <menu data-items="2">
               <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
@@ -276,7 +282,7 @@
                 <input id="modal-dialog-username-input" />
                 <span data-l10n-id="password">Password</span>
                 <input id="modal-dialog-password-input" type="password" />
-              </p>  
+              </p>
             </div>
             <menu data-items="2">
               <button id="modal-dialog-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
@@ -290,7 +296,7 @@
               <p>
                 <span id="modal-dialog-sad-face">:(</span>
                 <span data-l10n-id="error-message">The app has encountered an error and is not loading properly.</span>
-              </p>  
+              </p>
             </div>
             <menu data-items="2">
               <button id="modal-dialog-error-back" data-l10n-id="back">Back</button>
@@ -335,7 +341,7 @@
             <button id="value-selector-confirm" class="affirmative" data-l10n-id="ok" onmousedown="return false;">Ok</button>
           </div>
       </div>
-      
+
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
@@ -347,10 +353,7 @@
               <div id="lockscreen-clock"></div>
               <div id="lockscreen-date"></div>
             </div>
-            <div id="lockscreen-notification" class="notification" hidden>
-              <img id="lockscreen-notification-icon" />
-              <div id="lockscreen-notification-title"></div>
-              <div id="lockscreen-notification-detail"></div>
+            <div id="notifications-lockscreen-container">
             </div>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
@@ -392,7 +395,7 @@
 
       <div id="pinkeypadscreen" data-z-index-level="pinkeypadscreen" hidden>
         <div id="pinkeypadscreen-container">
-          <p id="pinkeypadscreen-desc"><span>Enter PIN</span></p>
+          <p id="pinkeypadscreen-desc"><span data-l10n-id="enterPIN">Enter PIN</span></p>
           <p id="pinkeypadscreen-code">
             <span id="pinkeypadscreen-display"></span>
           </p>
@@ -406,10 +409,13 @@
             <a href="#" data-key="7">7</a>
             <a href="#" data-key="8">8</a>
             <a href="#" data-key="9">9</a>
-            <a href="#" data-key="o" class="pinkeypadscreen-pad-func">Ok</a>
+            <a href="#" data-key="o" class="pinkeypadscreen-pad-func"
+                data-l10n-id="ok">Ok</a>
             <a href="#" data-key="0">0</a>
-            <a href="#" data-key="b" class="pinkeypadscreen-pad-func">Back</a>
-            <a href="#" data-key="e" class="pinkeypadscreen-pad-func-full">Emergency</a>
+            <a href="#" data-key="b" class="pinkeypadscreen-pad-func"
+                data-l10n-id="back-button">Back</a>
+            <a href="#" data-key="e" class="pinkeypadscreen-pad-func-full"
+                data-l10n-id="emergency-call-button">Emergency Call</a>
           </div>
         </div>
       </div>

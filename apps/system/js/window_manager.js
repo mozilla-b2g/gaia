@@ -384,9 +384,11 @@ var WindowManager = (function() {
       // No videos seem to be found when running OOP (i.e. no video
       // list) (bug 782460)
 
-      'Image Uploader'
+      'Image Uploader',
       // Cannot upload files when OOP
       // bug 783878
+
+      'Cost Control'
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {

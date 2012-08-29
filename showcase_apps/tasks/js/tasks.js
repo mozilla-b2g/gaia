@@ -124,6 +124,11 @@ var EditTask = {
     return this.taskTitle = document.getElementById('task-title');
   },
 
+  get doneElement() {
+    delete this.doneElement;
+    return this.doneElement = document.querySelector('li.done');
+  },
+
   get deleteElement() {
     delete this.deleteElement;
     return this.deleteElement = document.querySelector('li.delete');
@@ -175,9 +180,11 @@ var EditTask = {
     if (task.id) {
       this.taskTitle.innerHTML = 'Edit Task';
       this.deleteElement.style.display = 'block';
+      this.doneElement.style.display = 'block';
     } else {
       this.taskTitle.innerHTML = 'New Task';
       this.deleteElement.style.display = 'none';
+      this.doneElement.style.display = 'none';
     }
   },
 
