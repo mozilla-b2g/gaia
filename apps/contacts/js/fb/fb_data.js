@@ -55,7 +55,8 @@ if (!window.fb.contacts) {
       };
 
       req.onerror = function(e) {
-        window.console.error('OWDError: ', e.target.error.name);
+        window.console.error('FB: Error while opening the DB: ',
+                                                        e.target.error.name);
         if (typeof cb === 'function') {
           cb();
         }
