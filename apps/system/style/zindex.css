@@ -113,7 +113,7 @@
  */
 #screen > [data-z-index-level="app"] > iframe.appWindow.active,
 #screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active,
-#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active ~ section.banner {
+#screen > [data-z-index-level="app"] > section.banner.active[data-z-index-level="system-notification-banner"] {
   z-index: 2;
 }
 
@@ -122,7 +122,7 @@
 }
 
 #screen > [data-z-index-level="app"] > iframe.appWindow.homescreen,
-#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen ~ section.banner {
+#screen > [data-z-index-level="app"] > section.banner[data-z-index-level="system-notification-banner"] {
   z-index: 0;
 }
 

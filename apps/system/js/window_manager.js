@@ -59,6 +59,10 @@ var WindowManager = (function() {
   var windows = document.getElementById('windows');
   var dialogOverlay = document.getElementById('dialog-overlay');
   var screenElement = document.getElementById('screen');
+  var notificationOverlay =
+    document.getElementById('systemNotificationOverlay');
+  var notificationContainer =
+    document.querySelector('#systemNotificationOverlay > p');
 
   //
   // The set of running apps.
@@ -273,8 +277,10 @@ var WindowManager = (function() {
     var homescreenFrame = runningApps[homescreen].frame;
     if ((newApp == homescreen) && homescreenFrame) {
       homescreenFrame.classList.add('active');
+      notificationOverlay.classList.add('active');
     } else {
       homescreenFrame.classList.remove('active');
+      notificationOverlay.classList.remove('active');
     }
 
     // Lock orientation as needed
@@ -536,13 +542,17 @@ var WindowManager = (function() {
     kill(e.detail.application.origin);
   });
 
-  var notificationOverlay =
-    document.getElementById('systemNotificationOverlay');
   // Deal with crashed foreground app
   window.addEventListener('mozbrowsererror', function(e) {
     if (e.type == 'fatal' && displayedApp == e.target.dataset.frameOrigin) {
-      kill(e.detail.dataset.frameOrigin);
+      var origin = e.target.dataset.frameOrigin;
+      var _ = navigator.mozL10n.get;
       notificationOverlay.classList.add('visible');
+      notificationContainer.textContent = _('foreground-app-crash-notification',
+        { name: runningApps[origin].name });
+
+      kill(origin);
+
       notificationOverlay.addEventListener('transitionend',
         function onTransitionEnd() {
           window.setTimeout(function timeout() {
