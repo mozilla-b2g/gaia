@@ -31,6 +31,9 @@ var videodb;
 
 var currentVideo;  // The data for the current video
 
+// Video object used to create previews
+var previewPlayer = document.createElement('video');
+
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
 
@@ -89,23 +92,17 @@ function createThumbnailList() {
 
 function processVideo(videodata) {
   // If this isn't a video, skip it
-  if (videodata.type.substring(0, 6) !== 'video/') {
+  if (videodata.type.substring(0, 6) !== 'video/')
+    return;
+  if (!dom.player.canPlayType(videodata.type))
     return;
   }
-
-  // If it isn't playable, skip it
-  var testplayer = document.createElement('video');
-  if (!testplayer.canPlayType(videodata.type)) {
-    return;
-  }
-
   addVideo(videodata);
 }
 
 function metaDataParser(videofile, callback) {
 
-  var testplayer = document.createElement('video');
-  if (!testplayer.canPlayType(videofile.type)) {
+  if (!previewPlayer.canPlayType(videofile.type)) {
     return callback({});
   }
 
@@ -114,19 +111,19 @@ function metaDataParser(videofile, callback) {
     title: fileNameToVideoName(videofile.name)
   };
 
-  testplayer.preload = 'metadata';
-  testplayer.style.width = THUMBNAIL_WIDTH + 'px';
-  testplayer.style.height = THUMBNAIL_HEIGHT + 'px';
-  testplayer.src = url;
-  testplayer.onloadedmetadata = function() {
+  previewPlayer.preload = 'metadata';
+  previewPlayer.style.width = THUMBNAIL_WIDTH + 'px';
+  previewPlayer.style.height = THUMBNAIL_HEIGHT + 'px';
+  previewPlayer.src = url;
+  previewPlayer.onloadedmetadata = function() {
 
-    metadata.duration = testplayer.duration;
-    metadata.width = testplayer.videoWidth;
-    metadata.height = testplayer.videoHeight;
+    metadata.duration = previewPlayer.duration;
+    metadata.width = previewPlayer.videoWidth;
+    metadata.height = previewPlayer.videoHeight;
 
-    testplayer.currentTime = 20;  // Skip ahead 20 seconds
-    if (testplayer.seeking) {
-      testplayer.onseeked = doneSeeking;
+    previewPlayer.currentTime = 20;  // Skip ahead 20 seconds
+    if (previewPlayer.seeking) {
+      previewPlayer.onseeked = doneSeeking;
     } else {
       doneSeeking();
     }
@@ -142,15 +139,14 @@ function metaDataParser(videofile, callback) {
         canvas.width = THUMBNAIL_WIDTH;
         canvas.height = THUMBNAIL_HEIGHT;
         var ctx = canvas.getContext('2d');
-        ctx.drawImage(testplayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+        ctx.drawImage(previewPlayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
         metadata.poster = canvas.mozGetAsFile('poster', 'image/jpeg');
       }
       catch (e) {
         console.error('Failed to create a poster image:', e);
       }
 
-      testplayer.src = '';
-      testplayer = null;
+      previewPlayer.src = '';
       callback(metadata);
     }
   }
