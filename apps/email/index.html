@@ -11,6 +11,8 @@
   <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
   <link rel="stylesheet" type="text/css" href="style/bb/headers/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/lists/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/switches/style.css">
+  <link rel="stylesheet" type="text/css" href="style/bb/extend.css">
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <!-- Shared code -->
@@ -392,11 +394,11 @@
       <!-- Main settings menu, root of all (mail) settings -->
       <section class="card-settings-main card" role="region" data-theme="organic">
         <header class="tng-main-header" aria-level="1">
-          <button class="tng-close-btn header-left-btn"
+<!--           <button class="tng-close-btn header-left-btn"
                   data-l10n-id="settings-close">
             <span class="icon icon-close"></span>
-          </button>
-          <menu type="toolbar">
+          </button> -->
+          <menu type="toolbar" class="tng-close-btn">
             <button>done</button>
           </menu>
           <h1 class="tng-main-header-label"
@@ -413,10 +415,37 @@
             <p data-l10n-id="settings-about-section">AbouT</p>
           </header>
           <ul>
-            <li><dl><dt>Check mail</dt></dl></li>
-            <li><dl><dt>Always show images</dt></dl></li>
-            <li><dl><dt>Download attachments</dt></dl></li>
-            <li><dl><dt>Notify me of new mail</dt></dl></li>
+            <li>
+              <em class="aside end"></em>
+                <dl><dt>Check mail</dt></dl>
+            </li>
+            <li>
+              <em class="aside end">
+                <label class="toggle">
+                  <input type="checkbox" checked="checked">
+                  <span></span>
+                </label>
+              </em>
+              <dl><dt>Always show images</dt></dl>
+            </li>
+            <li>
+              <em class="aside end">
+                <label class="toggle">
+                  <input type="checkbox" checked="checked">
+                  <span></span>
+                </label>
+              </em>
+              <dl><dt>Download attachments</dt></dl>
+            </li>
+            <li>
+              <em class="aside end">
+                <label class="toggle">
+                  <input type="checkbox" checked="checked">
+                  <span></span>
+                </label>
+              </em>
+              <dl><dt>Notify me of new mail</dt></dl>
+            </li>
           </ul>
           <a class="tng-email-lib-version tng-inert-item tng-item">v1</a>
         </section>
