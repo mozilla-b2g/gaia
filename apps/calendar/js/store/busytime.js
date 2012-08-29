@@ -35,8 +35,8 @@ Calendar.ns('Store').Busytime = (function() {
     _store: 'busytimes',
 
     _setupCache: function() {
-      this._cached = Object.create(null);
-      this._timeObservers = [];
+      // reset time observers
+      Calendar.TimeObserver.call(this);
 
       this._byEventId = Object.create(null);
       this._tree = new Calendar.IntervalTree();
@@ -101,120 +101,64 @@ Calendar.ns('Store').Busytime = (function() {
       this._transactionCallback(trans, callback);
     },
 
-   /**
-     * Adds observer for timespan.
+    _startCompare: function(aObj, bObj) {
+      var a = aObj.start;
+      var b = bObj.start;
+
+      return Calendar.compare(a, b);
+    },
+
+    /**
+     * Loads all busytimes in given timespan.
      *
-     * Object example:
-     *
-     *    object.handleEvent = function(e) {
-     *      // e.type
-     *      // e.data
-     *      // e.time
-     *    }
-     *
-     *    // when given an object
-     *    EventStore.observe(timespan, object)
-     *
-     *
-     * Callback example:
-     *
-     *    EventStore.observe(timespan, function(event) {
-     *      // e.type
-     *      // e.data
-     *      // e.time
-     *    });
-     *
-     * @param {Calendar.Timespan} timespan span to observe.
-     * @param {Function|Object} callback function or object follows
-     *                                   EventTarget pattern.
+     * @param {Calendar.Timespan} span timespan.
+     * @param {Function} callback node style callback
+     *                            where first argument is
+     *                            an error (or null)
+     *                            and the second argument
+     *                            is a list of all loaded
+     *                            busytimes in the timespan.
      */
-    observeTime: function(timespan, callback) {
-      if (!(timespan instanceof Calendar.Timespan)) {
-        throw new Error(
-          'must pass an instance of Calendar.Timespan as first argument'
+    loadSpan: function(span, callback) {
+      var trans = this.db.transaction(this._store);
+      var store = trans.objectStore(this._store);
+
+      // XXX: we need to implement busytime chunking
+      // to make this efficient.
+      var keyRange = IDBKeyRange.lowerBound(span.start);
+
+      var index = store.index('end');
+      var self = this;
+
+      index.mozGetAll(keyRange).onsuccess = function(e) {
+        var data = e.target.result;
+
+        // sort data
+        data = data.sort(self._startCompare);
+
+        // attempt to find a start time that occurs
+        // after the end time of the span
+        var idx = Calendar.binsearch.insert(
+          data,
+          { start: (span.end + 1) },
+          self._startCompare
         );
-      }
-      this._timeObservers.push([timespan, callback]);
-    },
 
-    /**
-     * Finds index of timespan/object|callback pair.
-     *
-     * Used internally and in tests has little practical use
-     * unless you have the original timespan object.
-     *
-     * @param {Calendar.Timespan} timespan original (===) timespan used.
-     * @param {Function|Object} callback original callback/object.
-     * @return {Numeric} -1 when not found otherwise index.
-     */
-    findTimeObserver: function(timespan, callback) {
-      var len = this._timeObservers.length;
-      var idx = null;
-      var field;
-      var i = 0;
+        // remove unrelated timespan...
+        data = data.slice(0, idx);
 
-      for (; i < len; i++) {
-        field = this._timeObservers[i];
+        // add records to the cache
+        data.forEach(function(item) {
+          //XXX: Maybe we want to seperate
+          //set of events for persist vs load?
+          self._addTime(item);
+        });
 
-        if (field[0] === timespan &&
-            field[1] === callback) {
+        // fire callback
+        if (callback)
+          callback(null, data);
 
-          return i;
-        }
-      }
-
-      return -1;
-    },
-
-    /**
-     * Removes a time observer you
-     * must pass the same instance of both
-     * the timespan and the callback/object
-     *
-     *
-     * @param {Calendar.Timespan} timespan timespan object.
-     * @param {Function|Object} callback original callback/object.
-     * @return {Boolean} true when found & removed callback.
-     */
-    removeTimeObserver: function(timespan, callback) {
-      var idx = this.findTimeObserver(timespan, callback);
-
-      if (idx !== -1) {
-        this._timeObservers.splice(idx, 1);
-        return true;
-      } else {
-        return false;
-      }
-    },
-
-    /**
-     * Fires a time based event.
-     *
-     * @param {String} type name of event.
-     * @param {Date|Numeric} start start position of time event.
-     * @param {Date|Numeric} end end position of time event.
-     * @param {Object} data data related to event.
-     */
-    fireTimeEvent: function(type, start, end, data) {
-      var i = 0;
-      var len = this._timeObservers.length;
-      var observer;
-      var event = {
-        time: true,
-        data: data,
-        type: type
       };
-
-      for (; i < len; i++) {
-        observer = this._timeObservers[i];
-        if (observer[0].overlaps(start, end)) {
-          if (typeof(observer[1]) === 'object') {
-            observer[1].handleEvent(event);
-          } else {
-            observer[1](event);
-          }
-        }
-      }
     },
 
     /**
@@ -248,13 +192,24 @@ Calendar.ns('Store').Busytime = (function() {
       return result;
     },
 
+    /* we don't use id based caching for busytimes */
+
+    _addToCache: function() {},
+    _removeFromCache: function() {},
+
     _onLoadCache: function(object) {
-      this._addToCache(object);
       this._addTime(
         object
       );
     },
 
+    /**
+     * Adds a busytime to the cache.
+     * Emits an add time event when item
+     * is added newly or loaded.
+     *
+     * @param {Object} record busytime record.
+     */
     _addTime: function(record) {
       if (!(record.eventId in this._byEventId)) {
         this._byEventId[record.eventId] = [];
@@ -263,73 +218,7 @@ Calendar.ns('Store').Busytime = (function() {
       this._byEventId[record.eventId].push(record);
       this._tree.add(record);
 
-      this.fireTimeEvent(
-        'add',
-        record.startDate,
-        record.endDate,
-        record
-      );
-    },
-
-    /**
-     * Span returns an array of busytime / event pairs.
-     *
-     *    busytime.eventsInSpan(function(err, list) {
-     *      list.forEach(function(item) {
-     *        // item => [busytime, event]
-     *      });
-     *    });
-     *
-     * @param {Calendar.Timespan} timespan desired range.
-     * @param {Function} callback node style.
-     */
-    eventsInCachedSpan: function(timespan, callback) {
-      // XXX: speed this up we can probably
-      // avoid the double array scan.
-
-      var results = [];
-      var eventStore = this.db.getStore('Event');
-      var idTable = Object.create(null);
-
-      // 1. build list of event ids & load them
-      var times = this.busytimesInCachedSpan(timespan);
-
-      times.forEach(function(item) {
-        idTable[item.eventId] = true;
-      });
-
-      // create unique list of event ids...
-      var ids = Object.keys(idTable);
-      idTable = undefined;
-
-      eventStore.findByIds(ids, function(err, list) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        var i = 0;
-        var len = times.length;
-        var record;
-        var event;
-
-        for (; i < len; i++) {
-          record = times[i];
-          event = list[record.eventId];
-          if (event) {
-            results.push([record, event]);
-          }
-        }
-
-        callback(null, results);
-      });
-    },
-
-    /**
-     * Gets all records in span.
-     */
-    busytimesInCachedSpan: function(span) {
-      return this._tree.query(span);
+      this.emit('add time', record);
     },
 
     _addEventTimes: function(event) {
@@ -365,12 +254,7 @@ Calendar.ns('Store').Busytime = (function() {
 
       records.forEach(function(record) {
         this._tree.remove(record);
-        this.fireTimeEvent(
-          'remove',
-          record.startDate,
-          record.endDate,
-          record
-        );
+        this.emit('remove time', record);
       }, this);
     }
   };

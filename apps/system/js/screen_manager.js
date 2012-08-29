@@ -66,27 +66,29 @@ var ScreenManager = {
     var self = this;
     var power = navigator.mozPower;
 
-    power.addWakeLockListener(function scm_handleWakeLock(topic, state) {
-      switch (topic) {
-        case 'screen':
-          self._screenWakeLocked = (state == 'locked-foreground');
+    if (power) {
+      power.addWakeLockListener(function scm_handleWakeLock(topic, state) {
+        switch (topic) {
+          case 'screen':
+            self._screenWakeLocked = (state == 'locked-foreground');
 
-          if (self._screenWakeLocked) {
-            // Turn screen on if wake lock is acquire
-            self.turnScreenOn();
-          } else if (self._idled) {
-            // Turn screen off if we are already idled
-            // and wake lock is released
-            self.turnScreenOff(false);
-          }
-          break;
+            if (self._screenWakeLocked) {
+              // Turn screen on if wake lock is acquire
+              self.turnScreenOn();
+            } else if (self._idled) {
+              // Turn screen off if we are already idled
+              // and wake lock is released
+              self.turnScreenOff(false);
+            }
+            break;
 
-        case 'cpu':
-          power.cpuSleepAllowed = (state != 'locked-foreground' &&
-                                   state != 'locked-background');
-          break;
-      }
-    });
+          case 'cpu':
+            power.cpuSleepAllowed = (state != 'locked-foreground' &&
+                                     state != 'locked-background');
+            break;
+        }
+      });
+    }
 
     // When idled, trigger the idle-screen-off process
     this.idleObserver.onidle = function scm_onidle() {
@@ -237,11 +239,25 @@ var ScreenManager = {
     window.addEventListener('devicelight', this);
     window.addEventListener('mozfullscreenchange', this);
 
-    navigator.mozPower.screenEnabled = this.screenEnabled = true;
-    navigator.mozPower.screenBrightness = this._brightness;
+    var power = navigator.mozPower;
+    if (power) {
+      navigator.mozPower.screenEnabled = this.screenEnabled = true;
+      navigator.mozPower.screenBrightness = this._brightness;
+    }
     this.screen.classList.remove('screenoff');
 
-    this.setIdleTimeout(this._idleTimeout);
+    // The screen should be turn off with shorter timeout if
+    // it was never unlocked
+    if (LockScreen.locked) {
+      this.setIdleTimeout(10 * 1000);
+      var self = this;
+      window.addEventListener('unlock', function scm_unlocked() {
+        window.removeEventListener('unlock', scm_unlocked);
+        self.setIdleTimeout(self._idleTimeout);
+      });
+    } else {
+      this.setIdleTimeout(this._idleTimeout);
+    }
 
     this.fireScreenChangeEvent();
     return true;
@@ -249,6 +265,9 @@ var ScreenManager = {
 
   setBrightness: function scm_setBrightness(brightness) {
     this._brightness = brightness;
+    var power = navigator.mozPower;
+    if (!power)
+      return;
 
     /* Disregard devicelight value here and be responsive to setting changes.
     * Actual screen brightness will be updated shortly
@@ -258,7 +277,7 @@ var ScreenManager = {
   },
 
   setDeviceLightEnabled: function scm_setDeviceLightEnabled(enabled) {
-    if (!enabled && this._deviceLightEnabled) {
+    if (!enabled && this._deviceLightEnabled && navigator.mozPower) {
       // Disabled -- set the brightness back to preferred brightness
       navigator.mozPower.screenBrightness = this._brightness;
     }
