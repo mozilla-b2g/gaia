@@ -368,11 +368,11 @@ fb.Contact = function(deviceContact, cid) {
     return out;
   }
 
-  function doUnlink(devContact, out) {
-    var uid = doGetFacebookUid(devContact);
+  function doUnlink(dContact, out) {
+    var uid = doGetFacebookUid(dContact);
 
-    markAsUnlinked(devContact);
-    var req = navigator.mozContacts.save(devContact);
+    markAsUnlinked(dContact);
+    var req = navigator.mozContacts.save(dContact);
 
     req.onsuccess = function(e) {
       // Then the original FB imported contact is restored
