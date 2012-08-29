@@ -50,7 +50,13 @@ function startup(data, reason) {
   
     let directories = getDirectories(baseDir);
     directories.forEach(function appendDir(name) {
-      identity.add(scheme, name + '.' + host, port);
+      // Some app names can cause a raise here, preventing other apps
+      // from being added.
+      try {
+        identity.add(scheme, name + '.' + host, port);
+      } catch (e) {
+        dump(e);
+      }
     });
   
     server.registerPathHandler('/marionette', MarionetteHandler);
