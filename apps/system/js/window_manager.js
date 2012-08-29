@@ -363,7 +363,7 @@ var WindowManager = (function() {
       'Clock',
       // Crashing when dismissing the alert window (bug 785166)
 
-      'Cost Control'
+      'Cost Control',
       // ?????
 
       'E-Mail',
@@ -384,7 +384,7 @@ var WindowManager = (function() {
       'Messages',
       // Crashes when launched OOP (bug 775997)
 
-      'Settings',
+      'Settings'
       // Bluetooth is not remoted yet (bug 755943)
     ];
 
