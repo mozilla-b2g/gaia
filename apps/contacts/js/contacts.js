@@ -927,8 +927,11 @@ var Contacts = (function() {
       currentContact.adr = [];
       currentContact.note = [];
       currentContact.photo = [];
+      var readOnly = ['id', 'updated', 'published'];
       for (var field in myContact) {
-        currentContact[field] = myContact[field];
+        if (readOnly.indexOf(field) == -1) {
+          currentContact[field] = myContact[field];
+        }
       }
       contact = currentContact;
     } else {
