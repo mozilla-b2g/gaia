@@ -94,7 +94,7 @@ function processVideo(videodata) {
   // If this isn't a video, skip it
   if (videodata.type.substring(0, 6) !== 'video/')
     return;
-  if (!dom.player.canPlayType(videodata.type))
+  if (!previewPlayer.canPlayType(videodata.type))
     return;
   }
   addVideo(videodata);
@@ -496,7 +496,7 @@ function toCamelCase(str) {
 }
 
 function padLeft(num, length) {
-  var r = '' + num;
+  var r = String(num);
   while (r.length < length) {
     r = '0' + r;
   }
@@ -505,7 +505,7 @@ function padLeft(num, length) {
 
 function formatDuration(duration) {
   var minutes = Math.floor(duration / 60);
-  var seconds = Math.floor(duration % 60);
+  var seconds = Math.round(duration % 60);
   if (minutes < 60) {
     return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
   }
