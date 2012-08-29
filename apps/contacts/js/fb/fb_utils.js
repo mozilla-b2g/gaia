@@ -1,3 +1,5 @@
+'use strict';
+
 var fb = window.fb || {};
 
 if (!fb.utils) {
@@ -6,9 +8,11 @@ if (!fb.utils) {
   fb.utils.getContactData = function(cid) {
     var outReq = new fb.utils.Request();
 
-    var req = navigator.mozContacts.find({filterBy: ['id'],
-                                                filterValue: cid,
-                                                filterOp: 'equals'});
+    var req = navigator.mozContacts.find({
+      filterBy: ['id'],
+      filterValue: cid,
+      filterOp: 'equals'
+    });
 
     req.onsuccess = function(e) {
       if (e.target.result && e.target.result.length > 0) {

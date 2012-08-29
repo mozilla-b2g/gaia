@@ -1,3 +1,5 @@
+'use strict';
+
 var fb = window.fb || {};
 
 if (!fb.link) {

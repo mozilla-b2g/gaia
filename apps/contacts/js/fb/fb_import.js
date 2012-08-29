@@ -1,9 +1,9 @@
+'use strict';
 
 var fb = window.fb || {};
 
 if (typeof fb.importer === 'undefined') {
   (function(document) {
-    'use strict';
 
     var Importer = fb.importer = {};
     var UI = Importer.ui = {};

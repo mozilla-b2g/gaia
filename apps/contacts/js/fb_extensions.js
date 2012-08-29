@@ -1,20 +1,21 @@
+'use strict';
+
 var Contacts = window.Contacts || {};
 
 if (typeof Contacts.extFb === 'undefined') {
   (function(document) {
     var extFb = Contacts.extFb = {};
-    var contactid;
+    var contactId;
 
     var linkProposal = document.querySelector('#fb-extensions');
 
     extFb.startLink = function(cid, linked) {
-      contactid = cid;
+      contactId = cid;
       if (linked === 'true') {
-        linkProposal.src = 'fb_link.html' + '?contactid=' + contactid;
+        linkProposal.src = 'fb_link.html' + '?contactId=' + contactId;
         linkProposal.hidden = false;
-      }
-      else {
-        doUnlink(contactid);
+      } else {
+        doUnlink(contactId);
       }
     }
 
@@ -23,19 +24,21 @@ if (typeof Contacts.extFb === 'undefined') {
       var mozContReq = fb.utils.getMozContact(uid);
 
       mozContReq.onsuccess = function() {
-        // contactid is the device contact about to be linked
-        var fbContact = new fb.Contact(null, contactid);
+        // contactId is the device contact about to be linked
+        var fbContact = new fb.Contact(null, contactId);
 
         // mozContactReq.result is id in mozContacts for that UID
         var originalFbContact = mozContReq.result;
 
-        var req = fbContact.linkTo(
-                            {uid: uid, mozContact: originalFbContact});
+        var req = fbContact.linkTo({
+          uid: uid,
+          mozContact: originalFbContact
+        });
 
         req.onsuccess = function() {
           linkProposal.hidden = true;
 
-          contacts.List.refresh(contactid);
+          contacts.List.refresh(contactId);
           if (originalFbContact) {
             contacts.List.remove(originalFbContact.id);
           }
@@ -49,7 +52,7 @@ if (typeof Contacts.extFb === 'undefined') {
 
       mozContReq.onerror = function() {
          window.console.error('FB: Error while linking contacts',
-                                                          mozContReq.error);
+                              mozContReq.error);
       }
     }
 
@@ -77,9 +80,9 @@ if (typeof Contacts.extFb === 'undefined') {
           linkProposal.src = null;
           linkProposal.hidden = true;
         break;
+
         case 'item_selected':
           var uid = data.data;
-
           doLink(uid);
         break;
       }

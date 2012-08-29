@@ -1,3 +1,4 @@
+'use strict';
 
 var fb = window.fb || {};
 
@@ -5,7 +6,6 @@ fb.ACC_T = 'access_token';
 
 if (typeof fb.oauth === 'undefined') {
   (function(document) {
-    'use strict';
 
     var fboauth = fb.oauth = {};
 
@@ -41,15 +41,13 @@ if (typeof fb.oauth === 'undefined') {
       if (!window.localStorage.access_token) {
           startOAuth(state);
           return;
-      }
-      else {
+      } else {
         var timeEllapsed = Date.now() - window.localStorage.token_ts;
         var expires = Number(window.localStorage.expires);
 
         if (timeEllapsed < expires || expires === 0) {
            ret = window.localStorage.access_token;
-        }
-        else {
+        } else {
           startOAuth(state);
           return;
         }
@@ -77,8 +75,7 @@ if (typeof fb.oauth === 'undefined') {
 
       if(parameters.state === accessTokenCbData.state) {
         accessTokenCbData.callback(access_token);
-      }
-      else {
+      } else {
         window.console.error('FB: Error in state', parameters.state,
                                   accessTokenCbData.state);
       }

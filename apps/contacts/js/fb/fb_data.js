@@ -1,9 +1,9 @@
+'use strict';
 
 var fb = window.fb || {};
 
 if (!window.fb.contacts) {
   (function(document) {
-    'use strict';
 
     var contacts = fb.contacts = {};
     var indexedDB = window.mozIndexedDB || window.webkitIndexedDB ||
@@ -12,25 +12,6 @@ if (!window.fb.contacts) {
     var database;
     var STORE_NAME = 'FBFriends';
 
-    /**
-     *   Request auxiliary object to support asynchronous calls
-     *
-     */
-    var Request = function() {
-      this.done = function(result) {
-        this.result = result;
-        if (typeof this.onsuccess === 'function') {
-          this.onsuccess();
-        }
-      }
-
-      this.failed = function(error) {
-        this.error = error;
-        if (typeof this.onerror === 'function') {
-          this.onerror();
-        }
-      }
-    } // Request
 
     /**
      *  Creates the store
@@ -71,7 +52,7 @@ if (!window.fb.contacts) {
      *
      */
     contacts.get = function(uid) {
-      var retRequest = new Request();
+      var retRequest = new fb.utils.Request();
 
       window.setTimeout(function() {
         var transaction = database.transaction([STORE_NAME], 'readonly');
@@ -97,7 +78,7 @@ if (!window.fb.contacts) {
      *
      */
     contacts.save = function(obj) {
-      var retRequest = new Request();
+      var retRequest = new fb.utils.Request();
 
       window.setTimeout(function() {
         var transaction = database.transaction([STORE_NAME], 'readwrite');
@@ -117,7 +98,7 @@ if (!window.fb.contacts) {
       }
 
       contacts.getAll = function() {
-        var retRequest = new Request();
+        var retRequest = new fb.utils.Request();
         window.setTimeout(function() {
           var transaction = database.transaction([STORE_NAME], 'readonly');
           var objectStore = transaction.objectStore(STORE_NAME);
@@ -147,7 +128,7 @@ if (!window.fb.contacts) {
      *
      */
     contacts.remove = function(uid) {
-      var retRequest = new Request();
+      var retRequest = new fb.utils.Request();
 
       window.setTimeout(function() {
         var transaction = database.transaction([STORE_NAME], 'readwrite');
@@ -171,4 +152,3 @@ if (!window.fb.contacts) {
 
   }) (document);
 }
-
