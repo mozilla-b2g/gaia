@@ -1138,6 +1138,19 @@ conceived.
 			</apn>
 		</gsm>
 	</provider>
+	<provider>
+		<name>Mobile Vikings</name>
+		<gsm>
+			<network-id mcc="206" mnc="20"/>
+			<voicemail>1933</voicemail>
+			<apn value="web.be">
+				<plan type="prepaid"/>
+				<usage type="internet"/>
+				<username>web</username>
+				<password>web</password>
+			</apn>
+		</gsm>
+	</provider>
 </country>
 
 <!-- Bulgaria -->
@@ -1439,6 +1452,9 @@ conceived.
 		<name>velcom</name>
 		<gsm>
 			<network-id mcc="257" mnc="01"/>
+			<balance-check>
+				<ussd>*100#</ussd>
+			</balance-check>
 			<apn value="wap.velcom.by">
 				<plan type="postpaid"/>
 				<usage type="wap"/>
@@ -1501,6 +1517,9 @@ conceived.
 		<name>MTS</name>
 		<gsm>
 			<network-id mcc="257" mnc="02"/>
+			<balance-check>
+				<ussd>*100#</ussd>
+			</balance-check>
 			<apn value="internet.mts.by">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -1514,6 +1533,9 @@ conceived.
 		<name>life:)</name>
 		<gsm>
 			<network-id mcc="257" mnc="03"/>
+			<balance-check>
+				<ussd>*100#</ussd>
+			</balance-check>
 			<apn value="internet.life.com.by">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -2402,7 +2424,12 @@ conceived.
 		<name>Congstar</name>
 		<gsm>
 			<network-id mcc="262" mnc="01"/>
-
+			<balance-check>
+				<ussd>*100#</ussd>
+			</balance-check>
+			<balance-top-up>
+				<ussd replacement="CODE">*101*CODE#</ussd>
+			</balance-top-up>
 			<apn value="internet.t-mobile">
 				<plan type="prepaid"/>
 				<usage type="internet"/>
@@ -3198,17 +3225,16 @@ conceived.
 		<gsm>
 			<network-id mcc="214" mnc="05"/>
 			<network-id mcc="214" mnc="07"/>
-
 			<voicemail>123</voicemail>
 			<balance-check>
 				<dtmf>2266</dtmf>
 			</balance-check>
-
-			<apn value="movistar.es">
+			<apn value="telefonica.es">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
-				<username>movistar</username>
-				<password>movistar</password>
+				<name>Movistar</name>
+				<username>telefonica</username>
+				<password>telefonica</password>
 				<dns>194.179.1.100</dns>
 				<dns>194.179.1.101</dns>
 			</apn>
@@ -3666,6 +3692,11 @@ conceived.
 				<usage type="internet"/>
 				<name>Full Internet (Webphone)</name>
 			</apn>
+			<apn value="internetneuf">
+				<plan type="postpaid"/>
+				<usage type="internet"/>
+				<name>Internet (Neuf Telecom)</name>
+			</apn>
 		</gsm>
 	</provider>
 	<provider>
@@ -4027,6 +4058,12 @@ conceived.
 		<name>MTN</name>
 		<gsm>
 			<network-id mcc="620" mnc="01"/>
+			<balance-check>
+				<ussd>*124#</ussd>
+			</balance-check>
+			<balance-top-up>
+				<ussd replacement="CODE">*125*CODE#</ussd>
+			</balance-top-up>
 			<apn value="internet">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -4034,12 +4071,18 @@ conceived.
 		</gsm>
 	</provider>
 	<provider>
-		<name>Vodafone (ONEtouch)</name>
+		<name>Vodafone</name>
 		<gsm>
 			<network-id mcc="620" mnc="02"/>
 			<msisdn-query>
 				<ussd>*127#</ussd>
 			</msisdn-query>
+			<balance-check>
+				<ussd>*122#</ussd>
+			</balance-check>
+			<balance-top-up>
+				<ussd replacement="CODE">*123*CODE#</ussd>
+			</balance-top-up>
 			<apn value="browse">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -4050,6 +4093,12 @@ conceived.
 		<name>Tigo</name>
 		<gsm>
 			<network-id mcc="620" mnc="03"/>
+			<balance-check>
+				<ussd>*820#</ussd>
+			</balance-check>
+			<balance-top-up>
+				<ussd replacement="CODE">*842*CODE#</ussd>
+			</balance-top-up>
 			<apn value="web.tigo.com.gh">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -4058,9 +4107,15 @@ conceived.
 		</gsm>
 	</provider>
 	<provider>
-		<name>Zain</name>
+		<name>Airtel</name>
 		<gsm>
 			<network-id mcc="620" mnc="06"/>
+			<balance-check>
+				<ussd>*133#</ussd>
+			</balance-check>
+			<balance-top-up>
+				<ussd replacement="CODE">*134*CODE#</ussd>
+			</balance-top-up>
 			<apn value="internet">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -4068,8 +4123,27 @@ conceived.
 		</gsm>
 	</provider>
 	<provider>
-		<name>Kasapa</name>
-		<cdma/>
+		<name>GloGhana</name>
+		<gsm>
+			<network-id mcc="620" mnc="07"/>
+			<balance-check>
+				<ussd>*124#</ussd>
+			</balance-check>
+			<balance-top-up>
+				<ussd replacement="CODE">*123*CODE#</ussd>
+			</balance-top-up>
+			<apn value="internet">
+				<plan type="postpaid"/>
+				<usage type="internet"/>
+			</apn>
+		</gsm>
+	</provider>
+	<provider>
+		<name>Expresso</name>
+		<cdma>
+			<username>evdo@expresso.com</username>
+			<password>evdo</password>
+		</cdma>
 	</provider>
 </country>
 
@@ -4162,6 +4236,18 @@ conceived.
 				<usage type="internet"/>
 				<username>Wap</username>
 				<password>Wap</password>
+			</apn>
+		</gsm>
+	</provider>
+	<provider>
+		<name>Movistar</name>
+		<gsm>
+			<network-id mcc="704" mnc="03"/>
+			<apn value="internet.movistar.gt">
+				<plan type="postpaid"/>
+				<usage type="internet"/>
+				<username>movistargt</username>
+				<password>movistargt</password>
 			</apn>
 		</gsm>
 	</provider>
@@ -7072,6 +7158,28 @@ conceived.
 		</gsm>
 	</provider>
 	<provider>
+		<name>Lebara</name>
+		<gsm>
+			<network-id mcc="204" mnc="12"/>
+			<apn value="multimedia.lebara.nl">
+				<plan type="prepaid"/>
+				<usage type="internet"/>
+			</apn>
+		</gsm>
+	</provider>
+	<provider>
+		<name>Lycamobile</name>
+		<gsm>
+			<network-id mcc="204" mnc="09"/>
+			<apn value="data.lycamobile.nl">
+				<plan type="prepaid"/>
+				<usage type="internet"/>
+				<username>lmnl</username>
+				<password>plus</password>
+			</apn>
+		</gsm>
+	</provider>
+	<provider>
 		<name>KPN NL</name>
 		<gsm>
 			<network-id mcc="204" mnc="08"/>
@@ -8501,6 +8609,9 @@ conceived.
 		<gsm>
 			<network-id mcc="250" mnc="28"/>
 			<network-id mcc="250" mnc="99"/>
+			<balance-check>
+				<ussd>*102#</ussd>
+			</balance-check>
 			<apn value="home.beeline.ru">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -8537,6 +8648,9 @@ conceived.
 		<name>MTS</name>
 		<gsm>
 			<network-id mcc="250" mnc="01"/>
+			<balance-check>
+				<ussd>*100#</ussd>
+			</balance-check>
 			<apn value="internet.mts.ru">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -8553,6 +8667,9 @@ conceived.
 
 		<gsm>
 			<network-id mcc="250" mnc="02"/>
+			<balance-check>
+				<ussd>*100#</ussd>
+			</balance-check>
 			<apn value="internet">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -8748,6 +8865,9 @@ conceived.
 		<name>U-tel</name>
 		<gsm>
 			<network-id mcc="250" mnc="39"/>
+			<balance-check>
+				<ussd>*100#</ussd>
+			</balance-check>
 			<apn value="internet.usi.ru">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
@@ -9445,14 +9565,18 @@ conceived.
 	<provider>
 		<name>Turkcell</name>
 		<gsm>
+			<!-- http://www.turkcell.com.tr/Downloads/servis-yazilimi/3g/VINN3GModemE180/VINN_2_0_sms_profil_sebeke_aygit_bilgisi.pdf -->
+			<!-- http://www.turkcell.com.tr/bireysel/cihazlar/Sayfalar/vinnailesi/Turkcell-DC-VINN.aspx -->
 			<network-id mcc="286" mnc="01"/>
 			<apn value="internet">
 				<plan type="postpaid"/>
 				<usage type="internet"/>
-				<username>gprs</username>
-				<password>gprs</password>
-				<dns>86.108.136.27</dns>
-				<dns>86.108.136.26</dns>
+				<name>Turkcell internet</name>
+			</apn>
+			<apn value="mgb">
+				<plan type="postpaid"/>
+				<usage type="internet"/>
+				<name>Turkcell 3G</name>
 			</apn>
 		</gsm>
 	</provider>

@@ -13,10 +13,6 @@ body {
   background: url("images/app-texture.png") repeat scroll 0 0 #272D32;
 }
 
-div {
-  position: relative;
-}
-
 a {
   outline: 0 none;
   text-decoration: none;
@@ -35,12 +31,17 @@ a:active {
 #container {
   height: 100%;
   width: 100%;
-  display: -moz-box;
-  -moz-box-orient: vertical;
+}
+
+#container > div {
+  position: absolute;
+  left: 0;
+  width: 100%;
 }
 
 /****** styles for frequency view *******/
 #frequency-bar {
+  top: 0;
   height: 10rem;
   width: 100%;
   text-align: center;
@@ -75,6 +76,12 @@ a:active {
   font-weight: lighter;
   color: #fff;
   padding-top: .5rem;
+  position: absolute;
+  width: 100%;
+  height: 10rem;
+  display: block;
+  top: 0;
+  left: 0;
 }
 
 #frequency::after {
@@ -84,12 +91,12 @@ a:active {
 }
 
 #frequency[data-seek-dir="up"] {
-  background: url("images/spinner-right.png") no-repeat center bottom transparent;
+  background: url("images/spinner-right.png") no-repeat center 8.5rem transparent;
 }
 
 
 #frequency[data-seek-dir="down"] {
-  background: url("images/spinner-left.png") no-repeat center bottom transparent;
+  background: url("images/spinner-left.png") no-repeat center 8.5rem transparent;
 }
 
 #bookmark-button {
@@ -112,6 +119,7 @@ a:active {
 
 /**** styles for frequency dialer *****/
 #dialer-bar {
+  top: 10rem;
   font-size: 1.3rem;
   font-weight: lighter;
   height: 9rem;
@@ -194,7 +202,8 @@ div.animation-on {
 /***** styles for favorites list ******/
 div#fav-list {
   overflow: auto;
-  -moz-box-flex: 1;
+  top: 19rem;
+  bottom: 9rem;
 }
 
 div#fav-list-container {
@@ -255,9 +264,7 @@ div#fav-list-container div.fav-list-frequency::after {
 
 /***** styles for status bars *****/
 #action-bar {
-  -moz-box-flex: 0;
-  display: -moz-box;
-  -moz-box-orient: horizontal;
+  bottom: 0;
   border-top: 0.1rem solid #3A3E46;
   box-shadow: 0 0 2px #111;
   height: 9rem;
@@ -273,7 +280,8 @@ div#fav-list-container div.fav-list-frequency::after {
 #action-bar > div {
   text-align: center;
   padding: 1rem 0 0;
-  -moz-box-flex: 1;
+  width: 33.333%;
+  float: left;
 }
 
 #action-bar > div:first-child {
