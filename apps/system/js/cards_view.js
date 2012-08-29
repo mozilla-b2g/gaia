@@ -234,6 +234,9 @@ var CardsView = (function() {
   var removeCardThreshold = window.innerHeight / 4;
 
   function alignCard(number) {
+    if (!cardsList.children[number])
+      return;
+
     cardsView.scrollLeft = cardsList.children[number].offsetLeft;
   }
 
