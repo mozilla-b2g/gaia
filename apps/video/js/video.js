@@ -102,61 +102,58 @@ function processVideo(videodata) {
   addVideo(videodata);
 }
 
-function metaDataParser(videodata, callback) {
+function metaDataParser(videofile, callback) {
 
   var testplayer = document.createElement('video');
-  if (!testplayer.canPlayType(videodata.type)) {
+  if (!testplayer.canPlayType(videofile.type)) {
     return callback({});
   }
 
-  videodb.getFile(videodata.name, function(videofile) {
+  var url = URL.createObjectURL(videofile);
+  var metadata = {
+    title: fileNameToVideoName(videofile.name)
+  };
 
-    var url = URL.createObjectURL(videofile);
-    var metadata = {
-      title: fileNameToVideoName(videodata.name)
-    };
+  testplayer.preload = 'metadata';
+  testplayer.style.width = THUMBNAIL_WIDTH + 'px';
+  testplayer.style.height = THUMBNAIL_HEIGHT + 'px';
+  testplayer.src = url;
+  testplayer.onloadedmetadata = function() {
 
-    testplayer.preload = 'metadata';
-    testplayer.style.width = THUMBNAIL_WIDTH + 'px';
-    testplayer.style.height = THUMBNAIL_HEIGHT + 'px';
-    testplayer.src = url;
-    testplayer.onloadedmetadata = function() {
+    metadata.duration = testplayer.duration;
+    metadata.width = testplayer.videoWidth;
+    metadata.height = testplayer.videoHeight;
 
-      metadata.duration = testplayer.duration;
-      metadata.width = testplayer.videoWidth;
-      metadata.height = testplayer.videoHeight;
-
-      testplayer.currentTime = 20;  // Skip ahead 20 seconds
-      if (testplayer.seeking) {
-        testplayer.onseeked = doneSeeking;
-      } else {
-        doneSeeking();
-      }
-
-      // After we've skiped ahead, try go get a poster image for the movie
-      // XXX Because of https://bugzilla.mozilla.org/show_bug.cgi?id=730765
-      // Its not clear whether this is working right. But it does
-      // end up producing an image for each video.
-      function doneSeeking() {
-        try {
-          var canvas = document.createElement('canvas');
-          canvas.width = THUMBNAIL_WIDTH;
-          canvas.height = THUMBNAIL_HEIGHT;
-          var ctx = canvas.getContext('2d');
-          ctx.drawImage(testplayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-          metadata.poster = canvas.mozGetAsFile('poster', 'image/jpeg');
-        }
-        catch (e) {
-          console.error('Failed to create a poster image:', e);
-        }
-
-        testplayer.src = '';
-        testplayer = null;
-        callback(metadata);
-      }
-      URL.revokeObjectURL(url);
+    testplayer.currentTime = 20;  // Skip ahead 20 seconds
+    if (testplayer.seeking) {
+      testplayer.onseeked = doneSeeking;
+    } else {
+      doneSeeking();
     }
-  });
+
+    // After we've skiped ahead, try go get a poster image for the movie
+    // XXX Because of https://bugzilla.mozilla.org/show_bug.cgi?id=730765
+    // Its not clear whether this is working right. But it does
+    // end up producing an image for each video.
+    function doneSeeking() {
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = THUMBNAIL_WIDTH;
+        canvas.height = THUMBNAIL_HEIGHT;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(testplayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+        metadata.poster = canvas.mozGetAsFile('poster', 'image/jpeg');
+      }
+      catch (e) {
+        console.error('Failed to create a poster image:', e);
+      }
+
+      testplayer.src = '';
+      testplayer = null;
+      callback(metadata);
+    }
+    URL.revokeObjectURL(url);
+  }
 }
 
 function addVideo(videodata) {
