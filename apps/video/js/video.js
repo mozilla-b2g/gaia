@@ -136,6 +136,7 @@ function metaDataParser(videofile, callback) {
     // Its not clear whether this is working right. But it does
     // end up producing an image for each video.
     function doneSeeking() {
+      URL.revokeObjectURL(url);
       try {
         var canvas = document.createElement('canvas');
         canvas.width = THUMBNAIL_WIDTH;
@@ -152,7 +153,6 @@ function metaDataParser(videofile, callback) {
       testplayer = null;
       callback(metadata);
     }
-    URL.revokeObjectURL(url);
   }
 }
 
