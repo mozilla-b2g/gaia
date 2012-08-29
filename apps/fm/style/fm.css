@@ -91,12 +91,12 @@ a:active {
 }
 
 #frequency[data-seek-dir="up"] {
-  background: url("images/spinner-right.png") no-repeat center bottom transparent;
+  background: url("images/spinner-right.png") no-repeat center 8.5rem transparent;
 }
 
 
 #frequency[data-seek-dir="down"] {
-  background: url("images/spinner-left.png") no-repeat center bottom transparent;
+  background: url("images/spinner-left.png") no-repeat center 8.5rem transparent;
 }
 
 #bookmark-button {
