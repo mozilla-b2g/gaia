@@ -62,15 +62,16 @@ section[role="region"] > header input[type=text] {
   width: 100%;
   height: 2.7rem;
   -moz-box-sizing: border-box;
-  padding: 0 0.5rem;
+  padding: 0 2.5rem 0 0.5rem;
   border: solid 1px #9d4123;
   border-top-color: #a6501e;
   border-radius: 0.3rem;
   background: #fff url(images/ui/shadow.png) repeat-x left -1px;
   font: 1.35rem/1em "Open Sans", Sans-serif;
+  box-shadow: none;
 }
 
-section[role="region"] > header form .clear {
+section[role="region"] > header form input[type="reset"] {
   text-indent: -9999px;
   overflow: hidden;
   position: absolute;
@@ -80,7 +81,13 @@ section[role="region"] > header form .clear {
   width: 3rem;
   height: auto;
   margin: 0;
+  display: none;
+  border: none;
   background: url(images/icons/clear.png) no-repeat center center;
+}
+
+section[role="region"] > header input[type=text]:valid + input[type="reset"] {
+  display: block;
 }
 
 /* Generic set of actions in toolbar */
