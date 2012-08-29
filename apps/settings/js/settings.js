@@ -216,7 +216,8 @@ var Settings = {
   openDialog: function settings_openDialog(dialogID) {
     var settings = window.navigator.mozSettings;
     var dialog = document.getElementById(dialogID);
-    var fields = dialog.querySelectorAll('input[data-setting]');
+    var fields =
+        dialog.querySelectorAll('input[data-setting]:not([data-ignore])');
 
     /**
       * In Settings dialog boxes, we don't want the input fields to be preset
@@ -227,6 +228,8 @@ var Settings = {
       * `data-setting' attribute is used and the input values are set
       * explicitely when the dialog is shown.  If the dialog is validated
       * (submit), their values are stored into B2G settings.
+      *
+      * XXX warning, this only supports text/password/radio input types.
       */
 
     // show dialog box
@@ -245,12 +248,13 @@ var Settings = {
     function reset() {
       if (settings) {
         for (var i = 0; i < fields.length; i++) {
-          var input = fields[i];
-          var key = input.dataset.setting;
-          var request = settings.getLock().get(key);
-          request.onsuccess = function() {
-            input.value = request.result[key] || '';
-          };
+          (function(input) {
+            var key = input.dataset.setting;
+            var request = settings.getLock().get(key);
+            request.onsuccess = function() {
+              input.value = request.result[key] || '';
+            };
+          })(fields[i]);
         }
       }
     }
@@ -258,12 +262,13 @@ var Settings = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
+        var cset = {};
         for (var i = 0; i < fields.length; i++) {
           var input = fields[i];
-          var cset = {};
-          cset[input.dataset.setting] = input.value;
-          settings.getLock().set(cset);
+          var key = input.dataset.setting;
+          cset[key] = input.value;
         }
+        settings.getLock().set(cset);
       }
       return close();
     }
@@ -283,7 +288,8 @@ window.addEventListener('load', function loadSettings(evt) {
 });
 
 // back button = close dialog || back to the root page
-window.addEventListener('keyup', function goBack(event) {
+// + prevent the [Return] key to validate forms
+window.addEventListener('keydown', function handleSpecialKeys(event) {
   if (document.location.hash != '#root' &&
       event.keyCode === event.DOM_VK_ESCAPE) {
     event.preventDefault();
@@ -296,6 +302,10 @@ window.addEventListener('keyup', function goBack(event) {
     } else {
       document.location.hash = 'root';
     }
+  } else if (event.keyCode === event.DOM_VK_RETURN) {
+    event.target.blur();
+    event.stopPropagation();
+    event.preventDefault();
   }
 });
 

@@ -43,11 +43,6 @@
   bottom: 0;
 }
 
-[role=dialog] h3 {
-  font-size: 0.8em;
-  border-bottom: 1px solid black;
-}
-
 
 /******************************************************************************
  * Setting dialog buttons
@@ -154,7 +149,33 @@
  * Specific APN Settings rules
  */
 
-#apnSettings-manual {
+#apnSettings-custom {
   font-style: italic;
+}
+
+#apnSettings-advanced {
+  padding-bottom: 1em;
+}
+
+#apnSettings-advanced h3 {
+  font-size: 0.9em;
+  border-bottom: 1px solid black;
+}
+
+#apnSettings-advanced h3:active {
+  color: brown;
+  border-bottom: 1px solid brown;
+}
+
+#apnSettings-advanced p,
+#apnSettings-advanced input {
+  display: block;
+  margin-bottom: 0;
+  font-size: 1em;
+}
+
+#apnSettings-advanced.collapsed p,
+#apnSettings-advanced.collapsed input {
+  display: none;
 }
 
