@@ -2,7 +2,8 @@
 }
 
 .cmp-addr-label, .cmp-subject-label {
-  display: inline-block;
+  display: table-cell;
+  width: -moz-min-content;
   text-align: left;
   line-height: 2.3rem;
   margin: 0 0.5rem;
@@ -13,18 +14,19 @@
 }
 
 .cmp-addr-container, .cmp-subject-text {
-  -moz-box-flex: 1;
+  display: table-cell;
+  width: -moz-available;
 }
 
 .cmp-addr-text, .cmp-subject-text {
   border: 0;
   background: none;
   font-size: 1.5rem;
+  margin-left: 0.5rem
 }
 
 .cmp-addr-text {
   margin-top: 2px;
-  vertical-align: middle;
   width: calc(100% - 3rem);
 }
 
@@ -50,7 +52,8 @@
 }
 
 .cmp-envelope-line {
-  display: -moz-box;
+  display: table;
+  table-layout: fixed;
   width: calc(100% - 4rem);
   border-bottom: 1px solid lightgray;
   margin: 0 2rem;
