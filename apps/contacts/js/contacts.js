@@ -1205,17 +1205,17 @@ var Contacts = (function() {
     this.longPress = false;
     this._pickImageTimer = setTimeout(function(self) {      
       self.longPress = true;
+      if (currentContact && currentContact.photo && currentContact.photo.length > 0) {
+        removePhoto();
+      }
     }, 500, this);
   };
 
   var cleanImageTimeout = function cleanImageTimeout(evt) {
-    if (currentContact && currentContact.photo && currentContact.photo.length > 0) {
-      if (this.longPress) {
-        removePhoto();
-      }
-    } else {
+    if (!currentContact || !currentContact.hasOwnProperty('photo') || currentContact.photo.length == 0) {
       pickImage();
     }
+
     clearTimeout(this._pickImageTimer);
   }
 
