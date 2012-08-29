@@ -1234,7 +1234,7 @@ var Contacts = (function() {
         CustomDialog.hide();
       }
     };
-    CustomDialog.show('', 'Remove contact photo', dismiss, remove);
+    CustomDialog.show('', _('removePhotoConfirm'), dismiss, remove);
   }
 
   var updateContactPhoto = function updateContactPhoto(image) {
