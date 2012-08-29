@@ -56,16 +56,16 @@ if (typeof fb.importer === 'undefined') {
       ' WHERE significant_other_id <> "")'
     ].join('');
 
-      // Multiquery Object
-      var multiqObj = {query1: FRIENDS_QUERY.join(''), query2: REL_MULTIQ};
+    // Multiquery Object
+    var multiqObj = {query1: FRIENDS_QUERY.join(''), query2: REL_MULTIQ};
 
-      // Multiquery String
-      var multiQStr = JSON.stringify(multiqObj);
+    // Multiquery String
+    var multiQStr = JSON.stringify(multiqObj);
 
-      var selButton = document.querySelector('#select-all');
-      var contactList = document.querySelector('#groups-list');
+    var selButton = document.querySelector('#select-all');
+    var contactList = document.querySelector('#groups-list');
 
-      var BLOCK_SIZE = 5;
+    var BLOCK_SIZE = 5;
 
 
    UI.getFriends = function() {
