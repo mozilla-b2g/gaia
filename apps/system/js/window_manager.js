@@ -545,16 +545,11 @@ var WindowManager = (function() {
   // Deal with crashed foreground app
   window.addEventListener('mozbrowsererror', function(e) {
     if (e.type == 'fatal' && displayedApp == e.target.dataset.frameOrigin) {
-      crash(e);
-    }
-  });
-
-  function crash(e) {
       var origin = e.target.dataset.frameOrigin;
       var _ = navigator.mozL10n.get;
       notificationBanner.addEventListener('transitionend',
-        function onTransitionEnd(evt) {
-          if (evt.propertyName == 'opacity') {
+        function onTransitionEnd(transitionEvt) {
+          if (transitionEvt.propertyName == 'visibility') {
             window.setTimeout(function timeout() {
               notificationBanner.removeEventListener('transitionend',
                 onTransitionEnd);
@@ -568,8 +563,8 @@ var WindowManager = (function() {
         { name: runningApps[origin].name });
 
       kill(origin);
-  
-  };
+    }
+  });
 
   // Stop running the app with the specified origin
   function kill(origin) {
@@ -695,7 +690,6 @@ var WindowManager = (function() {
     getRunningApps: function() {
        return runningApps;
     },
-    setDisplayedApp: setDisplayedApp,
-    crash: crash
+    setDisplayedApp: setDisplayedApp
   };
 }());
