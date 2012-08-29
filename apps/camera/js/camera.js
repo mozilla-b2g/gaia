@@ -27,11 +27,10 @@ var Camera = {
 
   _styleSheet: document.styleSheets[0],
   _orientationRule: null,
-  _iconOrientation: 0,
+  _phoneOrientation: 0,
 
   _config: {
     fileFormat: 'jpeg',
-    rotation: 90,
     position: {
       latitude: 43.468005,
       longitude: -80.523399
@@ -127,17 +126,17 @@ var Camera = {
   },
 
   orientChange: function camera_orientChange(e) {
-    // PLEASE DO SOMETHING KITTENS ARE DYING
-    // Setting MozRotate to 90 or 270 causes element to disappear
     var orientation = (e.beta > 45) ? 180 :
       (e.beta < -45) ? 0 :
-      (e.gamma < -45) ? 271 :
-      (e.gamma > 45) ? 91 : 0;
+      (e.gamma < -45) ? 270 :
+      (e.gamma > 45) ? 90 : 0;
 
-    if (orientation !== this._iconOrientation) {
+    if (orientation !== this._phoneOrientation) {
       var rule = this._styleSheet.cssRules[this._orientationRule];
-      rule.style.MozTransform = 'rotate(' + orientation + 'deg)';
-      this._iconOrientation = orientation;
+      // PLEASE DO SOMETHING KITTENS ARE DYING
+      // Setting MozRotate to 90 or 270 causes element to disappear
+      rule.style.MozTransform = 'rotate(' + (orientation + 1) + 'deg)';
+      this._phoneOrientation = orientation;
     }
   },
 
@@ -199,7 +198,7 @@ var Camera = {
 
     function gotCamera(camera) {
       this._cameraObj = camera;
-      this._config._rotation = rotation;
+      this._config.rotation = rotation;
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       camera.effect = camera.capabilities.effects[this._effect];
@@ -298,6 +297,7 @@ var Camera = {
       return;
     }
 
+    this._config.rotation = this.layoutToPhoneOrientation(this._phoneOrientation);
     this.focusRing.setAttribute('data-state', 'focused');
     this._cameraObj
       .takePicture(this._config, this.takePictureSuccess.bind(this));
@@ -309,9 +309,16 @@ var Camera = {
     if (this._autoFocusSupported && !this._manuallyFocused) {
       this._cameraObj.autoFocus(this.takePictureAutoFocusDone.bind(this));
     } else {
+      this._config.rotation = this.layoutToPhoneOrientation(this._phoneOrientation);
       this._cameraObj
         .takePicture(this._config, this.takePictureSuccess.bind(this));
     }
+  },
+
+  // The layout (icons) and the phone calculate orientation in the
+  // opposite direction
+  layoutToPhoneOrientation: function camera_layoutToPhoneOrientation() {
+    return 270 - this._phoneOrientation;
   }
 };
 
