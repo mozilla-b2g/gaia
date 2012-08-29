@@ -95,21 +95,11 @@ var Recents = {
       this.selectAllThreads.addEventListener('click',
         this.selectAllEntries.bind(this));
     }
-    this.scrollStarted = false;
-    document.getElementById('recents-container').onscroll =
-      function scroll_init(event) {
-        self.scrollStarted = true;
-      };
     if (this.recentsContainer) {
       this.recentsContainer.addEventListener('click',
-        function scroll_check(event) {
-          if (self.scrollStarted) {
-            self.scrollStarted = false;
-          } else {
-            self.click(event);
-          }
-      });
+        this.click.bind(this));
     }
+
     RecentsDBManager.init(function() {
       RecentsDBManager.get(function(recents) {
         Recents.render(recents);
