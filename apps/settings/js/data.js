@@ -133,6 +133,14 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
       apnList.removeChild(apnList.firstElementChild);
     }
 
+    // display the "Advanced Settings" section when necessary
+    var input = lastItem.querySelector('input');
+    function showManualSettings() {
+      document.getElementById('apnSettings-custom').style.display =
+          input.checked ? 'block' : 'none';
+    }
+    input.onchange = showManualSettings;
+
     // load the APN database
     if (!gAPNDocument) {
       var xhr = new XMLHttpRequest();
@@ -147,21 +155,16 @@ window.addEventListener('localized', function getCarrierSettings(evt) {
         gNetwork.mcc, gNetwork.mnc, 'internet');
     for (var i = 0; i < results.length; i++) {
       var item = createAPNItem(results[i]);
+      item.onchange = showManualSettings;
       checked = checked || item.checked;
       apnList.insertBefore(item, lastItem);
     }
 
-    // display the "Advanced Settings" section when necessary
-    var input = lastItem.querySelector('input');
-    function showManualSettings() {
-      document.getElementById('apnSettings-manual').style.display =
-          input.checked ? 'block' : 'none';
-    }
+    // ensure one item is selected
     if (!checked) {
       input.checked = true;
       showManualSettings();
     }
-    input.onchange = showManualSettings;
   };
 
   // update `gNetwork' when the data connection has changed

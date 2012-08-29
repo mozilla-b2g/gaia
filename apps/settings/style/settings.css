@@ -89,7 +89,7 @@ form:not([id=root]) header + * {
 /* setting lists */
 
 [dir=rtl] ul li > a {
-  padding-left: auto;
+  padding-left: inherit;
   padding-right: 30px;
 }
 
@@ -110,7 +110,7 @@ form:not([id=root]) header + * {
 }
 
 [dir=rtl] #root ul li > a {
-  padding-left: auto;
+  padding-left: inherit;
   padding-right: 55px;
 }
 

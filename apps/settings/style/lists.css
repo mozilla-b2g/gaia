@@ -119,7 +119,7 @@ ul li button {
  * fake input boxes for checkboxes & radio buttons
  */
 
-label {
+ul li label {
   position: absolute;
   top: 0;
   left: 0;
@@ -127,11 +127,11 @@ label {
   height: 100%;
 }
 
-label > input {
+ul li label > input {
   display: none;
 }
 
-label > span {
+ul li label > span {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -140,15 +140,15 @@ label > span {
   height: 40px;
 }
 
-label > input[type=radio] + span {
+ul li label > input[type=radio] + span {
   background: url(images/radio_off.png) no-repeat scroll center center;
 }
 
-label > input[type=radio]:checked + span {
+ul li label > input[type=radio]:checked + span {
   background: url(images/radio_on.png) no-repeat scroll center center;
 }
 
-label > input[type=checkbox] + span {
+ul li label > input[type=checkbox] + span {
   border: 2px solid;
   border-radius: 5px;
   -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
@@ -158,7 +158,7 @@ label > input[type=checkbox] + span {
   background-color: #eaeae4;
 }
 
-label > input[type=checkbox]:checked + span {
+ul li label > input[type=checkbox]:checked + span {
   background: url(images/checked.png) no-repeat scroll center center;
 }
 
@@ -167,7 +167,7 @@ label > input[type=checkbox]:checked + span {
  * brightness level
  */
 
-label > progress {
+ul li label > progress {
   float: right;
   width: 150px;
   margin: 22px 20px 0 0;
@@ -184,7 +184,7 @@ label > progress {
   max-width: calc(60% - 50px);
 }
 
-progress {
+ul li progress {
   width: 40%;
   height: 40%;
   position: absolute;

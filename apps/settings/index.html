@@ -319,19 +319,19 @@
         <h2 data-l10n-id="apnSettings"> APN Settings </h2>
       </header>
 
-      <!-- APN list -->
+      <!-- APN List -->
       <ul id="apnSettings-list">
         <li id="apnSettings-manual">
           <label>
-            <input type="radio" name="APN.name" value="manual" checked />
+            <input type="radio" name="APN.name" value="manual" />
             <span></span>
           </label>
           <a data-l10n-id="manual">(manual settings)</a>
         </li>
       </ul>
 
-      <!-- APN settings (manual) -->
-      <div id="apnSettings-manual" style="display: none;">
+      <!-- Custom APN settings -->
+      <div id="apnSettings-custom" style="display: none;">
         <label>
           <span data-l10n-id="apn">APN</span>
           <input type="text" data-setting="ril.data.apn" />
@@ -347,13 +347,14 @@
       </div>
 
       <!-- HTTP Proxy -->
-      <div id="apnSettings-proxy" style="display: none;">
+      <div id="apnSettings-proxy">
+        <h3 data-l10n-id="httpProxy">HTTP Proxy</h3>
         <label>
-          <span data-l10n-id="httpProxyHost">http Proxy Host</span>
+          <span data-l10n-id="httpProxyHost">Host</span>
           <input type="text" data-setting="ril.data.httpProxyHost" />
         </label>
         <label>
-          <span data-l10n-id="httpProxyPort">http Proxy Port</span>
+          <span data-l10n-id="httpProxyPort">Port</span>
           <input type="text" data-setting="ril.data.httpProxyPort" />
         </label>
       </div>
