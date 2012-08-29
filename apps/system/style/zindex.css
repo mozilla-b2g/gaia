@@ -107,22 +107,26 @@
      */
 }
 
+#screen > section.banner.active[data-z-index-level="system-notification-banner"] {
+  z-index: 3;
+}
+
 /*
  * set appWindow/homescreen z-index as 2 when it is active,
  * so that it will appear above the keyboard iframe (z-index 0) to allow clicking on it
  */
 #screen > [data-z-index-level="app"] > iframe.appWindow.active,
-#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active,
-#screen > [data-z-index-level="app"] > section.banner.active[data-z-index-level="system-notification-banner"] {
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
   z-index: 2;
 }
 
+#screen > [data-z-index-level="app"].active + section.banner[data-z-index-level="system-notification-banner"],
 #screen > [data-z-index-level="app"] > iframe.appWindow {
   z-index: 1;
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen,
-#screen > [data-z-index-level="app"] > section.banner[data-z-index-level="system-notification-banner"] {
+#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen {
+/*#screen > [data-z-index-level="app"] > section.banner[data-z-index-level="system-notification-banner"] { */
   z-index: 0;
 }
 
