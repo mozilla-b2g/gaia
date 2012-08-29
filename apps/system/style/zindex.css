@@ -35,7 +35,7 @@
   z-index: 65536;
 }
 
-#screen > [data-z-index-level="cardsview"] {
+#screen > [data-z-index-level="cards-view"] {
   z-index: 65536;
 }
 
@@ -168,7 +168,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="keyboard-frame"].visible,
 
 #screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="cardsview"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-screen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"] {
   z-index: 2147483647;

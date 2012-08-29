@@ -22,8 +22,8 @@ var CardsView = (function() {
   // by dragging it upwards
   var MANUAL_CLOSING = true;
 
-  var cardsView = document.getElementById('cardsView');
-  var cardsList = cardsView.getElementsByTagName('ul')[0];
+  var cardsView = document.getElementById('cards-view');
+  var cardsList = cardsView.firstElementChild;
   var displayedApp;
   var runningApps;
   // Card which we are re-ordering now
