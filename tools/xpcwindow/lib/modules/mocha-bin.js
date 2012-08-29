@@ -3,6 +3,8 @@ var env = require('env');
 
 process = window.process = require('process');
 
+var nextTick = process.nextTick;
+
 function MochaBin(mocha, commander) {
   var prefix = __dirname + '/../../vendor/';
 
@@ -15,6 +17,9 @@ function MochaBin(mocha, commander) {
   if (typeof(commander) === 'undefined') {
     commander = require(prefix + 'commander.js');
   }
+
+  // restore process next tick...
+  process.nextTick = nextTick;
 
   this.mocha = mocha;
   this.commander = commander;

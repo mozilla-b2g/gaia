@@ -1,3 +1,6 @@
+# 0.4.4
+ - process.nextTick to keep mocha test-stacks under control.
+
 # 0.4.2
   - Silent installer
 

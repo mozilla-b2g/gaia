@@ -1,6 +1,6 @@
 {
   "name": "xpcwindow",
-  "version": "0.4.2",
+  "version": "0.4.4",
   "author": {
     "name": "James Lal",
     "email": "jlal@mozilla.com"
@@ -33,7 +33,7 @@
     "name": "lights-of-apollo",
     "email": "james@lightsofapollo.com"
   },
-  "_id": "xpcwindow@0.4.2",
+  "_id": "xpcwindow@0.4.4",
   "optionalDependencies": {},
   "engines": {
     "node": "*"
@@ -42,8 +42,5 @@
   "_npmVersion": "1.1.23",
   "_nodeVersion": "v0.6.14",
   "_defaultsLoaded": true,
-  "dist": {
-    "shasum": "6bd1b73fca81cb9cf3fcfb347e370140f522418c"
-  },
-  "_from": "xpcwindow@0.4.2"
+  "_from": "xpcwindow@0.4.4"
 }
