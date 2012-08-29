@@ -720,11 +720,18 @@
   var debug = function() {},
       Responder;
 
-  if (typeof(window) === 'undefined') {
+  var isNode = typeof(window) === 'undefined';
+  var isXpc = !isNode && (typeof(window.xpcModule) !== 'undefined');
+
+  if (isNode) {
     debug = require('debug')('marionette:command-stream');
     Responder = require('test-agent/lib/test-agent/responder');
   } else {
     Responder = TestAgent.Responder;
+  }
+
+  if (isXpc) {
+    debug = window.xpcModule.require('debug')('marionette:command-stream');
   }
 
   /**
@@ -2029,9 +2036,11 @@
 ));
 (function(module, ns) {
 
-  if (!window.TCPSocket) {
+  if (!window.navigator.mozTCPSocket) {
     return;
   }
+
+  var TCPSocket = navigator.mozTCPSocket;
 
   var Responder = TestAgent.Responder;
   var ON_REGEX = /^on/;
