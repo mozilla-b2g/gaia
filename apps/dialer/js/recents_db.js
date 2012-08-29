@@ -90,7 +90,7 @@ var RecentsDBManager = {
     this._checkDBReady(function() {
       var txn = self.db.transaction(self._dbStore, 'readwrite');
       var store = txn.objectStore(self._dbStore);
-      var delRequest = store.delete(callLogEntry);
+      var delRequest = store.delete(callLogEntry.date);
 
       delRequest.onsuccess = function de_onsuccess() {
         if (callback && callback instanceof Function) {
