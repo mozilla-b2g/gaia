@@ -12,26 +12,6 @@ fb.Contact = function(deviceContact, cid) {
   var devContact = deviceContact;
   var contactid = cid;
 
-    /**
-     *   Request auxiliary object to support asynchronous calls
-     *
-     */
-    var Request = function() {
-      this.done = function(result) {
-        this.result = result;
-        if (typeof this.onsuccess === 'function') {
-          this.onsuccess();
-        }
-      }
-
-      this.failed = function(error) {
-        this.error = error;
-        if (typeof this.onerror === 'function') {
-          this.onerror();
-        }
-      }
-    }
-
   function doGetFacebookUid(data) {
     var out = data.uid;
     if (!out) {
@@ -157,7 +137,7 @@ fb.Contact = function(deviceContact, cid) {
 
   // For saving an imported FB contact
   this.save = function() {
-    var outReq = new Request();
+    var outReq = new fb.utils.Request();
 
     if (contactData && navigator.mozContacts) {
       window.setTimeout(function save_do() {
@@ -271,7 +251,7 @@ fb.Contact = function(deviceContact, cid) {
   // Gets the data
   this.getData = function() {
 
-    var outReq = new Request();
+    var outReq = new fb.utils.Request();
 
     window.setTimeout(function do_getData() {
       var uid = doGetFacebookUid(devContact);
@@ -300,7 +280,7 @@ fb.Contact = function(deviceContact, cid) {
 
 
   this.linkTo = function(fbFriend) {
-    var out = new Request();
+    var out = new fb.utils.Request();
 
     window.setTimeout(function do_linkTo() {
       if (!devContact) {
@@ -364,7 +344,7 @@ fb.Contact = function(deviceContact, cid) {
   }
 
   this.unlink = function() {
-    var out = new Request();
+    var out = new fb.utils.Request();
 
     window.setTimeout(function do_unlink() {
       if (!devContact) {
@@ -433,7 +413,7 @@ fb.Contact = function(deviceContact, cid) {
 
   this.remove = function() {
     // Removes the FB specific data from the device
-    var out = new Request();
+    var out = new fb.utils.Request();
 
     window.setTimeout(function do_remove() {
       var uid = doGetFacebookUid(devContact);
