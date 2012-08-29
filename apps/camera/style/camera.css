@@ -71,6 +71,10 @@ html, body {
   background-image: url(images/grid.png);
 }
 
+#gallery-button[disabled=disabled] {
+  display: none;
+}
+
 #capture-button[disabled=disabled] {
   opacity: 0.5;
 }

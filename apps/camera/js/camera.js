@@ -4,6 +4,8 @@ var Camera = {
 
   _camera: 0,
   _captureMode: null,
+  // In secure mode the user cannot browse to the gallery
+  _secureMode: window.parent !== window,
 
   CAMERA: 'camera',
   VIDEO: 'video',
@@ -91,6 +93,10 @@ var Camera = {
     if (!navigator.mozCameras) {
       this.captureButton.setAttribute('disabled', 'disabled');
       return;
+    }
+
+    if (this._secureMode) {
+      this.galleryButton.setAttribute('disabled', 'disabled');
     }
 
     this.setSource(this._camera);
