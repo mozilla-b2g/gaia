@@ -24,6 +24,7 @@
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
+    <script type="application/javascript" defer src="js/icc.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -161,6 +162,10 @@
         </li>
         <li>
           <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
+        </li>
+        <li>
+          <small id="icc-desc"></small>
+          <a href="#icc" id="iccMenuItem" data-l10n-id="simCard">SIM card</a>
         </li>
       </ul>
     </section>
@@ -1274,6 +1279,39 @@
       <!-- TODO -->
 
     </section>
+
+    <!-- Device :: SIM card -->
+    <section role="document" id="icc">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="simCard">SIM card</a>
+        </h1>
+      </header>
+
+      <ul id="icc-stk-apps">
+      </ul>
+    </section>
+
+    <!-- Device :: SIM card -->
+    <form role="dialog" id="icc-stk-selection">
+      <header>
+        <h2 id="icc-stk-selection-header"></h2>
+      </header>
+
+      <selection id="icc-stk-selection">
+      </selection>
+    </section>
+
+    <!-- Device :: SIM card -->
+    <form role="dialog" id="icc-stk-input">
+      <header>
+        <h2 id="icc-stk-input-header"></h2>
+      </header>
+      <input type="text" id="icc-stk-input-text">
+      <button data-l10n-id="yes" type="submit">Yes</button>
+      <button data-l10n-id="no" type="submit">No</button>
+      <button data-l10n-id="ok" type="submit">OK</button>
+    </form>
 
   </body>
 </html>
