@@ -317,6 +317,64 @@ var Contacts = (function() {
     return true;
   }
 
+  var dataPickHandler = function dataPickHandler() {
+    var type, dataSet, noDataStr, selectDataStr;
+    // Add the new pick type here:
+    switch (ActivityHandler.activityDataType) {
+      case 'webcontacts/contact':
+        type = 'number';
+        dataSet = currentContact.tel;
+        noDataStr = _('no_phones');
+        selectDataStr = _('select_mobile');
+        break;
+      case 'webcontacts/email':
+        type = 'email';
+        dataSet = currentContact.email;
+        noDataStr = _('no_email');
+        selectDataStr = _('select_email');
+        break;
+    }
+
+    if (!dataSet) {
+      return;
+    }
+
+    var hasData = dataSet && dataSet.length;
+    var numOfData = hasData ? dataSet.length : 0;
+
+    var result = {};
+    result.name = currentContact.name;
+    switch (numOfData) {
+      case 0:
+        // If no required type of data
+        var dismiss = {
+          title: _('ok'),
+          callback: CustomDialog.hide
+        };
+        CustomDialog.show('', noDataStr, dismiss);
+        break;
+      case 1:
+        // if one required type of data
+        var data = dataSet[0].value;
+        result[type] = data;
+        ActivityHandler.postPickSuccess(result);
+        break;
+      default:
+        // if more than one required type of data
+        var prompt1 = new ValueSelector(selectDataStr);
+        for (var i = 0; i < dataSet.length; i++) {
+          var data = dataSet[i].value;
+          prompt1.addToList(data + '', function() {
+              prompt1.hide();
+              result[type] = data;
+              ActivityHandler.postPickSuccess(result);
+          });
+
+        }
+        prompt1.show();
+    }
+  }
+
   var loadList = function loadList() {
     contactsList.load();
     contactsList.handleClick(function handleClick(id) {
@@ -336,37 +394,7 @@ var Contacts = (function() {
           return;
         }
 
-        var hasTel = currentContact.tel && currentContact.tel.length;
-        var numOfPhoneNums = hasTel ? currentContact.tel.length : 0;
-
-        switch (numOfPhoneNums) {
-          case 0:
-            // If no phone number
-            var dismiss = {
-              title: _('ok'),
-              callback: CustomDialog.hide
-            };
-            CustomDialog.show('', _('no_phones'), dismiss);
-            break;
-          case 1:
-            // if One phone number
-            var number = currentContact.tel[0].value;
-            ActivityHandler.postPickSuccess(number);
-            break;
-          default:
-            // if more than one phone number
-            var prompt1 = new ValueSelector(_('select_mobile'));
-            var numbers = currentContact.tel;
-            for (var key in numbers) {
-              var number = numbers[key].value;
-              prompt1.addToList(number + '', function() {
-                  prompt1.hide();
-                  ActivityHandler.postPickSuccess(number);
-              });
-
-            }
-            prompt1.show();
-        }
+        dataPickHandler();
       };
     });
   }
@@ -773,7 +801,7 @@ var Contacts = (function() {
 
   var callOrPick = function callOrPick(number) {
     if (ActivityHandler.currentlyHandling) {
-      ActivityHandler.postPickSuccess(number);
+      ActivityHandler.postPickSuccess({ number: number });
     } else {
       try {
         var activity = new MozActivity({

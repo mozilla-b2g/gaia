@@ -69,7 +69,7 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": "webcontacts/contact"
+        "type": ["webcontacts/contact","webcontacts/email"]
        },
       "disposition": "window",
       "returnValue": true
