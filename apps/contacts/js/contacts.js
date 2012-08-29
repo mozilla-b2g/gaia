@@ -234,8 +234,8 @@ var Contacts = (function() {
     cover = document.getElementById('cover-img');
     thumb = document.getElementById('thumbnail-photo');
     var thumbAction = document.getElementById('thumbnail-action');
-    thumbAction.addEventListener('mousedown', thumbClickController);
-    thumbAction.addEventListener('mouseup', cleanImageTimeout);
+    thumbAction.addEventListener('mousedown', onThumbMouseDown);
+    thumbAction.addEventListener('mouseup', onThumbMouseUp);
     TAG_OPTIONS = {
       'phone-type' : [
         {value: _('mobile')},
@@ -1200,19 +1200,21 @@ var Contacts = (function() {
     }
   };
 
-  var thumbClickController = function thumbClickController(evt) {
+  var onThumbMouseDown = function onThumbMouseDown(evt) {
     var self = this;
     this.longPress = false;
-    this._pickImageTimer = setTimeout(function(self) {      
+    this._pickImageTimer = setTimeout(function(self) {
       self.longPress = true;
-      if (currentContact && currentContact.photo && currentContact.photo.length > 0) {
+      if (currentContact && currentContact.photo &&
+        currentContact.photo.length > 0) {
         removePhoto();
       }
     }, 500, this);
   };
 
-  var cleanImageTimeout = function cleanImageTimeout(evt) {
-    if (!currentContact || !currentContact.hasOwnProperty('photo') || currentContact.photo.length == 0) {
+  var onThumbMouseUp = function onThumbMouseUp(evt) {
+    if (!currentContact || !currentContact.hasOwnProperty('photo') ||
+       currentContact.photo.length == 0) {
       pickImage();
     }
 
@@ -1231,9 +1233,8 @@ var Contacts = (function() {
         updatePhoto(null, thumb);
         CustomDialog.hide();
       }
-    }
+    };
     CustomDialog.show('', 'Remove contact photo', dismiss, remove);
-    
   }
 
   var updateContactPhoto = function updateContactPhoto(image) {
