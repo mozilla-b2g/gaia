@@ -52,6 +52,31 @@ Calendar.Calc = (function() {
     },
 
     /**
+     * Intended to be used in combination
+     * with hoursOfOccurance used to sort
+     * hours. ALLDAY is always first.
+     */
+    compareHours: function(a, b) {
+      var result;
+
+      // to cover the case of a is allday
+      // and b is also allday
+      if (a === b) {
+        return 0;
+      }
+
+      if (a === Calc.ALLDAY) {
+        return -1;
+      }
+
+      if (b === Calc.ALLDAY) {
+        return 1;
+      }
+
+      return Calendar.compare(a, b);
+    },
+
+    /**
      * Given a start and end date will
      * calculate which hours given
      * event occurs (in order from allday -> 23).

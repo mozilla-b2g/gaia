@@ -166,6 +166,27 @@ suite('calendar/calc', function() {
 
   });
 
+  suite('#compareHours', function() {
+
+    test('already at top', function() {
+      var list = ['allday', 8, 10, 3, 2];
+      var sorted = list.sort(subject.compareHours);
+
+      assert.deepEqual(sorted, ['allday', 2, 3, 8, 10]);
+    });
+
+    test('two all days', function() {
+      var list = [1, 'allday', 10, 3, 2, 'allday'];
+      var sorted = list.sort(subject.compareHours);
+
+      assert.deepEqual(
+        sorted,
+        ['allday', 'allday', 1, 2, 3, 10]
+      );
+    });
+
+  });
+
   suite('#hoursOfOccurance', function() {
     var center;
 
