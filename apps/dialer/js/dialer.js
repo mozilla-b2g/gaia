@@ -2,12 +2,54 @@
 
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (!document.mozHidden) {
-    Recents.render();
+    RecentsDBManager.get(function(recents) {
+      Recents.render(recents);
+    });
   }
 });
 
 var CallHandler = {
   call: function ch_call(number) {
+    var settings = window.navigator.mozSettings, req;
+
+    if (settings) {
+      req = settings.getLock().get('ril.radio.disabled');
+      req.addEventListener('success', function onsuccess() {
+        var status = req.result['ril.radio.disabled'];
+
+        if (!status) {
+          this.startDial(number);
+        } else {
+          CustomDialog.show(
+            _('callFlightModeTitle'),
+            _('callFlightModeBody'),
+            {
+              title: _('callFlightModeBtnOk'),
+              callback: function() {
+                CustomDialog.hide();
+              }
+            }
+          );
+        }
+      }.bind(this));
+    } else {
+      this.startDial(number);
+    }
+  },
+
+  _isUSSD: function ch_isUSSD(number) {
+    var ussdChars = ['*', '#'];
+
+    var relevantNumbers = [];
+    relevantNumbers.push(number.slice(0, 1));
+    relevantNumbers.push(number.slice(-1));
+
+    return relevantNumbers.every(function ussdTest(number) {
+      return ussdChars.indexOf(number) !== -1;
+    });
+  },
+
+  startDial: function ch_startDial(number){
     if (this._isUSSD(number)) {
       UssdManager.send(number);
     } else {
@@ -25,18 +67,6 @@ var CallHandler = {
         }
       }
     }
-  },
-
-  _isUSSD: function ch_isUSSD(number) {
-    var ussdChars = ['*', '#'];
-
-    var relevantNumbers = [];
-    relevantNumbers.push(number.slice(0, 1));
-    relevantNumbers.push(number.slice(-1));
-
-    return relevantNumbers.every(function ussdTest(number) {
-      return ussdChars.indexOf(number) !== -1;
-    });
   }
 };
 

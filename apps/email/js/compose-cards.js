@@ -28,6 +28,17 @@ function ComposeCard(domNode, mode, args) {
                                      this.onTextBodyDelta.bind(this));
   this.htmlBodyContainer = domNode.getElementsByClassName('cmp-body-html')[0];
   this.htmlIframeNode = null;
+  var inputList = domNode.getElementsByClassName('cmp-addr-text');
+  for (var i = 0; i < inputList.length; i++) {
+    inputList[i].addEventListener('focus', this.onAddrInputFocus.bind(this));
+    inputList[i].addEventListener('blur', this.onAddrInputBlur.bind(this));
+  }
+
+  // Add Contact-add buttons event listener
+  var addBtns = domNode.getElementsByClassName('cmp-contact-add');
+  for (var i = 0; i < inputList.length; i++) {
+    addBtns[i].addEventListener('click', this.onContactAdd.bind(this));
+  }
 }
 ComposeCard.prototype = {
   postInsert: function() {
@@ -102,6 +113,21 @@ ComposeCard.prototype = {
   },
 
   /**
+   * Set the contact add button show/hide while input field focus/blur.
+   */
+  onAddrInputFocus: function(evt) {
+    var addBtn = evt.target.parentElement.querySelector('.cmp-contact-add');
+    addBtn.classList.add('show');
+  },
+
+  onAddrInputBlur: function(evt) {
+    var addBtn = evt.target.parentElement.querySelector('.cmp-contact-add');
+    if (addBtn == evt.explicitOriginalTarget)
+      return;
+    addBtn.classList.remove('show');
+  },
+
+  /**
    * Save the draft if there's anything to it, close the card.
    */
   onBack: function() {
@@ -117,6 +143,11 @@ ComposeCard.prototype = {
 
     this.composer.finishCompositionSendMessage(Toaster.trackSendMessage());
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
+  },
+
+  onContactAdd: function(evt) {
+    evt.target.classList.remove('show');
+    // TODO: Open cantact picker.
   },
 
   die: function() {

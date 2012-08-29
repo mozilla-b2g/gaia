@@ -8,6 +8,66 @@ Calendar.Timespan = (function() {
   Timespan.prototype = {
 
     /**
+     * Returns all dates between the start and
+     * end of the timespan. Shortcut for Calc.daysBetween
+     *
+     * @return {Array[Date]} array of dates in order.
+     */
+    daysBetween: function() {
+      var start = new Date(this.start);
+      var end = new Date(this.end);
+
+      return Calendar.Calc.daysBetween(
+        start,
+        end
+      );
+    },
+
+    isEqual: function(inputSpan) {
+      return (
+        this.start === inputSpan.start &&
+        this.end === inputSpan.end
+      );
+    },
+
+    /**
+     * If given Timespan overlaps this timespan
+     * return a new timespan with the overlapping
+     * parts removed.
+     *
+     * See tests for examples...
+     */
+    trimOverlap: function(span) {
+      if (this.contains(span) || span.contains(this)) {
+        return null;
+      }
+
+      var start = span.start;
+      var end = span.end;
+      var ourEnd = this.end;
+      var ourStart = this.start;
+
+      var overlapsBefore = start >= ourStart && start < ourEnd;
+      var overlapsAfter = ourStart >= start && ourStart < end;
+
+      var newStart = span.start;
+      var newEnd = span.end;
+
+      if (overlapsBefore) {
+        newStart = ourEnd + 1;
+      }
+
+      if (overlapsAfter) {
+        newEnd = ourStart - 1;
+      }
+
+      return new Calendar.Timespan(
+        newStart,
+        newEnd
+      );
+    },
+
+    /**
      * Checks if given time overlaps with
      * range.
      *

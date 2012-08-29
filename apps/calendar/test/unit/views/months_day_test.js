@@ -64,7 +64,7 @@ suite('views/months_day', function() {
         calledWith = arguments;
       }
 
-      subject.controller.setSelectedDay(date);
+      subject.controller.selectedDay = date;
       assert.equal(
         calledWith[0],
         date,
@@ -116,7 +116,7 @@ suite('views/months_day', function() {
         new Calendar.Timespan(startTime, endTime)
       );
 
-      var eventIdx = busytimes.findTimeObserver(subject._timespan, subject);
+      var eventIdx = controller.findTimeObserver(subject._timespan, subject);
 
       assert.ok(
         eventIdx !== -1,
@@ -132,7 +132,7 @@ suite('views/months_day', function() {
 
       assert.equal(subject._changeToken, 2);
 
-      var eventIdx = busytimes.findTimeObserver(
+      var eventIdx = controller.findTimeObserver(
         oldRange, subject
       );
 
@@ -261,18 +261,24 @@ suite('views/months_day', function() {
 
   suite('#_loadRecords', function() {
     var storeCalledWith;
+    var queryCalledWith;
     var renderCalledWith;
     var list = [];
 
     setup(function() {
       storeCalledWith = [];
       renderCalledWith = [];
+      queryCalledWith = [];
+
+      controller.queryCache = function() {
+        queryCalledWith.push(arguments);
+      }
 
       subject._renderList = function() {
         renderCalledWith.push(arguments);
-      },
+      }
 
-      busytimes.eventsInCachedSpan = function() {
+      events.findByAssociated = function() {
         storeCalledWith.push(arguments);
       }
     });
@@ -304,7 +310,7 @@ suite('views/months_day', function() {
       assert.ok(!renderCalledWith.length);
 
       assert.equal(
-        storeCalledWith[0][0],
+        queryCalledWith[0][0],
         subject._timespan
       );
 
