@@ -72,15 +72,16 @@ if (typeof Contacts.extFb === 'undefined') {
     window.addEventListener('message', function(e) {
       var data = e.data;
 
-      if (data === 'window_close') {
-        linkProposal.src = null;
-        linkProposal.hidden = true;
-      }
-      else if (data.type && data.type === 'item_selected') {
-        // The selection made by the user
-        var uid = data.data;
+      switch (data.type) {
+        case 'window_close':
+          linkProposal.src = null;
+          linkProposal.hidden = true;
+        break;
+        case 'item_selected':
+          var uid = data.data;
 
-        doLink(uid);
+          doLink(uid);
+        break;
       }
     });
 

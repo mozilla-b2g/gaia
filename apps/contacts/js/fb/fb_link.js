@@ -294,6 +294,15 @@ if (!fb.link) {
       }
     }
 
+    UI.end = function (event) {
+      var msg = {
+        type: 'window_close',
+        data: ''
+      };
+
+      parent.postMessage(msg,'*')
+    }
+
     function notifyParent(uid) {
       var msg = {};
       msg.type = 'item_selected';
