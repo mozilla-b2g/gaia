@@ -33,6 +33,8 @@ var PendingMsgManager = {
       request.onsuccess = function(event) {
         msgManager.db = event.target.result;
         msgManager.dbReady = true;
+        console.log('INIT DONE');
+          
         if (msgCallback != undefined) {
           msgCallback();
         }
@@ -53,6 +55,9 @@ var PendingMsgManager = {
   },
 
   getMsgDB: function pm_getMsgDB(num, callback) {
+    if(!PendingMsgManager.db){
+      alert("JODIDO");
+    }
     var store = this.db.transaction('msgs').objectStore('msgs');
     store = store.index('receiver'); // receiver number.
     var boundKeyRange = num ? IDBKeyRange.only(num) : null;
@@ -61,6 +66,7 @@ var PendingMsgManager = {
     cursorRequest.onsuccess = function onsuccess() {
       var cursor = cursorRequest.result;
       if (!cursor) {
+        console.log("HE RECOGIDO "+msg.length);
         callback(msg);
         return;
       }
