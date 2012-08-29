@@ -67,11 +67,12 @@ var Recents = {
   init: function re_init() {
     var self = this;
     if (this.recentsFilterContainer) {
-      this.recentsFilterContainer.addEventListener('click', function(event) {
-        if (self._recentsEditionMode) {
-          self.recentsHeaderAction('cancel-button');
-        }
-        self.filter(event);
+      this.recentsFilterContainer.addEventListener('click',
+        function tab_filter(event) {
+          if (self._recentsEditionMode) {
+            self.recentsHeaderAction('cancel-button');
+          }
+          self.filter(event);
       });
     }
     if (this.recentsIconEdit) {
@@ -95,16 +96,18 @@ var Recents = {
         this.selectAllEntries.bind(this));
     }
     this.scrollStarted = false;
-    document.getElementById('recents-container').onscroll = function(event) {
-      self.scrollStarted = true;
-    }
+    document.getElementById('recents-container').onscroll =
+      function scroll_init(event) {
+        self.scrollStarted = true;
+      };
     if (this.recentsContainer) {
-      this.recentsContainer.addEventListener('click', function(event) {
-        if (self.scrollStarted) {
-          self.scrollStarted = false;
-        } else {
-          self.click(event);
-        }
+      this.recentsContainer.addEventListener('click',
+        function scroll_check(event) {
+          if (self.scrollStarted) {
+            self.scrollStarted = false;
+          } else {
+            self.click(event);
+          }
       });
     }
     RecentsDBManager.init(function() {
