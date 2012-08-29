@@ -113,7 +113,7 @@ var WindowManager = (function() {
     // launch() can be called from outside the card switcher
     // hiding it if needed
     if (CardsView.cardSwitcherIsShown())
-      CardsView.cardTaskSwitcher();
+      CardsView.hideCardSwitcher();
   }
 
   function isRunning(origin) {
