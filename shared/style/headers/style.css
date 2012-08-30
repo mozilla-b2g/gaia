@@ -71,7 +71,7 @@ section[role="region"] > header input[type=text] {
   box-shadow: none;
 }
 
-section[role="region"] > header form input[type="reset"] {
+section[role="region"] > header form button[type="reset"] {
   text-indent: -9999px;
   overflow: hidden;
   position: absolute;
@@ -86,7 +86,7 @@ section[role="region"] > header form input[type="reset"] {
   background: url(images/icons/clear.png) no-repeat center center;
 }
 
-section[role="region"] > header input[type=text]:valid + input[type="reset"] {
+section[role="region"] > header input[type=text]:valid + button[type="reset"] {
   display: block;
 }
 
