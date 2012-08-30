@@ -206,18 +206,21 @@ p {
 
 #month-displays {
   height: -moz-calc(100% - 1.45rem);
+  width:300%;
 }
 
 section.month {
   height: 100%;
-  clear: both;
   color: #484848;
+  float:left;
+  width:33.3%;
+  display: none;
 }
 
 /* sub: day rows */
 
-section.month.inactive {
-  display: none
+section.month.active {
+  display: block;
 }
 
 section.month {
@@ -509,6 +512,7 @@ body[data-path="/month/"] #view-selector .month a {
 
   #month-view {
     height: 55%;
+    position: relative;
   }
 
   #month-days-view {
