@@ -475,12 +475,11 @@ var Recents = {
         contact.name : _('unknown'));
       primaryInfo.innerHTML = primaryInfo.innerHTML.trim() +
         ((count > 1) ? '&nbsp;&nbsp;(' + count + ')' : '');
-      if (contact.photo) {
-        contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
-      }
       if (contact.photo && contact.photo[0]) {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
+      } else {
+        contactPhoto.style.backgroundImage = 'url()';
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         phoneNumber, contact);

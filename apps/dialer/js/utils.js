@@ -60,10 +60,9 @@ var Utils = {
       contactPhoneType = contactPhoneEntry.type;
       contactPhoneCarrier = contactPhoneEntry.carrier;
       if (phoneNumber == contactPhoneNumber) {
-        if (contactPhoneType) {
-          additionalInfo = contactPhoneType;
-          phoneType = contactPhoneType;
-        }
+        // Phone type is a mandatory field.
+        additionalInfo = contactPhoneType;
+        phoneType = contactPhoneType;
         if (!contactPhoneCarrier) {
           additionalInfo = additionalInfo + ', ' + phoneNumber;
         } else {
