@@ -188,9 +188,9 @@ p {
 #month-days li {
   color: white;
   text-align: center;
-  background-color: #1F2630;
+  background-color: #242931;
   text-transform: uppercase;
-  font-size: 90%;
+  font-size: 110%;
   padding: 0.185rem 0;
   border-right: 1px solid #131314;
   border-left: 1px solid #515051;
@@ -230,7 +230,7 @@ section.month {
 }
 
 section.month li > .day {
-  font-size: 1.30rem;
+  font-size: 1.5rem;
   line-height: 140%;
 }
 
@@ -283,8 +283,8 @@ section.month ol:last-child li {
 }
 
 section.month li.past {
-  background-color: #E7E7E7;
-  color: #9A9A9A;
+  background-color: #E6E6E6;
+  color: #484848;
 }
 
 section.month li.present {
@@ -300,8 +300,8 @@ section.month li.selected {
   background-color: #1BA8C6 !important;
 }
 
-section.month li.other-month {
-  color: #9A9A9A;
+section.month li.past.other-month {
+  background-color: #C1C1C1;
 }
 
 /* sub day rows: busy indicators */
@@ -392,15 +392,14 @@ Indicators are in units of 12
 
 #months-day-view  h1 {
   letter-spacing: 0.05rem;
-  font-size: 1.1rem;
-  padding: 0.4rem 1.2rem 0.7rem;
+  font-size: 1.15rem;
+  padding: 1.2rem 1.2rem 0.7rem;
   text-transform: uppercase;
   font-family: 'Open Sans';
   font-weight: light;
   color: #F93700;
   border-bottom: 1px solid #F93700;
   box-shadow: 0px 4px 5px -1px #888 inset;
-  padding-top: 1rem;
 }
 
 /** sub: view selector **/

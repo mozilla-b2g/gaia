@@ -1,6 +1,27 @@
 Calendar.Calc = (function() {
 
+  const SECOND = 1000;
+  const MINUTE = (SECOND * 60);
+  const HOUR = MINUTE * 60;
+
   var Calc = {
+
+    ALLDAY: 'allday',
+
+    /**
+     * MS in a second
+     */
+    SECOND: SECOND,
+    /**
+     * MS in a minute
+     */
+    MINUTE: MINUTE,
+
+    /**
+     * MS in an hour
+     */
+    HOUR: HOUR,
+
     PAST: 'past',
 
     NEXT_MONTH: 'next-month',
@@ -28,6 +49,131 @@ Calendar.Calc = (function() {
 
     offsetMinutesToMs: function(offset) {
       return offset * (60 * 1000);
+    },
+
+    /**
+     * Intended to be used in combination
+     * with hoursOfOccurance used to sort
+     * hours. ALLDAY is always first.
+     */
+    compareHours: function(a, b) {
+      var result;
+
+      // to cover the case of a is allday
+      // and b is also allday
+      if (a === b) {
+        return 0;
+      }
+
+      if (a === Calc.ALLDAY) {
+        return -1;
+      }
+
+      if (b === Calc.ALLDAY) {
+        return 1;
+      }
+
+      return Calendar.compare(a, b);
+    },
+
+    /**
+     * Given a start and end date will
+     * calculate which hours given
+     * event occurs (in order from allday -> 23).
+     *
+     * When an event occurs all of the given
+     * date will return only "allday"
+     *
+     * @param {Date} day point for all day calculations.
+     * @param {Date} start start point of given span.
+     * @param {Date} end point of given span.
+     * @return {Array} end end point of given span.
+     */
+    hoursOfOccurance: function(day, start, end) {
+      // beginning reference point (start of given date)
+      var refStart = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate()
+      );
+
+      var refEnd = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate() + 1
+      );
+
+      refEnd.setMilliseconds(-1);
+
+      var startBefore = start <= refStart;
+      var endsAfter = end >= refEnd;
+
+      if (startBefore && endsAfter) {
+        return [Calc.ALLDAY];
+      }
+
+      start = (startBefore) ? refStart : start;
+      end = (endsAfter) ? refEnd : end;
+
+      var curHour = start.getHours();
+      var lastHour = end.getHours();
+      var hours = [];
+
+      // using < not <= because we only
+      // want to include the last hour if
+      // it contains some minutes or seconds.
+      for (; curHour < lastHour; curHour++) {
+        hours.push(curHour);
+      }
+
+      //XXX: just minutes would probably be fine?
+      //     seconds are here for consistency.
+      if (end.getMinutes() || end.getSeconds()) {
+        hours.push(end.getHours());
+      }
+
+      return hours;
+    },
+
+    /**
+     * Calculates the difference between
+     * two points in hours.
+     *
+     * @param {Date|Numeric} start start hour.
+     * @param {Date|Numeric} end end hour.
+     */
+    hourDiff: function(start, end) {
+      start = (start instanceof Date) ? start.valueOf() : start;
+      end = (end instanceof Date) ? end.valueOf() : end;
+
+      start = start / HOUR;
+      end = end / HOUR;
+
+      return end - start;
+    },
+
+    /**
+     * Creates timespan for given day.
+     *
+     * @param {Date} date date of span.
+     * @param {Boolean} includeTime uses given date
+     *                           as the start time of the timespan
+     *                           rather then the absolute start of
+     *                           the day of the given date.
+     */
+    spanOfDay: function(date, includeTime) {
+      if (typeof(includeTime) === 'undefined') {
+        date = Calc.createDay(date);
+      }
+
+      var end = Calc.createDay(date);
+      end.setDate(end.getDate() + 1);
+      end.setMilliseconds(-1);
+
+      return new Calendar.Timespan(
+        date,
+        end
+      );
     },
 
     /**

@@ -70,7 +70,11 @@ suite('dialer/recents_db', function() {
     });
 
     test('#delete_list', function(done) {
-      subject.deleteList(callList, function() {
+      var itemsToDelete = [];
+      for (var j = 0; j < callList.length; j++) {
+        itemsToDelete.push(callList[j].date);
+      }
+      subject.deleteList(itemsToDelete, function() {
         subject.get(function(entries) {
           assert.length(entries, 0);
           done();
