@@ -8,7 +8,7 @@
   },
   "entry_points": {
     "dialer": {
-      "launch_path": "/index.html",
+      "launch_path": "/dialer/index.html",
       "name": "Dialer",
       "icons": {
         "120": "/style/icons/Dialer.png",
@@ -16,7 +16,7 @@
       }
     },
     "contacts": {
-      "launch_path": "/index.html",
+      "launch_path": "/contacts/index.html",
       "name": "Contacts",
       "icons": {
         "120": "/style/icons/Contacts.png",
