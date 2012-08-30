@@ -357,9 +357,6 @@ var WindowManager = (function() {
       'Browser',
       // Requires nested content processes (bug 761935)
 
-      'Camera',
-      // Can't open camera HAL from content processes (bug 782456)
-
       'Cost Control',
       // ?????
 
