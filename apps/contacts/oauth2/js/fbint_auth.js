@@ -51,8 +51,7 @@ if (typeof fb.oauthflow === 'undefined') {
         next++;
         if (next < msettings.length) {
           (getSetting.bind(this))(msettings[next]);
-        }
-        else {
+        } else {
           if (typeof this.onsuccess === 'function') {
             this.onsuccess(result);
           }
