@@ -321,7 +321,7 @@ var Recents = {
       if (target.classList.contains('call-log-contact-photo')) {
         event.stopPropagation();
         // TODO Include Alberto's code about linking 'Contacts APP'
-        var isContact = target.parentNode.dataset.isContact;
+        var isContact = target.parentNode.classList.contains('isContact');
         var phoneNumber = target.parentNode.dataset.num.trim();
         console.log('Num ' + phoneNumber + ' isContact ' + isContact);
       } else if (target.classList.contains('log-item')) {
@@ -479,14 +479,14 @@ var Recents = {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
       } else {
-        contactPhoto.style.backgroundImage = 'url()';
+        logItem.classList.add('noContactPhoto');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         phoneNumber, contact);
       var secondaryInfo = logItem.querySelector('.secondary-info');
       secondaryInfo.innerHTML = secondaryInfo.textContent.trim() +
         '&nbsp;&nbsp;&nbsp;' + phoneNumberAdditionalInfo;
-      logItem.dataset.isContact = true;
+      logItem.classList.add('isContact');
     }
   },
 
