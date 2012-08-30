@@ -337,20 +337,20 @@ button::-moz-focus-inner {
   float: left;
   height: 100%;
   width: 5rem;
-  background-size: 100% 100%;
+  background-image: url('images/icon_arrow.png');
+  background-size: 1rem;
+  background-position: 75% 75%;
+  background-repeat: no-repeat;
 }
 
-.call-log-contact-photo.knownContact {
+.log-item.isContact .call-log-contact-photo {
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
 }
 
-.call-log-contact-photo.unknownContact {
-  background-image: url('images/icon_arrow.png');
-  background-size: 1rem;
-  background-position: 75% 75%;
-  background-repeat: no-repeat;
+.log-item.noContactPhoto .call-log-contact-photo {
+  background-image: none;
 }
 
 .call-log-selection {
