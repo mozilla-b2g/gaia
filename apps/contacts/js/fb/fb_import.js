@@ -57,7 +57,10 @@ if (typeof fb.importer === 'undefined') {
     ].join('');
 
     // Multiquery Object
-    var multiqObj = {query1: FRIENDS_QUERY.join(''), query2: REL_MULTIQ};
+    var multiqObj = {
+      query1: FRIENDS_QUERY.join(''),
+      query2: REL_MULTIQ
+    };
 
     // Multiquery String
     var multiQStr = JSON.stringify(multiqObj);
@@ -65,10 +68,36 @@ if (typeof fb.importer === 'undefined') {
     var selButton = document.querySelector('#select-all');
     var contactList = document.querySelector('#groups-list');
 
+    var headerElement = document.querySelector('header');
+    var friendsMsgElement = document.querySelector('p#friends-msg');
+    var scrollableElement = document.querySelector('#mainContent');
+
     var BLOCK_SIZE = 5;
 
+    UI.init = function() {
+      var overlay, overlayContent;
 
-   UI.getFriends = function() {
+      overlay = overlayContent = document.querySelector('#shortcuts #current');
+      var jumper = document.querySelector('#shortcuts ol');
+
+      var params = {
+        overlay: overlay,
+        overlayContent: overlayContent,
+        jumper: jumper,
+        groupSelector: '#group-',
+        scrollToCb: scrollToCb
+      };
+
+      utils.alphaScroll.init(params);
+    }
+
+    function scrollToCb(groupContainer) {
+      scrollableElement.scrollTop = groupContainer.offsetTop -
+                                    headerElement.clientHeight -
+                                    friendsMsgElement.clientHeight;
+    }
+
+    UI.getFriends = function() {
       clearList();
 
       fb.oauth.getAccessToken(tokenReady, 'friends');
