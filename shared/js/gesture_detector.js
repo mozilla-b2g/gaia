@@ -85,8 +85,21 @@ var GestureDetector = (function() {
 
     // If this is a touch event handle each changed touch separately
     if (e.changedTouches) {
+      // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=785554
+      // causes touchend events to list all touches as changed, so
+      // warn if we see that bug
+      if (e.type === 'touchend' && e.changedTouches.length > 1) {
+        console.warn('gesture_detector.js: spurious extra changed touch on ' +
+                     'touchend. See ' +
+                     'https://bugzilla.mozilla.org/show_bug.cgi?id=785554');
+      }
+
       for (var i = 0; i < e.changedTouches.length; i++) {
         handler(this, e, e.changedTouches[i]);
+        // The first changed touch might have changed the state of the
+        // FSM. We need this line to workaround the bug 785554, but it is
+        // probably the right thing to have here, even once that bug is fixed.
+        handler = this.state[e.type];
       }
     }
     else {    // Otherwise, just dispatch the event to the handler
@@ -266,6 +279,7 @@ var GestureDetector = (function() {
       d.vx = d.vy = null;
       d.startDistance = d.lastDistance = null;
       d.startDirection = d.lastDirection = null;
+      d.lastMidpoint = null;
       d.scaled = d.rotated = null;
     },
 
@@ -566,6 +580,7 @@ var GestureDetector = (function() {
 
         d.lastDistance = distance;
         d.lastDirection = direction;
+        d.lastMidpoint = midpoint;
       }
     },
 
@@ -586,6 +601,25 @@ var GestureDetector = (function() {
       }
       else
         return; // It was a touch we weren't tracking
+
+      // If we emitted any transform events, now we need to emit
+      // a transformend event to end the series.  The details of this
+      // event use the values from the last touchmove, and the
+      // relative amounts will 1 and 0, but they are included for
+      // completeness even though they are not useful.
+      if (d.scaled || d.rotated) {
+        d.emitEvent('transformend', {
+          absolute: { // transform details since gesture start
+            scale: d.lastDistance / d.startDistance,
+            rotate: touchRotation(d.startDirection, d.lastDirection)
+          },
+          relative: { // nothing has changed relative to the last touchmove
+            scale: 1,
+            rotate: 0
+          },
+          midpoint: d.lastMidpoint
+        });
+      }
 
       d.switchTo(afterTransformState);
     }

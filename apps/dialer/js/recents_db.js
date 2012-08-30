@@ -20,11 +20,9 @@ var RecentsDBManager = {
         console.log('DB Opened');
         //Store DB object in RecentsDBManager
         self.db = event.target.result;
-        // TODO Call to 'prepopulate' once we have requirements for it
         if (callback) {
           //Callback if needed
-          console.log('Callback');
-          callback.call(self);
+          callback();
         }
       };
       this.request.onerror = function(event) {
@@ -66,7 +64,6 @@ var RecentsDBManager = {
       var self = this;
       var request = store.put(recentCall);
       request.onsuccess = function sr_onsuccess() {
-        // self._get.call(self);
         if (callback) {
           callback();
         }
@@ -78,20 +75,24 @@ var RecentsDBManager = {
    });
   },
   // Method for prepopulating the recents DB for Dev-team
-  _prepopulateDB: function rdbm_prepopulateDB() {
+  prepopulateDB: function rdbm_prepopulateDB(callback) {
     for (var i = 0; i < 10; i++) {
       var recent = {
         date: (Date.now() - i * 86400000),
-        type: 'incoming-connected',
+        type: 'incoming',
         number: '123123123'
       };
-      this._add.call(this, recent);
+      this.add(recent);
+    }
+    if (callback) {
+      callback();
     }
   },
   delete: function rdbm_delete(callLogEntry, callback) {
-    this._checkDBReady.call(this, function _delete() {
-      var txn = this.db.transaction(RecentsDBManager._dbStore, 'readwrite');
-      var store = txn.objectStore(RecentsDBManager._dbStore);
+    var self = this;
+    this._checkDBReady(function() {
+      var txn = self.db.transaction(self._dbStore, 'readwrite');
+      var store = txn.objectStore(self._dbStore);
       var delRequest = store.delete(callLogEntry.date);
 
       delRequest.onsuccess = function de_onsuccess() {
@@ -101,7 +102,7 @@ var RecentsDBManager = {
       }
 
       delRequest.onerror = function de_onsuccess(e) {
-        console.log('dialerRecents delete item failure: ',
+        console.log('recents_db delete item failure: ',
             e.message, delRequest.errorCode);
       }
     });
@@ -114,15 +115,16 @@ var RecentsDBManager = {
         self.deleteList(list, callback);
       });
     } else {
-      if (callback && callback instanceof Function) {
+      if (callback) {
         callback();
       }
     }
   },
   deleteAll: function rdbm_deleteAll(callback) {
-    this._checkDBReady.call(this, function() {
-      var txn = this.db.transaction(RecentsDBManager._dbStore, 'readwrite');
-      var store = txn.objectStore(RecentsDBManager._dbStore);
+    var self = this;
+    this._checkDBReady(function() {
+      var txn = self.db.transaction(self._dbStore, 'readwrite');
+      var store = txn.objectStore(self._dbStore);
 
       var delAllRequest = store.clear();
       delAllRequest.onsuccess = function da_onsuccess() {
@@ -132,7 +134,7 @@ var RecentsDBManager = {
       };
 
       delAllRequest.onerror = function da_onerror(e) {
-        console.log('dialerRecents delete all failure: ',
+        console.log('recents_db delete all failure: ',
           e.message, delAllRequest.errorCode);
       };
     });
@@ -142,17 +144,21 @@ var RecentsDBManager = {
     var objectStore = this.db.transaction(RecentsDBManager._dbStore).
       objectStore(RecentsDBManager._dbStore);
     var recents = [];
-    objectStore.openCursor().onsuccess = function(event) {
-      var cursor = event.target.result;
-      if (cursor) {
-        recents.push(cursor.value);
-        cursor.continue();
-      }
-      else {
-        if (callback && callback instanceof Function) {
-          callback(recents);
-        }
+    var cursor = objectStore.openCursor(null, 'prev');
+    cursor.onsuccess = function(event) {
+      var item = event.target.result;
+      if (item) {
+        recents.push(item.value);
+        item.continue();
+      } else {
+        callback(recents);
       }
     };
+
+    cursor.onerror = function(e) {
+      console.log('recents_db get failure: ',
+          e.message);
+    };
+
   }
 };

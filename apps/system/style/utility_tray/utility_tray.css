@@ -12,7 +12,7 @@
   top: -moz-calc(-100% + 40px);
   width: -moz-calc(100%);
   height: -moz-calc(100% - 20px);
-  background-color: #222;
+  background-color: rgba(0, 0, 0, 0.7);
   visibility: hidden;
 }
 

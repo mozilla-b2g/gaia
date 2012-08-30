@@ -499,12 +499,9 @@ var Contacts = (function() {
     if (contact.bday) {
       var birthdayTemplate = document.getElementById('birthday-template-#i#');
 
-      // TODO: Fix this with a locale function for dates!!!!
-      var months = ['January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November',
-                    'December'];
-      var birthdayString = contact.bday.getDate() + ', ' +
-                                            months[contact.bday.getMonth()];
+      var f = new navigator.mozL10n.DateTimeFormat();
+      var bdayFormat = _('birthdayDateFormat') || '%e %B';
+      var bdayString = f.localeFormat(contact.bday, bdayFormat);
 
       var element = utils.templates.render(birthdayTemplate, {
         i: contact.id,

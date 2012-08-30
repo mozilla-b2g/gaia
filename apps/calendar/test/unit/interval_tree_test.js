@@ -13,6 +13,14 @@ suite('interval_tree', function() {
   var span;
   var Node;
 
+  function factory(id, start, end) {
+    return {
+      _id: id,
+      start: start,
+      end: end
+    };
+  }
+
   suiteSetup(function() {
     Node = Calendar.IntervalTree.Node;
   });
@@ -34,29 +42,10 @@ suite('interval_tree', function() {
     // setup the basic list of items
     items = {};
 
-    items.before = {
-      _id: 1,
-      start: 100,
-      end: 800
-    };
-
-    items.overlapBefore = {
-      _id: 4,
-      start: 1050,
-      end: 1400
-    };
-
-    items.middle = {
-      _id: 3,
-      start: 1250,
-      end: 1280
-    };
-
-    items.after = {
-      _id: 2,
-      start: 1500,
-      end: 2000
-    };
+    items.before = factory(1, 100, 800);
+    items.overlapBefore = factory(4, 1050, 1400);
+    items.middle = factory(3, 1250, 1280);
+    items.after = factory(2, 1500, 2000);
 
     // should be in order of start times
     list = [
@@ -83,11 +72,7 @@ suite('interval_tree', function() {
     result = subject.query(span);
     assert.deepEqual(result, []);
 
-    var added = {
-      _id: 30,
-      start: 400,
-      end: 1200
-    };
+    var added = factory(30, 400, 1200);
 
     subject.add(added);
     assert.isFalse(subject.synced);
@@ -107,6 +92,7 @@ suite('interval_tree', function() {
     assert.deepEqual(subject.items, list);
     assert.ok(!subject.synced);
     assert.ok(!subject.rootNode);
+    assert.deepEqual(subject.byId, {});
   });
 
   test('init without list', function() {
@@ -139,12 +125,30 @@ suite('interval_tree', function() {
       subject.add(items.after);
     });
 
+    test('re-add item with same _id', function() {
+      var id = items.after._id;
+      var obj = { _id: id };
+
+      subject.add(obj);
+
+      assert.deepEqual(
+        subject.items,
+        [items.after]
+      );
+    });
+
     test('first add', function() {
       assert.deepEqual(
         subject.items,
         [items.after]
       );
+
       assert.isFalse(subject.synced);
+      assert.equal(
+        subject.byId[items.after._id],
+        items.after,
+        'should add to byId cache'
+      );
     });
 
     test('multiple adds', function() {
@@ -161,10 +165,119 @@ suite('interval_tree', function() {
         ]
       );
     });
+  });
+
+
+  suite('#removeFutureIntervals', function() {
+    var list;
+
+    setup(function() {
+      subject.items = [];
+      list = {};
+    });
+
+    function add(name, start, end) {
+      setup(function() {
+        list[name] = factory(name, start, end);
+        subject.add(list[name]);
+      });
+    }
+
+    add('before', 10, 100);
+    add('on', 50, 100);
+    add('just after', 51, 100);
+    add('after', 60, 100);
+
+    test('when items need to be removed', function() {
+      assert.isFalse(subject.synced, 'not synced');
+      subject.synced = true;
+      subject.removeFutureIntervals(50);
+
+      var expectedIds = [
+        'before',
+        'on'
+      ];
+
+      assert.ok(!subject.byId['just after']);
+      assert.ok(!subject.byId['after']);
+
+      var ids = subject.items.map(function(item) {
+        return item._id;
+      });
+
+      assert.deepEqual(ids, expectedIds);
+      assert.isFalse(subject.synced, 'should be synced');
+    });
+
+    test('when last item needs to be removed', function() {
+      subject.removeFutureIntervals(59);
+
+      var expectedIds = [
+        'before',
+        'on',
+        'just after'
+      ];
+
+     var ids = subject.items.map(function(item) {
+        return item._id;
+      });
+
+      assert.deepEqual(ids, expectedIds);
+    });
 
   });
 
-  suite('remove', function() {
+
+  suite('#removePastIntervals', function() {
+    var list;
+
+    setup(function() {
+      subject.items = [];
+      list = {};
+    });
+
+    function add(name, start, end) {
+      setup(function() {
+        list[name] = factory(name, start, end);
+        subject.add(list[name]);
+      });
+    }
+
+    add('overlap all', 1, 1000);
+    add('ends before', 2, 50);
+    add('ends on 1', 3, 150);
+    add('ends on 2', 4, 150);
+    add('ends on 3', 5, 150);
+    add('ends just after', 6, 151);
+    add('ends after', 7, 200);
+
+    test('when items need to be removed', function() {
+      assert.isFalse(subject.synced, 'not synced');
+      subject.synced = true;
+      subject.removePastIntervals(150);
+
+      var expectedIds = [
+        'overlap all',
+        'ends just after',
+        'ends after'
+      ];
+
+      assert.ok(!subject.byId['ends on 1']);
+      assert.ok(!subject.byId['ends on 2']);
+      assert.ok(!subject.byId['ends on 3']);
+
+      var ids = subject.items.map(function(item) {
+        assert.ok(subject.byId[item._id], 'should have: ' + item._id);
+        return item._id;
+      });
+
+      assert.deepEqual(ids, expectedIds);
+      assert.isFalse(subject.synced, 'should be synced');
+    });
+
+  });
+
+  suite('#remove', function() {
 
     test('when removing nonexisting item', function() {
       subject.synced = true;
@@ -188,6 +301,7 @@ suite('interval_tree', function() {
           items.after
         ]
       );
+
     });
 
     suite('items that share start time', function() {
@@ -200,17 +314,8 @@ suite('interval_tree', function() {
         subject.items = [];
         subject.synced = false;
 
-        addedBefore = {
-          _id: 10,
-          start: middle.start,
-          end: middle.end
-        };
-
-        addedAfter = {
-          _id: 11,
-          start: middle.start,
-          end: middle.end
-        };
+        addedBefore = factory(10, middle.start, middle.end);
+        addedAfter = factory(12, middle.start, middle.end);
 
         // its going to shuffle
         // each item is going to displace
@@ -239,6 +344,8 @@ suite('interval_tree', function() {
             addedBefore
           ]
         );
+
+        assert.ok(!subject.byId[addedAfter._id]);
       });
 
       test('remove first added item', function() {
@@ -330,14 +437,8 @@ suite('interval_tree', function() {
       }
 
       function add(start, end) {
-        var item = {
-          _id: id++,
-          start: start,
-          end: end
-        };
-
+        var item = factory(id++, start, end);
         orderedAdd(item, sublist);
-
         return item;
       }
 
@@ -376,9 +477,6 @@ suite('interval_tree', function() {
           add(i + 2500, i + 2505);
         }
 
-
-
-        var begin = window.performance.now();
         subject = new Calendar.IntervalTree(sublist);
         var result = subject.query(new Calendar.Timespan(
           5201,
@@ -436,10 +534,6 @@ suite('interval_tree', function() {
         );
       });
 
-
     });
-
   });
-
-
 });
