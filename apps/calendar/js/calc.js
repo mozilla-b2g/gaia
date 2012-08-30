@@ -173,7 +173,6 @@ Calendar.Calc = (function() {
 
       var end = Calc.createDay(date);
       end.setDate(end.getDate() + 1);
-      end.setMilliseconds(-1);
 
       return new Calendar.Timespan(
         date,

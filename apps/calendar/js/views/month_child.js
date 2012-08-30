@@ -284,6 +284,7 @@
     },
 
     _calculateBusytime: function(day, busytime) {
+      var startSame;
       var record = {
         _id: this.cssClean(busytime._id),
         eventId: busytime.eventId,
@@ -291,14 +292,20 @@
       };
 
       if (Calc.isSameDate(day, busytime.startDate)) {
+        startSame = true;
         record.start = this._hourToBusyUnit(
           busytime.startDate.getHours()
         );
       } else {
+        startSame = false;
         record.start = 1;
       }
 
       if (Calc.isSameDate(day, busytime.endDate)) {
+        if (!startSame && day.valueOf() === busytime.endDate.valueOf()) {
+          return false;
+        }
+
         var end = this._hourToBusyUnit(
           busytime.endDate.getHours()
         );
@@ -314,15 +321,14 @@
 
     _addBusytime: function(date, busytime) {
       var element = this._busyElement(date);
+      var data = this._calculateBusytime(date, busytime);
 
-      var html = template.busy.render(
-        this._calculateBusytime(date, busytime)
-      );
-
-      element.insertAdjacentHTML(
-        'afterbegin',
-        html
-      );
+      if (data) {
+        element.insertAdjacentHTML(
+          'afterbegin',
+          template.busy.render(data)
+        );
+      }
     },
 
     _renderBusytime: function(busytime) {
@@ -336,8 +342,6 @@
       if (Calc.isSameDate(start, end)) {
         return this._addBusytime(start, busytime);
       }
-
-      var begin = window.performance.now();
 
       if (busytime.start < span.start) {
         start = new Date(span.start);

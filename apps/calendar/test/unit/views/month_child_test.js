@@ -126,6 +126,22 @@ suite('views/month_child', function() {
       );
     }
 
+    test('ends as other starts', function() {
+      var busytime = Factory('busytime', {
+        startDate: new Date(2012, 1, 1),
+        endDate: new Date(2012, 1, 2)
+      });
+
+      var date = new Date(2012, 1, 2);
+
+      var result = subject._calculateBusytime(
+        date,
+        busytime
+      );
+
+      assert.ok(!result, 'should not render time');
+    });
+
     test('whole day', function() {
       var result = subject._calculateBusytime(
         new Date(2012, 1, 2),
