@@ -38,6 +38,9 @@ var Camera = {
   _pictureSize: null,
   _previewActive: false,
 
+  _flashModes: [],
+  _currentFlashMode: 0,
+
   _config: {
     fileFormat: 'jpeg',
     position: {
@@ -90,6 +93,10 @@ var Camera = {
     return document.getElementById('toggle-camera');
   },
 
+  get toggleFlashBtn() {
+    return document.getElementById('toggle-flash');
+  },
+
   init: function camera_init() {
 
     this.setCaptureMode(this.CAMERA);
@@ -103,6 +110,7 @@ var Camera = {
     window.addEventListener('deviceorientation', this.orientChange.bind(this));
 
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
+    this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
     this.viewfinder.addEventListener('click', this.autoFocus.bind(this));
     this.switchButton
       .addEventListener('click', this.toggleModePressed.bind(this));
@@ -137,6 +145,21 @@ var Camera = {
   toggleCamera: function camera_toggleCamera() {
     this._camera = 1 - this._camera;
     this.setSource(this._camera);
+  },
+
+  toggleFlash: function camera_toggleFlash() {
+    if (this._currentFlashMode === this._flashModes.length - 1) {
+      this._currentFlashMode = 0;
+    } else {
+      this._currentFlashMode = this._currentFlashMode + 1;
+    }
+    this.setFlashMode();
+  },
+
+  setFlashMode: function camera_setFlashMode() {
+    var flashModeName = this._flashModes[this._currentFlashMode];
+    this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
+    this._cameraObj.flashMode = flashModeName;
   },
 
   capturePressed: function camera_doCapture(e) {
@@ -256,6 +279,14 @@ var Camera = {
       this.toggleButton.classList.remove('hidden');
     } else {
       this.toggleButton.classList.add('hidden');
+    }
+
+    this._flashModes = capabilities.flashModes;
+    if (this._flashModes) {
+      this.setFlashMode();
+      this.toggleFlashBtn.classList.remove('hidden');
+    } else {
+      this.toggleFlashBtn.classList.add('hidden');
     }
   },
 
