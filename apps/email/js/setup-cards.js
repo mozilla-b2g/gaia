@@ -349,7 +349,7 @@ SettingsMainCard.prototype = {
     var account;
     if (howMany) {
       for (var i = index + howMany - 1; i >= index; i--) {
-        account = msgSlice.items[i];
+        account = this.acctsSlice.items[i];
         accountsContainer.removeChild(account.element);
       }
     }
