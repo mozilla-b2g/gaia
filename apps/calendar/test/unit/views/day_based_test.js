@@ -28,6 +28,10 @@ suite('views/hour_based', function() {
       ]);
     });
 
+    test('#length', function() {
+      assert.equal(subject.length, 2);
+    });
+
     test('#has', function() {
       assert.isFalse(subject.has(999), 'looking for item not in list');
       assert.isTrue(subject.has(1), 'looking for valid item');
@@ -35,6 +39,18 @@ suite('views/hour_based', function() {
 
     test('#get', function() {
       assert.deepEqual(subject.get(8), 'foo');
+    });
+
+    suite('#insertIndexOf', function() {
+      test('before', function() {
+        var idx = subject.insertIndexOf(0);
+        assert.equal(idx, 0);
+      });
+
+      test('after', function() {
+        var idx = subject.insertIndexOf(10);
+        assert.equal(idx, 2);
+      });
     });
 
     test('#remove', function() {

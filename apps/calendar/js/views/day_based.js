@@ -33,6 +33,14 @@ Calendar.ns('Views').DayBased = (function() {
       return this.indexOf(value) !== null;
     },
 
+    insertIndexOf: function(value) {
+      return Calendar.binsearch.insert(
+        this.items,
+        [value],
+        this.compare
+      );
+    },
+
     indexOf: function(value) {
       return Calendar.binsearch.find(
         this.items,
@@ -69,6 +77,10 @@ Calendar.ns('Views').DayBased = (function() {
       if (idx !== null) {
         this.items.splice(idx, 1);
       }
+    },
+
+    get length() {
+      return this.items.length;
     }
   };
 
@@ -141,13 +153,16 @@ Calendar.ns('Views').DayBased = (function() {
      * to provide functionality to actually remove
      * dom elements.
      */
-    _removeRecord: function(busytime) {
+    _removeRecord: function(busytime, eachCb) {
       var id = busytime._id;
       var hours = this._idsToHours[id];
 
       hours.forEach(function(number) {
         var hour = this.hours.get(number);
         if (hour) {
+          if (eachCb) {
+            eachCb.call(this, id, hour, number);
+          }
           hour.records.remove(id);
         }
       }, this);
@@ -156,8 +171,8 @@ Calendar.ns('Views').DayBased = (function() {
     /** end */
 
     removeHour: function(hour) {
-      this.hours.remove(hour);
       this._removeHour(hour);
+      this.hours.remove(hour);
     },
 
     createHour: function(hour) {
