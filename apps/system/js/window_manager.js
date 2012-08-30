@@ -195,27 +195,29 @@ var WindowManager = (function() {
     }
   });
 
+  // On-disk database for window manager.
+  // It's only for app screenshots right now.
   var database = null;
 
-  (function openScreenshotDB() {
+  (function openDatabase() {
     var DB_VERSION = 1;
     var DB_NAME = 'window_manager';
 
     var req = window.indexedDB.open(DB_NAME, DB_VERSION);
     req.onerror = function() {
-      console.error('Window Manager: opening screenshot database failed.');
+      console.error('Window Manager: opening database failed.');
     };
-    req.onupgradeneeded = function screenshotDBUpgradeneeded() {
+    req.onupgradeneeded = function databaseUpgradeneeded() {
       database = req.result;
 
       if (database.objectStoreNames.contains('screenshots'))
         database.deleteObjectStore('screenshots');
 
-      var store = database
-                  .createObjectStore('screenshots', { keyPath: 'origin' });
+      var store =
+        database.createObjectStore('screenshots', { keyPath: 'origin' });
     };
 
-    req.onsuccess = function screenshotDBSuccess() {
+    req.onsuccess = function databaseSuccess() {
       database = req.result;
     };
   })();
@@ -227,8 +229,8 @@ var WindowManager = (function() {
     var app = runningApps[origin];
 
     if (!app.launchTime) {
-      // This app was never launched.
-      // Let's get the screenshot from the database instead
+      // The frame is just being append and app content is just being loaded,
+      // let's get the screenshot from the database instead.
       if (!database) {
         console.warn(
           'Window Manager: Neither database nor app frame is ' +
@@ -280,7 +282,8 @@ var WindowManager = (function() {
         screenshot: result
       });
       req.onerror = function(evt) {
-        console.warn('Window Manager: put error while trying to save screenshot.');
+        console.warn(
+          'Window Manager: put error while trying to save screenshot.');
       };
 
     };
@@ -292,8 +295,10 @@ var WindowManager = (function() {
   }
 
   function deleteAppScreenshot(origin) {
-    var req = database.transaction('screenshots')
-              .objectStore('screenshots').delete(origin);
+    var txn = database.transaction('screenshots');
+    var store = txn.objectStore('screenshots');
+
+    store.delete(origin);
   }
 
   function afterPaint(callback) {
@@ -320,6 +325,8 @@ var WindowManager = (function() {
       if (app.manifest.fullscreen)
         screenElement.classList.add('fullscreen-app');
 
+      // Get the screenshot of the app and put it on the sprite
+      // before starting the transition
       getAppScreenshot(origin, function(screenshot) {
         if (!screenshot) {
           sprite.style.background = '';
@@ -328,7 +335,10 @@ var WindowManager = (function() {
         }
 
         sprite.style.background = '#fff url(' + screenshot + ')';
+        // Make sure Gecko paint the sprite first
         afterPaint(function() {
+
+          // Start the transition
           sprite.className = 'open';
         });
       });
@@ -351,10 +361,14 @@ var WindowManager = (function() {
     closeFrame.blur();
     closeFrame.setVisible(false);
 
-    // And begin the transition
+    // Get the screenshot of the app and put it on the sprite
+    // before starting the transition
     getAppScreenshot(origin, function(screenshot) {
       sprite.style.backgroundImage = 'url(' + screenshot + ')';
+
+      // Make sure Gecko paint the sprite first
       afterPaint(function() {
+        // Start the transition
         sprite.classList.remove('faded');
         sprite.classList.add('close');
       });
