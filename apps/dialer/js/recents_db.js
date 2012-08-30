@@ -22,7 +22,7 @@ var RecentsDBManager = {
         self.db = event.target.result;
         if (callback) {
           //Callback if needed
-          callback.call(self);
+          callback();
         }
       };
       this.request.onerror = function(event) {
@@ -75,14 +75,17 @@ var RecentsDBManager = {
    });
   },
   // Method for prepopulating the recents DB for Dev-team
-  prepopulateDB: function rdbm_prepopulateDB() {
+  prepopulateDB: function rdbm_prepopulateDB(callback) {
     for (var i = 0; i < 10; i++) {
       var recent = {
         date: (Date.now() - i * 86400000),
-        type: 'incoming-connected',
+        type: 'incoming',
         number: '123123123'
       };
       this.add(recent);
+    }
+    if (callback) {
+      callback();
     }
   },
   delete: function rdbm_delete(callLogEntry, callback) {
@@ -90,7 +93,7 @@ var RecentsDBManager = {
     this._checkDBReady(function() {
       var txn = self.db.transaction(self._dbStore, 'readwrite');
       var store = txn.objectStore(self._dbStore);
-      var delRequest = store.delete(callLogEntry);
+      var delRequest = store.delete(callLogEntry.date);
 
       delRequest.onsuccess = function de_onsuccess() {
         if (callback && callback instanceof Function) {
