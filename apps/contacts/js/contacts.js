@@ -467,12 +467,10 @@ var Contacts = (function() {
     if (contact.bday) {
       var bdayTemplate = document.getElementById('birthday-template-#i#');
 
-      // TODO: Fix this with a locale function for dates!!!!
-      var months = ['January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November',
-                    'December'];
-      var bdayString = contact.bday.getDate() + ', ' +
-                                            months[contact.bday.getMonth()];
+      var f = new navigator.mozL10n.DateTimeFormat();
+      var bdayFormat = _('birthdayDateFormat') || '%e %B';
+      var bdayString = f.localeFormat(contact.bday, bdayFormat);
+
       var e = utils.templates.render(bdayTemplate, {bday: bdayString});
       listContainer.appendChild(e);
     }
@@ -929,8 +927,11 @@ var Contacts = (function() {
       currentContact.adr = [];
       currentContact.note = [];
       currentContact.photo = [];
+      var readOnly = ['id', 'updated', 'published'];
       for (var field in myContact) {
-        currentContact[field] = myContact[field];
+        if (readOnly.indexOf(field) == -1) {
+          currentContact[field] = myContact[field];
+        }
       }
       contact = currentContact;
     } else {

@@ -21,7 +21,7 @@
   <!-- Specific code -->
   <script type="text/javascript">
     // when running in B2G, send output to the console, ANSI-style
-    if ('MozTCPSocket' in window.navigator) {
+    if ('mozTCPSocket' in window.navigator) {
       function consoleHelper() {
         var msg = arguments[0] + ":";
         for (var i = 1; i < arguments.length; i++) {
@@ -266,7 +266,10 @@
             <div class="cmp-envelope-line">
               <label class="cmp-to-label cmp-addr-label"
                      data-l10n-id="compose-to">tO:</label>
-              <input class="cmp-to-text cmp-addr-text" type="text" />
+              <div class="cmp-to-container cmp-addr-container">
+                <input class="cmp-to-text cmp-addr-text" type="text" />
+                <div class="cmp-to-add cmp-contact-add"></div>
+              </div>
             </div>
             <!-- XXX: spec calls for showing cc/bcc merged until selected,
                  but there is also the case where replying itself might need
@@ -274,12 +277,18 @@
             <div class="cmp-envelope-line">
               <label class="cmp-cc-label cmp-addr-label"
                      data-l10n-id="compose-cc">cC:</label>
-              <input class="cmp-cc-text cmp-addr-text" type="text" />
+              <div class="cmp-cc-container cmp-addr-container">
+                <input class="cmp-cc-text cmp-addr-text" type="text" />
+                <div class="cmp-cc-add cmp-contact-add"></div>
+              </div>
             </div>
             <div class="cmp-envelope-line">
               <label class="cmp-bcc-label cmp-addr-label"
                      data-l10n-id="compose-bcc">BcC:</label>
-              <input class="cmp-bcc-text cmp-addr-text" type="text" />
+              <div class="cmp-bcc-container cmp-addr-container">
+                <input class="cmp-bcc-text cmp-addr-text" type="text" />
+                <div class="cmp-bcc-add cmp-contact-add"></div>
+              </div>
             </div>
             <div class="cmp-envelope-line">
               <label class="cmp-subject-label"
@@ -302,6 +311,10 @@
            advice on required additional steps (gmail). -->
       <div class="card-setup-pick-service card">
         <div class="sup-account-header top-header">
+          <!-- only show this if there is at least one account -->
+          <button class="sup-back-btn header-left-btn back-btn collapsed">
+            <span class="icon icon-back"></span>
+          </button>
           <h2 class="sup-account-header-label header-label"
               data-l10n-id="setup-app-name-header">MaiL</h2>
         </div>
