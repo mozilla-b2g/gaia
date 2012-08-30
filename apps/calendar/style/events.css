@@ -1,15 +1,8 @@
 .day-events h4,
 .day-events h5 {
   font-weight: normal;
-  /*overflow: hidden;
-    word-wrap: break-word;
-    text-overflow: '...';
-    white-space: nowrap;
-    max-width: -moz-calc(50% - 10rem);*/
-
 }
 
-/*.day-events section > h4,*/
 .day-events section > ol li {
   padding: 1rem 0px;
 }
