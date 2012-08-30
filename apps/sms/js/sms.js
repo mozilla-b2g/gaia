@@ -1034,74 +1034,151 @@ var ThreadUI = {
   },
 
   sendMessage: function thui_sendMessage(resendText) {
-    // Retrieve num depending on hash
-    var hash = window.location.hash;
-    // Depending where we are, we get different num
-    if (hash == '#new') {
-      var num = this.contactInput.value;
-    } else {
-      var num = MessageManager.getNumFromHash();
-    }
-    // Retrieve text
-    var text = this.input.value || resendText;
-    // If we have something to send
-    if (num != '' && text != '') {
-      // Create 'PendingMessage'
-      var tempDate = new Date();
-      var message = {
-        sender: null,
-        receiver: num,
-        delivery: 'sending',
-        body: text,
-        read: 1,
-        timestamp: tempDate,
-        error: false
-      };
-      var self = this;
-      // Save the message into pendind DB before send.
-      PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-        ThreadUI.cleanFields();
-        if (window.location.hash == '#new') {
-          window.location.hash = '#num=' + num;
-        } else {
-          // Append to DOM
-          ThreadUI.appendMessage(message, function() {
-             // Call to update headers
-            Utils.updateHeaders();
-          });
-        }
-        MessageManager.send(num, text, function onsent(msg) {
-          var root = document.getElementById(message.timestamp.getTime());
-          if (root) {
-            root.removeChild(root.childNodes[2]);
-            var inputs = root.querySelectorAll('input[type="checkbox"]');
-            if (inputs) {
-              inputs[0].value = 'id_' + msg.id;
-            }
+    alert("ENVIANDO");
+    var settings = window.navigator.mozSettings,
+        throwGeneralError;
+
+    throwGeneralError = function() {
+      CustomDialog.show(
+        _('sendGeneralErrorTitle'),
+        _('sendGeneralErrorBody'),
+        {
+          title: _('sendGeneralErrorBtnOk'),
+          callback: function() {
+            CustomDialog.hide();
           }
-          // Remove the message from pending message DB since it
-          // could be sent successfully.
-          PendingMsgManager.deleteFromMsgDB(message,
-            function ondelete(msg) {
-              if (!msg) {
-                //TODO: Handle message delete failed in pending DB.
-              }
-          });
-        }, function onerror() {
-          var root = document.getElementById(message.timestamp.getTime());
-          PendingMsgManager.deleteFromMsgDB(message,
-            function ondelete(msg) {
+        }
+      );
+    };
+
+    if (settings) {
+
+      var req = settings.getLock().get('ril.radio.disabled');
+      req.addEventListener('success', function onsuccess() {
+        var status = req.result['ril.radio.disabled'];
+        if (!status) {
+          // Retrieve num depending on hash
+          var hash = window.location.hash;
+          // Depending where we are, we get different num
+          if (hash == '#new') {
+            var num = this.contactInput.value;
+          } else {
+            var num = MessageManager.getNumFromHash();
+          }
+          // Retrieve text
+          var text = this.input.value || resendText;
+          // If we have something to send
+          if (num != '' && text != '') {
+            // Create 'PendingMessage'
+            var tempDate = new Date();
+            var message = {
+              sender: null,
+              receiver: num,
+              delivery: 'sending',
+              body: text,
+              read: 1,
+              timestamp: tempDate
+            };
+            var self = this;
+            if(!status) {
+              message.error = false;
+
+
+
+            
+              // Save the message into pendind DB before send.
+              PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+                ThreadUI.cleanFields();
+                if (window.location.hash == '#new') {
+                  window.location.hash = '#num=' + num;
+                } else {
+                  // Append to DOM
+                  ThreadUI.appendMessage(message, function() {
+                     // Call to update headers
+                    Utils.updateHeaders();
+                  });
+                }
+                MessageManager.send(num, text, function onsent(msg) {
+                  var root = document.getElementById(message.timestamp.getTime());
+                  if (root) {
+                    root.removeChild(root.childNodes[2]);
+                    var inputs = root.querySelectorAll('input[type="checkbox"]');
+                    if (inputs) {
+                      inputs[0].value = 'id_' + msg.id;
+                    }
+                  }
+                  // Remove the message from pending message DB since it
+                  // could be sent successfully.
+                  PendingMsgManager.deleteFromMsgDB(message,
+                    function ondelete(msg) {
+                      if (!msg) {
+                        //TODO: Handle message delete failed in pending DB.
+                      }
+                  });
+                }, function onerror() {
+                  var root = document.getElementById(message.timestamp.getTime());
+                  PendingMsgManager.deleteFromMsgDB(message,
+                    function ondelete(msg) {
+                      message.error = true;
+                      PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+                        var filter = MessageManager.createFilter(message.receiver);
+                        MessageManager.getMessages(ThreadUI.renderMessages, filter);
+                      });
+                  });
+                });
+                MessageManager.getMessages(ThreadListUI.renderThreads);
+              });
+            } else {
               message.error = true;
               PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-                var filter = MessageManager.createFilter(message.receiver);
-                MessageManager.getMessages(ThreadUI.renderMessages, filter);
+                ThreadUI.cleanFields();
+                if (window.location.hash == '#new') {
+                  window.location.hash = '#num=' + num;
+                } else {
+                  // Append to DOM
+                  ThreadUI.appendMessage(message, function() {
+                     // Call to update headers
+                    Utils.updateHeaders();
+                  });
+                }
+                CustomDialog.show(
+                  _('sendFlightModeTitle'),
+                  _('sendFlightModeBody'),
+                  {
+                    title: _('sendFlightModeBtnOk'),
+                    callback: function() {
+                      CustomDialog.hide();
+                    }
+                  }
+                );
+                MessageManager.getMessages(ThreadListUI.renderThreads);
               });
-          });
-        });
-        MessageManager.getMessages(ThreadListUI.renderThreads);
-      });
-    }
+            }
+            console.log(JSON.stringify(message));
+            
+          }
+        // } else {
+        //   // HAGO EL APPEND DEL MENSAJE AQUI
+        //   alert("APPEND MESSAGE CON ERROR");
+        //   CustomDialog.show(
+        //     _('sendFlightModeTitle'),
+        //     _('sendFlightModeBody'),
+        //     {
+        //       title: _('sendFlightModeBtnOk'),
+        //       callback: function() {
+        //         CustomDialog.hide();
+        //       }
+        //     }
+        //   );
+        // }
+      }.bind(this));
 
+      req.addEventListener('error', function onerror() {
+        throwGeneralError();
+      });
+    } else {
+      throwGeneralError();
+    }
   },
 
   resendMessage: function thui_resendMessage(message) {
