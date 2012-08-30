@@ -234,13 +234,14 @@ ifneq ($(DEBUG),1)
 					then \
 						if [[ "$$f" == */shared/style* ]] ;\
 						then \
-							dir_to_copy=`echo "$$f" | cut -d'/' -f 4 | cut -d'"' -f1 | cut -d"'" -f1;`; \
+							style_name=`echo "$$f" | cut -d'/' -f 4 | cut -d'.' -f1`; \
 						else \
-							dir_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1 | cut -d"'" -f1;`; \
+							style_name=`echo "$$f" | cut -d'/' -f 3 | cut -d'.' -f1`; \
 						fi; \
-						mkdir -p $$d/shared/style/$$dir_to_copy ;\
-						cp -R shared/style/$$dir_to_copy $$d/shared/style/ ;\
-						rm -f $$d/shared/style/$$dir_to_copy/*.html ;\
+						mkdir -p $$d/shared/style/$$style_name ;\
+						cp shared/style/$$style_name.css $$d/shared/style/ ;\
+						cp -R shared/style/$$style_name $$d/shared/style/ ;\
+						rm -f $$d/shared/style/$$style_name/*.html ;\
 					fi \
 				done; \
 				\
