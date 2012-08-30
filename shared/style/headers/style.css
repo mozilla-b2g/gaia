@@ -260,20 +260,20 @@ section[role="region"] > header + form.search input[type="text"]:-moz-placeholde
  * HEADERS: dark
  * ---------------------------------- */
 section[role="region"].skin-dark > header:first-child,
-section[role="region"] > header:first-child.skin-dark {
+.skin-dark section[role="region"] > header:first-child {
   background: url(images/ui/dark/header.png) repeat-x 0 0;
 }
 
 /* Navigation links (back, cancel, etc) */
 section[role="region"].skin-dark > header:first-child > a .icon:after,
-section[role="region"] > header:first-child.skin-dark > a .icon:after,
+.skin-dark section[role="region"] > header:first-child > a .icon:after,
 section[role="region"].skin-dark > header:first-child > button .icon:after,
 section[role="region"]> header.skin-dark  > button .icon:after {
   background: #26272c url(images/ui/dark/negative.png) repeat-x 0 0;
 }
 
 section[role="region"].skin-dark > header,
-section[role="region"] > header.skin-dark {
+.skin-dark section[role="region"] > header {
   background: #7f7f7f url(images/ui/dark/subheader.png) repeat-x left bottom;
   color: #c5c5c5;
 }
@@ -283,7 +283,7 @@ section[role="region"] > header.skin-dark {
  * ---------------------------------- */
 
 section[role="region"].skin-organic > header:first-child,
-section[role="region"] > header.skin-organic:first-child {
+.skin-organic section[role="region"] > header:first-child {
   background: url(images/ui/organic/header.png) repeat-x 0 0,  url(images/ui/organic/pattern.png) repeat 0 0;
 }
 
@@ -294,21 +294,21 @@ section[role="region"] > header:first-child.skin-organic:after {
 
 /* Navigation links (back, cancel, etc) */
 section[role="region"].skin-organic > header:first-child > a .icon:after,
-section[role="region"] > header.skin-organic:first-child > a .icon:after,
+.skin-organic section[role="region"] > header:first-child > a .icon:after,
 section[role="region"].skin-organic > header:first-child > button .icon:after,
 section[role="region"]> header.skin-organic  > button .icon:after {
   background: url(images/ui/organic/negative.png) repeat-x 0 0;
 }
 
 section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:last-child,
-section[role="region"] > header.skin-organic:first-child menu[type="toolbar"] a:last-child,
+.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
 section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:last-child,
 section[role="region"]> header.skin-organic menu[type="toolbar"] button:last-child {
   background-image: url(images/ui/organic/separator.png);
 }
 
 section[role="region"].skin-organic > header,
-section[role="region"] > header.skin-organic {
+.skin-organic section[role="region"] > header {
   background: #7f7f7f url(images/ui/organic/subheader.png) repeat-x left bottom;
   color: #fff;
 }
