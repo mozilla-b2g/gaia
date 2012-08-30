@@ -322,6 +322,7 @@ var WindowManager = (function() {
 
       getAppScreenshot(origin, function(screenshot) {
         if (!screenshot) {
+          sprite.style.backgroundImage = '';
           sprite.className = 'open';
           return;
         }
