@@ -1,26 +1,17 @@
 (function(window) {
   var template = Calendar.Templates.Day;
+  var OrderedMap = Calendar.Views.DayBased.OrderedMap;
 
   function Day(options) {
-    Calendar.View.apply(this, arguments);
+    Calendar.Views.DayBased.apply(this, arguments);
 
     this.controller = this.app.timeController;
     this._initEvents();
   }
 
-  function getEl(selectorName, elName) {
-    var selector;
-    if (!this[elName]) {
-      selector = this[selectorName];
-      this[elName] = document.body.querySelector(selector);
-    }
-    return this[elName];
-  }
-
   Day.prototype = {
 
-
-    __proto__: Calendar.View.prototype,
+    __proto__: Calendar.Views.DayBased.prototype,
 
     selectors: {
       element: '#months-day-view',
@@ -78,6 +69,12 @@
 
     handleEvent: function(e) {
       switch (e.type) {
+        case 'remove':
+          this.remove(e.data);
+          break;
+        case 'add':
+          this._loadRecords(e.data);
+          break;
         case 'selectedDayChange':
           this.changeDate(e.data[0]);
           break;
@@ -100,6 +97,8 @@
      * @param {Date} date used to calculate events & range.
      */
     changeDate: function(date) {
+      this._resetHourCache();
+
       ++this._changeToken;
 
       var endDate = new Date(
@@ -119,7 +118,7 @@
         );
       }
 
-      this.currentDate = date;
+      this.date = date;
       this.timespan = new Calendar.Timespan(
         date,
         endDate
@@ -131,10 +130,17 @@
       this.events.innerHTML = '';
 
       this._updateHeader();
-      this._loadRecords();
+      this._loadRecords(this.controller.queryCache(
+        this.timespan
+      ));
     },
 
-    _loadRecords: function() {
+    /**
+     * Starts the process of loading records for display.
+     *
+     * @param {Object|Array} busytimes list or single busytime.
+     */
+    _loadRecords: function(busytimes) {
       // find all records for range.
       // if change state is the same
       // then run _renderDay(list)
@@ -146,23 +152,21 @@
       var token = this._changeToken;
       var self = this;
 
-      var cached = this.controller.queryCache(
-        this.timespan
-      );
-
-      store.findByAssociated(cached, function(err, list) {
+      store.findByAssociated(busytimes, function(err, list) {
         if (self._changeToken !== token) {
           // tokens don't match we don't
           // care about these results anymore...
           return;
         }
 
-        self._renderList(list);
+        list.forEach(function(pair) {
+          this.add(pair[0], pair[1]);
+        }, self);
       });
     },
 
     _updateHeader: function() {
-      var date = this.currentDate;
+      var date = this.date;
       var header = [
         this.dayNames[date.getDay()],
         this.monthNames[date.getMonth()],
@@ -172,99 +176,123 @@
       this.header.textContent = header;
     },
 
-    _renderList: function(records) {
-      // zero based 24 hours in a day;
-      var hourStart = new Date(this.currentDate.valueOf());
-      var hourEnd = new Date(this.currentDate.valueOf());
-      var hourSpan;
+    _insertElement: function(html, element, records, idx) {
+      var el;
+      var len = records.length;
 
-      var hour = 0;
-      var hours = 23;
-      var calendarIds = [];
-      var group;
-
-      // find matching items in the day
-      // array that fall within the bounds
-      // of the hour. Remove items from the list
-      // which end _before_ the current hour.
-      function reduce(item, idx) {
-        var start = item[0].startDate;
-        var end = item[0].endDate;
-
-        if (hourSpan.overlaps(start, end)) {
-          calendarIds.push(item[0].calendarId);
-          group.push(item);
-        } else if (end < hourStart) {
-          records.splice(idx, 1);
-        }
-      }
-
-      // iterate through all hours
-      for (; hour <= hours; hour++) {
-        group = [];
-        calendarIds = [];
-        hourStart.setHours(hour);
-        hourEnd.setHours(hour + 1);
-
-        hourSpan = new Calendar.Timespan(
-          hourStart,
-          hourEnd
+      if (idx === 0) {
+        element.insertAdjacentHTML(
+          'afterbegin', html
         );
-
-        // this will mutate the records
-        // for the next run
-        records.forEach(reduce, this);
-
-        // we can make this a pref
-        // later so we can use this in day
-        // view which always renders all hours
-        // even if there are no events on a given
-        // hour.
-        if (group.length) {
-          this._renderHour(hour, group, calendarIds);
-        }
+        el = element.firstChild;
+      } else {
+        var lastElement = records[idx - 1][1];
+        lastElement.element.insertAdjacentHTML(
+          'afterend', html
+        );
+        el = lastElement.element.nextElementSibling;
       }
+
+      return el;
     },
 
-    /**
-     * Renders an hour. Note it is assumed
-     * that this function is called in the correct
-     * order and does not attempt to order content.
-     *
-     * @param {String} hour display hour.
-     * @param {Array} group list of events.
-     * @param {Array} ids calendar ids associated with this hour.
-     *                    duplicates allowed.
-     */
-    _renderHour: function(hour, group, ids) {
-      var eventHtml = [];
-      var classFlags = '';
+    _insertRecord: function(hour, busytime, event) {
+      hour = this.hours.get(hour);
+      var records = hour.records;
 
-      if (ids) {
-        ids.forEach(function(id) {
-          classFlags += ' calendar-id-' + id;
-        });
-      }
+      var len = records.length;
+      var idx = records.insertIndexOf(busytime._id);
 
-      group.forEach(function(item) {
-        eventHtml.push(this._renderEvent(item[1]));
-      }, this);
-
-      var html = template.hour.render({
-        classes: classFlags,
-        displayHour: this._formatHour(hour),
-        hour: String(hour),
-        items: eventHtml.join('')
-      });
-
-      this.events.insertAdjacentHTML(
-        'beforeend',
-        html
+      var html = this._renderEvent(event);
+      var eventArea = hour.element.querySelector(
+        template.hourEventsSelector
       );
 
+      var el = this._insertElement(
+        html, eventArea, records.items, idx
+      );
+
+      var calendarId = this.calendarId(busytime);
+      hour.flags.push(calendarId);
+      hour.element.classList.add(calendarId);
+
+      return { element: el };
+    },
+
+    _removeRecord: function(busytime) {
+      var fn = Calendar.Views.DayBased.prototype._removeRecord;
+
+      fn.call(this, busytime, function(id, hour, hourNumber) {
+        var calendarClass = this.calendarId(busytime);
+
+        var flags = hour.flags;
+        var record = hour.records.get(id);
+        var el = record.element;
+
+        // handle flags
+        // we need to remove them from the list
+        // then check again to see if there
+        // are any more...
+        var idx = flags.indexOf(calendarClass);
+
+        if (idx !== -1)
+          flags.splice(idx, 1);
+
+        // if after we have removed the flag there
+        // are no more we can remove the class
+        // from the element...
+        if (flags.indexOf(calendarClass) === -1) {
+          hour.element.classList.remove(calendarClass);
+        }
+
+        el.parentNode.removeChild(el);
+
+        // if length is one then we are just
+        // about to delete this record so its
+        // the last one.
+        if (hour.records.length === 1) {
+          this.removeHour(hourNumber);
+        }
+      });
+    },
+
+    _removeHour: function(hour) {
+      var record = this.hours.get(hour);
+      var el = record.element;
+      el.parentNode.removeChild(el);
+    },
+
+    _insertHour: function(hour) {
+      this.hours.indexOf(hour);
+
+      var len = this.hours.items.length;
+      var idx = this.hours.insertIndexOf(hour);
+
+      var html = template.hour.render({
+        displayHour: this._formatHour(hour),
+        hour: String(hour)
+      });
+
+      var el = this._insertElement(
+        html,
+        this.events,
+        this.hours.items,
+        idx
+      );
+
+      return {
+        element: el,
+        records: new OrderedMap(),
+        flags: []
+      };
     },
 
     _formatHour: function(hour) {
+      if (hour === Calendar.Calc.ALLDAY) {
+        //XXX: Localize
+        return Calendar.Calc.ALLDAY;
+      }
+
       newHour = hour;
       if (hour > 12) {
         var newHour = (hour - 12) || 12;

@@ -109,7 +109,7 @@ Calendar.Calc = (function() {
       var endsAfter = end >= refEnd;
 
       if (startBefore && endsAfter) {
-        return [this.ALLDAY];
+        return [Calc.ALLDAY];
       }
 
       start = (startBefore) ? refStart : start;

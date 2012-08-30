@@ -1,6 +1,7 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('timespan.js');
   requireLib('templates/day.js');
+  requireLib('views/day_based.js');
   requireLib('views/months_day.js');
 });
 
@@ -9,6 +10,7 @@ suite('views/months_day', function() {
       app,
       controller,
       events,
+      template,
       busytimes;
 
   teardown(function() {
@@ -33,15 +35,17 @@ suite('views/months_day', function() {
     events = app.store('Event');
     busytimes = app.store('Busytime');
 
-
     subject = new Calendar.Views.MonthsDay({
       app: app
     });
+
+    template = Calendar.Templates.Day;
   });
 
   test('initialization', function() {
     assert.equal(subject.controller, controller);
     assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, Calendar.Views.DayBased);
     assert.equal(subject.element, document.querySelector('#months-day-view'));
     assert.equal(subject._changeToken, 0);
   });
@@ -101,9 +105,10 @@ suite('views/months_day', function() {
       assert.equal(subject._changeToken, 0);
 
       subject.changeDate(startTime);
+      assert.equal(subject.date, startTime);
       assert.equal(subject.events.innerHTML, '');
 
-      assert.equal(subject.currentDate, startTime);
+      assert.equal(subject.date, startTime);
       assert.ok(calledLoadWith, 'loads records');
       assert.ok(updateCalledWith);
 
@@ -144,138 +149,22 @@ suite('views/months_day', function() {
 
   });
 
-  suite('#_renderList', function() {
-    var list;
-    var groups;
-
-    function hour(hours, min) {
-      return new Date(2012, 1, 2, hours, min);
-    }
-
-    function groupAdd(group, idx) {
-      var item = list[idx];
-      groups[group][0].push(item);
-      groups[group][1].push(item[0].calendarId);
-    }
-
-    setup(function() {
-      list = [];
-      groups = {
-        0: [[], []],
-        5: [[], []],
-        6: [[], []],
-        7: [[], []],
-        21: [[], []],
-        22: [[], []],
-        23: [[], []]
-      };
-
-      // starts on a different day
-      // occurs in first hour (midnight)
-      list.push([
-        Factory('busytime', {
-          startDate: new Date(2012, 1, 1, 15),
-          endDate: hour(0, 40)
-        })
-      ]);
-
-      groupAdd(0, 0);
-
-      // same day skip some hours
-      // this should not render into
-      // the 6th hour only 5th
-      list.push([
-        Factory('busytime', {
-          startDate: hour(5, 00),
-          endDate: hour(6, 00)
-        })
-      ]);
-
-      groupAdd(5, 1);
-
-
-      // Also on fifth hour
-      // but occurs a little later
-      // should come after the above
-      list.push([
-        Factory('busytime', {
-          startDate: hour(5, 15),
-          endDate: hour(6, 00)
-        })
-      ]);
-
-      groupAdd(5, 2);
-
-
-      // multi hour
-      // occurs in 5th & 6th & 7th hour.
-      list.push([
-        Factory('busytime', {
-          startDate: hour(5, 30),
-          endDate: hour(8, 00)
-        })
-      ]);
-
-      groupAdd(5, 3);
-      groupAdd(6, 3);
-      groupAdd(7, 3);
-
-      // ends on a different day
-      // but not an all day event.
-      // starts on 21st hour
-      // ends on 23rd
-      list.push([
-        Factory('busytime', {
-          startDate: hour(21, 00),
-          endDate: new Date(2012, 1, 3, 1)
-        })
-      ]);
-
-      groupAdd(21, 4);
-      groupAdd(22, 4);
-      groupAdd(23, 4);
-    });
-
-    var calledHours;
-
-    setup(function() {
-      calledHours = {};
-      subject._renderHour = function(hour, group, ids) {
-        calledHours[hour] = [group, ids];
-      };
-    });
-
-    test('#_renderList', function() {
-      subject.currentDate = new Date(2012, 1, 2);
-
-      subject._renderList(list);
-
-      assert.deepEqual(
-        calledHours,
-        groups,
-        'should render hours in order, see setup block'
-      );
-    });
-
-  });
-
   suite('#_loadRecords', function() {
     var storeCalledWith;
-    var queryCalledWith;
-    var renderCalledWith;
+    var addCalledWith;
     var list = [];
 
     setup(function() {
+      list = [
+        [1, 1],
+        [2, 2]
+      ];
+
       storeCalledWith = [];
-      renderCalledWith = [];
-      queryCalledWith = [];
+      addCalledWith = [];
 
-      controller.queryCache = function() {
-        queryCalledWith.push(arguments);
-      }
-
-      subject._renderList = function() {
-        renderCalledWith.push(arguments);
+      subject.add = function() {
+        addCalledWith.push(arguments);
       }
 
       events.findByAssociated = function() {
@@ -284,22 +173,23 @@ suite('views/months_day', function() {
     });
 
     test('when token changes midway', function() {
+
       subject.changeDate(new Date());
       subject.changeDate(new Date());
 
       assert.equal(storeCalledWith.length, 2);
-      assert.equal(renderCalledWith.length, 0);
+      assert.equal(addCalledWith.length, 0);
 
       // now that token has changed
       // we don't care about this and so
       // it should do nothing...
       storeCalledWith[0][1](null, list);
-      assert.equal(renderCalledWith.length, 0);
+      assert.equal(addCalledWith.length, 0);
 
       // should fire when the correct set of
       // changes is loaded...
       storeCalledWith[1][1](null, list);
-      assert.deepEqual(renderCalledWith[0], [list]);
+      assert.deepEqual(addCalledWith[0], list[0]);
     });
 
     test('when change token is same', function() {
@@ -307,68 +197,236 @@ suite('views/months_day', function() {
       subject.changeDate(new Date());
 
       assert.ok(storeCalledWith.length);
-      assert.ok(!renderCalledWith.length);
-
-      assert.equal(
-        queryCalledWith[0][0],
-        subject.timespan
-      );
+      assert.ok(!addCalledWith.length);
 
       storeCalledWith[0][1](null, list);
-      assert.deepEqual(renderCalledWith[0], [list]);
+      assert.deepEqual(addCalledWith[0], list[0]);
+      assert.deepEqual(addCalledWith[1], list[1]);
     });
 
   });
 
-  suite('#_renderHour', function() {
-    var group;
+  suite('#_insertRecord', function() {
+    var children;
+    var hourElement;
+    var eventElement;
+    var busytimes;
+    var events;
+    var records;
+    var date = new Date(2012, 1, 5);
+    var hourRecord;
+    var hour = 5;
+
+    function event(name, calendarId, first, end) {
+      var id = first.valueOf() + '-id-' + name;
+
+      events[name] = Factory('event', {
+        _id: name,
+        remote: {
+          calendarId: calendarId,
+          endDate: first,
+          endDate: end
+        }
+      });
+
+      busytimes[name] = Factory('busytime', {
+        _id: id,
+        calendarId: calendarId,
+        startDate: first,
+        endDate: end
+      });
+
+      subject.createRecord(
+        hour,
+        busytimes[name],
+        events[name]
+      );
+
+      assert.ok(records.has(id));
+      assert.ok(records.get(id).element);
+
+      var classList = hourElement.classList;
+      var classId = subject.calendarId(busytimes[name]);
+
+      var idx = hourRecord.flags.indexOf(classId);
+
+      assert.ok(idx !== -1, 'should add flag to hour');
+      assert.ok(
+        classList.contains(classId),
+        name + ' should contain class list - ' + classId
+      );
+    }
 
     setup(function() {
-      group = [];
-      group.push([
-        Factory.create('busytime', {
-          startDate: new Date(2012, 1, 1, 5),
-          endDate: new Date(2012, 1, 1, 6)
-        }),
-        Factory.create('event')
-      ]);
+      subject.createHour(hour);
+      hourRecord = subject.hours.get(hour);
+      hourElement = hourRecord.element;
+      records = hourRecord.records;
 
-      group.push([
-        Factory.create('busytime', {
-          startDate: new Date(2012, 1, 1, 5, 30),
-          endDate: new Date(2012, 1, 1, 8)
-        }),
-        Factory.create('event')
-      ]);
+      events = {};
+      busytimes = {};
+
+      subject.timespan = Calendar.Calc.spanOfDay(
+        date
+      );
+
+      event(
+        'first',
+        3,
+        new Date(2012, 1, 5, 30),
+        new Date(2012, 1, 6)
+      );
+
+      event(
+        'second',
+        1,
+        new Date(2012, 1, 5),
+        new Date(2012, 1, 6)
+      );
+
+      event(
+        'last',
+        1,
+        new Date(2012, 1, 5, 10),
+        new Date(2012, 1, 6)
+      );
+
+      eventElement = hourElement.querySelector(
+        Calendar.Templates.Day.hourEventsSelector
+      );
+
+      children = eventElement.children;
+    });
+
+    suite('#_removeRecord', function() {
+
+      test('remove all elements', function() {
+        subject.remove(busytimes.first);
+        subject.remove(busytimes.second);
+        subject.remove(busytimes.last);
+
+        assert.ok(!hourElement.parentNode, 'should remove hour');
+      });
+
+      test('remove some records', function() {
+        var classList = hourElement.classList;
+        var calendarId = subject.calendarId(busytimes.second);
+
+        subject.remove(busytimes.last);
+        assert.isTrue(classList.contains(calendarId));
+
+        //XXX: we want to verify that the class
+        //id is not removed until all records
+        //with the classId are removed.
+        subject.remove(busytimes.second);
+
+        assert.ok(hourElement.parentNode, 'should not remove hour element');
+
+        // now it should be removed as there are
+        // no more calendar-id-1 elements
+        assert.ok(!classList.contains(calendarId));
+
+        assert.isFalse(records.has(busytimes.last._id), 'remove last');
+        assert.isFalse(records.has(busytimes.second._id), 'remove second');
+
+
+        assert.deepEqual(
+          children[0].outerHTML,
+          subject._renderEvent(events.first),
+          'third el - first element'
+        );
+      });
+
     });
 
     test('output', function() {
-      subject._renderHour(5, group, ['1', '2']);
-      var children = subject.events.children;
-      assert.equal(children.length, 1);
+      var record = subject.hours.get(5);
+      var eventRecords = record.records;
+
+      var el = record.element;
+
+      assert.deepEqual(
+        children[0].outerHTML,
+        subject._renderEvent(events.second),
+        'first el - second event'
+      );
+
+      assert.deepEqual(
+        children[1].outerHTML,
+        subject._renderEvent(events.last),
+        'second el - last element'
+      );
+
+      assert.deepEqual(
+        children[2].outerHTML,
+        subject._renderEvent(events.first),
+        'third el - first element'
+      );
+
+    });
+  });
+
+  suite('#_insertHour', function() {
+    var group;
+    var children;
+
+    setup(function() {
+      subject.createHour(5);
+      subject.createHour(7);
+      subject.createHour(6);
+
+      children = subject.events.children;
+    });
+
+    function hourHTML(hour) {
+      return template.hour.render({
+        displayHour: subject._formatHour(hour),
+        hour: hour
+      });
+    }
+
+    function hasHour(number) {
+      var hour = subject.hours.get(number);
+
+      assert.ok(hour, 'should record hour: ' + number);
+      assert.ok(hour.element, 'should record hours element: ' + number);
+      return hour;
+    }
+
+    test('#removeHour', function() {
+      var hour = hasHour(5);
+
+      subject.removeHour(5);
+
+      assert.ok(!hour.element.parentNode);
+      assert.ok(!subject.hours.has(5));
+      hour = null;
+    });
+
+    test('first', function() {
+      hasHour(5);
 
       var el = children[0];
       assert.ok(el.outerHTML);
-      var html = el.outerHTML;
-
-      assert.include(html, 'calendar-id-1');
-      assert.include(html, 'calendar-id-2');
-
-      assert.include(
-        html,
-        subject._formatHour(5)
-      );
-
-      assert.include(
-        html,
-        subject._renderEvent(group[0][1])
-      );
-
-      assert.include(
-        html,
-        subject._renderEvent(group[1][1])
-      );
+      assert.include(el.outerHTML, hourHTML(5));
     });
+
+    test('middle', function() {
+      hasHour(6);
+
+      var el = children[1];
+      assert.ok(el.outerHTML);
+      assert.include(el.outerHTML, hourHTML(6));
+    });
+
+    test('last', function() {
+      hasHour(7);
+
+      var el = children[2];
+      assert.ok(el.outerHTML);
+      assert.include(el.outerHTML, hourHTML(7));
+    });
+
   });
 
   test('#_renderAttendees', function() {
@@ -400,7 +458,7 @@ suite('views/months_day', function() {
   test('#_updateHeader', function() {
     var date = new Date(2012, 4, 11);
     var el = subject.header;
-    subject.currentDate = date;
+    subject.date = date;
     subject._updateHeader();
 
     assert.include(el.innerHTML, '11');
