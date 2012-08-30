@@ -3,7 +3,7 @@
     hour: [
       '<section class="hour-{hour} {classes} calendar-display">',
         '<h4>',
-          '<span aria-hidden class="calendar-color"></span>',
+          '<span class="calendar-color"></span>',
           '<span class="display-hour {hour}">{displayHour}</span>',
         '</h4>',
         '<ol class="events">',

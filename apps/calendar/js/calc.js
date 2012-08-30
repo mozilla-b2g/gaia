@@ -312,9 +312,9 @@ Calendar.Calc = (function() {
 
     createDay: function(date, day, month, year) {
       return new Date(
-        typeof year !== "undefined" ? year : date.getFullYear(),
-        typeof month !== "undefined" ? month : date.getMonth(),
-        typeof day !== "undefined" ? day : date.getDate()
+        typeof year !== 'undefined' ? year : date.getFullYear(),
+        typeof month !== 'undefined' ? month : date.getMonth(),
+        typeof day !== 'undefined' ? day : date.getDate()
       );
     },
 
