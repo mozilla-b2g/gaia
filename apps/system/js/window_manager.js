@@ -360,9 +360,6 @@ var WindowManager = (function() {
       'Camera',
       // Can't open camera HAL from content processes (bug 782456)
 
-      'Clock',
-      // Crashing when dismissing the alert window (bug 785166)
-
       'Cost Control',
       // ?????
 
