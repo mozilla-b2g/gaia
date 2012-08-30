@@ -31,7 +31,7 @@ var PopupManager = {
     this.loadingIcon.classList.remove('popup-loading');
   },
  
-  open: function pm_open(evt, trusted) {
+  open: function pm_open(name, frame, origin, trusted) {
     // Only one popup at a time. If the popup is being shown, we swap frames.
     if (this._currentPopup) {
       this.container.removeChild(this._currentPopup);
@@ -44,13 +44,13 @@ var PopupManager = {
       WindowManager.setDisplayedApp(null);
     }
 
-    this._currentPopup = evt.detail.frameElement;
+    this._currentPopup = frame;
 
     var popup = this._currentPopup;
     var dataset = popup.dataset;
     dataset.frameType = 'popup';
-    dataset.frameName = evt.detail.name;
-    dataset.frameOrigin = evt.target.dataset.frameOrigin;
+    dataset.frameName = name;
+    dataset.frameOrigin = origin;
 
     this.container.appendChild(popup);
 
