@@ -288,7 +288,7 @@ section[role="region"].skin-organic > header:first-child,
 }
 
 section[role="region"].skin-organic > header:first-child:after,
-section[role="region"] > header:first-child.skin-organic:after {
+.skin-organic section[role="region"] > header:first-child:after {
   margin-top: -1px;
 }
 
