@@ -111,7 +111,7 @@ var RecentsDBManager = {
     if (list.length > 0) {
       var itemToDelete = list.pop();
       var self = this;
-      this.delete(itemToDelete, function() {
+      this.delete(itemToDelete.date, function() {
         self.deleteList(list, callback);
       });
     } else {
