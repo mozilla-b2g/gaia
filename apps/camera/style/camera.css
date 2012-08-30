@@ -237,3 +237,12 @@ html, body {
 .hidden {
   display: none;
 }
+
+#toggle-camera {
+  position: absolute;
+  z-index: 100;
+  bottom: 65px;
+  right: 20px;
+  height: 75px;
+  width: 75px;
+}

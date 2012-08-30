@@ -2,10 +2,12 @@
 
 var Camera = {
 
+  _cameras: null,
   _camera: 0,
   _captureMode: null,
   // In secure mode the user cannot browse to the gallery
   _secureMode: window.parent !== window,
+  _storageChecked: false,
   _currentOverlay: null,
 
   CAMERA: 'camera',
@@ -84,6 +86,10 @@ var Camera = {
     return document.getElementById('film-strip');
   },
 
+  get toggleButton() {
+    return document.getElementById('toggle-camera');
+  },
+
   init: function camera_init() {
 
     this.setCaptureMode(this.CAMERA);
@@ -96,6 +102,7 @@ var Camera = {
     this._orientationRule = this._styleSheet.insertRule(css, insertId);
     window.addEventListener('deviceorientation', this.orientChange.bind(this));
 
+    this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.viewfinder.addEventListener('click', this.autoFocus.bind(this));
     this.switchButton
       .addEventListener('click', this.toggleModePressed.bind(this));
@@ -103,7 +110,6 @@ var Camera = {
       .addEventListener('click', this.capturePressed.bind(this));
     this.galleryButton
       .addEventListener('click', this.galleryBtnPressed.bind(this));
-
     // TODO: Remove once support is available
     this.switchButton.setAttribute('disabled', 'disabled');
 
@@ -126,6 +132,11 @@ var Camera = {
 
     var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
     this.setCaptureMode(newMode);
+  },
+
+  toggleCamera: function camera_toggleCamera() {
+    this._camera = 1 - this._camera;
+    this.setSource(this._camera);
   },
 
   capturePressed: function camera_doCapture(e) {
@@ -185,6 +196,7 @@ var Camera = {
   },
 
   setSource: function camera_setSource(camera) {
+
     this.viewfinder.src = null;
     this._timeoutId = 0;
 
@@ -211,13 +223,14 @@ var Camera = {
     style.width = width + 'px';
     style.height = height + 'px';
 
-    var cameras = navigator.mozCameras.getListOfCameras();
-    var options = {camera: cameras[this._camera]};
+    this._cameras = navigator.mozCameras.getListOfCameras();
+    var options = {camera: this._cameras[this._camera]};
 
     function gotPreviewScreen(stream) {
       this._previewActive = true;
       viewfinder.src = stream;
       viewfinder.play();
+      this.checkStorageSpace();
     }
 
     function gotCamera(camera) {
@@ -232,10 +245,18 @@ var Camera = {
         height: height,
         width: width
       };
+      this.enableCameraFeatures(camera.capabilities);
       camera.getPreviewStream(config, gotPreviewScreen.bind(this));
-      this.checkStorageSpace();
     }
     navigator.mozCameras.getCamera(options, gotCamera.bind(this));
+  },
+
+  enableCameraFeatures: function camera_enableCameraFeatures(capabilities) {
+    if (this._cameras.length > 1) {
+      this.toggleButton.classList.remove('hidden');
+    } else {
+      this.toggleButton.classList.add('hidden');
+    }
   },
 
   pause: function pause() {
