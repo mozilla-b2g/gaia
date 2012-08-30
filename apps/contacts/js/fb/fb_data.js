@@ -21,30 +21,6 @@ if (!window.fb.contacts) {
       e.target.result.createObjectStore(STORE_NAME, { keyPath: 'uid' });
     }
 
-    /**
-     *  Initializes the DB
-     *
-     */
-    function init(cb) {
-      var req = indexedDB.open('GaiaFbFriendsxy', 1.0);
-
-      req.onsuccess = function(e) {
-        database = e.target.result;
-        if (typeof cb === 'function') {
-          cb();
-        }
-      };
-
-      req.onerror = function(e) {
-        window.console.error('FB: Error while opening the DB: ',
-                                                        e.target.error.name);
-        if (typeof cb === 'function') {
-          cb();
-        }
-      };
-
-      req.onupgradeneeded = createStore;
-    }
 
     /**
      *  Allows to obtain the FB contact information by UID
@@ -90,8 +66,13 @@ if (!window.fb.contacts) {
         var objectStore = transaction.objectStore(STORE_NAME);
 
         var req = objectStore.put(obj);
-        req.onsuccess = function(e) { retRequest.done(e.target.result); };
-        req.onerror = function(e) { retRequest.failed(e.target.error); }
+        req.onsuccess = function(e) {
+          retRequest.done(e.target.result);
+        }
+
+        req.onerror = function(e) {
+          retRequest.failed(e.target.error);
+        }
       },0);
 
         return retRequest;
@@ -147,7 +128,24 @@ if (!window.fb.contacts) {
     }
 
     contacts.init = function(cb) {
-      init(cb);
+      var req = indexedDB.open('Gaia_Facebook_Friends', 1.0);
+
+      req.onsuccess = function(e) {
+        database = e.target.result;
+        if (typeof cb === 'function') {
+          cb();
+        }
+      };
+
+      req.onerror = function(e) {
+        window.console.error('FB: Error while opening the DB: ',
+                                                        e.target.error.name);
+        if (typeof cb === 'function') {
+          cb();
+        }
+      };
+
+      req.onupgradeneeded = createStore;
     }
 
   }) (document);
