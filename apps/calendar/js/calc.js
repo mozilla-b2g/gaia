@@ -37,6 +37,11 @@ Calendar.Calc = (function() {
       return new Date();
     },
 
+    daysInWeek: function() {
+      //XXX: We need to localize this...
+      return 7;
+    },
+
     /**
      * Checks is given date is today.
      *

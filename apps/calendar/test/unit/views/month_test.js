@@ -120,6 +120,7 @@ suite('views/month', function() {
       subject.activateMonth = function(mo) {
         calledWith = mo;
       };
+
       subject.render();
       now = controller.month;
     });

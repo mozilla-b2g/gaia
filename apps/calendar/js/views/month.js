@@ -111,12 +111,20 @@ Calendar.ns('Views').Month = (function() {
       return this._findElement('currentMonth');
     },
 
-    panThreshold: window.innerWidth / 2,
-    currentMonthOffset: window.innerWidth,
+    panThreshold: window.innerWidth / 2.5,
+    monthOffset: window.innerWidth * -1,
 
     _onpan: function month_onPan(event) {
-      var offset = this.currentMonthOffset - event.detail.absolute.dx;
-      this.container.style.transform = 'translate(-' + offset + 'px)';
+      var offset = event.detail.absolute.dx;
+      this._moveChildren(offset);
+    },
+
+    _moveChildren: function(offset) {
+      var rule = 'translateX(' + (this.monthOffset + offset) + 'px)';
+
+      this.previousChild.element.style.transform = rule;
+      this.nextChild.element.style.transform = rule;
+      this.currentChild.element.style.transform = rule;
     },
 
     _ontap: function(event) {
@@ -149,7 +157,6 @@ Calendar.ns('Views').Month = (function() {
           this.next();
         }
       }
-      this.centerOnCurrent();
     },
 
     /**
@@ -284,11 +291,12 @@ Calendar.ns('Views').Month = (function() {
 
          this.children[nextId] = this.nextChild;
        }
+
+       this.centerOnCurrent();
     },
 
-    centerOnCurrent: function month_centerOnCurrent() {
-      this.container.style.transform =
-        'translateX(-' + this.currentMonthOffset + 'px)';
+    centerOnCurrent: function() {
+      this._moveChildren(0);
     },
 
     /**
@@ -305,7 +313,6 @@ Calendar.ns('Views').Month = (function() {
       );
 
       this.controller.move(now);
-      this.centerOnCurrent();
     }
 
   };

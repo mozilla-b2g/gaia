@@ -1,14 +1,15 @@
 (function(window) {
   var template = Calendar.Templates.Month;
+  var Calc = Calendar.Calc;
 
   function Child() {
     Calendar.View.apply(this, arguments);
 
-    this.monthId = Calendar.Calc.getMonthId(this.month);
+    this.monthId = Calc.getMonthId(this.month);
     this.controller = this.app.timeController;
 
     this._days = Object.create(null);
-    this.timespan = Calendar.Calc.spanOfMonth(this.month);
+    this.timespan = Calc.spanOfMonth(this.month);
   }
 
   Child.prototype = {
@@ -62,7 +63,7 @@
 
     _dayId: function(date) {
       if (date instanceof Date) {
-        date = Calendar.Calc.getDayId(date);
+        date = Calc.getDayId(date);
       }
 
       return 'month-view-' + this.monthId + '-' + date;
@@ -171,13 +172,13 @@
      * @param {Date} date representing a date.
      */
     _renderDay: function _renderDay(date) {
-      var month = Calendar.Calc.today.getMonth(),
-          id = Calendar.Calc.getDayId(date),
+      var month = Calc.today.getMonth(),
+          id = Calc.getDayId(date),
           state,
           units,
           busytimes = this.app.store('Busytime');
 
-      state = Calendar.Calc.relativeState(
+      state = Calc.relativeState(
         date,
         this.controller.month
       );
@@ -238,7 +239,7 @@
       var found;
 
       if (typeof(stringId) !== 'string') {
-        stringId = Calendar.Calc.getDayId(stringId);
+        stringId = Calc.getDayId(stringId);
       }
 
       id = this._dayId(stringId);
@@ -257,59 +258,28 @@
      * @return {String} return value.
      */
     _renderMonth: function _renderMonth() {
-      var date = this.month,
-          id = Calendar.Calc.getDayId(this.month),
-          weekList = [],
-          numberOfWeeks = 0,
-          lastWeek;
+      var date = this.month;
+      var id = Calc.getDayId(this.month);
+      var weekList = [];
 
-      for (; numberOfWeeks < 5; numberOfWeeks++) {
-        lastWeek = Calendar.Calc.getWeeksDays(
-          new Date(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate() + (numberOfWeeks * 7)
-          )
+      var week = 0;
+      var slice;
+      var days = this.timespan.daysBetween();
+      var daysInWeek = Calc.daysInWeek();
+      var numberOfWeeks = days.length / daysInWeek;
+
+      for (week; week <= numberOfWeeks; week++) {
+        slice = days.splice(
+          0,
+          daysInWeek
         );
-
-        weekList.push(
-          this._renderWeek(lastWeek)
-        );
-      }
-
-     var lastMonthDay = 32 - new Date(
-       date.getFullYear(),
-       date.getMonth(),
-       32).getDate();
-
-     var lastRendered = lastWeek.pop().getDate();
-     var additionalClass = '';
-
-      // If the last rendered day number is lower that the last day of the
-      // month, like on September or December 2012, we need to render
-      // one more week.
-      // We check if the number is bigger than the lowest possible number
-      // of the last day in a month (February) to avoid adding additional
-      // month when the last rendered day belong to the next month
-      if (lastRendered < lastMonthDay && lastRendered > 27) {
-        additionalClass = 'six-weeks';
-        weekList.push(
-          this._renderWeek(
-            Calendar.Calc.getWeeksDays(
-              new Date(
-                date.getFullYear(),
-                date.getMonth(),
-                date.getDate() + (5 * 7)
-              )
-            )
-          )
-        );
+        weekList.push(this._renderWeek(slice));
       }
 
       return template.month.render({
         id: id,
         content: weekList.join('\n'),
-        additionalClass: additionalClass
+        additionalClass: 'weeks-' + numberOfWeeks
       });
     },
 
@@ -320,7 +290,7 @@
         calendarId: busytime.calendarId
       };
 
-      if (Calendar.Calc.isSameDate(day, busytime.startDate)) {
+      if (Calc.isSameDate(day, busytime.startDate)) {
         record.start = this._hourToBusyUnit(
           busytime.startDate.getHours()
         );
@@ -328,7 +298,7 @@
         record.start = 1;
       }
 
-      if (Calendar.Calc.isSameDate(day, busytime.endDate)) {
+      if (Calc.isSameDate(day, busytime.endDate)) {
         var end = this._hourToBusyUnit(
           busytime.endDate.getHours()
         );
@@ -363,7 +333,7 @@
       var start = busytime.startDate;
       var end = busytime.endDate;
 
-      if (Calendar.Calc.isSameDate(start, end)) {
+      if (Calc.isSameDate(start, end)) {
         return this._addBusytime(start, busytime);
       }
 
@@ -377,7 +347,7 @@
         end = new Date(span.end);
       }
 
-      var days = Calendar.Calc.daysBetween(
+      var days = Calc.daysBetween(
         start,
         end
       );
