@@ -143,218 +143,67 @@
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="label">Label<sapn>:</sapn></span>
           <input type="text" class="right" name="alarm.label" placeholder="Alarm" />
-          <p></p>
         </li>
         <li class="multiline">
           <div id="picker-bar">
             <div id="picker-container">
               <div id="value-indicator-bottom"></div>
-              <div id="value-picker-hours" class="animation-on"></div>
+              <div id="picker-bar-background"></div>
               <div class="left-picker-separator"></div>
+
+              <div id="value-indicator-wrapper">
+                <div id="value-indicator-hover-time">:</div>
+                <div id="value-indicator-hover"></div>
+              </div>
+
+              <div id="value-picker-hours" class="animation-on"></div>
               <div id="value-picker-minutes" class="animation-on"></div>
               <div class="right-picker-separator"></div>
               <div id="value-picker-hour24-state" class="animation-on"></div>
-              <div id="value-indicator-hover"></div>
             </div>
             <div id="picker-bar-gradient"></div>
           </div>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat<sapn>:</sapn></span>
-          <a id="repeat-menu" href="#repeat" class="abstract-menu">Never</a>
+          <select id="repeat-select" multiple="true" class="abstract-menu">
+            <option value="0" data-l10n-id="dayofweek-0">Monday</option>
+            <option value="1" data-l10n-id="dayofweek-1">Tuesday</option>
+            <option value="2" data-l10n-id="dayofweek-2">Wednesday</option>
+            <option value="3" data-l10n-id="dayofweek-3">Thursday</option>
+            <option value="4" data-l10n-id="dayofweek-4">Friday</option>
+            <option value="5" data-l10n-id="dayofweek-5">Saturday</option>
+            <option value="6" data-l10n-id="dayofweek-6">Sunday</option>
+          </select>
+          <a id="repeat-menu" class="abstract-menu">Never</a>
           <p></p>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="sound">Sound<sapn>:</sapn></span>
-          <a id="sound-menu" href="#sound" class="abstract-menu">Default</a>
+          <select id="sound-select" class="abstract-menu">
+            <option value="classic.wav">Classic</option>
+            <option value="bosscaling.wav">Bosscaling</option>
+            <option value="goodnight.wav">Goodnight</option>
+          </select>
+          <a id="sound-menu" class="abstract-menu">Classic</a>
           <p></p>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze<sapn>:</sapn></span>
-          <a id="snooze-menu" href="#snooze" class="abstract-menu">10 minutes</a>
+          <select id="snooze-select" class="abstract-menu">
+            <option value="5">5 minutes</option>
+            <option value="10">10 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="20">20 minutes</option>
+          </select>
+          <a id="snooze-menu" class="abstract-menu">5 minutes</a>
           <p></p>
         </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="color">Color<sapn>:</sapn></span>
-          <a id="color-menu" href="#color" class="abstract-menu">Darkorange</a>
-          <p></p>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Repeat -->
-    <div id="repeat" class="view" data-title="Repeat">
-      <header>
-        <a href="#alarm" id="repeat-back" class="right button" data-l10n-id="back">Back</a>
-        <h1 id="repeat-title" class="label" data-l10n-id="repeat">Repeat</h1>
-      </header>
-      <ul class="tableView">
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="dayofweek-0">Monday</span>
-          <label>
-            <input type="checkbox" name="repeat.Monday"/>
-            <span class="setRepeat"></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="dayofweek-1">Tuesday</span>
-          <label>
-            <input type="checkbox" name="repeat.Tuesday"/>
-            <span class="setRepeat"></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="dayofweek-2">Wednesday</span>
-          <label>
-            <input type="checkbox" name="repeat.Wednesday"/>
-            <span class="setRepeat"></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="dayofweek-3">Thursday</span>
-          <label>
-            <input type="checkbox" name="repeat.Thursday"/>
-            <span class="setRepeat"></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="dayofweek-4">Friday</span>
-          <label>
-            <input type="checkbox" name="repeat.Friday"/>
-            <span class="setRepeat"></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="dayofweek-5">Saturday</span>
-          <label>
-            <input type="checkbox" name="repeat.Saturday"/>
-            <span class="setRepeat"></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="dayofweek-6">Sunday</span>
-          <label>
-            <input type="checkbox" name="repeat.Sunday"/>
-            <span class="setRepeat"></span> </label>
-          <p></p>
+        <li id="alarm-delete-button">
+          <a id="alarm-delete" href="#alarm-view" data-l10n-id="delete">Delete</a>
         </li>
       </ul>
     </div>
-
-    <!-- Sound -->
-    <div id="sound" class="view" data-title="Sound">
-      <header>
-        <a href="#alarm" id="sound-back" class="right button" data-l10n-id="back">Back</a>
-        <h1 id="sound-title" class="label" data-l10n-id="sound">Sound</h1>
-      </header>
-      <ul class="tableView">
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="default">Default</span>
-          <label>
-            <input type="radio" name="sound" value="classic.wav" checked="true" />
-            <span></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl">Bosscaling</span>
-          <label>
-            <input type="radio" name="sound" value="bosscaling.wav"/>
-            <span></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl">GoodMight</span>
-          <label>
-            <input type="radio" name="sound" value="goodnight.wav"/>
-            <span></span> </label>
-          <p></p>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Snooze -->
-    <div id="snooze" class="view" data-title="Snooze">
-      <header>
-        <a href="#alarm" id="snooze-back" class="right button" data-l10n-id="back">Back</a>
-        <h1 id="snooze-title" class="label" data-l10n-id="snooze">Snooze</h1>
-      </header>
-      <ul class="tableView">
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="default">5 minutes</span>
-          <label>
-            <input type="radio" name="snooze" value="5" checked="true" />
-            <span></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl">10 minutes</span>
-          <label>
-            <input type="radio" name="snooze" value="10"/>
-            <span></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl">20 minutes</span>
-          <label>
-            <input type="radio" name="snooze" value="20"/>
-            <span></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl">30 minutes</span>
-          <label>
-            <input type="radio" name="snooze" value="30"/>
-            <span></span> </label>
-          <p></p>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Color -->
-    <div id="color" class="view" data-title="Color">
-      <header>
-        <a href="#alarm" id="color-back" class="right button" data-l10n-id="back">Back</a>
-        <h1 id="color-title" class="label" data-l10n-id="color">Color</h1>
-      </header>
-      <ul class="tableView">
-        <li class="singleline">
-          <span class="view-alarm-lbl">GhostWhite</span>
-          <label>
-            <input type="radio" name="color" value="GhostWhite" checked="true" />
-            <span></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl">Darkorange</span>
-          <label>
-            <input type="radio" name="color" value="Darkorange"/>
-            <span></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl">SkyBlue</span>
-          <label>
-            <input type="radio" name="color" value="SkyBlue"/>
-            <span></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl">LimeGreen</span>
-          <label>
-            <input type="radio" name="color" value="LimeGreen"/>
-            <span></span> </label>
-          <p></p>
-        </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl">Black</span>
-          <label>
-            <input type="radio" name="color" value="Black"/>
-            <span></span> </label>
-          <p></p>
-        </li>
-      </ul>
-    </div>
-
   </body>
 </html>
 

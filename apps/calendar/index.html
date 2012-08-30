@@ -39,6 +39,7 @@
   <script defer src="/js/router.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/db.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/timespan.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/time_observer.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/interval_tree.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- templates -->
@@ -95,14 +96,16 @@
 
   <ol class="calendars">
   </ol>
+  
+  <menu>
+    <a href="/advanced-settings/" data-l10n-id="advanced-settings" class="settings">
+      Account Settings
+    </a>
 
-  <a href="/advanced-settings/" data-l10n-id="advanced-settings" class="settings">
-    Account Settings
-  </a>
-
-  <button class="sync">
-    Sync
-  </button>
+    <button class="sync">
+      Sync
+    </button>
+  </menu>
 
 </section>
 

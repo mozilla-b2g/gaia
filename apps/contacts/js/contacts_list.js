@@ -11,7 +11,8 @@ contacts.List = (function() {
       conctactsListView = document.getElementById('view-contacts-list'),
       searchBox = document.getElementById('search-contact'),
       searchNoResult = document.getElementById('no-result'),
-      fastScroll = document.querySelector('.view-jumper');
+      fastScroll = document.querySelector('.view-jumper'),
+      scrollable = document.querySelector('#groups-container');
 
   var init = function load(element) {
     groupsList = element;
@@ -27,6 +28,28 @@ contacts.List = (function() {
     favoriteGroup = document.getElementById('group-favorites').parentNode;
     var selector = 'h2.block-title:not(.hide)';
     FixedHeader.init('#groups-container', '#fixed-container', selector);
+
+    initAlphaScroll();
+  }
+
+  var initAlphaScroll = function initAlphaScroll() {
+    var overlay = document.querySelector('.view-jumper-current');
+    var overlayContent = document.querySelector('#current-jumper');
+    var jumper = document.querySelector('.view-jumper-inner');
+
+    var params = {
+      overlay: overlay,
+      overlayContent: overlayContent,
+      jumper: jumper,
+      groupSelector: '#group-',
+      scrollToCb: scrollToCb
+    };
+
+    utils.alphaScroll.init(params);
+  }
+
+  var scrollToCb = function scrollCb(groupContainer) {
+    scrollable.scrollTop = groupContainer.offsetTop;
   }
 
   var load = function load(contacts) {

@@ -10,8 +10,8 @@
 var CardsView = (function() {
 
   //display icon of an app on top of app's card
-  var DISPLAY_APP_ICON = true;
-  var USER_DEFINED_ORDERING = true;
+  var DISPLAY_APP_ICON = false;
+  var USER_DEFINED_ORDERING = false;
   // If 'true', scrolling moves the list one card
   // at time, and snaps the list so the current card
   // is centered in the view
@@ -169,7 +169,7 @@ var CardsView = (function() {
         }
       }.bind(card);
 
-      if (app.frame.dataset.zIndexLevel === 'homescreen') {
+      if (app.frame.classList.contains('homescreen')) {
         card.dataset['homescreen'] = true;
       }
       card.dataset['origin'] = origin;
@@ -198,6 +198,10 @@ var CardsView = (function() {
 
   function runApp() {
     hideCardSwitcher();
+
+    // Close utility tray if it is opened.
+    UtilityTray.hide(true);
+
     WindowManager.launch(this.dataset['origin']);
   }
 

@@ -1,0 +1,75 @@
+/* ----------------------------------
+ * SCROLLING
+ * ---------------------------------- */
+ body[role="application"] nav[role="scrollbar"] {
+  font-family: "Open Sans", Sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+ }
+
+/* Mirror */
+body[role="application"] nav[role="scrollbar"] p {
+  position: absolute;
+  right: 4rem;
+  top: 30%;
+  margin: 0;
+  width: 10.5rem;
+  height: 10.5rem;
+  opacity: 0;
+  transition: opacity;
+  background: -moz-element(#scrollbar-state) no-repeat center center, url(images/ui/background.png) repeat left top;
+  pointer-events: none;
+  text-align: center;
+}
+
+/* Original element */
+#scrollbar-state {
+  font: 200 6rem/10.5rem "Open Sans", Sans-serif;
+  color: #fff;
+  position: absolute;
+  right: 100%;
+}
+
+body[role="application"] nav[role="scrollbar"] ol {
+  padding: 0.3rem 0;
+  margin: 0;
+  border-radius: 4rem;
+  opacity: 0.6;
+  list-style: none;
+}
+
+body[role="application"] nav[role="scrollbar"] li {
+  font-size: 1rem;
+  line-height: 1.4em;
+  text-align: center;
+  text-transform: uppercase;
+  width: 4.5rem;
+}
+
+body[role="application"] nav[role="scrollbar"] li a {
+  display: block;
+  color: #333;
+  width: 100%;
+  text-indent: 1.5rem;
+  text-decoration: none;
+}
+
+/* Top action icons */
+body[role="application"] nav[role="scrollbar"] li .search,
+body[role="application"] nav[role="scrollbar"] li .favourites {
+  width: 1.2rem;
+  height: 1.2rem;
+  font: 0/0 a;
+  display: inline-block;
+  vertical-align: middle;
+  background: transparent no-repeat center center;
+}
+
+body[role="application"] nav[role="scrollbar"] li .search {
+  background-image: url(images/icons/search.png);
+}
+
+body[role="application"] nav[role="scrollbar"] li .favourites {
+  background-image: url(images/icons/favourites.png);
+}

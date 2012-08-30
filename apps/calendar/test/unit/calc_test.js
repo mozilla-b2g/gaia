@@ -1,4 +1,5 @@
 requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('timespan.js');
   requireLib('calc.js');
 });
 
@@ -28,6 +29,121 @@ suite('calendar/calc', function() {
       return value;
     };
   }
+
+  function removeOffset(date) {
+    return date.valueOf() - currentOffset();
+  }
+
+  function currentOffset() {
+    var date = new Date();
+    return (date.getTimezoneOffset() * (60 * 1000));
+  }
+
+  test('#utcMs', function() {
+    var date = new Date(2012, 0, 1, 2);
+    var offset = date.getTimezoneOffset() * (60 * 1000);
+    var value = date.valueOf() - offset;
+
+    assert.equal(subject.utcMs(date), value);
+  });
+
+  suite('#spanOfMonth', function() {
+
+    function time(year, month, day, hour, min) {
+      var date = new Date(
+        year,
+        month || 0,
+        day || 1,
+        hour || 0,
+        min || 0
+      );
+      return v(date);
+    }
+
+    function v(date) {
+      return date.valueOf();
+    }
+
+    test('5 week month', function() {
+      var date = new Date(2012, 3, 1, 5, 1);
+      var range = subject.spanOfMonth(date);
+
+      assert.equal(
+        time(2012, 3, 1),
+        range.start
+      );
+
+      var end = new Date(2012, 4, 6);
+      end.setMilliseconds(-1);
+
+      assert.equal(
+        range.end,
+        v(end)
+      );
+
+    });
+
+    test('6 week month', function() {
+      var date = new Date(2012, 11, 1);
+      var range = subject.spanOfMonth(date);
+
+      assert.equal(
+        time(2012, 10, 25),
+        range.start
+      );
+
+      var end = new Date(2013, 0, 6);
+      end.setMilliseconds(-1);
+
+      assert.equal(
+        range.end,
+        v(end)
+      );
+    });
+
+    test('4 week month', function() {
+      var date = new Date(2009, 1, 1);
+      var range = subject.spanOfMonth(date);
+
+      var end = new Date(2009, 2, 1);
+      end.setMilliseconds(-1);
+
+      assert.equal(
+        range.end,
+        v(end)
+      );
+    });
+
+  });
+
+  suite('#fromUtcMs', function() {
+    var start;
+    var ms;
+
+    setup(function() {
+      start = new Date(2012, 0, 1, 2);
+      ms = subject.utcMs(start);
+    });
+
+    test('with offset', function() {
+      var offset = start.getTimezoneOffset() - (60 * 3);
+      var out = subject.fromUtcMs(
+        ms, offset
+      );
+
+      var clone = new Date(start.valueOf());
+      clone.setHours(clone.getHours() - 3);
+      assert.equal(out.valueOf(), clone.valueOf());
+    });
+
+    test('without offset', function() {
+      var out = subject.fromUtcMs(
+        ms
+      );
+      assert.equal(start.valueOf(), out.valueOf());
+    });
+
+  });
 
   suite('#getWeekStartDate', function() {
     // we are testing for first week of Aug 2012
