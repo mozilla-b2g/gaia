@@ -195,14 +195,105 @@ var WindowManager = (function() {
     }
   });
 
+  var database = null;
+
+  (function openScreenshotDB() {
+    var DB_VERSION = 1;
+    var DB_NAME = 'window_manager';
+
+    var req = window.indexedDB.open(DB_NAME, DB_VERSION);
+    req.onerror = function() {
+      console.error('Window Manager: opening screenshot database failed.');
+    };
+    req.onupgradeneeded = function screenshotDBUpgradeneeded() {
+      database = req.result;
+
+      if (database.objectStoreNames.contains('screenshots'))
+        database.deleteObjectStore('screenshots');
+
+      var store = database
+                  .createObjectStore('screenshots', { keyPath: 'origin' });
+    };
+
+    req.onsuccess = function screenshotDBSuccess() {
+      database = req.result;
+    };
+  })();
+
   function getAppScreenshot(origin, callback) {
     if (!callback)
       return;
 
     var app = runningApps[origin];
-    app.frame.getScreenshot().onsuccess = function(evt) {
-      callback(evt.target.result);
+
+    if (!app.launchTime) {
+      // This app was never launched.
+      // Let's get the screenshot from the database instead
+      if (!database) {
+        console.warn(
+          'Window Manager: Neither database nor app frame is ' +
+          'ready for getting screenshot.');
+
+        callback();
+        return;
+      }
+
+      var req = database.transaction('screenshots')
+                .objectStore('screenshots').get(origin);
+      req.onsuccess = function() {
+        if (!req.result) {
+          console.log('Window Manager: No screenshot in database. ' +
+             'This is expected from a fresh installed app.');
+          callback();
+
+          return;
+        }
+
+        callback(req.result.screenshot);
+      }
+      req.onerror = function(evt) {
+        console.warn('Window Manager: get screenshot from database failed.');
+        callback();
+      };
+
+      return;
+    }
+
+    var req = app.frame.getScreenshot();
+
+    req.onsuccess = function(evt) {
+      var result = evt.target.result;
+      callback(result);
+
+      // Save the screenshot to database
+      if (!database)
+        return;
+
+      var txn = database.transaction('screenshots', 'readwrite');
+      txn.onerror = function() {
+        console.warn(
+          'Window Manager: transaction error while trying to save screenshot.');
+      };
+      var store = txn.objectStore('screenshots');
+      var req = store.put({
+        origin: origin,
+        screenshot: result
+      });
+      req.onerror = function(evt) {
+        console.warn('Window Manager: put error while trying to save screenshot.');
+      };
+
     };
+
+    req.onerror = function(evt) {
+      console.warn('Window Manager: getScreenshot failed.');
+      callback();
+    };
+  }
+
+  function deleteAppScreenshot(origin) {
+    var req = database.transaction('screenshots')
+              .objectStore('screenshots').delete(origin);
   }
 
   function afterPaint(callback) {
@@ -230,6 +321,11 @@ var WindowManager = (function() {
         screenElement.classList.add('fullscreen-app');
 
       getAppScreenshot(origin, function(screenshot) {
+        if (!screenshot) {
+          sprite.className = 'open';
+          return;
+        }
+
         sprite.style.backgroundImage = 'url(' + screenshot + ')';
         afterPaint(function() {
           sprite.className = 'open';
@@ -313,6 +409,8 @@ var WindowManager = (function() {
 
     // Record the time when app was launched,
     // need this to display apps in proper order on CardsView.
+    // We would also need this to determined the freshness of the frame
+    // for making screenshots.
     if (newApp)
       runningApps[newApp].launchTime = Date.now();
 
@@ -553,6 +651,8 @@ var WindowManager = (function() {
   // if the application is being uninstalled, we ensure it stop running here.
   window.addEventListener('applicationuninstall', function(e) {
     kill(e.detail.application.origin);
+
+    deleteAppScreenshot(e.detail.application.origin);
   });
 
   // Stop running the app with the specified origin
