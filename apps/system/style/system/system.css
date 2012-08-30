@@ -107,7 +107,7 @@ body {
   visibility: hidden;
 }
 
-#screen.fullscreen-app > #windows > iframe.appWindow.active {
+#screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
   top: 0;
 }
 
@@ -117,12 +117,11 @@ body {
   left: 0;
   width: 100%;
   height: -moz-calc(100% - 20px);
-  opacity: 0;
   background-color: #373a3d;
   background-size: cover;
   pointer-events: none;
-  -moz-transform: scale(0.5);
-  -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
+
+  visibility: hidden;
 }
 
 #screen.fullscreen-app > #windowSprite {
@@ -130,24 +129,52 @@ body {
   top: 0;
 }
 
-#windowSprite.open {
-  -moz-transform: scale(1);
+#windowSprite.before-open {
+  transform: scale(0.5);
+  /* 0.01 opacity is needed to make sure Gecko paints and fire
+     MozAfterPaint event for us. */
+  opacity: 0.01;
+  visibility: visible;
+}
+
+#windowSprite.opening {
+  transition: transform 0.5s ease, opacity 0.3s ease;
+
+  transform: scale(1);
   opacity: 1;
+  visibility: visible;
 }
 
-#windowSprite.faded {
+#windowSprite.opened {
+  transition: opacity 0.3s ease;
+
+  transform: scale(1);
   opacity: 0;
+  visibility: visible;
 }
 
-#windowSprite.close {
-  /* The transition on color is not really useful but it is used to fire
-     a transitionend event on the sprite after a certain amount of time.
-     This amount of time is when the 'transform' animation should start.
-  */
-  -moz-transition: color 0.1s ease, opacity 0.3s ease, -moz-transform 0.3s 0.1s ease;
-  -moz-transform: scale(0.5);
-  opacity: 0.3;
-  color: black;
+#windowSprite.before-close {
+  transform: scale(1);
+  /* 0.01 opacity is needed to make sure Gecko paints and fire
+     MozAfterPaint event for us. */
+  opacity: 0.01;
+  visibility: visible;
+}
+
+#windowSprite.closing {
+  transition: opacity 0.1s ease;
+
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.closed {
+  transition: transform 0.5s ease, opacity 0.3s ease;
+
+  transform: scale(0.5);
+  opacity: 0;
+  visibility: visible;
 }
 
 .accessibility-invert {
