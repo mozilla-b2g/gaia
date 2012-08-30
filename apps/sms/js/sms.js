@@ -5,6 +5,8 @@
 
 var MessageManager = {
   init: function mm_init() {
+    // Init PhoneNumberManager for solving country code issue.
+    PhoneNumberManager.init();
     // Init Pending DB. Once it will be loaded will render threads
     PendingMsgManager.init(function() {
       MessageManager.getMessages(ThreadListUI.renderThreads);
@@ -484,9 +486,13 @@ var ThreadListUI = {
           }
         }
         if (threadIds.indexOf(num) == -1) {
+          // XXX: Workaround for country code threading issue.
+          // We display national number in thread list.(if convertable).
+          var nationalNum = PhoneNumberManager.isValidNumber(num) ?
+                PhoneNumberManager.getNumberSet(num).national : num;
           var thread = {
             'body': message.body,
-            'name': num,
+            'name': nationalNum,
             'num': num,
             'timestamp': message.timestamp.getTime(),
             'unreadCount': !message.read ? 1 : 0,
@@ -647,11 +653,6 @@ var ThreadUI = {
     return this.doneButton = document.getElementById('messages-delete-button');
   },
 
-  get headerTitle() {
-    delete this.headerTitle;
-    return this.headerTitle = document.getElementById('header-text');
-  },
-
   get editHeader() {
       delete this.editHeader;
       return this.editHeader = document.getElementById('messages-edit-title');
@@ -676,7 +677,7 @@ var ThreadUI = {
     this.contactInput.addEventListener('input', this.searchContact.bind(this));
     this.deleteButton.addEventListener('click',
                                        this.executeDeletion.bind(this));
-    this.headerTitle.addEventListener('click', this.activateContact.bind(this));
+    this.title.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
     this.view.addEventListener('click', this);
   },
@@ -741,7 +742,11 @@ var ThreadUI = {
   },
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
-    self.title.innerHTML = number;
+    // XXX: Workaround for country code threading issue.
+    // We convert the header to national number(if convertible).
+    var nationalNum = PhoneNumberManager.isValidNumber(number) ?
+          PhoneNumberManager.getNumberSet(number).national : number;
+    self.title.innerHTML = nationalNum;
     ContactDataManager.getContactData(number, function gotContact(contact) {
       var carrier = document.getElementById('contact-carrier');
       if (contact.length > 0) { // we have a contact
@@ -1038,7 +1043,12 @@ var ThreadUI = {
     var hash = window.location.hash;
     // Depending where we are, we get different num
     if (hash == '#new') {
-      var num = this.contactInput.value;
+      // XXX: Workaround for country code threading issue.
+      // We convert the number to international number for sending
+      // and storing the message.
+      var numInput = this.contactInput.value;
+      var num = PhoneNumberManager.isValidNumber(numInput) ?
+            PhoneNumberManager.getNumberSet(numInput).international : numInput;
     } else {
       var num = MessageManager.getNumFromHash();
     }
@@ -1141,10 +1151,18 @@ var ThreadUI = {
         nameHTML = 'Unknown';
       }
       var carrier = tels[i].carrier;
+
+      // XXX: Workaround for country code threading issue.
+      // We convert the number to international for finding
+      // messages in message DB.
+      var num = tels[i].value;
+      var telNum = PhoneNumberManager.isValidNumber(num) ?
+            PhoneNumberManager.getNumberSet(num).international : num;
+
       //TODO Implement algorithm for this part following Wireframes
       // Create HTML structure
       var structureHTML =
-              '  <a href="#num=' + tels[i].value + '">' +
+              '  <a href="#num=' + telNum + '">' +
               '    <div class="name">' + nameHTML + '</div>' +
               '    <div class="type">' + tels[i].type + ' ' + numHTML +
               '    </div>' +

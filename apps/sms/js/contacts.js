@@ -22,11 +22,15 @@ var ContactDataManager = {
     'faxOffice',
     'faxOther',
     'another'],
-  getContactData: function cm_getContactData(number, callback) {
+  getContactData: function cm_getContactData(num, callback, noConvert) {
     // so desktop keeps working
     if (!navigator.mozSms)
       return;
 
+    // XXX: Workaround for country code threading issue.
+    // We convert the number to national number to search contact.
+    var number = (!noConvert && PhoneNumberManager.isValidNumber(num)) ?
+          PhoneNumberManager.getNumberSet(num).national : num;
     var options = {
       filterBy: ['tel'],
       filterOp: 'equals',
@@ -51,8 +55,14 @@ var ContactDataManager = {
 
         self.contactData[number] = result[0];
       } else {
-        if (cacheData === null)
+        if (cacheData === null) {
+          // XXX: If national number contact could not be found,
+          //      Force to find contact again with international number.
+          if (number != num) {
+            self.getContactData.bind(self, num, callback, true)();
+          }
           return;
+        }
 
         self.contactData[number] = null;
       }
