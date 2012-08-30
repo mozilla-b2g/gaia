@@ -311,7 +311,7 @@ if (typeof fb.importer === 'undefined') {
       }
 
       if (f.other_phone) {
-        if(!f.tel) {
+        if (!f.tel) {
           f.tel = [];
         }
         f.tel[nextidx] = {type: ['facebook'], value: f.other_phone};

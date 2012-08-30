@@ -36,7 +36,7 @@ if (typeof fb.oauth === 'undefined') {
       accessTokenCbData = {
         callback: ready,
         state: state
-      }
+      };
 
       if (!window.localStorage.access_token) {
           startOAuth(state);
@@ -85,7 +85,7 @@ if (typeof fb.oauth === 'undefined') {
         window.localStorage.token_ts = Date.now();
       }
 
-      if(parameters.state === accessTokenCbData.state) {
+      if (parameters.state === accessTokenCbData.state) {
         accessTokenCbData.callback(access_token);
       } else {
         window.console.error('FB: Error in state', parameters.state,
