@@ -35,6 +35,12 @@ function startup() {
   }
 }
 
+/* === Boot sound === */
+(function playBootSound() {
+  var bootAudio = new Audio('./resources/sounds/boot.ogg');
+  bootAudio.play();
+})();
+
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */
 var Shortcuts = {
