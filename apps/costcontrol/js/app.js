@@ -18,13 +18,25 @@ if (CostControl)
 // to configure some aspects about consumption limits and monitoring.
 function setupApp() {
 
-  // Configure close current view buttons to close the current view
-  // (i.e the info itself)
-  function _configureCloseCurrentViewButtons() {
-    var closeButtons = document.querySelectorAll('.close-current-view');
+  // Configure close dialog to close the current dialog. Dialog includes
+  // promtps and settins.
+  function _configureCloseDialog() {
+    var closeButtons = document.querySelectorAll('.close-dialog');
     [].forEach.call(closeButtons, function ccapp_eachCloseButton(button) {
       button.addEventListener('click', function ccapp_onCloseView() {
-        ViewManager.closeCurrentView();
+        appVManager.closeCurrentView();
+      });
+    });
+  }
+
+  // Configure close dialog to close the current setting's  dialog.
+  // Settings dialogs include all of thenm related with selecting values from
+  // settings and warning prompts arising from the settings view.
+  function _configureCloseSettingsDialog() {
+    var closeButtons = document.querySelectorAll('.close-settings-dialog');
+    [].forEach.call(closeButtons, function ccapp_eachCloseButton(button) {
+      button.addEventListener('click', function ccapp_onCloseView() {
+        settingsVManager.closeCurrentView();
       });
     });
   }
@@ -34,7 +46,7 @@ function setupApp() {
     var configButtons = document.querySelectorAll('.settings-button');
     [].forEach.call(configButtons, function ccapp_eachConfigButton(button) {
       button.addEventListener('click', function ccapp_onConfig() {
-        ViewManager.changeViewTo(VIEW_SETTINGS);
+        appVManager.changeViewTo(VIEW_SETTINGS);
       });
     });
   }
@@ -44,11 +56,12 @@ function setupApp() {
   function _init() {
 
     _configureSettingsButtons();
-    _configureCloseCurrentViewButtons();
+    _configureCloseDialog();
+    _configureCloseSettingsDialog();
 
     // Initialize each tab (XXX: see them in /js/views/ )
-    for (var tabname in Tabs) if (Tabs.hasOwnProperty(tabname))
-      Tabs[tabname].init();
+    for (var viewId in Views) if (Views.hasOwnProperty(viewId))
+      Views[viewId].init();
 
     // Handle web activity
     navigator.mozSetMessageHandler('activity',
@@ -56,11 +69,11 @@ function setupApp() {
         var name = activityRequest.source.name;
         switch (name) {
           case 'costcontrol/open':
-            ViewManager.closeCurrentView();
+            appVManager.closeCurrentView();
             break;
 
           case 'costcontrol/topup':
-            Tabs[TAB_BALANCE].showTopUp();
+            Views[TAB_BALANCE].showTopUp();
             break;
         }
       }
@@ -68,12 +81,12 @@ function setupApp() {
 
     // Update UI when localized
     window.addEventListener('localized', function ccapp_onLocalized() {
-      for (var tabname in Tabs) if (Tabs.hasOwnProperty(tabname))
-        Tabs[tabname].updateUI();
+      for (var viewid in Views) if (Views.hasOwnProperty(viewid))
+        Views[viewid].updateUI();
     });
 
     // TODO: Add deccission depending on prepaid / postpaid
-    ViewManager.changeViewTo(TAB_BALANCE);
+    appVManager.changeViewTo(TAB_BALANCE);
   }
 
   _init();

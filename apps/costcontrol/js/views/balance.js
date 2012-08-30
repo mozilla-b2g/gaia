@@ -5,11 +5,17 @@
 
 // Balance Tab is in charge of offer detailed information about current
 // credit as well as allow the user to top up.
-Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
+var TAB_BALANCE = 'balance-tab';
+appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
   var ONE_SECOND = 1000;
   var DELAY_TO_RETURN = 10 * 1000; // 10 seconds
   var NO_SERVICE_ERRORS = {'no-coverage': true, 'carrier-unknown': true};
+
+  // Views and dialogs IDs
+  var VIEW_TOPUP = 'topup-view';
+  var DIALOG_SERVICE_UNAVAILABLE = 'service-unavailable-info-dialog';
+  var DIALOG_APPLICATION_ERROR = 'application-error-info-dialog';
 
   // Update balance control
   var _isUpdating = false;
@@ -131,7 +137,7 @@ Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
     var balanceFilter = document.getElementById('balance-tab-filter');
     balanceFilter.addEventListener('click', function ccapp_onBalanceTab() {
-      ViewManager.changeViewTo(TAB_BALANCE);
+      appVManager.changeViewTo(TAB_BALANCE);
     });
 
     var btRequestUpdateButton =
@@ -151,10 +157,6 @@ Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
   // Configure the top up screen, the close button and the send button
   function _configureTopUpScreen() {
-    var closeButton = document.getElementById('topup-close-button');
-    closeButton.addEventListener('click', function() {
-      ViewManager.closeCurrentView();
-    });
 
     var input = document.getElementById('topup-code-input');
     var buttonTopUp = document.getElementById('topup-send-button');
@@ -173,8 +175,8 @@ Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
       _isWaitingTopUp = true;
       _setTopUpScreenMode(MODE_WAITING);
       _returnTimeout = setTimeout(function ccapp_backToBalance() {
-        if (ViewManager.isCurrentView(VIEW_TOPUP))
-          ViewManager.closeCurrentView();
+        if (appVManager.isCurrentView(VIEW_TOPUP))
+          appVManager.closeCurrentView();
       }, DELAY_TO_RETURN);
 
     });
@@ -217,7 +219,6 @@ Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   var MODE_INCORRECT_CODE = 'mode-incorrect-code';
   var MODE_ERROR = 'mode-error';
   var MODE_ROAMING = 'mode-roaming';
-  var MODE_TOP_UP_WAITING = 'mode-top-up-waiting';
   var MODE_TOP_UP_TIMEOUT = 'mode-top-up-timeout';
 
   // Set the topscreen mode:
@@ -306,10 +307,17 @@ Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     clearTimeout(_countdownInterval);
   }
 
-  // Enable / disable the countdown area for the top up
+  // Enable / disable the countdown area for the top up and disable / enable
+  // the top up button respectively.
   function _setTopUpCountdown(enabled) {
-    var _countdown = document.getElementById('cost-control-topup-countdown');
-    _countdown.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+    var topUpButton = document.getElementById('balance-tab-topup-button');
+    var countdown = document.getElementById('cost-control-topup-countdown');
+    countdown.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+    if (enabled) {
+      topUpButton.setAttribute('disabled', 'disabled');
+    } else {
+      topUpButton.removeAttribute('disabled');
+    }
   }
 
   // Set the balance screen mode:
@@ -368,7 +376,7 @@ Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     // Check for service availability and inform and abort if not present
     var status = CostControl.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
-      ViewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      appVManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
     }
 
@@ -384,14 +392,14 @@ Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   function _requestTopUp() {
     var status = CostControl.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
-      ViewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      appVManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
     }
 
     if (!_isWaitingTopUp && !_lastTopUpIncorrect)
       _setTopUpScreenMode(MODE_DEFAULT);
 
-    ViewManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
+    appVManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
   }
 
   // Enable / disable waiting mode for the UI
@@ -479,7 +487,9 @@ Tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     init: _init,
     updateUI: _updateUI,
     showTopUp: function ccapp_showTopUp() {
-      ViewManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
+      appVManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
     }
   };
 }());
+
+Views[TAB_BALANCE] = appVManager.tabs[TAB_BALANCE];

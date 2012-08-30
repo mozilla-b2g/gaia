@@ -3,29 +3,18 @@
 
 'use strict';
 
-// These strings are DOM ids
-var VIEW_TOPUP = 'topup-view';
-var VIEW_SETTINGS = 'settings-view';
-var TAB_BALANCE = 'balance-tab';
-var TAB_TELEPHONY = 'telephony-tab';
-var TAB_DATA_USAGE = 'datausage-tab';
-var DIALOG_SERVICE_UNAVAILABLE = 'service-unavailable-info-dialog';
-var DIALOG_APPLICATION_ERROR = 'application-error-info-dialog';
-
-var Tabs = {};
-
 // The ViewManager is in charge of simply manage the different views of the
 // applications. ViewManager.changeViewTo() valid values are listed above
 // these lines.
-var ViewManager = (function cc_setUpViewManager() {
+var ViewManager = function ViewManager() {
 
-  var TABS = [TAB_BALANCE, TAB_TELEPHONY, TAB_DATA_USAGE];
   var _currentView = null;
   var _currentTab = null;
+  var _tabs = {};
 
   // Return true if the passed view is a tab
   function _isTab(view) {
-    return Tabs.hasOwnProperty(view);
+    return _tabs.hasOwnProperty(view);
   }
 
   // Make target enter screen's main area and call callback after, passing as
@@ -47,11 +36,11 @@ var ViewManager = (function cc_setUpViewManager() {
     // Tabs are treated in a different way than overlay views
     if (isTab) {
       // Hide all
-      TABS.forEach(function ccvm_hideEachTab(tabId) {
+      for (var tabId in _tabs) if (_tabs.hasOwnProperty(tabId)) {
         document.getElementById(tabId).dataset.viewport = 'behind';
         document.getElementById(tabId + '-filter')
           .setAttribute('aria-selected', 'false');
-      });
+      }
 
       // Show the proper one
       document.getElementById(viewId).dataset.viewport = '';
@@ -94,9 +83,8 @@ var ViewManager = (function cc_setUpViewManager() {
     return _currentView && _currentView.id === view;
   }
 
-  return {
-    changeViewTo: _changeViewTo,
-    closeCurrentView: _closeCurrentView,
-    isCurrentView: _isCurrentView
-  };
-}());
+  this.tabs = _tabs;
+  this.changeViewTo = _changeViewTo;
+  this.closeCurrentView = _closeCurrentView;
+  this.isCurrentView = _isCurrentView;
+};

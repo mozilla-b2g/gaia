@@ -48,6 +48,58 @@ setService(function cc_setupCostControlService() {
   var _onSMSReceived = {};
   var _smsTimeout = {};
 
+  // App settings object to control settings
+  var _appSettings = (function cc_appSettings() {
+
+    var _listeners = {};
+
+    function _newLocalSettingsChangeEvent(key, value) {
+      return new CustomEvent(
+        'localsettingschanged',
+        { detail: { key: key, value: value } }
+      )
+    }
+
+    // Call callback when the value for key is set
+    function _observe(key, callback) {
+
+      // Keep track of callbacks observing a key
+      if (!_listeners.hasOwnProperty(key))
+        _listeners[key] = [];
+
+      if (_listeners[key].indexOf(callback) > -1)
+        return;
+
+      _listeners[key].push(callback);
+      window.addEventListener(
+        'localsettingschanged',
+        function onLocalSettingsChanged(evt) {
+          if (evt.detail.key === key) {
+            callback(evt.detail.value);
+          }
+        }
+      );
+      window.dispatchEvent(_newLocalSettingsChangeEvent(key, _option(key)));
+    }
+
+    // If only key is provided, the method return the current value for the 
+    // key. If both key and value are provided, the method sets the key to
+    // that value.
+    function _option(key, value) {
+      if (typeof value === 'undefined')
+        return window.localStorage.getItem(key);
+
+      debug('Setting ' + key + ' to ' + value);
+      window.localStorage.setItem(key, value);
+      window.dispatchEvent(_newLocalSettingsChangeEvent(key, value));
+    }
+
+    return {
+      observe: _observe,
+      option: _option
+    };
+  }());
+
   // Inner class: Balance.
   // Balance keeps an amount, a timestamp and a currency accesible by
   // properties with same names.
@@ -528,6 +580,9 @@ setService(function cc_setupCostControlService() {
     },
     getTopUpTimeout: function cc_getTopUpTimeout() {
       return WAITING_TIMEOUT;
+    },
+    get settings() {
+      return _appSettings;
     }
   };
 }());

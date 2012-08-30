@@ -5,7 +5,8 @@
 
 // Data Usage is in charge of display detailed information about data
 // consumption per application and interface.
-Tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
+var TAB_DATA_USAGE = 'datausage-tab';
+appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
   // for testing, get data for last 30 min instead of last month
   var precision = 1000 * 60;
@@ -79,7 +80,7 @@ Tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     debug('Initializing Data Usage Tab');
     var dataUsageTab = document.getElementById('datausage-tab-filter');
     dataUsageTab.addEventListener('click', function ccapp_onDataUsageTab() {
-      ViewManager.changeViewTo(TAB_DATA_USAGE);
+      appVManager.changeViewTo(TAB_DATA_USAGE);
     });
 
     _updateUI();
@@ -268,3 +269,6 @@ Tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     updateUI: _updateUI
   };
 }());
+
+// Add to views as well
+Views[TAB_DATA_USAGE] = appVManager.tabs[TAB_DATA_USAGE];

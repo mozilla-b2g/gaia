@@ -31,11 +31,14 @@
 
   <!-- Specific code -->
   <script type="text/javascript" src="js/utils/settings_listener.js"></script>
+  <script type="text/javascript" src="js/utils/local_settings.js"></script>
   <script type="text/javascript" src="js/utils/debug.js"></script>
 
   <script type="text/javascript" src="js/service/service_utils.js"></script>
 
   <script type="text/javascript" defer src="js/views/view_manager.js"></script>
+  <script type="text/javascript" defer src="js/views/vmanagers.js"></script>
+  <script type="text/javascript" defer src="js/views/settings.js"></script>
   <script type="text/javascript" defer src="js/views/balance.js"></script>
   <script type="text/javascript" defer src="js/views/data_usage.js"></script>
   <script type="text/javascript" defer src="js/app.js"></script>
@@ -93,7 +96,7 @@
         <div class="buttons-list">
           <button id="balance-tab-update-button" data-l10n-id="update-button">
             <span class="end reload"></span>
-            Update
+            Update balance
           </button>
           <button id="balance-tab-topup-button" data-l10n-id="topup-button">
             <span class="end topup"></span>
@@ -137,7 +140,7 @@
         <menu type="toolbar">
            <button id="topup-send-button" data-l10n-id="send">Send</button>
         </menu>
-        <a href="#left-panel"><span id="topup-close-button" class="icon icon-close">close</span></a>
+        <a class="close-dialog"><span id="topup-close-button" class="icon icon-close">close</span></a>
         <h1 data-l10n-id="top-up">Top Up</h1>
       </header>
       <section class="content">
@@ -162,7 +165,7 @@
         <p data-l10n-id="application-error-message">Contact your company representative.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="close-current-view">Ok</button>
+        <button data-l10n-id="ok" class="close-dialog">Ok</button>
       </menu>
     </section>
 
@@ -173,7 +176,7 @@
         <p data-l10n-id="service-unavailable-message">Neither update nor top up is possible at the moment. Please try later.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="close-current-view">Ok</button>
+        <button data-l10n-id="ok" class="close-dialog">Ok</button>
       </menu>
     </section>
 
@@ -274,17 +277,17 @@
       </div>
     </section>
 
-    <!-- Settings view -->
+    <!-- SETTINGS VIEW -->
     <section id="settings-view" role="region" class="view" data-viewport="bottom">
       <header data-theme="organic">
-        <a class="close-current-view"><span id="topup-close-button" class="icon icon-back">back</span></a>
+        <a class="close-dialog"><span id="topup-close-button" class="icon icon-back">back</span></a>
         <h1 data-l10n-id="settings">Settings</h1>
       </header>
 
       <section role="region" class="buttons-list">
-        <button>
+        <button id="settings-view-plantype-setup">
           <span class="end launch"></span>
-          Prepaid
+          <span class="tag">Prepaid</span>
         </button>
       </section>
 
@@ -339,8 +342,31 @@
       </section>
     </section>
 
+    <!-- Plan setup dialog -->
+    <section role="dialog" class="view" data-viewport="bottom" id="plantype-setup-dialog">
+      <div class="center">
+        <h3 data-l10n-id="plantype-setup-title">My phone and internet plan is</h3>
+        <ul role="listbox">
+          <li>
+            <label>
+              <input type="radio" name="plantype-option" checked="checked" value="prepaid">
+              <span data-l10n-id="prepaid">Prepaid</span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="radio" name="plantype-option" value="postpaid">
+              <span data-l10n-id="postpaid">Postpaid</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+      <menu data-items="1">
+        <button data-l10n-id="ok" class="close-settings-dialog">Ok</button>
+      </menu>
+    </section>
+
     <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
-    <!-- TODO: Recover the hover effect on filters -->
     <ul role="tablist" class="filter" data-items="2" data-position="bottom">
       <li id="balance-tab-filter" aria-selected="true"><a role="tab" data-l10n-id="balance" href="#">Balance</a></li>
       <li id="telephony-tab-filter" aria-hidden="true"><a role="tab" data-l10n-id="telephony" href="#">Telephony</a></li>
@@ -349,4 +375,3 @@
   </section>
 </body>
 </html>
-
