@@ -757,12 +757,12 @@ suite('views/month_child', function() {
 
     test('#activate', function() {
       subject.activate();
-      assert.ok(!list.contains(subject.INACTIVE));
+      assert.ok(list.contains(subject.ACTIVE));
     });
 
     test('#deactivate', function() {
       subject.deactivate();
-      assert.ok(list.contains(subject.INACTIVE));
+      assert.ok(!list.contains(subject.ACTIVE));
     });
 
   });
