@@ -357,11 +357,8 @@ var WindowManager = (function() {
       'Browser',
       // Requires nested content processes (bug 761935)
 
-      'Camera',
-      // Can't open camera HAL from content processes (bug 782456)
-
-      'Clock',
-      // Crashing when dismissing the alert window (bug 785166)
+      'Cost Control',
+      // ?????
 
       'E-Mail',
       // SSL/TLS support can only happen in the main process although
@@ -372,23 +369,17 @@ var WindowManager = (function() {
       // - Repaints are being starved during panning (bug 761933)
       // - Homescreen needs to draw the system wallpaper itself (#3639)
 
+      'Image Uploader',
+      // Cannot upload files when OOP
+      // bug 783878
+
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
       'Messages',
       // Crashes when launched OOP (bug 775997)
 
-      'Settings',
+      'Settings'
       // Bluetooth is not remoted yet (bug 755943)
-
-      'Video',
-      // No videos seem to be found when running OOP (i.e. no video
-      // list) (bug 782460)
-
-      'Image Uploader',
-      // Cannot upload files when OOP
-      // bug 783878
-
-      'Cost Control'
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {
@@ -479,18 +470,17 @@ var WindowManager = (function() {
         if (isRunning(origin)) {
           // If the app is in foreground, it's too risky to change it's
           // URL. We'll ignore this request.
-          if (displayedApp === origin)
-            return;
+          if (displayedApp !== origin) {
+            var frame = getAppFrame(origin);
 
-          var frame = getAppFrame(origin);
-
-          // If the app is opened and it is loaded to the correct page,
-          // then there is nothing to do.
-          if (frame.src !== e.detail.url) {
-            // Rewrite the URL of the app frame to the requested URL.
-            // XXX: We could ended opening URls not for the app frame
-            // in the app frame. But we don't care.
-            frame.src = e.detail.url;
+            // If the app is opened and it is loaded to the correct page,
+            // then there is nothing to do.
+            if (frame.src !== e.detail.url) {
+              // Rewrite the URL of the app frame to the requested URL.
+              // XXX: We could ended opening URls not for the app frame
+              // in the app frame. But we don't care.
+              frame.src = e.detail.url;
+            }
           }
         } else {
           // XXX: We could ended opening URls not for the app frame

@@ -149,6 +149,15 @@
       background: #000 url('./resources/images/initlogo.png') bottom right no-repeat;
 
       z-index: 65536;
+
+      visibility: visible;
+      opacity: 1;
+      transition: visibility 3s ease, opacity 3s ease;
+    }
+
+    #initlogo.hide {
+      visibility: hidden;
+      opacity: 0;
     }
 
     #initlogo > img {

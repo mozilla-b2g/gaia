@@ -8,7 +8,8 @@
   },
   "permissions": [
     "systemXHR",
-    "settings"
+    "settings",
+    "tcp-socket"
   ],
   "locales": {
     "ar": {
