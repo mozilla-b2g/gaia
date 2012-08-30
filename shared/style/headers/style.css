@@ -36,17 +36,6 @@ section[role="region"] > header:first-child h1 {
   height: 100%
 }
 
-section > header h1 span.favorite {
-  background: url(images/icons/fav-star.png) no-repeat center center;
-  background-size: 100% auto;
-  width: 1.2rem;
-  height: 1.2rem;
-  display: inline-block;
-  vertical-align: text-top;
-  text-indent: -9999px;
-  overflow: hidden;
-}
-
 section[role="region"] > header:first-child h1 em {
   font: bold 1.5rem/1em "Open Sans", Sans-serif;
 }
