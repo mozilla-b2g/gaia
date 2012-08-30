@@ -238,11 +238,44 @@ html, body {
   display: none;
 }
 
-#toggle-camera {
+#hud {
   position: absolute;
-  z-index: 100;
   bottom: 65px;
-  right: 20px;
+  height: 75px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+}
+
+#hud button {
+  position: absolute;
+  z-index: 60;
   height: 75px;
   width: 75px;
+  border: 0;
+  background: transparent;
+  background-position: center center;
+  background-repeat: no-repeat;
+  outline: none;
+}
+
+#toggle-camera {
+  right: 20px;
+}
+
+#toggle-flash {
+  left: 20px;
+}
+
+#toggle-flash[data-mode=on] {
+  background-image: url(images/flash_on.png);
+}
+#toggle-flash[data-mode=off] {
+  background-image: url(images/flash_off.png);
+}
+#toggle-flash[data-mode=auto] {
+  background-image: url(images/flash_auto.png);
+}
+#toggle-flash[data-mode=torch] {
+  background-image: url(images/flash_torch.png);
 }
