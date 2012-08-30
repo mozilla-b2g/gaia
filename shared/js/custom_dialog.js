@@ -1,3 +1,4 @@
+//XXX: Waiting for the window.showModalDialog support in B2G
 
 'use strict';
 

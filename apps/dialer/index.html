@@ -12,7 +12,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <script type="application/javascript" src="shared/js/l10n.js"></script>
-    <script defer type="application/javascript" src="shared/js/desktop.js"></script>
+    <script defer type="application/javascript" src="shared/js/custom_dialog.js"></script>
     <!-- Specific code -->
     <script defer type="application/javascript" src="js/helper.js"></script>
     <script defer type="application/javascript" src="js/contacts.js"></script>
@@ -24,7 +24,8 @@
     <script defer type="application/javascript" src="js/recents.js"></script>
     <script defer type="application/javascript" src="js/proximity.js"></script>
     <script defer type="application/javascript" src="js/ussd.js"></script>
-    <script defer type="application/javascript" src="js/custom_dialog.js"></script>
+    <!-- Shared code. We need to have 'recents_db.js' loaded before loading 'desktop'-->
+    <script defer type="application/javascript" src="shared/js/desktop.js"></script>
   </head>
   <body role="application" class="hidden">
     <article id="views" role="tablist">
@@ -198,7 +199,7 @@
             </li>
           </ul>
         </nav>
-        <article id="recents-container" onclick="Recents.click(event.target)" class="view-body">
+        <article id="recents-container" class="view-body">
         </article>
       </section>
     </article>

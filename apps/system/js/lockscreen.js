@@ -298,8 +298,7 @@ var LockScreen = {
     var dx = pageX - touch.initX;
 
     var handleMax = touch.maxHandleOffset;
-    this.areaHandle.style.MozTransition = 'none';
-    this.areaHandle.style.MozTransform =
+    this.areaHandle.style.transform =
       'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)';
 
     var railMax = touch.initRailLength;
@@ -345,7 +344,6 @@ var LockScreen = {
   handleGesture: function ls_handleGesture() {
     var touch = this._touch;
     var target = touch.target;
-    this.areaHandle.style.MozTransition = null;
 
     if (!target) {
       this.unloadPanel();
@@ -356,7 +354,7 @@ var LockScreen = {
       (this.areaHandle.offsetWidth - target.offsetWidth) / 2;
     this.areaHandle.classList.add('triggered');
 
-    var transition = 'translateX(' + distance + 'px)';
+    var transformDistance = 'translateX(' + distance + 'px)';
     var railLength = touch.rightTarget.offsetLeft -
       touch.leftTarget.offsetLeft -
       (this.areaHandle.offsetWidth + target.offsetWidth) / 2;
@@ -388,11 +386,11 @@ var LockScreen = {
         };
 
 
-        if (this.areaHandle.style.MozTransform == transition) {
+        if (this.areaHandle.style.transform == transformDistance) {
           panelOrFullApp();
           break;
         }
-        this.areaHandle.style.MozTransform = transition;
+        this.areaHandle.style.transform = transformDistance;
 
         this.areaHandle.addEventListener('transitionend', function goCamera() {
           self.areaHandle.removeEventListener('transitionend', goCamera);
@@ -412,11 +410,11 @@ var LockScreen = {
           }
         };
 
-        if (this.areaHandle.style.MozTransform == transition) {
+        if (this.areaHandle.style.transform == transformDistance) {
           passcodeOrUnlock();
           break;
         }
-        this.areaHandle.style.MozTransform = transition;
+        this.areaHandle.style.transform = transformDistance;
 
         this.areaHandle.addEventListener('transitionend', function goUnlock() {
           self.areaHandle.removeEventListener('transitionend', goUnlock);
@@ -487,6 +485,12 @@ var LockScreen = {
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('unlock');
       this.writeSetting(false);
+
+      if (instant)
+        return;
+
+      var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+      unlockAudio.play();
     }
   },
 
@@ -586,7 +590,7 @@ var LockScreen = {
       default:
         var self = this;
         var unload = function unload() {
-          self.areaHandle.style.MozTransform =
+          self.areaHandle.style.transform =
             self.areaUnlock.style.opacity =
             self.railRight.style.opacity =
             self.areaCamera.style.opacity =

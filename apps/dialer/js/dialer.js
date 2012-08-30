@@ -49,7 +49,7 @@ var CallHandler = {
     });
   },
 
-  startDial: function ch_startDial(number){
+  startDial: function ch_startDial(number) {
     if (this._isUSSD(number)) {
       UssdManager.send(number);
     } else {

@@ -6,10 +6,6 @@ const prefs = [];
 // XXX Remove all the permission parts here once bug 774716 is resolved
 
 let permissions = {
-  "power": {
-    "urls": [],
-    "pref": "dom.power.whitelist"
-  },
   "voicemail": {
     "urls": [],
     "pref": "dom.voicemail.whitelist"
@@ -17,15 +13,7 @@ let permissions = {
   "mozApps": {
     "urls": [],
     "pref": "dom.mozApps.whitelist"
-  },
-  "mozFM": {
-    "urls": [],
-    "pref": "dom.mozFMRadio.whitelist"
-  },
-  "systemXHR": {
-    "urls": [],
-    "pref": "dom.systemXHR.whitelist"
-  },
+  }
 };
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');

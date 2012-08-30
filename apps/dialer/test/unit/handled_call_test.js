@@ -26,6 +26,7 @@ suite('dialer/handled_call', function() {
   var realContacts;
   var realRecents;
   var realCallScreen;
+  var realL10n;
 
   suiteSetup(function() {
     realContacts = window.Contacts;
@@ -36,12 +37,20 @@ suite('dialer/handled_call', function() {
 
     realCallScreen = window.CallScreen;
     window.CallScreen = MockCallScreen;
+
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = {
+      get: function get(key) {
+        return key;
+      }
+    };
   });
 
   suiteTeardown(function() {
     window.Contacts = realContacts;
     window.RecentsDBManager = realRecents;
     window.CallScreen = realCallScreen;
+    navigator.mozL10n = realL10n;
   });
 
   setup(function() {
@@ -97,9 +106,17 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.node, fakeNode);
     });
 
-    test('duration', function() {
+    test('duration outgoing', function() {
       assert.ok(subject.durationNode);
-      assert.include(subject.durationNode.textContent, '…');
+      assert.equal(subject.durationNode.textContent, 'calling…');
+    });
+
+    test('duration incoming', function() {
+      mockCall = new MockCall('888', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      assert.ok(subject.durationNode);
+      assert.equal(subject.durationNode.textContent, 'incoming…');
     });
 
     test('direction', function() {

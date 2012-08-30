@@ -223,6 +223,7 @@ button::-moz-focus-inner {
 }
 
 .view-body h2 {
+  margin: 0;
   font-family: FontRegular;
   border-bottom: solid 1px #ff4e00;
   padding-left: 3rem;
@@ -288,6 +289,14 @@ button::-moz-focus-inner {
   pointer-events: none;
 }
 
+.log-item .call-log-contact-photo {
+  pointer-events: auto;
+}
+
+.recents-edit .call-log-contact-photo {
+  pointer-events: none;
+}
+
 .log-item.highlighted .icon-missed {
   background-image: url('images/CallLog_30x30_missed.png');
 }
@@ -322,13 +331,13 @@ button::-moz-focus-inner {
   font-family: FontRegular;
   font-size: -moz-calc(6 * 0.226rem);
   color: #5b5b5b;
-  white-space: pre-wrap;
 }
 
 .call-log-contact-photo {
   float: left;
   height: 100%;
   width: 5rem;
+  background-size: 100% 100%;
 }
 
 .call-log-contact-photo.knownContact {
@@ -397,7 +406,7 @@ button::-moz-focus-inner {
 }
 
 .recents-edit .view-body {
-  height: -moz-calc(100% - 9.5rem);
+  height: -moz-calc(100% - 10.5rem);
 }
 
 .recents-edit .options {

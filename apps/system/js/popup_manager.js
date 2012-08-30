@@ -30,13 +30,8 @@ var PopupManager = {
   _hideWait: function pm_hideWait() {
     this.loadingIcon.classList.remove('popup-loading');
   },
-
-  _openHelper: function pm_openHelper(evt) {
-    this.open(evt.detail.name, evt.detail.frameElement,
-              evt.target.dataset.frameOrigin, false);
-  },
-
-  open: function pm_open(name, frame, origin, trusted) {
+ 
+  open: function pm_open(evt, trusted) {
     // Only one popup at a time. If the popup is being shown, we swap frames.
     if (this._currentPopup) {
       this.container.removeChild(this._currentPopup);
@@ -49,12 +44,13 @@ var PopupManager = {
       WindowManager.setDisplayedApp(null);
     }
 
-    this._currentPopup = frame;
+    this._currentPopup = evt.detail.frameElement;
 
     var popup = this._currentPopup;
-    popup.dataset.frameType = 'popup';
-    popup.dataset.frameName = name;
-    popup.dataset.frameOrigin = origin;
+    var dataset = popup.dataset;
+    dataset.frameType = 'popup';
+    dataset.frameName = evt.detail.name;
+    dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
     this.container.appendChild(popup);
 
@@ -64,14 +60,11 @@ var PopupManager = {
     popup.addEventListener('mozbrowserloadstart', this);
   },
 
-  _closeHelper: function pm_closeHelper(evt) {
+  close: function pm_close(evt, callback) {
     if (evt && (!'frameType' in evt.target.dataset ||
         evt.target.dataset.frameType !== 'popup'))
       return;
-    this.close();
-  },
 
-  close: function pm_close(callback) {
     this.screen.classList.remove('popup');
 
     var self = this;
@@ -137,10 +130,11 @@ var PopupManager = {
         this.handleLoadEnd(evt);
         break;
       case 'mozbrowseropenwindow':
-        this._openHelper(evt);
+        this.open(evt.detail.name, evt.detail.frameElement,
+                  evt.target.dataset.frameOrigin, false);
         break;
       case 'mozbrowserclose':
-        this._closeHelper(evt);
+        this.close(evt);
         break;
       case 'home':
         this.backHandling(evt);
