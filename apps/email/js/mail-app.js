@@ -56,6 +56,10 @@ var App = {
             {
               folder: inboxFolder
             });
+          if (activityCallback) {
+            activityCallback();
+            activityCallback = null;
+          }
         };
       }
       // - no accounts, show the setup page!
@@ -144,6 +148,7 @@ var queryURI = function _queryURI(uri) {
 
 };
 
+var activityCallback = null;
 if ('mozSetMessageHandler' in window.navigator) {
   window.navigator.mozSetMessageHandler('activity',
                                         function actHandle(activity) {
@@ -178,10 +183,7 @@ if ('mozSetMessageHandler' in window.navigator) {
     if (document.readyState == 'complete') {
       sendMail();
     } else {
-      window.addEventListener('localized', function loadWait() {
-        window.removeEventListener('localized', loadWait);
-        sendMail();
-      });
+      activityCallback = sendMail;
     }
 
     activity.postResult({ status: 'accepted' });
