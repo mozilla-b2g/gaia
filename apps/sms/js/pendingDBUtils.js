@@ -33,8 +33,6 @@ var PendingMsgManager = {
       request.onsuccess = function(event) {
         msgManager.db = event.target.result;
         msgManager.dbReady = true;
-        console.log('INIT DONE');
-          
         if (msgCallback != undefined) {
           msgCallback();
         }
@@ -55,9 +53,6 @@ var PendingMsgManager = {
   },
 
   getMsgDB: function pm_getMsgDB(num, callback) {
-    if(!PendingMsgManager.db){
-      alert("JODIDO");
-    }
     var store = this.db.transaction('msgs').objectStore('msgs');
     store = store.index('receiver'); // receiver number.
     var boundKeyRange = num ? IDBKeyRange.only(num) : null;
@@ -66,7 +61,6 @@ var PendingMsgManager = {
     cursorRequest.onsuccess = function onsuccess() {
       var cursor = cursorRequest.result;
       if (!cursor) {
-        console.log("HE RECOGIDO "+msg.length);
         callback(msg);
         return;
       }
@@ -84,13 +78,9 @@ var PendingMsgManager = {
     var addRequest = store.add(msg);
     var pendingMgr = this;
     addRequest.onsuccess = function onsuccess() {
-        console.log("DALE UN SUCCESS");
-    
       callback(addRequest.result);
     }
     addRequest.onerror = function onerror() {
-        console.log("DALE UN FAIL");
-    
       // Execute save operation again if failed.
       window.setTimeout(
         pendingMgr.saveToMsgDB(msg, callback).bind(pendingMgr), 500);
