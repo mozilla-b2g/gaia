@@ -500,8 +500,8 @@ var Contacts = (function() {
       var birthdayTemplate = document.getElementById('birthday-template-#i#');
 
       var f = new navigator.mozL10n.DateTimeFormat();
-      var bdayFormat = _('birthdayDateFormat') || '%e %B';
-      var bdayString = f.localeFormat(contact.bday, bdayFormat);
+      var birthdayFormat = _('birthdayDateFormat') || '%e %B';
+      var birthdayString = f.localeFormat(contact.bday, birthdayFormat);
 
       var element = utils.templates.render(birthdayTemplate, {
         i: contact.id,
