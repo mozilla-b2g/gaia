@@ -8,7 +8,7 @@
 
 const kPaymentConfirmationScreen = '../payment.html';
 
-var Payment = (function() {
+var Payment = (function Payment() {
   var chromeEventId = null;
 
   window.addEventListener('mozChromeEvent', function onMozChromeEvent(e) {
@@ -85,7 +85,7 @@ var Payment = (function() {
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
         frame.src = e.detail.uri;
-        frame.addEventListener('mozbrowserloadstart', function(evt) {
+        frame.addEventListener('mozbrowserloadstart', function onLoadStart(evt) {
           // After creating the new frame containing the payment provider buy
           // flow, we send it back to chrome so the payment callbacks can be
           // injected.
