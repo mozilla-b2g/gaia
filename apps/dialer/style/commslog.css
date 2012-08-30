@@ -337,19 +337,15 @@ button::-moz-focus-inner {
   float: left;
   height: 100%;
   width: 5rem;
-  background-size: 100% 100%;
-}
-
-.call-log-contact-photo.knownContact {
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-}
-
-.call-log-contact-photo.unknownContact {
   background-image: url('images/icon_arrow.png');
   background-size: 1rem;
   background-position: 75% 75%;
+  background-repeat: no-repeat;
+}
+
+.log-item[data-is-Contact='true'] .call-log-contact-photo {
+  background-position: center;
+  background-size: cover;
   background-repeat: no-repeat;
 }
 
