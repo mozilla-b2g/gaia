@@ -1221,7 +1221,8 @@ var Contacts = (function() {
   };
 
   var onThumbMouseUp = function onThumbMouseUp(evt) {
-    if (!this.longPress || !currentContact || !currentContact.hasOwnProperty('photo') ||
+    if (!this.longPress || !currentContact ||
+       !currentContact.hasOwnProperty('photo') ||
        currentContact.photo == null ||
        currentContact.photo.length == 0) {
       pickImage();
