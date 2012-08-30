@@ -88,12 +88,12 @@ var RecentsDBManager = {
       callback();
     }
   },
-  delete: function rdbm_delete(callLogEntry, callback) {
+  delete: function rdbm_delete(date, callback) {
     var self = this;
     this._checkDBReady(function() {
       var txn = self.db.transaction(self._dbStore, 'readwrite');
       var store = txn.objectStore(self._dbStore);
-      var delRequest = store.delete(callLogEntry.date);
+      var delRequest = store.delete(date);
 
       delRequest.onsuccess = function de_onsuccess() {
         if (callback && callback instanceof Function) {
