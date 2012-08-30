@@ -25,6 +25,9 @@ var Payment = (function() {
         if (!requests)
           return;
 
+        // TODO: PopupManager only allows embeding iframe so far. Once we solve
+        //       https://github.com/mozilla-b2g/gaia/issues/4185 we should be
+        //       using an element different from an iframe.
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
@@ -99,7 +102,7 @@ var Payment = (function() {
         break;
 
       case 'close-payment-flow-dialog':
-        PopupManager.close(function dialogClosed() {
+        PopupManager.close(null, function dialogClosed() {
           var event = document.createEvent('customEvent');
           event.initCustomEvent('mozContentEvent', true, true,
                                 { id: chromeEventId });
