@@ -40,7 +40,7 @@ suite('views/month_child', function() {
   });
 
   setup(function(done) {
-    this.timeout(10000);
+    this.timeout(20000);
     testEl = document.createElement('div');
     testEl.id = 'test';
     document.body.appendChild(testEl);
