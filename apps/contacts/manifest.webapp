@@ -81,12 +81,6 @@
       },
       "disposition": "window",
       "returnValue": true
-    },
-    "importFB": {
-      "filters": {
-        "type": "facebook/friend"
-      },
-      "disposition": "window"
     }
   }
 }

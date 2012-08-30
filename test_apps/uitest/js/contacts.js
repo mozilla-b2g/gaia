@@ -45,10 +45,6 @@ var ContactsTest = {
                         document.getElementById('insert-social-contacts');
   },
 
-  get launchFB() {
-    delete this.launchFB;
-    return this.launchFB = document.getElementById('launch-FB');
-  },
 
   init: function ct_init() {
     this.loadButton.addEventListener('click', this.loadContacts.bind(this));
@@ -64,8 +60,6 @@ var ContactsTest = {
 
     this.insertSocialContacts.addEventListener('click',
                                         this.finsertSocialContacts.bind(this));
-
-    this.launchFB.addEventListener('click',this.flaunchFB.bind(this));
   },
 
   uninit: function ct_uninit() {
@@ -288,15 +282,6 @@ var ContactsTest = {
     cs.onerror = function(e, c) {
       self._error(c);
     }
-  },
-
-  flaunchFB: function ct_flaunchFB() {
-    var activity = new MozActivity({
-          name: 'importFB',
-          data: {
-            type: 'facebook/friend'
-          }
-    });
   }
 };
 
