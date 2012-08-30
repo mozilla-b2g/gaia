@@ -234,15 +234,13 @@ ifneq ($(DEBUG),1)
 					then \
 						if [[ "$$f" == */shared/style* ]] ;\
 						then \
-							bb_category=`echo "$$f" | cut -d'/' -f 4 | cut -d'"' -f1 | cut -d"'" -f1;`; \
-							bb_element=`echo "$$f" | cut -d'/' -f 5 | cut -d'"' -f1 | cut -d"'" -f1;`; \
+							dir_to_copy=`echo "$$f" | cut -d'/' -f 4 | cut -d'"' -f1 | cut -d"'" -f1;`; \
 						else \
-							bb_category=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1 | cut -d"'" -f1;`; \
-							bb_element=`echo "$$f" | cut -d'/' -f 4 | cut -d'"' -f1 | cut -d"'" -f1;`; \
+							dir_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1 | cut -d"'" -f1;`; \
 						fi; \
-						mkdir -p $$d/shared/style/$$bb_category ;\
-						cp -R shared/style/$$bb_category/$$bb_element $$d/shared/style/$$bb_category ;\
-						rm -f $$d/shared/style/$$bb_category/$$bb_element/*.html ;\
+						mkdir -p $$d/shared/style/$$dir_to_copy ;\
+						cp -R shared/style/$$dir_to_copy $$d/shared/style/ ;\
+						rm -f $$d/shared/style/$$dir_to_copy/*.html ;\
 					fi \
 				done; \
 				\
