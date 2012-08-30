@@ -13,6 +13,7 @@
     "webapps",
     "mobileconnection",
     "mozBluetooth",
+    "bluetooth",
     "telephony",
     "voicemail",
     "device-storage",
@@ -22,7 +23,8 @@
     "content-camera",
     "camera",
     "geolocation",
-    "wifi-manage"
+    "wifi-manage",
+    "wifi"
   ],
   "locales": {
     "ar": {
