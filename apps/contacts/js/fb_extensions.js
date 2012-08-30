@@ -35,7 +35,7 @@ if (typeof Contacts.extFb === 'undefined') {
           mozContact: originalFbContact
         });
 
-        req.onsuccess = function() {
+        req.onsuccess = function success() {
           linkProposal.hidden = true;
 
           contacts.List.refresh(contactId);
@@ -43,11 +43,11 @@ if (typeof Contacts.extFb === 'undefined') {
             contacts.List.remove(originalFbContact.id);
           }
           Contacts.navigation.home();
-         }
+        }
 
-         req.onerror = function() {
+        req.onerror = function() {
            window.console.error('FB: Error while linking contacts', req.error);
-         }
+        }
       }
 
       mozContReq.onerror = function() {
