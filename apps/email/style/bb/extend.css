@@ -1,3 +1,11 @@
+/* --------------------------------------
+ * Extend CSS for Gaia UI Building Blocks
+ * -------------------------------------- */
+
 .toggle {
   display: inline;
+}
+
+body[role="application"] li .aside.end {
+  right: 2rem;
 }

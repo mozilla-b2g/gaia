@@ -407,12 +407,8 @@
       <!-- Main settings menu, root of all (mail) settings -->
       <section class="card-settings-main card" role="region" data-theme="organic">
         <header class="tng-main-header" aria-level="1">
-<!--           <button class="tng-close-btn header-left-btn"
-                  data-l10n-id="settings-close">
-            <span class="icon icon-close"></span>
-          </button> -->
           <menu type="toolbar" class="tng-close-btn">
-            <button>done</button>
+            <button data-l10n-id="settings-done">Done</button>
           </menu>
           <h1 class="tng-main-header-label"
               data-l10n-id="settings-main-header">MaiL SettingS</h1>
@@ -422,15 +418,18 @@
             <p data-l10n-id="settings-account-section">AccountS</p>
           </header>
           <div class="tng-accounts-container"></div>
-          <a class="tng-account-add tng-item"
-             data-l10n-id="settings-account-add">AdD AccounT</a>
+            <li>
+              <a href="#" class="tng-account-add">
+                <dl><dt data-l10n-id="settings-account-add">AdD AccounT</dt></dl>
+              </a>
+            </li>
           <header class="tng-main-about-label" aria-level="2">
-            <p data-l10n-id="settings-about-section">AbouT</p>
+            <p data-l10n-id="settings-general-section">GeneraL SettingS</p>
           </header>
           <ul>
             <li>
-              <em class="aside end"></em>
-                <dl><dt>Check mail</dt></dl>
+              <em class="aside end">5 min</em>
+              <dl><dt data-l10n-id="settings-check-mail">ChecK MaiL</dt></dl>
             </li>
             <li>
               <em class="aside end">
@@ -439,7 +438,7 @@
                   <span></span>
                 </label>
               </em>
-              <dl><dt>Always show images</dt></dl>
+              <dl><dt data-l10n-id="settings-show-images">AlwayS ShoW ImageS</dt></dl>
             </li>
             <li>
               <em class="aside end">
@@ -448,7 +447,7 @@
                   <span></span>
                 </label>
               </em>
-              <dl><dt>Download attachments</dt></dl>
+              <dl><dt data-l10n-id="settings-download-attachments">DownloaD AttachmentS</dt></dl>
             </li>
             <li>
               <em class="aside end">
@@ -457,10 +456,10 @@
                   <span></span>
                 </label>
               </em>
-              <dl><dt>Notify me of new mail</dt></dl>
+              <dl><dt data-l10n-id="settings-notify-mail">NotifY ME OF NeW MaiL</dt></dl>
             </li>
           </ul>
-          <a class="tng-email-lib-version tng-inert-item tng-item">v1</a>
+          <a class="tng-email-lib-version collapsed">v1</a>
         </section>
       </section>
 
@@ -559,10 +558,12 @@
     </div>
     <!-- Widget nodes for the settings cards; styles use the tng prefix -->
     <div id="templ-tng">
-      <a class="tng-account-item tng-item">
-        <h4 class="tng-account-item-label"></h4>
+      <li class="tng-account-item">
+        <a href="#">
+          <dl><dt class="tng-account-item-label"></dt></dl>
+        </a>
         <!-- we may want to expose some other info in this row -->
-      </a>
+      </li>
 
       <ul class="tng-account-menu menu">
         <li class="tng-account-menu-delete menu-item"
