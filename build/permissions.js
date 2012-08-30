@@ -30,8 +30,6 @@ let webapps = getJSON(getFile(PROFILE_DIR, "webapps", "webapps.json"));
 Gaia.webapps.forEach(function (webapp) {
   let manifest = webapp.manifest;
   let rootURL = webapp.url;
-  if (!webapps[webapp.domain])
-    return;
   let appId = webapps[webapp.domain].localId;
 
   let principal = secMan.getAppCodebasePrincipal(Services.io.newURI(rootURL, null, null),

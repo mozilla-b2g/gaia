@@ -57,7 +57,7 @@ setService(function cc_setupCostControlService() {
       return new CustomEvent(
         'localsettingschanged',
         { detail: { key: key, value: value, oldValue: oldValue } }
-      )
+      );
     }
 
     // Call callback when the value for key is set
@@ -82,7 +82,7 @@ setService(function cc_setupCostControlService() {
       window.dispatchEvent(_newLocalSettingsChangeEvent(key, _option(key)));
     }
 
-    // If only key is provided, the method return the current value for the 
+    // If only key is provided, the method return the current value for the
     // key. If both key and value are provided, the method sets the key to
     // that value.
     function _option(key, value) {

@@ -3,7 +3,7 @@
 
 'use strict';
 
-// Settings view is in charge of display and allow user interaction to 
+// Settings view is in charge of display and allow user interaction to
 // changing the application customization.
 var VIEW_SETTINGS = 'settings-view';
 Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
