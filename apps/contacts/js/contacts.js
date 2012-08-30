@@ -142,7 +142,8 @@ var Contacts = (function() {
       deleteContactButton,
       favoriteMessage,
       cover,
-      thumb;
+      thumb,
+      thumbAction;
 
   var currentContact = {};
 
@@ -233,6 +234,9 @@ var Contacts = (function() {
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
     thumb = document.getElementById('thumbnail-photo');
+    thumbAction = document.getElementById('thumbnail-action');
+    thumbAction.addEventListener('mousedown', onThumbMouseDown);
+    thumbAction.addEventListener('mouseup', onThumbMouseUp);
     TAG_OPTIONS = {
       'phone-type' : [
         {value: _('mobile')},
@@ -357,8 +361,8 @@ var Contacts = (function() {
             // if more than one phone number
             var prompt1 = new ValueSelector(_('select_mobile'));
             var numbers = currentContact.tel;
-            for (var key in numbers) {
-              var number = numbers[key].value;
+            for (var index = 0; index < numbers.length; index++) {
+              var number = numbers[index].value;
               prompt1.addToList(number + '', function() {
                   prompt1.hide();
                   ActivityHandler.postPickSuccess(number);
@@ -549,9 +553,12 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
+    var photo = null;
     if (currentContact.photo && currentContact.photo.length > 0) {
-      updatePhoto(currentContact.photo[0], thumb);
+      photo = currentContact.photo[0];
     }
+    updatePhoto(photo, thumb);
+
     var default_type = TAG_OPTIONS['phone-type'][0].value;
     var telLength = getLength(currentContact.tel);
     for (var tel = 0; tel < telLength; tel++) {
@@ -645,8 +652,14 @@ var Contacts = (function() {
   };
 
   var updatePhoto = function updatePhoto(photo, dest) {
-    var photoURL = URL.createObjectURL(photo);
-    dest.style.backgroundImage = 'url(' + photoURL + ')';
+    var background = '';
+    if (photo != null) {
+      background = 'url(' + URL.createObjectURL(photo) + ')';
+      thumbAction.querySelector('p').classList.add('hide');
+    } else {
+      thumbAction.querySelector('p').classList.remove('hide');
+    }
+    dest.style.backgroundImage = background;
   };
 
   // Checks if an object fields are empty, by empty means
@@ -927,8 +940,11 @@ var Contacts = (function() {
       currentContact.adr = [];
       currentContact.note = [];
       currentContact.photo = [];
+      var readOnly = ['id', 'updated', 'published'];
       for (var field in myContact) {
-        currentContact[field] = myContact[field];
+        if (readOnly.indexOf(field) == -1) {
+          currentContact[field] = myContact[field];
+        }
       }
       contact = currentContact;
     } else {
@@ -1190,6 +1206,45 @@ var Contacts = (function() {
     activity.onerror = function error() {
       reopenApp();
     }
+  };
+
+  var onThumbMouseDown = function onThumbMouseDown(evt) {
+    var self = this;
+    this.longPress = false;
+    this._pickImageTimer = setTimeout(function(self) {
+      self.longPress = true;
+      if (currentContact && currentContact.photo &&
+        currentContact.photo.length > 0) {
+        removePhoto();
+      }
+    }, 500, this);
+  };
+
+  var onThumbMouseUp = function onThumbMouseUp(evt) {
+    if (!this.longPress || !currentContact ||
+       !currentContact.hasOwnProperty('photo') ||
+       currentContact.photo == null ||
+       currentContact.photo.length == 0) {
+      pickImage();
+    }
+
+    clearTimeout(this._pickImageTimer);
+  }
+
+  var removePhoto = function() {
+    var dismiss = {
+      title: _('cancel'),
+      callback: CustomDialog.hide
+    };
+    var remove = {
+      title: _('ok'),
+      callback: function() {
+        currentContact.photo = [];
+        updatePhoto(null, thumb);
+        CustomDialog.hide();
+      }
+    };
+    CustomDialog.show('', _('removePhotoConfirm'), dismiss, remove);
   }
 
   var updateContactPhoto = function updateContactPhoto(image) {

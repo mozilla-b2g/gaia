@@ -168,7 +168,7 @@ var MessageManager = {
     };
   },
 
-  send: function mm_send(number, text, callback) {
+  send: function mm_send(number, text, callback, errorHandler) {
     var settings = window.navigator.mozSettings,
         throwGeneralError;
 
@@ -218,7 +218,7 @@ var MessageManager = {
         };
 
         req.onerror = function onerror() {
-          callback(null);
+          errorHandler(number);
         };
       }
     } else {
@@ -416,50 +416,56 @@ var ThreadListUI = {
       WaitingScreen.show();
       this.delNumList = [];
       this.pendingDelList = [];
+      var filters = [];
       var inputs = ThreadListUI.selectedInputList;
       for (var i = 0; i < inputs.length; i++) {
         var filter = MessageManager.createFilter(inputs[i].value);
+        filters.push(filter);
+      }
+      var fillList = function fillList(filters, callback) {
+        var currentFilter = filters.pop();
         MessageManager.getMessages(function gotMessages(messages) {
           for (var j = 0; j < messages.length; j++) {
-            if (messages[j].delivery == 'sent' ||
-                messages[j].delivery == 'received') {
-              ThreadListUI.delNumList.push(parseFloat(messages[j].id));
-            } else {
+            if (messages[j].delivery == 'sending') {
               ThreadListUI.pendingDelList.push(messages[j]);
+            } else {
+              ThreadListUI.delNumList.push(parseFloat(messages[j].id));
             }
           }
-        }, filter);
-      }
-      // Now we have all the messages from the conversations on the lists
-      MessageManager.deleteMessages(ThreadListUI.delNumList,
-                                    function repaint() {
-        //TODO Change this functionality with Steve code
-        //TODO Steve will add delete pending in deleteMessages!
-        if (ThreadListUI.pendingDelList.length > 0) {
-          for (var i = 0; i < ThreadListUI.pendingDelList.length; i++) {
-            if (i == ThreadListUI.pendingDelList.length - 1) {
-              PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i],
-                function() {
+          if (filters.length > 0) {
+            fillList(filters, callback);
+          } else {
+            MessageManager.deleteMessages(ThreadListUI.delNumList,
+                                          function() {
+              if (ThreadListUI.pendingDelList.length > 0) {
+                for (var j = 0; j < ThreadListUI.pendingDelList.length; j++) {
+                  if (j == ThreadListUI.pendingDelList.length - 1) {
+                    PendingMsgManager.deleteFromMsgDB(
+                      ThreadListUI.pendingDelList[j], function() {
+                      MessageManager.getMessages(
+                        function recoverMessages(messages) {
+                          ThreadListUI.renderThreads(messages);
+                          WaitingScreen.hide();
+                          window.location.hash = '#thread-list';
+                      });
+                    });
+                  } else {
+                    PendingMsgManager.deleteFromMsgDB(
+                      ThreadListUI.pendingDelList[j]);
+                  }
+                }
+              } else {
                 MessageManager.getMessages(function recoverMessages(messages) {
                   ThreadListUI.renderThreads(messages);
                   WaitingScreen.hide();
                   window.location.hash = '#thread-list';
                 });
-              });
-            } else {
-              PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i]);
-            }
+              }
+            });
           }
-        } else {
-          MessageManager.getMessages(function recoverMessages(messages) {
-            ThreadListUI.renderThreads(messages);
-            WaitingScreen.hide();
-            window.location.hash = '#thread-list';
-          });
-        }
-      });
-    } else {
-      // do nothing
+        }, currentFilter);
+      };
+      fillList(filters, fillList);
     }
   },
 
@@ -824,12 +830,20 @@ var ThreadUI = {
     // Add 'gif' if necessary
     if (message.delivery == 'sending') {
       htmlStructure += '<span class="message-option">' +
-      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
+      '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
         ThreadUI.sendIcons.pending) + '" class="gif">' +
                         '</span>';
     }
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
+    if (message.error) {
+      messageDOM.addEventListener('click', function() {
+        var hash = window.location.hash;
+        if (hash != '#edit') {
+          ThreadUI.resendMessage(message);
+        }
+      });
+    }
     //Check if we need a new header
     var tmpIndex = Utils.getDayDate(timestamp);
     if (tmpIndex > ThreadUI.headerIndex) {
@@ -912,67 +926,66 @@ var ThreadUI = {
             }
           }
         }
-      });
-      // Now we have our lists filled, we start the deletion
-      MessageManager.deleteMessages(ThreadUI.delNumList, function() {
-        //TODO Change this functionality with Steve code
-        if (ThreadUI.pendingDelList.length > 0) {
-          for (var i = 0; i < ThreadUI.pendingDelList.length; i++) {
-            if (i == ThreadUI.pendingDelList.length - 1) {
-              // Once everything is removed
-              PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i],
-                function() {
-                  var filter = MessageManager.createFilter(
-                    MessageManager.currentNum);
-                  MessageManager.getMessages(function(messages) {
-                    if (messages.length > 0) {
-                      // If there are messages yet
-                      ThreadUI.renderMessages(messages);
-                      MessageManager.getMessages(ThreadListUI.renderThreads,
-                                                 null, null, function() {
-                        WaitingScreen.hide();
-                        window.history.back();
-                      });
-                    }else {
-                      // If there are no more messages (delete all)
-                      ThreadUI.view.innerHTML = '';
-                      MessageManager.getMessages(ThreadListUI.renderThreads,
-                                                 null, null, function() {
-                        var mainWrapper =
-                          document.getElementById('main-wrapper');
-                        WaitingScreen.hide();
-                        mainWrapper.classList.remove('edit');
-                        window.location.hash = '#thread-list';
-                      });
-                    }
-                },filter);
-              });
-            } else {
-              PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i]);
+        // Now we have our lists filled, we start the deletion
+        MessageManager.deleteMessages(ThreadUI.delNumList, function() {
+          if (ThreadUI.pendingDelList.length > 0) {
+            for (var i = 0; i < ThreadUI.pendingDelList.length; i++) {
+              if (i == ThreadUI.pendingDelList.length - 1) {
+                // Once everything is removed
+                PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i],
+                  function() {
+                    var filter = MessageManager.createFilter(
+                      MessageManager.currentNum);
+                    MessageManager.getMessages(function(messages) {
+                      if (messages.length > 0) {
+                        // If there are messages yet
+                        ThreadUI.renderMessages(messages);
+                        MessageManager.getMessages(ThreadListUI.renderThreads,
+                                                   null, null, function() {
+                          WaitingScreen.hide();
+                          window.history.back();
+                        });
+                      }else {
+                        // If there are no more messages (delete all)
+                        ThreadUI.view.innerHTML = '';
+                        MessageManager.getMessages(ThreadListUI.renderThreads,
+                                                   null, null, function() {
+                          var mainWrapper =
+                            document.getElementById('main-wrapper');
+                          WaitingScreen.hide();
+                          mainWrapper.classList.remove('edit');
+                          window.location.hash = '#thread-list';
+                        });
+                      }
+                  },filter);
+                });
+              } else {
+                PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i]);
+              }
             }
-          }
-        }else {
-          var filter = MessageManager.createFilter(MessageManager.currentNum);
-          MessageManager.getMessages(function recoverMessages(messages) {
-            if (messages.length > 0) {
-              ThreadUI.renderMessages(messages);
-              WaitingScreen.hide();
-              window.history.back();
-            }else {
-              ThreadUI.view.innerHTML = '';
-              MessageManager.getMessages(ThreadListUI.renderThreads,
-                                         null, null, function() {
-                var mainWrapper = document.getElementById('main-wrapper');
+          }else {
+            var filter = MessageManager.createFilter(MessageManager.currentNum);
+            MessageManager.getMessages(function recoverMessages(messages) {
+              if (messages.length > 0) {
+                ThreadUI.renderMessages(messages);
                 WaitingScreen.hide();
-                mainWrapper.classList.remove('edit');
-                window.location.hash = '#thread-list';
-              });
-            }
-          },filter);
-        }
+                window.history.back();
+              }else {
+                ThreadUI.view.innerHTML = '';
+                MessageManager.getMessages(ThreadListUI.renderThreads,
+                                           null, null, function() {
+                  var mainWrapper = document.getElementById('main-wrapper');
+                  WaitingScreen.hide();
+                  mainWrapper.classList.remove('edit');
+                  window.location.hash = '#thread-list';
+                });
+              }
+            },filter);
+          }
+        });
+
+
       });
-    } else {// response
-      // do nothing
     }
   },
 
@@ -1041,73 +1054,57 @@ var ThreadUI = {
         delivery: 'sending',
         body: text,
         read: 1,
-        timestamp: tempDate
+        timestamp: tempDate,
+        error: false
       };
       var self = this;
       // Save the message into pendind DB before send.
       PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-        if (!msg) {
-          // TODO: We need to handle the pending message save failed.
-          console.log('Message app - pending message save failed!');
-          PendingMsgManager.saveToMsgDB(message, this);
+        ThreadUI.cleanFields();
+        if (window.location.hash == '#new') {
+          window.location.hash = '#num=' + num;
         } else {
-          // Clean Fields
-          ThreadUI.cleanFields();
-          // Update ThreadListUI when new message in pending database.
-          if (window.location.hash == '#new') {
-            window.location.hash = '#num=' + num;
-          } else {
-            // Append to DOM
-            message.showAnimation = true;
-            ThreadUI.appendMessage(message, function() {
-              // Retrieve the last message added to DOM
-              var root = document.getElementById(message.timestamp.getTime());
-              // Create function for resending
-              var resendCallback = function() {
-                ThreadUI.resendMessage(message);
-              };
-              // Add temporaly until sending properly
-              root.addEventListener('click', resendCallback);
-              // Call to update headers
-              Utils.updateHeaders();
-              // Call to API through MessageManager
-              MessageManager.send(num, text, function onsent(msg) {
-                if (!msg) {
-                  self.resendMessage(message);
-                } else {
-                  if (root) {
-                    // We remove 'resend' action once it is sent properly
-                    root.removeEventListener('click', resendCallback);
-                    root.removeChild(root.childNodes[2]);
-                    var inputs =
-                      root.querySelectorAll('input[type="checkbox"]');
-                    if (inputs) {
-                      inputs[0].value = 'id_' + msg.id;
-                    }
-                  }
-                  // Remove the message from pending message DB since it
-                  // could be sent successfully.
-                  PendingMsgManager.deleteFromMsgDB(message,
-                    function ondelete(msg) {
-                      if (!msg) {
-                        //TODO: Handle message delete failed in pending DB.
-                      }
-                  });
-                }
-              });
-            });
-          }
-          MessageManager.getMessages(ThreadListUI.renderThreads);
+          // Append to DOM
+          ThreadUI.appendMessage(message, function() {
+             // Call to update headers
+            Utils.updateHeaders();
+          });
         }
-
+        MessageManager.send(num, text, function onsent(msg) {
+          var root = document.getElementById(message.timestamp.getTime());
+          if (root) {
+            root.removeChild(root.childNodes[2]);
+            var inputs = root.querySelectorAll('input[type="checkbox"]');
+            if (inputs) {
+              inputs[0].value = 'id_' + msg.id;
+            }
+          }
+          // Remove the message from pending message DB since it
+          // could be sent successfully.
+          PendingMsgManager.deleteFromMsgDB(message,
+            function ondelete(msg) {
+              if (!msg) {
+                //TODO: Handle message delete failed in pending DB.
+              }
+          });
+        }, function onerror() {
+          var root = document.getElementById(message.timestamp.getTime());
+          PendingMsgManager.deleteFromMsgDB(message,
+            function ondelete(msg) {
+              message.error = true;
+              PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+                var filter = MessageManager.createFilter(message.receiver);
+                MessageManager.getMessages(ThreadUI.renderMessages, filter);
+              });
+          });
+        });
+        MessageManager.getMessages(ThreadListUI.renderThreads);
       });
     }
+
   },
 
   resendMessage: function thui_resendMessage(message) {
-    if (window.location.hash == '#edit') {
-      return;
-    }
     var resendConfirmStr = _('resend-confirmation');
     var result = confirm(resendConfirmStr);
     if (result) {
@@ -1117,16 +1114,9 @@ var ThreadUI = {
         MessageManager.getMessages(function(messages) {
           ThreadUI.renderMessages(messages);
           MessageManager.getMessages(ThreadListUI.renderThreads);
+          ThreadUI.sendMessage(message.body);
         }, filter, true);
       });
-      window.setTimeout(ThreadUI.sendMessage.bind(ThreadUI, message.body), 500);
-    } else if (message.showAnimation) {
-      // TODO: We need to replace the timestamp with ID when message deletion
-      //       refine in the future.
-      var queryStr = 'div[id="' + message.timestamp.valueOf() + '"] img.gif';
-      var emt = ThreadUI.view.querySelector(queryStr);
-      emt.src = ThreadUI.sendIcons.pending;
-      message.showAnimation = false;
     }
   },
 
