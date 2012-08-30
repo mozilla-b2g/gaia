@@ -163,8 +163,14 @@ var WindowManager = (function() {
   // This event handler is triggered when the transition ends.
   // We're going to do two transitions, so it gets called twice.
   sprite.addEventListener('transitionend', function spriteTransition(e) {
+    var prop = e.propertyName;
     switch (sprite.className) {
       case 'opening':
+        // transitionend will be called twice since we touched two properties.
+        // Only responsive to the property that takes the longest to transit
+        if (prop !== 'transform')
+          return;
+
         openFrame.classList.add('active');
         windows.classList.add('active');
 
@@ -195,6 +201,11 @@ var WindowManager = (function() {
         break;
 
       case 'closed':
+        // transitionend will be called twice since we touched two properties.
+        // Only responsive to the property that takes the longest to transit
+        if (prop !== 'transform')
+          return;
+
         setTimeout(closeCallback);
         sprite.className = '';
 
