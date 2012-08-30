@@ -84,10 +84,13 @@ var PendingMsgManager = {
     var addRequest = store.add(msg);
     var pendingMgr = this;
     addRequest.onsuccess = function onsuccess() {
+        console.log("DALE UN SUCCESS");
+    
       callback(addRequest.result);
     }
     addRequest.onerror = function onerror() {
-      callback(null);
+        console.log("DALE UN FAIL");
+    
       // Execute save operation again if failed.
       window.setTimeout(
         pendingMgr.saveToMsgDB(msg, callback).bind(pendingMgr), 500);

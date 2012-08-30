@@ -168,7 +168,7 @@ var MessageManager = {
     };
   },
 
-  send: function mm_send(number, text, callback) {
+  send: function mm_send(number, text, callback, errorHandler) {
     var settings = window.navigator.mozSettings,
         throwGeneralError;
 
@@ -218,7 +218,7 @@ var MessageManager = {
         };
 
         req.onerror = function onerror() {
-          callback(null);
+          errorHandler(number);
         };
       }
     } else {
@@ -844,12 +844,20 @@ var ThreadUI = {
     // Add 'gif' if necessary
     if (message.delivery == 'sending') {
       htmlStructure += '<span class="message-option">' +
-      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
+      '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
         ThreadUI.sendIcons.pending) + '" class="gif">' +
                         '</span>';
+      // '<img src="' + ThreadUI.sendIcons.sending + '" class="gif">' +
+      //                   '</span>';
+
     }
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
+    if(message.error){
+      messageDOM.addEventListener('click',function() {
+        ThreadUI.resendMessage(message);
+      });
+    }
     //Check if we need a new header
     var tmpIndex = Utils.getDayDate(timestamp);
     if (tmpIndex > ThreadUI.headerIndex) {
@@ -1053,7 +1061,7 @@ var ThreadUI = {
     // Retrieve text
     var text = this.input.value || resendText;
     // If we have something to send
-    if (num != '' && text != '') {
+    if (num != '' && !isNaN(num) && text != '') {
       // Create 'PendingMessage'
       var tempDate = new Date();
       var message = {
@@ -1062,43 +1070,80 @@ var ThreadUI = {
         delivery: 'sending',
         body: text,
         read: 1,
-        timestamp: tempDate
+        timestamp: tempDate,
+        error: false
       };
       var self = this;
+      console.log("Estoy apuntico de enviar "+JSON.stringify(message));
       // Save the message into pendind DB before send.
       PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-        if (!msg) {
-          // TODO: We need to handle the pending message save failed.
-          console.log('Message app - pending message save failed!');
-          PendingMsgManager.saveToMsgDB(message, this);
-        } else {
+        console.log("Del tirón cabesa");
+      //     // TODO: We need to handle the pending message save failed.
+      //     console.log('Message app - pending message save failed!');
+      //     PendingMsgManager.saveToMsgDB(message, this);
+      //   } else {
           // Clean Fields
           ThreadUI.cleanFields();
+          // var resendCallback = function() {
+          //     ThreadUI.resendMessage(message);
+          //   };
           // Update ThreadListUI when new message in pending database.
           if (window.location.hash == '#new') {
             window.location.hash = '#num=' + num;
           } else {
             // Append to DOM
-            message.showAnimation = true;
+            // message.showAnimation = true;
             ThreadUI.appendMessage(message, function() {
-              // Retrieve the last message added to DOM
-              var root = document.getElementById(message.timestamp.getTime());
-              // Create function for resending
-              var resendCallback = function() {
-                ThreadUI.resendMessage(message);
-              };
-              // Add temporaly until sending properly
-              root.addEventListener('click', resendCallback);
+            //   // Retrieve the last message added to DOM
+            //   var root = document.getElementById(message.timestamp.getTime());
+            //   // Create function for resending
+            //   var resendCallback = function() {
+            //     ThreadUI.resendMessage(message);
+            //   };
+            //   // Add temporaly until sending properly
+            //   root.addEventListener('click', resendCallback);
               // Call to update headers
               Utils.updateHeaders();
-              // Call to API through MessageManager
-              MessageManager.send(num, text, function onsent(msg) {
-                if (!msg) {
-                  self.resendMessage(message);
-                } else {
+            //   // Call to API through MessageManager
+            //   MessageManager.send(num, text, function onsent(msg) {
+            //     alert("Enviado!");
+            //     // if (!msg) {
+            //     //   self.resendMessage(message);
+            //     // } else {
+            //     //   if (root) {
+            //     //     // We remove 'resend' action once it is sent properly
+            //     //     root.removeEventListener('click', resendCallback);
+            //     //     root.removeChild(root.childNodes[2]);
+            //     //     var inputs =
+            //     //       root.querySelectorAll('input[type="checkbox"]');
+            //     //     if (inputs) {
+            //     //       inputs[0].value = 'id_' + msg.id;
+            //     //     }
+            //     //   }
+            //     //   // Remove the message from pending message DB since it
+            //     //   // could be sent successfully.
+            //     //   PendingMsgManager.deleteFromMsgDB(message,
+            //     //     function ondelete(msg) {
+            //     //       if (!msg) {
+            //     //         //TODO: Handle message delete failed in pending DB.
+            //     //       }
+            //     //   });
+            //     // }
+            //   });
+            });
+          }
+
+            
+          MessageManager.send(num, text, function onsent(msg) {
+            var root = document.getElementById(message.timestamp.getTime());
+          
+                alert("Enviado!");
+            //     // if (!msg) {
+            //     //   self.resendMessage(message);
+            //     // } else {
                   if (root) {
-                    // We remove 'resend' action once it is sent properly
-                    root.removeEventListener('click', resendCallback);
+            //     //     // We remove 'resend' action once it is sent properly
+                    // root.removeEventListener('click', resendCallback);
                     root.removeChild(root.childNodes[2]);
                     var inputs =
                       root.querySelectorAll('input[type="checkbox"]');
@@ -1114,41 +1159,70 @@ var ThreadUI = {
                         //TODO: Handle message delete failed in pending DB.
                       }
                   });
-                }
-              });
-            });
-          }
-          MessageManager.getMessages(ThreadListUI.renderThreads);
-        }
+                // }
+          }, function onerror(){
+            alert('ERROR');
+            var root = document.getElementById(message.timestamp.getTime());
+            
+            //TODO Puedo eliminarlo de la BBDD y hacer que lo vuelva a guardar con un param tipo error
+            PendingMsgManager.deleteFromMsgDB(message,
+              function ondelete(msg) {
+                message.error = true;
+                PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+                  var filter = MessageManager.createFilter(message.receiver);
+        
+                  MessageManager.getMessages(ThreadUI.renderMessages,filter);
+                });
+            }); 
 
+
+          });
+
+
+
+          MessageManager.getMessages(ThreadListUI.renderThreads);
+      
       });
     }
+
   },
 
   resendMessage: function thui_resendMessage(message) {
-    if (window.location.hash == '#edit') {
-      return;
-    }
+
+    //TODO Se lo cargaria del tipo 'error' y lo añadiría como normal y haria el resto del flujo
+
+    console.log(JSON.stringify(message));
     var resendConfirmStr = _('resend-confirmation');
     var result = confirm(resendConfirmStr);
     if (result) {
-      // Remove the message from pending message DB before resend.
+      alert("A reenviar!");
+    //   // Remove the message from pending message DB before resend.
       PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
         var filter = MessageManager.createFilter(message.receiver);
         MessageManager.getMessages(function(messages) {
           ThreadUI.renderMessages(messages);
           MessageManager.getMessages(ThreadListUI.renderThreads);
+          ThreadUI.sendMessage(message.body);
         }, filter, true);
+        
+
+        
+    //     var filter = MessageManager.createFilter(message.receiver);
+    //     MessageManager.getMessages(function(messages) {
+    //       ThreadUI.renderMessages(messages);
+    //       MessageManager.getMessages(ThreadListUI.renderThreads);
+    //     }, filter, true);
       });
-      window.setTimeout(ThreadUI.sendMessage.bind(ThreadUI, message.body), 500);
-    } else if (message.showAnimation) {
-      // TODO: We need to replace the timestamp with ID when message deletion
-      //       refine in the future.
-      var queryStr = 'div[id="' + message.timestamp.valueOf() + '"] img.gif';
-      var emt = ThreadUI.view.querySelector(queryStr);
-      emt.src = ThreadUI.sendIcons.pending;
-      message.showAnimation = false;
-    }
+    //   window.setTimeout(ThreadUI.sendMessage.bind(ThreadUI, message.body), 500);
+    } 
+    // else if (message.showAnimation) {
+    //   // TODO: We need to replace the timestamp with ID when message deletion
+    //   //       refine in the future.
+    //   var queryStr = 'div[id="' + message.timestamp.valueOf() + '"] img.gif';
+    //   var emt = ThreadUI.view.querySelector(queryStr);
+    //   emt.src = ThreadUI.sendIcons.pending;
+    //   message.showAnimation = false;
+    // }
   },
 
   renderContactData: function thui_renderContactData(contact) {
