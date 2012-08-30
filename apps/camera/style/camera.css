@@ -186,3 +186,54 @@ html, body {
   border: 4px solid rgba(255, 0, 0, 0.3);
   display: block;
 }
+
+/*
+ * The overlay is where we display messages like Scanning, No Videos,
+ * No SD card and SD Card in Use along with instructions for resolving
+ * the issue.  The user can't interact with the app while the overlay
+ * is displayed.
+ */
+#overlay {
+  /* it takes up the whole screen */
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+
+  /* almost transparent gray */
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+/*
+ * The overlay content area holds the text of the overlay.
+ * It has borders and a less transparent background so that
+ * the overlay text shows up more clearly
+ */
+#overlay-content {
+  margin-top: 30%;
+  margin-left: 10%;
+  margin-right: 10%;
+  padding: 10%;
+  border: solid black 4px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  font-family: "Open Sans", sans-serif;
+  color: #fff;
+  -moz-user-select: none;
+}
+
+#overlay-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 26px;
+}
+
+#overlay-text {
+  font-size: 18px;
+}
+
+.hidden {
+  display: none;
+}
