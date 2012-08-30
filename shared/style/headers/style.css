@@ -43,12 +43,9 @@ section[role="region"] > header:first-child h1 em {
 section[role="region"] > header:first-child form {
   display: block;
   overflow: hidden;
+  position: relative;
   padding: 1.1rem;
   margin-left: 2.5rem;
-}
-
-section[role="region"] > header:first-child label {
-  position: relative; display: block;
 }
 
 section[role="region"] > header:first-child input[type=text] {
@@ -68,7 +65,7 @@ section[role="region"] > header:first-child form button[type="reset"] {
   text-indent: -9999px;
   overflow: hidden;
   position: absolute;
-  right: 0;
+  right: 1rem;
   top: 0;
   bottom: 0;
   width: 3rem;
