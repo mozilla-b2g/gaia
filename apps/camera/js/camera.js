@@ -6,6 +6,7 @@ var Camera = {
   _captureMode: null,
   // In secure mode the user cannot browse to the gallery
   _secureMode: window.parent !== window,
+  _currentOverlay: null,
 
   CAMERA: 'camera',
   VIDEO: 'video',
@@ -31,12 +32,28 @@ var Camera = {
   _orientationRule: null,
   _phoneOrientation: 0,
 
+  _storage: navigator.getDeviceStorage('pictures'),
+  _pictureSize: null,
+  _previewActive: false,
+
   _config: {
     fileFormat: 'jpeg',
     position: {
       latitude: 43.468005,
       longitude: -80.523399
     }
+  },
+
+  get overlayTitle() {
+    return document.getElementById('overlay-title');
+  },
+
+  get overlayText() {
+    return document.getElementById('overlay-text');
+  },
+
+  get overlay() {
+    return document.getElementById('overlay');
   },
 
   get viewfinder() {
@@ -198,6 +215,7 @@ var Camera = {
     var options = {camera: cameras[this._camera]};
 
     function gotPreviewScreen(stream) {
+      this._previewActive = true;
       viewfinder.src = stream;
       viewfinder.play();
     }
@@ -207,12 +225,15 @@ var Camera = {
       this._config.rotation = rotation;
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
+      this._pictureSize =
+        this._largestPictureSize(camera.capabilities.pictureSizes);
       camera.effect = camera.capabilities.effects[this._effect];
       var config = {
         height: height,
         width: width
       };
       camera.getPreviewStream(config, gotPreviewScreen.bind(this));
+      this.checkStorageSpace();
     }
     navigator.mozCameras.getCamera(options, gotCamera.bind(this));
   },
@@ -220,10 +241,10 @@ var Camera = {
   pause: function pause() {
     this.viewfinder.pause();
     this.viewfinder.src = null;
+    this._previewActive = false;
   },
 
   resume: function camera_resume() {
-    this.viewfinder.play();
     /*
       Stream lifetime management doesn't seem to be
       working propertly, so just stomp on everything
@@ -263,26 +284,20 @@ var Camera = {
   },
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
+    var self = this;
     this._manuallyFocused = false;
-
-    if (!navigator.getDeviceStorage) {
-      console.log('Device storage unavailable');
-      return;
-    }
-
     this._photosTaken.unshift(blob);
     this.showFilmStrip();
     this.hideFocusRing();
     this.restartPreview();
 
-    var storage = navigator.getDeviceStorage('pictures');
-    storage = storage[0] || storage; // Avoid API version skew
     var rightnow = new Date();
     var filename = 'img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
 
-    var addreq = storage.addNamed(blob, filename);
+    var addreq = this._storage.addNamed(blob, filename);
     addreq.onsuccess = function() {
       console.log("image saved as '" + filename + "'");
+      self.checkStorageSpace();
     };
 
     addreq.onerror = function() {
@@ -293,6 +308,24 @@ var Camera = {
 
   hideFocusRing: function camera_hideFocusRing() {
     this.focusRing.removeAttribute('data-state');
+  },
+
+  checkStorageSpace: function camera_checkStorageSpace() {
+    var MAX_IMAGE_SIZE = this._pictureSize.width * this._pictureSize.height
+      * 4 + 4096;
+    this._storage.stat().onsuccess = (function(e) {
+      if (e.target.result.freeBytes > MAX_IMAGE_SIZE) {
+        this.showOverlay(null);
+        if (!this._previewActive) {
+          this.resume();
+        }
+      } else {
+        this.showOverlay('nospace');
+        if (this._previewActive) {
+          this.pause();
+        }
+      }
+    }).bind(this);
   },
 
   takePictureAutoFocusDone: function camera_takePictureAutoFocusDone(success) {
@@ -325,6 +358,29 @@ var Camera = {
   // opposite direction
   layoutToPhoneOrientation: function camera_layoutToPhoneOrientation() {
     return 270 - this._phoneOrientation;
+  },
+
+  showOverlay: function camera_showOverlay(id) {
+    this._currentOverlay = id;
+
+    if (id === null) {
+      this.overlay.classList.add('hidden');
+      return;
+    }
+
+    this.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
+    this.overlayText.textContent = navigator.mozL10n.get(id + '-text');
+    this.overlay.classList.remove('hidden');
+  },
+
+  _largestPictureSize: function camera_largestPictureSize(pictureSizes) {
+    return pictureSizes.reduce(function(acc, size) {
+      if (size.width + size.height > acc.width + acc.height) {
+        return size;
+      } else {
+        return acc;
+      }
+    });
   }
 };
 
