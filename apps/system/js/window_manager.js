@@ -360,6 +360,9 @@ var WindowManager = (function() {
       'Camera',
       // Can't open camera HAL from content processes (bug 782456)
 
+      'Cost Control',
+      // ?????
+
       'E-Mail',
       // SSL/TLS support can only happen in the main process although
       // the TCP support without security will accidentally work OOP
@@ -369,23 +372,17 @@ var WindowManager = (function() {
       // - Repaints are being starved during panning (bug 761933)
       // - Homescreen needs to draw the system wallpaper itself (#3639)
 
+      'Image Uploader',
+      // Cannot upload files when OOP
+      // bug 783878
+
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
       'Messages',
       // Crashes when launched OOP (bug 775997)
 
-      'Settings',
+      'Settings'
       // Bluetooth is not remoted yet (bug 755943)
-
-      'Video',
-      // No videos seem to be found when running OOP (i.e. no video
-      // list) (bug 782460)
-
-      'Image Uploader',
-      // Cannot upload files when OOP
-      // bug 783878
-
-      'Cost Control'
     ];
 
     if (outOfProcessBlackList.indexOf(name) === -1) {
