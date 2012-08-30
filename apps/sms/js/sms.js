@@ -18,7 +18,6 @@ var MessageManager = {
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
     }
-    ThreadUI.editMode = false;
     window.addEventListener('hashchange', this);
     document.addEventListener('mozvisibilitychange', this);
   },
@@ -72,7 +71,6 @@ var MessageManager = {
             break;
           case '#thread-list':
             if (mainWrapper.classList.contains('edit')) {
-              ThreadUI.editMode = false;
               mainWrapper.classList.remove('edit');
             } else if (threadMessages.classList.contains('new')) {
               MessageManager.slide(function() {
@@ -85,7 +83,6 @@ var MessageManager = {
           case '#edit':
             ThreadListUI.cleanForm();
             ThreadUI.cleanForm();
-            ThreadUI.editMode = true;
             mainWrapper.classList.toggle('edit');
             break;
           default:
@@ -94,7 +91,6 @@ var MessageManager = {
               MessageManager.currentNum = num;
               if (mainWrapper.classList.contains('edit')) {
                 mainWrapper.classList.remove('edit');
-                ThreadUI.editMode = false;
               } else if (threadMessages.classList.contains('new')) {
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages, filter);
@@ -842,7 +838,8 @@ var ThreadUI = {
     messageDOM.innerHTML = htmlStructure;
     if (message.error) {
       messageDOM.addEventListener('click', function() {
-        if (!ThreadUI.editMode) {
+        var hash = window.location.hash;
+        if (hash != '#edit') {
           ThreadUI.resendMessage(message);
         }
       });
@@ -1048,7 +1045,7 @@ var ThreadUI = {
     // Retrieve text
     var text = this.input.value || resendText;
     // If we have something to send
-    if (num != '' && !isNaN(num) && text != '') {
+    if (num != '' && text != '') {
       // Create 'PendingMessage'
       var tempDate = new Date();
       var message = {
