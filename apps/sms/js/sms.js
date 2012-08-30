@@ -169,61 +169,14 @@ var MessageManager = {
   },
 
   send: function mm_send(number, text, callback, errorHandler) {
-    var settings = window.navigator.mozSettings,
-        throwGeneralError;
-
-    throwGeneralError = function() {
-      CustomDialog.show(
-        _('sendGeneralErrorTitle'),
-        _('sendGeneralErrorBody'),
-        {
-          title: _('sendGeneralErrorBtnOk'),
-          callback: function() {
-            CustomDialog.hide();
-          }
-        }
-      );
+    var req = navigator.mozSms.send(number, text);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
     };
 
-    if (settings) {
-      var req = settings.getLock().get('ril.radio.disabled');
-
-      req.addEventListener('success', function onsuccess() {
-        var status = req.result['ril.radio.disabled'];
-
-        if (!status) {
-          callbackSend();
-        } else {
-          CustomDialog.show(
-            _('sendFlightModeTitle'),
-            _('sendFlightModeBody'),
-            {
-              title: _('sendFlightModeBtnOk'),
-              callback: function() {
-                CustomDialog.hide();
-              }
-            }
-          );
-        }
-      });
-
-      req.addEventListener('error', function onerror() {
-        throwGeneralError();
-      });
-
-      var callbackSend = function() {
-        var req = navigator.mozSms.send(number, text);
-        req.onsuccess = function onsuccess() {
-          callback(req.result);
-        };
-
-        req.onerror = function onerror() {
-          errorHandler(number);
-        };
-      }
-    } else {
-      throwGeneralError();
-    }
+    req.onerror = function onerror() {
+      errorHandler(number);
+    };
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
