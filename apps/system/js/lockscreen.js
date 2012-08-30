@@ -485,6 +485,12 @@ var LockScreen = {
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('unlock');
       this.writeSetting(false);
+
+      if (instant)
+        return;
+
+      var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+      unlockAudio.play();
     }
   },
 

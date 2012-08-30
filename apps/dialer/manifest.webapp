@@ -15,6 +15,7 @@
     "webapps",
     "mobileconnection",
     "background",
+    "backgroundservice",
     "attention",
     "settings"
   ],

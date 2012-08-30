@@ -195,6 +195,119 @@ var WindowManager = (function() {
     }
   });
 
+  // On-disk database for window manager.
+  // It's only for app screenshots right now.
+  var database = null;
+
+  (function openDatabase() {
+    var DB_VERSION = 1;
+    var DB_NAME = 'window_manager';
+
+    var req = window.indexedDB.open(DB_NAME, DB_VERSION);
+    req.onerror = function() {
+      console.error('Window Manager: opening database failed.');
+    };
+    req.onupgradeneeded = function databaseUpgradeneeded() {
+      database = req.result;
+
+      if (database.objectStoreNames.contains('screenshots'))
+        database.deleteObjectStore('screenshots');
+
+      var store =
+        database.createObjectStore('screenshots', { keyPath: 'origin' });
+    };
+
+    req.onsuccess = function databaseSuccess() {
+      database = req.result;
+    };
+  })();
+
+  function getAppScreenshot(origin, callback) {
+    if (!callback)
+      return;
+
+    var app = runningApps[origin];
+
+    if (!app.launchTime) {
+      // The frame is just being append and app content is just being loaded,
+      // let's get the screenshot from the database instead.
+      if (!database) {
+        console.warn(
+          'Window Manager: Neither database nor app frame is ' +
+          'ready for getting screenshot.');
+
+        callback();
+        return;
+      }
+
+      var req = database.transaction('screenshots')
+                .objectStore('screenshots').get(origin);
+      req.onsuccess = function() {
+        if (!req.result) {
+          console.log('Window Manager: No screenshot in database. ' +
+             'This is expected from a fresh installed app.');
+          callback();
+
+          return;
+        }
+
+        callback(req.result.screenshot);
+      }
+      req.onerror = function(evt) {
+        console.warn('Window Manager: get screenshot from database failed.');
+        callback();
+      };
+
+      return;
+    }
+
+    var req = app.frame.getScreenshot();
+
+    req.onsuccess = function(evt) {
+      var result = evt.target.result;
+      callback(result);
+
+      // Save the screenshot to database
+      if (!database)
+        return;
+
+      var txn = database.transaction('screenshots', 'readwrite');
+      txn.onerror = function() {
+        console.warn(
+          'Window Manager: transaction error while trying to save screenshot.');
+      };
+      var store = txn.objectStore('screenshots');
+      var req = store.put({
+        origin: origin,
+        screenshot: result
+      });
+      req.onerror = function(evt) {
+        console.warn(
+          'Window Manager: put error while trying to save screenshot.');
+      };
+
+    };
+
+    req.onerror = function(evt) {
+      console.warn('Window Manager: getScreenshot failed.');
+      callback();
+    };
+  }
+
+  function deleteAppScreenshot(origin) {
+    var txn = database.transaction('screenshots');
+    var store = txn.objectStore('screenshots');
+
+    store.delete(origin);
+  }
+
+  function afterPaint(callback) {
+    window.addEventListener('MozAfterPaint', function afterPainted() {
+      window.removeEventListener('MozAfterPaint', afterPainted);
+      setTimeout(callback);
+    });
+  }
+
   // Perform an "open" animation for the app's iframe
   function openWindow(origin, callback) {
     var app = runningApps[origin];
@@ -212,7 +325,23 @@ var WindowManager = (function() {
       if (app.manifest.fullscreen)
         screenElement.classList.add('fullscreen-app');
 
-      sprite.className = 'open';
+      // Get the screenshot of the app and put it on the sprite
+      // before starting the transition
+      getAppScreenshot(origin, function(screenshot) {
+        if (!screenshot) {
+          sprite.style.background = '';
+          sprite.className = 'open';
+          return;
+        }
+
+        sprite.style.background = '#fff url(' + screenshot + ')';
+        // Make sure Gecko paint the sprite first
+        afterPaint(function() {
+
+          // Start the transition
+          sprite.className = 'open';
+        });
+      });
     }
   }
 
@@ -232,9 +361,18 @@ var WindowManager = (function() {
     closeFrame.blur();
     closeFrame.setVisible(false);
 
-    // And begin the transition
-    sprite.classList.remove('faded');
-    sprite.classList.add('close');
+    // Get the screenshot of the app and put it on the sprite
+    // before starting the transition
+    getAppScreenshot(origin, function(screenshot) {
+      sprite.style.backgroundImage = 'url(' + screenshot + ')';
+
+      // Make sure Gecko paint the sprite first
+      afterPaint(function() {
+        // Start the transition
+        sprite.classList.remove('faded');
+        sprite.classList.add('close');
+      });
+    });
   }
 
   // Switch to a different app
@@ -286,6 +424,8 @@ var WindowManager = (function() {
 
     // Record the time when app was launched,
     // need this to display apps in proper order on CardsView.
+    // We would also need this to determined the freshness of the frame
+    // for making screenshots.
     if (newApp)
       runningApps[newApp].launchTime = Date.now();
 
@@ -526,6 +666,8 @@ var WindowManager = (function() {
   // if the application is being uninstalled, we ensure it stop running here.
   window.addEventListener('applicationuninstall', function(e) {
     kill(e.detail.application.origin);
+
+    deleteAppScreenshot(e.detail.application.origin);
   });
 
   // Stop running the app with the specified origin
