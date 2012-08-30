@@ -136,13 +136,13 @@ if (typeof fb.oauthflow === 'undefined') {
         var redirect_uri = encodeURIComponent(params[OAUTH_REDIRECT] +
                                               '#state=' + state);
 
-        var scope = [ 'friends_about_me,friends_birthday,email,' ,
+        var scope = ['friends_about_me,friends_birthday,email,' ,
                       'friends_education_history, friends_work_history,' ,
                       'friends_status,friends_relationships,publish_stream'
         ].join('');
         var scopeParam = encodeURIComponent(scope);
 
-        var queryParams = [ 'client_id=' + params[APP_ID],
+        var queryParams = ['client_id=' + params[APP_ID],
                             'redirect_uri=' + redirect_uri,
                             'response_type=token',
                             window.location.hash.substring(1),
