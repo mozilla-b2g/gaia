@@ -64,7 +64,9 @@ var App = {
         Cards.assertNoCards();
         Cards.pushCard(
           'setup-pick-service', 'default', 'immediate',
-          {});
+          {
+            allowBack: false
+          });
       }
     };
   }
