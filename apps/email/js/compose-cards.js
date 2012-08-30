@@ -88,7 +88,7 @@ ComposeCard.prototype = {
     this.composer.cc = frobAddressNode(this.ccNode);
     this.composer.bcc = frobAddressNode(this.bccNode);
     this.composer.subject = this.subjectNode.value;
-    this.composer.body.text = this.bodyNode.value;
+    this.composer.body.text = this.textBodyNode.value;
     // The HTML representation cannot currently change in our UI, so no
     // need to save it.  However, what we send to the back-end is what gets
     // sent, so if you want to implement editing UI and change this here,
