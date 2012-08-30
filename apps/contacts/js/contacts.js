@@ -142,7 +142,8 @@ var Contacts = (function() {
       deleteContactButton,
       favoriteMessage,
       cover,
-      thumb;
+      thumb,
+      thumbAction;
 
   var currentContact = {};
 
@@ -233,7 +234,7 @@ var Contacts = (function() {
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
     thumb = document.getElementById('thumbnail-photo');
-    var thumbAction = document.getElementById('thumbnail-action');
+    thumbAction = document.getElementById('thumbnail-action');
     thumbAction.addEventListener('mousedown', onThumbMouseDown);
     thumbAction.addEventListener('mouseup', onThumbMouseUp);
     TAG_OPTIONS = {
@@ -552,9 +553,12 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
+    var photo = null;
     if (currentContact.photo && currentContact.photo.length > 0) {
-      updatePhoto(currentContact.photo[0], thumb);
+      photo = currentContact.photo[0];
     }
+    updatePhoto(photo, thumb);
+
     var default_type = TAG_OPTIONS['phone-type'][0].value;
     var telLength = getLength(currentContact.tel);
     for (var tel = 0; tel < telLength; tel++) {
@@ -653,6 +657,13 @@ var Contacts = (function() {
       background = 'url(' + URL.createObjectURL(photo) + ')';
     }
     dest.style.backgroundImage = background;
+
+    // Show/hide the ' + Add Photo' component if contact photo
+    if (photo != null) {
+      thumbAction.querySelector('p').classList.add('hide');
+    } else {
+      thumbAction.querySelector('p').classList.remove('hide');
+    }
   };
 
   // Checks if an object fields are empty, by empty means
@@ -1215,6 +1226,7 @@ var Contacts = (function() {
 
   var onThumbMouseUp = function onThumbMouseUp(evt) {
     if (!currentContact || !currentContact.hasOwnProperty('photo') ||
+       currentContact.photo == null ||
        currentContact.photo.length == 0) {
       pickImage();
     }
