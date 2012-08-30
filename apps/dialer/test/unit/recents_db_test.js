@@ -58,7 +58,7 @@ suite('dialer/recents_db', function() {
     });
 
     test('#delete_single', function(done) {
-      subject.delete(singleCall, function() {
+      subject.delete(singleCall.date, function() {
         subject.get(function(entries) {
           assert.length(entries, callList.length);
           entries.forEach(function(entry) {
