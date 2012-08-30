@@ -1,0 +1,118 @@
+/* ----------------------------------
+ * CHECKBOXES / RADIOS
+ * ---------------------------------- */
+label:not([for])  {
+  display: inline-block;
+  vertical-align: middle;
+  width: 5rem;
+  height: 5rem;
+  position: relative;
+}
+
+label:not([for]) > input {
+  margin: 0;
+  opacity: 0;
+  position:absolute;
+  top: 0;
+  left: 0;
+}
+
+label:not([for]) input + span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -1.1rem 0 0 -1.1rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  pointer-events: none;
+}
+
+label:not([for]) input[type="checkbox"] + span {
+  background: url(switches/images/check/default.png) no-repeat center top;
+}
+
+label:not([for]) input[type="radio"] + span {
+  background: url(switches/images/radio/default.png) no-repeat center top;
+}
+
+label:not([for]) > input:checked + span {
+  background-position: center bottom;
+}
+
+/* Negative */
+label:not([for]).negative input[type="checkbox"] + span {
+  background-image: url(switches/images/check/negative.png);
+}
+
+label:not([for]).negative input[type="radio"] + span {
+  background-image: url(switches/images/radio/negative.png);
+}
+
+/* ----------------------------------
+ * SWITCH
+ * ---------------------------------- */
+label.switch {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  z-index: 1;
+  width: 6rem;
+  height: 4rem;
+}
+
+label.switch input {
+  opacity: 0;
+}
+
+label.switch input[type="checkbox"] + span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -1.1rem 0 0 -2.7rem;
+  width: 5.4rem;
+  height: 2.2rem;
+  pointer-events: none;
+  border: solid 1px #c2c2c2;
+  border-radius: 5.4rem;
+  overflow: hidden;
+  background: url(switches/images/switch/handler.png) no-repeat -0.2rem center;
+  background-size: auto calc(100% + 2px);
+  transition: background 0.18s ease;
+}
+
+label.switch span:after,
+label.switch span:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 5.4rem;
+  z-index: -1;
+  transition: transform 0.2s ease;
+}
+
+label.switch span:before {
+  right: 100%;
+  background: #00c3ea url(switches/images/switch/icon.png) no-repeat 0.5rem center;
+  background-size: auto calc(100% - 2px);
+}
+
+label.switch span:after {
+  left: 100%;
+  background: #e6e6e6;
+  transform: translateX(-5.4rem);
+}
+
+/* state ON */
+label.switch input:checked + span {
+  border-color: #00acce;
+  background-position: 3.2rem center;
+}
+
+label.switch input:checked + span:before {
+  transform: translateX(5.4rem);
+}
+
+label.switch input:checked + span:after {
+  transform: translateX(0);
+}
