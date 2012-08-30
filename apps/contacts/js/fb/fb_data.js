@@ -108,8 +108,8 @@ if (!window.fb.contacts) {
           req.onsuccess = function(e) {
             var data = e.target.result;
             var out = {};
-            data.forEach(function(c) {
-              out[c.uid] = c;
+            data.forEach(function(contact) {
+              out[contact.uid] = contact;
             });
             retRequest.done(out);
           };
@@ -117,7 +117,7 @@ if (!window.fb.contacts) {
           req.onerror = function(e) {
             retRequest.failed(e.target.error);
           }
-         });
+        }, 0);
 
         return retRequest;
       }
