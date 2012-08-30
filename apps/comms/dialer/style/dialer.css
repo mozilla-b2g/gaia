@@ -146,4 +146,5 @@ body.hidden *[data-l10n-id] {
   position: fixed;
   top: 0;
   left: 0;
+  height: -moz-calc(100% - 4rem);
 }
