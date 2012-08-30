@@ -608,8 +608,11 @@ var WindowManager = (function() {
       for (var ep in entryPoints) {
         var currentEp = entryPoints[ep];
         var path = givenPath;
-        if (path.indexOf('html') == -1)
+        if (path.indexOf('html') == -1) {
           path += currentEp.launch_path;
+        } else if(path.indexOf('?') != -1) {
+          path = path.substr(0, path.indexOf('?'));
+        }
 
         //Remove the origin and / to find if if the url is the entry point
         if (path.indexOf(ep) == 0 &&
