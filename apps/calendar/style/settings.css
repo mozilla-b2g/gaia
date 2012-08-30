@@ -28,6 +28,9 @@ body[role="app"] #wrapper {
   font-size: 1.6rem;
 }
 
+body[data-path^="/settings/"] #settings {
+  z-index: 4;
+}
 
 #settings header h1 {
   width: -moz-calc(100% - 30px);

@@ -116,7 +116,7 @@ Calendar.ns('Views').Month = (function() {
 
     _onpan: function month_onPan(event) {
       var offset = this.currentMonthOffset - event.detail.absolute.dx;
-      this.container.style.MozTransform = 'translate(-' + offset + 'px)';
+      this.container.style.transform = 'translate(-' + offset + 'px)';
     },
 
     _ontap: function(event) {
@@ -287,7 +287,7 @@ Calendar.ns('Views').Month = (function() {
     },
 
     centerOnCurrent: function month_centerOnCurrent() {
-      this.container.style.MozTransform =
+      this.container.style.transform =
         'translateX(-' + this.currentMonthOffset + 'px)';
     },
 
