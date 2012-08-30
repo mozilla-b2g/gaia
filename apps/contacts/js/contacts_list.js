@@ -122,7 +122,7 @@ contacts.List = (function() {
       var marks = buildSocialMarks(contact.category);
       if (marks.length > 0) {
         if (!contact.org || contact.org.length === 0
-                                  || contact.org[0].length === 0) {
+            || contact.org[0].length === 0) {
           marks[0].classList.add('notorg');
         }
         marks.forEach(function(mark) {
@@ -260,10 +260,10 @@ contacts.List = (function() {
           }
 
           freq.onerror = function() {
-            addToFavoriteList(fcontactToRender);
+            addToFavoriteList(contactToRender);
           }
         } else {
-              addToFavoriteList(contactToRender);
+                  addToFavoriteList(contactToRender);
         }
       }
     }
