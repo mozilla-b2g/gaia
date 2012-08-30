@@ -53,10 +53,10 @@ setService(function cc_setupCostControlService() {
 
     var _listeners = {};
 
-    function _newLocalSettingsChangeEvent(key, value) {
+    function _newLocalSettingsChangeEvent(key, value, oldValue) {
       return new CustomEvent(
         'localsettingschanged',
-        { detail: { key: key, value: value } }
+        { detail: { key: key, value: value, oldValue: oldValue } }
       )
     }
 
@@ -86,12 +86,13 @@ setService(function cc_setupCostControlService() {
     // key. If both key and value are provided, the method sets the key to
     // that value.
     function _option(key, value) {
+      var oldValue = window.localStorage.getItem(key);
       if (typeof value === 'undefined')
-        return window.localStorage.getItem(key);
+        return oldValue;
 
       debug('Setting ' + key + ' to ' + value);
       window.localStorage.setItem(key, value);
-      window.dispatchEvent(_newLocalSettingsChangeEvent(key, value));
+      window.dispatchEvent(_newLocalSettingsChangeEvent(key, value, oldValue));
     }
 
     return {

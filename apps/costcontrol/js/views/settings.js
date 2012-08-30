@@ -10,6 +10,8 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
 
   var DIALOG_PLAN_SETUP = 'plantype-setup-dialog';
 
+  var _planTypeHasChanged = false;
+
   function _configurePlanTypeSetup() {
     // Get the widget
     var planSetup = document.getElementById('settings-view-plantype-setup');
@@ -22,9 +24,10 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     // Configure an observer to detect when the plantype setting change
     CostControl.settings.observe(
       'plantype',
-      function ccapp_onPlanTypeChange(value) {
+      function ccapp_onPlanTypeChange(value, oldValue) {
+        _planTypeHasChanged = (value !== oldValue);
+        chooseView(value);
         _updateUI();
-        // TODO: Shutdown credit, show telephony
       }
     );
 
@@ -41,6 +44,30 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
   // Configure each settings' control and paint the interface
   function _init() {
     _configurePlanTypeSetup();
+    // To close settings
+
+    var closeSettings = document.getElementById('close-settings');
+    closeSettings.addEventListener('click', function cc_closeSettings() {
+
+      // If plan has changed and we are not hiding data usage
+      // show the proper view
+      if (_planTypeHasChanged &&
+          appVManager.getCurrentView() !== TAB_DATA_USAGE) {
+
+        if (CostControl.settings.option('plantype') === 'prepaid') {
+          appVManager.changeViewTo(TAB_BALANCE);
+        } else {
+          appVManager.changeViewTo(TAB_TELEPHONY);
+        }
+
+        _planTypeHasChanged = false;
+
+      // If not, just close the current view
+      } else {
+        appVManager.closeCurrentView();
+      }
+    });
+
     _updateUI();
   }
 

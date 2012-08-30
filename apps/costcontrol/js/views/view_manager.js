@@ -83,8 +83,14 @@ var ViewManager = function ViewManager() {
     return _currentView && _currentView.id === view;
   }
 
+  // Return the current view id or null if not current view
+  function _getCurrentView() {
+    return _currentView ? _currentView.id : null;
+  }
+
   this.tabs = _tabs;
   this.changeViewTo = _changeViewTo;
   this.closeCurrentView = _closeCurrentView;
   this.isCurrentView = _isCurrentView;
+  this.getCurrentView = _getCurrentView;
 };

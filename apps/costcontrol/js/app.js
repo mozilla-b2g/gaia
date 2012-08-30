@@ -85,9 +85,23 @@ function setupApp() {
         Views[viewid].updateUI();
     });
 
-    // TODO: Add deccission depending on prepaid / postpaid
-    appVManager.changeViewTo(TAB_BALANCE);
+    if (CostControl.settings.option('plantype') === 'prepaid') {
+      appVManager.changeViewTo(TAB_BALANCE);
+    } else {
+      appVManager.changeViewTo(TAB_TELEPHONY);
+    }
   }
 
   _init();
+}
+
+// Selects balance view or telephony depending on plantype
+// Actually only shows / hides the filter
+function chooseView(plantype) {
+  var balance = (plantype !== 'prepaid') ? true : false;
+  var telephony = !balance;
+  document.getElementById('balance-tab-filter')
+    .setAttribute('aria-hidden', balance);
+  document.getElementById('telephony-tab-filter')
+    .setAttribute('aria-hidden', telephony);
 }
