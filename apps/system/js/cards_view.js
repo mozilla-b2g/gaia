@@ -173,7 +173,7 @@ var CardsView = (function() {
         }
       }.bind(card);
 
-      card.dataset['origin'] = origin;
+      card.dataset.origin = origin;
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
@@ -203,7 +203,7 @@ var CardsView = (function() {
     // Close utility tray if it is opened.
     UtilityTray.hide(true);
 
-    WindowManager.launch(this.dataset['origin']);
+    WindowManager.launch(this.dataset.origin);
   }
 
   function hideCardSwitcher() {
@@ -365,11 +365,11 @@ var CardsView = (function() {
 
         // remove the app also from the ordering list
         if (
-          userSortedApps.indexOf(element.dataset['origin']) !== -1 &&
+          userSortedApps.indexOf(element.dataset.origin) !== -1 &&
           USER_DEFINED_ORDERING
         ) {
           userSortedApps.splice(
-            userSortedApps.indexOf(element.dataset['origin']),
+            userSortedApps.indexOf(element.dataset.origin),
             1
           );
         }
@@ -386,7 +386,7 @@ var CardsView = (function() {
         // If the app is the currently displayed one,
         // this will also switch back to the homescreen
         // (though the task switcher will still be displayed over it)
-        WindowManager.kill(element.dataset['origin']);
+        WindowManager.kill(element.dataset.origin);
 
         // if there are no more running apps, then dismiss
         // the task switcher
@@ -424,11 +424,11 @@ var CardsView = (function() {
 
       // remove the app origin from ordering array
       userSortedApps.splice(
-        userSortedApps.indexOf(element.dataset['origin']),
+        userSortedApps.indexOf(element.dataset.origin),
         1
       );
       // and put in on the new position
-      userSortedApps.splice(currentDisplayed, 0, element.dataset['origin']);
+      userSortedApps.splice(currentDisplayed, 0, element.dataset.origin);
     }
   }
 
