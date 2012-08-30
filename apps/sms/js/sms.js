@@ -743,20 +743,28 @@ var ThreadUI = {
     var self = this;
     self.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
-      var carrier = document.getElementById('contact-carrier');
+      //TODO what if return multiple contacts?
+      var carrierTag = document.getElementById('contact-carrier');
       if (contact.length > 0) { // we have a contact
-        if (contact[0].name && contact[0].name != '') { // contact with name
-          self.title.innerHTML = contact[0].name;
-          carrier.innerHTML =
-                  contact[0].tel[0].type + ' | ' +
-                  (contact[0].tel[0].carrier || _('carrier-unknown'));
+        var name = contact[0].name,
+            phone = contact[0].tel[0];
+        // Check which of the contacts phone we are using
+        for (var i = 0; i < contact[0].tel.length; i++) {
+          if (contact[0].tel[i].value == number){
+            phone = contact[0].tel[i];
+          }
+        }
+        if (name && name != '') { // contact with name
+          self.title.innerHTML = name;
+          carrierTag.innerHTML =
+                  phone.type + ' | ' +
+                  (phone.carrier || _('carrier-unknown'));
     // TODO check if contact has different numbers with same type and carrier
         } else { // no name of contact
-          carrier.innerHTML =
-                  contact[0].tel[0].type;
+          carrierTag.innerHTML = phone.type;
         }
       } else { // we don't have a contact
-        carrier.style.display = 'none';
+        carrierTag.style.display = 'none';
       }
     });
   },
