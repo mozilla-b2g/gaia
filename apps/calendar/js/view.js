@@ -44,6 +44,15 @@
       return this._findElement('element');
     },
 
+    calendarId: function(input) {
+      if (typeof(input) !== 'string') {
+        input = input.calendarId;
+      }
+
+      input = this.cssClean(input);
+      return 'calendar-id-' + input;
+    },
+
     /**
      * Clean a string for use with css.
      * Converts illegal chars to legal ones.
