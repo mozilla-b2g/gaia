@@ -655,15 +655,11 @@ var Contacts = (function() {
     var background = '';
     if (photo != null) {
       background = 'url(' + URL.createObjectURL(photo) + ')';
-    }
-    dest.style.backgroundImage = background;
-
-    // Show/hide the ' + Add Photo' component if contact photo
-    if (photo != null) {
       thumbAction.querySelector('p').classList.add('hide');
     } else {
       thumbAction.querySelector('p').classList.remove('hide');
     }
+    dest.style.backgroundImage = background;
   };
 
   // Checks if an object fields are empty, by empty means
