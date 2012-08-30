@@ -750,7 +750,7 @@ var ThreadUI = {
             phone = contact[0].tel[0];
         // Check which of the contacts phone we are using
         for (var i = 0; i < contact[0].tel.length; i++) {
-          if (contact[0].tel[i].value == number){
+          if (contact[0].tel[i].value == number) {
             phone = contact[0].tel[i];
           }
         }
