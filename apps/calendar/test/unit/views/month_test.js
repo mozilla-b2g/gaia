@@ -207,7 +207,7 @@ suite('views/month', function() {
          subject.children[idPrev].element.id
        );
      });
-     
+
      test('should append next month into dom', function() {
         var el = subject.container.children[2];
 
@@ -218,7 +218,7 @@ suite('views/month', function() {
           subject.children[idNext].element.id
         );
       });
-      
+
     test('when trying to re-render an existing calendar', function() {
       subject.activateMonth(date);
       var els = subject.container.children;
@@ -261,7 +261,7 @@ suite('views/month', function() {
       date = new Date(2012, 8, 1);
       controller.move(date);
       subject.activateMonth(date);
-      
+
       childId = Object.keys(subject.children)[0];
       child2Id = Object.keys(subject.children)[1];
       child3Id = Object.keys(subject.children)[2];
@@ -273,10 +273,10 @@ suite('views/month', function() {
           child3 = subject.children[child3Id];
       assert.ok(child);
       assert.ok(child.element);
-      
+
       assert.ok(child2);
       assert.ok(child2.element);
-      
+
       assert.ok(child3);
       assert.ok(child3.element);
 
@@ -287,7 +287,7 @@ suite('views/month', function() {
       assert.ok(!child.element);
       assert.ok(!child2.element);
       assert.ok(!child3.element);
-      
+
       assert.deepEqual(subject.children, {});
     });
 
