@@ -193,6 +193,8 @@ ifneq ($(DEBUG),1)
 				dirname=$$n.$(GAIA_DOMAIN); \
 				mkdir -p profile/webapps/$$dirname; \
 				cdir=`pwd`; \
+				\
+				`# include shared JS scripts`; \
 				for f in `grep -r shared/js $$d` ;\
 				do \
 					if [[ "$$f" == *shared/js* ]] ;\
@@ -207,6 +209,8 @@ ifneq ($(DEBUG),1)
 						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
 					fi \
 				done; \
+				\
+				`# include shared l10n resources`; \
 				for f in `grep -r shared/locales $$d` ;\
 				do \
 					if [[ "$$f" == *shared/locales* ]] ;\
@@ -222,6 +226,26 @@ ifneq ($(DEBUG),1)
 						cp shared/locales/$$locale_name/* $$d/shared/locales/$$locale_name ;\
 					fi \
 				done; \
+				\
+				`# include shared building blocks`; \
+				for f in `grep -r shared/style $$d` ;\
+				do \
+					if [[ "$$f" == *shared/style* ]] ;\
+					then \
+						if [[ "$$f" == */shared/style* ]] ;\
+						then \
+							style_name=`echo "$$f" | cut -d'/' -f 4 | cut -d'.' -f1`; \
+						else \
+							style_name=`echo "$$f" | cut -d'/' -f 3 | cut -d'.' -f1`; \
+						fi; \
+						mkdir -p $$d/shared/style/$$style_name ;\
+						cp shared/style/$$style_name.css $$d/shared/style/ ;\
+						cp -R shared/style/$$style_name $$d/shared/style/ ;\
+						rm -f $$d/shared/style/$$style_name/*.html ;\
+					fi \
+				done; \
+				\
+				`# zip application` \
 				cd $$d; \
 				zip -r application.zip *; \
 				cd $$cdir; \
@@ -388,6 +412,8 @@ update-common: common-install
 	rm -f $(TEST_COMMON)/vendor/marionette-client/*.js
 	rm -f $(TEST_COMMON)/vendor/chai/*.js
 	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
+	rm -R tools/xpcwindow/vendor/
+
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js $(TEST_COMMON)/vendor/marionette-client/
@@ -475,7 +501,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext,keyboard/js/predictive_text'
+	@gjslint --nojsdoc -r apps -e 'pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
 	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia
@@ -599,3 +625,4 @@ purge:
 # clean out build products
 clean:
 	rm -rf profile xulrunner-sdk
+

@@ -166,7 +166,7 @@ function cancelSeekAndSetFreq(frequency) {
 }
 
 var frequencyDialer = {
-  unit: 1,
+  unit: 2,
   _bandUpperBound: 0,
   _bandLowerBound: 0,
   _minFrequency: 0,
@@ -228,7 +228,11 @@ var frequencyDialer = {
       var dialer = $('frequency-dialer');
       var translateX = self._translateX + getMovingSpace();
       self._translateX = translateX;
-      dialer.style.MozTransform = 'translate(' + translateX + 'px, 0)';
+      var count = dialer.childNodes.length;
+      for (var i = 0; i < count; i++) {
+        var child = dialer.childNodes[i];
+        child.style.MozTransform = 'translateX(' + translateX + 'px)';
+      }
 
       tunedFrequency = _calcTargetFrequency();
       var roundedFrequency = Math.round(tunedFrequency * 10) / 10;
@@ -297,15 +301,18 @@ var frequencyDialer = {
     }
 
     // cache the size of dialer
-    this._dialerUnits = $$('#frequency-dialer .dialer-unit');
-    this._dialerWidth = this._dialerUnits[0].clientWidth *
-                                     this._dialerUnits.length;
+    var _dialerUnits = $$('#frequency-dialer .dialer-unit');
+    var _dialerUnitWidth = _dialerUnits[0].clientWidth;
+    this._dialerWidth = _dialerUnitWidth * _dialerUnits.length;
     this._space = this._dialerWidth /
                     (this._maxFrequency - this._minFrequency);
+
+    for (var i = 0; i < _dialerUnits.length; i++) {
+      _dialerUnits[i].style.left = i * _dialerUnitWidth + 'px';
+    }
   },
 
   _addDialerUnit: function(start, end) {
-    var showFloor = start % this.unit == 0;
     var markStart = start - start % this.unit;
     var html = '';
 
@@ -316,21 +323,28 @@ var frequencyDialer = {
       var dialValue = markStart + i * 0.1;
       if (dialValue < start || dialValue > end) {
         html += '    <div class="dialer-mark hidden-block"></div>';
-      } else if (i == 5) {
+      } else if ((i % 10) == 5) {
         html += '    <div class="dialer-mark dialer-mark-middle"></div>';
       } else {
         html += '    <div class="dialer-mark ' +
-                            (0 == i ? 'dialer-mark-long' : '') + '"></div>';
+                  (0 == (i % 10) ? 'dialer-mark-long' : '') + '"></div>';
       }
     }
 
     html += '    </div>';
 
-    if (showFloor) {
-      html += '<div class="dialer-unit-floor">' + start + '</div>';
-    } else {
-      html += '  <div class="dialer-unit-floor hidden-block">' +
-                        start + '</div>';
+    var width = 'width: ' + (100 / this.unit) + '%';
+    // Show the frequencies on dialer
+    for (var j = 0; j < this.unit; j++) {
+      var frequency = Math.floor(markStart) + j;
+      var showFloor = frequency >= start && frequency <= end;
+      if (showFloor) {
+        html += '<div class="dialer-unit-floor" style="' + width + '">' +
+          frequency + '</div>';
+      } else {
+        html += '  <div class="dialer-unit-floor hidden-block" style="' +
+          width + '">' + frequency + '</div>';
+      }
     }
 
     html += '  </div>';
@@ -344,8 +358,12 @@ var frequencyDialer = {
     $('frequency').textContent = parseFloat(frequency.toFixed(1));
     if (true !== ignoreDialer) {
       this._translateX = (this._minFrequency - frequency) * this._space;
-      $('frequency-dialer').style.MozTransform =
-        'translate(' + this._translateX + 'px, 0)';
+      var dialer = $('frequency-dialer');
+      var count = dialer.childNodes.length;
+      for (var i = 0; i < count; i++) {
+        dialer.childNodes[i].style.MozTransform =
+          'translateX(' + this._translateX + 'px)';
+      }
     }
   },
 
