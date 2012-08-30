@@ -79,14 +79,18 @@ Calendar.ns('Views').DayBased = (function() {
       this.timespan = Calc.spanOfDay(this.date);
     }
 
-    this._idsToHours = Object.create(null);
-    this.hours = new OrderedMap([], Calc.compareHours);
+    this._resetHourCache();
   }
 
   DayBased.OrderedMap = OrderedMap;
 
   DayBased.prototype = {
     __proto__: Calendar.View.prototype,
+
+    _resetHourCache: function() {
+      this._idsToHours = Object.create(null);
+      this.hours = new OrderedMap([], Calc.compareHours);
+    },
 
     /**
      * Date that this view represents.
