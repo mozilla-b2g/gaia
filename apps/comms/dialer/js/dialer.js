@@ -152,3 +152,11 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   activity.postResult({ status: 'accepted' });
 });
 
+window.onresize = function (e) {
+  if (window.innerHeight < 460) {
+    document.body.classList.add('with-keyboard');
+  } else {
+    document.body.classList.remove('with-keyboard');
+  }
+}
+

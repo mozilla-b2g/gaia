@@ -148,3 +148,11 @@ body.hidden *[data-l10n-id] {
   left: 0;
   height: -moz-calc(100% - 4rem);
 }
+
+.with-keyboard #views, .with-keyboard #iframe-contacts {
+  height: 100%;
+}
+
+.with-keyboard #main-toolbar {
+  display: none;
+}
