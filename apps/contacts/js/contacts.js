@@ -416,10 +416,11 @@ var Contacts = (function() {
     var contact = currentContact;
     var isFbContact = fb.isFbContact(contact);
 
+    // Initially enabled and only disabled if necessary
+    editContactButton.removeAttribute('disabled');
+
     if (isFbContact && !fb.isFbLinked(contact)) {
       editContactButton.setAttribute('disabled', 'disabled');
-    } else {
-      editContactButton.removeAttribute('disabled');
     }
 
     if (isFbContact) {
@@ -436,7 +437,6 @@ var Contacts = (function() {
       }
 
     } else {
-              editContactButton.removeAttribute('disabled');
               doReloadContactDetails(contact);
     }
   }
