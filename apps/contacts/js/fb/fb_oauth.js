@@ -58,6 +58,18 @@ if (typeof fb.oauth === 'undefined') {
       }
     }
 
+
+    /**
+     *  Starts a OAuth 2.0 flow to obtain the user information
+     *
+     */
+    function startOAuth(state) {
+      clearStorage();
+
+      // This page will be in charge of handling authorization
+      fb.oauthflow.start(state);
+    }
+
     function tokenDataReady(e) {
       var tokenData = e.data;
 
@@ -81,18 +93,7 @@ if (typeof fb.oauth === 'undefined') {
       }
     }
 
-    /**
-     *  Starts a OAuth 2.0 flow to obtain the user information
-     *
-     */
-    function startOAuth(state) {
-      clearStorage();
-
-      // This page will be in charge of handling authorization
-      fb.oauthflow.start(state);
-    }
-
-    window.addEventListener('message', tokenDataReady, false);
+    window.addEventListener('message', tokenDataReady);
 
   }
   )(document);
