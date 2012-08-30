@@ -164,34 +164,52 @@ var WindowManager = (function() {
   // We're going to do two transitions, so it gets called twice.
   sprite.addEventListener('transitionend', function spriteTransition(e) {
     var prop = e.propertyName;
-    var classes = sprite.classList;
+    switch (sprite.className) {
+      case 'opening':
+        // transitionend will be called twice since we touched two properties.
+        // Only responsive to the property that takes the longest to transit
+        if (prop !== 'transform')
+          return;
 
-    if (sprite.className === 'open' && prop.indexOf('transform') != -1) {
-      openFrame.classList.add('active');
-      windows.classList.add('active');
+        openFrame.classList.add('active');
+        windows.classList.add('active');
 
-      classes.add('faded');
-      setTimeout(openCallback);
-    } else if (classes.contains('faded') && prop === 'opacity') {
+        sprite.className = 'opened';
+        break;
 
-      openFrame.setVisible(true);
-      openFrame.focus();
+      case 'opened':
+        openFrame.setVisible(true);
+        openFrame.focus();
 
-      // Dispatch a 'appopen' event,
-      // Modal dialog would use this.
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
-      openFrame.dispatchEvent(evt);
+        // Dispatch an 'appopen' event.
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+        openFrame.dispatchEvent(evt);
 
-    } else if (classes.contains('close') && prop === 'color') {
-      closeFrame.classList.remove('active');
-      windows.classList.remove('active');
-    } else if (classes.contains('close') && prop.indexOf('transform') != -1) {
-      classes.remove('open');
-      classes.remove('close');
+        setTimeout(openCallback);
+        sprite.className = '';
 
-      screenElement.classList.remove('fullscreen-app');
-      setTimeout(closeCallback);
+        break;
+
+      case 'closing':
+        closeFrame.classList.remove('active');
+        windows.classList.remove('active');
+
+        screenElement.classList.remove('fullscreen-app');
+
+        sprite.className = 'closed';
+        break;
+
+      case 'closed':
+        // transitionend will be called twice since we touched two properties.
+        // Only responsive to the property that takes the longest to transit
+        if (prop !== 'transform')
+          return;
+
+        setTimeout(closeCallback);
+        sprite.className = '';
+
+        break;
     }
   });
 
@@ -327,10 +345,11 @@ var WindowManager = (function() {
 
       // Get the screenshot of the app and put it on the sprite
       // before starting the transition
+      sprite.className = 'before-open';
       getAppScreenshot(origin, function(screenshot) {
         if (!screenshot) {
           sprite.style.background = '';
-          sprite.className = 'open';
+          sprite.className = 'opening';
           return;
         }
 
@@ -339,7 +358,7 @@ var WindowManager = (function() {
         afterPaint(function() {
 
           // Start the transition
-          sprite.className = 'open';
+          sprite.className = 'opening';
         });
       });
     }
@@ -363,14 +382,14 @@ var WindowManager = (function() {
 
     // Get the screenshot of the app and put it on the sprite
     // before starting the transition
+    sprite.className = 'before-close';
     getAppScreenshot(origin, function(screenshot) {
       sprite.style.backgroundImage = 'url(' + screenshot + ')';
 
       // Make sure Gecko paint the sprite first
       afterPaint(function() {
         // Start the transition
-        sprite.classList.remove('faded');
-        sprite.classList.add('close');
+        sprite.className = 'closing';
       });
     });
   }
