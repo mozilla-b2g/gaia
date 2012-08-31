@@ -15,7 +15,7 @@
     <link rel="stylesheet" type="text/css" href="style/icons.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
-    <link rel="stylesheet" type="text/css" href="style/phonelock.css"/>
+    <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
@@ -101,13 +101,13 @@
         </li>
         <li>
           <p data-l10n-id="identity">identity</p>
-          <input data-identity data-ignore name="identity" type="text" />
+          <input type="text" data-identity data-ignore name="identity" />
         </li>
         <li>
           <p data-l10n-id="password">password</p>
-          <input data-password data-ignore name="password" type="password" maxlength="63" />
+          <input type="password" data-password data-ignore name="password" maxlength="63" />
           <label for="show-pwd">
-            <input data-ignore id="show-pwd" name="show-pwd" type="checkbox" />
+            <input type="checkbox" data-ignore id="show-pwd" name="show-pwd" />
             <span data-l10n-id="showPassword">show password</span>
           </label>
         </li>
@@ -487,14 +487,13 @@
           <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
         <li>
-          <label>
+          <a data-l10n-id="wifi-security">Security
             <select data-setting="tethering.wifi.security.type">
               <option>open</option>
               <option>WPA</option>
               <option selected>WPA2</option>
             </select>
-          </label>
-          <a data-l10n-id="wifi-security">Security</a>
+          </a>
         </li>
       </ul>
     </section>
@@ -566,6 +565,7 @@
       </ul>
     </section>
 
+    <!-- Personalization :: Sound :: Sound Selection -->
     <section role="region" id="sound-selection" date-leaf>
       <header>
         <button type="reset">
@@ -576,6 +576,7 @@
         </menu>
         <h1 data-l10n-id="select-tone">Select a Tone</h1>
       </header>
+
       <header>
         <h2 data-l10n-id="ring-tones">Ringtones</h2>
       </header>
@@ -602,6 +603,7 @@
           <a data-l10n-id="lowBit">Low Bit</a>
         </li>
       </ul>
+
       <header>
         <h2 data-l10n-id="alert-tones">Alert Tones</h2>
       </header>
@@ -619,7 +621,6 @@
       <audio style="display: none;" src="style/ringtones/classic.ogg" />
     </section>
 
-
     <!-- Personalization :: Sound -->
     <section role="region" id="sounds">
       <header>
@@ -628,6 +629,7 @@
           Sound
         </h1>
       </header>
+
       <!-- Ring and Vibrate -->
       <ul>
         <li>
@@ -652,10 +654,9 @@
       </header>
       <ul>
         <li>
-          <p data-l10n-id="volume">Volume</p>
           <label>
-            <progress data-name="audio.volume.master" value="5" max="10"></progress>
-          </label>
+            <input type="range" name="audio.volume.master" min="0.1" value="0.5" max="1">
+          <label>
         </li>
         <li>
           <label>
@@ -710,16 +711,14 @@
           <img id="wallpaper-preview"></img>
         </li>
         <li>
-          <label>
-            <select name="screen.timeout">
-              <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
-              <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
-              <option value="300" data-l10n-id="five-minutes">5 minutes</option>
-              <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
-              <option value="0"   data-l10n-id="never">Never</option>
-            </select>
-          </label>
-          <a data-l10n-id="screen-timeout">Screen Timeout</a>
+          <p data-l10n-id="screen-timeout">Screen Timeout</p>
+          <select name="screen.timeout">
+            <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
+            <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
+            <option value="300" data-l10n-id="five-minutes">5 minutes</option>
+            <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
+            <option value="0"   data-l10n-id="never">Never</option>
+          </select>
         </li>
       </ul>
 
@@ -736,7 +735,7 @@
         </li>
         <li id="brightness-manual">
           <label>
-            <progress data-name="screen.brightness" min="1" value="5" max="10"></progress>
+            <input type="range" name="screen.brightness" min="0.1" value="0.5" max="1" />
           </label>
         </li>
       </ul>
@@ -759,6 +758,34 @@
           </label>
           <a data-l10n-id="lockscreen-notifications">Show on Lock Screen</a>
         </li>
+    </section>
+
+    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones)-->
+    <section role="region" id="timezone-zones" data-leaf>
+      <header>
+        <a href="#timezone-continent"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="selectTimezone">
+          Select Time Zone
+        </h1>
+      </header>
+
+      <ul id="timezone-zones-list">
+        <!-- Create the zones dynamically -->
+      </ul>
+    </section>
+
+    <!-- Personalization :: Date & Time :: Time Zone (Continent)-->
+    <section role="region" id="timezone-continent">
+      <header>
+        <a href="#time"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="selectTimezoneContinent">
+          Select Continent
+        </h1>
+      </header>
+
+      <ul id="timezone-continents">
+        <!-- Create the continets dynamically -->
+      </ul>
     </section>
 
     <!-- Personalization :: Date & Time -->
@@ -801,32 +828,6 @@
         </li>
       </ul>
     </section>
-    
-    <!-- Personalization :: Date & Time :: Time Zone (Continent)-->
-    <section role="region" id="timezone-continent">
-      <header>
-        <a href="#time"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezoneContinent">
-          Select Continent
-        </h1>
-      </header>
-      <ul id="timezone-continents">
-        <!-- Create the continets dynamically -->
-      </ul>
-    </section>
-    
-    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones)-->
-    <section role="region" id="timezone-zones" data-leaf>
-      <header>
-        <a href="#timezone-continent"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezone">
-          Select Time Zone
-        </h1>
-      </header>
-      <ul id="timezone-zones-list">
-        <!-- Create the zones dynamically -->
-      </ul>
-    </section>
 
     <!-- Personalization :: Language & Region -->
     <section role="region" id="languages" data-leaf>
@@ -839,7 +840,7 @@
 
       <ul>
         <li>
-          <label>
+          <a data-l10n-id="language">Language
             <select name="language.current">
               <option value="ar">العربية</option>
               <option value="de">Deutsch</option>
@@ -854,11 +855,10 @@
               <option value="tr">Türkçe</option>
               <option value="zh-TW">正體中文</option>
             </select>
-          </label>
-          <a data-l10n-id="language">Language</a>
+          </a>
         </li>
         <li>
-          <label>
+          <a data-l10n-id="region">Region
             <select name="region.current">
               <option value="BR">Brasil</option>
               <option value="CO">Columbia</option>
@@ -870,8 +870,7 @@
               <option value="US">United States</option>
               <option value="VZ">Venezuela</option>
             </select>
-          </label>
-          <a data-l10n-id="region">Region</a>
+          </a>
         </li>
       </ul>
 
@@ -1014,7 +1013,7 @@
     <!-- [TODO] Accounts :: Persona -->
 
     <!-- [TODO] Accounts :: Mail -->
-    
+
     <section role="region" id="passcode-panel" data-leaf>
       <header>
         <a href="#phoneLock"><span class="icon icon-back">back</span></a>
@@ -1085,17 +1084,15 @@
           <a data-l10n-id="passcode-lock">Passcode Lock</a>
         </li>
         <li class="passcode-enabled" id="passcode-timeout-row">
-          <label>
-            <select name="lockscreen.passcode-lock.timeout">
-              <option value="0" data-l10n-id="immediately" selected>Immediately</option>
-              <option value="60"  data-l10n-id="after-one-minute">After 1 minute</option>
-              <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
-              <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
-              <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
-              <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
-            </select>
-          </label>
-          <a data-l10n-id="require-passcode">Require passcode</a>
+          <p data-l10n-id="require-passcode">Require passcode</p>
+          <select name="lockscreen.passcode-lock.timeout">
+            <option value="0" data-l10n-id="immediately" selected>Immediately</option>
+            <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
+            <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
+            <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
+            <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
+            <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
+          </select>
         </li>
         <li class="passcode-enabled">
           <label>
@@ -1128,16 +1125,16 @@
         <div id="pinArea">
           <div data-l10n-id="simPin">SIM PIN</div>
           <div class="input-wrapper">
-            <input name="simpin" type="number" size="8" maxlength="8" />
-            <input name="simpinVis" type="text" size="8" maxlength="8"/>
+            <input type="number" name="simpin" size="8" maxlength="8" />
+            <input type="text" name="simpinVis" size="8" maxlength="8"/>
           </div>
         </div>
         <!-- sim puk input field -->
         <div id="pukArea">
           <div data-l10n-id="pukCode">PUK Code</div>
           <div class="input-wrapper">
-            <input name="simpuk" type="number" size="8" maxlength="8" />
-            <input name="simpukVis" type="text" size="8" maxlength="8"/>
+            <input type="number" name="simpuk" size="8" maxlength="8" />
+            <input type="text" name="simpukVis" size="8" maxlength="8"/>
           </div>
         </div>
         <!-- new sim pin input field -->
@@ -1146,16 +1143,16 @@
             Create PIN (must contain 4 to 8 digits)
           </div>
           <div class="input-wrapper">
-            <input name="newSimpin" type="number" size="8" maxlength="8" />
-            <input name="newSimpinVis" type="text" size="8" maxlength="8" />
+            <input type="number" name="newSimpin" size="8" maxlength="8" />
+            <input type="text" name="newSimpinVis" size="8" maxlength="8" />
           </div>
         </div>
         <!-- confirm new sim pin input field -->
         <div id="confirmPinArea">
           <div>Confirm New PIN</div>
           <div class="input-wrapper">
-            <input name="confirmNewSimpin" type="number" size="8" maxlength="8" />
-            <input name="confirmNewSimpinVis" type="text" size="8" maxlength="8" />
+            <input type="number" name="confirmNewSimpin" size="8" maxlength="8" />
+            <input type="text" name="confirmNewSimpinVis" size="8" maxlength="8" />
           </div>
         </div>
       </div>
@@ -1477,15 +1474,13 @@
       </header>
       <ul>
         <li>
-          <label>
-            <select>
-              <option value="1"  data-l10n-id="check-update-daily">Daily</option>
-              <option value="7"  data-l10n-id="check-update-weekly">Weekly</option>
-              <option value="30" data-l10n-id="check-update-monthly">Monthly</option>
-              <option value="0"  data-l10n-id="never">Never</option>
-            </select>
-          </label>
-          <a data-l10n-id="check-for-updates">Check for Updates</a>
+          <p data-l10n-id="check-for-updates">Check for Updates</p>
+          <select>
+            <option value="1"  data-l10n-id="check-update-daily">Daily</option>
+            <option value="7"  data-l10n-id="check-update-weekly">Weekly</option>
+            <option value="30" data-l10n-id="check-update-monthly">Monthly</option>
+            <option value="0"  data-l10n-id="never">Never</option>
+          </select>
         </li>
         <li>
           <label>
@@ -1523,7 +1518,7 @@
         <li>
           <label for="share-performance-data" class="description">
             <div>
-              <input id="share-performance-data" name="debug.peformancedata.shared" type="checkbox" />
+              <input type="checkbox" id="share-performance-data" name="debug.peformancedata.shared" />
               <span data-l10n-id="share-performance-data">
                 I want to help make Firefox OS faster and easier to use by
                 sharing information about my phone’s performance.
@@ -1580,15 +1575,13 @@
           <a data-l10n-id="powerSaveMode">Power Save Mode</a>
         </li>
         <li>
-          <label>
-            <select name="powersave.threshold">
-              <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
-              <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
-              <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
-              <option value="0" data-l10n-id="never">Never</option>
-            </select>
-          </label>
-          <a data-l10n-id="turnOnAuto">Turn on automatically</a>
+          <p data-l10n-id="turnOnAuto">Turn on automatically</p>
+          <select name="powersave.threshold">
+            <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
+            <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
+            <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
+            <option value="0" data-l10n-id="never">Never</option>
+          </select>
         </li>
         <li>
           <p data-l10n-id="powerSave-expl" class="description">
@@ -1625,9 +1618,7 @@
       </header>
       <ul>
         <li>
-          <label>
-            <progress id="apps-space-bar" min="0" max="100"></progress>
-          </label>
+          <meter id="apps-space-bar" min="0" max="100"></meter>
         </li>
 
         <li>
