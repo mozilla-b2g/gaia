@@ -367,7 +367,7 @@ var Contacts = (function() {
         for (var i = 0; i < dataSet.length; i++) {
           var data = dataSet[i].value;
           prompt1.addToList(data + '', function(itemData) {
-            return function () {
+            return function() {
               prompt1.hide();
               result[type] = itemData;
               ActivityHandler.postPickSuccess(result);
