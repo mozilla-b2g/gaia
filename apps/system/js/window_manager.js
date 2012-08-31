@@ -187,6 +187,8 @@ var WindowManager = (function() {
         openFrame.dispatchEvent(evt);
 
         setTimeout(openCallback);
+
+        sprite.style.background = '';
         sprite.className = '';
 
         break;
@@ -207,6 +209,8 @@ var WindowManager = (function() {
           return;
 
         setTimeout(closeCallback);
+
+        sprite.style.background = '';
         sprite.className = '';
 
         break;
@@ -348,7 +352,6 @@ var WindowManager = (function() {
       sprite.className = 'before-open';
       getAppScreenshot(origin, function(screenshot) {
         if (!screenshot) {
-          sprite.style.background = '';
           sprite.className = 'opening';
           return;
         }
@@ -384,8 +387,7 @@ var WindowManager = (function() {
     // before starting the transition
     sprite.className = 'before-close';
     getAppScreenshot(origin, function(screenshot) {
-      sprite.style.backgroundImage = 'url(' + screenshot + ')';
-
+      sprite.style.background = '#fff url(' + screenshot + ')';
       // Make sure Gecko paint the sprite first
       afterPaint(function() {
         // Start the transition
