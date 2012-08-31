@@ -360,11 +360,11 @@ var Camera = {
     this.restartPreview();
 
     var rightnow = new Date();
-    var filename = 'DCIM/img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
-    var addreq = this._storage.addNamed(blob, filename);
+    var name = 'DCIM/img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
+    var addreq = this._storage.addNamed(blob, name);
 
     addreq.onsuccess = (function() {
-      this._photosTaken.push({name: filename, blob: blob});
+      this._photosTaken.push({name: name, blob: blob});
       if (this._photosTaken.length > this.THUMBNAIL_LIMIT) {
         this._photosTaken.shift();
       }
@@ -382,8 +382,8 @@ var Camera = {
   },
 
   checkStorageSpace: function camera_checkStorageSpace() {
-    var MAX_IMAGE_SIZE = this._pictureSize.width * this._pictureSize.height
-      * 4 + 4096;
+    var MAX_IMAGE_SIZE = this._pictureSize.width * this._pictureSize.height *
+      4 + 4096;
     this._storage.stat().onsuccess = (function(e) {
       if (e.target.result.freeBytes > MAX_IMAGE_SIZE) {
         this.showOverlay(null);
@@ -407,8 +407,9 @@ var Camera = {
       return;
     }
 
-    this._config.rotation = this.layoutToPhoneOrientation(this._phoneOrientation);
     this.focusRing.setAttribute('data-state', 'focused');
+    this._config.rotation =
+      this.layoutToPhoneOrientation(this._phoneOrientation);
     this._cameraObj
       .takePicture(this._config, this.takePictureSuccess.bind(this));
   },
@@ -419,7 +420,8 @@ var Camera = {
     if (this._autoFocusSupported && !this._manuallyFocused) {
       this._cameraObj.autoFocus(this.takePictureAutoFocusDone.bind(this));
     } else {
-      this._config.rotation = this.layoutToPhoneOrientation(this._phoneOrientation);
+      this._config.rotation =
+        this.layoutToPhoneOrientation(this._phoneOrientation);
       this._cameraObj
         .takePicture(this._config, this.takePictureSuccess.bind(this));
     }
