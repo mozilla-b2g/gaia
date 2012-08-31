@@ -222,6 +222,7 @@ var WindowManager = (function() {
   // On-disk database for window manager.
   // It's only for app screenshots right now.
   var database = null;
+  var DB_SCREENSHOT_OBJSTORE = 'screenshots';
 
   (function openDatabase() {
     var DB_VERSION = 1;
@@ -234,11 +235,11 @@ var WindowManager = (function() {
     req.onupgradeneeded = function databaseUpgradeneeded() {
       database = req.result;
 
-      if (database.objectStoreNames.contains('screenshots'))
-        database.deleteObjectStore('screenshots');
+      if (database.objectStoreNames.contains(DB_SCREENSHOT_OBJSTORE))
+        database.deleteObjectStore(DB_SCREENSHOT_OBJSTORE);
 
-      var store =
-        database.createObjectStore('screenshots', { keyPath: 'origin' });
+      var store = database.createObjectStore(
+          DB_SCREENSHOT_OBJSTORE, { keyPath: 'origin' });
     };
 
     req.onsuccess = function databaseSuccess() {
@@ -246,42 +247,74 @@ var WindowManager = (function() {
     };
   })();
 
+  function putAppScreenshotToDatabase(origin, data) {
+    if (!database)
+      return;
+
+    var txn = database.transaction(DB_SCREENSHOT_OBJSTORE, 'readwrite');
+    txn.onerror = function() {
+      console.warn(
+        'Window Manager: transaction error while trying to save screenshot.');
+    };
+    var store = txn.objectStore(DB_SCREENSHOT_OBJSTORE);
+    var req = store.put({
+      origin: origin,
+      screenshot: data
+    });
+    req.onerror = function(evt) {
+      console.warn(
+        'Window Manager: put error while trying to save screenshot.');
+    };
+  }
+
+  function getAppScreenshotFromDatabase(origin, callback) {
+    if (!database) {
+      console.warn(
+        'Window Manager: Neither database nor app frame is ' +
+        'ready for getting screenshot.');
+
+      callback();
+      return;
+    }
+
+    var req = database.transaction(DB_SCREENSHOT_OBJSTORE)
+              .objectStore(DB_SCREENSHOT_OBJSTORE).get(origin);
+    req.onsuccess = function() {
+      if (!req.result) {
+        console.log('Window Manager: No screenshot in database. ' +
+           'This is expected from a fresh installed app.');
+        callback();
+
+        return;
+      }
+
+      callback(req.result.screenshot);
+    }
+    req.onerror = function(evt) {
+      console.warn('Window Manager: get screenshot from database failed.');
+      callback();
+    };
+  }
+
+  function deleteAppScreenshotFromDatabase(origin) {
+    var txn = database.transaction(DB_SCREENSHOT_OBJSTORE);
+    var store = txn.objectStore(DB_SCREENSHOT_OBJSTORE);
+
+    store.delete(origin);
+  }
+
+  // Meta method for getting app screenshot from database, or
+  // get it from the app frame and save it to database.
   function getAppScreenshot(origin, callback) {
     if (!callback)
       return;
 
     var app = runningApps[origin];
 
-    if (!app.launchTime) {
-      // The frame is just being append and app content is just being loaded,
-      // let's get the screenshot from the database instead.
-      if (!database) {
-        console.warn(
-          'Window Manager: Neither database nor app frame is ' +
-          'ready for getting screenshot.');
-
-        callback();
-        return;
-      }
-
-      var req = database.transaction('screenshots')
-                .objectStore('screenshots').get(origin);
-      req.onsuccess = function() {
-        if (!req.result) {
-          console.log('Window Manager: No screenshot in database. ' +
-             'This is expected from a fresh installed app.');
-          callback();
-
-          return;
-        }
-
-        callback(req.result.screenshot);
-      }
-      req.onerror = function(evt) {
-        console.warn('Window Manager: get screenshot from database failed.');
-        callback();
-      };
-
+    // If the frame is just being append and app content is just being loaded,
+    // let's get the screenshot from the database instead.
+    if (!app || !app.launchTime) {
+      getAppScreenshotFromDatabase(origin, callback);
       return;
     }
 
@@ -298,25 +331,7 @@ var WindowManager = (function() {
       var result = evt.target.result;
       callback(result);
 
-      // Save the screenshot to database
-      if (!database)
-        return;
-
-      var txn = database.transaction('screenshots', 'readwrite');
-      txn.onerror = function() {
-        console.warn(
-          'Window Manager: transaction error while trying to save screenshot.');
-      };
-      var store = txn.objectStore('screenshots');
-      var req = store.put({
-        origin: origin,
-        screenshot: result
-      });
-      req.onerror = function(evt) {
-        console.warn(
-          'Window Manager: put error while trying to save screenshot.');
-      };
-
+      putAppScreenshotToDatabase(origin, result);
     };
 
     req.onerror = function(evt) {
@@ -324,13 +339,6 @@ var WindowManager = (function() {
       console.warn('Window Manager: getScreenshot failed.');
       callback();
     };
-  }
-
-  function deleteAppScreenshot(origin) {
-    var txn = database.transaction('screenshots');
-    var store = txn.objectStore('screenshots');
-
-    store.delete(origin);
   }
 
   function afterPaint(callback) {
@@ -739,7 +747,7 @@ var WindowManager = (function() {
   window.addEventListener('applicationuninstall', function(e) {
     kill(e.detail.application.origin);
 
-    deleteAppScreenshot(e.detail.application.origin);
+    deleteAppScreenshotFromDatabase(e.detail.application.origin);
   });
 
   // Stop running the app with the specified origin
