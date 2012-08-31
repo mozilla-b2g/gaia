@@ -112,8 +112,14 @@ var ScreenManager = {
       self._idleTimeout = value;
 
       if (!self._firstOn) {
-        var initlogo = document.getElementById('initlogo');
-        initlogo.parentNode.removeChild(initlogo);
+        (function handleInitlogo() {
+          var initlogo = document.getElementById('initlogo');
+          initlogo.classList.add('hide');
+          initlogo.addEventListener('transitionend', function delInitlogo() {
+            initlogo.removeEventListener('transitionend', delInitlogo);
+            initlogo.parentNode.removeChild(initlogo);
+          });
+        })();
 
         self._firstOn = true;
         self.turnScreenOn();

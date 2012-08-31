@@ -11,7 +11,11 @@
 
   var TelephonyCalls = [];
   if (RecentsDBManager) {
-    RecentsDBManager.prepopulateDB();
+    RecentsDBManager.init(function() {
+      RecentsDBManager.prepopulateDB(function() {
+        RecentsDBManager.close();
+      });
+    });
   }
   navigator.mozTelephony = {
     dial: function(number) {

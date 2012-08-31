@@ -3,7 +3,6 @@
 var _ = navigator.mozL10n.get;
 
 var Recents = {
-  _recentsEditionMode: false,
 
   get headerEditModeText() {
     delete this.headerEditModeText;
@@ -65,9 +64,15 @@ var Recents = {
   },
 
   init: function re_init() {
+    var self = this;
     if (this.recentsFilterContainer) {
       this.recentsFilterContainer.addEventListener('click',
-        this.filter.bind(this));
+        function re_recentsFilterHandler(event) {
+          if (document.body.classList.contains('recents-edit')) {
+            self.recentsHeaderAction('cancel-button');
+          }
+          self.filter(event);
+      });
     }
     if (this.recentsIconEdit) {
       this.recentsIconEdit.addEventListener('click',
@@ -89,13 +94,16 @@ var Recents = {
       this.selectAllThreads.addEventListener('click',
         this.selectAllEntries.bind(this));
     }
+    if (this.recentsContainer) {
+      this.recentsContainer.addEventListener('click',
+        this.click.bind(this));
+    }
 
     RecentsDBManager.init(function() {
       RecentsDBManager.get(function(recents) {
         Recents.render(recents);
       });
     });
-    this._cachedContacts = new Object();
   },
 
   recentsHeaderAction: function re_recentsIconEditAction(event) {
@@ -106,18 +114,9 @@ var Recents = {
           this.headerEditModeText.textContent = _('edit');
           this.deselectSelectedEntries();
           document.body.classList.toggle('recents-edit');
-          this._recentsEditionMode = true;
           break;
         case 'cancel-button': // Exit edit mode with no deletions
-          var query = '.log-item.hide.selected';
-          var elements = this.recentsContainer.querySelectorAll(query);
-          // Show hidden messages
-          for (var i = 0; i < elements.length; i++) {
-            elements[i].classList.remove('hide');
-          }
-          this.deselectSelectedEntries();
           document.body.classList.toggle('recents-edit');
-          this._recentsEditionMode = false;
           break;
       }
     }
@@ -150,7 +149,7 @@ var Recents = {
       } else {
         this.recentsIconEdit.classList.add('disabled');
       }
-      if (this._recentsEditionMode) {
+      if (document.body.classList.contains('recents-edit')) {
         var selectedCalls = this.recentsContainer.
           querySelectorAll('.log-item:not(.hide).selected');
         var selectedCallsLength = selectedCalls.length;
@@ -184,7 +183,7 @@ var Recents = {
         } else {
           this.recentsIconEdit.classList.remove('disabled');
         }
-        if (this._recentsEditionMode) {
+        if (document.body.classList.contains('recents-edit')) {
           var selectedCalls = this.recentsContainer.
             querySelectorAll('.log-item:not(.hide).selected');
           var selectedCallsLength = selectedCalls.length;
@@ -203,8 +202,7 @@ var Recents = {
     }
     this.allFilter.classList.toggle('selected');
     this.missedFilter.classList.toggle('selected');
-    if (this._recentsEditionMode)
-      this.recentsHeaderAction('cancel-button');
+
   },
 
   selectAllEntries: function re_selectAllEntries() {
@@ -214,9 +212,12 @@ var Recents = {
     for (var i = 0; i < count; i++) {
       items[i].classList.add('selected');
     }
+    var itemShown = document.querySelectorAll('.log-item:not(.hide)');
+    var itemsCounter = itemShown.length;
     this.headerEditModeText.textContent = _('edit-selected',
-                                            {n: count});
+                                            {n: itemsCounter});
     this.recentsIconDelete.classList.remove('disabled');
+    this.deselectAllThreads.classList.remove('disabled');
   },
 
   deselectSelectedEntries: function re_deselectSelectedEntries() {
@@ -228,9 +229,14 @@ var Recents = {
     }
     this.headerEditModeText.textContent = _('edit');
     this.recentsIconDelete.classList.add('disabled');
+    this.deselectAllThreads.classList.add('disabled');
   },
 
   executeDeletion: function re_executeDeletion() {
+    var response = window.confirm(_('confirm-deletion'));
+    if (!response) {
+      return;
+    }
     var selectedEntries = this.getSelectedEntries(),
         selectedLength = selectedEntries.length,
         entriesInGroup, entriesInGroupLength;
@@ -242,12 +248,12 @@ var Recents = {
         itemsToDelete.push(parseInt(entriesInGroup[j].dataset.date));
       }
     }
+    var self = this;
     RecentsDBManager.deleteList.call(RecentsDBManager,
       itemsToDelete, function deleteCB() {
         RecentsDBManager.get(function(recents) {
-          Recents.render(recents);
-          document.body.classList.toggle('recents-edit');
-          Recents._recentsEditionMode = false;
+          self.render(recents);
+          document.body.classList.remove('recents-edit');
         });
     });
   },
@@ -306,32 +312,48 @@ var Recents = {
     return entriesInGroup;
   },
 
-  click: function re_click(target) {
-    if (!target.classList.contains('log-item')) {
+  click: function re_click(event) {
+    var target = event.target;
+    if (!target) {
       return;
     }
-    if (!this._recentsEditionMode) {
-      var number = target.dataset.num.trim();
-      if (number) {
-        this.updateLatestVisit();
-        CallHandler.call(number);
+    if (!document.body.classList.contains('recents-edit')) {
+      if (target.classList.contains('call-log-contact-photo')) {
+        event.stopPropagation();
+        // TODO Include Alberto's code about linking 'Contacts APP'
+        var isContact = target.parentNode.classList.contains('isContact');
+        var phoneNumber = target.parentNode.dataset.num.trim();
+        console.log('Num ' + phoneNumber + ' isContact ' + isContact);
+      } else if (target.classList.contains('log-item')) {
+        var number = target.dataset.num.trim();
+        if (number) {
+          this.updateLatestVisit();
+          CallHandler.call(number);
+        }
       }
     } else {
-      target.classList.toggle('selected');
+      if (target.classList.contains('call-log-contact-photo')) {
+        target.parentNode.classList.toggle('selected');
+        event.stopPropagation();
+      } else if (target.classList.contains('log-item')) {
+        target.classList.toggle('selected');
+      }
       var count = this.getSelectedEntries().length;
       if (count == 0) {
         this.headerEditModeText.textContent = _('edit');
         this.recentsIconDelete.classList.add('disabled');
+        this.deselectAllThreads.classList.add('disabled');
       } else {
         this.headerEditModeText.textContent = _('edit-selected',
                                                 {n: count});
         this.recentsIconDelete.classList.remove('disabled');
+        this.deselectAllThreads.classList.remove('disabled');
       }
     }
   },
 
   getSelectedEntries: function re_getSelectedGroups() {
-    var itemSelector = '.log-item.selected';
+    var itemSelector = '.log-item:not(.hide).selected';
     var items = document.querySelectorAll(itemSelector);
     return items;
   },
@@ -367,7 +389,7 @@ var Recents = {
                recent.number +
       '      </section>' +
       '      <section class="secondary-info ellipsis">' +
-               prettyDate(recent.date) +
+               Utils.prettyDate(recent.date) +
       '      </section>' +
       '    </div>' +
       '  </section>' +
@@ -384,8 +406,8 @@ var Recents = {
       this.recentsContainer.innerHTML =
         '<div id="no-result-container">' +
         ' <div id="no-result-message">' +
-        '   <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
-        '   <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
+        ' <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
+        ' <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
         ' </div>' +
         '</div>';
       this.recentsIconEdit.classList.add('disabled');
@@ -396,7 +418,7 @@ var Recents = {
     var content = '',
       currentDay = '';
     for (var i = 0; i < recents.length; i++) {
-      var day = this.getDayDate(recents[i].date);
+      var day = Utils.getDayDate(recents[i].date);
       if (day != currentDay) {
         if (currentDay != '') {
           content += '</ol></section>';
@@ -405,8 +427,8 @@ var Recents = {
 
         content +=
           '<section data-timestamp="' + day + '">' +
-          '  <h2>' + headerDate(day) + '</h2>' +
-          '  <ol id="' + day + '" class="log-group">';
+          ' <h2>' + Utils.headerDate(day) + '</h2>' +
+          ' <ol id="' + day + '" class="log-group">';
       }
       content += this.createRecentEntry(recents[i]);
     }
@@ -433,85 +455,38 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
-    var itemSelector = '.log-item',
-      callLogItems = document.querySelectorAll(itemSelector),
-      length = callLogItems.length,
-      phoneNumber;
-    for (var i = 0; i < length; i++) {
-      phoneNumber = callLogItems[i].dataset.num.trim();
-      var cachedContact = this._cachedContacts[phoneNumber];
-      if (cachedContact) {
-        this.contactCallBack(callLogItems[i], cachedContact);
-      } else {
-        Contacts.findByNumber(
-          phoneNumber,
-          this.contactCallBack.bind(this, callLogItems[i]));
-      }
+    var itemSelector = '.log-item:not(.hide)',
+      callLogItems = document.querySelectorAll(itemSelector);
+    for (var i = 0; i < callLogItems.length; i++) {
+      var phoneNumber = callLogItems[i].dataset.num.trim();
+      Contacts.findByNumber(phoneNumber,
+        this.contactCallBack.bind(this, callLogItems[i]));
     }
   },
 
   contactCallBack: function re_contactCallBack(logItem, contact) {
     var contactPhoto = logItem.querySelector('.call-log-contact-photo');
-    if (contact) {
+    if (contact != null) {
+      // Update name
       var primaryInfo = logItem.querySelector('.primary-info'),
+        phoneNumber = logItem.dataset.num.trim(),
         count = logItem.dataset.count;
-      primaryInfo.textContent = ((contact.name && contact.name != '') ?
-        contact.name : _('unknown')) + ((count > 1) ? ' (' + count + ')' : '');
-      if (contact.photo) {
-        contactPhoto.classList.add('knownContact');
-        contactPhoto.style.backgroundImage = 'url(' + contact.photo + ')';
+      primaryInfo.innerHTML = ((contact.name && contact.name != '') ?
+        contact.name : _('unknown'));
+      primaryInfo.innerHTML = primaryInfo.innerHTML.trim() +
+        ((count > 1) ? '&nbsp;&nbsp;(' + count + ')' : '');
+      if (contact.photo && contact.photo[0]) {
+        var photoURL = URL.createObjectURL(contact.photo[0]);
+        contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
+      } else {
+        logItem.classList.add('noContactPhoto');
       }
-      var phoneNumber = logItem.dataset.num.trim(),
-        phoneType, phoneCarrier,
-        secondaryInfo = logItem.querySelector('.secondary-info'),
-        contactPhoneEntry, contactPhoneNumber, contactPhoneType,
-        multipleNumbersSameCarrier,
-        length = contact.tel.length;
-      for (var i = 0; i < length; i++) {
-        contactPhoneEntry = contact.tel[i];
-        contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
-        contactPhoneType = contactPhoneEntry.type;
-        contactPhoneCarrier = contactPhoneEntry.carrier;
-        if (phoneNumber == contactPhoneNumber) {
-          if (contactPhoneType) {
-            secondaryInfo.textContent = secondaryInfo.textContent.trim() +
-              '   ' + contactPhoneType;
-            logItem.dataset.phoneType = contactPhoneType;
-            phoneType = contactPhoneType;
-          }
-          if (!contactPhoneCarrier) {
-            secondaryInfo.textContent = secondaryInfo.textContent +
-              ', ' + phoneNumber;
-          } else {
-            logItem.dataset.carrier = contactPhoneCarrier;
-            phoneCarrier = contactPhoneCarrier;
-          }
-        }
-      }
-      if (phoneType && phoneCarrier) {
-        var multipleNumbersSameCarrier = false;
-        for (var j = 0; j < length; j++) {
-          contactPhoneEntry = contact.tel[j];
-          contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
-          contactPhoneType = contactPhoneEntry.type;
-          contactPhoneCarrier = contactPhoneEntry.carrier;
-          if ((phoneNumber != contactPhoneNumber) &&
-            (phoneType == contactPhoneType) &&
-            (phoneCarrier == contacePhoneCarrier)) {
-            multipleNumbersSameCarrier = true;
-          }
-        }
-        if (multipleNumbersSameCarrier) {
-          secondaryInfo.textContent = secondaryInfo.textContent +
-            ', ' + phoneNumber;
-        } else {
-          secondaryInfo.textContent = secondaryInfo.textContent +
-            ', ' + contactPhoneCarrier;
-        }
-      }
-      this._cachedContacts[phoneNumber] = contact;
-    } else {
-      contactPhoto.classList.add('unknownContact');
+      var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
+        phoneNumber, contact);
+      var secondaryInfo = logItem.querySelector('.secondary-info');
+      secondaryInfo.innerHTML = secondaryInfo.textContent.trim() +
+        '&nbsp;&nbsp;&nbsp;' + phoneNumberAdditionalInfo;
+      logItem.classList.add('isContact');
     }
   },
 
@@ -587,19 +562,12 @@ var Recents = {
       countIndex = callDetails.indexOf('(' + count + ')');
     count += inc;
     if (countIndex != -1) {
-      primaryInfo.textContent = callDetails.substr(0, countIndex) +
-        '(' + count + ')';
+      primaryInfo.innerHTML = callDetails.substr(0, countIndex).trim() +
+        '&nbsp;&nbsp;(' + count + ')';
     } else {
-      primaryInfo.textContent = callDetails + ' (' + count + ')';
+      primaryInfo.innerHTML = callDetails + '&nbsp;&nbsp;(' + count + ')';
     }
     newerCallEl.dataset.count = count;
-  },
-
-  getDayDate: function re_getDayDate(timestamp) {
-    var date = new Date(timestamp),
-      startDate = new Date(date.getFullYear(),
-                             date.getMonth(), date.getDate());
-    return startDate.getTime();
   },
 
   updateLatestVisit: function re_updateLatestVisit() {

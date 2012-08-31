@@ -17,7 +17,7 @@
   <!-- Specific code -->
   <script type="text/javascript">
     // when running in B2G, send output to the console, ANSI-style
-    if ('MozTCPSocket' in window.navigator) {
+    if ('mozTCPSocket' in window.navigator) {
       function consoleHelper() {
         var msg = arguments[0] + ":";
         for (var i = 1; i < arguments.length; i++) {
@@ -307,6 +307,10 @@
            advice on required additional steps (gmail). -->
       <div class="card-setup-pick-service card">
         <div class="sup-account-header top-header">
+          <!-- only show this if there is at least one account -->
+          <button class="sup-back-btn header-left-btn back-btn collapsed">
+            <span class="icon icon-back"></span>
+          </button>
           <h2 class="sup-account-header-label header-label"
               data-l10n-id="setup-app-name-header">MaiL</h2>
         </div>

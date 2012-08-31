@@ -464,6 +464,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
       req.onerror = function onScanError(error) {
         // always try again.
+        scanning = false;
         window.setTimeout(scan, scanRate);
       };
 
