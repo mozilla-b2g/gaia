@@ -137,10 +137,6 @@ ol.link-list a {
 
 /* create account view */
 
-#create-account-view > header {
-  /*margin-bottom: 2rem;*/
-}
-
 #create-account-view > ol,
 #create-account-view > p {
   margin: 0 2rem;
