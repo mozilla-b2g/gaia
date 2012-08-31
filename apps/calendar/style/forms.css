@@ -78,61 +78,28 @@ fieldset li {
   margin: 1rem 2rem;
 }
 
-fieldset li.location {
+li.end-date,
+li.start-date {
   width: 70%;
-}
-
-fieldset li.all-day {
-  width: 30%;
-}
-
-.rtl fieldset li.location,
-.rtl fieldset li.all-day {
-  float: right;
-}
-
-.ltr fieldset li.location,
-.ltr fieldset li.all-day {
   float: left;
 }
 
-.rtl fieldset li.end-time,
-.ltr fieldset li.start-time {
-  width: -moz-calc(50% - 1px);
-  border-right: 1px solid #CCC;
+fieldset li.end-time,
+fieldset li.start-time {
+  width: calc(30% - 1px);
   float: left
-}
-
-.rtl fieldset li.start-time,
-.ltr fieldset li.end-time {
-  width: 50%;
-  float: left;
-}
-
-
-.rtl fieldset li.alert,
-.ltr fieldset li.repeat {
-  width: -moz-calc(50% - 1px);
-  border-right: 1px solid #CCC;
-  float: left
-}
-
-.rtl fieldset li.repeat,
-.ltr fieldset li.alert{
-  width: 50%;
-  float: left;
 }
 
 fieldset li.notes  {
-  height: 25rem;
+  height: 15rem;
 }
 
 fieldset li.notes textarea {
-  height: 100%;
+  padding: 1rem;
+  height: 80%;
 }
 
 fieldset li.notes,
-fieldset li.repeat,
-fieldset li.start-time {
+fieldset li.repeat {
   clear: both;
 }

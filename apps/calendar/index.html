@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="pragma" content="no-cache">
   <title>Calendar</title>
+  <link rel="stylesheet" type="text/css" href="/style/fonts.css">
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/events.css">
@@ -137,11 +138,11 @@
     </button>
 
     <menu type="toolbar">
-      <button>
-        <span data-l10n-id="add-event" class="icon icon-add" href="/add">
+      <a href="/add/">
+        <span data-l10n-id="add-event" class="icon icon-add" >
           Add Event
         </span>
-      </button>
+      </a>
     </menu>
 
     <h1 id="current-month-year">
@@ -272,77 +273,54 @@
     [Week] Coming soon...
   </section>
 
-  <section class="fullscreen-view" id="add-event-view" role="region">
+  <section class="fullscreen-view" id="modify-event-view" role="region">
     <header>
-      <a data-l10n-id="cancel"
-         role="button"
-         class="cancel-icon"
-         href="javascript: window.history.go(-1);">
-        Cancel
+
+      <a href="javascript: window.history.go(-1);">
+         <span data-l10n-id="cancel" class="icon icon-back">
+           Cancel
+         </span
       </a>
+
+      <menu type="toolbar">
+        <a href="#">
+          <span data-l10n-id="save">Save</span>
+        </a>
+      </menu>
 
       <h1 data-l10n-id="add-event-header">
-        EVENT
+        Create Event
       </h1>
-
-      <a data-l10n-id="save" role="button" class="save-icon" href="#">
-        Save
-      </a>
     </header>
+
     <fieldset>
       <ol>
         <li class="title">
-          <input name="title" placeholder="Title" />
+          <input name="title" readonly data-l10n-id="event-title" placeholder="Title" />
         </li>
 
         <li class="location">
-          <input name="location" placeholder="Location" />
+          <input name="location" readonly data-l10n-id="event-location" placeholder="Where?" />
         </li>
 
-        <li class="all-day">
-          <label role="checkbox">
-            <span>All Day?</span>
-            <input type="checkbox" name="allDay" />
-          </label>
+        <li class="start-date">
+          <input name="startDate" data-l10n-id="event-start-date"  placeholder="Date" readonly type="date" />
         </li>
 
         <li class="start-time">
-          <input type="time" placeholder="12:00" name="startTime" />
+          <input type="time" data-l10n-id="event-start-time"  placeholder="Start Time" readonly name="startTime" />
+        </li>
+
+        <li class="end-date">
+          <input name="endDate" data-l10n-id="event-end-date"  placeholder="Date" readonly type="date" />
         </li>
 
         <li class="end-time">
-          <input type="time" placeholder="12:00" name="endTime" />
-        </li>
-
-        <li class="repeat">
-          <label role="listbox">
-            <select name="repeat">
-              <option class="default" value="" selected>
-                Repeat
-              </option>
-              <option>None</option>
-              <option>Every Day</option>
-              <option>Every Week</option>
-              <option>Every Month</option>
-              <option>Every Year</option>
-            </select>
-          </label>
-        </li>
-
-        <li class="alert">
-          <label role="listbox">
-            <select value="" name="alert">
-              <option class="default" selected>
-                Alert
-              </option>
-              <option>Event Time</option>
-              <option>5 min before</option>
-            </select>
-          </label>
+          <input type="time" data-l10n-id="event-end-time" placeholder="End Time" readonly name="endTime" />
         </li>
 
         <li class="notes">
-          <textarea name="notes" placeholder="Notes"></textarea>
+          <textarea class="fieldbox" readonly name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
         </li>
 
       </ol>

@@ -151,6 +151,14 @@ ol.link-list a {
 
 /* add event view */
 
+#modify-event-view fieldset {
+  margin: 1rem;
+}
+
+#modify-event-view fieldset ol li {
+  margin: 0rem;
+}
+
 .fullscreen-view {
   /* completely override other views */
   background: #E6E6E0;
