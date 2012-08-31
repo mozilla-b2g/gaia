@@ -190,10 +190,6 @@ var ClockView = {
   },
 
   resizeAnalogClock: function cv_resizeAnalogClock() {
-    // if (this._clockMode == 'digital')
-      // return;
-
-    // window.clearTimeout(this._updateAnalogClockTimeout);
     this.resizeAnalogClockBackground();
     // Remove previous style
     for (var i = 1; i <= 4; i++) {
