@@ -367,10 +367,9 @@ var Camera = {
       this.showFilmStrip();
     }).bind(this);
 
-    addreq.onerror = function() {
-      console.log("failed to save image as '" + filename + "':" +
-                  JSON.stringify(addreq.error));
-    };
+    addreq.onerror = (function() {
+      this.showOverlay('error-saving');
+    }).bind(this);
   },
 
   hideFocusRing: function camera_hideFocusRing() {
