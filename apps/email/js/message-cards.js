@@ -607,6 +607,8 @@ function MessageReaderCard(domNode, mode, args) {
     .addEventListener('click', this.onBack.bind(this, false));
   domNode.getElementsByClassName('msg-reply-btn')[0]
     .addEventListener('click', this.onReply.bind(this, false));
+  domNode.getElementsByClassName('msg-reply-all-btn')[0]
+    .addEventListener('click', this.onReplyAll.bind(this, false));
 
   domNode.getElementsByClassName('msg-delete-btn')[0]
     .addEventListener('click', this.onDelete.bind(this), false);
@@ -614,6 +616,8 @@ function MessageReaderCard(domNode, mode, args) {
     .addEventListener('click', this.onStar.bind(this), false);
   domNode.getElementsByClassName('msg-unread-btn')[0]
     .addEventListener('click', this.onMarkUnread.bind(this), false);
+  domNode.getElementsByClassName('msg-move-btn')[0]
+    .addEventListener('click', this.onMove.bind(this), false);
 
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
@@ -665,6 +669,13 @@ MessageReaderCard.prototype = {
     });
   },
 
+  onReplyAll: function(event) {
+    var composer = this.header.replyToMessage('all', function() {
+      Cards.pushCard('compose', 'default', 'animate',
+                     { composer: composer });
+    });
+  },
+
   onDelete: function() {
     var op = this.header.deleteMessage();
     Toaster.logMutation(op);
@@ -678,6 +689,12 @@ MessageReaderCard.prototype = {
 
   onMarkUnread: function() {
     var op = this.header.setRead(false);
+    Toaster.logMutation(op);
+  },
+
+  onMove: function() {
+    //TODO: Open the folder card view and pick a folder.
+    var op = this.header.moveMessage(folder);
     Toaster.logMutation(op);
   },
 
