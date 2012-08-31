@@ -31,6 +31,7 @@ var Camera = {
 
   _filmStripShown: false,
   _filmStripTimer: null,
+  _resumeViewfinderTimer: null,
 
   _styleSheet: document.styleSheets[0],
   _orientationRule: null,
@@ -306,23 +307,33 @@ var Camera = {
     }
   },
 
-  pause: function pause() {
-    this.viewfinder.pause();
+  start: function camera_start() {
+    this.viewfinder.play();
+    this.setSource(this._camera);
+    this._previewActive = true;
+  },
+
+  stop: function camera_stop() {
+    this.pause();
     this.viewfinder.src = null;
+  },
+
+  pause: function camera_pause() {
+    this.viewfinder.pause();
     this._previewActive = false;
   },
 
+  // resumePreview is upcoming in gecko, avoiding version skew
+  // by doing a clobber on builds without resumePreview.
+  // TODO: remove once resumePreview has landed:
+  //  * https://bugzilla.mozilla.org/show_bug.cgi?id=779139#c21
   resume: function camera_resume() {
-    /*
-      Stream lifetime management doesn't seem to be
-      working propertly, so just stomp on everything
-      and start completely fresh.
-
-    this._cameraObj.getPreviewStream(null, function(stream) {
-      this.viewfinder.src = stream;
-    }.bind(this));
-    */
-    this.setSource(this._camera); /* STOMP */
+    if ('resumePreview' in this._cameraObj) {
+      this._cameraObj.resumePreview();
+    } else {
+      this.start();
+    }
+    this._previewActive = true;
   },
 
   showFilmStrip: function camera_showFilmStrip() {
@@ -348,10 +359,11 @@ var Camera = {
   },
 
   restartPreview: function camera_restartPreview() {
-    this.resume();
     this.captureButton.removeAttribute('disabled');
     this._filmStripTimer =
       window.setTimeout(this.hideFilmStrip.bind(this), 5000);
+    this._resumeViewfinderTimer =
+      window.setTimeout(this.resume.bind(this), 2000);
   },
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
@@ -388,12 +400,12 @@ var Camera = {
       if (e.target.result.freeBytes > MAX_IMAGE_SIZE) {
         this.showOverlay(null);
         if (!this._previewActive) {
-          this.resume();
+          this.stop();
         }
       } else {
         this.showOverlay('nospace');
         if (this._previewActive) {
-          this.pause();
+          this.start();
         }
       }
     }).bind(this);
@@ -463,9 +475,9 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
 
 document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
-    Camera.pause();
+    Camera.stop();
   } else {
-    Camera.resume();
+    Camera.start();
   }
 });
 
