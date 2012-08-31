@@ -112,6 +112,7 @@ var Camera = {
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
     this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
+    this.filmStrip.addEventListener('click', this.filmStripPressed.bind(this));
     this.switchButton
       .addEventListener('click', this.toggleModePressed.bind(this));
     this.captureButton
@@ -220,6 +221,17 @@ var Camera = {
     }
   },
 
+  filmStripPressed: function camera_filmStripPressed(e) {
+    if (e.target.nodeName !== 'IMG')
+      return;
+
+    //var filename = e.target.getAttribute('data-filename');
+    // TODO: We should launch the gallery with an activity that opens
+    // with the filename fullscreen, needs to be implemented in the gallery
+    // https://github.com/mozilla-b2g/gaia/issues/4161
+    this.galleryBtnPressed();
+  },
+
   setSource: function camera_setSource(camera) {
 
     this.viewfinder.src = null;
@@ -315,15 +327,15 @@ var Camera = {
     var strip = this.filmStrip;
     strip.innerHTML = '';
 
-    this._photosTaken.forEach(function(imageBlob) {
+    this._photosTaken.forEach(function(image) {
       var preview = document.createElement('img');
-      preview.src = window.URL.createObjectURL(imageBlob);
+      preview.src = window.URL.createObjectURL(image.blob);
+      preview.setAttribute('data-filename', image.name);
       preview.onload = function() {
         window.URL.revokeObjectURL(this.src);
       }
       strip.appendChild(preview);
     });
-
     strip.classList.remove('hidden');
     this._filmStripShown = true;
   },
@@ -341,21 +353,19 @@ var Camera = {
   },
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
-    var self = this;
     this._manuallyFocused = false;
-    this._photosTaken.unshift(blob);
-    this.showFilmStrip();
     this.hideFocusRing();
     this.restartPreview();
 
     var rightnow = new Date();
     var filename = 'img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
-
     var addreq = this._storage.addNamed(blob, filename);
-    addreq.onsuccess = function() {
-      console.log("image saved as '" + filename + "'");
-      self.checkStorageSpace();
-    };
+
+    addreq.onsuccess = (function() {
+      this._photosTaken.unshift({name: filename, blob: blob});
+      this.checkStorageSpace();
+      this.showFilmStrip();
+    }).bind(this);
 
     addreq.onerror = function() {
       console.log("failed to save image as '" + filename + "':" +
