@@ -278,11 +278,9 @@ var KeypadManager = {
       }
 
       activity.onsuccess = function() {
-        console.log("SUCCESS");
         reopenApp();
       };
       activity.onerror = function() {
-        console.log("ERROR");
         reopenApp();
       };
 
