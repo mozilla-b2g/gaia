@@ -85,7 +85,6 @@ Calendar.ns('Views').Month = (function() {
       });
 
       this.controller.on('monthChange', function(value) {
-        self.updateCurrentMonth();
         self.activateMonth(value);
         self._clearSelectedDay();
       });
@@ -163,29 +162,6 @@ Calendar.ns('Views').Month = (function() {
       // their finger of pan so we need to center
       // on the current element again.
       this.centerOnCurrent();
-    },
-
-    /**
-     * Returns month header html blob.
-     *
-     * @return {String} html blob with current month.
-     */
-    _renderCurrentMonth: function() {
-      var month = this.controller.month.getMonth(),
-          year = this.controller.month.getFullYear();
-
-      return template.currentMonth.render({
-        year: year,
-        month: this.monthNames[month]
-      });
-    },
-
-    /**
-     * Updates month header with the current month.
-     */
-    updateCurrentMonth: function() {
-      var html = this._renderCurrentMonth();
-      this.currentMonth.innerHTML = html;
     },
 
     /**
