@@ -124,6 +124,12 @@ body {
   visibility: hidden;
 }
 
+#windowSprite > div {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+}
+
 #screen.fullscreen-app > #windowSprite {
   height: 100%;
   top: 0;

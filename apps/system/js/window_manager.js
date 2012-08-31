@@ -163,6 +163,7 @@ var WindowManager = (function() {
   sprite.id = 'windowSprite';
   sprite.dataset.zIndexLevel = 'window-sprite';
   screenElement.appendChild(sprite);
+  sprite.appendChild(document.createElement('div'));
 
   // This event handler is triggered when the transition ends.
   // We're going to do two transitions, so it gets called twice.
