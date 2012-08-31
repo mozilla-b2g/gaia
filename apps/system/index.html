@@ -113,6 +113,7 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/core.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
+    <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
 
@@ -170,7 +171,7 @@
     </style>
   </head>
 
-  <body onload="startup()">
+  <body onload="startup()" role="application">
     <div id="screen" class="locked">
       <div id="initlogo" data-z-index-level="initlogo"></div>
 
@@ -237,6 +238,10 @@
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
       </div>
+
+      <section id="systemNotificationBanner" role="dialog" class="banner" data-z-index-level="system-notification-banner">
+        <p></p>
+      </section>
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <div id="trustedDialog">
