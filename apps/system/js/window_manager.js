@@ -743,6 +743,14 @@ var WindowManager = (function() {
     delete runningApps[origin];
     numRunningApps--;
 
+
+  // Reload the frame of the running app
+  function reload(origin) {
+    if (!isRunning(origin))
+      return;
+
+    var app = runningApps[origin];
+    app.frame.reload(true);
   }
 
   // Update the loading icon on the status bar
@@ -850,6 +858,7 @@ var WindowManager = (function() {
   return {
     launch: launch,
     kill: kill,
+    reload: reload,
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
     setAppSize: setAppSize,
