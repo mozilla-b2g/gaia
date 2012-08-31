@@ -42,7 +42,7 @@ var Bluetooth = {
       self.hackForTest(value);
     });
   },
-  
+
   //XXX hack due to the following bugs.
   hackForTest: function(enabled) {
     if (enabled) {
@@ -54,6 +54,7 @@ var Bluetooth = {
       } else {
         initDefaultAdapter();
       }
+    }
   },
 
   initDefaultAdapter: function bt_initDefaultAdapter() {
