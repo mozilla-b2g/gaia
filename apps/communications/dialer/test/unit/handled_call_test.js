@@ -1,10 +1,9 @@
-requireApp('communitcations/dialer/js/handled_call.js');
-requireApp('communitcations/dialer/shared/js/l10n.js');
+requireApp('communications/dialer/js/handled_call.js');
 
-requireApp('communitcations/dialer/test/unit/mock_call.js');
-requireApp('communitcations/dialer/test/unit/mock_contacts.js');
-requireApp('communitcations/dialer/test/unit/mock_call_screen.js');
-requireApp('communitcations/dialer/test/unit/mock_recents_db.js');
+requireApp('communications/dialer/test/unit/mock_call.js');
+requireApp('communications/dialer/test/unit/mock_contacts.js');
+requireApp('communications/dialer/test/unit/mock_call_screen.js');
+requireApp('communications/dialer/test/unit/mock_recents_db.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
