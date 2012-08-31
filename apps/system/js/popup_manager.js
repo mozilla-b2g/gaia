@@ -30,7 +30,7 @@ var PopupManager = {
   _hideWait: function pm_hideWait() {
     this.loadingIcon.classList.remove('popup-loading');
   },
- 
+
   open: function pm_open(name, frame, origin, trusted) {
     // Only one popup at a time. If the popup is being shown, we swap frames.
     if (this._currentPopup) {
@@ -40,6 +40,11 @@ var PopupManager = {
       // Save the current displayed app in order to show it after closing the
       // popup.
       this._lastDisplayedApp = WindowManager.getDisplayedApp();
+
+      // XXX: The correct approach here should be firing trustdialogshow
+      // and trustdialoghide events for WindowManager to handle the visibility,
+      // instead of exposing this internal method.
+
       // Show the homescreen.
       WindowManager.setDisplayedApp(null);
     }
