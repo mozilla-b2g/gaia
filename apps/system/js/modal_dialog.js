@@ -92,8 +92,7 @@ var ModalDialog = {
           WindowManager.kill(this.currentOrigin);
         } else if (evt.currentTarget === elements.errorReload) {
           this.cancelHandler();
-          WindowManager.kill(this.currentOrigin);
-          WindowManager.launch(this.currentOrigin);
+          WindowManager.reload(this.currentOrigin);
         } else if (evt.currentTarget === elements.confirmCancel ||
             evt.currentTarget === elements.promptCancel) {
           this.cancelHandler();
