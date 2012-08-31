@@ -588,6 +588,12 @@ var WindowManager = (function() {
     numRunningApps++;
   }
 
+  function removeFrame(origin) {
+    var app = runningApps[origin];
+    windows.removeChild(app.frame);
+    delete runningApps[origin];
+    numRunningApps--;
+  }
 
   // Start running the specified app.
   // In order to have a nice smooth open animation,
@@ -730,19 +736,21 @@ var WindowManager = (function() {
   });
 
   // Stop running the app with the specified origin
-  function kill(origin) {
+  function kill(origin, callback) {
     if (!isRunning(origin))
       return;
 
     // If the app is the currently displayed app, switch to the homescreen
-    if (origin === displayedApp)
-      setDisplayedApp(homescreen);
-
-    var app = runningApps[origin];
-    windows.removeChild(app.frame);
-    delete runningApps[origin];
-    numRunningApps--;
-
+    if (origin === displayedApp) {
+      setDisplayedApp(homescreen, function() {
+        removeFrame(origin);
+        if (callback)
+          setTimeout(callback);
+      });
+    } else {
+      removeFrame(origin);
+    }
+  }
 
   // Reload the frame of the running app
   function reload(origin) {
