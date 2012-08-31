@@ -6,6 +6,8 @@
 var ValueSelector = {
 
   _containers: {},
+  _popups: {},
+  _buttons: {},
 
   debug: function(msg) {
     var debugFlag = false;
@@ -57,11 +59,16 @@ var ValueSelector = {
       document.getElementById('value-selector-container');
     this._containers['select'].addEventListener('click', this);
 
-    this._cancelButton = document.getElementById('value-selector-cancel');
-    this._cancelButton.addEventListener('click', this);
+    this._popups['select'] =
+      document.getElementById('select-option-popup');
+    this._popups['time'] =
+      document.getElementById('time-picker-popup');
 
-    this._confirmButton = document.getElementById('value-selector-confirm');
-    this._confirmButton.addEventListener('click', this);
+    this._buttons['select'] = document.getElementById('select-options-buttons');
+    this._buttons['select'].addEventListener('click', this);
+
+    this._buttons['time'] = document.getElementById('time-picker-buttons');
+    this._buttons['time'].addEventListener('click', this);
 
     this._containers['time'] = document.getElementById('picker-bar');
 
@@ -79,12 +86,14 @@ var ValueSelector = {
       case 'click':
         var currentTarget = evt.currentTarget;
         switch (currentTarget) {
-          case this._cancelButton:
-            this.cancel();
-            break;
-
-          case this._confirmButton:
-            this.confirm();
+          case this._buttons['select']:
+          case this._buttons['time']:
+            var target = evt.target;
+            if (target.dataset.type == 'cancel') {
+              this.cancel();
+            } else if (target.dataset.type == 'ok') {
+              this.confirm();
+            }
             break;
 
           case this._containers['select']:
@@ -125,9 +134,9 @@ var ValueSelector = {
   showPanel: function vs_showPanel(type) {
     for (var p in this._containers) {
       if (p === type) {
-        this._containers[p].hidden = false;
+        this._popups[p].hidden = false;
       } else {
-        this._containers[p].hidden = true;
+        this._popups[p].hidden = true;
       }
     }
   },
@@ -191,7 +200,7 @@ var ValueSelector = {
 
   buildOptions: function(options) {
 
-    var optionHTML = '<ol>';
+    var optionHTML = '';
 
     for (var i = 0, n = options.length; i < n; i++) {
 
@@ -199,14 +208,26 @@ var ValueSelector = {
 
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
+                     '<label> <span>' +
                      options[i].text +
-                     '<span class="checkmark">&#10004;</span>' +
+                     '</span></label>' +
                     '</li>';
     }
 
-    optionHTML += '</ol>';
+    var optionsContainer = document.querySelector(
+                             '#value-selector-container ol');
+    if (!optionsContainer)
+      return;
 
-    this._containers['select'].innerHTML = optionHTML;
+    optionsContainer.innerHTML = optionHTML;
+
+
+    if (options.length > 5) {
+      this._containers['select'].dataset.mode = 'scroll';
+    } else {
+      this._containers['select'].dataset.mode = '';
+    }
+
   },
 
   showTimePicker: function vs_showTimePicker() {
