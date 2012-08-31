@@ -69,11 +69,12 @@ var ModalDialog = {
     var elements = this.elements;
     switch (evt.type) {
       case 'mozbrowsererror':
-        // XXX: another issue #3047
-        if (evt.detail.type == 'fatal')
-          return;
       case 'mozbrowsershowmodalprompt':
         if (evt.target.dataset.frameType != 'window')
+          return;
+
+        // XXX: another issue #3047
+        if (evt.type == 'mozbrowsererror' && evt.detail.type == 'fatal')
           return;
 
         evt.preventDefault();
