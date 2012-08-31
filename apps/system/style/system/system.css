@@ -239,7 +239,7 @@ iframe.backgroundWindow {
   pointer-events: auto;
 }
 
-#systemNotificationOverlay {
+#system-banner {
   z-index: 0;
   visibility: hidden;
   opacity: 0;
@@ -247,7 +247,7 @@ iframe.backgroundWindow {
   -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease, visibility 0.5s ease;
 }
 
-#systemNotificationOverlay.visible {
+#system-banner.visible {
   -moz-transform: translateY(0);
   visibility: visible;
   opacity: 1;

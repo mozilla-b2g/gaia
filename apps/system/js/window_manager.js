@@ -68,10 +68,8 @@ var WindowManager = (function() {
   var windows = document.getElementById('windows');
   var dialogOverlay = document.getElementById('dialog-overlay');
   var screenElement = document.getElementById('screen');
-  var notificationBanner =
-    document.getElementById('systemNotificationBanner');
-  var notificationContainer =
-    document.querySelector('#systemNotificationBanner p');
+  var banner = document.getElementById('system-banner');
+  var bannerContainer = banner.firstElementChild;
 
   //
   // The set of running apps.
@@ -446,10 +444,8 @@ var WindowManager = (function() {
     var homescreenFrame = runningApps[homescreen].frame;
     if ((newApp == homescreen) && homescreenFrame) {
       homescreenFrame.classList.add('active');
-      notificationBanner.classList.add('active');
     } else {
       homescreenFrame.classList.remove('active');
-      notificationBanner.classList.remove('active');
     }
 
     // Lock orientation as needed
@@ -736,18 +732,17 @@ var WindowManager = (function() {
     if (displayedApp == origin) {
       var origin = e.target.dataset.frameOrigin;
       var _ = navigator.mozL10n.get;
-      notificationBanner.addEventListener('transitionend',
+      banner.addEventListener('transitionend',
         function onTransitionEnd(transitionEvt) {
           if (transitionEvt.propertyName == 'visibility') {
             window.setTimeout(function timeout() {
-              notificationBanner.removeEventListener('transitionend',
-                onTransitionEnd);
-              notificationBanner.classList.remove('visible');
+              banner.removeEventListener('transitionend', onTransitionEnd);
+              banner.classList.remove('visible');
             }, 3000);
           }
        });
-      notificationBanner.classList.add('visible');
-      notificationContainer.textContent = _('foreground-app-crash-notification',
+      banner.classList.add('visible');
+      bannerContainer.textContent = _('foreground-app-crash-notification',
         { name: runningApps[origin].name });
     }
 
