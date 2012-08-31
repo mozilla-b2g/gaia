@@ -140,12 +140,16 @@ html, body {
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
   z-index: 50;
-  top: -50px;
+  -moz-transform: translateY(0px);
   left: 0;
   right: 0;
-  height: 30px;
   padding: 10px;
+  min-height: 30px;
   background: rgba(0, 0, 0, 0.8);
+}
+
+#film-strip.hidden {
+  -moz-transform: translateY(-50px);
 }
 
 #film-strip img {
