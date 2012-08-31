@@ -14,7 +14,7 @@
   Child.prototype = {
     __proto__: Calendar.View.prototype,
 
-    INACTIVE: 'inactive',
+    ACTIVE: 'active',
 
     busyPrecision: (24 / 12),
 
@@ -410,14 +410,14 @@
      * Activate this child view visually.
      */
     activate: function() {
-      this.element.classList.remove(this.INACTIVE);
+      this.element.classList.add(this.ACTIVE);
     },
 
     /**
      * Deactivate this child view visually.
      */
     deactivate: function() {
-      this.element.classList.add(this.INACTIVE);
+      this.element.classList.remove(this.ACTIVE);
     },
 
     /**
@@ -428,13 +428,15 @@
      *
      * @return {DOMElement} inserted dom node.
      */
-    attach: function(element) {
+    attach: function(element, prepend) {
       var html = this._renderMonth();
       var controller = this.controller;
+      var position = prepend ? 'afterbegin' : 'beforeend';
 
-
-      element.insertAdjacentHTML('beforeend', html);
-      this.element = element.children[element.children.length - 1];
+      element.insertAdjacentHTML(position, html);
+      this.element = element.children[
+        prepend ? 0 : element.children.length - 1
+      ];
 
       controller.queryCache(this.timespan).forEach(
         this._renderBusytime,

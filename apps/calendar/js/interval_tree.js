@@ -330,7 +330,7 @@ Calendar.IntervalTree = (function() {
         compareObjectStart
       );
 
-      var max = this.items.len - 1;
+      var max = this.items.length - 1;
 
       if (!this.items[idx])
         return;
@@ -384,7 +384,7 @@ Calendar.IntervalTree = (function() {
         compareObjectEnd
       );
 
-      var max = items.len - 1;
+      var max = items.length - 1;
 
       if (!items[idx])
         return;

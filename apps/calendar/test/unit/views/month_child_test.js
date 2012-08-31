@@ -40,7 +40,7 @@ suite('views/month_child', function() {
   });
 
   setup(function(done) {
-    this.timeout(10000);
+    this.timeout(20000);
     testEl = document.createElement('div');
     testEl.id = 'test';
     document.body.appendChild(testEl);
@@ -757,12 +757,12 @@ suite('views/month_child', function() {
 
     test('#activate', function() {
       subject.activate();
-      assert.ok(!list.contains(subject.INACTIVE));
+      assert.ok(list.contains(subject.ACTIVE));
     });
 
     test('#deactivate', function() {
       subject.deactivate();
-      assert.ok(list.contains(subject.INACTIVE));
+      assert.ok(!list.contains(subject.ACTIVE));
     });
 
   });
