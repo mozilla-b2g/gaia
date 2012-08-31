@@ -36,6 +36,17 @@ suite('view', function() {
     assert.equal(subject.element.id, el.id);
   });
 
+  test('#calendarId', function() {
+    assert.equal(
+      subject.calendarId('1'),
+      'calendar-id-1'
+    );
+
+    assert.equal(
+      subject.calendarId({ calendarId: 1 }),
+      'calendar-id-1'
+    );
+  });
 
   suite('clean css', function() {
     test('#cssClean', function() {
