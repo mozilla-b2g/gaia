@@ -65,6 +65,16 @@
     _initEvents: function() {
       var self = this;
       this.controller.on('selectedDayChange', this);
+      this.events.addEventListener('click', function(e) {
+        var target = e.target;
+        while (!target.isEqualNode(self.events)) {
+          if (target.classList.contains('event')) {
+            Calendar.App.router.show('/event/' + target.dataset.id);
+            break;
+          }
+          target = target.parentNode;
+        }
+      });
     },
 
     handleEvent: function(e) {
@@ -316,6 +326,7 @@
       }
 
       return template.event.render({
+        eventId: object._id,
         calendarId: object.calendarId,
         title: remote.title,
         location: remote.location,

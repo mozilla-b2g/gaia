@@ -74,6 +74,8 @@ Calendar.App = (function(window) {
         '/advanced-settings/', setPath, 'AdvancedSettings'
       );
 
+      this.state('/event/:id', setPath, 'ModifyEvent');
+
       this.modifier('/select-preset/', setPath, 'CreateAccount');
       this.modifier('/create-account/:preset', setPath, 'ModifyAccount');
       this.modifier('/update-account/:id', setPath, 'ModifyAccount');
