@@ -13,24 +13,27 @@ function makeURL(name, ep) {
 let content = {
   grid: [
     [ // page 1
-      makeURL('email'),
-      makeURL('video'),
-      makeURL('camera'),
-      makeURL('gallery'),
-      makeURL('music'),
-      makeURL('calendar'),
-      makeURL('calculator'),
-      makeURL('settings'),
-      makeURL('clock'),
-      makeURL('fm'),
-      makeURL('pdfjs'),
-      'https://marketplace.mozilla.org/telefonica/'
+      makeURL("camera"),
+      makeURL("gallery"),
+      makeURL("fm"),
+      makeURL("settings"),
+      "https://marketplace.mozilla.org/telefonica/"
+    ],
+    [ // page 2
+      makeURL("calendar"),
+      makeURL("clock"),
+      makeURL("costcontrol"),
+      makeURL("email"),
+      makeURL("music"),
+      makeURL("video"),
+      makeURL("calculator"),
+      makeURL("pdfjs")
     ]
   ],
   dock: [
-    makeURL('comms', 'dialer'),
+    makeURL('communications', 'dialer'),
     makeURL('sms'),
-    makeURL('comms', 'contacts'),
+    makeURL('communications', 'contacts'),
     makeURL('browser')
   ]
 }
