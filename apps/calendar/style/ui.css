@@ -461,7 +461,6 @@ Indicators are in units of 12
   float: left;
 }
 
-#view-selector > li.toggle-settings,
 #view-selector > li.today {
   width: 25%;
   height: 3.33rem;
@@ -469,22 +468,11 @@ Indicators are in units of 12
   border-right: 1px solid black;
 }
 
-.rtl #view-selector > li.toggle-settings,
 .rtl #view-selector > li.today {
   border-left: 1px solid #666;
 }
 
 
-#view-selector > li.toggle-settings,
-body[data-path="/settings/"] #view-selector .today {
-  display: none;
-}
-
-body[data-path^="/settings/"] #view-selector .toggle-settings {
-  display: block !important;
-}
-
-.ltr #view-selector > li.toggle-settings,
 .ltr #view-selector > li.today {
   border-right: 1px solid #666;
 }

@@ -1,17 +1,21 @@
 /* calendar settings */
 
-body[data-path^="/settings/"][role="application"] #wrapper {
+body[data-path^="/settings/"] #wrapper {
   position: relative;
-  -moz-transform: translateX(75%);
+  -moz-transform: translateX(80%);
   box-shadow: 1px 1px 5px 5px #222;
   z-index: 2;
 
   -moz-transition: -moz-transform 0.1s ease-in-out;
 }
 
-body[role="application"] #wrapper {
+body #wrapper {
   -moz-transform: translateX(0%);
   -moz-transition: -moz-transform 0.1s ease-in-out;
+}
+
+body[data-path^="/settings/"] #time-header {
+  margin-left: 0;
 }
 
 #settings.active {
@@ -22,7 +26,7 @@ body[role="application"] #wrapper {
   font-size: 1.6rem;
   color: white;
   display: none;
-  width: 75%;
+  width: 80%;
 }
 
 body[data-path^="/settings/"] #settings {
