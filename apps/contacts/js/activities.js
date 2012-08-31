@@ -12,6 +12,14 @@ var ActivityHandler = {
 
     return this._currentActivity.source.name;
   },
+  
+  get activityDataType() {
+    if (!this._currentActivity) {
+      return null;
+    }
+
+    return this._currentActivity.source.data.type;
+  },
 
   handle: function ah_handle(activity) {
     this._currentActivity = activity;
@@ -39,8 +47,8 @@ var ActivityHandler = {
     this._currentActivity = null;
   },
 
-  postPickSuccess: function ah_postPickSuccess(number) {
-    this._currentActivity.postResult({ number: number });
+  postPickSuccess: function ah_postPickSuccess(result) {
+    this._currentActivity.postResult(result);
     this._currentActivity = null;
   },
 
