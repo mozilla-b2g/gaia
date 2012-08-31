@@ -123,7 +123,7 @@ window.addEventListener('localized', function startup(evt) {
 });
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  // Workaround here until the bug (to be filed) is fixed
+  // Workaround here until the bug 787415 is fixed
   // Gecko is sending an activity event in every multiple entry point
   // instead only the one that the href match.
   if (activity.source.name != 'dial')
@@ -152,11 +152,13 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   activity.postResult({ status: 'accepted' });
 });
 
-window.onresize = function (e) {
+// Listening to the keyboard being shown
+// Waiting for issue 787444 being fixed
+window.onresize = function(e) {
   if (window.innerHeight < 460) {
     document.body.classList.add('with-keyboard');
   } else {
     document.body.classList.remove('with-keyboard');
   }
-}
+};
 
