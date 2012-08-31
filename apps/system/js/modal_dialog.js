@@ -73,7 +73,7 @@ var ModalDialog = {
         if (evt.target.dataset.frameType != 'window')
           return;
 
-        // XXX: another issue #3047
+        // XXX: another issue #3043
         if (evt.type == 'mozbrowsererror' && evt.detail.type == 'fatal')
           return;
 
