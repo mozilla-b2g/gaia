@@ -694,8 +694,8 @@ MessageReaderCard.prototype = {
 
   onMove: function() {
     //TODO: Open the folder card view and pick a folder.
-    var op = this.header.moveMessage(folder);
-    Toaster.logMutation(op);
+    // var op = this.header.moveMessage(folder);
+    // Toaster.logMutation(op);
   },
 
   /**
