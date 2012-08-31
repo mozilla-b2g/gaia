@@ -4,6 +4,7 @@
 
 var PopupManager = {
   _currentPopup: null,
+  _lastDisplayedApp: null,
   _endTimes: 0,
   _startTimes: 0,
 
@@ -29,17 +30,27 @@ var PopupManager = {
   _hideWait: function pm_hideWait() {
     this.loadingIcon.classList.remove('popup-loading');
   },
+ 
+  open: function pm_open(name, frame, origin, trusted) {
+    // Only one popup at a time. If the popup is being shown, we swap frames.
+    if (this._currentPopup) {
+      this.container.removeChild(this._currentPopup);
+      this._currentPopup = null;
+    } else if (trusted) {
+      // Save the current displayed app in order to show it after closing the
+      // popup.
+      this._lastDisplayedApp = WindowManager.getDisplayedApp();
+      // Show the homescreen.
+      WindowManager.setDisplayedApp(null);
+    }
 
-  open: function pm_open(evt) {
-    // only one popup at a time
-    if (this._currentPopup)
-      return;
+    this._currentPopup = frame;
 
-    this._currentPopup = evt.detail.frameElement;
     var popup = this._currentPopup;
-    popup.dataset.frameType = 'popup';
-    popup.dataset.frameName = evt.detail.name;
-    popup.dataset.frameOrigin = evt.target.dataset.frameOrigin;
+    var dataset = popup.dataset;
+    dataset.frameType = 'popup';
+    dataset.frameName = name;
+    dataset.frameOrigin = origin;
 
     this.container.appendChild(popup);
 
@@ -47,6 +58,35 @@ var PopupManager = {
 
     popup.addEventListener('mozbrowserloadend', this);
     popup.addEventListener('mozbrowserloadstart', this);
+  },
+
+  close: function pm_close(evt, callback) {
+    if (evt && (!'frameType' in evt.target.dataset ||
+        evt.target.dataset.frameType !== 'popup'))
+      return;
+
+    this.screen.classList.remove('popup');
+
+    var self = this;
+    this.container.addEventListener('transitionend', function trWait() {
+      self.container.removeEventListener('transitionend', trWait);
+      self.container.removeChild(self._currentPopup);
+      self._currentPopup = null;
+
+      // If the popup was opened as a trusted UI on top of the homescreen
+      // we show the last displayed application.
+      if (self._lastDisplayedApp) {
+        WindowManager.setDisplayedApp(self._lastDisplayedApp);
+        self._lastDisplayedApp = null;
+      }
+
+      if (callback)
+        callback();
+    });
+
+    // We just removed the focused window leaving the system
+    // without any focused window, let's fix this.
+    window.focus();
   },
 
   // Workaround for Bug: 781452
@@ -67,25 +107,6 @@ var PopupManager = {
       if (this._endTimes > 1) {
         this._hideWait();
       }
-  },
-
-  close: function pm_close(evt) {
-    if (evt && (!'frameType' in evt.target.dataset ||
-        evt.target.dataset.frameType !== 'popup'))
-      return;
-
-    this.screen.classList.remove('popup');
-
-    var self = this;
-    this.container.addEventListener('transitionend', function trWait() {
-      self.container.removeEventListener('transitionend', trWait);
-      self.container.removeChild(self._currentPopup);
-      self._currentPopup = null;
-    });
-
-    // We just removed the focused window leaving the system
-    // without any focused window, let's fix this.
-    window.focus();
   },
 
   backHandling: function pm_backHandling(evt) {
@@ -109,7 +130,8 @@ var PopupManager = {
         this.handleLoadEnd(evt);
         break;
       case 'mozbrowseropenwindow':
-        this.open(evt);
+        this.open(evt.detail.name, evt.detail.frameElement,
+                  evt.target.dataset.frameOrigin, false);
         break;
       case 'mozbrowserclose':
         this.close(evt);

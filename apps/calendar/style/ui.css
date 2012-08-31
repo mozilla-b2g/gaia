@@ -166,6 +166,7 @@ p {
 #month-days li {
   width: 14.28%;
   line-height: 120%;
+  -moz-user-select: none;
 }
 
 .rtl #month-days li,
