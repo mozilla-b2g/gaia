@@ -21,6 +21,11 @@ var TrustedDialog = (function() {
       // trusted dialog.
       lastDisplayedApp = WindowManager.getDisplayedApp();
       // Show the homescreen.
+
+      // XXX: The correct approach here should be firing trustdialogshow
+      // and trustdialoghide events for WindowManager to handle the visibility,
+      // instead of exposing this internal method.
+
       WindowManager.setDisplayedApp(null);
     }
 
