@@ -25,6 +25,35 @@
   width: 20rem;
 }
 
+.sup-progress-region {
+  padding: 0.5rem;
+}
+.sup-progress-spinner {
+  width: 2.9rem;
+  height: 2.9rem;
+  background: url("images/spinner.png") no-repeat scroll left top transparent;
+  border: medium none;
+  animation: 1s steps(10, end) 0s normal none infinite moveDefault;
+  display: inline-block;
+  vertical-align: middle;
+}
+.sup-progress-label {
+  display: inline-block;
+  vertical-align: middle;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+@keyframes moveDefault {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -390px top;
+  }
+}
+
 .tng-header-item {
   font-weight: bold;
   background-color: #eee;
