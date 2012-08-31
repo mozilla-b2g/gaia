@@ -111,7 +111,7 @@ var Camera = {
 
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
-    this.viewfinder.addEventListener('click', this.autoFocus.bind(this));
+    this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
     this.switchButton
       .addEventListener('click', this.toggleModePressed.bind(this));
     this.captureButton
@@ -212,17 +212,12 @@ var Camera = {
     document.body.classList.add(mode);
   },
 
-  autoFocus: function camera_autoFocus(ev) {
-    if (!this._autoFocusSupported) {
-      return;
+  toggleFilmStrip: function camera_toggleFilmStrip(ev) {
+    if (this._filmStripShown) {
+      this.hideFilmStrip();
+    } else {
+      this.showFilmStrip();
     }
-
-    this.focusRing.setAttribute('data-state', 'focusing');
-    this._cameraObj.autoFocus(function onAutofocus(success) {
-      this._manuallyFocused = success;
-      this.focusRing.setAttribute('data-state', success ? 'focused' : 'fail');
-      window.setTimeout(this.hideFocusRing.bind(this), 1000);
-    }.bind(this));
   },
 
   setSource: function camera_setSource(camera) {
