@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*
@@ -1010,12 +1010,20 @@ const IMEController = (function() {
 
   // Turn to default values
   function _reset() {
+    console.log('resetting');
     _currentLayoutMode = LAYOUT_MODE_DEFAULT;
-    _isUpperCase = false;
-    if (_currentInputType == 'text') {
-      _isUpperCase = true;
-    }
+    _isUpperCase = (_currentInputType === 'text');
+    _isUpperCaseLocked = false;
     _lastKeyCode = 0;
+
+    _draw(
+      _baseLayoutName, _currentInputType,
+      _currentLayoutMode, _isUpperCase
+    );
+
+    var query = 'button[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]';
+    var capsLockKey = document.querySelector(query);
+    IMERender.setUpperCaseLock(capsLockKey, _isUpperCase);
   }
 
   var _imeEvents = {
@@ -1046,10 +1054,6 @@ const IMEController = (function() {
         IMERender.ime.addEventListener(event, callback.bind(this));
     }
     _dimensionsObserver.observe(IMERender.ime, _dimensionsObserverConfig);
-
-    if (_currentInputType == 'text') {
-      _isUpperCase = true;
-    }
   }
 
   // Finalizes the keyboard (exposed, controlled by IMEManager)
@@ -1116,6 +1120,7 @@ const IMEController = (function() {
       _prepareLayoutParams(_layoutParams);
       this.updateLayoutParams();
 
+      _reset();
       _notifyShowKeyboard(true);
     },
 
@@ -1123,7 +1128,6 @@ const IMEController = (function() {
     hideIME: function kc_hideIME(imminent) {
       IMERender.ime.classList.add('hide');
       IMERender.hideIME(imminent);
-      _reset();
     },
 
     // Controlled by IMEManager, i.e. when orientation change
