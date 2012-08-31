@@ -250,7 +250,7 @@ setService(function cc_setupCostControlService() {
       // INMHO: this is a conceptual mistake in states.
       var starttime = (new Date()).getTime();
       telCall.onconnected = function cc_onTelCallConnected() {
-        starttime = (new Date()).getTime();;
+        starttime = (new Date()).getTime();
       };
 
       // Duration and calltime update
