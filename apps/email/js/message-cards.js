@@ -714,8 +714,46 @@ MessageReaderCard.prototype = {
     }
     // - peep click
     else {
-      // XXX view contact...
+      this.onPeepClick(target);
     }
+  },
+
+  onPeepClick: function(target) {
+    var contents = msgNodes['contact-menu'].cloneNode(true);
+    Cards.popupMenuForNode(contents, target, ['menu-item'],
+      function(clickedNode) {
+        if (!clickedNode)
+          return;
+
+        switch (clickedNode.classList[0]) {
+          // All of these mutations are immediately reflected, easily observed
+          // and easily undone, so we don't show them as toaster actions.
+          case 'msg-contact-menu-view':
+            try {
+              //TODO: Provide correct params for contact activiy handler.
+              var email = target.querySelector('.msg-peep-address').textContent;
+              var activity = new MozActivity({
+                name: 'new',
+                data: {
+                  type: 'webcontacts/contact',
+                  params: {
+                    'email': email
+                  }
+                }
+              });
+            } catch (e) {
+              console.log('WebActivities unavailable? : ' + e);
+            }
+            break;
+          case 'msg-contact-menu-reply':
+            //TODO: We need to enter compose view with specific email address.
+            var composer = this.header.replyToMessage(null, function() {
+              Cards.pushCard('compose', 'default', 'animate',
+                             { composer: composer });
+            });
+            break;
+        }
+      }.bind(this));
   },
 
   onLoadBarClick: function(event) {
