@@ -96,9 +96,17 @@ setService(function cc_setupCostControlService() {
       window.dispatchEvent(_newLocalSettingsChangeEvent(key, value, oldValue));
     }
 
+    // Sometimes you need to use a reviver to get the proper value for a
+    // stored key. Use this function instead of one-parameter _option()
+    // methods.
+    function _revive(key, reviver) {
+      return JSON.parse(window.localStorage.getItem(key), reviver);
+    }
+
     return {
       observe: _observe,
-      option: _option
+      option: _option,
+      revive: _revive
     };
   }());
 
@@ -124,9 +132,7 @@ setService(function cc_setupCostControlService() {
 
   // Returns stored balance
   function _getLastBalance() {
-    var balance = window.localStorage.getItem('lastBalance');
-    balance = (balance !== null) ? JSON.parse(balance, Balance.reviver) : null;
-    return balance;
+    return _appSettings.revive('lastbalance', Balance.reviver);
   }
 
   // Return true if the widget has all the information required to
@@ -378,7 +384,7 @@ setService(function cc_setupCostControlService() {
       case 'costcontrolperiodicallyupdate':
 
         // Abort if it have not passed enough time since last update
-        var balance = _getLastBalance();
+        var balance = _getlastbalance();
         var lastUpdate = balance ? balance.timestamp : null;
         var now = (new Date()).getTime();
         if (lastUpdate === null ||
@@ -448,7 +454,7 @@ setService(function cc_setupCostControlService() {
     _dispatchEvent(_getEventName(STATE_UPDATING_BALANCE, 'success'), balance);
 
     // Store values
-    window.localStorage.setItem('lastBalance', JSON.stringify(balance));
+    _appSettings.option('lastbalance', balance);
   }
 
   // When a message is received, the function tries to recognize
