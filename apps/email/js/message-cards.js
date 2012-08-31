@@ -86,13 +86,8 @@ function MessageListCard(domNode, mode, args) {
   // - toolbar: edit mode
   domNode.getElementsByClassName('msg-star-btn')[0]
     .addEventListener('click', this.onStarMessages.bind(this, true), false);
-  domNode.getElementsByClassName('msg-unstar-btn')[0]
-    .addEventListener('click', this.onStarMessages.bind(this, false), false);
   domNode.getElementsByClassName('msg-mark-read-btn')[0]
     .addEventListener('click', this.onMarkMessagesRead.bind(this, true), false);
-  domNode.getElementsByClassName('msg-mark-unread-btn')[0]
-    .addEventListener('click', this.onMarkMessagesRead.bind(this, false),
-                      false);
 
   this.editMode = false;
   this.selectedMessages = null;
@@ -160,14 +155,8 @@ MessageListCard.prototype = {
       mozL10n.get('message-multiedit-header',
                   { n: this.selectedMessages.length });
 
-    var starBtn =
-          this.domNode.getElementsByClassName('msg-star-btn')[0],
-        unstarBtn =
-          this.domNode.getElementsByClassName('msg-unstar-btn')[0],
-        readBtn =
-          this.domNode.getElementsByClassName('msg-mark-read-btn')[0],
-        unreadBtn =
-          this.domNode.getElementsByClassName('msg-mark-unread-btn')[0];
+    var starBtn = this.domNode.getElementsByClassName('msg-star-btn')[0],
+        readBtn = this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
 
     // Enabling/disabling rules (not UX-signed-off):  Our bias is that people
     // want to star messages and mark messages unread (since it they naturally
@@ -182,28 +171,21 @@ MessageListCard.prototype = {
         numRead++;
     }
 
-    // Show unstar if everything is starred, otherwise star
-    if (numStarred && numStarred === this.selectedMessages.length) {
-      // show 'unstar'
-      starBtn.classList.add('collapsed');
-      unstarBtn.classList.remove('collapsed');
-    }
-    else {
-      // show 'star'
-      starBtn.classList.remove('collapsed');
-      unstarBtn.classList.add('collapsed');
-    }
-    // Show read if everything is unread, otherwise unread
-    if (this.selectedMessages.length && numRead === 0) {
-      // show 'read'
-      readBtn.classList.remove('collapsed');
-      unreadBtn.classList.add('collapsed');
-    }
-    else {
-      // show 'unread'
-      readBtn.classList.add('collapsed');
-      unreadBtn.classList.remove('collapsed');
-    }
+    // Unstar if everything is starred, otherwise star
+    this.setAsStarred = !(numStarred && numStarred ===
+                          this.selectedMessages.length);
+    // Mark read if everything is unread, otherwise unread
+    this.setAsRead = (this.selectedMessages.length && numRead === 0);
+
+    if (!this.setAsStarred)
+      starBtn.classList.add('msg-btn-active');
+    else
+      starBtn.classList.remove('msg-btn-active');
+
+    if (this.setAsRead)
+      readBtn.classList.add('msg-btn-active');
+    else
+      readBtn.classList.remove('msg-btn-active');
   },
 
   _hideSearchBoxByScrolling: function() {
@@ -520,14 +502,15 @@ MessageListCard.prototype = {
     this.messagesSlice.refresh();
   },
 
-  onStarMessages: function(/* curried by bind */ beStarred) {
-    var op = MailAPI.markMessagesStarred(this.selectedMessages, beStarred);
+  onStarMessages: function() {
+    var op = MailAPI.markMessagesStarred(this.selectedMessages,
+                                         this.setAsStarred);
     this.setEditMode(false);
     Toaster.logMutation(op);
   },
 
-  onMarkMessagesRead: function(/* curried by bind */ beRead) {
-    var op = MailAPI.markMessagesRead(this.selectedMessages, beRead);
+  onMarkMessagesRead: function() {
+    var op = MailAPI.markMessagesRead(this.selectedMessages, this.setAsRead);
     this.setEditMode(false);
     Toaster.logMutation(op);
   },
@@ -613,9 +596,9 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-delete-btn')[0]
     .addEventListener('click', this.onDelete.bind(this), false);
   domNode.getElementsByClassName('msg-star-btn')[0]
-    .addEventListener('click', this.onStar.bind(this), false);
-  domNode.getElementsByClassName('msg-unread-btn')[0]
-    .addEventListener('click', this.onMarkUnread.bind(this), false);
+    .addEventListener('click', this.onToggleStar.bind(this), false);
+  domNode.getElementsByClassName('msg-mark-read-btn')[0]
+    .addEventListener('click', this.onToggleRead.bind(this), false);
   domNode.getElementsByClassName('msg-move-btn')[0]
     .addEventListener('click', this.onMove.bind(this), false);
 
@@ -636,6 +619,10 @@ function MessageReaderCard(domNode, mode, args) {
   // - mark message read (if it is not already)
   if (!this.header.isRead)
     this.header.setRead(true);
+
+  if (this.header.isStarred)
+    domNode.getElementsByClassName('msg-star-btn')[0].classList
+           .add('msg-btn-active');
 }
 MessageReaderCard.prototype = {
   postInsert: function() {
@@ -682,13 +669,25 @@ MessageReaderCard.prototype = {
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
 
-  onStar: function() {
-    var op = this.header.setStarred(this.header.isStarred);
+  onToggleStar: function() {
+    var button = this.domNode.getElementsByClassName('msg-star-btn')[0];
+    if (!this.header.isStarred)
+      button.classList.add('msg-btn-active');
+    else
+      button.classList.remove('msg-btn-active');
+
+    var op = this.header.setStarred(!this.header.isStarred);
     Toaster.logMutation(op);
   },
 
-  onMarkUnread: function() {
-    var op = this.header.setRead(false);
+  onToggleRead: function() {
+    var button = this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
+    if (this.header.isRead)
+      button.classList.add('msg-btn-active');
+    else
+      button.classList.remove('msg-btn-active');
+
+    var op = this.header.setRead(!this.header.isRead);
     Toaster.logMutation(op);
   },
 
