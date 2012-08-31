@@ -92,7 +92,7 @@ var AttentionScreen = {
     this.dispatchEvent('status-inactive');
     this.attentionScreen.removeChild(evt.target);
 
-    if (this.attentionScreen.innerHTML === '')
+    if (this.attentionScreen.querySelector('iframe').length == 0)
       this.attentionScreen.classList.remove('displayed');
 
     if (this._screenInitiallyDisabled)
@@ -142,7 +142,6 @@ var AttentionScreen = {
   dispatchEvent: function ls_dispatchEvent(name) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(name, true, true, null);
- 
     window.dispatchEvent(evt);
   },
 
