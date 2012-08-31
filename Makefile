@@ -298,6 +298,7 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
+.PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
 	rm -rf xulrunner-sdk
