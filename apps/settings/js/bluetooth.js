@@ -297,7 +297,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     //XXX mozBluetooth is not a singleton
     //so the setting in System app won't take effect here
     //https://bugzilla.mozilla.org/show_bug.cgi?id=782588
-    bluetooth.setEnabled(enabled);
     if (enabled) {
       //XXX there is no "bluetooth.onenabled" callback can be hooked.
       //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
