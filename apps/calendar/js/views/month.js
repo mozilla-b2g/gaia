@@ -10,6 +10,8 @@ Calendar.ns('Views').Month = (function() {
 
     this.controller = this.app.timeController;
     this.children = Object.create(null);
+
+    this.centerOnCurrent = this.centerOnCurrent.bind(this);
     this._initEvents();
   }
 
@@ -41,6 +43,7 @@ Calendar.ns('Views').Month = (function() {
     ],
 
     SELECTED: 'selected',
+    ATTACH_AS_FIRST: true,
 
     busyPercision: (24 / 12),
 
@@ -76,7 +79,6 @@ Calendar.ns('Views').Month = (function() {
         id = Calendar.Calc.getDayId(newVal);
         id = self.currentChild._dayId(id);
         el = document.getElementById(id);
-
         if (el) {
           el.classList.add('selected');
         }
@@ -89,6 +91,10 @@ Calendar.ns('Views').Month = (function() {
       });
 
       new GestureDetector(months).startDetecting();
+
+      months.addEventListener('pan', function(data) {
+        self._onpan.apply(self, arguments);
+      });
 
       months.addEventListener('swipe', function(data) {
         self._onswipe.apply(self, arguments);
@@ -105,6 +111,21 @@ Calendar.ns('Views').Month = (function() {
 
     get currentMonth() {
       return this._findElement('currentMonth');
+    },
+
+    panThreshold: window.innerWidth / 2.5,
+    monthOffset: window.innerWidth * -1,
+
+    _onpan: function month_onPan(event) {
+      this._moveChildren(event.detail.absolute.dx);
+    },
+
+    _moveChildren: function(offset) {
+      var rule = 'translateX(' + (this.monthOffset + offset) + 'px)';
+
+      this.previousChild.element.style.transform = rule;
+      this.nextChild.element.style.transform = rule;
+      this.currentChild.element.style.transform = rule;
     },
 
     _ontap: function(event) {
@@ -129,12 +150,19 @@ Calendar.ns('Views').Month = (function() {
     },
 
     _onswipe: function(event) {
-      var direction = event.detail.direction;
-      if (direction === 'right') {
-        this.previous();
-      } else {
-        this.next();
+      if (Math.abs(event.detail.dx) > this.panThreshold) {
+        var direction = event.detail.direction;
+        if (direction === 'right') {
+          this.previous();
+        } else {
+          this.next();
+        }
       }
+
+      // swipe is fired after the user moves
+      // their finger of pan so we need to center
+      // on the current element again.
+      this.centerOnCurrent();
     },
 
     /**
@@ -196,32 +224,83 @@ Calendar.ns('Views').Month = (function() {
      *                    a given month.
      */
     activateMonth: function(date) {
-      var id = Calendar.Calc.getMonthId(date),
+      var display = this.container,
+          previousDate = new Date(
+            date.getFullYear(),
+            date.getMonth() - 1,
+            1
+          ),
+          nextDate = new Date(
+            date.getFullYear(),
+            date.getMonth() + 1,
+            1
+          ),
+          previousId = Calendar.Calc.getMonthId(previousDate),
+          nextId = Calendar.Calc.getMonthId(nextDate),
+          id = Calendar.Calc.getMonthId(date),
           el,
           currentEl;
 
-      if (id in this.children) {
+      // Hide old months first
+      if (this.currentChild)
         this.currentChild.deactivate();
+      if (this.previousChild)
+        this.previousChild.deactivate();
+      if (this.nextChild)
+        this.nextChild.deactivate();
+
+      if (id in this.children) {
         this.currentChild = this.children[id];
         this.currentChild.activate();
       } else {
-        var display = this.container;
-
-        if (this.currentChild) {
-          this.currentChild.deactivate();
-        }
 
         this.currentChild = new Calendar.Views.MonthChild({
           app: this.app,
           month: date
         });
 
-
         this.currentChild.attach(display);
         this.currentChild.activate();
 
         this.children[id] = this.currentChild;
       }
+
+      if (previousId in this.children) {
+        this.previousChild = this.children[previousId];
+        this.previousChild.activate();
+      } else {
+
+        this.previousChild = new Calendar.Views.MonthChild({
+          app: this.app,
+          month: previousDate
+        });
+
+        // second parameter (prepend) determines if we attach
+        // the month at the beginning or the end.
+        this.previousChild.attach(display, this.ATTACH_AS_FIRST);
+        this.previousChild.activate();
+        this.children[previousId] = this.previousChild;
+      }
+
+      if (nextId in this.children) {
+         this.nextChild = this.children[nextId];
+         this.nextChild.activate();
+       } else {
+
+         this.nextChild = new Calendar.Views.MonthChild({
+           app: this.app,
+           month: nextDate
+         });
+
+         this.nextChild.attach(display);
+         this.nextChild.activate();
+
+         this.children[nextId] = this.nextChild;
+       }
+    },
+
+    centerOnCurrent: function() {
+      this._moveChildren(0);
     },
 
     /**
@@ -238,6 +317,7 @@ Calendar.ns('Views').Month = (function() {
       );
 
       this.controller.move(now);
+      this.centerOnCurrent();
     }
 
   };

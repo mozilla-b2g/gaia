@@ -4,7 +4,7 @@
       '<section class="hour-{hour} {classes} calendar-display">',
         '<h4>',
           '<span class="calendar-color"></span>',
-          '{displayHour}',
+          '<span class="display-hour {hour}">{displayHour}</span>',
         '</h4>',
         '<ol class="events">',
           '{items|s}',
@@ -26,6 +26,8 @@
       '</li>'
     ].join('')
   });
+
+  Day.hourEventsSelector = '.events';
 
   Calendar.ns('Templates').Day = Day;
 }(this));

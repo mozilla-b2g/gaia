@@ -121,11 +121,6 @@ var ScreenManager = {
           });
         })();
 
-        (function playBootSound() {
-          var bootAudio = new Audio('./resources/sounds/boot.ogg');
-          bootAudio.play();
-        })();
-
         self._firstOn = true;
         self.turnScreenOn();
       }

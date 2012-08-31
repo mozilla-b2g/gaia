@@ -169,61 +169,14 @@ var MessageManager = {
   },
 
   send: function mm_send(number, text, callback, errorHandler) {
-    var settings = window.navigator.mozSettings,
-        throwGeneralError;
-
-    throwGeneralError = function() {
-      CustomDialog.show(
-        _('sendGeneralErrorTitle'),
-        _('sendGeneralErrorBody'),
-        {
-          title: _('sendGeneralErrorBtnOk'),
-          callback: function() {
-            CustomDialog.hide();
-          }
-        }
-      );
+    var req = navigator.mozSms.send(number, text);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
     };
 
-    if (settings) {
-      var req = settings.getLock().get('ril.radio.disabled');
-
-      req.addEventListener('success', function onsuccess() {
-        var status = req.result['ril.radio.disabled'];
-
-        if (!status) {
-          callbackSend();
-        } else {
-          CustomDialog.show(
-            _('sendFlightModeTitle'),
-            _('sendFlightModeBody'),
-            {
-              title: _('sendFlightModeBtnOk'),
-              callback: function() {
-                CustomDialog.hide();
-              }
-            }
-          );
-        }
-      });
-
-      req.addEventListener('error', function onerror() {
-        throwGeneralError();
-      });
-
-      var callbackSend = function() {
-        var req = navigator.mozSms.send(number, text);
-        req.onsuccess = function onsuccess() {
-          callback(req.result);
-        };
-
-        req.onerror = function onerror() {
-          errorHandler(number);
-        };
-      }
-    } else {
-      throwGeneralError();
-    }
+    req.onerror = function onerror() {
+      errorHandler(number);
+    };
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
@@ -743,20 +696,28 @@ var ThreadUI = {
     var self = this;
     self.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
-      var carrier = document.getElementById('contact-carrier');
+      //TODO what if return multiple contacts?
+      var carrierTag = document.getElementById('contact-carrier');
       if (contact.length > 0) { // we have a contact
-        if (contact[0].name && contact[0].name != '') { // contact with name
-          self.title.innerHTML = contact[0].name;
-          carrier.innerHTML =
-                  contact[0].tel[0].type + ' | ' +
-                  (contact[0].tel[0].carrier || _('carrier-unknown'));
+        var name = contact[0].name,
+            phone = contact[0].tel[0];
+        // Check which of the contacts phone we are using
+        for (var i = 0; i < contact[0].tel.length; i++) {
+          if (contact[0].tel[i].value == number) {
+            phone = contact[0].tel[i];
+          }
+        }
+        if (name && name != '') { // contact with name
+          self.title.innerHTML = name;
+          carrierTag.innerHTML =
+                  phone.type + ' | ' +
+                  (phone.carrier || _('carrier-unknown'));
     // TODO check if contact has different numbers with same type and carrier
         } else { // no name of contact
-          carrier.innerHTML =
-                  contact[0].tel[0].type;
+          carrierTag.innerHTML = phone.type;
         }
       } else { // we don't have a contact
-        carrier.style.display = 'none';
+        carrierTag.style.display = 'none';
       }
     });
   },
@@ -1034,74 +995,133 @@ var ThreadUI = {
   },
 
   sendMessage: function thui_sendMessage(resendText) {
-    // Retrieve num depending on hash
-    var hash = window.location.hash;
-    // Depending where we are, we get different num
-    if (hash == '#new') {
-      var num = this.contactInput.value;
-    } else {
-      var num = MessageManager.getNumFromHash();
-    }
-    // Retrieve text
-    var text = this.input.value || resendText;
-    // If we have something to send
-    if (num != '' && text != '') {
-      // Create 'PendingMessage'
-      var tempDate = new Date();
-      var message = {
-        sender: null,
-        receiver: num,
-        delivery: 'sending',
-        body: text,
-        read: 1,
-        timestamp: tempDate,
-        error: false
-      };
-      var self = this;
-      // Save the message into pendind DB before send.
-      PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-        ThreadUI.cleanFields();
-        if (window.location.hash == '#new') {
-          window.location.hash = '#num=' + num;
-        } else {
-          // Append to DOM
-          ThreadUI.appendMessage(message, function() {
-             // Call to update headers
-            Utils.updateHeaders();
-          });
-        }
-        MessageManager.send(num, text, function onsent(msg) {
-          var root = document.getElementById(message.timestamp.getTime());
-          if (root) {
-            root.removeChild(root.childNodes[2]);
-            var inputs = root.querySelectorAll('input[type="checkbox"]');
-            if (inputs) {
-              inputs[0].value = 'id_' + msg.id;
-            }
-          }
-          // Remove the message from pending message DB since it
-          // could be sent successfully.
-          PendingMsgManager.deleteFromMsgDB(message,
-            function ondelete(msg) {
-              if (!msg) {
-                //TODO: Handle message delete failed in pending DB.
-              }
-          });
-        }, function onerror() {
-          var root = document.getElementById(message.timestamp.getTime());
-          PendingMsgManager.deleteFromMsgDB(message,
-            function ondelete(msg) {
-              message.error = true;
-              PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-                var filter = MessageManager.createFilter(message.receiver);
-                MessageManager.getMessages(ThreadUI.renderMessages, filter);
-              });
-          });
-        });
-        MessageManager.getMessages(ThreadListUI.renderThreads);
-      });
-    }
+    var settings = window.navigator.mozSettings,
+        throwGeneralError;
 
+    throwGeneralError = function() {
+      CustomDialog.show(
+        _('sendGeneralErrorTitle'),
+        _('sendGeneralErrorBody'),
+        {
+          title: _('sendGeneralErrorBtnOk'),
+          callback: function() {
+            CustomDialog.hide();
+          }
+        }
+      );
+    };
+
+    if (settings) {
+
+      var req = settings.getLock().get('ril.radio.disabled');
+      req.addEventListener('success', (function onsuccess() {
+        var status = req.result['ril.radio.disabled'];
+
+        // Retrieve num depending on hash
+        var hash = window.location.hash;
+        // Depending where we are, we get different num
+        if (hash == '#new') {
+          var num = this.contactInput.value;
+        } else {
+          var num = MessageManager.getNumFromHash();
+        }
+        // Retrieve text
+        var text = this.input.value || resendText;
+        // If we have something to send
+        if (num != '' && text != '') {
+          // Create 'PendingMessage'
+          var tempDate = new Date();
+          var message = {
+            sender: null,
+            receiver: num,
+            delivery: 'sending',
+            body: text,
+            read: 1,
+            timestamp: tempDate
+          };
+          var self = this;
+          if (!status) {
+            message.error = false;
+            // Save the message into pendind DB before send.
+            PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+              ThreadUI.cleanFields();
+              if (window.location.hash == '#new') {
+                window.location.hash = '#num=' + num;
+              } else {
+                // Append to DOM
+                ThreadUI.appendMessage(message, function() {
+                   // Call to update headers
+                  Utils.updateHeaders();
+                });
+              }
+              MessageManager.send(num, text, function onsent(msg) {
+                var root = document.getElementById(message.timestamp.getTime());
+                if (root) {
+                  root.removeChild(root.childNodes[2]);
+                  var inputs = root.querySelectorAll('input[type="checkbox"]');
+                  if (inputs) {
+                    inputs[0].value = 'id_' + msg.id;
+                  }
+                }
+                // Remove the message from pending message DB since it
+                // could be sent successfully.
+                PendingMsgManager.deleteFromMsgDB(message,
+                  function ondelete(msg) {
+                    if (!msg) {
+                      //TODO: Handle message delete failed in pending DB.
+                    }
+                });
+              }, function onerror() {
+                var root = document.getElementById(message.timestamp.getTime());
+                PendingMsgManager.deleteFromMsgDB(message,
+                  function ondelete(msg) {
+                    message.error = true;
+                    PendingMsgManager.saveToMsgDB(message,
+                      function onsave(msg) {
+                        var filter = MessageManager.createFilter(
+                          message.receiver);
+                        MessageManager.getMessages(
+                          ThreadUI.renderMessages, filter);
+                    });
+                });
+              });
+            });
+          } else {
+            message.error = true;
+            // Save the message into pendind DB before send.
+            PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+              ThreadUI.cleanFields();
+              if (window.location.hash == '#new') {
+                window.location.hash = '#num=' + num;
+              } else {
+                // Append to DOM
+                ThreadUI.appendMessage(message, function() {
+                   // Call to update headers
+                  Utils.updateHeaders();
+                });
+              }
+              CustomDialog.show(
+                _('sendFlightModeTitle'),
+                _('sendFlightModeBody'),
+                {
+                  title: _('sendFlightModeBtnOk'),
+                  callback: function() {
+                    CustomDialog.hide();
+                  }
+                }
+              );
+              MessageManager.getMessages(ThreadListUI.renderThreads);
+            });
+          }
+        }
+      }).bind(this));
+
+      req.addEventListener('error', function onerror() {
+        throwGeneralError();
+      });
+    } else {
+      throwGeneralError();
+    }
   },
 
   resendMessage: function thui_resendMessage(message) {

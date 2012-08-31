@@ -114,12 +114,19 @@ suite('views/month', function() {
 
   suite('month navigators', function() {
     var calledWith, now;
+    var realActivateMonth;
 
     setup(function() {
+      if (!realActivateMonth) {
+        realActivateMonth = subject.activateMonth;
+      }
+
       calledWith = null;
       subject.activateMonth = function(mo) {
         calledWith = mo;
+        realActivateMonth.apply(this, arguments);
       };
+
       subject.render();
       now = controller.month;
     });
@@ -170,18 +177,24 @@ suite('views/month', function() {
 
   suite('#activateMonth', function() {
     var date = new Date(2012, 1, 1),
+        datePrev = new Date(2012, 0, 1),
+        dateNext = new Date(2012, 2, 1),
         container,
-        id;
+        id,
+        idNext,
+        idPrev;
 
     setup(function() {
       controller.move(date);
       id = Calendar.Calc.getMonthId(date);
+      idPrev = Calendar.Calc.getMonthId(datePrev);
+      idNext = Calendar.Calc.getMonthId(dateNext);
       subject.activateMonth(date);
       container = document.getElementById('test');
     });
 
     test('should append new month into dom', function() {
-      var el = subject.container.children[0];
+      var el = subject.container.children[1];
 
       assert.ok(subject.children[id]);
 
@@ -191,10 +204,32 @@ suite('views/month', function() {
       );
     });
 
+    test('should append previous month into dom', function() {
+       var el = subject.container.children[0];
+
+       assert.ok(subject.children[idPrev]);
+
+       assert.equal(
+         el.id,
+         subject.children[idPrev].element.id
+       );
+     });
+
+     test('should append next month into dom', function() {
+        var el = subject.container.children[2];
+
+        assert.ok(subject.children[idNext]);
+
+        assert.equal(
+          el.id,
+          subject.children[idNext].element.id
+        );
+      });
+
     test('when trying to re-render an existing calendar', function() {
       subject.activateMonth(date);
       var els = subject.container.children;
-      assert.length(els, 1, 'should not re-render calendar');
+      assert.length(els, 3, 'should not re-render calendar');
     });
 
     suite('when there is an active month', function() {
@@ -204,21 +239,21 @@ suite('views/month', function() {
         subject.activateMonth(newDate);
       });
 
-      test('hides old month and displays new one', function() {
+      test('goes to the next month and renders one more', function() {
         var els = subject.container.children;
-        assert.length(els, 2);
+        assert.length(els, 4);
 
-        assert.ok(els[0].classList.contains('inactive'));
-        assert.ok(!els[1].classList.contains('inactive'));
+        assert.ok(!els[0].classList.contains('active'));
+        assert.ok(els[3].classList.contains('active'));
       });
 
       test('when going back', function() {
         subject.activateMonth(date);
         var els = subject.container.children;
-        assert.length(els, 2);
+        assert.length(els, 4);
 
-        assert.ok(!els[0].classList.contains('inactive'));
-        assert.ok(els[1].classList.contains('inactive'));
+        assert.ok(els[0].classList.contains('active'));
+        assert.ok(!els[3].classList.contains('inactive'));
       });
     });
 
@@ -227,7 +262,7 @@ suite('views/month', function() {
   suite('controller: purge event', function() {
 
     var date;
-    var childId;
+    var childId, child2Id, child3Id;
 
     setup(function() {
       date = new Date(2012, 8, 1);
@@ -235,16 +270,31 @@ suite('views/month', function() {
       subject.activateMonth(date);
 
       childId = Object.keys(subject.children)[0];
+      child2Id = Object.keys(subject.children)[1];
+      child3Id = Object.keys(subject.children)[2];
     });
 
     test('should remove after purge', function() {
-      var child = subject.children[childId];
+      var child = subject.children[childId],
+          child2 = subject.children[child2Id],
+          child3 = subject.children[child3Id];
       assert.ok(child);
       assert.ok(child.element);
 
+      assert.ok(child2);
+      assert.ok(child2.element);
+
+      assert.ok(child3);
+      assert.ok(child3.element);
+
       controller.emit('purge', child.timespan);
+      controller.emit('purge', child2.timespan);
+      controller.emit('purge', child3.timespan);
 
       assert.ok(!child.element);
+      assert.ok(!child2.element);
+      assert.ok(!child3.element);
+
       assert.deepEqual(subject.children, {});
     });
 
@@ -282,7 +332,7 @@ suite('views/month', function() {
       assert.ok(subject.currentChild.element);
 
       assert.equal(
-        container.children[0].id,
+        container.children[1].id,
         subject.currentChild.element.id
       );
 
