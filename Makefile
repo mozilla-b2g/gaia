@@ -194,7 +194,7 @@ ifneq ($(DEBUG),1)
 				mkdir -p profile/webapps/$$dirname; \
 				cdir=`pwd`; \
 				\
-				`# include shared JS scripts`; \
+				# include shared JS scripts \
 				for f in `grep -r shared/js $$d` ;\
 				do \
 					if [[ "$$f" == *shared/js* ]] ;\
@@ -210,7 +210,7 @@ ifneq ($(DEBUG),1)
 					fi \
 				done; \
 				\
-				`# include shared l10n resources`; \
+				# include shared l10n resources \
 				for f in `grep -r shared/locales $$d` ;\
 				do \
 					if [[ "$$f" == *shared/locales* ]] ;\
@@ -227,7 +227,7 @@ ifneq ($(DEBUG),1)
 					fi \
 				done; \
 				\
-				`# include shared building blocks`; \
+				# include shared building blocks \
 				for f in `grep -r shared/style $$d` ;\
 				do \
 					if [[ "$$f" == *shared/style* ]] ;\
@@ -245,7 +245,7 @@ ifneq ($(DEBUG),1)
 					fi \
 				done; \
 				\
-				`# zip application` \
+				# zip application \
 				cd $$d; \
 				zip -r application.zip *; \
 				cd $$cdir; \
