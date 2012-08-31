@@ -240,23 +240,38 @@ html, body {
 
 #hud {
   position: absolute;
-  bottom: 65px;
+  top: 20px;
   height: 75px;
   left: 0;
   right: 0;
   z-index: 50;
 }
 
-#hud button {
+#hud a {
   position: absolute;
-  z-index: 60;
+  z-index: 50;
   height: 75px;
   width: 75px;
   border: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-image: url(images/hud_button_underlay.png);
+}
+
+#hud a:after {
+  content: " ";
+  display: block;
+  position: relative;
+  z-index: 60;
+  height: 75px;
+  width: 75px;
   background: transparent;
   background-position: center center;
   background-repeat: no-repeat;
-  outline: none;
+}
+
+#hud a:active {
+  background-image: url(images/hud_button_underlay_focus.png);
 }
 
 #toggle-camera {
@@ -267,15 +282,22 @@ html, body {
   left: 20px;
 }
 
-#toggle-flash[data-mode=on] {
+#toggle-camera[data-mode=back]:after {
+  background-image: url(images/toggle_front.png);
+}
+#toggle-camera[data-mode=front]:after {
+  background-image: url(images/toggle_back.png);
+}
+
+#toggle-flash[data-mode=on]:after {
   background-image: url(images/flash_on.png);
 }
-#toggle-flash[data-mode=off] {
+#toggle-flash[data-mode=off]:after {
   background-image: url(images/flash_off.png);
 }
-#toggle-flash[data-mode=auto] {
+#toggle-flash[data-mode=auto]:after {
   background-image: url(images/flash_auto.png);
 }
-#toggle-flash[data-mode=torch] {
+#toggle-flash[data-mode=torch]:after {
   background-image: url(images/flash_torch.png);
 }

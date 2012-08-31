@@ -130,6 +130,7 @@ var Camera = {
       this.galleryButton.setAttribute('disabled', 'disabled');
     }
 
+    this.setToggleCameraStyle();
     this.setSource(this._camera);
   },
 
@@ -145,6 +146,12 @@ var Camera = {
   toggleCamera: function camera_toggleCamera() {
     this._camera = 1 - this._camera;
     this.setSource(this._camera);
+    this.setToggleCameraStyle();
+  },
+
+  setToggleCameraStyle: function camera_setToggleCameraStyle() {
+    var modeName = this._camera === 0 ? 'back' : 'front';
+    this.toggleButton.setAttribute('data-mode', modeName);
   },
 
   toggleFlash: function camera_toggleFlash() {
