@@ -40,7 +40,26 @@ p {
   line-height: 130%;
 }
 
+menu[type="toolbar"] a {
+  text-decoration: none;
+}
+
+ol.link-list a {
+  display: block;
+  width: 100%;
+  line-height: 150%;
+  font-size: 1.8rem;
+  padding: 1.5rem 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #C5C5C5;
+  text-decoration: none;
+  color: #333;
+  background: transparent url('icons/ActionIcons_30x30_forward_nav.png') no-repeat right;
+
+}
+
 #wrapper {
+  z-index: 100;
   height: 100%;
 }
 
@@ -73,7 +92,7 @@ p {
   height: 100%;
   display: block;
   position: absolute;
-  z-index: 100;
+  z-index: 200;
   background-color: #CCC;
   opacity: 0.5;
   text-align: center;
@@ -99,11 +118,27 @@ p {
   padding-top: 5rem;
 }
 
+/* advanced settings */
+
+#advanced-settings-view .account-list a {
+  padding-right: 4rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#advanced-settings-view .preset:after {
+  content: ' - '
+}
+
+#advanced-settings-view .user {
+  width: 50%;
+}
 
 /* create account view */
 
 #create-account-view > header {
-  margin-bottom: 4rem;
+  /*margin-bottom: 2rem;*/
 }
 
 #create-account-view > ol,
@@ -111,31 +146,19 @@ p {
   margin: 0 2rem;
 }
 
-#create-account-view > ol {
-  margin-top: 3rem;
-}
+/* modify account view */
 
-#create-account-view > ol a {
-  display: block;
-  width: 100%;
-  height: 4.1rem;
-  line-height: 150%;
-  font-size: 1.3rem;
-  font-weight: bold;
-  padding: 1.2rem;
-  margin-bottom: 1rem;
-  background: -moz-linear-gradient(#F4F4F4, #C3C3C3);
-  border: 1px solid #B0B0B0;
-  text-decoration: none;
-  color: #333;
+#modify-account-view.preset-google .fullUrl,
+#modify-account-view.preset-yahoo .fullUrl {
+  display: none;
 }
 
 /* add event view */
 
 .fullscreen-view {
   /* completely override other views */
-  background: white;
-  z-index: 10;
+  background: #E6E6E0;
+  z-index: 110;
   position: absolute;
   top: 0px;
   width: 100%;
@@ -404,6 +427,12 @@ Indicators are in units of 12
 }
 
 /** sub: view selector **/
+
+#bottom-toolbar menu {
+  padding: 0px;
+  margin: 0px;
+  width: 100%;
+}
 
 #bottom-toolbar,
 #view-selector li,
