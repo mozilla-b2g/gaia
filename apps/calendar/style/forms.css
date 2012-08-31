@@ -1,6 +1,6 @@
 /* generic stuff that will probably live in the building blocks */
 
-fieldset, input, textarea {
+form, fieldset, input, textarea {
   border: 0px;
   background-color: transparent;
   padding: 0px;
@@ -35,8 +35,8 @@ input[type="checkbox"] {
   text-align: right
 }
 
-fieldset,
-fieldset ol {
+form,
+form ol {
   margin: 0px;
   padding: 0px;
 }
@@ -66,15 +66,15 @@ label[role="checkbox"] span {
 
 /* for calendar */
 
-fieldset ol {
+form ol {
   height: 100%;
 }
 
-fieldset li {
+form li {
   padding: 0.25rem;
 }
 
-fieldset li {
+form li {
   margin: 1rem 2rem;
 }
 
@@ -84,22 +84,22 @@ li.start-date {
   float: left;
 }
 
-fieldset li.end-time,
-fieldset li.start-time {
+form li.end-time,
+form li.start-time {
   width: calc(30% - 1px);
   float: left
 }
 
-fieldset li.notes  {
+form li.notes  {
   height: 15rem;
 }
 
-fieldset li.notes textarea {
+form li.notes textarea {
   padding: 1rem;
   height: 80%;
 }
 
-fieldset li.notes,
-fieldset li.repeat {
+form li.notes,
+form li.repeat {
   clear: both;
 }
