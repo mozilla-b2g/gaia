@@ -10,6 +10,8 @@ Calendar.ns('Views').Month = (function() {
 
     this.controller = this.app.timeController;
     this.children = Object.create(null);
+
+    this.centerOnCurrent = this.centerOnCurrent.bind(this);
     this._initEvents();
   }
 
@@ -115,8 +117,7 @@ Calendar.ns('Views').Month = (function() {
     monthOffset: window.innerWidth * -1,
 
     _onpan: function month_onPan(event) {
-      var offset = event.detail.absolute.dx;
-      this._moveChildren(offset);
+      this._moveChildren(event.detail.absolute.dx);
     },
 
     _moveChildren: function(offset) {
@@ -157,6 +158,11 @@ Calendar.ns('Views').Month = (function() {
           this.next();
         }
       }
+
+      // swipe is fired after the user moves
+      // their finger of pan so we need to center
+      // on the current element again.
+      this.centerOnCurrent();
     },
 
     /**
@@ -291,8 +297,6 @@ Calendar.ns('Views').Month = (function() {
 
          this.children[nextId] = this.nextChild;
        }
-
-       this.centerOnCurrent();
     },
 
     centerOnCurrent: function() {
@@ -313,6 +317,7 @@ Calendar.ns('Views').Month = (function() {
       );
 
       this.controller.move(now);
+      this.centerOnCurrent();
     }
 
   };

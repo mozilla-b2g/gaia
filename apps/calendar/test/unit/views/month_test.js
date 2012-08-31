@@ -114,11 +114,17 @@ suite('views/month', function() {
 
   suite('month navigators', function() {
     var calledWith, now;
+    var realActivateMonth;
 
     setup(function() {
+      if (!realActivateMonth) {
+        realActivateMonth = subject.activateMonth;
+      }
+
       calledWith = null;
       subject.activateMonth = function(mo) {
         calledWith = mo;
+        realActivateMonth.apply(this, arguments);
       };
 
       subject.render();
