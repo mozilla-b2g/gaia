@@ -42,6 +42,7 @@ const IMEController = (function() {
   var _currentLayout = null;
   var _currentLayoutMode = LAYOUT_MODE_DEFAULT;
   var _currentKey = null;
+  var _realInputType = null;
   var _currentInputType = null;
   var _menuLockedArea = null;
   var _lastHeight = 0;
@@ -825,10 +826,6 @@ const IMEController = (function() {
         }
 
         _reset();
-        _draw(
-          _baseLayoutName, _currentInputType,
-          _currentLayoutMode, _isUpperCase
-        );
 
         if (_requireIME()) {
           if (_getCurrentEngine().show) {
@@ -936,7 +933,7 @@ const IMEController = (function() {
           _isContinousSpacePressed = true;
 
           // Then set the keyboard uppercase for the next char
-          if (_currentInputType == 'text') {
+          if (_realInputType == 'text') {
             _isUpperCase = true;
             _draw(
               _baseLayoutName, _currentInputType,
@@ -962,7 +959,7 @@ const IMEController = (function() {
 
         if (lastKeyWasPeriod) {
           // Then set the keyboard uppercase for the next char
-          if (_currentInputType == 'text') {
+          if (_realInputType == 'text') {
             _isUpperCase = true;
             _draw(
               _baseLayoutName, _currentInputType,
@@ -1010,9 +1007,8 @@ const IMEController = (function() {
 
   // Turn to default values
   function _reset() {
-    console.log('resetting');
     _currentLayoutMode = LAYOUT_MODE_DEFAULT;
-    _isUpperCase = (_currentInputType === 'text');
+    _isUpperCase = (_realInputType === 'text');
     _isUpperCaseLocked = false;
     _lastKeyCode = 0;
 
@@ -1105,11 +1101,9 @@ const IMEController = (function() {
       delete IMERender.ime.dataset.hidden;
       IMERender.ime.classList.remove('hide');
 
+      _realInputType = type;
       _currentInputType = _mapType(type);
-      _draw(
-        _baseLayoutName, _currentInputType,
-        _currentLayoutMode, _isUpperCase
-      );
+      _reset();
 
       if (_requireIME()) {
         if (_getCurrentEngine().show) {
@@ -1120,7 +1114,6 @@ const IMEController = (function() {
       _prepareLayoutParams(_layoutParams);
       this.updateLayoutParams();
 
-      _reset();
       _notifyShowKeyboard(true);
     },
 
