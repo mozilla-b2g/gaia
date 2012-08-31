@@ -318,6 +318,9 @@ var Camera = {
     this._photosTaken.forEach(function(imageBlob) {
       var preview = document.createElement('img');
       preview.src = window.URL.createObjectURL(imageBlob);
+      preview.onload = function() {
+        window.URL.revokeObjectURL(this.src);
+      }
       strip.appendChild(preview);
     });
 
