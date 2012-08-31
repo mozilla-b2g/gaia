@@ -358,7 +358,7 @@ var Camera = {
     this.restartPreview();
 
     var rightnow = new Date();
-    var filename = 'img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
+    var filename = 'DCIM/img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
     var addreq = this._storage.addNamed(blob, filename);
 
     addreq.onsuccess = (function() {
