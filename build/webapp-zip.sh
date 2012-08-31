@@ -3,8 +3,9 @@
 # to a standalone script because it grew to be 70 lines of oddly escaped bash
 # inside of a Makefile
 
-# We want to maintain the Make behaviour of exiting on first failure
-set -xe
+# Sadly, the exit code of this script isn't checked in the Makefile stanza.
+# Things like files not being in the shared/*/ directories don't cause failure
+#set -xe
 
 GAIA_APP_SRCDIRS=$1 ; shift
 BUILD_APP_NAME=$1 ; shift
