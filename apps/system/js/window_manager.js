@@ -721,7 +721,19 @@ var WindowManager = (function() {
 
   // Deal with crashed foreground app
   window.addEventListener('mozbrowsererror', function(e) {
-    if (e.type == 'fatal' && displayedApp == e.target.dataset.frameOrigin) {
+    if (!'frameType' in e.target.dataset ||
+        e.target.dataset.frameType !== 'window')
+      return;
+    /*
+      detail.type = error (Server Not Found case)
+      is handled in Modal Dialog
+    */
+    if (e.detail.type !== 'fatal')
+      return;
+
+    var origin = e.target.dataset.frameOrigin;
+
+    if (displayedApp == origin) {
       var origin = e.target.dataset.frameOrigin;
       var _ = navigator.mozL10n.get;
       notificationBanner.addEventListener('transitionend',
@@ -734,13 +746,12 @@ var WindowManager = (function() {
             }, 3000);
           }
        });
-        
       notificationBanner.classList.add('visible');
       notificationContainer.textContent = _('foreground-app-crash-notification',
         { name: runningApps[origin].name });
-
-      kill(origin);
     }
+
+    kill(origin);
   });
 
   // Stop running the app with the specified origin

@@ -73,7 +73,7 @@ var ModalDialog = {
         if (evt.target.dataset.frameType != 'window')
           return;
 
-        // XXX: another issue #3043
+        /* fatal case (App crashing) is handled in Window Manager */
         if (evt.type == 'mozbrowsererror' && evt.detail.type == 'fatal')
           return;
 
