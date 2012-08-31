@@ -24,10 +24,8 @@ let content = {
       makeURL("email"),
       makeURL("music"),
       makeURL("video"),
-    ],
-    [ // page 3
       makeURL("calculator"),
-      makeURL("pdfjs"),
+      makeURL("pdfjs")
     ]
   ],
   dock: [
