@@ -322,7 +322,14 @@ var WindowManager = (function() {
 
     var req = app.frame.getScreenshot();
 
+    // Workaround https://bugzilla.mozilla.org/show_bug.cgi?id=787519
+    var timer = setTimeout(function getScreenshotTimeout() {
+      console.warn('Window Manager: getScreenshot timeout.');
+      callback();
+    }, 500);
+
     req.onsuccess = function(evt) {
+      clearTimeout(timer);
       var result = evt.target.result;
       callback(result);
 
@@ -330,6 +337,7 @@ var WindowManager = (function() {
     };
 
     req.onerror = function(evt) {
+      clearTimeout(timer);
       console.warn('Window Manager: getScreenshot failed.');
       callback();
     };
@@ -399,6 +407,11 @@ var WindowManager = (function() {
     // before starting the transition
     sprite.className = 'before-close';
     getAppScreenshot(origin, function(screenshot) {
+      if (!screenshot) {
+        sprite.className = 'closing';
+        return;
+      }
+
       sprite.style.background = '#fff url(' + screenshot + ')';
       // Make sure Gecko paint the sprite first
       afterPaint(function() {
@@ -579,7 +592,8 @@ var WindowManager = (function() {
 
   function removeFrame(origin) {
     var app = runningApps[origin];
-    windows.removeChild(app.frame);
+    if (app.frame)
+      windows.removeChild(app.frame);
     delete runningApps[origin];
     numRunningApps--;
   }
@@ -751,6 +765,7 @@ var WindowManager = (function() {
 
   // Stop running the app with the specified origin
   function kill(origin, callback) {
+try {
     if (!isRunning(origin))
       return;
 
@@ -764,6 +779,7 @@ var WindowManager = (function() {
     } else {
       removeFrame(origin);
     }
+} catch (e) {console.error(e)}
   }
 
   // Reload the frame of the running app
