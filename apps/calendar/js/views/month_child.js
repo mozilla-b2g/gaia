@@ -180,7 +180,7 @@
 
       state = Calc.relativeState(
         date,
-        this.controller.month
+        this.month
       );
 
       // register instance in map

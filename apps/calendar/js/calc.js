@@ -437,18 +437,19 @@ Calendar.Calc = (function() {
       return !Calc.isPast(date);
     },
 
-    /*
+    /**
      * Based on the input date
      * will return one of the following states
      *
      *  past, present, future
      *
      * @param {Date} day for compare.
-     * @param {Date} month today's date.
+     * @param {Date} month comparison month.
      * @return {String} state.
      */
     relativeState: function(day, month) {
       var states;
+      //var today = Calc.today;
 
       // 1. the date is today (real time)
       if (Calc.isToday(day)) {
