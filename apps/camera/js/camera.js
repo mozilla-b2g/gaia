@@ -324,12 +324,12 @@ var Camera = {
       strip.appendChild(preview);
     });
 
-    strip.style.top = '0px';
+    strip.classList.remove('hidden');
     this._filmStripShown = true;
   },
 
   hideFilmStrip: function camera_hideFilmStrip() {
-    this.filmStrip.style.top = '-50px';
+    this.filmStrip.classList.add('hidden');
     this._filmStripShown = false;
   },
 
