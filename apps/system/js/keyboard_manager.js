@@ -31,11 +31,7 @@ var KeyboardManager = (function() {
     var app = WindowManager.getDisplayedApp();
 
     var currentApp, appHeight;
-    if (TrustedDialog.isVisible()) {
-      currentApp = TrustedDialog.getFrame();
-      appHeight = currentApp.getBoundingClientRect().height;
-
-    } else if (ModalDialog.isVisible() || PopupManager.isVisible()) {
+    if (ModalDialog.isVisible() || PopupManager.isVisible()) {
       // XXX: As system has no iframe, we calc the height separately
       currentApp = document.getElementById('dialog-overlay');
       appHeight = window.innerHeight;
@@ -46,8 +42,8 @@ var KeyboardManager = (function() {
       appHeight = currentApp.getBoundingClientRect().height;
 
     } else {
-      console.error('There is no current application, nor trusted dialog ' +
-                    'nor modal dialog. The resize event is acting on nothing.');
+      console.error('There is no current application, nor modal dialog, ' +
+                    'nor popup. The resize event is acting on nothing.');
       return;
     }
 
@@ -56,8 +52,7 @@ var KeyboardManager = (function() {
 
     if (message.hidden) {
       // To reset dialog height
-      if (TrustedDialog.isVisible() || ModalDialog.isVisible() ||
-          PopupManager.isVisible())
+      if (ModalDialog.isVisible() || PopupManager.isVisible())
         currentApp.style.height = height + 'px';
 
       keyboardFrame.classList.add('hide');
