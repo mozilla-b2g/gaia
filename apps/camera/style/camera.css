@@ -159,7 +159,7 @@ html, body {
   margin-right: 10px;
 }
 
-#film-strip img:first-child {
+#film-strip img:last-child {
   border-color: orange;
 }
 

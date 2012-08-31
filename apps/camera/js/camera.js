@@ -13,6 +13,8 @@ var Camera = {
   CAMERA: 'camera',
   VIDEO: 'video',
 
+  THUMBNAIL_LIMIT: 4,
+
   _videoCapturing: false,
   _videoTimer: null,
   _videoStart: null,
@@ -362,7 +364,10 @@ var Camera = {
     var addreq = this._storage.addNamed(blob, filename);
 
     addreq.onsuccess = (function() {
-      this._photosTaken.unshift({name: filename, blob: blob});
+      this._photosTaken.push({name: filename, blob: blob});
+      if (this._photosTaken.length > this.THUMBNAIL_LIMIT) {
+        this._photosTaken.shift();
+      }
       this.checkStorageSpace();
       this.showFilmStrip();
     }).bind(this);
