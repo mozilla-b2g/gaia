@@ -27,12 +27,19 @@
 // with these methods:
 //
 //    launch(origin): start, or switch to the specified app
-//    kill(origin): stop specified app
-//    getDisplayedApp: return the origin of the currently displayed app
+//    kill(origin, callback): stop specified app
+//    reload(origin): reload the given app
+//    getDisplayedApp(origin): return the origin of the currently displayed app
+//    setOrientationForApp(origin): set the phone to orientation to a given app
 //    getAppFrame(origin): returns the iframe element for the specified origin
 //      which is assumed to be running.  This is only currently used
 //      for tests and chrome stuff: see the end of the file
-//
+//    getNumberOfRunningApps(): returns the numbers of running apps.
+//    setAppSize(origin): set/reset the size of the given app to it's origin
+//      state, only used by keyboard manager to restore the app window.
+//      XXX: should be removed.
+//    setDisplayedApp(origin): set displayed app.
+//      XXX: should be removed.
 //
 // This module does not (at least not currently) have anything to do
 // with the homescreen.  It simply assumes that if it hides all running
@@ -48,6 +55,8 @@
 'use strict';
 
 var WindowManager = (function() {
+  // Holds the origin of the home screen, which should be the first
+  // app we launch through web activity during boot
   var homescreen = null;
 
   // Hold Home key for 1 second to bring up the app switcher.
@@ -399,9 +408,7 @@ var WindowManager = (function() {
 
   // Switch to a different app
   function setDisplayedApp(origin, callback, disposition) {
-    if (origin == null)
-      origin = homescreen;
-    var currentApp = displayedApp, newApp = origin;
+    var currentApp = displayedApp, newApp = origin || homescreen;
     disposition = disposition || 'window';
 
     var homescreenFrame = runningApps[homescreen].frame;
@@ -869,7 +876,6 @@ var WindowManager = (function() {
     reload: reload,
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
-    setAppSize: setAppSize,
     getAppFrame: getAppFrame,
     getNumberOfRunningApps: function() {
       return numRunningApps;
@@ -877,6 +883,9 @@ var WindowManager = (function() {
     getRunningApps: function() {
        return runningApps;
     },
+
+    // XXX: the following should not be public methods
+    setAppSize: setAppSize,
     setDisplayedApp: setDisplayedApp
   };
 }());
