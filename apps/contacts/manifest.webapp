@@ -8,7 +8,8 @@
   },
   "permissions": [
     "contacts",
-    "settings"
+    "settings",
+    "systemXHR"
   ],
   "locales": {
     "ar": {

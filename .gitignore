@@ -28,3 +28,5 @@ manifest.appcache
 /mocha-test-results.html
 /custom-prefs.js
 /local.mk
+
+/tools/xpcwindow/vendor/

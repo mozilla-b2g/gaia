@@ -139,10 +139,12 @@ var Contacts = (function() {
       contactTag,
       contactDetails,
       saveButton,
+      editContactButton,
       deleteContactButton,
       favoriteMessage,
       cover,
-      thumb;
+      thumb,
+      thumbAction;
 
   var currentContact = {};
 
@@ -228,11 +230,15 @@ var Contacts = (function() {
     noteContainer = document.getElementById('contacts-form-notes');
     contactDetails = document.getElementById('contact-detail');
     saveButton = document.getElementById('save-button');
+    editContactButton = document.getElementById('edit-contact-button');
     deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
     favoriteMessage = document.getElementById('toggle-favorite').children[0];
     cover = document.getElementById('cover-img');
     thumb = document.getElementById('thumbnail-photo');
+    thumbAction = document.getElementById('thumbnail-action');
+    thumbAction.addEventListener('mousedown', onThumbMouseDown);
+    thumbAction.addEventListener('mouseup', onThumbMouseUp);
     TAG_OPTIONS = {
       'phone-type' : [
         {value: _('mobile')},
@@ -357,8 +363,8 @@ var Contacts = (function() {
             // if more than one phone number
             var prompt1 = new ValueSelector(_('select_mobile'));
             var numbers = currentContact.tel;
-            for (var key in numbers) {
-              var number = numbers[key].value;
+            for (var index = 0; index < numbers.length; index++) {
+              var number = numbers[index].value;
               prompt1.addToList(number + '', function() {
                   prompt1.hide();
                   ActivityHandler.postPickSuccess(number);
@@ -410,12 +416,42 @@ var Contacts = (function() {
     });
   };
 
+  var reloadContactDetails = function reloadContactDetails() {
+    var contact = currentContact;
+    var isFbContact = fb.isFbContact(contact);
+
+    // Initially enabled and only disabled if necessary
+    editContactButton.removeAttribute('disabled');
+
+    if (isFbContact && !fb.isFbLinked(contact)) {
+      editContactButton.setAttribute('disabled', 'disabled');
+    }
+
+    if (isFbContact) {
+      var fbContact = new fb.Contact(contact);
+      var req = fbContact.getData();
+
+      req.onsuccess = function do_reload() {
+        doReloadContactDetails(req.result);
+      }
+
+      req.onerror = function() {
+        window.console.error('FB: Error while loading FB contact data');
+        doReloadContactDetails(contact);
+      }
+
+    } else {
+              doReloadContactDetails(contact);
+    }
+  }
+
+
   //
   // Method that generates HTML markup for the contact
   //
-  var reloadContactDetails = function reloadContactDetails() {
-    var contact = currentContact;
-    toggleFavoriteMessage(isFavorite(currentContact));
+  var doReloadContactDetails = function doReloadContactDetails(contact) {
+    toggleFavoriteMessage(isFavorite(contact));
+
     detailsName.textContent = contact.name;
     var star = document.getElementById('favorite-star');
     if (contact.category && contact.category.indexOf('favorite') != -1) {
@@ -465,16 +501,38 @@ var Contacts = (function() {
     }
 
     if (contact.bday) {
-      var bdayTemplate = document.getElementById('birthday-template-#i#');
+      var birthdayTemplate = document.getElementById('birthday-template-#i#');
 
-      // TODO: Fix this with a locale function for dates!!!!
-      var months = ['January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November',
-                    'December'];
-      var bdayString = contact.bday.getDate() + ', ' +
-                                            months[contact.bday.getMonth()];
-      var e = utils.templates.render(bdayTemplate, {bday: bdayString});
-      listContainer.appendChild(e);
+      var f = new navigator.mozL10n.DateTimeFormat();
+      var birthdayFormat = _('birthdayDateFormat') || '%e %B';
+      var birthdayString = f.localeFormat(contact.bday, birthdayFormat);
+
+      var element = utils.templates.render(birthdayTemplate, {
+        i: contact.id,
+        bday: birthdayString
+      });
+
+      listContainer.appendChild(element);
+    }
+
+
+    if (!fb.isFbContact(contact) || fb.isFbLinked(contact)) {
+      var action = _('social-link');
+      var linked = 'true';
+
+      if (fb.isFbLinked(contact)) {
+        action = _('social-unlink');
+        linked = 'false';
+      }
+
+      var socialTemplate = document.getElementById('social-template-#i#');
+      var social = utils.templates.render(socialTemplate, {
+        i: contact.id,
+        action: action,
+        linked: linked
+      });
+
+      listContainer.appendChild(social);
     }
 
     var selector = document.getElementById('address-details-template-#i#');
@@ -551,9 +609,12 @@ var Contacts = (function() {
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
     company.value = currentContact.org;
+    var photo = null;
     if (currentContact.photo && currentContact.photo.length > 0) {
-      updatePhoto(currentContact.photo[0], thumb);
+      photo = currentContact.photo[0];
     }
+    updatePhoto(photo, thumb);
+
     var default_type = TAG_OPTIONS['phone-type'][0].value;
     var telLength = getLength(currentContact.tel);
     for (var tel = 0; tel < telLength; tel++) {
@@ -647,8 +708,14 @@ var Contacts = (function() {
   };
 
   var updatePhoto = function updatePhoto(photo, dest) {
-    var photoURL = URL.createObjectURL(photo);
-    dest.style.backgroundImage = 'url(' + photoURL + ')';
+    var background = '';
+    if (photo != null) {
+      background = 'url(' + URL.createObjectURL(photo) + ')';
+      thumbAction.querySelector('p').classList.add('hide');
+    } else {
+      thumbAction.querySelector('p').classList.remove('hide');
+    }
+    dest.style.backgroundImage = background;
   };
 
   // Checks if an object fields are empty, by empty means
@@ -838,9 +905,20 @@ var Contacts = (function() {
     var request = navigator.mozContacts.save(currentContact);
     request.onsuccess = function onsuccess() {
       var cList = contacts.List;
-      cList.getContactById(currentContact.id, function onSuccess(savedContact) {
+      /*
+         Two contacts are returned because the enrichedContact is readonly
+         and if the Contact is edited we need to prevent saving
+         FB data on the mozContacts DB.
+      */
+       cList.getContactById(currentContact.id,
+                           function onSuccess(savedContact, enrichedContact) {
         currentContact = savedContact;
-        contactsList.refresh(currentContact);
+
+        if (enrichedContact) {
+          contactsList.refresh(enrichedContact);
+        } else {
+          contactsList.refresh(currentContact);
+        }
         reloadContactDetails();
       }, function onError() {
         console.error('Error reloading contact');
@@ -929,8 +1007,11 @@ var Contacts = (function() {
       currentContact.adr = [];
       currentContact.note = [];
       currentContact.photo = [];
+      var readOnly = ['id', 'updated', 'published'];
       for (var field in myContact) {
-        currentContact[field] = myContact[field];
+        if (readOnly.indexOf(field) == -1) {
+          currentContact[field] = myContact[field];
+        }
       }
       contact = currentContact;
     } else {
@@ -1192,6 +1273,45 @@ var Contacts = (function() {
     activity.onerror = function error() {
       reopenApp();
     }
+  };
+
+  var onThumbMouseDown = function onThumbMouseDown(evt) {
+    var self = this;
+    this.longPress = false;
+    this._pickImageTimer = setTimeout(function(self) {
+      self.longPress = true;
+      if (currentContact && currentContact.photo &&
+        currentContact.photo.length > 0) {
+        removePhoto();
+      }
+    }, 500, this);
+  };
+
+  var onThumbMouseUp = function onThumbMouseUp(evt) {
+    if (!this.longPress || !currentContact ||
+       !currentContact.hasOwnProperty('photo') ||
+       currentContact.photo == null ||
+       currentContact.photo.length == 0) {
+      pickImage();
+    }
+
+    clearTimeout(this._pickImageTimer);
+  }
+
+  var removePhoto = function() {
+    var dismiss = {
+      title: _('cancel'),
+      callback: CustomDialog.hide
+    };
+    var remove = {
+      title: _('ok'),
+      callback: function() {
+        currentContact.photo = [];
+        updatePhoto(null, thumb);
+        CustomDialog.hide();
+      }
+    };
+    CustomDialog.show('', _('removePhotoConfirm'), dismiss, remove);
   }
 
   var updateContactPhoto = function updateContactPhoto(image) {
@@ -1291,15 +1411,17 @@ var Contacts = (function() {
   };
 })();
 
-if (window.navigator.mozSetMessageHandler) {
-  var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-  window.navigator.mozSetMessageHandler('activity', actHandler);
-}
-
-document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (ActivityHandler.currentlyHandling && document.mozHidden) {
-    ActivityHandler.postCancel();
-    return;
+fb.contacts.init(function() {
+  if (window.navigator.mozSetMessageHandler) {
+    var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+    window.navigator.mozSetMessageHandler('activity', actHandler);
   }
-  Contacts.checkCancelableActivity();
+
+  document.addEventListener('mozvisibilitychange', function visibility(e) {
+    if (ActivityHandler.currentlyHandling && document.mozHidden) {
+      ActivityHandler.postCancel();
+      return;
+    }
+    Contacts.checkCancelableActivity();
+  });
 });

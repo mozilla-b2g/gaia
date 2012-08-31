@@ -91,12 +91,12 @@ a:active {
 }
 
 #frequency[data-seek-dir="up"] {
-  background: url("images/spinner-right.png") no-repeat center bottom transparent;
+  background: url("images/spinner-right.png") no-repeat center 8.5rem transparent;
 }
 
 
 #frequency[data-seek-dir="down"] {
-  background: url("images/spinner-left.png") no-repeat center bottom transparent;
+  background: url("images/spinner-left.png") no-repeat center 8.5rem transparent;
 }
 
 #bookmark-button {
@@ -139,6 +139,7 @@ a:active {
 #dialer-container > div:last-child {
   border-bottom: 0.2rem solid #4D5055;
   margin-left: -50%;
+  margin-top: 7.5rem;
 }
 
 #frequency-indicator {
@@ -149,9 +150,10 @@ a:active {
   position: absolute;
   z-index: 1;
   background: url(images/selector.png) no-repeat center center transparent;
+  top: 0;
 }
 
-div.animation-on {
+div.animation-on > div {
   transition: -moz-transform 0.4s ease 0s;
 }
 
@@ -161,6 +163,8 @@ div.animation-on {
   -moz-user-select: none;
   width: 100%;
   margin-left: -0.2rem;
+  position: absolute;
+  top: 0;
 }
 
 #frequency-dialer .dialer-unit-mark-box {
@@ -170,12 +174,14 @@ div.animation-on {
 
 #frequency-dialer .dialer-unit {
   text-align: left;
-  float: left;
   height: 7.5rem;
+  position: absolute;
+  width: 320px;
 }
 
 #frequency-dialer .dialer-unit-floor {
   color: #AAA;
+  float: left;
 }
 
 #frequency-dialer .dialer-mark {
