@@ -69,7 +69,7 @@
         var target = e.target;
         while (!target.isEqualNode(self.events)) {
           if (target.classList.contains('event')) {
-            Calendar.App.router.show('/event/' + target.dataset.id);
+            Calendar.App.router.show('/event/' + target.dataset.id + '/');
             break;
           }
           target = target.parentNode;
