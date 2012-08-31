@@ -40,6 +40,7 @@ setService(function cc_setupCostControlService() {
   // APIs
   var _sms = window.navigator.mozSms;
   var _conn = window.navigator.mozMobileConnection;
+  var _telephony = window.navigator.mozTelephony;
 
   // CostControl application state
   var STATE_TOPPING_UP = 'toppingup';
@@ -86,12 +87,12 @@ setService(function cc_setupCostControlService() {
     // key. If both key and value are provided, the method sets the key to
     // that value.
     function _option(key, value) {
-      var oldValue = window.localStorage.getItem(key);
+      var oldValue = JSON.parse(window.localStorage.getItem(key));
       if (typeof value === 'undefined')
         return oldValue;
 
-      debug('Setting ' + key + ' to ' + value);
-      window.localStorage.setItem(key, value);
+      debug('Setting "' + key + '" to: ' + JSON.stringify(value));
+      window.localStorage.setItem(key, JSON.stringify(value));
       window.dispatchEvent(_newLocalSettingsChangeEvent(key, value, oldValue));
     }
 
@@ -227,11 +228,77 @@ setService(function cc_setupCostControlService() {
     }, REQUEST_BALANCE_UPDATE_INTERVAL);
   }
 
+  var _handledCalls = [];
+  function _onCallsChanged(evt) {
+
+    // Biiefly, see if there is a new ongoing (state === dialing) call and if
+    // so, attach a an event when connected to annotate start time and attach
+    // another when disconnecting to compute end time and the duration. Then
+    // update calltime.
+    _telephony.calls.forEach(function cc_eachCall(telCall) {
+      // Abort if is not an outgoing call or is already handled
+      if (telCall.state !== 'dialing' && _handledCalls.indexOf(telCall) > -1)
+        return;
+
+      // Keep track and attach callbacks
+      _handledCalls.push(telCall);
+
+      // Anotate start timestamp
+      // TODO: startime shoud be initialized to null cause can be
+      // a disconnection without connecting (operator message, no coverage)
+      // Lets this as is for the sake of testing.
+      // INMHO: this is a conceptual mistake in states.
+      var starttime = (new Date()).getTime();
+      telCall.onconnected = function cc_onTelCallConnected() {
+        starttime = (new Date()).getTime();;
+      };
+
+      // Duration and calltime update
+      telCall.ondisconnected = function cc_onTelCallDisconnected() {
+        // The call not even connected
+        if (starttime === null)
+          return;
+
+        var now = (new Date()).getTime();
+        var duration = now - starttime;
+        setTimeout(function cc_updateCallTime() {
+          _appSettings.option(
+            'calltime',
+            _appSettings.option('calltime') + duration
+          );
+        });
+
+        // Remove from the already tracked calls
+        _handledCalls.splice(_handledCalls.indexOf(telCall), 1);
+      };
+    });
+  }
+
+  // Count another SMS
+  function _onSMSSent() {
+    debug('Message sent!');
+    _appSettings.option('smscount', _appSettings('smscount') + 1);
+  }
+
+  // Attach event listeners to telephony in order to count how many SMS has been
+  // sent and how much time we talked since last reset.
+  function _configureTelephony() {
+    if (_appSettings.option('calltime') === null)
+      _appSettings.option('calltime', 0);
+
+    if (_appSettings.option('smscount') === null)
+      _appSettings.option('smscount', 0);
+
+    _telephony.oncallschanged = _onCallsChanged;
+    _sms.onsent = _onSMSSent; // XXX: this is bugged and not working
+  }
+
   // Initializes the cost control module:
   // critical parameters, automatic updates and state.dependant settings
   function _init() {
     _configureSettings();
     _configureAutomaticUpdates();
+    _configureTelephony();
 
     // State dependant settings allow simultaneous updates and topping up tasks
     _state[STATE_UPDATING_BALANCE] = false;

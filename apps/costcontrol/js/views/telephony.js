@@ -14,11 +14,16 @@ appVManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
       appVManager.changeViewTo(TAB_TELEPHONY);
     });
 
+    // Observe smscount and calltime
+    CostControl.settings.observe('smscount', _updateUI);
+    CostControl.settings.observe('calltime', _updateUI);
+
     _updateUI();
   }
 
   function _updateUI() {
-
+    debug('SMSCount: ' + CostControl.settings.option('smscount'));
+    debug('CallTime: ' + CostControl.settings.option('calltime'));
   }
 
   return {
