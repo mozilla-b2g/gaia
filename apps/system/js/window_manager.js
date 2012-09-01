@@ -291,7 +291,7 @@ var WindowManager = (function() {
         return;
       }
 
-      callback(req.result.screenshot);
+      callback(req.result.screenshot, true);
     }
     req.onerror = function(evt) {
       console.warn('Window Manager: get screenshot from database failed.');
@@ -332,7 +332,7 @@ var WindowManager = (function() {
     req.onsuccess = function(evt) {
       clearTimeout(timer);
       var result = evt.target.result;
-      callback(result);
+      callback(result, false);
 
       putAppScreenshotToDatabase(origin, result);
     };
@@ -371,8 +371,11 @@ var WindowManager = (function() {
       // Get the screenshot of the app and put it on the sprite
       // before starting the transition
       sprite.className = 'before-open';
-      getAppScreenshot(origin, function(screenshot) {
+      getAppScreenshot(origin, function(screenshot, isCached) {
+        sprite.dataset.mask = isCached;
+
         if (!screenshot) {
+          sprite.dataset.mask = false;
           sprite.className = 'opening';
           return;
         }
@@ -407,8 +410,11 @@ var WindowManager = (function() {
     // Get the screenshot of the app and put it on the sprite
     // before starting the transition
     sprite.className = 'before-close';
-    getAppScreenshot(origin, function(screenshot) {
+    getAppScreenshot(origin, function(screenshot, isCached) {
+      sprite.dataset.mask = isCached;
+
       if (!screenshot) {
+        sprite.dataset.mask = false;
         sprite.className = 'closing';
         return;
       }
