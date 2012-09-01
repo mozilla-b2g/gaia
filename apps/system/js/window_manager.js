@@ -195,23 +195,6 @@ var WindowManager = (function() {
     }
   });
 
-  function getAppScreenshot(origin, callback) {
-    if (!callback)
-      return;
-
-    var app = runningApps[origin];
-    app.frame.getScreenshot().onsuccess = function(evt) {
-      callback(evt.target.result);
-    };
-  }
-
-  function afterPaint(callback) {
-    window.addEventListener('MozAfterPaint', function afterPainted() {
-      window.removeEventListener('MozAfterPaint', afterPainted);
-      setTimeout(callback);
-    });
-  }
-
   // Perform an "open" animation for the app's iframe
   function openWindow(origin, callback) {
     var app = runningApps[origin];
@@ -229,12 +212,7 @@ var WindowManager = (function() {
       if (app.manifest.fullscreen)
         screenElement.classList.add('fullscreen-app');
 
-      getAppScreenshot(origin, function(screenshot) {
-        sprite.style.backgroundImage = 'url(' + screenshot + ')';
-        afterPaint(function() {
-          sprite.className = 'open';
-        });
-      });
+      sprite.className = 'open';
     }
   }
 
@@ -255,13 +233,8 @@ var WindowManager = (function() {
     closeFrame.setVisible(false);
 
     // And begin the transition
-    getAppScreenshot(origin, function(screenshot) {
-      sprite.style.backgroundImage = 'url(' + screenshot + ')';
-      afterPaint(function() {
-        sprite.classList.remove('faded');
-        sprite.classList.add('close');
-      });
-    });
+    sprite.classList.remove('faded');
+    sprite.classList.add('close');
   }
 
   // Switch to a different app
