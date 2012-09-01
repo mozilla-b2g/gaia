@@ -322,12 +322,12 @@ var WindowManager = (function() {
 
       getAppScreenshot(origin, function(screenshot) {
         if (!screenshot) {
-          sprite.style.background = '';
+          sprite.style.backgroundImage = '';
           sprite.className = 'open';
           return;
         }
 
-        sprite.style.background = '#fff url(' + screenshot + ')';
+        sprite.style.backgroundImage = 'url(' + screenshot + ')';
         afterPaint(function() {
           sprite.className = 'open';
         });
