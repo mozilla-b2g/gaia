@@ -506,6 +506,11 @@ var WindowManager = (function() {
     }
   }
 
+  var isOutOfProcessDisabled = false;
+  SettingsListener.observe('debug.oop.disabled', false, function(value) {
+    isOutOfProcessDisabled = value;
+  });
+
   function appendFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
     frame.id = 'appframe' + nextAppId++;
@@ -567,7 +572,8 @@ var WindowManager = (function() {
       // Bluetooth is not remoted yet (bug 755943)
     ];
 
-    if (outOfProcessBlackList.indexOf(name) === -1) {
+    if (!isOutOfProcessDisabled &&
+        outOfProcessBlackList.indexOf(name) === -1) {
       // FIXME: content shouldn't control this directly
       frame.setAttribute('remote', 'true');
       console.info('%%%%% Launching', name, 'as remote (OOP)');
