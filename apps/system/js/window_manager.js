@@ -285,14 +285,7 @@ var WindowManager = (function() {
 
     var req = app.frame.getScreenshot();
 
-    // Workaround https://bugzilla.mozilla.org/show_bug.cgi?id=787519
-    var timer = setTimeout(function getScreenshotTimeout() {
-      console.warn('Window Manager: getScreenshot timeout.');
-      callback();
-    }, 500);
-
     req.onsuccess = function(evt) {
-      clearTimeout(timer);
       var result = evt.target.result;
       callback(result);
 
@@ -318,7 +311,6 @@ var WindowManager = (function() {
     };
 
     req.onerror = function(evt) {
-      clearTimeout(timer);
       console.warn('Window Manager: getScreenshot failed.');
       callback();
     };
