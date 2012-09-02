@@ -80,7 +80,7 @@
           if (target.mozMatchesSelector(selector)) {
             return handler(e, target);
           }
-          target = element.parentNode;
+          target = target.parentNode;
         }
       });
     },
