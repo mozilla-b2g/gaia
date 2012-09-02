@@ -19,7 +19,6 @@ var PopupManager = {
   init: function pm_init() {
     window.addEventListener('mozbrowseropenwindow', this);
     window.addEventListener('mozbrowserclose', this);
-
     window.addEventListener('home', this);
   },
 
@@ -30,7 +29,7 @@ var PopupManager = {
   _hideWait: function pm_hideWait() {
     this.loadingIcon.classList.remove('popup-loading');
   },
- 
+
   open: function pm_open(name, frame, origin, trusted) {
     // Only one popup at a time. If the popup is being shown, we swap frames.
     if (this._currentPopup) {
