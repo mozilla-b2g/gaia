@@ -12,12 +12,6 @@ suite('views/modify_event', function() {
   var event;
   var remote;
 
-  function triggerEvent(element, eventName) {
-    var event = document.createEvent('HTMLEvents');
-    event.initEvent(eventName, true, true);
-    element.dispatchEvent(event);
-  }
-
   function hasClass(value) {
     return subject.element.classList.contains(value);
   }

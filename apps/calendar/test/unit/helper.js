@@ -18,6 +18,12 @@
 
   testSupport.calendar = {
 
+    triggerEvent: function(element, eventName) {
+      var event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName, true, true);
+      element.dispatchEvent(event);
+    },
+
     loadSample: function(file, cb) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', '/test/unit/fixtures/' + file, true);
