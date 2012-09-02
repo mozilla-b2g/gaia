@@ -48,8 +48,9 @@ Calendar.App = (function(window) {
       var today = document.querySelector('#view-selector .today');
 
       today.addEventListener('click', function() {
-        self.view('Month').render();
-        self.timeController.selectedDay = (new Date());
+        var date = new Date();
+        self.timeController.move(date);
+        self.timeController.selectedDay = date;
       });
 
 
