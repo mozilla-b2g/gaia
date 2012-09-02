@@ -222,12 +222,25 @@ var ValueSelector = {
     optionsContainer.innerHTML = optionHTML;
 
 
+    // Apply different style when the options are more than 1 page
     if (options.length > 5) {
       this._containers['select'].dataset.mode = 'scroll';
     } else {
       this._containers['select'].dataset.mode = '';
     }
 
+    // Change the title for multiple select
+    var titleL10nId = 'choose-options';
+    if (this._currentPickerType === 'select-one')
+      titleL10nId = 'choose-option';
+
+    var optionsTitle = document.querySelector(
+                       '#value-selector-container h3');
+
+    if (optionsTitle) {
+      optionsTitle.dataset.l10nId = titleL10nId;
+      optionsTitle.textContent = navigator.mozL10n.get(titleL10nId);
+    }
   },
 
   showTimePicker: function vs_showTimePicker() {
