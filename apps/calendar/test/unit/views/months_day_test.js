@@ -80,11 +80,8 @@ suite('views/months_day', function() {
 
   suite('#changeDate', function() {
     var startTime = new Date(2012, 1, 1);
-    var endTime = new Date(2012, 1, 2);
     var calledLoadWith;
     var updateCalledWith;
-
-    endTime.setMilliseconds(-1);
 
     setup(function() {
       calledLoadWith = false;
@@ -103,12 +100,14 @@ suite('views/months_day', function() {
 
     test('from clean state', function() {
       assert.equal(subject._changeToken, 0);
+      var day = Calendar.Calc.createDay(startTime);
 
       subject.changeDate(startTime);
-      assert.equal(subject.date, startTime);
+
+      assert.deepEqual(subject.date, day);
       assert.equal(subject.events.innerHTML, '');
 
-      assert.equal(subject.date, startTime);
+      assert.deepEqual(subject.date, day);
       assert.ok(calledLoadWith, 'loads records');
       assert.ok(updateCalledWith);
 
@@ -118,7 +117,7 @@ suite('views/months_day', function() {
 
       assert.deepEqual(
         subject.timespan,
-        new Calendar.Timespan(startTime, endTime)
+        Calendar.Calc.spanOfDay(day)
       );
 
       var eventIdx = controller.findTimeObserver(subject.timespan, subject);
@@ -467,12 +466,10 @@ suite('views/months_day', function() {
   });
 
   test('#render', function() {
-    var calledWith;
-    subject.changeDate = function() {
-      calledWith = arguments;
-    }
+    var date = new Date();
+    var span = Calendar.Calc.spanOfDay(date);
     subject.render();
-    assert.ok(calledWith);
+    assert.deepEqual(subject.timespan, span);
   });
 
   test('#onfirstseen', function() {

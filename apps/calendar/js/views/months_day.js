@@ -65,15 +65,8 @@
     _initEvents: function() {
       var self = this;
       this.controller.on('selectedDayChange', this);
-      this.events.addEventListener('click', function(e) {
-        var target = e.target;
-        while (!target.isEqualNode(self.events)) {
-          if (target.classList.contains('event')) {
-            Calendar.App.router.show('/event/' + target.dataset.id + '/');
-            break;
-          }
-          target = target.parentNode;
-        }
+      this.delegate(this.events, 'click', '[data-id]', function(e, target) {
+        Calendar.App.router.show('/event/' + target.dataset.id + '/');
       });
     },
 
@@ -111,15 +104,7 @@
 
       ++this._changeToken;
 
-      var endDate = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate() + 1
-      );
-
       var controller = this.controller;
-
-      endDate.setMilliseconds(-1);
 
       if (this.timespan) {
         controller.removeTimeObserver(
@@ -128,11 +113,8 @@
         );
       }
 
-      this.date = date;
-      this.timespan = new Calendar.Timespan(
-        date,
-        endDate
-      );
+      this.date = Calendar.Calc.createDay(date);
+      this.timespan = Calendar.Calc.spanOfDay(date);
 
       controller.observeTime(this.timespan, this);
 
@@ -343,7 +325,8 @@
     },
 
     render: function() {
-      this.changeDate(new Date());
+      var date = Calendar.Calc.createDay(new Date());
+      this.changeDate(date);
     }
 
   };
