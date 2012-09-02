@@ -43,6 +43,8 @@ suite('views/month', function() {
 
     app = testSupport.calendar.app();
     controller = app.timeController;
+    controller.move(new Date());
+
     busytimes = app.store('Busytime');
 
     subject = new Calendar.Views.Month({
@@ -282,14 +284,8 @@ suite('views/month', function() {
     });
 
     test('rendered elements', function() {
-      var container = subject.container,
-          now = new Date();
-
-      now = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1
-      );
+      var container = subject.container;
+      var now = controller.month;
 
       subject.render();
 

@@ -25,7 +25,7 @@ Calendar.ns('Views').TimeHeader = (function() {
 
     selectors: {
       element: '#time-header',
-      title: '#time-header > h1',
+      title: '#time-header h1',
       settings: '#time-header .settings'
     },
 
@@ -55,8 +55,9 @@ Calendar.ns('Views').TimeHeader = (function() {
     _updateTitle: function() {
       this.title.textContent = this.monthScaleTitle();
     }
-
   };
+
+  TimeHeader.prototype.render = TimeHeader.prototype._updateTitle;
 
   return TimeHeader;
 }());

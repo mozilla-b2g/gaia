@@ -61,6 +61,8 @@ Calendar.App = (function(window) {
       this.syncController.observe();
       this.timeController.observe();
 
+      this.timeController.move(new Date());
+
       /* temp views */
       this.state('/day/', setPath, tempView('#day-view'));
       this.state('/week/', setPath, tempView('#week-view'));
@@ -90,7 +92,9 @@ Calendar.App = (function(window) {
 
       var header = this.view('TimeHeader');
       var colors = this.view('CalendarColors');
+
       colors.render();
+      header.render();
 
       var pathname = window.location.pathname;
 

@@ -283,16 +283,7 @@ Calendar.ns('Views').Month = (function() {
      * Render current month
      */
     render: function() {
-      var el = this.container,
-          now = new Date();
-
-      now = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1
-      );
-
-      this.controller.move(now);
+      this.activateMonth(this.controller.month);
       this.centerOnCurrent();
     }
 
