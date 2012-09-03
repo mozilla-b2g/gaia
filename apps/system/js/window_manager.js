@@ -655,6 +655,13 @@ var WindowManager = (function() {
     }
   });
 
+  // With all important event handlers in place, we can now notify
+  // Gecko that we're ready for certain system services to send us
+  // messages (e.g. the radio).
+  var event = document.createEvent('CustomEvent');
+  event.initCustomEvent('mozContentEvent', true, true, { type: 'system-app-ready' });
+  window.dispatchEvent(event);
+
   // Return the object that holds the public API
   return {
     launch: launch,
