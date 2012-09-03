@@ -32,7 +32,7 @@ input {
   height: 3rem;
   line-height: 3rem;
 
-  /* For an easier touch target, buttons are not exactly centered and have
+  /* For an easier touch target, buttons are not exactly centered and
      are bigger at the bottom */
   padding-bottom: 0.5rem;
 
@@ -76,13 +76,13 @@ input:not(.small) {
   margin-top: 8px;
   margin-bottom: 10px;
 
-  width: -moz-calc(100% - 16px);
+  width: calc(100% - 16px);
   height: 142px;
   line-height: 142px;
 }
 
 #display b {
-  -moz-transform-origin: right center;
+  transform-origin: right center;
   position: absolute;
   right: 16px;
 
