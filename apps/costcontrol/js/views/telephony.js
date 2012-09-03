@@ -17,6 +17,7 @@ appVManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
     // Observe smscount and calltime
     CostControl.settings.observe('smscount', _updateUI);
     CostControl.settings.observe('calltime', _updateUI);
+    CostControl.settings.observe('lastreset', _updateUI);
 
     _updateUI();
   }

@@ -19,8 +19,9 @@ window.addEventListener('message', function ccwidget_onApplicationReady(evt) {
 });
 
 // Cost Control widget is placed in the bottom of the utility tray, over the
-// quick settings buttons and is in charge of displaying current balance at the
-// same time it provides a quick access to the Cost Control application.
+// quick settings buttons and is in charge of displaying current balance /
+// telephony statistics (depends on the plantype) at the same time it provides
+// a quick access to the Cost Control application.
 function setupWidget() {
 
   var _widget;
@@ -85,11 +86,20 @@ function setupWidget() {
         _setWarningMode(true);
     };
 
+    _configureAutomaticUpdates();
   }
 
   // Specific setup for the teelphony view
   function _configureTelephonyView() {
     _telephonyView = document.getElementById('telephony-view');
+    CostControl.settings.observe('smscount', _updateTelephonyUI);
+    CostControl.settings.observe('calltime', _updateTelephonyUI);
+    CostControl.settings.observe('lastreset', _updateTelephonyUI);
+
+    window.addEventListener('message', function ccwidget_utilityTray(evt) {
+      if (evt.data.type === 'utilitytrayshow')
+        _updateTelephonyUI();
+    });
   }
 
   // Attach event listeners for manual updates
@@ -106,25 +116,19 @@ function setupWidget() {
     CostControl.settings.observe(
       'plantype',
       function ccwidget_onPlanTypeChange(plantype) {
-        _balanceView.setAttribute('aria-hidden', 'true');
-        _telephonyView.setAttribute('aria-hidden', 'true');
-
-        if (plantype === 'prepaid') {
-          _balanceView.setAttribute('aria-hidden', 'false');
-        } else {
-          _telephonyView.setAttribute('aria-hidden', 'false');
-        }
-
-        _updateBalanceUI();
+        _switchView(plantype === 'prepaid' ? 'balance' : 'telephony');
       }
     );
 
     // Update UI when localized
     window.addEventListener('localized', function ccwidget_onLocalized() {
-      _updateBalanceUI();
+      _updateUI();
     });
 
-    _updateBalanceUI();
+    var plantype = CostControl.settings.option('plantype');
+    _switchView(plantype === 'prepaid' ? 'balance' : 'telephony');
+
+    _updateUI();
   }
 
   // Return True when automatic updates are allow:
@@ -147,7 +151,6 @@ function setupWidget() {
   // updates.
   function _init() {
     _configureWidget();
-    _configureAutomaticUpdates();
   }
 
   // Request a balance update from the service
@@ -187,6 +190,20 @@ function setupWidget() {
 
         break;
     }
+  }
+
+  // Switch view to balance / telephony
+  function _switchView(view) {
+    _balanceView.setAttribute('aria-hidden', 'true');
+    _telephonyView.setAttribute('aria-hidden', 'true');
+
+    if (view === 'balance') {
+      _balanceView.setAttribute('aria-hidden', 'false');
+    } else {
+      _telephonyView.setAttribute('aria-hidden', 'false');
+    }
+
+    _updateBalanceUI();
   }
 
   // Enable / disable warning mode for the UI
@@ -232,8 +249,8 @@ function setupWidget() {
     return date + ', ' + time;
   }
 
-  // Updates the UI with the new balance if provided, else just update the
-  // widget with the last updated balance.
+  // Updates the balance UI with the new balance if provided, else just update
+  // the widget with the last updated balance.
   function _updateBalanceUI(balanceObject) {
     balanceObject = balanceObject || CostControl.getLastBalance();
 
@@ -263,6 +280,41 @@ function setupWidget() {
     // Format time
     var timestamp = balanceObject ? balanceObject.timestamp : null;
     _balanceTime.textContent = _formatTime(timestamp);
+  }
+
+  // Updates the telephony UIs reading the sms count, call time and last reset
+  // from the service.
+  function _updateTelephonyUI() {
+    function toMinutes(milliseconds) {
+      return Math.ceil(milliseconds / (1000 * 60));
+    }
+
+    // Dates
+    var formattedTime = _('never');
+    var lastReset = CostControl.settings.option('lastreset');
+    if (lastReset !== null)
+      formattedTime = (new Date(lastReset))
+                      .toLocaleFormat(_('short-date-format'));
+    document.getElementById('telephony-from-date').textContent = formattedTime;
+
+    var now = new Date();
+    document.getElementById('telephony-to-date').textContent =
+      _('today') + ', ' + now.toLocaleFormat('%H:%M');
+
+    // Counters
+    document.getElementById('telephony-calltime').textContent =
+      toMinutes(CostControl.settings.option('calltime'));
+    document.getElementById('telephony-smscount').textContent =
+      CostControl.settings.option('smscount');
+
+    debug('SMSCount: ' + CostControl.settings.option('smscount'));
+    debug('CallTime: ' + CostControl.settings.option('calltime'));
+  }
+
+  // Refresh all UIs
+  function _updateUI() {
+    _updateBalanceUI();
+    _updateTelephonyUI();
   }
 
   _init();
