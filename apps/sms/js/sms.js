@@ -79,6 +79,8 @@ var MessageManager = {
             } else {
               MessageManager.slide();
             }
+            // Update the data for next time we enter a thread
+            ThreadUI.title.removeAttribute('is-contact');
             break;
           case '#edit':
             ThreadListUI.cleanForm();
@@ -691,6 +693,9 @@ var ThreadUI = {
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
     self.title.innerHTML = number;
+    // Add data to contact activity interaction
+    self.title.setAttribute('phone-number', number);
+
     ContactDataManager.getContactData(number, function gotContact(contact) {
       //TODO what if return multiple contacts?
       var carrierTag = document.getElementById('contact-carrier');
@@ -703,6 +708,9 @@ var ThreadUI = {
             phone = contact[0].tel[i];
           }
         }
+        // Add data values for contact activity interaction
+        self.title.setAttribute('is-contact', true);
+
         if (name && name != '') { // contact with name
           self.title.innerHTML = name;
           carrierTag.innerHTML =
@@ -1221,14 +1229,30 @@ var ThreadUI = {
   },
 
   activateContact: function thui_activateContact() {
-    try {
-      //TODO: We should provide correct params for contact activiy handler.
-      var activity = new MozActivity({
+    var options = {};
+    // Call to 'new' or 'view' depending on existence of contact
+    if (this.title.getAttribute('is-contact') == 'true') {
+      //TODO modify this when 'view' activity is available on contacts
+      // options = {
+      //   name: 'view',
+      //   data: {
+      //     type: 'webcontacts/contact'
+      //   }
+      // };
+    } else {
+      options = {
         name: 'new',
         data: {
-          type: 'webcontacts/contact'
+          type: 'webcontacts/contact',
+          params: {
+            'tel': this.title.getAttribute('phone-number')
+          }
         }
-      });
+      };
+    }
+
+    try {
+      var activity = new MozActivity(options);
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
