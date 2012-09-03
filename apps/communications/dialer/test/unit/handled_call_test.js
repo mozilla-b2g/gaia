@@ -168,6 +168,10 @@ suite('dialer/handled_call', function() {
     test('photo displaying', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
+
+    test('additional contact info', function() {
+      assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+    });
   });
 
   suite('on disconnect', function() {
