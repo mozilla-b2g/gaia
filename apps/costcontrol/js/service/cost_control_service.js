@@ -40,6 +40,7 @@ setService(function cc_setupCostControlService() {
   // APIs
   var _sms = window.navigator.mozSms;
   var _conn = window.navigator.mozMobileConnection;
+  var _telephony = window.navigator.mozTelephony;
 
   // CostControl application state
   var STATE_TOPPING_UP = 'toppingup';
@@ -47,6 +48,67 @@ setService(function cc_setupCostControlService() {
   var _state = {};
   var _onSMSReceived = {};
   var _smsTimeout = {};
+
+  // App settings object to control settings
+  var _appSettings = (function cc_appSettings() {
+
+    var _listeners = {};
+
+    function _newLocalSettingsChangeEvent(key, value, oldValue) {
+      return new CustomEvent(
+        'localsettingschanged',
+        { detail: { key: key, value: value, oldValue: oldValue } }
+      );
+    }
+
+    // Call callback when the value for key is set
+    function _observe(key, callback) {
+
+      // Keep track of callbacks observing a key
+      if (!_listeners.hasOwnProperty(key))
+        _listeners[key] = [];
+
+      if (_listeners[key].indexOf(callback) > -1)
+        return;
+
+      _listeners[key].push(callback);
+      window.addEventListener(
+        'localsettingschanged',
+        function onLocalSettingsChanged(evt) {
+          if (evt.detail.key === key) {
+            callback(evt.detail.value);
+          }
+        }
+      );
+      window.dispatchEvent(_newLocalSettingsChangeEvent(key, _option(key)));
+    }
+
+    // If only key is provided, the method return the current value for the
+    // key. If both key and value are provided, the method sets the key to
+    // that value.
+    function _option(key, value) {
+      var oldValue = JSON.parse(window.localStorage.getItem(key));
+      if (typeof value === 'undefined')
+        return oldValue;
+
+      debug('Setting "' + key + '" to: ' + JSON.stringify(value));
+      window.localStorage.setItem(key, JSON.stringify(value));
+      window.dispatchEvent(_newLocalSettingsChangeEvent(key, value, oldValue));
+    }
+
+    // Sometimes you need to use a reviver to get the proper value for a
+    // stored key. Use this function instead of one-parameter _option()
+    // methods.
+    function _revive(key, reviver) {
+      return JSON.parse(window.localStorage.getItem(key), reviver);
+    }
+
+    return {
+      observe: _observe,
+      option: _option,
+      revive: _revive
+    };
+  }());
 
   // Inner class: Balance.
   // Balance keeps an amount, a timestamp and a currency accesible by
@@ -70,9 +132,7 @@ setService(function cc_setupCostControlService() {
 
   // Returns stored balance
   function _getLastBalance() {
-    var balance = window.localStorage.getItem('lastBalance');
-    balance = (balance !== null) ? JSON.parse(balance, Balance.reviver) : null;
-    return balance;
+    return _appSettings.revive('lastbalance', Balance.reviver);
   }
 
   // Return true if the widget has all the information required to
@@ -174,11 +234,77 @@ setService(function cc_setupCostControlService() {
     }, REQUEST_BALANCE_UPDATE_INTERVAL);
   }
 
+  var _handledCalls = [];
+  function _onCallsChanged(evt) {
+
+    // Biiefly, see if there is a new ongoing (state === dialing) call and if
+    // so, attach a an event when connected to annotate start time and attach
+    // another when disconnecting to compute end time and the duration. Then
+    // update calltime.
+    _telephony.calls.forEach(function cc_eachCall(telCall) {
+      // Abort if is not an outgoing call or is already handled
+      if (telCall.state !== 'dialing' && _handledCalls.indexOf(telCall) > -1)
+        return;
+
+      // Keep track and attach callbacks
+      _handledCalls.push(telCall);
+
+      // Anotate start timestamp
+      // TODO: startime shoud be initialized to null cause can be
+      // a disconnection without connecting (operator message, no coverage)
+      // Lets this as is for the sake of testing.
+      // INMHO: this is a conceptual mistake in states.
+      var starttime = (new Date()).getTime();
+      telCall.onconnected = function cc_onTelCallConnected() {
+        starttime = (new Date()).getTime();
+      };
+
+      // Duration and calltime update
+      telCall.ondisconnected = function cc_onTelCallDisconnected() {
+        // The call not even connected
+        if (starttime === null)
+          return;
+
+        var now = (new Date()).getTime();
+        var duration = now - starttime;
+        setTimeout(function cc_updateCallTime() {
+          _appSettings.option(
+            'calltime',
+            _appSettings.option('calltime') + duration
+          );
+        });
+
+        // Remove from the already tracked calls
+        _handledCalls.splice(_handledCalls.indexOf(telCall), 1);
+      };
+    });
+  }
+
+  // Count another SMS
+  function _onSMSSent() {
+    debug('Message sent!');
+    _appSettings.option('smscount', _appSettings('smscount') + 1);
+  }
+
+  // Attach event listeners to telephony in order to count how many SMS has been
+  // sent and how much time we talked since last reset.
+  function _configureTelephony() {
+    if (_appSettings.option('calltime') === null)
+      _appSettings.option('calltime', 0);
+
+    if (_appSettings.option('smscount') === null)
+      _appSettings.option('smscount', 0);
+
+    _telephony.oncallschanged = _onCallsChanged;
+    _sms.onsent = _onSMSSent; // XXX: this is bugged and not working
+  }
+
   // Initializes the cost control module:
   // critical parameters, automatic updates and state.dependant settings
   function _init() {
     _configureSettings();
     _configureAutomaticUpdates();
+    _configureTelephony();
 
     // State dependant settings allow simultaneous updates and topping up tasks
     _state[STATE_UPDATING_BALANCE] = false;
@@ -258,7 +384,7 @@ setService(function cc_setupCostControlService() {
       case 'costcontrolperiodicallyupdate':
 
         // Abort if it have not passed enough time since last update
-        var balance = _getLastBalance();
+        var balance = _getlastbalance();
         var lastUpdate = balance ? balance.timestamp : null;
         var now = (new Date()).getTime();
         if (lastUpdate === null ||
@@ -328,7 +454,7 @@ setService(function cc_setupCostControlService() {
     _dispatchEvent(_getEventName(STATE_UPDATING_BALANCE, 'success'), balance);
 
     // Store values
-    window.localStorage.setItem('lastBalance', JSON.stringify(balance));
+    _appSettings.option('lastbalance', balance);
   }
 
   // When a message is received, the function tries to recognize
@@ -525,6 +651,12 @@ setService(function cc_setupCostControlService() {
     },
     getLowLimitThreshold: function cc_getLowLimitThreshold() {
       return LOW_LIMIT_THRESHOLD;
+    },
+    getTopUpTimeout: function cc_getTopUpTimeout() {
+      return WAITING_TIMEOUT;
+    },
+    get settings() {
+      return _appSettings;
     }
   };
 }());

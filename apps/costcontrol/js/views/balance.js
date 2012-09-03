@@ -3,23 +3,19 @@
 
 'use strict';
 
-// Retrieve CostControl service
-var CostControl = getService(function ccapp_onServiceReady(evt) {
-  // If the service is not ready, when ready it sets the CostControl object
-  // again and setup the application.
-  CostControl = evt.detail.service;
-  setupApp();
-});
-if (CostControl)
-  setupApp();
+// Balance Tab is in charge of offer detailed information about current
+// credit as well as allow the user to top up.
+var TAB_BALANCE = 'balance-tab';
+appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
-// Cost Control application is in charge of offer detailed information
-// about cost control and data ussage. At the same time it allows the user
-// to configure some aspects about consumption limits and monitoring.
-function setupApp() {
-
+  var ONE_SECOND = 1000;
   var DELAY_TO_RETURN = 10 * 1000; // 10 seconds
   var NO_SERVICE_ERRORS = {'no-coverage': true, 'carrier-unknown': true};
+
+  // Views and dialogs IDs
+  var VIEW_TOPUP = 'topup-view';
+  var DIALOG_SERVICE_UNAVAILABLE = 'service-unavailable-info-dialog';
+  var DIALOG_APPLICATION_ERROR = 'application-error-info-dialog';
 
   // Update balance control
   var _isUpdating = false;
@@ -31,12 +27,13 @@ function setupApp() {
   var _lastTopUpIncorrect = false;
   var _lastTopUpConfirmed = true;
   var _returnTimeout = 0;
+  var _countdownInterval = 0;
 
   // On balance updating success, update UI with the new balance
   function _onUpdateBalanceSuccess(evt) {
     var balance = evt.detail;
     _setWarningMode(false);
-    _updateBalanceUI(balance);
+    _updateUI(balance);
   }
 
   // On balance updating error, if manual request, notificate
@@ -45,9 +42,9 @@ function setupApp() {
   function _onUpdateBalanceError(evt) {
     _setUpdatingMode(false);
     _setWarningMode(true);
-    _updateBalanceUI();
+    _updateUI();
     _setBalanceScreenMode(MODE_ERROR); // order is important here, it needs to
-                                       // be after _updateBalanceUI()
+                                       // be after _updateUI()
   }
 
   // On starting an update, enter into update mode
@@ -73,7 +70,6 @@ function setupApp() {
 
     _lastTopUpConfirmed = true;
     _lastTopUpIncorrect = false;
-    _setTopUpScreenMode(MODE_DEFAULT);
 
     var status = CostControl.getServiceStatus();
     if (status.availability && !status.roaming)
@@ -83,6 +79,7 @@ function setupApp() {
   // On top up error, several cases, see comments inline:
   function _onTopUpError(evt) {
     clearTimeout(_returnTimeout);
+    _onTopUpFinish();
 
     switch (evt.detail.reason) {
       case 'sending-error':
@@ -111,7 +108,19 @@ function setupApp() {
         notification.show();
         break;
     }
-    _updateBalanceUI();
+    _updateUI();
+  }
+
+  // When starting the top up, show and start the top up countdown
+  function _onTopUpStart() {
+    _setTopUpCountdown(true);
+    _startTopUpCountdown();
+  }
+
+  // When finished the top up, hide and clear the top up countdown
+  function _onTopUpFinish() {
+    _setTopUpCountdown(false);
+    _stopTopUpCountdown();
   }
 
   var _balanceTab;
@@ -126,6 +135,11 @@ function setupApp() {
     _btCredit = document.getElementById('balance-tab-credit');
     _btTime = document.getElementById('balance-tab-time');
 
+    var balanceFilter = document.getElementById('balance-tab-filter');
+    balanceFilter.addEventListener('click', function ccapp_onBalanceTab() {
+      appVManager.changeViewTo(TAB_BALANCE);
+    });
+
     var btRequestUpdateButton =
       document.getElementById('balance-tab-update-button');
     btRequestUpdateButton.addEventListener('click', _requestUpdateBalance);
@@ -135,32 +149,21 @@ function setupApp() {
     btRequestTopUpButton.addEventListener('click', _requestTopUp);
   }
 
-  // Configure close info buttons to close the current view
-  // (i.e the info itself)
-  function _configureCloseInfoButtons() {
-    var okButtons = document.querySelectorAll('.close-info-button');
-    [].forEach.call(okButtons, function ccapp_eachCloseButton(button) {
-      button.addEventListener('click', function ccapp_onOK() {
-        ViewManager.closeCurrentView();
-      });
-    });
+  // TODO: remove when autofocus became available from B2G
+  // Give the focus to the top up code input
+  function _focusCodeInput() {
+    document.getElementById('topup-code-input').focus();
   }
 
   // Configure the top up screen, the close button and the send button
   function _configureTopUpScreen() {
-    var closeButton = document.getElementById('topup-close-button');
-    closeButton.addEventListener('click', function() {
-      ViewManager.closeCurrentView();
-    });
 
-    var inputTopUpCode = document.getElementById('topup-code-input');
+    var input = document.getElementById('topup-code-input');
     var buttonTopUp = document.getElementById('topup-send-button');
     buttonTopUp.addEventListener('click', function ccapp_onSend() {
 
       // Get and clean the code
-      var code = inputTopUpCode.value
-        .replace(/^\s+/, '').replace(/\s+$/, '');
-
+      var code = input.value.replace(/^\s+/, '').replace(/\s+$/, '');
       if (!code)
         return;
 
@@ -171,9 +174,9 @@ function setupApp() {
       // return in a while.
       _isWaitingTopUp = true;
       _setTopUpScreenMode(MODE_WAITING);
-      _returnTimeout = setTimeout(function ccapp_toLeftPanel() {
-        if (_currentView && _currentView.id === VIEW_TOPUP)
-          ViewManager.closeCurrentView();
+      _returnTimeout = setTimeout(function ccapp_backToBalance() {
+        if (appVManager.isCurrentView(VIEW_TOPUP))
+          appVManager.closeCurrentView();
       }, DELAY_TO_RETURN);
 
     });
@@ -182,7 +185,6 @@ function setupApp() {
   // Attach event listeners for manual updates
   function _configureUI() {
 
-    _configureCloseInfoButtons();
     _configureBalanceTab();
     _configureTopUpScreen();
 
@@ -197,7 +199,9 @@ function setupApp() {
     // Callbacks for topping up
     CostControl.setTopUpCallbacks({
       onsuccess: _onTopUpSuccess,
-      onerror: _onTopUpError
+      onerror: _onTopUpError,
+      onstart: _onTopUpStart,
+      onfinish: _onTopUpFinish
     });
 
     // Callback fot service state changed
@@ -208,33 +212,14 @@ function setupApp() {
         _setBalanceScreenMode(MODE_ROAMING);
       }
     };
-
-    // Handle web activity
-    navigator.mozSetMessageHandler('activity',
-      function settings_handleActivity(activityRequest) {
-        var name = activityRequest.source.name;
-        switch (name) {
-          case 'costcontrol/open':
-            ViewManager.closeCurrentView();
-            break;
-
-          case 'costcontrol/topup':
-            ViewManager.changeViewTo(VIEW_TOPUP);
-            break;
-        }
-      }
-    );
-
-    // Update UI when localized
-    window.addEventListener('localized', function ccapp_onLocalized() {
-      _updateBalanceUI();
-    });
   }
 
   var MODE_DEFAULT = 'mode-default';
   var MODE_WAITING = 'mode-waiting';
   var MODE_INCORRECT_CODE = 'mode-incorrect-code';
   var MODE_ERROR = 'mode-error';
+  var MODE_ROAMING = 'mode-roaming';
+  var MODE_TOP_UP_TIMEOUT = 'mode-top-up-timeout';
 
   // Set the topscreen mode:
   //  DEFAULT: invites the user to enter the top up code
@@ -245,47 +230,95 @@ function setupApp() {
   function _setTopUpScreenMode(mode) {
     clearTimeout(_returnTimeout);
 
-    var _explanation = document.getElementById('topup-code-explanation');
-    var _confirmation =
+    var explanation = document.getElementById('topup-code-explanation');
+    var confirmation =
       document.getElementById('topup-confirmation-explanation');
-    var _incorrectCode = document.getElementById('topup-incorrect-code');
-    var _error = document.getElementById('topup-error');
-    var _progress = document.getElementById('topup-in-progress');
-    var _input = document.getElementById('topup-code-input');
+    var incorrectCode = document.getElementById('topup-incorrect-code');
+    var error = document.getElementById('topup-error');
+    var progress = document.getElementById('topup-in-progress');
+    var input = document.getElementById('topup-code-input');
 
     // Reset the screen (hide everything)
-    _explanation.setAttribute('aria-hidden', 'true');
-    _confirmation.setAttribute('aria-hidden', 'true');
-    _incorrectCode.setAttribute('aria-hidden', 'true');
-    _error.setAttribute('aria-hidden', 'true');
-    _progress.setAttribute('aria-hidden', 'true');
-    _input.removeAttribute('disabled');
+    explanation.setAttribute('aria-hidden', 'true');
+    confirmation.setAttribute('aria-hidden', 'true');
+    incorrectCode.setAttribute('aria-hidden', 'true');
+    error.setAttribute('aria-hidden', 'true');
+    progress.setAttribute('aria-hidden', 'true');
+    input.removeAttribute('disabled');
 
+    debug(mode);
     switch (mode) {
       case MODE_DEFAULT:
-        _explanation.setAttribute('aria-hidden', 'false');
+        explanation.setAttribute('aria-hidden', 'false');
         if (_lastTopUpConfirmed)
-          _input.value = '';
+          input.value = '';
 
         break;
 
       case MODE_WAITING:
-        _confirmation.setAttribute('aria-hidden', 'false');
-        _progress.setAttribute('aria-hidden', 'false');
-        _input.setAttribute('disabled', 'disabled');
+        confirmation.setAttribute('aria-hidden', 'false');
+        progress.setAttribute('aria-hidden', 'false');
+        input.setAttribute('disabled', 'disabled');
         break;
 
       case MODE_INCORRECT_CODE:
-        _incorrectCode.setAttribute('aria-hidden', 'false');
+        incorrectCode.setAttribute('aria-hidden', 'false');
         break;
 
       case MODE_ERROR:
-        _error.setAttribute('aria-hidden', 'false');
+        error.setAttribute('aria-hidden', 'false');
         break;
     }
   }
 
-  var MODE_ROAMING = 'mode-roaming';
+  // Add zeros if length of the number is lower than 2
+  function _pad(number) {
+    number = number + '';
+    if (number.length < 2)
+      number = '0' + number;
+
+    return number;
+  }
+
+  // Using a closure, setup the countdown for the top up waiting.
+  function _startTopUpCountdown() {
+    var seconds = Math.floor(CostControl.getTopUpTimeout() / 1000);
+    var countdownHolder = document.getElementById('top-up-countdown');
+
+    _stopTopUpCountdown();
+    _countdownInterval = setInterval(function ccapp_renderCountdown() {
+      var remainingSeconds = seconds % 60;
+      var minutes = Math.floor(seconds / 60);
+      countdownHolder.textContent = _pad(minutes) + ':' +
+                                    _pad(remainingSeconds);
+      if (seconds === 0)
+        clearInterval(_countdownInterval);
+      seconds -= 1;
+    }, ONE_SECOND);
+  }
+
+  // Stops the countdown fot the top up waiting
+  function _stopTopUpCountdown() {
+    var seconds = Math.floor(CostControl.getTopUpTimeout() / 1000);
+    var remainingSeconds = seconds % 60;
+    var minutes = Math.floor(seconds / 60);
+    var countdownHolder = document.getElementById('top-up-countdown');
+    countdownHolder.textContent = _pad(minutes) + ':' + _pad(remainingSeconds);
+    clearTimeout(_countdownInterval);
+  }
+
+  // Enable / disable the countdown area for the top up and disable / enable
+  // the top up button respectively.
+  function _setTopUpCountdown(enabled) {
+    var topUpButton = document.getElementById('balance-tab-topup-button');
+    var countdown = document.getElementById('cost-control-topup-countdown');
+    countdown.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+    if (enabled) {
+      topUpButton.setAttribute('disabled', 'disabled');
+    } else {
+      topUpButton.removeAttribute('disabled');
+    }
+  }
 
   // Set the balance screen mode:
   //  DEFAULT: the error area keeps hidden
@@ -294,17 +327,19 @@ function setupApp() {
   //
   // TODO: Avoid the following situation:
   // Please note if you need to call _setBalanceScreenMode() in addition with
-  // _updateBalanceUI(), please call the latter first because it calls this
+  // _updateUI(), please call the latter first because it calls this
   // function too and the effect will be override.
   function _setBalanceScreenMode(mode) {
     var _messageArea = document.getElementById('cost-control-message-area');
     var _roaming = document.getElementById('on-roaming-message');
     var _error = document.getElementById('balance-error-message');
+    var _topupTimeout = document.getElementById('on-topup-not-confirmed');
 
     // By default hide both errors but show the message area.
     // This force us to explicitly add a case for MODE_DEFAULT
     _roaming.setAttribute('aria-hidden', 'true');
     _error.setAttribute('aria-hidden', 'true');
+    _topupTimeout.setAttribute('aria-hidden', 'true');
     _messageArea.setAttribute('aria-hidden', 'false');
 
     switch (mode) {
@@ -319,14 +354,18 @@ function setupApp() {
       case MODE_ROAMING:
         _roaming.setAttribute('aria-hidden', 'false');
         break;
+
+      case MODE_TOP_UP_TIMEOUT:
+        _topupTimeout.setAttribute('aria-hidden', 'false');
     }
   }
 
   // Initializes the cost control module: basic parameters, automatic and manual
   // updates.
   function _init() {
+    debug('Initializing Balance Tab');
     _configureUI();
-    _updateBalanceUI();
+    _updateUI();
   }
 
   // Request a balance update to the service
@@ -337,7 +376,7 @@ function setupApp() {
     // Check for service availability and inform and abort if not present
     var status = CostControl.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
-      ViewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      appVManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
     }
 
@@ -353,14 +392,14 @@ function setupApp() {
   function _requestTopUp() {
     var status = CostControl.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
-      ViewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      appVManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
     }
 
     if (!_isWaitingTopUp && !_lastTopUpIncorrect)
       _setTopUpScreenMode(MODE_DEFAULT);
 
-    ViewManager.changeViewTo(VIEW_TOPUP);
+    appVManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
   }
 
   // Enable / disable waiting mode for the UI
@@ -408,7 +447,7 @@ function setupApp() {
 
   // Updates the UI with the new balance if provided, else just update the
   // balance screen with the last updated value.
-  function _updateBalanceUI(balanceObject) {
+  function _updateUI(balanceObject) {
     balanceObject = balanceObject || CostControl.getLastBalance();
     var balance = balanceObject ? balanceObject.balance : null;
 
@@ -444,5 +483,13 @@ function setupApp() {
     _btTime.textContent = _formatTime(timestamp);
   }
 
-  _init();
-}
+  return {
+    init: _init,
+    updateUI: _updateUI,
+    showTopUp: function ccapp_showTopUp() {
+      appVManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
+    }
+  };
+}());
+
+Views[TAB_BALANCE] = appVManager.tabs[TAB_BALANCE];
