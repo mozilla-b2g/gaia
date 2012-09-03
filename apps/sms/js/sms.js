@@ -1080,8 +1080,11 @@ var ThreadUI = {
                       function onsave(msg) {
                         var filter = MessageManager.createFilter(
                           message.receiver);
-                        MessageManager.getMessages(
-                          ThreadUI.renderMessages, filter);
+                        MessageManager.getMessages(function(messages) {
+                          ThreadUI.renderMessages(messages);
+                          MessageManager.getMessages(
+                            ThreadListUI.renderThreads);
+                        }, filter);
                     });
                 });
               });

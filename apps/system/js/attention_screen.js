@@ -92,7 +92,7 @@ var AttentionScreen = {
     this.dispatchEvent('status-inactive');
     this.attentionScreen.removeChild(evt.target);
 
-    if (this.attentionScreen.querySelector('iframe').length == 0)
+    if (this.attentionScreen.querySelectorAll('iframe').length == 0)
       this.attentionScreen.classList.remove('displayed');
 
     if (this._screenInitiallyDisabled)
