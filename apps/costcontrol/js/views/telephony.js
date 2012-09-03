@@ -31,7 +31,8 @@ appVManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
     var formattedTime = _('never');
     var lastReset = CostControl.settings.option('lastreset');
     if (lastReset !== null)
-      formattedTime = (new Date(lastReset)).toLocaleFormat(_('short-date-format'));
+      formattedTime = (new Date(lastReset))
+                      .toLocaleFormat(_('short-date-format'));
     document.getElementById('telephony-from-date').textContent = formattedTime;
 
     var now = new Date();
