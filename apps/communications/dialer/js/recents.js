@@ -502,7 +502,7 @@ var Recents = {
       logItem.dataset['contactId'] = contact.id;
     } else {
       contactPhoto.classList.add('unknownContact');
-      logItem.dataset.delete('contactId');
+      delete logItem.dataset['contactId'];
     }
   },
 

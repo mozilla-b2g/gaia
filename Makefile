@@ -194,7 +194,7 @@ ifneq ($(DEBUG),1)
 				mkdir -p profile/webapps/$$dirname; \
 				cdir=`pwd`; \
 				\
-				`# include shared JS scripts`; \
+				# include shared JS scripts \
 				for f in `grep -r shared/js $$d` ;\
 				do \
 					if [[ "$$f" == *shared/js* ]] ;\
@@ -210,7 +210,7 @@ ifneq ($(DEBUG),1)
 					fi \
 				done; \
 				\
-				`# include shared l10n resources`; \
+				# include shared l10n resources \
 				for f in `grep -r shared/locales $$d` ;\
 				do \
 					if [[ "$$f" == *shared/locales* ]] ;\
@@ -227,7 +227,7 @@ ifneq ($(DEBUG),1)
 					fi \
 				done; \
 				\
-				`# include shared building blocks`; \
+				# include shared building blocks \
 				for f in `grep -r shared/style $$d` ;\
 				do \
 					if [[ "$$f" == *shared/style* ]] ;\
@@ -245,7 +245,7 @@ ifneq ($(DEBUG),1)
 					fi \
 				done; \
 				\
-				`# zip application` \
+				# zip application \
 				cd $$d; \
 				zip -r application.zip *; \
 				cd $$cdir; \
@@ -298,11 +298,17 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
+.PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
+ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
+	rm -rf xulrunner-sdk
+	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && unzip xulrunner*.zip && rm xulrunner*.zip)
+	unzip xulrunner*.zip && rm xulrunner*.zip
 else
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+	tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2
+endif
+	@echo $(XULRUNNER_SDK_DOWNLOAD) > .xulrunner-url
 endif
 
 define run-js-command

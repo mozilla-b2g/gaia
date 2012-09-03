@@ -467,7 +467,7 @@ var Contacts = (function() {
       }
 
     } else {
-              doReloadContactDetails(contact);
+      doReloadContactDetails(contact);
     }
   }
 
@@ -609,13 +609,13 @@ var Contacts = (function() {
       if ((detailsInner.offsetHeight + photoOffset) < cover.clientHeight) {
         cover.style.overflow = 'hidden';
       } else {
-        cover.style.overflow = null;
+        cover.style.overflow = 'visible';
       }
       updatePhoto(contact.photo[0], cover);
     } else {
-      cover.style.overflow = null;
-      cover.style.backgroundImage = null;
-      contactDetails.style.transform = null;
+      cover.style.backgroundImage = '';
+      cover.style.overflow = 'visible';
+      contactDetails.style.transform = '';
       contactDetails.classList.add('no-photo');
     }
   };
