@@ -77,6 +77,7 @@ if (DEBUG) {
   prefs.push(["dom.mozContacts.enabled", true]);
   prefs.push(["dom.mozSettings.enabled", true]);
   prefs.push(["device.storage.enabled", true]);
+  prefs.push(["devtools.chrome.enabled", true]);
   prefs.push(["webgl.verbose", true]);
 
   // Preferences for httpd
