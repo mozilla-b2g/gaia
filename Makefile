@@ -298,11 +298,17 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
+.PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
+ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
+	rm -rf xulrunner-sdk
+	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && unzip xulrunner*.zip && rm xulrunner*.zip)
+	unzip xulrunner*.zip && rm xulrunner*.zip
 else
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+	tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2
+endif
+	@echo $(XULRUNNER_SDK_DOWNLOAD) > .xulrunner-url
 endif
 
 define run-js-command
