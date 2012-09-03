@@ -6,8 +6,11 @@ function debug(msg) {
 
 /**
  * Returns an array of nsIFile's for a given directory
- * @dir       {nsIFile} directory to read
- * @recursive {boolean} set to true in order to walk recursively
+ *
+ * @param  {nsIFile} dir       directory to read.
+ * @param  {boolean} recursive set to true in order to walk recursively.
+ *
+ * @return {Array}   list of nsIFile's.
  */
 function ls(dir, recursive) {
   let results = [];
@@ -33,9 +36,10 @@ const PR_EXCL = 0x80;
 
 /**
  * Add a file or a directory, recursively, to a zip file
- * @zip       {nsIZipWriter} zip xpcom instance
- * @pathInZip {string}       relative path to use in zip
- * @file      {nsIFile}      file xpcom to add
+ *
+ * @param {nsIZipWriter} zip       zip xpcom instance.
+ * @param {String}       pathInZip relative path to use in zip.
+ * @param {nsIFile}      file      file xpcom to add.
  */
 function addToZip(zip, pathInZip, file) {
   if (!file.exists())
@@ -44,18 +48,17 @@ function addToZip(zip, pathInZip, file) {
   // Case 1/ Regular file
   if (file.isFile()) {
     try {
-      debug(' + '+pathInZip);
+      debug(' + ' + pathInZip);
       // First argument to addEntryFile shouldn't start with `/`
       // as it would put files in a folder with empty name...
       zip.addEntryFile(pathInZip.replace(/^\//, ''),
                        Ci.nsIZipWriter.COMPRESSION_DEFAULT,
                        file,
                        false);
-    }
-    catch(e) {
+    } catch (e) {
       if (e.name != 'NS_ERROR_FILE_ALREADY_EXISTS')
-        throw new Error('Unable to add following directory in zip: ' + file.path
-                        + '\n' + e);
+        throw new Error('Unable to add following directory in zip: ' +
+                        file.path + '\n' + e);
     }
   }
   // Case 2/ Directory
@@ -67,7 +70,7 @@ function addToZip(zip, pathInZip, file) {
 
     zip.addEntryDirectory(pathInZip, file.lastModifiedTime, false);
 
-    while(entries.hasMoreElements()) {
+    while (entries.hasMoreElements()) {
       let subFile = entries.getNext().QueryInterface(Ci.nsIFile);
       if (subFile.leafName === '.' || subFile.leafName === '..')
         continue;
@@ -88,7 +91,7 @@ webappsTargetDir.append('webapps');
 if (!webappsTargetDir.exists())
   webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
 
-Gaia.webapps.forEach(function (webapp) {
+Gaia.webapps.forEach(function(webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
     return;
@@ -108,7 +111,7 @@ Gaia.webapps.forEach(function (webapp) {
   zip.open(zipFile, mode);
 
   // Add webapp folder to the zip
-  debug('# Create zip for: '+webapp.domain);
+  debug('# Create zip for: ' + webapp.domain);
   addToZip(zip, '/', webapp.sourceDirectoryFile);
 
   // Put shared files, but copy only files actually used by the webapp.
@@ -119,17 +122,17 @@ Gaia.webapps.forEach(function (webapp) {
   let used = {
     js: [], // List of JS file path to copy
     locales: [], // List of locale name to copy
-    styles:[] // List of style name to copy
+    styles: [] // List of style name to copy
   };
   ls(webapp.sourceDirectoryFile, true)
-    .filter(function (file) {
+    .filter(function(file) {
       // Process only files that may require a shared file
       let extension = file.leafName
                           .substr(file.leafName.lastIndexOf('.') + 1)
                           .toLowerCase();
       return file.isFile() && EXTENSIONS_WHITELIST.indexOf(extension) != -1;
     })
-    .forEach(function (file) {
+    .forEach(function(file) {
       // Grep files to find shared/* usages
       let content = getFileContent(file);
       while ((matches = SHARED_USAGE.exec(content)) !== null) {
@@ -152,11 +155,11 @@ Gaia.webapps.forEach(function (webapp) {
       }
     });
 
-  used.js.forEach(function (path) {
+  used.js.forEach(function(path) {
     // Compute the nsIFile for this shared JS file
     let file = Gaia.sharedFolder.clone();
     file.append('js');
-    path.split('/').forEach(function (segment) {
+    path.split('/').forEach(function(segment) {
       file.append(segment);
     });
     if (!file.exists()) {
@@ -166,7 +169,7 @@ Gaia.webapps.forEach(function (webapp) {
     addToZip(zip, '/shared/js/' + path, file);
   });
 
-  used.locales.forEach(function (name) {
+  used.locales.forEach(function(name) {
     // Compute the nsIFile for this shared locale
     let localeFolder = Gaia.sharedFolder.clone();
     localeFolder.append('locales');
@@ -183,7 +186,7 @@ Gaia.webapps.forEach(function (webapp) {
     addToZip(zip, '/shared/locales/' + name, localeFolder);
   });
 
-  used.styles.forEach(function (name) {
+  used.styles.forEach(function(name) {
     // Compute the nsIFile for this shared style
     let styleFolder = Gaia.sharedFolder.clone();
     styleFolder.append('style');
@@ -197,9 +200,10 @@ Gaia.webapps.forEach(function (webapp) {
     css.append(name + '.css');
     addToZip(zip, '/shared/style/' + name + '.css', css);
 
-    // Copy everything but index.html and any other html page at style root folder
+    // Copy everything but index.html and any other html page at style root
+    // folder
     ls(styleFolder, true)
-      .forEach(function (file) {
+      .forEach(function(file) {
         let relativePath = file.getRelativeDescriptor(styleFolder);
         // Ignore html files at style root folder
         if (relativePath.match(/^[^\/]+\.html$/))
