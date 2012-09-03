@@ -45,7 +45,7 @@ var Applications = (function() {
     var apps = e.target.result;
     apps.forEach(function parseApp(app) {
       var manifest = app.manifest;
-      if (!manifest || !manifest.icons) {
+      if (!manifest || !manifest.icons || manifest.hidden === 'hidden') {
         return;
       }
 
