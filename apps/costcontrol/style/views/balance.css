@@ -36,17 +36,13 @@
 }
 
 /* ICONS*/
-#balance-tab .overview .icons .spinner,
+#balance-tab .overview .icons progress,
 #balance-tab .overview .icons .warning {
   display: none;
 }
 
 /* SPINNER */
-#balance-tab .overview .icons .spinner {
-  margin: 0.2rem;
-  background: url("../images/app/icons/loader.png") no-repeat center center;
-  width: 3rem;
-  height: 3rem;
+#balance-tab .overview .icons progress {
   margin: -0.5rem 0 0 -0.5rem;
 }
 
@@ -64,9 +60,8 @@
 }
 
 /* UPDATING STATE */
-#balance-tab.updating .overview .icons .spinner {
+#balance-tab.updating .overview .icons progress {
   display: block;
-  animation: loader 0.8s linear infinite;
 }
 
 #balance-tab.updating .overview .icons .warning {
@@ -81,13 +76,4 @@
 /* LOW CREDIT STATE */
 #balance-tab.low-credit #cost-control-credit {
   color: #b20000;
-}
-
-@keyframes loader {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }

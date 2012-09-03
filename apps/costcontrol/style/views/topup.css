@@ -37,6 +37,11 @@
   margin-bottom: 0.5rem;
 }
 
-#topup-view .content .info progress {
-  margin-top: 1rem;
+#topup-view .content .info .loading progress {
+  float: left;
+  margin: 1rem;
 }
+#topup-view .content .info .loading p {
+  padding-top: 0.8rem;
+}
+
