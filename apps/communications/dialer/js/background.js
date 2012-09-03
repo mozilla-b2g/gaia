@@ -72,7 +72,7 @@
 
     var host = document.location.host;
     var protocol = document.location.protocol;
-    var urlBase = protocol + '//' + host + '/oncall.html';
+    var urlBase = protocol + '//' + host + '/dialer/oncall.html';
     window.open(urlBase + '#' + call.state + '?' + screenState,
                 'call_screen', 'attention');
 

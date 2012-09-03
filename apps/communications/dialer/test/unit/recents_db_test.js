@@ -1,5 +1,5 @@
-requireApp('dialer/js/recents_db.js');
-requireApp('dialer/test/unit/mock_recent.js');
+requireApp('communications/dialer/js/recents_db.js');
+requireApp('communications/dialer/test/unit/mock_recent.js');
 
 suite('dialer/recents_db', function() {
   var subject;

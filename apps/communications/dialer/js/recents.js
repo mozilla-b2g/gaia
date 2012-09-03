@@ -320,10 +320,9 @@ var Recents = {
     if (!document.body.classList.contains('recents-edit')) {
       if (target.classList.contains('call-log-contact-photo')) {
         event.stopPropagation();
-        // TODO Include Alberto's code about linking 'Contacts APP'
-        var isContact = target.parentNode.classList.contains('isContact');
+        var contactId = target.parentNode.dataset['contactId'];
         var phoneNumber = target.parentNode.dataset.num.trim();
-        console.log('Num ' + phoneNumber + ' isContact ' + isContact);
+        Recents.viewOrCreate(contactId, phoneNumber);
       } else if (target.classList.contains('log-item')) {
         var number = target.dataset.num.trim();
         if (number) {
@@ -350,6 +349,19 @@ var Recents = {
         this.deselectAllThreads.classList.remove('disabled');
       }
     }
+  },
+
+  viewOrCreate: function re_viewOrCreate(contactId, phoneNumber) {
+    var contactsIframe = document.getElementById('iframe-contacts');
+    var src = '/contacts/index.html';
+    if (contactId) {
+      src += '#view-contact-details?id=' + contactId;
+    } else {
+      src += '#view-contact-form?tel=' + phoneNumber;
+    }
+    var timestamp = new Date().getTime();
+    contactsIframe.src = src + '&timestamp=' + timestamp;
+    window.location.hash = '#contacts-view';
   },
 
   getSelectedEntries: function re_getSelectedGroups() {
@@ -487,6 +499,10 @@ var Recents = {
       secondaryInfo.innerHTML = secondaryInfo.textContent.trim() +
         '&nbsp;&nbsp;&nbsp;' + phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
+      logItem.dataset['contactId'] = contact.id;
+    } else {
+      contactPhoto.classList.add('unknownContact');
+      logItem.dataset.delete('contactId');
     }
   },
 
