@@ -68,6 +68,7 @@ function getJSON(file) {
 
 const Gaia = {
   engine: GAIA_ENGINE,
+  sharedFolder: getFile(GAIA_DIR, "shared"),
   webapps: {
     forEach: function (fun) {
       let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
@@ -85,6 +86,7 @@ const Gaia = {
             manifestFile: manifestFile,
             url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
             domain: domain,
+            sourceDirectoryFile: manifestFile.parent,
             sourceDirectoryName: dir,
             sourceAppDirectoryName: directoryName
           };
