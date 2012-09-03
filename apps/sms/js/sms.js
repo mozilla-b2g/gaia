@@ -600,10 +600,6 @@ var ThreadUI = {
     return this.doneButton = document.getElementById('messages-delete-button');
   },
 
-  get headerTitle() {
-    delete this.headerTitle;
-    return this.headerTitle = document.getElementById('header-text');
-  },
 
   get editHeader() {
       delete this.editHeader;
@@ -629,7 +625,7 @@ var ThreadUI = {
     this.contactInput.addEventListener('input', this.searchContact.bind(this));
     this.deleteButton.addEventListener('click',
                                        this.executeDeletion.bind(this));
-    this.headerTitle.addEventListener('click', this.activateContact.bind(this));
+    this.title.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
     this.view.addEventListener('click', this);
   },
