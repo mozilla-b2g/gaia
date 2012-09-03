@@ -61,7 +61,7 @@ function addToZip(zip, pathInZip, file) {
                         false);
       }
     } catch (e) {
-      throw new Error('Unable to add following directory in zip: ' +
+      throw new Error('Unable to add following file in zip: ' +
                       file.path + '\n' + e);
     }
   }
@@ -74,8 +74,8 @@ function addToZip(zip, pathInZip, file) {
     if (pathInZip.substr(-1) !== '/')
       pathInZip += '/';
 
-    ls(file).
-      forEach(function(subFile) {
+    let files = ls(file);
+    files.forEach(function(subFile) {
         let subPath = pathInZip + subFile.leafName;
         addToZip(zip, subPath, subFile);
       });
@@ -83,15 +83,15 @@ function addToZip(zip, pathInZip, file) {
 }
 
 let webappsTargetDir = Cc['@mozilla.org/file/local;1']
-               .createInstance(Ci.nsILocalFile);
+                         .createInstance(Ci.nsILocalFile);
 webappsTargetDir.initWithPath(PROFILE_DIR);
+
 // Create profile folder if doesn't exists
-if (!webappsTargetDir.exists())
-  webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+ensureFolderExists(webappsTargetDir);
+
 // Create webapps folder if doesn't exists
 webappsTargetDir.append('webapps');
-if (!webappsTargetDir.exists())
-  webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+ensureFolderExists(webappsTargetDir);
 
 Gaia.webapps.forEach(function(webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
@@ -101,8 +101,7 @@ Gaia.webapps.forEach(function(webapp) {
   // Compute webapp folder name in profile
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webapp.domain);
-  if (!webappTargetDir.exists())
-    webappTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+  ensureFolderExists(webappTargetDir);
 
   let zip = Cc['@mozilla.org/zipwriter;1'].createInstance(Ci.nsIZipWriter);
 
@@ -114,8 +113,8 @@ Gaia.webapps.forEach(function(webapp) {
 
   // Add webapp folder to the zip
   debug('# Create zip for: ' + webapp.domain);
-  ls(webapp.sourceDirectoryFile).
-    forEach(function(file) {
+  let files = ls(webapp.sourceDirectoryFile);
+  files.forEach(function(file) {
       // Ignore files from /shared directory (these files were created by
       // Makefile code)
       if (file.leafName !== 'shared')
@@ -133,8 +132,8 @@ Gaia.webapps.forEach(function(webapp) {
     locales: [], // List of locale name to copy
     styles: [] // List of style name to copy
   };
-  ls(webapp.sourceDirectoryFile, true).
-    filter(function(file) {
+  let files = ls(webapp.sourceDirectoryFile, true);
+  files.filter(function(file) {
       // Process only files that may require a shared file
       let extension = file.leafName
                           .substr(file.leafName.lastIndexOf('.') + 1)
@@ -147,19 +146,21 @@ Gaia.webapps.forEach(function(webapp) {
       while ((matches = SHARED_USAGE.exec(content)) !== null) {
         let kind = matches[1]; // either `js`, `locales` or `style`
         let path = matches[2];
-        if (kind == 'js') {
-          if (used.js.indexOf(path) == -1)
-            used.js.push(path);
-        }
-        else if (kind == 'locales') {
-          let localeName = path.substr(0, path.lastIndexOf('.'));
-          if (used.locales.indexOf(localeName) == -1)
-            used.locales.push(localeName);
-        }
-        else if (kind == 'style') {
-          let styleName = path.substr(0, path.lastIndexOf('.'));
-          if (used.styles.indexOf(styleName) == -1)
-            used.styles.push(styleName);
+        switch (kind) {
+          case 'js':
+            if (used.js.indexOf(path) == -1)
+              used.js.push(path);
+            break;
+          case 'locales':
+            let localeName = path.substr(0, path.lastIndexOf('.'));
+            if (used.locales.indexOf(localeName) == -1)
+              used.locales.push(localeName);
+            break;
+          case 'style':
+            let styleName = path.substr(0, path.lastIndexOf('.'));
+            if (used.styles.indexOf(styleName) == -1)
+              used.styles.push(styleName);
+            break;
         }
       }
     });
@@ -189,6 +190,9 @@ Gaia.webapps.forEach(function(webapp) {
                       webapp.domain);
     }
     ini.append(name + '.ini');
+    if (!ini.exists())
+      throw new Error(name + ' locale doesn`t have `.ini` file.');
+
     // Add the .ini file
     addToZip(zip, '/shared/locales/' + name + '.ini', ini);
     // And the locale folder itself
