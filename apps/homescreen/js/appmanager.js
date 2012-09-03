@@ -198,7 +198,7 @@ var Applications = (function() {
 
   function cacheIcon(origin, icon) {
     var manifest = getManifest(origin);
-    if (manifest) {
+    if (manifest && icon) {
       manifest._icon = icon;
     }
   };
