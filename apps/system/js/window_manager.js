@@ -244,6 +244,8 @@ var WindowManager = (function() {
     var currentApp = displayedApp, newApp = origin;
     disposition = disposition || 'window';
 
+    var homescreenFrame = runningApps[homescreen].frame;
+
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
       // Just run the callback right away
@@ -253,12 +255,25 @@ var WindowManager = (function() {
     // Case 2: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
+      if (!currentApp)
+        homescreenFrame.setVisible(true);
       setAppSize(newApp);
-      openWindow(newApp, callback);
+      openWindow(newApp,
+                 !currentApp ?
+                 callback :
+                 function () {
+                   // Move the homescreen into the background only
+                   // after the transition completes, since it's
+                   // visible during the transition.
+                   homescreenFrame.setVisible(false);
+                   callback();
+                 });
     }
     // Case 3: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
-      // Animate the window close
+      // Animate the window close.  Ensure the homescreen is in the
+      // foreground since it will be shown during the animation.
+      homescreenFrame.setVisible(true);
       setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
@@ -272,7 +287,6 @@ var WindowManager = (function() {
 
     // Set homescreen as active,
     // to control the z-index between homescreen & keyboard iframe
-    var homescreenFrame = runningApps[homescreen].frame;
     if ((newApp == homescreen) && homescreenFrame) {
       homescreenFrame.classList.add('active');
     } else {
