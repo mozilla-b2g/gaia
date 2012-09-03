@@ -23,7 +23,9 @@ window.addEventListener('message', function ccwidget_onApplicationReady(evt) {
 // same time it provides a quick access to the Cost Control application.
 function setupWidget() {
 
-  var _widget, _widgetCredit, _widgetCurrency, _widgetTime;
+  var _widget;
+  var _balanceView, _balanceCredit, _balanceCurrency, _balanceTime;
+  var _telephonyView;
   var _isUpdating = false;
   var _onWarning = false; // warning state is true when automatic udpates are
                           // disabled or some update error occurs.
@@ -61,15 +63,12 @@ function setupWidget() {
     var activity = new MozActivity({ name: 'costcontrol/open' });
   }
 
-  // Attach event listeners for manual updates
-  function _configureWidget() {
-    _widget = document.getElementById('cost-control');
-    _widgetCredit = document.getElementById('cost-control-credit');
-    _widgetCurrency = document.getElementById('cost-control-currency');
-    _widgetTime = document.getElementById('cost-control-time');
-
-    // Listener to open application
-    _widget.addEventListener('click', _openApp);
+  // Specific setup for the balance view
+  function _configureBalanceView() {
+    _balanceView = document.getElementById('balance-view');
+    _balanceCredit = document.getElementById('balance-credit');
+    _balanceCurrency = document.getElementById('balance-currency');
+    _balanceTime = document.getElementById('balance-time');
 
     // Suscribe callbacks for balance updating success and error to the service
     CostControl.setBalanceCallbacks({
@@ -85,6 +84,40 @@ function setupWidget() {
       if (status.availability && status.roaming)
         _setWarningMode(true);
     };
+
+  }
+
+  // Specific setup for the teelphony view
+  function _configureTelephonyView() {
+    _telephonyView = document.getElementById('telephony-view');
+  }
+
+  // Attach event listeners for manual updates
+  function _configureWidget() {
+    _widget = document.getElementById('cost-control');
+
+    // Listener to open application
+    _widget.addEventListener('click', _openApp);
+
+    _configureBalanceView();
+    _configureTelephonyView();
+
+    // Observer to see which cost control or telephony is enabled
+    CostControl.settings.observe(
+      'plantype',
+      function ccwidget_onPlanTypeChange(plantype) {
+        _balanceView.setAttribute('aria-hidden', 'true');
+        _telephonyView.setAttribute('aria-hidden', 'true');
+
+        if (plantype === 'prepaid') {
+          _balanceView.setAttribute('aria-hidden', 'false');
+        } else {
+          _telephonyView.setAttribute('aria-hidden', 'false');
+        }
+
+        _updateBalanceUI();
+      }
+    );
 
     // Update UI when localized
     window.addEventListener('localized', function ccwidget_onLocalized() {
@@ -160,9 +193,9 @@ function setupWidget() {
   function _setWarningMode(warning) {
     _onWarning = warning;
     if (warning) {
-      _widget.classList.add('warning');
+      _balanceView.classList.add('warning');
     } else {
-      _widget.classList.remove('warning');
+      _balanceView.classList.remove('warning');
     }
   }
 
@@ -170,10 +203,10 @@ function setupWidget() {
   function _setUpdatingMode(updating) {
     _isUpdating = updating;
     if (updating) {
-      _widget.classList.add('updating');
-      _widgetTime.textContent = _('updating') + '...';
+      _balanceView.classList.add('updating');
+      _balanceTime.textContent = _('updating') + '...';
     } else {
-      _widget.classList.remove('updating');
+      _balanceView.classList.remove('updating');
     }
   }
 
@@ -211,9 +244,9 @@ function setupWidget() {
     // Low credit state
     var balance = balanceObject ? balanceObject.balance : null;
     if (balance && balance < CostControl.getLowLimitThreshold()) {
-      _widget.classList.add('low-credit');
+      _balanceView.classList.add('low-credit');
     } else {
-      _widget.classList.remove('low-credit');
+      _balanceView.classList.remove('low-credit');
     }
 
     // Format credit
@@ -224,12 +257,12 @@ function setupWidget() {
         .replace('&i', splitBalance[0])
         .replace('&d', splitBalance[1]);
     }
-    _widgetCurrency.textContent = balanceObject ? balanceObject.currency : '';
-    _widgetCredit.textContent = formattedBalance;
+    _balanceCurrency.textContent = balanceObject ? balanceObject.currency : '';
+    _balanceCredit.textContent = formattedBalance;
 
     // Format time
     var timestamp = balanceObject ? balanceObject.timestamp : null;
-    _widgetTime.textContent = _formatTime(timestamp);
+    _balanceTime.textContent = _formatTime(timestamp);
   }
 
   _init();
