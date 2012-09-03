@@ -115,20 +115,10 @@ var ClockView = {
     var sec = now.getSeconds(); // Seconds
     var min = now.getMinutes(); // Minutes
     var hour = (now.getHours() % 12) + min / 60; // Fractional hours
-    var inverseAngle = 180; // inverse angle 180 degrees for rect hands
-    var secangle = sec * 6; // 6 degrees per second
-    var minangle = min * 6 - inverseAngle; // 6 degrees per minute
-    var hourangle = hour * 30 - inverseAngle; // 30 degrees per hour
-
-    // Get SVG elements for the hands of the clock
-    var sechand = document.getElementById('secondhand');
-    var minhand = document.getElementById('minutehand');
-    var hourhand = document.getElementById('hourhand');
-
-    // Set an SVG attribute on them to move them around the clock face
-    sechand.setAttribute('transform', 'rotate(' + secangle + ',0,0)');
-    minhand.setAttribute('transform', 'rotate(' + minangle + ',0,0)');
-    hourhand.setAttribute('transform', 'rotate(' + hourangle + ',0,0)');
+    this.setTransform('secondhand', sec * 6); // 6 degrees per second
+    // Inverse angle 180 degrees for rect hands
+    this.setTransform('minutehand', min * 6 - 180); // 6 degrees per minute
+    this.setTransform('hourhand', hour * 30 - 180); // 30 degrees per hour
 
     // Update the clock again in 1 minute
     var self = this;
@@ -136,6 +126,13 @@ var ClockView = {
     window.setTimeout(function cv_updateAnalogClockTimeout() {
       self.updateAnalogClock();
     }, (1000 - now.getMilliseconds()));
+  },
+
+  setTransform: function cv_setTransform(id, angle) {
+    // Get SVG elements for the hands of the clock
+    var hand = document.getElementById(id);
+    // Set an SVG attribute on them to move them around the clock face
+    hand.setAttribute('transform', 'rotate(' + angle + ',0,0)');
   },
 
   handleEvent: function cv_handleEvent(evt) {
@@ -189,6 +186,15 @@ var ClockView = {
     }
   },
 
+  calAnalogClockType: function cv_calAnalogClockType(count) {
+    if (count <= 1) {
+      count = 1;
+    } else if (count >= 4) {
+      count = 4;
+    }
+    return count;
+  },
+
   resizeAnalogClock: function cv_resizeAnalogClock() {
     this.resizeAnalogClockBackground();
     // Remove previous style
@@ -197,13 +203,8 @@ var ClockView = {
       if (this.analogClockSVGBody.classList.contains(oldStyle))
         this.analogClockSVGBody.classList.remove(oldStyle);
     }
-    var number = AlarmList.getNumber();
-    if (number <= 1) {
-      number = 1;
-    } else if (number >= 4) {
-      number = 4;
-    }
-    var newStyle = 'alarm' + number;
+    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
+    var newStyle = 'alarm' + type;
     this.analogClockSVGBody.classList.add(newStyle);
   },
 
@@ -215,13 +216,8 @@ var ClockView = {
       if (element.classList.contains('visible'))
         element.classList.remove('visible');
     }
-    var number = AlarmList.getNumber();
-    if (number <= 1) {
-      number = 1;
-    } else if (number >= 4) {
-      number = 4;
-    }
-    var id = 'analog-clock-background-cache' + number;
+    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
+    var id = 'analog-clock-background-cache' + type;
     document.getElementById(id).classList.add('visible');
   },
 
@@ -238,7 +234,7 @@ var AlarmList = {
 
   alarmList: [],
   refreshing: false,
-  _previousAlarmNumber: 0,
+  _previousAlarmCount: 0,
 
   get alarms() {
     delete this.alarms;
@@ -330,8 +326,8 @@ var AlarmList = {
     });
 
     this.alarms.innerHTML = content;
-    if (this._previousAlarmNumber != this.getNumber()) {
-      this._previousAlarmNumber = this.getNumber();
+    if (this._previousAlarmCount != this.getAlarmCount()) {
+      this._previousAlarmCount = this.getAlarmCount();
       ClockView.resizeAnalogClock();
     }
 
@@ -346,7 +342,7 @@ var AlarmList = {
     return null;
   },
 
-  getNumber: function al_getNumber() {
+  getAlarmCount: function al_getAlarmCount() {
     return this.alarmList.length;
   },
 

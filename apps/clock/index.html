@@ -36,25 +36,25 @@
             <div id="analog-clock-container">
               <svg id="analog-clock-svg" viewBox="-50 -50 100 150">
                 <defs> <!-- Define a filter for drop-shadows -->
-                  <filter id = "shadow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feOffset result = "offOut" in = "SourceAlpha" dx = "0" dy = "0.6"/>
-                    <feGaussianBlur result = "blurOut" in = "offOut" stdDeviation = "0.8"/>
-                    <feBlend in = "SourceGraphic" in2 = "blurOut" mode = "normal"/>
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feOffset result="offOut" in="SourceAlpha" dx="0" dy="0.6"/>
+                    <feGaussianBlur result="blurOut" in="offOut" stdDeviation="0.8"/>
+                    <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
                   </filter> <!-- Define gradients for hands color -->
                   <linearGradient id="hourhand-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#5e6162;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#14191b;stop-opacity:1" />
+                    <stop offset="0%" style="stop-color:#3a3e40;stop-opacity:1"/>
+                    <stop offset="100%" style="stop-color:#14191b;stop-opacity:1"/>
                   </linearGradient>
                   <linearGradient id="minutehand-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#717b7f;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#4f5b5f;stop-opacity:1" />
+                    <stop offset="0%" style="stop-color:#5e696d;stop-opacity:1"/>
+                    <stop offset="100%" style="stop-color:#4f5b5f;stop-opacity:1"/>
                   </linearGradient>
                 </defs>
                 <g id="analog-clock-svg-body">
                   <!-- Draw hands pointing straight up. We rotate them in the code. -->
                   <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
-                    <rect id="hourhand" x='-1.3' y='0' width='2.6' height='26' rx='0.4' ry='0.4' fill="url(#hourhand-gradient)" stroke="url(#hourhand-gradient)" stroke-width="0"/>
-                    <rect id="minutehand" x='-1.3' y='0' width='2.6' height='40' rx='0.4' ry='0.4' fill="url(#minutehand-gradient)" stroke="url(#minutehand-gradient)" stroke-width="0"/>
+                    <rect id="hourhand" x="-1.3" y="0" width="2.6" height="26" rx="0.4" ry="0.4" fill="url(#hourhand-gradient)" stroke="url(#hourhand-gradient)" stroke-width="0"/>
+                    <rect id="minutehand" x="-1.3" y="0" width="2.6" height="40" rx="0.4" ry="0.4" fill="url(#minutehand-gradient)" stroke="url(#minutehand-gradient)" stroke-width="0"/>
                     <circle id="minutehandCentralPoint" cx="0" cy="0" r="2.7"/> <!-- the minute hand central point -->
                     <line id="secondhand" x1="0" y1="8" x2="0" y2="-41"/>
                     <circle id="secondhandCentralPoint" cx="0" cy="0" r="1.4"/> <!-- the second hand central point -->

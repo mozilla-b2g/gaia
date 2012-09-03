@@ -338,32 +338,24 @@ html * {
   pointer-events: none;
 }
 
+.visible {
+  display: block;
+}
+
 #analog-clock-background-cache1 {
   background-image: url(images/analog_clock_background1.png);
-}
-#analog-clock-background-cache1.visible {
-  display: block;
 }
 
 #analog-clock-background-cache2 {
   background-image: url(images/analog_clock_background2.png);
 }
-#analog-clock-background-cache2.visible {
-  display: block;
-}
 
 #analog-clock-background-cache3 {
   background-image: url(images/analog_clock_background3.png);
 }
-#analog-clock-background-cache3.visible {
-  display: block;
-}
 
 #analog-clock-background-cache4 {
   background-image: url(images/analog_clock_background4.png);
-}
-#analog-clock-background-cache4.visible {
-  display: block;
 }
 
 #digital-clock-background {
@@ -450,9 +442,20 @@ html * {
 #hands {
   pointer-events: none;
 }
-#secondhand {stroke-width: 0.08rem; stroke: #00abcd;} /* narrow blue second hand */
-#minutehandCentralPoint {stroke-width: 0.005rem; stroke: #4f5b5f; fill: #4f5b5f;} /* dark-gray central point*/
-#secondhandCentralPoint {stroke-width: 0.005rem; stroke: #00abcd; fill: #00abcd;} /* blue central point */
+#secondhand { /* narrow blue second hand */
+  stroke-width: 0.08rem; 
+  stroke: #00abcd;
+}
+#minutehandCentralPoint { /* dark-gray central point*/
+  stroke-width: 0.005rem; 
+  stroke: #4f5b5f; 
+  fill: #4f5b5f;
+}
+#secondhandCentralPoint { /* blue central point */
+  stroke-width: 0.005rem; 
+  stroke: #00abcd; 
+  fill: #00abcd;
+}
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
