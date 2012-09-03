@@ -122,7 +122,7 @@ var BackgroundServiceManager = (function bsm() {
       'Messages',
 
       // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=783066
-      'Dialer'
+      'Communications'
     ];
 
     if (frames[origin] && frames[origin][name]) {
