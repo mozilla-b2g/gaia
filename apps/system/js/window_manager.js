@@ -448,13 +448,22 @@ var WindowManager = (function() {
     // entry point.
     var entryPoints = app.manifest.entry_points;
     if (entryPoints) {
+      var givenPath = e.detail.url.substr(e.detail.origin.length);
+
+      // Workaround here until the bug (to be filed) is fixed
+      // Basicly, gecko is sending the URL without launch_path sometimes
       for (var ep in entryPoints) {
+        var currentEp = entryPoints[ep];
+        var path = givenPath;
+        if (path.indexOf('?') != -1) {
+          path = path.substr(0, path.indexOf('?'));
+        }
+
         //Remove the origin and / to find if if the url is the entry point
-        var path = e.detail.url.substr(e.detail.origin.length + 1);
-        if (path.indexOf(ep) == 0 &&
-            (ep + entryPoints[ep].launch_path) == path) {
-          origin = origin + '/' + ep;
-          name = entryPoints[ep].name;
+        if (path.indexOf('/' + ep) == 0 &&
+            (currentEp.launch_path == path)) {
+          origin = origin + currentEp.launch_path;
+          name = currentEp.name;
         }
       }
     }
