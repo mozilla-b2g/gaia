@@ -4,6 +4,7 @@ requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
 requireApp('communications/dialer/test/unit/mock_recents_db.js');
+requireApp('communications/dialer/test/unit/mock_utils.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -17,6 +18,10 @@ if (!this.CallScreen) {
   this.CallScreen = null;
 }
 
+if (!this.Utils) {
+  this.Utils = null;
+}
+
 suite('dialer/handled_call', function() {
   var subject;
   var mockCall;
@@ -26,6 +31,7 @@ suite('dialer/handled_call', function() {
   var realRecents;
   var realCallScreen;
   var realL10n;
+  var realUtils;
 
   suiteSetup(function() {
     realContacts = window.Contacts;
@@ -43,6 +49,9 @@ suite('dialer/handled_call', function() {
         return key;
       }
     };
+
+    realUtils = window.Utils;
+    window.Utils = MockUtils;
   });
 
   suiteTeardown(function() {
@@ -50,6 +59,7 @@ suite('dialer/handled_call', function() {
     window.RecentsDBManager = realRecents;
     window.CallScreen = realCallScreen;
     navigator.mozL10n = realL10n;
+    window.Utils = realUtils;
   });
 
   setup(function() {
@@ -59,6 +69,8 @@ suite('dialer/handled_call', function() {
       '<div class="number">',
       '</div>',
       '<div class="fake-number">',
+      '</div>',
+      '<div class="additionalContactInfo">',
       '</div>',
       '<div class="duration">',
         '<span></span>',
