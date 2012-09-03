@@ -19,6 +19,7 @@ var PopupManager = {
   init: function pm_init() {
     window.addEventListener('mozbrowseropenwindow', this);
     window.addEventListener('mozbrowserclose', this);
+    window.addEventListener('appwillclose', this);
 
     window.addEventListener('home', this);
   },
@@ -138,6 +139,9 @@ var PopupManager = {
         break;
       case 'home':
         this.backHandling(evt);
+        break;
+      case 'appwillclose':
+        this.close();
         break;
     }
   }
