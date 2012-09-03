@@ -1,0 +1,70 @@
+{
+  "name": "Communications",
+  "description": "Gaia Communications",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "entry_points": {
+    "dialer": {
+      "launch_path": "/dialer/index.html",
+      "name": "Dialer",
+      "icons": {
+        "120": "/style/icons/Dialer.png",
+        "60": "/style/icons/60/Dialer.png"
+      }
+    },
+    "contacts": {
+      "launch_path": "/contacts/index.html",
+      "name": "Contacts",
+      "icons": {
+        "120": "/style/icons/Contacts.png",
+        "60": "/style/icons/60/Contacts.png"
+      }
+    }
+  },
+  "permissions": [
+    "telephony",
+    "voicemail",
+    "contacts",
+    "power",
+    "webapps",
+    "mobileconnection",
+    "background",
+    "attention",
+    "settings"
+  ],
+  "icons": {
+    "120": "/style/icons/Dialer.png",
+    "60": "/style/icons/60/Dialer.png"
+  },
+  "background_page": "/dialer/background.html",
+  "attention_page": "/dialer/oncall.html",
+  "orientation": "portrait-primary",
+  "activities": {
+    "pick": {
+      "filters": {
+        "type": "webcontacts/contact"
+       },
+      "disposition": "window",
+      "href": "/contacts/index.html?pick",
+      "returnValue": true
+    },
+    "new": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "window",
+      "href": "/contacts/index.html?new",
+      "returnValue": true
+    },
+    "dial": {
+      "filters": {
+        "type": "webtelephony/number"
+      },
+      "href": "/dialer/index.html",
+      "disposition": "window"
+    }
+  }
+}

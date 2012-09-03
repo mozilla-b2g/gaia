@@ -12,7 +12,7 @@ var ActivityHandler = {
 
     return this._currentActivity.source.name;
   },
-  
+
   get activityDataType() {
     if (!this._currentActivity) {
       return null;
