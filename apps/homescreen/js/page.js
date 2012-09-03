@@ -504,8 +504,13 @@ Page.prototype = {
    */
   getAppsList: function pg_getAppsList() {
     var nodes = this.olist.children;
-    return Array.prototype.map.call(nodes, function extractOrigin(node) {
-      return node.dataset.origin;
+
+    var icons = this.icons;
+    return Array.prototype.map.call(nodes, function marshall(node) {
+      return {
+        origin: node.dataset.origin,
+        icon: icons[node.dataset.origin].descriptor.icon
+      };
     });
   }
 };

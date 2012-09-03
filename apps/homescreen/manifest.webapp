@@ -12,7 +12,8 @@
     "webapps",
     "device-storage",
     "devicestorage",
-    "settings"
+    "settings",
+    "systemXHR"
   ],
   "locales": {
     "ar": {
