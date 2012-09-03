@@ -6,7 +6,9 @@ var MockContacts = {
     callback({
       name: [this.mName],
       tel: [{
-        value: this.mCalledWith
+        value: this.mCalledWith,
+        carrier: this.mCarrier,
+        type: this.mType
       }],
       photo: [this.mPhoto]
     });
@@ -14,8 +16,12 @@ var MockContacts = {
   mPhoto: null,
   mName: null,
   mCalledWith: null,
+  mCarrier: 'carrier',
+  mType: 'type',
   mTearDown: function tearDown() {
     this._calledWith = null;
+    this.mCarrier = 'carrier';
+    this.mType = 'type';
   }
 };
 
