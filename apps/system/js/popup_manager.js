@@ -141,6 +141,9 @@ var PopupManager = {
         this.backHandling(evt);
         break;
       case 'appwillclose':
+        if (!this._currentPopup)
+          return;
+
         this.close();
         break;
     }
