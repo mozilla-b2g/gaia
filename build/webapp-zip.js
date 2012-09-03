@@ -45,38 +45,40 @@ function addToZip(zip, pathInZip, file) {
   if (!file.exists())
     throw new Error('Can\'t add inexistent file to zip : ' + file.path);
 
+  // nsIZipWriter should not receive any path starting with `/`,
+  // it would put files in a folder with empty name...
+  pathInZip = pathInZip.replace(/^\/+/, '');
+
   // Case 1/ Regular file
   if (file.isFile()) {
     try {
       debug(' + ' + pathInZip);
-      // First argument to addEntryFile shouldn't start with `/`
-      // as it would put files in a folder with empty name...
-      zip.addEntryFile(pathInZip.replace(/^\//, ''),
-                       Ci.nsIZipWriter.COMPRESSION_DEFAULT,
-                       file,
-                       false);
+
+      if (!zip.hasEntry(pathInZip)) {
+        zip.addEntryFile(pathInZip,
+                        Ci.nsIZipWriter.COMPRESSION_DEFAULT,
+                        file,
+                        false);
+      }
     } catch (e) {
-      if (e.name != 'NS_ERROR_FILE_ALREADY_EXISTS')
-        throw new Error('Unable to add following directory in zip: ' +
-                        file.path + '\n' + e);
+      throw new Error('Unable to add following directory in zip: ' +
+                      file.path + '\n' + e);
     }
   }
   // Case 2/ Directory
   else if (file.isDirectory()) {
+    if (!zip.hasEntry(pathInZip))
+      zip.addEntryDirectory(pathInZip, file.lastModifiedTime, false);
+
+    // Append a `/` at end of relative path if it isn't already here
     if (pathInZip.substr(-1) !== '/')
       pathInZip += '/';
-    let entries = file.directoryEntries;
-    let array = [];
 
-    zip.addEntryDirectory(pathInZip, file.lastModifiedTime, false);
-
-    while (entries.hasMoreElements()) {
-      let subFile = entries.getNext().QueryInterface(Ci.nsIFile);
-      if (subFile.leafName === '.' || subFile.leafName === '..')
-        continue;
-      let subPath = pathInZip + subFile.leafName;
-      addToZip(zip, subPath, subFile);
-    }
+    ls(file).
+      forEach(function(subFile) {
+        let subPath = pathInZip + subFile.leafName;
+        addToZip(zip, subPath, subFile);
+      });
   }
 }
 
@@ -112,7 +114,14 @@ Gaia.webapps.forEach(function(webapp) {
 
   // Add webapp folder to the zip
   debug('# Create zip for: ' + webapp.domain);
-  addToZip(zip, '/', webapp.sourceDirectoryFile);
+  ls(webapp.sourceDirectoryFile).
+    forEach(function(file) {
+      // Ignore files from /shared directory (these files were created by
+      // Makefile code)
+      if (file.leafName !== 'shared')
+        addToZip(zip, '/' + file.leafName, file);
+    });
+
 
   // Put shared files, but copy only files actually used by the webapp.
   // We search for shared file usage by parsing webapp source code.
@@ -124,15 +133,15 @@ Gaia.webapps.forEach(function(webapp) {
     locales: [], // List of locale name to copy
     styles: [] // List of style name to copy
   };
-  ls(webapp.sourceDirectoryFile, true)
-    .filter(function(file) {
+  ls(webapp.sourceDirectoryFile, true).
+    filter(function(file) {
       // Process only files that may require a shared file
       let extension = file.leafName
                           .substr(file.leafName.lastIndexOf('.') + 1)
                           .toLowerCase();
       return file.isFile() && EXTENSIONS_WHITELIST.indexOf(extension) != -1;
-    })
-    .forEach(function(file) {
+    }).
+    forEach(function(file) {
       // Grep files to find shared/* usages
       let content = getFileContent(file);
       while ((matches = SHARED_USAGE.exec(content)) !== null) {
