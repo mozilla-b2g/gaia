@@ -319,13 +319,22 @@ button[disabled] .icon-keypad-visibility {
   background-color: transparent;
 }
 #calls[data-count="1"] > section .number {
-  height: 6rem;
-  padding: 2rem;
+  height: 4rem;
+  padding: 2rem 2rem 0rem 2rem;
 
   background: #01c5ed;
   font-size: 1.6em;
-  line-height: 6rem;
+  line-height: 4rem;
   color: black;
+}
+#calls[data-count="1"] > section .additionalContactInfo {
+  height: 2rem;
+  padding: 0rem 2rem 2rem 2rem;
+
+  background: #01c5ed;
+  font-size: 1.4rem;
+  line-height: 2rem;
+  color: white;
 }
 #calls[data-count="1"] > section .duration {
   position: absolute;
