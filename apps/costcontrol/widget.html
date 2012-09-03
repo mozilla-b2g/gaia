@@ -19,11 +19,22 @@
 </head>
 <body>
   <section id="cost-control">
-    <div id="cost-control-icon"></div>
-    <div>
-      <p><span id="cost-control-currency"></span><span id="cost-control-credit"></span></p>
-      <p><time id="cost-control-time"></time></p>
-    </div>
+
+    <section id="balance-view">
+      <div id="balance-icon"></div>
+      <div>
+        <p><span class="unit" id="balance-currency"></span><span id="balance-credit"></span></p>
+        <p class="time"><time id="balance-time"></time></p>
+      </div>
+    </section>
+
+    <section id="telephony-view" aria-hidden="true">
+      <div>
+        <p><span id="telephony-calltime">50</span><span class="unit">min</span> <span id="telephony-sms-count"></span>32<span class="unit">SMS</span></p>
+        <p class="time"><time id="telephony-from-date">Nov, 27</time> – <time id="telephony-to-date">Today, 21:38</time></p>
+      </div>
+    </section>
+
   </section>
 </body>
 </html>
