@@ -77,7 +77,7 @@ var Utils = {
     var dayDiff = (today - otherDay) / 86400000;
 
     if (isNaN(dayDiff))
-      return '(incorrect date)';
+      return _('incorrectDate');
 
     if (dayDiff < 0) {
       // future time

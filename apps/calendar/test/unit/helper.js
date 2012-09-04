@@ -173,14 +173,19 @@
 
   /* require most of the coupled / util objects */
 
-  // HACK - disable mozL10n right now
-  //        tests that actually use it
-  //        mock it out anyway.
-  navigator.mozL10n = {
-    get: function(value) {
-      return value;
-    }
-  };
+  function l10nLink(href) {
+    var resource = document.createElement('link');
+    resource.setAttribute('href', href);
+    resource.setAttribute('rel', 'resource');
+    resource.setAttribute('type', 'application/l10n');
+    document.head.appendChild(resource);
+  }
+
+  l10nLink('/locales/locales.ini');
+  l10nLink('/shared/locales/date.ini');
+
+  requireApp('calendar/shared/js/l10n.js');
+  requireApp('calendar/shared/js/l10n_date.js');
 
   requireLib('calendar.js');
   requireLib('set.js');

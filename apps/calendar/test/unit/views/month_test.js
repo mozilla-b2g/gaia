@@ -68,12 +68,7 @@ suite('views/month', function() {
   suite('events', function() {
 
     test('monthChange', function() {
-      var calledUpdate = null,
-          calledActivateMonth = null;
-
-      subject.updateCurrentMonth = function() {
-        calledUpdate = true;
-      };
+      var calledActivateMonth = null;
 
       subject.activateMonth = function(month) {
         calledActivateMonth = month;
@@ -82,7 +77,6 @@ suite('views/month', function() {
       var date = new Date(2012, 1, 1);
       controller.move(date);
 
-      assert.isTrue(calledUpdate);
       assert.deepEqual(calledActivateMonth, date);
     });
 
@@ -90,26 +84,6 @@ suite('views/month', function() {
 
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
-  });
-
-  test('#_renderCurrentMonth', function() {
-    //September 2012
-    controller.move(new Date(2012, 8, 1));
-    var result = subject._renderCurrentMonth();
-
-    assert.ok(result);
-
-    assert.include(
-      result,
-      '2012',
-      'should render year'
-    );
-
-    assert.include(
-      result,
-      subject.monthNames[8],
-      'should render September'
-    );
   });
 
   suite('month navigators', function() {
@@ -298,16 +272,6 @@ suite('views/month', function() {
       assert.deepEqual(subject.children, {});
     });
 
-  });
-
-  test('#updateCurrentMonth', function() {
-    controller.move(new Date(2012, 8, 1));
-    subject.updateCurrentMonth();
-
-    assert.include(
-      subject.currentMonth.innerHTML,
-      subject._renderCurrentMonth()
-    );
   });
 
   suite('#render', function() {
