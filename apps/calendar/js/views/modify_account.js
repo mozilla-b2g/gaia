@@ -13,7 +13,7 @@
       element: '#modify-account-view',
       form: '#modify-account-view form',
       fields: '*[name]',
-      saveButton: '#modify-account-view .save-icon',
+      saveButton: '#modify-account-view .save',
       errors: '#modify-account-view .errors'
     },
 
@@ -162,6 +162,7 @@
       var list = this.element.classList;
 
       list.remove(this.type);
+
       list.remove('preset-' + this.model.preset);
       list.remove('provider-' + this.model.providerType);
 
@@ -171,12 +172,10 @@
       this.saveButton.removeEventListener('click', this.save);
     },
 
-    oninactive: function() {
-      Calendar.View.prototype.oninactive.apply(this, arguments);
-      this.destroy();
-    },
-
     dispatch: function(data) {
+      if (this.model)
+        this.destroy();
+
       var provider;
       var autoSubmit;
       var params = data.params;
