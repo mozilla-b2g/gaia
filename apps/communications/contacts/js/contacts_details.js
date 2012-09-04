@@ -104,7 +104,7 @@ contacts.Details = (function() {
 
   var render = function cd_render(currentContact, tags) {
     contact = currentContact;
-    TAG_OPTIONS = tags;
+    TAG_OPTIONS = tags || TAG_OPTIONS;
 
     isFbContact = fb.isFbContact(contact);
 
@@ -138,18 +138,13 @@ contacts.Details = (function() {
   // Method that generates HTML markup for the contact
   //
   var doReloadContactDetails = function doReloadContactDetails(contact) {
-    // toggleFavoriteMessage(isFavorite(contact));
-    // if (contact.category && contact.category.indexOf('favorite') != -1) {
-    //   star.classList.remove('hide');
-    // } else {
-    //   star.classList.add('hide');
-    // }
 
     detailsName.textContent = contact.name;
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
     listContainer.innerHTML = '';
 
+    renderFavorite();
     renderOrg();
     renderBday();
     renderSocial();
@@ -158,6 +153,73 @@ contacts.Details = (function() {
     renderAddresses();
     renderNotes();
     renderPhoto();
+  };
+
+  var renderFavorite = function cd_renderFavorite() {
+    var favorite = isFavorite(contact);
+    toggleFavoriteMessage(favorite);
+    if (contact.category && contact.category.indexOf('favorite') != -1) {
+      star.classList.remove('hide');
+    } else {
+      star.classList.add('hide');
+    }
+  };
+
+  var isFavorite = function isFavorite(contact) {
+    return contact != null & contact.category != null &&
+              contact.category.indexOf('favorite') != -1;
+  };
+
+  var toggleFavorite = function toggleFavorite() {
+    var favorite = !isFavorite(contact);
+    toggleFavoriteMessage(favorite);
+    if (favorite) {
+      contact.category = contact.category || [];
+      contact.category.push('favorite');
+    } else {
+      if (!contact.category) {
+        return;
+      }
+      var pos = contact.category.indexOf('favorite');
+      if (pos > -1) {
+        delete contact.category[pos];
+      }
+    }
+
+    var request = navigator.mozContacts.save(contact);
+    request.onsuccess = function onsuccess() {
+      console.log('1');
+      var cList = contacts.List;
+      console.log('2');
+      /*
+         Two contacts are returned because the enrichedContact is readonly
+         and if the Contact is edited we need to prevent saving
+         FB data on the mozContacts DB.
+      */
+       cList.getContactById(contact.id,
+                           function onSuccess(savedContact, enrichedContact) {
+        contact = savedContact;
+
+        if (enrichedContact) {
+          contactsList.refresh(enrichedContact);
+        } else {
+          console.log(cList.refresh);
+          cList.refresh(contact);
+        }
+        renderFavorite();
+      }, function onError() {
+        console.error('Error reloading contact');
+      });
+    };
+    request.onerror = function onerror() {
+      console.error('Error saving favorite');
+    };
+  };
+
+  var toggleFavoriteMessage = function toggleFavMessage(isFav) {
+    favoriteMessage.textContent = !isFav ?
+                    _('addFavorite') :
+                    _('removeFavorite');
   };
 
   var renderOrg = function cd_renderOrg() {
@@ -303,6 +365,7 @@ contacts.Details = (function() {
 
   return {
     'init': init,
+    'toggleFavorite': toggleFavorite,
     'render': render
   }
 })();

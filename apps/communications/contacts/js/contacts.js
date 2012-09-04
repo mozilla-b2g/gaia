@@ -687,55 +687,6 @@ var Contacts = (function() {
     edit();
   };
 
-  var toggleFavorite = function toggleFavorite() {
-    var favorite = !isFavorite(currentContact);
-    toggleFavoriteMessage(favorite);
-    if (favorite) {
-      currentContact.category = currentContact.category || [];
-      currentContact.category.push('favorite');
-    } else {
-      if (!currentContact.category) {
-        return;
-      }
-      var pos = currentContact.category.indexOf('favorite');
-      if (pos > -1) {
-        delete currentContact.category[pos];
-      }
-    }
-
-    var request = navigator.mozContacts.save(currentContact);
-    request.onsuccess = function onsuccess() {
-      var cList = contacts.List;
-      /*
-         Two contacts are returned because the enrichedContact is readonly
-         and if the Contact is edited we need to prevent saving
-         FB data on the mozContacts DB.
-      */
-       cList.getContactById(currentContact.id,
-                           function onSuccess(savedContact, enrichedContact) {
-        currentContact = savedContact;
-
-        if (enrichedContact) {
-          contactsList.refresh(enrichedContact);
-        } else {
-          contactsList.refresh(currentContact);
-        }
-        contactsDetails.render(currentContact, TAG_OPTIONS);
-      }, function onError() {
-        console.error('Error reloading contact');
-      });
-    };
-    request.onerror = function onerror() {
-      console.error('Error saving favorite');
-    };
-  };
-
-  var toggleFavoriteMessage = function toggleFavMessage(isFav) {
-    favoriteMessage.textContent = !isFav ?
-                    _('addFavorite') :
-                    _('removeFavorite');
-  }
-
   var deleteContact = function deleteContact(contact) {
     var request = navigator.mozContacts.remove(currentContact);
     request.onsuccess = function successDelete() {
@@ -1203,7 +1154,6 @@ var Contacts = (function() {
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
     'saveContact': saveContact,
-    'toggleFavorite': toggleFavorite,
     'callOrPick': callOrPick,
     'pickImage': pickImage,
     'navigation': navigation,

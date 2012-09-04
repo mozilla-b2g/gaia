@@ -37,8 +37,8 @@
     <script defer type="text/javascript" src="/contacts/js/utilities/templates.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
 
-    <script defer type="text/javascript" src="/contacts/js/contacts_details.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_list.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_details.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_shortcuts.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts.js"></script>
     <script defer type="text/javascript" src="/contacts/js/sms_integration.js"></script>
@@ -194,7 +194,7 @@
                   </ul>
                 </div>
                 <hr/>
-                <button onclick='Contacts.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
+                <button onclick='contacts.Details.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
                   <b>Add as favorite</b>
                 </button>
               </section>
