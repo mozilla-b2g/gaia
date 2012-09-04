@@ -320,7 +320,7 @@ button[disabled] .icon-keypad-visibility {
 }
 #calls[data-count="1"] > section .number {
   height: 4rem;
-  padding: 2rem 2rem 0rem 2rem;
+  padding: 2rem 2rem 0 2rem;
 
   background: #01c5ed;
   font-size: 1.6em;
@@ -329,7 +329,7 @@ button[disabled] .icon-keypad-visibility {
 }
 #calls[data-count="1"] > section .additionalContactInfo {
   height: 2rem;
-  padding: 0rem 2rem 2rem 2rem;
+  padding: 0 2rem 2rem 2rem;
 
   background: #01c5ed;
   font-size: 1.4rem;
@@ -394,22 +394,22 @@ button[disabled] .icon-keypad-visibility {
 
 #calls[data-count="1"] > section .duration > .direction.incoming > div {
   background-image: url('images/DialerIcon_35x35_calling.png');
-  padding: 4.825rem 0rem 0rem 0rem;
+  padding: 4.825rem 0 0 0;
 }
 
 #calls[data-count="1"] > section .duration > .direction.outgoing > div {
   background-image: url('images/DialerIcon_35x35_calling_out.png');
-  padding: 4.825rem 0rem 0rem 0rem;
+  padding: 4.825rem 0 0 0;
 }
 
 #calls[data-count="1"] > section .duration > .direction.ongoing-in > div {
   background-image: url('images/DialerIcon_35x35_incoming.png');
-  padding: 7.65rem 0rem 0rem 0rem;
+  padding: 7.65rem 0 0 0;
 }
 
 #calls[data-count="1"] > section .duration > .direction.ongoing-out > div {
   background-image: url('images/DialerIcon_35x35_outgoing.png');
-  padding: 7.65rem 0rem 0rem 0rem;
+  padding: 7.65rem 0 0 0;
 }
 
 
