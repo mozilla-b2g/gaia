@@ -5,8 +5,6 @@ Calendar.ns('Views').TimeHeader = (function() {
   function TimeHeader() {
     Calendar.View.apply(this, arguments);
     this.controller = this.app.timeController;
-    this.dateFormat = navigator.mozL10n.DateTimeFormat();
-
     this.controller.on('monthChange', this);
 
     this.settings.addEventListener('click', function settingsClick(e) {
@@ -46,7 +44,7 @@ Calendar.ns('Views').TimeHeader = (function() {
     },
 
     monthScaleTitle: function() {
-      return this.dateFormat.localeFormat(
+      return this.app.dateFormat.localeFormat(
         this.controller.month,
         '%B %Y'
       );
