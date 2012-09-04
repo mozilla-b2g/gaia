@@ -36,33 +36,18 @@ Calendar.App = (function(window) {
       this.router.show(url);
     },
 
-    _init: function() {
+    _routes: function() {
       var self = this;
-      /* HACKS */
-      function setPath(data, next) {
-        document.body.setAttribute('data-path', data.canonicalPath);
-        next();
-      }
-
-      // quick hack for today button
-      var today = document.querySelector('#view-selector .today');
-
-      today.addEventListener('click', function() {
-        var date = new Date();
-        self.timeController.move(date);
-        self.timeController.selectedDay = date;
-      });
-
 
       function tempView(selector) {
         self._views[selector] = new Calendar.View(selector);
         return selector;
       }
 
-      this.syncController.observe();
-      this.timeController.observe();
-
-      this.timeController.move(new Date());
+      function setPath(data, next) {
+        document.body.setAttribute('data-path', data.canonicalPath);
+        next();
+      }
 
       /* temp views */
       this.state('/day/', setPath, tempView('#day-view'));
@@ -70,7 +55,6 @@ Calendar.App = (function(window) {
       this.state('/add/', setPath, tempView('#modify-event-view'));
 
       /* routes */
-
       this.state('/month/', setPath, 'Month', 'MonthsDay');
       this.modifier('/settings/', setPath, 'Settings', { clear: false });
       this.modifier(
@@ -91,21 +75,44 @@ Calendar.App = (function(window) {
         });
       });
 
+      this.router.start();
+
+      var pathname = window.location.pathname;
+      // default view
+      if (pathname === '/index.html' || pathname === '/') {
+        this.go('/month/');
+      }
+
+    },
+
+    _init: function() {
+      var self = this;
+      // quick hack for today button
+      var today = document.querySelector('#view-selector .today');
+
+      today.addEventListener('click', function(e) {
+        var date = new Date();
+        self.timeController.move(date);
+        self.timeController.selectedDay = date;
+
+        e.preventDefault();
+      });
+
+      this.dateFormat = navigator.mozL10n.DateTimeFormat();
+
+      this.syncController.observe();
+      this.timeController.observe();
+
+      this.timeController.move(new Date());
+
       var header = this.view('TimeHeader');
       var colors = this.view('CalendarColors');
 
       colors.render();
       header.render();
 
-      var pathname = window.location.pathname;
-
-      // default view
-      if (pathname === '/index.html' || pathname === '/') {
-        this.go('/month/');
-      }
-
-      this.router.start();
       document.body.classList.remove('loading');
+      this._routes();
     },
 
     /**
