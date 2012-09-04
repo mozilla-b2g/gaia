@@ -280,14 +280,13 @@ suite('dialer/handled_call', function() {
   });
 
   suite('additional information', function() {
-    
     test('check additional info present', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall, fakeNode);
 
       var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
       assert.equal('888', additionalInfoNode.textContent);
-    })
+    });
 
     test('check without additional info', function() {
       mockCall = new MockCall('999', 'incoming');
@@ -295,6 +294,6 @@ suite('dialer/handled_call', function() {
 
       var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
       assert.equal('', additionalInfoNode.textContent);
-    })
+    });
   });
 });
