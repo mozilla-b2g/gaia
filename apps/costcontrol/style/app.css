@@ -171,7 +171,7 @@ section.content .error-messages {
 
 
 /* SETTINGS LISTS */
-section.settings > ul > li {
+.settings li {
   border-bottom: solid 1px #e0e0dd;
   font-size: 1.6rem;
   line-height: 1.2em;
@@ -179,18 +179,18 @@ section.settings > ul > li {
   position: relative;
 }
 
-section.settings > ul > li:last-child {
+.settings li:last-child {
   border-bottom: none;
 }
 
-section.settings > ul > li time,
-section.settings > ul > li .meta {
+.settings li time,
+.settings li .meta {
   font-size: 1.4rem;
   color: #505859;
 }
 
 /* End elements */
-section.settings > ul > li > .end {
+.settings li > .end {
   position: absolute;
   right: 1.5rem;
   top: 50%;
@@ -198,7 +198,7 @@ section.settings > ul > li > .end {
   margin-top: -2.3rem;
 }
 
-section.settings > ul > li > .end:before {
+.settings li > .end:before {
   content: "";
   display: inline-block;
   vertical-align: middle;
@@ -207,7 +207,7 @@ section.settings > ul > li > .end:before {
   margin-left: -8px;
 }
 
-section.settings > ul > li > .end button {
+.settings li > .end button {
   display: inline-block;
   vertical-align: middle;
   width: 8.5rem;
@@ -215,20 +215,20 @@ section.settings > ul > li > .end button {
   padding-left: 0.5rem;
 }
 
-section.settings > ul > li .toggle.end {
+.settings li .toggle.end {
   margin-top: -2.3rem;
 }
 
-section.settings > ul > li label {
+.settings li label {
   font-size: 1.4rem;
   color: #505859;
 }
 
-section.settings > ul > li .toggle input[type="checkbox"] {
+.settings li .toggle input[type="checkbox"] {
   pointer-events: none;
 }
 
-section.settings > ul > li input[type="number"] {
+.settings li input[type="number"] {
   width: 5.5rem;
   height: 2.5rem;
   line-height: 2.5rem;

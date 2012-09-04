@@ -303,7 +303,7 @@ section[role="region"]> header.skin-organic  > button .icon:after {
 section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:last-child,
 .skin-organic section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
 section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:last-child,
-section[role="region"]> header.skin-organic menu[type="toolbar"] button:last-child {
+.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
   background-image: url(headers/images/ui/organic/separator.png);
 }
 

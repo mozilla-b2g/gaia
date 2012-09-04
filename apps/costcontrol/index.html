@@ -5,17 +5,19 @@
   <meta http-equiv="pragma" content="no-cache">
   <title>Cost Control</title>
 
-  <!-- Building blocks -->
+  <!-- Building blocks Temporal -->
   <link rel="stylesheet" type="text/css" href="style/bb/buttons/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/headers/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
   <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/prompt/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/time/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/progress-activity/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/switches/style.css">
+
+  <!-- Building blocks -->
+  <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+  <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
 
   <!-- App and Views -->
   <link rel="stylesheet" type="text/css" href="style/app.css">
@@ -46,7 +48,7 @@
 </head>
 
 <body role="application">
-  <section role="region" class="window">
+  <section role="region" class="window skin-organic">
     <!-- XXX: The order of sections is important (tabs should be place above
     the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
 
@@ -196,14 +198,14 @@
         <section class="content">
           <ul class="toggle-data">
             <li id="toggleMobile">
-              <label>
-                <input type="checkbox" checked="checked">
+              <label for="mobileCheck">
+                <input type="checkbox" checked="checked" id="mobileCheck">
                 <span>3G <em id="mobileOverview">--</em></span>
               </label>
             </li>
             <li id="toggleWifi">
-              <label>
-                <input type="checkbox" checked="checked">
+              <label for="wifiCheck">
+                <input type="checkbox" checked="checked" id="wifiCheck">
                 <span>WIFI <em id="wifiOverview">--</em></span>
               </label>
             </li>
@@ -217,12 +219,12 @@
 
         <section class="settings">
           <header>
-            <h1>Apps by Data use</h2>
+            <h1>Apps by Data use</h1>
             <p>WIFI only</p>
           </header>
           <ul>
             <li>
-              <label class="end toggle">
+              <label class="end switch">
                 <input type="checkbox">
                 <span></span>
               </label>
@@ -240,7 +242,7 @@
               </p>
             </li>
             <li>
-              <label class="end toggle">
+              <label class="end switch">
                 <input type="checkbox">
                 <span></span>
               </label>
@@ -258,7 +260,7 @@
               </p>
             </li>
             <li>
-              <label class="end toggle">
+              <label class="end switch">
                 <input type="checkbox">
                 <span></span>
               </label>
@@ -287,62 +289,58 @@
         <h1 data-l10n-id="settings">Settings</h1>
       </header>
 
-      <section role="region" class="buttons-list">
+      <div class="buttons-list choose-plan">
         <button id="settings-view-plantype-setup">
           <span class="end launch"></span>
           <span class="tag">Prepaid</span>
         </button>
-      </section>
+      </div>
 
-      <section role="region" data-theme="organic" class="settings">
-        <header aria-level="2">
-          <p>Balance</p>
-        </header>
-        <ul>
-          <li>
-              <p>R$ 23.65</p>
-              <time>Today, 15:32</time>
-          </li>
-          <li>
-            <label class="end toggle">
-              <input type="checkbox" checked="checked">
-              <span></span>
-            </label>
-            <p>Low Balance alert</p>
-          </li>
-          <li>
-            <label class="end">
-              R$
-              <input type="number">
-            </label>
-            <p>Alert me when I’m under</p>
-          </li>
-        </ul>
-      </section>
+      <header>
+        <h2>Balance</h2>
+      </header>
+      <ul class="settings">
+        <li>
+            <p>R$ 23.65</p>
+            <time>Today, 15:32</time>
+        </li>
+        <li>
+          <label class="end switch">
+            <input type="checkbox" checked="checked">
+            <span></span>
+          </label>
+          <p>Low Balance alert</p>
+        </li>
+        <li>
+          <label class="end">
+            R$
+            <input type="number">
+          </label>
+          <p>Alert me when I’m under</p>
+        </li>
+      </ul>
 
-      <section role="region" data-theme="organic" class="settings">
-        <header aria-level="2">
-          <p>Data usage</p>
-        </header>
-        <ul>
-          <li>
-              <div class="end buttons-list">
-                <button>Reset</button>
-              </div>
-              <p>50MB</p>
-              <time>27 Nov - Today, 15:32</time>
-          </li>
-          <li>
+      <header>
+        <h2>Data usage</h2>
+      </header>
+      <ul class="settings">
+        <li>
             <div class="end buttons-list">
-              <button>
-                <span class="end launch"></span>
-                Monthly
-              </button>
+              <button>Reset</button>
             </div>
-            <p>Reset tracking</p>
-          </li>
-        </ul>
-      </section>
+            <p>50MB</p>
+            <time>27 Nov - Today, 15:32</time>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button>
+              <span class="end launch"></span>
+              Monthly
+            </button>
+          </div>
+          <p>Reset tracking</p>
+        </li>
+      </ul>
     </section>
 
     <!-- Plan setup dialog -->
@@ -351,14 +349,14 @@
         <h3 data-l10n-id="plantype-setup-title">My phone and internet plan is</h3>
         <ul role="listbox">
           <li>
-            <label>
-              <input type="radio" name="plantype-option" checked="checked" value="prepaid">
+            <label for="plantype-option-prepaid">
+              <input type="radio" id="plantype-option-prepaid" name="plantype-option" checked="checked" value="prepaid">
               <span data-l10n-id="prepaid">Prepaid</span>
             </label>
           </li>
           <li>
-            <label>
-              <input type="radio" name="plantype-option" value="postpaid">
+            <label for="plantype-option-postpaid">
+              <input type="radio" id="plantype-option-postpaid" name="plantype-option" value="postpaid">
               <span data-l10n-id="postpaid">Postpaid</span>
             </label>
           </li>
