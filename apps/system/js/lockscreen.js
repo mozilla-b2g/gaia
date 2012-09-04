@@ -744,8 +744,10 @@ var LockScreen = {
         (regions[lac] ? regions[lac] + ' ' + lac : '');
     }
 
+    var carrierName = voice.network.shortName || voice.network.longName;
+
     if (voice.roaming) {
-      var l10nArgs = { operator: voice.network.shortName };
+      var l10nArgs = { operator: carrierName };
       connstateLine1.dataset.l10nId = 'roaming';
       connstateLine1.dataset.l10nArgs = JSON.stringify(l10nArgs);
       connstateLine1.textContent = _('roaming', l10nArgs);
@@ -754,7 +756,7 @@ var LockScreen = {
     }
 
     delete connstateLine1.dataset.l10nId;
-    connstateLine1.textContent = voice.network.shortName;
+    connstateLine1.textContent = carrierName;
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
