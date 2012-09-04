@@ -1,6 +1,6 @@
 (function(window) {
   var template = Calendar.Templates.Day;
-  var OrderedMap = Calendar.Views.DayBased.OrderedMap;
+  var OrderedMap = Calendar.OrderedMap;
 
   function Day(options) {
     Calendar.Views.DayBased.apply(this, arguments);
