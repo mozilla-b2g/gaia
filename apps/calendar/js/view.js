@@ -77,7 +77,8 @@
       element.addEventListener(type, function(e) {
         var target = e.target;
         while (target !== element) {
-          if (target.mozMatchesSelector(selector)) {
+          if ('mozMatchesSelector' in target &&
+              target.mozMatchesSelector(selector)) {
             return handler(e, target);
           }
           target = target.parentNode;
