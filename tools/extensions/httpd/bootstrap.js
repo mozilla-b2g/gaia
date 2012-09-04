@@ -11,6 +11,10 @@ function startup(data, reason) {
   
   Cu.import('resource://gre/modules/Services.jsm');
   Cu.import('resource:///modules/devtools/dbg-client.jsm');
+
+  // Make sure all applications are considered launchable
+  Cu.import('resource://gre/modules/Webapps.jsm');
+  DOMApplicationRegistry.allAppsLaunchable = true;
   
   const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
   const GAIA_APP_SRCDIRS = Services.prefs.getCharPref("extensions.gaia.app_src_dirs");

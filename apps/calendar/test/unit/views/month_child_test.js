@@ -126,6 +126,22 @@ suite('views/month_child', function() {
       );
     }
 
+    test('ends as other starts', function() {
+      var busytime = Factory('busytime', {
+        startDate: new Date(2012, 1, 1),
+        endDate: new Date(2012, 1, 2)
+      });
+
+      var date = new Date(2012, 1, 2);
+
+      var result = subject._calculateBusytime(
+        date,
+        busytime
+      );
+
+      assert.ok(!result, 'should not render time');
+    });
+
     test('whole day', function() {
       var result = subject._calculateBusytime(
         new Date(2012, 1, 2),
@@ -621,53 +637,63 @@ suite('views/month_child', function() {
   });
 
   suite('#_renderMonth', function() {
-    var days = [
-      month,
-      new Date(2012, 10, 8),
-      new Date(2012, 10, 15),
-      new Date(2012, 10, 22),
-      new Date(2012, 10, 29)
-    ];
 
-    test('should compose header and five weeks', function() {
+    function rendersWeeks(month, weekStartDates) {
       controller.move(month);
+
+      var subject = new Calendar.Views.MonthChild({
+        app: app,
+        month: month
+      });
+
       var result = subject._renderMonth();
 
-      assert.ok(result);
-
-      days.forEach(function(date) {
+      weekStartDates.forEach(function(date) {
         assert.include(
           result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
-          'should include week of ' + date.getDate()
+          'should include week of ' + date.toString()
         );
       });
+
+      assert.ok(result, 'weeks-' + weekStartDates.length);
+    }
+
+    test('should compare header and four weeks', function() {
+      var days = [
+        new Date(2009, 1, 1),
+        new Date(2009, 1, 8),
+        new Date(2009, 1, 15),
+        new Date(2009, 1, 25)
+      ];
+
+      rendersWeeks(new Date(2009, 1, 1), days);
+    });
+
+    test('should compose header and five weeks', function() {
+      var days = [
+        month,
+        new Date(2012, 10, 8),
+        new Date(2012, 10, 15),
+        new Date(2012, 10, 22),
+        new Date(2012, 10, 29)
+      ];
+
+      rendersWeeks(month, days);
     });
 
     test('should compose header and six weeks', function() {
-      // We want to check if sixth week is rendered properly
-      // December 2012 has six weeks
-      var newMonth = new Date(2012, 11, 1);
-      var newDays = [
-        newMonth,
+      var days = [
+        new Date(2012, 11, 1),
         new Date(2012, 11, 8),
         new Date(2012, 11, 15),
         new Date(2012, 11, 22),
         new Date(2012, 11, 29),
-        new Date(2012, 12, 6)
+        new Date(2012, 12, 1)
       ];
 
-      controller.move(newDays[0]);
-      var result = subject._renderMonth();
-
-      assert.ok(result);
-
-      days.forEach(function(date) {
-        assert.include(
-          result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
-          'should include week of ' + date.getDate()
-        );
-      });
+      rendersWeeks(days[0], days);
     });
+
   });
 
   suite('#_busyElement', function() {
@@ -757,12 +783,12 @@ suite('views/month_child', function() {
 
     test('#activate', function() {
       subject.activate();
-      assert.ok(!list.contains(subject.INACTIVE));
+      assert.ok(list.contains(subject.ACTIVE));
     });
 
     test('#deactivate', function() {
       subject.deactivate();
-      assert.ok(list.contains(subject.INACTIVE));
+      assert.ok(!list.contains(subject.ACTIVE));
     });
 
   });

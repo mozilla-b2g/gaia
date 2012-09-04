@@ -578,10 +578,20 @@ window.addEventListener('localized', function wifiSettings(evt) {
       var keys = network.capabilities;
       var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
       dialog.querySelector('[data-ssid]').textContent = network.ssid;
-      dialog.querySelector('[data-speed]').textContent = network.linkSpeed;
       dialog.querySelector('[data-signal]').textContent = _('signalLevel' + sl);
       dialog.querySelector('[data-security]').textContent =
           (keys && keys.length) ? keys.join(', ') : _('securityNone');
+
+      // network speed (if connected)
+      var speed = dialog.querySelector('[data-speed]');
+      function updateLinkSpeed() {
+        speed.textContent = _('linkSpeedMbs',
+            { linkSpeed: gWifiManager.connectionInformation.linkSpeed });
+      }
+      if (speed) {
+        gWifiManager.connectionInfoUpdate = updateLinkSpeed;
+        updateLinkSpeed();
+      }
 
       // authentication fields
       if (key) {
@@ -614,6 +624,9 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
       // hide dialog box
       function close() {
+        if (speed) {
+          gWifiManager.connectionInfoUpdate = null;
+        }
         // reset authentication fields
         if (key) {
           identity.value = '';

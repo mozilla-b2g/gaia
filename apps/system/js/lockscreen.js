@@ -312,33 +312,47 @@ var LockScreen = {
 
     var base = this.overlay.offsetWidth / 4;
     var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
+
+    var leftTarget = touch.leftTarget;
+    var rightTarget = touch.rightTarget;
+
     if (dx > 0) {
-      touch.rightTarget.style.opacity =
+      rightTarget.style.opacity =
         this.railRight.style.opacity = '';
-      touch.leftTarget.style.opacity =
+      leftTarget.style.opacity =
         this.railLeft.style.opacity = opacity;
     } else {
-      touch.rightTarget.style.opacity =
+      rightTarget.style.opacity =
         this.railRight.style.opacity = opacity;
-      touch.leftTarget.style.opacity =
+      leftTarget.style.opacity =
         this.railLeft.style.opacity = '';
     }
 
     var handleWidth = this.areaHandle.offsetWidth;
+    var triggered = false;
 
     if (railLeft < handleWidth / 2) {
-      touch.leftTarget.classList.add('triggered');
-      touch.rightTarget.classList.remove('triggered');
-      touch.target = touch.leftTarget;
+      if (!leftTarget.classList.contains('triggered')) {
+        leftTarget.classList.add('triggered');
+        triggered = true;
+      }
+      rightTarget.classList.remove('triggered');
+      touch.target = leftTarget;
     } else if (railRight < handleWidth / 2) {
-      touch.leftTarget.classList.remove('triggered');
-      touch.rightTarget.classList.add('triggered');
-      touch.target = touch.rightTarget;
+      leftTarget.classList.remove('triggered');
+      if (!rightTarget.classList.contains('triggered')) {
+        rightTarget.classList.add('triggered');
+        triggered = true;
+      }
+      touch.target = rightTarget;
     } else {
-      touch.leftTarget.classList.remove('triggered');
-      touch.rightTarget.classList.remove('triggered');
+      leftTarget.classList.remove('triggered');
+      rightTarget.classList.remove('triggered');
       touch.target = null;
     }
+
+    if (triggered && navigator.vibrate)
+      navigator.vibrate([200]);
   },
 
   handleGesture: function ls_handleGesture() {
@@ -744,8 +758,10 @@ var LockScreen = {
         (regions[lac] ? regions[lac] + ' ' + lac : '');
     }
 
+    var carrierName = voice.network.shortName || voice.network.longName;
+
     if (voice.roaming) {
-      var l10nArgs = { operator: voice.network.shortName };
+      var l10nArgs = { operator: carrierName };
       connstateLine1.dataset.l10nId = 'roaming';
       connstateLine1.dataset.l10nArgs = JSON.stringify(l10nArgs);
       connstateLine1.textContent = _('roaming', l10nArgs);
@@ -754,7 +770,7 @@ var LockScreen = {
     }
 
     delete connstateLine1.dataset.l10nId;
-    connstateLine1.textContent = voice.network.shortName;
+    connstateLine1.textContent = carrierName;
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {

@@ -86,15 +86,16 @@ Calendar.App = (function(window) {
         });
       });
 
+      var header = this.view('TimeHeader');
+      var colors = this.view('CalendarColors');
+      colors.render();
+
       var pathname = window.location.pathname;
+
       // default view
       if (pathname === '/index.html' || pathname === '/') {
         this.go('/month/');
       }
-
-      var colors = this.view('CalendarColors');
-      colors.render();
-
 
       this.router.start();
       document.body.classList.remove('loading');

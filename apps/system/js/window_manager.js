@@ -195,119 +195,6 @@ var WindowManager = (function() {
     }
   });
 
-  // On-disk database for window manager.
-  // It's only for app screenshots right now.
-  var database = null;
-
-  (function openDatabase() {
-    var DB_VERSION = 1;
-    var DB_NAME = 'window_manager';
-
-    var req = window.indexedDB.open(DB_NAME, DB_VERSION);
-    req.onerror = function() {
-      console.error('Window Manager: opening database failed.');
-    };
-    req.onupgradeneeded = function databaseUpgradeneeded() {
-      database = req.result;
-
-      if (database.objectStoreNames.contains('screenshots'))
-        database.deleteObjectStore('screenshots');
-
-      var store =
-        database.createObjectStore('screenshots', { keyPath: 'origin' });
-    };
-
-    req.onsuccess = function databaseSuccess() {
-      database = req.result;
-    };
-  })();
-
-  function getAppScreenshot(origin, callback) {
-    if (!callback)
-      return;
-
-    var app = runningApps[origin];
-
-    if (!app.launchTime) {
-      // The frame is just being append and app content is just being loaded,
-      // let's get the screenshot from the database instead.
-      if (!database) {
-        console.warn(
-          'Window Manager: Neither database nor app frame is ' +
-          'ready for getting screenshot.');
-
-        callback();
-        return;
-      }
-
-      var req = database.transaction('screenshots')
-                .objectStore('screenshots').get(origin);
-      req.onsuccess = function() {
-        if (!req.result) {
-          console.log('Window Manager: No screenshot in database. ' +
-             'This is expected from a fresh installed app.');
-          callback();
-
-          return;
-        }
-
-        callback(req.result.screenshot);
-      }
-      req.onerror = function(evt) {
-        console.warn('Window Manager: get screenshot from database failed.');
-        callback();
-      };
-
-      return;
-    }
-
-    var req = app.frame.getScreenshot();
-
-    req.onsuccess = function(evt) {
-      var result = evt.target.result;
-      callback(result);
-
-      // Save the screenshot to database
-      if (!database)
-        return;
-
-      var txn = database.transaction('screenshots', 'readwrite');
-      txn.onerror = function() {
-        console.warn(
-          'Window Manager: transaction error while trying to save screenshot.');
-      };
-      var store = txn.objectStore('screenshots');
-      var req = store.put({
-        origin: origin,
-        screenshot: result
-      });
-      req.onerror = function(evt) {
-        console.warn(
-          'Window Manager: put error while trying to save screenshot.');
-      };
-
-    };
-
-    req.onerror = function(evt) {
-      console.warn('Window Manager: getScreenshot failed.');
-      callback();
-    };
-  }
-
-  function deleteAppScreenshot(origin) {
-    var txn = database.transaction('screenshots');
-    var store = txn.objectStore('screenshots');
-
-    store.delete(origin);
-  }
-
-  function afterPaint(callback) {
-    window.addEventListener('MozAfterPaint', function afterPainted() {
-      window.removeEventListener('MozAfterPaint', afterPainted);
-      setTimeout(callback);
-    });
-  }
-
   // Perform an "open" animation for the app's iframe
   function openWindow(origin, callback) {
     var app = runningApps[origin];
@@ -325,23 +212,7 @@ var WindowManager = (function() {
       if (app.manifest.fullscreen)
         screenElement.classList.add('fullscreen-app');
 
-      // Get the screenshot of the app and put it on the sprite
-      // before starting the transition
-      getAppScreenshot(origin, function(screenshot) {
-        if (!screenshot) {
-          sprite.style.background = '';
-          sprite.className = 'open';
-          return;
-        }
-
-        sprite.style.background = '#fff url(' + screenshot + ')';
-        // Make sure Gecko paint the sprite first
-        afterPaint(function() {
-
-          // Start the transition
-          sprite.className = 'open';
-        });
-      });
+      sprite.className = 'open';
     }
   }
 
@@ -361,24 +232,19 @@ var WindowManager = (function() {
     closeFrame.blur();
     closeFrame.setVisible(false);
 
-    // Get the screenshot of the app and put it on the sprite
-    // before starting the transition
-    getAppScreenshot(origin, function(screenshot) {
-      sprite.style.backgroundImage = 'url(' + screenshot + ')';
-
-      // Make sure Gecko paint the sprite first
-      afterPaint(function() {
-        // Start the transition
-        sprite.classList.remove('faded');
-        sprite.classList.add('close');
-      });
-    });
+    // And begin the transition
+    sprite.classList.remove('faded');
+    sprite.classList.add('close');
   }
 
   // Switch to a different app
   function setDisplayedApp(origin, callback, disposition) {
+    if (origin == null)
+      origin = homescreen;
     var currentApp = displayedApp, newApp = origin;
     disposition = disposition || 'window';
+
+    var homescreenFrame = runningApps[homescreen].frame;
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -389,12 +255,25 @@ var WindowManager = (function() {
     // Case 2: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
+      if (!currentApp)
+        homescreenFrame.setVisible(true);
       setAppSize(newApp);
-      openWindow(newApp, callback);
+      openWindow(newApp,
+                 !currentApp ?
+                 callback :
+                 function setHomescreenVisible() {
+                   // Move the homescreen into the background only
+                   // after the transition completes, since it's
+                   // visible during the transition.
+                   homescreenFrame.setVisible(false);
+                   callback();
+                 });
     }
     // Case 3: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
-      // Animate the window close
+      // Animate the window close.  Ensure the homescreen is in the
+      // foreground since it will be shown during the animation.
+      homescreenFrame.setVisible(true);
       setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
@@ -408,7 +287,6 @@ var WindowManager = (function() {
 
     // Set homescreen as active,
     // to control the z-index between homescreen & keyboard iframe
-    var homescreenFrame = runningApps[homescreen].frame;
     if ((newApp == homescreen) && homescreenFrame) {
       homescreenFrame.classList.add('active');
     } else {
@@ -424,8 +302,6 @@ var WindowManager = (function() {
 
     // Record the time when app was launched,
     // need this to display apps in proper order on CardsView.
-    // We would also need this to determined the freshness of the frame
-    // for making screenshots.
     if (newApp)
       runningApps[newApp].launchTime = Date.now();
 
@@ -460,6 +336,11 @@ var WindowManager = (function() {
       screen.mozUnlockOrientation();
     }
   }
+
+  var isOutOfProcessDisabled = false;
+  SettingsListener.observe('debug.oop.disabled', false, function(value) {
+    isOutOfProcessDisabled = value;
+  });
 
   function appendFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
@@ -522,7 +403,8 @@ var WindowManager = (function() {
       // Bluetooth is not remoted yet (bug 755943)
     ];
 
-    if (outOfProcessBlackList.indexOf(name) === -1) {
+    if (!isOutOfProcessDisabled &&
+        outOfProcessBlackList.indexOf(name) === -1) {
       // FIXME: content shouldn't control this directly
       frame.setAttribute('remote', 'true');
       console.info('%%%%% Launching', name, 'as remote (OOP)');
@@ -580,13 +462,22 @@ var WindowManager = (function() {
     // entry point.
     var entryPoints = app.manifest.entry_points;
     if (entryPoints) {
+      var givenPath = e.detail.url.substr(e.detail.origin.length);
+
+      // Workaround here until the bug (to be filed) is fixed
+      // Basicly, gecko is sending the URL without launch_path sometimes
       for (var ep in entryPoints) {
+        var currentEp = entryPoints[ep];
+        var path = givenPath;
+        if (path.indexOf('?') != -1) {
+          path = path.substr(0, path.indexOf('?'));
+        }
+
         //Remove the origin and / to find if if the url is the entry point
-        var path = e.detail.url.substr(e.detail.origin.length + 1);
-        if (path.indexOf(ep) == 0 &&
-            (ep + entryPoints[ep].launch_path) == path) {
-          origin = origin + '/' + ep;
-          name = entryPoints[ep].name;
+        if (path.indexOf('/' + ep) == 0 &&
+            (currentEp.launch_path == path)) {
+          origin = origin + currentEp.launch_path;
+          name = currentEp.name;
         }
       }
     }
@@ -666,8 +557,6 @@ var WindowManager = (function() {
   // if the application is being uninstalled, we ensure it stop running here.
   window.addEventListener('applicationuninstall', function(e) {
     kill(e.detail.application.origin);
-
-    deleteAppScreenshot(e.detail.application.origin);
   });
 
   // Stop running the app with the specified origin
@@ -756,9 +645,7 @@ var WindowManager = (function() {
     // Note that for this to work, the lockscreen and other overlays must
     // be included in index.html before this one, so they can register their
     // event handlers before we do.
-    if (CardsView.cardSwitcherIsShown()) {
-      CardsView.hideCardSwitcher();
-    } else if (document.mozFullScreen) {
+    if (document.mozFullScreen) {
       document.mozCancelFullScreen();
     } else if (displayedApp !== homescreen) {
       setDisplayedApp(homescreen);
@@ -779,6 +666,15 @@ var WindowManager = (function() {
       CardsView.showCardSwitcher();
     }
   });
+
+  // With all important event handlers in place, we can now notify
+  // Gecko that we're ready for certain system services to send us
+  // messages (e.g. the radio).
+  var event = document.createEvent('CustomEvent');
+  event.initCustomEvent('mozContentEvent', true, true, {
+    type: 'system-app-ready'
+  });
+  window.dispatchEvent(event);
 
   // Return the object that holds the public API
   return {

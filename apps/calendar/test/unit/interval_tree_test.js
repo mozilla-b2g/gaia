@@ -75,6 +75,7 @@ suite('interval_tree', function() {
     var added = factory(30, 400, 1200);
 
     subject.add(added);
+    subject.add(factory(31, 1100, 1200));
     assert.isFalse(subject.synced);
 
     span.end = 1100;

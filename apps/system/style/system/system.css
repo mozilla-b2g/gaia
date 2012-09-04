@@ -119,7 +119,6 @@ body {
   height: -moz-calc(100% - 20px);
   opacity: 0;
   background-color: #373a3d;
-  background-size: cover;
   pointer-events: none;
   -moz-transform: scale(0.5);
   -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
