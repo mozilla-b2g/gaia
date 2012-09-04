@@ -242,6 +242,9 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
         _overviewUI(dataDebug);
 
       } else {
+        if (!('mozNetworkStats' in navigator))
+          return;
+
         var req = navigator.mozNetworkStats.getNetworkStats({
           startDate: start,
           endDate: end,
