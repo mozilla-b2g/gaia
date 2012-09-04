@@ -470,8 +470,8 @@ var ThreadListUI = {
     } else {
       var noResultHTML = '<div id="no-result-container">' +
             ' <div id="no-result-message">' +
-            '   <p data-l10n-id="noMessage-title">no messages recorded</p>' +
-            '   <p data-l10n-id="noMessage-text">start communicating now</p>' +
+            '   <p>' + _('noMessages-title') + '</p>' +
+            '   <p>' + _('noMessages-text') + '</p>' +
             ' </div>' +
             '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
@@ -1080,8 +1080,11 @@ var ThreadUI = {
                       function onsave(msg) {
                         var filter = MessageManager.createFilter(
                           message.receiver);
-                        MessageManager.getMessages(
-                          ThreadUI.renderMessages, filter);
+                        MessageManager.getMessages(function(messages) {
+                          ThreadUI.renderMessages(messages);
+                          MessageManager.getMessages(
+                            ThreadListUI.renderThreads);
+                        }, filter);
                     });
                 });
               });
@@ -1282,3 +1285,4 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 
   activity.postResult({ status: 'accepted' });
 });
+

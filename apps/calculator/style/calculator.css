@@ -1,139 +1,96 @@
-* {
-  -moz-box-sizing: border-box;
-}
 body, html {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden;
-}
-
-body {
-  color: white;
   font-family: 'Open Sans', sans-serif;
-  font-weight: 600;
-  font-size: 0.8rem;
-  background: url("images/home-texture.png") repeat scroll 2% 50% #666666;
-}
-
-input {
-  font-family: 'Open Sans', sans-serif;
-  font-weight: 600;
-}
-
-#calc-wrapper {
-  -moz-box-orient: vertical;
-  display: -moz-box;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  padding: 0 0 5px 5px;
+  font-size: 20px;
+  background: url("images/background.png") no-repeat 0 -20px;
 }
 
 .row {
-  display: -moz-box;
-  display: -webkit-box;
-  -moz-box-flex: 1;
-  -webkit-box-flex: 1;
-  overflow: hidden;
+  padding-left: 4px;
+  padding-right: 4px;
+  display: block;
 }
 
 input {
-  font-family: monospace;
-  -moz-box-flex: 1;
-  -webkit-box-flex: 1;
-  font-size: 300%;
-  width: 50px;
-  display: block;
-  margin: 5px 5px 0 0;
-  -moz-box-align: stretch;
-  -webkit-box-align: stretch;
-}
-
-#display {
-  -moz-box-flex: 1;
-  position: relative;
-  border-radius: 5px;
-  padding: 0 9px;
-  margin: 5px 5px 0 0;
-  height: 150px;
-  background: rgba(0, 0, 0, 0.3);
+  -moz-appearance: none;
+  padding: 0;
+  margin: 0;
   border: 0;
-  overflow: hidden;
-  word-spacing:-15px;
-}
-#display b {
-  position: absolute;
-  right: 0;
-  line-height: 150px;
-  font-size: 600%;
-  display: block;
-  -moz-transform-origin: right center;
+
+  background: transparent;
+  background-repeat: no-repeat;
+  background-position: 4px 0;
+
+  color: white;
+  font-family: monospace;
+  font-size: 1.1rem;
+
+  width: 78px;
+  height: 3rem;
+  line-height: 3rem;
+
+  /* For an easier touch target, buttons are not exactly centered and
+     are bigger at the bottom */
+  padding-bottom: 0.5rem;
+
+  /* text nodes in the source code affect the layout */
+  margin-right: -5px;
 }
 
-#tip-window {
+input.small {
+  display: inline;
+}
+
+input::-moz-focus-inner {
+  padding: 0;
+  margin: 0;
+  border: 0
+}
+
+input:active {
+  background-image: url("images/button-active.png");
+}
+
+input.small:active {
+  background-image: url("images/button-active-small.png");
+}
+
+input[disabled] {
+  pointer-events: none;
+}
+
+input:not(.small) {
+  right: 8px;
+  bottom: 241px;
+  width: 156px;
+}
+
+/* Result Display */
+#display {
+  color: white;
+
+  margin-left: 8px;
+  margin-top: 8px;
+  margin-bottom: 10px;
+
+  width: calc(100% - 16px);
+  height: 142px;
+  line-height: 142px;
+}
+
+#display b {
+  transform-origin: right center;
   position: absolute;
-  top: 0;
-  -moz-transform: translateY(-100%);
-  width: 90%;
-  left: 5%;
-  padding: 5%;
-  border-radius: 5%;
-  background: url("images/home-texture.png") #444;
-  border: 3px solid #333;
-  -moz-transition: .5s -moz-transform;
-  box-shadow: 0 5px 5px rgba(0,0,0,.5);
-}
-#tip-window.show {
-  -moz-transform: translateY(20%);
-}
-#tip-window table {
-  -moz-box-sizing: border-box;
-  width: 100%;
-  font-size: 120%;
-  text-align: right;
-}
-#tip-window th, #tip-window td {
-  padding: 0 0 20px 0;
-}
-#tip-window th:first-child {
-  text-align: left;
-  font-weight: bold;
-}
-#tip-window td {
-  font-weight: normal;
-}
-#tip-window input {
-  display: block;
-  width: auto;
-  font-size: 150%;
-  padding: 10px;
-  margin: 5% auto 0 auto;
+  right: 16px;
+
+  line-height: 142px;
+  font-size: 3rem;
 }
 
 #display.error {
   background: none repeat scroll 0 0 rgba(255, 0, 0, 0.3);
 }
-
-input {
-  background: -moz-linear-gradient(center top, #A5A5A5 0, #878787 1px, #545454 100%) repeat scroll 0 0 transparent;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-  border-radius: 3px;
-  border: 3px solid #333;
-  color: white;
-}
-
-input:active {
-  background: -moz-linear-gradient(center bottom , #A5A5A5 0pt, #878787 1px, #545454 100%) repeat scroll 0 0 transparent;
-}
-
-
-[value='='] {
-  background: -moz-linear-gradient(center top , #B1D600 1px, #8FC300 2px, #526B17 100%) repeat scroll 0 0 transparent;
-}
-
-[value='=']:active {
-  background: -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
-}
-
 

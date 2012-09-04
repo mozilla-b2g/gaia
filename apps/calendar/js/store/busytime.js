@@ -167,11 +167,21 @@ Calendar.ns('Store').Busytime = (function() {
      * @param {Date} time position of event.
      * @param {Object} event associated event.
      */
-    _eventToRecord: function(time, event) {
+    _eventToRecord: function(start, event) {
+      // XXX Quick hack - we need to do a recurring lookup
+      var end = event.remote.endDate;
+
+      if (!(end instanceof Date)) {
+        end = new Date(time);
+      }
+
+      if (!(start instanceof Date)) {
+        start = new Date(time);
+      }
+
       var result = {
-        startDate: time,
-        //XXX Quick hack - we need to do a recurring lookup
-        endDate: event.remote.endDate,
+        startDate: start,
+        endDate: end,
         eventId: event._id,
         calendarId: event.calendarId
       };

@@ -307,28 +307,73 @@ html * {
 
 #clock-view {
   width: 100%;
-  height: 100%;
+  height: -moz-calc(100% - 0.2rem);
   color: black;
-  background-image: url(images/clock_bg.png);
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
+  background-image: url(images/clock_background.png);
+  background-size: cover;
+  background-position: center;
   border-bottom: 0.2rem solid #ACACAC;
   text-align: center;
 }
 
-#digital-clock-bg {
-  background: none;
+#analog-clock {
+  display: none;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
 }
 
-#digital-clock-bg.visible {
+#analog-clock.visible {
+  display: block;
+}
+
+.analog-clock-background-cache {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
+  display: none;
+  pointer-events: none;
+}
+
+.visible {
+  display: block;
+}
+
+#analog-clock-background-cache1 {
+  background-image: url(images/analog_clock_background1.png);
+}
+
+#analog-clock-background-cache2 {
+  background-image: url(images/analog_clock_background2.png);
+}
+
+#analog-clock-background-cache3 {
+  background-image: url(images/analog_clock_background3.png);
+}
+
+#analog-clock-background-cache4 {
+  background-image: url(images/analog_clock_background4.png);
+}
+
+#digital-clock-background {
+  height: 100%;
+  background-image: none;
+  display: none;
+}
+
+#digital-clock-background.visible {
   height: 48%;
   background-size: 100% 100%;
   background-image: url(images/digital_clock_bg.png);
   box-shadow: 0 0.4rem 0.6rem -0.6rem black;
+  display: block;
 }
 
 #digital-clock {
-  margin-top: 11%;
+  margin-top: 9.8rem;
   display: none;
 }
 
@@ -338,91 +383,79 @@ html * {
 
 #digital-clock-display {
   position: absolute;
-  margin-left: 13%;
-  background-image: none;
-  background-repeat: no-repeat;  
-  background-position: 103% -4%;
-  background-size: 13% auto;
-}
-
-#digital-clock-display.alarm-set-indicator {
-  background-image: url(images/alarm_indicator.png);
+  width: 100%;
+  margin: auto;
 }
 
 #clock-time {
-  font: 100 12rem 'Open Sans', sans-serif;
-  line-height: 12rem;
+  font: 100 15rem/19rem 'Open Sans', sans-serif;
   color: #26292a;
   pointer-events: none;
 }
 
 #clock-hour24-state {
-  font: 100 3rem 'Open Sans', sans-serif;
-  line-height: 3rem;
+  font: 100 5rem/5rem 'Open Sans', sans-serif;
   color: #313334;
   text-transform:lowercase;
   pointer-events: none;
 }
 
-#clock-day {
+#clock-hour24-state.alarm-set-indicator::after {
+  position: absolute;
+  content: "";
+  background-image: url("images/alarm_indicator.png");
+  background-size: 100% auto;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin-top: 1.6rem;
+  margin-left: -4rem;
+}
+
+#clock-day-date {
+  position: absolute;
+  width: 100%;
   margin: auto;
+}
+
+#clock-day {
   font: 100 2.5rem 'Open Sans', sans-serif;
   line-height: 9.8rem;
 }
 
 #clock-date {
-  margin: auto;
   font: normal 2.5rem 'Open Sans', sans-serif;
   line-height: 9.8rem;
 }
 
-#analog-clock {
-  height: auto;
-  max-height: 47rem;
-  margin: auto;
-  display: none;
-}
-
-#analog-clock.visible {
-  display: block;
+#analog-clock-container {
+  width: 100%;
+  height: -moz-calc(100% - 9.8rem);
+  margin: 9.8rem auto auto;
+  position: absolute;
 }
 /* These CSS styles all apply to the SVG clock elements */
 #analog-clock-svg { /* styles for everything in the clock */
   stroke: black; /* black lines */
   stroke-linecap: butt; /* with butt ends */
   fill: transparent; /* on a transparent background */
-  height: -moz-calc(100% - 1rem); /* 1 rem to avoid the second hand overlay the alarm list */
-  pointer-events: none;
-}
-#face {  /* clock face outline */ 
-  stroke-width: 0.015rem;
-  stroke: #4D4D4D;
-  fill: #c5c5c5;
-  opacity: 0.2;
-  pointer-events: none;
-}
-#ticks {
-  stroke: #50585b;
-  stroke-width: 0.10rem;
-}
-#tick12 {
-  stroke-width: 0.15rem;
-}
-#tick3, #tick9 {
-  stroke-width: 0.012rem;
-  stroke: #4D4D4D;
-  fill: #ffffff;
-  opacity: 0.7;
 }
 #hands {
   pointer-events: none;
 }
-#hourhand {stroke-width: 0.25rem; stroke: #2e3334; } /* wide hour hand */
-#minutehand {stroke-width: 0.25rem; stroke: #424f54;} /* wide minute hand */
-#secondhand {stroke-width: 0.08rem; stroke: #02accd;} /* narrow blue second hand */
-#backboardCentralPoint {stroke-width: 0.005rem; stroke: #dcdcdc; fill: #dcdcdc;} /* light-gray central point*/
-#minutehandCentralPoint {stroke-width: 0.005rem; stroke: #424f54; fill: #424f54;} /* dark-gray central point*/
-#secondhandCentralPoint {stroke-width: 0.005rem; stroke: #02accd; fill: #02accd;} /* blue central point */
+#secondhand { /* narrow blue second hand */
+  stroke-width: 0.08rem; 
+  stroke: #00abcd;
+}
+#minutehandCentralPoint { /* dark-gray central point*/
+  stroke-width: 0.005rem; 
+  stroke: #4f5b5f; 
+  fill: #4f5b5f;
+}
+#secondhandCentralPoint { /* blue central point */
+  stroke-width: 0.005rem; 
+  stroke: #00abcd; 
+  fill: #00abcd;
+}
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
@@ -433,8 +466,17 @@ body.hidden *[data-l10n-id] {
   html {
     font-size: 6px;
   }
-  #face {
-    stroke-width: 0.13rem; /* increase stroke-width on low-resolution platform */
+  #analog-clock-svg-body.alarm1 {
+    transform: matrix(1,0,0,1,0,0);
+  }
+  #analog-clock-svg-body.alarm2 {
+    transform: matrix(0.85,0,0,0.85,0,-7);
+  }
+  #analog-clock-svg-body.alarm3 {
+    transform: matrix(0.65,0,0,0.65,0,-16.5);
+  }
+  #analog-clock-svg-body.alarm4 {
+    transform: matrix(0.46,0,0,0.46,0,-25.5);
   }
 }
 
@@ -442,5 +484,17 @@ body.hidden *[data-l10n-id] {
 @media screen and (width: 480px) {
   html {
     font-size: 10px;
+  }
+  #analog-clock-svg-body.alarm1 {
+    transform: matrix(1.13,0,0,1.13,0,7);
+  }
+  #analog-clock-svg-body.alarm2 {
+    transform: matrix(0.96,0,0,0.96,0,-1);
+  }
+  #analog-clock-svg-body.alarm3 {
+    transform: matrix(0.74,0,0,0.74,0,-11.5);
+  }
+  #analog-clock-svg-body.alarm4 {
+    transform: matrix(0.52,0,0,0.52,0,-21.5);
   }
 }
